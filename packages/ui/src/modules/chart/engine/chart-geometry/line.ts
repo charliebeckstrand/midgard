@@ -6,9 +6,9 @@
  * isolation.
  */
 
+import type { DrawnSeries } from '../chart-cartesian/series'
 import { coord } from '../chart-coords'
 import type { ChartLineSeries } from '../chart-marks/line'
-import type { DrawnSeries } from '../use-chart-cartesian'
 
 /** How a line connects its points: straight or a rounded monotone curve. */
 export type LineInterpolation = 'linear' | 'smooth'

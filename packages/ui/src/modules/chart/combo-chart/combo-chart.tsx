@@ -1,6 +1,7 @@
 'use client'
 
 import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
+import { barProjection, drawnSeries } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
@@ -26,12 +27,7 @@ import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import { ChartValueLabels, cartesianValueLabels } from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
-import {
-	barProjection,
-	cartesianData,
-	drawnSeries,
-	useChartCartesian,
-} from '../engine/use-chart-cartesian'
+import { cartesianData, useChartCartesian } from '../engine/use-chart-cartesian'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**

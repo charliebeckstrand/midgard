@@ -1,6 +1,7 @@
 'use client'
 
 import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
+import { type DrawnSeries, drawnSeries } from '../engine/chart-cartesian/series'
 import type { Crosshair } from '../engine/chart-crosshair'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
@@ -28,12 +29,7 @@ import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import { ChartValueLabels, cartesianValueLabels } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
-import {
-	cartesianData,
-	type DrawnSeries,
-	drawnSeries,
-	useChartCartesian,
-} from '../engine/use-chart-cartesian'
+import { cartesianData, useChartCartesian } from '../engine/use-chart-cartesian'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
