@@ -6,8 +6,6 @@ import { selectedIndices } from '../../modules/chart/engine/chart-series'
 import { chartMarkEmphasis } from '../../modules/chart/engine/context'
 import { sliceGroupClass } from '../../modules/chart/sector-chart/sector-chart-marks'
 
-const noop = () => {}
-
 describe('selectedIndices', () => {
 	it('resolves the selected categories to data indices, as text', () => {
 		expect(selectedIndices(['North', 'South', 'West', 2024], ['South', '2024'])).toEqual(
@@ -26,7 +24,7 @@ describe('chartMarkEmphasis with a held selection', () => {
 	const selected = new Set([1])
 
 	it('lights the selected data, and keeps a whole series lit', () => {
-		const { lit } = chartMarkEmphasis(null, null, noop, selected)
+		const { lit } = chartMarkEmphasis(null, null, selected)
 
 		expect([lit(0, 0), lit(0, 1), lit(1, 1)]).toEqual([false, true, true])
 
@@ -35,7 +33,7 @@ describe('chartMarkEmphasis with a held selection', () => {
 	})
 
 	it('ignores the pointer while a selection is held, and keeps the pointed mark', () => {
-		const { lit, mark } = chartMarkEmphasis({ series: 0, datum: 2 }, null, noop, selected)
+		const { lit, mark } = chartMarkEmphasis({ series: 0, datum: 2 }, null, selected)
 
 		expect([lit(0, 1), lit(0, 2)]).toEqual([true, false])
 
@@ -44,13 +42,13 @@ describe('chartMarkEmphasis with a held selection', () => {
 	})
 
 	it('lets the pointer isolate a mark when nothing is selected', () => {
-		const { lit } = chartMarkEmphasis({ series: 0, datum: 2 }, null, noop, null)
+		const { lit } = chartMarkEmphasis({ series: 0, datum: 2 }, null, null)
 
 		expect([lit(0, 1), lit(0, 2)]).toEqual([false, true])
 	})
 
 	it('applies a legend series and the selection together', () => {
-		const { lit, mark } = chartMarkEmphasis(null, 1, noop, selected)
+		const { lit, mark } = chartMarkEmphasis(null, 1, selected)
 
 		expect([lit(0, 1), lit(1, 0), lit(1, 1)]).toEqual([false, false, true])
 
@@ -58,7 +56,7 @@ describe('chartMarkEmphasis with a held selection', () => {
 	})
 
 	it('lights each mark with no selection', () => {
-		const { lit } = chartMarkEmphasis(null, null, noop, null)
+		const { lit } = chartMarkEmphasis(null, null, null)
 
 		expect([lit(0, 0), lit(3, 9)]).toEqual([true, true])
 	})

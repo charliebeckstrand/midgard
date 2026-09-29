@@ -26,6 +26,36 @@ function chart(extra?: Partial<Parameters<typeof LineChart<(typeof DATA)[number]
 }
 
 describe('LineChart', () => {
+	it('keeps a tooltip row for each series when two share a name', () => {
+		const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Twins"
+				data={[
+					{ w: 'W1', a: 1, b: 2 },
+					{ w: 'W2', a: 3, b: 4 },
+				]}
+				series={[
+					{ xKey: 'w', yKey: 'a', yName: 'Same' },
+					{ xKey: 'w', yKey: 'b', yName: 'Same' },
+				]}
+				width={400}
+				crosshair={{ x: false, y: true, snap: true }}
+			/>,
+		)
+
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 100, clientY: 100 })
+
+		expect(allBySlot(container, 'chart-tooltip-row')).toHaveLength(2)
+
+		const duplicate = errors.mock.calls.some((call) => String(call[0]).includes('same key'))
+
+		errors.mockRestore()
+
+		expect(duplicate).toBe(false)
+	})
+
 	it('draws one line per series with line-swatched legend keys', () => {
 		const { container } = renderUI(chart())
 

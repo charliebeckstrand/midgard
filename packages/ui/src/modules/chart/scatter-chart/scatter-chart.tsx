@@ -45,6 +45,7 @@ import {
 	sizeRadius,
 	uniqueXValues,
 } from '../engine/chart-geometry/scatter'
+import { ChartHitArea } from '../engine/chart-hit-area'
 import {
 	axisTitleAt,
 	type ChartAspectRatio,
@@ -70,11 +71,9 @@ import { type LinearScale, linearScale } from '../engine/chart-scale'
 import { snapTargets } from '../engine/chart-snap'
 import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
-import { useChartTier } from '../engine/context'
 import type { ChartBaseProps, ChartReadout, ScatterChartSeries } from '../engine/types'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
-import { ScatterChartHitArea } from './scatter-chart-hit-area'
 import {
 	AnimatedScatterChartMarks,
 	type ChartScatterSeries,
@@ -547,11 +546,9 @@ function ScatterChrome(props: {
  * The scatter's pointer hit layer, mounted only where the chart is interactive.
  * It mounts over the columns when a tooltip, a crosshair, or `onPointClick`
  * asks for the pointer.
- * It never mounts at the spark tier, read through {@link ChartTierContext}, so
- * the frame decides. There a sparkline is non-interactive: its marks take no
- * hover or click. The crosshair and tooltip that ride this hover stand down
- * with it (the keyboard is already off at spark). Off the render so its gates stay out
- * of the frame's body, the way {@link ScatterChrome} keeps the chrome's.
+ * The hit area stands itself down at the spark tier, where a sparkline takes no
+ * hover or click. Off the render so its gates stay out of the frame's body, the
+ * way {@link ScatterChrome} keeps the chrome's.
  * @internal
  */
 function ScatterHitLayer(props: {
@@ -574,16 +571,12 @@ function ScatterHitLayer(props: {
 }) {
 	const { plot, tooltip, crosshair, centers, marks, indices, stops, trigger, onPointClick } = props
 
-	const spark = useChartTier() === 'spark'
-
-	if (spark || centers.length === 0 || !(tooltip || crosshair !== null || onPointClick)) {
-		return null
-	}
+	if (centers.length === 0 || !(tooltip || crosshair !== null || onPointClick)) return null
 
 	const snapping = crosshairSnaps(crosshair)
 
 	return (
-		<ScatterChartHitArea
+		<ChartHitArea
 			plot={plot}
 			centers={centers}
 			markAt={(x, y, held, index) => {

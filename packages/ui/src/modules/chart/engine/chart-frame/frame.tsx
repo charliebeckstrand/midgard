@@ -30,7 +30,9 @@ import {
 	ChartHoverContext,
 	type ChartHoverState,
 	ChartMarkEmphasisContext,
+	ChartMarkPointContext,
 	type ChartMarkRef,
+	ChartReferencePointContext,
 	ChartSeriesEmphasisContext,
 	ChartSeriesFocusContext,
 	ChartTierContext,
@@ -422,12 +424,7 @@ export function ChartFrame({
 	// index wins over a still-held keyboard focus, and the sibling rules recede to
 	// whichever it resolves to.
 	const emphasis = useMemo<ChartEmphasis>(
-		() => ({
-			referenceActive: pointerReference !== null || activeReference !== null,
-			setReferenceActive: setPointerReference,
-			activeReference,
-			emphasizedReference: pointerReference ?? activeReference,
-		}),
+		() => ({ activeReference, emphasizedReference: pointerReference ?? activeReference }),
 		[pointerReference, activeReference],
 	)
 
@@ -437,8 +434,8 @@ export function ChartFrame({
 	const markSeries = emphasizeMarks ? seriesEmphasis : null
 
 	const markEmphasis = useMemo(
-		() => chartMarkEmphasis(pointedMark, markSeries, pointMark, selected),
-		[pointedMark, markSeries, pointMark, selected],
+		() => chartMarkEmphasis(pointedMark, markSeries, selected),
+		[pointedMark, markSeries, selected],
 	)
 
 	// The SVG renders at its committed pixel size and anchors to the box's
@@ -543,23 +540,27 @@ export function ChartFrame({
 		>
 			<ChartTierContext value={tier ?? 'standard'}>
 				<ChartEmphasisContext value={emphasis}>
-					<ChartMarkEmphasisContext value={markEmphasis}>
-						<ChartSeriesFocusContext value={setSeriesFocus}>
-							<ChartSeriesEmphasisContext value={seriesEmphasis}>
-								<ChartHoverContext value={hoverStore}>
-									<ChartFigure
-										plot={plotRegion}
-										header={header}
-										legend={legendFrame}
-										legendPlacement={legendPlacement}
-										aside={aside}
-										containerFill={containerFill}
-										aspect={aspect}
-									/>
-								</ChartHoverContext>
-							</ChartSeriesEmphasisContext>
-						</ChartSeriesFocusContext>
-					</ChartMarkEmphasisContext>
+					<ChartReferencePointContext value={setPointerReference}>
+						<ChartMarkEmphasisContext value={markEmphasis}>
+							<ChartMarkPointContext value={pointMark}>
+								<ChartSeriesFocusContext value={setSeriesFocus}>
+									<ChartSeriesEmphasisContext value={seriesEmphasis}>
+										<ChartHoverContext value={hoverStore}>
+											<ChartFigure
+												plot={plotRegion}
+												header={header}
+												legend={legendFrame}
+												legendPlacement={legendPlacement}
+												aside={aside}
+												containerFill={containerFill}
+												aspect={aspect}
+											/>
+										</ChartHoverContext>
+									</ChartSeriesEmphasisContext>
+								</ChartSeriesFocusContext>
+							</ChartMarkPointContext>
+						</ChartMarkEmphasisContext>
+					</ChartReferencePointContext>
 				</ChartEmphasisContext>
 			</ChartTierContext>
 

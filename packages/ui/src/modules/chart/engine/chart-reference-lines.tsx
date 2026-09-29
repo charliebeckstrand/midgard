@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
+import { useEffect, useRef } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn, dataAttr } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
@@ -21,7 +22,7 @@ import type { ChartLegendReference } from './chart-legend/legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
-import { useChartEmphasis, useChartTier } from './context'
+import { useChartEmphasis, useChartReferencePoint, useChartTier } from './context'
 
 /**
  * One reference line: a value-axis annotation drawn across the plot — a target,
@@ -290,7 +291,22 @@ function HoverReferenceRule({
 	format,
 	rise,
 }: ReferenceRuleProps) {
-	const { setReferenceActive, activeReference, emphasizedReference } = useChartEmphasis()
+	const { activeReference, emphasizedReference } = useChartEmphasis()
+
+	const setReferenceActive = useChartReferencePoint()
+
+	// Whether the pointer rests on this rule. A rule that unmounts under the
+	// pointer (a live `reference` update, a spark resize) gets no `pointerleave`,
+	// so its unmount clears the emphasis it holds. Only the handlers and the
+	// cleanup read it.
+	const pointed = useRef(false)
+
+	useEffect(
+		() => () => {
+			if (pointed.current) setReferenceActive(null)
+		},
+		[setReferenceActive],
+	)
 
 	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
 
@@ -326,8 +342,16 @@ function HoverReferenceRule({
 					data-slot="chart-reference-line"
 					data-focused={dataAttr(focused)}
 					className={cn('transition-opacity', receded && 'opacity-25')}
-					onPointerEnter={() => setReferenceActive(index)}
-					onPointerLeave={() => setReferenceActive(null)}
+					onPointerEnter={() => {
+						pointed.current = true
+
+						setReferenceActive(index)
+					}}
+					onPointerLeave={() => {
+						pointed.current = false
+
+						setReferenceActive(null)
+					}}
 				>
 					{rise ? (
 						<motion.g {...rise} transition={REFERENCE_RISE}>

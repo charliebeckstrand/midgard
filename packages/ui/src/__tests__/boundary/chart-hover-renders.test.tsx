@@ -206,6 +206,40 @@ describe('Chart hover renders', () => {
 		expect(renders.legend).toBe(0)
 
 		expect(renders.axis).toBe(0)
+
+		// The hit rect writes the pointed mark through a setter that keeps its
+		// identity, so a crossing from bar to bar does not render it.
+		expect(renders.pointer).toBe(0)
+	})
+
+	it('holds the legend while the pointer rests on a reference rule', async () => {
+		const { container } = renderUI(
+			bars({ legend: true, reference: [{ value: 50, label: 'Target' }] }),
+		)
+
+		await act(async () => {})
+
+		expectLive('legend')
+
+		resetRenders()
+
+		const rule = getSlot(container, 'chart-reference-line')
+
+		act(() => {
+			fireEvent.pointerEnter(rule)
+		})
+
+		// The marks recede to the rule, and the legend, which writes the same
+		// emphasis, does not render for it.
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain('opacity-25')
+
+		act(() => {
+			fireEvent.pointerLeave(rule)
+		})
+
+		await act(async () => {})
+
+		expect(renders.legend).toBe(0)
 	})
 
 	it('holds the axes through a legend hover', async () => {

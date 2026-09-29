@@ -6,35 +6,49 @@ import type { ResolvedCrosshair } from './chart-crosshair'
 import type { PlotRect } from './chart-layout'
 import { bandCoord, type ChartOrientation } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
+import { nearestStopIndex } from './chart-snap'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartTier } from './context'
-import { useChartPointer } from './use-chart-pointer'
+import { type ChartMarkAt, useChartPointer } from './use-chart-pointer'
+
+/**
+ * How the hit layer resolves the hover index: the band under the pointer on a
+ * band chart, or the nearest unique-x column on a scatter.
+ *
+ * @internal
+ */
+type ChartHitIndex =
+	| {
+			band: BandScale
+			count: number
+			/**
+			 * Which axis the band runs along, so the pointer resolves the right coordinate.
+			 * @defaultValue 'vertical'
+			 */
+			orientation?: ChartOrientation
+			centers?: never
+	  }
+	| {
+			/** The screen positions of the unique x values; the index snaps to the nearest. */
+			centers: number[]
+			band?: never
+			count?: never
+			orientation?: never
+	  }
 
 /** Props for {@link ChartHitArea}. @internal */
-export type ChartHitAreaProps = {
+export type ChartHitAreaProps = ChartHitIndex & {
 	plot: PlotRect
-	band: BandScale
-	count: number
 	/**
-	 * The chart's mark hit test: the mark under the point, a bar or a line, that
-	 * isolation lifts and every other mark recedes behind. It is `null` off the
-	 * marks, which is also where the tooltip stays shut. `held` carries the mark
-	 * currently emphasized, so a bounded catch can stay sticky across the midline
-	 * between two overlapping catches. The `index` carries the resolved category,
-	 * so a snapping chart can hand the emphasis to the stop the tooltip anchors in
-	 * that column.
+	 * The chart's mark hit test: the mark under the point, a bar, a line, or a
+	 * disc, that isolation lifts and every other mark recedes behind. It is `null`
+	 * off the marks, which is also where the tooltip stays shut. `held` carries
+	 * the mark currently emphasized, so a bounded catch can stay sticky across the
+	 * midline between two overlapping catches. The `index` carries the resolved
+	 * category, so a snapping chart can hand the emphasis to the stop the tooltip
+	 * anchors in that column.
 	 */
-	markAt?: (
-		x: number,
-		y: number,
-		held: ChartMarkRef | null,
-		index: number | null,
-	) => ChartMarkRef | null
-	/**
-	 * Which axis the band runs along, so the pointer resolves the right coordinate.
-	 * @defaultValue 'vertical'
-	 */
-	orientation?: ChartOrientation
+	markAt: ChartMarkAt
 	/**
 	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
 	 * — which also points the cursor at the marks a click can read.
@@ -55,13 +69,16 @@ export type ChartHitAreaProps = {
 	 * pointer cursor across the plot so the bands read as clickable.
 	 */
 	onIndexClick?: (index: number) => void
+	/** Reports a click on a mark, through the same hit test the isolation uses: a scatter point. */
+	onMarkClick?: (mark: ChartMarkRef) => void
 }
 
 /**
  * The transparent rectangle over the plot that feeds the hover context. The
  * whole band is the hit target, so readers aim at a category, never at a 2px
  * mark. Rendered inside the frame, after the marks, so it wins the pointer
- * without occluding anything.
+ * without occluding anything. A scatter resolves the nearest unique-x column in
+ * place of a band, because its x values arrive at whatever spacing the data has.
  *
  * Self-gating at spark through {@link ChartTierContext}. A sparkline is
  * read-only, so no hit rect mounts, nor the pointer plumbing behind it. The
@@ -82,28 +99,34 @@ function ChartHitRect({
 	plot,
 	band,
 	count,
-	markAt,
 	orientation = 'vertical',
+	centers,
+	markAt,
 	trigger = 'hover',
 	snaps = false,
 	onIndexClick,
+	onMarkClick,
 }: ChartHitAreaProps) {
 	// The band runs across x when vertical, down y when horizontal, so the index
 	// reads whichever coordinate the orientation puts the band on.
 	const resolveIndex = useCallback(
-		(x: number, y: number) => nearestBandIndex(bandCoord(orientation, { x, y }), band, count),
-		[band, count, orientation],
+		(x: number, y: number) => {
+			if (centers) return nearestStopIndex(centers, x)
+
+			return band ? nearestBandIndex(bandCoord(orientation, { x, y }), band, count ?? 0) : null
+		},
+		[centers, band, count, orientation],
 	)
 
-	const { ref, ...handlers } = useChartPointer(
+	const { ref, ...handlers } = useChartPointer({
 		plot,
 		resolveIndex,
-		undefined,
+		markAt,
 		trigger,
 		snaps,
 		onIndexClick,
-		markAt,
-	)
+		onMarkClick,
+	})
 
 	return (
 		<rect
@@ -115,7 +138,9 @@ function ChartHitRect({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(((trigger === 'click' && snaps) || onIndexClick) && 'cursor-pointer')}
+			className={cn(
+				((trigger === 'click' && snaps) || onIndexClick || onMarkClick) && 'cursor-pointer',
+			)}
 			{...handlers}
 		/>
 	)

@@ -43,13 +43,13 @@ export type ChartMarksLayerProps = {
  * @internal
  */
 export function ChartMarksLayer({ animate, dataKey, children }: ChartMarksLayerProps) {
-	const { referenceActive } = useChartEmphasis()
+	const { emphasizedReference } = useChartEmphasis()
 
 	// Called unconditionally to keep the hook order stable across the static and
 	// animated branches; only the animated branch reads it.
 	const reducedMotion = usePrefersReducedMotion()
 
-	const className = cn('transition-opacity', referenceActive && 'opacity-25')
+	const className = cn('transition-opacity', emphasizedReference !== null && 'opacity-25')
 
 	if (!animate) {
 		return (

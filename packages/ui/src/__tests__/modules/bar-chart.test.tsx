@@ -224,6 +224,87 @@ describe('BarChart', () => {
 		expect(clicks).toEqual(['Q1'])
 	})
 
+	it('keeps the band-click cursor over the bare band under the click trigger', () => {
+		const { container } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, onCategoryClick: () => {} }),
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// Above the bars a click still reports the band, so the cursor stays a pointer.
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 20 })
+
+		expect(hit.style.cursor).not.toBe('default')
+	})
+
+	it('clears the readout and the crosshair when the hit layer unmounts under the pointer', () => {
+		const { container, rerender } = renderUI(chart({ crosshair: { x: true, y: true } }))
+
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 280, clientY: 100 })
+
+		expect(bySlot(container, 'chart-crosshair')).not.toBeNull()
+
+		// The data goes empty, so the hit layer unmounts with no pointer event.
+		rerender(chart({ crosshair: { x: true, y: true }, data: [] }))
+
+		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+
+		rerender(chart({ crosshair: { x: true, y: true } }))
+
+		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+	})
+
+	it('draws no crosshair at a pinned band that the data no longer holds', () => {
+		const { container, rerender } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, crosshair: { x: true, y: true } }),
+		)
+
+		fireEvent.click(getSlot(container, 'chart-hit'), { clientX: 280, clientY: 100 })
+
+		expect(bySlot(container, 'chart-crosshair')).not.toBeNull()
+
+		rerender(
+			chart({
+				tooltip: { trigger: 'click' },
+				crosshair: { x: true, y: true },
+				data: DATA.slice(0, 2),
+			}),
+		)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+	})
+
+	it('maps the pointer through a scaled box, as under an ancestor zoom', () => {
+		const { container } = renderUI(chart())
+
+		const hit = getSlot(container, 'chart-hit')
+
+		const plotWidth = Number(hit.getAttribute('width'))
+
+		const plotHeight = Number(hit.getAttribute('height'))
+
+		// The box of the hit rect on screen is twice the size of the plot.
+		hit.getBoundingClientRect = () =>
+			({
+				left: 0,
+				top: 0,
+				right: plotWidth * 2,
+				bottom: plotHeight * 2,
+				width: plotWidth * 2,
+				height: plotHeight * 2,
+				x: 0,
+				y: 0,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// A quarter across the box is a quarter across the plot: the first band.
+		fireEvent.pointerMove(hit, { clientX: plotWidth / 2, clientY: plotHeight * 1.8 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q1')
+	})
+
 	it('dismisses on an off-mark click without stranding the band (no snap)', () => {
 		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
 

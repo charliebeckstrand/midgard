@@ -11,7 +11,7 @@ import { ariaAttr, cn, dataAttr } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks/a11y'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
-import { useChartEmphasis, useChartSeriesFocus } from '../context'
+import { useChartReferencePoint, useChartSeriesFocus } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
 import { type LegendEmphasis, LegendSwitch, useLegendEmphasis } from './legend-switch'
 
@@ -592,7 +592,7 @@ export function ChartLegend({
 	// or keyboard focus recedes the data marks and the rule's siblings to it, the
 	// same emphasis as pointing the rule. Present whenever the legend is inside a
 	// chart.
-	const { setReferenceActive } = useChartEmphasis()
+	const setReferenceActive = useChartReferencePoint()
 
 	// The chips take the same pointer and focus rule as the series switches. Chips
 	// render in `references` order, so a focused chip's position names its entry.

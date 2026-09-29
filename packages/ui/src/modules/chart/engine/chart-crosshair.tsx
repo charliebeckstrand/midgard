@@ -57,6 +57,14 @@ export type Crosshair = {
  */
 export type ResolvedCrosshair = Required<Crosshair>
 
+/** The presentation of both crosshair rules, built once for every render. @internal */
+const CROSSHAIR_RULE = {
+	strokeWidth: 1,
+	strokeDasharray: '4 4',
+	shapeRendering: 'crispEdges',
+	className: cn(k.axis.line),
+} as const
+
 /** Props for {@link ChartCrosshair}. @internal */
 export type ChartCrosshairProps = {
 	plot: PlotRect
@@ -134,14 +142,9 @@ export function ChartCrosshair({
 
 	const { index, point } = useChartHover()
 
-	if (spark || index === null || point === null) return null
-
-	const rule = {
-		strokeWidth: 1,
-		strokeDasharray: '4 4',
-		shapeRendering: 'crispEdges' as const,
-		className: cn(k.axis.line),
-	}
+	// A pinned index can outlive the data that held it. The tooltip closes there,
+	// so the crosshair draws nothing either.
+	if (spark || index === null || point === null || index >= bandPositions.length) return null
 
 	const rawValue = crosshair.snap
 		? nearestValue(valuePoints[index], valueCoord(orientation, point))
@@ -184,7 +187,7 @@ export function ChartCrosshair({
 					y1={valueRule.from.y}
 					x2={valueRule.to.x}
 					y2={valueRule.to.y}
-					{...rule}
+					{...CROSSHAIR_RULE}
 				/>
 			)}
 
@@ -195,7 +198,7 @@ export function ChartCrosshair({
 					y1={bandRule.from.y}
 					x2={bandRule.to.x}
 					y2={bandRule.to.y}
-					{...rule}
+					{...CROSSHAIR_RULE}
 				/>
 			)}
 		</g>
