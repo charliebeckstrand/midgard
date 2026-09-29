@@ -7,8 +7,8 @@
  */
 
 import type { DrawnSeries } from '../chart-cartesian/series'
+import type { ChartPaint } from '../chart-color/paint'
 import { coord } from '../chart-coords'
-import type { ChartLineSeries } from '../chart-marks/line'
 
 /** How a line connects its points: straight or a rounded monotone curve. */
 export type LineInterpolation = 'linear' | 'smooth'
@@ -144,6 +144,19 @@ export type LineSeriesGeometry = {
 	runs: LinePoint[][]
 	/** Points with a gap on both sides — invisible without a marker, so they always get one. */
 	isolated: LinePoint[]
+}
+
+/** One line series' render inputs. @internal */
+export type ChartLineSeries = {
+	/** The series' own index in the caller's list — the React key, stable across toggles and unique where two series share a label. */
+	index: number
+	label: string
+	paint: ChartPaint
+	geometry: LineSeriesGeometry
+	/** Mark every point, not only the isolated ones. */
+	markers: boolean
+	/** Dash the connecting stroke — the reference-line dash — leaving fill and markers untouched. */
+	dashed?: boolean
 }
 
 /**

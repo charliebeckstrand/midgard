@@ -37,7 +37,7 @@ import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legen
 import { legendAside, legendBands, type ResolvedLegend } from './chart-legend/schema'
 import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
-import { referenceLegendItems } from './chart-reference-lines'
+import { referenceLegendItems } from './chart-reference'
 import type { BandScale, LinearScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'

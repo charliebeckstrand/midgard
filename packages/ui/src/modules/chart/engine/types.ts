@@ -19,7 +19,7 @@ import type { ChartContextMenuConfig } from './chart-context-menu'
 import type { Crosshair } from './chart-crosshair'
 import type { ChartAspectRatio } from './chart-frame/sizing'
 import type { ChartLegendConfig, ChartLegendPlacement } from './chart-legend/schema'
-import type { ChartReferenceLine } from './chart-reference-lines'
+import type { ChartReferenceLine } from './chart-reference'
 import type { ChartTooltipConfig } from './chart-tooltip'
 
 /** A key of `T` naming the field a chart reads from each datum. */

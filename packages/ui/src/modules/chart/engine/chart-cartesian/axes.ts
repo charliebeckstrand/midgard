@@ -8,7 +8,7 @@
 import { compactFormat, fractionFormat } from '../../../../utilities'
 import type { CartesianAxes, ChartValueAxisId } from '../chart-axes/schema'
 import type { CartesianLayout, ChartValueAxisInput } from '../chart-layout'
-import type { ChartReferenceLine } from '../chart-reference-lines'
+import type { ChartReferenceLine } from '../chart-reference'
 import { bandBoundaries, type LinearScale } from '../chart-scale'
 import type { SeriesMeta } from '../chart-series'
 import type { CartesianChartProps } from '../types'

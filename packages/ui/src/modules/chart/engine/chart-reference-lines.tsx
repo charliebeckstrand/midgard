@@ -5,11 +5,9 @@ import { type ReactNode, useEffect, useRef } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn, dataAttr } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
-import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
+import { k } from '../../../recipes/kata/chart'
 import { keyByOccurrence } from '../../../utilities'
-import type { ChartValueAxisId } from './chart-axes/schema'
 import {
-	type ChartColor,
 	type ChartPaint,
 	fillClass,
 	rawColor,
@@ -19,58 +17,16 @@ import {
 } from './chart-color/paint'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import { LABEL_HEIGHT, LABEL_OFFSET, labelBesideY } from './chart-geometry/label'
-import type { ChartLegendReference } from './chart-legend/legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
 import { bandExtent, type ChartOrientation, type PlotRect, project } from './chart-orientation'
+import {
+	type ChartReferenceLine,
+	DEFAULT_REFERENCE_COLOR,
+	type ReferenceFormat,
+} from './chart-reference'
 import type { LinearScale } from './chart-scale'
 import { seriesGroupClass } from './chart-series'
 import { useChartEmphasis, useChartReferencePoint, useChartTier } from './context'
-
-/**
- * One reference line: a value-axis annotation drawn across the plot — a target,
- * threshold, budget, or average to read the marks against. It sits at a raw
- * domain `value`, so its position tracks the scale. The value also folds into
- * the domain, keeping an off-data target on-frame rather than clamped to an
- * edge.
- */
-export type ChartReferenceLine = {
-	/** The domain value the line sits at, in the same units the series are read in. */
-	value: number
-	/**
-	 * A short label naming the rule. It is carried in its hover tooltip and legend
-	 * chip. It is also drawn beside the rule at its far end, once a chart's
-	 * `labels.references` is on. Omitted, the rule reads by its value alone.
-	 */
-	label?: string
-	/**
-	 * The rule's color: a named palette slot (rendered through the CVD-safe slot
-	 * classes), or any raw CSS color string applied inline. That is a hex like
-	 * `'#e11d48'`, an `'oklch(…)'`, or any value CSS accepts. Defaults to the
-	 * neutral de-emphasis slot, so a reference reads as chrome until colored for
-	 * emphasis.
-	 * @defaultValue 'zinc'
-	 */
-	color?: ChartColor
-	/**
-	 * Dash the rule — the annotation convention, telling a reference apart from a
-	 * data line — or draw it solid.
-	 * @defaultValue true
-	 */
-	dashed?: boolean
-	/**
-	 * The value axis the rule's `value` reads against. It folds into that
-	 * axis's domain and draws at that axis's projection, so a `y2` threshold
-	 * annotates the `y2`-bound series rather than the primary scale.
-	 * @defaultValue 'y'
-	 */
-	axis?: ChartValueAxisId
-}
-
-/** Formats a reference value with its own axis's formatter. @internal */
-type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
-
-/** The neutral de-emphasis slot a reference takes until colored. @internal */
-const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
 
 /**
  * The part of a cartesian chart that its reference rules read: the plot, the
@@ -553,37 +509,4 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 			))}
 		</ul>
 	)
-}
-
-/**
- * The legend entries for the reference lines: each finite rule's label, or its
- * value where it is unlabeled. Each is keyed to a line swatch in the rule's
- * color, a palette slot through its `text` class or a raw color inline. The
- * swatch is dashed to match the rule, unless the rule is drawn solid. All of it
- * resolves the same way the rule itself paints. The chart legend renders these
- * as switches beside the series switches when it shows, each toggling its rule
- * off; {@link ChartReferenceList} still carries the assistive-tech parity.
- *
- * @internal
- */
-export function referenceLegendItems(
-	reference: ChartReferenceLine[] | undefined,
-	format: ReferenceFormat,
-): ChartLegendReference[] {
-	return (reference ?? [])
-		.map((line, index) => ({ line, index }))
-		.filter(({ line }) => Number.isFinite(line.value))
-		.map(({ line, index }) => {
-			const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
-
-			const label = line.label ?? format(line.value, line.axis ?? 'y')
-
-			// Mirror the rule: dashed unless it is explicitly drawn solid.
-			const dashed = line.dashed !== false
-
-			// Carry the rule's own array index — the plot rules key their emphasis off
-			// it, and a non-finite rule dropped from the chips leaves a gap the plot
-			// keeps, so the chip must name the index rather than its own position.
-			return { index, label, swatchClass: textClass(paint) ?? '', color: rawColor(paint), dashed }
-		})
 }

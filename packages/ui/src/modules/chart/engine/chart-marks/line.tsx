@@ -14,7 +14,7 @@ import {
 	MARKER_RING_WIDTH,
 	REFERENCE_DASH,
 } from '../chart-constants'
-import type { LineSeriesGeometry } from '../chart-geometry/line'
+import type { ChartLineSeries } from '../chart-geometry/line'
 import {
 	AREA_FADE,
 	AREA_UNFADE,
@@ -27,19 +27,6 @@ import type { PlotRect } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
 import { seriesGroupClass } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'
-
-/** One line series' render inputs. @internal */
-export type ChartLineSeries = {
-	/** The series' own index in the caller's list — the React key, stable across toggles and unique where two series share a label. */
-	index: number
-	label: string
-	paint: ChartPaint
-	geometry: LineSeriesGeometry
-	/** Mark every point, not only the isolated ones. */
-	markers: boolean
-	/** Dash the connecting stroke — the reference-line dash — leaving fill and markers untouched. */
-	dashed?: boolean
-}
 
 /** Shared shape for the static and animated line renderers. @internal */
 export type ChartLineMarksProps = {

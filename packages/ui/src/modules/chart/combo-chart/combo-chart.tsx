@@ -7,18 +7,18 @@ import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/char
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
-import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
+import {
+	type ChartLineSeries,
+	type LineInterpolation,
+	lineSeriesOf,
+} from '../engine/chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
 import { resolveLegend } from '../engine/chart-legend/schema'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
-import {
-	AnimatedChartLineMarks,
-	ChartLineMarks,
-	type ChartLineSeries,
-} from '../engine/chart-marks/line'
+import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines, referenceStops } from '../engine/chart-reference-lines'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'

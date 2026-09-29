@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference-lines'
+import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference'
 import { LineChart } from '../../modules/chart/line-chart'
 import {
 	allBySlot,

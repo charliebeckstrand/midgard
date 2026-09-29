@@ -8,6 +8,7 @@ import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type StackedAreaGeometry, stackedAreas } from '../engine/chart-geometry/area'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import {
+	type ChartLineSeries,
 	type LineInterpolation,
 	type LineSeriesGeometry,
 	lineGeometry,
@@ -17,11 +18,7 @@ import { nearestSeriesArea } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
 import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
-import {
-	AnimatedChartLineMarks,
-	ChartLineMarks,
-	type ChartLineSeries,
-} from '../engine/chart-marks/line'
+import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines, referenceStops } from '../engine/chart-reference-lines'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
