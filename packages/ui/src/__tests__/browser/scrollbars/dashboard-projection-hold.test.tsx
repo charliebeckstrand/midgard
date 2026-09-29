@@ -14,11 +14,12 @@ import { getSlot, renderUI, screen } from '../../helpers'
  * does not depend on its height, so no loop can start.
  */
 describe('dashboard projection at a classic scrollbar (real browser, real scrollbars)', () => {
-	// Tile b starts 30 rows under tile a, so the saved board is 50 rows tall. The
-	// projection stacks the two tiles, and it is 20 rows tall.
+	// Tile b starts 35 rows under tile a, so the saved board is 45 rows tall. The
+	// projection stacks the two tiles, and each tile keeps its shape at the full
+	// width, so the projection is 20 rows tall.
 	const LAYOUT: DashboardLayoutItem[] = [
-		{ id: 'a', x: 0, y: 0, w: 12, h: 10 },
-		{ id: 'b', x: 12, y: 40, w: 12, h: 10 },
+		{ id: 'a', x: 0, y: 0, w: 12, h: 5 },
+		{ id: 'b', x: 12, y: 40, w: 12, h: 5 },
 	]
 
 	it('holds one state in a box 7 px wider than the threshold', async () => {
