@@ -22,8 +22,14 @@ export type Schema<Name extends keyof components['schemas']> = components['schem
  * @remarks
  * For Server Components and route handlers only, because `cookies()` reads the
  * incoming request. The session travels in the `cookie` header, so callers never
- * hold a token or name the gateway origin (CONVENTIONS.md §6.2). Each request
- * uses `cache: 'no-store'`.
+ * hold a token or name the gateway origin (CONVENTIONS.md §6.2).
+ *
+ * A request has no `cache` option. With Cache Components, a fetch without a
+ * `cache` option does not go into a cache, and it is dynamic. Do not give the
+ * `Request` an `init` such as `{ cache: 'no-store' }`. Next merges that `init`
+ * into the `Request`, and then it does not hold the fetch for the dynamic stage
+ * of the render. The read then ends in the runtime stage, where the `Date.now()`
+ * of the fetch is a prerender error.
  *
  * `P` is the paths type of a spec that the gateway serves. {@link bifrost} is
  * one. An app makes its own for a service that the gateway forwards to, such as
@@ -40,7 +46,7 @@ export function createGatewayClient<P extends {}>() {
 
 			request.headers.set('cookie', cookieStore.toString())
 
-			return fetch(request, { cache: 'no-store' })
+			return fetch(request)
 		},
 	})
 }
