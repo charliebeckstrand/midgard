@@ -210,6 +210,9 @@ export const PLACEHOLDER = '...'
  * controlled pair therefore reads `value={value} onValueChange={setValue}`,
  * rather than mixing a frozen live value with source-form wiring.
  *
+ * An element prop is the exception to "live first": it prints from its fact
+ * when one carries it, unless that source uses a name of a callback in the JSX.
+ *
  * A live `false` reads as absent and prints only from its fact: as
  * `key={false}` when the demo authors `false`, or as its identifier through
  * the consistency rule. Any other source drops it.
@@ -226,6 +229,23 @@ export function formatProps(
 
 	for (const [key, value] of Object.entries(props)) {
 		if (IGNORED_PROPS.has(key)) continue
+
+		// An element prop prints from its authored source when a fact carries it.
+		// The live form loses an identifier, such as `sidebar={sidebar}`, and the
+		// source reads as the demo wrote it. A source that uses a name of a callback
+		// in the JSX does not stand on its own, so the live form prints then.
+		const authored =
+			isValidElement(value) && !fact?.local?.includes(key) ? fact?.props[key] : undefined
+
+		if (authored !== undefined) {
+			slots.push({
+				key,
+				text: `${key}={${reindent(registerFactText(authored, context), indent + INDENT)}}`,
+				live: false,
+			})
+
+			continue
+		}
 
 		const live = formatLiveProp(key, value, context)
 
@@ -305,15 +325,9 @@ function formatLiveProp(key: string, value: unknown, context: Context): string |
 	if (typeof value === 'function') return undefined
 
 	if (isValidElement(value)) {
-		const name = getElementName(value, context)
+		const element = formatElement(value, context)
 
-		if (!name) return undefined
-
-		const childProps = formatProps(value.props as Record<string, unknown>, context)
-
-		const propStr = childProps.length > 0 ? ` ${childProps.join(' ')}` : ''
-
-		return `${key}={<${name}${propStr} />}`
+		return element === null ? undefined : `${key}={${element}}`
 	}
 
 	if (Array.isArray(value) && value.every(isPrimitive)) {
@@ -333,6 +347,36 @@ function formatLiveProp(key: string, value: unknown, context: Context): string |
 }
 
 const IDENTIFIER_RE = /^[A-Za-z_$][\w$]*$/
+
+/**
+ * The live form of an element prop's value, as inline JSX with its children.
+ * A text child prints as text, and an element child prints the same way. Returns
+ * null for an element whose type resolves to no name, and drops such a child.
+ */
+function formatElement(element: ReactElement, context: Context): string | null {
+	const name = getElementName(element, context)
+
+	if (!name) return null
+
+	const props = formatProps(element.props as Record<string, unknown>, context)
+
+	const open = props.length > 0 ? `<${name} ${props.join(' ')}` : `<${name}`
+
+	const children = elementChildren(element).flatMap((child) => {
+		if (typeof child === 'string' || typeof child === 'number') return [jsxText(String(child))]
+
+		const nested = isValidElement(child) ? formatElement(child, context) : null
+
+		return nested === null ? [] : [nested]
+	})
+
+	return children.length > 0 ? `${open}>${children.join('')}</${name}>` : `${open} />`
+}
+
+/** JSX text, or a string expression when the text holds a character that JSX reads as syntax. */
+function jsxText(text: string): string {
+	return /[{}<>]/.test(text) ? `{${JSON.stringify(text)}}` : text
+}
 
 /**
  * A plain object literal (a responsive config like `{ initial: 1, sm: 2 }`),
@@ -545,7 +589,9 @@ export function matchElementFact(
 
 	const children = rest.every((c) => c.children === first.children) ? first.children : undefined
 
-	return { name, props: agreed, children }
+	const local = first.local?.filter((key) => key in agreed)
+
+	return { name, props: agreed, ...(local?.length ? { local } : {}), children }
 }
 
 /**

@@ -160,6 +160,67 @@ describe('deriveCode source-fact props', () => {
 		})
 	})
 
+	describe('an element prop', () => {
+		const Kbd = tag<{ children?: ReactNode }>('Kbd', 'kbd')
+
+		const Trigger = tag<{ suffix?: ReactNode; children?: ReactNode }>('Trigger', 'trigger')
+
+		it('prints its authored source, children included', () => {
+			const tree = createElement(Trigger, { suffix: createElement(Kbd, null, '⌘O') }, 'Open')
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Trigger', props: { suffix: '<Kbd>⌘O</Kbd>' } }] }),
+			)
+
+			expect(result).toContain('<Trigger suffix={<Kbd>⌘O</Kbd>}>Open</Trigger>')
+		})
+
+		it('prints an identifier source, and pulls its declaration', () => {
+			const tree = createElement(Trigger, { suffix: createElement(Kbd, null, '⌘O') })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({
+					elements: [{ name: 'Trigger', props: { suffix: 'shortcut' } }],
+					bindings: { shortcut: 0 },
+					declarations: [{ names: ['shortcut'], code: 'const shortcut = <Kbd>⌘O</Kbd>' }],
+				}),
+			)
+
+			expect(result).toContain('const shortcut = <Kbd>⌘O</Kbd>')
+
+			expect(result).toContain('<Trigger suffix={shortcut} />')
+		})
+
+		// `keys[k]` names the item of a `.map`, which the block never binds.
+		it('prints its live form when the source uses a name of a callback in the JSX', () => {
+			const tree = createElement(Trigger, { suffix: createElement(Kbd, null, '⌘O') })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({
+					elements: [{ name: 'Trigger', props: { suffix: 'keys[k]' }, local: ['suffix'] }],
+				}),
+			)
+
+			expect(result).toContain('<Trigger suffix={<Kbd>⌘O</Kbd>} />')
+		})
+
+		it('prints the children of its live form, with text that JSX reads as syntax quoted', () => {
+			const tree = createElement(Trigger, {
+				suffix: createElement(Kbd, null, 'a < b', createElement(Kbd, null, 'K')),
+			})
+
+			expect(deriveCode(tree, registry)).toContain(
+				'<Trigger suffix={<Kbd>{"a < b"}<Kbd>K</Kbd></Kbd>} />',
+			)
+		})
+	})
+
 	it('rescues an unserializable prop with source instead of a placeholder', () => {
 		const Grid = tag<{ sort?: unknown }>('Grid', 'modules/grid')
 
