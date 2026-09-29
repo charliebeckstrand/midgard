@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it } from 'vitest'
 import { splitUnion, unquote } from '../../../components/api-reference/type-references'
 
