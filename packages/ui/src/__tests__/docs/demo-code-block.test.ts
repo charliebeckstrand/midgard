@@ -9,10 +9,9 @@ import {
 	createContext,
 	snippetHasImports,
 } from '../../docs/engine/derive-code/internals'
-import { wordRe } from '../../docs/engine/identifiers'
 import { collectHelpers, declaredNames } from '../../docs/engine/plugins/collect-helpers'
 import { importFacts } from '../../docs/engine/plugins/source-facts'
-import { namedImportsOf, parseSource } from '../../docs/engine/plugins/ts-source'
+import { namedImportsOf, parseSource, referencedNames } from '../../docs/engine/plugins/ts-source'
 import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // A corpus gate on the docs site's "Show code" block.
@@ -309,8 +308,8 @@ describe('demo code blocks', () => {
 	// file has to come with it. The snippet declares the name, or an import line
 	// brings it in. A name from a module that no reader can import, such as the
 	// docs engine or a sibling demo file, has no import line to take, so this
-	// case leaves it out. The scan is by whole word, the same scan that builds
-	// the snippet.
+	// case leaves it out. A use is an identifier in a value or a type position,
+	// the same reading that builds the snippet.
 	it('every helper snippet declares or imports each name it uses', () => {
 		const violations: string[] = []
 
@@ -320,9 +319,11 @@ describe('demo code blocks', () => {
 			const importable = Object.keys(importFacts(demo.file, { filePath: path, srcDir }))
 
 			for (const [helper, snippet] of demo.helpers) {
-				const declared = new Set(
-					parseSource('snippet.tsx', snippet.code).statements.flatMap(declaredNames),
-				)
+				const parsed = parseSource('snippet.tsx', snippet.code)
+
+				const declared = new Set(parsed.statements.flatMap(declaredNames))
+
+				const used = referencedNames(parsed)
 
 				const context = createContext(defaultRegistry)
 
@@ -337,7 +338,7 @@ describe('demo code blocks', () => {
 				for (const name of [...siblings, ...importable]) {
 					if (declared.has(name) || imported.has(name)) continue
 
-					if (wordRe(name).test(snippet.code)) {
+					if (used.has(name)) {
 						violations.push(`${srcRelative(path)}#${helper} → ${name}`)
 					}
 				}

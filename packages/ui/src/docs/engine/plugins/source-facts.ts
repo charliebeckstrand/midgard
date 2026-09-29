@@ -6,10 +6,10 @@ import {
 	hasFacts,
 	type ImportFact,
 } from '../derive-code/types'
-import { isPascalCase, wordRe } from '../identifiers'
+import { isPascalCase } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { isPageStatement } from './collect-helpers'
-import { namedImportsOf, parseSource } from './ts-source'
+import { namedImportsOf, parseSource, referencedNames } from './ts-source'
 
 /**
  * Build-time companion to the runtime walker. It extracts per-`Example` source
@@ -153,8 +153,8 @@ function usesAny(expr: ts.Expression, names: Set<string>): boolean {
 }
 
 /**
- * The expression props of an element, as source text, and the keys among them
- * whose source uses a name of `locals`.
+ * The expression props of an element, as source text, the keys among them
+ * whose source uses a name of `locals`, and every name that their sources use.
  */
 function propFacts(
 	node: ts.JsxElement | ts.JsxSelfClosingElement,
@@ -164,6 +164,8 @@ function propFacts(
 	const props: Record<string, string> = {}
 
 	const local: string[] = []
+
+	const uses = new Set<string>()
 
 	for (const attr of attributesOf(node).properties) {
 		if (!ts.isJsxAttribute(attr) || !ts.isIdentifier(attr.name)) continue
@@ -183,9 +185,11 @@ function propFacts(
 		props[key] = init.expression.getText(sf)
 
 		if (locals.size > 0 && usesAny(init.expression, locals)) local.push(key)
+
+		for (const name of referencedNames(init.expression)) uses.add(name)
 	}
 
-	return { props, local }
+	return { props, local, uses }
 }
 
 /**
@@ -200,9 +204,17 @@ function propFacts(
  * some of its elements keeps an entry for each one, an empty entry included.
  * The walk pairs the k-th element of a tag that it renders with the k-th entry
  * of that tag, so each entry holds its position.
+ *
+ * `uses` holds every name that the recorded sources use, the start of the
+ * declaration closure.
  */
-function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): ElementFact[] {
+function collectElementFacts(
+	children: readonly ts.Node[],
+	sf: ts.SourceFile,
+): { elements: ElementFact[]; uses: Set<string> } {
 	const facts: ElementFact[] = []
+
+	const uses = new Set<string>()
 
 	const locals = localNames(children)
 
@@ -213,9 +225,13 @@ function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): E
 			if (name === EXAMPLE_TAG) return
 
 			if (name) {
-				const { props, local } = propFacts(node, sf, locals)
+				const { props, local, uses: propUses } = propFacts(node, sf, locals)
 
 				const renderProp = ts.isJsxElement(node) ? renderPropChild(node) : null
+
+				for (const used of propUses) uses.add(used)
+
+				if (renderProp) for (const used of referencedNames(renderProp)) uses.add(used)
 
 				facts.push({
 					name,
@@ -239,14 +255,15 @@ function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): E
 
 	const withFacts = new Set(facts.filter(hasFacts).map(({ name }) => name))
 
-	return facts.filter(({ name }) => withFacts.has(name))
+	return { elements: facts.filter(({ name }) => withFacts.has(name)), uses }
 }
 
 // ---------------------------------------------------------------------------
 // Declarations and bindings
 // ---------------------------------------------------------------------------
 
-type Declaration = DeclarationFact & { index: number }
+/** A declaration of the table, with the names that it uses. */
+type Declaration = DeclarationFact & { index: number; uses: Set<string> }
 
 function boundNames(name: ts.BindingName, into: string[]): void {
 	if (ts.isIdentifier(name)) {
@@ -283,7 +300,7 @@ function declarationOf(
 		ts.isFunctionDeclaration(stmt)
 	) {
 		// Only a function declaration can be anonymous (`export default function`).
-		return stmt.name ? { names: [stmt.name.text], code } : null
+		return stmt.name ? { names: [stmt.name.text], uses: referencedNames(stmt), code } : null
 	}
 
 	if (ts.isVariableStatement(stmt)) {
@@ -291,7 +308,7 @@ function declarationOf(
 
 		for (const decl of stmt.declarationList.declarations) boundNames(decl.name, names)
 
-		return names.length > 0 ? { names, code } : null
+		return names.length > 0 ? { names, uses: referencedNames(stmt), code } : null
 	}
 
 	return null
@@ -496,6 +513,9 @@ export function extractSourceFacts(
 
 	const sites: ExampleSite[] = []
 
+	// Every name that a recorded source uses, across the sites.
+	const needed = new Set<string>()
+
 	for (const example of examples) {
 		const attrs = example.openingElement.attributes.properties
 
@@ -505,7 +525,9 @@ export function extractSourceFacts(
 
 		if (hasCode) continue
 
-		const elements = collectElementFacts(meaningfulChildren(example), sf)
+		const { elements, uses } = collectElementFacts(meaningfulChildren(example), sf)
+
+		for (const name of uses) needed.add(name)
 
 		if (elements.length === 0) continue
 
@@ -536,14 +558,8 @@ export function extractSourceFacts(
 
 	// Prune the table to declarations the facts can transitively reference —
 	// a union closure over every site, so unreferenced module consts (demo
-	// data the walker renders live) never ship.
-	const texts = sites.flatMap((site) =>
-		site.elements.flatMap((el) => [
-			...Object.values(el.props),
-			...(el.children ? [el.children] : []),
-		]),
-	)
-
+	// data the walker renders live) never ship. A reference is a use in a value
+	// or a type position, never a word in a string, in JSX text, or in a comment.
 	const reachable = new Set<number>()
 
 	let progress = true
@@ -553,17 +569,11 @@ export function extractSourceFacts(
 
 		for (const site of sites) {
 			for (const [name, index] of Object.entries(site.bindings)) {
-				if (reachable.has(index)) continue
-
-				const re = wordRe(name)
-
-				if (!texts.some((text) => re.test(text))) continue
+				if (reachable.has(index) || !needed.has(name)) continue
 
 				reachable.add(index)
 
-				const code = declarations[index]?.code
-
-				if (code) texts.push(code)
+				for (const used of declarations[index]?.uses ?? []) needed.add(used)
 
 				progress = true
 			}
@@ -576,13 +586,9 @@ export function extractSourceFacts(
 
 	const sharedDeclarations: DeclarationFact[] = kept.map(({ names, code }) => ({ names, code }))
 
-	// Imports prune the same way: only names the shipped texts mention.
+	// Imports prune the same way: only names that the shipped sources use.
 	const sharedImports = Object.fromEntries(
-		Object.entries(imports).filter(([name]) => {
-			const re = wordRe(name)
-
-			return texts.some((text) => re.test(text))
-		}),
+		Object.entries(imports).filter(([name]) => needed.has(name)),
 	)
 
 	const remappedBindings = (site: ExampleSite): Record<string, number> =>

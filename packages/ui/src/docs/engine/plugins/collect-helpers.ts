@@ -1,7 +1,7 @@
 import ts from '@typescript/typescript6'
 import type { HelperSnippet, ImportFact } from '../derive-code/types'
-import { isPascalCase, wordRe } from '../identifiers'
-import { parseSource } from './ts-source'
+import { isPascalCase } from '../identifiers'
+import { parseSource, referencedNames } from './ts-source'
 
 /**
  * One helper component and its snippet, as the docs plugin attaches it. `code`
@@ -113,9 +113,10 @@ function rendersJsx(
 
 /**
  * A top-level statement a helper can depend on. `names` lists the identifiers
- * it introduces; `code` is the full statement source for verbatim prepending.
+ * it introduces, `uses` the names it uses (see `referencedNames`), and `code`
+ * is the full statement source for verbatim prepending.
  */
-type Declaration = { stmt: ts.Statement; names: string[]; code: string }
+type Declaration = { stmt: ts.Statement; names: string[]; uses: Set<string>; code: string }
 
 /**
  * Returns the PascalCase name of a JSX-returning arrow / function-expression
@@ -225,25 +226,26 @@ function collectDeclarations(sf: ts.SourceFile): Declaration[] {
 
 		if (names.length === 0 || isPageStatement(stmt)) return []
 
-		return [{ stmt, names, code: stmt.getText(sf) }]
+		return [{ stmt, names, uses: referencedNames(stmt), code: stmt.getText(sf) }]
 	})
 }
 
 /**
  * The helper's declaration and every declaration it depends on, in source
- * order. A declaration joins when one of its names appears in the text
- * gathered so far. So the declarations that a joined one uses join too, until
- * none is left. Another helper joins like any declaration.
+ * order, with the names that they use. A declaration joins when the gathered
+ * declarations use one of its names. So the declarations that a joined one
+ * uses join too, until none is left. Another helper joins like any
+ * declaration.
  *
  * @remarks
- * This is a name scan, not a reference graph. A name inside a string literal
- * or a comment pulls its declaration in. That errs toward a longer snippet,
- * never toward a broken one.
+ * A use is an identifier in a value or a type position (`referencedNames`). A
+ * name in a string, in JSX text, or in a comment is no use, so it pulls
+ * nothing in.
  */
-function closeOver(helper: ts.Statement, declarations: Declaration[], sf: ts.SourceFile) {
+function closeOver(helper: ts.Statement, declarations: Declaration[]) {
 	const joined = new Set<Declaration>()
 
-	const texts = [helper.getText(sf)]
+	const uses = new Set(referencedNames(helper))
 
 	let grew = true
 
@@ -253,33 +255,29 @@ function closeOver(helper: ts.Statement, declarations: Declaration[], sf: ts.Sou
 		for (const declaration of declarations) {
 			if (declaration.stmt === helper || joined.has(declaration)) continue
 
-			const used = declaration.names.some((name) => {
-				const re = wordRe(name)
-
-				return texts.some((text) => re.test(text))
-			})
-
-			if (!used) continue
+			if (!declaration.names.some((name) => uses.has(name))) continue
 
 			joined.add(declaration)
 
-			texts.push(declaration.code)
+			for (const name of declaration.uses) uses.add(name)
 
 			grew = true
 		}
 	}
 
-	return declarations.filter(
+	const closure = declarations.filter(
 		(declaration) => declaration.stmt === helper || joined.has(declaration),
 	)
+
+	return { closure, uses }
 }
 
-/** The entries of `imports` whose name `code` uses, as a whole word. */
+/** The entries of `imports` whose name `uses` holds. */
 function usedImports(
-	code: string,
+	uses: Set<string>,
 	imports: Record<string, ImportFact>,
 ): Record<string, ImportFact> {
-	return Object.fromEntries(Object.entries(imports).filter(([name]) => wordRe(name).test(code)))
+	return Object.fromEntries(Object.entries(imports).filter(([name]) => uses.has(name)))
 }
 
 /**
@@ -307,7 +305,7 @@ export function collectHelpers(
 
 	const declarations = collectDeclarations(sf)
 
-	const found: { name: string; closure: Declaration[] }[] = []
+	const found: { name: string; closure: Declaration[]; uses: Set<string> }[] = []
 
 	for (const stmt of sf.statements) {
 		if (isDefaultExported(stmt)) continue
@@ -315,7 +313,7 @@ export function collectHelpers(
 		for (const name of helperNames(stmt)) {
 			if (name === ENTRY_EXPORT) continue
 
-			found.push({ name, closure: closeOver(stmt, declarations, sf) })
+			found.push({ name, ...closeOver(stmt, declarations) })
 		}
 	}
 
@@ -327,15 +325,11 @@ export function collectHelpers(
 
 	const codes = table.map(({ code }) => code)
 
-	return found.map(({ name, closure }) => {
-		const code = closure.map((declaration) => declaration.code).join('\n\n')
-
-		return {
-			name,
-			declarations: codes,
-			blocks: closure.map((declaration) => table.indexOf(declaration)),
-			imports: usedImports(code, imports),
-			code,
-		}
-	})
+	return found.map(({ name, closure, uses }) => ({
+		name,
+		declarations: codes,
+		blocks: closure.map((declaration) => table.indexOf(declaration)),
+		imports: usedImports(uses, imports),
+		code: closure.map((declaration) => declaration.code).join('\n\n'),
+	}))
 }

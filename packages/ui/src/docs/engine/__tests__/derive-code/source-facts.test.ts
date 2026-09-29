@@ -226,6 +226,27 @@ describe('extractSourceFacts declarations and bindings', () => {
 		expect(facts?.declarations[bound ?? -1]?.code).toBe(`const label = 'inner'`)
 	})
 
+	it('pulls no declaration that only a string or a comment in a pulled one names', () => {
+		const source = [
+			`const units = 4`,
+			``,
+			`// Sums units.`,
+			`const total = sum('units')`,
+			``,
+			`export function Demo() {`,
+			`\treturn (`,
+			`\t\t<Example title="Words">`,
+			`\t\t\t<Stat value={total} />`,
+			`\t\t</Example>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const codes = extract(source)?.declarations.map((decl) => decl.code) ?? []
+
+		expect(codes).toEqual([`const total = sum('units')`])
+	})
+
 	it('includes declarations pulled only transitively', () => {
 		const source = [
 			`const BASE = 10`,
