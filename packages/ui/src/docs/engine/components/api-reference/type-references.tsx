@@ -15,14 +15,13 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from '../../../../components/sheet'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { GlassProvider } from '../../../../providers/glass'
 import { Flex } from '../../../../structure/flex'
 import { Stack } from '../../../../structure/stack'
 import type { PropDef } from '../../api-reference/types'
 
 /** Split a type expression on top-level `|`, ignoring `|` inside nesting and strings. */
-function splitUnion(type: string): string[] {
+export function splitUnion(type: string): string[] {
 	const parts: string[] = []
 
 	let depth = 0
@@ -70,7 +69,7 @@ function splitUnion(type: string): string[] {
 }
 
 /** Strip a matching pair of enclosing quotes (`'`, `"`, or backtick) from a string-literal fragment. */
-function unquote(part: string): string {
+export function unquote(part: string): string {
 	return part.replace(/^(['"`])([\s\S]*)\1$/, '$2')
 }
 
@@ -117,44 +116,20 @@ function ReferencesPanel({ references }: { references: Record<string, string> })
 }
 
 /**
- * Type-column cell. Picks one of three modes:
- *
- *   - **External**: outline badge with a source-package tooltip.
- *   - **References**: bare type plus a Sheet trigger for the resolved
- *     definitions of every referenced alias.
- *   - **Simple** (default): plain badges via `TypeBadges`.
+ * A link-style button that opens a Sheet with the resolved definition of every
+ * type a prop references. Renders nothing when the prop has no references.
  */
-export function TypeCell({ prop }: { prop: PropDef }) {
+export function TypeReferences({ prop }: { prop: PropDef }) {
 	const [open, setOpen] = useState(false)
 
-	if (prop.externalFrom) {
-		return (
-			<Tooltip>
-				<TooltipTrigger>
-					<Badge variant="outline">{prop.type}</Badge>
-				</TooltipTrigger>
-				<TooltipContent>
-					Type imported from <span className="font-semibold">{prop.externalFrom}</span>
-				</TooltipContent>
-			</Tooltip>
-		)
-	}
-
-	const hasReferences = !!prop.references && Object.keys(prop.references).length > 0
-
-	if (!hasReferences) {
-		return <TypeBadges type={prop.type} />
-	}
+	if (!prop.references || Object.keys(prop.references).length === 0) return null
 
 	return (
 		<>
-			<Flex gap="sm" direction={{ initial: 'col', xl: 'row' }} wrap>
-				<Badge variant="soft">{prop.type}</Badge>
-				<Button size="sm" variant="bare" onClick={() => setOpen(true)}>
-					View references
-					<Icon icon={<ChevronRight />} />
-				</Button>
-			</Flex>
+			<Button size="sm" variant="bare" className="-ml-2" onClick={() => setOpen(true)}>
+				View references
+				<Icon icon={<ChevronRight />} />
+			</Button>
 			<GlassProvider>
 				<Sheet open={open} onOpenChange={setOpen}>
 					<SheetHeader>
@@ -162,7 +137,7 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 						<SheetDescription className="font-mono">{prop.type}</SheetDescription>
 					</SheetHeader>
 					<SheetBody>
-						<ReferencesPanel references={prop.references ?? {}} />
+						<ReferencesPanel references={prop.references} />
 					</SheetBody>
 					<SheetFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>
