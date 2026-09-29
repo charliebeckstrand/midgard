@@ -35,8 +35,16 @@ const WEEK = 7 * DAY
 const MONTH = 30 * DAY
 const YEAR = 365 * DAY
 
-/** A bare `YYYY-MM-DD` reads as a local wall-clock day, not a UTC instant. @internal */
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/
+/** A bare `YYYY-MM-DD`, `YYYY-MM`, or `YYYY` reads as a local wall-clock day, not a UTC instant. @internal */
+const DATE_ONLY = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/
+
+/**
+ * A dotted numeric date: `10.06.2026` day-first, or `2026.06.10` after a
+ * four-digit year. A time of day can follow, as in `10.06.2026, 09:30`.
+ *
+ * @internal
+ */
+const DOTTED = /^(\d{1,4})\.(\d{1,2})\.(\d{1,4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
 
 /**
  * A day's worth of tick labels never share the axis, so cap the walk far above
@@ -50,11 +58,73 @@ const MAX_TICKS = 100
 /** Roughly the widest tick label ("Jan 26", "Jan 5") in characters, for the fit estimate. @internal */
 const LABEL_CHARS = 7
 
+/** The days in each month of a common year, from January. @internal */
+const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as const
+
+/**
+ * The instant of a local wall-clock date and time, or `null` when a field falls
+ * outside the calendar, as in `2026-13` or `31.06.2026`. The check is
+ * arithmetic, because a date-keyed axis parses each row.
+ *
+ * @internal
+ */
+function localInstant(
+	year: number,
+	month: number,
+	day: number,
+	hour = 0,
+	minute = 0,
+	second = 0,
+): number | null {
+	const leapFebruary = month === 2 && year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+
+	const days = leapFebruary ? 29 : MONTH_DAYS[month - 1]
+
+	if (days === undefined || day < 1 || day > days) return null
+
+	if (hour > 23 || minute > 59 || second > 59) return null
+
+	const date = new Date(year, month - 1, day, hour, minute, second)
+
+	// The constructor reads a year below 100 as a year in the 1900s.
+	if (year < 100) date.setFullYear(year, month - 1, day)
+
+	return date.getTime()
+}
+
+/**
+ * The instant of a {@link DOTTED} match. A year of one or two digits reads as
+ * `Date.parse` reads it: below 50 in the 2000s, else in the 1900s.
+ *
+ * @internal
+ */
+function dottedInstant(parts: RegExpExecArray): number | null {
+	const [, first = '', month, last = '', hour, minute, second] = parts
+
+	const yearFirst = first.length === 4
+
+	const yearText = yearFirst ? first : last
+
+	const year = Number(yearText)
+
+	return localInstant(
+		yearText.length > 2 ? year : year < 50 ? 2000 + year : 1900 + year,
+		Number(month),
+		Number(yearFirst ? last : first),
+		Number(hour ?? 0),
+		Number(minute ?? 0),
+		Number(second ?? 0),
+	)
+}
+
 /**
  * Parses a raw category value to an epoch-millisecond instant: a `Date`, a
- * number (already epoch ms), or a string. A bare `YYYY-MM-DD` becomes local
- * midnight so a daily key lands on its wall-clock day rather than shifting
- * across the UTC boundary. Any other string goes through `Date.parse`.
+ * number (already epoch ms), or a string. A bare `YYYY-MM-DD`, `YYYY-MM`, or
+ * `YYYY` becomes local midnight on its first day. A key thus lands on its
+ * wall-clock day and does not shift across the UTC boundary. A dotted numeric
+ * date reads day-first, or year-first after a four-digit year, also as a local
+ * date. `Date.parse` reads the dotted form month-first. Any other string goes
+ * through `Date.parse`.
  *
  * @returns The instant, or `null` when the value holds no parseable date — the
  * row then anchors no tick and the axis falls back to plain labels.
@@ -72,7 +142,11 @@ export function parseInstant(value: unknown): number | null {
 	if (typeof value === 'string') {
 		const parts = DATE_ONLY.exec(value)
 
-		if (parts) return new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])).getTime()
+		if (parts) return localInstant(Number(parts[1]), Number(parts[2] ?? 1), Number(parts[3] ?? 1))
+
+		const dotted = DOTTED.exec(value)
+
+		if (dotted) return dottedInstant(dotted)
 
 		const time = Date.parse(value)
 

@@ -39,6 +39,29 @@ describe('parseInstant', () => {
 		expect(parseInstant('2026-03-15')).toBe(new Date(2026, 2, 15).getTime())
 	})
 
+	it('reads a dotted numeric date day-first, or year-first after a four-digit year', () => {
+		// `Date.parse` reads `10.06.2026` month-first, as October 6.
+		expect(parseInstant('10.06.2026')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant('13.06.2026')).toBe(new Date(2026, 5, 13).getTime())
+
+		expect(parseInstant('2026.06.10')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant('10.06.26')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant('10.06.2026, 09:30')).toBe(new Date(2026, 5, 10, 9, 30).getTime())
+	})
+
+	it('returns null for a dotted date outside the calendar', () => {
+		expect(parseInstant('10.13.2026')).toBeNull()
+
+		expect(parseInstant('31.06.2026')).toBeNull()
+	})
+
+	it('keeps the slash form month-first', () => {
+		expect(parseInstant('06/10/2026')).toBe(new Date(2026, 5, 10).getTime())
+	})
+
 	it('returns null for unparseable or non-date values', () => {
 		expect(parseInstant('not a date')).toBeNull()
 
@@ -365,6 +388,18 @@ describe('dateCategoryFormat', () => {
 	it('returns null for numeric categories, so a year axis keeps its labels', () => {
 		// A bar chart with a numeric `year` key.
 		expect(dateCategoryFormat([2021, 2022, 2023], 2026, 'en-US')).toBeNull()
+	})
+
+	it('reads a de-DE dotted axis day-first', () => {
+		const format = dateCategoryFormat(['10.06.2026', '11.06.2026', '13.06.2026'], 2026, 'de-DE')
+
+		expect(format?.('10.06.2026')).toBe('10.06.')
+
+		expect(format?.('13.06.2026')).toBe('13.06.')
+	})
+
+	it('returns null for bare years, so a year axis keeps its labels', () => {
+		expect(dateCategoryFormat(['2019', '2020', '2021'], 2026, 'en-US')).toBeNull()
 	})
 
 	it('returns null for "<word> <n>" labels, so a plain axis keeps its labels', () => {
