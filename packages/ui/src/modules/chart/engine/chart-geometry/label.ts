@@ -241,7 +241,8 @@ function candidatesFor(
  * The anchor of a label `width` wide at `x`, and its box across the axis: centered
  * on the point where that fits the plot, else anchored inward from the point,
  * else `null`. The box keeps {@link LABEL_PAD} past the point on the anchored
- * side.
+ * side, for the overlap test. That padding can cross the plot side; the text
+ * itself stays inside.
  *
  * @internal
  */
@@ -263,7 +264,9 @@ function anchorAt(
 
 	const x1 = x0 + width
 
-	return x0 < left || x1 > right ? null : { anchor: start ? 'start' : 'end', x0, x1 }
+	// Only the far side can clip the text. The padding on the anchored side is
+	// spacing for the overlap test, and a point near the side keeps its label.
+	return (start ? x1 > right : x0 < left) ? null : { anchor: start ? 'start' : 'end', x0, x1 }
 }
 
 /**

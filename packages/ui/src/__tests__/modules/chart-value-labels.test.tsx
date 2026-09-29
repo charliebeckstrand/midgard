@@ -98,27 +98,31 @@ describe('valueLabels', () => {
 		expect(labels[0]?.text).toBe('100')
 	})
 
-	it('hides a label that would slide sideways to fit, keeping the vertical flip', () => {
-		// A label stays centered on its point: near a side edge its box would cross
-		// the plot, and it hides rather than sliding onto the neighboring marks —
-		// the small-frame crowding this pins out.
-		const right = valueLabels({
+	it('pins a side label to its point rather than sliding it, keeping the vertical flip', () => {
+		// Near a side edge a centered box would cross the plot. The label anchors
+		// inward at its own point instead, and never slides onto the neighboring
+		// marks.
+		const [right] = valueLabels({
 			series: [series([[198, 50, 12345]])],
 			plot: PLOT,
 			endpoints: true,
 			extremes: false,
 		})
 
-		expect(right).toHaveLength(0)
+		expect(right?.anchor).toBe('end')
 
-		const left = valueLabels({
+		expect(right?.x).toBe(198)
+
+		const [left] = valueLabels({
 			series: [series([[2, 50, 12345]])],
 			plot: PLOT,
 			endpoints: true,
 			extremes: false,
 		})
 
-		expect(left).toHaveLength(0)
+		expect(left?.anchor).toBe('start')
+
+		expect(left?.x).toBe(2)
 
 		// A fitting label anchors on its point's center — never slid inward.
 		const [fits] = valueLabels({
@@ -211,8 +215,9 @@ describe('valueLabels at the plot sides', () => {
 		expect(last?.x).toBe(190)
 	})
 
-	it('hides a label that does not fit even anchored inward', () => {
-		// The point sits closer to the side than the label padding.
+	it('anchors a label at a point on the plot side', () => {
+		// A dense series puts its first point within the label padding of the
+		// side. The padding is spacing, not text, so the label still anchors there.
 		const [edge] = valueLabels({
 			series: [series([[1, 50, 12345]])],
 			plot: PLOT,
@@ -220,7 +225,21 @@ describe('valueLabels at the plot sides', () => {
 			extremes: false,
 		})
 
-		expect(edge).toBeUndefined()
+		expect(edge?.anchor).toBe('start')
+
+		expect(edge?.x).toBe(1)
+	})
+
+	it('hides a label that does not fit even anchored inward', () => {
+		// The plot is narrower than the text.
+		const [wide] = valueLabels({
+			series: [series([[20, 50, 123456789012]])],
+			plot: { x: 0, y: 0, width: 60, height: 100 },
+			endpoints: true,
+			extremes: false,
+		})
+
+		expect(wide).toBeUndefined()
 	})
 })
 
