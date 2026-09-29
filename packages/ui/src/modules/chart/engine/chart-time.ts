@@ -150,31 +150,67 @@ function formatOptionsFor(approx: number, spanMs: number): Intl.DateTimeFormatOp
 type Anchor = { index: number; time: number }
 
 /**
- * Positions instant `time` on the band axis by locating it among the anchor
- * rows and interpolating between their band centers. The tick lands at its true
- * fraction of the way from one dated row to the next, clamped to the ends. The
- * anchors must be in ascending time order.
+ * A function that positions an instant on the band axis. It locates the instant
+ * among the anchor rows and interpolates between their band centers. The tick
+ * lands at its true fraction of the way from one dated row to the next, clamped
+ * to the ends. The anchors must be in ascending time order.
+ *
+ * The function keeps a cursor that moves forward through the anchors and never
+ * back. Thus each call must pass an instant at or after the instant before it.
  *
  * @internal
  */
-function positionOf(time: number, anchors: Anchor[], band: BandScale): number {
+function positioner(anchors: Anchor[], band: BandScale): (time: number) => number {
 	const first = anchors[0] as Anchor
 	const last = anchors.at(-1) as Anchor
 
-	if (time <= first.time) return band.center(first.index)
-
-	if (time >= last.time) return band.center(last.index)
-
 	let low = 0
 
-	while (low < anchors.length - 1 && (anchors[low + 1] as Anchor).time <= time) low++
+	return (time) => {
+		if (time <= first.time) return band.center(first.index)
 
-	const a = anchors[low] as Anchor
-	const b = anchors[low + 1] as Anchor
+		if (time >= last.time) return band.center(last.index)
 
-	const fraction = b.time === a.time ? 0 : (time - a.time) / (b.time - a.time)
+		while (low < anchors.length - 1 && (anchors[low + 1] as Anchor).time <= time) low++
 
-	return band.center(a.index) + fraction * (band.center(b.index) - band.center(a.index))
+		const a = anchors[low] as Anchor
+		const b = anchors[low + 1] as Anchor
+
+		const fraction = b.time === a.time ? 0 : (time - a.time) / (b.time - a.time)
+
+		return band.center(a.index) + fraction * (band.center(b.index) - band.center(a.index))
+	}
+}
+
+/**
+ * The finite row instants in time order, not row order. Newest-first rows, or
+ * a table sorted by another column, thus still give the true extent and a
+ * position between neighbors in time. Rows that already ascend skip the sort.
+ *
+ * @internal
+ */
+function anchorsOf(times: (number | null)[]): Anchor[] {
+	const anchors: Anchor[] = []
+
+	let ascending = true
+
+	let previous = Number.NEGATIVE_INFINITY
+
+	for (let index = 0; index < times.length; index++) {
+		const time = times[index]
+
+		if (time == null || !Number.isFinite(time)) continue
+
+		if (time < previous) ascending = false
+
+		previous = time
+
+		anchors.push({ index, time })
+	}
+
+	if (!ascending) anchors.sort((a, b) => a.time - b.time)
+
+	return anchors
 }
 
 /** Picks the interval whose spacing is the smallest that meets the ideal step. @internal */
@@ -209,11 +245,7 @@ export type TimeTicksOptions = {
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	const { times, band, tickTarget, axisLength } = options
 
-	// Time order, not row order: newest-first rows, or a table sorted by another
-	// column, still give the true extent and a position between neighbors in time.
-	const anchors: Anchor[] = times
-		.flatMap((time, index) => (time != null && Number.isFinite(time) ? [{ index, time }] : []))
-		.sort((a, b) => a.time - b.time)
+	const anchors = anchorsOf(times)
 
 	if (anchors.length < 2) return null
 
@@ -236,6 +268,9 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 	const ticks: ChartAxisTick[] = []
 
+	// The ticks ascend, so one forward pass through the anchors places them all.
+	const place = positioner(anchors, band)
+
 	// The first row as a local wall-clock datetime, so the floor reads calendar days.
 	let cursor = interval.floor(toCalendarDateTime(fromDateToLocal(new Date(first.time))), locale)
 
@@ -253,7 +288,7 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 		// A wall time in a daylight-saving gap resolves to the next hour, which is
 		// already a tick, so a time at or before the last tick is skipped.
 		if (time >= first.time && time > lastTime) {
-			ticks.push({ at: positionOf(time, anchors, band), label: format.format(date), key: time })
+			ticks.push({ at: place(time), label: format.format(date), key: time })
 
 			lastTime = time
 		}
