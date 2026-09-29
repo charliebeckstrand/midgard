@@ -657,7 +657,7 @@ function bandCenters(band: BandScale, count: number): number[] {
  *
  * @internal
  */
-function bandTicksOf(
+export function bandTicksOf(
 	categories: string[],
 	band: BandScale,
 	axisLength: number,

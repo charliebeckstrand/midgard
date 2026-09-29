@@ -9,6 +9,7 @@ import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
 import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
+import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
 
@@ -19,9 +20,10 @@ export type SectorSegmentLabel = {
 }
 
 /**
- * A slice group's dim classes — on the wrapper, so motion's inline opacity
- * composes. A held selection wins: it lights only its own slices, and a hover
- * never re-lights them. Else the emphasized slice lights alone. @internal
+ * A slice group's recede classes, from {@link seriesGroupClass} — on the
+ * wrapper, so motion's inline opacity composes. A held selection wins: it
+ * lights only its own slices, and a hover never re-lights them. Else the
+ * emphasized slice lights alone. @internal
  */
 export function sliceGroupClass(
 	emphasis: number | null,
@@ -33,7 +35,7 @@ export function sliceGroupClass(
 			? !selected.has(index)
 			: emphasis !== null && emphasis !== index
 
-	return cn('transition-opacity', dim && 'opacity-25')
+	return seriesGroupClass(dim)
 }
 
 /**

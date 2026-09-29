@@ -5,6 +5,7 @@ import type { SlotPaint } from '../engine/chart-color/paint'
 import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/chart-layout'
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
 import { legendAside, legendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
+import { readoutCell } from '../engine/chart-series'
 import type { ChartReadout } from '../engine/types'
 import type { SectorLabels } from './sector-chart'
 
@@ -174,7 +175,7 @@ export function sectorReadout(
 				swatchClass: '',
 				swatchClasses: paints.map((paint) => cn(paint.text)),
 				swatch: 'rect',
-				values: values.map((entry) => (entry === null ? '—' : format(entry))),
+				values: values.map((entry) => readoutCell(entry, format)),
 			},
 		],
 	}

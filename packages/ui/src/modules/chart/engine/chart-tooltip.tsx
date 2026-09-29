@@ -2,9 +2,9 @@
 
 import { type RefObject, useMemo } from 'react'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
-import { cn } from '../../../core'
 import { bandCoord, type ChartOrientation, project, valueCoord } from './chart-orientation'
 import { ChartReadoutCard, ChartReadoutRow, ReadoutSwatch } from './chart-readout-card'
+import { seriesGroupClass } from './chart-series'
 import { type ChartSnap, nearestValue } from './chart-snap'
 import { useChartHover } from './context'
 import type { ChartReadout, ChartReadoutSource } from './types'
@@ -177,11 +177,8 @@ export function ChartTooltip({
 								// Two series can share a name, so a row keys on its series.
 								key={row.index ?? position}
 								data-slot="chart-tooltip-row"
-								className={cn(
-									'transition-opacity',
-									// A cursor on one dataset dims the rest, the same recede the marks take.
-									emphasis !== null && row.index !== emphasis && 'opacity-25',
-								)}
+								// A cursor on one dataset dims the rest, the same recede the marks take.
+								className={seriesGroupClass(emphasis !== null && row.index !== emphasis)}
 								swatch={
 									<ReadoutSwatch
 										shape={row.swatch}

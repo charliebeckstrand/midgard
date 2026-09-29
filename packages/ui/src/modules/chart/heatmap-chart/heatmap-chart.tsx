@@ -41,7 +41,13 @@ import {
 } from '../engine/chart-constants'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
-import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
+import {
+	bandTicksOf,
+	chartFrameSizing,
+	type PlotRect,
+	plotRect,
+	thinned,
+} from '../engine/chart-layout'
 import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
 import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
@@ -49,7 +55,7 @@ import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
 import { ChartReadoutCard, ChartReadoutRow } from '../engine/chart-readout-card'
 import { type BandScale, bandScale } from '../engine/chart-scale'
-import { READOUT_GAP } from '../engine/chart-series'
+import { readoutCell, seriesGroupClass } from '../engine/chart-series'
 import { ChartTable } from '../engine/chart-table'
 import { isSparkBox } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
@@ -213,11 +219,7 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 						width={cell.width}
 						height={cell.height}
 						rx={cell.radius}
-						className={cn(
-							'transition-opacity',
-							fill == null && NO_DATA_FILL,
-							dimmed && 'opacity-25',
-						)}
+						className={cn(seriesGroupClass(dimmed), fill == null && NO_DATA_FILL)}
 						{...(fill == null ? {} : { fill })}
 					/>
 				)
@@ -528,7 +530,7 @@ function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapT
 								style={fill === null ? undefined : { backgroundColor: fill }}
 							/>
 						}
-						value={datum == null ? READOUT_GAP : format(datum)}
+						value={readoutCell(datum, format)}
 						label={rows[cell.row]}
 					/>
 				</ChartReadoutCard>
@@ -555,14 +557,18 @@ function heatmapTicks(
 ): { x: ChartAxisTick[]; y: ChartAxisTick[] } {
 	const widestCol = matrix.columns.reduce((widest, label) => Math.max(widest, label.length), 0)
 
-	// Keyed by the row/column index, not the band center `at`, which collapses onto
-	// one coordinate at zero width/height; the index is the cell's stable identity.
-	const x = thinned(
-		matrix.columns.length,
+	// The columns thin as a cartesian band axis does, each slot as wide as the
+	// widest column label.
+	const x = bandTicksOf(
+		matrix.columns,
+		xBand,
 		plot.width,
 		widestCol * TICK_CHAR_WIDTH + GUTTER_GAP,
-	).map((index) => ({ at: xBand.center(index), label: matrix.columns[index] ?? '', key: index }))
+		false,
+	)
 
+	// Keyed by the row index, not the band center `at`, which collapses onto one
+	// coordinate at zero height; the index is the row's stable identity.
 	const y = thinned(matrix.rows.length, plot.height, BAND_LABEL_HEIGHT).map((index) => ({
 		at: yBand.center(index),
 		label: fitRow(matrix.rows[index] ?? ''),
@@ -580,11 +586,7 @@ function heatmapReadout(matrix: HeatmapMatrix, format: (value: number) => string
 			label,
 			swatchClass: '',
 			swatch: 'rect' as const,
-			values: matrix.columns.map((_, col) => {
-				const value = matrix.values[row]?.[col]
-
-				return value == null ? READOUT_GAP : format(value)
-			}),
+			values: matrix.columns.map((_, col) => readoutCell(matrix.values[row]?.[col], format)),
 		})),
 	}
 }

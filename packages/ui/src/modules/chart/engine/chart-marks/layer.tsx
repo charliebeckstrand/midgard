@@ -2,10 +2,10 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { cn } from '../../../../core'
 import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../../../primitives/reduced-motion'
 import { STATIC_GENERATION } from '../chart-motion'
+import { seriesGroupClass } from '../chart-series'
 import { useChartEmphasis } from '../context'
 
 /** Props for {@link ChartGeneration}. @internal */
@@ -107,7 +107,7 @@ export function ChartMarksLayer({ animate, dataKey, children }: ChartMarksLayerP
 			animate={animate}
 			dataKey={dataKey}
 			slot="chart-marks"
-			className={cn('transition-opacity', emphasizedReference !== null && 'opacity-25')}
+			className={seriesGroupClass(emphasizedReference !== null)}
 		>
 			{children}
 		</ChartGeneration>

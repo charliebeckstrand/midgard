@@ -9,6 +9,7 @@ import type { BarMark } from '../chart-geometry/bar'
 import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
+import { seriesGroupClass } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'
 
 /** Shared shape for the static and animated bar renderers. @internal */
@@ -37,12 +38,7 @@ function barClass(
 	active: boolean,
 	fill: string | undefined,
 ): string {
-	return cn(
-		paint && fillClass(paint),
-		'transition-opacity',
-		dim && 'opacity-25',
-		textureClass(active, fill),
-	)
+	return cn(paint && fillClass(paint), seriesGroupClass(dim), textureClass(active, fill))
 }
 
 /**
