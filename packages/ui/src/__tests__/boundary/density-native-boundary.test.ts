@@ -136,11 +136,14 @@ function filesMatching(pattern: RegExp): string[] {
 //   - The primitives that own the prop.
 //   - Button, whose element is the registered link or a `<button>`, and Drawer,
 //     whose element is a `motion.div`. Each writes both channels itself.
+//   - DrawerStandIn, which paints Drawer's panel in place and so writes both
+//     channels the way Drawer does.
 //   - The grid's `GridOverlayDensity`, a context-only relay around a surface
 //     that writes its own `data-density`. Its context is private to its file.
 
 const CONTEXT_OPENERS = [
 	'components/button/button.tsx',
+	'components/drawer/drawer-stand-in.tsx',
 	'components/drawer/drawer.tsx',
 	'modules/grid/grid-region.tsx',
 	'primitives/floating-surface/floating-surface.tsx',

@@ -3,12 +3,18 @@
 import { useEffect, useEffectEvent, useMemo } from 'react'
 import { type KeybindingFilter, type KeybindingsMap, tinykeys } from 'tinykeys'
 
-/** Options for {@link useKeybindings}: the bindings to match and the enable gate. */
+/** Options for {@link useKeybindings}: the enable gate, the target, the capture phase, and the skip predicate. */
 export type KeybindingsOptions = {
 	/** Disable without unmounting. @defaultValue true */
 	enabled?: boolean
 	/** Listener target. @defaultValue window */
 	target?: Window | HTMLElement
+	/**
+	 * Listen in the capture phase, so a descendant that handles the key and stops
+	 * its propagation (a focused grid or editor) cannot swallow the chord first.
+	 * @defaultValue false
+	 */
+	capture?: boolean
 	/**
 	 * Predicate that returns true to skip an event. The tinykeys default skips
 	 * events originating inside form fields and contenteditable elements; pass
@@ -28,7 +34,7 @@ export type KeybindingsOptions = {
  * @remarks SSR-safe: the subscription lives in an effect, which never runs on the server.
  */
 export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {
-	const { enabled = true, target, ignore } = options
+	const { enabled = true, target, capture, ignore } = options
 
 	// Effect events read the newest bindings and `ignore` when a key fires, so a
 	// new identity of either never re-subscribes. For `ignore`, presence is the
@@ -56,6 +62,6 @@ export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOpt
 
 		const resolvedIgnore: KeybindingFilter | undefined = hasIgnore ? (e) => skip(e) : undefined
 
-		return tinykeys(resolvedTarget, wrapped, { ignore: resolvedIgnore })
-	}, [enabled, target, hasIgnore, keySignature])
+		return tinykeys(resolvedTarget, wrapped, { capture, ignore: resolvedIgnore })
+	}, [enabled, target, capture, hasIgnore, keySignature])
 }

@@ -97,6 +97,36 @@ describe('useKeybindings', () => {
 		expect(handler).not.toHaveBeenCalled()
 	})
 
+	// A descendant that handles the key and stops it cannot swallow a capture-phase
+	// binding, which runs on the way down, before the descendant sees the event.
+	it('fires ahead of a descendant that stops propagation, with capture', () => {
+		const handler = vi.fn()
+
+		const field = attach(document.createElement('div'))
+
+		field.addEventListener('keydown', (event) => event.stopPropagation())
+
+		renderHook(() => useKeybindings({ 'Shift+a': handler }, { capture: true }))
+
+		pressShiftA(field)
+
+		expect(handler).toHaveBeenCalledOnce()
+	})
+
+	it('is swallowed by a descendant that stops propagation, without capture', () => {
+		const handler = vi.fn()
+
+		const field = attach(document.createElement('div'))
+
+		field.addEventListener('keydown', (event) => event.stopPropagation())
+
+		renderHook(() => useKeybindings({ 'Shift+a': handler }))
+
+		pressShiftA(field)
+
+		expect(handler).not.toHaveBeenCalled()
+	})
+
 	it('removes the listener on unmount', () => {
 		const handler = vi.fn()
 

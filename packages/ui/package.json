@@ -34,6 +34,30 @@
 			"types": "./src/structure/*/index.ts",
 			"default": "./src/structure/*/index.ts"
 		},
+		"./box": {
+			"types": "./src/structure/box/index.ts",
+			"default": "./src/structure/box/index.ts"
+		},
+		"./container": {
+			"types": "./src/structure/container/index.ts",
+			"default": "./src/structure/container/index.ts"
+		},
+		"./flex": {
+			"types": "./src/structure/flex/index.ts",
+			"default": "./src/structure/flex/index.ts"
+		},
+		"./spacer": {
+			"types": "./src/structure/spacer/index.ts",
+			"default": "./src/structure/spacer/index.ts"
+		},
+		"./split": {
+			"types": "./src/structure/split/index.ts",
+			"default": "./src/structure/split/index.ts"
+		},
+		"./stack": {
+			"types": "./src/structure/stack/index.ts",
+			"default": "./src/structure/stack/index.ts"
+		},
 		"./tailwind.css": "./tailwind.css",
 		"./*": [
 			{

@@ -55,6 +55,16 @@ const ROOT_GRID = { gridTemplate: '1fr / 1fr' } as const
 // layer, is the sole thing that sizes it. The placeholder is lifted out of flow
 // (absolute, filling the cell) so its silhouette — whether it stands taller or
 // shorter than the content — never inflates the reserved box.
+//
+// Known limitation: that layer is a block box, so an *inline-level* child sits
+// in a line box sized by the inherited `line-height` rather than by the child.
+// A control shorter than the inherited leading therefore reserves more than it
+// occupies and sits on the line box's baseline inside it — visible as a couple
+// of pixels of vertical misalignment against a taller sibling, which is what
+// `apps/tms/.../review/review-bar.tsx` makes its controls block-level
+// to avoid. Blockifying this layer would fix it for every consumer; that is a
+// change to the primitive nobody has made yet, not a rule callers should be
+// left to rediscover. See `__tests__/browser/ready-reveal-line-box.test.tsx`.
 const CONTENT_CELL = { gridArea: '1 / 1' } as const
 
 const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const

@@ -61,6 +61,56 @@ if (typeof window.IntersectionObserver !== 'function') {
 	window.IntersectionObserver = StubIntersectionObserver
 }
 
+// Node 25 puts `localStorage` and `sessionStorage` on `globalThis` before the
+// jsdom environment fills it. jsdom does not replace a key that is already
+// there, so its store never lands. Without a `--localstorage-file` path, Node's
+// `localStorage` has no `Storage` method at all. A store over a `Map` replaces
+// each global that cannot `setItem`, and leaves a working store alone, as on
+// Node 24 and in the VM pools. The global stays an accessor, as Node's is.
+class MemoryStorage implements Storage {
+	private readonly entries = new Map<string, string>()
+
+	get length(): number {
+		return this.entries.size
+	}
+
+	key(index: number): string | null {
+		return [...this.entries.keys()][index] ?? null
+	}
+
+	getItem(key: string): string | null {
+		return this.entries.get(String(key)) ?? null
+	}
+
+	setItem(key: string, value: string): void {
+		this.entries.set(String(key), String(value))
+	}
+
+	removeItem(key: string): void {
+		this.entries.delete(String(key))
+	}
+
+	clear(): void {
+		this.entries.clear()
+	}
+}
+
+for (const kind of ['localStorage', 'sessionStorage'] as const) {
+	let works = false
+
+	try {
+		works = typeof globalThis[kind]?.setItem === 'function'
+	} catch {
+		// A store that throws on access is a store to replace.
+	}
+
+	if (!works) {
+		const storage = new MemoryStorage()
+
+		Object.defineProperty(globalThis, kind, { configurable: true, get: () => storage })
+	}
+}
+
 if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = vi.fn()
 }

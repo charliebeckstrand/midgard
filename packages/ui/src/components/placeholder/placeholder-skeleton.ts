@@ -2,7 +2,7 @@ import type { ClassValue } from 'clsx'
 import { createElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { Placeholder } from './placeholder'
+import { Placeholder, type PlaceholderProps } from './placeholder'
 
 // Call sites pin `S` to the `size` type of their component, so the `size` prop
 // only carries a size that the recipe defines. Skeletons are static leaves and
@@ -35,6 +35,16 @@ type DensitySkeletonRecipe = BaseSkeletonRecipe & {
 	density: true
 }
 
+/** How a {@link createSkeleton} component renders, beyond its recipe's classes. */
+type SkeletonOptions = {
+	/**
+	 * The element to render: `span` for the skeleton of an inline component, so it can stand in
+	 * for one inside a line of text. See {@link PlaceholderProps.as}.
+	 * @defaultValue 'div'
+	 */
+	as?: PlaceholderProps['as']
+}
+
 /**
  * Props of a {@link createSkeleton} component: `className` always, plus an
  * optional `size` when built from a sized recipe.
@@ -62,6 +72,7 @@ export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
  *   sized silhouette, `{ base, density }` for one that follows density, or
  *   `{ base }` for a fixed one.
  * @param name - `displayName` for the returned component.
+ * @param options - `as: 'span'` for the skeleton of an inline component.
  * @returns A static skeleton component rendering a `<Placeholder>` with the
  *   recipe's shape classes; it accepts a `size` prop only for a sized recipe.
  * @example
@@ -71,22 +82,27 @@ export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
 export function createSkeleton(
 	skeleton: DensitySkeletonRecipe,
 	name: string,
+	options?: SkeletonOptions,
 ): (props: SkeletonProps<DensityStep>) => ReactElement
 export function createSkeleton<S extends DensityStep>(
 	skeleton: SizedSkeletonRecipe<S>,
 	name: string,
+	options?: SkeletonOptions,
 ): (props: SkeletonProps<S>) => ReactElement
 export function createSkeleton(
 	skeleton: BaseSkeletonRecipe,
 	name: string,
+	options?: SkeletonOptions,
 ): (props: SkeletonProps) => ReactElement
 export function createSkeleton<S extends DensityStep>(
 	skeleton: BaseSkeletonRecipe | SizedSkeletonRecipe<S> | DensitySkeletonRecipe,
 	name: string,
+	options?: SkeletonOptions,
 ) {
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
 		if ('density' in skeleton) {
 			return createElement(Placeholder, {
+				as: options?.as,
 				'data-density': size,
 				className: cn(skeleton.base, className),
 			})
@@ -95,6 +111,7 @@ export function createSkeleton<S extends DensityStep>(
 		const sizeClass = 'size' in skeleton ? skeleton.size[size ?? 'md'] : undefined
 
 		return createElement(Placeholder, {
+			as: options?.as,
 			className: cn(skeleton.base, sizeClass, className),
 		})
 	}
