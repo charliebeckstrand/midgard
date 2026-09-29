@@ -512,6 +512,38 @@ describe('Dashboard', () => {
 		expect(bySlot(card, 'dashboard-tile-actions')).toHaveClass('cursor-default')
 	})
 
+	it('reports each change of the projection to the app', () => {
+		const onProjectedChange = vi.fn()
+
+		const board = (minWidth: number) => (
+			<Dashboard
+				aria-label="Sales"
+				editing
+				layout={{ defaultValue: LAYOUT }}
+				onProjectedChange={onProjectedChange}
+			>
+				<DashboardTile id="c" title="Orders" minWidth={minWidth} />
+			</Dashboard>
+		)
+
+		// At a 50 px pitch, 8 columns hold 400 px.
+		const { rerender } = renderUI(board(0))
+
+		expect(onProjectedChange).not.toHaveBeenCalled()
+
+		rerender(board(600))
+
+		expect(onProjectedChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		expect(screen.queryByRole('button', { name: 'Move Orders' })).not.toBeInTheDocument()
+
+		rerender(board(0))
+
+		expect(onProjectedChange).toHaveBeenLastCalledWith(false)
+
+		expect(onProjectedChange).toHaveBeenCalledTimes(2)
+	})
+
 	it('renders only the tile whose cell changed', () => {
 		const renders = new Map<string, number>()
 

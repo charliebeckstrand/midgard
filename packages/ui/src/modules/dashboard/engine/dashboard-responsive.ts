@@ -3,6 +3,8 @@
  * under its `minWidth`, the board paints a content-first re-pack of the same
  * layout. The starved tiles widen, and the tiles fill shelves in reading order.
  * Each shelf stretches to the full span, and a narrow board becomes a stack.
+ * Each tile keeps its shape: a free-form tile scales its row span with its
+ * column span, and a tile with a fixed ratio derives its height.
  *
  * The projection is a view. It never writes to the saved layout, and the saved
  * layout returns when the container is wide enough again. There is no
@@ -16,6 +18,15 @@ import {
 	heightAt,
 	minColumns,
 } from './dashboard-layout'
+
+/**
+ * The row span of a free-form tile at `w` columns. It keeps the shape of the
+ * saved cell, because the rows follow the column pitch. A tile that widens
+ * without it goes flat, and its content clips.
+ */
+function scaledHeight(cell: DashboardCell, w: number): number {
+	return Math.max(1, Math.round((cell.h * w) / cell.w))
+}
 
 /** The inputs of one projection. */
 export type DashboardProjectionOptions = {
@@ -66,7 +77,7 @@ function placeShelf(
 
 		if (remainder > 0) remainder -= 1
 
-		const h = heightAt(w, cell.h, demands.get(cell.id)?.ratio)
+		const h = heightAt(w, scaledHeight(cell, w), demands.get(cell.id)?.ratio)
 
 		into.set(cell.id, { ...cell, x, y, w, h })
 

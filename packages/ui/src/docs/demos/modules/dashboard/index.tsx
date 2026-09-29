@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
@@ -136,6 +136,16 @@ function Orders() {
 export function Demo() {
 	const [editing, setEditing] = useState(false)
 
+	// A narrow board paints the re-pack, where edit mode stands down. The control
+	// that starts it then goes disabled, and a live edit ends.
+	const [projected, setProjected] = useState(false)
+
+	const project = useCallback((next: boolean) => {
+		setProjected(next)
+
+		if (next) setEditing(false)
+	}, [])
+
 	const [filter, setFilter] = useState<QueryGroup>(emptyFilter)
 
 	const [selection, setSelection] = useState<DashboardSelection[]>([])
@@ -163,7 +173,11 @@ export function Demo() {
 							</Button>
 						)}
 
-						<Button color={editing ? 'zinc' : 'blue'} onClick={() => setEditing((live) => !live)}>
+						<Button
+							color={editing ? 'zinc' : 'blue'}
+							disabled={projected}
+							onClick={() => setEditing((live) => !live)}
+						>
 							{editing ? 'Done' : 'Edit layout'}
 						</Button>
 					</Flex>
@@ -171,6 +185,7 @@ export function Demo() {
 					<Dashboard
 						aria-label="Sales dashboard"
 						editing={editing}
+						onProjectedChange={project}
 						layout={{ defaultValue: layout }}
 						filter={{ value: filter, onValueChange: setFilter }}
 						selection={{ value: selection, onValueChange: setSelection }}

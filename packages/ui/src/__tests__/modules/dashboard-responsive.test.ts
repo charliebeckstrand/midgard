@@ -45,4 +45,25 @@ describe('projectLayout', () => {
 
 		expect(projection.cells.map((item) => item.w)).toEqual([24, 24, 24])
 	})
+
+	it('keeps the shape of a free-form tile as it widens', () => {
+		const cells = [cell('stat', 0, 0, 6, 16), cell('spark', 6, 0, 3, 14)]
+
+		const free = new Map([
+			['stat', { minWidth: 160 }],
+			['spark', { minWidth: 0 }],
+		])
+
+		// 360 px over 24 columns is 15 px a column, so the stat starves at 6 columns.
+		const projection = projectLayout(cells, { width: 360, gap: 12, columns: 24, demands: free })
+
+		const byId = Object.fromEntries(projection.cells.map((item) => [item.id, item]))
+
+		// Each tile keeps its saved ratio of columns to rows: 6 to 16, and 3 to 14.
+		expect(byId.stat?.h).toBe(Math.round((16 * (byId.stat?.w ?? 0)) / 6))
+
+		expect(byId.spark?.h).toBe(Math.round((14 * (byId.spark?.w ?? 0)) / 3))
+
+		expect(byId.stat?.w).toBeGreaterThan(6)
+	})
 })
