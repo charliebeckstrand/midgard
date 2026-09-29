@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, relative } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -281,7 +281,10 @@ describe('biome plugin boundary', () => {
 	const other: string[] = []
 
 	beforeAll(() => {
-		workspace = mkdtempSync(join(tmpdir(), 'biome-plugins-'))
+		// The real path, because Biome reports real paths. On macOS the temp
+		// directory is under `/var`, which links to `/private/var`. A path relative
+		// to the linked name then leaves the workspace and matches no fixture.
+		workspace = realpathSync(mkdtempSync(join(tmpdir(), 'biome-plugins-')))
 
 		const overrides = Object.entries(FIXTURES).map(([plugin, fixtures]) => {
 			mkdirSync(join(workspace, plugin))
