@@ -152,8 +152,111 @@ describe('sourceOrder', () => {
 		expect(orderOf(source, 'size')).toEqual([`'xs'`, `'sm'`, `'md'`])
 	})
 
+	it('spells each combination of a template literal, the last span fastest', () => {
+		const source = [
+			`type Side = 'top' | 'right'`,
+			`type Align = 'start' | 'end'`,
+			`type Props = { placement?: Side | \`\${Side}-\${Align}\` }`,
+		].join('\n')
+
+		expect(orderOf(source, 'placement')).toEqual([
+			`'top'`,
+			`'right'`,
+			`'top-start'`,
+			`'top-end'`,
+			`'right-start'`,
+			`'right-end'`,
+		])
+	})
+
+	it('reads the keys of a spread, and of the type that `as` gives a value', () => {
+		const source = [
+			`const scale = { xs: 'a', sm: 'b' }`,
+			`const steps = Object.fromEntries([]) as Record<keyof typeof scale, never[]>`,
+			`function base(): Record<'solid' | 'soft', string> { return { solid: '', soft: '' } }`,
+			`const axes = { width: { ...steps, fit: [] }, variant: { ...base(), plain: '' } }`,
+			`type Props = { [K in keyof typeof axes]?: keyof (typeof axes)[K] }`,
+		].join('\n')
+
+		expect(orderOf(source, 'width')).toEqual([`'xs'`, `'sm'`, `'fit'`])
+
+		expect(orderOf(source, 'variant')).toEqual([`'solid'`, `'soft'`, `'plain'`])
+	})
+
+	// React's `ElementType` spells its tags so.
+	it('reads the keys of a mapped type that an index filters', () => {
+		const source = [
+			`interface Tags { b: 1; a: 2 }`,
+			`interface Tags { c: 3 }`,
+			`type Tag<T extends keyof Tags = keyof Tags> = { [K in T]: K }[T]`,
+			`type Props = { as?: Tag }`,
+		].join('\n')
+
+		expect(orderOf(source, 'as')).toEqual([`'b'`, `'a'`, `'c'`])
+	})
+
 	it('returns null for a declaration that spells no order', () => {
 		expect(orderOf(`type Props = { label?: string & {} }`, 'label')).toBeNull()
+	})
+})
+
+// A small copy of the recipe engine. The engine's `ComputedProps` declares
+// `variant` and `color` with no order of their own, so the order comes from the
+// config of the recipe that the props name.
+describe('sourceOrder — recipe props', () => {
+	const engine = [
+		`export type PaletteConfig<E extends string = never, M extends string = string, C extends string = never> = {`,
+		`  matrix: Record<M, Record<C, string>>`,
+		`  overlays: Record<E, string>`,
+		`}`,
+		`type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never`,
+		`export type ComputedProps<C> = {`,
+		`  [K in keyof C as K extends 'variant' | 'palette' ? never : K]?: keyof C[K]`,
+		`} & (C extends { palette: PaletteConfig<infer E, infer M, infer Col> }`,
+		`  ? { variant?: (M & string) | ExplicitVariantKeys<C>; color?: Col | (E & string) }`,
+		`  : Record<never, never>)`,
+		`export type VariantProps<R> = R extends { config: infer C } ? ComputedProps<C> : never`,
+		`export declare function definePalette<M extends string, E extends string = never, C extends string = never>(`,
+		`  matrix: Record<M, Record<C, string>>,`,
+		`  ...overlays: Record<E, string>[]`,
+		`): PaletteConfig<E, M, C>`,
+		`export declare function defineRecipe<C>(config: C): { config: C }`,
+	].join('\n')
+
+	const kata = [
+		`import { definePalette, defineRecipe, type VariantProps } from './core/recipe/engine/types'`,
+		`type Hue = 'zinc' | 'red' | 'amber'`,
+		`declare const tint: Record<Hue, string>`,
+		`const k = defineRecipe({`,
+		`  variant: { solid: '', soft: '', bare: '' },`,
+		`  palette: definePalette({ soft: tint, solid: tint }, { inherit: '' }),`,
+		`})`,
+		`type Props = VariantProps<typeof k> & { size?: 'sm' }`,
+	].join('\n')
+
+	const recipeOrderOf = (name: string) => {
+		const { checker, sourceFiles } = createInMemoryProgram({
+			'core/recipe/engine/types.ts': engine,
+			'index.ts': kata,
+		})
+
+		const props = sourceFiles['index.ts']?.statements
+			.filter(ts.isTypeAliasDeclaration)
+			.find((alias) => alias.name.text === 'Props')
+
+		if (!props) throw new Error('no `type Props`')
+
+		const symbol = checker.getPropertyOfType(checker.getTypeAtLocation(props), name)
+
+		return sourceOrder(symbol?.declarations?.[0], checker, props.type)
+	}
+
+	it('orders `variant` by the palette matrix, then by the `variant` axis', () => {
+		expect(recipeOrderOf('variant')).toEqual([`'soft'`, `'solid'`, `'bare'`])
+	})
+
+	it('orders `color` by the alias of the palette colors, then by the overlays', () => {
+		expect(recipeOrderOf('color')).toEqual([`'zinc'`, `'red'`, `'amber'`, `'inherit'`])
 	})
 })
 

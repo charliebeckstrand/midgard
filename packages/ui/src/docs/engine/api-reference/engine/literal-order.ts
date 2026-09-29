@@ -1,4 +1,10 @@
 import { ts } from 'ts-morph'
+import {
+	componentPropsAnnotation,
+	RECIPE_ENGINE_PATH,
+	TAG_PASS_THROUGHS,
+	typeRefName,
+} from './ts-utils'
 
 /**
  * The key of a union member in a source order: the value of a string literal in
@@ -54,18 +60,18 @@ function propertyKey(name: ts.PropertyName | ts.DeclarationName | undefined): st
 	return null
 }
 
-/** An expression without the wrappers that keep its value: `as`, `satisfies`, parentheses. */
-function unwrap(node: ts.Expression): ts.Expression {
+/** The text that a key gives a template literal, or null for a keyword such as `string`. */
+function templateText(key: string): string | null {
+	if (key.startsWith("'")) return key.slice(1, -1)
+
+	return /^-?\d/.test(key) ? key : null
+}
+
+/** A type node without its parentheses. */
+function unparenthesized(node: ts.TypeNode): ts.TypeNode {
 	let current = node
 
-	while (
-		ts.isAsExpression(current) ||
-		ts.isSatisfiesExpression(current) ||
-		ts.isParenthesizedExpression(current) ||
-		ts.isTypeAssertionExpression(current)
-	) {
-		current = current.expression
-	}
+	while (ts.isParenthesizedTypeNode(current)) current = current.type
 
 	return current
 }
@@ -80,7 +86,29 @@ function unalias(symbol: ts.Symbol | undefined, checker: ts.TypeChecker): ts.Sym
 	return symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
 }
 
-type Walk = { checker: ts.TypeChecker; seen: Set<ts.Node> }
+/**
+ * The state of one order walk. `seen` holds the nodes that the walk is inside
+ * of, so that a cycle ends. `scope` is the type node that the walk read the
+ * declaration from, when the declaration needs it (see {@link recipeOrder}).
+ */
+type Walk = { checker: ts.TypeChecker; seen: Set<ts.Node>; scope: ts.TypeNode | undefined }
+
+/**
+ * The result of `visit`, or an empty list when the walk is already inside
+ * `node`. The walk leaves `node` after the visit, so a second
+ * reference to the same alias reads it again.
+ */
+function inside<T>(node: ts.Node, walk: Walk, visit: () => T[]): T[] {
+	if (walk.seen.has(node)) return []
+
+	walk.seen.add(node)
+
+	try {
+		return visit()
+	} finally {
+		walk.seen.delete(node)
+	}
+}
 
 /**
  * The order that the value of a name spells: the elements of an array literal,
@@ -93,9 +121,13 @@ function valueOrder(node: ts.Node, part: 'elements' | 'keys', walk: Walk): strin
 
 	const declaration = targetOf(name, walk.checker)?.valueDeclaration
 
-	const value = declaration && valueExpression(declaration, walk)
+	if (!declaration) return []
 
-	return value ? expressionOrder(value, part, walk) : []
+	return inside(declaration, walk, () => {
+		const value = valueExpression(declaration, walk.checker)
+
+		return value ? expressionOrder(value, part, walk) : []
+	})
 }
 
 /**
@@ -103,10 +135,14 @@ function valueOrder(node: ts.Node, part: 'elements' | 'keys', walk: Walk): strin
  * variable or of a property, the value that a shorthand property names, or the
  * property that a destructured binding reads, as in `const { rounded } = kasane`.
  */
-function valueExpression(declaration: ts.Declaration, walk: Walk): ts.Expression | undefined {
-	if (walk.seen.has(declaration)) return undefined
+function valueExpression(
+	declaration: ts.Declaration,
+	checker: ts.TypeChecker,
+	seen = new Set<ts.Declaration>(),
+): ts.Expression | undefined {
+	if (seen.has(declaration)) return undefined
 
-	walk.seen.add(declaration)
+	seen.add(declaration)
 
 	if (ts.isVariableDeclaration(declaration) || ts.isPropertyAssignment(declaration)) {
 		return declaration.initializer
@@ -115,35 +151,63 @@ function valueExpression(declaration: ts.Declaration, walk: Walk): ts.Expression
 	let target: ts.Declaration | undefined
 
 	if (ts.isShorthandPropertyAssignment(declaration)) {
-		const value = walk.checker.getShorthandAssignmentValueSymbol(declaration)
+		const value = checker.getShorthandAssignmentValueSymbol(declaration)
 
-		target = unalias(value, walk.checker)?.valueDeclaration
+		target = unalias(value, checker)?.valueDeclaration
 	} else if (ts.isBindingElement(declaration) && ts.isObjectBindingPattern(declaration.parent)) {
 		const key = declaration.propertyName ?? declaration.name
 
-		const source = walk.checker.getTypeAtLocation(declaration.parent)
+		const source = checker.getTypeAtLocation(declaration.parent)
 
 		target = ts.isIdentifier(key) ? source.getProperty(key.text)?.valueDeclaration : undefined
 	}
 
-	return target && valueExpression(target, walk)
+	return target && valueExpression(target, checker, seen)
 }
 
 function expressionOrder(node: ts.Expression, part: 'elements' | 'keys', walk: Walk): string[] {
-	const value = unwrap(node)
+	// `value as T` keeps the order of `value`. When the value spells no keys, the
+	// keys come from `T`, as `Object.fromEntries(…) as Record<Step, never[]>`
+	// gives them.
+	if (
+		ts.isAsExpression(node) ||
+		ts.isSatisfiesExpression(node) ||
+		ts.isTypeAssertionExpression(node)
+	) {
+		const order = expressionOrder(node.expression, part, walk)
 
-	if (part === 'elements' && ts.isArrayLiteralExpression(value)) {
-		return value.elements.flatMap((element) => literalKey(element) ?? [])
+		return order.length > 0 || part === 'elements' ? order : membersOrder(node.type, walk)
 	}
 
-	if (part === 'keys' && ts.isObjectLiteralExpression(value)) {
-		// A spread contributes keys that no name here spells, so the order stays
-		// short of them, and the coverage test in `orderMembers` refuses it.
-		return value.properties.flatMap((property) => propertyKey(property.name) ?? [])
+	if (ts.isParenthesizedExpression(node)) return expressionOrder(node.expression, part, walk)
+
+	if (part === 'elements' && ts.isArrayLiteralExpression(node)) {
+		return node.elements.flatMap((element) => literalKey(element) ?? [])
 	}
 
-	if (ts.isIdentifier(value) || ts.isPropertyAccessExpression(value)) {
-		return valueOrder(value, part, walk)
+	if (part === 'keys' && ts.isObjectLiteralExpression(node)) {
+		// A spread adds the keys of its value in its place. When the walk cannot
+		// read those keys, the order stays short of them, and the coverage test in
+		// `orderMembers` refuses it.
+		return node.properties.flatMap((property) =>
+			ts.isSpreadAssignment(property)
+				? expressionOrder(property.expression, 'keys', walk)
+				: (propertyKey(property.name) ?? []),
+		)
+	}
+
+	if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node)) {
+		return valueOrder(node, part, walk)
+	}
+
+	// `basePalette(palette)`: the keys of the type that the function declares
+	// that it returns.
+	if (part === 'keys' && ts.isCallExpression(node)) {
+		const declaration = walk.checker.getResolvedSignature(node)?.getDeclaration()
+
+		return declaration && ts.isFunctionLike(declaration) && declaration.type
+			? membersOrder(declaration.type, walk)
+			: []
 	}
 
 	return []
@@ -151,10 +215,10 @@ function expressionOrder(node: ts.Expression, part: 'elements' | 'keys', walk: W
 
 /** The order of the members that a type node spells, through aliases and `typeof`. */
 function typeNodeOrder(node: ts.TypeNode, walk: Walk): string[] {
-	if (walk.seen.has(node)) return []
+	return inside(node, walk, () => typeNodeMembers(node, walk))
+}
 
-	walk.seen.add(node)
-
+function typeNodeMembers(node: ts.TypeNode, walk: Walk): string[] {
 	if (ts.isParenthesizedTypeNode(node)) return typeNodeOrder(node.type, walk)
 
 	if (ts.isUnionTypeNode(node)) return node.types.flatMap((member) => typeNodeOrder(member, walk))
@@ -164,6 +228,8 @@ function typeNodeOrder(node: ts.TypeNode, walk: Walk): string[] {
 
 		return key === null ? [] : [key]
 	}
+
+	if (ts.isTemplateLiteralTypeNode(node)) return templateOrder(node, walk)
 
 	switch (node.kind) {
 		case ts.SyntaxKind.NumberKeyword:
@@ -205,16 +271,23 @@ function typeNodeOrder(node: ts.TypeNode, walk: Walk): string[] {
 
 		const declaration = property?.declarations?.[0]
 
-		return declaration ? declarationOrder(declaration, walk) : []
+		// The property can come from a recipe, which the object type names.
+		return declaration ? declarationOrder(declaration, { ...walk, scope: node.objectType }) : []
 	}
 
-	if (ts.isIndexedAccessTypeNode(node) && node.indexType.kind === ts.SyntaxKind.NumberKeyword) {
+	if (ts.isIndexedAccessTypeNode(node)) {
 		// `(typeof steps)[number]` needs its parentheses, so the query sits in one.
-		let object = node.objectType
+		const object = unparenthesized(node.objectType)
 
-		while (ts.isParenthesizedTypeNode(object)) object = object.type
+		if (node.indexType.kind === ts.SyntaxKind.NumberKeyword && ts.isTypeQueryNode(object)) {
+			return valueOrder(object.exprName, 'elements', walk)
+		}
 
-		if (ts.isTypeQueryNode(object)) return valueOrder(object.exprName, 'elements', walk)
+		// `{ [K in Tag]: … }[Tag]`, the filter that React's `ElementType` spells:
+		// its members are keys of the mapped type.
+		if (ts.isMappedTypeNode(object) && object.typeParameter.constraint) {
+			return typeNodeOrder(object.typeParameter.constraint, walk)
+		}
 	}
 
 	if (ts.isTypeOperatorNode(node) && node.operator === ts.SyntaxKind.KeyOfKeyword) {
@@ -226,20 +299,51 @@ function typeNodeOrder(node: ts.TypeNode, walk: Walk): string[] {
 	return []
 }
 
+/**
+ * The order of the strings that a template literal type spells: each
+ * combination of its spans, with the last span changing fastest. So
+ * `` `${Side}-${Alignment}` `` gives `'top-start'`, `'top-end'`, `'right-start'`.
+ */
+function templateOrder(node: ts.TemplateLiteralTypeNode, walk: Walk): string[] {
+	let texts = [node.head.text]
+
+	for (const span of node.templateSpans) {
+		const parts = typeNodeOrder(span.type, walk).map(templateText)
+
+		// A span such as `${string}` spells no set of strings.
+		if (parts.length === 0 || parts.some((part) => part === null)) return []
+
+		texts = texts.flatMap((text) => parts.map((part) => `${text}${part}${span.literal.text}`))
+	}
+
+	return texts.map((text) => `'${text}'`)
+}
+
 /** The order of the property names of an object type that a node spells, for `keyof`. */
 function membersOrder(node: ts.TypeNode, walk: Walk): string[] {
 	if (ts.isTypeLiteralNode(node)) return node.members.flatMap((m) => propertyKey(m.name) ?? [])
 
 	if (!ts.isTypeReferenceNode(node)) return []
 
-	const declaration = targetOf(node.typeName, walk.checker)?.declarations?.[0]
+	// `Record<K, V>` takes its keys from `K`.
+	const [keys] = node.typeArguments ?? []
 
-	if (declaration && ts.isInterfaceDeclaration(declaration)) {
-		return declaration.members.flatMap((m) => propertyKey(m.name) ?? [])
+	if (typeRefName(node.typeName) === 'Record' && keys) return typeNodeOrder(keys, walk)
+
+	const declarations = targetOf(node.typeName, walk.checker)?.declarations ?? []
+
+	// An interface can have more than one declaration, which merge in order.
+	const interfaces = declarations.filter(ts.isInterfaceDeclaration)
+
+	if (interfaces.length > 0) {
+		return interfaces.flatMap((i) => i.members.flatMap((m) => propertyKey(m.name) ?? []))
 	}
 
-	if (declaration && ts.isTypeAliasDeclaration(declaration))
-		return membersOrder(declaration.type, walk)
+	const [declaration] = declarations
+
+	if (declaration && ts.isTypeAliasDeclaration(declaration)) {
+		return inside(declaration, walk, () => membersOrder(declaration.type, walk))
+	}
 
 	return []
 }
@@ -248,7 +352,10 @@ function membersOrder(node: ts.TypeNode, walk: Walk): string[] {
  * The source order of the union members that a declaration spells, as keys of
  * {@link memberKey}, or null when it spells none. A declaration with a type
  * node reads that node. A property that a mapped type makes from an object
- * literal, such as a recipe axis, reads the keys of its value.
+ * literal, such as a recipe axis, reads the keys of its value. `scope` is the
+ * props type node that the declaration comes from. The recipe engine's
+ * `variant` and `color` read their order from the recipe that it names (see
+ * {@link recipeOrder}).
  *
  * @remarks
  * The checker orders a union's members by type id, and the ids follow the
@@ -259,15 +366,24 @@ function membersOrder(node: ts.TypeNode, walk: Walk): string[] {
 export function sourceOrder(
 	declaration: ts.Node | undefined,
 	checker: ts.TypeChecker,
+	scope?: ts.TypeNode,
 ): string[] | null {
 	if (!declaration) return null
 
-	const order = declarationOrder(declaration, { checker, seen: new Set() })
+	const order = declarationOrder(declaration, { checker, seen: new Set(), scope })
 
 	return order.length > 0 ? [...new Set(order)] : null
 }
 
 function declarationOrder(declaration: ts.Node, walk: Walk): string[] {
+	if (
+		ts.isPropertySignature(declaration) &&
+		ts.isIdentifier(declaration.name) &&
+		declaration.getSourceFile().fileName.includes(RECIPE_ENGINE_PATH)
+	) {
+		return recipeOrder(declaration.name.text, walk)
+	}
+
 	if (
 		(ts.isPropertySignature(declaration) ||
 			ts.isPropertyDeclaration(declaration) ||
@@ -281,12 +397,130 @@ function declarationOrder(declaration: ts.Node, walk: Walk): string[] {
 	// A property that a mapped type makes from an object literal, such as a
 	// recipe axis: the prop takes the keys of the property's value.
 	if (ts.isPropertyAssignment(declaration) || ts.isShorthandPropertyAssignment(declaration)) {
-		const value = valueExpression(declaration, walk)
+		const value = valueExpression(declaration, walk.checker)
 
 		return value ? expressionOrder(value, 'keys', walk) : []
 	}
 
 	return []
+}
+
+/**
+ * The order of a prop that the recipe engine declares, from the config of the
+ * first recipe in the scope that gives one. The palette arm of the engine's
+ * `ComputedProps` declares `variant` and `color`, and its types keep no order:
+ *
+ * - `variant` takes the keys of the palette matrix, then the keys of the
+ *   `variant` axis.
+ * - `color` takes the order of the palette's color alias, such as
+ *   `PaletteColor`, then the keys of the palette overlays, such as `inherit`.
+ *
+ * The palette is `definePalette(matrix, ...overlays)`. It returns
+ * `PaletteConfig<E, M, C>`, and its third argument, `C`, is the color alias.
+ */
+function recipeOrder(name: string, walk: Walk): string[] {
+	for (const config of recipeConfigs(walk.scope, walk)) {
+		const palette = config.getProperty('palette')
+
+		const call = palette?.valueDeclaration && callOf(palette.valueDeclaration, walk.checker)
+
+		const [matrix, ...overlays] = call ? call.arguments : []
+
+		const keysOf = (node: ts.Expression | undefined) =>
+			node ? expressionOrder(node, 'keys', walk) : []
+
+		let order: string[] = []
+
+		if (name === 'variant') {
+			const axis = config.getProperty('variant')?.valueDeclaration
+
+			order = [...keysOf(matrix), ...(axis ? declarationOrder(axis, walk) : [])]
+		} else if (name === 'color' && palette) {
+			const colors = walk.checker.getTypeOfSymbol(palette).aliasTypeArguments?.[2]
+
+			const alias = colors?.aliasSymbol?.declarations?.[0]
+
+			order = [...(alias ? declarationOrder(alias, walk) : []), ...overlays.flatMap(keysOf)]
+		}
+
+		if (order.length > 0) return order
+	}
+
+	return []
+}
+
+/** The call that holds the value of a declaration, through names that hold it. */
+function callOf(declaration: ts.Declaration, checker: ts.TypeChecker): ts.CallExpression | null {
+	let value = valueExpression(declaration, checker)
+
+	const seen = new Set<ts.Node>()
+
+	while (value && !seen.has(value)) {
+		seen.add(value)
+
+		if (ts.isCallExpression(value)) return value
+
+		if (!ts.isIdentifier(value)) return null
+
+		const target = targetOf(value, checker)?.valueDeclaration
+
+		value = target && valueExpression(target, checker)
+	}
+
+	return null
+}
+
+/**
+ * The configs of the recipes that a props type node takes: the type argument
+ * of each `ComputedProps` that it reaches, which `VariantProps<typeof k>` gives.
+ * The walk reads aliases, the arguments of references, as those of `Omit`, and
+ * the props of a component that `ComponentProps` names.
+ */
+function recipeConfigs(node: ts.TypeNode | undefined, walk: Walk): ts.Type[] {
+	if (!node) return []
+
+	return inside(node, walk, () => {
+		if (ts.isIntersectionTypeNode(node) || ts.isUnionTypeNode(node)) {
+			return node.types.flatMap((member) => recipeConfigs(member, walk))
+		}
+
+		if (ts.isParenthesizedTypeNode(node)) return recipeConfigs(node.type, walk)
+
+		if (!ts.isTypeReferenceNode(node)) return []
+
+		const type = walk.checker.getTypeFromTypeNode(node)
+
+		const alias = type.aliasSymbol?.declarations?.[0]
+
+		const [config] = type.aliasTypeArguments ?? []
+
+		if (
+			config &&
+			type.aliasSymbol?.getName() === 'ComputedProps' &&
+			alias?.getSourceFile().fileName.includes(RECIPE_ENGINE_PATH)
+		) {
+			return [config]
+		}
+
+		// `ComponentProps<typeof Button>` takes the props annotation of `Button`.
+		const [first] = node.typeArguments ?? []
+
+		const props =
+			first && TAG_PASS_THROUGHS.has(typeRefName(node.typeName))
+				? componentPropsAnnotation(first, walk.checker)
+				: null
+
+		if (props) return recipeConfigs(props, walk)
+
+		const declaration = targetOf(node.typeName, walk.checker)?.declarations?.[0]
+
+		const body =
+			declaration && ts.isTypeAliasDeclaration(declaration)
+				? recipeConfigs(declaration.type, walk)
+				: []
+
+		return [...body, ...(node.typeArguments ?? []).flatMap((a) => recipeConfigs(a, walk))]
+	})
 }
 
 /**

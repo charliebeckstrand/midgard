@@ -1,8 +1,9 @@
 import { ts } from 'ts-morph'
 import { reindent } from '../../derive-code/indent'
+import { extractProjectPropNames } from './extract-project-props'
 import { formatPropType, formatType } from './format-type'
 import { sourceOrder } from './literal-order'
-import { unaliasSymbol } from './ts-utils'
+import { RECIPE_ENGINE_PATH, unaliasSymbol } from './ts-utils'
 
 const TYPE_NAME_RE = /\b([A-Z][A-Za-z0-9_]*)\b/g
 
@@ -34,13 +35,6 @@ const BUILTIN_TYPES = new Set([
 	'WeakMap',
 	'WeakSet',
 ])
-
-/**
- * Recipe-engine internals (`Recipe`, `RecipeBase`, `ResolvedConfig`,
- * `VariantProps`, …) get the same treatment as `node_modules`: excluded from
- * reference cards.
- */
-const ENGINE_PATH_SEGMENT = '/core/recipe/engine/'
 
 /**
  * Resolves every named-type reference in a rendered prop type to its display
@@ -269,7 +263,7 @@ function computedLiteralUnion(
 function isExternalDeclaration(decl: ts.Declaration): boolean {
 	const file = decl.getSourceFile().fileName
 
-	return file.includes('/node_modules/') || file.includes(ENGINE_PATH_SEGMENT)
+	return file.includes('/node_modules/') || file.includes(RECIPE_ENGINE_PATH)
 }
 
 /**
@@ -311,6 +305,24 @@ function formatApparentShape(
 
 	if (properties.length === 0) return null
 
+	// An alias lists its properties in the order that its body spells them, as
+	// the prop table does. `getPropertiesOfType` orders the keys of an `Omit` by
+	// type id. An interface keeps the checker's order: its own members first, in
+	// source order.
+	const scope = ts.isTypeAliasDeclaration(decl) ? decl.type : undefined
+
+	if (scope) {
+		const rank = [...extractProjectPropNames(scope, checker)]
+
+		const place = (name: string) => {
+			const index = rank.indexOf(name)
+
+			return index === -1 ? rank.length : index
+		}
+
+		properties.sort((a, b) => place(a.name) - place(b.name))
+	}
+
 	const params = typeParameterList(decl.typeParameters)
 
 	const lines = properties.map(({ name, sym }) => {
@@ -322,7 +334,7 @@ function formatApparentShape(
 			propType,
 			checker,
 			decl,
-			sourceOrder(sym.getDeclarations()?.[0], checker),
+			sourceOrder(sym.getDeclarations()?.[0], checker, scope),
 		)
 
 		return `\t${name}${optional ? '?' : ''}: ${formatted}`
