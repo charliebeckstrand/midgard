@@ -50,9 +50,6 @@ const ROW_REORDER_MODIFIERS = [restrictToVerticalAxis, restrictToFirstScrollable
  */
 const ROW_REORDER_AUTO_SCROLL = { threshold: { x: 0, y: 0.2 } }
 
-/** The sensors of the dnd context while no reorder is live: none, so no drag starts. @internal */
-const NO_SENSORS: NonNullable<ComponentProps<typeof DndContext>['sensors']> = []
-
 /** The column sortable items while column reorder is not live. @internal */
 const NO_ITEMS: ComponentProps<typeof SortableContext>['items'] = []
 
@@ -212,9 +209,11 @@ type GridReorderRegionProps = Pick<
  * @remarks One `DndContext` serves both reorders, and it switches mode instead
  * of mounting. The live gates follow the sort, the filter, loading, and the
  * rows, and a wrapper that came and went with them remounted the table: the
- * focused sort button was lost on the click that sorted. With no live mode the
- * context takes no sensors, so no drag starts. It sits outside the `<table>`,
- * because its injected a11y nodes must not be table children. The row
+ * focused sort button was lost on the click that sorted. With no live mode no
+ * sortable renders, so no drag starts. The sensors stay the same in each mode:
+ * dnd-kit keys an effect on the sensor list, and React logs an error when the
+ * length of the list changes. The context sits outside the `<table>`, because
+ * its injected a11y nodes must not be table children. The row
  * sortables sit in the body and the column sortables in the head, so each mode
  * has one nearest context.
  *
@@ -240,7 +239,7 @@ function GridReorderRegion({
 	return (
 		<DndContext
 			{...contextProps}
-			sensors={mode === null ? NO_SENSORS : contextProps.sensors}
+			sensors={contextProps.sensors}
 			modifiers={mode === 'row' ? ROW_REORDER_MODIFIERS : REORDER_MODIFIERS}
 			autoScroll={mode === 'row' ? ROW_REORDER_AUTO_SCROLL : REORDER_AUTO_SCROLL}
 		>

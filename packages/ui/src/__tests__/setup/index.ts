@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
-import { afterEach, inject, vi } from 'vitest'
+import { afterEach, beforeAll, inject, vi } from 'vitest'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 
@@ -23,6 +23,17 @@ configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 // case appended to the body outlives it. See `helpers/residue.ts` for the
 // placement this registration depends on.
 installResidueGuard()
+
+// RTL sets `IS_REACT_ACT_ENVIRONMENT` in a `beforeAll` that it registers when
+// its module loads, and it restores the old value in an `afterAll`. Under
+// `isolate: false`, the module loads one time for each worker. Thus only the
+// first file of a worker gets the hook, and each file after it runs with the
+// flag that the `afterAll` restored. A direct `act()` from `react` then logs
+// "The current testing environment is not configured to support act(...)".
+// This file runs again for each file, so this hook sets the flag for each file.
+beforeAll(() => {
+	globalThis.IS_REACT_ACT_ENVIRONMENT = true
+})
 
 // Registered before the `afterEach` below, whose `cleanup` then runs first.
 installSingletonResets()

@@ -1,9 +1,13 @@
-import { act, renderHook, waitFor } from '@testing-library/react'
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { densitySteps, stepDown, toInnerStep } from '../../core'
 import { Density, useDensityScope, useDensityStep } from '../../primitives/density'
 
+// A mounted reader re-renders when the root step changes, outside `act()`.
+// Unmount it before the step is removed.
 afterEach(() => {
+	cleanup()
+
 	document.documentElement.removeAttribute('data-density')
 })
 

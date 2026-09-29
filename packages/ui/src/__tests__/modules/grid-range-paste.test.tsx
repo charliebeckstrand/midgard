@@ -6,7 +6,7 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 } from '../../modules/grid'
-import { expectAnnouncement, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { act, expectAnnouncement, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; count: number; active: boolean; code: string }
 
@@ -286,7 +286,11 @@ describe('Grid range paste', () => {
 
 		await expectAnnouncement('2 cells pasted for Alice')
 
-		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+		// The undo commits through the async `onCommit` too, and its promise
+		// settles after the key event. An async `act` holds the test until then.
+		await act(async () => {
+			fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+		})
 
 		expect(view.onCommit).toHaveBeenLastCalledWith([
 			{ rowKey: 1, columnId: 'count', value: 1 },
@@ -309,7 +313,7 @@ describe('Grid range paste', () => {
 	})
 
 	it('pastes nothing without a grid-owned session', () => {
-		const view = renderPasteGrid({ editable: { session: 'manual' } })
+		const view = renderPasteGrid({ editable: { session: 'manual', scope: 'row' } })
 
 		fireEvent.mouseDown(view.cell(0, 0))
 

@@ -855,6 +855,8 @@ describe('PdfViewer highlights', () => {
 	})
 
 	it('renders no inch-specified region on a page that carries no extent', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		renderUI(
 			<PdfViewer
 				pages={[{ id: 'a', src: 'page-1.png', label: 'Page 1', width: 850, height: 1100 }]}
@@ -865,6 +867,8 @@ describe('PdfViewer highlights', () => {
 		)
 
 		expect(screen.queryByLabelText('Total charges')).not.toBeInTheDocument()
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("needs the page's own size"))
 	})
 
 	it('reports the pressed region and marks it aria-current', () => {

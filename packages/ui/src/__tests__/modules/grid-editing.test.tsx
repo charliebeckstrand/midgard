@@ -696,7 +696,7 @@ describe('Grid per-row editing', () => {
 
 			const editorB = getSlot<HTMLInputElement>(gridB, 'grid-edit-input')
 
-			editorB.focus()
+			act(() => editorB.focus())
 
 			fireEvent.click(view.getAllByRole('button', { name: 'save-a' })[0] as HTMLElement)
 
@@ -2488,7 +2488,7 @@ describe('Grid active-cell binding', () => {
 			'grid-edit-input',
 		)
 
-		inner.focus()
+		act(() => inner.focus())
 
 		fireEvent.click(view.getByRole('button', { name: 'row-2-name' }))
 
