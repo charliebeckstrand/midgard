@@ -232,23 +232,57 @@ const INTERVALS: readonly TimeInterval[] = [
 	{ approx: 100 * YEAR, floor: floorYears(100), next: (d) => d.add({ years: 100 }) },
 ]
 
-/** The `Intl` options for a tick at `approx` spacing over a `spanMs` domain. @internal */
-function formatOptionsFor(approx: number, spanMs: number): Intl.DateTimeFormatOptions {
-	if (approx >= YEAR) return { year: 'numeric' }
+/** Formats one tick from its local wall-clock boundary and its instant. @internal */
+type TickLabel = (at: CalendarDateTime, date: Date) => string
 
-	if (approx >= MONTH)
-		return spanMs > 1.5 * YEAR ? { month: 'short', year: '2-digit' } : { month: 'short' }
+/**
+ * The label of each tick at `approx` spacing: the multi-format of a time axis.
+ * Each tick reads the coarsest calendar unit whose boundary it sits on. An
+ * hourly tick at midnight reads the date, a daily tick on the first of a month
+ * reads the month, and a tick on 1 January reads the year. Other ticks read
+ * their own unit. The axis thus carries the date across midnight and the year
+ * across January, and no label joins a month to a two-digit year, which reads
+ * as a day too.
+ *
+ * @internal
+ */
+function tickLabel(approx: number, locale: string): TickLabel {
+	// Each formatter builds on its first tick, so a run that never reaches a
+	// coarser boundary never pays for its `Intl` formatter.
+	const formatter = (options: Intl.DateTimeFormatOptions) => {
+		let format: DateFormatter | null = null
 
-	if (approx >= DAY)
-		return spanMs > 300 * DAY
-			? { month: 'short', day: 'numeric', year: '2-digit' }
-			: { month: 'short', day: 'numeric' }
+		return (date: Date) => {
+			format ??= new DateFormatter(locale, options)
 
-	if (approx >= HOUR) return { hour: 'numeric' }
+			return format.format(date)
+		}
+	}
 
-	if (approx >= MINUTE) return { hour: 'numeric', minute: '2-digit' }
+	const year = formatter({ year: 'numeric' })
 
-	return { minute: '2-digit', second: '2-digit' }
+	if (approx >= YEAR) return (_, date) => year(date)
+
+	const month = formatter({ month: 'short' })
+
+	const calendar = (at: CalendarDateTime, date: Date) => (at.month === 1 ? year(date) : month(date))
+
+	if (approx >= MONTH) return calendar
+
+	const day = formatter({ month: 'short', day: 'numeric' })
+
+	if (approx >= DAY) return (at, date) => (at.day === 1 ? calendar(at, date) : day(date))
+
+	const time = formatter(
+		approx >= HOUR
+			? { hour: 'numeric' }
+			: approx >= MINUTE
+				? { hour: 'numeric', minute: '2-digit' }
+				: { minute: '2-digit', second: '2-digit' },
+	)
+
+	return (at, date) =>
+		at.hour === 0 && at.minute === 0 && at.second === 0 ? day(date) : time(date)
 }
 
 /** A finite row instant paired with the row index whose band center anchors it. @internal */
@@ -371,7 +405,7 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 	const interval = chooseInterval(spanMs / target)
 
-	const format = new DateFormatter(locale, formatOptionsFor(interval.approx, spanMs))
+	const label = tickLabel(interval.approx, locale)
 
 	const ticks: ChartAxisTick[] = []
 
@@ -396,7 +430,7 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 		// an instant that the walk reaches again. Thus a time at or before the
 		// last tick is skipped.
 		if (time >= first.time && time > lastTime) {
-			ticks.push({ at: place(time), label: format.format(date), key: time })
+			ticks.push({ at: place(time), label: label(cursor, date), key: time })
 
 			lastTime = time
 		}

@@ -105,7 +105,8 @@ describe('timeTicks', () => {
 			locale: 'en-US',
 		})
 
-		expect(ticks?.map((tick) => tick.label)).toEqual(['Jan', 'Feb', 'Mar'])
+		// The tick on 1 January names the year, the coarser unit it starts.
+		expect(ticks?.map((tick) => tick.label)).toEqual(['2026', 'Feb', 'Mar'])
 
 		// Each month-start falls on its own daily row, so the tick sits on that band center.
 		expect(ticks?.[0]?.at).toBeCloseTo(scale.center(0))
@@ -157,6 +158,36 @@ describe('timeTicks', () => {
 		})
 
 		expect(ticks?.map((tick) => tick.label)).toEqual(['2024', '2025', '2026', '2027'])
+	})
+
+	it('names the date on an hourly tick at midnight', () => {
+		// Hourly rows from 01:00 on 1 June, over two days. Before, every tick read
+		// an hour, so the axis carried no date across midnight.
+		const start = new Date(2026, 5, 1, 1).getTime()
+
+		const times = Array.from({ length: 48 }, (_, index) => start + index * 3_600_000)
+
+		const labels = (
+			timeTicks({ times, band: band(48), tickTarget: 5, axisLength: 600, locale: 'en-US' }) ?? []
+		).map((tick) => tick.label)
+
+		expect(labels).toEqual(['12 PM', 'Jun 2', '12 PM', 'Jun 3'])
+	})
+
+	it('names the year on a January month tick, never a two-digit year', () => {
+		// Monthly rows from July 2023 to June 2025. Before, a tick read `Jan 24`,
+		// which reads as 24 January as well as January 2024.
+		const times = Array.from({ length: 24 }, (_, index) => new Date(2023, 6 + index, 1).getTime())
+
+		const labels = (
+			timeTicks({ times, band: band(24), tickTarget: 8, axisLength: 800, locale: 'en-US' }) ?? []
+		).map((tick) => tick.label)
+
+		expect(labels).toContain('2024')
+
+		expect(labels).toContain('2025')
+
+		expect(labels.every((label) => /^(\d{4}|[A-Z][a-z]{2})$/.test(label))).toBe(true)
 	})
 
 	it('draws calendar ticks for rows in newest-first order', () => {
