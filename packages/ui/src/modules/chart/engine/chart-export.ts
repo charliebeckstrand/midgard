@@ -131,6 +131,31 @@ function paintsNothing(style: CSSStyleDeclaration): boolean {
 }
 
 /**
+ * The SVG elements that paint only by reference: the definitions, the paint
+ * servers, and the masks, clips, markers, symbols, and filters. The SVG 2
+ * user-agent sheet sets `display: none` on them, but a reference still paints
+ * them, so the capture keeps them whatever their display.
+ *
+ * @internal
+ */
+const SVG_RESOURCES = new Set([
+	'defs',
+	'pattern',
+	'lineargradient',
+	'radialgradient',
+	'mask',
+	'clippath',
+	'marker',
+	'symbol',
+	'filter',
+])
+
+/** Whether `element` is an SVG element that paints only by reference. @internal */
+function isSvgResource(element: Element): boolean {
+	return element instanceof SVGElement && SVG_RESOURCES.has(element.localName.toLowerCase())
+}
+
+/**
  * Copies a source element's full computed style inline onto its clone.
  * Rasterizing through a `foreignObject` renders the clone detached from the
  * document's stylesheets. Every class-driven and inherited value — color,
@@ -191,7 +216,7 @@ function freezeStyleTree(
 
 		const style = getComputedStyle(sourceChild)
 
-		if (paintsNothing(style)) cloneChild.remove()
+		if (paintsNothing(style) && !isSvgResource(sourceChild)) cloneChild.remove()
 		else freezeStyleTree(sourceChild, cloneChild, style, plan)
 	}
 }

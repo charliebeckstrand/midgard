@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
+import { BarChart } from '../../modules/chart/bar-chart'
 import { type ChartCapture, prepareChartCapture } from '../../modules/chart/engine/chart-export'
 import { LineChart } from '../../modules/chart/line-chart'
 import { attach, getSlot, noop, present, renderUI, waitFor } from '../helpers'
@@ -279,5 +280,53 @@ describe('chart image ground (real browser)', () => {
 			'rgb(9, 9, 11)',
 			'rgba(255, 255, 255, 0.1)',
 		])
+	})
+})
+
+describe('chart image resources (real browser)', () => {
+	it('keeps the paint servers when the engine hides the SVG resources', async () => {
+		// The SVG 2 user-agent sheet sets `display: none` on the resource elements.
+		// The capture dropped each node that computes `display: none`, so a textured
+		// export lost its pattern tiles. A resource paints by reference whatever its
+		// display, so the clone keeps it.
+		const sheet = document.createElement('style')
+
+		sheet.textContent =
+			'defs, pattern, linearGradient, radialGradient, mask, clipPath { display: none !important; }'
+
+		document.head.append(sheet)
+
+		try {
+			const { container } = renderUI(
+				<div style={{ width: 480 }}>
+					<BarChart
+						aria-label="Totals"
+						data={[
+							{ month: 'Jan', total: 3 },
+							{ month: 'Feb', total: 5 },
+						]}
+						series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
+						texture
+						animate={false}
+					/>
+				</div>,
+			)
+
+			await waitFor(() =>
+				expect(container.querySelector('[data-slot="chart-plot"] svg')).not.toBeNull(),
+			)
+
+			const root = getSlot(container, 'chart')
+
+			expect(root.querySelectorAll('pattern').length).toBeGreaterThan(0)
+
+			const { clone } = prepareChartCapture(root, true)
+
+			expect(clone.querySelectorAll('pattern')).toHaveLength(
+				root.querySelectorAll('pattern').length,
+			)
+		} finally {
+			sheet.remove()
+		}
 	})
 })
