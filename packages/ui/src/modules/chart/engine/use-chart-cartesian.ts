@@ -611,7 +611,10 @@ export function useChartCartesian<T>(
 	// Reference chips resolve regardless; the frame mounts the legend — and with
 	// it these — only when `legendItems` is non-null, so they join a shown legend
 	// and never force one of their own.
-	const referenceItems = referenceLegendItems(props.reference, formatAxisValue)
+	// A chip whose rule draws nothing, as outside a pinned domain, recedes nothing.
+	const referenceItems = referenceLegendItems(props.reference, formatAxisValue).map((item) =>
+		referencePositions[item.index] == null ? { ...item, drawn: false } : item,
+	)
 
 	return {
 		ref,

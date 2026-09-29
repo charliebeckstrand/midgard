@@ -395,6 +395,12 @@ export type ChartLegendReference = {
 	 * @defaultValue true
 	 */
 	dashed?: boolean
+	/**
+	 * Whether the plot draws the rule. A rule outside a pinned domain draws
+	 * nothing, so its chip recedes nothing, as a chip that is off does.
+	 * @defaultValue true
+	 */
+	drawn?: boolean
 }
 
 /** Props for {@link ChartLegend}. @internal */
@@ -605,7 +611,9 @@ export function ChartLegend({
 		'button[data-slot="chart-legend-reference"]',
 		(position) => references[position]?.index ?? null,
 		setReferenceActive,
-		(index) => !referenceHidden.has(index),
+		(index) =>
+			!referenceHidden.has(index) &&
+			references.find((reference) => reference.index === index)?.drawn !== false,
 	)
 
 	// A toggle sets the recede to the state it leaves. The hidden set of this

@@ -679,6 +679,38 @@ describe('reference lines in the legend', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toBe('Ceiling: 70')
 	})
 
+	it('recedes nothing from the chip of a rule outside a pinned domain', () => {
+		// The rule draws nothing, so pointing its chip receded every mark to a rule
+		// that was not on the plot.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				axes={{ y: { max: 100 } }}
+				reference={[
+					{ value: 150, label: 'Stretch' },
+					{ value: 55, label: 'Target' },
+				]}
+			/>,
+		)
+
+		const [stretch, target] = allBySlot(container, 'chart-legend-reference')
+
+		fireEvent.pointerEnter(stretch as Element)
+
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).not.toContain('opacity-25')
+
+		fireEvent.pointerLeave(stretch as Element)
+
+		// The chip of a drawn rule still recedes the marks to it.
+		fireEvent.pointerEnter(target as Element)
+
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain('opacity-25')
+	})
+
 	it('keeps a toggled-off labeled rule off when its value changes', async () => {
 		// A rule such as an average takes a new value with each data refresh. The
 		// hide keyed on the value too, so a refresh brought the rule back.
