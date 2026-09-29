@@ -5,7 +5,6 @@ import type { DensityStep } from '../../../core/density'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
 import type { AccessibleName } from '../../../types'
-import { fractionFormat } from '../../../utilities'
 import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
 import { CHART_METRICS, SCATTER_HIT_SLACK } from '../engine/chart-constants'
 import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
@@ -36,7 +35,12 @@ import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { ScatterChartChrome } from './scatter-chart-chrome'
-import { scatterLegendItems, scatterMetas, scatterScales } from './scatter-chart-layout'
+import {
+	scatterFormats,
+	scatterLegendItems,
+	scatterMetas,
+	scatterScales,
+} from './scatter-chart-layout'
 import {
 	AnimatedScatterChartMarks,
 	type ChartScatterSeries,
@@ -248,12 +252,13 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
-	// The scatter reads the intrinsic tier from its measured box for the
-	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
-	// the density target above, so only the tier and its legend budget are taken.
-	// The frame draws the title and subtitle inside the aspect box, so the chrome
-	// reserve holds their lines and the legend. chartFramePolicy resolves the tier
-	// against the figure's `width / ratio` less that chrome.
+	// The scatter reads the intrinsic tier from its measured box, as a cartesian
+	// chart does: the `data-tier` styling hook, the legend's row cap, and the
+	// tick budget and number format of both value axes. The density target above
+	// caps the tick target, and a short box lowers it. The frame draws the title
+	// and subtitle inside the aspect box, so the chrome reserve holds their lines
+	// and the legend. chartFramePolicy resolves the tier against the figure's
+	// `width / ratio` less that chrome.
 	const {
 		ref,
 		width: frameWidth,
@@ -279,15 +284,15 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// ChartTierContext, and the frame renders the drawing pointer-inert.
 	const spark = policy.tier === 'spark'
 
-	// The defaults write numbers in the ambient locale, as a cartesian chart does. A
-	// bubble's size has no formatter of its own, so it always takes the default.
+	// The defaults write numbers in the ambient locale, as a cartesian chart does.
 	const { locale } = useLocale()
 
-	const formatSize = fractionFormat(locale)
-
-	const format = axesConfig.y?.format ?? formatValue ?? formatSize
-
-	const formatX = axesConfig.x?.format ?? formatSize
+	const { format, formatX, formatSize, tickFormat, tickFormatX } = scatterFormats(
+		axesConfig,
+		formatValue,
+		locale,
+		policy.compactFormat,
+	)
 
 	const { hidden, toggle } = useChartSeriesToggle(
 		series.map((entry) => `${entry.xKey}:${entry.yKey}`),
@@ -304,15 +309,15 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		frameHeight,
 		axes: draw,
 		spark,
-		tickTarget: metrics.tickTarget,
+		tickTarget: policy.tickTarget,
 		pins: {
 			min: axesConfig.y?.min,
 			max: axesConfig.y?.max,
 			xMin: axesConfig.x?.min,
 			xMax: axesConfig.x?.max,
 		},
-		format,
-		formatX,
+		format: tickFormat,
+		formatX: tickFormatX,
 		// Titles resolve only when the tier affords a title band, the same gate the
 		// cartesian value titles pass through.
 		xTitle: policy.axisTitles ? axesConfig.x?.title : undefined,

@@ -5,7 +5,9 @@
  * unit-testable in isolation.
  */
 
+import { compactFormat, fractionFormat } from '../../../utilities'
 import type { ChartAxisTick } from '../engine/chart-axes/axis'
+import type { ScatterAxes } from '../engine/chart-axes/schema'
 import { legendItemOf } from '../engine/chart-cartesian/series'
 import type { ChartPaint } from '../engine/chart-color/paint'
 import { seriesPaint } from '../engine/chart-color/palette'
@@ -100,6 +102,52 @@ export function scatterLegendItems(
 	return legendVisible(legend, metas.length) ? metas.map(legendItemOf) : null
 }
 
+/** The number formats of the scatter: the readout's, and the tick labels' of each axis. @internal */
+type ScatterFormats = {
+	/** The y values in the readout, the tooltip and the data table, at full precision. */
+	format: (value: number) => string
+	/** The x values in the readout. */
+	formatX: (value: number) => string
+	/** The size measure of a bubble, which has no formatter of its own. */
+	formatSize: (value: number) => string
+	/** The y tick labels. */
+	tickFormat: (value: number) => string
+	/** The x tick labels. */
+	tickFormatX: (value: number) => string
+}
+
+/**
+ * The number formats of the scatter. The defaults write numbers in the ambient
+ * `locale`. The tick labels take the compact default in a narrow frame
+ * (`compact`), as a cartesian value axis does. The readout keeps full
+ * precision. An explicit format wins for both: the axis `format`, then
+ * `formatValue` for the y axis.
+ *
+ * @internal
+ */
+export function scatterFormats(
+	axes: Partial<ScatterAxes>,
+	formatValue: ((value: number) => string) | undefined,
+	locale: string | undefined,
+	compact: boolean,
+): ScatterFormats {
+	const formatSize = fractionFormat(locale)
+
+	const tickDefault = compact ? compactFormat(locale) : formatSize
+
+	const y = axes.y?.format ?? formatValue
+
+	const x = axes.x?.format
+
+	return {
+		format: y ?? formatSize,
+		formatX: x ?? formatSize,
+		formatSize,
+		tickFormat: y ?? tickDefault,
+		tickFormatX: x ?? tickDefault,
+	}
+}
+
 /** Both scales' pins, lifted off the props. @internal */
 type ScatterPins = { min?: number; max?: number; xMin?: number; xMax?: number }
 
@@ -170,9 +218,12 @@ export function scatterScales(args: {
 	axes: boolean
 	/** Spark draws bare marks, so the gutter is reclaimed and the domain fits tight. */
 	spark: boolean
+	/** The tick target of the tier, which both axes aim for. */
 	tickTarget: number
 	pins: ScatterPins
+	/** The y tick labels' format: compact in a narrow frame, unless the caller sets one. */
 	format: (value: number) => string
+	/** The x tick labels' format, resolved the same way. */
 	formatX: (value: number) => string
 	/** The x / y axis titles; each reserves a band past its labels where the tier affords one. */
 	xTitle?: string

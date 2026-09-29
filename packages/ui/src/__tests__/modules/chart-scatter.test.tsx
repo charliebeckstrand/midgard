@@ -688,6 +688,82 @@ describe('BubbleChart', () => {
 	})
 })
 
+describe('the scatter tier budget', () => {
+	const REVENUE = [
+		{ spend: 1200, revenue: 12_000 },
+		{ spend: 5200, revenue: 48_200 },
+		{ spend: 3100, revenue: 30_500 },
+	]
+
+	/** The tick labels of one axis, in order. */
+	function tickLabels(container: HTMLElement, axis: 'x' | 'y'): string[] {
+		const node = bySlot(container, `chart-axis-${axis}`) as Element
+
+		return [...node.querySelectorAll('text')].map((label) => label.textContent ?? '')
+	}
+
+	it('writes the tick labels of both axes compactly in a narrow frame', () => {
+		const chart = (width: number) =>
+			renderUI(
+				<ScatterChart
+					aria-label="Revenue against spend"
+					data={REVENUE}
+					width={width}
+					height={240}
+					series={[{ xKey: 'spend', yKey: 'revenue', yName: 'Revenue' }]}
+				/>,
+			)
+
+		const narrow = chart(300)
+
+		for (const axis of ['x', 'y'] as const) {
+			const labels = tickLabels(narrow.container, axis)
+
+			expect(labels.some((label) => label.endsWith('K'))).toBe(true)
+
+			expect(labels.some((label) => label.includes(','))).toBe(false)
+		}
+
+		// The readout keeps full precision.
+		expect(bySlot(narrow.container, 'chart-table')?.textContent).toContain('48,200')
+
+		narrow.unmount()
+
+		// A wide frame keeps the full format.
+		const wide = chart(480)
+
+		expect(tickLabels(wide.container, 'y').some((label) => label.includes(','))).toBe(true)
+	})
+
+	it('draws fewer ticks in a short frame', () => {
+		const ticks = (height: number) => {
+			const { container, unmount } = renderUI(
+				<ScatterChart
+					aria-label="Revenue against spend"
+					data={REVENUE}
+					width={480}
+					height={height}
+					series={[{ xKey: 'spend', yKey: 'revenue', yName: 'Revenue' }]}
+				/>,
+			)
+
+			const count = { x: tickLabels(container, 'x').length, y: tickLabels(container, 'y').length }
+
+			unmount()
+
+			return count
+		}
+
+		const tall = ticks(360)
+
+		const short = ticks(120)
+
+		expect(short.y).toBeLessThan(tall.y)
+
+		expect(short.x).toBeLessThan(tall.x)
+	})
+})
+
 describe('scatter axis titles', () => {
 	it('draws the x and y axis titles from their axes entries', () => {
 		const { container } = renderUI(
