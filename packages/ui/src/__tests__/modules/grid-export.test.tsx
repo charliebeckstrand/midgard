@@ -325,6 +325,24 @@ describe('Grid export', () => {
 		expect(download.click).toHaveBeenCalledTimes(1)
 	})
 
+	it('loads the Excel serializer on the first Excel export, then downloads the workbook', async () => {
+		const download = captureDownload()
+
+		renderUI(<Grid exportable={['excel']} columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to Excel' }))
+
+		await waitFor(() => expect(download.createObjectURL).toHaveBeenCalledTimes(1))
+
+		expect(download.blob().type).toBe(
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		)
+
+		expect(download.click).toHaveBeenCalledTimes(1)
+	})
+
 	it('downloads the rows from the toolbar Export dropdown', async () => {
 		const download = captureDownload()
 

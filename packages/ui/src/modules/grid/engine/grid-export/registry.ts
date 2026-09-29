@@ -1,6 +1,5 @@
 import { downloadCsv } from '../../../../utilities/export-output'
 import { rowsToCsv } from './csv'
-import { downloadExcel, rowsToXlsx } from './excel'
 import { printRows } from './print'
 import type { GridExportContext, GridExportType } from './types'
 
@@ -25,6 +24,30 @@ export const BUILTIN_EXPORT_LABEL: Record<'csv' | 'excel' | 'print', string> = {
 	print: 'Print',
 }
 
+/** The Excel serializer, held after its first load. @internal */
+let excelModule: typeof import('./excel') | undefined
+
+/**
+ * Downloads the rows as a workbook. The serializer and its zip library load on
+ * the first Excel export, because a grid that never exports to Excel does not
+ * need them. The first export therefore returns a promise, and the grid shows
+ * its "Exporting" overlay while the code loads. Later exports run synchronously.
+ *
+ * @internal
+ */
+function exportExcel<T>(context: GridExportContext<T>): void | Promise<void> {
+	const run = (excel: typeof import('./excel')) =>
+		excel.downloadExcel('grid.xlsx', excel.rowsToXlsx(context.columns, context.rows))
+
+	if (excelModule) return run(excelModule)
+
+	return import('./excel').then((excel) => {
+		excelModule = excel
+
+		run(excel)
+	})
+}
+
 /**
  * The built-in exporter for each shipped {@link GridExportType}: `csv` and
  * `excel` trigger a client-side download, `print` opens the browser print
@@ -38,9 +61,9 @@ export const BUILTIN_EXPORT_LABEL: Record<'csv' | 'excel' | 'print', string> = {
  */
 export const BUILTIN_EXPORTERS: Record<
 	'csv' | 'excel' | 'print',
-	<T>(context: GridExportContext<T>) => void
+	<T>(context: GridExportContext<T>) => void | Promise<void>
 > = {
 	csv: (context) => downloadCsv('grid.csv', rowsToCsv(context.columns, context.rows)),
-	excel: (context) => downloadExcel('grid.xlsx', rowsToXlsx(context.columns, context.rows)),
+	excel: exportExcel,
 	print: (context) => printRows(context.columns, context.rows),
 }
