@@ -231,10 +231,13 @@ export type GridGroupHeaderRow = {
  * group-header rows (marked by {@link GridGroupBy.groupRow}) with their child
  * rows.
  *
- * Either mode renders its own body, so grouping takes precedence over
- * {@link GridProps.virtualize} and the {@link GridProps.navigable} cursor and
- * stands both down while active. Sorting, filtering, search, selection,
- * resizing, and pinning still apply.
+ * Either mode renders its own body, so grouping stands
+ * {@link GridProps.infiniteScroll} down. Client grouping keeps the
+ * {@link GridProps.navigable} cursor. It also windows its rows when the
+ * consumer sets {@link GridProps.virtualize}. A window that infinite scroll
+ * implies does not apply. Manual grouping stands both the cursor and
+ * `virtualize` down, because its segment keys are positional. Sorting,
+ * filtering, search, selection, resizing, and pinning still apply.
  *
  * Client grouping also stands {@link GridProps.pagination} down. Manual
  * grouping composes with *manual* pagination, where the backend pages the
