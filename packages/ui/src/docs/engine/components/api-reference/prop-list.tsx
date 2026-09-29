@@ -100,7 +100,7 @@ function Folded({ description }: { description: string }) {
 			<Button
 				size="sm"
 				variant="bare"
-				className="self-start"
+				className="-ml-2 self-start"
 				aria-expanded={open}
 				onClick={() => setOpen(!open)}
 			>
