@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
-import { Stat, StatDelta, StatLabel, StatValue } from '../../../../components/stat'
+import { Stat, StatDelta, StatDescription, StatValue } from '../../../../components/stat'
 import { BarChart, DonutChart, LineChart } from '../../../../modules/chart'
 import {
 	Dashboard,
@@ -83,15 +83,32 @@ function ProductMix() {
 	)
 }
 
+// A stat tile can add a trend under its value. The trend is optional, and it
+// takes the height that the value leaves free.
 function Units() {
-	const units = useDashboardRows(sales).reduce((sum, row) => sum + row.units, 0)
+	const rows = useDashboardRows(sales)
+
+	const units = rows.reduce((sum, row) => sum + row.units, 0)
+
+	const data = sumBy(rows, 'month', 'units')
 
 	return (
-		<Stat>
-			<StatLabel>Units sold</StatLabel>
+		<div className="flex size-full flex-col gap-2">
+			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
+				<StatValue size="sm">{units.toLocaleString()}</StatValue>
 
-			<StatValue>{units.toLocaleString()}</StatValue>
-		</Stat>
+				<StatDescription>in {data.length} months</StatDescription>
+			</Stat>
+
+			<div className="min-h-0 flex-1">
+				<BarChart
+					aria-label="Units sold by month"
+					data={data}
+					series={[{ xKey: 'key', yKey: 'total', yName: 'Units' }]}
+					aspectRatio={false}
+				/>
+			</div>
+		</div>
 	)
 }
 
@@ -244,7 +261,7 @@ export function Demo() {
 							<ProductMix />
 						</DashboardTile>
 
-						<DashboardTile id="units" title="Units" minWidth={160}>
+						<DashboardTile id="units" title="Units sold" minWidth={160}>
 							<Units />
 						</DashboardTile>
 
