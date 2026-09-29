@@ -19,7 +19,8 @@ export type PieChartProps<T = never> = SectorBaseProps<T>
  * @remarks Slice colors follow the fixed categorical slot order. Rows with
  * non-positive values take no slice but keep their true value in the table;
  * missing values show an em-dash there. Focus the plot to read it by keyboard —
- * the arrow keys walk the slices, the tooltip riding each centroid.
+ * the arrow keys walk the slices, the tooltip riding each centroid. The slice
+ * under the cursor stands alone, and the other slices recede.
  * @example
  * ```tsx
  * <PieChart

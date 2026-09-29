@@ -170,6 +170,31 @@ describe('PieChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('recedes the other slices while the keyboard cursor reads a slice', () => {
+		const { container } = renderUI(chart())
+
+		const plot = getSlot(container, 'chart-plot')
+
+		const receded = () =>
+			allBySlot(container, 'chart-slice').map(
+				(slice) => slice.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+			)
+
+		// The first arrow enters on the first slice, so the other slices recede.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(receded()).toEqual([false, true, true])
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(receded()).toEqual([true, false, true])
+
+		// Escape drops the emphasis with the readout.
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(receded()).toEqual([false, false, false])
+	})
+
 	it('drops a keyboard cursor that a shorter data set leaves past its end', () => {
 		const { container, rerender } = renderUI(chart())
 

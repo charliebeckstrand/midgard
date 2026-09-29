@@ -357,6 +357,10 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		return slice ? [slice.centroid] : []
 	})
 
+	// Each stop names its own row, so the keyboard cursor isolates its slice and
+	// recedes the rest, as a pointed slice does.
+	const focusSeries = focusPoints.map((stops, index) => (stops.length > 0 ? [index] : []))
+
 	const marks = (
 		<>
 			<SectorChartMarks
@@ -418,7 +422,8 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			hidden={sliceless}
 			seriesCount={values.length}
 			tooltip={showTooltip}
-			focus={{ points: focusPoints }}
+			focus={{ points: focusPoints, series: focusSeries }}
+			keyboardEmphasis
 			className={className}
 			overlay={
 				innerRatio > 0 && children ? (

@@ -405,6 +405,44 @@ describe('ScatterChart', () => {
 		expect(tip?.textContent).toContain('34')
 	})
 
+	it('recedes the other series while the keyboard cursor reads a point', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Two series"
+				data={STOPS}
+				width={480}
+				series={[
+					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+					{ xKey: 'distance', yKey: 'weight', yName: 'Weight' },
+				]}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		const receded = () =>
+			allBySlot(container, 'chart-scatter-discs').map(
+				(discs) => discs.getAttribute('class')?.includes('opacity-25') ?? false,
+			)
+
+		act(() => plot.focus())
+
+		// The first arrow enters on the Dwell point of the first column, so Weight recedes.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(receded()).toEqual([false, true])
+
+		// The Weight point sits lower in that column, so the down arrow reads it.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(receded()).toEqual([true, false])
+
+		// Escape drops the emphasis with the readout.
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(receded()).toEqual([false, false])
+	})
+
 	it('pins the readout to a click under trigger click, ignoring hover', () => {
 		const { container } = renderUI(
 			<ScatterChart

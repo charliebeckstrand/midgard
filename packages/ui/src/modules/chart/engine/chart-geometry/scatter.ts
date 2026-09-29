@@ -314,6 +314,18 @@ export function scatterSnapColumns(stops: ScatterSnapStop[][]): number[][] {
 }
 
 /**
+ * Per unique x, the series behind each stop, index-aligned with
+ * {@link scatterSnapColumns}. `indices` maps each place in the visible list to
+ * the series' own index. The keyboard cursor reads it to emphasize the series of
+ * the point it sits on.
+ *
+ * @internal
+ */
+export function scatterSnapSeries(stops: ScatterSnapStop[][], indices: number[]): number[][] {
+	return stops.map((column) => column.map((stop) => indices[stop.series] ?? stop.series))
+}
+
+/**
  * The stop nearest `y` in column `index`, or `null` off every stop (an empty
  * column, or no column). The same resolution the snapped tooltip anchors with,
  * so the isolated disc and the readout can never disagree. Moving along the

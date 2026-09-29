@@ -18,6 +18,7 @@ import {
 	scatterMarks,
 	scatterSnapColumns,
 	scatterSnappedStop,
+	scatterSnapSeries,
 	scatterSnapStops,
 	uniqueXValues,
 } from '../engine/chart-geometry/scatter'
@@ -203,8 +204,9 @@ function ScatterHitLayer(props: {
  * @remarks The hover, crosshair snap, and keyboard cursor key on the sorted
  * unique x values, the way the band charts key on categories. Focus the plot to
  * drive them. The horizontal arrows walk x columns, while the vertical arrows
- * step the points at one, duplicates included. The `texture` identity channel does not
- * apply to discs, so this chart does not take it.
+ * step the points at one, duplicates included. The cursor isolates the series of
+ * its point, and the other series recede. The `texture` identity channel does
+ * not apply to discs, so this chart does not take it.
  * @example
  * ```tsx
  * <ScatterChart
@@ -361,6 +363,10 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const indices = list.map((entry) => entry.index)
 
+	// The series behind each keyboard stop, so the cursor recedes the other
+	// series, as a cartesian cursor does. One visible series has none to recede.
+	const stopSeries = indices.length > 1 ? scatterSnapSeries(snapStops, indices) : undefined
+
 	const readout = useScatterChartReadout(
 		data,
 		series,
@@ -414,7 +420,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			emphasizeMarks
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
-			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}
+			focus={cartesianFocus(bandPositions, snapColumns, 'vertical', undefined, stopSeries)}
+			keyboardEmphasis
 			className={className}
 		>
 			<ScatterChartChrome
