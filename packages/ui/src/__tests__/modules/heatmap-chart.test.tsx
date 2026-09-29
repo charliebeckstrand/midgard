@@ -22,6 +22,21 @@ const cellRects = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll('[data-slot="heatmap-cells"] rect'))
 
 describe('HeatmapChart', () => {
+	it('requires an accessible name (compile-time)', () => {
+		// Never rendered; exists for `tsc`. The plot is `role="img"`, so a heatmap
+		// with no `aria-label` and no `aria-labelledby` must not typecheck.
+		const typeChecks = () => (
+			<>
+				{/* @ts-expect-error: a heatmap needs aria-label or aria-labelledby */}
+				<HeatmapChart data={ROWS} series={SERIES} />
+
+				<HeatmapChart aria-labelledby="commits-heading" data={ROWS} series={SERIES} />
+			</>
+		)
+
+		expect(typeChecks).toBeTypeOf('function')
+	})
+
 	it('fills its container with no max-width cap, as the other charts do', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} />,
