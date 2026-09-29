@@ -1,6 +1,11 @@
 import path from 'node:path'
 import ts from '@typescript/typescript6'
-import type { DeclarationFact, ElementFact, ImportFact } from '../derive-code/types'
+import {
+	type DeclarationFact,
+	type ElementFact,
+	hasFacts,
+	type ImportFact,
+} from '../derive-code/types'
 import { isPascalCase, wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { isPageStatement } from './collect-helpers'
@@ -129,8 +134,11 @@ function propFacts(node: ts.JsxElement | ts.JsxSelfClosingElement, sf: ts.Source
  * which produce walker-visible elements. It does not descend into render-prop
  * children (emitted verbatim, never walked), or nested `Example`s (they own
  * their extraction).
- * Elements contributing no facts are omitted; the walker needs no entry to
- * render them, and absent entries can never mis-match.
+ *
+ * A tag with no facts on any of its elements is omitted. A tag with facts on
+ * some of its elements keeps an entry for each one, an empty entry included.
+ * The walk pairs the k-th element of a tag that it renders with the k-th entry
+ * of that tag, so each entry holds its position.
  */
 function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): ElementFact[] {
 	const facts: ElementFact[] = []
@@ -146,13 +154,11 @@ function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): E
 
 				const renderProp = ts.isJsxElement(node) ? renderPropChild(node) : null
 
-				if (Object.keys(props).length > 0 || renderProp) {
-					facts.push({
-						name,
-						props,
-						...(renderProp ? { children: renderProp.getText(sf) } : {}),
-					})
-				}
+				facts.push({
+					name,
+					props,
+					...(renderProp ? { children: renderProp.getText(sf) } : {}),
+				})
 
 				if (renderProp) return
 			}
@@ -167,7 +173,9 @@ function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): E
 
 	for (const child of children) visit(child)
 
-	return facts
+	const withFacts = new Set(facts.filter(hasFacts).map(({ name }) => name))
+
+	return facts.filter(({ name }) => withFacts.has(name))
 }
 
 // ---------------------------------------------------------------------------

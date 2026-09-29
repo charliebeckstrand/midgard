@@ -36,7 +36,26 @@ describe('extractSourceFacts element facts', () => {
 		])
 	})
 
-	it('omits elements contributing no facts', () => {
+	// The walk pairs the k-th rendered element of a tag with the k-th entry.
+	it('keeps an empty entry for an element of a tag that has facts elsewhere', () => {
+		const source = [
+			`export function Demo() {`,
+			`\treturn (`,
+			`\t\t<Example title="Buttons">`,
+			`\t\t\t<Button>Plain</Button>`,
+			`\t\t\t<Button onClick={save}>Save</Button>`,
+			`\t\t</Example>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		expect(extract(source)?.sites[0]?.elements).toEqual([
+			{ name: 'Button', props: {} },
+			{ name: 'Button', props: { onClick: 'save' } },
+		])
+	})
+
+	it('omits the elements of a tag that has no facts', () => {
 		const source = [
 			`export function Demo() {`,
 			`\treturn (`,
