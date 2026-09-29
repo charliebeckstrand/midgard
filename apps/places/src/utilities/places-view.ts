@@ -142,7 +142,7 @@ export function regionsHolding(
  *
  * The cut stays on the list when it holds nothing. That is the case after a
  * reader deletes the last place of the region they stand in, or opens a region
- * through the country search. The picker then names where the reader is, and a
+ * through the palette. The picker then names where the reader is, and a
  * delete does not move the map. The cut drops off the list when the reader
  * leaves it.
  *

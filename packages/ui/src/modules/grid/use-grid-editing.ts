@@ -60,7 +60,12 @@ import type {
 	GridNewRowSession,
 	GridSettleControls,
 } from './grid-editing-context'
-import type { GridCellChange, GridCellRefusal, GridEditableConfig } from './grid-editing-types'
+import type {
+	GridCellChange,
+	GridCellRef,
+	GridCellRefusal,
+	GridEditableConfig,
+} from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridEditHistory } from './use-grid-edit-history'
 import type { Coord, GridNewRowPosition } from './use-grid-navigation'
@@ -496,8 +501,8 @@ function readHistoryCell<T>(
 }
 
 /** The cells of `cells`, grouped by row in their first order. @internal */
-function byRow(cells: readonly GridHistoryCell[]): Map<string | number, GridHistoryCell[]> {
-	const rows = new Map<string | number, GridHistoryCell[]>()
+function byRow<C extends GridCellRef>(cells: readonly C[]): Map<string | number, C[]> {
+	const rows = new Map<string | number, C[]>()
 
 	for (const cell of cells) {
 		const row = rows.get(cell.rowKey)
@@ -681,20 +686,25 @@ function historyOutcome(step: GridHistoryStep): GridSaveOutcome {
 }
 
 /**
- * Sends the cells of one history step through the sink, one batch for each
- * row, as a save sends them. It returns the cells that saved at once, and each
- * batch whose sink returned a promise. That batch pends as a save does, and
- * its settle speaks the step. A step writes a value that was valid, so no
- * `validate` runs. @internal
+ * Sends a batch of changes that no session staged through the sink, one batch
+ * for each row, as the commit sweep sends a session's drafts. It returns the
+ * cells that saved at once, and each batch whose sink returned a promise. That
+ * batch pends as a save does, and its settle speaks `outcome`.
+ *
+ * @remarks A history step is the one caller today. It writes a value that was
+ * valid, so no `validate` runs, and it moved its history entry when it was
+ * taken, so the saved cells carry no history.
+ *
+ * @internal
  */
-function sendHistory<T>(args: {
-	cells: readonly GridHistoryCell[]
-	step: GridHistoryStep
+function sendCells<T>(args: {
+	changes: readonly GridCellChange[]
+	outcome: GridSaveOutcome
 	source: GridEditSource<T>
 	rowOf: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
 }): { saved: SavedCells; inFlight: InFlightBatch[] } {
-	const { step, source, rowOf, onCommit } = args
+	const { outcome, source, rowOf, onCommit } = args
 
 	const columns: string[] = []
 
@@ -705,14 +715,8 @@ function sendHistory<T>(args: {
 	// With no sink, nothing saves, so nothing is announced.
 	if (!onCommit) return { saved: { columns, row: undefined, history: [] }, inFlight }
 
-	for (const [rowKey, cells] of byRow(args.cells)) {
+	for (const [rowKey, changes] of byRow(args.changes)) {
 		const row = rowOf(rowKey)
-
-		const changes = cells.map((cell) => ({
-			rowKey,
-			columnId: cell.columnId,
-			value: historyValue(cell, step),
-		}))
 
 		const result = onCommit(changes)
 
@@ -739,8 +743,6 @@ function sendHistory<T>(args: {
 
 			rowDrafts.set(change.columnId, draft)
 		}
-
-		const outcome = historyOutcome(step)
 
 		inFlight.push(
 			inFlightBatch(
@@ -2567,6 +2569,31 @@ export function useGridEditing<T>({
 		sendReject,
 	])
 
+	// Sends a batch of changes that no session staged through the sink, and
+	// announces and tracks it as the commit sweep does. A history step is the
+	// one caller today. `rowOf` reads the live rows, so a caller that already
+	// indexed them passes its own.
+	const submitCells = useCallback(
+		(
+			changes: readonly GridCellChange[],
+			outcome: GridSaveOutcome,
+			rowOf: (rowKey: string | number) => T | undefined,
+		) => {
+			const { saved, inFlight } = sendCells({
+				changes,
+				outcome,
+				source: editSourceRef.current,
+				rowOf,
+				onCommit: hasCommit ? sendCommit : undefined,
+			})
+
+			if (saved.columns.length > 0) announce(describeCommit(saved.columns, saved.row, outcome))
+
+			for (const batch of inFlight) trackBatch(batch)
+		},
+		[editSourceRef, hasCommit, sendCommit, trackBatch],
+	)
+
 	// Moves the cursor to a cell that a history step wrote, when the grid shows
 	// its row and its column.
 	const moveToCell = useCallback(
@@ -2606,25 +2633,19 @@ export function useGridEditing<T>({
 
 			const { cells } = result
 
-			const { saved, inFlight } = sendHistory({
-				cells,
-				step,
-				source,
-				rowOf,
-				onCommit: hasCommit ? sendCommit : undefined,
-			})
+			const changes = cells.map((cell) => ({
+				rowKey: cell.rowKey,
+				columnId: cell.columnId,
+				value: historyValue(cell, step),
+			}))
 
-			if (saved.columns.length > 0) {
-				announce(describeCommit(saved.columns, saved.row, historyOutcome(step)))
-			}
-
-			for (const batch of inFlight) trackBatch(batch)
+			submitCells(changes, historyOutcome(step), rowOf)
 
 			if (moveCursor) moveToCell(cells[0])
 
 			return true
 		},
-		[history.on, editSourceRef, takeStep, drafts, hasCommit, trackBatch, moveToCell, sendCommit],
+		[history.on, editSourceRef, takeStep, drafts, submitCells, moveToCell],
 	)
 
 	// The step of the grid's `ref` handle. Focus is on the control that sent it,

@@ -1,0 +1,122 @@
+import { describe, expect, it, vi } from 'vitest'
+import {
+	actionSource,
+	placeSource,
+	regionSource,
+} from '../../components/place-palette/place-palette-sources'
+import { matchCommands } from '../../utilities/places-palette'
+import { UNITED_STATES } from '../../utilities/places-view'
+import { place } from '../fixtures'
+
+describe('placeSource', () => {
+	const places = [
+		place('old', {
+			name: 'Multnomah Falls',
+			category: 'nature',
+			city: 'Bridal Veil',
+			state: 'Oregon',
+			createdAt: '2026-01-01T00:00:00.000Z',
+		}),
+		place('new', {
+			name: 'Ichiran Shibuya',
+			city: 'Tokyo',
+			country: 'Japan',
+			createdAt: '2026-09-01T00:00:00.000Z',
+		}),
+	]
+
+	it('holds the places newest first, and shows them for an empty query', () => {
+		const source = placeSource(places, () => {})
+
+		expect(matchCommands(source, '').map((command) => command.id)).toEqual(['new', 'old'])
+	})
+
+	it('describes a place by its city and its state or country', () => {
+		const [tokyo, falls] = placeSource(places, () => {}).commands
+
+		expect(tokyo?.description).toBe('Tokyo, Japan')
+
+		expect(falls?.description).toBe('Bridal Veil, Oregon')
+	})
+
+	it('matches the place and category text, and opens the place on a pick', () => {
+		const openPlace = vi.fn()
+
+		const source = placeSource(places, openPlace)
+
+		expect(matchCommands(source, 'nature').map((command) => command.id)).toEqual(['old'])
+
+		expect(matchCommands(source, 'japan').map((command) => command.id)).toEqual(['new'])
+
+		matchCommands(source, 'ichiran')[0]?.run()
+
+		expect(openPlace).toHaveBeenCalledWith(places[1])
+	})
+})
+
+describe('regionSource', () => {
+	const goTo = vi.fn()
+
+	const preload = vi.fn()
+
+	const source = regionSource({
+		countries: ['Georgia', 'Japan'],
+		states: ['Georgia', 'Oregon'],
+		countryPlaces: new Map([['Japan', [place('a'), place('b')]]]),
+		statePlaces: new Map([['Georgia', [place('c')]]]),
+		goTo,
+		preload,
+	})
+
+	it('lists a country and a state of the same name apart, with their counts', () => {
+		const georgias = matchCommands(source, 'georgia').map((command) => command.description)
+
+		expect(georgias).toEqual(['Country', 'US state · 1 place'])
+
+		expect(matchCommands(source, 'japan')[0]?.description).toBe('Country · 2 places')
+	})
+
+	it('goes to and preloads the view of the region', () => {
+		const [country, state] = matchCommands(source, 'georgia')
+
+		country?.run()
+
+		state?.preload?.()
+
+		expect(goTo).toHaveBeenCalledWith({ country: 'Georgia', state: null })
+
+		expect(preload).toHaveBeenCalledWith({ country: UNITED_STATES, state: 'Georgia' })
+	})
+})
+
+describe('actionSource', () => {
+	const base = { onAdd: () => {}, mark: null, marked: false, onMark: () => {} }
+
+	it('shows every action for an empty query', () => {
+		const source = actionSource({ ...base, onList: () => {}, mark: 'Oregon' })
+
+		expect(matchCommands(source, '').map((command) => command.label)).toEqual([
+			'Add place',
+			'My places',
+			'Mark Oregon visited',
+		])
+	})
+
+	it('leaves out the list without places, and the mark without a region', () => {
+		expect(actionSource(base).commands.map((command) => command.id)).toEqual(['add'])
+	})
+
+	it('flips the visited state of the region', () => {
+		const onMark = vi.fn()
+
+		const source = actionSource({ ...base, mark: 'Oregon', marked: true, onMark })
+
+		const unmark = source.commands.find((command) => command.id === 'mark')
+
+		expect(unmark?.label).toBe('Unmark Oregon visited')
+
+		unmark?.run()
+
+		expect(onMark).toHaveBeenCalledWith(false)
+	})
+})

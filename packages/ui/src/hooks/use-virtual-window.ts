@@ -417,6 +417,14 @@ type WindowVirtualizerOptions = Omit<
  * the virtualizer would cache the window on its identity, which holds for the
  * mount, and the window would stop moving.
  *
+ * The opt-out is permanent. Virtual-core changes the virtualizer in place, and
+ * it has no API that gives a snapshot. The React Compiler marks
+ * `useVirtualizer` of react-virtual as incompatible, and skips a component
+ * that calls it (facebook/react#31820, then #34493). The fix for
+ * TanStack/virtual#736 is `'use no memo'`. A hook that compiles must move
+ * `setOptions` into a layout effect. Then each change of `count` or of a size
+ * renders twice before paint, and the first render shows the old window.
+ *
  * @param adjustAbove - Whether a row above the viewport that changes size
  * moves the scroll offset, in each direction. The measured path sets it.
  * @returns The virtualizer, the callback that records the window state of a

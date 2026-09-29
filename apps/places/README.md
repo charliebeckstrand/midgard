@@ -18,8 +18,9 @@ other `/auth/*` and `/api/*` path to the gateway at `BIFROST_URL` (see
 Mimir.
 
 The suite covers what the app holds that is pure: the field readers of the form
-and the address, the geometry that decides which region holds a place, and the
-filter the bar applies. The components compose `ui`, which carries its own suite.
+and the address, the geometry that decides which region holds a place, the
+filter the bar applies, and the sources and the ranking of the search palette.
+The components compose `ui`, which carries its own suite.
 
 ## The map
 

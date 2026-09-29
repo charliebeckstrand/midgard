@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, type MouseEvent, type ReactNode, useRef } from 'react'
+import { Fragment, type MouseEvent, useRef } from 'react'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -25,12 +25,6 @@ export type PlaceTrailProps = {
 	steps: readonly PlaceTrailStep[]
 	/** The type scale the trail reads at, which is the caller's — a page title is not a panel's. */
 	className?: string
-	/**
-	 * A control after the last step, in a crumb of its own. It is not a step, and
-	 * the last step stays the current one. When the row is too narrow, the control
-	 * gives up its width before the steps do.
-	 */
-	after?: ReactNode
 }
 
 /** What a crumb shows in place of its label once the row cannot hold it. */
@@ -152,7 +146,7 @@ function TrailCrumb({
  * trail would narrow as the trail collapses, and the crumbs could never come
  * back.
  */
-export function PlaceTrail({ steps, className, after }: PlaceTrailProps) {
+export function PlaceTrail({ steps, className }: PlaceTrailProps) {
 	const row = useRef<HTMLDivElement>(null)
 
 	const { collapsed, clipped } = useTrailFit(row, steps.map((step) => step.label).join('\n'))
@@ -173,9 +167,8 @@ export function PlaceTrail({ steps, className, after }: PlaceTrailProps) {
 								{at > 0 ? <BreadcrumbSeparator className="shrink-0" /> : null}
 
 								{/* Only the title gives width back under pressure. Every step above
-								    it is whole or a mark, so it is one or the other's width exactly.
-								    With a control after it, the control gives the width instead. */}
-								<BreadcrumbItem className={current && after === undefined ? 'min-w-0' : 'shrink-0'}>
+								    it is whole or a mark, so it is one or the other's width exactly. */}
+								<BreadcrumbItem className={current ? 'min-w-0' : 'shrink-0'}>
 									<TrailCrumb
 										step={step}
 										current={current}
@@ -186,14 +179,6 @@ export function PlaceTrail({ steps, className, after }: PlaceTrailProps) {
 							</Fragment>
 						)
 					})}
-
-					{after === undefined ? null : (
-						<>
-							<BreadcrumbSeparator className="shrink-0" />
-
-							<BreadcrumbItem className="min-w-0">{after}</BreadcrumbItem>
-						</>
-					)}
 				</BreadcrumbList>
 			</Breadcrumb>
 		</div>
