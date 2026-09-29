@@ -120,6 +120,21 @@ describe('orderManualGroupSegments', () => {
 		])
 	})
 
+	it('keeps an empty group last under both directions', () => {
+		const withEmpty = () =>
+			segmentManualGroupRows(
+				rows([header('E', ''), header('A', 'alpha'), header('B', 'beta')]),
+				groupRow,
+			)
+
+		const ids = (direction: 'asc' | 'desc') =>
+			shape(orderManualGroupSegments(withEmpty(), direction)).map(([id]) => id)
+
+		expect(ids('asc')).toEqual(['A', 'B', 'E'])
+
+		expect(ids('desc')).toEqual(['B', 'A', 'E'])
+	})
+
 	it('compares values naturally, so 10 follows 9', () => {
 		const ordered = orderManualGroupSegments(
 			segmentManualGroupRows(rows([header('T', 10), header('N', 9)]), groupRow),

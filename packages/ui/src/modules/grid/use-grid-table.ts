@@ -51,7 +51,7 @@ import {
 	type RowTest,
 	uniqueValues,
 } from './engine/grid-filter/filter'
-import { groupRows } from './engine/grid-group/client'
+import { groupMembers, orderGroups } from './engine/grid-group/client'
 import {
 	expandGroups,
 	type GridGroup,
@@ -503,29 +503,42 @@ function useGroupTree<T>(args: {
 
 	const expanded = args.expanded ?? true
 
-	const closed = useMemo(() => {
+	// The value accessor of the grouped column, or `null` when no column of the
+	// grid is grouped. A grouping by no column of the grid has no groups.
+	const read = useMemo(() => {
 		if (columnId == null) return null
 
 		const column = columns.find((col) => String(col.id) === columnId)
 
-		// A grouping by no column of the grid has no groups.
-		if (!column) return []
+		return column ? columnAccessor(column) : null
+	}, [columnId, columns])
+
+	const kept = clientView?.kept ?? null
+
+	// The members of the groups depend on the rows and the filters, not on the
+	// sort, so a sort change orders the groups again and collects nothing.
+	const members = useMemo(() => (read ? groupMembers(rows, kept, read) : null), [read, rows, kept])
+
+	const closed = useMemo(() => {
+		if (columnId == null) return null
+
+		if (!read || !members) return []
 
 		const fields = clientView?.fields ?? null
 
-		return groupRows({
+		return orderGroups({
 			rows,
-			kept: clientView?.kept ?? null,
+			members,
 			order: clientView?.order ?? null,
 			sort:
 				fields && sort
 					? { fields, grouped: sort.map((entry) => String(entry.column) === columnId) }
 					: null,
 			columnId,
-			read: columnAccessor(column),
+			read,
 			getKey,
 		})
-	}, [columnId, columns, clientView, sort, rows, getKey])
+	}, [columnId, read, members, clientView, sort, rows, getKey])
 
 	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
 

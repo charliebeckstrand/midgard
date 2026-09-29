@@ -42,6 +42,25 @@ describe('Grid column groups', () => {
 		expect(band?.colSpan).toBe(2)
 	})
 
+	it('describes a band by its description, for the keyboard and a screen reader', () => {
+		const described: GridColumnGroup[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				description: 'Given and family name',
+				columns: ['first', 'last'],
+			},
+		]
+
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={described} />,
+		)
+
+		expect(present(bandCell(container), 'the band')).toHaveAccessibleDescription(
+			'Given and family name',
+		)
+	})
+
 	it('renders no band row when no group is configured', () => {
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 

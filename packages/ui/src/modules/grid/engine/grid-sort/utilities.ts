@@ -497,12 +497,20 @@ function buildFieldComparator<T>(
 
 		const b = keys[j] as SortKey
 
-		const raw = compareSortKeys(a, b)
-
-		// Empties sink last under both directions; only the non-empty comparison
-		// flips for a descending field.
-		if (a.empty || b.empty) return raw
-
-		return descending ? -raw : raw
+		return compareDirected(a, b, descending)
 	}
+}
+
+/**
+ * Orders two {@link SortKey}s in a direction. Empties sink last under both
+ * directions, and only the non-empty comparison flips for descending.
+ *
+ * @internal
+ */
+export function compareDirected(a: SortKey, b: SortKey, descending: boolean): number {
+	const raw = compareSortKeys(a, b)
+
+	if (a.empty || b.empty) return raw
+
+	return descending ? -raw : raw
 }

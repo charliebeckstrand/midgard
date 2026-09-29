@@ -6,7 +6,7 @@ import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import {
 	type GridGroupedWindowItem,
 	groupedWindowItems,
-	groupValueOf,
+	groupKeyOf,
 	leafItemKey,
 	totalItemKey,
 } from './engine/grid-items/items'
@@ -236,7 +236,7 @@ export function GridVirtualizedGroupedBody<T>({
 
 	useGridCursorOrder(cursorOrder)
 
-	const colorOf = (group: GridGroup<T>) => presentation?.color(groupValueOf(group))
+	const colorOf = (group: GridGroup<T>) => presentation?.color(groupKeyOf(group))
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const item = revealEndItem(event)

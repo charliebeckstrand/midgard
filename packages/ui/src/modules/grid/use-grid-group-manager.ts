@@ -22,6 +22,7 @@ import {
 	reorderGroups,
 	settleDragEnd,
 	type ZoneMap,
+	zoneDropId,
 	zoneMapToStores,
 } from './engine/grid-zone/map'
 import type { GridColumnGroup } from './grid-group-types'
@@ -213,7 +214,7 @@ export function useGridGroupManager({
 
 /** Registers a droppable zone; returns the setter ref and whether a column hovers it. @internal */
 export function useGroupZoneDroppable(zoneId: string | number) {
-	const { setNodeRef, isOver } = useDroppable({ id: String(zoneId) })
+	const { setNodeRef, isOver } = useDroppable({ id: zoneDropId(zoneId) })
 
 	return { setNodeRef, isOver }
 }

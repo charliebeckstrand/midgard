@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridRowGroup } from '../../modules/grid'
-import { fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 /**
  * The row manager: a "Manage rows" dialog reached from the group-header
@@ -51,6 +51,59 @@ describe('Grid row manager', () => {
 		expect(screen.getByRole('menuitem', { name: 'Expand all groups' })).toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Collapse all groups' })).toBeInTheDocument()
+	})
+
+	it('keeps the rows of a null group and an undefined group apart under a group order', () => {
+		type Loose = { id: number; team: string | null | undefined }
+
+		const loose: Loose[] = [
+			{ id: 1, team: 'a' },
+			{ id: 2, team: null },
+			{ id: 3, team: undefined },
+			{ id: 4, team: undefined },
+		]
+
+		const teamColumns: GridColumn<Loose>[] = [
+			{ id: 'id', title: 'Id', cell: (row) => `row ${row.id}`, value: (row) => row.id },
+			{ id: 'team', title: 'Team', cell: (row) => String(row.team), value: (row) => row.team },
+		]
+
+		// The order that a manager commit writes: one entry for each group.
+		const order: GridRowGroup[] = [{ key: 'undefined' }, { key: 'null' }, { key: 'a' }]
+
+		const { container } = renderUI(
+			<Grid
+				columns={teamColumns}
+				rows={loose}
+				getKey={(row) => row.id}
+				groupBy={{ value: 'team', rowGroups: order }}
+			/>,
+		)
+
+		const shown = Array.from(
+			container.querySelectorAll('tbody td[data-grid-col="id"]'),
+			(cell) => cell.textContent,
+		)
+
+		expect(shown).toEqual(['row 3', 'row 4', 'row 2', 'row 1'])
+	})
+
+	it('opens Manage rows with focus in the dialog, and hands it back to the group on Done', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		const toggle = screen.getByRole('button', { name: 'Collapse group Developer' })
+
+		rightClickDeveloperHeader()
+
+		await user.click(screen.getByRole('menuitem', { name: 'Manage rows' }))
+
+		expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement)
+
+		await user.click(screen.getByRole('button', { name: 'Done' }))
+
+		await waitFor(() => expect(toggle).toHaveFocus())
 	})
 
 	it('does not offer the group menu when the row manager is disabled', () => {

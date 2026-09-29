@@ -81,10 +81,18 @@ export function useGridRowGrouping<T>(
 
 	// The toggle reads the newest set and the newest lazy-load callback, and its
 	// identity holds across expansion changes, so the group rows stay memoizable.
+	// The updater form reads the set that a toggle earlier in the same batch
+	// wrote. The binding resolves it at once, so `expanding` is set on return.
 	const toggleGroup = useStableEvent((key: string | number) => {
-		const expanding = !manualExpanded.has(key)
+		let expanding = false
 
-		setManualExpanded(toggleItem(manualExpanded, key))
+		setManualExpanded((previous) => {
+			const open = previous ?? EMPTY_EXPANDED
+
+			expanding = !open.has(key)
+
+			return toggleItem(open, key)
+		})
 
 		// The lazy-load hook fires only as a group opens — collapse keeps the
 		// already-fetched children in place.

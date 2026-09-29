@@ -17,7 +17,7 @@ import {
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
-import { detailOpen, groupTotaled, groupValueOf, totalItemKey } from './engine/grid-items/items'
+import { detailOpen, groupKeyOf, groupTotaled, totalItemKey } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
@@ -202,7 +202,7 @@ function renderGroup<T>(
 
 	// The group's row-manager color tints its header aggregates, total footer, and
 	// rail; the leaves render in the engine's natural order (row order isn't managed).
-	const color = presentation?.color(groupValueOf(group))
+	const color = presentation?.color(groupKeyOf(group))
 
 	return (
 		<Fragment key={group.id}>
@@ -311,7 +311,7 @@ function renderGroupedBody<T>(
 	const ordered = applyRowKeyOrder(
 		groups,
 		rowGroupPresentation?.groupOrder ?? undefined,
-		groupValueOf,
+		groupKeyOf,
 	)
 
 	// The per-group total is meaningful only once a column aggregates; the gate

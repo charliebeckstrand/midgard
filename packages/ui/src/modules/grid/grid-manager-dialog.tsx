@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
 
@@ -16,6 +16,12 @@ type GridManagerDialogProps = {
 	 * takes this `dir` to lay out as the grid does.
 	 */
 	dir?: 'ltr' | 'rtl'
+	/**
+	 * Whether focus opens on Done. A dialog that opens from a menu item names
+	 * its target, because the item that held focus is gone by then. Otherwise
+	 * the dialog takes its first control.
+	 */
+	focusDone?: boolean
 }
 
 /**
@@ -35,9 +41,12 @@ export function GridManagerDialog({
 	label,
 	children,
 	dir,
+	focusDone = false,
 }: GridManagerDialogProps) {
+	const doneRef = useRef<HTMLButtonElement>(null)
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={open} onOpenChange={onOpenChange} initialFocus={focusDone ? doneRef : undefined}>
 			<DialogTitle>{label}</DialogTitle>
 			<DialogBody>
 				{/* `contents` adds no box, and its children still inherit the direction. */}
@@ -46,7 +55,7 @@ export function GridManagerDialog({
 				</div>
 			</DialogBody>
 			<DialogFooter>
-				<Button type="button" variant="plain" onClick={() => onOpenChange(false)}>
+				<Button ref={doneRef} type="button" variant="plain" onClick={() => onOpenChange(false)}>
 					Done
 				</Button>
 			</DialogFooter>

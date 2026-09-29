@@ -87,10 +87,10 @@ type GridContextMenuProps<T> = {
 	fill: GridRangeFill | undefined
 	/**
 	 * Resolves the group-header menu items for a right-clicked group by its key
-	 * (the group's shared value), or `null` when the row manager / grouping isn't
-	 * live. Backs the "Manage rows" menu on the group-header row.
+	 * (the group's text key) and its header row, or `null` when the row manager /
+	 * grouping isn't live. Backs the "Manage rows" menu on the group-header row.
 	 */
-	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
+	rowGroupMenu: ((key: string, header: HTMLElement) => GridMenuItem[] | null) | null
 	/**
 	 * Resolves the column-group band menu for a right-clicked group by its id
 	 * (`data-group-id`), or `null` when grouping is off. Backs the badge menu's
@@ -341,9 +341,10 @@ export function GridContextMenu<T>({
 	)
 
 	// Group-header rows carry their own menu (Manage rows, expand/collapse, color),
-	// keyed by the group's shared value; `null` when the row manager isn't live.
+	// keyed by the group's text key; `null` when the row manager isn't live.
 	const resolveGroupItems = useCallback(
-		(key: string): GridMenuItem[] | null => (enabled && rowGroupMenu ? rowGroupMenu(key) : null),
+		(key: string, header: HTMLElement): GridMenuItem[] | null =>
+			enabled && rowGroupMenu ? rowGroupMenu(key, header) : null,
 		[enabled, rowGroupMenu],
 	)
 
@@ -406,7 +407,7 @@ function GridContextMenuSurface({
 	children,
 }: {
 	resolveItems: (target: HTMLElement) => GridMenuItem[] | null
-	resolveGroupItems: (key: string) => GridMenuItem[] | null
+	resolveGroupItems: (key: string, header: HTMLElement) => GridMenuItem[] | null
 	resolveColumnGroupItems: (id: string) => GridMenuItem[] | null
 	setItems: (items: GridMenuItem[]) => void
 	returnFocus: RefObject<HTMLElement | null>

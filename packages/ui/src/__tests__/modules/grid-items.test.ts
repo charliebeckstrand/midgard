@@ -23,7 +23,7 @@ function group(id: string, open: boolean, leafIds: string[]): GridGroup<Person> 
 		row: { id: Number(leafId) },
 	}))
 
-	return { id, value: id, expanded: open, leaves, rows: leaves.map((leaf) => leaf.row) }
+	return { id, value: id, key: id, expanded: open, leaves, rows: leaves.map((leaf) => leaf.row) }
 }
 
 const NO_MOTIONS = new Map<string, GridRowMotion>()

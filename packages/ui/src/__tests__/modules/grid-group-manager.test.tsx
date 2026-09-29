@@ -7,6 +7,8 @@ import {
 	assignColumn,
 	buildManagerZones,
 	findZoneId,
+	GROUP_PREFIX,
+	isGroupDragId,
 	moveBetweenZones,
 	recolorGroupIn,
 	removeGroupFrom,
@@ -15,6 +17,7 @@ import {
 	settleDragEnd,
 	UNGROUPED,
 	type ZoneMap,
+	zoneDropId,
 	zoneMapToStores,
 } from '../../modules/grid/engine/grid-zone/map'
 import {
@@ -105,9 +108,34 @@ describe('group manager drag helpers', () => {
 		expect(findZoneId(map, 'd')).toBe(UNGROUPED)
 
 		// A drop on the zone droppable (e.g. an empty zone) resolves to that zone.
-		expect(findZoneId(map, 'g')).toBe('g')
+		expect(findZoneId(map, zoneDropId('g'))).toBe('g')
 
 		expect(findZoneId(map, 'missing')).toBeUndefined()
+	})
+
+	it('keeps a column apart from a group that shares its id', () => {
+		// Column 'g' sits in the pool, beside the group 'g'.
+		const shared: ZoneMap = { g: ['a'], [UNGROUPED]: ['g', 'c'] }
+
+		expect(findZoneId(shared, 'g')).toBe(UNGROUPED)
+
+		// A drop onto column 'g' moves 'a' to its slot in the pool.
+		expect(moveBetweenZones(shared, 'a', 'g', false)).toEqual({
+			g: [],
+			[UNGROUPED]: ['a', 'g', 'c'],
+		})
+	})
+
+	it('names no zone for a column id that is a key of every object', () => {
+		expect(findZoneId(map, 'constructor')).toBeUndefined()
+
+		expect(findZoneId(map, zoneDropId('constructor'))).toBeUndefined()
+	})
+
+	it('reads a column whose id opens with group: as a column', () => {
+		expect(isGroupDragId('group:x')).toBe(false)
+
+		expect(isGroupDragId(`${GROUP_PREFIX}x`)).toBe(true)
 	})
 
 	it('moves a column into another zone at the over-item slot', () => {
@@ -125,7 +153,7 @@ describe('group manager drag helpers', () => {
 	})
 
 	it('appends when dropped on the target zone id itself', () => {
-		expect(moveBetweenZones(map, 'c', 'g', false)).toEqual({
+		expect(moveBetweenZones(map, 'c', zoneDropId('g'), false)).toEqual({
 			g: ['a', 'b', 'c'],
 			[UNGROUPED]: ['d'],
 		})
@@ -138,14 +166,19 @@ describe('group manager drag helpers', () => {
 	it('settles a same-zone reorder on drop, and leaves cross-zone maps untouched', () => {
 		expect(settleDragEnd(map, 'd', 'c')).toEqual({ g: ['a', 'b'], [UNGROUPED]: ['d', 'c'] })
 
-		// Dropped on the zone id → move to the end.
-		expect(settleDragEnd(map, 'a', 'g')).toEqual({ g: ['b', 'a'], [UNGROUPED]: ['c', 'd'] })
+		// Dropped on the zone droppable → move to the end.
+		expect(settleDragEnd(map, 'a', zoneDropId('g'))).toEqual({
+			g: ['b', 'a'],
+			[UNGROUPED]: ['c', 'd'],
+		})
 
 		// Cross-zone (already applied live in onDragOver) → unchanged.
 		expect(settleDragEnd(map, 'a', 'c')).toBe(map)
 
 		// A two-column zone cannot separate "to the end" from "swap with the last".
-		expect(settleDragEnd({ g: ['a', 'b', 'c'] }, 'a', 'g')).toEqual({ g: ['b', 'c', 'a'] })
+		expect(settleDragEnd({ g: ['a', 'b', 'c'] }, 'a', zoneDropId('g'))).toEqual({
+			g: ['b', 'c', 'a'],
+		})
 	})
 })
 
@@ -228,17 +261,17 @@ describe('groupAwareKeyboardCoordinates', () => {
 			containers.set(id, container(id, node))
 		}
 
-		add('group:g1', rect(0, 100))
+		add(`${GROUP_PREFIX}g1`, rect(0, 100))
 
 		add('a', rect(30, 20))
 
-		add('group:g2', rect(110, 100))
+		add(`${GROUP_PREFIX}g2`, rect(110, 100))
 
 		return {
-			active: 'group:g1' as UniqueIdentifier,
+			active: `${GROUP_PREFIX}g1` as UniqueIdentifier,
 			currentCoordinates: { x: 0, y: 0 },
 			context: {
-				active: { id: 'group:g1' },
+				active: { id: `${GROUP_PREFIX}g1` },
 				collisionRect: rect(0, 100),
 				droppableRects: rects,
 				droppableContainers: containers,
@@ -490,21 +523,21 @@ describe('groupManagerAnnouncements', () => {
 			'Name column is over Contact group.',
 		)
 
-		expect(announcements.onDragEnd({ active: at('name'), over: at('g2') })).toBe(
+		expect(announcements.onDragEnd({ active: at('name'), over: at(zoneDropId('g2')) })).toBe(
 			'Dropped Name column in Money group.',
 		)
 
-		expect(announcements.onDragEnd({ active: at('email'), over: at(UNGROUPED) })).toBe(
+		expect(announcements.onDragEnd({ active: at('email'), over: at(zoneDropId(UNGROUPED)) })).toBe(
 			'Dropped Email column in Ungrouped.',
 		)
 	})
 
 	it('names a group and the position it lands at', () => {
-		expect(announcements.onDragOver({ active: at('group:g1'), over: at('group:g2') })).toBe(
-			'Contact group is over position 2 of 2.',
-		)
+		expect(
+			announcements.onDragOver({ active: at(`${GROUP_PREFIX}g1`), over: at(`${GROUP_PREFIX}g2`) }),
+		).toBe('Contact group is over position 2 of 2.')
 
-		expect(announcements.onDragCancel({ active: at('group:g1'), over: null })).toBe(
+		expect(announcements.onDragCancel({ active: at(`${GROUP_PREFIX}g1`), over: null })).toBe(
 			'Returned Contact group to where it started.',
 		)
 	})

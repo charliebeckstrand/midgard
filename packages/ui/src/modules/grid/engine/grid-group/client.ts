@@ -47,8 +47,33 @@ export function groupRows<T>(args: {
 	read: (row: T) => unknown
 	getKey: (row: T, index: number) => string | number
 }): GridGroup<T>[] {
-	const { rows, kept, sort, columnId, read } = args
+	const members = groupMembers(args.rows, args.kept, args.read)
 
+	return orderGroups({ ...args, members })
+}
+
+/**
+ * The members of the groups: the text key of each group, and its row indices
+ * in data order, with the groups in the order of their first rows. They depend
+ * on the rows, the kept rows, and the grouped column, and not on the sort, so
+ * the grid keeps them across a sort change (see {@link orderGroups}).
+ *
+ * @internal
+ */
+export type GroupMembers = { keys: string[]; lists: number[][] }
+
+/**
+ * Collects the {@link GroupMembers} of the rows that the filters keep.
+ *
+ * @param kept - The indices of the rows that the filters keep, in data order,
+ *   or `null` for every row.
+ * @internal
+ */
+export function groupMembers<T>(
+	rows: readonly T[],
+	kept: readonly number[] | null,
+	read: (row: T) => unknown,
+): GroupMembers {
 	// The indices of each group, in data order, by the key of the group.
 	const members = new Map<string, number[]>()
 
@@ -64,9 +89,27 @@ export function groupRows<T>(args: {
 	if (kept) for (const index of kept) visit(index)
 	else for (let index = 0; index < rows.length; index++) visit(index)
 
-	const keys = [...members.keys()]
+	return { keys: [...members.keys()], lists: [...members.values()] }
+}
 
-	const lists = keys.map((key) => members.get(key) as number[])
+/**
+ * Orders the {@link GroupMembers} by the sort, and builds the closed groups.
+ * This is the part of {@link groupRows} that a sort change runs again.
+ *
+ * @internal
+ */
+export function orderGroups<T>(args: {
+	rows: readonly T[]
+	members: GroupMembers
+	order: readonly number[] | null
+	sort: GroupSort<T> | null
+	columnId: string
+	read: (row: T) => unknown
+	getKey: (row: T, index: number) => string | number
+}): GridGroup<T>[] {
+	const { rows, members, sort, columnId, read } = args
+
+	const { keys, lists } = members
 
 	const sorted = sort ? sortLeaves(rows, lists, args.order, sort) : lists
 
@@ -82,6 +125,7 @@ export function groupRows<T>(args: {
 		return {
 			id: `${columnId}:${keys[position]}`,
 			value: read(first) ?? undefined,
+			key: keys[position] as string,
 			expanded: false,
 			leaves,
 			rows: leaves.map((leaf) => leaf.row),
