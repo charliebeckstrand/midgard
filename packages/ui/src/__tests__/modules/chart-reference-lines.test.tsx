@@ -679,6 +679,41 @@ describe('reference lines in the legend', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toBe('Ceiling: 70')
 	})
 
+	it('keeps a toggled-off labeled rule off when its value changes', async () => {
+		// A rule such as an average takes a new value with each data refresh. The
+		// hide keyed on the value too, so a refresh brought the rule back.
+		const user = userEvent.setup()
+
+		const chart = (average: number) => (
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[
+					{ value: average, label: 'Average' },
+					{ value: 70, label: 'Ceiling' },
+				]}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart(41.2))
+
+		const pressed = () =>
+			allBySlot(container, 'chart-legend-reference').map(
+				(chip) => `${chip.textContent}:${chip.getAttribute('aria-pressed')}`,
+			)
+
+		await user.click(allBySlot(container, 'chart-legend-reference')[0] as Element)
+
+		rerender(chart(41.7))
+
+		expect(pressed()).toEqual(['Average:false', 'Ceiling:true'])
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+	})
+
 	it('drops a toggled-off rule from the domain and the hidden parity', async () => {
 		const user = userEvent.setup()
 

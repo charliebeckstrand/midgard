@@ -59,16 +59,21 @@ export type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
 export const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
 
 /**
- * One unique key per rule: its axis, value, and label, with the occurrence
- * added to a repeat. Two rules can share a value and a label on two axes, or on
- * one axis. The drawn rules and the parity list key their React nodes on it, and
- * the legend toggle keys each hidden rule on it.
+ * One unique key per rule: its axis and its label, or its axis and its value
+ * where it has no label, with the occurrence added to a repeat. The label is
+ * the identity of a labeled rule, so a rule such as an average keeps its key
+ * when its value moves with the data. Two rules can share a key on two axes, or
+ * on one axis. The drawn rules and the parity list key their React nodes on it,
+ * and the legend toggle keys each hidden rule on it.
  *
  * @internal
  */
 export function ruleKeys(lines: readonly ChartReferenceLine[]): string[] {
 	return keyByOccurrence(
-		lines.map((line) => `${line.axis ?? 'y'}:${line.value}:${line.label ?? ''}`),
+		lines.map(
+			(line) =>
+				`${line.axis ?? 'y'}:${line.label === undefined ? `value:${line.value}` : `label:${line.label}`}`,
+		),
 	).map(({ key }) => key)
 }
 
