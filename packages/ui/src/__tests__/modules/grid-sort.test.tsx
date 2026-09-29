@@ -204,6 +204,62 @@ describe('Grid client sorting', () => {
 	})
 })
 
+describe('Grid sort cache', () => {
+	type Row = { id: number; a: string; b: string; c: string }
+
+	const rows: Row[] = [
+		{ id: 1, a: 'x', b: '2', c: 'C' },
+		{ id: 2, a: 'y', b: '1', c: 'A' },
+		{ id: 3, a: 'x', b: '1', c: 'B' },
+	]
+
+	// The third column's id reads like two sort entries.
+	const columns: GridColumn<Row>[] = [
+		{ id: 'a', title: 'A', cell: (row) => row.a, value: (row) => row.a, sortable: true },
+		{ id: 'b', title: 'B', cell: (row) => row.b, value: (row) => row.b, sortable: true },
+		{ id: 'a:asc|b', title: 'C', cell: (row) => row.c, value: (row) => row.c, sortable: true },
+	]
+
+	const ids = (container: HTMLElement) =>
+		Array.from(
+			container.querySelectorAll('tbody tr'),
+			(row) => row.querySelector('td')?.textContent,
+		)
+
+	it('keeps apart two sorts whose column ids join to the same text', () => {
+		const ui = (sort: { column: string; direction: 'asc' | 'desc' }[]) => (
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} sort={{ value: sort }} />
+		)
+
+		const view = renderUI(ui([{ column: 'a:asc|b', direction: 'asc' }]))
+
+		// Sorted by the third column: A, B, C.
+		expect(
+			Array.from(
+				view.container.querySelectorAll('tbody tr'),
+				(row) => row.lastElementChild?.textContent,
+			),
+		).toEqual(['A', 'B', 'C'])
+
+		view.rerender(
+			ui([
+				{ column: 'a', direction: 'asc' },
+				{ column: 'b', direction: 'asc' },
+			]),
+		)
+
+		// Sorted by a, then b: rows 3, 1, 2.
+		expect(
+			Array.from(
+				view.container.querySelectorAll('tbody tr'),
+				(row) => row.lastElementChild?.textContent,
+			),
+		).toEqual(['B', 'C', 'A'])
+
+		expect(ids(view.container)).toEqual(['x', 'x', 'y'])
+	})
+})
+
 describe('Grid multi-column sort', () => {
 	type Row = { id: number; group: string; name: string }
 

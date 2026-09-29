@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
@@ -267,6 +268,41 @@ describe("Grid cell roving with a column's own key handler", () => {
 		expect(onKeyDown).toHaveBeenCalledTimes(2)
 
 		expect(onCellClick).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe("Grid table props beside the grid's own keyboard", () => {
+	it.each([
+		['row roving', { onRowClick: vi.fn() }],
+		['the navigable cursor', { navigable: true }],
+	] as const)("keeps the caller's ref and runs the caller's handlers under %s", (_name, props) => {
+		const ref = createRef<HTMLTableElement>()
+
+		const onKeyDown = vi.fn()
+
+		const onFocus = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				tableProps={{ ref, onKeyDown, onFocus }}
+				{...props}
+			/>,
+		)
+
+		const table = screen.getByRole('navigable' in props ? 'grid' : 'table')
+
+		expect(ref.current).toBe(table)
+
+		fireEvent.focus(table)
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(onFocus).toHaveBeenCalledTimes(1)
+
+		expect(onKeyDown).toHaveBeenCalledTimes(1)
 	})
 })
 

@@ -105,6 +105,28 @@ describe('compareSmart', () => {
 		expect(compareSmart(5, new Date(2020, 0, 1))).toBeLessThan(0)
 	})
 
+	it('sinks an invalid date and NaN with the empties, and orders the dates around them', () => {
+		const invalid = new Date('not a date')
+
+		const earlier = new Date(2020, 0, 1)
+
+		const later = new Date(2021, 0, 1)
+
+		expect(asc([later, invalid, earlier])).toEqual([earlier, later, invalid])
+
+		expect(asc([3, Number.NaN, 1])).toEqual([1, 3, Number.NaN])
+
+		expect(compareSmart(invalid, Number.NaN)).toBe(0)
+	})
+
+	it('ranks the infinities as numbers', () => {
+		expect(asc([Infinity, 5, 'a', -Infinity])).toEqual([-Infinity, 5, Infinity, 'a'])
+
+		expect(compareSmart(Infinity, Infinity)).toBe(0)
+
+		expect(compareSmart(-Infinity, -Infinity)).toBe(0)
+	})
+
 	it('treats equal values as equal', () => {
 		expect(compareSmart('x', 'x')).toBe(0)
 

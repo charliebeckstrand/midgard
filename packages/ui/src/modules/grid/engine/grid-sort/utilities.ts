@@ -111,7 +111,10 @@ export type SortKey = {
 	boolean: number
 	/** {@link parseNumeric} of the value, or `null` when it doesn't read as a number. */
 	numeric: number | null
-	/** `String(value)` for the natural, locale-aware fallback compare. */
+	/**
+	 * `String(value)` for the natural, locale-aware fallback compare. Empty for a
+	 * number and a date, which that compare never reaches.
+	 */
 	text: string
 }
 
@@ -124,21 +127,41 @@ export type SortKey = {
  * @internal
  */
 export function toSortKey(value: unknown): SortKey {
-	const empty = value == null || value === ''
-
 	const isDate = value instanceof Date
 
+	const time = isDate ? value.getTime() : 0
+
+	// A value with no order of its own sinks with the empties: `NaN`, and an
+	// invalid date, whose time is `NaN`.
+	const empty = value == null || value === '' || Number.isNaN(isDate ? time : value)
+
 	const isBoolean = typeof value === 'boolean'
+
+	const numeric = empty ? null : sortNumber(value)
+
+	// Only the last rank compares the text. `String` of a date runs the full
+	// formatter, so a number or a date builds none.
+	const text = empty || numeric !== null || isDate ? '' : String(value)
 
 	return {
 		empty,
 		isDate,
-		time: isDate ? value.getTime() : 0,
+		time,
 		isBoolean,
 		boolean: isBoolean ? (value ? 1 : 0) : 0,
-		numeric: empty ? null : parseNumeric(value),
-		text: empty ? '' : String(value),
+		numeric,
+		text,
 	}
+}
+
+/**
+ * The number a value sorts as, or `null`. A number sorts as itself, `±Infinity`
+ * too. Any other value goes through {@link parseNumeric}.
+ *
+ * @internal
+ */
+function sortNumber(value: unknown): number | null {
+	return typeof value === 'number' ? value : parseNumeric(value)
 }
 
 /**
@@ -153,6 +176,11 @@ function kindRank(key: SortKey): number {
 	if (key.numeric !== null) return 0
 
 	return key.isDate ? 1 : 2
+}
+
+/** Orders two numbers. Equal infinities subtract to `NaN`, so an equal pair returns 0 first. @internal */
+function compareNumbers(a: number, b: number): number {
+	return a === b ? 0 : a - b
 }
 
 /**
@@ -178,7 +206,7 @@ export function compareSortKeys(a: SortKey, b: SortKey): number {
 
 	if (rank !== 0) return rank
 
-	if (a.numeric !== null && b.numeric !== null) return a.numeric - b.numeric
+	if (a.numeric !== null && b.numeric !== null) return compareNumbers(a.numeric, b.numeric)
 
 	if (a.isDate && b.isDate) return a.time - b.time
 

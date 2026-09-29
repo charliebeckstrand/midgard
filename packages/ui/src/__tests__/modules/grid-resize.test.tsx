@@ -418,6 +418,35 @@ describe('Grid resizable columns', () => {
 		expect(onResizeEnd).toHaveBeenCalledWith('name')
 	})
 
+	it('fires onResizeEnd when the grid unmounts during a drag', () => {
+		const onResizeEnd = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onResizeEnd }}
+			/>,
+		)
+
+		const held = holdMouse(screen.getByRole('separator', { name: 'Resize Name' }), {
+			button: 0,
+			clientX: 200,
+		})
+
+		view.unmount()
+
+		expect(onResizeEnd).toHaveBeenCalledOnce()
+
+		expect(onResizeEnd).toHaveBeenCalledWith('name')
+
+		held.release()
+
+		expect(onResizeEnd).toHaveBeenCalledOnce()
+	})
+
 	it('does not fire the resize lifecycle for a keyboard nudge', async () => {
 		const user = userEvent.setup({ delay: null })
 

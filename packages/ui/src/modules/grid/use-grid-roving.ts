@@ -80,8 +80,12 @@ export function useGridRoving({
 	rovingCells: boolean
 	/** Whether each clickable row is the virtualized body's legacy static Tab stop (roving stands down there). */
 	rowStaticStop: boolean
-	/** The table ref and arrow-key handler to merge onto the `<table>`, or `undefined` when roving is inactive. */
-	tableProps: Pick<TableElementProps, 'ref' | 'onKeyDown'> | undefined
+	/**
+	 * The arrow-key handler to merge onto the `<table>`, or `undefined` when
+	 * roving is inactive. The table carries `tableRef` through the grid's
+	 * composed ref, so roving adds no ref of its own.
+	 */
+	tableProps: Pick<TableElementProps, 'onKeyDown'> | undefined
 } {
 	const hasRowClick = onRowClick || onRowDoubleClick
 
@@ -111,6 +115,6 @@ export function useGridRoving({
 		// The legacy per-row Tab stop the virtualized body keeps, where roving
 		// stands down but a clickable row must stay reachable by Tab.
 		rowStaticStop: onRowClick && virtualized && !navigable,
-		tableProps: mode === 'none' ? undefined : { ref: tableRef, onKeyDown: rovingKeyDown },
+		tableProps: mode === 'none' ? undefined : { onKeyDown: rovingKeyDown },
 	}
 }

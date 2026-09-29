@@ -132,6 +132,26 @@ describe('Grid pagination', () => {
 			expect(screen.getByText('1–3 of 3')).toBeInTheDocument()
 		})
 
+		it('counts the rows and indexes them from 1 with an unbounded page size', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={many}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 0, pageSize: Infinity } }}
+				/>,
+			)
+
+			expect(screen.getByText('1–25 of 25')).toBeInTheDocument()
+
+			const indexes = Array.from(container.querySelectorAll('tbody tr[aria-rowindex]'), (row) =>
+				row.getAttribute('aria-rowindex'),
+			)
+
+			// The header row holds index 1.
+			expect(indexes.slice(0, 2)).toEqual(['2', '3'])
+		})
+
 		it('renders only the first page of rows', () => {
 			renderUI(
 				<Grid
