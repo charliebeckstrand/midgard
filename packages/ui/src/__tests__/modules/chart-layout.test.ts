@@ -186,3 +186,32 @@ describe('bandTicksOf tilted labels', () => {
 		expect(ticks).toHaveLength(4)
 	})
 })
+
+describe('verticalLayout tilt', () => {
+	/** A layout input of `categories` along a 600px frame, with the tilt asked for. */
+	const tilted = (categories: string[]): CartesianLayoutInput => ({
+		...input(300, 0),
+		frameWidth: 600,
+		categories,
+		count: categories.length,
+		tickRotation: true,
+	})
+
+	it('keeps short labels flat, where a tilt would keep fewer of them', () => {
+		// Two-letter codes thin flat at about 20px. A tilted label takes about 28px,
+		// so a tilt showed fewer labels and still reserved the taller band.
+		const codes = Array.from({ length: 40 }, (_, index) => `C${index}`.slice(0, 2))
+
+		const layout = verticalLayout(tilted(codes))
+
+		expect(layout.bandTicks.every((tick) => tick.rotate === undefined)).toBe(true)
+	})
+
+	it('tilts long labels, where a tilt keeps more of them', () => {
+		const names = Array.from({ length: 40 }, (_, index) => `Category number ${index + 1}`)
+
+		const layout = verticalLayout(tilted(names))
+
+		expect(layout.bandTicks.every((tick) => tick.rotate !== undefined)).toBe(true)
+	})
+})

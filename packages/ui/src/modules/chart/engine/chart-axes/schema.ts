@@ -90,10 +90,11 @@ export type ChartCategoryAxis = {
 	title?: string
 	/**
 	 * Tilt category labels that would otherwise collide, instead of thinning them
-	 * flat. A tilted label takes less room along the axis than a flat one, so
-	 * more of the labels draw. Where the bands are narrower than a tilted label
-	 * needs, the tilted run also thins to every nth, so no two labels overlap.
-	 * Off by default, so an unset axis keeps thinning flat.
+	 * flat. A long tilted label takes less room along the axis than a flat one,
+	 * so more of the labels draw. Short labels that take less room flat stay
+	 * flat. Where the bands are narrower than a tilted label needs, the tilted
+	 * run also thins to every nth, so no two labels overlap. Off by default, so
+	 * an unset axis keeps thinning flat.
 	 * @remarks Vertical orientation only — under `orientation="horizontal"`
 	 * category labels already run down the gutter and read straight, so this has
 	 * no effect there.

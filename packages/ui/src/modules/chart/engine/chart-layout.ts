@@ -867,11 +867,14 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// labels, which never collide, and a dropped band has nothing to tilt. A time
 	// axis lines calendar ticks in place of the labels tickRotation tilts, so
 	// tilting would reserve the taller band for nothing — gate it out there too.
+	// A tilted label takes a fixed room along the axis, so a tilt keeps more
+	// labels only where a flat label takes more.
 	const tilt =
 		drawBand &&
 		bandMode === 'thinned' &&
 		Boolean(input.tickRotation) &&
 		!input.times &&
+		slot > TILTED_LABEL_SLOT &&
 		willThin(count, plotWidth, slot)
 
 	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT + titleBand : flatHeight
