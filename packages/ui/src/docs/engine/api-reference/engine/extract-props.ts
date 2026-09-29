@@ -4,6 +4,7 @@ import type { PropDef } from '../types'
 import { extractDocFromParts } from './extract-doc'
 import { extractReferences } from './extract-references'
 import { formatPropType, formatType } from './format-type'
+import { sourceOrder } from './literal-order'
 import { isFunctionType, unaliasSymbol } from './ts-utils'
 
 type CollectedProp = { name: string; symbol: ts.Symbol; symbols: ts.Symbol[] }
@@ -121,7 +122,10 @@ function buildPropDef(
 	// useful information; an alias name plus a `View references` card only adds
 	// indirection over a handful of badges. This takes precedence over the
 	// authored alias text below.
-	const literalUnion = literalUnionType(propTypes, callable, checker)
+	// The members of a union prop print in the order that its declaration spells.
+	const order = sourceOrder(symbol.getDeclarations()?.[0], checker)
+
+	const literalUnion = literalUnionType(propTypes, callable, checker, order)
 
 	// `authoredTypeText` reads one declaration's source; for a prop collected
 	// across multiple discriminated arms, that first arm's text silently drops
@@ -132,7 +136,7 @@ function buildPropDef(
 
 	const prop: PropDef = {
 		name,
-		type: authored ?? formatPropTypes(propTypes, callable, checker),
+		type: authored ?? formatPropTypes(propTypes, callable, checker, order),
 	}
 
 	// Inlined literal unions carry no named references; skip resolution so they
@@ -218,14 +222,22 @@ function isRequired(symbol: ts.Symbol): boolean {
 	return !declarations.some((d) => ts.isPropertySignature(d) && d.questionToken !== undefined)
 }
 
-/** Render each arm-type, dedupe by output text, and join distinct renderings with `|`. */
-function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeChecker): string {
+/**
+ * Render each arm-type, dedupe by output text, and join distinct renderings
+ * with `|`. `order` orders the members of a single arm (see `sourceOrder`).
+ */
+function formatPropTypes(
+	types: ts.Type[],
+	location: ts.Node,
+	checker: ts.TypeChecker,
+	order: readonly string[] | null,
+): string {
 	const arms = dropMergedArmUnions(types, location, checker)
 
 	// A single arm renders whole, so `formatPropType`'s union handling stays
 	// intact: the `'a' | 'b' | (string & {})` autocomplete collapse, the boolean
 	// re-merge, and alias shortening all apply.
-	if (arms.length === 1 && arms[0]) return formatPropType(arms[0], checker, location)
+	if (arms.length === 1 && arms[0]) return formatPropType(arms[0], checker, location, order)
 
 	// Multiple discriminated arms: flatten each to its non-`undefined` leaf
 	// members so a `true`/`false` pair (or any duplicate) split across arms still
@@ -350,6 +362,7 @@ function literalUnionType(
 	propTypes: ts.Type[],
 	location: ts.Node,
 	checker: ts.TypeChecker,
+	order: readonly string[] | null,
 ): string | null {
 	if (propTypes.length !== 1) return null
 
@@ -367,7 +380,7 @@ function literalUnionType(
 
 	if (!members.every((t) => (t.flags & LITERAL) !== 0)) return null
 
-	return formatPropType(type, checker, location)
+	return formatPropType(type, checker, location, order)
 }
 
 /**

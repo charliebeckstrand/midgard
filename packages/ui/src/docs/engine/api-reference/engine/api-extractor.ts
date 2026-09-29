@@ -15,11 +15,14 @@ import { type Barrel, extractBarrel, listBarrels, openProject, tsConfigPathFor }
  * the per-request `new Project()` that re-type-checked the package on every
  * edit.
  *
- * Extraction order (prop order, union member order) tracks the type checker's
- * warmup, so it must not vary with cache state. Two rules keep it stable. An
- * in-session re-extraction reuses the checker the first full pass warmed, and
- * the disk cache is whole-record. A clean restart replays the stored JSON
- * verbatim, and any source change triggers one full canonical pass.
+ * Some extraction order tracks the type checker's warmup: the order of props,
+ * and of union members that no declaration orders (see `literal-order.ts`).
+ * Each pass after an edit runs on a fresh checker. A full pass visits the
+ * barrels in canonical order, so its output is the same in each process. A
+ * subset pass warms the checker on fewer barrels, so its output can differ in
+ * order. The disk cache therefore stores only a full pass. A clean restart
+ * replays that record verbatim, and a source change since it triggers one full
+ * canonical pass.
  */
 export type ApiExtractor = {
 	/** The full API-reference record, built (or incrementally refreshed) on demand. */
@@ -299,9 +302,9 @@ export function createApiExtractor(
 
 	let loaded = false
 
-	// True once a full in-project extraction has warmed the checker in canonical
-	// order this process; only then is a per-barrel subset re-extraction stable.
-	let warmed = false
+	// True once a full pass has run in this process. The pass maps the inputs of
+	// each barrel, so a later edit re-extracts only the barrels that it feeds.
+	let mapped = false
 
 	function ensureProject(): Project {
 		if (!project) project = openProject(srcDir)
@@ -422,7 +425,7 @@ export function createApiExtractor(
 		pendingRefresh.clear()
 	}
 
-	/** Extract every barrel in canonical order, warming the checker's enumeration order for later subset passes. */
+	/** Extract every barrel in canonical order, and map the inputs of each. */
 	function fullPass(): void {
 		const ctx = extractionContext()
 
@@ -430,7 +433,7 @@ export function createApiExtractor(
 
 		for (const barrel of barrels) rebuildBarrel(barrel.key, ctx, directRefs)
 
-		warmed = true
+		mapped = true
 
 		dirty.clear()
 	}
@@ -470,7 +473,7 @@ export function createApiExtractor(
 
 		if (disk && disk.hash === aggregateHash(srcDir, hashes)) {
 			// Byte-identical source: replay the stored record. No project is opened,
-			// so `inputs` stay empty until the first edit forces a warming pass.
+			// so `inputs` stay empty until the first edit forces a full pass.
 			for (const [key, api] of Object.entries(disk.record))
 				states.set(key, { api, inputs: new Set() })
 		} else {
@@ -495,7 +498,7 @@ export function createApiExtractor(
 
 		applyRefreshes(proj)
 
-		if (warmed) {
+		if (mapped) {
 			const ctx = extractionContext()
 
 			const directRefs = new Map<string, string[]>()
@@ -503,16 +506,20 @@ export function createApiExtractor(
 			for (const key of dirty) rebuildBarrel(key, ctx, directRefs)
 
 			dirty.clear()
-		} else {
-			// First in-process pass (the disk cache served the initial load): warm the
-			// checker with a full canonical pass so ordering matches the stored record.
-			//
-			// A cache-replayed state carries empty `inputs`, so this costs a
-			// once-per-session stall on the first edit. Do not relax the ordering
-			// rule to remove it; that rule is what makes a subset pass safe. Warm
-			// proactively instead, from the dev server in `plugins/docs.ts`.
-			fullPass()
+
+			reindex()
+
+			// A subset pass can differ in order from a full pass (see the type
+			// TSDoc), so the disk cache keeps the last full pass. The next start
+			// finds the source changed since, and runs a full pass.
+			return
 		}
+
+		// First in-process pass (the disk cache served the initial load). A
+		// cache-replayed state carries empty `inputs`, so a full pass maps them.
+		// That costs a once-per-session stall on the first edit. To remove it,
+		// run the pass ahead of time from the dev server in `plugins/docs.ts`.
+		fullPass()
 
 		reindex()
 
@@ -555,7 +562,7 @@ export function createApiExtractor(
 			} else {
 				// A file no barrel currently reads: a new module an edited import will
 				// pull in, a shared file added since the last pass, or a disk-served load
-				// whose inputs aren't mapped yet. Re-extract everything; the warming pass
+				// whose inputs aren't mapped yet. Re-extract everything; the full pass
 				// then maps it precisely.
 				for (const { key } of barrels) dirty.add(key)
 			}

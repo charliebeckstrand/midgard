@@ -56,17 +56,10 @@ function pageOf(path: string): string {
  * diagnostic of each. Fix a block, and remove its entry.
  */
 const KNOWN_FAILURES: Record<string, string> = {
-	// Demo data from a sibling module, whose relative import the block drops.
-	'modules/dashboard › Dashboard': "TS2304: Cannot find name 'sumBy'.",
-	'modules/dashboard › Widget registry': "TS2304: Cannot find name 'sumBy'.",
-	'modules/map › Delivery rounds': "TS2304: Cannot find name 'deliveryStops'.",
+	// A default import, which the import table of a demo does not keep:
+	// `import countiesUrl from 'us-atlas/counties-10m.json?url'`.
 	"modules/map › Drill into a state's counties":
 		"TS2552: Cannot find name 'countiesUrl'. Did you mean 'countiesQuery'?",
-	'modules/map › Pick a state': "TS2304: Cannot find name 'timezones'.",
-	'modules/map › Texas Triangle':
-		"TS2552: Cannot find name 'texasTriangle'. Did you mean 'TexasTriangle'?",
-	'modules/map › Timezones across America': "TS2304: Cannot find name 'timezones'.",
-	'modules/map › Zoom into the rounds': "TS2304: Cannot find name 'deliveryStops'.",
 
 	// A `useState` value that the block declares and never reads, because the
 	// block prints the value's use from the live render: a text child as its live
@@ -77,9 +70,12 @@ const KNOWN_FAILURES: Record<string, string> = {
 	'components/signature-pad › Imperative handle':
 		"TS6133: 'value' is declared but its value is never read.",
 
-	// A declaration that the run-time preamble pulls by a word in a pulled one:
-	// `start.setDate(…)` names the `setDate` of a `useState` pair.
+	// A name that the run-time preamble pulls by a word in a pulled declaration.
+	// `start.setDate(…)` names the `setDate` of a `useState` pair, and the
+	// `feature` parameter of `stateName` names the `feature` import.
 	'components/calendar › With min/max': "TS6133: 'date' is declared but its value is never read.",
+	'modules/map › Timezones across America':
+		"TS6133: 'feature' is declared but its value is never read.",
 
 	// A hand-written override that does not parse.
 	'modules/chart › Basic': 'TS17014: JSX fragment has no corresponding closing tag.',
@@ -250,14 +246,16 @@ function nodeAt(sf: ts.SourceFile, position: number): ts.Node {
  * local of a helper are authored code, so they do not count.
  */
 function isBlockName(node: ts.Node): boolean {
-	for (let current = node.parent; current; current = current.parent) {
+	// The walk starts at the node itself: an unused import line reports on the
+	// declaration, not on a name inside it.
+	for (let current: ts.Node | undefined = node; current; current = current.parent) {
 		if (ts.isImportDeclaration(current)) return true
 
 		if (ts.isParameter(current) || ts.isTypeParameterDeclaration(current)) return false
 
 		if (ts.isBlock(current)) return false
 
-		if (ts.isSourceFile(current.parent)) return true
+		if (current.parent !== undefined && ts.isSourceFile(current.parent)) return true
 	}
 
 	return false

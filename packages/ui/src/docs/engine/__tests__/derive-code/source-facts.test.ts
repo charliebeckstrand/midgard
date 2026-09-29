@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { extractSourceFacts, importFacts, injectSourceFacts } from '../../plugins/source-facts'
 import { parseSource } from '../../plugins/ts-source'
@@ -460,6 +462,35 @@ describe('extractSourceFacts imports', () => {
 		expect(imports.useIsTruncated).toEqual({ module: 'hooks' })
 
 		expect(imports.VirtualOptions).toEqual({ module: 'primitives/virtual-options' })
+	})
+
+	// The real map demo, because the test for a data module reads the disk.
+	it('keeps the authored specifier of a data module beside the demo', () => {
+		const srcDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..')
+
+		const filePath = resolve(srcDir, 'docs/demos/modules/map/index.tsx')
+
+		const file = parseSource(
+			filePath,
+			[
+				`import { timezones, type StateZone } from './data'`,
+				`import { Registry } from './registry'`,
+				`import { Missing } from './missing'`,
+				`import { Nested } from './nested/data'`,
+			].join('\n'),
+		)
+
+		const imports = importFacts(file, { filePath, srcDir })
+
+		expect(imports.timezones).toEqual({ module: './data', external: true })
+
+		expect(imports.StateZone).toEqual({ module: './data', external: true, type: true })
+
+		expect(imports.Registry).toBeUndefined()
+
+		expect(imports.Missing).toBeUndefined()
+
+		expect(imports.Nested).toBeUndefined()
 	})
 })
 
