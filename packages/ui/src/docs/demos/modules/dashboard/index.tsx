@@ -36,6 +36,18 @@ const emptyFilter: QueryGroup = { id: 'filter', type: 'group', children: [] }
 // hands rows to a widget; no widget knows that a dashboard holds it. A chart that
 // selects also gets its own selection back, so the selected marks stay lit.
 
+// A tap on a touch screen shows the readout first, so a second tap selects.
+// The hint names the gesture of the pointer that the device has.
+function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
+	return (
+		<>
+			<span className="pointer-coarse:hidden">Click</span>
+			<span className="hidden pointer-coarse:inline">Double-tap</span> a {mark} to filter the other
+			tiles
+		</>
+	)
+}
+
 function RevenueByRegion() {
 	const scope = useDashboardScope()
 
@@ -194,7 +206,7 @@ export function Demo() {
 							id="regions"
 							expandable
 							title="Revenue by region"
-							description="Click a bar to filter the other tiles"
+							description={<FilterHint mark="bar" />}
 							ratio={16 / 9}
 						>
 							<RevenueByRegion />
@@ -204,7 +216,7 @@ export function Demo() {
 							id="mix"
 							expandable
 							title="Product mix"
-							description="Click a slice to filter the other tiles"
+							description={<FilterHint mark="slice" />}
 							ratio={16 / 9}
 						>
 							<ProductMix />
