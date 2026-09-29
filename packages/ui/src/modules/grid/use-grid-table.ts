@@ -59,7 +59,12 @@ import {
 	toggleGroupExpanded,
 	toRowLeaf,
 } from './engine/grid-group/tree'
-import { isManualPagination, pageBounds } from './engine/grid-pagination-utilities'
+import {
+	isManualPagination,
+	pageBounds,
+	pageCountOf,
+	shownPageIndex,
+} from './engine/grid-pagination-utilities'
 import {
 	EMPTY_FROZEN_LAYOUT,
 	type FrozenLayout,
@@ -627,7 +632,9 @@ function useClientView<T>(args: {
 
 		if (!sorting) return kept
 
-		const sig = sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
+		const sig = sortSignature(sort)
+
+		const mirror = mirrorSignature(sort)
 
 		// The smart comparison is a total order, with the data index as the last
 		// key. The order of a subset is then the full order with the other rows
@@ -635,7 +642,7 @@ function useClientView<T>(args: {
 		// search, so a search filters it and sorts nothing. A custom `sortFn` can
 		// break that rule, so its fields sort the kept rows.
 		if (!kept || fields.every((field) => field.sortFn === null)) {
-			const full = cachedSortOrder(rows, columns, sig, fields)
+			const full = cachedSortOrder(rows, columns, sig, fields, mirror)
 
 			return kept ? keepInOrder(full, kept, rows.length) : full
 		}
@@ -656,17 +663,24 @@ function useClientView<T>(args: {
 
 		const total = order?.length ?? rows.length
 
+		// A page past the end of a smaller set shows the last page.
+		const shownPage =
+			pageIndex === undefined || pageSize === undefined
+				? undefined
+				: shownPageIndex(pageIndex, pageCountOf({ rows: total, pageSize }))
+
 		// The engine keeps an empty set whole, and slices any other.
 		const bounds =
-			pageIndex === undefined || pageSize === undefined || total === 0
+			shownPage === undefined || pageSize === undefined || total === 0
 				? null
-				: pageBounds(pageIndex, pageSize)
+				: pageBounds(shownPage, pageSize)
 
 		const shown = bounds ? sliceOrder(order, total, bounds) : (order ?? identityOrder(total))
 
 		return {
 			...materializeSort(rows, shown, getKey),
 			total,
+			pageIndex: shownPage,
 			filtered: keptRows,
 			kept,
 			order,
@@ -685,6 +699,8 @@ type ClientView<T> = {
 	rows: T[]
 	keys: (string | number)[]
 	total: number
+	/** The page the view shows, or `undefined` when the view does not paginate. */
+	pageIndex: number | undefined
 	/** The rows that the filters keep, in data order, or `null` when the view applies no filter. */
 	filtered: T[] | null
 	/** The indices of {@link ClientView.filtered}, or `null`. */
@@ -693,6 +709,25 @@ type ClientView<T> = {
 	order: number[] | null
 	/** The fields of the client sort, or `null` when the view does not sort. */
 	fields: SmartSortField<T>[] | null
+}
+
+/** The cache key of a sort: the column id and the direction of each entry. @internal */
+function sortSignature(sort: readonly GridSortState[]): string {
+	return sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
+}
+
+/**
+ * The cache key of a single-column sort in the other direction, whose cached
+ * order a first flip turns around, or `undefined` for a sort of more columns.
+ *
+ * @internal
+ */
+function mirrorSignature(sort: readonly GridSortState[]): string | undefined {
+	const [only] = sort
+
+	if (sort.length !== 1 || !only) return undefined
+
+	return sortSignature([{ ...only, direction: only.direction === 'asc' ? 'desc' : 'asc' }])
 }
 
 /**
@@ -1509,7 +1544,11 @@ export function useGridTable<T>({
 	const pagination = paginationConfig
 		? buildPaginationView({
 				table: engine,
-				pagination: resolvedPagination,
+				// A client view holds a page past the end to the last page.
+				pagination:
+					clientView?.pageIndex === undefined
+						? resolvedPagination
+						: { ...resolvedPagination, pageIndex: clientView.pageIndex },
 				manual,
 				config: paginationConfig,
 				rows: clientView?.total ?? rows.length,

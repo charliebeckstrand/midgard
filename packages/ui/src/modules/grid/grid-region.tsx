@@ -49,10 +49,26 @@ const ROW_REORDER_MODIFIERS = [restrictToVerticalAxis, restrictToFirstScrollable
  */
 const ROW_REORDER_AUTO_SCROLL = { threshold: { x: 0, y: 0.2 } }
 
+/** The sensors of the dnd context while no reorder is live: none, so no drag starts. @internal */
+const NO_SENSORS: NonNullable<ComponentProps<typeof DndContext>['sensors']> = []
+
+/** The column sortable items while column reorder is not live. @internal */
+const NO_ITEMS: ComponentProps<typeof SortableContext>['items'] = []
+
 /** Props for {@link GridRegion}. @internal */
 type GridRegionProps<T> = {
+	/**
+	 * Whether the grid takes column or row reorder at all, from its props alone.
+	 * The drag context mounts on this, so a change in the live gates below never
+	 * remounts the table.
+	 */
+	reorderConfigured: boolean
+	/** Whether column reorder is live now. */
 	canReorder: boolean
 	dndContextProps: ComponentProps<typeof DndContext>
+	/** Whether row reorder is live now. It stands column reorder down. */
+	rowReorderActive: boolean
+	rowDndContextProps: ComponentProps<typeof DndContext>
 	itemIds: ComponentProps<typeof SortableContext>['items']
 	strategy: ComponentProps<typeof SortableContext>['strategy']
 	/** Id of the column being dragged, or `null`; handed to the reordering body cells for their lift cue. */
@@ -89,16 +105,19 @@ type GridRegionProps<T> = {
 }
 
 /**
- * Wraps the table region in its interaction layers: the column-reorder dnd
- * context (when reorderable) nested inside the right-click context menu (when
- * configured). Split out of {@link GridData} so its body stays within the
- * cognitive-complexity budget.
+ * Wraps the table region in its interaction layers: the reorder dnd context
+ * (when the grid takes column or row reorder, see {@link GridReorderRegion})
+ * nested inside the right-click context menu (when configured). Split out of
+ * {@link GridData} so its body stays within the cognitive-complexity budget.
  *
  * @internal
  */
 export function GridRegion<T>({
+	reorderConfigured,
 	canReorder,
 	dndContextProps,
+	rowReorderActive,
+	rowDndContextProps,
 	itemIds,
 	strategy,
 	activeReorderId,
@@ -122,14 +141,19 @@ export function GridRegion<T>({
 	columnFilter,
 	children,
 }: GridRegionProps<T>) {
-	const reordered = canReorder ? (
-		<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={REORDER_AUTO_SCROLL}>
-			<SortableContext items={itemIds} strategy={strategy}>
-				<GridReorderContext value={activeReorderId}>{children}</GridReorderContext>
-			</SortableContext>
-		</DndContext>
-	) : (
-		children
+	const reordered = (
+		<GridReorderRegion
+			configured={reorderConfigured}
+			canReorder={canReorder}
+			dndContextProps={dndContextProps}
+			rowReorderActive={rowReorderActive}
+			rowDndContextProps={rowDndContextProps}
+			itemIds={itemIds}
+			strategy={strategy}
+			activeReorderId={activeReorderId}
+		>
+			{children}
+		</GridReorderRegion>
 	)
 
 	if (!contextMenu) return reordered
@@ -160,33 +184,66 @@ export function GridRegion<T>({
 	)
 }
 
+/** Props for {@link GridReorderRegion}. @internal */
+type GridReorderRegionProps = Pick<
+	GridRegionProps<unknown>,
+	| 'canReorder'
+	| 'dndContextProps'
+	| 'rowReorderActive'
+	| 'rowDndContextProps'
+	| 'itemIds'
+	| 'strategy'
+	| 'activeReorderId'
+	| 'children'
+> & {
+	/** Whether the grid takes column or row reorder at all, from its props alone. */
+	configured: boolean
+}
+
 /**
- * Wraps the table region in the row drag-reorder `<DndContext>` when rows are
- * reorderable, else renders the region untouched. The context sits outside the
- * `<table>`, because its injected a11y nodes must not be table children. It
- * locks drags to the y-axis, and bounds them to the scroll container. Split out so
- * {@link GridData} stays within its complexity budget.
+ * The reorder dnd context around the table region, or the region untouched
+ * when the grid takes no reorder.
+ *
+ * @remarks One `DndContext` serves both reorders, and it switches mode instead
+ * of mounting. The live gates follow the sort, the filter, loading, and the
+ * rows, and a wrapper that came and went with them remounted the table: the
+ * focused sort button was lost on the click that sorted. With no live mode the
+ * context takes no sensors, so no drag starts. It sits outside the `<table>`,
+ * because its injected a11y nodes must not be table children. The row
+ * sortables sit in the body and the column sortables in the head, so each mode
+ * has one nearest context.
  *
  * @internal
  */
-export function GridRowReorderRegion({
-	active,
+function GridReorderRegion({
+	configured,
+	canReorder,
 	dndContextProps,
+	rowReorderActive,
+	rowDndContextProps,
+	itemIds,
+	strategy,
+	activeReorderId,
 	children,
-}: {
-	active: boolean
-	dndContextProps: ComponentProps<typeof DndContext>
-	children: ReactNode
-}) {
-	if (!active) return children
+}: GridReorderRegionProps) {
+	if (!configured) return children
+
+	const mode = rowReorderActive ? 'row' : canReorder ? 'column' : null
+
+	const contextProps = mode === 'row' ? rowDndContextProps : dndContextProps
 
 	return (
 		<DndContext
-			{...dndContextProps}
-			modifiers={ROW_REORDER_MODIFIERS}
-			autoScroll={ROW_REORDER_AUTO_SCROLL}
+			{...contextProps}
+			sensors={mode === null ? NO_SENSORS : contextProps.sensors}
+			modifiers={mode === 'row' ? ROW_REORDER_MODIFIERS : REORDER_MODIFIERS}
+			autoScroll={mode === 'row' ? ROW_REORDER_AUTO_SCROLL : REORDER_AUTO_SCROLL}
 		>
-			{children}
+			<SortableContext items={mode === 'column' ? itemIds : NO_ITEMS} strategy={strategy}>
+				<GridReorderContext value={mode === 'column' ? activeReorderId : null}>
+					{children}
+				</GridReorderContext>
+			</SortableContext>
 		</DndContext>
 	)
 }

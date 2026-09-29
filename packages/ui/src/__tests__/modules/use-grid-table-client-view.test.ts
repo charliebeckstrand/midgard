@@ -15,7 +15,8 @@ import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 /**
  * The grid filters, sorts, and pages its rows itself. Its rows must equal
  * those of the row models of a stock engine table, in the same order, with the
- * same keys and the same page totals.
+ * same keys and the same page totals. The one difference is a page past the
+ * end, which a client view holds to the last page (see `engineView`).
  */
 type Row = { id: number; name: unknown; amount: unknown }
 
@@ -96,21 +97,35 @@ function gridView(rows: Row[], transforms: EngineTransforms) {
 	}
 }
 
-/** The same view, read from a stock engine table. */
+/**
+ * The same view, read from a stock engine table. The engine keeps a page past
+ * the end of a smaller set, where a client view shows the last page. The engine
+ * therefore gets the page held to the last one in client mode.
+ */
 function engineView(rows: Row[], transforms: EngineTransforms) {
-	const table = engineTable(rows, columns, getKey, {
-		...transforms,
-		query: transforms.query ?? '',
-		filters: transforms.filters ?? [],
-		sort: transforms.sort ?? [],
-	})
-
-	const shown = table.getRowModel().rows
-
 	const { page } = transforms
 
 	const manual =
 		page && (page.config.manual || page.config.rowCount != null || page.config.pageCount != null)
+
+	const build = (pageIndex?: number) =>
+		engineTable(rows, columns, getKey, {
+			...transforms,
+			query: transforms.query ?? '',
+			filters: transforms.filters ?? [],
+			sort: transforms.sort ?? [],
+			...(page && pageIndex !== undefined
+				? { page: { ...page, state: { ...page.state, pageIndex } } }
+				: {}),
+		})
+
+	const unheld = build()
+
+	const last = unheld.getPageCount() - 1
+
+	const table = page && !manual && last >= 0 && page.state.pageIndex > last ? build(last) : unheld
+
+	const shown = table.getRowModel().rows
 
 	return {
 		ids: shown.map((row) => row.original.id),

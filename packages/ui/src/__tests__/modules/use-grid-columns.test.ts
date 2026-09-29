@@ -126,6 +126,37 @@ describe('useGridColumns', () => {
 		expect(onValueChange).toHaveBeenCalledWith(['select', 'status', 'age', 'name'])
 	})
 
+	it('reorderColumns holds a collapsed group member in its slot', () => {
+		const onValueChange = vi.fn()
+
+		const cols: GridColumn<Row>[] = [
+			{ id: 'a', title: 'A' },
+			{ id: 'b', title: 'B' },
+			{ id: 'c', title: 'C' },
+			{ id: 'd', title: 'D' },
+		]
+
+		const { result } = renderHook(() =>
+			useGridColumns<Row>({
+				columns: cols,
+				columnOrderConfig: { onValueChange },
+				columnManagerConfig: undefined,
+				groups: [{ id: 'g', columns: ['b', 'c'] }],
+				// The group is collapsed, so its second member is hidden and has no handle.
+				forcedHidden: new Set(['c']),
+			}),
+		)
+
+		expect(result.current.columnOrder).toEqual(['b', 'c', 'a', 'd'])
+
+		// The drag permutes the visible columns only.
+		act(() => {
+			result.current.reorderColumns(['a', 'b', 'd'])
+		})
+
+		expect(onValueChange).toHaveBeenCalledWith(['a', 'c', 'b', 'd'])
+	})
+
 	it('keeps selectable, actions, and pinned columns out of the hidden map even when listed as hidden', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },

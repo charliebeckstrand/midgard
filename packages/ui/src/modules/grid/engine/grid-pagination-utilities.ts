@@ -80,3 +80,15 @@ export function pageBounds(pageIndex: number, pageSize: number): [number, number
 
 	return [start, start + pageSize]
 }
+
+/**
+ * The page that a client view shows: the stored page, held to the last page
+ * when the rows shrink under it, such as after a search. The stored page stays
+ * as it is, so a consumer binding reads no write it did not make. An empty set
+ * keeps the stored page, because it has no last page.
+ *
+ * @internal
+ */
+export function shownPageIndex(pageIndex: number, pageCount: number): number {
+	return pageCount > 0 ? Math.min(pageIndex, pageCount - 1) : pageIndex
+}

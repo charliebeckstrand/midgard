@@ -10,7 +10,7 @@ import {
 } from '../../modules/query'
 import { DensityProvider } from '../../providers/density'
 import { Box } from '../../structure/box'
-import { densityStepOf, fireEvent, getAllSlots, renderUI, screen } from '../helpers'
+import { densityStepOf, fireEvent, getAllSlots, renderUI, screen, waitFor } from '../helpers'
 
 describe('Grid per-column filters', () => {
 	type Row = { id: number; name: string; role: string }
@@ -362,6 +362,34 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
 		expect(screen.getByText('Alice')).toBeInTheDocument()
+	})
+
+	it('keeps focus on the filter trigger across Apply and Clear', async () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const funnel = screen.getByRole('button', { name: 'Filter Name' })
+
+		funnel.focus()
+
+		fireEvent.click(funnel)
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: 'Bob' },
+		})
+
+		// Apply swaps the funnel for the menu trigger of an applied filter.
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+		const active = screen.getByRole('button', { name: 'Filter Name, active' })
+
+		await waitFor(() => expect(active).toHaveFocus())
+
+		fireEvent.click(active)
+
+		// Clear swaps it back.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear filters' }))
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Filter Name' })).toHaveFocus())
 	})
 
 	it('discards a draft when the filter sheet is dismissed without applying', () => {

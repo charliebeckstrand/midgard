@@ -500,3 +500,58 @@ describe('Grid onActiveCellChange', () => {
 		expect(onActiveCellChange).not.toHaveBeenCalled()
 	})
 })
+
+describe.each([
+	['navigable', { navigable: true }],
+	['editable', { editable: { onCommit: () => {} } }],
+] as const)('Grid cell ids of a %s grid', (_, mode) => {
+	type Person = { id: number; name: string; value: string }
+
+	const people: Person[] = [
+		{ id: 1, name: 'Carol', value: 'c' },
+		{ id: 2, name: 'Alice', value: 'a' },
+		{ id: 3, name: 'Bob', value: 'b' },
+	]
+
+	const cols: GridColumn<Person>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+		{ id: 'value', title: 'Value', cell: (row) => row.value, value: (row) => row.value },
+	]
+
+	/** The display row of each first data cell, read from the cell's own id. */
+	function idRows(): string[] {
+		return Array.from(document.querySelectorAll('tbody tr')).map(
+			(tr) => tr.querySelector('td[role="gridcell"]')?.id.replace(/^.*cell-(\d+)-0$/, '$1') ?? '',
+		)
+	}
+
+	it('follows the display row after a sort', () => {
+		const ui = (sort: 'asc' | 'desc') => (
+			<Grid
+				columns={cols}
+				rows={people}
+				getKey={(row) => row.id}
+				sort={{ value: [{ column: 'name', direction: sort }] }}
+				{...mode}
+			/>
+		)
+
+		const view = renderUI(ui('asc'))
+
+		view.rerender(ui('desc'))
+
+		expect(idRows()).toEqual(['0', '1', '2'])
+	})
+
+	it('follows the display row after an insert above', () => {
+		const ui = (rows: Person[]) => (
+			<Grid columns={cols} rows={rows} getKey={(row) => row.id} {...mode} />
+		)
+
+		const view = renderUI(ui(people))
+
+		view.rerender(ui([{ id: 4, name: 'Dana', value: 'd' }, ...people]))
+
+		expect(idRows()).toEqual(['0', '1', '2', '3'])
+	})
+})

@@ -229,6 +229,49 @@ describe('Grid cursor over grouped rows', () => {
 		expect(onRowClick.mock.calls[0]?.[0]).toMatchObject({ region: 'West' })
 	})
 
+	it('names the drawn cell after a data change moves its row', () => {
+		const ui = (rows: Sale[]) => (
+			<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
+		)
+
+		const view = renderUI(ui(sales))
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.mouseDown(screen.getByText('20 units').closest('td') as HTMLElement)
+
+		expect(activeCell(grid)).toHaveTextContent('20 units')
+
+		// A row above the cursor leaves: the order and the row map both change.
+		view.rerender(ui(sales.filter((sale) => sale.id !== 2)))
+
+		const drawn = grid.querySelector('td[data-active]')
+
+		expect(drawn).toHaveTextContent('20 units')
+
+		expect(activeCell(grid)).toBe(drawn)
+	})
+
+	it('seats a pressed leaf after a row joins a closed group', () => {
+		const ui = (rows: Sale[]) => (
+			<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
+		)
+
+		const view = renderUI(ui(sales))
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Collapse group West' }))
+
+		// The closed group gains a row. The order the cursor walks stays equal, but
+		// every later data index moves.
+		view.rerender(ui([...sales, { id: 4, region: 'West', units: 50 }]))
+
+		fireEvent.mouseDown(screen.getByText('20 units').closest('td') as HTMLElement)
+
+		expect(activeCell(grid)).toHaveTextContent('20 units')
+	})
+
 	it('keeps a plain grouped table free of tree attributes', () => {
 		const { container } = renderUI(
 			<Grid columns={columns} rows={sales} getKey={getKey} groupBy={{ value: 'region' }} />,

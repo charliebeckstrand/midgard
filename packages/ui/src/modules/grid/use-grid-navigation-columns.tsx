@@ -16,7 +16,7 @@ import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GRID_ROLE } from './engine/grid-constants'
 import { NEW_ROW_ADD_COLUMN_ID } from './engine/grid-new-row-column'
-import { fromInteractiveContent } from './engine/grid-row/cell'
+import { fromInteractiveContent, type GridIndexedColumn } from './engine/grid-row/cell'
 import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
 
@@ -327,15 +327,14 @@ export function GridNavCell({
 export function seatingCellProps<T>(args: {
 	col: GridColumn<T>
 	row: T
-	rowIndexMapRef: RefObject<Map<T, number>>
+	/** The row's 0-based place in the view. */
+	rowIdx: number
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
 	extra?: ComponentProps<'td'>
 }): ComponentProps<'td'> {
-	const { col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo, extra } = args
-
-	const rowIdx = rowIndexMapRef.current.get(row) ?? -1
+	const { col, row, rowIdx, colIndexMapRef, cellId, moveTo, extra } = args
 
 	const colIdx = colIndexMapRef.current.get(col.id) ?? -1
 
@@ -402,10 +401,11 @@ const NO_STOP_PROPS: ComponentProps<'td'> = {}
  * Projects the read-only grid's data columns into navigable ones. Each gains a
  * stable per-cell id, matched by the grid's `aria-activedescendant`. Each also
  * gains `role="gridcell"`, a click-to-focus `onMouseDown`, and an active-cell
- * marker wrapping its content. Display-order row/column indices resolve at
- * cell-render time from `rowIndexMapRef`/`colIndexMapRef`. The augmented columns
- * therefore stay referentially stable across cursor moves, and the memoized rows
- * hold. Only the marker whose active flag flipped re-renders. The non-data columns
+ * marker wrapping its content. A flat row gives each cell its place in the view
+ * (`cellAt`, `cellPropsAt`); a body with no place to give reads it from
+ * `rowIndexMapRef`. The column index resolves from `colIndexMapRef` at render
+ * time. The augmented columns therefore stay referentially stable across cursor
+ * moves, and the memoized rows hold. Only the marker whose active flag flipped re-renders. The non-data columns
  * (selection, actions, drag handle, expander), and a non-navigable grid (`enabled` false), pass through untouched.
  *
  * @returns The augmented `GridColumn<T>[]` to feed the engine.
@@ -431,27 +431,29 @@ export function useGridNavigationColumns<T>({
 	return useMemo(() => {
 		if (!enabled) return columns
 
-		return columns.map((col) => {
+		const indexOf = (row: T) => rowIndexMapRef.current.get(row) ?? -1
+
+		return columns.map((col): GridIndexedColumn<T> => {
 			if (!isDataColumn(col)) return col
 
 			const renderCell = col.cell
 
+			const cellAt = (row: T, rowIdx: number): ReactNode => (
+				<GridNavCell row={rowIdx} col={colIndexMapRef.current.get(col.id) ?? -1}>
+					{renderCell?.(row)}
+				</GridNavCell>
+			)
+
+			const cellPropsAt = (row: T, rowIdx: number): ComponentProps<'td'> =>
+				seatingCellProps({ col, row, rowIdx, colIndexMapRef, cellId, moveTo })
+
 			return {
 				...col,
 				className: cn(k.nav.cell, col.className),
-				cellProps: (row: T): ComponentProps<'td'> =>
-					seatingCellProps({ col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo }),
-				cell: (row: T): ReactNode => {
-					const rowIdx = rowIndexMapRef.current.get(row) ?? -1
-
-					const colIdx = colIndexMapRef.current.get(col.id) ?? -1
-
-					return (
-						<GridNavCell row={rowIdx} col={colIdx}>
-							{renderCell?.(row)}
-						</GridNavCell>
-					)
-				},
+				cellAt,
+				cellPropsAt,
+				cellProps: (row: T) => cellPropsAt(row, indexOf(row)),
+				cell: (row: T) => cellAt(row, indexOf(row)),
 			}
 		})
 	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, cellId, moveTo])

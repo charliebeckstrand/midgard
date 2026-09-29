@@ -155,6 +155,7 @@ function leafRowProps<T>(
 		expanded: args.expanded,
 		columns: props.visibleColumns,
 		row: leaf.row,
+		rowIndex: props.rowIndexMap.get(leaf.row) ?? -1,
 		rowKey: leaf.key,
 		selected: props.selection.has(leaf.key),
 		toggleRow: props.toggleRow,

@@ -2,6 +2,7 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import {
+	cachedSortOrder,
 	compareSmart,
 	computeSortOrder,
 	materializeSort,
@@ -416,6 +417,41 @@ describe('computeSortOrder · properties', () => {
 			}
 		},
 	)
+})
+
+describe('cachedSortOrder · properties', () => {
+	// A first flip turns the cached order of the other direction around, and
+	// sorts nothing. It must give the order that a sort from scratch gives.
+	test.prop([anyRows(), fc.boolean()])(
+		'turns a cached order around to the fresh order of the other direction',
+		(rows, descending) => {
+			const columns = {}
+
+			cachedSortOrder(rows, columns, `a:${descending}`, [field('a', descending)])
+
+			const flipped = cachedSortOrder(
+				rows,
+				columns,
+				`a:${!descending}`,
+				[field('a', !descending)],
+				`a:${descending}`,
+			)
+
+			expect(flipped).toEqual(computeSortOrder(rows, [field('a', !descending)]))
+		},
+	)
+
+	test.prop([anyRows()])('sorts from scratch for more than one field', (rows) => {
+		const columns = {}
+
+		const fields = (descending: boolean) => [field('a', descending), field('b', false)]
+
+		cachedSortOrder(rows, columns, 'asc', fields(false))
+
+		expect(cachedSortOrder(rows, columns, 'desc', fields(true), 'asc')).toEqual(
+			computeSortOrder(rows, fields(true)),
+		)
+	})
 })
 
 describe('sortRowsSmart · properties', () => {

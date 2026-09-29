@@ -12,8 +12,15 @@ import { isDataColumn } from '../../utilities'
 import { NO_PADDING } from './engine/grid-constants'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
-import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
-import { resolveCellTooltip } from './engine/grid-row/cell'
+import {
+	cellContentAt,
+	cellPropsAt,
+	type GridCellClick,
+	type GridCellRovingActivate,
+	type GridIndexedColumn,
+	type GridRowClick,
+	resolveCellTooltip,
+} from './engine/grid-row/cell'
 import {
 	cellRovingAttrs,
 	type GridWindowRowProps,
@@ -40,6 +47,8 @@ function leafCellChrome<T>(col: GridColumn<T>): { td: string; inner: string } {
 type GridGroupLeafRowProps<T> = {
 	/** Whether the row's group is expanded — drives the open/collapsed reveal and hides it from AT when closed. */
 	expanded: boolean
+	/** The row's 0-based place in the view, which a cursor cell reads (see {@link GridIndexedColumn}). */
+	rowIndex: number
 	/** The visible columns, in render order. */
 	columns: GridColumn<T>[]
 	row: T
@@ -78,15 +87,16 @@ type GridGroupLeafRowProps<T> = {
 
 /** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
 function leafCellInner<T>(args: {
-	col: GridColumn<T>
+	col: GridIndexedColumn<T>
 	row: T
+	rowIndex: number
 	rowKey: string | number
 	selected: boolean
 	toggleRow: (key: string | number) => void
 	rowLabel: string | undefined
 	truncate: boolean
 }): ReactNode {
-	const { col, row, rowKey, selected, toggleRow, rowLabel, truncate } = args
+	const { col, row, rowIndex, rowKey, selected, toggleRow, rowLabel, truncate } = args
 
 	const name = rowLabel ?? `row ${rowKey}`
 
@@ -120,7 +130,7 @@ function leafCellInner<T>(args: {
 	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 
 	// The column renders the cell as a flat row does.
-	const raw = col.cell ? (col.cell(row) ?? null) : null
+	const raw = cellContentAt(col, row, rowIndex)
 
 	if (truncate && raw != null) {
 		return (
@@ -137,8 +147,9 @@ function leafCellInner<T>(args: {
 
 /** Props for {@link GridGroupLeafCell}. @internal */
 type GridGroupLeafCellProps<T> = {
-	col: GridColumn<T>
+	col: GridIndexedColumn<T>
 	row: T
+	rowIndex: number
 	rowKey: string | number
 	selected: boolean
 	toggleRow: (key: string | number) => void
@@ -174,6 +185,7 @@ type GridGroupLeafCellProps<T> = {
 function GridGroupLeafCell<T>({
 	col,
 	row,
+	rowIndex,
 	rowKey,
 	selected,
 	toggleRow,
@@ -197,7 +209,7 @@ function GridGroupLeafCell<T>({
 	const pinned = pinnedCellProps(pinning, col)
 
 	// The column's own cell props, such as the cursor's id and role, as on a flat row.
-	const extra = col.cellProps?.(row)
+	const extra = cellPropsAt(col, row, rowIndex)
 
 	const roving = cellRovingAttrs({
 		cellRoving: cellRoving && dataCell,
@@ -235,6 +247,7 @@ function GridGroupLeafCell<T>({
 						{leafCellInner({
 							col,
 							row,
+							rowIndex,
 							rowKey,
 							selected,
 							toggleRow,
@@ -263,6 +276,7 @@ function GridGroupLeafCell<T>({
  */
 export function GridGroupLeafRow<T>({
 	expanded,
+	rowIndex,
 	columns,
 	row,
 	rowKey,
@@ -335,6 +349,7 @@ export function GridGroupLeafRow<T>({
 							key={col.id}
 							col={col}
 							row={row}
+							rowIndex={rowIndex}
 							rowKey={rowKey}
 							selected={selected}
 							toggleRow={toggleRow}

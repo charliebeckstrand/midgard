@@ -304,6 +304,59 @@ export function computeSortOrder<T>(rows: T[], fields: SmartSortField<T>[]): num
 }
 
 /**
+ * The order of one smart field in the other direction, built from its cached
+ * `order` in one pass. The order of a field sorts its rows with a value by
+ * key, each run of equal keys in data order, and puts its empties last in data
+ * order in both directions. The other direction therefore takes the runs in
+ * reverse and keeps the order inside each run and the empties. It equals what
+ * {@link computeSortOrder} gives for that direction, and it needs the decode
+ * but no sort. The cold sort records nothing for it, so its cost stays.
+ *
+ * @internal
+ */
+function mirrorOrder<T>(rows: T[], order: number[], field: SmartSortField<T>): number[] {
+	const keyOf = (position: number) =>
+		toSortKey(field.accessor(rows[order[position] as number] as T))
+
+	const next = new Array<number>(order.length)
+
+	// The rows with a value come first; the empties keep their place at the end.
+	let filled = 0
+
+	const keys: SortKey[] = []
+
+	while (filled < order.length) {
+		const key = keyOf(filled)
+
+		if (key.empty) break
+
+		keys.push(key)
+
+		filled++
+	}
+
+	for (let k = filled; k < order.length; k++) next[k] = order[k] as number
+
+	let write = 0
+
+	let end = filled
+
+	while (end > 0) {
+		let start = end - 1
+
+		while (start > 0 && compareSortKeys(keys[start - 1] as SortKey, keys[start] as SortKey) === 0) {
+			start--
+		}
+
+		for (let k = start; k < end; k++) next[write++] = order[k] as number
+
+		end = start
+	}
+
+	return next
+}
+
+/**
  * The sort orders already computed, by the rows, then by the columns, then by
  * the sort signature. A `WeakMap` holds no rows or columns alive, so an order
  * goes with the data or the accessors that it was computed against.
@@ -318,8 +371,14 @@ const sortOrders = new WeakMap<object, WeakMap<object, Map<string, number[]>>>()
  * and pays only the linear materialize. An asc/desc flip and an unrelated
  * re-render are two such re-sorts.
  *
+ * A first sort of one field in the other direction, the first asc/desc flip,
+ * turns the cached order around in one pass when `mirror` names it (see
+ * {@link mirrorOrder}). A custom `sortFn`, or a sort of more than one column,
+ * computes: its order in the other direction is not a reversal.
+ *
  * @param columns - The column set that the fields read. A new set drops the orders.
  * @param signature - The column id and the direction of each sort entry.
+ * @param mirror - The signature of the same single column in the other direction.
  * @internal
  */
 export function cachedSortOrder<T>(
@@ -327,6 +386,7 @@ export function cachedSortOrder<T>(
 	columns: object,
 	signature: string,
 	fields: SmartSortField<T>[],
+	mirror?: string,
 ): number[] {
 	const byColumns = getOrCompute(
 		sortOrders,
@@ -336,7 +396,15 @@ export function cachedSortOrder<T>(
 
 	const orders = getOrCompute(byColumns, columns, () => new Map<string, number[]>())
 
-	return getOrCompute(orders, signature, () => computeSortOrder(rows, fields))
+	return getOrCompute(orders, signature, () => {
+		const [only] = fields
+
+		const flipped = mirror === undefined ? undefined : orders.get(mirror)
+
+		return flipped && only && fields.length === 1 && only.sortFn === null
+			? mirrorOrder(rows, flipped, only)
+			: computeSortOrder(rows, fields)
+	})
 }
 
 /**

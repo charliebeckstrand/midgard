@@ -142,6 +142,35 @@ describe('Grid master-detail', () => {
 		expect(screen.getByRole('button', { name: 'Expand details for row 1' })).toBeInTheDocument()
 	})
 
+	it('never renders the detail of a row rowExpandable rejects', () => {
+		type Order = { id: number; lines?: { items: string[] } }
+
+		const orders: Order[] = [{ id: 1, lines: { items: ['Pen'] } }, { id: 2 }]
+
+		// The renderer trusts the predicate, so it reads `lines` without a guard.
+		const render = (order: Order) => {
+			if (!order.lines) throw new Error(`render called for rejected row ${order.id}`)
+
+			return <div data-slot="order-detail">{order.lines.items.join(', ')}</div>
+		}
+
+		const { container } = renderUI(
+			<Grid<Order>
+				columns={[
+					{ id: 'expand', expander: true },
+					{ id: 'id', title: 'Id', cell: (r) => r.id },
+				]}
+				rows={orders}
+				getKey={(r) => r.id}
+				expandable={{ render, rowExpandable: (order) => order.lines != null }}
+			/>,
+		)
+
+		expect(detailRow(container, 1)).not.toBeNull()
+
+		expect(detailRow(container, 2)).toBeNull()
+	})
+
 	it('opens the panel on the toggle itself under reduced motion', async () => {
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 

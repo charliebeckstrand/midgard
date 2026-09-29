@@ -22,7 +22,7 @@ import { GridFooterBar } from './grid-footer-bar'
 import { GridGroupByContext } from './grid-group-by-button'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
-import { GridOverlayDensityContext, GridRegion, GridRowReorderRegion } from './grid-region'
+import { GridOverlayDensityContext, GridRegion } from './grid-region'
 import { useGridSort, useServerSortSettle } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
@@ -371,6 +371,7 @@ export function GridData<T>({
 	// Phase 4: what the engine resolved, fed back to the cursor through its refs.
 	const {
 		roving,
+		rowIndexMap,
 		hasRows,
 		showingError,
 		hasRowsToActOn,
@@ -681,6 +682,7 @@ export function GridData<T>({
 			body={{
 				rows: renderRows,
 				rowKeys,
+				rowIndexMap,
 				rowLoading,
 				rowClassName,
 				rowLabel,
@@ -813,8 +815,11 @@ export function GridData<T>({
 
 						<GridGroupByContext value={groupByContext}>
 							<GridRegion
+								reorderConfigured={reorderEnabled || rowReorderConfig != null}
 								canReorder={reorderActive}
 								dndContextProps={dndContextProps}
+								rowReorderActive={rowReorderActive}
+								rowDndContextProps={rowReorder.dndContextProps}
 								itemIds={itemIds}
 								strategy={strategy}
 								activeReorderId={activeId}
@@ -837,12 +842,7 @@ export function GridData<T>({
 								columnGroupMenu={columnGroupMenu}
 								columnFilter={filters}
 							>
-								<GridRowReorderRegion
-									active={rowReorderActive}
-									dndContextProps={rowReorder.dndContextProps}
-								>
-									{tableRegion}
-								</GridRowReorderRegion>
+								{tableRegion}
 							</GridRegion>
 						</GridGroupByContext>
 

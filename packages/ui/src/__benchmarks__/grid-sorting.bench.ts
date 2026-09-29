@@ -2,6 +2,7 @@
 
 import { bench, describe } from 'vitest'
 import {
+	cachedSortOrder,
 	compareSmart,
 	compareSortKeys,
 	computeSortOrder,
@@ -149,6 +150,32 @@ describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
 
 		bench(`${n.toLocaleString()} · sortRowsSmart · string column (compute + materialize)`, () => {
 			sortRowsSmart(rows, shipmentKey, [stringField])
+		})
+	}
+})
+
+describe('grid-sort · first flip (the other direction of a cached order)', () => {
+	for (const n of [10_000, 100_000]) {
+		const rows = shipments(n)
+
+		const descending = { ...stringField, descending: true }
+
+		// Each run takes a new column set, so the cache holds only the ascending
+		// order and the flip is always a first flip.
+		bench(`${n.toLocaleString()} · string column · turn the cached order around`, () => {
+			const columns = {}
+
+			cachedSortOrder(rows, columns, 'origin:asc', [stringField])
+
+			cachedSortOrder(rows, columns, 'origin:desc', [descending], 'origin:asc')
+		})
+
+		bench(`${n.toLocaleString()} · string column · sort both directions (no mirror)`, () => {
+			const columns = {}
+
+			cachedSortOrder(rows, columns, 'origin:asc', [stringField])
+
+			cachedSortOrder(rows, columns, 'origin:desc', [descending])
 		})
 	}
 })
