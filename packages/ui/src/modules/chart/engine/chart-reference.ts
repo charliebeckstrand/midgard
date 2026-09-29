@@ -15,7 +15,8 @@ import type { ChartLegendReference } from './chart-legend/legend'
  * threshold, budget, or average to read the marks against. It sits at a raw
  * domain `value`, so its position tracks the scale. The value also folds into
  * the domain, keeping an off-data target on-frame rather than clamped to an
- * edge.
+ * edge. A pinned `min` or `max` can still leave it out. The rule then draws
+ * nothing, and the legend and the visually-hidden list still name it.
  */
 export type ChartReferenceLine = {
 	/** The domain value the line sits at, in the same units the series are read in. */

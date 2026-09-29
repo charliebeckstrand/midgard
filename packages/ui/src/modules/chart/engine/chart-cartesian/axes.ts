@@ -244,6 +244,11 @@ export function categoryGridPositionsOf(
  * with no resolved scale, or a rule toggled off through its legend chip holds
  * its slot with `null`. It draws no rule, and offers no stop.
  *
+ * A value outside its scale's domain holds `null` too. The value folds into the
+ * domain, so only a pinned `min` or `max` leaves it out, and the scale would
+ * clamp its rule onto the edge, where it reads as the pin. The legend chip and
+ * the visually-hidden list still name it.
+ *
  * @internal
  */
 export function referencePositionsOf(
@@ -254,6 +259,10 @@ export function referencePositionsOf(
 	return (reference ?? []).map((line, index) => {
 		const scale = scales[line.axis ?? 'y']
 
-		return scale && Number.isFinite(line.value) && !hidden.has(index) ? scale.map(line.value) : null
+		if (!scale || hidden.has(index)) return null
+
+		const [low, high] = scale.domain
+
+		return line.value >= low && line.value <= high ? scale.map(line.value) : null
 	})
 }

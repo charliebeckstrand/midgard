@@ -151,6 +151,30 @@ describe('reference lines', () => {
 		expect(y).toBeLessThanOrEqual(height)
 	})
 
+	it('draws no rule outside a pinned domain, and keeps it in the list', () => {
+		// A pin holds the domain at 100, so the fold cannot reach 150. The rule
+		// drew on the clamped top edge, where it read as 100.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				axes={{ y: { max: 100 } }}
+				reference={[
+					{ value: 150, label: 'Stretch' },
+					{ value: 55, label: 'Target' },
+				]}
+			/>,
+		)
+
+		const rules = allBySlot(container, 'chart-reference-line')
+
+		expect(rules).toHaveLength(1)
+
+		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Stretch')
+	})
+
 	it('transposes the rule to a vertical line under horizontal orientation', () => {
 		const { container } = bar([{ value: 50 }], 'horizontal')
 
