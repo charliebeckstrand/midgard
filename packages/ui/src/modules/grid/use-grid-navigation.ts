@@ -5,7 +5,6 @@ import {
 	type KeyboardEvent,
 	type RefObject,
 	useCallback,
-	useEffectEvent,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -298,6 +297,32 @@ function cursorOfDataRows(
 }
 
 /**
+ * The order and the row map that one render of the cursor reads: the published
+ * order, or `null` for data rows only, and the row to data index map it was
+ * resolved against. @internal
+ */
+type CursorView = {
+	order: readonly GridCursorRow[] | null
+	rowIndexMap: Map<unknown, number>
+}
+
+/** The data row index of a cursor row in `view`, or -1 for a row that holds no data. @internal */
+function dataRowIn(view: CursorView, row: number): number {
+	if (!view.order || row === NEW_ROW_INDEX) return row
+
+	const entry = view.order[row]
+
+	return entry?.kind === 'data' ? (view.rowIndexMap.get(entry.row) ?? -1) : -1
+}
+
+/** The one-stop entry at a cursor row in `order`, or `undefined` for a data row or the new-row slot. @internal */
+function stopIn(order: readonly GridCursorRow[] | null, row: number): GridCursorRow | undefined {
+	const entry = row === NEW_ROW_INDEX ? undefined : order?.[row]
+
+	return entry && entry.kind !== 'data' ? entry : undefined
+}
+
+/**
  * Finds the cursor's place again in a new order. The same row is found by key.
  * A row that left the order, such as a leaf of a group that closed, gives way
  * to its parent row. Else the place clamps into the order. A body that stops
@@ -470,24 +495,24 @@ export function useGridNavigation({
 } {
 	const [active, setActive] = useState<Coord | null>(null)
 
-	// Read the row- and cell-click as effect events, so the key handler's deps
+	// Read the row- and cell-click as stable events, so the key handler's deps
 	// stay stable when the consumer passes inline callbacks. Whether each one is
 	// present stays in the deps, because Enter is claimed only when one is.
 	const hasRowActivate = onRowActivate !== undefined
 
 	const hasCellActivate = onCellActivate !== undefined
 
-	const rowActivate = useEffectEvent((row: unknown, event: KeyboardEvent<HTMLTableElement>) =>
+	const rowActivate = useStableEvent((row: unknown, event: KeyboardEvent<HTMLTableElement>) =>
 		onRowActivate?.(row, event),
 	)
 
-	const cellActivate = useEffectEvent(
+	const cellActivate = useStableEvent(
 		(rowIdx: number, colIdx: number, event: KeyboardEvent<HTMLTableElement>) =>
 			onCellActivate?.(rowIdx, colIdx, event),
 	)
 
-	// Read selection toggling as an effect event, so the key handler's deps stay stable.
-	const toggleActive = useEffectEvent((rowIdx: number) => toggleActiveRow?.(rowIdx))
+	// Read selection toggling as a stable event, so the key handler's deps stay stable.
+	const toggleActive = useStableEvent((rowIdx: number) => toggleActiveRow?.(rowIdx))
 
 	const { sub } = useIdScope()
 
@@ -507,6 +532,12 @@ export function useGridNavigation({
 
 	const cursorOfDataRef = useRef<Map<number, number>>(new Map())
 
+	// The order and the row map as this hook's render reads them. The refs above
+	// serve the event handlers and the cells, which read at their own time. The
+	// view changes with each published order, and with each new row map while a
+	// body publishes one.
+	const [view, setView] = useState<CursorView>(() => ({ order: null, rowIndexMap: new Map() }))
+
 	// The item key and parent of the active row, read against the order it was
 	// seated in, so a new order can find the same row again.
 	const activeKeyRef = useRef<{ key: string; parent: string | undefined } | null>(null)
@@ -515,15 +546,8 @@ export function useGridNavigation({
 
 	/** The data row index of a cursor row, or -1 for a row that holds no data. */
 	const dataRowOf = useCallback(
-		(row: number): number => {
-			const order = orderRef.current
-
-			if (!order || row === NEW_ROW_INDEX) return row
-
-			const entry = order[row]
-
-			return entry?.kind === 'data' ? (rowIndexMapRef.current.get(entry.row) ?? -1) : -1
-		},
+		(row: number): number =>
+			dataRowIn({ order: orderRef.current, rowIndexMap: rowIndexMapRef.current }, row),
 		[rowIndexMapRef],
 	)
 
@@ -535,11 +559,7 @@ export function useGridNavigation({
 	}, [])
 
 	/** The one-stop entry at a cursor row, or `undefined` for a data row or the new-row slot. */
-	const stopAt = useCallback((row: number): GridCursorRow | undefined => {
-		const entry = row === NEW_ROW_INDEX ? undefined : orderRef.current?.[row]
-
-		return entry && entry.kind !== 'data' ? entry : undefined
-	}, [])
+	const stopAt = useCallback((row: number) => stopIn(orderRef.current, row), [])
 
 	const stopId = useCallback((key: string) => sub(`stop-${key}`), [sub])
 
@@ -606,6 +626,8 @@ export function useGridNavigation({
 
 		cursorOfDataRef.current = cursorOfDataRows(order, rowIndexMapRef.current)
 
+		setView({ order, rowIndexMap: rowIndexMapRef.current })
+
 		const seated = activeKeyRef.current
 
 		setActive((current) => reseat(current, order, seated))
@@ -671,7 +693,7 @@ export function useGridNavigation({
 
 			rowActivate(row, event)
 		},
-		[rowsRef, hasRowActivate, hasCellActivate],
+		[rowsRef, hasRowActivate, hasCellActivate, cellActivate, rowActivate],
 	)
 
 	// Space toggles the active row's selection in a selectable grid (APG grid) and
@@ -691,7 +713,7 @@ export function useGridNavigation({
 
 			activateRow(event, coord)
 		},
-		[activateRow, selectableRef],
+		[activateRow, selectableRef, toggleActive],
 	)
 
 	// The keys of a one-stop row at `base` (see `stopAction`). The cursor's arrows
@@ -845,22 +867,33 @@ export function useGridNavigation({
 		setActive(null)
 	}, [])
 
-	const activeStop = active ? stopAt(active.row) : undefined
+	// The grid writes the row map during its render, after this hook. Under a
+	// published order, a new map with the same order reaches the view here, and
+	// the render that follows reads it before paint.
+	useLayoutEffect(() => {
+		const rowIndexMap = rowIndexMapRef.current
+
+		if (view.order === null || view.rowIndexMap === rowIndexMap) return
+
+		setView({ order: view.order, rowIndexMap })
+	})
+
+	const activeStop = active ? stopIn(view.order, active.row) : undefined
 
 	const activeDescendant = active
 		? activeStop
 			? stopId(activeStop.key)
-			: cellId(dataRowOf(active.row), active.col)
+			: cellId(dataRowIn(view, active.row), active.col)
 		: undefined
 
 	// The public cursor speaks data row indexes. On a one-stop row it names no cell.
 	const publicActive = useMemo<Coord | null>(() => {
 		if (!active || activeStop) return null
 
-		const row = dataRowOf(active.row)
+		const row = dataRowIn(view, active.row)
 
 		return row === active.row ? active : { row, col: active.col }
-	}, [active, activeStop, dataRowOf])
+	}, [active, activeStop, view])
 
 	const navTableProps: GridNavTableProps | undefined = enabled
 		? {
