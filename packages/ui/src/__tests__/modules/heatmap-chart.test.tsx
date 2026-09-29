@@ -42,7 +42,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} />,
 		)
 
-		const root = getSlot(container, 'heatmap')
+		const root = getSlot(container, 'chart')
 
 		expect(root).toHaveClass('w-full')
 
@@ -147,7 +147,7 @@ describe('HeatmapChart', () => {
 			/>,
 		)
 
-		expect(bySlot(container, 'heatmap-plot')?.hasAttribute('data-stray')).toBe(false)
+		expect(bySlot(container, 'chart-plot')?.hasAttribute('data-stray')).toBe(false)
 	})
 
 	it('names the plot and renders the range legend by default', () => {
@@ -155,7 +155,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits per day" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		expect(bySlot(container, 'heatmap-plot')?.getAttribute('aria-label')).toBe('Commits per day')
+		expect(bySlot(container, 'chart-plot')?.getAttribute('aria-label')).toBe('Commits per day')
 
 		// The shared range legend paints the colorRange as an inline gradient bar.
 		expect(bySlot(container, 'heatmap-range-track')?.getAttribute('style')).toContain(
@@ -176,7 +176,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		expect(bySlot(container, 'heatmap')).toHaveClass(
+		expect(bySlot(container, 'chart')).toHaveClass(
 			'select-none',
 			'**:select-none',
 			'[-webkit-touch-callout:none]',
@@ -377,7 +377,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit')
+		const hit = bySlot(container, 'chart-hit')
 
 		expect(hit).not.toBeNull()
 
@@ -436,7 +436,7 @@ describe('HeatmapChart', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit') as Element
+		const hit = bySlot(container, 'chart-hit') as Element
 
 		// The hit layer reads as clickable.
 		expect(hit.getAttribute('class')).toContain('cursor-pointer')
@@ -490,7 +490,7 @@ describe('HeatmapChart', () => {
 
 		const { container, rerender } = renderUI(pinned(full))
 
-		const hit = getSlot(container, 'heatmap-hit')
+		const hit = getSlot(container, 'chart-hit')
 
 		hit.getBoundingClientRect = () =>
 			({
@@ -552,7 +552,7 @@ describe('HeatmapChart cell clicks', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit')
+		const hit = bySlot(container, 'chart-hit')
 
 		expect(hit).not.toBeNull()
 
@@ -572,7 +572,7 @@ describe('HeatmapChart cell clicks', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit') as Element
+		const hit = bySlot(container, 'chart-hit') as Element
 
 		// The layer resolves a click through the rect it is drawn at, which jsdom
 		// measures at zero. Give it one, as the pointer-resolution test above does.
@@ -594,6 +594,44 @@ describe('HeatmapChart cell clicks', () => {
 		fireEvent.click(hit, { clientX: 130, clientY: 70 })
 
 		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
+	})
+})
+
+describe('HeatmapChart context menu', () => {
+	it('names the right-clicked cell to a function-form menu by its row-major index', () => {
+		const items = vi.fn(() => [])
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				contextMenu={{ items }}
+			/>,
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		hit.getBoundingClientRect = () =>
+			({
+				left: 100,
+				top: 50,
+				right: 340,
+				bottom: 210,
+				width: 240,
+				height: 160,
+				x: 100,
+				y: 50,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// The bottom-left cell, Tue at hour 9: row 1 and column 0 of two columns.
+		fireEvent.pointerMove(hit, { clientX: 130, clientY: 200 })
+
+		fireEvent.contextMenu(hit)
+
+		expect(items).toHaveBeenLastCalledWith({ index: 2 })
 	})
 })
 
@@ -701,5 +739,102 @@ describe('the range legend under quantile binning, continued', () => {
 		fireEvent.keyDown(track, { key: 'ArrowDown' })
 
 		expect(track).toHaveAttribute('aria-valuetext', '1–5')
+	})
+})
+
+describe('HeatmapChart keyboard navigation', () => {
+	// Distinct labels and values, so each readout names one cell.
+	const GRID = [
+		{ day: 'Mon', hour: 'Early', commits: 11 },
+		{ day: 'Mon', hour: 'Late', commits: 22 },
+		{ day: 'Tue', hour: 'Early', commits: 33 },
+		{ day: 'Tue', hour: 'Late', commits: 44 },
+	]
+
+	/** The open readout's text, or `null` while it is shut. */
+	const readout = (container: HTMLElement) =>
+		bySlot(container, 'tooltip-content')?.textContent ?? null
+
+	it('makes the plot one tab stop whose arrows rove the cells', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		// Focus alone reads nothing. The first arrow reads the top-left cell.
+		expect(readout(container)).toBeNull()
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(readout(container)).toBe('Early11Mon')
+
+		// Left and right move along the columns, up and down along the rows.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(readout(container)).toBe('Late22Mon')
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(readout(container)).toBe('Late44Tue')
+
+		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
+
+		expect(readout(container)).toBe('Early33Tue')
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		expect(readout(container)).toBe('Early11Mon')
+
+		// Home and End jump along the row.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		expect(readout(container)).toBe('Late22Mon')
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(readout(container)).toBeNull()
+	})
+
+	it('marks the keyboard cell on the range legend', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} />,
+		)
+
+		expect(bySlot(container, 'heatmap-range-arrow')).toBeNull()
+
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'heatmap-range-arrow')).not.toBeNull()
+	})
+
+	it('reads a no-data cell as an em-dash', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID.slice(0, 3)} series={SERIES} width={400} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(readout(container)).toBe('Late—Tue')
+	})
+
+	it('offers no tab stop without a tooltip or at the spark tier', () => {
+		const off = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} tooltip={false} />,
+		)
+
+		expect(getSlot(off.container, 'chart-plot')).not.toHaveAttribute('tabindex')
+
+		const spark = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={120} />,
+		)
+
+		expect(getSlot(spark.container, 'chart-plot')).not.toHaveAttribute('tabindex')
 	})
 })

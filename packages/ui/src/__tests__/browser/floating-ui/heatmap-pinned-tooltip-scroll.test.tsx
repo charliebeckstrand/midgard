@@ -32,7 +32,7 @@ describe('heatmap pinned readout (real browser)', () => {
 			</div>,
 		)
 
-		const hit = present(bySlot(container, 'heatmap-hit'), 'heatmap-hit')
+		const hit = present(bySlot(container, 'chart-hit'), 'chart-hit')
 
 		const box = hit.getBoundingClientRect()
 

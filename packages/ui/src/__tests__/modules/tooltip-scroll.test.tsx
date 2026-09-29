@@ -99,7 +99,7 @@ describe('tooltip across a scroll', () => {
 			/>,
 		)
 
-		const hit = getSlot(container, 'heatmap-hit')
+		const hit = getSlot(container, 'chart-hit')
 
 		boxOf(hit)
 

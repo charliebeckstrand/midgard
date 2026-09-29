@@ -12,7 +12,8 @@ import { type ChartMarkAt, useChartPointer } from './use-chart-pointer'
 
 /**
  * How the hit layer resolves the hover index: the band under the pointer on a
- * band chart, or the nearest unique-x column on a scatter.
+ * band chart, or the nearest unique-x column on a scatter. A chart can also
+ * pass its own resolver, as the heatmap does for its cell.
  *
  * @internal
  */
@@ -26,6 +27,7 @@ type ChartHitIndex =
 			 */
 			orientation?: ChartOrientation
 			centers?: never
+			resolve?: never
 	  }
 	| {
 			/** The screen positions of the unique x values; the index snaps to the nearest. */
@@ -33,6 +35,19 @@ type ChartHitIndex =
 			band?: never
 			count?: never
 			orientation?: never
+			resolve?: never
+	  }
+	| {
+			/**
+			 * Maps a frame point to the hover index, or `null` off every index: the
+			 * index of a heatmap cell, which reads both axes. Memoize it, so the
+			 * handlers keep their identity.
+			 */
+			resolve: (x: number, y: number) => number | null
+			band?: never
+			count?: never
+			orientation?: never
+			centers?: never
 	  }
 
 /** Props for {@link ChartHitArea}. @internal */
@@ -78,6 +93,8 @@ export type ChartHitAreaProps = ChartHitIndex & {
  * mark. Rendered inside the frame, after the marks, so it wins the pointer
  * without occluding anything. A scatter resolves the nearest unique-x column in
  * place of a band, because its x values arrive at whatever spacing the data has.
+ * A heatmap resolves its cell through its own resolver, because a cell reads
+ * both axes.
  *
  * Self-gating at spark through {@link ChartTierContext}. A sparkline is
  * read-only, so no hit rect mounts, nor the pointer plumbing behind it. The
@@ -100,6 +117,7 @@ function ChartHitRect({
 	count,
 	orientation = 'vertical',
 	centers,
+	resolve,
 	markAt,
 	trigger = 'hover',
 	snaps = false,
@@ -108,7 +126,7 @@ function ChartHitRect({
 }: ChartHitAreaProps) {
 	// The band runs across x when vertical, down y when horizontal, so the index
 	// reads whichever coordinate the orientation puts the band on.
-	const resolveIndex = useCallback(
+	const axisIndex = useCallback(
 		(x: number, y: number) => {
 			if (centers) return nearestStopIndex(centers, x)
 
@@ -116,6 +134,9 @@ function ChartHitRect({
 		},
 		[centers, band, count, orientation],
 	)
+
+	// A chart's own resolver wins, picked here and not on each move.
+	const resolveIndex = resolve ?? axisIndex
 
 	const { ref, ...handlers } = useChartPointer({
 		plot,

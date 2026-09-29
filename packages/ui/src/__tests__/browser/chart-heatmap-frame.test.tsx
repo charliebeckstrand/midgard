@@ -53,7 +53,7 @@ describe('heatmap frame (real browser)', () => {
 			)
 
 			await waitFor(() =>
-				expect(getSlot(container, 'heatmap-plot').querySelector('svg')).not.toBeNull(),
+				expect(getSlot(container, 'chart-plot').querySelector('svg')).not.toBeNull(),
 			)
 
 			await settle()
@@ -81,7 +81,7 @@ describe('heatmap frame (real browser)', () => {
 		)
 
 		await waitFor(() => {
-			const svg = getSlot(container, 'heatmap-plot').querySelector('svg')
+			const svg = getSlot(container, 'chart-plot').querySelector('svg')
 
 			expect(Number(svg?.getAttribute('height') ?? 0)).toBeGreaterThan(200)
 		})

@@ -3,6 +3,7 @@
 import {
 	type ReactElement,
 	type ReactNode,
+	type Ref,
 	type RefObject,
 	useCallback,
 	useMemo,
@@ -61,12 +62,13 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  * as a pure sparkline. It therefore never wraps under a legend band that
  * crushes it to a sliver of dashes. The series then read on the hover tooltip,
  * as the title does on the veil. A chart with no title or subtitle draws no
- * header either way.
+ * header either way, and neither does a chart with `heading` off.
  *
  * @internal
  */
 function chartChrome(
 	tier: ChartTier | undefined,
+	heading: boolean,
 	title: string | undefined,
 	subtitle: string | undefined,
 	legend: ReactNode,
@@ -74,7 +76,9 @@ function chartChrome(
 	const spark = tier === 'spark'
 
 	const head =
-		title || subtitle ? <ChartHeader title={title} subtitle={subtitle} veil={spark} /> : null
+		heading && (title || subtitle) ? (
+			<ChartHeader title={title} subtitle={subtitle} veil={spark} />
+		) : null
 
 	return {
 		header: spark ? null : head,
@@ -161,9 +165,11 @@ export type ChartFrameProps = AccessibleName & {
 	ref: RefObject<HTMLDivElement | null>
 	/**
 	 * Receives the chart root, which is inside the chart's font context. A chart
-	 * that measures its label text (`useChartTextWidth`) passes its `hostRef`.
+	 * that measures its label text (`useChartTextWidth`) passes its `hostRef`. A
+	 * chart that also measures the root box composes the two refs, as the heatmap
+	 * does.
 	 */
-	textHostRef?: RefObject<HTMLDivElement | null>
+	textHostRef?: Ref<HTMLDivElement>
 	/** Resolved drawing width; `0` renders the frame shell without the SVG. */
 	width: number
 	/** Explicit width prop, fixing the wrapper instead of filling the container. */
@@ -213,6 +219,13 @@ export type ChartFrameProps = AccessibleName & {
 	title?: string
 	/** The chart subtitle, muted under the {@link ChartFrameProps.title | title}, sharing its clip and spark veil. */
 	subtitle?: string
+	/**
+	 * Whether the title and the subtitle draw as a header. Off, the title names
+	 * the context menu alone: it heads the fullscreen view and the export files.
+	 * The heatmap draws no heading.
+	 * @defaultValue true
+	 */
+	heading?: boolean
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
@@ -223,6 +236,13 @@ export type ChartFrameProps = AccessibleName & {
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement
+	/**
+	 * The legend is a color-scale rail, not a categorical panel. A rail beside
+	 * the plot keeps the wider gap that the choropleth's rail keeps, so the two
+	 * color-scaled charts match.
+	 * @defaultValue false
+	 */
+	rail?: boolean
 	/**
 	 * The values behind the marks as a cached thunk, or `null` when there is
 	 * nothing to read. A thunk so the mount-critical render never formats the
@@ -259,6 +279,13 @@ export type ChartFrameProps = AccessibleName & {
 	emphasizeMarks?: boolean
 	/** Mount the hover tooltip. */
 	tooltip: boolean
+	/**
+	 * A tooltip that the chart draws in place of the shared {@link ChartTooltip}.
+	 * It mounts under the same gate: `tooltip` on, a tier above spark, a readout,
+	 * and a measured width. It reads the hover through `useChartHover`, as the
+	 * shared one does. The heatmap reads one cell with it, not a category.
+	 */
+	customTooltip?: ReactNode
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
 	snap?: ChartSnap
 	/**
@@ -330,14 +357,17 @@ export function ChartFrame({
 	tier,
 	title,
 	subtitle,
+	heading = true,
 	legend,
 	legendPlacement = 'bottom',
+	rail = false,
 	readout,
 	readoutOrder,
 	hidden = NONE_HIDDEN,
 	seriesCount,
 	emphasizeMarks = false,
 	tooltip,
+	customTooltip,
 	snap,
 	focus,
 	keyboardEmphasis = false,
@@ -470,7 +500,12 @@ export function ChartFrame({
 	// A framed tier bands the header above the plot and keeps the legend; spark
 	// strips both to bare marks — the header to a centered hover / focus veil, the
 	// legend gone so the plot reclaims the whole aspect box (see chartChrome).
-	const { header, sparkVeil, legend: legendFrame } = chartChrome(tier, title, subtitle, legend)
+	// A chart with `heading` off keeps its title for the context menu alone.
+	const {
+		header,
+		sparkVeil,
+		legend: legendFrame,
+	} = chartChrome(tier, heading, title, subtitle, legend)
 
 	const plotRegion = (
 		<div
@@ -492,18 +527,21 @@ export function ChartFrame({
 
 			{sparkVeil}
 
-			{tooltipShown && readout && width > 0 && (
-				<ChartTooltip
-					plotRef={ref}
-					readout={readout}
-					order={readoutOrder}
-					snap={snap}
-					orientation={orientation}
-					// The pointed mark's series dims the other rows too, so a hovered bar or
-					// line foregrounds its row exactly as the coarse legend emphasis does.
-					emphasis={markEmphasis.mark?.series ?? null}
-				/>
-			)}
+			{tooltipShown &&
+				readout &&
+				width > 0 &&
+				(customTooltip ?? (
+					<ChartTooltip
+						plotRef={ref}
+						readout={readout}
+						order={readoutOrder}
+						snap={snap}
+						orientation={orientation}
+						// The pointed mark's series dims the other rows too, so a hovered bar or
+						// line foregrounds its row exactly as the coarse legend emphasis does.
+						emphasis={markEmphasis.mark?.series ?? null}
+					/>
+				))}
 		</div>
 	)
 
@@ -549,6 +587,7 @@ export function ChartFrame({
 												header={header}
 												legend={legendFrame}
 												legendPlacement={legendPlacement}
+												rail={rail}
 												aside={aside}
 												containerFill={containerFill}
 												aspect={aspect}
@@ -591,6 +630,8 @@ type ChartFigureProps = {
 	header: ReactNode
 	legend: ReactNode
 	legendPlacement: ChartLegendPlacement
+	/** The legend is a color-scale rail, which keeps a wider gap beside the plot. */
+	rail: boolean
 	/** The legend is a side panel, so the plot and legend lay out in a row once the container has room. */
 	aside: boolean
 	/** The frame fills its container height, so the figure grows to hold it. */
@@ -616,6 +657,7 @@ function ChartFigure({
 	header,
 	legend,
 	legendPlacement,
+	rail,
 	aside,
 	containerFill,
 	aspect,
@@ -635,7 +677,8 @@ function ChartFigure({
 		<div
 			data-slot="chart-body"
 			className={cn(
-				'flex min-h-0 flex-1 flex-col gap-2',
+				'flex min-h-0 flex-1 flex-col',
+				rail ? 'gap-4' : 'gap-2',
 				stretch ? '@sm:items-stretch' : '@sm:items-center',
 				legendPlacement === 'left' ? '@sm:flex-row-reverse' : '@sm:flex-row',
 			)}

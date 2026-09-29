@@ -342,13 +342,13 @@ describe('Chart hover renders', () => {
 			/>,
 		)
 
-		const hit = getSlot(container, 'heatmap-hit')
+		const hit = getSlot(container, 'chart-hit')
 
 		hit.getBoundingClientRect = () => BOX
 
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
 
-		expectLive('axis')
+		expectLive('axis', 'pointer')
 
 		resetRenders()
 
@@ -360,6 +360,9 @@ describe('Chart hover renders', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
 		expect(renders.axis).toBe(0)
+
+		// The hit layer writes the hover and reads nothing from it.
+		expect(renders.pointer).toBe(0)
 	})
 
 	it('holds the range arrow while the pointer moves inside one heatmap cell', () => {
@@ -382,13 +385,13 @@ describe('Chart hover renders', () => {
 			/>,
 		)
 
-		const hit = getSlot(container, 'heatmap-hit')
+		const hit = getSlot(container, 'chart-hit')
 
 		hit.getBoundingClientRect = () => BOX
 
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
 
-		expectLive('arrow')
+		expectLive('arrow', 'pointer')
 
 		resetRenders()
 
@@ -400,6 +403,8 @@ describe('Chart hover renders', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
 		expect(renders.arrow).toBe(0)
+
+		expect(renders.pointer).toBe(0)
 	})
 
 	it('tracks the pointer across choropleth regions without a render of the chart body', () => {

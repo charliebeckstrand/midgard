@@ -113,7 +113,7 @@ describe('fixed-width chart with a side legend (real browser)', () => {
 		)
 
 		await expectDrawingInPlot(
-			getSlot(container, 'heatmap-plot'),
+			getSlot(container, 'chart-plot'),
 			getSlot(container, 'heatmap-legend-box'),
 		)
 	})

@@ -51,13 +51,13 @@ async function rowLabels(width: number) {
 		return found
 	})
 
-	const svg = getSlot(container, 'heatmap-plot').querySelector('svg')
+	const svg = getSlot(container, 'chart-plot').querySelector('svg')
 
 	if (!svg) throw new Error('expected the plot drawing')
 
 	const frame = svg.getBoundingClientRect()
 
-	const [plot] = allBySlot(container, 'heatmap-hit')
+	const [plot] = allBySlot(container, 'chart-hit')
 
 	return {
 		plotLeft: (plot?.getBoundingClientRect().left ?? frame.left) - frame.left,

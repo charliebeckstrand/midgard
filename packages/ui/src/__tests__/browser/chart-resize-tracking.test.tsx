@@ -239,10 +239,9 @@ describe('chart resize tracking (real browser)', () => {
 	it('keeps tracking a heatmap resize across a legend placement flip', async () => {
 		// The heatmap's range bar drops from a side rail to a bottom band as the
 		// measured width crosses the compact boundary — a runtime re-arrangement of
-		// the figure tree. The figure keys its children so the flip *moves* the plot
-		// node; a positional recreate would strand the plot frame's ResizeObserver
-		// on the detached node and freeze the drawing at its last committed size
-		// while the box resizes on — the defect this pins out.
+		// the figure tree that can recreate the plot node. An observer left on the
+		// detached node would freeze the drawing at its last committed size while
+		// the box resizes on — the defect this pins out.
 		const GRID = ['a', 'b', 'c', 'd'].flatMap((col, ci) =>
 			['x', 'y', 'z'].map((row, ri) => ({ col, row, value: ci + ri })),
 		)
@@ -263,7 +262,7 @@ describe('chart resize tracking (real browser)', () => {
 
 		/** The committed drawing size tracks the plot box — width and height alike. */
 		const tracks = () => {
-			const svg = container.querySelector<SVGSVGElement>('[data-slot="heatmap-plot"] svg')
+			const svg = container.querySelector<SVGSVGElement>('[data-slot="chart-plot"] svg')
 
 			if (!svg?.parentElement) throw new Error('no heatmap svg')
 
@@ -276,7 +275,7 @@ describe('chart resize tracking (real browser)', () => {
 
 		/** Whether the range bar sits beside the plot (aside) or banded below it. */
 		const asideNow = () => {
-			const plot = container.querySelector('[data-slot="heatmap-plot"]')
+			const plot = container.querySelector('[data-slot="chart-plot"]')
 
 			const legend = container.querySelector('[data-slot="heatmap-legend-box"]')
 

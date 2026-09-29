@@ -38,12 +38,19 @@ import { type ChartHoverStore, samePoint } from './context'
  * single series, where a scatter column stacks several. Such a chart reads no
  * active series, and leaves the emphasis alone.
  *
+ * `indices` names the hover index that each of `points`' stops writes, in the
+ * same order. Omitted, a stop writes its category. The heatmap makes each
+ * column a category and each row a stop, and each stop writes its cell. The
+ * band arrows then walk the columns, the value arrows walk the rows, and the
+ * tooltip reads one cell.
+ *
  * @internal
  */
 export type ChartFocusTargets = {
 	points: Vec[][]
 	references?: (number | null)[]
 	series?: number[][]
+	indices?: number[][]
 }
 
 /**
@@ -175,6 +182,14 @@ export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Ve
 	if (cursor.reference !== undefined) return null
 
 	return targets.points[cursor.category]?.[cursor.value] ?? null
+}
+
+/**
+ * The hover index that a cursor writes: the index of its stop where the targets
+ * map one, else its category. @internal
+ */
+function cursorIndex(cursor: ChartCursor, targets: ChartFocusTargets): number {
+	return targets.indices?.[cursor.category]?.[cursor.value] ?? cursor.category
 }
 
 /**
@@ -543,7 +558,7 @@ export function useChartKeyboard(
 
 		written.current = point
 
-		if (next !== null && point) store.set(next.category, point, true)
+		if (next !== null && targets && point) store.set(cursorIndex(next, targets), point, true)
 		else store.set(null, null)
 	}
 
