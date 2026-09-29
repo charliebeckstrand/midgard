@@ -145,6 +145,22 @@ export type GridColumn<T> = {
 	 */
 	validate?: (value: unknown, row: T) => string | null
 	/**
+	 * Gives the value of a text that a paste writes into a cell of this column,
+	 * in an {@link GridProps.editable | editable} grid with a cell
+	 * {@link GridProps.range | range}. Receives the text of the clipboard
+	 * field and the row of the cell.
+	 *
+	 * Without it, the grid reads the text as the kind of the cell's current
+	 * value. A number cell reads a number as sort reads it. A yes/no cell reads
+	 * `true`, `false`, `yes`, `no`, `1`, or `0`. A text cell takes the text. An
+	 * empty text clears a number cell or a yes/no cell. A text that does not
+	 * fit goes to {@link GridEditableConfig.onReject}.
+	 *
+	 * The value then goes through {@link GridColumn.validate}, as an edited
+	 * value does.
+	 */
+	parse?: (text: string, row: T) => unknown
+	/**
 	 * Marks this column's cells as required in an {@link GridProps.editable | editable}
 	 * grid: each editor carries `aria-required`, so assistive tech announces the
 	 * obligation (WCAG 1.3.1 / 3.3.2). This is the programmatic cue only — enforcing

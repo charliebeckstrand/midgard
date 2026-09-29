@@ -470,6 +470,39 @@ export function HistoryExample() {
 	)
 }
 
+export function PasteExample() {
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	// `range` lets the cursor hold a block of cells. Under a managed session, a
+	// paste writes the clipboard into it through `onCommit`, as one save that
+	// one undo takes back. `active` reads yes/no text, and `role` takes the
+	// text as it is.
+	return (
+		<>
+			<Flex justify="end">
+				<EditHelp label="Paste help">
+					Copy a block of cells from a spreadsheet, or from this grid with Ctrl+C or Cmd+C. Select
+					cells with Shift and the arrow keys, or drag across them. Then press Ctrl+V or Cmd+V. One
+					value fills the whole range. Press Ctrl+Z or Cmd+Z to undo the paste.
+				</EditHelp>
+			</Flex>
+			<Grid
+				columns={personColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
+				range
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					history: true,
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
 /**
  * The demo's check for a new person: a name is required. The row adds only
  * the cells that hold a value, so an empty name is absent from `values`.

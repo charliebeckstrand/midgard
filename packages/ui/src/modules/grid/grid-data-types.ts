@@ -1119,6 +1119,19 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *   the next one clears the cursor.
 	 * - Ctrl/Cmd+C on the grid writes the range as TSV, or the active cell with no
 	 *   range. A cell reads as export reads it, with the export's formula guard.
+	 * - Ctrl/Cmd+V on the grid writes the clipboard's TSV into the range, under
+	 *   `editable.session: 'managed'`. One field goes into each cell of the
+	 *   range. A block goes side by side into a range that is a whole multiple
+	 *   of it. Else the block starts at the top-left cell, or at the active cell
+	 *   with no range, and the grid cuts it off at the last row and column. A
+	 *   paste adds no rows.
+	 *
+	 * A paste is one save and one entry in the history, through
+	 * {@link GridEditableConfig.onCommit}. {@link GridColumn.parse} reads each
+	 * text, and {@link GridColumn.validate} checks each value. A refused cell
+	 * goes to {@link GridEditableConfig.onReject}. A paste skips a cell that
+	 * cannot edit, a cell of a column with no `field`, and a cell that holds a
+	 * draft. The live region counts the pasted and the skipped cells.
 	 *
 	 * The range covers data cells only. A group header, a group total, a detail
 	 * panel, and the new-row slot inside it are not cells of the range. A sort,

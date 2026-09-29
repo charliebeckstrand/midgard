@@ -28,6 +28,7 @@ import {
 	EditorTypesExample,
 	HistoryExample,
 	NewRowExample,
+	PasteExample,
 } from './editable'
 import { ServerGroupingExample } from './server-grouping'
 
@@ -1865,6 +1866,13 @@ export function Demo() {
 							code={code`<Grid ref={grid} editable={{ session: 'managed', scope: 'cell', history: true, onHistoryChange, onCommit }} />`}
 						>
 							<HistoryExample />
+						</Example>
+
+						<Example
+							title="Paste"
+							code={code`<Grid range editable={{ session: 'managed', history: true, onCommit }} />`}
+						>
+							<PasteExample />
 						</Example>
 
 						<Example

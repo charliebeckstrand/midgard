@@ -23,6 +23,7 @@ import {
 	describeDiscard,
 	describeHistoryMiss,
 	describeSettle,
+	describeWrite,
 	type GridSaveOutcome,
 } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
@@ -53,6 +54,8 @@ import {
 	stepEditableColumn,
 	tabStaysInCell,
 } from './engine/grid-editing-utilities'
+import { coercePaste } from './engine/grid-range/paste'
+import { unguardField } from './engine/grid-range/tsv'
 import type { GridEditSource } from './grid-data-types'
 import type {
 	GridActiveEditStore,
@@ -110,6 +113,12 @@ export type GridEditingApi = {
 	 * the cursor where it is. With the history off, it does nothing.
 	 */
 	stepHistory: (step: GridHistoryStep) => boolean
+	/**
+	 * Writes the text of a paste into its cells, as one save, for the paste
+	 * handler of {@link useGridCursor}. Present under
+	 * `editable.session: 'managed'` only.
+	 */
+	pasteCells: ((cells: readonly GridPasteCell[]) => void) | undefined
 	/**
 	 * The session's commit on leave, layered onto the grid `<table>`'s focus
 	 * handlers by {@link useGridCursor}. `blur` reads each focus move out of an
@@ -368,30 +377,42 @@ function flushRow<T>(
 	const refused: GridCellChange[] = []
 
 	for (const [columnId, draft] of drafts) {
-		const col = columns.find((candidate) => candidate.id === columnId)
+		const cell: GridCellChange = { rowKey, columnId, value: draft.value }
 
-		// The mount predicate closes a locked column's editor on the next render,
-		// so the staged value must not write either — the two gates answer to the
-		// same `readOnly`. A column the consumer removed resolves to nothing.
-		if (!col || !isColumnEditable(col)) continue
-
-		const row = live ?? (draft.row as T)
-
-		const value = draft.value
-
-		const original = col.field != null ? row[col.field] : undefined
-
-		if (Object.is(value, original)) continue
-
-		const cell: GridCellChange = { rowKey, columnId, value }
+		const check = checkCell(columns, live ?? (draft.row as T), cell)
 
 		// A refused cell leaves the staging map like any other closed cell, so
 		// without this list the value the user typed is gone with no report.
-		if (col.validate?.(value, row) != null) refused.push(cell)
-		else changes.push(cell)
+		if (check === 'refuse') refused.push(cell)
+		else if (check === 'keep') changes.push(cell)
 	}
 
 	return { row: live ?? (drafts.values().next().value?.row as T | undefined), changes, refused }
+}
+
+/**
+ * What the checks of a save make of one changed cell of `row`: it keeps the
+ * cell, it drops the cell, or {@link GridColumn.validate} refuses the cell. A
+ * cell drops when its column cannot edit now, or when its value is the row's
+ * value. @internal
+ */
+function checkCell<T>(
+	columns: readonly GridColumn<T>[],
+	row: T,
+	cell: GridCellChange,
+): 'keep' | 'drop' | 'refuse' {
+	const col = columns.find((candidate) => candidate.id === cell.columnId)
+
+	// The mount predicate closes a locked column's editor on the next render,
+	// so the staged value must not write either — the two gates answer to the
+	// same `readOnly`. A column the consumer removed resolves to nothing.
+	if (!col || !isColumnEditable(col)) return 'drop'
+
+	const original = col.field != null ? row[col.field] : undefined
+
+	if (Object.is(cell.value, original)) return 'drop'
+
+	return col.validate?.(cell.value, row) != null ? 'refuse' : 'keep'
 }
 
 /**
@@ -664,9 +685,91 @@ function flushClosedCells<T>(args: {
 	return { saved: { columns: saved, row, history }, inFlight }
 }
 
+/**
+ * One cell of a paste: its row, its column, and the text of the clipboard
+ * field that goes into it. @internal
+ */
+export type GridPasteCell = { rowKey: string | number; columnId: string | number; text: string }
+
+/**
+ * The change that a paste makes to one cell, or `null` when the paste skips
+ * the cell. A cell is skipped when its column cannot edit now, when its column
+ * has no `field`, or when its row is gone. The text loses the one guard
+ * apostrophe that a copy adds (see {@link unguardField}). The column's
+ * {@link GridColumn.parse} reads it, else {@link coercePaste}. A text that
+ * does not fit its cell gives a change with the text as its value, and
+ * `fits` is `false`. @internal
+ */
+function pasteChange<T>(
+	source: GridEditSource<T>,
+	rowOf: (rowKey: string | number) => T | undefined,
+	cell: GridPasteCell,
+): { change: GridCellChange; fits: boolean } | null {
+	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+
+	if (col?.field == null || !isColumnEditable(col)) return null
+
+	const row = rowOf(cell.rowKey)
+
+	if (row == null) return null
+
+	const text = unguardField(cell.text)
+
+	const read = col.parse ? { value: col.parse(text, row) } : coercePaste(text, row[col.field])
+
+	const { rowKey, columnId } = cell
+
+	return { change: { rowKey, columnId, value: read ? read.value : text }, fits: read !== null }
+}
+
 /** What a step through the history does to its cells. @internal */
 function historyOutcome(step: GridHistoryStep): GridSaveOutcome {
 	return step === 'undo' ? 'undone' : 'redone'
+}
+
+/**
+ * The changes of one row that pass the checks of a save (see
+ * {@link checkCell}), and the changes that `validate` refused. A row that is
+ * gone keeps no change. @internal
+ */
+function checkRow<T>(
+	changes: readonly GridCellChange[],
+	row: T | undefined,
+	source: GridEditSource<T>,
+): { changes: GridCellChange[]; refused: GridCellChange[] } {
+	const kept: GridCellChange[] = []
+
+	const refused: GridCellChange[] = []
+
+	if (row == null) return { changes: kept, refused }
+
+	for (const change of changes) {
+		const check = checkCell(source.columns, row, change)
+
+		if (check === 'refuse') refused.push(change)
+		else if (check === 'keep') kept.push(change)
+	}
+
+	return { changes: kept, refused }
+}
+
+/** A staged draft for each of `changes`, keyed by its column id. @internal */
+function stagedDrafts<T>(changes: readonly GridCellChange[], row: T | undefined): RowDrafts {
+	const drafts: RowDrafts = new Map()
+
+	for (const change of changes) {
+		const draft: GridDraft = {
+			value: change.value,
+			status: 'staged',
+			row,
+			error: undefined,
+			reopened: false,
+		}
+
+		drafts.set(change.columnId, draft)
+	}
+
+	return drafts
 }
 
 /**
@@ -675,9 +778,11 @@ function historyOutcome(step: GridHistoryStep): GridSaveOutcome {
  * cells that saved at once, and each batch whose sink returned a promise. That
  * batch pends as a save does, and its settle speaks `outcome`.
  *
- * @remarks A history step is the one caller today. It writes a value that was
- * valid, so no `validate` runs, and it moved its history entry when it was
- * taken, so the saved cells carry no history.
+ * With `check` set, each row goes through the checks of a save first (see
+ * {@link checkRow}), and the saved cells carry their history. The refused
+ * cells return in `refused`. A paste sets it. A history step does not. It
+ * writes a value that was valid, and it moved its history entry when it was
+ * taken.
  *
  * @internal
  */
@@ -687,20 +792,34 @@ function sendCells<T>(args: {
 	source: GridEditSource<T>
 	rowOf: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
-}): { saved: SavedCells; inFlight: InFlightBatch[] } {
-	const { outcome, source, rowOf, onCommit } = args
+	check: boolean
+}): { saved: SavedCells; inFlight: InFlightBatch[]; refused: GridCellChange[] } {
+	const { outcome, source, rowOf, onCommit, check } = args
 
 	const columns: string[] = []
 
 	const names: string[] = []
 
+	const history: GridHistoryCell[] = []
+
 	const inFlight: InFlightBatch[] = []
 
-	// With no sink, nothing saves, so nothing is announced.
-	if (!onCommit) return { saved: { columns, row: undefined, history: [] }, inFlight }
+	const refused: GridCellChange[] = []
 
-	for (const [rowKey, changes] of byRow(args.changes)) {
+	for (const [rowKey, rowChanges] of byRow(args.changes)) {
 		const row = rowOf(rowKey)
+
+		const checked = check ? checkRow(rowChanges, row, source) : { changes: rowChanges, refused: [] }
+
+		refused.push(...checked.refused)
+
+		const { changes } = checked
+
+		// With no sink, nothing saves, so nothing is announced.
+		if (!changes.length || !onCommit) continue
+
+		// Read before the sink runs, because a sink can write the row in place.
+		const cells = check ? historyOf(changes, row, source) : []
 
 		const result = onCommit(changes)
 
@@ -709,28 +828,18 @@ function sendCells<T>(args: {
 		if (!isThenable(result)) {
 			for (const change of changes) columns.push(cellLabel(source, change.columnId))
 
+			history.push(...cells)
+
 			names.push(name)
 
 			continue
 		}
 
-		const rowDrafts: RowDrafts = new Map()
-
-		for (const change of changes) {
-			const draft: GridDraft = {
-				value: change.value,
-				status: 'staged',
-				row,
-				error: undefined,
-				reopened: false,
-			}
-
-			rowDrafts.set(change.columnId, draft)
-		}
+		const rowDrafts = stagedDrafts(changes, row)
 
 		inFlight.push(
 			inFlightBatch(
-				{ rowKey, rowDrafts, changes, result, row: name, outcome, history: [] },
+				{ rowKey, rowDrafts, changes, result, row: name, outcome, history: cells },
 				source,
 			),
 		)
@@ -738,7 +847,7 @@ function sendCells<T>(args: {
 
 	const row = names.length === 1 ? names[0] : undefined
 
-	return { saved: { columns, row, history: [] }, inFlight }
+	return { saved: { columns, row, history }, inFlight, refused }
 }
 
 /**
@@ -2438,10 +2547,8 @@ export function useGridEditing<T>({
 			activeEditStore.notify()
 
 			// An accepted save goes into the history. An undo or a redo moved its
-			// entry when it was sent.
-			if (batch.outcome === 'updated') {
-				recordEntry(batch.history.filter((cell) => accepted.has(cell.columnId)))
-			}
+			// entry when it was sent, so its batch holds no history cells.
+			recordEntry(batch.history.filter((cell) => accepted.has(cell.columnId)))
 
 			if (failed.length > 0 && !cellScoped && !editableRowsRef.current.has(rowKey)) {
 				awaitingReopenRef.current.add(rowKey)
@@ -2530,28 +2637,76 @@ export function useGridEditing<T>({
 	])
 
 	// Sends a batch of changes that no session staged through the sink, and
-	// announces and tracks it as the commit sweep does. A history step is the
-	// one caller today. `rowOf` reads the live rows, so a caller that already
-	// indexed them passes its own.
+	// announces and tracks it as the commit sweep does. `rowOf` reads the live
+	// rows, so a caller that already indexed them passes its own. A write that
+	// no history value came from, such as a paste, passes `write`: its cells go
+	// through the checks of a save, and its refusals, with the ones the caller
+	// found, go to `onReject` in one call. Its saved cells are one entry in the
+	// history. The announcement also counts the cells that the write skipped.
 	const submitCells = useCallback(
 		(
 			changes: readonly GridCellChange[],
 			outcome: GridSaveOutcome,
 			rowOf: (rowKey: string | number) => T | undefined,
+			write?: { refused: readonly GridCellChange[]; skipped: number },
 		) => {
-			const { saved, inFlight } = sendCells({
+			const { saved, inFlight, refused } = sendCells({
 				changes,
 				outcome,
 				source: editSourceRef.current,
 				rowOf,
 				onCommit: hasCommit ? sendCommit : undefined,
+				check: write !== undefined,
 			})
 
-			if (saved.columns.length > 0) announce(describeCommit(saved.columns, saved.row, outcome))
+			const rejected = write ? [...write.refused, ...refused] : refused
+
+			if (rejected.length > 0) sendReject(rejected)
+
+			recordEntry(saved.history)
+
+			const message = describeWrite(
+				saved.columns,
+				saved.row,
+				outcome,
+				(write?.skipped ?? 0) + rejected.length,
+			)
+
+			if (message) announce(message)
 
 			for (const batch of inFlight) trackBatch(batch)
 		},
-		[editSourceRef, hasCommit, sendCommit, trackBatch],
+		[editSourceRef, hasCommit, sendCommit, sendReject, recordEntry, trackBatch],
+	)
+
+	// Writes the text of a paste into its cells, as one save. A cell that its
+	// column cannot edit, that has no `field`, or that holds a draft is
+	// skipped. A text that does not fit its cell is refused.
+	const pasteCells = useCallback(
+		(cells: readonly GridPasteCell[]) => {
+			const source = editSourceRef.current
+
+			const rowOf = rowLookup(source)
+
+			const changes: GridCellChange[] = []
+
+			const refused: GridCellChange[] = []
+
+			let skipped = 0
+
+			for (const cell of cells) {
+				const drafted = drafts.read(cell.rowKey, cell.columnId) !== undefined
+
+				const paste = drafted ? null : pasteChange(source, rowOf, cell)
+
+				if (!paste) skipped++
+				else if (paste.fits) changes.push(paste.change)
+				else refused.push(paste.change)
+			}
+
+			submitCells(changes, 'pasted', rowOf, { refused, skipped })
+		},
+		[editSourceRef, drafts, submitCells],
 	)
 
 	// Moves the cursor to a cell that a history step wrote, when the grid shows
@@ -2666,6 +2821,7 @@ export function useGridEditing<T>({
 		sessionKeys: managed ? sessionKeys : undefined,
 		historyKeys,
 		stepHistory: stepFromHandle,
+		pasteCells: managed ? pasteCells : undefined,
 		sessionLeave: commitOn === 'explicit' ? undefined : { blur: sessionLeave, focus: sessionFocus },
 		newRow: {
 			position: newRowPosition,

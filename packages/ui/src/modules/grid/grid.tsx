@@ -43,7 +43,8 @@ const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize
  * a column manager dialog reorders and hides columns. The `reorder` adds header
  * drag handles, and `navigable` adds a keyboard cell cursor (`role="grid"` with
  * an `aria-activedescendant` active cell). The `range` lets that cursor hold a
- * rectangular cell range, which copies as TSV. The `density` tunes cell padding, and
+ * rectangular cell range, which copies as TSV and, in an editable grid, takes a
+ * paste. The `density` tunes cell padding, and
  * `condensed` steps the whole grid down a notch. That covers padding, cell font,
  * header chrome, and the compact step of the table scope, which cell content
  * follows.

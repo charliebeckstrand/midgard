@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { present, renderUI, screen, waitFor } from '../helpers'
@@ -126,5 +126,80 @@ describe('grid range pointer and clipboard (real browser)', () => {
 		document.execCommand('copy')
 
 		expect(written).toEqual(['Name 1\tAdmin\nName 2\tUser'])
+	})
+})
+
+/**
+ * A paste of what a copy wrote, through the clipboard events of a real browser.
+ * A page cannot start a native paste, so the test sends a paste event with a
+ * real `DataTransfer` to the body, where Chromium sends it.
+ */
+describe('grid range copy and paste round trip (real browser)', () => {
+	type Row = { id: number; name: string; count: number }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: '=cmd', count: 1 },
+		{ id: 2, name: 'Bob', count: 2 },
+		{ id: 3, name: 'Carol', count: 3 },
+	]
+
+	it('pastes the copied range back with the same values', async () => {
+		const onCommit = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				range
+				editable={{ session: 'managed', onCommit }}
+			/>,
+		)
+
+		const cell = (key: number, column: string) =>
+			present(
+				document.querySelector<HTMLElement>(
+					`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`,
+				),
+				`${key} ${column}`,
+			)
+
+		await userEvent.click(cell(1, 'name'))
+
+		await userEvent.keyboard('{Shift>}{ArrowRight}{/Shift}')
+
+		let copied = ''
+
+		const read = (event: ClipboardEvent) => {
+			copied = event.clipboardData?.getData('text/plain') ?? ''
+		}
+
+		window.addEventListener('copy', read)
+
+		onTestFinished(() => window.removeEventListener('copy', read))
+
+		document.execCommand('copy')
+
+		expect(copied).toBe("'=cmd\t1")
+
+		await userEvent.click(cell(3, 'name'))
+
+		const data = new DataTransfer()
+
+		data.setData('text/plain', copied)
+
+		document.body.dispatchEvent(
+			new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+		)
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 3, columnId: 'name', value: '=cmd' },
+			{ rowKey: 3, columnId: 'count', value: 1 },
+		])
 	})
 })
