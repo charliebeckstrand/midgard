@@ -98,7 +98,7 @@ Chosen rather than specified: keys only at first, with the pointer handle as a f
 
 *Bench.* #1273 and #1274 added work to each save: the column and row names for the announcement, and the old value for the history, which a save reads even with the history off. `grid-editing.bench.tsx` found no cost. The Tab commit (sync and async) and the session moves (uncontrolled and controlled) ran at 100 / 500 / 1,000 rows, one scenario group per process, over three alternating rounds at five commits: before #1273, #1273, #1274's parent, #1274, and `main` at #1290. Against its own parent, #1273 moved the medians by −9 % to +29 %, and #1274 by −15 % to +25 %, with no sign that holds across sizes; the three runs of one cell spread by a median of 12 % and at most 37 %. From before #1273 to `main`, the 1,000-row sync commit read 69.8 and 67.5 ms, and the async commit read 74.7 ms both times. In isolation, the added work for one changed cell of an 8-column grid is about 130 ns (Node, 2 million saves), under 0.001 % of a 23–75 ms commit, so the bench cannot resolve it.
 
-**7. Range selection, fill handle, paste** (backlog, own plan when picked up). The cursor grows an anchored rectangular range; fill drags the active cell's value/series across it and paste maps a clipboard TSV block through the same per-column `validate` + `CellChange[]` path — the batch just spans rows. Depends on nothing above except the cursor; listed here because its commit semantics must stay the one sink.
+**7. Range selection, fill handle, paste** (backlog, own plan: [2026-09-29-GRID-RANGE-PLAN.md](2026-09-29-GRID-RANGE-PLAN.md)). The cursor grows an anchored rectangular range; fill drags the active cell's value/series across it and paste maps a clipboard TSV block through the same per-column `validate` + `CellChange[]` path — the batch just spans rows. Depends on nothing above except the cursor; listed here because its commit semantics must stay the one sink.
 
 **8. New-row entry (shipped).** A pinned blank editor row (top or bottom) whose commit emits an `onRowAdd(values)` rather than `CellChange[]` — the one place the sink doesn't fit, so it's a sibling callback. Furthest out; needs the pinned-row primitive from the row-model backlog.
 
@@ -151,7 +151,7 @@ Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same ch
 | 4a | Session-owned drafts: a draft outlives its editor, a row absent from `rows` commits from its snapshot, and a late write to a closed cell is ignored (shipped) | S |
 | 5 | Async commit: pending / rejected cell states over a promise-returning sink (shipped) | M |
 | 6 | Undo / redo history layer (shipped) | S |
-| 7 | Range + fill + paste (separate plan) | L |
+| 7 | Range + fill + paste ([separate plan](2026-09-29-GRID-RANGE-PLAN.md)) | L |
 | 8 | New-row editor row: an internal pinned slot and the `onRowAdd` sink, no public row pinning (this change) | M |
 
 ## Accessibility cluster — cell scope removes row scope's compensations
