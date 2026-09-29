@@ -7,8 +7,8 @@ import { k } from '../../recipes/kata/grid'
 /**
  * The grid's "Exporting" overlay: a scrim with a spinner-led label while an
  * async export resolves its rows, on a {@link GridDataProps.exportRows}
- * round-trip. A synchronous export downloads on the click and never reaches
- * this.
+ * round-trip. The first Excel export also shows it while the serializer loads.
+ * A synchronous export downloads on the click and never reaches this.
  *
  * Its reason for existing is the export that runs from a *right-click menu*. The
  * toolbar's "Export" trigger spins its own button, but the header and cell menus
