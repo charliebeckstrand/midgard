@@ -132,14 +132,7 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 				/>
 
 				{spot && (
-					<circle
-						data-slot="chart-scatter-point"
-						aria-label={label}
-						cx={spot.x}
-						cy={spot.y}
-						r={spot.r}
-						{...props}
-					/>
+					<circle data-slot="chart-scatter-point" cx={spot.x} cy={spot.y} r={spot.r} {...props} />
 				)}
 			</g>
 		)

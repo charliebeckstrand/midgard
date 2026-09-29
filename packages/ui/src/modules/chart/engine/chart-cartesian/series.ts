@@ -173,6 +173,29 @@ export function orderReadout(
 	return orderLegend(visible, byValue).map((meta) => meta.index)
 }
 
+/** The fields of a series that its legend entry reads. @internal */
+export type LegendSeries = Pick<SeriesMeta, 'index' | 'label' | 'paint' | 'swatch' | 'dashed'>
+
+/**
+ * One series' legend entry: its label, and a swatch in its paint. A palette
+ * slot also names the texture tile, so a textured swatch mirrors the mark. A
+ * raw color carries no tile, and inks through `swatchColor`. The cartesian
+ * charts and the scatter share it.
+ *
+ * @internal
+ */
+export function legendItemOf(meta: LegendSeries): ChartLegendItem {
+	return {
+		index: meta.index,
+		label: meta.label,
+		swatchClass: textClass(meta.paint) ?? '',
+		swatchColor: rawColor(meta.paint),
+		swatch: meta.swatch,
+		dashed: meta.dashed,
+		color: paintSlot(meta.paint) ?? undefined,
+	}
+}
+
 /**
  * The legend entries: on request, or by default once a second series needs
  * telling apart. Opted into `byValue`, the switches list in the marks' visible
@@ -188,13 +211,5 @@ export function cartesianLegendItems(
 ): ChartLegendItem[] | null {
 	if (!legendVisible(legend, metas.length)) return null
 
-	return orderLegend(metas, byValue).map((meta) => ({
-		index: meta.index,
-		label: meta.label,
-		swatchClass: textClass(meta.paint) ?? '',
-		swatchColor: rawColor(meta.paint),
-		swatch: meta.swatch,
-		dashed: meta.dashed,
-		color: meta.slot ?? undefined,
-	}))
+	return orderLegend(metas, byValue).map(legendItemOf)
 }

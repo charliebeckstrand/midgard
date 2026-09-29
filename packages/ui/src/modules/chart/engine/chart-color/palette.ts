@@ -66,11 +66,19 @@ export function categorySlots(
  *
  * @internal
  */
-function seriesColor<T>(series: ChartSeries<T>, index: number): ChartSeriesColor {
+function seriesColor(series: Pick<ChartSeries<unknown>, 'color'>, index: number): ChartSeriesColor {
 	return series.color ?? paletteSlot(index)
 }
 
-/** The resolved paint for the series at `index`. @internal */
-export function seriesPaint<T>(series: ChartSeries<T>, index: number): ChartSeriesPaint {
+/**
+ * The resolved paint for the series at `index`. The cartesian series and the
+ * scatter series share it, since each reads only its `color`.
+ *
+ * @internal
+ */
+export function seriesPaint(
+	series: Pick<ChartSeries<unknown>, 'color'>,
+	index: number,
+): ChartSeriesPaint {
 	return resolvePaint(seriesColor(series, index))
 }

@@ -290,6 +290,42 @@ describe('ScatterChart', () => {
 		expect(allBySlot(container, 'chart-scatter-series')).toHaveLength(1)
 	})
 
+	it('inks a square legend swatch inline for a raw series and through the class for a slot', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Two series"
+				data={STOPS}
+				width={480}
+				series={[
+					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell', color: '#e11d48' },
+					{ xKey: 'distance', yKey: 'weight', yName: 'Weight', color: 'blue' },
+				]}
+			/>,
+		)
+
+		const swatches = [
+			...(bySlot(container, 'chart-legend')?.querySelectorAll('[data-slot="swatch"]') ?? []),
+		]
+
+		const [raw, slot] = swatches
+
+		// A disc has no stroke to mirror, so each series keys with a square.
+		expect(swatches.map((swatch) => swatch.getAttribute('data-shape'))).toEqual([
+			'square',
+			'square',
+		])
+
+		// The raw swatch inks inline and takes no slot class; the slot swatch is the
+		// other way round.
+		expect(raw?.getAttribute('style')).toContain('color')
+
+		expect(raw?.getAttribute('class') ?? '').not.toContain('text-blue-600')
+
+		expect(slot?.getAttribute('class')).toContain('text-blue-600')
+
+		expect(slot?.getAttribute('style')).toBeNull()
+	})
+
 	it('anchors the first and last x-axis labels inward so the corner labels stay clear', () => {
 		const { container } = renderUI(
 			<ScatterChart
