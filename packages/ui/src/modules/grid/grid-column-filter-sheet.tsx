@@ -43,9 +43,13 @@ export function GridColumnFilterSheet({
 }: GridColumnFilterSheetProps) {
 	// The sheet body + footer form a `<form>`, so Enter in any rule input settles
 	// the draft — the same commit as the Apply submit button. preventDefault stops
-	// the browser's native navigation before applying.
+	// the browser's native navigation before applying. React bubbles a submit
+	// through the portal, so the submit stops here, and a form around the grid
+	// does not submit too.
 	function submit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault()
+
+		event.stopPropagation()
 
 		onApply()
 	}

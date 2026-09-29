@@ -86,8 +86,11 @@ export function GridFilter({ filter }: GridFilterProps) {
 
 	// Enter submits the field: cancel the pending debounce and apply the typed
 	// text now, so a deliberate submit lands the query without the settle wait.
+	// The submit stops here, so a form around the grid does not submit too.
 	const submit = (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault()
+
+		event.stopPropagation()
 
 		debounce.clear()
 

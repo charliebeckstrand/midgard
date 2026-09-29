@@ -259,7 +259,14 @@ function GridReorderRegion({
  *
  * @internal
  */
-export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerRegionResult }) {
+export function GridRowManagerRegionDialog({
+	region,
+	dir,
+}: {
+	region: GridRowManagerRegionResult
+	/** The direction of the grid, which the dialog lays out in. */
+	dir?: 'ltr' | 'rtl'
+}) {
 	if (!region.reachable) return null
 
 	return (
@@ -269,6 +276,7 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 			label="Manage rows"
 			// The group-header menu opens it, and its item is gone by then.
 			focusDone
+			dir={dir}
 		>
 			<GridRowManager
 				groups={region.managerGroups}

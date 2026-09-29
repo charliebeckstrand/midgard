@@ -283,6 +283,28 @@ describe('Grid per-column filters', () => {
 		expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument()
 	})
 
+	it('submits no form around the grid on Apply in the filter sheet', () => {
+		const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		renderUI(
+			<form onSubmit={onSubmit}>
+				<Grid columns={columns} rows={rows} getKey={getKey} />
+			</form>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: 'Bob' },
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+	})
+
 	it('leaves the button unaccented when a rule carries no value', () => {
 		// A rule with no value (added then emptied, or the freshly seeded rule)
 		// constrains nothing, so the button must read as inactive.

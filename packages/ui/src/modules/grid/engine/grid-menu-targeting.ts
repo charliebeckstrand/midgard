@@ -63,9 +63,18 @@ export function tryColumnGroupMenu(
 }
 
 /**
+ * A field that takes typed text. A right-click in one keeps the native menu. A
+ * checkbox or a button in a cell takes no text, so the cell menu stays.
+ *
+ * @internal
+ */
+const TEXT_FIELD =
+	'textarea, [contenteditable]:not([contenteditable="false"]), input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="image"]):not([type="hidden"])'
+
+/**
  * Handles a right-click that landed on a header or data cell: resolves its
- * column/cell menu and opens it at the pointer. Returns whether the target was a
- * cell.
+ * column/cell menu and opens it at the pointer. A right-click in a text field
+ * of the cell opens no grid menu. Returns whether the target was a cell.
  *
  * @internal
  */
@@ -78,6 +87,10 @@ export function tryCellMenu(
 	const cell = target.closest<HTMLElement>('td[data-grid-col], th[data-grid-col]')
 
 	if (!cell) return false
+
+	// A text field in a cell, such as an open editor, keeps the native menu:
+	// cut, copy, paste, and the spelling suggestions.
+	if (target.closest(TEXT_FIELD)) return true
 
 	commit(resolveItems(cell), target, event.clientX, event.clientY)
 

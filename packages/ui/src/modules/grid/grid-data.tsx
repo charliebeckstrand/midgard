@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { type RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -458,21 +458,6 @@ export function GridData<T>({
 			Object.keys(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue ?? {}).length > 0,
 	})
 
-	// The direction of the grid, read from its wrapper. The manager dialog portals
-	// out of the grid, so it takes this direction through its `dir` and through
-	// context. The read runs each time the manager opens, before it paints, and not
-	// on each render, because a computed-style read can force a style pass. The
-	// manager is the one reader, so a closed manager needs no read.
-	const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr')
-
-	useLayoutEffect(() => {
-		const wrapper = wrapperRef.current
-
-		if (!columnManagerOpen || !wrapper) return
-
-		setDirection(getComputedStyle(wrapper).direction === 'rtl' ? 'rtl' : 'ltr')
-	}, [columnManagerOpen])
-
 	// Row manager: the per-group color / order overlay the "Manage rows" dialog
 	// edits, reachable from the group-header context menu under client grouping.
 	// The wiring (overlay resolution, dialog open state, and the group-header menu
@@ -485,6 +470,13 @@ export function GridData<T>({
 		contextMenuActive: resolvedContextMenu != null,
 		setGroupExpanded,
 	})
+
+	// The direction of the grid, read from its wrapper. The dialogs portal out of
+	// the grid, so each takes this direction (see `useGridDialogDirection`).
+	const direction = useGridDialogDirection(
+		wrapperRef,
+		columnManagerOpen || rowManager.open || widthConfirmOpen,
+	)
 
 	// Column-group band badge menu: Clear color (when colored) + Manage columns.
 	const columnGroupMenu = useColumnGroupMenu({
@@ -859,4 +851,29 @@ export function GridData<T>({
 			</GridOverlayDensityContext>
 		</GridContext>
 	)
+}
+
+/**
+ * The direction of the grid, for the dialogs that portal out of it. It reads
+ * the wrapper each time a dialog opens, before it paints, and not on each
+ * render, because a computed-style read can force a style pass. With no
+ * dialog open, nothing reads it.
+ *
+ * @internal
+ */
+function useGridDialogDirection(
+	wrapperRef: RefObject<HTMLElement | null>,
+	open: boolean,
+): 'ltr' | 'rtl' {
+	const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr')
+
+	useLayoutEffect(() => {
+		const wrapper = wrapperRef.current
+
+		if (!open || !wrapper) return
+
+		setDirection(getComputedStyle(wrapper).direction === 'rtl' ? 'rtl' : 'ltr')
+	}, [open, wrapperRef])
+
+	return direction
 }

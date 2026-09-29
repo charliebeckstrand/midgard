@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
 
 /**
  * The Grid's opt-in `footer` summary bar: a row-count total, a selected-row
@@ -24,6 +24,30 @@ describe('Grid footer', () => {
 	]
 
 	const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
+
+	it('keeps the count region mounted and swaps its text, so a screen reader hears the first selection', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				rowLabel={(row) => row.name}
+				footer={{ selectedTotal: true }}
+			/>,
+		)
+
+		const region = present(bySlot(container, 'grid-footer-status'), 'the count region')
+
+		expect(region).toHaveAttribute('role', 'status')
+
+		expect(region).toBeEmptyDOMElement()
+
+		fireEvent.click(screen.getByRole('checkbox', { name: 'Select Ada' }))
+
+		expect(bySlot(container, 'grid-footer-status')).toBe(region)
+
+		expect(region).toHaveTextContent('1 of 3 rows selected')
+	})
 
 	it('renders no footer bar without a footer prop', () => {
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)

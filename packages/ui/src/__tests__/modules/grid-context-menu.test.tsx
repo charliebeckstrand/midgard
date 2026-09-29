@@ -231,6 +231,27 @@ describe('Grid context menus', () => {
 
 	// A right-click on a cell with no menu of its own fell back to the keyboard
 	// path, and opened the menu of the cursor's cell there instead.
+	it('keeps the native menu on a right-click in an open cell editor', () => {
+		renderUI(
+			<Grid
+				columns={columns.map((column) => ({ ...column, field: column.id as keyof Row }))}
+				rows={rows}
+				getKey={getKey}
+				editable={{ session: 'managed', scope: 'cell', onCommit: () => {} }}
+				contextMenu={{ cell: true }}
+			/>,
+		)
+
+		fireEvent.doubleClick(screen.getByText('Alice'))
+
+		const editor = screen.getByDisplayValue('Alice')
+
+		// A default the grid did not prevent opens the browser's own menu.
+		expect(fireEvent.contextMenu(editor)).toBe(true)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
 	it('keeps the native menu on a right-click in a non-data cell, with a cursor cell seated', () => {
 		renderUI(
 			<Grid
