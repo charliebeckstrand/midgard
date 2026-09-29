@@ -4,12 +4,7 @@ import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
-import {
-	barMarks,
-	stackedBarMarks,
-	stackedBarSnapPoints,
-	stackedBarSnapSeries,
-} from '../engine/chart-geometry/bar'
+import { barMarks, stackedBarMarks, stackedBarSnaps } from '../engine/chart-geometry/bar'
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt } from '../engine/chart-hit-test'
 import { resolveLegend } from '../engine/chart-legend/schema'
@@ -154,26 +149,22 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				thick,
 			)
 
-	// Stacked segments sit at cumulative tops, not the individual from-zero values
-	// `chart.snapPoints` carries, so the crosshair snap and keyboard cursor read the
-	// drawn edges; grouped bars each grow from one baseline and match as they are.
-	const valuePoints = stacked
-		? stackedBarSnapPoints(marks, data.length, chart.orientation)
-		: chart.snapPoints
-
-	const snapSeries = stacked
-		? stackedBarSnapSeries(
-				marks,
-				drawn.map((entry) => entry.meta.index),
-				data.length,
-			)
-		: chart.snapSeries
-
-	const paints = drawn.map((entry) => entry.meta.paint)
-
 	// Each drawn series' own index, aligned to `marks`, so the isolation and hit
 	// test speak the series identity the emphasis keys on rather than a draw slot.
 	const indices = drawn.map((entry) => entry.meta.index)
+
+	// Stacked segments sit at cumulative tops, not the individual from-zero values
+	// `chart.snapPoints` carries, so the crosshair snap and keyboard cursor read the
+	// drawn edges; grouped bars each grow from one baseline and match as they are.
+	const stackSnaps = stacked
+		? stackedBarSnaps(marks, indices, data.length, chart.orientation)
+		: null
+
+	const valuePoints = stackSnaps?.points ?? chart.snapPoints
+
+	const snapSeries = stackSnaps?.series ?? chart.snapSeries
+
+	const paints = drawn.map((entry) => entry.meta.paint)
 
 	const tex = useChartTexture(
 		texture,

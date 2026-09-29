@@ -570,4 +570,26 @@ describe('lineGeometry', () => {
 
 		expect(geo.points).toHaveLength(n)
 	})
+
+	it('decimates each dense run that a gap splits off', () => {
+		// A null in every thousand points splits the line into runs, each still ten
+		// points to a pixel. Each run decimates as the whole line would.
+		const n = 8_000
+
+		const xs = Array.from({ length: n }, (_, i) => (i / (n - 1)) * 800)
+
+		const values = Array.from({ length: n }, (_, i) =>
+			i % 1000 === 999 ? null : Math.sin(i / 20) * 40 + 50,
+		)
+
+		const geo = lineGeometry(values, xs, identity, 100)
+
+		expect(geo.segments).toHaveLength(8)
+
+		for (const [index, segment] of geo.segments.entries()) {
+			const drawn = (segment.match(/L /g)?.length ?? 0) + 1
+
+			expect(drawn).toBeLessThan((geo.runs[index]?.length ?? 0) / 2)
+		}
+	})
 })

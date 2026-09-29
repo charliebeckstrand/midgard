@@ -236,7 +236,9 @@ type SliceAngle = {
  * @internal
  */
 function sliceAngles(values: (number | null)[]): SliceAngle[] {
-	const shares = values.map((value) => (value !== null && value > 0 ? value : 0))
+	const shares = values.map((value) =>
+		value !== null && Number.isFinite(value) && value > 0 ? value : 0,
+	)
 
 	const total = shares.reduce((sum, share) => sum + share, 0)
 

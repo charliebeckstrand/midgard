@@ -656,6 +656,14 @@ describe('pieSlices', () => {
 		expect(slices.map((slice) => slice.index)).toEqual([0, 4])
 	})
 
+	it('takes no slice for an infinite value', () => {
+		const slices = pieSlices([Number.POSITIVE_INFINITY, 10, 30], FRAME)
+
+		expect(slices.map((slice) => slice.index)).toEqual([1, 2])
+
+		expect(slices.every((slice) => !slice.d.includes('NaN'))).toBe(true)
+	})
+
 	it('degenerates a single share to the full circle', () => {
 		const [only] = pieSlices([0, 42], FRAME)
 

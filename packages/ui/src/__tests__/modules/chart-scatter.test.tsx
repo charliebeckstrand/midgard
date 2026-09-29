@@ -4,6 +4,7 @@ import {
 	anchorEndTicks,
 	diameterRange,
 	scatterMarkAt,
+	sizeDomain,
 	sizeRadius,
 	uniqueXValues,
 } from '../../modules/chart/engine/chart-geometry/scatter'
@@ -63,6 +64,28 @@ describe('scatter geometry', () => {
 
 		// Off every disc, past the edge slack.
 		expect(scatterMarkAt(marks, 100, 100, 2)).toBeNull()
+	})
+
+	it('gives a shared point to the disc that paints on top', () => {
+		// Two series share one point. The later disc draws over the earlier one, so
+		// the pointer reads the disc the reader sees.
+		const marks = [[{ x: 10, y: 10, r: 5 }], [{ x: 10, y: 10, r: 5 }]]
+
+		expect(scatterMarkAt(marks, 10, 10, 0)).toEqual({ series: 1, datum: 0 })
+	})
+
+	it('folds the size extent of any count of points', () => {
+		// A spread into `Math.min` throws past the engine's argument limit.
+		const many = Array.from({ length: 500_000 }, (_, row) => ({
+			x: row,
+			y: row,
+			row,
+			size: row % 7 === 0 ? null : row,
+		}))
+
+		expect(sizeDomain(many)).toEqual([1, 499_999])
+
+		expect(sizeDomain([{ x: 0, y: 0, row: 0, size: null }])).toBeNull()
 	})
 
 	it('holds the emphasized disc across the midline until a challenger decisively closes', () => {

@@ -4,8 +4,7 @@ import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import {
 	barMarks,
 	stackedBarMarks,
-	stackedBarSnapPoints,
-	stackedBarSnapSeries,
+	stackedBarSnaps,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
@@ -450,6 +449,38 @@ describe('BarChart', () => {
 		expect(barCount(container)).toBe(2)
 
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('—')
+	})
+
+	it('keeps each animated bar on its own node when the legend hides a series', () => {
+		// A bar keys on its series, not on its draw slot. Hidden and shown again, a
+		// middle series takes a new node, and the series after it keeps its own, so
+		// it does not replay the grow.
+		const { container } = renderUI(
+			chart({
+				animate: true,
+				series: [
+					{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue', color: '#ff0000' },
+					{ xKey: 'quarter', yKey: 'costs', yName: 'Costs', color: '#00ff00' },
+					{ xKey: 'quarter', yKey: 'revenue', yName: 'Target', color: '#0000ff' },
+				],
+			}),
+		)
+
+		const blue = () => container.querySelector('[data-slot="chart-bar"][fill="#0000ff"]')
+
+		const before = blue()
+
+		expect(before).not.toBeNull()
+
+		const costs = allBySlot(container, 'chart-legend-item')[1] as Element
+
+		fireEvent.click(costs)
+
+		expect(blue()).toBe(before)
+
+		fireEvent.click(costs)
+
+		expect(blue()).toBe(before)
 	})
 
 	it('still renders the marks under animate', () => {
@@ -1223,7 +1254,7 @@ describe('stackedBarMarks', () => {
 	})
 })
 
-describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
+describe('stackedBarSnaps', () => {
 	const band = bandScale({ count: 1, range: [0, 100] })
 
 	const map = (value: number) => 100 - value
@@ -1234,7 +1265,7 @@ describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
 		// Bottom segment tops at its own value (map(40)); the second rides it and
 		// tops at the running total (map(70)) — not map(30), the from-zero position
 		// the shared snap points would carry.
-		expect(stackedBarSnapPoints(marks, 1)).toEqual([[map(40), map(70)]])
+		expect(stackedBarSnaps(marks, [0, 1], 1).points).toEqual([[map(40), map(70)]])
 	})
 
 	it('names each stop series by its stack order, dropping the same gaps', () => {
@@ -1242,9 +1273,10 @@ describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
 
 		// The zero-valued middle series takes no segment, so it drops from both the
 		// positions and the parallel series list, keeping the two aligned.
-		expect(stackedBarSnapPoints(marks, 1)).toEqual([[map(40), map(70)]])
-
-		expect(stackedBarSnapSeries(marks, [0, 1, 2], 1)).toEqual([[0, 2]])
+		expect(stackedBarSnaps(marks, [0, 1, 2], 1)).toEqual({
+			points: [[map(40), map(70)]],
+			series: [[0, 2]],
+		})
 	})
 })
 

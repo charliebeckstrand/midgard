@@ -174,14 +174,20 @@ function focusSeries(
 	})
 }
 
-/** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
-function stackedToLine(band: { line: string; area: string; points: LineSeriesGeometry['points'] }) {
+/**
+ * Adapts one stacked band to the line-marks geometry shape (one segment, one
+ * ribbon). A band of one category draws no ribbon, so its lone point is
+ * isolated, as a line marks a point that no segment reaches.
+ *
+ * @internal
+ */
+function stackedToLine(band: StackedAreaGeometry): LineSeriesGeometry {
 	return {
 		segments: band.line ? [band.line] : [],
 		areas: band.area ? [band.area] : [],
 		points: band.points,
 		runs: band.points.length > 0 ? [band.points] : [],
-		isolated: [],
+		isolated: band.points.length === 1 ? band.points : [],
 	}
 }
 
@@ -326,6 +332,9 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		dashed: entry.meta.dashed,
 	}))
 
+	// Every drawn run, held for the hit test so a pointer move allocates none.
+	const seriesRuns = list.map((entry) => entry.geometry.runs)
+
 	const tex = useChartTexture(
 		texture,
 		chart.visible.map((meta) => meta.slot),
@@ -367,8 +376,9 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	// The area chart carries a snapping y-rule by default so the fills read
 	// against a category line; a smooth curve drops the snap to glide the rule
 	// and tooltip along the interpolation rather than jumping between points.
+	// Stacked ribbons draw straight whatever the interpolation, so they keep it.
 	const rails = resolveCrosshair(
-		crosshair ?? { x: false, y: true, snap: interpolation !== 'smooth' },
+		crosshair ?? { x: false, y: true, snap: stacked || interpolation !== 'smooth' },
 	)
 
 	const snapping = crosshairSnaps(rails)
@@ -427,10 +437,11 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 						// dot on a ribbon's boundary already reads as the ribbon whose edge it
 						// marks.
 						const within = nearestSeriesArea(
-							list.map((entry) => entry.geometry.runs),
-							floor,
+							seriesRuns,
+							(order) => drawn[order]?.baseline ?? floor,
 							x,
 							y,
+							stacked,
 						)
 
 						if (within !== null) return { series: list[within]?.index ?? within, datum: null }

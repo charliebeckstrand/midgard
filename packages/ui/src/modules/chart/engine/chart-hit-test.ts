@@ -209,38 +209,96 @@ function topEdgeY(run: LinePoint[], x: number): number | null {
 }
 
 /**
- * The series whose fill the pointer sits in, or `null` outside every fill. The
- * pointer must sit under a top edge (with a little slack for the stroke) and
- * above the baseline. Fills overlap, stacked ribbons especially, each covering
- * to the baseline. Where they do, the one whose top edge sits nearest above the
- * pointer wins. The isolation thus lifts the ribbon the pointer is actually
- * inside, rather than every ribbon beneath it.
+ * The series whose fill the pointer sits in, or `null` outside every fill. A
+ * fill spans from its top edge to its lower edge, with a little slack past the
+ * top edge for the stroke. The lower edge is the zero line of the series
+ * (`base`), and for a `stacked` ribbon it is the top edge of the ribbon below.
+ * A negative wash fills up from its line to its zero line, so the test reads
+ * the span either way round.
  *
+ * Unstacked washes overlap, each covering to its zero line. Where they do, the
+ * one whose top edge sits nearest the pointer wins, and the first wins a tie.
+ * The isolation thus lifts the wash the pointer is actually inside, rather than
+ * every wash beneath it. Stacked ribbons follow the paint order instead: a
+ * later ribbon draws over an earlier one where a negative value folds it back,
+ * so the last ribbon that holds the pointer wins. The stroke slack decides only
+ * when no ribbon holds it.
+ *
+ * @param base - The lower edge of a fill that does not stack: one line for each
+ * series, or one line for all of them (the plot floor of a line chart wash).
+ * @param stacked - Close each fill on the top edge of the series before it, as
+ * the ribbons of a stack do. The first series closes on its `base`.
  * @internal
  */
 export function nearestSeriesArea(
 	seriesRuns: LinePoint[][][],
-	baseline: number,
+	base: number | ((series: number) => number),
 	x: number,
 	y: number,
+	stacked = false,
 ): number | null {
-	let best: number | null = null
+	// The fill whose top edge sits nearest the pointer; for a stack, the fallback
+	// when the pointer sits only in the stroke slack.
+	let nearest: number | null = null
 
-	let bestTop = Number.NEGATIVE_INFINITY
+	let nearestReach = Number.POSITIVE_INFINITY
+
+	// The last stacked ribbon that holds the pointer.
+	let inside: number | null = null
+
+	// The top edge of the series before, at `x`: the lower edge of a stacked ribbon.
+	let below: number | null = null
+
+	const baseOf = typeof base === 'number' ? () => base : base
 
 	for (let series = 0; series < seriesRuns.length; series++) {
-		for (const run of seriesRuns[series] as LinePoint[][]) {
-			const top = topEdgeY(run, x)
+		const top = seriesTopAt(seriesRuns[series] as LinePoint[][], x)
 
-			// The nearest covering top is the greatest one still above the pointer —
-			// the ribbon whose upper edge the pointer sits just under.
-			if (top !== null && y >= top - AREA_EDGE_SLACK && y <= baseline && top > bestTop) {
-				bestTop = top
+		const lower = stacked && series > 0 ? below : baseOf(series)
 
-				best = series
-			}
+		below = top
+
+		const reach = fillReach(top, lower, y)
+
+		if (reach === null) continue
+
+		if (stacked && reach >= 0) {
+			inside = series
+		} else if (reach < nearestReach) {
+			nearestReach = reach
+
+			nearest = series
 		}
 	}
 
-	return best
+	return inside ?? nearest
+}
+
+/** The top edge of a series at `x`: its runs never share an x, so at most one covers it. @internal */
+function seriesTopAt(runs: LinePoint[][], x: number): number | null {
+	for (const run of runs) {
+		const top = topEdgeY(run, x)
+
+		if (top !== null) return top
+	}
+
+	return null
+}
+
+/**
+ * How far into a fill the pointer sits past its top edge, or `null` outside
+ * the fill and its edge slack, or where an edge does not cover the pointer. The
+ * fill runs from the top edge toward its lower edge: down the screen for a
+ * value above zero, up the screen for one below it.
+ *
+ * @internal
+ */
+function fillReach(top: number | null, lower: number | null, y: number): number | null {
+	if (top === null || lower === null) return null
+
+	const toward = top <= lower ? 1 : -1
+
+	const reach = (y - top) * toward
+
+	return reach < -AREA_EDGE_SLACK || (lower - y) * toward < 0 ? null : reach
 }

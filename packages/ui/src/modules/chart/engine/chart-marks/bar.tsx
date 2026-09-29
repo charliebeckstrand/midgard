@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { memo, useMemo } from 'react'
 import { cn } from '../../../../core'
+import { rangeKeys } from '../../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../chart-color/paint'
 import type { BarMark } from '../chart-geometry/bar'
 import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from '../chart-motion'
@@ -212,12 +213,16 @@ export function AnimatedChartBarMarks({
 
 		const series = indices[seriesIndex] ?? seriesIndex
 
-		return row.map((mark, index) => {
+		// Keyed on the series, not the draw slot: a legend toggle then leaves each
+		// shown series on its own nodes, so no other series replays the grow.
+		return rangeKeys(row.length, `bar-${series}`).map((key, index) => {
+			const mark = row[index]
+
 			if (!mark) return null
 
 			return (
 				<AnimatedBar
-					key={mark.key}
+					key={key}
 					d={mark.d}
 					positive={mark.positive}
 					orientation={orientation}

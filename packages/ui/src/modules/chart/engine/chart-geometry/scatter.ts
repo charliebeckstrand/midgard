@@ -45,17 +45,23 @@ type ScatterKeys<T> = {
  * @internal
  */
 export function scatterData<T>(data: T[], keys: ScatterKeys<T>): ScatterDatum[] {
-	return data.flatMap((datum, row) => {
+	const points: ScatterDatum[] = []
+
+	for (let row = 0; row < data.length; row++) {
+		const datum = data[row] as T
+
 		const x = toNumericCell(datum[keys.xKey])
 
 		const y = toNumericCell(datum[keys.yKey])
 
-		if (!Number.isFinite(x) || !Number.isFinite(y)) return []
+		if (!Number.isFinite(x) || !Number.isFinite(y)) continue
 
 		const size = keys.sizeKey === undefined ? null : toNumericCell(datum[keys.sizeKey])
 
-		return [{ x, y, row, size: size !== null && Number.isFinite(size) ? size : null }]
-	})
+		points.push({ x, y, row, size: size !== null && Number.isFinite(size) ? size : null })
+	}
+
+	return points
 }
 
 /**
@@ -66,7 +72,27 @@ export function scatterData<T>(data: T[], keys: ScatterKeys<T>): ScatterDatum[] 
  * @internal
  */
 export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
-	return [...new Set(seriesData.flat().map((point) => point.x))].sort((a, b) => a - b)
+	let count = 0
+
+	for (const points of seriesData) count += points.length
+
+	// A typed array sorts numbers natively, with no comparator call per pair.
+	const xs = new Float64Array(count)
+
+	let at = 0
+
+	for (const points of seriesData) for (const point of points) xs[at++] = point.x
+
+	xs.sort()
+
+	const unique: number[] = []
+
+	for (const x of xs) {
+		// Adds zero so -0 and 0 share one column, as a `Set` keys them.
+		if (unique.length === 0 || x !== unique[unique.length - 1]) unique.push(x + 0)
+	}
+
+	return unique
 }
 
 /**
@@ -76,11 +102,21 @@ export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
  * @internal
  */
 export function sizeDomain(points: ScatterDatum[]): [number, number] | null {
-	const sizes = points.flatMap((point) => (point.size === null ? [] : [point.size]))
+	// One fold, as `linearScale` reads its extent: a spread into `Math.min` copies
+	// the sizes and throws past the argument limit of the engine.
+	let low = Number.POSITIVE_INFINITY
 
-	if (sizes.length === 0) return null
+	let high = Number.NEGATIVE_INFINITY
 
-	return [Math.min(...sizes), Math.max(...sizes)]
+	for (const { size } of points) {
+		if (size === null) continue
+
+		if (size < low) low = size
+
+		if (size > high) high = size
+	}
+
+	return low <= high ? [low, high] : null
 }
 
 /** The diameter range a series scales its bubbles into, from its spec or the defaults. @internal */
@@ -363,7 +399,8 @@ export function scatterMarkAt(
 				heldSquared = squared
 			}
 
-			if (squared < bestSquared) {
+			// A tie goes to the later disc, which paints over the earlier one.
+			if (squared <= bestSquared) {
 				bestSquared = squared
 
 				best = { series, datum }

@@ -13,7 +13,6 @@ const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
 	x1,
 	top,
 	bottom,
-	key: 'k',
 	positive: true,
 })
 
@@ -216,5 +215,57 @@ describe('nearestSeriesArea', () => {
 
 	it('misses x outside the run', () => {
 		expect(nearestSeriesArea(runs, 200, 120, 120)).toBeNull()
+	})
+
+	// A negative series draws its line below its zero line (y=100), and its wash
+	// fills up from the line to that zero line.
+	const negative = [
+		[
+			[
+				{ x: 0, y: 150 },
+				{ x: 100, y: 150 },
+			],
+		],
+	]
+
+	it('hits a negative wash between its line and its zero line, not the band below', () => {
+		expect(nearestSeriesArea(negative, () => 100, 50, 125)).toBe(0)
+
+		// The line itself, with the edge slack past it.
+		expect(nearestSeriesArea(negative, () => 100, 50, 152)).toBe(0)
+
+		// Under the line, where no wash draws.
+		expect(nearestSeriesArea(negative, () => 100, 50, 180)).toBeNull()
+
+		// A positive series misses under its zero line too.
+		expect(nearestSeriesArea(runs, () => 100, 50, 150)).toBeNull()
+	})
+
+	it('reads a stacked ribbon between its top edge and the edge below it', () => {
+		const edge = (y: number) => [
+			[
+				{ x: 0, y },
+				{ x: 100, y },
+			],
+		]
+
+		// A positive stack: series 1 rides on series 0, so its top edge sits higher.
+		const positive = [edge(120), edge(60)]
+
+		expect(nearestSeriesArea(positive, 200, 50, 150, true)).toBe(0)
+
+		expect(nearestSeriesArea(positive, 200, 50, 90, true)).toBe(1)
+
+		expect(nearestSeriesArea(positive, 200, 50, 30, true)).toBeNull()
+
+		// Series 1 adds a negative value, so its ribbon folds back down over the fill
+		// of series 0. It paints later, so it wins where the two overlap.
+		const signed = [edge(60), edge(90)]
+
+		expect(nearestSeriesArea(signed, 200, 50, 65, true)).toBe(1)
+
+		expect(nearestSeriesArea(signed, 200, 50, 85, true)).toBe(1)
+
+		expect(nearestSeriesArea(signed, 200, 50, 150, true)).toBe(0)
 	})
 })

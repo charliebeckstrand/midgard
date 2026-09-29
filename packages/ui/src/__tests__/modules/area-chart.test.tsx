@@ -129,6 +129,20 @@ describe('AreaChart', () => {
 		expect(tooltip?.textContent).toContain('14')
 	})
 
+	it('keeps the default snap on a stacked chart, whose ribbons draw straight', () => {
+		const { container } = renderUI(chart({ stacked: true, interpolation: 'smooth' }))
+
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 200, clientY: 5 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Tue')
+	})
+
+	it('marks the lone point of each series in a one-category stack', () => {
+		const { container } = renderUI(chart({ stacked: true, data: DATA.slice(0, 1) }))
+
+		expect(allBySlot(container, 'chart-point')).toHaveLength(2)
+	})
+
 	it('drops the snap under smooth interpolation, gating the tooltip to the marks', () => {
 		const { container } = renderUI(chart({ interpolation: 'smooth' }))
 
@@ -298,5 +312,45 @@ describe('stackedAreas', () => {
 		expect(first?.area.startsWith('M ')).toBe(true)
 
 		expect(first?.area.endsWith('Z')).toBe(true)
+	})
+
+	it('closes the first ribbon on the zero line and each next one on the edge below', () => {
+		const [first, second] = stackedAreas(
+			[
+				[20, 30, 25],
+				[10, 10, 10],
+			],
+			xs,
+			map,
+		)
+
+		expect(first?.area).toBe('M 0 80 L 10 70 L 20 75 L 20 100 L 0 100 Z')
+
+		expect(second?.area).toBe('M 0 70 L 10 60 L 20 65 L 20 75 L 10 70 L 0 80 Z')
+	})
+
+	it('decimates a dense stack for drawing, with exact seams and full-resolution points', () => {
+		const n = 8_000
+
+		const dense = Array.from({ length: n }, (_, i) => (i / (n - 1)) * 800)
+
+		const lower = Array.from({ length: n }, (_, i) => Math.sin(i / 20) * 40 + 50)
+
+		const upper = Array.from({ length: n }, (_, i) => Math.cos(i / 30) * 20 + 30)
+
+		const [first, second] = stackedAreas([lower, upper], dense, map)
+
+		const pairs = (d: string) => [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((m) => m[0])
+
+		// The drawn edge is a fraction of the data, and the points keep every datum.
+		expect(pairs(first?.line ?? '').length).toBeLessThan(n / 2)
+
+		expect(first?.points).toHaveLength(n)
+
+		// The lower edge of the second ribbon is the drawn top edge of the first,
+		// point for point, so the two ribbons meet with no gap.
+		const seam = pairs(second?.area ?? '').slice(pairs(second?.line ?? '').length)
+
+		expect(seam).toEqual(pairs(first?.line ?? '').reverse())
 	})
 })
