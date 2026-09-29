@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
 	createGroup,
@@ -11,6 +11,31 @@ import {
 import { DensityProvider } from '../../providers/density'
 import { Box } from '../../structure/box'
 import { densityStepOf, fireEvent, getAllSlots, renderUI, screen, waitFor } from '../helpers'
+
+// The filter sheet loads its code on the first open, so that open waits for the
+// code. One open before the tests loads the code. Each test then opens the sheet
+// synchronously. The browser suite covers the first open.
+beforeAll(async () => {
+	const columns: GridColumn<{ id: number; name: string }>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			cell: (row) => row.name,
+			value: (row) => row.name,
+			filterable: true,
+		},
+	]
+
+	const { unmount } = renderUI(
+		<Grid columns={columns} rows={[{ id: 1, name: 'Alice' }]} getKey={(row) => row.id} />,
+	)
+
+	fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+	await screen.findByRole('button', { name: 'Add' })
+
+	unmount()
+})
 
 describe('Grid per-column filters', () => {
 	type Row = { id: number; name: string; role: string }

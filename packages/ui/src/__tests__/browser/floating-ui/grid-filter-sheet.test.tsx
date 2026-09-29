@@ -82,6 +82,19 @@ describe('grid column filter sheet (real browser)', () => {
 		expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
 	})
 
+	// The sheet loads its code on the first open, and mounts open when the code
+	// arrives. The focus manager must still find the query builder, not only the
+	// footer buttons.
+	it('moves focus into the query builder when the sheet opens', async () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		const operator = await screen.findByRole('combobox', { name: 'Operator' })
+
+		await waitFor(() => expect(operator).toHaveFocus())
+	})
+
 	it('traps Tab focus within the open filter sheet', async () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -110,7 +123,7 @@ describe('grid column filter sheet (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		await userEvent.type(screen.getByRole('textbox', { name: 'Name value' }), 'Bob')
+		await userEvent.type(await screen.findByRole('textbox', { name: 'Name value' }), 'Bob')
 
 		// While the draft is open and unapplied, the rows are untouched.
 		expect(screen.getByText('Alice')).toBeInTheDocument()
@@ -128,7 +141,7 @@ describe('grid column filter sheet (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		await userEvent.type(screen.getByRole('textbox', { name: 'Name value' }), 'Bob')
+		await userEvent.type(await screen.findByRole('textbox', { name: 'Name value' }), 'Bob')
 
 		await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
