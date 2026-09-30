@@ -92,11 +92,16 @@ describe('Grid master-detail', () => {
 
 		const toggle = screen.getByRole('button', { name: 'Expand details for row 1' })
 
-		const panelId = toggle.getAttribute('aria-controls')
+		const panelId = toggle.getAttribute('aria-controls') ?? ''
 
-		expect(panelId).toBe('grid-detail-1')
+		// The id carries the grid's own scope, so it is unique in the document.
+		expect(panelId).toMatch(/-detail-1$/)
 
-		expect(detailRow(container, 1)?.querySelector(`#${panelId}`)).not.toBeNull()
+		const panel = document.getElementById(panelId)
+
+		expect(panel).not.toBeNull()
+
+		expect(detailRow(container, 1)?.contains(panel)).toBe(true)
 	})
 
 	it('drives expansion through a controlled binding', async () => {
