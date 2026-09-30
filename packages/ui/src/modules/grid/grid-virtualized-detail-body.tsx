@@ -194,6 +194,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 					<GridDetailRow<T>
 						key={item.reactKey}
 						rowKey={rowKey}
+						panelId={expansion?.panelId(rowKey)}
 						row={row}
 						render={expansion?.render ?? renderNothing}
 						colSpan={columns.length}

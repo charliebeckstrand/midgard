@@ -578,7 +578,7 @@ export function GridData<T>({
 		cursorNewRow: cursor.newRow,
 		pagination,
 		virtualized: gated.virtualize,
-		navigable: gated.navigable,
+		cursorEnabled: cursor.cursorEnabled,
 		infiniteScroll,
 		footer,
 		selectedCount: selection.size,

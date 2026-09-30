@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useControllable } from '../../hooks'
 import type { GridSortState } from './context'
 import { EMPTY_SORT, nextSort, sortsEqual } from './engine/grid-sort/state'
@@ -65,24 +65,20 @@ export function useServerSortSettle<T>(args: {
 }): boolean {
 	const { enabled, sort, rows } = args
 
-	const [settling, setSettling] = useState(false)
+	// The sort the on-screen rows reflect, and the rows it was taken with. It is
+	// taken again in the render where `rows` change, so the settle state is known
+	// in the render of the change and costs no second render.
+	const [settled, setSettled] = useState({ rows, sort })
 
-	// The sort the on-screen rows reflect; re-snapshotted each time `rows` change.
-	const settledSortRef = useRef(sort)
+	let settledSort = settled.sort
 
-	const prevRowsRef = useRef(rows)
+	// Rows landed: they now reflect the live sort, so take it as the settled order.
+	if (settled.rows !== rows) {
+		settledSort = sort
 
-	useEffect(() => {
-		const rowsChanged = prevRowsRef.current !== rows
+		setSettled({ rows, sort })
+	}
 
-		prevRowsRef.current = rows
-
-		// Rows landed: they now reflect the live sort — take it as the settled order.
-		if (rowsChanged) settledSortRef.current = sort
-
-		// In flight only while the live sort has moved off the settled order.
-		setSettling(enabled && !sortsEqual(settledSortRef.current, sort))
-	}, [enabled, sort, rows])
-
-	return enabled && settling
+	// In flight only while the live sort has moved off the settled order.
+	return enabled && !sortsEqual(settledSort, sort)
 }

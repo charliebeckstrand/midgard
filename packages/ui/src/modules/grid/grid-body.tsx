@@ -4,9 +4,11 @@ import { SortableContext } from '@dnd-kit/sortable'
 import {
 	type ComponentProps,
 	Fragment,
+	memo,
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	useMemo,
 } from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
@@ -114,6 +116,56 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 
 /** The window wiring of {@link GridBodyProps.virtualize}, once a row has measured. @internal */
 type GridRowWindow = NonNullable<GridBodyProps<unknown>['virtualize']> & { estimateSize: number }
+
+/**
+ * Gives the cursor the order of an unwindowed client-grouped body. The order
+ * builds only when the groups, the total gate, or the toggle change, so a grid
+ * render that holds them builds none. @internal
+ */
+function GridGroupedCursorOrderImpl<T>({
+	groups,
+	totaled,
+	toggle,
+}: {
+	groups: GridGroup<T>[]
+	totaled: boolean
+	toggle: (id: string) => void
+}) {
+	const order = useMemo(() => groupedCursorRows(groups, totaled, toggle), [groups, totaled, toggle])
+
+	return <GridCursorOrder order={order} />
+}
+
+const GridGroupedCursorOrder = memo(GridGroupedCursorOrderImpl) as typeof GridGroupedCursorOrderImpl
+
+/**
+ * Gives the cursor the order of an unwindowed master-detail body: each data row,
+ * then its panel while open. The order builds only when the rows or the
+ * expansion change. @internal
+ */
+function GridDetailCursorOrderImpl<T>({
+	rows,
+	rowKeys,
+	expanded,
+	rowExpandable,
+}: {
+	rows: T[]
+	rowKeys: (string | number)[]
+	expanded: ReadonlySet<string | number>
+	rowExpandable: (row: T) => boolean
+}) {
+	const order = useMemo(
+		() =>
+			detailCursorRows(rows, rowKeys, (row, key) =>
+				detailOpen(row, key, { expanded, rowExpandable }),
+			),
+		[rows, rowKeys, expanded, rowExpandable],
+	)
+
+	return <GridCursorOrder order={order} />
+}
+
+const GridDetailCursorOrder = memo(GridDetailCursorOrderImpl) as typeof GridDetailCursorOrderImpl
 
 /**
  * The window of a windowed body, `'measuring'` until a row has measured, or
@@ -294,7 +346,7 @@ function renderGroupedBody<T>(
 
 	return (
 		<TableBody>
-			<GridCursorOrder order={groupedCursorRows(ordered, totaled, props.toggleGroup)} />
+			<GridGroupedCursorOrder groups={ordered} totaled={totaled} toggle={props.toggleGroup} />
 			{ordered.map((group) =>
 				renderGroup(group, {
 					props,
@@ -433,10 +485,11 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	return (
 		<TableBody>
 			{expansion && (
-				<GridCursorOrder
-					order={detailCursorRows(rows, props.rowKeys, (row, key) =>
-						detailOpen(row, key, expansion),
-					)}
+				<GridDetailCursorOrder
+					rows={rows}
+					rowKeys={props.rowKeys}
+					expanded={expansion.expanded}
+					rowExpandable={expansion.rowExpandable}
 				/>
 			)}
 			{rowSortable ? (
