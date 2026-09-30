@@ -149,6 +149,9 @@ export type DashboardTileProps = {
 	 * height. When edit mode starts, an open dialog closes. The focus then moves
 	 * to the grip of the tile. A tile with no grip, such as a tile with a `static`
 	 * layout entry, gives the focus to the board.
+	 *
+	 * A widget with a fullscreen view of its own, such as a chart with its menu,
+	 * hides the expand control, so the tile shows one way to go large.
 	 * @defaultValue false
 	 */
 	expandable?: boolean

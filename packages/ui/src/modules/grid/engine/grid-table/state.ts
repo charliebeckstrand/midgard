@@ -2,7 +2,6 @@ import type {
 	ColumnFiltersState,
 	ColumnVisibilityState,
 	columnResizingState,
-	GroupingState,
 	PaginationState,
 } from '@tanstack/react-table'
 import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
@@ -36,9 +35,6 @@ export const EMPTY_COLUMN_ORDER: (string | number)[] = []
 
 /** Stable empty column-visibility default (all visible); read-only. @internal */
 export const EMPTY_VISIBILITY: ColumnVisibilityState = {}
-
-/** Stable empty grouping default (ungrouped); read-only. @internal */
-export const EMPTY_GROUPING: GroupingState = []
 
 /** Search-input placeholder when {@link GridSearch} supplies none. @internal */
 export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'

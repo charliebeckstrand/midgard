@@ -1,15 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
-import { TOUCH_HOLD_SELECTION_SETTLE } from '../../hooks/use-touch-hold-selection'
 import { BarChart, DonutChart } from '../../modules/chart'
+import { TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 /**
- * A touch hold on a chart reads the chart and opens no context menu.
+ * A touch hold on a chart does nothing: it opens no readout and no context menu.
  *
- * A chart has a context menu by default. A context Menu opens on a touch long press, but a hold
- * on a chart opens the readout (#1396). The chart root marks itself `data-touch-readout`, so the
- * menu leaves the hold to the readout. A right-click still opens the menu.
+ * A chart has a context menu by default. A context Menu opens on a touch long press. The chart
+ * root marks itself `data-touch-readout`, so the menu leaves a hold on a chart alone (#1396). A
+ * touch reads nothing from the chart, so the hold opens no readout either. A right-click still
+ * opens the menu, and "View data" in the menu shows the data.
  */
 describe('a touch hold on a chart', () => {
 	beforeEach(() => {
@@ -55,30 +56,24 @@ describe('a touch hold on a chart', () => {
 		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
 
-	// A chart with no click handler still opens the readout under a hold, so each
-	// touch press arms the selection guard (#1697 armed it only with a click handler).
-	const guarded = () => document.documentElement.classList.contains('select-none')
+	/** Holds a touch still on the element past the tap window, then lifts it. */
+	function hold(target: Element) {
+		const touch = { pointerType: 'touch', isPrimary: true, pointerId: 1 }
 
-	/** Holds a touch on the element, lifts it, and checks the guard on each side of the settle. */
-	function holdAndLift(target: Element) {
-		fireEvent.pointerDown(target, { pointerType: 'touch', isPrimary: true, pointerId: 1 })
+		fireEvent.pointerOver(target, touch)
 
-		expect(guarded()).toBe(true)
-
-		const lift = new Event('pointerup', { bubbles: true })
-
-		Object.defineProperty(lift, 'pointerId', { value: 1 })
+		fireEvent.pointerDown(target, touch)
 
 		act(() => {
-			window.dispatchEvent(lift)
-
-			vi.advanceTimersByTime(TOUCH_HOLD_SELECTION_SETTLE)
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
 		})
 
-		expect(guarded()).toBe(false)
+		expect(screen.queryByRole('tooltip')).toBeNull()
+
+		fireEvent.pointerUp(target, touch)
 	}
 
-	it('arms the selection guard on a cartesian chart with no click handler', () => {
+	it('opens no tooltip on a cartesian chart', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
@@ -88,10 +83,14 @@ describe('a touch hold on a chart', () => {
 			/>,
 		)
 
-		holdAndLift(bySlot(container, 'chart-hit') as Element)
+		hold(bySlot(container, 'chart-hit') as Element)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(bySlot(container, 'chart-bar-spot')).toBeNull()
 	})
 
-	it('arms the selection guard on a donut with no click handler', () => {
+	it('opens no tooltip on a donut', () => {
 		const { container } = renderUI(
 			<DonutChart
 				aria-label="Revenue by quarter"
@@ -102,6 +101,10 @@ describe('a touch hold on a chart', () => {
 			/>,
 		)
 
-		holdAndLift(bySlot(container, 'chart-slice') as Element)
+		hold(bySlot(container, 'chart-slice') as Element)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(container.querySelector('.opacity-25')).toBeNull()
 	})
 })

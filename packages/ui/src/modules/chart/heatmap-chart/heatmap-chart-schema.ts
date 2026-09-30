@@ -115,8 +115,8 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		 * address space a heatmap has. A cell is named by a pair and not by one id,
 		 * so this does not take the module's shared `ChartItemClick`. Setting it
 		 * makes the plot interactive on its own, where the pointer layer otherwise
-		 * mounts only for a tooltip. On a touch screen under the `'hover'` trigger,
-		 * a tap fires it and a hold only reads the cell.
+		 * mounts only for a tooltip. On a touch screen, a tap fires it on either
+		 * trigger. A touch opens no readout.
 		 */
 		onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
 		/**

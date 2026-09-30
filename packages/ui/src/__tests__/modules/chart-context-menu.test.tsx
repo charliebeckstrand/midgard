@@ -476,6 +476,37 @@ describe('Chart menu button', () => {
 		host.remove()
 	})
 
+	it('puts a View data button in the header row of a box, and marks its own fullscreen', () => {
+		const host = document.createElement('div')
+
+		document.body.append(host)
+
+		const slot = createHeaderActionsHost()
+
+		slot.set(host)
+
+		renderUI(
+			<HeaderActionsContext value={slot}>
+				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
+			</HeaderActionsContext>,
+		)
+
+		// The box hides its own expand control, because the chart menu has Fullscreen.
+		expect(getSlot(host, 'chart-header-actions')).toHaveAttribute('data-own-fullscreen')
+
+		fireEvent.click(screen.getByRole('button', { name: 'View data for Revenue' }))
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		host.remove()
+	})
+
+	it('shows no View data button outside a box', () => {
+		renderUI(<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />)
+
+		expect(screen.queryByRole('button', { name: 'View data for Revenue' })).toBeNull()
+	})
+
 	it('shows none on an untitled chart outside a box, or with the menu off', () => {
 		const untitled = renderUI(<BarChart aria-label="Revenue" data={data} series={[...series]} />)
 

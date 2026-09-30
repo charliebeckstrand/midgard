@@ -1,12 +1,16 @@
 'use client'
 
-import { EllipsisVertical } from 'lucide-react'
+import { EllipsisVertical, Table2 } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../../components/button'
-import { type ContextMenuEntry, ContextMenuList } from '../../../components/context-menu'
+import {
+	type ContextMenuEntry,
+	type ContextMenuItem,
+	ContextMenuList,
+} from '../../../components/context-menu'
 import { Icon } from '../../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
-import { cn, createContext } from '../../../core'
+import { cn, createContext, dataAttr } from '../../../core'
 import { useHeaderActionsHost } from '../../../primitives/header-actions'
 
 /**
@@ -33,17 +37,27 @@ export type ChartMenuButtonProps = {
 	place: 'host' | 'header'
 }
 
+/** The item of `entries` with `key`, or `undefined`. */
+function itemOf(entries: ContextMenuEntry[], key: string): ContextMenuItem | undefined {
+	return entries.find((entry): entry is ContextMenuItem => 'key' in entry && entry.key === key)
+}
+
 /**
  * A button that opens the chart menu, for a touch screen. The menu opens on a
- * right-click, and a touch screen has none. A long press on a chart reads the
- * marks and does not open the menu. So the button is the one way to the menu
- * there. It shows only where the primary pointer is coarse, and it holds the
- * same entries as the right-click menu.
+ * right-click, and a touch screen has none. A touch on a chart opens no
+ * readout and no menu. So the button is the one way to the menu there. It
+ * shows only where the primary pointer is coarse, and it holds the same
+ * entries as the right-click menu.
  *
  * Inside a box that gives a header actions element ({@link useHeaderActionsHost}),
  * such as a dashboard tile, the button goes into the header row of the box with a
  * portal. Otherwise it sits at the end of the chart header. A chart with no
  * title then has no button. The button covers no mark in either place.
+ *
+ * In the header row of a box, a View data button comes before the menu
+ * button on each pointer, when the menu has the View data entry. The menu has
+ * the Fullscreen entry, so the row carries `data-own-fullscreen`, and the box
+ * can hide its own expand control.
  *
  * @internal
  */
@@ -56,7 +70,7 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	if ((place === 'host') !== (host !== null)) return null
 
-	const button = (
+	const menu = (
 		<div
 			data-slot="chart-menu-button"
 			// In the chart header the box keeps the height of one header line, and the
@@ -77,5 +91,31 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 		</div>
 	)
 
-	return host === null ? button : createPortal(button, host)
+	if (host === null) return menu
+
+	const viewData = itemOf(entries, 'view-data')
+
+	return createPortal(
+		<span
+			data-slot="chart-header-actions"
+			data-own-fullscreen={dataAttr(itemOf(entries, 'fullscreen') !== undefined)}
+			className="contents"
+		>
+			{viewData?.onAction && (
+				<Button
+					type="button"
+					variant="bare"
+					data-slot="chart-view-data"
+					disabled={viewData.disabled}
+					aria-label={title ? `View data for ${title}` : 'View data'}
+					onClick={viewData.onAction}
+				>
+					<Icon icon={<Table2 />} />
+				</Button>
+			)}
+
+			{menu}
+		</span>,
+		host,
+	)
 }

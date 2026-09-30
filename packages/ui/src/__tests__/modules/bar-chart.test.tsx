@@ -7,7 +7,7 @@ import {
 	stackedBarSnaps,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
-import { TOUCH_READOUT_DELAY, TOUCH_TAP_SLOP } from '../../modules/chart/engine/use-chart-touch-tap'
+import { TOUCH_TAP_SLOP, TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
 
 /**
@@ -74,49 +74,55 @@ describe('BarChart', () => {
 		expect(bySlot(one.container, 'chart-legend')).toBeNull()
 	})
 
-	it('opens the tooltip on a held press that does not move', () => {
+	it('opens no tooltip and points no bar on a touch hold', () => {
 		vi.useFakeTimers()
 
 		const { container } = renderUI(chart())
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		// A touch press fires the entry and no move while the finger holds still.
-		fireEvent.pointerOver(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		// A touch reads nothing from the chart. The data stays in the menu.
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
+		})
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
-		})
+		expect(spots(container)).toHaveLength(0)
 
-		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+		fireEvent.pointerUp(hit, at)
 
-		fireEvent.pointerOut(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		fireEvent.pointerOut(hit, at)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		vi.useRealTimers()
 	})
 
-	it('opens no tooltip on a tap that lifts before the hold', () => {
-		vi.useFakeTimers()
-
+	it('still opens the tooltip and points the bar on a mouse hover', () => {
 		const { container } = renderUI(chart())
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		fireEvent.pointerOver(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		const at = { clientX: 280, clientY: 100, pointerType: 'mouse' }
 
-		fireEvent.pointerOut(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		fireEvent.pointerOver(hit, at)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
-		})
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		expect(spots(container)).toHaveLength(1)
+
+		fireEvent.pointerOut(hit, at)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
-
-		vi.useRealTimers()
 	})
 
 	it('selects once on a tap and opens no tooltip', () => {
@@ -141,7 +147,7 @@ describe('BarChart', () => {
 		fireEvent.click(hit, at)
 
 		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
 		})
 
 		expect(select).toHaveBeenCalledOnce()
@@ -149,6 +155,8 @@ describe('BarChart', () => {
 		expect(select).toHaveBeenCalledWith('Q3', 2)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(spots(container)).toHaveLength(0)
 
 		vi.useRealTimers()
 	})
@@ -209,10 +217,10 @@ describe('BarChart', () => {
 		fireEvent.pointerDown(hit, at)
 
 		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
 		})
 
-		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		fireEvent.pointerUp(hit, at)
 
@@ -234,6 +242,85 @@ describe('BarChart', () => {
 		fireEvent.pointerOut(hit, moved)
 
 		expect(select).not.toHaveBeenCalled()
+
+		vi.useRealTimers()
+	})
+
+	it('under the click trigger, activates once on a tap and pins no tooltip', () => {
+		vi.useFakeTimers()
+
+		const select = vi.fn()
+
+		const { container } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, onCategoryClick: select }),
+		)
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerMove(hit, at)
+
+		fireEvent.pointerUp(hit, at)
+
+		// A cancelled touch end makes no click.
+		expect(fireEvent.touchEnd(hit)).toBe(false)
+
+		// A click that the browser still sends does not pin the readout.
+		fireEvent.click(hit, at)
+
+		fireEvent.pointerOut(hit, at)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
+		})
+
+		expect(select).toHaveBeenCalledOnce()
+
+		expect(select).toHaveBeenCalledWith('Q3', 2)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(spots(container)).toHaveLength(0)
+
+		// A mouse click still pins the readout and activates.
+		fireEvent.pointerDown(hit, { clientX: 280, clientY: 100, pointerType: 'mouse' })
+
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		expect(select).toHaveBeenCalledTimes(2)
+
+		vi.useRealTimers()
+	})
+
+	it('under the click trigger, points no bar on a touch hold', () => {
+		vi.useFakeTimers()
+
+		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
+		})
+
+		fireEvent.pointerUp(hit, at)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(spots(container)).toHaveLength(0)
 
 		vi.useRealTimers()
 	})

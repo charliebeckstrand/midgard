@@ -22,6 +22,20 @@ import { getOrCompute } from '../../../../utilities'
  */
 const NATURAL_COLLATOR = new Intl.Collator(undefined, { numeric: true })
 
+/** The natural collator of each locale, built once for each locale. @internal */
+const collators = new Map<string, Intl.Collator>()
+
+/**
+ * The natural collator of `locale`, or the one of the runtime locale when
+ * `locale` is unset. The string sort of the grid orders by it, so a
+ * `LocaleProvider` sets the collation. @internal
+ */
+export function naturalCollator(locale: string | undefined): Intl.Collator {
+	if (locale === undefined) return NATURAL_COLLATOR
+
+	return getOrCompute(collators, locale, () => new Intl.Collator(locale, { numeric: true }))
+}
+
 /** Grouping separators and spacing stripped before a numeric parse (US/UK convention: comma groups, dot decimal). @internal */
 const NUMERIC_NOISE = /[\s,_]/g
 
@@ -195,7 +209,11 @@ function compareNumbers(a: number, b: number): number {
  *
  * @internal
  */
-export function compareSortKeys(a: SortKey, b: SortKey): number {
+export function compareSortKeys(
+	a: SortKey,
+	b: SortKey,
+	collator: Intl.Collator = NATURAL_COLLATOR,
+): number {
 	if (a.empty || b.empty) {
 		if (a.empty && b.empty) return 0
 
@@ -212,7 +230,7 @@ export function compareSortKeys(a: SortKey, b: SortKey): number {
 
 	if (a.isBoolean && b.isBoolean) return a.boolean - b.boolean
 
-	return NATURAL_COLLATOR.compare(a.text, b.text)
+	return collator.compare(a.text, b.text)
 }
 
 /**
@@ -304,10 +322,14 @@ export function sortRowsSmart<T>(
  *
  * @internal
  */
-export function computeSortOrder<T>(rows: readonly T[], fields: SmartSortField<T>[]): number[] {
+export function computeSortOrder<T>(
+	rows: readonly T[],
+	fields: SmartSortField<T>[],
+	collator: Intl.Collator = NATURAL_COLLATOR,
+): number[] {
 	// One index comparator per field, each closing over its decoded keys (the
 	// costly decode runs once here, not per comparison).
-	const comparators = fields.map((field) => buildFieldComparator(rows, field))
+	const comparators = fields.map((field) => buildFieldComparator(rows, field, collator))
 
 	// The common case is a single sort column; skip the multi-field loop's
 	// per-comparison iterator and closure hop for it.
@@ -343,7 +365,12 @@ export function computeSortOrder<T>(rows: readonly T[], fields: SmartSortField<T
  *
  * @internal
  */
-function mirrorOrder<T>(rows: readonly T[], order: number[], field: SmartSortField<T>): number[] {
+function mirrorOrder<T>(
+	rows: readonly T[],
+	order: number[],
+	field: SmartSortField<T>,
+	collator: Intl.Collator,
+): number[] {
 	const keyOf = (position: number) =>
 		toSortKey(field.accessor(rows[order[position] as number] as T))
 
@@ -373,7 +400,10 @@ function mirrorOrder<T>(rows: readonly T[], order: number[], field: SmartSortFie
 	while (end > 0) {
 		let start = end - 1
 
-		while (start > 0 && compareSortKeys(keys[start - 1] as SortKey, keys[start] as SortKey) === 0) {
+		while (
+			start > 0 &&
+			compareSortKeys(keys[start - 1] as SortKey, keys[start] as SortKey, collator) === 0
+		) {
 			start--
 		}
 
@@ -408,6 +438,7 @@ const sortOrders = new WeakMap<object, WeakMap<object, Map<string, number[]>>>()
  * @param columns - The column set that the fields read. A new set drops the orders.
  * @param signature - The column id and the direction of each sort entry.
  * @param mirror - The signature of the same single column in the other direction.
+ * @param locale - The locale that the string sort collates in (see {@link naturalCollator}).
  * @internal
  */
 export function cachedSortOrder<T>(
@@ -416,7 +447,13 @@ export function cachedSortOrder<T>(
 	signature: string,
 	fields: SmartSortField<T>[],
 	mirror?: string,
+	locale?: string,
 ): number[] {
+	const collator = naturalCollator(locale)
+
+	// The collation is part of the order, so the locale is part of its key.
+	const scope = locale ?? ''
+
 	const byColumns = getOrCompute(
 		sortOrders,
 		rows,
@@ -425,14 +462,14 @@ export function cachedSortOrder<T>(
 
 	const orders = getOrCompute(byColumns, columns, () => new Map<string, number[]>())
 
-	return getOrCompute(orders, signature, () => {
+	return getOrCompute(orders, `${scope}|${signature}`, () => {
 		const [only] = fields
 
-		const flipped = mirror === undefined ? undefined : orders.get(mirror)
+		const flipped = mirror === undefined ? undefined : orders.get(`${scope}|${mirror}`)
 
 		return flipped && only && fields.length === 1 && only.sortFn === null
-			? mirrorOrder(rows, flipped, only)
-			: computeSortOrder(rows, fields)
+			? mirrorOrder(rows, flipped, only, collator)
+			: computeSortOrder(rows, fields, collator)
 	})
 }
 
@@ -480,6 +517,7 @@ export function materializeSort<T>(
 function buildFieldComparator<T>(
 	rows: readonly T[],
 	field: SmartSortField<T>,
+	collator: Intl.Collator,
 ): (i: number, j: number) => number {
 	const { descending, sortFn } = field
 
@@ -498,7 +536,7 @@ function buildFieldComparator<T>(
 
 		const b = keys[j] as SortKey
 
-		return compareDirected(a, b, descending)
+		return compareDirected(a, b, descending, collator)
 	}
 }
 
@@ -508,8 +546,13 @@ function buildFieldComparator<T>(
  *
  * @internal
  */
-export function compareDirected(a: SortKey, b: SortKey, descending: boolean): number {
-	const raw = compareSortKeys(a, b)
+export function compareDirected(
+	a: SortKey,
+	b: SortKey,
+	descending: boolean,
+	collator: Intl.Collator = NATURAL_COLLATOR,
+): number {
+	const raw = compareSortKeys(a, b, collator)
 
 	if (a.empty || b.empty) return raw
 

@@ -6,7 +6,6 @@ import type {
 	ColumnVisibilityState,
 	columnResizingState,
 	FilterFn,
-	GroupingState,
 	OnChangeFn,
 	PaginationState,
 	Row,
@@ -20,6 +19,7 @@ import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
 import {
+	DEFAULT_MIN_COLUMN_SIZE,
 	DRAG_HANDLE_COLUMN_SIZE,
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
@@ -41,11 +41,6 @@ export function toSortingState(sort: GridSortState[] | undefined): SortingState 
 		id: String(entry.column),
 		desc: entry.direction === 'desc',
 	}))
-}
-
-/** Adapts a TanStack `SortingState` back to the grid's ordered {@link GridSortState} list. @internal */
-export function toSortState(sorting: SortingState): GridSortState[] {
-	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
 }
 
 /**
@@ -199,6 +194,22 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
 }
 
 /**
+ * The engine `minSize` of a column: its `minWidth`, else, for a data column,
+ * {@link DEFAULT_MIN_COLUMN_SIZE} or a declared width below it. A pointer drag,
+ * the keyboard, and the separator's `aria-valuemin` then share one floor. A
+ * non-data column does not resize, so it keeps the engine default.
+ *
+ * @internal
+ */
+function floorOf<T>(col: GridColumn<T>, size: number | undefined): { minSize?: number } {
+	if (col.minWidth != null) return { minSize: col.minWidth }
+
+	if (!isDataColumn(col)) return {}
+
+	return { minSize: Math.min(DEFAULT_MIN_COLUMN_SIZE, size ?? DEFAULT_MIN_COLUMN_SIZE) }
+}
+
+/**
  * Maps a grid column to its engine `ColumnDef`: identity, the capability gates,
  * the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds.
  *
@@ -232,7 +243,7 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 		...(engineSortFn ? { sortFn: engineSortFn, sortUndefined: false as const } : {}),
 		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
-		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
+		...floorOf(col, size),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
 	}
 }
@@ -312,39 +323,6 @@ export function filterOptions<T>(args: {
 	}
 }
 
-/**
- * Client-sort slice of the table options. The grid sorts its own rows (see
- * `useGridClientView`), so the engine only holds the sort state.
- *
- * @internal
- */
-export function sortOptions<T>(args: {
-	clientSort: boolean
-	onSortingChange: OnChangeFn<SortingState>
-}): Partial<EngineOptions<T>> {
-	if (!args.clientSort) return {}
-
-	return {
-		onSortingChange: args.onSortingChange,
-		// The grid owns the additive Shift-click model, so the engine must honor a
-		// multi-column sorting state rather than collapse it to one column.
-		enableMultiSort: true,
-	}
-}
-
-/**
- * Row-grouping slice of the table options. The grid groups its own rows (see
- * `groupRows`), so the engine only holds the grouping state.
- *
- * @internal
- */
-export function groupingOptions<T>(args: {
-	grouped: boolean
-	onGroupingChange: OnChangeFn<GroupingState>
-}): Partial<EngineOptions<T>> {
-	return args.grouped ? { onGroupingChange: args.onGroupingChange } : {}
-}
-
 /** Column-resize slice of the table options, or `{}` when resizing is off. @internal */
 export function resizeOptions<T>(args: {
 	resizable: boolean
@@ -412,9 +390,7 @@ type GridControlledState = {
 	columnResizing?: columnResizingState
 	globalFilter?: string
 	columnFilters?: ColumnFiltersState
-	sorting?: SortingState
 	columnPinning?: ColumnPinningState
-	grouping?: GroupingState
 	columnOrder: ColumnOrderState
 	columnVisibility: ColumnVisibilityState
 }
@@ -430,12 +406,8 @@ export function buildState(args: {
 	globalFilter: string
 	columnFiltered: boolean
 	columnFilters: ColumnFiltersState
-	sortClient: boolean
-	sorting: SortingState
 	pinned: boolean
 	columnPinning: ColumnPinningState
-	grouped: boolean
-	grouping: GroupingState
 	columnOrder: ColumnOrderState
 	columnVisibility: ColumnVisibilityState
 }): GridControlledState {
@@ -455,10 +427,6 @@ export function buildState(args: {
 	if (args.globalFiltered) state.globalFilter = args.globalFilter
 
 	if (args.columnFiltered) state.columnFilters = args.columnFilters
-
-	if (args.grouped) state.grouping = args.grouping
-
-	if (args.sortClient) state.sorting = args.sorting
 
 	if (args.pinned) state.columnPinning = args.columnPinning
 
