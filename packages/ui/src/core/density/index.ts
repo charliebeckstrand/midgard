@@ -2,7 +2,10 @@ export {
 	type DensityStep,
 	densitySteps,
 	type InnerStep,
-	rootDensityAttribute,
+	type MarkedStep,
+	readRootDensity,
+	rootDensityClasses,
 	stepDown,
 	toInnerStep,
+	writeRootDensity,
 } from './steps'

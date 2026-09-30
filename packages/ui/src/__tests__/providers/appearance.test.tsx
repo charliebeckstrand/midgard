@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cleanup } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
+import { readRootDensity, writeRootDensity } from '../../core/density'
 import { useDensityStep } from '../../primitives/density'
 import {
 	AppearanceProvider,
@@ -36,7 +37,7 @@ afterEach(() => {
 
 	document.documentElement.classList.remove('dark')
 
-	document.documentElement.removeAttribute('data-density-root')
+	writeRootDensity(document.documentElement, 'md')
 })
 
 describe('AppearanceProvider', () => {
@@ -85,7 +86,7 @@ describe('AppearanceProvider', () => {
 
 		expect(localStorage.getItem('density')).toBe('compact')
 
-		expect(document.documentElement).toHaveAttribute('data-density-root', 'sm')
+		expect(readRootDensity(document.documentElement)).toBe('sm')
 	})
 
 	it('writes the stored density on the root element and opens no scope of its own', () => {
@@ -97,7 +98,7 @@ describe('AppearanceProvider', () => {
 			</AppearanceProvider>,
 		)
 
-		expect(document.documentElement).toHaveAttribute('data-density-root', 'lg')
+		expect(readRootDensity(document.documentElement)).toBe('lg')
 
 		expect(bySlot(container, 'density')).toBeNull()
 	})
@@ -184,19 +185,19 @@ describe('AppearanceScript', () => {
 
 		runScript()
 
-		expect(document.documentElement).toHaveAttribute('data-density-root', 'sm')
+		expect(readRootDensity(document.documentElement)).toBe('sm')
 	})
 
 	it('writes the snug step for a missing or unknown density', () => {
 		runScript()
 
-		expect(document.documentElement).toHaveAttribute('data-density-root', 'md')
+		expect(readRootDensity(document.documentElement)).toBe('md')
 
 		localStorage.setItem('density', '__proto__')
 
 		runScript()
 
-		expect(document.documentElement).toHaveAttribute('data-density-root', 'md')
+		expect(readRootDensity(document.documentElement)).toBe('md')
 	})
 
 	it('applies the stored dark theme', () => {
@@ -219,11 +220,11 @@ describe('AppearanceScript', () => {
 		const paint = (script: () => void) => {
 			root.classList.remove('dark')
 
-			root.removeAttribute('data-density-root')
+			writeRootDensity(root, 'md')
 
 			script()
 
-			return `${root.classList.contains('dark')} ${root.getAttribute('data-density-root')}`
+			return root.className
 		}
 
 		const mismatches: string[] = []

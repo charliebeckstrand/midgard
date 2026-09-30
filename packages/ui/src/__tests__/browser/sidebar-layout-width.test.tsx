@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { densitySteps } from '../../core/density'
+import { densitySteps, writeRootDensity } from '../../core/density'
 import { SidebarLayout, SidebarLayoutBody } from '../../layouts'
 import { frames, present, renderUI } from '../helpers'
 import { settledSheet } from './helpers/settled-sheet'
@@ -20,11 +20,11 @@ describe('sidebar layout width (real browser)', () => {
 	beforeAll(() => page.viewport(1280, 800))
 
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density-root')
+		writeRootDensity(document.documentElement, 'md')
 	})
 
 	it.each(densitySteps)('gives the floating sidebar the width of the rail at %s', async (step) => {
-		document.documentElement.setAttribute('data-density-root', step)
+		writeRootDensity(document.documentElement, step)
 
 		const inline = renderUI(
 			<SidebarLayout sidebar={<nav>Links</nav>}>

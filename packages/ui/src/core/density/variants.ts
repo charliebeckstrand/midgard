@@ -19,7 +19,7 @@
  * pseudo-element writes no rule that a browser can match.
  *
  * `density-any` is the rank below each step: it applies at each density. It is
- * in the layer of the root rung (`density-0`) with no specificity, so each step
+ * in the layer of the root rungs (`density-0`) with no specificity, so each step
  * and each plain utility wins over it. A default that a step must replace, such
  * as the height of a Placeholder, uses it.
  */
@@ -45,9 +45,10 @@ export const handler: PluginCreator = ({ addVariant, matchVariant }) => {
 		}
 
 		// `matchVariant` takes each rule as a string: an at-rule that holds the
-		// selector, with no body. Tailwind writes the `@slot` into it.
-		return Object.entries(rungs(steps, {})).map(
-			([layer, rule]) => `${layer} { ${Object.keys(rule)[0]} }`,
+		// selector, with no body. Tailwind writes the `@slot` into it. A layer
+		// can hold more than one rule, such as the rungs of the root.
+		return Object.entries(rungs(steps, {})).flatMap(([layer, rules]) =>
+			Object.keys(rules).map((selector) => `${layer} { ${selector} }`),
 		)
 	})
 }

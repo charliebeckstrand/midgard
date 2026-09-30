@@ -10,15 +10,22 @@
  * utility is in `utilities` itself, and it outranks each nested layer. So a
  * consumer `className` always wins over a density class.
  *
- * The root element is the scope of the app. `AppearanceScript` writes the
- * stored step on it before the first paint, in `data-density-root`
- * ({@link rootDensityAttribute}), not in `data-density`. Thus Chromium can
- * reject the `[data-density]` ancestor of a rung through its ancestor filter
- * when no scope is above the element. The root does not count as a
- * depth: its rung is in the layer `density-0`, below the layer of each depth,
- * so each other scope wins over it, and the trees keep each ranked depth. With
- * no step on the root, the `md` step applies outside each scope. The rungs
- * write `density-0` first, so it is the first layer in the output.
+ * The root element is the scope of the app. `md` is the base of each stepped
+ * class: its rung is in the layer `density-0` and reads no ancestor. For each
+ * other step, `AppearanceScript` writes a class on the root before the first
+ * paint ({@link rootDensityClasses}), and the rung of that class is in the
+ * same layer. The class gives the rung one more class of specificity, so it
+ * wins over the base. At `md` the root has no mark. The root does not count as
+ * a depth: `density-0` is below the layer of each depth, so each other scope
+ * wins over it, and the trees keep each ranked depth. The rungs write
+ * `density-0` first, so it is the first layer in the output. `density-any` is
+ * in the same layer with no specificity, so the base wins over it.
+ *
+ * Chromium rejects a rung through its ancestor filter when no ancestor has a
+ * name in the rung: a class, or the name of an attribute. A class for each
+ * step of the root lets it reject the rung of each other step, and a group of
+ * steps names `[data-density]` outside its `:is()`, because the filter reads
+ * no name in `:is()`.
  *
  * The rungs of one layer match the same element only for the nearest scope.
  * So the rank does not use specificity, and a selector list of one layer keeps
@@ -32,7 +39,13 @@
  * the step of the outer slot, because a rung reads one slot after a scope.
  */
 
-import { type DensityStep, densitySteps, rootDensityAttribute, stepDown } from './steps'
+import {
+	type DensityStep,
+	densitySteps,
+	type MarkedStep,
+	rootDensityClasses,
+	stepDown,
+} from './steps'
 
 /** A CSS rule in the object form of the plugin API. */
 export type CssInJs = { [key: string]: string | CssInJs }
@@ -51,35 +64,61 @@ const scope = '[data-density]'
 /** A control slot: a scope one step below the scope above it. */
 const slot = "[data-density='slot']"
 
-/** Matches an element with one of `steps` on `data-density`. */
-function stepIn(steps: readonly DensityStep[], attribute = 'data-density'): string {
-	const each = steps.map((step) => `[${attribute}='${step}']`)
+/**
+ * Matches an element with one of `steps` on `data-density`. A group names the
+ * attribute outside its `:is()`, so the ancestor filter of Chromium can reject
+ * it.
+ */
+function stepIn(steps: readonly DensityStep[]): string {
+	const each = steps.map((step) => `[data-density='${step}']`)
 
-	return each.length === 1 ? `${each[0]}` : `:is(${each.join(', ')})`
+	return each.length === 1 ? `${each[0]}` : `[data-density]:is(${each.join(', ')})`
 }
+
+/** Returns `true` when the root marks `step` with a class. */
+function isMarked(step: DensityStep): step is MarkedStep {
+	return Object.hasOwn(rootDensityClasses, step)
+}
+
+/** The selector of the root class for `step`. */
+const rootMark = (step: MarkedStep) => `.${rootDensityClasses[step]}`
+
+/** The root element with no mark: its step is `md`. */
+const unmarked = `:root:not(${Object.values(rootDensityClasses)
+	.map((name) => `.${name}`)
+	.join(', ')})`
 
 /**
  * The rungs of the first depth that read the root element: a slot under a
- * root step whose slots take one of `steps`, and the `md` step when the root
- * has no step.
+ * root step whose slots take one of `steps`.
  */
-function firstDepth(steps: readonly DensityStep[], hosts: readonly DensityStep[]): string[] {
+function firstDepth(hosts: readonly DensityStep[]): string[] {
 	const selectors: string[] = []
 
-	const noRoot = `:root:not([${rootDensityAttribute}])`
+	for (const host of hosts) {
+		const root = isMarked(host) ? `:where(${rootMark(host)})` : `:where(${unmarked})`
 
-	if (hosts.length > 0) {
-		const rootHost = stepIn(hosts, rootDensityAttribute)
-
-		selectors.push(`:where(:root${rootHost}) ${slot} &`, `:where(:root${rootHost}) &${slot}`)
+		selectors.push(`${root} ${slot} &`, `${root} &${slot}`)
 	}
 
-	if (steps.includes('md')) selectors.push(`:where(${noRoot}) &:not(${scope}, ${scope} *)`)
-
-	if (hosts.includes('md'))
-		selectors.push(`:where(${noRoot}) ${slot} &`, `:where(${noRoot}) &${slot}`)
-
 	return selectors
+}
+
+/**
+ * The rungs of the root, in the layer `density-0`: the base for `md`, and a
+ * class of the root for each other step. Each rung is its own rule, so the
+ * `:is()` of a variant before a pseudo-element does not give the base the
+ * specificity of a root class. Each step has a rung here, so `density-0` is
+ * the first layer in the output.
+ */
+function rootRungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
+	const rules: CssInJs = {}
+
+	if (steps.includes('md')) rules['&'] = body
+
+	for (const step of steps) if (isMarked(step)) rules[`${rootMark(step)} &`] = body
+
+	return rules
 }
 
 /**
@@ -94,12 +133,9 @@ export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
 
 	const host = hosts.length > 0 ? stepIn(hosts) : null
 
-	// The same steps on the attribute of the root element.
-	const rootOwn = stepIn(steps, rootDensityAttribute)
+	const layers: CssInJs = { '@layer density-0': rootRungs(steps, body) }
 
-	const layers: CssInJs = { '@layer density-0': { [`:where(:root${rootOwn}) &`]: body } }
-
-	const first = firstDepth(steps, hosts)
+	const first = firstDepth(hosts)
 
 	for (let depth = 1; depth <= maxDepth; depth++) {
 		const above = `${scope} `.repeat(depth - 1)

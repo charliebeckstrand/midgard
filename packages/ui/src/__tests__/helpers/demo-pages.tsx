@@ -2,6 +2,7 @@
 import { act, fireEvent } from '@testing-library/react'
 import type { ComponentType } from 'react'
 import { onTestFinished } from 'vitest'
+import { readRootDensity, writeRootDensity } from '../../core/density'
 
 // The demo pages of the docs site, and a walk over each state that a page's tabs
 // show. The snippet gate and the demo smoke test read the same pages.
@@ -85,13 +86,12 @@ export async function visitTabs(container: Element, visit: () => Promise<void>):
 export function restoreRootAfterCase(): void {
 	const root = document.documentElement
 
-	const density = root.getAttribute('data-density-root')
+	const density = readRootDensity(root)
 
 	const dark = root.classList.contains('dark')
 
 	onTestFinished(() => {
-		if (density === null) root.removeAttribute('data-density-root')
-		else root.setAttribute('data-density-root', density)
+		writeRootDensity(root, density)
 
 		root.classList.toggle('dark', dark)
 	})

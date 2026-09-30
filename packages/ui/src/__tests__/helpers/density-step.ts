@@ -1,4 +1,4 @@
-import { type DensityStep, densitySteps, stepDown } from '../../core/density'
+import { type DensityStep, densitySteps, readRootDensity, stepDown } from '../../core/density'
 
 const isStep = (value: string | null): value is DensityStep =>
 	densitySteps.includes(value as DensityStep)
@@ -25,9 +25,7 @@ export function densityStepOf(element: Element): DensityStep {
 		else if (isStep(value)) return slot ? stepDown(value) : value
 	}
 
-	const root = document.documentElement.getAttribute('data-density-root')
-
-	const step = isStep(root) ? root : 'md'
+	const step = readRootDensity(document.documentElement)
 
 	return slot ? stepDown(step) : step
 }
