@@ -1,10 +1,10 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { useGridResizing, useGridSettle } from './context'
+import { GridCellEditingContext, useGridResizing, useGridSettle } from './context'
 import { cellContentAt, type GridIndexedColumn, resolveCellTooltip } from './engine/grid-row/cell'
 import { searchedContent } from './grid-highlight-utilities'
 import { useGridTruncation } from './use-grid-truncation'
@@ -61,25 +61,36 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
 	// and the end of a drag do not render each cell again.
 	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(onSettle, settle?.resizing)
 
+	// Whether the content holds an open editor (see `GridCellEditingContext`).
+	const [editing, setEditing] = useState(false)
+
+	const reveal = tooltip.kind !== 'none' && contacted && truncated
+
+	// Mount the reveal machinery only for a cell that is both visited and
+	// actually clipped. The wrap reparents the span, and a reparent tears down
+	// the live state below it: an in-place editor, focused and holding a draft.
+	// An open editor therefore freezes the wrap as it is. The focus of the
+	// editor is the first contact of a cell that the keyboard entered, and the
+	// editor can measure clipped: a narrow column clips it, and the fill handle
+	// sits past the box of the span. The wrap follows the measure again when the
+	// editor closes.
+	const [wrapped, setWrapped] = useState(reveal)
+
+	if (!editing && wrapped !== reveal) setWrapped(reveal)
+
 	const span = (
 		// `data-grid-content` marks the truncating leaf so the column autosizer can
 		// read its intrinsic content width (`scrollWidth`/`Range`), unclipped by the
 		// column it's measuring.
 		<span ref={ref} data-grid-content className={TRUNCATE_CLASS}>
-			{content}
+			<GridCellEditingContext value={setEditing}>{content}</GridCellEditingContext>
 		</span>
 	)
 
-	// Mount the reveal machinery only for a cell that is both visited and
-	// actually clipped: the wrap reparents the span, and a cell hosting live
-	// state below it — an in-place editor, focused and holding a draft — must
-	// never be torn down by a passing pointer or its own focus bubbling up. A
-	// fitting cell's content (an editor stretched to the column, a short value)
-	// measures untruncated, so it stays a bare span through any contact.
-	if (tooltip.kind === 'none' || !contacted || !truncated) return span
+	if (!wrapped) return span
 
 	return (
-		<GridCellReveal node={tooltip.kind === 'custom' ? tooltip.node : content}>
+		<GridCellReveal node={tooltip.kind === 'custom' ? tooltip.node : content} editing={editing}>
 			{span}
 		</GridCellReveal>
 	)
@@ -91,14 +102,24 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
  *
  * @internal
  */
-function GridCellReveal({ node, children }: { node: ReactNode; children: ReactNode }) {
+function GridCellReveal({
+	node,
+	editing,
+	children,
+}: {
+	node: ReactNode
+	/** Whether the cell holds an open editor, which the reveal must not show again. */
+	editing: boolean
+	children: ReactNode
+}) {
 	const resizing = useGridResizing()
 
 	return (
 		// `resizing` holds the tooltip closed through a column drag-resize: the
 		// drag reflows the column, and the overflow tooltip would otherwise flash
-		// open over the content the resize is reshaping.
-		<Tooltip disabled={resizing}>
+		// open over the content the resize is reshaping. An open editor holds it
+		// closed too: the reveal shows the content of the cell, not a second editor.
+		<Tooltip disabled={resizing || editing}>
 			<TooltipTrigger>{children}</TooltipTrigger>
 
 			<TooltipContent className={TOOLTIP_CLASS}>{node}</TooltipContent>

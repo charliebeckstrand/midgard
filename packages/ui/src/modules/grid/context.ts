@@ -124,3 +124,16 @@ export const [GridDirectionContext, useGridDirection] = createContext<'ltr' | 'r
 	'GridDirection',
 	{ default: null },
 )
+
+/**
+ * Reports an open editor to the truncating content of its cell (see
+ * `GridCellContent`). The editor calls it with `true` as it mounts and with
+ * `false` as it unmounts. While an editor is open, the cell keeps its element
+ * tree, so the reveal does not reparent the focused editor. It is `null`
+ * outside a truncating cell.
+ *
+ * @internal
+ */
+export const [GridCellEditingContext, useGridCellEditing] = createContext<
+	((editing: boolean) => void) | null
+>('GridCellEditing', { default: null })
