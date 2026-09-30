@@ -30,6 +30,8 @@ export type GridDetailExpansion<T> = {
 	rowExpandable: (row: T) => boolean
 	toggle: (key: string | number) => void
 	render: (row: T) => ReactNode
+	/** The DOM id of a row's detail panel, which the expander's `aria-controls` names. */
+	panelId: (rowKey: string | number) => string
 }
 
 /** The group-header model {@link GridHead} renders from: the resolved spans and the collapse controls. @internal */
@@ -276,7 +278,8 @@ export function resolveGroupingGates(args: {
  * That is whether it's active, plus the body wiring the flat rows read. The
  * wiring is the expanded set, the per-row predicate, the toggle, and the detail
  * renderer. Grouping renders its own body, so expansion stands down under it.
- * The result is `null` when inactive. Kept off {@link GridData}'s complexity
+ * `idScope` is the grid's own id, the prefix of each panel id. The result is
+ * `null` when inactive. Kept off {@link GridData}'s complexity
  * budget.
  *
  * @internal
@@ -284,6 +287,7 @@ export function resolveGroupingGates(args: {
 export function resolveDetailExpansion<T>(
 	expansion: GridExpansionResult<T>,
 	groupingActive: boolean,
+	idScope: string,
 ): { active: boolean; body: GridDetailExpansion<T> | null } {
 	const active = expansion.active && !groupingActive
 
@@ -296,8 +300,18 @@ export function resolveDetailExpansion<T>(
 			rowExpandable: expansion.rowExpandable,
 			toggle: expansion.toggle,
 			render: expansion.render,
+			panelId: (rowKey) => detailPanelId(idScope, rowKey),
 		},
 	}
+}
+
+/**
+ * The DOM id of a row's detail panel. The grid's own id scope keeps two grids
+ * with the same keys apart. The key is escaped, so a key with a space is still
+ * one id token for `aria-controls`. @internal
+ */
+export function detailPanelId(idScope: string, rowKey: string | number): string {
+	return `${idScope}-detail-${encodeURIComponent(String(rowKey))}`
 }
 
 /**
