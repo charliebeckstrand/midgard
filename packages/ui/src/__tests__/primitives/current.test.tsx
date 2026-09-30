@@ -10,7 +10,7 @@ import {
 	useCurrentPanelActive,
 	useCurrentState,
 } from '../../primitives/current'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, setupUser } from '../helpers'
 
 function ActiveProbe({ id }: { id: string }) {
 	return <span data-testid={id}>{String(useCurrentPanelActive())}</span>
@@ -257,7 +257,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="always" preserves a hidden panel’s DOM state across switches', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels mount="always" initial="b" />)
 
@@ -270,7 +270,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="always" fade=false tears down a hidden panel’s effects, then remounts them', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onSetup = vi.fn()
 
@@ -304,7 +304,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="active" with fade unmounts the outgoing panel once its fade-out completes', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onCleanup = vi.fn()
 
@@ -325,7 +325,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="lazy" with fade holds a visited panel through the cross-fade', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels mount="lazy" fade />)
 
@@ -366,7 +366,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="lazy" defers a panel until first activation, then holds it', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onSetup = vi.fn()
 

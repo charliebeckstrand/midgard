@@ -1,19 +1,22 @@
 // @vitest-environment node
 
 import { fc, test } from '@fast-check/vitest'
-import { geoArea } from 'd3-geo'
+import { type GeoProjection, geoArea, geoProjection } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { GEOFENCE_CIRCLE_STEPS } from '../../modules/map/engine/map-constants'
 import {
 	areaAnchor,
 	areaReach,
 	dotPath,
+	featureRings,
+	lineAnchor,
 	linePath,
 	projectArea,
 	projectPoint,
 	ringAnchor,
 	ringsNear,
 	ringsPath,
+	unprojectPoint,
 } from '../../modules/map/engine/map-geometry/mark'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
@@ -381,6 +384,100 @@ describe('projectPoint', () => {
 		const projection = fitMapProjection('albers-usa', [], 300, 100)
 
 		expect(projectPoint(projection, [-0.13, 51.5])).toBeNull()
+	})
+})
+
+describe('unprojectPoint', () => {
+	it('carries a frame position back to the lon/lat it draws from', () => {
+		const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+
+		const at = projectPoint(projection, [5, 5])
+
+		if (at === null) throw new Error('fixture position has no image')
+
+		const back = unprojectPoint(projection, at)
+
+		expect(back?.[0]).toBeCloseTo(5, 9)
+
+		expect(back?.[1]).toBeCloseTo(5, 9)
+	})
+
+	it('is null before a projection is fitted', () => {
+		expect(unprojectPoint(null, { x: 10, y: 10 })).toBeNull()
+	})
+
+	it('is null for a projection that cannot invert', () => {
+		// d3 gives a projection an `invert` only where its raw form has one.
+		const oneWay = geoProjection((lambda, phi) => [lambda, phi])
+
+		expect(oneWay.invert).toBeUndefined()
+
+		expect(unprojectPoint(oneWay, { x: 10, y: 10 })).toBeNull()
+	})
+
+	it('is null where the inverse is not a finite position', () => {
+		const projection = geoProjection((lambda, phi) => [lambda, phi])
+
+		const broken = Object.assign((position: [number, number]) => projection(position), {
+			invert: (): [number, number] => [Number.NaN, 0],
+		}) as unknown as GeoProjection
+
+		expect(unprojectPoint(broken, { x: 10, y: 10 })).toBeNull()
+	})
+})
+
+describe('featureRings', () => {
+	const RING = [
+		[0, 0],
+		[0, 1],
+		[1, 1],
+		[0, 0],
+	]
+
+	it('wraps a polygon as one part', () => {
+		expect(featureRings(polygonFeature('P', [RING]))).toEqual([[RING]])
+	})
+
+	it('passes a multipolygon through as its parts', () => {
+		const parts = [[RING], [RING]]
+
+		expect(
+			featureRings({ type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: parts } }),
+		).toBe(parts)
+	})
+
+	it('is empty for a feature that draws no area', () => {
+		expect(featureRings({ type: 'Feature', geometry: null })).toEqual([])
+
+		expect(
+			featureRings({ type: 'Feature', geometry: { type: 'Point', coordinates: [0, 0] } }),
+		).toEqual([])
+	})
+})
+
+describe('lineAnchor', () => {
+	it('takes the middle point of an odd count', () => {
+		expect(
+			lineAnchor([
+				[0, 0],
+				[4, 2],
+				[10, 10],
+			]),
+		).toEqual([[4, 2]])
+	})
+
+	it('takes the midpoint of the two middle points of an even count', () => {
+		// A two-stop line anchors between its ends, not on the shared origin.
+		expect(
+			lineAnchor([
+				[0, 0],
+				[10, 4],
+			]),
+		).toEqual([[5, 2]])
+	})
+
+	it('is empty for a line with no points', () => {
+		expect(lineAnchor([])).toEqual([])
 	})
 })
 
@@ -756,6 +853,21 @@ describe('areaReach', () => {
 		expect(reachOf([[square(10).reverse()]])).toBe(5)
 	})
 
+	it('measures nothing for a ring collapsed to one position', () => {
+		// No perimeter to divide by, so the ring holds no room.
+		expect(
+			reachOf([
+				[
+					[
+						[3, 3],
+						[3, 3],
+						[3, 3],
+					],
+				],
+			]),
+		).toBe(0)
+	})
+
 	it('measures nothing where the projection dropped every ring', () => {
 		expect(areaReach(projectArea([[square(10)]], () => null))).toBe(0)
 	})
@@ -785,6 +897,16 @@ describe('areaAnchor', () => {
 		expect(anchor?.[0]).toBeCloseTo(100, 0)
 	})
 
+	it('keeps the largest part when a smaller one follows it', () => {
+		expect(areaAnchor([[WIDE], [SMALL]])).toEqual(areaAnchor([[SMALL], [WIDE]]))
+	})
+
+	it('skips a part with no outer ring', () => {
+		expect(areaAnchor([[], [WIDE]])).toEqual(areaAnchor([[WIDE]]))
+
+		expect(areaAnchor([[[]], [WIDE]])).toEqual(areaAnchor([[WIDE]]))
+	})
+
 	it('reads size the same whichever way a ring winds', () => {
 		expect(areaAnchor([[SMALL], [WIDE]])).toEqual(
 			areaAnchor([[[...SMALL].reverse()], [[...WIDE].reverse()]]),
@@ -799,6 +921,8 @@ describe('areaAnchor', () => {
 		expect(areaAnchor([])).toEqual([])
 
 		expect(areaAnchor([[]])).toEqual([])
+
+		expect(areaAnchor([[[]], [[]]])).toEqual([])
 	})
 })
 

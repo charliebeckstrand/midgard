@@ -23,28 +23,16 @@ describe('densityLevels', () => {
 describe('DensityProvider context', () => {
 	// The provider opens the context half of its scope at the step of its level.
 	// A client reader, such as a portal root, reads that step.
-	it('gives compact as the sm step', () => {
+	it.each([
+		['compact', 'sm'],
+		['snug', 'md'],
+		['loose', 'lg'],
+	] as const)('gives %s as the %s step', (density, step) => {
 		const { result } = renderHook(() => useDensityStep(), {
-			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
+			wrapper: ({ children }) => <DensityProvider density={density}>{children}</DensityProvider>,
 		})
 
-		expect(result.current).toBe('sm')
-	})
-
-	it('gives snug as the md step', () => {
-		const { result } = renderHook(() => useDensityStep(), {
-			wrapper: ({ children }) => <DensityProvider density="snug">{children}</DensityProvider>,
-		})
-
-		expect(result.current).toBe('md')
-	})
-
-	it('gives loose as the lg step', () => {
-		const { result } = renderHook(() => useDensityStep(), {
-			wrapper: ({ children }) => <DensityProvider density="loose">{children}</DensityProvider>,
-		})
-
-		expect(result.current).toBe('lg')
+		expect(result.current).toBe(step)
 	})
 })
 

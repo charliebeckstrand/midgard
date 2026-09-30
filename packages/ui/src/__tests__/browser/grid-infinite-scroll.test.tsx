@@ -65,6 +65,27 @@ describe('grid infinite scroll (real browser)', () => {
 		)
 	}
 
+	/**
+	 * A "failing" source: `onLoadMore` never grows the rows, so the loaded count
+	 * never re-arms the old latch.
+	 */
+	function FailingGrid({ onLoadMore }: { onLoadMore: () => void }) {
+		const rows = useMemo(() => allRows.slice(0, 50), [])
+
+		return (
+			<div style={{ width: '320px' }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					virtualize={{ estimateSize: 36 }}
+					maxHeight="180px"
+					infiniteScroll={{ onLoadMore, hasMore: true }}
+				/>
+			</div>
+		)
+	}
+
 	it('calls onLoadMore as the window nears the loaded end, growing the set', async () => {
 		const onLoadMore = vi.fn()
 
@@ -214,26 +235,7 @@ describe('grid infinite scroll (real browser)', () => {
 	it('re-arms on scroll after a failed fetch instead of dead-locking', async () => {
 		const onLoadMore = vi.fn()
 
-		// A "failing" source: onLoadMore never grows the rows, so the loaded count
-		// never re-arms the old latch.
-		function FailingGrid() {
-			const rows = useMemo(() => allRows.slice(0, 50), [])
-
-			return (
-				<div style={{ width: '320px' }}>
-					<Grid
-						columns={columns}
-						rows={rows}
-						getKey={getKey}
-						virtualize={{ estimateSize: 36 }}
-						maxHeight="180px"
-						infiniteScroll={{ onLoadMore, hasMore: true }}
-					/>
-				</div>
-			)
-		}
-
-		const { container } = renderUI(<FailingGrid />)
+		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
@@ -261,6 +263,38 @@ describe('grid infinite scroll (real browser)', () => {
 		fireEvent.scroll(scroll)
 
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(2))
+	})
+
+	it('retries a failed fetch on a short scroll that leaves the window in place', async () => {
+		const onLoadMore = vi.fn()
+
+		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		scroll.scrollTop = scroll.scrollHeight
+
+		fireEvent.scroll(scroll)
+
+		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
+
+		await waitFor(() => expect(screen.queryByText('Name 50')).not.toBeNull())
+
+		// The fetch failed. A nudge of two rows arms the retry, but the last row
+		// of the window stays inside the overscan, so the window does not move.
+		// The arm alone must run the retry.
+		scroll.scrollTop -= 72
+
+		fireEvent.scroll(scroll)
+
+		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(2))
+
+		expect(screen.queryByText('Name 50')).not.toBeNull()
 	})
 
 	it('scrolls to the top and holds fire when the row set is replaced', async () => {

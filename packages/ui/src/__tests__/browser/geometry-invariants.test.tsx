@@ -5,6 +5,7 @@ import {
 	clippedText,
 	collapsedTargets,
 	horizontalPageOverflow,
+	overlappingHitAreas,
 	overlappingTargets,
 } from './helpers/geometry-invariants'
 
@@ -12,8 +13,10 @@ import {
  * Geometry-invariants gate (real browser). Sweeps the baseline corpus with the
  * layout checks axe doesn't run: no visible interactive element collapsed to a
  * zero-size box, no single-line text silently clipped, no in-flow controls
- * overlapping for want of a gap/margin, and no page-level horizontal overflow
- * at the default viewport. Failures print the offending elements' tag,
+ * overlapping for want of a gap/margin, no two hit areas overlapping at the
+ * fine floor of `TouchTarget`, and no page-level horizontal overflow at the
+ * default viewport. `hit-area-overlap.test.tsx` checks the hit areas at the
+ * coarse floor. Failures print the offending elements' tag,
  * `data-slot`, and text.
  *
  * Runs in the `browser` project (floating-ui mocked, production Tailwind
@@ -33,6 +36,8 @@ describe('geometry invariants: baseline', () => {
 		expect(clippedText(container)).toEqual([])
 
 		expect(overlappingTargets(container)).toEqual([])
+
+		expect(overlappingHitAreas(container)).toEqual([])
 
 		expect(horizontalPageOverflow()).toBe(0)
 	})

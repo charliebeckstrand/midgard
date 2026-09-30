@@ -32,23 +32,7 @@ describe('formatRange', () => {
 
 describe('startOfDay', () => {
 	it('strips the time component', () => {
-		const input = new Date(2024, 4, 15, 13, 45, 30, 100)
-
-		const result = startOfDay(input)
-
-		expect(result.getFullYear()).toBe(2024)
-
-		expect(result.getMonth()).toBe(4)
-
-		expect(result.getDate()).toBe(15)
-
-		expect(result.getHours()).toBe(0)
-
-		expect(result.getMinutes()).toBe(0)
-
-		expect(result.getSeconds()).toBe(0)
-
-		expect(result.getMilliseconds()).toBe(0)
+		expect(startOfDay(new Date(2024, 4, 15, 13, 45, 30, 100))).toEqual(new Date(2024, 4, 15))
 	})
 })
 

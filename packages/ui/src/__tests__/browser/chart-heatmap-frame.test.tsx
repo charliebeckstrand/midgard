@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart/heatmap-chart'
-import { getSlot, renderUI, waitFor } from '../helpers'
+import { frames, getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * The heatmap frame settles in a real layout.
@@ -28,13 +28,6 @@ const SERIES: [HeatmapChartSeries<Cell>] = [
 	{ xKey: 'col', yKey: 'row', colorKey: 'value', colorRange: ['#e0f2fe', '#0369a1'] },
 ]
 
-/** Waits for two frames, so a layout effect loop has the time to run. */
-async function settle() {
-	for (let frame = 0; frame < 2; frame++) {
-		await new Promise((resolve) => requestAnimationFrame(resolve))
-	}
-}
-
 describe('heatmap frame (real browser)', () => {
 	beforeAll(() => page.viewport(960, 700))
 
@@ -56,7 +49,8 @@ describe('heatmap frame (real browser)', () => {
 				expect(getSlot(container, 'chart-plot').querySelector('svg')).not.toBeNull(),
 			)
 
-			await settle()
+			// Two frames give a layout effect loop the time to run.
+			await frames()
 
 			unmount()
 		}

@@ -157,28 +157,15 @@ describe('JsonTree', () => {
 		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
 	})
 
-	it('renders a primitive string root as a single leaf row', () => {
-		renderUI(<JsonTree data="Ada" />)
+	it.each([
+		['string', 'Ada', '"Ada"'],
+		['number', 42, '42'],
+		['boolean', true, 'true'],
+		['null', null, 'null'],
+	] as const)('renders a %s root as a single leaf row', (_type, data, text) => {
+		renderUI(<JsonTree data={data} />)
 
-		expect(screen.getByText('"Ada"')).toBeInTheDocument()
-	})
-
-	it('renders a primitive number root as a single leaf row', () => {
-		renderUI(<JsonTree data={42} />)
-
-		expect(screen.getByText('42')).toBeInTheDocument()
-	})
-
-	it('renders a primitive boolean root as a single leaf row', () => {
-		renderUI(<JsonTree data={true} />)
-
-		expect(screen.getByText('true')).toBeInTheDocument()
-	})
-
-	it('renders a null root as a single leaf row', () => {
-		renderUI(<JsonTree data={null} />)
-
-		expect(screen.getByText('null')).toBeInTheDocument()
+		expect(screen.getByText(text)).toBeInTheDocument()
 	})
 
 	it('renders an array root with index keys when expanded', () => {
@@ -355,7 +342,7 @@ describe('JsonTree', () => {
 })
 
 describe('JsonTreeNodeRow', () => {
-	it('renders a leaf node with its key and value', () => {
+	it('renders a deeper leaf node with its key and value, out of the Tab order', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
@@ -376,6 +363,8 @@ describe('JsonTreeNodeRow', () => {
 		expect(screen.getByText('"a"')).toBeInTheDocument()
 
 		expect(screen.getByText('1')).toBeInTheDocument()
+
+		expect(bySlot(container, 'json-node')).toHaveAttribute('tabindex', '-1')
 	})
 
 	it('marks the root leaf as focusable', () => {
@@ -399,51 +388,19 @@ describe('JsonTreeNodeRow', () => {
 		expect(node).toHaveAttribute('tabindex', '0')
 	})
 
-	it('marks deeper leaves as not tab-navigable', () => {
+	it.each([
+		['an array', [1, 2], ']'],
+		['an object', { x: 1 }, '}'],
+	])('renders a branch-close row with the matching bracket for %s', (_name, value, bracket) => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{
-					type: 'leaf',
-					path: 'root.a',
-					keyName: 'a',
-					value: 1,
-					depth: 1,
-					highlighted: false,
-				}}
+				node={{ type: 'branch-close', path: 'root.a', depth: 1, value }}
 				onToggle={() => {}}
 			/>,
 		)
 
-		expect(bySlot(container, 'json-node')).toHaveAttribute('tabindex', '-1')
-	})
-
-	it('renders a branch-close row with the matching bracket for an array', () => {
-		const { container } = renderUI(
-			<JsonTreeNodeRow
-				index={0}
-				node={{ type: 'branch-close', path: 'root.a', depth: 1, value: [1, 2] }}
-				onToggle={() => {}}
-			/>,
-		)
-
-		const close = bySlot(container, 'json-close')
-
-		expect(close).toBeInTheDocument()
-
-		expect(close?.textContent).toContain(']')
-	})
-
-	it('renders a branch-close row with the matching bracket for an object', () => {
-		const { container } = renderUI(
-			<JsonTreeNodeRow
-				index={0}
-				node={{ type: 'branch-close', path: 'root.a', depth: 1, value: { x: 1 } }}
-				onToggle={() => {}}
-			/>,
-		)
-
-		expect(bySlot(container, 'json-close')?.textContent).toContain('}')
+		expect(getSlot(container, 'json-close').textContent).toContain(bracket)
 	})
 
 	it('renders a closed branch-open row with summary and closing bracket when count > 0', () => {

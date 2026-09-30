@@ -523,6 +523,10 @@ function scanModule(file: string, text: string) {
  * `await` and the write.
  */
 function unguardedLateWrites(file: string, text: string): string[] {
+	// A write can come late only after an `await`, so a file with none needs no
+	// parse. Most of the test files have none.
+	if (!text.includes('await')) return []
+
 	const { source, writeLabel } = scanModule(file, text)
 
 	const late: string[] = []
@@ -697,6 +701,7 @@ describe('test isolation boundary', () => {
 			`a cast cannot make a query non-null — take \`getSlot(container, name)\` for a slot, or \`present(query, 'what')\` for anything else:\n  ${casts.join('\n  ')}`,
 		).toEqual([])
 	})
+
 	it('stops a case at its signal before it writes shared state after an await', () => {
 		const late: string[] = []
 

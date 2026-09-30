@@ -101,15 +101,4 @@ describe('resolveFormat', () => {
 			expect(format(Number.NEGATIVE_INFINITY)).toBe('-∞')
 		})
 	})
-
-	it('reuses one formatter across calls with the same spec', () => {
-		// Identical output across independent resolves is the proxy for the shared
-		// cached Intl instance — a fresh formatter per resolve would still format
-		// the same, so the assertion guards the seam, not the allocation count.
-		const a = resolveFormat({ type: 'currency' })
-
-		const b = resolveFormat({ type: 'currency' })
-
-		expect(a(9)).toBe(b(9))
-	})
 })

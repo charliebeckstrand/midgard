@@ -182,8 +182,10 @@ describe('useComboboxInput onMouseDown', () => {
 })
 
 describe('useComboboxInput onBlur', () => {
-	it('closes when focus leaves the floating element', () => {
-		const { result, close, floatingRef } = setup<string>()
+	it('closes and fires onTouched when focus leaves the floating element', () => {
+		const onTouched = vi.fn()
+
+		const { result, close, floatingRef } = setup<string>({ onTouched })
 
 		floatingRef.current = document.createElement('div')
 
@@ -194,10 +196,14 @@ describe('useComboboxInput onBlur', () => {
 		result.current.onBlur(event)
 
 		expect(close).toHaveBeenCalled()
+
+		expect(onTouched).toHaveBeenCalled()
 	})
 
-	it('keeps the panel open when focus moves inside the floating element', () => {
-		const { result, close, floatingRef } = setup<string>()
+	it('keeps the panel open, and fires no onTouched, when focus moves inside the floating element', () => {
+		const onTouched = vi.fn()
+
+		const { result, close, floatingRef } = setup<string>({ onTouched })
 
 		const floating = document.createElement('div')
 
@@ -212,40 +218,6 @@ describe('useComboboxInput onBlur', () => {
 		result.current.onBlur(event)
 
 		expect(close).not.toHaveBeenCalled()
-	})
-
-	it('fires onTouched when focus leaves the floating element', () => {
-		const onTouched = vi.fn()
-
-		const { result, floatingRef } = setup<string>({ onTouched })
-
-		floatingRef.current = document.createElement('div')
-
-		const event = makeFocusEvent<HTMLInputElement>({
-			relatedTarget: document.createElement('span'),
-		})
-
-		result.current.onBlur(event)
-
-		expect(onTouched).toHaveBeenCalled()
-	})
-
-	it('does not fire onTouched when focus moves inside the floating element', () => {
-		const onTouched = vi.fn()
-
-		const { result, floatingRef } = setup<string>({ onTouched })
-
-		const floating = document.createElement('div')
-
-		const inside = document.createElement('span')
-
-		floating.appendChild(inside)
-
-		floatingRef.current = floating
-
-		const event = makeFocusEvent<HTMLInputElement>({ relatedTarget: inside })
-
-		result.current.onBlur(event)
 
 		expect(onTouched).not.toHaveBeenCalled()
 	})
@@ -304,64 +276,44 @@ describe('useComboboxInput onKeyDown', () => {
 		expect(rovingKeyDown).toHaveBeenCalledWith(event)
 	})
 
-	it('opens the closed menu on ArrowDown from the text end, without delegating to roving', () => {
+	// Each row presses an arrow on a closed menu with the caret at `start`..`end`
+	// of 'abc'. At the edge the arrow points past, it opens the menu; elsewhere it
+	// is the textbox's own caret move, which roving handles.
+	it.each<[string, 'ArrowDown' | 'ArrowUp', number | null, number | null, boolean]>([
+		['opens on ArrowDown from the text end', 'ArrowDown', 3, 3, true],
+		['moves the caret to the text end on ArrowDown from mid-value', 'ArrowDown', 1, 1, false],
+		['opens on ArrowUp from the text start', 'ArrowUp', 0, 0, true],
+		['moves the caret to the text start on ArrowUp from mid-value', 'ArrowUp', 2, 2, false],
+		['opens on ArrowDown when the input reports no caret', 'ArrowDown', null, null, true],
+		['opens on ArrowUp when the input reports no caret', 'ArrowUp', null, null, true],
+		// Caret spans the whole value, so neither edge is a collapsed caret.
+		['lets the textbox collapse a ranged selection on ArrowDown', 'ArrowDown', 0, 3, false],
+		['lets the textbox collapse a ranged selection on ArrowUp', 'ArrowUp', 0, 3, false],
+	])('%s', (_name, key, start, end, opens) => {
 		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
 
-		const event = arrowEvent('ArrowDown', 'abc')
+		const event = arrowEvent(key, 'abc', start, end)
 
 		result.current.onKeyDown(event)
 
-		expect(openByArrowKey).toHaveBeenCalled()
+		if (opens) {
+			expect(openByArrowKey).toHaveBeenCalled()
 
-		expect(event.preventDefault).toHaveBeenCalled()
+			expect(event.preventDefault).toHaveBeenCalled()
 
-		expect(rovingKeyDown).not.toHaveBeenCalled()
+			expect(rovingKeyDown).not.toHaveBeenCalled()
+		} else {
+			expect(openByArrowKey).not.toHaveBeenCalled()
+
+			expect(event.preventDefault).not.toHaveBeenCalled()
+
+			expect(rovingKeyDown).toHaveBeenCalledWith(event)
+		}
 	})
 
-	it('moves the caret to the text end on ArrowDown from mid-value instead of opening', () => {
-		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
-
-		const event = arrowEvent('ArrowDown', 'abc', 1)
-
-		result.current.onKeyDown(event)
-
-		expect(openByArrowKey).not.toHaveBeenCalled()
-
-		expect(event.preventDefault).not.toHaveBeenCalled()
-
-		expect(rovingKeyDown).toHaveBeenCalledWith(event)
-	})
-
-	it('opens the closed menu on ArrowUp from the text start, without delegating to roving', () => {
-		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
-
-		const event = arrowEvent('ArrowUp', 'abc', 0)
-
-		result.current.onKeyDown(event)
-
-		expect(openByArrowKey).toHaveBeenCalled()
-
-		expect(event.preventDefault).toHaveBeenCalled()
-
-		expect(rovingKeyDown).not.toHaveBeenCalled()
-	})
-
-	it('moves the caret to the text start on ArrowUp from mid-value instead of opening', () => {
-		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
-
-		const event = arrowEvent('ArrowUp', 'abc', 2)
-
-		result.current.onKeyDown(event)
-
-		expect(openByArrowKey).not.toHaveBeenCalled()
-
-		expect(event.preventDefault).not.toHaveBeenCalled()
-
-		expect(rovingKeyDown).toHaveBeenCalledWith(event)
-	})
-
-	it('opens the closed menu on either arrow when the value is empty', () => {
-		for (const key of ['ArrowDown', 'ArrowUp'] as const) {
+	it.each(['ArrowDown', 'ArrowUp'] as const)(
+		'opens the closed menu on %s when the value is empty',
+		(key) => {
 			const { result, openByArrowKey } = setup<string>({ open: false })
 
 			const event = arrowEvent(key, '')
@@ -371,39 +323,8 @@ describe('useComboboxInput onKeyDown', () => {
 			expect(openByArrowKey).toHaveBeenCalled()
 
 			expect(event.preventDefault).toHaveBeenCalled()
-		}
-	})
-
-	it('opens the closed menu on either arrow when the input reports no caret', () => {
-		for (const key of ['ArrowDown', 'ArrowUp'] as const) {
-			const { result, openByArrowKey } = setup<string>({ open: false })
-
-			const event = arrowEvent(key, 'abc', null, null)
-
-			result.current.onKeyDown(event)
-
-			expect(openByArrowKey).toHaveBeenCalled()
-
-			expect(event.preventDefault).toHaveBeenCalled()
-		}
-	})
-
-	it('lets the textbox collapse a ranged selection before opening, on either arrow', () => {
-		for (const key of ['ArrowDown', 'ArrowUp'] as const) {
-			const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
-
-			// Caret spans the whole value, so neither edge is a collapsed caret.
-			const event = arrowEvent(key, 'abc', 0, 3)
-
-			result.current.onKeyDown(event)
-
-			expect(openByArrowKey).not.toHaveBeenCalled()
-
-			expect(event.preventDefault).not.toHaveBeenCalled()
-
-			expect(rovingKeyDown).toHaveBeenCalledWith(event)
-		}
-	})
+		},
+	)
 
 	it('forwards ArrowDown to roving navigation once the menu is open', () => {
 		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: true })

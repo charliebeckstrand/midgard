@@ -151,16 +151,6 @@ describe('Tree', () => {
 })
 
 describe('TreeItem', () => {
-	it('renders the label', () => {
-		renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Documents" />
-			</Tree>,
-		)
-
-		expect(screen.getByText('Documents')).toBeInTheDocument()
-	})
-
 	it('renders nested tree items when open', () => {
 		renderUI(
 			<Tree aria-label="Files">
@@ -263,10 +253,19 @@ describe('TreeItem', () => {
 		expect(onPrefixClick).toHaveBeenCalledOnce()
 	})
 
-	it('opens a closed parent when ArrowRight is pressed on the row', () => {
+	// Each row presses one key on a parent row that starts open or closed and
+	// reads where aria-expanded lands.
+	it.each([
+		['opens a closed parent on ArrowRight', false, 'ArrowRight', 'true'],
+		['closes an open parent on ArrowLeft', true, 'ArrowLeft', 'false'],
+		['toggles a closed parent on Enter', false, 'Enter', 'true'],
+		['toggles a closed parent on Space', false, ' ', 'true'],
+		['keeps an open branch open on ArrowRight', true, 'ArrowRight', 'true'],
+		['keeps a closed branch closed on ArrowLeft', false, 'ArrowLeft', 'false'],
+	])('%s', (_name, defaultOpen, key, expanded) => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
-				<TreeItem label="Parent">
+				<TreeItem label="Parent" defaultOpen={defaultOpen}>
 					<TreeItem label="Child" />
 				</TreeItem>
 			</Tree>,
@@ -274,61 +273,11 @@ describe('TreeItem', () => {
 
 		const row = getSlot(container, 'tree-item-content')
 
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toHaveAttribute('aria-expanded', String(defaultOpen))
 
-		fireEvent.keyDown(row, { key: 'ArrowRight' })
+		fireEvent.keyDown(row, { key })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	it('closes an open parent when ArrowLeft is pressed on the row', () => {
-		const { container } = renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Parent" defaultOpen>
-					<TreeItem label="Child" />
-				</TreeItem>
-			</Tree>,
-		)
-
-		const row = getSlot(container, 'tree-item-content')
-
-		expect(row).toHaveAttribute('aria-expanded', 'true')
-
-		fireEvent.keyDown(row, { key: 'ArrowLeft' })
-
-		expect(row).toHaveAttribute('aria-expanded', 'false')
-	})
-
-	it('toggles a parent on Enter', () => {
-		const { container } = renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Parent">
-					<TreeItem label="Child" />
-				</TreeItem>
-			</Tree>,
-		)
-
-		const row = getSlot(container, 'tree-item-content')
-
-		fireEvent.keyDown(row, { key: 'Enter' })
-
-		expect(row).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	it('toggles a parent on Space', () => {
-		const { container } = renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Parent">
-					<TreeItem label="Child" />
-				</TreeItem>
-			</Tree>,
-		)
-
-		const row = getSlot(container, 'tree-item-content')
-
-		fireEvent.keyDown(row, { key: ' ' })
-
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toHaveAttribute('aria-expanded', expanded)
 	})
 
 	it('Enter on a leaf forwards the click to a prefix-interactive control', () => {
@@ -369,38 +318,6 @@ describe('TreeItem', () => {
 		const label = present(row.querySelector('span:last-of-type'), 'span:last-of-type')
 
 		fireEvent.keyDown(label, { key: 'Enter' })
-
-		expect(row).toHaveAttribute('aria-expanded', 'false')
-	})
-
-	it('ArrowRight on an already-open branch does not collapse it', () => {
-		const { container } = renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Parent" defaultOpen>
-					<TreeItem label="Child" />
-				</TreeItem>
-			</Tree>,
-		)
-
-		const row = getSlot(container, 'tree-item-content')
-
-		fireEvent.keyDown(row, { key: 'ArrowRight' })
-
-		expect(row).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	it('ArrowLeft on an already-closed branch does not open it', () => {
-		const { container } = renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Parent">
-					<TreeItem label="Child" />
-				</TreeItem>
-			</Tree>,
-		)
-
-		const row = getSlot(container, 'tree-item-content')
-
-		fireEvent.keyDown(row, { key: 'ArrowLeft' })
 
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 	})

@@ -7,7 +7,7 @@ import {
 } from '../../components/combobox'
 import { CommandPalette, useCommandPaletteDeferredQuery } from '../../components/command-palette'
 import { CommandPaletteItem } from '../../components/command-palette/command-palette-item'
-import { act, renderUI, screen, userEvent } from '../helpers'
+import { act, renderUI, screen, setupUser } from '../helpers'
 import { clearOptionRenders, optionRenders } from '../helpers/option-renders'
 
 /**
@@ -74,7 +74,7 @@ describe('query option renders', () => {
 			</Combobox>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByRole('combobox'))
 
@@ -101,7 +101,7 @@ describe('query option renders', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByRole('combobox'))
 

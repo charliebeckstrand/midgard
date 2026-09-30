@@ -329,6 +329,7 @@ export function GridData<T>({
 		pinning,
 		grandTotalRows,
 		rowsForExport,
+		hiddenSelected,
 	} = useGridTable<T>({
 		rows,
 		// The engine receives the full column set and resolves which render (and
@@ -342,7 +343,6 @@ export function GridData<T>({
 		columnOrder,
 		columnVisibility,
 		sort,
-		setSort,
 		sortManual,
 		// Client grouping only. Manual grouping groups no rows and renders the
 		// consumer's sequence instead.
@@ -399,7 +399,6 @@ export function GridData<T>({
 		cursorEnabled: cursor.cursorEnabled,
 		cursorNewRow: cursor.newRow,
 		reconcile: cursor.reconcile,
-		settleRange: cursor.settleRange,
 		virtualized: gated.virtualize,
 		onRowClick,
 		onCellClick,
@@ -578,10 +577,11 @@ export function GridData<T>({
 		cursorNewRow: cursor.newRow,
 		pagination,
 		virtualized: gated.virtualize,
-		navigable: gated.navigable,
+		cursorEnabled: cursor.cursorEnabled,
 		infiniteScroll,
 		footer,
 		selectedCount: selection.size,
+		hiddenSelected,
 		hover,
 		onRowClick,
 		onCellClick,
@@ -804,7 +804,7 @@ export function GridData<T>({
 							exporting={exportActions.pending}
 							columnFilters={filters}
 							batchActions={batchActions}
-							hasSelection={someSelected}
+							hasSelection={selection.size > 0}
 							selection={selection}
 							setSelection={setSelection}
 						/>

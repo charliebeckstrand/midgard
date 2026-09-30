@@ -83,7 +83,7 @@ describe('PolymorphicStatic', () => {
 	it('keeps the ref of the render element when the call site passes no ref', () => {
 		const renderRef = createRef<HTMLAnchorElement>()
 
-		renderUI(
+		const { container } = renderUI(
 			<PolymorphicStatic
 				as="span"
 				href="/path"
@@ -95,7 +95,7 @@ describe('PolymorphicStatic', () => {
 			</PolymorphicStatic>,
 		)
 
-		expect(renderRef.current?.tagName).toBe('A')
+		expect(renderRef.current).toBe(bySlot(container, 'tag'))
 	})
 
 	it('gives the node to the call-site ref when both refs are set', () => {
@@ -103,7 +103,7 @@ describe('PolymorphicStatic', () => {
 
 		const callRef = createRef<HTMLAnchorElement>()
 
-		renderUI(
+		const { container } = renderUI(
 			<PolymorphicStatic
 				as="span"
 				href="/path"
@@ -116,7 +116,9 @@ describe('PolymorphicStatic', () => {
 			</PolymorphicStatic>,
 		)
 
-		expect(callRef.current?.tagName).toBe('A')
+		expect(callRef.current).toBe(bySlot(container, 'tag'))
+
+		expect(renderRef.current).toBeNull()
 	})
 
 	it('runs the handler of the render element, then the call-site handler', () => {

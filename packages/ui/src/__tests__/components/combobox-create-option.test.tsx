@@ -7,7 +7,7 @@ import {
 	ComboboxOption,
 	useComboboxQuery,
 } from '../../components/combobox'
-import { renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, setupUser } from '../helpers'
 
 const NAMES = ['Texas LTL', 'Georgia TL']
 
@@ -49,7 +49,7 @@ function renderCreatable(props: { onValueChange?: (value: string | null) => void
 
 describe('ComboboxCreateOption', () => {
 	it('renders nothing while the query is blank', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderCreatable()
 
@@ -62,7 +62,7 @@ describe('ComboboxCreateOption', () => {
 	})
 
 	it('offers to create the typed name beside the partial matches', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderCreatable()
 
@@ -77,7 +77,7 @@ describe('ComboboxCreateOption', () => {
 	})
 
 	it('withdraws when the query names an option that already exists', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderCreatable()
 
@@ -91,7 +91,7 @@ describe('ComboboxCreateOption', () => {
 	})
 
 	it('folds case and surrounding space when testing whether a name is taken', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderCreatable()
 
@@ -104,7 +104,7 @@ describe('ComboboxCreateOption', () => {
 	})
 
 	it('selects the trimmed query, as an ordinary option selection', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -124,7 +124,7 @@ describe('ComboboxCreateOption', () => {
 	})
 
 	it('commits on Enter when it is the only row left', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -145,7 +145,7 @@ describe('ComboboxCreateOption', () => {
 	})
 
 	it('takes a custom label, given the trimmed name', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<Combobox<string> displayValue={(v) => v} aria-label="Name">

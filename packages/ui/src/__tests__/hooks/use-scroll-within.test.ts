@@ -86,12 +86,6 @@ function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
  * `browser/scroll-within.test.tsx`.
  */
 describe('useScrollWithin', () => {
-	it('returns a function', () => {
-		const { result } = renderHook(() => useScrollWithin())
-
-		expect(typeof result.current).toBe('function')
-	})
-
 	it('returns the same function across renders', () => {
 		const { result, rerender } = renderHook(() => useScrollWithin())
 
@@ -129,100 +123,51 @@ describe('useScrollWithin', () => {
 			} as CSSStyleDeclaration)
 		}
 
-		it('scrolls to the start when block="start"', () => {
+		// The scroller box spans y 0 to 100, and the node is 20 tall.
+		it.each<
+			[string, number, Parameters<ReturnType<typeof useScrollWithin>>[1], ScrollToOptions | null]
+		>([
+			[
+				'scrolls to the start when block="start"',
+				50,
+				{ block: 'start' },
+				{ top: 50, behavior: 'auto' },
+			],
+			[
+				'centers the node when block="center"',
+				10,
+				{ block: 'center', behavior: 'smooth' },
+				{ top: -30, behavior: 'smooth' },
+			],
+			['scrolls to the end when block="end"', 10, { block: 'end' }, { top: -70, behavior: 'auto' }],
+			['is a no-op when the node is already fully visible (nearest)', 20, undefined, null],
+			[
+				'scrolls up when the node is above the viewport (nearest)',
+				-30,
+				undefined,
+				{ top: -30, behavior: 'auto' },
+			],
+			[
+				'scrolls down when the node is below the viewport (nearest)',
+				110,
+				undefined,
+				{ top: 30, behavior: 'auto' },
+			],
+		])('%s', (_name, nodeY, options, expected) => {
 			stubScrollable()
 
 			const { scroller, node } = buildScrollable()
 
 			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
-			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 50, height: 20 })
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: nodeY, height: 20 })
 
 			const { result } = renderHook(() => useScrollWithin())
 
-			result.current(node, { block: 'start' })
+			result.current(node, options)
 
-			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 50, behavior: 'auto' })
-		})
-
-		it('centers the node when block="center"', () => {
-			stubScrollable()
-
-			const { scroller, node } = buildScrollable()
-
-			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
-
-			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 10, height: 20 })
-
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node, { block: 'center', behavior: 'smooth' })
-
-			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: -30, behavior: 'smooth' })
-		})
-
-		it('scrolls to the end when block="end"', () => {
-			stubScrollable()
-
-			const { scroller, node } = buildScrollable()
-
-			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
-
-			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 10, height: 20 })
-
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node, { block: 'end' })
-
-			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: -70, behavior: 'auto' })
-		})
-
-		it('is a no-op when the node is already fully visible (nearest)', () => {
-			stubScrollable()
-
-			const { scroller, node } = buildScrollable()
-
-			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
-
-			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 20, height: 20 })
-
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node)
-
-			expect(scroller.scrollTo).not.toHaveBeenCalled()
-		})
-
-		it('scrolls up when the node is above the viewport (nearest)', () => {
-			stubScrollable()
-
-			const { scroller, node } = buildScrollable()
-
-			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
-
-			node.getBoundingClientRect = () => DOMRect.fromRect({ y: -30, height: 20 })
-
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node)
-
-			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: -30, behavior: 'auto' })
-		})
-
-		it('scrolls down when the node is below the viewport (nearest)', () => {
-			stubScrollable()
-
-			const { scroller, node } = buildScrollable()
-
-			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
-
-			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 110, height: 20 })
-
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node)
-
-			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 30, behavior: 'auto' })
+			// A null expectation is a node already in view, which asks for no scroll.
+			expect(vi.mocked(scroller.scrollTo).mock.calls).toEqual(expected ? [[expected]] : [])
 		})
 
 		it('subtracts the scroller top border from the offset', () => {

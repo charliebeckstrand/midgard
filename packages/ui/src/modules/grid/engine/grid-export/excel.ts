@@ -114,7 +114,7 @@ const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
  *
  * @typeParam T - Shape of a single row.
  */
-export function rowsToXlsx<T>(columns: GridColumn<T>[], rows: T[]): Uint8Array {
+export function rowsToXlsx<T>(columns: GridColumn<T>[], rows: readonly T[]): Uint8Array {
 	const fields = exportFields(columns)
 
 	const headerCells = fields

@@ -11,7 +11,17 @@ const { size, weight } = ji
 const { flex } = narabi
 
 export const k = {
-	base: [flex.row, 'flex-wrap gap-1.5', size.sm],
+	// The row caps the hit areas of the chip controls (`TouchTarget`) at the space
+	// between them. Along the row, a remove button is the `gap-1.5` and the
+	// `px-ring-2` end pad of its `sm` pill from the combinator, 13px in all. The
+	// row wraps, and the buttons of two rows are the gap and the `py-ring-1` pad
+	// of two chips apart, 12px in all.
+	base: [
+		flex.row,
+		'flex-wrap gap-1.5',
+		'[--touch-target-gap-x:--spacing(3.25)] [--touch-target-gap-y:--spacing(3)]',
+		size.sm,
+	],
 	// The chip is always an `sm` Badge, because the bar has a fixed size. The
 	// leading pad of the removable chip is `removable` of the Badge kata.
 	chip: ['max-w-full'],

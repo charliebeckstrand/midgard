@@ -28,21 +28,7 @@ describe('Grid search', () => {
 		expect(screen.getByRole('searchbox')).toBeInTheDocument()
 	})
 
-	it('filters rows client-side once the query settles', async () => {
-		await withFakeTime(async (clock) => {
-			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
-
-			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
-
-			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
-
-			expect(screen.getByText('Alice')).toBeInTheDocument()
-
-			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
-		})
-	})
-
-	it('debounces the filter, holding every row until the query settles', async () => {
+	it('filters rows client-side once the query settles, holding every row until then', async () => {
 		await withFakeTime(async (clock) => {
 			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
@@ -54,6 +40,8 @@ describe('Grid search', () => {
 			expect(screen.getByText('Bob')).toBeInTheDocument()
 
 			await clock.advance(1)
+
+			expect(screen.getByText('Alice')).toBeInTheDocument()
 
 			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
 		})

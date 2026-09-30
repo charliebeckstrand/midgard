@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, screen } from '../helpers'
 
 // The server-sort settle wash is projected from the `<table>` onto its data
 // `<tbody>`, so assert against the table element's class list (a running
@@ -56,7 +56,7 @@ describe('Grid server-sort settle', () => {
 		)
 	}
 
-	it('pulses and dims the rows while a server sort is in flight, clearing when the rows land', async () => {
+	it('pulses and dims the rows while a server sort is in flight, clearing when the rows land', () => {
 		renderUI(<AsyncHarness />)
 
 		// At rest — no sort in flight — the body carries neither the pulse nor the dim.
@@ -67,14 +67,14 @@ describe('Grid server-sort settle', () => {
 		// Emitting the sort with no new rows yet marks the grid settling.
 		sortByName()
 
-		await waitFor(() => expect(table().className).toContain(PULSE))
+		expect(table().className).toContain(PULSE)
 
 		expect(table().className).toContain(DIM)
 
 		// The reordered rows arriving settles the sort and clears the wash.
 		fireEvent.click(screen.getByRole('button', { name: 'land' }))
 
-		await waitFor(() => expect(table().className).not.toContain(PULSE))
+		expect(table().className).not.toContain(PULSE)
 
 		expect(table().className).not.toContain(DIM)
 	})
@@ -116,7 +116,7 @@ describe('Grid server-sort settle', () => {
 		expect(table().className).not.toContain(DIM)
 	})
 
-	it('lifts the wash when a rapid asc→desc→clear settles back to the shown rows', async () => {
+	it('lifts the wash when a rapid asc→desc→clear settles back to the shown rows', () => {
 		// A server sort where an in-flight sort's reordered rows never arrive before
 		// the next click. Clearing returns to the server's default order — which,
 		// with nothing landed between the clicks, is the order already on screen, so
@@ -150,7 +150,7 @@ describe('Grid server-sort settle', () => {
 		// asc, then desc — each a server sort with no rows yet, so the body settles.
 		sortByName()
 
-		await waitFor(() => expect(table().className).toContain(PULSE))
+		expect(table().className).toContain(PULSE)
 
 		sortByName()
 
@@ -160,7 +160,7 @@ describe('Grid server-sort settle', () => {
 		// lifts. Before the fix it latched — pulsing on with no sort in flight.
 		sortByName()
 
-		await waitFor(() => expect(table().className).not.toContain(PULSE))
+		expect(table().className).not.toContain(PULSE)
 
 		expect(table().className).not.toContain(DIM)
 	})

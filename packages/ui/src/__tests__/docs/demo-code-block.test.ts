@@ -20,7 +20,8 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // Nothing failed, because the suite then ran `docsPlugin({ vitest: true })`
 // without the `pre` transform. No test had ever seen a demo module carrying a
 // helper snippet, so the whole build-time half went unread. The suite now runs the
-// transform, and `demo-snippets.test.tsx` reads each block that a page renders.
+// transform, and the snippet gate (`helpers/demo-snippets.tsx`) reads each block
+// that a page renders.
 //
 // This test reads it, against the real demo tree, from source. It calls the
 // same `collectHelpers` the plugin calls, and reads the same import table that

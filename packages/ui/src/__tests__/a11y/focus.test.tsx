@@ -9,7 +9,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, setupUser } from '../helpers'
 import { focus, rows } from './cases'
 
 /**
@@ -22,7 +22,7 @@ describe('a11y focus: overlays capture focus on open', () => {
 	it.each(rows(focus))(
 		'%s moves focus off the trigger into the surface',
 		async (_name, { element, open }) => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(element)
 
@@ -49,7 +49,7 @@ describe('a11y focus: overlays capture focus on open', () => {
  */
 describe('a11y focus: restoration (dropdown family)', () => {
 	it('keeps focus on its trigger through open and Escape', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<Menu placement="bottom-start">

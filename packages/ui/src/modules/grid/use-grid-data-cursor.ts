@@ -23,7 +23,7 @@ import type { GridScrollRowIntoView } from './use-grid-navigation'
  * @internal
  */
 export type GridIndexRefs<T> = {
-	rowsRef: RefObject<T[]>
+	rowsRef: RefObject<readonly T[]>
 	colCountRef: RefObject<number>
 	rowIndexMapRef: RefObject<Map<T, number>>
 	colIndexMapRef: RefObject<Map<string | number, number>>
@@ -42,7 +42,7 @@ export type GridIndexRefs<T> = {
 
 /** The values that {@link useGridIndexSync} writes, one for each ref of {@link GridIndexRefs}. @internal */
 export type GridIndexValues<T> = {
-	rows: T[]
+	rows: readonly T[]
 	rowIndexMap: Map<T, number>
 	colIndexMap: Map<string | number, number>
 	rowKeys: (string | number)[]
@@ -58,7 +58,7 @@ export type GridIndexValues<T> = {
  * @internal
  */
 export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T> {
-	const rowsRef = useRef<T[]>([])
+	const rowsRef = useRef<readonly T[]>([])
 
 	const colCountRef = useRef(0)
 

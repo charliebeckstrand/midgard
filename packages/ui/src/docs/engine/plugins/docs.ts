@@ -494,7 +494,8 @@ const SNIPPET_TABLE = '__docsSnippetDeclarations'
  * tagging transform, and the demo `__snippet` pre-transform. It stubs the
  * api-reference manifest and demo-metas with empty defaults. The pre-transform
  * reads only demo files. A suite that imports no demo pays nothing for it, and
- * `demo-snippets.test.tsx` reads the snippets that the site ships.
+ * the snippet gate (`__tests__/helpers/demo-snippets.tsx`) reads the snippets
+ * that the site ships.
  *
  * `packageName` is the documented library's import prefix (`ui`, `grid`, …),
  * baked into `virtual:component-modules` so derived snippets read

@@ -10,7 +10,7 @@ import {
 	StepperTitle,
 } from '../../components/stepper'
 import type { Mount } from '../../primitives/mount'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('Stepper', () => {
 	it('renders with data-slot="stepper"', () => {
@@ -347,7 +347,7 @@ describe('Stepper keyboard navigation', () => {
 	}
 
 	it('moves focus across steps with arrows, skipping the disabled step', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const steps = renderStepper()
 
@@ -390,7 +390,7 @@ describe('Stepper keyboard navigation', () => {
 	})
 
 	it('navigates uncontrolled from defaultValue', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<Stepper defaultValue={0}>
@@ -443,7 +443,7 @@ describe('Stepper keyboard navigation', () => {
 		const step = (name: string) => screen.getByRole('button', { name: new RegExp(name) })
 
 		it('discards the outgoing panel by default', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Flow />)
 
@@ -459,7 +459,7 @@ describe('Stepper keyboard navigation', () => {
 		})
 
 		it('mount="lazy" carries panel state back across a step change', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Flow mount="lazy" />)
 

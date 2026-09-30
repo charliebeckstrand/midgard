@@ -244,8 +244,10 @@ export type GridColumn<T> = {
 	width?: number | string
 	/**
 	 * Minimum width (px); the floor the automatic sizing and a drag-resize never go
-	 * below. A single-word header sets its own floor (its full width, so it never
-	 * truncates) when larger than this.
+	 * below. A pointer drag, the keyboard, and the separator's `aria-valuemin`
+	 * share it. A single-word header sets its own floor (its full width, so it
+	 * never truncates) when larger than this. Without it, a declared `width`
+	 * below the default is the floor, so a narrow column keeps its width.
 	 * @defaultValue {@link DEFAULT_MIN_COLUMN_SIZE}
 	 */
 	minWidth?: number

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
-import { renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, setupUser } from '../helpers'
 
 /**
  * The shared mount hold behind the current cascade, the disclosure panels, and
@@ -63,7 +63,7 @@ describe('useMountHold', () => {
 	}
 
 	it('mount="active" unmounts the inactive panel', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panel mount="active" />)
 
@@ -79,7 +79,7 @@ describe('useMountHold', () => {
 	})
 
 	it('mount="always" holds the inactive panel hidden but mounted', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panel mount="always" />)
 
@@ -94,7 +94,7 @@ describe('useMountHold', () => {
 	})
 
 	it('mount="always" preserves DOM state across a hide', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panel mount="always" />)
 
@@ -112,7 +112,7 @@ describe('useMountHold', () => {
 	})
 
 	it('mount="lazy" defers the panel until first activation, then holds it', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panel mount="lazy" />)
 
@@ -131,7 +131,7 @@ describe('useMountHold', () => {
 	})
 
 	it('tears effects down on hide and re-runs them on show', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onSetup = vi.fn()
 
@@ -155,7 +155,7 @@ describe('useMountHold', () => {
 	})
 
 	it('defers the hide until the caller lands the transition', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panel mount="always" defer />)
 
@@ -175,7 +175,7 @@ describe('useMountHold', () => {
 	})
 
 	it('wakes a rested panel in the same pass that reactivates it', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panel mount="always" defer />)
 

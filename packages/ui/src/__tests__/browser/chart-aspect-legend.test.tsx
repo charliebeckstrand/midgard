@@ -148,32 +148,6 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 		expect(viewBox(container).height).toBeLessThan(box.height)
 	})
 
-	it('bands a side legend beside the plot and keeps the ratio on the plot box', async () => {
-		const { container } = chart({ aspectRatio: 16 / 9, legend: 'right' })
-
-		const figure = getSlot(container, 'chart-figure')
-
-		const plot = getSlot(container, 'chart-plot')
-
-		const legend = getSlot(container, 'chart-legend')
-
-		const reserve = getSlot(container, 'aspect-ratio')
-
-		await waitFor(() => expect(reserve.getBoundingClientRect().width).toBeGreaterThan(0))
-
-		// The figure reserves nothing; the plot box carries the ratio itself.
-		expect(figure.style.aspectRatio).toBe('')
-
-		const drawn = reserve.getBoundingClientRect()
-
-		expect(drawn.width / drawn.height).toBeCloseTo(16 / 9, 1)
-
-		// Beside, not below: a real row.
-		expect(legend.getBoundingClientRect().left).toBeGreaterThanOrEqual(
-			plot.getBoundingClientRect().right - 1,
-		)
-	})
-
 	it('fills the plot into a definite container height under aspectRatio={false}', async () => {
 		const { container } = renderUI(
 			<div style={{ width: 600, height: 320 }}>

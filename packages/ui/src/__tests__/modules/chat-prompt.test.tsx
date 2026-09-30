@@ -10,7 +10,7 @@ import {
 	present,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 describe('ChatPrompt', () => {
@@ -77,7 +77,7 @@ describe('ChatPrompt', () => {
 
 		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(el, 'a')
 
@@ -95,7 +95,7 @@ describe('ChatPrompt', () => {
 
 		el.focus()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{Enter}')
 
@@ -113,7 +113,7 @@ describe('ChatPrompt', () => {
 
 		el.focus()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{Shift>}{Enter}{/Shift}')
 
@@ -131,7 +131,7 @@ describe('ChatPrompt', () => {
 
 		el.focus()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{Enter}')
 
@@ -145,7 +145,7 @@ describe('ChatPrompt', () => {
 
 		const send = screen.getByRole('button', { name: 'Send message' })
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(send)
 
@@ -177,7 +177,7 @@ describe('ChatPrompt', () => {
 
 		const stop = screen.getByRole('button', { name: 'Stop generating' })
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(stop)
 
@@ -203,7 +203,7 @@ describe('ChatPrompt', () => {
 
 		el.focus()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{Enter}')
 
@@ -222,7 +222,13 @@ describe('ChatPrompt', () => {
 			/>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Attach' })).toBeInTheDocument()
+		const attach = screen.getByRole('button', { name: 'Attach' })
+
+		const send = screen.getByRole('button', { name: 'Send message' })
+
+		expect(attach.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING,
+		)
 	})
 
 	it('omits the attachment button when onAttach is not provided', () => {
@@ -245,7 +251,7 @@ describe('ChatPrompt', () => {
 
 		const openPicker = vi.spyOn(input, 'click')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Add attachment' }))
 
@@ -334,7 +340,7 @@ describe('ChatPrompt', () => {
 			/>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Remove second.pdf' }))
 

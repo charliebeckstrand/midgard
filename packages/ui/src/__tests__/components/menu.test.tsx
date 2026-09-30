@@ -24,43 +24,20 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 	stubMatchMedia,
 	userEvent,
 } from '../helpers'
 
-describe('MenuSection', () => {
-	it('renders with data-slot="menu-section"', () => {
-		const { container } = renderUI(<MenuSection>content</MenuSection>)
+describe.each([
+	['MenuSection', () => <MenuSection>content</MenuSection>, 'menu-section', 'FIELDSET'],
+	['MenuHeading', () => <MenuHeading>Heading</MenuHeading>, 'menu-heading', 'LEGEND'],
+	['MenuSeparator', () => <MenuSeparator />, 'menu-separator', 'HR'],
+])('%s', (_name, ui, slot, tag) => {
+	it(`renders a ${tag} with data-slot="${slot}"`, () => {
+		const { container } = renderUI(ui())
 
-		const el = bySlot(container, 'menu-section')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('FIELDSET')
-	})
-})
-
-describe('MenuHeading', () => {
-	it('renders with data-slot="menu-heading"', () => {
-		const { container } = renderUI(<MenuHeading>Heading</MenuHeading>)
-
-		const el = bySlot(container, 'menu-heading')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('LEGEND')
-	})
-})
-
-describe('MenuSeparator', () => {
-	it('renders with data-slot="menu-separator"', () => {
-		const { container } = renderUI(<MenuSeparator />)
-
-		const el = bySlot(container, 'menu-separator')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('HR')
+		expect(bySlot(container, slot)?.tagName).toBe(tag)
 	})
 })
 
@@ -210,20 +187,6 @@ describe('MenuTrigger', () => {
 })
 
 describe('MenuContent', () => {
-	it('renders static popover content with role="menu" when defaultOpen and no placement', () => {
-		const { container } = renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		const menu = container.querySelector('[role="menu"]')
-
-		expect(menu).toBeInTheDocument()
-	})
-
 	it('names a static menu via the forwarded aria-label', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen>
@@ -275,23 +238,6 @@ describe('MenuContent', () => {
 		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
 	})
 
-	it('renders portal content when placement is provided and menu is open', () => {
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.click(screen.getByText('Open'))
-
-		expect(screen.getByText('Item')).toBeInTheDocument()
-	})
-
 	it('keeps focus on the trigger when a dropdown opens', () => {
 		renderUI(
 			<Menu placement="bottom-start">
@@ -321,7 +267,7 @@ describe('MenuContent', () => {
 	})
 
 	it('closes the menu when Tab is pressed on the trigger', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Menu placement="bottom-start">
@@ -568,22 +514,6 @@ describe('MenuItem', () => {
 		expect(item).toHaveAttribute('role', 'menuitem')
 	})
 
-	it('calls onAction when clicked', () => {
-		const onAction = vi.fn()
-
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuItem onAction={onAction}>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.click(screen.getByText('Item'))
-
-		expect(onAction).toHaveBeenCalled()
-	})
-
 	it('keeps the menu open after onAction when closeOnAction is false', () => {
 		const onAction = vi.fn()
 
@@ -664,7 +594,7 @@ describe('MenuItem', () => {
 		expect(item).toHaveAttribute('aria-disabled', 'true')
 	})
 
-	it('invokes onAction when Enter is pressed', () => {
+	it.each(['Enter', ' '])('invokes onAction when %j is pressed', (key) => {
 		const onAction = vi.fn()
 
 		renderUI(
@@ -675,23 +605,7 @@ describe('MenuItem', () => {
 			</Menu>,
 		)
 
-		fireEvent.keyDown(screen.getByText('Item'), { key: 'Enter' })
-
-		expect(onAction).toHaveBeenCalled()
-	})
-
-	it('invokes onAction when Space is pressed', () => {
-		const onAction = vi.fn()
-
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuItem onAction={onAction}>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.keyDown(screen.getByText('Item'), { key: ' ' })
+		fireEvent.keyDown(screen.getByText('Item'), { key })
 
 		expect(onAction).toHaveBeenCalled()
 	})
@@ -1062,23 +976,6 @@ describe('MenuTrigger fallback button', () => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'menu')
 	})
-
-	it('toggles open state when the fallback button is clicked', () => {
-		const { container } = renderUI(
-			<Menu>
-				<MenuTrigger>Open</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		const trigger = getSlot(container, 'menu-trigger')
-
-		fireEvent.click(trigger)
-
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
-	})
 })
 
 describe('Menu context-menu mode', () => {
@@ -1159,6 +1056,8 @@ describe('Menu on a phone', () => {
 
 		const onAction = vi.fn()
 
+		const user = setupUser()
+
 		renderUI(
 			<Menu placement="bottom-start" sheet={sheet}>
 				<MenuTrigger>
@@ -1172,13 +1071,13 @@ describe('Menu on a phone', () => {
 			</Menu>,
 		)
 
-		return { onAction }
+		return { onAction, user }
 	}
 
 	it('opens a dropdown as a sheet that the trigger names', async () => {
-		renderPhoneMenu()
+		const { user } = renderPhoneMenu()
 
-		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
 		const sheet = screen.getByRole('dialog', { name: 'Add tile' })
 
@@ -1193,19 +1092,19 @@ describe('Menu on a phone', () => {
 	})
 
 	it('takes the title of the content as its heading', async () => {
-		renderPhoneMenu({ title: 'New tile' })
+		const { user } = renderPhoneMenu({ title: 'New tile' })
 
-		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
 		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
 	})
 
 	it('closes the sheet when a row is selected', async () => {
-		const { onAction } = renderPhoneMenu()
+		const { onAction, user } = renderPhoneMenu()
 
-		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
-		await userEvent.click(screen.getByRole('menuitem', { name: 'Orders' }))
+		await user.click(screen.getByRole('menuitem', { name: 'Orders' }))
 
 		expect(onAction).toHaveBeenCalledTimes(1)
 
@@ -1213,9 +1112,9 @@ describe('Menu on a phone', () => {
 	})
 
 	it('keeps the popover when the sheet is turned off', async () => {
-		renderPhoneMenu({ sheet: false })
+		const { user } = renderPhoneMenu({ sheet: false })
 
-		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
 

@@ -320,7 +320,7 @@ describe('flattenTree', () => {
 		expect(leaf?.highlighted).toBe(true)
 	})
 
-	it('recurses into open nested branches', () => {
+	it('recurses into open nested branches, tracking depth as it descends', () => {
 		const tree = { outer: { inner: { leaf: 1 } } }
 
 		const nodes = flattenTree({
@@ -341,19 +341,6 @@ describe('flattenTree', () => {
 			'branch-close',
 			'branch-close',
 		])
-	})
-
-	it('tracks depth as it descends into nested branches', () => {
-		const tree = { outer: { inner: { leaf: 1 } } }
-
-		const nodes = flattenTree({
-			data: tree,
-			rootKey: undefined,
-			isOpen: openFrom(['$', '$.outer', '$.outer.inner']),
-			search: '',
-			filter: false,
-			searchIndex: new WeakMap(),
-		})
 
 		expect(nodes.find((n) => n.type === 'leaf')?.depth).toBe(3)
 	})

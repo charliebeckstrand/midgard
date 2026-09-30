@@ -139,13 +139,9 @@ describe('chart legend wrap row (real browser)', () => {
 
 		const chart = getSlot(container, 'chart')
 
-		const entry = await waitFor(() => {
-			const found = allBySlot(container, 'chart-legend-item')[0] as HTMLElement | undefined
-
-			expect(found).toBeDefined()
-
-			return found as HTMLElement
-		})
+		const entry = await waitFor(() =>
+			present(allBySlot(container, 'chart-legend-item')[0], 'the legend entry'),
+		)
 
 		const label = present(entry.querySelector<HTMLElement>('.truncate'), '.truncate')
 

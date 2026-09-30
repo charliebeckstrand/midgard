@@ -1,13 +1,10 @@
-import { act, cleanup, render } from '@testing-library/react'
-import { configureAxe } from 'jest-axe'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { maxDepth } from '../../core/density/rungs'
-import { AppearanceProvider } from '../../providers/appearance'
-import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './demo-pages'
+import { type DemoPage, demoPages, walkOf } from './demo-pages'
 
 // A smoke test of each demo page of the docs site. Two test files in `docs/`
-// run it, and each file gives it a part of the pages, so that the test shards
-// in CI can balance the pages.
+// run it with the snippet gate, and each file gives the two gates a part of the
+// pages, so that the test shards in CI can balance the pages.
 //
 // It renders each page and opens each tab. A page fails when it throws, when it
 // writes to `console.error` or `console.warn`, or when a curated set of axe
@@ -16,24 +13,19 @@ import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './dem
 // asks whether a page exists, and the snippet gate (`demo-snippets.tsx`) reads
 // its "Show code" blocks. This test is the one that asks whether the page works.
 //
-// The rules are the structural ones that a demo breaks most: a button with no
-// name, a role that lacks its required children, two landmarks with the same
-// name, and a form control with no label. jsdom has no layout, so the rules of
-// geometry stay with the browser suite.
+// The two gates share one walk of each page (`walkOf` in `demo-pages.tsx`). The
+// walk runs axe in each state before it opens a block, and it closes each block
+// that it opens. Output to the console while a block is open goes to the
+// snippet gate, not to this test.
+//
+// The rules (`AXE_RULES` in `demo-pages.tsx`) are the structural ones that a
+// demo breaks most: a button with no name, a role that lacks its required
+// children, two landmarks with the same name, and a form control with no label.
+// jsdom has no layout, so the rules of geometry stay with the browser suite.
 //
 // `KNOWN_FAILURES` lists the violations of today, as the count of the nodes
 // that break each rule on each page. Each page must match its entries: a new
 // violation fails the gate, and so does an entry that a fix makes too high.
-
-const RULES = ['button-name', 'aria-required-children', 'landmark-unique', 'label']
-
-// `elementRef` gives each node its element, so a node that stays through a tab
-// change counts once.
-const axe = configureAxe({
-	resultTypes: ['violations'],
-	runOnly: { type: 'rule', values: RULES },
-	elementRef: true,
-})
 
 /**
  * The violations of today, keyed `page › rule`, with the count of the nodes
@@ -67,52 +59,6 @@ function knownFailuresOf(page: string): Record<string, number> {
 	)
 }
 
-/** Collects what `console.error` and `console.warn` write during the case, and keeps it off the output. */
-function captureConsole(): string[] {
-	const logged: string[] = []
-
-	for (const level of ['error', 'warn'] as const) {
-		const spy = vi.spyOn(console, level).mockImplementation((...args: unknown[]) => {
-			logged.push(`console.${level}: ${args.map(String).join(' ')}`)
-		})
-
-		onTestFinished(() => spy.mockRestore())
-	}
-
-	return logged
-}
-
-/** The name of a scope in a chain: its tag, its step, and its `data-slot`. */
-function scopeName(element: Element): string {
-	const slot = element.getAttribute('data-slot')
-
-	return `${element.localName}[${element.getAttribute('data-density')}]${slot ? `{${slot}}` : ''}`
-}
-
-/**
- * The longest chain of density scopes in the document, outermost first. The
- * root element is the scope of the app, and it does not count as a depth.
- */
-function deepestScopeChain(): Element[] {
-	let deepest: Element[] = []
-
-	for (const element of document.body.querySelectorAll('[data-density]')) {
-		const chain: Element[] = []
-
-		for (
-			let node: Element | null = element;
-			node && node !== document.documentElement;
-			node = node.parentElement
-		) {
-			if (node.hasAttribute('data-density')) chain.unshift(node)
-		}
-
-		if (chain.length > deepest.length) deepest = chain
-	}
-
-	return deepest
-}
-
 /**
  * Registers a smoke case for each page of `pages`, and the check of the page
  * names in `KNOWN_FAILURES` against all the pages.
@@ -121,52 +67,14 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 	describe('demo smoke', () => {
 		it.each(pages)(
 			'%s renders each tab with no console output and no known-rule violation',
-			// The grid page is the slowest: axe reads each of its tabs, in about 10s.
+			// The grid page is the slowest. The case that walks it runs axe on each of
+			// its tabs, in about 10s, and opens about 45 blocks, in about 7s.
 			{ timeout: 60_000 },
 			async (page, load) => {
-				restoreRootAfterCase()
-
-				const logged = captureConsole()
-
-				const Demo = await load()
-
-				const { container } = render(
-					<AppearanceProvider>
-						<Demo />
-					</AppearanceProvider>,
-				)
-
-				const violations = new Map<string, Set<Element>>()
-
-				let deepest: Element[] = []
-
-				await visitTabs(container, async () => {
-					const chain = deepestScopeChain()
-
-					if (chain.length > deepest.length) deepest = chain
-
-					// A demo is a live page. Its timers and effects update it while axe
-					// runs, so the run goes inside `act`.
-					const results = await act(() => axe(document.body))
-
-					for (const { id, nodes } of results.violations) {
-						const elements = violations.get(id) ?? new Set()
-
-						// The axe types leave out the `element` that `elementRef` adds.
-						for (const node of nodes as ((typeof nodes)[number] & { element?: Element })[]) {
-							if (node.element) elements.add(node.element)
-						}
-
-						violations.set(id, elements)
-					}
-				})
-
-				const scopes = deepest.map(scopeName)
-
-				cleanup()
+				const { logged, violations, scopes } = await walkOf(page, load)
 
 				const found = Object.fromEntries(
-					[...violations].map(([rule, elements]) => [`${page} › ${rule}`, elements.size]),
+					Object.entries(violations).map(([rule, count]) => [`${page} › ${rule}`, count]),
 				)
 
 				expect(logged).toEqual([])

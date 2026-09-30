@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
-import { BarChart } from '../../modules/chart'
+import { BarChart, DonutChart } from '../../modules/chart'
+import { TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 /**
- * A touch hold on a chart reads the chart and opens no context menu.
+ * A touch hold on a chart does nothing: it opens no readout and no context menu.
  *
- * A chart has a context menu by default. A context Menu opens on a touch long press, but a hold
- * on a chart opens the readout (#1396). The chart root marks itself `data-touch-readout`, so the
- * menu leaves the hold to the readout. A right-click still opens the menu.
+ * A chart has a context menu by default. A context Menu opens on a touch long press. The chart
+ * root marks itself `data-touch-readout`, so the menu leaves a hold on a chart alone (#1396). A
+ * touch reads nothing from the chart, so the hold opens no readout either. A right-click still
+ * opens the menu, and "View data" in the menu shows the data.
  */
 describe('a touch hold on a chart', () => {
 	beforeEach(() => {
@@ -52,5 +54,57 @@ describe('a touch hold on a chart', () => {
 		fireEvent.contextMenu(hit)
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
+	})
+
+	/** Holds a touch still on the element past the tap window, then lifts it. */
+	function hold(target: Element) {
+		const touch = { pointerType: 'touch', isPrimary: true, pointerId: 1 }
+
+		fireEvent.pointerOver(target, touch)
+
+		fireEvent.pointerDown(target, touch)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
+		})
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
+
+		fireEvent.pointerUp(target, touch)
+	}
+
+	it('opens no tooltip on a cartesian chart', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				width={400}
+				data={data}
+				series={[{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }]}
+			/>,
+		)
+
+		hold(bySlot(container, 'chart-hit') as Element)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(bySlot(container, 'chart-bar-spot')).toBeNull()
+	})
+
+	it('opens no tooltip on a donut', () => {
+		const { container } = renderUI(
+			<DonutChart
+				aria-label="Revenue by quarter"
+				width={300}
+				height={200}
+				data={data}
+				series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+			/>,
+		)
+
+		hold(bySlot(container, 'chart-slice') as Element)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(container.querySelector('.opacity-25')).toBeNull()
 	})
 })

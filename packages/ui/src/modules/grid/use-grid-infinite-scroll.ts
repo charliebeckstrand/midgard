@@ -142,6 +142,10 @@ type LoadMoreState = {
 	prevCount: number
 	/** The unbounded-container dev error already fired this mount. */
 	warned: boolean
+	/** The `scrollHeight` of the container at the last scroll event, or `null` before one. */
+	scrollHeight: number | null
+	/** A layout scroll event set the arm, and no scroll event has evaluated it yet. */
+	unchecked: boolean
 }
 
 /** Returns the resting {@link LoadMoreState} seeded at `count` loaded rows. @internal */
@@ -153,6 +157,8 @@ function initialLoadMoreState(count: number): LoadMoreState {
 		suppressArm: false,
 		prevCount: count,
 		warned: false,
+		scrollHeight: null,
+		unchecked: false,
 	}
 }
 
@@ -277,6 +283,48 @@ function evaluateLoadMore(args: {
 	args.onLoadMore()
 }
 
+/**
+ * Arms the next fire on a scroll event of the container, and tells whether the
+ * event must run an evaluation of its own.
+ *
+ * The evaluation runs on the arm edge: the first scroll since the last fire. A
+ * short scroll arms, but the last rendered index can stay inside the overscan,
+ * so no render evaluates the arm. A failed fetch would then wait for a long
+ * scroll.
+ *
+ * A scroll event that comes with a new `scrollHeight` arms, but does not
+ * evaluate. The virtualizer measured rows and moved the offset, so the event
+ * is layout, not the user. An evaluation on such an event would fire again
+ * after each fire, with no user scroll between the two.
+ *
+ * @param state - The bookkeeping of the hook.
+ * @param scrollHeight - The `scrollHeight` of the container at this event.
+ * @returns `true` when the event must run one evaluation.
+ *
+ * @internal
+ */
+function armOnScroll(state: LoadMoreState, scrollHeight: number): boolean {
+	const steady = state.scrollHeight === scrollHeight
+
+	state.scrollHeight = scrollHeight
+
+	// The programmatic scroll to the top of a replacement is not the user.
+	if (state.suppressArm) {
+		state.suppressArm = false
+
+		return false
+	}
+
+	// An arm that a layout event set waits for the next steady event.
+	if (state.armed && !state.unchecked) return false
+
+	state.armed = true
+
+	state.unchecked = !steady
+
+	return steady
+}
+
 /** Parameters for {@link useGridInfiniteScroll}. @internal */
 type GridInfiniteScrollParams = {
 	/** Index of the last row currently in the virtual window, or `-1` when none. */
@@ -298,7 +346,9 @@ type GridInfiniteScrollParams = {
  * Fires the infinite-scroll `onLoadMore` when the virtualized window nears the
  * end of the loaded rows, upholding the firing invariant {@link resolveLoadMore}
  * resolves. That means at most one fire per user scroll interaction. A scroll
- * event on the container arms the next fire, and firing consumes the arm. A
+ * event on the container arms the next fire, and firing consumes the arm. The
+ * arm edge runs one evaluation in the next frame, so a short scroll after a
+ * failed fetch retries when the window does not move (see `armOnScroll`). A
  * geometry-bounded viewport-fill also fires while the loaded rows don't yet
  * overflow the container. When the container turns out unbounded — its height
  * grows with the content instead of windowing it — fetching stops and a
@@ -333,30 +383,52 @@ export function useGridInfiniteScroll({
 
 	const threshold = infiniteScroll?.threshold ?? 0
 
+	// One evaluation against the newest props, for the arm edge of a scroll (see
+	// `armOnScroll`).
+	const evaluateOnArm = useEffectEvent((state: LoadMoreState) => {
+		evaluateLoadMore({
+			state,
+			element: scrollRef.current,
+			lastRenderedIndex,
+			count,
+			hasMore,
+			loadingMore,
+			threshold,
+			onLoadMore,
+		})
+	})
+
 	// Arm on the container's scroll events — the user-interaction evidence each
-	// post-fill fire requires. Passive: the listener only flips state.
+	// post-fill fire requires. Passive: the listener flips state, and on the arm
+	// edge it runs one evaluation.
 	useEffect(() => {
 		const element = scrollRef.current
 
 		if (!active || !element) return
 
+		// The evaluation waits one frame, for the render of the scroll. The index
+		// of that render tells whether the window still nears the end.
+		let frame = 0
+
 		const onScroll = () => {
 			const state = stateRef.current
 
-			if (!state) return
+			if (!state || !armOnScroll(state, element.scrollHeight) || frame) return
 
-			if (state.suppressArm) {
-				state.suppressArm = false
+			frame = requestAnimationFrame(() => {
+				frame = 0
 
-				return
-			}
-
-			state.armed = true
+				evaluateOnArm(state)
+			})
 		}
 
 		element.addEventListener('scroll', onScroll, { passive: true })
 
-		return () => element.removeEventListener('scroll', onScroll)
+		return () => {
+			element.removeEventListener('scroll', onScroll)
+
+			cancelAnimationFrame(frame)
+		}
 	}, [active, scrollRef])
 
 	useEffect(() => {

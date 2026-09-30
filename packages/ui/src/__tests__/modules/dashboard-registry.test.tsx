@@ -129,13 +129,7 @@ describe('DashboardTiles', () => {
 			<button type="button">{`Remove ${tile.title}`}</button>
 		)
 
-		renderUI(
-			<DashboardWidgetProvider widgets={WIDGETS}>
-				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
-					<DashboardTiles tiles={TILES} actions={actions} />
-				</Dashboard>
-			</DashboardWidgetProvider>,
-		)
+		renderUI(<Board actions={actions} />)
 
 		expect(screen.getByRole('button', { name: 'Remove Revenue' })).toBeInTheDocument()
 

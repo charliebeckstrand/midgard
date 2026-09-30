@@ -15,10 +15,11 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import { useLocale } from '../../providers/locale'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { type ColumnTests, filterRowIndices, type RowTest } from './engine/grid-filter/filter'
-import { groupMembers, orderGroups } from './engine/grid-group/client'
+import { allGroupIds, groupMembers, orderGroups } from './engine/grid-group/client'
 import {
 	expandGroups,
 	type GridGroup,
@@ -68,7 +69,7 @@ import type { GridColumn } from './types'
  * @internal
  */
 export function useGridClientView<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	sort: GridSortState[] | undefined
 	/** Whether the grid sorts client-side (a manual/server sort orders `rows` itself). */
 	clientSort: boolean
@@ -86,6 +87,9 @@ export function useGridClientView<T>(args: {
 	grandTotal: boolean
 }): ClientView<T> | null {
 	const { rows, sort, clientSort, filtered, page, query, columnTests, columns, grandTotal } = args
+
+	// The string sort collates in the locale of the nearest `LocaleProvider`.
+	const { locale } = useLocale()
 
 	// The sort columns as fields, or `null` unless the grid sorts on the client
 	// and the sort has entries.
@@ -155,17 +159,17 @@ export function useGridClientView<T>(args: {
 		// search, so a search filters it and sorts nothing. A custom `sortFn` can
 		// break that rule, so its fields sort the kept rows.
 		if (!kept || fields.every((field) => field.sortFn === null)) {
-			const full = cachedSortOrder(rows, columns, sig, fields, mirror)
+			const full = cachedSortOrder(rows, columns, sig, fields, mirror, locale)
 
 			return kept ? keepInOrder(full, kept, rows.length) : full
 		}
 
-		const local = cachedSortOrder(rowsAt(rows, kept), columns, sig, fields)
+		const local = cachedSortOrder(rowsAt(rows, kept), columns, sig, fields, undefined, locale)
 
 		// A sort of the kept rows gives positions among them. Each maps back to
 		// the original index of its row.
 		return local.map((position) => kept[position] as number)
-	}, [fields, kept, rows, sort, columns])
+	}, [fields, kept, rows, sort, columns, locale])
 
 	const pageIndex = page?.pageIndex
 
@@ -206,7 +210,7 @@ export function useGridClientView<T>(args: {
  * @internal
  */
 export function useGroupTree<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	columns: GridColumn<T>[]
 	/** The client view, or `null` when it applies no transform. */
 	clientView: ClientView<T> | null
@@ -268,16 +272,19 @@ export function useGroupTree<T>(args: {
 
 	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
 
+	// The first toggle from all-open takes an entry for every group of the rows,
+	// not only the groups that the filters keep. A group that a search hides then
+	// stays open. The ids are read in the toggle, not in render.
 	const toggleGroup = useCallback(
 		(id: string) =>
 			onExpandedChange?.((previous) =>
 				toggleGroupExpanded(
 					previous,
 					id,
-					(closed ?? []).map((group) => group.id),
+					previous === true && read && columnId != null ? allGroupIds(rows, columnId, read) : [],
 				),
 			),
-		[onExpandedChange, closed],
+		[onExpandedChange, read, columnId, rows],
 	)
 
 	return { groups, closed, toggleGroup }
@@ -298,7 +305,7 @@ export function useGroupTree<T>(args: {
  * @internal
  */
 export function useGridRowModel<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	getKey: (row: T, index: number) => string | number
 	/** Manual-grouping group-header predicate; splits the rows into headers and leaves. */
 	manualGroupRow: ((row: T) => boolean) | null
@@ -308,7 +315,7 @@ export function useGridRowModel<T>(args: {
 	groups: GridGroup<T>[] | null
 }): {
 	manualRows: GridLeaf<T>[] | null
-	renderRows: T[]
+	renderRows: readonly T[]
 	rowKeys: (string | number)[]
 } {
 	const { rows, getKey, manualGroupRow, clientView, groups } = args
@@ -401,7 +408,7 @@ export function useFilterModeMismatchWarning(args: {
  * @internal
  */
 export function useFacetSource<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	columns: GridColumn<T>[]
 	columnTests: ColumnTests<T>
 	/** The query of the quick search, or `''` when the search prunes no rows. */

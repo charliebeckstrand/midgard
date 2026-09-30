@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { present, renderUI, waitFor } from '../helpers'
+import { frame, present, renderUI, waitFor } from '../helpers'
 
 /**
  * Resize-handle geometry against a real layout engine. The handle lives in the
@@ -152,7 +152,7 @@ describe('grid resize handle geometry (real browser)', () => {
 
 		scroll.scrollLeft = scroll.scrollWidth
 
-		await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+		await frame()
 
 		expect(statusHeader.getBoundingClientRect().left).toBeCloseTo(before, 0)
 	})
@@ -195,45 +195,35 @@ describe('grid resize grip alignment (real browser)', () => {
 		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
 	}
 
-	it('centers the grip a cell-padding inside the trailing border in a truncating grid', async () => {
-		const { container } = renderUI(
-			<div style={{ width: '900px' }}>
-				<Grid resizable outline columns={readOnlyColumns} rows={rows} getKey={(r) => r.id} />
-			</div>,
-		)
+	// A cell-padding inside the border (where a truncating value clips), not flush.
+	// A non-truncating grid centers the grip the same way: the alignment does not
+	// depend on truncation.
+	it.each([
+		['a truncating', true],
+		['a non-truncating', false],
+	])(
+		'centers the grip a cell-padding inside the trailing border in %s grid',
+		async (_, truncate) => {
+			const { container } = renderUI(
+				<div style={{ width: '900px' }}>
+					<Grid
+						resizable
+						outline
+						truncate={truncate}
+						columns={readOnlyColumns}
+						rows={rows}
+						getKey={(r) => r.id}
+					/>
+				</div>,
+			)
 
-		const table = present(container.querySelector('table'), 'table')
+			const table = present(container.querySelector('table'), 'table')
 
-		await waitFor(() => expect(table.style.width).not.toBe(''))
+			await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// A cell-padding inside the border (where a truncating value clips), not flush.
-		expect(gripInset(container)).toBeGreaterThan(3)
+			expect(gripInset(container)).toBeGreaterThan(3)
 
-		expect(gripInset(container)).toBeLessThan(14)
-	})
-
-	it('centers the grip the same way in a non-truncating grid', async () => {
-		const { container } = renderUI(
-			<div style={{ width: '900px' }}>
-				<Grid
-					resizable
-					outline
-					truncate={false}
-					columns={readOnlyColumns}
-					rows={rows}
-					getKey={(r) => r.id}
-				/>
-			</div>,
-		)
-
-		const table = present(container.querySelector('table'), 'table')
-
-		await waitFor(() => expect(table.style.width).not.toBe(''))
-
-		// A non-truncating grid centers the grip identically — alignment no longer
-		// depends on truncation.
-		expect(gripInset(container)).toBeGreaterThan(3)
-
-		expect(gripInset(container)).toBeLessThan(14)
-	})
+			expect(gripInset(container)).toBeLessThan(14)
+		},
+	)
 })

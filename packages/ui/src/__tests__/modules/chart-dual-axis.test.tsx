@@ -3,7 +3,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { ComboChart } from '../../modules/chart/combo-chart'
 import type { ChartValueAxis } from '../../modules/chart/engine/chart-axes/schema'
 import { LineChart } from '../../modules/chart/line-chart'
-import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, userEvent } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, setupUser } from '../helpers'
 
 type Week = { week: string; shipments: number; rate: number }
 
@@ -190,7 +190,7 @@ describe('secondary y-axis', () => {
 	})
 
 	it('drops the right axis when its last series toggles off, and the left when everything binds right', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = line()
 

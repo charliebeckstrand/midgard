@@ -83,32 +83,18 @@ describe('useIsTruncated (real browser)', () => {
 		await waitFor(() => expect(verdict(container)).toBe('truncated'))
 	})
 
-	it('reads a clipped string as truncated', async () => {
-		const { container } = renderUI(
-			<Probe text="a considerably longer label than the box can hold" width={80} />,
-		)
-
-		await waitFor(() =>
-			expect(container.querySelector('[data-testid="result"]')?.textContent).toBe('truncated'),
-		)
-	})
-
 	it('reads a fitting string as not truncated', async () => {
 		const { container } = renderUI(<Probe text="ok" width={400} />)
 
-		await waitFor(() =>
-			expect(container.querySelector('[data-testid="result"]')?.textContent).toBe('fits'),
-		)
+		await waitFor(() => expect(verdict(container)).toBe('fits'))
 	})
 
-	it('leaves the measured element with its own text and no injected node', async () => {
+	it('reads a clipped string as truncated, and leaves the measured element as it was', async () => {
 		const { container } = renderUI(
 			<Probe text="a considerably longer label than the box can hold" width={80} />,
 		)
 
-		await waitFor(() =>
-			expect(container.querySelector('[data-testid="result"]')?.textContent).toBe('truncated'),
-		)
+		await waitFor(() => expect(verdict(container)).toBe('truncated'))
 
 		const label = container.querySelector('[data-testid="label"]')
 

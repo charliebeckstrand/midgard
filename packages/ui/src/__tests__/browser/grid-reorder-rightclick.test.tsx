@@ -44,20 +44,13 @@ describe('grid reorder grip: context-menu press (real browser)', () => {
 	const pressAndMove = (grip: Element, init: PointerEventInit) =>
 		drag(grip, { x: 50, y: 10 }, [{ x: 70, y: 10 }], init)
 
-	it('does not start a drag on a plain right-click (button 2)', async () => {
+	it.each([
+		['a plain right-click (button 2)', { button: 2 }],
+		['a macOS Ctrl+click (button 0 + ctrlKey)', { button: 0, ctrlKey: true }],
+	])('does not start a drag on %s', async (_, init) => {
 		const { grip, header } = gripHeader()
 
-		const held = await pressAndMove(grip, { button: 2 })
-
-		expect(header).not.toHaveAttribute('data-dragging')
-
-		await held.release()
-	})
-
-	it('does not start a drag on a macOS Ctrl+click (button 0 + ctrlKey)', async () => {
-		const { grip, header } = gripHeader()
-
-		const held = await pressAndMove(grip, { button: 0, ctrlKey: true })
+		const held = await pressAndMove(grip, init)
 
 		expect(header).not.toHaveAttribute('data-dragging')
 

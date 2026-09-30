@@ -183,24 +183,93 @@ function commentParts(doc: ts.JSDoc): readonly ts.JSDocComment[] {
 
 type LinkSite = { file: string; line: number; target: string }
 
-/** Every name the package declares, and every `{@link}` target it names once. */
+/** The name a `{@link}` target stands or falls with. */
+function headOf(target: string): string | undefined {
+	// A member or a qualified target resolves through its head: `Props.size`
+	// and `Class#method` both stand or fall with the declaration named first.
+	return target.split(/[.#]/)[0]?.trim() || undefined
+}
+
+/** Every name that the top level or any depth of `source` declares. */
+function collectDeclared(source: ts.Node, declared: Set<string>): void {
+	const visit = (node: ts.Node) => {
+		const name = declaredName(node)
+
+		if (name) declared.add(name)
+
+		ts.forEachChild(node, visit)
+	}
+
+	visit(source)
+}
+
+/**
+ * Whether the text of a file can hold a declaration of one of `heads`.
+ *
+ * @remarks
+ * A declared name is the text of an identifier, and that text is a substring
+ * of the file, with one exception: an identifier can spell a character as a
+ * `\u` escape, which the parse decodes. A file that holds such an escape is
+ * therefore always a candidate. The test is a superset check, so a candidate
+ * that declares nothing costs only its parse.
+ */
+function canDeclare(content: string, heads: readonly string[]): boolean {
+	return content.includes('\\u') || heads.some((head) => content.includes(head))
+}
+
+/** Each head of a target in `links` that `declared` does not hold, once. */
+function openHeads(links: readonly LinkSite[], declared: ReadonlySet<string>): string[] {
+	const heads = new Set<string>()
+
+	for (const { target } of links) {
+		const head = headOf(target)
+
+		if (head && !declared.has(head)) heads.add(head)
+	}
+
+	return [...heads]
+}
+
+/**
+ * Every `{@link}` target the package names once per file, and the names that
+ * the package declares, in so far as the targets need them.
+ *
+ * @remarks
+ * The rule asks one question of the declared names: does a name hold the head
+ * of a target? So the full set is not necessary, and its cost was most of this
+ * case. The walk is in two passes:
+ *
+ * 1. Each file that holds a link is parsed with parent pointers, because
+ *    `getJSDocCommentsAndTags` reads them. The same parse also gives the
+ *    declarations of that file.
+ * 2. The other files are parsed only when their text holds the head of a
+ *    target that pass 1 did not find declared. A file whose text does not hold
+ *    a name cannot declare it (see {@link canDeclare}), so the result for each
+ *    target is the same as the result from a parse of every file.
+ */
 function readDeclarationsAndLinks(): { declared: Set<string>; links: LinkSite[] } {
 	const declared = new Set<string>()
 
 	const links: LinkSite[] = []
 
+	const rest: { file: string; content: string }[] = []
+
 	eachFile((file, content) => {
 		if (!isSourceFile(file)) return
 
-		// Two thirds of the tree carries no link at all. `getJSDocCommentsAndTags`
+		// About half of the tree carries no link at all. `getJSDocCommentsAndTags`
 		// reads parent pointers, so the lookup and the cost of building them move
-		// together: without a link to find, neither is worth paying, and the
-		// `declared` walk below still covers every file. The guard is TypeScript's
-		// own trigger — `{ @link Foo }` with a space parses to no link node, and
-		// `{@linkcode` and `{@linkplain` both open with this prefix.
-		const hasLink = content.includes('{@link')
+		// together: without a link to find, neither is worth paying, and pass 2
+		// reads the file for declarations only when a target needs it. The guard
+		// is TypeScript's own trigger — `{ @link Foo }` with a space parses to no
+		// link node, and `{@linkcode` and `{@linkplain` both open with this prefix.
+		if (!content.includes('{@link')) {
+			rest.push({ file, content })
 
-		const source = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext, hasLink)
+			return
+		}
+
+		const source = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext, true)
 
 		// A doccomment is reachable from several nodes, so the same target is
 		// visited more than once. The file is the reporting unit, so one target
@@ -212,7 +281,7 @@ function readDeclarationsAndLinks(): { declared: Set<string>; links: LinkSite[] 
 
 			if (name) declared.add(name)
 
-			for (const doc of hasLink ? ts.getJSDocCommentsAndTags(node) : []) {
+			for (const doc of ts.getJSDocCommentsAndTags(node)) {
 				if (!ts.isJSDoc(doc)) continue
 
 				for (const part of commentParts(doc)) {
@@ -243,11 +312,21 @@ function readDeclarationsAndLinks(): { declared: Set<string>; links: LinkSite[] 
 		visit(source)
 	})
 
+	const open = openHeads(links, declared)
+
+	for (const { file, content } of rest) {
+		if (!canDeclare(content, open)) continue
+
+		// No parent pointers: pass 2 reads declarations only.
+		collectDeclared(ts.createSourceFile(file, content, ts.ScriptTarget.ESNext, false), declared)
+	}
+
 	return { declared, links }
 }
 
 /**
- * Every global the TypeScript standard library declares.
+ * The globals of the TypeScript standard library, in so far as `heads` needs
+ * them.
  *
  * @remarks
  * A link may name a platform type — `WeakMap`, `ResizeObserver` — which no file
@@ -256,8 +335,12 @@ function readDeclarationsAndLinks(): { declared: Set<string>; links: LinkSite[] 
  * passes this gate rather than failing it. That is the safe direction: the rule
  * reports a name nothing declares, and admitting a few extra names loses a
  * defect it was never able to see.
+ *
+ * A library file is parsed only when its text can declare one of `heads`
+ * (see {@link canDeclare}). The result for each head is thus the same as the
+ * result from a parse of every library file.
  */
-function libraryGlobals(): Set<string> {
+function libraryGlobals(heads: readonly string[]): Set<string> {
 	const libDir = dirname(ts.getDefaultLibFilePath({}))
 
 	const globals = new Set<string>()
@@ -265,14 +348,13 @@ function libraryGlobals(): Set<string> {
 	for (const entry of readdirSync(libDir)) {
 		if (!/^lib\..*\.d\.ts$/.test(entry)) continue
 
+		const content = readFileSync(join(libDir, entry), 'utf8')
+
+		if (!canDeclare(content, heads)) continue
+
 		// Top-level declarations only, and no parent pointers: nothing below the
 		// source file is read, so the parse stays as cheap as the read.
-		const source = ts.createSourceFile(
-			entry,
-			readFileSync(join(libDir, entry), 'utf8'),
-			ts.ScriptTarget.ESNext,
-			false,
-		)
+		const source = ts.createSourceFile(entry, content, ts.ScriptTarget.ESNext, false)
 
 		ts.forEachChild(source, (node) => {
 			const name = declaredName(node)
@@ -333,14 +415,12 @@ describe('comment reference boundary', () => {
 	it('every {@link} target names a symbol the package or the platform declares', () => {
 		const { declared, links } = readDeclarationsAndLinks()
 
-		const globals = libraryGlobals()
+		const globals = libraryGlobals(openHeads(links, declared))
 
 		const violations: string[] = []
 
 		for (const { file, line, target } of links) {
-			// A member or a qualified target resolves through its head: `Props.size`
-			// and `Class#method` both stand or fall with the declaration named first.
-			const head = target.split(/[.#]/)[0]?.trim()
+			const head = headOf(target)
 
 			if (!head || declared.has(head) || globals.has(head)) continue
 

@@ -19,36 +19,19 @@ describe('referenceRise', () => {
 })
 
 describe('barGrow', () => {
-	it('grows up the y axis, origin at the bottom for a positive bar', () => {
-		expect(barGrow('vertical', true)).toEqual({
-			initial: { scaleY: 0 },
-			animate: { scaleY: 1 },
-			style: { originY: 1 },
-		})
-	})
-
-	it('flips the vertical origin to the top for a negative bar', () => {
-		expect(barGrow('vertical', false)).toEqual({
-			initial: { scaleY: 0 },
-			animate: { scaleY: 1 },
-			style: { originY: 0 },
-		})
-	})
-
-	it('grows along the x axis, origin at the left for a positive bar', () => {
-		expect(barGrow('horizontal', true)).toEqual({
-			initial: { scaleX: 0 },
-			animate: { scaleX: 1 },
-			style: { originX: 0 },
-		})
-	})
-
-	it('flips the horizontal origin to the right for a negative bar', () => {
-		expect(barGrow('horizontal', false)).toEqual({
-			initial: { scaleX: 0 },
-			animate: { scaleX: 1 },
-			style: { originX: 1 },
-		})
+	// A vertical bar grows up y from the bottom, and a horizontal bar along x from
+	// the left. A negative bar flips the origin to the other end.
+	it.each([
+		['vertical', true, { initial: { scaleY: 0 }, animate: { scaleY: 1 }, style: { originY: 1 } }],
+		['vertical', false, { initial: { scaleY: 0 }, animate: { scaleY: 1 }, style: { originY: 0 } }],
+		['horizontal', true, { initial: { scaleX: 0 }, animate: { scaleX: 1 }, style: { originX: 0 } }],
+		[
+			'horizontal',
+			false,
+			{ initial: { scaleX: 0 }, animate: { scaleX: 1 }, style: { originX: 1 } },
+		],
+	] as const)('grows a %s bar (positive: %s) from its origin', (orientation, positive, grow) => {
+		expect(barGrow(orientation, positive)).toEqual(grow)
 	})
 })
 

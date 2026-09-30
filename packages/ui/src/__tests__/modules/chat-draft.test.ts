@@ -23,12 +23,8 @@ describe('draftContent', () => {
 })
 
 describe('canSubmitDraft', () => {
-	it('is false for an empty draft', () => {
-		expect(canSubmitDraft('')).toBe(false)
-	})
-
-	it('is false for whitespace alone', () => {
-		expect(canSubmitDraft('   ')).toBe(false)
+	it.each(['', '   '])('is false for the draft %j', (draft) => {
+		expect(canSubmitDraft(draft)).toBe(false)
 	})
 
 	it('is true once the draft holds a character', () => {

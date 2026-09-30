@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Textarea } from '../../components/textarea'
-import { getSlot, renderUI, userEvent } from '../helpers'
+import { getSlot, renderUI, setupUser, userEvent } from '../helpers'
 
 /**
  * An `autoResize` textarea keeps the height of its content, and `rows` sets the
@@ -42,7 +42,7 @@ describe('Textarea autoResize (real browser)', () => {
 
 		const start = height(el)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(el, 'one{Enter}two{Enter}three{Enter}four')
 
@@ -62,7 +62,7 @@ describe('Textarea autoResize (real browser)', () => {
 
 		expect(height(el)).toBeGreaterThan(floor)
 
-		await userEvent.setup({ delay: null }).click(getByRole('button', { name: 'Clear' }))
+		await setupUser().click(getByRole('button', { name: 'Clear' }))
 
 		expect(height(el)).toBe(floor)
 	})

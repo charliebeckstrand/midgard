@@ -6,7 +6,7 @@ import { ToastProvider, useToast } from '../../providers/toast'
 import { act, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Toast', () => {
-	it('renders a toast viewport in the document', () => {
+	it('renders a toast viewport that does not force a single politeness', () => {
 		renderUI(
 			<ToastProvider>
 				<Toast />
@@ -16,16 +16,6 @@ describe('Toast', () => {
 		const viewport = document.querySelector('[data-slot="toast-viewport"]')
 
 		expect(viewport).toBeInTheDocument()
-	})
-
-	it('does not force a single politeness on the viewport', () => {
-		renderUI(
-			<ToastProvider>
-				<Toast />
-			</ToastProvider>,
-		)
-
-		const viewport = document.querySelector('[data-slot="toast-viewport"]')
 
 		// Politeness lives on each toast (status / alert), not the container, so a
 		// wrapping live region can't double-announce or flatten severity.
@@ -479,18 +469,6 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('Held')).not.toBeInTheDocument()
 	})
 
-	it('renders toasts with the configured position viewport class', () => {
-		renderUI(
-			<ToastProvider>
-				<Toast position="top-left" />
-			</ToastProvider>,
-		)
-
-		const viewport = document.querySelector('[data-slot="toast-viewport"]')
-
-		expect(viewport).toBeInTheDocument()
-	})
-
 	it('throws when useToast is called outside of a ToastProvider', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -597,37 +575,6 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		expect(screen.queryByText('Closable')).not.toBeInTheDocument()
-	})
-
-	it('removes a toast immediately when dismiss is called a second time', () => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={5000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
-
-		let id = ''
-
-		act(() => {
-			id = api?.toast({ title: 'Twice' }) ?? ''
-		})
-
-		expect(screen.getByText('Twice')).toBeInTheDocument()
-
-		// First dismiss marks the toast as dismissed; a follow-up dismiss runs the
-		// "already dismissed" filter-removal branch.
-		act(() => {
-			api?.dismiss(id)
-		})
-
-		act(() => {
-			api?.dismiss(id)
-		})
-
-		expect(screen.queryByText('Twice')).not.toBeInTheDocument()
 	})
 
 	it('ignores a dismiss call for an unknown toast id', () => {

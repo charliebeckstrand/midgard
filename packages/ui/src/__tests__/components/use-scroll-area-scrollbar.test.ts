@@ -84,35 +84,22 @@ function setupHook(orientation: 'vertical' | 'horizontal' | 'both', scrollbar: '
 
 describe('useScrollAreaScrollbar', () => {
 	describe('orientation flags', () => {
-		it('exposes only hasVertical for orientation="vertical"', () => {
-			const { result } = renderHook(() =>
-				useScrollAreaScrollbar({ orientation: 'vertical', scrollbar: 'visible' }),
-			)
+		it.each([
+			['vertical', true, false],
+			['horizontal', false, true],
+			['both', true, true],
+		] as const)(
+			'orientation="%s" sets hasVertical=%s, hasHorizontal=%s',
+			(orientation, vertical, horizontal) => {
+				const { result } = renderHook(() =>
+					useScrollAreaScrollbar({ orientation, scrollbar: 'visible' }),
+				)
 
-			expect(result.current.hasVertical).toBe(true)
+				expect(result.current.hasVertical).toBe(vertical)
 
-			expect(result.current.hasHorizontal).toBe(false)
-		})
-
-		it('exposes only hasHorizontal for orientation="horizontal"', () => {
-			const { result } = renderHook(() =>
-				useScrollAreaScrollbar({ orientation: 'horizontal', scrollbar: 'visible' }),
-			)
-
-			expect(result.current.hasVertical).toBe(false)
-
-			expect(result.current.hasHorizontal).toBe(true)
-		})
-
-		it('exposes both flags for orientation="both"', () => {
-			const { result } = renderHook(() =>
-				useScrollAreaScrollbar({ orientation: 'both', scrollbar: 'visible' }),
-			)
-
-			expect(result.current.hasVertical).toBe(true)
-
-			expect(result.current.hasHorizontal).toBe(true)
-		})
+				expect(result.current.hasHorizontal).toBe(horizontal)
+			},
+		)
 	})
 
 	describe('initial state', () => {

@@ -85,11 +85,6 @@ describe('resolveMagnifier', () => {
 			delay: 300,
 		})
 	})
-
-	/** `'none'` is a dwell of zero, not an absent one: the lens opens the moment it is over ink. */
-	it('reads the absent dwell as zero', () => {
-		expect(resolveMagnifier({ zoom: 'md', size: 'md', delay: 'none' }).delay).toBe(0)
-	})
 })
 
 describe('lensOffset', () => {

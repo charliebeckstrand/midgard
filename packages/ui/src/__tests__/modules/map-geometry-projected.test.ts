@@ -6,6 +6,7 @@ import type { MapFeature, MapTopology } from '../../modules/map'
 import {
 	affineBasis,
 	areaOnly,
+	carriedTransform,
 	emitRegionPaths,
 	type MapProjectedAtlas,
 	probeCanonicalFit,
@@ -291,11 +292,155 @@ describe('projectAtlas + emitRegionPaths', () => {
 		expect(emitRegionPaths(projected(FIXTURE_GEOJSON.features, geoMercator()), clipped)).toBeNull()
 	})
 
+	it('writes the sign of a coordinate the fit places below zero', () => {
+		// A translate that puts the first corner a fraction below zero on both axes.
+		// There the integer part is zero, and only the written sign keeps it negative.
+		const projection = geoMercator().scale(200).translate([-0.3, -0.7])
+
+		const emitted = emitRegionPaths(projected(FIXTURE_GEOJSON.features, projection), projection)
+
+		expect(emitted).toEqual(regionPaths(FIXTURE_GEOJSON.features, projection))
+
+		expect(emitted?.[0]).toMatch(/^M-0\.3,-0\.7L/)
+	})
+
+	it('finds its witness in a multipolygon', () => {
+		const parts = feature({
+			type: 'MultiPolygon',
+			coordinates: [
+				[
+					[
+						[0, 0],
+						[0, 5],
+						[5, 5],
+						[5, 0],
+						[0, 0],
+					],
+				],
+				[
+					[
+						[10, 0],
+						[10, 5],
+						[15, 5],
+						[15, 0],
+						[10, 0],
+					],
+				],
+			],
+		})
+
+		const projection = geoMercator().scale(200).translate([100, 100])
+
+		const atlas = projected([parts], projection)
+
+		expect(atlas.witness?.position).toEqual([0, 0])
+
+		const refit = geoMercator().scale(400).translate([50, 50])
+
+		expect(emitRegionPaths(atlas, refit)).toEqual(regionPaths([parts], refit))
+	})
+
+	it('declines to emit where no witness can test the fit', () => {
+		// Nothing drew, so nothing places a witness, and the emit cannot prove the
+		// affine. The caller falls back to the direct walk.
+		const projection = geoMercator()
+
+		const atlas = projected([feature(null)], projection)
+
+		expect(atlas.witness).toBeNull()
+
+		expect(emitRegionPaths(atlas, projection)).toBeNull()
+	})
+
+	it('declines a buffer drawn at no scale', () => {
+		const atlas = projected(FIXTURE_GEOJSON.features, geoMercator().scale(0))
+
+		expect(emitRegionPaths(atlas, geoMercator())).toBeNull()
+	})
+
+	it('declines the fold for geography that collapses to one position', () => {
+		const point = feature({
+			type: 'Polygon',
+			coordinates: [
+				[
+					[5, 5],
+					[5, 5],
+					[5, 5],
+					[5, 5],
+				],
+			],
+		})
+
+		expect(probeCanonicalFit([point], 'mercator')).toBeNull()
+	})
+
 	it('reports a basis for every built-in projection', () => {
 		// `albers-usa` carries no `clipExtent` method at all, and the other two
 		// default to none — the property the refusal above is the exception to.
 		expect(affineBasis(canonical.projection)).not.toBeNull()
 
 		expect(affineBasis(geoMercator())).not.toBeNull()
+	})
+})
+
+/**
+ * The one group transform the region layer moves per refit, in place of a new
+ * `d` on every path. It must put each canonical coordinate where the measured
+ * fit draws it, and refuse where the buffer cannot prove that.
+ */
+describe('carriedTransform', () => {
+	const atlas = projected(stateFeatures, canonical.projection)
+
+	it('carries a canonical position onto the measured fit', () => {
+		const measured = scaleCanonicalFit('albers-usa', canonical, 800, 450)
+
+		const transform = carriedTransform(atlas, canonical.projection, measured)
+
+		expect(transform).not.toBeNull()
+
+		if (transform === null) return
+
+		expect(transform.k).toBeCloseTo(measured.scale() / canonical.projection.scale(), 12)
+
+		for (const position of [
+			[-100, 40],
+			[-75, 42],
+			[-120, 35],
+		] as [number, number][]) {
+			const from = canonical.projection(position)
+
+			const to = measured(position)
+
+			if (from === null || to === null) throw new Error('fixture position has no image')
+
+			expect(from[0] * transform.k + transform.x).toBeCloseTo(to[0], 6)
+
+			expect(from[1] * transform.k + transform.y).toBeCloseTo(to[1], 6)
+		}
+	})
+
+	it('refuses one projection refit in place, whose canonical basis is gone', () => {
+		expect(carriedTransform(atlas, canonical.projection, canonical.projection)).toBeNull()
+	})
+
+	it('refuses where either fit cannot be reached from the buffer', () => {
+		const fixture = projected(FIXTURE_GEOJSON.features, geoMercator())
+
+		const clipped = geoMercator().clipExtent([
+			[0, 0],
+			[100, 100],
+		])
+
+		const rotated = geoMercator().rotate([40, 0])
+
+		expect(carriedTransform(fixture, clipped, geoMercator())).toBeNull()
+
+		expect(carriedTransform(fixture, geoMercator(), rotated)).toBeNull()
+	})
+
+	it('refuses a canonical fit scaled to nothing', () => {
+		const fixture = projected(FIXTURE_GEOJSON.features, geoMercator())
+
+		expect(carriedTransform(fixture, geoMercator().scale(0), geoMercator())).toBeNull()
 	})
 })

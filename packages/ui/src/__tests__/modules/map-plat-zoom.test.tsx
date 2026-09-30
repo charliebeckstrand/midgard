@@ -74,26 +74,53 @@ function answersPointer(container: HTMLElement): boolean {
 	return bySlot(container, 'map-zoom')?.getAttribute('pointer-events') !== 'none'
 }
 
-/** Presses two touch pointers, moves them to new places, and releases both. */
+/** A contact on the plot's SVG, as a touch event reports it. */
+type Contact = { id: number; x: number; y: number }
+
+/**
+ * Sends one touch event to the SVG with the contacts that are down after it, and
+ * returns whether a listener let it through. A modifier map reads its fingers off
+ * these, since the browser can cancel the pointer events for a pinch.
+ */
+function touch(
+	svg: SVGSVGElement,
+	type: 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel',
+	contacts: Contact[],
+): boolean {
+	const touches = contacts.map(({ id, x, y }) => ({
+		identifier: id,
+		clientX: x,
+		clientY: y,
+		target: svg,
+	}))
+
+	// Every contact is reported as changed. The map reads the ones a start
+	// brings, and a start that repeats a finger already down changes nothing.
+	return fireEvent[type](svg, { touches, changedTouches: touches })
+}
+
+/** Lands two fingers on the SVG, moves them to new places, and lifts both. */
 function twoFinger(
-	plot: HTMLElement,
+	svg: SVGSVGElement,
 	from: [{ x: number; y: number }, { x: number; y: number }],
 	to: [{ x: number; y: number }, { x: number; y: number }],
 ) {
-	for (const [index, at] of from.entries()) {
-		fireEvent.pointerDown(plot, {
-			pointerId: index + 1,
-			pointerType: 'touch',
-			clientX: at.x,
-			clientY: at.y,
-		})
-	}
+	const down = from.map((at, index) => ({ id: index + 1, ...at }))
 
-	for (const [index, at] of to.entries()) {
-		fireEvent.pointerMove(plot, { pointerId: index + 1, clientX: at.x, clientY: at.y })
-	}
+	touch(svg, 'touchStart', down.slice(0, 1))
 
-	for (const index of [0, 1]) fireEvent.pointerUp(plot, { pointerId: index + 1 })
+	touch(svg, 'touchStart', down)
+
+	act(() => {
+		touch(
+			svg,
+			'touchMove',
+			to.map((at, index) => ({ id: index + 1, ...at })),
+		)
+	})
+
+	// The lift applies the travel that waits for its frame.
+	touch(svg, 'touchEnd', [])
 }
 
 /** Presses, drags, and releases one pointer across the plot region. */
@@ -381,15 +408,17 @@ describe('MapPlat wheel, armed outright', () => {
 
 describe('MapPlat two-finger gestures', () => {
 	it("pans by the pair's travel, so a two-finger drag moves the map", () => {
-		const { container, plot, svg } = renderZoomable()
+		const { container, svg } = renderZoomable()
 
 		zoomWheel(svg, -400)
 
 		const before = transformOf(container)
 
+		const scale = scaleOf(container)
+
 		// The spread holds and the pair travels, so this is a pan and not a pinch.
 		twoFinger(
-			plot,
+			svg,
 			[
 				{ x: 180, y: 100 },
 				{ x: 220, y: 100 },
@@ -402,14 +431,14 @@ describe('MapPlat two-finger gestures', () => {
 
 		expect(transformOf(container)).not.toBe(before)
 
-		expect(scaleOf(container)).toBeCloseTo(scaleOf(container), 6)
+		expect(scaleOf(container)).toBeCloseTo(scale, 6)
 	})
 
 	it("scales by the pair's spread", () => {
-		const { container, plot } = renderZoomable()
+		const { container, svg } = renderZoomable()
 
 		twoFinger(
-			plot,
+			svg,
 			[
 				{ x: 190, y: 100 },
 				{ x: 210, y: 100 },
@@ -468,9 +497,66 @@ describe('MapPlat two-finger gestures', () => {
 	})
 
 	it('keeps a two-finger move from the page by default, so the browser cannot pan it', () => {
-		// `pan-x pan-y` lets the browser take two fingers as a page pan, which
-		// cancels both pointers before the pinch moves.
-		const { plot, svg } = renderZoomable()
+		const { svg } = renderZoomable()
+
+		const pair = [
+			{ id: 1, x: 190, y: 100 },
+			{ id: 2, x: 210, y: 100 },
+		]
+
+		// One finger is the page's scroll, so it passes through. `fireEvent`
+		// returns `false` when a listener canceled the event.
+		expect(touch(svg, 'touchStart', pair.slice(0, 1))).toBe(true)
+
+		expect(touch(svg, 'touchMove', pair.slice(0, 1))).toBe(true)
+
+		expect(touch(svg, 'touchStart', pair)).toBe(false)
+
+		expect(touch(svg, 'touchMove', pair)).toBe(false)
+
+		// The finger left down after a pinch stays the map's until it lifts, so it
+		// cannot scroll the page out from under the map.
+		expect(touch(svg, 'touchEnd', pair.slice(0, 1))).toBe(false)
+
+		expect(touch(svg, 'touchMove', pair.slice(0, 1))).toBe(false)
+
+		touch(svg, 'touchEnd', [])
+
+		expect(touch(svg, 'touchStart', pair.slice(0, 1))).toBe(true)
+	})
+
+	it('pinches after the browser takes the first finger for a page scroll', () => {
+		// The first finger lands a moment early and starts the page's scroll. The
+		// browser cancels its pointer and sends no pointer event for the second
+		// finger. Only the touch events carry the pinch.
+		const { container, plot, svg } = renderZoomable()
+
+		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 190, clientY: 100 })
+
+		touch(svg, 'touchStart', [{ id: 1, x: 190, y: 100 }])
+
+		touch(svg, 'touchMove', [{ id: 1, x: 185, y: 102 }])
+
+		fireEvent.pointerCancel(plot, { pointerId: 1, pointerType: 'touch' })
+
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 185, y: 102 },
+			{ id: 2, x: 205, y: 102 },
+		])
+
+		touch(svg, 'touchMove', [
+			{ id: 1, x: 165, y: 102 },
+			{ id: 2, x: 225, y: 102 },
+		])
+
+		touch(svg, 'touchEnd', [])
+
+		// The spread went from 20 to 60, so the scale is three times the fit.
+		expect(scaleOf(container)).toBeCloseTo(3, 3)
+	})
+
+	it('leaves the touch pointers alone on a default map, so a pinch applies once', () => {
+		const { container, plot } = renderZoomable()
 
 		for (const [index, x] of [190, 210].entries()) {
 			fireEvent.pointerDown(plot, {
@@ -481,15 +567,11 @@ describe('MapPlat two-finger gestures', () => {
 			})
 		}
 
-		// `fireEvent` returns `false` when a listener canceled the event.
-		expect(fireEvent.touchMove(svg)).toBe(false)
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 100 })
 
 		for (const index of [0, 1]) fireEvent.pointerUp(plot, { pointerId: index + 1 })
 
-		fireEvent.pointerDown(plot, { pointerId: 3, pointerType: 'touch', clientX: 200, clientY: 100 })
-
-		// One finger is the page's scroll, so its move passes through.
-		expect(fireEvent.touchMove(svg)).toBe(true)
+		expect(scaleOf(container)).toBe(1)
 	})
 
 	it('leaves a two-finger move alone on a map that does not zoom', () => {
@@ -509,8 +591,9 @@ describe('MapPlat two-finger gestures', () => {
 
 	it('takes both fingers of one frame, so the scale keeps up with the spread', () => {
 		// A phone reports each finger as its own move, and both can land before
-		// React renders. The second move must build on the first.
-		const { container, plot } = renderZoomable()
+		// React renders. The second move must build on the first. A map that
+		// claims touch outright reads its fingers off the pointer events.
+		const { container, plot } = renderZoomable(DIRECT)
 
 		for (const [index, x] of [190, 210].entries()) {
 			fireEvent.pointerDown(plot, {
@@ -535,20 +618,17 @@ describe('MapPlat two-finger gestures', () => {
 
 	it('applies the pinch on the next frame, while both fingers stay down', async () => {
 		await withFakeTime(async (clock) => {
-			const { container, plot } = renderZoomable()
+			const { container, svg } = renderZoomable()
 
-			for (const [index, x] of [190, 210].entries()) {
-				fireEvent.pointerDown(plot, {
-					pointerId: index + 1,
-					pointerType: 'touch',
-					clientX: x,
-					clientY: 100,
-				})
-			}
+			touch(svg, 'touchStart', [
+				{ id: 1, x: 190, y: 100 },
+				{ id: 2, x: 210, y: 100 },
+			])
 
-			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 170, clientY: 100 })
-
-			fireEvent.pointerMove(plot, { pointerId: 2, clientX: 230, clientY: 100 })
+			touch(svg, 'touchMove', [
+				{ id: 1, x: 170, y: 100 },
+				{ id: 2, x: 230, y: 100 },
+			])
 
 			// Both moves wait for one frame, which applies them together.
 			expect(scaleOf(container)).toBe(1)

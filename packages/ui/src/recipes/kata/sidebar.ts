@@ -88,8 +88,11 @@ const itemRow = defineRecipe({
  * by the inner item's padding step, so a control never sits flush against the
  * chrome. It lives on the slot, not the row, so the mini rail (which hides
  * the slot) keeps its square geometry.
+ *
+ * The slot touches the link of the item, so a control in it keeps its hit area
+ * to its own width (`TouchTarget`), and the hit area does not reach over the link.
  */
-const affix = ['relative', 'z-10', flex.row, 'shrink-0', mini.hidden]
+const affix = ['relative', 'z-10', flex.row, 'shrink-0', '[--touch-target-gap-x:0px]', mini.hidden]
 
 // Each slot is a density scope one step below the item (`data-density="slot"`),
 // so a slot icon or a small `<Button>` action takes that step with no
@@ -99,6 +102,9 @@ const affix = ['relative', 'z-10', flex.row, 'shrink-0', mini.hidden]
 const itemPrefix = [...affix, 'density-ms-[1.5,2,2.5,2.5,2.5]']
 
 const itemSuffix = [...affix, 'density-me-[1.5,2,2.5,2.5,2.5]']
+
+/** The cap on the hit areas of a stack of items: the `gap-0.5` of the stack (`TouchTarget`). */
+const stackTargets = '[--touch-target-gap-y:--spacing(0.5)]'
 
 export const k = {
 	base: ['group/sidebar', mini.rail, 'overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
@@ -120,13 +126,14 @@ export const k = {
 		prefix: itemPrefix,
 		suffix: itemSuffix,
 	},
-	section: [flex.col, 'gap-0.5'],
-	list: [flex.col, 'gap-0.5'],
+	// `stackTargets` caps the hit areas, so two adjacent items do not overlap.
+	section: [flex.col, 'gap-0.5', stackTargets],
+	list: [flex.col, 'gap-0.5', stackTargets],
 	label: ['truncate', mini.srOnly],
 	header: [flex.row, 'gap-3'],
 	body: ['overflow-y-auto', flex.col, flex.fill, 'gap-4'],
 	divider: divider.top,
-	footer: ['sticky bottom-0', flex.col, 'gap-0.5', 'mt-auto'],
+	footer: ['sticky bottom-0', flex.col, 'gap-0.5', stackTargets, 'mt-auto'],
 } as const
 
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */

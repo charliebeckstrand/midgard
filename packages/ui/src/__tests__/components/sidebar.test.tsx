@@ -19,8 +19,8 @@ import {
 	getSlot,
 	renderUI,
 	screen,
+	setupUser,
 	stubMatchMedia,
-	userEvent,
 } from '../helpers'
 
 describe('Sidebar', () => {
@@ -205,7 +205,7 @@ describe('Sidebar mini', () => {
 		// Desktop viewport and a hover-capable pointer.
 		stubMatchMedia(() => true)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Sidebar mini>
@@ -215,9 +215,7 @@ describe('Sidebar mini', () => {
 			</Sidebar>,
 		)
 
-		const inner = bySlot(container, 'sidebar-item-inner')
-
-		if (!inner) throw new Error('item missing')
+		const inner = getSlot(container, 'sidebar-item-inner')
 
 		// The trigger clones onto the item button itself, keeping its slot.
 		expect(inner.tagName).toBe('BUTTON')
@@ -232,7 +230,7 @@ describe('Sidebar mini', () => {
 	it('surfaces only the SidebarLabel in the tooltip', async () => {
 		stubMatchMedia(() => true)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Sidebar mini>
@@ -245,9 +243,7 @@ describe('Sidebar mini', () => {
 			</Sidebar>,
 		)
 
-		const inner = bySlot(container, 'sidebar-item-inner')
-
-		if (!inner) throw new Error('item missing')
+		const inner = getSlot(container, 'sidebar-item-inner')
 
 		await user.click(inner)
 
@@ -265,7 +261,7 @@ describe('Sidebar mini', () => {
 	it('keeps plain items below the desktop breakpoint', async () => {
 		stubMatchMedia(() => false)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Sidebar mini>
@@ -275,9 +271,7 @@ describe('Sidebar mini', () => {
 			</Sidebar>,
 		)
 
-		const inner = bySlot(container, 'sidebar-item-inner')
-
-		if (!inner) throw new Error('item missing')
+		const inner = getSlot(container, 'sidebar-item-inner')
 
 		await user.click(inner)
 
@@ -414,18 +408,6 @@ describe('SidebarItem', () => {
 		const inner = bySlot(container, 'sidebar-item-inner')
 
 		expect(inner).toHaveAttribute('type', 'button')
-
-		expect(inner).toHaveAttribute('aria-current', 'page')
-	})
-
-	it('marks the current item with aria-current="page"', () => {
-		const { container } = renderUI(
-			<Sidebar>
-				<SidebarItem current>Home</SidebarItem>
-			</Sidebar>,
-		)
-
-		const inner = bySlot(container, 'sidebar-item-inner')
 
 		expect(inner).toHaveAttribute('aria-current', 'page')
 	})

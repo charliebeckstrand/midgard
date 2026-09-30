@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
 import { Form } from '../../components/form'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('CurrencyInput', () => {
 	it('merges a consumer className with its own tabular-nums', () => {
@@ -15,20 +15,12 @@ describe('CurrencyInput', () => {
 		expect(input).toHaveClass('tabular-nums')
 	})
 
-	it('renders an input with data-slot="currency-input"', () => {
+	it('renders an input with data-slot="currency-input" and inputMode="decimal"', () => {
 		const { container } = renderUI(<CurrencyInput />)
 
-		const input = bySlot(container, 'currency-input')
+		const input = getSlot(container, 'currency-input')
 
-		expect(input).toBeInTheDocument()
-
-		expect(input?.tagName).toBe('INPUT')
-	})
-
-	it('uses inputMode="decimal"', () => {
-		const { container } = renderUI(<CurrencyInput />)
-
-		const input = bySlot(container, 'currency-input')
+		expect(input.tagName).toBe('INPUT')
 
 		expect(input).toHaveAttribute('inputmode', 'decimal')
 	})
@@ -68,7 +60,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -86,7 +78,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -98,7 +90,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -124,7 +116,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -144,7 +136,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -164,7 +156,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -194,7 +186,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		input.focus()
 
@@ -230,7 +222,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		input.focus()
 
@@ -239,14 +231,14 @@ describe('CurrencyInput', () => {
 		expect(document.activeElement).toBe(input)
 	})
 
-	it('forwards onValueChange and onBlur after edits round-trip through the input', async () => {
+	it('forwards onBlur after an edit round-trips through the input', async () => {
 		const onBlur = vi.fn()
 
 		const { container } = renderUI(<CurrencyInput defaultValue={10} onBlur={onBlur} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -266,7 +258,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -290,7 +282,7 @@ describe('CurrencyInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -321,7 +313,7 @@ describe('CurrencyInput', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 

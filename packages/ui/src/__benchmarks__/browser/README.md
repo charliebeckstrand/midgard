@@ -139,6 +139,12 @@ Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtur
 
 - [`grid-cursor.bench.tsx`](grid-cursor.bench.tsx) — one arrow move of the cell cursor, down one row and back up, at 1k rows without a window. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid with a range, which shows the fill handle on the active cell. The `navigable` row shows no handle, and is the floor.
 
+- [`grid-group-expand.bench.tsx`](grid-group-expand.bench.tsx) — the expand and the collapse of one group, at 10k rows grouped by carrier with every group closed at mount. Each sample clicks the disclosure under `flushSync` and then waits one task, so the render that drops the entering rows is in the sample. The sample settles on no frame. Before the bench registers, the file logs the time, the commits, and the renders of the grouped body for the click and for the task after it.
+
+- [`grid-group-manager.bench.tsx`](grid-group-manager.bench.tsx) — one rename keystroke in the group editor of the column manager, at 8 groups of 40 columns and 40 ungrouped columns. The editor mounts on its own, and each sample commits the keystroke under `flushSync`. The `layout` row also reads the rect of the editor. Before the benches register, the file logs the zones, the rows, and the menus that one keystroke renders.
+
+The two group files count renders with [`render-count.ts`](render-count.ts). It installs a minimal React DevTools hook before `react-dom` loads, and counts each component that did work in a commit. A component that runs and then bails out does not count, as in React DevTools.
+
 The ui grid keeps its built-in chrome (the toolbar with export, and the accessible announcements) in each scenario. React runs in production mode, for the reason that the intro gives.
 
 ### Standings (2026-07-10, this workstation)
@@ -348,6 +354,17 @@ Each entry names the change and the scenarios it moved.
     | cursor move · 1,000 · navigable | 19.3 | 19.5 |
 
     With the frame taken out, the handle added about 12 ms to each move, and it now adds less than 1 ms.
+
+21. **A rename renders no column row** ([`grid-group-manager.tsx`](../../modules/grid/grid-group-manager.tsx), [`use-grid-group-manager.ts`](../../modules/grid/use-grid-group-manager.ts), 2026-09-30, this container). Each keystroke in the name of a group rendered each zone, each of the 360 column rows, and the 368 closed menus of the editor. The four actions of the editor are now stable events, and each column row is memoized. The "Move to" items read the groups from a context, and a closed menu mounts no items. The id lists of the two sortables keep their identity while their ids do not change. One keystroke now renders the 9 zones and the 8 color menus of the group headers. The means of two rounds of each build, in ms, under a load average of about 25 on 4 cores:
+
+    | Scenario | `main` | branch |
+    | --- | ---: | ---: |
+    | rename keystroke · commit | 223 to 373 | 10 to 13 |
+    | rename keystroke · layout | 255 to 371 | 10 to 11 |
+    | rename keystroke · commit · compiled | 212 to 217 | 9 to 18 |
+    | rename keystroke · layout · compiled | 117 to 120 | 9 to 20 |
+
+    The expand bench measures a second question. When the entering rows of an expand lose their motion, the grouped body builds its item list and its window once more. That build took 0.5 to 1 ms of an expand of about 90 ms, in both builds. A body that held the item list through the drop changed no measured time, so the body stays as it is.
 
 ## Maps
 

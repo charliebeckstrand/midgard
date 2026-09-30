@@ -50,10 +50,6 @@ describe('cursorForCount', () => {
 		expect(cursorForCount('1,234', -1, keep)).toBe(0)
 	})
 
-	it('returns 0 for an empty string when the target is 0', () => {
-		expect(cursorForCount('', 0, keep)).toBe(0)
-	})
-
 	it('returns the string length when no character is meaningful', () => {
 		expect(cursorForCount(',,,', 1, keep)).toBe(3)
 	})

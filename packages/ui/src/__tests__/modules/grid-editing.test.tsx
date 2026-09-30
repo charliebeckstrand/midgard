@@ -29,7 +29,7 @@ import {
 	liveRegion,
 	present,
 	renderUI,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
@@ -3397,43 +3397,26 @@ describe('Grid session-owned drafts', () => {
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
 	})
 
-	it.each(['row', 'cell'] as const)(
-		'commits the draft of a row paged away, under a grid-owned %s session',
-		(scope) => {
-			const { click, enterName, type, onCommit } = renderDraftGrid({ session: 'managed', scope })
+	it.each([
+		['a row paged away', 'row', 'Next page'],
+		['a row paged away', 'cell', 'Next page'],
+		['a hidden column', 'row', 'hide'],
+		['a hidden column', 'cell', 'hide'],
+	] as const)('commits the draft of %s, under a grid-owned %s session', (_, scope, away) => {
+		const { click, enterName, type, onCommit } = renderDraftGrid({ session: 'managed', scope })
 
-			enterName()
+		enterName()
 
-			type('Alicia')
+		type('Alicia')
 
-			click('Next page')
+		click(away)
 
-			expect(onCommit).not.toHaveBeenCalled()
+		expect(onCommit).not.toHaveBeenCalled()
 
-			click('save')
+		click('save')
 
-			expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
-		},
-	)
-
-	it.each(['row', 'cell'] as const)(
-		'commits the draft of a hidden column, under a grid-owned %s session',
-		(scope) => {
-			const { click, enterName, type, onCommit } = renderDraftGrid({ session: 'managed', scope })
-
-			enterName()
-
-			type('Alicia')
-
-			click('hide')
-
-			expect(onCommit).not.toHaveBeenCalled()
-
-			click('save')
-
-			expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
-		},
-	)
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
+	})
 
 	it('shows the draft in the held cell after its column hides and shows again', () => {
 		const { click, enterName, nameInput, type, onCommit } = renderDraftGrid({
@@ -3938,9 +3921,7 @@ describe('Grid async commit', () => {
 		// The row still holds 'Alice'. The cell shows the value in flight.
 		expect(view.cell('name')).toHaveTextContent('Alicia')
 
-		expect(
-			present(bySlot(view.cell('name'), 'grid-edit-pending'), 'the pending content'),
-		).toBeTruthy()
+		expect(bySlot(view.cell('name'), 'grid-edit-pending')).toBeInTheDocument()
 
 		// F2, Enter, and a typed character on the tab stop, and a double-click,
 		// all do nothing on the pending cell. The cursor sits on it after F2.
@@ -4858,7 +4839,7 @@ describe('Grid new row', () => {
 				},
 			)
 
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			await user.click(view.getByRole('button', { name: 'Manage columns' }))
 

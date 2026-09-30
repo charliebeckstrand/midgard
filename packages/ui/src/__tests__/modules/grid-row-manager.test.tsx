@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridRowGroup } from '../../modules/grid'
-import { fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { fireEvent, renderUI, screen, setupUser, waitFor } from '../helpers'
 
 /**
  * The row manager: a "Manage rows" dialog reached from the group-header
@@ -89,7 +89,7 @@ describe('Grid row manager', () => {
 	})
 
 	it('opens Manage rows with focus in the dialog, and hands it back to the group on Done', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
@@ -124,7 +124,7 @@ describe('Grid row manager', () => {
 	})
 
 	it('collapses every group from the group menu', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
@@ -138,7 +138,7 @@ describe('Grid row manager', () => {
 	})
 
 	it('colors a group from the manager, committing the overlay and tinting its header', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onValueChange = vi.fn<(groups: GridRowGroup[]) => void>()
 
@@ -180,7 +180,7 @@ describe('Grid row manager', () => {
 	})
 
 	it('offers the color menu None only once a group is colored', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 

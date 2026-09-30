@@ -10,7 +10,7 @@ import { resolveActionable } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
 import type { GridColumn } from './types'
 import { type GridIndexRefs, useGridIndexSync } from './use-grid-data-cursor'
-import type { GridNewRowPosition } from './use-grid-navigation'
+import type { GridReconcile } from './use-grid-navigation'
 import { useGridRoving } from './use-grid-roving'
 import { useGridSelectionActions, type useGridSelectionState } from './use-grid-selection'
 import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
@@ -42,7 +42,6 @@ export function useGridDataView<T>({
 	cursorEnabled,
 	cursorNewRow,
 	reconcile,
-	settleRange,
 	virtualized,
 	onRowClick,
 	onCellClick,
@@ -55,7 +54,7 @@ export function useGridDataView<T>({
 > & {
 	refs: GridIndexRefs<T>
 	/** The rows the body renders, in display order. */
-	renderRows: T[]
+	renderRows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The visible columns, in display order. */
 	visibleColumns: GridColumn<T>[]
@@ -72,10 +71,8 @@ export function useGridDataView<T>({
 	cursorEnabled: boolean
 	/** Where the cursor's new-row slot is, which clamps the cursor when it moves. */
 	cursorNewRow: 'top' | 'bottom' | null
-	/** Clamps the cursor to the rendered bounds. */
-	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
-	/** Ends the cell range when the rows or the data columns change order. */
-	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
+	/** Follows the cursor into the rendered layout, clamps it, and ends a cell range that moved. */
+	reconcile: GridReconcile
 	virtualized: boolean
 	tableRef: RefObject<HTMLTableElement | null>
 }) {
@@ -114,22 +111,17 @@ export function useGridDataView<T>({
 		[dataColumns],
 	)
 
-	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
-	// hide a column), so its active cell and `aria-activedescendant` never dangle
-	// past the new extent; inert for a non-cursor grid (active stays unseated).
-	// The new-row slot counts as a row of the cursor's order, so a change to it
-	// clamps too.
-	useLayoutEffect(() => {
-		reconcile(renderRows.length, dataColumns.length, cursorNewRow)
-	}, [reconcile, cursorNewRow, renderRows.length, dataColumns.length])
-
-	// A sort, a filter, a page, or a column change moves the cells under the
-	// range. A save that gives new rows in the same order does not.
 	const dataColumnIds = useMemo(() => dataColumns.map((col) => col.id), [dataColumns])
 
+	// A sort, a filter, a page, or a column change moves the cells. The cursor
+	// follows its cell by the row key and the column id, and clamps to the new
+	// extent, so its active cell and `aria-activedescendant` never dangle. The
+	// change also ends the cell range. A save that gives new rows with the same
+	// keys moves nothing. The new-row slot counts as a row of the cursor's order,
+	// so a change to it clamps too. The call is inert for a grid with no cursor.
 	useLayoutEffect(() => {
-		settleRange(rowKeys, dataColumnIds)
-	}, [settleRange, rowKeys, dataColumnIds])
+		reconcile(rowKeys, dataColumnIds, cursorNewRow)
+	}, [reconcile, rowKeys, dataColumnIds, cursorNewRow])
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0

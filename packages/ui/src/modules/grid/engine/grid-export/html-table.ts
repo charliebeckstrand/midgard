@@ -10,7 +10,7 @@ import { cellText, escapeMarkup, exportFields } from './accessor'
  * @typeParam T - Shape of a single row.
  * @internal
  */
-export function rowsToHtmlTable<T>(columns: GridColumn<T>[], rows: T[]): string {
+export function rowsToHtmlTable<T>(columns: GridColumn<T>[], rows: readonly T[]): string {
 	const fields = exportFields(columns)
 
 	const header = fields.map((field) => `<th>${escapeMarkup(field.label)}</th>`).join('')

@@ -3,16 +3,16 @@ import { Confirm } from '../../components/confirm'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Confirm', () => {
-	it('renders the default title', () => {
-		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} />)
-
-		expect(screen.getByText('Are you sure?')).toBeInTheDocument()
-	})
-
-	it('exposes itself as an alertdialog', () => {
+	it('renders an alertdialog with the default title and Confirm and Cancel buttons', () => {
 		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} />)
 
 		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+
+		expect(screen.getByText('Are you sure?')).toBeInTheDocument()
+
+		expect(screen.getByText('Confirm')).toBeInTheDocument()
+
+		expect(screen.getByText('Cancel')).toBeInTheDocument()
 	})
 
 	it('renders a custom title and description', () => {
@@ -78,14 +78,6 @@ describe('Confirm', () => {
 		expect(document.getElementById(describedBy as string)).toHaveTextContent(
 			'This cannot be undone.',
 		)
-	})
-
-	it('renders default Confirm and Cancel buttons', () => {
-		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} />)
-
-		expect(screen.getByText('Confirm')).toBeInTheDocument()
-
-		expect(screen.getByText('Cancel')).toBeInTheDocument()
 	})
 
 	it('renders custom button labels', () => {

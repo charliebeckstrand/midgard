@@ -17,20 +17,13 @@ describe('ProgressBar', () => {
 		expect(el).toHaveAttribute('aria-valuemax', '100')
 	})
 
-	it('treats value={NaN} as indeterminate instead of rendering NaN attributes', () => {
-		renderUI(<ProgressBar value={Number.NaN} aria-label="Loading" />)
+	it.each([
+		['NaN', Number.NaN],
+		['undefined', undefined],
+	])('renders an indeterminate bar, with no aria-valuenow, for value=%s', (_name, value) => {
+		renderUI(<ProgressBar value={value} aria-label="Loading" />)
 
-		const bar = screen.getByRole('progressbar')
-
-		expect(bar).not.toHaveAttribute('aria-valuenow')
-	})
-
-	it('renders an indeterminate bar when value is undefined', () => {
-		const { container } = renderUI(<ProgressBar aria-label="Progress" />)
-
-		const el = bySlot(container, 'progress-bar')
-
-		expect(el).not.toHaveAttribute('aria-valuenow')
+		expect(screen.getByRole('progressbar')).not.toHaveAttribute('aria-valuenow')
 	})
 
 	it('clamps aria-valuenow to max when value exceeds it', () => {
@@ -84,20 +77,14 @@ describe('ProgressGauge', () => {
 		expect(screen.getByText('3 of 4')).toBeInTheDocument()
 	})
 
-	it('renders no readout slot for centerLabel={false}', () => {
+	it.each([
+		['centerLabel={false}', false],
+		['no centerLabel', undefined],
+	])('renders no readout slot for %s', (_name, centerLabel) => {
 		const { container } = renderUI(
-			<ProgressGauge value={40} centerLabel={false} aria-label="Used" />,
+			<ProgressGauge value={40} centerLabel={centerLabel} aria-label="Used" />,
 		)
 
-		// `false` renders no label span over the gauge.
-		expect(container.querySelector('[data-slot="progress-gauge"] span')).toBeNull()
-	})
-
-	it('omits the label slot when no label is provided', () => {
-		const { container } = renderUI(<ProgressGauge value={50} aria-label="Progress" />)
-
-		const el = bySlot(container, 'progress-gauge')
-
-		expect(el?.querySelector('span')).toBeNull()
+		expect(bySlot(container, 'progress-gauge')?.querySelector('span')).toBeNull()
 	})
 })

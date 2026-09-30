@@ -2,13 +2,19 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GridColumnManager, type GridColumnManagerItem } from '../../modules/grid'
 import { GridManagerDialog } from '../../modules/grid/grid-manager-dialog'
-import { allBySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { allBySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const columns: GridColumnManagerItem[] = [
 	{ id: 'name', title: 'Name', pinned: 'left' },
 	{ id: 'email', title: 'Email' },
 	{ id: 'role', title: 'Role' },
 ]
+
+/** The text of each non-empty label, in document order. */
+const labels = () =>
+	Array.from(document.querySelectorAll('label'))
+		.map((label) => label.textContent)
+		.filter((text): text is string => !!text && text.length > 0)
 
 describe('GridColumnManager', () => {
 	it('renders one item per column', () => {
@@ -28,7 +34,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
@@ -62,12 +68,12 @@ describe('GridColumnManager', () => {
 
 		expect(allBySlot(container, 'list-item')).toHaveLength(3)
 
-		const labels = Array.from(container.querySelectorAll('[data-slot="list-item"]')).map((item) =>
+		const texts = Array.from(container.querySelectorAll('[data-slot="list-item"]')).map((item) =>
 			item.textContent?.trim(),
 		)
 
 		// Pinned Name leads its group; Role (in the order) precedes Email (appended).
-		expect(labels.indexOf('Role')).toBeLessThan(labels.indexOf('Email'))
+		expect(texts.indexOf('Role')).toBeLessThan(texts.indexOf('Email'))
 	})
 
 	it('keeps each column when it reorders under a partial stored order', () => {
@@ -115,7 +121,7 @@ describe('GridColumnManager', () => {
 
 		// The two scrolling columns (email, role) carry drag grips; the pinned
 		// column lists in its own non-sortable group without one.
-		expect(allBySlot(container, 'list-handle').length).toBeGreaterThan(0)
+		expect(allBySlot(container, 'list-handle')).toHaveLength(2)
 	})
 
 	it('renders no drag handles when reorderable is false', () => {
@@ -154,7 +160,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
@@ -207,7 +213,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Save as preset' }))
 
@@ -231,7 +237,7 @@ describe('GridColumnManager', () => {
 		const lists = container.querySelectorAll('ul, ol')
 
 		// Two lists rendered: one for pinned, one for orderable columns.
-		expect(lists.length).toBeGreaterThanOrEqual(2)
+		expect(lists).toHaveLength(2)
 	})
 
 	it('does not render the pinned section when no columns are pinned', () => {
@@ -275,22 +281,14 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const labels = Array.from(document.querySelectorAll('label'))
-			.map((l) => l.textContent)
-			.filter((t): t is string => !!t && t.length > 0)
-
 		// Pinned column "name" stays at the top; orderable list follows controlled order.
-		expect(labels).toEqual(['Name', 'Role', 'Email'])
+		expect(labels()).toEqual(['Name', 'Role', 'Email'])
 	})
 
 	it('falls back to defaultOrder when no controlled order is provided', () => {
 		renderUI(<GridColumnManager columns={columns} defaultOrder={['name', 'role', 'email']} />)
 
-		const labels = Array.from(document.querySelectorAll('label'))
-			.map((l) => l.textContent)
-			.filter((t): t is string => !!t && t.length > 0)
-
-		expect(labels).toEqual(['Name', 'Role', 'Email'])
+		expect(labels()).toEqual(['Name', 'Role', 'Email'])
 	})
 
 	it('falls back to a generated label when a pinned column title is non-string', () => {
@@ -313,7 +311,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
@@ -332,37 +330,27 @@ describe('GridColumnManager pinning', () => {
 
 		renderUI(<GridColumnManager columns={cols} />)
 
-		const labels = Array.from(document.querySelectorAll('label'))
-			.map((l) => l.textContent)
-			.filter((t): t is string => !!t && t.length > 0)
-
 		// Left group prepended, the scrolling columns in the middle, right appended.
-		expect(labels).toEqual(['B', 'A', 'D', 'C'])
+		expect(labels()).toEqual(['B', 'A', 'D', 'C'])
 	})
 
-	it('pins a scrolling column to the left through its pin control', () => {
-		const onPinChange = vi.fn()
+	it.each([
+		['Email', 'left', 'email'],
+		['Role', 'right', 'role'],
+	] as const)(
+		'pins the scrolling %s column to the %s edge through its pin control',
+		(title, side, id) => {
+			const onPinChange = vi.fn()
 
-		renderUI(<GridColumnManager columns={columns} onPinChange={onPinChange} />)
+			renderUI(<GridColumnManager columns={columns} onPinChange={onPinChange} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Pin Email' }))
+			fireEvent.click(screen.getByRole('button', { name: `Pin ${title}` }))
 
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin left' }))
+			fireEvent.click(screen.getByRole('menuitem', { name: `Pin ${side}` }))
 
-		expect(onPinChange).toHaveBeenCalledWith('email', 'left')
-	})
-
-	it('pins a scrolling column to the right through its pin control', () => {
-		const onPinChange = vi.fn()
-
-		renderUI(<GridColumnManager columns={columns} onPinChange={onPinChange} />)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Pin Role' }))
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin right' }))
-
-		expect(onPinChange).toHaveBeenCalledWith('role', 'right')
-	})
+			expect(onPinChange).toHaveBeenCalledWith(id, side)
+		},
+	)
 
 	it('offers the opposite edge and Unpin on a pinned column, and unpins on select', () => {
 		const onPinChange = vi.fn()
@@ -425,11 +413,7 @@ describe('GridColumnManager pinning', () => {
 
 		renderUI(<GridColumnManager columns={cols} />)
 
-		const labels = Array.from(document.querySelectorAll('label'))
-			.map((l) => l.textContent)
-			.filter((t): t is string => !!t && t.length > 0)
-
-		expect(labels).toEqual(['A', 'Actions'])
+		expect(labels()).toEqual(['A', 'Actions'])
 	})
 
 	it('omits pin controls entirely when no onPinChange handler is given', () => {
@@ -477,7 +461,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('narrows every group to the columns matching the query', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
 
@@ -492,7 +476,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('matches column labels case-insensitively', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<GridColumnManager columns={columns} />)
 
@@ -504,7 +488,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('stands one no-results status in for the lists when nothing matches', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<GridColumnManager columns={columns} />)
 
@@ -516,7 +500,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('stands the status in for the scrolling list alone when only a frozen row matches', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
 
@@ -534,7 +518,7 @@ describe('GridColumnManager filtering', () => {
 	it('holds every filtered-out column in its slot when a match is reordered', async () => {
 		const onOrderChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<GridColumnManager columns={greek} onOrderChange={onOrderChange} />,
@@ -563,7 +547,7 @@ describe('GridColumnManager filtering', () => {
 	it('still toggles visibility while a query is active', async () => {
 		const onHiddenChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<GridColumnManager
@@ -581,7 +565,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('restores every column when the query is cleared', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
 
@@ -622,7 +606,7 @@ describe('GridManagerDialog', () => {
 	}
 
 	it('shows the manager while open and closes via the Done button', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Harness />)
 

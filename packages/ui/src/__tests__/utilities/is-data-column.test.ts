@@ -3,27 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { isDataColumn } from '../../utilities/is-data-column'
 
 describe('isDataColumn', () => {
-	it('is true for a plain content column', () => {
-		expect(isDataColumn({})).toBe(true)
-	})
-
-	it('is false for the selection-checkbox column', () => {
-		expect(isDataColumn({ selectable: true })).toBe(false)
-	})
-
-	it('is false for the row-actions column', () => {
-		expect(isDataColumn({ actions: () => null })).toBe(false)
-	})
-
-	it('is false for the row drag-handle column', () => {
-		expect(isDataColumn({ dragHandle: true })).toBe(false)
-	})
-
-	it('is true when selectable is explicitly false and actions is absent', () => {
-		expect(isDataColumn({ selectable: false })).toBe(true)
-	})
-
-	it('is false for a column that is both selectable and carries actions', () => {
-		expect(isDataColumn({ selectable: true, actions: ['edit'] })).toBe(false)
+	it.each([
+		['a plain content column', true, {}],
+		['the selection-checkbox column', false, { selectable: true }],
+		['the row-actions column', false, { actions: () => null }],
+		['the row drag-handle column', false, { dragHandle: true }],
+		['a column with selectable false', true, { selectable: false }],
+		['a selectable column with actions', false, { selectable: true, actions: ['edit'] }],
+	] as const)('reads %s as %s', (_, expected, column) => {
+		expect(isDataColumn(column)).toBe(expected)
 	})
 })

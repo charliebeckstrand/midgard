@@ -3,7 +3,17 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
 import { DensityProvider } from '../../providers/density'
-import { act, bySlot, fireEvent, getSlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	userEvent,
+	waitFor,
+} from '../helpers'
 
 describe('TabList', () => {
 	it('keeps its role, orientation and roving when a consumer supplies them', async () => {
@@ -111,25 +121,6 @@ describe('TabList', () => {
 		expect(controls).toBeTruthy()
 
 		expect(document.getElementById(controls as string)).not.toBeNull()
-	})
-
-	it('renders with data-slot="tab-list" and role="tablist"', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabContents>
-					<TabContent value="a">Panel A</TabContent>
-				</TabContents>
-			</Tabs>,
-		)
-
-		const el = bySlot(container, 'tab-list')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el).toHaveAttribute('role', 'tablist')
 	})
 
 	it('wraps the underline list in a horizontal scroll viewport', () => {
@@ -241,25 +232,6 @@ describe('TabList', () => {
 })
 
 describe('Tab', () => {
-	it('renders with data-slot="tab" and role="tab"', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabContents>
-					<TabContent value="a">Panel A</TabContent>
-				</TabContents>
-			</Tabs>,
-		)
-
-		const el = bySlot(container, 'tab')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el).toHaveAttribute('role', 'tab')
-	})
-
 	it('writes padding and text as stepped classes, which follow the nearest scope', () => {
 		const { container } = renderUI(
 			<TabList aria-label="Tabs">
@@ -348,7 +320,7 @@ describe('Tab', () => {
 
 		const tabs = container.querySelectorAll<HTMLElement>('[data-slot="tab"]')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(tabs[1] as HTMLElement)
 
@@ -674,18 +646,6 @@ describe('TabContents mount policy', () => {
 })
 
 describe('TabList variants', () => {
-	it('renders TabList with vertical orientation from Tabs', () => {
-		const { container } = renderUI(
-			<Tabs orientation="vertical" defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">A</Tab>
-				</TabList>
-			</Tabs>,
-		)
-
-		expect(bySlot(container, 'tab-list')).toHaveAttribute('data-orientation', 'vertical')
-	})
-
 	it('renders TabList without a Tabs wrapper', () => {
 		const { container } = renderUI(
 			<TabList aria-label="Tabs">
@@ -700,18 +660,6 @@ describe('TabList variants', () => {
 		expect(list).toBeInTheDocument()
 
 		expect(list).toHaveAttribute('data-orientation', 'horizontal')
-	})
-
-	it('renders TabList with segment variant from Tabs', () => {
-		const { container } = renderUI(
-			<Tabs variant="segment" defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">A</Tab>
-				</TabList>
-			</Tabs>,
-		)
-
-		expect(bySlot(container, 'tab-list')).toBeInTheDocument()
 	})
 })
 
@@ -738,7 +686,7 @@ describe('Tabs keyboard navigation', () => {
 	}
 
 	it('moves focus with arrows, skipping the disabled tab', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTabs()
 
@@ -754,7 +702,7 @@ describe('Tabs keyboard navigation', () => {
 	})
 
 	it('jumps to the first and last tab with Home / End', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTabs()
 

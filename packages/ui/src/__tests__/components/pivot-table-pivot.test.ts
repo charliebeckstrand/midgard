@@ -78,32 +78,17 @@ describe('groupValues', () => {
 })
 
 describe('aggregate', () => {
-	it('counts elements regardless of their values', () => {
-		expect(aggregate([1, 2, 3], 'count')).toBe(3)
-
-		expect(aggregate([], 'count')).toBe(0)
-	})
-
-	it('sums the values', () => {
-		expect(aggregate([1, 2, 3], 'sum')).toBe(6)
-	})
-
-	it('averages the values', () => {
-		expect(aggregate([2, 4, 6], 'avg')).toBe(4)
-	})
-
-	it('returns the min', () => {
-		expect(aggregate([3, 1, 2], 'min')).toBe(1)
-	})
-
-	it('returns the max', () => {
-		expect(aggregate([3, 1, 2], 'max')).toBe(3)
-	})
-
-	it('returns 0 for an empty input on any non-count op', () => {
-		expect(aggregate([], 'sum')).toBe(0)
-
-		expect(aggregate([], 'avg')).toBe(0)
+	it.each([
+		['counts elements regardless of their values', [1, 2, 3], 'count', 3],
+		['counts an empty input as 0', [], 'count', 0],
+		['sums the values', [1, 2, 3], 'sum', 6],
+		['averages the values', [2, 4, 6], 'avg', 4],
+		['returns the min', [3, 1, 2], 'min', 1],
+		['returns the max', [3, 1, 2], 'max', 3],
+		['returns 0 for an empty sum', [], 'sum', 0],
+		['returns 0 for an empty average', [], 'avg', 0],
+	] as const)('%s', (_name, values, op, expected) => {
+		expect(aggregate(values, op)).toBe(expected)
 	})
 })
 

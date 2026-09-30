@@ -20,8 +20,12 @@ export const k = bridge.control(control, {
 		frame: [...border.default],
 		/** Stacks the field above its actions row when an actions slot is present. */
 		stack: 'flex-col items-stretch',
-		/** Right-justified actions row beneath the textarea. */
-		actions: 'flex items-center justify-end mt-auto gap-2 pr-2 pb-2',
+		/**
+		 * Right-justified actions row beneath the textarea. Its gap also caps the
+		 * hit areas of the actions (`TouchTarget`), so they do not overlap.
+		 */
+		actions:
+			'flex items-center justify-end mt-auto gap-2 pr-2 pb-2 [--touch-target-gap-x:--spacing(2)]',
 	},
 	defaults: { resize: 'none' },
 	skeleton: textarea,

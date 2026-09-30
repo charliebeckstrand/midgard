@@ -93,7 +93,9 @@ export const k = {
 		// dropped into. The Card draws the outline, and a colored group tints it
 		// (see {@link cardOutline}). The zone has no drop-over style.
 		zone: {
-			root: [flex.col, 'gap-1'],
+			// The gap also caps the hit areas (`TouchTarget`), so the move buttons of
+			// two adjacent rows do not overlap.
+			root: [flex.col, 'gap-1', '[--touch-target-gap-y:--spacing(1)]'],
 			// A group zone's header row: the reorder handle, the name Input, the color
 			// Menu, and the remove button, on one row.
 			header: [flex.row, 'items-center', 'gap-2'],

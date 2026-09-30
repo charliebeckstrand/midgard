@@ -9,12 +9,6 @@ describe('DashboardLayout', () => {
 		expect(screen.queryByRole('button', { name: 'Filters' })).not.toBeInTheDocument()
 	})
 
-	it('renders a filters trigger when filters are provided', () => {
-		renderUI(<DashboardLayout filters={<div>filter content</div>}>content</DashboardLayout>)
-
-		expect(screen.getByRole('button', { name: 'Filters' })).toBeInTheDocument()
-	})
-
 	it('renders the filters content', () => {
 		renderUI(<DashboardLayout filters={<div>filter content</div>}>content</DashboardLayout>)
 

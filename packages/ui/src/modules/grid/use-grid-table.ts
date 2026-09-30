@@ -19,10 +19,8 @@ import {
 	type columnResizingState,
 	type ExpandedState,
 	functionalUpdate,
-	type GroupingState,
 	type OnChangeFn,
 	type PaginationState,
-	type SortingState,
 	useTable,
 } from '@tanstack/react-table'
 import {
@@ -45,7 +43,7 @@ import { compileColumnFilters } from './engine/grid-filter/filter'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
-import { grandTotalRowsOf, viewLeaves } from './engine/grid-table/client-view'
+import { grandTotalRowsOf, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
 import { sameElements } from './engine/grid-table/equality'
 import {
 	type EngineColumn,
@@ -65,14 +63,10 @@ import {
 	buildState,
 	clampSizingToFloors,
 	filterOptions,
-	groupingOptions,
 	paginationOptions,
 	resizeOptions,
-	sortOptions,
 	toColumnDefs,
 	toGridColumns,
-	toSortingState,
-	toSortState,
 } from './engine/grid-table/options'
 import { buildPaginationView, type GridPaginationView } from './engine/grid-table/pagination-view'
 import { type GridColumnPinning, toColumnPinningState } from './engine/grid-table/pinning-view'
@@ -89,7 +83,6 @@ import {
 	DEFAULT_SEARCH_PLACEHOLDER,
 	EMPTY_COLUMN_FILTERS,
 	EMPTY_COLUMN_ORDER,
-	EMPTY_GROUPING,
 	EMPTY_SIZING,
 	EMPTY_VISIBILITY,
 	IDLE_SIZING_INFO,
@@ -128,7 +121,7 @@ export type { GridColumnResize } from './engine/grid-table/resize-view'
 
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {
-	rows: T[]
+	rows: readonly T[]
 	/** The full column set; the engine resolves which render (and in what order) from the order/visibility/pinning state below. */
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
@@ -139,7 +132,6 @@ type GridTableParams<T> = {
 	/** Hidden-column map (`{ id: false }`) feeding the engine's `columnVisibility`. */
 	columnVisibility?: ColumnVisibilityState
 	sort?: GridSortState[]
-	setSort?: (sort: GridSortState[]) => void
 	sortManual?: boolean
 	/** The single column id the rows are grouped by, or `null`/absent for no grouping. */
 	grouping?: (string | number) | null
@@ -188,7 +180,7 @@ type GridTableResult<T> = {
 	 */
 	visibleColumns: GridColumn<T>[]
 	/** Rows to render: the leaves of the groups, else the client view, else the supplied `rows`. */
-	renderRows: T[]
+	renderRows: readonly T[]
 	/**
 	 * Per-row keys parallel to {@link renderRows}. Each is the value `getKey`
 	 * yields at the row's engine (original-data) index, the index `getRowId` saw.
@@ -257,7 +249,7 @@ type GridTableResult<T> = {
 	 * pages, because filtering precedes pagination, and the flat leaves, because
 	 * it precedes grouping. Empty unless `grandTotal` is set.
 	 */
-	grandTotalRows: T[]
+	grandTotalRows: readonly T[]
 	/**
 	 * Reads the rows an export takes, in display order: the full filtered and
 	 * sorted set (all pages). When the selection holds a row of that set, only
@@ -265,29 +257,8 @@ type GridTableResult<T> = {
 	 * exports (see `viewLeaves`).
 	 */
 	rowsForExport: () => T[]
-}
-
-/**
- * Resolves the engine's row-grouping slice from the grouped column id. It gives
- * the `grouped` flag and TanStack's `GroupingState`, which is a one-element
- * array of the grouped column id, or empty. Grouping is driven only by the `groupBy`
- * binding, so `onGroupingChange` is a no-op keeping the controlled state stable.
- * The engine gets no expansion state: the grid opens its groups itself (see
- * {@link useGroupTree}).
- *
- * @internal
- */
-function useGroupingSlice(grouping: (string | number) | null) {
-	const grouped = grouping != null
-
-	const groupingState = useMemo<GroupingState>(
-		() => (grouped ? [String(grouping)] : EMPTY_GROUPING),
-		[grouped, grouping],
-	)
-
-	const onGroupingChange = useCallback<OnChangeFn<GroupingState>>(() => {}, [])
-
-	return { grouped, groupingState, onGroupingChange }
+	/** How many selected rows the filtered set does not hold (see `hiddenSelectionCount`). */
+	hiddenSelected: number
 }
 
 /**
@@ -513,7 +484,6 @@ export function useGridTable<T>({
 	columnOrder = EMPTY_COLUMN_ORDER,
 	columnVisibility = EMPTY_VISIBILITY,
 	sort,
-	setSort,
 	// Client-side sorting by default, matching GridColumn's contract; the Grid
 	// passes `sortConfig?.manual ?? false`, so this default only backs direct
 	// callers that omit it.
@@ -563,6 +533,18 @@ export function useGridTable<T>({
 			setPaginationState((prev) => functionalUpdate(updater, prev ?? DEFAULT_PAGINATION_STATE)),
 		[setPaginationState],
 	)
+
+	// A new search or filter gives a new set of rows, so an uncontrolled page
+	// starts again at the first page. The reset runs in the event that changes
+	// the filter, so it costs no render of its own. A controlled page stays with
+	// the consumer.
+	const pageControlled = paginationConfig?.value !== undefined
+
+	const resetPage = useCallback(() => {
+		if (!paginated || pageControlled) return
+
+		setPaginationState((prev) => (prev && prev.pageIndex !== 0 ? { ...prev, pageIndex: 0 } : prev))
+	}, [paginated, pageControlled, setPaginationState])
 
 	// Held true by the autosizer around its own writes (see `useGridColumnSizing`),
 	// so the content fit updates the engine's sizing state without surfacing through
@@ -621,8 +603,12 @@ export function useGridTable<T>({
 	const resolvedGlobalFilter = globalFilterState ?? ''
 
 	const onGlobalFilterChange = useCallback<OnChangeFn<string>>(
-		(updater) => setGlobalFilterState((prev) => functionalUpdate(updater, prev ?? '')),
-		[setGlobalFilterState],
+		(updater) => {
+			setGlobalFilterState((prev) => functionalUpdate(updater, prev ?? ''))
+
+			resetPage()
+		},
+		[setGlobalFilterState, resetPage],
 	)
 
 	const hasColumnFilters = columns.some((col) => col.filterable && col.value)
@@ -644,12 +630,15 @@ export function useGridTable<T>({
 	// `GridColumnFilterState` says. The engine's updater cannot carry that, so the
 	// assertion sits here rather than widening the public type back to `unknown`.
 	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
-		(updater) =>
+		(updater) => {
 			setColumnFiltersState(
 				(prev) =>
 					functionalUpdate(updater, prev ?? EMPTY_COLUMN_FILTERS) as GridColumnFilterState[],
-			),
-		[setColumnFiltersState],
+			)
+
+			resetPage()
+		},
+		[setColumnFiltersState, resetPage],
 	)
 
 	const { clientSort, filterMode, globalHighlights } = resolveTransformModes({
@@ -673,15 +662,6 @@ export function useGridTable<T>({
 		columnManual: columnFiltersConfig?.manual,
 	})
 
-	const onSortingChange = useCallback<OnChangeFn<SortingState>>(
-		(updater) => setSort?.(toSortState(functionalUpdate(updater, toSortingState(sort)))),
-		[sort, setSort],
-	)
-
-	// Row grouping slice (grouped flag, engine `GroupingState`, expansion state and
-	// handlers); factored out to keep this hook within its complexity budget.
-	const { grouped, groupingState, onGroupingChange } = useGroupingSlice(grouping)
-
 	// Frozen columns, keyed off each column's `locked` or `pinned` flag. The engine pulls them
 	// to their edge via `columnPinning`, so these id lists drive the sticky order.
 	const { state: columnPinning, hasPinned } = useMemo(
@@ -694,8 +674,6 @@ export function useGridTable<T>({
 	const engineColumnOrder = useMemo<ColumnOrderState>(() => columnOrder.map(String), [columnOrder])
 
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
-
-	const sorting = useMemo(() => toSortingState(sort), [sort])
 
 	// The column filters that reach the engine. A grid with no filterable column
 	// gives the engine no filter state, so its filters apply to no row. This block
@@ -741,19 +719,13 @@ export function useGridTable<T>({
 				globalFilter: resolvedGlobalFilter,
 				columnFiltered: hasColumnFilters,
 				columnFilters: resolvedColumnFilters,
-				sortClient: clientSort,
-				sorting,
 				pinned: hasPinned,
 				columnPinning,
-				grouped,
-				grouping: groupingState,
 				columnOrder: engineColumnOrder,
 				columnVisibility,
 			}),
 			...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 			...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
-			...sortOptions<T>({ clientSort, onSortingChange }),
-			...groupingOptions<T>({ grouped, onGroupingChange }),
 			...filterOptions<T>({
 				configured: filterMode.configured,
 				onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
@@ -773,12 +745,8 @@ export function useGridTable<T>({
 			resolvedGlobalFilter,
 			hasColumnFilters,
 			resolvedColumnFilters,
-			clientSort,
-			sorting,
 			hasPinned,
 			columnPinning,
-			grouped,
-			groupingState,
 			engineColumnOrder,
 			columnVisibility,
 			manual,
@@ -786,8 +754,6 @@ export function useGridTable<T>({
 			onPaginationChange,
 			onColumnSizingChange,
 			onColumnSizingInfoChange,
-			onSortingChange,
-			onGroupingChange,
 			filterMode.configured,
 			onGlobalFilterChange,
 			onColumnFiltersChange,
@@ -965,6 +931,14 @@ export function useGridTable<T>({
 		rows,
 	})
 
+	const hiddenSelected = useMemo(
+		() =>
+			selection
+				? hiddenSelectionCount({ rows, kept: clientView?.kept ?? null, getKey, selection })
+				: 0,
+		[selection, rows, clientView, getKey],
+	)
+
 	const rowsForExport = useCallback(
 		() => viewLeaves({ rows, getKey, groups: closed, manualGroupRow, clientView, selection }),
 		[manualGroupRow, selection, rows, getKey, closed, clientView],
@@ -974,7 +948,7 @@ export function useGridTable<T>({
 		visibleColumns,
 		renderRows,
 		rowKeys,
-		grouped,
+		grouped: grouping != null,
 		groups,
 		toggleGroup,
 		manualRows,
@@ -988,5 +962,6 @@ export function useGridTable<T>({
 		pinning,
 		grandTotalRows,
 		rowsForExport,
+		hiddenSelected,
 	}
 }

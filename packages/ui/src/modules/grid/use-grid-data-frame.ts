@@ -37,7 +37,7 @@ type RowGrouping<T> = ReturnType<typeof useGridRowGrouping<T>>
  */
 function useBodyRowCount<T>(args: {
 	virtualize: boolean
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The client groups. A toggle gives a new list, so the count follows it. */
 	groups: GridGroup<T>[] | null
@@ -149,10 +149,11 @@ export function useGridDataFrame<T>({
 	cursorNewRow,
 	pagination,
 	virtualized,
-	navigable,
+	cursorEnabled,
 	infiniteScroll,
 	footer,
 	selectedCount,
+	hiddenSelected,
 	hover,
 	onRowClick,
 	onCellClick,
@@ -176,7 +177,7 @@ export function useGridDataFrame<T>({
 	| 'onRowDoubleClick'
 > & {
 	/** The rows the body renders, in display order. */
-	renderRows: T[]
+	renderRows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The visible columns, in display order. */
 	visibleColumns: GridColumn<T>[]
@@ -195,7 +196,7 @@ export function useGridDataFrame<T>({
 	group: GridGroupResult
 	pinning: GridColumnPinning | null
 	/** The full filtered row set that the grand total sums. */
-	grandTotalRows: T[]
+	grandTotalRows: readonly T[]
 	/** The client groups, or `null` when the grid is not client-grouped. */
 	groups: GridGroup<T>[] | null
 	groupByConfig: GridDataProps<T>['groupBy']
@@ -213,10 +214,13 @@ export function useGridDataFrame<T>({
 	cursorNewRow: 'top' | 'bottom' | null
 	pagination: GridPaginationView | null
 	virtualized: boolean
-	navigable: boolean
+	/** Whether the grid carries a keyboard cursor: `navigable`, or an editable grid. */
+	cursorEnabled: boolean
 	infiniteScroll: ResolvedInfiniteScroll | null
 	/** The number of selected rows. */
 	selectedCount: number
+	/** How many selected rows the filtered set does not hold. */
+	hiddenSelected: number
 	/** The composed cell double-click, which carries the grid's own double-click-to-edit. */
 	cellDoubleClick: GridDataProps<T>['onCellDoubleClick']
 	/** Whether the column reorder is on and has columns to move. */
@@ -306,6 +310,7 @@ export function useGridDataFrame<T>({
 		sourceCount: rows.length,
 		filteredCount: dataRowCount,
 		selected: selectedCount,
+		hidden: hiddenSelected,
 		infiniteScroll,
 	})
 
@@ -313,7 +318,12 @@ export function useGridDataFrame<T>({
 	// derived together from the rendered-window mode; see `resolveGridSemantics`.
 	// The manual grouped body interleaves header and leaf rows without index
 	// bookkeeping, so it stays a native table like the client grouped body.
-	const semantics = resolveGridSemantics(virtualized, pagination, navigable, manualGroupingActive)
+	const semantics = resolveGridSemantics(
+		virtualized,
+		pagination,
+		cursorEnabled,
+		manualGroupingActive,
+	)
 
 	// A clickable grid — any row- or cell-level click handler — reads as
 	// actionable through the shared `<Table hover>` wash, layered over any

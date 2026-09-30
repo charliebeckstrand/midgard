@@ -66,7 +66,7 @@ describe('TimelineTimestamp', () => {
 			</Timeline>,
 		)
 
-		expect(bySlot(container, 'timeline-timestamp')).toBeInTheDocument()
+		expect(bySlot(container, 'timeline-timestamp')).toHaveClass('order-3')
 	})
 })
 
@@ -103,20 +103,6 @@ describe('TimelineMarker', () => {
 		expect(marker?.querySelector('[data-testid="custom-marker"]')).toBeInTheDocument()
 
 		expect(marker?.querySelector('[data-slot="status-dot"]')).toBeNull()
-	})
-
-	it('forwards status to the default StatusDot', () => {
-		const { container } = renderUI(
-			<Timeline>
-				<TimelineItem>
-					<TimelineMarker status="active" />
-				</TimelineItem>
-			</Timeline>,
-		)
-
-		const marker = bySlot(container, 'timeline-marker')
-
-		expect(marker?.querySelector('[data-slot="status-dot"]')).toBeInTheDocument()
 	})
 
 	it('names the status dot so its color is not the sole signal', () => {
@@ -194,6 +180,6 @@ describe('TimelineMarker', () => {
 			</Timeline>,
 		)
 
-		expect(bySlot(container, 'timeline-marker')).toBeInTheDocument()
+		expect(bySlot(container, 'timeline-marker')).toHaveClass('absolute', 'top-0')
 	})
 })

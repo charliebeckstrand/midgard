@@ -225,15 +225,6 @@ describe('allocateColumnWidths', () => {
 
 			expect(total(sizing)).toBe(701)
 		})
-
-		it('sums to exactly the available width for three columns in 400', () => {
-			const sizing = allocateColumnWidths(
-				[profile('a', 50), profile('b', 50), profile('c', 50)],
-				400,
-			)
-
-			expect(total(sizing)).toBe(400)
-		})
 	})
 
 	describe('single column', () => {

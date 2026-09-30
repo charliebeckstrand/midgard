@@ -24,28 +24,20 @@ describe('useGroup', () => {
 		return <div>{useGroup(children, orientation)}</div>
 	}
 
-	it('returns the single child as "only"', () => {
-		const { container } = renderUI(<Harness count={1} />)
-
-		const [child] = allBySlot(container, 'child')
-
-		expect(child).toHaveAttribute('data-group', 'only')
-	})
-
-	it('marks the first as "start" and the last as "end" for two children', () => {
-		const { container } = renderUI(<Harness count={2} />)
-
-		const positions = allBySlot(container, 'child').map((el) => el.getAttribute('data-group'))
-
-		expect(positions).toEqual(['start', 'end'])
-	})
-
-	it('fills "middle" for everything between first and last', () => {
-		const { container } = renderUI(<Harness count={5} />)
+	it.each<[string, number, string[]]>([
+		['returns the single child as "only"', 1, ['only']],
+		['marks the first as "start" and the last as "end" for two children', 2, ['start', 'end']],
+		[
+			'fills "middle" for everything between first and last',
+			5,
+			['start', 'middle', 'middle', 'middle', 'end'],
+		],
+	])('%s', (_name, count, expected) => {
+		const { container } = renderUI(<Harness count={count} />)
 
 		const positions = allBySlot(container, 'child').map((el) => el.getAttribute('data-group'))
 
-		expect(positions).toEqual(['start', 'middle', 'middle', 'middle', 'end'])
+		expect(positions).toEqual(expected)
 	})
 
 	it('stamps the orientation on every child', () => {

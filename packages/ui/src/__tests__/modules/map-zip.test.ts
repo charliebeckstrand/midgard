@@ -437,6 +437,38 @@ describe('coverage framing', () => {
 		])
 	})
 
+	it('places a code that crosses the line by its centroid, so it counts for one side', () => {
+		// Both boxes meet counties of both states, so neither code settles on its
+		// box. Each is measured, and each names only the state its middle is in.
+		const west = rewindFeatures([square('60650', 3.4, 0.2, 0.8)])
+
+		const east = rewindFeatures([square('46350', 3.8, 0.2, 0.8)])
+
+		expect([...coverageGroups(regions, index, west, defaultRegionGroup)]).toEqual(['17'])
+
+		expect([...coverageGroups(regions, index, east, defaultRegionGroup)]).toEqual(['18'])
+	})
+
+	it('places nothing for a code whose centroid lands outside every region', () => {
+		// The box meets both states, and the middle is open ground between them.
+		const apart = rewindFeatures([square('17001', 0, 0, 2), square('18001', 4, 0, 2)])
+
+		const spanning = rewindFeatures([square('60699', 1.5, 0.5, 3)])
+
+		expect([...coverageGroups(apart, regionIndex(apart), spanning, defaultRegionGroup)]).toEqual([])
+	})
+
+	it('places nothing for a code with no centroid', () => {
+		// A collection has no box to settle on, and an empty one has no centroid.
+		const hollow: MapFeature = {
+			type: 'Feature',
+			id: '61625',
+			geometry: { type: 'GeometryCollection', geometries: [] },
+		}
+
+		expect([...coverageGroups(regions, index, [hollow], defaultRegionGroup)]).toEqual([])
+	})
+
 	it('keeps every region of a named group, not only the ones a code touched', () => {
 		const frame = groupFrame(regions, new Set(['17']), defaultRegionGroup)
 
@@ -447,5 +479,9 @@ describe('coverage framing', () => {
 
 	it('frames nothing where the territory placed nowhere', () => {
 		expect(groupFrame(regions, new Set(), defaultRegionGroup)).toBeNull()
+	})
+
+	it('frames nothing where no region belongs to a named group', () => {
+		expect(groupFrame(regions, new Set(['55']), defaultRegionGroup)).toBeNull()
 	})
 })

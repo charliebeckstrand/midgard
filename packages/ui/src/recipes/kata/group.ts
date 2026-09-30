@@ -12,15 +12,17 @@ import { type GroupOrientation, tsunagi } from '../kiso'
  * @internal
  */
 const frames = {
-	horizontal: ['inline-flex flex-row', ...tsunagi.horizontal].join(' '),
-	vertical: ['inline-flex flex-col', ...tsunagi.vertical].join(' '),
+	horizontal: ['inline-flex flex-row [--touch-target-gap-x:0px]', ...tsunagi.horizontal].join(' '),
+	vertical: ['inline-flex flex-col [--touch-target-gap-y:0px]', ...tsunagi.vertical].join(' '),
 } as const satisfies Record<GroupOrientation, string>
 
 /**
  * Container chrome for a {@link Group}: `inline-flex` laid out on the chosen
  * axis, plus the tsunagi descendant selectors that drop inner radii and overlap
  * adjacent borders. The selectors stay inert until `useGroup` stamps
- * `data-group` on the children.
+ * `data-group` on the children. The members touch along the axis, so each hit
+ * area keeps to its member there (`TouchTarget`), and two adjacent members do
+ * not overlap.
  */
 export const k = {
 	frame: (orientation: GroupOrientation) => frames[orientation],

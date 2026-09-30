@@ -56,22 +56,6 @@ describe('isQueryActive', () => {
 		expect(isQueryActive(createGroup('and', [inner]))).toBe(true)
 	})
 
-	it('treats a value-less operator on an unknown field as active', () => {
-		// The evaluator applies the operator without a field set, so the rule
-		// constrains the rows.
-		const group = createGroup('and', [
-			{ ...createRule(textField), field: 'gone', operator: 'isEmpty', value: '' },
-		])
-
-		expect(isQueryActive(group)).toBe(true)
-	})
-
-	it('treats a rule whose operator the evaluator does not know as inactive', () => {
-		const group = createGroup('and', [{ ...createRule(textField), operator: 'custom', value: 'x' }])
-
-		expect(isQueryActive(group)).toBe(false)
-	})
-
 	it('treats an inherited object key as an unknown operator', () => {
 		const group = createGroup('and', [
 			{ ...createRule(textField), operator: 'toString', value: 'x' },

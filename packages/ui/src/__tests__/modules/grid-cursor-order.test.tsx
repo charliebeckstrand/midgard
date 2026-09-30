@@ -55,6 +55,11 @@ describe('Grid cursor over grouped rows', () => {
 		return screen.getByRole('treegrid')
 	}
 
+	/** A navigable grid grouped by region, over `rows`. */
+	const groupedUi = (rows: Sale[]) => (
+		<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
+	)
+
 	it('makes a grouped grid a treegrid with a level on each row', () => {
 		const grid = renderGrouped({ groupTotalRow: true })
 
@@ -230,11 +235,7 @@ describe('Grid cursor over grouped rows', () => {
 	})
 
 	it('names the drawn cell after a data change moves its row', () => {
-		const ui = (rows: Sale[]) => (
-			<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
-		)
-
-		const view = renderUI(ui(sales))
+		const view = renderUI(groupedUi(sales))
 
 		const grid = screen.getByRole('treegrid')
 
@@ -243,7 +244,7 @@ describe('Grid cursor over grouped rows', () => {
 		expect(activeCell(grid)).toHaveTextContent('20 units')
 
 		// A row above the cursor leaves: the order and the row map both change.
-		view.rerender(ui(sales.filter((sale) => sale.id !== 2)))
+		view.rerender(groupedUi(sales.filter((sale) => sale.id !== 2)))
 
 		const drawn = grid.querySelector('td[data-active]')
 
@@ -253,11 +254,7 @@ describe('Grid cursor over grouped rows', () => {
 	})
 
 	it('seats a pressed leaf after a row joins a closed group', () => {
-		const ui = (rows: Sale[]) => (
-			<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
-		)
-
-		const view = renderUI(ui(sales))
+		const view = renderUI(groupedUi(sales))
 
 		const grid = screen.getByRole('treegrid')
 
@@ -265,7 +262,7 @@ describe('Grid cursor over grouped rows', () => {
 
 		// The closed group gains a row. The order the cursor walks stays equal, but
 		// every later data index moves.
-		view.rerender(ui([...sales, { id: 4, region: 'West', units: 50 }]))
+		view.rerender(groupedUi([...sales, { id: 4, region: 'West', units: 50 }]))
 
 		fireEvent.mouseDown(screen.getByText('20 units').closest('td') as HTMLElement)
 
@@ -273,11 +270,7 @@ describe('Grid cursor over grouped rows', () => {
 	})
 
 	it('follows the row it lands on when a reseat keeps its place', () => {
-		const ui = (rows: Sale[]) => (
-			<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
-		)
-
-		const view = renderUI(ui(sales))
+		const view = renderUI(groupedUi(sales))
 
 		const grid = screen.getByRole('treegrid')
 
@@ -292,12 +285,12 @@ describe('Grid cursor over grouped rows', () => {
 
 		// The row and its group leave. The clamp keeps the same place, which now
 		// holds another row.
-		view.rerender(ui([...west, ...north]))
+		view.rerender(groupedUi([...west, ...north]))
 
 		expect(activeCell(grid)).toHaveTextContent('40 units')
 
 		// The old row comes back. The cursor stays on the row it sits on.
-		view.rerender(ui([...west, ...north, sales[2] as Sale]))
+		view.rerender(groupedUi([...west, ...north, sales[2] as Sale]))
 
 		expect(activeCell(grid)).toHaveTextContent('40 units')
 	})

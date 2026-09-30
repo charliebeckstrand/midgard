@@ -61,7 +61,7 @@ import { fields, products, type Sale, sales, sumBy } from './data'
 // dashboard holds it. A chart that
 // selects also gets its own selection back, so the selected marks stay lit.
 
-// On a touch screen, a tap selects and a hold reads the chart.
+// On a touch screen, a tap selects, and the chart shows no readout.
 // The hint names the gesture of the pointer that the device has.
 function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
 	return (
@@ -474,8 +474,13 @@ function RegistryExample() {
 
 	return (
 		<Example title="Build and save">
-			<Flex gap="sm" align="center" wrap>
-				<div className="w-full sm:w-56">
+			{/* On a phone the template picker takes its own row, at the gap of the rows below. */}
+			<Flex
+				direction={{ initial: 'col', sm: 'row' }}
+				gap={{ initial: 'lg', sm: 'sm' }}
+				align={{ initial: 'stretch', sm: 'center' }}
+			>
+				<div className="sm:w-56">
 					<Select
 						aria-label="Template"
 						value={board.template}
@@ -494,53 +499,55 @@ function RegistryExample() {
 					</Select>
 				</div>
 
-				<Menu placement="bottom-start">
-					<MenuTrigger>
-						<Button
-							variant="outline"
-							prefix={<Icon icon={<Plus />} />}
-							suffix={<Icon icon={<ChevronDown />} />}
-						>
-							Add tile
+				<Flex gap="sm" align="center" flex="1">
+					<Menu placement="bottom-start">
+						<MenuTrigger>
+							<Button
+								variant="outline"
+								prefix={<Icon icon={<Plus />} />}
+								suffix={<Icon icon={<ChevronDown />} />}
+							>
+								Add tile
+							</Button>
+						</MenuTrigger>
+
+						<MenuContent>
+							{additions.map(({ tile, hint }) => (
+								<MenuItem key={tile.title} onAction={() => add(tile)}>
+									<MenuText>
+										<MenuLabel>{tile.title}</MenuLabel>
+
+										<MenuDescription>{hint}</MenuDescription>
+									</MenuText>
+								</MenuItem>
+							))}
+						</MenuContent>
+					</Menu>
+
+					<Spacer />
+
+					{!pristine && (
+						<Button color="red" variant="soft" onClick={() => restart(fresh(initial))}>
+							Reset
 						</Button>
-					</MenuTrigger>
+					)}
 
-					<MenuContent>
-						{additions.map(({ tile, hint }) => (
-							<MenuItem key={tile.title} onAction={() => add(tile)}>
-								<MenuText>
-									<MenuLabel>{tile.title}</MenuLabel>
+					{editing && !empty && (
+						<Button variant="outline" onClick={() => handle.current?.tidy()}>
+							Tidy
+						</Button>
+					)}
 
-									<MenuDescription>{hint}</MenuDescription>
-								</MenuText>
-							</MenuItem>
-						))}
-					</MenuContent>
-				</Menu>
-
-				<Spacer />
-
-				{!pristine && (
-					<Button color="red" variant="soft" onClick={() => restart(fresh(initial))}>
-						Reset
-					</Button>
-				)}
-
-				{editing && !empty && (
-					<Button variant="outline" onClick={() => handle.current?.tidy()}>
-						Tidy
-					</Button>
-				)}
-
-				{!empty && (
-					<Button
-						color={editing ? 'zinc' : 'blue'}
-						hidden={projected}
-						onClick={() => setEditing((live) => !live)}
-					>
-						{editing ? 'Done' : 'Edit layout'}
-					</Button>
-				)}
+					{!empty && (
+						<Button
+							color={editing ? 'zinc' : 'blue'}
+							hidden={projected}
+							onClick={() => setEditing((live) => !live)}
+						>
+							{editing ? 'Done' : 'Edit layout'}
+						</Button>
+					)}
+				</Flex>
 			</Flex>
 
 			<Alert

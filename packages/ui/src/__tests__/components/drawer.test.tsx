@@ -11,7 +11,7 @@ import {
 	present,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 describe('Drawer', () => {
@@ -452,7 +452,7 @@ describe('Drawer drag handle', () => {
 		return {
 			...rendered,
 			handle: getSlot(rendered.container, 'drawer-handle'),
-			panel: getSlot(rendered.container, 'drawer') as HTMLElement,
+			panel: getSlot(rendered.container, 'drawer'),
 		}
 	}
 
@@ -498,7 +498,7 @@ describe('Drawer drag handle', () => {
 
 		const { handle, panel } = renderHandled({ onOpenChange })
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		handle.focus()
 
@@ -518,7 +518,7 @@ describe('Drawer drag handle', () => {
 	it('forgets a dragged height once closed', async () => {
 		const { container, rerender, handle } = renderHandled()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		handle.focus()
 
@@ -538,7 +538,7 @@ describe('Drawer drag handle', () => {
 
 		// Back at the size the consumer asked for, which is the one a reader coming
 		// back to the panel expects.
-		expect((getSlot(container, 'drawer') as HTMLElement).style.height).toBe('')
+		expect(getSlot(container, 'drawer').style.height).toBe('')
 	})
 
 	it('ends a drag that the close interrupts, so a reopen keeps its own height', () => {
@@ -564,7 +564,7 @@ describe('Drawer drag handle', () => {
 			</Drawer>,
 		)
 
-		const panel = getSlot(container, 'drawer') as HTMLElement
+		const panel = getSlot(container, 'drawer')
 
 		expect(panel.style.height).toBe('')
 

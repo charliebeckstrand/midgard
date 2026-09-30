@@ -2,6 +2,7 @@ import { Profiler } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { frame, frames, present, renderUI, waitFor, windowBody } from '../helpers'
+import { pause } from './helpers/wall-clock'
 
 /**
  * The React commits of one group toggle in a windowed grouped body, in a real
@@ -103,7 +104,7 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 
 		/** Waits until the reveal of each row lands, and the body is at rest. */
 		const rest = async () => {
-			await new Promise((resolve) => setTimeout(resolve, 1200))
+			await pause(1200)
 
 			await frames()
 		}

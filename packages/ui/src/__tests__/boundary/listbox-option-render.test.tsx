@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Listbox, ListboxOption } from '../../components/listbox'
-import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { act, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { clearOptionRenders, optionRenders } from '../helpers/option-renders'
 
 /**
@@ -84,7 +84,7 @@ describe('multi-select option renders', () => {
 			</Combobox>,
 		)
 
-		await userEvent.setup({ delay: null }).click(screen.getByRole('combobox'))
+		await setupUser().click(screen.getByRole('combobox'))
 
 		const options = screen.getAllByRole('option')
 

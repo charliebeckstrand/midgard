@@ -7,7 +7,7 @@ import {
 	useCollapseContext,
 } from '../../components/collapse'
 import type { Mount } from '../../primitives/mount'
-import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('Collapse', () => {
 	it('renders panel when open', () => {
@@ -140,9 +140,9 @@ describe('Collapse', () => {
 		expect(screen.getByText('Custom Trigger')).toBeInTheDocument()
 	})
 
-	it('supports animate="slide"', () => {
+	it.each(['slide', false] as const)('renders the open panel with animate=%s', (animate) => {
 		const { container } = renderUI(
-			<Collapse animate="slide" defaultOpen>
+			<Collapse animate={animate} defaultOpen>
 				<CollapseTrigger>Toggle</CollapseTrigger>
 				<CollapsePanel>
 					<p>Body</p>
@@ -151,19 +151,8 @@ describe('Collapse', () => {
 		)
 
 		expect(bySlot(container, 'collapse')).toBeInTheDocument()
-	})
 
-	it('supports animate={false}', () => {
-		const { container } = renderUI(
-			<Collapse animate={false} defaultOpen>
-				<CollapseTrigger>Toggle</CollapseTrigger>
-				<CollapsePanel>
-					<p>Body</p>
-				</CollapsePanel>
-			</Collapse>,
-		)
-
-		expect(bySlot(container, 'collapse')).toBeInTheDocument()
+		expect(screen.getByText('Body')).toBeInTheDocument()
 	})
 
 	describe('mount policy', () => {
@@ -179,7 +168,7 @@ describe('Collapse', () => {
 		}
 
 		it('unmounts the closed panel by default, losing its state', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Panel />)
 
@@ -197,7 +186,7 @@ describe('Collapse', () => {
 		})
 
 		it('mount="lazy" defers the panel, then holds its state across a close', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Panel mount="lazy" />)
 
@@ -242,7 +231,7 @@ describe('Collapse', () => {
 		})
 
 		it('mount="lazy" drops aria-controls from the closed trigger', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Panel mount="lazy" />)
 
@@ -255,7 +244,7 @@ describe('Collapse', () => {
 		})
 
 		it('holds the panel without motion when animate is false', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(
 				<Collapse mount="always" animate={false}>
@@ -334,21 +323,6 @@ describe('useCollapseContext in trigger children', () => {
 		expect(calls).toEqual(['consumer', 'change'])
 
 		expect(screen.getByText('Body')).toBeInTheDocument()
-	})
-
-	it('forwards the user onClick', () => {
-		const onClick = vi.fn()
-
-		renderUI(
-			<Collapse>
-				<CollapseTrigger onClick={onClick}>Toggle</CollapseTrigger>
-				<CollapsePanel>Body</CollapsePanel>
-			</Collapse>,
-		)
-
-		fireEvent.click(screen.getByText('Toggle'))
-
-		expect(onClick).toHaveBeenCalled()
 	})
 })
 

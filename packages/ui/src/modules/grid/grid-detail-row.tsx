@@ -13,11 +13,6 @@ import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
-/** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
-function detailPanelId(rowKey: string | number): string {
-	return `grid-detail-${rowKey}`
-}
-
 /** Props for {@link GridExpandToggle}. @internal */
 type GridExpandToggleProps = {
 	expanded: boolean
@@ -27,6 +22,11 @@ type GridExpandToggleProps = {
 	/** Human-readable row name for the toggle's label; falls back to the key. */
 	rowLabel?: string
 	toggle: (key: string | number) => void
+	/**
+	 * The id of the row's detail panel, or `undefined` while no panel is mounted
+	 * (a windowed body mounts a panel only while it is open).
+	 */
+	panelId: string | undefined
 }
 
 /**
@@ -44,6 +44,7 @@ export function GridExpandToggle({
 	rowKey,
 	rowLabel,
 	toggle,
+	panelId,
 }: GridExpandToggleProps) {
 	if (!expandable) return null
 
@@ -57,7 +58,7 @@ export function GridExpandToggle({
 			variant="bare"
 			onClick={() => toggle(rowKey)}
 			aria-expanded={expanded}
-			aria-controls={detailPanelId(rowKey)}
+			aria-controls={panelId}
 			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${name}`}
 		>
 			{/* `data-open` rides the chevron element itself. An `Icon` clones it and
@@ -77,6 +78,8 @@ export function GridExpandToggle({
 /** Props for {@link GridDetailRow}. @internal */
 type GridDetailRowProps<T> = {
 	rowKey: string | number
+	/** The panel's DOM id, which the expander's `aria-controls` names. */
+	panelId: string | undefined
 	row: T
 	/** Columns the panel spans — the full visible column count. */
 	colSpan: number
@@ -112,6 +115,7 @@ type GridDetailRowProps<T> = {
  */
 function GridDetailRowImpl<T>({
 	rowKey,
+	panelId,
 	row,
 	colSpan,
 	expanded,
@@ -139,7 +143,7 @@ function GridDetailRowImpl<T>({
 				<td {...stopProps} colSpan={colSpan} style={NO_PADDING}>
 					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(reveal.open)}>
 						<div className={cn(k.detail.reveal.clip)}>
-							<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
+							<section id={panelId} className={cn(k.detail.panel)}>
 								{render(row)}
 							</section>
 						</div>

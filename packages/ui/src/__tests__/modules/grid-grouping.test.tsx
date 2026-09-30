@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, setupUser, within } from '../helpers'
 
 /**
  * Row grouping (`groupBy` + a grouped column): the engine's grouped/expanded row
@@ -55,7 +55,7 @@ describe('Grid row grouping', () => {
 	})
 
 	it('collapses a group to hide its leaf rows, and re-expands it', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
@@ -79,7 +79,7 @@ describe('Grid row grouping', () => {
 	})
 
 	it('rests a collapsed group\u2019s leaves once the reveal has shrunk', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
@@ -129,7 +129,7 @@ describe('Grid row grouping', () => {
 	})
 
 	it('keeps leaf-row selection working under grouping (select-all spans every group)', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		function Harness() {
 			const [selection, setSelection] = useState<Set<string | number>>(new Set())
@@ -171,7 +171,7 @@ describe('Grid row grouping', () => {
 	})
 
 	it('counts each leaf once while every group is open', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Grid

@@ -100,7 +100,7 @@ describe('Box', () => {
 
 		const el = getSlot(container, 'box')
 
-		expect(el.className).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
+		expect(el.className).not.toMatch(/(^|\s)p-\d/)
 	})
 })
 

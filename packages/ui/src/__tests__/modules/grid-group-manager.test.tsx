@@ -424,6 +424,61 @@ describe('Grid column-group editor', () => {
 		expect(screen.queryByRole('button', { name: 'Collapse Identity' })).toBeNull()
 	})
 
+	it('removes a column from its group through the move menu', () => {
+		const { container } = renderUI(<Harness />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+		fireEvent.click(screen.getByText('Move to New group'))
+
+		expect(band(container)).not.toBeNull()
+
+		// The menu of a grouped column offers no move to its own group.
+		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+		expect(screen.queryByText('Move to New group')).toBeNull()
+
+		fireEvent.click(screen.getByText('Remove from group'))
+
+		// The band goes, and the group reads as empty rather than as a search result.
+		expect(band(container)).toBeNull()
+
+		expect(screen.getByText('No columns in this group')).toBeInTheDocument()
+	})
+
+	it('offers no remove item for an ungrouped column', () => {
+		renderUI(<Harness />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Move Email' }))
+
+		expect(screen.getByText('Move to New group')).toBeInTheDocument()
+
+		expect(screen.queryByText('Remove from group')).toBeNull()
+	})
+
+	it('shows an empty name for a group whose title is not a string', () => {
+		const groups: GridColumnGroup[] = [
+			{ id: 'identity', title: <strong>Identity</strong>, columns: ['first'] },
+		]
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				columnGroups={groups}
+				columnManager={{ defaultOpen: true }}
+			/>,
+		)
+
+		// The label falls back to the id, and the input holds no text to edit.
+		expect(screen.getByLabelText('Group name for identity')).toHaveValue('')
+	})
+
 	it('withholds the move menu until a group exists', () => {
 		renderUI(<Harness />)
 
@@ -540,6 +595,28 @@ describe('groupManagerAnnouncements', () => {
 
 		expect(announcements.onDragEnd({ active: at('email'), over: at(zoneDropId(UNGROUPED)) })).toBe(
 			'Dropped Email column in Ungrouped.',
+		)
+	})
+
+	it('falls back to the id for an unknown column or group', () => {
+		expect(announcements.onDragStart({ active: at('ghost') })).toBe('Picked up ghost column.')
+
+		expect(announcements.onDragStart({ active: at(`${GROUP_PREFIX}gone`) })).toBe(
+			'Picked up gone group.',
+		)
+	})
+
+	it('names the editor for a column over a droppable in no zone', () => {
+		expect(announcements.onDragOver({ active: at('name'), over: at('ghost') })).toBe(
+			'Name column is over the editor.',
+		)
+	})
+
+	it('says nothing over no droppable, and a drop there returns the column', () => {
+		expect(announcements.onDragOver({ active: at('name'), over: null })).toBeUndefined()
+
+		expect(announcements.onDragEnd({ active: at('name'), over: null })).toBe(
+			'Dropped Name column where it started.',
 		)
 	})
 

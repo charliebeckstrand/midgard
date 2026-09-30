@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
-import { act, frames, renderUI, waitFor } from '../helpers'
+import { act, frames, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The start anchor of the measured path, in a real browser. The anchor moves
@@ -83,21 +83,29 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		)
 	}
 
-	it('holds the first row in view still when rows are inserted above it, and then stops', async () => {
+	/** Renders the list, and waits for its first rows. */
+	async function mount(bounded = true) {
 		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
 
-		const { container } = renderUI(<List handle={handle} bounded />)
+		const { container } = renderUI(<List handle={handle} bounded={bounded} />)
 
-		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
+		const scroller = present(
+			container.querySelector<HTMLElement>('[data-slot="anchored-list"]'),
+			'the scroll container',
+		)
 
 		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
 
-		scroller.scrollTop = 2000
+		return { handle, scroller }
+	}
 
-		// The rows around the new offset measure over a few frames. Wait until
-		// the offset holds still.
+	/**
+	 * Scrolls to `top`. The rows around the new offset measure over a few frames,
+	 * so this waits until the offset holds still.
+	 */
+	async function scrollAndSettle(scroller: HTMLElement, top: number) {
+		scroller.scrollTop = top
+
 		let last = -1
 
 		while (last !== scroller.scrollTop) {
@@ -105,6 +113,12 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 
 			await frames()
 		}
+	}
+
+	it('holds the first row in view still when rows are inserted above it, and then stops', async () => {
+		const { handle, scroller } = await mount()
+
+		await scrollAndSettle(scroller, 2000)
 
 		const anchor = Array.from(scroller.querySelectorAll<HTMLElement>('[data-row]')).find(
 			(row) => row.getBoundingClientRect().top >= scroller.getBoundingClientRect().top,
@@ -139,25 +153,9 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 	})
 
 	it('holds the first row in view in the commit of the change, while the reader scrolls', async () => {
-		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
+		const { handle, scroller } = await mount()
 
-		const { container } = renderUI(<List handle={handle} bounded />)
-
-		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
-
-		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
-
-		scroller.scrollTop = 2000
-
-		let last = -1
-
-		while (last !== scroller.scrollTop) {
-			last = scroller.scrollTop
-
-			await frames()
-		}
+		await scrollAndSettle(scroller, 2000)
 
 		const rows = () => Array.from(scroller.querySelectorAll<HTMLElement>('[data-row]'))
 
@@ -199,15 +197,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 	it('keeps the held offset when the scroll-end timer fires before the scroll event of the move', async ({
 		signal,
 	}) => {
-		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
-
-		const { container } = renderUI(<List handle={handle} bounded />)
-
-		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
-
-		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
+		const { handle, scroller } = await mount()
 
 		// The virtualizer ends a scroll with a timer that it sets again on each
 		// `scroll` event, 150 ms after the last one. The case holds that timer, so
@@ -230,15 +220,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 			return 0
 		}) as typeof window.setTimeout)
 
-		scroller.scrollTop = 2000
-
-		let last = -1
-
-		while (last !== scroller.scrollTop) {
-			last = scroller.scrollTop
-
-			await frames()
-		}
+		await scrollAndSettle(scroller, 2000)
 
 		const anchor = Array.from(scroller.querySelectorAll<HTMLElement>('[data-row]')).find(
 			(row) => row.getBoundingClientRect().top >= scroller.getBoundingClientRect().top,
@@ -271,15 +253,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 	})
 
 	it('keeps the top when rows are inserted above the first row at the offset zero', async () => {
-		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
-
-		const { container } = renderUI(<List handle={handle} bounded />)
-
-		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
-
-		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
+		const { handle, scroller } = await mount()
 
 		act(() => handle.prepend([3000, 3001, 3002]))
 
@@ -293,15 +267,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 	})
 
 	it('does nothing in a scroller that does not scroll', async () => {
-		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
-
-		const { container } = renderUI(<List handle={handle} bounded={false} />)
-
-		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
-
-		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
+		const { handle, scroller } = await mount(false)
 
 		for (let round = 0; round < 5; round++) {
 			act(() => handle.prepend([2000 + round]))

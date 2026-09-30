@@ -20,9 +20,43 @@ export function escapeXml(value: string): string {
 	return escapeMarkup(value).replaceAll('"', '&quot;').replaceAll("'", '&apos;')
 }
 
-/** Stringifies a cell value for export: nullish becomes empty, everything else `String()`s. The CSV, Excel, and HTML-table serializers use it. @internal */
+/** True for an array, or for an object whose prototype is `Object.prototype` or `null`. */
+function isPlainData(value: object): boolean {
+	if (Array.isArray(value)) return true
+
+	const prototype = Object.getPrototypeOf(value)
+
+	return prototype === Object.prototype || prototype === null
+}
+
+/** The JSON text of a value, else its `String()` text when JSON cannot hold it (a cycle or a `bigint`). */
+function jsonText(value: object): string {
+	try {
+		return JSON.stringify(value)
+	} catch {
+		return String(value)
+	}
+}
+
+/**
+ * Stringifies a cell value for export. The CSV, Excel, and HTML-table
+ * serializers and the Copy actions use it.
+ *
+ * - A nullish value becomes empty.
+ * - A `Date` becomes ISO 8601 text in UTC, and an invalid `Date` becomes empty.
+ * - A plain object or an array becomes JSON.
+ * - Each other value goes through `String()`.
+ *
+ * @internal
+ */
 export function cellText(value: unknown): string {
-	return value == null ? '' : String(value)
+	if (value == null) return ''
+
+	if (value instanceof Date) return Number.isNaN(value.getTime()) ? '' : value.toISOString()
+
+	if (typeof value === 'object' && isPlainData(value)) return jsonText(value)
+
+	return String(value)
 }
 
 /**

@@ -15,11 +15,7 @@ const series = [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' } as const]
 
 /** Right-clicks a chart's root region to open its context menu. */
 function openChartMenu(container: HTMLElement): void {
-	const root = bySlot(container, 'chart')
-
-	if (!root) throw new Error('no chart root')
-
-	fireEvent.contextMenu(root)
+	fireEvent.contextMenu(getSlot(container, 'chart'))
 }
 
 describe('Chart context menu', () => {
@@ -90,23 +86,6 @@ describe('Chart context menu', () => {
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Inspect' }))
 
 		expect(onInspect).toHaveBeenCalledOnce()
-	})
-
-	it('opens the fullscreen dialog from the Fullscreen action', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by quarter"
-				title="Revenue by quarter"
-				data={data}
-				series={[...series]}
-			/>,
-		)
-
-		openChartMenu(container)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
-
-		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
 	it('reports both ends of the fullscreen dialog, whatever drove them', () => {
@@ -183,7 +162,7 @@ describe('Chart context menu', () => {
 		expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
 	})
 
-	it('closes the fullscreen dialog on Escape', () => {
+	it('opens the fullscreen dialog from the Fullscreen action, and closes it on Escape', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
@@ -252,7 +231,7 @@ describe('Chart context menu', () => {
 
 		// The secondary button held with Ctrl is the escape hatch to the browser
 		// menu — the same one the grid uses (via isNativeContextMenuRequest).
-		fireEvent.contextMenu(bySlot(container, 'chart') ?? container, { ctrlKey: true, button: 2 })
+		fireEvent.contextMenu(getSlot(container, 'chart'), { ctrlKey: true, button: 2 })
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
@@ -264,7 +243,7 @@ describe('Chart context menu', () => {
 
 		// A primary-button Ctrl+click is macOS's secondary click; it reaches the
 		// chart menu rather than the native one, so Mac users get there too.
-		fireEvent.contextMenu(bySlot(container, 'chart') ?? container, { ctrlKey: true, button: 0 })
+		fireEvent.contextMenu(getSlot(container, 'chart'), { ctrlKey: true, button: 0 })
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
@@ -284,9 +263,7 @@ describe('Chart context menu', () => {
 				/>,
 			)
 
-			const root = bySlot(container, 'chart')
-
-			if (!root) throw new Error('no chart root')
+			const root = getSlot(container, 'chart')
 
 			// The frame snapshots the hovered index on the contextmenu capture phase;
 			// with no mark hovered that snapshot is null, so a per-mark item is withheld.
@@ -474,6 +451,37 @@ describe('Chart menu button', () => {
 		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
 
 		host.remove()
+	})
+
+	it('puts a View data button in the header row of a box, and marks its own fullscreen', () => {
+		const host = document.createElement('div')
+
+		document.body.append(host)
+
+		const slot = createHeaderActionsHost()
+
+		slot.set(host)
+
+		renderUI(
+			<HeaderActionsContext value={slot}>
+				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
+			</HeaderActionsContext>,
+		)
+
+		// The box hides its own expand control, because the chart menu has Fullscreen.
+		expect(getSlot(host, 'chart-header-actions')).toHaveAttribute('data-own-fullscreen')
+
+		fireEvent.click(screen.getByRole('button', { name: 'View data for Revenue' }))
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		host.remove()
+	})
+
+	it('shows no View data button outside a box', () => {
+		renderUI(<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />)
+
+		expect(screen.queryByRole('button', { name: 'View data for Revenue' })).toBeNull()
 	})
 
 	it('shows none on an untitled chart outside a box, or with the menu off', () => {

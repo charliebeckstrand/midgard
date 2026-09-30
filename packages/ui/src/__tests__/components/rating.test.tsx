@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Description, Field, Label } from '../../components/fieldset'
 import { Form, useFormState } from '../../components/form'
 import { Rating, RatingSkeleton } from '../../components/rating'
-import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen, setupUser } from '../helpers'
 
 /** The stars' own radios, in draw order. */
 function stars(container: HTMLElement): HTMLInputElement[] {
@@ -66,7 +66,7 @@ describe('Rating', () => {
 	})
 
 	it('commits the picked star', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -78,7 +78,7 @@ describe('Rating', () => {
 	})
 
 	it('clears when the current score is clicked again', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -96,7 +96,7 @@ describe('Rating', () => {
 	})
 
 	it('recedes the fill while the pointer rests on the star that would clear it', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<Rating aria-label="Score" defaultValue={1} />)
 
@@ -112,7 +112,7 @@ describe('Rating', () => {
 	})
 
 	it('previews rather than recedes on a star that would set a score', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<Rating aria-label="Score" defaultValue={1} />)
 
@@ -126,7 +126,7 @@ describe('Rating', () => {
 	})
 
 	it('does not recede when there is nothing to clear', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<Rating aria-label="Score" defaultValue={1} clearable={false} />)
 
@@ -136,7 +136,7 @@ describe('Rating', () => {
 	})
 
 	it('keeps the score when clearable is off', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -155,7 +155,7 @@ describe('Rating', () => {
 	})
 
 	it('binds to a Form field by name', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Form defaultValues={{ score: 2 }}>

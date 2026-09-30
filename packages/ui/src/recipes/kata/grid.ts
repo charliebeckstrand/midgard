@@ -328,6 +328,11 @@ export const k = {
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],
+		// The same span while it holds an open editor. A span that clips is a
+		// scroll container. The validation message shows below the cell, and its
+		// scroll into view then scrolls the span and clips the editor. This form
+		// lets the content overflow and keeps the one line.
+		editing: ['block', 'whitespace-nowrap'],
 		// The search-highlight wash behind a matched substring when `search.mode`
 		// is `'highlight'` (mark, don't prune). The same mode-aware amber the JsonTree's
 		// search highlight uses (`kata/json-tree` `highlight`), so a match reads the
@@ -450,7 +455,8 @@ export const k = {
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
-		layout: [flex.row, 'min-w-0', 'gap-1'],
+		// The gap caps the hit areas of the header buttons, as in `filter.slot`.
+		layout: [flex.row, 'min-w-0', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
 		// The grabbing cursor follows the live drag (`data-[dragging]`), not the
 		// pointer's `:active` state: a right-click presses the grip `<button>` into
 		// `:active` too, and the context menu swallowing the matching pointerup
@@ -669,7 +675,15 @@ export const k = {
 		row: bg.surface,
 		cell: ['px-2', 'py-1', 'align-middle'],
 		// Header row: title on the left, filter button across from it on the right.
-		slot: ['flex', 'items-center', 'justify-between', 'gap-1'],
+		// In a narrow column the group-by and filter buttons close to the gap, so
+		// the gap also caps their hit areas (`TouchTarget`).
+		slot: [
+			'flex',
+			'items-center',
+			'justify-between',
+			'gap-1',
+			'[--touch-target-gap-x:--spacing(1)]',
+		],
 		// Filter icon button in a column header: layout only. The active accent comes
 		// from the Button's `color` prop; `idle` is the resting muted tint, dropped
 		// when active so it doesn't override that color.
@@ -855,8 +869,10 @@ export const k = {
 		// The settle pair a cell-scoped session shows beside its editor. No padding
 		// of its own: `Button`'s bare icon-only floor is sized per density, and
 		// overriding it here would drop the pair under the 24x24 target minimum
-		// (WCAG 2.5.8) at every density, worst in a condensed grid.
-		settle: [flex.row, 'ms-1 shrink-0 gap-0.5'],
+		// (WCAG 2.5.8) at every density, worst in a condensed grid. The gap also
+		// caps the hit areas (`TouchTarget`): the two buttons split it and do not
+		// overlap, and Save does not reach back over the editor.
+		settle: [flex.row, 'ms-1 shrink-0 gap-0.5 [--touch-target-gap-x:--spacing(0.5)]'],
 		// A cell whose async commit is in flight. It signals busy the way
 		// `body.settling` does for a server sort: a `motion-safe` pulse, or a
 		// static 50% dim for a reduced-motion user, never both.

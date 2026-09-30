@@ -2,7 +2,7 @@ import { describe, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody } from '../../components/dialog'
 import { Icon } from '../../components/icon'
-import { renderUI, userEvent } from '../helpers'
+import { renderUI, setupUser } from '../helpers'
 import { axe } from '../helpers/axe'
 import { baseline, interactive, overlays, rows } from './cases'
 
@@ -45,7 +45,7 @@ describe('a11y baseline (axe): overlays', () => {
  */
 describe('a11y baseline (axe): interactive', () => {
 	it.each(rows(interactive))('%s has no axe violations', async (_name, { element, open }) => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(element)
 

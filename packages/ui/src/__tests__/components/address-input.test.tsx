@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
 import { splitUsState } from '../../components/address-input/address-input-photon-query'
@@ -11,7 +11,7 @@ import {
 	getSlot,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 	waitFor,
 	withFakeTime,
 } from '../helpers'
@@ -106,7 +106,7 @@ describe('AddressInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'ab')
 
@@ -148,29 +148,27 @@ describe('AddressInput', () => {
 
 		const warn = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		try {
-			await withFakeTime(async (clock) => {
-				const { container } = renderUI(
-					<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
-				)
+		onTestFinished(() => warn.mockRestore())
 
-				const input = getSlot<HTMLInputElement>(container, 'combobox-input')
-
-				await clock.user.type(input, 'c')
-
-				await clock.advance(0)
-
-				expect(screen.getAllByRole('option')).toHaveLength(2)
-			})
-
-			const keyWarnings = warn.mock.calls.filter((call) =>
-				call.some((arg) => typeof arg === 'string' && arg.includes('same key')),
+		await withFakeTime(async (clock) => {
+			const { container } = renderUI(
+				<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
 			)
 
-			expect(keyWarnings).toEqual([])
-		} finally {
-			warn.mockRestore()
-		}
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+
+			await clock.user.type(input, 'c')
+
+			await clock.advance(0)
+
+			expect(screen.getAllByRole('option')).toHaveLength(2)
+		})
+
+		const keyWarnings = warn.mock.calls.filter((call) =>
+			call.some((arg) => typeof arg === 'string' && arg.includes('same key')),
+		)
+
+		expect(keyWarnings).toEqual([])
 	})
 
 	it('binds the selection to a Form field by name', async () => {
@@ -409,10 +407,6 @@ describe('AddressInput', () => {
 			})
 		})
 	})
-
-	it('exports a photonProvider', () => {
-		expect(typeof photonProvider).toBe('function')
-	})
 })
 
 describe('photonProvider', () => {
@@ -447,26 +441,15 @@ describe('photonProvider', () => {
 	}
 
 	it('maps features with street + housenumber into a primary + secondary label', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn(
-				async () =>
-					({
-						ok: true,
-						json: async () => ({
-							features: [
-								makeFeature({
-									housenumber: '10',
-									street: 'Main St',
-									city: 'Springfield',
-									state: 'IL',
-									country: 'USA',
-									postcode: '62701',
-								}),
-							],
-						}),
-					}) as Response,
-			),
+		stubFeatures(
+			makeFeature({
+				housenumber: '10',
+				street: 'Main St',
+				city: 'Springfield',
+				state: 'IL',
+				country: 'USA',
+				postcode: '62701',
+			}),
 		)
 
 		const results = await photonProvider('query', { signal: new AbortController().signal })
@@ -481,18 +464,7 @@ describe('photonProvider', () => {
 	})
 
 	it('falls back to the feature name when no street is present', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn(
-				async () =>
-					({
-						ok: true,
-						json: async () => ({
-							features: [makeFeature({ name: 'Central Park', city: 'NY' })],
-						}),
-					}) as Response,
-			),
-		)
+		stubFeatures(makeFeature({ name: 'Central Park', city: 'NY' }))
 
 		const results = await photonProvider('q', { signal: new AbortController().signal })
 
@@ -502,18 +474,7 @@ describe('photonProvider', () => {
 	})
 
 	it('uses the secondary as label and omits description when primary is missing', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn(
-				async () =>
-					({
-						ok: true,
-						json: async () => ({
-							features: [makeFeature({ city: 'NY', country: 'USA' })],
-						}),
-					}) as Response,
-			),
-		)
+		stubFeatures(makeFeature({ city: 'NY', country: 'USA' }))
 
 		const results = await photonProvider('q', { signal: new AbortController().signal })
 

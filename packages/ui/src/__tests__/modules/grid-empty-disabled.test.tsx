@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Grid disables column interactions when empty', () => {
 	type Row = { id: number; name: string; extra: string }
@@ -50,11 +50,7 @@ describe('Grid disables column interactions when empty', () => {
 	it('suppresses the right-click context menu', () => {
 		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
 
-		const header = screen.getByText('Name').closest('th')
-
-		if (!header) throw new Error('no header')
-
-		fireEvent.contextMenu(header)
+		fireEvent.contextMenu(present(screen.getByText('Name').closest('th'), 'the Name header'))
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})

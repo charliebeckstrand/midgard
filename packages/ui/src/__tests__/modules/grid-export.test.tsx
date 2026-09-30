@@ -739,18 +739,32 @@ describe('Grid export', () => {
 
 		expect(trigger.querySelector('svg.lucide-download')).toBeNull()
 
-		expect(trigger).toBeDisabled()
+		// The trigger gates activation with `aria-disabled`, not `disabled`, so it
+		// stays focusable. A click while busy opens no menu.
+		expect(trigger).toHaveAttribute('aria-disabled', 'true')
+
+		expect(trigger).toBeEnabled()
+
+		fireEvent.click(trigger)
+
+		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
 
 		server.resolve(fullList)
 
-		// Settling restores the icon, drops the spinner, and re-enables the trigger.
+		// Settling restores the icon, drops the spinner, and ends the gate.
 		await waitFor(() => expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull())
 
 		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
 
-		expect(trigger).toBeEnabled()
+		expect(trigger).not.toHaveAttribute('aria-disabled')
 
 		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
+
+		openExportMenu()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 	})
 
 	it('lets exportRows win over an active selection', async () => {
@@ -1001,13 +1015,14 @@ describe('Grid export under grouping', () => {
 			/>,
 		)
 
-		expect(text).toContain('Developer,Alice')
+		// The grouped column keeps its place, so the columns export in their own order.
+		expect(text).toContain('Alice,Developer')
 
-		expect(text).toContain('Designer,Bob')
+		expect(text).toContain('Bob,Designer')
 
-		expect(text).toContain('Developer,Carol')
+		expect(text).toContain('Carol,Developer')
 
-		expect(text).toContain('Designer,Dave')
+		expect(text).toContain('Dave,Designer')
 	})
 
 	it('exports the leaves of a collapsed group, whatever its expansion', async () => {
@@ -1021,9 +1036,9 @@ describe('Grid export under grouping', () => {
 			/>,
 		)
 
-		expect(text).toContain('Developer,Carol')
+		expect(text).toContain('Carol,Developer')
 
-		expect(text).toContain('Designer,Dave')
+		expect(text).toContain('Dave,Designer')
 	})
 
 	it('honors an active selection under grouping', async () => {
@@ -1040,13 +1055,13 @@ describe('Grid export under grouping', () => {
 			/>,
 		)
 
-		expect(text).toContain('Developer,Carol')
+		expect(text).toContain('Carol,Developer')
 
-		expect(text).not.toContain('Developer,Alice')
+		expect(text).not.toContain('Alice,Developer')
 
-		expect(text).not.toContain('Designer,Bob')
+		expect(text).not.toContain('Bob,Designer')
 
-		expect(text).not.toContain('Designer,Dave')
+		expect(text).not.toContain('Dave,Designer')
 	})
 })
 

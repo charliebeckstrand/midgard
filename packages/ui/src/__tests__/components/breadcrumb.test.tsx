@@ -19,26 +19,6 @@ describe('Breadcrumb', () => {
 	})
 })
 
-describe('BreadcrumbItem', () => {
-	it('keeps aria-current on the crumb link and off the <li>', () => {
-		// aria-current belongs on the crumb (BreadcrumbLink) only; both the
-		// list item and the link carrying it would announce the state twice.
-		const { container } = renderUI(
-			<Breadcrumb>
-				<BreadcrumbList>
-					<BreadcrumbItem>
-						<BreadcrumbLink current>Page</BreadcrumbLink>
-					</BreadcrumbItem>
-				</BreadcrumbList>
-			</Breadcrumb>,
-		)
-
-		expect(bySlot(container, 'breadcrumb-item')).not.toHaveAttribute('aria-current')
-
-		expect(bySlot(container, 'breadcrumb-link')).toHaveAttribute('aria-current', 'page')
-	})
-})
-
 describe('BreadcrumbLink', () => {
 	it('marks a current crumb that is still a link with aria-current', () => {
 		const { container } = renderUI(
@@ -113,7 +93,7 @@ describe('Breadcrumb keyboard model', () => {
 })
 
 describe('BreadcrumbLink without href', () => {
-	it('renders a span with aria-current when current is true', () => {
+	it('renders a span with aria-current, and keeps aria-current off the <li>', () => {
 		const { container } = renderUI(
 			<Breadcrumb>
 				<BreadcrumbList>
@@ -128,7 +108,11 @@ describe('BreadcrumbLink without href', () => {
 
 		expect(el?.tagName).toBe('SPAN')
 
+		// aria-current belongs on the crumb (BreadcrumbLink) only; both the
+		// list item and the link carrying it would announce the state twice.
 		expect(el).toHaveAttribute('aria-current', 'page')
+
+		expect(bySlot(container, 'breadcrumb-item')).not.toHaveAttribute('aria-current')
 	})
 
 	it('renders a span without aria-current when current is false', () => {

@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type MouseEvent, type PointerEvent, useId, useRef } from 'react'
 import { cn } from '../../../core'
-import { useHoverAcrossScroll, useTimeout } from '../../../hooks'
+import { useHoverAcrossScroll } from '../../../hooks'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
@@ -13,7 +13,7 @@ import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
 import { toFrame } from '../engine/use-chart-pointer'
-import { TOUCH_READOUT_DELAY, useChartTouchTap } from '../engine/use-chart-touch-tap'
+import { useChartTouchTap } from '../engine/use-chart-touch-tap'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -204,7 +204,8 @@ type SectorChartMarksProps = {
 	/**
 	 * Reports a click on a slice by data index — the plumbing behind the pie's
 	 * public `onCategoryClick`. Rides either trigger (after the `'click'`
-	 * trigger's own pin/dismiss) and gives the slices a pointer cursor.
+	 * trigger's own pin/dismiss) and gives the slices a pointer cursor. A touch
+	 * reports from its tap, and pins nothing.
 	 */
 	onIndexClick?: (index: number) => void
 }
@@ -264,14 +265,11 @@ export function SectorChartMarks({
 	// The slice groups, so the scroll rescue can name the slice under the pointer.
 	const wedges = useRef<SVGGElement>(null)
 
-	// A touch that enters a slice waits for a hold before it opens the readout, as
-	// the hit layer of the cartesian charts does. A tap lifts first and shows none.
-	const hold = useTimeout()
-
 	// The slice that the last press landed on, which a tap reports.
 	const pressed = useRef<number | null>(null)
 
-	// A touch activates from its tap, and a mouse or a pen from its click.
+	// A touch activates from its tap, and a mouse or a pen from its click. A
+	// touch reads nothing from the pie: it opens no readout and isolates no slice.
 	const touch = useChartTouchTap(() => {
 		if (pressed.current !== null) onIndexClick?.(pressed.current)
 	})
@@ -309,9 +307,10 @@ export function SectorChartMarks({
 		<g
 			data-slot="chart-slices"
 			// Leaving the pie clears the isolation whichever way the tooltip opens; the
-			// hover-tracked readout clears with it, a click-pinned one stays put.
-			onPointerLeave={() => {
-				hold.clear()
+			// hover-tracked readout clears with it, a click-pinned one stays put. A
+			// touch opened neither, so its leave clears nothing.
+			onPointerLeave={(event) => {
+				if (event.pointerType === 'touch') return
 
 				inside.current = false
 
@@ -358,51 +357,61 @@ export function SectorChartMarks({
 
 					const activate = () => onIndexClick?.(slice.index)
 
-					// Pointing a slice isolates it either way the tooltip opens; the hover
-					// trigger also tracks the readout onto it.
+					// A mouse or a pen that points a slice isolates it either way the tooltip
+					// opens; the hover trigger also tracks the readout onto it.
 					const emphasize = () => onEmphasis(slice.index)
+
+					// The slice that a touch press lands on, which its tap reports.
+					const press = (event: PointerEvent<SVGPathElement>) => {
+						pressed.current = slice.index
+
+						touch.onPointerDown(event)
+					}
 
 					const handlers = click
 						? {
+								onPointerDown: press,
+								onPointerUp: touch.onPointerUp,
+								onPointerCancel: touch.onPointerCancel,
+								onPointerMove: touch.onPointerMove,
+								onTouchEnd: touch.onTouchEnd,
+								// A tap only activates. Its click is cancelled, so it does not pin
+								// the readout.
 								onClick: (event: MouseEvent<SVGPathElement>) => {
+									if (touch.fromTouch()) return
+
 									if (hoverStore.get().index === slice.index) set(null, null)
 									else at(event)
 
 									activate()
 								},
-								onPointerEnter: emphasize,
+								onPointerEnter: (event: PointerEvent<SVGPathElement>) => {
+									if (event.pointerType !== 'touch') emphasize()
+								},
 							}
 						: {
 								...(onIndexClick && {
+									onPointerDown: press,
+									onPointerUp: touch.onPointerUp,
+									onPointerCancel: touch.onPointerCancel,
 									onClick: () => {
 										if (!touch.fromTouch()) activate()
 									},
-									onPointerDown: (event: PointerEvent<SVGPathElement>) => {
-										pressed.current = slice.index
-
-										touch.onPointerDown(event)
-									},
-									onPointerUp: touch.onPointerUp,
-									onPointerCancel: touch.onPointerCancel,
 									onTouchEnd: touch.onTouchEnd,
 								}),
 								onPointerEnter: (event: PointerEvent<SVGPathElement>) => {
+									if (event.pointerType === 'touch') return
+
 									inside.current = true
 
-									const open = () => {
-										set(slice.index, slice.centroid)
+									set(slice.index, slice.centroid)
 
-										emphasize()
-									}
-
-									if (event.pointerType === 'touch') hold.set(open, TOUCH_READOUT_DELAY)
-									else open()
+									emphasize()
 								},
 								onPointerMove: (event: PointerEvent<SVGPathElement>) => {
 									touch.onPointerMove(event)
 
-									// A move before the hold elapses leaves the readout shut.
-									if (!hold.pending()) at(event)
+									if (event.pointerType !== 'touch') at(event)
 								},
 							}
 

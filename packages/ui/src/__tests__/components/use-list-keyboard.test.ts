@@ -25,186 +25,109 @@ function mountListDom(ids: string[]): HTMLElement[] {
 	})
 }
 
+function setup(
+	options: {
+		ids?: string[]
+		orientation?: 'vertical' | 'horizontal'
+		onReorder?: (next: Item[]) => void
+	} = {},
+) {
+	const { result } = renderHook(() =>
+		useListKeyboard({
+			containerRef,
+			items: buildItems(options.ids ?? ['a', 'b', 'c']),
+			getKey: (i) => i.id,
+			orientation: options.orientation ?? 'vertical',
+			onReorder: options.onReorder,
+		}),
+	)
+
+	/** Sends one key to an item, inside `act`. */
+	const press = (id: string, event: ReturnType<typeof makeKeyEvent>) => {
+		act(() => result.current.onItemKeyDown(id, event))
+	}
+
+	return { result, press }
+}
+
 describe('useListKeyboard', () => {
 	describe('lift state (Space)', () => {
-		it('starts with liftedId null', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+		it('Space lifts an item; second Space drops it', () => {
+			const { result, press } = setup()
 
 			expect(result.current.liftedId).toBeNull()
-		})
-
-		it('Space lifts an item; second Space drops it', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
 
 			const lift = makeKeyEvent(' ')
 
-			act(() => result.current.onItemKeyDown('b', lift))
+			press('b', lift)
 
 			expect(result.current.liftedId).toBe('b')
 
 			expect(lift.preventDefault).toHaveBeenCalled()
 
-			const drop = makeKeyEvent(' ')
-
-			act(() => result.current.onItemKeyDown('b', drop))
+			press('b', makeKeyEvent(' '))
 
 			expect(result.current.liftedId).toBeNull()
 		})
 
-		it('Escape drops the lifted item', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+		it.each(['Escape', 'Enter'])('%s drops the lifted item', (key) => {
+			const { result, press } = setup()
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
+			press('a', makeKeyEvent(' '))
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('Escape')))
-
-			expect(result.current.liftedId).toBeNull()
-		})
-
-		it('Enter drops the lifted item', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
-
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
-
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('Enter')))
+			press('a', makeKeyEvent(key))
 
 			expect(result.current.liftedId).toBeNull()
 		})
 	})
 
 	describe('focus navigation when not lifted', () => {
-		it('ArrowDown focuses the next neighbor in vertical orientation', () => {
-			const [, b] = mountListDom(['a', 'b', 'c'])
+		it.each<[string, 'vertical' | 'horizontal', string, string, number]>([
+			[
+				'ArrowDown focuses the next neighbor in vertical orientation',
+				'vertical',
+				'a',
+				'ArrowDown',
+				1,
+			],
+			[
+				'ArrowUp focuses the previous neighbor in vertical orientation',
+				'vertical',
+				'b',
+				'ArrowUp',
+				0,
+			],
+			[
+				'ArrowRight focuses the next neighbor in horizontal orientation',
+				'horizontal',
+				'a',
+				'ArrowRight',
+				1,
+			],
+			['Home focuses the first item', 'vertical', 'c', 'Home', 0],
+			['End focuses the last item', 'vertical', 'a', 'End', 2],
+		])('%s', (_name, orientation, from, key, expected) => {
+			const nodes = mountListDom(['a', 'b', 'c'])
 
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+			const { press } = setup({ orientation })
 
-			const ev = makeKeyEvent('ArrowDown')
+			const ev = makeKeyEvent(key)
 
-			act(() => result.current.onItemKeyDown('a', ev))
+			press(from, ev)
 
-			expect(document.activeElement).toBe(b)
+			expect(document.activeElement).toBe(nodes[expected])
 
 			expect(ev.preventDefault).toHaveBeenCalled()
-		})
-
-		it('ArrowUp focuses the previous neighbor in vertical orientation', () => {
-			const [a] = mountListDom(['a', 'b', 'c'])
-
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
-
-			act(() => result.current.onItemKeyDown('b', makeKeyEvent('ArrowUp')))
-
-			expect(document.activeElement).toBe(a)
-		})
-
-		it('ArrowRight focuses the next neighbor in horizontal orientation', () => {
-			const [, b] = mountListDom(['a', 'b', 'c'])
-
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'horizontal',
-				}),
-			)
-
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('ArrowRight')))
-
-			expect(document.activeElement).toBe(b)
-		})
-
-		it('Home focuses the first item', () => {
-			const [a] = mountListDom(['a', 'b', 'c'])
-
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
-
-			act(() => result.current.onItemKeyDown('c', makeKeyEvent('Home')))
-
-			expect(document.activeElement).toBe(a)
-		})
-
-		it('End focuses the last item', () => {
-			const [, , c] = mountListDom(['a', 'b', 'c'])
-
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
-
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('End')))
-
-			expect(document.activeElement).toBe(c)
 		})
 
 		it('does not preventDefault when there is no neighbor in the requested direction', () => {
 			mountListDom(['a', 'b', 'c'])
 
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+			const { press } = setup()
 
 			const ev = makeKeyEvent('ArrowUp')
 
-			act(() => result.current.onItemKeyDown('a', ev))
+			press('a', ev)
 
 			expect(ev.preventDefault).not.toHaveBeenCalled()
 		})
@@ -222,23 +145,13 @@ describe('useListKeyboard', () => {
 		it('ArrowDown moves the lifted item forward and calls onReorder', () => {
 			const onReorder = vi.fn()
 
-			const items = buildItems(['a', 'b', 'c'])
+			const { press } = setup({ onReorder })
 
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items,
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-					onReorder,
-				}),
-			)
-
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
+			press('a', makeKeyEvent(' '))
 
 			const move = makeKeyEvent('ArrowDown')
 
-			act(() => result.current.onItemKeyDown('a', move))
+			press('a', move)
 
 			expect(move.preventDefault).toHaveBeenCalled()
 
@@ -250,19 +163,11 @@ describe('useListKeyboard', () => {
 		it('ArrowUp moves the lifted item backward', () => {
 			const onReorder = vi.fn()
 
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-					onReorder,
-				}),
-			)
+			const { press } = setup({ onReorder })
 
-			act(() => result.current.onItemKeyDown('c', makeKeyEvent(' ')))
+			press('c', makeKeyEvent(' '))
 
-			act(() => result.current.onItemKeyDown('c', makeKeyEvent('ArrowUp')))
+			press('c', makeKeyEvent('ArrowUp'))
 
 			expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['a', 'c', 'b'])
 		})
@@ -270,38 +175,21 @@ describe('useListKeyboard', () => {
 		it('does not move past the start or end', () => {
 			const onReorder = vi.fn()
 
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-					onReorder,
-				}),
-			)
+			const { press } = setup({ onReorder })
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
+			press('a', makeKeyEvent(' '))
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent('ArrowUp')))
+			press('a', makeKeyEvent('ArrowUp'))
 
 			expect(onReorder).not.toHaveBeenCalled()
 		})
 
 		it('does not move when onReorder is not provided', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+			const { result, press } = setup()
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
+			press('a', makeKeyEvent(' '))
 
-			const ev = makeKeyEvent('ArrowDown')
-
-			act(() => result.current.onItemKeyDown('a', ev))
+			press('a', makeKeyEvent('ArrowDown'))
 
 			// preventDefault still fires (the switch case unconditionally prevents),
 			// but no reorder side effect is observable.
@@ -311,16 +199,9 @@ describe('useListKeyboard', () => {
 
 	describe('modifier keys', () => {
 		it('ignores Space when shiftKey is held', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+			const { result, press } = setup()
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ', { shiftKey: true })))
+			press('a', makeKeyEvent(' ', { shiftKey: true }))
 
 			expect(result.current.liftedId).toBeNull()
 		})
@@ -328,18 +209,11 @@ describe('useListKeyboard', () => {
 		it('ignores ArrowDown when ctrlKey is held', () => {
 			mountListDom(['a', 'b', 'c'])
 
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+			const { press } = setup()
 
 			const ev = makeKeyEvent('ArrowDown', { ctrlKey: true })
 
-			act(() => result.current.onItemKeyDown('a', ev))
+			press('a', ev)
 
 			expect(ev.preventDefault).not.toHaveBeenCalled()
 		})
@@ -347,18 +221,11 @@ describe('useListKeyboard', () => {
 
 	describe('unknown item ids', () => {
 		it('does not preventDefault when ArrowDown targets an unknown id', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+			const { press } = setup({ ids: ['a', 'b'] })
 
 			const ev = makeKeyEvent('ArrowDown')
 
-			act(() => result.current.onItemKeyDown('ghost', ev))
+			press('ghost', ev)
 
 			expect(ev.preventDefault).not.toHaveBeenCalled()
 		})
@@ -366,19 +233,11 @@ describe('useListKeyboard', () => {
 		it('skips reorder when the lifted id is unknown', () => {
 			const onReorder = vi.fn()
 
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-					onReorder,
-				}),
-			)
+			const { press } = setup({ onReorder })
 
-			act(() => result.current.onItemKeyDown('ghost', makeKeyEvent(' ')))
+			press('ghost', makeKeyEvent(' '))
 
-			act(() => result.current.onItemKeyDown('ghost', makeKeyEvent('ArrowDown')))
+			press('ghost', makeKeyEvent('ArrowDown'))
 
 			expect(onReorder).not.toHaveBeenCalled()
 		})
@@ -386,16 +245,9 @@ describe('useListKeyboard', () => {
 
 	describe('onItemBlur', () => {
 		it('drops the lifted item when focus leaves outside a reorder', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					containerRef,
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
+			const { result, press } = setup()
 
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
+			press('a', makeKeyEvent(' '))
 
 			expect(result.current.liftedId).toBe('a')
 

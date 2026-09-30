@@ -39,7 +39,9 @@ const gap = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: [flex.row, 'list-none', 'gap-1'],
+		// The gap also caps the hit areas of Previous and Next (`TouchTarget`). A
+		// narrow grid hides the page list, and the two buttons then sit side by side.
+		base: [flex.row, 'list-none', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
 		skeleton: kokkaku.pagination,
 	},
 	{

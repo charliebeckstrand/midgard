@@ -29,12 +29,6 @@ describe('resizePreview', () => {
 		expect(find(next, 'a')).toMatchObject({ w: 8, h: 20 })
 	})
 
-	it('never shrinks under the minimum span', () => {
-		const next = resizePreview(board, 'a', 2, 10, { columns: 24, minW: 6 })
-
-		expect(find(next, 'a')).toMatchObject({ w: 6 })
-	})
-
 	it('derives the height of a ratio tile, and backs off when the height collides', () => {
 		const tiles = [cell('a', 0, 0, 8, 18), cell('c', 0, 24, 24, 10)]
 

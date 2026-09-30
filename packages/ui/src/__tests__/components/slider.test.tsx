@@ -5,7 +5,16 @@ import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
-import { allBySlot, bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	userEvent,
+} from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Slider', () => {
@@ -385,7 +394,7 @@ describe('Slider + Form', () => {
 
 		fireEvent.change(slider, { target: { value: '60' } })
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Submit' }))
 

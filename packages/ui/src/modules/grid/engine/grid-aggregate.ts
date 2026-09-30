@@ -15,6 +15,18 @@ import type { GridColumn } from '../types'
 import { columnAccessor } from './grid-column/accessor'
 import { parseNumeric } from './grid-sort/utilities'
 
+/**
+ * `rows` as the type that the public `aggFunc` and `aggCell` take. The array is
+ * the `rows` prop of the consumer or an array that the grid builds, and the
+ * grid does not change it. The callbacks keep `T[]`, so a consumer that types
+ * its callback with `T[]` still compiles.
+ *
+ * @internal
+ */
+function callbackRows<T>(rows: readonly T[]): T[] {
+	return rows as T[]
+}
+
 /** Whether any column carries an aggregation — the one gate for the aggregate rows. @internal */
 export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
 	return columns.some((column) => column.aggFunc !== undefined)
@@ -30,7 +42,7 @@ export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
  *
  * @internal
  */
-function numericValues<T>(column: GridColumn<T>, rows: T[]): number[] {
+function numericValues<T>(column: GridColumn<T>, rows: readonly T[]): number[] {
 	const accessor = columnAccessor(column)
 
 	const values: number[] = []
@@ -54,12 +66,12 @@ function numericValues<T>(column: GridColumn<T>, rows: T[]): number[] {
  *
  * @internal
  */
-export function aggregateColumn<T>(column: GridColumn<T>, rows: T[]): unknown {
+export function aggregateColumn<T>(column: GridColumn<T>, rows: readonly T[]): unknown {
 	const { aggFunc } = column
 
 	if (aggFunc === undefined) return null
 
-	if (typeof aggFunc === 'function') return aggFunc(rows)
+	if (typeof aggFunc === 'function') return aggFunc(callbackRows(rows))
 
 	if (aggFunc === 'count') return rows.length
 
@@ -98,7 +110,7 @@ const aggregates = new WeakMap<readonly unknown[], WeakMap<object, unknown>>()
  *
  * @internal
  */
-export function cachedAggregate<T>(column: GridColumn<T>, rows: T[]): unknown {
+export function cachedAggregate<T>(column: GridColumn<T>, rows: readonly T[]): unknown {
 	const byColumn = getOrCompute(aggregates, rows, () => new WeakMap<object, unknown>())
 
 	return getOrCompute(byColumn, column, () => aggregateColumn(column, rows))
@@ -157,7 +169,7 @@ export function aggregateLabelSpan<T>(columns: GridColumn<T>[]): number {
  */
 export function renderAggregate<T>(
 	column: GridColumn<T>,
-	rows: T[],
+	rows: readonly T[],
 	locale: string | undefined,
 	headerRow?: T,
 ): ReactNode {
@@ -166,5 +178,7 @@ export function renderAggregate<T>(
 	const value =
 		headerRow !== undefined ? columnAccessor(column)(headerRow) : cachedAggregate(column, rows)
 
-	return column.aggCell ? column.aggCell({ value, rows }) : formatAggregate(value, locale)
+	return column.aggCell
+		? column.aggCell({ value, rows: callbackRows(rows) })
+		: formatAggregate(value, locale)
 }

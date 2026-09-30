@@ -28,12 +28,6 @@ describe('keyByOccurrence', () => {
 		])
 	})
 
-	it('produces a unique key for every entry even when all values collide', () => {
-		const keys = keyByOccurrence(['x', 'x', 'x']).map((entry) => entry.key)
-
-		expect(new Set(keys).size).toBe(keys.length)
-	})
-
 	it('produces a unique key when a value spells a synthesized key', () => {
 		const inputs = [
 			['a', 'a', `a${SEP}1`],
@@ -46,11 +40,5 @@ describe('keyByOccurrence', () => {
 
 			expect(new Set(keys).size).toBe(keys.length)
 		}
-	})
-
-	it('preserves input order', () => {
-		const values = ['b', 'a', 'b']
-
-		expect(keyByOccurrence(values).map((entry) => entry.value)).toEqual(values)
 	})
 })

@@ -37,7 +37,7 @@ import type { GridColumnPinning } from './use-grid-table'
  * @internal
  */
 export type GridRowsProps<T> = {
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/**
 	 * Each row's 0-based place in the view, while the cursor is on (empty
@@ -176,6 +176,10 @@ export function renderGridRow<T>(
 		expanded,
 		rowExpandable: expandable,
 		toggleExpand: props.expansion?.toggle,
+		// A plain body keeps each panel mounted, and a windowed body mounts one only
+		// while it is open, so the expander names a panel only when one is there.
+		detailPanelId:
+			props.expansion && (!windowRow || expanded) ? props.expansion.panelId(key) : undefined,
 		...windowRow,
 	} satisfies GridRowProps<T>
 
@@ -198,6 +202,7 @@ export function renderGridRow<T>(
 			{rowNode}
 			<GridDetailRow<T>
 				rowKey={key}
+				panelId={props.expansion.panelId(key)}
 				row={row}
 				render={props.expansion.render}
 				colSpan={props.visibleColumns.length}
@@ -311,6 +316,8 @@ type GridRowProps<T> = {
 	rowExpandable?: boolean
 	/** Stable master-detail toggle from the expansion hook; safe through `memo`. @internal */
 	toggleExpand?: (key: string | number) => void
+	/** The id of the row's mounted detail panel, for the expander's `aria-controls`. */
+	detailPanelId?: string
 } & GridRowWindowProps
 
 /**
@@ -356,6 +363,7 @@ function GridRowImpl<T>({
 	expanded = false,
 	rowExpandable = false,
 	toggleExpand,
+	detailPanelId,
 	ref,
 	'data-index': dataIndex,
 }: GridRowProps<T>) {
@@ -440,6 +448,7 @@ function GridRowImpl<T>({
 										rowKey={rowKey}
 										rowLabel={rowLabel}
 										toggle={toggleExpand}
+										panelId={detailPanelId}
 									/>
 								)
 							) : (

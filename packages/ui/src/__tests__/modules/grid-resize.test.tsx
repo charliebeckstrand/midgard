@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, holdMouse, renderUI, screen, userEvent } from '../helpers'
+import { fireEvent, holdMouse, renderUI, screen, setupUser } from '../helpers'
 
 describe('Grid resizable columns', () => {
 	type Row = { id: number; name: string; age: number }
@@ -17,16 +17,11 @@ describe('Grid resizable columns', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('renders a resize separator for each data column when resizable', () => {
-		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
-
-		expect(screen.getByRole('separator', { name: 'Resize Name' })).toBeInTheDocument()
-
-		expect(screen.getByRole('separator', { name: 'Resize Age' })).toBeInTheDocument()
-	})
-
-	it('resizes columns by default', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	it.each([
+		['when resizable', { resizable: true }],
+		['by default', {}],
+	])('renders a resize separator for each data column %s', (_, props) => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} {...props} />)
 
 		expect(screen.getByRole('separator', { name: 'Resize Name' })).toBeInTheDocument()
 
@@ -135,38 +130,35 @@ describe('Grid resizable columns', () => {
 		expect(handle).toHaveAttribute('aria-valuemin', '80')
 	})
 
-	it('widens a column with ArrowRight', async () => {
-		const user = userEvent.setup({ delay: null })
-
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<Grid
-				resizable
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				columnSizing={{ onValueChange }}
-			/>,
-		)
-
-		screen.getByRole('separator', { name: 'Resize Name' }).focus()
-
-		await user.keyboard('{ArrowRight}')
-
+	const keyboardCases: [string, string, GridColumn<Row>[], number][] = [
 		// 200 + COLUMN_RESIZE_STEP (16)
-		expect(onValueChange).toHaveBeenLastCalledWith({ name: 216 })
-	})
+		['widens a column with ArrowRight', '{ArrowRight}', columns, 216],
+		['narrows a column with ArrowLeft', '{ArrowLeft}', columns, 184],
+		['snaps to the minimum width with Home', '{Home}', columns, 80],
+		[
+			'snaps to the maximum width with End when the column is bounded',
+			'{End}',
+			[{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', maxWidth: 400 }],
+			400,
+		],
+		// 90 - 16 = 74, clamped up to the 80px minimum.
+		[
+			'clamps to the column minimum width',
+			'{ArrowLeft}',
+			[{ id: 'name', title: 'Name', cell: (row) => row.name, width: '90px', minWidth: 80 }],
+			80,
+		],
+	]
 
-	it('narrows a column with ArrowLeft', async () => {
-		const user = userEvent.setup({ delay: null })
+	it.each(keyboardCases)('%s', async (_, key, keyed, width) => {
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
 		renderUI(
 			<Grid
 				resizable
-				columns={columns}
+				columns={keyed}
 				rows={rows}
 				getKey={getKey}
 				columnSizing={{ onValueChange }}
@@ -175,13 +167,13 @@ describe('Grid resizable columns', () => {
 
 		screen.getByRole('separator', { name: 'Resize Name' }).focus()
 
-		await user.keyboard('{ArrowLeft}')
+		await user.keyboard(key)
 
-		expect(onValueChange).toHaveBeenLastCalledWith({ name: 184 })
+		expect(onValueChange).toHaveBeenLastCalledWith({ name: width })
 	})
 
 	it('jumps a coarse step with PageUp and PageDown', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -206,77 +198,6 @@ describe('Grid resizable columns', () => {
 		await user.keyboard('{PageDown}')
 
 		expect(onValueChange).toHaveBeenLastCalledWith({ name: 200 })
-	})
-
-	it('snaps to the minimum width with Home', async () => {
-		const user = userEvent.setup({ delay: null })
-
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<Grid
-				resizable
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				columnSizing={{ onValueChange }}
-			/>,
-		)
-
-		screen.getByRole('separator', { name: 'Resize Name' }).focus()
-
-		await user.keyboard('{Home}')
-
-		expect(onValueChange).toHaveBeenLastCalledWith({ name: 80 })
-	})
-
-	it('snaps to the maximum width with End when the column is bounded', async () => {
-		const user = userEvent.setup({ delay: null })
-
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<Grid
-				resizable
-				columns={[
-					{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', maxWidth: 400 },
-				]}
-				rows={rows}
-				getKey={getKey}
-				columnSizing={{ onValueChange }}
-			/>,
-		)
-
-		screen.getByRole('separator', { name: 'Resize Name' }).focus()
-
-		await user.keyboard('{End}')
-
-		expect(onValueChange).toHaveBeenLastCalledWith({ name: 400 })
-	})
-
-	it('clamps to the column minimum width', async () => {
-		const user = userEvent.setup({ delay: null })
-
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<Grid
-				resizable
-				columns={[
-					{ id: 'name', title: 'Name', cell: (row) => row.name, width: '90px', minWidth: 80 },
-				]}
-				rows={rows}
-				getKey={getKey}
-				columnSizing={{ onValueChange }}
-			/>,
-		)
-
-		screen.getByRole('separator', { name: 'Resize Name' }).focus()
-
-		// 90 - 16 = 74, clamped up to the 80px minimum.
-		await user.keyboard('{ArrowLeft}')
-
-		expect(onValueChange).toHaveBeenLastCalledWith({ name: 80 })
 	})
 
 	it('reflects controlled column widths on the header', () => {
@@ -309,24 +230,15 @@ describe('Grid resizable columns', () => {
 		held.release()
 	})
 
-	it('does not start a resize on a right-button press', () => {
+	it.each([
+		['a right-button press', { button: 2 }],
+		['a macOS Ctrl+click (button 0 + ctrlKey)', { button: 0, ctrlKey: true }],
+	])('does not start a resize on %s', (_, init) => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		const handle = screen.getByRole('separator', { name: 'Resize Name' })
 
-		const held = holdMouse(handle, { button: 2, clientX: 200 })
-
-		expect(handle).not.toHaveAttribute('data-resizing')
-
-		held.release()
-	})
-
-	it('does not start a resize on a macOS Ctrl+click (button 0 + ctrlKey)', () => {
-		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
-
-		const handle = screen.getByRole('separator', { name: 'Resize Name' })
-
-		const held = holdMouse(handle, { button: 0, ctrlKey: true, clientX: 200 })
+		const held = holdMouse(handle, { clientX: 200, ...init })
 
 		expect(handle).not.toHaveAttribute('data-resizing')
 
@@ -448,7 +360,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('does not fire the resize lifecycle for a keyboard nudge', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onResizeStart = vi.fn()
 

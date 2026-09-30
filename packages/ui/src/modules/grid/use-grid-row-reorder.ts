@@ -23,7 +23,7 @@ type GridRowReorderOptions<T> = {
 	 */
 	enabled: boolean
 	/** The rendered rows, parallel to {@link GridRowReorderOptions.rowKeys}. */
-	rows: T[]
+	rows: readonly T[]
 	/** Each rendered row's stable key, parallel to {@link GridRowReorderOptions.rows}. */
 	rowKeys: (string | number)[]
 	/** Human-readable row name for the drag announcements; falls back to the row key. */

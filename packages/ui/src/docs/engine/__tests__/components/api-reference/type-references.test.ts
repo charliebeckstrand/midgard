@@ -1,7 +1,11 @@
 // @vitest-environment node
 
 import { describe, expect, it } from 'vitest'
-import { splitUnion, unquote } from '../../../components/api-reference/type-references'
+import {
+	splitTopLevel,
+	splitUnion,
+	unquote,
+} from '../../../components/api-reference/type-references'
 
 describe('splitUnion', () => {
 	it('splits on top-level bars only', () => {
@@ -18,6 +22,22 @@ describe('splitUnion', () => {
 
 	it('keeps an arrow function whole', () => {
 		expect(splitUnion('(open: boolean) => void')).toEqual(['(open: boolean) => void'])
+	})
+})
+
+describe('splitTopLevel', () => {
+	it('splits value entries on top-level commas only', () => {
+		expect(splitTopLevel("a: [1, 2], b: { c: 'x, y' }", ',', false)).toEqual([
+			'a: [1, 2]',
+			"b: { c: 'x, y' }",
+		])
+	})
+
+	it('reads a comparison in a value as an operator, not as nesting', () => {
+		expect(splitTopLevel('test: (v) => v.length >= 8, id: 1', ',', false)).toEqual([
+			'test: (v) => v.length >= 8',
+			'id: 1',
+		])
 	})
 })
 

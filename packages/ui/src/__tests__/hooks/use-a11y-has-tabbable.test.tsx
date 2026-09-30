@@ -12,31 +12,19 @@ function mountPanel(html: string) {
 }
 
 describe('useA11yHasTabbable', () => {
-	it('reports a tabbable descendant', () => {
-		const panel = mountPanel('<button type="button">Undo</button>')
-
-		const { result } = renderHook(() => useA11yHasTabbable(panel))
-
-		expect(result.current).toBe(true)
-	})
-
-	it('reports prose-only content as untabbable', () => {
-		const panel = mountPanel('<span>Saved 3 minutes ago</span>')
-
-		const { result } = renderHook(() => useA11yHasTabbable(panel))
-
-		expect(result.current).toBe(false)
-	})
-
-	it('skips a disabled control and a negative tabindex', () => {
-		const panel = mountPanel(
-			'<button type="button" disabled>Undo</button><span tabindex="-1">Detail</span>',
-		)
-
-		const { result } = renderHook(() => useA11yHasTabbable(panel))
-
+	it.each([
+		['reports a tabbable descendant', '<button type="button">Undo</button>', true],
+		['reports prose-only content as untabbable', '<span>Saved 3 minutes ago</span>', false],
 		// Neither is in the tab order, so neither makes the subtree reachable.
-		expect(result.current).toBe(false)
+		[
+			'skips a disabled control and a negative tabindex',
+			'<button type="button" disabled>Undo</button><span tabindex="-1">Detail</span>',
+			false,
+		],
+	])('%s', (_name, html, expected) => {
+		const { result } = renderHook(() => useA11yHasTabbable(mountPanel(html)))
+
+		expect(result.current).toBe(expected)
 	})
 
 	it('scans descendants only, not the node itself', () => {

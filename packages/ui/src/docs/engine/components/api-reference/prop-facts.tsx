@@ -2,7 +2,7 @@
 
 import { cn } from '../../../../core'
 import type { PropDef } from '../../api-reference/types'
-import { DefaultValue, isProseDefault } from './default-value'
+import { DefaultValue, isProseDefault, literalBlock } from './default-value'
 import { splitUnion, TypeReferences } from './type-references'
 
 const LITERAL_ARM = /^(?:'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|-?\d[\d_.]*)$/
@@ -41,7 +41,8 @@ const TYPE_CHIP = cn(CHIP, 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text
 /**
  * What a prop accepts, as a row of tokens. Fixed choices are green chips, with
  * no prefix. Any other type is a gray chip, and an external type names its
- * package. A default follows behind a muted label. A type with resolved
+ * package. A default follows behind a muted label. A structured default takes
+ * its own row, with the label above the block. A type with resolved
  * references adds a link to those definitions. A default that is a sentence is
  * left to the description.
  */
@@ -72,11 +73,17 @@ export function PropFacts({ prop }: { prop: PropDef }) {
 						</span>
 					)}
 				</span>
-				{literalDefault && (
-					<span className="text-zinc-500 dark:text-zinc-400">
-						default <DefaultValue value={literalDefault} />
-					</span>
-				)}
+				{literalDefault &&
+					(literalBlock(literalDefault) ? (
+						<div className="flex basis-full flex-col gap-1 text-zinc-500 dark:text-zinc-400">
+							default
+							<DefaultValue value={literalDefault} />
+						</div>
+					) : (
+						<span className="text-zinc-500 dark:text-zinc-400">
+							default <DefaultValue value={literalDefault} />
+						</span>
+					))}
 			</div>
 			<TypeReferences prop={prop} />
 		</>

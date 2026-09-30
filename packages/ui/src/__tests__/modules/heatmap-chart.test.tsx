@@ -21,6 +21,27 @@ const SERIES = [
 const cellRects = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll('[data-slot="heatmap-cells"] rect'))
 
+/** How many cells the probe dims. */
+const dimmedCount = (container: HTMLElement) =>
+	cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25')).length
+
+/**
+ * A screen rect for the plot. jsdom reports a zero box, so the pointer math
+ * resolves against this rect. It starts at (100, 50), so a raw client delta
+ * lands on the wrong cell.
+ */
+const HIT_BOX = {
+	left: 100,
+	top: 50,
+	right: 340,
+	bottom: 210,
+	width: 240,
+	height: 160,
+	x: 100,
+	y: 50,
+	toJSON: () => ({}),
+} as DOMRect
+
 describe('HeatmapChart', () => {
 	it('requires an accessible name (compile-time)', () => {
 		// Never rendered; exists for `tsc`. The plot is `role="img"`, so a heatmap
@@ -254,22 +275,18 @@ describe('HeatmapChart', () => {
 
 		const track = bySlot(container, 'heatmap-range-track')
 
-		const dimmed = () =>
-			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
-				.length
-
 		// Nothing dims until the bar is probed.
-		expect(dimmed()).toBe(0)
+		expect(dimmedCount(container)).toBe(0)
 
 		// A horizontal bar reads the pointer's x, not its y — the probe still lands a
 		// class and dims the cells outside it.
 		fireEvent.pointerMove(track as Element, { clientX: 10 })
 
-		expect(dimmed()).toBeGreaterThan(0)
+		expect(dimmedCount(container)).toBeGreaterThan(0)
 
 		fireEvent.pointerLeave(track as Element)
 
-		expect(dimmed()).toBe(0)
+		expect(dimmedCount(container)).toBe(0)
 	})
 
 	it('dims cells outside the probed bin on range-legend hover', () => {
@@ -281,21 +298,17 @@ describe('HeatmapChart', () => {
 
 		expect(track).not.toBeNull()
 
-		const dimmed = () =>
-			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
-				.length
-
 		// Nothing dims until the bar is probed.
-		expect(dimmed()).toBe(0)
+		expect(dimmedCount(container)).toBe(0)
 
 		fireEvent.pointerMove(track as Element, { clientY: 10 })
 
 		// Cells outside the probed class dim — the reciprocal of the choropleth's map filter.
-		expect(dimmed()).toBeGreaterThan(0)
+		expect(dimmedCount(container)).toBeGreaterThan(0)
 
 		fireEvent.pointerLeave(track as Element)
 
-		expect(dimmed()).toBe(0)
+		expect(dimmedCount(container)).toBe(0)
 	})
 
 	it('keeps a keyboard-owned probe when the pointer leaves a focused range track', () => {
@@ -304,10 +317,6 @@ describe('HeatmapChart', () => {
 		)
 
 		const track = getSlot(container, 'heatmap-range-track')
-
-		const dimmed = () =>
-			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
-				.length
 
 		// Focus the track (keyboard ownership), then probe a class so cells dim. The
 		// track reads the keyboard's ring (`:focus-visible`). The test sets that match
@@ -331,18 +340,18 @@ describe('HeatmapChart', () => {
 
 		fireEvent.pointerMove(track, { clientY: 10 })
 
-		expect(dimmed()).toBeGreaterThan(0)
+		expect(dimmedCount(container)).toBeGreaterThan(0)
 
 		// A pointer passing off the bar while it holds focus must not wipe the probe
 		// out from under the keyboard — the dimming and probe survive.
 		fireEvent.pointerLeave(track)
 
-		expect(dimmed()).toBeGreaterThan(0)
+		expect(dimmedCount(container)).toBeGreaterThan(0)
 
 		// A real blur still clears it.
 		fireEvent.blur(track)
 
-		expect(dimmed()).toBe(0)
+		expect(dimmedCount(container)).toBe(0)
 	})
 
 	it('reserves the y gutter for proportional row labels so the widest clears the frame edge', () => {
@@ -395,19 +404,7 @@ describe('HeatmapChart', () => {
 		// fraction-across-the-rect math has something to resolve against. The rect
 		// starts at (100, 50) — a raw client delta would drop that origin and land
 		// on the wrong cell, the bug this guards.
-		const box = {
-			left: 100,
-			top: 50,
-			right: 340,
-			bottom: 210,
-			width: 240,
-			height: 160,
-			x: 100,
-			y: 50,
-			toJSON: () => ({}),
-		} as DOMRect
-
-		;(hit as Element).getBoundingClientRect = () => box
+		;(hit as Element).getBoundingClientRect = () => HIT_BOX
 
 		// The arrow's `top` encodes the resolved cell's bin (high value → high on the
 		// bar → small top%), so it reads back which cell the pointer resolved to.
@@ -452,19 +449,7 @@ describe('HeatmapChart', () => {
 		expect(hit.getAttribute('class')).toContain('cursor-pointer')
 
 		// jsdom reports a zero box; stand in a screen rect so the fraction math resolves.
-		const box = {
-			left: 100,
-			top: 50,
-			right: 340,
-			bottom: 210,
-			width: 240,
-			height: 160,
-			x: 100,
-			y: 50,
-			toJSON: () => ({}),
-		} as DOMRect
-
-		;(hit as Element).getBoundingClientRect = () => box
+		;(hit as Element).getBoundingClientRect = () => HIT_BOX
 
 		// Movement no longer opens the readout under the click trigger.
 		fireEvent.pointerMove(hit, { clientX: 330, clientY: 70 })
@@ -485,6 +470,7 @@ describe('HeatmapChart', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
+
 	it('closes a pinned readout when its cell leaves the grid', () => {
 		const full: Row[] = [...ROWS, { day: 'Tue', hour: '10', commits: 3 }]
 
@@ -502,18 +488,7 @@ describe('HeatmapChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		hit.getBoundingClientRect = () =>
-			({
-				left: 100,
-				top: 50,
-				right: 340,
-				bottom: 210,
-				width: 240,
-				height: 160,
-				x: 100,
-				y: 50,
-				toJSON: () => ({}),
-			}) as DOMRect
+		hit.getBoundingClientRect = () => HIT_BOX
 
 		// Pin the bottom-right cell, Tue at 10.
 		fireEvent.click(hit, { clientX: 330, clientY: 200 })
@@ -586,18 +561,7 @@ describe('HeatmapChart cell clicks', () => {
 
 		// The layer resolves a click through the rect it is drawn at, which jsdom
 		// measures at zero. Give it one, as the pointer-resolution test above does.
-		;(hit as Element).getBoundingClientRect = () =>
-			({
-				left: 100,
-				top: 50,
-				right: 340,
-				bottom: 210,
-				width: 240,
-				height: 160,
-				x: 100,
-				y: 50,
-				toJSON: () => ({}),
-			}) as DOMRect
+		;(hit as Element).getBoundingClientRect = () => HIT_BOX
 
 		// Columns are ['9', '10'] and rows ['Mon', 'Tue'], so the top-left cell is
 		// Mon at hour 9 — matrix position [0, 0].
@@ -623,18 +587,7 @@ describe('HeatmapChart context menu', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		hit.getBoundingClientRect = () =>
-			({
-				left: 100,
-				top: 50,
-				right: 340,
-				bottom: 210,
-				width: 240,
-				height: 160,
-				x: 100,
-				y: 50,
-				toJSON: () => ({}),
-			}) as DOMRect
+		hit.getBoundingClientRect = () => HIT_BOX
 
 		// The bottom-left cell, Tue at hour 9: row 1 and column 0 of two columns.
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 200 })
@@ -679,7 +632,7 @@ describe('the range legend under quantile binning', () => {
 		// Value 3 sits at (3 − 1) / 99 of the track, measured up from the bottom.
 		fireEvent.pointerMove(track, { clientY: 97 })
 
-		const dimmed = [...container.querySelectorAll('[data-slot="heatmap-cells"] rect')].map(
+		const dimmed = cellRects(container).map(
 			(cell) => cell.getAttribute('class')?.includes('opacity-25') ?? false,
 		)
 

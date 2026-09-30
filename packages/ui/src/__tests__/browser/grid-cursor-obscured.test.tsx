@@ -107,58 +107,25 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		await press(Array(8).fill('ArrowUp'))
 	})
 
-	it('gives a cell behind a pinned column a matching side scroll-margin', async () => {
+	// A group band never covers a pinned column. The band row puts a sticky
+	// filler over it, so the first header row still gives the pinned width.
+	it.each([
+		['gives a cell behind a pinned column a matching side scroll-margin', undefined, '160px'],
+		[
+			'keeps the pinned side inset under a column-group band',
+			[
+				{ id: 'who', title: 'Who', columns: ['name'] },
+				{ id: 'work', title: 'Work', columns: ['role'] },
+			] satisfies GridColumnGroup[],
+			'200px',
+		],
+	])('%s', async (_, groups, maxHeight) => {
 		renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid
 					navigable
 					header={{ position: 'sticky' }}
-					maxHeight="160px"
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-				/>
-			</div>,
-		)
-
-		const grid = screen.getByRole('grid')
-
-		const pinnedHeader = grid.querySelector<HTMLElement>('th[data-grid-col="name"]')
-
-		if (!pinnedHeader) throw new Error('pinned header cell not found')
-
-		grid.focus()
-
-		// Move onto the non-pinned column so a horizontal scroll could tuck it
-		// behind the left-pinned one.
-		fireEvent.keyDown(grid, { key: 'ArrowDown' })
-
-		fireEvent.keyDown(grid, { key: 'ArrowRight' })
-
-		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
-
-		const active = present(grid.querySelector('[data-active]'), '[data-active]')
-
-		expect(Number.parseFloat(active.style.scrollMarginLeft)).toBeCloseTo(
-			pinnedHeader.getBoundingClientRect().width,
-			0,
-		)
-	})
-
-	it('keeps the pinned side inset under a column-group band', async () => {
-		// A group band never covers a pinned column. The band row puts a sticky
-		// filler over it, so the first header row still gives the pinned width.
-		const groups: GridColumnGroup[] = [
-			{ id: 'who', title: 'Who', columns: ['name'] },
-			{ id: 'work', title: 'Work', columns: ['role'] },
-		]
-
-		renderUI(
-			<div style={{ width: '320px' }}>
-				<Grid
-					navigable
-					header={{ position: 'sticky' }}
-					maxHeight="200px"
+					maxHeight={maxHeight}
 					columns={columns}
 					columnGroups={groups}
 					rows={rows}
@@ -176,6 +143,8 @@ describe('grid cursor focus not obscured (real browser)', () => {
 
 		grid.focus()
 
+		// Move onto the non-pinned column so a horizontal scroll could tuck it
+		// behind the left-pinned one.
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })
 
 		fireEvent.keyDown(grid, { key: 'ArrowRight' })
@@ -333,15 +302,20 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 		return { grid, scroll, active, press, expectUncovered }
 	}
 
-	const ltrCases = [
+	const cases = [
 		// The cursor comes from the side away from the pinned column.
-		{ side: 'left', from: 'c4', target: 'c3', key: 'ArrowLeft' },
-		{ side: 'right', from: 'c3', target: 'c4', key: 'ArrowRight' },
+		{ dir: 'ltr', side: 'left', from: 'c4', target: 'c3', key: 'ArrowLeft' },
+		{ dir: 'ltr', side: 'right', from: 'c3', target: 'c4', key: 'ArrowRight' },
+		// In a right-to-left grid, ArrowLeft moves to the next column.
+		{ dir: 'rtl', side: 'left', from: 'c4', target: 'c3', key: 'ArrowRight' },
+		{ dir: 'rtl', side: 'right', from: 'c3', target: 'c4', key: 'ArrowLeft' },
 	] as const
 
-	for (const { side, from, target, key } of ltrCases) {
-		it(`moves a cell out from under a ${side}-pinned column`, async () => {
-			const { grid, scroll, press, expectUncovered } = renderGrid(side, 'ltr')
+	for (const { dir, side, from, target, key } of cases) {
+		const where = dir === 'rtl' ? ' in a right-to-left grid' : ''
+
+		it(`moves a cell out from under a ${side}-pinned column${where}`, async () => {
+			const { grid, scroll, press, expectUncovered } = renderGrid(side, dir)
 
 			const cellOf = (id: string) =>
 				present(grid.querySelector<HTMLElement>(`tbody td[data-grid-col="${id}"]`), `a ${id} cell`)
@@ -357,8 +331,10 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 
 			await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
 
+			const next = dir === 'ltr' ? 'ArrowRight' : 'ArrowLeft'
+
 			for (const id of side === 'left' ? ['c1', 'c2', 'c3', 'c4'] : ['c2', 'c3']) {
-				await press('ArrowRight', id)
+				await press(next, id)
 			}
 
 			expect(grid.querySelector('[data-active]')).toHaveAttribute('data-grid-col', from)
@@ -381,76 +357,16 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 
 			await press(key, target)
 
+			// A left pin is at the physical right edge in a right-to-left grid.
+			const pinOnLeft = (side === 'left') === (dir === 'ltr')
+
 			await waitFor(() => {
 				const moved = cellOf(target).getBoundingClientRect()
 
 				const cover = pinned.getBoundingClientRect()
 
-				if (side === 'left') expect(moved.left).toBeGreaterThanOrEqual(cover.right - 1)
+				if (pinOnLeft) expect(moved.left).toBeGreaterThanOrEqual(cover.right - 1)
 				else expect(moved.right).toBeLessThanOrEqual(cover.left + 1)
-			})
-
-			expectUncovered()
-		})
-	}
-
-	// In a right-to-left grid, ArrowLeft moves to the next column.
-	const rtlCases = [
-		// The cursor comes from the side away from the pinned column.
-		{ side: 'left', from: 'c4', target: 'c3', key: 'ArrowRight' },
-		{ side: 'right', from: 'c3', target: 'c4', key: 'ArrowLeft' },
-	] as const
-
-	for (const { side, from, target, key } of rtlCases) {
-		it(`moves a cell out from under a ${side}-pinned column in a right-to-left grid`, async () => {
-			const { grid, scroll, press, expectUncovered } = renderGrid(side, 'rtl')
-
-			const cellOf = (id: string) =>
-				present(grid.querySelector<HTMLElement>(`tbody td[data-grid-col="${id}"]`), `a ${id} cell`)
-
-			const pinned = present(
-				grid.querySelector<HTMLElement>('th[data-grid-col="pin"]'),
-				'the pinned head',
-			)
-
-			grid.focus()
-
-			fireEvent.keyDown(grid, { key: 'ArrowDown' })
-
-			await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
-
-			for (const id of side === 'left' ? ['c1', 'c2', 'c3', 'c4'] : ['c2', 'c3']) {
-				await press('ArrowLeft', id)
-			}
-
-			expect(grid.querySelector('[data-active]')).toHaveAttribute('data-grid-col', from)
-
-			// Scroll the target to the middle of the pinned column, so that it is
-			// under it in full.
-			const box = pinned.getBoundingClientRect()
-
-			const cell = cellOf(target).getBoundingClientRect()
-
-			scroll.scrollLeft += cell.left - (box.left + (box.width - cell.width) / 2)
-
-			await waitFor(() => {
-				const under = cellOf(target).getBoundingClientRect()
-
-				expect(under.left).toBeGreaterThanOrEqual(pinned.getBoundingClientRect().left - 1)
-
-				expect(under.right).toBeLessThanOrEqual(pinned.getBoundingClientRect().right + 1)
-			})
-
-			await press(key, target)
-
-			await waitFor(() => {
-				const moved = cellOf(target).getBoundingClientRect()
-
-				const cover = pinned.getBoundingClientRect()
-
-				// A left pin is at the physical right edge in a right-to-left grid.
-				if (side === 'left') expect(moved.right).toBeLessThanOrEqual(cover.left + 1)
-				else expect(moved.left).toBeGreaterThanOrEqual(cover.right - 1)
 			})
 
 			expectUncovered()

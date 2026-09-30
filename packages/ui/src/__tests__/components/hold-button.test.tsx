@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
-import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI, withFakeTime } from '../helpers'
 
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
@@ -72,10 +72,8 @@ describe('HoldButton', () => {
 		expect(onHoldCancel).toHaveBeenCalledOnce()
 	})
 
-	it('cancels a keyboard hold on blur instead of completing after focus loss', () => {
-		vi.useFakeTimers()
-
-		try {
+	it('cancels a keyboard hold on blur instead of completing after focus loss', async () => {
+		await withFakeTime(async (clock) => {
 			const onHoldComplete = vi.fn()
 
 			const onHoldCancel = vi.fn()
@@ -94,22 +92,16 @@ describe('HoldButton', () => {
 			// not fire for an unfocused control.
 			fireEvent.blur(el)
 
-			act(() => {
-				vi.advanceTimersByTime(600)
-			})
+			await clock.advance(600)
 
 			expect(onHoldComplete).not.toHaveBeenCalled()
 
 			expect(onHoldCancel).toHaveBeenCalledOnce()
-		} finally {
-			vi.useRealTimers()
-		}
+		})
 	})
 
-	it('cancels a keyboard hold when the window loses focus', () => {
-		vi.useFakeTimers()
-
-		try {
+	it('cancels a keyboard hold when the window loses focus', async () => {
+		await withFakeTime(async (clock) => {
 			const onHoldComplete = vi.fn()
 
 			const { container } = renderUI(
@@ -124,20 +116,14 @@ describe('HoldButton', () => {
 
 			fireEvent.blur(window)
 
-			act(() => {
-				vi.advanceTimersByTime(600)
-			})
+			await clock.advance(600)
 
 			expect(onHoldComplete).not.toHaveBeenCalled()
-		} finally {
-			vi.useRealTimers()
-		}
+		})
 	})
 
-	it('ignores releasing the other activation key mid-hold', () => {
-		vi.useFakeTimers()
-
-		try {
+	it('ignores releasing the other activation key mid-hold', async () => {
+		await withFakeTime(async (clock) => {
 			const onHoldComplete = vi.fn()
 
 			const onHoldCancel = vi.fn()
@@ -159,9 +145,7 @@ describe('HoldButton', () => {
 
 			expect(onHoldCancel).not.toHaveBeenCalled()
 
-			act(() => {
-				vi.advanceTimersByTime(600)
-			})
+			await clock.advance(600)
 
 			expect(onHoldComplete).toHaveBeenCalledOnce()
 
@@ -169,9 +153,7 @@ describe('HoldButton', () => {
 			fireEvent.keyUp(el, { key: ' ' })
 
 			expect(onHoldCancel).not.toHaveBeenCalled()
-		} finally {
-			vi.useRealTimers()
-		}
+		})
 	})
 
 	it('starts on Space keydown', () => {
@@ -224,74 +206,20 @@ describe('HoldButton', () => {
 		expect(el).toBeDisabled()
 	})
 
-	it('forwards custom pointer handlers', () => {
-		const onPointerDown = vi.fn()
+	// The handler composition block checks that onKeyDown and onKeyUp reach the caller.
+	it.each([
+		['onPointerDown', (el: HTMLElement) => fireEvent.pointerDown(el)],
+		['onPointerUp', (el: HTMLElement) => fireEvent.pointerUp(el)],
+		['onPointerCancel', (el: HTMLElement) => fireEvent.pointerCancel(el)],
+		['onPointerLeave', (el: HTMLElement) => fireEvent.pointerLeave(el)],
+	] as const)('forwards %s to the caller', (prop, fire) => {
+		const handler = vi.fn()
 
-		const { container } = renderUI(<HoldButton onPointerDown={onPointerDown}>Hold</HoldButton>)
+		const { container } = renderUI(<HoldButton {...{ [prop]: handler }}>Hold</HoldButton>)
 
-		const el = getSlot(container, 'hold-button')
+		fire(getSlot(container, 'hold-button'))
 
-		fireEvent.pointerDown(el)
-
-		expect(onPointerDown).toHaveBeenCalledOnce()
-	})
-
-	it('forwards onPointerUp to the caller', () => {
-		const onPointerUp = vi.fn()
-
-		const { container } = renderUI(<HoldButton onPointerUp={onPointerUp}>Hold</HoldButton>)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.pointerUp(el)
-
-		expect(onPointerUp).toHaveBeenCalledOnce()
-	})
-
-	it('forwards onPointerCancel to the caller', () => {
-		const onPointerCancel = vi.fn()
-
-		const { container } = renderUI(<HoldButton onPointerCancel={onPointerCancel}>Hold</HoldButton>)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.pointerCancel(el)
-
-		expect(onPointerCancel).toHaveBeenCalledOnce()
-	})
-
-	it('forwards onPointerLeave to the caller', () => {
-		const onPointerLeave = vi.fn()
-
-		const { container } = renderUI(<HoldButton onPointerLeave={onPointerLeave}>Hold</HoldButton>)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.pointerLeave(el)
-
-		expect(onPointerLeave).toHaveBeenCalledOnce()
-	})
-
-	it('forwards onKeyDown and onKeyUp to the caller', () => {
-		const onKeyDown = vi.fn()
-
-		const onKeyUp = vi.fn()
-
-		const { container } = renderUI(
-			<HoldButton onKeyDown={onKeyDown} onKeyUp={onKeyUp}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.keyDown(el, { key: 'Enter' })
-
-		fireEvent.keyUp(el, { key: 'Enter' })
-
-		expect(onKeyDown).toHaveBeenCalledOnce()
-
-		expect(onKeyUp).toHaveBeenCalledOnce()
+		expect(handler).toHaveBeenCalledOnce()
 	})
 
 	it('ignores non-primary pointer buttons on pointerdown', () => {

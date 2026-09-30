@@ -7,7 +7,7 @@ import {
 	stackedBarSnaps,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
-import { TOUCH_READOUT_DELAY, TOUCH_TAP_SLOP } from '../../modules/chart/engine/use-chart-touch-tap'
+import { TOUCH_TAP_SLOP, TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
 
 /**
@@ -74,49 +74,55 @@ describe('BarChart', () => {
 		expect(bySlot(one.container, 'chart-legend')).toBeNull()
 	})
 
-	it('opens the tooltip on a held press that does not move', () => {
+	it('opens no tooltip and points no bar on a touch hold', () => {
 		vi.useFakeTimers()
 
 		const { container } = renderUI(chart())
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
-		// A touch press fires the entry and no move while the finger holds still.
-		fireEvent.pointerOver(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		// A touch reads nothing from the chart. The data stays in the menu.
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
+		})
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
-		})
+		expect(spots(container)).toHaveLength(0)
 
-		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+		fireEvent.pointerUp(hit, at)
 
-		fireEvent.pointerOut(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		fireEvent.pointerOut(hit, at)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		vi.useRealTimers()
 	})
 
-	it('opens no tooltip on a tap that lifts before the hold', () => {
-		vi.useFakeTimers()
-
+	it('still opens the tooltip and points the bar on a mouse hover', () => {
 		const { container } = renderUI(chart())
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
-		fireEvent.pointerOver(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		const at = { clientX: 280, clientY: 100, pointerType: 'mouse' }
 
-		fireEvent.pointerOut(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+		fireEvent.pointerOver(hit, at)
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
-		})
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		expect(spots(container)).toHaveLength(1)
+
+		fireEvent.pointerOut(hit, at)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
-
-		vi.useRealTimers()
 	})
 
 	it('selects once on a tap and opens no tooltip', () => {
@@ -126,7 +132,7 @@ describe('BarChart', () => {
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
 
@@ -141,7 +147,7 @@ describe('BarChart', () => {
 		fireEvent.click(hit, at)
 
 		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
 		})
 
 		expect(select).toHaveBeenCalledOnce()
@@ -149,6 +155,8 @@ describe('BarChart', () => {
 		expect(select).toHaveBeenCalledWith('Q3', 2)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(spots(container)).toHaveLength(0)
 
 		vi.useRealTimers()
 	})
@@ -158,7 +166,7 @@ describe('BarChart', () => {
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
 
@@ -177,7 +185,7 @@ describe('BarChart', () => {
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
 
@@ -200,7 +208,7 @@ describe('BarChart', () => {
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
 
@@ -209,10 +217,10 @@ describe('BarChart', () => {
 		fireEvent.pointerDown(hit, at)
 
 		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
 		})
 
-		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		fireEvent.pointerUp(hit, at)
 
@@ -238,12 +246,91 @@ describe('BarChart', () => {
 		vi.useRealTimers()
 	})
 
+	it('under the click trigger, activates once on a tap and pins no tooltip', () => {
+		vi.useFakeTimers()
+
+		const select = vi.fn()
+
+		const { container } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, onCategoryClick: select }),
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerMove(hit, at)
+
+		fireEvent.pointerUp(hit, at)
+
+		// A cancelled touch end makes no click.
+		expect(fireEvent.touchEnd(hit)).toBe(false)
+
+		// A click that the browser still sends does not pin the readout.
+		fireEvent.click(hit, at)
+
+		fireEvent.pointerOut(hit, at)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
+		})
+
+		expect(select).toHaveBeenCalledOnce()
+
+		expect(select).toHaveBeenCalledWith('Q3', 2)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(spots(container)).toHaveLength(0)
+
+		// A mouse click still pins the readout and activates.
+		fireEvent.pointerDown(hit, { clientX: 280, clientY: 100, pointerType: 'mouse' })
+
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		expect(select).toHaveBeenCalledTimes(2)
+
+		vi.useRealTimers()
+	})
+
+	it('under the click trigger, points no bar on a touch hold', () => {
+		vi.useFakeTimers()
+
+		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
+
+		const hit = getSlot(container, 'chart-hit')
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
+		})
+
+		fireEvent.pointerUp(hit, at)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(spots(container)).toHaveLength(0)
+
+		vi.useRealTimers()
+	})
+
 	it('selects on a mouse click', () => {
 		const select = vi.fn()
 
 		const { container } = renderUI(chart({ onCategoryClick: select }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		const at = { clientX: 280, clientY: 100, pointerType: 'mouse' }
 
@@ -267,7 +354,7 @@ describe('BarChart', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		// jsdom boxes sit at 0, so client coordinates map straight into the plot;
 		// (280, 100) lands inside Q3's revenue bar.
@@ -476,7 +563,7 @@ describe('BarChart', () => {
 	it('dismisses on an off-mark click without stranding the band (no snap)', () => {
 		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
@@ -515,7 +602,7 @@ describe('BarChart', () => {
 	it('isolates the snapped nearest bar past the bars when the crosshair snaps', () => {
 		const snapped = renderUI(chart({ crosshair: { x: true, y: false, snap: true } }))
 
-		const hit = bySlot(snapped.container, 'chart-hit') as Element
+		const hit = getSlot(snapped.container, 'chart-hit')
 
 		// High above the bars, late in the band axis — off every bar's own span.
 		const probe = { clientX: Number(hit.getAttribute('width')) * 0.8, clientY: 5 }
@@ -536,7 +623,7 @@ describe('BarChart', () => {
 		// Without the snap the readout reads nothing here, so nothing isolates.
 		const free = renderUI(chart())
 
-		fireEvent.pointerMove(bySlot(free.container, 'chart-hit') as Element, probe)
+		fireEvent.pointerMove(getSlot(free.container, 'chart-hit'), probe)
 
 		expect(dimmed(free.container)).toBe(false)
 
@@ -548,7 +635,7 @@ describe('BarChart', () => {
 
 		expect(bySlot(container, 'chart-crosshair-x')).toBeNull()
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		fireEvent.pointerMove(hit, { clientX: 390, clientY: 70 })
 
@@ -576,7 +663,7 @@ describe('BarChart', () => {
 	it('draws the crosshair only when asked; snap locks the vertical rule to the band', () => {
 		const off = renderUI(chart())
 
-		fireEvent.pointerMove(bySlot(off.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(off.container, 'chart-hit'), {
 			clientX: 200,
 			clientY: 70,
 		})
@@ -589,7 +676,7 @@ describe('BarChart', () => {
 		// A free vertical rule follows the pointer's x.
 		const free = renderUI(chart({ crosshair: { x: false, y: true } }))
 
-		const fh = bySlot(free.container, 'chart-hit') as Element
+		const fh = getSlot(free.container, 'chart-hit')
 
 		fireEvent.pointerMove(fh, { clientX: 300, clientY: 70 })
 
@@ -602,7 +689,7 @@ describe('BarChart', () => {
 		// A snapped rule holds its band center across small moves.
 		const snapped = renderUI(chart({ crosshair: { x: false, y: true, snap: true } }))
 
-		const sh = bySlot(snapped.container, 'chart-hit') as Element
+		const sh = getSlot(snapped.container, 'chart-hit')
 
 		fireEvent.pointerMove(sh, { clientX: 300, clientY: 70 })
 
@@ -616,7 +703,7 @@ describe('BarChart', () => {
 	it('snaps the horizontal value line onto a bar top with crosshair snap', () => {
 		const free = renderUI(chart({ crosshair: { x: true, y: false } }))
 
-		fireEvent.pointerMove(bySlot(free.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(free.container, 'chart-hit'), {
 			clientX: 200,
 			clientY: 55,
 		})
@@ -625,7 +712,7 @@ describe('BarChart', () => {
 
 		const snapped = renderUI(chart({ crosshair: { x: true, y: false, snap: true } }))
 
-		fireEvent.pointerMove(bySlot(snapped.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(snapped.container, 'chart-hit'), {
 			clientX: 200,
 			clientY: 55,
 		})
@@ -638,7 +725,7 @@ describe('BarChart', () => {
 		// The boolean shorthand draws both rails.
 		const both = renderUI(chart({ crosshair: true }))
 
-		fireEvent.pointerMove(bySlot(both.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(both.container, 'chart-hit'), {
 			clientX: 200,
 			clientY: 70,
 		})
@@ -650,7 +737,7 @@ describe('BarChart', () => {
 		// An object without x / y means both too — snap rides along.
 		const snapped = renderUI(chart({ crosshair: { snap: true } }))
 
-		fireEvent.pointerMove(bySlot(snapped.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(snapped.container, 'chart-hit'), {
 			clientX: 200,
 			clientY: 70,
 		})
@@ -662,7 +749,7 @@ describe('BarChart', () => {
 		// y: false subtracts the vertical rule, leaving only the horizontal.
 		const xOnly = renderUI(chart({ crosshair: { y: false } }))
 
-		fireEvent.pointerMove(bySlot(xOnly.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(xOnly.container, 'chart-hit'), {
 			clientX: 200,
 			clientY: 70,
 		})
@@ -674,7 +761,7 @@ describe('BarChart', () => {
 		// x: false subtracts the horizontal rule, leaving only the vertical.
 		const yOnly = renderUI(chart({ crosshair: { x: false } }))
 
-		fireEvent.pointerMove(bySlot(yOnly.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(yOnly.container, 'chart-hit'), {
 			clientX: 200,
 			clientY: 70,
 		})
@@ -880,7 +967,7 @@ describe('BarChart', () => {
 
 		// The tooltip readout follows the toggle; the lone series recenters, so
 		// (305, 100) sits on Q3's remaining revenue bar.
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), {
 			clientX: 305,
 			clientY: 100,
 		})
@@ -901,7 +988,7 @@ describe('BarChart', () => {
 
 		// The '$'-prefixed ticks widen the value gutter, narrowing the plot and
 		// nudging the bars right; (280, 100) sits on Q3's revenue bar under it.
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), {
 			clientX: 280,
 			clientY: 100,
 		})
@@ -1013,7 +1100,7 @@ describe('BarChart', () => {
 		// lands anywhere over the plot and still lists both series.
 		const grouped = renderUI(chart({ crosshair: { x: true, y: true, snap: true } }))
 
-		fireEvent.pointerMove(bySlot(grouped.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(grouped.container, 'chart-hit'), {
 			clientX: 280,
 			clientY: 40,
 		})
@@ -1027,7 +1114,7 @@ describe('BarChart', () => {
 
 		const stacked = renderUI(chart({ stacked: true, crosshair: { x: true, y: true, snap: true } }))
 
-		fireEvent.pointerMove(bySlot(stacked.container, 'chart-hit') as Element, {
+		fireEvent.pointerMove(getSlot(stacked.container, 'chart-hit'), {
 			clientX: 280,
 			clientY: 40,
 		})
@@ -1301,7 +1388,7 @@ describe('BarChart horizontal', () => {
 	it('reads the band off the pointer y and lists the series in the tooltip', () => {
 		const { container } = renderUI(chart({ orientation: 'horizontal' }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		// Frame coords add the plot origin (jsdom boxes sit at 0); (93, 18) lands the
 		// pointer inside Q1's revenue bar, its band chosen by the y coordinate.
@@ -1328,9 +1415,7 @@ describe('BarChart horizontal', () => {
 
 		const width = Number((svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ')[2])
 
-		const labels = Array.from(
-			(bySlot(container, 'chart-axis-x') as Element).querySelectorAll('text'),
-		)
+		const labels = Array.from(getSlot(container, 'chart-axis-x').querySelectorAll('text'))
 
 		expect(labels.length).toBeGreaterThan(0)
 
@@ -1352,7 +1437,7 @@ describe('BarChart horizontal', () => {
 			chart({ orientation: 'horizontal', crosshair: { x: true, y: false } }),
 		)
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		fireEvent.pointerMove(hit, { clientX: 93, clientY: 18 })
 

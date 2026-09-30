@@ -1,6 +1,8 @@
 import { strFromU8, unzipSync } from 'fflate'
 import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
+import { cellText } from '../../modules/grid/engine/grid-export/accessor'
+import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
 import { downloadExcel, rowsToXlsx } from '../../modules/grid/engine/grid-export/excel'
 import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
 import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
@@ -19,6 +21,10 @@ const rows: Row[] = [
 	{ id: 1, name: 'Alice', role: 'Developer' },
 	{ id: 2, name: 'Bob & Co', role: 'Designer' },
 ]
+
+/** The XML of the one sheet of a workbook. */
+const sheetXml = (workbook: Uint8Array) =>
+	strFromU8(unzipSync(workbook)['xl/worksheets/sheet1.xml'] as Uint8Array)
 
 describe('rowsToHtmlTable', () => {
 	it('renders a header row of labels and one row per datum', () => {
@@ -50,9 +56,6 @@ describe('rowsToHtmlTable', () => {
 })
 
 describe('rowsToXlsx', () => {
-	const sheetXml = (workbook: Uint8Array) =>
-		strFromU8(unzipSync(workbook)['xl/worksheets/sheet1.xml'] as Uint8Array)
-
 	it('zips the OOXML parts a workbook needs', () => {
 		const parts = Object.keys(unzipSync(rowsToXlsx(columns, rows)))
 
@@ -122,6 +125,57 @@ describe('rowsToXlsx', () => {
 		const sheet = sheetXml(rowsToXlsx(itemColumns, [{ id: 1, count: 42 }]))
 
 		expect(sheet).toContain('<c r="A2"><v>42</v></c>')
+	})
+})
+
+describe('cellText', () => {
+	type Item = { id: number; when: unknown }
+
+	const itemColumns: GridColumn<Item>[] = [
+		{ id: 'when', title: 'When', cell: () => null, value: (row) => row.when },
+	]
+
+	const date = new Date(Date.UTC(2026, 8, 29, 14, 30))
+
+	it('writes a date as ISO 8601, and an invalid date as empty', () => {
+		expect(cellText(date)).toBe('2026-09-29T14:30:00.000Z')
+
+		expect(cellText(new Date(Number.NaN))).toBe('')
+	})
+
+	it('writes a plain object or an array as JSON', () => {
+		expect(cellText({ a: 1, b: 'x' })).toBe('{"a":1,"b":"x"}')
+
+		expect(cellText([1, 'two'])).toBe('[1,"two"]')
+	})
+
+	it('keeps String() for other values, and nullish as empty', () => {
+		expect(cellText(42)).toBe('42')
+
+		expect(cellText(true)).toBe('true')
+
+		expect(cellText(null)).toBe('')
+
+		expect(cellText(undefined)).toBe('')
+	})
+
+	it('gives the same text to CSV, HTML, and XLSX', () => {
+		const items = [
+			{ id: 1, when: date },
+			{ id: 2, when: { a: 1 } },
+		]
+
+		expect(rowsToCsv(itemColumns, items)).toBe('When\r\n2026-09-29T14:30:00.000Z\r\n"{""a"":1}"')
+
+		expect(rowsToHtmlTable(itemColumns, items)).toContain(
+			'<td>2026-09-29T14:30:00.000Z</td></tr><tr><td>{"a":1}</td>',
+		)
+
+		const sheet = sheetXml(rowsToXlsx(itemColumns, items))
+
+		expect(sheet).toContain('<t xml:space="preserve">2026-09-29T14:30:00.000Z</t>')
+
+		expect(sheet).toContain('<t xml:space="preserve">{&quot;a&quot;:1}</t>')
 	})
 })
 
