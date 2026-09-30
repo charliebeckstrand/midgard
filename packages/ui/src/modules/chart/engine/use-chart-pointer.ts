@@ -413,15 +413,17 @@ export function useChartPointer({
 
 	return {
 		ref,
+		// Each touch press arms the selection guard, also on a chart that takes no
+		// click, because a hold opens the readout on either.
+		onPointerDown: touch.onPointerDown,
+		onPointerUp: touch.onPointerUp,
+		onPointerCancel: touch.onPointerCancel,
 		// Activation only — the tracked readout stays hover-owned.
 		...(onIndexClick || onMarkClick
 			? {
 					onClick: (event: MouseEvent<SVGRectElement>) => {
 						if (!touch.fromTouch()) activate(event.clientX, event.clientY)
 					},
-					onPointerDown: touch.onPointerDown,
-					onPointerUp: touch.onPointerUp,
-					onPointerCancel: touch.onPointerCancel,
 					onTouchEnd: touch.onTouchEnd,
 				}
 			: {}),

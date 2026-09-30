@@ -1,15 +1,14 @@
 /**
  * Row-manager kata: layout for the "Manage rows" editor — the vertical stack of
- * group zones and each zone's header (drag grip, label, count, color menu). Color
- * is not here — a zone's tint comes from the shared `kata/grid-group` `cardOutline`
- * (Card outline) — so this carries only the flex layout.
+ * group zones and each zone's header (label, count, color menu). The drag grip
+ * takes the `kata/grid-group` grip. Color is not here — a zone's tint comes from
+ * the shared `kata/grid-group` `cardOutline` (Card outline) — so this carries
+ * only the flex layout.
  */
-import { hannou, iro, narabi, sen } from '../kiso'
+import { iro, narabi } from '../kiso'
 
-const { fg, grab } = hannou
 const { text } = iro
 const { flex } = narabi
-const { focus } = sen
 
 export const k = {
 	// Vertical stack of the group zones.
@@ -25,7 +24,5 @@ export const k = {
 		label: ['min-w-0', 'truncate', 'font-medium'],
 		// The row count, sitting right beside the label.
 		count: [text.muted, 'tabular-nums', 'shrink-0'],
-		// Group-reorder grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
-		grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, ...grab.default],
 	},
 } as const

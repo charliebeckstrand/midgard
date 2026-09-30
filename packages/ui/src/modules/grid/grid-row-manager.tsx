@@ -2,9 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { GripVertical } from 'lucide-react'
 import { Card } from '../../components/card'
-import { Icon } from '../../components/icon'
 import { Menu } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
@@ -14,7 +12,8 @@ import { k } from '../../recipes/kata/grid-row-manager'
 import { columnLabel } from './engine/grid-column/label'
 import { restrictToParentElement } from './engine/grid-reorder-compute'
 import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
-import type { GridRowManagerGroup } from './use-grid-row-manager'
+import { GridManagerGrip } from './grid-manager-grip'
+import type { GridRowManagerGroup } from './grid-row-group-types'
 import { useGridZoneSortable } from './use-grid-zone-sortable'
 
 /** Locks the group drag to the y-axis and bounds it to the list, so a zone can't be dragged off either end. @internal */
@@ -105,17 +104,10 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 			<Card className={cn(group.color && groupK.cardOutline[group.color])}>
 				<div className={cn(k.zone.header)}>
 					<div className={cn(k.zone.main)}>
-						<button
-							type="button"
-							ref={setActivatorNodeRef}
-							data-dragging={dataAttr(dragging)}
-							className={cn(k.zone.grip)}
-							aria-label={`Reorder group ${label}`}
-							{...attributes}
-							{...listeners}
-						>
-							<Icon icon={<GripVertical />} />
-						</button>
+						<GridManagerGrip
+							sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
+							label={`Reorder group ${label}`}
+						/>
 
 						<span className={cn(k.zone.label)}>{group.label}</span>
 

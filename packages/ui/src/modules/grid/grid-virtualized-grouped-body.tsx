@@ -14,6 +14,7 @@ import type { GridGroupBy } from './grid-data-types'
 import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import type { GridRowsProps } from './grid-row'
+import type { GridRowGroupPresentation } from './grid-row-group-types'
 import { GridTotalRow } from './grid-total-row'
 import { GridWindowBody } from './grid-window-body'
 import {
@@ -22,7 +23,6 @@ import {
 	NO_WINDOW_RECORD,
 	useGridItemWindow,
 } from './use-grid-item-window'
-import type { GridRowGroupPresentation } from './use-grid-row-manager'
 import {
 	type GridMotionChange,
 	type GridMotionFlips,

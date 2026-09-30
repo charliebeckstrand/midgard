@@ -13,6 +13,7 @@ import {
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
 import { hasErrorSlot } from './engine/grid-data/guards'
+import { applyRowKeyOrder } from './engine/grid-group/row-manager'
 import {
 	type GridManualGroupSegment,
 	orderManualGroupSegments,
@@ -28,13 +29,13 @@ import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manual-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import type { GridRowGroupPresentation } from './grid-row-group-types'
 import { GridLoadingBody } from './grid-skeleton-cells'
 import { GridTotalRow } from './grid-total-row'
 import { GridVirtualizedBody } from './grid-virtualized-body'
 import { GridVirtualizedDetailBody } from './grid-virtualized-detail-body'
 import { GridVirtualizedGroupedBody } from './grid-virtualized-grouped-body'
 import type { GridScrollRowIntoView } from './use-grid-navigation'
-import { applyRowKeyOrder, type GridRowGroupPresentation } from './use-grid-row-manager'
 
 /** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
 type GridRowSortableContext = {

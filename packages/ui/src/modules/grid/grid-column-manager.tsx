@@ -12,9 +12,6 @@ import {
 	useState,
 } from 'react'
 import { Button } from '../../components/button'
-import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
-import { Control } from '../../components/control'
-import { Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
@@ -31,6 +28,7 @@ import { pinChoiceIcon } from './grid-context-menu-utilities'
 import type { GridPreferences } from './grid-data-types'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
+import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import type { GridColumnManagerItem } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
 
@@ -296,18 +294,12 @@ function GridColumnManagerFrozenGroup({
 		<List items={items} getKey={getKey} variant="plain" sortable={false}>
 			{(col) => (
 				<ListItem prefix={frozenLeading(col, onPinChange)}>
-					<Control>
-						<CheckboxGroup>
-							<CheckboxField>
-								<Checkbox
-									checked
-									disabled
-									aria-label={`${columnLabel(col)} (${col.locked ? 'locked' : 'pinned'})`}
-								/>
-								<Label>{col.title}</Label>
-							</CheckboxField>
-						</CheckboxGroup>
-					</Control>
+					<GridManagerCheckboxRow
+						columnTitle={col.title}
+						checked
+						disabled
+						aria-label={`${columnLabel(col)} (${col.locked ? 'locked' : 'pinned'})`}
+					/>
 				</ListItem>
 			)}
 		</List>
@@ -357,19 +349,13 @@ function GridColumnManagerOrderableList({
 				) : undefined
 			}
 		>
-			<Control>
-				<CheckboxGroup>
-					<CheckboxField>
-						<Checkbox
-							checked={!hidden.has(col.id)}
-							disabled={col.hideable === false}
-							onChange={() => onToggle(col.id)}
-							aria-label={`Show ${columnLabel(col)}`}
-						/>
-						<Label>{col.title}</Label>
-					</CheckboxField>
-				</CheckboxGroup>
-			</Control>
+			<GridManagerCheckboxRow
+				columnTitle={col.title}
+				checked={!hidden.has(col.id)}
+				disabled={col.hideable === false}
+				onChange={() => onToggle(col.id)}
+				aria-label={`Show ${columnLabel(col)}`}
+			/>
 		</ListItem>
 	)
 

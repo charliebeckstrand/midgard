@@ -585,4 +585,20 @@ describe('HoldButton', () => {
 			expect(onHoldComplete).not.toHaveBeenCalled()
 		})
 	})
+
+	it('selects no text on the page under a touch hold', () => {
+		const { container, unmount } = renderUI(<HoldButton>Hold</HoldButton>)
+
+		fireEvent.pointerDown(getSlot(container, 'hold-button'), {
+			button: 0,
+			pointerType: 'touch',
+			isPrimary: true,
+		})
+
+		expect(document.documentElement.classList.contains('select-none')).toBe(true)
+
+		unmount()
+
+		expect(document.documentElement.classList.contains('select-none')).toBe(false)
+	})
 })

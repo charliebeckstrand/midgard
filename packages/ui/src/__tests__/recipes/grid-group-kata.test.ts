@@ -4,14 +4,16 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { k } from '../../recipes/kata/grid-group'
 
+/** The source of a module file of the grid. */
+const gridSource = (file: string) =>
+	readFileSync(fileURLToPath(new URL(`../../modules/grid/${file}`, import.meta.url)), 'utf8')
+
 /**
- * The group editor is the one reader of `k.manager`. A slot that it does not
- * read styles nothing, and it misleads the next reader of the kata.
+ * The group editor and the manager grip that it shares with the row manager
+ * are the readers of `k.manager`. A slot that they do not read styles nothing,
+ * and it misleads the next reader of the kata.
  */
-const managerSource = readFileSync(
-	fileURLToPath(new URL('../../modules/grid/grid-group-manager.tsx', import.meta.url)),
-	'utf8',
-)
+const managerSource = ['grid-group-manager.tsx', 'grid-manager-grip.tsx'].map(gridSource).join('\n')
 
 /** The dotted path of each string or class-list leaf under `node`. */
 function leafPaths(node: object, prefix: string): string[] {

@@ -1,14 +1,8 @@
 'use client'
 
-import {
-	type DragEndEvent,
-	type DragOverEvent,
-	type DragStartEvent,
-	useDroppable,
-} from '@dnd-kit/core'
+import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
-import { useSortableItem } from '../../hooks'
 import {
 	addGroupTo,
 	assignColumn,
@@ -22,7 +16,6 @@ import {
 	reorderGroups,
 	settleDragEnd,
 	type ZoneMap,
-	zoneDropId,
 	zoneMapToStores,
 } from './engine/grid-zone/map'
 import type { GridColumnGroup } from './grid-group-types'
@@ -210,23 +203,4 @@ export function useGridGroupManager({
 		handleDragEnd,
 		handleDragCancel,
 	}
-}
-
-/** Registers a droppable zone; returns the setter ref and whether a column hovers it. @internal */
-export function useGroupZoneDroppable(zoneId: string | number) {
-	const { setNodeRef, isOver } = useDroppable({ id: zoneDropId(zoneId) })
-
-	return { setNodeRef, isOver }
-}
-
-/**
- * Registers a sortable column row for the group editor. Delegates to the shared
- * {@link useSortableItem}, so the source row hides (`opacity: 0`) while dragging
- * and the editor's `<DragOverlay>` stands in. That is the same composition List
- * and Kanban use. `dragging` also gates the row's checkbox.
- *
- * @internal
- */
-export function useGroupColumnSortable(columnId: string | number) {
-	return useSortableItem({ id: String(columnId) })
 }

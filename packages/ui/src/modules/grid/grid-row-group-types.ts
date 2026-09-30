@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 
 /**
@@ -49,3 +50,37 @@ export type GridRowGroups =
 			defaultValue?: GridRowGroup[]
 			onValueChange?: (groups: GridRowGroup[]) => void
 	  }
+
+/**
+ * One group as the row manager renders it: identity, display label, row count,
+ * and its overlay color. Built by {@link GridData} from the engine's grouped rows
+ * and resolved to display order (overlay group order applied) by
+ * {@link useGridRowManager}.
+ *
+ * @internal
+ */
+export type GridRowManagerGroup = {
+	/** The group's key — the grouping column's shared value. */
+	key: string | number
+	/** The group's header label — the shared value formatted. */
+	label: ReactNode
+	/** How many rows the group holds. */
+	count: number
+	/** The group's overlay color, or `undefined` when uncolored. */
+	color?: PaletteColor
+}
+
+/**
+ * The body-facing presentation the overlay resolves to: a color lookup, always
+ * live, and the manual group order. The order is `null` when the overlay no
+ * longer covers every group. {@link GridBody} reads it to tint and reorder the grouped rows.
+ * Rows within a group are not managed — they keep the engine's order.
+ *
+ * @internal
+ */
+export type GridRowGroupPresentation = {
+	/** The group's overlay color by key, or `undefined` when uncolored. */
+	color: (key: string | number) => PaletteColor | undefined
+	/** Group keys in manual order, or `null` to keep the engine's group order. */
+	groupOrder: (string | number)[] | null
+}
