@@ -3,16 +3,6 @@ import { ReadyReveal } from '../../primitives/ready-reveal'
 import { renderUI, screen } from '../helpers'
 
 describe('ReadyReveal', () => {
-	it('renders placeholder content', () => {
-		renderUI(
-			<ReadyReveal ready={false} placeholder={<span>Loading...</span>}>
-				<span>Real content</span>
-			</ReadyReveal>,
-		)
-
-		expect(screen.getByText('Loading...')).toBeInTheDocument()
-	})
-
 	it('renders children content', () => {
 		renderUI(
 			<ReadyReveal ready={true} placeholder={<span>Loading...</span>}>

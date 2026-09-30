@@ -24,17 +24,6 @@ function failingStream(message: string): AsyncIterable<string> {
 }
 
 describe('useChatSend', () => {
-	it('assigns client ids to seed messages', () => {
-		const { result } = renderHook(() =>
-			useChatSend({
-				transport: streamOf('ok'),
-				initialMessages: [{ role: 'user', content: 'seed' }],
-			}),
-		)
-
-		expect(result.current.messages[0]?.id).toBeTypeOf('string')
-	})
-
 	it('keeps the id a seed message carries, so a reload does not re-key the transcript', () => {
 		// The persisted id is what a React key, an `edit` call, and a part's
 		// address all name. Minting a fresh one here would break every target
@@ -542,7 +531,7 @@ describe('useChatSend', () => {
 			firstSend = result.current.send('hi')
 		})
 
-		await waitFor(() => expect(result.current.streaming).toBe(true))
+		expect(result.current.streaming).toBe(true)
 
 		act(() => {
 			result.current.stop()

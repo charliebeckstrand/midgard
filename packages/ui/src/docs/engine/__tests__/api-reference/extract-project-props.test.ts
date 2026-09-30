@@ -177,7 +177,7 @@ describe('extractProjectPropNames', () => {
 			'FooProps',
 		)
 
-		expect(names.has('size')).toBe(true)
+		expect([...names]).toEqual(['size'])
 	})
 
 	// The prop table follows this order.

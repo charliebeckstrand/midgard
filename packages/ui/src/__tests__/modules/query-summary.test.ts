@@ -101,52 +101,27 @@ describe('formatQuerySummary', () => {
 		expect(line([rule(ageField, { operator: 'between', value: ['  ', 65] })])).toBe('Age ≤ 65')
 	})
 
-	it('drops a numeric operator whose value is not numeric, along with its combinator', () => {
-		// The evaluator reads such a value as no constraint.
+	// The evaluator reads each such value as no constraint.
+	it.each([
+		[
+			'a numeric operator whose value is not numeric',
+			rule(ageField, { operator: 'gt', value: 'abc' }),
+		],
+		[
+			'a scalar operator whose value is an array',
+			rule(ageField, { operator: 'gt', value: [1, 2] }),
+		],
+		[
+			'a range with a bound that is not a scalar',
+			rule(ageField, { operator: 'between', value: [[10], 20] }),
+		],
+		['a range that is not a pair', rule(ageField, { operator: 'between', value: [10] })],
+		['a range whose value is not an array', rule(ageField, { operator: 'between', value: 5 })],
+	])('drops %s, along with its combinator', (_, dropped) => {
 		expect(
 			line([
 				rule(nameField, { operator: 'contains', value: 'lee' }),
-				rule(ageField, { operator: 'gt', value: 'abc', combinator: 'or' }),
-			]),
-		).toBe('Name contains lee')
-	})
-
-	it('drops a scalar operator whose value is an array, along with its combinator', () => {
-		// The evaluator reads such a value as no constraint.
-		expect(
-			line([
-				rule(nameField, { operator: 'contains', value: 'lee' }),
-				rule(ageField, { operator: 'gt', value: [1, 2], combinator: 'or' }),
-			]),
-		).toBe('Name contains lee')
-	})
-
-	it('drops a range with a bound that is not a scalar, along with its combinator', () => {
-		// The evaluator reads such a value as no constraint.
-		expect(
-			line([
-				rule(nameField, { operator: 'contains', value: 'lee' }),
-				rule(ageField, { operator: 'between', value: [[10], 20], combinator: 'or' }),
-			]),
-		).toBe('Name contains lee')
-	})
-
-	it('drops a range that is not a pair, along with its combinator', () => {
-		// The evaluator reads such a value as no constraint.
-		expect(
-			line([
-				rule(nameField, { operator: 'contains', value: 'lee' }),
-				rule(ageField, { operator: 'between', value: [10], combinator: 'or' }),
-			]),
-		).toBe('Name contains lee')
-	})
-
-	it('drops a range whose value is not an array, along with its combinator', () => {
-		// The evaluator reads such a value as no constraint.
-		expect(
-			line([
-				rule(nameField, { operator: 'contains', value: 'lee' }),
-				rule(ageField, { operator: 'between', value: 5, combinator: 'or' }),
+				{ ...dropped, combinator: 'or' },
 			]),
 		).toBe('Name contains lee')
 	})

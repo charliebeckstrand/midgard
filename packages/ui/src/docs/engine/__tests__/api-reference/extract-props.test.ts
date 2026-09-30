@@ -255,11 +255,7 @@ describe('extractProps — type display', () => {
 			'align',
 		)
 
-		expect(p.type).toContain(`'start'`)
-
-		expect(p.type).toContain(`'center'`)
-
-		expect(p.type).toContain(`'end'`)
+		expect(p.type).toBe(`'start' | 'center' | 'end'`)
 
 		expect(p.references).toBeUndefined()
 	})

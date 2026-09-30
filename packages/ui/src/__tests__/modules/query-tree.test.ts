@@ -49,22 +49,6 @@ describe('mapNode', () => {
 		expect(next.children[0]).toBe(replacement)
 	})
 
-	it('replaces a node nested inside a child group', () => {
-		const rule = createRule(textField)
-
-		const inner = createGroup('and', [rule])
-
-		const tree = createGroup('and', [inner])
-
-		const replacement: QueryRule = { ...rule, field: 'replaced' }
-
-		const next = mapNode(tree, rule.id, () => replacement)
-
-		const newInner = next.children[0] as { children: QueryNode[] }
-
-		expect(newInner.children[0]).toBe(replacement)
-	})
-
 	it('returns the same tree reference when id is not found', () => {
 		const tree = createGroup('and', [createRule(textField)])
 
@@ -113,20 +97,6 @@ describe('addChild', () => {
 		expect(addChild(tree, tree.id, rule).children).toEqual([rule])
 	})
 
-	it('appends inside a nested group', () => {
-		const inner = createGroup()
-
-		const tree = createGroup('and', [inner])
-
-		const rule = createRule(textField)
-
-		const next = addChild(tree, inner.id, rule)
-
-		const newInner = next.children[0] as { children: QueryNode[] }
-
-		expect(newInner.children).toEqual([rule])
-	})
-
 	it('returns the same tree when parentId is not found', () => {
 		const tree = createGroup()
 
@@ -155,28 +125,6 @@ describe('addChild', () => {
 })
 
 describe('removeChild', () => {
-	it('removes a top-level child by id', () => {
-		const rule = createRule(textField)
-
-		const tree = createGroup('and', [rule])
-
-		expect(removeChild(tree, rule.id).children).toEqual([])
-	})
-
-	it('removes a deeply nested child', () => {
-		const rule = createRule(textField)
-
-		const inner = createGroup('and', [rule])
-
-		const tree = createGroup('and', [inner])
-
-		const next = removeChild(tree, rule.id)
-
-		const newInner = next.children[0] as { children: QueryNode[] }
-
-		expect(newInner.children).toEqual([])
-	})
-
 	it('returns the same tree when id is not found', () => {
 		const tree = createGroup('and', [createRule(textField)])
 

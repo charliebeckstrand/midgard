@@ -69,13 +69,12 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = container.ownerDocument.querySelector<HTMLElement>(
+		const backdrop = present(
+			container.ownerDocument.querySelector('[data-slot="overlay-backdrop"]'),
 			'[data-slot="overlay-backdrop"]',
 		)
 
-		expect(backdrop).not.toBeNull()
-
-		fireEvent.click(backdrop as HTMLElement)
+		fireEvent.click(backdrop)
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
@@ -89,11 +88,12 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = document.querySelector<HTMLElement>('[data-slot="overlay-backdrop"]')
-
-		expect(backdrop).not.toBeNull()
-
-		fireEvent.click(backdrop as HTMLElement)
+		fireEvent.click(
+			present(
+				document.querySelector('[data-slot="overlay-backdrop"]'),
+				'[data-slot="overlay-backdrop"]',
+			),
+		)
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})
@@ -325,8 +325,6 @@ describe('Overlay', () => {
 		)
 
 		const overlay = present(host.querySelector('[data-slot="overlay"]'), '[data-slot="overlay"]')
-
-		expect(overlay).not.toBeNull()
 
 		expect(overlay.className).toContain('absolute')
 
