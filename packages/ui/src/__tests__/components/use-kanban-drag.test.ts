@@ -26,7 +26,7 @@ function setup(options: { columns?: Column[]; onReorder?: (next: Column[]) => vo
 		}),
 	)
 
-	return { api: result.current, columns, onReorder, rerender: () => result.current }
+	return { api: result.current, onReorder }
 }
 
 function makeDragStart(id: string): DragStartEvent {
@@ -62,7 +62,10 @@ describe('useKanbanDrag: state', () => {
 		})
 	})
 
-	it('sets activeId on drag start', () => {
+	it.each<[string, (api: ReturnType<typeof useKanbanDrag<Card, Column>>) => void]>([
+		['drag cancel', (api) => api.handleDragCancel()],
+		['drag end', (api) => api.handleDragEnd(makeDragEvent('a', 'a'))],
+	])('sets activeId on drag start and clears it on %s', (_name, finish) => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
@@ -76,43 +79,9 @@ describe('useKanbanDrag: state', () => {
 		})
 
 		expect(result.current.activeId).toBe('a')
-	})
-
-	it('clears activeId on drag cancel', () => {
-		const { result } = renderHook(() =>
-			useKanbanDrag<Card, Column>({
-				columns: baseColumns,
-				getKey: (i) => i.id,
-				onReorder: () => {},
-			}),
-		)
 
 		act(() => {
-			result.current.handleDragStart(makeDragStart('a'))
-		})
-
-		act(() => {
-			result.current.handleDragCancel()
-		})
-
-		expect(result.current.activeId).toBeNull()
-	})
-
-	it('clears activeId on drag end', () => {
-		const { result } = renderHook(() =>
-			useKanbanDrag<Card, Column>({
-				columns: baseColumns,
-				getKey: (i) => i.id,
-				onReorder: () => {},
-			}),
-		)
-
-		act(() => {
-			result.current.handleDragStart(makeDragStart('a'))
-		})
-
-		act(() => {
-			result.current.handleDragEnd(makeDragEvent('a', 'a'))
+			finish(result.current)
 		})
 
 		expect(result.current.activeId).toBeNull()
@@ -148,32 +117,17 @@ describe('useKanbanDrag: handleDragOver cross-column moves', () => {
 		expect(next[1]?.items.map((i) => i.id)).toEqual(['a', 'c'])
 	})
 
-	it('is a no-op when the drag is within the same column', () => {
+	it.each<[string, string, string | null]>([
+		['the drag is within the same column', 'a', 'b'],
+		['there is no over target', 'a', null],
+		['active and over are the same id', 'a', 'a'],
+		['the active card has no owning column', 'ghost', 'doing'],
+	])('is a no-op when %s', (_name, activeId, overId) => {
 		const onReorder = vi.fn()
 
 		const { api } = setup({ onReorder })
 
-		api.handleDragOver(makeDragEvent('a', 'b'))
-
-		expect(onReorder).not.toHaveBeenCalled()
-	})
-
-	it('is a no-op when there is no over target', () => {
-		const onReorder = vi.fn()
-
-		const { api } = setup({ onReorder })
-
-		api.handleDragOver(makeDragEvent('a', null))
-
-		expect(onReorder).not.toHaveBeenCalled()
-	})
-
-	it('is a no-op when active and over are the same id', () => {
-		const onReorder = vi.fn()
-
-		const { api } = setup({ onReorder })
-
-		api.handleDragOver(makeDragEvent('a', 'a'))
+		api.handleDragOver(makeDragEvent(activeId, overId))
 
 		expect(onReorder).not.toHaveBeenCalled()
 	})
@@ -203,22 +157,19 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 		expect(next[0]?.items.map((i) => i.id)).toEqual(['b', 'a'])
 	})
 
-	it('is a no-op when dragging across columns (already handled in dragOver)', () => {
+	it.each<[string, string, string | null]>([
+		['dragging across columns (already handled in dragOver)', 'a', 'c'],
+		['there is no over target', 'a', null],
+		['handleDragEnd targets an unknown active card', 'ghost', 'a'],
+		// 'unknown' is neither a column id nor a card id, so findColumn returns
+		// undefined and the handler bails at the `!activeCol || !overCol` guard.
+		['the over id resolves to no column', 'a', 'unknown'],
+	])('is a no-op when %s', (_name, activeId, overId) => {
 		const onReorder = vi.fn()
 
 		const { api } = setup({ onReorder })
 
-		api.handleDragEnd(makeDragEvent('a', 'c'))
-
-		expect(onReorder).not.toHaveBeenCalled()
-	})
-
-	it('is a no-op when there is no over target', () => {
-		const onReorder = vi.fn()
-
-		const { api } = setup({ onReorder })
-
-		api.handleDragEnd(makeDragEvent('a', null))
+		api.handleDragEnd(makeDragEvent(activeId, overId))
 
 		expect(onReorder).not.toHaveBeenCalled()
 	})
@@ -232,41 +183,6 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 		)
 
 		expect(() => result.current.handleDragEnd(makeDragEvent('a', 'b'))).not.toThrow()
-	})
-
-	it('is a no-op when handleDragEnd targets an unknown active card', () => {
-		const onReorder = vi.fn()
-
-		const { api } = setup({ onReorder })
-
-		api.handleDragEnd(makeDragEvent('ghost', 'a'))
-
-		expect(onReorder).not.toHaveBeenCalled()
-	})
-
-	it('is a no-op when the over id resolves to no column', () => {
-		const onReorder = vi.fn()
-
-		const { api } = setup({ onReorder })
-
-		// 'unknown' is neither a column id nor a card id, so findColumn returns
-		// undefined and the handler bails at the `!activeCol || !overCol` guard.
-		api.handleDragEnd(makeDragEvent('a', 'unknown'))
-
-		expect(onReorder).not.toHaveBeenCalled()
-	})
-})
-
-describe('useKanbanDrag: handleDragOver edge cases', () => {
-	it('skips when the active card has no owning column', () => {
-		const onReorder = vi.fn()
-
-		const { api } = setup({ onReorder })
-
-		// Active id that doesn't exist in any column.
-		api.handleDragOver(makeDragEvent('ghost', 'doing'))
-
-		expect(onReorder).not.toHaveBeenCalled()
 	})
 })
 

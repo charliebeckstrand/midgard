@@ -3,7 +3,7 @@ import { Button } from '../../components/button'
 import { Form } from '../../components/form'
 import { Textarea, TextareaSkeleton } from '../../components/textarea'
 import { HeadlessProvider } from '../../providers/headless'
-import { bySlot, densityStepOf, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, densityStepOf, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Textarea', () => {
 	it('renders with data-slot="textarea"', () => {
@@ -23,7 +23,7 @@ describe('Textarea', () => {
 
 		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(el, 'a')
 
@@ -31,15 +31,13 @@ describe('Textarea', () => {
 	})
 
 	it('picks up the glass variant from a glass context', () => {
-		const { container } = renderUI(<Textarea />, { glass: true })
+		const { container: plain } = renderUI(<Textarea />)
 
-		expect(bySlot(container, 'textarea')).toBeInTheDocument()
-	})
+		const { container: glass } = renderUI(<Textarea />, { glass: true })
 
-	it('renders with autoResize enabled', () => {
-		const { container } = renderUI(<Textarea autoResize />)
-
-		expect(bySlot(container, 'textarea')).toBeInTheDocument()
+		expect(getSlot(glass, 'control-frame').className).not.toBe(
+			getSlot(plain, 'control-frame').className,
+		)
 	})
 
 	it('renders actions below the textarea', () => {
@@ -87,7 +85,7 @@ describe('Textarea', () => {
 
 		expect(el.value).toBe('')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(el, 'abc')
 
@@ -106,7 +104,7 @@ describe('Textarea', () => {
 
 		expect(el.value).toBe('hi')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(el, '!')
 
@@ -133,7 +131,7 @@ describe('Textarea', () => {
 
 		expect(el.value).toBe('hi')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(el, ' there')
 

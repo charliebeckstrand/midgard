@@ -2,7 +2,7 @@ import { join, relative } from 'node:path'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { docblockEnvironment, walkSource } from './src/__tests__/helpers/walk-source'
 import { docsPlugin } from './src/docs/engine/plugins'
-import { CI, cleanup, sequence } from './vitest.base'
+import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` excludes them. The docblock is the
@@ -147,12 +147,8 @@ export default defineConfig({
 				error.message?.includes('window is not defined') && error.stack?.includes('virtual-core')
 			)
 		},
-		coverage: {
-			provider: 'v8',
-			reporter: ['text', 'cobertura'],
-			include: ['src/**/*.{ts,tsx}'],
-			exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**', 'src/index.ts'],
-		},
+		// `test:coverage` merges this report with the report of the browser run.
+		coverage: { ...coverageScope, reporter: ['text', 'cobertura'] },
 		projects: [
 			{
 				extends: true as const,

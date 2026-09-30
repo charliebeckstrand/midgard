@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, stubMatchMedia, userEvent, within } from '../helpers'
+import { renderUI, screen, setupUser, stubMatchMedia, within } from '../helpers'
 
 type Person = { id: number; name: string; role: string }
 
@@ -42,7 +42,7 @@ describe('Grid master-detail', () => {
 	})
 
 	it('opens a panel from its expander chevron and closes it again', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Grid columns={columns} rows={people} getKey={getKey} expandable={{ render: detail }} />,
@@ -105,7 +105,7 @@ describe('Grid master-detail', () => {
 	})
 
 	it('drives expansion through a controlled binding', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		function Harness() {
 			const [expanded, setExpanded] = useState<Set<string | number>>(new Set())
@@ -179,7 +179,7 @@ describe('Grid master-detail', () => {
 	it('opens the panel on the toggle itself under reduced motion', async () => {
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Grid columns={columns} rows={people} getKey={getKey} expandable={{ render: detail }} />,

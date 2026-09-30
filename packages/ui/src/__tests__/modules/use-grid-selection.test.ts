@@ -75,11 +75,9 @@ describe('useGridSelection', () => {
 			result.current.toggleAll()
 		})
 
-		expect(result.current.selection.has('a')).toBe(true)
+		expect(result.current.selection).toEqual(new Set(['a', 'b', 'c']))
 
-		expect(result.current.selection.has('b')).toBe(true)
-
-		expect(result.current.selection.has('c')).toBe(true)
+		expect(onValueChange).toHaveBeenCalledWith(new Set(['a', 'b', 'c']))
 	})
 
 	it('clears the selection when toggleAll is called with everything selected', () => {
@@ -111,6 +109,6 @@ describe('useGridSelection', () => {
 			result.current.toggleRow('a')
 		})
 
-		expect(onValueChange).toHaveBeenCalled()
+		expect(onValueChange).toHaveBeenCalledWith(new Set(['a']))
 	})
 })

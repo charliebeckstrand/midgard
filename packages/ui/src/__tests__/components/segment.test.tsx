@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
-import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 // Segment is a thin preset over <Tabs variant="segment">, so it renders the
 // tab slots (tab-list / tab) and tab ARIA (tablist / tab / aria-selected).
 
 describe('Segment', () => {
-	it('renders the control as a tablist', () => {
+	it('renders the control as a named tablist of tab items', () => {
 		const { container } = renderUI(
 			<Segment value="a">
-				<SegmentControl aria-label="View">
+				<SegmentControl aria-label="View mode">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -18,31 +18,18 @@ describe('Segment', () => {
 
 		const list = bySlot(container, 'tab-list')
 
-		expect(list).toBeInTheDocument()
-
 		expect(list).toHaveAttribute('role', 'tablist')
-	})
 
-	it('renders segment items with role="tab"', () => {
-		const { container } = renderUI(
-			<Segment value="a">
-				<SegmentControl aria-label="View">
-					<SegmentItem value="a">A</SegmentItem>
-					<SegmentItem value="b">B</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
+		expect(list).toHaveAttribute('aria-label', 'View mode')
 
 		const items = allBySlot(container, 'tab')
 
 		expect(items).toHaveLength(2)
 
-		expect(items[0]).toHaveAttribute('role', 'tab')
-
-		expect(items[1]).toHaveAttribute('role', 'tab')
+		for (const item of items) expect(item).toHaveAttribute('role', 'tab')
 	})
 
-	it('marks the selected segment item as aria-selected', () => {
+	it('marks the selected item with aria-selected, data-current, and the tab stop', () => {
 		const { container } = renderUI(
 			<Segment value="b">
 				<SegmentControl aria-label="View">
@@ -52,11 +39,19 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		const items = allBySlot(container, 'tab')
+		const [first, second] = allBySlot(container, 'tab')
 
-		expect(items[0]).toHaveAttribute('aria-selected', 'false')
+		expect(first).toHaveAttribute('aria-selected', 'false')
 
-		expect(items[1]).toHaveAttribute('aria-selected', 'true')
+		expect(first).not.toHaveAttribute('data-current')
+
+		expect(first).toHaveAttribute('tabindex', '-1')
+
+		expect(second).toHaveAttribute('aria-selected', 'true')
+
+		expect(second).toHaveAttribute('data-current', '')
+
+		expect(second).toHaveAttribute('tabindex', '0')
 	})
 
 	it('calls onValueChange when a segment item is clicked', () => {
@@ -99,40 +94,6 @@ describe('Segment', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
-	it('sets data-current on the selected item', () => {
-		const { container } = renderUI(
-			<Segment value="b">
-				<SegmentControl aria-label="View">
-					<SegmentItem value="a">A</SegmentItem>
-					<SegmentItem value="b">B</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		const items = allBySlot(container, 'tab')
-
-		expect(items[0]).not.toHaveAttribute('data-current')
-
-		expect(items[1]).toHaveAttribute('data-current', '')
-	})
-
-	it('sets tabIndex=0 on the current item and -1 on others', () => {
-		const { container } = renderUI(
-			<Segment value="b">
-				<SegmentControl aria-label="View">
-					<SegmentItem value="a">A</SegmentItem>
-					<SegmentItem value="b">B</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		const items = allBySlot(container, 'tab')
-
-		expect(items[0]).toHaveAttribute('tabindex', '-1')
-
-		expect(items[1]).toHaveAttribute('tabindex', '0')
-	})
-
 	it('works as uncontrolled with defaultValue', () => {
 		const onValueChange = vi.fn()
 
@@ -153,26 +114,13 @@ describe('Segment', () => {
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
-
-	it('passes aria-label to the control', () => {
-		const { container } = renderUI(
-			<Segment value="a">
-				<SegmentControl aria-label="View mode">
-					<SegmentItem value="a">A</SegmentItem>
-					<SegmentItem value="b">B</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		expect(bySlot(container, 'tab-list')).toHaveAttribute('aria-label', 'View mode')
-	})
 })
 
 describe('Segment keyboard navigation', () => {
 	const item = (name: string) => screen.getByRole('tab', { name })
 
 	it('moves focus across items with arrows, skipping the disabled one', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<Segment value="a">

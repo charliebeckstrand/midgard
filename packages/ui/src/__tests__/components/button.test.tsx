@@ -23,7 +23,7 @@ describe('Button', () => {
 	it('defaults to the native submit type without emitting a type attribute', () => {
 		const { container } = renderUI(<Button>Submit</Button>)
 
-		const button = getSlot<HTMLAnchorElement>(container, 'button')
+		const button = getSlot<HTMLButtonElement>(container, 'button')
 
 		// No explicit attribute — the DOM applies the native `submit` default, so
 		// the IDL property reads `submit` while the attribute stays absent.
@@ -38,28 +38,12 @@ describe('Button', () => {
 		expect(bySlot(container, 'button')).toHaveAttribute('type', 'button')
 	})
 
-	it('submits an enclosing form when left untyped', () => {
-		const onSubmit = vi.fn((event) => event.preventDefault())
-
-		const { container } = renderUI(
-			<form onSubmit={onSubmit}>
-				<Button>Save</Button>
-			</form>,
-		)
-
-		fireEvent.click(getSlot<HTMLAnchorElement>(container, 'button'))
-
-		expect(onSubmit).toHaveBeenCalledOnce()
-	})
-
-	it('forwards click handler', async () => {
+	it('forwards click handler', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(<Button onClick={onClick}>Click</Button>)
 
-		const button = bySlot(container, 'button')
-
-		fireEvent.click(button as HTMLElement)
+		fireEvent.click(getSlot(container, 'button'))
 
 		expect(onClick).toHaveBeenCalledOnce()
 	})
@@ -135,12 +119,6 @@ describe('Button', () => {
 		expect(bySlot(container, 'button')).toBeInTheDocument()
 
 		expect(screen.getByText('Springy').closest('a')).toHaveAttribute('href', '/spring')
-	})
-
-	it('renders the motion wrapper around a button-shaped button', () => {
-		const { container } = renderUI(<Button>Click</Button>)
-
-		expect(bySlot(container, 'button')?.tagName).toBe('BUTTON')
 	})
 
 	describe('size resolution', () => {

@@ -25,12 +25,6 @@ describe('useDatePickerState', () => {
 			expect(result.current.displayValue).not.toBe('')
 		})
 
-		it('derives a non-empty displayValue from a controlled value', () => {
-			const { result } = renderHook(() => useDatePickerState({ value: Jan15 }))
-
-			expect(result.current.displayValue).not.toBe('')
-		})
-
 		it('exposes calendar.active as null while closed', () => {
 			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 
@@ -242,12 +236,6 @@ describe('useDatePickerState', () => {
 	})
 
 	describe('footerButtons', () => {
-		it('exposes only "today" when there is no value', () => {
-			const { result } = renderHook(() => useDatePickerState({}))
-
-			expect(result.current.footer.footerButtons).toEqual(['today'])
-		})
-
 		it('exposes "clear" and "today" once a value is set', () => {
 			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 

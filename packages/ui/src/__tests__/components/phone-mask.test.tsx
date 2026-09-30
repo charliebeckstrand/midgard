@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { MaskInput, phoneMask } from '../../components/mask-input'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('phoneMask', () => {
@@ -24,7 +24,7 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '5551234567')
 
@@ -34,13 +34,11 @@ describe('phoneMask', () => {
 	})
 
 	it('strips non-digit characters for US country', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<MaskInput mask={phoneMask()} onValueChange={onChange} />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'abc555')
 
@@ -52,19 +50,11 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '+14155551234')
 
 		expect(input.value).toBe('+14155551234')
-	})
-
-	it('formats defaultValue on initial render', () => {
-		const { container } = renderUI(<MaskInput mask={phoneMask()} defaultValue="5551234567" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		expect(input.value).toBe('(555) 123-4567')
 	})
 
 	it('keeps the caret next to the typed digit when format inserts separators', async () => {
@@ -78,7 +68,7 @@ describe('phoneMask', () => {
 
 		input.setSelectionRange(2, 2)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('1')
 
@@ -95,42 +85,37 @@ describe('phoneMask', () => {
 		expect(container.querySelector('[data-testid="custom-prefix"]')).toBeInTheDocument()
 	})
 
-	it('strips a leading country-code 1 from an 11-digit US number', () => {
-		const { container } = renderUI(<MaskInput mask={phoneMask()} defaultValue="15551234567" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		expect(input.value).toBe('(555) 123-4567')
-	})
-
 	it('preserves a leading + with no digits for international country', async () => {
 		const { container } = renderUI(<MaskInput mask={phoneMask('international')} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '+')
 
 		expect(input.value).toBe('+')
 	})
 
-	it('formats digits without a + for international country', () => {
-		const { container } = renderUI(
-			<MaskInput mask={phoneMask('international')} defaultValue="14155551234" />,
-		)
+	it.each<[string, ReturnType<typeof phoneMask>, string, string]>([
+		['formats a US defaultValue on initial render', phoneMask(), '5551234567', '(555) 123-4567'],
+		[
+			'strips a leading country-code 1 from an 11-digit US number',
+			phoneMask(),
+			'15551234567',
+			'(555) 123-4567',
+		],
+		[
+			'formats digits without a + for international country',
+			phoneMask('international'),
+			'14155551234',
+			'14155551234',
+		],
+		['renders an empty string for an empty US value', phoneMask(), '', ''],
+	])('%s', (_name, mask, defaultValue, expected) => {
+		const { container } = renderUI(<MaskInput mask={mask} defaultValue={defaultValue} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		expect(input.value).toBe('14155551234')
-	})
-
-	it('renders an empty string for an empty US value', () => {
-		const { container } = renderUI(<MaskInput mask={phoneMask()} defaultValue="" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		expect(input.value).toBe('')
+		expect(getSlot<HTMLInputElement>(container, 'mask-input').value).toBe(expected)
 	})
 
 	it('binds to a Form field by name, storing the formatted text', async () => {
@@ -143,7 +128,7 @@ describe('phoneMask', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
@@ -169,7 +154,7 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 

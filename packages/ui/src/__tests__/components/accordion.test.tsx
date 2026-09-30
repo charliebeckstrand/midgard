@@ -8,7 +8,7 @@ import {
 	useAccordionItem,
 } from '../../components/accordion'
 import type { Mount } from '../../primitives/mount'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('AccordionTrigger', () => {
 	it('fires a consumer onClick alongside the toggle', () => {
@@ -313,9 +313,12 @@ describe('useAccordionItem in trigger children', () => {
 		return open ? 'Open!' : 'Closed'
 	}
 
-	it('exposes open=true to trigger children', () => {
+	it.each([
+		['open=true to trigger children', 'a', 'Open!'],
+		['open=false when the item is closed', undefined, 'Closed'],
+	])('exposes %s', (_, defaultValue, label) => {
 		renderUI(
-			<Accordion defaultValue="a">
+			<Accordion defaultValue={defaultValue}>
 				<AccordionItem value="a">
 					<AccordionTrigger>
 						<OpenLabel />
@@ -325,22 +328,7 @@ describe('useAccordionItem in trigger children', () => {
 			</Accordion>,
 		)
 
-		expect(screen.getByText('Open!')).toBeInTheDocument()
-	})
-
-	it('exposes open=false when the item is closed', () => {
-		renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>
-						<OpenLabel />
-					</AccordionTrigger>
-					<AccordionPanel>Body</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		expect(screen.getByText('Closed')).toBeInTheDocument()
+		expect(screen.getByText(label)).toBeInTheDocument()
 	})
 })
 
@@ -367,7 +355,7 @@ describe('Accordion keyboard navigation', () => {
 	}
 
 	it('moves focus between headers with arrows, skipping the disabled trigger', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderAccordion()
 
@@ -383,7 +371,7 @@ describe('Accordion keyboard navigation', () => {
 	})
 
 	it('keeps every enabled header in the Tab sequence', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderAccordion()
 
@@ -422,7 +410,7 @@ describe('Accordion mount policy', () => {
 	}
 
 	it('unmounts a closed panel by default, losing its state', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels />)
 
@@ -436,7 +424,7 @@ describe('Accordion mount policy', () => {
 	})
 
 	it('mount="lazy" holds an opened panel and its state across a close', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels mount="lazy" />)
 
@@ -478,7 +466,7 @@ describe('Accordion mount policy', () => {
 	})
 
 	it('mount="lazy" drops aria-controls from a closed header', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels mount="lazy" />)
 

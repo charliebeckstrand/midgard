@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Sparkline } from '../../components/sparkline'
 import { sparklineGeometry } from '../../components/sparkline/sparkline-geometry'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, densityStepOf, getSlot, renderUI, screen } from '../helpers'
+import { bySlot, densityStepOf, getSlot, renderUI } from '../helpers'
 
 describe('Sparkline', () => {
 	it('renders a role="img" wrapper carrying the accessible name over a hidden SVG', () => {
@@ -179,13 +179,6 @@ describe('sparklineGeometry', () => {
 		expect(geo.bars[1]?.height).toBeGreaterThan(1)
 	})
 
-	it('ignores non-finite entries when deriving the domain', () => {
-		const geo = sparklineGeometry([1, Number.NaN, 3], { ...box })
-
-		// A stray NaN doesn't collapse the scale: the finite endpoints still separate.
-		expect(geo.points[0]?.y).not.toBe(geo.points[2]?.y)
-	})
-
 	it('drops a non-finite vertex from the drawn marks instead of emitting an invalid path', () => {
 		const geo = sparklineGeometry([1, Number.NaN, 3], { ...box })
 
@@ -238,31 +231,6 @@ describe('sparklineGeometry', () => {
 		expect(geo.bars).toHaveLength(0)
 
 		expect(geo.last).toBeNull()
-	})
-})
-
-describe('Sparkline in a Grid cell', () => {
-	it('renders a sparkline per row', () => {
-		const rows = [
-			{ id: 1, trend: [1, 2, 3] },
-			{ id: 2, trend: [3, 2, 1] },
-		]
-
-		renderUI(
-			<table>
-				<tbody>
-					{rows.map((row) => (
-						<tr key={row.id}>
-							<td>
-								<Sparkline data={row.trend} aria-label={`Row ${row.id}`} />
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>,
-		)
-
-		expect(screen.getAllByRole('img')).toHaveLength(2)
 	})
 })
 

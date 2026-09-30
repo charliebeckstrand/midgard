@@ -91,31 +91,22 @@ describe('useSignaturePadCanvasSizing', () => {
 		expect(canvas?.width).toBe(320)
 	})
 
-	it('bails when the container has zero width', () => {
-		const { canvas, context } = setup({ containerSize: { width: 0, height: 100 } })
+	it.each([
+		['width', { width: 0, height: 100 }],
+		['height', { width: 100, height: 0 }],
+	])('bails when the container has zero %s', (_name, containerSize) => {
+		const { canvas, context } = setup({ containerSize })
 
 		expect(canvas?.style.width).toBe('')
 
 		expect(context.scale).not.toHaveBeenCalled()
 	})
 
-	it('bails when the container has zero height', () => {
-		const { canvas, context } = setup({ containerSize: { width: 100, height: 0 } })
-
-		expect(canvas?.style.width).toBe('')
-
-		expect(context.scale).not.toHaveBeenCalled()
-	})
-
-	it('does nothing when the container ref is empty', () => {
-		expect(() => setup({ containerSize: null })).not.toThrow()
-	})
-
-	it('does nothing when the canvas ref is empty', () => {
-		expect(() => setup({ canvasNull: true })).not.toThrow()
-	})
-
-	it('skips configuration when the 2D context is unavailable', () => {
-		expect(() => setup({ contextNull: true })).not.toThrow()
+	it.each<[string, Parameters<typeof setup>[0]]>([
+		['does nothing when the container ref is empty', { containerSize: null }],
+		['does nothing when the canvas ref is empty', { canvasNull: true }],
+		['skips configuration when the 2D context is unavailable', { contextNull: true }],
+	])('%s', (_name, options) => {
+		expect(() => setup(options)).not.toThrow()
 	})
 })

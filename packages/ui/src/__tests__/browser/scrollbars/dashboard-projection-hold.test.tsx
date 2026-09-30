@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
-import { getSlot, renderUI, screen } from '../../helpers'
+import { frame, getSlot, renderUI, screen } from '../../helpers'
 
 /**
  * A board in a scroll box with a classic scrollbar holds one state at the
@@ -42,7 +42,7 @@ describe('dashboard projection at a classic scrollbar (real browser, real scroll
 			`${board.hasAttribute('data-editing') ? 'saved' : 'projected'} ${Math.round(tile.getBoundingClientRect().width)}`
 
 		// The first frames measure the canvas and settle it.
-		for (let frame = 0; frame < 4; frame++) await new Promise(requestAnimationFrame)
+		for (let step = 0; step < 4; step++) await frame()
 
 		let loops = 0
 
@@ -58,8 +58,8 @@ describe('dashboard projection at a classic scrollbar (real browser, real scroll
 		// each frame, and a sample on each second frame reads it at one phase.
 		const seen: string[] = []
 
-		for (let frame = 0; frame < 36; frame++) {
-			await new Promise(requestAnimationFrame)
+		for (let step = 0; step < 36; step++) {
+			await frame()
 
 			seen.push(read())
 		}

@@ -5,18 +5,13 @@ import { holdDragCursor, useDragCursor, useDragCursorHold } from '../../hooks/us
 const rule = () => document.head.querySelector<HTMLStyleElement>('style[data-drag-cursor]')
 
 describe('useDragCursor', () => {
-	it('injects a global grabbing rule while active', () => {
-		const { unmount } = renderHook(() => useDragCursor(true))
+	it.each([
+		['injects a global grabbing rule while active', undefined, 'grabbing'],
+		['holds the cursor that the drag names', 'col-resize', 'col-resize'],
+	] as const)('%s', (_name, cursor, expected) => {
+		const { unmount } = renderHook(() => useDragCursor(true, cursor))
 
-		expect(rule()?.textContent).toBe('*{cursor:grabbing !important}')
-
-		unmount()
-	})
-
-	it('holds the cursor that the drag names', () => {
-		const { unmount } = renderHook(() => useDragCursor(true, 'col-resize'))
-
-		expect(rule()?.textContent).toBe('*{cursor:col-resize !important}')
+		expect(rule()?.textContent).toBe(`*{cursor:${expected} !important}`)
 
 		unmount()
 	})

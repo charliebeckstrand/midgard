@@ -13,7 +13,6 @@ type Setup = Partial<{
 	open: boolean
 	active: CalendarActive | null
 	footerButtons: FooterButton[]
-	calendarHandle: CalendarHandle
 }>
 
 function setup(overrides: Setup = {}) {
@@ -33,7 +32,7 @@ function setup(overrides: Setup = {}) {
 
 	const onFooterActivate = vi.fn()
 
-	const calendarHandle: CalendarHandle = overrides.calendarHandle ?? {
+	const calendarHandle: CalendarHandle = {
 		prevMonth: vi.fn(),
 		nextMonth: vi.fn(),
 		openPicker: vi.fn(),
@@ -163,10 +162,13 @@ describe('useDatePickerKeyboard: open with null active', () => {
 		)
 	})
 
-	it('selects the initial date on Enter when active is null', () => {
+	it.each([
+		['Enter', 'Enter'],
+		['Space', ' '],
+	])('selects the initial date on %s when active is null', (_name, key) => {
 		const { handler, handleSelect } = setup({ active: null })
 
-		handler(makeKeyEvent<HTMLElement>('Enter'))
+		handler(makeKeyEvent<HTMLElement>(key))
 
 		expect(handleSelect).toHaveBeenCalled()
 	})
@@ -207,26 +209,19 @@ describe('useDatePickerKeyboard: grid zone', () => {
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: expect.any(Date) })
 	})
 
-	it('moves grid date backward one day on ArrowLeft', () => {
-		const { handler, moveGridDate, setActive } = setup({ active: gridActive })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
-
-		expect(moveGridDate).toHaveBeenCalledWith(-1)
-
-		expect(setActive).toHaveBeenCalled()
-	})
-
 	it.each<[string, string, number]>([
+		['moves grid date backward one day on ArrowLeft', 'ArrowLeft', -1],
 		['moves grid date forward one day on ArrowRight', 'ArrowRight', 1],
 		['moves grid date backward one week on ArrowUp', 'ArrowUp', -7],
 		['moves grid date forward one week on ArrowDown', 'ArrowDown', 7],
 	])('%s', (_name, key, delta) => {
-		const { handler, moveGridDate } = setup({ active: gridActive })
+		const { handler, moveGridDate, setActive } = setup({ active: gridActive })
 
 		handler(makeKeyEvent<HTMLElement>(key))
 
 		expect(moveGridDate).toHaveBeenCalledWith(delta)
+
+		expect(setActive).toHaveBeenCalled()
 	})
 
 	it('selects the active grid date on Enter', () => {
@@ -246,21 +241,21 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	})
 })
 
+/** The index of a header button: previous month, the picker, next month. */
+type HeaderIndex = Extract<CalendarActive, { zone: 'header' }>['index']
+
 describe('useDatePickerKeyboard: header zone', () => {
-	it('wraps header index backward on ArrowLeft', () => {
-		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
+	it.each<[string, HeaderIndex, string, HeaderIndex]>([
+		['wraps header index backward on ArrowLeft', 0, 'ArrowLeft', 2],
+		['wraps header index forward on ArrowRight', 2, 'ArrowRight', 0],
+		['decrements header index on ArrowLeft when not at index 0', 1, 'ArrowLeft', 0],
+		['increments header index on ArrowRight when not at the last index', 0, 'ArrowRight', 1],
+	])('%s', (_name, index, key, expected) => {
+		const { handler, setActive } = setup({ active: { zone: 'header', index } })
 
-		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
+		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
-	})
-
-	it('wraps header index forward on ArrowRight', () => {
-		const { handler, setActive } = setup({ active: { zone: 'header', index: 2 } })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 0 })
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: expected })
 	})
 
 	it('moves from header to grid on ArrowDown', () => {
@@ -271,58 +266,29 @@ describe('useDatePickerKeyboard: header zone', () => {
 		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
 	})
 
-	it('activates the previous-month button on Enter when index=0', () => {
-		const prevMonth = vi.fn()
+	it('swallows ArrowUp in the header zone', () => {
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
 
-		const { handler } = setup({
-			active: { zone: 'header', index: 0 },
-			calendarHandle: {
-				prevMonth,
-				nextMonth: vi.fn(),
-				openPicker: vi.fn(),
-				footerKeyDown: vi.fn(),
-			},
-		})
+		const event = makeKeyEvent<HTMLElement>('ArrowUp')
 
-		handler(makeKeyEvent<HTMLElement>('Enter'))
+		handler(event)
 
-		expect(prevMonth).toHaveBeenCalled()
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).not.toHaveBeenCalled()
 	})
 
-	it('opens the picker on Enter when index=1', () => {
-		const openPicker = vi.fn()
+	it.each<[string, HeaderIndex, string, keyof CalendarHandle]>([
+		['activates the previous-month button on Enter when index=0', 0, 'Enter', 'prevMonth'],
+		['opens the picker on Enter when index=1', 1, 'Enter', 'openPicker'],
+		['activates the next-month button on Enter when index=2', 2, 'Enter', 'nextMonth'],
+		['activates the focused header button on Space', 1, ' ', 'openPicker'],
+	])('%s', (_name, index, key, action) => {
+		const { handler, calendarHandle } = setup({ active: { zone: 'header', index } })
 
-		const { handler } = setup({
-			active: { zone: 'header', index: 1 },
-			calendarHandle: {
-				prevMonth: vi.fn(),
-				nextMonth: vi.fn(),
-				openPicker,
-				footerKeyDown: vi.fn(),
-			},
-		})
+		handler(makeKeyEvent<HTMLElement>(key))
 
-		handler(makeKeyEvent<HTMLElement>('Enter'))
-
-		expect(openPicker).toHaveBeenCalled()
-	})
-
-	it('activates the next-month button on Enter when index=2', () => {
-		const nextMonth = vi.fn()
-
-		const { handler } = setup({
-			active: { zone: 'header', index: 2 },
-			calendarHandle: {
-				prevMonth: vi.fn(),
-				nextMonth,
-				openPicker: vi.fn(),
-				footerKeyDown: vi.fn(),
-			},
-		})
-
-		handler(makeKeyEvent<HTMLElement>('Enter'))
-
-		expect(nextMonth).toHaveBeenCalled()
+		expect(calendarHandle[action]).toHaveBeenCalled()
 	})
 })
 
@@ -359,24 +325,13 @@ describe('useDatePickerKeyboard: footer zone', () => {
 		expect(onFooterActivate).toHaveBeenCalledWith('today')
 	})
 
-	it('does nothing on ArrowLeft when footerButtons is empty', () => {
+	it.each(['ArrowLeft', 'ArrowRight'])('does nothing on %s when footerButtons is empty', (key) => {
 		const { handler, setActive } = setup({
 			active: { zone: 'footer', index: 0 },
 			footerButtons: [],
 		})
 
-		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
-
-		expect(setActive).not.toHaveBeenCalled()
-	})
-
-	it('does nothing on ArrowRight when footerButtons is empty', () => {
-		const { handler, setActive } = setup({
-			active: { zone: 'footer', index: 0 },
-			footerButtons: [],
-		})
-
-		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
+		handler(makeKeyEvent<HTMLElement>(key))
 
 		expect(setActive).not.toHaveBeenCalled()
 	})
@@ -416,63 +371,7 @@ describe('useDatePickerKeyboard: footer zone', () => {
 	})
 })
 
-describe('useDatePickerKeyboard: header zone (additional branches)', () => {
-	it('decrements header index on ArrowLeft when not at index 0', () => {
-		const { handler, setActive } = setup({ active: { zone: 'header', index: 1 } })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 0 })
-	})
-
-	it('increments header index on ArrowRight when not at the last index', () => {
-		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 1 })
-	})
-
-	it('swallows ArrowUp in the header zone', () => {
-		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
-
-		const event = makeKeyEvent<HTMLElement>('ArrowUp')
-
-		handler(event)
-
-		expect(event.preventDefault).toHaveBeenCalled()
-
-		expect(setActive).not.toHaveBeenCalled()
-	})
-
-	it('activates the focused header button on Space', () => {
-		const openPicker = vi.fn()
-
-		const { handler } = setup({
-			active: { zone: 'header', index: 1 },
-			calendarHandle: {
-				prevMonth: vi.fn(),
-				nextMonth: vi.fn(),
-				openPicker,
-				footerKeyDown: vi.fn(),
-			},
-		})
-
-		handler(makeKeyEvent<HTMLElement>(' '))
-
-		expect(openPicker).toHaveBeenCalled()
-	})
-})
-
 describe('useDatePickerKeyboard: null active edge cases', () => {
-	it('selects the initial date on Space when active is null', () => {
-		const { handler, handleSelect } = setup({ active: null })
-
-		handler(makeKeyEvent<HTMLElement>(' '))
-
-		expect(handleSelect).toHaveBeenCalled()
-	})
-
 	it('is a no-op on non-Enter/Space keys when active is null', () => {
 		const { handler, handleSelect, setActive } = setup({ active: null })
 

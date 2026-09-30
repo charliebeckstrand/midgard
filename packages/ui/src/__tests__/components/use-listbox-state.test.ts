@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { useListboxState } from '../../components/listbox/use-listbox-state'
 
 describe('useListboxState', () => {
-	it('starts closed', () => {
+	it('starts closed, opens via setOpen, and closes via close()', () => {
 		const { result } = renderHook(() =>
 			useListboxState<string>({
 				multiple: false,
@@ -14,17 +14,6 @@ describe('useListboxState', () => {
 		)
 
 		expect(result.current.open).toBe(false)
-	})
-
-	it('opens via setOpen and closes via close()', () => {
-		const { result } = renderHook(() =>
-			useListboxState<string>({
-				multiple: false,
-				nullable: false,
-				value: undefined,
-				setValue: vi.fn(),
-			}),
-		)
 
 		act(() => {
 			result.current.setOpen(true)

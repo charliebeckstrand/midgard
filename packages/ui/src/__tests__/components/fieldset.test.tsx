@@ -1,4 +1,5 @@
 import { act } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Combobox } from '../../components/combobox'
 import { DatePicker } from '../../components/date-picker'
@@ -8,6 +9,33 @@ import { Input } from '../../components/input'
 import { Listbox } from '../../components/listbox'
 import { Select } from '../../components/select'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+
+type SetErrors = { setErrors: (e: Record<string, string | string[]>) => void }
+
+/**
+ * Renders `message` in a Form whose submit sets `errors` on the `name` field, then submits it.
+ *
+ * @returns The rendered Message.
+ */
+async function submitWithErrors(errors: string | string[], message: ReactElement) {
+	const { container } = renderUI(
+		<Form
+			defaultValues={{ name: '' }}
+			onSubmit={(_v, helpers: SetErrors) => {
+				helpers.setErrors({ name: errors })
+			}}
+		>
+			{message}
+			<button type="submit">Submit</button>
+		</Form>,
+	)
+
+	await act(async () => {
+		fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
+	})
+
+	return getSlot(container, 'message')
+}
 
 describe('Fieldset', () => {
 	it('renders with data-slot="fieldset"', () => {
@@ -135,7 +163,7 @@ describe('Field', () => {
 		const { container } = renderUI(
 			<Form
 				defaultValues={{ email: '' }}
-				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
+				onSubmit={(_v, helpers: SetErrors) => {
 					helpers.setErrors({ email: 'required' })
 				}}
 			>
@@ -283,51 +311,18 @@ describe('Message', () => {
 	})
 
 	it('renders the form field error when bound and the field has an error', async () => {
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
-					helpers.setErrors({ name: 'required' })
-				}}
-			>
-				<Message name="name">fallback</Message>
-				<button type="submit">Submit</button>
-			</Form>,
-		)
-
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
-
-		const message = getSlot(container, 'message')
+		const message = await submitWithErrors('required', <Message name="name">fallback</Message>)
 
 		expect(message.textContent).toBe('required')
 	})
 
 	it('lists every field error when bound with the all prop', async () => {
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
-					helpers.setErrors({ name: ['Too short', 'Required'] })
-				}}
-			>
-				<Message name="name" all>
-					fallback
-				</Message>
-				<button type="submit">Submit</button>
-			</Form>,
+		const message = await submitWithErrors(
+			['Too short', 'Required'],
+			<Message name="name" all>
+				fallback
+			</Message>,
 		)
-
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
-
-		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('UL')
 
@@ -339,25 +334,12 @@ describe('Message', () => {
 	})
 
 	it('renders a single error as a paragraph even with the all prop', async () => {
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
-					helpers.setErrors({ name: 'Required' })
-				}}
-			>
-				<Message name="name" all>
-					fallback
-				</Message>
-				<button type="submit">Submit</button>
-			</Form>,
+		const message = await submitWithErrors(
+			'Required',
+			<Message name="name" all>
+				fallback
+			</Message>,
 		)
-
-		await act(async () => {
-			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
-		})
-
-		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('P')
 
@@ -365,25 +347,12 @@ describe('Message', () => {
 	})
 
 	it('forwards a consumer attribute to the multi-error list', async () => {
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
-					helpers.setErrors({ name: ['Too short', 'Required'] })
-				}}
-			>
-				<Message name="name" all data-testid="errors">
-					fallback
-				</Message>
-				<button type="submit">Submit</button>
-			</Form>,
+		const message = await submitWithErrors(
+			['Too short', 'Required'],
+			<Message name="name" all data-testid="errors">
+				fallback
+			</Message>,
 		)
-
-		await act(async () => {
-			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
-		})
-
-		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('UL')
 
@@ -393,25 +362,12 @@ describe('Message', () => {
 	})
 
 	it('keeps the alert role on the multi-error list when a consumer supplies one', async () => {
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
-					helpers.setErrors({ name: ['Too short', 'Required'] })
-				}}
-			>
-				<Message name="name" all role="note">
-					fallback
-				</Message>
-				<button type="submit">Submit</button>
-			</Form>,
+		const message = await submitWithErrors(
+			['Too short', 'Required'],
+			<Message name="name" all role="note">
+				fallback
+			</Message>,
 		)
-
-		await act(async () => {
-			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
-		})
-
-		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('UL')
 

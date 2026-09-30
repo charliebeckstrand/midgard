@@ -39,44 +39,30 @@ describe('form submission semantics', () => {
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
-	it('NumberInput steppers do not submit', () => {
-		const onSubmit = inForm(<NumberInput defaultValue={1} />)
+	it.each<[string, React.ReactNode, string[]]>([
+		['NumberInput steppers', <NumberInput key="n" defaultValue={1} />, ['Increase', 'Decrease']],
+		['PasswordInput reveal toggle', <PasswordInput key="p" />, ['Show password']],
+		[
+			'SearchInput clear',
+			<SearchInput key="s" value="query" onChange={() => {}} onClear={() => {}} />,
+			['Clear search'],
+		],
+		[
+			'ToggleIconButton',
+			<ToggleIconButton key="t" pressed={false} icon={<Bold />} aria-label="Bold" />,
+			['Bold'],
+		],
+		[
+			'Alert dismiss',
+			<Alert key="a" closable>
+				Heads up
+			</Alert>,
+			['Dismiss'],
+		],
+	])('%s does not submit', (_name, control, buttons) => {
+		const onSubmit = inForm(control)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Increase' }))
-
-		fireEvent.click(screen.getByRole('button', { name: 'Decrease' }))
-
-		expect(onSubmit).not.toHaveBeenCalled()
-	})
-
-	it('PasswordInput reveal toggle does not submit', () => {
-		const onSubmit = inForm(<PasswordInput />)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Show password' }))
-
-		expect(onSubmit).not.toHaveBeenCalled()
-	})
-
-	it('SearchInput clear does not submit', () => {
-		const onSubmit = inForm(<SearchInput value="query" onChange={() => {}} onClear={() => {}} />)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
-
-		expect(onSubmit).not.toHaveBeenCalled()
-	})
-
-	it('ToggleIconButton does not submit', () => {
-		const onSubmit = inForm(<ToggleIconButton pressed={false} icon={<Bold />} aria-label="Bold" />)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Bold' }))
-
-		expect(onSubmit).not.toHaveBeenCalled()
-	})
-
-	it('Alert dismiss does not submit', () => {
-		const onSubmit = inForm(<Alert closable>Heads up</Alert>)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		for (const name of buttons) fireEvent.click(screen.getByRole('button', { name }))
 
 		expect(onSubmit).not.toHaveBeenCalled()
 	})

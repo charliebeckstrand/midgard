@@ -77,31 +77,15 @@ function pointerEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerE
 }
 
 describe('useSignaturePadDrawing', () => {
-	it('does nothing on pointerdown when disabled', () => {
-		const { result, context } = setup({ disabled: true })
+	it.each<[string, Setup, Partial<ReactPointerEvent>]>([
+		['when disabled', { disabled: true }, {}],
+		['when readOnly', { readOnly: true }, {}],
+		['for a non-primary mouse button', {}, { button: 2 }],
+	])('does nothing on pointerdown %s', (_name, options, overrides) => {
+		const { result, context } = setup(options)
 
 		act(() => {
-			result.current.handlePointerDown(pointerEvent())
-		})
-
-		expect(context.beginPath).not.toHaveBeenCalled()
-	})
-
-	it('does nothing on pointerdown when readOnly', () => {
-		const { result, context } = setup({ readOnly: true })
-
-		act(() => {
-			result.current.handlePointerDown(pointerEvent())
-		})
-
-		expect(context.beginPath).not.toHaveBeenCalled()
-	})
-
-	it('ignores non-primary mouse buttons', () => {
-		const { result, context } = setup()
-
-		act(() => {
-			result.current.handlePointerDown(pointerEvent({ button: 2 }))
+			result.current.handlePointerDown(pointerEvent(overrides))
 		})
 
 		expect(context.beginPath).not.toHaveBeenCalled()
@@ -275,6 +259,7 @@ describe('useSignaturePadDrawing', () => {
 
 		expect(setCurrent).not.toHaveBeenCalled()
 	})
+
 	describe('onDrawStart', () => {
 		it('reports the start of a stroke once the pad takes the press', () => {
 			const { result, onDrawStart } = setup()

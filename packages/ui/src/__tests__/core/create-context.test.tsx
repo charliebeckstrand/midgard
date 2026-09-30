@@ -16,13 +16,7 @@ describe('createContext', () => {
 		expect(result.current).toBe('hello')
 	})
 
-	it('hook throws error when used outside provider', () => {
-		const [, useValue] = createContext<string>('Test')
-
-		expect(() => renderHook(() => useValue())).toThrow()
-	})
-
-	it('error message includes context name', () => {
+	it('hook throws an error that names the context when used outside provider', () => {
 		const [, useValue] = createContext<string>('Dialog')
 
 		expect(() => renderHook(() => useValue())).toThrow('useDialog must be used within <Dialog>')

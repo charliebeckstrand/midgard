@@ -3,26 +3,25 @@ import { PasswordConfirm, PasswordConfirmInput } from '../../components/password
 import { PasswordInput } from '../../components/password-input'
 import { fireEvent, renderUI, screen } from '../helpers'
 
+/** The password input and the confirm input, in document order. */
+function passwordInputs() {
+	const [password, confirm] = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+
+	return { password: password as HTMLInputElement, confirm: confirm as HTMLInputElement }
+}
+
+/** Types `password` into the first field, then `confirm` into the confirm field. */
+function enter(password: string, confirm: string) {
+	const inputs = passwordInputs()
+
+	fireEvent.input(inputs.password, { target: { value: password } })
+
+	fireEvent.change(inputs.confirm, { target: { value: confirm } })
+
+	return inputs
+}
+
 describe('PasswordConfirmInput', () => {
-	it('calls onChange when the input changes', () => {
-		const onChange = vi.fn()
-
-		renderUI(
-			<PasswordConfirm>
-				<PasswordInput name="password" />
-				<PasswordConfirmInput name="confirm" onChange={onChange} />
-			</PasswordConfirm>,
-		)
-
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		const confirmInput = inputs[1] as HTMLInputElement
-
-		fireEvent.change(confirmInput, { target: { value: 'secret' } })
-
-		expect(onChange).toHaveBeenCalled()
-	})
-
 	it('records the value when the caller onChange prevents the default', () => {
 		// CONVENTIONS.md §3.9: the caller's handler runs first, and its
 		// preventDefault() cannot keep the value from the mismatch coordinator.
@@ -35,19 +34,11 @@ describe('PasswordConfirmInput', () => {
 			</PasswordConfirm>,
 		)
 
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		const passwordInput = inputs[0] as HTMLInputElement
-
-		const confirmInput = inputs[1] as HTMLInputElement
-
-		fireEvent.input(passwordInput, { target: { value: 'abc' } })
-
-		fireEvent.change(confirmInput, { target: { value: 'abcd' } })
+		const { confirm } = enter('abc', 'abcd')
 
 		expect(onChange).toHaveBeenCalledOnce()
 
-		expect(confirmInput).toHaveAttribute('data-warning')
+		expect(confirm).toHaveAttribute('data-warning')
 	})
 
 	it('applies data-warning when passwords differ and the confirm was last edited', () => {
@@ -58,17 +49,9 @@ describe('PasswordConfirmInput', () => {
 			</PasswordConfirm>,
 		)
 
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+		const { confirm } = enter('abc', 'abcd')
 
-		const passwordInput = inputs[0] as HTMLInputElement
-
-		const confirmInput = inputs[1] as HTMLInputElement
-
-		fireEvent.input(passwordInput, { target: { value: 'abc' } })
-
-		fireEvent.change(confirmInput, { target: { value: 'abcd' } })
-
-		expect(confirmInput).toHaveAttribute('data-warning')
+		expect(confirm).toHaveAttribute('data-warning')
 	})
 
 	it('describes the confirm input by the warning while the mismatch holds', () => {
@@ -79,19 +62,11 @@ describe('PasswordConfirmInput', () => {
 			</PasswordConfirm>,
 		)
 
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		const passwordInput = inputs[0] as HTMLInputElement
-
-		const confirmInput = inputs[1] as HTMLInputElement
-
-		fireEvent.input(passwordInput, { target: { value: 'abc' } })
-
-		fireEvent.change(confirmInput, { target: { value: 'abcd' } })
+		const { confirm } = enter('abc', 'abcd')
 
 		// The warning id joins the input's aria-describedby, so focusing the
 		// invalid field announces the reason, not a bare "invalid".
-		const describedBy = confirmInput.getAttribute('aria-describedby')
+		const describedBy = confirm.getAttribute('aria-describedby')
 
 		expect(describedBy).toBeTruthy()
 
@@ -100,9 +75,9 @@ describe('PasswordConfirmInput', () => {
 		expect(warning).toHaveTextContent('Passwords do not match')
 
 		// Matching again drops both the warning and the reference.
-		fireEvent.change(confirmInput, { target: { value: 'abc' } })
+		fireEvent.change(confirm, { target: { value: 'abc' } })
 
-		expect(confirmInput).not.toHaveAttribute('aria-describedby')
+		expect(confirm).not.toHaveAttribute('aria-describedby')
 	})
 
 	it('resets the coordinator when the confirm input unmounts', () => {
@@ -113,11 +88,7 @@ describe('PasswordConfirmInput', () => {
 			</PasswordConfirm>,
 		)
 
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
-
-		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abcd' } })
+		enter('abc', 'abcd')
 
 		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
 
@@ -134,23 +105,6 @@ describe('PasswordConfirmInput', () => {
 })
 
 describe('PasswordConfirm warning rendering', () => {
-	it('renders the warning when passwords mismatch and a warning node is provided', () => {
-		renderUI(
-			<PasswordConfirm warning="Passwords do not match">
-				<PasswordInput name="password" />
-				<PasswordConfirmInput name="confirm" />
-			</PasswordConfirm>,
-		)
-
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
-
-		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abcd' } })
-
-		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
-	})
-
 	it('keeps the live region mounted so the warning changes its children', () => {
 		renderUI(
 			<PasswordConfirm warning="Passwords do not match">
@@ -165,11 +119,7 @@ describe('PasswordConfirm warning rendering', () => {
 
 		expect(region).toBeEmptyDOMElement()
 
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
-
-		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abcd' } })
+		enter('abc', 'abcd')
 
 		// The same element, with new children: that change is what announces.
 		expect(screen.getByRole('status')).toBe(region)
@@ -177,7 +127,10 @@ describe('PasswordConfirm warning rendering', () => {
 		expect(region).toHaveTextContent('Passwords do not match')
 	})
 
-	it('calls onMatchChange with true when passwords match', () => {
+	it.each([
+		['true when passwords match', 'abc', true],
+		['false when passwords diverge', 'abd', false],
+	])('calls onMatchChange with %s', (_name, confirm, expected) => {
 		const onMatchChange = vi.fn()
 
 		renderUI(
@@ -187,31 +140,8 @@ describe('PasswordConfirm warning rendering', () => {
 			</PasswordConfirm>,
 		)
 
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+		enter('abc', confirm)
 
-		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
-
-		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abc' } })
-
-		expect(onMatchChange).toHaveBeenCalledWith(true)
-	})
-
-	it('calls onMatchChange with false when passwords diverge', () => {
-		const onMatchChange = vi.fn()
-
-		renderUI(
-			<PasswordConfirm onMatchChange={onMatchChange}>
-				<PasswordInput name="password" />
-				<PasswordConfirmInput name="confirm" />
-			</PasswordConfirm>,
-		)
-
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
-
-		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abd' } })
-
-		expect(onMatchChange).toHaveBeenCalledWith(false)
+		expect(onMatchChange).toHaveBeenCalledWith(expected)
 	})
 })

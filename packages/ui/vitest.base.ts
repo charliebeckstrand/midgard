@@ -43,3 +43,14 @@ export const cleanup = {
 	unstubGlobals: true,
 	unstubEnvs: true,
 } as const
+
+/**
+ * The source that coverage measures. The jsdom run and the browser run each
+ * write a report over this scope, and `scripts/merge-coverage.ts` merges the
+ * two. A file that only the browser suite tests then counts as covered.
+ */
+export const coverageScope = {
+	provider: 'v8' as const,
+	include: ['src/**/*.{ts,tsx}'],
+	exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**', 'src/index.ts'],
+}

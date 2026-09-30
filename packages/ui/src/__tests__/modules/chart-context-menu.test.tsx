@@ -15,11 +15,7 @@ const series = [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' } as const]
 
 /** Right-clicks a chart's root region to open its context menu. */
 function openChartMenu(container: HTMLElement): void {
-	const root = bySlot(container, 'chart')
-
-	if (!root) throw new Error('no chart root')
-
-	fireEvent.contextMenu(root)
+	fireEvent.contextMenu(getSlot(container, 'chart'))
 }
 
 describe('Chart context menu', () => {
@@ -90,23 +86,6 @@ describe('Chart context menu', () => {
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Inspect' }))
 
 		expect(onInspect).toHaveBeenCalledOnce()
-	})
-
-	it('opens the fullscreen dialog from the Fullscreen action', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by quarter"
-				title="Revenue by quarter"
-				data={data}
-				series={[...series]}
-			/>,
-		)
-
-		openChartMenu(container)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
-
-		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
 	it('reports both ends of the fullscreen dialog, whatever drove them', () => {
@@ -183,7 +162,7 @@ describe('Chart context menu', () => {
 		expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
 	})
 
-	it('closes the fullscreen dialog on Escape', () => {
+	it('opens the fullscreen dialog from the Fullscreen action, and closes it on Escape', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
@@ -252,7 +231,7 @@ describe('Chart context menu', () => {
 
 		// The secondary button held with Ctrl is the escape hatch to the browser
 		// menu — the same one the grid uses (via isNativeContextMenuRequest).
-		fireEvent.contextMenu(bySlot(container, 'chart') ?? container, { ctrlKey: true, button: 2 })
+		fireEvent.contextMenu(getSlot(container, 'chart'), { ctrlKey: true, button: 2 })
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
@@ -264,7 +243,7 @@ describe('Chart context menu', () => {
 
 		// A primary-button Ctrl+click is macOS's secondary click; it reaches the
 		// chart menu rather than the native one, so Mac users get there too.
-		fireEvent.contextMenu(bySlot(container, 'chart') ?? container, { ctrlKey: true, button: 0 })
+		fireEvent.contextMenu(getSlot(container, 'chart'), { ctrlKey: true, button: 0 })
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
@@ -284,9 +263,7 @@ describe('Chart context menu', () => {
 				/>,
 			)
 
-			const root = bySlot(container, 'chart')
-
-			if (!root) throw new Error('no chart root')
+			const root = getSlot(container, 'chart')
 
 			// The frame snapshots the hovered index on the contextmenu capture phase;
 			// with no mark hovered that snapshot is null, so a per-mark item is withheld.

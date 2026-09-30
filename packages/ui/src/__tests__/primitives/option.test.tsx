@@ -4,18 +4,6 @@ import { createSelectOption, Option } from '../../primitives/option'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Option', () => {
-	it('renders with role="option"', () => {
-		renderUI(
-			<Option selected={false} onSelect={() => {}}>
-				Option
-			</Option>,
-		)
-
-		const el = screen.getByRole('option')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('sets aria-selected when selected', () => {
 		renderUI(
 			<Option selected={true} onSelect={() => {}}>

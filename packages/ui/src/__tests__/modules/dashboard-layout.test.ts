@@ -32,8 +32,8 @@ const overlaps = (cells: readonly DashboardCell[]) =>
 	)
 
 describe('deriveHeight', () => {
-	it('gives equal tiles equal heights', () => {
-		expect(deriveHeight(8, 16 / 9)).toBe(deriveHeight(8, 16 / 9))
+	it('derives the rows of a ratio tile from its columns', () => {
+		expect(deriveHeight(8, 16 / 9)).toBe(18)
 
 		expect(deriveHeight(12, 16 / 9)).toBe(27)
 	})

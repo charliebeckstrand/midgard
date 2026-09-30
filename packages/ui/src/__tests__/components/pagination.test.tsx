@@ -56,31 +56,20 @@ describe('PaginationPage', () => {
 	})
 })
 
-describe('PaginationPrevious', () => {
-	it('renders a button', () => {
+describe.each([
+	['PaginationPrevious', PaginationPrevious, 'Previous page'],
+	['PaginationNext', PaginationNext, 'Next page'],
+] as const)('%s', (_name, Step, label) => {
+	it(`renders a button labeled "${label}"`, () => {
 		renderUI(
 			<Pagination>
 				<PaginationList>
-					<PaginationPrevious />
+					<Step />
 				</PaginationList>
 			</Pagination>,
 		)
 
-		expect(screen.getByLabelText('Previous page')).toBeInTheDocument()
-	})
-})
-
-describe('PaginationNext', () => {
-	it('renders a button', () => {
-		renderUI(
-			<Pagination>
-				<PaginationList>
-					<PaginationNext />
-				</PaginationList>
-			</Pagination>,
-		)
-
-		expect(screen.getByLabelText('Next page')).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
 	})
 })
 

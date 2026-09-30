@@ -123,70 +123,43 @@ describe('Resizable', () => {
 })
 
 describe('Resizable: keyboard', () => {
-	it('ArrowRight grows the left panel by 5% in a horizontal group', () => {
+	// Each row presses one key on the handle between two 50% panels and reads the
+	// last sizes reported.
+	it.each<
+		[
+			string,
+			{ orientation?: 'horizontal' | 'vertical'; minSize?: number; maxSize?: number },
+			{ key: string; shiftKey?: boolean },
+			number[],
+		]
+	>([
+		[
+			'ArrowRight grows the left panel by 5% in a horizontal group',
+			{},
+			{ key: 'ArrowRight' },
+			[55, 45],
+		],
+		[
+			'ArrowLeft shrinks the left panel by 5% in a horizontal group',
+			{},
+			{ key: 'ArrowLeft' },
+			[45, 55],
+		],
+		['Shift + arrow uses a 10% step', {}, { key: 'ArrowRight', shiftKey: true }, [60, 40]],
+		['Home collapses the left panel to its minimum', { minSize: 10 }, { key: 'Home' }, [10, 90]],
+		['End grows the left panel to its maximum', { maxSize: 90 }, { key: 'End' }, [90, 10]],
+		[
+			'ArrowDown grows the top panel in a vertical group',
+			{ orientation: 'vertical' },
+			{ key: 'ArrowDown' },
+			[55, 45],
+		],
+	])('%s', (_name, { orientation, minSize, maxSize }, key, expected) => {
 		const onSizesChange = vi.fn()
 
 		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
-
-		const handle = getSlot(container, 'resizable-handle')
-
-		fireEvent.keyDown(handle, { key: 'ArrowRight' })
-
-		expect(onSizesChange).toHaveBeenCalled()
-
-		const [next] = onSizesChange.mock.calls.at(-1) ?? []
-
-		expect(next).toEqual([55, 45])
-	})
-
-	it('ArrowLeft shrinks the left panel by 5% in a horizontal group', () => {
-		const onSizesChange = vi.fn()
-
-		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
-
-		const handle = getSlot(container, 'resizable-handle')
-
-		fireEvent.keyDown(handle, { key: 'ArrowLeft' })
-
-		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([45, 55])
-	})
-
-	it('Shift + arrow uses a 10% step', () => {
-		const onSizesChange = vi.fn()
-
-		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
-
-		const handle = getSlot(container, 'resizable-handle')
-
-		fireEvent.keyDown(handle, { key: 'ArrowRight', shiftKey: true })
-
-		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([60, 40])
-	})
-
-	it('Home collapses the left panel to its minimum', () => {
-		const onSizesChange = vi.fn()
-
-		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50} minSize={10}>
+			<ResizableGroup orientation={orientation} onSizesChange={onSizesChange}>
+				<ResizablePanel defaultSize={50} minSize={minSize} maxSize={maxSize}>
 					A
 				</ResizablePanel>
 				<ResizableHandle />
@@ -194,49 +167,9 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = getSlot(container, 'resizable-handle')
+		fireEvent.keyDown(getSlot(container, 'resizable-handle'), key)
 
-		fireEvent.keyDown(handle, { key: 'Home' })
-
-		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([10, 90])
-	})
-
-	it('End grows the left panel to its maximum', () => {
-		const onSizesChange = vi.fn()
-
-		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50} maxSize={90}>
-					A
-				</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
-
-		const handle = getSlot(container, 'resizable-handle')
-
-		fireEvent.keyDown(handle, { key: 'End' })
-
-		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([90, 10])
-	})
-
-	it('ArrowDown grows the top panel in a vertical group', () => {
-		const onSizesChange = vi.fn()
-
-		const { container } = renderUI(
-			<ResizableGroup orientation="vertical" onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
-
-		const handle = getSlot(container, 'resizable-handle')
-
-		fireEvent.keyDown(handle, { key: 'ArrowDown' })
-
-		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([55, 45])
+		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual(expected)
 	})
 
 	it('ignores arrow keys that do not match the orientation', () => {

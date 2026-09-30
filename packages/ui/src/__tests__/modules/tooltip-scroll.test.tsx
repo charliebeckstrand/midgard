@@ -64,7 +64,7 @@ describe('tooltip across a scroll', () => {
 			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
 		)
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		boxOf(hit)
 
@@ -237,7 +237,7 @@ describe('tooltip across a scroll', () => {
 			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
 		)
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		boxOf(hit)
 

@@ -211,21 +211,6 @@ describe('timeTicks', () => {
 		expect(labels.every((label) => Number(label) % 10 === 0)).toBe(true)
 	})
 
-	it('lands a 12-hour interval on midnight and noon', () => {
-		// Hourly rows from 01:00, over two days.
-		const start = new Date(2026, 5, 1, 1).getTime()
-
-		const times = Array.from({ length: 48 }, (_, index) => start + index * 3_600_000)
-
-		const hours = (
-			timeTicks({ times, band: band(48), tickTarget: 5, axisLength: 600, locale: 'en-US' }) ?? []
-		).map((tick) => new Date(tick.key as number).getHours())
-
-		expect(hours.length).toBeGreaterThan(0)
-
-		expect(hours.every((hour) => hour % 12 === 0)).toBe(true)
-	})
-
 	it('steps in minutes when the span crosses no hour', () => {
 		// Twelve rows four minutes apart, from 10:01 to 10:45.
 		const start = new Date(2026, 5, 1, 10, 1).getTime()

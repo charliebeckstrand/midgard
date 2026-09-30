@@ -56,20 +56,6 @@ describe('ComboChart', () => {
 		expect(order.at(-1)?.getAttribute('data-slot')).toBe('chart-line')
 	})
 
-	it('mirrors each mark in its legend swatch', () => {
-		const { container } = renderUI(chart())
-
-		const items = allBySlot(container, 'chart-legend-item')
-
-		expect(items).toHaveLength(2)
-
-		// Bar series wear a rect swatch, line series a stroke-shaped one. The
-		// swatch is the second span — the Button's hit-target sibling leads.
-		expect(items[0]?.querySelector('span:nth-child(2)')?.className).toContain('size-2.5')
-
-		expect(items[1]?.querySelector('span:nth-child(2)')?.className).toContain('w-3')
-	})
-
 	it('reads both series in one tooltip on one shared axis', () => {
 		const { container } = renderUI(chart())
 
@@ -93,14 +79,6 @@ describe('ComboChart', () => {
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
-	})
-
-	it('still renders both mark kinds under animate', () => {
-		const { container } = renderUI(chart({ animate: true }))
-
-		expect(barCount(container)).toBe(3)
-
-		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
 	})
 
 	it('leaves line points unmarked by default and marks them on points', () => {
@@ -151,7 +129,8 @@ describe('ComboChart', () => {
 
 		expect(items).toHaveLength(3)
 
-		// Bar wears a rect swatch, area and line the stroke-shaped one.
+		// Bar wears a rect swatch, area and line the stroke-shaped one. The swatch
+		// is the second span, because the hit-target sibling of the Button leads.
 		expect(items[0]?.querySelector('span:nth-child(2)')?.className).toContain('size-2.5')
 
 		expect(items[1]?.querySelector('span:nth-child(2)')?.className).toContain('w-3')
@@ -176,12 +155,15 @@ describe('ComboChart', () => {
 		expect(tooltip?.textContent).toContain('80')
 	})
 
-	it('still renders the area wash under animate', () => {
+	it('still renders each mark kind under animate', () => {
 		const { container } = renderUI(chart({ series: [...TRIO], animate: true }))
+
+		expect(barCount(container)).toBe(3)
 
 		expect(allBySlot(container, 'chart-area')).toHaveLength(1)
 
-		expect(barCount(container)).toBe(3)
+		// The top edge of the area plus the line series.
+		expect(allBySlot(container, 'chart-line')).toHaveLength(2)
 	})
 
 	it('isolates the nearer stroke where the line and area edge share the catch', () => {

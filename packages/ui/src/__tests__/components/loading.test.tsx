@@ -2,27 +2,26 @@ import { describe, expect, it } from 'vitest'
 import { LoadingDots, LoadingSpinner } from '../../components/loading'
 import { bySlot, renderUI, screen } from '../helpers'
 
-describe('LoadingDots', () => {
-	it('renders an output with data-slot="loading-dots" and a default sr-only label of "Loading"', () => {
-		const { container } = renderUI(<LoadingDots />)
+describe.each([
+	['LoadingDots', LoadingDots, 'loading-dots'],
+	['LoadingSpinner', LoadingSpinner, 'loading-spinner'],
+] as const)('%s', (_name, Loading, slot) => {
+	it(`renders an output with data-slot="${slot}" and a default sr-only label of "Loading"`, () => {
+		const { container } = renderUI(<Loading />)
 
-		const dots = bySlot(container, 'loading-dots')
-
-		expect(dots).toBeInTheDocument()
-
-		expect(dots?.tagName).toBe('OUTPUT')
-
-		expect(screen.getByText('Loading')).toBeInTheDocument()
+		expect(bySlot(container, slot)?.tagName).toBe('OUTPUT')
 
 		expect(screen.getByText('Loading')).toHaveClass('sr-only')
 	})
 
 	it('accepts a custom label', () => {
-		renderUI(<LoadingDots label="Saving" />)
+		renderUI(<Loading label="Saving" />)
 
 		expect(screen.getByText('Saving')).toBeInTheDocument()
 	})
+})
 
+describe('LoadingDots', () => {
 	it('renders three aria-hidden dots', () => {
 		const { container } = renderUI(<LoadingDots />)
 
@@ -33,26 +32,6 @@ describe('LoadingDots', () => {
 })
 
 describe('LoadingSpinner', () => {
-	it('renders an output with data-slot="loading-spinner" and a default sr-only label of "Loading"', () => {
-		const { container } = renderUI(<LoadingSpinner />)
-
-		const spinner = bySlot(container, 'loading-spinner')
-
-		expect(spinner).toBeInTheDocument()
-
-		expect(spinner?.tagName).toBe('OUTPUT')
-
-		expect(screen.getByText('Loading')).toBeInTheDocument()
-
-		expect(screen.getByText('Loading')).toHaveClass('sr-only')
-	})
-
-	it('accepts a custom label', () => {
-		renderUI(<LoadingSpinner label="Saving" />)
-
-		expect(screen.getByText('Saving')).toBeInTheDocument()
-	})
-
 	it('renders an SVG spinner graphic', () => {
 		const { container } = renderUI(<LoadingSpinner />)
 

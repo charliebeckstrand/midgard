@@ -50,8 +50,8 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('carries the whole streaming look on the bubble: cursor, pulse, reduced-motion dim', () => {
-		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
+	it('carries the whole streaming look on the bubble, and renders the content as Markdown', () => {
+		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
 
 		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(
 			'cursor-progress',
@@ -59,7 +59,9 @@ describe('ChatMessage', () => {
 			PULSE_REDUCED,
 		)
 
-		expect(bySlot(container, 'markdown')).toHaveTextContent('content')
+		expect(bySlot(container, 'markdown')).toHaveTextContent('Some bold text')
+
+		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
 	it('renders the actions slot when provided', () => {
@@ -78,14 +80,6 @@ describe('ChatMessage', () => {
 		const { container } = renderUI(<ChatMessage>Some **bold** text</ChatMessage>)
 
 		expect(bySlot(container, 'markdown')).toBeInTheDocument()
-
-		expect(container.querySelector('strong')?.textContent).toBe('bold')
-	})
-
-	it('renders streaming content as Markdown, pulsing while it arrives', () => {
-		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
-
-		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(PULSE)
 
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})

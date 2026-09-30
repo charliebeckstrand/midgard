@@ -5,7 +5,7 @@ import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
-import { CI, cleanup, sequence } from './vitest.base'
+import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 
 /**
  * The virtual modules of the docs engine, each with an empty value of its
@@ -286,6 +286,8 @@ export default defineConfig({
 			'./src/__tests__/setup/restore-prototype-focus.ts',
 			'./src/__tests__/browser/setup/act-environment.ts',
 		],
+		// `test:coverage` merges this report with the report of the jsdom run.
+		coverage: coverageScope,
 		browser: {
 			enabled: true,
 			// `browser/setup/index.ts` calls it before every case.

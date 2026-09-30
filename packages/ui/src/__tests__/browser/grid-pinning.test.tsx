@@ -210,12 +210,11 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		expect(edges('d').left).toBeCloseTo(edges('c').right, 0)
 	}
 
-	it('stacks the frozen columns flush in a non-resizable grid', async () => {
-		await expectFlush(await setup(false))
-	})
-
-	it('stacks the frozen columns flush in a resizable grid', async () => {
-		await expectFlush(await setup(true))
+	it.each([
+		['a non-resizable', false],
+		['a resizable', true],
+	])('stacks the frozen columns flush in %s grid', async (_, resizable) => {
+		await expectFlush(await setup(resizable))
 	})
 
 	it('holds the stack flush once the body scrolls', async () => {

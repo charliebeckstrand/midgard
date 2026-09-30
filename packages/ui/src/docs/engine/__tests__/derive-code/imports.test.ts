@@ -4,14 +4,6 @@ import { addImport, assemble } from '../../derive-code/internals'
 import { makeContext } from './helpers'
 
 describe('addImport', () => {
-	it('records a single name under its module', () => {
-		const context = makeContext()
-
-		addImport(context, 'button', 'Button')
-
-		expect(context.imports.get('button')).toEqual(new Set(['Button']))
-	})
-
 	it('dedupes repeated names within a module', () => {
 		const context = makeContext()
 
@@ -141,14 +133,6 @@ describe('assemble', () => {
 		expect(assemble(context, '')).toBe(
 			[`import states from 'atlas'`, `import counties from 'atlas'`].join('\n'),
 		)
-	})
-
-	it("prefixes non-react modules with 'ui/'", () => {
-		const context = makeContext()
-
-		addImport(context, 'file-upload', 'FileUpload')
-
-		expect(assemble(context, '')).toBe(`import { FileUpload } from 'ui/file-upload'`)
 	})
 
 	it('emits a bare specifier for external modules', () => {

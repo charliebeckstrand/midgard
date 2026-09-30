@@ -26,12 +26,6 @@ describe('VirtualOptions', () => {
 		)
 	}
 
-	it('mounts inside a role="listbox" container', () => {
-		const { container } = renderUI(<TestPanel items={items} />)
-
-		expect(bySlot(container, 'virtual-options')).toBeInTheDocument()
-	})
-
 	it('never renders more options than the items array', () => {
 		const { container } = renderUI(<TestPanel items={items} />)
 

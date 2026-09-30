@@ -30,10 +30,6 @@ describe('useGridTable export selection', () => {
 		expect(exported(new Set([1, 3]))).toEqual([1, 3])
 	})
 
-	it('matches the keys against the stringified row ids', () => {
-		expect(exported(new Set([2]))).toEqual([2])
-	})
-
 	it('takes every row when no selection is bound', () => {
 		expect(exported()).toEqual([1, 2, 3])
 	})

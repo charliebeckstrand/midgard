@@ -8,7 +8,7 @@ import {
 	CommandPaletteLabel,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, setupUser } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -83,7 +83,7 @@ describe('CommandPalette active descendant', () => {
 
 		const input = screen.getByRole('combobox') as HTMLInputElement
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{ArrowDown}')
 
@@ -106,7 +106,7 @@ describe('CommandPalette active descendant', () => {
 
 		const input = screen.getByRole('combobox') as HTMLInputElement
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{ArrowDown}')
 
@@ -124,7 +124,7 @@ describe('CommandPalette active descendant', () => {
 	it('moves the active item to the top result when the filter changes', async () => {
 		renderUI(<FilteredPalette />)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// Activate the first option (Alpha), then filter it out.
 		await user.keyboard('{ArrowDown}')
@@ -145,7 +145,7 @@ describe('CommandPalette active descendant', () => {
 	it('clears the active item when the filter matches nothing', async () => {
 		renderUI(<FilteredPalette />)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{ArrowDown}')
 
@@ -246,7 +246,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByText('Run'))
 
@@ -268,7 +268,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByText('Run'))
 
@@ -291,7 +291,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByText('Run'))
 
@@ -300,38 +300,26 @@ describe('CommandPaletteItem', () => {
 		expect(onOpenChange).not.toHaveBeenCalledWith(false)
 	})
 
-	it('does not invoke onAction when disabled', async () => {
+	it('marks a disabled item aria-disabled and invokes neither onAction nor onClick', async () => {
 		const onAction = vi.fn()
 
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem disabled onAction={onAction}>
-					Run
-				</CommandPaletteItem>
-			</CommandPalette>,
-		)
-
-		const user = userEvent.setup({ delay: null })
-
-		await user.click(screen.getByText('Run'))
-
-		expect(onAction).not.toHaveBeenCalled()
-	})
-
-	it('does not invoke a consumer onClick when disabled', async () => {
 		const onClick = vi.fn()
 
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem disabled onClick={onClick}>
+				<CommandPaletteItem disabled onAction={onAction} onClick={onClick}>
 					Run
 				</CommandPaletteItem>
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		expect(screen.getByRole('option')).toHaveAttribute('aria-disabled', 'true')
+
+		const user = setupUser()
 
 		await user.click(screen.getByText('Run'))
+
+		expect(onAction).not.toHaveBeenCalled()
 
 		expect(onClick).not.toHaveBeenCalled()
 	})
@@ -388,18 +376,6 @@ describe('CommandPaletteItem', () => {
 		expect(item).toHaveAttribute('aria-disabled', 'true')
 
 		expect(item).toHaveAttribute('data-slot', 'command-palette-item')
-	})
-
-	it('exposes aria-disabled on a disabled item', () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem disabled onAction={() => {}}>
-					Run
-				</CommandPaletteItem>
-			</CommandPalette>,
-		)
-
-		expect(screen.getByRole('option')).toHaveAttribute('aria-disabled', 'true')
 	})
 })
 
@@ -514,7 +490,7 @@ describe('CommandPalette open/close transitions', () => {
 
 		const input = screen.getByRole('combobox') as HTMLInputElement
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'p')
 
@@ -559,7 +535,7 @@ describe('CommandPalette onActiveChange', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// Nothing is highlighted until the first arrow key.
 		expect(onActiveChange).not.toHaveBeenCalled()
@@ -595,7 +571,7 @@ describe('CommandPalette onActiveChange', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{ArrowDown}')
 
@@ -615,7 +591,7 @@ describe('CommandPalette onActiveChange', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('{ArrowDown}')
 

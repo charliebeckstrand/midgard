@@ -8,11 +8,18 @@ const WIDE = 500
 const TALL = 400
 
 describe('resolveRangeLegend', () => {
-	it('stands a side placement vertical and a stacked one horizontal', () => {
-		expect(resolveRangeLegend('left', WIDE, TALL).orientation).toBe('vertical')
-		expect(resolveRangeLegend('right', WIDE, TALL).orientation).toBe('vertical')
-		expect(resolveRangeLegend('top', WIDE, TALL).orientation).toBe('horizontal')
-		expect(resolveRangeLegend('bottom', WIDE, TALL).orientation).toBe('horizontal')
+	// A side placement stands vertical, and a stacked one lies horizontal.
+	it.each([
+		['left', 'vertical'],
+		['right', 'vertical'],
+		['top', 'horizontal'],
+		['bottom', 'horizontal'],
+	] as const)('takes the bare placement %s and lays it out %s', (placement, orientation) => {
+		expect(resolveRangeLegend(placement, WIDE, TALL)).toEqual({
+			show: true,
+			placement,
+			orientation,
+		})
 	})
 
 	it('defaults to a vertical bar on the right', () => {
@@ -38,20 +45,6 @@ describe('resolveRangeLegend', () => {
 
 	it('drops the bar when legend is false', () => {
 		expect(resolveRangeLegend(false, WIDE, TALL).show).toBe(false)
-	})
-
-	it('takes a bare placement string and lays it out by orientation', () => {
-		expect(resolveRangeLegend('bottom', WIDE, TALL)).toEqual({
-			show: true,
-			placement: 'bottom',
-			orientation: 'horizontal',
-		})
-
-		expect(resolveRangeLegend('left', WIDE, TALL)).toEqual({
-			show: true,
-			placement: 'left',
-			orientation: 'vertical',
-		})
 	})
 
 	it('takes the { placement } object form', () => {

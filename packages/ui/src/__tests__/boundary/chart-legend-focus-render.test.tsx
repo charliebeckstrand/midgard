@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useChartSeriesToggle } from '../../modules/chart/engine/use-chart-series-toggle'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -96,72 +97,60 @@ describe('chart legend focus renders', () => {
 		vi.mocked(useChartSeriesToggle).mockClear()
 	})
 
-	it('holds the cartesian body and the table through a legend hover', async () => {
-		const { container } = await mount(
-			<LineChart
-				aria-label="Signups and churn"
-				data={rows}
-				series={[
-					{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
-					{ xKey: 'week', yKey: 'churn', yName: 'Churn' },
-				]}
-				legend
-				width={400}
-			/>,
-		)
+	it.each<[string, () => ReactElement, number]>([
+		[
+			'cartesian',
+			() => (
+				<LineChart
+					aria-label="Signups and churn"
+					data={rows}
+					series={[
+						{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
+						{ xKey: 'week', yKey: 'churn', yName: 'Churn' },
+					]}
+					legend
+					width={400}
+				/>
+			),
+			1,
+		],
+		[
+			'scatter',
+			() => (
+				<ScatterChart
+					aria-label="Signups and churn"
+					data={rows.map((row, index) => ({ ...row, x: index }))}
+					series={[
+						{ xKey: 'x', yKey: 'signups', yName: 'Signups' },
+						{ xKey: 'x', yKey: 'churn', yName: 'Churn' },
+					]}
+					legend
+					width={400}
+				/>
+			),
+			1,
+		],
+		[
+			'pie',
+			() => (
+				<PieChart
+					aria-label="Signups by week"
+					data={rows.slice(0, 6)}
+					series={[{ xKey: 'week', yKey: 'signups', yName: 'Signups' }]}
+					legend
+					width={400}
+				/>
+			),
+			2,
+		],
+	])('holds the %s body and the table through a legend hover', async (_, chart, position) => {
+		const { container } = await mount(chart())
 
 		const before = container.innerHTML
 
-		const { body, table, emphasized } = await hoverLegend(container, 1)
+		const { body, table, emphasized } = await hoverLegend(container, position)
 
 		// The hover still dims the other series.
-		expect(emphasized).not.toBe(before)
-
-		expect(body).toBe(0)
-
-		expect(table).toBe(0)
-	})
-
-	it('holds the scatter body and the table through a legend hover', async () => {
-		const { container } = await mount(
-			<ScatterChart
-				aria-label="Signups and churn"
-				data={rows.map((row, index) => ({ ...row, x: index }))}
-				series={[
-					{ xKey: 'x', yKey: 'signups', yName: 'Signups' },
-					{ xKey: 'x', yKey: 'churn', yName: 'Churn' },
-				]}
-				legend
-				width={400}
-			/>,
-		)
-
-		const before = container.innerHTML
-
-		const { body, table, emphasized } = await hoverLegend(container, 1)
-
-		expect(emphasized).not.toBe(before)
-
-		expect(body).toBe(0)
-
-		expect(table).toBe(0)
-	})
-
-	it('holds the pie body and the table through a legend hover', async () => {
-		const { container } = await mount(
-			<PieChart
-				aria-label="Signups by week"
-				data={rows.slice(0, 6)}
-				series={[{ xKey: 'week', yKey: 'signups', yName: 'Signups' }]}
-				legend
-				width={400}
-			/>,
-		)
-
-		const before = container.innerHTML
-
-		const { body, table, emphasized } = await hoverLegend(container, 2)
-
 		expect(emphasized).not.toBe(before)
 
 		expect(body).toBe(0)

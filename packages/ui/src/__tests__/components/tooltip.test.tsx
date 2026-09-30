@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { act, bySlot, getSlot, noop, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, getSlot, noop, renderUI, screen, setupUser, waitFor } from '../helpers'
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {
@@ -21,7 +21,7 @@ function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) 
 
 describe('Tooltip', () => {
 	it('closes when an overlay opens', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>
@@ -32,9 +32,7 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		const trigger = bySlot(container, 'tooltip-trigger')
-
-		if (!trigger) throw new Error('trigger missing')
+		const trigger = getSlot(container, 'tooltip-trigger')
 
 		await user.click(trigger)
 
@@ -46,7 +44,7 @@ describe('Tooltip', () => {
 	})
 
 	it('reports both ends of the open state, whatever drove them', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onOpenChange = vi.fn()
 
@@ -59,9 +57,7 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		const trigger = bySlot(container, 'tooltip-trigger')
-
-		if (!trigger) throw new Error('trigger missing')
+		const trigger = getSlot(container, 'tooltip-trigger')
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
@@ -79,7 +75,7 @@ describe('Tooltip', () => {
 	})
 
 	it('keeps reporting the resolved state while open holds it open', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onOpenChange = vi.fn()
 
@@ -96,9 +92,7 @@ describe('Tooltip', () => {
 		// the same contract the panel family's `onOpenChange` keeps.
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		const trigger = bySlot(container, 'tooltip-trigger')
-
-		if (!trigger) throw new Error('trigger missing')
+		const trigger = getSlot(container, 'tooltip-trigger')
 
 		// `open` holds the disclosure controlled, so the interactions still call its
 		// setter and `useControllable` still fires on every set. Reporting the resolved
@@ -168,7 +162,7 @@ describe('Tooltip', () => {
 	it("composes the child's own onClick with the tooltip handlers", async () => {
 		const onClick = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>
@@ -186,26 +180,8 @@ describe('Tooltip', () => {
 		expect(onClick).toHaveBeenCalledOnce()
 	})
 
-	it('puts the trigger in the keyboard tab order', async () => {
-		const user = userEvent.setup()
-
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Hover me</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
-
-		await user.tab()
-
-		// The trigger is the focusable element itself, not an unreachable wrapper.
-		expect(bySlot(container, 'tooltip-trigger')).toHaveFocus()
-	})
-
 	it('opens on keyboard focus of the trigger', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>
@@ -224,7 +200,7 @@ describe('Tooltip', () => {
 	})
 
 	it('describes the focusable trigger via the panel when open', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>
@@ -311,31 +287,21 @@ describe('TooltipContent', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
 	})
 
-	it('marks the open panel as pointer-events:auto when interactive=true', () => {
-		const { container } = renderUI(
-			<TooltipContext value={makeContext({ open: true, interactive: true })}>
-				<TooltipContent>Interactive</TooltipContent>
-			</TooltipContext>,
-		)
+	it.each([
+		[true, 'auto'],
+		[false, 'none'],
+	])(
+		'marks the open panel with interactive=%s as pointer-events:%s',
+		(interactive, pointerEvents) => {
+			const { container } = renderUI(
+				<TooltipContext value={makeContext({ open: true, interactive })}>
+					<TooltipContent>Tip</TooltipContent>
+				</TooltipContext>,
+			)
 
-		const panel = getSlot(container, 'tooltip-content')
-
-		expect(panel).toBeInTheDocument()
-
-		expect(panel.style.pointerEvents).toBe('auto')
-	})
-
-	it('marks the open panel as pointer-events:none when interactive=false', () => {
-		const { container } = renderUI(
-			<TooltipContext value={makeContext({ open: true, interactive: false })}>
-				<TooltipContent>Static</TooltipContent>
-			</TooltipContext>,
-		)
-
-		const panel = getSlot(container, 'tooltip-content')
-
-		expect(panel.style.pointerEvents).toBe('none')
-	})
+			expect(getSlot(container, 'tooltip-content').style.pointerEvents).toBe(pointerEvents)
+		},
+	)
 
 	it('makes the surface a density scope for an explicit size', () => {
 		const { container } = renderUI(

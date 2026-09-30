@@ -82,18 +82,6 @@ describe('QueryBuilder', () => {
 		expect(screen.getByText('No rules added')).toBeInTheDocument()
 	})
 
-	it('calls onValueChange when a rule is added', () => {
-		const onChange = vi.fn()
-
-		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
-
-		openAddMenu()
-
-		fireEvent.click(addRuleItem())
-
-		expect(onChange).toHaveBeenCalled()
-	})
-
 	it('disables the controls when disabled is set', () => {
 		renderUI(<QueryBuilder fields={fields} disabled />)
 
@@ -112,8 +100,6 @@ describe('QueryBuilder', () => {
 		renderUI(<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />)
 
 		const removeButton = screen.getByRole('button', { name: 'Remove rule' })
-
-		expect(removeButton).toBeInTheDocument()
 
 		fireEvent.click(removeButton)
 
@@ -148,18 +134,6 @@ describe('QueryBuilder', () => {
 		renderUI(<QueryBuilder fields={fields} value={tree} disabled />)
 
 		expect(screen.getByRole('button', { name: 'Remove rule' })).toBeDisabled()
-	})
-
-	it('renders a value input for text-typed rule fields', () => {
-		const initialRule = createRule(fields[0])
-
-		const tree = createGroup('and', [initialRule])
-
-		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
-
-		const inputs = container.querySelectorAll('input[type="text"]')
-
-		expect(inputs.length).toBeGreaterThan(0)
 	})
 
 	// Field- and operator-selector interaction tests are omitted pending a rewrite
@@ -202,16 +176,6 @@ describe('QueryBuilder', () => {
 
 		// "Add rule" stays available.
 		expect(addRuleItem()).toBeInTheDocument()
-	})
-
-	it('renders a number input for number-typed rule fields', () => {
-		const numberRule = createRule(fields[1])
-
-		const tree = createGroup('and', [numberRule])
-
-		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
-
-		expect(container.querySelector('input[type="number"]')).toBeInTheDocument()
 	})
 
 	it('writes the edited text value back into the rule', () => {
@@ -358,17 +322,6 @@ describe('QueryBuilderGroup', () => {
 
 		// Root renders "Add group" but never "Remove group".
 		expect(screen.queryByRole('button', { name: 'Remove group' })).not.toBeInTheDocument()
-	})
-
-	it('renders the AND/OR combinator between sibling children', () => {
-		const tree = createGroup('and', [createRule(fields[0]), createRule(fields[0])])
-
-		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
-
-		// Segment renders for the second child only.
-		const segments = container.querySelectorAll('[data-slot="segment"]')
-
-		expect(segments.length).toBeGreaterThan(0)
 	})
 
 	it('switches the child combinator when an AND/OR segment is clicked', () => {

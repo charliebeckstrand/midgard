@@ -5,28 +5,16 @@ import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import { stubMatchMedia } from '../helpers'
 
 describe('useOffcanvas', () => {
-	it('starts closed', () => {
+	it('starts closed, opens through setOpen(true), and closes through close()', () => {
 		const { result } = renderHook(() => useOffcanvas())
 
 		expect(result.current.open).toBe(false)
-	})
-
-	it('opens when setOpen(true) is called', () => {
-		const { result } = renderHook(() => useOffcanvas())
 
 		act(() => {
 			result.current.setOpen(true)
 		})
 
 		expect(result.current.open).toBe(true)
-	})
-
-	it('closes when close() is called', () => {
-		const { result } = renderHook(() => useOffcanvas())
-
-		act(() => {
-			result.current.setOpen(true)
-		})
 
 		act(() => {
 			result.current.close()

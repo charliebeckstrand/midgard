@@ -17,7 +17,7 @@ import {
 	makeCanvasContext,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 describe('SignaturePad', () => {
@@ -100,7 +100,7 @@ describe('SignaturePad', () => {
 
 		const canvas = getSlot(container, 'signature-pad-canvas')
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(getSlot(container, 'signature-pad-clear'))
 

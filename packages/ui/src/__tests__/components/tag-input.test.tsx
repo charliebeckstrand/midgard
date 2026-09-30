@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
 import {
-	bySlot,
 	expectAnnouncement,
 	fireEvent,
 	getSlot,
@@ -11,7 +10,7 @@ import {
 	present,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 function getInput(container: HTMLElement) {
@@ -36,16 +35,6 @@ describe('TagInput', () => {
 		const list = container.querySelector('[data-slot="tags"]')
 
 		expect(list?.children.length).toBe(2)
-	})
-
-	it('renders an input', () => {
-		const { container } = renderUI(<TagInput />)
-
-		const input = getInput(container)
-
-		expect(input).toBeInTheDocument()
-
-		expect(input.tagName).toBe('INPUT')
 	})
 
 	it('hides placeholder when tags exist', () => {
@@ -92,32 +81,19 @@ describe('TagInput', () => {
 		expect(slot.parentElement?.closest('[data-density]')).toBeNull()
 	})
 
-	it('adds a tag on Enter', async () => {
+	it.each([
+		['Enter', 'react{Enter}', 'react'],
+		['comma', 'vue,', 'vue'],
+	])('adds a tag on %s', async (_name, typed, tag) => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<TagInput onValueChange={onChange} />)
 
-		const input = getInput(container)
+		const user = setupUser()
 
-		const user = userEvent.setup({ delay: null })
+		await user.type(getInput(container), typed)
 
-		await user.type(input, 'react{Enter}')
-
-		expect(onChange).toHaveBeenCalledWith(['react'])
-	})
-
-	it('adds a tag on comma', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<TagInput onValueChange={onChange} />)
-
-		const input = getInput(container)
-
-		const user = userEvent.setup({ delay: null })
-
-		await user.type(input, 'vue,')
-
-		expect(onChange).toHaveBeenCalledWith(['vue'])
+		expect(onChange).toHaveBeenCalledWith([tag])
 	})
 
 	it('adds a tag on blur', async () => {
@@ -125,11 +101,9 @@ describe('TagInput', () => {
 
 		const { container } = renderUI(<TagInput onValueChange={onChange} />)
 
-		const input = getInput(container)
+		const user = setupUser()
 
-		const user = userEvent.setup({ delay: null })
-
-		await user.type(input, 'svelte')
+		await user.type(getInput(container), 'svelte')
 
 		await user.tab()
 
@@ -143,7 +117,7 @@ describe('TagInput', () => {
 
 		const input = getInput(container)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'react{Enter}')
 
@@ -157,7 +131,7 @@ describe('TagInput', () => {
 			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const removeButtons = getRemoveButtons(container)
 
@@ -171,7 +145,7 @@ describe('TagInput', () => {
 	it('returns focus to the input after removing a tag via its badge', async () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
@@ -190,7 +164,7 @@ describe('TagInput', () => {
 
 		expect(input).toHaveAttribute('readonly')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
@@ -219,36 +193,23 @@ describe('TagInput', () => {
 		expect(getRemoveButtons(container)[0]).toHaveAttribute('tabindex', '-1')
 	})
 
-	it('removes the focused tag on Backspace', async () => {
+	it.each([
+		['Backspace', 0, ['vue']],
+		['Delete', 1, ['react']],
+	])('removes the focused tag on %s', async (key, index, expected) => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
 			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
-		;(getBadges(container)[0] as HTMLElement).focus()
+		;(getBadges(container)[index] as HTMLElement).focus()
 
-		await user.keyboard('{Backspace}')
+		await user.keyboard(`{${key}}`)
 
-		expect(onChange).toHaveBeenCalledWith(['vue'])
-	})
-
-	it('removes the focused tag on Delete', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
-		)
-
-		const user = userEvent.setup({ delay: null })
-
-		;(getBadges(container)[1] as HTMLElement).focus()
-
-		await user.keyboard('{Delete}')
-
-		expect(onChange).toHaveBeenCalledWith(['react'])
+		expect(onChange).toHaveBeenCalledWith(expected)
 	})
 
 	it('leaves the focused tag in place on other keys', async () => {
@@ -256,7 +217,7 @@ describe('TagInput', () => {
 
 		const { container } = renderUI(<TagInput defaultValue={['react']} onValueChange={onChange} />)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		;(getBadges(container)[0] as HTMLElement).focus()
 
@@ -270,7 +231,7 @@ describe('TagInput', () => {
 	it('returns focus to the input after removing the focused tag with Backspace', async () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		;(getBadges(container)[0] as HTMLElement).focus()
 
@@ -289,7 +250,7 @@ describe('TagInput', () => {
 
 		const input = getInput(container)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -320,7 +281,7 @@ describe('TagInput', () => {
 
 		expect(addButton).toBeDisabled()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
@@ -336,7 +297,7 @@ describe('TagInput', () => {
 
 		const input = getInput(container)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'x{Enter}')
 
@@ -379,12 +340,6 @@ describe('TagInput', () => {
 		expect(onChange).not.toHaveBeenCalled()
 	})
 
-	it('renders tags slot when tags exist', () => {
-		const { container } = renderUI(<TagInput defaultValue={['react']} />)
-
-		expect(bySlot(container, 'tags')).toBeInTheDocument()
-	})
-
 	it('exposes the tags as an enumerable list', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
@@ -397,20 +352,13 @@ describe('TagInput', () => {
 		expect(list.querySelectorAll('[role="listitem"]')).toHaveLength(2)
 	})
 
-	it('has aria-label on the input derived from placeholder', () => {
-		const { container } = renderUI(<TagInput placeholder="Add tags..." />)
+	it.each([
+		['derived from placeholder', 'Add tags...', 'Add tags...'],
+		['defaulted when no placeholder', undefined, 'Add tags'],
+	])('has an aria-label on the input %s', (_name, placeholder, label) => {
+		const { container } = renderUI(<TagInput placeholder={placeholder} />)
 
-		const input = getInput(container)
-
-		expect(input).toHaveAttribute('aria-label', 'Add tags...')
-	})
-
-	it('has default aria-label on the input when no placeholder', () => {
-		const { container } = renderUI(<TagInput />)
-
-		const input = getInput(container)
-
-		expect(input).toHaveAttribute('aria-label', 'Add tags')
+		expect(getInput(container)).toHaveAttribute('aria-label', label)
 	})
 
 	it('adds a tag when the suffix Add button is clicked', async () => {
@@ -420,7 +368,7 @@ describe('TagInput', () => {
 
 		const input = getInput(container)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'svelte')
 
@@ -508,7 +456,7 @@ describe('TagInput paste', () => {
 	})
 
 	it('clears the invalid mark on the next keystroke', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<TagInput placeholder="Zip" validate={(tag) => /^\d{5}$/.test(tag)} />,
@@ -547,7 +495,7 @@ describe('TagInput paste', () => {
 
 describe('TagInput multi-token draft', () => {
 	it('commits every token when the Add button takes a multi-token draft', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<TagInput placeholder="Zip" />)
 
@@ -561,7 +509,7 @@ describe('TagInput multi-token draft', () => {
 	})
 
 	it('commits every token in a multi-token draft on Enter', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<TagInput placeholder="Zip" />)
 
@@ -589,7 +537,7 @@ describe('TagInput announcements', () => {
 	])('%s', async (_name, ui, typed, announcement) => {
 		const { container } = renderUI(ui())
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(getInput(container), typed)
 
@@ -599,7 +547,7 @@ describe('TagInput announcements', () => {
 	it('announces a removed tag', async () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
@@ -621,7 +569,7 @@ describe('TagInput + Form', () => {
 		// The default value renders as a badge.
 		expect(getBadges(container).map((b) => b.textContent)).toContain('react')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(getInput(container), 'vue{Enter}')
 

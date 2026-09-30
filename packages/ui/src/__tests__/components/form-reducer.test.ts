@@ -220,18 +220,8 @@ describe('formReducer', () => {
 
 			expect(next.touched).toEqual({ name: true })
 
-			expect(next.errors).toEqual({ name: ['required'] })
-		})
-
-		it('does not validate other fields when one field is touched', () => {
-			const next = formReducer(initialState(), {
-				type: 'set-touched',
-				name: 'name',
-				validate: validators,
-				validateOn: 'touched',
-			})
-
-			expect(next.errors).not.toHaveProperty('age')
+			// toStrictEqual also fails on an undefined `age` key, so no other field validated.
+			expect(next.errors).toStrictEqual({ name: ['required'] })
 		})
 
 		it('marks the field touched but does not validate when validateOn is "submit"', () => {

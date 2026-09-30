@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import { useEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ChatEmbedProvider, ChatMessage } from '../../modules/chat'
 import type { ChatEmbedPart } from '../../modules/chat/engine/chat-content/types'
 import type { Mount } from '../../primitives/mount'
@@ -18,10 +18,6 @@ beforeEach(() => {
 	observer = installControlledObserver()
 })
 
-afterEach(() => {
-	chart.mockClear()
-})
-
 const chart = vi.fn(() => <div data-testid="chart">drawn</div>)
 
 const renderers = { trend: chart }
@@ -34,15 +30,20 @@ const embed = (overrides: Partial<ChatEmbedPart> = {}): ChatEmbedPart => ({
 	...overrides,
 })
 
+/** A bubble that holds one embed of `trend`, under the given mount policy. */
+function Message({ mount }: { mount?: Mount }) {
+	return (
+		<ChatEmbedProvider renderers={renderers} mount={mount}>
+			<ChatMessage>{[embed()]}</ChatMessage>
+		</ChatEmbedProvider>
+	)
+}
+
 describe('a held-back embed', () => {
 	it('does not call its renderer until the reader reaches it', () => {
 		// The whole point: a transcript of fifty views mounts the ones a reader
 		// sees, not the ones scrolled away above them.
-		renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		renderUI(<Message />)
 
 		expect(chart).not.toHaveBeenCalled()
 
@@ -50,11 +51,7 @@ describe('a held-back embed', () => {
 	})
 
 	it('draws once the reader reaches it', () => {
-		renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		renderUI(<Message />)
 
 		observer.reveal()
 
@@ -62,11 +59,7 @@ describe('a held-back embed', () => {
 	})
 
 	it('holds its space open, so the transcript does not lurch as one lands', () => {
-		const { container } = renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		const { container } = renderUI(<Message />)
 
 		const block = getSlot(container, 'chat-embed')
 
@@ -86,11 +79,7 @@ describe('a held-back embed', () => {
 	})
 
 	it('stops reserving space once it has drawn', () => {
-		const { container } = renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		const { container } = renderUI(<Message />)
 
 		observer.reveal()
 
@@ -104,11 +93,7 @@ describe('a held-back embed', () => {
 	it('keeps drawing once reached, so scrolling past does not tear it down', () => {
 		// `lazy` mounts on first sight and holds. A view that remounted on every
 		// scroll would lose whatever state it held and pay its cost again.
-		renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		renderUI(<Message />)
 
 		observer.report(true)
 
@@ -119,16 +104,6 @@ describe('a held-back embed', () => {
 })
 
 describe('the mount policy', () => {
-	it('draws every renderer up front under `always`', () => {
-		renderUI(
-			<ChatEmbedProvider renderers={renderers} mount="always">
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
-
-		expect(screen.getByTestId('chart')).toBeInTheDocument()
-	})
-
 	it('mounts every view live under `always`, before the reader reaches it', () => {
 		// The observer here never reports, so every block stays out of view. A view
 		// under `always` must still show and run its effects, not wait hidden.
@@ -152,21 +127,13 @@ describe('the mount policy', () => {
 	})
 
 	it('reserves no space under `always`, because nothing is held back', () => {
-		const { container } = renderUI(
-			<ChatEmbedProvider renderers={renderers} mount="always">
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		const { container } = renderUI(<Message mount="always" />)
 
 		expect(bySlot(container, 'chat-embed')).not.toHaveAttribute('data-deferred')
 	})
 
 	it('unmounts a view that scrolls away under `active`, and reserves its space again', () => {
-		const { container } = renderUI(
-			<ChatEmbedProvider renderers={renderers} mount="active">
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		const { container } = renderUI(<Message mount="active" />)
 
 		observer.report(true)
 
@@ -209,14 +176,6 @@ describe('the mount policy', () => {
 		expect(bySlot(container, 'chat-embed-fallback')).toBeInTheDocument()
 	})
 })
-
-function Message({ mount }: { mount?: Mount }) {
-	return (
-		<ChatEmbedProvider renderers={renderers} mount={mount}>
-			<ChatMessage>{[embed()]}</ChatMessage>
-		</ChatEmbedProvider>
-	)
-}
 
 describe.each(['lazy', 'active'] as const)('a held-back embed on the server, under %s', (mount) => {
 	it('reserves its space in the server markup, and draws no view', () => {

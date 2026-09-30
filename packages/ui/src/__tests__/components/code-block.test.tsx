@@ -54,12 +54,6 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 
-	it('renders the highlighted html once shiki resolves', async () => {
-		const { container } = renderUI(<CodeBlock code="const x = 1" />)
-
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
-	})
-
 	it('trims leading and trailing whitespace from the input code', async () => {
 		const { container } = renderUI(<CodeBlock code="   padded   " copy={false} />)
 

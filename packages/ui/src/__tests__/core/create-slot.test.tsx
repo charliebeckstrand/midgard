@@ -1,28 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { createSlot } from '../../core/create-slot'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, renderUI, screen } from '../helpers'
 
 describe('createSlot', () => {
-	it('renders the requested intrinsic element with data-slot', () => {
-		const Body = createSlot('div', 'card-body')
+	it.each([
+		['div', 'card-body'],
+		['dt', 'dl-term'],
+	] as const)('renders the requested <%s> with data-slot="%s"', (tag, slot) => {
+		const Slot = createSlot(tag, slot)
 
-		const { container } = renderUI(<Body>content</Body>)
+		const { container } = renderUI(<Slot>content</Slot>)
 
-		const el = bySlot(container, 'card-body')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('honors the requested tag', () => {
-		const Term = createSlot('dt', 'dl-term')
-
-		const { container } = renderUI(<Term>name</Term>)
-
-		const el = bySlot(container, 'dl-term')
-
-		expect(el?.tagName).toBe('DT')
+		expect(getSlot(container, slot).tagName).toBe(tag.toUpperCase())
 	})
 
 	it('composes recipe classes with the caller className', () => {

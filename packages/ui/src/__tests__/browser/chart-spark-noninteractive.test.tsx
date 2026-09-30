@@ -284,8 +284,6 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		// The rule still draws — spark strips interactivity, not the ink — but as
 		// the bare stroke alone: no transparent hit line widens it into a target.
-		expect(rule).not.toBeNull()
-
 		expect(rule.querySelectorAll('line')).toHaveLength(1)
 
 		expect(getComputedStyle(rule).pointerEvents).toBe('none')

@@ -1,14 +1,11 @@
-import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { getLibFiles } from '@ts-morph/common'
-import type { ComponentType } from 'react'
 import { ts } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
-import { AppearanceProvider } from '../../providers/appearance'
-import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './demo-pages'
+import { type DemoPage, demoPages, walkOf } from './demo-pages'
 
-// A gate on the text of each "Show code" block of the docs site. Two test files
-// in `docs/` run it, and each file gives it a part of the pages, so that the
-// test shards in CI can balance the pages.
+// A gate on the text of each "Show code" block of the docs site. Two test
+// files in `docs/` run it with the smoke test, and each file gives the two gates
+// a part of the pages, so that the test shards in CI can balance the pages.
 //
 // A reader copies the block, so a block that does not compile teaches a bug.
 // The block derives at run time from the rendered tree of an Example and from
@@ -16,8 +13,10 @@ import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './dem
 // `demo-code-block.test.ts` asks whether a block exists. This gate reads the
 // block itself.
 //
-// It renders each demo page, opens each tab, and opens each "Show code". It
-// then checks each block as one TSX module, on its own, with the DOM lib and
+// It renders each demo page, opens each tab, and opens each "Show code". The
+// smoke test (`demo-smoke.tsx`) reads the same walk (`walkOf` in
+// `demo-pages.tsx`), so a page renders once for the two gates. The gate then
+// checks each block as one TSX module, on its own, with the DOM lib and
 // no import resolution. A block fails on a syntax error, on a name that it
 // declares twice, or on a name that it uses and neither declares nor imports.
 // A derived block with none of those also fails on an import or a top-level
@@ -86,8 +85,6 @@ const libFiles = new Map(
 
 const libSourceFiles = new Map<string, ts.SourceFile>()
 
-const SNIPPET = '/snippet.tsx'
-
 /** The component that `asModule` wraps the JSX of a block in. */
 const SNIPPET_COMPONENT = '__Snippet'
 
@@ -124,20 +121,61 @@ function asModule(code: string): string {
 }
 
 /**
- * The diagnostics of a block, as `TS2304: …` lines: syntax, and for a derived
- * block the names that it declares twice or does not declare.
+ * The diagnostics of each block of a page, as `TS2304: …` lines: syntax, and
+ * for a derived block the names that it declares twice or does not declare.
+ *
+ * One program checks all the derived blocks of the page, because a program
+ * costs far more to build than to read, and the page can show 45 blocks. Each
+ * derived block has an import, so it is a module and keeps its names to
+ * itself. A hand-written override has no import, so it is a script, and its
+ * top-level names are global. It can declare a name that a derived block uses
+ * and does not declare. The overrides thus go in a second program, which
+ * reads syntax alone, and syntax does not cross files.
  */
-function diagnose(snippet: string): string[] {
-	const code = asModule(snippet)
+function diagnoseAll(snippets: ReadonlyMap<string, string>): Map<string, string[]> {
+	const modules = new Map<string, string>()
 
-	const derived = /^import /m.test(snippet)
+	const scripts = new Map<string, string>()
+
+	const titles = new Map<string, string>()
+
+	for (const [title, snippet] of snippets) {
+		const file = `/snippet-${titles.size}.tsx`
+
+		titles.set(file, title)
+
+		;(/^import /m.test(snippet) ? modules : scripts).set(file, asModule(snippet))
+	}
+
+	const diagnosed = new Map<string, string[]>()
+
+	for (const [file, diagnostics] of [
+		...diagnoseFiles(modules, true),
+		...diagnoseFiles(scripts, false),
+	]) {
+		diagnosed.set(titles.get(file) ?? file, diagnostics)
+	}
+
+	return diagnosed
+}
+
+/** The diagnostics of each file of one program, keyed by file name. */
+function diagnoseFiles(
+	files: ReadonlyMap<string, string>,
+	derived: boolean,
+): Map<string, string[]> {
+	const diagnosed = new Map<string, string[]>()
+
+	if (files.size === 0) return diagnosed
 
 	const host: ts.CompilerHost = {
-		fileExists: (file) => file === SNIPPET || libFiles.has(file),
-		readFile: (file) => (file === SNIPPET ? code : libFiles.get(file)),
+		fileExists: (file) => files.has(file) || libFiles.has(file),
+		readFile: (file) => files.get(file) ?? libFiles.get(file),
 		writeFile: () => {},
 		getSourceFile: (file, target) => {
-			if (file === SNIPPET) {
+			const code = files.get(file)
+
+			if (code !== undefined) {
 				return ts.createSourceFile(file, code, target, true, ts.ScriptKind.TSX)
 			}
 
@@ -161,7 +199,7 @@ function diagnose(snippet: string): string[] {
 	}
 
 	const program = ts.createProgram({
-		rootNames: [SNIPPET],
+		rootNames: [...files.keys()],
 		options: {
 			target: ts.ScriptTarget.ES2022,
 			module: ts.ModuleKind.ESNext,
@@ -175,22 +213,29 @@ function diagnose(snippet: string): string[] {
 		host,
 	})
 
-	const sf = program.getSourceFile(SNIPPET)
+	for (const [file, code] of files) {
+		const sf = program.getSourceFile(file)
 
-	const syntactic = program.getSyntacticDiagnostics(sf)
+		const syntactic = program.getSyntacticDiagnostics(sf)
 
-	const semantic = syntactic.length > 0 || !derived ? [] : program.getSemanticDiagnostics(sf)
+		const semantic = syntactic.length > 0 || !derived ? [] : program.getSemanticDiagnostics(sf)
 
-	const names = semantic.filter((d) => NAME_DIAGNOSTICS.has(d.code))
+		const names = semantic.filter((d) => NAME_DIAGNOSTICS.has(d.code))
 
-	const diagnostics =
-		syntactic.length > 0 || !derived
-			? syntactic
-			: names.length > 0
-				? names
-				: unusedOf(semantic, sf, code.includes(SNIPPET_COMPONENT))
+		const diagnostics =
+			syntactic.length > 0 || !derived
+				? syntactic
+				: names.length > 0
+					? names
+					: unusedOf(semantic, sf, code.includes(SNIPPET_COMPONENT))
 
-	return diagnostics.map((d) => `TS${d.code}: ${messageOf(d)}`)
+		diagnosed.set(
+			file,
+			diagnostics.map((d) => `TS${d.code}: ${messageOf(d)}`),
+		)
+	}
+
+	return diagnosed
 }
 
 function messageOf(diagnostic: ts.Diagnostic): string {
@@ -260,71 +305,6 @@ function unusedOf(
 	return unused.filter((d) => d !== shown)
 }
 
-/** The title of an Example frame, or `null` for an untitled one. */
-function titleOf(frame: Element): string | null {
-	const head = frame.firstElementChild
-
-	if (!head || head.getAttribute('data-slot') === 'example-frame') return null
-
-	return head.querySelector('h3')?.textContent ?? null
-}
-
-/**
- * Each "Show code" block of a demo page, keyed by example title (or position),
- * with a suffix for a repeated title. It reads the blocks in each state that
- * the page's tabs show.
- */
-async function snippetsOf(Demo: ComponentType): Promise<Map<string, string>> {
-	const { container } = render(
-		<AppearanceProvider>
-			<Demo />
-		</AppearanceProvider>,
-	)
-
-	const snippets = new Map<string, string>()
-
-	const seenFrames = new WeakSet<Element>()
-
-	const harvest = async () => {
-		const frames = [...container.querySelectorAll('[data-slot="example"]')]
-
-		for (const [index, frame] of frames.entries()) {
-			if (seenFrames.has(frame)) continue
-
-			seenFrames.add(frame)
-
-			const trigger = within(frame as HTMLElement).queryAllByRole('button', {
-				name: 'Show code',
-			})[0]
-
-			if (!trigger) continue
-
-			await act(async () => {
-				fireEvent.click(trigger)
-			})
-
-			const code = frame.querySelector('[data-slot="code-block"] code')?.textContent
-
-			if (!code) continue
-
-			const base = titleOf(frame) ?? `#${index + 1}`
-
-			let key = base
-
-			for (let n = 2; snippets.has(key) && snippets.get(key) !== code; n += 1)
-				key = `${base} (${n})`
-
-			snippets.set(key, code)
-		}
-	}
-
-	await visitTabs(container, harvest)
-
-	cleanup()
-
-	return snippets
-}
-
 /** The entries of `KNOWN_FAILURES` for one page. */
 function knownFailuresOf(page: string): Record<string, string> {
 	return Object.fromEntries(
@@ -340,25 +320,23 @@ export function describeDemoSnippets(pages: readonly DemoPage[]): void {
 	describe('demo snippets', () => {
 		it.each(pages)(
 			'%s derives blocks that compile',
-			// The grid page opens about 45 blocks across its tabs, in about 7s.
-			{ timeout: 30_000 },
+			// The case that walks a page also runs axe on it for the smoke test, so
+			// it takes the time limit of the smoke case. The grid page opens about
+			// 45 blocks across its tabs.
+			{ timeout: 60_000 },
 			async (page, load) => {
-				restoreRootAfterCase()
+				const { snippets, harvestLogged } = await walkOf(page, load)
 
-				const Demo = await load()
-
-				const snippets = await snippetsOf(Demo)
+				expect(harvestLogged, 'the console had output while a block was open').toEqual([])
 
 				// Each page shows at least one block, so an empty harvest is a broken gate.
 				expect(snippets.size, 'no "Show code" block was read').toBeGreaterThan(0)
 
+				const checked = new Map([...snippets].filter(([, code]) => !isPseudoCode(code)))
+
 				const failures: Record<string, string> = {}
 
-				for (const [title, code] of snippets) {
-					if (isPseudoCode(code)) continue
-
-					const [first] = diagnose(code)
-
+				for (const [title, [first]] of diagnoseAll(checked)) {
 					if (first) failures[`${page} › ${title}`] = first
 				}
 

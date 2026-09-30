@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, frames, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The keyboard cursor over a virtualized grid (real browser; jsdom renders zero
@@ -115,12 +115,6 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		return { grid: screen.getByRole('grid'), scroll }
 	}
-
-	/** Two animation frames, so a window step and its effects land. */
-	const frames = () =>
-		new Promise<void>((resolve) =>
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-		)
 
 	it('leaves the scroll alone when the active row comes back into the window', async () => {
 		const { scroll } = renderWindow()

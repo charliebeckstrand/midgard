@@ -40,6 +40,17 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 	const southSplitter = () =>
 		present(screen.getAllByRole('separator', { name: 'Resize A' })[1], 'the south splitter')
 
+	/** The pointer fields for a press at the center of `splitter`, and the client y of that center. */
+	function grip(splitter: HTMLElement) {
+		const box = splitter.getBoundingClientRect()
+
+		const x = box.left + box.width / 2
+
+		const y = box.top + box.height / 2
+
+		return { pointer: { pointerId: 1, isPrimary: true, button: 0, clientX: x }, y }
+	}
+
 	it('counts a scroll during a pointer resize into the travel of the edge', async () => {
 		const onLayout = vi.fn()
 
@@ -49,13 +60,7 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 
 		const scroller = screen.getByTestId('scroller')
 
-		const box = south.getBoundingClientRect()
-
-		const x = box.left + box.width / 2
-
-		const y = box.top + box.height / 2
-
-		const pointer = { pointerId: 1, isPrimary: true, button: 0, clientX: x }
+		const { pointer, y } = grip(south)
 
 		fireEvent.pointerDown(south, { ...pointer, clientY: y })
 
@@ -64,7 +69,7 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 
 		await frames()
 
-		const readout = getSlot(present(scroller, 'the scroller'), 'dashboard-resize-readout')
+		const readout = getSlot(scroller, 'dashboard-resize-readout')
 
 		expect(readout).toHaveTextContent('24 × 30')
 
@@ -101,20 +106,14 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 
 		const south = southSplitter()
 
-		const box = south.getBoundingClientRect()
-
-		const x = box.left + box.width / 2
-
-		const y = box.top + box.height / 2
-
-		const pointer = { pointerId: 1, isPrimary: true, button: 0, clientX: x }
+		const { pointer, y } = grip(south)
 
 		fireEvent.pointerDown(south, { ...pointer, clientY: y })
 
 		// 8 px is 2 rows. A shorter canvas at the end of the box makes the browser clamp the scroll.
 		fireEvent.pointerMove(south, { ...pointer, clientY: y - 8 })
 
-		const readout = getSlot(present(scroller, 'the scroller'), 'dashboard-resize-readout')
+		const readout = getSlot(scroller, 'dashboard-resize-readout')
 
 		// The pointer holds still. Each clamp that the shrink causes must add no travel.
 		for (let frame = 0; frame < 8; frame++) {
@@ -139,13 +138,7 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 
 		const south = southSplitter()
 
-		const box = south.getBoundingClientRect()
-
-		const x = box.left + box.width / 2
-
-		const y = box.top + box.height / 2
-
-		const pointer = { pointerId: 1, isPrimary: true, button: 0, clientX: x }
+		const { pointer, y } = grip(south)
 
 		fireEvent.pointerDown(south, { ...pointer, clientY: y })
 
@@ -159,7 +152,7 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 
 		await frames()
 
-		const readout = getSlot(present(scroller, 'the scroller'), 'dashboard-resize-readout')
+		const readout = getSlot(scroller, 'dashboard-resize-readout')
 
 		expect(readout).toHaveTextContent('24 × 120')
 
@@ -186,19 +179,13 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 
 		const scroller = screen.getByTestId('scroller')
 
-		const canvas = getSlot(present(scroller, 'the scroller'), 'dashboard-canvas')
+		const canvas = getSlot(scroller, 'dashboard-canvas')
 
 		const rest = canvas.offsetHeight
 
 		const south = southSplitter()
 
-		const box = south.getBoundingClientRect()
-
-		const x = box.left + box.width / 2
-
-		const y = box.top + box.height / 2
-
-		const pointer = { pointerId: 1, isPrimary: true, button: 0, clientX: x }
+		const { pointer, y } = grip(south)
 
 		fireEvent.pointerDown(south, { ...pointer, clientY: y })
 

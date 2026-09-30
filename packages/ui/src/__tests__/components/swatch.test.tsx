@@ -62,8 +62,9 @@ describe('Swatch', () => {
 		expect(el?.getAttribute('class')).toContain('repeating-linear-gradient')
 	})
 
-	it('frames the dashed square and circle variants with a dashed border', () => {
-		for (const shape of ['square', 'circle'] as const) {
+	it.each(['square', 'circle'] as const)(
+		'frames the dashed %s variant with a dashed border',
+		(shape) => {
 			const { container } = renderUI(
 				<Swatch shape={shape} variant="dashed" color="text-blue-600" />,
 			)
@@ -77,8 +78,8 @@ describe('Swatch', () => {
 			expect(el).toHaveClass('border-dashed')
 
 			expect(el?.getAttribute('class')).not.toContain('repeating-linear-gradient')
-		}
-	})
+		},
+	)
 
 	it('resolves a palette slot name to its currentColor class', () => {
 		const { container } = renderUI(<Swatch color="blue" />)

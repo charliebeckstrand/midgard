@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridGroupHeaderRow } from '../../modules/grid'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from '../../modules/grid/engine/grid-constants'
-import { renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, setupUser } from '../helpers'
 
 /** The placeholder skeleton rows the grid draws under a loading manual group. */
 function placeholderRows() {
@@ -87,7 +87,7 @@ describe('Grid manual (server-side) row grouping', () => {
 	}
 
 	it('emits the grouped column when a groupable header button is pressed', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -109,7 +109,7 @@ describe('Grid manual (server-side) row grouping', () => {
 	})
 
 	it('flips the active column button to Ungroup and ungroups on a second press', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -169,7 +169,7 @@ describe('Grid manual (server-side) row grouping', () => {
 	})
 
 	it('sorts the groups by the grouped column, reordering whole group blocks', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		// The grouped column made sortable — its header gains the sort toggle.
 		const sortableColumns = columns.map((col) =>
@@ -210,7 +210,7 @@ describe('Grid manual (server-side) row grouping', () => {
 	})
 
 	it('treats expansion as controlled state, reporting toggles without mutating it', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onExpandedChange = vi.fn()
 
@@ -252,7 +252,7 @@ describe('Grid manual (server-side) row grouping', () => {
 	})
 
 	it('lazily inserts a group’s children fetched on expand', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		function Harness() {
 			const [rows, setRows] = useState<Sale[]>([westHeader, eastHeader])
@@ -301,7 +301,7 @@ describe('Grid manual (server-side) row grouping', () => {
 	})
 
 	it('opens a group instantly with skeleton placeholders while its children load', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		function Harness() {
 			const [expanded, setExpanded] = useState<Set<string | number>>(new Set())

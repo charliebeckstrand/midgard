@@ -24,28 +24,16 @@ function firstStatement<T extends ts.Statement>(text: string): T {
 }
 
 describe('typeRefName', () => {
-	it('returns the identifier for a single-name reference', () => {
-		const decl = firstStatement<ts.VariableStatement>(`const x: Foo = null as never`)
+	it.each([
+		['a single-name reference', 'Foo'],
+		['a qualified name', 'Foo.Bar'],
+		['a deeply nested qualified name', 'Foo.Bar.Baz'],
+	])('spells %s as %s', (_, name) => {
+		const decl = firstStatement<ts.VariableStatement>(`const x: ${name} = null as never`)
 
 		const typeNode = decl.declarationList.declarations[0]?.type as ts.TypeReferenceNode
 
-		expect(typeRefName(typeNode.typeName)).toBe('Foo')
-	})
-
-	it('joins qualified names with dots', () => {
-		const decl = firstStatement<ts.VariableStatement>(`const x: Foo.Bar = null as never`)
-
-		const typeNode = decl.declarationList.declarations[0]?.type as ts.TypeReferenceNode
-
-		expect(typeRefName(typeNode.typeName)).toBe('Foo.Bar')
-	})
-
-	it('handles deeply nested qualified names', () => {
-		const decl = firstStatement<ts.VariableStatement>(`const x: Foo.Bar.Baz = null as never`)
-
-		const typeNode = decl.declarationList.declarations[0]?.type as ts.TypeReferenceNode
-
-		expect(typeRefName(typeNode.typeName)).toBe('Foo.Bar.Baz')
+		expect(typeRefName(typeNode.typeName)).toBe(name)
 	})
 })
 

@@ -254,7 +254,7 @@ describe('extractReferences', () => {
 	})
 
 	it('blocks declarations under the recipe engine path', () => {
-		const program = createInMemoryProgram({
+		const { location, checker } = callableLocation({
 			'core/recipe/engine/types.ts': `export type RecipeInternal = { internal: string }`,
 			'index.ts': [
 				`import type { RecipeInternal } from './core/recipe/engine/types'`,
@@ -262,15 +262,7 @@ describe('extractReferences', () => {
 			].join('\n'),
 		})
 
-		const sf = program.sourceFiles['index.ts']
-
-		if (!sf) throw new Error('index.ts not found')
-
-		const fn = sf.statements.find((s): s is ts.FunctionDeclaration => ts.isFunctionDeclaration(s))
-
-		if (!fn) throw new Error('no function declaration in index.ts')
-
-		expect(extractReferences('RecipeInternal', fn, program.checker)).toBeUndefined()
+		expect(extractReferences('RecipeInternal', location, checker)).toBeUndefined()
 	})
 
 	it('keeps function-typed aliases as source text rather than expanding them', () => {

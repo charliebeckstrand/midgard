@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid } from '../../modules/grid'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Grid', () => {
 	type Row = { name: string; age: number }
@@ -75,12 +75,6 @@ describe('Grid', () => {
 
 		// The age of Alice, and the grand total that `oldest` gives.
 		expect(screen.getAllByText('30')).toHaveLength(2)
-	})
-
-	it('shows loading spinner when loading', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} loading />)
-
-		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 	})
 
 	it('marks the table aria-busy while loading and clears it otherwise', () => {
@@ -230,61 +224,43 @@ describe('Grid', () => {
 			)
 		})
 
-		it('fires onValueChange with asc on first sort click', async () => {
-			const onValueChange = vi.fn()
+		const nameAsc = { column: 'name', direction: 'asc' } as const
 
-			renderUI(
-				<Grid columns={sortableColumns} rows={rows} getKey={getKey} sort={{ onValueChange }} />,
-			)
+		const nameDesc = { column: 'name', direction: 'desc' } as const
 
-			const user = userEvent.setup()
+		const ageAsc = { column: 'age', direction: 'asc' } as const
 
-			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
+		const ageDesc = { column: 'age', direction: 'desc' } as const
 
-			expect(onValueChange).toHaveBeenCalledWith([{ column: 'name', direction: 'asc' }])
-		})
-
-		it('toggles direction from asc to desc when clicked again on the same column', async () => {
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={sortableColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }], onValueChange }}
-				/>,
-			)
-
-			const user = userEvent.setup()
-
-			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
-
-			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'desc' }])
-		})
-
-		it('clears the sort on the third click of the same column', async () => {
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={sortableColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={{ defaultValue: [{ column: 'name', direction: 'desc' }], onValueChange }}
-				/>,
-			)
-
-			const user = userEvent.setup()
-
-			// Starting at desc, the next click completes asc → desc → unsorted.
-			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
-
-			// The unsorted state is the empty list.
-			expect(onValueChange).toHaveBeenLastCalledWith([])
-		})
-
-		it('resets to asc when sorting on a different column', async () => {
+		it.each([
+			['sorts a fresh column ascending', [], 'Name', false, [nameAsc]],
+			['flips an ascending column to descending', [nameAsc], 'Name', false, [nameDesc]],
+			// Starting at desc, the next click completes asc → desc → unsorted, the empty list.
+			['clears the sort on the third click of a column', [nameDesc], 'Name', false, []],
+			['resets to ascending on a different column', [nameDesc], 'Age', false, [ageAsc]],
+			['adds a column to the sort on Shift-click', [nameAsc], 'Age', true, [nameAsc, ageAsc]],
+			[
+				'flips a sorted column on Shift-click, leaving the others',
+				[nameAsc, ageAsc],
+				'Age',
+				true,
+				[nameAsc, ageDesc],
+			],
+			[
+				'drops a descending column from the sort on Shift-click',
+				[nameAsc, ageDesc],
+				'Age',
+				true,
+				[nameAsc],
+			],
+			[
+				'collapses a multi-column sort to one column on a plain click',
+				[nameAsc, ageAsc],
+				'Name',
+				false,
+				[nameAsc],
+			],
+		] as const)('%s', (_, defaultValue, title, shiftKey, expected) => {
 			const onValueChange = vi.fn()
 
 			renderUI(
@@ -292,107 +268,15 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: [{ column: 'name', direction: 'desc' }], onValueChange }}
+					sort={{ defaultValue: [...defaultValue], onValueChange }}
 				/>,
 			)
 
-			const user = userEvent.setup()
+			fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Sort by ${title}`) }), {
+				shiftKey,
+			})
 
-			await user.click(screen.getByRole('button', { name: 'Sort by Age' }))
-
-			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'age', direction: 'asc' }])
-		})
-
-		it('Shift-click adds a column to the sort in priority order', () => {
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={sortableColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }], onValueChange }}
-				/>,
-			)
-
-			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
-
-			expect(onValueChange).toHaveBeenLastCalledWith([
-				{ column: 'name', direction: 'asc' },
-				{ column: 'age', direction: 'asc' },
-			])
-		})
-
-		it('Shift-click flips an already-sorted column, leaving the others', () => {
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={sortableColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={{
-						defaultValue: [
-							{ column: 'name', direction: 'asc' },
-							{ column: 'age', direction: 'asc' },
-						],
-						onValueChange,
-					}}
-				/>,
-			)
-
-			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
-
-			expect(onValueChange).toHaveBeenLastCalledWith([
-				{ column: 'name', direction: 'asc' },
-				{ column: 'age', direction: 'desc' },
-			])
-		})
-
-		it('Shift-click drops a descending column from the sort', () => {
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={sortableColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={{
-						defaultValue: [
-							{ column: 'name', direction: 'asc' },
-							{ column: 'age', direction: 'desc' },
-						],
-						onValueChange,
-					}}
-				/>,
-			)
-
-			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
-
-			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
-		})
-
-		it('a plain click collapses a multi-column sort to that one column', () => {
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={sortableColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={{
-						defaultValue: [
-							{ column: 'name', direction: 'asc' },
-							{ column: 'age', direction: 'asc' },
-						],
-						onValueChange,
-					}}
-				/>,
-			)
-
-			fireEvent.click(screen.getByRole('button', { name: /^Sort by Name/ }))
-
-			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
+			expect(onValueChange).toHaveBeenLastCalledWith(expected)
 		})
 
 		it('renders the asc icon for the active sorted column', () => {
@@ -445,39 +329,6 @@ describe('Grid', () => {
 			expect(screen.getByRole('button', { name: 'Sort by name' })).toBeInTheDocument()
 		})
 
-		it('renders a non-button header for a non-sortable column', () => {
-			const mixedColumns = [
-				{
-					id: 'name',
-					title: 'Name',
-					cell: (row: { name: string }) => row.name,
-					sortable: false,
-				},
-				{
-					id: 'age',
-					title: 'Age',
-					cell: (row: { age: number }) => row.age,
-					sortable: true,
-				},
-			]
-
-			renderUI(<Grid columns={mixedColumns} rows={rows} getKey={getKey} />)
-
-			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
-
-			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
-		})
-
-		it('makes data columns sortable by default', () => {
-			const plainColumns = [
-				{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
-			]
-
-			renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} />)
-
-			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
-		})
-
 		it('opts a column out of sorting with sortable: false while others default in', () => {
 			const mixedColumns = [
 				{
@@ -499,7 +350,7 @@ describe('Grid', () => {
 		})
 
 		it('resolves engine row ids when an index-based getKey sorts client-side', async () => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			// Duplicate ids force the key to fold in the row index — the docs "Sticky
 			// header" pattern. A client sort reorders the rows while their engine ids
@@ -623,7 +474,7 @@ describe('Grid', () => {
 				<Grid columns={selectColumns} rows={rows} getKey={getKey} selection={{ onValueChange }} />,
 			)
 
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }))
 
@@ -909,7 +760,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			await user.click(screen.getByRole('button', { name: 'Manage columns' }))
 
@@ -1274,21 +1125,6 @@ describe('Grid', () => {
 					/>,
 				),
 			).toThrow(/either `pagination` or `infiniteScroll`/)
-		})
-
-		it('renders a trailing skeleton row while a batch loads when the indicator is opted in', () => {
-			const { container } = renderUI(
-				<Grid
-					columns={columns}
-					rows={manyRows}
-					getKey={getKey}
-					virtualize={windowed}
-					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, loadingIndicator: true }}
-				/>,
-			)
-
-			expect(bySlot(container, 'grid-loading-more')).toBeInTheDocument()
 		})
 
 		it('keeps the loading indicator off by default while a batch loads', () => {

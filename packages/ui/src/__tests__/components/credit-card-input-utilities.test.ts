@@ -11,46 +11,25 @@ import {
 } from '../../components/credit-card-input/credit-card-input-utilities'
 
 describe('detectCardBrand', () => {
-	it('detects Amex from a 34/37 prefix', () => {
-		expect(detectCardBrand('378282246310005')?.brand).toBe('amex')
-
-		expect(detectCardBrand('342824631000510')?.brand).toBe('amex')
+	it.each([
+		['Amex from a 37 prefix', '378282246310005', 'amex'],
+		['Amex from a 34 prefix', '342824631000510', 'amex'],
+		['Visa from a 4 prefix', '4111111111111111', 'visa'],
+		['Mastercard from the 51-55 range', '5555555555554444', 'mastercard'],
+		['Mastercard from the 2221-2720 range', '2221000000000009', 'mastercard'],
+		['Discover', '6011111111111117', 'discover'],
+		['Diners Club', '30569309025904', 'diners'],
+		['JCB', '3530111333300000', 'jcb'],
+		['UnionPay', '6200000000000005', 'unionpay'],
+	])('detects %s', (_name, number, brand) => {
+		expect(detectCardBrand(number)?.brand).toBe(brand)
 	})
 
-	it('detects Visa from a 4 prefix', () => {
-		expect(detectCardBrand('4111111111111111')?.brand).toBe('visa')
-	})
-
-	it('detects Mastercard from the 51-55 range', () => {
-		expect(detectCardBrand('5555555555554444')?.brand).toBe('mastercard')
-	})
-
-	it('detects Mastercard from the 2221-2720 range', () => {
-		expect(detectCardBrand('2221000000000009')?.brand).toBe('mastercard')
-	})
-
-	it('detects Discover', () => {
-		expect(detectCardBrand('6011111111111117')?.brand).toBe('discover')
-	})
-
-	it('detects Diners Club', () => {
-		expect(detectCardBrand('30569309025904')?.brand).toBe('diners')
-	})
-
-	it('detects JCB', () => {
-		expect(detectCardBrand('3530111333300000')?.brand).toBe('jcb')
-	})
-
-	it('detects UnionPay', () => {
-		expect(detectCardBrand('6200000000000005')?.brand).toBe('unionpay')
-	})
-
-	it('returns undefined for an unrecognized prefix', () => {
-		expect(detectCardBrand('9999999999999999')).toBeUndefined()
-	})
-
-	it('returns undefined for an empty string', () => {
-		expect(detectCardBrand('')).toBeUndefined()
+	it.each([
+		['an unrecognized prefix', '9999999999999999'],
+		['an empty string', ''],
+	])('returns undefined for %s', (_name, number) => {
+		expect(detectCardBrand(number)).toBeUndefined()
 	})
 
 	it('strips the internal regex pattern from the returned info', () => {

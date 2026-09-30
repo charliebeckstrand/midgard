@@ -1,7 +1,7 @@
 import { createRef, type Ref } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
-import { act, bySlot, renderUI } from '../helpers'
+import { act, getSlot, renderUI } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
@@ -68,9 +68,7 @@ describe('CurrentContents morph pin arithmetic', () => {
 	it('morphs on a height-only change, pinning the outgoing height before paint', () => {
 		const { container } = mount('a')
 
-		const contents = bySlot(container, 'test-contents')
-
-		if (!contents) throw new Error('no contents box rendered')
+		const contents = getSlot(container, 'test-contents')
 
 		mockRect(contents, { width: 600, height: 300 })
 
@@ -85,9 +83,7 @@ describe('CurrentContents morph pin arithmetic', () => {
 	it('lets a width-coupled change cancel a morph, then morphs cleanly again', () => {
 		const { container } = mount('a')
 
-		const contents = bySlot(container, 'test-contents')
-
-		if (!contents) throw new Error('no contents box rendered')
+		const contents = getSlot(container, 'test-contents')
 
 		mockRect(contents, { width: 600, height: 300 })
 
@@ -116,9 +112,7 @@ describe('CurrentContents morph pin arithmetic', () => {
 
 		const { container } = mount('a', ref)
 
-		const contents = bySlot(container, 'test-contents')
-
-		if (!contents) throw new Error('no contents box rendered')
+		const contents = getSlot(container, 'test-contents')
 
 		expect(ref.current).toBe(contents)
 

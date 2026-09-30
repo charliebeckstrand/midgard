@@ -18,79 +18,72 @@ function makeColumns(): Column[] {
 	]
 }
 
+function setup(onReorder?: (next: Column[]) => void) {
+	const { result } = renderHook(() =>
+		useKanbanKeyboard<Card, Column>({
+			containerRef,
+			columns: makeColumns(),
+			getKey: (i) => i.id,
+			onReorder,
+		}),
+	)
+
+	/** Sends one key to a card, inside `act`. */
+	const press = (cardId: string, event: ReturnType<typeof makeKeyEvent>) => {
+		act(() => {
+			result.current.onCardKeyDown(cardId, event)
+		})
+	}
+
+	return { result, press }
+}
+
+/** The card ids of each column in the first `onReorder` call. */
+function reordered(onReorder: ReturnType<typeof vi.fn>) {
+	const next = onReorder.mock.calls[0]?.[0] as Column[] | undefined
+
+	return next?.map((column) => column.items.map((i) => i.id))
+}
+
 describe('useKanbanKeyboard: lift state', () => {
 	it('lifts and drops a card on Space', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
+		const { result, press } = setup()
 
 		expect(result.current.liftedCardId).toBeNull()
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
+		press('a1', makeKeyEvent(' '))
 
 		expect(result.current.liftedCardId).toBe('a1')
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
+		press('a1', makeKeyEvent(' '))
 
 		expect(result.current.liftedCardId).toBeNull()
 	})
 
 	it('ignores modifier keys', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
+		const { result, press } = setup()
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' ', { shiftKey: true }))
-		})
+		press('a1', makeKeyEvent(' ', { shiftKey: true }))
 
 		expect(result.current.liftedCardId).toBeNull()
 	})
 
-	it('clears liftedCardId on Escape', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
+	it.each(['Escape', 'Enter'])('drops the lifted card on %s', (key) => {
+		const { result, press } = setup()
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
+		press('a1', makeKeyEvent(' '))
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent('Escape'))
-		})
+		expect(result.current.liftedCardId).toBe('a1')
+
+		press('a1', makeKeyEvent(key))
 
 		expect(result.current.liftedCardId).toBeNull()
 	})
 
 	it('clears liftedCardId on blur', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
+		const { result, press } = setup()
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
+		press('a1', makeKeyEvent(' '))
 
 		expect(result.current.liftedCardId).toBe('a1')
 
@@ -104,9 +97,7 @@ describe('useKanbanKeyboard: lift state', () => {
 
 describe('useKanbanKeyboard: focus navigation', () => {
 	beforeEach(() => {
-		const cards = ['a1', 'a2', 'b1']
-
-		for (const id of cards) {
+		for (const id of ['a1', 'a2', 'b1']) {
 			const el = document.createElement('div')
 
 			el.setAttribute('data-slot', 'kanban-card')
@@ -119,366 +110,81 @@ describe('useKanbanKeyboard: focus navigation', () => {
 		}
 	})
 
-	it('moves focus to the next card in the column on ArrowDown', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
+	it.each([
+		['the next card in the column on ArrowDown', 'a1', 'ArrowDown', 'a2'],
+		['the previous card in the column on ArrowUp', 'a2', 'ArrowUp', 'a1'],
+		['the first card on Home', 'a2', 'Home', 'a1'],
+		['the last card on End', 'a1', 'End', 'a2'],
+		['the next column on ArrowRight', 'a1', 'ArrowRight', 'b1'],
+	])('moves focus to %s', (_name, from, key, expected) => {
+		const { press } = setup()
 
-		const event = makeKeyEvent('ArrowDown')
+		const event = makeKeyEvent(key)
 
-		act(() => {
-			result.current.onCardKeyDown('a1', event)
-		})
+		press(from, event)
 
 		expect(event.preventDefault).toHaveBeenCalled()
 
-		expect(document.activeElement?.getAttribute('data-card-id')).toBe('a2')
+		expect(document.activeElement?.getAttribute('data-card-id')).toBe(expected)
 	})
 
-	it('moves focus to the previous card in the column on ArrowUp', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
+	it.each([
+		['when moving to an empty column', 'b1', 'ArrowRight'],
+		['when moving left from the first column', 'a1', 'ArrowLeft'],
+		['when the card id is not found', 'unknown', 'ArrowDown'],
+	])('does nothing %s', (_name, from, key) => {
+		const { press } = setup()
 
-		act(() => {
-			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowUp'))
-		})
+		const event = makeKeyEvent(key)
 
-		expect(document.activeElement?.getAttribute('data-card-id')).toBe('a1')
-	})
-
-	it('moves focus to the first card on Home', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('a2', makeKeyEvent('Home'))
-		})
-
-		expect(document.activeElement?.getAttribute('data-card-id')).toBe('a1')
-	})
-
-	it('moves focus to the last card on End', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent('End'))
-		})
-
-		expect(document.activeElement?.getAttribute('data-card-id')).toBe('a2')
-	})
-
-	it('moves focus to the next column on ArrowRight', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowRight'))
-		})
-
-		expect(document.activeElement?.getAttribute('data-card-id')).toBe('b1')
-	})
-
-	it('does nothing when moving to an empty column', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
-
-		const event = makeKeyEvent('ArrowRight')
-
-		act(() => {
-			result.current.onCardKeyDown('b1', event)
-		})
-
-		expect(event.preventDefault).not.toHaveBeenCalled()
-	})
-
-	it('does nothing when moving left from the first column', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
-
-		const event = makeKeyEvent('ArrowLeft')
-
-		act(() => {
-			result.current.onCardKeyDown('a1', event)
-		})
-
-		expect(event.preventDefault).not.toHaveBeenCalled()
-	})
-
-	it('returns false when the card id is not found', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
-
-		const event = makeKeyEvent('ArrowDown')
-
-		act(() => {
-			result.current.onCardKeyDown('unknown', event)
-		})
+		press(from, event)
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
 	})
 })
 
 describe('useKanbanKeyboard: reordering a lifted card', () => {
-	it('calls onReorder to move the card down within its column on ArrowDown', () => {
+	it.each([
+		['down within its column on ArrowDown', 'a1', 'ArrowDown', [['a2', 'a1'], ['b1'], []]],
+		['up within its column on ArrowUp', 'a2', 'ArrowUp', [['a2', 'a1'], ['b1'], []]],
+		['to the next column on ArrowRight', 'a1', 'ArrowRight', [['a2'], ['b1', 'a1'], []]],
+		// 'b1' sits in column index 1, and column index 2 exists but is empty.
+		['into an empty column on ArrowRight', 'b1', 'ArrowRight', [['a1', 'a2'], [], ['b1']]],
+	])('moves the card %s', (_name, card, key, expected) => {
 		const onReorder = vi.fn()
 
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-				onReorder,
-			}),
-		)
+		const { press } = setup(onReorder)
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
+		press(card, makeKeyEvent(' '))
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowDown'))
-		})
+		press(card, makeKeyEvent(key))
 
 		expect(onReorder).toHaveBeenCalledOnce()
 
-		const next = onReorder.mock.calls[0]?.[0] as Column[]
-
-		expect(next[0]?.items.map((i) => i.id)).toEqual(['a2', 'a1'])
+		expect(reordered(onReorder)).toEqual(expected)
 	})
 
-	it('does not call onReorder when moving past the end of a column', () => {
+	it.each([
+		['past the end of a column', 'a2', 'ArrowDown'],
+		['out of bounds between columns', 'a1', 'ArrowLeft'],
+		['when the lifted card id is unknown', 'ghost', 'ArrowRight'],
+	])('does not call onReorder when moving %s', (_name, card, key) => {
 		const onReorder = vi.fn()
 
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-				onReorder,
-			}),
-		)
+		const { press } = setup(onReorder)
 
-		act(() => {
-			result.current.onCardKeyDown('a2', makeKeyEvent(' '))
-		})
+		press(card, makeKeyEvent(' '))
 
-		act(() => {
-			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowDown'))
-		})
-
-		expect(onReorder).not.toHaveBeenCalled()
-	})
-
-	it('moves a card to the next column on ArrowRight when lifted', () => {
-		const onReorder = vi.fn()
-
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-				onReorder,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowRight'))
-		})
-
-		const next = onReorder.mock.calls[0]?.[0] as Column[]
-
-		expect(next[0]?.items.map((i) => i.id)).toEqual(['a2'])
-
-		expect(next[1]?.items.map((i) => i.id)).toEqual(['b1', 'a1'])
-	})
-
-	it('does not call onReorder when moving out of bounds between columns', () => {
-		const onReorder = vi.fn()
-
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-				onReorder,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowLeft'))
-		})
+		press(card, makeKeyEvent(key))
 
 		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('is a no-op when onReorder is not provided', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
+		const { press } = setup()
 
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
+		press('a1', makeKeyEvent(' '))
 
-		expect(() =>
-			act(() => {
-				result.current.onCardKeyDown('a1', makeKeyEvent('ArrowDown'))
-			}),
-		).not.toThrow()
-	})
-
-	it('moves the card up within the column on ArrowUp when lifted', () => {
-		const onReorder = vi.fn()
-
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-				onReorder,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('a2', makeKeyEvent(' '))
-		})
-
-		act(() => {
-			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowUp'))
-		})
-
-		const next = onReorder.mock.calls[0]?.[0] as Column[]
-
-		expect(next[0]?.items.map((i) => i.id)).toEqual(['a2', 'a1'])
-	})
-
-	it('drops the lifted card on Enter', () => {
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent(' '))
-		})
-
-		expect(result.current.liftedCardId).toBe('a1')
-
-		act(() => {
-			result.current.onCardKeyDown('a1', makeKeyEvent('Enter'))
-		})
-
-		expect(result.current.liftedCardId).toBeNull()
-	})
-
-	it('does not move when ArrowRight targets a column index past the last one', () => {
-		const onReorder = vi.fn()
-
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-				onReorder,
-			}),
-		)
-
-		// 'b1' is in column index 1; column index 2 exists but is empty. Targets
-		// the out-of-bounds case where direction would push the index past
-		// `columns.length`.
-		act(() => {
-			result.current.onCardKeyDown('b1', makeKeyEvent(' '))
-		})
-
-		act(() => {
-			result.current.onCardKeyDown('b1', makeKeyEvent('ArrowRight'))
-		})
-
-		// b1 moves to column c (empty before), so this DOES reorder; assert it.
-		expect(onReorder).toHaveBeenCalled()
-
-		const next = onReorder.mock.calls[0]?.[0] as Column[]
-
-		expect(next[1]?.items).toEqual([])
-
-		expect(next[2]?.items.map((i) => i.id)).toEqual(['b1'])
-	})
-
-	it('does not reorder when the lifted card id is unknown', () => {
-		const onReorder = vi.fn()
-
-		const { result } = renderHook(() =>
-			useKanbanKeyboard<Card, Column>({
-				containerRef,
-				columns: makeColumns(),
-				getKey: (i) => i.id,
-				onReorder,
-			}),
-		)
-
-		act(() => {
-			result.current.onCardKeyDown('ghost', makeKeyEvent(' '))
-		})
-
-		act(() => {
-			result.current.onCardKeyDown('ghost', makeKeyEvent('ArrowRight'))
-		})
-
-		expect(onReorder).not.toHaveBeenCalled()
+		expect(() => press('a1', makeKeyEvent('ArrowDown'))).not.toThrow()
 	})
 })

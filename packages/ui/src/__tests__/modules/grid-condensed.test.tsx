@@ -13,6 +13,11 @@ describe('Grid condensed', () => {
 
 	const getKey = (row: Row) => row.id
 
+	const withButton: GridColumn<Row>[] = [
+		...columns,
+		{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
+	]
+
 	it('forces the compact padding step, overriding an explicit density', () => {
 		renderUI(<Grid condensed size="lg" columns={columns} rows={rows} getKey={getKey} />)
 
@@ -49,11 +54,6 @@ describe('Grid condensed', () => {
 	})
 
 	it('gives cell content with no size the compact step of the table scope', () => {
-		const withButton: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (row) => row.name },
-			{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
-		]
-
 		renderUI(<Grid condensed columns={withButton} rows={rows} getKey={getKey} />)
 
 		// A cell Button with no explicit `size` takes the `sm` step of the table
@@ -62,11 +62,6 @@ describe('Grid condensed', () => {
 	})
 
 	it('leaves cell content at the ambient size without condensed', () => {
-		const withButton: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (row) => row.name },
-			{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
-		]
-
 		renderUI(<Grid columns={withButton} rows={rows} getKey={getKey} />)
 
 		expect(densityStepOf(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('md')

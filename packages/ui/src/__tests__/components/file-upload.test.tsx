@@ -12,42 +12,41 @@ import {
 	screen,
 } from '../helpers'
 
+/** The hidden native file input. */
+function fileInput(container: HTMLElement) {
+	return present<HTMLInputElement>(
+		container.querySelector('input[type="file"]'),
+		'input[type="file"]',
+	)
+}
+
+/** The drop zone. */
+function dropzone(container: HTMLElement) {
+	return getSlot(container, 'file-upload')
+}
+
+/** Selects `files` through the hidden input, as the native picker does. */
+function selectFiles(container: HTMLElement, files: File[]) {
+	fireEvent.change(fileInput(container), { target: { files: makeFileList(files) } })
+}
+
 describe('FileUpload', () => {
 	it('renders a visually hidden file input', () => {
 		const { container } = renderUI(<FileUploadDrop>Upload</FileUploadDrop>)
 
-		const input = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
-
-		expect(input).toBeInTheDocument()
-
-		expect(input.className).toContain('sr-only')
+		expect(fileInput(container).className).toContain('sr-only')
 	})
 
 	it('accepts the accept prop', () => {
 		const { container } = renderUI(<FileUploadDrop accept="image/*">Upload</FileUploadDrop>)
 
-		const input = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const input = fileInput(container)
 
 		expect(input.accept).toBe('image/*')
 	})
 })
 
 describe('FileUpload drop variant selection', () => {
-	function selectFiles(container: HTMLElement, files: File[]) {
-		const input = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
-
-		fireEvent.change(input, { target: { files: makeFileList(files) } })
-	}
-
 	it('shows the drop prompt when empty', () => {
 		renderUI(<FileUploadDrop />)
 
@@ -69,14 +68,11 @@ describe('FileUpload drop variant selection', () => {
 	it('keeps the dropzone operable so a different file can be picked after a selection', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
-		const fileInput = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const input = fileInput(container)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		const click = vi.spyOn(fileInput, 'click')
+		const click = vi.spyOn(input, 'click')
 
 		fireEvent.click(screen.getByRole('button', { name: 'Choose a different file' }))
 
@@ -144,12 +140,9 @@ describe('FileUpload input variant', () => {
 	it('renders the empty-state upload affordance as a button that opens the picker', () => {
 		const { container } = renderUI(<FileUploadInput />)
 
-		const fileInput = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const input = fileInput(container)
 
-		const click = vi.spyOn(fileInput, 'click')
+		const click = vi.spyOn(input, 'click')
 
 		fireEvent.click(screen.getByRole('button', { name: 'Browse files' }))
 
@@ -158,15 +151,6 @@ describe('FileUpload input variant', () => {
 })
 
 describe('FileUpload input variant selection', () => {
-	function selectFiles(container: HTMLElement, files: File[]) {
-		const input = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
-
-		fireEvent.change(input, { target: { files: makeFileList(files) } })
-	}
-
 	it('shows the filename as the value once a file is selected', () => {
 		const { container } = renderUI(<FileUploadInput />)
 
@@ -235,29 +219,17 @@ describe('FileUpload button variant', () => {
 })
 
 describe('FileUpload button variant selection', () => {
-	function selectFiles(container: HTMLElement, files: File[]) {
-		const input = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
-
-		fireEvent.change(input, { target: { files: makeFileList(files) } })
-	}
-
 	it('keeps the Upload trigger and adds a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUploadButton />)
 
-		const fileInput = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const input = fileInput(container)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
 		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
 
 		// The trigger stays operable so a different file can be picked.
-		const click = vi.spyOn(fileInput, 'click')
+		const click = vi.spyOn(input, 'click')
 
 		fireEvent.click(screen.getByRole('button', { name: 'Upload' }))
 
@@ -289,10 +261,7 @@ describe('FileUpload + Control', () => {
 			</Control>,
 		)
 
-		const input = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const input = fileInput(container)
 
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 
@@ -308,10 +277,7 @@ describe('FileUpload + Control', () => {
 			</Control>,
 		)
 
-		const describedBy = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		).getAttribute('aria-describedby')
+		const describedBy = fileInput(container).getAttribute('aria-describedby')
 
 		expect(describedBy).toContain('doc-description')
 
@@ -329,10 +295,7 @@ describe('FileUpload + Control', () => {
 			</Control>,
 		)
 
-		const hidden = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const hidden = fileInput(container)
 
 		const display = screen.getByPlaceholderText('Choose a file')
 
@@ -363,10 +326,7 @@ describe('FileUpload + Control', () => {
 			</Field>,
 		)
 
-		const hidden = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const hidden = fileInput(container)
 
 		expect(hidden).toHaveAccessibleName('Resume')
 
@@ -391,10 +351,7 @@ describe('FileUpload + Control', () => {
 	])('disables the hidden input and the %s trigger from a disabled Control', (_, node) => {
 		const { container } = renderUI(<Control disabled>{node}</Control>)
 
-		const hidden = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const hidden = fileInput(container)
 
 		expect(hidden).toBeDisabled()
 
@@ -410,7 +367,7 @@ describe('FileUpload + Control', () => {
 			</Control>,
 		)
 
-		const zone = getSlot(container, 'file-upload')
+		const zone = dropzone(container)
 
 		fireEvent.drop(zone, { dataTransfer: { files: makeFileList([new File(['x'], 'resume.pdf')]) } })
 
@@ -420,19 +377,13 @@ describe('FileUpload + Control', () => {
 	it('keeps the trigger name on the hidden input outside a Field', () => {
 		const { container } = renderUI(<FileUploadInput placeholder="Pick a resume" />)
 
-		const hidden = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
+		const hidden = fileInput(container)
 
 		expect(hidden).toHaveAccessibleName('Pick a resume')
 	})
 })
 
 describe('FileUpload disabled dropzone', () => {
-	const dropzone = (container: HTMLElement) =>
-		present(container.querySelector('[data-slot="file-upload"]'), '[data-slot="file-upload"]')
-
 	it('does not light up data-drag-over while disabled', () => {
 		const { container } = renderUI(<FileUploadDrop disabled>Upload</FileUploadDrop>)
 
@@ -477,9 +428,6 @@ describe('FileUpload disabled dropzone', () => {
 })
 
 describe('FileUpload constraints', () => {
-	const dropzone = (container: HTMLElement) =>
-		present(container.querySelector('[data-slot="file-upload"]'), '[data-slot="file-upload"]')
-
 	const fileOfSize = (name: string, size: number) => new File(['x'.repeat(size)], name)
 
 	it('splits a drop into accepted onAccept and rejected onReject by maxSize', () => {
@@ -529,15 +477,6 @@ describe('FileUpload constraints', () => {
 })
 
 describe('FileUpload announcements', () => {
-	function selectFiles(container: HTMLElement, files: File[]) {
-		const input = present<HTMLInputElement>(
-			container.querySelector('input[type="file"]'),
-			'input[type="file"]',
-		)
-
-		fireEvent.change(input, { target: { files: makeFileList(files) } })
-	}
-
 	it('announces a single selected file by name', async () => {
 		const { container } = renderUI(<FileUploadDrop>Upload</FileUploadDrop>)
 
@@ -556,9 +495,6 @@ describe('FileUpload announcements', () => {
 })
 
 describe('FileUpload drag-over reporting', () => {
-	const dropzone = (container: HTMLElement) =>
-		present(container.querySelector('[data-slot="file-upload"]'), '[data-slot="file-upload"]')
-
 	it('reports true when a drag enters and false when it leaves', () => {
 		const onDragOverChange = vi.fn()
 

@@ -6,32 +6,40 @@ import {
 } from '../../components/password-confirm/password-confirm-utilities'
 
 describe('deriveStatus', () => {
-	it('returns idle when password is empty', () => {
-		expect(deriveStatus('', 'x', 'password')).toBe('idle')
-	})
-
-	it('returns idle when confirm is empty', () => {
-		expect(deriveStatus('hunter2', '', 'password')).toBe('idle')
-	})
-
-	it('returns idle when both fields match', () => {
-		expect(deriveStatus('hunter2', 'hunter2', 'confirm')).toBe('idle')
-	})
-
-	it('stays idle while typing the confirm field is shorter than password', () => {
-		expect(deriveStatus('hunter2', 'hunt', 'confirm')).toBe('idle')
-	})
-
-	it('warns when the confirm field is the same length or longer but does not match', () => {
-		expect(deriveStatus('hunter2', 'hunter3', 'confirm')).toBe('warning')
-	})
-
-	it('warns when the password field changed and now differs from confirm', () => {
-		expect(deriveStatus('hunter2', 'hunter3', 'password')).toBe('warning')
-	})
-
-	it('warns when nothing has been edited yet but the values differ', () => {
-		expect(deriveStatus('hunter2', 'hunter3', null)).toBe('warning')
+	it.each<[string, string, string, 'password' | 'confirm' | null, 'idle' | 'warning']>([
+		['returns idle when password is empty', '', 'x', 'password', 'idle'],
+		['returns idle when confirm is empty', 'hunter2', '', 'password', 'idle'],
+		['returns idle when both fields match', 'hunter2', 'hunter2', 'confirm', 'idle'],
+		[
+			'stays idle while typing the confirm field is shorter than password',
+			'hunter2',
+			'hunt',
+			'confirm',
+			'idle',
+		],
+		[
+			'warns when the confirm field is the same length or longer but does not match',
+			'hunter2',
+			'hunter3',
+			'confirm',
+			'warning',
+		],
+		[
+			'warns when the password field changed and now differs from confirm',
+			'hunter2',
+			'hunter3',
+			'password',
+			'warning',
+		],
+		[
+			'warns when nothing has been edited yet but the values differ',
+			'hunter2',
+			'hunter3',
+			null,
+			'warning',
+		],
+	])('%s', (_name, password, confirm, lastEdited, expected) => {
+		expect(deriveStatus(password, confirm, lastEdited)).toBe(expected)
 	})
 })
 
@@ -42,20 +50,33 @@ describe('handlePasswordInput', () => {
 		return partial as SyntheticEvent<HTMLDivElement>
 	}
 
-	it('writes the value, name, and lastEdited when the password input changes', () => {
+	/** Runs the handler on `target` with a fresh spy for each setter. */
+	function run(target: HTMLElement) {
 		const setPassword = vi.fn()
 
 		const setPasswordName = vi.fn()
 
 		const setLastEdited = vi.fn()
 
-		const input = document.createElement('input')
+		handlePasswordInput(makeEvent(target), setPassword, setPasswordName, setLastEdited)
 
-		input.name = 'password'
+		return { setPassword, setPasswordName, setLastEdited }
+	}
 
-		input.value = 'hunter2'
+	function input(attributes: { name?: string; slot?: string } = {}) {
+		const el = document.createElement('input')
 
-		handlePasswordInput(makeEvent(input), setPassword, setPasswordName, setLastEdited)
+		if (attributes.name) el.name = attributes.name
+
+		if (attributes.slot) el.dataset.slot = attributes.slot
+
+		el.value = 'hunter2'
+
+		return el
+	}
+
+	it('writes the value, name, and lastEdited when the password input changes', () => {
+		const { setPassword, setPasswordName, setLastEdited } = run(input({ name: 'password' }))
 
 		expect(setPassword).toHaveBeenCalledWith('hunter2')
 
@@ -65,53 +86,17 @@ describe('handlePasswordInput', () => {
 	})
 
 	it('treats a missing name attribute as undefined', () => {
-		const setPassword = vi.fn()
-
-		const setPasswordName = vi.fn()
-
-		const setLastEdited = vi.fn()
-
-		const input = document.createElement('input')
-
-		input.value = 'hunter2'
-
-		handlePasswordInput(makeEvent(input), setPassword, setPasswordName, setLastEdited)
-
-		expect(setPasswordName).toHaveBeenCalledWith(undefined)
+		expect(run(input()).setPasswordName).toHaveBeenCalledWith(undefined)
 	})
 
-	it('ignores the confirm input identified by its data-slot', () => {
-		const setPassword = vi.fn()
-
-		const setPasswordName = vi.fn()
-
-		const setLastEdited = vi.fn()
-
-		const input = document.createElement('input')
-
-		input.dataset.slot = 'password-confirm-input'
-
-		input.value = 'hunter2'
-
-		handlePasswordInput(makeEvent(input), setPassword, setPasswordName, setLastEdited)
-
-		expect(setPassword).not.toHaveBeenCalled()
-
-		expect(setPasswordName).not.toHaveBeenCalled()
-
-		expect(setLastEdited).not.toHaveBeenCalled()
-	})
-
-	it('ignores targets that are not HTMLInputElement', () => {
-		const setPassword = vi.fn()
-
-		const setPasswordName = vi.fn()
-
-		const setLastEdited = vi.fn()
-
-		const div = document.createElement('div')
-
-		handlePasswordInput(makeEvent(div), setPassword, setPasswordName, setLastEdited)
+	it.each([
+		[
+			'the confirm input identified by its data-slot',
+			() => input({ slot: 'password-confirm-input' }),
+		],
+		['targets that are not HTMLInputElement', () => document.createElement('div')],
+	])('ignores %s', (_name, target) => {
+		const { setPassword, setPasswordName, setLastEdited } = run(target())
 
 		expect(setPassword).not.toHaveBeenCalled()
 

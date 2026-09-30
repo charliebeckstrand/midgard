@@ -2,36 +2,24 @@
 import { describe, expect, it } from 'vitest'
 import { validationAttrs } from '../../core/validation-attrs'
 
+const SEVERITIES = ['error', 'warning', 'success'] as const
+
 describe('validationAttrs', () => {
-	it('returns the invalid pair for error', () => {
-		expect(validationAttrs('error')).toEqual({ 'data-invalid': '', 'aria-invalid': true })
-	})
-
-	it('returns data-warning for warning', () => {
-		expect(validationAttrs('warning')).toEqual({ 'data-warning': '' })
-	})
-
-	it('returns data-valid for success', () => {
-		expect(validationAttrs('success')).toEqual({ 'data-valid': '' })
+	it.each([
+		['error', { 'data-invalid': '', 'aria-invalid': true }],
+		['warning', { 'data-warning': '' }],
+		['success', { 'data-valid': '' }],
+	] as const)('returns the attributes for %s', (severity, expected) => {
+		expect(validationAttrs(severity)).toEqual(expected)
 	})
 
 	it('returns undefined when there is no severity', () => {
 		expect(validationAttrs(undefined)).toBeUndefined()
 	})
 
-	it('returns the same reference on repeated calls', () => {
-		expect(validationAttrs('warning')).toBe(validationAttrs('warning'))
+	it.each(SEVERITIES)('returns one frozen reference for %s on repeated calls', (severity) => {
+		expect(validationAttrs(severity)).toBe(validationAttrs(severity))
 
-		expect(validationAttrs('success')).toBe(validationAttrs('success'))
-
-		expect(validationAttrs('error')).toBe(validationAttrs('error'))
-	})
-
-	it('returns frozen objects', () => {
-		expect(Object.isFrozen(validationAttrs('warning'))).toBe(true)
-
-		expect(Object.isFrozen(validationAttrs('success'))).toBe(true)
-
-		expect(Object.isFrozen(validationAttrs('error'))).toBe(true)
+		expect(Object.isFrozen(validationAttrs(severity))).toBe(true)
 	})
 })

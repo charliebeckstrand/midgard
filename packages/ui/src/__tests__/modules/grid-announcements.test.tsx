@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import {
+	describeColumnVisibility,
+	describeCommit,
+	describePin,
+	describeResize,
+	describeSettle,
+} from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { fireEvent, liveRegion, renderUI, screen, userEvent, withFakeTime } from '../helpers'
+import { fireEvent, liveRegion, renderUI, screen, setupUser, withFakeTime } from '../helpers'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -25,7 +32,7 @@ describe('Grid announcements', () => {
 	const getKey = (row: Row) => row.name
 
 	it('announces the sort politely on change, skipping mount', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -38,7 +45,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('announces the selection count when a selectable grid changes', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
 
@@ -50,7 +57,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('scopes the select-all announcement to the page when paginated', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
 
@@ -73,7 +80,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('stays silent on selection changes when no column is selectable', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={() => {}} />)
 
@@ -84,7 +91,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('exposes the paginated range as a polite live region that tracks navigation', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const many: Row[] = Array.from({ length: 12 }, (_, i) => ({ name: `Name ${i + 1}`, age: i }))
 
@@ -109,7 +116,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('announces an unpin from the pinned column button', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const pinnedColumns: GridColumn<Row>[] = [
 			{ ...columns[0], pinned: 'left' } as GridColumn<Row>,
@@ -124,7 +131,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('announces a column hide from the manager', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
@@ -138,7 +145,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('keeps the label of a sorted column that it hides', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
@@ -184,9 +191,7 @@ describe('Grid announcements', () => {
  * exact wording the live region speaks is pinned.
  */
 describe('Grid announcement builders', () => {
-	it('describes a pin to each edge and an unpin', async () => {
-		const { describePin } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a pin to each edge and an unpin', () => {
 		expect(describePin('Name', 'left')).toBe('Pinned Name to the left')
 
 		expect(describePin('Name', 'right')).toBe('Pinned Name to the right')
@@ -194,25 +199,17 @@ describe('Grid announcement builders', () => {
 		expect(describePin('Name', false)).toBe('Unpinned Name')
 	})
 
-	it('describes a show and a hide', async () => {
-		const { describeColumnVisibility } = await import(
-			'../../modules/grid/engine/grid-announcements'
-		)
-
+	it('describes a show and a hide', () => {
 		expect(describeColumnVisibility('Age', true)).toBe('Hid Age column')
 
 		expect(describeColumnVisibility('Age', false)).toBe('Showed Age column')
 	})
 
-	it('describes a settled resize, rounding the width', async () => {
-		const { describeResize } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a settled resize, rounding the width', () => {
 		expect(describeResize('Name', 240.6)).toBe('Name column 241 pixels')
 	})
 
-	it('describes a commit by its column and its row', async () => {
-		const { describeCommit } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a commit by its column and its row', () => {
 		expect(describeCommit(['Name'], 'Alice')).toBe('Name updated for Alice')
 
 		expect(describeCommit(['Name', 'Age'], 'Alice')).toBe('2 cells updated for Alice')
@@ -221,9 +218,7 @@ describe('Grid announcement builders', () => {
 		expect(describeCommit(['Name', 'Name', 'Age'])).toBe('3 cells updated')
 	})
 
-	it('describes a settled batch, accepted, refused, or both', async () => {
-		const { describeSettle } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a settled batch, accepted, refused, or both', () => {
 		expect(describeSettle(['Name'], [], 'row 1')).toBe('Name updated for row 1')
 
 		expect(describeSettle([], ['Name', 'Age'], 'row 1')).toBe('2 cells not saved for row 1')

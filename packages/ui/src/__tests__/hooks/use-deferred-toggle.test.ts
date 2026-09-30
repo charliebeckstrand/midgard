@@ -3,20 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 describe('useDeferredToggle', () => {
-	it('returns a synchronous toggle', () => {
-		const setValue = vi.fn()
-
-		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, value: undefined, setValue }),
-		)
-
-		act(() => {
-			result.current.toggle('a')
-		})
-
-		expect(setValue).toHaveBeenCalledOnce()
-	})
-
 	it('writes the value immediately when committed', () => {
 		const setValue = vi.fn()
 
@@ -87,67 +73,50 @@ describe('useDeferredToggle', () => {
 		expect(result.current.selectionValue).toBe('a')
 	})
 
-	it('toggle sets the new value in single mode', () => {
+	// toggle writes synchronously, once, through an updater of the previous value.
+	it.each<
+		[
+			string,
+			Parameters<typeof useDeferredToggle<string>>[0]['value'],
+			boolean,
+			boolean,
+			string,
+			unknown,
+		]
+	>([
+		['sets the new value in single mode', undefined, false, false, 'a', 'a'],
+		[
+			'returns undefined when reselecting the same value in nullable mode',
+			'a',
+			false,
+			true,
+			'a',
+			undefined,
+		],
+		['adds an unselected value to the array in multiple mode', ['a'], true, false, 'b', ['a', 'b']],
+		[
+			'removes an already-selected value from the array in multiple mode',
+			['a', 'b'],
+			true,
+			false,
+			'a',
+			['b'],
+		],
+	])('toggle %s', (_name, value, multiple, nullable, next, expected) => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, value: undefined, setValue }),
+			useDeferredToggle<string>({ multiple, nullable, value, setValue }),
 		)
 
 		act(() => {
-			result.current.toggle('a')
+			result.current.toggle(next)
 		})
+
+		expect(setValue).toHaveBeenCalledOnce()
 
 		const updater = setValue.mock.calls[0]?.[0]
 
-		expect(updater(undefined)).toBe('a')
-	})
-
-	it('toggle returns undefined when reselecting the same value in nullable mode', () => {
-		const setValue = vi.fn()
-
-		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: true, value: 'a', setValue }),
-		)
-
-		act(() => {
-			result.current.toggle('a')
-		})
-
-		const updater = setValue.mock.calls[0]?.[0]
-
-		expect(updater('a')).toBeUndefined()
-	})
-
-	it('toggle adds an unselected value to the array in multiple mode', () => {
-		const setValue = vi.fn()
-
-		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: true, nullable: false, value: ['a'], setValue }),
-		)
-
-		act(() => {
-			result.current.toggle('b')
-		})
-
-		const updater = setValue.mock.calls[0]?.[0]
-
-		expect(updater(['a'])).toEqual(['a', 'b'])
-	})
-
-	it('toggle removes an already-selected value from the array in multiple mode', () => {
-		const setValue = vi.fn()
-
-		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: true, nullable: false, value: ['a', 'b'], setValue }),
-		)
-
-		act(() => {
-			result.current.toggle('a')
-		})
-
-		const updater = setValue.mock.calls[0]?.[0]
-
-		expect(updater(['a', 'b'])).toEqual(['b'])
+		expect(updater(value)).toEqual(expected)
 	})
 })

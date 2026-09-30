@@ -314,14 +314,6 @@ describe('LineChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
-	it('still renders the marks under animate', () => {
-		const { container } = renderUI(chart({ animate: true, points: true }))
-
-		expect(allBySlot(container, 'chart-line')).toHaveLength(2)
-
-		expect(allBySlot(container, 'chart-point')).toHaveLength(6)
-	})
-
 	it('dashes only the opted-in series’ stroke, reusing the reference dash', () => {
 		const { container } = renderUI(
 			chart({

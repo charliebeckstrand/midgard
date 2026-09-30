@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridColumn, type GridProps } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
@@ -88,59 +88,32 @@ describe('Grid row reorder', () => {
 		expect(sort).toHaveFocus()
 	})
 
-	it('disables the grip while a column sort orders the rows', () => {
+	it.each<[string, Partial<GridProps<Row>>]>([
+		[
+			'while a column sort orders the rows',
+			{ sort: { defaultValue: [{ column: 'name', direction: 'asc' }] } },
+		],
+		[
+			'under pagination (rows are a page, not the full set)',
+			{ pagination: { defaultValue: { pageIndex: 0, pageSize: 2 } } },
+		],
+		[
+			'while master-detail is active (detail rows are not sortable items)',
+			{
+				columns: [{ id: 'expand', expander: true }, ...columns],
+				expandable: { render: (row) => <div>{row.name}</div> },
+			},
+		],
+		['when the binding is disabled', { rowReorder: { onReorder: () => {}, disabled: true } }],
+	])('disables the grip %s', (_name, props) => {
 		renderUI(
 			<Grid
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
 				rowLabel={rowLabel}
-				sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
 				rowReorder={{ onReorder: () => {} }}
-			/>,
-		)
-
-		for (const handle of grips()) expect(handle).toBeDisabled()
-	})
-
-	it('disables the grip under pagination (rows are a page, not the full set)', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				rowLabel={rowLabel}
-				pagination={{ defaultValue: { pageIndex: 0, pageSize: 2 } }}
-				rowReorder={{ onReorder: () => {} }}
-			/>,
-		)
-
-		for (const handle of grips()) expect(handle).toBeDisabled()
-	})
-
-	it('disables the grip while master-detail is active (detail rows are not sortable items)', () => {
-		renderUI(
-			<Grid
-				columns={[{ id: 'expand', expander: true }, ...columns]}
-				rows={rows}
-				getKey={getKey}
-				rowLabel={rowLabel}
-				expandable={{ render: (row) => <div>{row.name}</div> }}
-				rowReorder={{ onReorder: () => {} }}
-			/>,
-		)
-
-		for (const handle of grips()) expect(handle).toBeDisabled()
-	})
-
-	it('disables the grip when the binding is disabled', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				rowLabel={rowLabel}
-				rowReorder={{ onReorder: () => {}, disabled: true }}
+				{...props}
 			/>,
 		)
 

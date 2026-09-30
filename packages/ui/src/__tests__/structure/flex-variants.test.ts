@@ -13,9 +13,7 @@ describe('resolveDirection', () => {
 	})
 
 	it('returns the direction class for a scalar value', () => {
-		const result = resolveDirection('row')
-
-		expect(result.length).toBe(1)
+		expect(resolveDirection('row')).toEqual(['flex-row'])
 	})
 
 	it('emits mobile-first breakpoint-prefixed classes for a responsive value', () => {
@@ -35,7 +33,7 @@ describe('resolveAlign', () => {
 	})
 
 	it('returns the align class for a scalar value', () => {
-		expect(resolveAlign('center').length).toBe(1)
+		expect(resolveAlign('center')).toEqual(['items-center'])
 	})
 
 	it('emits mobile-first breakpoint-prefixed classes for a responsive value', () => {
@@ -53,15 +51,14 @@ describe('resolveJustify', () => {
 	})
 
 	it('returns the justify class for a scalar value', () => {
-		expect(resolveJustify('between').length).toBe(1)
+		expect(resolveJustify('between')).toEqual(['justify-between'])
 	})
 
 	it('emits breakpoint-prefixed classes for a responsive value', () => {
-		const result = resolveJustify({ initial: 'start', lg: 'end' })
-
-		expect(result.length).toBe(2)
-
-		expect(result.some((c) => c.startsWith('lg:'))).toBe(true)
+		expect(resolveJustify({ initial: 'start', lg: 'end' })).toEqual([
+			'justify-start',
+			'lg:justify-end',
+		])
 	})
 })
 
@@ -82,10 +79,6 @@ describe('resolveGap', () => {
 	})
 
 	it('emits breakpoint-prefixed classes for a responsive value', () => {
-		const result = resolveGap({ initial: 'sm', md: 'lg' })
-
-		expect(result.length).toBe(2)
-
-		expect(result.some((c) => c.startsWith('md:'))).toBe(true)
+		expect(resolveGap({ initial: 'sm', md: 'lg' })).toEqual(['gap-2', 'md:gap-4'])
 	})
 })

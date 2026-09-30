@@ -670,6 +670,28 @@ describe('deriveCode mapped runs', () => {
 })
 
 describe('deriveCode round trip through extractSourceFacts', () => {
+	/**
+	 * Derive the code of the first Example of `source`, with the facts the plugin
+	 * extracts. The build ships only the names that some Example uses. When the
+	 * first Example does not use the name under test, a second Example ships it.
+	 */
+	const roundTrip = (source: string, tree: ReactNode) => {
+		const extracted = extractSourceFacts(source, {
+			filePath: '/lib/src/docs/demos/components/demo.tsx',
+			srcDir: '/lib/src',
+		})
+
+		const site = extracted?.sites[0]
+
+		return deriveCode(tree, registry, {
+			elements: site?.elements ?? [],
+			bindings: site?.bindings ?? {},
+			declarations: extracted?.declarations ?? [],
+			imports: extracted?.imports ?? {},
+			uses: extracted?.uses ?? {},
+		})
+	}
+
 	it('reproduces a controlled-input snippet from the authored demo source', () => {
 		const source = [
 			`import { useState } from 'react'`,
@@ -695,15 +717,6 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 			`}`,
 		].join('\n')
 
-		const extracted = extractSourceFacts(source, {
-			filePath: '/lib/src/docs/demos/components/demo.tsx',
-			srcDir: '/lib/src',
-		})
-
-		const site = extracted?.sites[0]
-
-		expect(site).toBeDefined()
-
 		const Field = tag<{ children?: unknown }>('Field', 'fieldset')
 
 		const Label = tag<{ children?: unknown }>('Label', 'fieldset')
@@ -727,13 +740,7 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 			}),
 		)
 
-		const result = deriveCode(tree, registry, {
-			elements: site?.elements ?? [],
-			bindings: site?.bindings ?? {},
-			declarations: extracted?.declarations ?? [],
-			imports: extracted?.imports ?? {},
-			uses: extracted?.uses ?? {},
-		})
+		const result = roundTrip(source, tree)
 
 		// The rescued props push the open tag past the inline budget, so it wraps
 		// one prop per line — value and setValue in source form, the literal live.
@@ -761,28 +768,6 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 			].join('\n'),
 		)
 	})
-
-	/**
-	 * Derive the code of the first Example of `source`, with the facts the plugin
-	 * extracts. The build ships only the names that some Example uses, so each
-	 * source below has a second Example that ships the name under test.
-	 */
-	const roundTrip = (source: string, tree: ReactNode) => {
-		const extracted = extractSourceFacts(source, {
-			filePath: '/lib/src/docs/demos/components/demo.tsx',
-			srcDir: '/lib/src',
-		})
-
-		const site = extracted?.sites[0]
-
-		return deriveCode(tree, registry, {
-			elements: site?.elements ?? [],
-			bindings: site?.bindings ?? {},
-			declarations: extracted?.declarations ?? [],
-			imports: extracted?.imports ?? {},
-			uses: extracted?.uses ?? {},
-		})
-	}
 
 	const Calendar = tag<{
 		min?: Date

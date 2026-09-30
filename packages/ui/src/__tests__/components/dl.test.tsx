@@ -1,39 +1,16 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
-import { bySlot, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 describe('DescriptionList', () => {
-	it('renders with data-slot="dl"', () => {
-		const { container } = renderUI(<DescriptionList>content</DescriptionList>)
+	it.each<[string, string, ReactElement]>([
+		['dl', 'DL', <DescriptionList key="dl">content</DescriptionList>],
+		['dl-term', 'DT', <DescriptionTerm key="dt">Term</DescriptionTerm>],
+		['dl-details', 'DD', <DescriptionDetails key="dd">Value</DescriptionDetails>],
+	])('renders data-slot="%s" as a %s element', (slot, tag, ui) => {
+		const { container } = renderUI(ui)
 
-		const el = bySlot(container, 'dl')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DL')
-	})
-})
-
-describe('DescriptionTerm', () => {
-	it('renders with data-slot="dl-term"', () => {
-		const { container } = renderUI(<DescriptionTerm>Term</DescriptionTerm>)
-
-		const el = bySlot(container, 'dl-term')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DT')
-	})
-})
-
-describe('DescriptionDetails', () => {
-	it('renders with data-slot="dl-details"', () => {
-		const { container } = renderUI(<DescriptionDetails>Value</DescriptionDetails>)
-
-		const el = bySlot(container, 'dl-details')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DD')
+		expect(getSlot(container, slot).tagName).toBe(tag)
 	})
 })

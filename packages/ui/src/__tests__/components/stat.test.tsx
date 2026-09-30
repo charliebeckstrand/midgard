@@ -10,26 +10,13 @@ import {
 import { bySlot, renderUI } from '../helpers'
 
 describe('Stat skeleton variants', () => {
-	it('renders a label-shaped placeholder', () => {
-		const { container } = renderUI(<StatLabelSkeleton />)
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
-	it('renders a value-shaped placeholder at the explicit size', () => {
-		const { container } = renderUI(<StatValueSkeleton size="sm" />)
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
-	it('renders a delta-shaped placeholder', () => {
-		const { container } = renderUI(<StatDeltaSkeleton />)
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
-	it('renders a description-shaped placeholder', () => {
-		const { container } = renderUI(<StatDescriptionSkeleton />)
+	it.each([
+		['label', () => <StatLabelSkeleton />],
+		['value', () => <StatValueSkeleton size="sm" />],
+		['delta', () => <StatDeltaSkeleton />],
+		['description', () => <StatDescriptionSkeleton />],
+	])('renders a %s-shaped placeholder', (_shape, ui) => {
+		const { container } = renderUI(ui())
 
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})

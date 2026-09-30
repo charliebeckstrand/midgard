@@ -63,42 +63,32 @@ function setup(
 	return { api: result.current, setRange, thumbs: buttons, onDragStart, onDragEnd }
 }
 
+/** The range the first `setRange` call gives when it applies to `prev`. */
+function firstUpdate(setRange: ReturnType<typeof vi.fn>, prev: [number, number]) {
+	const updater = setRange.mock.calls[0]?.[0] as
+		| ((prev: [number, number] | undefined) => [number, number])
+		| undefined
+
+	if (!updater) throw new Error('setRange was not called')
+
+	return updater(prev)
+}
+
 describe('useRangePointer', () => {
-	it('returns pointer handlers', () => {
-		const { api } = setup()
+	// clientX maps straight to a value on the 0-100 track. The press moves the
+	// thumb nearest to that value, and clamps a press past an edge.
+	it.each<[string, [number, number], number, [number, number]]>([
+		['moves the nearest thumb to the pointer position', [20, 80], 30, [30, 80]],
+		['picks the upper thumb when the pointer is closer to it', [20, 80], 70, [20, 70]],
+		['clamps the pointer value past the track edges', [20, 80], -50, [0, 80]],
+		['moves the lower thumb when the pointer lands below a stack', [50, 50], 20, [20, 50]],
+		['moves the upper thumb when the pointer lands above a stack', [50, 50], 90, [50, 90]],
+	])('onPointerDown %s', (_name, current, clientX, expected) => {
+		const { api, setRange } = setup({ current })
 
-		expect(typeof api.onPointerDown).toBe('function')
+		api.onPointerDown(makeEvent({ clientX }))
 
-		expect(typeof api.onPointerMove).toBe('function')
-
-		expect(typeof api.onPointerUp).toBe('function')
-	})
-
-	it('onPointerDown moves the nearest thumb to the pointer position', () => {
-		const { api, setRange } = setup({ current: [20, 80] })
-
-		// clientX=30 on a 0-100 track maps to value 30, closer to thumb 0 (20) than thumb 1 (80).
-		api.onPointerDown(makeEvent({ clientX: 30 }))
-
-		expect(setRange).toHaveBeenCalled()
-
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
-		expect(updater([20, 80])).toEqual([30, 80])
-	})
-
-	it('onPointerDown picks the upper thumb when the pointer is closer to it', () => {
-		const { api, setRange } = setup({ current: [20, 80] })
-
-		api.onPointerDown(makeEvent({ clientX: 70 }))
-
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
-		expect(updater([20, 80])).toEqual([20, 70])
+		expect(firstUpdate(setRange, current)).toEqual(expected)
 	})
 
 	// The press focuses the thumb it resolves; a press on a stack focuses thumb 1,
@@ -161,91 +151,25 @@ describe('useRangePointer', () => {
 
 		api.onPointerMove(makeEvent({ clientX: 60 }))
 
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
-		expect(updater([30, 80])).toEqual([60, 80])
+		expect(firstUpdate(setRange, [30, 80])).toEqual([60, 80])
 	})
 
-	it('onPointerUp clears the drag so subsequent moves are ignored', () => {
+	it.each<[string, (api: ReturnType<typeof setup>['api']) => void]>([
+		['onPointerUp', (api) => api.onPointerUp()],
+		['onPointerCancel', (api) => api.onPointerCancel()],
+		['onLostPointerCapture', (api) => api.onLostPointerCapture()],
+	])('%s clears the drag so subsequent moves are ignored', (_name, end) => {
 		const { api, setRange } = setup({ current: [20, 80] })
 
 		api.onPointerDown(makeEvent({ clientX: 30 }))
 
-		api.onPointerUp()
+		end(api)
 
 		setRange.mockClear()
 
 		api.onPointerMove(makeEvent({ clientX: 60 }))
 
 		expect(setRange).not.toHaveBeenCalled()
-	})
-
-	it('onPointerCancel clears the drag so subsequent moves are ignored', () => {
-		const { api, setRange } = setup({ current: [20, 80] })
-
-		api.onPointerDown(makeEvent({ clientX: 30 }))
-
-		api.onPointerCancel()
-
-		setRange.mockClear()
-
-		api.onPointerMove(makeEvent({ clientX: 60 }))
-
-		expect(setRange).not.toHaveBeenCalled()
-	})
-
-	it('onLostPointerCapture clears the drag so subsequent moves are ignored', () => {
-		const { api, setRange } = setup({ current: [20, 80] })
-
-		api.onPointerDown(makeEvent({ clientX: 30 }))
-
-		api.onLostPointerCapture()
-
-		setRange.mockClear()
-
-		api.onPointerMove(makeEvent({ clientX: 60 }))
-
-		expect(setRange).not.toHaveBeenCalled()
-	})
-
-	it('clamps the pointer value when dragging past the track edges', () => {
-		const { api, setRange } = setup({ current: [20, 80] })
-
-		api.onPointerDown(makeEvent({ clientX: -50 }))
-
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
-		expect(updater([20, 80])).toEqual([0, 80])
-	})
-
-	it('moves the lower thumb when stacked and the pointer lands below the stack', () => {
-		const { api, setRange } = setup({ current: [50, 50] })
-
-		api.onPointerDown(makeEvent({ clientX: 20 }))
-
-		expect(setRange).toHaveBeenCalled()
-
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
-		expect(updater([50, 50])[0]).toBe(20)
-	})
-
-	it('moves the upper thumb when stacked and the pointer lands above the stack', () => {
-		const { api, setRange } = setup({ current: [50, 50] })
-
-		api.onPointerDown(makeEvent({ clientX: 90 }))
-
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
-		expect(updater([50, 50])[1]).toBe(90)
 	})
 
 	it('defers thumb selection until the first move reveals direction', () => {
@@ -270,22 +194,17 @@ describe('useRangePointer', () => {
 		expect(document.activeElement).toBe(thumbs[0])
 	})
 
-	it('stays pending when stacked at min and pointer moves left', () => {
-		const { api, setRange } = setup({ current: [0, 0] })
+	it.each<[string, [number, number], number, number]>([
+		['stacked at min and the pointer moves left', [0, 0], 0, -10],
+		['stacked at max and the pointer moves right', [100, 100], 100, 110],
+		// dx === 0: pointermove at the same x.
+		['stacked and the pointer has not moved', [50, 50], 50, 50],
+	])('stays pending when %s', (_name, current, downX, moveX) => {
+		const { api, setRange } = setup({ current })
 
-		api.onPointerDown(makeEvent({ clientX: 0 }))
+		api.onPointerDown(makeEvent({ clientX: downX }))
 
-		api.onPointerMove(makeEvent({ clientX: -10 }))
-
-		expect(setRange).not.toHaveBeenCalled()
-	})
-
-	it('stays pending when stacked at max and pointer moves right', () => {
-		const { api, setRange } = setup({ current: [100, 100] })
-
-		api.onPointerDown(makeEvent({ clientX: 100 }))
-
-		api.onPointerMove(makeEvent({ clientX: 110 }))
+		api.onPointerMove(makeEvent({ clientX: moveX }))
 
 		expect(setRange).not.toHaveBeenCalled()
 	})
@@ -299,12 +218,8 @@ describe('useRangePointer', () => {
 
 		api.onPointerMove(makeEvent({ clientX: 90 }))
 
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
 		// Thumb 0 dragged to 90 crosses thumb 1 (30); swap re-sorts to [30, 90].
-		expect(updater([20, 30])).toEqual([30, 90])
+		expect(firstUpdate(setRange, [20, 30])).toEqual([30, 90])
 	})
 
 	it('reassigns the upper thumb to slot 0 when it crosses below the lower in swap mode', () => {
@@ -319,12 +234,8 @@ describe('useRangePointer', () => {
 		// at index 0 so subsequent moves track the same finger.
 		api.onPointerMove(makeEvent({ clientX: 10 }))
 
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
 		// Thumb 1 dragged to 10 crosses thumb 0 (70); swap re-sorts to [10, 70].
-		expect(updater([70, 80])).toEqual([10, 70])
+		expect(firstUpdate(setRange, [70, 80])).toEqual([10, 70])
 	})
 
 	it('falls back to min when the track ref is detached', () => {
@@ -346,24 +257,10 @@ describe('useRangePointer', () => {
 
 		result.current.onPointerDown(makeEvent({ clientX: 50 }))
 
-		const updater = setRange.mock.calls[0]?.[0] as (
-			prev: [number, number] | undefined,
-		) => [number, number]
-
 		// valueFromPointer returns min=5; closest thumb to value=5 is index 0.
-		expect(updater([20, 80])[0]).toBe(5)
+		expect(firstUpdate(setRange, [20, 80])[0]).toBe(5)
 	})
 
-	it('stays pending when stacked and pointer has not moved', () => {
-		const { api, setRange } = setup({ current: [50, 50] })
-
-		api.onPointerDown(makeEvent({ clientX: 50 }))
-
-		// dx === 0 case: pointermove at the same x.
-		api.onPointerMove(makeEvent({ clientX: 50 }))
-
-		expect(setRange).not.toHaveBeenCalled()
-	})
 	describe('the drag bracket', () => {
 		it.each<[string, [number, number], number, ThumbIndex]>([
 			['the nearest thumb', [20, 80], 30, 0],
