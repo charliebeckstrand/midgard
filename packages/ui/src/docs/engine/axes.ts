@@ -81,7 +81,8 @@ export function literalsOf(type: string): AxisValue[] | null {
 /**
  * List the styling axes of a component from its extracted API: each prop whose
  * type is a finite set of literals, in the order of the props. A prop in `omit`
- * does not become an axis. A deprecated prop does not become an axis.
+ * does not become an axis. A deprecated prop, and a prop with one value, do not
+ * become an axis.
  */
 export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] {
 	const axes: Axis[] = []
@@ -91,7 +92,8 @@ export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] 
 
 		const values = literalsOf(prop.type)
 
-		if (!values) continue
+		// One value is no choice, such as `as?: 'div'`, so it is not an axis.
+		if (!values || values.length < 2) continue
 
 		const parsed = prop.default === undefined ? null : parseMember(unwrapCode(prop.default))
 

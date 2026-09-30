@@ -122,7 +122,6 @@ export function Demo() {
 			<Axes
 				of="ListItem"
 				title="List item"
-				omit={['as']}
 				render={(props, label) => (
 					<div className="w-80">
 						<List variant="plain" sortable={false} items={stages} aria-label={label}>

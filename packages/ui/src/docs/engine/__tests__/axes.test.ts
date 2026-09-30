@@ -56,6 +56,7 @@ const api: ComponentApi = {
 		{ name: 'odd', type: "'a' | 'b'", default: "'c'" },
 		{ name: 'side', type: "'top' | 'bottom'", default: "`'bottom'`" },
 		{ name: 'note', type: "'x' | 'y'", default: "`'x'` (a note)" },
+		{ name: 'as', type: "'div'", default: "'div'" },
 	],
 }
 
