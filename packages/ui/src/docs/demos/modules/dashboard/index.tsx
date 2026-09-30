@@ -11,9 +11,16 @@ import {
 	MenuDescription,
 	MenuItem,
 	MenuLabel,
+	MenuText,
 	MenuTrigger,
 } from '../../../../components/menu'
-import { Select, SelectDescription, SelectLabel, SelectOption } from '../../../../components/select'
+import {
+	Select,
+	SelectDescription,
+	SelectLabel,
+	SelectOption,
+	SelectText,
+} from '../../../../components/select'
 import { Stat, StatDelta, StatDescription, StatValue } from '../../../../components/stat'
 import { Text } from '../../../../components/text'
 import { BarChart, DonutChart, LineChart } from '../../../../modules/chart'
@@ -472,9 +479,11 @@ function RegistryExample() {
 					>
 						{presets.map((preset) => (
 							<SelectOption key={preset.id} value={preset.id}>
-								<SelectLabel>{preset.label}</SelectLabel>
+								<SelectText>
+									<SelectLabel>{preset.label}</SelectLabel>
 
-								<SelectDescription>{preset.description}</SelectDescription>
+									<SelectDescription>{preset.description}</SelectDescription>
+								</SelectText>
 							</SelectOption>
 						))}
 					</Select>
@@ -494,13 +503,11 @@ function RegistryExample() {
 					<MenuContent>
 						{additions.map(({ tile, hint }) => (
 							<MenuItem key={tile.title} onAction={() => add(tile)}>
-								{/* The hint sits under the title, so a narrow menu fits a phone. An item
-								is a button, so the column resets the centered text of a button. */}
-								<Stack className="min-w-0 text-start">
+								<MenuText>
 									<MenuLabel>{tile.title}</MenuLabel>
 
-									<MenuDescription className="before:hidden">{hint}</MenuDescription>
-								</Stack>
+									<MenuDescription>{hint}</MenuDescription>
+								</MenuText>
 							</MenuItem>
 						))}
 					</MenuContent>

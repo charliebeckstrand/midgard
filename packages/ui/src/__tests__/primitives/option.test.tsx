@@ -180,6 +180,7 @@ const TestContext: FC<{
 const {
 	Option: SelectOption,
 	Label,
+	Text,
 	Description,
 } = createSelectOption({
 	slotPrefix: 'test',
@@ -229,6 +230,26 @@ describe('createSelectOption', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(screen.getByText('My Desc')).toBeInTheDocument()
+	})
+
+	it('Text renders with its data-slot and holds the label over the description', () => {
+		const { container } = renderUI(
+			<TestContext>
+				<Text>
+					<Label>My Label</Label>
+
+					<Description>My Desc</Description>
+				</Text>
+			</TestContext>,
+		)
+
+		const el = bySlot(container, 'test-text')
+
+		expect(el).toContainElement(bySlot(container, 'test-label'))
+
+		expect(el).toContainElement(bySlot(container, 'test-description'))
+
+		expect(el).toHaveClass('flex-col')
 	})
 
 	it('Label capitalizes a string label when the host asks for it', () => {

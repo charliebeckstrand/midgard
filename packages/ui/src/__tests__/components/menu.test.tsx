@@ -11,6 +11,7 @@ import {
 	MenuSection,
 	MenuSeparator,
 	MenuSub,
+	MenuText,
 	MenuTrigger,
 } from '../../components/menu'
 import { MenuCappedContext } from '../../components/menu/context'
@@ -1004,7 +1005,7 @@ describe('MenuSub', () => {
 	})
 })
 
-describe('MenuLabel / MenuDescription / MenuShortcut', () => {
+describe('MenuLabel / MenuText / MenuDescription / MenuShortcut', () => {
 	it('renders MenuLabel with data-slot="menu-label"', () => {
 		const { container } = renderUI(<MenuLabel>Label</MenuLabel>)
 
@@ -1015,6 +1016,24 @@ describe('MenuLabel / MenuDescription / MenuShortcut', () => {
 		const { container } = renderUI(<MenuDescription>Info</MenuDescription>)
 
 		expect(bySlot(container, 'menu-description')).toHaveTextContent('Info')
+	})
+
+	it('renders MenuText with data-slot="menu-text", which stacks the label over the description', () => {
+		const { container } = renderUI(
+			<MenuText>
+				<MenuLabel>Label</MenuLabel>
+
+				<MenuDescription>Info</MenuDescription>
+			</MenuText>,
+		)
+
+		const text = bySlot(container, 'menu-text')
+
+		expect(text).toContainElement(bySlot(container, 'menu-label'))
+
+		expect(text).toContainElement(bySlot(container, 'menu-description'))
+
+		expect(text).toHaveClass('flex-col')
 	})
 })
 

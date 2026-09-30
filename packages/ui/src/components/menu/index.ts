@@ -17,4 +17,6 @@ export {
 	type MenuSeparatorProps,
 	MenuShortcut,
 	type MenuShortcutProps,
+	MenuText,
+	type MenuTextProps,
 } from './slots'
