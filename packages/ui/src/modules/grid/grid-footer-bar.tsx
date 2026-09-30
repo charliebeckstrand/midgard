@@ -36,12 +36,18 @@ function rowTotalLabel({ rows, total }: GridFooterStats): string | null {
  * The selected-count label for {@link GridFooterConfig.selectedTotal}, nested
  * against the visible extent: `'3 of 12 rows selected'`. The denominator is the
  * post-filter row count, so the label carries the visible context even as it
- * replaces the row total (see {@link GridFooterBar}). Only rendered while a
- * selection is active, so `selected` is always at least one.
+ * replaces the row total (see {@link GridFooterBar}). A selection outlives the
+ * filter, so when it holds rows the view does not show, the label names them
+ * (`'5 rows selected, 2 not shown'`) rather than reading more rows than the view
+ * holds. Only rendered while a selection is active, so `selected` is always at
+ * least one.
  *
  * @internal
  */
-function selectedLabel({ rows, selected }: GridFooterStats): string {
+function selectedLabel({ rows, selected, hidden }: GridFooterStats): string {
+	if (hidden > 0)
+		return `${selected} ${selected === 1 ? 'row' : 'rows'} selected, ${hidden} not shown`
+
 	return `${selected} of ${rows} ${rows === 1 ? 'row' : 'rows'} selected`
 }
 
