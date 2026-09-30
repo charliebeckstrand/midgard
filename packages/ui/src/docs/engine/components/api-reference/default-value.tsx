@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../../../core'
 import { parseLinkToken } from '../../api-reference/link-syntax'
 import { LinkText, Prose } from './doc-inline'
+import { splitTopLevel } from './type-references'
 
 /** The literal shape a default value denotes, read off its source text. */
 type LiteralKind = 'string' | 'number' | 'boolean' | 'nullish' | 'array' | 'object'
@@ -27,10 +28,22 @@ const KIND_COLOR: Record<LiteralKind, string> = {
  * monospace run keyed to its kind. A descriptive `@defaultValue` — prose
  * carrying `{@link}` references and backtick literals — renders as Markdown.
  * Each link resolves to a name and each literal code span is syntax-colored
- * the same way (`` `'horizontal'` `` reads emerald in flow).
+ * the same way (`` `'horizontal'` `` reads emerald in flow). A structured
+ * literal renders as a `<pre>` block with one entry on each line, in the hue of
+ * its kind ({@link literalBlock}).
  */
 export function DefaultValue({ value }: { value: string }) {
 	const kind = classifyLiteral(value)
+
+	const block = literalBlock(value)
+
+	if (kind && block) {
+		return (
+			<pre data-slot="default-value" className={cn('overflow-x-auto font-mono', KIND_COLOR[kind])}>
+				{block}
+			</pre>
+		)
+	}
 
 	return (
 		<span
@@ -53,6 +66,40 @@ export function isProseDefault(raw: string): boolean {
 	if (!/`|\{@link/.test(raw)) return false
 
 	return /[A-Za-z]{2,}/.test(raw.replace(/`[^`]*`|\{@link[^}]*\}/g, ''))
+}
+
+/**
+ * The multi-line form of a structured default, or null for a value that stays
+ * on one line. An object literal with one or more entries is structured. An
+ * array literal is structured when it holds an object or an array. The block
+ * puts each top-level entry on its own line, with a two-space indent and a
+ * trailing comma. A nested literal stays on one line, so a list of objects
+ * reads as one object on each line.
+ */
+export function literalBlock(raw: string): string | null {
+	const kind = classifyLiteral(raw)
+
+	if (kind !== 'object' && kind !== 'array') return null
+
+	const text = literalText(raw)
+
+	const entries = splitTopLevel(text.slice(1, -1), ',', false).map(flattenEntry)
+
+	if (entries.length === 0) return null
+
+	if (kind === 'array' && !entries.some((entry) => /^[[{]/.test(entry))) return null
+
+	const lines = entries.map((entry) => `  ${entry},`)
+
+	return [text[0], ...lines, text.at(-1)].join('\n')
+}
+
+/**
+ * One entry of a block on one line. The function joins the source lines with
+ * a space, and removes a trailing comma before a closing bracket.
+ */
+function flattenEntry(entry: string): string {
+	return entry.replace(/,(\s*\n\s*[\]})])/g, '$1').replace(/\s*\n\s*/g, ' ')
 }
 
 /**

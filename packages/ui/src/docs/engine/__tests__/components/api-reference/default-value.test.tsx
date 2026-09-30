@@ -1,6 +1,48 @@
 import { describe, expect, it } from 'vitest'
-import { DefaultValue } from '../../../components/api-reference/default-value'
+import { DefaultValue, literalBlock } from '../../../components/api-reference/default-value'
 import { bySlot, renderUI } from '../../helpers'
+
+describe('literalBlock', () => {
+	it('puts each entry of an object on its own line', () => {
+		expect(literalBlock('`{ toolbar: false, contextMenu: true }`')).toBe(
+			['{', '  toolbar: false,', '  contextMenu: true,', '}'].join('\n'),
+		)
+	})
+
+	it('gives an unquoted object the same block', () => {
+		expect(literalBlock('{ today: true, clear: true }')).toBe(
+			['{', '  today: true,', '  clear: true,', '}'].join('\n'),
+		)
+	})
+
+	it('puts each object of an array on one line, and resets the authored indent', () => {
+		const source = [
+			'[',
+			"\t{ id: 'length', test: (v) => v.length >= 8 },",
+			"\t{\n\t\tid: 'number',\n\t\ttest: (v) => /\\d/.test(v),\n\t},",
+			']',
+		].join('\n')
+
+		expect(literalBlock(source)).toBe(
+			[
+				'[',
+				"  { id: 'length', test: (v) => v.length >= 8 },",
+				"  { id: 'number', test: (v) => /\\d/.test(v) },",
+				']',
+			].join('\n'),
+		)
+	})
+
+	it.each([
+		["`['csv', 'excel']`", 'an array of primitives'],
+		['`[]`', 'an empty array'],
+		['{}', 'an empty object'],
+		["'solid'", 'a string'],
+		['{@link Foo}', 'a link'],
+	])('keeps %s on one line: %s', (input) => {
+		expect(literalBlock(input)).toBeNull()
+	})
+})
 
 describe('DefaultValue', () => {
 	it('renders a string literal as bare text in the string hue', () => {
@@ -37,6 +79,18 @@ describe('DefaultValue', () => {
 		expect(value).toHaveTextContent(input)
 
 		expect(value).toHaveClass(hue)
+	})
+
+	it('renders an object as a block in the object hue', () => {
+		const { container } = renderUI(<DefaultValue value="`{ w: 8, h: 18 }`" />)
+
+		const value = bySlot(container, 'default-value')
+
+		expect(value?.tagName).toBe('PRE')
+
+		expect(value?.textContent).toBe(['{', '  w: 8,', '  h: 18,', '}'].join('\n'))
+
+		expect(value).toHaveClass('text-rose-600')
 	})
 
 	it('renders a quoted-literal union as prose, not one colored string', () => {
