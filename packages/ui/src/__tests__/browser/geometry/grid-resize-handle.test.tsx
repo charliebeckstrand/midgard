@@ -1,0 +1,229 @@
+import { describe, expect, it } from 'vitest'
+import { Badge } from '../../../components/badge'
+import { Grid, type GridColumn } from '../../../modules/grid'
+import { frame, present, renderUI, waitFor } from '../../helpers'
+
+/**
+ * Resize-handle geometry against a real layout engine. The handle lives in the
+ * header, anchored inside its column's trailing edge — it must not overhang the
+ * boundary, or the next sticky header's opaque cell clips the grip to a sliver,
+ * and on the trailing column the overhang pushes past the table to inflate the
+ * horizontal scroll (nudging a right-pinned column at the scroll end). It must
+ * also stay confined to the header, not run the full column height. All only
+ * resolve in a browser, where the table has real geometry.
+ */
+describe('grid resize handle geometry (real browser)', () => {
+	type Employee = { id: number; name: string; role: string; status: 'active' | 'inactive' }
+
+	const employees: Employee[] = Array.from({ length: 6 }, (_, i) => ({
+		id: i + 1,
+		name: `Wade Cooper ${i}`,
+		role: 'Developer',
+		status: i % 2 === 0 ? 'active' : 'inactive',
+	}))
+
+	const columns: GridColumn<Employee>[] = [
+		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '220px', pinned: 'left' },
+		{ id: 'role', title: 'Role', cell: (r) => r.role, width: '220px' },
+		{
+			id: 'status',
+			title: 'Status',
+			cell: (r) => <Badge color={r.status === 'active' ? 'green' : 'zinc'}>{r.status}</Badge>,
+			width: '220px',
+			pinned: 'right',
+		},
+	]
+
+	function setup() {
+		const { container } = renderUI(
+			<div style={{ width: '420px' }}>
+				<Grid
+					resizable
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+					columns={columns}
+					rows={employees}
+					getKey={(r) => r.id}
+				/>
+			</div>,
+		)
+
+		const table = present(container.querySelector('table'), 'table')
+
+		return { container, table }
+	}
+
+	it('keeps the grip within its own column (clear of the next sticky header)', async () => {
+		const { container, table } = setup()
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		const roleHeader = present(
+			container.querySelector('th[data-grid-col="role"]'),
+			'th[data-grid-col="role"]',
+		)
+
+		const grip = present(
+			present(
+				container.querySelector('[role="separator"][aria-label="Resize Role"]'),
+				'[aria-label="Resize Role"]',
+			).querySelector('span[aria-hidden="true"]'),
+			'span[aria-hidden="true"]',
+		)
+
+		// The grip's trailing edge stops at the column boundary — it does not spill
+		// past it into the neighbor, whose opaque sticky header would clip it.
+		expect(grip.getBoundingClientRect().right).toBeLessThanOrEqual(
+			roleHeader.getBoundingClientRect().right + 0.5,
+		)
+	})
+
+	it('confines the handle to the header, leaving no phantom vertical scroll', async () => {
+		// The handle lives in the header (it no longer runs the full column height), so
+		// it can't overrun the table bottom: a bordered, un-capped grid stays
+		// un-scrolled. Driving a full-height handle from the table height once ran it a
+		// top-border past the bottom and — the scroll container's `overflow-x-auto`
+		// making the y-axis scrollable too — raised a spurious vertical scrollbar.
+		const { container } = renderUI(
+			<div style={{ width: '900px' }}>
+				<Grid resizable outline columns={columns} rows={employees} getKey={(r) => r.id} />
+			</div>,
+		)
+
+		const table = present(container.querySelector('table'), 'table')
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		const nameHandle = present(
+			container.querySelector('[role="separator"][aria-label="Resize Name"]'),
+			'[role="separator"][aria-label="Resize Name"]',
+		)
+
+		const nameHeader = present(
+			container.querySelector('th[data-grid-col="name"]'),
+			'th[data-grid-col="name"]',
+		)
+
+		// Header height, not full-column height.
+		expect(
+			Math.abs(
+				nameHandle.getBoundingClientRect().height - nameHeader.getBoundingClientRect().height,
+			),
+		).toBeLessThanOrEqual(2)
+
+		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
+
+		// No phantom vertical scroll.
+		expect(scroll.scrollHeight).toBeLessThanOrEqual(scroll.clientHeight)
+	})
+
+	it('does not overhang the table edge, so a right-pinned column holds at the scroll end', async () => {
+		const { container, table } = setup()
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		// The scroll container that the wide table overflows.
+		let scroll = table.parentElement as HTMLElement
+
+		while (scroll && scroll !== container && scroll.scrollWidth <= scroll.clientWidth + 1) {
+			scroll = scroll.parentElement as HTMLElement
+		}
+
+		// No phantom width past the table: the trailing handle sits at the table's
+		// edge, so the scrollable extent is the table width (not table + overhang).
+		expect(scroll.scrollWidth).toBeLessThanOrEqual(Math.ceil(table.getBoundingClientRect().width))
+
+		const statusHandle = present(
+			container.querySelector('[role="separator"][aria-label="Resize Status"]'),
+			'[role="separator"][aria-label="Resize Status"]',
+		)
+
+		expect(statusHandle.getBoundingClientRect().right).toBeLessThanOrEqual(
+			table.getBoundingClientRect().right + 0.5,
+		)
+
+		// And the right-pinned header does not shift when scrolled to the end.
+		const statusHeader = present(
+			container.querySelector('th[data-grid-col="status"]'),
+			'th[data-grid-col="status"]',
+		)
+
+		const before = statusHeader.getBoundingClientRect().left
+
+		scroll.scrollLeft = scroll.scrollWidth
+
+		await frame()
+
+		expect(statusHeader.getBoundingClientRect().left).toBeCloseTo(before, 0)
+	})
+})
+
+/**
+ * Grip alignment is uniform: every resizable grid centers its grip in the grab
+ * zone — one cell-padding in from the trailing border — whether or not its cells
+ * truncate. The handle only has measured geometry in a real browser.
+ */
+describe('grid resize grip alignment (real browser)', () => {
+	type Row = { id: number; name: string; role: string }
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice', role: 'Developer' },
+		{ id: 2, name: 'Bob', role: 'Manager' },
+	]
+
+	const readOnlyColumns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '200px' },
+		{ id: 'role', title: 'Role', cell: (r) => r.role },
+	]
+
+	// Distance from the 'name' column's trailing border to its grip's right edge:
+	// about one cell-padding when the grip centers in the grab zone.
+	function gripInset(container: HTMLElement): number {
+		const header = present(
+			container.querySelector('th[data-grid-col="name"]'),
+			'th[data-grid-col="name"]',
+		)
+
+		const grip = present(
+			present(
+				container.querySelector('[role="separator"][aria-label="Resize Name"]'),
+				'[aria-label="Resize Name"]',
+			).querySelector('span[aria-hidden="true"]'),
+			'span[aria-hidden="true"]',
+		)
+
+		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
+	}
+
+	// A cell-padding inside the border (where a truncating value clips), not flush.
+	// A non-truncating grid centers the grip the same way: the alignment does not
+	// depend on truncation.
+	it.each([
+		['a truncating', true],
+		['a non-truncating', false],
+	])(
+		'centers the grip a cell-padding inside the trailing border in %s grid',
+		async (_, truncate) => {
+			const { container } = renderUI(
+				<div style={{ width: '900px' }}>
+					<Grid
+						resizable
+						outline
+						truncate={truncate}
+						columns={readOnlyColumns}
+						rows={rows}
+						getKey={(r) => r.id}
+					/>
+				</div>,
+			)
+
+			const table = present(container.querySelector('table'), 'table')
+
+			await waitFor(() => expect(table.style.width).not.toBe(''))
+
+			expect(gripInset(container)).toBeGreaterThan(3)
+
+			expect(gripInset(container)).toBeLessThan(14)
+		},
+	)
+})

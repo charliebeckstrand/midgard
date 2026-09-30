@@ -5,8 +5,8 @@ import { __resetTruncationObserver } from '../../hooks/use-truncation'
 /**
  * Returns the package's module-scope state to its unused shape between tests.
  *
- * The `unit`, `pure`, and `boundary` projects and both browser instances run
- * `isolate: false`, so one module registry serves every file a worker or a page
+ * The `unit`, `pure`, `boundary`, and `geometry` projects and each browser
+ * instance run `isolate: false`, so one module registry serves every file a worker or a page
  * runs. A module that holds state outside a component therefore carries it
  * across files, and the file that suffers is not the file that set it.
  *

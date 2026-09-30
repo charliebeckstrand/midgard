@@ -5,7 +5,8 @@ import { docsPlugin } from './src/docs/engine/plugins'
 import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
-// project runs exactly these, and `unit` excludes them. The docblock is the
+// project runs exactly these, and `unit` excludes them. The scan skips
+// `geometry/`, which the `geometry` project runs by path. The docblock is the
 // one declaration — Vitest reads it too — and this scan turns it into a
 // project so the runner groups the files by `groupOrder`. Under
 // `isolate: false` a worker keeps its environment and module graph only while
@@ -23,7 +24,7 @@ function nodeEnvironmentFiles(): string[] {
 					files.push(relative(import.meta.dirname, file))
 				}
 			},
-			new Set(['browser', 'boundary', 'compiler']),
+			new Set(['browser', 'boundary', 'compiler', 'geometry']),
 		)
 	}
 
@@ -66,7 +67,8 @@ const nodeScan = {
 	testTimeout: 30_000,
 } as const
 
-// Setup files for both jsdom projects (unit, integration).
+// Setup files for both jsdom projects (unit, integration). The first one also
+// gives `expect` the geometry matchers (`setup/geometry.ts`).
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
 	'./src/__tests__/setup/module-mocks.ts',
@@ -115,8 +117,8 @@ export default defineConfig({
 		// BaseSequencer applies. Every project's files then land in one queue, and
 		// a worker is terminated at each crossing — along with the module graph
 		// `isolate: false` exists to keep. Each project below takes its
-		// `groupOrder` from its position in the array — unit, pure, boundary, then
-		// integration — which restores the grouping; the shuffle still applies
+		// `groupOrder` from its position in the array — unit, pure, boundary,
+		// workspace, integration, then geometry — which restores the grouping; the shuffle still applies
 		// inside each group. Deriving it means a new project can neither omit the
 		// field nor collide with a sibling, and a project that set it alone would
 		// replace the resolved sequence rather than extend it, losing `shuffle`
@@ -182,13 +184,14 @@ export default defineConfig({
 					// project, real-floating-engine focus trapping — so it may not
 					// run under this jsdom config. The compiler/ suite runs only in
 					// the compiled run (vitest.compiler.config.ts). The boundary/
-					// suites run in the two projects below, and the node-docblock
-					// files in `pure`.
+					// suites run in the two projects below, the node-docblock
+					// files in `pure`, and the geometry/ suites in `geometry`.
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/**',
 						'src/__tests__/compiler/**',
 						'src/__tests__/boundary/**',
+						'src/__tests__/geometry/**',
 						...nodeFiles,
 					],
 				},
@@ -198,8 +201,9 @@ export default defineConfig({
 				// Pure-function suites, selected by their `// @vitest-environment
 				// node` docblock (see `nodeEnvironmentFiles` above): a plain node
 				// environment on one shared worker, with no jsdom, no module
-				// doubles, and no RTL setup. The only setup is the locale guard,
-				// because the format tests live here. A file here cannot reach the
+				// doubles, and no RTL setup. The setup is the locale guard, because
+				// the format tests live here, and the geometry matchers, which each
+				// project gives to `expect`. A file here cannot reach the
 				// shared jsdom window by accident, and
 				// `node-environment-boundary.test.ts` keeps the docblock and the
 				// file's DOM use in step both ways. The docs engine's pure suites
@@ -210,7 +214,10 @@ export default defineConfig({
 					environment: 'node',
 					pool: 'threads',
 					isolate: false,
-					setupFiles: ['./src/__tests__/setup/locale-guard.ts'],
+					setupFiles: [
+						'./src/__tests__/setup/locale-guard.ts',
+						'./src/__tests__/setup/geometry.ts',
+					],
 					include: nodeFiles,
 				},
 			},
@@ -264,6 +271,33 @@ export default defineConfig({
 					pool: 'forks',
 					include: ['src/__tests__/boundary/**/*.test.{ts,tsx}'],
 					exclude: [...configDefaults.exclude, '**/*-boundary.test.ts'],
+				},
+			},
+			{
+				extends: true as const,
+				// Computational geometry (src/__tests__/geometry/): the pure
+				// functions that turn coordinates, boxes, and shapes into other
+				// coordinates, boxes, and shapes. Map projection, winding, and
+				// topology, the chart scales and marks, and the dashboard layout
+				// are examples. It has the settings of `pure`: a plain node
+				// environment on one shared worker. The layout geometry that needs
+				// a real engine runs in the `geometry` instance of
+				// vitest.browser.config.ts. `pnpm test:geometry` runs the two.
+				//
+				// Each file still opens with `// @vitest-environment node`, so
+				// `node-environment-boundary.test.ts` keeps the file clear of the
+				// DOM. The project is last in the array, so the `groupOrder` of
+				// each project above stays the same.
+				test: {
+					name: 'geometry',
+					environment: 'node',
+					pool: 'threads',
+					isolate: false,
+					setupFiles: [
+						'./src/__tests__/setup/locale-guard.ts',
+						'./src/__tests__/setup/geometry.ts',
+					],
+					include: ['src/__tests__/geometry/**/*.test.ts'],
 				},
 			},
 		].map((project, groupOrder) => ({

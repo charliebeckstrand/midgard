@@ -41,9 +41,9 @@ const area = [
  * safe, because it only makes the hit areas smaller.
  *
  * `__tests__/primitives/touch-target.test.tsx` asserts the floor classes under
- * jsdom. `__tests__/browser/touch-target-geometry.test.tsx` measures the
+ * jsdom. `__tests__/browser/geometry/touch-target-geometry.test.tsx` measures the
  * 24px activation region in Chromium on a fine pointer, and the split between
- * two adjacent hosts on each axis. `__tests__/browser/hit-area-overlap.test.tsx`
+ * two adjacent hosts on each axis. `__tests__/browser/geometry/hit-area-overlap.test.tsx`
  * sets the 44px floor on each span, because the suite cannot match a coarse
  * pointer. It then finds each pair of hit areas that overlap. Axe cannot stand
  * in for these pins, because its target-size rule measures the host's own

@@ -4,6 +4,7 @@ import { afterEach, beforeAll, inject, vi } from 'vitest'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 
+import './geometry'
 import './jsdom-stubs'
 import './locale-guard'
 

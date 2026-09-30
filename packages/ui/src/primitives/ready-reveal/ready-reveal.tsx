@@ -64,7 +64,7 @@ const ROOT_GRID = { gridTemplate: '1fr / 1fr' } as const
 // `apps/tms/.../review/review-bar.tsx` makes its controls block-level
 // to avoid. Blockifying this layer would fix it for every consumer; that is a
 // change to the primitive nobody has made yet, not a rule callers should be
-// left to rediscover. See `__tests__/browser/ready-reveal-line-box.test.tsx`.
+// left to rediscover. See `__tests__/browser/geometry/ready-reveal-line-box.test.tsx`.
 const CONTENT_CELL = { gridArea: '1 / 1' } as const
 
 const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const

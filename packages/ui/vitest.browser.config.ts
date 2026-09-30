@@ -156,14 +156,15 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
 /**
  * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
  * into instances along the `@floating-ui/react` mock boundary — the mock is a
- * setup-file `vi.mock`, so it can only toggle per instance, not per file — and
- * along the scrollbar mode of the browser:
+ * setup-file `vi.mock`, so it can only toggle per instance, not per file —
+ * along the scrollbar mode of the browser, and along the geometry category:
  *
- * - `browser`: layout, geometry, and computed color the jsdom suite can't
- *   see — the `color-contrast` / `target-size` axe rules (helpers/axe.ts) and
- *   react-virtual windowing, which renders zero rows under jsdom's zero-size
- *   viewport. `@floating-ui/react` is mocked (browser/setup/module-mocks.ts)
- *   so overlay panels render inline and settled.
+ * - `browser`: the layout, scroll, and computed style the jsdom suite can't
+ *   see, when the subject is not layout geometry — react-virtual windowing,
+ *   which renders zero rows under jsdom's zero-size viewport, scroll anchors,
+ *   and hover color. `@floating-ui/react` is mocked
+ *   (browser/setup/module-mocks.ts) so overlay panels render inline and
+ *   settled.
  *
  * - `floating-ui` (browser/floating-ui/): the cases that need the live
  *   floating engine — modal focus containment (WCAG 2.4.3 / 2.1.2) and
@@ -175,6 +176,13 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   animation, such as the layers of a crossfade after it lands. This instance
  *   leaves `motion/react` real and mocks `@floating-ui/react` as `browser` does.
  *
+ * - `geometry` (browser/geometry/): the cases whose subject is layout
+ *   geometry — the boxes, hit areas, clipping, alignment, and RTL edges of a
+ *   real layout — and the target-size and color-contrast axe rules. Its mocks
+ *   are the ones `browser` uses, so a file moves between the two with no
+ *   change. The `geometry` project of `vitest.config.ts` holds the
+ *   computational half, and `pnpm test:geometry` runs the two.
+ *
  * - `scrollbars` (browser/scrollbars/): the cases that measure a scroll range.
  *   Playwright starts headless Chromium with `--hide-scrollbars`. In that mode a
  *   `scrollbar-gutter: stable` scroller reserves the gutter, but it computes
@@ -182,7 +190,7 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   short. This instance drops the flag, so its scrollers have real scrollbars.
  *   Its mocks are the ones `browser` uses.
  *
- * `pnpm test:browser` runs all four; `--project <name>` scopes to one.
+ * `pnpm test:browser` runs all five; `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
  * (project's run first), so `index.ts`/`act-environment.ts` — shared by both
@@ -305,7 +313,7 @@ export default defineConfig({
 			// Vitest's own default (`resolved.browser.viewport.width ??= 414`).
 			// Declaring it changes nothing today and stops a version bump from
 			// moving it. It is also the right end of the range to gate at:
-			// `browser/geometry-invariants.test.tsx` states its contract as no
+			// `browser/geometry/geometry-invariants.test.tsx` states its contract as no
 			// page-level horizontal overflow at the default viewport, which asserts
 			// almost nothing at a desktop width. The whole suite passes at 1280x800,
 			// so gating wide later costs no edits.
@@ -321,9 +329,16 @@ export default defineConfig({
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/floating-ui/**',
+						'src/__tests__/browser/geometry/**',
 						'src/__tests__/browser/motion/**',
 						'src/__tests__/browser/scrollbars/**',
 					],
+				},
+				{
+					browser: 'chromium',
+					name: 'geometry',
+					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
+					include: ['src/__tests__/browser/geometry/**/*.test.{ts,tsx}'],
 				},
 				{
 					browser: 'chromium',

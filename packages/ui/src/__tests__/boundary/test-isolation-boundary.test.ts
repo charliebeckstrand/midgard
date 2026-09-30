@@ -31,7 +31,7 @@ const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 
 // The `unit` project's whole test tree — not only `*.test.*`, since a mock in a
 // helper reaches the same registry — the docs engine suite it also runs, the
-// `boundary` project's own files, and the browser suite, whose two instances
+// `boundary` project's own files, and the browser suite, whose instances
 // share one page each (`isolate: false` in vitest.browser.config.ts). Its
 // per-instance doubles live in a `setup/` directory at either depth, which
 // `skip` prunes by entry name.
@@ -642,10 +642,10 @@ describe('test isolation boundary', () => {
 		expect(
 			shared.sort(),
 			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
-		).toEqual(['boundary', 'pure', 'unit', 'workspace'])
+		).toEqual(['boundary', 'geometry', 'pure', 'unit', 'workspace'])
 
 		// The browser config is the fourth scan above, and it is a separate file
-		// the parse over vitest.config.ts cannot reach. Its two instances share one
+		// the parse over vitest.config.ts cannot reach. Its instances share one
 		// page each, which is why that scan exists at all.
 		const browser = readFileSync(join(srcDir, '..', 'vitest.browser.config.ts'), 'utf8')
 
