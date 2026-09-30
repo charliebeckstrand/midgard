@@ -399,7 +399,6 @@ export function GridData<T>({
 		cursorEnabled: cursor.cursorEnabled,
 		cursorNewRow: cursor.newRow,
 		reconcile: cursor.reconcile,
-		settleRange: cursor.settleRange,
 		virtualized: gated.virtualize,
 		onRowClick,
 		onCellClick,

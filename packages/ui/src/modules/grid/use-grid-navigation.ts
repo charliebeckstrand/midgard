@@ -30,6 +30,17 @@ import { useGridRangeDrag } from './use-grid-range-drag'
 export type GridScrollRowIntoView = (rowIndex: number, key?: string) => void
 
 /**
+ * Gives the cursor the row keys and the data column ids in display order, and
+ * the place of the new-row slot. The cursor follows its cell into this layout
+ * (see {@link useGridNavigation}). @internal
+ */
+export type GridReconcile = (
+	rowKeys: readonly unknown[],
+	columnIds: readonly unknown[],
+	slot: GridNewRowPosition,
+) => void
+
+/**
  * Zero-based cursor position over the grid's data cells, in display order.
  * The new-row slot is the row {@link NEW_ROW_INDEX}. @internal
  */
@@ -427,6 +438,71 @@ function escapeFromPanel(event: KeyboardEvent<HTMLTableElement>): void {
 	event.currentTarget.focus()
 }
 
+/**
+ * The index in `after` of the item at `index` in `before`, found by its key.
+ * It is `null` when `after` does not hold the item. An index outside `before`
+ * stays as it is. The check at the same index comes first, so an item that
+ * keeps its place costs no search. @internal
+ */
+function followIndex(
+	index: number,
+	before: readonly unknown[],
+	after: readonly unknown[],
+): number | null {
+	if (index < 0 || index >= before.length) return index
+
+	const key = before[index]
+
+	if (Object.is(after[index], key)) return index
+
+	const next = after.indexOf(key)
+
+	return next === -1 ? null : next
+}
+
+/** The row keys and the data column ids of one layout of the grid. @internal */
+type CursorLayout = { rows: readonly unknown[]; cols: readonly unknown[] }
+
+/**
+ * Finds the cursor's cell again in a new layout: its column by the column id,
+ * and its row by the row key when `byRow` is set. A body that publishes an
+ * order finds its row in `publish` (see {@link reseat}), so it does not set
+ * `byRow`. It returns `from` when the cell keeps its place. It returns a new
+ * coord when the cell moved, or when its row or its column is gone. A cell that
+ * is gone keeps the index of the part that is gone, and the clamp then gives the
+ * nearest cell. @internal
+ */
+function followCell(from: Coord, seen: CursorLayout, next: CursorLayout, byRow: boolean): Coord {
+	const row =
+		byRow && from.row !== NEW_ROW_INDEX ? followIndex(from.row, seen.rows, next.rows) : from.row
+
+	const col = followIndex(from.col, seen.cols, next.cols)
+
+	if (row === from.row && col === from.col) return from
+
+	return { row: row ?? from.row, col: col ?? from.col }
+}
+
+/**
+ * `coord` clamped into the cursor's order and the data columns, or `null` when
+ * the grid has no cell. It returns `current` itself when `coord` is `current`
+ * and the clamp keeps its place, so a layout that moves nothing commits no
+ * render. @internal
+ */
+function clampCoord(
+	coord: Coord,
+	current: Coord,
+	bounds: { rows: number; cols: number; slot: GridNewRowPosition },
+): Coord | null {
+	const row = clampRow(coord.row, bounds.rows, bounds.slot)
+
+	if (row === null || bounds.cols === 0) return null
+
+	const col = clamp(coord.col, 0, bounds.cols - 1)
+
+	return coord === current && row === current.row && col === current.col ? current : { row, col }
+}
+
 /** The row and the column at the end of a data cell's element id (see `cellId`). @internal */
 const CELL_ID_TAIL = /cell-(\d+)-(\d+)$/
 
@@ -509,7 +585,7 @@ function createActiveCursor() {
  * - The subscription `store`.
  * - The `cellId` id-deriver matched by the active pointer.
  * - The clamped `moveTo` (for click-to-focus).
- * - The `reconcile` re-clamp, which the grid runs as the bounds change.
+ * - The `reconcile` follow and re-clamp, which the grid runs as the layout changes.
  * - `navTableProps` to spread onto the `<table>` (or `undefined` when disabled).
  *
  * @internal
@@ -559,8 +635,13 @@ export function useGridNavigation({
 	store: GridNavStore
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
-	/** Re-clamps the active cell to the given bounds and new-row slot; the grid drives it as the data changes. */
-	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
+	/**
+	 * Follows the active cell into a new layout of the row keys and the data
+	 * column ids, and clamps it to the new bounds and the new-row slot. It also
+	 * ends the cell range when the layout changes. The grid drives it as the
+	 * data and the columns change.
+	 */
+	reconcile: GridReconcile
 	/**
 	 * Seats the cursor on a pressed data cell. With the range on, Shift extends
 	 * the range to the cell, and a press without it can start a drag.
@@ -576,8 +657,6 @@ export function useGridNavigation({
 	readRange: () => GridRangeCells | null
 	/** Shows the range between two data cells, the first as the anchor and the second as the cursor. */
 	showRange: (from: Coord, to: Coord) => void
-	/** Clears the range when the row keys or the data column ids change order. */
-	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
 	navTableProps: GridNavTableProps | undefined
 } {
 	const [active, setActive] = useState<Coord | null>(null)
@@ -828,21 +907,6 @@ export function useGridNavigation({
 		return corners ? rangeCells(corners.from, corners.to, dataRowOf) : null
 	}, [readCorners, dataRowOf])
 
-	// The last row keys and column ids that the range saw.
-	const rangeOrderRef = useRef<{ rows: readonly unknown[]; cols: readonly unknown[] } | null>(null)
-
-	const settleRange = useCallback((rowKeys: readonly unknown[], columnIds: readonly unknown[]) => {
-		const last = rangeOrderRef.current
-
-		rangeOrderRef.current = { rows: rowKeys, cols: columnIds }
-
-		if (!last || (sameItems(last.rows, rowKeys) && sameItems(last.cols, columnIds))) return
-
-		// A sort, a filter, a page, or a column change moved the cells under the
-		// range, so its rectangle names other cells now.
-		setAnchor(null)
-	}, [])
-
 	// Records the key of each row the cursor seats on, against the order it was
 	// seated in. A later order looks the row up by that key. A new order counts
 	// too: a reseat that clamps to the same place keeps the coord, but the row
@@ -908,26 +972,56 @@ export function useGridNavigation({
 		publish,
 	}))
 
-	// Re-clamp the cursor to the current bounds when the data shrinks (filter,
-	// paginate, hide a column), so the active cell — and the `aria-activedescendant`
-	// it drives — never dangles past the rendered grid; clears it when the grid
-	// empties. A no-op while in bounds (returns the same coord, so no re-render).
-	const reconcile = useCallback((rowCount: number, colCount: number, slot: GridNewRowPosition) => {
-		setActive((current) => {
-			if (current === null) return null
+	// The row keys and the data column ids that the cursor last saw.
+	const layoutRef = useRef<CursorLayout | null>(null)
 
-			// A published order holds its own bounds; `rowCount` counts data rows.
-			const rows = orderRef.current ? orderRef.current.length : rowCount
+	// Follows the active cell into a new layout of the grid, and clamps it to the
+	// new bounds. A sort, a filter, a page, or a column change can move the cell.
+	// The cursor finds its column again by the column id. A flat body finds its
+	// row again by the row key. A body that publishes an order finds its row in
+	// `publish`. When the row or the column is gone, the cursor keeps its index,
+	// and the clamp gives the nearest cell. The cursor never dangles past the
+	// rendered grid, and it clears when the grid empties. A layout with the same
+	// cells costs one pass over the keys, and it commits no render.
+	const reconcile = useCallback(
+		(rowKeys: readonly unknown[], columnIds: readonly unknown[], slot: GridNewRowPosition) => {
+			const seen = layoutRef.current
 
-			const row = clampRow(current.row, rows, slot)
+			const next = { rows: rowKeys, cols: columnIds }
 
-			if (row === null || colCount === 0) return null
+			layoutRef.current = next
 
-			const col = clamp(current.col, 0, colCount - 1)
+			const moved =
+				seen !== null && !(sameItems(seen.rows, rowKeys) && sameItems(seen.cols, columnIds))
 
-			return row === current.row && col === current.col ? current : { row, col }
-		})
-	}, [])
+			// The cells under the range moved, so its rectangle names other cells now.
+			if (moved) setAnchor(null)
+
+			const from = readActive()
+
+			const followed =
+				moved && from ? followCell(from, seen, next, orderRef.current === null) : from
+
+			// Bring a row that moved into the virtualized window, as a move does.
+			if (followed && from && followed.row !== from.row && followed.row !== NEW_ROW_INDEX) {
+				scrollRowIntoViewRef.current?.(followed.row)
+			}
+
+			setActive((current) => {
+				if (current === null) return null
+
+				// A `publish` in this commit can queue a reseat first. The reseat
+				// found its row, so the cursor only clamps here.
+				const base = current === from && followed ? followed : current
+
+				// A published order holds its own bounds; `rowKeys` counts data rows.
+				const rows = orderRef.current ? orderRef.current.length : rowKeys.length
+
+				return clampCoord(base, current, { rows, cols: columnIds.length, slot })
+			})
+		},
+		[readActive, scrollRowIntoViewRef],
+	)
 
 	// Activates the cell then the row under the cursor through the grid's
 	// click bridges — the same cell-first order a pointer click fires in.
@@ -1197,7 +1291,6 @@ export function useGridNavigation({
 		rangeAnchor: enabled ? anchor : null,
 		readRange,
 		showRange,
-		settleRange,
 		navTableProps,
 	}
 }
