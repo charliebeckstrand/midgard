@@ -179,7 +179,7 @@ describe('useDatePickerRelativeState', () => {
 		it('opens on ArrowUp from the closed trigger', () => {
 			const { result } = renderHook(() => useDatePickerRelativeState({ relative: true }))
 
-			const event = makeKeyEvent('ArrowUp')
+			const event = makeKeyEvent<HTMLElement>('ArrowUp')
 
 			act(() => result.current.onTriggerKeyDown(event))
 
@@ -191,7 +191,7 @@ describe('useDatePickerRelativeState', () => {
 		it('leaves Enter on the closed trigger to the native button click', () => {
 			const { result } = renderHook(() => useDatePickerRelativeState({ relative: true }))
 
-			const event = makeKeyEvent('Enter')
+			const event = makeKeyEvent<HTMLElement>('Enter')
 
 			act(() => result.current.onTriggerKeyDown(event))
 
@@ -203,7 +203,7 @@ describe('useDatePickerRelativeState', () => {
 		it('ignores trigger keys while open or disabled', () => {
 			const open = renderHook(() => useDatePickerRelativeState({ relative: true, open: true }))
 
-			const openEvent = makeKeyEvent('ArrowDown')
+			const openEvent = makeKeyEvent<HTMLElement>('ArrowDown')
 
 			act(() => open.result.current.onTriggerKeyDown(openEvent))
 
@@ -213,7 +213,7 @@ describe('useDatePickerRelativeState', () => {
 				useDatePickerRelativeState({ relative: true, disabled: true }),
 			)
 
-			const disabledEvent = makeKeyEvent('ArrowDown')
+			const disabledEvent = makeKeyEvent<HTMLElement>('ArrowDown')
 
 			act(() => disabled.result.current.onTriggerKeyDown(disabledEvent))
 

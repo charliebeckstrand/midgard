@@ -317,7 +317,9 @@ describe('useDatePickerRangeState', () => {
 		it('starts the cursor on today when there is no value and no min', () => {
 			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
 
-			onTestFinished(() => vi.useRealTimers())
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
 
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
 
