@@ -17,6 +17,7 @@ import { describeRange } from './engine/grid-announcements'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { columnLabel } from './engine/grid-column/label'
 import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
+import type { GridPasteCell } from './engine/grid-edit-commit'
 import {
 	type EditorKind,
 	type GridKeyPress,
@@ -47,7 +48,7 @@ import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridCursorColumns } from './use-grid-cursor-columns'
 import type { GridIndexRefs } from './use-grid-data-cursor'
-import { type GridPasteCell, useGridEditing } from './use-grid-editing'
+import { useGridEditing } from './use-grid-editing'
 import { useGridFillDrag } from './use-grid-fill-drag'
 import { useGridFillHandle } from './use-grid-fill-handle'
 import {
