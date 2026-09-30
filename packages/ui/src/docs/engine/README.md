@@ -44,7 +44,9 @@ the title of its example. A hand-written demo can use both helpers.
 
 The `render` function runs in the render of `<Axes>`, so it must not call a
 hook. Give the component the props that it requires in `render`, and spread
-the axis props onto it. A compound component spreads them onto its root.
+the axis props onto it. A compound component spreads them onto its root. A panel, such as `Dialog`,
+`Drawer`, or `Sheet`, shares no state with its trigger. Wrap the trigger and
+the panel in `Opener`, which keeps the open state for them.
 
 Write a hand-authored `Example` only for what an axis cannot show: a
 composition, an adornment such as `prefix`, or a flow with state.
