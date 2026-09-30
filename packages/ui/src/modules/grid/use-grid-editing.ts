@@ -15,6 +15,8 @@ import {
 } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
+import { useDevWarning } from '../../hooks/use-dev-warning'
+import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { createEmitter } from '../../utilities'
@@ -35,7 +37,8 @@ import {
 	historyValue,
 } from './engine/grid-edit-history'
 import {
-	COMMIT_REFUSED,
+	columnOf,
+	coordOf,
 	createDraftStore,
 	EDITOR_FOCUSABLE,
 	type EditorKind,
@@ -50,10 +53,14 @@ import {
 	isThenable,
 	NATIVE_ENTER,
 	NEW_ROW_KEY,
+	newDraft,
 	readKeyPress,
+	readRefusals,
 	stepEditableColumn,
 	tabStaysInCell,
+	trackSink,
 } from './engine/grid-editing-utilities'
+import { resolveNewRow } from './engine/grid-new-row'
 import { coercePaste } from './engine/grid-range/paste'
 import { unguardField } from './engine/grid-range/tsv'
 import type { GridEditSource } from './grid-data-types'
@@ -63,16 +70,11 @@ import type {
 	GridNewRowSession,
 	GridSettleControls,
 } from './grid-editing-context'
-import type {
-	GridCellChange,
-	GridCellRef,
-	GridCellRefusal,
-	GridEditableConfig,
-} from './grid-editing-types'
+import type { GridCellChange, GridCellRef, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridEditHistory } from './use-grid-edit-history'
 import type { Coord, GridNewRowPosition } from './use-grid-navigation'
-import { resolveNewRow, useGridNewRow } from './use-grid-new-row'
+import { useGridNewRow } from './use-grid-new-row'
 
 /** The editing layer's surface, consumed by {@link useGridCursor}. @internal */
 export type GridEditingApi = {
@@ -343,7 +345,7 @@ export function createActiveEditStore(): GridActiveEditStore & {
  * construction. A consumer's `cell` does not, so it is read here. @internal
  */
 function isEditableCell<T>(cell: GridActiveEdit, source: GridEditSource<T>): boolean {
-	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+	const col = columnOf(source.columns, cell.columnId)
 
 	if (!col || !isColumnEditable(col)) return false
 
@@ -375,7 +377,8 @@ type RowDrafts = Map<string | number, GridDraft>
  * column can lock mid-session, and `onCommit` on an earlier cell can hand back
  * new rows before a later one flushes. A snapshot would answer for the state the
  * editor opened against instead of the state it commits into. The row snapshot
- * applies only where no live row exists.
+ * applies only where no live row exists. `rowOf` finds the live row (see
+ * {@link rowLookup}).
  *
  * @internal
  */
@@ -383,12 +386,11 @@ function flushRow<T>(
 	rowKey: string | number,
 	drafts: RowDrafts,
 	source: GridEditSource<T>,
+	rowOf: (rowKey: string | number) => T | undefined,
 ): { row: T | undefined; changes: GridCellChange[]; refused: GridCellChange[] } {
-	const { rows, columns, getKey } = source
+	const { columns } = source
 
-	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
-	// index a positional `getKey` reads is the one the engine gave the row.
-	const live = rows.find((candidate, index) => getKey(candidate, index) === rowKey)
+	const live = rowOf(rowKey)
 
 	const changes: GridCellChange[] = []
 
@@ -419,7 +421,7 @@ function checkCell<T>(
 	row: T,
 	cell: GridCellChange,
 ): 'keep' | 'drop' | 'refuse' {
-	const col = columns.find((candidate) => candidate.id === cell.columnId)
+	const col = columnOf(columns, cell.columnId)
 
 	// The mount predicate closes a locked column's editor on the next render,
 	// so the staged value must not write either — the two gates answer to the
@@ -447,7 +449,7 @@ function rowName<T>(
 
 /** The label of a column in a save announcement, else its id. @internal */
 function cellLabel<T>(source: GridEditSource<T>, columnId: string | number): string {
-	const col = source.columns.find((candidate) => candidate.id === columnId)
+	const col = columnOf(source.columns, columnId)
 
 	return col ? columnLabel(col) : String(columnId)
 }
@@ -468,7 +470,7 @@ function historyOf<T>(
 	const cells: GridHistoryCell[] = []
 
 	for (const change of changes) {
-		const col = source.columns.find((candidate) => candidate.id === change.columnId)
+		const col = columnOf(source.columns, change.columnId)
 
 		if (col?.field == null) continue
 
@@ -482,15 +484,27 @@ function historyOf<T>(
 
 /**
  * Finds the live row of a key, keyed over the source rows as `use-grid-table`
- * keys them, or `undefined` when the rows hold none. The first find indexes the
- * rows once. A history step reads a row for each cell, so each read after the
- * first costs one map lookup, not a scan of the rows. Where two rows share a
- * key, the first one answers. @internal
+ * keys them, or `undefined` when the rows hold none. The index that a
+ * positional `getKey` reads is the one the engine gave the row. Where two rows
+ * share a key, the first one answers.
+ *
+ * @remarks Make one lookup for each sweep, paste, fill, or history step. The
+ * first find scans the rows and stops at the match, so a sweep that closes one
+ * row costs no more than one scan. The second find indexes the rows once, so
+ * each later find costs one map lookup, not a scan of the rows. @internal
  */
 function rowLookup<T>(source: GridEditSource<T>): (rowKey: string | number) => T | undefined {
 	let index: Map<string | number, T> | undefined
 
+	let scanned = false
+
 	return (rowKey) => {
+		if (!scanned) {
+			scanned = true
+
+			return source.rows.find((row, at) => source.getKey(row, at) === rowKey)
+		}
+
 		if (index === undefined) {
 			const built = new Map<string | number, T>()
 
@@ -517,7 +531,7 @@ function readHistoryCell<T>(
 	rowOf: (rowKey: string | number) => T | undefined,
 	cell: GridHistoryCell,
 ): { value: unknown } | null {
-	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+	const col = columnOf(source.columns, cell.columnId)
 
 	if (col?.field == null || !isColumnEditable(col)) return null
 
@@ -607,6 +621,101 @@ function inFlightBatch<T>(
 }
 
 /**
+ * What the batches of one sweep, or of one write, sent: the column label of
+ * each saved cell, the history cells of the saves, and each batch whose sink
+ * returned a promise. `row` is the name of the last row that saved, and `rows`
+ * counts the rows that saved. @internal
+ */
+type SendTally = {
+	columns: string[]
+	history: GridHistoryCell[]
+	row: string | undefined
+	rows: number
+	inFlight: InFlightBatch[]
+}
+
+/** An empty {@link SendTally}. @internal */
+function sendTally(): SendTally {
+	return { columns: [], history: [], row: undefined, rows: 0, inFlight: [] }
+}
+
+/** The {@link SavedCells} of a tally. It names the row when one row saved. @internal */
+function savedOf(tally: SendTally): SavedCells {
+	return {
+		columns: tally.columns,
+		row: tally.rows === 1 ? tally.row : undefined,
+		history: tally.history,
+	}
+}
+
+/**
+ * Sends the changes of one row through the sink as one batch, and adds the
+ * result to `tally`. A row with no change, or with no sink to reach, sends
+ * nothing and counts nothing. A sink that returns at once saved the batch. A
+ * sink that returns a promise did not save it yet, so the batch goes into
+ * `inFlight`, with a draft of each change.
+ *
+ * `record` reads the history cells of the changes, before the sink runs,
+ * because a sink can write the row in place. A save records them. `drafts`
+ * holds the drafts of a session. A write that no session staged has none, and
+ * gets a staged draft for each change. `steps` holds the cells of a history
+ * step, which a refused batch puts back. @internal
+ */
+function dispatchBatch<T>(
+	batch: {
+		rowKey: string | number
+		row: T | undefined
+		changes: GridCellChange[]
+		outcome: GridSaveOutcome
+		record: boolean
+		drafts: RowDrafts | undefined
+		steps: GridHistoryCell[]
+	},
+	sink: { source: GridEditSource<T>; onCommit: CommitSink | undefined },
+	tally: SendTally,
+): void {
+	const { rowKey, row, changes } = batch
+
+	const { source, onCommit } = sink
+
+	if (!changes.length || !onCommit) return
+
+	const cells = batch.record ? historyOf(changes, row, source) : []
+
+	const result = onCommit(changes)
+
+	const name = rowName(source, rowKey, row)
+
+	if (!isThenable(result)) {
+		for (const change of changes) tally.columns.push(cellLabel(source, change.columnId))
+
+		tally.history.push(...cells)
+
+		tally.row = name
+
+		tally.rows++
+
+		return
+	}
+
+	tally.inFlight.push(
+		inFlightBatch(
+			{
+				rowKey,
+				rowDrafts: batch.drafts ?? stagedDrafts(changes, row),
+				changes,
+				result,
+				row: name,
+				outcome: batch.outcome,
+				// A save holds no step cells, and a step holds no saved ones.
+				history: batch.steps.length === 0 ? cells : [...cells, ...batch.steps],
+			},
+			source,
+		),
+	)
+}
+
+/**
  * Commits every staged cell that the session closed, one `onCommit` batch per
  * row. It hands the cells `validate` refused to `onReject`, and returns the
  * cells saved across them as {@link SavedCells}, for the commit announcement.
@@ -636,19 +745,11 @@ function flushClosedCells<T>(args: {
 	editableRows: Set<string | number>
 	activeEdit: GridActiveEdit | null
 	source: GridEditSource<T>
+	rowOf: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
 	onReject: ((refused: GridCellChange[]) => void) | undefined
 }): { saved: SavedCells; inFlight: InFlightBatch[] } {
-	const saved: string[] = []
-
-	const history: GridHistoryCell[] = []
-
-	// The name of the last row that saved, and how many rows saved.
-	let savedRow: string | undefined
-
-	let savedRows = 0
-
-	const inFlight: InFlightBatch[] = []
+	const tally = sendTally()
 
 	// The new-row slot is always open. Its drafts leave through an add, never
 	// through this sweep.
@@ -668,44 +769,20 @@ function flushClosedCells<T>(args: {
 		// the key to a data row key.
 		if (rowKey === NEW_ROW_KEY) continue
 
-		const { row, changes, refused } = flushRow(rowKey, rowDrafts, args.source)
+		const { row, changes, refused } = flushRow(rowKey, rowDrafts, args.source, args.rowOf)
 
 		// Reported per row, like the commit batch beside it, and independent of it:
 		// a row whose every cell was refused reaches no sink at all otherwise.
 		if (refused.length > 0) args.onReject?.(refused)
 
-		if (!changes.length || !args.onCommit) continue
-
-		// Read before the sink runs, because a sink can write the row in place.
-		const cells = historyOf(changes, row, args.source)
-
-		const result = args.onCommit(changes)
-
-		const name = rowName(args.source, rowKey, row)
-
-		if (!isThenable(result)) {
-			for (const change of changes) saved.push(cellLabel(args.source, change.columnId))
-
-			history.push(...cells)
-
-			savedRow = name
-
-			savedRows++
-
-			continue
-		}
-
-		inFlight.push(
-			inFlightBatch(
-				{ rowKey, rowDrafts, changes, result, row: name, outcome: 'updated', history: cells },
-				args.source,
-			),
+		dispatchBatch(
+			{ rowKey, row, changes, outcome: 'updated', record: true, drafts: rowDrafts, steps: [] },
+			args,
+			tally,
 		)
 	}
 
-	const row = savedRows === 1 ? savedRow : undefined
-
-	return { saved: { columns: saved, row, history }, inFlight }
+	return { saved: savedOf(tally), inFlight: tally.inFlight }
 }
 
 /**
@@ -731,7 +808,7 @@ function writeTarget<T>(
 	rowOf: (rowKey: string | number) => T | undefined,
 	cell: GridCellRef,
 ): { col: GridColumn<T>; field: keyof T; row: T } | null {
-	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+	const col = columnOf(source.columns, cell.columnId)
 
 	if (col?.field == null || !isColumnEditable(col)) return null
 
@@ -803,17 +880,7 @@ function checkRow<T>(
 function stagedDrafts<T>(changes: readonly GridCellChange[], row: T | undefined): RowDrafts {
 	const drafts: RowDrafts = new Map()
 
-	for (const change of changes) {
-		const draft: GridDraft = {
-			value: change.value,
-			status: 'staged',
-			row,
-			error: undefined,
-			reopened: false,
-		}
-
-		drafts.set(change.columnId, draft)
-	}
+	for (const change of changes) drafts.set(change.columnId, newDraft(change.value, row))
 
 	return drafts
 }
@@ -850,17 +917,11 @@ function sendCells<T>(args: {
 	check: boolean
 	history: readonly GridHistoryCell[]
 }): { saved: SavedCells; inFlight: InFlightBatch[]; refused: GridCellChange[] } {
-	const { outcome, source, rowOf, onCommit, check } = args
+	const { outcome, source, rowOf, check } = args
 
 	const historyRows = byRow(args.history)
 
-	const columns: string[] = []
-
-	const names: string[] = []
-
-	const history: GridHistoryCell[] = []
-
-	const inFlight: InFlightBatch[] = []
+	const tally = sendTally()
 
 	const refused: GridCellChange[] = []
 
@@ -871,50 +932,24 @@ function sendCells<T>(args: {
 
 		refused.push(...checked.refused)
 
-		const { changes } = checked
-
-		// With no sink, nothing saves, so nothing is announced.
-		if (!changes.length || !onCommit) continue
-
-		// Read before the sink runs, because a sink can write the row in place.
-		const cells = check ? historyOf(changes, row, source) : []
-
-		const result = onCommit(changes)
-
-		const name = rowName(source, rowKey, row)
-
-		if (!isThenable(result)) {
-			for (const change of changes) columns.push(cellLabel(source, change.columnId))
-
-			history.push(...cells)
-
-			names.push(name)
-
-			continue
-		}
-
-		const rowDrafts = stagedDrafts(changes, row)
-
-		inFlight.push(
-			inFlightBatch(
-				{
-					rowKey,
-					rowDrafts,
-					changes,
-					result,
-					row: name,
-					outcome,
-					// A checked write holds no step cells, and a step holds no checked ones.
-					history: [...cells, ...stepCells(historyRows, rowKey)],
-				},
-				source,
-			),
+		// With no sink, nothing saves, so nothing is announced. A checked write
+		// holds no step cells, and a step holds no checked ones.
+		dispatchBatch(
+			{
+				rowKey,
+				row,
+				changes: checked.changes,
+				outcome,
+				record: check,
+				drafts: undefined,
+				steps: stepCells(historyRows, rowKey),
+			},
+			args,
+			tally,
 		)
 	}
 
-	const row = names.length === 1 ? names[0] : undefined
-
-	return { saved: { columns, row, history }, inFlight, refused }
+	return { saved: savedOf(tally), inFlight: tally.inFlight, refused }
 }
 
 /**
@@ -979,17 +1014,11 @@ function dropStrandedHolds<T>(args: {
 	before: Set<string | number>
 	after: Set<string | number>
 	gridClosed: Set<string | number>
-	source: GridEditSource<T>
+	rowOf: (rowKey: string | number) => T | undefined
 }): number {
-	const { before, after, gridClosed, source } = args
+	const { before, after, gridClosed, rowOf } = args
 
-	let keys: Set<string | number> | null = null
-
-	const gone = (rowKey: string | number) => {
-		keys ??= new Set(source.rows.map((row, index) => source.getKey(row, index)))
-
-		return !keys.has(rowKey)
-	}
+	const gone = (rowKey: string | number) => rowOf(rowKey) === undefined
 
 	const closed = (rowKey: string | number) =>
 		before.has(rowKey) && !after.has(rowKey) && !gridClosed.has(rowKey)
@@ -1009,74 +1038,26 @@ function dropStrandedHolds<T>(args: {
 }
 
 /**
- * The error of each refused cell of a settled batch, keyed by column id. A
- * resolved value lists the refused cells, and an empty or absent list accepts
- * the batch. A refusal of a cell outside the batch changes nothing. A
- * rejection refuses every cell, with the reason's `message` when that is a
- * non-empty string. Any other error falls back to {@link COMMIT_REFUSED}.
- * @internal
+ * The warning for `scope: 'cell'` without the grid-owned session that it
+ * narrows. The pair is inert rather than wrong, because the row's editors
+ * mount as under row scope. @internal
  */
-function readRefusals(
-	batch: InFlightBatch,
-	outcome: { value: unknown } | { reason: unknown },
-): Map<string | number, string> {
-	const refused = new Map<string | number, string>()
-
-	if ('reason' in outcome) {
-		const message = (outcome.reason as { message?: unknown } | null)?.message
-
-		const error = typeof message === 'string' && message !== '' ? message : COMMIT_REFUSED
-
-		for (const columnId of batch.drafts.keys()) refused.set(columnId, error)
-
-		return refused
-	}
-
-	const refusals: GridCellRefusal[] = Array.isArray(outcome.value) ? outcome.value : []
-
-	for (const refusal of refusals) {
-		if (refusal.rowKey !== batch.rowKey || !batch.drafts.has(refusal.columnId)) continue
-
-		refused.set(refusal.columnId, refusal.error || COMMIT_REFUSED)
-	}
-
-	return refused
-}
+const CELL_SCOPE_WITHOUT_SESSION_WARNING =
+	"Grid: `editable.scope: 'cell'` narrows a session the grid owns, but `editable.session` is 'manual', where the consumer names a row and never a cell. The row's editors all mount, as under scope 'row' — set `session: 'managed'` to scope a session to one cell."
 
 /**
- * Warns in development when `scope: 'cell'` is set without the grid-owned session
- * it narrows, matching the module's other config-mismatch warnings. The pair is
- * inert rather than wrong, because the row's editors mount as under row scope.
- * It therefore fails silently, which is what the warning is for. @internal
+ * The warning for `cell` or `defaultCell` outside the cell-scoped, grid-owned
+ * session that it binds. The binding is inert there. @internal
  */
-function useCellScopeWithoutSessionWarning(scoped: boolean, managed: boolean): void {
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (!scoped || managed) return
-
-		console.warn(
-			"Grid: `editable.scope: 'cell'` narrows a session the grid owns, but `editable.session` is 'manual', where the consumer names a row and never a cell. The row's editors all mount, as under scope 'row' — set `session: 'managed'` to scope a session to one cell.",
-		)
-	}, [scoped, managed])
-}
+const ACTIVE_CELL_WITHOUT_SCOPE_WARNING =
+	"Grid: `editable.cell` and `editable.defaultCell` bind the cell of a cell-scoped session, and this grid has none. The binding has no effect — set `session: 'managed'` and `scope: 'cell'` to bind the cell."
 
 /**
- * Warns in development when `cell` or `defaultCell` is set outside
- * the cell-scoped, grid-owned session that it binds. The binding is inert there,
- * so it fails silently, which is what the warning is for. @internal
+ * The warning for a `commitOn` that asks for more than `'explicit'` without the
+ * grid-owned session that it commits. The consumer owns every exit there. @internal
  */
-function useActiveCellWithoutScopeWarning(bound: boolean, cellScoped: boolean): void {
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (!bound || cellScoped) return
-
-		console.warn(
-			"Grid: `editable.cell` and `editable.defaultCell` bind the cell of a cell-scoped session, and this grid has none. The binding has no effect — set `session: 'managed'` and `scope: 'cell'` to bind the cell.",
-		)
-	}, [bound, cellScoped])
-}
+const COMMIT_ON_WITHOUT_SESSION_WARNING =
+	"Grid: `editable.commitOn` commits a session that the grid owns, but `editable.session` is 'manual', where you own every exit. The setting has no effect — set `session: 'managed'` to commit a session on leave."
 
 /**
  * The commit policy that applies, from the policy the config asks for. The
@@ -1087,27 +1068,9 @@ function useActiveCellWithoutScopeWarning(bound: boolean, cellScoped: boolean): 
 function useCommitOn(requested: CommitOn | undefined, managed: boolean): CommitOn {
 	const asked = requested ?? 'explicit'
 
-	useCommitOnWithoutSessionWarning(asked !== 'explicit', managed)
+	useDevWarning(asked !== 'explicit' && !managed, COMMIT_ON_WITHOUT_SESSION_WARNING)
 
 	return managed ? asked : 'explicit'
-}
-
-/**
- * Warns in development when `commitOn` asks for more than `'explicit'` without
- * the grid-owned session that it commits. The consumer owns every exit there,
- * so the setting has no effect and fails silently, which is what the warning
- * is for. @internal
- */
-function useCommitOnWithoutSessionWarning(requested: boolean, managed: boolean): void {
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (!requested || managed) return
-
-		console.warn(
-			"Grid: `editable.commitOn` commits a session that the grid owns, but `editable.session` is 'manual', where you own every exit. The setting has no effect — set `session: 'managed'` to commit a session on leave.",
-		)
-	}, [requested, managed])
 }
 
 /**
@@ -1615,11 +1578,13 @@ export function useGridEditing<T>({
 
 	const cellScoped = managed && scopeRequested
 
-	useCellScopeWithoutSessionWarning(scopeRequested, managed)
+	// A setting that the config makes inert fails silently. The warnings tell
+	// the developer.
+	useDevWarning(scopeRequested && !managed, CELL_SCOPE_WITHOUT_SESSION_WARNING)
 
-	useActiveCellWithoutScopeWarning(
-		enabled && (config?.cell !== undefined || config?.defaultCell !== undefined),
-		cellScoped,
+	useDevWarning(
+		enabled && (config?.cell !== undefined || config?.defaultCell !== undefined) && !cellScoped,
+		ACTIVE_CELL_WITHOUT_SCOPE_WARNING,
 	)
 
 	const commitOn = useCommitOn(enabled ? config?.commitOn : undefined, managed)
@@ -2318,9 +2283,7 @@ export function useGridEditing<T>({
 		(rowKey: string | number, columnId: string | number) => {
 			const rowKeys = rowKeysRef.current
 
-			const row = rowKeys.indexOf(rowKey)
-
-			const col = dataColumnsRef.current.findIndex((column) => column.id === columnId)
+			const { row, col } = coordOf(rowKeys, dataColumnsRef.current, { rowKey, columnId })
 
 			endSession(rowKey, 'save')
 
@@ -2337,13 +2300,11 @@ export function useGridEditing<T>({
 	// the tab stop. It toggles edit off, as F2 on the tab stop toggles it on.
 	const commitHere = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
-			const row = rowKeysRef.current.indexOf(rowKey)
-
-			const col = dataColumnsRef.current.findIndex((column) => column.id === columnId)
+			const coord = coordOf(rowKeysRef.current, dataColumnsRef.current, { rowKey, columnId })
 
 			endSession(rowKey, 'save')
 
-			moveTo({ row, col })
+			moveTo(coord)
 		},
 		[endSession, moveTo, rowKeysRef, dataColumnsRef],
 	)
@@ -2357,9 +2318,7 @@ export function useGridEditing<T>({
 		(rowKey: string | number, columnId: string | number, step: 1 | -1) => {
 			const columns = dataColumnsRef.current
 
-			const row = rowKeysRef.current.indexOf(rowKey)
-
-			const col = columns.findIndex((column) => column.id === columnId)
+			const { row, col } = coordOf(rowKeysRef.current, columns, { rowKey, columnId })
 
 			// A cell whose commit is in flight cannot open, so the move steps past it.
 			const next = stepEditableColumn(columns, col, step, (index) =>
@@ -2575,15 +2534,7 @@ export function useGridEditing<T>({
 
 	// Whether the grid is mounted. A commit that settles after the unmount
 	// changes nothing and announces nothing.
-	const mountedRef = useRef(false)
-
-	useEffect(() => {
-		mountedRef.current = true
-
-		return () => {
-			mountedRef.current = false
-		}
-	}, [])
+	const mountedRef = useMountedRef()
 
 	// The refused rows that a settle asked `rows` to open again. `rerender` forces
 	// the render that tells an applied write from a declined one.
@@ -2627,8 +2578,6 @@ export function useGridEditing<T>({
 	// session holds it. One polite announcement speaks the batch.
 	const settleBatch = useCallback(
 		(batch: InFlightBatch, refused: Map<string | number, string>) => {
-			if (!mountedRef.current) return
-
 			const { rowKey } = batch
 
 			// A cell-scoped session holds one cell, so a refused cell opens beside
@@ -2675,19 +2624,22 @@ export function useGridEditing<T>({
 	)
 
 	// Puts the drafts of an async batch back as pending, and settles them when
-	// the promise does. A rejection refuses the whole batch.
+	// the promise does. A rejection refuses the whole batch. A refusal counts
+	// only for a draft of the batch, on the row of the batch.
 	const trackBatch = useCallback(
 		(batch: InFlightBatch) => {
 			for (const [columnId, draft] of batch.drafts) drafts.pend(batch.rowKey, columnId, draft)
 
 			activeEditStore.notify()
 
-			batch.result.then(
-				(value) => settleBatch(batch, readRefusals(batch, { value })),
-				(reason: unknown) => settleBatch(batch, readRefusals(batch, { reason })),
+			const takes = (refusal: { rowKey?: string | number; columnId: string | number }) =>
+				refusal.rowKey === batch.rowKey && batch.drafts.has(refusal.columnId)
+
+			trackSink(batch.result, mountedRef, (outcome) =>
+				settleBatch(batch, readRefusals(outcome, batch.drafts.keys(), takes)),
 			)
 		},
-		[drafts, activeEditStore, settleBatch],
+		[drafts, activeEditStore, settleBatch, mountedRef],
 	)
 
 	// Read by the sweep, so a new callback does not run the sweep again.
@@ -2698,12 +2650,17 @@ export function useGridEditing<T>({
 	// open state answers it on its own, so no copy of the last render is kept to
 	// diff against.
 	useEffect(() => {
+		const source = editSourceRef.current
+
+		// One lookup serves the sweep, so no row is found by a second scan.
+		const rowOf = rowLookup(source)
+
 		const dropped = dropStrandedHolds({
 			drafts,
 			before: sweptRef.current.rows,
 			after: editableRows,
 			gridClosed: gridClosedRef.current,
-			source: editSourceRef.current,
+			rowOf,
 		})
 
 		// A dropped draft can change what a cell shows, so the cells read again.
@@ -2719,7 +2676,8 @@ export function useGridEditing<T>({
 			drafts,
 			editableRows,
 			activeEdit,
-			source: editSourceRef.current,
+			source,
+			rowOf,
 			onCommit: hasCommit ? sendCommit : undefined,
 			onReject: sendReject,
 		})
@@ -2850,11 +2808,11 @@ export function useGridEditing<T>({
 	// its row and its column.
 	const moveToCell = useCallback(
 		(cell: GridHistoryCell | undefined) => {
-			const row = cell ? rowKeysRef.current.indexOf(cell.rowKey) : -1
+			if (!cell) return
 
-			const col = dataColumnsRef.current.findIndex((column) => column.id === cell?.columnId)
+			const coord = coordOf(rowKeysRef.current, dataColumnsRef.current, cell)
 
-			if (row !== -1 && col !== -1) moveTo({ row, col })
+			if (coord.row !== -1 && coord.col !== -1) moveTo(coord)
 		},
 		[rowKeysRef, dataColumnsRef, moveTo],
 	)

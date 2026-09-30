@@ -11,25 +11,23 @@ import {
 	type KeyboardCoordinateGetter,
 	MeasuringStrategy,
 	type UniqueIdentifier,
+	useDroppable,
 } from '@dnd-kit/core'
 import {
 	SortableContext,
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { EllipsisVertical, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { EllipsisVertical, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
-import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
-import { Control } from '../../components/control'
-import { Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
-import { useDragCursor, useSortableSensors } from '../../hooks'
+import { useDragCursor, useSortableItem, useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/grid-group'
 import { columnLabel } from './engine/grid-column/label'
 import {
@@ -40,15 +38,14 @@ import {
 	isGroupDragId,
 	UNGROUPED,
 	type ZoneMap,
+	zoneDropId,
 } from './engine/grid-zone/map'
 import type { GridColumnGroup } from './grid-group-types'
+import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import { GridManagerColorMenu } from './grid-manager-color-menu'
+import { GridManagerGrip } from './grid-manager-grip'
 import type { GridColumnManagerItem } from './types'
-import {
-	useGridGroupManager,
-	useGroupColumnSortable,
-	useGroupZoneDroppable,
-} from './use-grid-group-manager'
+import { useGridGroupManager } from './use-grid-group-manager'
 import { useGridZoneSortable } from './use-grid-zone-sortable'
 
 /**
@@ -356,17 +353,10 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 		useGridZoneSortable(`${GROUP_PREFIX}${props.zone.id}`)
 
 	const handle = (
-		<button
-			type="button"
-			ref={setActivatorNodeRef}
-			data-dragging={dataAttr(dragging)}
-			className={cn(k.manager.row.grip)}
-			aria-label={`Reorder group ${props.zone.group ? columnLabel(props.zone.group) : ''}`}
-			{...attributes}
-			{...listeners}
-		>
-			<Icon icon={<GripVertical />} />
-		</button>
+		<GridManagerGrip
+			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
+			label={`Reorder group ${props.zone.group ? columnLabel(props.zone.group) : ''}`}
+		/>
 	)
 
 	return (
@@ -391,7 +381,7 @@ function GridGroupManagerZoneView({
 	assign,
 	handle,
 }: GridGroupManagerZoneViewProps) {
-	const { setNodeRef } = useGroupZoneDroppable(zone.id)
+	const { setNodeRef } = useDroppable({ id: zoneDropId(zone.id) })
 
 	// The zone's matching members — all of them with no query typed. Both the render
 	// and the sortable run off these, so a drag animates over the rows on screen;
@@ -544,8 +534,10 @@ function GridGroupManagerColumnRow({
 	onToggle,
 	assign,
 }: GridGroupManagerColumnRowProps) {
+	// The shared sortable hides the source row (`opacity: 0`) while it drags, and
+	// the editor's `<DragOverlay>` stands in, as in List and Kanban.
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
-		useGroupColumnSortable(item.id)
+		useSortableItem({ id: String(item.id) })
 
 	const label = columnLabel(item)
 
@@ -558,33 +550,21 @@ function GridGroupManagerColumnRow({
 			className={cn(k.manager.row.root)}
 			data-dragging={dataAttr(dragging)}
 		>
-			<button
-				type="button"
-				ref={setActivatorNodeRef}
-				data-dragging={dataAttr(dragging)}
-				className={cn(k.manager.row.grip)}
-				aria-label={`Reorder ${label}`}
-				{...attributes}
-				{...listeners}
-			>
-				<Icon icon={<GripVertical />} />
-			</button>
+			<GridManagerGrip
+				sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
+				label={`Reorder ${label}`}
+			/>
 
-			<Control className={cn(k.manager.row.control)}>
-				<CheckboxGroup>
-					<CheckboxField>
-						<Checkbox
-							checked={!hidden.has(item.id)}
-							// Held disabled through a drag so it stays put (visible, not toggled)
-							// rather than hiding the row and snapping on drop.
-							disabled={dragging || item.hideable === false}
-							onChange={() => onToggle(item.id)}
-							aria-label={`Show ${label}`}
-						/>
-						<Label>{item.title}</Label>
-					</CheckboxField>
-				</CheckboxGroup>
-			</Control>
+			<GridManagerCheckboxRow
+				className={cn(k.manager.row.control)}
+				columnTitle={item.title}
+				checked={!hidden.has(item.id)}
+				// Held disabled through a drag so it stays put (visible, not toggled)
+				// rather than hiding the row and snapping on drop.
+				disabled={dragging || item.hideable === false}
+				onChange={() => onToggle(item.id)}
+				aria-label={`Show ${label}`}
+			/>
 
 			{/* The "Move to" menu only means something once a group exists to move into,
 			    or out of. With no groups it would open empty, so it's withheld. */}
@@ -635,18 +615,15 @@ function GridGroupManagerColumnRowOverlay({
 	return (
 		<div className={cn(k.manager.row.root, k.manager.row.overlay)} data-dragging="">
 			{/* The pointer rides the overlay, so its grip shows the held hand. */}
-			<span data-dragging="" className={cn(k.manager.row.grip)}>
-				<Icon icon={<GripVertical />} />
-			</span>
+			<GridManagerGrip />
 
-			<Control className={cn(k.manager.row.control)}>
-				<CheckboxGroup>
-					<CheckboxField>
-						<Checkbox checked={checked} disabled aria-label={`Show ${label}`} />
-						<Label>{item.title}</Label>
-					</CheckboxField>
-				</CheckboxGroup>
-			</Control>
+			<GridManagerCheckboxRow
+				className={cn(k.manager.row.control)}
+				columnTitle={item.title}
+				checked={checked}
+				disabled
+				aria-label={`Show ${label}`}
+			/>
 		</div>
 	)
 }

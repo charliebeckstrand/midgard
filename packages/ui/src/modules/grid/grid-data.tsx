@@ -13,7 +13,6 @@ import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { resolveGridReorder } from './engine/grid-reorder-compute'
 import { GridBusyStatus } from './grid-busy-status'
-import { useColumnGroupMenu } from './grid-context-menu'
 import { GridDataDialogs } from './grid-data-dialogs'
 import { resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
 import { GridDataTable } from './grid-data-table'
@@ -26,6 +25,7 @@ import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { GridOverlayDensityContext, GridRegion } from './grid-region'
 import { useGridSort, useServerSortSettle } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
+import { useGridColumnGroupMenu } from './use-grid-column-group-menu'
 import { useGridDataColumns } from './use-grid-data-columns'
 import { useGridDataCursor, useGridIndexRefs } from './use-grid-data-cursor'
 import { useGridDataFrame } from './use-grid-data-frame'
@@ -479,7 +479,7 @@ export function GridData<T>({
 	)
 
 	// Column-group band badge menu: Clear color (when colored) + Manage columns.
-	const columnGroupMenu = useColumnGroupMenu({
+	const columnGroupMenu = useGridColumnGroupMenu({
 		groups: group.groups,
 		setGroups: group.setGroups,
 		enabled: group.hasGroups,

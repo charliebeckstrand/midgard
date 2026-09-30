@@ -1,18 +1,14 @@
 'use client'
-
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import { memo, type ReactElement, type ReactNode } from 'react'
-import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
+import { memo, type ReactElement } from 'react'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { rangeKeys } from '../../utilities'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
-import { groupValueLabel } from './engine/grid-column/label'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './engine/grid-constants'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
+import { GridGroupDisclosure } from './grid-group-disclosure'
 import { GridSkeletonCells } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -57,10 +53,6 @@ function GridManualGroupRowImpl<T>({
 	expanded,
 	toggle,
 }: GridManualGroupRowProps<T>) {
-	const label: ReactNode = renderHeader
-		? renderHeader({ columnId, value: info.value, count: info.count })
-		: `${groupValueLabel(info.value)} (${info.count})`
-
 	const aggregated = hasAggregation(columns)
 
 	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
@@ -68,22 +60,14 @@ function GridManualGroupRowImpl<T>({
 	return (
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
 			<TableCell colSpan={span} className={cn(k.rowGroup.rail.padded)}>
-				<Button
-					type="button"
-					variant="bare"
-					onClick={() => toggle(info.key)}
-					aria-expanded={expanded}
-					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${groupValueLabel(info.value)}`}
-					className="p-0"
-					suffix={
-						<Icon
-							icon={expanded ? <ChevronDown /> : <ChevronRight />}
-							className={cn(k.rowGroup.chevron)}
-						/>
-					}
-				>
-					{label}
-				</Button>
+				<GridGroupDisclosure
+					value={info.value}
+					count={info.count}
+					columnId={columnId}
+					renderHeader={renderHeader}
+					expanded={expanded}
+					onToggle={() => toggle(info.key)}
+				/>
 			</TableCell>
 
 			{aggregated && <GridAggregateCells columns={columns} headerRow={row} from={span} />}
