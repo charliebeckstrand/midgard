@@ -373,17 +373,19 @@ export function SectorChartMarks({
 								onPointerEnter: emphasize,
 							}
 						: {
+								// Each touch press arms the selection guard, also on a chart that
+								// takes no click, because a hold opens the readout on either.
+								onPointerDown: (event: PointerEvent<SVGPathElement>) => {
+									pressed.current = slice.index
+
+									touch.onPointerDown(event)
+								},
+								onPointerUp: touch.onPointerUp,
+								onPointerCancel: touch.onPointerCancel,
 								...(onIndexClick && {
 									onClick: () => {
 										if (!touch.fromTouch()) activate()
 									},
-									onPointerDown: (event: PointerEvent<SVGPathElement>) => {
-										pressed.current = slice.index
-
-										touch.onPointerDown(event)
-									},
-									onPointerUp: touch.onPointerUp,
-									onPointerCancel: touch.onPointerCancel,
 									onTouchEnd: touch.onTouchEnd,
 								}),
 								onPointerEnter: (event: PointerEvent<SVGPathElement>) => {
