@@ -265,20 +265,19 @@ export function PlaceDrawer({
 			// is the honest answer for a step with that much to show — the crumb above
 			// is how the reader gets back to it.
 			//
-			// No grip, for the reason the height is grown at all. A drag is how a
-			// reader states a height the panel cannot work out for itself, and this
-			// one works it out every step; offering both leaves the panel with two
-			// answers and no rule for which wins that a reader could predict. The
-			// grip also lost that argument in practice: the gesture takes the press,
-			// not the travel, so a tap on the strip — or a scroll begun on it — set a
-			// height and stopped the panel following the crumb for the rest of the
-			// open, which read as the panel breaking at random.
+			// A grip to pull the panel down and go back to the map, as a sheet closes
+			// on a phone. The grip of a grown drawer sets no height, so the panel keeps
+			// the height of each step and follows the crumb. A drag is how a reader
+			// states a height the panel cannot work out, and this panel works out a
+			// height for each step.
+			handle
 			height="fit"
 			open={open}
 			onOpenChange={onOpenChange}
 			aria-label={title}
 		>
-			<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
+			{/* The grip above is the top inset of the panel, so the header adds none. */}
+			<Flex justify="between" align="start" gap="md" className="px-6">
 				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating — the crumbs cannot shrink below a parent that
