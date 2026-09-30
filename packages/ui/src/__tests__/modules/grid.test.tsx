@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid } from '../../modules/grid'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Grid', () => {
 	type Row = { name: string; age: number }
@@ -350,7 +350,7 @@ describe('Grid', () => {
 		})
 
 		it('resolves engine row ids when an index-based getKey sorts client-side', async () => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			// Duplicate ids force the key to fold in the row index — the docs "Sticky
 			// header" pattern. A client sort reorders the rows while their engine ids
@@ -474,7 +474,7 @@ describe('Grid', () => {
 				<Grid columns={selectColumns} rows={rows} getKey={getKey} selection={{ onValueChange }} />,
 			)
 
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }))
 
@@ -760,7 +760,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			await user.click(screen.getByRole('button', { name: 'Manage columns' }))
 

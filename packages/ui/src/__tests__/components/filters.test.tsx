@@ -22,7 +22,7 @@ import {
 	liveRegion,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 describe('Filters group', () => {
@@ -81,7 +81,7 @@ describe('FiltersField', () => {
 
 		expect(checkbox.checked).toBe(false)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(checkbox)
 
@@ -113,7 +113,7 @@ describe('FiltersField', () => {
 
 		expect(radios[1]?.checked).toBe(false)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(radios[1] as HTMLInputElement)
 
@@ -133,7 +133,7 @@ describe('FiltersField', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'a')
 
@@ -159,7 +159,7 @@ describe('FiltersField', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'raw-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'b')
 
@@ -186,7 +186,7 @@ describe('FiltersField', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'b')
 
@@ -214,7 +214,7 @@ describe('FiltersField', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'b')
 
@@ -268,7 +268,7 @@ describe('FiltersClear', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByText('Clear'))
 
@@ -342,7 +342,7 @@ describe('FiltersClear', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByText('Clear'))
 
@@ -362,7 +362,7 @@ describe('FiltersClear', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByText('Clear'))
 
@@ -394,7 +394,7 @@ describe('FiltersClear', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// The documented non-element fallback: a bare string renders a default
 		// Button instead of throwing through `Children.only`.
@@ -452,7 +452,7 @@ describe('Filter (uncontrolled)', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'test')
 
@@ -509,7 +509,7 @@ describe('Filters extras', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByText('Clear'))
 
@@ -548,7 +548,7 @@ describe('Filters extras', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.clear(input)
 

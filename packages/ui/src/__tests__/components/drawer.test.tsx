@@ -11,7 +11,7 @@ import {
 	present,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 describe('Drawer', () => {
@@ -498,7 +498,7 @@ describe('Drawer drag handle', () => {
 
 		const { handle, panel } = renderHandled({ onOpenChange })
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		handle.focus()
 
@@ -518,7 +518,7 @@ describe('Drawer drag handle', () => {
 	it('forgets a dragged height once closed', async () => {
 		const { container, rerender, handle } = renderHandled()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		handle.focus()
 

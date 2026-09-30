@@ -14,7 +14,7 @@ import {
 	getSlot,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 	withFakeTime,
 	within,
 } from '../helpers'
@@ -178,7 +178,7 @@ describe('DatePicker', () => {
 	})
 
 	it('opens the calendar content on a trigger click, and closes it on the next', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker />)
 
@@ -196,7 +196,7 @@ describe('DatePicker', () => {
 	})
 
 	it('selects a date and calls onValueChange', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -224,7 +224,7 @@ describe('DatePicker', () => {
 	})
 
 	it('clears the selected date when the clear footer button is pressed', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -242,7 +242,7 @@ describe('DatePicker', () => {
 	})
 
 	it('clears a controlled value with a single click', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<ControlledDatePicker />)
 
@@ -266,7 +266,7 @@ describe('DatePicker', () => {
 	})
 
 	it('selects today via the footer Today button', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -284,7 +284,7 @@ describe('DatePicker', () => {
 	})
 
 	it('refocuses the trigger when closed with Escape', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker />)
 
@@ -302,7 +302,7 @@ describe('DatePicker', () => {
 	})
 
 	it('refocuses the trigger after selecting a date', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const defaultValue = new Date(2025, 5, 15)
 
@@ -381,7 +381,7 @@ describe('DatePicker clearable', () => {
 	})
 
 	it('clears the value from the trigger and returns focus to the trigger', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -438,7 +438,7 @@ describe('DatePicker clearable', () => {
 	})
 
 	it('clears a range from the trigger clear button', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -465,7 +465,7 @@ describe('DatePicker open state', () => {
 	})
 
 	it('reports open transitions through onOpenChange', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onOpenChange = vi.fn()
 
@@ -477,7 +477,7 @@ describe('DatePicker open state', () => {
 	})
 
 	it('stays closed while controlled open=false', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<DatePicker open={false} onOpenChange={() => {}} aria-label="Due date" />,
@@ -489,7 +489,7 @@ describe('DatePicker open state', () => {
 	})
 
 	it('readOnly blocks opening but keeps the trigger focusable', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker readOnly aria-label="Due date" />)
 
@@ -544,7 +544,7 @@ describe('DatePicker open state', () => {
 
 describe('DatePicker footer', () => {
 	it('drops the Today button but keeps Clear with footer={{ today: false }}', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false }} />,
@@ -558,7 +558,7 @@ describe('DatePicker footer', () => {
 	})
 
 	it('drops the footer Clear but keeps Today with footer={{ clear: false }}', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ clear: false }} />,
@@ -577,7 +577,7 @@ describe('DatePicker footer', () => {
 	})
 
 	it('renders no footer toolbar when both buttons are disabled', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false, clear: false }} />,
@@ -589,7 +589,7 @@ describe('DatePicker footer', () => {
 	})
 
 	it('drops the range footer Clear with footer={{ clear: false }}', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const defaultValue: [Date, Date] = [new Date(2025, 5, 1), new Date(2025, 5, 3)]
 
@@ -641,7 +641,7 @@ describe('DatePicker keyboard', () => {
 	it.each(['{ArrowDown}', '{ArrowUp}', '{Enter}', ' '])(
 		'opens the calendar from the closed trigger with %s',
 		async (key) => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			const { container } = renderUI(<DatePicker />)
 
@@ -658,7 +658,7 @@ describe('DatePicker keyboard', () => {
 	)
 
 	it('closes the open calendar with Escape', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker />)
 
@@ -676,7 +676,7 @@ describe('DatePicker keyboard', () => {
 	})
 
 	it('shows the active-day highlight while DOM focus stays on the dialog', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// June 2025; the initial highlight lands on the 15th.
 		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
@@ -705,7 +705,7 @@ describe('DatePicker keyboard', () => {
 	})
 
 	it('keeps focus inside the dialog when an arrow move crosses months with a day cell focused', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
@@ -767,7 +767,7 @@ describe('DatePicker keyboard', () => {
 	})
 
 	it('moves the active day with arrows and commits it with Enter', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -848,7 +848,7 @@ describe('DatePicker range', () => {
 	})
 
 	it('opens the range calendar on a trigger click, and closes it on the next', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker range />)
 
@@ -866,7 +866,7 @@ describe('DatePicker range', () => {
 	})
 
 	it('exposes the clear footer button when a range is set', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const defaultValue: [Date, Date] = [new Date(2025, 5, 1), new Date(2025, 5, 3)]
 
@@ -908,7 +908,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('emits a typed date through onValueChange', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -928,7 +928,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('opens the calendar from the suffix calendar button', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input />)
 
@@ -942,7 +942,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('writes a picked date back into the input', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
@@ -958,7 +958,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('makes the typed input read-only and drops its clear when readOnly', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -988,7 +988,7 @@ describe('DatePicker input', () => {
 	// The Calendar and the trigger label follow the ambient locale, so the typed
 	// field must follow it too. It was pinned to month-first before.
 	it('masks and parses the typed date in the ambient locale layout', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -1066,7 +1066,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('passes min and max through to the typed date', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -1084,7 +1084,7 @@ describe('DatePicker input', () => {
 	})
 
 	it("surfaces DateInput's bound message for an out-of-range typed entry", async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input max={new Date(2026, 11, 31)} />)
 
@@ -1108,7 +1108,7 @@ describe('DatePicker input', () => {
 	// sequential focus navigation runs in the browser suite
 	// (browser/floating-ui/date-picker-input-tab.test.tsx).
 	it('hands Tab from the calendar button to the dialog, and back from its far edge', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
@@ -1130,7 +1130,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('hands Shift+Tab from the input to the dialog, and back from its near edge', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
@@ -1167,7 +1167,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('keeps focus and text in the input when Escape closes mid-edit', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input />)
 
@@ -1193,7 +1193,7 @@ describe('DatePicker input', () => {
 	// open-focus on the DateInput itself — so the user can keep typing and the
 	// keydown stream roves the grid — never the dialog container.
 	it('focuses the input when the calendar opens, not the dialog', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input />)
 
@@ -1210,7 +1210,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('accepts typing into the input after opening from the calendar button', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -1229,7 +1229,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('opens from the input with ArrowDown while keeping focus on it', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input />)
 
@@ -1245,7 +1245,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('leaves a closed-calendar Enter to the field (commits typed text, no open)', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -1267,7 +1267,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('roves the grid via aria-activedescendant while focus stays on the input', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// June 2025; the initial highlight lands on the 15th.
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
@@ -1316,7 +1316,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('commits the highlighted day on Enter without leaving the input', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -1351,7 +1351,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('drops aria-activedescendant when the highlight leaves the grid', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
@@ -1430,7 +1430,7 @@ describe('DatePicker + Form', () => {
 	it('binds a single date: seeds from defaultValues and submits the picked date', async () => {
 		const onSubmit = vi.fn()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Form defaultValues={{ when: new Date(2025, 5, 15) }} onSubmit={onSubmit}>
@@ -1476,7 +1476,7 @@ describe('DatePicker + Form', () => {
 	it('binds a date range: writes the picked range back to the field', async () => {
 		const onSubmit = vi.fn()
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Form defaultValues={{ span: undefined as [Date, Date] | undefined }} onSubmit={onSubmit}>

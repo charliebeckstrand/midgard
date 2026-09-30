@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { act, bySlot, getSlot, noop, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, getSlot, noop, renderUI, screen, setupUser, waitFor } from '../helpers'
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {
@@ -21,7 +21,7 @@ function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) 
 
 describe('Tooltip', () => {
 	it('closes when an overlay opens', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>
@@ -44,7 +44,7 @@ describe('Tooltip', () => {
 	})
 
 	it('reports both ends of the open state, whatever drove them', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onOpenChange = vi.fn()
 
@@ -75,7 +75,7 @@ describe('Tooltip', () => {
 	})
 
 	it('keeps reporting the resolved state while open holds it open', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onOpenChange = vi.fn()
 
@@ -162,7 +162,7 @@ describe('Tooltip', () => {
 	it("composes the child's own onClick with the tooltip handlers", async () => {
 		const onClick = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>
@@ -181,7 +181,7 @@ describe('Tooltip', () => {
 	})
 
 	it('opens on keyboard focus of the trigger', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>
@@ -200,7 +200,7 @@ describe('Tooltip', () => {
 	})
 
 	it('describes the focusable trigger via the panel when open', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Tooltip>

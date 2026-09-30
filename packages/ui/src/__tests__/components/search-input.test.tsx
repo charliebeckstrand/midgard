@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { SearchInput } from '../../components/search-input'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('SearchInput', () => {
@@ -37,7 +37,7 @@ describe('SearchInput', () => {
 
 		renderUI(<SearchInput value="query" onClear={onClear} onChange={() => {}} />)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Clear search' }))
 
@@ -59,7 +59,7 @@ describe('SearchInput', () => {
 
 		expect(input.value).toBe('query')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByLabelText('Clear search'))
 
@@ -71,7 +71,7 @@ describe('SearchInput', () => {
 
 		const input = screen.getByRole('searchbox')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByLabelText('Clear search'))
 
@@ -95,7 +95,7 @@ describe('SearchInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'a')
 
@@ -109,7 +109,7 @@ describe('SearchInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.clear(input)
 
@@ -128,7 +128,7 @@ describe('SearchInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'midgard')
 
@@ -150,7 +150,7 @@ describe('SearchInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 

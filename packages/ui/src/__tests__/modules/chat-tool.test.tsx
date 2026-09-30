@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
 import type { ChatToolPart } from '../../modules/chat/engine/chat-content/types'
-import { bySlot, present, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, present, renderUI, screen, setupUser } from '../helpers'
 
 function tool(overrides: Partial<ChatToolPart> = {}): ChatToolPart {
 	return {
@@ -58,7 +58,7 @@ describe('ChatTool', () => {
 		const withDetail = tool({ detail: 'Matched **12** of 240 rows.' })
 
 		it('opens onto its detail', async () => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			const { container } = renderTool(withDetail)
 
@@ -81,7 +81,7 @@ describe('ChatTool', () => {
 		it('lexes the detail only once the step is opened', async () => {
 			// `mount="lazy"`: a step nobody opens costs no Markdown lex, which is what
 			// keeps a reply of ten steps from paying for ten bodies nobody read.
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			const { container } = renderTool(withDetail)
 

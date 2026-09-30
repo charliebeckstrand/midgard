@@ -9,7 +9,7 @@ import {
 	getSlot,
 	present,
 	renderUI,
-	userEvent,
+	setupUser,
 	waitFor,
 } from '../helpers'
 
@@ -585,7 +585,7 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('toggles its rule off when the chip is clicked, and back on again', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<BarChart
@@ -625,7 +625,7 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('keeps a toggled-off rule off when an earlier rule leaves the prop', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const floor = { value: 30, label: 'Floor' }
 
@@ -701,7 +701,7 @@ describe('reference lines in the legend', () => {
 	it('keeps a toggled-off labeled rule off when its value changes', async () => {
 		// A rule such as an average takes a new value with each data refresh. The
 		// hide keyed on the value too, so a refresh brought the rule back.
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const chart = (average: number) => (
 			<BarChart
@@ -734,7 +734,7 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('drops a toggled-off rule from the domain and the hidden parity', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		// The rule at 200 folds the axis up to meet it while shown.
 		const { container } = renderUI(
@@ -766,7 +766,7 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('recedes nothing while an off chip is hovered, its rule being gone', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<BarChart

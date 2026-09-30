@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent, within } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
@@ -120,7 +120,7 @@ describe('ToggleIconButton', () => {
 	})
 
 	it('toggles uncontrolled from defaultPressed and reports through onPressedChange', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onPressedChange = vi.fn()
 

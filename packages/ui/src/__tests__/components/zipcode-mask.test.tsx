@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { MaskInput, zipcodeMask } from '../../components/mask-input'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('zipcodeMask', () => {
@@ -55,7 +55,7 @@ describe('zipcodeMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '941031234')
 
@@ -69,7 +69,7 @@ describe('zipcodeMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'abc94103xyz')
 
@@ -81,7 +81,7 @@ describe('zipcodeMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'k1a0b1')
 
@@ -142,7 +142,7 @@ describe('zipcodeMask', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
@@ -168,7 +168,7 @@ describe('zipcodeMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 

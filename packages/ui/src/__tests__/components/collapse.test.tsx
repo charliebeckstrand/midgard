@@ -7,7 +7,7 @@ import {
 	useCollapseContext,
 } from '../../components/collapse'
 import type { Mount } from '../../primitives/mount'
-import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('Collapse', () => {
 	it('renders panel when open', () => {
@@ -168,7 +168,7 @@ describe('Collapse', () => {
 		}
 
 		it('unmounts the closed panel by default, losing its state', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Panel />)
 
@@ -186,7 +186,7 @@ describe('Collapse', () => {
 		})
 
 		it('mount="lazy" defers the panel, then holds its state across a close', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Panel mount="lazy" />)
 
@@ -231,7 +231,7 @@ describe('Collapse', () => {
 		})
 
 		it('mount="lazy" drops aria-controls from the closed trigger', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(<Panel mount="lazy" />)
 
@@ -244,7 +244,7 @@ describe('Collapse', () => {
 		})
 
 		it('holds the panel without motion when animate is false', async () => {
-			const user = userEvent.setup({ delay: null })
+			const user = setupUser()
 
 			renderUI(
 				<Collapse mount="always" animate={false}>

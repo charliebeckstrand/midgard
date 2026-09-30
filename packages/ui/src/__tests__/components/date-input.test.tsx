@@ -6,7 +6,7 @@ import { localeDateInputFormat } from '../../components/date-input/date-input-ut
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
 // while the input holds in-progress text.
@@ -76,7 +76,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// Partial entry: no complete date has committed, but the field holds text.
 		await user.type(input, '122')
@@ -102,7 +102,7 @@ describe('DateInput', () => {
 
 		expect(input.value).toBe('06/15/2026')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Clear date' }))
 
@@ -175,7 +175,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12252026')
 
@@ -195,7 +195,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '1/5/2026')
 
@@ -209,7 +209,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12252026')
 
@@ -225,7 +225,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12')
 
@@ -243,7 +243,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '02312025')
 
@@ -267,7 +267,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '06152027')
 
@@ -306,7 +306,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12/3')
 
@@ -339,7 +339,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12/3')
 
@@ -357,7 +357,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '122526')
 
@@ -384,7 +384,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// The four-digit year passes through a two-digit state; it must not commit
 		// as 2020 before the full year is typed.
@@ -408,7 +408,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 
@@ -433,7 +433,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12/3')
 
@@ -451,7 +451,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '02312025')
 
@@ -469,7 +469,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '02312025')
 
@@ -483,7 +483,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '02312025')
 
@@ -532,7 +532,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12/3')
 
@@ -552,7 +552,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// Retype the final digit: the text leaves and re-enters the held day.
 		await user.type(input, '{Backspace}')
@@ -582,7 +582,7 @@ describe('DateInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12252026')
 
@@ -614,7 +614,7 @@ describe('DateInput locale-derived layout', () => {
 	})
 
 	it('masks a typed date day-first under a day-first locale', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -654,7 +654,7 @@ describe('DateInput onValidityChange', () => {
 	const field = (container: HTMLElement) => getSlot<HTMLInputElement>(container, 'date-input')
 
 	it('calls a growing entry potentially valid, and a complete one valid', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValidityChange = vi.fn()
 
@@ -680,7 +680,7 @@ describe('DateInput onValidityChange', () => {
 	// 31 February masks cleanly and parses to nothing, which is the shape this
 	// callback exists to separate from a half-typed entry.
 	it('refuses a complete entry the parser rejects', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValidityChange = vi.fn()
 
@@ -696,7 +696,7 @@ describe('DateInput onValidityChange', () => {
 
 	// Blur closes the entry, so a partial one that was still growing is refused.
 	it('refuses a partial entry on blur', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValidityChange = vi.fn()
 
@@ -716,7 +716,7 @@ describe('DateInput onValidityChange', () => {
 	// reset, a calendar pick. Without a report there, the caller's last verdict
 	// says "wrong" over a field rendering clean, with no route back but retyping.
 	it('reports the verdict a value from outside leaves behind', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValidityChange = vi.fn()
 
@@ -753,7 +753,7 @@ describe('DateInput onValidityChange', () => {
 	})
 
 	it('keeps an emptied field potentially valid on blur', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValidityChange = vi.fn()
 

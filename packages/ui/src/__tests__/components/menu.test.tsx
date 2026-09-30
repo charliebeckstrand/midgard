@@ -24,6 +24,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 	userEvent,
 } from '../helpers'
 
@@ -265,7 +266,7 @@ describe('MenuContent', () => {
 	})
 
 	it('closes the menu when Tab is pressed on the trigger', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Menu placement="bottom-start">

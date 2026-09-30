@@ -8,7 +8,7 @@ import {
 	describeSettle,
 } from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { fireEvent, liveRegion, renderUI, screen, userEvent, withFakeTime } from '../helpers'
+import { fireEvent, liveRegion, renderUI, screen, setupUser, withFakeTime } from '../helpers'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -32,7 +32,7 @@ describe('Grid announcements', () => {
 	const getKey = (row: Row) => row.name
 
 	it('announces the sort politely on change, skipping mount', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -45,7 +45,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('announces the selection count when a selectable grid changes', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
 
@@ -57,7 +57,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('scopes the select-all announcement to the page when paginated', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
 
@@ -80,7 +80,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('stays silent on selection changes when no column is selectable', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={() => {}} />)
 
@@ -91,7 +91,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('exposes the paginated range as a polite live region that tracks navigation', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const many: Row[] = Array.from({ length: 12 }, (_, i) => ({ name: `Name ${i + 1}`, age: i }))
 
@@ -116,7 +116,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('announces an unpin from the pinned column button', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const pinnedColumns: GridColumn<Row>[] = [
 			{ ...columns[0], pinned: 'left' } as GridColumn<Row>,
@@ -131,7 +131,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('announces a column hide from the manager', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
@@ -145,7 +145,7 @@ describe('Grid announcements', () => {
 	})
 
 	it('keeps the label of a sorted column that it hides', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,

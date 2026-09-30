@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GridColumnManager, type GridColumnManagerItem } from '../../modules/grid'
 import { GridManagerDialog } from '../../modules/grid/grid-manager-dialog'
-import { allBySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { allBySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const columns: GridColumnManagerItem[] = [
 	{ id: 'name', title: 'Name', pinned: 'left' },
@@ -34,7 +34,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
@@ -160,7 +160,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
@@ -213,7 +213,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Save as preset' }))
 
@@ -311,7 +311,7 @@ describe('GridColumnManager', () => {
 			/>,
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
@@ -461,7 +461,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('narrows every group to the columns matching the query', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
 
@@ -476,7 +476,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('matches column labels case-insensitively', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<GridColumnManager columns={columns} />)
 
@@ -488,7 +488,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('stands one no-results status in for the lists when nothing matches', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<GridColumnManager columns={columns} />)
 
@@ -500,7 +500,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('stands the status in for the scrolling list alone when only a frozen row matches', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
 
@@ -518,7 +518,7 @@ describe('GridColumnManager filtering', () => {
 	it('holds every filtered-out column in its slot when a match is reordered', async () => {
 		const onOrderChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<GridColumnManager columns={greek} onOrderChange={onOrderChange} />,
@@ -547,7 +547,7 @@ describe('GridColumnManager filtering', () => {
 	it('still toggles visibility while a query is active', async () => {
 		const onHiddenChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<GridColumnManager
@@ -565,7 +565,7 @@ describe('GridColumnManager filtering', () => {
 	})
 
 	it('restores every column when the query is cleared', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
 
@@ -606,7 +606,7 @@ describe('GridManagerDialog', () => {
 	}
 
 	it('shows the manager while open and closes via the Done button', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Harness />)
 

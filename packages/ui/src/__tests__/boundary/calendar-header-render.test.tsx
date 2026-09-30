@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { CalendarPicker } from '../../components/calendar/calendar-picker'
 import { DatePicker } from '../../components/date-picker'
-import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { act, fireEvent, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
 
 /**
  * A move inside the day grid renders no part of the calendar header.
@@ -24,7 +24,7 @@ vi.mock('../../components/calendar/calendar-picker', async (importActual) => {
 
 describe('calendar header renders', () => {
 	it('renders no header for a move of the roved day', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 10)} />)
 

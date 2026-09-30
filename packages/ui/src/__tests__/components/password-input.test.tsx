@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { PasswordInput } from '../../components/password-input'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('PasswordInput', () => {
 	it('renders an input with type password by default', () => {
@@ -17,7 +17,7 @@ describe('PasswordInput', () => {
 	it('reveals the value from a pressed-state toggle with a fixed name', async () => {
 		const { container } = renderUI(<PasswordInput />)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const toggle = screen.getByRole('button', { name: 'Show password' })
 
@@ -53,7 +53,7 @@ describe('PasswordInput', () => {
 	it('keeps the toggle enabled when the input is read-only', async () => {
 		const { container } = renderUI(<PasswordInput readOnly />)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const toggle = screen.getByRole('button', { name: 'Show password' })
 
@@ -68,7 +68,7 @@ describe('PasswordInput', () => {
 	it('re-masks a revealed value while disabled and restores it on re-enable', async () => {
 		const { container, rerender } = renderUI(<PasswordInput />)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Show password' }))
 
@@ -93,7 +93,7 @@ describe('PasswordInput', () => {
 
 describe('PasswordInput onVisibleChange', () => {
 	it('reports the reveal and the re-mask from the suffix toggle', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onVisibleChange = vi.fn()
 
@@ -118,7 +118,7 @@ describe('PasswordInput onVisibleChange', () => {
 	// The field re-masks when it goes out of play, and the report follows what is
 	// actually on screen rather than the toggle's own flag.
 	it('reports the re-mask when the field becomes disabled while revealed', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onVisibleChange = vi.fn()
 

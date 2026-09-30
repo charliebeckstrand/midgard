@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
 import { LocaleProvider } from '../../providers/locale'
-import { allBySlot, bySlot, getSlot, renderUI, screen, userEvent, within } from '../helpers'
+import { allBySlot, bySlot, getSlot, renderUI, screen, setupUser, within } from '../helpers'
 
 // Controlled relative picker: the parent holds the (always-array) value so a
 // toggle round-trips back into the trigger. `multiple` opts into multi-select;
@@ -37,7 +37,7 @@ function ControlledRelativePicker({
 }
 
 function openPicker() {
-	return userEvent.setup({ delay: null })
+	return setupUser()
 }
 
 describe('DatePicker (relative)', () => {
@@ -569,7 +569,7 @@ describe('DatePicker (relative)', () => {
 	// The prop's own TSDoc says the relative variant reports from the custom-range
 	// grid, which is the only grid it ever shows.
 	it('forwards onMonthChange to the custom range fields', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onMonthChange = vi.fn()
 

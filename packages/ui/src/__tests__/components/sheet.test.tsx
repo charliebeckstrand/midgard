@@ -3,7 +3,7 @@ import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
 import { panelAxis } from '../../hooks/use-panel-resize'
 import { k } from '../../recipes/kata/sheet'
 import { shaku } from '../../recipes/kiso'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Sheet', () => {
 	// The named `width` steps are max-widths on a panel that fills to them. `fit`
@@ -303,7 +303,7 @@ describe('Sheet handle', () => {
 		// Twice, because the first press lands on the floor from either direction —
 		// an unmeasured panel starts at nothing, so the floor is what clamps it.
 		// The second is the one that says which way the key moves the edge.
-		await userEvent.setup({ delay: null }).keyboard(`${key}${key}`)
+		await setupUser().keyboard(`${key}${key}`)
 
 		return Number.parseFloat(panel.style[panelAxis(side)])
 	}
@@ -313,7 +313,7 @@ describe('Sheet handle', () => {
 
 		handle.focus()
 
-		await userEvent.setup({ delay: null }).keyboard('{ArrowDown}{ArrowDown}')
+		await setupUser().keyboard('{ArrowDown}{ArrowDown}')
 
 		// A sheet along the top is resized by its height, so a width here would
 		// state a number the gesture never took — and clamp the panel with it.

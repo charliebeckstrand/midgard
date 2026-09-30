@@ -8,7 +8,7 @@ import {
 	hasAggregation,
 } from '../../modules/grid/engine/grid-aggregate'
 import type { GridColumn } from '../../modules/grid/types'
-import { renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, setupUser } from '../helpers'
 
 type Sale = { id: number; region: string; units: number; revenue: number; margin: number }
 
@@ -295,7 +295,7 @@ describe('Grid aggregation rendering', () => {
 	})
 
 	it('collapses a group total with its group', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Grid

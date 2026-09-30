@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { bySlot, densityStepOf, present, renderUI, userEvent } from '../helpers'
+import { bySlot, densityStepOf, present, renderUI, setupUser } from '../helpers'
 
 describe('Popover', () => {
 	it('renders a default button when PopoverTrigger has non-element children', () => {
@@ -172,7 +172,7 @@ describe('Popover non-modal semantics', () => {
 	})
 
 	it('does not trap focus inside the panel', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Popover open>

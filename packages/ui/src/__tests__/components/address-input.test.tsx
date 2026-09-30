@@ -11,7 +11,7 @@ import {
 	getSlot,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 	waitFor,
 	withFakeTime,
 } from '../helpers'
@@ -106,7 +106,7 @@ describe('AddressInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'ab')
 

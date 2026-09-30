@@ -10,7 +10,7 @@ import {
 } from '../../modules/chart/engine/chart-geometry/scatter'
 import { nearestStopIndex } from '../../modules/chart/engine/chart-snap'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, userEvent } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, setupUser } from '../helpers'
 
 type Stop = { distance: unknown; dwell: unknown; weight?: unknown }
 
@@ -295,7 +295,7 @@ describe('ScatterChart', () => {
 	})
 
 	it('toggles a series off through the legend', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<ScatterChart

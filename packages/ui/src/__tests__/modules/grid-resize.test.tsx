@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, holdMouse, renderUI, screen, userEvent } from '../helpers'
+import { fireEvent, holdMouse, renderUI, screen, setupUser } from '../helpers'
 
 describe('Grid resizable columns', () => {
 	type Row = { id: number; name: string; age: number }
@@ -151,7 +151,7 @@ describe('Grid resizable columns', () => {
 	]
 
 	it.each(keyboardCases)('%s', async (_, key, keyed, width) => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -173,7 +173,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('jumps a coarse step with PageUp and PageDown', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -360,7 +360,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('does not fire the resize lifecycle for a keyboard nudge', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onResizeStart = vi.fn()
 

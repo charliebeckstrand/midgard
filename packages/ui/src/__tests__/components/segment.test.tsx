@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
-import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 // Segment is a thin preset over <Tabs variant="segment">, so it renders the
 // tab slots (tab-list / tab) and tab ARIA (tablist / tab / aria-selected).
@@ -120,7 +120,7 @@ describe('Segment keyboard navigation', () => {
 	const item = (name: string) => screen.getByRole('tab', { name })
 
 	it('moves focus across items with arrows, skipping the disabled one', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<Segment value="a">

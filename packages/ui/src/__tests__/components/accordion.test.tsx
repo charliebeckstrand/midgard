@@ -8,7 +8,7 @@ import {
 	useAccordionItem,
 } from '../../components/accordion'
 import type { Mount } from '../../primitives/mount'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('AccordionTrigger', () => {
 	it('fires a consumer onClick alongside the toggle', () => {
@@ -355,7 +355,7 @@ describe('Accordion keyboard navigation', () => {
 	}
 
 	it('moves focus between headers with arrows, skipping the disabled trigger', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderAccordion()
 
@@ -371,7 +371,7 @@ describe('Accordion keyboard navigation', () => {
 	})
 
 	it('keeps every enabled header in the Tab sequence', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderAccordion()
 
@@ -410,7 +410,7 @@ describe('Accordion mount policy', () => {
 	}
 
 	it('unmounts a closed panel by default, losing its state', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels />)
 
@@ -424,7 +424,7 @@ describe('Accordion mount policy', () => {
 	})
 
 	it('mount="lazy" holds an opened panel and its state across a close', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels mount="lazy" />)
 
@@ -466,7 +466,7 @@ describe('Accordion mount policy', () => {
 	})
 
 	it('mount="lazy" drops aria-controls from a closed header', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(<Panels mount="lazy" />)
 

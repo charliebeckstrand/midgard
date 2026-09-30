@@ -3,7 +3,17 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
 import { DensityProvider } from '../../providers/density'
-import { act, bySlot, fireEvent, getSlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	userEvent,
+	waitFor,
+} from '../helpers'
 
 describe('TabList', () => {
 	it('keeps its role, orientation and roving when a consumer supplies them', async () => {
@@ -310,7 +320,7 @@ describe('Tab', () => {
 
 		const tabs = container.querySelectorAll<HTMLElement>('[data-slot="tab"]')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(tabs[1] as HTMLElement)
 
@@ -676,7 +686,7 @@ describe('Tabs keyboard navigation', () => {
 	}
 
 	it('moves focus with arrows, skipping the disabled tab', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTabs()
 
@@ -692,7 +702,7 @@ describe('Tabs keyboard navigation', () => {
 	})
 
 	it('jumps to the first and last tab with Home / End', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTabs()
 

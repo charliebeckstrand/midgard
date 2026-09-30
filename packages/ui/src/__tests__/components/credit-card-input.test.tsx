@@ -8,7 +8,7 @@ import {
 } from '../../components/credit-card-input'
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('CreditCardInput', () => {
@@ -31,7 +31,7 @@ describe('CreditCardInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '42')
 
@@ -45,7 +45,7 @@ describe('CreditCardInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '4242424242424242')
 
@@ -63,7 +63,7 @@ describe('CreditCardInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, typed)
 
@@ -77,7 +77,7 @@ describe('CreditCardInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		// Two-digit prefix unambiguously narrows to Visa within the supported
 		// brand list; a single '4' is insufficient (multiple brands share that prefix).
@@ -130,7 +130,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, typed)
 
@@ -142,7 +142,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12')
 
@@ -160,7 +160,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
 
@@ -181,7 +181,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '1330')
 
@@ -193,7 +193,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '1330')
 
@@ -207,7 +207,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12')
 
@@ -225,7 +225,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 
@@ -239,7 +239,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 
@@ -264,7 +264,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '12')
 
@@ -282,7 +282,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '1330')
 
@@ -304,7 +304,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '1330')
 
@@ -341,7 +341,7 @@ describe('CreditCardInputCvv', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-cvv')
 
-		await userEvent.setup({ delay: null }).type(input, '1234')
+		await setupUser().type(input, '1234')
 
 		rerender(<CreditCardInputCvv brand="visa" />)
 
@@ -360,7 +360,7 @@ describe('CreditCardInputCvv', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-cvv')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, typed)
 
@@ -383,7 +383,7 @@ describe('Credit card masking', () => {
 
 		const input = getSlot<HTMLInputElement>(container, slot)
 
-		await userEvent.setup({ delay: null }).type(input, typed)
+		await setupUser().type(input, typed)
 
 		expect(input.value).toBe(expected)
 	})
@@ -402,7 +402,7 @@ describe('Credit card trio + Form', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(getSlot<HTMLInputElement>(container, 'credit-card-input'), '4242424242424242')
 
@@ -434,7 +434,7 @@ describe('Credit card trio + Form', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(getSlot<HTMLInputElement>(container, 'credit-card-input'))
 

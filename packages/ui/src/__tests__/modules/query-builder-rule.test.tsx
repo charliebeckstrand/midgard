@@ -9,7 +9,7 @@ import {
 } from '../../modules/query/query-builder/context'
 import { QueryBuilderRule } from '../../modules/query/query-builder/query-builder-rule'
 import { QueryBuilderRuleValue } from '../../modules/query/query-builder/query-builder-rule-value'
-import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, setupUser, within } from '../helpers'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
@@ -261,7 +261,7 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('emits a picked date as a local ISO date string', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 
@@ -285,7 +285,7 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('shows no date for an empty value, and emits a blank string when the date is cleared', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onValueChange = vi.fn()
 

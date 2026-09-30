@@ -29,7 +29,7 @@ import {
 	liveRegion,
 	present,
 	renderUI,
-	userEvent,
+	setupUser,
 } from '../helpers'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
@@ -4839,7 +4839,7 @@ describe('Grid new row', () => {
 				},
 			)
 
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			await user.click(view.getByRole('button', { name: 'Manage columns' }))
 

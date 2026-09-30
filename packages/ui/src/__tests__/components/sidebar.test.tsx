@@ -19,8 +19,8 @@ import {
 	getSlot,
 	renderUI,
 	screen,
+	setupUser,
 	stubMatchMedia,
-	userEvent,
 } from '../helpers'
 
 describe('Sidebar', () => {
@@ -205,7 +205,7 @@ describe('Sidebar mini', () => {
 		// Desktop viewport and a hover-capable pointer.
 		stubMatchMedia(() => true)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Sidebar mini>
@@ -230,7 +230,7 @@ describe('Sidebar mini', () => {
 	it('surfaces only the SidebarLabel in the tooltip', async () => {
 		stubMatchMedia(() => true)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Sidebar mini>
@@ -261,7 +261,7 @@ describe('Sidebar mini', () => {
 	it('keeps plain items below the desktop breakpoint', async () => {
 		stubMatchMedia(() => false)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<Sidebar mini>

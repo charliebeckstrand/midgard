@@ -21,6 +21,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 	stubMatchMedia,
 	userEvent,
 } from '../helpers'
@@ -135,7 +136,7 @@ describe('PdfViewer', () => {
 			'img',
 		)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		expect(img.style.transform).toContain('rotate(0deg)')
 
@@ -458,7 +459,7 @@ describe('PdfViewer', () => {
 
 		expect(toggle).toHaveAttribute('aria-expanded', 'true')
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(toggle)
 
@@ -488,7 +489,7 @@ describe('PdfViewer', () => {
 	it('keeps the sidebar the reader opened on a single-page document', async () => {
 		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
 
-		await userEvent.setup().click(screen.getByLabelText('Show thumbnails'))
+		await setupUser().click(screen.getByLabelText('Show thumbnails'))
 
 		expect(screen.getByLabelText('Hide thumbnails')).toHaveAttribute('aria-expanded', 'true')
 	})
@@ -525,7 +526,7 @@ describe('PdfViewer', () => {
 
 		expect(opener).toHaveAttribute('aria-expanded', 'false')
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		await user.click(opener)
 
@@ -574,7 +575,7 @@ describe('PdfViewer', () => {
 			'img',
 		)
 
-		await userEvent.setup().click(screen.getByLabelText('Rotate'))
+		await setupUser().click(screen.getByLabelText('Rotate'))
 
 		expect(img.style.transform).toContain('rotate(90deg)')
 
@@ -586,7 +587,7 @@ describe('PdfViewer', () => {
 	it('resets the rotation when the pages change to a different document', async () => {
 		const { container, rerender } = renderUI(<PdfViewer pages={pages} />)
 
-		await userEvent.setup().click(screen.getByLabelText('Rotate'))
+		await setupUser().click(screen.getByLabelText('Rotate'))
 
 		rerender(<PdfViewer pages={[{ id: 'a', src: 'other-1.png' }]} />)
 

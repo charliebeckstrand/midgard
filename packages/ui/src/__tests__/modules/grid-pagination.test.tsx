@@ -2,7 +2,7 @@ import { type ReactNode, startTransition, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { ContentHeightContext } from '../../primitives/content-height'
-import { act, renderUI, screen, userEvent } from '../helpers'
+import { act, renderUI, screen, setupUser } from '../helpers'
 
 describe('Grid pagination', () => {
 	type Row = { id: number; name: string }
@@ -170,7 +170,7 @@ describe('Grid pagination', () => {
 		})
 
 		it('advances to the next page (uncontrolled)', async () => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			renderUI(
 				<Grid
@@ -261,7 +261,7 @@ describe('Grid pagination', () => {
 			['the next page index on Next', 'Next page', 1],
 			['the clicked page index', '3', 2],
 		])('fires onValueChange with %s', async (_, button, pageIndex) => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			const onValueChange = vi.fn()
 
@@ -280,7 +280,7 @@ describe('Grid pagination', () => {
 		})
 
 		it('restores focus when the consumer commits the page in a transition', async () => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			function Deferred() {
 				const [pageIndex, setPageIndex] = useState(1)
@@ -310,7 +310,7 @@ describe('Grid pagination', () => {
 		})
 
 		it('leaves focus outside the nav when a rejected navigation precedes a page change', async () => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			function Rejecting() {
 				const [pageIndex, setPageIndex] = useState(0)
@@ -377,7 +377,7 @@ describe('Grid pagination', () => {
 
 	describe('status', () => {
 		it('shows the row range for the current page and tracks navigation (client mode)', async () => {
-			const user = userEvent.setup()
+			const user = setupUser()
 
 			renderUI(
 				<Grid

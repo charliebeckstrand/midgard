@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
-import { bySlot, getSlot, renderUI, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, setupUser } from '../helpers'
 
 describe('Input', () => {
 	it('renders an input with data-slot="input"', () => {
@@ -63,7 +63,7 @@ describe('Input', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'a')
 

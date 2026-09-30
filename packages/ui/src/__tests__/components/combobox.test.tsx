@@ -14,7 +14,7 @@ import {
 	present,
 	renderUI,
 	screen,
-	userEvent,
+	setupUser,
 	waitFor,
 	within,
 } from '../helpers'
@@ -76,7 +76,7 @@ describe('Combobox', () => {
 	})
 
 	it('names the listbox from aria-labelledby when no aria-label is given', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<>
@@ -388,7 +388,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	}
 
 	it('keeps focus on the input and tracks the highlight via aria-activedescendant', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -418,7 +418,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('re-anchors the highlight when options swap under an unchanged query', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const { rerender } = renderUI(
 			<Combobox<string> displayValue={(v) => v} placeholder="Search">
@@ -465,7 +465,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('clears aria-activedescendant when the menu closes', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -485,7 +485,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('reopens the closed menu on ArrowDown while the input stays focused', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -512,7 +512,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	// A pick keeps focus on the input, so a click that follows gets no focus event
 	// to open the menu from. The press on the focused input must open it.
 	it('reopens the closed menu on a click after a selection', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -532,7 +532,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('reopens the menu on a click after Escape closes it', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -550,7 +550,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('keeps the menu open on a click into the input while it is open', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -564,7 +564,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('seats the highlight on the selected option when ArrowDown reopens a single-mode menu', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -603,7 +603,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('opens the closed menu on ArrowUp once the caret sits at the text start', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -636,7 +636,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('leaves ArrowDown to the textbox while the caret sits mid-value', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderTwoOptions()
 
@@ -662,7 +662,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	// Clicking an option must not pull focus off the input; otherwise single-select
 	// (which closes on select) would drop focus to <body> when the panel unmounts.
 	it('keeps focus on the input when an option is clicked', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -694,7 +694,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	// useControllable to uncontrolled, resurfacing the stale internal value;
 	// deselecting then took two clicks.
 	it('deselects a nullable controlled selection on the first click', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		function ControlledNullable() {
 			const [selected, setSelected] = useState<string | null>(null)
@@ -743,7 +743,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 
 	it('binds the selected value to a Form field by name', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const onSubmit = vi.fn()
 
@@ -777,7 +777,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	// floating-ui mock keeps `refs.floating` empty, so the containment guard
 	// is unreachable from the rendered component.
 	it('marks the form field touched when focus leaves the combobox', async () => {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<Form defaultValues={{ fruit: undefined }}>
@@ -808,7 +808,7 @@ describe('Combobox active-descendant keyboard model', () => {
 // aria-multiselectable for AT to interpret multiple selected options correctly.
 describe('Combobox listbox selection semantics', () => {
 	async function openListbox(multiple: boolean) {
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		renderUI(
 			<Combobox<string> multiple={multiple} placeholder="Search">

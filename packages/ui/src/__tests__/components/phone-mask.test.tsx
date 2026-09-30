@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { MaskInput, phoneMask } from '../../components/mask-input'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('phoneMask', () => {
@@ -24,7 +24,7 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '5551234567')
 
@@ -38,7 +38,7 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, 'abc555')
 
@@ -50,7 +50,7 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '+14155551234')
 
@@ -68,7 +68,7 @@ describe('phoneMask', () => {
 
 		input.setSelectionRange(2, 2)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('1')
 
@@ -90,7 +90,7 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '+')
 
@@ -128,7 +128,7 @@ describe('phoneMask', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
@@ -154,7 +154,7 @@ describe('phoneMask', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.click(input)
 

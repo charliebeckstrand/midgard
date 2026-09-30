@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { MaskInput } from '../../components/mask-input'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 const formatGroups = (raw: string) => {
 	const d = raw.replace(/\D/g, '').slice(0, 6)
@@ -29,7 +29,7 @@ describe('MaskInput', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.type(input, '123456')
 
@@ -69,7 +69,7 @@ describe('MaskInput', () => {
 
 		input.setSelectionRange(2, 2)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('9')
 
@@ -97,7 +97,7 @@ describe('MaskInput', () => {
 
 		input.setSelectionRange(1, 1)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		await user.keyboard('z')
 
@@ -116,7 +116,7 @@ describe('MaskInput', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 

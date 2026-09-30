@@ -1,7 +1,7 @@
 import cardValidator from 'card-validator'
 import { describe, expect, it, vi } from 'vitest'
 import { CreditCardInput } from '../../components/credit-card-input'
-import { getSlot, renderUI, userEvent } from '../helpers'
+import { getSlot, renderUI, setupUser } from '../helpers'
 
 /**
  * A keystroke in CreditCardInput runs the card-number check one time.
@@ -28,7 +28,7 @@ describe('CreditCardInput card-number check', () => {
 
 		const input = getSlot<HTMLInputElement>(container, 'credit-card-input')
 
-		const user = userEvent.setup({ delay: null })
+		const user = setupUser()
 
 		check.mockClear()
 
