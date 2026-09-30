@@ -43,11 +43,6 @@ export function toSortingState(sort: GridSortState[] | undefined): SortingState 
 	}))
 }
 
-/** Adapts a TanStack `SortingState` back to the grid's ordered {@link GridSortState} list. @internal */
-export function toSortState(sorting: SortingState): GridSortState[] {
-	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
-}
-
 /**
  * Column filter: evaluates the column's query tree against the row, reading the
  * cell through the column accessor. A non-query value imposes no filter, and an
