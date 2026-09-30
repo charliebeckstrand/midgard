@@ -17,7 +17,7 @@ import {
 	ChatTranscript,
 } from '../../../modules/chat'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 const conversations = [
 	{ id: '1', title: 'Project kickoff', timestamp: '2h' },
@@ -210,22 +210,14 @@ export function Demo() {
 			<TabContents fade={false}>
 				<TabContent value="Message">
 					<Stack gap="xl">
-						<Example title="Default">
-							<Stack gap="sm">
-								<ChatMessage role="assistant">Hi there! How can I help you today?</ChatMessage>
-								<ChatMessage role="user">Can you help me plan the project kickoff?</ChatMessage>
-							</Stack>
-						</Example>
-
-						<Example title="System">
-							<ChatMessage role="system">Conversation started</ChatMessage>
-						</Example>
-
-						<Example title="Streaming">
-							<ChatMessage role="assistant" streaming>
-								Thinking through the problem
-							</ChatMessage>
-						</Example>
+						<Axes
+							of="ChatMessage"
+							render={(props, label) => (
+								<ChatMessage role="assistant" {...props}>
+									{label}
+								</ChatMessage>
+							)}
+						/>
 
 						<Example title="Timestamped">
 							<ChatMessage role="assistant" timestamp="11:10 AM">

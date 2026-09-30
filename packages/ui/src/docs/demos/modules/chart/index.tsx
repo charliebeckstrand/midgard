@@ -23,7 +23,7 @@ import type { MapGeography } from '../../../../modules/map'
 import { Flex } from '../../../../structure/flex'
 import { Spacer } from '../../../../structure/spacer'
 import { Stack } from '../../../../structure/stack'
-import { code, Example as ExampleFrame } from '../../../engine'
+import { Axes, code, Example as ExampleFrame } from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 // Every chart demo renders in the same fixed-width, resizable frame so its
@@ -246,58 +246,23 @@ export function Demo() {
 				<TabContents>
 					<TabContent value="bar">
 						<Stack gap="xl">
-							<Example title="Grouped" code={code`<BarChart … />`}>
-								<BarChart
-									aria-label="Revenue and costs by month"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-									]}
-								/>
-							</Example>
-
-							<Example title="Stacked" code={code`<BarChart stacked … />`}>
-								<BarChart
-									aria-label="Revenue and costs by month, stacked"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-									]}
-									stacked
-								/>
-							</Example>
-
-							<Example title="Thick" code={code`<BarChart thick … />`}>
-								<BarChart
-									aria-label="Traffic by source, thick bars"
-									data={sources}
-									series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
-									thick
-								/>
-							</Example>
-
-							<Example title="Texture" code={code`<BarChart texture … />`}>
-								<BarChart
-									aria-label="Revenue and costs by month, textured"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-									]}
-									texture
-								/>
-							</Example>
-
-							<Example title="Horizontal" code={code`<BarChart orientation="horizontal" … />`}>
-								<BarChart
-									aria-label="Traffic by source"
-									data={sources}
-									series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
-									orientation="horizontal"
-								/>
-							</Example>
+							<Axes
+								of="BarChart"
+								omit={['animate', 'size']}
+								render={(props, label) => (
+									<div className="w-80">
+										<BarChart
+											{...props}
+											aria-label={`Revenue and costs by month, ${label}`}
+											data={months}
+											series={[
+												{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+												{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+											]}
+										/>
+									</div>
+								)}
+							/>
 
 							<Example title="Negative values" code={code`<BarChart crosshair … />`}>
 								<BarChart
@@ -384,6 +349,24 @@ export function Demo() {
 
 					<TabContent value="line">
 						<Stack gap="xl">
+							<Axes
+								of="LineChart"
+								omit={['animate', 'size']}
+								render={(props, label) => (
+									<div className="w-80">
+										<LineChart
+											{...props}
+											aria-label={`Revenue and margin by month, ${label}`}
+											data={months}
+											series={[
+												{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+												{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+											]}
+										/>
+									</div>
+								)}
+							/>
+
 							<Example title="Single-series" code={code`<LineChart … />`}>
 								<LineChart
 									aria-label="Revenue by month"
@@ -518,15 +501,6 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example title="Points" code={code`<LineChart points … />`}>
-								<LineChart
-									aria-label="Revenue by month"
-									data={months}
-									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-									points
-								/>
-							</Example>
-
 							<Example
 								title="Value labels"
 								code={code`<LineChart labels={{ endpoints: true, extremes: true }} … />`}
@@ -555,30 +529,6 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								title="Smooth interpolation"
-								code={code`<LineChart interpolation="smooth" … />`}
-							>
-								<LineChart
-									aria-label="Revenue and margin by month, smoothed"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-									]}
-									interpolation="smooth"
-								/>
-							</Example>
-
-							<Example title="Fill" code={code`<LineChart fill … />`}>
-								<LineChart
-									aria-label="Revenue by month"
-									data={months}
-									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-									fill
-								/>
-							</Example>
-
 							<AnimatedExample title="Animated" source={code`<LineChart animate … />`}>
 								<LineChart
 									aria-label="Revenue and margin by month, animated"
@@ -596,23 +546,29 @@ export function Demo() {
 
 					<TabContent value="area">
 						<Stack gap="xl">
+							<Axes
+								of="AreaChart"
+								omit={['animate', 'size']}
+								render={(props, label) => (
+									<div className="w-80">
+										<AreaChart
+											{...props}
+											aria-label={`Revenue and costs by month, ${label}`}
+											data={months}
+											series={[
+												{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+												{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+											]}
+										/>
+									</div>
+								)}
+							/>
+
 							<Example title="Single-series" code={code`<AreaChart … />`}>
 								<AreaChart
 									aria-label="Revenue by month"
 									data={months}
 									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: 'orange' }]}
-								/>
-							</Example>
-
-							<Example title="Stacked" code={code`<AreaChart stacked … />`}>
-								<AreaChart
-									aria-label="Revenue and costs by month, stacked"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-									]}
-									stacked
 								/>
 							</Example>
 

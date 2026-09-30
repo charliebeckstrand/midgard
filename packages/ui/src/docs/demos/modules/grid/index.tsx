@@ -19,7 +19,7 @@ import {
 	type GridSortState,
 } from '../../../../modules/grid'
 import { Stack } from '../../../../structure/stack'
-import { code, Example } from '../../../engine'
+import { Axes, code, Example } from '../../../engine'
 import {
 	AsyncCommitExample,
 	BulkEditExample,
@@ -312,9 +312,10 @@ const lockedBothColumns: GridColumn<Employee>[] = employeeColumns.map((col) =>
 			: col,
 )
 
-function DefaultExample() {
-	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />
-}
+// A small fixture of three rows and three columns, so each axis row stays light.
+const axisRows = people.slice(0, 3)
+
+const axisColumns = columns.slice(0, 3)
 
 // Sort `people` by the ordered sort list — the work a backend does for a
 // server-side (manual) sort, walking the list in priority order.
@@ -1392,28 +1393,20 @@ export function Demo() {
 			<TabContents fade={false}>
 				<TabContent value="Variants">
 					<Stack gap="xl">
-						<Example title="Default">
-							<DefaultExample />
-						</Example>
-
-						<Example title="Striped">
-							<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
-						</Example>
-
-						<Example title="Hover">
-							<Grid hover columns={columns} rows={people} getKey={(row) => row.id} />
-						</Example>
-
-						<Example title="Outline">
-							<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
-						</Example>
-
-						<Example
-							title="Condensed"
-							code={code`<Grid condensed columns={columns} rows={rows} getKey={...} />`}
-						>
-							<Grid condensed columns={columns} rows={people} getKey={(row) => row.id} />
-						</Example>
+						<Axes
+							of="Grid"
+							omit={[
+								'groupTotalRow',
+								'grandTotalRow',
+								'navigable',
+								'range',
+								'resizable',
+								'truncate',
+							]}
+							render={(props) => (
+								<Grid {...props} columns={axisColumns} rows={axisRows} getKey={(row) => row.id} />
+							)}
+						/>
 					</Stack>
 				</TabContent>
 
