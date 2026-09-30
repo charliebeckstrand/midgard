@@ -1,6 +1,7 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { densitySteps, stepDown, toInnerStep } from '../../core'
+import { writeRootDensity } from '../../core/density'
 import { Density, useDensityScope, useDensityStep } from '../../primitives/density'
 
 // A mounted reader re-renders when the root step changes, outside `act()`.
@@ -8,7 +9,7 @@ import { Density, useDensityScope, useDensityStep } from '../../primitives/densi
 afterEach(() => {
 	cleanup()
 
-	document.documentElement.removeAttribute('data-density-root')
+	writeRootDensity(document.documentElement, 'md')
 })
 
 describe('useDensityStep', () => {
@@ -21,19 +22,19 @@ describe('useDensityStep', () => {
 	it('returns the step on the root element outside each scope, and follows a change', async () => {
 		const root = document.documentElement
 
-		root.setAttribute('data-density-root', 'sm')
+		writeRootDensity(root, 'sm')
 
 		const { result } = renderHook(() => useDensityStep())
 
 		expect(result.current).toBe('sm')
 
-		act(() => root.setAttribute('data-density-root', 'lg'))
+		act(() => writeRootDensity(root, 'lg'))
 
 		await waitFor(() => expect(result.current).toBe('lg'))
 	})
 
 	it('lets a scope win over the root step', () => {
-		document.documentElement.setAttribute('data-density-root', 'sm')
+		writeRootDensity(document.documentElement, 'sm')
 
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <Density step="lg">{children}</Density>,

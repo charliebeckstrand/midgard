@@ -45,9 +45,12 @@
 			// The density step, as `AppearanceScript` writes it: the root element is
 			// the density scope of the app, so the stored density applies at the
 			// first paint. Any value that is not a level gives the step of 'snug'.
+			// A step other than `md` adds its class, and `md` adds no mark.
 			const steps = { loose: 'lg', snug: 'md', compact: 'sm' }
 
-			document.documentElement.setAttribute('data-density-root', Object.hasOwn(steps, d) ? steps[d] : 'md')
+			const step = Object.hasOwn(steps, d) ? steps[d] : 'md'
+
+			if (step !== 'md') document.documentElement.classList.add(`density-root-${step}`)
 		</script>
 		<script type="module" src="./main.tsx"></script>
 	</body>

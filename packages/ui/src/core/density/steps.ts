@@ -9,13 +9,22 @@
 export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 /**
- * The attribute that holds the step of the root element, the scope of the app.
- * A scope under the root uses `data-density`. The root uses another attribute,
- * because Chromium can then reject each nested rung for an element that has no
- * scope above it. When the root has `data-density`, each rung must examine all
- * the ancestors of the element.
+ * The class that marks each step of the root element, the scope of the app.
+ * `md` is the base of each stepped class, so the root has no mark for it. A
+ * scope under the root uses `data-density`. A class for each step lets
+ * Chromium reject each rung of the root through its ancestor filter, except
+ * the rung of the step that the root holds. The filter reads the name of a
+ * class, but not the value of an attribute.
  */
-export const rootDensityAttribute = 'data-density-root'
+export const rootDensityClasses = {
+	xs: 'density-root-xs',
+	sm: 'density-root-sm',
+	lg: 'density-root-lg',
+	xl: 'density-root-xl',
+} as const satisfies Partial<Record<DensityStep, string>>
+
+/** A step that the root marks with a class: each step but `md`. */
+export type MarkedStep = keyof typeof rootDensityClasses
 
 /** A step of density: a value of `data-density` and of the density context. */
 export type DensityStep = (typeof densitySteps)[number]
@@ -77,4 +86,25 @@ export function valuesByStep(list: string): Record<DensityStep, string> | null {
 	const [sm, md, lg] = values as [string, string, string]
 
 	return { xs: sm, sm, md, lg, xl: lg }
+}
+
+/** The steps that the root marks with a class. */
+const markedSteps = Object.keys(rootDensityClasses) as MarkedStep[]
+
+/**
+ * Reads the step of the root element from its class. It returns `md` when the
+ * root has no mark.
+ */
+export function readRootDensity(root: Element): DensityStep {
+	return markedSteps.find((step) => root.classList.contains(rootDensityClasses[step])) ?? 'md'
+}
+
+/**
+ * Writes `step` on the root element: it removes the class of each other step,
+ * and it adds the class of `step`. For `md` the root keeps no mark.
+ */
+export function writeRootDensity(root: Element, step: DensityStep): void {
+	for (const marked of markedSteps) {
+		root.classList.toggle(rootDensityClasses[marked], marked === step)
+	}
 }

@@ -1,20 +1,22 @@
-import { rootDensityAttribute } from '../../core/density'
+import { rootDensityClasses } from '../../core/density'
 import { levelToStep } from '../density/context'
 import { DARK_SCHEME, DENSITY_DEFAULT, DENSITY_KEY, THEME_KEY } from './appearance-storage'
 
 // Resolves the stored choices as `AppearanceProvider` does. Theme: 'dark' is
 // dark, 'light' is light, and any other value follows the OS. Density: a stored
-// level gives its step, and any other value gives the step of the default.
+// level gives its step, and any other value gives the step of the default. A
+// step other than `md` adds its class to the root, and `md` adds no mark.
 // Storage access can throw, and then the script uses the defaults. The
 // own-property check keeps a stored `__proto__` or `toString` from reading the
 // prototype. The docs page keeps a copy (`docs/index.html`), and a test in
 // `providers/appearance.test.tsx` holds the two copies to the same results.
-const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)};r.setAttribute(${JSON.stringify(rootDensityAttribute)},Object.prototype.hasOwnProperty.call(s,d)?s[d]:s[${JSON.stringify(DENSITY_DEFAULT)}])})()`
+const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY_DEFAULT)}];if(h.call(c,v))r.classList.add(c[v])})()`
 
 /**
  * Inline script that applies the stored theme and density to the root element
- * before the first paint: the `.dark` class, and the step of the density as
- * `data-density-root`. Render it in the document `<head>` of a server-rendered app
+ * before the first paint: the `.dark` class, and the class of the density step
+ * ({@link rootDensityClasses}). At `md`, the default, the root has no class
+ * for density. Render it in the document `<head>` of a server-rendered app
  * that mounts {@link AppearanceProvider}. Without it, a page in dark mode shows
  * light until hydration, and a stored density applies after hydration. Put
  * `suppressHydrationWarning` on `<html>`, because the script changes its

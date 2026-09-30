@@ -7,6 +7,7 @@ import { Listbox, ListboxOption } from '../../../components/listbox'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { writeRootDensity } from '../../../core/density'
 import { DensityProvider } from '../../../providers/density'
 import { present, renderUI, screen, waitFor } from '../../helpers'
 
@@ -22,7 +23,7 @@ const fontOf = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).f
 
 describe('density scopes across portals (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density-root')
+		writeRootDensity(document.documentElement, 'md')
 	})
 
 	it.each([
@@ -70,7 +71,7 @@ describe('density scopes across portals (real browser)', () => {
 	})
 
 	it('sizes a menu row and a popover panel at the step of the root', async () => {
-		document.documentElement.setAttribute('data-density-root', 'sm')
+		writeRootDensity(document.documentElement, 'sm')
 
 		// No scope on the path: the portal writes no step, so each panel follows the root.
 		renderUI(
