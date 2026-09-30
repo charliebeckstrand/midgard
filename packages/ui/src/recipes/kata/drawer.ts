@@ -27,7 +27,13 @@ export const k = {
 				// The panel sits on the bottom edge. In a page with `viewport-fit=cover`,
 				// this keeps the footer clear of the home indicator. Elsewhere the inset
 				// is zero.
-				'pb-[env(safe-area-inset-bottom)]',
+				//
+				// `--covered-bottom` is the strip of a browser toolbar over that edge
+				// (`useCoveredBottom`). The background stays under the toolbar, and the
+				// content stays above it. It is padding, not an offset, so a panel at the
+				// full height keeps its top edge. The larger of the two wins, because a
+				// toolbar over the edge also covers the home indicator.
+				'pb-[max(env(safe-area-inset-bottom),var(--covered-bottom,0px))]',
 				'overflow-hidden',
 				'w-full',
 			],
@@ -110,6 +116,15 @@ export const k = {
 	 * unit moves on is the kata's to state.
 	 */
 	fit: ugoki.spring.fit,
+	/**
+	 * The travel of a pull that the release gives back, for
+	 * {@link usePanelResize}. The panel springs back to its edge, as a sheet does
+	 * on a phone.
+	 *
+	 * The `fit` spring, because it is overdamped for the same reason. An overshoot
+	 * lifts the panel off its edge and opens a strip of the page under it.
+	 */
+	pullBack: ugoki.spring.fit,
 }
 
 /** Recipe variant props for the {@link Drawer} panel — its styling axes (`surface`, `height`), for consumers composing custom slots. */

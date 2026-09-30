@@ -19,8 +19,10 @@ export const k = {
 				'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[calc(85dvh)] max-sm:overflow-y-auto',
 				// Below `sm`, the panel sits on the bottom edge. In a page with
 				// `viewport-fit=cover`, this keeps its content clear of the home
-				// indicator. Elsewhere the inset is zero.
-				'max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
+				// indicator. Elsewhere the inset is zero. It also keeps clear of a
+				// browser toolbar over the edge (`--covered-bottom`, from
+				// `useCoveredBottom`), and the larger of the two wins.
+				'max-sm:pb-[calc(1.5rem+max(env(safe-area-inset-bottom),var(--covered-bottom,0px)))]',
 				'sm:rounded-2xl sm:max-h-[calc(100dvh-2rem)]',
 			],
 			surface: {

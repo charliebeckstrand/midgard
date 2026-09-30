@@ -7,11 +7,13 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	useCallback,
 	useEffect,
 	useRef,
 } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
+import { holdCoveredBottom } from '../../hooks/use-covered-bottom'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
@@ -112,6 +114,10 @@ export type OverlayProps = {
  * The portal takes the overlay out of the DOM subtree of its density scope. So
  * the root writes the step of that scope as `data-density`, and the panel
  * follows the scope of the place that opened it.
+ *
+ * While the root is in the page, it holds the reading of `useCoveredBottom`. A
+ * panel on the bottom edge pads by `var(--covered-bottom, 0px)` to keep its
+ * content above a browser toolbar.
  */
 export function Overlay({
 	open,
@@ -141,7 +147,16 @@ export function Overlay({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef, ref)
+	// The strip of a browser toolbar over the bottom edge, held for as long as the
+	// root is in the page. The root stays through the exit, so a surface that
+	// slides out keeps its padding to the end. A scoped overlay sits in a
+	// container, which no toolbar covers.
+	const holdCovered = useCallback(
+		(node: HTMLDivElement | null) => (node === null || scoped ? undefined : holdCoveredBottom()),
+		[scoped],
+	)
+
+	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef, ref, holdCovered)
 
 	useDismissable({
 		open,

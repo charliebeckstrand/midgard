@@ -51,18 +51,22 @@ export const k = {
 			side: {
 				right: [
 					'inset-y-0 right-0 w-full',
-					'max-sm:rounded-r-none max-sm:pb-[env(safe-area-inset-bottom)]',
+					'max-sm:rounded-r-none max-sm:pb-[max(env(safe-area-inset-bottom),var(--covered-bottom,0px))]',
 					'sm:top-4 sm:right-4 sm:bottom-4',
 				],
 				left: [
 					'inset-y-0 left-0 w-full',
-					'max-sm:rounded-l-none max-sm:pb-[env(safe-area-inset-bottom)]',
+					'max-sm:rounded-l-none max-sm:pb-[max(env(safe-area-inset-bottom),var(--covered-bottom,0px))]',
 					'sm:top-4 sm:left-4 sm:bottom-4',
 				],
 				// Each side keeps its content clear of the screen edge it sits on, in a
-				// page with `viewport-fit=cover`. Elsewhere the inset is zero.
+				// page with `viewport-fit=cover`. Elsewhere the inset is zero. A side
+				// that reaches the bottom edge also keeps clear of a browser toolbar
+				// there (`--covered-bottom`, from `useCoveredBottom`). The larger of the
+				// two wins, because a toolbar over the edge also covers the home
+				// indicator.
 				top: [slide.top, 'pt-[env(safe-area-inset-top)]'],
-				bottom: [slide.bottom, 'pb-[env(safe-area-inset-bottom)]'],
+				bottom: [slide.bottom, 'pb-[max(env(safe-area-inset-bottom),var(--covered-bottom,0px))]'],
 			},
 			// The named steps are max-widths and nothing more, so they stay the shared
 			// scale. `fit` is a different kind of answer — the panel takes the width of

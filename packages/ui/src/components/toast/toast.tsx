@@ -3,6 +3,7 @@
 import { AnimatePresence } from 'motion/react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
+import { useCoveredBottom } from '../../hooks/use-covered-bottom'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -47,6 +48,10 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 	// branch makes the first client render diverge from the server HTML and
 	// trips React's hydration mismatch.
 	const hydrated = useHydrated()
+
+	// Below `sm`, every position stacks on the bottom edge, so the stack holds the
+	// strip of a browser toolbar there. The recipe pads by it.
+	useCoveredBottom()
 
 	if (!hydrated) return null
 

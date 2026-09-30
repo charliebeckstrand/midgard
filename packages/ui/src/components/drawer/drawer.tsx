@@ -108,9 +108,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 *
 		 * Below the floor, the panel follows the pointer off the bottom of the screen.
 		 * The floor is the chrome of a fixed panel, and the full height of a grown
-		 * one. A release there closes the panel, and a release back at the floor
-		 * keeps it open. A flick downward closes it from any height. Both closes
-		 * arrive through `onOpenChange`, like every other close.
+		 * one. A release closes the panel once a quarter of the floor is off the
+		 * screen. A shorter pull springs back to the floor, as a sheet does on a
+		 * phone. A flick downward closes it from any height. Both closes arrive
+		 * through `onOpenChange`, like every other close.
 		 *
 		 * A resize is the drawer's own state, and reports nowhere. Nothing outside it
 		 * needs to hold a pixel height that only means anything on the screen it was
@@ -164,6 +165,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * Docks full-width to the bottom edge with a rounded top, and slides up via the shared
  * bottom motion preset. Open state is controlled (`open`/`onOpenChange`) or uncontrolled
  * (`defaultOpen`).
+ *
+ * A browser toolbar over the bottom edge does not hide the content. Chrome on iOS can put
+ * its toolbar there until the first scroll. The panel pads its content by the strip that
+ * `useCoveredBottom` reads, which its `Overlay` holds.
  *
  * `height` sets how much of the screen it docks over:
  *
@@ -243,6 +248,7 @@ export function Drawer({
 		ceilingOf: drawerCeiling,
 		pull: true,
 		resize: resizable,
+		pullBack: k.pullBack,
 	})
 
 	// The other half of the panel's height, and the one the panel itself decides:

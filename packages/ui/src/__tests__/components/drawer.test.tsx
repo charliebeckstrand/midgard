@@ -356,6 +356,35 @@ describe('Drawer height and size', () => {
 	})
 })
 
+describe('Drawer browser toolbar', () => {
+	// jsdom lays nothing out: every box reads a layout viewport of 800 px, under a
+	// visual viewport of 740 px, as under a toolbar of 60 px.
+	function stubToolbar() {
+		vi.stubGlobal(
+			'visualViewport',
+			Object.assign(new EventTarget(), { offsetTop: 0, height: 740, scale: 1 }),
+		)
+
+		vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
+			DOMRect.fromRect({ width: 400, height: 800 }),
+		)
+	}
+
+	it('pads the content by the strip that its overlay holds', () => {
+		stubToolbar()
+
+		renderUI(
+			<Drawer open onOpenChange={() => {}} aria-label="Options">
+				Rows
+			</Drawer>,
+		)
+
+		expect(document.documentElement.style.getPropertyValue('--covered-bottom')).toBe('60px')
+
+		expect(getSlot(document.body, 'drawer').className).toContain('var(--covered-bottom,0px)')
+	})
+})
+
 describe('Drawer uncontrolled', () => {
 	it('opens from defaultOpen', () => {
 		renderUI(<Drawer defaultOpen>Drawer body</Drawer>)
@@ -423,30 +452,63 @@ describe('Drawer drag handle', () => {
 			expect(settleResize(600, -2)).toBe(600)
 		})
 
-		it('lets a panel pulled past its floor go on a slow release', () => {
-			// The panel is already on its way off the screen, so the release lets it go.
-			expect(settleResize(300, 0, 40)).toBe('close')
+		it('lets a panel pulled well past its floor go on a slow release', () => {
+			// Over a quarter of the panel is off the screen, so the release lets it go.
+			expect(settleResize(300, 0, 0.4)).toBe('close')
 		})
 
-		it('keeps a panel pulled a few pixels, which is a hand at rest on the floor', () => {
-			expect(settleResize(300, 0, 10)).toBe(300)
+		it('keeps a panel pulled a short way, which springs back as a phone sheet does', () => {
+			// A reader who tried the grip, or who changed their mind, keeps the panel.
+			expect(settleResize(300, 0, 0.03)).toBe(300)
+
+			expect(settleResize(300, 0, 0.2)).toBe(300)
+		})
+
+		it('throws away a panel pulled a short way on a flick', () => {
+			expect(settleResize(300, 0.9, 0.1)).toBe('close')
 		})
 	})
 
 	describe('speedOf', () => {
-		it('measures the last sample before the release, not the whole gesture', () => {
+		it('measures the end of the gesture, not the whole gesture', () => {
 			// A reader who drags slowly and then flicks means the flick; averaged over
-			// the travel it would disappear.
-			expect(speedOf({ at: 100, t: 0 }, 160, 100)).toBeCloseTo(0.6, 5)
+			// the travel it would disappear. The slow part is 20 px in 900 ms.
+			const trail = [
+				{ at: 100, t: 0 },
+				{ at: 120, t: 900 },
+				{ at: 150, t: 950 },
+			]
+
+			expect(speedOf(trail, 180, 1000)).toBeCloseTo(0.6, 5)
+		})
+
+		it('reads a flick whose release lands on the spot of the last move', () => {
+			// iOS reports a touch that way. The last move alone would read as still.
+			const trail = [
+				{ at: 100, t: 0 },
+				{ at: 140, t: 40 },
+				{ at: 180, t: 80 },
+			]
+
+			expect(speedOf(trail, 180, 80)).toBeCloseTo(1, 5)
+		})
+
+		it('reads a hand at rest before the release as still', () => {
+			const trail = [
+				{ at: 100, t: 0 },
+				{ at: 180, t: 80 },
+			]
+
+			expect(speedOf(trail, 180, 1000)).toBe(0)
 		})
 
 		it('reads no speed from a gesture with nothing behind it', () => {
-			expect(speedOf(null, 160, 100)).toBe(0)
+			expect(speedOf([], 160, 100)).toBe(0)
 		})
 
-		it('reads no speed from a release in the same instant as the last move', () => {
+		it('reads no speed from a release in the same instant as the press', () => {
 			// The interval is the divisor, so a zero one has no speed to give.
-			expect(speedOf({ at: 100, t: 100 }, 160, 100)).toBe(0)
+			expect(speedOf([{ at: 100, t: 100 }], 160, 100)).toBe(0)
 		})
 	})
 

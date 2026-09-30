@@ -33,6 +33,7 @@ export {
 	useControllable,
 	useControllableFlag,
 } from './use-controllable'
+export { useCoveredBottom } from './use-covered-bottom'
 export { type DeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
 export { type DismissableOptions, useDismissable } from './use-dismissable'
 export { type DragCursor, useDragCursor } from './use-drag-cursor'
