@@ -76,19 +76,29 @@ export function Axes(props: AxesProps) {
 	)
 }
 
-function AxesBody({
-	pending,
+/**
+ * Read the API data, and find the component. It calls no other hook. A render
+ * that suspends on `use()` replays once the data arrives, and the replay reads
+ * the settled value with no `use()`. A hook after that call would then run in a
+ * second place, so the state lives in {@link AxesExamples}.
+ */
+function AxesBody({ pending, ...props }: AxesProps & { pending: Promise<ComponentApi[]> }) {
+	const api = settledValue(pending) ?? use(pending)
+
+	const component = api.find((entry) => entry.name === props.of)
+
+	if (!component) throw new Error(`Axes: the barrel exports no documented component "${props.of}"`)
+
+	return <AxesExamples component={component} {...props} />
+}
+
+function AxesExamples({
+	component,
 	of,
 	render,
 	omit,
 	title,
-}: AxesProps & { pending: Promise<ComponentApi[]> }) {
-	const api = settledValue(pending) ?? use(pending)
-
-	const component = api.find((entry) => entry.name === of)
-
-	if (!component) throw new Error(`Axes: the barrel exports no documented component "${of}"`)
-
+}: AxesProps & { component: ComponentApi }) {
 	const axes = axesOf(component, omit)
 
 	const [state, setState] = useState<Record<string, AxisValue | undefined>>(() =>
