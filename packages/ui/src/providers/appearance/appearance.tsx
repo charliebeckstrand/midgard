@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useEffect, useMemo } from 'react'
+import { rootDensityAttribute } from '../../core/density'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
 import { type DensityLevel, densityLevels, levelToStep } from '../density/context'
 import {
@@ -28,8 +29,8 @@ export type AppearanceProviderProps = {
  * App-root owner of the theme and density preferences. It keeps both in
  * `localStorage`. It toggles the `.dark` class on the root element, and while
  * the theme is `'system'` it follows the OS preference live. It writes the step
- * of the density to `data-density` on the root element, which makes the root
- * the density scope of the app. {@link useAppearance} reads the state, and
+ * of the density to `data-density-root` on the root element, which makes the
+ * root the density scope of the app. {@link useAppearance} reads the state, and
  * {@link AppearanceSettings} edits it.
  *
  * The app's stylesheet must key its `dark` variant on the class, for example
@@ -82,7 +83,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 			const level = readChoice<DensityLevel>(DENSITY_KEY, DENSITY_VALUES, DENSITY_DEFAULT)
 
-			root.setAttribute('data-density', levelToStep[level])
+			root.setAttribute(rootDensityAttribute, levelToStep[level])
 		}
 
 		sync()

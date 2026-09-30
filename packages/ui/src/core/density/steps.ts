@@ -8,6 +8,15 @@
  */
 export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
+/**
+ * The attribute that holds the step of the root element, the scope of the app.
+ * A scope under the root uses `data-density`. The root uses another attribute,
+ * because Chromium can then reject each nested rung for an element that has no
+ * scope above it. When the root has `data-density`, each rung must examine all
+ * the ancestors of the element.
+ */
+export const rootDensityAttribute = 'data-density-root'
+
 /** A step of density: a value of `data-density` and of the density context. */
 export type DensityStep = (typeof densitySteps)[number]
 

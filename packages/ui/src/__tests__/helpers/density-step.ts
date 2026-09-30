@@ -25,7 +25,7 @@ export function densityStepOf(element: Element): DensityStep {
 		else if (isStep(value)) return slot ? stepDown(value) : value
 	}
 
-	const root = document.documentElement.getAttribute('data-density')
+	const root = document.documentElement.getAttribute('data-density-root')
 
 	const step = isStep(root) ? root : 'md'
 

@@ -20,11 +20,11 @@ describe('sidebar layout width (real browser)', () => {
 	beforeAll(() => page.viewport(1280, 800))
 
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	it.each(densitySteps)('gives the floating sidebar the width of the rail at %s', async (step) => {
-		document.documentElement.setAttribute('data-density', step)
+		document.documentElement.setAttribute('data-density-root', step)
 
 		const inline = renderUI(
 			<SidebarLayout sidebar={<nav>Links</nav>}>

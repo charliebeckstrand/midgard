@@ -85,13 +85,13 @@ export async function visitTabs(container: Element, visit: () => Promise<void>):
 export function restoreRootAfterCase(): void {
 	const root = document.documentElement
 
-	const density = root.getAttribute('data-density')
+	const density = root.getAttribute('data-density-root')
 
 	const dark = root.classList.contains('dark')
 
 	onTestFinished(() => {
-		if (density === null) root.removeAttribute('data-density')
-		else root.setAttribute('data-density', density)
+		if (density === null) root.removeAttribute('data-density-root')
+		else root.setAttribute('data-density-root', density)
 
 		root.classList.toggle('dark', dark)
 	})

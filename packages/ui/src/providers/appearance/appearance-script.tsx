@@ -1,3 +1,4 @@
+import { rootDensityAttribute } from '../../core/density'
 import { levelToStep } from '../density/context'
 import { DARK_SCHEME, DENSITY_DEFAULT, DENSITY_KEY, THEME_KEY } from './appearance-storage'
 
@@ -8,12 +9,12 @@ import { DARK_SCHEME, DENSITY_DEFAULT, DENSITY_KEY, THEME_KEY } from './appearan
 // own-property check keeps a stored `__proto__` or `toString` from reading the
 // prototype. The docs page keeps a copy (`docs/index.html`), and a test in
 // `providers/appearance.test.tsx` holds the two copies to the same results.
-const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)};r.setAttribute('data-density',Object.prototype.hasOwnProperty.call(s,d)?s[d]:s[${JSON.stringify(DENSITY_DEFAULT)}])})()`
+const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)};r.setAttribute(${JSON.stringify(rootDensityAttribute)},Object.prototype.hasOwnProperty.call(s,d)?s[d]:s[${JSON.stringify(DENSITY_DEFAULT)}])})()`
 
 /**
  * Inline script that applies the stored theme and density to the root element
  * before the first paint: the `.dark` class, and the step of the density as
- * `data-density`. Render it in the document `<head>` of a server-rendered app
+ * `data-density-root`. Render it in the document `<head>` of a server-rendered app
  * that mounts {@link AppearanceProvider}. Without it, a page in dark mode shows
  * light until hydration, and a stored density applies after hydration. Put
  * `suppressHydrationWarning` on `<html>`, because the script changes its

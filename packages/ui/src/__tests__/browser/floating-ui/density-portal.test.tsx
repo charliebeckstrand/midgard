@@ -22,7 +22,7 @@ const fontOf = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).f
 
 describe('density scopes across portals (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	it.each([
@@ -70,7 +70,7 @@ describe('density scopes across portals (real browser)', () => {
 	})
 
 	it('sizes a menu row and a popover panel at the step of the root', async () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		// No scope on the path: the portal writes no step, so each panel follows the root.
 		renderUI(

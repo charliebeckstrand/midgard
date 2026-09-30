@@ -8,7 +8,7 @@ import { Density, useDensityScope, useDensityStep } from '../../primitives/densi
 afterEach(() => {
 	cleanup()
 
-	document.documentElement.removeAttribute('data-density')
+	document.documentElement.removeAttribute('data-density-root')
 })
 
 describe('useDensityStep', () => {
@@ -21,19 +21,19 @@ describe('useDensityStep', () => {
 	it('returns the step on the root element outside each scope, and follows a change', async () => {
 		const root = document.documentElement
 
-		root.setAttribute('data-density', 'sm')
+		root.setAttribute('data-density-root', 'sm')
 
 		const { result } = renderHook(() => useDensityStep())
 
 		expect(result.current).toBe('sm')
 
-		act(() => root.setAttribute('data-density', 'lg'))
+		act(() => root.setAttribute('data-density-root', 'lg'))
 
 		await waitFor(() => expect(result.current).toBe('lg'))
 	})
 
 	it('lets a scope win over the root step', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <Density step="lg">{children}</Density>,
