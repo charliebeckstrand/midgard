@@ -3,6 +3,7 @@
 import { type KeyboardEvent, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useTouchHoldSelection } from '../../hooks/use-touch-hold-selection'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
@@ -44,6 +45,7 @@ export type HoldButtonProps = Omit<
  * release mid-hold is ignored. Blur and pointer leave/cancel abort the hold, and
  * the gesture hook adds window-blur and tab-visibility guards so a backgrounded
  * tab cannot silently complete it. Left mouse button only (`button === 0`).
+ * A touch hold arms `useTouchHoldSelection`, so it selects no text on the page.
  *
  * A caller's pointer and key handlers run before the hold logic. A caller
  * `preventDefault()` on a pointer press or an activation keydown keeps the hold
@@ -81,6 +83,9 @@ export function HoldButton({
 	// the *other* activation key mid-hold does not abort the hold.
 	const heldKeyRef = useRef<string | null>(null)
 
+	// A touch hold selects no text near the finger, also where the finger rolls off the button.
+	const guardSelection = useTouchHoldSelection()
+
 	// The key handlers read the held-key ref, so each is a stable event and not
 	// a closure that render passes to a function.
 	const handleKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
@@ -117,7 +122,11 @@ export function HoldButton({
 			data-slot={slot}
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
 			onPointerDown={composeEventHandlers(onPointerDown, (event) => {
-				if (event.button === 0) start()
+				if (event.button !== 0) return
+
+				guardSelection(event)
+
+				start()
 			})}
 			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}
 			onPointerCancel={composeEventHandlers(onPointerCancel, cancel, alwaysEnd)}
