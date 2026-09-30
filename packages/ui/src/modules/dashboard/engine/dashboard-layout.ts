@@ -215,7 +215,14 @@ export function resolveCell(
 	}
 }
 
-/** Writes a cell back as a saved item. A tile with a fixed ratio emits no `h`. */
+/**
+ * Writes a cell back as a saved item. A tile with a fixed ratio emits no `h`.
+ *
+ * @remarks
+ * The ratio gets the check of {@link resolveCell}, so the write and the read
+ * agree on which tiles are free-form. A ratio that is not a finite number above
+ * 0 therefore keeps `h`, and a reload gives the same height.
+ */
 export function toLayoutItem(
 	cell: DashboardCell,
 	demands: DashboardTileDemands | undefined,
@@ -225,7 +232,7 @@ export function toLayoutItem(
 		x: cell.x,
 		y: cell.y,
 		w: cell.w,
-		...(demands?.ratio === undefined && { h: cell.h }),
+		...(usableRatio(demands?.ratio) === undefined && { h: cell.h }),
 		...(cell.static && { static: true }),
 	}
 }

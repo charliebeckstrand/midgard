@@ -96,11 +96,22 @@ const tileDemands = (): fc.Arbitrary<DashboardTileDemands> =>
 		{ requiredKeys: [] },
 	)
 
+/**
+ * The demands of one tile as a caller can pass them, before `usableDemands`: a
+ * ratio can also be 0, negative, NaN, or infinite.
+ */
+const rawTileDemands = (): fc.Arbitrary<DashboardTileDemands> =>
+	tileDemands().chain((demands) =>
+		fc
+			.constantFrom(0, -1, Number.NaN, Number.POSITIVE_INFINITY, demands.ratio)
+			.map((ratio) => ({ ...demands, ratio })),
+	)
+
 /** The mounted tiles: a subset of the pool, so some entries have no tile. */
-const mountedTiles = () =>
+const mountedTiles = (demands: () => fc.Arbitrary<DashboardTileDemands> = tileDemands) =>
 	fc
 		.uniqueArray(fc.constantFrom(...ID_POOL), { maxLength: ID_POOL.length })
-		.chain((ids) => fc.tuple(...ids.map((id) => fc.tuple(fc.constant(id), tileDemands()))))
+		.chain((ids) => fc.tuple(...ids.map((id) => fc.tuple(fc.constant(id), demands()))))
 		.map((entries) => new Map<string, DashboardTileDemands>(entries))
 
 const columnCount = () => fc.integer({ min: 1, max: 24 })
@@ -236,6 +247,19 @@ describe('resolveLayout · properties', () => {
 	// merged layout. The reload must paint the board that the commit saw.
 	test.prop([savedLayout(), mountedTiles(), columnCount()])(
 		'reads a merged layout back as the cells that it saved',
+		(items, demands, columns) => {
+			const cells = resolveLayout(items, demands, columns)
+
+			const merged = mergeLayout(items, cells, demands)
+
+			expect(sameGeometry(resolveLayout(merged, demands, columns), cells)).toBe(true)
+		},
+	)
+
+	// The engine reads a ratio that is not usable as a free-form tile. The write
+	// must read it the same way, or it drops the height that the reload needs.
+	test.prop([savedLayout(), mountedTiles(rawTileDemands), columnCount()])(
+		'reads a merged layout back as the cells that it saved, for a ratio that is not usable',
 		(items, demands, columns) => {
 			const cells = resolveLayout(items, demands, columns)
 
