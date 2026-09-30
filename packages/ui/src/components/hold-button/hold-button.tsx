@@ -3,6 +3,7 @@
 import { type KeyboardEvent, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useTouchHoldSelection } from '../../hooks/use-touch-hold-selection'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
@@ -49,6 +50,9 @@ export type HoldButtonProps = Omit<
  * `preventDefault()` on a pointer press or an activation keydown keeps the hold
  * from starting. It never skips the cancel on a release, a blur, or a pointer
  * leave or cancel.
+ *
+ * A touch press selects no text on the page until the finger lifts, also when
+ * the finger drifts off the button (see `useTouchHoldSelection`).
  * @see {@link useHoldButtonGesture} for the timer, fill animation, and guards.
  */
 export function HoldButton({
@@ -76,6 +80,10 @@ export function HoldButton({
 		onHoldStart,
 		onHoldCancel,
 	})
+
+	// A touch hold selects no text on the page, also when the finger drifts off the
+	// button or the action changes the page under it.
+	const guardSelection = useTouchHoldSelection()
 
 	// The key that initiated the hold. Only its own keyup cancels; releasing
 	// the *other* activation key mid-hold does not abort the hold.
@@ -117,7 +125,11 @@ export function HoldButton({
 			data-slot={slot}
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
 			onPointerDown={composeEventHandlers(onPointerDown, (event) => {
-				if (event.button === 0) start()
+				if (event.button !== 0) return
+
+				guardSelection(event)
+
+				start()
 			})}
 			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}
 			onPointerCancel={composeEventHandlers(onPointerCancel, cancel, alwaysEnd)}
