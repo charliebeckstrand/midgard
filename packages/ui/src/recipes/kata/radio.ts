@@ -1,5 +1,5 @@
 import type { DensityStep } from '../../core/density'
-import { defineColors, type VariantProps } from '../../core/recipe'
+import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 import { control } from '../kiso/control'
@@ -16,20 +16,36 @@ const color = defineColors({
 	...control.check.color,
 })
 
-export const k = bridge.check(control, {
-	base: [
-		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
-		rounded.full,
-		'[--check-border:transparent]',
-		'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
-		'not-has-[:disabled]:has-checked:hover:opacity-90',
-		// The circle and its dot take the step of the nearest density scope.
-		kokkaku.radio.circle,
-		'*:data-[slot=radio-indicator]:density-size-[1,1.5,2]',
-	],
-	color,
-	skeleton: radio,
-})
+export const k = bridge.check(
+	control,
+	{
+		base: [
+			rounded.full,
+			'[--check-border:transparent]',
+			'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
+			'not-has-[:disabled]:has-checked:hover:opacity-90',
+			// The circle takes the step of the nearest density scope.
+			kokkaku.radio.circle,
+		],
+		color,
+		skeleton: radio,
+	},
+	{
+		/**
+		 * The dot: the sibling that follows the native input. It shows when the
+		 * input is checked, and it takes the step of the nearest density scope. Each
+		 * class selects the dot itself, so Chromium tests the rules only against the
+		 * dots.
+		 */
+		indicator: defineRecipe({
+			base: [
+				'absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none',
+				'[:checked~&]:opacity-100',
+				'density-size-[1,1.5,2]',
+			],
+		}),
+	},
+)
 
 /** Recipe variant props for {@link Radio}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
 export type RadioVariants = VariantProps<typeof k> & { size?: DensityStep }

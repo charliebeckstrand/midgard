@@ -68,9 +68,6 @@ export const k = defineRecipe(
 			'relative inline-flex shrink-0 items-center',
 			focus.outline,
 			...cursor,
-			'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
-			'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
-			'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
 			rounded.full,
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
@@ -83,10 +80,8 @@ export const k = defineRecipe(
 			// input carries a data-* severity attribute.
 			...check.validation,
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
-			// The track and its thumb take the step of the nearest density scope.
+			// The track takes the step of the nearest density scope.
 			...kokkaku.switch.track,
-			'*:data-[slot=switch-thumb]:density-size-[3,4,5]',
-			'has-checked:*:data-[slot=switch-thumb]:density-left-[4,5,6]',
 		],
 		color,
 		defaults: { color: 'zinc' },
@@ -94,6 +89,12 @@ export const k = defineRecipe(
 	},
 	{
 		input: defineRecipe({ base: check.hidden }),
+		/**
+		 * The thumb: the sibling that follows the native input. It moves and takes
+		 * the colors of the switch when the input is checked, and it takes the step
+		 * of the nearest density scope. Each class selects the thumb itself, so
+		 * Chromium tests the rules only against the thumbs.
+		 */
 		thumb: defineRecipe({
 			base: [
 				'absolute top-1 left-1 inline-block',
@@ -102,6 +103,9 @@ export const k = defineRecipe(
 				rounded.full,
 				'pointer-events-none',
 				'transition-[left] duration-200 ease-in-out',
+				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(--switch-shadow) [:checked~&]:ring-(--switch-ring)',
+				'density-size-[3,4,5]',
+				'[:checked~&]:density-left-[4,5,6]',
 			],
 		}),
 		field,

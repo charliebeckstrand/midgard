@@ -68,11 +68,7 @@ export function Radio({
 				{...validation}
 				className={k.input()}
 			/>
-			<span
-				data-slot="radio-indicator"
-				aria-hidden="true"
-				className="absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none"
-			/>
+			<span data-slot="radio-indicator" aria-hidden="true" className={k.indicator()} />
 		</label>
 	)
 }
