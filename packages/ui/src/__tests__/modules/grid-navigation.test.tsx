@@ -659,3 +659,203 @@ describe('Grid cursor edges', () => {
 		expect(commits).toBe(0)
 	})
 })
+
+// Audit Q10. The flat cursor follows its cell by the row key and the column id,
+// so a sort, a hidden column, a new column order, or a pin keeps it on the same
+// cell. A cell that is gone gives way to the nearest cell.
+describe('Grid flat cursor follows its cell', () => {
+	type Person = { id: number; name: string; age: number }
+
+	const people: Person[] = [
+		{ id: 1, name: 'Carol', age: 30 },
+		{ id: 2, name: 'Alice', age: 25 },
+		{ id: 3, name: 'Bob', age: 40 },
+	]
+
+	// Each cell holds its row name and its column id, so the text names the cell.
+	const cols: GridColumn<Person>[] = ['name', 'role', 'age'].map((id) => ({
+		id,
+		title: id,
+		field: id === 'role' ? undefined : (id as 'name' | 'age'),
+		cell: (row: Person) => `${row.name}/${id}`,
+		value: (row: Person) => (id === 'age' ? row.age : row.name),
+	}))
+
+	type Layout = {
+		rows?: Person[]
+		sort?: 'name' | 'age'
+		hidden?: string[]
+		order?: string[]
+		pinning?: Record<string, 'left' | 'right' | 'none'>
+		onActiveCellChange?: (cell: GridCellClickContext<Person> | null) => void
+		editable?: boolean
+	}
+
+	const ui = ({ rows = people, sort, hidden = [], order, pinning = {}, ...rest }: Layout = {}) => (
+		<Grid
+			columns={cols}
+			rows={rows}
+			getKey={(row) => row.id}
+			sort={{ value: sort ? [{ column: sort, direction: 'asc' }] : [] }}
+			columnManager={{ hidden: new Set(hidden) }}
+			columnOrder={order ? { value: order } : undefined}
+			pinning={{ value: pinning }}
+			onActiveCellChange={rest.onActiveCellChange}
+			{...(rest.editable
+				? { editable: { session: 'managed' as const, onCommit: () => {} } }
+				: { navigable: true })}
+		/>
+	)
+
+	/** The text of the cell that `aria-activedescendant` names. */
+	function activeText(): string | null {
+		const id = screen.getByRole('grid').getAttribute('aria-activedescendant')
+
+		return id ? (document.getElementById(id)?.textContent ?? null) : null
+	}
+
+	/** Seats the cursor on the cell with this text. */
+	function seatOn(text: string) {
+		fireEvent.mouseDown(screen.getByText(text).closest('td') as HTMLElement)
+
+		expect(activeText()).toBe(text)
+	}
+
+	it('stays on the same row and column after a sort', () => {
+		const view = renderUI(ui())
+
+		// Display order: Carol, Alice, Bob.
+		seatOn('Alice/role')
+
+		// By age: Alice, Carol, Bob.
+		view.rerender(ui({ sort: 'age' }))
+
+		expect(activeText()).toBe('Alice/role')
+
+		// By name: Alice, Bob, Carol.
+		view.rerender(ui({ sort: 'name' }))
+
+		expect(activeText()).toBe('Alice/role')
+	})
+
+	it('stays on the same column when a column to its left hides', () => {
+		const view = renderUI(ui())
+
+		seatOn('Bob/age')
+
+		view.rerender(ui({ hidden: ['name'] }))
+
+		expect(activeText()).toBe('Bob/age')
+
+		view.rerender(ui({ hidden: [] }))
+
+		expect(activeText()).toBe('Bob/age')
+	})
+
+	it('stays on the same column after a column reorder', () => {
+		const view = renderUI(ui())
+
+		seatOn('Carol/name')
+
+		view.rerender(ui({ order: ['age', 'role', 'name'] }))
+
+		expect(activeText()).toBe('Carol/name')
+	})
+
+	it('stays on the same column after a pin', () => {
+		const view = renderUI(ui())
+
+		seatOn('Alice/role')
+
+		view.rerender(ui({ pinning: { age: 'left' } }))
+
+		expect(activeText()).toBe('Alice/role')
+	})
+
+	it('stays on the same row when a row above it goes', () => {
+		const view = renderUI(ui())
+
+		seatOn('Alice/age')
+
+		view.rerender(ui({ rows: people.filter((row) => row.id !== 1) }))
+
+		expect(activeText()).toBe('Alice/age')
+	})
+
+	it('falls back to the row in its place, in the same column, when its row goes', () => {
+		const view = renderUI(ui())
+
+		seatOn('Alice/age')
+
+		// The row goes and the columns change order in one change.
+		const rest = people.filter((row) => row.id !== 2)
+
+		view.rerender(ui({ rows: rest, order: ['age', 'name', 'role'] }))
+
+		expect(activeText()).toBe('Bob/age')
+	})
+
+	it('falls back to the nearest row when the last row goes', () => {
+		const view = renderUI(ui())
+
+		seatOn('Bob/role')
+
+		view.rerender(ui({ rows: people.slice(0, 2) }))
+
+		expect(activeText()).toBe('Alice/role')
+	})
+
+	it('falls back to the nearest column when its column hides', () => {
+		const view = renderUI(ui())
+
+		seatOn('Alice/age')
+
+		view.rerender(ui({ hidden: ['age'] }))
+
+		expect(activeText()).toBe('Alice/role')
+	})
+
+	it('reports only a change of the cell to onActiveCellChange', () => {
+		const onActiveCellChange = vi.fn()
+
+		const view = renderUI(ui({ onActiveCellChange }))
+
+		seatOn('Alice/role')
+
+		expect(onActiveCellChange).toHaveBeenCalledTimes(1)
+
+		// The same cell, in another place.
+		view.rerender(ui({ onActiveCellChange, sort: 'age', hidden: ['name'] }))
+
+		expect(onActiveCellChange).toHaveBeenCalledTimes(1)
+
+		// Another cell, in the same place.
+		const rest = [people[0], people[2]] as Person[]
+
+		view.rerender(ui({ onActiveCellChange, sort: 'age', hidden: ['name'], rows: rest }))
+
+		expect(activeText()).toBe('Carol/role')
+
+		expect(onActiveCellChange).toHaveBeenLastCalledWith(
+			expect.objectContaining({ rowKey: 1, columnId: 'role' }),
+		)
+	})
+
+	it('keeps the cursor on the cell that holds the editor after a sort', () => {
+		const view = renderUI(ui({ editable: true }))
+
+		seatOn('Alice/name')
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.keyDown(grid, { key: 'F2' })
+
+		const editorCell = () => document.activeElement?.closest('td')
+
+		expect(editorCell()).toBeTruthy()
+
+		view.rerender(ui({ editable: true, sort: 'age' }))
+
+		expect(grid.getAttribute('aria-activedescendant')).toBe(editorCell()?.id)
+	})
+})
