@@ -328,6 +328,11 @@ export const k = {
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],
+		// The same span while it holds an open editor. A span that clips is a
+		// scroll container. The validation message shows below the cell, and its
+		// scroll into view then scrolls the span and clips the editor. This form
+		// lets the content overflow and keeps the one line.
+		editing: ['block', 'whitespace-nowrap'],
 		// The search-highlight wash behind a matched substring when `search.mode`
 		// is `'highlight'` (mark, don't prune). The same mode-aware amber the JsonTree's
 		// search highlight uses (`kata/json-tree` `highlight`), so a match reads the
