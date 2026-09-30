@@ -17,7 +17,11 @@ function flushFrames(): void {
 	for (const cb of pending) cb(0)
 }
 
-function makeGroup(rect: { width: number; height: number }, handleCount = 0): HTMLDivElement {
+function makeGroup(
+	rect: { width: number; height: number },
+	handleCount = 0,
+	handleRect: { width?: number; height?: number } = {},
+): HTMLDivElement {
 	const el = document.createElement('div')
 
 	for (let i = 0; i < handleCount; i++) {
@@ -26,7 +30,7 @@ function makeGroup(rect: { width: number; height: number }, handleCount = 0): HT
 		handle.setAttribute('data-slot', 'resizable-handle')
 
 		Object.defineProperty(handle, 'getBoundingClientRect', {
-			value: () => DOMRect.fromRect(),
+			value: () => DOMRect.fromRect(handleRect),
 		})
 
 		el.appendChild(handle)
@@ -215,6 +219,17 @@ describe('useResizablePanel', () => {
 				-90,
 				[20, 80],
 			],
+			// The two minimums sum past 100, so no split holds both. The left panel
+			// keeps its own bounds, and the right panel takes the remainder.
+			[
+				'keeps the left panel bounds when the pair is over-constrained',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 40, maxSize: 100 },
+					{ key: '.1', defaultSize: 1, minSize: 70, maxSize: 100 },
+				],
+				-30,
+				[40, 60],
+			],
 		])('%s', (_name, panelConfigs, delta, expected) => {
 			const { result } = renderPanel({ panelConfigs })
 
@@ -364,6 +379,82 @@ describe('useResizablePanel', () => {
 			})
 
 			expect(result.current.sizes).toEqual([70, 30])
+		})
+
+		it('subtracts the handle heights from the available size of a vertical group', () => {
+			const group = makeGroup({ width: 100, height: 1000 }, 1, { width: 100, height: 200 })
+
+			const { result } = renderPanel({ groupRef: makeRef(group), orientation: 'vertical' })
+
+			act(() => {
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 500 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 0, clientY: 580 }))
+
+				flushFrames()
+			})
+
+			// 80px delta / (1000px - 200px of handle) = 10% shift.
+			expect(result.current.sizes).toEqual([60, 40])
+		})
+
+		it('commits a burst of moves once per frame, at the last position', () => {
+			const onSizesChange = vi.fn()
+
+			const { result } = renderPanel({ groupRef: wideGroup(), onSizesChange })
+
+			act(() => {
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 700, clientY: 0 }))
+			})
+
+			// The second move reuses the frame that the first move requested.
+			expect(frameQueue).toHaveLength(1)
+
+			act(() => flushFrames())
+
+			expect(result.current.sizes).toEqual([70, 30])
+
+			expect(onSizesChange).toHaveBeenCalledExactlyOnceWith([70, 30])
+		})
+
+		it('commits the last move at once when the pointer lifts before the frame', () => {
+			const cancelAnimationFrame = vi.fn()
+
+			vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame)
+
+			const onSizesChange = vi.fn()
+			const onResizeEnd = vi.fn()
+
+			const { result } = renderPanel({ groupRef: wideGroup(), onSizesChange, onResizeEnd })
+
+			act(() => {
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+
+				document.dispatchEvent(new PointerEvent('pointerup'))
+			})
+
+			expect(cancelAnimationFrame).toHaveBeenCalledWith(1)
+
+			expect(result.current.sizes).toEqual([60, 40])
+
+			// The sizes settle before the end of the bracket.
+			expect(onSizesChange).toHaveBeenCalledExactlyOnceWith([60, 40])
+
+			expect(onSizesChange.mock.invocationCallOrder[0]).toBeLessThan(
+				onResizeEnd.mock.invocationCallOrder[0] ?? 0,
+			)
 		})
 
 		it.each(['pointerup', 'pointercancel'])('stops updating after %s', (type) => {
@@ -541,6 +632,27 @@ describe('useResizablePanel', () => {
 			})
 
 			expect(onSizesChange).not.toHaveBeenCalled()
+		})
+
+		it('cancels the pending frame on unmount mid-drag', () => {
+			const cancelAnimationFrame = vi.fn()
+
+			vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame)
+
+			const { result, unmount } = renderPanel({ groupRef: wideGroup() })
+
+			act(() => {
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+			})
+
+			unmount()
+
+			// Without the cancel, the frame commits sizes to an unmounted hook.
+			expect(cancelAnimationFrame).toHaveBeenCalledExactlyOnceWith(1)
 		})
 	})
 })
