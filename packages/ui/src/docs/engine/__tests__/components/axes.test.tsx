@@ -66,9 +66,9 @@ describe('Axes', () => {
 
 		expect(titles).toEqual(['Playground', 'Variant', 'Color'])
 
-		expect(probesOf('Variant').map((probe) => probe.textContent)).toEqual(['solid', 'outline'])
+		expect(probesOf('Variant').map((probe) => probe.textContent)).toEqual(['Solid', 'Outline'])
 
-		expect(probesOf('Color').map((probe) => probe.textContent)).toEqual(['red', 'blue'])
+		expect(probesOf('Color').map((probe) => probe.textContent)).toEqual(['Red', 'Blue'])
 	})
 
 	it('starts each axis at its default, and leaves an axis with no default unset', () => {

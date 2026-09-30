@@ -6,7 +6,7 @@ import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
 import { type Axis, type AxisValue, axesOf } from '../axes'
 import { Example } from './example'
-import { capitalize } from './format'
+import { humanize, valueLabel } from './format'
 import { OptionsListbox } from './options-listbox'
 
 /**
@@ -30,7 +30,7 @@ export type AxisProps = { readonly [prop: string]: never }
  * Render one instance of the component for a set of axis values.
  *
  * @param props - The axis values. Spread them onto the component.
- * @param label - A short text for the instance: the value that the section shows, or the component name.
+ * @param label - A short text for the instance: the {@link valueLabel} of the value that the section shows, or the component name.
  */
 export type AxisRender = (props: AxisProps, label: string) => ReactNode
 
@@ -109,10 +109,12 @@ function AxesBody({ pending, of, render, omit }: AxesProps & { pending: Promise<
 			</Example>
 
 			{axes.map((axis) => (
-				<Example key={axis.name} title={capitalize(axis.name)}>
+				<Example key={axis.name} title={humanize(axis.name)}>
 					<Flex wrap gap="sm" align="center">
 						{axis.values.map((value) => (
-							<Slot key={String(value)}>{render(propsWith(axis.name, value), String(value))}</Slot>
+							<Slot key={String(value)}>
+								{render(propsWith(axis.name, value), valueLabel(value))}
+							</Slot>
 						))}
 					</Flex>
 				</Example>
@@ -143,14 +145,14 @@ function AxisPicker({
 	// takes its own fallback, such as the step of the nearest density scope.
 	const options = [
 		...(axis.default === undefined ? [{ value: UNSET, label: 'Default' }] : []),
-		...axis.values.map((v) => ({ value: JSON.stringify(v), label: String(v) })),
+		...axis.values.map((v) => ({ value: JSON.stringify(v), label: valueLabel(v) })),
 	]
 
 	return (
 		<OptionsListbox
 			options={options}
-			label={capitalize(axis.name)}
-			prefix={<span className="text-zinc-500 dark:text-zinc-400">{capitalize(axis.name)}</span>}
+			label={humanize(axis.name)}
+			prefix={<span className="text-zinc-500 dark:text-zinc-400">{humanize(axis.name)}</span>}
 			value={value === undefined ? UNSET : JSON.stringify(value)}
 			onValueChange={(key) => onValueChange(key === UNSET ? undefined : JSON.parse(key))}
 		/>

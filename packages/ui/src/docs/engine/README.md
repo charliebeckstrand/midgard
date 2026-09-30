@@ -32,6 +32,15 @@ value of that axis. The other axes of that example take the values of the
 playground. A new value in the source of a component thus shows on the page
 with no change to the demo. `omit` removes a prop from the axes.
 
+A picker starts at the default of its prop. The extractor reads a default
+from the destructured parameter, then from a `@defaultValue` tag, then from the
+`defaults` of the recipe that the component calls. An axis with no default
+offers an unset option, so the component takes its own fallback.
+
+`valueLabel` writes each value for a reader: `xs` reads `Extra small`, `true`
+reads `On`, and `separated` reads `Separated`. `humanize` writes a prop name as
+the title of its example. A hand-written demo can use both helpers.
+
 The `render` function runs in the render of `<Axes>`, so it must not call a
 hook. Give the component the props that it requires in `render`, and spread
 the axis props onto it. A compound component spreads them onto its root.
