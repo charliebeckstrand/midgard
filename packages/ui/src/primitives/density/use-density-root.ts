@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { type DensityStep, densitySteps } from '../../core/density'
+import { type DensityStep, densitySteps, rootDensityAttribute } from '../../core/density'
 import { createEmitter } from '../../utilities/emitter'
 
 /**
@@ -7,7 +7,7 @@ import { createEmitter } from '../../utilities/emitter'
  * when the root has no step or a value that is not a step.
  */
 function readRootStep(): DensityStep {
-	const value = document.documentElement.getAttribute('data-density')
+	const value = document.documentElement.getAttribute(rootDensityAttribute)
 
 	return densitySteps.find((step) => step === value) ?? 'md'
 }
@@ -31,7 +31,7 @@ function subscribeRootStep(listener: () => void) {
 
 		observer.observe(document.documentElement, {
 			attributes: true,
-			attributeFilter: ['data-density'],
+			attributeFilter: [rootDensityAttribute],
 		})
 	}
 

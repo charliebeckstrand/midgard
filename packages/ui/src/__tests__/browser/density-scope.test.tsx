@@ -65,11 +65,11 @@ const badgeFont = (container: HTMLElement, text: string) => {
  */
 describe('the root scope (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	it('gives its step to a leaf outside each other scope', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const { container } = renderUI(<Badge>x</Badge>)
 
@@ -77,7 +77,7 @@ describe('the root scope (real browser)', () => {
 	})
 
 	it('loses to a scope under it', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const { container } = renderUI(
 			<Card size="lg">
@@ -89,7 +89,7 @@ describe('the root scope (real browser)', () => {
 	})
 
 	it('keeps each ranked depth for the scopes under it', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		// The ranked maximum of scopes under the root: `lg` cards around one `sm` card. If the root
 		// took a depth, the last `lg` card would tie with the `sm` card at the last depth, and the
@@ -116,7 +116,7 @@ describe('the root scope (real browser)', () => {
  */
 describe('the relative slot scope (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	it('steps its contents one step below an explicit scope', () => {
@@ -132,7 +132,7 @@ describe('the relative slot scope (real browser)', () => {
 	})
 
 	it('steps its contents one step below the root', () => {
-		document.documentElement.setAttribute('data-density', 'md')
+		document.documentElement.setAttribute('data-density-root', 'md')
 
 		const { container } = renderUI(
 			<span data-density="slot">
@@ -154,7 +154,7 @@ describe('the relative slot scope (real browser)', () => {
 	})
 
 	it('takes xs below sm, the smallest step', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const { container } = renderUI(
 			<span data-density="slot">
@@ -188,7 +188,7 @@ describe('the relative slot scope (real browser)', () => {
 	})
 
 	it('reads the nearest scope above it, not an outer one', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const { container } = renderUI(
 			<Card size="sm">
@@ -211,7 +211,7 @@ describe('the relative slot scope (real browser)', () => {
  */
 describe('controls at the first paint (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	/** Mounts the server markup of `element` with no hydration. */
@@ -229,7 +229,7 @@ describe('controls at the first paint (real browser)', () => {
 		Number.parseFloat(getComputedStyle(present(element, 'element'))[property])
 
 	it('sizes an unsized input at the step of the root', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(<Input aria-label="Name" />)
 
@@ -243,7 +243,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('lets an explicit size win over the root', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(<Input aria-label="Name" size="lg" />)
 
@@ -253,7 +253,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('steps the prefix one step below the input and pads it at the input step', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		const container = mountMarkup(<Input aria-label="Name" prefix={<Badge>x</Badge>} />)
 
@@ -266,7 +266,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes an unsized button at the step of the root', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(<Button>Save</Button>)
 
@@ -276,7 +276,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('steps a button in an input suffix one step below the input', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		const container = mountMarkup(<Input aria-label="Name" suffix={<Button>Go</Button>} />)
 
@@ -289,7 +289,7 @@ describe('controls at the first paint (real browser)', () => {
 		['the root', <Input key="i" aria-label="Name" />, '9px'],
 		['an explicit size', <Input key="i" aria-label="Name" size="sm" />, '5px'],
 	])('rounds the inset fill of the input frame at the step of %s', (_, element, radius) => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		// The fill is the `::before` of the frame. Its radius is the frame radius less the ring.
 		const container = mountMarkup(element)
@@ -302,7 +302,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes the unsized toggles at the step of the root', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(
 			<>
@@ -322,7 +322,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes the native slider track at an explicit size of the slider', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		// The track is a pseudo-element, so its classes name the steps before it and keep the rung
 		// of the input itself. The content box of the input is the height of its track.
@@ -343,7 +343,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes the rating and the progress indicators at the step of the root', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		const container = mountMarkup(
 			<>
@@ -366,7 +366,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('pads a text prefix at the px of the input', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		const container = mountMarkup(<Input aria-label="Name" prefix="$" />)
 
@@ -378,7 +378,7 @@ describe('controls at the first paint (real browser)', () => {
 
 describe('items and slots at the first paint (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	/** Mounts the server markup of `element` with no hydration. */
@@ -408,7 +408,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	)
 
 	it('sizes an unsized sidebar item and its icon at the step of the root', () => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(<SidebarItem icon={icon}>Home</SidebarItem>)
 
@@ -444,7 +444,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('lets an explicit size of a sidebar item win over the root', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		const container = mountMarkup(<SidebarItem size="sm">Home</SidebarItem>)
 
@@ -454,7 +454,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('steps a sidebar item suffix one step below the item and insets it at the item step', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		const container = mountMarkup(<SidebarItem suffix={<Button>Edit</Button>}>Home</SidebarItem>)
 
@@ -468,7 +468,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('steps the chat list item actions one step below the root', () => {
-		document.documentElement.setAttribute('data-density', 'lg')
+		document.documentElement.setAttribute('data-density-root', 'lg')
 
 		const container = mountMarkup(<ChatListItem title="Chat" actions={<Button>Delete</Button>} />)
 
@@ -499,7 +499,7 @@ describe('items and slots at the first paint (real browser)', () => {
 			32,
 		],
 	])('sizes and indents a tree at the step of %s', (_, element, font, indent) => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(element)
 
@@ -515,7 +515,7 @@ describe('items and slots at the first paint (real browser)', () => {
 
 describe('the sparkline at the first paint (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	/** Mounts the server markup of `element` with no hydration. */
@@ -543,7 +543,7 @@ describe('the sparkline at the first paint (real browser)', () => {
 			[120, 40],
 		],
 	])('sizes the box at 3:1 at the step of %s', (_, element, expected) => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(element)
 
@@ -554,7 +554,7 @@ describe('the sparkline at the first paint (real browser)', () => {
 
 	it('sizes the skeleton to the box of the sparkline at each step', () => {
 		for (const step of ['sm', 'md', 'lg'] as const) {
-			document.documentElement.setAttribute('data-density', step)
+			document.documentElement.setAttribute('data-density-root', step)
 
 			const container = mountMarkup(
 				<>
@@ -574,7 +574,7 @@ describe('the sparkline at the first paint (real browser)', () => {
 
 describe('the grid at the first paint (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.removeAttribute('data-density')
+		document.documentElement.removeAttribute('data-density-root')
 	})
 
 	/** Mounts the server markup of `element` with no hydration. */
@@ -604,7 +604,7 @@ describe('the grid at the first paint (real browser)', () => {
 			CELL_PADDING_PX.lg,
 		],
 	])('pads the cells at the step of %s', (_, element, padding) => {
-		document.documentElement.setAttribute('data-density', 'sm')
+		document.documentElement.setAttribute('data-density-root', 'sm')
 
 		const container = mountMarkup(element)
 

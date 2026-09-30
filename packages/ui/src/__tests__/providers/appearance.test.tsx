@@ -36,7 +36,7 @@ afterEach(() => {
 
 	document.documentElement.classList.remove('dark')
 
-	document.documentElement.removeAttribute('data-density')
+	document.documentElement.removeAttribute('data-density-root')
 })
 
 describe('AppearanceProvider', () => {
@@ -85,7 +85,7 @@ describe('AppearanceProvider', () => {
 
 		expect(localStorage.getItem('density')).toBe('compact')
 
-		expect(document.documentElement).toHaveAttribute('data-density', 'sm')
+		expect(document.documentElement).toHaveAttribute('data-density-root', 'sm')
 	})
 
 	it('writes the stored density on the root element and opens no scope of its own', () => {
@@ -97,7 +97,7 @@ describe('AppearanceProvider', () => {
 			</AppearanceProvider>,
 		)
 
-		expect(document.documentElement).toHaveAttribute('data-density', 'lg')
+		expect(document.documentElement).toHaveAttribute('data-density-root', 'lg')
 
 		expect(bySlot(container, 'density')).toBeNull()
 	})
@@ -184,19 +184,19 @@ describe('AppearanceScript', () => {
 
 		runScript()
 
-		expect(document.documentElement).toHaveAttribute('data-density', 'sm')
+		expect(document.documentElement).toHaveAttribute('data-density-root', 'sm')
 	})
 
 	it('writes the snug step for a missing or unknown density', () => {
 		runScript()
 
-		expect(document.documentElement).toHaveAttribute('data-density', 'md')
+		expect(document.documentElement).toHaveAttribute('data-density-root', 'md')
 
 		localStorage.setItem('density', '__proto__')
 
 		runScript()
 
-		expect(document.documentElement).toHaveAttribute('data-density', 'md')
+		expect(document.documentElement).toHaveAttribute('data-density-root', 'md')
 	})
 
 	it('applies the stored dark theme', () => {
@@ -219,11 +219,11 @@ describe('AppearanceScript', () => {
 		const paint = (script: () => void) => {
 			root.classList.remove('dark')
 
-			root.removeAttribute('data-density')
+			root.removeAttribute('data-density-root')
 
 			script()
 
-			return `${root.classList.contains('dark')} ${root.getAttribute('data-density')}`
+			return `${root.classList.contains('dark')} ${root.getAttribute('data-density-root')}`
 		}
 
 		const mismatches: string[] = []
