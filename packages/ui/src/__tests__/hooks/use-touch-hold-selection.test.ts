@@ -2,9 +2,10 @@ import { act, renderHook } from '@testing-library/react'
 import type { PointerEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-	CHART_SELECTION_SETTLE,
-	useChartTouchSelection,
-} from '../../modules/chart/engine/use-chart-touch-selection'
+	holdTouchSelection,
+	TOUCH_HOLD_SELECTION_SETTLE,
+	useTouchHoldSelection,
+} from '../../hooks/use-touch-hold-selection'
 
 /** A React pointer event with the fields that the hook reads. */
 const press = (pointerType: string, pointerId = 1, isPrimary = true) =>
@@ -55,9 +56,9 @@ afterEach(() => {
 	document.body.replaceChildren()
 })
 
-describe('useChartTouchSelection', () => {
+describe('useTouchHoldSelection', () => {
 	it('removes a selection made during a touch hold', () => {
-		const { result, unmount } = renderHook(() => useChartTouchSelection())
+		const { result, unmount } = renderHook(() => useTouchHoldSelection())
 
 		result.current(press('touch'))
 
@@ -71,7 +72,7 @@ describe('useChartTouchSelection', () => {
 	})
 
 	it('keeps guarding until the settle time after the lift', () => {
-		const { result, unmount } = renderHook(() => useChartTouchSelection())
+		const { result, unmount } = renderHook(() => useTouchHoldSelection())
 
 		result.current(press('touch'))
 
@@ -81,7 +82,7 @@ describe('useChartTouchSelection', () => {
 
 		expect(selected()).toBe(false)
 
-		act(() => vi.advanceTimersByTime(CHART_SELECTION_SETTLE))
+		act(() => vi.advanceTimersByTime(TOUCH_HOLD_SELECTION_SETTLE))
 
 		selectText()
 
@@ -93,13 +94,13 @@ describe('useChartTouchSelection', () => {
 	})
 
 	it('ends on a cancel and ignores the lift of another pointer', () => {
-		const { result, unmount } = renderHook(() => useChartTouchSelection())
+		const { result, unmount } = renderHook(() => useTouchHoldSelection())
 
 		result.current(press('touch'))
 
 		lift('pointerup', 2)
 
-		act(() => vi.advanceTimersByTime(CHART_SELECTION_SETTLE))
+		act(() => vi.advanceTimersByTime(TOUCH_HOLD_SELECTION_SETTLE))
 
 		selectText()
 
@@ -107,7 +108,7 @@ describe('useChartTouchSelection', () => {
 
 		lift('pointercancel')
 
-		act(() => vi.advanceTimersByTime(CHART_SELECTION_SETTLE))
+		act(() => vi.advanceTimersByTime(TOUCH_HOLD_SELECTION_SETTLE))
 
 		selectText()
 
@@ -117,7 +118,7 @@ describe('useChartTouchSelection', () => {
 	})
 
 	it('ignores a mouse, a pen, and a second finger', () => {
-		const { result, unmount } = renderHook(() => useChartTouchSelection())
+		const { result, unmount } = renderHook(() => useTouchHoldSelection())
 
 		result.current(press('mouse'))
 
@@ -133,11 +134,37 @@ describe('useChartTouchSelection', () => {
 	})
 
 	it('releases on unmount', () => {
-		const { result, unmount } = renderHook(() => useChartTouchSelection())
+		const { result, unmount } = renderHook(() => useTouchHoldSelection())
 
 		result.current(press('touch'))
 
 		unmount()
+
+		act(() => vi.advanceTimersByTime(TOUCH_HOLD_SELECTION_SETTLE))
+
+		selectText()
+
+		expect(selected()).toBe(true)
+	})
+})
+
+describe('holdTouchSelection', () => {
+	it('keeps the guard while holds overlap, and releases each once', () => {
+		const outer = holdTouchSelection()
+
+		const inner = holdTouchSelection()
+
+		inner()
+
+		inner()
+
+		act(() => vi.advanceTimersByTime(TOUCH_HOLD_SELECTION_SETTLE))
+
+		selectText()
+
+		expect(selected()).toBe(false)
+
+		outer(true)
 
 		selectText()
 
