@@ -278,6 +278,36 @@ describe('neighborRoom', () => {
 		expect(neighborRoom([{ at: null, radius: POINT_RADIUS }, dot(1)])).toEqual([Infinity, Infinity])
 	})
 
+	it('answers the same past the size where the pass indexes a grid', () => {
+		// Nine dots and more read the grid rather than every pair. A row of pairs
+		// 15px apart, each pair far from the next, and one dot the projection
+		// dropped: the answers must be the ones the pairwise pass gives.
+		const pairs = Array.from({ length: 5 }, (_, pair) => [dot(pair * 200), dot(pair * 200 + 15)])
+
+		const marks = [...pairs.flat(), { at: null, radius: POINT_RADIUS }, dot(2000)]
+
+		expect(neighborRoom(marks)).toEqual([...Array(10).fill(9.5), Infinity, Infinity])
+	})
+
+	it('reads the nearest neighbor through the grid, not the first one', () => {
+		// The middle dot of a row stands 25px from one side and 15px from the other.
+		// The nearer neighbor sets its room, whichever cell the walk reads first.
+		const row = [
+			dot(0),
+			dot(25),
+			dot(40),
+			...Array.from({ length: 6 }, (_, step) => dot(1000 + step * 500)),
+		]
+
+		expect(neighborRoom(row).slice(0, 3)).toEqual([25 - POINT_RADIUS, 9.5, 9.5])
+	})
+
+	it('holds every reach in device pixels through a zoom past the grid size', () => {
+		const row = Array.from({ length: 10 }, (_, step) => dot(step * 30))
+
+		expect(neighborRoom(row, 2)).toEqual(Array(10).fill(9.5))
+	})
+
 	it('leaves a lone dot alone', () => {
 		expect(neighborRoom([dot(0)])).toEqual([Infinity])
 
@@ -323,6 +353,22 @@ describe('markTargets', () => {
 	it('caps the target at the reach a finger takes', () => {
 		// A wide-open zone hands back more room than a target ever needs.
 		expect(markTargets([dot(0)], 1, spares(400))).toEqual([POINT_HIT_RADIUS])
+	})
+
+	it('floors the target at the dot without asking the zone, where a neighbor already did', () => {
+		// 10px apart, so the neighbor leaves 4.5px, less than the 5.5px each dot
+		// paints. The floor decides, and the zone is not asked at all.
+		const asked: MapPoint2D[] = []
+
+		const spare = (at: MapPoint2D) => {
+			asked.push(at)
+
+			return Number.POSITIVE_INFINITY
+		}
+
+		expect(markTargets([dot(0), dot(10)], 1, spare)).toEqual([POINT_RADIUS, POINT_RADIUS])
+
+		expect(asked).toEqual([])
 	})
 
 	it('gives a dot the projection dropped the whole target, unmeasured', () => {
