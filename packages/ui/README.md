@@ -28,6 +28,7 @@ No root barrel; the `exports` map exposes each component path.
 | Tests | `pnpm --filter ui test` |
 | Tests (scoped) | `pnpm --filter ui test:related` / `pnpm --filter ui test:changed` |
 | Tests of geometry, in Node and in Chromium | `pnpm --filter ui test:geometry` |
+| Screenshots of the demo pages, against the reference images (manual; the `Visual` workflow) | `pnpm --filter ui test:visual` |
 | Tests with the React Compiler on | `pnpm --filter ui test:compiler` |
 | Tests that read files outside `ui` (rule documents, Biome plugins, apps) | `pnpm --filter ui test:workspace` |
 | Benchmarks | `pnpm --filter ui bench` |

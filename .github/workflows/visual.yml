@@ -1,0 +1,60 @@
+name: Visual
+
+# The visual suite of ui (`test:visual`, vitest.visual.config.ts). It compares
+# a screenshot of each demo page with its reference image. CI does not run it,
+# so this workflow runs only on request, on the branch that you select.
+#
+# With `update` off, a mismatch fails the run, and the `visual-diffs` artifact
+# holds the actual image and the diff image of each mismatch. With `update` on,
+# the run writes each reference again, and the `visual-references` artifact
+# holds them. Copy them into
+# packages/ui/src/__tests__/visual/__screenshots__/demos.test.tsx/ and commit
+# them. The references are the renders of this runner, so write them here and
+# not on another platform.
+on:
+  workflow_dispatch:
+    inputs:
+      update:
+        description: Write the reference images again
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      # The browser cache of the `browser` job in ci.yml, with the same key.
+      # The reasons for the key and for no `--with-deps` are there.
+      - id: playwright
+        working-directory: packages/ui
+        run: |
+          echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+      - run: pnpm --filter ui exec playwright install chromium
+      # The package script and not a Turbo task. Turbo would give a cached
+      # result for an input that did not change, and the run would compare
+      # nothing.
+      - run: pnpm --filter ui test:visual ${{ inputs.update && '-u' || '' }}
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-diffs
+          path: packages/ui/.vitest-attachments/src/__tests__/visual/
+      - if: inputs.update
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-references
+          path: packages/ui/src/__tests__/visual/__screenshots__/demos.test.tsx/

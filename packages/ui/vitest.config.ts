@@ -189,6 +189,7 @@ export default defineConfig({
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/**',
+						'src/__tests__/visual/**',
 						'src/__tests__/compiler/**',
 						'src/__tests__/boundary/**',
 						'src/__tests__/geometry/**',

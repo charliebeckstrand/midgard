@@ -64,13 +64,14 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo a
 | Tests for the change you edit | `packages/ui` | `pnpm test:related <file>` / `pnpm test:changed` |
 | Layout, computed style, or color ([CONVENTIONS.md](../../CONVENTIONS.md) §10.5) | `packages/ui` | `pnpm test:browser` |
 | Geometry: layout boxes and pure calculations on coordinates, boxes, and shapes ([CONVENTIONS.md](../../CONVENTIONS.md) §10.5) | `packages/ui` | `pnpm test:geometry` |
+| The screenshot of each demo page, against its reference image | `packages/ui` | `pnpm test:visual` (`-u` writes the references) |
 | Code under the React Compiler ([CONVENTIONS.md](../../CONVENTIONS.md) §10.7) | `packages/ui` | `pnpm test:compiler` |
 | The rule documents, the Biome plugins, or the apps | `packages/ui` | `pnpm test:workspace` |
 | The accessibility corpus and its sweeps | `packages/ui` | `pnpm test:a11y` |
 | Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
 | Dev (docs site) | `packages/ui` | `pnpm docs` |
 
-`test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks.
+`test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks and the visual suite. The `Visual` workflow runs the visual suite on request, and `vitest.visual.config.ts` tells why the references come from Linux.
 
 ## 5. Where to look
 

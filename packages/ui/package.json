@@ -98,6 +98,7 @@
 		"test": "LANG=en-US vitest run --project unit --project pure --project boundary --project integration --project geometry",
 		"test:workspace": "LANG=en-US vitest run --project workspace",
 		"test:browser": "LANG=en-US vitest run --config vitest.browser.config.ts",
+		"test:visual": "LANG=en-US vitest run --config vitest.visual.config.ts",
 		"test:geometry": "export LANG=en-US && vitest run --project geometry && vitest run --config vitest.browser.config.ts --project geometry",
 		"test:compiler": "LANG=en-US vitest run --config vitest.compiler.config.ts --project unit --project pure --project integration --project geometry --project skips",
 		"test:a11y": "LANG=en-US vitest run src/__tests__/a11y",

@@ -45,3 +45,6 @@ deliberate-*.html
 
 # tsup (the transient config bundle that a build writes and deletes)
 tsup.config.bundled_*
+
+# Vitest attachments (the actual and diff images of the visual suite)
+.vitest-attachments/
