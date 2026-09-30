@@ -15,7 +15,7 @@ export type IconProps = {
 	/**
 	 * A density step, or a size in pixels. Omit it to take the step of the
 	 * nearest density scope. A step makes the icon a density scope. A host can
-	 * project an icon size, as Button, Badge, Sidebar, Nav, and the menu and
+	 * project an icon size, as Button, Badge, Nav, and the menu and
 	 * option rows do. Inside such a host, the `data-slot=icon` projection sets
 	 * the size, and it can override this. A control affix slot projects no size:
 	 * it is a scope one step below its control, so an icon with no `size` takes
