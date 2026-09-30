@@ -1,3 +1,5 @@
+import type { DrawerPanelVariants } from '../../recipes/kata/drawer'
+
 /**
  * The shortest a drawer with nothing to give resizes to: a grip and a little
  * under it. It is therefore still a panel, and still has something to pull back
@@ -9,7 +11,17 @@
 const MIN_HEIGHT = 140
 
 /**
- * The shortest a drawer resizes to: everything in it that does not scroll.
+ * The shortest a drawer resizes to.
+ *
+ * A drawer grown to its content (`auto` or `fit`) stops at `rest`, the height
+ * it rests at. That height is its content, up to the cap of the variant, so a
+ * shorter panel only hides rows behind a scroll. A menu that opens as a sheet
+ * is such a drawer. Below its rest, the drag pulls the panel off the screen
+ * instead, and a release there closes it.
+ *
+ * A drawer with a fixed height (`half` or `full`) stops at everything in it
+ * that does not scroll. There the reader decides how much of the screen the
+ * panel gets, and the body is the part that can give.
  *
  * Measured, not a constant, because it is the consumer's chrome: a title, a
  * footer of actions. The drawer cannot know how much of that there is. Fall
@@ -21,9 +33,20 @@ const MIN_HEIGHT = 140
  * rather than about the axis it resizes on. `usePanelResize` takes it as an
  * argument for exactly that reason.
  *
+ * @param panel - The panel element.
+ * @param height - The height the panel measures now.
+ * @param rest - The height the panel rests at, before the reader resized it.
+ * @param variant - The `height` variant of the drawer.
  * @internal
  */
-export function drawerFloor(panel: HTMLElement, height: number): number {
+export function drawerFloor(
+	panel: HTMLElement,
+	height: number,
+	rest: number,
+	variant: DrawerPanelVariants['height'],
+): number {
+	if (variant !== 'half' && variant !== 'full') return rest
+
 	const body = panel.querySelector('[data-slot="drawer-body"]')
 
 	if (body === null) return MIN_HEIGHT

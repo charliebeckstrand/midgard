@@ -2,6 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
+import { drawerFloor } from '../../components/drawer/drawer-floor'
 import { settleResize, speedOf } from '../../hooks/use-panel-resize'
 import {
 	bySlot,
@@ -422,6 +423,48 @@ describe('Drawer drag handle', () => {
 		it('never reads an upward flick as a dismissal', () => {
 			expect(settleResize(600, -2)).toBe(600)
 		})
+
+		it('lets a panel pulled past its floor go on a slow release', () => {
+			// The panel is already on its way off the screen, so the release lets it go.
+			expect(settleResize(300, 0, 40)).toBe('close')
+		})
+
+		it('keeps a panel pulled a few pixels, which is a hand at rest on the floor', () => {
+			expect(settleResize(300, 0, 10)).toBe(300)
+		})
+	})
+
+	describe('drawerFloor', () => {
+		/** A panel of 500 px whose scrolling body takes 320 px of it. */
+		function makePanel(): HTMLElement {
+			const panel = document.createElement('div')
+
+			const body = document.createElement('div')
+
+			body.dataset.slot = 'drawer-body'
+
+			Object.defineProperty(body, 'getBoundingClientRect', {
+				value: () => DOMRect.fromRect({ height: 320 }),
+			})
+
+			panel.append(body)
+
+			return panel
+		}
+
+		it.each(['auto', 'fit', undefined] as const)(
+			'stops a %s panel at the height it rests at, which is its content',
+			(variant) => {
+				expect(drawerFloor(makePanel(), 500, 420, variant)).toBe(420)
+			},
+		)
+
+		it.each(['half', 'full'] as const)(
+			'lets a %s panel give its whole body, down to the chrome',
+			(variant) => {
+				expect(drawerFloor(makePanel(), 500, 420, variant)).toBe(180)
+			},
+		)
 	})
 
 	describe('speedOf', () => {

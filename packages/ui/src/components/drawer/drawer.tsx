@@ -97,11 +97,20 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * variants. The reader is deciding how much of the screen the panel gets, and
 		 * the answer is wherever they let go. `height` still states where it opens.
 		 *
-		 * A panel flicked downward closes, which arrives through `onOpenChange` like
-		 * every other close. Speed, not position, is what tells a dismissal from a
-		 * reader placing the edge at its shortest. A resize is the drawer's own state,
-		 * and reports nowhere. Nothing outside it needs to hold a pixel height that
-		 * only means anything on the screen it was set on.
+		 * The drag stops at a floor. A panel grown to its content (`auto` or `fit`)
+		 * does not go below the height it rests at, because a shorter one only hides
+		 * content behind a scroll. A panel with a fixed height (`half` or `full`)
+		 * goes down to the chrome that does not scroll: the handle, a header, and a
+		 * footer.
+		 *
+		 * Past the floor, the panel follows the pointer off the bottom of the screen,
+		 * as a sheet does on a phone. A release there closes it, and a release back
+		 * at the floor keeps it open. A flick downward closes it from any height.
+		 * Both closes arrive through `onOpenChange`, like every other close.
+		 *
+		 * A resize is the drawer's own state, and reports nowhere. Nothing outside it
+		 * needs to hold a pixel height that only means anything on the screen it was
+		 * set on.
 		 *
 		 * @defaultValue false
 		 */
@@ -222,8 +231,9 @@ export function Drawer({
 		side: 'bottom',
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
-		floorOf: drawerFloor,
+		floorOf: (panel, size, rest) => drawerFloor(panel, size, rest, height),
 		ceilingOf: drawerCeiling,
+		pull: true,
 	})
 
 	// The other half of the panel's height, and the one the panel itself decides:
