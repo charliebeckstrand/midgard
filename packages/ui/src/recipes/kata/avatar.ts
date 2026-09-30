@@ -18,6 +18,13 @@ export const k = defineRecipe(
 			// stepped classes, such as SidebarItem, wins over the default. An
 			// explicit `size` is a plain class and wins over both.
 			'density-any:size-9',
+			// In a SidebarItem, the avatar is one step above the icon, with a negative
+			// margin, so the row keeps the height of a row with an icon. The inner
+			// button of the row is the child of the row that is not an affix slot:
+			// its own `data-slot` changes in the mini rail. Each class selects the
+			// avatar itself, so Chromium tests the rule only against the avatars.
+			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[5,6,7]',
+			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5',
 		],
 		variant: {
 			solid: 'border border-transparent text-white',

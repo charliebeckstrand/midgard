@@ -46,12 +46,9 @@ const itemBase = defineRecipe({
 		'data-[has-label]:density-py-ring-[1.5,2,2.5]',
 		'density-rounded-[1.5,2,2.5]',
 		...iconSlotRamp,
-		// An Avatar is static and keeps its own md box, so each row projects a size
-		// onto it: one step above the icon, with a negative margin, so that the row
-		// keeps the height of a row with an icon. A LoadingSpinner takes the size of
-		// the icon row.
-		'*:data-[slot=avatar]:density-size-[5,6,7] *:data-[slot=avatar]:-m-0.5',
-		'*:data-[slot=loading-spinner]:density-size-[3,4,5,6,6]',
+		// An Avatar or a LoadingSpinner child sizes itself in a row: its own recipe
+		// selects the inner button of the row. See `kata/avatar.ts` and
+		// `kata/loading.ts`.
 	],
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix

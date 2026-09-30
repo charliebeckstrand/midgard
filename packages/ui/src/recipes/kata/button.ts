@@ -37,16 +37,9 @@ export const k = defineRecipe({
 		'density-p-ring-[1.5,2,2.5,3,3]',
 		'density-rounded-[1,1.5,2,2.5,2.5]',
 		'data-[has-label]:density-py-ring-[1,1.5,2,2.5,2.5]',
-		// A LoadingSpinner or LoadingDots passed as an affix takes the step of the
-		// same scope. These projections stop at the `lg` values, as the button does,
-		// and the spinner follows the icon ramp. A Kbd sets its text and padding so that
-		// the key fits in the line of the label and does not make the button taller.
-		'*:data-[slot=loading-spinner]:density-size-[3,4,5,6,6]',
-		'*:data-[slot=loading-dots]:density-gap-[0.5,1,1.5,2,2]',
-		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:density-size-[1,1.5,2,2.5,2.5]',
-		'*:data-[slot=kbd]:density-text-[xs,sm,base]',
-		'*:data-[slot=kbd]:density-px-[1,1.5,1.5]',
-		'*:data-[slot=kbd]:density-py-[0,0.5,0.5,0.5,0.5]',
+		// A LoadingSpinner, LoadingDots, or Kbd child sizes itself in a button: its
+		// own recipe selects a parent with `data-variant`, which Button always
+		// writes. See `kata/loading.ts` and `kata/kbd.ts`.
 	],
 	variant: {
 		solid: focus.ring,

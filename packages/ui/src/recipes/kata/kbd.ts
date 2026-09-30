@@ -16,6 +16,13 @@ export const k = defineRecipe({
 		'inline-flex w-fit items-center justify-center',
 		...mark.base,
 		'density-any:text-sm density-any:px-1.5 density-any:py-1',
+		// In a Button (`data-variant`), the key takes the step of the button, with
+		// text and padding that fit in the line of the label, so the key does not
+		// make the button taller. Each class selects the key itself, so Chromium
+		// tests the rule only against the keys.
+		'[&:is([data-variant]>*)]:density-text-[xs,sm,base]',
+		'[&:is([data-variant]>*)]:density-px-[1,1.5,1.5]',
+		'[&:is([data-variant]>*)]:density-py-[0,0.5,0.5,0.5,0.5]',
 	],
 	size: mark.size,
 })
