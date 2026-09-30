@@ -105,6 +105,9 @@ export function useMenuState({
 			role: null,
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,
+			// A menu taller than the space on its side of the trigger shrinks into
+			// that space and scrolls, instead of running off the screen.
+			fitHeight: true,
 			// A static menu renders inline and stays visible — `MenuContent` gates
 			// the panel on `isStatic`, not on `open`. Left dismissable it would take
 			// a slot on the shared Escape stack, report a close that changes nothing,

@@ -2,7 +2,8 @@
  * Menu kata: object-literal surface for `<Menu>` / `<Dropdown>` popover lists.
  * The `item` row and the `viewport` scroll container follow the nearest density
  * scope through stepped classes. The panel is that scope. The rest are static slots:
- * `content` (the panel box), `section`, `heading`, `label`, `text`,
+ * `content` (the panel box), `surface` and `floating` (the wrapper and the
+ * panel of a floating menu), `section`, `heading`, `label`, `text`,
  * `description`, and `shortcut`. The `subTrigger` wash on an open submenu parent and the
  * `separator` divider join them.
  */
@@ -33,7 +34,9 @@ const item = [
 const viewport = defineRecipe({
 	base: [
 		'space-y-0.5',
-		'overflow-y-auto overscroll-contain',
+		// `min-h-0` lets the viewport shrink when the floating layer caps the
+		// height of a panel to the space on its side of the trigger.
+		'min-h-0 overflow-y-auto overscroll-contain',
 		// The panel surface is translucent glass, so an overlay gradient has no
 		// solid color to fade into; a mask fades the scrolled content itself.
 		// The fade extents default to zero and open per edge while
@@ -44,8 +47,9 @@ const viewport = defineRecipe({
 	],
 	// Off by default: a menu is normally a short, fixed item set, where a cap
 	// clips the last row and reads as truncation rather than as more content
-	// below. `true` caps a panel long enough to run past the viewport. The scroll
-	// container stays either way, so a capped panel can still reach its end.
+	// below. `true` caps a long panel where the viewport has space for all of
+	// it. A floating panel also has the cap of the floating layer, which keeps it
+	// on screen. The scroll container stays either way, so a capped panel can still reach its end.
 	//
 	// The cap of each density step cuts the last visible row at about its
 	// middle. Thus a clipped row, and not only the edge fade, shows that more
@@ -56,6 +60,14 @@ const viewport = defineRecipe({
 
 export const k = {
 	content: 'min-w-48',
+	// The positioned wrapper of a floating panel. The floating layer writes its
+	// max-height when the panel is taller than the space on its side of the
+	// trigger. The column lets the panel shrink into that cap.
+	surface: 'flex flex-col',
+	// A floating panel. `relative` puts the panel back in flow (the popover base
+	// is `absolute`), so the wrapper shrink-wraps to it. The column and `min-h-0`
+	// pass the cap of the wrapper on to the viewport, which scrolls.
+	floating: 'relative flex min-h-0 flex-col',
 	// A `MenuSub` parent keeps its wash while the panel is open (`data-open`), so
 	// the row the pointer traveled from still reads as the live trail back —
 	// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.

@@ -36,7 +36,9 @@ export type MenuContentProps = {
  *
  * @remarks Items scroll inside a height-capped viewport whose clipped edges
  * fade out while more content lies past them. An overflowing menu therefore
- * reads as scrollable, without a persistent scrollbar.
+ * reads as scrollable, without a persistent scrollbar. A floating panel is
+ * capped at the space on its side of the trigger, so a long menu stays on
+ * screen at each viewport size.
  */
 export function MenuContent({
 	className,
@@ -49,7 +51,7 @@ export function MenuContent({
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
-	const viewport = <MenuViewport>{children}</MenuViewport>
+	const viewport = <MenuViewport fitted={!isStatic}>{children}</MenuViewport>
 
 	if (isStatic) {
 		return (
@@ -77,6 +79,7 @@ export function MenuContent({
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
+			className={k.surface}
 		>
 			<PopoverPanel
 				density={size}
@@ -99,7 +102,7 @@ export function MenuContent({
 				trapTab={!isDropdown}
 				typeahead
 				glass={glass}
-				className={cn('relative', k.content, className)}
+				className={cn(k.floating, k.content, className)}
 				onKeyDown={(event) => {
 					if (event.key === 'Escape') close()
 				}}

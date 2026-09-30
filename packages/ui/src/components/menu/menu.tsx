@@ -45,9 +45,12 @@ export type MenuProps = {
 	/**
 	 * Cap the panel at its density height, scrolling past it. Off by default. A
 	 * menu is normally a short, fixed item set. A cap there clips the last row and
-	 * reads as truncation, rather than as more content below. Turn it on for a menu
-	 * long enough to run past the viewport — the panel then scrolls inside the cap
-	 * instead of growing. Applies to the panel and to every submenu under it.
+	 * reads as truncation, rather than as more content below. Turn it on for a long
+	 * menu that must stay short where the viewport has space for all of it. The
+	 * panel then scrolls inside the cap instead of growing. A floating panel does
+	 * not need the cap to stay on screen, because the floating layer also caps it
+	 * at the space on its side of the trigger. Applies to the panel and to every
+	 * submenu under it.
 	 * @defaultValue false
 	 */
 	capped?: boolean

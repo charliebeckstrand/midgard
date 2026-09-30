@@ -872,10 +872,10 @@ describe('MenuViewport', () => {
 	 * `useMenuCapped` reads `false` outside a `Menu`, so the capped arm supplies
 	 * the context the flag travels on.
 	 */
-	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>) => {
+	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>, fitted?: boolean) => {
 		const { container, unmount } = renderUI(
 			<MenuCappedContext value={capped}>
-				<MenuViewport ref={ref}>
+				<MenuViewport ref={ref} fitted={fitted}>
 					<span>Item</span>
 				</MenuViewport>
 			</MenuCappedContext>,
@@ -888,7 +888,7 @@ describe('MenuViewport', () => {
 		return { viewport, unmount }
 	}
 
-	it('wires the overflow watch only while capped', () => {
+	it('wires the overflow watch of a static panel only while capped', () => {
 		for (const capped of [false, true]) {
 			const { viewport } = viewportFor(capped)
 
@@ -896,6 +896,14 @@ describe('MenuViewport', () => {
 
 			expect(viewport.hasAttribute('data-overflow-below')).toBe(capped)
 		}
+	})
+
+	it('wires the overflow watch for a floating panel, which the layer caps to the viewport', () => {
+		const { viewport } = viewportFor(false, undefined, true)
+
+		fireEvent.scroll(viewport)
+
+		expect(viewport).toHaveAttribute('data-overflow-below')
 	})
 
 	it('composes an incoming ref with the watch and tears both down together', () => {

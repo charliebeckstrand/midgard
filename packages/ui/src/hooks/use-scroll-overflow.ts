@@ -14,7 +14,8 @@ export type ScrollOverflowOptions = {
 	 * That serves a container that cannot overflow in one of its states. A
 	 * scroller with no height constraint grows with its content, so neither
 	 * attribute can ever change, and the watch is dead work. `Menu` gates on
-	 * `capped`, the flag that emits its viewport's `max-h`.
+	 * `capped`, the flag that emits its viewport's `max-h`, and on a floating
+	 * panel, which the floating layer caps to the viewport.
 	 *
 	 * @defaultValue true
 	 */
