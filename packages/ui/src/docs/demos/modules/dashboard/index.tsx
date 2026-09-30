@@ -577,12 +577,12 @@ function RegistryExample() {
 
 			<Divider />
 
-			<Stack gap="xs">
-				<JsonTree data={json} rootKey="spec" defaultExpandDepth={0} />
-
-				<Text size="sm" tone="muted">
+			<Stack gap="sm">
+				<Text tone="muted">
 					Saved as plain JSON: each tile names its widget, and the registry draws it.
 				</Text>
+
+				<JsonTree data={json} rootKey="spec" defaultExpandDepth={0} />
 			</Stack>
 		</Example>
 	)
