@@ -44,9 +44,9 @@ import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
+import { useGridCursorColumns } from './use-grid-cursor-columns'
 import type { GridIndexRefs } from './use-grid-data-cursor'
 import { type GridPasteCell, useGridEditing } from './use-grid-editing'
-import { useGridEditingColumns } from './use-grid-editing-columns'
 import { useGridFillDrag } from './use-grid-fill-drag'
 import { useGridFillHandle } from './use-grid-fill-handle'
 import {
@@ -58,7 +58,6 @@ import {
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
-import { useGridNavigationColumns } from './use-grid-navigation-columns'
 import { resolveNewRow } from './use-grid-new-row'
 
 /** Whether two cursor positions name the same cell; `moveTo` mints a fresh `Coord` per move. @internal */
@@ -551,19 +550,11 @@ export function useGridCursor<T>({
 		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
 	}, [managed, enterEditAtCell])
 
-	// Cursor-only augmentation for a plain navigable grid; editing-aware
-	// augmentation (which mounts the editors) for an editable one.
-	const navColumns = useGridNavigationColumns<T>({
-		enabled: cursorEnabled && !editingEnabled,
-		columns,
-		rowIndexMapRef,
-		colIndexMapRef,
-		cellId: nav.cellId,
-		seat: nav.seat,
-	})
-
-	const editColumns = useGridEditingColumns<T>({
-		enabled: editingEnabled,
+	// Cursor augmentation, editing-aware (which mounts the editors) for an
+	// editable grid.
+	const cursorColumns = useGridCursorColumns<T>({
+		enabled: cursorEnabled,
+		editing: editingEnabled,
 		columns,
 		rowIndexMapRef,
 		colIndexMapRef,
@@ -795,7 +786,7 @@ export function useGridCursor<T>({
 		navTableProps,
 		reconcile: nav.reconcile,
 		settleRange: nav.settleRange,
-		columns: editingEnabled ? editColumns : navColumns,
+		columns: cursorColumns,
 		editOnCellDoubleClick,
 		wrap,
 		newRow: newRowPosition,

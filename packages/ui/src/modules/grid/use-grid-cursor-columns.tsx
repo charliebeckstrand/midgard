@@ -13,27 +13,37 @@ import { isDataColumn } from '../../utilities'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import type { GridIndexedColumn } from './engine/grid-row/cell'
 import { GridEditingCell } from './grid-editing-cell'
+import { GridNavCell, seatingCellProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
-import { GridNavCell, seatingCellProps } from './use-grid-navigation-columns'
 
 /**
- * Projects an editable grid's data columns into editing-aware ones: each gains
- * the cursor wiring (a stable per-cell id, `role="gridcell"`, click-to-seat).
- * The content of an editable column renders through {@link GridEditingCell}:
- * the column's display value, or its editor when the session has the cell
- * open. A column that cannot edit renders as the navigable projection renders
- * it. A flat row gives each
- * cell its place in the view; a body with no place to give reads it from the
- * live map. The row key and the column index resolve at cell-render time, so the
- * columns stay referentially stable across cursor moves and edits. The non-data columns
- * (selection, actions, drag handle, expander), and a non-editable grid (`enabled` false), pass through untouched.
+ * Projects the data columns of a grid with a cursor into cursor columns. Each
+ * gains a stable per-cell id, matched by the grid's `aria-activedescendant`,
+ * `role="gridcell"`, and a click-to-seat `onMouseDown`.
+ *
+ * The content of a cell is the active-cell marker around the column's own
+ * content. Under `editing`, an editable column renders through
+ * {@link GridEditingCell} instead: the column's display value, or its editor
+ * when the session has the cell open. A column that cannot edit says so with
+ * `aria-readonly`, and renders as a navigable cell does.
+ *
+ * A flat row gives each cell its place in the view (`cellAt`, `cellPropsAt`); a
+ * body with no place to give reads it from `rowIndexMapRef`. The column index
+ * and the row key resolve at render time, so the columns stay referentially
+ * stable across cursor moves and edits, and the memoized rows hold. The
+ * non-data columns (selection, actions, drag handle, expander), and a grid with
+ * no cursor (`enabled` false), pass through untouched.
+ *
+ * The closures read the refs inline. A helper that took them would read a ref
+ * during render, and the compiler would skip the hook.
  *
  * @returns The augmented `GridColumn<T>[]` to feed the engine.
  * @internal
  */
-export function useGridEditingColumns<T>({
+export function useGridCursorColumns<T>({
 	enabled,
+	editing,
 	columns,
 	rowIndexMapRef,
 	colIndexMapRef,
@@ -41,7 +51,10 @@ export function useGridEditingColumns<T>({
 	cellId,
 	seat,
 }: {
+	/** Whether the grid carries a cursor. */
 	enabled: boolean
+	/** Whether the grid is editable, which mounts the editors. */
+	editing: boolean
 	columns: GridColumn<T>[]
 	/** Live row → display-index map; resolves a cell's cursor row. */
 	rowIndexMapRef: RefObject<Map<T, number>>
@@ -65,11 +78,11 @@ export function useGridEditingColumns<T>({
 
 			const renderCell = col.cell
 
-			const editable = isColumnEditable(col)
+			const editable = editing && isColumnEditable(col)
 
-			// A cell that cannot enter edit mode says so, whether `readOnly` locks it
-			// or it has no field and no slot (WCAG 4.1.2).
-			const extra = { 'aria-readonly': !editable || undefined }
+			// Under editing, a cell that cannot enter edit mode says so, whether
+			// `readOnly` locks it or it has no field and no slot (WCAG 4.1.2).
+			const extra = editing ? { 'aria-readonly': !editable || undefined } : undefined
 
 			// A cell that cannot edit holds no draft and no editor, so it renders as
 			// a navigable cell does, and the edit store does not reach it.
@@ -102,5 +115,5 @@ export function useGridEditingColumns<T>({
 				cell: (row: T) => cellAt(row, indexOf(row)),
 			}
 		})
-	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, seat])
+	}, [enabled, editing, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, seat])
 }

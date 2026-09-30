@@ -1,9 +1,6 @@
 'use client'
 
-import { GripVertical } from 'lucide-react'
 import { type ComponentProps, memo, type ReactNode } from 'react'
-import { Checkbox } from '../../components/checkbox'
-import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { MountHold } from '../../primitives/mount'
@@ -28,19 +25,23 @@ import {
 } from './engine/grid-row/shell'
 import { cellBody } from './grid-cell-content'
 import type { GridRowsProps } from './grid-row'
-import { GridRowActions } from './grid-row-actions'
+import { GridRowSpecialCell } from './grid-row-special-cell'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 import type { GridColumnPinning } from './use-grid-table'
 
-/** A leaf cell's extra `<td>` width class and inner-wrapper layout class, by column kind. @internal */
-function leafCellChrome<T>(col: GridColumn<T>): { td: string; inner: string } {
-	if (col.selectable) return { td: 'w-px', inner: 'text-center [line-height:0]' }
+/**
+ * A leaf cell's `<td>` class by column kind: the kata class of the selection or
+ * the actions cell, as on a flat row. The reveal wrappers inherit its alignment.
+ * @internal
+ */
+function leafCellClass<T>(col: GridColumn<T>): string | undefined {
+	if (col.selectable) return k.cell.select
 
-	if (col.actions) return { td: 'w-px whitespace-nowrap', inner: '' }
+	if (col.actions && !isNewRowAddColumn(col.id)) return k.cell.actions
 
-	return { td: '', inner: '' }
+	return undefined
 }
 
 /** Props for {@link GridGroupLeafRow}. @internal */
@@ -85,7 +86,7 @@ type GridGroupLeafRowProps<T> = {
 	level?: number
 } & GridWindowRowProps
 
-/** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
+/** Resolves a leaf cell's inner content: an inert grip, the checkbox, the actions, or the rendered value. @internal */
 function leafCellInner<T>(args: {
 	col: GridIndexedColumn<T>
 	row: T
@@ -98,36 +99,23 @@ function leafCellInner<T>(args: {
 }): ReactNode {
 	const { col, row, rowIndex, rowKey, selected, toggleRow, rowLabel, truncate } = args
 
-	const name = rowLabel ?? `row ${rowKey}`
-
-	// The drag handle is inert under grouping (row reorder stands down there).
-	if (col.dragHandle) {
-		return (
-			<button
-				type="button"
-				disabled
-				aria-label={`Reorder ${name}`}
-				className={cn(k.rowReorder.handle.disabled)}
-			>
-				<Icon icon={<GripVertical />} />
-			</button>
-		)
-	}
-
-	if (col.selectable) {
-		return (
-			<Checkbox
-				checked={selected}
-				onChange={() => toggleRow(rowKey)}
-				aria-label={`Select ${name}`}
-			/>
-		)
-	}
-
 	// The Add column of the new-row slot is empty in a leaf row.
 	if (isNewRowAddColumn(col.id)) return null
 
-	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
+	// Row reorder stands down under grouping, so the leaf gives no sortable and
+	// its grip is inert.
+	if (col.dragHandle || col.selectable || col.actions) {
+		return (
+			<GridRowSpecialCell
+				col={col}
+				row={row}
+				rowKey={rowKey}
+				selected={selected}
+				toggleRow={toggleRow}
+				rowLabel={rowLabel}
+			/>
+		)
+	}
 
 	// The column renders the cell as a flat row does.
 	return cellBody(col, row, rowIndex, truncate)
@@ -188,8 +176,6 @@ function GridGroupLeafCell<T>({
 	cellActivate,
 	colIndex,
 }: GridGroupLeafCellProps<T>) {
-	const chrome = leafCellChrome(col)
-
 	// Only data cells rove; the non-data columns (selection, actions, drag handle,
 	// expander) stay plain. `cellRovingAttrs` returns the marker + Enter/Space activation.
 	const dataCell = isDataColumn(col)
@@ -223,7 +209,7 @@ function GridGroupLeafCell<T>({
 				cellRoving && dataCell && k.cell.rovable,
 				leading && k.rowGroup.rail.padded,
 				leading && color && k.rowGroup.rail.color[color],
-				chrome.td,
+				leafCellClass(col),
 				pinned.className,
 				extra?.className,
 			)}
@@ -232,7 +218,7 @@ function GridGroupLeafCell<T>({
 		>
 			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>
-					<div className={cn(pad, chrome.inner)}>
+					<div className={cn(pad)}>
 						{leafCellInner({
 							col,
 							row,
