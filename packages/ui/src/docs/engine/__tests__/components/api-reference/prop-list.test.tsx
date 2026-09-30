@@ -77,6 +77,28 @@ describe('PropList', () => {
 		expect(container.textContent).toContain('booleandefault true')
 	})
 
+	it('puts an object default on its own row, below its label', () => {
+		const { container } = renderUI(
+			<PropList
+				rows={[
+					{
+						name: 'columnManager',
+						type: 'false | GridColumnManagerConfig',
+						default: '`{ toolbar: false, contextMenu: true }`',
+					},
+				]}
+			/>,
+		)
+
+		const block = container.querySelector('[data-slot="default-value"]')
+
+		expect(block?.tagName).toBe('PRE')
+
+		expect(block?.parentElement).toHaveClass('basis-full')
+
+		expect(block?.previousSibling?.textContent).toBe('default')
+	})
+
 	it('names the package of an external type', () => {
 		const { container } = renderUI(
 			<PropList rows={[{ name: 'ref', type: 'Placement', externalFrom: '@floating-ui/react' }]} />,
