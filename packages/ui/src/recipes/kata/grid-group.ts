@@ -89,8 +89,9 @@ export const k = {
 	manager: {
 		// Vertical stack of the "New group" button, the group zones, and the column rows.
 		root: [flex.col, 'gap-3'],
-		// Zone shell: a bordered, rounded region a column can be dropped into; the
-		// drop-over state lifts its border to signal the target.
+		// Zone shell: a column stack inside the zone's Card, which a column can be
+		// dropped into. The Card draws the outline, and a colored group tints it
+		// (see {@link cardOutline}). The zone has no drop-over style.
 		zone: {
 			root: [flex.col, 'gap-1'],
 			// A group zone's header row: the reorder handle, the name Input, the color

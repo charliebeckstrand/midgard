@@ -18,9 +18,16 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp, createEmitter, FOCUSABLE_SELECTOR } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
+import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import type { GridCursorRow } from './grid-cursor-order'
 import type { GridFillHandle } from './use-grid-fill-handle'
 import { useGridRangeDrag } from './use-grid-range-drag'
+
+/**
+ * Scrolls a row into the rendered window. A flat body reads `rowIndex`, the
+ * data index. A grouped or master-detail body reads `key`, the item key. @internal
+ */
+export type GridScrollRowIntoView = (rowIndex: number, key?: string) => void
 
 /**
  * Zero-based cursor position over the grid's data cells, in display order.
@@ -73,30 +80,6 @@ function clampRow(row: number, count: number, slot: GridNewRowPosition): number 
 
 	return fromPosition(clamp(toPosition(row, count, slot), 0, span - 1), count, slot)
 }
-
-/**
- * Activates the row under the cursor on Enter/Space. The originating event is
- * the grid `<table>` (the cursor's single tab stop), not a `<tr>`. This is
- * therefore decoupled from the grid's row-click handler, and `Grid` bridges the
- * two.
- *
- * @internal
- */
-export type GridRowActivate = (row: unknown, event: KeyboardEvent<HTMLTableElement>) => void
-
-/**
- * Activates the data cell under the cursor on Enter/Space, ahead of the row
- * activation. It is the keyboard counterpart of the grid's cell click,
- * addressed by the cursor's display-index coord. `Grid` resolves it to the cell
- * context.
- *
- * @internal
- */
-export type GridCellActivate = (
-	rowIdx: number,
-	colIdx: number,
-	event: KeyboardEvent<HTMLTableElement>,
-) => void
 
 /**
  * External-store interface over the read-only cursor, built in
@@ -562,7 +545,7 @@ export function useGridNavigation({
 	 * Scrolls a row into the virtualized window before the cursor lands on it; null
 	 * when unwindowed. A body with a published order also receives the row's item key.
 	 */
-	scrollRowIntoViewRef: RefObject<((rowIndex: number, key?: string) => void) | null>
+	scrollRowIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	/** The grid's scroll container, measured for the viewport-relative PageUp/Down step; null when the grid doesn't scroll. */
 	scrollContainerRef: RefObject<HTMLElement | null>
 	/** Where the new-row slot sits in the cursor's order, read at event time. */

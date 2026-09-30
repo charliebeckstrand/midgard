@@ -5,6 +5,7 @@ import { TableCell } from '../../components/table'
 import { Text } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
 import { ariaRowIndex } from './engine/grid-row/shell'
+import { hasErrorSlot } from './engine/grid-table/guards'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridSkeletonCells } from './grid-skeleton-cells'
@@ -12,14 +13,9 @@ import { GridWindowBody } from './grid-window-body'
 import type { GridColumn } from './types'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
+import type { GridScrollRowIntoView } from './use-grid-navigation'
 import type { GridColumnPinning } from './use-grid-table'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
-
-/**
- * Scrolls a row into the rendered window. A flat body reads `rowIndex`, the
- * data index. A grouped or master-detail body reads `key`, the item key. @internal
- */
-export type GridScrollRowIntoView = (rowIndex: number, key?: string) => void
 
 /**
  * The single trailing row below the loaded rows for the infinite-scroll terminal
@@ -52,7 +48,7 @@ function GridInfiniteScrollTrailer<T>({
 
 	const colSpan = columns.length
 
-	if (error != null && error !== false) {
+	if (hasErrorSlot(error)) {
 		return (
 			<tr data-slot="grid-load-error">
 				<TableCell colSpan={colSpan}>

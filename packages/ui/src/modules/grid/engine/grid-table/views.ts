@@ -142,9 +142,9 @@ export type GridColumnFilter = {
 	/** Lift every column's applied filter at once, recovering all hidden rows. */
 	clear: () => void
 	/**
-	 * Reads the column's {@link GridColumnFacets} from the engine. The facets
-	 * change with the rows and the other filters, so a sheet reads them when it
-	 * opens.
+	 * Reads the column's {@link GridColumnFacets}, which the grid computes from
+	 * its own rows (see {@link columnFilterActions}). The facets change with the
+	 * rows and the other filters, so a sheet reads them when it opens.
 	 */
 	facets: (id: string | number) => GridColumnFacets
 	/**
@@ -255,6 +255,17 @@ export function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 
 	for (let i = 0; i < a.length; i++) {
 		if (a[i] !== b[i]) return false
+	}
+
+	return true
+}
+
+/** Whether two maps hold the same keys with the same numbers. @internal */
+export function sameNumberMap<K>(a: ReadonlyMap<K, number>, b: ReadonlyMap<K, number>): boolean {
+	if (a.size !== b.size) return false
+
+	for (const [key, value] of a) {
+		if (b.get(key) !== value) return false
 	}
 
 	return true

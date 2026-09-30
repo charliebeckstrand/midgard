@@ -19,6 +19,7 @@ import {
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import { detailOpen, groupKeyOf, groupTotaled, totalItemKey } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
+import { hasErrorSlot } from './engine/grid-table/guards'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
@@ -28,9 +29,10 @@ import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manua
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridLoadingBody } from './grid-skeleton-cells'
 import { GridTotalRow } from './grid-total-row'
-import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
+import { GridVirtualizedBody } from './grid-virtualized-body'
 import { GridVirtualizedDetailBody } from './grid-virtualized-detail-body'
 import { GridVirtualizedGroupedBody } from './grid-virtualized-grouped-body'
+import type { GridScrollRowIntoView } from './use-grid-navigation'
 import { applyRowKeyOrder, type GridRowGroupPresentation } from './use-grid-row-manager'
 
 /** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
@@ -397,7 +399,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
 	// cause isn't "no items". `true` renders a default error alert.
-	if (error != null && error !== false) {
+	if (hasErrorSlot(error)) {
 		return (
 			<TableEmpty columns={visibleColumns.length}>
 				{error === true ? (

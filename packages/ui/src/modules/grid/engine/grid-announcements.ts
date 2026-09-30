@@ -5,11 +5,11 @@
  * so the wording is unit-testable without rendering.
  */
 
-import type { GridSortState } from '../context'
 import type { GridColumn } from '../types'
 import { columnLabel } from './grid-column/label'
 import type { GridHistoryStep } from './grid-edit-history'
 import { physicalSide } from './grid-pin/overrides'
+import type { GridSortState } from './grid-sort/state'
 
 /**
  * The polite announcement for the grid's current sort, narrated to assistive

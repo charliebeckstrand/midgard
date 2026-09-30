@@ -736,6 +736,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 
 	/** Column definitions, in declaration order; `columnOrder`, `reorder`, and the column manager can reorder and hide a subset. */
 	columns: GridColumn<T>[]
+	/**
+	 * The rows to show. The grid reads the array and never changes it. A sort,
+	 * a filter, or a page is a view that the grid builds over it.
+	 */
 	rows: T[]
 	/** Derives a stable, unique key per row; backs selection, sort, and virtualization identity. */
 	getKey: (row: T, index: number) => string | number
@@ -799,7 +803,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * `pinning` `value`/`defaultValue` (or `columnManager.defaultHidden`) wins
 	 * for that dimension. Changes still flow out through those bindings'
 	 * callbacks (`onValueChange`, `onResizeEnd`, `onReorderEnd`); this is the
-	 * read/seed side, not a controlled channel.
+	 * read/seed side, not a controlled channel. The hidden ids still apply
+	 * under `columnManager={false}`, where no manager can show those columns
+	 * again.
 	 *
 	 * @see {@link GridPreferences}
 	 */
@@ -1280,9 +1286,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	footer?: GridFooter
 
 	/**
-	 * Caps the table height behind a scroll wrapper; required by
+	 * Caps the height of the scroll wrapper around the table; required by
 	 * {@link GridDataProps.virtualize}. A fixed CSS length (`'320px'`,
-	 * `'50vh'`), or `'fill'` to take the consumer's box. Under `'fill'` the grid
+	 * `'50vh'`), or `'fill'` to take the consumer's box. The grid makes the
+	 * scroll wrapper only for a sticky {@link GridDataProps.header} or for
+	 * `virtualize`. Without one of them, a length caps nothing. Under `'fill'` the grid
 	 * stretches to its parent's height, and the scroll region flexes to the
 	 * remainder under the toolbar. The grid therefore sizes correctly inside any
 	 * CSS-sized parent.
@@ -1347,8 +1355,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *   viewport. The other rows show at once.
 	 * - A detail panel above the viewport opens and closes at once.
 	 *
-	 * Manual grouping stays unwindowed, and the keyboard cursor
-	 * ({@link GridDataProps.navigable}) stays off under all three. Infinite scroll
+	 * Manual grouping stays unwindowed, and it also turns the keyboard cursor
+	 * ({@link GridDataProps.navigable}) off. The cursor stays on under the window
+	 * of a flat, client-grouped, or master-detail grid. Infinite scroll
 	 * implies a window, but only on a flat grid. It does not window a grouped
 	 * or master-detail grid.
 	 */

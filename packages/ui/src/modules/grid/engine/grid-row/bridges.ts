@@ -1,6 +1,5 @@
-import type { RefObject } from 'react'
+import type { KeyboardEvent, RefObject } from 'react'
 import type { GridColumn } from '../../types'
-import type { GridCellActivate, GridRowActivate } from '../../use-grid-navigation'
 import {
 	cellValue,
 	type GridCellClick,
@@ -8,6 +7,30 @@ import {
 	type GridCellRovingActivate,
 	type GridRowClick,
 } from './cell'
+
+/**
+ * Activates the row under the cursor on Enter/Space. The originating event is
+ * the grid `<table>` (the cursor's single tab stop), not a `<tr>`. This is
+ * therefore decoupled from the grid's row-click handler, and `Grid` bridges the
+ * two.
+ *
+ * @internal
+ */
+export type GridRowActivate = (row: unknown, event: KeyboardEvent<HTMLTableElement>) => void
+
+/**
+ * Activates the data cell under the cursor on Enter/Space, ahead of the row
+ * activation. It is the keyboard counterpart of the grid's cell click,
+ * addressed by the cursor's display-index coord. `Grid` resolves it to the cell
+ * context.
+ *
+ * @internal
+ */
+export type GridCellActivate = (
+	rowIdx: number,
+	colIdx: number,
+	event: KeyboardEvent<HTMLTableElement>,
+) => void
 
 /**
  * Adapts the row-click into the cursor's `onRowActivate`. The cursor fires from

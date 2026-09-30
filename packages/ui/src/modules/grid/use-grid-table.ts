@@ -44,6 +44,7 @@ import { useStableValue } from '../../hooks/use-stable-value'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
+import { NO_ROWS } from './engine/grid-constants'
 import {
 	type ColumnTests,
 	compileColumnFilters,
@@ -218,7 +219,7 @@ type GridTableResult<T> = {
 	/**
 	 * Per-row keys parallel to {@link renderRows}. Each is the value `getKey`
 	 * yields at the row's engine (original-data) index, the index `getRowId` saw.
-	 * Its stringified form therefore matches the id `table.getRow` is keyed by,
+	 * Its stringified form therefore matches the id that `getRowId` gives,
 	 * while the raw `string | number` value still backs selection identity.
 	 */
 	rowKeys: (string | number)[]
@@ -285,16 +286,13 @@ type GridTableResult<T> = {
 	 */
 	grandTotalRows: T[]
 	/**
-	 * Reads the rows an export takes, in display order. These are the selected
-	 * rows when a selection is active, else the full filtered and sorted set (all
-	 * pages). Both are the flat leaves, since the sorted model under grouping carries
-	 * group headers rather than data rows.
+	 * Reads the rows an export takes, in display order: the full filtered and
+	 * sorted set (all pages). When the selection holds a row of that set, only
+	 * the selected rows export. Both are the leaves only, so a group header never
+	 * exports (see `viewLeaves`).
 	 */
 	rowsForExport: () => T[]
 }
-
-/** Stable empty row set, so an inactive grand total holds its identity. @internal */
-const NO_ROWS: never[] = []
 
 /**
  * The engine's `ColumnDef[]` for the grid's columns. `meta` carries the source
@@ -602,8 +600,8 @@ function useClientView<T>(args: {
 }): ClientView<T> | null {
 	const { rows, sort, clientSort, filtered, page, query, columnTests, columns, grandTotal } = args
 
-	// The sort columns as fields, or `null` unless a sort is the sole transform (a
-	// client sort with entries and no engine transform already reshaping the rows).
+	// The sort columns as fields, or `null` unless the grid sorts on the client
+	// and the sort has entries.
 	const fields = useMemo<SmartSortField<T>[] | null>(() => {
 		if (!clientSort || !sort?.length) return null
 
@@ -848,10 +846,10 @@ function useColumnResizeLifecycle(
 
 /**
  * Warns (dev only) when the global search and the column filters are both
- * configured but their `manual` flags disagree. The engine filters both through
- * one table-wide model, so {@link resolveFilterMode} runs manual for both. The
- * client-side surface then silently stops filtering. Effect-scoped so it fires
- * once per config change, not every render. Kept out of {@link useGridTable} for its
+ * configured but their `manual` flags disagree. The grid filters both in one
+ * client pass (see {@link useClientView}), so {@link resolveFilterMode} runs
+ * manual for both. The client-side surface then silently stops filtering.
+ * Effect-scoped so it fires once per config change, not every render. Kept out of {@link useGridTable} for its
  * cognitive-complexity budget.
  *
  * @internal
@@ -1095,10 +1093,10 @@ function facetSource<T>(
  *
  * @remarks
  * The facets of a column read the rows that pass the quick search and every
- * other column filter. The faceted row model of the engine reads the same
- * rows. The filter of the column itself does not apply, so its facets still
- * offer the values that it hides. A filter sheet reads the values when it
- * opens. The first read after a change of the rows, the filters, or the query
+ * other column filter. The faceted row model of a stock engine reads the same
+ * rows. The
+ * filter of the column itself does not apply, so its facets still offer the
+ * values that it hides. A filter sheet reads the values when it opens. The first read after a change of the rows, the filters, or the query
  * collects them.
  *
  * The function keeps one identity. It reads the source of the last commit, so
@@ -1400,9 +1398,9 @@ export function useGridTable<T>({
 		globalFiltersRows: globalFilterConfig?.mode !== 'highlight',
 	})
 
-	// The engine filters the global search and the column filters through one
-	// model, so filtering mode is table-wide — it can't be client for one surface
-	// and server for the other; warn (dev) when both are configured but their
+	// The grid filters the global search and the column filters in one client
+	// pass, so the filter mode is table-wide. It cannot be client for one surface
+	// and server for the other. Warn (dev) when both are configured but their
 	// `manual` flags disagree.
 	useFilterModeMismatchWarning({
 		globalConfigured,

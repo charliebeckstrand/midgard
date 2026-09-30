@@ -602,7 +602,7 @@ export type GridColumnMenuContext<T> = {
 }
 
 /**
- * Header context-menu config: `true` (or omit) for the default items, or a
+ * Header context-menu config: `true` for the default items, or a
  * builder receiving the {@link GridColumnMenuContext} and those defaults. The
  * defaults are, in order:
  *
@@ -619,7 +619,8 @@ export type GridColumnMenuContext<T> = {
  * No separator divides them.
  *
  * The builder returns the final list to
- * extend, reorder, or replace them. `false` omits the header menu entirely.
+ * extend, reorder, or replace them. `false`, or no value, gives the headers no
+ * menu.
  *
  * @remarks Each of those menus is a hover-opened submenu holding its actions;
  * one that would hold a single action renders as that action instead.

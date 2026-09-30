@@ -17,11 +17,12 @@ import { k } from '../../recipes/kata/grid'
  * overlay covers every surface, driven by the same pending count the trigger
  * reads (see {@link useGridExport}).
  *
- * Deliberately interactive-blocking rather than a decorative wash. It covers the
- * whole grid wrapper, toolbar included. The search, filters, and sort that decide
- * what lands in the file therefore can't be changed while it is written. The
- * lockout is bounded — a failed export settles its promise too, so the overlay
- * always lifts.
+ * It blocks the pointer, not the keyboard. The scrim covers the whole grid
+ * wrapper, toolbar included. A click therefore cannot reach the search, the
+ * filters, or the sort that decide what lands in the file. The overlay does not make
+ * the grid inert and does not trap focus. A key press therefore still reaches
+ * a focused control under it. The lockout is bounded — a failed export
+ * settles its promise too, so the overlay always lifts.
  *
  * The spinner's own `<output>` is the live region that announces the wait. The
  * visible text beside it is therefore `aria-hidden`: sighted users read it once,

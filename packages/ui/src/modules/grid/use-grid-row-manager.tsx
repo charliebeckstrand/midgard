@@ -108,7 +108,7 @@ function buildRowManagerGroups<T>(groups: GridGroup<T>[] | null): GridRowManager
 type GridRowManagerOptions = {
 	/** The `groupBy.rowGroups` binding, or `undefined` when unset. */
 	config: GridRowGroups | undefined
-	/** The current groups in the engine's natural order — no overlay applied. */
+	/** The current groups in their natural order — no overlay applied. */
 	naturalGroups: GridRowManagerGroup[]
 }
 
@@ -125,7 +125,9 @@ type GridRowManagerOptions = {
  * without a partial overlay shuffling groups on a mere recolor. The body applies
  * that order only while it still covers every group, and `groupOrder` goes
  * `null` otherwise. A group that appears after the overlay was captured
- * therefore leaves the order intact, rather than jumping.
+ * therefore drops the manual order, and every group shows in its natural order.
+ * The colors of the overlay still apply. The next recolor or reorder commits a
+ * complete snapshot in the order that the manager then shows.
  *
  * @internal
  */
@@ -167,7 +169,7 @@ export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptio
 	)
 
 	// The manager's rows: the natural groups reordered to the overlay's group order
-	// (when it applies), each carrying its overlay color. Leaves keep engine order.
+	// (when it applies), each carrying its overlay color. Leaves keep their order.
 	const managerGroups = useMemo<GridRowManagerGroup[]>(() => {
 		const ordered = applyRowKeyOrder(naturalGroups, groupOrder ?? undefined, (group) => group.key)
 

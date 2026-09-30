@@ -45,7 +45,7 @@ type GridDataCellProps<T> = {
  * marks the matches of the highlight search, and wraps that in the truncation
  * reveal unless the grid opts out, then in a reorder-aware `<td>`. A column with no `cell` yields null content and stays
  * bare. The direct call — no engine `Cell`, no `flexRender` component boundary —
- * is what lets a body render without materializing the engine row model.
+ * is what lets a body render with no engine row, because the engine builds none.
  *
  * @internal
  */
@@ -139,9 +139,12 @@ type GridReorderableCellProps = {
  * the dragged-column lift from {@link GridReorderContext}, a value that
  * flips just at drag start and end. A drag therefore re-renders it twice, never per move.
  *
+ * It has no `memo`. Its `children` and `cellProps` are new on each render of
+ * the memoized {@link GridDataCell}, so a `memo` could never hold.
+ *
  * @internal
  */
-const GridReorderableCell = memo(function GridReorderableCell({
+function GridReorderableCell({
 	id,
 	columnIndex,
 	colIndex,
@@ -163,4 +166,4 @@ const GridReorderableCell = memo(function GridReorderableCell({
 			{children}
 		</TableCell>
 	)
-})
+}

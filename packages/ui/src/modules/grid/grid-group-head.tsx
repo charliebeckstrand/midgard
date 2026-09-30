@@ -12,9 +12,9 @@ import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
 import { useGrid } from './context'
 import { columnLabel } from './engine/grid-column/label'
+import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { pinnedCellAttribute, pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
 import type { GridColumnGroup, GridGroupSpan } from './grid-group-types'
-import type { GridGroupHeader } from './use-grid-group'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridGroupHead}. @internal */

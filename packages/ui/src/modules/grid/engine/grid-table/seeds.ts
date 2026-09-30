@@ -50,8 +50,9 @@ export function seedColumnSizing(
 /**
  * Seeds {@link GridColumnManagerConfig.defaultHidden} from `preferences.hidden`,
  * unless the consumer bound visibility. Flattens the `columnManager={false}` off
- * switch to `undefined` on the way through — a manager that isn't there carries
- * no bindings to seed.
+ * switch to `undefined` on the way through. The seed still applies to an off
+ * manager: `preferences.hidden` then hides its columns, and no manager can show
+ * them again.
  *
  * @internal
  */

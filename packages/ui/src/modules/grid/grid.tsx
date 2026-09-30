@@ -14,8 +14,8 @@ import type { GridPagination } from './types'
  */
 export type GridProps<T> = Omit<GridDataProps<T>, 'pagination'> & {
 	/**
-	 * Pagination binding backed by the grid's TanStack Table engine. In server
-	 * mode (the default once `rowCount`/`pageCount` is supplied) the consumer
+	 * Pagination binding. In server mode (the default once
+	 * `rowCount`/`pageCount` is supplied) the consumer
 	 * feeds each page as `rows`; in client mode the grid slices `rows` itself.
 	 * Renders a footer with a row-range status, page navigation, and an optional
 	 * page-size picker. The footer is one row. Its own width sets the layout:
@@ -39,14 +39,14 @@ const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize
 
 /**
  * Data grid over a flat `rows` source. Maps each row through `columns`, keys rows
- * via `getKey`, and sorts by column value on the engine. It shares that state
+ * via `getKey`, and sorts its rows by column value itself. It shares that state
  * with head and cells via {@link useGrid}. Sort, selection, and `columnOrder`
  * are controllable. Selecting rows surfaces a batch-action {@link Toolbar}, and
  * a column manager dialog reorders and hides columns. The `reorder` adds header
  * drag handles, and `navigable` adds a keyboard cell cursor (`role="grid"` with
  * an `aria-activedescendant` active cell). The `range` lets that cursor hold a
  * rectangular cell range, which copies as TSV and, in an editable grid, takes a
- * paste or a fill. The `density` tunes cell padding, and
+ * paste or a fill. The `size` sets the density step of the cell padding, and
  * `condensed` steps the whole grid down a notch. That covers padding, cell font,
  * header chrome, and the compact step of the table scope, which cell content
  * follows.
@@ -64,7 +64,7 @@ const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize
  *
  * - a loading skeleton (`aria-busy` with a polite status);
  * - an `empty` slot when there are no rows;
- * - a sticky header;
+ * - a header row, which sticks to the top under `header={{ position: 'sticky' }}`;
  * - an optional `footer` summary bar: row total, selected count, custom content;
  * - under `virtualize`, windowed rows with full row/column counts.
  *

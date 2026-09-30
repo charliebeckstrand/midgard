@@ -14,6 +14,7 @@ import {
 	type GridColumnSizer,
 } from './engine/grid-sizing/sizer'
 import type { EngineTable } from './engine/grid-table/features'
+import { sameNumberMap } from './engine/grid-table/views'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnSizing}. @internal */
@@ -99,17 +100,6 @@ type GridColumnSizingResult = {
 	 * identity when a measurement moves a floor. The drag bounds render from it.
 	 */
 	floors: ReadonlyMap<string, number>
-}
-
-/** Whether two floor maps hold the same floors. @internal */
-function sameFloors(a: ReadonlyMap<string, number>, b: ReadonlyMap<string, number>): boolean {
-	if (a.size !== b.size) return false
-
-	for (const [id, floor] of a) {
-		if (b.get(id) !== floor) return false
-	}
-
-	return true
 }
 
 /**
@@ -254,15 +244,14 @@ export function useGridColumnSizing<T>({
 	const [floors, setFloors] = useState<ReadonlyMap<string, number>>(() => new Map(columnFloors))
 
 	const publishFloors = useCallback(
-		() => setFloors((prev) => (sameFloors(prev, columnFloors) ? prev : new Map(columnFloors))),
+		() => setFloors((prev) => (sameNumberMap(prev, columnFloors) ? prev : new Map(columnFloors))),
 		[columnFloors],
 	)
 
 	// Rendered rows' fingerprint — the count and the set of keys — so a page turn
 	// or filter that changes the visible rows re-measures (new content can be
-	// wider). Supplied by the caller (see the option) rather than read off
-	// `table.getRowModel()`, which would materialize the engine's row model on
-	// every mount of every resizable-by-default grid.
+	// wider). Supplied by the caller (see the option), because the engine
+	// builds no row model to read it from.
 	const rowsSig = rowsSignature
 
 	// A non-data column holds the width it declares, and the fit shares the rest.

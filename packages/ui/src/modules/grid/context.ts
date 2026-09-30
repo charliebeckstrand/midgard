@@ -3,12 +3,9 @@
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { GridSettleStore } from './engine/grid-sizing/settle'
+import type { GridSortState } from './engine/grid-sort/state'
 
-/** One sorted column: its id and direction. The grid's sort is an ordered list of these. */
-export type GridSortState = {
-	column: string | number
-	direction: 'asc' | 'desc'
-}
+export type { GridSortState }
 
 /** Table-wide state shared with head and rows: selection flags and toggles, sort, pinning, and resize/sticky-header flags. */
 export type GridContextValue = {

@@ -5,18 +5,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { GridCellEditingContext, useGridResizing, useGridSettle } from './context'
+import type { CellTooltip } from './engine/grid-row/cell'
 import { cellContentAt, type GridIndexedColumn, resolveCellTooltip } from './engine/grid-row/cell'
 import { searchedContent } from './grid-highlight-utilities'
 import { useGridTruncation } from './use-grid-truncation'
-
-/**
- * Truncation tooltip for a data cell. The `auto` mode shows the cell's own
- * content when it overflows, and `custom` shows a column-supplied node in its
- * place. The `none` mode suppresses the tooltip while still truncating.
- *
- * @internal
- */
-export type CellTooltip = { kind: 'auto' } | { kind: 'custom'; node: ReactNode } | { kind: 'none' }
 
 /** Props for {@link GridCellContent}. @internal */
 type GridCellContentProps = {

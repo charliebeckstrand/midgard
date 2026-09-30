@@ -119,9 +119,10 @@ type GridColumnFilterButtonProps = {
  * @internal
  */
 export function GridColumnFilterButton({ column, filter, query }: GridColumnFilterButtonProps) {
-	// The facets the sheet offers, read from the engine as the sheet opens. They
-	// change with the rows and the other filters, so each open reads them again.
-	// They stay after a close, so the sheet keeps its options while it animates out.
+	// The facets the sheet offers, which the grid computes from its rows as the
+	// sheet opens (see `GridColumnFilter.facets`). They change with the rows and
+	// the other filters, so each open reads them again. They stay after a close,
+	// so the sheet keeps its options while it animates out.
 	const [facets, setFacets] = useState<GridColumnFacets | null>(null)
 
 	const field = useMemo(() => sheetField(column, facets), [column, facets])

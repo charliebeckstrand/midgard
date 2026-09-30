@@ -1,12 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
 import type { GridGroup } from './engine/grid-group/tree'
-import {
-	detailItemKey,
-	groupItemKey,
-	leafItemKey,
-	rowItemKey,
-	totalItemKey,
-} from './engine/grid-items/items'
+import { detailItemKey, eachGroupRow, groupItemKey, rowItemKey } from './engine/grid-items/items'
 import { useGridNavContext } from './use-grid-navigation'
 
 /**
@@ -51,11 +45,13 @@ export function groupedCursorRows<T>(
 
 		if (!expanded) continue
 
-		for (const leaf of group.leaves) {
-			rows.push({ key: leafItemKey(leaf.id), kind: 'data', row: leaf.row, parent: key })
-		}
-
-		if (totaled) rows.push({ key: totalItemKey(group.id), kind: 'total', parent: key })
+		eachGroupRow(group, totaled, (rowKey, leaf) => {
+			rows.push(
+				leaf
+					? { key: rowKey, kind: 'data', row: leaf.row, parent: key }
+					: { key: rowKey, kind: 'total', parent: key },
+			)
+		})
 	}
 
 	return rows

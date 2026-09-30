@@ -1,7 +1,11 @@
-import type { GridSortState } from '../../context'
+/** One sorted column: its id and direction. The grid's sort is an ordered list of these. */
+export type GridSortState = {
+	column: string | number
+	direction: 'asc' | 'desc'
+}
 
 /** Stable empty sort list; the unsorted state, read-only and replaced wholesale. @internal */
-const EMPTY_SORT: GridSortState[] = []
+export const EMPTY_SORT: GridSortState[] = []
 
 /**
  * Next sort list after cycling `column`. A Shift-click (`additive`) folds the

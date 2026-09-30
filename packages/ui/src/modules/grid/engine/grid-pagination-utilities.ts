@@ -68,7 +68,7 @@ export function pageCountOf(args: {
 
 /**
  * The bounds of a page: the position of its first row, and the position
- * after its last row. The paginated row model of the engine slices the same
+ * after its last row. The paginated row model of a stock engine slices the same
  * bounds. `null` keeps every row: the first page of an unbounded page size.
  *
  * @internal

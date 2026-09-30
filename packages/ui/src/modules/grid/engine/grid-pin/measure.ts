@@ -1,4 +1,5 @@
 import type { GridColumn } from '../../types'
+import { sameNumberMap } from '../grid-table/views'
 import type { PinSide } from './overrides'
 
 /**
@@ -112,17 +113,6 @@ export function frozenOffsets(cells: FrozenCell[]): FrozenOffsets {
 	return { left, right }
 }
 
-/** Whether two offset maps hold the same columns at the same pixels. @internal */
-function sameOffsetMap(a: Map<string, number>, b: Map<string, number>): boolean {
-	if (a.size !== b.size) return false
-
-	for (const [id, offset] of a) {
-		if (b.get(id) !== offset) return false
-	}
-
-	return true
-}
-
 /**
  * Whether two measurements place every frozen column identically. A re-measure
  * that moved nothing can hold its previous reference, instead of re-rendering
@@ -131,5 +121,5 @@ function sameOffsetMap(a: Map<string, number>, b: Map<string, number>): boolean 
  * @internal
  */
 export function sameFrozenOffsets(a: FrozenOffsets | null, b: FrozenOffsets): boolean {
-	return a != null && sameOffsetMap(a.left, b.left) && sameOffsetMap(a.right, b.right)
+	return a != null && sameNumberMap(a.left, b.left) && sameNumberMap(a.right, b.right)
 }

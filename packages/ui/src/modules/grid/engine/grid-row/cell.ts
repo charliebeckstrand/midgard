@@ -5,9 +5,17 @@ import type {
 	ReactNode,
 } from 'react'
 import { isDataColumn } from '../../../../utilities'
-import type { CellTooltip } from '../../grid-cell-content'
 import type { GridColumn } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
+
+/**
+ * Truncation tooltip for a data cell. The `auto` mode shows the cell's own
+ * content when it overflows, and `custom` shows a column-supplied node in its
+ * place. The `none` mode suppresses the tooltip while still truncating.
+ *
+ * @internal
+ */
+export type CellTooltip = { kind: 'auto' } | { kind: 'custom'; node: ReactNode } | { kind: 'none' }
 
 /**
  * Row-level event handler for {@link GridDataProps.onRowClick} and

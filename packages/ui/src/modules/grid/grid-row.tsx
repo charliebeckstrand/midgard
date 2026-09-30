@@ -5,12 +5,13 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { motion } from 'motion/react'
-import { type CSSProperties, Fragment, memo, type ReactElement, type ReactNode } from 'react'
+import { type CSSProperties, Fragment, memo, type ReactElement } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import type { GridDetailExpansion } from './engine/grid-group/resolve'
 import { detailOpen } from './engine/grid-items/items'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
@@ -113,12 +114,7 @@ export type GridRowsProps<T> = {
 	 * and the detail renderer. {@link renderGridRow} reads it to drive each
 	 * expander cell and to append the detail panel row.
 	 */
-	expansion?: {
-		expanded: ReadonlySet<string | number>
-		rowExpandable: (row: T) => boolean
-		toggle: (key: string | number) => void
-		render: (row: T) => ReactNode
-	} | null
+	expansion?: GridDetailExpansion<T> | null
 }
 
 /**

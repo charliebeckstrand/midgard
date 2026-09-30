@@ -8,7 +8,7 @@ import { MountHold } from '../../primitives/mount'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
-import { NO_PADDING } from './engine/grid-constants'
+import { NO_PADDING, NO_ROWS } from './engine/grid-constants'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridColumn } from './types'
@@ -16,19 +16,16 @@ import { useGridNavContext } from './use-grid-navigation'
 import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
-/** Stable empty row set for an inactive grand total. @internal */
-const NO_ROWS: never[] = []
-
 /**
  * Resolves the grand-total row's state off the grid's: whether it renders, and
  * the rows it aggregates. It renders when `grandTotalRow` is set, a visible
  * aggregating column exists, and rows are actually shown. Those rows are the
- * full filtered set that `useGridTable` reads from the engine. It holds all
+ * full filtered set that `useGridTable` collects from its client view. It holds all
  * pages and the flat leaves. One source therefore serves the grouped,
  * paginated, and flat cases alike. Under server pagination the supplied page is
  * all the grid holds, so the total sums that page. That is the ceiling of what
  * a client-side aggregate can see. Manual grouping stands the row down entirely
- * (`manualGrouped`). The engine's filtered model there carries the consumer's
+ * (`manualGrouped`). The filtered set there carries the consumer's
  * group-header rows as data, and the backend owns the figures.
  *
  * @internal

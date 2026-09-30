@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import type { GridSortState } from './context'
+import type { GridGroupResult } from './engine/grid-group/resolve'
 import {
 	manualGroupSortDirection,
 	resolveGroupByContext,
@@ -23,7 +24,6 @@ import type { GridDataProps } from './grid-data-types'
 import type { GridRowsProps } from './grid-row'
 import { resolveGrandTotal } from './grid-total-row'
 import type { GridColumn } from './types'
-import type { GridGroupResult } from './use-grid-group'
 import type { useGridRowGrouping } from './use-grid-row-grouping'
 import type { GridColumnPinning, GridColumnResize, GridPaginationView } from './use-grid-table'
 
@@ -255,7 +255,7 @@ export function useGridDataFrame<T>({
 	// The grand-total row aggregates the full filtered set (see
 	// `resolveGrandTotal`); it adds a rendered row, so the aria count shifts
 	// with it the way the group band does. Manual grouping stands it down —
-	// the engine's filtered model would sum the group-header rows as data.
+	// the filtered set would sum the group-header rows as data.
 	const grandTotal = resolveGrandTotal({
 		grandTotalRow,
 		columns: visibleColumns,

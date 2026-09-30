@@ -108,6 +108,30 @@ export function detailItemKey(rowKey: string | number): string {
 	return `detail:${rowKey}`
 }
 
+/**
+ * Visits the rows of a group in display order: each leaf under its open key,
+ * then the total when `totaled` is true. A total comes with no leaf. The
+ * caller decides whether the group is open. @internal
+ */
+export function eachGroupRow<T>(
+	group: GridGroup<T>,
+	totaled: boolean,
+	visit: (key: string, leaf: GridLeaf<T> | undefined) => void,
+): void {
+	for (const leaf of group.leaves) visit(leafItemKey(leaf.id), leaf)
+
+	if (totaled) visit(totalItemKey(group.id), undefined)
+}
+
+/** The open keys of the rows of a group, in display order (see {@link eachGroupRow}). @internal */
+export function groupRowKeys<T>(group: GridGroup<T>, totaled: boolean): string[] {
+	const keys: string[] = []
+
+	eachGroupRow(group, totaled, (key) => keys.push(key))
+
+	return keys
+}
+
 /** The size of a closing row in `motions`, or `undefined` when the row is not closing. @internal */
 function closingSize<K>(motions: ReadonlyMap<K, GridRowMotion>, key: K): number | undefined {
 	const motion = motions.get(key)
@@ -155,7 +179,12 @@ export function groupedWindowItems<T>(
 	return items
 }
 
-/** Pushes the leaves and the total of an expanded group, each at the next position. @internal */
+/**
+ * Pushes the leaves and the total of an expanded group, each at the next
+ * position. This path and {@link pushClosingRows} walk the leaves in a loop and
+ * not through {@link eachGroupRow}. A callback for each row made the item list
+ * of a large grouped window about 2.7 times slower. @internal
+ */
 function pushOpenRows<T>(
 	items: GridGroupedWindowItem<T>[],
 	cursor: { position: number },

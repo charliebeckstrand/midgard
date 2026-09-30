@@ -17,7 +17,6 @@ import type {
 import { getOrCompute, isDataColumn } from '../../../../utilities'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
 import { isQueryGroup } from '../../../query/engine/query-node'
-import type { GridSortState } from '../../context'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
 import {
@@ -25,6 +24,7 @@ import {
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
+import type { GridSortState } from '../grid-sort/state'
 import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
 import type { EngineColumnDef, EngineData, EngineOptions, GridFeatures } from './features'
 
@@ -50,10 +50,11 @@ export function resolveFilterMode(args: {
 }): { configured: boolean; manual: boolean } {
 	return {
 		configured: args.globalConfigured || args.hasColumnFilters,
-		// The engine filters both surfaces through one model, so mode is table-wide:
-		// manual if either surface requests it. Manual wins because letting the
-		// client model run over server-bound filters would filter already-filtered
-		// data. `useGridTable` warns (dev) when the two surfaces' flags disagree.
+		// The grid filters both surfaces in one client pass (see `useClientView`),
+		// so the mode is table-wide: manual if either surface requests it. Manual
+		// wins, because a client pass over server-bound filters filters data that
+		// the server already filtered. `useGridTable` warns (dev) when the two
+		// flags of the surfaces disagree.
 		manual: Boolean(args.globalManual || args.columnManual),
 	}
 }
@@ -94,9 +95,13 @@ queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.len
  * Each row's decorated {@link SortKey}, cached per column on the row. A sort
  * compares a row O(log N) times; without this the smart comparator would reparse
  * the value (the currency / percent / accounting regexes) on every comparison.
- * Keyed by the stable engine `Row` and resolved through the engine's own cached
- * `getValue`. A value is therefore decoded once per sort, and the entry falls
- * away with the row model when the data changes. A `WeakMap` holds no row alive.
+ * Keyed by the engine `Row` and resolved through the engine's own cached
+ * `getValue`. A value is therefore decoded once per sort. A `WeakMap` holds no
+ * row alive.
+ *
+ * The grid builds no engine row model, so the grid never calls this comparator.
+ * Only a stock engine with a sorted row model calls it: the reference table of
+ * the parity tests. The grid sorts through `cachedSortOrder`.
  *
  * @internal
  */

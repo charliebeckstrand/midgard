@@ -259,10 +259,11 @@ export type SmartSortField<T> = {
 
 /**
  * Orders `rows` by an ordered {@link SmartSortField} list, off the engine. It
- * matches {@link makeSmartSortingFn} exactly, so it interchanges with the
- * engine's `getSortedRowModel`. The grid runs the two halves itself,
- * {@link cachedSortOrder} and {@link materializeSort}, so that a direction flip
- * reuses the order. This call composes them for the tests and the benchmarks.
+ * matches {@link makeSmartSortingFn} exactly, so the parity tests hold it equal
+ * to the `getSortedRowModel` of a stock engine. The grid runs the two halves
+ * itself, {@link cachedSortOrder} and {@link materializeSort}, so that a
+ * re-sort by a signature already seen reuses the order. This call composes
+ * them for the tests and the benchmarks.
  *
  * A decorate-sort-undecorate. Each smart field's {@link SortKey} is computed
  * once per row (the costly `parseNumeric` and type checks). The sort then
@@ -276,8 +277,7 @@ export type SmartSortField<T> = {
  *
  * @returns The reordered rows and their keys, each key taken at the row's
  * *original* index (the identity `getRowId` saw). It therefore matches the
- * engine path's `rowKeys` and the body's `getRow` lookups regardless of
- * sorted position.
+ * `rowKeys` of the grid regardless of sorted position.
  * @internal
  */
 export function sortRowsSmart<T>(
@@ -297,9 +297,10 @@ export function sortRowsSmart<T>(
  *
  * Split from {@link materializeSort} because the permutation depends only on
  * the rows and the fields, not on `getKey`. A re-sort of unchanged rows by a
- * spec already computed (an asc/desc flip, the module's costliest interaction)
- * reuses this permutation. It pays only the linear materialize, never the
- * decode/sort again.
+ * spec already computed reuses this permutation (see {@link cachedSortOrder}).
+ * It pays only the linear materialize, never the decode/sort again. The first
+ * asc/desc flip of one smart field turns the permutation around instead (see
+ * {@link mirrorOrder}).
  *
  * @internal
  */
