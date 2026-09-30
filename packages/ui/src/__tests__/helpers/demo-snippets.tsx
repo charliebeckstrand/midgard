@@ -1,14 +1,11 @@
-import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { getLibFiles } from '@ts-morph/common'
-import type { ComponentType } from 'react'
 import { ts } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
-import { AppearanceProvider } from '../../providers/appearance'
-import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './demo-pages'
+import { type DemoPage, demoPages, walkOf } from './demo-pages'
 
-// A gate on the text of each "Show code" block of the docs site. Two test files
-// in `docs/` run it, and each file gives it a part of the pages, so that the
-// test shards in CI can balance the pages.
+// A gate on the text of each "Show code" block of the docs site. Two test
+// files in `docs/` run it with the smoke test, and each file gives the two gates
+// a part of the pages, so that the test shards in CI can balance the pages.
 //
 // A reader copies the block, so a block that does not compile teaches a bug.
 // The block derives at run time from the rendered tree of an Example and from
@@ -16,8 +13,10 @@ import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './dem
 // `demo-code-block.test.ts` asks whether a block exists. This gate reads the
 // block itself.
 //
-// It renders each demo page, opens each tab, and opens each "Show code". It
-// then checks each block as one TSX module, on its own, with the DOM lib and
+// It renders each demo page, opens each tab, and opens each "Show code". The
+// smoke test (`demo-smoke.tsx`) reads the same walk (`walkOf` in
+// `demo-pages.tsx`), so a page renders once for the two gates. The gate then
+// checks each block as one TSX module, on its own, with the DOM lib and
 // no import resolution. A block fails on a syntax error, on a name that it
 // declares twice, or on a name that it uses and neither declares nor imports.
 // A derived block with none of those also fails on an import or a top-level
@@ -306,71 +305,6 @@ function unusedOf(
 	return unused.filter((d) => d !== shown)
 }
 
-/** The title of an Example frame, or `null` for an untitled one. */
-function titleOf(frame: Element): string | null {
-	const head = frame.firstElementChild
-
-	if (!head || head.getAttribute('data-slot') === 'example-frame') return null
-
-	return head.querySelector('h3')?.textContent ?? null
-}
-
-/**
- * Each "Show code" block of a demo page, keyed by example title (or position),
- * with a suffix for a repeated title. It reads the blocks in each state that
- * the page's tabs show.
- */
-async function snippetsOf(Demo: ComponentType): Promise<Map<string, string>> {
-	const { container } = render(
-		<AppearanceProvider>
-			<Demo />
-		</AppearanceProvider>,
-	)
-
-	const snippets = new Map<string, string>()
-
-	const seenFrames = new WeakSet<Element>()
-
-	const harvest = async () => {
-		const frames = [...container.querySelectorAll('[data-slot="example"]')]
-
-		for (const [index, frame] of frames.entries()) {
-			if (seenFrames.has(frame)) continue
-
-			seenFrames.add(frame)
-
-			const trigger = within(frame as HTMLElement).queryAllByRole('button', {
-				name: 'Show code',
-			})[0]
-
-			if (!trigger) continue
-
-			await act(async () => {
-				fireEvent.click(trigger)
-			})
-
-			const code = frame.querySelector('[data-slot="code-block"] code')?.textContent
-
-			if (!code) continue
-
-			const base = titleOf(frame) ?? `#${index + 1}`
-
-			let key = base
-
-			for (let n = 2; snippets.has(key) && snippets.get(key) !== code; n += 1)
-				key = `${base} (${n})`
-
-			snippets.set(key, code)
-		}
-	}
-
-	await visitTabs(container, harvest)
-
-	cleanup()
-
-	return snippets
-}
-
 /** The entries of `KNOWN_FAILURES` for one page. */
 function knownFailuresOf(page: string): Record<string, string> {
 	return Object.fromEntries(
@@ -386,14 +320,14 @@ export function describeDemoSnippets(pages: readonly DemoPage[]): void {
 	describe('demo snippets', () => {
 		it.each(pages)(
 			'%s derives blocks that compile',
-			// The grid page opens about 45 blocks across its tabs, in about 7s.
-			{ timeout: 30_000 },
+			// The case that walks a page also runs axe on it for the smoke test, so
+			// it takes the time limit of the smoke case. The grid page opens about
+			// 45 blocks across its tabs.
+			{ timeout: 60_000 },
 			async (page, load) => {
-				restoreRootAfterCase()
+				const { snippets, harvestLogged } = await walkOf(page, load)
 
-				const Demo = await load()
-
-				const snippets = await snippetsOf(Demo)
+				expect(harvestLogged, 'the console had output while a block was open').toEqual([])
 
 				// Each page shows at least one block, so an empty harvest is a broken gate.
 				expect(snippets.size, 'no "Show code" block was read').toBeGreaterThan(0)
