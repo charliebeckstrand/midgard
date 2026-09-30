@@ -92,43 +92,19 @@ describe('useColorDrag', () => {
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 
-	it('onPointerUp ends the drag so later moves are ignored', () => {
-		const { api, node, onPosition } = setup()
-
-		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0 }))
-
-		api.onPointerUp(makeEvent(node))
-
-		onPosition.mockClear()
-
-		api.onPointerMove(makeEvent(node, { clientX: 100, clientY: 50 }))
-
-		expect(onPosition).not.toHaveBeenCalled()
-	})
-
-	it('onPointerCancel ends the drag so later moves are ignored', () => {
-		const { api, node, onPosition } = setup()
-
-		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0 }))
-
-		api.onPointerCancel(makeEvent(node))
-
-		onPosition.mockClear()
-
-		api.onPointerMove(makeEvent(node, { clientX: 100, clientY: 50 }))
-
-		expect(onPosition).not.toHaveBeenCalled()
-	})
-
 	// Capture can end without a pointerup reaching the node (a browser-claimed
 	// gesture, the node being torn out); the lost-capture handler clears
 	// `dragging` so the handle stops tracking the pointer.
-	it('onLostPointerCapture ends the drag so a captureless move is ignored', () => {
+	it.each<[string, (api: ReturnType<typeof setup>['api'], node: HTMLElement) => void]>([
+		['onPointerUp', (api, node) => api.onPointerUp(makeEvent(node))],
+		['onPointerCancel', (api, node) => api.onPointerCancel(makeEvent(node))],
+		['onLostPointerCapture', (api) => api.onLostPointerCapture()],
+	])('%s ends the drag so later moves are ignored', (_name, end) => {
 		const { api, node, onPosition } = setup()
 
 		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0 }))
 
-		api.onLostPointerCapture()
+		end(api, node)
 
 		onPosition.mockClear()
 

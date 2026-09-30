@@ -26,8 +26,13 @@ describe('Table', () => {
 	})
 })
 
-describe('TableHead', () => {
-	it('renders a thead element with data-slot="table-head"', () => {
+describe('Table anatomy', () => {
+	it.each([
+		['table-head', 'THEAD'],
+		['table-body', 'TBODY'],
+		['table-row', 'TR'],
+		['table-cell', 'TD'],
+	])('renders data-slot="%s" as a %s element', (slot, tag) => {
 		const { container } = renderUI(
 			<Table>
 				<TableHead>
@@ -43,11 +48,7 @@ describe('TableHead', () => {
 			</Table>,
 		)
 
-		const head = bySlot(container, 'table-head')
-
-		expect(head).toBeInTheDocument()
-
-		expect(head?.tagName).toBe('THEAD')
+		expect(bySlot(container, slot)?.tagName).toBe(tag)
 	})
 })
 
@@ -81,24 +82,6 @@ describe('TableHeader', () => {
 })
 
 describe('TableBody', () => {
-	it('renders with data-slot="table-body"', () => {
-		const { container } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		const body = bySlot(container, 'table-body')
-
-		expect(body).toBeInTheDocument()
-
-		expect(body?.tagName).toBe('TBODY')
-	})
-
 	it('stripes through the Table projection, not the tbody', () => {
 		const { container } = renderUI(
 			<Table striped>
@@ -119,9 +102,12 @@ describe('TableBody', () => {
 		expect(bySlot(container, 'table-body')?.className).not.toContain('even:')
 	})
 
-	it('shades odd rows when striped is "odd"', () => {
+	it.each([
+		['odd', 'odd', 'even'],
+		['even', 'even', 'odd'],
+	] as const)('shades %s rows when striped is "%s"', (_name, striped, other) => {
 		const { container } = renderUI(
-			<Table striped="odd">
+			<Table striped={striped}>
 				<TableBody>
 					<TableRow>
 						<TableCell>cell</TableCell>
@@ -132,27 +118,9 @@ describe('TableBody', () => {
 
 		const table = container.querySelector('table')
 
-		expect(table?.className).toContain('[&>tbody>tr:nth-child(odd)]:bg-zinc-950/2.5')
+		expect(table?.className).toContain(`[&>tbody>tr:nth-child(${striped})]:bg-zinc-950/2.5`)
 
-		expect(table?.className).not.toContain('nth-child(even)')
-	})
-
-	it('shades even rows when striped is "even", matching the boolean default', () => {
-		const { container } = renderUI(
-			<Table striped="even">
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		const table = container.querySelector('table')
-
-		expect(table?.className).toContain('[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5')
-
-		expect(table?.className).not.toContain('nth-child(odd)')
+		expect(table?.className).not.toContain(`nth-child(${other})`)
 	})
 
 	it('washes body rows on hover through the Table projection, not the tbody', () => {
@@ -321,45 +289,5 @@ describe('Table density resolution', () => {
 		const { container } = renderUI(<Table size="sm">{body}</Table>)
 
 		expect(container.querySelector('[data-slot="table"]')).toHaveAttribute('data-density', 'sm')
-	})
-})
-
-describe('TableRow', () => {
-	it('renders a tr element with data-slot="table-row"', () => {
-		const { container } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		const row = bySlot(container, 'table-row')
-
-		expect(row).toBeInTheDocument()
-
-		expect(row?.tagName).toBe('TR')
-	})
-})
-
-describe('TableCell', () => {
-	it('renders a td element with data-slot="table-cell"', () => {
-		const { container } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		const cell = bySlot(container, 'table-cell')
-
-		expect(cell).toBeInTheDocument()
-
-		expect(cell?.tagName).toBe('TD')
 	})
 })

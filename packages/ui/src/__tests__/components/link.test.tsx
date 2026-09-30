@@ -6,26 +6,16 @@ import { UIProvider, useLink } from '../../providers/ui'
 import { renderUI, screen } from '../helpers'
 
 describe('Link', () => {
-	it('renders an anchor by default', () => {
-		renderUI(<Link href="/home">Home</Link>)
-
-		const link = screen.getByText('Home')
-
-		expect(link.tagName).toBe('A')
-	})
-
-	it('renders with href attribute', () => {
+	it('renders an anchor by default, with its href and data-slot anchor', () => {
 		renderUI(<Link href="/about">About</Link>)
 
 		const link = screen.getByText('About')
 
+		expect(link.tagName).toBe('A')
+
 		expect(link).toHaveAttribute('href', '/about')
-	})
 
-	it('exposes a data-slot anchor', () => {
-		renderUI(<Link href="/a">Anchor</Link>)
-
-		expect(screen.getByText('Anchor')).toHaveAttribute('data-slot', 'link')
+		expect(link).toHaveAttribute('data-slot', 'link')
 	})
 
 	it('defaults a safe rel when opening a new tab', () => {

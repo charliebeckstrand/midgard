@@ -32,9 +32,7 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		const trigger = bySlot(container, 'tooltip-trigger')
-
-		if (!trigger) throw new Error('trigger missing')
+		const trigger = getSlot(container, 'tooltip-trigger')
 
 		await user.click(trigger)
 
@@ -59,9 +57,7 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		const trigger = bySlot(container, 'tooltip-trigger')
-
-		if (!trigger) throw new Error('trigger missing')
+		const trigger = getSlot(container, 'tooltip-trigger')
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
@@ -96,9 +92,7 @@ describe('Tooltip', () => {
 		// the same contract the panel family's `onOpenChange` keeps.
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		const trigger = bySlot(container, 'tooltip-trigger')
-
-		if (!trigger) throw new Error('trigger missing')
+		const trigger = getSlot(container, 'tooltip-trigger')
 
 		// `open` holds the disclosure controlled, so the interactions still call its
 		// setter and `useControllable` still fires on every set. Reporting the resolved
@@ -184,24 +178,6 @@ describe('Tooltip', () => {
 		await user.click(getSlot(container, 'tooltip-trigger'))
 
 		expect(onClick).toHaveBeenCalledOnce()
-	})
-
-	it('puts the trigger in the keyboard tab order', async () => {
-		const user = userEvent.setup()
-
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Hover me</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
-
-		await user.tab()
-
-		// The trigger is the focusable element itself, not an unreachable wrapper.
-		expect(bySlot(container, 'tooltip-trigger')).toHaveFocus()
 	})
 
 	it('opens on keyboard focus of the trigger', async () => {
@@ -311,31 +287,21 @@ describe('TooltipContent', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
 	})
 
-	it('marks the open panel as pointer-events:auto when interactive=true', () => {
-		const { container } = renderUI(
-			<TooltipContext value={makeContext({ open: true, interactive: true })}>
-				<TooltipContent>Interactive</TooltipContent>
-			</TooltipContext>,
-		)
+	it.each([
+		[true, 'auto'],
+		[false, 'none'],
+	])(
+		'marks the open panel with interactive=%s as pointer-events:%s',
+		(interactive, pointerEvents) => {
+			const { container } = renderUI(
+				<TooltipContext value={makeContext({ open: true, interactive })}>
+					<TooltipContent>Tip</TooltipContent>
+				</TooltipContext>,
+			)
 
-		const panel = getSlot(container, 'tooltip-content')
-
-		expect(panel).toBeInTheDocument()
-
-		expect(panel.style.pointerEvents).toBe('auto')
-	})
-
-	it('marks the open panel as pointer-events:none when interactive=false', () => {
-		const { container } = renderUI(
-			<TooltipContext value={makeContext({ open: true, interactive: false })}>
-				<TooltipContent>Static</TooltipContent>
-			</TooltipContext>,
-		)
-
-		const panel = getSlot(container, 'tooltip-content')
-
-		expect(panel.style.pointerEvents).toBe('none')
-	})
+			expect(getSlot(container, 'tooltip-content').style.pointerEvents).toBe(pointerEvents)
+		},
+	)
 
 	it('makes the surface a density scope for an explicit size', () => {
 		const { container } = renderUI(

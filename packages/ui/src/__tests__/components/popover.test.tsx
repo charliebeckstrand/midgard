@@ -1,5 +1,5 @@
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { bySlot, densityStepOf, present, renderUI, userEvent } from '../helpers'
@@ -86,21 +86,6 @@ describe('Popover open/close control', () => {
 					<button type="button">Open</button>
 				</PopoverTrigger>
 				<PopoverContent>placed</PopoverContent>
-			</Popover>,
-		)
-
-		expect(popoverContent()).not.toBeNull()
-	})
-
-	it('renders with a controlled open=true prop and forwards onOpenChange', () => {
-		const onOpenChange = vi.fn()
-
-		renderUI(
-			<Popover open onOpenChange={onOpenChange}>
-				<PopoverTrigger>
-					<button type="button">Open</button>
-				</PopoverTrigger>
-				<PopoverContent>panel</PopoverContent>
 			</Popover>,
 		)
 

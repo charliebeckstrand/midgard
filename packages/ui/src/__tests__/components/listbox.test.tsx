@@ -15,20 +15,6 @@ const option = (
 )
 
 describe('Listbox', () => {
-	it('renders trigger button with combobox role', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		const button = bySlot(container, 'listbox-button')
-
-		expect(button).toBeInTheDocument()
-
-		expect(button).toHaveAttribute('role', 'combobox')
-	})
-
 	// A role="combobox" trigger is named by aria-label, not its value text;
 	// a bare Listbox (no Field/Label) forwards aria-label to the button.
 	it('forwards aria-label to the trigger button', () => {
@@ -49,18 +35,6 @@ describe('Listbox', () => {
 		)
 
 		expect(screen.getByText('Choose')).toBeInTheDocument()
-	})
-
-	it('renders trigger as a button element', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		const button = bySlot(container, 'listbox-button')
-
-		expect(button?.tagName).toBe('BUTTON')
 	})
 
 	it('renders prefix and suffix slots and keeps trigger clickable', () => {
@@ -130,13 +104,7 @@ describe('Listbox', () => {
 	)
 
 	it('opens the panel and exposes a listbox role when the trigger is clicked', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div role="option" tabIndex={-1} aria-selected="false">
-					Option
-				</div>
-			</Listbox>,
-		)
+		const { container } = renderUI(<Listbox>{option}</Listbox>)
 
 		const button = getSlot<HTMLButtonElement>(container, 'listbox-button')
 
@@ -154,13 +122,7 @@ describe('Listbox', () => {
 	})
 
 	it('threads the trigger name onto the open listbox', () => {
-		const { container } = renderUI(
-			<Listbox aria-label="Current page">
-				<div role="option" tabIndex={-1} aria-selected="false">
-					Option
-				</div>
-			</Listbox>,
-		)
+		const { container } = renderUI(<Listbox aria-label="Current page">{option}</Listbox>)
 
 		fireEvent.click(getSlot<HTMLButtonElement>(container, 'listbox-button'))
 
@@ -186,11 +148,7 @@ describe('Listbox', () => {
 		const { container } = renderUI(
 			<Field>
 				<Label>Country</Label>
-				<Listbox>
-					<div role="option" tabIndex={-1} aria-selected="false">
-						Option
-					</div>
-				</Listbox>
+				<Listbox>{option}</Listbox>
 			</Field>,
 		)
 
@@ -201,13 +159,7 @@ describe('Listbox', () => {
 	})
 
 	it('marks a multiple listbox as multiselectable', () => {
-		const { container } = renderUI(
-			<Listbox multiple>
-				<div role="option" tabIndex={-1} aria-selected="false">
-					Option
-				</div>
-			</Listbox>,
-		)
+		const { container } = renderUI(<Listbox multiple>{option}</Listbox>)
 
 		fireEvent.click(getSlot<HTMLButtonElement>(container, 'listbox-button'))
 
@@ -349,7 +301,7 @@ describe('Listbox', () => {
 			</Listbox>,
 		)
 
-		expect(bySlot(container, 'listbox-button')).toBeInTheDocument()
+		expect(bySlot(container, 'listbox')).toHaveAttribute('data-density', 'lg')
 	})
 
 	it('renders the selected value label via displayValue', () => {
@@ -668,13 +620,7 @@ describe('Listbox onBlur', () => {
 	it('says nothing for a blur into the portaled panel', () => {
 		const onBlur = vi.fn()
 
-		const { container } = renderUI(
-			<Listbox onBlur={onBlur}>
-				<div role="option" tabIndex={-1} aria-selected="false">
-					Option
-				</div>
-			</Listbox>,
-		)
+		const { container } = renderUI(<Listbox onBlur={onBlur}>{option}</Listbox>)
 
 		fireEvent.click(getSlot<HTMLButtonElement>(container, 'listbox-button'))
 

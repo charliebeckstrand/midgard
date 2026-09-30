@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
 import {
-	bySlot,
 	expectAnnouncement,
 	fireEvent,
 	getSlot,
@@ -36,16 +35,6 @@ describe('TagInput', () => {
 		const list = container.querySelector('[data-slot="tags"]')
 
 		expect(list?.children.length).toBe(2)
-	})
-
-	it('renders an input', () => {
-		const { container } = renderUI(<TagInput />)
-
-		const input = getInput(container)
-
-		expect(input).toBeInTheDocument()
-
-		expect(input.tagName).toBe('INPUT')
 	})
 
 	it('hides placeholder when tags exist', () => {
@@ -92,32 +81,19 @@ describe('TagInput', () => {
 		expect(slot.parentElement?.closest('[data-density]')).toBeNull()
 	})
 
-	it('adds a tag on Enter', async () => {
+	it.each([
+		['Enter', 'react{Enter}', 'react'],
+		['comma', 'vue,', 'vue'],
+	])('adds a tag on %s', async (_name, typed, tag) => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<TagInput onValueChange={onChange} />)
 
-		const input = getInput(container)
-
 		const user = userEvent.setup({ delay: null })
 
-		await user.type(input, 'react{Enter}')
+		await user.type(getInput(container), typed)
 
-		expect(onChange).toHaveBeenCalledWith(['react'])
-	})
-
-	it('adds a tag on comma', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<TagInput onValueChange={onChange} />)
-
-		const input = getInput(container)
-
-		const user = userEvent.setup({ delay: null })
-
-		await user.type(input, 'vue,')
-
-		expect(onChange).toHaveBeenCalledWith(['vue'])
+		expect(onChange).toHaveBeenCalledWith([tag])
 	})
 
 	it('adds a tag on blur', async () => {
@@ -125,11 +101,9 @@ describe('TagInput', () => {
 
 		const { container } = renderUI(<TagInput onValueChange={onChange} />)
 
-		const input = getInput(container)
-
 		const user = userEvent.setup({ delay: null })
 
-		await user.type(input, 'svelte')
+		await user.type(getInput(container), 'svelte')
 
 		await user.tab()
 
@@ -219,7 +193,10 @@ describe('TagInput', () => {
 		expect(getRemoveButtons(container)[0]).toHaveAttribute('tabindex', '-1')
 	})
 
-	it('removes the focused tag on Backspace', async () => {
+	it.each([
+		['Backspace', 0, ['vue']],
+		['Delete', 1, ['react']],
+	])('removes the focused tag on %s', async (key, index, expected) => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
@@ -228,27 +205,11 @@ describe('TagInput', () => {
 
 		const user = userEvent.setup({ delay: null })
 
-		;(getBadges(container)[0] as HTMLElement).focus()
+		;(getBadges(container)[index] as HTMLElement).focus()
 
-		await user.keyboard('{Backspace}')
+		await user.keyboard(`{${key}}`)
 
-		expect(onChange).toHaveBeenCalledWith(['vue'])
-	})
-
-	it('removes the focused tag on Delete', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
-		)
-
-		const user = userEvent.setup({ delay: null })
-
-		;(getBadges(container)[1] as HTMLElement).focus()
-
-		await user.keyboard('{Delete}')
-
-		expect(onChange).toHaveBeenCalledWith(['react'])
+		expect(onChange).toHaveBeenCalledWith(expected)
 	})
 
 	it('leaves the focused tag in place on other keys', async () => {
@@ -379,12 +340,6 @@ describe('TagInput', () => {
 		expect(onChange).not.toHaveBeenCalled()
 	})
 
-	it('renders tags slot when tags exist', () => {
-		const { container } = renderUI(<TagInput defaultValue={['react']} />)
-
-		expect(bySlot(container, 'tags')).toBeInTheDocument()
-	})
-
 	it('exposes the tags as an enumerable list', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
@@ -397,20 +352,13 @@ describe('TagInput', () => {
 		expect(list.querySelectorAll('[role="listitem"]')).toHaveLength(2)
 	})
 
-	it('has aria-label on the input derived from placeholder', () => {
-		const { container } = renderUI(<TagInput placeholder="Add tags..." />)
+	it.each([
+		['derived from placeholder', 'Add tags...', 'Add tags...'],
+		['defaulted when no placeholder', undefined, 'Add tags'],
+	])('has an aria-label on the input %s', (_name, placeholder, label) => {
+		const { container } = renderUI(<TagInput placeholder={placeholder} />)
 
-		const input = getInput(container)
-
-		expect(input).toHaveAttribute('aria-label', 'Add tags...')
-	})
-
-	it('has default aria-label on the input when no placeholder', () => {
-		const { container } = renderUI(<TagInput />)
-
-		const input = getInput(container)
-
-		expect(input).toHaveAttribute('aria-label', 'Add tags')
+		expect(getInput(container)).toHaveAttribute('aria-label', label)
 	})
 
 	it('adds a tag when the suffix Add button is clicked', async () => {

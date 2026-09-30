@@ -18,28 +18,18 @@ describe('SearchInput', () => {
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('shows clear button when value is non-empty and onClear is provided', () => {
-		renderUI(<SearchInput value="query" onClear={() => {}} onChange={() => {}} />)
+	it.each([
+		['the field is read-only', () => <SearchInput defaultValue="query" readOnly />],
+		['the field is disabled', () => <SearchInput defaultValue="query" disabled />],
+		['the value is empty', () => <SearchInput value="" onClear={() => {}} onChange={() => {}} />],
+		[
+			'the field is loading',
+			() => <SearchInput loading value="query" onClear={() => {}} onChange={() => {}} />,
+		],
+	])('does not show the clear button when %s', (_name, ui) => {
+		renderUI(ui())
 
-		expect(screen.getByLabelText('Clear search')).toBeInTheDocument()
-	})
-
-	it('does not show clear button when the field is read-only or disabled', () => {
-		const { unmount } = renderUI(<SearchInput defaultValue="query" readOnly />)
-
-		expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
-
-		unmount()
-
-		renderUI(<SearchInput defaultValue="query" disabled />)
-
-		expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
-	})
-
-	it('does not show clear button when value is empty', () => {
-		renderUI(<SearchInput value="" onClear={() => {}} onChange={() => {}} />)
-
-		expect(screen.queryByLabelText('Clear search')).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument()
 	})
 
 	it('calls onClear when clear button is clicked', async () => {
@@ -49,7 +39,7 @@ describe('SearchInput', () => {
 
 		const user = userEvent.setup({ delay: null })
 
-		await user.click(screen.getByLabelText('Clear search'))
+		await user.click(screen.getByRole('button', { name: 'Clear search' }))
 
 		expect(onClear).toHaveBeenCalledOnce()
 	})
@@ -96,12 +86,6 @@ describe('SearchInput', () => {
 		const { container } = renderUI(<SearchInput loading />)
 
 		expect(bySlot(container, 'loading-spinner')).toBeInTheDocument()
-	})
-
-	it('does not show clear button when loading', () => {
-		renderUI(<SearchInput loading value="query" onClear={() => {}} onChange={() => {}} />)
-
-		expect(screen.queryByLabelText('Clear search')).not.toBeInTheDocument()
 	})
 
 	it('fires onChange handler', async () => {

@@ -4,20 +4,12 @@ import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { bySlot, densityStepOf, getSlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {
-	it('renders with data-slot="radio"', () => {
-		const { container } = renderUI(<Radio />)
-
-		const el = bySlot(container, 'radio')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('INPUT')
-	})
-
-	it('renders as a radio input', () => {
+	it('renders a radio input with data-slot="radio"', () => {
 		const { container } = renderUI(<Radio />)
 
 		const el = getSlot<HTMLInputElement>(container, 'radio')
+
+		expect(el.tagName).toBe('INPUT')
 
 		expect(el.type).toBe('radio')
 	})

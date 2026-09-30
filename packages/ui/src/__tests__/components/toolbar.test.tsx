@@ -215,18 +215,6 @@ describe('ToolbarGroup', () => {
 		expect(screen.getByRole('group', { name: 'Marks' })).toBe(bySlot(container, 'toolbar-group'))
 	})
 
-	it('inherits orientation from the surrounding toolbar', () => {
-		const { container } = renderUI(
-			<Toolbar aria-label="Editor" orientation="vertical">
-				<ToolbarGroup>
-					<button type="button">A</button>
-				</ToolbarGroup>
-			</Toolbar>,
-		)
-
-		expect(bySlot(container, 'toolbar-group')).toBeInTheDocument()
-	})
-
 	it('takes its axis from the toolbar context', () => {
 		const { container } = renderUI(
 			<Toolbar aria-label="Editor" orientation="vertical">

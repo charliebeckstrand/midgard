@@ -31,15 +31,13 @@ describe('Textarea', () => {
 	})
 
 	it('picks up the glass variant from a glass context', () => {
-		const { container } = renderUI(<Textarea />, { glass: true })
+		const { container: plain } = renderUI(<Textarea />)
 
-		expect(bySlot(container, 'textarea')).toBeInTheDocument()
-	})
+		const { container: glass } = renderUI(<Textarea />, { glass: true })
 
-	it('renders with autoResize enabled', () => {
-		const { container } = renderUI(<Textarea autoResize />)
-
-		expect(bySlot(container, 'textarea')).toBeInTheDocument()
+		expect(getSlot(glass, 'control-frame').className).not.toBe(
+			getSlot(plain, 'control-frame').className,
+		)
 	})
 
 	it('renders actions below the textarea', () => {

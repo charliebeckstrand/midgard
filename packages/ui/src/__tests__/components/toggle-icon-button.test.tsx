@@ -34,26 +34,6 @@ describe('ToggleIconButton', () => {
 		expect(el).toHaveAttribute('aria-pressed', 'true')
 	})
 
-	it('forwards click handler', () => {
-		const onClick = vi.fn()
-
-		const { container } = renderUI(
-			<ToggleIconButton
-				pressed={false}
-				icon={icon}
-				pressedIcon={pressedIcon}
-				onClick={onClick}
-				aria-label="Toggle"
-			/>,
-		)
-
-		const el = bySlot(container, 'toggle-icon-button')
-
-		fireEvent.click(el as HTMLElement)
-
-		expect(onClick).toHaveBeenCalledOnce()
-	})
-
 	// The toggle is the activation the button exists to perform, so a consumer's
 	// `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
 	it('runs the user onClick first, and toggles when it prevents the default', () => {
@@ -81,43 +61,29 @@ describe('ToggleIconButton', () => {
 		expect(button).toHaveAttribute('aria-pressed', 'true')
 	})
 
-	it('renders a single icon when animate is false and pressed is false', () => {
-		const { container } = renderUI(
-			<ToggleIconButton
-				animate={false}
-				pressed={false}
-				icon={icon}
-				pressedIcon={pressedIcon}
-				aria-label="Toggle"
-			/>,
-		)
+	it.each([
+		[false, 'icon', 'pressed-icon'],
+		[true, 'pressed-icon', 'icon'],
+	])(
+		'renders only the active icon when animate is false and pressed is %s',
+		(pressed, shown, hidden) => {
+			const { container } = renderUI(
+				<ToggleIconButton
+					animate={false}
+					pressed={pressed}
+					icon={icon}
+					pressedIcon={pressedIcon}
+					aria-label="Toggle"
+				/>,
+			)
 
-		const el = getSlot(container, 'toggle-icon-button')
+			const el = getSlot(container, 'toggle-icon-button')
 
-		expect(el).toBeInTheDocument()
+			expect(within(el).queryByTestId(shown)).toBeInTheDocument()
 
-		expect(within(el).queryByTestId('icon')).toBeInTheDocument()
-
-		expect(within(el).queryByTestId('pressed-icon')).not.toBeInTheDocument()
-	})
-
-	it('renders only the active icon when animate is false and pressed is true', () => {
-		const { container } = renderUI(
-			<ToggleIconButton
-				animate={false}
-				pressed={true}
-				icon={icon}
-				pressedIcon={pressedIcon}
-				aria-label="Toggle"
-			/>,
-		)
-
-		const el = getSlot(container, 'toggle-icon-button')
-
-		expect(within(el).queryByTestId('pressed-icon')).toBeInTheDocument()
-
-		expect(within(el).queryByTestId('icon')).not.toBeInTheDocument()
-	})
+			expect(within(el).queryByTestId(hidden)).not.toBeInTheDocument()
+		},
+	)
 
 	it('renders both icons (for the crossfade) when animate is true', () => {
 		const { container } = renderUI(

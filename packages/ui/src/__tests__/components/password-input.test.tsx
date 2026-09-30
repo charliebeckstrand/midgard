@@ -14,22 +14,8 @@ describe('PasswordInput', () => {
 		expect(input).toHaveAttribute('type', 'password')
 	})
 
-	it('toggles input type when visibility button is clicked', async () => {
+	it('reveals the value from a pressed-state toggle with a fixed name', async () => {
 		const { container } = renderUI(<PasswordInput />)
-
-		const user = userEvent.setup()
-
-		const toggle = screen.getByLabelText('Show password')
-
-		await user.click(toggle)
-
-		const input = bySlot(container, 'password-input')
-
-		expect(input).toHaveAttribute('type', 'text')
-	})
-
-	it('exposes the toggle as a pressed-state button with a fixed name', async () => {
-		renderUI(<PasswordInput />)
 
 		const user = userEvent.setup()
 
@@ -40,6 +26,8 @@ describe('PasswordInput', () => {
 		expect(toggle).toHaveAttribute('aria-pressed', 'false')
 
 		await user.click(toggle)
+
+		expect(bySlot(container, 'password-input')).toHaveAttribute('type', 'text')
 
 		expect(toggle).toHaveAttribute('aria-pressed', 'true')
 

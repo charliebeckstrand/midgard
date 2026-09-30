@@ -172,36 +172,6 @@ describe('SheetClose', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
-	it('renders with side="left"', () => {
-		renderUI(
-			<Sheet open side="left" onOpenChange={() => {}}>
-				Left sheet
-			</Sheet>,
-		)
-
-		expect(screen.getByText('Left sheet')).toBeInTheDocument()
-	})
-
-	it('renders with side="top"', () => {
-		renderUI(
-			<Sheet open side="top" onOpenChange={() => {}}>
-				Top sheet
-			</Sheet>,
-		)
-
-		expect(screen.getByText('Top sheet')).toBeInTheDocument()
-	})
-
-	it('renders with side="bottom"', () => {
-		renderUI(
-			<Sheet open side="bottom" onOpenChange={() => {}}>
-				Bottom sheet
-			</Sheet>,
-		)
-
-		expect(screen.getByText('Bottom sheet')).toBeInTheDocument()
-	})
-
 	// A `top` or `bottom` sheet spans the screen. A width step is a cap across a
 	// side-docked panel, so no step can apply here, the default `md` included.
 	it.each(['top', 'bottom'] as const)('keeps a %s sheet full-width at every step', (side) => {

@@ -113,25 +113,6 @@ describe('TabList', () => {
 		expect(document.getElementById(controls as string)).not.toBeNull()
 	})
 
-	it('renders with data-slot="tab-list" and role="tablist"', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabContents>
-					<TabContent value="a">Panel A</TabContent>
-				</TabContents>
-			</Tabs>,
-		)
-
-		const el = bySlot(container, 'tab-list')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el).toHaveAttribute('role', 'tablist')
-	})
-
 	it('wraps the underline list in a horizontal scroll viewport', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">
@@ -241,25 +222,6 @@ describe('TabList', () => {
 })
 
 describe('Tab', () => {
-	it('renders with data-slot="tab" and role="tab"', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabContents>
-					<TabContent value="a">Panel A</TabContent>
-				</TabContents>
-			</Tabs>,
-		)
-
-		const el = bySlot(container, 'tab')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el).toHaveAttribute('role', 'tab')
-	})
-
 	it('writes padding and text as stepped classes, which follow the nearest scope', () => {
 		const { container } = renderUI(
 			<TabList aria-label="Tabs">
@@ -674,18 +636,6 @@ describe('TabContents mount policy', () => {
 })
 
 describe('TabList variants', () => {
-	it('renders TabList with vertical orientation from Tabs', () => {
-		const { container } = renderUI(
-			<Tabs orientation="vertical" defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">A</Tab>
-				</TabList>
-			</Tabs>,
-		)
-
-		expect(bySlot(container, 'tab-list')).toHaveAttribute('data-orientation', 'vertical')
-	})
-
 	it('renders TabList without a Tabs wrapper', () => {
 		const { container } = renderUI(
 			<TabList aria-label="Tabs">
@@ -700,18 +650,6 @@ describe('TabList variants', () => {
 		expect(list).toBeInTheDocument()
 
 		expect(list).toHaveAttribute('data-orientation', 'horizontal')
-	})
-
-	it('renders TabList with segment variant from Tabs', () => {
-		const { container } = renderUI(
-			<Tabs variant="segment" defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">A</Tab>
-				</TabList>
-			</Tabs>,
-		)
-
-		expect(bySlot(container, 'tab-list')).toBeInTheDocument()
 	})
 })
 
