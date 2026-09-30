@@ -36,6 +36,47 @@ describe('Grid', () => {
 		expect(screen.getByText('30')).toBeInTheDocument()
 	})
 
+	it('takes a readonly rows array, and sorts and totals it with no change to it', () => {
+		const frozen: readonly Row[] = Object.freeze([...rows])
+
+		// A consumer callback typed with a mutable array still compiles.
+		const oldest = (list: Row[]) => Math.max(...list.map((row) => row.age))
+
+		renderUI(
+			<Grid
+				columns={[
+					{
+						id: 'name',
+						title: 'Name',
+						cell: (row: Row) => row.name,
+						value: (row: Row) => row.name,
+						sortable: true,
+					},
+					{
+						id: 'age',
+						title: 'Age',
+						cell: (row: Row) => row.age,
+						value: (row: Row) => row.age,
+						aggFunc: oldest,
+					},
+				]}
+				rows={frozen}
+				getKey={getKey}
+				sort={{ defaultValue: [{ column: 'name', direction: 'desc' }] }}
+				grandTotalRow
+			/>,
+		)
+
+		const names = screen.getAllByText(/^(Alice|Bob)$/).map((node) => node.textContent)
+
+		expect(names).toEqual(['Bob', 'Alice'])
+
+		expect(frozen.map((row) => row.name)).toEqual(['Alice', 'Bob'])
+
+		// The age of Alice, and the grand total that `oldest` gives.
+		expect(screen.getAllByText('30')).toHaveLength(2)
+	})
+
 	it('shows loading spinner when loading', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} loading />)
 

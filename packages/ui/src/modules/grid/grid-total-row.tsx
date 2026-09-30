@@ -39,8 +39,8 @@ export function resolveGrandTotal<T>(args: {
 	/** Whether manual (server-side) grouping is active, which stands the grand total down. */
 	manualGrouped?: boolean
 	/** The full filtered row set (`GridTableResult.grandTotalRows`). */
-	rows: T[]
-}): { active: boolean; rows: T[] } {
+	rows: readonly T[]
+}): { active: boolean; rows: readonly T[] } {
 	const { grandTotalRow, columns, hasRows, loading, showingError, manualGrouped, rows } = args
 
 	const active =
@@ -57,7 +57,7 @@ export function resolveGrandTotal<T>(args: {
 /** Props for {@link GridGrandTotalBody}. @internal */
 type GridGrandTotalBodyProps<T> = {
 	/** Resolved grand-total state from {@link resolveGrandTotal}. */
-	grandTotal: { active: boolean; rows: T[] }
+	grandTotal: { active: boolean; rows: readonly T[] }
 	columns: GridColumn<T>[]
 	/** Whether the grid runs `role="grid"` semantics, gating the global row index. */
 	gridSemantics: boolean
@@ -99,7 +99,7 @@ type GridTotalRowProps<T> = {
 	/** The visible columns, in render order. */
 	columns: GridColumn<T>[]
 	/** The rows this total aggregates — a group's leaves, or the whole filtered set. */
-	rows: T[]
+	rows: readonly T[]
 	/** A group total hides with its collapsed group; the grand total always shows. */
 	variant: 'group' | 'grand'
 	/**
@@ -246,7 +246,7 @@ function GridGroupTotalRow<T>({
 }: {
 	navKey: string | undefined
 	columns: GridColumn<T>[]
-	rows: T[]
+	rows: readonly T[]
 	/** Columns the leading label cell spans, resolved once by {@link GridTotalRow}. */
 	span: number
 	expanded: boolean

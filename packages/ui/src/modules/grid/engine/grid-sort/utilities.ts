@@ -281,10 +281,10 @@ export type SmartSortField<T> = {
  * @internal
  */
 export function sortRowsSmart<T>(
-	rows: T[],
+	rows: readonly T[],
 	getKey: (row: T, index: number) => string | number,
 	fields: SmartSortField<T>[],
-): { rows: T[]; keys: (string | number)[] } {
+): { rows: readonly T[]; keys: (string | number)[] } {
 	return materializeSort(rows, computeSortOrder(rows, fields), getKey)
 }
 
@@ -304,7 +304,7 @@ export function sortRowsSmart<T>(
  *
  * @internal
  */
-export function computeSortOrder<T>(rows: T[], fields: SmartSortField<T>[]): number[] {
+export function computeSortOrder<T>(rows: readonly T[], fields: SmartSortField<T>[]): number[] {
 	// One index comparator per field, each closing over its decoded keys (the
 	// costly decode runs once here, not per comparison).
 	const comparators = fields.map((field) => buildFieldComparator(rows, field))
@@ -343,7 +343,7 @@ export function computeSortOrder<T>(rows: T[], fields: SmartSortField<T>[]): num
  *
  * @internal
  */
-function mirrorOrder<T>(rows: T[], order: number[], field: SmartSortField<T>): number[] {
+function mirrorOrder<T>(rows: readonly T[], order: number[], field: SmartSortField<T>): number[] {
 	const keyOf = (position: number) =>
 		toSortKey(field.accessor(rows[order[position] as number] as T))
 
@@ -411,7 +411,7 @@ const sortOrders = new WeakMap<object, WeakMap<object, Map<string, number[]>>>()
  * @internal
  */
 export function cachedSortOrder<T>(
-	rows: T[],
+	rows: readonly T[],
 	columns: object,
 	signature: string,
 	fields: SmartSortField<T>[],
@@ -446,10 +446,10 @@ export function cachedSortOrder<T>(
  * @internal
  */
 export function materializeSort<T>(
-	rows: T[],
+	rows: readonly T[],
 	order: number[],
 	getKey: (row: T, index: number) => string | number,
-): { rows: T[]; keys: (string | number)[] } {
+): { rows: readonly T[]; keys: (string | number)[] } {
 	// One pass builds both outputs, so a row's index is looked up once.
 	const sortedRows = new Array<T>(order.length)
 
@@ -478,7 +478,7 @@ export function materializeSort<T>(
  * @internal
  */
 function buildFieldComparator<T>(
-	rows: T[],
+	rows: readonly T[],
 	field: SmartSortField<T>,
 ): (i: number, j: number) => number {
 	const { descending, sortFn } = field

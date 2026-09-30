@@ -530,7 +530,7 @@ export function useGridNavigation({
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
-	rowsRef: RefObject<unknown[]>
+	rowsRef: RefObject<readonly unknown[]>
 	/** Live count of cursor-visitable data columns; backs horizontal bounds. */
 	colCountRef: RefObject<number>
 	/** Activates the row under the cursor on Enter, when the grid has a row click. */

@@ -58,7 +58,7 @@ export type GridContextMenuProps<T> = {
 	/** Visible columns, for resolving a right-clicked header/cell to its column. */
 	columns: GridColumn<T>[]
 	/** Rendered rows, parallel to `rowKeys`, for resolving a cell to its row. */
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/** Active sort columns in priority order; backs the menu's Sort items. */
 	sort: GridSortState[]

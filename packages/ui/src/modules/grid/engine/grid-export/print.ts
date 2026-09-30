@@ -10,7 +10,7 @@ import { rowsToHtmlTable } from './html-table'
  * @typeParam T - Shape of a single row.
  * @internal
  */
-export function rowsToPrintHtml<T>(columns: GridColumn<T>[], rows: T[]): string {
+export function rowsToPrintHtml<T>(columns: GridColumn<T>[], rows: readonly T[]): string {
 	return `<!doctype html><html><head><meta charset="utf-8" /><style>
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
@@ -27,7 +27,7 @@ th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
  * @typeParam T - Shape of a single row.
  * @internal
  */
-export function printRows<T>(columns: GridColumn<T>[], rows: T[]) {
+export function printRows<T>(columns: GridColumn<T>[], rows: readonly T[]) {
 	printInHiddenFrame({
 		prepare: (iframe) => {
 			iframe.srcdoc = rowsToPrintHtml(columns, rows)

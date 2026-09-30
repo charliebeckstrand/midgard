@@ -112,7 +112,7 @@ type GridDataTableProps<T> = {
 		add: ComponentProps<typeof GridNewRow<T>>['add']
 		onMeasureAdd: (width: number) => void
 	}
-	grandTotal: { active: boolean; rows: T[] }
+	grandTotal: { active: boolean; rows: readonly T[] }
 	/** The scroll container for a sticky header or a window. */
 	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children'>
 	/** The query that highlight-mode search marks, or `null`. */

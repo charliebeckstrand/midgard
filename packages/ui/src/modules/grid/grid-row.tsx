@@ -37,7 +37,7 @@ import type { GridColumnPinning } from './use-grid-table'
  * @internal
  */
 export type GridRowsProps<T> = {
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/**
 	 * Each row's 0-based place in the view, while the cursor is on (empty

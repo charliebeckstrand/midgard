@@ -55,7 +55,7 @@ export function useGridDataView<T>({
 > & {
 	refs: GridIndexRefs<T>
 	/** The rows the body renders, in display order. */
-	renderRows: T[]
+	renderRows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The visible columns, in display order. */
 	visibleColumns: GridColumn<T>[]

@@ -37,7 +37,7 @@ type RowGrouping<T> = ReturnType<typeof useGridRowGrouping<T>>
  */
 function useBodyRowCount<T>(args: {
 	virtualize: boolean
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The client groups. A toggle gives a new list, so the count follows it. */
 	groups: GridGroup<T>[] | null
@@ -176,7 +176,7 @@ export function useGridDataFrame<T>({
 	| 'onRowDoubleClick'
 > & {
 	/** The rows the body renders, in display order. */
-	renderRows: T[]
+	renderRows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The visible columns, in display order. */
 	visibleColumns: GridColumn<T>[]
@@ -195,7 +195,7 @@ export function useGridDataFrame<T>({
 	group: GridGroupResult
 	pinning: GridColumnPinning | null
 	/** The full filtered row set that the grand total sums. */
-	grandTotalRows: T[]
+	grandTotalRows: readonly T[]
 	/** The client groups, or `null` when the grid is not client-grouped. */
 	groups: GridGroup<T>[] | null
 	groupByConfig: GridDataProps<T>['groupBy']

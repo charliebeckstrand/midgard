@@ -61,7 +61,7 @@ export function useGridSort(config: GridSort | undefined): {
 export function useServerSortSettle<T>(args: {
 	enabled: boolean
 	sort: GridSortState[]
-	rows: T[]
+	rows: readonly T[]
 }): boolean {
 	const { enabled, sort, rows } = args
 

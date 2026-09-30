@@ -64,7 +64,7 @@ export function groupedCursorRows<T>(
  * @internal
  */
 export function detailCursorRows<T>(
-	rows: T[],
+	rows: readonly T[],
 	rowKeys: (string | number)[],
 	open: (row: T, rowKey: string | number) => boolean,
 ): GridCursorRow[] {

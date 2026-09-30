@@ -150,7 +150,7 @@ function GridDetailCursorOrderImpl<T>({
 	expanded,
 	rowExpandable,
 }: {
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	expanded: ReadonlySet<string | number>
 	rowExpandable: (row: T) => boolean

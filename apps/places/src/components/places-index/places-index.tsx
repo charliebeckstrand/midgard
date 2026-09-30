@@ -177,14 +177,11 @@ export function PlacesIndex({
 	)
 
 	// Narrowed before the grid sees it, so the grid's own search, sort and count
-	// are all of the same set the reader is looking at. A copy either way, because
-	// the grid sorts and filters what it is handed and the app's list is read by
-	// the map at the same time.
+	// are all of the same set the reader is looking at. The grid reads its rows
+	// and never changes them, so the whole list goes in as it is.
 	const rows = useMemo(
 		() =>
-			picked === null
-				? [...places]
-				: places.filter((place) => regionByPlace.get(place.id) === picked),
+			picked === null ? places : places.filter((place) => regionByPlace.get(place.id) === picked),
 		[places, picked, regionByPlace],
 	)
 

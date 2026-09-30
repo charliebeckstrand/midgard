@@ -59,7 +59,7 @@ export function bridgeRowActivate<T>(
 export function bridgeCellActivate<T>(
 	handleCellClick: GridCellClick<T> | undefined,
 	refs: {
-		rowsRef: RefObject<T[]>
+		rowsRef: RefObject<readonly T[]>
 		rowKeysRef: RefObject<(string | number)[]>
 		dataColumnsRef: RefObject<GridColumn<T>[]>
 	},
@@ -86,7 +86,7 @@ export function bridgeCellActivate<T>(
  */
 export function resolveCellAt<T>(
 	refs: {
-		rowsRef: RefObject<T[]>
+		rowsRef: RefObject<readonly T[]>
 		rowKeysRef: RefObject<(string | number)[]>
 		dataColumnsRef: RefObject<GridColumn<T>[]>
 	},

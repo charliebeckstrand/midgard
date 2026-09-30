@@ -55,7 +55,7 @@ export type GridGroupedWindowItem<T> = ItemBase &
 	(
 		| { kind: 'group'; group: GridGroup<T> }
 		| { kind: 'leaf'; group: GridGroup<T>; leaf: GridLeaf<T> }
-		| { kind: 'total'; group: GridGroup<T>; rows: T[] }
+		| { kind: 'total'; group: GridGroup<T>; rows: readonly T[] }
 	)
 
 /**
@@ -313,7 +313,7 @@ export function detailOpen<T>(row: T, key: string | number, expansion: DetailWir
  * @internal
  */
 export function detailWindowItems<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	expansion: DetailWiring<T>
 	motions: ReadonlyMap<string | number, GridRowMotion>
@@ -370,7 +370,7 @@ export function detailWindowItems<T>(args: {
  * @internal
  */
 export function detailWindowRowCount<T>(
-	rows: T[],
+	rows: readonly T[],
 	rowKeys: (string | number)[],
 	expansion: DetailWiring<T>,
 ): number {
@@ -405,7 +405,7 @@ export function windowItemEstimate(item: { size?: number }, rowHeight: number): 
  */
 export function bodyRowCount<T>(args: {
 	virtualize: boolean
-	rows: T[]
+	rows: readonly T[]
 	rowKeys: (string | number)[]
 	/** The client groups, or `null` outside client grouping. */
 	groups: GridGroup<T>[] | null
