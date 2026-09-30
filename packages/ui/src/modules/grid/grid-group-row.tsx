@@ -1,20 +1,16 @@
 'use client'
-
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import { memo, type ReactNode } from 'react'
-import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
+import { memo } from 'react'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
-import { groupValueLabel } from './engine/grid-column/label'
 import type { GridGroup } from './engine/grid-group/tree'
 import { groupItemKey } from './engine/grid-items/items'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
+import { GridGroupDisclosure } from './grid-group-disclosure'
 import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
@@ -62,10 +58,6 @@ function GridGroupRowImpl<T>({
 	// The group size, after the filters, since filtering prunes the leaves.
 	const count = group.leaves.length
 
-	const label: ReactNode = renderHeader
-		? renderHeader({ columnId, value, count })
-		: `${groupValueLabel(value)} (${count})`
-
 	const aggregated = hasAggregation(columns)
 
 	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
@@ -94,22 +86,14 @@ function GridGroupRowImpl<T>({
 				colSpan={span}
 				className={cn(k.rowGroup.rail.padded, color && k.rowGroup.rail.color[color])}
 			>
-				<Button
-					type="button"
-					variant="bare"
-					onClick={() => onToggle(group.id)}
-					aria-expanded={expanded}
-					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${groupValueLabel(value)}`}
-					className="p-0"
-					suffix={
-						<Icon
-							icon={expanded ? <ChevronDown /> : <ChevronRight />}
-							className={cn(k.rowGroup.chevron)}
-						/>
-					}
-				>
-					{label}
-				</Button>
+				<GridGroupDisclosure
+					value={value}
+					count={count}
+					columnId={columnId}
+					renderHeader={renderHeader}
+					expanded={expanded}
+					onToggle={() => onToggle(group.id)}
+				/>
 				<GridNavCell stop={navKey} />
 			</TableCell>
 

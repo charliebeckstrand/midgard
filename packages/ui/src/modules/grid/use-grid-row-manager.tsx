@@ -6,103 +6,23 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { groupValueLabel } from './engine/grid-column/label'
+import {
+	applyRowKeyOrder,
+	buildRowManagerGroups,
+	normalizeRowGroups,
+} from './engine/grid-group/row-manager'
 import type { GridGroup } from './engine/grid-group/tree'
-import { groupKeyOf } from './engine/grid-items/items'
 import type { GridGroupBy } from './grid-data-types'
-import type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
+import type {
+	GridRowGroup,
+	GridRowGroupPresentation,
+	GridRowGroups,
+	GridRowManagerGroup,
+} from './grid-row-group-types'
 import type { GridMenuItem } from './types'
-
-/**
- * One group as the row manager renders it: identity, display label, row count,
- * and its overlay color. Built by {@link GridData} from the engine's grouped rows
- * and resolved to display order (overlay group order applied) by
- * {@link useGridRowManager}.
- *
- * @internal
- */
-export type GridRowManagerGroup = {
-	/** The group's key — the grouping column's shared value. */
-	key: string | number
-	/** The group's header label — the shared value formatted. */
-	label: ReactNode
-	/** How many rows the group holds. */
-	count: number
-	/** The group's overlay color, or `undefined` when uncolored. */
-	color?: PaletteColor
-}
-
-/**
- * The body-facing presentation the overlay resolves to: a color lookup, always
- * live, and the manual group order. The order is `null` when the overlay no
- * longer covers every group. {@link GridBody} reads it to tint and reorder the grouped rows.
- * Rows within a group are not managed — they keep the engine's order.
- *
- * @internal
- */
-export type GridRowGroupPresentation = {
-	/** The group's overlay color by key, or `undefined` when uncolored. */
-	color: (key: string | number) => PaletteColor | undefined
-	/** Group keys in manual order, or `null` to keep the engine's group order. */
-	groupOrder: (string | number)[] | null
-}
-
-/** Unwraps the {@link GridRowGroups} binding: the array shorthand seeds `defaultValue`. @internal */
-function normalizeRowGroups(config: GridRowGroups | undefined): {
-	value?: GridRowGroup[]
-	defaultValue?: GridRowGroup[]
-	onValueChange?: (groups: GridRowGroup[]) => void
-} {
-	if (Array.isArray(config)) return { defaultValue: config }
-
-	return config ?? {}
-}
 
 /** Stable empty overlay; read-only, replaced wholesale on change. @internal */
 const EMPTY: GridRowGroup[] = []
-
-/**
- * Reorders keyed `items` to lead in `order`, appending any not listed in their
- * original relative order — the stable reconcile behind the manual group order.
- * Returns `items` untouched for an empty order.
- *
- * @internal
- */
-export function applyRowKeyOrder<I>(
-	items: I[],
-	order: (string | number)[] | undefined,
-	keyOf: (item: I) => string | number,
-): I[] {
-	if (!order || order.length === 0) return items
-
-	const byKey = new Map(items.map((item) => [String(keyOf(item)), item]))
-
-	const ordered = order.map((key) => byKey.get(String(key))).filter((item) => item != null)
-
-	const listed = new Set(order.map(String))
-
-	const rest = items.filter((item) => !listed.has(String(keyOf(item))))
-
-	return [...ordered, ...rest]
-}
-
-/**
- * Builds the row manager's natural-order view model from the groups. There is
- * one entry per group: its shared value, formatted label, and leaf count. Empty
- * outside client grouping. The overlay's color and ordering are layered on
- * later by {@link useGridRowManager}.
- *
- * @internal
- */
-function buildRowManagerGroups<T>(groups: GridGroup<T>[] | null): GridRowManagerGroup[] {
-	return (groups ?? []).map((group) => {
-		return {
-			key: groupKeyOf(group),
-			label: groupValueLabel(group.value),
-			count: group.leaves.length,
-		}
-	})
-}
 
 /** Options for {@link useGridRowManager}. @internal */
 type GridRowManagerOptions = {
