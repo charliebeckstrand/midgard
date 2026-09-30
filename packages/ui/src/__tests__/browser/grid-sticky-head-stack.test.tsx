@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
-import { stickyHeadInset } from '../../modules/grid/grid-nav-cell'
+import { stickyHeadInset } from '../../modules/grid/engine/grid-sticky-insets'
 import { fireEvent, frames, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
