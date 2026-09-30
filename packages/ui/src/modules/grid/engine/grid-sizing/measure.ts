@@ -3,6 +3,14 @@ import type { GridColumn } from '../../types'
 import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-constants'
 
 /**
+ * The one `Range` that each intrinsic-width read selects into. A new `Range`
+ * for each read costs more than the read. {@link measureColumns} collapses it
+ * to the document start after each pass, so it holds no node of the grid
+ * between passes.
+ */
+let sharedRange: Range | null = null
+
+/**
  * The intrinsic content width of an element's text — the width it wants before
  * any truncation clip. It is read sub-pixel from a `Range` over its contents.
  * `scrollWidth` is the integer fallback where `Range` geometry is unavailable
@@ -12,7 +20,9 @@ import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-cons
  * @internal
  */
 function intrinsicWidth(el: HTMLElement): number {
-	const range = document.createRange()
+	sharedRange ??= document.createRange()
+
+	const range = sharedRange
 
 	range.selectNodeContents(el)
 
@@ -362,6 +372,10 @@ export function measureColumns<T>({
 
 	// Every width rounds up, so that a fractional pixel never clips the content.
 	for (const [id, { widest: width }] of scans) widest.set(id, Math.ceil(width))
+
+	// A collapse alone keeps a boundary in the last leaf. A boundary at the
+	// document start collapses the range there and releases that leaf.
+	sharedRange?.setEnd(document, 0)
 
 	return { floors, bodies: widest, cells }
 }

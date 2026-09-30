@@ -270,9 +270,12 @@ function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 	// No settle key: the header cell re-renders on its own engine `width` prop
 	// (drag and nudge alike), so the commit measure already re-runs at settle —
 	// unlike the memoized body cells, which take the snapshot from the grid.
-	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
-
 	const resizing = useGridResizing()
+
+	// A drag renders the header on each frame. The body cells stand their
+	// measure down through the drag, and so does the title; the render at the
+	// settle measures it again.
+	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(undefined, resizing)
 
 	return (
 		// `!resizing` holds the tooltip closed through a column drag-resize: the

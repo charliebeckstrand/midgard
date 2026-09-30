@@ -253,6 +253,28 @@ export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string):
 }
 
 /**
+ * Walks the previous members of a group. A member that is not orderable holds
+ * its slot, and each orderable slot takes the next id of the zone. The zone ids
+ * left over append at the end.
+ */
+function mergeHeldMembers(
+	previous: (string | number)[],
+	zoneIds: (string | number)[],
+	isOrderable: (id: string | number) => boolean,
+): (string | number)[] {
+	const next: (string | number)[] = []
+
+	let index = 0
+
+	for (const id of previous) {
+		if (!isOrderable(id)) next.push(id)
+		else if (index < zoneIds.length) next.push(zoneIds[index++] as string | number)
+	}
+
+	return [...next, ...zoneIds.slice(index)]
+}
+
+/**
  * Translates a settled {@link ZoneMap} back into the group editor's two external
  * stores. One is each group's `columns`: membership and order, read straight
  * from its zone. The other is the ungrouped pool's order, spliced back into the
@@ -274,7 +296,14 @@ export function zoneMapToStores(
 
 	const realId = (id: string): string | number => byString.get(id) ?? id
 
-	const nextGroups = groups.map((g) => ({ ...g, columns: (map[String(g.id)] ?? []).map(realId) }))
+	// A zone holds only the orderable members, so each other member (a pinned
+	// column) keeps its slot in the group, as the "Move to" path keeps it.
+	const isOrderable = (id: string | number) => byString.has(String(id))
+
+	const nextGroups = groups.map((g) => ({
+		...g,
+		columns: mergeHeldMembers(g.columns, (map[String(g.id)] ?? []).map(realId), isOrderable),
+	}))
 
 	const ungroupedIds = (map[UNGROUPED] ?? []).map(realId)
 

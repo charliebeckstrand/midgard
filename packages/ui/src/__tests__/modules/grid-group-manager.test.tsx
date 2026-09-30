@@ -208,6 +208,17 @@ describe('zoneMapToStores', () => {
 
 		expect(next.groups[0]?.columns).toEqual(['a', 'b', 'c'])
 	})
+
+	it('keeps a pinned member at its slot in its group', () => {
+		// 'p' is pinned, so it is not orderable and its zone does not hold it.
+		const pinnedGroups: GridColumnGroup[] = [{ id: 'g', title: 'G', columns: ['a', 'p', 'b'] }]
+
+		const map: ZoneMap = { g: ['b', 'a'], [UNGROUPED]: ['c', 'd'] }
+
+		const next = zoneMapToStores(pinnedGroups, order, orderableIds, map)
+
+		expect(next.groups[0]?.columns).toEqual(['b', 'p', 'a'])
+	})
 })
 
 describe('groupAwareKeyboardCoordinates', () => {

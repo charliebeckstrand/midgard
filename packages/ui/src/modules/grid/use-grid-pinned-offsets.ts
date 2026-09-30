@@ -2,6 +2,7 @@
 
 import type { ColumnPinningState } from '@tanstack/react-table'
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { pinSide } from './engine/grid-pin/layout'
 import {
 	type FrozenCell,
@@ -104,8 +105,10 @@ export function useGridPinnedOffsets<T>({
 
 		// A frozen column's width is the only input to the offsets, so observing the
 		// frozen header cells is the whole trigger set. Each tick re-scans, since a
-		// column change can have replaced the cells since this ran.
-		const observer = new ResizeObserver(() => publish(cells()))
+		// column change can have replaced the cells since this ran. The update
+		// commits in the callback, as the sizing observer's does, so the followers
+		// move in the frame of the width change and not one painted frame late.
+		const observer = new ResizeObserver(() => flushSync(() => publish(cells())))
 
 		for (const { cell } of scan) observer.observe(cell)
 
