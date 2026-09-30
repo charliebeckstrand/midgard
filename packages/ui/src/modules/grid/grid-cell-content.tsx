@@ -74,7 +74,8 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
 		// `data-grid-content` marks the truncating leaf so the column autosizer can
 		// read its intrinsic content width (`scrollWidth`/`Range`), unclipped by the
 		// column it's measuring.
-		<span ref={ref} data-grid-content className={TRUNCATE_CLASS}>
+		// An open editor lets the span overflow (see `k.cell.editing`).
+		<span ref={ref} data-grid-content className={editing ? EDITING_CLASS : TRUNCATE_CLASS}>
 			<GridCellEditingContext value={setEditing}>{content}</GridCellEditingContext>
 		</span>
 	)
@@ -121,6 +122,9 @@ function GridCellReveal({
 
 /** The static truncating-span class, composed once — not per rendered cell. @internal */
 const TRUNCATE_CLASS = cn(k.cell.truncate)
+
+/** The span class while it holds an open editor, which lets the content overflow. @internal */
+const EDITING_CLASS = cn(k.cell.editing)
 
 /** The static tooltip-content class, composed once. @internal */
 const TOOLTIP_CLASS = cn(k.cell.tooltip)

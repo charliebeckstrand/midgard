@@ -739,18 +739,32 @@ describe('Grid export', () => {
 
 		expect(trigger.querySelector('svg.lucide-download')).toBeNull()
 
-		expect(trigger).toBeDisabled()
+		// The trigger gates activation with `aria-disabled`, not `disabled`, so it
+		// stays focusable. A click while busy opens no menu.
+		expect(trigger).toHaveAttribute('aria-disabled', 'true')
+
+		expect(trigger).toBeEnabled()
+
+		fireEvent.click(trigger)
+
+		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
 
 		server.resolve(fullList)
 
-		// Settling restores the icon, drops the spinner, and re-enables the trigger.
+		// Settling restores the icon, drops the spinner, and ends the gate.
 		await waitFor(() => expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull())
 
 		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
 
-		expect(trigger).toBeEnabled()
+		expect(trigger).not.toHaveAttribute('aria-disabled')
 
 		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
+
+		openExportMenu()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 	})
 
 	it('lets exportRows win over an active selection', async () => {
