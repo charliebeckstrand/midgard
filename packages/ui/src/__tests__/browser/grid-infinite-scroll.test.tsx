@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, frames, present, renderUI, screen, waitFor } from '../helpers'
+import { nextPaint } from '../helpers/frames'
 import { budget, pause } from './helpers/wall-clock'
 
 /**
@@ -295,6 +296,49 @@ describe('grid infinite scroll (real browser)', () => {
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(2))
 
 		expect(screen.queryByText('Name 50')).not.toBeNull()
+	})
+
+	it('retries a failed fetch on a short scroll after a row grows with no scroll event', async () => {
+		const onLoadMore = vi.fn()
+
+		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		// Each scroll in this case is native only: one event for each move, which
+		// the browser sends in the next frame.
+		scroll.scrollTop = scroll.scrollHeight
+
+		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
+
+		const last = present(screen.queryByText('Name 50')?.closest('tr'), 'the last row')
+
+		await frames()
+
+		// The fetch failed. The last row grows below the offset, so the scroll
+		// height changes and no scroll event comes. A height that the last event
+		// recorded is now stale.
+		const before = scroll.scrollHeight
+
+		last.style.height = '120px'
+
+		// The scroll starts in a task after the paint, as the input of a user does.
+		// A write inside a frame callback can land before a resize observation of
+		// the same frame.
+		await nextPaint()
+
+		expect(scroll.scrollHeight).toBeGreaterThan(before)
+
+		// A short scroll by the user must run the retry, although the window does
+		// not move.
+		scroll.scrollTop -= 72
+
+		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(2))
 	})
 
 	it('scrolls to the top and holds fire when the row set is replaced', async () => {
