@@ -501,27 +501,6 @@ describe('ScatterChart', () => {
 		expect(hit?.getAttribute('class')).toContain('cursor-pointer')
 	})
 
-	it('reports the clicked point by series and datum', () => {
-		const onPointClick = vi.fn()
-
-		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={STOPS}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				crosshair={{ snap: true }}
-				onPointClick={onPointClick}
-			/>,
-		)
-
-		fireEvent.click(bySlot(container, 'chart-hit') as Element, { clientX: 240, clientY: 80 })
-
-		expect(onPointClick).toHaveBeenCalledWith(
-			expect.objectContaining({ series: expect.any(Number), datum: expect.any(Number) }),
-		)
-	})
-
 	it('reports the data row index of the clicked point, also after a row that does not parse', () => {
 		/** The row that a click at the right edge of the plot reports. */
 		function clickedRow(data: { x: number | string; y: number }[]) {
@@ -542,7 +521,9 @@ describe('ScatterChart', () => {
 			// The snapped column at the right edge is x = 20.
 			fireEvent.click(getSlot(container, 'chart-hit'), { clientX: 395, clientY: 20 })
 
-			const [{ datum }] = onPointClick.mock.calls[0] as [{ series: number; datum: number }]
+			const [{ series, datum }] = onPointClick.mock.calls[0] as [{ series: number; datum: number }]
+
+			expect(series).toBe(0)
 
 			unmount()
 

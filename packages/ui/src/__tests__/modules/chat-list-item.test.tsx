@@ -50,18 +50,16 @@ describe('ChatListItem', () => {
 		expect(bySlot(container, 'chat-list-item-actions')).toHaveClass('relative', 'z-10')
 	})
 
-	it('leaves the static title without a select overlay', () => {
-		const { container } = renderUI(<ChatListItem title="Read only" />)
-
-		expect(bySlot(container, 'chat-list-item-select')).not.toHaveClass('after:absolute')
-	})
-
-	it('renders a static, non-interactive title when onSelect is omitted', () => {
+	it('renders a static, non-interactive title with no select overlay when onSelect is omitted', () => {
 		const { container } = renderUI(<ChatListItem title="Read only" />)
 
 		expect(screen.queryByRole('button')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'chat-list-item-select')?.tagName).toBe('SPAN')
+		const select = bySlot(container, 'chat-list-item-select')
+
+		expect(select?.tagName).toBe('SPAN')
+
+		expect(select).not.toHaveClass('after:absolute')
 	})
 
 	it('marks the current conversation with aria-current and data-current', () => {
@@ -73,15 +71,13 @@ describe('ChatListItem', () => {
 	})
 
 	it('mounts an active indicator for the current conversation only', () => {
-		const { container } = renderUI(<ChatListItem title="Active" current onSelect={vi.fn()} />)
+		const current = renderUI(<ChatListItem title="Active" current onSelect={vi.fn()} />)
 
-		expect(bySlot(container, 'active-indicator')).toBeInTheDocument()
-	})
+		expect(bySlot(current.container, 'active-indicator')).toBeInTheDocument()
 
-	it('omits the active indicator when not current', () => {
-		const { container } = renderUI(<ChatListItem title="Inactive" onSelect={vi.fn()} />)
+		const inactive = renderUI(<ChatListItem title="Inactive" onSelect={vi.fn()} />)
 
-		expect(bySlot(container, 'active-indicator')).not.toBeInTheDocument()
+		expect(bySlot(inactive.container, 'active-indicator')).not.toBeInTheDocument()
 	})
 
 	it('re-draws the focus ring on the active indicator of the current row', () => {

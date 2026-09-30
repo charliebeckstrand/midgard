@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import {
+	describeColumnVisibility,
+	describeCommit,
+	describePin,
+	describeResize,
+	describeSettle,
+} from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
 import { fireEvent, liveRegion, renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
@@ -184,9 +191,7 @@ describe('Grid announcements', () => {
  * exact wording the live region speaks is pinned.
  */
 describe('Grid announcement builders', () => {
-	it('describes a pin to each edge and an unpin', async () => {
-		const { describePin } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a pin to each edge and an unpin', () => {
 		expect(describePin('Name', 'left')).toBe('Pinned Name to the left')
 
 		expect(describePin('Name', 'right')).toBe('Pinned Name to the right')
@@ -194,25 +199,17 @@ describe('Grid announcement builders', () => {
 		expect(describePin('Name', false)).toBe('Unpinned Name')
 	})
 
-	it('describes a show and a hide', async () => {
-		const { describeColumnVisibility } = await import(
-			'../../modules/grid/engine/grid-announcements'
-		)
-
+	it('describes a show and a hide', () => {
 		expect(describeColumnVisibility('Age', true)).toBe('Hid Age column')
 
 		expect(describeColumnVisibility('Age', false)).toBe('Showed Age column')
 	})
 
-	it('describes a settled resize, rounding the width', async () => {
-		const { describeResize } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a settled resize, rounding the width', () => {
 		expect(describeResize('Name', 240.6)).toBe('Name column 241 pixels')
 	})
 
-	it('describes a commit by its column and its row', async () => {
-		const { describeCommit } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a commit by its column and its row', () => {
 		expect(describeCommit(['Name'], 'Alice')).toBe('Name updated for Alice')
 
 		expect(describeCommit(['Name', 'Age'], 'Alice')).toBe('2 cells updated for Alice')
@@ -221,9 +218,7 @@ describe('Grid announcement builders', () => {
 		expect(describeCommit(['Name', 'Name', 'Age'])).toBe('3 cells updated')
 	})
 
-	it('describes a settled batch, accepted, refused, or both', async () => {
-		const { describeSettle } = await import('../../modules/grid/engine/grid-announcements')
-
+	it('describes a settled batch, accepted, refused, or both', () => {
 		expect(describeSettle(['Name'], [], 'row 1')).toBe('Name updated for row 1')
 
 		expect(describeSettle([], ['Name', 'Age'], 'row 1')).toBe('2 cells not saved for row 1')

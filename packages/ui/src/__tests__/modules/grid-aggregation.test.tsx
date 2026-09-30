@@ -8,7 +8,7 @@ import {
 	hasAggregation,
 } from '../../modules/grid/engine/grid-aggregate'
 import type { GridColumn } from '../../modules/grid/types'
-import { renderUI, screen, userEvent, within } from '../helpers'
+import { renderUI, screen, userEvent } from '../helpers'
 
 type Sale = { id: number; region: string; units: number; revenue: number; margin: number }
 
@@ -315,14 +315,6 @@ describe('Grid aggregation rendering', () => {
 		await user.click(screen.getByRole('button', { name: 'Collapse group West' }))
 
 		// The West total collapses out of the accessibility tree with its leaves.
-		const westTotal = within(rowByText('West (2)')?.parentElement as HTMLElement)
-
-		expect(westTotal).toBeDefined()
-
-		// The first group total (West) is now hidden.
-		expect(container.querySelector('[data-total-row="group"]')).toHaveAttribute(
-			'aria-hidden',
-			'true',
-		)
+		expect(groupTotal()).toHaveAttribute('aria-hidden', 'true')
 	})
 })

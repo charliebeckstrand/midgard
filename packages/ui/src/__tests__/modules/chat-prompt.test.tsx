@@ -222,7 +222,13 @@ describe('ChatPrompt', () => {
 			/>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Attach' })).toBeInTheDocument()
+		const attach = screen.getByRole('button', { name: 'Attach' })
+
+		const send = screen.getByRole('button', { name: 'Send message' })
+
+		expect(attach.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING,
+		)
 	})
 
 	it('omits the attachment button when onAttach is not provided', () => {

@@ -101,9 +101,7 @@ describe('ChatTool', () => {
 	})
 
 	it('draws a step beside the prose of the same reply', () => {
-		const { container } = renderTool(tool())
-
-		renderUI(
+		const { container } = renderUI(
 			<ChatMessage>
 				{[{ kind: 'text', id: 'x', text: 'Twelve stops are late.' }, tool({ id: 't2' })]}
 			</ChatMessage>,

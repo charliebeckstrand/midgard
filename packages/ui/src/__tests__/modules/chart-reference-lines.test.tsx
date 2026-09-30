@@ -272,37 +272,24 @@ describe('reference lines', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Goal')
 	})
 
-	it('reveals an above-baseline rule upward when animating vertically', () => {
-		const { container } = bar([{ value: 50 }], 'vertical', true)
+	// An animated rule enters from the baseline, the way its bar would point. The
+	// mock surfaces the enter offset on the value axis: y is down the screen, so a
+	// rise is positive; x is across it, so a rightward slide is negative.
+	it.each([
+		['an above-baseline', 50, 'vertical', 'y', 1],
+		['a below-baseline', -20, 'vertical', 'y', -1],
+		['an above-baseline', 50, 'horizontal', 'x', -1],
+		['a below-baseline', -20, 'horizontal', 'x', 1],
+	] as const)(
+		'reveals %s rule from the baseline under %s orientation',
+		(_, value, orientation, axis, sign) => {
+			const { container } = bar([{ value }], orientation, true)
 
-		// Value 50 sits above the zero baseline, so the rule seats at the baseline
-		// and rises up to it — a positive enter offset.
-		expect(Number(riseWrapper(container)?.getAttribute('data-initial-y'))).toBeGreaterThan(0)
-	})
+			const offset = Number(riseWrapper(container)?.getAttribute(`data-initial-${axis}`))
 
-	it('reveals a below-baseline rule downward, the way its bar would point', () => {
-		const { container } = bar([{ value: -20 }], 'vertical', true)
-
-		// A value below zero points its bar down, so the rule drops from the
-		// baseline to it — a negative enter offset — not up from the plot floor.
-		expect(Number(riseWrapper(container)?.getAttribute('data-initial-y'))).toBeLessThan(0)
-	})
-
-	it('reveals an above-baseline rule rightward when animating horizontally', () => {
-		const { container } = bar([{ value: 50 }], 'horizontal', true)
-
-		// Value 50 sits right of the baseline, so the rule seats at the baseline and
-		// slides right to it — a negative enter offset.
-		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeLessThan(0)
-	})
-
-	it('reveals a below-baseline rule leftward under horizontal orientation', () => {
-		const { container } = bar([{ value: -20 }], 'horizontal', true)
-
-		// A value below zero points its bar left, so the rule slides left from the
-		// baseline — a positive enter offset.
-		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeGreaterThan(0)
-	})
+			expect(Math.sign(offset)).toBe(sign)
+		},
+	)
 
 	it('draws two lines at one value on two axes, with no duplicate React key', () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
