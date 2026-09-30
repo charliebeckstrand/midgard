@@ -52,21 +52,23 @@ export type GridRowGroups =
 	  }
 
 /**
- * One group as the row manager renders it: identity, display label, row count,
- * and its overlay color. Built by {@link GridData} from the engine's grouped rows
- * and resolved to display order (overlay group order applied) by
- * {@link useGridRowManager}.
+ * One row group as {@link GridRowManager} shows it: the key, the label, the
+ * row count, and the overlay color. It is the element type of
+ * {@link GridRowManagerProps.groups}.
  *
- * @internal
+ * @remarks {@link Grid} makes this list from its grouped rows and puts it in
+ * the display order of the {@link GridRowGroup} overlay. When you host
+ * {@link GridRowManager} yourself, give one entry for each group, in the order
+ * that the list shows.
  */
 export type GridRowManagerGroup = {
-	/** The group's key — the grouping column's shared value. */
+	/** The identity of the group: the shared value of the grouping column. {@link GridRowManagerProps.onRecolor} and {@link GridRowManagerProps.onReorderGroups} receive it. */
 	key: string | number
-	/** The group's header label — the shared value formatted. */
+	/** The text of the group in the list, such as the formatted shared value. */
 	label: ReactNode
-	/** How many rows the group holds. */
+	/** The number of rows in the group. */
 	count: number
-	/** The group's overlay color, or `undefined` when uncolored. */
+	/** The overlay color of the group. Omit it for a group with no color. */
 	color?: PaletteColor
 }
 
