@@ -151,8 +151,8 @@ export function Demo() {
 			</Example>
 
 			{/* Drag the grip to resize, or focus it and use the arrow keys. The panel
-			    never shrinks past its own header and footer, and a downward flick puts
-			    it away. */}
+			    never shrinks past its own header and footer. A drag past them pulls
+			    the panel down, and a release there or a downward flick puts it away. */}
 			<Example title="Handle">
 				<HandleExample />
 			</Example>

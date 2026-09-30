@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { type PanelSide, usePanelResize } from '../../hooks/use-panel-resize'
+import { type PanelSide, panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { makeKeyEvent, makePointerEvent } from '../helpers'
 
 /** A panel that measures `height` px on each axis. jsdom lays nothing out. */
@@ -23,21 +23,33 @@ function windowPointer(type: string, y: number, t: number): PointerEvent {
 	return event
 }
 
-/** Renders the gesture for `side`, with no floor and no ceiling in reach. */
-function renderResize(side: PanelSide = 'bottom') {
-	const onDismiss = vi.fn()
-	const floorOf = vi.fn(() => 0)
+/** What {@link renderResize} varies: the pull, the resize, and the floor. */
+type ResizeSetup = {
+	pull?: boolean
+	resize?: boolean
+	floorOf?: (panel: HTMLElement, size: number) => number
+}
 
-	const hook = renderHook(() =>
-		usePanelResize({ side, open: true, onDismiss, floorOf, ceilingOf: () => 10_000 }),
+/** Renders the gesture for `side`. By default, no floor and no ceiling are in reach. */
+function renderResize(
+	side: PanelSide = 'bottom',
+	{ pull, resize, floorOf: floor }: ResizeSetup = {},
+) {
+	const onDismiss = vi.fn()
+	const floorOf = vi.fn(floor ?? (() => 0))
+
+	const hook = renderHook(
+		({ open }) =>
+			usePanelResize({ side, open, onDismiss, floorOf, ceilingOf: () => 10_000, pull, resize }),
+		{ initialProps: { open: true } },
 	)
 
 	return { ...hook, onDismiss, floorOf }
 }
 
 /** Renders the gesture and gives it a panel. */
-function renderAttached(side: PanelSide = 'bottom') {
-	const rendered = renderResize(side)
+function renderAttached(side: PanelSide = 'bottom', setup?: ResizeSetup) {
+	const rendered = renderResize(side, setup)
 
 	const panel = makePanel()
 
@@ -150,6 +162,177 @@ describe('usePanelResize', () => {
 			expect(onDismiss).not.toHaveBeenCalled()
 
 			expect(result.current.size).toBe(350)
+		})
+	})
+
+	describe('pull', () => {
+		/** A panel of 300 px that stops at 300 px, so each drag toward its edge pulls it. */
+		function renderPulled(side: PanelSide = 'bottom', pull = true, resize = true) {
+			return renderAttached(side, { pull, resize, floorOf: (_panel, size) => size })
+		}
+
+		/** Presses the grip at 400 px, then moves slowly to `to` px. */
+		function drag(result: ReturnType<typeof renderPulled>['result'], to: number) {
+			act(() => {
+				result.current.handleProps.onPointerDown(
+					makePointerEvent({ pointerType: 'touch', clientX: 400, clientY: 400, timeStamp: 0 }),
+				)
+			})
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointermove', to, 500))
+			})
+		}
+
+		it.each<[PanelSide, number, string]>([
+			['bottom', 450, '0 50px'],
+			['top', 350, '0 -50px'],
+			['right', 450, '50px'],
+			['left', 350, '-50px'],
+		])('pulls a %s panel past its floor toward its edge', (side, to, translate) => {
+			const { result, panel } = renderPulled(side)
+
+			drag(result, to)
+
+			// The size stops at the floor, and the panel follows the pointer on.
+			expect(panel.style[panelAxis(side)]).toBe('300px')
+
+			expect(panel.style.translate).toBe(translate)
+		})
+
+		it('closes on a slow release while the panel is pulled, and leaves from there', () => {
+			const { result, onDismiss, panel } = renderPulled()
+
+			drag(result, 450)
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+			})
+
+			expect(onDismiss).toHaveBeenCalledOnce()
+
+			// The exit slide starts from the pulled panel, not from its rest.
+			expect(panel.style.height).toBe('300px')
+
+			expect(panel.style.translate).toBe('0 50px')
+		})
+
+		it('keeps the panel open on a release back at the floor', () => {
+			const { result, onDismiss, panel } = renderPulled()
+
+			drag(result, 450)
+
+			// The pointer comes back up to within a few pixels of the floor.
+			act(() => {
+				window.dispatchEvent(windowPointer('pointermove', 405, 1000))
+
+				window.dispatchEvent(windowPointer('pointerup', 405, 1500))
+			})
+
+			expect(onDismiss).not.toHaveBeenCalled()
+
+			expect(panel.style.translate).toBe('')
+
+			expect(result.current.size).toBe(300)
+		})
+
+		it('stops at the floor without the pull, as a splitter does', () => {
+			const { result, onDismiss, panel } = renderPulled('bottom', false)
+
+			drag(result, 450)
+
+			expect(panel.style.translate).toBe('')
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+			})
+
+			expect(onDismiss).not.toHaveBeenCalled()
+
+			expect(result.current.size).toBe(300)
+		})
+
+		describe('on a panel that does not resize', () => {
+			it('writes no size, and grows nothing on a drag away from its edge', () => {
+				const { result, panel } = renderPulled('bottom', true, false)
+
+				drag(result, 300)
+
+				expect(panel.style.height).toBe('')
+
+				expect(panel.style.translate).toBe('')
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 300, 1000))
+				})
+
+				// No size is committed, so the panel keeps following its content.
+				expect(result.current.size).toBeNull()
+			})
+
+			it('still pulls the panel off, and closes it on the release', () => {
+				const { result, onDismiss, panel } = renderPulled('bottom', true, false)
+
+				drag(result, 450)
+
+				expect(panel.style.height).toBe('')
+
+				expect(panel.style.translate).toBe('0 50px')
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+				})
+
+				expect(onDismiss).toHaveBeenCalledOnce()
+			})
+
+			it('keeps the panel open on a short pull, and commits no size', () => {
+				const { result, onDismiss, panel } = renderPulled('bottom', true, false)
+
+				drag(result, 405)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 405, 1000))
+				})
+
+				expect(onDismiss).not.toHaveBeenCalled()
+
+				expect(panel.style.translate).toBe('')
+
+				expect(result.current.size).toBeNull()
+			})
+
+			it('leaves the arrow keys to the page', () => {
+				const { result } = renderPulled('bottom', true, false)
+
+				const event = makeKeyEvent<HTMLElement>('ArrowUp')
+
+				act(() => result.current.handleProps.onKeyDown(event))
+
+				expect(event.preventDefault).not.toHaveBeenCalled()
+
+				expect(result.current.size).toBeNull()
+			})
+		})
+
+		it('clears a pull that closed the panel when it opens again', () => {
+			const { result, rerender, panel } = renderPulled()
+
+			drag(result, 450)
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+			})
+
+			rerender({ open: false })
+
+			// The exit slide still holds the pull.
+			expect(panel.style.translate).toBe('0 50px')
+
+			// A reopen before the slide ends takes the same node back.
+			rerender({ open: true })
+
+			expect(panel.style.translate).toBe('')
 		})
 	})
 

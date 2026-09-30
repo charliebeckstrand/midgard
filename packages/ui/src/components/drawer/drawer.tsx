@@ -90,18 +90,31 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		height?: DrawerPanelVariants['height']
 		/**
-		 * Give the panel a drag handle. The reader can then resize it between the
-		 * fixed `height` steps, and throw it away downward.
+		 * Give the panel a drag handle: a grip on its top edge that the reader pulls
+		 * down to close the panel, as a sheet closes on a phone.
 		 *
+		 * A panel with a fixed height (`half` or `full`) also resizes on the grip.
 		 * The drag sets the height directly, rather than stepping between the `height`
 		 * variants. The reader is deciding how much of the screen the panel gets, and
 		 * the answer is wherever they let go. `height` still states where it opens.
+		 * The drag stops at the chrome that does not scroll: the handle, a header,
+		 * and a footer. The grip is a window splitter, so the arrow keys resize too.
 		 *
-		 * A panel flicked downward closes, which arrives through `onOpenChange` like
-		 * every other close. Speed, not position, is what tells a dismissal from a
-		 * reader placing the edge at its shortest. A resize is the drawer's own state,
-		 * and reports nowhere. Nothing outside it needs to hold a pixel height that
-		 * only means anything on the screen it was set on.
+		 * A panel grown to its content (`auto` or `fit`) does not resize. A shorter
+		 * panel hides content behind a scroll, and a taller one adds empty space. The
+		 * grip there only pulls the panel down. It takes no focus, and assistive
+		 * technology does not see it, because `Escape` and the backdrop close the
+		 * panel already.
+		 *
+		 * Below the floor, the panel follows the pointer off the bottom of the screen.
+		 * The floor is the chrome of a fixed panel, and the full height of a grown
+		 * one. A release there closes the panel, and a release back at the floor
+		 * keeps it open. A flick downward closes it from any height. Both closes
+		 * arrive through `onOpenChange`, like every other close.
+		 *
+		 * A resize is the drawer's own state, and reports nowhere. Nothing outside it
+		 * needs to hold a pixel height that only means anything on the screen it was
+		 * set on.
 		 *
 		 * @defaultValue false
 		 */
@@ -215,6 +228,10 @@ export function Drawer({
 		if (resolvedOpen && !animateEnter) report()
 	}, [resolvedOpen, animateEnter, report])
 
+	// Only a fixed height resizes. A grown panel's height is its content, so the
+	// grip on it only pulls the panel off.
+	const resizable = height === 'half' || height === 'full'
+
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
 	// here — there is nothing for a consumer to hold.
@@ -224,6 +241,8 @@ export function Drawer({
 		onDismiss: () => setOpen(false),
 		floorOf: drawerFloor,
 		ceilingOf: drawerCeiling,
+		pull: true,
+		resize: resizable,
 	})
 
 	// The other half of the panel's height, and the one the panel itself decides:
@@ -281,7 +300,13 @@ export function Drawer({
 				style={resize.size === null ? undefined : { height: resize.size }}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-					{handle ? <DrawerHandle handleProps={resize.handleProps} covers={resize.covers} /> : null}
+					{handle ? (
+						<DrawerHandle
+							handleProps={resize.handleProps}
+							covers={resize.covers}
+							resizable={resizable}
+						/>
+					) : null}
 
 					<Density step={size}>{children}</Density>
 				</PanelProviders>

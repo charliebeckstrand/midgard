@@ -422,6 +422,15 @@ describe('Drawer drag handle', () => {
 		it('never reads an upward flick as a dismissal', () => {
 			expect(settleResize(600, -2)).toBe(600)
 		})
+
+		it('lets a panel pulled past its floor go on a slow release', () => {
+			// The panel is already on its way off the screen, so the release lets it go.
+			expect(settleResize(300, 0, 40)).toBe('close')
+		})
+
+		it('keeps a panel pulled a few pixels, which is a hand at rest on the floor', () => {
+			expect(settleResize(300, 0, 10)).toBe(300)
+		})
 	})
 
 	describe('speedOf', () => {
@@ -477,6 +486,44 @@ describe('Drawer drag handle', () => {
 		expect(handle).toHaveAttribute('aria-valuenow')
 
 		expect(handle.tabIndex).toBe(0)
+	})
+
+	it('gives a drawer grown to its content a grip to pull, not a splitter', () => {
+		const { container } = renderUI(
+			<Drawer open handle onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		const handle = getSlot(container, 'drawer-handle')
+
+		// The grip sets no size here, so a splitter would name a control that does
+		// nothing. Escape and the backdrop close the panel for a keyboard reader.
+		expect(handle).not.toHaveAttribute('role')
+
+		expect(handle).not.toHaveAttribute('tabindex')
+
+		expect(handle).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('writes no height on a drawer grown to its content when its grip is pressed', () => {
+		const { container } = renderUI(
+			<Drawer open handle height="fit" onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		const handle = getSlot(container, 'drawer-handle')
+
+		fireEvent.pointerDown(handle, { pointerType: 'touch', clientY: 400 })
+
+		fireEvent.pointerMove(window, { pointerType: 'touch', clientY: 300 })
+
+		fireEvent.pointerUp(window, { pointerType: 'touch', clientY: 300 })
+
+		// A height written here would stop the panel from following its content for
+		// the rest of the open.
+		expect(getSlot(container, 'drawer').style.height).toBe('')
 	})
 
 	it('marks the bar as held while a pointer drags it, so the grab hand closes', () => {
