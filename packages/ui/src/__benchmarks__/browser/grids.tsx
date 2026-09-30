@@ -59,6 +59,8 @@ export type MountOptions = {
 	facets?: boolean
 	/** Groups the rows by carrier, with every group open, for the grouping scenario. */
 	grouped?: boolean
+	/** Starts each group closed, for the expand scenario. The grid must mount with {@link MountOptions.grouped}. */
+	collapsed?: boolean
 }
 
 /** The rows on each page of a paginated grid. */
@@ -189,7 +191,11 @@ function uiGrid(): GridSubject {
 						<Grid
 							columns={columns}
 							grandTotalRow={grandTotal || undefined}
-							groupBy={options?.grouped ? { value: 'carrier' } : undefined}
+							groupBy={
+								options?.grouped
+									? { value: 'carrier', defaultExpanded: !options.collapsed }
+									: undefined
+							}
 							rows={current}
 							getKey={shipmentKey}
 							virtualize

@@ -3,6 +3,7 @@
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import {
 	addGroupTo,
 	assignColumn,
@@ -98,26 +99,23 @@ export function useGridGroupManager({
 		)
 	}, [groups, onGroupsChange, baseId])
 
-	const removeGroup = useCallback(
-		(id: string | number) => onGroupsChange(removeGroupFrom(groups, id)),
-		[groups, onGroupsChange],
+	// The editor hands these four to every zone and every column row, so each
+	// keeps one identity for the mount and reads the newest groups. A rename then
+	// renders no row that it does not change.
+	const removeGroup = useStableEvent((id: string | number) =>
+		onGroupsChange(removeGroupFrom(groups, id)),
 	)
 
-	const renameGroup = useCallback(
-		(id: string | number, title: string) => onGroupsChange(renameGroupIn(groups, id, title)),
-		[groups, onGroupsChange],
+	const renameGroup = useStableEvent((id: string | number, title: string) =>
+		onGroupsChange(renameGroupIn(groups, id, title)),
 	)
 
-	const recolorGroup = useCallback(
-		(id: string | number, color: PaletteColor | undefined) =>
-			onGroupsChange(recolorGroupIn(groups, id, color)),
-		[groups, onGroupsChange],
+	const recolorGroup = useStableEvent((id: string | number, color: PaletteColor | undefined) =>
+		onGroupsChange(recolorGroupIn(groups, id, color)),
 	)
 
-	const assign = useCallback(
-		(columnId: string | number, groupId: string | number | null) =>
-			onGroupsChange(assignColumn(groups, columnId, groupId)),
-		[groups, onGroupsChange],
+	const assign = useStableEvent((columnId: string | number, groupId: string | number | null) =>
+		onGroupsChange(assignColumn(groups, columnId, groupId)),
 	)
 
 	const handleDragStart = useCallback(

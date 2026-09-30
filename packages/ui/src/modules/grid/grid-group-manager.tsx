@@ -19,17 +19,19 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { EllipsisVertical, Plus, Trash2 } from 'lucide-react'
-import { type ReactNode, useMemo } from 'react'
+import { memo, type ReactNode, use, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
-import { cn, dataAttr } from '../../core'
+import { cn, createContext, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { useDragCursor, useSortableItem, useSortableSensors } from '../../hooks'
+import { useStableValue } from '../../hooks/use-stable-value'
 import { k } from '../../recipes/kata/grid-group'
 import { columnLabel } from './engine/grid-column/label'
+import { sameElements } from './engine/grid-table/equality'
 import {
 	findZoneId,
 	GROUP_PREFIX,
@@ -117,6 +119,16 @@ export const groupAwareKeyboardCoordinates: KeyboardCoordinateGetter = (event, a
 		context: { ...args.context, droppableContainers: scoped },
 	})
 }
+
+/**
+ * The groups of the editor, for the "Move to" items of a column row. A row
+ * reads them only while its menu is open, so a rename renders no closed row.
+ *
+ * @internal
+ */
+const [GroupManagerGroupsContext] = createContext<GridColumnGroup[]>('GridGroupManagerGroups', {
+	default: [],
+})
 
 /** Props for {@link GridGroupManager}. @internal */
 export type GridGroupManagerProps = {
@@ -248,7 +260,12 @@ export function GridGroupManager({
 
 	const ungroupedZone = mgr.zones.find((zone) => !zone.group)
 
-	const groupSortIds = groupZones.map((zone) => `${GROUP_PREFIX}${zone.id}`)
+	// A rename gives a new list of the same group ids. The held list keeps the
+	// value of the group sortable, so the rows under it do not render.
+	const groupSortIds = useStableValue(
+		groupZones.map((zone) => `${GROUP_PREFIX}${zone.id}`),
+		sameElements,
+	)
 
 	const shared = {
 		byId,
@@ -268,56 +285,58 @@ export function GridGroupManager({
 	)
 
 	return (
-		<DndContext
-			accessibility={{ announcements }}
-			sensors={sensors}
-			collisionDetection={groupAwareCollision}
-			measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-			onDragStart={mgr.handleDragStart}
-			onDragOver={mgr.handleDragOver}
-			onDragEnd={mgr.handleDragEnd}
-			onDragCancel={mgr.handleDragCancel}
-		>
-			<div className={cn(k.manager.root)}>
-				{ungroupedZone && (
-					<GridGroupManagerZoneView
-						zone={ungroupedZone}
-						columnIds={mgr.zoneMap[UNGROUPED] ?? []}
-						{...shared}
-					/>
-				)}
-
-				{/* Groups reorder as a vertical list, dragged by the handle beside each
-				    name; the grid's group order follows this order. */}
-				<SortableContext items={groupSortIds} strategy={verticalListSortingStrategy}>
-					{groupZones.map((zone) => (
-						<GridGroupManagerGroupZone
-							key={zone.id}
-							zone={zone}
-							columnIds={mgr.zoneMap[String(zone.id)] ?? []}
+		<GroupManagerGroupsContext value={groups}>
+			<DndContext
+				accessibility={{ announcements }}
+				sensors={sensors}
+				collisionDetection={groupAwareCollision}
+				measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+				onDragStart={mgr.handleDragStart}
+				onDragOver={mgr.handleDragOver}
+				onDragEnd={mgr.handleDragEnd}
+				onDragCancel={mgr.handleDragCancel}
+			>
+				<div className={cn(k.manager.root)}>
+					{ungroupedZone && (
+						<GridGroupManagerZoneView
+							zone={ungroupedZone}
+							columnIds={mgr.zoneMap[UNGROUPED] ?? []}
 							{...shared}
 						/>
-					))}
-				</SortableContext>
+					)}
 
-				<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
-					<Icon icon={<Plus />} />
-					New group
-				</Button>
-			</div>
+					{/* Groups reorder as a vertical list, dragged by the handle beside each
+					    name; the grid's group order follows this order. */}
+					<SortableContext items={groupSortIds} strategy={verticalListSortingStrategy}>
+						{groupZones.map((zone) => (
+							<GridGroupManagerGroupZone
+								key={zone.id}
+								zone={zone}
+								columnIds={mgr.zoneMap[String(zone.id)] ?? []}
+								{...shared}
+							/>
+						))}
+					</SortableContext>
 
-			{/* The dragged row's stand-in: a full, inert clone of the grip, disabled
-			    checkbox, and label. The source row can therefore hide while dragging,
-			    without the checkbox appearing to vanish. Mounted always; child gated on drag. */}
-			<DragOverlay dropAnimation={null}>
-				{activeItem ? (
-					<GridGroupManagerColumnRowOverlay
-						item={activeItem}
-						checked={!hidden.has(activeItem.id)}
-					/>
-				) : null}
-			</DragOverlay>
-		</DndContext>
+					<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
+						<Icon icon={<Plus />} />
+						New group
+					</Button>
+				</div>
+
+				{/* The dragged row's stand-in: a full, inert clone of the grip, disabled
+				    checkbox, and label. The source row can therefore hide while dragging,
+				    without the checkbox appearing to vanish. Mounted always; child gated on drag. */}
+				<DragOverlay dropAnimation={null}>
+					{activeItem ? (
+						<GridGroupManagerColumnRowOverlay
+							item={activeItem}
+							checked={!hidden.has(activeItem.id)}
+						/>
+					) : null}
+				</DragOverlay>
+			</DndContext>
+		</GroupManagerGroupsContext>
 	)
 }
 
@@ -386,10 +405,14 @@ function GridGroupManagerZoneView({
 	// The zone's matching members — all of them with no query typed. Both the render
 	// and the sortable run off these, so a drag animates over the rows on screen;
 	// `columnIds` stays whole behind them, which is what a drop commits from.
-	const visibleIds = useMemo(
+	const filteredIds = useMemo(
 		() => columnIds.filter((id) => visibleColumnIds.has(id)),
 		[columnIds, visibleColumnIds],
 	)
+
+	// A rename gives each zone a new list of the same ids. The held list keeps the
+	// sortable context of the zone, so the context renders no row.
+	const visibleIds = useStableValue(filteredIds, sameElements)
 
 	// Colors already taken by other groups — offered disabled, so a color maps to
 	// at most one group. Memoized so a drag/hover re-render doesn't rescan every
@@ -446,7 +469,7 @@ function GridGroupManagerZoneView({
 									key={id}
 									item={item}
 									zoneId={zone.id}
-									groups={groups}
+									movable={groups.length > 0}
 									hidden={hidden}
 									onToggle={onToggle}
 									assign={assign}
@@ -519,17 +542,24 @@ function GridGroupManagerZoneHeader({
 type GridGroupManagerColumnRowProps = {
 	item: GridColumnManagerItem
 	zoneId: string | number
-	groups: GridColumnGroup[]
+	/** Whether a group exists to move the column into or out of. */
+	movable: boolean
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
 	assign: (columnId: string | number, groupId: string | number | null) => void
 }
 
-/** One column row inside a zone: drag grip, visibility checkbox, and a "Move to" menu. @internal */
-function GridGroupManagerColumnRow({
+/**
+ * One column row inside a zone: drag grip, visibility checkbox, and a "Move to"
+ * menu. The row is memoized, and its props keep their identity through a
+ * rename, so a rename renders no row.
+ *
+ * @internal
+ */
+const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	item,
 	zoneId,
-	groups,
+	movable,
 	hidden,
 	onToggle,
 	assign,
@@ -540,8 +570,6 @@ function GridGroupManagerColumnRow({
 		useSortableItem({ id: String(item.id) })
 
 	const label = columnLabel(item)
-
-	const inGroup = zoneId !== UNGROUPED
 
 	return (
 		<div
@@ -568,7 +596,7 @@ function GridGroupManagerColumnRow({
 
 			{/* The "Move to" menu only means something once a group exists to move into,
 			    or out of. With no groups it would open empty, so it's withheld. */}
-			{groups.length > 0 && (
+			{movable && (
 				<Menu placement="bottom-end">
 					<MenuTrigger>
 						<Button type="button" variant="bare" aria-label={`Move ${label}`}>
@@ -576,22 +604,46 @@ function GridGroupManagerColumnRow({
 						</Button>
 					</MenuTrigger>
 					<MenuContent>
-						{groups
-							.filter((group) => group.id !== zoneId)
-							.map((group) => (
-								<MenuItem key={group.id} onAction={() => assign(item.id, group.id)}>
-									<MenuLabel>Move to {columnLabel(group)}</MenuLabel>
-								</MenuItem>
-							))}
-						{inGroup && (
-							<MenuItem onAction={() => assign(item.id, null)}>
-								<MenuLabel>Remove from group</MenuLabel>
-							</MenuItem>
-						)}
+						<GridGroupManagerMoveItems columnId={item.id} zoneId={zoneId} assign={assign} />
 					</MenuContent>
 				</Menu>
 			)}
 		</div>
+	)
+})
+
+/** Props for {@link GridGroupManagerMoveItems}. @internal */
+type GridGroupManagerMoveItemsProps = {
+	columnId: string | number
+	zoneId: string | number
+	assign: (columnId: string | number, groupId: string | number | null) => void
+}
+
+/**
+ * The items of the "Move to" menu of a column row: one for each other group,
+ * and a remove item for a column in a group. The menu mounts them only while
+ * it is open, so they read the groups from the context of the editor.
+ *
+ * @internal
+ */
+function GridGroupManagerMoveItems({ columnId, zoneId, assign }: GridGroupManagerMoveItemsProps) {
+	const groups = use(GroupManagerGroupsContext)
+
+	return (
+		<>
+			{groups
+				.filter((group) => group.id !== zoneId)
+				.map((group) => (
+					<MenuItem key={group.id} onAction={() => assign(columnId, group.id)}>
+						<MenuLabel>Move to {columnLabel(group)}</MenuLabel>
+					</MenuItem>
+				))}
+			{zoneId !== UNGROUPED && (
+				<MenuItem onAction={() => assign(columnId, null)}>
+					<MenuLabel>Remove from group</MenuLabel>
+				</MenuItem>
+			)}
+		</>
 	)
 }
 
