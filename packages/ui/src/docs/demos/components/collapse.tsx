@@ -8,7 +8,7 @@ import {
 } from '../../../components/collapse'
 import { Text } from '../../../components/text'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 function TriggerLabel() {
 	const { open } = useCollapseContext()
@@ -53,17 +53,20 @@ function ControlledCollapseExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Collapse>
-					<CollapseTrigger>Toggle details</CollapseTrigger>
-					<CollapsePanel>
-						<Text tone="muted">
-							A string in `CollapseTrigger` renders as muted text that highlights on hover. The
-							panel animates open with a smooth height transition.
-						</Text>
-					</CollapsePanel>
-				</Collapse>
-			</Example>
+			<Axes
+				of="Collapse"
+				omit={['open', 'defaultOpen', 'mount']}
+				render={(props, label) => (
+					<Collapse {...props}>
+						<CollapseTrigger>{label}</CollapseTrigger>
+						<CollapsePanel>
+							<Text tone="muted">
+								A string in `CollapseTrigger` renders as muted text that highlights on hover.
+							</Text>
+						</CollapsePanel>
+					</Collapse>
+				)}
+			/>
 
 			<Example title="Default open">
 				<Collapse defaultOpen>

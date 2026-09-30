@@ -8,7 +8,7 @@ import {
 	StepperStep,
 	StepperTitle,
 } from '../../../components/stepper'
-import { Example, ValueStepper } from '../../engine'
+import { Axes, Example, ValueStepper } from '../../engine'
 
 const steps = [
 	{ title: 'Account', description: 'Create your account' },
@@ -20,9 +20,6 @@ const steps = [
 ]
 
 export function Demo() {
-	const [horizontalValue, setHorizontalValue] = useState(1)
-	const [verticalValue, setVerticalValue] = useState(1)
-	const [linearValue, setLinearValue] = useState(0)
 	const [panelsValue, setPanelsValue] = useState(0)
 
 	return (
@@ -38,74 +35,22 @@ export function Demo() {
 				}
 			/>
 
-			<Example
-				title="Horizontal"
-				actions={
-					<ValueStepper
-						label="step"
-						value={horizontalValue}
-						onValueChange={setHorizontalValue}
-						max={steps.length - 1}
-					/>
-				}
-			>
-				<Stepper value={horizontalValue} onValueChange={setHorizontalValue}>
-					{steps.map((step, index) => (
-						<Fragment key={step.title}>
-							{index > 0 && <StepperSeparator />}
-							<StepperStep value={index}>
-								<StepperTitle>{step.title}</StepperTitle>
-							</StepperStep>
-						</Fragment>
-					))}
-				</Stepper>
-			</Example>
-
-			<Example
-				title="Vertical"
-				actions={
-					<ValueStepper
-						label="step"
-						value={verticalValue}
-						onValueChange={setVerticalValue}
-						max={steps.length - 1}
-					/>
-				}
-			>
-				<Stepper orientation="vertical" value={verticalValue} onValueChange={setVerticalValue}>
-					{steps.map((step, index) => (
-						<Fragment key={step.title}>
-							{index > 0 && <StepperSeparator />}
-							<StepperStep value={index}>
-								<StepperTitle>{step.title}</StepperTitle>
-							</StepperStep>
-						</Fragment>
-					))}
-				</Stepper>
-			</Example>
-
-			<Example
-				title="Linear"
-				actions={
-					<ValueStepper
-						label="step"
-						value={linearValue}
-						onValueChange={setLinearValue}
-						max={steps.length - 1}
-					/>
-				}
-			>
-				<Stepper linear value={linearValue} onValueChange={setLinearValue}>
-					{steps.map((step, index) => (
-						<Fragment key={step.title}>
-							{index > 0 && <StepperSeparator />}
-							<StepperStep value={index}>
-								<StepperTitle>{step.title}</StepperTitle>
-							</StepperStep>
-						</Fragment>
-					))}
-				</Stepper>
-			</Example>
+			<Axes
+				of="Stepper"
+				omit={['mount']}
+				render={(props) => (
+					<Stepper {...props} defaultValue={1}>
+						{steps.map((step, index) => (
+							<Fragment key={step.title}>
+								{index > 0 && <StepperSeparator />}
+								<StepperStep value={index}>
+									<StepperTitle>{step.title}</StepperTitle>
+								</StepperStep>
+							</Fragment>
+						))}
+					</Stepper>
+				)}
+			/>
 
 			<Example
 				title="With content panels"
