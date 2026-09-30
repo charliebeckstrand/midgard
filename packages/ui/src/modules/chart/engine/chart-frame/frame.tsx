@@ -574,7 +574,12 @@ export function ChartFrame({
 				// included, therefore selects no text and opens no callout under a hold.
 				k.touchReadout,
 				fixedWidth === undefined && 'w-full',
-				containerFill && 'h-full',
+				// A chart that fills its box keeps all of its boxes in that box. The touch
+				// target of a legend control reaches past the control. At the bottom edge
+				// of the chart, it would otherwise add scroll range to a box that scrolls,
+				// such as the content box of a dashboard tile. `overflow-clip` makes no
+				// scroll container, so the chart stays out of the scroll of its box.
+				containerFill && 'h-full overflow-clip',
 				className,
 			)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
