@@ -744,9 +744,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	columns: GridColumn<T>[]
 	/**
 	 * The rows to show. The grid reads the array and never changes it. A sort,
-	 * a filter, or a page is a view that the grid builds over it.
+	 * a filter, or a page is a view that the grid builds over it. A readonly
+	 * array is accepted as it is, with no copy.
 	 */
-	rows: T[]
+	rows: readonly T[]
 	/** Derives a stable, unique key per row; backs selection, sort, and virtualization identity. */
 	getKey: (row: T, index: number) => string | number
 

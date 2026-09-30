@@ -299,10 +299,10 @@ export type SmartSortField<T> = {
  * @internal
  */
 export function sortRowsSmart<T>(
-	rows: T[],
+	rows: readonly T[],
 	getKey: (row: T, index: number) => string | number,
 	fields: SmartSortField<T>[],
-): { rows: T[]; keys: (string | number)[] } {
+): { rows: readonly T[]; keys: (string | number)[] } {
 	return materializeSort(rows, computeSortOrder(rows, fields), getKey)
 }
 
@@ -323,7 +323,7 @@ export function sortRowsSmart<T>(
  * @internal
  */
 export function computeSortOrder<T>(
-	rows: T[],
+	rows: readonly T[],
 	fields: SmartSortField<T>[],
 	collator: Intl.Collator = NATURAL_COLLATOR,
 ): number[] {
@@ -366,7 +366,7 @@ export function computeSortOrder<T>(
  * @internal
  */
 function mirrorOrder<T>(
-	rows: T[],
+	rows: readonly T[],
 	order: number[],
 	field: SmartSortField<T>,
 	collator: Intl.Collator,
@@ -442,7 +442,7 @@ const sortOrders = new WeakMap<object, WeakMap<object, Map<string, number[]>>>()
  * @internal
  */
 export function cachedSortOrder<T>(
-	rows: T[],
+	rows: readonly T[],
 	columns: object,
 	signature: string,
 	fields: SmartSortField<T>[],
@@ -483,10 +483,10 @@ export function cachedSortOrder<T>(
  * @internal
  */
 export function materializeSort<T>(
-	rows: T[],
+	rows: readonly T[],
 	order: number[],
 	getKey: (row: T, index: number) => string | number,
-): { rows: T[]; keys: (string | number)[] } {
+): { rows: readonly T[]; keys: (string | number)[] } {
 	// One pass builds both outputs, so a row's index is looked up once.
 	const sortedRows = new Array<T>(order.length)
 
@@ -515,7 +515,7 @@ export function materializeSort<T>(
  * @internal
  */
 function buildFieldComparator<T>(
-	rows: T[],
+	rows: readonly T[],
 	field: SmartSortField<T>,
 	collator: Intl.Collator,
 ): (i: number, j: number) => number {

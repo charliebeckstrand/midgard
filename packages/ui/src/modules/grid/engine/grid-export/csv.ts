@@ -14,7 +14,7 @@ import { cellText, exportFields } from './accessor'
  * @returns The CSV document as a string (no trailing newline, no BOM).
  * @internal
  */
-export function rowsToCsv<T>(columns: GridColumn<T>[], rows: T[]): string {
+export function rowsToCsv<T>(columns: GridColumn<T>[], rows: readonly T[]): string {
 	const fields = exportFields(columns)
 
 	const header = fields.map((field) => csvField(field.label)).join(',')

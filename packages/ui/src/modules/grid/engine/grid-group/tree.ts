@@ -39,7 +39,7 @@ export type GridGroup<T> = {
 	/** The group's leaves, in display order. */
 	leaves: GridLeaf<T>[]
 	/** The leaves' source rows, which the header aggregates and the group total read. */
-	rows: T[]
+	rows: readonly T[]
 }
 
 /**

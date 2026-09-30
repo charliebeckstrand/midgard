@@ -111,7 +111,7 @@ export function sliceOrder(
  * @internal
  */
 export function leavesOf<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	getKey: (row: T, index: number) => string | number
 	groups: GridGroup<T>[] | null
 	manualGroupRow: ((row: T) => boolean) | null
@@ -174,7 +174,7 @@ export function hiddenSelectionCount<T>(args: {
  * @internal
  */
 export function viewLeaves<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	getKey: (row: T, index: number) => string | number
 	groups: GridGroup<T>[] | null
 	manualGroupRow: ((row: T) => boolean) | null
@@ -211,8 +211,8 @@ export function grandTotalRowsOf<T>(args: {
 	grandTotal: boolean
 	manualGrouped: boolean
 	clientView: ClientView<T> | null
-	rows: T[]
-}): T[] {
+	rows: readonly T[]
+}): readonly T[] {
 	if (!args.grandTotal || args.manualGrouped) return NO_ROWS
 
 	return args.clientView?.filtered ?? args.rows

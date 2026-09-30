@@ -14,7 +14,7 @@ type GridAggregateCellsProps<T> = {
 	/** The visible columns, in render order. */
 	columns: GridColumn<T>[]
 	/** The rows behind the aggregates; omitted on the manual path. */
-	rows?: T[]
+	rows?: readonly T[]
 	/** A manual group-header row carrying backend aggregates, read instead of computing over rows. */
 	headerRow?: T
 	/** The first column index to render — the cells after the row's label span. */

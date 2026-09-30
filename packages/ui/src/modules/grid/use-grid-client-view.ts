@@ -69,7 +69,7 @@ import type { GridColumn } from './types'
  * @internal
  */
 export function useGridClientView<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	sort: GridSortState[] | undefined
 	/** Whether the grid sorts client-side (a manual/server sort orders `rows` itself). */
 	clientSort: boolean
@@ -210,7 +210,7 @@ export function useGridClientView<T>(args: {
  * @internal
  */
 export function useGroupTree<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	columns: GridColumn<T>[]
 	/** The client view, or `null` when it applies no transform. */
 	clientView: ClientView<T> | null
@@ -305,7 +305,7 @@ export function useGroupTree<T>(args: {
  * @internal
  */
 export function useGridRowModel<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	getKey: (row: T, index: number) => string | number
 	/** Manual-grouping group-header predicate; splits the rows into headers and leaves. */
 	manualGroupRow: ((row: T) => boolean) | null
@@ -315,7 +315,7 @@ export function useGridRowModel<T>(args: {
 	groups: GridGroup<T>[] | null
 }): {
 	manualRows: GridLeaf<T>[] | null
-	renderRows: T[]
+	renderRows: readonly T[]
 	rowKeys: (string | number)[]
 } {
 	const { rows, getKey, manualGroupRow, clientView, groups } = args
@@ -408,7 +408,7 @@ export function useFilterModeMismatchWarning(args: {
  * @internal
  */
 export function useFacetSource<T>(args: {
-	rows: T[]
+	rows: readonly T[]
 	columns: GridColumn<T>[]
 	columnTests: ColumnTests<T>
 	/** The query of the quick search, or `''` when the search prunes no rows. */

@@ -121,7 +121,7 @@ export type { GridColumnResize } from './engine/grid-table/resize-view'
 
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {
-	rows: T[]
+	rows: readonly T[]
 	/** The full column set; the engine resolves which render (and in what order) from the order/visibility/pinning state below. */
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
@@ -180,7 +180,7 @@ type GridTableResult<T> = {
 	 */
 	visibleColumns: GridColumn<T>[]
 	/** Rows to render: the leaves of the groups, else the client view, else the supplied `rows`. */
-	renderRows: T[]
+	renderRows: readonly T[]
 	/**
 	 * Per-row keys parallel to {@link renderRows}. Each is the value `getKey`
 	 * yields at the row's engine (original-data) index, the index `getRowId` saw.
@@ -249,7 +249,7 @@ type GridTableResult<T> = {
 	 * pages, because filtering precedes pagination, and the flat leaves, because
 	 * it precedes grouping. Empty unless `grandTotal` is set.
 	 */
-	grandTotalRows: T[]
+	grandTotalRows: readonly T[]
 	/**
 	 * Reads the rows an export takes, in display order: the full filtered and
 	 * sorted set (all pages). When the selection holds a row of that set, only
