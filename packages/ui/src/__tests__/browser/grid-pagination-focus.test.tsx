@@ -5,7 +5,8 @@ import { renderUI, screen, userEvent, waitFor } from '../helpers'
 /**
  * Pagination keeps focus on a page change (WCAG 2.4.3 / 2.4.7). Activating the
  * control at an extent disables it, dropping browser focus to the body; the footer
- * restores focus to the current-page marker. Real browser — disabling the focused
+ * restores focus to the current-page marker, or to the enabled Previous or Next
+ * control where the footer is too narrow to show numbered pages. Real browser — disabling the focused
  * element and the focus transition need a layout/focus engine.
  */
 describe('grid pagination focus (real browser)', () => {
@@ -20,13 +21,16 @@ describe('grid pagination focus (real browser)', () => {
 	it('moves focus to the current page when Next disables at the last page', async () => {
 		const user = userEvent.setup()
 
+		// The numbered pages show from the `@2xl` container width (672px).
 		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
-			/>,
+			<div style={{ width: 800 }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
+				/>
+			</div>,
 		)
 
 		// 12 rows / 5 per page = 3 pages. Advance to the last, where Next disables.
@@ -42,6 +46,31 @@ describe('grid pagination focus (real browser)', () => {
 		await waitFor(() => {
 			expect(focusReport()).toEqual({ current: 'page', text: '3', marker: 'present' })
 		})
+	})
+
+	it('moves focus to Previous when Next disables in a narrow footer', async () => {
+		const user = userEvent.setup()
+
+		// Below the `@2xl` container width the numbered pages hide, so the marker
+		// cannot take focus.
+		renderUI(
+			<div style={{ width: 360 }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
+				/>
+			</div>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+		await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+		await waitFor(() =>
+			expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Previous page' })),
+		)
 	})
 
 	/**
