@@ -18,8 +18,8 @@ import { k } from '../../recipes/kata/grid'
  * reads (see {@link useGridExport}).
  *
  * It blocks the pointer, not the keyboard. The scrim covers the whole grid
- * wrapper, toolbar included, so a click cannot reach the search, the filters,
- * or the sort that decide what lands in the file. The overlay does not make
+ * wrapper, toolbar included. A click therefore cannot reach the search, the
+ * filters, or the sort that decide what lands in the file. The overlay does not make
  * the grid inert and does not trap focus. A key press therefore still reaches
  * a focused control under it. The lockout is bounded — a failed export
  * settles its promise too, so the overlay always lifts.

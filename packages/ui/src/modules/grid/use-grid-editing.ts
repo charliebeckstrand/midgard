@@ -1541,9 +1541,9 @@ function useActiveCell<T>({
 /**
  * Owns per-row inline editing: the editable rows (a controllable `Set<key>`,
  * consumer-driven by default) and the staged drafts of cells in those rows. A
- * row in the set renders all its editable cells as editors at once; each edit
- * stages into the {@link GridDraftStore} of the session (no per-keystroke grid
- * render). A row leaves the
+ * row in the set renders all its editable cells as editors at once. Each edit
+ * stages into the {@link GridDraftStore} of the session, with no grid render
+ * for each keystroke. A row leaves the
  * set on the consumer's save action, or on a grid-owned session exit under
  * `session: 'managed'` (Enter in an editor saves, Escape abandons). Its
  * drafts then flush as a single {@link GridCellChange} batch through `onCommit`,

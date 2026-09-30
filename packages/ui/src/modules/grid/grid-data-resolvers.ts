@@ -181,11 +181,13 @@ function gridHandlers(
  * Assembles the `<table>` element props: the caller's `tableProps`, with its
  * key and focus handlers composed ahead of the grid's, `aria-busy` while
  * loading, and the role/index scheme. The role is `grid` when the table
- * carries a keyboard cursor (`navigable`, or a caller-supplied `role` — the
- * editable grid). It is `table` when the body is only a window onto a larger
- * set (`gridSemantics`: virtualization or pagination) with no cursor, and
- * native otherwise. A windowed body also carries the full row/column counts
- * (valid on both roles); per-cell indices come from head/row.
+ * carries a keyboard cursor. `navigable` and an editable grid both turn the
+ * cursor on. A cursor over a client-grouped body makes it `treegrid`. It is
+ * `table` when the body is only a window onto a larger set (`gridSemantics`:
+ * virtualization or pagination) with no cursor, and native otherwise. A
+ * caller's `tableProps.role` wins over each of them. A windowed body also
+ * carries the full row/column counts (valid on both roles); per-cell indices
+ * come from head/row.
  *
  * @remarks `role="grid"` is withheld until a keyboard model backs it. A windowed
  * but non-navigable table stays `role="table"`, which still honors
@@ -353,8 +355,8 @@ export function resolveGridSemantics(
  * read as actionable. It never paints through a column drag-resize
  * (`resizing`), so the row under the pointer doesn't light up mid-drag
  * (matching the truncation tooltips' `!resizing` gate). Pulled out of
- * {@link GridData} so the boolean logic stays off its cognitive-complexity
- * budget.
+ * {@link useGridDataFrame}, its caller, so the boolean logic stays off its
+ * cognitive-complexity budget.
  *
  * @internal
  */
@@ -379,8 +381,8 @@ export function resolveHover<T>(
  * resize therefore touches only its own column. `resizing` says whether a pointer
  * drag-resize is in flight; the wrapper flags it and the grid drops the hover
  * wash. Inert (no colgroup, no width, not
- * resizing) when the grid is not resizable. Split out of {@link GridData} for
- * its cognitive-complexity budget.
+ * resizing) when the grid is not resizable. Split out of
+ * {@link useGridDataFrame}, its caller, for its cognitive-complexity budget.
  *
  * @internal
  */
@@ -573,7 +575,7 @@ export function resolveHighlightQuery(
  *
  * Carried by the `<table>` itself rather than a wrapper: a wrapping node — even
  * `display: contents` — would sit in the middle of the grid's own child selectors. Kept
- * out of {@link GridData} for its cognitive-complexity budget.
+ * out of {@link GridDataTable}, its caller, for its cognitive-complexity budget.
  *
  * @internal
  */

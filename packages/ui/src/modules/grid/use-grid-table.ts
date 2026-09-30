@@ -287,8 +287,8 @@ type GridTableResult<T> = {
 	grandTotalRows: T[]
 	/**
 	 * Reads the rows an export takes, in display order: the full filtered and
-	 * sorted set (all pages), or only its selected rows when the selection holds
-	 * a row of that set. Both are the leaves only, so a group header never
+	 * sorted set (all pages). When the selection holds a row of that set, only
+	 * the selected rows export. Both are the leaves only, so a group header never
 	 * exports (see `viewLeaves`).
 	 */
 	rowsForExport: () => T[]
@@ -1093,7 +1093,8 @@ function facetSource<T>(
  *
  * @remarks
  * The facets of a column read the rows that pass the quick search and every
- * other column filter, as the faceted row model of a stock engine does. The
+ * other column filter. The faceted row model of a stock engine reads the same
+ * rows. The
  * filter of the column itself does not apply, so its facets still offer the
  * values that it hides. A filter sheet reads the values when it opens. The first read after a change of the rows, the filters, or the query
  * collects them.

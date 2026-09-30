@@ -284,7 +284,7 @@ export function GridData<T>({
 	// Server-side (manual) sort pulses the rows at a reduced opacity from the moment
 	// the grid emits the sort change until the consumer hands back the reordered
 	// rows, so the current rows stay readable while they reorder (see `k.body`). Off
-	// for client sorting, where the engine reorders in place with no round trip.
+	// for client sorting, where the grid sorts a view of `rows` with no round trip.
 	const sortManual = sortConfig?.manual ?? false
 
 	const serverSortSettling = useServerSortSettle({ enabled: sortManual, sort, rows })
