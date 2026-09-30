@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useMemo } from 'react'
+import { type RefObject, useCallback, useId, useMemo } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
@@ -148,7 +148,14 @@ export function useGridDataColumns<T>({
 	// Master-detail: the expanded-key set, per-row toggle, and detail renderer,
 	// resolved to whether it's active (grouping takes precedence, so it stands
 	// down under grouping) and the body wiring the flat rows read.
-	const detail = resolveDetailExpansion(useGridExpansion<T>(expandableConfig), groupingMode.active)
+	// The grid's own id scope keeps the detail panel ids of two grids apart.
+	const detailIdScope = useId()
+
+	const detail = resolveDetailExpansion(
+		useGridExpansion<T>(expandableConfig),
+		groupingMode.active,
+		detailIdScope,
+	)
 
 	// Manual grouping stands the cursor down. Client grouping and master-detail
 	// give the cursor an order of rows. Manual grouping also stands virtualization

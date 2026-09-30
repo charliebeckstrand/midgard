@@ -320,9 +320,9 @@ export type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabe
  * is a window onto a larger set under virtualization (DOM windowing) or
  * pagination (one page of many). Both need `aria-rowcount` and a page- or
  * window-aware global row offset, so assistive tech reports position in the full
- * set. The role becomes `grid` only under a keyboard cursor. A `navigable` grid
- * is `role="grid"` (the keyboard cursor)
- * even when it renders the whole set. It therefore carries the same row/column
+ * set. The role becomes `grid` only under a keyboard cursor, which `navigable`
+ * or an editable grid turns on. Such a grid is `role="grid"` even when it
+ * renders the whole set. It therefore carries the same row/column
  * counts and indices the role implies. The counts and per-cell indices follow
  * the role, not just the windowing. Under pagination the select-all checkbox
  * toggles only the current page, so its label says so rather than overclaiming
@@ -338,11 +338,11 @@ export type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabe
 export function resolveGridSemantics(
 	virtualizeEnabled: boolean,
 	pagination: GridPaginationView | null,
-	navigable: boolean,
+	cursorEnabled: boolean,
 	manualGrouped = false,
 ): GridSemantics {
 	return {
-		enabled: !manualGrouped && (virtualizeEnabled || pagination != null || navigable),
+		enabled: !manualGrouped && (virtualizeEnabled || pagination != null || cursorEnabled),
 		rowOffset: pagination ? pageOffset(pagination.pageIndex, pagination.pageSize) : 0,
 		selectAllLabel: pagination ? 'Select all rows on this page' : 'Select all rows',
 	}

@@ -149,7 +149,7 @@ export function useGridDataFrame<T>({
 	cursorNewRow,
 	pagination,
 	virtualized,
-	navigable,
+	cursorEnabled,
 	infiniteScroll,
 	footer,
 	selectedCount,
@@ -213,7 +213,8 @@ export function useGridDataFrame<T>({
 	cursorNewRow: 'top' | 'bottom' | null
 	pagination: GridPaginationView | null
 	virtualized: boolean
-	navigable: boolean
+	/** Whether the grid carries a keyboard cursor: `navigable`, or an editable grid. */
+	cursorEnabled: boolean
 	infiniteScroll: ResolvedInfiniteScroll | null
 	/** The number of selected rows. */
 	selectedCount: number
@@ -313,7 +314,12 @@ export function useGridDataFrame<T>({
 	// derived together from the rendered-window mode; see `resolveGridSemantics`.
 	// The manual grouped body interleaves header and leaf rows without index
 	// bookkeeping, so it stays a native table like the client grouped body.
-	const semantics = resolveGridSemantics(virtualized, pagination, navigable, manualGroupingActive)
+	const semantics = resolveGridSemantics(
+		virtualized,
+		pagination,
+		cursorEnabled,
+		manualGroupingActive,
+	)
 
 	// A clickable grid — any row- or cell-level click handler — reads as
 	// actionable through the shared `<Table hover>` wash, layered over any
