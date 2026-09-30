@@ -7,6 +7,7 @@ export function Demo() {
 	return (
 		<Axes
 			of="Box"
+			captions={false}
 			render={(props, label) => (
 				// The tint and the subtle outline show the radius when the background is unset or clear.
 				// The button shows the density step.

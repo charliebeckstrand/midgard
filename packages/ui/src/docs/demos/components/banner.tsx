@@ -31,6 +31,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Banner"
+				captions={false}
 				omit={['open', 'defaultOpen', 'sticky']}
 				render={(props, label) => <Banner {...props} title={label} />}
 			/>

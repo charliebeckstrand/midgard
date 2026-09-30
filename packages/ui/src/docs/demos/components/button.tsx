@@ -6,7 +6,11 @@ import { Axes, Example } from '../../engine'
 export function Demo() {
 	return (
 		<>
-			<Axes of="Button" render={(props, label) => <Button {...props}>{label}</Button>} />
+			<Axes
+				of="Button"
+				captions={false}
+				render={(props, label) => <Button {...props}>{label}</Button>}
+			/>
 
 			<Example title="With icon">
 				<Button prefix={<Icon icon={<Plus />} />}>Add</Button>

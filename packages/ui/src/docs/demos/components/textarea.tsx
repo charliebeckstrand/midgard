@@ -41,6 +41,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Textarea"
+				captions={false}
 				render={(props, label) => <Textarea {...props} aria-label={label} placeholder={label} />}
 			/>
 

@@ -24,6 +24,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Dialog"
+				captions={false}
 				omit={['open', 'defaultOpen']}
 				render={(props, label) => (
 					<Opener>

@@ -8,6 +8,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="PasswordConfirmInput"
+				captions={false}
 				render={(props, label) => (
 					<PasswordConfirm>
 						<PasswordConfirmInput {...props} aria-label={label} placeholder={label} />

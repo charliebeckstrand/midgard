@@ -23,6 +23,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="NumberInput"
+				captions={false}
 				render={(props, label) => <NumberInput {...props} aria-label={label} placeholder={label} />}
 			/>
 

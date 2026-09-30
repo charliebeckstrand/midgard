@@ -33,6 +33,12 @@ playground. A new value in the source of a component thus shows on the page
 with no change to the demo. `omit` removes a prop from the axes. A page with more than one
 `<Axes>` gives each a `title`, so that no two examples share a title.
 
+Each instance in an axis example has a caption with the label of its value,
+so that a reader sees which value it shows. When `render` shows `label` itself,
+such as the text of a button, give `captions={false}`. The page smoke test
+checks that each instance shows its label one time, in the caption or in the
+content.
+
 A picker starts at the default of its prop. The extractor reads a default
 from the destructured parameter, then from a `@defaultValue` tag, then from the
 `defaults` of the recipe that the component calls. An axis with no default

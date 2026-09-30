@@ -23,6 +23,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="CurrencyInput"
+				captions={false}
 				render={(props, label) => (
 					<CurrencyInput {...props} aria-label={label} placeholder={label} />
 				)}

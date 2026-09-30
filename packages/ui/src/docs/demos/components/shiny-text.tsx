@@ -43,6 +43,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="ShinyText"
+				captions={false}
 				render={(props, label) => (
 					<ShinyText {...props} className="text-3xl font-semibold">
 						{label}

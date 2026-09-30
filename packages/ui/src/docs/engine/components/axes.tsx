@@ -49,6 +49,14 @@ type AxesProps = {
 	 * @defaultValue `'Playground'`, and no prefix
 	 */
 	title?: string
+	/**
+	 * Show the label of each value above its instance in the axis examples, so
+	 * that a reader sees which value each instance shows. Give `false` when
+	 * `render` shows `label` itself, such as the text of a button.
+	 *
+	 * @defaultValue true
+	 */
+	captions?: boolean
 }
 
 /**
@@ -98,6 +106,7 @@ function AxesExamples({
 	render,
 	omit,
 	title,
+	captions = true,
 }: AxesProps & { component: ComponentApi }) {
 	const axes = axesOf(component, omit)
 
@@ -136,11 +145,11 @@ function AxesExamples({
 
 			{axes.map((axis) => (
 				<Example key={axis.name} title={axisTitle(axis.name, title)}>
-					<Flex wrap gap="sm" align="center">
+					<Flex wrap gap="sm" align={captions ? 'start' : 'center'}>
 						{axis.values.map((value) => (
-							<Slot key={String(value)}>
+							<AxisInstance key={String(value)} label={valueLabel(value)} caption={captions}>
 								{render(propsWith(axis.name, value), valueLabel(value))}
-							</Slot>
+							</AxisInstance>
 						))}
 					</Flex>
 				</Example>
@@ -166,9 +175,36 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
 	return tracked.status === 'fulfilled' ? tracked.value : undefined
 }
 
-/** A keyed, transparent wrapper, so a `render` result needs no key of its own. */
-function Slot({ children }: { children: ReactNode }) {
-	return children
+/**
+ * One instance of an axis example. The `axis-value` anchor carries the label,
+ * so the page gate can ask that each instance shows it. Without a caption the
+ * wrapper takes no box of its own.
+ */
+function AxisInstance({
+	label,
+	caption,
+	children,
+}: {
+	label: string
+	caption: boolean
+	children: ReactNode
+}) {
+	if (!caption) {
+		return (
+			<div data-slot="axis-value" data-label={label} className="contents">
+				{children}
+			</div>
+		)
+	}
+
+	return (
+		<div data-slot="axis-value" data-label={label} data-caption="" className="flex flex-col gap-1">
+			<span data-slot="axis-caption" className="text-xs text-zinc-500 dark:text-zinc-400">
+				{label}
+			</span>
+			{children}
+		</div>
+	)
 }
 
 // The option key of an unset axis. A literal key is `JSON.stringify` of the

@@ -143,6 +143,7 @@ export function Demo() {
 			{/* A short menu shows no effect of `capped`, so the axis is left out. */}
 			<Axes
 				of="Menu"
+				captions={false}
 				omit={['open', 'defaultOpen', 'capped']}
 				render={(props, label) => (
 					<Menu {...props}>
@@ -171,6 +172,7 @@ export function Demo() {
 
 			<Axes
 				of="MenuItem"
+				captions={false}
 				title="Menu item"
 				render={(props, label) => (
 					<Menu placement="bottom-start">

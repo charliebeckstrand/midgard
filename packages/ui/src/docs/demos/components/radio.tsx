@@ -9,6 +9,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Radio"
+				captions={false}
 				render={(props, label) => (
 					<RadioField>
 						<Radio {...props} defaultChecked />

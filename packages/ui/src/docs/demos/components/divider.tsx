@@ -7,7 +7,8 @@ export function Demo() {
 			of="Divider"
 			render={(props) => (
 				// The frame gives a vertical divider a height, and a horizontal divider a width.
-				<div className="flex h-12 w-full items-center">
+				// A caption column takes no width of its own, so the frame sets a fixed width.
+				<div className="flex h-12 w-48 items-center">
 					<Divider {...props} />
 				</div>
 			)}

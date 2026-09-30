@@ -212,6 +212,7 @@ export function Demo() {
 					<Stack gap="xl">
 						<Axes
 							of="ChatMessage"
+							captions={false}
 							render={(props, label) => (
 								<ChatMessage role="assistant" {...props}>
 									{label}

@@ -55,6 +55,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Collapse"
+				captions={false}
 				omit={['open', 'defaultOpen', 'mount']}
 				render={(props, label) => (
 					<Collapse {...props}>

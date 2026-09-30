@@ -9,12 +9,14 @@ export function Demo() {
 		<>
 			<Axes
 				of="StatDelta"
+				captions={false}
 				title="Delta"
 				render={(props, label) => <StatDelta {...props}>{label}</StatDelta>}
 			/>
 
 			<Axes
 				of="StatValue"
+				captions={false}
 				title="Value"
 				render={(props, label) => (
 					<Stat>

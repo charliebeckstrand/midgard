@@ -5,6 +5,7 @@ export function Demo() {
 	return (
 		<Axes
 			of="Container"
+			captions={false}
 			// The smallest size is wider than the example frame, so each size looks the same here.
 			omit={['size']}
 			render={(props, label) => (

@@ -11,6 +11,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Input"
+				captions={false}
 				render={(props, label) => <Input {...props} aria-label={label} placeholder={label} />}
 			/>
 

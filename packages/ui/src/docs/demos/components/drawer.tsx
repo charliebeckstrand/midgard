@@ -76,7 +76,8 @@ export function Demo() {
 			    puts it away. */}
 			<Axes
 				of="Drawer"
-				omit={['open', 'defaultOpen', 'animateOnMount', 'size', 'height', 'glass', 'desaturate']}
+				captions={false}
+				omit={['open', 'defaultOpen', 'animateOnMount', 'size', 'glass', 'desaturate']}
 				render={(props, label) => (
 					<Opener>
 						<DrawerTrigger>
@@ -107,7 +108,10 @@ export function Demo() {
 			    glass and the desaturated backdrop. */}
 			<Axes
 				of="DrawerStatic"
+				captions={false}
 				title="Static drawer"
+				// A height is a share of the screen, so the drawer above shows it at its true size.
+				omit={['height']}
 				render={(props, label) => (
 					<div className="relative h-[55dvh] w-60 overflow-hidden rounded-lg border border-zinc-200 [contain:paint] dark:border-zinc-800">
 						<Text className="p-4 text-blue-600 dark:text-blue-400">{LoremIpsum}</Text>

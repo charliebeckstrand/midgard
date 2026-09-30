@@ -7,6 +7,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Switch"
+				captions={false}
 				render={(props, label) => (
 					<SwitchField>
 						<Label>{label}</Label>

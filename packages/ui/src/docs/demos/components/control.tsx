@@ -42,6 +42,7 @@ export function Demo() {
 
 			<Axes
 				of="Control"
+				captions={false}
 				render={(props, label) => (
 					<Control {...props}>
 						<Label>{label}</Label>

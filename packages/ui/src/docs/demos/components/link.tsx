@@ -7,6 +7,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Link"
+				captions={false}
 				render={(props, label) => (
 					<Link {...props} href="#link">
 						{label}

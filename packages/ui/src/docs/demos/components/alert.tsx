@@ -53,6 +53,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Alert"
+				captions={false}
 				omit={['open', 'defaultOpen']}
 				render={(props, label) => <Alert {...props} title={label} />}
 			/>

@@ -7,6 +7,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Checkbox"
+				captions={false}
 				render={(props, label) => (
 					<CheckboxField>
 						<Checkbox {...props} defaultChecked />

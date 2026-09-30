@@ -32,6 +32,7 @@ export function Demo() {
 
 			<Axes
 				of="Card"
+				captions={false}
 				render={(props, label) => (
 					<Card {...props} className="w-64">
 						<CardHeader>
@@ -47,6 +48,7 @@ export function Demo() {
 
 			<Axes
 				of="CardTitle"
+				captions={false}
 				title="Card title"
 				omit={['level']}
 				render={(props, label) => (

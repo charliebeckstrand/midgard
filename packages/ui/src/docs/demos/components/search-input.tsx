@@ -28,6 +28,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="SearchInput"
+				captions={false}
 				render={(props, label) => <SearchInput {...props} aria-label={label} placeholder={label} />}
 			/>
 

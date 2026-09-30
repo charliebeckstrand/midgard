@@ -8,6 +8,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Tooltip"
+				captions={false}
 				omit={['open']}
 				render={(props, label) => (
 					<Tooltip {...props}>
@@ -22,6 +23,7 @@ export function Demo() {
 
 			<Axes
 				of="TooltipContent"
+				captions={false}
 				title="Tooltip content"
 				render={(props, label) => (
 					<Tooltip>

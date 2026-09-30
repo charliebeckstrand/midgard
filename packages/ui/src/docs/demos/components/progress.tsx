@@ -24,7 +24,7 @@ export function Demo() {
 									<ProgressBar
 										{...props}
 										value={60}
-										className="w-full"
+										className="w-48"
 										aria-label={`${label} progress`}
 									/>
 								)}

@@ -17,6 +17,7 @@ export function Demo() {
 		// away, and the panel opens again at the width of its variant.
 		<Axes
 			of="Sheet"
+			captions={false}
 			omit={['open', 'defaultOpen']}
 			render={(props, label) => (
 				<Opener>

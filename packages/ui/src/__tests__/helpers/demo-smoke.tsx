@@ -69,7 +69,7 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 			// its tabs, in about 10s, and opens about 45 blocks, in about 7s.
 			{ timeout: 60_000 },
 			async (page, load) => {
-				const { logged, violations, scopes } = await walkOf(page, load)
+				const { logged, violations, scopes, labelBreaks } = await walkOf(page, load)
 
 				const found = Object.fromEntries(
 					Object.entries(violations).map(([rule, count]) => [`${page} › ${rule}`, count]),
@@ -80,6 +80,10 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 				expect(found).toEqual(knownFailuresOf(page))
 
 				expect(scopes.length, `${page} nests ${scopes.join(' > ')}`).toBeLessThanOrEqual(maxDepth)
+
+				// A reader must see which value each axis instance shows, one time: in
+				// the caption of `<Axes>`, or in the content with `captions={false}`.
+				expect(labelBreaks, `${page} shows an axis label no time or two times`).toEqual([])
 			},
 		)
 

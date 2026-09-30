@@ -88,6 +88,39 @@ describe('Axes', () => {
 		expect(titles).toEqual(['Badge group', 'Badge group variant', 'Badge group color'])
 	})
 
+	it('captions each instance of an axis example, and not the playground', () => {
+		renderUI(
+			<DemoApiContext value={settled(api)}>
+				<Axes of="Badge" render={(props) => <Probe {...props}>badge</Probe>} />
+			</DemoApiContext>,
+		)
+
+		const captions = [...document.querySelectorAll('[data-slot="axis-caption"]')]
+
+		expect(captions.map((caption) => caption.textContent)).toEqual([
+			'Solid',
+			'Outline',
+			'Red',
+			'Blue',
+		])
+	})
+
+	it('shows no caption with `captions={false}`', () => {
+		renderUI(
+			<DemoApiContext value={settled(api)}>
+				<Axes
+					of="Badge"
+					captions={false}
+					render={(props, label) => <Probe {...props}>{label}</Probe>}
+				/>
+			</DemoApiContext>,
+		)
+
+		expect(document.querySelector('[data-slot="axis-caption"]')).toBeNull()
+
+		expect(probesOf('Variant').map((probe) => probe.textContent)).toEqual(['Solid', 'Outline'])
+	})
+
 	it('starts each axis at its default, and leaves an axis with no default unset', () => {
 		renderAxes()
 

@@ -31,6 +31,7 @@ export function Demo() {
 			{/* A short menu shows no effect of `capped`, so the axis is left out. */}
 			<Axes
 				of="ContextMenu"
+				captions={false}
 				omit={['capped']}
 				render={(props, label) => (
 					<ContextMenu {...props} defaults={defaults} items={custom}>

@@ -35,6 +35,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="HoldButton"
+				captions={false}
 				render={(props, label) => <HoldButton {...props}>{label}</HoldButton>}
 			/>
 

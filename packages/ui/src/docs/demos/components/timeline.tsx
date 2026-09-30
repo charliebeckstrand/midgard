@@ -37,6 +37,7 @@ export function Demo() {
 
 			<Axes
 				of="TimelineItem"
+				captions={false}
 				title="Timeline item"
 				omit={['current', 'color', 'lineBefore', 'lineAfter']}
 				render={(props, label) => (

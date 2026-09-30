@@ -87,6 +87,7 @@ export function Demo() {
 						<Stack gap="xl">
 							<Axes
 								of="Field"
+								captions={false}
 								render={(props, label) => (
 									<Field {...props}>
 										<Label>{label}</Label>
@@ -145,6 +146,7 @@ export function Demo() {
 						<Stack gap="xl">
 							<Axes
 								of="Message"
+								captions={false}
 								omit={['all']}
 								render={(props, label) => (
 									<Field>

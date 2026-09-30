@@ -8,6 +8,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Popover"
+				captions={false}
 				omit={['open', 'defaultOpen']}
 				render={(props, label) => (
 					<Popover {...props}>
@@ -25,6 +26,7 @@ export function Demo() {
 
 			<Axes
 				of="PopoverContent"
+				captions={false}
 				title="Popover content"
 				render={(props, label) => (
 					<Popover>
