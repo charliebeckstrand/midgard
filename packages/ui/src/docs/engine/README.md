@@ -30,7 +30,8 @@ An axis is a prop whose type is a finite set of literals, such as `variant`,
 for each axis. Then it renders one example for each axis, which shows every
 value of that axis. The other axes of that example take the values of the
 playground. A new value in the source of a component thus shows on the page
-with no change to the demo. `omit` removes a prop from the axes.
+with no change to the demo. `omit` removes a prop from the axes. A page with more than one
+`<Axes>` gives each a `title`, so that no two examples share a title.
 
 A picker starts at the default of its prop. The extractor reads a default
 from the destructured parameter, then from a `@defaultValue` tag, then from the

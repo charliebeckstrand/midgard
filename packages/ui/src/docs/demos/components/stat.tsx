@@ -7,10 +7,15 @@ import { Axes, Example } from '../../engine'
 export function Demo() {
 	return (
 		<>
-			<Axes of="StatDelta" render={(props, label) => <StatDelta {...props}>{label}</StatDelta>} />
+			<Axes
+				of="StatDelta"
+				title="Delta"
+				render={(props, label) => <StatDelta {...props}>{label}</StatDelta>}
+			/>
 
 			<Axes
 				of="StatValue"
+				title="Value"
 				render={(props, label) => (
 					<Stat>
 						<StatLabel>{label}</StatLabel>

@@ -72,6 +72,22 @@ describe('Axes', () => {
 		expect(probesOf('Color').map((probe) => probe.textContent)).toEqual(['Red', 'Blue'])
 	})
 
+	it('prefixes each title with the title of the Axes', () => {
+		renderUI(
+			<DemoApiContext value={settled(api)}>
+				<Axes
+					of="Badge"
+					title="Badge group"
+					render={(props, label) => <Probe {...props}>{label}</Probe>}
+				/>
+			</DemoApiContext>,
+		)
+
+		const titles = screen.getAllByRole('heading').map((heading) => heading.textContent)
+
+		expect(titles).toEqual(['Badge group', 'Badge group variant', 'Badge group color'])
+	})
+
 	it('starts each axis at its default, and leaves an axis with no default unset', () => {
 		renderAxes()
 

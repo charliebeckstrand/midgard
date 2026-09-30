@@ -41,6 +41,14 @@ type AxesProps = {
 	render: AxisRender
 	/** The props that do not become an axis. */
 	omit?: readonly string[]
+	/**
+	 * The title of the playground, and the prefix of each axis title: `Group`
+	 * gives `Group` and `Group size`. Give it when a page has more than one
+	 * `Axes`, so that no two examples share a title.
+	 *
+	 * @defaultValue `'Playground'`, and no prefix
+	 */
+	title?: string
 }
 
 /**
@@ -68,7 +76,13 @@ export function Axes(props: AxesProps) {
 	)
 }
 
-function AxesBody({ pending, of, render, omit }: AxesProps & { pending: Promise<ComponentApi[]> }) {
+function AxesBody({
+	pending,
+	of,
+	render,
+	omit,
+	title,
+}: AxesProps & { pending: Promise<ComponentApi[]> }) {
 	const api = settledValue(pending) ?? use(pending)
 
 	const component = api.find((entry) => entry.name === of)
@@ -93,7 +107,7 @@ function AxesBody({ pending, of, render, omit }: AxesProps & { pending: Promise<
 	return (
 		<>
 			<Example
-				title="Playground"
+				title={title ?? 'Playground'}
 				actions={
 					<Flex wrap gap="sm">
 						{axes.map((axis) => (
@@ -111,7 +125,7 @@ function AxesBody({ pending, of, render, omit }: AxesProps & { pending: Promise<
 			</Example>
 
 			{axes.map((axis) => (
-				<Example key={axis.name} title={humanize(axis.name)}>
+				<Example key={axis.name} title={axisTitle(axis.name, title)}>
 					<Flex wrap gap="sm" align="center">
 						{axis.values.map((value) => (
 							<Slot key={String(value)}>
@@ -123,6 +137,11 @@ function AxesBody({ pending, of, render, omit }: AxesProps & { pending: Promise<
 			))}
 		</>
 	)
+}
+
+/** The title of the example of one axis, with the prefix of the `Axes` when it has one. */
+function axisTitle(name: string, prefix: string | undefined): string {
+	return prefix ? `${prefix} ${humanize(name).toLowerCase()}` : humanize(name)
 }
 
 /**

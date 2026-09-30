@@ -19,6 +19,7 @@ export function Demo() {
 
 			<Axes
 				of="AvatarGroup"
+				title="Avatar group"
 				render={(props) => (
 					<AvatarGroup {...props}>
 						<Avatar initials="AB" />
