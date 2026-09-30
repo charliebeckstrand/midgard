@@ -1,16 +1,7 @@
 import { useState } from 'react'
 import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
-import { Stack } from '../../../structure/stack'
-import { capitalize, Example, VariantListbox } from '../../engine'
-
-const variants = ['solid', 'soft', 'outline', 'plain'] as const
-
-const colorVariants = ['solid', 'soft', 'outline', 'plain'] as const
-
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
-const severities = ['info', 'success', 'warning', 'error'] as const
+import { Axes, Example } from '../../engine'
 
 function ClosableExample() {
 	const [visible, setVisible] = useState(true)
@@ -58,54 +49,20 @@ function ClosableBlockExample() {
 }
 
 export function Demo() {
-	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('soft')
-
 	return (
 		<>
-			<Example title="Variants">
-				<Stack gap="md">
-					{variants.map((variant) => (
-						<Alert key={variant} variant={variant} title={`${capitalize(variant)} alert`} />
-					))}
-				</Stack>
-			</Example>
-
-			<Example
-				title="Colors"
-				actions={
-					<VariantListbox
-						variants={colorVariants}
-						value={colorVariant}
-						onValueChange={setColorVariant}
-					/>
-				}
-			>
-				<Stack gap="md">
-					{colors.map((color) => (
-						<Alert key={color} variant={colorVariant} color={color} title={capitalize(color)} />
-					))}
-				</Stack>
-			</Example>
-
-			<Example title="Severity">
-				<Stack gap="md">
-					{severities.map((severity) => (
-						<Alert key={severity} severity={severity} title={`${capitalize(severity)} alert`} />
-					))}
-				</Stack>
-			</Example>
+			<Axes
+				of="Alert"
+				omit={['open', 'defaultOpen']}
+				render={(props, label) => <Alert {...props} title={label} />}
+			/>
 
 			<Example title="With description">
-				<Stack gap="md">
-					{severities.map((severity) => (
-						<Alert
-							key={severity}
-							severity={severity}
-							title={`${capitalize(severity)} alert`}
-							description="This is a description providing more details about the alert."
-						/>
-					))}
-				</Stack>
+				<Alert
+					severity="info"
+					title="Scheduled maintenance"
+					description="The system will be offline on Sunday from 2am to 4am."
+				/>
 			</Example>
 
 			<Example title="Closable">

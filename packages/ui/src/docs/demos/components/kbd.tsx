@@ -1,14 +1,12 @@
 import { Button } from '../../../components/button'
 import { Kbd } from '../../../components/kbd'
 import { Flex } from '../../../structure/flex'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Kbd>K</Kbd>
-			</Example>
+			<Axes of="Kbd" render={(props) => <Kbd {...props}>⌘K</Kbd>} />
 
 			<Example title="Modifier glyphs">
 				<Flex gap="md">

@@ -3,31 +3,24 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { Sparkline } from '../../../components/sparkline'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
-import type { Color } from '../../../core/recipe'
-import { Stack } from '../../../structure/stack'
-import { capitalize, code, Example, LabeledRow, LabeledRows } from '../../engine'
-
-const colors: Color[] = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
-const sizes = ['sm', 'md', 'lg'] as const
+import { Flex } from '../../../structure/flex'
+import { Axes, code, Example } from '../../engine'
 
 // A rising then cresting series so line, area, and bar variants all read clearly.
 const series = [4, 6, 5, 9, 8, 12, 11, 15, 14, 19, 22, 20]
 
-// The mount animation plays once; a refresh button remounts the sparkline (bumping
-// its `key`) so the reveal replays on demand. Shared by the line and bar tabs.
-function AnimatedExample({ variant, color }: { variant: 'line' | 'bar'; color: Color }) {
+// The mount animation plays once. The refresh button remounts the sparklines
+// (it bumps their `key`), so the reveal plays again on demand.
+function AnimatedExample() {
 	const [runKey, setRunKey] = useState(0)
 
 	return (
 		<Example
 			title="Animated"
-			code={
-				variant === 'bar'
-					? code`<Sparkline shape="bar" animate />`
-					: code`<Sparkline fill endPoint animate />`
-			}
+			code={code`
+				<Sparkline fill endPoint animate />
+				<Sparkline shape="bar" animate />
+			`}
 			actions={
 				<Button
 					variant="bare"
@@ -38,134 +31,41 @@ function AnimatedExample({ variant, color }: { variant: 'line' | 'bar'; color: C
 				</Button>
 			}
 		>
-			{variant === 'bar' ? (
+			<Flex wrap gap="lg" align="center">
 				<Sparkline
-					key={runKey}
+					key={`line-${runKey}`}
 					data={series}
-					shape="bar"
-					color={color}
-					animate
-					aria-label="Animated bars"
-				/>
-			) : (
-				<Sparkline
-					key={runKey}
-					data={series}
-					color={color}
+					color="blue"
 					fill
 					endPoint
 					animate
 					aria-label="Animated trend"
 				/>
-			)}
+				<Sparkline
+					key={`bar-${runKey}`}
+					data={series}
+					shape="bar"
+					color="amber"
+					animate
+					aria-label="Animated bars"
+				/>
+			</Flex>
 		</Example>
 	)
 }
 
 export function Demo() {
 	return (
-		<Tabs defaultValue="line">
-			<Stack gap="lg">
-				<TabList aria-label="Sparkline style">
-					<Tab value="line">Line</Tab>
-					<Tab value="bar">Bar</Tab>
-				</TabList>
-				<TabContents>
-					<TabContent value="line">
-						<Stack gap="xl">
-							<Example title="Default">
-								<Sparkline data={series} aria-label="Trend" />
-							</Example>
+		<>
+			<Axes
+				of="Sparkline"
+				omit={['animate']}
+				render={(props, label) => (
+					<Sparkline {...props} data={series} aria-label={`${label} trend`} />
+				)}
+			/>
 
-							<Example title="Colors">
-								<LabeledRows>
-									{colors.map((color) => (
-										<LabeledRow key={color} label={capitalize(color)}>
-											<Sparkline
-												data={series}
-												color={color}
-												fill
-												aria-label={`${capitalize(color)} trend`}
-											/>
-										</LabeledRow>
-									))}
-								</LabeledRows>
-							</Example>
-
-							<Example title="Sizes">
-								<LabeledRows>
-									{sizes.map((s) => (
-										<LabeledRow key={s} label={s}>
-											<Sparkline data={series} size={s} color="red" aria-label={`${s} trend`} />
-										</LabeledRow>
-									))}
-								</LabeledRows>
-							</Example>
-
-							<Example title="End-point">
-								<Sparkline
-									data={series}
-									color="amber"
-									endPoint
-									aria-label="Trend with area fill and end-point"
-								/>
-							</Example>
-
-							<Example title="Area fill">
-								<Sparkline
-									data={series}
-									color="green"
-									fill
-									aria-label="Trend with area fill and end-point"
-								/>
-							</Example>
-
-							<AnimatedExample variant="line" color="blue" />
-						</Stack>
-					</TabContent>
-
-					<TabContent value="bar">
-						<Stack gap="xl">
-							<Example title="Default">
-								<Sparkline data={series} shape="bar" color="blue" aria-label="By period" />
-							</Example>
-
-							<Example title="Colors">
-								<LabeledRows>
-									{colors.map((color) => (
-										<LabeledRow key={color} label={capitalize(color)}>
-											<Sparkline
-												data={series}
-												shape="bar"
-												color={color}
-												aria-label={`${capitalize(color)} bars`}
-											/>
-										</LabeledRow>
-									))}
-								</LabeledRows>
-							</Example>
-
-							<Example title="Sizes">
-								<LabeledRows>
-									{sizes.map((s) => (
-										<LabeledRow key={s} label={s}>
-											<Sparkline
-												data={series}
-												shape="bar"
-												size={s}
-												color="red"
-												aria-label={`${s} bars`}
-											/>
-										</LabeledRow>
-									))}
-								</LabeledRows>
-							</Example>
-
-							<AnimatedExample variant="bar" color="amber" />
-						</Stack>
-					</TabContent>
-				</TabContents>
-			</Stack>
-		</Tabs>
+			<AnimatedExample />
+		</>
 	)
 }

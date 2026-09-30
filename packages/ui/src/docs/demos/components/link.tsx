@@ -1,13 +1,18 @@
 import { Link } from '../../../components/link'
 import { Text } from '../../../components/text'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Link href="#link">Read the documentation</Link>
-			</Example>
+			<Axes
+				of="Link"
+				render={(props, label) => (
+					<Link {...props} href="#link">
+						{label}
+					</Link>
+				)}
+			/>
 
 			<Example title="Inline with text">
 				<Text>
@@ -22,12 +27,6 @@ export function Demo() {
 			<Example title="External">
 				<Link href="https://example.com" target="_blank" rel="noreferrer">
 					example.com
-				</Link>
-			</Example>
-
-			<Example title="Underline">
-				<Link href="#link" underline>
-					Read the documentation
 				</Link>
 			</Example>
 		</>

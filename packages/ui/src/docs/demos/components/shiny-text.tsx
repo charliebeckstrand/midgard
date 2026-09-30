@@ -1,12 +1,9 @@
 import { useState } from 'react'
-import { Alert } from '../../../components/alert'
 import { Badge } from '../../../components/badge'
 import { ShinyText } from '../../../components/shiny-text'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { Example, ValueStepper, VariantListbox } from '../../engine'
-
-const sweeps = ['left', 'right'] as const
+import { Axes, Example, ValueStepper } from '../../engine'
 
 const palettes = [
 	{ name: 'Zinc', color: 'var(--color-zinc-600)', shineColor: 'var(--color-white)' },
@@ -41,29 +38,17 @@ function SpeedExample() {
 	)
 }
 
-function SweepExample() {
-	const [sweep, setSweep] = useState<(typeof sweeps)[number]>('left')
-
-	return (
-		<Example
-			title="Sweep"
-			actions={
-				<VariantListbox label="Sweep" variants={sweeps} value={sweep} onValueChange={setSweep} />
-			}
-		>
-			<ShinyText sweep={sweep} className="text-3xl font-semibold">
-				Sweep {sweep}
-			</ShinyText>
-		</Example>
-	)
-}
-
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<ShinyText className="text-3xl font-bold">Shiny Text</ShinyText>
-			</Example>
+			<Axes
+				of="ShinyText"
+				render={(props, label) => (
+					<ShinyText {...props} className="text-3xl font-semibold">
+						{label}
+					</ShinyText>
+				)}
+			/>
 
 			<SpeedExample />
 
@@ -82,8 +67,6 @@ export function Demo() {
 				</Stack>
 			</Example>
 
-			<SweepExample />
-
 			<Example title="Spread">
 				<Flex gap="lg" wrap>
 					{spreads.map((spread) => (
@@ -92,29 +75,6 @@ export function Demo() {
 						</ShinyText>
 					))}
 				</Flex>
-			</Example>
-
-			<Example title="Yoyo">
-				<ShinyText yoyo className="text-3xl font-semibold">
-					Back and forth
-				</ShinyText>
-			</Example>
-
-			<Example
-				title="Pause on hover"
-				prefix={<Alert severity="info">The sweep halts while the pointer is over the text.</Alert>}
-			>
-				<Stack gap="sm" align="start">
-					<ShinyText pauseOnHover className="text-3xl font-semibold">
-						Hover to pause
-					</ShinyText>
-				</Stack>
-			</Example>
-
-			<Example title="Disabled">
-				<ShinyText disabled className="text-3xl font-semibold">
-					No shine
-				</ShinyText>
 			</Example>
 		</>
 	)

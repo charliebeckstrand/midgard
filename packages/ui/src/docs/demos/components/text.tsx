@@ -1,28 +1,13 @@
 import { Text } from '../../../components/text'
-import { Example } from '../../engine'
-
-const severities = ['default', 'primary', 'success', 'warning', 'error', 'muted'] as const
-
-const sizes = ['xs', 'sm', 'md', 'lg'] as const
+import { Axes } from '../../engine'
 
 export function Demo() {
 	return (
-		<>
-			<Example title="Severity">
-				{severities.map((severity) => (
-					<Text key={severity} tone={severity}>
-						{severity} - The lazy dog jumps over the quick brown fox.
-					</Text>
-				))}
-			</Example>
-
-			<Example title="Size">
-				{sizes.map((size) => (
-					<Text key={size} size={size}>
-						{size} - The lazy dog jumps over the quick brown fox.
-					</Text>
-				))}
-			</Example>
-		</>
+		<Axes
+			of="Text"
+			render={(props, label) => (
+				<Text {...props}>{label} - The lazy dog jumps over the quick brown fox.</Text>
+			)}
+		/>
 	)
 }

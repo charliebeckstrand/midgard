@@ -1,23 +1,15 @@
-import { useState } from 'react'
 import { Code, CodeBlock } from '../../../components/code'
 import { Text } from '../../../components/text'
-import { code, Example, SizeListbox } from '../../engine'
-
-const sizes = ['sm', 'md', 'lg'] as const
-
-type Size = (typeof sizes)[number]
+import { Axes, code, Example } from '../../engine'
 
 export function Demo() {
-	const [size, setSize] = useState<Size>('md')
-
 	return (
 		<>
-			<Example
-				title="Default"
-				actions={<SizeListbox sizes={sizes} value={size} onValueChange={setSize} />}
-			>
+			<Axes of="Code" render={(props) => <Code {...props}>pnpm install</Code>} />
+
+			<Example title="Inline with text">
 				<Text>
-					Run <Code size={size}>pnpm install</Code> to install dependencies.
+					Run <Code>pnpm install</Code> to install dependencies.
 				</Text>
 			</Example>
 
