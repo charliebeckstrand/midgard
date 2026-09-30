@@ -1,5 +1,4 @@
 // @vitest-environment node
-
 import { describe, expect, it } from 'vitest'
 import { sameFrozenLayout } from '../../modules/grid/engine/grid-pin/layout'
 import type { FrozenOffsets } from '../../modules/grid/engine/grid-pin/measure'

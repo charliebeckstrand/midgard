@@ -1,5 +1,4 @@
 // @vitest-environment node
-
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import { type Box, boxOf, formatLength, isBoxSource, overhang } from '../helpers/geometry/box'

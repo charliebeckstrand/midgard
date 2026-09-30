@@ -6,10 +6,13 @@ import {
 	BAND_EDGE_PAD,
 	FLOOR_LABEL_PAD,
 	GUTTER_GAP,
+	GUTTER_LABEL_ROOM,
+	GUTTER_MAX,
 	LINE_STROKE_WIDTH,
 	MARKER_RADIUS,
 	MARKER_RING_WIDTH,
 	PLOT_TOP_PAD,
+	TICK_CHAR_WIDTH,
 	TICK_ROTATION_HEIGHT,
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/engine/chart-constants'
@@ -685,5 +688,129 @@ describe('horizontalLayout value-label room', () => {
 		expect(horizontalLayout({ ...input(300, 25), frameWidth: 600 }).valueLabelRoom).toBe(true)
 
 		expect(horizontalLayout({ ...input(300, 25), frameWidth: 90 }).valueLabelRoom).toBe(false)
+	})
+})
+
+describe('cartesian layout', () => {
+	const input: CartesianLayoutInput = {
+		frameWidth: 400,
+		frameHeight: 240,
+		axes: true,
+		tickTarget: 4,
+		zeroBaseline: true,
+		value: { domainValues: [0, 40, 80], format: (value) => String(value) },
+		categories: ['Q1', 'Q2'],
+		count: 2,
+		visibleValues: [{ values: [40, 80], axis: 'y', index: 0 }],
+	}
+
+	it('runs value up y and the band across x when vertical', () => {
+		const layout = verticalLayout(input)
+
+		// Zero sits on the plot floor; the ceiling tick sits above it.
+		expect(layout.baseline).toBeCloseTo(layout.plot.y + layout.plot.height)
+
+		expect(layout.valueTicks.at(-1)?.at).toBeLessThan(layout.baseline)
+
+		// Band centers fall inside the horizontal plot span.
+		for (const position of layout.bandPositions) {
+			expect(position).toBeGreaterThanOrEqual(layout.plot.x)
+
+			expect(position).toBeLessThanOrEqual(layout.plot.x + layout.plot.width)
+		}
+	})
+
+	it('runs value along x and the band down y when horizontal', () => {
+		const layout = horizontalLayout(input)
+
+		// Zero sits at the left edge; the ceiling tick sits to its right.
+		expect(layout.baseline).toBeCloseTo(layout.plot.x)
+
+		expect(layout.valueTicks.at(-1)?.at).toBeGreaterThan(layout.baseline)
+
+		// Band centers fall inside the vertical plot span.
+		for (const position of layout.bandPositions) {
+			expect(position).toBeGreaterThanOrEqual(layout.plot.y)
+
+			expect(position).toBeLessThanOrEqual(layout.plot.y + layout.plot.height)
+		}
+	})
+
+	it('sizes the horizontal gutter from the drawn band labels and cuts one past the room', () => {
+		// A drawn label wider than the room comes back cut, and its cut width fills
+		// the room. The gutter then stops at GUTTER_MAX.
+		const bandLabel = {
+			width: (label: string) => (label === 'Organic search' ? GUTTER_LABEL_ROOM : 40),
+			fit: (label: string) => (label === 'Organic search' ? 'Organic se…' : label),
+		}
+
+		const layout = horizontalLayout({
+			...input,
+			count: 2,
+			categories: ['Organic search', 'Direct'],
+			bandLabel,
+		})
+
+		expect(layout.plot.x).toBe(GUTTER_MAX)
+
+		expect(layout.bandTicks.map((tick) => tick.label)).toEqual(['Organic se…', 'Direct'])
+
+		// Short labels hold only their width and the gap.
+		const short = horizontalLayout({ ...input, count: 2, categories: ['Q1', 'Q2'], bandLabel })
+
+		expect(short.plot.x).toBe(40 + GUTTER_GAP)
+	})
+
+	it('names the series behind each snap stop, aligned to the points through a gap', () => {
+		// Series 0 drops out at the second category, so its stop vanishes there; the
+		// positions and the series map must drop it from the very same slot, or the
+		// keyboard cursor would read the surviving series against the wrong lane.
+		const gapped: CartesianLayoutInput = {
+			...input,
+			count: 2,
+			categories: ['Q1', 'Q2'],
+			visibleValues: [
+				{ values: [40, null], axis: 'y', index: 0 },
+				{ values: [60, 80], axis: 'y', index: 1 },
+			],
+		}
+
+		const layout = verticalLayout(gapped)
+
+		// Q1 carries both series in order; Q2 keeps only series 1 — the same slot the
+		// position map drops, so a stop and its series index stay paired.
+		expect(layout.snapSeries).toEqual([[0, 1], [1]])
+
+		expect(layout.snapPoints[1]).toHaveLength(1)
+
+		expect(layout.snapSeries[1]).toHaveLength(layout.snapPoints[1]?.length ?? 0)
+	})
+
+	it('insets the horizontal value axis so its centered end labels clear the frame', () => {
+		// Wide currency-style ticks (0 … 6,000) on a narrow frame — the last label
+		// centered on the plot's right edge is exactly what overhangs the SVG clip.
+		const layout = horizontalLayout({
+			...input,
+			frameWidth: 480,
+			value: {
+				domainValues: [0, 4820, 6000],
+				format: (value) => value.toLocaleString('en-US'),
+			},
+			categories: ['Search', 'Direct'],
+		})
+
+		const halfLabel = (tick: { label: string }) => (tick.label.length * TICK_CHAR_WIDTH) / 2
+
+		const first = layout.valueTicks.at(0)
+
+		const last = layout.valueTicks.at(-1)
+
+		// Both end labels stay within [0, frameWidth] rather than spilling past the edge.
+		expect((first?.at ?? 0) - halfLabel(first ?? { label: '' })).toBeGreaterThanOrEqual(0)
+
+		expect((last?.at ?? 0) + halfLabel(last ?? { label: '' })).toBeLessThanOrEqual(480)
+
+		// The inset pulls the ceiling tick off the plot's right edge.
+		expect(last?.at ?? 0).toBeLessThan(layout.plot.x + layout.plot.width)
 	})
 })
