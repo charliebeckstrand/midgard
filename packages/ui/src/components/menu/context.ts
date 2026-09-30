@@ -14,6 +14,11 @@ type MenuStateValue = {
 	 * trigger and so pulls focus into its panel on open.
 	 */
 	isDropdown: boolean
+	/**
+	 * True for a dropdown on a phone, which opens as a bottom sheet. Focus goes
+	 * into the sheet, so its rows rove by real focus.
+	 */
+	isSheet: boolean
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>

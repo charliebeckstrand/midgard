@@ -3,9 +3,11 @@
 import { useClick, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
 import type { DensityStep } from '../../core/density'
-import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
+import { type FloatingPlacement, useFloatingDisclosure, useMediaQuery } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import { isNativeContextMenuRequest } from '../../utilities'
+import { snapMenuHeight } from './menu-viewport-utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
 export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
@@ -18,12 +20,21 @@ export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
  */
 const MENU_ACTIVATION_KEYS = ['Enter', ' '] as const
 
+/**
+ * A phone: no hover, and a viewport narrower than the `sm` breakpoint. A narrow
+ * desktop window keeps the popover, because a pointer places it well. The query
+ * asks for the phone, so an environment that matches nothing gets the popover.
+ * @internal
+ */
+const PHONE_QUERY = `(hover: none) and (width < ${BREAKPOINT_WIDTHS.sm})`
+
 type MenuStateOptions = {
 	open?: boolean
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
 	placement?: FloatingPlacement
 	size?: DensityStep
+	sheet?: boolean
 }
 
 /**
@@ -81,8 +92,13 @@ export function useMenuState({
 	onOpenChange,
 	placement,
 	size,
+	sheet = true,
 }: MenuStateOptions) {
 	const isDropdown = placement !== undefined
+
+	const phone = useMediaQuery(PHONE_QUERY)
+
+	const isSheet = isDropdown && sheet && phone
 
 	const isStatic = defaultOpen && !isDropdown
 
@@ -105,6 +121,10 @@ export function useMenuState({
 			role: null,
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,
+			// A menu taller than the space on its side of the trigger shrinks into
+			// that space and scrolls, instead of running off the screen. The cut
+			// falls at the middle of a row, so the clipped row shows the overflow.
+			fitHeight: snapMenuHeight,
 			// A static menu renders inline and stays visible — `MenuContent` gates
 			// the panel on `isStatic`, not on `open`. Left dismissable it would take
 			// a slot on the shared Escape stack, report a close that changes nothing,
@@ -204,12 +224,13 @@ export function useMenuState({
 			open,
 			menuId,
 			isDropdown,
+			isSheet,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
 			size,
 		}),
-		[open, menuId, isDropdown, floatingStyles, getReferenceProps, getFloatingProps, size],
+		[open, menuId, isDropdown, isSheet, floatingStyles, getReferenceProps, getFloatingProps, size],
 	)
 
 	const actions = useMemo(

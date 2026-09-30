@@ -17,6 +17,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
+import { fitHeightMiddleware } from '../../hooks/use-floating-ui'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
@@ -25,6 +26,7 @@ import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { Icon } from '../icon'
 import { MenuViewport } from './menu-viewport'
+import { snapMenuHeight } from './menu-viewport-utilities'
 import { MenuLabel } from './slots'
 import {
 	MenuPointerLevel,
@@ -53,7 +55,7 @@ const OPEN_KEYS = ['Enter', ' ']
  * of being clipped. Restricted to the horizontal sides, because a submenu above
  * or below its parent would cover the menu it came from. Top-aligned with the row it
  * hangs off, with `shift` nudging it back into view when it runs past the
- * bottom.
+ * bottom. A panel taller than the viewport shrinks to fit it, and scrolls.
  *
  * @internal
  */
@@ -61,6 +63,7 @@ const SUBMENU_MIDDLEWARE: Middleware[] = [
 	offset(4),
 	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
 	shift({ padding: 8 }),
+	fitHeightMiddleware(snapMenuHeight),
 ]
 
 /** Props for {@link MenuSub}. */
@@ -372,6 +375,7 @@ export function MenuSub({
 					setFloating={setPanel}
 					floatingStyles={floatingStyles}
 					getFloatingProps={getFloatingProps}
+					className={k.surface}
 				>
 					<PopoverPanel
 						id={panelId}
@@ -386,15 +390,17 @@ export function MenuSub({
 						trapTab
 						typeahead
 						glass={glass}
-						// `relative` puts the panel back in flow (its recipe base is
+						// `k.floating` puts the panel back in flow (its recipe base is
 						// `absolute`) so the positioning wrapper shrink-wraps to it. Without
 						// it the wrapper measures 0×0 and the engine has no width to place
 						// against — a left-side placement would land on top of the parent
 						// menu. {@link MenuContent} does the same for its floating panel.
-						className={cn('relative', k.content)}
+						className={cn(k.floating, k.content)}
 						onKeyDown={handlePanelKeyDown}
 					>
-						<MenuViewport ref={setRows}>{children}</MenuViewport>
+						<MenuViewport ref={setRows} fitted>
+							{children}
+						</MenuViewport>
 					</PopoverPanel>
 				</FloatingSurface>
 			</MenuPointerLevel>

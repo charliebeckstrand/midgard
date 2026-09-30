@@ -118,13 +118,51 @@ const matchReferenceWidthMiddleware = size({
 	},
 })
 
-/** Default middleware chain: offset / flip / shift, plus the match-reference-width size middleware when requested. @internal */
-function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middleware[] {
+/**
+ * Lowers the height that is available to a floating panel to a height that
+ * suits its content. It gets the available height and the floating element,
+ * and returns the max-height to write. A larger value has no effect. A menu
+ * uses it to cut its last visible row at the middle.
+ */
+export type FloatingHeightSnap = (availableHeight: number, floating: HTMLElement) => number
+
+/**
+ * Sets the max-height of the floating element to the height that is available
+ * on its side of the reference, less an 8px margin to the viewport edge. It
+ * goes after `flip`. When the panel fits on no side, `flip` selects the side
+ * with the most space, and this middleware shrinks the panel into that space.
+ * The panel must let its scroll region shrink with the wrapper, as `Menu` does.
+ * A `snap` function can lower the height, for example to a row boundary.
+ *
+ * @internal
+ */
+export function fitHeightMiddleware(snap?: FloatingHeightSnap): Middleware {
+	return size({
+		padding: 8,
+		apply({ availableHeight, elements }) {
+			const available = Math.max(0, availableHeight)
+
+			const height = snap ? Math.min(available, snap(available, elements.floating)) : available
+
+			elements.floating.style.maxHeight = `${Math.max(0, height)}px`
+		},
+	})
+}
+
+/** Default middleware chain: offset / flip / shift, plus the size middlewares that the options request. @internal */
+function buildMiddleware(
+	offsetPx: number,
+	matchReferenceWidth: boolean,
+	fitHeight: boolean | FloatingHeightSnap,
+): Middleware[] {
 	return [
 		offset(offsetPx),
 		flip(),
 		shift({ padding: 8 }),
 		...(matchReferenceWidth ? [matchReferenceWidthMiddleware] : []),
+		...(fitHeight
+			? [fitHeightMiddleware(typeof fitHeight === 'function' ? fitHeight : undefined)]
+			: []),
 	]
 }
 
@@ -147,7 +185,16 @@ export type FloatingPanelOptions = {
 	offset?: number
 	/** When true, adds a size middleware that sets the floating element's min-width to the reference width. @defaultValue false */
 	matchReferenceWidth?: boolean
-	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. */
+	/**
+	 * When true, adds a size middleware that caps the max-height of the floating
+	 * element to the space on its side of the reference. Then a panel that is
+	 * taller than the viewport stays on screen, and its content must scroll. The
+	 * cap is on the positioned wrapper, so the panel inside must shrink with it.
+	 * A {@link FloatingHeightSnap} function turns the cap on and can lower it.
+	 * @defaultValue false
+	 */
+	fitHeight?: boolean | FloatingHeightSnap
+	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. `matchReferenceWidth` and `fitHeight` then do nothing. */
 	middleware?: Middleware[]
 	/**
 	 * Reposition strategy while mounted. `'auto'` wires `autoUpdate`
@@ -208,6 +255,7 @@ export function useFloatingPanel({
 	onOpenChange,
 	offset: offsetPx = 4,
 	matchReferenceWidth = false,
+	fitHeight = false,
 	middleware,
 	returnFocusTo,
 	track = 'auto',
@@ -219,10 +267,10 @@ export function useFloatingPanel({
 	// An `auto` placement starts at the start alignment. The alignment middleware
 	// goes first, so `flip` and `shift` act on the alignment that it selects.
 	const resolvedMiddleware = useMemo(() => {
-		const chain = middleware ?? buildMiddleware(offsetPx, matchReferenceWidth)
+		const chain = middleware ?? buildMiddleware(offsetPx, matchReferenceWidth, fitHeight)
 
 		return side ? [autoAlignMiddleware, ...chain] : chain
-	}, [middleware, offsetPx, matchReferenceWidth, side])
+	}, [middleware, offsetPx, matchReferenceWidth, fitHeight, side])
 
 	// Reason of the pending close request; the focus-return effect reads it.
 	// Every close that flows through floating-ui's `context.onOpenChange`

@@ -43,6 +43,7 @@ export {
 	useFloatingDisclosure,
 } from './use-floating-disclosure'
 export {
+	type FloatingHeightSnap,
 	type FloatingPanelOptions,
 	type FloatingPanelResult,
 	type FloatingPlacement,

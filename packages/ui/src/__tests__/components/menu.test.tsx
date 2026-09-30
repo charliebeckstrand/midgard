@@ -25,6 +25,7 @@ import {
 	renderUI,
 	screen,
 	setupUser,
+	stubMatchMedia,
 	userEvent,
 } from '../helpers'
 
@@ -786,10 +787,10 @@ describe('MenuViewport', () => {
 	 * `useMenuCapped` reads `false` outside a `Menu`, so the capped arm supplies
 	 * the context the flag travels on.
 	 */
-	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>) => {
+	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>, fitted?: boolean) => {
 		const { container, unmount } = renderUI(
 			<MenuCappedContext value={capped}>
-				<MenuViewport ref={ref}>
+				<MenuViewport ref={ref} fitted={fitted}>
 					<span>Item</span>
 				</MenuViewport>
 			</MenuCappedContext>,
@@ -802,7 +803,7 @@ describe('MenuViewport', () => {
 		return { viewport, unmount }
 	}
 
-	it('wires the overflow watch only while capped', () => {
+	it('wires the overflow watch of a static panel only while capped', () => {
 		for (const capped of [false, true]) {
 			const { viewport } = viewportFor(capped)
 
@@ -810,6 +811,14 @@ describe('MenuViewport', () => {
 
 			expect(viewport.hasAttribute('data-overflow-below')).toBe(capped)
 		}
+	})
+
+	it('wires the overflow watch for a floating panel, which the layer caps to the viewport', () => {
+		const { viewport } = viewportFor(false, undefined, true)
+
+		fireEvent.scroll(viewport)
+
+		expect(viewport).toHaveAttribute('data-overflow-below')
 	})
 
 	it('composes an incoming ref with the watch and tears both down together', () => {
@@ -1033,6 +1042,83 @@ describe('MenuItem density', () => {
 			'density-py-[1,1.5,2.5]',
 			'density-text-[sm,base,lg]',
 		)
+	})
+})
+
+/**
+ * A dropdown on a phone opens as a bottom sheet. The phone is a stubbed media
+ * query: no hover and a narrow viewport. The jsdom stub matches nothing, so the
+ * other suites get the popover.
+ */
+describe('Menu on a phone', () => {
+	function renderPhoneMenu({ sheet, title }: { sheet?: boolean; title?: string } = {}) {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		const onAction = vi.fn()
+
+		const user = setupUser()
+
+		renderUI(
+			<Menu placement="bottom-start" sheet={sheet}>
+				<MenuTrigger>
+					<button type="button">Add tile</button>
+				</MenuTrigger>
+
+				<MenuContent title={title}>
+					<MenuItem onAction={onAction}>Orders</MenuItem>
+					<MenuItem>Revenue</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		return { onAction, user }
+	}
+
+	it('opens a dropdown as a sheet that the trigger names', async () => {
+		const { user } = renderPhoneMenu()
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		const sheet = screen.getByRole('dialog', { name: 'Add tile' })
+
+		const menu = screen.getByRole('menu')
+
+		expect(sheet).toContainElement(menu)
+
+		expect(screen.getByRole('button', { name: 'Add tile' })).toHaveAttribute(
+			'aria-controls',
+			menu.id,
+		)
+	})
+
+	it('takes the title of the content as its heading', async () => {
+		const { user } = renderPhoneMenu({ title: 'New tile' })
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
+	})
+
+	it('closes the sheet when a row is selected', async () => {
+		const { onAction, user } = renderPhoneMenu()
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		await user.click(screen.getByRole('menuitem', { name: 'Orders' }))
+
+		expect(onAction).toHaveBeenCalledTimes(1)
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+	})
+
+	it('keeps the popover when the sheet is turned off', async () => {
+		const { user } = renderPhoneMenu({ sheet: false })
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 })
 

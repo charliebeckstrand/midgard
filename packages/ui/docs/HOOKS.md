@@ -112,6 +112,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `EscapeLayerOptions` | Options for `useEscapeLayer`: where the layer sits in the stack and what a press does. |
 | `FloatingDisclosureOptions` / `FloatingDisclosureResult` | Options and return shape of `useFloatingDisclosure`. |
 | `FloatingUIOptions` / `FloatingUIResult` | Options and return shape of `useFloatingUI`. |
+| `FloatingHeightSnap` | A function that lowers the `fitHeight` cap of `useFloatingPanel` to a height that suits the content, such as the middle of a menu row. |
 | `FloatingPanelOptions` / `FloatingPanelResult` | Options and return shape of `useFloatingPanel`. |
 | `FloatingPlacement` | A floating-ui placement, or `<side>-auto`, which aligns the panel to the edge that is nearer to the reference. |
 | `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test, and the ref to compose. |
