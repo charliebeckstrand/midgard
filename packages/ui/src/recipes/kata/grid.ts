@@ -677,29 +677,36 @@ export const k = {
 		idle: [text.muted, fg.hover],
 	},
 	footer: {
-		// Footer below the table, laid out as three zones. From `lg`: one row with
-		// the page-size picker at the start, the page navigation centered, and the
-		// row-range status at the end — each zone an equal `flex-1` track so the
-		// navigation stays centered whatever the side content. Below `lg`: the
-		// navigation sits on its own row up top, with the
-		// picker and status sharing a justified-between row beneath it (the `meta`
-		// wrapper collapses to `contents` at `lg` so all three become siblings of the
-		// one row, reordered controls · nav · status).
-		bar: ['flex', 'flex-col', 'gap-2', 'pt-2', 'lg:flex-row', 'lg:items-center'],
-		// Page navigation: centered on its own row below `lg`, the centered middle
-		// track from `lg`.
-		nav: ['flex', 'justify-center', 'lg:order-2', 'lg:flex-1'],
-		// Picker + status: a justified-between row below `lg`; dissolves into the
-		// footer row from `lg` so the controls and status order independently around
-		// the centered nav.
-		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
-		// Row-range status ("1–10 of 47"): the end track from `lg` (aligned to the
-		// inline end), the end of the justified row below it.
-		status: [size.md, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-end'],
-		// Page-size picker: the start track from `lg` (aligned to the inline start),
-		// the start of the justified row below it. Always rendered so the track holds even when empty,
-		// keeping the nav centered.
-		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-1', 'lg:flex-1'],
+		// Footer below the table. The footer is its own size container, so the
+		// layout follows the width that the grid has (a dashboard tile, a
+		// dialog, a page), not the viewport.
+		root: ['@container', 'pt-2'],
+		// One row at all widths. Below `@2xl`: the page-size picker at the start,
+		// then the row-range status and the Previous/Next pair together at the
+		// end. From `@2xl`: three equal `flex-1` tracks, with the picker at the
+		// start, the numbered navigation centered, and the status at the end.
+		bar: ['flex', 'items-center', 'gap-3'],
+		// Page-size picker: the flexible start track that pushes the status and
+		// the navigation to the end. It always renders, so the track holds when
+		// it is empty.
+		controls: [flex.inline, 'flex-1', 'items-center', 'gap-4'],
+		// Page navigation: after the status below `@2xl`, the centered middle
+		// track from `@2xl`.
+		nav: ['flex', 'order-2', 'justify-center', '@2xl:flex-1'],
+		// Numbered pages: only from `@2xl`. Below it, Previous/Next carry the
+		// navigation and the status names the position.
+		pages: ['hidden', '@2xl:flex'],
+		// Row-range status ("1–10 of 47"): before the navigation below `@2xl`,
+		// the end track from `@2xl` (aligned to the inline end).
+		status: [
+			size.md,
+			text.muted,
+			'order-1',
+			'whitespace-nowrap',
+			'@2xl:order-3',
+			'@2xl:flex-1',
+			'@2xl:text-end',
+		],
 	},
 	// Condensed down-projections layered on the compact density the grid forwards
 	// to `<Table>` when `condensed` is set. All cast from the `<table>` element

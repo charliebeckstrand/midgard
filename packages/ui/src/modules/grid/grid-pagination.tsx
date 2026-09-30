@@ -51,13 +51,15 @@ function pageStatus({
 }
 
 /**
- * Footer for a paginated {@link Grid}, laid out as three zones: an optional
- * page-size picker, the page navigation, and a row-range status. All three are
- * driven by the {@link GridPaginationView} the grid's TanStack Table engine resolves. From
- * `lg` they share one row (picker at the start, nav centered, status at the
- * end); below it the nav stacks above a picker/status row. Numbered pages render
- * only when the total page count is known; an unbounded server feed falls back to
- * Previous/Next around a "Page N" status.
+ * Footer for a paginated {@link Grid}, laid out as one row of three zones: an
+ * optional page-size picker, the page navigation, and a row-range status. All
+ * three are driven by the {@link GridPaginationView} the grid's TanStack Table
+ * engine resolves. The footer width, not the viewport, sets the layout. From
+ * `@2xl` the picker is at the start, the numbered navigation is centered, and
+ * the status is at the end. Below it the numbered pages hide, and the status
+ * and the Previous/Next pair sit together at the end. Numbered pages render
+ * only when the total page count is known; an unbounded server feed falls back
+ * to Previous/Next beside a "Page N" status.
  *
  * @internal
  */
@@ -93,6 +95,9 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	// the body. Restore it to the current-page marker so focus stays in the nav
 	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `restoreFrom`.
 	const navRef = useRef<HTMLDivElement>(null)
+
+	// The numbered pages, which hide below the `@2xl` footer width.
+	const pagesRef = useRef<HTMLOListElement>(null)
 
 	// Armed by a navigation the reader drives, with the page it leaves, and spent
 	// by the first render on another page. That change can land a commit later,
@@ -133,43 +138,21 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 		if (!dropped) return
 
-		nav.querySelector<HTMLElement>('[aria-current="page"]')?.focus()
+		// The current-page marker takes focus when it shows. Below `@2xl` the
+		// numbered pages hide, so the enabled Previous or Next control takes it.
+		const pages = pagesRef.current
+
+		const target =
+			pages && getComputedStyle(pages).display !== 'none'
+				? pages.querySelector<HTMLElement>('[aria-current="page"]')
+				: nav.querySelector<HTMLElement>('button:not(:disabled)')
+
+		target?.focus()
 	}, [pageIndex])
 
 	return (
-		<div data-slot="grid-pagination" className={cn(k.footer.bar)}>
-			{showNav && (
-				<div ref={navRef} className={cn(k.footer.nav)}>
-					<Pagination>
-						<PaginationPrevious
-							onClick={() => goToPage((index) => index - 1)}
-							disabled={!canPrevious}
-						/>
-
-						{knownPages && (
-							<PaginationList>
-								{getVisiblePages(pageNumber, pageCount).map((item) =>
-									typeof item === 'string' ? (
-										<PaginationGap key={item} />
-									) : (
-										<PaginationPage
-											key={item}
-											current={item === pageNumber}
-											onClick={() => goToPage(item - 1)}
-										>
-											{item}
-										</PaginationPage>
-									),
-								)}
-							</PaginationList>
-						)}
-
-						<PaginationNext onClick={() => goToPage((index) => index + 1)} disabled={!canNext} />
-					</Pagination>
-				</div>
-			)}
-
-			<div className={cn(k.footer.meta)}>
+		<div data-slot="grid-pagination" className={cn(k.footer.root)}>
+			<div className={cn(k.footer.bar)}>
 				<div className={cn(k.footer.controls)}>
 					{showPicker && (
 						<Select<number>
@@ -187,6 +170,37 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 						</Select>
 					)}
 				</div>
+
+				{showNav && (
+					<div ref={navRef} className={cn(k.footer.nav)}>
+						<Pagination>
+							<PaginationPrevious
+								onClick={() => goToPage((index) => index - 1)}
+								disabled={!canPrevious}
+							/>
+
+							{knownPages && (
+								<PaginationList ref={pagesRef} className={cn(k.footer.pages)}>
+									{getVisiblePages(pageNumber, pageCount).map((item) =>
+										typeof item === 'string' ? (
+											<PaginationGap key={item} />
+										) : (
+											<PaginationPage
+												key={item}
+												current={item === pageNumber}
+												onClick={() => goToPage(item - 1)}
+											>
+												{item}
+											</PaginationPage>
+										),
+									)}
+								</PaginationList>
+							)}
+
+							<PaginationNext onClick={() => goToPage((index) => index + 1)} disabled={!canNext} />
+						</Pagination>
+					</div>
+				)}
 
 				{/* A polite live region so a page/range change is announced without moving
 				    focus (WCAG 4.1.3); role="status" stays silent on the initial render. */}
