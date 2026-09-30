@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import { EMPTY_SET } from './engine/grid-constants'
+import { completeColumnOrder } from './engine/grid-reorder-compute'
 
 type ColumnLike = { id: string | number }
 
@@ -27,7 +28,7 @@ type GridColumnVisibilityOptions<T extends ColumnLike> = {
  * columns' own order), the two `useControllable` bindings with their
  * undefined-coalescing, and the id → column lookup map.
  *
- * @returns `order` (resolved id list), `setOrder`, `hidden` (resolved id set),
+ * @returns `order` (the resolved id list, completed with each column id it lacks), `setOrder`, `hidden` (resolved id set),
  * `setHidden`, and `byId` (id → column map). The setters are the raw
  * `useControllable` setters; they accept a value or an updater.
  * @internal
@@ -57,7 +58,14 @@ export function useGridColumnVisibility<T extends ColumnLike>({
 		onValueChange: (next) => onHiddenChange?.(next ?? new Set<string | number>()),
 	})
 
+	// Each walk of the order (a manager drop, a group-editor drop, a header drag)
+	// keeps only the ids that it holds, so the order is completed once here.
+	const completeOrder = useMemo(
+		() => completeColumnOrder(resolvedOrder, columns),
+		[resolvedOrder, columns],
+	)
+
 	const byId = useMemo(() => new Map(columns.map((col) => [col.id, col])), [columns])
 
-	return { order: resolvedOrder, setOrder, hidden: resolvedHidden, setHidden, byId }
+	return { order: completeOrder, setOrder, hidden: resolvedHidden, setHidden, byId }
 }

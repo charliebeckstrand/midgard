@@ -180,8 +180,17 @@ export function useGridDataColumns<T>({
 		return column ? columnLabel(column) : String(id)
 	})
 
+	// Whether a column is locked to its edge, read at call time as the label is.
+	const isLockedColumn = useStableEvent((id: string | number) =>
+		pinnedColumns.some((candidate) => candidate.id === id && Boolean(candidate.locked)),
+	)
+
 	const pinColumn = useCallback(
 		(id: string | number, side: PinSide | false) => {
+			// A locked column ignores the pin state, so a pin of it would persist and
+			// announce a change that moves nothing.
+			if (isLockedColumn(id)) return
+
 			const key = String(id)
 
 			setPinningState((prev) => ({ ...prev, [key]: side === false ? 'none' : side }))
@@ -193,7 +202,7 @@ export function useGridDataColumns<T>({
 
 			announce(describePin(labelOfColumn(id), side, rtl))
 		},
-		[setPinningState, labelOfColumn, wrapperRef],
+		[setPinningState, labelOfColumn, wrapperRef, isLockedColumn],
 	)
 
 	// Column groups: the controllable binding, collapse state, the ids collapsed

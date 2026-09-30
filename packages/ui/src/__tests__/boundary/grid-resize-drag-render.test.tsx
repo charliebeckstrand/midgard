@@ -120,6 +120,51 @@ describe('Grid column drag-resize', () => {
 		fireEvent.mouseUp(document, { clientX: 150 })
 	})
 
+	it('holds the measure of a dragged header title until the drag settles', async () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} resizable truncate />,
+		)
+
+		const title = container.querySelector<HTMLElement>(
+			'th[data-grid-col="city"] [data-grid-content]',
+		)
+
+		if (!title) throw new Error('City title not found')
+
+		// A measure reads the overflow of the title, so each read counts one.
+		const reads = vi.fn(() => 0)
+
+		Object.defineProperty(title, 'scrollWidth', { configurable: true, get: reads })
+
+		// Contact arms the measure, as the reveal it gates opens on contact.
+		fireEvent.pointerOver(title)
+
+		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize City' }), {
+			button: 0,
+			clientX: 100,
+		})
+
+		await act(frames)
+
+		reads.mockClear()
+
+		for (let x = 110; x <= 150; x += 10) {
+			fireEvent.mouseMove(document, { clientX: x })
+
+			await act(frames)
+		}
+
+		// The header renders on each frame of the drag, and measures on none.
+		expect(reads).not.toHaveBeenCalled()
+
+		fireEvent.mouseUp(document, { clientX: 150 })
+
+		await act(frames)
+
+		// The settle lifts the hold and measures again.
+		expect(reads).toHaveBeenCalled()
+	})
+
 	it('renders the host once on each frame of a drag of a frozen column', async () => {
 		const frozen: GridColumn<Row>[] = [
 			{ ...(columns[0] as GridColumn<Row>), pinned: 'left' },

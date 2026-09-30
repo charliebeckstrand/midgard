@@ -384,3 +384,59 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 		fireEvent.mouseUp(document, { clientX: startX + 90, clientY: y })
 	})
 })
+
+/**
+ * A non-resizable grid measures its frozen offsets from the rendered header. A
+ * header cell that changes width must move the columns behind it in the frame
+ * of that change, not one painted frame late.
+ */
+describe('grid frozen offsets follow a width change in its frame (real browser)', () => {
+	type Row = { id: number; name: string; code: string; a: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+		{ id: 'code', title: 'Code', cell: (row) => row.code, pinned: 'left' },
+		{ id: 'a', title: 'A', cell: (row) => row.a },
+	]
+
+	const rows: Row[] = [{ id: 1, name: 'Ada', code: 'X1', a: 'A' }]
+
+	const head = (root: HTMLElement, id: string) =>
+		present(root.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`), `th ${id}`)
+
+	it('moves a frozen follower before the frame paints', async () => {
+		const { container } = renderUI(
+			<Grid resizable={false} columns={columns} rows={rows} getKey={(row) => row.id} />,
+		)
+
+		await waitFor(() => expect(head(container, 'code').style.insetInlineStart).not.toBe(''))
+
+		const name = head(container, 'name')
+
+		// This observer is made after the grid's, so it runs after the grid's in the
+		// same frame and reads what the grid's callback committed.
+		const reports: Array<{ width: number; offset: string }> = []
+
+		const observer = new ResizeObserver(() => {
+			reports.push({
+				width: name.getBoundingClientRect().width,
+				offset: head(container, 'code').style.insetInlineStart,
+			})
+		})
+
+		observer.observe(name)
+
+		// The first callback reports the initial size.
+		await waitFor(() => expect(reports).toHaveLength(1))
+
+		name.style.minWidth = '300px'
+
+		await waitFor(() => expect(reports).toHaveLength(2))
+
+		observer.disconnect()
+
+		const [, seen] = reports
+
+		expect(Number.parseFloat(seen?.offset ?? '')).toBeCloseTo(seen?.width ?? Number.NaN, 0)
+	})
+})

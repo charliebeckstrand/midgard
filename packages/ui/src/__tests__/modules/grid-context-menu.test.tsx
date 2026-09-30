@@ -896,4 +896,41 @@ describe('Grid context menus', () => {
 
 		expect(screen.queryByRole('menuitem', { name: 'Pin' })).not.toBeInTheDocument()
 	})
+
+	it('persists no pin that a builder requests on a locked column', () => {
+		const lockedColumns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'role', title: 'Role', cell: (row) => row.role },
+		]
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={lockedColumns}
+				rows={rows}
+				getKey={getKey}
+				pinning={{ onValueChange }}
+				contextMenu={{
+					column: ({ pinRight }, defaults) => [
+						...defaults,
+						{ key: 'custom', label: 'Freeze right', onAction: pinRight },
+					],
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Freeze right' }))
+
+		// The lock outranks the pin, so the request changes no state.
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		rightClick('columnheader', 'Role')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Freeze right' }))
+
+		expect(onValueChange).toHaveBeenCalledWith({ role: 'right' })
+	})
 })

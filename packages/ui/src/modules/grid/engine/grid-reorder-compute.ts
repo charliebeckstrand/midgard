@@ -91,6 +91,26 @@ export function columnShiftStyle(index: number): CSSProperties {
 }
 
 /**
+ * Completes a column order. The ids of `columns` that `order` does not hold
+ * append at the end, in column order, which is where the engine shows an id
+ * that its order does not name. A stale or partial order (a stored order, or
+ * columns added after mount) then gives every walk the full set.
+ *
+ * @returns `order` itself when it holds every column id, else a new list.
+ * @internal
+ */
+export function completeColumnOrder(
+	order: (string | number)[],
+	columns: readonly { id: string | number }[],
+): (string | number)[] {
+	const seen = new Set(order)
+
+	const missing = columns.filter((column) => !seen.has(column.id)).map((column) => column.id)
+
+	return missing.length === 0 ? order : [...order, ...missing]
+}
+
+/**
  * Splices a reordered subset of column ids back into the full column order.
  * Every id the `isReorderable` predicate rejects (selection, actions, pinned, or
  * hidden columns) holds its existing slot.

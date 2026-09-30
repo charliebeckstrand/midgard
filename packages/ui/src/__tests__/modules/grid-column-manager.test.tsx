@@ -70,6 +70,26 @@ describe('GridColumnManager', () => {
 		expect(labels.indexOf('Role')).toBeLessThan(labels.indexOf('Email'))
 	})
 
+	it('keeps each column when it reorders under a partial stored order', () => {
+		const onOrderChange = vi.fn()
+
+		const { container } = renderUI(
+			<GridColumnManager columns={columns} order={['role']} onOrderChange={onOrderChange} />,
+		)
+
+		// Items render [name, role, email]: Role from the order, Email appended.
+		const role = allBySlot(container, 'list-item')[1] as HTMLElement
+
+		role.focus()
+
+		fireEvent.keyDown(role, { key: ' ' })
+
+		fireEvent.keyDown(role, { key: 'ArrowDown' })
+
+		// The committed order names every column, so the move does not drop one.
+		expect(onOrderChange).toHaveBeenCalledWith(['email', 'name', 'role'])
+	})
+
 	it('reorders an orderable column via the keyboard, keeping pinned columns first', () => {
 		const onOrderChange = vi.fn()
 
