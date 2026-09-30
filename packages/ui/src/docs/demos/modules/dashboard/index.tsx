@@ -494,9 +494,13 @@ function RegistryExample() {
 					<MenuContent>
 						{additions.map(({ tile, hint }) => (
 							<MenuItem key={tile.title} onAction={() => add(tile)}>
-								<MenuLabel>{tile.title}</MenuLabel>
+								{/* The hint sits under the title, so a narrow menu fits a phone. An item
+								is a button, so the column resets the centered text of a button. */}
+								<Stack className="min-w-0 text-start">
+									<MenuLabel>{tile.title}</MenuLabel>
 
-								<MenuDescription>{hint}</MenuDescription>
+									<MenuDescription className="before:hidden">{hint}</MenuDescription>
+								</Stack>
 							</MenuItem>
 						))}
 					</MenuContent>
@@ -504,14 +508,11 @@ function RegistryExample() {
 
 				<Spacer />
 
-				<Button
-					color="red"
-					variant="soft"
-					disabled={pristine}
-					onClick={() => restart(fresh(initial))}
-				>
-					Reset
-				</Button>
+				{!pristine && (
+					<Button color="red" variant="soft" onClick={() => restart(fresh(initial))}>
+						Reset
+					</Button>
+				)}
 
 				{editing && (
 					<Button variant="outline" onClick={() => handle.current?.tidy()}>
