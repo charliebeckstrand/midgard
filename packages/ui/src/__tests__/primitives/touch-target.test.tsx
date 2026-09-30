@@ -42,23 +42,25 @@ describe('TouchTarget', () => {
 
 		expect(touchArea?.className).toContain('pointer-coarse:[--touch-target-floor:2.75rem]')
 
-		expect(touchArea?.className).toContain('h-[max(100%,var(--touch-target-floor))]')
-
 		expect(touchArea?.className).not.toContain('pointer-fine:hidden')
 	})
 
-	it('caps the width at the host plus the gap that a row states, else at the floor', () => {
+	it('caps each axis at the host plus the gap that a container states, else at the floor', () => {
 		const { container } = renderUI(
 			<TouchTarget>
 				<span>Target</span>
 			</TouchTarget>,
 		)
 
-		const touchArea = container.querySelector('[aria-hidden="true"]')
+		const touchArea = container.querySelector('[data-slot="touch-target"]')
 
-		// Without `--touch-target-gap-x`, the fallback is the floor, and the cap is a no-op.
+		// Without the gap of an axis, the fallback is the floor, and the cap is a no-op.
 		expect(touchArea?.className).toContain(
 			'w-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-x,var(--touch-target-floor))))]',
+		)
+
+		expect(touchArea?.className).toContain(
+			'h-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-y,var(--touch-target-floor))))]',
 		)
 	})
 

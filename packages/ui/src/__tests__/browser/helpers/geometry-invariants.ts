@@ -136,6 +136,51 @@ export function overlappingTargets(root: HTMLElement): string[] {
 }
 
 /**
+ * Pairs of hosts whose `TouchTarget` hit areas overlap. The later host paints
+ * on top and takes all of the overlap, so the earlier host loses part of its
+ * target. A container of small hosts caps the hit areas at its gap with
+ * `--touch-target-gap-x` or `--touch-target-gap-y` (`primitives/touch-target`).
+ *
+ * A hidden host and a host inside another host are skipped. The check reads the
+ * floor that the page has, so a test sets the 44px floor to check a coarse
+ * pointer. Overlap up to 1px is tolerated. The members of a `Group` share a 1px
+ * border (`-ms-px`), so their boxes, and the hit areas that keep to them, overlap
+ * by that much.
+ */
+export function overlappingHitAreas(root: HTMLElement): string[] {
+	const areas = [...root.querySelectorAll<HTMLElement>('[data-slot="touch-target"]')].flatMap(
+		(span) => {
+			const host = span.parentElement
+
+			return host?.checkVisibility({ visibilityProperty: true })
+				? [{ host, box: span.getBoundingClientRect() }]
+				: []
+		},
+	)
+
+	const pairs: string[] = []
+
+	for (let i = 0; i < areas.length; i++) {
+		for (let j = i + 1; j < areas.length; j++) {
+			const a = areas[i] as (typeof areas)[number]
+			const b = areas[j] as (typeof areas)[number]
+
+			if (a.host.contains(b.host) || b.host.contains(a.host)) continue
+
+			const overlapX = Math.min(a.box.right, b.box.right) - Math.max(a.box.left, b.box.left)
+			const overlapY = Math.min(a.box.bottom, b.box.bottom) - Math.max(a.box.top, b.box.top)
+
+			if (overlapX > 1 && overlapY > 1)
+				pairs.push(
+					`${label(a.host)} and ${label(b.host)} by ${overlapX.toFixed(1)}x${overlapY.toFixed(1)}`,
+				)
+		}
+	}
+
+	return pairs
+}
+
+/**
  * Pixels by which the document overflows the viewport horizontally: a
  * component forced a page-level horizontal scrollbar at the default test
  * viewport instead of wrapping or scrolling internally.

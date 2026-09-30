@@ -13,11 +13,12 @@ import { present, renderUI, screen } from '../helpers'
  * Axe cannot stand in for this pin. Its target-size rule measures the host's
  * own border-box and never sees the span.
  *
- * The 44px coarse floor has no case here, and none can hold in this suite.
- * `Emulation.setTouchEmulationEnabled` makes `pointer: coarse` match, but
- * turning it off does not restore `hover: hover` or `pointer: fine`. The suite
- * runs with `isolate: false`, so every later file on the page loses its
- * `hover:` variants. The jsdom suite asserts the coarse class instead.
+ * The 44px coarse floor has no case here, because this suite cannot match a
+ * coarse pointer. `Emulation.setTouchEmulationEnabled` makes `pointer: coarse`
+ * match, but turning it off does not restore `hover: hover` or `pointer: fine`.
+ * The suite runs with `isolate: false`, so every later file on the page loses
+ * its `hover:` variants. The jsdom suite asserts the coarse class instead, and
+ * `hit-area-overlap.test.tsx` sets the 44px floor on the span with a stylesheet.
  */
 describe('TouchTarget activation region (real browser)', () => {
 	/** A host under the 24px floor, laid out the way `Button` lays out its host. */
@@ -86,16 +87,21 @@ describe('TouchTarget activation region (real browser)', () => {
 		expect(box.height).toBe(hostBox.height)
 	})
 
-	/** Two hosts under the floor in a row that states its gap to `TouchTarget`. */
-	const renderRow = (gap: number) =>
+	/**
+	 * Two hosts under the floor, in a row or a stack that states its gap to
+	 * `TouchTarget` on that axis.
+	 */
+	const renderPair = (axis: 'x' | 'y', gap: number) =>
 		renderUI(
 			<div
 				style={
 					{
 						display: 'flex',
+						flexDirection: axis === 'x' ? 'row' : 'column',
+						alignItems: 'flex-start',
 						gap,
 						padding: '64px',
-						'--touch-target-gap-x': `${gap}px`,
+						[`--touch-target-gap-${axis}`]: `${gap}px`,
 					} as CSSProperties
 				}
 			>
@@ -115,7 +121,7 @@ describe('TouchTarget activation region (real browser)', () => {
 		)
 
 	it('keeps the hit areas of two adjacent hosts to their boxes when the row states no gap', () => {
-		renderRow(0)
+		renderPair('x', 0)
 
 		const first = measure('First')
 
@@ -147,7 +153,7 @@ describe('TouchTarget activation region (real browser)', () => {
 	})
 
 	it('splits the gap between two adjacent hosts at its midpoint', () => {
-		renderRow(6)
+		renderPair('x', 6)
 
 		const first = measure('First')
 
@@ -168,5 +174,31 @@ describe('TouchTarget activation region (real browser)', () => {
 		expect(hitsHost(first.host, midpoint - 1, y)).toBe(true)
 
 		expect(hitsHost(second.host, midpoint + 1, y)).toBe(true)
+	})
+
+	it('splits the gap between two stacked hosts at its midpoint, and keeps the width', () => {
+		renderPair('y', 6)
+
+		const first = measure('First')
+
+		const second = measure('Second')
+
+		// The stack caps the height, and the width keeps the 24px floor.
+		expect(first.box.height).toBe(22)
+
+		expect(second.box.height).toBe(22)
+
+		expect(first.box.width).toBe(24)
+
+		// The two hit areas meet at the midpoint of the gap and do not overlap.
+		expect(first.box.bottom).toBe(second.box.top)
+
+		const x = first.hostBox.left + 8
+
+		const midpoint = first.hostBox.bottom + 3
+
+		expect(hitsHost(first.host, x, midpoint - 1)).toBe(true)
+
+		expect(hitsHost(second.host, x, midpoint + 1)).toBe(true)
 	})
 })

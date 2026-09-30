@@ -150,7 +150,9 @@ export function NumberInput({
 				// input — ending an enclosing edit (e.g. a Grid editable cell, whose
 				// numeric editor commits on blur) before the click's step lands.
 				// preventDefault cancels only the focus move; the click still fires.
-				<span className="pointer-events-auto flex items-center gap-0.5">
+				// The gap also caps the hit areas (`TouchTarget`), so the two buttons
+				// split it and do not overlap, and neither reaches over the input.
+				<span className="pointer-events-auto flex items-center gap-0.5 [--touch-target-gap-x:--spacing(0.5)]">
 					<Button
 						type="button"
 						variant="bare"

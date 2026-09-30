@@ -2,14 +2,14 @@ import type { ReactNode } from 'react'
 
 /**
  * The classes of the expansion span. The span holds the floor in a custom
- * property, so the width and the height read one value. The width takes the
- * smaller of the floor and the host width plus the gap to a neighbor.
+ * property, so the width and the height read one value. Each axis takes the
+ * smaller of the floor and the host size plus the gap to a neighbor.
  */
 const area = [
 	'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto',
 	'[--touch-target-floor:1.5rem] pointer-coarse:[--touch-target-floor:2.75rem]',
 	'w-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-x,var(--touch-target-floor))))]',
-	'h-[max(100%,var(--touch-target-floor))]',
+	'h-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-y,var(--touch-target-floor))))]',
 ].join(' ')
 
 /**
@@ -27,25 +27,32 @@ const area = [
  * icon + padding at every size, and stays compliant. WCAG 2.5.8 measures the
  * activation region, not the visible bounds.
  *
- * Two small hosts in a row can sit closer than the floor. Their hit areas then
- * overlap, and the later host takes all of the overlap. A container that puts
- * hosts in a row sets `--touch-target-gap-x` to the space between two adjacent
- * hosts. Each hit area then goes at most half of that space past its host on
- * each side. Adjacent hit areas meet at the midpoint and do not overlap, and
- * hosts of one width get hit areas of one width. The height keeps the floor.
- * Without the property, the width also keeps the floor.
+ * Two small hosts side by side can sit closer than the floor. Their hit areas
+ * then overlap, and the later host takes all of the overlap. A container that
+ * puts hosts in a row sets `--touch-target-gap-x` to the space between two
+ * adjacent hosts. A container that stacks hosts sets `--touch-target-gap-y` in
+ * the same way, and a grid or a row that wraps sets both. Each hit area then
+ * goes at most half of that space past its host on each side of that axis.
+ * Adjacent hit areas meet at the midpoint and do not overlap, and hosts of one
+ * size get hit areas of one size. An axis with no property keeps the floor.
+ *
+ * The properties inherit, so they cap each `TouchTarget` in the container,
+ * the controls of a nested input included. A value under the real space is
+ * safe, because it only makes the hit areas smaller.
  *
  * `__tests__/primitives/touch-target.test.tsx` asserts the floor classes under
  * jsdom. `__tests__/browser/touch-target-geometry.test.tsx` measures the
  * 24px activation region in Chromium on a fine pointer, and the split between
- * two adjacent hosts. The 44px coarse floor has only the class assertion, and
- * that file states why. Axe cannot stand in for either pin, because its
- * target-size rule measures the host's own border-box and never sees the span.
+ * two adjacent hosts on each axis. `__tests__/browser/hit-area-overlap.test.tsx`
+ * sets the 44px floor on each span, because the suite cannot match a coarse
+ * pointer. It then finds each pair of hit areas that overlap. Axe cannot stand
+ * in for these pins, because its target-size rule measures the host's own
+ * border-box and never sees the span.
  */
 export function TouchTarget({ children }: { children: ReactNode }) {
 	return (
 		<>
-			<span className={area} aria-hidden="true" />
+			<span data-slot="touch-target" className={area} aria-hidden="true" />
 			{children}
 		</>
 	)
