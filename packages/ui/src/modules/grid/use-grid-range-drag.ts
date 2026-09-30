@@ -20,7 +20,8 @@ import type { Coord } from './use-grid-navigation'
  *   an unmount cuts off does not call it.
  * @param cellCoordOf - The data cell that an element id names, or `null`.
  * @param scrollContainerRef - The scroll region of the grid, or `null` when it does not scroll.
- * @returns The start of a drag, for the press.
+ * @returns The start of a drag, for the press. The drag reads the cells of
+ *   the grid that the start names, else of the grid that holds the pressed element.
  * @internal
  */
 export function useGridRangeDrag({
@@ -33,17 +34,17 @@ export function useGridRangeDrag({
 	onEnd?: () => void
 	cellCoordOf: (id: string) => Coord | null
 	scrollContainerRef: RefObject<HTMLElement | null>
-}): (event: MouseEvent<HTMLElement>) => void {
+}): (event: MouseEvent<HTMLElement>, root?: HTMLElement | null) => void {
 	// Ends the drag in progress, or `null` when none runs. `release` tells a
 	// release from a cut.
 	const stopRef = useRef<((release: boolean) => void) | null>(null)
 
 	useEffect(() => () => stopRef.current?.(false), [])
 
-	return useStableEvent((event: MouseEvent<HTMLElement>) => {
+	return useStableEvent((event: MouseEvent<HTMLElement>, root?: HTMLElement | null) => {
 		stopRef.current?.(false)
 
-		const grid = event.currentTarget.closest<HTMLElement>(GRID_ROLE)
+		const grid = root ?? event.currentTarget.closest<HTMLElement>(GRID_ROLE)
 
 		if (event.button !== 0 || !grid) return
 

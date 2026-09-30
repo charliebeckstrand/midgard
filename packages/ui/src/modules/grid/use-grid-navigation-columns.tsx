@@ -246,7 +246,7 @@ function setScrollMargin(
  * scrolls into view, clear of the grid's sticky header and pinned columns.
  * Renders a hidden locator span, not a wrapper,
  * so cell layout is untouched. While the grid can fill, the active cell also
- * renders the fill handle (see {@link GridNavStore.fillHandle}).
+ * holds the fill handle, which one overlay shows (see {@link GridNavStore.fillHandle}).
  *
  * @internal
  */
@@ -284,19 +284,19 @@ export function GridNavCell({
 
 	const fillHandle = stop === undefined && isActive ? store.fillHandle : null
 
-	// A cell that shows the fill handle marks itself as its holder. A static cell
-	// must turn relative to hold the handle, and a sticky cell must not.
+	// The active cell holds the fill handle, which one overlay shows on it.
 	useLayoutEffect(() => {
 		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
 
 		if (!cell || !fillHandle) return
 
-		cell.setAttribute('data-fill-handle', getComputedStyle(cell).position)
-
-		return () => {
-			cell.removeAttribute('data-fill-handle')
-		}
+		return fillHandle.hold(cell)
 	}, [fillHandle])
+
+	// A render of the cell can move it, so the handle takes its place again.
+	useLayoutEffect(() => {
+		fillHandle?.place()
+	})
 
 	// Its own effect, so a change of the range does not scroll the active cell.
 	useLayoutEffect(() => {
@@ -348,14 +348,6 @@ export function GridNavCell({
 		<>
 			{children}
 			<span ref={ref} hidden />
-			{fillHandle && (
-				<span
-					data-slot="grid-fill-handle"
-					aria-hidden="true"
-					className={cn(k.nav.fillHandle)}
-					onMouseDown={fillHandle}
-				/>
-			)}
 		</>
 	)
 }
