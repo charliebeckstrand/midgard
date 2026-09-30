@@ -298,6 +298,8 @@ export function resolveFooterStats(args: {
 	/** Full filtered row extent across all pages (the grid's `dataRowCount`). */
 	filteredCount: number
 	selected: number
+	/** How many selected rows the filtered set does not hold. */
+	hidden: number
 	/** Resolved infinite scroll, whose known `totalRows` supersedes the loaded extent. */
 	infiniteScroll: Pick<ResolvedInfiniteScroll, 'totalRows'> | null
 }): GridFooterStats | null {
@@ -309,6 +311,7 @@ export function resolveFooterStats(args: {
 		rows,
 		total: Math.max(args.sourceCount, rows),
 		selected: args.selected,
+		hidden: args.hidden,
 	}
 }
 

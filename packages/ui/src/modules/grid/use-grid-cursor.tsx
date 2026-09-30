@@ -17,6 +17,7 @@ import { describeRange } from './engine/grid-announcements'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { columnLabel } from './engine/grid-column/label'
 import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
+import type { GridPasteCell } from './engine/grid-edit-commit'
 import {
 	type EditorKind,
 	type GridKeyPress,
@@ -47,7 +48,7 @@ import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridCursorColumns } from './use-grid-cursor-columns'
 import type { GridIndexRefs } from './use-grid-data-cursor'
-import { type GridPasteCell, useGridEditing } from './use-grid-editing'
+import { useGridEditing } from './use-grid-editing'
 import { useGridFillDrag } from './use-grid-fill-drag'
 import { useGridFillHandle } from './use-grid-fill-handle'
 import {
@@ -55,15 +56,11 @@ import {
 	type GridNavStore,
 	type GridNavTableProps,
 	type GridNewRowPosition,
+	type GridReconcile,
 	type GridScrollRowIntoView,
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
-
-/** Whether two cursor positions name the same cell; `moveTo` mints a fresh `Coord` per move. @internal */
-function sameCoord(a: Coord | null, b: Coord | null): boolean {
-	return a?.row === b?.row && a?.col === b?.col
-}
 
 /** Whether a press carries no modifier and no input method. @internal */
 function isPlainKey(press: GridKeyPress): boolean {
@@ -264,10 +261,8 @@ export function useGridCursor<T>({
 	navStore: GridNavStore
 	/** `<table>` cursor props, with the editing key handler layered over navigation when editable. */
 	navTableProps: GridNavTableProps | undefined
-	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
-	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
-	/** Clears the cell range when the rows or the data columns change order. */
-	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
+	/** Follows the cursor into a new layout and clamps it; the grid drives it as rows and columns change. */
+	reconcile: GridReconcile
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
 	/**
@@ -413,13 +408,19 @@ export function useGridCursor<T>({
 		return () => clearTimeout(timer)
 	}, [rangeAnchor, rangeFocus, announceRange])
 
+	// The row key and the column id of the cell that `onActiveCellChange` last
+	// named, or `null` for no cell. Only the report reads it and writes it.
+	const reportedCellRef = useRef<{ rowKey: string | number; columnId: string | number } | null>(
+		null,
+	)
+
 	/*
 	 * One report for each cell the cursor lands on, read from the committed
 	 * coordinate.
 	 *
 	 * Many call sites write that state: every arrow key, Home/End,
-	 * PageUp/PageDown, and a click that seats the cursor. The re-clamp that
-	 * follows a filter or a hidden column writes it too, so no single call site is
+	 * PageUp/PageDown, and a click that seats the cursor. The follow after a
+	 * sort, a filter, or a column change writes it too, so no single call site is
 	 * the transition. The coordinate resolves to
 	 * the same context `onCellClick` delivers, so the pointer and the keyboard
 	 * name a cell the same way. A cursor cleared by an emptied grid reports null.
@@ -427,35 +428,40 @@ export function useGridCursor<T>({
 	 * A grid mounts with no cursor, and that null is the rest state rather than a
 	 * transition, so the first run is skipped. The context is resolved when the
 	 * cursor moves, so rows replaced under a stationary cursor do not re-report.
-	 * The re-clamp moves the cursor whenever the bounds actually shrink.
 	 *
-	 * Compared by coordinate rather than identity. A `moveTo` mints a fresh
-	 * `Coord` even where the clamp returns the cell the cursor already sits on.
-	 * That is every arrow key held against an edge. No `cursorEnabled` gate, because
-	 * `useGridNavigation` already returns a null cursor while it is off.
+	 * Compared by the row key and the column id, not by the coordinate. The
+	 * follow moves the coordinate of a cell that a sort or a column change moves,
+	 * and that cell is not a new cell. When the row or the column of the cell is
+	 * gone, the follow gives a new coordinate object, so the cell in its place
+	 * reports. No `cursorEnabled` gate, because `useGridNavigation` already
+	 * returns a null cursor while it is off.
 	 */
-	useReportedChange(
-		nav.active,
-		(coord) => {
-			// Resolved behind the callback check, not before it: the resolver runs the
-			// column's own accessor, and every grid without this prop would pay for it
-			// on each cursor move. Through the resolver the pointer channel takes, so
-			// the two cannot name a cell differently.
-			if (!onActiveCellChange) return
+	useReportedChange(nav.active, (coord) => {
+		// Resolved behind the callback check, not before it: the resolver runs the
+		// column's own accessor, and every grid without this prop would pay for it
+		// on each cursor move. Through the resolver the pointer channel takes, so
+		// the two cannot name a cell differently.
+		if (!onActiveCellChange) return
 
-			// The new-row slot is not a data cell, so the cursor on it names none.
-			if (!coord || coord.row === NEW_ROW_INDEX) {
-				onActiveCellChange(null)
+		// The new-row slot is not a data cell, so the cursor on it names none.
+		if (!coord || coord.row === NEW_ROW_INDEX) {
+			reportedCellRef.current = null
 
-				return
-			}
+			onActiveCellChange(null)
 
-			const cell = resolveCellAt({ rowsRef, rowKeysRef, dataColumnsRef }, coord.row, coord.col)
+			return
+		}
 
-			if (cell) onActiveCellChange(cell)
-		},
-		sameCoord,
-	)
+		const cell = resolveCellAt({ rowsRef, rowKeysRef, dataColumnsRef }, coord.row, coord.col)
+
+		const reported = reportedCellRef.current
+
+		if (!cell || (reported?.rowKey === cell.rowKey && reported.columnId === cell.columnId)) return
+
+		reportedCellRef.current = { rowKey: cell.rowKey, columnId: cell.columnId }
+
+		onActiveCellChange(cell)
+	})
 
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
@@ -785,7 +791,6 @@ export function useGridCursor<T>({
 		navStore,
 		navTableProps,
 		reconcile: nav.reconcile,
-		settleRange: nav.settleRange,
 		columns: cursorColumns,
 		editOnCellDoubleClick,
 		wrap,

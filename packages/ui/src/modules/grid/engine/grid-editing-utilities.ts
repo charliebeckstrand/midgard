@@ -502,6 +502,11 @@ export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): 
 	return coord !== null && coord.rowKey === cell.rowKey && coord.columnId === cell.columnId
 }
 
+/** Whether two coords name the same cell; two null coords do too. @internal */
+export function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
+	return a === b || (b !== null && isSameCell(a, b))
+}
+
 /**
  * Whether a cell's editor is open. Its row is in the editable set and, when a
  * cell-scoped session holds that row, the session's cell is this one. A session

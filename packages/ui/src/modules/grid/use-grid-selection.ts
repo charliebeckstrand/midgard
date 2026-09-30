@@ -77,14 +77,24 @@ export function useGridSelectionActions({
 		[setSelection],
 	)
 
-	// It reads the newest rows, and its identity holds for the mount.
+	// A selection outlives the page and the filter, so select-all adds the shown
+	// rows and deselect-all takes out only the shown rows. A selected row that
+	// the view does not show stays selected. It reads the newest rows, and its
+	// identity holds for the mount.
 	const toggleAll = useStableEvent(() => {
 		setSelection((prev) => {
 			const current = prev ?? EMPTY_SELECTION
 
 			const every = rowKeys.length > 0 && rowKeys.every((k) => current.has(k))
 
-			return every ? new Set() : new Set(rowKeys)
+			const next = new Set(current)
+
+			for (const key of rowKeys) {
+				if (every) next.delete(key)
+				else next.add(key)
+			}
+
+			return next
 		})
 	})
 

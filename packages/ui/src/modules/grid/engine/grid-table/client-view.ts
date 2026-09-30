@@ -131,6 +131,37 @@ export function leavesOf<T>(args: {
 }
 
 /**
+ * How many selected keys the filtered set does not hold: the rows that a
+ * search or a filter hides, or that the rows no longer hold. `kept` is the
+ * original indices of the filtered rows, or `null` when no filter narrows the
+ * set. The footer names this count, so a selection that outlives the filter
+ * does not read as more rows than the view holds.
+ *
+ * @internal
+ */
+export function hiddenSelectionCount<T>(args: {
+	rows: readonly T[]
+	kept: readonly number[] | null
+	getKey: (row: T, index: number) => string | number
+	selection: ReadonlySet<string | number>
+}): number {
+	const { rows, kept, getKey, selection } = args
+
+	if (selection.size === 0) return 0
+
+	const shown = new Set<string | number>()
+
+	if (kept) for (const index of kept) shown.add(getKey(rows[index] as T, index))
+	else for (let index = 0; index < rows.length; index++) shown.add(getKey(rows[index] as T, index))
+
+	let hidden = 0
+
+	for (const key of selection) if (!shown.has(key)) hidden++
+
+	return hidden
+}
+
+/**
  * The rows an export takes, from the client view: the selected leaves in
  * display order, else every leaf. A grouped grid takes the rows of its groups.
  * A manual grouping takes the rows around its headers. Any other grid takes

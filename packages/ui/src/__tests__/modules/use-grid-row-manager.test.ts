@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import type { GridRowGroup, GridRowManagerGroup, GridRowManagerProps } from '../../modules/grid'
 import { applyRowKeyOrder } from '../../modules/grid/engine/grid-group/row-manager'
-import type { GridRowGroup, GridRowManagerGroup } from '../../modules/grid/grid-row-group-types'
 import { useGridRowManager } from '../../modules/grid/use-grid-row-manager'
 
 /** Three natural-order groups. */
@@ -101,5 +101,11 @@ describe('useGridRowManager', () => {
 		expect(result.current.presentation.groupOrder).toBeNull()
 
 		expect(result.current.managerGroups.map((g) => g.key)).toEqual(['a', 'b', 'c'])
+	})
+})
+
+describe('GridRowManagerGroup', () => {
+	it('is the public element type of GridRowManagerProps.groups', () => {
+		expectTypeOf<GridRowManagerProps['groups']>().toEqualTypeOf<GridRowManagerGroup[]>()
 	})
 })
