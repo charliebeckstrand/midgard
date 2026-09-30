@@ -10,6 +10,7 @@ import { flex } from './flex'
 import { group } from './group'
 import { item } from './item'
 import { slide } from './slide'
+import { text } from './text'
 import { toggle } from './toggle'
 
 export const narabi = {
@@ -19,5 +20,6 @@ export const narabi = {
 	group,
 	item,
 	description,
+	text,
 	flex,
 } as const

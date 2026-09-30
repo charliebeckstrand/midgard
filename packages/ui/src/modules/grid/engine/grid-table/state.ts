@@ -7,7 +7,7 @@ import type {
 } from '@tanstack/react-table'
 import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
-import { resolveFilterMode } from './options'
+import { resolveFilterMode } from './filter-view'
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
 export const DEFAULT_PAGINATION_STATE: GridPaginationState = {
@@ -122,7 +122,7 @@ export function rowsSignatureOf(rowKeys: readonly (string | number)[]): string {
 }
 
 /**
- * Which client row transforms the grid runs itself (see `useClientView`): the
+ * Which client row transforms the grid runs itself (see `useGridClientView`): the
  * client filters and the client page.
  *
  * @returns `filtered`: whether the grid applies the client filters, which it

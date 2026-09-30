@@ -384,6 +384,7 @@ export function SectorChartMarks({
 									},
 									onPointerUp: touch.onPointerUp,
 									onPointerCancel: touch.onPointerCancel,
+									onTouchEnd: touch.onTouchEnd,
 								}),
 								onPointerEnter: (event: PointerEvent<SVGPathElement>) => {
 									inside.current = true

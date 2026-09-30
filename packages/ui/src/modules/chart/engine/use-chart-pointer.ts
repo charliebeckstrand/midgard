@@ -4,6 +4,7 @@ import {
 	type MouseEvent,
 	type PointerEvent,
 	type RefObject,
+	type TouchEvent,
 	useCallback,
 	useEffect,
 	useRef,
@@ -23,6 +24,7 @@ export type ChartPointerHandlers = {
 	onPointerDown?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerUp?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerCancel?: () => void
+	onTouchEnd?: (event: TouchEvent<SVGRectElement>) => void
 	onClick?: (event: MouseEvent<SVGRectElement>) => void
 }
 
@@ -112,8 +114,10 @@ export type ChartPointerOptions = {
  * An `onIndexClick` rides either trigger. A click that resolves to a category
  * reports its index. Under `'hover'`, a touch reports from the tap that
  * {@link useChartTouchTap} finds, and not from the click. A tap therefore
- * activates at once and opens no readout, and a hold reads without activating. The report comes after the `'click'` trigger's own
- * pin/dismiss toggle, so the two read one gesture. It also carries a pointer
+ * activates at once and opens no readout, and a hold reads without activating.
+ * The click of a touch press is cancelled, so the browser cannot send it to a
+ * control near the finger, such as a legend switch. The report comes after
+ * the `'click'` trigger's own pin/dismiss toggle, so the two read one gesture. It also carries a pointer
  * cursor across the plot, so the marks read as clickable. It's the activation channel behind the charts'
  * public `onCategoryClick`.
  *
@@ -418,6 +422,7 @@ export function useChartPointer({
 					onPointerDown: touch.onPointerDown,
 					onPointerUp: touch.onPointerUp,
 					onPointerCancel: touch.onPointerCancel,
+					onTouchEnd: touch.onTouchEnd,
 				}
 			: {}),
 		onPointerEnter: follow,

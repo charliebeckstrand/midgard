@@ -4,9 +4,11 @@ import { Icon } from '../../../components/icon'
 import {
 	Menu,
 	MenuContent,
+	MenuDescription,
 	MenuItem,
 	MenuLabel,
 	MenuSub,
+	MenuText,
 	MenuTrigger,
 } from '../../../components/menu'
 import { GlassProvider } from '../../../providers/glass'
@@ -66,6 +68,40 @@ export function Demo() {
 		</Menu>
 	)
 
+	// MenuText stacks a label over its description, and the icon stays beside them.
+	const stacked = (
+		<Menu placement="bottom-start">
+			<MenuTrigger>
+				<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+					Share
+				</Button>
+			</MenuTrigger>
+			<MenuContent>
+				<MenuItem>
+					<Icon icon={<Copy />} />
+					<MenuText>
+						<MenuLabel>Copy link</MenuLabel>
+						<MenuDescription>Anyone with the link can view</MenuDescription>
+					</MenuText>
+				</MenuItem>
+				<MenuItem>
+					<Icon icon={<Download />} />
+					<MenuText>
+						<MenuLabel>Download</MenuLabel>
+						<MenuDescription>Save a PDF copy</MenuDescription>
+					</MenuText>
+				</MenuItem>
+				<MenuItem>
+					<Icon icon={<Archive />} />
+					<MenuText>
+						<MenuLabel>Archive</MenuLabel>
+						<MenuDescription>Hide it from the list</MenuDescription>
+					</MenuText>
+				</MenuItem>
+			</MenuContent>
+		</Menu>
+	)
+
 	const nested = (
 		<Menu placement="bottom-start">
 			<MenuTrigger>
@@ -107,6 +143,8 @@ export function Demo() {
 			<Example title="Default">{dropdown}</Example>
 
 			<Example title="With icons">{icons}</Example>
+
+			<Example title="Stacked text">{stacked}</Example>
 
 			<Example title="Submenus">{nested}</Example>
 

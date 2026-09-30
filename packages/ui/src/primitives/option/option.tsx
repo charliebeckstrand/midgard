@@ -138,6 +138,14 @@ export function OptionDescription({ className, children, ...props }: ComponentPr
 	)
 }
 
+/**
+ * Stacks an {@link OptionLabel} over an {@link OptionDescription}. Without it,
+ * the description sits beside the label. It takes the free width of the row.
+ */
+export function OptionText({ className, ...props }: ComponentProps<'span'>) {
+	return <span {...props} className={cn(k.text, className)} />
+}
+
 /** Props for a select-like option produced by `createSelectOption`; `value` is matched against the host's selection. */
 export type SelectOptionProps<TValue = unknown> = {
 	value: TValue
@@ -164,6 +172,9 @@ export type SelectOptionProps<TValue = unknown> = {
 
 /** Props for `OptionLabel`. */
 export type OptionLabelProps = ComponentProps<'span'>
+
+/** Props for `OptionText`. */
+export type OptionTextProps = ComponentProps<'span'>
 
 /** Props for `OptionDescription`. */
 export type OptionDescriptionProps = ComponentProps<'span'>
@@ -215,7 +226,7 @@ function isOptionSelected(
  * `Option` owns the selected-state check icon. The icon takes its size
  * from the nearest density scope.
  *
- * @returns The bound `{ Option, Label, Description }` triad, each pre-wired with
+ * @returns The bound `{ Option, Label, Text, Description }` set, each pre-wired with
  * the host's `data-slot` prefix and selection hook.
  * @remarks Pass the hook that `createContext` generates for the host context.
  * It throws outside a provider, so an orphan option fails at render with a
@@ -296,6 +307,10 @@ export function createSelectOption<
 		)
 	}
 
+	function Text({ className, ...props }: OptionTextProps) {
+		return <OptionText data-slot={`${config.slotPrefix}-text`} className={className} {...props} />
+	}
+
 	function Description({ className, ...props }: OptionDescriptionProps) {
 		return (
 			<OptionDescription
@@ -306,5 +321,5 @@ export function createSelectOption<
 		)
 	}
 
-	return { Option: SelectOption, Label, Description }
+	return { Option: SelectOption, Label, Text, Description }
 }

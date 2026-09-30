@@ -35,7 +35,7 @@ export type GridItemWindowOptions = {
 }
 
 /** The part of a window item that the window reads. @internal */
-type WindowItem = { key: string; size?: number }
+type WindowItem = { key: string; size?: number; phase?: 'open' | 'closing' }
 
 /**
  * What each commit records of its window: the rendered items, the item list,
@@ -213,8 +213,9 @@ export function useGridItemWindow<I extends WindowItem>(
 
 	// A reveal that lands bubbles a `transitionend` to the body. The row that
 	// sent it is a direct child of the body, which a nested table in a detail
-	// panel is not.
-	const revealEndItem = useCallback(
+	// panel is not. Only a closing row has work to do when its reveal lands: the
+	// body releases it.
+	const closingEndItem = useCallback(
 		(event: TransitionEvent<HTMLElement>): I | undefined => {
 			if (event.propertyName !== REVEAL_PROPERTY) return undefined
 
@@ -222,7 +223,9 @@ export function useGridItemWindow<I extends WindowItem>(
 
 			if (!row || row.parentElement !== bodyRef.current) return undefined
 
-			return items[Number(row.getAttribute('data-index'))]
+			const item = items[Number(row.getAttribute('data-index'))]
+
+			return item?.phase === 'closing' ? item : undefined
 		},
 		[items],
 	)
@@ -247,5 +250,5 @@ export function useGridItemWindow<I extends WindowItem>(
 		}
 	}, [scrollIntoViewRef, scrollToIndex, recordRef])
 
-	return { bodyRef, revealEndItem, ...win }
+	return { bodyRef, closingEndItem, ...win }
 }

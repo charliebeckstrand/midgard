@@ -38,8 +38,8 @@ import {
 	useGridEditingSession,
 } from './grid-editing-context'
 import { searchedContent } from './grid-highlight-utilities'
+import { GridNavCell } from './grid-nav-cell'
 import type { GridColumn } from './types'
-import { GridNavCell } from './use-grid-navigation-columns'
 
 /** Props for the editing-aware data cell and its mounted editor. @internal */
 type GridEditingCellProps<T> = {

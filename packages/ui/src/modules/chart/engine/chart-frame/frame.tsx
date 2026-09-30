@@ -18,6 +18,7 @@ import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
+import { ChartMenuButton } from '../chart-menu-button'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
 import type { ChartSnap } from '../chart-snap'
@@ -77,7 +78,12 @@ function chartChrome(
 
 	const head =
 		heading && (title || subtitle) ? (
-			<ChartHeader title={title} subtitle={subtitle} veil={spark} />
+			<ChartHeader
+				title={title}
+				subtitle={subtitle}
+				veil={spark}
+				action={<ChartMenuButton title={title} place="header" />}
+			/>
 		) : null
 
 	return {
@@ -576,7 +582,12 @@ export function ChartFrame({
 				// A tap selects, so no double-tap zoom holds it back.
 				k.tap,
 				fixedWidth === undefined && 'w-full',
-				containerFill && 'h-full',
+				// A chart that fills its box keeps all of its boxes in that box. The touch
+				// target of a legend control reaches past the control. At the bottom edge
+				// of the chart, it would otherwise add scroll range to a box that scrolls,
+				// such as the content box of a dashboard tile. `overflow-clip` makes no
+				// scroll container, so the chart stays out of the scroll of its box.
+				containerFill && 'h-full overflow-clip',
 				className,
 			)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
@@ -611,6 +622,10 @@ export function ChartFrame({
 			{readout && <ChartTable readout={readout} />}
 
 			{annotations}
+
+			{/* Inside a box with a header row, such as a dashboard tile, the touch menu
+			    button goes to that row. Otherwise the chart header holds it. */}
+			<ChartMenuButton title={title} place="host" />
 		</div>
 	)
 
@@ -620,6 +635,7 @@ export function ChartFrame({
 			rootRef={rootRef}
 			readout={readout}
 			title={title}
+			label={plotName(label)['aria-label']}
 			fullscreen={fullscreen}
 			// The frame owns the hover store, and this wrapper sits outside `ChartHoverContext` (it wraps
 			// the provider), so the right-clicked mark travels down as a prop for a per-mark menu item.

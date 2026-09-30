@@ -1,9 +1,8 @@
 'use client'
 
-import { type PointerEvent, useRef } from 'react'
+import { type PointerEvent, type TouchEvent, useRef } from 'react'
 import { useTimeout } from '../../../hooks'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import { useTouchHoldSelection } from '../../../hooks/use-touch-hold-selection'
 
 /** Hold time, in ms, before a touch opens the readout. A tap opens none. @internal */
 export const TOUCH_READOUT_DELAY = 300
@@ -17,6 +16,13 @@ export type ChartTouchTap = {
 	onPointerMove: (event: PointerEvent<Element>) => void
 	onPointerUp: (event: PointerEvent<Element>) => void
 	onPointerCancel: () => void
+	/**
+	 * Cancels the click that the browser makes from a touch press. The tap
+	 * already reported, and a hold only reads the chart. Without it, the browser
+	 * can send that click to a control near the finger, such as a legend switch
+	 * below the plot. See {@link useChartTouchTap}.
+	 */
+	onTouchEnd: (event: TouchEvent<Element>) => void
 	/**
 	 * Whether the click that follows came from a touch press. The tap already
 	 * reported it, so the click handler must ignore it.
@@ -42,8 +48,13 @@ type Press = { x: number; y: number; tap: boolean }
  * tells the click handler which clicks those are. A mouse or a pen press
  * reports through `click` as before.
  *
- * From the press to the lift of a touch, the hook holds the selection guard of
- * `useTouchHoldSelection`, so a hold selects no text on the page.
+ * The click of a touch press can also land on a different element. A mobile
+ * browser moves the click of a finger to the best control in the contact
+ * area, and iOS Safari does this after it sends the pointer events to the mark.
+ * A tap at the bottom of a donut therefore selected the slice from the lift,
+ * and then its click toggled the legend switch below the plot.
+ * {@link ChartTouchTap.onTouchEnd} cancels that click, so a touch press on the
+ * marks reports through the lift alone.
  * @param onTap - Called with the viewport point of the lift. It can change on
  * each render.
  * @internal
@@ -59,9 +70,6 @@ export function useChartTouchTap(onTap: (clientX: number, clientY: number) => vo
 	// Ends the tap window of a press: past it, the press is a hold.
 	const tapWindow = useTimeout()
 
-	// A hold that reads the chart selects no text on the page.
-	const guardSelection = useTouchHoldSelection()
-
 	return {
 		onPointerDown: (event) => {
 			touched.current = event.pointerType === 'touch'
@@ -73,8 +81,6 @@ export function useChartTouchTap(onTap: (clientX: number, clientY: number) => vo
 
 				return
 			}
-
-			guardSelection(event)
 
 			const current = { x: event.clientX, y: event.clientY, tap: true }
 
@@ -108,6 +114,11 @@ export function useChartTouchTap(onTap: (clientX: number, clientY: number) => vo
 			press.current = null
 
 			tapWindow.clear()
+		},
+		onTouchEnd: (event) => {
+			// The browser makes no click from a touch end that is cancelled. A touch
+			// end that follows a scroll cannot be cancelled.
+			if (event.cancelable) event.preventDefault()
 		},
 		fromTouch: () => {
 			const touch = touched.current

@@ -27,6 +27,26 @@ export type MenuLabelProps = ComponentProps<'span'>
 /** Primary text of a {@link MenuItem}; renders a `<span>`. */
 export const MenuLabel = createSlot('span', 'menu-label', k.label)
 
+/** Props for {@link MenuText}: native `<span>` attributes. */
+export type MenuTextProps = ComponentProps<'span'>
+
+/**
+ * Stacks a {@link MenuLabel} over a {@link MenuDescription} in a {@link MenuItem};
+ * renders a `<span>`. Without it, the description sits beside the label. It takes
+ * the free width of the row, so a leading icon stays beside the text.
+ *
+ * @example
+ * ```tsx
+ * <MenuItem>
+ *   <MenuText>
+ *     <MenuLabel>Orders</MenuLabel>
+ *     <MenuDescription>Every sale, ten rows to a page</MenuDescription>
+ *   </MenuText>
+ * </MenuItem>
+ * ```
+ */
+export const MenuText = createSlot('span', 'menu-text', k.text)
+
 /** Props for {@link MenuDescription}: native `<span>` attributes. */
 export type MenuDescriptionProps = ComponentProps<'span'>
 

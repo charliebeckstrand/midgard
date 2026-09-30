@@ -183,6 +183,11 @@ export type DashboardTileProps = {
  * a scroll region. A `Grid` with `maxHeight="fill"` claims it, and shows pages
  * of 10 rows.
  *
+ * A widget can put its own controls in the header row of the tile, after the
+ * actions, through `HeaderActionsContext` (`ui/primitives/header-actions`). A
+ * chart puts its touch menu button there. The slot exists only at rest, and only
+ * on a tile with a header row.
+ *
  * While the tile drags, the whole page shows the grabbing cursor. The hand thus
  * stays closed when the carried tile stops at an edge and the pointer goes on.
  *

@@ -7,7 +7,7 @@ import {
 	type GridFeatures,
 	gridFeatures,
 } from '../../modules/grid/engine/grid-table/features'
-import { columnWidth, columnWidths } from '../../modules/grid/engine/grid-table/views'
+import { columnWidth, columnWidths } from '../../modules/grid/engine/grid-table/resize-view'
 
 /**
  * The grid holds each width as a value, read from the sizing state it owns. The

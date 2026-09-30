@@ -7,6 +7,13 @@ import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { describeColumnVisibility, describePin } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
+import { implyVirtualize } from './engine/grid-data/guards'
+import {
+	seedColumnManager,
+	seedColumnOrder,
+	seedColumnSizing,
+	seedPinning,
+} from './engine/grid-data/seeds'
 import {
 	isGroupableColumnId,
 	resolveDetailExpansion,
@@ -14,13 +21,6 @@ import {
 	resolveGroupingMode,
 } from './engine/grid-group/resolve'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
-import { implyVirtualize } from './engine/grid-table/guards'
-import {
-	seedColumnManager,
-	seedColumnOrder,
-	seedColumnSizing,
-	seedPinning,
-} from './engine/grid-table/seeds'
 import {
 	resolveInfiniteScroll,
 	resolveSortable,

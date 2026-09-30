@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useState } from 'react'
-import { stickyEdgeInsets } from './use-grid-navigation-columns'
+import { stickyEdgeInsets } from './grid-nav-cell'
 
 /** The scroll margin and the start and end padding of the window, in pixels. @internal */
 export type GridWindowOffsets = {

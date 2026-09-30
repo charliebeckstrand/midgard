@@ -10,7 +10,7 @@ import {
 	outlineTableClass,
 	settleBodyClass,
 	stripedForOutline,
-} from './engine/grid-table/classes'
+} from './engine/grid-data/classes'
 import { GridBody } from './grid-body'
 import {
 	resolveNewRowIndex,

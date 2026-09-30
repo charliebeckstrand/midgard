@@ -15,9 +15,9 @@ import { groupItemKey } from './engine/grid-items/items'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
+import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
-import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 
 /** Props for {@link GridGroupRow}. @internal */
 type GridGroupRowProps<T> = {

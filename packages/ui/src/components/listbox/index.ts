@@ -6,4 +6,6 @@ export {
 	type ListboxLabelProps,
 	ListboxOption,
 	type ListboxOptionProps,
+	ListboxText,
+	type ListboxTextProps,
 } from './listbox-option'

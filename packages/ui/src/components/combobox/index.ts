@@ -10,5 +10,7 @@ export {
 	type ComboboxLabelProps,
 	ComboboxOption,
 	type ComboboxOptionProps,
+	ComboboxText,
+	type ComboboxTextProps,
 } from './combobox-option'
 export { useComboboxDeferredQuery, useComboboxQuery } from './use-combobox-query'

@@ -218,6 +218,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * alone — no container-height measurement — either way. Cartesian charts default to
 	 * `'16/9'`; pie and donut default to a square, fitting height to their own
 	 * content when callout labels are on.
+	 *
+	 * With `false` and no `height`, the chart fills the height of its container.
+	 * It then clips at the edges of that box. A touch target that reaches past a
+	 * legend control thus adds no scroll range to a box that scrolls, such as the
+	 * content box of a dashboard tile.
 	 */
 	aspectRatio?: ChartAspectRatio
 	/**
@@ -301,7 +306,14 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 *
 	 * - Fullscreen, a live interactive copy in a large dialog.
 	 * - Image downloads (PNG / JPG, legend included).
-	 * - Download CSV / Copy data, where a data readout exists.
+	 * - View data, Download CSV, and Copy data, where a data readout exists. View
+	 *   data shows the values in a table in a dialog.
+	 *
+	 * A touch screen has no right-click, so where the primary pointer is coarse
+	 * a menu button opens the same menu. The button sits at the end of the chart
+	 * header, or in the header row of the box around the chart, such as a
+	 * dashboard tile (`primitives/header-actions`). A chart with no title outside
+	 * such a box shows no button.
 	 *
 	 * Pass a config to add custom `items` (each a `{ label, icon, onAction }`).
 	 * Place them `'before'` or `'after'` the defaults, or drop the defaults with

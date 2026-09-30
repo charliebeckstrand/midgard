@@ -1,8 +1,7 @@
 'use client'
 
-import { type ComponentProps, type TransitionEvent, useMemo, useRef } from 'react'
-import type { PaletteColor } from '../../core/recipe'
-import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
+import { type TransitionEvent, useMemo, useRef } from 'react'
+import type { GridGroup } from './engine/grid-group/tree'
 import {
 	type GridGroupedWindowItem,
 	groupedWindowItems,
@@ -12,7 +11,7 @@ import {
 import { type GridWindowRowProps, itemAriaRowIndex } from './engine/grid-row/shell'
 import { groupedCursorRows, useGridCursorOrder } from './grid-cursor-order'
 import type { GridGroupBy } from './grid-data-types'
-import { GridGroupLeafRow } from './grid-group-leaf-row'
+import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import type { GridRowsProps } from './grid-row'
 import { GridTotalRow } from './grid-total-row'
@@ -150,12 +149,6 @@ type GridVirtualizedGroupedBodyProps<T> = {
 	totaled: boolean
 	/** The row-manager overlay presentation (per-group color), or `null` when off. */
 	presentation: GridRowGroupPresentation | null
-	/** The leaf row props from the shared body wiring. */
-	leafProps: (
-		leaf: GridLeaf<T>,
-		expanded: boolean,
-		color: PaletteColor | undefined,
-	) => ComponentProps<typeof GridGroupLeafRow<T>>
 	window: GridItemWindowOptions
 }
 
@@ -188,7 +181,6 @@ export function GridVirtualizedGroupedBody<T>({
 	renderHeader,
 	totaled,
 	presentation,
-	leafProps,
 	window,
 }: GridVirtualizedGroupedBodyProps<T>) {
 	const { visibleColumns: columns, pinning, gridSemantics, rowIndexOffset } = rowsProps
@@ -215,7 +207,7 @@ export function GridVirtualizedGroupedBody<T>({
 		[shown, totaled, motions],
 	)
 
-	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
+	const { bodyRef, closingEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
 		useGridItemWindow(items, window, record)
 
 	// The cursor walks the open rows. A scroll frame keeps the same order.
@@ -229,9 +221,9 @@ export function GridVirtualizedGroupedBody<T>({
 	const colorOf = (group: GridGroup<T>) => presentation?.color(groupKeyOf(group))
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
-		const item = revealEndItem(event)
+		const item = closingEndItem(event)
 
-		if (item?.phase === 'closing') release(item.reactKey)
+		if (item) release(item.reactKey)
 	}
 
 	const windowRow = (item: GridGroupedWindowItem<T>, index: number): GridWindowRowProps => ({
@@ -289,7 +281,11 @@ export function GridVirtualizedGroupedBody<T>({
 				return (
 					<GridGroupLeafRow<T>
 						key={item.reactKey}
-						{...leafProps(item.leaf, item.phase === 'open', color)}
+						{...leafRowProps(rowsProps, item.leaf, {
+							expanded: item.phase === 'open',
+							color,
+							level: 2,
+						})}
 						enter={motions.get(item.reactKey)?.phase === 'entering'}
 						{...windowRow(item, virtualItem.index)}
 					/>

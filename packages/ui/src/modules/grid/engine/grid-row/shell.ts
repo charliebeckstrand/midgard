@@ -2,8 +2,9 @@ import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent
 import { dataAttr } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
 import type { GridColumn } from '../../types'
+import { isNewRowAddColumn } from '../grid-new-row-column'
 import {
-	cellValue,
+	cellContext,
 	fromInteractiveContent,
 	type GridCellClick,
 	type GridCellRovingActivate,
@@ -228,9 +229,24 @@ export function cellRovingAttrs<T>(args: {
 
 			if (event.defaultPrevented) return
 
-			activateOnEnterSpace(event, (e) =>
-				cellActivate?.({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, e),
-			)
+			activateOnEnterSpace(event, (e) => cellActivate?.(cellContext(col, row, rowKey), e))
 		},
 	}
+}
+
+/**
+ * The cell class of a special column of a flat row: the drag handle, the
+ * selection, the expander, or the actions. A data column, and the Add column of
+ * the new-row slot, give `undefined`. @internal
+ */
+export function specialCellClass<T>(col: GridColumn<T>): string | undefined {
+	if (col.dragHandle) return k.rowReorder.cell
+
+	if (col.selectable) return k.cell.select
+
+	if (col.expander) return k.cell.expander
+
+	if (col.actions && !isNewRowAddColumn(col.id)) return k.cell.actions
+
+	return undefined
 }

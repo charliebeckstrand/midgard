@@ -86,6 +86,23 @@ export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
 	return columnAccessor(col)(row)
 }
 
+/** The context of a click or an activation on the cell of `col` in `row`. @internal */
+export function cellContext<T>(
+	col: GridColumn<T>,
+	row: T,
+	rowKey: string | number,
+): GridCellClickContext<T> {
+	return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
+}
+
+/**
+ * The name of a row in the labels of its controls: the consumer's label, else
+ * `row` and the key. @internal
+ */
+export function rowName(rowLabel: string | undefined, rowKey: string | number): string {
+	return rowLabel ?? `row ${rowKey}`
+}
+
 /**
  * Resolves the data cell a row-level pointer event landed on: the closest
  * `td[data-grid-col]` names the column, matched back through the row's visible
@@ -108,7 +125,7 @@ export function resolveCellContext<T>(
 
 	const col = columns.find((c) => String(c.id) === id && isDataColumn(c))
 
-	return col ? { row, rowKey, columnId: col.id, value: cellValue(col, row) } : null
+	return col ? cellContext(col, row, rowKey) : null
 }
 /**
  * Interactive cell content that handles its own click, so a row-level

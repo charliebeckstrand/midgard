@@ -46,7 +46,7 @@ import type {
 import type { GridColumnFilter } from './use-grid-table'
 
 /** Props for {@link GridContextMenu}. @internal */
-type GridContextMenuProps<T> = {
+export type GridContextMenuProps<T> = {
 	config: GridContextMenuConfig<T>
 	/**
 	 * Whether right-clicks resolve to a menu at all. When `false` every click

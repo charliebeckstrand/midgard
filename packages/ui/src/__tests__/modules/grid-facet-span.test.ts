@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { facetSpan } from '../../modules/grid/engine/grid-table/views'
+import { facetSpan } from '../../modules/grid/engine/grid-table/filter-view'
 
 describe('facetSpan', () => {
 	it('gives the min and max of the numbers among the values', () => {
