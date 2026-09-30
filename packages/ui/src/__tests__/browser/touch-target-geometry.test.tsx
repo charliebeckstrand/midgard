@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { describe, expect, it } from 'vitest'
 import { TouchTarget } from '../../primitives/touch-target'
 import { present, renderUI, screen } from '../helpers'
@@ -35,9 +36,9 @@ describe('TouchTarget activation region (real browser)', () => {
 			</div>,
 		)
 
-	/** The host and the box of its expansion span. */
-	const measure = () => {
-		const host = screen.getByRole('button', { name: 'Host' })
+	/** The host, its box, and the box of its expansion span. */
+	const measure = (name = 'Host') => {
+		const host = screen.getByRole('button', { name })
 
 		const span = present(host.querySelector('[aria-hidden="true"]'), 'the expansion span')
 
@@ -83,5 +84,89 @@ describe('TouchTarget activation region (real browser)', () => {
 		expect(box.width).toBe(hostBox.width)
 
 		expect(box.height).toBe(hostBox.height)
+	})
+
+	/** Two hosts under the floor in a row that states its gap to `TouchTarget`. */
+	const renderRow = (gap: number) =>
+		renderUI(
+			<div
+				style={
+					{
+						display: 'flex',
+						gap,
+						padding: '64px',
+						'--touch-target-gap-x': `${gap}px`,
+					} as CSSProperties
+				}
+			>
+				{['First', 'Second'].map((name) => (
+					<button
+						key={name}
+						type="button"
+						aria-label={name}
+						style={{ position: 'relative', width: 16, height: 16, padding: 0, border: 0 }}
+					>
+						<TouchTarget>
+							<span />
+						</TouchTarget>
+					</button>
+				))}
+			</div>,
+		)
+
+	it('keeps the hit areas of two adjacent hosts to their boxes when the row states no gap', () => {
+		renderRow(0)
+
+		const first = measure('First')
+
+		const second = measure('Second')
+
+		// Each width stays at its host, and each height keeps the floor.
+		expect(first.box.width).toBe(16)
+
+		expect(second.box.width).toBe(16)
+
+		expect(first.box.height).toBe(24)
+
+		expect(second.box.height).toBe(24)
+
+		// Each side of the shared edge goes to the host on that side.
+		const y = first.hostBox.top + 8
+
+		expect(hitsHost(first.host, first.hostBox.right - 1, y)).toBe(true)
+
+		expect(hitsHost(second.host, second.hostBox.left + 1, y)).toBe(true)
+
+		// The cap holds on the outer sides too, so the two targets stay equal.
+		expect(hitsHost(first.host, first.hostBox.left - 2, y)).toBe(false)
+
+		expect(hitsHost(second.host, second.hostBox.right + 2, y)).toBe(false)
+
+		// Above the box, inside the floor, the host still takes the point.
+		expect(hitsHost(first.host, first.hostBox.left + 8, first.hostBox.top - 3)).toBe(true)
+	})
+
+	it('splits the gap between two adjacent hosts at its midpoint', () => {
+		renderRow(6)
+
+		const first = measure('First')
+
+		const second = measure('Second')
+
+		// 16px and half of the 6px gap on each side is 22px, under the 24px floor.
+		expect(first.box.width).toBe(22)
+
+		expect(second.box.width).toBe(22)
+
+		// The two hit areas meet at the midpoint of the gap and do not overlap.
+		expect(first.box.right).toBe(second.box.left)
+
+		const y = first.hostBox.top + 8
+
+		const midpoint = first.hostBox.right + 3
+
+		expect(hitsHost(first.host, midpoint - 1, y)).toBe(true)
+
+		expect(hitsHost(second.host, midpoint + 1, y)).toBe(true)
 	})
 })

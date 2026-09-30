@@ -49,7 +49,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | Primitive | Summary | Key exports |
 |---|---|---|
 | `reduced-motion` | Bridges `prefers-reduced-motion` into Motion via `MotionConfig`; skips transform animations while keeping fades at every library motion root. A root inside another root adds no second `MotionConfig`. | `ReducedMotion` |
-| `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) via an invisible expansion sibling, without altering visual layout. | `TouchTarget` |
+| `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) via an invisible expansion sibling, without altering visual layout. A row of small hosts sets `--touch-target-gap-x` to its gap, so adjacent hit areas split the gap at the midpoint and do not overlap. | `TouchTarget` |
 
 ---
 

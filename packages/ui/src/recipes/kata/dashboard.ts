@@ -90,9 +90,16 @@ const card = defineRecipe({
  * badge. A negative inline margin at each density step cancels the pad of the
  * button (`kata/button.ts`). Each item of the row then shows the same gap, and
  * the hit area of the button stays the same.
+ *
+ * At the `sm` step of the card, the negative margin puts two adjacent icon
+ * buttons edge to edge. On a coarse pointer, their hit areas then overlap, and
+ * the later button takes all of the overlap. The row therefore sets the gap of
+ * `TouchTarget` to zero. Each hit area keeps to the width of its button, so
+ * adjacent buttons get equal targets that do not overlap. The height keeps
+ * the floor.
  */
 const header = [
-	'flex min-w-0 items-center gap-2 density-pb-[2,3,4]',
+	'flex min-w-0 items-center gap-2 density-pb-[2,3,4] [--touch-target-gap-x:0px]',
 	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	'**:data-[variant=bare]:not-data-[has-label]:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-[has-label]:density-sm:-mx-1',
