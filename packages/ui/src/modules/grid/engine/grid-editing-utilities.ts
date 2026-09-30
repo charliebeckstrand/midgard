@@ -21,16 +21,42 @@ export function inferEditorKind(value: unknown): EditorKind {
 }
 
 /**
+ * A column as the edit checks read it: its lock, and the two ways it binds an
+ * editor. @internal
+ */
+export type EditableColumn = { readOnly?: boolean; field?: unknown; editCell?: unknown }
+
+/**
  * Whether a data column can be edited: it isn't `readOnly` and binds an editor —
  * a `field` to read/write, or a custom `editCell` slot. A cell in an editable row
  * renders its editor only when this holds. @internal
  */
-export function isColumnEditable(col: {
-	readOnly?: boolean
-	field?: unknown
-	editCell?: unknown
-}): boolean {
+export function isColumnEditable(col: EditableColumn): boolean {
 	return !col.readOnly && (col.field != null || col.editCell != null)
+}
+
+/** The column of `columns` whose id is `columnId`, or `undefined` when none has it. @internal */
+export function columnOf<C extends { id: string | number }>(
+	columns: readonly C[],
+	columnId: string | number | undefined,
+): C | undefined {
+	return columns.find((column) => column.id === columnId)
+}
+
+/**
+ * The display coord of a cell: the index of its row in `rowKeys`, and the
+ * index of its column in `columns`. Each index is `-1` when the grid does not
+ * show that row or that column. @internal
+ */
+export function coordOf(
+	rowKeys: readonly (string | number)[],
+	columns: readonly { id: string | number }[],
+	cell: { rowKey: string | number; columnId: string | number },
+): { row: number; col: number } {
+	return {
+		row: rowKeys.indexOf(cell.rowKey),
+		col: columns.findIndex((column) => column.id === cell.columnId),
+	}
 }
 
 /**
@@ -42,7 +68,7 @@ export function isColumnEditable(col: {
  * @internal
  */
 export function stepEditableColumn(
-	columns: readonly { readOnly?: boolean; field?: unknown; editCell?: unknown }[],
+	columns: readonly EditableColumn[],
 	from: number,
 	step: 1 | -1,
 	blocked?: (index: number) => boolean,
@@ -245,6 +271,14 @@ export type GridDraftStore = {
 	) => number
 }
 
+/**
+ * A new staged draft of `value`, against the row object `row`, with no error
+ * and no reopen mark. @internal
+ */
+export function newDraft(value: unknown, row: unknown): GridDraft {
+	return { value, status: 'staged', row, error: undefined, reopened: false }
+}
+
 /** The records of a {@link GridDraftStore}, keyed by row and then by column. @internal */
 type DraftRows = Map<GridDraftKey, Map<string | number, GridDraft>>
 
@@ -293,13 +327,7 @@ function writeDraft(
 
 	if (!accepts(cell.rowKey, cell.columnId)) return
 
-	rowOf(rows, cell.rowKey).set(cell.columnId, {
-		value: write.value,
-		status: 'staged',
-		row: write.snapshot,
-		error: undefined,
-		reopened: false,
-	})
+	rowOf(rows, cell.rowKey).set(cell.columnId, newDraft(write.value, write.snapshot))
 }
 
 /**
@@ -512,13 +540,31 @@ export function isThenable(value: unknown): value is PromiseLike<unknown> {
 	return value != null && typeof (value as { then?: unknown }).then === 'function'
 }
 
-/** A column as the new-row slot reads it. @internal */
-type NewRowColumn = {
-	id: string | number
-	field?: PropertyKey
-	readOnly?: boolean
-	editCell?: unknown
+/** How the promise of a sink settled: the value it resolved to, or the reason it rejected. @internal */
+export type SinkOutcome = { value: unknown } | { reason: unknown }
+
+/**
+ * Calls `settle` with the outcome of `result`, the promise that a sink
+ * returned, when it settles. A promise that settles after the grid unmounts
+ * (`mounted.current` is `false`) calls nothing. @internal
+ */
+export function trackSink(
+	result: PromiseLike<unknown>,
+	mounted: { readonly current: boolean },
+	settle: (outcome: SinkOutcome) => void,
+): void {
+	result.then(
+		(value) => {
+			if (mounted.current) settle({ value })
+		},
+		(reason: unknown) => {
+			if (mounted.current) settle({ reason })
+		},
+	)
 }
+
+/** A column as the new-row slot reads it. @internal */
+type NewRowColumn = EditableColumn & { id: string | number; field?: PropertyKey }
 
 /**
  * The values of the new-row slot, from its drafts. `values` maps the `field`
@@ -550,17 +596,20 @@ export function collectNewRow<C extends NewRowColumn>(
 }
 
 /**
- * The error of each refused cell of a settled new-row add, keyed by column
- * id. A rejection refuses each drafted cell, with the reason's `message` when
+ * The error of each refused cell of a settled commit, keyed by column id. A
+ * rejection refuses each cell of `drafted`, with the reason's `message` when
  * that is a non-empty string, else {@link COMMIT_REFUSED}. A resolved list
- * refuses the cells it names. A name that is not an editable column of the
- * slot is ignored, and so is the `rowKey` of each entry. An empty result
- * accepts the add. @internal
+ * refuses each cell that it names and that `takes` accepts. Any other name
+ * changes nothing. An empty or absent list accepts the commit.
+ *
+ * @remarks A batch of data rows takes a name of its own row and of one of its
+ * drafts. The new-row slot takes a name of any editable column, also one with
+ * no draft, and ignores the row. @internal
  */
-export function readNewRowRefusals(
-	outcome: { value: unknown } | { reason: unknown },
-	drafted: readonly (string | number)[],
-	editable: (columnId: string | number) => boolean,
+export function readRefusals(
+	outcome: SinkOutcome,
+	drafted: Iterable<string | number>,
+	takes: (refusal: { rowKey?: string | number; columnId: string | number }) => boolean,
 ): Map<string | number, string> {
 	const refused = new Map<string | number, string>()
 
@@ -574,12 +623,11 @@ export function readNewRowRefusals(
 		return refused
 	}
 
-	const list: { columnId: string | number; error?: string }[] = Array.isArray(outcome.value)
-		? outcome.value
-		: []
+	const list: { rowKey?: string | number; columnId: string | number; error?: string }[] =
+		Array.isArray(outcome.value) ? outcome.value : []
 
 	for (const refusal of list) {
-		if (editable(refusal.columnId)) refused.set(refusal.columnId, refusal.error || COMMIT_REFUSED)
+		if (takes(refusal)) refused.set(refusal.columnId, refusal.error || COMMIT_REFUSED)
 	}
 
 	return refused

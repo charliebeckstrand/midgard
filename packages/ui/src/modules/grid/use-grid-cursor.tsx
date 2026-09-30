@@ -26,6 +26,7 @@ import {
 	seedFromKey,
 } from './engine/grid-editing-utilities'
 import { cellText } from './engine/grid-export/accessor'
+import { resolveNewRow } from './engine/grid-new-row'
 import {
 	fillPlan,
 	type GridFillDirection,
@@ -58,7 +59,6 @@ import {
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
-import { resolveNewRow } from './use-grid-new-row'
 
 /** Whether two cursor positions name the same cell; `moveTo` mints a fresh `Coord` per move. @internal */
 function sameCoord(a: Coord | null, b: Coord | null): boolean {
