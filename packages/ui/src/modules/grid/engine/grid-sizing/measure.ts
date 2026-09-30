@@ -148,6 +148,21 @@ type PendingLeaf = { leaf: HTMLElement; chrome: number }
 type ColumnScan = { widest: number; pending: PendingLeaf[] }
 
 /**
+ * Whether a leaf holds an element child that lays out a box. A `hidden` child (the
+ * navigable cell's locator span) has no box, so it cannot narrow into a tight
+ * cell, and a leaf with only such children reads true in place like text.
+ *
+ * @internal
+ */
+function laysOutElements(leaf: HTMLElement): boolean {
+	for (const child of leaf.children) {
+		if (!(child instanceof HTMLElement) || !child.hidden) return true
+	}
+
+	return false
+}
+
+/**
  * Scans a column's body cells against the current layout, in border-box pixels.
  * Each truncating leaf (`data-grid-content`) fills its cell. The cell's border
  * box minus the leaf's box is therefore the cell chrome (padding + border). The
@@ -156,12 +171,12 @@ type ColumnScan = { widest: number; pending: PendingLeaf[] }
  * A text-only leaf resolves here. Clipped or not, `nowrap` text lays out at its
  * full width under the overflow, so its intrinsic width (see
  * {@link intrinsicWidth}) reads true in place. A leaf holding element children
- * does not. An atomic shrink-to-fit box (a Badge's `fit-content`) genuinely
- * narrows into a tight cell. Its in-place rect therefore reports the shrunk
- * width, not the natural one. Those leaves defer to
- * {@link resolvePendingLeaves}. A cell with no
- * leaf (the editable grid's mounted editor, or empty content) falls back to its
- * own `scrollWidth`.
+ * that lay out (see {@link laysOutElements}) does not. An atomic shrink-to-fit
+ * box (a Badge's `fit-content`) genuinely narrows into a tight cell. Its
+ * in-place rect therefore reports the shrunk width, not the natural one. Those
+ * leaves defer to {@link resolvePendingLeaves}. A cell with no leaf (the
+ * editable grid's mounted editor, or empty content) falls back to its own
+ * `scrollWidth`.
  *
  * @internal
  */
@@ -181,7 +196,7 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 
 		const chrome = td.getBoundingClientRect().width - leaf.offsetWidth
 
-		if (leaf.childElementCount > 0) {
+		if (laysOutElements(leaf)) {
 			pending.push({ leaf, chrome })
 		} else {
 			const need = chrome + intrinsicWidth(leaf)

@@ -558,16 +558,25 @@ export function resolveHighlightQuery(
  * The width gate: withholds the table's paint until its columns are fitted, while
  * leaving it measurable.
  *
- * `invisible` rather than `hidden` or an unmount, because the autosizer has to *measure*
- * this subtree in order to size it. Hidden visibility keeps layout and geometry intact,
- * so the cells lay out and report their widths exactly as they would if shown. It also
- * keeps the box in flow, so the surrounding page doesn't reflow on reveal. Carried by the
- * `<table>` itself rather than a wrapper: a wrapping node — even `display: contents` —
- * would sit in the middle of the grid's own child selectors. Kept out of
- * {@link GridData} for its cognitive-complexity budget.
+ * `opacity-0` rather than `hidden` or an unmount, because the autosizer has to *measure*
+ * this subtree in order to size it. Zero opacity keeps layout and geometry intact, so
+ * the cells lay out and report their widths exactly as they would if shown. It also
+ * keeps the box in flow, so the surrounding page doesn't reflow on reveal.
+ *
+ * Opacity rather than `invisible`, because visibility is inherited. Every cell computes
+ * its own visibility from the table, so the reveal would restyle each element of the
+ * table a second time: about 9,000 elements at 1,000 rows. Opacity is not inherited,
+ * so the reveal restyles the table alone. The cost is that a table under the gate stays
+ * in the accessibility tree. The gate is on only until the first fit: on a client
+ * mount that is the same task, and after a reload it is the time until hydration, when
+ * the server's rows are already the true content.
+ *
+ * Carried by the `<table>` itself rather than a wrapper: a wrapping node — even
+ * `display: contents` — would sit in the middle of the grid's own child selectors. Kept
+ * out of {@link GridData} for its cognitive-complexity budget.
  *
  * @internal
  */
 export function widthGateClass(revealed: boolean): string | undefined {
-	return revealed ? undefined : 'invisible'
+	return revealed ? undefined : 'opacity-0'
 }

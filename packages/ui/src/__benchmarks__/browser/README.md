@@ -135,6 +135,8 @@ Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtur
 
 - [`grid-edit.bench.tsx`](grid-edit.bench.tsx) — a row edit that opens and closes, at 1k rows without a window and 10k rows with a window, and a move of the open cell under `scope: 'cell'`, at 1k rows without a window. Each sample commits through `flushSync`, reads the rect of the host, and counts the editors.
 
+- [`grid-fit.bench.tsx`](grid-fit.bench.tsx) — the column fit of a grid that the autosizer sizes, at 1k rows with no window and no declared width, as the admin users grid mounts. Two scenarios run: a mount, and an asc/desc sort flip on `id`. Each sample ends one rendered frame after the paint probe, so the style and layout work that the commit leaves to the browser is in the sample. The `navigable` rows mount the cell cursor.
+
 The ui grid keeps its built-in chrome (the toolbar with export, and the accessible announcements) in each scenario. React runs in production mode, for the reason that the intro gives.
 
 ### Standings (2026-07-10, this workstation)
@@ -324,6 +326,17 @@ Each entry names the change and the scenarios it moved.
     The sort flips with no grouping stayed within noise. The ungrouped quick filter was noisy: over seven plain pairs at 100k, the change was +38%, +3%, +22%, +33%, −5%, −4%, and +41%. The compiled pairs were mixed. The ungrouped path gained only three fields on the view object.
 
 18. **No row model in the engine** ([`features.ts`](../../modules/grid/engine/grid-table/features.ts), [`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useClientView`, 2026-09-25, this container). After entries 11 to 17, the grid computed each client row itself, and the row models of the engine were only a fallback. The engine now builds no row model. The row-model factories, the lean filtered model, and the engine paths of the grid are gone, so the grid module lost 701 lines and gained 160. A filter on a column that is not filterable now puts no constraint on the rows. The parity tests now compare the grid with a stock engine table that a test helper builds. This entry removes code and makes no path faster. Six interleaved pairs of the group and sort scenarios, and three pairs of the mount, filter, column-filter, pagination, total, and facet scenarios, stayed within noise in both builds. One scenario is not clear. The compiled grouped sort flip at 100k gave +24%, −1%, +18%, −2%, +21%, and −9% (median 97.7 → 109.2ms), and the plain build gave +1%.
+
+19. **Fewer and cheaper fit passes** ([`grid-data-resolvers.ts`](../../modules/grid/grid-data-resolvers.ts) `widthGateClass`, [`use-grid-column-sizing.ts`](../../modules/grid/use-grid-column-sizing.ts), [`state.ts`](../../modules/grid/engine/grid-table/state.ts) `rowsSignatureOf`, [`measure.ts`](../../modules/grid/engine/grid-sizing/measure.ts), 2026-09-29, this container). Four changes land together. The width gate hides the table with `opacity-0` and not `invisible`. Visibility is inherited, so the reveal restyled each element of the table a second time. The fit measures again after web fonts load only when the fonts were still loading at the first fit. The rows fingerprint hashes the set of keys, so a sort that shows the same rows measures nothing. A `hidden` child of a cell leaf, such as the locator span of the cell cursor, no longer sends the leaf to the `max-content` read. The new fit scenario gives the median of two interleaved rounds. Each "without" column is the branch with one change taken back out:
+
+    | Scenario | `main` | branch | without gate | without fonts | without fingerprint | without hidden child |
+    | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+    | fit mount · 1,000 | 986 | 668 | 896 | 824 | 712 | 630 |
+    | fit mount · 1,000 · navigable | 1,616 | 820 | 1,056 | 953 | 866 | 948 |
+    | fit sort · 1,000 | 2,970 | 404 | 405 | 431 | 2,921 | 401 |
+    | fit sort · 1,000 · navigable | 930 | 606 | 597 | 591 | 3,320 | 627 |
+
+    Each sample holds one frame of about 17 ms. The fingerprint carries the sort. The gate and the fonts carry the mount, and the hidden child carries the rest of the navigable mount. Without the fingerprint change, the navigable sort measured slower than on `main`. This entry does not explain that gap.
 
 ## Maps
 
