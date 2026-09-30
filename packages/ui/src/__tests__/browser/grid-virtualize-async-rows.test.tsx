@@ -68,38 +68,19 @@ describe('grid virtualized fill with async rows', () => {
 		)
 	}
 
-	it('renders the rows once they load', async () => {
-		renderUI(<AsyncGrid />)
+	it.each([
+		['with every feature', {}],
+		['without the loading skeleton', { useLoading: false }],
+		['without infiniteScroll', { useInfinite: false }],
+		['without virtualize (or infinite)', { useVirtualize: false, useInfinite: false }],
+	])('renders the rows once they load, %s', async (_, props) => {
+		renderUI(<AsyncGrid {...props} />)
 
 		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
 			timeout: budget(3000),
 		})
 
 		expect(screen.getByText('Row 2')).toBeInTheDocument()
-	})
-
-	it('variant: without the loading skeleton', async () => {
-		renderUI(<AsyncGrid useLoading={false} />)
-
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
-			timeout: budget(3000),
-		})
-	})
-
-	it('variant: without infiniteScroll', async () => {
-		renderUI(<AsyncGrid useInfinite={false} />)
-
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
-			timeout: budget(3000),
-		})
-	})
-
-	it('variant: without virtualize (or infinite)', async () => {
-		renderUI(<AsyncGrid useVirtualize={false} useInfinite={false} />)
-
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
-			timeout: budget(3000),
-		})
 	})
 
 	/** Rows (data or skeleton) in the grid's data `<tbody>`, excluding the window's spacers. */

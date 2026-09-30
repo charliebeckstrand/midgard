@@ -29,26 +29,15 @@ describe('MenuTrigger focus on open (real floating engine)', () => {
 		)
 	}
 
-	it('keeps focus on the trigger on open (click), never dropping to body', async () => {
+	it.each([
+		['click', (trigger: HTMLElement) => userEvent.click(trigger)],
+		['Enter', () => userEvent.keyboard('{Enter}')],
+	])('keeps focus on the trigger on open (%s), never dropping to body', async (_, open) => {
 		renderUI(tree())
 		const trigger = screen.getByRole('button', { name: 'Open' })
 		trigger.focus()
 
-		await userEvent.click(trigger)
-		await screen.findByRole('menu')
-
-		await waitFor(() => {
-			expect(document.activeElement).not.toBe(document.body)
-			expect(trigger).toHaveFocus()
-		})
-	})
-
-	it('keeps focus on the trigger on open (Enter), never dropping to body', async () => {
-		renderUI(tree())
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
-
-		await userEvent.keyboard('{Enter}')
+		await open(trigger)
 		await screen.findByRole('menu')
 
 		await waitFor(() => {

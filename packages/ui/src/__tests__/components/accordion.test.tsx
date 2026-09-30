@@ -313,9 +313,12 @@ describe('useAccordionItem in trigger children', () => {
 		return open ? 'Open!' : 'Closed'
 	}
 
-	it('exposes open=true to trigger children', () => {
+	it.each([
+		['open=true to trigger children', 'a', 'Open!'],
+		['open=false when the item is closed', undefined, 'Closed'],
+	])('exposes %s', (_, defaultValue, label) => {
 		renderUI(
-			<Accordion defaultValue="a">
+			<Accordion defaultValue={defaultValue}>
 				<AccordionItem value="a">
 					<AccordionTrigger>
 						<OpenLabel />
@@ -325,22 +328,7 @@ describe('useAccordionItem in trigger children', () => {
 			</Accordion>,
 		)
 
-		expect(screen.getByText('Open!')).toBeInTheDocument()
-	})
-
-	it('exposes open=false when the item is closed', () => {
-		renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>
-						<OpenLabel />
-					</AccordionTrigger>
-					<AccordionPanel>Body</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		expect(screen.getByText('Closed')).toBeInTheDocument()
+		expect(screen.getByText(label)).toBeInTheDocument()
 	})
 })
 

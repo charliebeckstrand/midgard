@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { act, frames, getSlot, renderUI, waitFor, windowBody } from '../helpers'
+import { pause } from './helpers/wall-clock'
 
 /**
  * The React commits of a windowed list around a `scroll` event that keeps the
@@ -15,8 +16,6 @@ import { act, frames, getSlot, renderUI, waitFor, windowBody } from '../helpers'
 describe('useVirtualWindow commits around a scroll (real browser)', () => {
 	/** Longer than the 150 ms after which the virtualizer clears `isScrolling`. */
 	const SCROLL_END = 400
-
-	const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 	it('commits nothing for a scroll step that keeps the rendered rows', async () => {
 		type Row = { id: number; name: string }
@@ -74,12 +73,12 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 		// Find an offset where a step of one pixel changes no visible row.
 		scroll.scrollTop = 2000
 
-		await wait(SCROLL_END)
+		await pause(SCROLL_END)
 
 		while (!clearOfEdges()) {
 			scroll.scrollTop += 3
 
-			await wait(SCROLL_END)
+			await pause(SCROLL_END)
 		}
 
 		for (let step = 0; step < 3; step++) {
@@ -89,7 +88,7 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 
 			scroll.scrollTop += 1
 
-			await wait(SCROLL_END)
+			await pause(SCROLL_END)
 
 			expect(rendered()).toBe(before)
 
@@ -160,7 +159,7 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 
 		scroller.scrollTop = 2000
 
-		await wait(SCROLL_END)
+		await pause(SCROLL_END)
 
 		for (let run = 0; run < 2; run++) {
 			const before = scroller.scrollTop
@@ -174,7 +173,7 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 
 			commits = 0
 
-			await wait(SCROLL_END)
+			await pause(SCROLL_END)
 
 			expect(commits).toBe(0)
 		}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { present, renderUI, waitFor } from '../helpers'
+import { frame, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The grid's table is `table-fixed` at a pixel width the autosizer computes, so between a
@@ -26,9 +26,6 @@ describe('grid refit on container resize (real browser)', () => {
 		{ id: 'name', title: 'Name', cell: (row) => row.name },
 		{ id: 'role', title: 'Role', cell: (row) => row.role },
 	]
-
-	/** One turn of the rendering steps: rAF runs before layout, so this lands after a paint. */
-	const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
 
 	it('carries the matching widths in the frame that resized the container', async () => {
 		const frameEl = document.createElement('div')

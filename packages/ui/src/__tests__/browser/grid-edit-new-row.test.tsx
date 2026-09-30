@@ -6,7 +6,7 @@ import {
 	type GridColumnGroup,
 	type GridEditableConfig,
 } from '../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, frames, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The new-row slot of an editable grid in a real browser. Sticky positioning
@@ -400,7 +400,7 @@ describe('grid new row (real browser)', () => {
 			)
 
 			// The wider pending label does not grow the column.
-			await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+			await frames()
 
 			expect(addCellOf(slot).getBoundingClientRect().width).toBe(width)
 

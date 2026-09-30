@@ -65,6 +65,27 @@ describe('grid infinite scroll (real browser)', () => {
 		)
 	}
 
+	/**
+	 * A "failing" source: `onLoadMore` never grows the rows, so the loaded count
+	 * never re-arms the old latch.
+	 */
+	function FailingGrid({ onLoadMore }: { onLoadMore: () => void }) {
+		const rows = useMemo(() => allRows.slice(0, 50), [])
+
+		return (
+			<div style={{ width: '320px' }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					virtualize={{ estimateSize: 36 }}
+					maxHeight="180px"
+					infiniteScroll={{ onLoadMore, hasMore: true }}
+				/>
+			</div>
+		)
+	}
+
 	it('calls onLoadMore as the window nears the loaded end, growing the set', async () => {
 		const onLoadMore = vi.fn()
 
@@ -214,26 +235,7 @@ describe('grid infinite scroll (real browser)', () => {
 	it('re-arms on scroll after a failed fetch instead of dead-locking', async () => {
 		const onLoadMore = vi.fn()
 
-		// A "failing" source: onLoadMore never grows the rows, so the loaded count
-		// never re-arms the old latch.
-		function FailingGrid() {
-			const rows = useMemo(() => allRows.slice(0, 50), [])
-
-			return (
-				<div style={{ width: '320px' }}>
-					<Grid
-						columns={columns}
-						rows={rows}
-						getKey={getKey}
-						virtualize={{ estimateSize: 36 }}
-						maxHeight="180px"
-						infiniteScroll={{ onLoadMore, hasMore: true }}
-					/>
-				</div>
-			)
-		}
-
-		const { container } = renderUI(<FailingGrid />)
+		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
@@ -266,24 +268,7 @@ describe('grid infinite scroll (real browser)', () => {
 	it('retries a failed fetch on a short scroll that leaves the window in place', async () => {
 		const onLoadMore = vi.fn()
 
-		function FailingGrid() {
-			const rows = useMemo(() => allRows.slice(0, 50), [])
-
-			return (
-				<div style={{ width: '320px' }}>
-					<Grid
-						columns={columns}
-						rows={rows}
-						getKey={getKey}
-						virtualize={{ estimateSize: 36 }}
-						maxHeight="180px"
-						infiniteScroll={{ onLoadMore, hasMore: true }}
-					/>
-				</div>
-			)
-		}
-
-		const { container } = renderUI(<FailingGrid />)
+		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 

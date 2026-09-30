@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { getSlot, renderUI, screen, waitFor } from '../../helpers'
+import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Tooltip `trigger` against the real floating engine. The jsdom and main
@@ -30,11 +30,6 @@ function tap(target: Element) {
 	target.dispatchEvent(new MouseEvent('mousedown', mouse))
 	target.dispatchEvent(new MouseEvent('mouseup', mouse))
 	target.dispatchEvent(new MouseEvent('click', mouse))
-}
-
-/** Waits two frames, past the open of a zero-delay tooltip. @internal */
-function frames() {
-	return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 }
 
 describe('Tooltip trigger (real browser)', () => {

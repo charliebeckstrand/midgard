@@ -23,29 +23,14 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 	const narrow = { value: { name: 80 } }
 
-	it('shows a tooltip with the full title when a sortable header is truncated', async () => {
+	it.each([
+		['a sortable', true],
+		['a non-sortable', false],
+	])('shows a tooltip with the full title when %s header is truncated', async (_, sortable) => {
 		renderUI(
 			<Grid
 				resizable
-				columns={[{ id: 'name', title: longTitle, cell: (row) => row.name }]}
-				columnSizing={narrow}
-				rows={rows}
-				getKey={getKey}
-			/>,
-		)
-
-		await userEvent.hover(screen.getByText(longTitle))
-
-		const tip = await screen.findByRole('tooltip')
-
-		expect(tip).toHaveTextContent(longTitle)
-	})
-
-	it('shows a tooltip with the full title when a non-sortable header is truncated', async () => {
-		renderUI(
-			<Grid
-				resizable
-				columns={[{ id: 'name', title: longTitle, sortable: false, cell: (row) => row.name }]}
+				columns={[{ id: 'name', title: longTitle, sortable, cell: (row) => row.name }]}
 				columnSizing={narrow}
 				rows={rows}
 				getKey={getKey}
