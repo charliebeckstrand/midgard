@@ -170,6 +170,28 @@ describe('DonutChart', () => {
 		vi.useRealTimers()
 	})
 
+	it('cancels the click of a tap, so the browser cannot move it to the legend', () => {
+		const select = vi.fn()
+
+		const { container } = renderUI(chart({ onCategoryClick: select }))
+
+		const slice = allBySlot(container, 'chart-slice')[1] as Element
+
+		const touch = { pointerType: 'touch' }
+
+		fireEvent.pointerDown(slice, touch)
+
+		fireEvent.pointerUp(slice, touch)
+
+		// iOS Safari sends the click of a finger to the best control near it, after
+		// the pointer events went to the slice. A cancelled touch end makes no click.
+		expect(fireEvent.touchEnd(slice)).toBe(false)
+
+		expect(select).toHaveBeenCalledOnce()
+
+		expect(select).toHaveBeenCalledWith('Direct', 1)
+	})
+
 	it('backs each slice with a hit wedge so the gap keeps the tooltip', () => {
 		const { container } = renderUI(chart())
 
