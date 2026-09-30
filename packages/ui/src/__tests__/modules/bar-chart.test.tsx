@@ -153,6 +153,25 @@ describe('BarChart', () => {
 		vi.useRealTimers()
 	})
 
+	it('cancels the click of a tap, so the browser cannot move it to the legend', () => {
+		const select = vi.fn()
+
+		const { container } = renderUI(chart({ onCategoryClick: select }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerUp(hit, at)
+
+		// A cancelled touch end makes no click.
+		expect(fireEvent.touchEnd(hit)).toBe(false)
+
+		expect(select).toHaveBeenCalledOnce()
+	})
+
 	it('selects on a tap whose click the browser holds back', () => {
 		const select = vi.fn()
 
