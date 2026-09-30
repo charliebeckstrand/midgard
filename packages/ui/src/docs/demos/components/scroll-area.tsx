@@ -5,7 +5,7 @@ import { ScrollArea } from '../../../components/scroll-area'
 import { Text } from '../../../components/text'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { Example, SizeListbox } from '../../engine'
+import { Axes, Example, SizeListbox } from '../../engine'
 
 const sizes = ['sm', 'md', 'lg', 'xl', '2xl'] as const
 
@@ -15,6 +15,9 @@ const paragraphs = Array.from({ length: 12 }, (_, i) => ({
 	id: `para-${i}`,
 	text: `Paragraph ${i + 1}. The quick brown fox jumps over the lazy dog. Sphinx of black quartz, judge my vow. Pack my box with five dozen liquor jugs.`,
 }))
+
+// A grid that overflows the frame on both axes.
+const cells = Array.from({ length: 48 }, (_, i) => `Item ${i + 1}`)
 
 const tags = [
 	'react',
@@ -34,10 +37,23 @@ const tags = [
 export function Demo() {
 	const [verticalSize, setVerticalSize] = useState<Size>('md')
 	const [horizontalSize, setHorizontalSize] = useState<Size>('md')
-	const [bothSize, setBothSize] = useState<Size>('md')
 
 	return (
 		<>
+			<Axes
+				of="ScrollArea"
+				omit={['extent']}
+				render={(props) => (
+					<ScrollArea {...props} extent="sm" className="max-w-96">
+						<div className="grid w-max grid-cols-8 gap-2">
+							{cells.map((cell) => (
+								<Badge key={cell}>{cell}</Badge>
+							))}
+						</div>
+					</ScrollArea>
+				)}
+			/>
+
 			<Example
 				title="Vertical with extent"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onValueChange={setVerticalSize} />}
@@ -63,41 +79,6 @@ export function Demo() {
 							<Badge key={tag}>{tag}</Badge>
 						))}
 					</Flex>
-				</ScrollArea>
-			</Example>
-
-			<Example
-				title="Both axes"
-				actions={<SizeListbox sizes={sizes} value={bothSize} onValueChange={setBothSize} />}
-			>
-				<ScrollArea orientation="both" extent={bothSize} rounded>
-					<Stack gap="lg" className="w-max">
-						{paragraphs.map((p) => (
-							<Text key={p.id} className="whitespace-nowrap">
-								{p.text}
-							</Text>
-						))}
-					</Stack>
-				</ScrollArea>
-			</Example>
-
-			<Example title="Hidden scrollbar">
-				<ScrollArea extent="md" scrollbar="hidden" rounded className="max-w-96">
-					<Stack gap="lg">
-						{paragraphs.map((p) => (
-							<Text key={p.id}>{p.text}</Text>
-						))}
-					</Stack>
-				</ScrollArea>
-			</Example>
-
-			<Example title="Visible scrollbar">
-				<ScrollArea extent="md" scrollbar="visible" rounded className="max-w-96">
-					<Stack gap="lg">
-						{paragraphs.map((p) => (
-							<Text key={p.id}>{p.text}</Text>
-						))}
-					</Stack>
 				</ScrollArea>
 			</Example>
 

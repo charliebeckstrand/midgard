@@ -10,8 +10,7 @@ import {
 } from '../../../components/card'
 import { Link } from '../../../components/link'
 import { Text } from '../../../components/text'
-import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
@@ -31,9 +30,33 @@ export function Demo() {
 				}
 			/>
 
-			<Example title="Default">
-				<Card size="lg">Content</Card>
-			</Example>
+			<Axes
+				of="Card"
+				render={(props, label) => (
+					<Card {...props} className="w-64">
+						<CardHeader>
+							<CardTitle>{label}</CardTitle>
+							<CardDescription>Manage your project configuration.</CardDescription>
+						</CardHeader>
+						<CardBody>
+							<Button>Save</Button>
+						</CardBody>
+					</Card>
+				)}
+			/>
+
+			<Axes
+				of="CardTitle"
+				title="Card title"
+				omit={['level']}
+				render={(props, label) => (
+					<Card className="w-64">
+						<CardHeader>
+							<CardTitle {...props}>{label}</CardTitle>
+						</CardHeader>
+					</Card>
+				)}
+			/>
 
 			<Example title="With header and footer">
 				<Card>
@@ -49,38 +72,6 @@ export function Demo() {
 						<Button variant="plain">Cancel</Button>
 					</CardFooter>
 				</Card>
-			</Example>
-
-			<Example title="Sizes">
-				<Stack gap="lg">
-					<Card size="sm">
-						<CardHeader>
-							<CardTitle>Small</CardTitle>
-							<CardDescription>Tighter padding, sharper inner radius.</CardDescription>
-						</CardHeader>
-						<CardBody>
-							<Button>Inherits sm</Button>
-						</CardBody>
-					</Card>
-					<Card size="md">
-						<CardHeader>
-							<CardTitle>Medium</CardTitle>
-							<CardDescription>Balanced padding and radius.</CardDescription>
-						</CardHeader>
-						<CardBody>
-							<Button>Inherits md</Button>
-						</CardBody>
-					</Card>
-					<Card size="lg">
-						<CardHeader>
-							<CardTitle>Large</CardTitle>
-							<CardDescription>Generous padding, softer inner radius.</CardDescription>
-						</CardHeader>
-						<CardBody>
-							<Button>Inherits lg</Button>
-						</CardBody>
-					</Card>
-				</Stack>
 			</Example>
 		</>
 	)
