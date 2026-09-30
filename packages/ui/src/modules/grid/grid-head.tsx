@@ -1,24 +1,17 @@
 'use client'
 
 import { useRef } from 'react'
-import { Checkbox } from '../../components/checkbox'
-import { TableHead, TableHeader, TableRow } from '../../components/table'
+import { TableHead, TableRow } from '../../components/table'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { useGrid } from './context'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
-import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'
-import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnSort } from './engine/grid-sort/state'
-import {
-	GridColumnHeader,
-	GridDragHandleHeaderCell,
-	GridNewRowAddHeaderCell,
-	GridReorderableColumnHeader,
-} from './grid-column-header'
+import { GridColumnHeader, GridReorderableColumnHeader } from './grid-column-header'
 import { GridGroupHead } from './grid-group-head'
+import { GridStaticHeaderCell, isStaticHeaderColumn } from './grid-static-header-cell'
 import type { GridColumn } from './types'
 import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
@@ -217,45 +210,18 @@ function GridHeaderCell<T>({
 	filters,
 	pinning,
 }: GridHeaderCellProps<T>) {
-	const { allSelected, someSelected, toggleAll, sort, toggleSort, pinColumn, stickyHeader } =
-		useGrid()
+	const { sort, toggleSort, pinColumn, stickyHeader } = useGrid()
 
-	if (column.selectable) {
-		const pinned = pinnedHeaderProps(pinning, column, column.width || undefined)
-
+	if (isStaticHeaderColumn(column)) {
 		return (
-			<TableHeader
-				aria-colindex={colIndex}
-				className={cn(k.cell.select, stickyHeader && k.sticky.head, pinned.className)}
-				style={pinned.style}
-				data-grid-pin={pinned.pin}
-			>
-				{hasRows && (
-					<Checkbox
-						checked={allSelected}
-						indeterminate={someSelected && !allSelected}
-						onChange={toggleAll}
-						aria-label={selectAllLabel}
-					/>
-				)}
-			</TableHeader>
-		)
-	}
-
-	if (column.dragHandle) {
-		return (
-			<GridDragHandleHeaderCell
+			<GridStaticHeaderCell
 				column={column}
 				colIndex={colIndex}
 				stickyHeader={stickyHeader}
 				pinning={pinning}
+				showCheckbox={hasRows}
+				label={selectAllLabel}
 			/>
-		)
-	}
-
-	if (isNewRowAddColumn(column.id)) {
-		return (
-			<GridNewRowAddHeaderCell column={column} colIndex={colIndex} stickyHeader={stickyHeader} />
 		)
 	}
 

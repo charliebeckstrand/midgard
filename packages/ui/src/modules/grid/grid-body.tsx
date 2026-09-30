@@ -10,7 +10,6 @@ import {
 } from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
-import type { PaletteColor } from '../../core/recipe'
 import {
 	type GridManualGroupSegment,
 	orderManualGroupSegments,
@@ -23,7 +22,7 @@ import { hasErrorSlot } from './engine/grid-table/guards'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
-import { GridGroupLeafRow } from './grid-group-leaf-row'
+import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manual-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
@@ -133,48 +132,6 @@ function resolveRowWindow(
 	const { estimateSize } = virtualize
 
 	return estimateSize === null ? 'measuring' : { ...virtualize, estimateSize }
-}
-
-/**
- * The {@link GridGroupLeafRow} prop block the client-grouped and manual-grouped
- * bodies share. It is the leaf's identity/selection wiring from the shared body
- * props, plus the caller's expansion state. Under client grouping it also
- * carries the group color.
- *
- * @internal
- */
-function leafRowProps<T>(
-	props: GridBodyProps<T>,
-	leaf: GridLeaf<T>,
-	args: {
-		expanded: boolean
-		color?: PaletteColor
-		/** The leaf's treegrid level; the client-grouped body sets it. */
-		level?: number
-	},
-): ComponentProps<typeof GridGroupLeafRow<T>> {
-	return {
-		expanded: args.expanded,
-		columns: props.visibleColumns,
-		row: leaf.row,
-		rowIndex: props.rowIndexMap.get(leaf.row) ?? -1,
-		rowKey: leaf.key,
-		selected: props.selection.has(leaf.key),
-		toggleRow: props.toggleRow,
-		selectable: props.selectable,
-		rowLabel: props.rowLabel?.(leaf.row),
-		onRowClick: props.onRowClick,
-		onCellClick: props.onCellClick,
-		onRowDoubleClick: props.onRowDoubleClick,
-		onCellDoubleClick: props.onCellDoubleClick,
-		rowRoving: props.rowRoving,
-		cellRoving: props.cellRoving,
-		cellActivate: props.cellActivate,
-		truncate: props.truncate,
-		pinning: props.pinning,
-		color: args.color,
-		level: args.level,
-	}
 }
 
 /**
@@ -330,9 +287,6 @@ function renderGroupedBody<T>(
 				renderHeader={groupRenderHeader}
 				totaled={totaled}
 				presentation={rowGroupPresentation}
-				leafProps={(leaf, expanded, color) =>
-					leafRowProps(props, leaf, { expanded, color, level: 2 })
-				}
 				window={rowWindow}
 			/>
 		)

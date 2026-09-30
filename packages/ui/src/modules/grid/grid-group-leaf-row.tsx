@@ -1,7 +1,7 @@
 'use client'
 
 import { GripVertical } from 'lucide-react'
-import { memo, type ReactNode } from 'react'
+import { type ComponentProps, memo, type ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
@@ -10,6 +10,7 @@ import { MountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { NO_PADDING } from './engine/grid-constants'
+import type { GridLeaf } from './engine/grid-group/tree'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
@@ -26,6 +27,7 @@ import {
 	rowShellProps,
 } from './engine/grid-row/shell'
 import { cellBody } from './grid-cell-content'
+import type { GridRowsProps } from './grid-row'
 import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
@@ -362,3 +364,45 @@ function GridGroupLeafRowImpl<T>({
  * Memoized {@link GridGroupLeafRowImpl}. A body render, or a window step, that leaves the leaf's props as they were renders neither the leaf nor its cells, as {@link GridRow} holds a flat row. @internal
  */
 export const GridGroupLeafRow = memo(GridGroupLeafRowImpl) as typeof GridGroupLeafRowImpl
+
+/**
+ * The {@link GridGroupLeafRow} prop block the client-grouped and manual-grouped
+ * bodies share. It is the leaf's identity/selection wiring from the shared body
+ * props, plus the caller's expansion state. Under client grouping it also
+ * carries the group color.
+ *
+ * @internal
+ */
+export function leafRowProps<T>(
+	props: GridRowsProps<T>,
+	leaf: GridLeaf<T>,
+	args: {
+		expanded: boolean
+		color?: PaletteColor
+		/** The leaf's treegrid level; the client-grouped body sets it. */
+		level?: number
+	},
+): ComponentProps<typeof GridGroupLeafRowImpl<T>> {
+	return {
+		expanded: args.expanded,
+		columns: props.visibleColumns,
+		row: leaf.row,
+		rowIndex: props.rowIndexMap.get(leaf.row) ?? -1,
+		rowKey: leaf.key,
+		selected: props.selection.has(leaf.key),
+		toggleRow: props.toggleRow,
+		selectable: props.selectable,
+		rowLabel: props.rowLabel?.(leaf.row),
+		onRowClick: props.onRowClick,
+		onCellClick: props.onCellClick,
+		onRowDoubleClick: props.onRowDoubleClick,
+		onCellDoubleClick: props.onCellDoubleClick,
+		rowRoving: props.rowRoving,
+		cellRoving: props.cellRoving,
+		cellActivate: props.cellActivate,
+		truncate: props.truncate,
+		pinning: props.pinning,
+		color: args.color,
+		level: args.level,
+	}
+}
