@@ -5,11 +5,12 @@ import { afterEach, beforeEach, expect, inject } from 'vitest'
 import { commands } from 'vitest/browser'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
+import '../../setup/geometry'
 import { pageState } from './forensics'
 import './tailwind.css'
 
 /**
- * Browser-suite setup. Registers the axe and jest-dom matchers, sets the
+ * Browser-suite setup. Registers the axe, jest-dom, and geometry matchers, sets the
  * waitFor/findBy budget, and tears down the DOM between cases. No `matchMedia`
  * / `ResizeObserver` stubs; the real engine provides them.
  */

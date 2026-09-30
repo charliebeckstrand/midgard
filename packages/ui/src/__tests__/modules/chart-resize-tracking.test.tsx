@@ -8,7 +8,7 @@ import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-res
  *
  * Charts commit every resize notification their frame measures, and that the
  * drawn geometry follows a real box is asserted against a real engine in
- * `browser/chart-resize-tracking.test.tsx` — where the host genuinely resizes.
+ * `browser/geometry/chart-resize-tracking.test.tsx` — where the host genuinely resizes.
  * This case is the one a browser cannot stage: a notification reporting a size
  * the frame already holds. A real `ResizeObserver` does not fire for a box that
  * did not change, so the redundant notification has to be synthesized, and the

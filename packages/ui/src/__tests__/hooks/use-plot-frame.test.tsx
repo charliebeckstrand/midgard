@@ -62,7 +62,7 @@ function Probe({
  * The observer's own lifecycle, which is what the stub is for.
  *
  * Which axis a sizing policy reads is a question about a real container, and
- * `browser/plot-frame.test.tsx` now asks it there: a height-only resize that an
+ * `browser/geometry/plot-frame.test.tsx` now asks it there: a height-only resize that an
  * aspect policy must ignore, and the same resize that a fill policy must redraw
  * on. What stays is the bookkeeping around it, and none of it is a measurement.
  * That a fully fixed size constructs no observer at all, that an unchanged size

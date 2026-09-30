@@ -83,7 +83,7 @@ function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
  * It is not the whole contract, because a spy on `scrollTo` reads the number
  * the hook asked for and stops there. Whether that number puts the node where
  * the caller meant is asserted against a real scroller in
- * `browser/scroll-within.test.tsx`.
+ * `browser/geometry/scroll-within.test.tsx`.
  */
 describe('useScrollWithin', () => {
 	it('returns the same function across renders', () => {

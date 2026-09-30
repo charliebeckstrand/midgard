@@ -14,7 +14,7 @@ const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/
 // The compiler caches a value on the identity of its inputs. A component that
 // reads a mutable object during render, or a bare layout read that the compiler
 // removes, passes the plain suite and fails here. `test:compiler` runs this
-// config over the `unit`, `pure`, and `integration` projects, and CI runs it in
+// config over the `unit`, `pure`, `integration`, and `geometry` projects, and CI runs it in
 // a job of its own. The `boundary` project reads source, not rendered output,
 // so it stays out.
 //
