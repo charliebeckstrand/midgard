@@ -31,20 +31,12 @@ describe('spark-tier value domain (real browser)', () => {
 			/>,
 		)
 
-		const svg = await waitFor(() => {
-			const el = container.querySelector('svg') as SVGSVGElement | null
-
-			expect(el).not.toBeNull()
-
-			return el as SVGSVGElement
-		})
+		const svg = await waitFor(() => present<SVGSVGElement>(container.querySelector('svg'), 'svg'))
 
 		const line = present<SVGPathElement>(
 			container.querySelector('[data-slot="chart-line"]'),
 			'[data-slot="chart-line"]',
 		)
-
-		expect(line).not.toBeNull()
 
 		const viewBoxHeight = svg.viewBox.baseVal.height
 

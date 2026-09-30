@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ChatMessageData } from '../../modules/chat'
 import { ChatTranscript } from '../../modules/chat'
-import { renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 /**
  * A transcript's auto-scroll must move its own scroll container and nothing
@@ -49,9 +49,6 @@ function page(messages: ChatMessageData[], transcriptHeight: string) {
 const outerOf = (container: HTMLElement) =>
 	container.querySelector<HTMLElement>('[data-testid="outer"]')
 
-const transcriptOf = (container: HTMLElement) =>
-	container.querySelector<HTMLElement>('[data-slot="chat-transcript"]')
-
 describe('ChatTranscript scroll confinement', () => {
 	it('leaves the page where it was when the transcript has nothing to scroll', () => {
 		// The regression. The transcript is taller than its content, so it never
@@ -61,20 +58,12 @@ describe('ChatTranscript scroll confinement', () => {
 		expect(outerOf(container)?.scrollTop).toBe(0)
 	})
 
-	it('still jumps its own container to the newest message', () => {
+	it('still jumps its own container to the newest message, and leaves the page where it was', () => {
 		// The confinement must not cost the behavior it guards: a transcript that
 		// does overflow still opens at the bottom.
 		const { container } = renderUI(page(long, 'h-[200px]'))
 
-		const transcript = transcriptOf(container)
-
-		expect(transcript).not.toBeNull()
-
-		expect(transcript?.scrollTop).toBeGreaterThan(0)
-	})
-
-	it('leaves the page where it was even while scrolling its own container', () => {
-		const { container } = renderUI(page(long, 'h-[200px]'))
+		expect(getSlot(container, 'chat-transcript').scrollTop).toBeGreaterThan(0)
 
 		expect(outerOf(container)?.scrollTop).toBe(0)
 	})

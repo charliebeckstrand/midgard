@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { bySlot, getSlot, renderUI, waitFor } from '../helpers'
+import { getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * A chart title and subtitle band above the plot inside the aspect box, so the
@@ -35,13 +35,7 @@ describe('chart header (real browser)', () => {
 			</div>,
 		)
 
-		const header = await waitFor(() => {
-			const el = bySlot(container, 'chart-header') as HTMLElement | null
-
-			expect(el).not.toBeNull()
-
-			return el as HTMLElement
-		})
+		const header = await waitFor(() => getSlot(container, 'chart-header'))
 
 		expect(getSlot(container, 'chart-title').textContent).toBe('Revenue')
 
@@ -78,13 +72,7 @@ describe('chart header (real browser)', () => {
 			/>,
 		)
 
-		const veil = await waitFor(() => {
-			const el = bySlot(container, 'chart-header') as HTMLElement | null
-
-			expect(el).not.toBeNull()
-
-			return el as HTMLElement
-		})
+		const veil = await waitFor(() => getSlot(container, 'chart-header'))
 
 		// A veil, not an inline header: absolute over the plot, and transparent at
 		// rest so the sparkline reads as pure marks.

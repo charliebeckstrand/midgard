@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
-import { allBySlot, frames, renderUI, waitFor } from '../../helpers'
+import { allBySlot, frames, present, renderUI, waitFor } from '../../helpers'
 
 /**
  * A switch in the `+N` overflow popover emphasizes its series while the pointer
@@ -54,13 +54,9 @@ describe('chart legend overflow dismiss (real browser)', () => {
 
 		await userEvent.click(overflowChip(container) as HTMLButtonElement)
 
-		const panel = await waitFor(() => {
-			const found = document.querySelector('[data-slot="chart-legend-overflow"]')
-
-			expect(found).not.toBeNull()
-
-			return found as HTMLElement
-		})
+		const panel = await waitFor(() =>
+			present(document.querySelector('[data-slot="chart-legend-overflow"]'), 'the overflow panel'),
+		)
 
 		const target = allBySlot(panel, 'chart-legend-item')[0] as HTMLElement
 

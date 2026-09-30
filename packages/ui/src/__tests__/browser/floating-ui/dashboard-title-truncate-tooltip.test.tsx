@@ -90,9 +90,7 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 	it('opens no tooltip in edit mode, where the title is a part of the drag surface', async () => {
 		renderUI(<Board editing />)
 
-		await expect.poll(() => tierOf(LONG)).toBe('spark')
-
-		await userEvent.hover(parts(LONG).heading)
+		await hoverTitle(LONG)
 
 		await pause(400)
 

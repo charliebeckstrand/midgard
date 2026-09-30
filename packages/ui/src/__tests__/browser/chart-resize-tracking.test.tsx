@@ -1,9 +1,10 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { frames, renderUI, waitFor } from '../helpers'
+import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * Resize tracking under a real engine: a genuine `ResizeObserver` fires as the
@@ -42,64 +43,56 @@ function plotSvg(container: HTMLElement): SVGSVGElement {
 	return svg
 }
 
+/** The host box that a case resizes. */
+function hostOf(container: HTMLElement): HTMLElement {
+	return present(container.querySelector('[data-testid="host"]'), 'the host')
+}
+
 /** The committed frame width — the width component of the plot SVG's viewBox. */
 function frameWidth(container: HTMLElement): string | undefined {
 	return plotSvg(container).getAttribute('viewBox')?.split(' ')[2]
 }
 
 describe('chart resize tracking (real browser)', () => {
-	it('follows a container resize burst to the final width with no settle wait', async () => {
-		const { container } = renderUI(
-			<div data-testid="host" style={{ width: 600 }}>
-				{chart()}
-			</div>,
-		)
-
-		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
-
-		if (!host) throw new Error('no host rendered')
-
-		await waitFor(() => expect(frameWidth(container)).toBe('600'))
-
-		for (const width of [640, 680, 720]) {
-			host.style.width = `${width}px`
-
-			await frames()
-		}
-
-		await waitFor(() => expect(frameWidth(container)).toBe('720'))
-	})
-
-	it('follows a pie chart resize burst to the final width as well', async () => {
-		// The pie frame reserves its box on a different path from the cartesian one
-		// above, so the burst is worth walking twice. jsdom walked it by writing a
-		// width onto the plot and firing the observer by hand; here the host really
-		// resizes and the engine's own observer reports it.
-		const { container } = renderUI(
-			<div data-testid="host" style={{ width: 600 }}>
+	// The pie frame reserves its box on a different path from the cartesian one,
+	// so the burst is worth walking twice. jsdom walked it by writing a width onto
+	// the plot and firing the observer by hand. Here the host really resizes, and
+	// the observer of the engine reports it.
+	it.each<[string, () => ReactElement]>([
+		['a bar chart', chart],
+		[
+			'a pie chart',
+			() => (
 				<PieChart
 					aria-label="Share by quarter"
 					data={DATA}
 					series={[{ xKey: 'x', yKey: 'y' }]}
 					aspectRatio={2}
 				/>
-			</div>,
-		)
+			),
+		],
+	])(
+		'follows a container resize burst of %s to the final width with no settle wait',
+		async (_, make) => {
+			const { container } = renderUI(
+				<div data-testid="host" style={{ width: 600 }}>
+					{make()}
+				</div>,
+			)
 
-		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
+			const host = hostOf(container)
 
-		if (!host) throw new Error('no host rendered')
+			await waitFor(() => expect(frameWidth(container)).toBe('600'))
 
-		await waitFor(() => expect(frameWidth(container)).toBe('600'))
+			for (const width of [640, 680, 720]) {
+				host.style.width = `${width}px`
 
-		for (const width of [640, 680, 720]) {
-			host.style.width = `${width}px`
+				await frames()
+			}
 
-			await frames()
-		}
-
-		await waitFor(() => expect(frameWidth(container)).toBe('720'))
-	})
+			await waitFor(() => expect(frameWidth(container)).toBe('720'))
+		},
+	)
 
 	it('resizes a chart inside the fading tab surface without pinning the panel height', async () => {
 		const { container } = renderUI(
@@ -116,11 +109,9 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
+		const host = hostOf(container)
 
-		const contents = container.querySelector<HTMLElement>('[data-slot="tab-contents"]')
-
-		if (!host || !contents) throw new Error('host or tab surface missing')
+		const contents = getSlot(container, 'tab-contents')
 
 		await waitFor(() => expect(frameWidth(container)).toBe('600'))
 
@@ -146,9 +137,7 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
-
-		if (!host) throw new Error('no host rendered')
+		const host = hostOf(container)
 
 		await waitFor(() => expect(frameWidth(container)).toBe('600'))
 
@@ -205,9 +194,7 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
-
-		if (!host) throw new Error('no host rendered')
+		const host = hostOf(container)
 
 		const tier = () => {
 			const el = container.querySelector<HTMLElement>('[data-slot="chart"]')
@@ -256,9 +243,7 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
-
-		if (!host) throw new Error('no host rendered')
+		const host = hostOf(container)
 
 		/** The committed drawing size tracks the plot box — width and height alike. */
 		const tracks = () => {
@@ -380,9 +365,7 @@ describe('chart fill-mode resize stability (real browser)', () => {
 			</div>,
 		)
 
-		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
-
-		if (!host) throw new Error('no host rendered')
+		const host = hostOf(container)
 
 		await waitFor(() => expect(frameWidth(container)).toBe('400'))
 

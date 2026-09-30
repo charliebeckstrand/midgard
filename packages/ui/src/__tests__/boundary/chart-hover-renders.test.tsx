@@ -170,6 +170,36 @@ const BOX = {
 	toJSON: () => ({}),
 } as DOMRect
 
+type Cell = { day: string; hour: string; commits: number }
+
+const HEATMAP_SERIES = [
+	{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#f7fee7', '#365314'] },
+] satisfies [HeatmapChartSeries<Cell>]
+
+/** Mounts a heatmap, gives its hit layer `BOX`, and moves the pointer into the first cell. */
+function heatmap() {
+	const { container } = renderUI(
+		<HeatmapChart
+			aria-label="Commits"
+			data={[
+				{ day: 'Mon', hour: '9', commits: 1 },
+				{ day: 'Mon', hour: '10', commits: 9 },
+				{ day: 'Tue', hour: '9', commits: 5 },
+			]}
+			series={HEATMAP_SERIES}
+			width={400}
+		/>,
+	)
+
+	const hit = getSlot(container, 'chart-hit')
+
+	hit.getBoundingClientRect = () => BOX
+
+	fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
+
+	return { container, hit }
+}
+
 describe('Chart hover renders', () => {
 	beforeEach(resetRenders)
 
@@ -323,30 +353,7 @@ describe('Chart hover renders', () => {
 	})
 
 	it('tracks the pointer across a heatmap without a render of the chart body', () => {
-		type Row = { day: string; hour: string; commits: number }
-
-		const series = [
-			{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#f7fee7', '#365314'] },
-		] satisfies [HeatmapChartSeries<Row>]
-
-		const { container } = renderUI(
-			<HeatmapChart
-				aria-label="Commits"
-				data={[
-					{ day: 'Mon', hour: '9', commits: 1 },
-					{ day: 'Mon', hour: '10', commits: 9 },
-					{ day: 'Tue', hour: '9', commits: 5 },
-				]}
-				series={series}
-				width={400}
-			/>,
-		)
-
-		const hit = getSlot(container, 'chart-hit')
-
-		hit.getBoundingClientRect = () => BOX
-
-		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
+		const { container, hit } = heatmap()
 
 		expectLive('axis', 'pointer')
 
@@ -366,30 +373,7 @@ describe('Chart hover renders', () => {
 	})
 
 	it('holds the range arrow while the pointer moves inside one heatmap cell', () => {
-		type Row = { day: string; hour: string; commits: number }
-
-		const series = [
-			{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#f7fee7', '#365314'] },
-		] satisfies [HeatmapChartSeries<Row>]
-
-		const { container } = renderUI(
-			<HeatmapChart
-				aria-label="Commits"
-				data={[
-					{ day: 'Mon', hour: '9', commits: 1 },
-					{ day: 'Mon', hour: '10', commits: 9 },
-					{ day: 'Tue', hour: '9', commits: 5 },
-				]}
-				series={series}
-				width={400}
-			/>,
-		)
-
-		const hit = getSlot(container, 'chart-hit')
-
-		hit.getBoundingClientRect = () => BOX
-
-		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
+		const { container, hit } = heatmap()
 
 		expectLive('arrow', 'pointer')
 

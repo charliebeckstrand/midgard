@@ -98,13 +98,9 @@ describe('chart stacked legend row cap (real browser)', () => {
 
 		// The panel teleports through a portal; find it on the document, then read the
 		// switchboard it holds.
-		const panel = await waitFor(() => {
-			const found = document.querySelector('[data-slot="popover-content"]') as HTMLElement | null
-
-			expect(found).not.toBeNull()
-
-			return found as HTMLElement
-		})
+		const panel = await waitFor(() =>
+			present(document.querySelector('[data-slot="popover-content"]'), 'the popover panel'),
+		)
 
 		const switches = allBySlot(panel, 'chart-legend-item') as HTMLButtonElement[]
 

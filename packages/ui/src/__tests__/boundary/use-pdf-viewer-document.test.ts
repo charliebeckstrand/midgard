@@ -49,7 +49,7 @@ afterEach(() => {
 // Synchronous paths below remain covered.
 
 describe('usePdfViewerDocument', () => {
-	it('returns the empty initial state when no src is provided', () => {
+	it('returns the empty initial state, with no pending load, when no src is provided', () => {
 		const { result } = renderHook(() => usePdfViewerDocument(undefined))
 
 		expect(result.current.pages).toEqual([])
@@ -59,10 +59,6 @@ describe('usePdfViewerDocument', () => {
 		expect(result.current.loading).toBe(false)
 
 		expect(result.current.error).toBeNull()
-	})
-
-	it('reports no pending load when no src is provided', () => {
-		const { result } = renderHook(() => usePdfViewerDocument(undefined))
 
 		expect(result.current.pending).toBe(false)
 	})
@@ -169,17 +165,9 @@ describe('usePdfViewerDocument · parked and restored', () => {
 
 		expect(result.current.loading).toBe(false)
 
-		expect(fetchMock).not.toHaveBeenCalled()
-	})
-
-	it('reports a resident document as not pending', async () => {
-		globalThis.fetch = vi.fn()
-
-		await seed('/invoice.pdf')
-
-		const { result } = renderHook(() => usePdfViewerDocument('/invoice.pdf'))
-
 		expect(result.current.pending).toBe(false)
+
+		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
 	/*

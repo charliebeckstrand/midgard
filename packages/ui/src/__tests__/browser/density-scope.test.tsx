@@ -30,7 +30,7 @@ import { ChatListItem } from '../../modules/chat'
 import { Grid } from '../../modules/grid'
 import { Option } from '../../primitives/option'
 import { DensityProvider } from '../../providers/density'
-import { present, renderUI, screen } from '../helpers'
+import { attach, present, renderUI, screen } from '../helpers'
 
 /**
  * A static leaf with no `size` follows the nearest density scope.
@@ -57,6 +57,15 @@ const badgeFont = (container: HTMLElement, text: string) => {
 	)
 
 	return Number.parseFloat(getComputedStyle(badge).fontSize)
+}
+
+/** Mounts the server markup of `element` with no hydration, for the current test. */
+const mountMarkup = (element: ReactElement) => {
+	const container = attach(document.createElement('div'))
+
+	container.innerHTML = renderToStaticMarkup(element)
+
+	return container
 }
 
 /**
@@ -215,17 +224,6 @@ describe('controls at the first paint (real browser)', () => {
 		writeRootDensity(document.documentElement, 'md')
 	})
 
-	/** Mounts the server markup of `element` with no hydration. */
-	const mountMarkup = (element: ReactElement) => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToStaticMarkup(element)
-
-		document.body.append(container)
-
-		return container
-	}
-
 	const px = (element: Element | null, property: 'fontSize' | 'paddingInlineStart') =>
 		Number.parseFloat(getComputedStyle(present(element, 'element'))[property])
 
@@ -239,8 +237,6 @@ describe('controls at the first paint (real browser)', () => {
 		expect(px(input, 'fontSize')).toBe(14)
 
 		expect(px(input, 'paddingInlineStart')).toBe(9)
-
-		container.remove()
 	})
 
 	it('lets an explicit size win over the root', () => {
@@ -249,8 +245,6 @@ describe('controls at the first paint (real browser)', () => {
 		const container = mountMarkup(<Input aria-label="Name" size="lg" />)
 
 		expect(px(container.querySelector('[data-slot="input"]'), 'fontSize')).toBe(18)
-
-		container.remove()
 	})
 
 	it('steps the prefix one step below the input and pads it at the input step', () => {
@@ -262,8 +256,6 @@ describe('controls at the first paint (real browser)', () => {
 
 		// A text affix pads at the `px` of the input; the badge constant is 2.
 		expect(px(container.querySelector('[data-slot="prefix"]'), 'paddingInlineStart')).toBe(7)
-
-		container.remove()
 	})
 
 	it('sizes an unsized button at the step of the root', () => {
@@ -272,8 +264,6 @@ describe('controls at the first paint (real browser)', () => {
 		const container = mountMarkup(<Button>Save</Button>)
 
 		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(14)
-
-		container.remove()
 	})
 
 	it('steps a button in an input suffix one step below the input', () => {
@@ -282,8 +272,6 @@ describe('controls at the first paint (real browser)', () => {
 		const container = mountMarkup(<Input aria-label="Name" suffix={<Button>Go</Button>} />)
 
 		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(16)
-
-		container.remove()
 	})
 
 	it.each<[string, ReactElement, string]>([
@@ -298,8 +286,6 @@ describe('controls at the first paint (real browser)', () => {
 		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'frame')
 
 		expect(getComputedStyle(frame, '::before').borderTopLeftRadius).toBe(radius)
-
-		container.remove()
 	})
 
 	it('sizes the unsized toggles at the step of the root', () => {
@@ -318,8 +304,6 @@ describe('controls at the first paint (real browser)', () => {
 		)
 
 		expect(widths).toEqual([16, 16, 32])
-
-		container.remove()
 	})
 
 	it('sizes the native slider track at an explicit size of the slider', () => {
@@ -339,8 +323,6 @@ describe('controls at the first paint (real browser)', () => {
 			Number.parseFloat(paddingBottom)
 
 		expect([paddingTop, track]).toEqual(['20px', 8])
-
-		container.remove()
 	})
 
 	it('sizes the rating and the progress indicators at the step of the root', () => {
@@ -362,8 +344,6 @@ describe('controls at the first paint (real browser)', () => {
 		expect(box('progress-bar').height).toBe(16)
 
 		expect(box('progress-gauge').width).toBe(80)
-
-		container.remove()
 	})
 
 	it('pads a text prefix at the px of the input', () => {
@@ -372,8 +352,6 @@ describe('controls at the first paint (real browser)', () => {
 		const container = mountMarkup(<Input aria-label="Name" prefix="$" />)
 
 		expect(px(container.querySelector('[data-slot="prefix"]'), 'paddingInlineStart')).toBe(13)
-
-		container.remove()
 	})
 })
 
@@ -381,17 +359,6 @@ describe('items and slots at the first paint (real browser)', () => {
 	afterEach(() => {
 		writeRootDensity(document.documentElement, 'md')
 	})
-
-	/** Mounts the server markup of `element` with no hydration. */
-	const mountMarkup = (element: ReactElement) => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToStaticMarkup(element)
-
-		document.body.append(container)
-
-		return container
-	}
 
 	type Property = 'fontSize' | 'paddingTop' | 'paddingInlineStart' | 'marginInlineEnd' | 'width'
 
@@ -421,8 +388,6 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(inner, 'paddingTop')).toBe(5)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
-
-		container.remove()
 	})
 
 	it.each([
@@ -440,8 +405,6 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(container.querySelector('[data-slot="loading-spinner"]'), 'width')).toBe(width)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(width)
-
-		container.remove()
 	})
 
 	it('lets an explicit size of a sidebar item win over the root', () => {
@@ -450,8 +413,6 @@ describe('items and slots at the first paint (real browser)', () => {
 		const container = mountMarkup(<SidebarItem size="sm">Home</SidebarItem>)
 
 		expect(px(container.querySelector('[data-slot="sidebar-item-inner"]'), 'fontSize')).toBe(14)
-
-		container.remove()
 	})
 
 	it('steps a sidebar item suffix one step below the item and insets it at the item step', () => {
@@ -464,8 +425,6 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(
 			px(container.querySelector('[data-slot="sidebar-item-suffix"]'), 'marginInlineEnd'),
 		).toBe(10)
-
-		container.remove()
 	})
 
 	it('steps the chat list item actions one step below the root', () => {
@@ -474,8 +433,6 @@ describe('items and slots at the first paint (real browser)', () => {
 		const container = mountMarkup(<ChatListItem title="Chat" actions={<Button>Delete</Button>} />)
 
 		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(16)
-
-		container.remove()
 	})
 
 	it.each<[string, ReactElement, number, number]>([
@@ -509,8 +466,6 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(container.querySelector('[data-slot="tree-group"]'), 'paddingInlineStart')).toBe(
 			indent,
 		)
-
-		container.remove()
 	})
 })
 
@@ -518,17 +473,6 @@ describe('the sparkline at the first paint (real browser)', () => {
 	afterEach(() => {
 		writeRootDensity(document.documentElement, 'md')
 	})
-
-	/** Mounts the server markup of `element` with no hydration. */
-	const mountMarkup = (element: ReactElement) => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToStaticMarkup(element)
-
-		document.body.append(container)
-
-		return container
-	}
 
 	const box = (element: Element | null) => {
 		const { width, height } = present(element, 'element').getBoundingClientRect()
@@ -549,8 +493,6 @@ describe('the sparkline at the first paint (real browser)', () => {
 		const container = mountMarkup(element)
 
 		expect(box(container.querySelector('svg'))).toEqual(expected)
-
-		container.remove()
 	})
 
 	it('sizes the skeleton to the box of the sparkline at each step', () => {
@@ -578,17 +520,6 @@ describe('the grid at the first paint (real browser)', () => {
 		writeRootDensity(document.documentElement, 'md')
 	})
 
-	/** Mounts the server markup of `element` with no hydration. */
-	const mountMarkup = (element: ReactElement) => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToStaticMarkup(element)
-
-		document.body.append(container)
-
-		return container
-	}
-
 	const columns = [{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name }]
 
 	const rows = [{ name: 'Ada' }]
@@ -612,8 +543,6 @@ describe('the grid at the first paint (real browser)', () => {
 		const cell = present(container.querySelector('tbody td'), 'cell')
 
 		expect(Number.parseFloat(getComputedStyle(cell).paddingInlineStart)).toBe(padding)
-
-		container.remove()
 	})
 })
 
