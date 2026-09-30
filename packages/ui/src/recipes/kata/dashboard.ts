@@ -77,7 +77,13 @@ const card = defineRecipe({
 })
 
 /**
- * The header row: the grip, the title block, and the actions.
+ * The header row: the grip, the title block, and the actions. It pads its
+ * bottom edge as a card header does, so the content keeps a gap below the
+ * title.
+ *
+ * A widget with a fullscreen view of its own, such as a chart with its menu,
+ * marks its controls in the row `data-own-fullscreen`. The row then hides the
+ * expand control of the tile, so the tile shows one way to go large.
  *
  * An icon-only bare button has a pad around its glyph. The pad adds to the gap
  * of the row, so the gap next to a button looks wider than the gap next to a
@@ -86,7 +92,8 @@ const card = defineRecipe({
  * the hit area of the button stays the same.
  */
 const header = [
-	'flex min-w-0 items-center gap-2',
+	'flex min-w-0 items-center gap-2 density-pb-[2,3,4]',
+	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	'**:data-[variant=bare]:not-data-[has-label]:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-[has-label]:density-sm:-mx-1',
 	'**:data-[variant=bare]:not-data-[has-label]:density-md:-mx-1.25',
