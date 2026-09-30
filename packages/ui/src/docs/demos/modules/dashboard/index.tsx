@@ -37,14 +37,13 @@ const emptyFilter: QueryGroup = { id: 'filter', type: 'group', children: [] }
 // hands rows to a widget; no widget knows that a dashboard holds it. A chart that
 // selects also gets its own selection back, so the selected marks stay lit.
 
-// A tap on a touch screen shows the readout first, so a second tap selects.
+// On a touch screen, a tap selects and a hold reads the chart.
 // The hint names the gesture of the pointer that the device has.
 function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
 	return (
 		<>
 			<span className="pointer-coarse:hidden">Click</span>
-			<span className="hidden pointer-coarse:inline">Double-tap</span> a {mark} to filter the other
-			tiles
+			<span className="hidden pointer-coarse:inline">Tap</span> a {mark} to filter the other tiles
 		</>
 	)
 }

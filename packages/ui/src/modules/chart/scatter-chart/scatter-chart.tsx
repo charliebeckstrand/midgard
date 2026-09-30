@@ -101,7 +101,8 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		 * address space a scatter has. A point is named by a pair and not by one id,
 		 * so this does not take the module's shared `ChartItemClick`. Setting it
 		 * makes the plot interactive on its own, where the pointer layer otherwise
-		 * mounts only for a tooltip or a crosshair.
+		 * mounts only for a tooltip or a crosshair. On a touch screen under the
+		 * `'hover'` trigger, a tap fires it and a hold only reads the point.
 		 *
 		 * @remarks Under a snapping crosshair (`crosshair={{ snap: true }}`), a
 		 * click off every disc also fires. It reports the point that the snapped

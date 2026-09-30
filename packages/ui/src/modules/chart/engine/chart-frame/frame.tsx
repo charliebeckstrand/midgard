@@ -573,6 +573,8 @@ export function ChartFrame({
 				// A long press opens the readout, as on the map. The whole chart, labels
 				// included, therefore selects no text and opens no callout under a hold.
 				k.touchReadout,
+				// A tap selects, so no double-tap zoom holds it back.
+				k.tap,
 				fixedWidth === undefined && 'w-full',
 				containerFill && 'h-full',
 				className,

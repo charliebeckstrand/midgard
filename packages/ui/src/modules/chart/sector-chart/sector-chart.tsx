@@ -95,7 +95,9 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * target the tooltip reads. The cross-filter hook: a dashboard toggles a filter on the
 	 * clicked slice and narrows its neighbors. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins), and points the
-	 * cursor over the slices so they read as clickable.
+	 * cursor over the slices so they read as clickable. On a touch screen under
+	 * the `'hover'` trigger, a tap fires it and opens no readout, and a hold reads
+	 * the slice and does not fire it.
 	 */
 	onCategoryClick?: ChartItemClick
 	/**

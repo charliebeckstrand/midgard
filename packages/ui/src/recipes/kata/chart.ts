@@ -71,6 +71,12 @@ export const k = {
 	 * `select-none` box, so every descendant also sets it.
 	 */
 	touchReadout: ['select-none', '**:select-none', '[-webkit-touch-callout:none]'],
+	/**
+	 * The root of a chart, whose marks take a tap. It turns off the double-tap
+	 * zoom, so a tap lands without the wait for a second tap. A pan and a pinch
+	 * still work.
+	 */
+	tap: ['touch-manipulation'],
 	/** Motion vocabulary for the mount reveals, from `zu`. `chart-motion.ts` composes the chart's timings from it. */
 	motion,
 	skeleton: kokkaku.chart,

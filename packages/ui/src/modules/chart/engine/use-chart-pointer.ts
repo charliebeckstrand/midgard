@@ -12,9 +12,7 @@ import { useHoverAcrossScroll } from '../../../hooks'
 import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartHoverStore, useChartMarkPoint } from './context'
-
-/** Hold time, in ms, before a touch opens the readout. A tap or a double tap opens none. @internal */
-export const TOUCH_READOUT_DELAY = 300
+import { TOUCH_READOUT_DELAY, useChartTouchTap } from './use-chart-touch-tap'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
@@ -22,6 +20,9 @@ export type ChartPointerHandlers = {
 	onPointerEnter?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerMove?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerLeave?: () => void
+	onPointerDown?: (event: PointerEvent<SVGRectElement>) => void
+	onPointerUp?: (event: PointerEvent<SVGRectElement>) => void
+	onPointerCancel?: () => void
 	onClick?: (event: MouseEvent<SVGRectElement>) => void
 }
 
@@ -109,7 +110,9 @@ export type ChartPointerOptions = {
  * keeps its document position, so it scrolls with the plot.
  *
  * An `onIndexClick` rides either trigger. A click that resolves to a category
- * reports its index. The report comes after the `'click'` trigger's own
+ * reports its index. Under `'hover'`, a touch reports from the tap that
+ * {@link useChartTouchTap} finds, and not from the click. A tap therefore
+ * activates at once and opens no readout, and a hold reads without activating. The report comes after the `'click'` trigger's own
  * pin/dismiss toggle, so the two read one gesture. It also carries a pointer
  * cursor across the plot, so the marks read as clickable. It's the activation channel behind the charts'
  * public `onCategoryClick`.
@@ -349,7 +352,7 @@ export function useChartPointer({
 	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
 	// A touch that enters the layer waits `TOUCH_READOUT_DELAY` before it opens the
-	// readout. A tap, or the taps of a double tap, lift first and show none. Once
+	// readout. A tap lifts first and shows none. Once
 	// the readout is open, a moving finger tracks with no delay.
 	const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -362,6 +365,9 @@ export function useChartPointer({
 	}, [])
 
 	useEffect(() => cancelHold, [cancelHold])
+
+	// A touch activates from its tap, and a mouse or a pen from its click.
+	const touch = useChartTouchTap(activate)
 
 	if (trigger === 'click') {
 		return {
@@ -404,10 +410,22 @@ export function useChartPointer({
 	return {
 		ref,
 		// Activation only — the tracked readout stays hover-owned.
-		onClick:
-			onIndexClick || onMarkClick ? (event) => activate(event.clientX, event.clientY) : undefined,
+		...(onIndexClick || onMarkClick
+			? {
+					onClick: (event: MouseEvent<SVGRectElement>) => {
+						if (!touch.fromTouch()) activate(event.clientX, event.clientY)
+					},
+					onPointerDown: touch.onPointerDown,
+					onPointerUp: touch.onPointerUp,
+					onPointerCancel: touch.onPointerCancel,
+				}
+			: {}),
 		onPointerEnter: follow,
-		onPointerMove: follow,
+		onPointerMove: (event) => {
+			touch.onPointerMove(event)
+
+			follow(event)
+		},
 		onPointerLeave: () => {
 			cancelHold()
 
