@@ -1,5 +1,5 @@
 import { type PointerEvent, useEffect, useRef } from 'react'
-import { useTouchHoldSelection } from '../../hooks/use-touch-hold-selection'
+import { useMenuTouchSelection } from './use-menu-touch-selection'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
 export const TOUCH_CONTEXT_MENU_DELAY = 500
@@ -25,8 +25,7 @@ type Hold = { timer: ReturnType<typeof setTimeout>; x: number; y: number }
  * `contextmenu` event during the hold, as on Android, cancels the timer. When a handler takes the
  * event, the hook drops the click that ends the hold. A hold inside a `data-touch-readout`
  * element, such as a chart or a map, stays with that readout and opens no menu.
- * From the press to the lift, the hook holds the selection guard, so the hold selects no text on
- * the page. The target of the menu stays selectable at other times.
+ * {@link useMenuTouchSelection} removes the text that iOS selects under the hold.
  *
  * @returns Handlers for the surface element.
  *
@@ -37,9 +36,8 @@ export function useMenuTouchHold() {
 
 	const dropClickUntil = useRef(0)
 
-	// A hold that opens the menu selects no text on the page, even on a target that
-	// the reader can select.
-	const guardSelection = useTouchHoldSelection()
+	// A hold that opens the menu selects no text near the finger.
+	const guardSelection = useMenuTouchSelection()
 
 	const cancel = () => {
 		if (hold.current) clearTimeout(hold.current.timer)

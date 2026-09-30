@@ -64,7 +64,6 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 |---|---|---|
 | A horizontal arrow key that steps through the reading order, which swaps in RTL | `logicalArrowKey` in `hooks/a11y/logical-arrow.ts`; `useA11yRoving` applies it | `logical-arrow-boundary.test.ts` |
 | The cursor for the span of a drag | `hooks/use-drag-cursor.ts` (`useDragCursor`, `useDragCursorHold`, `holdDragCursor`) | `drag-cursor-boundary.test.ts` |
-| No text selection on the page for the span of a touch hold | `hooks/use-touch-hold-selection.ts` (`useTouchHoldSelection`, `holdTouchSelection`) | `touch-hold-selection-boundary.test.ts` |
 | The grab cursors of a surface that the reader drags | `hannou.grab` in `recipes/kiso/hannou/cursor.ts` | `grab-cursor-boundary.test.ts` |
 | The reduced-motion setting of the reader | `usePrefersReducedMotion` in `ui/hooks` | `no-motion-reduced-motion-hook` |
 | A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
