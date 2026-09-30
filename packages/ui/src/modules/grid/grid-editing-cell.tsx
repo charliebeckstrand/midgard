@@ -18,6 +18,7 @@ import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/grid'
+import { useGridCellEditing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import {
 	EDITOR_FOCUSABLE,
@@ -289,6 +290,19 @@ export function GridCellEditor<T>({
 	}, [held])
 
 	const hostRef = useRef<HTMLSpanElement>(null)
+
+	// Tell the truncating content of the cell that an editor is open, before the
+	// focus claim below. The focus arms the truncation reveal, and the reveal
+	// must not reparent the editor that the focus went to.
+	const markEditing = useGridCellEditing()
+
+	useLayoutEffect(() => {
+		if (!markEditing) return
+
+		markEditing(true)
+
+		return () => markEditing(false)
+	}, [markEditing])
 
 	// Focus into a held editor moves the session onto its cell, so the session
 	// keys and the settle controls act on the cell that has focus.
