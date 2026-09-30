@@ -2,7 +2,6 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
-import { drawerFloor } from '../../components/drawer/drawer-floor'
 import { settleResize, speedOf } from '../../hooks/use-panel-resize'
 import {
 	bySlot,
@@ -434,39 +433,6 @@ describe('Drawer drag handle', () => {
 		})
 	})
 
-	describe('drawerFloor', () => {
-		/** A panel of 500 px whose scrolling body takes 320 px of it. */
-		function makePanel(): HTMLElement {
-			const panel = document.createElement('div')
-
-			const body = document.createElement('div')
-
-			body.dataset.slot = 'drawer-body'
-
-			Object.defineProperty(body, 'getBoundingClientRect', {
-				value: () => DOMRect.fromRect({ height: 320 }),
-			})
-
-			panel.append(body)
-
-			return panel
-		}
-
-		it.each(['auto', 'fit', undefined] as const)(
-			'stops a %s panel at the height it rests at, which is its content',
-			(variant) => {
-				expect(drawerFloor(makePanel(), 500, 420, variant)).toBe(420)
-			},
-		)
-
-		it.each(['half', 'full'] as const)(
-			'lets a %s panel give its whole body, down to the chrome',
-			(variant) => {
-				expect(drawerFloor(makePanel(), 500, 420, variant)).toBe(180)
-			},
-		)
-	})
-
 	describe('speedOf', () => {
 		it('measures the last sample before the release, not the whole gesture', () => {
 			// A reader who drags slowly and then flicks means the flick; averaged over
@@ -520,6 +486,44 @@ describe('Drawer drag handle', () => {
 		expect(handle).toHaveAttribute('aria-valuenow')
 
 		expect(handle.tabIndex).toBe(0)
+	})
+
+	it('gives a drawer grown to its content a grip to pull, not a splitter', () => {
+		const { container } = renderUI(
+			<Drawer open handle onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		const handle = getSlot(container, 'drawer-handle')
+
+		// The grip sets no size here, so a splitter would name a control that does
+		// nothing. Escape and the backdrop close the panel for a keyboard reader.
+		expect(handle).not.toHaveAttribute('role')
+
+		expect(handle).not.toHaveAttribute('tabindex')
+
+		expect(handle).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('writes no height on a drawer grown to its content when its grip is pressed', () => {
+		const { container } = renderUI(
+			<Drawer open handle height="fit" onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		const handle = getSlot(container, 'drawer-handle')
+
+		fireEvent.pointerDown(handle, { pointerType: 'touch', clientY: 400 })
+
+		fireEvent.pointerMove(window, { pointerType: 'touch', clientY: 300 })
+
+		fireEvent.pointerUp(window, { pointerType: 'touch', clientY: 300 })
+
+		// A height written here would stop the panel from following its content for
+		// the rest of the open.
+		expect(getSlot(container, 'drawer').style.height).toBe('')
 	})
 
 	it('marks the bar as held while a pointer drags it, so the grab hand closes', () => {

@@ -33,8 +33,8 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
  * to them up to the stop of the drawer, where its body scrolls. A swipe down,
  * a press on the backdrop, `Escape`, or a selected row closes it.
  *
- * A drag on the handle does not make the sheet shorter than its rows. It pulls
- * the sheet down off the screen, and a release there closes it.
+ * The handle does not resize the sheet, because the rows set its height. A drag
+ * down on it pulls the sheet off the screen, and a release there closes it.
  *
  * @remarks
  * The sheet is a modal dialog, so focus goes into it and the rows rove by real

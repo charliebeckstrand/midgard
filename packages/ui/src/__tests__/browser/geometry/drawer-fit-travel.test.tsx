@@ -10,7 +10,9 @@ import {
 	screen,
 	waitFor,
 } from '../../helpers'
-import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { drag } from '../helpers/drag'
 
 /**
  * Real-browser probe of the `fit` drawer's height. Everything this variant does
@@ -80,7 +82,7 @@ describe('fit drawer height (real browser)', () => {
 		await waitFor(() => expect(panel.style.height).toBe(''))
 	})
 
-	it('leaves a dragged height alone when the content changes under it', async () => {
+	it('keeps following its content after a drag on the grip', async () => {
 		renderUI(<FitProbe short={120} tall={320} handle />)
 
 		const panel = getSlot(document.body, 'drawer')
@@ -91,34 +93,25 @@ describe('fit drawer height (real browser)', () => {
 
 		await frames()
 
-		// The keyboard half of the same gesture: one arrow commits a height the way
-		// a released drag does, without a synthetic pointer.
-		const covers = handle.getAttribute('aria-valuenow')
+		const short = panel.getBoundingClientRect().height
 
-		handle.focus()
+		// A drag up on the grip of a grown panel sets no height. A height set here
+		// would hold the panel at it, and the swap below would move nothing.
+		const { x, y } = centerOf(handle)
 
-		handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }))
+		const held = await drag(handle, { x, y }, [{ x, y: y - 40 }])
 
-		// Not `panel.style.height`. Three writers set that property, and the fit
-		// travel is one of them: it pins the panel at the height it is *leaving*, so
-		// a non-empty inline height reads the same whether the gesture put it there
-		// or a stray measurement did. It is also the wrong clock — measured, the
-		// gesture writes it in the same task as the dispatch, so the wait passed on
-		// its first poll and ordered nothing. `aria-valuenow` moves on the commit
-		// that takes the size into state, which is the commit that hands the panel
-		// to the gesture.
-		await waitFor(() => expect(handle.getAttribute('aria-valuenow')).not.toBe(covers))
+		await held.release()
 
-		const dragged = panel.getBoundingClientRect().height
+		expect(panel.getBoundingClientRect().height).toBeNear(short, HALF_PIXEL)
 
 		swap.click()
 
-		// A dragged height is the reader's answer to how much of the screen the
-		// panel gets, and content arriving under it does not overrule them — on no
-		// frame, not merely by the time the content has settled.
-		const samples = await sampleHeights(panel, 400)
+		await waitFor(() =>
+			expect(panel.getBoundingClientRect().height - short).toBeNear(200, HALF_PIXEL),
+		)
 
-		for (const height of samples) expect(height).toBeNear(dragged, PIXEL)
+		await waitFor(() => expect(panel.style.height).toBe(''))
 	})
 
 	it('stops at the screen and squares its corners when the content asks for more', async () => {

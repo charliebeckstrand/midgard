@@ -204,23 +204,21 @@ export type PanelResizeOptions = {
 	/** Throws the panel away, for a swipe or for a release past the floor. */
 	onDismiss: () => void
 	/**
-	 * The smallest this panel resizes to, given the panel, the size it measures
-	 * now, and the size it rests at. The rest is the size the panel measured
-	 * before the reader resized it for the first time since it opened.
+	 * The smallest this panel resizes to, given the panel and the size it measures
+	 * now.
 	 *
 	 * The caller's, because the floor is a fact about what the panel holds rather
-	 * than about the axis. A drawer with a fixed height measures its own chrome. A
-	 * panel that falls short of it takes the next pixel out of the footer. The
-	 * footer then slides off the screen with the buttons on it. A drawer grown to
-	 * its content stops at its rest. A sheet, whose body scrolls the other way,
-	 * wants a plain minimum instead.
+	 * than about the axis. A drawer measures its own chrome. A panel that falls
+	 * short of it takes the next pixel out of the footer. The footer then slides
+	 * off the screen with the buttons on it. A sheet, whose body scrolls the other
+	 * way, wants a plain minimum instead.
 	 *
 	 * Reaching the floor closes nothing. A reader dragging the edge is choosing a
 	 * size, and the smallest size is a size. Taking the panel away there would
 	 * surprise someone who was still placing it. A swipe is how it goes, and so
 	 * is a pull past the floor where `pull` is set.
 	 */
-	floorOf: (panel: HTMLElement, size: number, rest: number) => number
+	floorOf: (panel: HTMLElement, size: number) => number
 	/**
 	 * The largest this panel resizes to, given the panel and the screen along the
 	 * axis.
@@ -243,6 +241,18 @@ export type PanelResizeOptions = {
 	 * @defaultValue false
 	 */
 	pull?: boolean
+	/**
+	 * Whether the drag and the arrow keys resize the panel.
+	 *
+	 * `false` suits a panel whose content sets its size. There a smaller panel
+	 * hides content behind a scroll, and a larger one adds empty space. The drag
+	 * then writes no size, the arrow keys do nothing, and the panel keeps
+	 * following its content. With `pull`, a drag toward the docked edge still
+	 * pulls the panel off, from the size it has.
+	 *
+	 * @defaultValue true
+	 */
+	resize?: boolean
 }
 
 /**
@@ -280,6 +290,7 @@ export function usePanelResize({
 	floorOf,
 	ceilingOf,
 	pull = false,
+	resize: resizes = true,
 }: PanelResizeOptions): PanelResize {
 	const { axis, sign } = SIDES[side]
 
@@ -307,10 +318,6 @@ export function usePanelResize({
 	const last = useRef<ResizeSample | null>(null)
 
 	const stop = useRef<AbortController | null>(null)
-
-	// The size the panel rests at, for the floor. It is taken at the start of the
-	// first gesture since the panel opened, while no size is committed.
-	const rest = useRef(0)
 
 	const [size, setSize] = useState<number | null>(null)
 
@@ -413,13 +420,17 @@ export function usePanelResize({
 	function draw(at: Grab, coordinate: number): { size: number; pulled: number } {
 		const wanted = at.size + sign * (at.at - coordinate)
 
-		if (!pull) return { size: resize(at, wanted), pulled: 0 }
+		// A panel that does not resize keeps the size it has. Its floor and its
+		// ceiling are that size, so only a pull is left to draw.
+		const size = resizes ? resize(at, wanted) : at.size
+
+		if (!pull) return { size, pulled: 0 }
 
 		const pulled = Math.max(0, at.floor - wanted)
 
 		pullBy(pulled)
 
-		return { size: resize(at, wanted), pulled }
+		return { size, pulled }
 	}
 
 	/** Takes a settled size into state and reports the share it covers. */
@@ -471,7 +482,7 @@ export function usePanelResize({
 			// pull, and leaves from where the reader let it go. Any other swipe clears
 			// the size, so the panel leaves at the size its variant states rather than
 			// sliding out from whatever the swipe left it at.
-			if (panel !== null && drawn.pulled === 0) panel.style.removeProperty(axis)
+			if (panel !== null && resizes && drawn.pulled === 0) panel.style.removeProperty(axis)
 
 			onDismiss()
 
@@ -482,7 +493,7 @@ export function usePanelResize({
 		// most, so it goes back in one step.
 		if (drawn.pulled > 0) pullBy(0)
 
-		commit(settled, at.viewport)
+		if (resizes) commit(settled, at.viewport)
 	}
 
 	function onPointerDown(event: ReactPointerEvent<HTMLElement>) {
@@ -496,13 +507,11 @@ export function usePanelResize({
 
 		const viewport = viewportOf()
 
-		if (size === null) rest.current = measured
-
 		grab.current = {
 			at: coordinate,
 			size: measured,
-			floor: floorOf(panel, measured, rest.current),
-			ceiling: ceilingOf(panel, viewport),
+			floor: resizes ? floorOf(panel, measured) : measured,
+			ceiling: resizes ? ceilingOf(panel, viewport) : measured,
 			viewport,
 		}
 
@@ -521,7 +530,10 @@ export function usePanelResize({
 		//
 		// Stating it here puts the width and the cleared cap in the same render, so
 		// there is never a frame that has one without the other.
-		setSize(measured)
+		//
+		// A panel that does not resize takes no size. It keeps following its
+		// content, during the gesture and after it.
+		if (resizes) setSize(measured)
 
 		setResizing(true)
 
@@ -549,7 +561,7 @@ export function usePanelResize({
 	}
 
 	function onKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
-		if (event.key !== grow && event.key !== shrink) return
+		if (!resizes || (event.key !== grow && event.key !== shrink)) return
 
 		event.preventDefault()
 
@@ -562,12 +574,10 @@ export function usePanelResize({
 
 		const viewport = viewportOf()
 
-		if (size === null) rest.current = measured
-
 		const at: Grab = {
 			at: 0,
 			size: measured,
-			floor: floorOf(panel, measured, rest.current),
+			floor: floorOf(panel, measured),
 			ceiling: ceilingOf(panel, viewport),
 			viewport,
 		}

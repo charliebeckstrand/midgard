@@ -8,11 +8,11 @@ import { drag } from '../helpers/drag'
 /**
  * Real-browser check of the pull on a drawer grown to its content.
  *
- * The drawer does not shrink below the height it rests at, which is its
- * content. A drag past that floor moves the whole panel down with the pointer,
- * and a release there closes it. A menu that opens as a sheet is such a drawer.
- * jsdom lays nothing out, so only a real browser shows the height and the
- * position of the panel.
+ * The drawer does not resize, because its content sets its height. A drag up
+ * on the grip changes nothing. A drag down moves the whole panel with the
+ * pointer, and a release there closes it. A menu that opens as a sheet is such
+ * a drawer. jsdom lays nothing out, so only a real browser shows the height and
+ * the position of the panel.
  */
 
 /** How far the case pulls the grip, in pixels. */
@@ -65,6 +65,29 @@ describe('grown drawer pull (real browser)', () => {
 		await held.release()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('does not grow the panel on a drag up', async () => {
+		const { panel, handle } = renderGrown(() => {})
+
+		await frames()
+
+		const rest = panel.getBoundingClientRect()
+
+		const { x, y } = centerOf(handle)
+
+		const held = await drag(handle, { x, y }, [{ x, y: y - PULL }])
+
+		const dragged = panel.getBoundingClientRect()
+
+		// A taller panel only adds empty space under the content.
+		expect(dragged.height).toBeNear(rest.height, HALF_PIXEL)
+
+		expect(dragged.top).toBeNear(rest.top, HALF_PIXEL)
+
+		await held.release()
+
+		expect(panel.style.height).toBe('')
 	})
 
 	it('keeps the panel open on a release back at its floor', async () => {

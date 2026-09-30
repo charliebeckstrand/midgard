@@ -3,24 +3,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { type PanelSide, panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { makeKeyEvent, makePointerEvent } from '../helpers'
 
-/**
- * A panel that measures `height` px on each axis. jsdom lays nothing out.
- * `measure` sets the size that the next read gives.
- */
-function makePanel(height = 300): HTMLDivElement & { measure: (size: number) => void } {
+/** A panel that measures `height` px on each axis. jsdom lays nothing out. */
+function makePanel(height = 300): HTMLDivElement {
 	const panel = document.createElement('div')
 
-	let measured = height
-
 	Object.defineProperty(panel, 'getBoundingClientRect', {
-		value: () => DOMRect.fromRect({ width: measured, height: measured }),
+		value: () => DOMRect.fromRect({ width: height, height }),
 	})
 
-	return Object.assign(panel, {
-		measure: (size: number) => {
-			measured = size
-		},
-	})
+	return panel
 }
 
 /** A window pointer event at `y` px, stamped at `t` ms. The constructor takes no time stamp. */
@@ -32,19 +23,24 @@ function windowPointer(type: string, y: number, t: number): PointerEvent {
 	return event
 }
 
-/** What {@link renderResize} varies: the pull, and the floor. */
+/** What {@link renderResize} varies: the pull, the resize, and the floor. */
 type ResizeSetup = {
 	pull?: boolean
-	floorOf?: (panel: HTMLElement, size: number, rest: number) => number
+	resize?: boolean
+	floorOf?: (panel: HTMLElement, size: number) => number
 }
 
 /** Renders the gesture for `side`. By default, no floor and no ceiling are in reach. */
-function renderResize(side: PanelSide = 'bottom', { pull, floorOf: floor }: ResizeSetup = {}) {
+function renderResize(
+	side: PanelSide = 'bottom',
+	{ pull, resize, floorOf: floor }: ResizeSetup = {},
+) {
 	const onDismiss = vi.fn()
 	const floorOf = vi.fn(floor ?? (() => 0))
 
 	const hook = renderHook(
-		({ open }) => usePanelResize({ side, open, onDismiss, floorOf, ceilingOf: () => 10_000, pull }),
+		({ open }) =>
+			usePanelResize({ side, open, onDismiss, floorOf, ceilingOf: () => 10_000, pull, resize }),
 		{ initialProps: { open: true } },
 	)
 
@@ -167,44 +163,12 @@ describe('usePanelResize', () => {
 
 			expect(result.current.size).toBe(350)
 		})
-
-		it('gives the floor the size the panel rested at, after a committed resize too', () => {
-			const { result, floorOf, panel } = renderAttached()
-
-			const floorArgs = () => floorOf.mock.lastCall?.slice(1)
-
-			act(() => {
-				result.current.handleProps.onPointerDown(
-					makePointerEvent({ pointerType: 'touch', clientY: 400, timeStamp: 0 }),
-				)
-			})
-
-			expect(floorArgs()).toEqual([300, 300])
-
-			// A slow drag up commits a taller size.
-			act(() => {
-				window.dispatchEvent(windowPointer('pointermove', 300, 500))
-
-				window.dispatchEvent(windowPointer('pointerup', 300, 1000))
-			})
-
-			panel.measure(400)
-
-			act(() => {
-				result.current.handleProps.onPointerDown(
-					makePointerEvent({ pointerType: 'touch', clientY: 300, timeStamp: 2000 }),
-				)
-			})
-
-			// The panel measures its committed size now, and it still rests at the first.
-			expect(floorArgs()).toEqual([400, 300])
-		})
 	})
 
 	describe('pull', () => {
 		/** A panel of 300 px that stops at 300 px, so each drag toward its edge pulls it. */
-		function renderPulled(side: PanelSide = 'bottom', pull = true) {
-			return renderAttached(side, { pull, floorOf: (_panel, _size, rest) => rest })
+		function renderPulled(side: PanelSide = 'bottom', pull = true, resize = true) {
+			return renderAttached(side, { pull, resize, floorOf: (_panel, size) => size })
 		}
 
 		/** Presses the grip at 400 px, then moves slowly to `to` px. */
@@ -286,6 +250,69 @@ describe('usePanelResize', () => {
 			expect(onDismiss).not.toHaveBeenCalled()
 
 			expect(result.current.size).toBe(300)
+		})
+
+		describe('on a panel that does not resize', () => {
+			it('writes no size, and grows nothing on a drag away from its edge', () => {
+				const { result, panel } = renderPulled('bottom', true, false)
+
+				drag(result, 300)
+
+				expect(panel.style.height).toBe('')
+
+				expect(panel.style.translate).toBe('')
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 300, 1000))
+				})
+
+				// No size is committed, so the panel keeps following its content.
+				expect(result.current.size).toBeNull()
+			})
+
+			it('still pulls the panel off, and closes it on the release', () => {
+				const { result, onDismiss, panel } = renderPulled('bottom', true, false)
+
+				drag(result, 450)
+
+				expect(panel.style.height).toBe('')
+
+				expect(panel.style.translate).toBe('0 50px')
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+				})
+
+				expect(onDismiss).toHaveBeenCalledOnce()
+			})
+
+			it('keeps the panel open on a short pull, and commits no size', () => {
+				const { result, onDismiss, panel } = renderPulled('bottom', true, false)
+
+				drag(result, 405)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 405, 1000))
+				})
+
+				expect(onDismiss).not.toHaveBeenCalled()
+
+				expect(panel.style.translate).toBe('')
+
+				expect(result.current.size).toBeNull()
+			})
+
+			it('leaves the arrow keys to the page', () => {
+				const { result } = renderPulled('bottom', true, false)
+
+				const event = makeKeyEvent<HTMLElement>('ArrowUp')
+
+				act(() => result.current.handleProps.onKeyDown(event))
+
+				expect(event.preventDefault).not.toHaveBeenCalled()
+
+				expect(result.current.size).toBeNull()
+			})
 		})
 
 		it('clears a pull that closed the panel when it opens again', () => {
