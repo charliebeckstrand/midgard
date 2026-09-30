@@ -1,6 +1,6 @@
 'use client'
 
-import { Clipboard, Download, Image as ImageIcon, Maximize2 } from 'lucide-react'
+import { Clipboard, Download, Image as ImageIcon, Maximize2, Table2 } from 'lucide-react'
 import {
 	cloneElement,
 	isValidElement,
@@ -17,16 +17,19 @@ import {
 	ContextMenu,
 	type ContextMenuConfig,
 	type ContextMenuItem,
+	resolveContextMenuEntries,
 } from '../../../components/context-menu'
 import { Dialog, DialogClose, DialogFooter } from '../../../components/dialog'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { copyText, downloadBlob, downloadCsv } from '../../../utilities/export-output'
+import { ChartDataDialog } from './chart-data-dialog'
 import {
 	type ChartImageType,
 	chartFileName,
 	rasterizeChartImage,
 	readoutToCsv,
 } from './chart-export'
+import { ChartMenuEntriesContext } from './chart-menu-button'
 import { ChartFullscreenContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
 
@@ -143,6 +146,8 @@ export type ChartContextMenuProps = {
 	readout: ChartReadoutSource | null
 	/** The chart title, naming the fullscreen dialog and seeding export filenames. */
 	title?: string
+	/** The accessible name of the chart, which names the data dialog when the chart has no title. */
+	label?: string
 	/**
 	 * A fresh, re-mountable copy of the chart, rendered large in the fullscreen
 	 * dialog so hover and keyboard keep working. The chart re-measures at the
@@ -200,11 +205,15 @@ export function ChartContextMenu({
 	rootRef,
 	readout,
 	title,
+	label,
 	fullscreen,
 	targetIndex,
 	children,
 }: ChartContextMenuProps) {
 	const [open, setOpen] = useState(false)
+
+	// Whether the "View data" dialog is open.
+	const [dataOpen, setDataOpen] = useState(false)
 
 	// The re-mounted chart exposes a `tabIndex=0` plot region as the dialog's
 	// first tabbable child, and its keyboard handler `preventDefault`s Escape to
@@ -324,6 +333,12 @@ export function ChartContextMenu({
 			...(readout
 				? [
 						{
+							key: 'view-data',
+							label: 'View data',
+							icon: <Table2 />,
+							onAction: () => setDataOpen(true),
+						},
+						{
 							key: 'download-csv',
 							label: 'Download CSV',
 							icon: <Download />,
@@ -402,6 +417,17 @@ export function ChartContextMenu({
 		[fullscreen, open, handleFullscreenChange, title],
 	)
 
+	// The same entries the right-click menu shows, for the menu button that a
+	// touch screen shows in place of the right-click.
+	const defaultItems = config?.defaultItems
+
+	const insert = config?.insert
+
+	const entries = useMemo(
+		() => resolveContextMenuEntries({ items: customItems, defaultItems, insert }, defaults),
+		[customItems, defaultItems, insert, defaults],
+	)
+
 	if (contextMenu === false) return <>{children}</>
 
 	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
@@ -415,14 +441,23 @@ export function ChartContextMenu({
 			<ContextMenu
 				defaults={defaults}
 				items={customItems}
-				defaultItems={config?.defaultItems}
-				insert={config?.insert}
+				defaultItems={defaultItems}
+				insert={insert}
 				capped={config?.capped}
 			>
-				{children}
+				<ChartMenuEntriesContext value={entries}>{children}</ChartMenuEntriesContext>
 			</ContextMenu>
 
 			{dialog}
+
+			{readout && (
+				<ChartDataDialog
+					open={dataOpen}
+					onOpenChange={setDataOpen}
+					readout={readout}
+					title={title ?? label}
+				/>
+			)}
 		</>
 	)
 }

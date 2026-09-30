@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart, PieChart } from '../../modules/chart'
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
+import { createHeaderActionsHost, HeaderActionsContext } from '../../primitives/header-actions'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type Row = { quarter: string; revenue: number }
@@ -35,6 +36,7 @@ describe('Chart context menu', () => {
 			'Fullscreen',
 			'Download PNG',
 			'Download JPG',
+			'View data',
 			'Download CSV',
 			'Copy data',
 		]) {
@@ -410,5 +412,85 @@ describe('ChartContextMenu target', () => {
 		expect(items).toHaveBeenLastCalledWith({ index: null })
 
 		expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
+	})
+
+	it('shows the values in a table from View data', () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue by quarter" data={data} series={[...series]} />,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'View data' }))
+
+		const dialog = screen.getByRole('dialog')
+
+		expect(dialog).toHaveTextContent('Revenue by quarter')
+
+		const rows = dialog.querySelectorAll('tbody tr')
+
+		expect([...rows].map((row) => row.textContent)).toEqual(['Q110', 'Q220'])
+	})
+})
+
+describe('Chart menu button', () => {
+	it('sits at the end of the header of a titled chart', () => {
+		const { container } = renderUI(
+			<BarChart
+				title="Revenue"
+				aria-label="Revenue"
+				data={data}
+				series={[...series]}
+				width={400}
+			/>,
+		)
+
+		const button = getSlot(container, 'chart-menu-button')
+
+		expect(bySlot(container, 'chart-header')?.contains(button)).toBe(true)
+
+		fireEvent.click(button.querySelector('button') as Element)
+
+		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
+	})
+
+	it('goes to the header actions of the box around the chart', () => {
+		const host = document.createElement('div')
+
+		document.body.append(host)
+
+		const slot = createHeaderActionsHost()
+
+		slot.set(host)
+
+		const { container } = renderUI(
+			<HeaderActionsContext value={slot}>
+				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
+			</HeaderActionsContext>,
+		)
+
+		expect(bySlot(container, 'chart-menu-button')).toBeNull()
+
+		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
+
+		host.remove()
+	})
+
+	it('shows none on an untitled chart outside a box, or with the menu off', () => {
+		const untitled = renderUI(<BarChart aria-label="Revenue" data={data} series={[...series]} />)
+
+		expect(bySlot(untitled.container, 'chart-menu-button')).toBeNull()
+
+		const off = renderUI(
+			<BarChart
+				title="Revenue"
+				aria-label="Revenue"
+				data={data}
+				series={[...series]}
+				contextMenu={false}
+			/>,
+		)
+
+		expect(bySlot(off.container, 'chart-menu-button')).toBeNull()
 	})
 })

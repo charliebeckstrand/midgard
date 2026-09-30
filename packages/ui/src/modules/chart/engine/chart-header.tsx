@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
@@ -64,6 +65,8 @@ type ChartHeaderProps = {
 	 * reads as pure marks at rest.
 	 */
 	veil?: boolean
+	/** A control at the end of the inline header row, such as the touch menu button. The veil shows none. */
+	action?: ReactNode
 }
 
 /**
@@ -76,7 +79,7 @@ type ChartHeaderProps = {
  *
  * @internal
  */
-export function ChartHeader({ title, subtitle, veil = false }: ChartHeaderProps) {
+export function ChartHeader({ title, subtitle, veil = false, action }: ChartHeaderProps) {
 	if (!title && !subtitle) return null
 
 	const lines = (
@@ -89,8 +92,10 @@ export function ChartHeader({ title, subtitle, veil = false }: ChartHeaderProps)
 
 	if (!veil) {
 		return (
-			<div data-slot="chart-header" className="flex min-w-0 flex-col gap-0.5">
-				{lines}
+			<div data-slot="chart-header" className="flex min-w-0 items-start gap-2">
+				<div className="flex min-w-0 flex-1 flex-col gap-0.5">{lines}</div>
+
+				{action}
 			</div>
 		)
 	}

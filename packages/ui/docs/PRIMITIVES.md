@@ -41,6 +41,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `query` | Query context for type-ahead roots (Combobox, CommandPalette): shares live + deferred query text, and the deferred query alone for a consumer that filters items. | `QueryContext`, `useQuery`, `useQueryValue`, `QueryContextValue`, `DeferredQueryContext`, `useDeferredQuery` |
 | `active-indicator` | Motion shared-element marker that morphs between sibling nav/tab items via a scoped `layoutId`. | `ActiveIndicatorScope`, `useActiveIndicator`, `ActiveIndicator` |
 | `content-height` | Context of a box that can take the height of its content, such as a dashboard tile in the re-pack of a narrow board. A widget that scrolls in a box of fixed height can claim the height of its content, so the page has no scroll region inside a scroll region. `Grid` claims it for its default pages. | `ContentHeightContext`, `useContentHeightHost`, `ContentHeightHost` |
+| `header-actions` | Context of the element in the header row of a box, such as a dashboard tile, where a widget in the box can put its own controls with a portal. The control then sits next to the controls of the box and covers none of the widget. `Chart` puts its touch menu button there. | `HeaderActionsContext`, `useHeaderActionsHost`, `createHeaderActionsHost`, `HeaderActionsSlot`, `HeaderActionsHost` |
 | `toggle` | Layout primitives for toggle/switch fields: a group container and a single control-plus-label row, driven by the shared toggle recipe. | `ToggleGroup`, `ToggleField` |
 
 ## Motion & hit area

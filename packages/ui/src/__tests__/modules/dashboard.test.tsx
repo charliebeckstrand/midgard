@@ -28,6 +28,7 @@ import {
 } from '../../modules/dashboard'
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import type { QueryGroup } from '../../modules/query/engine/types'
+import { useHeaderActionsHost } from '../../primitives/header-actions'
 import { k } from '../../recipes/kata/dashboard'
 import {
 	allBySlot,
@@ -194,6 +195,41 @@ describe('Dashboard', () => {
 
 		// Each tile gets a grip; the tile with no header gets it on its corner.
 		expect(allBySlot(container, 'dashboard-handle')).toHaveLength(3)
+	})
+
+	it('gives the widget a slot in the header row at rest, and none in edit mode', () => {
+		function Widget({ name }: { name: string }) {
+			const host = useHeaderActionsHost()
+
+			return host && createPortal(<button type="button">{name} menu</button>, host)
+		}
+
+		const board = (editing: boolean) => (
+			<Dashboard aria-label="Sales" editing={editing} layout={{ defaultValue: LAYOUT }}>
+				<DashboardTile id="a" title="Revenue" ratio={16 / 9}>
+					<Widget name="Revenue" />
+				</DashboardTile>
+
+				<DashboardTile id="c">
+					<Widget name="Untitled" />
+				</DashboardTile>
+			</Dashboard>
+		)
+
+		const { container, rerender } = renderUI(board(false))
+
+		const [header] = allBySlot(container, 'card-header')
+
+		expect(
+			within(header as HTMLElement).getByRole('button', { name: 'Revenue menu' }),
+		).toBeInTheDocument()
+
+		// A tile with no header row has no slot.
+		expect(screen.queryByRole('button', { name: 'Untitled menu' })).toBeNull()
+
+		rerender(board(true))
+
+		expect(screen.queryByRole('button', { name: 'Revenue menu' })).toBeNull()
 	})
 
 	it('gives each edge a keyboard splitter, and no south edge to a ratio tile', () => {
