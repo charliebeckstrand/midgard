@@ -52,9 +52,11 @@ export function GridDataDialogs({
 				</GridDirectionContext>
 			)}
 
-			<GridRowManagerRegionDialog region={rowManager} />
+			<GridDirectionContext value={direction}>
+				<GridRowManagerRegionDialog region={rowManager} dir={direction} />
+			</GridDirectionContext>
 
-			{widthConfirm && <GridAutoSizeConfirmDialog {...widthConfirm} />}
+			{widthConfirm && <GridAutoSizeConfirmDialog {...widthConfirm} dir={direction} />}
 		</>
 	)
 }

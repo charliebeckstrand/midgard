@@ -60,7 +60,8 @@ export function resolveExportSurfaces<T>(
 
 /** Whether `type` names one of the shipped exporters (has a built-in and a default label). @internal */
 function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPORTERS {
-	return type in BUILTIN_EXPORTERS
+	// Own keys only: `constructor` or `toString` names no exporter.
+	return Object.hasOwn(BUILTIN_EXPORTERS, type)
 }
 
 /**
@@ -99,10 +100,12 @@ function buildAction<T>(
 			// preserving the click-time download; a promised one (an
 			// {@link GridDataProps.exportRows} server round-trip) defers it until
 			// the rows land, surfacing a failed fetch as a dev-only warning rather
-			// than an unhandled rejection. The chain is returned so a caller can
-			// track the in-flight export (see {@link GridExportAction.run}).
+			// than an unhandled rejection. Only the fetch is caught: a throw from
+			// the exporter rejects the chain, as a sync exporter throws. The chain
+			// is returned so a caller can track the in-flight export (see
+			// {@link GridExportAction.run}).
 			if (context instanceof Promise) {
-				return context.then(exporter).catch((error) => {
+				return context.then(exporter, (error: unknown) => {
 					if (process.env.NODE_ENV !== 'production') {
 						console.error(`Grid: export type "${type}" failed to resolve its rows.`, error)
 					}
@@ -225,7 +228,24 @@ export function resolveExportActions<T>(
 		return context instanceof Promise ? context.then(withDataColumns) : withDataColumns(context)
 	}
 
-	return resolveEntries(exportable).flatMap((entry) => resolveEntry(entry, getDataContext))
+	const actions = resolveEntries(exportable).flatMap((entry) => resolveEntry(entry, getDataContext))
+
+	return oneForEachType(actions)
+}
+
+/**
+ * One action for each type, since a menu keys its items by type. A type that
+ * two entries name keeps the place of its first entry and the action of its
+ * last, so a later override applies.
+ *
+ * @internal
+ */
+function oneForEachType(actions: GridExportAction[]): GridExportAction[] {
+	const byType = new Map<GridExportType, GridExportAction>()
+
+	for (const action of actions) byType.set(action.type, action)
+
+	return byType.size === actions.length ? actions : [...byType.values()]
 }
 
 /** The context with its non-data columns dropped. @internal */

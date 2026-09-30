@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { renderUI, screen, withFakeTime } from '../helpers'
+import { fireEvent, present, renderUI, screen, withFakeTime } from '../helpers'
 
 describe('Grid search', () => {
 	type Row = { id: number; name: string; role: string }
@@ -203,6 +203,20 @@ describe('Grid search', () => {
 
 			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
 		})
+	})
+
+	it('submits no form around the grid on Enter in the search', async () => {
+		const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		renderUI(
+			<form onSubmit={onSubmit}>
+				<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />
+			</form>,
+		)
+
+		fireEvent.submit(present(screen.getByRole('searchbox').closest('form'), 'the search form'))
+
+		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
 	describe("highlight mode (mode: 'highlight')", () => {

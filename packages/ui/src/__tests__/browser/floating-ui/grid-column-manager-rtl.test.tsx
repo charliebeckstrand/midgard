@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { present, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * The column manager of a right-to-left grid, against the real floating
@@ -60,5 +60,51 @@ describe('grid column manager in a right-to-left grid (real browser)', () => {
 					.style.insetInlineStart,
 			).toBe('0px'),
 		)
+	})
+
+	it('lays out the row manager right to left', async () => {
+		renderUI(
+			<div dir="rtl" style={{ width: 500 }}>
+				<Grid columns={columns} rows={rows} getKey={(row) => row.id} groupBy={{ value: 'role' }} />
+			</div>,
+		)
+
+		await userEvent.click(screen.getByText('Admin (1)'), { button: 'right' })
+
+		await userEvent.click(screen.getByRole('menuitem', { name: 'Manage rows' }))
+
+		const dialog = await screen.findByRole('dialog')
+
+		const color = present(
+			dialog.querySelector<HTMLElement>('button[aria-label="Color for Admin"]'),
+			'the Admin color control',
+		)
+
+		expect(getComputedStyle(color).direction).toBe('rtl')
+	})
+
+	it('lays out the width confirm right to left', async () => {
+		renderUI(
+			<div dir="rtl" style={{ width: 500 }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					preferences={{ columnSizing: { name: 240 } }}
+				/>
+			</div>,
+		)
+
+		// Events, not the pointer: a pointer path across the menu passes over the
+		// Export parent, whose submenu can take the click. The layout is the subject.
+		fireEvent.contextMenu(screen.getByRole('columnheader', { name: /Name/ }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size' }))
+
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Auto-size all columns' }))
+
+		const keep = await screen.findByRole('button', { name: 'Keep my widths' })
+
+		expect(getComputedStyle(keep).direction).toBe('rtl')
 	})
 })

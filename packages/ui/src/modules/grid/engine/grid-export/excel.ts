@@ -30,7 +30,70 @@ function sheetCell(reference: string, value: unknown): string {
 
 	if (text === '') return `<c r="${reference}"/>`
 
-	return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(text)}</t></is></c>`
+	return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeSheetText(text)}</t></is></c>`
+}
+
+/** Text that reads as an OOXML escape, such as `_x0041_`. */
+const OOXML_ESCAPE = /_x([0-9A-Fa-f]{4})_/g
+
+/**
+ * Escapes cell text for a worksheet. A code point that XML forbids (see
+ * `isForbidden`) makes the sheet invalid XML, so it becomes the OOXML escape
+ * `_xHHHH_`, which Excel reads back as the character. Text that already reads
+ * as such an escape keeps its underscore as `_x005F_`, so Excel does not
+ * decode it.
+ *
+ * @internal
+ */
+export function escapeSheetText(text: string): string {
+	return escapeXml(encodeForbidden(text.replace(OOXML_ESCAPE, '_x005F_x$1_')))
+}
+
+function isHighSurrogate(code: number): boolean {
+	return code >= 0xd800 && code <= 0xdbff
+}
+
+function isLowSurrogate(code: number): boolean {
+	return code >= 0xdc00 && code <= 0xdfff
+}
+
+/**
+ * Whether the code unit at `index` is one that XML 1.0 forbids in text: a C0
+ * control other than tab, line feed, and carriage return, a lone surrogate, or
+ * U+FFFE or U+FFFF.
+ */
+function isForbidden(text: string, index: number): boolean {
+	const code = text.charCodeAt(index)
+
+	if (code < 0x20) return code !== 0x09 && code !== 0x0a && code !== 0x0d
+
+	if (code === 0xfffe || code === 0xffff) return true
+
+	// A high surrogate needs a low one after it, and a low one a high one before.
+	if (isHighSurrogate(code)) return !isLowSurrogate(text.charCodeAt(index + 1))
+
+	if (isLowSurrogate(code)) return !isHighSurrogate(text.charCodeAt(index - 1))
+
+	return false
+}
+
+/** `text` with each forbidden code unit (see {@link isForbidden}) as `_xHHHH_`. */
+function encodeForbidden(text: string): string {
+	let out = ''
+
+	let from = 0
+
+	for (let index = 0; index < text.length; index++) {
+		if (!isForbidden(text, index)) continue
+
+		const hex = text.charCodeAt(index).toString(16).toUpperCase().padStart(4, '0')
+
+		out += `${text.slice(from, index)}_x${hex}_`
+
+		from = index + 1
+	}
+
+	return from === 0 ? text : out + text.slice(from)
 }
 
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'

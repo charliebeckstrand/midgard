@@ -80,6 +80,38 @@ describe('rowsToXlsx', () => {
 		expect(sheet).toContain('<t xml:space="preserve">Bob &amp; Co</t>')
 	})
 
+	it('encodes the characters that XML forbids, so the sheet stays valid XML', () => {
+		type Item = { id: number; label: string }
+
+		const itemColumns: GridColumn<Item>[] = [
+			{ id: 'label', title: 'Label', cell: (row) => row.label, value: (row) => row.label },
+		]
+
+		const labels = ['a\u0001b', '_x0041_', 'lone \uD800 half', 'pair \u{1F600}', 'tab\tkept']
+
+		const sheet = sheetXml(
+			rowsToXlsx(
+				itemColumns,
+				labels.map((label, id) => ({ id, label })),
+			),
+		)
+
+		const parsed = new DOMParser().parseFromString(sheet, 'application/xml')
+
+		expect(parsed.getElementsByTagName('parsererror')).toHaveLength(0)
+
+		expect(sheet).toContain('<t xml:space="preserve">a_x0001_b</t>')
+
+		// Text that reads as an escape keeps its underscore, so Excel shows it as typed.
+		expect(sheet).toContain('<t xml:space="preserve">_x005F_x0041_</t>')
+
+		expect(sheet).toContain('<t xml:space="preserve">lone _xD800_ half</t>')
+
+		expect(sheet).toContain('<t xml:space="preserve">pair \u{1F600}</t>')
+
+		expect(sheet).toContain('<t xml:space="preserve">tab\tkept</t>')
+	})
+
 	it('serializes finite numbers as native numeric cells', () => {
 		type Item = { id: number; count: number }
 

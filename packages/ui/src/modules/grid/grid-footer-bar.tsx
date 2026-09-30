@@ -56,8 +56,11 @@ function selectedLabel({ rows, selected }: GridFooterStats): string {
  * pushed to the trailing edge. Renders nothing when no setting yields output.
  * An enabled `footer` carrying `selectedTotal` alone stays invisible until a
  * row is selected, and a `rowTotal` alone until there is a row to count. The
- * count is a polite live region so a filter or selection change is announced
- * without moving focus (WCAG 4.1.3).
+ * count is announced through a polite live region, so a filter or selection
+ * change is announced without moving focus (WCAG 4.1.3). The region stays
+ * mounted while a count is configured and swaps its text, because a screen
+ * reader often skips a region that mounts together with its text. The visible
+ * count is hidden from assistive tech, which reads the region.
  *
  * @internal
  */
@@ -74,17 +77,27 @@ export function GridFooterBar({ config, stats }: GridFooterProps) {
 
 	const content = config.content?.(stats)
 
-	if (status == null && content == null) return null
+	const counted = config.selectedTotal === true || showRowTotal
 
 	return (
-		<div data-slot="grid-footer" className={cn(k.summary.bar)}>
-			{status != null && (
-				<p role="status" className={cn(k.summary.item)}>
-					{status}
+		<>
+			{counted && (
+				<p role="status" data-slot="grid-footer-status" className="sr-only">
+					{status ?? ''}
 				</p>
 			)}
 
-			{content != null && <div className={cn(k.summary.trailing)}>{content}</div>}
-		</div>
+			{(status != null || content != null) && (
+				<div data-slot="grid-footer" className={cn(k.summary.bar)}>
+					{status != null && (
+						<p aria-hidden="true" className={cn(k.summary.item)}>
+							{status}
+						</p>
+					)}
+
+					{content != null && <div className={cn(k.summary.trailing)}>{content}</div>}
+				</div>
+			)}
+		</>
 	)
 }

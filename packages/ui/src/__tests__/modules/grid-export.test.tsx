@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
 import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
+import { resolveExportActions } from '../../modules/grid/engine/grid-export/resolve'
 import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
 import { downloadCsv } from '../../utilities/export-output'
 import { deferred, fireEvent, renderUI, screen, tick, waitFor, within } from '../helpers'
@@ -94,6 +95,60 @@ describe('rowsToCsv', () => {
 		]
 
 		expect(rowsToCsv(columns, [])).toBe('Name')
+	})
+})
+
+describe('resolveExportActions', () => {
+	type Item = { id: number }
+
+	const context = { columns: [], rows: [] as Item[] }
+
+	it('gives one action for each type, the last entry winning at the place of the first', () => {
+		const onExport = vi.fn()
+
+		const actions = resolveExportActions<Item>(
+			['csv', 'print', { csv: { onExport } }],
+			() => context,
+		)
+
+		expect(actions.map((action) => action.type)).toEqual(['csv', 'print'])
+
+		actions[0]?.run()
+
+		expect(onExport).toHaveBeenCalledTimes(1)
+	})
+
+	it('names no built-in exporter for a key of every object', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		expect(resolveExportActions<Item>(['constructor' as 'csv'], () => context)).toEqual([])
+
+		warn.mockRestore()
+	})
+
+	it('rejects an async export whose exporter throws, and logs no fetch failure', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const boom = new Error('exporter broke')
+
+		const [action] = resolveExportActions<Item>(
+			[
+				{
+					csv: {
+						onExport: () => {
+							throw boom
+						},
+					},
+				},
+			],
+			() => Promise.resolve(context),
+		)
+
+		await expect(action?.run()).rejects.toBe(boom)
+
+		expect(error).not.toHaveBeenCalled()
+
+		error.mockRestore()
 	})
 })
 

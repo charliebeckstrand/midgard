@@ -209,11 +209,6 @@ export function GridContextMenu<T>({
 		[columns],
 	)
 
-	const rowByKey = useMemo(
-		() => new Map(rowKeys.map((key, index) => [String(key), rows[index]] as const)),
-		[rowKeys, rows],
-	)
-
 	const resolveColumnItems = useCallback(
 		(columnId: string, rtl: boolean): GridMenuItem[] | null => {
 			if (!columnMenu) return null
@@ -297,7 +292,9 @@ export function GridContextMenu<T>({
 
 			const column = columnById.get(columnId)
 
-			const row = rowByKey.get(rowKey)
+			// Found at the right-click, not kept in a map: a sort, a filter, or a
+			// save changes the rows far more often than a cell menu opens.
+			const row = rows[rowKeys.findIndex((key) => String(key) === rowKey)]
 
 			if (!column || row === undefined) return null
 
@@ -321,7 +318,7 @@ export function GridContextMenu<T>({
 
 			return cellMenu(context, defaults)
 		},
-		[cellMenu, columnById, rowByKey, exportActions, fill],
+		[cellMenu, columnById, rows, rowKeys, exportActions, fill],
 	)
 
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu
