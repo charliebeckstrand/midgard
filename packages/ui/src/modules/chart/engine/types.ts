@@ -218,6 +218,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * alone — no container-height measurement — either way. Cartesian charts default to
 	 * `'16/9'`; pie and donut default to a square, fitting height to their own
 	 * content when callout labels are on.
+	 *
+	 * With `false` and no `height`, the chart fills the height of its container.
+	 * It then clips at the edges of that box. A touch target that reaches past a
+	 * legend control thus adds no scroll range to a box that scrolls, such as the
+	 * content box of a dashboard tile.
 	 */
 	aspectRatio?: ChartAspectRatio
 	/**
