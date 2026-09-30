@@ -15,6 +15,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import { useLocale } from '../../providers/locale'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { type ColumnTests, filterRowIndices, type RowTest } from './engine/grid-filter/filter'
@@ -87,6 +88,9 @@ export function useGridClientView<T>(args: {
 }): ClientView<T> | null {
 	const { rows, sort, clientSort, filtered, page, query, columnTests, columns, grandTotal } = args
 
+	// The string sort collates in the locale of the nearest `LocaleProvider`.
+	const { locale } = useLocale()
+
 	// The sort columns as fields, or `null` unless the grid sorts on the client
 	// and the sort has entries.
 	const fields = useMemo<SmartSortField<T>[] | null>(() => {
@@ -155,17 +159,17 @@ export function useGridClientView<T>(args: {
 		// search, so a search filters it and sorts nothing. A custom `sortFn` can
 		// break that rule, so its fields sort the kept rows.
 		if (!kept || fields.every((field) => field.sortFn === null)) {
-			const full = cachedSortOrder(rows, columns, sig, fields, mirror)
+			const full = cachedSortOrder(rows, columns, sig, fields, mirror, locale)
 
 			return kept ? keepInOrder(full, kept, rows.length) : full
 		}
 
-		const local = cachedSortOrder(rowsAt(rows, kept), columns, sig, fields)
+		const local = cachedSortOrder(rowsAt(rows, kept), columns, sig, fields, undefined, locale)
 
 		// A sort of the kept rows gives positions among them. Each maps back to
 		// the original index of its row.
 		return local.map((position) => kept[position] as number)
-	}, [fields, kept, rows, sort, columns])
+	}, [fields, kept, rows, sort, columns, locale])
 
 	const pageIndex = page?.pageIndex
 

@@ -37,7 +37,6 @@ function renderTable(props: {
 				globalFilter: { value: '' },
 				columnFilters: { value: props.filters ?? [] },
 				sort,
-				setSort: () => {},
 				grouping: props.grouping ?? null,
 			}),
 		{ initialProps: { sort: props.sort ?? [] } },
@@ -87,7 +86,6 @@ describe('Grid client view cost', () => {
 				globalFilter: { value: 'Name 1', manual: true },
 				columnFilters: { value: [] },
 				sort: [],
-				setSort: () => {},
 			}),
 		)
 
@@ -112,7 +110,6 @@ describe('Grid client view cost', () => {
 					globalFilter: { value: '' },
 					columnFilters: { value: [] },
 					sort,
-					setSort: () => {},
 					grouping: 'role',
 				}),
 			{ initialProps: { sort: [{ column: 'name', direction: 'asc' }] as GridSortState[] } },

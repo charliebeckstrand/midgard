@@ -84,7 +84,6 @@ function gridView(rows: Row[], transforms: EngineTransforms, selection: Set<stri
 			globalFilter: { value: transforms.query ?? '' },
 			columnFilters: { value: transforms.filters ?? [] },
 			sort: transforms.sort ?? [],
-			setSort: () => {},
 			grouping: 'team',
 			grandTotal: true,
 		}),
