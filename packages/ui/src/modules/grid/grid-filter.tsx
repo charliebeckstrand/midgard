@@ -13,12 +13,12 @@ type GridFilterProps = {
 
 /**
  * Quick-search field for a filterable {@link Grid}: a {@link SearchInput} that
- * drives the engine's global filter through {@link GridGlobalFilterView}.
+ * writes the global filter state through {@link GridGlobalFilterView}.
  *
  * @remarks
  * The typed text is held locally, so the field echoes every keystroke
- * immediately. The engine's global filter is a client re-filter that is
- * O(rows × columns) on the default client path. It is debounced by
+ * immediately. On the default client path, the grid then filters its rows
+ * again, which is O(rows × columns). It is debounced by
  * {@link GRID_SEARCH_DEBOUNCE_MS} and then pushed inside {@link startTransition}.
  * A fast typist therefore settles into a single filter pass that React keeps off
  * the critical path. Clearing bypasses the debounce and applies at once, recovering

@@ -3,6 +3,7 @@
 import { type RefObject, useCallback, useMemo } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { describeColumnVisibility, describePin } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
@@ -91,7 +92,8 @@ export function useGridDataColumns<T>({
 	const columnSizingConfig = seedColumnSizing(columnSizingConfigProp, preferences)
 
 	// `columnManager={false}` is the feature's off switch: the seed flattens it to
-	// no bindings at all, and the menu actions read the switch off the raw prop.
+	// `undefined`, and the menu actions read the switch off the raw prop. A
+	// `preferences.hidden` still seeds the hidden set (see `seedColumnManager`).
 	const columnManagerConfig = seedColumnManager(columnManagerConfigProp, preferences)
 
 	const {
@@ -197,10 +199,7 @@ export function useGridDataColumns<T>({
 
 			// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
 			// The words name the physical edge, so they read the grid's direction.
-			const rtl =
-				wrapperRef.current !== null && getComputedStyle(wrapperRef.current).direction === 'rtl'
-
-			announce(describePin(labelOfColumn(id), side, rtl))
+			announce(describePin(labelOfColumn(id), side, isRtl(wrapperRef.current)))
 		},
 		[setPinningState, labelOfColumn, wrapperRef, isLockedColumn],
 	)

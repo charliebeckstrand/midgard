@@ -3,11 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
 import type { GridSortState } from './context'
-import { nextSort, sortsEqual } from './engine/grid-sort/state'
+import { EMPTY_SORT, nextSort, sortsEqual } from './engine/grid-sort/state'
 import type { GridSort } from './grid-data-types'
-
-/** Stable empty sort default; the unsorted state, read-only and replaced wholesale. @internal */
-const EMPTY_SORT: GridSortState[] = []
 
 /**
  * Owns the grid's controllable sort. The resolved list is ordered and never

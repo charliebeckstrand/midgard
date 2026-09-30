@@ -7,8 +7,7 @@ import {
 	type GridGroupedWindowItem,
 	groupedWindowItems,
 	groupKeyOf,
-	leafItemKey,
-	totalItemKey,
+	groupRowKeys,
 } from './engine/grid-items/items'
 import { type GridWindowRowProps, itemAriaRowIndex } from './engine/grid-row/shell'
 import { groupedCursorRows, useGridCursorOrder } from './grid-cursor-order'
@@ -35,15 +34,6 @@ import {
 /** The expansion of the groups at one render: the group ids and whether each is open. @internal */
 type GroupExpansion = { ids: string[]; open: boolean[] }
 
-/** The open keys of a group's rows, in display order: its leaves, then its total. @internal */
-function rowKeysOf<T>(group: GridGroup<T>, totaled: boolean): string[] {
-	const keys = group.leaves.map((leaf) => leafItemKey(leaf.id))
-
-	if (totaled) keys.push(totalItemKey(group.id))
-
-	return keys
-}
-
 /**
  * Adds one group's toggle to `change`. An expand opens the group's rows, and
  * the rows that fit in one viewport enter. A collapse keeps each row in view
@@ -59,7 +49,7 @@ function groupToggle<T>(
 ): void {
 	const { view } = context
 
-	const keys = rowKeysOf(group, context.totaled)
+	const keys = groupRowKeys(group, context.totaled)
 
 	if (open) {
 		change.opened.push(...keys)

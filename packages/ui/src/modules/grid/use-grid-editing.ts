@@ -664,6 +664,8 @@ function flushClosedCells<T>(args: {
 	)
 
 	for (const [rowKey, rowDrafts] of closed) {
+		// The take above keeps the new-row slot, so this never matches. It narrows
+		// the key to a data row key.
 		if (rowKey === NEW_ROW_KEY) continue
 
 		const { row, changes, refused } = flushRow(rowKey, rowDrafts, args.source)
@@ -992,6 +994,8 @@ function dropStrandedHolds<T>(args: {
 	const closed = (rowKey: string | number) =>
 		before.has(rowKey) && !after.has(rowKey) && !gridClosed.has(rowKey)
 
+	// A draft of the new-row slot is never reopened, so the slot test never
+	// fails. It narrows the key to a data row key for the two sets.
 	const dropped = args.drafts.drop(
 		(rowKey, _, draft) =>
 			draft.reopened && rowKey !== NEW_ROW_KEY && (closed(rowKey) || gone(rowKey)),
@@ -1538,7 +1542,8 @@ function useActiveCell<T>({
  * Owns per-row inline editing: the editable rows (a controllable `Set<key>`,
  * consumer-driven by default) and the staged drafts of cells in those rows. A
  * row in the set renders all its editable cells as editors at once; each edit
- * stages into a grid-held ref (no per-keystroke grid render). A row leaves the
+ * stages into the {@link GridDraftStore} of the session (no per-keystroke grid
+ * render). A row leaves the
  * set on the consumer's save action, or on a grid-owned session exit under
  * `session: 'managed'` (Enter in an editor saves, Escape abandons). Its
  * drafts then flush as a single {@link GridCellChange} batch through `onCommit`,
@@ -2600,6 +2605,8 @@ export function useGridEditing<T>({
 
 		if (declined.size === 0) return
 
+		// An add settles the new-row slot, and never a batch, so the slot test never
+		// fails. It narrows the key to a data row key for `declined`.
 		const dropped = drafts.drop(
 			(rowKey, _, draft) =>
 				rowKey !== NEW_ROW_KEY && declined.has(rowKey) && draft.error !== undefined,

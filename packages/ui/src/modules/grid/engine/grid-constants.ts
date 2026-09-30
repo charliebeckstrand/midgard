@@ -15,6 +15,12 @@ export const FLOATING_PORTAL = '[data-floating-ui-portal]'
  */
 export const GRID_ROLE = '[role="grid"], [role="treegrid"]'
 
+/**
+ * A stable empty row set. An inactive total, and an aggregate cell with no
+ * rows, hold its identity. @internal
+ */
+export const NO_ROWS: never[] = []
+
 /** Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it. @internal */
 export const EMPTY_SET: Set<string | number> = new Set()
 

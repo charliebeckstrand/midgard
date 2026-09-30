@@ -129,9 +129,9 @@ const BOOLEAN_OPTIONS = [
  * The grid table's key surface leaves Enter on a button to that button, so the
  * trigger keeps it. A grid-owned session therefore saves from a sibling
  * text/number editor, or the consumer's save affordance. Under `scope: 'cell'`
- * there is no sibling, because the session mounts this editor alone. The cell's
- * own save control is then the keyboard commit this editor cannot otherwise
- * have (WCAG 2.1.1). Escape reaches this editor the way it reaches every other,
+ * there is no sibling, because the session mounts this editor alone. Tab is
+ * then the keyboard commit (WCAG 2.1.1). Tab past the last control of the
+ * cell commits the cell and moves the session to the next cell. Escape reaches this editor the way it reaches every other,
  * through the grid table's key surface. That surface defers to the listbox's
  * own panel while it is open.
  * @internal

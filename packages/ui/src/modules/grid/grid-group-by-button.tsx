@@ -7,23 +7,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { columnLabel } from './engine/grid-column/label'
+import type { GridGroupByContextValue } from './engine/grid-group/resolve'
 import type { GridColumn } from './types'
-
-/**
- * The group-by wiring {@link GridGroupByButton} reads: the active grouped
- * column id, the binding write-back, and the enabled gate. `null` (the default)
- * means the feature is off, so the button renders nothing.
- *
- * @internal
- */
-export type GridGroupByContextValue = {
-	/** The active grouped column id, or `null` when ungrouped. */
-	grouping: (string | number) | null
-	/** Writes the grouped column id (or `null` to ungroup) through the `groupBy` binding. */
-	setGrouping: (next: (string | number) | null) => void
-	/** Whether the header affordances are live — false on an empty/loading grid, like the other header chrome. */
-	enabled: boolean
-}
 
 /** Carries the group-by wiring from `GridData` to the header buttons. @internal */
 export const [GridGroupByContext, useGridGroupByButton] =

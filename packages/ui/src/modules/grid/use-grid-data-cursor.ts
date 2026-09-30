@@ -10,9 +10,9 @@ import {
 	composeCellDoubleClick,
 } from './engine/grid-row/bridges'
 import type { GridDataProps, GridEditSource, GridHandle } from './grid-data-types'
-import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import type { GridColumn } from './types'
 import { useGridCursor } from './use-grid-cursor'
+import type { GridScrollRowIntoView } from './use-grid-navigation'
 
 /**
  * The live index state of {@link GridData}, one ref for each value. The cursor

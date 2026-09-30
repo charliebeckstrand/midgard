@@ -1,5 +1,14 @@
+import type { ReactNode } from 'react'
 import type { GridInfiniteScroll, GridVirtualize } from '../../grid-data-types'
 import type { GridPagination } from '../../types'
+
+/**
+ * Whether an `error` slot shows. `true` shows the default alert, and `false`
+ * or a nullish value shows nothing. @internal
+ */
+export function hasErrorSlot(error: ReactNode): boolean {
+	return error != null && error !== false
+}
 
 /**
  * Validates the mutually-dependent grid props up front, throwing a pointed error

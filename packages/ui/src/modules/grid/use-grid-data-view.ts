@@ -5,6 +5,7 @@ import { useA11yAnnouncements } from '../../hooks'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { describeSelection, describeSort } from './engine/grid-announcements'
+import { hasErrorSlot } from './engine/grid-table/guards'
 import { resolveActionable } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
 import type { GridColumn } from './types'
@@ -138,7 +139,7 @@ export function useGridDataView<T>({
 	// state, since both replace the rows there's nothing to act on. `showingError`
 	// tracks the body's own error branch (see `GridBody`), which loading takes
 	// precedence over.
-	const showingError = !loading && error != null && error !== false
+	const showingError = !loading && hasErrorSlot(error)
 
 	// `hasRowsToActOn` is the plain row-presence fact; `hasData` also holds when a
 	// filter or search is what emptied the view, so the header stays live and the rule

@@ -1,13 +1,83 @@
+import type { ReactNode } from 'react'
 import { isDataColumn } from '../../../../utilities'
-import type { GridSortState } from '../../context'
 import type { GridGroupHeaderRow, GridVirtualize } from '../../grid-data-types'
-import type { GridGroupByContextValue } from '../../grid-group-by-button'
-import type { GridRowsProps } from '../../grid-row'
+import type { GridColumnGroup, GridGroupSpan } from '../../grid-group-types'
 import type { GridColumn, GridPagination } from '../../types'
-import type { GridExpansionResult } from '../../use-grid-expansion'
-import type { GridGroupHeader, GridGroupResult } from '../../use-grid-group'
-import type { GridColumnPinning } from '../../use-grid-table'
 import { isManualPagination } from '../grid-pagination-utilities'
+import type { GridSortState } from '../grid-sort/state'
+import type { GridColumnPinning } from '../grid-table/views'
+
+/** Resolved master-detail state for the flat body. @internal */
+export type GridExpansionResult<T> = {
+	/** Whether an expandable binding is active — the gate for the expander chevron and detail rows. */
+	active: boolean
+	/** The expanded row keys. */
+	expanded: Set<string | number>
+	/** Toggles a row key open or closed. */
+	toggle: (key: string | number) => void
+	/** The detail-panel renderer, or `null` when inactive. */
+	render: ((row: T) => ReactNode) | null
+	/** Whether a given row can expand at all. */
+	rowExpandable: (row: T) => boolean
+}
+
+/**
+ * The master-detail wiring of the flat rows: the expanded-key set, the per-row
+ * expandability predicate, the stable toggle, and the detail renderer. @internal
+ */
+export type GridDetailExpansion<T> = {
+	expanded: ReadonlySet<string | number>
+	rowExpandable: (row: T) => boolean
+	toggle: (key: string | number) => void
+	render: (row: T) => ReactNode
+}
+
+/** The group-header model {@link GridHead} renders from: the resolved spans and the collapse controls. @internal */
+export type GridGroupHeader = {
+	spans: GridGroupSpan[]
+	collapsed: ReadonlySet<string | number>
+	onToggleCollapse: (id: string | number) => void
+}
+
+/** The grid's group slice returned by {@link useGridGroup}. @internal */
+export type GridGroupResult = {
+	/** Whether the `groups` prop was supplied at all (even empty); gates the manager's group editor. */
+	enabled: boolean
+	/** Whether at least one group is configured; gates the header band row. */
+	hasGroups: boolean
+	/** Resolved groups (controllable), the source of truth the manager mutates. */
+	groups: GridColumnGroup[]
+	setGroups: (next: GridColumnGroup[]) => void
+	/** Groups for the manager's editor, or `undefined` when grouping is off — pre-gated so callers pass it straight through. */
+	editorGroups: GridColumnGroup[] | undefined
+	/** Commit sink for the manager's editor, paired with {@link GridGroupResult.editorGroups}. */
+	editorSetGroups: ((next: GridColumnGroup[]) => void) | undefined
+	collapsed: ReadonlySet<string | number>
+	toggleCollapse: (id: string | number) => void
+	/** Ids collapsed groups hide from the engine; union into `columnVisibility`. */
+	collapsedHidden: Set<string | number>
+	/** Resolves the band row for the current visible columns and their pin sides. */
+	resolveHeader: (
+		visibleColumnIds: (string | number)[],
+		pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+	) => GridGroupHeader
+}
+
+/**
+ * The group-by wiring {@link GridGroupByButton} reads: the active grouped
+ * column id, the binding write-back, and the enabled gate. `null` (the default)
+ * means the feature is off, so the button renders nothing.
+ *
+ * @internal
+ */
+export type GridGroupByContextValue = {
+	/** The active grouped column id, or `null` when ungrouped. */
+	grouping: (string | number) | null
+	/** Writes the grouped column id (or `null` to ungroup) through the `groupBy` binding. */
+	setGrouping: (next: (string | number) | null) => void
+	/** Whether the header affordances are live — false on an empty/loading grid, like the other header chrome. */
+	enabled: boolean
+}
 
 /** Whether `id` names a groupable column — a present data column, not one of the non-data columns (selection, actions, drag handle, expander). @internal */
 export function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): boolean {
@@ -214,7 +284,7 @@ export function resolveGroupingGates(args: {
 export function resolveDetailExpansion<T>(
 	expansion: GridExpansionResult<T>,
 	groupingActive: boolean,
-): { active: boolean; body: GridRowsProps<T>['expansion'] } {
+): { active: boolean; body: GridDetailExpansion<T> | null } {
 	const active = expansion.active && !groupingActive
 
 	if (!active || !expansion.render) return { active: false, body: null }

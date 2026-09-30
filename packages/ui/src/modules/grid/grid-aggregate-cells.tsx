@@ -6,10 +6,8 @@ import type { PaletteColor } from '../../core/recipe'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
 import { renderAggregate } from './engine/grid-aggregate'
+import { NO_ROWS } from './engine/grid-constants'
 import type { GridColumn } from './types'
-
-/** Stable empty row set for the manual (header-row) aggregate path. @internal */
-const NO_ROWS: never[] = []
 
 /** Props for {@link GridAggregateCells}. @internal */
 type GridAggregateCellsProps<T> = {

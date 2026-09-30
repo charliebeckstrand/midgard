@@ -37,23 +37,24 @@ import {
 import { pastePlacement } from './engine/grid-range/paste'
 import type { GridRangeCells } from './engine/grid-range/range'
 import { parseTsv, toTsv } from './engine/grid-range/tsv'
+import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
+import type { GridIndexRefs } from './use-grid-data-cursor'
 import { type GridPasteCell, useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import { useGridFillDrag } from './use-grid-fill-drag'
 import { useGridFillHandle } from './use-grid-fill-handle'
 import {
 	type Coord,
-	type GridCellActivate,
 	type GridNavStore,
 	type GridNavTableProps,
 	type GridNewRowPosition,
-	type GridRowActivate,
+	type GridScrollRowIntoView,
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
@@ -195,15 +196,7 @@ function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDire
  *
  * @internal
  */
-type GridCursorRefs<T> = {
-	rowsRef: RefObject<T[]>
-	colCountRef: RefObject<number>
-	rowIndexMapRef: RefObject<Map<T, number>>
-	colIndexMapRef: RefObject<Map<string | number, number>>
-	rowKeysRef: RefObject<(string | number)[]>
-	dataColumnsRef: RefObject<GridColumn<T>[]>
-	editSourceRef: RefObject<GridEditSource<T>>
-}
+type GridCursorRefs<T> = Omit<GridIndexRefs<T>, 'selectableRef' | 'toggleRowRef'>
 
 /**
  * The cursor + editing layer for {@link GridData}, gathering the keyboard cursor
@@ -254,7 +247,7 @@ export function useGridCursor<T>({
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
 	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
-	scrollRowIntoViewRef: RefObject<((rowIndex: number, key?: string) => void) | null>
+	scrollRowIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */
 	scrollContainerRef: RefObject<HTMLElement | null>
 	/** The grid `<table>`, the cursor's tab stop. The editing layer reseats focus on it. */

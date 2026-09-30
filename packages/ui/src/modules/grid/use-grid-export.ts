@@ -41,12 +41,12 @@ export type GridExportSurfaceActions = {
  * rather than the state at the last render that changed `exportable`, `columns`,
  * `rows`, or `exportRows`.
  *
- * Without `exportRows` the rows come from `rows`, which reads the engine when
- * the export runs (`GridTableResult.rowsForExport`). Those are the selected rows
- * when a selection is active, else the full filtered and sorted set. With
- * `exportRows` set, its return value wins outright. It is the escape hatch for
- * server pagination, where the engine only ever holds the current page. The
- * awaited list is exported whole, and any selection is ignored.
+ * Without `exportRows` the rows come from `rows`, which reads the view of the
+ * grid when the export runs (`GridTableResult.rowsForExport`). Those are the
+ * full filtered and sorted set, or only its selected rows when the selection
+ * holds a row of that set. With `exportRows` set, its return value wins
+ * outright. It is the escape hatch for server pagination, where the grid holds
+ * only the current page. The awaited list is exported whole, and any selection is ignored.
  *
  * @typeParam T - Shape of a single row.
  * @internal

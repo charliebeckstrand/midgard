@@ -20,6 +20,7 @@ import { List, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { SearchInput } from '../../components/search-input'
 import { cn, createContext } from '../../core'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
 import { useGridDirection } from './context'
@@ -57,7 +58,7 @@ function useManagerDirection(root: RefObject<HTMLElement | null>): boolean {
 	useLayoutEffect(() => {
 		if (grid !== null || !root.current) return
 
-		setOwn(getComputedStyle(root.current).direction === 'rtl')
+		setOwn(isRtl(root.current))
 	}, [grid, root])
 
 	return grid === null ? own : grid === 'rtl'
@@ -76,6 +77,7 @@ const NO_RESULTS = <output className={cn(k.empty)}>No results</output>
 
 /** Props for {@link GridColumnManager}. */
 export type GridColumnManagerProps = {
+	/** The columns that the manager lists, in declaration order. */
 	columns: GridColumnManagerItem[]
 
 	/**
@@ -97,8 +99,20 @@ export type GridColumnManagerProps = {
 	 */
 	filterPlaceholder?: string
 
+	/**
+	 * The controlled order of the columns, as a list of column ids. The ids of
+	 * columns that the list does not hold append at the end, in declaration
+	 * order.
+	 */
 	order?: (string | number)[]
+
+	/**
+	 * The initial order of the columns when `order` is not controlled.
+	 * @defaultValue The declaration order of `columns`.
+	 */
 	defaultOrder?: (string | number)[]
+
+	/** Called with the next order when the order changes. The order holds every column id. */
 	onOrderChange?: (order: (string | number)[]) => void
 
 	/**
@@ -111,8 +125,16 @@ export type GridColumnManagerProps = {
 	 */
 	reorderable?: boolean
 
+	/** The controlled set of the ids of the hidden columns. */
 	hidden?: Set<string | number>
+
+	/**
+	 * The initial set of hidden column ids when `hidden` is not controlled.
+	 * @defaultValue An empty set.
+	 */
 	defaultHidden?: Set<string | number>
+
+	/** Called with the next set of hidden column ids after a visibility toggle. */
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
 	/**

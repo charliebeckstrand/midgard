@@ -3,6 +3,7 @@
 import { type RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'
 import { GridContext, GridSettleContext } from './context'
@@ -25,12 +26,12 @@ import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { GridOverlayDensityContext, GridRegion } from './grid-region'
 import { useGridSort, useServerSortSettle } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
-import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import { useGridDataColumns } from './use-grid-data-columns'
 import { useGridDataCursor, useGridIndexRefs } from './use-grid-data-cursor'
 import { useGridDataFrame } from './use-grid-data-frame'
 import { useGridDataView } from './use-grid-data-view'
 import { useGridExport } from './use-grid-export'
+import type { GridScrollRowIntoView } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridRowHeight } from './use-grid-row-height'
 import { useGridRowManagerRegion } from './use-grid-row-manager'
@@ -300,17 +301,17 @@ export function GridData<T>({
 
 	const batchActions = selectionConfig?.batchActions
 
-	// Manual grouping marks the consumer's group-header rows for the engine's
-	// row-model split; `null` otherwise (see `manualGroupPredicate`).
+	// Manual grouping marks the consumer's group-header rows, so the grid splits
+	// the headers from the leaves; `null` otherwise (see `manualGroupPredicate`).
 	const manualGroupRow = useMemo(
 		() => manualGroupPredicate(manualGroupingActive, groupRow),
 		[manualGroupingActive, groupRow],
 	)
 
-	// Phase 3: TanStack Table is the data engine: rows flow through its row model,
-	// which also surfaces the pagination state and handlers the footer renders
-	// from. Without an active client transform the model is bypassed, and
-	// `renderRows` is the sorted view or `rows` itself.
+	// Phase 3: TanStack Table holds the column state and the state of the row
+	// transforms, and builds no row model. The grid filters, sorts, groups, and
+	// pages its rows itself. The result also carries the pagination view that the
+	// footer renders from. Without a client transform, `renderRows` is `rows`.
 	const {
 		visibleColumns,
 		renderRows,
@@ -343,14 +344,14 @@ export function GridData<T>({
 		sort,
 		setSort,
 		sortManual,
-		// Client grouping only — manual grouping keeps the engine ungrouped and
-		// renders the consumer's sequence instead.
+		// Client grouping only. Manual grouping groups no rows and renders the
+		// consumer's sequence instead.
 		grouping: groupingMode.engineGrouping,
 		expanded: groupExpanded,
 		onExpandedChange: setGroupExpanded,
 		manualGroupRow,
 		// Grouping renders its own body and stands pagination down (`gated.pagination`
-		// is `undefined` while grouping), so the engine doesn't page the groups.
+		// is `undefined` while grouping), so the grid does not page the groups.
 		pagination: gated.pagination,
 		resizable,
 		// `fit` sizes the columns to their content instead of to the container, for a
@@ -366,11 +367,11 @@ export function GridData<T>({
 		columnFilters: columnFiltersConfig,
 		containerRef: wrapperRef,
 		density: step,
-		// The engine builds its filtered model only for a grand total.
+		// The grid collects the filtered rows only for a grand total.
 		grandTotal: grandTotalRow,
 	})
 
-	// Phase 4: what the engine resolved, fed back to the cursor through its refs.
+	// Phase 4: what the table resolved, fed back to the cursor through its refs.
 	const {
 		roving,
 		rowIndexMap,
@@ -411,11 +412,10 @@ export function GridData<T>({
 
 	// Resolve the `exportable` prop into one action per configured export type,
 	// each reading the selected rows when a selection is active, else the full
-	// filtered + sorted set (all pages) — the engine mirrors the grid's
-	// selection `Set` into its own state, so the selected subset keeps the
-	// displayed order. Both are taken over the leaf set, since under grouping the
-	// sorted model carries group headers rather than data rows. An `exportRows`
-	// source overrides both, supplying the rows the engine can't hold under
+	// filtered + sorted set (all pages). The selected subset keeps the displayed
+	// order. A selection that holds no row of that set exports every row. Both are
+	// taken over the leaves, so a group header never exports. An `exportRows`
+	// source overrides both, supplying the rows that the grid does not hold under
 	// server pagination. Split by surface: the toolbar's "Export" dropdown and
 	// both context menus each take the set their own switch opens.
 	const exportActions = useGridExport<T>({
@@ -872,7 +872,7 @@ function useGridDialogDirection(
 
 		if (!open || !wrapper) return
 
-		setDirection(getComputedStyle(wrapper).direction === 'rtl' ? 'rtl' : 'ltr')
+		setDirection(isRtl(wrapper) ? 'rtl' : 'ltr')
 	}, [open, wrapperRef])
 
 	return direction

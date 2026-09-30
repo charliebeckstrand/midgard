@@ -11,9 +11,11 @@ import {
 } from 'react'
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
 import { copyText } from '../../utilities/export-output'
 import type { GridSortState } from './context'
+import { cellText } from './engine/grid-export/accessor'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
 	openKeyboardMenu,
@@ -300,7 +302,7 @@ export function GridContextMenu<T>({
 
 			const value = column.value ? column.value(row) : text
 
-			const copy = () => copyText(value == null ? '' : String(value))
+			const copy = () => copyText(cellText(value))
 
 			const defaults = cellMenuDefaults(copy, exportActions, fillItems(fill))
 
@@ -330,7 +332,7 @@ export function GridContextMenu<T>({
 		(target: HTMLElement): GridMenuItem[] | null => {
 			if (!enabled) return null
 
-			const rtl = getComputedStyle(target).direction === 'rtl'
+			const rtl = isRtl(target)
 
 			return resolveTarget(target, (id) => resolveColumnItems(id, rtl), resolveCellItems)
 		},

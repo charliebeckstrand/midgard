@@ -11,8 +11,8 @@ import {
 } from 'react'
 import { useVirtualWindow } from '../../hooks'
 import { windowItemEstimate } from './engine/grid-items/items'
-import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
+import type { GridScrollRowIntoView } from './use-grid-navigation'
 import { REVEAL_PROPERTY } from './use-grid-reveal-hold'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
 

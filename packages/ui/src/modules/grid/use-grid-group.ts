@@ -5,6 +5,7 @@ import { useControllable } from '../../hooks'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities'
 import { buildGroupSpans, collapsedHiddenIds, groupByColumn } from './engine/grid-group/compute'
+import type { GridGroupHeader, GridGroupResult } from './engine/grid-group/resolve'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
 
 /** Normalizes the {@link GridColumnGroups} prop (array shorthand or binding object) into `useControllable` inputs. @internal */
@@ -22,37 +23,6 @@ function resolveGroupsBinding(groups: GridColumnGroups | undefined): {
 		defaultValue: groups.defaultValue ?? [],
 		onValueChange: groups.onValueChange,
 	}
-}
-
-/** The group-header model {@link GridHead} renders from: the resolved spans and the collapse controls. @internal */
-export type GridGroupHeader = {
-	spans: GridGroupSpan[]
-	collapsed: ReadonlySet<string | number>
-	onToggleCollapse: (id: string | number) => void
-}
-
-/** The grid's group slice returned by {@link useGridGroup}. @internal */
-export type GridGroupResult = {
-	/** Whether the `groups` prop was supplied at all (even empty); gates the manager's group editor. */
-	enabled: boolean
-	/** Whether at least one group is configured; gates the header band row. */
-	hasGroups: boolean
-	/** Resolved groups (controllable), the source of truth the manager mutates. */
-	groups: GridColumnGroup[]
-	setGroups: (next: GridColumnGroup[]) => void
-	/** Groups for the manager's editor, or `undefined` when grouping is off — pre-gated so callers pass it straight through. */
-	editorGroups: GridColumnGroup[] | undefined
-	/** Commit sink for the manager's editor, paired with {@link GridGroupResult.editorGroups}. */
-	editorSetGroups: ((next: GridColumnGroup[]) => void) | undefined
-	collapsed: ReadonlySet<string | number>
-	toggleCollapse: (id: string | number) => void
-	/** Ids collapsed groups hide from the engine; union into `columnVisibility`. */
-	collapsedHidden: Set<string | number>
-	/** Resolves the band row for the current visible columns and their pin sides. */
-	resolveHeader: (
-		visibleColumnIds: (string | number)[],
-		pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
-	) => GridGroupHeader
 }
 
 /**

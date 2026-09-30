@@ -14,8 +14,8 @@ import type { GridColumn } from './types'
  * labels, the built-in exporters, and the async pending state therefore match
  * the grid's own Export items.
  *
- * @remarks `exportRows` is required. Without the grid's engine there is no
- * filtered/sorted row model (and no selection) to infer rows from, so the caller
+ * @remarks `exportRows` is required. Without the grid there is no filtered
+ * and sorted view (and no selection) to infer rows from, so the caller
  * supplies them. It is the same escape hatch a server-paginated grid uses.
  * Return an array for an in-memory list, or a promise for a round-trip. While
  * one is in flight `pending` is true, for a spinner on whatever control hosts
