@@ -681,32 +681,28 @@ export const k = {
 		// layout follows the width that the grid has (a dashboard tile, a
 		// dialog, a page), not the viewport.
 		root: ['@container', 'pt-2'],
-		// One row at all widths. Below `@2xl`: the page-size picker at the start,
-		// then the row-range status and the Previous/Next pair together at the
-		// end. From `@2xl`: three equal `flex-1` tracks, with the picker at the
-		// start, the numbered navigation centered, and the status at the end.
+		// One row of three equal `flex-1` tracks at all widths: the page-size
+		// picker at the start, the navigation centered, and the row-range status
+		// at the end.
 		bar: ['flex', 'items-center', 'gap-3'],
-		// Page-size picker: the flexible start track that pushes the status and
-		// the navigation to the end. It always renders, so the track holds when
-		// it is empty.
+		// Page-size picker: the start track. It renders even when it is empty,
+		// so the navigation stays centered.
 		controls: [flex.inline, 'flex-1', 'items-center', 'gap-4'],
-		// Page navigation: after the status below `@2xl`, the centered middle
-		// track from `@2xl`.
-		nav: ['flex', 'order-2', 'justify-center', '@2xl:flex-1'],
+		// Page navigation: the centered middle track.
+		nav: ['flex', 'flex-1', 'justify-center'],
 		// Numbered pages: only from `@2xl`. Below it, Previous/Next carry the
 		// navigation and the status names the position.
 		pages: ['hidden', '@2xl:flex'],
-		// Row-range status ("1–10 of 47"): before the navigation below `@2xl`,
-		// the end track from `@2xl` (aligned to the inline end).
-		status: [
-			size.md,
-			text.muted,
-			'order-1',
-			'whitespace-nowrap',
-			'@2xl:order-3',
-			'@2xl:flex-1',
-			'@2xl:text-end',
-		],
+		// Row-range status ("1–10 of 47"): the end track, aligned to the inline
+		// end.
+		status: [size.md, text.muted, 'flex-1', 'whitespace-nowrap', 'text-end'],
+		// A footer with no page-size picker, below `@2xl`: the empty start track
+		// goes, so Previous/Next sit at the start and the status at the end. From
+		// `@2xl` the numbered pages stay centered.
+		bare: {
+			controls: ['hidden', '@2xl:flex'],
+			nav: ['justify-start', '@2xl:justify-center'],
+		},
 	},
 	// Condensed down-projections layered on the compact density the grid forwards
 	// to `<Table>` when `condensed` is set. All cast from the `<table>` element

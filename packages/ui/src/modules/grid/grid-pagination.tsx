@@ -52,14 +52,13 @@ function pageStatus({
 
 /**
  * Footer for a paginated {@link Grid}, laid out as one row of three zones: an
- * optional page-size picker, the page navigation, and a row-range status. All
- * three are driven by the {@link GridPaginationView} the grid's TanStack Table
- * engine resolves. The footer width, not the viewport, sets the layout. From
- * `@2xl` the picker is at the start, the numbered navigation is centered, and
- * the status is at the end. Below it the numbered pages hide, and the status
- * and the Previous/Next pair sit together at the end. Numbered pages render
- * only when the total page count is known; an unbounded server feed falls back
- * to Previous/Next beside a "Page N" status.
+ * optional page-size picker at the start, the page navigation in the center,
+ * and a row-range status at the end. All three are driven by the
+ * {@link GridPaginationView} the grid's TanStack Table engine resolves. The
+ * footer width, not the viewport, sets the layout. Below `@2xl` the numbered
+ * pages hide, and a footer with no picker moves Previous/Next to the start.
+ * Numbered pages render only when the total page count is known; an unbounded
+ * server feed falls back to Previous/Next beside a "Page N" status.
  *
  * @internal
  */
@@ -153,7 +152,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	return (
 		<div data-slot="grid-pagination" className={cn(k.footer.root)}>
 			<div className={cn(k.footer.bar)}>
-				<div className={cn(k.footer.controls)}>
+				<div className={cn(k.footer.controls, !showPicker && k.footer.bare.controls)}>
 					{showPicker && (
 						<Select<number>
 							aria-label="Rows per page"
@@ -172,7 +171,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 				</div>
 
 				{showNav && (
-					<div ref={navRef} className={cn(k.footer.nav)}>
+					<div ref={navRef} className={cn(k.footer.nav, !showPicker && k.footer.bare.nav)}>
 						<Pagination>
 							<PaginationPrevious
 								onClick={() => goToPage((index) => index - 1)}
