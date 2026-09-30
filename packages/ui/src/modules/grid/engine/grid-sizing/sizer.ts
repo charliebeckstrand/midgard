@@ -2,7 +2,7 @@ import { clamp, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { DEFAULT_CONTENT_MAX, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isFrozen } from '../grid-pin/overrides'
-import { parsePxWidth } from '../grid-table/options'
+import { parsePxWidth } from '../grid-table/resize-view'
 import { allocateColumnWidths, type ColumnSizeProfile } from './allocate'
 import type { ColumnMeasurement } from './measure'
 

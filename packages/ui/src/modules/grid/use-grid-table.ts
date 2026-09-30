@@ -14,7 +14,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnPinningState,
 	type ColumnSizingState,
 	type ColumnVisibilityState,
 	type columnResizingState,
@@ -31,7 +30,6 @@ import {
 	type RefObject,
 	type SetStateAction,
 	useCallback,
-	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -43,40 +41,26 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
-import { columnAccessor } from './engine/grid-column/accessor'
-import { NO_ROWS } from './engine/grid-constants'
-import {
-	type ColumnTests,
-	compileColumnFilters,
-	filterRowIndices,
-	type RowTest,
-	uniqueValues,
-} from './engine/grid-filter/filter'
-import { groupMembers, orderGroups } from './engine/grid-group/client'
-import {
-	expandGroups,
-	type GridGroup,
-	type GridLeaf,
-	toggleGroupExpanded,
-	toRowLeaf,
-} from './engine/grid-group/tree'
-import {
-	isManualPagination,
-	pageBounds,
-	pageCountOf,
-	shownPageIndex,
-} from './engine/grid-pagination-utilities'
-import {
-	EMPTY_FROZEN_LAYOUT,
-	type FrozenLayout,
-	frozenLayout,
-	sameFrozenLayout,
-	sameFrozenStructure,
-} from './engine/grid-pin/layout'
-import { createFrozenOffsetStore, writeFrozenOffsets } from './engine/grid-pin/offsets'
-import { compileSearch } from './engine/grid-search/search'
+import { compileColumnFilters } from './engine/grid-filter/filter'
+import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
+import { isManualPagination } from './engine/grid-pagination-utilities'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
-import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
+import { grandTotalRowsOf, viewLeaves } from './engine/grid-table/client-view'
+import { sameElements } from './engine/grid-table/equality'
+import {
+	type EngineColumn,
+	type EngineData,
+	type EngineOptions,
+	type EngineTable,
+	type GridFeatures,
+	gridFeatures,
+} from './engine/grid-table/features'
+import {
+	buildColumnFilters,
+	columnFilterActions,
+	type GridColumnFilter,
+	type GridGlobalFilterView,
+} from './engine/grid-table/filter-view'
 import {
 	buildState,
 	clampSizingToFloors,
@@ -84,12 +68,22 @@ import {
 	groupingOptions,
 	paginationOptions,
 	resizeOptions,
-	resolveFilterMode,
 	sortOptions,
-	toColumnDef,
+	toColumnDefs,
+	toGridColumns,
 	toSortingState,
 	toSortState,
 } from './engine/grid-table/options'
+import { buildPaginationView, type GridPaginationView } from './engine/grid-table/pagination-view'
+import { type GridColumnPinning, toColumnPinningState } from './engine/grid-table/pinning-view'
+import {
+	buildColumnResize,
+	columnResizeActions,
+	columnWidths,
+	type GridColumnResize,
+	type GridColumnResizeActions,
+	resizingColumn,
+} from './engine/grid-table/resize-view'
 import {
 	DEFAULT_PAGINATION_STATE,
 	DEFAULT_SEARCH_PLACEHOLDER,
@@ -103,24 +97,6 @@ import {
 	resolveTransformModes,
 	rowsSignatureOf,
 } from './engine/grid-table/state'
-import {
-	buildColumnFilters,
-	buildColumnPinning,
-	buildColumnResize,
-	buildPaginationView,
-	columnFilterActions,
-	columnResizeActions,
-	columnWidths,
-	type GridColumnFilter,
-	type GridColumnPinning,
-	type GridColumnResize,
-	type GridColumnResizeActions,
-	type GridGlobalFilterView,
-	type GridPaginationView,
-	sameElements,
-	toColumnPinningState,
-	toGridColumns,
-} from './engine/grid-table/views'
 import type {
 	GridColumn,
 	GridColumnFilterState,
@@ -131,27 +107,24 @@ import type {
 	GridPaginationState,
 	GridSearch,
 } from './types'
-import { useGridColumnSizing } from './use-grid-column-sizing'
-import { useGridPinnedOffsets } from './use-grid-pinned-offsets'
+import {
+	useFacetSource,
+	useFilterModeMismatchWarning,
+	useGridClientView,
+	useGridRowModel,
+	useGroupTree,
+} from './use-grid-client-view'
+import { useColumnResizeLifecycle, useGridColumnSizing } from './use-grid-column-sizing'
+import { useGridPinningView } from './use-grid-pinning-view'
 
 export type {
 	GridColumnFacets,
 	GridColumnFilter,
-	GridColumnPinning,
-	GridColumnResize,
 	GridGlobalFilterView,
-	GridPaginationView,
-} from './engine/grid-table/views'
-
-import {
-	type EngineColumn,
-	type EngineColumnDef,
-	type EngineData,
-	type EngineOptions,
-	type EngineTable,
-	type GridFeatures,
-	gridFeatures,
-} from './engine/grid-table/features'
+} from './engine/grid-table/filter-view'
+export type { GridPaginationView } from './engine/grid-table/pagination-view'
+export type { GridColumnPinning } from './engine/grid-table/pinning-view'
+export type { GridColumnResize } from './engine/grid-table/resize-view'
 
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {
@@ -295,16 +268,6 @@ type GridTableResult<T> = {
 }
 
 /**
- * The engine's `ColumnDef[]` for the grid's columns. `meta` carries the source
- * column, so the engine's visible columns map back to it.
- *
- * @internal
- */
-function toColumnDefs<T>(columns: GridColumn<T>[]): EngineColumnDef<T>[] {
-	return columns.map((col) => ({ ...toColumnDef(col), meta: { gridColumn: col } }))
-}
-
-/**
  * Resolves the engine's row-grouping slice from the grouped column id. It gives
  * the `grouped` flag and TanStack's `GroupingState`, which is a one-element
  * array of the grouped column id, or empty. Grouping is driven only by the `groupBy`
@@ -359,523 +322,6 @@ function useEagerSizingInfo(): [columnResizingState, OnChangeFn<columnResizingSt
 }
 
 /**
- * The rows an export takes, from the client view: the selected leaves in
- * display order, else every leaf. A grouped grid takes the rows of its groups.
- * A manual grouping takes the rows around its headers. Any other grid takes
- * the rows of the view on every page.
- *
- * @remarks
- * The ids of the leaves are the stringified keys, so a selected key matches
- * its leaf as text. A selection of no shown row falls back to every leaf.
- *
- * @internal
- */
-function viewLeaves<T>(args: {
-	rows: T[]
-	getKey: (row: T, index: number) => string | number
-	groups: GridGroup<T>[] | null
-	manualGroupRow: ((row: T) => boolean) | null
-	clientView: ClientView<T> | null
-	selection: ReadonlySet<string | number> | undefined
-}): T[] {
-	const { rows, getKey, groups, manualGroupRow, clientView } = args
-
-	const leaves: GridLeaf<T>[] = groups
-		? groups.flatMap((group) => group.leaves)
-		: (clientView?.order ?? rows.map((_, index) => index)).flatMap((index) => {
-				const row = rows[index] as T
-
-				return manualGroupRow?.(row) ? [] : [toRowLeaf(row, index, getKey)]
-			})
-
-	// A leaf id is the key that `getRowId` stringified, so the keys compare as text.
-	const keys = new Set(Array.from(args.selection ?? [], String))
-
-	const selected = keys.size > 0 ? leaves.filter((leaf) => keys.has(leaf.id)) : []
-
-	return (selected.length > 0 ? selected : leaves).map((leaf) => leaf.row)
-}
-
-/**
- * Derives the flat row views the body reads: the manual display list, and the
- * flat `renderRows`/`rowKeys` backing selection identity and the data count.
- * Each view is a memo over values that change only with the rows or a
- * transform. It therefore keeps its identity across an unrelated re-render,
- * such as a resize-drag frame or a selection toggle.
- *
- * Each key is taken at the row's original data index (the index `getRowId`
- * saw), not the rendered position. A client transform reorders rows while
- * their ids stay fixed to the original order. A rendered-index key would
- * therefore diverge from `getRowId`.
- *
- * @internal
- */
-function useGridRowModel<T>(args: {
-	rows: T[]
-	getKey: (row: T, index: number) => string | number
-	/** Manual-grouping group-header predicate; splits the rows into headers and leaves. */
-	manualGroupRow: ((row: T) => boolean) | null
-	/** The client view, or `null` when it applies no transform. */
-	clientView: ClientView<T> | null
-	/** The closed groups of a client-grouped grid, or `null`. */
-	groups: GridGroup<T>[] | null
-}): {
-	manualRows: GridLeaf<T>[] | null
-	renderRows: T[]
-	rowKeys: (string | number)[]
-} {
-	const { rows, getKey, manualGroupRow, clientView, groups } = args
-
-	// The leaves in display order when the grid collects them: the rows of its
-	// groups, or the rows around the headers of a manual grouping.
-	const leaves = useMemo<GridLeaf<T>[] | null>(() => {
-		if (groups) return groups.flatMap((group) => group.leaves)
-
-		if (!manualGroupRow) return null
-
-		return rows.flatMap((row, index) =>
-			manualGroupRow(row) ? [] : [toRowLeaf(row, index, getKey)],
-		)
-	}, [groups, manualGroupRow, rows, getKey])
-
-	// The manual body segments the consumer's sequence by position, so it takes
-	// every row, headers included, in data order.
-	const manualRows = useMemo(
-		() => (manualGroupRow ? rows.map((row, index) => toRowLeaf(row, index, getKey)) : null),
-		[manualGroupRow, rows, getKey],
-	)
-
-	// The rows and keys of a flat body under a client view. A body that
-	// collects leaves reads them from the leaves, so it builds neither.
-	const flat = useMemo(
-		() => (leaves || !clientView ? null : materializeSort(rows, clientView.shown, getKey)),
-		[leaves, clientView, rows, getKey],
-	)
-
-	const renderRows = useMemo(
-		() => (leaves ? leaves.map((leaf) => leaf.row) : (flat?.rows ?? rows)),
-		[leaves, flat, rows],
-	)
-
-	const rowKeys = useMemo<(string | number)[]>(() => {
-		if (leaves) return leaves.map((leaf) => leaf.key)
-
-		return flat?.keys ?? rows.map((row, index) => getKey(row, index))
-	}, [leaves, flat, rows, getKey])
-
-	return { manualRows, renderRows, rowKeys }
-}
-
-/**
- * The groups of a client-grouped grid as values, and the action that opens or
- * closes one.
- *
- * @remarks
- * The grid collects the groups from its client view (see {@link groupRows}),
- * and opens them. The groups build once for each new view. A toggle then only
- * swaps the value of the group it toggles (see {@link expandGroups}).
- *
- * @internal
- */
-function useGroupTree<T>(args: {
-	rows: T[]
-	columns: GridColumn<T>[]
-	/** The client view, or `null` when it applies no transform. */
-	clientView: ClientView<T> | null
-	/** The sort of the grid, to order the groups. */
-	sort: GridSortState[] | undefined
-	/** The grouped column, or `null` when ungrouped. */
-	grouping: string | number | null
-	/** The expansion state; absent opens every group. */
-	expanded: ExpandedState | undefined
-	onExpandedChange: Dispatch<SetStateAction<ExpandedState>> | undefined
-	getKey: (row: T, index: number) => string | number
-}): {
-	groups: GridGroup<T>[] | null
-	closed: GridGroup<T>[] | null
-	toggleGroup: (id: string) => void
-} {
-	const { rows, columns, clientView, sort, grouping, onExpandedChange, getKey } = args
-
-	const columnId = grouping == null ? null : String(grouping)
-
-	const expanded = args.expanded ?? true
-
-	// The value accessor of the grouped column, or `null` when no column of the
-	// grid is grouped. A grouping by no column of the grid has no groups.
-	const read = useMemo(() => {
-		if (columnId == null) return null
-
-		const column = columns.find((col) => String(col.id) === columnId)
-
-		return column ? columnAccessor(column) : null
-	}, [columnId, columns])
-
-	const kept = clientView?.kept ?? null
-
-	// The members of the groups depend on the rows and the filters, not on the
-	// sort, so a sort change orders the groups again and collects nothing.
-	const members = useMemo(() => (read ? groupMembers(rows, kept, read) : null), [read, rows, kept])
-
-	const closed = useMemo(() => {
-		if (columnId == null) return null
-
-		if (!read || !members) return []
-
-		const fields = clientView?.fields ?? null
-
-		return orderGroups({
-			rows,
-			members,
-			order: clientView?.order ?? null,
-			sort:
-				fields && sort
-					? { fields, grouped: sort.map((entry) => String(entry.column) === columnId) }
-					: null,
-			columnId,
-			read,
-			getKey,
-		})
-	}, [columnId, read, members, clientView, sort, rows, getKey])
-
-	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
-
-	const toggleGroup = useCallback(
-		(id: string) =>
-			onExpandedChange?.((previous) =>
-				toggleGroupExpanded(
-					previous,
-					id,
-					(closed ?? []).map((group) => group.id),
-				),
-			),
-		[onExpandedChange, closed],
-	)
-
-	return { groups, closed, toggleGroup }
-}
-
-/**
- * The client view: the client filters, the sort, and the client pagination,
- * which the grid runs itself. The engine builds no row model, so a filtered,
- * sorted, or paginated grid makes no row object for each datum. `null` when
- * the view applies no transform (see `resolveClientView`).
- *
- * The filter keeps the rows that pass the compiled column filters and the
- * quick search (see {@link compileColumnFilters} and {@link compileSearch}),
- * in one pass over the rows. The sort then orders those rows through
- * {@link cachedSortOrder}. The view holds indices only. A flat body reads each
- * shown row at its original index through {@link materializeSort} (see
- * `useGridRowModel`), and a grouped body reads its groups, so it builds no
- * row list. The parity tests hold the result equal to the filtered and sorted
- * row models of a stock engine table.
- *
- * The sort columns are resolved to {@link SmartSortField}s in their own memo,
- * keyed on the sort and columns. A data change therefore re-sorts without
- * rebuilding the field list. The sort itself re-runs on that or a `rows` change.
- *
- * The page is a slice of the sorted order, in its own memo, with the bounds of
- * the paginated model of the engine. A page flip therefore reads only the rows
- * of the new page. `total` is the count of the rows before the slice.
- *
- * @internal
- */
-function useClientView<T>(args: {
-	rows: T[]
-	sort: GridSortState[] | undefined
-	/** Whether the grid sorts client-side (a manual/server sort orders `rows` itself). */
-	clientSort: boolean
-	/** Whether the grid applies the client filters (see `resolveClientView`). */
-	filtered: boolean
-	/** The page of a client pagination, else `null`. */
-	page: PaginationState | null
-	/** The query of the quick search, or `''` when the search prunes no rows. */
-	query: string
-	/** The compiled column filters (see `compileColumnFilters`). */
-	columnTests: ColumnTests<T>
-	/** The full column set, to resolve each sort column's value accessor and any manual `sortFn`. */
-	columns: GridColumn<T>[]
-	/** Whether a grand total reads {@link ClientView.filtered}. */
-	grandTotal: boolean
-}): ClientView<T> | null {
-	const { rows, sort, clientSort, filtered, page, query, columnTests, columns, grandTotal } = args
-
-	// The sort columns as fields, or `null` unless the grid sorts on the client
-	// and the sort has entries.
-	const fields = useMemo<SmartSortField<T>[] | null>(() => {
-		if (!clientSort || !sort?.length) return null
-
-		const byId = new Map(columns.map((col) => [String(col.id), col] as const))
-
-		return sort.map((entry) => {
-			const col = byId.get(String(entry.column))
-
-			return {
-				descending: entry.direction === 'desc',
-				// The column's shared value accessor; a sort id with no matching
-				// column (never, in practice) falls back to the raw field read.
-				accessor: col
-					? columnAccessor(col)
-					: (row) => (row as Record<string | number, unknown>)[entry.column],
-				sortFn: col?.sortFn ?? null,
-			}
-		})
-	}, [clientSort, sort, columns])
-
-	// The row tests of an off-engine filter, or `null` with none. The search
-	// comes last, because it reads more cells than a column filter.
-	const tests = useMemo<RowTest<T>[] | null>(() => {
-		if (!filtered) return null
-
-		const search = compileSearch(rows, columns, query)
-
-		const byColumn = [...columnTests.values()]
-
-		const all = search ? [...byColumn, search] : byColumn
-
-		// A blank rule compiles to no test, and a set with no test keeps every row.
-		return all.length > 0 ? all : null
-	}, [filtered, rows, columns, query, columnTests])
-
-	// The original indices of the rows that the filter keeps, and those rows.
-	// Both are `null` with no off-engine filter.
-	const kept = useMemo(() => (tests ? filterRowIndices(rows, tests) : null), [rows, tests])
-
-	// The kept rows as a list, for a grand total only: the order and the page
-	// read the indices.
-	const keptRows = useMemo(
-		() => (grandTotal && kept ? rowsAt(rows, kept) : null),
-		[grandTotal, kept, rows],
-	)
-
-	// The permutation depends only on the rows and the sort spec, never on
-	// `getKey`, so `cachedSortOrder` reuses it for a spec already seen. Its cache
-	// is scoped to the rows that it sorts and to the columns, so a stale order can
-	// never outlive the data or the accessors that it was computed against.
-	// The original indices of the rows in view order, or `null` for data order.
-	const order = useMemo(() => {
-		const sorting = fields !== null && sort !== undefined && sort.length > 0
-
-		if (!sorting) return kept
-
-		const sig = sortSignature(sort)
-
-		const mirror = mirrorSignature(sort)
-
-		// The smart comparison is a total order, with the data index as the last
-		// key. The order of a subset is then the full order with the other rows
-		// taken out. The full order stays cached across the keystrokes of a
-		// search, so a search filters it and sorts nothing. A custom `sortFn` can
-		// break that rule, so its fields sort the kept rows.
-		if (!kept || fields.every((field) => field.sortFn === null)) {
-			const full = cachedSortOrder(rows, columns, sig, fields, mirror)
-
-			return kept ? keepInOrder(full, kept, rows.length) : full
-		}
-
-		const local = cachedSortOrder(rowsAt(rows, kept), columns, sig, fields)
-
-		// A sort of the kept rows gives positions among them. Each maps back to
-		// the original index of its row.
-		return local.map((position) => kept[position] as number)
-	}, [fields, kept, rows, sort, columns])
-
-	const pageIndex = page?.pageIndex
-
-	const pageSize = page?.pageSize
-
-	return useMemo(() => {
-		if (order === null && pageSize === undefined) return null
-
-		const total = order?.length ?? rows.length
-
-		// A page past the end of a smaller set shows the last page.
-		const shownPage =
-			pageIndex === undefined || pageSize === undefined
-				? undefined
-				: shownPageIndex(pageIndex, pageCountOf({ rows: total, pageSize }))
-
-		// The engine keeps an empty set whole, and slices any other.
-		const bounds =
-			shownPage === undefined || pageSize === undefined || total === 0
-				? null
-				: pageBounds(shownPage, pageSize)
-
-		const shown = bounds ? sliceOrder(order, total, bounds) : (order ?? identityOrder(total))
-
-		return { shown, total, pageIndex: shownPage, filtered: keptRows, kept, order, fields }
-	}, [order, pageIndex, pageSize, rows, keptRows, kept, fields])
-}
-
-/** The rows at `indices`, in their sequence. @internal */
-function rowsAt<T>(rows: readonly T[], indices: readonly number[]): T[] {
-	return indices.map((index) => rows[index] as T)
-}
-
-/**
- * The rows of a {@link useClientView}, their keys, and the count before the
- * page slice.
- *
- * @internal
- */
-type ClientView<T> = {
-	/**
-	 * The original indices of the rows that the view shows, in view order. A
-	 * flat body reads the rows and the keys from them (see `useGridRowModel`),
-	 * and a grouped body reads the groups instead.
-	 */
-	shown: number[]
-	total: number
-	/** The page the view shows, or `undefined` when the view does not paginate. */
-	pageIndex: number | undefined
-	/**
-	 * The rows that the filters keep, in data order, for a grand total. It is
-	 * `null` when the view applies no filter or shows no grand total.
-	 */
-	filtered: T[] | null
-	/** The original indices of the rows that the filters keep, or `null` with no filter. */
-	kept: number[] | null
-	/** The indices of the view before the page slice, in view order, or `null` for data order. */
-	order: number[] | null
-	/** The fields of the client sort, or `null` when the view does not sort. */
-	fields: SmartSortField<T>[] | null
-}
-
-/** The cache key of a sort: the column id and the direction of each entry. @internal */
-function sortSignature(sort: readonly GridSortState[]): string {
-	// A column id is free text, so no printable separator is safe: `a:asc|b`
-	// names one column, and it would read as two. An id does not hold a NUL.
-	return sort.map((entry) => `${String(entry.column)}\u0000${entry.direction}`).join('\u0000')
-}
-
-/**
- * The cache key of a single-column sort in the other direction, whose cached
- * order a first flip turns around, or `undefined` for a sort of more columns.
- *
- * @internal
- */
-function mirrorSignature(sort: readonly GridSortState[]): string | undefined {
-	const [only] = sort
-
-	if (sort.length !== 1 || !only) return undefined
-
-	return sortSignature([{ ...only, direction: only.direction === 'asc' ? 'desc' : 'asc' }])
-}
-
-/**
- * The indices of `order` that `kept` holds, in the sequence of `order`.
- *
- * @param count - The count of the rows that the indices point into.
- * @internal
- */
-function keepInOrder(order: readonly number[], kept: readonly number[], count: number): number[] {
-	const mask = new Uint8Array(count)
-
-	for (const index of kept) mask[index] = 1
-
-	return order.filter((index) => mask[index] === 1)
-}
-
-/** The indices `0` to `count - 1`, in order. @internal */
-function identityOrder(count: number): number[] {
-	return Array.from({ length: count }, (_, index) => index)
-}
-
-/**
- * The page of an order. With no order (data order), it builds only the
- * indices of the page, not the whole order.
- *
- * @internal
- */
-function sliceOrder(
-	order: number[] | null,
-	total: number,
-	[start, end]: [number, number],
-): number[] {
-	if (order) return order.slice(start, end)
-
-	const last = Math.min(end, total)
-
-	return start >= last ? [] : Array.from({ length: last - start }, (_, offset) => start + offset)
-}
-
-/**
- * Fires the column-resize drag lifecycle. The engine flags the column under an
- * active pointer/touch drag in `columnSizingInfo.isResizingColumn` (a keyboard
- * nudge writes the width straight through `columnSizing` instead). A transition
- * off or onto a column id therefore brackets the drag. The outgoing column ends
- * first (a settle, or a pointer that slid onto another handle), then the
- * incoming one starts. An unmount during a drag ends it. Read from the engine
- * and fired from an effect, keeping the
- * callbacks out of the controlled-state write path. Kept out of
- * {@link useGridTable} for its cognitive-complexity budget.
- *
- * @internal
- */
-function useColumnResizeLifecycle(
-	resizable: boolean,
-	isResizingColumn: string | false,
-	onResizeStart: ((id: string) => void) | undefined,
-	onResizeEnd: ((id: string) => void) | undefined,
-): void {
-	const resizingColumnId = resizable ? isResizingColumn : false
-
-	const prevResizingRef = useRef<string | false>(false)
-
-	useEffect(() => {
-		const prev = prevResizingRef.current
-
-		if (prev === resizingColumnId) return
-
-		prevResizingRef.current = resizingColumnId
-
-		if (prev) onResizeEnd?.(prev)
-
-		if (resizingColumnId) onResizeStart?.(resizingColumnId)
-	}, [resizingColumnId, onResizeStart, onResizeEnd])
-
-	// A grid that unmounts during a drag ends it, so each start has its end.
-	const endOnUnmount = useStableEvent(() => {
-		const prev = prevResizingRef.current
-
-		if (prev) onResizeEnd?.(prev)
-	})
-
-	useEffect(() => endOnUnmount, [endOnUnmount])
-}
-
-/**
- * Warns (dev only) when the global search and the column filters are both
- * configured but their `manual` flags disagree. The grid filters both in one
- * client pass (see {@link useClientView}), so {@link resolveFilterMode} runs
- * manual for both. The client-side surface then silently stops filtering.
- * Effect-scoped so it fires once per config change, not every render. Kept out of {@link useGridTable} for its
- * cognitive-complexity budget.
- *
- * @internal
- */
-function useFilterModeMismatchWarning(args: {
-	globalConfigured: boolean
-	hasColumnFilters: boolean
-	globalManual: boolean | undefined
-	columnManual: boolean | undefined
-}): void {
-	const { globalConfigured, hasColumnFilters, globalManual, columnManual } = args
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (!globalConfigured || !hasColumnFilters) return
-
-		if (Boolean(globalManual) === Boolean(columnManual)) return
-
-		console.warn(
-			"Grid: the global search and column filters share one table-wide filtering mode, but their `manual` flags disagree. The grid runs manual (server) filtering for both, so the client-side surface won't filter locally — set both `manual` the same.",
-		)
-	}, [globalConfigured, hasColumnFilters, globalManual, columnManual])
-}
-
-/**
  * The visible columns and their widths. The engine resolves the visible leaf
  * columns from the order, visibility, and pinning state, frozen left, then
  * center, then frozen right. It memoizes each section on that state, so each
@@ -907,11 +353,6 @@ function useColumnLayout<T>(
 	const widths = useMemo(() => columnWidths(leaves, sizing), [leaves, sizing])
 
 	return { left, right, leaves, visibleColumns, widths }
-}
-
-/** The column mid drag-resize in the drag state, or `null`. @internal */
-function resizingColumn(resizable: boolean, info: columnResizingState): string | null {
-	return resizable && info.isResizingColumn ? info.isResizingColumn : null
 }
 
 /**
@@ -1041,183 +482,6 @@ function useFilterView<T>(args: {
 }
 
 /**
- * The facet values of each column over one set of rows, filters, and query.
- * Each column collects its values on its first read, and keeps them. The
- * search compiles on the first read of any column.
- *
- * @remarks
- * A plain function, not a hook body, so that the cache of the values lives
- * with the source that fills it. The React Compiler can memoize an allocation
- * in a hook body on its own, which would share one cache among sources.
- *
- * @internal
- */
-function facetSource<T>(
-	rows: readonly T[],
-	columns: readonly GridColumn<T>[],
-	columnTests: ColumnTests<T>,
-	query: string,
-): (id: string) => Set<unknown> {
-	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
-
-	const cache = new Map<string, Set<unknown>>()
-
-	// Compiled on the first read. A source that no sheet reads, such as each
-	// source of a manual search, builds no haystack.
-	let search: RowTest<T> | null | undefined
-
-	return (id) => {
-		let values = cache.get(id)
-
-		if (!values) {
-			const read = byId.get(id)?.value
-
-			const tests = [...columnTests].flatMap(([other, test]) => (other === id ? [] : [test]))
-
-			if (search === undefined) search = compileSearch(rows, columns, query)
-
-			if (search) tests.push(search)
-
-			values = read ? uniqueValues(rows, read, tests) : new Set()
-
-			cache.set(id, values)
-		}
-
-		return values
-	}
-}
-
-/**
- * The distinct cell values that the facets of each column read, which the
- * grid collects itself.
- *
- * @remarks
- * The facets of a column read the rows that pass the quick search and every
- * other column filter. The faceted row model of a stock engine reads the same
- * rows. The
- * filter of the column itself does not apply, so its facets still offer the
- * values that it hides. A filter sheet reads the values when it opens. The first read after a change of the rows, the filters, or the query
- * collects them.
- *
- * The function keeps one identity. It reads the source of the last commit, so
- * a search keystroke or a data change renders no filter button again.
- *
- * @returns A function that gives the values of a column.
- * @internal
- */
-function useFacetSource<T>(args: {
-	rows: T[]
-	columns: GridColumn<T>[]
-	columnTests: ColumnTests<T>
-	/** The query of the quick search, or `''` when the search prunes no rows. */
-	query: string
-}): (id: string) => Iterable<unknown> {
-	const { rows, columns, columnTests, query } = args
-
-	const source = useMemo(
-		() => facetSource(rows, columns, columnTests, query),
-		[rows, columns, columnTests, query],
-	)
-
-	const latest = useRef(source)
-
-	useLayoutEffect(() => {
-		latest.current = source
-	}, [source])
-
-	return useCallback((id: string) => latest.current(id), [])
-}
-
-/**
- * The {@link GridColumnPinning} value, or `null` when no column is frozen.
- *
- * @remarks
- * A frozen column sticks at the summed width of the frozen columns ahead of it.
- * Those widths are the rendered ones only under the fixed-layout colgroup that
- * a resizable grid lays out from them. A non-resizable grid lays out `auto` and
- * sizes each column to its content, so there the offsets are measured from the
- * rendered header instead. Without that, a stack of frozen columns spreads apart
- * by the difference, and the scrolling columns show through the gaps.
- *
- * The view holds its reference while each frozen column keeps its edge and
- * its boundary role. A drag on a scrolling column therefore re-renders no row.
- * A drag that shifts the frozen stack also re-renders no row. The layout effect
- * commits the new layout to the offset store, and writes the moved offsets to
- * the frozen cells before the browser paints. A new render of the full view
- * cost about half of a frozen resize, over 1,000 rows or more.
- *
- * @internal
- */
-function usePinningView<T>(args: {
-	hasPinned: boolean
-	resizable: boolean
-	columnPinning: ColumnPinningState
-	visibleColumns: GridColumn<T>[]
-	containerRef: RefObject<HTMLElement | null> | undefined
-	left: readonly EngineColumn<T>[]
-	right: readonly EngineColumn<T>[]
-	widths: ReadonlyMap<string, number>
-}): GridColumnPinning | null {
-	const { hasPinned, left, right, widths } = args
-
-	const measured = useGridPinnedOffsets({
-		frozen: hasPinned,
-		engineSized: args.resizable,
-		pinning: args.columnPinning,
-		columns: args.visibleColumns,
-		containerRef: args.containerRef,
-	})
-
-	const sections = {
-		left: left.map((column) => column.id),
-		right: right.map((column) => column.id),
-	}
-
-	const layout = useStableValue<FrozenLayout>(
-		hasPinned ? frozenLayout(sections, widths, measured) : EMPTY_FROZEN_LAYOUT,
-		sameFrozenLayout,
-	)
-
-	const structure = useStableValue<FrozenLayout>(layout, sameFrozenStructure)
-
-	const [offsets] = useState(() => createFrozenOffsetStore(layout))
-
-	const { containerRef } = args
-
-	useLayoutEffect(() => {
-		const previous = offsets.commit(layout)
-
-		const container = containerRef?.current
-
-		if (container && previous !== layout) writeFrozenOffsets(container, previous, layout)
-	}, [offsets, layout, containerRef])
-
-	return useMemo(
-		() => (hasPinned ? buildColumnPinning(structure, offsets) : null),
-		[hasPinned, structure, offsets],
-	)
-}
-
-/**
- * The full filtered row set, for a grand total, in data order: the rows that
- * the filters of the client view keep, else every row. Empty unless a grand
- * total is active. Manual grouping carries the consumer's group headers as
- * rows, so it has no grand total (see `resolveGrandTotal`).
- *
- * @internal
- */
-function grandTotalRowsOf<T>(args: {
-	grandTotal: boolean
-	manualGrouped: boolean
-	clientView: ClientView<T> | null
-	rows: T[]
-}): T[] {
-	if (!args.grandTotal || args.manualGrouped) return NO_ROWS
-
-	return args.clientView?.filtered ?? args.rows
-}
-
-/**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
  * powers a {@link Grid}, and the row views of the grid. It adapts the grid's
  * `GridColumn[]` to TanStack `ColumnDef[]` (mapping `value` to an accessor) and
@@ -1226,7 +490,7 @@ function grandTotalRowsOf<T>(args: {
  * @remarks The engine holds the column state (order, visibility, sizing,
  * pinning) and the state of the row transforms, and the actions that write
  * them. It builds no row model. The grid filters, sorts, groups, and pages its
- * rows itself (see {@link useClientView} and `groupRows`). Each transform is
+ * rows itself (see {@link useGridClientView} and `groupRows`). Each transform is
  * opt-in, and pagination and filtering each run server-side (`manual`, the
  * consumer transforms `rows`) or client-side. A plain grid renders straight
  * from `rows`. `autoResetPageIndex` is off: the page is consumer-controlled.
@@ -1555,7 +819,7 @@ export function useGridTable<T>({
 	// The grid filters, sorts, and pages its rows itself, and the engine builds
 	// no row model. The row views that the body reads (the groups, the manual
 	// display list, and `renderRows`/`rowKeys`) derive from this view.
-	const clientView = useClientView({
+	const clientView = useGridClientView({
 		rows,
 		sort,
 		clientSort,
@@ -1683,7 +947,7 @@ export function useGridTable<T>({
 		facetValues,
 	})
 
-	const pinning = usePinningView({
+	const pinning = useGridPinningView({
 		hasPinned,
 		resizable,
 		columnPinning,

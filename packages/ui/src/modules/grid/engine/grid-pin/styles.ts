@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
-import type { GridColumnPinning } from '../grid-table/views'
+import type { GridColumnPinning } from '../grid-table/pinning-view'
 
 /**
  * Inline sticky offset for a pinned cell, or `undefined` when the column

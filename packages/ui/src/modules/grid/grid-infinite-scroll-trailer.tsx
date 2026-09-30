@@ -3,7 +3,7 @@
 import type { ReactElement } from 'react'
 import { TableCell } from '../../components/table'
 import { Text } from '../../components/text'
-import { hasErrorSlot } from './engine/grid-table/guards'
+import { hasErrorSlot } from './engine/grid-data/guards'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { GridSkeletonCells } from './grid-skeleton-cells'
 import type { GridColumn } from './types'

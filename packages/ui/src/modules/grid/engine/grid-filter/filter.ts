@@ -100,7 +100,7 @@ function passes<T>(row: T, index: number, tests: readonly RowTest<T>[]): boolean
  * Two values are the same when a `Set` holds them as one.
  *
  * @remarks
- * `useFacetSource` in `use-grid-table.ts` passes the filters that the facets
+ * `useFacetSource` in `use-grid-client-view.ts` passes the filters that the facets
  * of a column read. The result then holds the keys of the faceted unique
  * values of the engine.
  *
