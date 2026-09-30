@@ -3,7 +3,7 @@
 import { type PointerEvent, type TouchEvent, useRef } from 'react'
 import { useTimeout } from '../../../hooks'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import { useChartTouchSelection } from './use-chart-touch-selection'
+import { useTouchHoldSelection } from '../../../hooks/use-touch-hold-selection'
 
 /** Hold time, in ms, before a touch opens the readout. A tap opens none. @internal */
 export const TOUCH_READOUT_DELAY = 300
@@ -57,7 +57,7 @@ type Press = { x: number; y: number; tap: boolean }
  * {@link ChartTouchTap.onTouchEnd} cancels that click, so a touch press on the
  * marks reports through the lift alone.
  *
- * A touch press also arms {@link useChartTouchSelection}, so a hold selects no
+ * A touch press also arms `useTouchHoldSelection`, so a hold selects no
  * label near the finger.
  * @param onTap - Called with the viewport point of the lift. It can change on
  * each render.
@@ -75,7 +75,7 @@ export function useChartTouchTap(onTap: (clientX: number, clientY: number) => vo
 	const tapWindow = useTimeout()
 
 	// A hold reads the chart. It does not select a label near the finger.
-	const guardSelection = useChartTouchSelection()
+	const guardSelection = useTouchHoldSelection()
 
 	return {
 		onPointerDown: (event) => {
