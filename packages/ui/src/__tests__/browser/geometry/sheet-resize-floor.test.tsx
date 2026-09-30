@@ -2,6 +2,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetHeader, SheetTitle } from '../../../components/sheet'
 import { frames, getSlot, renderUI } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { drag } from '../helpers/drag'
 
 /**
@@ -47,17 +49,13 @@ describe('cross-docked sheet resize floor (real browser)', () => {
 		// The premise: the sheet is shorter than a width floor.
 		expect(start).toBeLessThan(280)
 
-		const grip = handle.getBoundingClientRect()
-
-		const x = grip.left + grip.width / 2
-
-		const y = grip.top + grip.height / 2
+		const { x, y } = centerOf(handle)
 
 		const held = await drag(handle, { x, y }, [{ x, y: y + travel }])
 
 		// A bottom sheet grows as the pointer goes up, so the height moves against
 		// the pointer by the same distance.
-		expect(panel.getBoundingClientRect().height).toBeCloseTo(start - travel, 0)
+		expect(panel.getBoundingClientRect().height).toBeNear(start - travel, HALF_PIXEL)
 
 		await held.release()
 	})

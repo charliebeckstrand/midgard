@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { ComboChart } from '../../modules/chart/combo-chart'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { subpathCount } from '../helpers/geometry/svg-path'
 
 /** Bars in a combo draw as one path per series; each bar is an `M`-opened subfigure. */
 function barCount(container: HTMLElement): number {
 	return allBySlot(container, 'chart-bar').reduce(
-		(sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0),
+		(sum, path) => sum + subpathCount(path.getAttribute('d')),
 		0,
 	)
 }

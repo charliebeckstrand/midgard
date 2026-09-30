@@ -5,6 +5,8 @@ import {
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
 import { bySlot, fireEvent, noop, present, renderUI, screen, waitFor } from '../../helpers'
+import { boxOf, centerOf } from '../../helpers/geometry/box'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /** The name itself. Portaled, so it is found on the document rather than in the container. */
 const label = () => bySlot(document.body, 'pdf-viewer-highlight-label')
@@ -76,19 +78,17 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		// Roughly centered on the box it names, so which region it belongs to is unambiguous
 		// even where two sit close together.
-		expect(Math.abs((name.left + name.right) / 2 - (box.left + box.right) / 2)).toBeLessThan(24)
+		expect(Math.abs(centerOf(name).x - centerOf(box).x)).toBeLessThan(24)
 
 		// Still on screen. The layer it is declared inside is transformed and clipped by a
 		// scrolling viewport; a label that inherited either would land outside the viewer.
 		const viewer = present(container.querySelector('[data-slot="pdf-viewer"]'), 'the viewer')
 
-		const frame = viewer.getBoundingClientRect()
-
-		expect(name.top).toBeGreaterThanOrEqual(frame.top - 1)
-
-		expect(name.left).toBeGreaterThanOrEqual(frame.left - 1)
-
-		expect(name.right).toBeLessThanOrEqual(frame.right + 1)
+		// The inner box takes the bottom of the viewer, so the check reads the top and the side edges only.
+		expect(viewer).toContainBox(
+			{ ...boxOf(panel), bottom: viewer.getBoundingClientRect().bottom },
+			{ tolerance: PIXEL },
+		)
 	})
 
 	/*
@@ -120,9 +120,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		const name = panel.getBoundingClientRect()
 
-		const x = (name.left + name.right) / 2
-
-		const y = (name.top + name.bottom) / 2
+		const { x, y } = centerOf(name)
 
 		// What a press there actually reaches. The name takes no pointer events, so it is the
 		// page under the name — which is the whole point of pressing here rather than on it.

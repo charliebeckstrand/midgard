@@ -20,6 +20,18 @@ import { fitMapProjection } from '../../modules/map/engine/map-projection/resolv
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
+ * The carried scale is a quotient of two projection scales, so it can carry
+ * rounding noise below this bound.
+ */
+const SCALE_RATIO_TOLERANCE = 5e-13
+
+/**
+ * A carried coordinate composes a scale and a translation, so it can drift from
+ * the measured fit by this bound in frame units.
+ */
+const CARRY_TOLERANCE = 5e-7
+
+/**
  * The buffer stands in for the projection walk, so the whole of it rests on the
  * strings coming back identical to the ones that walk would have written. The
  * fixture geography cannot show that: three unit squares under `mercator` never
@@ -400,7 +412,10 @@ describe('carriedTransform', () => {
 
 		if (transform === null) return
 
-		expect(transform.k).toBeCloseTo(measured.scale() / canonical.projection.scale(), 12)
+		expect(transform.k).toBeNear(
+			measured.scale() / canonical.projection.scale(),
+			SCALE_RATIO_TOLERANCE,
+		)
 
 		for (const position of [
 			[-100, 40],
@@ -413,9 +428,9 @@ describe('carriedTransform', () => {
 
 			if (from === null || to === null) throw new Error('fixture position has no image')
 
-			expect(from[0] * transform.k + transform.x).toBeCloseTo(to[0], 6)
+			expect(from[0] * transform.k + transform.x).toBeNear(to[0], CARRY_TOLERANCE)
 
-			expect(from[1] * transform.k + transform.y).toBeCloseTo(to[1], 6)
+			expect(from[1] * transform.k + transform.y).toBeNear(to[1], CARRY_TOLERANCE)
 		}
 	})
 

@@ -9,6 +9,12 @@ import {
 	nearestBandIndex,
 } from '../../modules/chart/engine/chart-scale'
 
+/**
+ * The padded domain of a flat series puts its value within half a frame unit of
+ * the middle of the range.
+ */
+const HALF_FRAME_UNIT = 0.5
+
 describe('linearScale', () => {
 	it('derives the domain from the finite values and lands ticks on clean steps', () => {
 		const scale = linearScale({ values: [12, 87, 45], range: [100, 0], tickTarget: 4 })
@@ -271,7 +277,7 @@ describe('linearScale', () => {
 
 		expect(small?.domain[1]).toBeLessThanOrEqual(0.1)
 
-		expect(small?.map(0.05)).toBeCloseTo(50, 0)
+		expect(small?.map(0.05)).toBeNear(50, HALF_FRAME_UNIT)
 
 		const negative = linearScale({ values: [-40, -40], range: [100, 0], tickTarget: 4 })
 

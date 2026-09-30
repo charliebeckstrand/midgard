@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { present, renderUI, waitFor } from '../../helpers'
 
+// The ink of a glyph and the edge of the value text can miss by a hairline, up to this much.
+const GLYPH_SLACK = 1.5
+
 /**
  * Leading header-affordance alignment against a real layout engine. The reorder
  * grip and the pin button precede the column title, but their visible glyph must
@@ -61,9 +64,6 @@ describe('grid header affordance alignment (real browser)', () => {
 		return span.getBoundingClientRect()[dir === 'ltr' ? 'left' : 'right']
 	}
 
-	const gap = (container: HTMLElement, columnId: string, dir: Dir) =>
-		Math.abs(ink(container, columnId, dir) - value(container, columnId, dir))
-
 	// In a right-to-left grid the affordance leads from the right, so its pull is
 	// toward the inline start. The glyph's right ink then meets the right edge of
 	// the value.
@@ -89,7 +89,7 @@ describe('grid header affordance alignment (real browser)', () => {
 			// The grip's drawn dots land within a glyph-edge hairline of where the value
 			// text starts — not the cell-padding-sized step the un-nudged box would show.
 			for (const id of ['name', 'email']) {
-				expect(gap(container, id, dir)).toBeLessThanOrEqual(1.5)
+				expect(ink(container, id, dir)).toBeNear(value(container, id, dir), GLYPH_SLACK)
 			}
 		},
 	)
@@ -112,7 +112,7 @@ describe('grid header affordance alignment (real browser)', () => {
 				expect(container.querySelector('td[data-grid-col="name"]')).not.toBeNull(),
 			)
 
-			expect(gap(container, 'name', dir)).toBeLessThanOrEqual(1.5)
+			expect(ink(container, 'name', dir)).toBeNear(value(container, 'name', dir), GLYPH_SLACK)
 		},
 	)
 })

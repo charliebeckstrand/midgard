@@ -3,6 +3,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { TOUCH_TAP_SLOP, TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
+import { subpathCount } from '../helpers/geometry/svg-path'
 
 /**
  * How many bars drew. Each visible series is one `chart-bar` path and each bar
@@ -11,7 +12,7 @@ import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI
  */
 function barCount(container: HTMLElement): number {
 	return allBySlot(container, 'chart-bar').reduce(
-		(sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0),
+		(sum, path) => sum + subpathCount(path.getAttribute('d')),
 		0,
 	)
 }
@@ -914,9 +915,7 @@ describe('BarChart', () => {
 		}
 
 		// One lit bar re-draws over each dimmed series: Q2 of revenue and of costs.
-		expect(spots(container).map((spot) => spot.getAttribute('d')?.match(/M/g)?.length)).toEqual([
-			1, 1,
-		])
+		expect(spots(container).map((spot) => subpathCount(spot.getAttribute('d')))).toEqual([1, 1])
 	})
 
 	it('selects nothing for an empty list', () => {

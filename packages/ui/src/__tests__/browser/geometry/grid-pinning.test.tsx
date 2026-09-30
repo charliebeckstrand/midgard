@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * Column pinning against a real layout engine: sticky positioning only resolves
@@ -98,9 +100,9 @@ describe('grid column pinning (real browser)', () => {
 		)
 
 		// ...while the frozen column stays put at the left edge.
-		expect((cell(container, 'name') as HTMLElement).getBoundingClientRect().left).toBeCloseTo(
+		expect((cell(container, 'name') as HTMLElement).getBoundingClientRect().left).toBeNear(
 			pinnedLeft,
-			0,
+			HALF_PIXEL,
 		)
 	})
 
@@ -130,9 +132,9 @@ describe('grid column pinning (real browser)', () => {
 		)
 
 		// The right-pinned column keeps its right edge through the scroll.
-		expect((cell(container, 'status') as HTMLElement).getBoundingClientRect().right).toBeCloseTo(
+		expect((cell(container, 'status') as HTMLElement).getBoundingClientRect().right).toBeNear(
 			pinnedRight,
-			0,
+			HALF_PIXEL,
 		)
 	})
 })
@@ -203,11 +205,11 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		// The selection column leads the left edge; it carries no `data-grid-col`.
 		const select = present(container.querySelector('tbody td'), 'tbody td').getBoundingClientRect()
 
-		await waitFor(() => expect(edges('name').left).toBeCloseTo(select.right, 0))
+		await waitFor(() => expect(edges('name').left).toBeNear(select.right, HALF_PIXEL))
 
-		expect(edges('code').left).toBeCloseTo(edges('name').right, 0)
+		expect(edges('code').left).toBeNear(edges('name').right, HALF_PIXEL)
 
-		expect(edges('d').left).toBeCloseTo(edges('c').right, 0)
+		expect(edges('d').left).toBeNear(edges('c').right, HALF_PIXEL)
 	}
 
 	it.each([
@@ -342,9 +344,9 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 		expect(scroller.scrollLeft).toBeGreaterThan(0)
 
 		await waitFor(() =>
-			expect(cell(container, 'email').getBoundingClientRect().left).toBeCloseTo(
+			expect(cell(container, 'email').getBoundingClientRect().left).toBeNear(
 				cell(container, 'name').getBoundingClientRect().right,
-				0,
+				HALF_PIXEL,
 			),
 		)
 
@@ -354,11 +356,7 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 
 		if (!handle) throw new Error('resize handle not found')
 
-		const rect = handle.getBoundingClientRect()
-
-		const startX = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
+		const { x: startX, y } = centerOf(handle)
 
 		// Hold the drag open: mousedown and a move, with no mouseup to settle it.
 		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })
@@ -370,14 +368,14 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 		)
 
 		// Mid-drag, the column behind the widened one has moved with it.
-		expect(cell(container, 'email').getBoundingClientRect().left).toBeCloseTo(
+		expect(cell(container, 'email').getBoundingClientRect().left).toBeNear(
 			cell(container, 'name').getBoundingClientRect().right,
-			0,
+			HALF_PIXEL,
 		)
 
-		expect(head(container, 'email').getBoundingClientRect().left).toBeCloseTo(
+		expect(head(container, 'email').getBoundingClientRect().left).toBeNear(
 			head(container, 'name').getBoundingClientRect().right,
-			0,
+			HALF_PIXEL,
 		)
 
 		fireEvent.mouseUp(document, { clientX: startX + 90, clientY: y })
@@ -436,6 +434,6 @@ describe('grid frozen offsets follow a width change in its frame (real browser)'
 
 		const [, seen] = reports
 
-		expect(Number.parseFloat(seen?.offset ?? '')).toBeCloseTo(seen?.width ?? Number.NaN, 0)
+		expect(Number.parseFloat(seen?.offset ?? '')).toBeNear(seen?.width ?? Number.NaN, HALF_PIXEL)
 	})
 })

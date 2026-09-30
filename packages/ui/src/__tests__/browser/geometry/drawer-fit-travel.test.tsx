@@ -10,6 +10,7 @@ import {
 	screen,
 	waitFor,
 } from '../../helpers'
+import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * Real-browser probe of the `fit` drawer's height. Everything this variant does
@@ -72,7 +73,9 @@ describe('fit drawer height (real browser)', () => {
 
 		// It lands on the content's own height — 200 more than it opened at — and
 		// hands the box back to layout.
-		await waitFor(() => expect(panel.getBoundingClientRect().height - short).toBeCloseTo(200, 0))
+		await waitFor(() =>
+			expect(panel.getBoundingClientRect().height - short).toBeNear(200, HALF_PIXEL),
+		)
 
 		await waitFor(() => expect(panel.style.height).toBe(''))
 	})
@@ -115,7 +118,7 @@ describe('fit drawer height (real browser)', () => {
 		// frame, not merely by the time the content has settled.
 		const samples = await sampleHeights(panel, 400)
 
-		expect(samples.every((height) => Math.abs(height - dragged) < 1)).toBe(true)
+		for (const height of samples) expect(height).toBeNear(dragged, PIXEL)
 	})
 
 	it('stops at the screen and squares its corners when the content asks for more', async () => {
@@ -129,7 +132,7 @@ describe('fit drawer height (real browser)', () => {
 
 		const panel = getSlot(document.body, 'drawer')
 
-		expect(panel.getBoundingClientRect().height).toBeCloseTo(window.innerHeight, 0)
+		expect(panel.getBoundingClientRect().height).toBeNear(window.innerHeight, HALF_PIXEL)
 
 		// A rounded corner against the screen edge reads as a panel that failed to
 		// reach it, so a panel standing there says so and the recipe squares it.

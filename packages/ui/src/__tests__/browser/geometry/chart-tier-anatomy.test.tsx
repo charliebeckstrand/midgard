@@ -2,6 +2,10 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { allBySlot, bySlot, present, renderUI } from '../../helpers'
+import { boxOf } from '../../helpers/geometry/box'
+
+// The edge of a text box can extend this far past the plot from glyph metrics.
+const LABEL_SLACK = 0.6
 
 /**
  * The intrinsic tiers resolved in a real browser, where computed layout is real:
@@ -11,6 +15,7 @@ import { allBySlot, bySlot, present, renderUI } from '../../helpers'
  * at spark — and no tick label ever crosses the plot's own edge. jsdom resolves
  * none of these (no layout, no text metrics), so they live here.
  */
+
 describe('chart intrinsic tiers (real browser)', () => {
 	beforeAll(() => page.viewport(1200, 800))
 
@@ -40,19 +45,21 @@ describe('chart intrinsic tiers (real browser)', () => {
 		...(bySlot(container, slot)?.querySelectorAll('text') ?? []),
 	]
 
-	/** Whether every axis label sits inside the plot SVG's own horizontal span. */
-	const clearsHorizontally = (container: HTMLElement, slot: string) => {
+	/** Asserts that every axis label sits inside the horizontal span of the plot SVG. */
+	const expectClearsHorizontally = (container: HTMLElement, slot: string) => {
 		const svg = bySlot(container, 'chart-plot')?.querySelector('svg')
 
-		if (!svg) return false
+		if (!svg) throw new Error('expected the plot drawing')
 
-		const box = svg.getBoundingClientRect()
+		const frame = boxOf(svg)
 
-		return axisTexts(container, slot).every((text) => {
-			const rect = text.getBoundingClientRect()
-
-			return rect.left >= box.left - 0.6 && rect.right <= box.right + 0.6
-		})
+		// The check reads the horizontal edges only.
+		for (const text of axisTexts(container, slot)) {
+			expect(svg).toContainBox(
+				{ ...boxOf(text), top: frame.top, bottom: frame.bottom },
+				{ tolerance: LABEL_SLACK },
+			)
+		}
 	}
 
 	it('publishes the resolved tier on the chart root', () => {
@@ -96,7 +103,7 @@ describe('chart intrinsic tiers (real browser)', () => {
 
 		expect(labels.every((label) => !label.includes(','))).toBe(true)
 
-		expect(clearsHorizontally(container, 'chart-axis-y')).toBe(true)
+		expectClearsHorizontally(container, 'chart-axis-y')
 	})
 
 	it('shows only the first and last band labels in a compact frame, anchored inward', () => {
@@ -115,7 +122,7 @@ describe('chart intrinsic tiers (real browser)', () => {
 		expect(band[1]).toHaveAttribute('text-anchor', 'end')
 
 		// The inward anchor keeps both ends inside the plot rather than overhanging it.
-		expect(clearsHorizontally(container, 'chart-axis-x')).toBe(true)
+		expectClearsHorizontally(container, 'chart-axis-x')
 	})
 
 	it('drops the band row of a short frame yet clears the floor value label', () => {
@@ -166,6 +173,6 @@ describe('chart intrinsic tiers (real browser)', () => {
 
 		expect(bySlot(container, 'chart-grid-lines')).not.toBeNull()
 
-		expect(clearsHorizontally(container, 'chart-axis-x')).toBe(true)
+		expectClearsHorizontally(container, 'chart-axis-x')
 	})
 })

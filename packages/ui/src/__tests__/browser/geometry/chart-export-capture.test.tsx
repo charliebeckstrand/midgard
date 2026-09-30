@@ -5,6 +5,7 @@ import { BarChart } from '../../../modules/chart/bar-chart'
 import { type ChartCapture, prepareChartCapture } from '../../../modules/chart/engine/chart-export'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { attach, getSlot, noop, present, renderUI, waitFor } from '../../helpers'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The synchronous half of an image export: the style-frozen clone of the chart,
@@ -120,9 +121,9 @@ describe('chart image capture (real browser)', () => {
 		// The rail is outside the crop, and the crop is the width of the drawing.
 		expect(box.x + box.width).toBeLessThanOrEqual(Math.ceil(legend.left))
 
-		expect(Math.abs(box.width - svg.width)).toBeLessThanOrEqual(1)
+		expect(box.width).toBeNear(svg.width, PIXEL)
 
-		expect(Math.abs(box.x - svg.left)).toBeLessThanOrEqual(1)
+		expect(box.x).toBeNear(svg.left, PIXEL)
 
 		// The pruned legend keeps no entries in the clone.
 		expect(result.clone.querySelector('[data-slot="chart-legend-item"]')).toBeNull()
@@ -135,14 +136,14 @@ describe('chart image capture (real browser)', () => {
 
 		const { box, clone } = prepareChartCapture(root, false)
 
-		expect(Math.abs(box.width - svg.width)).toBeLessThanOrEqual(1)
+		expect(box.width).toBeNear(svg.width, PIXEL)
 
 		layOut(clone)
 
 		const moved = relative(drawing(clone), clone)
 
 		// In the clone, the drawing sits at the left edge of the crop, where the rail was.
-		expect(Math.abs(moved.left - box.x)).toBeLessThanOrEqual(1)
+		expect(moved.left).toBeNear(box.x, PIXEL)
 
 		expect(moved.left).toBeLessThan(svg.left - 1)
 	})
@@ -160,13 +161,13 @@ describe('chart image capture (real browser)', () => {
 
 		const { box, clone } = prepareChartCapture(root, false)
 
-		expect(Math.abs(box.width - svg.width)).toBeLessThanOrEqual(1)
+		expect(box.width).toBeNear(svg.width, PIXEL)
 
 		layOut(clone)
 
 		const moved = relative(drawing(clone), clone)
 
-		expect(Math.abs(moved.right - (box.x + box.width))).toBeLessThanOrEqual(1)
+		expect(moved.right).toBeNear(box.x + box.width, PIXEL)
 
 		expect(moved.right).toBeGreaterThan(svg.right + 1)
 	})
@@ -190,11 +191,11 @@ describe('chart image capture (real browser)', () => {
 
 		expect(box.y).toBeLessThan(header.bottom)
 
-		expect(Math.abs(box.y + box.height - moved.bottom)).toBeLessThanOrEqual(1)
+		expect(box.y + box.height).toBeNear(moved.bottom, PIXEL)
 
 		expect(moved.bottom).toBeLessThan(svg.bottom - 1)
 
-		expect(Math.abs(box.width - svg.width)).toBeLessThanOrEqual(1)
+		expect(box.width).toBeNear(svg.width, PIXEL)
 	})
 
 	it('ends the crop of a bottom legend at the drawing', async () => {
@@ -204,7 +205,7 @@ describe('chart image capture (real browser)', () => {
 
 		const { box } = prepareChartCapture(root, false)
 
-		expect(Math.abs(box.y + box.height - svg.bottom)).toBeLessThanOrEqual(1)
+		expect(box.y + box.height).toBeNear(svg.bottom, PIXEL)
 
 		expect(box.y + box.height).toBeLessThan(root.getBoundingClientRect().height - 1)
 	})

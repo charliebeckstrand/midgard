@@ -6,6 +6,7 @@ import {
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
 import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The overlay's one geometry invariant, in a real browser: the highlight layer is the page
@@ -19,6 +20,9 @@ import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } 
  * and only computed layout says whether they do. `use-pdf-viewer-page-scale.test.ts` proves
  * the transform string both of them read; it cannot prove that both of them read it.
  */
+
+// The scale transform rounds the edges of the two boxes, so an edge can move by this much.
+const SAME_BOX = 0.1
 
 const PAGE_WIDTH = 816
 
@@ -67,21 +71,10 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 		return getSlot(container, 'pdf-viewer-highlights')
 	}
 
-	/** Every edge, to a twentieth of a pixel: the two are one box, or the regions are wrong. */
-	function expectSameBox(a: DOMRect, b: DOMRect) {
-		expect(a.left).toBeCloseTo(b.left, 1)
-
-		expect(a.top).toBeCloseTo(b.top, 1)
-
-		expect(a.width).toBeCloseTo(b.width, 1)
-
-		expect(a.height).toBeCloseTo(b.height, 1)
-	}
-
 	it('draws the layer over the page image, edge for edge', async () => {
 		const { container, image } = await viewer()
 
-		expectSameBox(layerOf(container).getBoundingClientRect(), image.getBoundingClientRect())
+		expect(layerOf(container)).toMatchBox(image, { tolerance: SAME_BOX })
 	})
 
 	it('keeps them one box through a zoom step', async () => {
@@ -93,7 +86,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 
 		await waitFor(() => expect(image.getBoundingClientRect().width).toBeGreaterThan(before))
 
-		expectSameBox(layerOf(container).getBoundingClientRect(), image.getBoundingClientRect())
+		expect(layerOf(container)).toMatchBox(image, { tolerance: SAME_BOX })
 	})
 
 	it('keeps them one box through a rotation', async () => {
@@ -107,9 +100,11 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 		// what transposes. So wait on the frame, which is the box that visibly changes.
 		const frame = getSlot(container, 'pdf-viewer-page-frame')
 
-		await waitFor(() => expect(frame.getBoundingClientRect().height).not.toBeCloseTo(upright, 0))
+		await waitFor(() =>
+			expect(frame.getBoundingClientRect().height).not.toBeNear(upright, HALF_PIXEL),
+		)
 
-		expectSameBox(layerOf(container).getBoundingClientRect(), image.getBoundingClientRect())
+		expect(layerOf(container)).toMatchBox(image, { tolerance: SAME_BOX })
 	})
 
 	it('lands a region on the fraction of the page it names', async () => {
@@ -117,14 +112,20 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 
 		const box = image.getBoundingClientRect()
 
-		const region = screen.getByLabelText('Total charges').getBoundingClientRect()
+		const region = screen.getByLabelText('Total charges')
 
-		expect(region.left).toBeCloseTo(box.left + rect.x * box.width, 1)
+		const left = box.left + rect.x * box.width
 
-		expect(region.top).toBeCloseTo(box.top + rect.y * box.height, 1)
+		const top = box.top + rect.y * box.height
 
-		expect(region.width).toBeCloseTo(rect.width * box.width, 1)
-
-		expect(region.height).toBeCloseTo(rect.height * box.height, 1)
+		expect(region).toMatchBox(
+			{
+				left,
+				top,
+				right: left + rect.width * box.width,
+				bottom: top + rect.height * box.height,
+			},
+			{ tolerance: SAME_BOX },
+		)
 	})
 })

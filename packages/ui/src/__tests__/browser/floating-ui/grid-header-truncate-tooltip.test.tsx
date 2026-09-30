@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid } from '../../../modules/grid'
 import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { textOverflow } from '../helpers/text-overflow'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -65,11 +67,9 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		if (!separator) throw new Error('resize separator not found')
 
-		const rect = separator.getBoundingClientRect()
+		const x = centerOf(separator).x
 
-		const x = rect.left + rect.width / 2
-
-		const y = rect.top + 4
+		const y = separator.getBoundingClientRect().top + 4
 
 		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
 
@@ -89,14 +89,6 @@ describe('grid header truncation tooltip (real browser)', () => {
 		// detector now arms at the first device sub-pixel of overflow, so target the
 		// band the prior tenth-of-a-pixel slack missed: a clip under 0.1px where
 		// scroll/client still round equal yet a Range measures the title wider.
-		const measureOverflow = (span: HTMLElement) => {
-			const range = document.createRange()
-
-			range.selectNodeContents(span)
-
-			return range.getBoundingClientRect().width - span.getBoundingClientRect().width
-		}
-
 		const titleSpan = (root: HTMLElement) =>
 			root.querySelector<HTMLElement>('th[data-grid-col="name"] span.truncate')
 
@@ -153,7 +145,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 			const span = await settledSpan(container)
 
 			if (span.scrollWidth === span.clientWidth) {
-				const overflow = measureOverflow(span)
+				const overflow = textOverflow(span)
 
 				if (overflow > 0.02 && overflow < 0.1) deadZone = w
 			}

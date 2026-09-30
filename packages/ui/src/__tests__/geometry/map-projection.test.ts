@@ -19,6 +19,24 @@ import {
 import type { MapFeature } from '../../modules/map/engine/types'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
+/**
+ * The fit centers the geography, so the sum of two opposite edges can miss the
+ * frame size by this bound in frame units.
+ */
+const HALF_FRAME_UNIT = 0.5
+
+/**
+ * Adaptive resampling in d3 refines each curve at the scale of its pass, so two
+ * fits can differ by one percent of scale.
+ */
+const RESAMPLE_SCALE_RATIO = 0.01
+
+/**
+ * The fit margin and the resampling move the scale ratio of the two frames less
+ * than this bound from four.
+ */
+const REFIT_RATIO_TOLERANCE = 0.5
+
 const FEATURES = FIXTURE_GEOJSON.features
 
 // A triangle inside the lower 48, so the US composite projection has geometry
@@ -132,16 +150,16 @@ describe('scaleCanonicalFit', () => {
 
 			expect(Math.min(width - (x1 - x0), height - (y1 - y0))).toBeLessThan(1)
 
-			expect(x0 + x1).toBeCloseTo(width, 0)
+			expect(x0 + x1).toBeNear(width, HALF_FRAME_UNIT)
 
-			expect(y0 + y1).toBeCloseTo(height, 0)
+			expect(y0 + y1).toBeNear(height, HALF_FRAME_UNIT)
 
 			// And it lands where a direct fitSize would, within the sub-percent
 			// margin of d3's adaptive resampling, which refines each pass's curves
 			// at the scale that pass runs at.
 			const direct = fitMapProjection(spec, features, width, height)
 
-			expect(Math.abs(derived.scale() / direct.scale() - 1)).toBeLessThan(0.01)
+			expect(derived.scale() / direct.scale()).toBeNear(1, RESAMPLE_SCALE_RATIO)
 		}
 	})
 
@@ -174,7 +192,7 @@ describe('measuredMapFit', () => {
 
 		const direct = fitMapProjection('mercator', FEATURES, 300, 100)
 
-		expect(Math.abs(fit.scale() / direct.scale() - 1)).toBeLessThan(0.01)
+		expect(fit.scale() / direct.scale()).toBeNear(1, RESAMPLE_SCALE_RATIO)
 	})
 
 	it('is null when there is nothing to frame', () => {
@@ -213,7 +231,7 @@ describe('measuredMapFit', () => {
 
 		// The 4×-wider frame fits the same geography at ~4× the scale — the instance
 		// is refit in place rather than frozen at the first frame's fit.
-		expect(large.scale() / smallScale).toBeCloseTo(4, 0)
+		expect(large.scale() / smallScale).toBeNear(4, REFIT_RATIO_TOLERANCE)
 	})
 })
 

@@ -3,6 +3,9 @@ import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { getSlot, renderUI, waitFor } from '../../helpers'
 
+// The ratio of two rounded lengths drifts from the declared ratio by less than this.
+const ASPECT_SLACK = 0.05
+
 /**
  * A chart title and subtitle band above the plot inside the aspect box, so the
  * drawing fills the height they leave rather than pushing past a 16/9 tile. At
@@ -56,7 +59,7 @@ describe('chart header (real browser)', () => {
 		// and plot fit the ratio rather than overflowing a 16/9 tile.
 		const figureRect = figure.getBoundingClientRect()
 
-		expect(figureRect.width / figureRect.height).toBeCloseTo(16 / 9, 1)
+		expect(figureRect.width / figureRect.height).toBeNear(16 / 9, ASPECT_SLACK)
 
 		expect(header.getBoundingClientRect().top).toBeGreaterThanOrEqual(figureRect.top - 1)
 	})

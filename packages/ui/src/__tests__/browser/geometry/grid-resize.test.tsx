@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 import { pause } from '../helpers/wall-clock'
+
+// The handle and the header cell can differ by a hairline cell border, up to this much.
+const HANDLE_HEIGHT_SLACK = 2
+
+// The auto-fit around a seeded width can move it by less than this.
+const SEEDED_WIDTH_SLACK = 5
 
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
@@ -75,7 +83,7 @@ describe('grid column resizing (real browser)', () => {
 
 			const headerHeight = nameHeader(container).getBoundingClientRect().height
 
-			expect(Math.abs(handleHeight - headerHeight)).toBeLessThanOrEqual(2)
+			expect(handleHeight).toBeNear(headerHeight, HANDLE_HEIGHT_SLACK)
 		})
 
 		// And it stops well short of the full column: six rows make the table several
@@ -102,7 +110,7 @@ describe('grid column resizing (real browser)', () => {
 
 		const headerRect = nameHeader(container).getBoundingClientRect()
 
-		expect(gripRect.height).toBeCloseTo(16, 0)
+		expect(gripRect.height).toBeNear(16, HALF_PIXEL)
 
 		expect(gripRect.height).toBeLessThan(headerRect.height)
 
@@ -118,11 +126,7 @@ describe('grid column resizing (real browser)', () => {
 
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
-		const rect = separator.getBoundingClientRect()
-
-		const startX = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
+		const { x: startX, y } = centerOf(separator)
 
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
 
@@ -199,7 +203,7 @@ describe('grid column resizing (real browser)', () => {
 			expect(
 				container.querySelector<HTMLElement>('th[data-grid-col="name"]')?.getBoundingClientRect()
 					.width,
-			).toBeCloseTo(320, -1),
+			).toBeNear(320, SEEDED_WIDTH_SLACK),
 		)
 	})
 
@@ -223,11 +227,7 @@ describe('grid column resizing (real browser)', () => {
 			'span[aria-hidden="true"]',
 		)
 
-		const rect = separator.getBoundingClientRect()
-
-		const startX = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
+		const { x: startX, y } = centerOf(separator)
 
 		// Hold the drag open — mousedown plus a move, but no mouseup yet.
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
@@ -295,11 +295,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 	it('keeps the resize handle topmost on the header trailing edge', async () => {
 		const { separator } = setup()
 
-		const rect = separator.getBoundingClientRect()
-
-		const x = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
+		const { x, y } = centerOf(separator)
 
 		// The handle (or its grip child) is the element under the pointer at the
 		// header's trailing edge, so a drag-resize begins on it even though the reorder
@@ -312,11 +308,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
-		const rect = separator.getBoundingClientRect()
-
-		const startX = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
+		const { x: startX, y } = centerOf(separator)
 
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
 
@@ -381,11 +373,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 
 		const startC = header(container, 'c').getBoundingClientRect().width
 
-		const rect = handle.getBoundingClientRect()
-
-		const startX = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
+		const { x: startX, y } = centerOf(handle)
 
 		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })
 
@@ -399,13 +387,9 @@ describe('grid column resize holds the other columns (real browser)', () => {
 		)
 
 		// …and the others held — no redistribution into the space the drag consumed.
-		expect(
-			Math.abs(header(container, 'b').getBoundingClientRect().width - startB),
-		).toBeLessThanOrEqual(1)
+		expect(header(container, 'b').getBoundingClientRect().width).toBeNear(startB, PIXEL)
 
-		expect(
-			Math.abs(header(container, 'c').getBoundingClientRect().width - startC),
-		).toBeLessThanOrEqual(1)
+		expect(header(container, 'c').getBoundingClientRect().width).toBeNear(startC, PIXEL)
 
 		// The hold survives a later auto-fit trigger: a rows change re-runs the
 		// autosizer, which must not re-fit a grid the user has taken control of.
@@ -417,12 +401,8 @@ describe('grid column resize holds the other columns (real browser)', () => {
 
 		await waitFor(() => expect(container.querySelectorAll('tbody tr').length).toBeGreaterThan(4))
 
-		expect(
-			Math.abs(header(container, 'b').getBoundingClientRect().width - startB),
-		).toBeLessThanOrEqual(1)
+		expect(header(container, 'b').getBoundingClientRect().width).toBeNear(startB, PIXEL)
 
-		expect(
-			Math.abs(header(container, 'c').getBoundingClientRect().width - startC),
-		).toBeLessThanOrEqual(1)
+		expect(header(container, 'c').getBoundingClientRect().width).toBeNear(startC, PIXEL)
 	})
 })

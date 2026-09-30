@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * An open editor sits inside the truncation span of its cell. That span clips
@@ -71,14 +73,16 @@ describe('grid edit validation overflow (real browser)', () => {
 			// The scroll into view did not scroll the span, so the editor holds its place.
 			expect(span.scrollTop).toBe(0)
 
-			expect(input.getBoundingClientRect().top).toBeCloseTo(top, 0)
+			expect(input.getBoundingClientRect().top).toBeNear(top, HALF_PIXEL)
 
 			// No ancestor clips the message: the point at its center hits it.
 			const box = message.getBoundingClientRect()
 
 			expect(box.height).toBeGreaterThan(0)
 
-			const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+			const { x, y } = centerOf(message)
+
+			const hit = document.elementFromPoint(x, y)
 
 			expect(hit && message.contains(hit)).toBe(true)
 		})

@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The grid chrome in a right-to-left grid. Each edge, margin, and alignment
@@ -71,7 +72,7 @@ describe('grid toolbar and footer layout in a right-to-left grid (real browser)'
 
 		const bar = present(content.parentElement, 'the toolbar row')
 
-		expect(Math.abs(fromEnd(content, bar))).toBeLessThanOrEqual(1)
+		expect(fromEnd(content, bar)).toBeNear(0, PIXEL)
 	})
 
 	it('pushes the table tools to the inline end', () => {
@@ -90,7 +91,7 @@ describe('grid toolbar and footer layout in a right-to-left grid (real browser)'
 
 		const bar = present(tools.parentElement, 'the toolbar row')
 
-		expect(Math.abs(fromEnd(tools, bar))).toBeLessThanOrEqual(1)
+		expect(fromEnd(tools, bar)).toBeNear(0, PIXEL)
 	})
 
 	it('pushes the footer content to the inline end', () => {
@@ -109,7 +110,7 @@ describe('grid toolbar and footer layout in a right-to-left grid (real browser)'
 
 		const bar = present(trailing.parentElement, 'the footer bar')
 
-		expect(Math.abs(fromEnd(trailing, bar))).toBeLessThanOrEqual(1)
+		expect(fromEnd(trailing, bar)).toBeNear(0, PIXEL)
 	})
 
 	it('aligns the page status to the inline end', () => {
@@ -203,9 +204,10 @@ describe('grid cell editor in a right-to-left grid (real browser)', () => {
 	it('hangs the error message from the inline start of the editor', async () => {
 		const { message, host } = await openInvalidEditor()
 
-		expect(
-			Math.abs(message.getBoundingClientRect().right - host.getBoundingClientRect().right),
-		).toBeLessThanOrEqual(1)
+		expect(message.getBoundingClientRect().right).toBeNear(
+			host.getBoundingClientRect().right,
+			PIXEL,
+		)
 	})
 })
 

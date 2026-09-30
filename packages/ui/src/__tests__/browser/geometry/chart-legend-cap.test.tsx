@@ -3,6 +3,7 @@ import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, bySlot, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { subpathCount } from '../../helpers/geometry/svg-path'
 
 /**
  * A stacked legend caps to the frame tier's row budget: the controls past it
@@ -118,7 +119,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 		// one path, so count the bars as its `M`-opened subfigures.
 		const barCount = () =>
 			allBySlot(container, 'chart-bar').reduce(
-				(sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0),
+				(sum, path) => sum + subpathCount(path.getAttribute('d')),
 				0,
 			)
 

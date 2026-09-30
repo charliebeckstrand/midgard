@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { frames, getSlot, present, renderUI, screen, waitFor } from '../../helpers'
+import { boxOf } from '../../helpers/geometry/box'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The keyboard cursor over a virtualized grid with a sticky header, in a real
@@ -100,17 +102,14 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 	 * scroll ended, and then clears the record for the next step.
 	 */
 	const expectClear = (scroll: HTMLElement, writes: number[]) => {
-		const box = clearBox(scroll)
+		const cell = activeCell()
 
-		const cell = activeCell().getBoundingClientRect()
-
-		expect(cell.top).toBeGreaterThanOrEqual(box.top - 1)
-
-		expect(cell.bottom).toBeLessThanOrEqual(box.bottom + 1)
+		// The outer box takes the side edges of the cell, so the check reads the top and the bottom only.
+		expect({ ...boxOf(cell), ...clearBox(scroll) }).toContainBox(cell, { tolerance: PIXEL })
 
 		const [written] = writes
 
-		if (written !== undefined) expect(Math.abs(written - scroll.scrollTop)).toBeLessThanOrEqual(1)
+		if (written !== undefined) expect(written).toBeNear(scroll.scrollTop, PIXEL)
 
 		writes.length = 0
 	}

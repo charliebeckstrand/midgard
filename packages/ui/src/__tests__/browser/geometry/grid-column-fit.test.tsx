@@ -6,6 +6,7 @@ import { cdp } from 'vitest/browser'
 import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frame, frames, present, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
@@ -91,11 +92,10 @@ describe('grid column auto-sizing (real browser)', () => {
 		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeGreaterThan(250))
 
 		// Equal up to the single leftover pixel the exact-sum rounding hands one column.
-		expect(
-			Math.abs(
-				header('name').getBoundingClientRect().width - header('role').getBoundingClientRect().width,
-			),
-		).toBeLessThanOrEqual(1)
+		expect(header('name').getBoundingClientRect().width).toBeNear(
+			header('role').getBoundingClientRect().width,
+			PIXEL,
+		)
 	})
 
 	it('widens the column whose data would truncate, leaving the others narrower', async () => {
@@ -122,11 +122,10 @@ describe('grid column auto-sizing (real browser)', () => {
 		)
 
 		// …which settle equal to each other (up to the single leftover rounding pixel).
-		expect(
-			Math.abs(
-				header('a').getBoundingClientRect().width - header('b').getBoundingClientRect().width,
-			),
-		).toBeLessThanOrEqual(1)
+		expect(header('a').getBoundingClientRect().width).toBeNear(
+			header('b').getBoundingClientRect().width,
+			PIXEL,
+		)
 	})
 
 	it('keeps a single-word header from truncating, even when squeezed', async () => {
@@ -182,7 +181,7 @@ describe('grid column auto-sizing (real browser)', () => {
 		// width-less column absorbs the rest.
 		await waitFor(() => expect(header('flex').getBoundingClientRect().width).toBeGreaterThan(250))
 
-		expect(header('fixed').getBoundingClientRect().width).toBeCloseTo(250, 0)
+		expect(header('fixed').getBoundingClientRect().width).toBeNear(250, HALF_PIXEL)
 	})
 
 	it('holds a pinned column at its content width, flowing the surplus to the scrolling column', async () => {
@@ -330,7 +329,9 @@ describe('grid column auto-sizing (real browser)', () => {
 		])
 
 		// The seed holds the column at 250px while the other column fills the rest.
-		await waitFor(() => expect(header('fixed').getBoundingClientRect().width).toBeCloseTo(250, 0))
+		await waitFor(() =>
+			expect(header('fixed').getBoundingClientRect().width).toBeNear(250, HALF_PIXEL),
+		)
 
 		fireEvent.contextMenu(header('fixed'))
 

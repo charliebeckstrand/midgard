@@ -3,6 +3,8 @@ import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { bySlot, getSlot, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { plotViewBox } from '../helpers/plot-view-box'
 
 /**
  * A side (left / right) legend keeps the `aspectRatio` on the plot box and bands
@@ -18,6 +20,9 @@ import { bySlot, getSlot, renderUI, waitFor } from '../../helpers'
 // measure. The second block asserts pixels too, and a `beforeAll` inside the
 // first would leave it running at whatever the page happened to hold.
 beforeAll(() => page.viewport(960, 700))
+
+// The ratio of two rounded lengths drifts from the declared ratio by less than this.
+const ASPECT_SLACK = 0.05
 
 describe('chart aspect ratio with a side legend (real browser)', () => {
 	const months = [
@@ -60,7 +65,7 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 
 		// The rendered drawing box resolves to 16:9 — the whole point: a side legend
 		// no longer narrows the plot's own ratio.
-		expect(boxRect.width / boxRect.height).toBeCloseTo(16 / 9, 1)
+		expect(boxRect.width / boxRect.height).toBeNear(16 / 9, ASPECT_SLACK)
 
 		const legendRect = legend.getBoundingClientRect()
 
@@ -108,15 +113,6 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 		)
 	}
 
-	/** The plot SVG's `viewBox`, parsed by the engine rather than by hand. */
-	function viewBox(container: HTMLElement): SVGRect {
-		const svg = getSlot(container, 'chart-plot').querySelector('svg')
-
-		if (!svg) throw new Error('no plot SVG')
-
-		return svg.viewBox.baseVal
-	}
-
 	it('resolves the figure to the ratio and draws the plot into the legend remainder', async () => {
 		const { container } = chart({ aspectRatio: 16 / 9, legend: 'bottom' })
 
@@ -126,12 +122,12 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 
 		const legend = getSlot(container, 'chart-legend')
 
-		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
+		await waitFor(() => expect(plotViewBox(container, 'chart-plot').height).toBeGreaterThan(0))
 
 		// The whole chart holds the ratio, and it actually resolves to it.
 		const box = figure.getBoundingClientRect()
 
-		expect(box.width / box.height).toBeCloseTo(16 / 9, 1)
+		expect(box.width / box.height).toBeNear(16 / 9, ASPECT_SLACK)
 
 		// The plot reserves nothing of its own; it takes what the band leaves.
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
@@ -143,9 +139,9 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 		// The drawing height is the measured remainder, not the ratio's full
 		// height — which is the claim jsdom could only make by supplying the
 		// remainder itself.
-		expect(viewBox(container).height).toBeCloseTo(plot.clientHeight, 0)
+		expect(plotViewBox(container, 'chart-plot').height).toBeNear(plot.clientHeight, HALF_PIXEL)
 
-		expect(viewBox(container).height).toBeLessThan(box.height)
+		expect(plotViewBox(container, 'chart-plot').height).toBeLessThan(box.height)
 	})
 
 	it('fills the plot into a definite container height under aspectRatio={false}', async () => {
@@ -157,14 +153,14 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 
 		const plot = getSlot(container, 'chart-plot')
 
-		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
+		await waitFor(() => expect(plotViewBox(container, 'chart-plot').height).toBeGreaterThan(0))
 
 		// Free-form fill: the plot grows into the container's height rather than
 		// reserving one from its own width and collapsing to the zero that reserve
 		// would measure. jsdom read this off class strings.
 		expect(plot.getBoundingClientRect().height).toBeGreaterThan(150)
 
-		expect(viewBox(container).height).toBeCloseTo(plot.clientHeight, 0)
+		expect(plotViewBox(container, 'chart-plot').height).toBeNear(plot.clientHeight, HALF_PIXEL)
 	})
 
 	it('shares a square between a pie and its legend, filling the pie into the remainder', async () => {
@@ -190,7 +186,7 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 		// the pie takes the remainder beneath the band.
 		const box = figure.getBoundingClientRect()
 
-		expect(box.width / box.height).toBeCloseTo(1, 1)
+		expect(box.width / box.height).toBeNear(1, ASPECT_SLACK)
 
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
 

@@ -5,6 +5,7 @@ import { cn } from '../../../core'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import { k as pdf } from '../../../recipes/kata/pdf-viewer'
 import { frames, present, renderUI } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { settledSheet } from '../helpers/settled-sheet'
 
 /**
@@ -50,7 +51,7 @@ describe('sidebar layout in RTL (real browser)', () => {
 		const rect = panel.getBoundingClientRect()
 
 		// The `sm:*-4` float, on the start side.
-		expect(fromStart(rect, dir)).toBeCloseTo(16, 0)
+		expect(fromStart(rect, dir)).toBeNear(16, HALF_PIXEL)
 
 		expect(rect.width).toBeLessThan(window.innerWidth / 2)
 	})
@@ -66,7 +67,7 @@ describe('sidebar layout in RTL (real browser)', () => {
 
 		const rect = (await settledSheet()).getBoundingClientRect()
 
-		expect(fromStart(rect, dir) + rect.width).toBeCloseTo(window.innerWidth - 16, 0)
+		expect(fromStart(rect, dir) + rect.width).toBeNear(window.innerWidth - 16, HALF_PIXEL)
 	})
 
 	it.each(DIRECTIONS)('opens the floating sidebar from the start edge (%s)', async (dir) => {
@@ -87,14 +88,14 @@ describe('sidebar layout in RTL (real browser)', () => {
 			'hover strip',
 		)
 
-		expect(fromStart(strip.getBoundingClientRect(), dir)).toBeCloseTo(0, 0)
+		expect(fromStart(strip.getBoundingClientRect(), dir)).toBeNear(0, HALF_PIXEL)
 
 		await userEvent.hover(strip)
 
 		const rect = (await settledSheet()).getBoundingClientRect()
 
 		// Flush to the start edge, not floated in from it.
-		expect(fromStart(rect, dir)).toBeCloseTo(0, 0)
+		expect(fromStart(rect, dir)).toBeNear(0, HALF_PIXEL)
 	})
 
 	it.each(DIRECTIONS)('hides a closed PDF page rail past the start edge (%s)', async (dir) => {

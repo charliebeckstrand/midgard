@@ -28,6 +28,12 @@ export const FLOAT = 1e-9
 export const LAYOUT_UNIT = 1 / 64
 
 /**
+ * Half a CSS pixel. A fractional layout, such as a percentage or a flex share,
+ * puts an edge less than this away from the whole pixel that a test expects.
+ */
+export const HALF_PIXEL = 0.5
+
+/**
  * One CSS pixel: the error of an edge that the engine snaps to the pixel grid.
  * A border, a scroll offset, and a composited transform can each snap.
  */

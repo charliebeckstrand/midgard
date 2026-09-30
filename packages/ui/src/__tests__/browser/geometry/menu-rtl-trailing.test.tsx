@@ -8,6 +8,7 @@ import {
 	MenuSub,
 } from '../../../components/menu'
 import { getSlot, present, renderUI, screen } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The trailing parts of a menu row sit at the inline end, in both directions.
@@ -74,11 +75,11 @@ describe('menu row trailing parts (real browser)', () => {
 
 		expect(shortcut.left).toBeGreaterThan(label.right)
 
-		expect(shortcut.right).toBeCloseTo(row.right, 0)
+		expect(shortcut.right).toBeNear(row.right, HALF_PIXEL)
 
 		expect(chevron.left).toBeGreaterThan(subLabel.right)
 
-		expect(chevron.right).toBeCloseTo(subRow.right, 0)
+		expect(chevron.right).toBeNear(subRow.right, HALF_PIXEL)
 	})
 
 	it('moves the shortcut and chevron to the left end in RTL, and mirrors the chevron', () => {
@@ -86,11 +87,11 @@ describe('menu row trailing parts (real browser)', () => {
 
 		expect(shortcut.right).toBeLessThan(label.left)
 
-		expect(shortcut.left).toBeCloseTo(row.left, 0)
+		expect(shortcut.left).toBeNear(row.left, HALF_PIXEL)
 
 		expect(chevron.right).toBeLessThan(subLabel.left)
 
-		expect(chevron.left).toBeCloseTo(subRow.left, 0)
+		expect(chevron.left).toBeNear(subRow.left, HALF_PIXEL)
 
 		expect(scale).toMatch(/^-1\b/)
 	})

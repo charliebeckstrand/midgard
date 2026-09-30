@@ -1,8 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { GUTTER_MAX } from '../../../modules/chart/engine/chart-constants'
 import { getSlot, renderUI, waitFor } from '../../helpers'
+import { boxOf } from '../../helpers/geometry/box'
+import { installDocsFont } from '../helpers/docs-font'
 
 /**
  * A horizontal bar chart's category label stays inside the frame. The left
@@ -11,21 +13,9 @@ import { getSlot, renderUI, waitFor } from '../../helpers'
  * "Organic search" and "Email newsletters" are wider than the 96 px gutter cap,
  * and the old per-glyph estimate clipped them at the frame edge.
  *
- * The browser project shares one page across files, so the font loads as a
- * `FontFace` that this file removes again, and only the chart host sets it.
- *
  * Rides the real browser because the claim is a computed one: jsdom has no
  * text layout.
  */
-const DOCS_FONT_URL = new URL(
-	'../../../docs/engine/fonts/GoogleSansFlex-VariableFont_opsz,wght.woff2',
-	import.meta.url,
-).href
-
-const DOCS_FONT = new FontFace('Google Sans Flex', `url("${DOCS_FONT_URL}")`, {
-	weight: '100 1000',
-})
-
 const DATA = [
 	{ source: 'Organic search', visits: 4200 },
 	{ source: 'Direct', visits: 2600 },
@@ -33,7 +23,7 @@ const DATA = [
 	{ source: 'Email newsletters', visits: 500 },
 ]
 
-/** Each category label as it draws, its overflow past the left edge of the drawing in px, and the gutter. */
+/** The box of the drawing, and each category label as it draws with its left edge and its anchor. */
 async function bandLabels(width: number) {
 	const { container } = renderUI(
 		<div style={{ width, fontFamily: '"Google Sans Flex"' }}>
@@ -59,32 +49,28 @@ async function bandLabels(width: number) {
 
 	if (!svg) throw new Error('expected the plot drawing')
 
-	const frame = svg.getBoundingClientRect()
-
-	return texts.map((text) => ({
-		text: text.textContent,
-		overflow: Math.max(0, frame.left - text.getBoundingClientRect().left),
-		// The label ends GUTTER_GAP before the plot, so its anchor bounds the gutter.
-		anchor: Number(text.getAttribute('x')),
-	}))
+	return {
+		frame: boxOf(svg),
+		labels: texts.map((text) => ({
+			text: text.textContent,
+			left: boxOf(text).left,
+			// The label ends GUTTER_GAP before the plot, so its anchor bounds the gutter.
+			anchor: Number(text.getAttribute('x')),
+		})),
+	}
 }
 
 describe('horizontal band labels (real browser)', () => {
 	beforeAll(() => page.viewport(960, 700))
 
-	beforeAll(async () => {
-		document.fonts.add(await DOCS_FONT.load())
-	})
-
-	afterAll(() => {
-		document.fonts.delete(DOCS_FONT)
-	})
+	installDocsFont()
 
 	for (const width of [480, 640, 960]) {
 		it(`keeps every category label inside a ${width}px frame`, async () => {
-			const labels = await bandLabels(width)
+			const { frame, labels } = await bandLabels(width)
 
-			expect(labels.map((label) => label.overflow)).toEqual(DATA.map(() => 0))
+			// The check reads the left edge only.
+			for (const label of labels) expect(frame).toContainBox({ ...frame, left: label.left })
 
 			// Only the labels past the room are cut.
 			expect(labels.map((label) => label.text)).toEqual([

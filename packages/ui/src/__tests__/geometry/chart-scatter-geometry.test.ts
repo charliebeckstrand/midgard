@@ -10,6 +10,12 @@ import {
 } from '../../modules/chart/engine/chart-geometry/scatter'
 import { nearestStopIndex } from '../../modules/chart/engine/chart-snap'
 
+/**
+ * A bubble radius comes from a square root, so the case checks it to two
+ * decimal places of a frame unit.
+ */
+const RADIUS_TOLERANCE = 0.005
+
 describe('scatter geometry', () => {
 	it('keys on the ascending unique x values across series', () => {
 		expect(
@@ -95,27 +101,27 @@ describe('scatter geometry', () => {
 
 		const large = sizeRadius(100, [1, 100], diameters)
 
-		expect(small).toBeCloseTo(4)
+		expect(small).toBeNear(4, RADIUS_TOLERANCE)
 
-		expect(large).toBeCloseTo(14)
+		expect(large).toBeNear(14, RADIUS_TOLERANCE)
 
 		// Area-true: a quarter of the size is half the radius span, not a quarter.
-		expect(sizeRadius(25, [0, 100], diameters)).toBeCloseTo(4 + (14 - 4) / 2)
+		expect(sizeRadius(25, [0, 100], diameters)).toBeNear(4 + (14 - 4) / 2, RADIUS_TOLERANCE)
 	})
 
 	it('reads equal sizes as mid-range and a sizeless point as smallest', () => {
 		const diameters = diameterRange(8, 28)
 
-		expect(sizeRadius(7, [7, 7], diameters)).toBeCloseTo(9)
+		expect(sizeRadius(7, [7, 7], diameters)).toBeNear(9, RADIUS_TOLERANCE)
 
-		expect(sizeRadius(null, [1, 100], diameters)).toBeCloseTo(4)
+		expect(sizeRadius(null, [1, 100], diameters)).toBeNear(4, RADIUS_TOLERANCE)
 	})
 
 	it('draws a zero size at the smallest diameter and a negative size as no disc', () => {
 		const diameters = diameterRange(8, 28)
 
 		// Every size is zero, so the extent collapses. The discs still read smallest, not mid-range.
-		expect(sizeRadius(0, [0, 0], diameters)).toBeCloseTo(4)
+		expect(sizeRadius(0, [0, 0], diameters)).toBeNear(4, RADIUS_TOLERANCE)
 
 		expect(sizeRadius(-3, [0, 16], diameters)).toBe(0)
 	})

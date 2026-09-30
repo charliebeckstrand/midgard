@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../../modules/grid'
 import { stickyHeadInset } from '../../../modules/grid/engine/grid-sticky-insets'
 import { fireEvent, frames, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The two sticky header rows of a grid with column groups, in a real browser.
@@ -97,12 +98,12 @@ describe('grid sticky header rows with column groups (real browser)', () => {
 				const bandBottom = bottom(band)
 
 				// The band sticks at the top edge.
-				for (const cell of band) expect(cell.getBoundingClientRect().top).toBeCloseTo(top, 0)
+				for (const cell of band) expect(cell.getBoundingClientRect().top).toBeNear(top, HALF_PIXEL)
 
 				// The column row sticks at the bottom edge of the band, so no cell of
 				// one row covers a cell of the other.
 				for (const cell of cells(1))
-					expect(cell.getBoundingClientRect().top).toBeCloseTo(bandBottom, 0)
+					expect(cell.getBoundingClientRect().top).toBeNear(bandBottom, HALF_PIXEL)
 			})
 		})
 	}
@@ -138,16 +139,16 @@ describe('grid sticky header rows with column groups (real browser)', () => {
 
 			expect(getComputedStyle(left).position).toBe('sticky')
 
-			expect(left.getBoundingClientRect().left).toBeCloseTo(edges.left, 0)
+			expect(left.getBoundingClientRect().left).toBeNear(edges.left, HALF_PIXEL)
 
-			expect(right.getBoundingClientRect().right).toBeCloseTo(edges.right, 0)
+			expect(right.getBoundingClientRect().right).toBeNear(edges.right, HALF_PIXEL)
 
 			// Each pinned cell also keeps the top offset of its row.
 			const top = row === 0 ? scroll.getBoundingClientRect().top + scroll.clientTop : bandBottom
 
-			expect(left.getBoundingClientRect().top).toBeCloseTo(top, 0)
+			expect(left.getBoundingClientRect().top).toBeNear(top, HALF_PIXEL)
 
-			expect(right.getBoundingClientRect().top).toBeCloseTo(top, 0)
+			expect(right.getBoundingClientRect().top).toBeNear(top, HALF_PIXEL)
 		}
 	})
 
@@ -156,13 +157,13 @@ describe('grid sticky header rows with column groups (real browser)', () => {
 
 		await waitFor(() => expect(cells(1).length).toBe(columns.length))
 
-		expect(stickyHeadInset(table)).toBeCloseTo(head.getBoundingClientRect().height, 0)
+		expect(stickyHeadInset(table)).toBeNear(head.getBoundingClientRect().height, HALF_PIXEL)
 
 		// Once scrolled, the inset still reaches the bottom of the column row.
 		await scrollTo(0, 1_500)
 
 		const top = scroll.getBoundingClientRect().top + scroll.clientTop
 
-		await waitFor(() => expect(stickyHeadInset(table)).toBeCloseTo(bottom(cells(1)) - top, 0))
+		await waitFor(() => expect(stickyHeadInset(table)).toBeNear(bottom(cells(1)) - top, HALF_PIXEL))
 	})
 })

@@ -15,6 +15,24 @@ import {
 } from '../../modules/chart/engine/chart-geometry/pie'
 import { estimateTextWidth } from '../../modules/chart/engine/chart-text-width'
 
+/**
+ * A sliver only nears two thirds of the radius, and 33.95 is a rounded value,
+ * so a label radius can miss by this bound.
+ */
+const LABEL_RADIUS_TOLERANCE = 0.05
+
+/**
+ * A point that the path string or the callout fit gives carries rounding below
+ * this bound in frame units.
+ */
+const COORDINATE_TOLERANCE = 5e-4
+
+/**
+ * A radius or a callout position that the case computes exactly can carry float
+ * noise below this bound in frame units.
+ */
+const EXACT_FRAME_TOLERANCE = 5e-6
+
 /** The distance from a point to the nearest point of a line segment. */
 function segmentDistance(
 	px: number,
@@ -38,15 +56,15 @@ function segmentDistance(
 describe('pieCentroidRadius', () => {
 	it('pulls a pie label inward as its slice widens', () => {
 		// A sliver sits near two-thirds out; a half slice is drawn toward center.
-		expect(pieCentroidRadius(80, 0, 0.01)).toBeCloseTo((2 / 3) * 80, 1)
+		expect(pieCentroidRadius(80, 0, 0.01)).toBeNear((2 / 3) * 80, LABEL_RADIUS_TOLERANCE)
 
-		expect(pieCentroidRadius(80, 0, 0.5)).toBeCloseTo(33.95, 1)
+		expect(pieCentroidRadius(80, 0, 0.5)).toBeNear(33.95, LABEL_RADIUS_TOLERANCE)
 
 		expect(pieCentroidRadius(80, 0, 0.01)).toBeGreaterThan(pieCentroidRadius(80, 0, 0.5))
 	})
 
 	it('collapses a full-circle pie label to the center', () => {
-		expect(pieCentroidRadius(80, 0, 1)).toBeCloseTo(0, 5)
+		expect(pieCentroidRadius(80, 0, 1)).toBeNear(0, EXACT_FRAME_TOLERANCE)
 	})
 
 	it('holds a donut label on the mid-ring whatever the share', () => {
@@ -131,9 +149,9 @@ describe('pieSlices', () => {
 
 		const last = first?.d.match(/L ([\d.]+) ([\d.]+) Z$/)
 
-		expect(Number(last?.[1])).toBeCloseTo(tip.x, 3)
+		expect(Number(last?.[1])).toBeNear(tip.x, COORDINATE_TOLERANCE)
 
-		expect(Number(last?.[2])).toBeCloseTo(tip.y, 3)
+		expect(Number(last?.[2])).toBeNear(tip.y, COORDINATE_TOLERANCE)
 	})
 
 	it('hands each slice a gapless hit wedge that runs edge to edge', () => {
@@ -278,7 +296,7 @@ describe('pieCallouts', () => {
 		// The label sits exactly CALLOUT_GAP beyond the leader's nub, on the start side.
 		const nubX = Number(points[2]?.split(',')[0])
 
-		expect((first?.x ?? 0) - nubX).toBeCloseTo(CALLOUT_GAP, 5)
+		expect((first?.x ?? 0) - nubX).toBeNear(CALLOUT_GAP, EXACT_FRAME_TOLERANCE)
 	})
 })
 
@@ -319,9 +337,9 @@ describe('pieCalloutFit', () => {
 			return callout.anchor === 'start' ? callout.x + extent : callout.x - extent
 		})
 
-		expect(Math.max(...farEdges)).toBeCloseTo(frameWidth, 3)
+		expect(Math.max(...farEdges)).toBeNear(frameWidth, COORDINATE_TOLERANCE)
 
-		expect(Math.min(...farEdges)).toBeCloseTo(0, 3)
+		expect(Math.min(...farEdges)).toBeNear(0, COORDINATE_TOLERANCE)
 
 		// Not every label reaches an edge — only the widest-reaching one per side.
 		expect(farEdges.some((edge) => edge > 5 && edge < frameWidth - 5)).toBe(true)
@@ -444,13 +462,13 @@ describe('pieCalloutFit', () => {
 
 		expect(fit.cx).toBe(frameWidth / 2)
 
-		expect(fit.radius).toBeCloseTo(
+		expect(fit.radius).toBeNear(
 			frameWidth / 2 -
 				CALLOUT_LEADER -
 				CALLOUT_NUB -
 				CALLOUT_GAP -
 				(texts[0]?.length ?? 0) * CALLOUT_CHAR_WIDTH,
-			5,
+			EXACT_FRAME_TOLERANCE,
 		)
 	})
 })

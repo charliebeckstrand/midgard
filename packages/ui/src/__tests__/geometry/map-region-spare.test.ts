@@ -9,6 +9,12 @@ import { NO_REGION_CLAIM, regionSpare } from '../../modules/map/engine/map-regio
 import type { LngLat, MapFeature, MapPoint2D } from '../../modules/map/engine/types'
 
 /**
+ * A share is a product of fractions, so it carries float noise below this bound
+ * in frame units.
+ */
+const SPARE_TOLERANCE = 5e-11
+
+/**
  * What the region under a dot can spare it — the region half of the hit-target
  * rule, tested where the zone half is (`map-geofence`'s `zoneBudget` block)
  * rather than only through a rendered plat.
@@ -58,7 +64,7 @@ describe('regionSpare', () => {
 		// hands out half — the same rule and the same fraction the zone half uses.
 		const spare = spareOver([square('A', 0, 0, 60)])
 
-		expect(spare({ x: 30, y: 30 }, 1)).toBeCloseTo(shareOf(60), 10)
+		expect(spare({ x: 30, y: 30 }, 1)).toBeNear(shareOf(60), SPARE_TOLERANCE)
 	})
 
 	it('takes the tightest claim where a dot’s target reaches two regions', () => {
@@ -69,10 +75,10 @@ describe('regionSpare', () => {
 
 		const atSeam = spare({ x: 200 - POINT_HIT_RADIUS / 2, y: 10 }, 1)
 
-		expect(atSeam).toBeCloseTo(shareOf(20), 10)
+		expect(atSeam).toBeNear(shareOf(20), SPARE_TOLERANCE)
 
 		// And well clear of the seam it reads the region it actually stands on.
-		expect(spare({ x: 100, y: 100 }, 1)).toBeCloseTo(shareOf(200), 10)
+		expect(spare({ x: 100, y: 100 }, 1)).toBeNear(shareOf(200), SPARE_TOLERANCE)
 	})
 
 	it('claims nothing of a dot standing off every region', () => {
@@ -103,7 +109,7 @@ describe('regionSpare', () => {
 		// fixed frame width spares half as many pixels.
 		const spare = spareOver([square('A', 0, 0, 60)])
 
-		expect(spare({ x: 30, y: 30 }, 2)).toBeCloseTo(shareOf(60) / 2, 10)
+		expect(spare({ x: 30, y: 30 }, 2)).toBeNear(shareOf(60) / 2, SPARE_TOLERANCE)
 	})
 
 	it('measures a region once however many dots stand on it', () => {
@@ -137,7 +143,7 @@ describe('regionSpare', () => {
 		// is what leaves the region every pixel the dot does not literally draw.
 		const room = spareOver([square('A', 0, 0, 8)])({ x: 4, y: 4 }, 1)
 
-		expect(room).toBeCloseTo(shareOf(8), 10)
+		expect(room).toBeNear(shareOf(8), SPARE_TOLERANCE)
 
 		expect(room).toBeLessThan(POINT_RADIUS)
 	})

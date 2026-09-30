@@ -10,6 +10,9 @@ export type Box = {
 	readonly bottom: number
 }
 
+/** A point in the coordinates of the viewport. */
+export type Point = { readonly x: number; readonly y: number }
+
 /** A box, or an element whose bounding box a matcher reads. */
 export type BoxSource = Box | Element
 
@@ -41,13 +44,25 @@ function isElement(source: BoxSource): source is Element {
 	return typeof (source as Element).getBoundingClientRect === 'function'
 }
 
-/** Gives the box of a source. An element gives its bounding box. */
+/**
+ * Gives the box of a source as a plain object. An element gives its bounding
+ * box.
+ *
+ * @remarks
+ * A `DOMRect` keeps its edges as getters on its prototype, so a spread of it
+ * gives an empty object. The copy holds own fields, which a spread keeps.
+ */
 export function boxOf(source: BoxSource): Box {
-	if (!isElement(source)) return source
-
-	const { left, top, right, bottom } = source.getBoundingClientRect()
+	const { left, top, right, bottom } = isElement(source) ? source.getBoundingClientRect() : source
 
 	return { left, top, right, bottom }
+}
+
+/** Gives the center of a box. An element gives the center of its bounding box. */
+export function centerOf(source: BoxSource): Point {
+	const { left, top, right, bottom } = boxOf(source)
+
+	return { x: (left + right) / 2, y: (top + bottom) / 2 }
 }
 
 /**

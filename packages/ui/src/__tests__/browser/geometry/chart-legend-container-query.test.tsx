@@ -3,6 +3,9 @@ import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { getSlot, renderUI, waitFor } from '../../helpers'
 
+// The ratio of two rounded lengths drifts from the declared ratio by less than this.
+const ASPECT_SLACK = 0.05
+
 /**
  * A side legend lays out against the chart's own container width, not the
  * viewport: a `@container` on the chart root gates the side-by-side row on `@sm`
@@ -61,7 +64,7 @@ describe('chart side-legend container query (real browser)', () => {
 		// The plot holds 16:9 and spans only the remainder beside the rail.
 		const boxRect = box.getBoundingClientRect()
 
-		expect(boxRect.width / boxRect.height).toBeCloseTo(16 / 9, 1)
+		expect(boxRect.width / boxRect.height).toBeNear(16 / 9, ASPECT_SLACK)
 
 		expect(boxRect.width).toBeLessThan(320)
 	})

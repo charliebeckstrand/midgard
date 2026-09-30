@@ -11,6 +11,12 @@ import { clusterRadius, MAX_CLUSTER_RADIUS } from '../../modules/map/engine/map-
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 
+/**
+ * A spherical mean uses trigonometry, so the longitude of a cluster anchor
+ * carries noise below this bound in degrees.
+ */
+const LONGITUDE_TOLERANCE = 5e-7
+
 /** One frame unit per degree, so a reach reads straight off the coordinates. */
 const flat = (position: LngLat): MapPoint2D => ({ x: position[0], y: position[1] })
 
@@ -161,7 +167,7 @@ describe('clusterAnchor', () => {
 			[1, 0],
 		]
 
-		expect(clusterAnchor([0, 1], pair)[0]).toBeCloseTo(0.5, 6)
+		expect(clusterAnchor([0, 1], pair)[0]).toBeNear(0.5, LONGITUDE_TOLERANCE)
 	})
 
 	it('leaves a lone dot its own position', () => {

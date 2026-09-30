@@ -18,6 +18,7 @@ import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/
 import type { InnerStep } from '../../../core/density'
 import { Box } from '../../../structure/box'
 import { present, renderUI } from '../../helpers'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * A skeleton reserves the box of the component that replaces it, so the swap moves nothing. This
@@ -164,7 +165,7 @@ describe('skeleton parity (real browser)', () => {
 		expect(skeleton.width).toBe(real.width)
 
 		// The panel height has a fraction of a pixel from its text lines.
-		expect(Math.abs(skeleton.height - real.height)).toBeLessThan(1)
+		expect(skeleton.height).toBeNear(real.height, PIXEL)
 	})
 
 	it.each(['sm', 'md', 'lg'] as const)('TextareaSkeleton has the box of a %s textarea', (size) => {

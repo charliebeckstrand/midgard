@@ -2,6 +2,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { SidebarLayout, SidebarLayoutHeader } from '../../../layouts'
 import { frames, getSlot, present, renderUI, screen } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The scroll model of the sidebar layout.
@@ -72,7 +73,7 @@ describe('sidebar layout below lg (real browser)', () => {
 
 		const bar = navbar.getBoundingClientRect()
 
-		expect(bar.top).toBeCloseTo(0, 0)
+		expect(bar.top).toBeNear(0, HALF_PIXEL)
 
 		expect(bar.height).toBeGreaterThan(0)
 
@@ -121,6 +122,9 @@ describe('sidebar layout from lg up (real browser)', () => {
 		await frames()
 
 		// The navbar is hidden, so the sticky header sits at the top of the region.
-		expect(header.getBoundingClientRect().top).toBeCloseTo(content.getBoundingClientRect().top, 0)
+		expect(header.getBoundingClientRect().top).toBeNear(
+			content.getBoundingClientRect().top,
+			HALF_PIXEL,
+		)
 	})
 })

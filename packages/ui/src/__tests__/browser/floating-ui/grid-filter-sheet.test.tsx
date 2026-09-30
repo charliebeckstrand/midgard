@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
 
 /**
  * Per-column filter Sheet against the real floating engine. A filterable
@@ -193,12 +194,9 @@ describe('grid column filter sheet: date picker layering (real browser)', () => 
 
 		// The calendar must be the topmost element at its own center — not covered by
 		// the sheet's backdrop or panel. A behind-the-scrim calendar fails here.
-		const rect = calendar.getBoundingClientRect()
+		const { x, y } = centerOf(calendar)
 
-		const topmost = document.elementFromPoint(
-			rect.left + rect.width / 2,
-			rect.top + rect.height / 2,
-		)
+		const topmost = document.elementFromPoint(x, y)
 
 		expect(topmost && calendar.contains(topmost)).toBeTruthy()
 	})

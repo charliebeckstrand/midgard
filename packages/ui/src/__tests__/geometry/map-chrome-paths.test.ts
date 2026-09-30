@@ -16,6 +16,12 @@ import { subpathCount } from '../helpers/geometry/svg-path'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
+ * The projection and the path string round each coordinate, so an x of the
+ * outline can miss the frame edge by this bound.
+ */
+const FRAME_EDGE_TOLERANCE = 0.05
+
+/**
  * A mercator fit to the fixture squares — the fit the plat draws chrome under.
  * Held once: nothing here mutates a projection, and the cache keys on this
  * instance, so a fresh fit per call would test a different memo each time.
@@ -70,9 +76,9 @@ describe('chromePaths', () => {
 
 		const xs = Array.from(d.matchAll(/(-?[\d.]+),-?[\d.]+/g), ([, x]) => Number(x))
 
-		expect(Math.min(...xs)).toBeCloseTo(0, 1)
+		expect(Math.min(...xs)).toBeNear(0, FRAME_EDGE_TOLERANCE)
 
-		expect(Math.max(...xs)).toBeCloseTo(400, 1)
+		expect(Math.max(...xs)).toBeNear(400, FRAME_EDGE_TOLERANCE)
 	})
 
 	it("outlines the composite projection's own clip frames", () => {

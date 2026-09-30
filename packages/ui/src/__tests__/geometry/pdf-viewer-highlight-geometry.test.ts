@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { toFractionRect } from '../../components/pdf-viewer/pdf-viewer-highlight-geometry'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
 
+/** The expected fraction 0.386 is 4.25 / 11, rounded to three decimal places. */
+const FRACTION_TOLERANCE = 5e-4
+
 const rect = { x: 1, y: 2, width: 3, height: 4 }
 
 // 612 × 792 pt is US Letter — 8.5 × 11 inches, at 72 pt to the inch.
@@ -29,7 +32,7 @@ describe('toFractionRect', () => {
 
 		expect(converted?.x).toBe(0.5)
 
-		expect(converted?.y).toBeCloseTo(0.386, 3)
+		expect(converted?.y).toBeNear(0.386, FRACTION_TOLERANCE)
 	})
 
 	it('returns null for inches when the page carries no extent', () => {
