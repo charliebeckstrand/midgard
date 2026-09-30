@@ -4,7 +4,9 @@ import { configureAxe } from 'jest-axe'
 import type { ComponentType } from 'react'
 import { onTestFinished, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
+import { DemoApiContext } from '../../docs/engine/components/axes'
 import { AppearanceProvider } from '../../providers/appearance'
+import { demoApiOf } from './demo-api'
 
 // The demo pages of the docs site, and a walk over each state that a page's tabs
 // show. The snippet gate and the demo smoke test read the same pages.
@@ -175,7 +177,7 @@ function titleOf(frame: Element): string | null {
  * that it did not read yet, reads the block, and closes the block again. Thus
  * axe in each later state reads the same DOM as a walk with no harvest.
  */
-async function walk(load: () => Promise<ComponentType>): Promise<DemoWalk> {
+async function walk(page: string, load: () => Promise<ComponentType>): Promise<DemoWalk> {
 	restoreRootAfterCase()
 
 	const logged = captureConsole()
@@ -186,7 +188,9 @@ async function walk(load: () => Promise<ComponentType>): Promise<DemoWalk> {
 
 	const { container } = render(
 		<AppearanceProvider>
-			<Demo />
+			<DemoApiContext value={demoApiOf(page)}>
+				<Demo />
+			</DemoApiContext>
 		</AppearanceProvider>,
 	)
 
@@ -309,7 +313,7 @@ export async function walkOf(page: string, load: () => Promise<ComponentType>): 
 		return kept
 	}
 
-	const walked = walk(load)
+	const walked = walk(page, load)
 
 	walks.set(page, walked)
 

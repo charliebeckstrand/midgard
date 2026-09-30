@@ -1,0 +1,98 @@
+import type { ComponentApi } from './api-reference'
+
+/** One value of a finite prop type: a string, number, or boolean literal. */
+export type AxisValue = string | number | boolean
+
+/**
+ * One styling axis of a component: a prop whose type is a finite set of
+ * literals, such as `variant`, `size`, or `loading`.
+ */
+export type Axis = {
+	name: string
+	/** The literals in their source order. A `boolean` member gives `false`, then `true`. */
+	values: readonly AxisValue[]
+	/** The documented default, when it is one of the `values`. */
+	default?: AxisValue
+}
+
+const UNSET_MEMBERS = new Set(['undefined', 'null'])
+
+/**
+ * Read one member of a type union as literals. It returns `null` for a member
+ * that is not a literal, such as `ReactNode` or `number`.
+ */
+function parseMember(member: string): AxisValue[] | null {
+	if (member === 'boolean') return [false, true]
+
+	if (member === 'true') return [true]
+
+	if (member === 'false') return [false]
+
+	if (/^-?\d+(\.\d+)?$/.test(member)) return [Number(member)]
+
+	const quoted = /^'([^']*)'$|^"([^"]*)"$/.exec(member)
+
+	if (quoted) return [quoted[1] ?? quoted[2] ?? '']
+
+	return null
+}
+
+/**
+ * Read a formatted type expression as a finite list of literals. It returns
+ * `null` when a member is not a literal. A union of `true` and `false` gives
+ * the same order as `boolean`.
+ *
+ * @example
+ * literalsOf("'sm' | 'md' | undefined") // ['sm', 'md']
+ */
+export function literalsOf(type: string): AxisValue[] | null {
+	const values: AxisValue[] = []
+
+	for (const raw of type.split('|')) {
+		const member = raw.trim()
+
+		if (UNSET_MEMBERS.has(member)) continue
+
+		const parsed = parseMember(member)
+
+		if (!parsed) return null
+
+		for (const value of parsed) if (!values.includes(value)) values.push(value)
+	}
+
+	if (values.length === 0) return null
+
+	// Show the off state first when the union holds only booleans.
+	if (values.every((value) => typeof value === 'boolean')) return [false, true]
+
+	return values
+}
+
+/**
+ * List the styling axes of a component from its extracted API: each prop whose
+ * type is a finite set of literals, in the order of the props. A prop in `omit`
+ * does not become an axis. A deprecated prop does not become an axis.
+ */
+export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] {
+	const axes: Axis[] = []
+
+	for (const prop of api.props) {
+		if (omit.includes(prop.name) || prop.deprecated) continue
+
+		const values = literalsOf(prop.type)
+
+		if (!values) continue
+
+		const parsed = prop.default === undefined ? null : parseMember(prop.default.trim())
+
+		const fallback = parsed?.length === 1 ? parsed[0] : undefined
+
+		axes.push({
+			name: prop.name,
+			values,
+			...(fallback !== undefined && values.includes(fallback) && { default: fallback }),
+		})
+	}
+
+	return axes
+}

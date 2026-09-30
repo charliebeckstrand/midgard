@@ -10,11 +10,39 @@ it now lives inside `ui` rather than as a standalone package.
 
 | Layer | Path | Role |
 |---|---|---|
-| Demo-authoring kit | [`index.ts`](index.ts) | `Example`, the listbox/labeled/stepper controls, `code`, format helpers — the surface a library's demos import. |
+| Demo-authoring kit | [`index.ts`](index.ts) | `Example`, `Axes`, the listbox/labeled/stepper controls, `code`, format helpers — the surface a library's demos import. |
 | App shell | [`host.tsx`](host.tsx), [`app.tsx`](app.tsx) | The hash-routed site chrome (`App`, sidebar, settings) plus `mount`. |
 | API reference engine | [`api-reference`](api-reference) | ts-morph extraction of props, defaults, and TSDoc from a library's source. |
 | Code derivation | [`derive-code`](derive-code) | Walks a demo's React tree into a copy-pasteable snippet, merging in build-time source facts (authored prop expressions, render-prop children, referenced hook/helper declarations) extracted per `Example` by [`plugins/source-facts.ts`](plugins/source-facts.ts). |
 | Build plugin | [`plugins`](plugins), [`vite`](vite) | The Vite plugin + `defineDocsConfig` wired into `vite.docs.config.ts`. |
+
+## Generated axes
+
+A demo does not list the values of a styling axis by hand. `<Axes>` reads the
+extracted API of the barrel, and generates the examples from it:
+
+```tsx
+<Axes of="Button" render={(props, label) => <Button {...props}>{label}</Button>} />
+```
+
+An axis is a prop whose type is a finite set of literals, such as `variant`,
+`color`, `size`, or a `boolean`. `<Axes>` renders a playground with one picker
+for each axis. Then it renders one example for each axis, which shows every
+value of that axis. The other axes of that example take the values of the
+playground. A new value in the source of a component thus shows on the page
+with no change to the demo. `omit` removes a prop from the axes.
+
+The `render` function runs in the render of `<Axes>`, so it must not call a
+hook. Give the component the props that it requires in `render`, and spread
+the axis props onto it. A compound component spreads them onto its root.
+
+Write a hand-authored `Example` only for what an axis cannot show: a
+composition, an adornment such as `prefix`, or a flow with state.
+
+`DemoPage` gives `<Axes>` the API data through `DemoApiContext`. The docs
+plugin serves no API data in a test run. Therefore the page gates
+(`__tests__/helpers/demo-api.ts`) extract the barrel of each page that uses
+`<Axes>`, and give the data to the same context.
 
 ## How ui wires it
 
