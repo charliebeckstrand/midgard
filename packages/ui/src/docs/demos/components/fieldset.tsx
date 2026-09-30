@@ -3,14 +3,13 @@ import { Button } from '../../../components/button'
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
-import { PasswordInput } from '../../../components/password-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Textarea } from '../../../components/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
@@ -86,25 +85,15 @@ export function Demo() {
 
 					<TabContent value="field">
 						<Stack gap="xl">
-							<Example title="Severity">
-								<Stack gap="lg">
-									<Field severity="error">
-										<Label>Email</Label>
-										<Input defaultValue="not-an-email" />
-										<Message severity="error">Enter a valid email address.</Message>
+							<Axes
+								of="Field"
+								render={(props, label) => (
+									<Field {...props}>
+										<Label>{label}</Label>
+										<Input placeholder="jane@example.com" />
 									</Field>
-									<Field severity="warning">
-										<Label>Password</Label>
-										<PasswordInput defaultValue="123456" />
-										<Message severity="warning">This password is weak.</Message>
-									</Field>
-									<Field severity="success">
-										<Label>Username</Label>
-										<Input defaultValue="jane" />
-										<Message severity="success">Username is available.</Message>
-									</Field>
-								</Stack>
-							</Example>
+								)}
+							/>
 						</Stack>
 					</TabContent>
 
@@ -154,25 +143,17 @@ export function Demo() {
 
 					<TabContent value="message">
 						<Stack gap="xl">
-							<Example title="Severity">
-								<Stack gap="lg">
+							<Axes
+								of="Message"
+								omit={['all']}
+								render={(props, label) => (
 									<Field>
 										<Label>Email</Label>
-										<Input defaultValue="not-an-email" />
-										<Message severity="error">Enter a valid email address.</Message>
+										<Input placeholder="jane@example.com" />
+										<Message {...props}>{label}</Message>
 									</Field>
-									<Field>
-										<Label>Password</Label>
-										<PasswordInput defaultValue="123456" />
-										<Message severity="warning">This password is weak.</Message>
-									</Field>
-									<Field>
-										<Label>Username</Label>
-										<Input defaultValue="jane" />
-										<Message severity="success">Username is available.</Message>
-									</Field>
-								</Stack>
-							</Example>
+								)}
+							/>
 						</Stack>
 					</TabContent>
 				</TabContents>

@@ -5,11 +5,7 @@ import { HoldButton } from '../../../components/hold-button'
 import { Icon } from '../../../components/icon'
 import { Text } from '../../../components/text'
 import { Flex } from '../../../structure/flex'
-import { Example, VariantListbox } from '../../engine'
-
-const variants = ['solid', 'soft', 'outline', 'plain'] as const
-
-type Variant = (typeof variants)[number]
+import { Axes, Example } from '../../engine'
 
 function DestructiveHoldButtonExample() {
 	const [deleted, setDeleted] = useState(false)
@@ -33,20 +29,18 @@ function DestructiveHoldButtonExample() {
 export function Demo() {
 	const [count, setCount] = useState(0)
 
-	const [variant, setVariant] = useState<Variant>('solid')
-
 	const [status, setStatus] = useState<'idle' | 'holding' | 'canceled' | 'confirmed'>('idle')
 
 	return (
 		<>
-			<Example
-				title="Default"
-				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
-			>
+			<Axes
+				of="HoldButton"
+				render={(props, label) => <HoldButton {...props}>{label}</HoldButton>}
+			/>
+
+			<Example title="Default">
 				<Flex direction="col" gap="lg">
-					<HoldButton variant={variant} onHoldComplete={() => setCount((c) => c + 1)}>
-						Hold to confirm
-					</HoldButton>
+					<HoldButton onHoldComplete={() => setCount((c) => c + 1)}>Hold to confirm</HoldButton>
 					<Text tone="muted">Confirmed {count} times</Text>
 				</Flex>
 			</Example>

@@ -1,12 +1,20 @@
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
 import { Description, Label } from '../../../components/fieldset'
-import { Example } from '../../engine'
-
-const colors = ['blue', 'green', 'red'] as const
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="Checkbox"
+				render={(props, label) => (
+					<CheckboxField>
+						<Checkbox {...props} defaultChecked />
+						<Label>{label}</Label>
+					</CheckboxField>
+				)}
+			/>
+
 			<Example title="Default">
 				<CheckboxField>
 					<Checkbox />
@@ -28,17 +36,6 @@ export function Demo() {
 						<Label>Opt out of data collection</Label>
 						<Description>We will not collect any personal data.</Description>
 					</CheckboxField>
-				</CheckboxGroup>
-			</Example>
-
-			<Example title="Colors">
-				<CheckboxGroup aria-label="Colors">
-					{colors.map((color) => (
-						<CheckboxField key={color}>
-							<Checkbox color={color} defaultChecked />
-							<Label>{color}</Label>
-						</CheckboxField>
-					))}
 				</CheckboxGroup>
 			</Example>
 

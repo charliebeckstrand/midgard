@@ -5,7 +5,7 @@ import { List, ListItem, ListLabel } from '../../../components/list'
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
 import { Box } from '../../../structure/box'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 const items = [
 	{
@@ -30,15 +30,9 @@ const items = [
 	},
 ]
 
-type Size = 'sm' | 'md' | 'lg'
-
-const sizes: Size[] = ['sm', 'md', 'lg']
-
 const statusColor = { Active: 'green', Archived: 'zinc' } as const
 
 export function Demo() {
-	const [sizeValues, setSizeValues] = useState<Record<Size, Size>>({ sm: 'sm', md: 'md', lg: 'lg' })
-
 	const [view, setView] = useState('List')
 
 	const [filter, setFilter] = useState('All')
@@ -47,6 +41,18 @@ export function Demo() {
 
 	return (
 		<>
+			<Axes
+				of="Segment"
+				render={(props) => (
+					<Segment {...props} defaultValue="List">
+						<SegmentControl aria-label="View">
+							<SegmentItem value="List">List</SegmentItem>
+							<SegmentItem value="Card">Card</SegmentItem>
+						</SegmentControl>
+					</Segment>
+				)}
+			/>
+
 			<Example title="Default">
 				<Stack gap="lg">
 					<Segment value={view} onValueChange={(v) => setView(v ?? 'List')}>
@@ -106,23 +112,6 @@ export function Demo() {
 						</List>
 					</Stack>
 				</Stack>
-			</Example>
-
-			<Example title="Sizes">
-				{sizes.map((s) => (
-					<Segment
-						key={s}
-						value={sizeValues[s]}
-						size={s}
-						onValueChange={(v) => setSizeValues((prev) => ({ ...prev, [s]: (v ?? 'md') as Size }))}
-					>
-						<SegmentControl aria-label="Size">
-							<SegmentItem value="sm">Small</SegmentItem>
-							<SegmentItem value="md">Medium</SegmentItem>
-							<SegmentItem value="lg">Large</SegmentItem>
-						</SegmentControl>
-					</Segment>
-				))}
 			</Example>
 
 			<Example title="With disabled segment">

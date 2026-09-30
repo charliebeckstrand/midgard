@@ -2,17 +2,11 @@ import { useState } from 'react'
 import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import { Control } from '../../../components/control'
-import { Label, Message } from '../../../components/fieldset'
+import { Label } from '../../../components/fieldset'
 import { Form } from '../../../components/form'
 import { Input } from '../../../components/input'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
-
-const severities = [
-	{ severity: 'success', message: 'Looks good!' },
-	{ severity: 'warning', message: 'Be careful!' },
-	{ severity: 'error', message: 'Something went wrong.' },
-] as const
+import { Axes, Example } from '../../engine'
 
 function RequiredExample() {
 	const [submitting, setSubmitting] = useState(false)
@@ -46,39 +40,18 @@ export function Demo() {
 				description="Control propagates a stable ID and state to control-aware children."
 			/>
 
-			<Example title="Default">
-				<Control>
-					<Label>Email</Label>
-					<Input type="email" placeholder="jane@example.com" />
-				</Control>
-			</Example>
-
-			<Example title="Severity">
-				{severities.map(({ severity, message }) => (
-					<Control key={severity} severity={severity}>
-						<Label>Email</Label>
-						<Input type="email" />
-						<Message severity={severity}>{message}</Message>
+			<Axes
+				of="Control"
+				render={(props, label) => (
+					<Control {...props}>
+						<Label>{label}</Label>
+						<Input placeholder="jane@example.com" />
 					</Control>
-				))}
-			</Example>
+				)}
+			/>
 
 			<Example title="Required">
 				<RequiredExample />
-			</Example>
-
-			<Example title="Disabled">
-				<Control disabled>
-					<Label>Email</Label>
-					<Input placeholder="jane@example.com" />
-				</Control>
-			</Example>
-
-			<Example title="Read-only">
-				<Control readOnly>
-					<Label>Account ID</Label>
-					<Input value="acct_1234567890" />
-				</Control>
 			</Example>
 		</>
 	)
