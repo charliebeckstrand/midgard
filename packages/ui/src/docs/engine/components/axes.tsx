@@ -69,11 +69,13 @@ export function Axes(props: AxesProps) {
 }
 
 function AxesBody({ pending, of, render, omit }: AxesProps & { pending: Promise<ComponentApi[]> }) {
-	const api = use(pending).find((component) => component.name === of)
+	const api = settledValue(pending) ?? use(pending)
 
-	if (!api) throw new Error(`Axes: the barrel exports no documented component "${of}"`)
+	const component = api.find((entry) => entry.name === of)
 
-	const axes = axesOf(api, omit)
+	if (!component) throw new Error(`Axes: the barrel exports no documented component "${of}"`)
+
+	const axes = axesOf(component, omit)
 
 	const [state, setState] = useState<Record<string, AxisValue | undefined>>(() =>
 		Object.fromEntries(axes.map((axis) => [axis.name, axis.default])),
@@ -121,6 +123,18 @@ function AxesBody({ pending, of, render, omit }: AxesProps & { pending: Promise<
 			))}
 		</>
 	)
+}
+
+/**
+ * The value of a promise that the registry marks as fulfilled, or `undefined`.
+ * A read of a settled promise needs no `use()`. In development, `use()` inside
+ * a synchronous `act` logs a warning even for a settled promise, and a page
+ * that mounts `Axes` in a tab panel does exactly that.
+ */
+function settledValue<T>(promise: Promise<T>): T | undefined {
+	const tracked = promise as Promise<T> & { status?: string; value?: T }
+
+	return tracked.status === 'fulfilled' ? tracked.value : undefined
 }
 
 /** A keyed, transparent wrapper, so a `render` result needs no key of its own. */

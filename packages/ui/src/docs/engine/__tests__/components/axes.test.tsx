@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import type { ComponentApi } from '../../api-reference'
 import { Axes, DemoApiContext } from '../../components/axes'
 import { fireEvent, renderUI, screen } from '../helpers'
@@ -103,6 +104,36 @@ describe('Axes', () => {
 			'solid',
 			'outline',
 		])
+	})
+
+	it('reads settled API data with no suspend, also in a tab panel', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Tabs">
+					<Tab value="a">A</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="a">
+						<DemoApiContext value={settled(api)}>
+							<Axes of="Badge" render={(props, label) => <Probe {...props}>{label}</Probe>} />
+						</DemoApiContext>
+					</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+
+		// React logs the warning of a `use()` in a synchronous `act` from a later task.
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
+		const suspended = error.mock.calls.filter(([message]) => String(message).includes('suspended'))
+
+		expect(suspended).toEqual([])
+
+		expect(probesOf('Variant')).toHaveLength(2)
+
+		error.mockRestore()
 	})
 
 	it('throws for a name that the barrel does not document', () => {
