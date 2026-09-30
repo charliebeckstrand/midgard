@@ -19,6 +19,7 @@ import {
 	widthGateClass,
 } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
+import { GridFillHandle } from './grid-fill-handle'
 import { GridHead } from './grid-head'
 import { GridNewRow } from './grid-new-row'
 import { GridScrollRegion } from './grid-region'
@@ -236,6 +237,8 @@ export function GridDataTable<T>({
 					ariaRowCount={semantics.ariaRowCount}
 				/>
 			</Table>
+
+			<GridFillHandle />
 		</GridNavContext>
 	)
 

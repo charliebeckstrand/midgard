@@ -187,9 +187,16 @@ describe('Grid range fill', () => {
 
 		expect(handles()).toHaveLength(1)
 
-		expect(view.cell(1, 1)).toContainElement(handles()[0] as HTMLElement)
+		// One overlay next to the table shows the handle, so the cell keeps its layout.
+		const table = view.cell(1, 1).closest('table') as HTMLTableElement
 
-		expect(view.cell(1, 1)).toHaveAttribute('data-fill-handle', 'static')
+		expect(table).not.toContainElement(handles()[0] as HTMLElement)
+
+		expect(table.parentElement).toContainElement(handles()[0] as HTMLElement)
+
+		fireEvent.mouseDown(view.cell(0, 0))
+
+		expect(handles()).toHaveLength(1)
 	})
 
 	it('shows no fill handle without a grid-owned session', () => {

@@ -137,6 +137,8 @@ Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtur
 
 - [`grid-fit.bench.tsx`](grid-fit.bench.tsx) — the column fit of a grid that the autosizer sizes, at 1k rows with no window and no declared width, as the admin users grid mounts. Two scenarios run: a mount, and an asc/desc sort flip on `id`. Each sample ends one rendered frame after the paint probe, so the style and layout work that the commit leaves to the browser is in the sample. The `navigable` rows mount the cell cursor.
 
+- [`grid-cursor.bench.tsx`](grid-cursor.bench.tsx) — one arrow move of the cell cursor, down one row and back up, at 1k rows without a window. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid with a range, which shows the fill handle on the active cell. The `navigable` row shows no handle, and is the floor.
+
 The ui grid keeps its built-in chrome (the toolbar with export, and the accessible announcements) in each scenario. React runs in production mode, for the reason that the intro gives.
 
 ### Standings (2026-07-10, this workstation)
@@ -337,6 +339,15 @@ Each entry names the change and the scenarios it moved.
     | fit sort · 1,000 · navigable | 930 | 606 | 597 | 591 | 3,320 | 627 |
 
     Each sample holds one frame of about 17 ms. The fingerprint carries the sort. The gate and the fonts carry the mount, and the hidden child carries the rest of the navigable mount. Without the fingerprint change, the navigable sort measured slower than on `main`. This entry does not explain that gap.
+
+20. **One fill handle overlay** ([`grid-fill-handle.tsx`](../../modules/grid/grid-fill-handle.tsx), [`use-grid-fill-handle.ts`](../../modules/grid/use-grid-fill-handle.ts), 2026-09-30, this container). The active cell held the fill handle. The cell turned `relative` and took a span, so each move of the cursor changed the layout of the whole table. One overlay after the table now shows the handle, and the grid places it on the box of the active cell. The cell keeps its layout. The medians of two rounds of each build, in ms, with one frame of about 17 ms in each sample:
+
+    | Scenario | `main` | branch |
+    | --- | ---: | ---: |
+    | cursor move · 1,000 · fill handle | 31.0 | 20.0 |
+    | cursor move · 1,000 · navigable | 19.3 | 19.5 |
+
+    With the frame taken out, the handle added about 12 ms to each move, and it now adds less than 1 ms.
 
 ## Maps
 

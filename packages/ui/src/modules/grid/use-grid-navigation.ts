@@ -19,6 +19,7 @@ import { clamp, createEmitter, FOCUSABLE_SELECTOR } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
 import type { GridCursorRow } from './grid-cursor-order'
+import type { GridFillHandle } from './use-grid-fill-handle'
 import { useGridRangeDrag } from './use-grid-range-drag'
 
 /**
@@ -112,11 +113,8 @@ export type GridNavStore = {
 	isActive: (row: number, col: number) => boolean
 	/** Whether the cell at `(row, col)` is in the cell range (see {@link GridDataProps.range}). */
 	isInRange: (row: number, col: number) => boolean
-	/**
-	 * Starts the drag of the fill handle, for the press on the handle that the
-	 * active cell shows, or `null` when the grid shows no handle.
-	 */
-	fillHandle: ((event: MouseEvent<HTMLElement>) => void) | null
+	/** The fill handle that the active cell holds, or `null` when the grid shows no handle. */
+	fillHandle: GridFillHandle | null
 	/** Whether the cursor sits on the one-stop row with this item key. */
 	isStopActive: (key: string) => boolean
 	/** The element id of the one cell of a one-stop row, matched by `aria-activedescendant`. */

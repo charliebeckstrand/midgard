@@ -820,17 +820,22 @@ export const k = {
 				'data-[in-range]:bg-blue-50 data-[in-range]:outline-blue-600',
 				'dark:data-[in-range]:bg-blue-950 dark:data-[in-range]:outline-blue-500',
 			),
-			// A static cell that shows the fill handle holds it in place. A sticky
-			// cell already does, and must stay sticky.
-			'data-[fill-handle=static]:relative',
 		],
+		// The anchor of the fill handle overlay: a line of no height after the
+		// table, in its scroll container. It holds the overlay, so the overlay
+		// scrolls with the cells.
+		fillAnchor: 'relative h-0',
+		// The box of the overlay, which the grid places on the active cell. It lets
+		// the pointer through to the cell. A pinned cell sits over the scrolled
+		// cells, and the box sits over the pinned cell.
+		fillBox: 'pointer-events-none absolute top-0 left-0 z-0 data-[pinned]:z-[1]',
 		// The fill handle on the bottom end corner of the active cell (`range` in
 		// a managed editable grid). A drag from it fills. The square sits inside
 		// the corner, so the scroll region does not clip it at the last row or
 		// column, and a wider hit area sits around it. The keys and the cell menu
 		// give the same fills with no drag (WCAG 2.5.7).
 		fillHandle: [
-			'absolute bottom-0 end-0 z-[1] size-2 cursor-crosshair border',
+			'pointer-events-auto absolute bottom-0 end-0 size-2 cursor-crosshair border',
 			'before:absolute before:-inset-1.5',
 			...mode('border-white bg-blue-600', 'dark:border-zinc-900 dark:bg-blue-500'),
 		],

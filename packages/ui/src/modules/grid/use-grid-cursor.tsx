@@ -46,6 +46,7 @@ import type { GridColumn } from './types'
 import { type GridPasteCell, useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import { useGridFillDrag } from './use-grid-fill-drag'
+import { useGridFillHandle } from './use-grid-fill-handle'
 import {
 	type Coord,
 	type GridCellActivate,
@@ -682,11 +683,13 @@ export function useGridCursor<T>({
 	// The fill of the context menu. Absent while the grid cannot fill.
 	const fill = fills ? planFill : undefined
 
+	const fillHandle = useGridFillHandle(fills ? startFillDrag : null)
+
 	// The cursor store of the cells, with the fill handle while the grid can
-	// fill. The active cell shows the handle.
+	// fill. The active cell holds the handle.
 	const navStore = useMemo<GridNavStore>(
-		() => (fills ? { ...nav.store, fillHandle: startFillDrag } : nav.store),
-		[fills, nav.store, startFillDrag],
+		() => (fillHandle ? { ...nav.store, fillHandle } : nav.store),
+		[fillHandle, nav.store],
 	)
 
 	// The fill keys act on the tab stop only. Each claims its press only when

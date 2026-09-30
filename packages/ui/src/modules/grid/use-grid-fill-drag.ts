@@ -28,7 +28,8 @@ type FillDrag = {
  * @param fill - Fills `count` lines after the source in `direction`.
  * @param cellCoordOf - The data cell that an element id names, or `null`.
  * @param scrollContainerRef - The scroll region of the grid, or `null` when it does not scroll.
- * @returns The start of a drag, for the press on the handle.
+ * @returns The start of a drag, for the press on the handle. The handle is not
+ *   in the grid, so the start takes the grid of the drag.
  * @internal
  */
 export function useGridFillDrag({
@@ -43,7 +44,7 @@ export function useGridFillDrag({
 	fill: (source: GridFillRect, direction: GridFillDirection, count: number) => void
 	cellCoordOf: (id: string) => Coord | null
 	scrollContainerRef: RefObject<HTMLElement | null>
-}): (event: MouseEvent<HTMLElement>) => void {
+}): (event: MouseEvent<HTMLElement>, grid: HTMLElement | null) => void {
 	const dragRef = useRef<FillDrag | null>(null)
 
 	const grow = useStableEvent((coord: Coord) => {
@@ -68,7 +69,7 @@ export function useGridFillDrag({
 
 	const start = useGridRangeDrag({ onCell: grow, onEnd: release, cellCoordOf, scrollContainerRef })
 
-	return useStableEvent((event: MouseEvent<HTMLElement>) => {
+	return useStableEvent((event: MouseEvent<HTMLElement>, grid: HTMLElement | null) => {
 		const source = event.button === 0 ? readSource() : null
 
 		if (!source) return
@@ -81,6 +82,6 @@ export function useGridFillDrag({
 
 		dragRef.current = { source, fill: null }
 
-		start(event)
+		start(event, grid)
 	})
 }
