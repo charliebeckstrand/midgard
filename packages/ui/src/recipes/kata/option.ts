@@ -24,6 +24,8 @@ export const k = {
 	base,
 	content: [flex.row, 'min-w-0', narabi.item],
 	label: 'truncate group-data-selected/option:font-bold',
+	// A column that stacks a label over its description.
+	text: narabi.text,
 	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: [description, onWash.muted],

@@ -2,8 +2,8 @@
  * Menu kata: object-literal surface for `<Menu>` / `<Dropdown>` popover lists.
  * The `item` row and the `viewport` scroll container follow the nearest density
  * scope through stepped classes. The panel is that scope. The rest are static slots:
- * `content` (the panel box), `section`, `heading`, `label`, `description`, and
- * `shortcut`. The `subTrigger` wash on an open submenu parent and the
+ * `content` (the panel box), `section`, `heading`, `label`, `text`,
+ * `description`, and `shortcut`. The `subTrigger` wash on an open submenu parent and the
  * `separator` divider join them.
  */
 import { defineRecipe, mode } from '../../core/recipe'
@@ -65,6 +65,8 @@ export const k = {
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
 	label: 'truncate',
+	// A column that stacks a label over its description.
+	text: narabi.text,
 	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: [description, onWash.muted, 'group-focus/option:text-white'],

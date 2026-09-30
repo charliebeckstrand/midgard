@@ -6,4 +6,6 @@ export {
 	type SelectLabelProps,
 	SelectOption,
 	type SelectOptionProps,
+	SelectText,
+	type SelectTextProps,
 } from './select-option'
