@@ -18,7 +18,8 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 //      DELEGATED leaves the guard to another file, and a file on NOT_A_HOLD
 //      times something that is not a hold. Each entry gives the reason.
 //
-//   2. No file but the home removes the selection or cancels `selectstart`.
+//   2. No file but the home removes the selection, cancels `selectstart`, or
+//      sets `user-select` from script.
 
 /** The one file that owns the guard. */
 const HOME = 'hooks/use-touch-hold-selection.ts'
@@ -38,8 +39,9 @@ const TIMER = /\bsetTimeout\(|\buseTimeout\(/
 /** A call of the guard. */
 const CALLS_GUARD = /\b(?:useTouchHoldSelection|holdTouchSelection)\(/
 
-/** Script that removes the selection or cancels its start. */
-const CLEARS_SELECTION = /\.removeAllRanges\(|\.empty\(\)|['"`]selectstart['"`]|\bonSelectStart\b/
+/** Script that removes the selection, cancels its start, or sets `user-select` from script. */
+const CLEARS_SELECTION =
+	/\.removeAllRanges\(|\.empty\(\)|['"`]selectstart['"`]|\bonSelectStart\b|\.style\.(?:webkitU|u)serSelect\s*=|classList\.(?:add|remove|toggle)\(\s*['"`]select-none/
 
 /** Files that time a touch hold and leave the guard to another file, each with the reason. */
 const DELEGATED: Record<string, string> = {
