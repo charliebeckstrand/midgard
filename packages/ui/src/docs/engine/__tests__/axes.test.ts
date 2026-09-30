@@ -54,20 +54,27 @@ const api: ComponentApi = {
 		{ name: 'prefix', type: 'ReactNode' },
 		{ name: 'old', type: "'a' | 'b'", deprecated: true },
 		{ name: 'odd', type: "'a' | 'b'", default: "'c'" },
+		{ name: 'side', type: "'top' | 'bottom'", default: "`'bottom'`" },
+		{ name: 'note', type: "'x' | 'y'", default: "`'x'` (a note)" },
 	],
 }
 
 describe('axesOf', () => {
-	it('lists each literal prop in prop order, with its default', () => {
+	it('lists each literal prop in prop order, with its default, also in a code span', () => {
 		expect(axesOf(api)).toEqual([
 			{ name: 'variant', values: ['solid', 'soft'], default: 'soft' },
 			{ name: 'size', values: ['sm', 'md'] },
 			{ name: 'loading', values: [false, true], default: true },
 			{ name: 'odd', values: ['a', 'b'] },
+			{ name: 'side', values: ['top', 'bottom'], default: 'bottom' },
+			{ name: 'note', values: ['x', 'y'] },
 		])
 	})
 
 	it('skips an omitted prop', () => {
-		expect(axesOf(api, ['size', 'odd']).map((axis) => axis.name)).toEqual(['variant', 'loading'])
+		expect(axesOf(api, ['size', 'odd', 'side', 'note']).map((axis) => axis.name)).toEqual([
+			'variant',
+			'loading',
+		])
 	})
 })

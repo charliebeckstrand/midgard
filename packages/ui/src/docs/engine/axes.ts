@@ -38,6 +38,16 @@ function parseMember(member: string): AxisValue[] | null {
 }
 
 /**
+ * The text of a default that a `@defaultValue` tag writes as one code span,
+ * such as `` `'bottom-start'` ``. Any other text returns trimmed.
+ */
+function unwrapCode(text: string): string {
+	const trimmed = text.trim()
+
+	return /^`[^`]+`$/.test(trimmed) ? trimmed.slice(1, -1).trim() : trimmed
+}
+
+/**
  * Read a formatted type expression as a finite list of literals. It returns
  * `null` when a member is not a literal. A union of `true` and `false` gives
  * the same order as `boolean`.
@@ -83,7 +93,7 @@ export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] 
 
 		if (!values) continue
 
-		const parsed = prop.default === undefined ? null : parseMember(prop.default.trim())
+		const parsed = prop.default === undefined ? null : parseMember(unwrapCode(prop.default))
 
 		const fallback = parsed?.length === 1 ? parsed[0] : undefined
 
