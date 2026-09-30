@@ -146,8 +146,7 @@ jobs:
       # and `rangeStrategy: update-lockfile` makes each bot pull request one.
       # No restore key: a prefix match would hand back a superseded revision
       # that `install` then downloads alongside, so the cache would carry both.
-      # `install` is idempotent — on a hit it skips the download and installs
-      # the system libraries alone.
+      # `install` is idempotent — on a hit it skips the download.
       - id: playwright
         working-directory: packages/ui
         run: |
@@ -156,7 +155,15 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
-      - run: pnpm --filter ui exec playwright install --with-deps chromium
+      # The browser alone, with no system packages. The runner image already
+      # holds each library that headless Chromium loads. `--with-deps` ran apt
+      # on each run, and apt fetched about 35 MB from the Ubuntu mirrors: newer
+      # builds of ten of those libraries, and the font packages. A slow mirror
+      # stalled the step. One run hung for 15 minutes, and one took 6m41s. The
+      # browser suite passes without those fonts. If a runner image drops a
+      # library, Chromium does not launch, and the error names the library.
+      # Put `--with-deps` back then.
+      - run: pnpm --filter ui exec playwright install chromium
       # Filtered to `ui`, as in `compiler`.
       - run: pnpm turbo run test:browser --filter=ui --summarize
       - name: Prune the Turbo cache to this run's tasks
