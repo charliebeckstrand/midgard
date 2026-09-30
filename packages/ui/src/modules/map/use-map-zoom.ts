@@ -6,6 +6,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -226,8 +227,14 @@ export function useMapZoom({
 
 	// The pointers down on the surface, in viewport coordinates: one is a pan,
 	// two are a pinch. Held on a ref because a gesture writes on every move and
-	// none of it belongs in a render.
+	// none of it belongs in a render. On a modifier map a touch contact lands here
+	// from the touch events instead — see {@link useMapTouchPinch}.
 	const pointers = useRef(new Map<number, MapPoint2D>())
+
+	// Whether a modifier map holds the touch sequence in flight. Two fingers set
+	// it, and it stays set until every finger lifts. A finger left down after a
+	// pinch therefore cannot scroll the page out from under the map.
+	const touchHeld = useRef(false)
 
 	const press = useRef<MapPress | null>(null)
 
@@ -306,7 +313,11 @@ export function useMapZoom({
 
 	useMapWheelZoom(settings !== null, modifier, svgRef, view, commit, holdGesture, live, wheelStream)
 
-	useMapTouchPinch(settings !== null && modifier !== null, svgRef, view, pointers)
+	// A modifier map reads its touch contacts off the touch events, not the
+	// pointer events. The first finger of a pinch that lands a moment early starts
+	// the page's scroll, and the browser then cancels that pointer and sends no
+	// pointer event for the second finger at all. The touch events still arrive.
+	const touchDriven = settings !== null && modifier !== null
 
 	/**
 	 * Moves the view by what two pointers did: the midpoint's travel pans, and the
@@ -374,6 +385,8 @@ export function useMapZoom({
 	}
 
 	function release(event: PointerEvent<HTMLElement>) {
+		if (fromTouch(event)) return
+
 		// The travel before the lift is part of the pinch, so it applies first.
 		flushPinch()
 
@@ -426,7 +439,83 @@ export function useMapZoom({
 		gestureBox.current = svgRef.current?.getBoundingClientRect() ?? null
 	}
 
+	/**
+	 * Takes the contacts one touch event reports on the plot's SVG, on a modifier
+	 * map. Two contacts or more pinch, as two pointers do. A change in the pair
+	 * applies the travel before it and measures the new pair from where it stands.
+	 */
+	function onTouch(event: TouchEvent) {
+		const contacts = contactsOf(event, pointers.current)
+
+		claimTouch(event, contacts)
+
+		if (pairKey(contacts) === pairKey(pointers.current)) {
+			pointers.current = contacts
+
+			if (contacts.size > 1 && pinchFrame.current === null) {
+				pinchFrame.current = requestAnimationFrame(applyPinch)
+			}
+
+			return
+		}
+
+		flushPinch()
+
+		pointers.current = contacts
+
+		measurePair()
+
+		if (contacts.size === 0) {
+			touchHeld.current = false
+
+			gestureBox.current = null
+
+			settleGesture()
+		}
+	}
+
+	/**
+	 * Keeps the touch sequence from the page once two contacts have held the map,
+	 * and clears the last pan's flag when a sequence begins. No click follows a
+	 * pinch, so that flag must not swallow the tap after it.
+	 */
+	function claimTouch(event: TouchEvent, contacts: Map<number, MapPoint2D>) {
+		if (pointers.current.size === 0) panned.current = false
+
+		if (contacts.size > 1) touchHeld.current = true
+
+		if (touchHeld.current && event.cancelable) event.preventDefault()
+	}
+
+	/** Measures the pinch afresh from the pair the contacts hold now, or clears it. */
+	function measurePair() {
+		const [first, second] = [...pointers.current.values()]
+
+		if (first === undefined || second === undefined) {
+			spread.current = null
+
+			midpoint.current = null
+
+			return
+		}
+
+		measureGesture()
+
+		spread.current = pointerGap(first, second)
+
+		midpoint.current = pointerMidpoint(first, second)
+	}
+
+	useMapTouchPinch(touchDriven, svgRef, view, onTouch)
+
+	/** Whether the pointer handlers leave this event to {@link onTouch}. */
+	function fromTouch(event: PointerEvent<HTMLElement>) {
+		return touchDriven && event.pointerType === 'touch'
+	}
+
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
+		if (fromTouch(event)) return
+
 		// A right-click opens the region menu the plat reports for; only the
 		// primary button drives the view.
 		if (event.pointerType === 'mouse' && event.button !== 0) return
@@ -446,13 +535,9 @@ export function useMapZoom({
 
 		measureGesture()
 
-		// In modifier mode the page keeps one-finger touch, so a lone touch never
-		// starts a pan and the browser scrolls with it; two fingers still pan and
-		// pinch. A mouse or a pen has no such conflict and drags as it always does.
+		// A touch never gets here on a modifier map, so every lone pointer drags.
 		if (pointers.current.size === 1) {
-			const owned = modifier === null || event.pointerType !== 'touch'
-
-			press.current = owned ? { from: at, moved: false } : null
+			press.current = { from: at, moved: false }
 
 			return
 		}
@@ -500,6 +585,8 @@ export function useMapZoom({
 	}
 
 	function onPointerMove(event: PointerEvent<HTMLElement>) {
+		if (fromTouch(event)) return
+
 		const previous = pointers.current.get(event.pointerId)
 
 		if (previous === undefined) return
@@ -668,19 +755,21 @@ function useMapWheelZoom(
 }
 
 /**
- * Keeps a two-finger touch on a modifier map for the map.
+ * Binds the touch events that drive a modifier map's pinch, as native
+ * non-passive listeners on the plot's SVG.
  *
  * A modifier map leaves the page its touch scrolling (`pan-x pan-y`), so one
- * finger scrolls past the map. That policy also lets the browser take two
- * fingers as a page pan. When it takes them, it cancels both pointers, and the
- * pinch stops before its first move. So while two pointers are down on the plot,
- * each `touchmove` is canceled here, and the browser never starts that pan. One
- * finger is never canceled, so a lone touch scrolls the page as before. The
- * listener is native and non-passive for the reason the wheel's is: React
- * registers `onTouchMove` passively, and a passive handler cannot cancel it.
+ * finger scrolls past the map. Two fingers pan and pinch it. The pointer events
+ * cannot carry that. Two fingers seldom land at one instant, and the first one
+ * can start the page's scroll before the second lands. The browser then cancels
+ * that pointer and sends no pointer event for the second. The touch events keep
+ * arriving through all of it, so they carry the pinch. The handler cancels them
+ * while two fingers hold the map, and the browser then neither scrolls nor zooms
+ * the page under the pinch. The listeners are native because React registers
+ * the touch events passively, and a passive handler cannot cancel one.
  *
- * A map that claims touch outright (`touch-none`) needs none of this, because the
- * browser takes no touch gesture from it.
+ * A map that claims touch outright (`touch-none`) needs none of this. The browser
+ * takes no touch gesture from it, and its pointer events carry every finger.
  *
  * @internal
  */
@@ -688,26 +777,59 @@ function useMapTouchPinch(
 	enabled: boolean,
 	svgRef: RefObject<SVGSVGElement | null>,
 	view: MapViewFrame,
-	pointers: RefObject<Map<number, MapPoint2D>>,
+	handler: (event: TouchEvent) => void,
 ) {
+	// The handler reads the gesture's refs, and the listener binds once per frame
+	// size rather than once per render.
+	const onTouch = useEffectEvent(handler)
+
 	useEffect(() => {
 		const svg = svgRef.current
 
 		// The frame's area is the beat the SVG mounts on, as in the wheel's effect.
 		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
 
-		const onTouchMove = (event: TouchEvent) => {
-			// A pointer event arrives before its touch event, so the registry already
-			// holds the second finger when its first move comes here.
-			if (pointers.current.size > 1 && event.cancelable) event.preventDefault()
-		}
+		const listener = (event: TouchEvent) => onTouch(event)
 
-		svg.addEventListener('touchmove', onTouchMove, { passive: false })
+		for (const type of TOUCH_EVENTS) svg.addEventListener(type, listener, { passive: false })
 
 		return () => {
-			svg.removeEventListener('touchmove', onTouchMove)
+			for (const type of TOUCH_EVENTS) svg.removeEventListener(type, listener)
 		}
-	}, [enabled, svgRef, pointers, view.width, view.height])
+	}, [enabled, svgRef, view.width, view.height])
+}
+
+/** Every touch event that changes the contacts on the plot. */
+const TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const
+
+/**
+ * The contacts down on the plot after a touch event, by touch identifier, in
+ * viewport coordinates. A contact is the plot's if it landed there: `held` has it
+ * already, or this `touchstart` brings it. Read by identifier, not by target, so
+ * a finger keeps the pinch when the dot it landed on regroups out of the tree. A
+ * finger that landed off the plot is never one of its contacts.
+ */
+function contactsOf(event: TouchEvent, held: Map<number, MapPoint2D>): Map<number, MapPoint2D> {
+	const landed = new Set<number>()
+
+	if (event.type === 'touchstart') {
+		for (const touch of event.changedTouches) landed.add(touch.identifier)
+	}
+
+	const contacts = new Map<number, MapPoint2D>()
+
+	for (const touch of event.touches) {
+		if (held.has(touch.identifier) || landed.has(touch.identifier)) {
+			contacts.set(touch.identifier, { x: touch.clientX, y: touch.clientY })
+		}
+	}
+
+	return contacts
+}
+
+/** The first two contacts, as one key. A change says the pinch has a new pair to measure. */
+function pairKey(contacts: Map<number, MapPoint2D>): string {
+	return [...contacts.keys()].slice(0, 2).join()
 }
 
 /**
