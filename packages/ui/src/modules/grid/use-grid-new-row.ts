@@ -4,22 +4,23 @@ import {
 	type KeyboardEvent as ReactKeyboardEvent,
 	type RefObject,
 	useCallback,
-	useEffect,
 	useMemo,
 	useReducer,
 	useRef,
 	useState,
 } from 'react'
 import { announce } from '../../core'
+import { useDevWarning } from '../../hooks/use-dev-warning'
+import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeRowAdd } from './engine/grid-announcements'
 import { GRID_ROLE } from './engine/grid-constants'
 import {
 	collectNewRow,
+	columnOf,
 	EDITOR_FOCUSABLE,
 	type EditorKind,
-	type GridDraft,
 	type GridDraftStore,
 	inferEditorKind,
 	isColumnEditable,
@@ -27,102 +28,24 @@ import {
 	isThenable,
 	NATIVE_ENTER,
 	NEW_ROW_KEY,
-	readNewRowRefusals,
+	readRefusals,
+	type SinkOutcome,
+	trackSink,
 } from './engine/grid-editing-utilities'
-import { NEW_ROW_ADD_COLUMN_ID } from './engine/grid-new-row-column'
+import { type NewRowFlight, restoreRefused, slotColumnOf } from './engine/grid-new-row'
 import type { GridEditSource } from './grid-data-types'
 import type { GridNewRowSession } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { type Coord, type GridNewRowPosition, NEW_ROW_INDEX } from './use-grid-navigation'
 
-/**
- * Where the new-row slot shows, or `null` when the config cannot show it. The
- * slot needs a grid-owned session, whose keys add and clear it, and an
- * `onRowAdd` to take the row. `managed` is whether the grid owns the session.
- * @internal
- */
-export function resolveNewRow(
-	config: GridEditableConfig | undefined,
-	managed: boolean,
-): GridNewRowPosition {
-	if (!managed || config?.newRow == null || config.onRowAdd == null) return null
+/** The warning for a slot under a session that the consumer owns. @internal */
+const MANUAL_NEW_ROW_WARNING =
+	"Grid: `editable.newRow` adds a row through the keys of a session that the grid owns, but `editable.session` is 'manual'. The grid renders no new row — set `session: 'managed'` to show it."
 
-	return config.newRow
-}
-
-/**
- * Warns in development when `newRow` is set and the config cannot show it:
- * without the grid-owned session, or without `onRowAdd`. The grid then
- * renders no slot, so the setting fails silently, which is what the warning
- * is for. @internal
- */
-function useNewRowWarning(config: GridEditableConfig | undefined, managed: boolean): void {
-	const requested = config?.newRow != null
-
-	const manual = requested && !managed
-
-	const sinkless = requested && config?.onRowAdd == null
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (manual)
-			console.warn(
-				"Grid: `editable.newRow` adds a row through the keys of a session that the grid owns, but `editable.session` is 'manual'. The grid renders no new row — set `session: 'managed'` to show it.",
-			)
-
-		if (sinkless)
-			console.warn(
-				'Grid: `editable.newRow` needs `editable.onRowAdd` to take the row. The grid renders no new row — pass `onRowAdd` to show it.',
-			)
-	}, [manual, sinkless])
-}
-
-/**
- * The data column whose cursor cell a key from a cell of the slot leaves on,
- * from the cell's `data-grid-new-col`. The Add column is not a stop of the
- * cursor. A key from its control therefore leaves on the last data column.
- *
- * @internal
- */
-function slotColumnOf(
-	attr: string | null,
-	columns: readonly { id: string | number }[],
-): string | number | undefined {
-	if (attr === NEW_ROW_ADD_COLUMN_ID) return columns.at(-1)?.id
-
-	return columns.find((column) => String(column.id) === attr)?.id
-}
-
-/** An add that `onRowAdd` returned as a promise, with the drafts it holds as pending. @internal */
-type NewRowFlight = { cells: [string | number, GridDraft][] }
-
-/**
- * Stages the values of a refused add again, with the errors. A refusal can
- * name a cell with no value, such as a required field. That cell gets an
- * empty draft that carries the error. @internal
- */
-function restoreRefused(
-	drafts: GridDraftStore,
-	flight: NewRowFlight,
-	refused: Map<string | number, string>,
-): void {
-	for (const [columnId, draft] of flight.cells)
-		drafts.settle(NEW_ROW_KEY, columnId, draft, { error: refused.get(columnId), reopen: false })
-
-	const drafted = new Set(flight.cells.map(([columnId]) => columnId))
-
-	for (const [columnId, error] of refused) {
-		if (drafted.has(columnId)) continue
-
-		drafts.stage(NEW_ROW_KEY, columnId, undefined, null)
-
-		const record = drafts.read(NEW_ROW_KEY, columnId)
-
-		if (record) record.error = error
-	}
-}
+/** The warning for a slot with no sink to take its row. @internal */
+const SINKLESS_NEW_ROW_WARNING =
+	'Grid: `editable.newRow` needs `editable.onRowAdd` to take the row. The grid renders no new row — pass `onRowAdd` to show it.'
 
 /**
  * Owns the new-row slot of an editable grid ({@link GridEditableConfig.newRow}).
@@ -182,7 +105,13 @@ export function useGridNewRow<T>({
 	/** The editor that the grid infers for a column of the slot. */
 	editorKind: (column: { id: string | number; field?: PropertyKey }) => EditorKind
 } {
-	useNewRowWarning(config, managed)
+	// A slot that the config cannot show renders nothing, so the setting fails
+	// silently. The warnings tell the developer.
+	const requested = config?.newRow != null
+
+	useDevWarning(requested && !managed, MANUAL_NEW_ROW_WARNING)
+
+	useDevWarning(requested && config?.onRowAdd == null, SINKLESS_NEW_ROW_WARNING)
 
 	// Raised to mount the slot's editors again, so each reads the store.
 	const [generation, remount] = useReducer((count: number) => count + 1, 0)
@@ -197,15 +126,7 @@ export function useGridNewRow<T>({
 	// The column whose editor takes focus as it mounts.
 	const focusRef = useRef<string | number | null>(null)
 
-	const mountedRef = useRef(false)
-
-	useEffect(() => {
-		mountedRef.current = true
-
-		return () => {
-			mountedRef.current = false
-		}
-	}, [])
+	const mountedRef = useMountedRef()
 
 	const claimFocus = useCallback((columnId: string | number) => {
 		if (focusRef.current === null || focusRef.current !== columnId) return false
@@ -294,19 +215,20 @@ export function useGridNewRow<T>({
 	)
 
 	// Settles an async add. An accepted add clears the slot. A refused one
-	// stages its values again, with the errors, and focus does not move.
+	// stages its values again, with the errors, and focus does not move. A
+	// refusal names a cell of the slot by its column, so its row is ignored.
 	const settle = useCallback(
-		(flight: NewRowFlight, outcome: { value: unknown } | { reason: unknown }) => {
-			if (!mountedRef.current || flightRef.current !== flight) return
+		(flight: NewRowFlight, outcome: SinkOutcome) => {
+			if (flightRef.current !== flight) return
 
 			flightRef.current = null
 
 			setInFlight(false)
 
-			const refused = readNewRowRefusals(
+			const refused = readRefusals(
 				outcome,
 				flight.cells.map(([columnId]) => columnId),
-				editableColumn,
+				(refusal) => editableColumn(refusal.columnId),
 			)
 
 			if (refused.size === 0) {
@@ -375,17 +297,14 @@ export function useGridNewRow<T>({
 
 		setInFlight(true)
 
-		result.then(
-			(value) => settle(flight, { value }),
-			(reason: unknown) => settle(flight, { reason }),
-		)
+		trackSink(result, mountedRef, (outcome) => settle(flight, outcome))
 	})
 
 	const enter = useCallback(
 		(columnId: string | number, seed?: string | number) => {
 			if (flightRef.current !== null) return
 
-			const column = dataColumnsRef.current.find((candidate) => candidate.id === columnId)
+			const column = columnOf(dataColumnsRef.current, columnId)
 
 			if (!column || !isColumnEditable(column)) return
 
