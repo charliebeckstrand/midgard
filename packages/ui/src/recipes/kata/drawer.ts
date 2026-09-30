@@ -28,12 +28,12 @@ export const k = {
 				// this keeps the footer clear of the home indicator. Elsewhere the inset
 				// is zero.
 				//
-				// `--drawer-covered` is the strip of browser chrome over that edge, which
-				// the drawer measures. The background stays under the chrome, and the
+				// `--covered-bottom` is the strip of a browser toolbar over that edge
+				// (`useCoveredBottom`). The background stays under the toolbar, and the
 				// content stays above it. It is padding, not an offset, so a panel at the
-				// full height keeps its top edge. The larger of the two wins, because
-				// chrome over the edge also covers the home indicator.
-				'pb-[max(env(safe-area-inset-bottom),var(--drawer-covered,0px))]',
+				// full height keeps its top edge. The larger of the two wins, because a
+				// toolbar over the edge also covers the home indicator.
+				'pb-[max(env(safe-area-inset-bottom),var(--covered-bottom,0px))]',
 				'overflow-hidden',
 				'w-full',
 			],

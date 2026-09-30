@@ -48,6 +48,69 @@ describe('Overlay', () => {
 		expect(document.body.style.overflow).toBe('hidden')
 	})
 
+	describe('browser toolbar over the bottom edge', () => {
+		// jsdom lays nothing out: every box reads a layout viewport of 800 px, under
+		// a visual viewport of 740 px, as under a toolbar of 60 px.
+		function stubToolbar() {
+			vi.stubGlobal(
+				'visualViewport',
+				Object.assign(new EventTarget(), { offsetTop: 0, height: 740, scale: 1 }),
+			)
+
+			vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
+				DOMRect.fromRect({ width: 400, height: 800 }),
+			)
+		}
+
+		const covered = () => document.documentElement.style.getPropertyValue('--covered-bottom')
+
+		it('holds the strip while the root is in the page', () => {
+			stubToolbar()
+
+			const { unmount } = renderUI(
+				<Overlay open onOpenChange={() => {}}>
+					<span>content</span>
+				</Overlay>,
+			)
+
+			expect(covered()).toBe('60px')
+
+			unmount()
+
+			expect(covered()).toBe('')
+		})
+
+		it('holds nothing for an overlay scoped to a container', () => {
+			stubToolbar()
+
+			const container = attach(document.createElement('div'))
+
+			renderUI(
+				<Overlay open onOpenChange={() => {}} container={container}>
+					<span>content</span>
+				</Overlay>,
+			)
+
+			expect(covered()).toBe('')
+		})
+
+		it('keeps the strip for a ref that a consumer holds', () => {
+			stubToolbar()
+
+			const ref = createRef<HTMLDivElement>()
+
+			renderUI(
+				<Overlay open onOpenChange={() => {}} ref={ref}>
+					<span>content</span>
+				</Overlay>,
+			)
+
+			expect(ref.current).not.toBeNull()
+
+			expect(covered()).toBe('60px')
+		})
+	})
+
 	it('restores body overflow on unmount', () => {
 		const { unmount } = renderUI(
 			<Overlay open onOpenChange={() => {}}>

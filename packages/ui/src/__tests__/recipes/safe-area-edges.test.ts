@@ -33,7 +33,26 @@ describe('safe-area insets on edge surfaces', () => {
 	})
 
 	it('pads the dialog where it docks to the bottom edge', () => {
-		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+${bottom})]`)
+		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+max(${bottom},`)
+	})
+
+	it('keeps each surface on the bottom edge clear of a browser toolbar there', () => {
+		const covered = 'var(--covered-bottom,0px)'
+
+		for (const height of ['auto', 'fit', 'half', 'full'] as const) {
+			expect(drawer.panel({ height })).toContain(`max(${bottom},${covered})`)
+		}
+
+		for (const side of ['bottom', 'right', 'left'] as const) {
+			expect(sheet.panel({ side })).toContain(`max(${bottom},${covered})`)
+		}
+
+		expect(sheet.panel({ side: 'top' })).not.toContain(covered)
+
+		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+max(${bottom},${covered}))]`)
+
+		// The stack keeps its 1rem gap above a toolbar, which is not empty space.
+		expect(toast.viewport({ position: 'bottom-left' })).toContain(`calc(${covered}+--spacing(4))`)
 	})
 
 	it('pads the toast stack at both ends', () => {

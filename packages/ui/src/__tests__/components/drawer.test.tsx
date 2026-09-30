@@ -356,26 +356,22 @@ describe('Drawer height and size', () => {
 	})
 })
 
-describe('Drawer browser chrome', () => {
-	// jsdom lays nothing out, so the box of the overlay root is stubbed: a frame
-	// of 800 px under a visual viewport of 740 px, as under a toolbar of 60 px.
-	function stubChrome() {
+describe('Drawer browser toolbar', () => {
+	// jsdom lays nothing out: every box reads a layout viewport of 800 px, under a
+	// visual viewport of 740 px, as under a toolbar of 60 px.
+	function stubToolbar() {
 		vi.stubGlobal(
 			'visualViewport',
 			Object.assign(new EventTarget(), { offsetTop: 0, height: 740, scale: 1 }),
 		)
 
-		vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-			this: Element,
-		) {
-			return this.getAttribute('data-slot') === 'overlay'
-				? DOMRect.fromRect({ width: 400, height: 800 })
-				: DOMRect.fromRect()
-		})
+		vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
+			DOMRect.fromRect({ width: 400, height: 800 }),
+		)
 	}
 
-	it('pads the content clear of the chrome over the bottom edge', () => {
-		stubChrome()
+	it('pads the content by the strip that its overlay holds', () => {
+		stubToolbar()
 
 		renderUI(
 			<Drawer open onOpenChange={() => {}} aria-label="Options">
@@ -383,43 +379,9 @@ describe('Drawer browser chrome', () => {
 			</Drawer>,
 		)
 
-		const panel = getSlot(document.body, 'drawer')
+		expect(document.documentElement.style.getPropertyValue('--covered-bottom')).toBe('60px')
 
-		expect(panel.style.getPropertyValue('--drawer-covered')).toBe('60px')
-
-		expect(panel.className).toContain('var(--drawer-covered,0px)')
-	})
-
-	it('reads no chrome over a drawer scoped to a container', () => {
-		stubChrome()
-
-		const container = document.createElement('div')
-
-		document.body.append(container)
-
-		renderUI(
-			<Drawer open onOpenChange={() => {}} container={container} aria-label="Options">
-				Rows
-			</Drawer>,
-		)
-
-		expect(getSlot(document.body, 'drawer').style.getPropertyValue('--drawer-covered')).toBe('')
-
-		container.remove()
-	})
-
-	it('writes no strip on a panel with nothing over it', () => {
-		renderUI(
-			<Drawer open onOpenChange={() => {}} aria-label="Options">
-				Rows
-			</Drawer>,
-		)
-
-		const panel = getSlot(document.body, 'drawer')
-
-		expect(panel.style.getPropertyValue('--drawer-covered')).toBe('')
-
-		expect(panel.style.height).toBe('')
+		expect(getSlot(document.body, 'drawer').className).toContain('var(--covered-bottom,0px)')
 	})
 })
 
