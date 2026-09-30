@@ -387,6 +387,8 @@ describe('MapPlat two-finger gestures', () => {
 
 		const before = transformOf(container)
 
+		const scale = scaleOf(container)
+
 		// The spread holds and the pair travels, so this is a pan and not a pinch.
 		twoFinger(
 			plot,
@@ -402,7 +404,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		expect(transformOf(container)).not.toBe(before)
 
-		expect(scaleOf(container)).toBeCloseTo(scaleOf(container), 6)
+		expect(scaleOf(container)).toBeCloseTo(scale, 6)
 	})
 
 	it("scales by the pair's spread", () => {

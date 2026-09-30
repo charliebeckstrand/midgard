@@ -25,30 +25,20 @@ describe('Grid client sorting', () => {
 
 	const order = () => screen.getAllByRole('cell').map((cell) => cell.textContent)
 
-	it('sorts rows client-side (ascending) when manual is false', () => {
+	it.each([
+		['ascending', 'asc', ['Alice', 'Bob', 'Charlie']],
+		['descending', 'desc', ['Charlie', 'Bob', 'Alice']],
+	] as const)('sorts rows client-side (%s) when manual is false', (_, direction, expected) => {
 		renderUI(
 			<Grid
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				sort={{ value: [{ column: 'name', direction: 'asc' }], manual: false }}
+				sort={{ value: [{ column: 'name', direction }], manual: false }}
 			/>,
 		)
 
-		expect(order()).toEqual(['Alice', 'Bob', 'Charlie'])
-	})
-
-	it('sorts descending', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				sort={{ value: [{ column: 'name', direction: 'desc' }], manual: false }}
-			/>,
-		)
-
-		expect(order()).toEqual(['Charlie', 'Bob', 'Alice'])
+		expect(order()).toEqual(expected)
 	})
 
 	const withBlank: Row[] = [
@@ -57,32 +47,22 @@ describe('Grid client sorting', () => {
 		{ id: 3, name: 'Alice' },
 	]
 
-	it('sinks empty values to the end when sorting ascending', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={withBlank}
-				getKey={getKey}
-				sort={{ value: [{ column: 'name', direction: 'asc' }] }}
-			/>,
-		)
-
-		expect(order()).toEqual(['Alice', 'Charlie', ''])
-	})
-
-	it('keeps empty values at the end when sorting descending', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={withBlank}
-				getKey={getKey}
-				sort={{ value: [{ column: 'name', direction: 'desc' }] }}
-			/>,
-		)
-
+	it.each([
+		['ascending', 'asc', ['Alice', 'Charlie', '']],
 		// The regression: desc negates the comparator, so a fixed empties-last sign
 		// would float the blank to the top. It must still trail the sorted names.
-		expect(order()).toEqual(['Charlie', 'Alice', ''])
+		['descending', 'desc', ['Charlie', 'Alice', '']],
+	] as const)('keeps empty values at the end when sorting %s', (_, direction, expected) => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={withBlank}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction }] }}
+			/>,
+		)
+
+		expect(order()).toEqual(expected)
 	})
 
 	it('keeps empty values at the end when the engine sorts, in each direction', () => {
@@ -419,7 +399,7 @@ describe('Grid animated sorting', () => {
 	// is globally mocked, CONVENTIONS §10.3); the mock surfaces the `layout` prop as
 	// `data-layout`, so these assert the synchronous seam — the opt-in still sorts,
 	// and it reaches each row as a real `layout` marker only when enabled.
-	it('sorts correctly with the animation opt-in on', () => {
+	it('sorts, and marks every data row for the layout FLIP, when opted in', () => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -430,17 +410,6 @@ describe('Grid animated sorting', () => {
 		)
 
 		expect(order()).toEqual(['Alice', 'Bob', 'Charlie'])
-	})
-
-	it('marks every data row for the layout FLIP when opted in', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				sort={{ value: [{ column: 'name', direction: 'asc' }], animate: true }}
-			/>,
-		)
 
 		expect(dataRows().map((row) => row.getAttribute('data-layout'))).toEqual([
 			'position',

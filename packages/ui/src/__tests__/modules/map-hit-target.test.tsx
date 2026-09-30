@@ -684,10 +684,6 @@ describe('a dot over regions that answer the pointer', () => {
  * difference visible while the request is in flight.
  */
 describe('a map whose values are still loading', () => {
-	function regionLayer(container: HTMLElement) {
-		return container.querySelector('[data-slot="map-regions"]')
-	}
-
 	it('pulses the region layer while its values are pending, and dims it instead under reduced motion', () => {
 		const { container } = renderUI(
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} pending>
@@ -695,7 +691,7 @@ describe('a map whose values are still loading', () => {
 			</MapPlat>,
 		)
 
-		const paint = regionLayer(container)?.getAttribute('class')
+		const paint = bySlot(container, 'map-regions')?.getAttribute('class')
 
 		// On the GROUP, so it inherits to every path — thousands of regions carry no class of their own,
 		// the same reason the pointer cursor rides the group. `motion-safe` rather than a bare animation,
@@ -713,7 +709,7 @@ describe('a map whose values are still loading', () => {
 			</MapPlat>,
 		)
 
-		const paint = regionLayer(container)?.getAttribute('class') ?? ''
+		const paint = bySlot(container, 'map-regions')?.getAttribute('class') ?? ''
 
 		// Neither arm: the dim is the pulse's stand-in, not a second state.
 		expect(paint).not.toContain('animate-pulse')

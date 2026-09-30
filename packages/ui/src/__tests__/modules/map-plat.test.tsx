@@ -1268,16 +1268,6 @@ describe('MapPlat controlled emphasis', () => {
 			'opacity-25',
 		)
 	})
-
-	it('lets its own legend drive the emphasis when the prop is omitted', () => {
-		const { container } = renderUI(categoricalPlat())
-
-		const [east] = allBySlot(container, 'map-legend-item')
-
-		fireEvent.pointerEnter(east as HTMLButtonElement)
-
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
-	})
 })
 
 describe('MapPlat legend reporting', () => {

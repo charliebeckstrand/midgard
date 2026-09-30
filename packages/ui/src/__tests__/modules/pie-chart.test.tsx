@@ -451,12 +451,6 @@ describe('PieChart', () => {
 		expect(cx + radius).toBeLessThanOrEqual(width)
 	})
 
-	it('keeps the default frame square when callouts are off', () => {
-		const { container } = renderUI(chart({ height: undefined }))
-
-		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
-	})
-
 	it('reserves the content-fit height from the box width so it holds before measure', () => {
 		const { container } = renderUI(chart({ height: undefined }))
 

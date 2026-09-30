@@ -66,7 +66,7 @@ describe('Grid selection scope', () => {
 		expect(screen.getByRole('button', { name: 'Act on 1' })).toBeInTheDocument()
 	})
 
-	it('names the selected rows that a search hides', async () => {
+	it('names the selected rows that a search hides', () => {
 		const { container } = renderUI(
 			<Grid
 				columns={columns}
