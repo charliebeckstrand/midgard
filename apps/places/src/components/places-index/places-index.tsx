@@ -262,6 +262,7 @@ export function PlacesIndex({
 					onRowClick={onOpen}
 					virtualize
 					maxHeight="fill"
+					header={{ position: 'sticky' }}
 					hover
 					empty={<Text>No places match.</Text>}
 					className="h-full"
