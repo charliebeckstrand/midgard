@@ -342,7 +342,6 @@ export function GridData<T>({
 		columnOrder,
 		columnVisibility,
 		sort,
-		setSort,
 		sortManual,
 		// Client grouping only. Manual grouping groups no rows and renders the
 		// consumer's sequence instead.

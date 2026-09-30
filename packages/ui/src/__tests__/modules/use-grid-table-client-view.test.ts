@@ -76,7 +76,6 @@ function gridView(rows: Row[], transforms: EngineTransforms) {
 			globalFilter: { value: transforms.query ?? '' },
 			columnFilters: { value: transforms.filters ?? [] },
 			sort: transforms.sort ?? [],
-			setSort: () => {},
 			grandTotal: true,
 			...(page ? { pagination: { ...page.config, value: page.state } } : {}),
 		}),
@@ -283,7 +282,6 @@ describe('useGridTable search and custom sort', () => {
 					getKey,
 					globalFilter: { value: query },
 					sort,
-					setSort: () => {},
 				}),
 			)
 
@@ -309,7 +307,6 @@ describe('useGridTable search and custom sort', () => {
 					getKey,
 					globalFilter: { value: query },
 					sort,
-					setSort: () => {},
 				}),
 			)
 

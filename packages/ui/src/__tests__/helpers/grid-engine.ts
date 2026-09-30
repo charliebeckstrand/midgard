@@ -27,9 +27,7 @@ import { isManualPagination } from '../../modules/grid/engine/grid-pagination-ut
 import { type EngineData, gridFeatures } from '../../modules/grid/engine/grid-table/features'
 import {
 	filterOptions,
-	groupingOptions,
 	paginationOptions,
-	sortOptions,
 	toColumnDef,
 	toSortingState,
 } from '../../modules/grid/engine/grid-table/options'
@@ -121,7 +119,8 @@ export function engineTable<T>(
 			? (passThrough as FilterFn<ReferenceFeatures, EngineData<T>>)
 			: 'includesString',
 		manualFiltering: !filtered,
-		...(sortOptions<T>({ clientSort: sort !== undefined, onSortingChange: () => {} }) as object),
+		// The reference table sorts with the engine. It keeps a multi-column sort.
+		...(sort !== undefined ? { onSortingChange: () => {}, enableMultiSort: true } : {}),
 		manualSorting: sort === undefined,
 		...(paginationOptions<T>({
 			paginated: page !== undefined,
@@ -130,10 +129,7 @@ export function engineTable<T>(
 			onPaginationChange: () => {},
 		}) as object),
 		manualPagination: manualPage,
-		...(groupingOptions<T>({
-			grouped: grouping !== undefined,
-			onGroupingChange: () => {},
-		}) as object),
+		...(grouping !== undefined ? { onGroupingChange: () => {} } : {}),
 		manualGrouping: grouping === undefined,
 	})
 }

@@ -35,7 +35,6 @@ describe('useGridTable search', () => {
 				getKey,
 				globalFilter: { value: query },
 				sort,
-				setSort: () => {},
 			}),
 		)
 
