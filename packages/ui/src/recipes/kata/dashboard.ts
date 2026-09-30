@@ -76,8 +76,23 @@ const card = defineRecipe({
 	defaults: { editable: false, dragging: false },
 })
 
-/** The header row: the grip, the title block, and the actions. */
-const header = 'flex min-w-0 items-center gap-2'
+/**
+ * The header row: the grip, the title block, and the actions.
+ *
+ * An icon-only bare button has a pad around its glyph. The pad adds to the gap
+ * of the row, so the gap next to a button looks wider than the gap next to a
+ * badge. A negative inline margin at each density step cancels the pad of the
+ * button (`kata/button.ts`). Each item of the row then shows the same gap, and
+ * the hit area of the button stays the same.
+ */
+const header = [
+	'flex min-w-0 items-center gap-2',
+	'**:data-[variant=bare]:not-data-[has-label]:density-xs:-mx-0.75',
+	'**:data-[variant=bare]:not-data-[has-label]:density-sm:-mx-1',
+	'**:data-[variant=bare]:not-data-[has-label]:density-md:-mx-1.25',
+	'**:data-[variant=bare]:not-data-[has-label]:density-lg:-mx-1.5',
+	'**:data-[variant=bare]:not-data-[has-label]:density-xl:-mx-1.5',
+].join(' ')
 
 /**
  * The title block, which shrinks before it pushes the actions out. Each line in
@@ -87,9 +102,10 @@ const heading = 'min-w-0 flex-1'
 
 /**
  * The action row at the far end of the header. A press in it starts no drag,
- * so it takes the default cursor over the grab hand of the card.
+ * so it takes the default cursor over the grab hand of the card. Its gap is the
+ * gap of the header row, so the controls of a widget after it keep the same gap.
  */
-const actions = 'flex shrink-0 cursor-default items-center gap-1'
+const actions = 'flex shrink-0 cursor-default items-center gap-2'
 
 /**
  * The content box. It fills the height that the header leaves. A widget taller
