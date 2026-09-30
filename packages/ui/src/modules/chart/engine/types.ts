@@ -374,8 +374,8 @@ export type CartesianFrameProps = {
 	 * clicked category and narrows its neighbors. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins). It carries a
 	 * pointer cursor across the plot, so the marks read as clickable. On a touch
-	 * screen under the `'hover'` trigger, a tap fires it and opens no readout, and
-	 * a hold reads the chart and does not fire it.
+	 * screen, a tap fires it on either trigger and opens no readout. A touch reads
+	 * nothing from the chart: "View data" in the chart menu shows the data.
 	 */
 	onCategoryClick?: ChartItemClick
 	/**

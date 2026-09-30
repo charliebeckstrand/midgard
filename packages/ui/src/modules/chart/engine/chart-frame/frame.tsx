@@ -561,7 +561,7 @@ export function ChartFrame({
 			ref={rootRefs}
 			data-slot="chart"
 			data-tier={tier}
-			// A touch hold here reads the chart. It does not open the context menu.
+			// A touch hold here does not open the context menu.
 			data-touch-readout=""
 			// Capture phase, so the snapshot lands before the menu's own handler opens it — the menu then
 			// renders from a target that stays put however the pointer travels while it is open.
@@ -576,8 +576,8 @@ export function ChartFrame({
 				// The named group scopes the spark header's hover / focus veil to the
 				// chart, so it never trips on an unnamed `group-hover` inside the marks.
 				'group/chart @container flex flex-col gap-3',
-				// A long press opens the readout, as on the map. The whole chart, labels
-				// included, therefore selects no text and opens no callout under a hold.
+				// The whole chart, labels included, selects no text and opens no callout
+				// under a hold.
 				k.touchReadout,
 				// A tap selects, so no double-tap zoom holds it back.
 				k.tap,

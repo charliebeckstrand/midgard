@@ -23,7 +23,7 @@ type Hold = { timer: ReturnType<typeof setTimeout>; x: number; y: number }
  * of the touch, so each existing `onContextMenu` handler under the surface runs. A native
  * `contextmenu` event during the hold, as on Android, cancels the timer. When a handler takes the
  * event, the hook drops the click that ends the hold. A hold inside a `data-touch-readout`
- * element, such as a chart or a map, stays with that readout and opens no menu.
+ * element opens no menu. On a map the hold opens the readout, and on a chart it does nothing.
  *
  * @returns Handlers for the surface element.
  *
@@ -68,8 +68,7 @@ export function useMenuTouchHold() {
 
 			if (!(target instanceof Element)) return
 
-			// A surface that reads out under a touch hold, such as a chart or a map,
-			// keeps the hold for its readout.
+			// A chart or a map keeps the hold: a map opens its readout, and a chart does nothing.
 			if (target.closest('[data-touch-readout]')) return
 
 			const timer = setTimeout(() => {

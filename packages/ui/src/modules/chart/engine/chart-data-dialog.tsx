@@ -33,8 +33,8 @@ export type ChartDataDialogProps = {
 /**
  * A dialog that shows the values of a chart as a table: one row for each
  * category, and one column for each series. It is the "View data" action of
- * the chart menu. On a touch screen it is the way to read exact values, because
- * a tooltip under a finger is hard to read.
+ * the chart menu. On a touch screen it is the way to read the values, because a
+ * touch opens no tooltip on a chart.
  *
  * The table has the same cells as the visually hidden table of the chart, and
  * it reads the same cached readout. The dialog builds the table only while it
