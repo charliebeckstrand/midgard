@@ -667,18 +667,22 @@ describe('Grid context menus', () => {
 		expect(autoSizeIndex).toBe(groupIndex + 1)
 	})
 
-	it('hands a builder a bound "Auto-size this column" for a resizable data column', () => {
+	it.each([
+		['a bound "Auto-size this column" when resizable', 'autoSizeColumn', true, 'function'],
+		['a bound "Reset column widths" when resizable', 'resetColumnWidths', true, 'function'],
+		['no "Auto-size this column" when resizable is off', 'autoSizeColumn', false, 'undefined'],
+	] as const)('hands a builder %s', (_, action, resizable, type) => {
 		const seen: Array<(() => void) | undefined> = []
 
 		renderUI(
 			<Grid
-				resizable
+				resizable={resizable}
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
 				contextMenu={{
 					column: (context, defaults) => {
-						seen.push(context.autoSizeColumn)
+						seen.push(context[action])
 
 						return defaults
 					},
@@ -688,55 +692,7 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		expect(seen.at(-1)).toBeTypeOf('function')
-	})
-
-	it('hands a builder a bound "Reset column widths" when resizable', () => {
-		const seen: Array<(() => void) | undefined> = []
-
-		renderUI(
-			<Grid
-				resizable
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				contextMenu={{
-					column: (context, defaults) => {
-						seen.push(context.resetColumnWidths)
-
-						return defaults
-					},
-				}}
-			/>,
-		)
-
-		rightClick('columnheader', 'Name')
-
-		expect(seen.at(-1)).toBeTypeOf('function')
-	})
-
-	it('leaves the builder context "Auto-size this column" undefined when resizable is off', () => {
-		const seen: Array<(() => void) | undefined> = []
-
-		renderUI(
-			<Grid
-				resizable={false}
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				contextMenu={{
-					column: (context, defaults) => {
-						seen.push(context.autoSizeColumn)
-
-						return defaults
-					},
-				}}
-			/>,
-		)
-
-		rightClick('columnheader', 'Name')
-
-		expect(seen.at(-1)).toBeUndefined()
+		expect(seen.at(-1)).toBeTypeOf(type)
 	})
 
 	const headerCell = (container: HTMLElement, id: string) =>

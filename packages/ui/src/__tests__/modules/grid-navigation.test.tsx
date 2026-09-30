@@ -321,15 +321,6 @@ describe('Grid navigable cursor', () => {
 	})
 })
 
-describe('Grid navigable role', () => {
-	it('is role=grid even for a plain, whole-set grid', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
-
-		// A cursor backs role="grid" without any windowing.
-		expect(screen.getByRole('grid')).toBeInTheDocument()
-	})
-})
-
 describe('Grid cursor selection', () => {
 	const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
 

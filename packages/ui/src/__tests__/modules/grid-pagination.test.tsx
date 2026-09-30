@@ -237,7 +237,7 @@ describe('Grid pagination', () => {
 	})
 
 	describe('server (manual) mode', () => {
-		it('shows the supplied page verbatim without slicing', () => {
+		it('shows the supplied page verbatim without slicing, and counts from the supplied total', () => {
 			// Page 3 (rows 11–15) handed in directly, as a server would return it.
 			renderUI(
 				<Grid
@@ -251,11 +251,16 @@ describe('Grid pagination', () => {
 			expect(screen.getByText('Row 11')).toBeInTheDocument()
 
 			expect(screen.getByText('Row 15')).toBeInTheDocument()
+
+			expect(screen.getByText('11–15 of 25')).toBeInTheDocument()
 		})
 	})
 
 	describe('controlled binding', () => {
-		it('fires onValueChange with the next page index on Next', async () => {
+		it.each([
+			['the next page index on Next', 'Next page', 1],
+			['the clicked page index', '3', 2],
+		])('fires onValueChange with %s', async (_, button, pageIndex) => {
 			const user = userEvent.setup()
 
 			const onValueChange = vi.fn()
@@ -269,28 +274,9 @@ describe('Grid pagination', () => {
 				/>,
 			)
 
-			await user.click(screen.getByRole('button', { name: 'Next page' }))
+			await user.click(screen.getByRole('button', { name: button }))
 
-			expect(onValueChange).toHaveBeenLastCalledWith({ pageIndex: 1, pageSize: 5 })
-		})
-
-		it('fires onValueChange with the clicked page index', async () => {
-			const user = userEvent.setup()
-
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={columns}
-					rows={many}
-					getKey={getKey}
-					pagination={{ value: { pageIndex: 0, pageSize: 5 }, onValueChange }}
-				/>,
-			)
-
-			await user.click(screen.getByRole('button', { name: '3' }))
-
-			expect(onValueChange).toHaveBeenLastCalledWith({ pageIndex: 2, pageSize: 5 })
+			expect(onValueChange).toHaveBeenLastCalledWith({ pageIndex, pageSize: 5 })
 		})
 
 		it('restores focus when the consumer commits the page in a transition', async () => {
@@ -408,20 +394,6 @@ describe('Grid pagination', () => {
 			await user.click(screen.getByRole('button', { name: 'Next page' }))
 
 			expect(screen.getByText('6–10 of 25')).toBeInTheDocument()
-		})
-
-		it('counts from the supplied total in server mode', () => {
-			// Page 3 (rows 11–15) handed in directly against a total of 25.
-			renderUI(
-				<Grid
-					columns={columns}
-					rows={many.slice(10, 15)}
-					getKey={getKey}
-					pagination={{ value: { pageIndex: 2, pageSize: 5 }, rowCount: 25 }}
-				/>,
-			)
-
-			expect(screen.getByText('11–15 of 25')).toBeInTheDocument()
 		})
 	})
 

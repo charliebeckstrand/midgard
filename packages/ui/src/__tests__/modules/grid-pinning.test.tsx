@@ -46,9 +46,9 @@ describe('Grid column pinning', () => {
 		expect(body?.style.insetInlineStart).toBe('0px')
 	})
 
-	it('treats pinned: true as left', () => {
+	it.each(['pinned', 'locked'] as const)('treats %s: true as left', (prop) => {
 		const columns: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name, [prop]: true },
 			{ id: 'email', title: 'Email', cell: (row) => row.email },
 		]
 
@@ -476,19 +476,6 @@ describe('Grid column pinning', () => {
 		expect(headCell(container, 'name')?.querySelector('.lucide-arrow-left-to-line')).toBeNull()
 
 		expect(headCell(container, 'status')?.querySelector('.lucide-arrow-right-to-line')).toBeNull()
-	})
-
-	it('treats locked: true as left', () => {
-		const columns: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: true },
-			{ id: 'email', title: 'Email', cell: (row) => row.email },
-		]
-
-		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
-
-		expect(headCell(container, 'name')?.style.insetInlineEnd).toBe('')
 	})
 
 	it('gives a locked column header no unpin button while a pinned one keeps it', () => {

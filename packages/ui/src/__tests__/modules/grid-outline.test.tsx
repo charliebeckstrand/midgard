@@ -75,35 +75,21 @@ describe('Grid outline', () => {
 		expect(table).not.toHaveClass('[&>*>tr>td]:border-e')
 	})
 
-	it('defaults a bare `striped` to odd parity when outlined', () => {
-		renderUI(<Grid outline striped columns={columns} rows={rows} getKey={getKey} />)
+	// Outlined + bare `striped` reads as `'odd'`, not `<Table>`'s even default. An
+	// explicit parity wins, and with no outline `striped` keeps the even default.
+	it.each([
+		['defaults a bare `striped` to odd parity when outlined', true, true, 'odd', 'even'],
+		['lets an explicit striped parity override the outline default', true, 'even', 'even', 'odd'],
+		['keeps the even default for a bare `striped` on a plain grid', false, true, 'even', 'odd'],
+	] as const)('%s', (_, outline, striped, on, off) => {
+		renderUI(
+			<Grid outline={outline} striped={striped} columns={columns} rows={rows} getKey={getKey} />,
+		)
 
 		const table = screen.getByRole('table')
 
-		// Outlined + bare `striped` reads as `'odd'`, not `<Table>`'s even default.
-		expect(table).toHaveClass('[&>tbody>tr:nth-child(odd)]:bg-zinc-950/2.5')
+		expect(table).toHaveClass(`[&>tbody>tr:nth-child(${on})]:bg-zinc-950/2.5`)
 
-		expect(table).not.toHaveClass('[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5')
-	})
-
-	it('lets an explicit striped parity override the outline default', () => {
-		renderUI(<Grid outline striped="even" columns={columns} rows={rows} getKey={getKey} />)
-
-		const table = screen.getByRole('table')
-
-		expect(table).toHaveClass('[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5')
-
-		expect(table).not.toHaveClass('[&>tbody>tr:nth-child(odd)]:bg-zinc-950/2.5')
-	})
-
-	it('keeps the even default for a bare `striped` on a plain grid', () => {
-		renderUI(<Grid striped columns={columns} rows={rows} getKey={getKey} />)
-
-		const table = screen.getByRole('table')
-
-		// No outline: `striped` keeps `<Table>`'s historical even-row default.
-		expect(table).toHaveClass('[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5')
-
-		expect(table).not.toHaveClass('[&>tbody>tr:nth-child(odd)]:bg-zinc-950/2.5')
+		expect(table).not.toHaveClass(`[&>tbody>tr:nth-child(${off})]:bg-zinc-950/2.5`)
 	})
 })

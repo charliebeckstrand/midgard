@@ -22,6 +22,10 @@ const rows: Row[] = [
 	{ id: 2, name: 'Bob & Co', role: 'Designer' },
 ]
 
+/** The XML of the one sheet of a workbook. */
+const sheetXml = (workbook: Uint8Array) =>
+	strFromU8(unzipSync(workbook)['xl/worksheets/sheet1.xml'] as Uint8Array)
+
 describe('rowsToHtmlTable', () => {
 	it('renders a header row of labels and one row per datum', () => {
 		expect(rowsToHtmlTable(columns, rows)).toBe(
@@ -52,9 +56,6 @@ describe('rowsToHtmlTable', () => {
 })
 
 describe('rowsToXlsx', () => {
-	const sheetXml = (workbook: Uint8Array) =>
-		strFromU8(unzipSync(workbook)['xl/worksheets/sheet1.xml'] as Uint8Array)
-
 	it('zips the OOXML parts a workbook needs', () => {
 		const parts = Object.keys(unzipSync(rowsToXlsx(columns, rows)))
 
@@ -170,9 +171,7 @@ describe('cellText', () => {
 			'<td>2026-09-29T14:30:00.000Z</td></tr><tr><td>{"a":1}</td>',
 		)
 
-		const sheet = strFromU8(
-			unzipSync(rowsToXlsx(itemColumns, items))['xl/worksheets/sheet1.xml'] as Uint8Array,
-		)
+		const sheet = sheetXml(rowsToXlsx(itemColumns, items))
 
 		expect(sheet).toContain('<t xml:space="preserve">2026-09-29T14:30:00.000Z</t>')
 

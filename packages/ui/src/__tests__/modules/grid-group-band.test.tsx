@@ -25,6 +25,10 @@ describe('Grid column groups', () => {
 
 	const groups: GridColumnGroup[] = [{ id: 'name', title: 'Name', columns: ['first', 'last'] }]
 
+	const colored: GridColumnGroup[] = [
+		{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
+	]
+
 	const bandCell = (root: HTMLElement) =>
 		root.querySelector<HTMLTableCellElement>('thead th[scope="colgroup"]')
 
@@ -71,10 +75,6 @@ describe('Grid column groups', () => {
 		root.querySelector<HTMLElement>('thead th[scope="colgroup"] [data-slot="grid-group-rule"]')
 
 	it('underlines a colored group’s band in its color', () => {
-		const colored: GridColumnGroup[] = [
-			{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
-		]
-
 		const { container } = renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
 		)
@@ -170,10 +170,6 @@ describe('Grid column groups', () => {
 		// Collapsed → caret left.
 		expect(toggle()?.querySelector('.lucide-chevron-left')).not.toBeNull()
 	})
-
-	const colored: GridColumnGroup[] = [
-		{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
-	]
 
 	it('offers Manage columns then Clear color (in that order) on a colored band', () => {
 		const { container } = renderUI(

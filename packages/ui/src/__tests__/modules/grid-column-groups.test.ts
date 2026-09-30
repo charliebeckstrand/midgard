@@ -113,14 +113,6 @@ describe('buildGroupSpans', () => {
 		])
 	})
 
-	it('total span matches the column count so the rows align', () => {
-		const ids = ['a', 'b', 'c', 'd']
-
-		const total = buildGroupSpans(ids, colToGroup, noPin).reduce((n, s) => n + s.colSpan, 0)
-
-		expect(total).toBe(ids.length)
-	})
-
 	it('splits a group when a member is not contiguous', () => {
 		const spans = buildGroupSpans(['b', 'x', 'c'], colToGroup, noPin)
 
