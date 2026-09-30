@@ -26,6 +26,7 @@ import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { Icon } from '../icon'
 import { MenuViewport } from './menu-viewport'
+import { snapMenuHeight } from './menu-viewport-utilities'
 import { MenuLabel } from './slots'
 import {
 	MenuPointerLevel,
@@ -62,7 +63,7 @@ const SUBMENU_MIDDLEWARE: Middleware[] = [
 	offset(4),
 	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
 	shift({ padding: 8 }),
-	fitHeightMiddleware,
+	fitHeightMiddleware(snapMenuHeight),
 ]
 
 /** Props for {@link MenuSub}. */

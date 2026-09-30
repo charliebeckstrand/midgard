@@ -6,6 +6,7 @@ import type { DensityStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { isNativeContextMenuRequest } from '../../utilities'
+import { snapMenuHeight } from './menu-viewport-utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
 export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
@@ -106,8 +107,9 @@ export function useMenuState({
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,
 			// A menu taller than the space on its side of the trigger shrinks into
-			// that space and scrolls, instead of running off the screen.
-			fitHeight: true,
+			// that space and scrolls, instead of running off the screen. The cut
+			// falls at the middle of a row, so the clipped row shows the overflow.
+			fitHeight: snapMenuHeight,
 			// A static menu renders inline and stays visible — `MenuContent` gates
 			// the panel on `isStatic`, not on `open`. Left dismissable it would take
 			// a slot on the shared Escape stack, report a close that changes nothing,

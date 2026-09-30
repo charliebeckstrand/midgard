@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
-import { frames, renderUI, screen, userEvent, waitFor } from '../../helpers'
+import { frames, getSlot, renderUI, screen, userEvent, waitFor } from '../../helpers'
 
 /** Labels for more rows than any test viewport holds. */
 const rows = Array.from({ length: 60 }, (_, index) => `Item ${index + 1}`)
@@ -49,9 +49,21 @@ describe('a Menu taller than the viewport (real floating engine)', () => {
 
 		expectOnScreen(panel)
 
-		const viewport = panel.querySelector('[data-slot="menu-viewport"]')
+		const viewport = getSlot(panel, 'menu-viewport')
 
 		await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
+
+		// The visible edge of the viewport cuts the last visible row at its middle.
+		const edge = viewport.getBoundingClientRect().bottom
+
+		const cut = screen
+			.getAllByRole('menuitem')
+			.map((row) => row.getBoundingClientRect())
+			.find((rect) => rect.top < edge && rect.bottom > edge)
+
+		expect(cut).toBeDefined()
+
+		if (cut) expect(edge).toBeCloseTo(cut.top + cut.height / 2, 0)
 	})
 
 	it('keeps a submenu panel on screen', async () => {
