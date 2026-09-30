@@ -9,48 +9,16 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 function Sizer({ children }: { children: ReactNode }) {
 	return <div className="sm:max-w-sm">{children}</div>
-}
-
-function DropSingleExample() {
-	return (
-		<Sizer>
-			<FileUploadDrop />
-		</Sizer>
-	)
-}
-
-function DropMultipleExample() {
-	return (
-		<Sizer>
-			<FileUploadDrop multiple />
-		</Sizer>
-	)
 }
 
 function DropAcceptExample() {
 	return (
 		<Sizer>
 			<FileUploadDrop accept="image/*" />
-		</Sizer>
-	)
-}
-
-function InputSingleExample() {
-	return (
-		<Sizer>
-			<FileUploadInput />
-		</Sizer>
-	)
-}
-
-function InputMultipleExample() {
-	return (
-		<Sizer>
-			<FileUploadInput multiple />
 		</Sizer>
 	)
 }
@@ -63,20 +31,7 @@ function InputAcceptExample() {
 	)
 }
 
-function ButtonSingleExample() {
-	const [files, setFiles] = useState<File[]>([])
-
-	return (
-		<Sizer>
-			<Stack gap="md">
-				<FileUploadButton onAccept={setFiles} />
-				{files.length > 0 && <Text tone="muted">{formatFileNames(files)}</Text>}
-			</Stack>
-		</Sizer>
-	)
-}
-
-function ButtonMultipleExample() {
+function ButtonSelectedFilesExample() {
 	const [files, setFiles] = useState<File[]>([])
 
 	const manyFiles = files.length > 1
@@ -125,13 +80,14 @@ export function Demo() {
 				<TabContents>
 					<TabContent value="drop">
 						<Stack gap="xl">
-							<Example title="Single">
-								<DropSingleExample />
-							</Example>
-
-							<Example title="Multiple">
-								<DropMultipleExample />
-							</Example>
+							<Axes
+								of="FileUploadDrop"
+								render={(props) => (
+									<div className="w-72">
+										<FileUploadDrop {...props} />
+									</div>
+								)}
+							/>
 
 							<Example title="Accept">
 								<DropAcceptExample />
@@ -141,13 +97,14 @@ export function Demo() {
 
 					<TabContent value="input">
 						<Stack gap="xl">
-							<Example title="Single">
-								<InputSingleExample />
-							</Example>
-
-							<Example title="Multiple">
-								<InputMultipleExample />
-							</Example>
+							<Axes
+								of="FileUploadInput"
+								render={(props) => (
+									<div className="w-72">
+										<FileUploadInput {...props} />
+									</div>
+								)}
+							/>
 
 							<Example title="Accept">
 								<InputAcceptExample />
@@ -157,12 +114,11 @@ export function Demo() {
 
 					<TabContent value="button">
 						<Stack gap="xl">
-							<Example title="Single">
-								<ButtonSingleExample />
-							</Example>
+							<Axes of="FileUploadButton" render={(props) => <FileUploadButton {...props} />} />
 
-							<Example title="Multiple">
-								<ButtonMultipleExample />
+							{/* Past one file, the text shows a count, and a tooltip lists the names. */}
+							<Example title="Selected files">
+								<ButtonSelectedFilesExample />
 							</Example>
 
 							<Example title="Accept">

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { DatePicker, type DatePickerRelativeValue } from '../../../components/date-picker'
 import { GlassProvider } from '../../../providers/glass'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
+
+const launch = new Date(2026, 0, 15)
 
 export function Demo() {
 	const [date, setDate] = useState<Date | null>(null)
 	const [footerDate, setFooterDate] = useState<Date | null>(null)
 	const [range, setRange] = useState<[Date, Date] | null>(null)
-	const [typed, setTyped] = useState<Date | null>(null)
 	const [relative, setRelative] = useState<DatePickerRelativeValue[] | null>(null)
 	const [relativeMany, setRelativeMany] = useState<DatePickerRelativeValue[] | null>(null)
 	const [relativeText, setRelativeText] = useState<DatePickerRelativeValue[] | null>(null)
@@ -15,12 +16,18 @@ export function Demo() {
 
 	return (
 		<>
+			{/* A date label is short, so `truncate` shows no change. The `format` prop
+			    applies only with `input`, so it is not an axis. */}
+			<Axes
+				of="DatePicker"
+				omit={['placement', 'open', 'defaultOpen', 'range', 'truncate', 'format']}
+				render={(props, label) => (
+					<DatePicker {...props} aria-label={label} defaultValue={launch} />
+				)}
+			/>
+
 			<Example title="Default">
 				<DatePicker value={date} onValueChange={setDate} />
-			</Example>
-
-			<Example title="Input">
-				<DatePicker input value={typed} onValueChange={setTyped} />
 			</Example>
 
 			<Example title="Range">
@@ -61,10 +68,6 @@ export function Demo() {
 					onValueChange={setFooterDate}
 					placeholder="No Clear button"
 				/>
-			</Example>
-
-			<Example title="Disabled">
-				<DatePicker disabled placeholder="Cannot select" />
 			</Example>
 
 			<Example title="Glass">

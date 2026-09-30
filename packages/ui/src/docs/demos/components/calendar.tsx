@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Calendar } from '../../../components/calendar'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	const [date, setDate] = useState<Date | null>(null)
@@ -21,6 +21,8 @@ export function Demo() {
 
 	return (
 		<>
+			<Axes of="Calendar" render={(props) => <Calendar {...props} />} />
+
 			<Example title="Default">
 				<Calendar value={date} onValueChange={setDate} />
 			</Example>
