@@ -555,11 +555,7 @@ describe('Filters extras', () => {
 		// Empty string is inactive: Filters drops `name` from the value object.
 		expect(onChange).toHaveBeenCalled()
 
-		const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1] as [
-			Record<string, unknown>,
-		]
-
-		expect(Object.hasOwn(lastCall[0], 'name')).toBe(false)
+		expect(onChange.mock.lastCall?.[0]).not.toHaveProperty('name')
 	})
 })
 

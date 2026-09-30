@@ -177,7 +177,7 @@ describe('DatePicker', () => {
 		expect(container.textContent).not.toContain('1/15/2025')
 	})
 
-	it('opens the calendar content when the trigger is clicked', async () => {
+	it('opens the calendar content on a trigger click, and closes it on the next', async () => {
 		const user = userEvent.setup({ delay: null })
 
 		const { container } = renderUI(<DatePicker />)
@@ -189,18 +189,6 @@ describe('DatePicker', () => {
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
 		expect(button).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	it('closes the calendar when the trigger is clicked again', async () => {
-		const user = userEvent.setup({ delay: null })
-
-		const { container } = renderUI(<DatePicker />)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(button)
-
-		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
 		await user.click(button)
 
@@ -849,18 +837,6 @@ describe('DatePicker range', () => {
 		expect(button).toHaveAttribute('aria-invalid', 'true')
 	})
 
-	it('opens the range calendar when the trigger is clicked', async () => {
-		const user = userEvent.setup({ delay: null })
-
-		const { container } = renderUI(<DatePicker range />)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(button)
-
-		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
-	})
-
 	it('displays formatted range when value is set', () => {
 		const start = new Date(2025, 0, 1)
 
@@ -871,7 +847,7 @@ describe('DatePicker range', () => {
 		expect(container.textContent).toContain('1/1/2025')
 	})
 
-	it('closes the range calendar when the trigger is clicked again', async () => {
+	it('opens the range calendar on a trigger click, and closes it on the next', async () => {
 		const user = userEvent.setup({ delay: null })
 
 		const { container } = renderUI(<DatePicker range />)
@@ -879,6 +855,8 @@ describe('DatePicker range', () => {
 		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
 		expect(button).toHaveAttribute('aria-expanded', 'true')
 

@@ -300,38 +300,26 @@ describe('CommandPaletteItem', () => {
 		expect(onOpenChange).not.toHaveBeenCalledWith(false)
 	})
 
-	it('does not invoke onAction when disabled', async () => {
+	it('marks a disabled item aria-disabled and invokes neither onAction nor onClick', async () => {
 		const onAction = vi.fn()
+
+		const onClick = vi.fn()
 
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem disabled onAction={onAction}>
+				<CommandPaletteItem disabled onAction={onAction} onClick={onClick}>
 					Run
 				</CommandPaletteItem>
 			</CommandPalette>,
 		)
+
+		expect(screen.getByRole('option')).toHaveAttribute('aria-disabled', 'true')
 
 		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Run'))
 
 		expect(onAction).not.toHaveBeenCalled()
-	})
-
-	it('does not invoke a consumer onClick when disabled', async () => {
-		const onClick = vi.fn()
-
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem disabled onClick={onClick}>
-					Run
-				</CommandPaletteItem>
-			</CommandPalette>,
-		)
-
-		const user = userEvent.setup({ delay: null })
-
-		await user.click(screen.getByText('Run'))
 
 		expect(onClick).not.toHaveBeenCalled()
 	})
@@ -388,18 +376,6 @@ describe('CommandPaletteItem', () => {
 		expect(item).toHaveAttribute('aria-disabled', 'true')
 
 		expect(item).toHaveAttribute('data-slot', 'command-palette-item')
-	})
-
-	it('exposes aria-disabled on a disabled item', () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem disabled onAction={() => {}}>
-					Run
-				</CommandPaletteItem>
-			</CommandPalette>,
-		)
-
-		expect(screen.getByRole('option')).toHaveAttribute('aria-disabled', 'true')
 	})
 })
 

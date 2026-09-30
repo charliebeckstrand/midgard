@@ -62,19 +62,11 @@ describe('DatePicker (relative)', () => {
 
 		expect(screen.getByRole('button', { name: 'This year' })).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Custom range' })).toBeInTheDocument()
-	})
-
-	it('does not offer a "Last 14 days" preset', async () => {
-		const user = openPicker()
-
-		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		expect(screen.getByRole('button', { name: 'Last year' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('button', { name: 'Last 14 days' })).not.toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Last year' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Custom range' })).toBeInTheDocument()
 	})
 
 	it('selects a preset, shows a chip, and keeps the popover open', async () => {
@@ -119,7 +111,7 @@ describe('DatePicker (relative)', () => {
 		expect(trigger).not.toHaveTextContent('This year')
 	})
 
-	it('selects multiple presets at once with multiple', async () => {
+	it('selects multiple presets at once with multiple, one chip each', async () => {
 		const user = openPicker()
 
 		const onChange = vi.fn()
@@ -139,6 +131,8 @@ describe('DatePicker (relative)', () => {
 		expect(trigger).toHaveTextContent('This year')
 
 		expect(trigger).toHaveTextContent('Last year')
+
+		expect(allBySlot(container, 'badge')).toHaveLength(2)
 	})
 
 	it('reflects selection through aria-pressed and toggles back to null', async () => {
@@ -468,20 +462,6 @@ describe('DatePicker (relative)', () => {
 		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
-	})
-
-	it('shows a chip for each selection by default', async () => {
-		const user = openPicker()
-
-		const { container } = renderUI(<ControlledRelativePicker multiple />)
-
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
-
-		await user.click(screen.getByRole('button', { name: 'This year' }))
-
-		await user.click(screen.getByRole('button', { name: 'Last year' }))
-
-		expect(allBySlot(container, 'badge')).toHaveLength(2)
 	})
 
 	it('shows the sole selection as text with chips off', async () => {

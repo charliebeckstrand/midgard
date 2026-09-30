@@ -102,6 +102,10 @@ function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => 
 	)
 }
 
+/** The card of `id` on the board. */
+const cardOf = (root: HTMLElement, id: string) =>
+	present(root.querySelector(`[data-card-id="${id}"]`), `[data-card-id="${id}"]`)
+
 describe('Kanban', () => {
 	it('renders a labeled data-slot="kanban" root with one KanbanColumn per column', () => {
 		const { container } = renderUI(<Board />)
@@ -346,28 +350,12 @@ describe('KanbanCard', () => {
 		expect(bySlot(empty.container, 'kanban-column-body')).not.toHaveAttribute('role')
 	})
 
-	it('marks an interactive card as lifted after pressing Space', async () => {
+	it('marks an interactive card as lifted on Space, and clears it when the card blurs', () => {
 		const { container } = renderUI(<Board onValueChange={() => {}} />)
 
 		const card = getSlot(container, 'kanban-card')
 
 		card.focus()
-
-		const { fireEvent } = await import('@testing-library/react')
-
-		fireEvent.keyDown(card, { key: ' ' })
-
-		expect(card).toHaveAttribute('data-lifted')
-	})
-
-	it('clears the lifted attribute when the card blurs', async () => {
-		const { container } = renderUI(<Board onValueChange={() => {}} />)
-
-		const card = getSlot(container, 'kanban-card')
-
-		card.focus()
-
-		const { fireEvent } = await import('@testing-library/react')
 
 		fireEvent.keyDown(card, { key: ' ' })
 
@@ -468,9 +456,6 @@ describe('KanbanColumnBody', () => {
 // and across columns, while un-lifted arrows move focus only.
 // Reorders surface through onValueChange.
 describe('Kanban keyboard reorder', () => {
-	const cardOf = (root: HTMLElement, id: string) =>
-		present(root.querySelector(`[data-card-id="${id}"]`), `[data-card-id="${id}"]`)
-
 	const itemIds = (next: Column[], columnId: string) =>
 		next.find((column) => column.id === columnId)?.items.map((item) => item.id)
 
@@ -566,9 +551,6 @@ describe('Kanban keyboard reorder', () => {
 })
 
 describe('Kanban keyboard announcements', () => {
-	const cardOf = (root: HTMLElement, id: string) =>
-		present(root.querySelector(`[data-card-id="${id}"]`), `[data-card-id="${id}"]`)
-
 	// Dependent keydowns fire synchronously (each fireEvent is act-flushed) so the
 	// lifted state can't be lost to an `await` yielding mid-sequence; only the
 	// final message is awaited.

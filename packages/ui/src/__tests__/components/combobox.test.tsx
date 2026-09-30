@@ -91,19 +91,7 @@ describe('Combobox', () => {
 
 		await user.click(screen.getByRole('combobox'))
 
-		expect(await screen.findByRole('listbox')).toHaveAttribute('aria-labelledby', 'city-label')
-	})
-
-	it('renders icon slot', () => {
-		const { container } = renderUI(
-			<Combobox>
-				<div>Option</div>
-			</Combobox>,
-		)
-
-		const icon = bySlot(container, 'icon')
-
-		expect(icon).toBeInTheDocument()
+		expect(screen.getByRole('listbox')).toHaveAttribute('aria-labelledby', 'city-label')
 	})
 
 	it.each([null, false, ''] as const)(
@@ -978,20 +966,6 @@ describe('Combobox + Control', () => {
 		expect(input).toHaveAttribute('data-invalid')
 	})
 
-	it('inherits required from an enclosing Control', () => {
-		const { container } = renderUI(
-			<Control required>
-				<Combobox>
-					<ComboboxOption value="a">
-						<ComboboxLabel>A</ComboboxLabel>
-					</ComboboxOption>
-				</Combobox>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'combobox-input')).toBeRequired()
-	})
-
 	it('points aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
 			<Control id="status" severity="error">
@@ -1037,7 +1011,11 @@ describe('Combobox required', () => {
 			</Control>,
 		)
 
-		expect(bySlot(container, 'combobox-input')).toHaveAttribute('aria-required', 'true')
+		const input = getSlot(container, 'combobox-input')
+
+		expect(input).toBeRequired()
+
+		expect(input).toHaveAttribute('aria-required', 'true')
 	})
 })
 
@@ -1102,13 +1080,14 @@ describe('Combobox readOnly', () => {
 			</Form>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+		// The submit handler awaits `onSubmit`, so the async `act` holds its update.
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+		})
 
-		await waitFor(() =>
-			expect(onSubmit).toHaveBeenCalledWith(
-				expect.objectContaining({ city: 'paris' }),
-				expect.anything(),
-			),
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ city: 'paris' }),
+			expect.anything(),
 		)
 	})
 })

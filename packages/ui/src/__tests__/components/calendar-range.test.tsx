@@ -14,14 +14,6 @@ function findDay(day: number) {
 }
 
 describe('CalendarRange', () => {
-	it('renders a calendar', () => {
-		const { container } = renderUI(
-			<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />,
-		)
-
-		expect(bySlot(container, 'calendar')).toBeInTheDocument()
-	})
-
 	it('applies a custom className to the calendar root', () => {
 		const { container } = renderUI(
 			<CalendarRange className="custom" rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />,
@@ -31,13 +23,11 @@ describe('CalendarRange', () => {
 	})
 
 	it('marks the range start and end cells as selected', () => {
-		const { container } = renderUI(
-			<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />,
-		)
+		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />)
 
-		const selected = container.querySelectorAll('[aria-selected="true"]')
+		expect(findDay(5)).toHaveAttribute('aria-selected', 'true')
 
-		expect(selected.length).toBeGreaterThanOrEqual(2)
+		expect(findDay(10)).toHaveAttribute('aria-selected', 'true')
 	})
 
 	it('marks cells inside the range with a soft background', () => {

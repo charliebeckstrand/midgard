@@ -1,5 +1,5 @@
 import { act, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CopyButton } from '../../components/copy-button'
 import { expectAnnouncement, fireEvent, present, renderUI } from '../helpers'
 
@@ -26,18 +26,6 @@ function stubClipboard(writeText: (value: string) => Promise<void>) {
 }
 
 describe('CopyButton', () => {
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
-
-	it('renders a button', () => {
-		const { container } = renderUI(<CopyButton text="text" />)
-
-		const el = container.querySelector('button')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('has an accessible label', () => {
 		const { container } = renderUI(<CopyButton text="text" />)
 

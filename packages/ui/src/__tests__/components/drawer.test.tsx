@@ -452,7 +452,7 @@ describe('Drawer drag handle', () => {
 		return {
 			...rendered,
 			handle: getSlot(rendered.container, 'drawer-handle'),
-			panel: getSlot(rendered.container, 'drawer') as HTMLElement,
+			panel: getSlot(rendered.container, 'drawer'),
 		}
 	}
 
@@ -538,7 +538,7 @@ describe('Drawer drag handle', () => {
 
 		// Back at the size the consumer asked for, which is the one a reader coming
 		// back to the panel expects.
-		expect((getSlot(container, 'drawer') as HTMLElement).style.height).toBe('')
+		expect(getSlot(container, 'drawer').style.height).toBe('')
 	})
 
 	it('ends a drag that the close interrupts, so a reopen keeps its own height', () => {
@@ -564,7 +564,7 @@ describe('Drawer drag handle', () => {
 			</Drawer>,
 		)
 
-		const panel = getSlot(container, 'drawer') as HTMLElement
+		const panel = getSlot(container, 'drawer')
 
 		expect(panel.style.height).toBe('')
 

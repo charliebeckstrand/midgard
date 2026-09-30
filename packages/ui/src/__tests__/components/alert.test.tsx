@@ -91,17 +91,13 @@ describe('Alert', () => {
 	it('dismisses when close button is clicked', () => {
 		const onOpenChange = vi.fn()
 
-		const { container } = renderUI(
+		renderUI(
 			<Alert closable onOpenChange={onOpenChange}>
 				content
 			</Alert>,
 		)
 
-		const closeButton = container.querySelector('button')
-
-		if (!closeButton) throw new Error('close button not rendered')
-
-		fireEvent.click(closeButton)
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})

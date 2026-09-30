@@ -30,6 +30,16 @@ function ValidProbe() {
 	return <span data-testid="valid">{String(status?.valid)}</span>
 }
 
+/**
+ * Submits the form in `container` inside an async `act`. The submit handler awaits
+ * `onSubmit` and then sets state, and the async `act` holds that update.
+ */
+async function submit(container: HTMLElement) {
+	await act(async () => {
+		fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
+	})
+}
+
 describe('Form', () => {
 	it('renders with data-slot="form"', () => {
 		const { container } = renderUI(
@@ -82,26 +92,6 @@ describe('Form', () => {
 		expect(renders.b).toBe(bAfterMount)
 	})
 
-	it('calls onSubmit with current values', async () => {
-		const onSubmit = vi.fn()
-
-		const { container } = renderUI(
-			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
-				<button type="submit">Submit</button>
-			</Form>,
-		)
-
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		// handleSubmit awaits onSubmit then calls setSubmitting(false); wrap so
-		// the trailing setState lands inside act.
-		await act(async () => {
-			fireEvent.submit(form)
-		})
-
-		expect(onSubmit).toHaveBeenCalledWith({ name: 'Ada' }, expect.any(Object))
-	})
-
 	it('calls onReset when the form is reset', () => {
 		const onReset = vi.fn()
 
@@ -144,11 +134,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(onSubmit).not.toHaveBeenCalled()
 
@@ -168,11 +154,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(onSubmit).toHaveBeenCalledWith({ name: 'Ada' }, expect.any(Object))
 	})
@@ -246,19 +228,15 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken')
 	})
 
 	it('disables the fieldset while onSubmit is pending', async () => {
-		const submit = deferred()
+		const pending = deferred()
 
-		const onSubmit = vi.fn(() => submit.promise)
+		const onSubmit = vi.fn(() => pending.promise)
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
@@ -266,27 +244,23 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		const fieldset = container.querySelector('fieldset')
 
 		expect(fieldset).toBeDisabled()
 
 		await act(async () => {
-			submit.resolve()
+			pending.resolve()
 		})
 
 		expect(fieldset).not.toBeDisabled()
 	})
 
 	it('drops a slow submit that resolves after a reset', async () => {
-		const submit = deferred<{ fieldErrors: { name: string } }>()
+		const pending = deferred<{ fieldErrors: { name: string } }>()
 
-		const onSubmit = vi.fn(() => submit.promise)
+		const onSubmit = vi.fn(() => pending.promise)
 
 		// Captured during render so the reset can be driven programmatically; a
 		// reset button would sit inside the fieldset that submitting disables.
@@ -307,11 +281,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		// The control: the submit is in flight. Without it, every assertion below
 		// also holds for a form that never submitted.
@@ -326,7 +296,7 @@ describe('Form', () => {
 
 		// The handler resolves only now; its stale fieldErrors must be dropped.
 		await act(async () => {
-			submit.resolve({ fieldErrors: { name: 'taken on the server' } })
+			pending.resolve({ fieldErrors: { name: 'taken on the server' } })
 		})
 
 		// The value proves that the probe reads a live field. Without it, the missing
@@ -349,11 +319,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(onSettled).toHaveBeenCalledTimes(1)
 
@@ -377,11 +343,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(onSettled).toHaveBeenCalledTimes(1)
 
@@ -403,11 +365,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(onSettled).toHaveBeenCalledTimes(1)
 
@@ -433,38 +391,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
-
-		expect(onSettled).not.toHaveBeenCalled()
-	})
-
-	it('does not fire onSettled when client validation blocks submission', async () => {
-		const onSubmit = vi.fn()
-
-		const onSettled = vi.fn()
-
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				validate={{ name: (value) => (value.length === 0 ? 'required' : undefined) }}
-				onSubmit={onSubmit}
-				onSettled={onSettled}
-			>
-				<button type="submit">Submit</button>
-			</Form>,
-		)
-
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
-
-		expect(onSubmit).not.toHaveBeenCalled()
+		await submit(container)
 
 		expect(onSettled).not.toHaveBeenCalled()
 	})
@@ -480,11 +407,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken on the server')
 	})
@@ -504,11 +427,7 @@ describe('Form', () => {
 		// validator pass that can't see server errors.
 		expect(screen.getByTestId('valid').textContent).toBe('true')
 
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
+		await submit(container)
 
 		expect(screen.getByTestId('valid').textContent).toBe('false')
 	})
@@ -551,7 +470,7 @@ describe('Form', () => {
 		expect(getFieldProbe('tags')).toHaveAttribute('data-dirty', 'false')
 	})
 
-	it('replaces values when the controlled `values` prop reference changes', () => {
+	it('replaces values, and shifts the dirty baseline, when the `values` reference changes', () => {
 		function Host() {
 			const [values, setValues] = useState({ name: 'Ada' })
 
@@ -571,36 +490,13 @@ describe('Form', () => {
 
 		expect(getFieldProbe('name').textContent).toBe('Ada')
 
-		act(() => {
-			screen.getByText('sync').click()
-		})
-
-		expect(getFieldProbe('name').textContent).toBe('Grace')
-	})
-
-	it('shifts the dirty baseline after a controlled values sync', () => {
-		function Host() {
-			const [values, setValues] = useState({ name: 'Ada' })
-
-			return (
-				<>
-					<button type="button" onClick={() => setValues({ name: 'Grace' })}>
-						sync
-					</button>
-					<Form defaultValues={{ name: '' }} values={values}>
-						<FieldProbe name="name" />
-					</Form>
-				</>
-			)
-		}
-
-		renderUI(<Host />)
-
 		expect(getFieldProbe('name')).toHaveAttribute('data-dirty', 'false')
 
 		act(() => {
 			screen.getByText('sync').click()
 		})
+
+		expect(getFieldProbe('name').textContent).toBe('Grace')
 
 		expect(getFieldProbe('name')).toHaveAttribute('data-dirty', 'false')
 	})
@@ -943,14 +839,6 @@ function InvalidProbe({ name }: { name: string }) {
 }
 
 describe('Form onInvalidSubmit', () => {
-	const submit = async (container: HTMLElement) => {
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		await act(async () => {
-			fireEvent.submit(form)
-		})
-	}
-
 	// A refused submit reaches neither `onSubmit` nor a terminal outcome, so this
 	// report is the only signal the attempt happened at all.
 	it('reports the failed fields and skips onSubmit and onSettled', async () => {

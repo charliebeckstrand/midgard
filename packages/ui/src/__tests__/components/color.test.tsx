@@ -296,9 +296,7 @@ describe('ColorPicker', () => {
 			<ColorPicker defaultValue="#ef4444" onOpenChange={onOpenChange} />,
 		)
 
-		const button = bySlot(container, 'color-picker-button')
-
-		if (!button) throw new Error('trigger missing')
+		const button = getSlot(container, 'color-picker-button')
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 

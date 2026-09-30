@@ -42,44 +42,24 @@ describe('isMeaningful', () => {
 })
 
 describe('formatEditing', () => {
-	it('keeps every digit of an integer run past 2^53', () => {
-		expect(formatEditing('12345678901234567', 'en-US', '.', 2)).toBe('12,345,678,901,234,567')
-	})
-
-	it('applies locale digit grouping to the integer part', () => {
-		expect(formatEditing('1234567', 'en-US', '.', 2)).toBe('1,234,567')
-	})
-
-	it('preserves a leading minus sign', () => {
-		expect(formatEditing('-1234', 'en-US', '.', 2)).toBe('-1,234')
-	})
-
-	it('preserves a trailing decimal point', () => {
-		expect(formatEditing('1234.', 'en-US', '.', 2)).toBe('1,234.')
-	})
-
-	it('truncates the fractional part to maxFractionDigits', () => {
-		expect(formatEditing('1.23456', 'en-US', '.', 2)).toBe('1.23')
-	})
-
-	it('does not append a fractional part when maxFractionDigits is 0', () => {
-		expect(formatEditing('1.23', 'en-US', '.', 0)).toBe('1')
-	})
-
-	it('treats a leading decimal as "0."', () => {
-		expect(formatEditing('.5', 'en-US', '.', 2)).toBe('0.5')
-	})
-
-	it('keeps only the first decimal point in input', () => {
-		expect(formatEditing('1.2.3', 'en-US', '.', 2)).toBe('1.23')
-	})
-
-	it('strips leading zeros from the integer part', () => {
-		expect(formatEditing('00012', 'en-US', '.', 2)).toBe('12')
-	})
-
-	it('strips non-meaningful characters', () => {
-		expect(formatEditing('1a2b3', 'en-US', '.', 2)).toBe('123')
+	it.each([
+		[
+			'keeps every digit of an integer run past 2^53',
+			'12345678901234567',
+			2,
+			'12,345,678,901,234,567',
+		],
+		['applies locale digit grouping to the integer part', '1234567', 2, '1,234,567'],
+		['preserves a leading minus sign', '-1234', 2, '-1,234'],
+		['preserves a trailing decimal point', '1234.', 2, '1,234.'],
+		['truncates the fractional part to maxFractionDigits', '1.23456', 2, '1.23'],
+		['does not append a fractional part when maxFractionDigits is 0', '1.23', 0, '1'],
+		['treats a leading decimal as "0."', '.5', 2, '0.5'],
+		['keeps only the first decimal point in input', '1.2.3', 2, '1.23'],
+		['strips leading zeros from the integer part', '00012', 2, '12'],
+		['strips non-meaningful characters', '1a2b3', 2, '123'],
+	] as const)('%s', (_name, input, maxFractionDigits, expected) => {
+		expect(formatEditing(input, 'en-US', '.', maxFractionDigits)).toBe(expected)
 	})
 
 	it('honors a comma decimal separator', () => {
@@ -106,16 +86,12 @@ describe('parseEditing', () => {
 		expect(parseEditing('-12.5', ',', '.')).toBe(-12.5)
 	})
 
-	it('returns undefined for an empty string', () => {
-		expect(parseEditing('', ',', '.')).toBeUndefined()
-	})
-
-	it('returns undefined for a lone minus sign', () => {
-		expect(parseEditing('-', ',', '.')).toBeUndefined()
-	})
-
-	it('returns undefined for a lone decimal separator', () => {
-		expect(parseEditing('.', ',', '.')).toBeUndefined()
+	it.each([
+		['an empty string', ''],
+		['a lone minus sign', '-'],
+		['a lone decimal separator', '.'],
+	])('returns undefined for %s', (_name, input) => {
+		expect(parseEditing(input, ',', '.')).toBeUndefined()
 	})
 
 	it('handles a comma decimal separator', () => {

@@ -16,16 +16,12 @@ describe('isSameDay', () => {
 		expect(isSameDay(new Date(2024, 5, 15, 9, 0), new Date(2024, 5, 15, 23, 59))).toBe(true)
 	})
 
-	it('returns false when the day differs', () => {
-		expect(isSameDay(new Date(2024, 5, 15), new Date(2024, 5, 16))).toBe(false)
-	})
-
-	it('returns false when the month differs', () => {
-		expect(isSameDay(new Date(2024, 5, 15), new Date(2024, 6, 15))).toBe(false)
-	})
-
-	it('returns false when the year differs', () => {
-		expect(isSameDay(new Date(2024, 5, 15), new Date(2025, 5, 15))).toBe(false)
+	it.each([
+		['day', new Date(2024, 5, 16)],
+		['month', new Date(2024, 6, 15)],
+		['year', new Date(2025, 5, 15)],
+	])('returns false when the %s differs', (_field, other) => {
+		expect(isSameDay(new Date(2024, 5, 15), other)).toBe(false)
 	})
 })
 
@@ -56,20 +52,12 @@ describe('isBetween', () => {
 		expect(isBetween(new Date(2024, 5, 10), new Date(2024, 5, 1), new Date(2024, 5, 20))).toBe(true)
 	})
 
-	it('returns false at the start boundary', () => {
-		expect(isBetween(new Date(2024, 5, 1), new Date(2024, 5, 1), new Date(2024, 5, 20))).toBe(false)
-	})
-
-	it('returns false at the end boundary', () => {
-		expect(isBetween(new Date(2024, 5, 20), new Date(2024, 5, 1), new Date(2024, 5, 20))).toBe(
-			false,
-		)
-	})
-
-	it('returns false when the date is outside the range', () => {
-		expect(isBetween(new Date(2024, 4, 30), new Date(2024, 5, 1), new Date(2024, 5, 20))).toBe(
-			false,
-		)
+	it.each([
+		['at the start boundary', new Date(2024, 5, 1)],
+		['at the end boundary', new Date(2024, 5, 20)],
+		['when the date is outside the range', new Date(2024, 4, 30)],
+	])('returns false %s', (_name, date) => {
+		expect(isBetween(date, new Date(2024, 5, 1), new Date(2024, 5, 20))).toBe(false)
 	})
 
 	it('handles a reversed range', () => {
@@ -138,16 +126,12 @@ describe('getCalendarDays', () => {
 		expect(days.at(-1)?.getDate()).toBe(30)
 	})
 
-	it('returns 31 days for a 31-day month', () => {
-		expect(getCalendarDays(2024, 0)).toHaveLength(31) // January
-	})
-
-	it('returns 29 days in February of a leap year', () => {
-		expect(getCalendarDays(2024, 1)).toHaveLength(29)
-	})
-
-	it('returns 28 days in February of a non-leap year', () => {
-		expect(getCalendarDays(2023, 1)).toHaveLength(28)
+	it.each([
+		['a 31-day month', 2024, 0, 31],
+		['February of a leap year', 2024, 1, 29],
+		['February of a non-leap year', 2023, 1, 28],
+	])('returns every day in %s', (_name, year, month, length) => {
+		expect(getCalendarDays(year, month)).toHaveLength(length)
 	})
 
 	it('returns Date objects aligned to the requested year and month', () => {

@@ -654,7 +654,7 @@ describe('DateInput onValidityChange', () => {
 	const field = (container: HTMLElement) => getSlot<HTMLInputElement>(container, 'date-input')
 
 	it('calls a growing entry potentially valid, and a complete one valid', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValidityChange = vi.fn()
 
@@ -680,7 +680,7 @@ describe('DateInput onValidityChange', () => {
 	// 31 February masks cleanly and parses to nothing, which is the shape this
 	// callback exists to separate from a half-typed entry.
 	it('refuses a complete entry the parser rejects', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValidityChange = vi.fn()
 
@@ -696,7 +696,7 @@ describe('DateInput onValidityChange', () => {
 
 	// Blur closes the entry, so a partial one that was still growing is refused.
 	it('refuses a partial entry on blur', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValidityChange = vi.fn()
 
@@ -716,7 +716,7 @@ describe('DateInput onValidityChange', () => {
 	// reset, a calendar pick. Without a report there, the caller's last verdict
 	// says "wrong" over a field rendering clean, with no route back but retyping.
 	it('reports the verdict a value from outside leaves behind', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValidityChange = vi.fn()
 
@@ -753,7 +753,7 @@ describe('DateInput onValidityChange', () => {
 	})
 
 	it('keeps an emptied field potentially valid on blur', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValidityChange = vi.fn()
 

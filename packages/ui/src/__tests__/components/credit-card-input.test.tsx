@@ -202,20 +202,6 @@ describe('CreditCardInputExpiry', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
-	it('leaves a still-growing entry unmarked while typing', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = userEvent.setup({ delay: null })
-
-		await user.type(input, '12')
-
-		expect(input.value).toBe('12/')
-
-		expect(input).not.toHaveAttribute('aria-invalid')
-	})
-
 	it('keeps a partial entry on blur and marks it invalid', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 

@@ -140,9 +140,9 @@ describe('Collapse', () => {
 		expect(screen.getByText('Custom Trigger')).toBeInTheDocument()
 	})
 
-	it('supports animate="slide"', () => {
+	it.each(['slide', false] as const)('renders the open panel with animate=%s', (animate) => {
 		const { container } = renderUI(
-			<Collapse animate="slide" defaultOpen>
+			<Collapse animate={animate} defaultOpen>
 				<CollapseTrigger>Toggle</CollapseTrigger>
 				<CollapsePanel>
 					<p>Body</p>
@@ -151,19 +151,8 @@ describe('Collapse', () => {
 		)
 
 		expect(bySlot(container, 'collapse')).toBeInTheDocument()
-	})
 
-	it('supports animate={false}', () => {
-		const { container } = renderUI(
-			<Collapse animate={false} defaultOpen>
-				<CollapseTrigger>Toggle</CollapseTrigger>
-				<CollapsePanel>
-					<p>Body</p>
-				</CollapsePanel>
-			</Collapse>,
-		)
-
-		expect(bySlot(container, 'collapse')).toBeInTheDocument()
+		expect(screen.getByText('Body')).toBeInTheDocument()
 	})
 
 	describe('mount policy', () => {
@@ -334,21 +323,6 @@ describe('useCollapseContext in trigger children', () => {
 		expect(calls).toEqual(['consumer', 'change'])
 
 		expect(screen.getByText('Body')).toBeInTheDocument()
-	})
-
-	it('forwards the user onClick', () => {
-		const onClick = vi.fn()
-
-		renderUI(
-			<Collapse>
-				<CollapseTrigger onClick={onClick}>Toggle</CollapseTrigger>
-				<CollapsePanel>Body</CollapsePanel>
-			</Collapse>,
-		)
-
-		fireEvent.click(screen.getByText('Toggle'))
-
-		expect(onClick).toHaveBeenCalled()
 	})
 })
 

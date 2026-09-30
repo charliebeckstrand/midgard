@@ -254,21 +254,7 @@ describe('Calendar month/year picker', () => {
 		return monthButton
 	}
 
-	it('opens the month picker when the header label is clicked', async () => {
-		const user = userEvent.setup({ delay: null })
-
-		const defaultValue = new Date(2025, 5, 15)
-
-		renderUI(<Calendar defaultValue={defaultValue} />)
-
-		await user.click(openPicker(/June 2025/))
-
-		expect(screen.getByRole('button', { name: 'Previous year' })).toBeInTheDocument()
-
-		expect(screen.getByRole('button', { name: 'Next year' })).toBeInTheDocument()
-	})
-
-	it('navigates years inside the month picker', async () => {
+	it('opens the month picker from the header label and navigates years inside it', async () => {
 		const user = userEvent.setup({ delay: null })
 
 		const defaultValue = new Date(2025, 5, 15)
@@ -504,7 +490,10 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(day('1'))
 	})
 
-	it('selects the focused day with Enter', async () => {
+	it.each([
+		['Enter', '{Enter}'],
+		['Space', ' '],
+	])('selects the focused day with %s', async (_name, key) => {
 		const onChange = vi.fn()
 
 		const user = userEvent.setup({ delay: null })
@@ -513,25 +502,11 @@ describe('Calendar keyboard navigation', () => {
 
 		act(() => day('20').focus())
 
-		await user.keyboard('{Enter}')
+		await user.keyboard(key)
 
 		expect(onChange).toHaveBeenCalledTimes(1)
 
 		expect((onChange.mock.calls[0]?.[0] as Date | undefined)?.getDate()).toBe(20)
-	})
-
-	it('selects the focused day with Space', async () => {
-		const onChange = vi.fn()
-
-		const user = userEvent.setup({ delay: null })
-
-		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />)
-
-		act(() => day('20').focus())
-
-		await user.keyboard(' ')
-
-		expect(onChange).toHaveBeenCalled()
 	})
 
 	// Disabled (out-of-range) days render as `<button disabled>` and can't take
