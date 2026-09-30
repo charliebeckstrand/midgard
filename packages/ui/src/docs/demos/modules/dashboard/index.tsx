@@ -553,7 +553,7 @@ function RegistryExample() {
 
 			<Stack gap="sm">
 				<Text tone="muted">
-					The board saves as this spec. It holds widget names and options, not components.
+					Saved as plain JSON: each tile names its widget, and the registry draws it.
 				</Text>
 
 				<JsonTree data={json} rootKey="spec" defaultExpandDepth={0} />
