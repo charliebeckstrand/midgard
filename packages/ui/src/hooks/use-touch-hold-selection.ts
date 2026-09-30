@@ -3,15 +3,20 @@
 import { type PointerEvent, useCallback, useEffect, useRef } from 'react'
 
 /**
- * Time, in ms, that a hold keeps the guard on after the lift. iOS can set the
- * selection of a long press again when the finger lifts, after the lift reaches
- * the page.
+ * Time, in ms, that a hold keeps the guard on after the lift. iOS can start a
+ * selection after the lift reaches the page.
  * @internal
  */
-export const TOUCH_HOLD_SELECTION_SETTLE = 250
+export const TOUCH_HOLD_SELECTION_SETTLE = 300
 
-// The number of live holds. The first hold adds the document listeners and the last removes them.
+/** The Tailwind class that the guard sets on `<html>` for the span of a hold. */
+const GUARD_CLASS = 'select-none'
+
+// The number of live holds. The first hold arms the guard and the last removes it.
 let holds = 0
+
+// Whether the guard added the class, so a page that sets it on `<html>` keeps it.
+let added = false
 
 /** Removes the selection when it holds a range. A caret selects nothing. @internal */
 function clearRange() {
@@ -34,8 +39,8 @@ function refuseSelectStart(event: Event) {
 export type TouchSelectionRelease = (now?: boolean) => void
 
 /**
- * Removes each text selection on the page until the returned release runs, and
- * for {@link TOUCH_HOLD_SELECTION_SETTLE} after it. For a touch hold that runs
+ * Stops text selection on the page until the returned release runs, and for
+ * {@link TOUCH_HOLD_SELECTION_SETTLE} after it. For a touch hold that runs
  * outside React state. A second release does nothing, except a release with
  * `now` that ends a settle at once.
  *
@@ -46,6 +51,12 @@ export type TouchSelectionRelease = (now?: boolean) => void
  */
 export function holdTouchSelection(): TouchSelectionRelease {
 	if (holds === 0) {
+		const root = document.documentElement
+
+		added = !root.classList.contains(GUARD_CLASS)
+
+		if (added) root.classList.add(GUARD_CLASS)
+
 		document.addEventListener('selectionchange', clearRange)
 
 		document.addEventListener('selectstart', refuseSelectStart, true)
@@ -65,6 +76,10 @@ export function holdTouchSelection(): TouchSelectionRelease {
 		holds -= 1
 
 		if (holds > 0) return
+
+		if (added) document.documentElement.classList.remove(GUARD_CLASS)
+
+		added = false
 
 		document.removeEventListener('selectionchange', clearRange)
 
@@ -97,13 +112,19 @@ export function holdTouchSelection(): TouchSelectionRelease {
  * guard, and the lift or the cancel of that touch releases it. A mouse or a pen
  * press does nothing.
  *
- * @remarks iOS Safari selects text under a long press. It can select a label
- * in a `select-none` chart, or a range across the tiles near the finger, and
- * show its loupe and its callout. From the press until
- * {@link TOUCH_HOLD_SELECTION_SETTLE} after the lift, the guard removes each
+ * @remarks iOS starts a long-press selection, with its loupe and its callout,
+ * although the surface is `select-none`. The selection can then land on any
+ * text near the finger, such as a chart label or a readout. A `select-none` on
+ * the surface or a script that removes the range does not stop the loupe. Only
+ * a `select-none` on the whole page does, as React Aria also found for its
+ * press hooks. From the press until {@link TOUCH_HOLD_SELECTION_SETTLE} after
+ * the lift, the guard therefore sets `select-none` on `<html>`, removes each
  * range that the page selects, and cancels `selectstart`, which Chrome for
- * Android fires. The guard adds no style, so it causes no restyle. Text that the
- * reader selects at other times stays selected. The hook releases on unmount.
+ * Android fires. Fields and nodes that set `select-text` keep their own value.
+ *
+ * The class on `<html>` restyles the page once at the press and once at the
+ * end of the settle, so only a surface with a hold behavior opts in. A mouse or
+ * a pen press arms nothing. The hook releases on unmount.
  *
  * @internal
  */

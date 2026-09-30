@@ -33,6 +33,8 @@ function selectText() {
 	document.dispatchEvent(new Event('selectionchange'))
 }
 
+const guarded = () => document.documentElement.classList.contains('select-none')
+
 const selected = () => document.getSelection()?.isCollapsed === false
 
 /** Whether a `selectstart` at the body survives the guard. */
@@ -62,6 +64,8 @@ describe('useTouchHoldSelection', () => {
 
 		result.current(press('touch'))
 
+		expect(guarded()).toBe(true)
+
 		selectText()
 
 		expect(selected()).toBe(false)
@@ -82,7 +86,11 @@ describe('useTouchHoldSelection', () => {
 
 		expect(selected()).toBe(false)
 
+		expect(guarded()).toBe(true)
+
 		act(() => vi.advanceTimersByTime(TOUCH_HOLD_SELECTION_SETTLE))
+
+		expect(guarded()).toBe(false)
 
 		selectText()
 
@@ -125,6 +133,8 @@ describe('useTouchHoldSelection', () => {
 		result.current(press('pen'))
 
 		result.current(press('touch', 2, false))
+
+		expect(guarded()).toBe(false)
 
 		selectText()
 
@@ -169,5 +179,17 @@ describe('holdTouchSelection', () => {
 		selectText()
 
 		expect(selected()).toBe(true)
+	})
+})
+
+describe('the page class', () => {
+	it('keeps a select-none that the page set on the root', () => {
+		document.documentElement.classList.add('select-none')
+
+		holdTouchSelection()(true)
+
+		expect(guarded()).toBe(true)
+
+		document.documentElement.classList.remove('select-none')
 	})
 })
