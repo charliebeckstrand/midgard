@@ -142,8 +142,12 @@ type LoadMoreState = {
 	prevCount: number
 	/** The unbounded-container dev error already fired this mount. */
 	warned: boolean
-	/** The `scrollHeight` of the container at the last scroll event, or `null` before one. */
-	scrollHeight: number | null
+	/**
+	 * The `scrollTop` of the container where layout last left it: at the last
+	 * scroll event, or after the last layout that changed a size. `null` before
+	 * the listener attaches.
+	 */
+	restTop: number | null
 	/** A layout scroll event set the arm, and no scroll event has evaluated it yet. */
 	unchecked: boolean
 }
@@ -157,7 +161,7 @@ function initialLoadMoreState(count: number): LoadMoreState {
 		suppressArm: false,
 		prevCount: count,
 		warned: false,
-		scrollHeight: null,
+		restTop: null,
 		unchecked: false,
 	}
 }
@@ -292,21 +296,29 @@ function evaluateLoadMore(args: {
  * so no render evaluates the arm. A failed fetch would then wait for a long
  * scroll.
  *
- * A scroll event that comes with a new `scrollHeight` arms, but does not
- * evaluate. The virtualizer measured rows and moved the offset, so the event
- * is layout, not the user. An evaluation on such an event would fire again
- * after each fire, with no user scroll between the two.
+ * A scroll event that finds the offset where layout left it arms, but does not
+ * evaluate. Layout moved the offset: the native scroll anchor held a row in
+ * view while a row above it grew, or the scroll end clamped the offset after
+ * the content shrank. The event is layout, not the user. An evaluation on such
+ * an event would fire again after each fire, with no user scroll between the
+ * two. A scroll by the user, or a scroll that the grid requests, moves the
+ * offset away from where layout left it, so the event evaluates.
+ *
+ * The rest offset comes from the offset itself, never from `scrollHeight`. A
+ * measured row changes `scrollHeight` with no scroll event, so a height that
+ * the last event recorded goes stale. A short scroll after such a measurement
+ * then read as layout, and the retry after a failed fetch never ran.
  *
  * @param state - The bookkeeping of the hook.
- * @param scrollHeight - The `scrollHeight` of the container at this event.
+ * @param scrollTop - The `scrollTop` of the container at this event.
  * @returns `true` when the event must run one evaluation.
  *
  * @internal
  */
-function armOnScroll(state: LoadMoreState, scrollHeight: number): boolean {
-	const steady = state.scrollHeight === scrollHeight
+function armOnScroll(state: LoadMoreState, scrollTop: number): boolean {
+	const moved = state.restTop !== scrollTop
 
-	state.scrollHeight = scrollHeight
+	state.restTop = scrollTop
 
 	// The programmatic scroll to the top of a replacement is not the user.
 	if (state.suppressArm) {
@@ -315,14 +327,14 @@ function armOnScroll(state: LoadMoreState, scrollHeight: number): boolean {
 		return false
 	}
 
-	// An arm that a layout event set waits for the next steady event.
+	// An arm that a layout event set waits for the next event that moves the offset.
 	if (state.armed && !state.unchecked) return false
 
 	state.armed = true
 
-	state.unchecked = !steady
+	state.unchecked = !moved
 
-	return steady
+	return moved
 }
 
 /** Parameters for {@link useGridInfiniteScroll}. @internal */
@@ -410,15 +422,34 @@ export function useGridInfiniteScroll({
 		// of that render tells whether the window still nears the end.
 		let frame = 0
 
+		// A resize observation runs after layout, and so after each offset that
+		// layout moved: an anchor correction, or a clamp at the scroll end. It
+		// records that offset as the rest offset of `armOnScroll`. It reads the
+		// offset of a layout that is already done, so it forces no layout.
+		const rest = () => {
+			if (stateRef.current) stateRef.current.restTop = element.scrollTop
+		}
+
+		rest()
+
+		const observer = new ResizeObserver(rest)
+
+		observer.observe(element)
+
+		for (const child of element.children) observer.observe(child)
+
 		const onScroll = () => {
 			const state = stateRef.current
 
-			if (!state || !armOnScroll(state, element.scrollHeight) || frame) return
+			if (!state || !armOnScroll(state, element.scrollTop) || frame) return
 
 			frame = requestAnimationFrame(() => {
 				frame = 0
 
-				evaluateOnArm(state)
+				// A render can fire in the frame and use the arm up. A layout event
+				// that arms again before this callback does not count as the scroll
+				// of the user, so it runs no evaluation here.
+				if (!state.unchecked) evaluateOnArm(state)
 			})
 		}
 
@@ -426,6 +457,8 @@ export function useGridInfiniteScroll({
 
 		return () => {
 			element.removeEventListener('scroll', onScroll)
+
+			observer.disconnect()
 
 			cancelAnimationFrame(frame)
 		}
