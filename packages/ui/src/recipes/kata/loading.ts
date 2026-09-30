@@ -32,6 +32,9 @@ const dot = defineRecipe({
 		'shrink-0 rounded-full bg-current',
 		'motion-safe:animate-pulse',
 		'density-size-[1,1.5,2,2.5,3]',
+		// In a Button (`data-variant`), the dots stop at the `lg` values, as the
+		// button does. The parent of a dot is always its LoadingDots.
+		'[&:is([data-variant]>*>*)]:density-size-[1,1.5,2,2.5,2.5]',
 	],
 })
 
@@ -44,7 +47,16 @@ const dot = defineRecipe({
  * icon at one step have one size.
  */
 const spinner = defineRecipe({
-	base: ['inline-block shrink-0 motion-safe:animate-spin', 'density-size-[3,4,5,6,8]'],
+	base: [
+		'inline-block shrink-0 motion-safe:animate-spin',
+		'density-size-[3,4,5,6,8]',
+		// A child of a Button (`data-variant`) or of the inner button of a
+		// SidebarItem stops at the `lg` values, as the button does. Each class
+		// selects the spinner itself, so Chromium tests the rule only against the
+		// spinners.
+		'[&:is([data-variant]>*)]:density-size-[3,4,5,6,6]',
+		'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[3,4,5,6,6]',
+	],
 	color,
 	defaults: { color: 'current' },
 })
@@ -52,7 +64,13 @@ const spinner = defineRecipe({
 export const k = defineRecipe(
 	{
 		// The gap between the dots takes the step of the nearest density scope.
-		base: [flex.inline, 'shrink-0', 'density-gap-[0.5,1,1.5,2,2.5]'],
+		base: [
+			flex.inline,
+			'shrink-0',
+			'density-gap-[0.5,1,1.5,2,2.5]',
+			// In a Button (`data-variant`), the gap stops at the `lg` value.
+			'[&:is([data-variant]>*)]:density-gap-[0.5,1,1.5,2,2]',
+		],
 		color,
 		defaults: { color: 'current' },
 	},
