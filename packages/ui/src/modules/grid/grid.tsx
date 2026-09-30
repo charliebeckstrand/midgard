@@ -18,7 +18,9 @@ export type GridProps<T> = Omit<GridDataProps<T>, 'pagination'> & {
 	 * mode (the default once `rowCount`/`pageCount` is supplied) the consumer
 	 * feeds each page as `rows`; in client mode the grid slices `rows` itself.
 	 * Renders a footer with a row-range status, page navigation, and an optional
-	 * page-size picker.
+	 * page-size picker. The footer is one row. Its own width sets the layout:
+	 * below 672px the numbered pages hide, and Previous/Next carry the
+	 * navigation.
 	 *
 	 * Omit it to render every row with no footer. The exception is a grid with
 	 * `maxHeight="fill"` in a box that can take the height of its content, such
