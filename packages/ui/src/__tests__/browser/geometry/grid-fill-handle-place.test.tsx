@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { present, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The place of the fill handle (real browser). One overlay next to the table
@@ -59,9 +60,9 @@ describe('grid fill handle place (real browser)', () => {
 
 		const rect = handle().getBoundingClientRect()
 
-		expect(rtl ? rect.left : rect.right).toBeCloseTo(end, 0)
+		expect(rtl ? rect.left : rect.right).toBeNear(end, HALF_PIXEL)
 
-		expect(rect.bottom).toBeCloseTo(bottom, 0)
+		expect(rect.bottom).toBeNear(bottom, HALF_PIXEL)
 	}
 
 	const sizing = (a: number) => ({ value: { name: 160, a, b: 200, c: 200 } })
@@ -156,7 +157,9 @@ describe('grid fill handle place (real browser)', () => {
 
 		rerender(view(180))
 
-		await waitFor(() => expect(cell(2, 'a').getBoundingClientRect().width).toBeCloseTo(180, 0))
+		await waitFor(() =>
+			expect(cell(2, 'a').getBoundingClientRect().width).toBeNear(180, HALF_PIXEL),
+		)
 
 		await waitFor(() => expectOnCorner(cell(2, 'b')))
 	})

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The loading body's placeholder row against a real layout engine: every
@@ -71,9 +72,9 @@ describe('grid loading row alignment (real browser)', () => {
 
 			// Same left edge and same width as the header above it — including the
 			// right-pinned actions column, which sticks in both rows.
-			expect(placeholder.left).toBeCloseTo(column.left, 0)
+			expect(placeholder.left).toBeNear(column.left, HALF_PIXEL)
 
-			expect(placeholder.width).toBeCloseTo(column.width, 0)
+			expect(placeholder.width).toBeNear(column.width, HALF_PIXEL)
 		})
 	})
 
@@ -92,6 +93,6 @@ describe('grid loading row alignment (real browser)', () => {
 		// rows land where the placeholders were, with no sideways jump.
 		const placeholder = (loading.cells().at(-1) as HTMLElement).getBoundingClientRect()
 
-		expect(placeholder.right).toBeCloseTo(settled, 0)
+		expect(placeholder.right).toBeNear(settled, HALF_PIXEL)
 	})
 })

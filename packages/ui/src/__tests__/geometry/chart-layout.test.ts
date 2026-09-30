@@ -30,6 +30,12 @@ import {
 } from '../../modules/chart/engine/chart-layout'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
 
+/**
+ * A band scale and a value scale divide the plot span, so a case checks an edge
+ * to two decimal places of a frame unit.
+ */
+const PLOT_EDGE_TOLERANCE = 0.005
+
 const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput => ({
 	frameWidth: 400,
 	frameHeight,
@@ -150,9 +156,12 @@ describe('verticalLayout band-edge inset', () => {
 		// The band range is inset a fixed margin at both ends, so the first slot's
 		// left edge and the last slot's right edge sit BAND_EDGE_PAD inside the plot
 		// — an edge label never crowds the value gutter, and the span stays centered.
-		expect(band.center(0) - band.step / 2 - plot.x).toBeCloseTo(BAND_EDGE_PAD)
+		expect(band.center(0) - band.step / 2 - plot.x).toBeNear(BAND_EDGE_PAD, PLOT_EDGE_TOLERANCE)
 
-		expect(plot.x + plot.width - (band.center(5) + band.step / 2)).toBeCloseTo(BAND_EDGE_PAD)
+		expect(plot.x + plot.width - (band.center(5) + band.step / 2)).toBeNear(
+			BAND_EDGE_PAD,
+			PLOT_EDGE_TOLERANCE,
+		)
 	})
 })
 
@@ -363,21 +372,21 @@ describe('verticalLayout without axes', () => {
 
 		expect(layout.plot).toEqual({ x: 0, y: PLOT_TOP_PAD, width: 400, height: 200 - PLOT_TOP_PAD })
 
-		expect(layout.band.center(0) - layout.band.step / 2).toBeCloseTo(6.5)
+		expect(layout.band.center(0) - layout.band.step / 2).toBeNear(6.5, PLOT_EDGE_TOLERANCE)
 
 		const scale = layout.valueScale
 
-		expect(scale?.map(scale.domain[0])).toBeCloseTo(200 - 6.5)
+		expect(scale?.map(scale.domain[0])).toBeNear(200 - 6.5, PLOT_EDGE_TOLERANCE)
 	})
 
 	it('reserves no inset for a mark that ends at its coordinate', () => {
 		const layout = verticalLayout(spark(400))
 
-		expect(layout.band.center(0) - layout.band.step / 2).toBeCloseTo(0)
+		expect(layout.band.center(0) - layout.band.step / 2).toBeNear(0, PLOT_EDGE_TOLERANCE)
 
 		const scale = layout.valueScale
 
-		expect(scale?.map(scale.domain[0])).toBeCloseTo(200)
+		expect(scale?.map(scale.domain[0])).toBeNear(200, PLOT_EDGE_TOLERANCE)
 	})
 
 	it('keeps the band span where the frame is too narrow to seat both insets', () => {
@@ -386,7 +395,7 @@ describe('verticalLayout without axes', () => {
 		// An inverted band would put the last center before the first.
 		expect(layout.band.center(5)).toBeGreaterThan(layout.band.center(0))
 
-		expect(layout.band.center(0) - layout.band.step / 2).toBeCloseTo(0)
+		expect(layout.band.center(0) - layout.band.step / 2).toBeNear(0, PLOT_EDGE_TOLERANCE)
 	})
 
 	it('reads the label-room verdict from the range between the mark insets', () => {
@@ -677,9 +686,9 @@ describe('horizontalLayout without axes', () => {
 
 		const scale = layout.valueScale
 
-		expect(scale?.map(scale.domain[0])).toBeCloseTo(6.5)
+		expect(scale?.map(scale.domain[0])).toBeNear(6.5, PLOT_EDGE_TOLERANCE)
 
-		expect(scale?.map(scale.domain[1])).toBeCloseTo(400 - 6.5)
+		expect(scale?.map(scale.domain[1])).toBeNear(400 - 6.5, PLOT_EDGE_TOLERANCE)
 	})
 })
 
@@ -708,7 +717,7 @@ describe('cartesian layout', () => {
 		const layout = verticalLayout(input)
 
 		// Zero sits on the plot floor; the ceiling tick sits above it.
-		expect(layout.baseline).toBeCloseTo(layout.plot.y + layout.plot.height)
+		expect(layout.baseline).toBeNear(layout.plot.y + layout.plot.height, PLOT_EDGE_TOLERANCE)
 
 		expect(layout.valueTicks.at(-1)?.at).toBeLessThan(layout.baseline)
 
@@ -724,7 +733,7 @@ describe('cartesian layout', () => {
 		const layout = horizontalLayout(input)
 
 		// Zero sits at the left edge; the ceiling tick sits to its right.
-		expect(layout.baseline).toBeCloseTo(layout.plot.x)
+		expect(layout.baseline).toBeNear(layout.plot.x, PLOT_EDGE_TOLERANCE)
 
 		expect(layout.valueTicks.at(-1)?.at).toBeGreaterThan(layout.baseline)
 

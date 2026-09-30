@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem, ListLabel } from '../../../components/list'
 import { fireEvent, getSlot, present, renderUI } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
 
 /**
  * An interactive row answers the pointer everywhere it is painted (WCAG 2.5.8,
@@ -142,10 +143,9 @@ describe('list item hit area (real browser)', () => {
 
 		const box = handle.getBoundingClientRect()
 
-		const point = document.elementFromPoint(
-			box.left + box.width / 2,
-			box.top + box.height / 2,
-		) as Node
+		const { x, y } = centerOf(handle)
+
+		const point = document.elementFromPoint(x, y) as Node
 
 		expect(handle.contains(point)).toBe(true)
 

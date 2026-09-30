@@ -2,9 +2,12 @@
 import { describe, expect, it } from 'vitest'
 import { parseAspectRatio } from '../../utilities/aspect-ratio'
 
+/** The case checks the ratio to two decimal places, so a smaller difference passes. */
+const RATIO_TOLERANCE = 0.005
+
 describe('parseAspectRatio', () => {
 	it('divides a "w/h" string into its numeric ratio', () => {
-		expect(parseAspectRatio('16/9')).toBeCloseTo(16 / 9)
+		expect(parseAspectRatio('16/9')).toBeNear(16 / 9, RATIO_TOLERANCE)
 
 		expect(parseAspectRatio('1/1')).toBe(1)
 	})

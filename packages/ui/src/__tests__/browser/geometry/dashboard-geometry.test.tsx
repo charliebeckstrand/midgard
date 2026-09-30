@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
 import { allBySlot, getSlot, renderUI, screen, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The dashboard derives its rows from the container width in CSS alone: a
@@ -42,16 +43,16 @@ describe('dashboard geometry (real browser)', () => {
 		)
 
 		// 960 px over 24 columns is a 40 px pitch, so a row is 10 px.
-		expect(a?.width).toBeCloseTo(480, 0)
+		expect(a?.width).toBeNear(480, HALF_PIXEL)
 
-		expect(a?.height).toBeCloseTo(270, 0)
+		expect(a?.height).toBeNear(270, HALF_PIXEL)
 
 		// Two equal ratio tiles have the same height, by construction.
 		expect(b?.height).toBe(a?.height)
 
-		expect(c?.top).toBeCloseTo((a?.top ?? 0) + 270, 0)
+		expect(c?.top).toBeNear((a?.top ?? 0) + 270, HALF_PIXEL)
 
-		expect(c?.height).toBeCloseTo(200, 0)
+		expect(c?.height).toBeNear(200, HALF_PIXEL)
 	})
 
 	it('lines the outer cards up with the container edges, and keeps the gutter', () => {
@@ -75,14 +76,14 @@ describe('dashboard geometry (real browser)', () => {
 			container.querySelectorAll('[data-slot="dashboard-tile"] > [data-slot="card"]'),
 		).map((card) => card.getBoundingClientRect())
 
-		expect(a?.left).toBeCloseTo(board?.left ?? 0, 0)
+		expect(a?.left).toBeNear(board?.left ?? 0, HALF_PIXEL)
 
-		expect(b?.right).toBeCloseTo(board?.right ?? 0, 0)
+		expect(b?.right).toBeNear(board?.right ?? 0, HALF_PIXEL)
 
-		expect(a?.top).toBeCloseTo(board?.top ?? 0, 0)
+		expect(a?.top).toBeNear(board?.top ?? 0, HALF_PIXEL)
 
 		// The default gutter stays between the two cards.
-		expect((b?.left ?? 0) - (a?.right ?? 0)).toBeCloseTo(12, 0)
+		expect((b?.left ?? 0) - (a?.right ?? 0)).toBeNear(12, HALF_PIXEL)
 	})
 
 	it('sizes a container unit of a widget by its content box, and not by the board', () => {
@@ -103,7 +104,7 @@ describe('dashboard geometry (real browser)', () => {
 
 		expect(box.width).toBeLessThan(240)
 
-		expect(probe.width).toBeCloseTo(box.width / 2, 0)
+		expect(probe.width).toBeNear(box.width / 2, HALF_PIXEL)
 	})
 
 	it('re-packs into a stack when the container starves the tiles', async () => {

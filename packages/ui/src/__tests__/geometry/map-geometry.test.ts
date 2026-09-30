@@ -23,7 +23,36 @@ import { geographyFeatures } from '../../modules/map/engine/map-geometry/topolog
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
+import { subpathCount } from '../helpers/geometry/svg-path'
+import { FLOAT } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
+
+/** The spherical area of the lune carries float noise below this bound, in steradians. */
+const STERADIAN_TOLERANCE = 5e-11
+
+/**
+ * The spherical center of a symmetric ring keeps its longitude within this
+ * bound, in degrees.
+ */
+const LONGITUDE_TOLERANCE = 5e-6
+
+/**
+ * The spherical center sits up to this many degrees poleward of the planar mean
+ * latitude.
+ */
+const POLEWARD_TOLERANCE = 0.05
+
+/**
+ * A traced circle is a polygon, so its reach can miss the true radius by this
+ * bound in frame units.
+ */
+const HALF_FRAME_UNIT = 0.5
+
+/**
+ * The anchor of the wide part can miss its center by this bound, in degrees of
+ * longitude.
+ */
+const HALF_DEGREE = 0.5
 
 /** Half the sphere in steradians: an exterior ring's area stays under this once rewound. */
 const HALF_SPHERE = 2 * Math.PI
@@ -219,7 +248,7 @@ describe('rewindFeatures', () => {
 
 		const feature = polygonFeature('L', [lune])
 
-		expect(firstRingArea(feature)).toBeCloseTo(HALF_SPHERE, 10)
+		expect(firstRingArea(feature)).toBeNear(HALF_SPHERE, STERADIAN_TOLERANCE)
 
 		const [fixed] = rewindFeatures([feature])
 
@@ -397,9 +426,9 @@ describe('unprojectPoint', () => {
 
 		const back = unprojectPoint(projection, at)
 
-		expect(back?.[0]).toBeCloseTo(5, 9)
+		expect(back?.[0]).toBeNear(5, FLOAT)
 
-		expect(back?.[1]).toBeCloseTo(5, 9)
+		expect(back?.[1]).toBeNear(5, FLOAT)
 	})
 
 	it('is null before a projection is fitted', () => {
@@ -616,11 +645,11 @@ describe('ringAnchor', () => {
 	it('centers on the middle of the ring', () => {
 		const [anchor] = ringAnchor(RING)
 
-		expect(anchor?.[0]).toBeCloseTo(5, 5)
+		expect(anchor?.[0]).toBeNear(5, LONGITUDE_TOLERANCE)
 
 		// The center is spherical, so it sits a little poleward of the arithmetic
 		// mean of the latitudes — the same reading `geoCentroid` gives a region.
-		expect(anchor?.[1]).toBeCloseTo(5, 1)
+		expect(anchor?.[1]).toBeNear(5, POLEWARD_TOLERANCE)
 	})
 
 	it('drops the closing repeat, so one side never weighs twice', () => {
@@ -689,7 +718,7 @@ describe('projectArea and ringsPath', () => {
 
 		expect(d.match(/Z/g)).toHaveLength(2)
 
-		expect(d.match(/M/g)).toHaveLength(2)
+		expect(subpathCount(d)).toBe(2)
 	})
 
 	it('is the rings concatenated, so one ring draws exactly one closed run', () => {
@@ -820,7 +849,7 @@ describe('areaReach', () => {
 			return [40 * Math.cos(turn), 40 * Math.sin(turn)]
 		})
 
-		expect(reachOf([[wheel]])).toBeCloseTo(40, 0)
+		expect(reachOf([[wheel]])).toBeNear(40, HALF_FRAME_UNIT)
 	})
 
 	it('reads a square as half its side', () => {
@@ -894,7 +923,7 @@ describe('areaAnchor', () => {
 
 		// The midpoint of the two parts is around the fiftieth meridian, which is
 		// ground the territory does not cover. The anchor sits on the wide part.
-		expect(anchor?.[0]).toBeCloseTo(100, 0)
+		expect(anchor?.[0]).toBeNear(100, HALF_DEGREE)
 	})
 
 	it('keeps the largest part when a smaller one follows it', () => {

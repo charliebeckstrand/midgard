@@ -26,6 +26,16 @@ import {
 	zoomTransform,
 } from '../../modules/map/engine/map-zoom/transform'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
+import { FLOAT } from '../helpers/geometry/tolerance'
+
+/**
+ * Two zoom steps and an inverse compose three scales, so the focused point can
+ * drift by this bound in frame units.
+ */
+const FOCUS_TOLERANCE = 5e-7
+
+/** The product of a zoom factor and its reciprocal can miss one by this rounding noise. */
+const RECIPROCAL_TOLERANCE = 5e-13
 
 /**
  * The zoom's pure half: the transform the layer draws through, the gestures that
@@ -126,9 +136,9 @@ describe('zoomTransform', () => {
 
 		const second = zoomTransform(first, focus, 1.5, VIEW, MAX)
 
-		expect(applyTransform(ground, second).x).toBeCloseTo(focus.x, 6)
+		expect(applyTransform(ground, second).x).toBeNear(focus.x, FOCUS_TOLERANCE)
 
-		expect(applyTransform(ground, second).y).toBeCloseTo(focus.y, 6)
+		expect(applyTransform(ground, second).y).toBeNear(focus.y, FOCUS_TOLERANCE)
 	})
 
 	it('measures the step it took rather than the one it was asked for, so the focus does not slide at the ceiling', () => {
@@ -233,7 +243,7 @@ describe('wheelZoomFactor', () => {
 	})
 
 	it('is geometric, so a notch back undoes a notch forward', () => {
-		expect(wheelZoomFactor(-100, 0) * wheelZoomFactor(100, 0)).toBeCloseTo(1, 12)
+		expect(wheelZoomFactor(-100, 0) * wheelZoomFactor(100, 0)).toBeNear(1, RECIPROCAL_TOLERANCE)
 	})
 
 	it('reads a line-mode delta as more travel than a pixel-mode one', () => {
@@ -328,7 +338,7 @@ describe('mapZoomKey', () => {
 	})
 
 	it('steps in and out by reciprocal factors, so the two keys undo each other', () => {
-		expect(zoomKeyFactor('in') * zoomKeyFactor('out')).toBeCloseTo(1, 12)
+		expect(zoomKeyFactor('in') * zoomKeyFactor('out')).toBeNear(1, RECIPROCAL_TOLERANCE)
 	})
 })
 
@@ -342,9 +352,9 @@ describe('clientToFrame', () => {
 
 		const back = client === null ? null : clientToFrame(client, BOX, 400, 200)
 
-		expect(back?.x).toBeCloseTo(at.x, 9)
+		expect(back?.x).toBeNear(at.x, FLOAT)
 
-		expect(back?.y).toBeCloseTo(at.y, 9)
+		expect(back?.y).toBeNear(at.y, FLOAT)
 	})
 
 	it('inverts it through a letterboxed box too', () => {
@@ -358,9 +368,9 @@ describe('clientToFrame', () => {
 
 		const back = client === null ? null : clientToFrame(client, letterboxed, 400, 200)
 
-		expect(back?.x).toBeCloseTo(at.x, 9)
+		expect(back?.x).toBeNear(at.x, FLOAT)
 
-		expect(back?.y).toBeCloseTo(at.y, 9)
+		expect(back?.y).toBeNear(at.y, FLOAT)
 	})
 
 	it('reports nothing for a frame with no area', () => {

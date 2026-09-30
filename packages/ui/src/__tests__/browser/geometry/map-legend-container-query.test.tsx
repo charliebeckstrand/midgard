@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { MapGeofence, MapPlat } from '../../../modules/map'
 import { allBySlot, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
 /**
@@ -58,7 +59,7 @@ describe('map side-legend container query (real browser)', () => {
 		const legend = getSlot(container, 'map-legend-box').getBoundingClientRect()
 
 		// The plot takes the whole 300px column, not the sliver a rail would leave it.
-		expect(plot.width).toBeCloseTo(300, 0)
+		expect(plot.width).toBeNear(300, HALF_PIXEL)
 
 		expect(legend.top).toBeGreaterThanOrEqual(plot.bottom)
 	})
@@ -68,6 +69,6 @@ describe('map side-legend container query (real browser)', () => {
 
 		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(3))
 
-		expect(getSlot(container, 'map').getBoundingClientRect().width).toBeCloseTo(192, 0)
+		expect(getSlot(container, 'map').getBoundingClientRect().width).toBeNear(192, HALF_PIXEL)
 	})
 })

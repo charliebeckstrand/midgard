@@ -2,6 +2,8 @@ import { useRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ScrollWithinOptions, useScrollWithin } from '../../../hooks/use-scroll-within'
 import { present, renderUI, screen, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * `scrollWithin` computes an offset and hands it to `scrollTo`. Its unit suite
@@ -54,9 +56,9 @@ describe('scrollWithin against a real scroller', () => {
 		go()
 
 		await waitFor(() =>
-			expect(target.getBoundingClientRect().top).toBeCloseTo(
+			expect(target.getBoundingClientRect().top).toBeNear(
 				scroller.getBoundingClientRect().top,
-				0,
+				HALF_PIXEL,
 			),
 		)
 	})
@@ -67,11 +69,7 @@ describe('scrollWithin against a real scroller', () => {
 		go()
 
 		await waitFor(() => {
-			const box = target.getBoundingClientRect()
-
-			const view = scroller.getBoundingClientRect()
-
-			expect(box.top + box.height / 2).toBeCloseTo(view.top + view.height / 2, 0)
+			expect(centerOf(target).y).toBeNear(centerOf(scroller).y, HALF_PIXEL)
 		})
 	})
 
@@ -81,9 +79,9 @@ describe('scrollWithin against a real scroller', () => {
 		go()
 
 		await waitFor(() =>
-			expect(target.getBoundingClientRect().bottom).toBeCloseTo(
+			expect(target.getBoundingClientRect().bottom).toBeNear(
 				scroller.getBoundingClientRect().bottom,
-				0,
+				HALF_PIXEL,
 			),
 		)
 	})
@@ -95,9 +93,9 @@ describe('scrollWithin against a real scroller', () => {
 		scroller.scrollTop = 300
 
 		await waitFor(() =>
-			expect(target.getBoundingClientRect().top).toBeCloseTo(
+			expect(target.getBoundingClientRect().top).toBeNear(
 				scroller.getBoundingClientRect().top,
-				0,
+				HALF_PIXEL,
 			),
 		)
 
@@ -105,7 +103,7 @@ describe('scrollWithin against a real scroller', () => {
 
 		go()
 
-		await waitFor(() => expect(scroller.scrollTop).toBeCloseTo(settled, 0))
+		await waitFor(() => expect(scroller.scrollTop).toBeNear(settled, HALF_PIXEL))
 	})
 
 	it('reveals the target on the inline axis when inline is requested', async () => {
@@ -116,9 +114,9 @@ describe('scrollWithin against a real scroller', () => {
 		go()
 
 		await waitFor(() =>
-			expect(target.getBoundingClientRect().left).toBeCloseTo(
+			expect(target.getBoundingClientRect().left).toBeNear(
 				scroller.getBoundingClientRect().left,
-				0,
+				HALF_PIXEL,
 			),
 		)
 

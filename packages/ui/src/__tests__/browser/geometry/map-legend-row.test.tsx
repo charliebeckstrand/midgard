@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { MapGeofence, MapPlat } from '../../../modules/map'
 import { allBySlot, getSlot, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
 /**
@@ -33,7 +34,7 @@ describe('map legend row (real browser)', () => {
 			(entry) => entry.getBoundingClientRect().top,
 		)
 
-		for (const top of tops) expect(top).toBeCloseTo(tops[0] as number, 0)
+		for (const top of tops) expect(top).toBeNear(tops[0] as number, HALF_PIXEL)
 	})
 
 	it('keeps a long entry inside the row', async () => {

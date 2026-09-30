@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { describe, expect, it } from 'vitest'
 import { TouchTarget } from '../../../primitives/touch-target'
 import { present, renderUI, screen } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
 
 /**
  * The activation region of `TouchTarget`, measured in a real browser. The
@@ -64,9 +65,7 @@ describe('TouchTarget activation region (real browser)', () => {
 
 		expect(box.height).toBe(24)
 
-		expect(box.left + box.width / 2).toBe(hostBox.left + hostBox.width / 2)
-
-		expect(box.top + box.height / 2).toBe(hostBox.top + hostBox.height / 2)
+		expect(centerOf(box)).toEqual(centerOf(hostBox))
 
 		// A point outside the host box, and inside the floor, activates the host.
 		expect(hitsHost(host, hostBox.right + 3, hostBox.top + 8)).toBe(true)

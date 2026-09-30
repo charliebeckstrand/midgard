@@ -2,6 +2,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { MapGeofence, MapPlat, MapPoint } from '../../../modules/map'
 import { allBySlot, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
 /**
@@ -68,7 +70,7 @@ describe('map legend rail (real browser)', () => {
 
 			// One line, whatever the entry carries — the readout sits beside the name
 			// rather than under it, and the name clips instead of wrapping.
-			expect(rect.height).toBeCloseTo(line, 0)
+			expect(rect.height).toBeNear(line, HALF_PIXEL)
 		}
 	})
 
@@ -90,13 +92,11 @@ describe('map legend rail (real browser)', () => {
 
 		const text = range.getBoundingClientRect()
 
-		const textMiddle = text.top + text.height / 2
+		const textMiddle = centerOf(text).y
 
 		// Both keys of the merged pair, the square and the dot, sit on that middle.
 		for (const key of allBySlot(entry, 'swatch') as HTMLElement[]) {
-			const rect = key.getBoundingClientRect()
-
-			expect(Math.abs(rect.top + rect.height / 2 - textMiddle)).toBeLessThan(1)
+			expect(centerOf(key).y).toBeNear(textMiddle, PIXEL)
 		}
 	})
 

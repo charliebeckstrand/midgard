@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
+import { boxOf, centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The navigable cursor keeps its active cell clear of the grid's sticky header
@@ -58,9 +60,9 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		// tucks the active cell beneath it.
 		expect(getComputedStyle(header).position).toBe('sticky')
 
-		expect(Number.parseFloat(active.style.scrollMarginTop)).toBeCloseTo(
+		expect(Number.parseFloat(active.style.scrollMarginTop)).toBeNear(
 			header.getBoundingClientRect().height,
-			0,
+			HALF_PIXEL,
 		)
 
 		// The margin must also take effect. Step the cursor past the bottom edge,
@@ -74,13 +76,14 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		const expectClear = () => {
 			const cell = present(grid.querySelector('[data-active]'), '[data-active]')
 
-			const box = cell.getBoundingClientRect()
+			// The outer box takes the side edges of the cell, so the check reads the top and the bottom only.
+			const clear = {
+				...boxOf(cell),
+				top: header.getBoundingClientRect().bottom,
+				bottom: scroll.getBoundingClientRect().top + scroll.clientHeight,
+			}
 
-			expect(box.top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom - 1)
-
-			expect(box.bottom).toBeLessThanOrEqual(
-				scroll.getBoundingClientRect().top + scroll.clientHeight + 1,
-			)
+			expect(clear).toContainBox(cell, { tolerance: PIXEL })
 		}
 
 		/** Presses each key in turn, and checks the active cell after each one. */
@@ -153,9 +156,9 @@ describe('grid cursor focus not obscured (real browser)', () => {
 
 		const active = present(grid.querySelector('[data-active]'), '[data-active]')
 
-		expect(Number.parseFloat(active.style.scrollMarginLeft)).toBeCloseTo(
+		expect(Number.parseFloat(active.style.scrollMarginLeft)).toBeNear(
 			pinnedHeader.getBoundingClientRect().width,
-			0,
+			HALF_PIXEL,
 		)
 	})
 
@@ -196,7 +199,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 
 		const active = present(grid.querySelector('[data-active]'), '[data-active]')
 
-		expect(Number.parseFloat(active.style.scrollMarginTop)).toBeCloseTo(cover, 0)
+		expect(Number.parseFloat(active.style.scrollMarginTop)).toBeNear(cover, HALF_PIXEL)
 
 		const top = scroll.getBoundingClientRect().top + scroll.clientTop
 
@@ -286,16 +289,17 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 
 			const box = cell.getBoundingClientRect()
 
-			const frame = scroll.getBoundingClientRect()
+			const left = scroll.getBoundingClientRect().left + scroll.clientLeft
 
-			expect(box.left).toBeGreaterThanOrEqual(frame.left + scroll.clientLeft - 1)
+			// The outer box takes the top and the bottom of the cell, so the check reads the side edges only.
+			expect({ ...boxOf(cell), left, right: left + scroll.clientWidth }).toContainBox(box, {
+				tolerance: PIXEL,
+			})
 
-			expect(box.right).toBeLessThanOrEqual(frame.left + scroll.clientLeft + scroll.clientWidth + 1)
+			const center = centerOf(box)
 
-			const y = box.top + box.height / 2
-
-			for (const x of [box.left + 2, box.left + box.width / 2, box.right - 2]) {
-				expect(cell.contains(document.elementFromPoint(x, y))).toBe(true)
+			for (const x of [box.left + 2, center.x, box.right - 2]) {
+				expect(cell.contains(document.elementFromPoint(x, center.y))).toBe(true)
 			}
 		}
 

@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { HeatmapChart, LineChart, PieChart } from '../../../modules/chart'
 import { bySlot, fireEvent, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -32,13 +33,6 @@ function Frame({ frame, children }: { frame: CSSProperties; children: ReactNode 
 	return <div style={{ ...frame, width: 400, marginTop: 200, marginLeft: 200 }}>{children}</div>
 }
 
-/** The screen center of an element. */
-function centerOf(element: Element) {
-	const box = element.getBoundingClientRect()
-
-	return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
-}
-
 /** Points at `at` on `target`, and returns the panel after floating-ui places it. */
 async function pointAt(target: Element, at: { x: number; y: number }) {
 	fireEvent.pointerEnter(target, { clientX: at.x, clientY: at.y })
@@ -54,7 +48,7 @@ async function pointAt(target: Element, at: { x: number; y: number }) {
 
 /** Asserts that the panel sits centered above `at`, the gap clear of it. */
 function expectAbove(panel: DOMRect, at: { x: number; y: number }) {
-	expect(Math.abs(panel.left + panel.width / 2 - at.x)).toBeLessThan(TOLERANCE)
+	expect(Math.abs(centerOf(panel).x - at.x)).toBeLessThan(TOLERANCE)
 
 	expect(Math.abs(panel.bottom - (at.y - GAP))).toBeLessThan(TOLERANCE)
 }

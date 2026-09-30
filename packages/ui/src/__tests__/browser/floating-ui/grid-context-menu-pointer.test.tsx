@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
 
 /**
  * Pointer control of the grid context menu's submenus against the real floating
@@ -31,13 +32,6 @@ describe('grid context menu pointer travel (real browser)', () => {
 	const settle = (row: HTMLElement, x: number, y: number) =>
 		fireEvent.pointerMove(row, { pointerType: 'mouse', clientX: x, clientY: y })
 
-	/** A row's center in client coordinates. */
-	const center = (el: HTMLElement) => {
-		const rect = el.getBoundingClientRect()
-
-		return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
-	}
-
 	it('holds the open panel while the pointer crosses a row heading into it', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '700px' }}>
@@ -55,7 +49,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		const sort = item('Sort')
 
-		const from = center(sort)
+		const from = centerOf(sort)
 
 		// Cursor and panel both land with the pointer, neither waiting on a clock.
 		settle(sort, from.x, from.y)
@@ -83,7 +77,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 		// passing over it, not arriving at it.
 		const edge = rect.left >= from.x ? rect.left : rect.right
 
-		const crossing = { x: from.x + (edge - from.x) * 0.8, y: center(pin).y }
+		const crossing = { x: from.x + (edge - from.x) * 0.8, y: centerOf(pin).y }
 
 		settle(pin, crossing.x, crossing.y)
 
@@ -93,7 +87,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		// Straight down the menu instead, away from the panel: Pin takes the cursor
 		// and its own submenu replaces the one open, both in the same frame.
-		settle(pin, from.x, center(pin).y)
+		settle(pin, from.x, centerOf(pin).y)
 
 		expect(pin).toHaveFocus()
 

@@ -3,6 +3,8 @@ import { userEvent } from 'vitest/browser'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
 import { renderUI, screen } from '../../helpers'
 import { useControlledLayout } from '../../helpers/dashboard-board'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * A right-to-left board mirrors the saved layout in CSS: the grid puts column 0
@@ -44,9 +46,9 @@ describe('dashboard right to left (real browser)', () => {
 
 		const b = rect(screen.getByRole('group', { name: 'B' }))
 
-		expect(a.right).toBeCloseTo(board.right, 0)
+		expect(a.right).toBeNear(board.right, HALF_PIXEL)
 
-		expect(b.right).toBeCloseTo(board.right - 12 * 40, 0)
+		expect(b.right).toBeNear(board.right - 12 * 40, HALF_PIXEL)
 	})
 
 	it('puts the end splitter on the left edge, and slants the corner cursor for it', () => {
@@ -58,9 +60,9 @@ describe('dashboard right to left (real browser)', () => {
 
 		const tile = rect(shell ?? undefined)
 
-		expect(rect(edge('e')).left).toBeCloseTo(tile.left, 0)
+		expect(rect(edge('e')).left).toBeNear(tile.left, HALF_PIXEL)
 
-		expect(rect(edge('se')).left).toBeCloseTo(tile.left, 0)
+		expect(rect(edge('se')).left).toBeNear(tile.left, HALF_PIXEL)
 
 		expect(getComputedStyle(edge('se') as Element).cursor).toBe('nesw-resize')
 	})
@@ -78,12 +80,14 @@ describe('dashboard right to left (real browser)', () => {
 
 		const frame = rect(board)
 
+		const center = centerOf(from)
+
 		// Two columns to the left of the splitter's center, on the board.
 		await userEvent.dragAndDrop(end as Element, board, {
 			sourcePosition: { x: from.width / 2, y: from.height / 2 },
 			targetPosition: {
-				x: from.left + from.width / 2 - 80 - frame.left,
-				y: from.top + from.height / 2 - frame.top,
+				x: center.x - 80 - frame.left,
+				y: center.y - frame.top,
 			},
 		})
 

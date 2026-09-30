@@ -11,6 +11,12 @@ import {
 import { circleRing, zoneBudget, zoneSpare } from '../../modules/map/engine/map-geofence'
 import { projectArea } from '../../modules/map/engine/map-geometry/mark'
 
+/** The trace can leave the closing repeat this far from the first position, in degrees. */
+const CLOSURE_TOLERANCE_DEGREES = 5e-13
+
+/** A point of the traced ring can land this far from the radius on the sphere, in meters. */
+const GROUND_TOLERANCE_METERS = 5
+
 /**
  * The great-circle distance between two positions, in meters — measured the way
  * the module measures a cluster's own spread (`clusterSpan`), so the assertions
@@ -29,9 +35,9 @@ describe('circleRing', () => {
 
 		// Closed to the precision the tracing leaves, which is nearer than any
 		// distance the map draws — `ringAnchor` finds the repeat on those terms.
-		expect(ring.at(-1)?.[0]).toBeCloseTo(ring[0]?.[0] as number, 12)
+		expect(ring.at(-1)?.[0]).toBeNear(ring[0]?.[0] as number, CLOSURE_TOLERANCE_DEGREES)
 
-		expect(ring.at(-1)?.[1]).toBeCloseTo(ring[0]?.[1] as number, 12)
+		expect(ring.at(-1)?.[1]).toBeNear(ring[0]?.[1] as number, CLOSURE_TOLERANCE_DEGREES)
 	})
 
 	it('holds every point at the radius across the ground', () => {
@@ -40,7 +46,7 @@ describe('circleRing', () => {
 		const radius = 50_000
 
 		for (const point of circleRing(at, radius)) {
-			expect(groundDistance(at, point)).toBeCloseTo(radius, -1)
+			expect(groundDistance(at, point)).toBeNear(radius, GROUND_TOLERANCE_METERS)
 		}
 	})
 

@@ -3,6 +3,10 @@ import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { PIXEL } from '../../helpers/geometry/tolerance'
+
+// Each gap rounds on its own, so the two gaps of a centered block can differ by this much.
+const GAP_SLACK = 2
 
 /**
  * The side rail reserves a share of the chart's container (`min(16rem, 40cqw)`)
@@ -56,12 +60,12 @@ describe('chart legend panel (real browser)', () => {
 		const rightGap = panelRect.right - blockRect.right
 
 		expect(leftGap).toBeGreaterThan(1)
-		expect(Math.abs(leftGap - rightGap)).toBeLessThan(2)
+		expect(leftGap).toBeNear(rightGap, GAP_SLACK)
 
 		// The entries still share one left edge — the block's — so their swatches line
 		// up rather than each row centering on its own.
 		for (const item of allBySlot(container, 'chart-legend-item') as HTMLElement[]) {
-			expect(Math.abs(item.getBoundingClientRect().left - blockRect.left)).toBeLessThan(1)
+			expect(item.getBoundingClientRect().left).toBeNear(blockRect.left, PIXEL)
 		}
 	})
 

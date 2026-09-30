@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { COLUMN_RESIZE_STEP } from '../../../modules/grid/engine/grid-constants'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * Column resizing in a right-to-left grid. The trailing edge of a header is
@@ -52,7 +54,7 @@ describe('grid column resizing in a right-to-left grid (real browser)', () => {
 
 		const handle = separator.getBoundingClientRect()
 
-		expect(Math.abs(handle.left - cell.left)).toBeLessThanOrEqual(1)
+		expect(handle.left).toBeNear(cell.left, PIXEL)
 
 		// The default snug density pads the trailing edge by 16 pixels.
 		const style = getComputedStyle(header)
@@ -69,11 +71,7 @@ describe('grid column resizing in a right-to-left grid (real browser)', () => {
 
 		const start = header.getBoundingClientRect().width
 
-		const rect = separator.getBoundingClientRect()
-
-		const x = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
+		const { x, y } = centerOf(separator)
 
 		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
 

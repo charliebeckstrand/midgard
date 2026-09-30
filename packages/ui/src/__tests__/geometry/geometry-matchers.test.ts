@@ -1,7 +1,14 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
-import { type Box, boxOf, formatLength, isBoxSource, overhang } from '../helpers/geometry/box'
+import {
+	type Box,
+	boxOf,
+	centerOf,
+	formatLength,
+	isBoxSource,
+	overhang,
+} from '../helpers/geometry/box'
 import { FLOAT, LAYOUT_UNIT, PIXEL } from '../helpers/geometry/tolerance'
 
 const frame: Box = { left: 0, top: 0, right: 100, bottom: 50 }
@@ -175,6 +182,37 @@ describe('toBeNear', () => {
 describe('box helpers', () => {
 	it('keeps only the four edges of a bounding box', () => {
 		expect(boxOf(fakeElement(frame))).toEqual(frame)
+	})
+
+	it('copies a box whose edges are getters, as a DOMRect keeps them', () => {
+		class Rect {
+			get left() {
+				return 1
+			}
+
+			get top() {
+				return 2
+			}
+
+			get right() {
+				return 3
+			}
+
+			get bottom() {
+				return 4
+			}
+		}
+
+		expect({ ...boxOf(new Rect()) }).toEqual({ left: 1, top: 2, right: 3, bottom: 4 })
+	})
+
+	it('gives the center of a box and of an element', () => {
+		expect(centerOf(frame)).toEqual({ x: 50, y: 25 })
+
+		expect(centerOf(fakeElement({ left: 10, top: 20, right: 11, bottom: 23 }))).toEqual({
+			x: 10.5,
+			y: 21.5,
+		})
 	})
 
 	it('tells a box source from other values', () => {

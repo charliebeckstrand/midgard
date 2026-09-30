@@ -3,15 +3,10 @@ import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../../modules/map'
 import { clusterRadius } from '../../../modules/map/engine/map-cluster/radius'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../../modules/map/engine/map-constants'
 import { allBySlot, getSlot, renderUI } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 import { zoomToCeiling } from '../helpers/map-zoom'
-
-/** The center of an element's box, in client coordinates. */
-function centerOf(element: Element) {
-	const box = element.getBoundingClientRect()
-
-	return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
-}
 
 /** The drawn radius of a hit circle, which its box is twice. */
 function radiusOf(element: Element) {
@@ -138,7 +133,7 @@ describe('dot hit target by pointer modality', () => {
 		// not the sliver the yard could spare: a summary took that whole finger target
 		// while one figure served every dot, and a target inside the summary would
 		// leave the mark a reader can see a dead rim.
-		expect(radiusOf(summary)).toBeCloseTo(clusterRadius(2), 0)
+		expect(radiusOf(summary)).toBeNear(clusterRadius(2), HALF_PIXEL)
 	})
 
 	it('holds that target inside the coarse reach through every scale the view takes', () => {

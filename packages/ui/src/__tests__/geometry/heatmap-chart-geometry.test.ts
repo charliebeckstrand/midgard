@@ -3,6 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { cellAt, heatmapCells } from '../../modules/chart/engine/chart-geometry/heatmap'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
 
+/**
+ * A band scale divides the plot range, so a cell edge carries float noise below
+ * this bound in frame units.
+ */
+const CELL_TOLERANCE = 5e-6
+
 // A 2×3 grid over a 300×200 plot, zero band padding so slots tile the range.
 const X = bandScale({ count: 3, range: [0, 300], padding: 0 })
 const Y = bandScale({ count: 2, range: [0, 200], padding: 0 })
@@ -39,9 +45,9 @@ describe('heatmapCells', () => {
 		const [cell] = heatmapCells([[1]], tight, Y)
 
 		// A 3px-wide slot keeps its full width rather than inverting to negative.
-		expect(cell?.width).toBeCloseTo(3, 5)
+		expect(cell?.width).toBeNear(3, CELL_TOLERANCE)
 
-		expect(cell?.x).toBeCloseTo(0, 5)
+		expect(cell?.x).toBeNear(0, CELL_TOLERANCE)
 	})
 })
 

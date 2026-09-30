@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
+import { textOverflow } from '../helpers/text-overflow'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -226,14 +228,6 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		// "fits") yet a Range measures the content wider than its box — the ellipsis
 		// is painted. The prior half-pixel slack left exactly this cell without a
 		// tooltip until the column shrank further; the tooltip must now arm here.
-		const measureOverflow = (span: HTMLElement) => {
-			const range = document.createRange()
-
-			range.selectNodeContents(span)
-
-			return range.getBoundingClientRect().width - span.getBoundingClientRect().width
-		}
-
 		const cellSpan = (root: HTMLElement) =>
 			root.querySelector<HTMLElement>('td[data-grid-col="name"] span.truncate')
 
@@ -268,7 +262,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		// environment's font metrics put it — a fixed window drifts off it.
 		const probe = renderAt(300)
 
-		const boundary = 300 + measureOverflow(await settledSpan(probe.container))
+		const boundary = 300 + textOverflow(await settledSpan(probe.container))
 
 		probe.unmount()
 
@@ -282,7 +276,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 			// The former dead zone: integer-equal (scroll backstop misses it) yet the
 			// Range shows a clip the old half-pixel slack swallowed.
 			if (span.scrollWidth === span.clientWidth) {
-				const overflow = measureOverflow(span)
+				const overflow = textOverflow(span)
 
 				if (overflow > 0.05 && overflow < 0.45) deadZone = w
 			}
@@ -339,11 +333,9 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		if (!separator) throw new Error('resize separator not found')
 
-		const rect = separator.getBoundingClientRect()
+		const x = centerOf(separator).x
 
-		const x = rect.left + rect.width / 2
-
-		const y = rect.top + 4
+		const y = separator.getBoundingClientRect().top + 4
 
 		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
 

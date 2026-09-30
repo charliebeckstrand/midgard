@@ -1,5 +1,6 @@
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { isScrollbarPress } from '../../../utilities/scrollbar-press'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The unit suite stubs the geometry. These cases read the real `offsetX` that Chromium gives a
@@ -36,7 +37,7 @@ describe('isScrollbarPress in a real browser', () => {
 	it('measures offsetX from the inner border edge', () => {
 		const { event } = pressAt(10)
 
-		expect(event.offsetX).toBeCloseTo(3, 0)
+		expect(event.offsetX).toBeNear(3, HALF_PIXEL)
 	})
 
 	it('reads a press just inside the inline-start border as content', () => {

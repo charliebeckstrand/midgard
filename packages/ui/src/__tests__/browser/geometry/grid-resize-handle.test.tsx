@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { frame, present, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+
+// The handle and the header cell can differ by a hairline cell border, up to this much.
+const HANDLE_HEIGHT_SLACK = 2
 
 /**
  * Resize-handle geometry against a real layout engine. The handle lives in the
@@ -105,11 +109,10 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 
 		// Header height, not full-column height.
-		expect(
-			Math.abs(
-				nameHandle.getBoundingClientRect().height - nameHeader.getBoundingClientRect().height,
-			),
-		).toBeLessThanOrEqual(2)
+		expect(nameHandle.getBoundingClientRect().height).toBeNear(
+			nameHeader.getBoundingClientRect().height,
+			HANDLE_HEIGHT_SLACK,
+		)
 
 		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
 
@@ -154,7 +157,7 @@ describe('grid resize handle geometry (real browser)', () => {
 
 		await frame()
 
-		expect(statusHeader.getBoundingClientRect().left).toBeCloseTo(before, 0)
+		expect(statusHeader.getBoundingClientRect().left).toBeNear(before, HALF_PIXEL)
 	})
 })
 

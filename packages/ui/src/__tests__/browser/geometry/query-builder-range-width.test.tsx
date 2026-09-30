@@ -2,6 +2,10 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { createGroup, QueryBuilder, type QueryField } from '../../../modules/query'
 import { renderUI, screen } from '../../helpers'
+import { PIXEL } from '../../helpers/geometry/tolerance'
+
+// Twice a field width doubles its rounding, so the range can miss by this much.
+const RANGE_WIDTH_SLACK = 2
 
 /**
  * A rule row shares its width among its parts from a zero basis, and a range
@@ -61,9 +65,9 @@ describe('QueryBuilder rule row widths (real browser)', () => {
 
 		expect(field * 4).toBeLessThanOrEqual(720)
 
-		expect(Math.abs(field - operator)).toBeLessThanOrEqual(1)
+		expect(field).toBeNear(operator, PIXEL)
 
-		expect(Math.abs(range - 2 * field)).toBeLessThanOrEqual(2)
+		expect(range).toBeNear(2 * field, RANGE_WIDTH_SLACK)
 	})
 
 	it('gives each part of a scalar rule one share', () => {
@@ -87,8 +91,8 @@ describe('QueryBuilder rule row widths (real browser)', () => {
 		// The parts share one row, so each is well under the full width.
 		expect(field * 3).toBeLessThanOrEqual(720)
 
-		expect(Math.abs(operator - field)).toBeLessThanOrEqual(1)
+		expect(operator).toBeNear(field, PIXEL)
 
-		expect(Math.abs(value - field)).toBeLessThanOrEqual(1)
+		expect(value).toBeNear(field, PIXEL)
 	})
 })

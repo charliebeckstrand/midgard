@@ -21,8 +21,8 @@ import { renderUI, waitFor } from '../../helpers'
  * are computed layout jsdom can't resolve, so the sweep rides the real browser.
  */
 
-/** Painted-ink slack: antialiasing and stroke rounding, not real overhang. */
-const SLACK = 0.75
+// Antialiasing and stroke rounding can put painted ink this far past the box.
+const INK_SLACK = 0.75
 
 const CATEGORIES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
@@ -61,29 +61,16 @@ async function expectNoClip(container: HTMLElement) {
 		expect(svgs.length).toBeGreaterThan(0)
 
 		for (const svg of svgs) {
-			const clip = svg.getBoundingClientRect()
-
-			expect(clip.width).toBeGreaterThan(0)
+			expect(svg.getBoundingClientRect().width).toBeGreaterThan(0)
 
 			for (const el of svg.querySelectorAll('circle, rect, path, line, polyline, text')) {
-				const slot = el.getAttribute('data-slot') ?? ''
-
-				if (slot === 'chart-hit') continue
+				if (el.getAttribute('data-slot') === 'chart-hit') continue
 
 				const box = el.getBoundingClientRect()
 
 				if (box.width === 0 && box.height === 0) continue
 
-				const overhang = Math.max(
-					clip.left - box.left,
-					box.right - clip.right,
-					clip.top - box.top,
-					box.bottom - clip.bottom,
-				)
-
-				expect
-					.soft(overhang, `${el.tagName}[data-slot="${slot}"] paints ${overhang}px outside`)
-					.toBeLessThanOrEqual(SLACK)
+				expect.soft(svg).toContainBox(el, { tolerance: INK_SLACK })
 			}
 		}
 	})

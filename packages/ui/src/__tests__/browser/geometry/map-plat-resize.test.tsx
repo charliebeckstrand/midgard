@@ -2,7 +2,9 @@ import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { MapPlat } from '../../../modules/map'
 import { firstRegion, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../../helpers/map-geography'
+import { plotViewBox } from '../helpers/plot-view-box'
 
 /**
  * A passed d3 projection instance is fit in place, so it keeps its reference
@@ -18,15 +20,6 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../../helpers/map-geography'
  * frame below is resized, the engine's own observer reports it, and the
  * assertions read the size the plot actually took.
  */
-
-/** The plot SVG's `viewBox`, parsed by the engine rather than by hand. */
-function viewBox(container: HTMLElement): SVGRect {
-	const svg = getSlot(container, 'map-plot').querySelector('svg')
-
-	if (!svg) throw new Error('no plot SVG')
-
-	return svg.viewBox.baseVal
-}
 
 /** The first region's path `d`, or `null` before any region is drawn. */
 function firstRegionPath(container: HTMLElement): string | null {
@@ -52,7 +45,7 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 
 		const plot = getSlot(container, 'map-plot')
 
-		await waitFor(() => expect(viewBox(container).width).toBeGreaterThan(0))
+		await waitFor(() => expect(plotViewBox(container, 'map-plot').width).toBeGreaterThan(0))
 
 		const atFirst = firstRegionPath(container)
 
@@ -60,15 +53,17 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 
 		// The viewBox follows the box the plot was actually given, not a figure the
 		// test supplied — which is the half jsdom could not assert.
-		expect(viewBox(container).width).toBeCloseTo(plot.clientWidth, 0)
+		expect(plotViewBox(container, 'map-plot').width).toBeNear(plot.clientWidth, HALF_PIXEL)
 
-		const firstWidth = viewBox(container).width
+		const firstWidth = plotViewBox(container, 'map-plot').width
 
 		frame.style.width = '600px'
 
-		await waitFor(() => expect(viewBox(container).width).toBeGreaterThan(firstWidth))
+		await waitFor(() =>
+			expect(plotViewBox(container, 'map-plot').width).toBeGreaterThan(firstWidth),
+		)
 
-		expect(viewBox(container).width).toBeCloseTo(plot.clientWidth, 0)
+		expect(plotViewBox(container, 'map-plot').width).toBeNear(plot.clientWidth, HALF_PIXEL)
 
 		// A named projection carries its paths onto a refit by one group transform
 		// and leaves every `d` alone. This is the other branch: `fitSize` refits a
@@ -89,7 +84,7 @@ describe('MapPlat free-form fill sizing, aspectRatio={false} (real browser)', ()
 
 		const plot = getSlot(container, 'map-plot')
 
-		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
+		await waitFor(() => expect(plotViewBox(container, 'map-plot').height).toBeGreaterThan(0))
 
 		// The frame takes the container's height and the plot grows into it, rather
 		// than reserving a height from its own width and feeding back the zero that
@@ -99,9 +94,9 @@ describe('MapPlat free-form fill sizing, aspectRatio={false} (real browser)', ()
 
 		expect(box.height).toBeGreaterThan(200)
 
-		expect(viewBox(container).width).toBeCloseTo(plot.clientWidth, 0)
+		expect(plotViewBox(container, 'map-plot').width).toBeNear(plot.clientWidth, HALF_PIXEL)
 
-		expect(viewBox(container).height).toBeCloseTo(plot.clientHeight, 0)
+		expect(plotViewBox(container, 'map-plot').height).toBeNear(plot.clientHeight, HALF_PIXEL)
 	})
 })
 
@@ -127,20 +122,20 @@ describe('MapPlat free-form fill sizing in a grid cell (real browser)', () => {
 
 		const plot = getSlot(container, 'map-plot')
 
-		await waitFor(() => expect(viewBox(container).width).toBeCloseTo(600, 0))
+		await waitFor(() => expect(plotViewBox(container, 'map-plot').width).toBeNear(600, HALF_PIXEL))
 
 		expect(plot.clientHeight).toBe(300)
 
 		frame.style.width = '200px'
 
-		await waitFor(() => expect(viewBox(container).width).toBeCloseTo(200, 0))
+		await waitFor(() => expect(plotViewBox(container, 'map-plot').width).toBeNear(200, HALF_PIXEL))
 
 		frame.style.width = '600px'
 
-		await waitFor(() => expect(viewBox(container).width).toBeCloseTo(600, 0))
+		await waitFor(() => expect(plotViewBox(container, 'map-plot').width).toBeNear(600, HALF_PIXEL))
 
 		expect(plot.clientHeight).toBe(300)
 
-		expect(viewBox(container).height).toBeCloseTo(300, 0)
+		expect(plotViewBox(container, 'map-plot').height).toBeNear(300, HALF_PIXEL)
 	})
 })

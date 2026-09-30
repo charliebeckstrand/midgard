@@ -5,6 +5,7 @@ import { LineChart } from '../../../modules/chart/line-chart'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { ScatterChart } from '../../../modules/chart/scatter-chart'
 import { getSlot, renderUI, waitFor } from '../../helpers'
+import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * A fixed `width` sizes the whole chart. A side legend takes a share of that
@@ -26,10 +27,10 @@ async function expectDrawingInPlot(plot: HTMLElement, legend: HTMLElement) {
 	const plotRect = plot.getBoundingClientRect()
 
 	// The legend bands to the right of the plot, so it takes a share of the width.
-	expect(legend.getBoundingClientRect().left).toBeGreaterThanOrEqual(plotRect.right - 1)
+	expect(legend.getBoundingClientRect().left).toBeGreaterThanOrEqual(plotRect.right - PIXEL)
 
 	await waitFor(() =>
-		expect(svg.getBoundingClientRect().width).toBeLessThanOrEqual(plotRect.width + 0.5),
+		expect(svg.getBoundingClientRect().width).toBeLessThanOrEqual(plotRect.width + HALF_PIXEL),
 	)
 
 	expect(Number(svg.getAttribute('width'))).toBeLessThanOrEqual(Math.ceil(plotRect.width))

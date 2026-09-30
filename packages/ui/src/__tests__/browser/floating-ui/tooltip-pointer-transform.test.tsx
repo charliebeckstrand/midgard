@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { bySlot, present, renderUI, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -86,7 +87,7 @@ describe('pointer readout under a transformed ancestor (real browser)', () => {
 
 		const scaleY = origin.height / ORIGIN.height
 
-		expect(box.left + box.width / 2).toBeCloseTo(origin.left + OFFSET.x * scaleX, 0)
+		expect(centerOf(box).x).toBeCloseTo(origin.left + OFFSET.x * scaleX, 0)
 
 		expect(box.bottom).toBeCloseTo(origin.top + OFFSET.y * scaleY - GAP, 0)
 	})
@@ -96,7 +97,7 @@ describe('pointer readout under a transformed ancestor (real browser)', () => {
 
 		const box = (await openPanel()).getBoundingClientRect()
 
-		expect(box.left + box.width / 2).toBeCloseTo(CLIENT.x, 0)
+		expect(centerOf(box).x).toBeCloseTo(CLIENT.x, 0)
 
 		expect(box.bottom).toBeCloseTo(CLIENT.y - GAP, 0)
 	})

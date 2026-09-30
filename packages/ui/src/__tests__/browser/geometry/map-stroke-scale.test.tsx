@@ -11,6 +11,12 @@ import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 import { firstRegion } from '../../helpers/map-queries'
 import { zoomToCeiling } from '../helpers/map-zoom'
 
+// The screen scale at rest drifts from one by less than this, from the fit of the plat.
+const SCALE_SLACK = 0.05
+
+// A drawn stroke width is a stated width times a rounded scale, so it drifts by less than this.
+const STROKE_SLACK = 0.05
+
 /** What one user unit spans on screen where `element` draws. */
 function screenScale(element: SVGGraphicsElement): number {
 	const ctm = element.getScreenCTM()
@@ -95,7 +101,7 @@ describe('map stroke width through the view', () => {
 		})
 
 		// The sweep has to have swept, or every assertion below reads one scale.
-		expect(scales[0]).toBeCloseTo(1, 1)
+		expect(scales[0]).toBeNear(1, SCALE_SLACK)
 
 		expect(Math.max(...scales) / Math.min(...scales)).toBeGreaterThan(4)
 
@@ -104,7 +110,7 @@ describe('map stroke width through the view', () => {
 			// at rest and at the ceiling but swells between them still fails. The
 			// ceiling is eightfold: a mark that rode the transform would leave this
 			// loop 8px per authored pixel.
-			for (const width of samples[index] ?? []) expect(width, slot).toBeCloseTo(spec, 1)
+			for (const width of samples[index] ?? []) expect(width, slot).toBeNear(spec, STROKE_SLACK)
 		})
 	})
 
@@ -124,7 +130,7 @@ describe('map stroke width through the view', () => {
 
 		zoomToCeiling(plot, () => widths.push(drawnWidth(region)))
 
-		for (const width of widths) expect(width).toBeCloseTo(REGION_STROKE_WIDTH, 1)
+		for (const width of widths) expect(width).toBeNear(REGION_STROKE_WIDTH, STROKE_SLACK)
 	})
 
 	it('leaves the drawn width to the transform, with no vector effect over it', () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RangeArrow, RangeLegend } from '../../../modules/chart/engine/chart-legend/range-legend'
 import { bySlot, getSlot, present, renderUI } from '../../helpers'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The range bar is physical: the gradient, the pointer math, the thumb, and the
@@ -43,8 +44,8 @@ describe('range legend in a right-to-left page (real browser)', () => {
 
 		const bar = track.getBoundingClientRect()
 
-		expect(Math.abs(min.getBoundingClientRect().left - bar.left)).toBeLessThan(1)
-		expect(Math.abs(max.getBoundingClientRect().right - bar.right)).toBeLessThan(1)
+		expect(min.getBoundingClientRect().left).toBeNear(bar.left, PIXEL)
+		expect(max.getBoundingClientRect().right).toBeNear(bar.right, PIXEL)
 
 		// The caption reads in the direction of the page.
 		const caption = present(

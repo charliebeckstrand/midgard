@@ -7,6 +7,7 @@ import {
 	type GridEditableConfig,
 } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
+import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The new-row slot of an editable grid in a real browser. Sticky positioning
@@ -97,7 +98,7 @@ describe('grid new row (real browser)', () => {
 			scrollTo(top)
 
 			await waitFor(() =>
-				expect(slot().getBoundingClientRect().bottom).toBeCloseTo(viewport(scroll).bottom, 0),
+				expect(slot().getBoundingClientRect().bottom).toBeNear(viewport(scroll).bottom, HALF_PIXEL),
 			)
 		}
 
@@ -118,14 +119,14 @@ describe('grid new row (real browser)', () => {
 			scrollTo(top)
 
 			await waitFor(() =>
-				expect(slot().getBoundingClientRect().top).toBeCloseTo(
+				expect(slot().getBoundingClientRect().top).toBeNear(
 					head.getBoundingClientRect().bottom,
-					0,
+					HALF_PIXEL,
 				),
 			)
 		}
 
-		expect(head.getBoundingClientRect().top).toBeCloseTo(viewport(scroll).top, 0)
+		expect(head.getBoundingClientRect().top).toBeNear(viewport(scroll).top, HALF_PIXEL)
 	})
 
 	it('pins the top row directly under the full two-row sticky header', async () => {
@@ -143,7 +144,7 @@ describe('grid new row (real browser)', () => {
 		const cover = present(container.querySelector('thead'), 'thead').getBoundingClientRect().height
 
 		await waitFor(() =>
-			expect(slot().getBoundingClientRect().top).toBeCloseTo(viewport(scroll).top + cover, 0),
+			expect(slot().getBoundingClientRect().top).toBeNear(viewport(scroll).top + cover, HALF_PIXEL),
 		)
 	})
 
@@ -166,9 +167,9 @@ describe('grid new row (real browser)', () => {
 
 		await userEvent.keyboard('{ArrowDown}')
 
-		expect(Number.parseFloat(activeCell().style.scrollMarginTop)).toBeCloseTo(
+		expect(Number.parseFloat(activeCell().style.scrollMarginTop)).toBeNear(
 			header.getBoundingClientRect().height + slot().getBoundingClientRect().height,
-			0,
+			HALF_PIXEL,
 		)
 	})
 
@@ -179,9 +180,9 @@ describe('grid new row (real browser)', () => {
 
 		await userEvent.keyboard('{PageDown}')
 
-		expect(Number.parseFloat(activeCell().style.scrollMarginBottom)).toBeCloseTo(
+		expect(Number.parseFloat(activeCell().style.scrollMarginBottom)).toBeNear(
 			slot().getBoundingClientRect().height,
-			0,
+			HALF_PIXEL,
 		)
 
 		await waitFor(() =>
@@ -313,7 +314,7 @@ describe('grid new row (real browser)', () => {
 			// The editors scroll with the content, and the Add cell keeps its edge.
 			await waitFor(() => expect(nameCell().getBoundingClientRect().left).toBeLessThan(before))
 
-			expect(addCell().getBoundingClientRect().right).toBeCloseTo(edge, 0)
+			expect(addCell().getBoundingClientRect().right).toBeNear(edge, HALF_PIXEL)
 		}
 	})
 
@@ -350,9 +351,7 @@ describe('grid new row (real browser)', () => {
 			const { slot } = renderGrid({ newRow: 'bottom', newRowAdd: { width: 120 } })
 
 			await waitFor(() =>
-				expect(Math.abs(addCellOf(slot).getBoundingClientRect().width - 120)).toBeLessThanOrEqual(
-					1,
-				),
+				expect(addCellOf(slot).getBoundingClientRect().width).toBeNear(120, PIXEL),
 			)
 		})
 
@@ -470,7 +469,7 @@ describe('grid new row (real browser)', () => {
 
 		expect(name).toHaveValue('Carol')
 
-		expect(row.getBoundingClientRect().height).toBeCloseTo(height, 0)
+		expect(row.getBoundingClientRect().height).toBeNear(height, HALF_PIXEL)
 
 		// The editor is inert, so it takes no focus until the add settles.
 		name.focus()
