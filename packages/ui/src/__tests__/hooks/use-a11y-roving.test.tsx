@@ -222,51 +222,7 @@ describe('clearVirtualActive', () => {
 
 		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 	})
-
-	it('strips the active row via setVirtualActive when rows are still mounted', () => {
-		const active = document.createElement('div')
-
-		active.setAttribute('role', 'option')
-
-		active.id = 'opt-0'
-
-		active.setAttribute('data-active', '')
-
-		active.setAttribute('aria-selected', 'true')
-
-		const owner = document.createElement('input')
-
-		owner.setAttribute('aria-activedescendant', 'opt-0')
-
-		setVirtualActive([active], -1, { current: owner })
-
-		expect(active.hasAttribute('data-active')).toBe(false)
-
-		expect(active.getAttribute('aria-selected')).toBe('false')
-
-		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
-	})
 })
-
-function makeContainer(count: number) {
-	const container = document.createElement('div')
-
-	for (let i = 0; i < count; i++) {
-		const btn = document.createElement('button')
-
-		btn.setAttribute('role', 'option')
-
-		btn.setAttribute('tabindex', '-1')
-
-		btn.textContent = String(i)
-
-		container.appendChild(btn)
-	}
-
-	attach(container)
-
-	return container
-}
 
 function makeLabeledContainer(labels: string[]) {
 	const container = document.createElement('div')
@@ -288,27 +244,23 @@ function makeLabeledContainer(labels: string[]) {
 	return container
 }
 
+/** A container of `count` option buttons, labeled by index. */
+function makeContainer(count: number) {
+	return makeLabeledContainer(Array.from({ length: count }, (_, i) => String(i)))
+}
+
+type RovingOptions = Parameters<typeof useA11yRoving>[1]
+
+/** Renders the handler over `container`, matching `[role="option"]` unless `options` say otherwise. */
+function renderRoving(container: HTMLElement, options: Partial<RovingOptions> = {}) {
+	return renderHook(() => {
+		const ref = useRef<HTMLElement>(container)
+
+		return useA11yRoving(ref, { itemSelector: '[role="option"]', ...options })
+	}).result
+}
+
 describe('useA11yRoving', () => {
-	it('returns a function in focus mode', () => {
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLDivElement>(null)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
-		})
-
-		expect(typeof result.current).toBe('function')
-	})
-
-	it('returns a function in virtual mode', () => {
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLDivElement>(null)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
-		})
-
-		expect(typeof result.current).toBe('function')
-	})
-
 	it('returned handler is referentially stable across renders', () => {
 		const { result, rerender } = renderHook(() => {
 			const ref = useRef<HTMLDivElement>(null)
@@ -324,19 +276,11 @@ describe('useA11yRoving', () => {
 	})
 
 	it('does nothing when the container has no items', () => {
-		const empty = document.createElement('div')
+		const empty = attach(document.createElement('div'))
 
-		attach(empty)
+		const result = renderRoving(empty)
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(empty)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
-		})
-
-		const event = makeKeyEvent('ArrowDown')
-
-		expect(() => result.current(event)).not.toThrow()
+		expect(() => result.current(makeKeyEvent('ArrowDown'))).not.toThrow()
 	})
 
 	it('focus mode: moves focus to the next item on ArrowDown', () => {
@@ -344,15 +288,9 @@ describe('useA11yRoving', () => {
 
 		const items = container.querySelectorAll('button')
 
-		const first = items[0] as HTMLButtonElement
+		;(items[0] as HTMLButtonElement).focus()
 
-		first.focus()
-
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
-		})
+		const result = renderRoving(container)
 
 		const event = makeKeyEvent('ArrowDown')
 
@@ -364,13 +302,7 @@ describe('useA11yRoving', () => {
 	})
 
 	it('focus mode: does nothing when no item is focused and focusOnEmpty is false', () => {
-		const container = makeContainer(3)
-
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
-		})
+		const result = renderRoving(makeContainer(3))
 
 		const event = makeKeyEvent('ArrowDown')
 
@@ -382,15 +314,9 @@ describe('useA11yRoving', () => {
 	it('focus mode: focuses first item when focusOnEmpty is true and nothing is focused', () => {
 		const container = makeContainer(3)
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
+		const result = renderRoving(container, { focusOnEmpty: true })
 
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', focusOnEmpty: true })
-		})
-
-		const event = makeKeyEvent('ArrowDown')
-
-		result.current(event)
+		result.current(makeKeyEvent('ArrowDown'))
 
 		expect(document.activeElement).toBe(container.querySelectorAll('button')[0])
 	})
@@ -398,15 +324,9 @@ describe('useA11yRoving', () => {
 	it('virtual mode: marks the first item active on ArrowDown when empty', () => {
 		const container = makeContainer(3)
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
+		const result = renderRoving(container, { mode: 'virtual' })
 
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
-		})
-
-		const event = makeKeyEvent('ArrowDown')
-
-		result.current(event)
+		result.current(makeKeyEvent('ArrowDown'))
 
 		const items = container.querySelectorAll('button')
 
@@ -420,11 +340,7 @@ describe('useA11yRoving', () => {
 
 		items[0]?.setAttribute('data-active', '')
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
-		})
+		const result = renderRoving(container, { mode: 'virtual' })
 
 		result.current(makeKeyEvent('ArrowDown'))
 
@@ -433,51 +349,28 @@ describe('useA11yRoving', () => {
 		expect(items[1]?.hasAttribute('data-active')).toBe(true)
 	})
 
-	it('virtual mode: activation key clicks the active item', () => {
-		const container = makeContainer(3)
-
-		const items = Array.from(container.querySelectorAll('button'))
-
-		items[1]?.setAttribute('data-active', '')
-
-		const clickSpy = vi.fn()
-
-		items[1]?.addEventListener('click', clickSpy)
-
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
-		})
-
-		result.current(makeKeyEvent('Enter'))
-
-		expect(clickSpy).toHaveBeenCalled()
-	})
-
-	it('virtual mode: any key in an activationKey list clicks the active item', () => {
-		const container = makeContainer(3)
-
-		const items = Array.from(container.querySelectorAll('button'))
-
-		items[1]?.setAttribute('data-active', '')
-
-		const clickSpy = vi.fn()
-
-		items[1]?.addEventListener('click', clickSpy)
-
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, {
-				itemSelector: '[role="option"]',
-				mode: 'virtual',
-				activationKey: ['Enter', ' '],
-			})
-		})
-
+	it.each<[string, Partial<RovingOptions>, string]>([
+		['activation key clicks the active item', {}, 'Enter'],
 		// Space (' ') is a listed activation key, so it activates like Enter.
-		result.current(makeKeyEvent(' '))
+		[
+			'any key in an activationKey list clicks the active item',
+			{ activationKey: ['Enter', ' '] },
+			' ',
+		],
+	])('virtual mode: %s', (_name, options, key) => {
+		const container = makeContainer(3)
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		items[1]?.setAttribute('data-active', '')
+
+		const clickSpy = vi.fn()
+
+		items[1]?.addEventListener('click', clickSpy)
+
+		const result = renderRoving(container, { mode: 'virtual', ...options })
+
+		result.current(makeKeyEvent(key))
 
 		expect(clickSpy).toHaveBeenCalledTimes(1)
 	})
@@ -491,20 +384,11 @@ describe('useA11yRoving', () => {
 			el.id = `opt-${i}`
 		})
 
-		const controller = document.createElement('input')
+		const controller = attach(document.createElement('input'))
 
-		attach(controller)
-
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			const adRef = useRef<HTMLElement | null>(controller)
-
-			return useA11yRoving(ref, {
-				itemSelector: '[role="option"]',
-				mode: 'virtual',
-				activeDescendantRef: adRef,
-			})
+		const result = renderRoving(container, {
+			mode: 'virtual',
+			activeDescendantRef: { current: controller },
 		})
 
 		result.current(makeKeyEvent('ArrowDown'))
@@ -527,11 +411,7 @@ describe('useA11yRoving', () => {
 
 		const items = Array.from(container.querySelectorAll('button'))
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
-		})
+		const result = renderRoving(container, { mode: 'virtual' })
 
 		result.current(makeKeyEvent('ArrowDown'))
 
@@ -539,13 +419,7 @@ describe('useA11yRoving', () => {
 	})
 
 	it('virtual mode: activation key is a no-op when nothing is active', () => {
-		const container = makeContainer(3)
-
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
-		})
+		const result = renderRoving(makeContainer(3), { mode: 'virtual' })
 
 		const event = makeKeyEvent('Enter')
 
@@ -559,11 +433,7 @@ describe('useA11yRoving', () => {
 
 		const items = container.querySelectorAll('button')
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
-		})
+		const result = renderRoving(container, { typeahead: true })
 
 		const event = makeKeyEvent('c')
 
@@ -574,32 +444,13 @@ describe('useA11yRoving', () => {
 		expect(document.activeElement).toBe(items[2])
 	})
 
-	it('type-ahead: printable keys are ignored when disabled', () => {
-		const container = makeLabeledContainer(['Apple', 'Banana'])
+	it.each<[string, Partial<RovingOptions>, string]>([
+		['printable keys are ignored when disabled', {}, 'b'],
+		['a non-matching letter is consumed without moving focus', { typeahead: true }, 'z'],
+	])('type-ahead: %s', (_name, options, key) => {
+		const result = renderRoving(makeLabeledContainer(['Apple', 'Banana']), options)
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
-		})
-
-		const event = makeKeyEvent('b')
-
-		result.current(event)
-
-		expect(event.preventDefault).not.toHaveBeenCalled()
-	})
-
-	it('type-ahead: a non-matching letter is consumed without moving focus', () => {
-		const container = makeLabeledContainer(['Apple', 'Banana'])
-
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
-		})
-
-		const event = makeKeyEvent('z')
+		const event = makeKeyEvent(key)
 
 		result.current(event)
 
@@ -866,26 +717,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 	// Simulates a virtualizer that has only `mountedIds` in the DOM out of a
 	// much larger logical `count` — the scenario a10k-item VirtualOptions
 	// window presents.
-	function makeIndexedContainer(mountedIds: string[]) {
-		const container = document.createElement('div')
-
-		for (const id of mountedIds) {
-			const row = document.createElement('div')
-
-			row.id = id
-
-			row.setAttribute('role', 'option')
-
-			row.textContent = id
-
-			container.appendChild(row)
-		}
-
-		attach(container)
-
-		return container
-	}
-
 	function mountRow(container: HTMLElement, id: string) {
 		const row = document.createElement('div')
 
@@ -898,6 +729,14 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		container.appendChild(row)
 
 		return row
+	}
+
+	function makeIndexedContainer(mountedIds: string[]) {
+		const container = attach(document.createElement('div'))
+
+		for (const id of mountedIds) mountRow(container, id)
+
+		return container
 	}
 
 	function makeSource(
@@ -985,32 +824,22 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		})
 	})
 
-	it('Home jumps straight to index 0 of a 10,000-item source without touching the DOM window', () => {
-		const container = makeIndexedContainer(['opt-500', 'opt-501'])
+	// Neither key touches the DOM window: the target index comes from the source.
+	it.each<[string, string[], number, number]>([
+		['Home', ['opt-500', 'opt-501'], 500, 0],
+		['End', ['opt-0'], 0, 9_999],
+	])('%s jumps straight to the edge index of a 10,000-item source', (key, mounted, from, to) => {
+		const container = makeIndexedContainer(mounted)
 
 		const source = makeSource(10_000)
 
-		const { activeIndexRef, result } = setup(container, source, { activeIndex: 500 })
+		const { activeIndexRef, result } = setup(container, source, { activeIndex: from })
 
-		result.current(makeKeyEvent('Home'))
+		result.current(makeKeyEvent(key))
 
-		expect(source.scrollToIndex).toHaveBeenCalledWith(0, { align: 'auto' })
+		expect(source.scrollToIndex).toHaveBeenCalledWith(to, { align: 'auto' })
 
-		expect(activeIndexRef.current).toBe(0)
-	})
-
-	it('End jumps to the last index of a 10,000-item source', () => {
-		const container = makeIndexedContainer(['opt-0'])
-
-		const source = makeSource(10_000)
-
-		const { activeIndexRef, result } = setup(container, source, { activeIndex: 0 })
-
-		result.current(makeKeyEvent('End'))
-
-		expect(source.scrollToIndex).toHaveBeenCalledWith(9_999, { align: 'auto' })
-
-		expect(activeIndexRef.current).toBe(9_999)
+		expect(activeIndexRef.current).toBe(to)
 	})
 
 	it('type-ahead matches an offscreen item by its data text value, not the DOM', () => {

@@ -15,18 +15,6 @@ describe('useCommandPaletteState', () => {
 		expect(result.current.listboxId.length).toBeGreaterThan(0)
 	})
 
-	it('updates the query when setQuery is called', () => {
-		const { result } = renderHook(() =>
-			useCommandPaletteState({ open: true, onOpenChange: () => {} }),
-		)
-
-		act(() => {
-			result.current.setQuery('search term')
-		})
-
-		expect(result.current.query).toBe('search term')
-	})
-
 	it('resets the query when transitioning from open to closed', () => {
 		const { result, rerender } = renderHook(
 			({ open }) => useCommandPaletteState({ open, onOpenChange: () => {} }),

@@ -7,12 +7,8 @@ describe('invalidAttrs', () => {
 		expect(invalidAttrs(true)).toEqual({ 'data-invalid': '', 'aria-invalid': true })
 	})
 
-	it('returns undefined when invalid is false', () => {
-		expect(invalidAttrs(false)).toBeUndefined()
-	})
-
-	it('returns undefined when invalid is undefined', () => {
-		expect(invalidAttrs(undefined)).toBeUndefined()
+	it.each([false, undefined])('returns undefined when invalid is %s', (invalid) => {
+		expect(invalidAttrs(invalid)).toBeUndefined()
 	})
 
 	it('returns the same INVALID reference on repeated truthy calls', () => {

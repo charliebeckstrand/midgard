@@ -10,21 +10,15 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe('useSortableItem', () => {
-	it('returns the expected shape', () => {
+	it('returns the refs and an opacity-1 style while not dragging', () => {
 		const { result } = renderHook(() => useSortableItem({ id: 'a' }), { wrapper })
 
 		expect(result.current).toMatchObject({
 			setNodeRef: expect.any(Function),
 			setActivatorNodeRef: expect.any(Function),
-			style: expect.any(Object),
+			style: expect.objectContaining({ opacity: 1 }),
 			dragging: false,
 		})
-	})
-
-	it('emits an opacity-1 style when not dragging', () => {
-		const { result } = renderHook(() => useSortableItem({ id: 'a' }), { wrapper })
-
-		expect(result.current.style.opacity).toBe(1)
 	})
 
 	it('keeps the style identity while its values hold', () => {

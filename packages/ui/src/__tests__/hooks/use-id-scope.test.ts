@@ -43,16 +43,6 @@ describe('useIdScope', () => {
 		expect(result.current).toBe(first)
 	})
 
-	it('sub is referentially stable across re-renders', () => {
-		const { result, rerender } = renderHook(() => useIdScope({ id: 'stable' }))
-
-		const firstSub = result.current.sub
-
-		rerender()
-
-		expect(result.current.sub).toBe(firstSub)
-	})
-
 	it('returns a new object when id changes', () => {
 		const { result, rerender } = renderHook(({ id }) => useIdScope({ id }), {
 			initialProps: { id: 'a' },

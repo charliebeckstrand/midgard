@@ -50,11 +50,12 @@ describe('SidebarLayout', () => {
 			</SidebarLayout>,
 		)
 
-		const trigger = screen.getByRole('button', { name: 'Open navigation' })
+		// The inline desktop panel renders the sidebar already, so the drawer adds a copy.
+		const before = screen.getAllByText('drawer-sidebar').length
 
-		fireEvent.click(trigger)
+		fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
 
-		expect(screen.getAllByText('drawer-sidebar').length).toBeGreaterThanOrEqual(1)
+		expect(screen.getAllByText('drawer-sidebar')).toHaveLength(before + 1)
 	})
 
 	it('tells assistive technology that the navbar button opens a dialog, and its state', () => {
@@ -146,18 +147,6 @@ describe('SidebarLayoutBody', () => {
 })
 
 describe('SidebarLayout floating mode', () => {
-	it('renders a hot-zone hover target when floating is true', () => {
-		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>nav</div>} floating>
-				body
-			</SidebarLayout>,
-		)
-
-		const hotZone = container.querySelector('[aria-hidden="true"]')
-
-		expect(hotZone).toBeInTheDocument()
-	})
-
 	it('opens the floating sheet on pointer enter of the hot zone', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
@@ -166,8 +155,6 @@ describe('SidebarLayout floating mode', () => {
 		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
-
-		expect(hotZone).not.toBeNull()
 
 		fireEvent.pointerEnter(hotZone)
 

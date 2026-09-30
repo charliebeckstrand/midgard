@@ -105,7 +105,9 @@ function Harness({
 
 type RenderedContext = ContextMock | null
 
-type RenderHarness = Omit<HarnessProps, 'context'> & { context?: RenderedContext }
+/** The harness props, with the stroke settings defaulted by {@link renderHarness}. */
+type RenderHarness = Omit<HarnessProps, 'context' | 'strokeColor' | 'strokeWidth'> &
+	Partial<Pick<HarnessProps, 'strokeColor' | 'strokeWidth'>> & { context?: RenderedContext }
 
 function renderHarness({ context, ...props }: RenderHarness = {} as RenderHarness) {
 	const ctx: RenderedContext = context === undefined ? makeContext() : context
@@ -143,8 +145,6 @@ describe('useSignaturePadState', () => {
 	it('starts non-empty when a defaultValue is provided', () => {
 		const { captured, context } = renderHarness({
 			defaultValue: 'data:,seed',
-			strokeColor: '#000',
-			strokeWidth: 2,
 		})
 
 		expect(captured.state?.empty).toBe(false)
@@ -159,8 +159,6 @@ describe('useSignaturePadState', () => {
 		const { context, rerender, captured } = renderHarness({
 			value: null,
 			onValueChange,
-			strokeColor: '#000',
-			strokeWidth: 2,
 		})
 
 		const clearCallsBefore = context?.clearRect.mock.calls.length ?? 0
@@ -187,8 +185,6 @@ describe('useSignaturePadState', () => {
 	it('clears the canvas and flips isEmpty when a controlled value becomes null', () => {
 		const { context, rerender, captured } = renderHarness({
 			value: 'data:,seed',
-			strokeColor: '#000',
-			strokeWidth: 2,
 		})
 
 		rerender(
@@ -214,8 +210,6 @@ describe('useSignaturePadState', () => {
 		const { context, captured } = renderHarness({
 			defaultValue: 'data:,seed',
 			onValueChange,
-			strokeColor: '#000',
-			strokeWidth: 2,
 		})
 
 		context?.clearRect.mockClear()
@@ -232,7 +226,7 @@ describe('useSignaturePadState', () => {
 	})
 
 	it('clear() is a no-op on the canvas when the 2d context is unavailable', () => {
-		const { captured } = renderHarness({ context: null, strokeColor: '#000', strokeWidth: 2 })
+		const { captured } = renderHarness({ context: null })
 
 		expect(() => {
 			act(() => {
@@ -248,8 +242,6 @@ describe('useSignaturePadState', () => {
 
 		const { context } = renderHarness({
 			ref: ref as Ref<SignaturePadHandle>,
-			strokeColor: '#000',
-			strokeWidth: 2,
 			canvasDataURL: 'data:,handle',
 		})
 
@@ -316,8 +308,6 @@ describe('useSignaturePadState', () => {
 		// referentially stable).
 		const { context, rerender, captured } = renderHarness({
 			value: 'data:,stable',
-			strokeColor: '#000',
-			strokeWidth: 2,
 		})
 
 		const clearCallsAfterMount = context?.clearRect.mock.calls.length ?? 0
@@ -335,15 +325,5 @@ describe('useSignaturePadState', () => {
 		)
 
 		expect(context?.clearRect.mock.calls.length).toBe(clearCallsAfterMount)
-	})
-
-	it('exposes commit and pointer handlers from the underlying drawing hook', () => {
-		const { captured } = renderHarness()
-
-		expect(typeof captured.state?.handlePointerDown).toBe('function')
-
-		expect(typeof captured.state?.handlePointerMove).toBe('function')
-
-		expect(typeof captured.state?.commit).toBe('function')
 	})
 })

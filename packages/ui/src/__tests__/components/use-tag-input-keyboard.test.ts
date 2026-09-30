@@ -22,20 +22,15 @@ function setup(inputValue: string, tagCount: number) {
 }
 
 describe('useTagInputKeyboard', () => {
-	it('Enter commits the draft', () => {
+	it.each([
+		['Enter', 'Enter'],
+		['comma', ','],
+	])('%s commits the draft', (_name, key) => {
 		const { press, commit } = setup('hello', 0)
 
-		press(makeKeyEvent<HTMLInputElement>('Enter'))
+		press(makeKeyEvent<HTMLInputElement>(key))
 
 		expect(commit).toHaveBeenCalledWith('hello')
-	})
-
-	it('comma commits the draft', () => {
-		const { press, commit } = setup('tag', 0)
-
-		press(makeKeyEvent<HTMLInputElement>(','))
-
-		expect(commit).toHaveBeenCalledWith('tag')
 	})
 
 	it('Backspace removes last tag when input is empty', () => {
@@ -46,16 +41,11 @@ describe('useTagInputKeyboard', () => {
 		expect(removeTag).toHaveBeenCalledWith(2)
 	})
 
-	it('Backspace does nothing when no tags exist', () => {
-		const { press, removeTag } = setup('', 0)
-
-		press(makeKeyEvent<HTMLInputElement>('Backspace'))
-
-		expect(removeTag).not.toHaveBeenCalled()
-	})
-
-	it('Backspace does nothing when input has content', () => {
-		const { press, removeTag } = setup('text', 3)
+	it.each([
+		['no tags exist', '', 0],
+		['input has content', 'text', 3],
+	])('Backspace does nothing when %s', (_name, inputValue, tagCount) => {
+		const { press, removeTag } = setup(inputValue, tagCount)
 
 		press(makeKeyEvent<HTMLInputElement>('Backspace'))
 

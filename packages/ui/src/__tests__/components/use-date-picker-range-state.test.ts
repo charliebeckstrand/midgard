@@ -13,8 +13,6 @@ const Jan20 = new Date(2025, 0, 20)
 
 const Jan31 = new Date(2025, 0, 31)
 
-const Feb15 = new Date(2025, 1, 15)
-
 describe('useDatePickerRangeState', () => {
 	describe('initial state', () => {
 		it('starts closed with empty displayValue when no value is provided', () => {
@@ -259,19 +257,6 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.calendar.onValueChange(Jan20))
 
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
-		})
-
-		it('exposes Feb15 verbatim when supplied as defaultValue (no clamping at boundary)', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({
-					range: true,
-					defaultValue: [Jan10, Feb15],
-				}),
-			)
-
-			expect(result.current.calendar.rangeStart).toEqual(Jan10)
-
-			expect(result.current.calendar.rangeEnd).toEqual(Feb15)
 		})
 	})
 

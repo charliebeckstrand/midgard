@@ -7,37 +7,17 @@ import { defaultRegistry } from '../../docs/engine/derive-code'
 // externals into the name map that backs snippet-import resolution. This is
 // ui-specific — the agnostic engine behavior lives under src/docs/engine/__tests__.
 describe('docs engine ⇄ ui component map', () => {
-	it('is a Map keyed by component name', () => {
-		expect(defaultRegistry.byName).toBeInstanceOf(Map)
-	})
-
-	it('resolves a known component name back to its module', () => {
+	it.each([
 		// `Button` is the canonical recognizable export; it lives in components/button.
-		const info = defaultRegistry.byName.get('Button')
-
-		expect(info?.name).toBe('Button')
-
-		expect(info?.module).toBe('button')
-	})
-
-	it('resolves a provider name to its nested `providers/*` module', () => {
+		['a known component name back to its module', 'Button', 'button'],
 		// Providers carry the full nested specifier; derived imports read
 		// `ui/providers/glass`, matching the package's `./providers/*` export map.
-		const info = defaultRegistry.byName.get('GlassProvider')
-
-		expect(info?.name).toBe('GlassProvider')
-
-		expect(info?.module).toBe('providers/glass')
-	})
-
-	it('resolves a module name to its nested `modules/*` module', () => {
+		['a provider name to its nested `providers/*` module', 'GlassProvider', 'providers/glass'],
 		// Modules carry the canonical nested specifier; derived imports read
 		// `ui/modules/map`. The bare `ui/map` shorthand also resolves.
-		const info = defaultRegistry.byName.get('MapPlat')
-
-		expect(info?.name).toBe('MapPlat')
-
-		expect(info?.module).toBe('modules/map')
+		['a module name to its nested `modules/*` module', 'MapPlat', 'modules/map'],
+	])('resolves %s', (_name, name, module) => {
+		expect(defaultRegistry.byName.get(name)).toMatchObject({ name, module })
 	})
 
 	it('resolves a demo package import to an external entry', () => {

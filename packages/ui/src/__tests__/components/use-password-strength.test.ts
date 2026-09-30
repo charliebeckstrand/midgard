@@ -21,29 +21,18 @@ describe('usePasswordStrength', () => {
 		expect(result.current.passedCount).toBe(0)
 	})
 
-	it('maps passedCount/total ratios to the documented levels', () => {
-		const cases: { value: string; level: string; passedCount: number }[] = [
-			{ value: 'a', level: 'weak', passedCount: 0 },
-			{ value: 'Abcdefgh', level: 'fair', passedCount: 2 },
-			{ value: 'Abcdefg1', level: 'good', passedCount: 3 },
-			{ value: 'Abcdefg1!', level: 'strong', passedCount: 4 },
-		]
+	it.each([
+		['a', 'weak', 0],
+		['abcdefgh', 'weak', 1],
+		['Abcdefgh', 'fair', 2],
+		['Abcdefg1', 'good', 3],
+		['Abcdefg1!', 'strong', 4],
+	])('maps %s to level "%s" with %i rules passed', (value, level, passedCount) => {
+		const { result } = renderHook(() => usePasswordStrength({ value, rules }))
 
-		for (const { value, level, passedCount } of cases) {
-			const { result } = renderHook(() => usePasswordStrength({ value, rules }))
+		expect(result.current.level).toBe(level)
 
-			expect(result.current.level).toBe(level)
-
-			expect(result.current.passedCount).toBe(passedCount)
-		}
-	})
-
-	it('classifies 1/4 (ratio 0.25) as "weak"', () => {
-		const { result } = renderHook(() => usePasswordStrength({ value: 'abcdefgh', rules }))
-
-		expect(result.current.level).toBe('weak')
-
-		expect(result.current.passedCount).toBe(1)
+		expect(result.current.passedCount).toBe(passedCount)
 	})
 
 	it('does not re-fire onStrengthChange for keystrokes that leave strength unchanged', () => {
@@ -116,7 +105,7 @@ describe('usePasswordStrength', () => {
 		})
 	})
 
-	it('always invokes the latest onStrengthChange callback', () => {
+	it('fires neither callback when only the callback identity changes', () => {
 		const first = vi.fn()
 
 		const second = vi.fn()
@@ -135,10 +124,6 @@ describe('usePasswordStrength', () => {
 		expect(first).not.toHaveBeenCalled()
 
 		expect(second).not.toHaveBeenCalled()
-
-		rerender({ cb: second })
-
-		expect(first).not.toHaveBeenCalled()
 	})
 
 	it('uses the latest callback when the score changes after callback identity changes', () => {

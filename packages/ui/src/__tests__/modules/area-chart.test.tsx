@@ -38,7 +38,7 @@ describe('AreaChart', () => {
 	it('reads each series value in the tooltip, not the stacked total', () => {
 		const { container } = renderUI(chart({ stacked: true, crosshair: false }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		// (200, 100) sits inside the stacked ribbons near Tue.
 		fireEvent.pointerMove(hit, { clientX: 200, clientY: 100 })
@@ -97,7 +97,7 @@ describe('AreaChart', () => {
 	it('draws a snapping y-rule by default, carrying the tooltip anywhere in the plot', () => {
 		const { container } = renderUI(chart())
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		// A point well above the marks — off any fill — still reads, because the
 		// default snap carries the tooltip to the nearest band-edge point.
@@ -113,7 +113,7 @@ describe('AreaChart', () => {
 	it('lets the stacked tooltip float above the fill, tracking the pointer inside the plot', () => {
 		const { container } = renderUI(chart({ stacked: true }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		// Well above the stacked ribbons — off any fill — the snapping tooltip still
 		// reads the pointed category, riding the pointer's height rather than diving
@@ -146,7 +146,7 @@ describe('AreaChart', () => {
 	it('drops the snap under smooth interpolation, gating the tooltip to the marks', () => {
 		const { container } = renderUI(chart({ interpolation: 'smooth' }))
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = getSlot(container, 'chart-hit')
 
 		// Off the fills the unsnapped rule leaves the tooltip closed.
 		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })
@@ -344,14 +344,6 @@ describe('stackedAreas', () => {
 
 		// At the gap the first band contributes 0, so the second rides on 10 alone.
 		expect(second?.points[1]?.y).toBe(map(10))
-	})
-
-	it('closes each ribbon between its top edge and the one below', () => {
-		const [first] = stackedAreas([[20, 30, 25]], xs, map)
-
-		expect(first?.area.startsWith('M ')).toBe(true)
-
-		expect(first?.area.endsWith('Z')).toBe(true)
 	})
 
 	it('closes the first ribbon on the zero line and each next one on the edge below', () => {

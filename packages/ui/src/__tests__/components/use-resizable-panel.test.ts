@@ -59,10 +59,34 @@ function handleDown(overrides: Parameters<typeof makePointerEvent>[0] = {}) {
 	return makePointerEvent({ currentTarget: handle, ...overrides })
 }
 
-const equalPanels: PanelConfig[] = [
-	{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
-	{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
-]
+/** Panels with the given default sizes and no bounds, keyed by position. */
+function panels(...defaultSizes: number[]): PanelConfig[] {
+	return defaultSizes.map((defaultSize, index) => ({
+		key: `.${index}`,
+		defaultSize,
+		minSize: 0,
+		maxSize: 100,
+	}))
+}
+
+const equalPanels = panels(1, 1)
+
+type PanelOptions = Parameters<typeof useResizablePanel>[0]
+
+/** Renders the hook over two equal panels in a detached horizontal group, with `overrides` on top. */
+function renderPanel(overrides: Partial<PanelOptions> = {}) {
+	return renderHook(() =>
+		useResizablePanel({
+			groupRef: makeRef(null),
+			orientation: 'horizontal',
+			panelConfigs: equalPanels,
+			...overrides,
+		}),
+	)
+}
+
+/** A 1000 × 100 horizontal group, wide enough for a drag to start. */
+const wideGroup = () => makeRef(makeGroup({ width: 1000, height: 100 }))
 
 describe('useResizablePanel', () => {
 	beforeEach(() => {
@@ -78,67 +102,32 @@ describe('useResizablePanel', () => {
 	})
 
 	describe('initial sizes', () => {
-		it('normalizes defaultSizes to sum to 100', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+		it.each<[string, PanelConfig[], number[]]>([
+			['normalizes defaultSizes to sum to 100', equalPanels, [50, 50]],
+			['preserves sizes when defaults already sum to 100', panels(30, 70), [30, 70]],
+			['handles a three-panel configuration', panels(1, 2, 1), [25, 50, 25]],
+		])('%s', (_name, panelConfigs, expected) => {
+			const { result } = renderPanel({ panelConfigs })
 
-			expect(result.current.sizes).toEqual([50, 50])
-		})
-
-		it('preserves sizes when defaults already sum to 100', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 30, minSize: 0, maxSize: 100 },
-						{ key: '.1', defaultSize: 70, minSize: 0, maxSize: 100 },
-					],
-				}),
-			)
-
-			expect(result.current.sizes).toEqual([30, 70])
-		})
-
-		it('handles a three-panel configuration', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ key: '.1', defaultSize: 2, minSize: 0, maxSize: 100 },
-						{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
-					],
-				}),
-			)
-
-			expect(result.current.sizes).toEqual([25, 50, 25])
+			expect(result.current.sizes).toEqual(expected)
 		})
 	})
 
 	describe('panel set changes', () => {
-		it('re-derives sizes when a panel is added', () => {
-			const { result, rerender } = renderHook(
+		function renderPanelSet(initial: PanelConfig[]) {
+			return renderHook(
 				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
 					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
-				{ initialProps: { panelConfigs: equalPanels } },
+				{ initialProps: { panelConfigs: initial } },
 			)
+		}
+
+		it('re-derives sizes when a panel is added', () => {
+			const { result, rerender } = renderPanelSet(equalPanels)
 
 			expect(result.current.sizes).toEqual([50, 50])
 
-			rerender({
-				panelConfigs: [
-					{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
-					{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
-					{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
-				],
-			})
+			rerender({ panelConfigs: panels(1, 1, 1) })
 
 			// Stale [50, 50] would leave the third panel un-normalized; resync
 			// re-normalizes across the new set.
@@ -148,19 +137,7 @@ describe('useResizablePanel', () => {
 		})
 
 		it('re-derives sizes when a panel is removed', () => {
-			const { result, rerender } = renderHook(
-				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
-					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
-				{
-					initialProps: {
-						panelConfigs: [
-							{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
-							{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
-							{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
-						] as PanelConfig[],
-					},
-				},
-			)
+			const { result, rerender } = renderPanelSet(panels(1, 1, 1))
 
 			rerender({ panelConfigs: equalPanels })
 
@@ -168,11 +145,7 @@ describe('useResizablePanel', () => {
 		})
 
 		it('re-derives sizes when a panel is replaced at the same count', () => {
-			const { result, rerender } = renderHook(
-				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
-					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
-				{ initialProps: { panelConfigs: equalPanels } },
-			)
+			const { result, rerender } = renderPanelSet(equalPanels)
 
 			act(() => result.current.resize(0, 20))
 
@@ -189,11 +162,7 @@ describe('useResizablePanel', () => {
 		})
 
 		it('keeps dragged sizes while the panel set holds', () => {
-			const { result, rerender } = renderHook(
-				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
-					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
-				{ initialProps: { panelConfigs: equalPanels } },
-			)
+			const { result, rerender } = renderPanelSet(equalPanels)
 
 			act(() => result.current.resize(0, 20))
 
@@ -207,14 +176,7 @@ describe('useResizablePanel', () => {
 		it('shifts size from the right panel to the left panel', () => {
 			const onSizesChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onSizesChange,
-				}),
-			)
+			const { result } = renderPanel({ onSizesChange })
 
 			act(() => result.current.resize(0, 10))
 
@@ -223,73 +185,46 @@ describe('useResizablePanel', () => {
 			expect(onSizesChange).toHaveBeenCalledWith([60, 40])
 		})
 
-		it('respects the left panel maxSize even when derived from the clamped right', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 60 },
-						{ key: '.1', defaultSize: 1, minSize: 10, maxSize: 100 },
-					],
-				}),
-			)
-
+		it.each<[string, PanelConfig[], number, number[]]>([
 			// A huge nudge: right clamps to its min (10); left clamps to its own
 			// max of 60 rather than taking the remainder (90).
-			act(() => result.current.resize(0, 90))
+			[
+				'respects the left panel maxSize even when derived from the clamped right',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 60 },
+					{ key: '.1', defaultSize: 1, minSize: 10, maxSize: 100 },
+				],
+				90,
+				[60, 40],
+			],
+			[
+				'clamps to the right panel maxSize',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 80 },
+					{ key: '.1', defaultSize: 1, minSize: 20, maxSize: 100 },
+				],
+				90,
+				[80, 20],
+			],
+			[
+				'clamps to the left panel minSize',
+				[
+					{ key: '.0', defaultSize: 1, minSize: 20, maxSize: 100 },
+					{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
+				],
+				-90,
+				[20, 80],
+			],
+		])('%s', (_name, panelConfigs, delta, expected) => {
+			const { result } = renderPanel({ panelConfigs })
 
-			expect(result.current.sizes[0]).toBe(60)
+			act(() => result.current.resize(0, delta))
 
-			expect(result.current.sizes[1]).toBe(40)
-		})
-
-		it('clamps to the right panel maxSize', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 80 },
-						{ key: '.1', defaultSize: 1, minSize: 20, maxSize: 100 },
-					],
-				}),
-			)
-
-			act(() => result.current.resize(0, 90))
-
-			expect(result.current.sizes[1]).toBe(20)
-
-			expect(result.current.sizes[0]).toBe(80)
-		})
-
-		it('clamps to the left panel minSize', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 1, minSize: 20, maxSize: 100 },
-						{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
-					],
-				}),
-			)
-
-			act(() => result.current.resize(0, -90))
-
-			expect(result.current.sizes[0]).toBe(20)
-
-			expect(result.current.sizes[1]).toBe(80)
+			expect(result.current.sizes).toEqual(expected)
 		})
 
 		it('preserves total size after resize', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+			const { result } = renderPanel()
 
 			act(() => result.current.resize(0, 17))
 
@@ -301,14 +236,7 @@ describe('useResizablePanel', () => {
 		it('does nothing when handleIndex is out of range', () => {
 			const onSizesChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onSizesChange,
-				}),
-			)
+			const { result } = renderPanel({ onSizesChange })
 
 			act(() => result.current.resize(5, 10))
 
@@ -318,17 +246,7 @@ describe('useResizablePanel', () => {
 		})
 
 		it('resizes the correct pair when there are more than two panels', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
-					],
-				}),
-			)
+			const { result } = renderPanel({ panelConfigs: panels(1, 1, 1) })
 
 			act(() => result.current.resize(1, 10))
 
@@ -344,61 +262,35 @@ describe('useResizablePanel', () => {
 
 	describe('dragging state', () => {
 		it('exposes dragging=null initially', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+			const { result } = renderPanel()
 
 			expect(result.current.dragging).toBeNull()
 		})
 
-		it('ignores startDrag when groupRef is null', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+		it.each<[string, () => RefObject<HTMLDivElement | null>, number]>([
+			['when groupRef is null', () => makeRef(null), 0],
+			['for a non-primary button', wideGroup, 2],
+			[
+				'when the available size collapses to zero',
+				() => makeRef(makeGroup({ width: 0, height: 0 })),
+				0,
+			],
+		])('ignores startDrag %s', (_name, groupRef, button) => {
+			const { result } = renderPanel({ groupRef: groupRef() })
+
+			const event = handleDown({ button, clientX: 0, clientY: 0 })
 
 			act(() => {
-				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 0 }))
+				result.current.startDrag(0, event)
 			})
 
 			expect(result.current.dragging).toBeNull()
-		})
 
-		it('ignores non-primary buttons', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
-
-			act(() => {
-				result.current.startDrag(0, handleDown({ button: 2, clientX: 0, clientY: 0 }))
-			})
-
-			expect(result.current.dragging).toBeNull()
+			expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled()
 		})
 
 		it('sets dragging=handleIndex on a valid startDrag and clears on pointerup', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+			const { result } = renderPanel({ groupRef: wideGroup() })
 
 			const preventDefault = vi.fn()
 
@@ -419,19 +311,9 @@ describe('useResizablePanel', () => {
 
 			expect(result.current.dragging).toBeNull()
 		})
-	})
 
-	describe('pointer capture', () => {
 		it('captures the pointer on the handle when a drag starts', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+			const { result } = renderPanel({ groupRef: wideGroup() })
 
 			const event = handleDown({ button: 0, clientX: 100, clientY: 0 })
 
@@ -441,42 +323,13 @@ describe('useResizablePanel', () => {
 
 			expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1)
 		})
-
-		it('does not capture the pointer when the drag does not start', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
-
-			const event = handleDown({ button: 2, clientX: 100, clientY: 0 })
-
-			act(() => {
-				result.current.startDrag(0, event)
-			})
-
-			expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled()
-		})
 	})
 
 	describe('drag commits sizes via pointermove', () => {
 		it('updates sizes proportionally to pointer delta along the active axis', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
 			const onSizesChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onSizesChange,
-				}),
-			)
+			const { result } = renderPanel({ groupRef: wideGroup(), onSizesChange })
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
@@ -495,15 +348,10 @@ describe('useResizablePanel', () => {
 		})
 
 		it('uses clientY when orientation is vertical', () => {
-			const group = makeGroup({ width: 100, height: 1000 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'vertical',
-					panelConfigs: equalPanels,
-				}),
-			)
+			const { result } = renderPanel({
+				groupRef: makeRef(makeGroup({ width: 100, height: 1000 })),
+				orientation: 'vertical',
+			})
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 500 }))
@@ -518,49 +366,15 @@ describe('useResizablePanel', () => {
 			expect(result.current.sizes).toEqual([70, 30])
 		})
 
-		it('stops updating after pointerup', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+		it.each(['pointerup', 'pointercancel'])('stops updating after %s', (type) => {
+			const { result } = renderPanel({ groupRef: wideGroup() })
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			act(() => {
-				document.dispatchEvent(new Event('pointerup'))
-			})
-
-			act(() => {
-				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 900, clientY: 0 }))
-			})
-
-			expect(result.current.sizes).toEqual([50, 50])
-		})
-
-		it('stops updating after pointercancel', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
-
-			act(() => {
-				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
-			})
-
-			act(() => {
-				document.dispatchEvent(new Event('pointercancel'))
+				document.dispatchEvent(new Event(type))
 			})
 
 			expect(result.current.dragging).toBeNull()
@@ -575,79 +389,20 @@ describe('useResizablePanel', () => {
 
 	describe('degenerate configurations', () => {
 		it('preserves panel defaults when their sum is zero', () => {
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 0, minSize: 0, maxSize: 100 },
-						{ key: '.1', defaultSize: 0, minSize: 0, maxSize: 100 },
-					],
-				}),
-			)
+			const { result } = renderPanel({ panelConfigs: panels(0, 0) })
 
 			// total=0 → the normalization branch returns `raw` untouched.
 			expect(result.current.sizes).toEqual([0, 0])
 		})
 
-		it('ignores startDrag when the available size collapses to zero', () => {
-			const group = makeGroup({ width: 0, height: 0 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
-
-			act(() => {
-				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 0 }))
-			})
-
-			expect(result.current.dragging).toBeNull()
-		})
-
-		it('uses the vertical rect height for vertical drags', () => {
-			const group = makeGroup({ width: 100, height: 1000 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'vertical',
-					panelConfigs: equalPanels,
-				}),
-			)
-
-			act(() => {
-				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 500 }))
-			})
-
-			expect(result.current.dragging).toBe(0)
-		})
-
 		it('skips contextmenu cleanup gracefully when no drag is active', () => {
-			renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(null),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+			renderPanel()
 
 			expect(() => document.dispatchEvent(new Event('contextmenu'))).not.toThrow()
 		})
 
 		it('clears the drag on contextmenu while a drag is in progress', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-				}),
-			)
+			const { result } = renderPanel({ groupRef: wideGroup() })
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
@@ -668,15 +423,7 @@ describe('useResizablePanel', () => {
 			const onResizeStart = vi.fn()
 			const onResizeEnd = vi.fn()
 
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onResizeStart,
-					onResizeEnd,
-				}),
-			)
+			const { result } = renderPanel({ groupRef: wideGroup(), onResizeStart, onResizeEnd })
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
@@ -696,14 +443,7 @@ describe('useResizablePanel', () => {
 		it('reports the end once when a canceled pointer also fires pointerup', () => {
 			const onResizeEnd = vi.fn()
 
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onResizeEnd,
-				}),
-			)
+			const { result } = renderPanel({ groupRef: wideGroup(), onResizeEnd })
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
@@ -722,19 +462,12 @@ describe('useResizablePanel', () => {
 			const onResizeStart = vi.fn()
 			const onResizeEnd = vi.fn()
 
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
-					orientation: 'horizontal',
-					panelConfigs: [
-						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
-					],
-					onResizeStart,
-					onResizeEnd,
-				}),
-			)
+			const { result } = renderPanel({
+				groupRef: wideGroup(),
+				panelConfigs: panels(1, 1, 1),
+				onResizeStart,
+				onResizeEnd,
+			})
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 300, clientY: 0 }))
@@ -754,14 +487,7 @@ describe('useResizablePanel', () => {
 		it('closes the bracket when the group unmounts mid-drag', () => {
 			const onResizeEnd = vi.fn()
 
-			const { result, unmount } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onResizeEnd,
-				}),
-			)
+			const { result, unmount } = renderPanel({ groupRef: wideGroup(), onResizeEnd })
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
@@ -777,16 +503,12 @@ describe('useResizablePanel', () => {
 			const onResizeEnd = vi.fn()
 			const onSizesChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onSizesChange,
-					onResizeStart,
-					onResizeEnd,
-				}),
-			)
+			const { result } = renderPanel({
+				groupRef: wideGroup(),
+				onSizesChange,
+				onResizeStart,
+				onResizeEnd,
+			})
 
 			act(() => {
 				result.current.resize(0, 10)
@@ -802,18 +524,9 @@ describe('useResizablePanel', () => {
 
 	describe('unmount cleanup', () => {
 		it('removes document listeners on unmount mid-drag', () => {
-			const group = makeGroup({ width: 1000, height: 100 })
-
 			const onSizesChange = vi.fn()
 
-			const { result, unmount } = renderHook(() =>
-				useResizablePanel({
-					groupRef: makeRef(group),
-					orientation: 'horizontal',
-					panelConfigs: equalPanels,
-					onSizesChange,
-				}),
-			)
+			const { result, unmount } = renderPanel({ groupRef: wideGroup(), onSizesChange })
 
 			act(() => {
 				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))

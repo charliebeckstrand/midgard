@@ -4,12 +4,6 @@ import { useDismissable } from '../../hooks/use-dismissable'
 import { attach } from '../helpers'
 
 describe('useDismissable', () => {
-	it('returns a ref object', () => {
-		const { result } = renderHook(() => useDismissable({ open: false, onDismiss: vi.fn() }))
-
-		expect(result.current).toHaveProperty('current')
-	})
-
 	it('calls onDismiss when Escape is pressed while open', () => {
 		const onDismiss = vi.fn()
 
