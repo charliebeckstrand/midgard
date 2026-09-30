@@ -54,6 +54,15 @@ export type MenuProps = {
 	 * @defaultValue false
 	 */
 	capped?: boolean
+	/**
+	 * Open a dropdown as a bottom sheet on a phone, which is a narrow viewport
+	 * with no hover. The sheet holds the same rows at the full width of the
+	 * screen, and the reader closes it with a swipe down. Set `false` for a
+	 * dropdown that must stay next to its trigger. A context menu and a static
+	 * menu never open as a sheet.
+	 * @defaultValue true
+	 */
+	sheet?: boolean
 	className?: string
 	children: ReactNode
 }
@@ -83,6 +92,7 @@ export function Menu({
 	placement,
 	size,
 	capped = false,
+	sheet = true,
 	className,
 	children,
 }: MenuProps) {
@@ -92,6 +102,7 @@ export function Menu({
 		onOpenChange,
 		placement,
 		size,
+		sheet,
 	})
 
 	const touchContextMenu = useMenuTouchHold()
@@ -105,7 +116,7 @@ export function Menu({
 				open submenu's arrow keys arrive. A dropdown roves by
 				`aria-activedescendant` from there, so the pointer marks `data-active`;
 				every other mode roves by real focus and the pointer moves it. */}
-					<MenuPointerLevel virtual={state.isDropdown} owner={actions.triggerRef}>
+					<MenuPointerLevel virtual={state.isDropdown && !state.isSheet} owner={actions.triggerRef}>
 						<div
 							data-slot="menu"
 							// contents: this wrapper must not participate in layout, or it

@@ -7,6 +7,7 @@ import { PopoverPanel } from '../../primitives/popover'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions, useMenuState } from './context'
+import { MenuSheet } from './menu-sheet'
 import { MenuViewport } from './menu-viewport'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
@@ -25,6 +26,11 @@ export type MenuContentProps = {
 	 * @defaultValue false
 	 */
 	glass?: boolean
+	/**
+	 * The heading of the bottom sheet that a dropdown opens as on a phone. Omit
+	 * it to use the name of the trigger. The popover shows no heading.
+	 */
+	title?: ReactNode
 	children: ReactNode
 }
 
@@ -33,6 +39,8 @@ export type MenuContentProps = {
  * its items. A `static` menu renders inline as part of the page, with no
  * autofocus. Otherwise it mounts as a floating overlay that closes on `Escape`.
  * Takes the `size` of the enclosing {@link Menu} as its density scope.
+ * On a phone, a dropdown opens as a bottom sheet instead, with the same rows
+ * (see the `sheet` prop of {@link Menu}).
  *
  * @remarks Items scroll inside a height-capped viewport whose clipped edges
  * fade out while more content lies past them. An overflowing menu therefore
@@ -45,11 +53,21 @@ export function MenuContent({
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	glass: glassProp,
+	title,
 	children,
 }: MenuContentProps) {
-	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, size } = useMenuState()
+	const { open, menuId, isDropdown, isSheet, floatingStyles, getFloatingProps, size } =
+		useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useResolvedSurface(glassProp) === 'glass'
+
+	if (isSheet) {
+		return (
+			<MenuSheet title={title} className={className}>
+				{children}
+			</MenuSheet>
+		)
+	}
 
 	const viewport = <MenuViewport fitted={!isStatic}>{children}</MenuViewport>
 

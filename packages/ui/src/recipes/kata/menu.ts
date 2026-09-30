@@ -3,7 +3,8 @@
  * The `item` row and the `viewport` scroll container follow the nearest density
  * scope through stepped classes. The panel is that scope. The rest are static slots:
  * `content` (the panel box), `surface` and `floating` (the wrapper and the
- * panel of a floating menu), `section`, `heading`, `label`, `text`,
+ * panel of a floating menu), `sheet` and `sheetBody` (the rows and the body of
+ * the bottom sheet on a phone), `section`, `heading`, `label`, `text`,
  * `description`, and `shortcut`. The `subTrigger` wash on an open submenu parent and the
  * `separator` divider join them.
  */
@@ -68,6 +69,12 @@ export const k = {
 	// is `absolute`), so the wrapper shrink-wraps to it. The column and `min-h-0`
 	// pass the cap of the wrapper on to the viewport, which scrolls.
 	floating: 'relative flex min-h-0 flex-col',
+	// The rows of a dropdown that opens as a bottom sheet on a phone. The drawer
+	// is the surface, so the rows get no panel chrome of their own.
+	sheet: 'space-y-0.5 pb-2 outline-hidden',
+	// The drawer body of the sheet. The rows carry their own inset, so the body
+	// keeps a gutter that lines the row text up with the heading.
+	sheetBody: 'px-3',
 	// A `MenuSub` parent keeps its wash while the panel is open (`data-open`), so
 	// the row the pointer traveled from still reads as the live trail back —
 	// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.

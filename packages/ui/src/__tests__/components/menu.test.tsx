@@ -24,6 +24,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	stubMatchMedia,
 	userEvent,
 } from '../helpers'
 
@@ -1144,6 +1145,81 @@ describe('MenuItem density', () => {
 			'density-py-[1,1.5,2.5]',
 			'density-text-[sm,base,lg]',
 		)
+	})
+})
+
+/**
+ * A dropdown on a phone opens as a bottom sheet. The phone is a stubbed media
+ * query: no hover and a narrow viewport. The jsdom stub matches nothing, so the
+ * other suites get the popover.
+ */
+describe('Menu on a phone', () => {
+	function renderPhoneMenu({ sheet, title }: { sheet?: boolean; title?: string } = {}) {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		const onAction = vi.fn()
+
+		renderUI(
+			<Menu placement="bottom-start" sheet={sheet}>
+				<MenuTrigger>
+					<button type="button">Add tile</button>
+				</MenuTrigger>
+
+				<MenuContent title={title}>
+					<MenuItem onAction={onAction}>Orders</MenuItem>
+					<MenuItem>Revenue</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		return { onAction }
+	}
+
+	it('opens a dropdown as a sheet that the trigger names', async () => {
+		renderPhoneMenu()
+
+		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		const sheet = screen.getByRole('dialog', { name: 'Add tile' })
+
+		const menu = screen.getByRole('menu')
+
+		expect(sheet).toContainElement(menu)
+
+		expect(screen.getByRole('button', { name: 'Add tile' })).toHaveAttribute(
+			'aria-controls',
+			menu.id,
+		)
+	})
+
+	it('takes the title of the content as its heading', async () => {
+		renderPhoneMenu({ title: 'New tile' })
+
+		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
+	})
+
+	it('closes the sheet when a row is selected', async () => {
+		const { onAction } = renderPhoneMenu()
+
+		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		await userEvent.click(screen.getByRole('menuitem', { name: 'Orders' }))
+
+		expect(onAction).toHaveBeenCalledTimes(1)
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+	})
+
+	it('keeps the popover when the sheet is turned off', async () => {
+		renderPhoneMenu({ sheet: false })
+
+		await userEvent.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 })
 
