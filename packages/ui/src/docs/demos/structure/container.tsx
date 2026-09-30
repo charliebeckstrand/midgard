@@ -1,25 +1,22 @@
-import { Card } from '../../../components/card'
 import { Container } from '../../../structure/container'
-import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes } from '../../engine'
 
 export function Demo() {
 	return (
-		<Example title="Padding">
-			<Stack gap="lg">
-				<Container padding={0}>
-					<Card bg="tint">No padding</Card>
-				</Container>
-				<Container padding="sm">
-					<Card bg="tint">Small padding</Card>
-				</Container>
-				<Container padding="md">
-					<Card bg="tint">Medium padding</Card>
-				</Container>
-				<Container padding="lg">
-					<Card bg="tint">Large padding</Card>
-				</Container>
-			</Stack>
-		</Example>
+		<Axes
+			of="Container"
+			// The smallest size is wider than the example frame, so each size looks the same here.
+			omit={['size']}
+			render={(props, label) => (
+				// The dashed frame shows the padding. The padding applies only from the `lg` breakpoint up.
+				<div className="w-full rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
+					<Container {...props}>
+						<div className="rounded-md bg-zinc-950/5 px-3 py-2 text-sm dark:bg-white/10">
+							{label}
+						</div>
+					</Container>
+				</div>
+			)}
+		/>
 	)
 }

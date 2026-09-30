@@ -7,7 +7,7 @@ import {
 	PasswordStrength,
 } from '../../../components/password-strength'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 function BasicExample() {
 	const [value, setValue] = useState('')
@@ -25,26 +25,6 @@ function BasicExample() {
 				/>
 			</Field>
 			<PasswordStrength value={value} />
-		</Stack>
-	)
-}
-
-function WithoutRulesExample() {
-	const [value, setValue] = useState('')
-
-	return (
-		<Stack gap="md">
-			<Field>
-				<Label htmlFor="password-strength-meter">Password</Label>
-				<PasswordInput
-					id="password-strength-meter"
-					value={value}
-					onChange={(event) => setValue(event.target.value)}
-					placeholder="Enter password"
-					autoComplete="new-password"
-				/>
-			</Field>
-			<PasswordStrength value={value} showRules={false} />
 		</Stack>
 	)
 }
@@ -77,12 +57,13 @@ function CustomRulesExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="With rules">
-				<BasicExample />
-			</Example>
+			<Axes
+				of="PasswordStrength"
+				render={(props) => <PasswordStrength {...props} value="Secret12" />}
+			/>
 
-			<Example title="Without rules">
-				<WithoutRulesExample />
+			<Example title="With input">
+				<BasicExample />
 			</Example>
 
 			<Example title="Custom rules">
