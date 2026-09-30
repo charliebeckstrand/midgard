@@ -3,6 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
+import { Divider } from '../../../../components/divider'
 import { Icon } from '../../../../components/icon'
 import { JsonTree, type JsonValue } from '../../../../components/json-tree'
 import {
@@ -48,6 +49,7 @@ import {
 import { Grid, type GridColumn } from '../../../../modules/grid'
 import { QueryBuilder, type QueryGroup, QuerySummary } from '../../../../modules/query'
 import { useContentHeightHost } from '../../../../primitives/content-height'
+import { Box } from '../../../../structure/box'
 import { Flex } from '../../../../structure/flex'
 import { Spacer } from '../../../../structure/spacer'
 import { Stack } from '../../../../structure/stack'
@@ -464,6 +466,9 @@ function RegistryExample() {
 		[setSpec],
 	)
 
+	// An empty board has nothing to arrange, so the edit controls wait for a tile.
+	const empty = spec.tiles.length === 0
+
 	// The spec as it saves: a round trip through JSON changes nothing.
 	const json = useMemo<JsonValue>(() => JSON.parse(JSON.stringify(spec)), [spec])
 
@@ -521,19 +526,21 @@ function RegistryExample() {
 					</Button>
 				)}
 
-				{editing && (
+				{editing && !empty && (
 					<Button variant="outline" onClick={() => handle.current?.tidy()}>
 						Tidy
 					</Button>
 				)}
 
-				<Button
-					color={editing ? 'zinc' : 'blue'}
-					hidden={projected}
-					onClick={() => setEditing((live) => !live)}
-				>
-					{editing ? 'Done' : 'Edit layout'}
-				</Button>
+				{!empty && (
+					<Button
+						color={editing ? 'zinc' : 'blue'}
+						hidden={projected}
+						onClick={() => setEditing((live) => !live)}
+					>
+						{editing ? 'Done' : 'Edit layout'}
+					</Button>
+				)}
 			</Flex>
 
 			<Alert
@@ -560,11 +567,15 @@ function RegistryExample() {
 				</Dashboard>
 			</DashboardWidgetProvider>
 
-			{spec.tiles.length === 0 && (
-				<Text tone="muted" className="text-center">
-					Nothing here yet. Add a tile to begin.
-				</Text>
+			{empty && (
+				<Box className="flex items-center justify-center rounded-lg border border-zinc-300 border-dashed p-12 dark:border-zinc-700">
+					<Text tone="muted" className="text-center">
+						Nothing here yet. Add a tile to begin.
+					</Text>
+				</Box>
 			)}
+
+			<Divider />
 
 			<Stack gap="sm">
 				<Text tone="muted">
