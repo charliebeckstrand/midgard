@@ -533,7 +533,6 @@ function RegistryExample() {
 				severity="info"
 				closable
 				className="w-full"
-				title="Make it yours"
 				description="Pick a template, then add tiles, drag them into place, and resize them. The board remembers your layout, even after a reload."
 			/>
 
@@ -596,7 +595,6 @@ export function Demo() {
 						severity="info"
 						closable
 						className="w-full"
-						title="One scope, every tile"
 						description="A rule narrows the whole board, and a selected bar or slice narrows everything around it."
 					/>
 
