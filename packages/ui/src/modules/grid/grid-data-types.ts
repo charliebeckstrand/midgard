@@ -611,6 +611,12 @@ export type GridFooterStats = {
 	total: number
 	/** Currently selected row count; `0` without a selection column. */
 	selected: number
+	/**
+	 * The selected rows that the view does not show: the rows that a search or a
+	 * filter hides, or that the rows no longer hold. A selection outlives the
+	 * filter, so {@link GridFooterStats.selected} can count them.
+	 */
+	hidden: number
 }
 
 /**

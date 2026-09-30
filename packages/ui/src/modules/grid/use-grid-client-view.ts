@@ -19,7 +19,7 @@ import { useLocale } from '../../providers/locale'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { type ColumnTests, filterRowIndices, type RowTest } from './engine/grid-filter/filter'
-import { groupMembers, orderGroups } from './engine/grid-group/client'
+import { allGroupIds, groupMembers, orderGroups } from './engine/grid-group/client'
 import {
 	expandGroups,
 	type GridGroup,
@@ -272,16 +272,19 @@ export function useGroupTree<T>(args: {
 
 	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
 
+	// The first toggle from all-open takes an entry for every group of the rows,
+	// not only the groups that the filters keep. A group that a search hides then
+	// stays open. The ids are read in the toggle, not in render.
 	const toggleGroup = useCallback(
 		(id: string) =>
 			onExpandedChange?.((previous) =>
 				toggleGroupExpanded(
 					previous,
 					id,
-					(closed ?? []).map((group) => group.id),
+					previous === true && read && columnId != null ? allGroupIds(rows, columnId, read) : [],
 				),
 			),
-		[onExpandedChange, closed],
+		[onExpandedChange, read, columnId, rows],
 	)
 
 	return { groups, closed, toggleGroup }

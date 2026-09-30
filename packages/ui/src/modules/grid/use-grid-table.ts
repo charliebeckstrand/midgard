@@ -43,7 +43,7 @@ import { compileColumnFilters } from './engine/grid-filter/filter'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
-import { grandTotalRowsOf, viewLeaves } from './engine/grid-table/client-view'
+import { grandTotalRowsOf, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
 import { sameElements } from './engine/grid-table/equality'
 import {
 	type EngineColumn,
@@ -257,6 +257,8 @@ type GridTableResult<T> = {
 	 * exports (see `viewLeaves`).
 	 */
 	rowsForExport: () => T[]
+	/** How many selected rows the filtered set does not hold (see `hiddenSelectionCount`). */
+	hiddenSelected: number
 }
 
 /**
@@ -929,6 +931,14 @@ export function useGridTable<T>({
 		rows,
 	})
 
+	const hiddenSelected = useMemo(
+		() =>
+			selection
+				? hiddenSelectionCount({ rows, kept: clientView?.kept ?? null, getKey, selection })
+				: 0,
+		[selection, rows, clientView, getKey],
+	)
+
 	const rowsForExport = useCallback(
 		() => viewLeaves({ rows, getKey, groups: closed, manualGroupRow, clientView, selection }),
 		[manualGroupRow, selection, rows, getKey, closed, clientView],
@@ -952,5 +962,6 @@ export function useGridTable<T>({
 		pinning,
 		grandTotalRows,
 		rowsForExport,
+		hiddenSelected,
 	}
 }

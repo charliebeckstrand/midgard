@@ -153,6 +153,7 @@ export function useGridDataFrame<T>({
 	infiniteScroll,
 	footer,
 	selectedCount,
+	hiddenSelected,
 	hover,
 	onRowClick,
 	onCellClick,
@@ -218,6 +219,8 @@ export function useGridDataFrame<T>({
 	infiniteScroll: ResolvedInfiniteScroll | null
 	/** The number of selected rows. */
 	selectedCount: number
+	/** How many selected rows the filtered set does not hold. */
+	hiddenSelected: number
 	/** The composed cell double-click, which carries the grid's own double-click-to-edit. */
 	cellDoubleClick: GridDataProps<T>['onCellDoubleClick']
 	/** Whether the column reorder is on and has columns to move. */
@@ -307,6 +310,7 @@ export function useGridDataFrame<T>({
 		sourceCount: rows.length,
 		filteredCount: dataRowCount,
 		selected: selectedCount,
+		hidden: hiddenSelected,
 		infiniteScroll,
 	})
 
