@@ -34,7 +34,9 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
  * a press on the backdrop, `Escape`, or a selected row closes it.
  *
  * The handle does not resize the sheet, because the rows set its height. A drag
- * down on it pulls the sheet off the screen, and a release there closes it.
+ * down on it pulls the sheet off the screen. A release closes the sheet once a
+ * quarter of it is off the screen, or after a flick, and otherwise it springs
+ * back.
  *
  * @remarks
  * The sheet is a modal dialog, so focus goes into it and the rows rove by real

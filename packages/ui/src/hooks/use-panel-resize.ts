@@ -1,5 +1,6 @@
 'use client'
 
+import { type AnimationPlaybackControls, animate, type ValueAnimationTransition } from 'motion'
 import {
 	type KeyboardEvent as ReactKeyboardEvent,
 	type PointerEvent as ReactPointerEvent,
@@ -11,6 +12,7 @@ import {
 import { dataAttr } from '../core'
 import { clamp, pct } from '../utilities'
 import { useDragCursor } from './use-drag-cursor'
+import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /** How far one arrow press moves the edge, as a share of the screen. */
 const STEP = 0.1
@@ -26,13 +28,24 @@ const STEP = 0.1
 const SWIPE = 0.6
 
 /**
- * How far past its floor a panel must be pulled for a release to close it, in
- * pixels.
+ * How far back a release reads the speed of the pointer, in milliseconds.
  *
- * A finger moves a little as it lifts. A release inside this distance is a hand
- * that came to rest at the floor, so the panel goes back to the floor.
+ * A release often lands on the spot of the last move, and iOS reports a touch
+ * that way. The gap between the two then carries no speed, and a flick reads as
+ * still. The speed is therefore read from where the pointer was this long
+ * before the release. A flick fills that time, and a hand at rest does not.
  */
-const PULL = 10
+const TRAIL = 100
+
+/**
+ * How much of a panel a pull must take off the screen for a release to close
+ * it, as a share of the panel at its floor.
+ *
+ * A shorter pull is a reader who tried the grip, or who changed their mind, so
+ * the panel springs back to its floor. A sheet on a phone does the same. A
+ * flick closes the panel at any distance, because a flick is a clear intent.
+ */
+const PULL = 0.25
 
 /**
  * The edge a panel is docked to, which is what the gesture is really keyed on.
@@ -126,11 +139,12 @@ export type ResizeSample = { at: number; t: number }
  * dismissal.
  *
  * Two releases dismiss. One is a flick fast enough to throw the panel away,
- * from any size. The other is a release while the panel is pulled past its
- * floor by more than {@link PULL} pixels. That panel is already on its way
- * off the screen, and the release lets it go.
+ * from any size. The other is a release while more than {@link PULL} of the
+ * panel is pulled off the screen. That panel is well on its way off, and the
+ * release lets it go. A shorter pull keeps the size, and the panel springs back.
  *
- * @param pulled - How far past its floor the panel is pulled, in pixels.
+ * @param pulled - How far past its floor the panel is pulled, as a share of the
+ * floor.
  * @internal
  */
 export function settleResize(size: number, velocity: number, pulled = 0): 'close' | number {
@@ -141,21 +155,43 @@ export function settleResize(size: number, velocity: number, pulled = 0): 'close
  * How fast the pointer was moving away from the panel at the end, in pixels per
  * millisecond.
  *
- * It is read off the last sample before the release, rather than the whole
- * gesture. A reader who drags slowly and then flicks means the flick, and an
- * average over the travel would lose it. Negative while moving the other way,
- * which no dismissal reads.
+ * It reads the last {@link TRAIL} milliseconds before the release, rather than
+ * the whole gesture. A reader who drags slowly and then flicks means the flick,
+ * and an average over the travel would lose it. It does not read the last
+ * sample alone either, because a release on the spot of the last move would
+ * read as still. Negative while moving the other way, which no dismissal reads.
  *
+ * @param trail - The samples of the gesture, oldest first. See
+ * {@link trimTrail}.
  * @internal
  */
-export function speedOf(sample: ResizeSample | null, at: number, t: number): number {
-	if (sample === null) return 0
+export function speedOf(trail: readonly ResizeSample[], at: number, t: number): number {
+	// The newest sample from at least `TRAIL` before the release. A gesture
+	// shorter than that reads from its first sample, which is the press.
+	let from = trail[0]
 
-	const elapsed = t - sample.t
+	for (const sample of trail) {
+		if (t - sample.t < TRAIL) break
 
-	// A release in the same millisecond as the last move carries no measurable
+		from = sample
+	}
+
+	if (from === undefined) return 0
+
+	const elapsed = t - from.t
+
+	// A release in the same millisecond as the sample carries no measurable
 	// speed — reading one out of a zero interval would divide by nothing.
-	return elapsed <= 0 ? 0 : (at - sample.at) / elapsed
+	return elapsed <= 0 ? 0 : (at - from.at) / elapsed
+}
+
+/**
+ * Drops the samples that {@link speedOf} can no longer read, so a long drag
+ * holds a short trail. It keeps the newest sample from at least {@link TRAIL}
+ * before `t`, because a release after `t` can read from that one.
+ */
+function trimTrail(trail: ResizeSample[], t: number): void {
+	while (trail.length > 1 && t - (trail[1]?.t ?? t) >= TRAIL) trail.shift()
 }
 
 /** The share of the screen a size covers, which is what a splitter's value reports. @internal */
@@ -234,13 +270,22 @@ export type PanelResizeOptions = {
 	 * Whether a drag past the floor pulls the panel off its edge.
 	 *
 	 * The panel stops at its floor and follows the pointer on toward the edge it
-	 * is docked to. A release while it is pulled closes it, as a bottom sheet
-	 * closes on a phone. A release back at the floor keeps it open. Without this
-	 * option, the drag stops at the floor, as a splitter stops at its minimum.
+	 * is docked to. A release closes it once {@link PULL} of it is off the
+	 * screen, as a bottom sheet closes on a phone. A release short of that keeps
+	 * it open, and the panel goes back to its floor. Without this option, the
+	 * drag stops at the floor, as a splitter stops at its minimum.
 	 *
 	 * @defaultValue false
 	 */
 	pull?: boolean
+	/**
+	 * The travel of a pull that the release gives back. The kata of the panel
+	 * states it.
+	 *
+	 * Omit it, and the panel goes back to its floor in one step. A reader who
+	 * asks for reduced motion gets the one step too.
+	 */
+	pullBack?: ValueAnimationTransition<number>
 	/**
 	 * Whether the drag and the arrow keys resize the panel.
 	 *
@@ -290,6 +335,7 @@ export function usePanelResize({
 	floorOf,
 	ceilingOf,
 	pull = false,
+	pullBack,
 	resize: resizes = true,
 }: PanelResizeOptions): PanelResize {
 	const { axis, sign } = SIDES[side]
@@ -309,15 +355,25 @@ export function usePanelResize({
 
 	const ref = useCallback((node: HTMLDivElement | null) => setPanel(node), [])
 
-	// The live gesture, and the last sample of it. Refs because a drag writes on
-	// every move and none of that is a render. The timestamp comes off the event
-	// rather than a clock, so the speed is measured against the same run of time
-	// the positions were.
+	// The live gesture, and the recent samples of it. Refs because a drag writes
+	// on every move and none of that is a render. The timestamp comes off the
+	// event rather than a clock, so the speed is measured against the same run of
+	// time the positions were.
 	const grab = useRef<Grab | null>(null)
 
-	const last = useRef<ResizeSample | null>(null)
+	const trail = useRef<ResizeSample[]>([])
 
 	const stop = useRef<AbortController | null>(null)
+
+	// How far the panel is pulled now, and the travel that gives a pull back.
+	// A press during that travel reads the first, and stops the second.
+	const pulledBy = useRef(0)
+
+	const back = useRef<AnimationPlaybackControls | null>(null)
+
+	// Imperative motion runs outside any `MotionConfig`, so the preference is read
+	// here rather than inherited (WCAG 2.3.3).
+	const reduced = usePrefersReducedMotion()
 
 	const [size, setSize] = useState<number | null>(null)
 
@@ -346,6 +402,12 @@ export function usePanelResize({
 
 		stop.current = null
 
+		// A close during the travel back leaves the panel where the travel had it,
+		// and the exit slide starts there.
+		back.current?.stop()
+
+		back.current = null
+
 		grab.current = null
 
 		setResizing(false)
@@ -367,7 +429,11 @@ export function usePanelResize({
 	// leaves from where the reader let it go. A reopen before the slide ends takes
 	// the same node back, and that open starts with no pull.
 	useEffect(() => {
-		if (open) panel?.style.removeProperty('translate')
+		if (!open || panel === null) return
+
+		panel.style.removeProperty('translate')
+
+		pulledBy.current = 0
 	}, [open, panel])
 
 	// A gesture still in flight when the panel unmounts — a panel closed from
@@ -376,7 +442,13 @@ export function usePanelResize({
 	useEffect(() => {
 		const held = stop
 
-		return () => held.current?.abort()
+		const travel = back
+
+		return () => {
+			held.current?.abort()
+
+			travel.current?.stop()
+		}
 	}, [])
 
 	/** Draws the panel at a size, clamped to the bounds the gesture measured. */
@@ -398,6 +470,8 @@ export function usePanelResize({
 	function pullBy(distance: number) {
 		if (panel === null) return
 
+		pulledBy.current = distance
+
 		if (distance === 0) {
 			panel.style.removeProperty('translate')
 
@@ -407,6 +481,31 @@ export function usePanelResize({
 		const offset = `${sign * distance}px`
 
 		panel.style.setProperty('translate', axis === 'height' ? `0 ${offset}` : offset)
+	}
+
+	/**
+	 * Takes a pull that did not close the panel back to the floor.
+	 *
+	 * A pull that does not close can reach {@link PULL} of the panel, which is too
+	 * far to jump. The panel springs back on the `pullBack` travel, as a sheet does
+	 * on a phone.
+	 */
+	function giveBack(from: number) {
+		if (pullBack === undefined || reduced) {
+			pullBy(0)
+
+			return
+		}
+
+		back.current = animate(from, 0, {
+			...pullBack,
+			onUpdate: (distance) => pullBy(Math.max(0, distance)),
+			onComplete: () => {
+				back.current = null
+
+				pullBy(0)
+			},
+		})
 	}
 
 	/**
@@ -447,7 +546,9 @@ export function usePanelResize({
 
 		const coordinate = coordinateOf(event)
 
-		last.current = { at: coordinate, t: event.timeStamp }
+		trail.current.push({ at: coordinate, t: event.timeStamp })
+
+		trimTrail(trail.current, event.timeStamp)
 
 		draw(at, coordinate)
 	}
@@ -470,11 +571,12 @@ export function usePanelResize({
 		const drawn = draw(at, coordinate)
 
 		// The speed is signed toward the docked edge, so a flick that throws the
-		// panel away reads as positive whichever side it is on.
+		// panel away reads as positive whichever side it is on. The pull is a share
+		// of the floor, which is the whole panel on one that does not resize.
 		const settled = settleResize(
 			drawn.size,
-			speedOf(last.current, coordinate, event.timeStamp) * sign,
-			drawn.pulled,
+			speedOf(trail.current, coordinate, event.timeStamp) * sign,
+			drawn.pulled / Math.max(at.floor, 1),
 		)
 
 		if (settled === 'close') {
@@ -489,9 +591,8 @@ export function usePanelResize({
 			return
 		}
 
-		// A pull too short to close goes back to the floor. It is a few pixels at
-		// most, so it goes back in one step.
-		if (drawn.pulled > 0) pullBy(0)
+		// A pull too short to close goes back to the floor.
+		if (drawn.pulled > 0) giveBack(drawn.pulled)
 
 		if (resizes) commit(settled, at.viewport)
 	}
@@ -501,6 +602,15 @@ export function usePanelResize({
 
 		if (panel === null || grab.current !== null) return
 
+		// A press during the travel back takes the panel where it stands. The press
+		// counts as that far into a pull, so the first move does not jump the panel
+		// back to its floor.
+		back.current?.stop()
+
+		back.current = null
+
+		const held = pulledBy.current
+
 		const measured = panel.getBoundingClientRect()[axis]
 
 		const coordinate = coordinateOf(event)
@@ -508,14 +618,14 @@ export function usePanelResize({
 		const viewport = viewportOf()
 
 		grab.current = {
-			at: coordinate,
+			at: coordinate - sign * held,
 			size: measured,
 			floor: resizes ? floorOf(panel, measured) : measured,
 			ceiling: resizes ? ceilingOf(panel, viewport) : measured,
 			viewport,
 		}
 
-		last.current = { at: coordinate, t: event.timeStamp }
+		trail.current = [{ at: coordinate, t: event.timeStamp }]
 
 		// The size the panel already has, taken before the press changes anything.
 		//

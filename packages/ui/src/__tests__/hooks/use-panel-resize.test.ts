@@ -1,7 +1,13 @@
 import { act, renderHook } from '@testing-library/react'
+import { animate } from 'motion'
 import { describe, expect, it, vi } from 'vitest'
-import { type PanelSide, panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
-import { makeKeyEvent, makePointerEvent } from '../helpers'
+import {
+	type PanelResizeOptions,
+	type PanelSide,
+	panelAxis,
+	usePanelResize,
+} from '../../hooks/use-panel-resize'
+import { makeKeyEvent, makePointerEvent, stubMatchMedia } from '../helpers'
 
 /** A panel that measures `height` px on each axis. jsdom lays nothing out. */
 function makePanel(height = 300): HTMLDivElement {
@@ -23,9 +29,10 @@ function windowPointer(type: string, y: number, t: number): PointerEvent {
 	return event
 }
 
-/** What {@link renderResize} varies: the pull, the resize, and the floor. */
+/** What {@link renderResize} varies: the pull, its travel back, the resize, and the floor. */
 type ResizeSetup = {
 	pull?: boolean
+	pullBack?: PanelResizeOptions['pullBack']
 	resize?: boolean
 	floorOf?: (panel: HTMLElement, size: number) => number
 }
@@ -33,14 +40,23 @@ type ResizeSetup = {
 /** Renders the gesture for `side`. By default, no floor and no ceiling are in reach. */
 function renderResize(
 	side: PanelSide = 'bottom',
-	{ pull, resize, floorOf: floor }: ResizeSetup = {},
+	{ pull, pullBack, resize, floorOf: floor }: ResizeSetup = {},
 ) {
 	const onDismiss = vi.fn()
 	const floorOf = vi.fn(floor ?? (() => 0))
 
 	const hook = renderHook(
 		({ open }) =>
-			usePanelResize({ side, open, onDismiss, floorOf, ceilingOf: () => 10_000, pull, resize }),
+			usePanelResize({
+				side,
+				open,
+				onDismiss,
+				floorOf,
+				ceilingOf: () => 10_000,
+				pull,
+				pullBack,
+				resize,
+			}),
 		{ initialProps: { open: true } },
 	)
 
@@ -143,6 +159,28 @@ describe('usePanelResize', () => {
 			expect(result.current.resizing).toBe(false)
 		})
 
+		it('dismisses on a flick whose release lands on the spot of the last move', () => {
+			// iOS reports a touch that way, so the last move alone reads as still.
+			const { result, onDismiss } = renderAttached('bottom')
+
+			act(() => {
+				result.current.handleProps.onPointerDown(
+					makePointerEvent({ pointerType: 'touch', clientY: 400, timeStamp: 0 }),
+				)
+			})
+
+			// 80 px in 80 ms is 1 px/ms, past the swipe speed.
+			act(() => {
+				window.dispatchEvent(windowPointer('pointermove', 440, 40))
+
+				window.dispatchEvent(windowPointer('pointermove', 480, 80))
+
+				window.dispatchEvent(windowPointer('pointerup', 480, 80))
+			})
+
+			expect(onDismiss).toHaveBeenCalledOnce()
+		})
+
 		it('keeps a slow release away from the edge as a size', () => {
 			const { result, onDismiss } = renderAttached('right')
 
@@ -167,8 +205,13 @@ describe('usePanelResize', () => {
 
 	describe('pull', () => {
 		/** A panel of 300 px that stops at 300 px, so each drag toward its edge pulls it. */
-		function renderPulled(side: PanelSide = 'bottom', pull = true, resize = true) {
-			return renderAttached(side, { pull, resize, floorOf: (_panel, size) => size })
+		function renderPulled(
+			side: PanelSide = 'bottom',
+			pull = true,
+			resize = true,
+			pullBack?: ResizeSetup['pullBack'],
+		) {
+			return renderAttached(side, { pull, resize, pullBack, floorOf: (_panel, size) => size })
 		}
 
 		/** Presses the grip at 400 px, then moves slowly to `to` px. */
@@ -200,7 +243,25 @@ describe('usePanelResize', () => {
 			expect(panel.style.translate).toBe(translate)
 		})
 
-		it('closes on a slow release while the panel is pulled, and leaves from there', () => {
+		it('closes on a slow release while a third of the panel is pulled, and leaves from there', () => {
+			const { result, onDismiss, panel } = renderPulled()
+
+			drag(result, 500)
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointerup', 500, 1000))
+			})
+
+			expect(onDismiss).toHaveBeenCalledOnce()
+
+			// The exit slide starts from the pulled panel, not from its rest.
+			expect(panel.style.height).toBe('300px')
+
+			expect(panel.style.translate).toBe('0 100px')
+		})
+
+		it('keeps the panel open on a slow release while a sixth of it is pulled', () => {
+			// A phone sheet springs back from a short pull, and so does this one.
 			const { result, onDismiss, panel } = renderPulled()
 
 			drag(result, 450)
@@ -209,12 +270,99 @@ describe('usePanelResize', () => {
 				window.dispatchEvent(windowPointer('pointerup', 450, 1000))
 			})
 
-			expect(onDismiss).toHaveBeenCalledOnce()
+			expect(onDismiss).not.toHaveBeenCalled()
 
-			// The exit slide starts from the pulled panel, not from its rest.
-			expect(panel.style.height).toBe('300px')
+			// With no travel given, the panel goes back in one step.
+			expect(panel.style.translate).toBe('')
 
-			expect(panel.style.translate).toBe('0 50px')
+			expect(result.current.size).toBe(300)
+		})
+
+		describe('with a travel back', () => {
+			const pullBack = { type: 'spring', stiffness: 260, damping: 34 } as const
+
+			it('springs a short pull back to the floor on the travel', () => {
+				const { result, onDismiss, panel } = renderPulled('bottom', true, false, pullBack)
+
+				drag(result, 450)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+				})
+
+				expect(onDismiss).not.toHaveBeenCalled()
+
+				expect(animate).toHaveBeenCalledWith(50, 0, expect.objectContaining(pullBack))
+
+				// Each frame of the travel moves the panel, and the arrival clears the pull.
+				const [, , options] = vi.mocked(animate).mock.calls[0] as unknown as [
+					number,
+					number,
+					{ onUpdate: (at: number) => void; onComplete: () => void },
+				]
+
+				act(() => options.onUpdate(20))
+
+				expect(panel.style.translate).toBe('0 20px')
+
+				act(() => options.onComplete())
+
+				expect(panel.style.translate).toBe('')
+			})
+
+			it('takes a press during the travel from where the panel stands', () => {
+				const { result, panel } = renderPulled('bottom', true, false, pullBack)
+
+				drag(result, 450)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+				})
+
+				const travel = vi.mocked(animate).mock.results[0]?.value as { stop: () => void }
+
+				const [, , options] = vi.mocked(animate).mock.calls[0] as unknown as [
+					number,
+					number,
+					{ onUpdate: (at: number) => void },
+				]
+
+				act(() => options.onUpdate(20))
+
+				const stop = vi.spyOn(travel, 'stop')
+
+				// The grip now stands 20 px below the floor, at 420 px.
+				act(() => {
+					result.current.handleProps.onPointerDown(
+						makePointerEvent({ pointerType: 'touch', clientY: 420, timeStamp: 2000 }),
+					)
+				})
+
+				expect(stop).toHaveBeenCalled()
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointermove', 430, 2100))
+				})
+
+				// 10 px further, not 10 px from the floor.
+				expect(panel.style.translate).toBe('0 30px')
+			})
+
+			it('goes back in one step for a reader who asks for reduced motion', () => {
+				stubMatchMedia((query) => query.includes('reduce'))
+
+				const { result, panel } = renderPulled('bottom', true, false, pullBack)
+
+				drag(result, 450)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+				})
+
+				expect(animate).not.toHaveBeenCalled()
+
+				expect(panel.style.translate).toBe('')
+			})
 		})
 
 		it('keeps the panel open on a release back at the floor', () => {
@@ -273,14 +421,14 @@ describe('usePanelResize', () => {
 			it('still pulls the panel off, and closes it on the release', () => {
 				const { result, onDismiss, panel } = renderPulled('bottom', true, false)
 
-				drag(result, 450)
+				drag(result, 500)
 
 				expect(panel.style.height).toBe('')
 
-				expect(panel.style.translate).toBe('0 50px')
+				expect(panel.style.translate).toBe('0 100px')
 
 				act(() => {
-					window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+					window.dispatchEvent(windowPointer('pointerup', 500, 1000))
 				})
 
 				expect(onDismiss).toHaveBeenCalledOnce()
@@ -318,16 +466,16 @@ describe('usePanelResize', () => {
 		it('clears a pull that closed the panel when it opens again', () => {
 			const { result, rerender, panel } = renderPulled()
 
-			drag(result, 450)
+			drag(result, 500)
 
 			act(() => {
-				window.dispatchEvent(windowPointer('pointerup', 450, 1000))
+				window.dispatchEvent(windowPointer('pointerup', 500, 1000))
 			})
 
 			rerender({ open: false })
 
 			// The exit slide still holds the pull.
-			expect(panel.style.translate).toBe('0 50px')
+			expect(panel.style.translate).toBe('0 100px')
 
 			// A reopen before the slide ends takes the same node back.
 			rerender({ open: true })

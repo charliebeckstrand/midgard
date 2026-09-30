@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Drawer, DrawerBody, DrawerHeader, DrawerTitle } from '../../../components/drawer'
-import { frames, getSlot, renderUI } from '../../helpers'
+import { frames, getSlot, renderUI, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { drag } from '../helpers/drag'
@@ -10,8 +10,9 @@ import { drag } from '../helpers/drag'
  *
  * The drawer does not resize, because its content sets its height. A drag up
  * on the grip changes nothing. A drag down moves the whole panel with the
- * pointer, and a release there closes it. A menu that opens as a sheet is such
- * a drawer. jsdom lays nothing out, so only a real browser shows the height and
+ * pointer. A release closes it once a quarter of the panel is off the screen,
+ * and a shorter pull springs back. A menu that opens as a sheet is such a
+ * drawer. jsdom lays nothing out, so only a real browser shows the height and
  * the position of the panel.
  */
 
@@ -20,6 +21,20 @@ const PULL = 40
 
 /** A pull that the release gives back, inside the distance that closes the panel. */
 const NUDGE = 4
+
+/**
+ * Holds the pointer still for longer than the gesture reads the speed, so the
+ * release reads as slow. A drag of a few frames that lets go at once is a flick,
+ * and a flick closes the panel at any distance.
+ */
+function rest(): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, 150))
+}
+
+/** Waits until the panel has no pull, which is where a travel back arrives. */
+async function settled(panel: HTMLElement): Promise<void> {
+	await waitFor(() => expect(panel.style.translate).toBe(''))
+}
 
 /** Renders an open `auto` drawer with a handle, a heading, and a short body. */
 function renderGrown(onOpenChange: (open: boolean) => void) {
@@ -42,14 +57,12 @@ function renderGrown(onOpenChange: (open: boolean) => void) {
 }
 
 describe('grown drawer pull (real browser)', () => {
-	it('pulls the panel down at its full height, and closes it on the release', async () => {
-		const onOpenChange = vi.fn()
-
-		const { panel, handle } = renderGrown(onOpenChange)
+	it('pulls the panel down at its full height', async () => {
+		const { panel, handle } = renderGrown(() => {})
 
 		await frames()
 
-		const rest = panel.getBoundingClientRect()
+		const home = panel.getBoundingClientRect()
 
 		const { x, y } = centerOf(handle)
 
@@ -58,13 +71,55 @@ describe('grown drawer pull (real browser)', () => {
 		const pulled = panel.getBoundingClientRect()
 
 		// The rows stay in view. Only the position of the panel follows the pointer.
-		expect(pulled.height).toBeNear(rest.height, HALF_PIXEL)
+		expect(pulled.height).toBeNear(home.height, HALF_PIXEL)
 
-		expect(pulled.top - rest.top).toBeNear(PULL, HALF_PIXEL)
+		expect(pulled.top - home.top).toBeNear(PULL, HALF_PIXEL)
+
+		await held.release()
+	})
+
+	it('closes on a slow release once a third of the panel is off the screen', async () => {
+		const onOpenChange = vi.fn()
+
+		const { panel, handle } = renderGrown(onOpenChange)
+
+		await frames()
+
+		const { x, y } = centerOf(handle)
+
+		const third = panel.getBoundingClientRect().height / 3
+
+		const held = await drag(handle, { x, y }, [{ x, y: y + third }])
+
+		await rest()
 
 		await held.release()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('springs back on a slow release with a sixth of the panel off the screen', async () => {
+		const onOpenChange = vi.fn()
+
+		const { panel, handle } = renderGrown(onOpenChange)
+
+		await frames()
+
+		const home = panel.getBoundingClientRect()
+
+		const { x, y } = centerOf(handle)
+
+		const held = await drag(handle, { x, y }, [{ x, y: y + home.height / 6 }])
+
+		await rest()
+
+		await held.release()
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		await settled(panel)
+
+		expect(panel.getBoundingClientRect().top).toBeNear(home.top, HALF_PIXEL)
 	})
 
 	it('does not grow the panel on a drag up', async () => {
@@ -72,7 +127,7 @@ describe('grown drawer pull (real browser)', () => {
 
 		await frames()
 
-		const rest = panel.getBoundingClientRect()
+		const home = panel.getBoundingClientRect()
 
 		const { x, y } = centerOf(handle)
 
@@ -81,9 +136,9 @@ describe('grown drawer pull (real browser)', () => {
 		const dragged = panel.getBoundingClientRect()
 
 		// A taller panel only adds empty space under the content.
-		expect(dragged.height).toBeNear(rest.height, HALF_PIXEL)
+		expect(dragged.height).toBeNear(home.height, HALF_PIXEL)
 
-		expect(dragged.top).toBeNear(rest.top, HALF_PIXEL)
+		expect(dragged.top).toBeNear(home.top, HALF_PIXEL)
 
 		await held.release()
 
@@ -97,7 +152,7 @@ describe('grown drawer pull (real browser)', () => {
 
 		await frames()
 
-		const rest = panel.getBoundingClientRect()
+		const home = panel.getBoundingClientRect()
 
 		const { x, y } = centerOf(handle)
 
@@ -106,14 +161,18 @@ describe('grown drawer pull (real browser)', () => {
 			{ x, y: y + NUDGE },
 		])
 
+		await rest()
+
 		await held.release()
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		const settled = panel.getBoundingClientRect()
+		await settled(panel)
 
-		expect(settled.top).toBeNear(rest.top, HALF_PIXEL)
+		const back = panel.getBoundingClientRect()
 
-		expect(settled.height).toBeNear(rest.height, HALF_PIXEL)
+		expect(back.top).toBeNear(home.top, HALF_PIXEL)
+
+		expect(back.height).toBeNear(home.height, HALF_PIXEL)
 	})
 })

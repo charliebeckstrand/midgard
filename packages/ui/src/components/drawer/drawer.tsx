@@ -1,12 +1,13 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useEffect } from 'react'
+import { type CSSProperties, type ReactNode, type RefObject, useEffect } from 'react'
 import { dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useControllableFlag } from '../../hooks/use-controllable'
+import { useCoveredBottom } from '../../hooks/use-covered-bottom'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
@@ -108,9 +109,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 *
 		 * Below the floor, the panel follows the pointer off the bottom of the screen.
 		 * The floor is the chrome of a fixed panel, and the full height of a grown
-		 * one. A release there closes the panel, and a release back at the floor
-		 * keeps it open. A flick downward closes it from any height. Both closes
-		 * arrive through `onOpenChange`, like every other close.
+		 * one. A release closes the panel once a quarter of the floor is off the
+		 * screen. A shorter pull springs back to the floor, as a sheet does on a
+		 * phone. A flick downward closes it from any height. Both closes arrive
+		 * through `onOpenChange`, like every other close.
 		 *
 		 * A resize is the drawer's own state, and reports nowhere. Nothing outside it
 		 * needs to hold a pixel height that only means anything on the screen it was
@@ -164,6 +166,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * Docks full-width to the bottom edge with a rounded top, and slides up via the shared
  * bottom motion preset. Open state is controlled (`open`/`onOpenChange`) or uncontrolled
  * (`defaultOpen`).
+ *
+ * Browser chrome over the bottom edge does not hide the content. Chrome on iOS can put
+ * its toolbar there until the first scroll. The panel measures that strip, and pads its
+ * content clear of it.
  *
  * `height` sets how much of the screen it docks over:
  *
@@ -243,6 +249,7 @@ export function Drawer({
 		ceilingOf: drawerCeiling,
 		pull: true,
 		resize: resizable,
+		pullBack: k.pullBack,
 	})
 
 	// The other half of the panel's height, and the one the panel itself decides:
@@ -262,8 +269,14 @@ export function Drawer({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
+	// The strip of browser chrome over the bottom edge, read off the overlay root.
+	// That root is fixed to the full layout viewport, which is the box the panel
+	// docks to. An overlay scoped to a container has no chrome over it.
+	const cover = useCoveredBottom(container == null)
+
 	return (
 		<Overlay
+			ref={cover.ref}
 			open={resolvedOpen}
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
@@ -297,7 +310,8 @@ export function Drawer({
 				// A dragged height beats the variant's — and a `fit` panel's, which stands
 				// down for as long as one is held. It is inline because it is a
 				// measurement rather than a step: there is no class for "412 pixels".
-				style={resize.size === null ? undefined : { height: resize.size }}
+				// The covered strip is a measurement too, and the recipe pads by it.
+				style={panelStyle(resize.size, cover.covered)}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? (
@@ -313,4 +327,20 @@ export function Drawer({
 			</motion.div>
 		</Overlay>
 	)
+}
+
+/**
+ * The inline style of the panel: the dragged height, and the strip of browser
+ * chrome that covers the bottom edge. Each is left out while it has no value,
+ * so a panel at rest carries neither.
+ *
+ * @internal
+ */
+function panelStyle(size: number | null, covered: number): CSSProperties | undefined {
+	if (size === null && covered === 0) return undefined
+
+	return {
+		...(size === null ? {} : { height: size }),
+		...(covered === 0 ? {} : { '--drawer-covered': `${covered}px` }),
+	} as CSSProperties
 }
