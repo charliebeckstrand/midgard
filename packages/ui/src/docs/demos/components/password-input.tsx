@@ -2,23 +2,19 @@ import { Lock } from 'lucide-react'
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { PasswordInput } from '../../../components/password-input'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
 export function Demo() {
 	return (
 		<>
-			<Example title="Variants">
-				<Field>
-					<Label htmlFor="password-default">Default</Label>
-					<PasswordInput id="password-default" placeholder="Enter password" />
-				</Field>
-				<Field>
-					<Label htmlFor="password-outline">Outline</Label>
-					<PasswordInput id="password-outline" variant="outline" placeholder="Enter password" />
-				</Field>
-			</Example>
+			<Axes
+				of="PasswordInput"
+				render={(props, label) => (
+					<PasswordInput {...props} aria-label={label} placeholder={label} />
+				)}
+			/>
 
 			<Example title="Prefix">
 				<Field>
@@ -42,13 +38,6 @@ export function Demo() {
 				<Field>
 					<Label>Readonly</Label>
 					<PasswordInput readOnly defaultValue="hunter2" />
-				</Field>
-			</Example>
-
-			<Example title="Invalid">
-				<Field>
-					<Label>Invalid</Label>
-					<PasswordInput data-invalid placeholder="Enter password" />
 				</Field>
 			</Example>
 

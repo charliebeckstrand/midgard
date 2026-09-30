@@ -4,10 +4,7 @@ import { Button } from '../../../components/button'
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { Textarea } from '../../../components/textarea'
-import { capitalize, Example } from '../../engine'
-
-const variants = ['default', 'outline'] as const
-const sizes = ['sm', 'md', 'lg'] as const
+import { Axes, Example } from '../../engine'
 
 function WithActionsExample() {
 	const [withActionsValue, setWithActionsValue] = useState('')
@@ -42,30 +39,10 @@ function WithActionsExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="Variants">
-				{variants.map((variant) => (
-					<Field key={variant}>
-						<Label htmlFor={`textarea-${variant}`}>{capitalize(variant)}</Label>
-						<Textarea id={`textarea-${variant}`} variant={variant} resize="vertical" />
-					</Field>
-				))}
-			</Example>
-
-			<Example title="Sizes">
-				{sizes.map((size) => (
-					<Field key={size}>
-						<Label htmlFor={`textarea-size-${size}`}>{capitalize(size)}</Label>
-						<Textarea id={`textarea-size-${size}`} size={size} />
-					</Field>
-				))}
-			</Example>
-
-			<Example title="Auto resize">
-				<Field>
-					<Label htmlFor="textarea-auto-resize">Auto resize</Label>
-					<Textarea id="textarea-auto-resize" autoResize rows={1} placeholder="Grows as you type" />
-				</Field>
-			</Example>
+			<Axes
+				of="Textarea"
+				render={(props, label) => <Textarea {...props} aria-label={label} placeholder={label} />}
+			/>
 
 			<Example title="With actions">
 				<WithActionsExample />

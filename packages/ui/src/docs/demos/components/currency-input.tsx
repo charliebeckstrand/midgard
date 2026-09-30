@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CurrencyInput } from '../../../components/currency-input'
 import { Field, Label } from '../../../components/fieldset'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -21,6 +21,13 @@ function ControlledExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="CurrencyInput"
+				render={(props, label) => (
+					<CurrencyInput {...props} aria-label={label} placeholder={label} />
+				)}
+			/>
+
 			<Example title="USD">
 				<Field>
 					<Label>Amount</Label>
@@ -55,13 +62,6 @@ export function Demo() {
 				<Field>
 					<Label>Disabled</Label>
 					<CurrencyInput disabled defaultValue={500} />
-				</Field>
-			</Example>
-
-			<Example title="Invalid">
-				<Field>
-					<Label>Invalid</Label>
-					<CurrencyInput data-invalid defaultValue={500} />
 				</Field>
 			</Example>
 		</>

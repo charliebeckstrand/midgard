@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { DateInput } from '../../../components/date-input'
 import { Field, Label } from '../../../components/fieldset'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -21,23 +21,7 @@ function ControlledExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Field>
-					<Label>Due date</Label>
-					<DateInput />
-				</Field>
-			</Example>
-
-			<Example title="Formats">
-				<Field>
-					<Label>Departure</Label>
-					<DateInput format="DD/MM/YYYY" />
-				</Field>
-				<Field>
-					<Label>Published</Label>
-					<DateInput format="YYYY-MM-DD" />
-				</Field>
-			</Example>
+			<Axes of="DateInput" render={(props, label) => <DateInput {...props} aria-label={label} />} />
 
 			<Example title="Min and max">
 				<Field>

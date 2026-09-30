@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../../components/fieldset'
 import { TagInput } from '../../../components/tag-input'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -35,6 +35,13 @@ function MaxTagInputExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="TagInput"
+				render={(props, label) => (
+					<TagInput {...props} aria-label={label} defaultValue={['React', 'TypeScript']} />
+				)}
+			/>
+
 			<Example title="Default">
 				<DefaultTagInputExample />
 			</Example>

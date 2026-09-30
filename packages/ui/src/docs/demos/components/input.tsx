@@ -2,33 +2,17 @@ import { Check, Hash, Lock, Search, Share } from 'lucide-react'
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
-import { capitalize, Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
-
-const variants = ['default', 'outline'] as const
-const sizes = ['sm', 'md', 'lg'] as const
 
 export function Demo() {
 	return (
 		<>
-			<Example title="Variants">
-				{variants.map((variant) => (
-					<Field key={variant}>
-						<Label htmlFor={`input-${variant}`}>{capitalize(variant)}</Label>
-						<Input id={`input-${variant}`} variant={variant} />
-					</Field>
-				))}
-			</Example>
-
-			<Example title="Sizes">
-				{sizes.map((size) => (
-					<Field key={size}>
-						<Label htmlFor={`input-size-${size}`}>{capitalize(size)}</Label>
-						<Input id={`input-size-${size}`} size={size} />
-					</Field>
-				))}
-			</Example>
+			<Axes
+				of="Input"
+				render={(props, label) => <Input {...props} aria-label={label} placeholder={label} />}
+			/>
 
 			<Example title="Prefix">
 				<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
@@ -52,13 +36,6 @@ export function Demo() {
 				<Field>
 					<Label>Readonly</Label>
 					<Input readOnly placeholder="Readonly" />
-				</Field>
-			</Example>
-
-			<Example title="Invalid">
-				<Field>
-					<Label>Invalid</Label>
-					<Input data-invalid placeholder="Something went wrong" />
 				</Field>
 			</Example>
 

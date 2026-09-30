@@ -1,21 +1,32 @@
 import { Field, Label } from '../../../components/fieldset'
 import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
 import { PasswordInput } from '../../../components/password-input'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
-		<Example title="Default">
-			<PasswordConfirm warning="Passwords do not match">
-				<Field>
-					<Label>Password</Label>
-					<PasswordInput placeholder="Enter password" />
-				</Field>
-				<Field>
-					<Label>Confirm password</Label>
-					<PasswordConfirmInput placeholder="Confirm password" />
-				</Field>
-			</PasswordConfirm>
-		</Example>
+		<>
+			<Axes
+				of="PasswordConfirmInput"
+				render={(props, label) => (
+					<PasswordConfirm>
+						<PasswordConfirmInput {...props} aria-label={label} placeholder={label} />
+					</PasswordConfirm>
+				)}
+			/>
+
+			<Example title="Default">
+				<PasswordConfirm warning="Passwords do not match">
+					<Field>
+						<Label>Password</Label>
+						<PasswordInput placeholder="Enter password" />
+					</Field>
+					<Field>
+						<Label>Confirm password</Label>
+						<PasswordConfirmInput placeholder="Confirm password" />
+					</Field>
+				</PasswordConfirm>
+			</Example>
+		</>
 	)
 }
