@@ -7,7 +7,7 @@ import type {
 	GridPagination,
 	GridSortState,
 } from '../../modules/grid'
-import { toColumnFacets } from '../../modules/grid/engine/grid-table/views'
+import { toColumnFacets } from '../../modules/grid/engine/grid-table/filter-view'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 import { type EngineTransforms, engineTable } from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'

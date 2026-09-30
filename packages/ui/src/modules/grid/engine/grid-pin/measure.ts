@@ -1,5 +1,5 @@
 import type { GridColumn } from '../../types'
-import { sameNumberMap } from '../grid-table/views'
+import { sameNumberMap } from '../grid-table/equality'
 import type { PinSide } from './overrides'
 
 /**

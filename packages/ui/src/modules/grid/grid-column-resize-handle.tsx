@@ -13,7 +13,7 @@ import {
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
 } from './engine/grid-constants'
-import type { GridColumnResizeActions } from './engine/grid-table/views'
+import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
 
 /** Props for {@link GridColumnResizeHandle}. @internal */
 type GridColumnResizeHandleProps = {

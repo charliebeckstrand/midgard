@@ -18,7 +18,7 @@ import {
 import {
 	buildColumnPinning,
 	toColumnPinningState,
-} from '../../modules/grid/engine/grid-table/views'
+} from '../../modules/grid/engine/grid-table/pinning-view'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 
 /** One frozen column: its id and its width. */

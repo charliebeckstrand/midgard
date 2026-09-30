@@ -11,6 +11,7 @@ import {
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
 import type { PaletteColor } from '../../core/recipe'
+import { hasErrorSlot } from './engine/grid-data/guards'
 import {
 	type GridManualGroupSegment,
 	orderManualGroupSegments,
@@ -19,7 +20,6 @@ import {
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import { detailOpen, groupKeyOf, groupTotaled, totalItemKey } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
-import { hasErrorSlot } from './engine/grid-table/guards'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'

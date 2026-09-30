@@ -5,7 +5,7 @@ import type { GridColumnGroup, GridGroupSpan } from '../../grid-group-types'
 import type { GridColumn, GridPagination } from '../../types'
 import { isManualPagination } from '../grid-pagination-utilities'
 import type { GridSortState } from '../grid-sort/state'
-import type { GridColumnPinning } from '../grid-table/views'
+import type { GridColumnPinning } from '../grid-table/pinning-view'
 
 /** Resolved master-detail state for the flat body. @internal */
 export type GridExpansionResult<T> = {
