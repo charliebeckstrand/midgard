@@ -8,20 +8,14 @@ import type { DensityStep } from '../../core/density'
 import { restrictToHorizontalAxis, restrictToVerticalAxis } from '../../hooks/use-sortable-list'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/grid'
-import type { GridSortState } from './context'
-import type { GridExportAction } from './engine/grid-export/types'
-import type { GridGroupByContextValue } from './engine/grid-group/resolve'
-import type { PinSide } from './engine/grid-pin/overrides'
-import type { GridRangeFill } from './engine/grid-range/fill'
 import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
-import { GridContextMenu } from './grid-context-menu'
+import { GridContextMenu, type GridContextMenuProps } from './grid-context-menu'
 import { GridManagerDialog } from './grid-manager-dialog'
 import { GridReorderContext } from './grid-reorder'
 import { GridRowManager } from './grid-row-manager'
-import type { GridColumn, GridContextMenu as GridContextMenuConfig, GridMenuItem } from './types'
+import type { GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridClampAnchor } from './use-grid-clamp-anchor'
 import type { GridRowManagerRegionResult } from './use-grid-row-manager'
-import type { GridColumnFilter } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -71,38 +65,12 @@ type GridRegionProps<T> = {
 	strategy: ComponentProps<typeof SortableContext>['strategy']
 	/** Id of the column being dragged, or `null`; handed to the reordering body cells for their lift cue. */
 	activeReorderId: string | null
+	/** The right-click menu config, or `undefined` with no menu. */
 	contextMenu: GridContextMenuConfig<T> | undefined
 	/** Behavioral gate for the menus; the wrapper stays mounted either way (see GridContextMenu.enabled). */
 	contextMenuEnabled: boolean
-	columns: GridColumn<T>[]
-	rows: T[]
-	rowKeys: (string | number)[]
-	/** Active sort columns in priority order; backs the header menu's Sort items. */
-	sort: GridSortState[]
-	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
-	clearSort: () => void
-	/** Pins a column to an edge, or unpins it with `false`; backs the header menu's Pin items. */
-	pinColumn: (column: string | number, side: PinSide | false) => void
-	/** The group-by wiring, or `null` when the group button is off; backs the header menu's "Group by …" item. */
-	groupBy: GridGroupByContextValue | null
-	autoSizeColumns: (() => void) | null
-	/** Sizes a single column to its content; backs the header menu's "Auto-size this column" item. */
-	autoSizeColumn: ((column: string | number) => void) | null
-	/** Gives the widths back to the automatic fit; backs the header menu's "Reset column widths" item. */
-	resetColumnWidths: (() => void) | null
-	chooseColumns: (() => void) | null
-	/** One action per configured export type; empty when export is off. */
-	exportActions: GridExportAction[]
-	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
-	fill: GridRangeFill | undefined
-	/** Resolves the group-header menu for a right-clicked group by key, or `null` when the row manager is off. */
-	rowGroupMenu: ((key: string, header: HTMLElement) => GridMenuItem[] | null) | null
-	/** Resolves the column-group band menu for a right-clicked group by id. */
-	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
-	/** The grid's column-filter model, or `null` when it has none; backs the column menu's "Filter …" item. */
-	columnFilter: GridColumnFilter | null
 	children: ReactNode
-}
+} & Omit<GridContextMenuProps<T>, 'config' | 'enabled' | 'children'>
 
 /**
  * Wraps the table region in its interaction layers: the reorder dnd context
@@ -123,24 +91,8 @@ export function GridRegion<T>({
 	activeReorderId,
 	contextMenu,
 	contextMenuEnabled,
-	columns,
-	rows,
-	rowKeys,
-	sort,
-	sortColumn,
-	clearSort,
-	pinColumn,
-	groupBy,
-	autoSizeColumns,
-	autoSizeColumn,
-	resetColumnWidths,
-	chooseColumns,
-	exportActions,
-	fill,
-	rowGroupMenu,
-	columnGroupMenu,
-	columnFilter,
 	children,
+	...menu
 }: GridRegionProps<T>) {
 	const reordered = (
 		<GridReorderRegion
@@ -160,27 +112,7 @@ export function GridRegion<T>({
 	if (!contextMenu) return reordered
 
 	return (
-		<GridContextMenu
-			config={contextMenu}
-			enabled={contextMenuEnabled}
-			columns={columns}
-			rows={rows}
-			rowKeys={rowKeys}
-			sort={sort}
-			sortColumn={sortColumn}
-			clearSort={clearSort}
-			pinColumn={pinColumn}
-			groupBy={groupBy}
-			autoSizeColumns={autoSizeColumns}
-			autoSizeColumn={autoSizeColumn}
-			resetColumnWidths={resetColumnWidths}
-			chooseColumns={chooseColumns}
-			exportActions={exportActions}
-			fill={fill}
-			rowGroupMenu={rowGroupMenu}
-			columnGroupMenu={columnGroupMenu}
-			columnFilter={columnFilter}
-		>
+		<GridContextMenu config={contextMenu} enabled={contextMenuEnabled} {...menu}>
 			{reordered}
 		</GridContextMenu>
 	)

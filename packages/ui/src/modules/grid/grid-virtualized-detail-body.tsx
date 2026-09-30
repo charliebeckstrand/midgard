@@ -137,7 +137,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 		[rows, rowKeys, expanded, rowExpandable, motions],
 	)
 
-	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
+	const { bodyRef, closingEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
 		useGridItemWindow(items, props, record)
 
 	// The cursor walks each data row and each open panel.
@@ -152,9 +152,9 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 	useGridCursorOrder(cursorOrder)
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
-		const item = revealEndItem(event)
+		const item = closingEndItem(event)
 
-		if (item?.phase === 'closing') release(rowKeys[item.dataIndex] as string | number)
+		if (item) release(rowKeys[item.dataIndex] as string | number)
 	}
 
 	const aria = (item: GridDetailWindowItem) =>

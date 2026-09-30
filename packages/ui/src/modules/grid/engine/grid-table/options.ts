@@ -26,7 +26,14 @@ import {
 } from '../grid-constants'
 import type { GridSortState } from '../grid-sort/state'
 import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
-import type { EngineColumnDef, EngineData, EngineOptions, GridFeatures } from './features'
+import type {
+	EngineColumn,
+	EngineColumnDef,
+	EngineData,
+	EngineOptions,
+	GridFeatures,
+} from './features'
+import { parsePxWidth } from './resize-view'
 
 /** Adapts the grid's ordered {@link GridSortState} list to a TanStack `SortingState`, priority order preserved. @internal */
 export function toSortingState(sort: GridSortState[] | undefined): SortingState {
@@ -39,41 +46,6 @@ export function toSortingState(sort: GridSortState[] | undefined): SortingState 
 /** Adapts a TanStack `SortingState` back to the grid's ordered {@link GridSortState} list. @internal */
 export function toSortState(sorting: SortingState): GridSortState[] {
 	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
-}
-
-/** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */
-export function resolveFilterMode(args: {
-	globalConfigured: boolean
-	hasColumnFilters: boolean
-	globalManual: boolean | undefined
-	columnManual: boolean | undefined
-}): { configured: boolean; manual: boolean } {
-	return {
-		configured: args.globalConfigured || args.hasColumnFilters,
-		// The grid filters both surfaces in one client pass (see `useClientView`),
-		// so the mode is table-wide: manual if either surface requests it. Manual
-		// wins, because a client pass over server-bound filters filters data that
-		// the server already filtered. `useGridTable` warns (dev) when the two
-		// flags of the surfaces disagree.
-		manual: Boolean(args.globalManual || args.columnManual),
-	}
-}
-
-/**
- * Parses a column width to px. A number passes through. A string yields a
- * number only where it is a plain `px` or unitless value. A relative or `auto`
- * width returns `undefined`, which leaves the column on content sizing.
- *
- * @internal
- */
-export function parsePxWidth(width: number | string | undefined): number | undefined {
-	if (width == null) return undefined
-
-	if (typeof width === 'number') return Number.isFinite(width) ? width : undefined
-
-	const match = /^(\d+(?:\.\d+)?)(?:px)?$/.exec(width.trim())
-
-	return match ? Number(match[1]) : undefined
 }
 
 /**
@@ -265,6 +237,29 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 	}
 }
 
+/**
+ * The engine's `ColumnDef[]` for the grid's columns. `meta` carries the source
+ * column, so the engine's visible columns map back to it.
+ *
+ * @internal
+ */
+export function toColumnDefs<T>(columns: GridColumn<T>[]): EngineColumnDef<T>[] {
+	return columns.map((col) => ({ ...toColumnDef(col), meta: { gridColumn: col } }))
+}
+
+/**
+ * Maps the engine's visible leaf columns back to their source
+ * {@link GridColumn}s, in order, through `meta`.
+ *
+ * @internal
+ */
+export function toGridColumns<T>(leaves: readonly EngineColumn<T>[]): GridColumn<T>[] {
+	// An engine of `T` rows holds only the `GridColumn<T>` that `toColumnDefs` gave it.
+	return leaves.flatMap(
+		(leaf) => (leaf.columnDef.meta?.gridColumn as GridColumn<T> | undefined) ?? [],
+	)
+}
+
 /** Server-mode total-count option: prefer `pageCount`, fall back to `rowCount`, else neither. @internal */
 function manualTotals(
 	config: GridPagination | undefined,
@@ -278,7 +273,7 @@ function manualTotals(
 
 /**
  * Pagination slice of the table options. The grid slices its own pages (see
- * `useClientView`), so the engine only holds the page state. A server grid
+ * `useGridClientView`), so the engine only holds the page state. A server grid
  * gives the engine its totals, which bound `setPageIndex`.
  *
  * @internal
@@ -299,7 +294,7 @@ export function paginationOptions<T>(args: {
 
 /**
  * Filter slice of the table options. The grid filters its own rows (see
- * `useClientView`), so the engine only holds the filter state and writes it
+ * `useGridClientView`), so the engine only holds the filter state and writes it
  * through these handlers.
  *
  * @internal
@@ -319,7 +314,7 @@ export function filterOptions<T>(args: {
 
 /**
  * Client-sort slice of the table options. The grid sorts its own rows (see
- * `useClientView`), so the engine only holds the sort state.
+ * `useGridClientView`), so the engine only holds the sort state.
  *
  * @internal
  */
