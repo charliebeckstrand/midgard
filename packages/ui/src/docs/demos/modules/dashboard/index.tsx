@@ -1,5 +1,6 @@
 import { ChevronDown, Plus } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
@@ -282,24 +283,24 @@ type Addition = { tile: Omit<DashboardSpecTile, 'id'>; hint: string }
 const additions: Addition[] = [
 	{
 		tile: { widget: 'kpi', title: 'Monthly revenue', options: { value: 'revenue' } },
-		hint: 'Latest month and its change',
+		hint: 'This month, with its change and trend',
 	},
 	{
 		tile: { widget: 'kpi', title: 'Monthly units', options: { value: 'units' } },
-		hint: 'Latest month and its change',
+		hint: 'This month, with its change and trend',
 	},
-	{ tile: { widget: 'units', title: 'Units sold' }, hint: 'Total, with a bar per month' },
+	{ tile: { widget: 'units', title: 'Units sold' }, hint: 'The half-year total, month by month' },
 	{
 		tile: { widget: 'bars', title: 'Revenue by region', options: { by: 'region' } },
-		hint: 'Bar chart, select a bar to filter',
+		hint: 'Select a region to filter the board',
 	},
 	{
 		tile: { widget: 'bars', title: 'Revenue by product', options: { by: 'product' } },
-		hint: 'Bar chart, select a bar to filter',
+		hint: 'Select a product to filter the board',
 	},
-	{ tile: { widget: 'mix', title: 'Product mix' }, hint: 'Donut chart, select a slice to filter' },
-	{ tile: { widget: 'trend', title: 'Revenue by month' }, hint: 'Line chart' },
-	{ tile: { widget: 'orders', title: 'Orders' }, hint: 'Each sale in a grid' },
+	{ tile: { widget: 'mix', title: 'Product mix' }, hint: 'Each product’s share of revenue' },
+	{ tile: { widget: 'trend', title: 'Revenue by month' }, hint: 'Six months of revenue as a line' },
+	{ tile: { widget: 'orders', title: 'Orders' }, hint: 'Every sale, ten rows to a page' },
 ]
 
 // The templates that the app offers as a start point. A spec holds names and
@@ -308,7 +309,7 @@ const presets: DashboardPreset[] = [
 	{
 		id: 'sales',
 		label: 'Sales overview',
-		description: 'KPIs, revenue, and the product mix',
+		description: 'Headline numbers, regions, and the product mix',
 		spec: {
 			tiles: [
 				{ id: 'tile-1', widget: 'kpi', title: 'Monthly revenue', options: { value: 'revenue' } },
@@ -329,7 +330,7 @@ const presets: DashboardPreset[] = [
 	{
 		id: 'operations',
 		label: 'Operations',
-		description: 'Units, products, and each order',
+		description: 'Volume, product revenue, and every order',
 		spec: {
 			tiles: [
 				{ id: 'tile-1', widget: 'units', title: 'Units sold' },
@@ -343,7 +344,12 @@ const presets: DashboardPreset[] = [
 			],
 		},
 	},
-	{ id: 'blank', label: 'Blank', description: 'No tiles', spec: { tiles: [], layout: [] } },
+	{
+		id: 'blank',
+		label: 'Blank',
+		description: 'An empty board to build on',
+		spec: { tiles: [], layout: [] },
+	},
 ]
 
 const [initial] = presets as [DashboardPreset]
@@ -523,10 +529,13 @@ function RegistryExample() {
 				</Button>
 			</Flex>
 
-			<Text tone="muted">
-				Start from a template, add tiles, and edit the layout. The board saves in this browser, so
-				your changes stay after a reload.
-			</Text>
+			<Alert
+				severity="info"
+				closable
+				className="w-full"
+				title="Make it yours"
+				description="Pick a template, then add tiles, drag them into place, and resize them. The board remembers your layout, even after a reload."
+			/>
 
 			<DashboardWidgetProvider widgets={widgets}>
 				{/* The template keys the board, so a new one mounts each tile again. */}
@@ -547,7 +556,7 @@ function RegistryExample() {
 
 			{spec.tiles.length === 0 && (
 				<Text tone="muted" className="text-center">
-					This board has no tiles. Use “Add tile” to put one on it.
+					Nothing here yet. Add a tile to begin.
 				</Text>
 			)}
 
@@ -583,10 +592,13 @@ export function Demo() {
 		<Stack gap="lg">
 			<Example title="Query">
 				<Stack gap="md">
-					<Text tone="muted">
-						Each tile reads its rows through the scope of the board. A rule in the query filters
-						every tile, and a selected bar or slice filters the other tiles.
-					</Text>
+					<Alert
+						severity="info"
+						closable
+						className="w-full"
+						title="One scope, every tile"
+						description="A rule narrows the whole board, and a selected bar or slice narrows everything around it."
+					/>
 
 					<QueryBuilder fields={fields} value={filter} onValueChange={setFilter} />
 
