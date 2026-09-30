@@ -60,6 +60,8 @@ export type DashboardTileHeaderProps = {
 	actions?: ReactNode
 	/** The control that clears the selection of the tile, before the actions. */
 	clear?: ReactNode
+	/** The element where the widget puts its own controls, at the end of the row. */
+	widget?: ReactNode
 	/** The drag grip in edit mode, or `null`. */
 	handle: ReactNode
 	/** The standard controls of the tile, after the actions. */
@@ -88,6 +90,7 @@ export function DashboardTileHeader({
 	description,
 	actions,
 	clear,
+	widget,
 	handle,
 	controls,
 	editing,
@@ -118,6 +121,8 @@ export function DashboardTileHeader({
 
 				{controls}
 			</div>
+
+			{widget}
 		</div>
 	)
 }

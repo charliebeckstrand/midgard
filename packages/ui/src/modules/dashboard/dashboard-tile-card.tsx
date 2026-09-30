@@ -1,9 +1,14 @@
 'use client'
 
-import { memo, type ReactNode, type RefObject } from 'react'
+import { memo, type ReactNode, type RefObject, useState } from 'react'
 import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
 import type { ContentHeightHost } from '../../primitives/content-height'
+import {
+	createHeaderActionsHost,
+	HeaderActionsContext,
+	HeaderActionsSlot,
+} from '../../primitives/header-actions'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardDragHandle } from './dashboard-drag-handle'
@@ -99,6 +104,13 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	natural,
 	children,
 }: DashboardTileCardProps) {
+	// The element in the header row where the widget puts its own controls, such
+	// as the touch menu button of a chart. Edit mode shows the edit controls
+	// there instead, so the widget then has no slot. A store, not state: the
+	// element arrives after the first commit, and only the widget that reads it
+	// renders again.
+	const [widgetActions] = useState(createHeaderActionsHost)
+
 	const handle = movable && (
 		<DashboardDragHandle
 			{...grip}
@@ -153,6 +165,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 					description={description}
 					actions={actions}
 					clear={<DashboardTileClear id={id} label={label} />}
+					widget={editable ? null : <HeaderActionsSlot host={widgetActions} />}
 					handle={handle}
 					editing={editable}
 					onError={onError}
@@ -160,18 +173,20 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				/>
 			)}
 
-			<DashboardTileContent
-				id={id}
-				label={label}
-				mount={mount}
-				inert={editable}
-				fallback={fallback}
-				onError={onError}
-				host={host}
-				natural={natural}
-			>
-				{children}
-			</DashboardTileContent>
+			<HeaderActionsContext value={widgetActions}>
+				<DashboardTileContent
+					id={id}
+					label={label}
+					mount={mount}
+					inert={editable}
+					fallback={fallback}
+					onError={onError}
+					host={host}
+					natural={natural}
+				>
+					{children}
+				</DashboardTileContent>
+			</HeaderActionsContext>
 		</Card>
 	)
 })
