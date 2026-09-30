@@ -86,8 +86,6 @@ const libFiles = new Map(
 
 const libSourceFiles = new Map<string, ts.SourceFile>()
 
-const SNIPPET = '/snippet.tsx'
-
 /** The component that `asModule` wraps the JSX of a block in. */
 const SNIPPET_COMPONENT = '__Snippet'
 
@@ -124,20 +122,61 @@ function asModule(code: string): string {
 }
 
 /**
- * The diagnostics of a block, as `TS2304: …` lines: syntax, and for a derived
- * block the names that it declares twice or does not declare.
+ * The diagnostics of each block of a page, as `TS2304: …` lines: syntax, and
+ * for a derived block the names that it declares twice or does not declare.
+ *
+ * One program checks all the derived blocks of the page, because a program
+ * costs far more to build than to read, and the page can show 45 blocks. Each
+ * derived block has an import, so it is a module and keeps its names to
+ * itself. A hand-written override has no import, so it is a script, and its
+ * top-level names are global. It can declare a name that a derived block uses
+ * and does not declare. The overrides thus go in a second program, which
+ * reads syntax alone, and syntax does not cross files.
  */
-function diagnose(snippet: string): string[] {
-	const code = asModule(snippet)
+function diagnoseAll(snippets: ReadonlyMap<string, string>): Map<string, string[]> {
+	const modules = new Map<string, string>()
 
-	const derived = /^import /m.test(snippet)
+	const scripts = new Map<string, string>()
+
+	const titles = new Map<string, string>()
+
+	for (const [title, snippet] of snippets) {
+		const file = `/snippet-${titles.size}.tsx`
+
+		titles.set(file, title)
+
+		;(/^import /m.test(snippet) ? modules : scripts).set(file, asModule(snippet))
+	}
+
+	const diagnosed = new Map<string, string[]>()
+
+	for (const [file, diagnostics] of [
+		...diagnoseFiles(modules, true),
+		...diagnoseFiles(scripts, false),
+	]) {
+		diagnosed.set(titles.get(file) ?? file, diagnostics)
+	}
+
+	return diagnosed
+}
+
+/** The diagnostics of each file of one program, keyed by file name. */
+function diagnoseFiles(
+	files: ReadonlyMap<string, string>,
+	derived: boolean,
+): Map<string, string[]> {
+	const diagnosed = new Map<string, string[]>()
+
+	if (files.size === 0) return diagnosed
 
 	const host: ts.CompilerHost = {
-		fileExists: (file) => file === SNIPPET || libFiles.has(file),
-		readFile: (file) => (file === SNIPPET ? code : libFiles.get(file)),
+		fileExists: (file) => files.has(file) || libFiles.has(file),
+		readFile: (file) => files.get(file) ?? libFiles.get(file),
 		writeFile: () => {},
 		getSourceFile: (file, target) => {
-			if (file === SNIPPET) {
+			const code = files.get(file)
+
+			if (code !== undefined) {
 				return ts.createSourceFile(file, code, target, true, ts.ScriptKind.TSX)
 			}
 
@@ -161,7 +200,7 @@ function diagnose(snippet: string): string[] {
 	}
 
 	const program = ts.createProgram({
-		rootNames: [SNIPPET],
+		rootNames: [...files.keys()],
 		options: {
 			target: ts.ScriptTarget.ES2022,
 			module: ts.ModuleKind.ESNext,
@@ -175,22 +214,29 @@ function diagnose(snippet: string): string[] {
 		host,
 	})
 
-	const sf = program.getSourceFile(SNIPPET)
+	for (const [file, code] of files) {
+		const sf = program.getSourceFile(file)
 
-	const syntactic = program.getSyntacticDiagnostics(sf)
+		const syntactic = program.getSyntacticDiagnostics(sf)
 
-	const semantic = syntactic.length > 0 || !derived ? [] : program.getSemanticDiagnostics(sf)
+		const semantic = syntactic.length > 0 || !derived ? [] : program.getSemanticDiagnostics(sf)
 
-	const names = semantic.filter((d) => NAME_DIAGNOSTICS.has(d.code))
+		const names = semantic.filter((d) => NAME_DIAGNOSTICS.has(d.code))
 
-	const diagnostics =
-		syntactic.length > 0 || !derived
-			? syntactic
-			: names.length > 0
-				? names
-				: unusedOf(semantic, sf, code.includes(SNIPPET_COMPONENT))
+		const diagnostics =
+			syntactic.length > 0 || !derived
+				? syntactic
+				: names.length > 0
+					? names
+					: unusedOf(semantic, sf, code.includes(SNIPPET_COMPONENT))
 
-	return diagnostics.map((d) => `TS${d.code}: ${messageOf(d)}`)
+		diagnosed.set(
+			file,
+			diagnostics.map((d) => `TS${d.code}: ${messageOf(d)}`),
+		)
+	}
+
+	return diagnosed
 }
 
 function messageOf(diagnostic: ts.Diagnostic): string {
@@ -352,13 +398,11 @@ export function describeDemoSnippets(pages: readonly DemoPage[]): void {
 				// Each page shows at least one block, so an empty harvest is a broken gate.
 				expect(snippets.size, 'no "Show code" block was read').toBeGreaterThan(0)
 
+				const checked = new Map([...snippets].filter(([, code]) => !isPseudoCode(code)))
+
 				const failures: Record<string, string> = {}
 
-				for (const [title, code] of snippets) {
-					if (isPseudoCode(code)) continue
-
-					const [first] = diagnose(code)
-
+				for (const [title, [first]] of diagnoseAll(checked)) {
 					if (first) failures[`${page} › ${title}`] = first
 				}
 
