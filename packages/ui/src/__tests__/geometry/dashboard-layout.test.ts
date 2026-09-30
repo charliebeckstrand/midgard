@@ -89,6 +89,19 @@ describe('resolveCell and toLayoutItem', () => {
 			static: true,
 		})
 	})
+
+	it('writes a tile back with its h when its ratio is not a finite number above 0', () => {
+		for (const ratio of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+			// `resolveCell` reads the tile as free-form, so the saved height must stay.
+			expect(toLayoutItem(cell('a', 0, 0, 8, 10), { ratio })).toEqual({
+				id: 'a',
+				x: 0,
+				y: 0,
+				w: 8,
+				h: 10,
+			})
+		}
+	})
 })
 
 describe('collision and fit', () => {
