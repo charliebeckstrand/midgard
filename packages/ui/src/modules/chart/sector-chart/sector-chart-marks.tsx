@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type MouseEvent, type PointerEvent, useId, useRef } from 'react'
 import { cn } from '../../../core'
-import { useHoverAcrossScroll } from '../../../hooks'
+import { useHoverAcrossScroll, useTimeout } from '../../../hooks'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
@@ -13,6 +13,7 @@ import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
 import { toFrame } from '../engine/use-chart-pointer'
+import { TOUCH_READOUT_DELAY, useChartTouchTap } from '../engine/use-chart-touch-tap'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -263,6 +264,18 @@ export function SectorChartMarks({
 	// The slice groups, so the scroll rescue can name the slice under the pointer.
 	const wedges = useRef<SVGGElement>(null)
 
+	// A touch that enters a slice waits for a hold before it opens the readout, as
+	// the hit layer of the cartesian charts does. A tap lifts first and shows none.
+	const hold = useTimeout()
+
+	// The slice that the last press landed on, which a tap reports.
+	const pressed = useRef<number | null>(null)
+
+	// A touch activates from its tap, and a mouse or a pen from its click.
+	const touch = useChartTouchTap(() => {
+		if (pressed.current !== null) onIndexClick?.(pressed.current)
+	})
+
 	// A scroll slides the pie under a still pointer and fires no pointer event.
 	// The rescue hides the readout and the isolation while the page moves. When
 	// the page settles, it reads the slice under the pointer off the DOM, as the
@@ -298,6 +311,8 @@ export function SectorChartMarks({
 			// Leaving the pie clears the isolation whichever way the tooltip opens; the
 			// hover-tracked readout clears with it, a click-pinned one stays put.
 			onPointerLeave={() => {
+				hold.clear()
+
 				inside.current = false
 
 				onEmphasis(null)
@@ -358,15 +373,36 @@ export function SectorChartMarks({
 								onPointerEnter: emphasize,
 							}
 						: {
-								onClick: onIndexClick ? activate : undefined,
-								onPointerEnter: () => {
+								...(onIndexClick && {
+									onClick: () => {
+										if (!touch.fromTouch()) activate()
+									},
+									onPointerDown: (event: PointerEvent<SVGPathElement>) => {
+										pressed.current = slice.index
+
+										touch.onPointerDown(event)
+									},
+									onPointerUp: touch.onPointerUp,
+									onPointerCancel: touch.onPointerCancel,
+								}),
+								onPointerEnter: (event: PointerEvent<SVGPathElement>) => {
 									inside.current = true
 
-									set(slice.index, slice.centroid)
+									const open = () => {
+										set(slice.index, slice.centroid)
 
-									emphasize()
+										emphasize()
+									}
+
+									if (event.pointerType === 'touch') hold.set(open, TOUCH_READOUT_DELAY)
+									else open()
 								},
-								onPointerMove: at,
+								onPointerMove: (event: PointerEvent<SVGPathElement>) => {
+									touch.onPointerMove(event)
+
+									// A move before the hold elapses leaves the readout shut.
+									if (!hold.pending()) at(event)
+								},
 							}
 
 					return (

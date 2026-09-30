@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { DonutChart } from '../../modules/chart/donut-chart'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
-import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+import { TOUCH_READOUT_DELAY } from '../../modules/chart/engine/use-chart-touch-tap'
+import { act, allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 
 const DATA = [
 	{ source: 'Search', visits: 60 },
@@ -104,6 +105,69 @@ describe('DonutChart', () => {
 		expect(tooltip?.textContent).toContain('Search')
 
 		expect(tooltip?.textContent).toContain('60')
+	})
+
+	it('opens the tooltip on a touch hold, not on the touch entry', () => {
+		vi.useFakeTimers()
+
+		const { container } = renderUI(chart())
+
+		const [first] = allBySlot(container, 'chart-slice')
+
+		fireEvent.pointerOver(first as Element, { pointerType: 'touch' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+		})
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Search')
+
+		vi.useRealTimers()
+	})
+
+	it('selects a slice once on a tap, click or none, and opens no tooltip', () => {
+		vi.useFakeTimers()
+
+		const select = vi.fn()
+
+		const { container } = renderUI(chart({ onCategoryClick: select }))
+
+		const slice = allBySlot(container, 'chart-slice')[1] as Element
+
+		const touch = { pointerType: 'touch' }
+
+		const tap = () => {
+			fireEvent.pointerOver(slice, touch)
+
+			fireEvent.pointerDown(slice, touch)
+
+			fireEvent.pointerUp(slice, touch)
+
+			fireEvent.pointerOut(slice, touch)
+		}
+
+		tap()
+
+		fireEvent.click(slice)
+
+		expect(select).toHaveBeenCalledOnce()
+
+		expect(select).toHaveBeenCalledWith('Direct', 1)
+
+		// iOS Safari can hold back the click, so the lift reports.
+		tap()
+
+		expect(select).toHaveBeenCalledTimes(2)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+		})
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		vi.useRealTimers()
 	})
 
 	it('backs each slice with a hit wedge so the gap keeps the tooltip', () => {

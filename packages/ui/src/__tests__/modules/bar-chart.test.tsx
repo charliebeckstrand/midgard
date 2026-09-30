@@ -7,7 +7,7 @@ import {
 	stackedBarSnaps,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
-import { TOUCH_READOUT_DELAY } from '../../modules/chart/engine/use-chart-pointer'
+import { TOUCH_READOUT_DELAY, TOUCH_TAP_SLOP } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
 
 /**
@@ -117,6 +117,124 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		vi.useRealTimers()
+	})
+
+	it('selects once on a tap and opens no tooltip', () => {
+		vi.useFakeTimers()
+
+		const select = vi.fn()
+
+		const { container } = renderUI(chart({ onCategoryClick: select }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerUp(hit, at)
+
+		fireEvent.pointerOut(hit, at)
+
+		fireEvent.click(hit, at)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+		})
+
+		expect(select).toHaveBeenCalledOnce()
+
+		expect(select).toHaveBeenCalledWith('Q3', 2)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		vi.useRealTimers()
+	})
+
+	it('selects on a tap whose click the browser holds back', () => {
+		const select = vi.fn()
+
+		const { container } = renderUI(chart({ onCategoryClick: select }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		// iOS Safari holds back the click of a tap that changes the page.
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerUp(hit, at)
+
+		fireEvent.pointerOut(hit, at)
+
+		expect(select).toHaveBeenCalledOnce()
+	})
+
+	it('selects nothing on a touch hold or a touch drag', () => {
+		vi.useFakeTimers()
+
+		const select = vi.fn()
+
+		const { container } = renderUI(chart({ onCategoryClick: select }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+		})
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		fireEvent.pointerUp(hit, at)
+
+		fireEvent.pointerOut(hit, at)
+
+		// A press shorter than a long press still gives a click.
+		fireEvent.click(hit, at)
+
+		const moved = { ...at, clientX: 280 - TOUCH_TAP_SLOP - 1 }
+
+		fireEvent.pointerOver(hit, at)
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerMove(hit, moved)
+
+		fireEvent.pointerUp(hit, moved)
+
+		fireEvent.pointerOut(hit, moved)
+
+		expect(select).not.toHaveBeenCalled()
+
+		vi.useRealTimers()
+	})
+
+	it('selects on a mouse click', () => {
+		const select = vi.fn()
+
+		const { container } = renderUI(chart({ onCategoryClick: select }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const at = { clientX: 280, clientY: 100, pointerType: 'mouse' }
+
+		fireEvent.pointerDown(hit, at)
+
+		fireEvent.pointerUp(hit, at)
+
+		fireEvent.click(hit, at)
+
+		expect(select).toHaveBeenCalledOnce()
 	})
 
 	it('selects no text in the chart, labels included', () => {
