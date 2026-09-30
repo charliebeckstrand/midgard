@@ -3,10 +3,9 @@
 import { type PointerEvent, type TouchEvent, useRef } from 'react'
 import { useTimeout } from '../../../hooks'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import { useTouchHoldSelection } from '../../../hooks/use-touch-hold-selection'
 
-/** Hold time, in ms, before a touch opens the readout. A tap opens none. @internal */
-export const TOUCH_READOUT_DELAY = 300
+/** Time, in ms, in which a touch press must lift to be a tap. @internal */
+export const TOUCH_TAP_WINDOW = 300
 
 /** Travel, in CSS px, past which a touch press is a drag or a scroll and not a tap. @internal */
 export const TOUCH_TAP_SLOP = 10
@@ -19,7 +18,7 @@ export type ChartTouchTap = {
 	onPointerCancel: () => void
 	/**
 	 * Cancels the click that the browser makes from a touch press. The tap
-	 * already reported, and a hold only reads the chart. Without it, the browser
+	 * already reported, and a hold does nothing. Without it, the browser
 	 * can send that click to a control near the finger, such as a legend switch
 	 * below the plot. See {@link useChartTouchTap}.
 	 */
@@ -36,18 +35,19 @@ type Press = { x: number; y: number; tap: boolean }
 /**
  * Finds a tap in the pointer events of a touch, and reports it from the lift.
  *
- * A tap is a touch press that lifts before {@link TOUCH_READOUT_DELAY} and
- * travels less than {@link TOUCH_TAP_SLOP}. A longer press is a hold, which
- * reads the chart. A press that travels is a scrub or a scroll. A cancelled
- * press is a scroll that the browser took. None of these is a tap.
+ * A tap is a touch press that lifts before {@link TOUCH_TAP_WINDOW} and
+ * travels less than {@link TOUCH_TAP_SLOP}. A longer press is a hold, and a
+ * press that travels is a drag or a scroll. A cancelled press is a scroll that
+ * the browser took. None of these is a tap, and none of them does anything.
+ * A touch reads nothing from a chart, so the tap is the only thing that a touch
+ * does on the marks.
  *
  * @remarks The tap does not come from `click`. On a tap that changes the page,
  * iOS Safari treats the tap as a hover and holds back the click until a second
- * tap. A hold that opens the readout is such a change. The lift fires on each
- * tap, so a tap reports once whatever the browser does with the click. The
- * click of a touch press is therefore ignored: {@link ChartTouchTap.fromTouch}
- * tells the click handler which clicks those are. A mouse or a pen press
- * reports through `click` as before.
+ * tap. The lift fires on each tap, so a tap reports once whatever the browser
+ * does with the click. The click of a touch press is therefore ignored:
+ * {@link ChartTouchTap.fromTouch} tells the click handler which clicks those
+ * are. A mouse or a pen press reports through `click` as before.
  *
  * The click of a touch press can also land on a different element. A mobile
  * browser moves the click of a finger to the best control in the contact
@@ -57,8 +57,6 @@ type Press = { x: number; y: number; tap: boolean }
  * {@link ChartTouchTap.onTouchEnd} cancels that click, so a touch press on the
  * marks reports through the lift alone.
  *
- * A touch press also arms `useTouchHoldSelection`, so a hold selects no
- * label near the finger.
  * @param onTap - Called with the viewport point of the lift. It can change on
  * each render.
  * @internal
@@ -71,11 +69,8 @@ export function useChartTouchTap(onTap: (clientX: number, clientY: number) => vo
 
 	const tap = useStableEvent(onTap)
 
-	// Ends the tap window of a press: past it, the press is a hold.
+	// Ends the tap window of a press: past it, the press is not a tap.
 	const tapWindow = useTimeout()
-
-	// A hold reads the chart. It does not select a label near the finger.
-	const guardSelection = useTouchHoldSelection()
 
 	return {
 		onPointerDown: (event) => {
@@ -89,15 +84,13 @@ export function useChartTouchTap(onTap: (clientX: number, clientY: number) => vo
 				return
 			}
 
-			guardSelection(event)
-
 			const current = { x: event.clientX, y: event.clientY, tap: true }
 
 			press.current = current
 
 			tapWindow.set(() => {
 				current.tap = false
-			}, TOUCH_READOUT_DELAY)
+			}, TOUCH_TAP_WINDOW)
 		},
 		onPointerMove: (event) => {
 			const current = press.current

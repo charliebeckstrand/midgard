@@ -1,8 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { DonutChart } from '../../modules/chart/donut-chart'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
-import { TOUCH_READOUT_DELAY } from '../../modules/chart/engine/use-chart-touch-tap'
+import { TOUCH_TAP_WINDOW } from '../../modules/chart/engine/use-chart-touch-tap'
 import { act, allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+
+/** Whether each slice recedes behind an emphasis. */
+function receded(slices: Element[]): boolean[] {
+	return slices.map(
+		(slice) => slice.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+	)
+}
 
 const DATA = [
 	{ source: 'Search', visits: 60 },
@@ -107,24 +114,47 @@ describe('DonutChart', () => {
 		expect(tooltip?.textContent).toContain('60')
 	})
 
-	it('opens the tooltip on a touch hold, not on the touch entry', () => {
+	it('opens no tooltip and isolates no slice on a touch hold', () => {
 		vi.useFakeTimers()
 
 		const { container } = renderUI(chart())
 
-		const [first] = allBySlot(container, 'chart-slice')
+		const slices = allBySlot(container, 'chart-slice')
 
-		fireEvent.pointerOver(first as Element, { pointerType: 'touch' })
+		const first = slices[0] as Element
+
+		const touch = { pointerType: 'touch' }
+
+		// A touch reads nothing from the chart. The data stays in the menu.
+		fireEvent.pointerOver(first, touch)
+
+		fireEvent.pointerDown(first, touch)
+
+		fireEvent.pointerMove(first, touch)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW * 2)
+		})
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
-		})
+		expect(receded(slices)).toEqual([false, false, false])
+
+		fireEvent.pointerUp(first, touch)
+
+		vi.useRealTimers()
+	})
+
+	it('still opens the tooltip and isolates the slice on a mouse hover', () => {
+		const { container } = renderUI(chart())
+
+		const slices = allBySlot(container, 'chart-slice')
+
+		fireEvent.pointerOver(slices[0] as Element, { pointerType: 'mouse' })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Search')
 
-		vi.useRealTimers()
+		expect(receded(slices)).toEqual([false, true, true])
 	})
 
 	it('selects a slice once on a tap, click or none, and opens no tooltip', () => {
@@ -162,12 +192,57 @@ describe('DonutChart', () => {
 		expect(select).toHaveBeenCalledTimes(2)
 
 		act(() => {
-			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+			vi.advanceTimersByTime(TOUCH_TAP_WINDOW)
 		})
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
+		expect(receded(allBySlot(container, 'chart-slice'))).toEqual([false, false, false])
+
 		vi.useRealTimers()
+	})
+
+	it('under the click trigger, activates once on a tap and pins no tooltip', () => {
+		const select = vi.fn()
+
+		const { container } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, onCategoryClick: select }),
+		)
+
+		const slices = allBySlot(container, 'chart-slice')
+
+		const slice = slices[1] as Element
+
+		const touch = { pointerType: 'touch' }
+
+		fireEvent.pointerOver(slice, touch)
+
+		fireEvent.pointerDown(slice, touch)
+
+		fireEvent.pointerUp(slice, touch)
+
+		// A cancelled touch end makes no click.
+		expect(fireEvent.touchEnd(slice)).toBe(false)
+
+		// A click that the browser still sends does not pin the readout.
+		fireEvent.click(slice)
+
+		expect(select).toHaveBeenCalledOnce()
+
+		expect(select).toHaveBeenCalledWith('Direct', 1)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(receded(slices)).toEqual([false, false, false])
+
+		// A mouse click still pins the readout and activates.
+		fireEvent.pointerDown(slice, { pointerType: 'mouse' })
+
+		fireEvent.click(slice)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+
+		expect(select).toHaveBeenCalledTimes(2)
 	})
 
 	it('cancels the click of a tap, so the browser cannot move it to the legend', () => {

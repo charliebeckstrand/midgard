@@ -13,14 +13,14 @@ import { useHoverAcrossScroll } from '../../../hooks'
 import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartHoverStore, useChartMarkPoint } from './context'
-import { TOUCH_READOUT_DELAY, useChartTouchTap } from './use-chart-touch-tap'
+import { useChartTouchTap } from './use-chart-touch-tap'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
 	ref: RefObject<SVGRectElement | null>
 	onPointerEnter?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerMove?: (event: PointerEvent<SVGRectElement>) => void
-	onPointerLeave?: () => void
+	onPointerLeave?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerDown?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerUp?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerCancel?: () => void
@@ -91,10 +91,8 @@ export type ChartPointerOptions = {
  * shared hover index, and records the exact frame point the tooltip tracks. The
  * index is the category `resolveIndex` returns for the frame point. That is a
  * band for the cartesian charts, or the nearest unique-x column for a scatter.
- * Entry resolves the same way as movement. A held touch fires no move until
- * the finger travels. Entry alone therefore opens the readout under a long
- * press, as on the map. Leaving the layer clears both, and so does an unmount
- * under the pointer. The chart's `markAt` hit test rides along, gating the
+ * Entry resolves the same way as movement. Leaving the layer clears both, and
+ * so does an unmount under the pointer. The chart's `markAt` hit test rides along, gating the
  * tooltip to the marks while the index keeps the crosshair tracking everywhere.
  *
  * A scroll slides the plot under a stationary pointer without firing a pointer
@@ -112,14 +110,17 @@ export type ChartPointerOptions = {
  * keeps its document position, so it scrolls with the plot.
  *
  * An `onIndexClick` rides either trigger. A click that resolves to a category
- * reports its index. Under `'hover'`, a touch reports from the tap that
- * {@link useChartTouchTap} finds, and not from the click. A tap therefore
- * activates at once and opens no readout, and a hold reads without activating.
- * The click of a touch press is cancelled, so the browser cannot send it to a
- * control near the finger, such as a legend switch. The report comes after
- * the `'click'` trigger's own pin/dismiss toggle, so the two read one gesture. It also carries a pointer
- * cursor across the plot, so the marks read as clickable. It's the activation channel behind the charts'
- * public `onCategoryClick`.
+ * reports its index. The report comes after the `'click'` trigger's own
+ * pin/dismiss toggle, so the two read one gesture. It also carries a pointer
+ * cursor across the plot, so the marks read as clickable. It is the activation
+ * channel behind the public `onCategoryClick` of the charts.
+ *
+ * A touch reads nothing from the chart on either trigger. It opens no readout,
+ * isolates no mark, and pins nothing. The data stays available through the
+ * "View data" item of the chart menu. A tap only activates: it reports from the
+ * tap that {@link useChartTouchTap} finds, and not from the click. The click of
+ * a touch press is cancelled, so the browser cannot send it to a control near
+ * the finger, such as a legend switch.
  *
  * @remarks The hit element's own bounding box anchors the coordinate math,
  * so the handlers stay correct however the frame scrolls, transforms, or scales.
@@ -355,72 +356,53 @@ export function useChartPointer({
 	// under `'click'`.
 	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
-	// A touch that enters the layer waits `TOUCH_READOUT_DELAY` before it opens the
-	// readout. A tap lifts first and shows none. Once
-	// the readout is open, a moving finger tracks with no delay.
-	const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-	const cancelHold = useCallback(() => {
-		if (holdTimer.current === null) return
-
-		clearTimeout(holdTimer.current)
-
-		holdTimer.current = null
-	}, [])
-
-	useEffect(() => cancelHold, [cancelHold])
-
 	// A touch activates from its tap, and a mouse or a pen from its click.
 	const touch = useChartTouchTap(activate)
 
 	if (trigger === 'click') {
 		return {
 			ref,
-			onClick: (event) => toggle(event.clientX, event.clientY),
-			// Isolation follows the pointer under a pinned readout; the cursor rides
-			// along on a non-snap chart (see pointCursor).
-			onPointerMove: (event) => pointCursor(event.clientX, event.clientY),
+			// A touch reads nothing from the chart. A tap only activates, and its
+			// click is cancelled, so it does not pin the readout.
+			onPointerDown: touch.onPointerDown,
+			onPointerUp: touch.onPointerUp,
+			onPointerCancel: touch.onPointerCancel,
+			onTouchEnd: touch.onTouchEnd,
+			onClick: (event) => {
+				if (!touch.fromTouch()) toggle(event.clientX, event.clientY)
+			},
+			// Isolation follows a mouse or a pen under a pinned readout; the cursor
+			// rides along on a non-snap chart (see pointCursor). A touch isolates nothing.
+			onPointerMove: (event) => {
+				touch.onPointerMove(event)
+
+				if (event.pointerType !== 'touch') pointCursor(event.clientX, event.clientY)
+			},
 			onPointerLeave: () => point(null),
 		}
 	}
 
-	// Entry tracks as movement does: a held touch fires no move until the finger
-	// travels, so the entry alone opens the readout under a long press.
+	// Entry tracks as movement does. A touch reads nothing from the chart, so it
+	// opens no readout and isolates no mark.
 	const follow = (event: PointerEvent<SVGRectElement>) => {
+		if (event.pointerType === 'touch') return
+
 		pointerInside.current = true
 
 		lastPointer.current = { x: event.clientX, y: event.clientY }
-
-		if (event.pointerType === 'touch' && event.type === 'pointerenter') {
-			cancelHold()
-
-			holdTimer.current = setTimeout(() => {
-				holdTimer.current = null
-
-				const at = lastPointer.current
-
-				if (pointerInside.current && at !== null) track(at.x, at.y, false)
-			}, TOUCH_READOUT_DELAY)
-
-			return
-		}
-
-		// A move before the hold elapses only updates the point the hold reads.
-		if (holdTimer.current !== null) return
 
 		track(event.clientX, event.clientY, false)
 	}
 
 	return {
 		ref,
-		// Each touch press arms the selection guard, also on a chart that takes no
-		// click, because a hold opens the readout on either.
-		onPointerDown: touch.onPointerDown,
-		onPointerUp: touch.onPointerUp,
-		onPointerCancel: touch.onPointerCancel,
-		// Activation only — the tracked readout stays hover-owned.
+		// Activation only — the tracked readout stays hover-owned. A touch
+		// activates from its tap, and its click is cancelled.
 		...(onIndexClick || onMarkClick
 			? {
+					onPointerDown: touch.onPointerDown,
+					onPointerUp: touch.onPointerUp,
+					onPointerCancel: touch.onPointerCancel,
 					onClick: (event: MouseEvent<SVGRectElement>) => {
 						if (!touch.fromTouch()) activate(event.clientX, event.clientY)
 					},
@@ -433,8 +415,8 @@ export function useChartPointer({
 
 			follow(event)
 		},
-		onPointerLeave: () => {
-			cancelHold()
+		onPointerLeave: (event) => {
+			if (event.pointerType === 'touch') return
 
 			pointerInside.current = false
 

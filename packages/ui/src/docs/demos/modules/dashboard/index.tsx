@@ -61,7 +61,7 @@ import { fields, products, type Sale, sales, sumBy } from './data'
 // dashboard holds it. A chart that
 // selects also gets its own selection back, so the selected marks stay lit.
 
-// On a touch screen, a tap selects and a hold reads the chart.
+// On a touch screen, a tap selects, and the chart shows no readout.
 // The hint names the gesture of the pointer that the device has.
 function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
 	return (

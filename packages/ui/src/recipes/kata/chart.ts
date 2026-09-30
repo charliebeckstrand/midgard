@@ -65,10 +65,10 @@ export const k = {
 	 */
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
 	/**
-	 * The root of a readout surface, where a long press opens the readout: a chart,
-	 * a heatmap, a choropleth, or a map plot. The surface selects no text and opens
-	 * no callout under a hold. Safari on iOS can select text in a descendant of a
-	 * `select-none` box, so every descendant also sets it.
+	 * The root of a readout surface: a chart, a heatmap, a choropleth, or a map
+	 * plot. A long press opens the readout on a map. The surface selects no text
+	 * and opens no callout under a hold. Safari on iOS can select text in a
+	 * descendant of a `select-none` box, so every descendant also sets it.
 	 */
 	touchReadout: ['select-none', '**:select-none', '[-webkit-touch-callout:none]'],
 	/**
