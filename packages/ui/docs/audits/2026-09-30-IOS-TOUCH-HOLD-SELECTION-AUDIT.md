@@ -1,6 +1,6 @@
 # iOS Touch-Hold Selection Audit — 2026-09-30
 
-**Lens:** on an iPhone, a touch hold on a surface with its own hold behavior starts a native text selection. The surfaces are a HoldButton, a context Menu target, and (before #1711) a chart readout. This record keeps the bug, the fixes that failed on a device, and the device test plan that must settle it.
+**Lens:** on an iPhone, a touch hold on a surface with its own hold behavior starts a native text selection. The surfaces are a HoldButton, a context Menu target, and (before #1713) a chart readout. This record keeps the bug, the fixes that failed on a device, and the device test plan that must settle it.
 
 **Status:** *Open* where no pull request closes the row. *Fixed in #N* where a pull request closes it (CONVENTIONS §12.4).
 
@@ -23,7 +23,7 @@ The owner saw these results on a real iPhone, in Chrome for iOS (WKWebView), aft
 | #1707 | Also set `select-none` on `<html>` from `pointerdown` until 300 ms after the lift, as React Aria does on iOS. | The loupe and the callout stayed. |
 | #1710 | Arm the guard on every chart touch press and on HoldButton. Before it, a chart with no click handler never armed the guard. | The loupe and the callout stayed, on charts and on HoldButton. |
 
-The removal PR (#1711) deletes the hook, its gate, and its wiring. The charts stop the problem a different way: a touch on a chart opens no readout, so a hold on a chart does nothing.
+The removal PR (#1713) deletes the hook, its gate, and its wiring. The charts stop the problem a different way: a touch on a chart opens no readout, so a hold on a chart does nothing.
 
 The #1707 and #1710 results are the important data. Each ran with `select-none` on the whole page, and the chart root was always `select-none` with `-webkit-touch-callout: none`. The page therefore had no selectable node, and iOS still selected text.
 
