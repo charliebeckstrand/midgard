@@ -391,13 +391,13 @@ function unionMembers(type: ts.Type): ts.Type[] {
 }
 
 /**
- * When a prop's single resolved type is a pure union of string- or
- * number-literal members, render those values inline (e.g. `'none' | 'sm' |
- * 'md' | 'lg'`) rather than an enum-like alias name. Returns null for anything
- * else — object shapes, functions, generics, `boolean`, and mixed unions
- * (`boolean | keyof typeof k.outline`) — which keep their alias name and a
- * reference card. Boolean literals are excluded so `boolean` never expands to
- * `true | false`.
+ * When a prop's single resolved type is a union of literal members, render
+ * those values inline (e.g. `'none' | 'sm' | 'md' | 'lg'`) rather than an
+ * enum-like alias name. A union can mix `boolean` with string or number
+ * literals: `boolean | keyof typeof k.outline` renders as `boolean | 'default'
+ * | 'subtle' | 'strong'`. Returns null for anything else — object shapes,
+ * functions, generics, and a plain `boolean` — which keep their own rendering,
+ * so `boolean` never expands to `true | false`.
  *
  * Props collected across multiple union/intersection arms (length ≠ 1) keep
  * their existing rendering; the inline case targets a single, self-contained
@@ -423,7 +423,13 @@ function literalUnionType(
 
 	const LITERAL = ts.TypeFlags.StringLiteral | ts.TypeFlags.NumberLiteral
 
-	if (!members.every((t) => (t.flags & LITERAL) !== 0)) return null
+	// `true` and `false` join a union of literals, such as `boolean | 'subtle'`.
+	// A union of the two alone is a plain `boolean`, and the formatter prints it.
+	const inline = LITERAL | ts.TypeFlags.BooleanLiteral
+
+	if (!members.every((t) => (t.flags & inline) !== 0)) return null
+
+	if (!members.some((t) => (t.flags & LITERAL) !== 0)) return null
 
 	return formatPropType(type, checker, location, order)
 }
