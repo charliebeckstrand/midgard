@@ -1,13 +1,9 @@
 'use client'
 
-import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
 import { motion } from 'motion/react'
-import { type CSSProperties, Fragment, memo, type ReactElement } from 'react'
-import { Checkbox } from '../../components/checkbox'
-import { Icon } from '../../components/icon'
+import { Fragment, memo, type ReactElement } from 'react'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -21,10 +17,15 @@ import {
 	type GridCellRovingActivate,
 	type GridRowClick,
 } from './engine/grid-row/cell'
-import { type GridWindowRowProps, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
+import {
+	type GridWindowRowProps,
+	rowClickableClass,
+	rowShellProps,
+	specialCellClass,
+} from './engine/grid-row/shell'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
-import { GridRowActions } from './grid-row-actions'
+import { type GridRowSortable, GridRowSpecialCell } from './grid-row-special-cell'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -204,22 +205,6 @@ export function renderGridRow<T>(
 			/>
 		</Fragment>
 	)
-}
-
-/**
- * The dnd-kit sortable bindings a {@link GridReorderableRow} threads into its
- * row. They are the `<tr>` node ref and lifted transform/transition style, plus
- * the activator ref, attributes, and listeners the drag-handle grip carries.
- *
- * @internal
- */
-type GridRowSortable = {
-	setNodeRef: (node: HTMLElement | null) => void
-	setActivatorNodeRef: (node: HTMLElement | null) => void
-	attributes: DraggableAttributes
-	listeners: DraggableSyntheticListeners
-	style: CSSProperties
-	dragging: boolean
 }
 
 /** Props for {@link GridRow}. @internal */
@@ -434,60 +419,38 @@ function GridRowImpl<T>({
 				// set (rowIndex is only set then).
 				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
 
-				if (col.dragHandle) {
+				const specialClass = specialCellClass(col)
+
+				if (specialClass) {
 					const pinned = pinnedCellProps(pinning, col)
 
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.rowReorder.cell, pinned.className)}
+							className={cn(specialClass, pinned.className)}
 							style={pinned.style}
 							data-grid-pin={pinned.pin}
 						>
-							<GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
-						</TableCell>
-					)
-				}
-
-				if (col.selectable) {
-					const pinned = pinnedCellProps(pinning, col)
-
-					return (
-						<TableCell
-							key={col.id}
-							aria-colindex={colIndex}
-							className={cn(k.cell.select, pinned.className)}
-							style={pinned.style}
-							data-grid-pin={pinned.pin}
-						>
-							<Checkbox
-								checked={selected}
-								onChange={() => toggleRow(rowKey)}
-								aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`}
-							/>
-						</TableCell>
-					)
-				}
-
-				if (col.expander) {
-					const pinned = pinnedCellProps(pinning, col)
-
-					return (
-						<TableCell
-							key={col.id}
-							aria-colindex={colIndex}
-							className={cn(k.cell.expander, pinned.className)}
-							style={pinned.style}
-							data-grid-pin={pinned.pin}
-						>
-							{toggleExpand && (
-								<GridExpandToggle
-									expanded={expanded}
-									expandable={rowExpandable}
+							{col.expander ? (
+								toggleExpand && (
+									<GridExpandToggle
+										expanded={expanded}
+										expandable={rowExpandable}
+										rowKey={rowKey}
+										rowLabel={rowLabel}
+										toggle={toggleExpand}
+									/>
+								)
+							) : (
+								<GridRowSpecialCell
+									col={col}
+									row={row}
 									rowKey={rowKey}
+									selected={selected}
+									toggleRow={toggleRow}
 									rowLabel={rowLabel}
-									toggle={toggleExpand}
+									sortable={sortable}
 								/>
 							)}
 						</TableCell>
@@ -498,22 +461,6 @@ function GridRowImpl<T>({
 				// cell reads no editing session.
 				if (isNewRowAddColumn(col.id)) {
 					return <TableCell key={col.id} aria-colindex={colIndex} className={cn(k.cell.actions)} />
-				}
-
-				if (col.actions) {
-					const pinned = pinnedCellProps(pinning, col)
-
-					return (
-						<TableCell
-							key={col.id}
-							aria-colindex={colIndex}
-							className={cn(k.cell.actions, pinned.className)}
-							style={pinned.style}
-							data-grid-pin={pinned.pin}
-						>
-							<GridRowActions render={col.actions} row={row} rowKey={rowKey} />
-						</TableCell>
-					)
 				}
 
 				return (
@@ -574,52 +521,3 @@ function GridReorderableRowImpl<T>(props: GridRowProps<T>) {
 
 /** Memoized {@link GridReorderableRowImpl}. @internal */
 const GridReorderableRow = memo(GridReorderableRowImpl) as typeof GridReorderableRowImpl
-
-/** Props for {@link GridRowDragHandle}. @internal */
-type GridRowDragHandleProps = {
-	/** The row's sortable bindings when reordering is live; `undefined` renders an inert grip. */
-	sortable: GridRowSortable | undefined
-	rowLabel: string | undefined
-	rowKey: string | number
-}
-
-/**
- * The grip in a {@link GridColumn.dragHandle} cell. When the row is reorderable
- * it carries the sortable's activator ref, attributes, and pointer/keyboard
- * listeners. Otherwise it renders disabled: present for layout, inert because a
- * manual order isn't meaningful right now (a column sort, a filtered view, …).
- *
- * @internal
- */
-function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProps) {
-	const label = `Reorder ${rowLabel ?? `row ${rowKey}`}`
-
-	if (!sortable) {
-		return (
-			<button
-				type="button"
-				disabled
-				aria-label={label}
-				className={cn(k.rowReorder.handle.disabled)}
-			>
-				<Icon icon={<GripVertical />} />
-			</button>
-		)
-	}
-
-	const { setActivatorNodeRef, dragging, attributes, listeners } = sortable
-
-	return (
-		<button
-			type="button"
-			ref={setActivatorNodeRef}
-			data-dragging={dataAttr(dragging)}
-			className={cn(k.rowReorder.handle.root)}
-			aria-label={label}
-			{...attributes}
-			{...listeners}
-		>
-			<Icon icon={<GripVertical />} />
-		</button>
-	)
-}

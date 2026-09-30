@@ -11,9 +11,9 @@ import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/gr
 import { NO_PADDING, NO_ROWS } from './engine/grid-constants'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
+import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
-import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /**

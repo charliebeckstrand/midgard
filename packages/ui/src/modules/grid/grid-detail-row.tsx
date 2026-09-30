@@ -10,7 +10,7 @@ import { k } from '../../recipes/kata/grid'
 import { NO_PADDING } from './engine/grid-constants'
 import { detailItemKey } from './engine/grid-items/items'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
-import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
+import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */

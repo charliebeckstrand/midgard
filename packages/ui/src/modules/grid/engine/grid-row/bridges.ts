@@ -1,7 +1,7 @@
 import type { KeyboardEvent, RefObject } from 'react'
 import type { GridColumn } from '../../types'
 import {
-	cellValue,
+	cellContext,
 	type GridCellClick,
 	type GridCellClickContext,
 	type GridCellRovingActivate,
@@ -101,7 +101,7 @@ export function resolveCellAt<T>(
 
 	if (row === undefined || rowKey === undefined || !col) return null
 
-	return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
+	return cellContext(col, row, rowKey)
 }
 
 /**
