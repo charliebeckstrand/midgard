@@ -1,7 +1,7 @@
 'use client'
 
 import type { Transition } from 'motion/react'
-import { motion } from 'motion/react'
+import { motion, useMotionValue, useTransform } from 'motion/react'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import type { MapOverlayHit } from './use-map-overlay'
 
@@ -66,6 +66,13 @@ type MapLineProps = {
  * under a non-scaling stroke covers only 1/k of its path. A zoomed route
  * therefore lost the far end of itself for as long as the view held.
  *
+ * The line paints nothing until its draw starts. Motion writes the dash array as
+ * `<drawn> 1` over a `pathLength` of 1. At zero, the pattern starts a new dash
+ * exactly at the end of the path. A zero-length dash under a round cap paints a
+ * dot, so a held draw put a dot at each end. A marker's leg holds for its start
+ * pin, and the dot at the far end showed the destination before the line got to
+ * it. The opacity therefore follows the drawn share, and not a timer beside it.
+ *
  * @internal
  */
 export function MapLine({
@@ -87,12 +94,17 @@ export function MapLine({
 		className,
 	}
 
+	// The drawn share, and whether it paints. The two change on the same frame.
+	const drawn = useMotionValue(0)
+
+	const opacity = useTransform(drawn, (share) => (share > 0 ? 1 : 0))
+
 	if (!animate) return <path {...shape} />
 
 	return (
 		<motion.path
 			{...shape}
-			initial={{ pathLength: 0 }}
+			style={{ pathLength: drawn, opacity }}
 			animate={{ pathLength: 1 }}
 			transition={transition}
 		/>
