@@ -1,12 +1,13 @@
 'use client'
 
 import { Download, SlidersHorizontal } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { LoadingSpinner } from '../../components/loading'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
-import { cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { GridSelection } from './grid-data-types'
@@ -53,6 +54,52 @@ type GridToolbarProps = {
 	selection: Set<string | number>
 	/** Selection setter handed to {@link GridToolbarProps.batchActions}. */
 	setSelection: (next: Set<string | number>) => void
+}
+
+/** Props for {@link GridExportMenu}. @internal */
+type GridExportMenuProps = Pick<GridToolbarProps, 'exportActions' | 'exporting'>
+
+/**
+ * The "Export" dropdown of the tools cluster: one menu item for each action.
+ *
+ * While an export runs, the trigger shows a spinner in place of the download
+ * icon and ignores activation. The trigger does not use `disabled` for this
+ * gate. A browser moves focus off a disabled button, so a keyboard user that
+ * starts an export lands on `body`. The trigger thus uses `aria-disabled`, and
+ * the open handler refuses to open the menu. The trigger keeps focus.
+ *
+ * @internal
+ */
+function GridExportMenu({ exportActions, exporting }: GridExportMenuProps) {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<Menu placement="bottom-start" open={open} onOpenChange={(next) => setOpen(next && !exporting)}>
+			<MenuTrigger>
+				{/* The spinner takes the prefix slot of the download icon, so the two
+				    never show together. */}
+				<Button
+					type="button"
+					variant="plain"
+					prefix={exporting ? <LoadingSpinner /> : <Icon icon={<Download />} />}
+					aria-disabled={ariaAttr(exporting)}
+					data-disabled={dataAttr(exporting)}
+				>
+					Export
+				</Button>
+			</MenuTrigger>
+			<MenuContent>
+				{exportActions.map((action) => (
+					// The action carries its own pending tracking, so firing it is all
+					// this item does — the trigger's spinner and the grid's overlay both
+					// follow from the count it flips.
+					<MenuItem key={action.type} onAction={action.run}>
+						<MenuLabel>{action.label}</MenuLabel>
+					</MenuItem>
+				))}
+			</MenuContent>
+		</Menu>
+	)
 }
 
 /**
@@ -144,33 +191,7 @@ export function GridToolbar({
 								</Button>
 							)}
 
-							{showExport && (
-								<Menu placement="bottom-start">
-									<MenuTrigger>
-										{/* The download icon rides the prefix slot so `loading`
-										    replaces it with the spinner rather than adding one
-										    beside it. */}
-										<Button
-											type="button"
-											variant="plain"
-											prefix={<Icon icon={<Download />} />}
-											loading={exporting}
-										>
-											Export
-										</Button>
-									</MenuTrigger>
-									<MenuContent>
-										{exportActions.map((action) => (
-											// The action carries its own pending tracking, so firing it is all
-											// this item does — the trigger's spinner and the grid's overlay both
-											// follow from the count it flips.
-											<MenuItem key={action.type} onAction={action.run}>
-												<MenuLabel>{action.label}</MenuLabel>
-											</MenuItem>
-										))}
-									</MenuContent>
-								</Menu>
-							)}
+							{showExport && <GridExportMenu exportActions={exportActions} exporting={exporting} />}
 						</Toolbar>
 					)}
 				</div>
