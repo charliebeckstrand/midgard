@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { useDatePickerRangeState } from '../../components/date-picker/use-date-picker-range-state'
 import { makeKeyEvent } from '../helpers'
 
@@ -235,28 +235,97 @@ describe('useDatePickerRangeState', () => {
 	})
 
 	describe('min/max clamping', () => {
-		it('does not produce out-of-range selections via calendar.onValueChange', () => {
-			// The hook trusts calendar.onValueChange to deliver an in-range date, but it
-			// also clamps any keyboard-driven movement. As a sanity check, verify
-			// onChange passes through user-supplied dates verbatim when within bounds.
+		it('passes a date from calendar.onValueChange through without a clamp', () => {
+			// The Calendar disables the days outside min/max, so the hook does not clamp
+			// a clicked date. Only the keyboard cursor is clamped.
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
 				useDatePickerRangeState({
 					range: true,
-					min: Jan1,
-					max: Jan31,
+					min: Jan10,
+					max: Jan20,
 					onValueChange: onChange,
 				}),
 			)
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onValueChange(Jan15))
 
 			act(() => result.current.calendar.onValueChange(Jan20))
 
+			expect(onChange).toHaveBeenCalledWith([Jan15, Jan20])
+		})
+
+		it('keeps the keyboard cursor inside min/max and commits the clamped range', () => {
+			const onChange = vi.fn()
+
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({
+					range: true,
+					min: Jan10,
+					max: Jan20,
+					onValueChange: onChange,
+				}),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			// With no value and no range in progress, the cursor starts on min.
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+
+			// A step back from min stays on min.
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowLeft')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
+
+			// A month forward from the pinned start stops on max, and the hover
+			// preview follows the cursor.
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan20 })
+
+			expect(result.current.calendar.hoverDate).toEqual(Jan20)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
+
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
+		})
+
+		it('clamps a Shift+PageUp year jump from the grid cursor to min', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan15, Jan20], min: Jan10 }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageUp', { shiftKey: true })))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+
+			// No range is in progress, so the move gives no hover preview.
+			expect(result.current.calendar.hoverDate).toBeNull()
+		})
+
+		it('starts the cursor on today when there is no value and no min', () => {
+			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+
+			onTestFinished(() => vi.useRealTimers())
+
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 6, 15) })
 		})
 	})
 
