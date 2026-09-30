@@ -175,6 +175,9 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 				// instead of clipping inside it.
 				panel &&
 					'mx-auto grid w-fit max-w-full justify-items-start @lg:mx-0 @lg:w-full @lg:grid-cols-1',
+				// The entries touch on both axes, so each hit area keeps to its entry
+				// (`TouchTarget`), and two adjacent entries do not overlap.
+				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
 			)}
 		>
 			{items.map((item) => (

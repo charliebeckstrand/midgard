@@ -188,7 +188,13 @@ export function ChatPrompt({
 				}
 			/>
 			{attachments && attachments.length > 0 && (
-				<div data-slot="chat-prompt-attachments" className="mt-2 flex flex-wrap gap-1">
+				// The row wraps. The remove buttons of two rows are the `gap-1` of the
+				// row and the `py-ring-1` pad of two chips apart, so the row caps the
+				// height of each hit area (`TouchTarget`) at that 10px.
+				<div
+					data-slot="chat-prompt-attachments"
+					className="mt-2 flex flex-wrap gap-1 [--touch-target-gap-y:--spacing(2.5)]"
+				>
 					{attachments.map((file, index) => (
 						<Badge
 							key={`${file.name}-${file.lastModified}-${file.size}`}

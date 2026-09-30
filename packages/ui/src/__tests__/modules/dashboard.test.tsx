@@ -232,6 +232,16 @@ describe('Dashboard', () => {
 		expect(screen.queryByRole('button', { name: 'Revenue menu' })).toBeNull()
 	})
 
+	it('keeps the hit area of each header button to its own width', () => {
+		const { container } = renderUI(<Board editing />)
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin. The icon
+		// buttons of the row touch, so on a coarse pointer each hit area keeps to
+		// its button. `touch-target-geometry.test.tsx` measures the cap.
+		for (const header of allBySlot(container, 'card-header'))
+			expect(header).toHaveClass('[--touch-target-gap-x:0px]')
+	})
+
 	it('gives each edge a keyboard splitter, and no south edge to a ratio tile', () => {
 		renderUI(<Board editing />)
 

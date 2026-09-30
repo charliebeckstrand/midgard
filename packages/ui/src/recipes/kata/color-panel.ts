@@ -49,8 +49,12 @@ export const k = defineRecipe(
 		track,
 		preview: {
 			base: preview,
-			/** Preview swatch + hex field share a row beneath the sliders. */
-			row: 'flex items-center gap-2',
+			/**
+			 * Preview swatch + hex field share a row beneath the sliders. The gap
+			 * also caps the hit areas (`TouchTarget`), so the copy button of the hex
+			 * field and the eyedropper after it do not overlap.
+			 */
+			row: 'flex items-center gap-2 [--touch-target-gap-x:--spacing(2)]',
 		},
 		handle,
 		/** Full hue wheel laid left to right for the hue track. */

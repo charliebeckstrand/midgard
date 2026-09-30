@@ -18,7 +18,13 @@ const header = [flex.row, 'justify-between', 'density-mb-[1,2,3]']
 
 const footer = [flex.row, 'justify-center', 'density-gap-[1,2,3]']
 
-const pickerGrid = ['grid grid-cols-3', 'density-px-[2,3,4]']
+/**
+ * The cap on the hit areas of a grid of cells (`TouchTarget`). The cells touch,
+ * so each hit area keeps to its cell and two adjacent cells do not overlap.
+ */
+const cellTargets = '[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]'
+
+const pickerGrid = ['grid grid-cols-3', 'density-px-[2,3,4]', cellTargets]
 
 const weekday = [
 	flex.row,
@@ -31,7 +37,7 @@ const weekday = [
 
 export const k = {
 	base,
-	grid: 'grid grid-cols-7',
+	grid: `grid grid-cols-7 ${cellTargets}`,
 	header,
 	footer,
 	picker: {

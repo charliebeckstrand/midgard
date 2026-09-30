@@ -16,5 +16,11 @@ export const k = {
 	// chips and lets the frame grow to fit the row. The row is in the prefix
 	// slot, a scope one step below the host, so each value is for a host one
 	// step above: `xs` for an `sm` host, `sm` for `md`, and `md` for `lg`.
-	tags: 'density-py-ring-[2,2.5,3,3,3]',
+	//
+	// The row caps the hit areas of the remove buttons (`TouchTarget`) at the
+	// space between them. The row wraps, and the buttons of two rows are the
+	// `gap-1` of the row and the `py-ring-1` pad of two chips apart, 10px in all.
+	// Along the row, a one-letter tag still puts the gap, the leading pad, and the
+	// inner gap of its `xs` chip between two buttons, 14px or more.
+	tags: 'density-py-ring-[2,2.5,3,3,3] [--touch-target-gap-x:--spacing(3.5)] [--touch-target-gap-y:--spacing(2.5)]',
 } as const

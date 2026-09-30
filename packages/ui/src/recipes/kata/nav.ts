@@ -90,9 +90,11 @@ const bar = defineRecipe({
 export const k = {
 	list: {
 		base: 'flex',
+		// The gap also caps the hit areas of the items (`TouchTarget`) along the
+		// list, so two adjacent items split the gap and do not overlap.
 		orientation: {
-			vertical: ['flex-col', 'gap-0.5'],
-			horizontal: ['flex-row', 'gap-1'],
+			vertical: ['flex-col', 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]'],
+			horizontal: ['flex-row', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
 		},
 	},
 	/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */

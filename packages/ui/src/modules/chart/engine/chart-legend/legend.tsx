@@ -770,7 +770,9 @@ export function ChartLegend({
 					<PopoverContent autoFocus aria-label="More legend entries">
 						<div
 							data-slot="chart-legend-overflow"
-							className="flex max-h-64 max-w-xs flex-col items-stretch gap-0.5 overflow-y-auto"
+							// The popover is outside the legend, so it caps the hit areas of
+							// its entries at its own gap (`TouchTarget`).
+							className="flex max-h-64 max-w-xs flex-col items-stretch gap-0.5 overflow-y-auto [--touch-target-gap-y:--spacing(0.5)]"
 						>
 							{overflowItems.map((item) => (
 								<ChartLegendOverflowSwitch
@@ -823,6 +825,9 @@ export function ChartLegend({
 				panel
 					? 'flex flex-col items-center justify-center @sm:w-[min(16rem,40cqw)] @sm:shrink-0'
 					: 'flex flex-wrap items-center justify-center',
+				// The entries touch on both axes, so each hit area keeps to its entry
+				// (`TouchTarget`), and two adjacent entries do not overlap.
+				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
 			)}
 		>
 			{panel ? (
