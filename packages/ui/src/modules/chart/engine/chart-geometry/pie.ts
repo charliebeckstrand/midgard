@@ -423,33 +423,45 @@ export type PieCalloutsOptions = {
 }
 
 /**
- * Pushes the ys apart to at least `gap`, keeping their order, then slides the
- * whole run back inside `[top, bottom]` — the classic label declump. Returns
- * the resolved ys in the input order. @internal
+ * Pushes the ys apart to at least `gap`, keeping their order, and keeps each y
+ * inside `[top, bottom]`. Returns the resolved ys in the input order.
+ *
+ * @remarks
+ * A pass from the top moves each y down to `top` and to one gap below the y
+ * above it. A pass from the bottom then moves each y up to `bottom` and to one
+ * gap above the y below it. A y moves only as far as a rule needs, so a label
+ * stays as near its slice as the band lets it.
+ *
+ * The band holds `n` ys when `(n - 1) * gap` is at most `bottom - top`, and
+ * `pieCallouts` passes no more than that. The second pass then leaves each y at
+ * or below `bottom`, and at or above the value that the first pass gave it,
+ * which is at or above `top`. A single slide of the whole run could not keep
+ * both edges: a run with one y near the top and several near the foot slid up
+ * past `top`, and the slide back down pushed its last y past `bottom`.
+ *
+ * @internal
  */
 function declumpLabels(ys: number[], top: number, bottom: number, gap: number): number[] {
 	const order = ys.map((y, index) => ({ y, index })).sort((a, b) => a.y - b.y)
 
-	for (let k = 1; k < order.length; k++) {
-		const prev = order[k - 1]
+	let floor = top
 
-		const here = order[k]
+	for (const item of order) {
+		item.y = Math.max(item.y, floor)
 
-		if (prev && here && here.y - prev.y < gap) here.y = prev.y + gap
+		floor = item.y + gap
 	}
 
-	const last = order[order.length - 1]
+	let ceiling = bottom
 
-	const overflow = last ? last.y - bottom : 0
+	for (let k = order.length - 1; k >= 0; k--) {
+		const item = order[k]
 
-	if (overflow > 0) for (const item of order) item.y -= overflow
+		if (!item) continue
 
-	const first = order[0]
+		item.y = Math.min(item.y, ceiling)
 
-	if (first && first.y < top) {
-		const shift = top - first.y
-
-		for (const item of order) item.y += shift
+		ceiling = item.y - gap
 	}
 
 	const resolved = new Array<number>(ys.length)
