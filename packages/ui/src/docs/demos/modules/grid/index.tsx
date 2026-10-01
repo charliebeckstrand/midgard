@@ -1402,6 +1402,7 @@ export function Demo() {
 								'range',
 								'resizable',
 								'truncate',
+								'loading',
 							]}
 							render={(props) => (
 								<Grid {...props} columns={axisColumns} rows={axisRows} getKey={(row) => row.id} />

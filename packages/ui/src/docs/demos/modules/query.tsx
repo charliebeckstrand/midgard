@@ -116,6 +116,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="QueryBuilder"
+				omit={['reorder']}
 				render={(props) => <QueryBuilder {...props} fields={fields} defaultValue={seed} />}
 			/>
 

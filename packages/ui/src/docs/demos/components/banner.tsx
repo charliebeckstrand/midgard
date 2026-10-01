@@ -32,8 +32,8 @@ export function Demo() {
 			<Axes
 				of="Banner"
 				captions={false}
-				omit={['open', 'defaultOpen', 'sticky']}
-				render={(props, label) => <Banner {...props} title={label} />}
+				omit={['open', 'defaultOpen', 'closable', 'sticky']}
+				render={(props, label) => <Banner {...props} title={label} closable={false} />}
 			/>
 
 			<Example title="With description">
