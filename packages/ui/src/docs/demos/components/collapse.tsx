@@ -58,7 +58,7 @@ export function Demo() {
 				captions={false}
 				omit={['open', 'defaultOpen', 'mount']}
 				render={(props, label) => (
-					<Collapse {...props}>
+					<Collapse {...props} className="w-full">
 						<CollapseTrigger>{label}</CollapseTrigger>
 						<CollapsePanel>
 							<Text tone="muted">
