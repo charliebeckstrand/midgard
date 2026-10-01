@@ -65,7 +65,7 @@ function classifyEntries(
  * inline height, handing the box back to `auto` and layout.
  *
  * Reduced motion opts the whole observer out. The container just reflows to
- * each panel switch, while the crossfade still plays (`MotionConfig` keeps it
+ * each panel switch, while the fade still plays (`MotionConfig` keeps it
  * under reduced motion).
  *
  * @internal
@@ -112,6 +112,11 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 		// before paint, so nothing in between reaches the screen — and hands the box
 		// back to `auto` on completion.
 		const morph = (to: number) => {
+			// A tween in flight already goes to this height. A new tween would start
+			// the ease again, and the box would stall partway. A switch reaches this
+			// when the outgoing panel leaves the DOM before the tween ends.
+			if (tween && to === previousHeight) return
+
 			const live = element.getBoundingClientRect().height
 
 			const from = live === to ? previousHeight : live

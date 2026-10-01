@@ -33,10 +33,10 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
 	 * `<Activity mode="hidden">`. They are kept in the DOM with state preserved,
 	 * but their effects are torn down and re-rendering is deferred until shown.
 	 * Under `fade` the Activity hold applies only at rest, because its
-	 * `display: none` can't animate. A held panel wakes for the crossfade, and
+	 * `display: none` can't animate. A held panel wakes for the fade, and
 	 * drops back into the hidden Activity once its fade-out lands.
 	 *
-	 * Under `fade`, mount and unmount ride the cross-fade rather than defeating
+	 * Under `fade`, mount and unmount ride the fade rather than defeating
 	 * it. A panel mounting after the container's initial render enters from
 	 * transparent. A `lazy` first visit or a fresh `active` mount is such a panel.
 	 * An `active` outgoing panel stays mounted until its fade-out completes, then

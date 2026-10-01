@@ -89,13 +89,15 @@ function matchesCurrent(
  * lazily mounts them on first activation, or unmounts them. The resolved
  * `mount` decides.
  *
- * Under a fading container the lifecycle edges ride the cross-fade:
+ * Under a fading container a switch runs in sequence. The outgoing panel fades
+ * out first, and the incoming panel fades in after it. The lifecycle edges
+ * ride that fade:
  *
  * - a panel mounting after the container settles enters from transparent
  * - an `active`-mounted outgoing panel holds its unmount until the fade-out
  *   completes
  * - a held (`always`/`lazy`) panel rests in `<Activity mode="hidden">` between
- *   crossfades, live only while a fade is in flight or it is the current panel
+ *   switches, live only while a fade is in flight or it is the current panel
  */
 export function CurrentContent({
 	slotPrefix,
@@ -130,13 +132,13 @@ export function CurrentContent({
 
 	// Presence, the lazy latch, and the Activity hold — shared with the
 	// disclosure and stepper panels. A fading container defers the hide to the
-	// rest latch, since `display: none` can't cross-fade; a non-fading one hides
+	// rest latch, since `display: none` can't fade; a non-fading one hides
 	// on the switch itself.
 	const hold = useMountHold(current, mount, { defer: fade })
 
 	// Under a fading container, an `active`-mounted outgoing panel defers its
-	// unmount until the fade-out completes, so switching cross-fades instead of
-	// snapping the outgoing panel away. Held panels take the rest latch instead;
+	// unmount until the fade-out completes, so the outgoing panel fades instead
+	// of snapping away. Held panels take the rest latch instead;
 	// exactly one of the two applies per mount policy.
 	const [exiting, releaseExit] = useExitHold(current, fade && mount === 'active')
 
@@ -166,7 +168,9 @@ export function CurrentContent({
 			// transparent; panels in the container's first render skip the
 			// entrance so nothing fades on load.
 			initial={settled?.current ? { opacity: 0 } : false}
-			transition={k.transition}
+			// The outgoing panel clears before the incoming panel starts, so the
+			// two panels never show at the same time.
+			transition={current ? k.enter : k.exit}
 			// Entrance completions arrive while still current and pass through; a
 			// landed fade-out releases the exit hold (`active`, unmounting) or
 			// rests the held panel (`always`/`lazy`, into a hidden Activity).
