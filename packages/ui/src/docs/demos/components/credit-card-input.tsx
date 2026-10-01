@@ -62,6 +62,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="CreditCardInput"
+				omit={['invalid']}
 				render={(props, label) => <CreditCardInput {...props} aria-label={label} />}
 			/>
 

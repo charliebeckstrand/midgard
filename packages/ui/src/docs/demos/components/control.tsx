@@ -43,6 +43,7 @@ export function Demo() {
 			<Axes
 				of="Control"
 				captions={false}
+				omit={['required']}
 				render={(props, label) => (
 					<Control {...props}>
 						<Label>{label}</Label>
