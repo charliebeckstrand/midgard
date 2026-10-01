@@ -382,6 +382,20 @@ describe('AddressInput', () => {
 		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
 	})
 
+	it('keeps the pin and shows no clear button with `clearable={false}`', () => {
+		const selected: AddressSuggestion = {
+			id: '1',
+			label: '10 Main St',
+			description: 'Springfield, IL',
+		}
+
+		const { container } = renderUI(<AddressInput value={selected} clearable={false} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).toBeNull()
+
+		expect(bySlot(container, 'icon')).toBeInTheDocument()
+	})
+
 	it('pulses the field while a fetch is in flight, then settles', async () => {
 		await withFakeTime(async (clock) => {
 			const suggestions = deferred<AddressSuggestion[]>()

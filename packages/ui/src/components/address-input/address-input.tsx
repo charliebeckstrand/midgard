@@ -54,6 +54,11 @@ export type AddressInputProps = Omit<
 	/** @defaultValue 'Enter an address' */
 	placeholder?: string
 	/**
+	 * Show a clear button in place of the pin while an address is selected.
+	 * @defaultValue true
+	 */
+	clearable?: boolean
+	/**
 	 * Delay before the typed query triggers a provider fetch.
 	 * @defaultValue 500
 	 */
@@ -111,6 +116,7 @@ export function AddressInput({
 	minQueryLength = 3,
 	onError,
 	placeholder = 'Enter an address',
+	clearable = true,
 	className,
 	'aria-label': ariaLabel,
 	...props
@@ -153,12 +159,13 @@ export function AddressInput({
 
 	// Disabled suppresses the clear button; keep the pin rather than letting
 	// the slot fall back to the Combobox chevron. The explicit prop wins, as it
-	// does everywhere in the cascade.
+	// does everywhere in the cascade. With `clearable` off there is no clear
+	// button, so the pin stays too.
 	const disabled = props.disabled ?? control?.disabled
 
 	const suffix = loading ? (
 		<LoadingSpinner />
-	) : selected === undefined || disabled ? (
+	) : selected === undefined || disabled || !clearable ? (
 		<Icon icon={<MapPin />} />
 	) : undefined
 
@@ -177,7 +184,7 @@ export function AddressInput({
 			// placeholder is not a programmatic name.
 			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : placeholder)}
 			clearOnEmpty
-			clearable
+			clearable={clearable}
 			suffix={suffix}
 			open={ready && menuRequested}
 			onOpenChange={setMenuRequested}

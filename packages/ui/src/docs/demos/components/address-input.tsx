@@ -193,10 +193,9 @@ export function Demo() {
 				</Text>
 			</Alert>
 
-			{/* AddressInput always shows its clear button, so `clearable` is not an axis. */}
 			<Axes
 				of="AddressInput"
-				omit={['placement', 'required', 'nullable', 'closeOnSelect', 'clearable']}
+				omit={['placement', 'required', 'nullable', 'closeOnSelect']}
 				render={(props, label) => (
 					<div className="w-72">
 						<AddressInput
