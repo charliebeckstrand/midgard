@@ -91,7 +91,12 @@ function measure(): void {
 
 	if (probe === null || !viewport) return
 
-	const next = coveredBottom(probe.getBoundingClientRect(), viewport)
+	// A page that is scrolled down reads no strip. On Chrome for iOS, the first
+	// scroll corrects the layout viewport, so `bottom: 0` is then correct. The
+	// visual viewport can keep the size that it had under the toolbar. When the
+	// scroll also hides the toolbar, the two readings then differ by a toolbar
+	// that is not on the screen.
+	const next = window.scrollY > 0 ? 0 : coveredBottom(probe.getBoundingClientRect(), viewport)
 
 	if (next === reading) return
 
@@ -219,8 +224,13 @@ export function holdCoveredBottom(listener?: (covered: number) => void): () => v
  * under its bottom toolbar, until the first scroll. A surface at `bottom: 0`
  * then sits behind the toolbar. The strip is the part of an empty fixed frame
  * that is under the bottom of the visual viewport, so it is zero wherever
- * `bottom: 0` is already correct. That includes the state with the toolbar
- * hidden. A pinch zoom, and a strip as tall as a keyboard, read as zero too.
+ * `bottom: 0` is already correct. A pinch zoom, and a strip as tall as a
+ * keyboard, read as zero too.
+ *
+ * A page that is scrolled down reads zero. The scroll has corrected the layout
+ * viewport by then. The visual viewport can keep its size under the toolbar,
+ * and a reading of it after a scroll that hid the toolbar would pad for a
+ * toolbar that is not there.
  *
  * All holders share one reading. It updates once for each frame on a resize or
  * a scroll, and stops when the last holder unmounts.
