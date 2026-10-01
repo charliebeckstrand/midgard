@@ -125,6 +125,17 @@ export const k = {
 	 * lifts the panel off its edge and opens a strip of the page under it.
 	 */
 	pullBack: ugoki.spring.fit,
+	/**
+	 * The travel of a release that throws the panel away, for
+	 * {@link usePanelResize}. The panel starts at the speed of the release, and
+	 * the spring carries it the rest of the way off its edge, as a sheet does on a
+	 * phone.
+	 *
+	 * The `glide` spring, which is softer than the `fit` spring of the pull
+	 * back. The pull back is a correction, and the throw is the close that the
+	 * reader asked for.
+	 */
+	throwAway: ugoki.spring.glide,
 }
 
 /** Recipe variant props for the {@link Drawer} panel — its styling axes (`surface`, `height`), for consumers composing custom slots. */

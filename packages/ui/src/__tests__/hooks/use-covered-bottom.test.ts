@@ -131,6 +131,38 @@ describe('useCoveredBottom', () => {
 		expect(property()).toBe('')
 	})
 
+	it('reads nothing once the page scrolls down, where the visual viewport keeps its size', () => {
+		// The scroll hides the toolbar, so the layout viewport keeps the full screen.
+		// The visual viewport keeps the size that it had under the toolbar.
+		const { flush } = stubPage({ height: 740 })
+
+		const { result } = renderHook(() => useCoveredBottom())
+
+		expect(result.current).toBe(60)
+
+		vi.stubGlobal('scrollY', 120)
+
+		window.dispatchEvent(new Event('scroll'))
+
+		flush()
+
+		expect(result.current).toBe(0)
+
+		expect(property()).toBe('')
+	})
+
+	it('reads nothing on mount on a page that is scrolled down', () => {
+		stubPage({ height: 740 })
+
+		vi.stubGlobal('scrollY', 120)
+
+		const { result } = renderHook(() => useCoveredBottom())
+
+		expect(result.current).toBe(0)
+
+		expect(property()).toBe('')
+	})
+
 	it('shares one probe between holders, and takes it away with the last', () => {
 		stubPage({ height: 740 })
 

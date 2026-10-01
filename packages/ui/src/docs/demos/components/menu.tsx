@@ -140,13 +140,15 @@ export function Demo() {
 
 	return (
 		<Stack gap="xl">
-			{/* A short menu shows no effect of `capped`, so the axis is left out. */}
+			{/* A short menu shows no effect of `capped`, so the axis is left out. The
+			    placement comes first, so each example is a dropdown. Without one, the
+			    menu is a context menu, which never opens as a sheet. */}
 			<Axes
 				of="Menu"
 				captions={false}
 				omit={['open', 'defaultOpen', 'capped']}
 				render={(props, label) => (
-					<Menu {...props}>
+					<Menu placement="bottom-start" {...props}>
 						<MenuTrigger>
 							<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
 								{label}

@@ -111,7 +111,8 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * one. A release closes the panel once a quarter of the floor is off the
 		 * screen. A shorter pull springs back to the floor, as a sheet does on a
 		 * phone. A flick downward closes it from any height. Both closes arrive
-		 * through `onOpenChange`, like every other close.
+		 * through `onOpenChange`, like every other close. A pulled panel then glides
+		 * off the screen from where the release left it, at the speed of the release.
 		 *
 		 * A resize is the drawer's own state, and reports nowhere. Nothing outside it
 		 * needs to hold a pixel height that only means anything on the screen it was
@@ -249,6 +250,7 @@ export function Drawer({
 		pull: true,
 		resize: resizable,
 		pullBack: k.pullBack,
+		throwAway: k.throwAway,
 	})
 
 	// The other half of the panel's height, and the one the panel itself decides:
@@ -284,6 +286,11 @@ export function Drawer({
 				{...k.motion}
 				// After the preset spread, so it overrides the preset's own `initial`.
 				initial={animateEnter ? k.motion.initial : false}
+				// A panel that a release throws away leaves at the speed of the release,
+				// and only over the part of it still on the screen. The slide of the
+				// preset moves the whole panel in a fixed time, which after a long pull
+				// takes it off the screen in a frame or two.
+				exit={resize.exit ?? k.motion.exit}
 				onAnimationComplete={onAnimationComplete}
 				ref={panelRef}
 				{...ariaProps}

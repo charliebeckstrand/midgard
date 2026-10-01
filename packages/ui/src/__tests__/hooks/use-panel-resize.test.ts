@@ -5,6 +5,7 @@ import {
 	type PanelResizeOptions,
 	type PanelSide,
 	panelAxis,
+	throwExit,
 	usePanelResize,
 } from '../../hooks/use-panel-resize'
 import { makeKeyEvent, makePointerEvent, stubMatchMedia } from '../helpers'
@@ -29,10 +30,14 @@ function windowPointer(type: string, y: number, t: number): PointerEvent {
 	return event
 }
 
-/** What {@link renderResize} varies: the pull, its travel back, the resize, and the floor. */
+/**
+ * What {@link renderResize} varies: the pull, its travel back, the throw, the
+ * resize, and the floor.
+ */
 type ResizeSetup = {
 	pull?: boolean
 	pullBack?: PanelResizeOptions['pullBack']
+	throwAway?: PanelResizeOptions['throwAway']
 	resize?: boolean
 	floorOf?: (panel: HTMLElement, size: number) => number
 }
@@ -40,7 +45,7 @@ type ResizeSetup = {
 /** Renders the gesture for `side`. By default, no floor and no ceiling are in reach. */
 function renderResize(
 	side: PanelSide = 'bottom',
-	{ pull, pullBack, resize, floorOf: floor }: ResizeSetup = {},
+	{ pull, pullBack, throwAway, resize, floorOf: floor }: ResizeSetup = {},
 ) {
 	const onDismiss = vi.fn()
 	const floorOf = vi.fn(floor ?? (() => 0))
@@ -55,6 +60,7 @@ function renderResize(
 				ceilingOf: () => 10_000,
 				pull,
 				pullBack,
+				throwAway,
 				resize,
 			}),
 		{ initialProps: { open: true } },
@@ -481,6 +487,169 @@ describe('usePanelResize', () => {
 			rerender({ open: true })
 
 			expect(panel.style.translate).toBe('')
+		})
+
+		describe('with a throw', () => {
+			const throwAway = { type: 'spring', stiffness: 120, damping: 22 } as const
+
+			/** A pulled panel of 300 px, as in {@link renderPulled}, with the throw. */
+			function renderThrown(side: PanelSide = 'bottom', resize = false) {
+				return renderAttached(side, {
+					pull: true,
+					resize,
+					throwAway,
+					floorOf: (_panel, size) => size,
+				})
+			}
+
+			/** Presses the grip at 400 px, moves to `to` px, and lets go there at 1000 ms. */
+			function slowRelease(result: ReturnType<typeof renderThrown>['result'], to: number) {
+				drag(result, to)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', to, 1000))
+				})
+			}
+
+			it.each<[PanelSide, number, Record<string, number>]>([
+				['bottom', 500, { y: 250 }],
+				['top', 300, { y: -250 }],
+				['right', 500, { x: 250 }],
+				['left', 300, { x: -250 }],
+			])('throws a %s panel over the part of it still on the screen', (side, to, aim) => {
+				const { result, onDismiss } = renderThrown(side)
+
+				slowRelease(result, to)
+
+				// 200 px of the panel is on the screen, and the travel aims a quarter past.
+				// It is at rest within that quarter, which is at the edge.
+				expect(result.current.exit).toMatchObject({
+					...aim,
+					transition: { ...throwAway, restDelta: 50, restSpeed: Infinity },
+				})
+
+				// A slow release starts the travel from rest, toward whichever edge.
+				expect(result.current.exit?.transition?.velocity).toBeCloseTo(0)
+
+				expect(onDismiss).toHaveBeenCalledOnce()
+			})
+
+			it('closes the panel after it holds the exit', () => {
+				// The exit of each render, in order. `result.current` lags a layout effect.
+				const rendered: unknown[] = []
+
+				const held: unknown[] = []
+
+				const onDismiss = vi.fn(() => held.push(rendered.at(-1)))
+
+				const { result } = renderHook(() => {
+					const resize = usePanelResize({
+						side: 'bottom',
+						open: true,
+						onDismiss,
+						floorOf: (_panel, size) => size,
+						ceilingOf: () => 10_000,
+						pull: true,
+						resize: false,
+						throwAway,
+					})
+
+					rendered.push(resize.exit)
+
+					return resize
+				})
+
+				act(() => result.current.ref(makePanel()))
+
+				slowRelease(result, 500)
+
+				// A closed panel keeps the props of its last open render for its exit.
+				expect(held).toEqual([expect.objectContaining({ y: 250 })])
+			})
+
+			it('starts the travel at the speed of a flick', () => {
+				const { result, onDismiss } = renderThrown()
+
+				drag(result, 450)
+
+				// 100 px in the last 100 ms is a flick, which closes the panel.
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 550, 600))
+				})
+
+				expect(onDismiss).toHaveBeenCalledOnce()
+
+				expect(result.current.exit).toEqual({
+					y: 187.5,
+					transition: expect.objectContaining({ velocity: 1000 }),
+				})
+			})
+
+			it('leaves a flicked panel that clears its size on the slide of its preset', () => {
+				const { result, onDismiss } = renderAttached('bottom', {
+					pull: true,
+					throwAway,
+					floorOf: () => 0,
+				})
+
+				drag(result, 450)
+
+				act(() => {
+					window.dispatchEvent(windowPointer('pointerup', 550, 600))
+				})
+
+				expect(onDismiss).toHaveBeenCalledOnce()
+
+				expect(result.current.exit).toBeNull()
+			})
+
+			it('keeps a short pull open, with no exit', () => {
+				const { result, onDismiss } = renderThrown()
+
+				slowRelease(result, 450)
+
+				expect(onDismiss).not.toHaveBeenCalled()
+
+				expect(result.current.exit).toBeNull()
+			})
+
+			it('forgets a throw that the owner did not close on the next press', () => {
+				const { result } = renderThrown()
+
+				slowRelease(result, 500)
+
+				expect(result.current.exit).not.toBeNull()
+
+				act(() => {
+					result.current.handleProps.onPointerDown(
+						makePointerEvent({ pointerType: 'touch', clientX: 500, clientY: 500, timeStamp: 2000 }),
+					)
+				})
+
+				expect(result.current.exit).toBeNull()
+			})
+
+			it('forgets the exit once the panel closes', () => {
+				const { result, rerender } = renderThrown()
+
+				slowRelease(result, 500)
+
+				rerender({ open: false })
+
+				expect(result.current.exit).toBeNull()
+			})
+		})
+	})
+
+	describe('throwExit', () => {
+		const glide = { type: 'spring', stiffness: 120, damping: 22 } as const
+
+		it('starts a release that moves away from the edge at rest', () => {
+			expect(throwExit('bottom', 100, -2, glide).transition).toMatchObject({ velocity: 0 })
+		})
+
+		it('aims at the edge for a panel that is already off the screen', () => {
+			expect(throwExit('right', -20, 0, glide)).toMatchObject({ x: 0 })
 		})
 	})
 
