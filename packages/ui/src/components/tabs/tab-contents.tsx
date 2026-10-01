@@ -24,12 +24,13 @@ export type TabContentProps = Omit<ComponentProps<typeof CurrentContent>, 'slotP
  * @remarks
  * `mount` defaults to `"active"`: only the active panel is mounted, so
  * switching unmounts the outgoing panel and resets its state. Under `fade` the
- * unmount waits for the panel's fade-out, so the cross-fade still plays. `fade`
- * (default `true`) animates the container height across the swap either way.
+ * unmount waits for the panel's fade-out, so the fade still plays. The outgoing
+ * panel fades out before the incoming panel fades in. `fade` (default `true`)
+ * animates the container height across the swap either way.
  * Set `mount` to hold inactive panels: `mount="lazy"` defers never-visited
  * panels, and `mount="always"` keeps them all mounted. Held panels rest in
  * `<Activity mode="hidden">` (state preserved, effects paused); under `fade`
- * they wake for the opacity cross-fade and rest again once it lands.
+ * they wake for the opacity fade and rest again once it lands.
  *
  * A held panel still renders, so holding warms render-phase work — a `lazy()`
  * chunk, a `use()`d promise. It mounts no effects, so it does not warm

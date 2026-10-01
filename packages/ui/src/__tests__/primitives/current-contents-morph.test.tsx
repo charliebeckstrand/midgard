@@ -1,5 +1,6 @@
+import { animate } from 'motion'
 import { createRef, type Ref } from 'react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { act, getSlot, renderUI } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
@@ -103,6 +104,39 @@ describe('CurrentContents morph pin arithmetic', () => {
 		fire({ inline: 640, block: 500 })
 
 		expect(contents.style.height).toBe('320px')
+	})
+
+	// Under `mount="active"` the outgoing panel leaves the DOM when its fade-out
+	// ends, which is before the height tween ends. The re-scan finds the same
+	// target, and a second tween would start the ease again and stall the box.
+	it('keeps an in-flight morph when a re-scan finds the same target', async () => {
+		const { container } = mount('a')
+
+		const contents = getSlot(container, 'test-contents')
+
+		const panel = getSlot(container, 'test-content')
+
+		mockRect(contents, { width: 600, height: 300 })
+
+		fire({ inline: 600, block: 300 })
+
+		fire({ inline: 600, block: 420 })
+
+		expect(contents.style.height).toBe('300px')
+
+		vi.mocked(animate).mockClear()
+
+		// The tween is partway, and the current panel still asks for 420px.
+		mockRect(contents, { width: 600, height: 360 })
+
+		mockRect(panel, { width: 600, height: 420 })
+
+		// A change to the direct child list makes the hook scan its panels again.
+		await act(async () => {
+			contents.append(document.createElement('div'))
+		})
+
+		expect(animate).not.toHaveBeenCalled()
 	})
 
 	// The morph hook reads the container through its own ref. A consumer ref
