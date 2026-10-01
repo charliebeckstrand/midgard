@@ -179,6 +179,9 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
  * One instance of an axis example. The `axis-value` anchor carries the label,
  * so the page gate can ask that each instance shows it. Without a caption the
  * wrapper takes no box of its own.
+ *
+ * The wrapper can shrink below the width of its content. An instance with a
+ * fixed width and `max-w-full` thus fits a row that is narrower than that width.
  */
 function AxisInstance({
 	label,
@@ -198,7 +201,12 @@ function AxisInstance({
 	}
 
 	return (
-		<div data-slot="axis-value" data-label={label} data-caption="" className="flex flex-col gap-1">
+		<div
+			data-slot="axis-value"
+			data-label={label}
+			data-caption=""
+			className="flex min-w-0 flex-col gap-1"
+		>
 			<span data-slot="axis-caption" className="text-xs text-zinc-500 dark:text-zinc-400">
 				{label}
 			</span>
