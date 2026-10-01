@@ -44,6 +44,22 @@ from the destructured parameter, then from a `@defaultValue` tag, then from the
 `defaults` of the recipe that the component calls. An axis with no default
 offers an unset option, so the component takes its own fallback.
 
+An axis of density steps shows only the steps that render distinctly. A
+stepped class of three values, such as `density-h-[2,3,4]`, gives `xs` the
+value of `sm` and `xl` the value of `lg`. The type of `size` still admits each
+step, because the step also sets the scope of the children. After each commit
+with a new state, `<Axes>` reads each instance of the axis
+([`step-signature.ts`](step-signature.ts)). It resolves each class at the step
+of the nearest `data-density` scope, as the rungs of `core/density` do. Then
+it drops each value whose classes and attributes match those of its neighbor.
+The run keeps the value nearest the default, so `xs` and `sm` keep `sm`. The
+picker of the playground offers the same values.
+
+The read takes the DOM and no layout, so a test run gives the same answer as
+the browser. A text difference does not count, because the content can show
+the label. A value stays when no element of its instance opens a scope at that
+step, for example a panel in a portal.
+
 `valueLabel` writes each value for a reader: `xs` reads `Extra small`, `true`
 reads `On`, and `separated` reads `Separated`. `humanize` writes a prop name as
 the title of its example. A hand-written demo can use both helpers.

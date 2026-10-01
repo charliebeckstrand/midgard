@@ -185,6 +185,57 @@ describe('Axes', () => {
 		error.mockRestore()
 	})
 
+	it('shows only the sizes that render distinctly, in the example and in the picker', async () => {
+		const steps: ComponentApi[] = [
+			{ name: 'Bar', props: [{ name: 'size', type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'" }] },
+		]
+
+		renderUI(
+			<DemoApiContext value={settled(steps)}>
+				<Axes
+					of="Bar"
+					render={(props) => (
+						// A stepped class of three values: `xs` renders as `sm`, and `xl` as `lg`.
+						<div
+							data-slot="probe"
+							data-density={(props as { size?: string }).size}
+							className="density-h-[2,3,4]"
+						/>
+					)}
+				/>
+			</DemoApiContext>,
+		)
+
+		const sizes = probesOf('Size').map((probe) => probe.getAttribute('data-density'))
+
+		expect(sizes).toEqual(['sm', 'md', 'lg'])
+
+		fireEvent.click(screen.getByRole('combobox', { name: 'Size' }))
+
+		const options = await screen.findAllByRole('option')
+
+		expect(options.map((option) => option.textContent)).toEqual([
+			'Default',
+			'Small',
+			'Medium',
+			'Large',
+		])
+	})
+
+	it('keeps each size of a component that writes no density scope', () => {
+		const steps: ComponentApi[] = [
+			{ name: 'Bar', props: [{ name: 'size', type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'" }] },
+		]
+
+		renderUI(
+			<DemoApiContext value={settled(steps)}>
+				<Axes of="Bar" render={() => <div data-slot="probe" className="h-2" />} />
+			</DemoApiContext>,
+		)
+
+		expect(probesOf('Size')).toHaveLength(5)
+	})
+
 	it('throws for a name that the barrel does not document', () => {
 		expect(() => renderAxes(settled(api), 'Missing')).toThrow(/no documented component "Missing"/)
 	})
