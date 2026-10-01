@@ -18,9 +18,9 @@ function instance(html: string, step: DensityStep): Element {
 
 /** Whether `html` renders the same at two steps. */
 function same(html: string, a: DensityStep, b: DensityStep): boolean {
-	const first = stepSignature(instance(html, a), a, 'A')
+	const first = stepSignature(instance(html, a), 'A')
 
-	const second = stepSignature(instance(html, b), b, 'B')
+	const second = stepSignature(instance(html, b), 'B')
 
 	expect(first).not.toBeNull()
 
@@ -110,7 +110,6 @@ describe('stepSignature', () => {
 					`<div data-density="{step}" id="${id}" aria-label="${label} progress" data-variant="bar"></div>`,
 					step,
 				),
-				step,
 				label,
 			)
 
@@ -119,7 +118,6 @@ describe('stepSignature', () => {
 		expect(at('xs', '_r_1_', 'Extra small')).not.toBe(
 			stepSignature(
 				instance('<div data-density="{step}" data-variant="ring"></div>', 'sm'),
-				'sm',
 				'Small',
 			),
 		)
@@ -129,12 +127,29 @@ describe('stepSignature', () => {
 		const html = (label: string) =>
 			`<span data-slot="axis-caption" class="text-xs">${label}</span><div data-density="{step}" class="density-h-[2,3,4]">${label}</div>`
 
-		expect(stepSignature(instance(html('Extra small'), 'xs'), 'xs', 'Extra small')).toBe(
-			stepSignature(instance(html('Small'), 'sm'), 'sm', 'Small'),
+		expect(stepSignature(instance(html('Extra small'), 'xs'), 'Extra small')).toBe(
+			stepSignature(instance(html('Small'), 'sm'), 'Small'),
 		)
 	})
 
-	it('returns null when no element opens a scope at the step', () => {
-		expect(stepSignature(instance('<button class="h-8"></button>', 'sm'), 'sm', 'Small')).toBeNull()
+	it('matches an instance that opens its scope at another step', () => {
+		// A Calendar at `xs` opens a scope at `sm`.
+		const html = '<div data-density="sm" class="density-w-[52,68,80]"></div>'
+
+		expect(stepSignature(instance(html, 'xs'), 'Extra small')).toBe(
+			stepSignature(instance(html, 'sm'), 'Small'),
+		)
+	})
+
+	it('returns null when no element opens a density scope', () => {
+		expect(stepSignature(instance('<button class="h-8"></button>', 'sm'), 'Small')).toBeNull()
+
+		// A control slot with no scope above it in the instance has no step either.
+		expect(
+			stepSignature(
+				instance('<span data-density="slot" class="density-p-[1,2,3]"></span>', 'sm'),
+				'Small',
+			),
+		).toBeNull()
 	})
 })

@@ -188,7 +188,10 @@ describe('density after a pseudo-element', () => {
 // server and in the hydration render, so the markup is wrong at the first
 // paint. Only the files below may read it. Each uses the value only for work
 // after mount, or for a context that a client descendant reads after mount.
+// Calendar reads it at the first paint, because its test needs no root step.
 //
+//   - Calendar: a test for `xs`, which opens a scope at `sm`. Only a `size` or
+//     a scope sets `xs`, and the server reads both, so the first paint is right.
 //   - Chart and scatter chart: the tick cap. With no `width`, the server
 //     renders an empty frame, and the chart measures before the first paint.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
@@ -198,6 +201,7 @@ describe('density after a pseudo-element', () => {
 // The check reads each name, not only each call, so an aliased import fails it.
 
 const STEP_READERS = [
+	'components/calendar/calendar.tsx',
 	'modules/chart/engine/use-chart-cartesian.ts',
 	'modules/chart/scatter-chart/scatter-chart.tsx',
 	'modules/grid/grid-data.tsx',

@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, type Ref, Suspense, use, useLayoutEffect, useRef, useState } from 'react'
-import { createContext, type DensityStep } from '../../../core'
+import { createContext } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
 import { type Axis, type AxisValue, axesOf, distinctValues, isStepAxis } from '../axes'
@@ -140,7 +140,7 @@ function AxesExamples({
 			const values = distinctValues(axis, (value) => {
 				const instance = instances.current.get(`${axis.name}:${value}`)
 
-				return instance ? stepSignature(instance, value as DensityStep, valueLabel(value)) : null
+				return instance ? stepSignature(instance, valueLabel(value)) : null
 			})
 
 			return [axis.name, values] as const

@@ -13,6 +13,7 @@ import {
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yAnnouncements } from '../../hooks'
+import { useDensityStep } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
@@ -124,7 +125,7 @@ export type CalendarProps = {
 	 * The density step of the width, the padding, and the weekday labels. Omit
 	 * it to take the step of the nearest density scope. A step makes the calendar
 	 * a density scope, so the navigation buttons and the day cells take the step
-	 * too.
+	 * too. `sm` is the smallest step: `xs` renders as `sm`.
 	 */
 	size?: DensityStep
 	className?: string
@@ -136,6 +137,8 @@ export type CalendarProps = {
  * `min`/`max` bound the selectable range. Resolves `locale` against an
  * enclosing Locale provider. The header, grid, and day cells take the step of
  * the nearest density scope, and a set `size` makes the calendar that scope.
+ * `sm` is the smallest step. At `xs`, set or inherited, the calendar opens a
+ * scope at `sm`.
  * Roving focus spans header, grid, and footer
  * zones (tracked via `active`), and month changes are announced to screen
  * readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
@@ -172,6 +175,11 @@ export function Calendar({
 	className,
 }: CalendarProps) {
 	const ambient = useLocale()
+
+	// The width steps from `sm`, so at `xs` the buttons and the cells would
+	// shrink inside the `sm` width. Only a `size` or a scope sets `xs`, and the
+	// server reads both, so the server and the client agree on the scope.
+	const density = useDensityStep(size) === 'xs' ? 'sm' : size
 
 	const localeTag = resolveLocale(locale ?? ambient.locale)
 
@@ -264,7 +272,7 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<Box data-slot="calendar" density={size} className={cn(k.base, className)}>
+		<Box data-slot="calendar" density={density} className={cn(k.base, className)}>
 			<CalendarHeader
 				headerRef={headerRef}
 				onHeaderKeyDown={handleHeaderKeyDown}

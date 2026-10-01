@@ -46,7 +46,7 @@ export type CalendarRangeProps = {
 	locale?: string
 	/**
 	 * The density step, forwarded to `<Calendar>`. Omit it to take the step of
-	 * the nearest density scope.
+	 * the nearest density scope. `sm` is the smallest step: `xs` renders as `sm`.
 	 */
 	size?: DensityStep
 	className?: string

@@ -57,8 +57,10 @@ picker of the playground offers the same values.
 
 The read takes the DOM and no layout, so a test run gives the same answer as
 the browser. A text difference does not count, because the content can show
-the label. A value stays when no element of its instance opens a scope at that
-step, for example a panel in a portal.
+the label. The step that an instance shows does not count, so a Calendar at
+`xs`, which opens a scope at `sm`, matches the Calendar at `sm`. A value stays
+when no element of its instance opens a density scope, for example a panel in a
+portal.
 
 `valueLabel` writes each value for a reader: `xs` reads `Extra small`, `true`
 reads `On`, and `separated` reads `Separated`. `humanize` writes a prop name as
