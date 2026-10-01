@@ -95,10 +95,14 @@ describe('grid range pointer and clipboard (real browser)', () => {
 
 		await commands.releasePointer()
 
-		// The range grew with the scroll, from the first row down.
-		expect(cell(1, 'name')).not.toBeNull()
-
+		// The range grew with the scroll.
 		expect(marked()).toBeGreaterThan(4)
+
+		// The scroll goes on until the release arrives, so the window can unmount
+		// the first row. Scroll back to it: the range starts there.
+		region.scrollTop = 0
+
+		await waitFor(() => expect(cell(1, 'name')).toHaveAttribute('data-in-range'))
 	})
 
 	it('copies the range through the native copy event on the focused grid', async () => {
