@@ -119,51 +119,37 @@ function AxesExamples({
 		Object.fromEntries(axes.map((axis) => [axis.name, axis.default])),
 	)
 
-	// The wrapper of each instance of a step axis, keyed by `instanceKey`.
+	const stepAxes = axes.filter(isStepAxis)
+
+	// The wrapper of each instance, keyed `axis:value`.
 	const instances = useRef(new Map<string, Element>())
 
-	// The values of each step axis that render distinctly, and the state that
-	// they hold for. A state change shows each value again until the next read.
-	const [distinct, setDistinct] = useState<{
-		state: typeof state
-		values: Record<string, AxisValue[]>
-	} | null>(null)
+	// The values of each step axis that render distinctly. A step axis with no
+	// entry shows each value until the next read.
+	const [distinct, setDistinct] = useState<Record<string, AxisValue[]>>({})
 
-	const known = distinct?.state === state ? distinct.values : null
-
-	// Read the instances after each commit with a new state, before the paint.
-	// The read takes the DOM and no layout, so it gives one answer in each
+	// Read each step axis with no entry after the commit, before the paint. The
+	// read takes the DOM and no layout, so it gives one answer in each
 	// environment.
 	useLayoutEffect(() => {
-		if (known || !axes.some(isStepAxis)) return
+		const unread = stepAxes.filter((axis) => !distinct[axis.name])
 
-		const values: Record<string, AxisValue[]> = {}
+		if (unread.length === 0) return
 
-		for (const axis of axes) {
-			if (!isStepAxis(axis)) continue
-
-			values[axis.name] = distinctValues(axis, (value) => {
-				const instance = instances.current.get(instanceKey(axis.name, value))
+		const read = unread.map((axis) => {
+			const values = distinctValues(axis, (value) => {
+				const instance = instances.current.get(`${axis.name}:${value}`)
 
 				return instance ? stepSignature(instance, value as DensityStep, valueLabel(value)) : null
 			})
-		}
 
-		setDistinct({ state, values })
+			return [axis.name, values] as const
+		})
+
+		setDistinct((prev) => ({ ...prev, ...Object.fromEntries(read) }))
 	})
 
-	const valuesOf = (axis: Axis) => known?.[axis.name] ?? axis.values
-
-	// Keep the wrapper of an instance while it is mounted.
-	const register = (key: string) => (element: Element | null) => {
-		if (!element) return
-
-		instances.current.set(key, element)
-
-		return () => {
-			instances.current.delete(key)
-		}
-	}
+	const valuesOf = (axis: Axis) => distinct[axis.name] ?? axis.values
 
 	const propsWith = (name?: string, value?: AxisValue) => {
 		const merged = name === undefined ? state : { ...state, [name]: value }
@@ -186,7 +172,13 @@ function AxesExamples({
 								axis={axis}
 								values={valuesOf(axis)}
 								value={state[axis.name]}
-								onValueChange={(value) => setState((prev) => ({ ...prev, [axis.name]: value }))}
+								onValueChange={(value) => {
+									setState((prev) => ({ ...prev, [axis.name]: value }))
+
+									// The example of each other axis takes the new value, so its read is
+									// stale. The example of this axis does not read its own value.
+									setDistinct(({ [axis.name]: own }) => (own ? { [axis.name]: own } : {}))
+								}}
 							/>
 						))}
 					</Flex>
@@ -203,7 +195,9 @@ function AxesExamples({
 								key={String(value)}
 								label={valueLabel(value)}
 								caption={captions}
-								ref={isStepAxis(axis) ? register(instanceKey(axis.name, value)) : undefined}
+								ref={(element) => {
+									if (element) instances.current.set(`${axis.name}:${value}`, element)
+								}}
 							>
 								{render(propsWith(axis.name, value), valueLabel(value))}
 							</AxisInstance>
@@ -213,11 +207,6 @@ function AxesExamples({
 			))}
 		</>
 	)
-}
-
-/** The key of one instance of an axis example. */
-function instanceKey(axis: string, value: AxisValue): string {
-	return `${axis}:${JSON.stringify(value)}`
 }
 
 /** The title of the example of one axis, with the prefix of the `Axes` when it has one. */

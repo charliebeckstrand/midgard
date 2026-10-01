@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../../../core'
 import { parseLinkToken } from '../../api-reference/link-syntax'
+import { splitTopLevel } from '../../split-top-level'
 import { LinkText, Prose } from './doc-inline'
-import { splitTopLevel } from './type-references'
 
 /** The literal shape a default value denotes, read off its source text. */
 type LiteralKind = 'string' | 'number' | 'boolean' | 'nullish' | 'array' | 'object'

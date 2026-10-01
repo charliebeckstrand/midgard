@@ -1,11 +1,8 @@
 // @vitest-environment node
 
 import { describe, expect, it } from 'vitest'
-import {
-	splitTopLevel,
-	splitUnion,
-	unquote,
-} from '../../../components/api-reference/type-references'
+import { splitUnion, unquote } from '../../../components/api-reference/type-references'
+import { splitTopLevel } from '../../../split-top-level'
 
 describe('splitUnion', () => {
 	it('splits on top-level bars only', () => {

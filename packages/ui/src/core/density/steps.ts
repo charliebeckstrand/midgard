@@ -88,6 +88,56 @@ export function valuesByStep(list: string): Record<DensityStep, string> | null {
 	return { xs: sm, sm, md, lg, xl: lg }
 }
 
+/**
+ * Whether `value` is a step of density.
+ *
+ * @internal
+ */
+export function isDensityStep(value: unknown): value is DensityStep {
+	return (densitySteps as readonly unknown[]).includes(value)
+}
+
+/**
+ * Reads the steps of a `density-[…]` variant, such as the `xs,sm` of
+ * `density-[xs,sm]`. It returns `null` when an item is not a step.
+ *
+ * @internal
+ */
+export function stepsOfList(list: string): DensityStep[] | null {
+	const steps = list.split(',').map((step) => step.trim())
+
+	return steps.every(isDensityStep) ? steps : null
+}
+
+/**
+ * Reads the step that the stepped classes give `element`, from its
+ * `data-density` scopes, as the rungs of `rungs.ts` do. The nearest scope with
+ * a step wins, the element itself included. A control slot between the
+ * element and that scope takes the step below it, and a slot in a slot counts
+ * once.
+ *
+ * @param boundary - The element where the walk stops. The walk does not read it.
+ * @param outer - The step above `boundary`, which applies when no scope is below it.
+ *
+ * @internal
+ */
+export function scopeStepOf<O extends DensityStep | null>(
+	element: Element,
+	boundary: Element | null,
+	outer: O,
+): DensityStep | O {
+	let slot = false
+
+	for (let node: Element | null = element; node && node !== boundary; node = node.parentElement) {
+		const value = node.getAttribute('data-density')
+
+		if (value === 'slot') slot = true
+		else if (isDensityStep(value)) return slot ? stepDown(value) : value
+	}
+
+	return slot && outer !== null ? stepDown(outer) : outer
+}
+
 /** The steps that the root marks with a class. */
 const markedSteps = Object.keys(rootDensityClasses) as MarkedStep[]
 

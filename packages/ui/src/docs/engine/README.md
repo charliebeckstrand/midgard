@@ -47,9 +47,9 @@ offers an unset option, so the component takes its own fallback.
 An axis of density steps shows only the steps that render distinctly. A
 stepped class of three values, such as `density-h-[2,3,4]`, gives `xs` the
 value of `sm` and `xl` the value of `lg`. The type of `size` still admits each
-step, because the step also sets the scope of the children. After each commit
-with a new state, `<Axes>` reads each instance of the axis
-([`step-signature.ts`](step-signature.ts)). It resolves each class at the step
+step, because the step also sets the scope of the children. On the first
+commit, and after a change to another axis, `<Axes>` reads each instance of
+the axis ([`step-signature.ts`](step-signature.ts)). It resolves each class at the step
 of the nearest `data-density` scope, as the rungs of `core/density` do. Then
 it drops each value whose classes and attributes match those of its neighbor.
 The run keeps the value nearest the default, so `xs` and `sm` keep `sm`. The

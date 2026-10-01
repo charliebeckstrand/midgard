@@ -1,6 +1,13 @@
-import { type DensityStep, densitySteps, stepDown } from '../../core/density'
-import { valuesByStep } from '../../core/density/steps'
+import {
+	type DensityStep,
+	densitySteps,
+	isDensityStep,
+	scopeStepOf,
+	stepsOfList,
+	valuesByStep,
+} from '../../core/density/steps'
 import { getOrCompute } from '../../utilities/get-or-compute'
+import { splitTopLevel } from './split-top-level'
 
 /**
  * The step of an element: the step of its nearest density scope in the
@@ -10,168 +17,17 @@ import { getOrCompute } from '../../utilities/get-or-compute'
  */
 type Step = DensityStep | null
 
-const isStep = (value: string): value is DensityStep =>
-	(densitySteps as readonly string[]).includes(value)
-
-/** The `data-density` value of a control slot, a scope one step below the scope above it. */
-const SLOT = 'slot'
-
 /** A value of React `useId`, such as `_r_1f_`. Each instance gets a different one. */
 const REACT_ID = /_[rR]_[0-9a-zA-Z]+_/g
 
-/** The anchor of the caption of an axis instance, which is chrome of the docs and not of the component. */
-const CAPTION = '[data-slot="axis-caption"]'
-
-/**
- * Read the step of `element` from its nearest density scope, `element`
- * included. A control slot takes the step below the scope above it. A slot in
- * a slot takes the step of the outer slot, as the rungs of `core/density` do.
- * The walk stops at `boundary`.
- */
-function stepOf(element: Element, boundary: Element): Step {
-	let slot = false
-
-	for (let node: Element | null = element; node && node !== boundary; node = node.parentElement) {
-		const value = node.getAttribute('data-density')
-
-		if (value === SLOT) slot = true
-		else if (value !== null && isStep(value)) return slot ? stepDown(value) : value
-	}
-
-	return null
-}
-
-/**
- * Split a class at each colon outside brackets and parentheses: the variants,
- * then the utility. `data-[slot=icon]:density-size-[3,4,5]` gives
- * `data-[slot=icon]` and `density-size-[3,4,5]`.
- */
-function splitClass(name: string): string[] {
-	const parts: string[] = []
-
-	let depth = 0
-
-	let start = 0
-
-	for (let index = 0; index < name.length; index++) {
-		const char = name[index]
-
-		if (char === '[' || char === '(') depth++
-		else if (char === ']' || char === ')') depth--
-		else if (char === ':' && depth === 0) {
-			parts.push(name.slice(start, index))
-
-			start = index + 1
-		}
-	}
-
-	parts.push(name.slice(start))
-
-	return parts
-}
-
-/**
- * The steps that a density variant matches: `density-sm` gives `sm`, and
- * `density-[xs,sm]` gives `xs` and `sm`. It returns `null` for each other
- * variant. `density-any` matches at each step, so it returns `null`.
- */
-function variantSteps(variant: string): readonly DensityStep[] | null {
-	const single = /^density-([a-z]+)$/.exec(variant)?.[1]
-
-	if (single !== undefined) return isStep(single) ? [single] : null
-
-	const list = /^density-\[([^\]]+)\]$/.exec(variant)?.[1]?.split(',')
-
-	return list?.every(isStep) ? list : null
-}
-
-/** A stepped utility, such as `density-p-[2,3,4]`, split into its prefix and its value at each step. */
-type Stepped = { prefix: string; values: Record<DensityStep, string> }
-
-/**
- * Read a stepped utility, such as `density-p-[2,3,4]` or `-density-mb-[1,2,3]!`.
- * It returns `null` for a utility that is not stepped, and for a list that
- * gives no step a value.
- */
-function readStepped(utility: string): Stepped | null {
-	const match = /^(!?-?density-[a-z][a-z-]*)-\[([^\]]+)\](!?)$/.exec(utility)
-
-	const values = match?.[2] === undefined ? null : valuesByStep(match[2])
-
-	return match && values ? { prefix: `${match[1]}${match[3]}`, values } : null
-}
-
-/**
- * One class of an element, with each density part read. A class with no
- * density part keeps its name.
- */
-type ClassPart = {
-	name: string
-	/** The variants that are not density variants. */
-	variants: readonly string[]
-	/** The steps that each density variant of the class matches. */
-	gates: readonly (readonly DensityStep[])[]
-	/** The utility of the class, read as a stepped utility when it is one. */
-	utility: string | Stepped
-}
-
-/** The parsed form of each class name. The docs site renders a bounded set of names. */
-const parsedClasses = new Map<string, ClassPart | null>()
-
-/** Read the density parts of a class, or `null` when it has none. Each name parses once. */
-function readClass(name: string): ClassPart | null {
-	return getOrCompute(parsedClasses, name, parseClass)
-}
-
-function parseClass(name: string): ClassPart | null {
-	const parts = splitClass(name)
-
-	const utility = parts.pop() ?? ''
-
-	const variants: string[] = []
-
-	const gates: (readonly DensityStep[])[] = []
-
-	for (const variant of parts) {
-		const steps = variantSteps(variant)
-
-		if (steps) gates.push(steps)
-		else variants.push(variant)
-	}
-
-	const stepped = readStepped(utility)
-
-	if (gates.length === 0 && !stepped) return null
-
-	return { name, variants, gates, utility: stepped ?? utility }
-}
-
-/**
- * Write a class with density parts as the rule that it gives at `step`. It
- * returns an empty string when a density variant does not match `step`. At a
- * `null` step it returns the name of the class, because the step is the same
- * for each instance.
- */
-function resolveAt(part: ClassPart, step: Step): string {
-	if (step === null) return part.name
-
-	if (part.gates.some((steps) => !steps.includes(step))) return ''
-
-	const utility =
-		typeof part.utility === 'string'
-			? part.utility
-			: `${part.utility.prefix}=${part.utility.values[step]}`
-
-	return [...part.variants, utility].join(':')
-}
-
 /**
  * The elements that a class can style, from the element that holds it: the
- * element alone, its subtree, or each element of the instance.
+ * element alone, its subtree, or each element of the instance. A larger rank
+ * reaches farther.
  */
-type Reach = 'self' | 'subtree' | 'instance'
+const Reach = { self: 0, subtree: 1, instance: 2 } as const
 
-const REACH_RANK: Record<Reach, number> = { self: 0, subtree: 1, instance: 2 }
+type Reach = (typeof Reach)[keyof typeof Reach]
 
 /** The variants that style a descendant: `*` styles a child, `**` and `marker` style each descendant. */
 const DESCENDANT_VARIANTS = new Set(['*', '**', 'marker', 'selection'])
@@ -184,47 +40,108 @@ const DESCENDANT_VARIANTS = new Set(['*', '**', 'marker', 'selection'])
  * `&` reaches the subtree, because the rule does not name the element.
  */
 function reachOf(variant: string): Reach {
-	if (DESCENDANT_VARIANTS.has(variant)) return 'subtree'
+	if (DESCENDANT_VARIANTS.has(variant)) return Reach.subtree
 
-	if (!variant.startsWith('[') || !variant.endsWith(']')) return 'self'
+	if (!variant.startsWith('[') || !variant.endsWith(']')) return Reach.self
 
 	// Tailwind writes a space in an arbitrary value as `_`.
 	const selector = variant.slice(1, -1).replaceAll('_', ' ').trim()
 
-	if (selector.startsWith('@')) return 'self'
+	if (selector.startsWith('@')) return Reach.self
 
-	if (/&\s*[~+]/.test(selector)) return 'instance'
+	if (/&\s*[~+]/.test(selector)) return Reach.instance
 
-	return !selector.includes('&') || /&\s*[>\s]/.test(selector) ? 'subtree' : 'self'
-}
-
-/** The farthest reach of the variants of a class. */
-function reachOfAll(variants: readonly string[]): Reach {
-	return variants
-		.map(reachOf)
-		.reduce<Reach>((far, reach) => (REACH_RANK[reach] > REACH_RANK[far] ? reach : far), 'self')
+	return !selector.includes('&') || /&\s*[>\s]/.test(selector) ? Reach.subtree : Reach.self
 }
 
 /**
- * Write a list of resolved rules as runs, such as `p=2*3,p=3`. A long subtree
- * of one step thus stays short.
+ * The steps that a density variant matches: `density-sm` gives `sm`, and
+ * `density-[xs,sm]` gives `xs` and `sm`. It returns `null` for each other
+ * variant, `density-any` included, because that variant matches at each step.
  */
-function runs(values: readonly string[]): string {
-	const out: string[] = []
+function stepsOfVariant(variant: string): readonly DensityStep[] | null {
+	const match = /^density-(?:([a-z]+)|\[([^\]]+)\])$/.exec(variant)
 
-	let count = 0
+	return match ? stepsOfList((match[1] ?? match[2] ?? '').replaceAll('_', ' ')) : null
+}
 
-	for (let index = 0; index < values.length; index++) {
-		count++
+/**
+ * A class with a density part, read once: how far it reaches, and the rule
+ * that it gives at each step. The rule is empty at a step that a density
+ * variant of the class does not match.
+ */
+type DensityClass = { reach: Reach; at: Record<DensityStep, string> }
 
-		if (values[index] !== values[index + 1]) {
-			out.push(count === 1 ? (values[index] ?? '') : `${values[index]}*${count}`)
+/**
+ * Read a class with a density part: a density variant, a stepped utility such
+ * as `density-p-[2,3,4]`, or both. It returns `null` for a class with no
+ * density part.
+ */
+function parseClass(name: string): DensityClass | null {
+	const parts = splitTopLevel(name, ':', false)
 
-			count = 0
-		}
+	const utility = parts.pop() ?? ''
+
+	const variants: string[] = []
+
+	const gates: (readonly DensityStep[])[] = []
+
+	for (const variant of parts) {
+		const steps = stepsOfVariant(variant)
+
+		if (steps) gates.push(steps)
+		else variants.push(variant)
 	}
 
-	return out.join(',')
+	const [, head = '', list = '', important = ''] =
+		/^(!?density-[a-z][a-z-]*)-\[([^\]]+)\](!?)$/.exec(utility) ?? []
+
+	const values = list ? valuesByStep(list) : null
+
+	if (gates.length === 0 && !values) return null
+
+	const ruleAt = (step: DensityStep) => {
+		if (gates.some((steps) => !steps.includes(step))) return ''
+
+		const rule = values ? `${head}${important}=${values[step]}` : utility
+
+		return [...variants, rule].join(':')
+	}
+
+	return {
+		reach: Math.max(Reach.self, ...variants.map(reachOf)) as Reach,
+		at: Object.fromEntries(densitySteps.map((step) => [step, ruleAt(step)])) as DensityClass['at'],
+	}
+}
+
+/** The read of each class with a density part. The docs site renders a bounded set of them. */
+const densityClasses = new Map<string, DensityClass | null>()
+
+/** Read the density part of a class, or `null` when it has none. Each name parses once. */
+function readClass(name: string): DensityClass | null {
+	// Most classes have no density part, so they skip the parse and the cache.
+	return name.includes('density-') ? getOrCompute(densityClasses, name, parseClass) : null
+}
+
+/**
+ * Write one class of the element at `index` as the rules that it gives at the
+ * step of each element that it can style. The steps of the instance are in
+ * document order, so the subtree of the element follows it.
+ */
+function classAt(name: string, element: Element, index: number, steps: readonly Step[]): string {
+	const part = readClass(name)
+
+	if (!part) return name
+
+	let [from, end] = [index, index + 1]
+
+	if (part.reach === Reach.instance) [from, end] = [0, steps.length]
+	else if (part.reach === Reach.subtree) end += element.getElementsByTagName('*').length
+
+	return steps
+		.slice(from, end)
+		.map((step) => (step === null ? name : part.at[step]))
+		.join(',')
 }
 
 /**
@@ -238,13 +155,11 @@ function attributesOf(element: Element, label: string): string[] {
 	for (const { name, value } of element.attributes) {
 		if (name === 'class') continue
 
-		if (name === 'data-density' && (value === SLOT || isStep(value))) continue
+		if (name === 'data-density' && (value === 'slot' || isDensityStep(value))) continue
 
 		const id = value.replace(REACT_ID, '#id')
 
-		const text = label === '' ? id : id.replaceAll(label, '#label')
-
-		out.push(`${name}=${text}`)
+		out.push(`${name}=${label === '' ? id : id.replaceAll(label, '#label')}`)
 	}
 
 	return out.sort()
@@ -276,11 +191,9 @@ function attributesOf(element: Element, label: string): string[] {
 export function stepSignature(instance: Element, step: DensityStep, label: string): string | null {
 	if (!instance.querySelector(`[data-density="${step}"]`)) return null
 
-	const elements = [...instance.querySelectorAll('*')].filter(
-		(element) => !element.closest(CAPTION),
-	)
+	const elements = [...instance.querySelectorAll('*')]
 
-	const steps = elements.map((element) => stepOf(element, instance))
+	const steps = elements.map((element) => scopeStepOf(element, instance, null))
 
 	return elements
 		.map((element, index) => {
@@ -289,26 +202,4 @@ export function stepSignature(instance: Element, step: DensityStep, label: strin
 			return [element.localName, ...attributesOf(element, label), ...classes.sort()].join(' ')
 		})
 		.join('\n')
-}
-
-/**
- * Write one class of the element at `index` as the rules that it gives. The
- * steps of the instance are in document order, so the subtree of the element
- * follows it.
- */
-function classAt(name: string, element: Element, index: number, steps: readonly Step[]): string {
-	const part = readClass(name)
-
-	if (!part) return name
-
-	const reach = reachOfAll(part.variants)
-
-	if (reach === 'self') return resolveAt(part, steps[index] ?? null)
-
-	const [from, end] =
-		reach === 'instance'
-			? [0, steps.length]
-			: [index, index + 1 + element.getElementsByTagName('*').length]
-
-	return runs(steps.slice(from, end).map((step) => resolveAt(part, step)))
 }

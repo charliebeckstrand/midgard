@@ -26,7 +26,7 @@
 
 import type { PluginCreator } from 'tailwindcss/plugin'
 import { rungs } from './rungs'
-import { type DensityStep, densitySteps } from './steps'
+import { densitySteps, stepsOfList } from './steps'
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so
@@ -38,11 +38,9 @@ export const handler: PluginCreator = ({ addVariant, matchVariant }) => {
 	for (const step of densitySteps) addVariant(`density-${step}`, rungs([step], { '@slot': {} }))
 
 	matchVariant('density', (list) => {
-		const steps = list.split(',').map((step) => step.trim())
+		const steps = stepsOfList(list)
 
-		if (!steps.every((step): step is DensityStep => densitySteps.includes(step as DensityStep))) {
-			return []
-		}
+		if (!steps) return []
 
 		// `matchVariant` takes each rule as a string: an at-rule that holds the
 		// selector, with no body. Tailwind writes the `@slot` into it. A layer

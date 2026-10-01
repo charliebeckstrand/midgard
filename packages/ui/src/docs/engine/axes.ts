@@ -1,4 +1,4 @@
-import { densitySteps } from '../../core/density'
+import { isDensityStep } from '../../core/density/steps'
 import { clamp } from '../../utilities/clamp'
 import type { ComponentApi } from './api-reference'
 
@@ -116,7 +116,7 @@ export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] 
  * component that writes its step as a density scope.
  */
 export function isStepAxis(axis: Axis): boolean {
-	return axis.values.every((value) => (densitySteps as readonly AxisValue[]).includes(value))
+	return axis.values.every(isDensityStep)
 }
 
 /**
