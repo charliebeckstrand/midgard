@@ -49,13 +49,6 @@ export function Demo() {
 				<WithActionsExample />
 			</Example>
 
-			<Example title="Invalid">
-				<Field>
-					<Label htmlFor="textarea-invalid">Invalid</Label>
-					<Textarea id="textarea-invalid" data-invalid={true} placeholder="Something went wrong" />
-				</Field>
-			</Example>
-
 			<Example title="Valid">
 				<Field>
 					<Label htmlFor="textarea-valid">Valid</Label>
