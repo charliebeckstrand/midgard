@@ -124,9 +124,9 @@ function readClass(name: string): DensityClass | null {
 }
 
 /**
- * Write one class of the element at `index` as the rules that it gives at the
- * step of each element that it can style. The steps of the instance are in
- * document order, so the subtree of the element follows it.
+ * Write one class of the element at `index` as its rules. Each rule takes the
+ * step of an element that the class can style. The steps of the instance are
+ * in document order, so the subtree of the element follows it.
  */
 function classAt(name: string, element: Element, index: number, steps: readonly Step[]): string {
 	const part = readClass(name)
@@ -166,8 +166,8 @@ function attributesOf(element: Element, label: string): string[] {
 }
 
 /**
- * Write the rendered form of one axis instance at a density step. Two
- * instances give the same string when the CSS gives them the same rules.
+ * Write the rendered form of one axis instance. Two instances give the same
+ * string when the CSS gives them the same rules.
  *
  * @remarks
  * It reads the DOM, and no layout. Each element gives its tag, its attributes,
@@ -178,22 +178,23 @@ function attributesOf(element: Element, label: string): string[] {
  * element of the instance. The text of the instance does not count, because
  * it can hold the label of the instance.
  *
- * It returns `null` when no element of the instance opens a scope at `step`.
- * Then the tree holds no scope of the component at that step, for example when
+ * The step that the instance shows does not count. A component can open its
+ * scope at another step, such as a Calendar at `xs`, which opens `sm`. It
+ * returns `null` when no element of the instance opens a density scope. Then
+ * the component writes its step in no element of the tree, for example when
  * its panel is in a portal. The axis keeps the value.
  *
  * @param instance - The wrapper of the instance, whose descendants the component renders.
- * @param step - The step that the instance shows.
  * @param label - The label of the instance, which the content can show.
  *
  * @internal
  */
-export function stepSignature(instance: Element, step: DensityStep, label: string): string | null {
-	if (!instance.querySelector(`[data-density="${step}"]`)) return null
-
+export function stepSignature(instance: Element, label: string): string | null {
 	const elements = [...instance.querySelectorAll('*')]
 
 	const steps = elements.map((element) => scopeStepOf(element, instance, null))
+
+	if (steps.every((step) => step === null)) return null
 
 	return elements
 		.map((element, index) => {

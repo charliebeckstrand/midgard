@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { Form } from '../../components/form'
+import { Box } from '../../structure/box'
 import { act, bySlot, liveRegion, renderUI, screen, setupUser, withFakeTime } from '../helpers'
 
 const selectedDay = () =>
@@ -244,6 +245,32 @@ describe('Calendar', () => {
 		const el = bySlot(container, 'calendar')
 
 		expect(el).toHaveAttribute('data-density', 'sm')
+	})
+
+	it('opens a scope at `sm` for an `xs` size, because `sm` is its smallest step', () => {
+		const { container } = renderUI(<Calendar size="xs" />)
+
+		expect(bySlot(container, 'calendar')).toHaveAttribute('data-density', 'sm')
+	})
+
+	it('opens a scope at `sm` inside an `xs` scope', () => {
+		const { container } = renderUI(
+			<Box density="xs">
+				<Calendar />
+			</Box>,
+		)
+
+		expect(bySlot(container, 'calendar')).toHaveAttribute('data-density', 'sm')
+	})
+
+	it('opens no scope with no size outside an `xs` scope', () => {
+		const { container } = renderUI(
+			<Box density="lg">
+				<Calendar />
+			</Box>,
+		)
+
+		expect(bySlot(container, 'calendar')).not.toHaveAttribute('data-density')
 	})
 })
 
