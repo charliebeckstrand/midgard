@@ -2,7 +2,6 @@ import { AtSign, Home, Info } from 'lucide-react'
 import { useState } from 'react'
 import { Card } from '../../../components/card'
 import {
-	Nav,
 	NavBar,
 	NavContent,
 	NavContents,
@@ -12,17 +11,7 @@ import {
 } from '../../../components/nav'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
-
-function NavItems() {
-	return (
-		<NavList>
-			<NavItem value="home">Home</NavItem>
-			<NavItem value="about">About</NavItem>
-			<NavItem value="contact">Contact</NavItem>
-		</NavList>
-	)
-}
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	const [current, setCurrent] = useState<string | null>('account')
@@ -37,21 +26,16 @@ export function Demo() {
 			<TabContents>
 				<TabContent value="List">
 					<Stack gap="xl">
-						<Example title="Horizontal">
-							<NavList orientation="horizontal">
-								<NavItem>Home</NavItem>
-								<NavItem>About</NavItem>
-								<NavItem>Contact</NavItem>
-							</NavList>
-						</Example>
-
-						<Example title="Vertical">
-							<NavList orientation="vertical">
-								<NavItem>Home</NavItem>
-								<NavItem>About</NavItem>
-								<NavItem>Contact</NavItem>
-							</NavList>
-						</Example>
+						<Axes
+							of="NavList"
+							render={(props) => (
+								<NavList {...props}>
+									<NavItem>Home</NavItem>
+									<NavItem>About</NavItem>
+									<NavItem>Contact</NavItem>
+								</NavList>
+							)}
+						/>
 
 						<Example title="With icons">
 							<NavList orientation="horizontal">
@@ -65,25 +49,19 @@ export function Demo() {
 
 				<TabContent value="Bar">
 					<Stack gap="xl">
-						<Example title="Variants">
-							<NavBar variant="solid">
-								<Nav defaultValue="home">
-									<NavItems />
-								</Nav>
-							</NavBar>
-
-							<NavBar variant="outline">
-								<Nav defaultValue="home">
-									<NavItems />
-								</Nav>
-							</NavBar>
-
-							<NavBar variant="plain">
-								<Nav defaultValue="home">
-									<NavItems />
-								</Nav>
-							</NavBar>
-						</Example>
+						<Axes
+							of="NavBar"
+							render={(props, label) => (
+								// Each bar is a landmark, so each instance takes a unique name.
+								<NavBar {...props} aria-label={label}>
+									<NavList>
+										<NavItem current>Home</NavItem>
+										<NavItem>About</NavItem>
+										<NavItem>Contact</NavItem>
+									</NavList>
+								</NavBar>
+							)}
+						/>
 					</Stack>
 				</TabContent>
 

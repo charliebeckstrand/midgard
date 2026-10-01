@@ -4,7 +4,9 @@ import { configureAxe } from 'jest-axe'
 import type { ComponentType } from 'react'
 import { onTestFinished, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
+import { DemoApiContext } from '../../docs/engine/components/axes'
 import { AppearanceProvider } from '../../providers/appearance'
+import { demoApiOf } from './demo-api'
 
 // The demo pages of the docs site, and a walk over each state that a page's tabs
 // show. The snippet gate and the demo smoke test read the same pages.
@@ -110,8 +112,71 @@ export interface DemoWalk {
 	readonly violations: Readonly<Record<string, number>>
 	/** The longest chain of density scopes in a state, outermost first, as names. */
 	readonly scopes: readonly string[]
+	/** Each axis instance that shows its label no time or two times, as `example › label: why`. */
+	readonly labelBreaks: readonly string[]
 	/** The text of each "Show code" block, keyed by example title (or position). */
 	readonly snippets: ReadonlyMap<string, string>
+}
+
+/** The text of each text node under an element that a reader sees, in document order. */
+function textsOf(element: Element): string[] {
+	const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+
+	const texts: string[] = []
+
+	for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+		// Text for a screen reader alone is not in sight.
+		if (!node.parentElement?.closest('.sr-only')) texts.push(node.nodeValue ?? '')
+	}
+
+	return texts
+}
+
+/**
+ * Each axis instance of `<Axes>` whose label a reader sees no time or two
+ * times, as `example › label: why`. The content of an instance shows its label
+ * in its text, or in the placeholder or the value of a field. An `aria-label`
+ * does not count. An instance with a caption must not also show its label in
+ * its content, and an instance with no caption must show it.
+ */
+function axisLabelBreaks(container: Element): string[] {
+	const breaks: string[] = []
+
+	for (const instance of container.querySelectorAll<HTMLElement>('[data-slot="axis-value"]')) {
+		// A whole word: the label `On` is not in `Devon`.
+		const escaped = (instance.dataset.label ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+		const label = new RegExp(`(^|\\W)${escaped}($|\\W)`, 'i')
+
+		const content = [...instance.children].filter(
+			(child) => child.getAttribute('data-slot') !== 'axis-caption',
+		)
+
+		const fields = content.flatMap((child) => [
+			...child.querySelectorAll<HTMLInputElement>('input, textarea'),
+			...(child.matches('input, textarea') ? [child as HTMLInputElement] : []),
+		])
+
+		// Each text node on its own: `textContent` joins `None` and `Action` into
+		// `NoneAction`, which hides the whole word.
+		const inText = content.flatMap(textsOf).some((text) => label.test(text))
+
+		const inField = fields.some((field) => label.test(field.placeholder) || label.test(field.value))
+
+		const captioned = instance.hasAttribute('data-caption')
+
+		// A field can show a value of its own, such as a date format as its
+		// placeholder, so only text doubles a caption.
+		if (captioned ? !inText : inText || inField) continue
+
+		const example = instance.closest('[data-slot="example"]')
+
+		const where = `${(example && titleOf(example)) ?? 'untitled'} › ${instance.dataset.label}`
+
+		breaks.push(`${where}: ${captioned ? 'shown twice' : 'not shown'}`)
+	}
+
+	return breaks
 }
 
 /** Collects what `console.error` and `console.warn` write during the case, and keeps it off the output. */
@@ -175,7 +240,7 @@ function titleOf(frame: Element): string | null {
  * that it did not read yet, reads the block, and closes the block again. Thus
  * axe in each later state reads the same DOM as a walk with no harvest.
  */
-async function walk(load: () => Promise<ComponentType>): Promise<DemoWalk> {
+async function walk(page: string, load: () => Promise<ComponentType>): Promise<DemoWalk> {
 	restoreRootAfterCase()
 
 	const logged = captureConsole()
@@ -186,7 +251,9 @@ async function walk(load: () => Promise<ComponentType>): Promise<DemoWalk> {
 
 	const { container } = render(
 		<AppearanceProvider>
-			<Demo />
+			<DemoApiContext value={demoApiOf(page)}>
+				<Demo />
+			</DemoApiContext>
 		</AppearanceProvider>,
 	)
 
@@ -198,7 +265,11 @@ async function walk(load: () => Promise<ComponentType>): Promise<DemoWalk> {
 
 	const seenFrames = new WeakSet<Element>()
 
+	const labelBreaks = new Set<string>()
+
 	const inspect = async () => {
+		for (const item of axisLabelBreaks(container)) labelBreaks.add(item)
+
 		const chain = deepestScopeChain()
 
 		if (chain.length > deepest.length) deepest = chain
@@ -286,6 +357,7 @@ async function walk(load: () => Promise<ComponentType>): Promise<DemoWalk> {
 		harvestLogged,
 		violations: Object.fromEntries([...violations].map(([rule, set]) => [rule, set.size])),
 		scopes,
+		labelBreaks: [...labelBreaks],
 		snippets,
 	}
 }
@@ -309,7 +381,7 @@ export async function walkOf(page: string, load: () => Promise<ComponentType>): 
 		return kept
 	}
 
-	const walked = walk(load)
+	const walked = walk(page, load)
 
 	walks.set(page, walked)
 

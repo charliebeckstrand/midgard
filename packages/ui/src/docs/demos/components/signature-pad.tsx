@@ -5,7 +5,7 @@ import { SignaturePad, type SignaturePadHandle } from '../../../components/signa
 import { Text } from '../../../components/text'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 function DefaultExample() {
 	const [value, setValue] = useState<string | null>(null)
@@ -94,20 +94,21 @@ function ImperativeHandleExample() {
 	)
 }
 
-function DisabledExample() {
-	return (
-		<Example title="Disabled">
-			<SignaturePad disabled placeholder="Signature locked" />
-		</Example>
-	)
-}
-
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="SignaturePad"
+				render={(props) => (
+					// The pad draws no stored value, so the clear button shows only after a stroke.
+					<div className="w-72">
+						<SignaturePad {...props} />
+					</div>
+				)}
+			/>
+
 			<DefaultExample />
 			<ImperativeHandleExample />
-			<DisabledExample />
 		</>
 	)
 }

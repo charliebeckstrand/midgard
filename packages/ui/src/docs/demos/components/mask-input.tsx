@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../../components/fieldset'
 import { MaskInput, phoneMask, zipcodeMask } from '../../../components/mask-input'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -56,6 +56,11 @@ function ControlledExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="MaskInput"
+				render={(props, label) => <MaskInput {...props} aria-label={label} mask={phoneMask()} />}
+			/>
+
 			<Example title="Phone">
 				<Field>
 					<Label>Phone</Label>

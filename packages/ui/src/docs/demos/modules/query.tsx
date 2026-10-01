@@ -8,7 +8,7 @@ import {
 	QuerySummary,
 } from '../../../modules/query'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
@@ -111,21 +111,23 @@ function ReorderExample() {
 	)
 }
 
-function DisabledExample() {
-	return (
-		<Example title="Disabled">
-			<QueryBuilder fields={fields} defaultValue={seed} disabled />
-		</Example>
-	)
-}
-
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="QueryBuilder"
+				render={(props) => <QueryBuilder {...props} fields={fields} defaultValue={seed} />}
+			/>
+
+			<Axes
+				of="QueryChips"
+				title="Query chips"
+				render={(props) => <QueryChips {...props} fields={fields} defaultValue={filters} />}
+			/>
+
 			<BuilderExample />
 			<ChipsExample />
 			<ReorderExample />
-			<DisabledExample />
 		</>
 	)
 }

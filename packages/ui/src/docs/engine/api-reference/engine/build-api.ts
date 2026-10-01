@@ -7,6 +7,7 @@ import { extractDocFromText } from './extract-doc'
 import { extractPassThrough } from './extract-passthrough'
 import { extractProjectPropNames } from './extract-project-props'
 import { extractProps } from './extract-props'
+import { extractRecipeDefaults } from './extract-recipe-defaults'
 import {
 	type ComponentDecl,
 	findComponent,
@@ -176,6 +177,14 @@ function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): Component
 	const props = propsType
 		? extractProps(callable, propsType, projectNames, defaults, checker, annotation)
 		: []
+
+	// A recipe default only fills in: a destructured default and a `@defaultValue`
+	// tag state what the component applies, so they come first.
+	if (annotation) {
+		const recipeDefaults = extractRecipeDefaults(annotation, callable, checker)
+
+		for (const prop of props) prop.default ??= recipeDefaults.get(prop.name)
+	}
 
 	const api: ComponentApi = { name: decl.name, props }
 

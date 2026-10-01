@@ -1,13 +1,10 @@
-import { useState } from 'react'
 import {
 	Accordion,
 	AccordionItem,
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../../components/accordion'
-import { Example, VariantListbox } from '../../engine'
-
-const variants = ['separated', 'outline', 'plain'] as const
+import { Axes, Example } from '../../engine'
 
 const items = [
 	{
@@ -28,23 +25,24 @@ const items = [
 ]
 
 export function Demo() {
-	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
-
 	return (
 		<>
-			<Example
-				title="Default"
-				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
-			>
-				<Accordion variant={variant} defaultValue="shipping">
-					{items.map((item) => (
-						<AccordionItem key={item.value} value={item.value}>
-							<AccordionTrigger>{item.title}</AccordionTrigger>
-							<AccordionPanel>{item.body}</AccordionPanel>
-						</AccordionItem>
-					))}
-				</Accordion>
-			</Example>
+			<Axes
+				of="Accordion"
+				omit={['type', 'mount']}
+				render={(props) => (
+					// All the sections start closed. An open panel is a named region, and the
+					// same name in each instance breaks the landmark rule.
+					<Accordion {...props}>
+						{items.map((item) => (
+							<AccordionItem key={item.value} value={item.value}>
+								<AccordionTrigger>{item.title}</AccordionTrigger>
+								<AccordionPanel>{item.body}</AccordionPanel>
+							</AccordionItem>
+						))}
+					</Accordion>
+				)}
+			/>
 
 			<Example title="Multiple">
 				<Accordion type="multiple" variant="outline" defaultValue={['shipping', 'returns']}>

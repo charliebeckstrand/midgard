@@ -196,7 +196,7 @@ describe('extractProps — type display', () => {
 		expect(p.references).toBeUndefined()
 	})
 
-	it('keeps a `boolean`-mixed union as an alias with a reference card', () => {
+	it('inlines a `boolean`-mixed literal union to its values with no reference', () => {
 		const p = prop(
 			propsOf(
 				[
@@ -208,10 +208,15 @@ describe('extractProps — type display', () => {
 			'outline',
 		)
 
-		// Not a pure literal union — boolean is present — so it is not inlined.
-		expect(p.type).toBe('BoxOutline')
+		expect(p.type).toBe(`boolean | 'default' | 'subtle' | 'strong'`)
 
-		expect(p.references?.BoxOutline).toBeDefined()
+		expect(p.references).toBeUndefined()
+	})
+
+	it('keeps a plain `boolean` prop as `boolean`', () => {
+		const p = prop(propsOf(`function Foo(props: { open?: boolean }) { return null }`), 'open')
+
+		expect(p.type).toBe('boolean')
 	})
 
 	it('gives a reference card to an alias that the component file does not import', () => {

@@ -1,64 +1,12 @@
-import { useState } from 'react'
-import { Listbox, ListboxOption } from '../../../components/listbox'
 import { Swatch } from '../../../components/swatch'
 import { Text } from '../../../components/text'
 import { Flex } from '../../../structure/flex'
-import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
-
-type Shape = 'square' | 'circle' | 'line'
-type Variant = 'solid' | 'soft' | 'outline' | 'dashed'
-
-const shapes: readonly Shape[] = ['square', 'circle', 'line'] as const
-const variants: readonly Variant[] = ['solid', 'soft', 'outline', 'dashed'] as const
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
-	const [selectedShape, setSelectedShape] = useState<Shape>('square')
-
 	return (
 		<>
-			<Example title="Shapes">
-				<Stack gap="md">
-					{shapes.map((shape) => (
-						<Flex key={shape} gap="sm">
-							<Swatch shape={shape} color="blue" />
-
-							<Text as="span" tone="muted" size="sm">
-								{shape}
-							</Text>
-						</Flex>
-					))}
-				</Stack>
-			</Example>
-
-			<Example
-				title="Variants"
-				actions={
-					<Listbox
-						value={selectedShape}
-						displayValue={() => selectedShape}
-						onValueChange={(value) => value && setSelectedShape(value)}
-					>
-						{shapes.map((shape) => (
-							<ListboxOption key={shape} value={shape}>
-								{shape}
-							</ListboxOption>
-						))}
-					</Listbox>
-				}
-			>
-				<Flex gap="md">
-					{variants.map((variant) => (
-						<Flex key={variant} gap="sm">
-							<Swatch shape={selectedShape} variant={variant} color="orange" />
-
-							<Text as="span" tone="muted" size="sm">
-								{variant}
-							</Text>
-						</Flex>
-					))}
-				</Flex>
-			</Example>
+			<Axes of="Swatch" render={(props) => <Swatch {...props} color="blue" />} />
 
 			<Example title="Color">
 				<Flex gap="md">

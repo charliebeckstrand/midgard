@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../../components/fieldset'
 import { NumberInput } from '../../../components/number-input'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -21,16 +21,11 @@ function ControlledExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="Variants">
-				<Field>
-					<Label htmlFor="num-default">Default</Label>
-					<NumberInput id="num-default" defaultValue={1} />
-				</Field>
-				<Field>
-					<Label>Outline</Label>
-					<NumberInput variant="outline" defaultValue={1} />
-				</Field>
-			</Example>
+			<Axes
+				of="NumberInput"
+				captions={false}
+				render={(props, label) => <NumberInput {...props} aria-label={label} placeholder={label} />}
+			/>
 
 			<ControlledExample />
 
@@ -38,13 +33,6 @@ export function Demo() {
 				<Field>
 					<Label>Disabled</Label>
 					<NumberInput disabled defaultValue={1} />
-				</Field>
-			</Example>
-
-			<Example title="Invalid">
-				<Field>
-					<Label>Invalid</Label>
-					<NumberInput data-invalid defaultValue={1} />
 				</Field>
 			</Example>
 

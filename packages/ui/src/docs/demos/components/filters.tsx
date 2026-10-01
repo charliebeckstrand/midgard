@@ -16,7 +16,7 @@ import { JsonTree } from '../../../components/json-tree'
 import { NumberInput } from '../../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Flex } from '../../../structure/flex'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 type BasicFilters = {
 	search: string | undefined
@@ -226,6 +226,34 @@ function RenderPropsExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="Filters"
+				render={(props) => (
+					<Filters {...props} aria-label="Filters" className="w-96 max-w-full">
+						<FiltersBar>
+							<FiltersRow>
+								<FiltersField name="search" className="w-48">
+									<Label>Search</Label>
+									<Input placeholder="Search" />
+								</FiltersField>
+								<FiltersField name="status" className="w-48">
+									<Label>Status</Label>
+									<Select nullable placeholder="All statuses" displayValue={(v: string) => v}>
+										<SelectOption value="active">
+											<SelectLabel>Active</SelectLabel>
+										</SelectOption>
+										<SelectOption value="inactive">
+											<SelectLabel>Inactive</SelectLabel>
+										</SelectOption>
+									</Select>
+								</FiltersField>
+							</FiltersRow>
+							<FiltersClear>Clear</FiltersClear>
+						</FiltersBar>
+					</Filters>
+				)}
+			/>
+
 			<Example title="Basic">
 				<BasicExample />
 			</Example>

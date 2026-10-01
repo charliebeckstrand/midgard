@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../../components/fieldset'
 import { SearchInput } from '../../../components/search-input'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -26,48 +26,14 @@ function ControlledExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Field>
-					<Label>Search</Label>
-					<SearchInput placeholder={placeholder} />
-				</Field>
-			</Example>
-
-			<Example title="Variants">
-				<Field>
-					<Label>Default</Label>
-					<SearchInput placeholder={placeholder} />
-				</Field>
-				<Field>
-					<Label>Outline</Label>
-					<SearchInput variant="outline" placeholder={placeholder} />
-				</Field>
-			</Example>
-
-			<Example title="Sizes">
-				<Field>
-					<Label>Small</Label>
-					<SearchInput size="sm" placeholder={placeholder} />
-				</Field>
-				<Field>
-					<Label>Medium</Label>
-					<SearchInput size="md" placeholder={placeholder} />
-				</Field>
-				<Field>
-					<Label>Large</Label>
-					<SearchInput size="lg" placeholder={placeholder} />
-				</Field>
-			</Example>
+			<Axes
+				of="SearchInput"
+				captions={false}
+				render={(props, label) => <SearchInput {...props} aria-label={label} placeholder={label} />}
+			/>
 
 			<Example title="Controlled with clear">
 				<ControlledExample />
-			</Example>
-
-			<Example title="Loading">
-				<Field>
-					<Label>Loading</Label>
-					<SearchInput loading placeholder="Searching..." />
-				</Field>
 			</Example>
 
 			<Example title="Disabled">

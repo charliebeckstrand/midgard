@@ -2,11 +2,7 @@ import { useState } from 'react'
 import { RangeSlider, Slider } from '../../../components/slider'
 import { Text } from '../../../components/text'
 import { Stack } from '../../../structure/stack'
-import { capitalize, Example, LabeledRow, LabeledRows, ValueStepper } from '../../engine'
-
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
-const sizes = ['sm', 'md', 'lg'] as const
+import { Axes, Example, ValueStepper } from '../../engine'
 
 function InteractiveExample() {
 	const [value, setValue] = useState(50)
@@ -105,32 +101,16 @@ function RangeStepSliderExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="Slider"
+				render={(props, label) => (
+					<div className="w-48">
+						<Slider {...props} aria-label={label} defaultValue={50} />
+					</div>
+				)}
+			/>
+
 			<InteractiveExample />
-
-			<Example title="Sizes">
-				<LabeledRows>
-					{sizes.map((s, i) => (
-						<LabeledRow key={s} label={s}>
-							<Slider aria-label={s} size={s} defaultValue={40 + i * 20} className="flex-1" />
-						</LabeledRow>
-					))}
-				</LabeledRows>
-			</Example>
-
-			<Example title="Colors">
-				<LabeledRows>
-					{colors.map((color, index) => (
-						<LabeledRow key={color} label={capitalize(color)}>
-							<Slider
-								aria-label={capitalize(color)}
-								color={color}
-								defaultValue={40 + index * 10}
-								className="flex-1"
-							/>
-						</LabeledRow>
-					))}
-				</LabeledRows>
-			</Example>
 
 			<Example title="Step">
 				<StepSliderExample />

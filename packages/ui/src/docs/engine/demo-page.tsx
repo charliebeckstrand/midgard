@@ -9,6 +9,7 @@ import { SidebarLayoutHeader } from '../../layouts'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
 import { ApiReference } from './components/api-reference'
+import { DemoApiContext } from './components/axes'
 import { DemoErrorBoundary } from './components/error-boundary'
 import type { Demo } from './registry'
 import { hasComponentApi, loadComponentApi, loadDemo } from './registry'
@@ -45,7 +46,10 @@ export function DemoPage({
 				</Flex>
 			</SidebarLayoutHeader>
 			<Stack gap="xl">
-				<Component />
+				{/* `Axes` in the demo reads the API data of the barrel from here. */}
+				<DemoApiContext value={hasComponentApi(demo.id) ? loadComponentApi(demo.id) : null}>
+					<Component />
+				</DemoApiContext>
 				{hasComponentApi(demo.id) && (
 					// Its own suspense boundary so the demo paints immediately while the
 					// API data's chunk streams in, rather than suspending the whole route,

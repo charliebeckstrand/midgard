@@ -8,7 +8,7 @@ import {
 import { Alert } from '../../../components/alert'
 import { Field, Label } from '../../../components/fieldset'
 import { Text } from '../../../components/text'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -64,6 +64,13 @@ const mockGooglePlaces: AddressProvider = async (query) => {
 	return places.filter(
 		(p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
 	)
+}
+
+// The label starts in lower case, so the `capitalize` axis shows a change.
+const home: AddressSuggestion = {
+	id: 'home',
+	label: 'baker street 221b',
+	description: 'London, UK',
 }
 
 function DefaultExample() {
@@ -185,6 +192,22 @@ export function Demo() {
 					<code>AddressProvider</code> interface, such as Google Places.
 				</Text>
 			</Alert>
+
+			{/* AddressInput always shows its clear button, so `clearable` is not an axis. */}
+			<Axes
+				of="AddressInput"
+				omit={['placement', 'required', 'nullable', 'closeOnSelect', 'clearable']}
+				render={(props, label) => (
+					<div className="w-72">
+						<AddressInput
+							{...props}
+							aria-label={label}
+							defaultValue={home}
+							provider={mockGooglePlaces}
+						/>
+					</div>
+				)}
+			/>
 
 			<Example title="Default">
 				<DefaultExample />

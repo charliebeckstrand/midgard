@@ -1,6 +1,6 @@
 import { PivotTable } from '../../../components/pivot-table'
 import { useFormat } from '../../../providers/locale'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 type LoadRow = {
 	lane: string
@@ -28,14 +28,20 @@ export function Demo() {
 
 	return (
 		<>
-			<Example title="Loads by lane">
-				<PivotTable
-					rows={loads}
-					keys={{ row: 'lane', column: 'period', value: 'loads' }}
-					rowHeader="Lane"
-					totals="both"
-				/>
-			</Example>
+			<Axes
+				of="PivotTable"
+				omit={['bleed']}
+				render={(props) => (
+					<div className="w-96 max-w-full">
+						<PivotTable
+							{...props}
+							rows={loads}
+							keys={{ row: 'lane', column: 'period', value: 'loads' }}
+							rowHeader="Lane"
+						/>
+					</div>
+				)}
+			/>
 
 			<Example title="Cost by lane">
 				<PivotTable
@@ -46,28 +52,6 @@ export function Demo() {
 					rowHeader="Lane"
 					totals="both"
 					outline
-				/>
-			</Example>
-
-			<Example title="Average cost per load">
-				<PivotTable
-					rows={loads}
-					keys={{ row: 'carrier', column: 'period', value: 'cost' }}
-					aggregation="avg"
-					format={currency}
-					rowHeader="Carrier"
-					totals="row"
-					size="sm"
-					striped
-				/>
-			</Example>
-
-			<Example title="Load count">
-				<PivotTable
-					rows={loads}
-					keys={{ row: 'carrier', column: 'period', value: 'loads' }}
-					aggregation="count"
-					rowHeader="Carrier"
 				/>
 			</Example>
 		</>

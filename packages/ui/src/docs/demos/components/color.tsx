@@ -2,9 +2,7 @@ import { useState } from 'react'
 import type { Hsva } from '../../../components/color'
 import { ColorPanel, ColorPicker } from '../../../components/color'
 import { Text } from '../../../components/text'
-import { Example, LabeledRow, LabeledRows } from '../../engine'
-
-const sizes = ['sm', 'md', 'lg'] as const
+import { Axes, Example } from '../../engine'
 
 function PanelExample() {
 	const [color, setColor] = useState('#3b82f6')
@@ -51,6 +49,13 @@ function PickerExample() {
 export function Demo() {
 	return (
 		<>
+			{/* The `format` prop changes the type of the value, so it is not an axis. */}
+			<Axes
+				of="ColorPicker"
+				omit={['placement', 'format']}
+				render={(props) => <ColorPicker {...props} defaultValue="#8b5cf6" />}
+			/>
+
 			<PanelExample />
 
 			<AlphaExample />
@@ -58,20 +63,6 @@ export function Demo() {
 			<HsvaExample />
 
 			<PickerExample />
-
-			<Example title="Sizes">
-				<LabeledRows>
-					{sizes.map((size) => (
-						<LabeledRow key={size} label={size}>
-							<ColorPicker size={size} defaultValue="#8b5cf6" />
-						</LabeledRow>
-					))}
-				</LabeledRows>
-			</Example>
-
-			<Example title="Disabled">
-				<ColorPicker disabled defaultValue="#64748b" />
-			</Example>
 		</>
 	)
 }

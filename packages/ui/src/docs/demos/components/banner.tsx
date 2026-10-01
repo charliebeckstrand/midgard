@@ -1,12 +1,7 @@
 import { useState } from 'react'
 import { Banner } from '../../../components/banner'
 import { Button } from '../../../components/button'
-import { Stack } from '../../../structure/stack'
-import { capitalize, Example, VariantListbox } from '../../engine'
-
-const variants = ['solid', 'soft', 'outline', 'plain'] as const
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-const types = ['info', 'success', 'warning', 'error'] as const
+import { Axes, Example } from '../../engine'
 
 function ClosableExample() {
 	const [visible, setVisible] = useState(true)
@@ -32,33 +27,15 @@ function ClosableExample() {
 }
 
 export function Demo() {
-	const [variant, setVariant] = useState<(typeof variants)[number]>('soft')
-
 	return (
 		<>
-			<Example title="Severity">
-				<Stack className="gap-0 -mx-4">
-					{types.map((type) => (
-						<Banner
-							key={type}
-							severity={type}
-							title={`${capitalize(type)} — this is a ${type} banner`}
-							closable={false}
-						/>
-					))}
-				</Stack>
-			</Example>
+			<Axes
+				of="Banner"
+				captions={false}
+				omit={['open', 'defaultOpen', 'sticky']}
+				render={(props, label) => <Banner {...props} title={label} />}
+			/>
 
-			<Example
-				title="Colors"
-				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
-			>
-				<Stack className="gap-0 -mx-4">
-					{colors.map((c) => (
-						<Banner key={c} variant={variant} color={c} title={capitalize(c)} closable={false} />
-					))}
-				</Stack>
-			</Example>
 			<Example title="With description">
 				<div className="-mx-4">
 					<Banner
@@ -69,11 +46,13 @@ export function Demo() {
 					/>
 				</div>
 			</Example>
+
 			<Example title="Closable">
 				<div className="-mx-4">
 					<ClosableExample />
 				</div>
 			</Example>
+
 			<Example title="With actions">
 				<div className="-mx-4">
 					<Banner

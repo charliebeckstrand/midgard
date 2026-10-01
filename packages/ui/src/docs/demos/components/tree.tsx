@@ -1,21 +1,25 @@
 import { File, Folder, Image, Music, Video } from 'lucide-react'
 import { Tree, TreeItem } from '../../../components/tree'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Tree aria-label="Files">
-					<TreeItem label="Documents" icon={<Folder />}>
-						<TreeItem label="report.pdf" icon={<File />} />
-						<TreeItem label="budget.xlsx" icon={<File />} />
-					</TreeItem>
-					<TreeItem label="Photos" icon={<Folder />}>
-						<TreeItem label="vacation.jpg" icon={<Image />} />
-					</TreeItem>
-				</Tree>
-			</Example>
+			<Axes
+				of="Tree"
+				omit={['mount']}
+				render={(props, label) => (
+					<Tree {...props} aria-label={label}>
+						<TreeItem label="Documents" icon={<Folder />} defaultOpen>
+							<TreeItem label="report.pdf" icon={<File />} />
+							<TreeItem label="budget.xlsx" icon={<File />} />
+						</TreeItem>
+						<TreeItem label="Photos" icon={<Folder />}>
+							<TreeItem label="vacation.jpg" icon={<Image />} />
+						</TreeItem>
+					</Tree>
+				)}
+			/>
 
 			<Example title="Nested">
 				<Tree aria-label="Project files">

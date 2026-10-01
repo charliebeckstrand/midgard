@@ -8,7 +8,7 @@ import {
 import { Field, Label, Message } from '../../../components/fieldset'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
@@ -60,12 +60,10 @@ function ComposedExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Field>
-					<Label>Card number</Label>
-					<CreditCardInput />
-				</Field>
-			</Example>
+			<Axes
+				of="CreditCardInput"
+				render={(props, label) => <CreditCardInput {...props} aria-label={label} />}
+			/>
 
 			<Example title="Brand detection">
 				<Stack gap="md">

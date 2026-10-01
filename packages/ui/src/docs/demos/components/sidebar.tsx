@@ -43,7 +43,7 @@ import { Text } from '../../../components/text'
 import { cn } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import { Spacer } from '../../../structure/spacer'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 const primary = [
 	{ value: 'home', label: 'Home', icon: <Home /> },
@@ -75,31 +75,6 @@ function SidebarFrame({ children, className }: { children: ReactNode; className?
 		>
 			{children}
 		</div>
-	)
-}
-
-function DefaultSidebarExample() {
-	const [active, setActive] = useState('home')
-
-	return (
-		<SidebarFrame>
-			<Sidebar>
-				<SidebarBody>
-					<SidebarList aria-label="Main">
-						{primary.map(({ value, label, icon }) => (
-							<SidebarItem
-								key={value}
-								icon={icon}
-								current={active === value}
-								onClick={() => setActive(value)}
-							>
-								<SidebarLabel>{label}</SidebarLabel>
-							</SidebarItem>
-						))}
-					</SidebarList>
-				</SidebarBody>
-			</Sidebar>
-		</SidebarFrame>
 	)
 }
 
@@ -324,40 +299,52 @@ function MiniBrand() {
 	)
 }
 
-function MiniSidebarExample() {
-	const [active, setActive] = useState('home')
-
-	return (
-		<SidebarFrame className="lg:w-fit">
-			<Sidebar mini>
-				<SidebarHeader>
-					<MiniBrand />
-				</SidebarHeader>
-				<SidebarBody>
-					<SidebarList aria-label="Main">
-						{primary.map(({ value, label, icon }) => (
-							<SidebarItem
-								key={value}
-								icon={icon}
-								current={active === value}
-								onClick={() => setActive(value)}
-							>
-								<SidebarLabel>{label}</SidebarLabel>
-							</SidebarItem>
-						))}
-					</SidebarList>
-				</SidebarBody>
-			</Sidebar>
-		</SidebarFrame>
-	)
-}
-
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<DefaultSidebarExample />
-			</Example>
+			<Axes
+				of="Sidebar"
+				render={(props, label) => (
+					<SidebarFrame className={props.mini ? 'lg:w-fit' : undefined}>
+						{/* Each sidebar is a landmark, so each instance takes a unique name. */}
+						<Sidebar {...props} aria-label={label}>
+							<SidebarHeader>
+								<MiniBrand />
+							</SidebarHeader>
+							<SidebarBody>
+								<SidebarList aria-label="Main">
+									{primary.map((item) => (
+										<SidebarItem key={item.value} icon={item.icon} current={item.value === 'home'}>
+											<SidebarLabel>{item.label}</SidebarLabel>
+										</SidebarItem>
+									))}
+								</SidebarList>
+							</SidebarBody>
+						</Sidebar>
+					</SidebarFrame>
+				)}
+			/>
+
+			<Axes
+				of="SidebarItem"
+				title="Sidebar item"
+				omit={['current', 'preventClose']}
+				render={(props, label) => (
+					<SidebarFrame className="h-auto">
+						<Sidebar aria-label={label}>
+							<SidebarBody>
+								<SidebarList aria-label="Main">
+									{primary.slice(0, 2).map((item) => (
+										<SidebarItem key={item.value} {...props} icon={item.icon}>
+											<SidebarLabel>{item.label}</SidebarLabel>
+										</SidebarItem>
+									))}
+								</SidebarList>
+							</SidebarBody>
+						</Sidebar>
+					</SidebarFrame>
+				)}
+			/>
 
 			<Example title="With header and footer">
 				<HeaderFooterSidebarExample />
@@ -373,18 +360,6 @@ export function Demo() {
 
 			<Example title="With actions">
 				<ActionsSidebarExample />
-			</Example>
-
-			<Example
-				title="Mini"
-				prefix={
-					<Text tone="muted">
-						In its mini variant, the sidebar collapses to a slim icon rail; on mobile, it reverts to
-						standard sidebar behavior.
-					</Text>
-				}
-			>
-				<MiniSidebarExample />
 			</Example>
 		</>
 	)

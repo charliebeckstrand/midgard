@@ -13,7 +13,7 @@ import {
 } from '../../../components/menu'
 import { GlassProvider } from '../../../providers/glass'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	const dropdown = (
@@ -140,7 +140,64 @@ export function Demo() {
 
 	return (
 		<Stack gap="xl">
-			<Example title="Default">{dropdown}</Example>
+			{/* A short menu shows no effect of `capped`, so the axis is left out. */}
+			<Axes
+				of="Menu"
+				captions={false}
+				omit={['open', 'defaultOpen', 'capped']}
+				render={(props, label) => (
+					<Menu {...props}>
+						<MenuTrigger>
+							<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+								{label}
+							</Button>
+						</MenuTrigger>
+
+						<MenuContent>
+							<MenuItem>
+								<MenuLabel>Edit</MenuLabel>
+							</MenuItem>
+
+							<MenuItem>
+								<MenuLabel>Duplicate</MenuLabel>
+							</MenuItem>
+
+							<MenuItem>
+								<MenuLabel>Archive</MenuLabel>
+							</MenuItem>
+						</MenuContent>
+					</Menu>
+				)}
+			/>
+
+			<Axes
+				of="MenuItem"
+				captions={false}
+				title="Menu item"
+				render={(props, label) => (
+					<Menu placement="bottom-start">
+						<MenuTrigger>
+							<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+								{label}
+							</Button>
+						</MenuTrigger>
+
+						<MenuContent>
+							<MenuItem>
+								<MenuLabel>Edit</MenuLabel>
+							</MenuItem>
+
+							<MenuItem {...props}>
+								<MenuLabel>{label}</MenuLabel>
+							</MenuItem>
+
+							<MenuItem>
+								<MenuLabel>Archive</MenuLabel>
+							</MenuItem>
+						</MenuContent>
+					</Menu>
+				)}
+			/>
 
 			<Example title="With icons">{icons}</Example>
 

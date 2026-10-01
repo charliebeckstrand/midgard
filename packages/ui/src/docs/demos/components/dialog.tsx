@@ -3,26 +3,55 @@ import { Button } from '../../../components/button'
 import {
 	Dialog,
 	DialogBody,
+	DialogClose,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	DialogTrigger,
 } from '../../../components/dialog'
 import { Field, Label } from '../../../components/fieldset'
 import { Input } from '../../../components/input'
 import { Text } from '../../../components/text'
 import { Textarea } from '../../../components/textarea'
 import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example, Opener } from '../../engine'
 
 export function Demo() {
 	const [open, setOpen] = useState(false)
 
-	const [glassOpen, setGlassOpen] = useState(false)
-
 	return (
 		<>
-			<Example title="Dialog">
+			<Axes
+				of="Dialog"
+				captions={false}
+				omit={['open', 'defaultOpen']}
+				render={(props, label) => (
+					<Opener>
+						<DialogTrigger>
+							<Button variant="outline">{label}</Button>
+						</DialogTrigger>
+
+						<Dialog {...props}>
+							<DialogTitle>{label}</DialogTitle>
+
+							<DialogBody>
+								<Text>
+									Press the backdrop, press Escape, or use the button to close the dialog.
+								</Text>
+							</DialogBody>
+
+							<DialogFooter>
+								<DialogClose>
+									<Button>Close</Button>
+								</DialogClose>
+							</DialogFooter>
+						</Dialog>
+					</Opener>
+				)}
+			/>
+
+			<Example title="With a form">
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project
 				</Button>
@@ -49,26 +78,6 @@ export function Demo() {
 						</Button>
 						<Button color="green" onClick={() => setOpen(false)}>
 							Create project
-						</Button>
-					</DialogFooter>
-				</Dialog>
-			</Example>
-
-			<Example title="Glass">
-				<Button onClick={() => setGlassOpen(true)}>Open glass dialog</Button>
-				<Dialog glass open={glassOpen} onOpenChange={setGlassOpen}>
-					<DialogTitle>Glass dialog</DialogTitle>
-					<DialogBody>
-						<Stack gap="lg">
-							<Text>
-								The glass variant applies a backdrop blur with a transparent background, allowing
-								content behind the dialog to show through.
-							</Text>
-						</Stack>
-					</DialogBody>
-					<DialogFooter>
-						<Button variant="plain" onClick={() => setGlassOpen(false)}>
-							Close
 						</Button>
 					</DialogFooter>
 				</Dialog>

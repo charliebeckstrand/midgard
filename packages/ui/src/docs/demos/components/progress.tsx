@@ -1,22 +1,8 @@
 import { useState } from 'react'
 import { ProgressBar, ProgressGauge } from '../../../components/progress'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
-import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import {
-	capitalize,
-	Example,
-	LabeledColumn,
-	LabeledRow,
-	LabeledRows,
-	ValueStepper,
-} from '../../engine'
-
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
-const barSizes = ['sm', 'md', 'lg'] as const
-
-const gaugeSizes = ['sm', 'md', 'lg'] as const
+import { Axes, Example, ValueStepper } from '../../engine'
 
 export function Demo() {
 	const [barValue, setBarValue] = useState(50)
@@ -32,8 +18,20 @@ export function Demo() {
 				<TabContents>
 					<TabContent value="bar">
 						<Stack gap="xl">
+							<Axes
+								of="ProgressBar"
+								render={(props, label) => (
+									<ProgressBar
+										{...props}
+										value={60}
+										className="w-48"
+										aria-label={`${label} progress`}
+									/>
+								)}
+							/>
+
 							<Example
-								title="Default"
+								title="Value"
 								actions={
 									<ValueStepper
 										label="progress"
@@ -46,43 +44,19 @@ export function Demo() {
 							>
 								<ProgressBar value={barValue} aria-label="Progress" />
 							</Example>
-
-							<Example title="Colors">
-								<LabeledRows>
-									{colors.map((color, i) => (
-										<LabeledRow key={color} label={capitalize(color)}>
-											<ProgressBar
-												color={color}
-												value={50 + i * 12.5}
-												className="flex-1"
-												aria-label={`${capitalize(color)} progress`}
-											/>
-										</LabeledRow>
-									))}
-								</LabeledRows>
-							</Example>
-
-							<Example title="Sizes">
-								<LabeledRows>
-									{barSizes.map((s, i) => (
-										<LabeledRow key={s} label={s}>
-											<ProgressBar
-												size={s}
-												color="red"
-												value={40 + i * 10}
-												className="flex-1"
-												aria-label={`${s} progress`}
-											/>
-										</LabeledRow>
-									))}
-								</LabeledRows>
-							</Example>
 						</Stack>
 					</TabContent>
 					<TabContent value="gauge">
 						<Stack gap="xl">
+							<Axes
+								of="ProgressGauge"
+								render={(props, label) => (
+									<ProgressGauge {...props} value={75} aria-label={`${label} progress`} />
+								)}
+							/>
+
 							<Example
-								title="Default"
+								title="Value"
 								actions={
 									<ValueStepper
 										label="progress"
@@ -96,42 +70,14 @@ export function Demo() {
 								<ProgressGauge value={gaugeValue} aria-label="Progress" />
 							</Example>
 
-							<Example title="Colors">
-								<Flex gap="lg">
-									{colors.map((color, i) => (
-										<ProgressGauge
-											key={color}
-											color={color}
-											value={50 + i * 12.5}
-											aria-label={`${capitalize(color)} progress`}
-										/>
-									))}
-								</Flex>
-							</Example>
-
-							<Example title="Sizes">
-								<Flex gap="lg" align="end">
-									{gaugeSizes.map((s) => (
-										<LabeledColumn key={s} label={s}>
-											<ProgressGauge value={75} size={s} color="red" aria-label={`${s} progress`} />
-										</LabeledColumn>
-									))}
-								</Flex>
-							</Example>
-
 							<Example title="With label">
-								<Flex gap="lg" align="end">
-									{gaugeSizes.map((s) => (
-										<ProgressGauge
-											key={s}
-											value={80}
-											size={s}
-											color="amber"
-											centerLabel
-											aria-label={`${s} progress`}
-										/>
-									))}
-								</Flex>
+								<ProgressGauge
+									value={80}
+									size="lg"
+									color="amber"
+									centerLabel
+									aria-label="Progress"
+								/>
 							</Example>
 						</Stack>
 					</TabContent>

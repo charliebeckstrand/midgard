@@ -1,16 +1,12 @@
 import { Heading } from '../../../components/heading'
-import { Example } from '../../engine'
-
-const levels = [1, 2, 3, 4, 5, 6] as const
+import { Axes } from '../../engine'
 
 export function Demo() {
 	return (
-		<Example title="Levels">
-			{levels.map((level) => (
-				<Heading key={level} level={level}>
-					Heading {level}
-				</Heading>
-			))}
-		</Example>
+		<Axes
+			of="Heading"
+			captions={false}
+			render={(props, label) => <Heading {...props}>{label}</Heading>}
+		/>
 	)
 }

@@ -8,7 +8,11 @@ import {
 } from '../../../components/combobox'
 import { Field, Label } from '../../../components/fieldset'
 import { VirtualOptions } from '../../../primitives/virtual-options'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
+
+// The selected value starts in lower case and is long, so the `capitalize` axis
+// shows a change.
+const stages = ['awaiting approval from finance', 'in review', 'shipped']
 
 const people = [
 	'Wade Cooper',
@@ -62,25 +66,6 @@ function MultiComboboxExample() {
 				onValueChange={setSelected}
 				displayValue={(v: string) => v}
 				placeholder={selected.length ? `${selected.length} selected` : 'Select people'}
-			>
-				<FilteredPeople />
-			</Combobox>
-		</Field>
-	)
-}
-
-function ClearableExample() {
-	const [selected, setSelected] = useState<string | null>('Tom Cook')
-
-	return (
-		<Field>
-			<Label>Assignee</Label>
-			<Combobox
-				value={selected}
-				onValueChange={setSelected}
-				displayValue={(v: string) => v}
-				placeholder="Select a person"
-				clearable
 			>
 				<FilteredPeople />
 			</Combobox>
@@ -174,14 +159,40 @@ function VirtualizedComboboxExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="Combobox"
+				omit={[
+					'placement',
+					'open',
+					'multiple',
+					'required',
+					'nullable',
+					'closeOnSelect',
+					'clearOnEmpty',
+				]}
+				render={(props, label) => (
+					<div className="w-48">
+						<Combobox
+							{...props}
+							aria-label={label}
+							defaultValue={stages[0]}
+							displayValue={(v: string) => v}
+						>
+							{stages.map((stage) => (
+								<ComboboxOption key={stage} value={stage}>
+									<ComboboxLabel>{stage}</ComboboxLabel>
+								</ComboboxOption>
+							))}
+						</Combobox>
+					</div>
+				)}
+			/>
+
 			<Example title="Single">
 				<SingleComboboxExample />
 			</Example>
 			<Example title="Multiple">
 				<MultiComboboxExample />
-			</Example>
-			<Example title="Clearable">
-				<ClearableExample />
 			</Example>
 			<Example title="Creatable">
 				<CreatableExample />

@@ -34,7 +34,6 @@ import { type DemoPage, demoPages, walkOf } from './demo-pages'
 const KNOWN_FAILURES: Record<string, number> = {
 	// A Listbox trigger that the demo builds with no label.
 	'components/aspect-ratio › button-name': 1,
-	'components/swatch › button-name': 1,
 	'providers/density › button-name': 1,
 
 	// An icon-only trigger with no `aria-label`: the sidebar's menu, and the
@@ -46,7 +45,6 @@ const KNOWN_FAILURES: Record<string, number> = {
 	// landmark list cannot tell them apart.
 	'components/accordion › landmark-unique': 1,
 	'components/kanban › landmark-unique': 5,
-	'components/nav › landmark-unique': 2,
 	'components/pdf-viewer › landmark-unique': 1,
 	'components/sidebar › landmark-unique': 1,
 	'modules/grid › landmark-unique': 1,
@@ -71,7 +69,7 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 			// its tabs, in about 10s, and opens about 45 blocks, in about 7s.
 			{ timeout: 60_000 },
 			async (page, load) => {
-				const { logged, violations, scopes } = await walkOf(page, load)
+				const { logged, violations, scopes, labelBreaks } = await walkOf(page, load)
 
 				const found = Object.fromEntries(
 					Object.entries(violations).map(([rule, count]) => [`${page} › ${rule}`, count]),
@@ -82,6 +80,10 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 				expect(found).toEqual(knownFailuresOf(page))
 
 				expect(scopes.length, `${page} nests ${scopes.join(' > ')}`).toBeLessThanOrEqual(maxDepth)
+
+				// A reader must see which value each axis instance shows, one time: in
+				// the caption of `<Axes>`, or in the content with `captions={false}`.
+				expect(labelBreaks, `${page} shows an axis label no time or two times`).toEqual([])
 			},
 		)
 

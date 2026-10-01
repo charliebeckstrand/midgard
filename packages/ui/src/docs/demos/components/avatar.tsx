@@ -1,89 +1,35 @@
-import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../../components/avatar'
 import { Flex } from '../../../structure/flex'
-import {
-	capitalize,
-	Example,
-	LabeledRow,
-	LabeledRows,
-	SizeListbox,
-	VariantListbox,
-} from '../../engine'
-
-const groupAvatars = ['AB', 'CD', 'EF', 'GH'] as const
-
-const sizes = ['sm', 'md', 'lg'] as const
-
-type Size = (typeof sizes)[number]
-
-const variants = ['solid', 'soft', 'outline'] as const
-
-type Variant = (typeof variants)[number]
+import { Axes, Example, valueLabel } from '../../engine'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 export function Demo() {
-	const [colorVariant, setColorVariant] = useState<Variant>('solid')
-	const [groupSize, setGroupSize] = useState<Size>('md')
-	const [statusSize, setStatusSize] = useState<Size>('md')
-
 	return (
 		<>
-			<Example title="Variants">
-				<LabeledRows>
-					{variants.map((v) => (
-						<LabeledRow key={v} label={v}>
-							<Avatar variant={v} initials="A" />
-						</LabeledRow>
-					))}
-				</LabeledRows>
-			</Example>
+			<Axes of="Avatar" render={(props) => <Avatar {...props} initials="AB" />} />
 
-			<Example
-				title="Colors"
-				actions={
-					<VariantListbox
-						variants={variants}
-						value={colorVariant}
-						onValueChange={setColorVariant}
-					/>
-				}
-			>
+			<Example title="Colors">
 				<Flex gap="sm">
 					{colors.map((color) => (
-						<Avatar
-							key={color}
-							variant={colorVariant}
-							color={color}
-							initials={capitalize(color)[0]}
-						/>
+						<Avatar key={color} color={color} initials={valueLabel(color)[0]} />
 					))}
 				</Flex>
 			</Example>
 
-			<Example
-				title="Group"
-				actions={<SizeListbox sizes={sizes} value={groupSize} onValueChange={setGroupSize} />}
-			>
-				<AvatarGroup size={groupSize}>
-					{groupAvatars.map((initials) => (
-						<Avatar key={initials} initials={initials} />
-					))}
-					<Avatar initials="+3" alt="3 more" />
-				</AvatarGroup>
-			</Example>
-
-			<Example
-				title="Status"
-				actions={<SizeListbox sizes={sizes} value={statusSize} onValueChange={setStatusSize} />}
-			>
-				<Flex gap="md">
-					<Avatar size={statusSize} initials="AB" status="inactive" />
-					<Avatar size={statusSize} initials="CD" status="active" />
-					<Avatar size={statusSize} initials="EF" status="warning" />
-					<Avatar size={statusSize} initials="GH" status="error" />
-				</Flex>
-			</Example>
+			<Axes
+				of="AvatarGroup"
+				title="Avatar group"
+				render={(props) => (
+					<AvatarGroup {...props}>
+						<Avatar initials="AB" />
+						<Avatar initials="CD" />
+						<Avatar initials="EF" />
+						<Avatar initials="GH" />
+						<Avatar initials="+3" alt="3 more" />
+					</AvatarGroup>
+				)}
+			/>
 		</>
 	)
 }

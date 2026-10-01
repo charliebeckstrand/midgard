@@ -4,15 +4,11 @@ import { LoadingDots, LoadingSpinner } from '../../../components/loading'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { capitalize, Example, LabeledColumn, SizeListbox } from '../../engine'
-
-const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+import { Axes, Example, SizeListbox } from '../../engine'
 
 const buttonSizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type ButtonSize = (typeof buttonSizes)[number]
-
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 export function Demo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
@@ -27,29 +23,7 @@ export function Demo() {
 				<TabContents>
 					<TabContent value="spinner">
 						<Stack gap="xl">
-							<Example title="Default">
-								<LoadingSpinner />
-							</Example>
-
-							<Example title="Sizes">
-								<Flex gap="lg" align="end">
-									{sizes.map((s) => (
-										<LabeledColumn key={s} label={s}>
-											<LoadingSpinner size={s} />
-										</LabeledColumn>
-									))}
-								</Flex>
-							</Example>
-
-							<Example title="Colors">
-								<Flex gap="lg">
-									{colors.map((c) => (
-										<LabeledColumn key={c} label={capitalize(c)}>
-											<LoadingSpinner color={c} size="lg" />
-										</LabeledColumn>
-									))}
-								</Flex>
-							</Example>
+							<Axes of="LoadingSpinner" render={(props) => <LoadingSpinner {...props} />} />
 
 							<Example
 								title="Inside a button"
@@ -74,29 +48,7 @@ export function Demo() {
 					</TabContent>
 					<TabContent value="dots">
 						<Stack gap="xl">
-							<Example title="Default">
-								<LoadingDots />
-							</Example>
-
-							<Example title="Sizes">
-								<Flex gap="lg" align="end">
-									{sizes.map((s) => (
-										<LabeledColumn key={s} label={s}>
-											<LoadingDots size={s} />
-										</LabeledColumn>
-									))}
-								</Flex>
-							</Example>
-
-							<Example title="Colors">
-								<Flex gap="lg">
-									{colors.map((c) => (
-										<LabeledColumn key={c} label={capitalize(c)}>
-											<LoadingDots color={c} size="lg" />
-										</LabeledColumn>
-									))}
-								</Flex>
-							</Example>
+							<Axes of="LoadingDots" render={(props) => <LoadingDots {...props} />} />
 
 							<Example
 								title="Inside a button"

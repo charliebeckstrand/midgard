@@ -1,15 +1,7 @@
 'use client'
 
+import { sizeLabels } from './format'
 import { OptionsListbox } from './options-listbox'
-
-/** Display labels for the standard size scale, keyed by token. Backs {@link SizeListbox}. */
-export const sizeLabels: Record<string, string> = {
-	xs: 'Extra small',
-	sm: 'Small',
-	md: 'Medium',
-	lg: 'Large',
-	xl: 'Extra large',
-}
 
 type SizeListboxProps<T extends string> = {
 	sizes: readonly T[]

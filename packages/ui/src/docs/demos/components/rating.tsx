@@ -5,9 +5,7 @@ import { Form } from '../../../components/form'
 import { Rating, RatingSkeleton } from '../../../components/rating'
 import { Text } from '../../../components/text'
 import { Stack } from '../../../structure/stack'
-import { capitalize, Example, LabeledRow, LabeledRows } from '../../engine'
-
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+import { Axes, Example, LabeledRow, LabeledRows } from '../../engine'
 
 const sizes = ['sm', 'md', 'lg'] as const
 
@@ -71,27 +69,12 @@ function FormExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="Rating"
+				render={(props, label) => <Rating {...props} aria-label={label} defaultValue={3} />}
+			/>
+
 			<InteractiveExample />
-
-			<Example title="Sizes">
-				<LabeledRows>
-					{sizes.map((size, index) => (
-						<LabeledRow key={size} label={size}>
-							<Rating aria-label={size} size={size} defaultValue={index + 3} />
-						</LabeledRow>
-					))}
-				</LabeledRows>
-			</Example>
-
-			<Example title="Colors">
-				<LabeledRows>
-					{colors.map((color, index) => (
-						<LabeledRow key={color} label={capitalize(color)}>
-							<Rating aria-label={capitalize(color)} color={color} defaultValue={index + 1} />
-						</LabeledRow>
-					))}
-				</LabeledRows>
-			</Example>
 
 			<Example title="Read-only averages">
 				<LabeledRows>
@@ -123,10 +106,6 @@ export function Demo() {
 
 			<Example title="In a form">
 				<FormExample />
-			</Example>
-
-			<Example title="Disabled">
-				<Rating aria-label="Disabled" disabled defaultValue={3} />
 			</Example>
 
 			<Example title="Skeleton">

@@ -2,13 +2,30 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { Card, CardBody } from '../../../components/card'
 import { Icon } from '../../../components/icon'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../../components/stat'
-import { Flex } from '../../../structure/flex'
-import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="StatDelta"
+				captions={false}
+				title="Delta"
+				render={(props, label) => <StatDelta {...props}>{label}</StatDelta>}
+			/>
+
+			<Axes
+				of="StatValue"
+				captions={false}
+				title="Value"
+				render={(props, label) => (
+					<Stat>
+						<StatLabel>{label}</StatLabel>
+						<StatValue {...props}>$1,234</StatValue>
+					</Stat>
+				)}
+			/>
+
 			<Example title="Default">
 				<Stat>
 					<StatLabel>Monthly recurring revenue</StatLabel>
@@ -26,31 +43,6 @@ export function Demo() {
 					</StatDelta>
 					<StatDescription>vs. last month</StatDescription>
 				</Stat>
-			</Example>
-
-			<Example title="Trends">
-				<Stack gap="sm">
-					<StatDelta trend="up">
-						<Icon icon={<ArrowUp />} size="xs" />
-						12.5%
-					</StatDelta>
-					<StatDelta trend="down">
-						<Icon icon={<ArrowDown />} size="xs" />
-						4.2%
-					</StatDelta>
-					<StatDelta trend="neutral">0.0%</StatDelta>
-				</Stack>
-			</Example>
-
-			<Example title="Value sizes">
-				<Flex wrap align="end" gap="xl">
-					{(['sm', 'md', 'lg'] as const).map((s) => (
-						<Stat key={s}>
-							<StatLabel>Size {s}</StatLabel>
-							<StatValue size={s}>$1,234</StatValue>
-						</Stat>
-					))}
-				</Flex>
 			</Example>
 
 			<Example title="Dashboard grid">

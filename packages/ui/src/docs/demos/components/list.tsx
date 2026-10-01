@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { List, ListDescription, ListItem, ListLabel } from '../../../components/list'
 import { Stack } from '../../../structure/stack'
-import { Example, VariantListbox } from '../../engine'
-
-const variants = ['separated', 'outline', 'plain', 'solid'] as const
+import { Axes, Example } from '../../engine'
 
 type Task = { id: string; label: string; description?: string }
 
@@ -12,6 +10,13 @@ const initialTasks: Task[] = [
 	{ id: 'b', label: 'Write pointer-event reordering logic' },
 	{ id: 'c', label: 'Add keyboard a11y (Space to grab, arrows to move)' },
 	{ id: 'd', label: 'Ship docs and tests' },
+]
+
+// Short labels keep a horizontal list inside its frame.
+const stages: Task[] = [
+	{ id: 'plan', label: 'Plan' },
+	{ id: 'build', label: 'Build' },
+	{ id: 'ship', label: 'Ship' },
 ]
 
 const describedTasks: Task[] = [
@@ -32,27 +37,6 @@ const describedTasks: Task[] = [
 	},
 	{ id: 'd', label: 'Ship docs and tests', description: 'Vertical, horizontal, disabled states' },
 ]
-
-function DefaultExample() {
-	const [variant, setVariant] = useState<(typeof variants)[number]>('separated')
-
-	return (
-		<Example
-			title="Default"
-			actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
-		>
-			<Stack gap="sm">
-				<List variant={variant} sortable={false} items={initialTasks} aria-label="Tasks">
-					{(task) => (
-						<ListItem>
-							<ListLabel>{task.label}</ListLabel>
-						</ListItem>
-					)}
-				</List>
-			</Stack>
-		</Example>
-	)
-}
 
 function VerticalExample() {
 	const [tasks, setTasks] = useState(initialTasks)
@@ -99,20 +83,6 @@ function HorizontalExample() {
 	)
 }
 
-function ReadOnlyExample() {
-	return (
-		<Example title="Read-only">
-			<List items={initialTasks} getKey={(t) => t.id}>
-				{(task) => (
-					<ListItem>
-						<ListLabel>{task.label}</ListLabel>
-					</ListItem>
-				)}
-			</List>
-		</Example>
-	)
-}
-
 function WithDescriptionsExample() {
 	const [tasks, setTasks] = useState(describedTasks)
 
@@ -130,31 +100,44 @@ function WithDescriptionsExample() {
 	)
 }
 
-function DisabledExample() {
-	const [tasks, setTasks] = useState(initialTasks)
-
-	return (
-		<Example title="Disabled">
-			<List items={tasks} getKey={(t) => t.id} onReorder={setTasks} disabled>
-				{(task) => (
-					<ListItem>
-						<ListLabel>{task.label}</ListLabel>
-					</ListItem>
-				)}
-			</List>
-		</Example>
-	)
-}
-
 export function Demo() {
 	return (
 		<>
-			<DefaultExample />
+			<Axes
+				of="List"
+				omit={['sortable', 'virtual']}
+				render={(props, label) => (
+					<div className="w-80">
+						<List {...props} items={stages} getKey={(stage) => stage.id} aria-label={label}>
+							{(stage) => (
+								<ListItem>
+									<ListLabel>{stage.label}</ListLabel>
+								</ListItem>
+							)}
+						</List>
+					</div>
+				)}
+			/>
+
+			<Axes
+				of="ListItem"
+				title="List item"
+				render={(props, label) => (
+					<div className="w-80">
+						<List variant="plain" sortable={false} items={stages} aria-label={label}>
+							{(stage) => (
+								<ListItem {...props}>
+									<ListLabel>{stage.label}</ListLabel>
+								</ListItem>
+							)}
+						</List>
+					</div>
+				)}
+			/>
+
 			<VerticalExample />
 			<HorizontalExample />
 			<WithDescriptionsExample />
-			<ReadOnlyExample />
-			<DisabledExample />
 		</>
 	)
 }

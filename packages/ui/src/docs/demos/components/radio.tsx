@@ -1,30 +1,29 @@
 import { Description, Label } from '../../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../../components/radio'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
 
 const plans = ['Starter', 'Business', 'Enterprise'] as const
-const colors = ['blue', 'green', 'red'] as const
 
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="Radio"
+				captions={false}
+				render={(props, label) => (
+					<RadioField>
+						<Radio {...props} defaultChecked />
+						<Label>{label}</Label>
+					</RadioField>
+				)}
+			/>
+
 			<Example title="Default">
 				<RadioGroup aria-label="Plan">
 					{plans.map((plan) => (
 						<RadioField key={plan}>
 							<Radio name="plan" value={plan} defaultChecked={plan === 'Starter'} />
 							<Label>{plan}</Label>
-						</RadioField>
-					))}
-				</RadioGroup>
-			</Example>
-
-			<Example title="Colors">
-				<RadioGroup aria-label="Color">
-					{colors.map((color) => (
-						<RadioField key={color}>
-							<Radio name="color" value={color} color={color} defaultChecked={color === 'blue'} />
-							<Label>{color}</Label>
 						</RadioField>
 					))}
 				</RadioGroup>

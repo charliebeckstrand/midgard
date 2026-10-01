@@ -1,53 +1,40 @@
 import { Button } from '../../../components/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { GlassProvider } from '../../../providers/glass'
 import { Flex } from '../../../structure/flex'
-import { Example } from '../../engine'
-
-const placements = ['left', 'top', 'bottom', 'right'] as const
+import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Tooltip>
-					<TooltipTrigger>
-						<Button variant="outline">Hover me</Button>
-					</TooltipTrigger>
-					<TooltipContent>This is a tooltip</TooltipContent>
-				</Tooltip>
-			</Example>
+			<Axes
+				of="Tooltip"
+				captions={false}
+				omit={['open']}
+				render={(props, label) => (
+					<Tooltip {...props}>
+						<TooltipTrigger>
+							<Button variant="outline">{label}</Button>
+						</TooltipTrigger>
 
-			<Example title="Placement">
-				<Flex wrap justify="center" gap="lg" className="py-8">
-					{placements.map((placement) => (
-						<Tooltip key={placement} placement={placement}>
-							<TooltipTrigger>
-								<Button variant="outline">{placement}</Button>
-							</TooltipTrigger>
-							<TooltipContent>Tooltip on {placement}</TooltipContent>
-						</Tooltip>
-					))}
-				</Flex>
-			</Example>
+						<TooltipContent>This is a tooltip</TooltipContent>
+					</Tooltip>
+				)}
+			/>
 
-			<Example title="Click trigger">
-				<Tooltip trigger="click">
-					<TooltipTrigger>
-						<Button variant="outline">Click me</Button>
-					</TooltipTrigger>
-					<TooltipContent>This tooltip opens on a click or a tap.</TooltipContent>
-				</Tooltip>
-			</Example>
+			<Axes
+				of="TooltipContent"
+				captions={false}
+				title="Tooltip content"
+				render={(props, label) => (
+					<Tooltip>
+						<TooltipTrigger>
+							<Button variant="outline">{label}</Button>
+						</TooltipTrigger>
 
-			<Example title="Interactive">
-				<Tooltip interactive>
-					<TooltipTrigger>
-						<Button variant="outline">Hover me</Button>
-					</TooltipTrigger>
-					<TooltipContent>This tooltip stays open when you hover over it.</TooltipContent>
-				</Tooltip>
-			</Example>
+						<TooltipContent {...props}>This is a tooltip</TooltipContent>
+					</Tooltip>
+				)}
+			/>
 
 			<Example title="Interactive with controls">
 				<Tooltip interactive>
@@ -72,17 +59,6 @@ export function Demo() {
 					</TooltipTrigger>
 					<TooltipContent>This tooltip has a delay of 1000ms before it opens.</TooltipContent>
 				</Tooltip>
-			</Example>
-
-			<Example title="Glass">
-				<GlassProvider>
-					<Tooltip>
-						<TooltipTrigger>
-							<Button variant="outline">Hover me</Button>
-						</TooltipTrigger>
-						<TooltipContent>This tooltip has a glass surface.</TooltipContent>
-					</Tooltip>
-				</GlassProvider>
 			</Example>
 		</>
 	)

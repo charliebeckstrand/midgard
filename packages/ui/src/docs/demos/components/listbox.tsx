@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
-import { Example } from '../../engine'
+import { Axes, Example } from '../../engine'
+
+// The selected value starts in lower case and is long, so the `capitalize` and
+// `truncate` axes show a change.
+const stages = ['awaiting approval from finance', 'in review', 'shipped']
 
 const statuses = [
 	{ value: 'active', label: 'Active' },
@@ -59,6 +63,27 @@ function MultiListboxExample() {
 export function Demo() {
 	return (
 		<>
+			<Axes
+				of="Listbox"
+				omit={['placement', 'open', 'multiple', 'required', 'nullable']}
+				render={(props, label) => (
+					<div className="w-48">
+						<Listbox
+							{...props}
+							aria-label={label}
+							defaultValue={stages[0]}
+							displayValue={(v: string) => v}
+						>
+							{stages.map((stage) => (
+								<ListboxOption key={stage} value={stage}>
+									<ListboxLabel>{stage}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+					</div>
+				)}
+			/>
+
 			<Example title="Single">
 				<SingleListboxExample />
 			</Example>

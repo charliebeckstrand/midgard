@@ -1,112 +1,48 @@
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { Button } from '../../../components/button'
-import { Icon } from '../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Text } from '../../../components/text'
-import { GlassProvider } from '../../../providers/glass'
-import { Flex } from '../../../structure/flex'
-import { Stack } from '../../../structure/stack'
-import { Example } from '../../engine'
-
-const placements = ['left', 'top', 'bottom', 'right'] as const
-
-const iconMap = {
-	left: <ChevronLeft />,
-	top: <ChevronUp />,
-	bottom: <ChevronDown />,
-	right: <ChevronRight />,
-}
-
-const popoverContent = (
-	<>
-		<Text>Popover content</Text>
-		<Text tone="muted">This is a general-purpose floating container.</Text>
-	</>
-)
+import { Axes } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Popover>
-					<PopoverTrigger>
-						<Button variant="outline">
-							Open popover
-							<Icon icon={<ChevronDown />} />
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent>{popoverContent}</PopoverContent>
-				</Popover>
-			</Example>
+			<Axes
+				of="Popover"
+				captions={false}
+				omit={['open', 'defaultOpen']}
+				render={(props, label) => (
+					<Popover {...props}>
+						<PopoverTrigger>
+							<Button variant="outline">{label}</Button>
+						</PopoverTrigger>
 
-			<Example title="Placement">
-				<div>
-					<Flex justify="center" gap="lg" className="hidden sm:flex">
-						{placements.map((placement) => {
-							const isLeading = placement === 'left' || placement === 'top'
+						<PopoverContent>
+							<Text>Popover content</Text>
+							<Text tone="muted">This is a general-purpose floating container.</Text>
+						</PopoverContent>
+					</Popover>
+				)}
+			/>
 
-							const iconNode = <Icon icon={iconMap[placement]} />
-
-							return (
-								<Popover key={placement} placement={placement}>
-									<PopoverTrigger>
-										<Button
-											variant="outline"
-											prefix={isLeading ? iconNode : undefined}
-											suffix={isLeading ? undefined : iconNode}
-										>
-											{placement}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent>Popover {placement}</PopoverContent>
-								</Popover>
-							)
-						})}
-					</Flex>
-					<Stack gap="lg" className="sm:hidden">
-						<Stack gap="lg">
-							{(['right', 'bottom'] as const).map((placement) => (
-								<Popover key={placement} placement={placement}>
-									<PopoverTrigger>
-										<Button variant="outline" className="self-start">
-											{placement}
-											<Icon icon={iconMap[placement]} />
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent>Popover {placement}</PopoverContent>
-								</Popover>
-							))}
-						</Stack>
-						<Stack gap="lg" align="end">
-							{(['top', 'left'] as const).map((placement) => (
-								<Popover key={placement} placement={placement}>
-									<PopoverTrigger>
-										<Button variant="outline" className="self-end">
-											<Icon icon={iconMap[placement]} />
-											{placement}
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent>Popover {placement}</PopoverContent>
-								</Popover>
-							))}
-						</Stack>
-					</Stack>
-				</div>
-			</Example>
-
-			<Example title="Glass">
-				<GlassProvider>
+			<Axes
+				of="PopoverContent"
+				captions={false}
+				title="Popover content"
+				render={(props, label) => (
 					<Popover>
 						<PopoverTrigger>
-							<Button variant="outline">
-								Open popover
-								<Icon icon={<ChevronDown />} />
-							</Button>
+							<Button variant="outline">{label}</Button>
 						</PopoverTrigger>
-						<PopoverContent>{popoverContent}</PopoverContent>
+
+						<PopoverContent {...props}>
+							<Text>Popover content</Text>
+							<Text tone="muted">This is a general-purpose floating container.</Text>
+
+							<Button variant="outline">Action</Button>
+						</PopoverContent>
 					</Popover>
-				</GlassProvider>
-			</Example>
+				)}
+			/>
 		</>
 	)
 }
