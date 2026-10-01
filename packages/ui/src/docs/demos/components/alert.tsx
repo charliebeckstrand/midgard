@@ -25,36 +25,13 @@ function ClosableExample() {
 	)
 }
 
-function ClosableBlockExample() {
-	const [visible, setVisible] = useState(true)
-
-	if (!visible) {
-		return (
-			<Button variant="soft" color="red" onClick={() => setVisible(true)}>
-				Reset
-			</Button>
-		)
-	}
-
-	return (
-		<Alert
-			className="w-full"
-			severity="info"
-			title="Full-width alert"
-			description="This alert stretches to fill its container."
-			closable
-			onOpenChange={(open) => setVisible(open)}
-		/>
-	)
-}
-
 export function Demo() {
 	return (
 		<>
 			<Axes
 				of="Alert"
 				captions={false}
-				omit={['open', 'defaultOpen']}
+				omit={['open', 'defaultOpen', 'closable']}
 				render={(props, label) => <Alert {...props} title={label} />}
 			/>
 
@@ -80,7 +57,12 @@ export function Demo() {
 			</Example>
 
 			<Example title="Block">
-				<ClosableBlockExample />
+				<Alert
+					className="w-full"
+					severity="info"
+					title="Full-width alert"
+					description="This alert stretches to fill its container."
+				/>
 			</Example>
 		</>
 	)
