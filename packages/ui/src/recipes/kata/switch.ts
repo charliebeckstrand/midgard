@@ -93,11 +93,14 @@ export const k = defineRecipe(
 		 * The thumb: the sibling that follows the native input. It moves and takes
 		 * the colors of the switch when the input is checked, and it takes the step
 		 * of the nearest density scope. Each class selects the thumb itself, so
-		 * Chromium tests the rules only against the thumbs.
+		 * Chromium tests the rules only against the thumbs. The resting offset
+		 * applies only to an unchecked input: a plain `left` is not in a density
+		 * sublayer, so it wins over the stepped offset of the checked thumb.
 		 */
 		thumb: defineRecipe({
 			base: [
-				'absolute top-1 left-1 inline-block',
+				'absolute top-1 inline-block',
+				'[:not(:checked)~&]:left-1',
 				'bg-white ring-1 ring-zinc-950/5',
 				'shadow-sm',
 				rounded.full,
