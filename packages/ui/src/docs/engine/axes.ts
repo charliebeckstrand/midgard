@@ -1,3 +1,5 @@
+import { isDensityStep } from '../../core/density/steps'
+import { clamp } from '../../utilities/clamp'
 import type { ComponentApi } from './api-reference'
 
 /** One value of a finite prop type: a string, number, or boolean literal. */
@@ -107,4 +109,54 @@ export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] 
 	}
 
 	return axes
+}
+
+/**
+ * Whether each value of an axis is a density step, such as the `size` of a
+ * component that writes its step as a density scope.
+ */
+export function isStepAxis(axis: Axis): boolean {
+	return axis.values.every(isDensityStep)
+}
+
+/**
+ * Drop each value that renders the same as its neighbor. A stepped class of
+ * three values gives `xs` the value of `sm`, and `xl` the value of `lg`. Thus
+ * a component can render fewer steps than its type admits.
+ *
+ * @remarks
+ * Equal neighbors make a run. The run keeps the value nearest the default, or
+ * the middle value when the axis has no default. Thus `xs` and `sm` keep `sm`,
+ * and `lg` and `xl` keep `lg`. A `null` signature is equal to no other.
+ *
+ * @param signatureOf - The rendered form of an instance of `value`, or `null` when it is not known.
+ */
+export function distinctValues(
+	axis: Axis,
+	signatureOf: (value: AxisValue) => string | null,
+): AxisValue[] {
+	const { values } = axis
+
+	const anchor = axis.default === undefined ? (values.length - 1) / 2 : values.indexOf(axis.default)
+
+	const signatures = values.map(signatureOf)
+
+	const kept: AxisValue[] = []
+
+	let start = 0
+
+	for (let index = 0; index < values.length; index++) {
+		const signature = signatures[index]
+
+		if (signature !== null && signature === signatures[index + 1]) continue
+
+		// The run is `start` through `index`. Keep its value nearest the anchor.
+		const nearest = clamp(Math.round(anchor), start, index)
+
+		kept.push(values[nearest] as AxisValue)
+
+		start = index + 1
+	}
+
+	return kept
 }

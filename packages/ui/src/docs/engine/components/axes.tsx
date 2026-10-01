@@ -1,10 +1,11 @@
 'use client'
 
-import { type ReactNode, Suspense, use, useState } from 'react'
-import { createContext } from '../../../core'
+import { type ReactNode, type Ref, Suspense, use, useLayoutEffect, useRef, useState } from 'react'
+import { createContext, type DensityStep } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
-import { type Axis, type AxisValue, axesOf } from '../axes'
+import { type Axis, type AxisValue, axesOf, distinctValues, isStepAxis } from '../axes'
+import { stepSignature } from '../step-signature'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
 import { OptionsListbox } from './options-listbox'
@@ -69,6 +70,10 @@ type AxesProps = {
  * playground. A new value in the source of the component thus shows on the
  * page with no change to the demo.
  *
+ * An axis of density steps shows only the steps that render distinctly. A
+ * value that renders as its neighbor drops from the example and from the
+ * picker ({@link distinctValues}).
+ *
  * Without API data, for example in a test run, it renders nothing.
  */
 export function Axes(props: AxesProps) {
@@ -114,6 +119,38 @@ function AxesExamples({
 		Object.fromEntries(axes.map((axis) => [axis.name, axis.default])),
 	)
 
+	const stepAxes = axes.filter(isStepAxis)
+
+	// The wrapper of each instance, keyed `axis:value`.
+	const instances = useRef(new Map<string, Element>())
+
+	// The values of each step axis that render distinctly. A step axis with no
+	// entry shows each value until the next read.
+	const [distinct, setDistinct] = useState<Record<string, AxisValue[]>>({})
+
+	// Read each step axis with no entry after the commit, before the paint. The
+	// read takes the DOM and no layout, so it gives one answer in each
+	// environment.
+	useLayoutEffect(() => {
+		const unread = stepAxes.filter((axis) => !distinct[axis.name])
+
+		if (unread.length === 0) return
+
+		const read = unread.map((axis) => {
+			const values = distinctValues(axis, (value) => {
+				const instance = instances.current.get(`${axis.name}:${value}`)
+
+				return instance ? stepSignature(instance, value as DensityStep, valueLabel(value)) : null
+			})
+
+			return [axis.name, values] as const
+		})
+
+		setDistinct((prev) => ({ ...prev, ...Object.fromEntries(read) }))
+	})
+
+	const valuesOf = (axis: Axis) => distinct[axis.name] ?? axis.values
+
 	const propsWith = (name?: string, value?: AxisValue) => {
 		const merged = name === undefined ? state : { ...state, [name]: value }
 
@@ -133,8 +170,15 @@ function AxesExamples({
 							<AxisPicker
 								key={axis.name}
 								axis={axis}
+								values={valuesOf(axis)}
 								value={state[axis.name]}
-								onValueChange={(value) => setState((prev) => ({ ...prev, [axis.name]: value }))}
+								onValueChange={(value) => {
+									setState((prev) => ({ ...prev, [axis.name]: value }))
+
+									// The example of each other axis takes the new value, so its read is
+									// stale. The example of this axis does not read its own value.
+									setDistinct(({ [axis.name]: own }) => (own ? { [axis.name]: own } : {}))
+								}}
 							/>
 						))}
 					</Flex>
@@ -146,8 +190,15 @@ function AxesExamples({
 			{axes.map((axis) => (
 				<Example key={axis.name} title={axisTitle(axis.name, title)}>
 					<Flex wrap gap="sm" align={captions ? 'start' : 'center'}>
-						{axis.values.map((value) => (
-							<AxisInstance key={String(value)} label={valueLabel(value)} caption={captions}>
+						{valuesOf(axis).map((value) => (
+							<AxisInstance
+								key={String(value)}
+								label={valueLabel(value)}
+								caption={captions}
+								ref={(element) => {
+									if (element) instances.current.set(`${axis.name}:${value}`, element)
+								}}
+							>
 								{render(propsWith(axis.name, value), valueLabel(value))}
 							</AxisInstance>
 						))}
@@ -186,15 +237,17 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
 function AxisInstance({
 	label,
 	caption,
+	ref,
 	children,
 }: {
 	label: string
 	caption: boolean
+	ref?: Ref<HTMLDivElement> | undefined
 	children: ReactNode
 }) {
 	if (!caption) {
 		return (
-			<div data-slot="axis-value" data-label={label} className="contents">
+			<div ref={ref} data-slot="axis-value" data-label={label} className="contents">
 				{children}
 			</div>
 		)
@@ -202,6 +255,7 @@ function AxisInstance({
 
 	return (
 		<div
+			ref={ref}
 			data-slot="axis-value"
 			data-label={label}
 			data-caption=""
@@ -221,18 +275,25 @@ const UNSET = 'unset'
 
 function AxisPicker({
 	axis,
+	values,
 	value,
 	onValueChange,
 }: {
 	axis: Axis
+	/** The values to offer: the values of the axis that render distinctly. */
+	values: readonly AxisValue[]
 	value: AxisValue | undefined
 	onValueChange: (value: AxisValue | undefined) => void
 }) {
+	// The picker keeps its current value as an option. Another axis can make that
+	// value render the same as a neighbor after the reader picks it.
+	const offered = axis.values.filter((v) => values.includes(v) || v === value)
+
 	// An axis with no documented default offers an unset option, so the component
 	// takes its own fallback, such as the step of the nearest density scope.
 	const options = [
 		...(axis.default === undefined ? [{ value: UNSET, label: 'Default' }] : []),
-		...axis.values.map((v) => ({ value: JSON.stringify(v), label: valueLabel(v) })),
+		...offered.map((v) => ({ value: JSON.stringify(v), label: valueLabel(v) })),
 	]
 
 	return (
