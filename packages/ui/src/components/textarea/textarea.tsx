@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -14,7 +14,7 @@ import { useControlProps } from '../control/use-control-props'
 import { useInputValue } from '../input/use-input-value'
 import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
-/** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, and the remaining `<textarea>` surface. */
+/** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, an `invalid` override, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: DensityStep
 	variant?: ControlVariant
@@ -27,6 +27,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	autoResize?: boolean
 	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none`. */
 	actions?: ReactNode
+	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
+	invalid?: boolean
 	/** Controlled value. `undefined` leaves the textarea uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: ComponentProps<'textarea'>['value'] | null
 } & Omit<ComponentProps<'textarea'>, 'className' | 'size' | 'value'>
@@ -48,6 +50,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * A set `size` opens a density scope. The actions row gets the affix size, one
  * step below the textarea, as the Input affixes do. Under headless context the
  * frame, the recipe classes, and the actions row are all skipped.
+ * `invalid` forces the validation state on or off. When omitted, the state
+ * comes from the bound field and an enclosing Control, as on Input.
  */
 export function Textarea({
 	className,
@@ -61,6 +65,7 @@ export function Textarea({
 	disabled,
 	required,
 	readOnly,
+	invalid,
 	name,
 	value,
 	defaultValue,
@@ -121,7 +126,8 @@ export function Textarea({
 		onChange: valueState.onChange,
 		onBlur: valueState.onBlur,
 		'aria-describedby': resolvedDescribedBy,
-		...validation,
+		// An explicit `invalid` fully controls the validation chrome, as on Input.
+		...(invalid === undefined ? validation : invalidAttrs(invalid)),
 	}
 
 	// Under headless context the actions row is not rendered, so it sets no layout.

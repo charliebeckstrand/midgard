@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
+import { Control } from '../../components/control'
 import { Form } from '../../components/form'
 import { Textarea, TextareaSkeleton } from '../../components/textarea'
 import { HeadlessProvider } from '../../providers/headless'
@@ -160,6 +161,44 @@ describe('Textarea', () => {
 		expect(warned).toBe(false)
 
 		error.mockRestore()
+	})
+})
+
+describe('Textarea invalid', () => {
+	it('marks the field invalid with `invalid`', () => {
+		const { container } = renderUI(<Textarea aria-label="Notes" invalid />)
+
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		expect(el).toHaveAttribute('aria-invalid', 'true')
+
+		expect(el).toHaveAttribute('data-invalid')
+	})
+
+	it('leaves the field valid when `invalid` is omitted', () => {
+		const { container } = renderUI(<Textarea aria-label="Notes" />)
+
+		expect(getSlot(container, 'textarea')).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('lets `invalid={false}` win over an error from the enclosing Control', () => {
+		const { container } = renderUI(
+			<Control severity="error">
+				<Textarea aria-label="Notes" invalid={false} />
+			</Control>,
+		)
+
+		expect(getSlot(container, 'textarea')).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('takes the error of the enclosing Control when `invalid` is omitted', () => {
+		const { container } = renderUI(
+			<Control severity="error">
+				<Textarea aria-label="Notes" />
+			</Control>,
+		)
+
+		expect(getSlot(container, 'textarea')).toHaveAttribute('aria-invalid', 'true')
 	})
 })
 
