@@ -18,6 +18,13 @@ export type StepperProps = Omit<
 	'className' | 'children' | 'onKeyDown' | 'aria-label' | 'aria-orientation' | 'defaultValue'
 > & {
 	/**
+	 * The accessible name of the step row. Give each stepper its own name when
+	 * a page shows more than one.
+	 *
+	 * @defaultValue 'Steps'
+	 */
+	'aria-label'?: string
+	/**
 	 * Controlled current step index. Pair with `onValueChange`.
 	 *
 	 * @remarks
@@ -92,6 +99,7 @@ export function Stepper({
 	linear = false,
 	orientation,
 	mount = 'active',
+	'aria-label': ariaLabel = 'Steps',
 	className,
 	children,
 	...props
@@ -159,7 +167,7 @@ export function Stepper({
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}
 			role="toolbar"
-			aria-label="Steps"
+			aria-label={ariaLabel}
 			aria-orientation={resolvedOrientation}
 			onKeyDown={interactive ? handleKeyDown : undefined}
 			className={cn(k.root({ orientation: layout }), className)}

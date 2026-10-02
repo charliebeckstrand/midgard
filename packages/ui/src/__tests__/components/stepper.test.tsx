@@ -28,6 +28,27 @@ describe('Stepper', () => {
 
 		expect(screen.getByRole('toolbar', { name: 'Steps' })).toBeInTheDocument()
 	})
+
+	it('takes an aria-label, so two steppers on one page have distinct names', () => {
+		renderUI(
+			<>
+				<Stepper value={0} aria-label="Checkout">
+					<StepperStep value={0}>
+						<StepperTitle>Cart</StepperTitle>
+					</StepperStep>
+				</Stepper>
+				<Stepper value={0} aria-label="Onboarding">
+					<StepperStep value={0}>
+						<StepperTitle>Profile</StepperTitle>
+					</StepperStep>
+				</Stepper>
+			</>,
+		)
+
+		expect(screen.getByRole('toolbar', { name: 'Checkout' })).toBeInTheDocument()
+
+		expect(screen.getByRole('toolbar', { name: 'Onboarding' })).toBeInTheDocument()
+	})
 })
 
 describe('StepperTitle', () => {
