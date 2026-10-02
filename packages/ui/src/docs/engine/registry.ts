@@ -56,7 +56,7 @@ let loaderById = new Map<string, () => Promise<ComponentType>>()
 // React's `use()` returns synchronously only when a promise carries
 // `status`/`value`/`reason`; an untagged promise suspends on first read even
 // when settled.
-type TrackedPromise<T> = Promise<T> & {
+export type TrackedPromise<T> = Promise<T> & {
 	status?: 'pending' | 'fulfilled' | 'rejected'
 	value?: T
 	reason?: unknown
@@ -74,7 +74,7 @@ type TrackedPromise<T> = Promise<T> & {
  * failing would then import without end, and the boundary would never render.
  * {@link retryDemo} evicts a rejection at the points that mean "try again".
  */
-function tracked<T>(
+export function tracked<T>(
 	cache: Map<string, TrackedPromise<T>>,
 	id: string,
 	start: () => Promise<T>,
@@ -174,6 +174,24 @@ export function loadComponentApi(id: string): Promise<ComponentApi[]> {
 	})
 }
 
+const apiSettledCache = new Map<string, TrackedPromise<void>>()
+
+/**
+ * Return a cached promise that settles when the API data of the component
+ * loads or fails. It does not reject. The page suspends on it, so that the
+ * playground of `Axes`, which needs the data, paints with the rest of the
+ * page. A failure stays in {@link loadComponentApi}, where the readers of the
+ * data see it.
+ */
+export function settleComponentApi(id: string): Promise<void> {
+	return tracked(apiSettledCache, id, () =>
+		loadComponentApi(id).then(
+			() => {},
+			() => {},
+		),
+	)
+}
+
 // `demos` and `defaultDemo` are live bindings populated by initRegistry; the
 // chrome reads them at render time, after the consumer's entry has mounted.
 export let demos: Demo[] = []
@@ -227,13 +245,17 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 
 	defaultDemo = demos[0]?.id || ''
 
-	// Start the initial demo's import and expose the promise; the entry awaits
-	// it before mounting.
+	// Start the imports of the initial demo and of its API data, and expose the
+	// promise. The entry awaits it before it mounts, so that the first paint
+	// shows the whole page.
 	const initialId =
 		typeof window === 'undefined' ? '' : window.location.hash.slice(1) || defaultDemo
 
 	const initialPreload: Promise<unknown> = loaderById.has(initialId)
-		? loadDemo(initialId)
+		? Promise.all([
+				loadDemo(initialId),
+				hasComponentApi(initialId) && settleComponentApi(initialId),
+			])
 		: Promise.resolve()
 
 	return { initialPreload }

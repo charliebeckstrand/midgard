@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app'
+import { preloadDebugTools } from './debug/registry'
 import { type DemoLoaders, initRegistry } from './registry'
 
 export type { DemoLoaders } from './registry'
@@ -13,8 +14,9 @@ const RELOADED = 'docs:preload-error-reloaded'
 
 /**
  * Boot a docs site over the given demo loaders. Binds the registry, awaits the
- * initial route's chunk, then mounts {@link App} into `rootEl` (or `#root`).
- * The single call the docs-site entry (`src/docs/main.tsx`) makes:
+ * chunks of the initial route and of the debug tools that are on, then mounts
+ * {@link App} into `rootEl` (or `#root`). The single call the docs-site entry
+ * (`src/docs/main.tsx`) makes:
  *
  * ```ts
  * import { mount } from './engine/host'
@@ -59,7 +61,8 @@ export function mount(loaders: DemoLoaders, rootEl?: HTMLElement | null) {
 
 	const { initialPreload } = initRegistry(loaders)
 
-	initialPreload
+	// The header paints with the parts of the debug tools that are on.
+	Promise.all([initialPreload, preloadDebugTools()])
 		.catch(() => {})
 		.then(() => {
 			createRoot(root).render(

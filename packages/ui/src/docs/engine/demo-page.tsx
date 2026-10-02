@@ -12,7 +12,7 @@ import { ApiReference } from './components/api-reference'
 import { DemoApiContext } from './components/axes'
 import { DemoErrorBoundary } from './components/error-boundary'
 import type { Demo } from './registry'
-import { hasComponentApi, loadComponentApi, loadDemo } from './registry'
+import { hasComponentApi, loadComponentApi, loadDemo, settleComponentApi } from './registry'
 
 /**
  * The route body for one demo. It holds the lazily-loaded component, a
@@ -29,6 +29,11 @@ export function DemoPage({
 	onToggleLocked: () => void
 }) {
 	const Component = use(loadDemo(demo.id))
+
+	// The playground of `Axes` needs the API data. The page waits for the data,
+	// so that the playground does not paint after the examples below it and push
+	// them down.
+	if (hasComponentApi(demo.id)) use(settleComponentApi(demo.id))
 
 	return (
 		<Fragment>
@@ -51,12 +56,11 @@ export function DemoPage({
 					<Component />
 				</DemoApiContext>
 				{hasComponentApi(demo.id) && (
-					// Its own suspense boundary so the demo paints immediately while the
-					// API data's chunk streams in, rather than suspending the whole route,
-					// and its own error boundary so a failed chunk degrades to nothing
-					// instead of replacing the already-rendered demo through the
-					// route-level boundary. The rejection stays cached, so the section
-					// stays empty until a sidebar prefetch re-attempts it.
+					// The page waits for the API data, so the data is ready here, except
+					// after a failure and a retry. Its own error boundary makes a failed
+					// chunk degrade to nothing, instead of replacing the already-rendered
+					// demo through the route-level boundary. The rejection stays cached,
+					// so the section stays empty until a sidebar prefetch re-attempts it.
 					<DemoErrorBoundary fallback={() => null}>
 						<Suspense fallback={null}>
 							<ApiReferenceSection id={demo.id} />

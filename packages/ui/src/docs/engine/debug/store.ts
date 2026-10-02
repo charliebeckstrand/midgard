@@ -21,6 +21,11 @@ function read(): readonly string[] {
 /** The ids of the tools that are on. It is a new array after each change, so a render reads a change. */
 let enabled = read()
 
+/** Returns the ids of the tools that are on, outside a render. */
+export function readDebugTools(): readonly string[] {
+	return enabled
+}
+
 /**
  * Turns the tool `id` on or off, and stores the list. A tool that is on stays
  * on after a reload, so it starts with the page.
