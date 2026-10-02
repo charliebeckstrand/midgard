@@ -1,5 +1,4 @@
 import type { ClassValue } from 'clsx'
-import { decodeHTMLStrict } from 'entities/decode'
 import type { Token, Tokens } from 'marked'
 import { Fragment, type ReactNode } from 'react'
 import type { BundledLanguage } from 'shiki'
@@ -7,6 +6,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
 import { clamp } from '../../utilities'
 import { Code, CodeBlock } from '../code'
+import { decodeEntities } from './markdown-entities'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
@@ -62,7 +62,8 @@ function safeUrl(url: string, allowData = false): string | undefined {
  * reaches the DOM.
  *
  * marked keeps entity references such as `&amp;` as source text. The renderer
- * decodes them in text, image `alt`, and titles, as CommonMark specifies. The
+ * decodes them in text, image `alt`, and titles, as CommonMark specifies, with
+ * the subset of names that {@link decodeEntities} knows. The
  * decoded text goes into React text nodes and attributes, so a decoded `<`
  * shows as a character and is never markup. Code spans and code blocks keep
  * their references literal.
@@ -100,7 +101,7 @@ function renderToken(token: Token, index: number): ReactNode {
 			return token.tokens ? (
 				<Fragment key={index}>{renderChildren(token.tokens)}</Fragment>
 			) : (
-				decodeHTMLStrict(token.text)
+				decodeEntities(token.text)
 			)
 		case 'strong':
 			return (
@@ -136,7 +137,7 @@ function renderToken(token: Token, index: number): ReactNode {
 				<img
 					key={index}
 					src={safeUrl(token.href, true)}
-					alt={decodeHTMLStrict(token.text)}
+					alt={decodeEntities(token.text)}
 					title={decodeTitle(token.title)}
 					className={cn(k.img)}
 				/>
@@ -188,7 +189,7 @@ function renderToken(token: Token, index: number): ReactNode {
  * @internal
  */
 function decodeTitle(title: string | null | undefined): string | undefined {
-	return title ? decodeHTMLStrict(title) : undefined
+	return title ? decodeEntities(title) : undefined
 }
 
 function renderList(token: Tokens.List, key: number): ReactNode {

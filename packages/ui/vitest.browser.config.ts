@@ -217,7 +217,6 @@ export default defineConfig({
 			'@internationalized/date',
 			'@tanstack/react-virtual',
 			'card-validator',
-			'entities/decode',
 			'lucide-react',
 			'motion',
 			'motion/react',

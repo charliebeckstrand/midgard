@@ -161,6 +161,12 @@ describe('Markdown', () => {
 		expect(el?.querySelector('img')).toHaveAttribute('title', '"t"')
 	})
 
+	it('decodes a reference to code point zero to U+FFFD, and keeps a name outside the known set', () => {
+		const { container } = renderUI(<Markdown>{'a&#0;b &Aacute; &amp'}</Markdown>)
+
+		expect(bySlot(container, 'markdown')?.textContent).toBe('a\uFFFDb &Aacute; &amp')
+	})
+
 	it('renders a decoded tag as text, never as markup', () => {
 		const { container } = renderUI(<Markdown>{'&lt;script&gt;alert(1)&lt;/script&gt;'}</Markdown>)
 

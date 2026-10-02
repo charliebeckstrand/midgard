@@ -41,7 +41,10 @@ export type MarkdownProps = {
  * Images additionally allow `data:` URIs, which are inert as an image source.
  *
  * Entity references such as `&amp;` and `&#169;` decode to their characters in
- * text, image `alt`, and titles. Code keeps them literal, as CommonMark specifies.
+ * text, image `alt`, and titles. Each numeric reference decodes, and so do the
+ * named references that prose uses (the five XML names, `&nbsp;`, and common
+ * typography and symbols). A rare name stays as text. Code keeps references
+ * literal, as CommonMark specifies.
  *
  * Memoized on its (shallow-equal) props: re-lexing is wasted work when a
  * parent re-renders for unrelated reasons. One example is a list of chat bubbles

@@ -519,9 +519,6 @@ importers:
       d3-geo:
         specifier: 'catalog:'
         version: 3.1.1
-      entities:
-        specifier: ^8.0.0
-        version: 8.0.0
       fflate:
         specifier: ^0.8.3
         version: 0.8.3
