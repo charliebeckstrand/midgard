@@ -71,7 +71,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo a
 | Percy snapshots of the docs site, on demand (needs `PERCY_TOKEN`) | `packages/ui` | `pnpm visual [page ids] [--density=<levels>]` |
 | Dev (docs site) | `packages/ui` | `pnpm docs` |
 
-`test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks and the Percy snapshots. The `Visual` workflow runs the Percy snapshots each Thursday, and on demand from the Actions tab. No pull request or push starts it.
+`test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks and the Percy snapshots. The `Visual` workflow runs the Percy snapshots each Thursday, and on demand from the Actions tab. A Thursday on which `packages/ui` and the lockfile did not change takes no snapshots. No pull request or push starts it.
 
 ## 5. Where to look
 
