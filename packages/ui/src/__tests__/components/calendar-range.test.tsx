@@ -30,6 +30,12 @@ describe('CalendarRange', () => {
 		expect(findDay(10)).toHaveAttribute('aria-selected', 'true')
 	})
 
+	it('marks the day listbox multiselectable, as both endpoints are selected', () => {
+		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />)
+
+		expect(screen.getByRole('listbox')).toHaveAttribute('aria-multiselectable', 'true')
+	})
+
 	it('marks cells inside the range with a soft background', () => {
 		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />)
 

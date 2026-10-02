@@ -120,7 +120,8 @@ function hoverHandlers(
 /**
  * Range-aware variant of {@link Calendar}. Drives the underlying calendar's
  * per-day styling through `getDayProps`. It paints the band between
- * `rangeStart` and the effective end, marks both endpoints selected, and rounds
+ * `rangeStart` and the effective end, marks both endpoints selected in a
+ * multiselectable listbox, and rounds
  * the leading and trailing edges in either selection order. The effective end
  * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day
  * reports it through `onHoverDate` for live in-progress feedback. Endpoint
@@ -185,6 +186,7 @@ export function CalendarRange({
 			active={active}
 			onMonthChange={onMonthChange}
 			getDayProps={getDayProps}
+			multiselectable
 			footerRef={footerRef}
 			locale={locale}
 			size={size}
