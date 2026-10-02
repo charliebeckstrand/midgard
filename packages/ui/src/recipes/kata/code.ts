@@ -5,11 +5,12 @@
  * the block chrome rides as sibling slot fragments.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { ji, kasane, omote, shaku } from '../kiso'
+import { ji, kasane, omote, sen, shaku } from '../kiso'
 
 const { size } = ji
 const { rounded } = kasane
 const { mark } = shaku
+const { focus } = sen
 
 const bg = omote.bg.code
 
@@ -23,7 +24,8 @@ export const k = defineRecipe(
 		wrapper: ['overflow-hidden flex items-start gap-4 p-4', rounded.lg, bg],
 		/** Block-specific slot classes; consumed by `CodeBlock`. */
 		block: {
-			content: ['min-w-0 flex-1 overflow-x-auto', size.sm],
+			// A tab stop while a line overflows. The wrapper clips, so the ring is inset.
+			content: ['min-w-0 flex-1 overflow-x-auto', size.sm, focus.inset],
 			fallback: 'text-zinc-400',
 		},
 		// Sits in the flex row, not absolutely positioned: `items-start` lands it on

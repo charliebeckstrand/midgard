@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/table'
-import { Box } from '../../structure/box'
+import { TableScroll } from './table-scroll'
 
 /** Visual modifiers for {@link Table}: the `size` step, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
@@ -57,6 +57,11 @@ export type TableProps = TableVariants & {
  * table. TableBody, TableCell, and TableHeader read
  * no context.
  *
+ * While the table is wider than its container, the scroll container is a tab
+ * stop, so a keyboard user can scroll it with the arrow keys. It then also
+ * takes `role="region"` and the name of the table, from `aria-label` or
+ * `aria-labelledby` in `tableProps`. A table that fits adds no tab stop.
+ *
  * @remarks
  * Projection reaches descendant cells through DOM selectors, not React
  * context, so the native table semantics (`<thead>`/`<tbody>`/`<th scope>`)
@@ -79,14 +84,11 @@ export function Table({
 	const stripe = striped === true ? 'even' : striped
 
 	return (
-		// Known gap: the scroll container takes no `tabIndex` and carries no
-		// accessible name, so a keyboard-only user cannot scroll an overflowing
-		// table (WCAG 2.1.1). Modern Chromium focuses overflow scrollers on its
-		// own; other engines do not.
-		<Box
-			data-slot="table"
+		<TableScroll
 			density={size}
-			className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}
+			label={tableProps?.['aria-label']}
+			labelledBy={tableProps?.['aria-labelledby']}
+			className={cn(k.scroll, bleed && '-mx-4 sm:-mx-6')}
 		>
 			<table
 				{...tableProps}
@@ -101,6 +103,6 @@ export function Table({
 			>
 				{children}
 			</table>
-		</Box>
+		</TableScroll>
 	)
 }

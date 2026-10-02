@@ -16,7 +16,9 @@ const { flex } = narabi
 const { border, focus } = sen
 
 export const k = {
-	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],
+	// The board and each column body are tab stops while they overflow. The
+	// scroll clips, so the ring is inset.
+	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0', focus.inset],
 	column: {
 		base: [
 			flex.col,
@@ -31,7 +33,7 @@ export const k = {
 		over: '',
 		header: [flex.row, 'gap-2', size.md, text.default, weight.semibold],
 		title: [flex.fill, 'min-w-0 truncate'],
-		body: [flex.col, flex.fill, 'gap-1', 'overflow-y-auto'],
+		body: [flex.col, flex.fill, 'gap-1', 'overflow-y-auto', focus.inset],
 		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
 	},
 	card: {

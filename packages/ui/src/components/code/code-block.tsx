@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
+import { useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
 import { loadShiki } from './code-shiki'
@@ -58,8 +59,9 @@ export type CodeBlockProps = {
  * Client-only (`'use client'`): highlighting runs in an effect. Results are
  * memoized in a process-wide cache (max 200 entries, oldest insertion evicted)
  * keyed by theme, language, and code, so repeat snippets paint synchronously.
- * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`) to keep scroll
- * containers out of the tab order. Markup paints only for the code that it
+ * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`), so a block
+ * that fits adds no tab stop. The scroll container is a tab stop only while a
+ * line overflows it ({@link useScrollRegion}). Markup paints only for the code that it
  * tokenized. While `code` streams, one tokenization runs at a time and the next
  * one takes the newest code.
  */
@@ -140,9 +142,11 @@ export function CodeBlock({
 		run()
 	}, [key, code, lang, theme])
 
+	const scrollRegionRef = useScrollRegion()
+
 	return (
 		<div data-slot="code-block" className={cn(k.wrapper, className)}>
-			<div className={cn(k.block.content)}>
+			<div ref={scrollRegionRef} className={cn(k.block.content)}>
 				{html ? (
 					<div
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted

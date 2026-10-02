@@ -2,6 +2,7 @@
 
 import { Children, type ReactNode } from 'react'
 import { cn } from '../../core'
+import { useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanContext } from './context'
 
@@ -20,7 +21,7 @@ export type KanbanColumnBodyProps = {
  * `role="listitem"` cards. An interactive board keeps no list role, because
  * dnd-kit makes each card a `button`, and a list owns only list items. The
  * `empty` placeholder is not a list item, so the body drops the role while it
- * shows it.
+ * shows it. While the cards overflow the body, the body is a tab stop.
  */
 export function KanbanColumnBody({ empty, children, className }: KanbanColumnBodyProps) {
 	const { interactive } = useKanbanContext()
@@ -30,8 +31,11 @@ export function KanbanColumnBody({ empty, children, className }: KanbanColumnBod
 	// body still renders `children` as-is, so no key shifts.
 	const hasChildren = Children.toArray(children).length > 0
 
+	const scrollRegionRef = useScrollRegion()
+
 	return (
 		<div
+			ref={scrollRegionRef}
 			data-slot="kanban-column-body"
 			role={!interactive && hasChildren ? 'list' : undefined}
 			className={cn(k.column.body, className)}

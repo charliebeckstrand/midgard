@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefCallback, useCallback } from 'react'
+import { observeScrollExtent } from './observe-scroll-extent'
 
 /** Tolerance for fractional scroll offsets on zoomed or high-DPI displays. */
 const EDGE_EPSILON_PX = 1
@@ -70,34 +71,12 @@ export function useScrollOverflow(options: ScrollOverflowOptions = {}): RefCallb
 
 			node.addEventListener('scroll', update, { passive: true })
 
-			const resizes = new ResizeObserver(update)
-
-			const observeChildren = () => {
-				resizes.disconnect()
-
-				resizes.observe(node)
-
-				for (const child of node.children) resizes.observe(child)
-			}
-
-			observeChildren()
-
-			// Children added or removed after mount change the scroll extent without
-			// resizing any observed element; re-seat the observer and re-measure.
-			const mutations = new MutationObserver(() => {
-				observeChildren()
-
-				update()
-			})
-
-			mutations.observe(node, { childList: true })
+			const stopObserving = observeScrollExtent(node, update)
 
 			return () => {
 				node.removeEventListener('scroll', update)
 
-				mutations.disconnect()
-
-				resizes.disconnect()
+				stopObserving()
 
 				node.removeAttribute('data-overflow-above')
 
