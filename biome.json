@@ -600,8 +600,7 @@
 			"!**/next-env.d.ts",
 			"!.mcp-servers",
 			"!.claude/worktrees",
-			"!.claude/skills",
-			"!**/.screens"
+			"!.claude/skills"
 		],
 		"ignoreUnknown": true
 	},
