@@ -87,6 +87,9 @@ const alignClasses = {
  * A registered `<DialogTitle>` supplies `aria-labelledby` and takes precedence over the
  * `aria-label` fallback. Set `role='alertdialog'` for prompts that demand a response. The
  * panel and its dismiss affordances share a single open-state setter via `PanelProviders`.
+ * A click in the panel stops at the panel, so it does not reach a clickable ancestor of the
+ * Dialog. With a `container`, the panel stays in the box of that element. The `sm`
+ * breakpoint, which selects the layout and the motion, still reads the viewport.
  */
 export function Dialog({
 	open,
@@ -143,7 +146,10 @@ export function Dialog({
 		>
 			<div
 				className={cn(
-					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
+					'pointer-events-none inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
+					// The overlay root is `absolute` in a `container`. A `fixed` wrapper
+					// there puts the panel against the viewport, not the container.
+					container ? 'absolute' : 'fixed',
 					alignClasses[align],
 				)}
 			>
@@ -153,6 +159,9 @@ export function Dialog({
 					{...ariaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
 					data-slot={slot}
+					// React carries a click in the portal up the component tree. Stop it at
+					// the panel, so a clickable ancestor of the Dialog does not see it.
+					onClick={(event) => event.stopPropagation()}
 					// Half the marker `hannou.glassItem` keys on; the `group/glass` class
 					// below is the other half. See `recipes/kiso/hannou/glass-item.ts`. A
 					// command palette's rows hover inside this panel, not inside a popover.
