@@ -1,7 +1,18 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
-const { cursor, disabled, fg, glassItem, grab, tint, tintFilled, tintSurface } = hannou
+const {
+	cursor,
+	disabled,
+	fg,
+	glassItem,
+	glassItemBefore,
+	grab,
+	tint,
+	tintBefore,
+	tintFilled,
+	tintSurface,
+} = hannou
 const { onWash, text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -31,6 +42,13 @@ const root = defineRecipe({
 // The padding of a row follows the nearest density scope. The card-like
 // variants use the uniform `ma.p` scale, and `plain` uses a tighter ratio.
 const pad = 'density-p-[2,3,4]'
+
+// The rounded wash layer of a divided row. The layer takes no pointer, so a
+// press still reaches the row and its slots.
+const roundedWash = [
+	'relative isolate',
+	'before:absolute before:inset-0.5 before:-z-10 before:pointer-events-none before:rounded-lg',
+]
 
 const item = defineRecipe({
 	// `list-none` is stated, not inherited from the flex display: a row only avoids
@@ -68,14 +86,24 @@ const item = defineRecipe({
 		true: ['relative', '[&>*:not([data-slot=list-item-content])]:z-10'],
 		false: '',
 	},
-	// Opt-in corners, for the variants that carry none. `separated` and `solid`
-	// are rounded already, so this adds nothing there; `false` never strips them,
-	// because a variant's own shape is not this axis's to take away.
+	// Opt-in corners for the wash, for the variants that carry none. `separated`
+	// and `solid` are rounded already, so this adds nothing there; `false` never
+	// strips them, because a variant's own shape is not this axis's to take away.
+	// The classes ride the compounds below, because only the divided variants
+	// need them.
 	rounded: {
-		true: rounded.lg,
+		true: '',
 		false: '',
 	},
 	compound: [
+		// A divided row keeps square corners: `divide-y` draws each divider as the
+		// row's bottom border, and a rounded row bends that line up at both ends. The
+		// wash moves to a rounded `::before` layer, set in from the row so that it
+		// clears the dividers. `isolate` makes the row a stacking context, so the
+		// layer at `-z-10` paints over the row's own fill and under its content,
+		// and never under a parent's fill.
+		{ variant: 'plain', rounded: true, class: roundedWash },
+		{ variant: 'outline', rounded: true, class: roundedWash },
 		// The hover wash, one per variant, because each rests on a different fill and
 		// a wash is a background *replacement*. It rides the `<li>` rather than the
 		// content column so it covers the prefix and suffix slots too — a row that
@@ -83,8 +111,10 @@ const item = defineRecipe({
 		//
 		// A row on bare ground takes the standard wash, doubled inside a glass
 		// parent where 5% sits under the panel's own translucency.
-		{ variant: 'plain', interactive: true, class: [tint, glassItem] },
-		{ variant: 'outline', interactive: true, class: [tint, glassItem] },
+		{ variant: 'plain', interactive: true, rounded: false, class: [tint, glassItem] },
+		{ variant: 'outline', interactive: true, rounded: false, class: [tint, glassItem] },
+		{ variant: 'plain', interactive: true, rounded: true, class: [tintBefore, glassItemBefore] },
+		{ variant: 'outline', interactive: true, rounded: true, class: [tintBefore, glassItemBefore] },
 		// A card rests on an opaque surface, and an alpha wash would not darken it
 		// but replace it — the row would go see-through to whatever it covers for
 		// as long as the pointer rests there. It steps shade instead.
