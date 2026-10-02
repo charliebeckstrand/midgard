@@ -95,7 +95,13 @@ export function useSignaturePadState({
 
 	const [empty, setEmpty] = useState(current == null)
 
-	useSignaturePadCanvasSizing({ containerRef, canvasRef, empty, strokeColor, strokeWidth })
+	const { forgetDrawing } = useSignaturePadCanvasSizing({
+		containerRef,
+		canvasRef,
+		empty,
+		strokeColor,
+		strokeWidth,
+	})
 
 	useEffect(() => {
 		if (current === lastEmittedRef.current) return
@@ -110,6 +116,8 @@ export function useSignaturePadState({
 
 		context.clearRect(0, 0, canvas.width, canvas.height)
 
+		forgetDrawing()
+
 		if (!current) {
 			setEmpty(true)
 
@@ -118,12 +126,12 @@ export function useSignaturePadState({
 			return
 		}
 
-		drawSnapshot(canvas, current)
+		drawSnapshot(canvas, current, forgetDrawing)
 
 		setEmpty(false)
 
 		lastEmittedRef.current = current
-	}, [current])
+	}, [current, forgetDrawing])
 
 	const {
 		handlePointerDown,
@@ -140,6 +148,7 @@ export function useSignaturePadState({
 		lastEmittedRef,
 		setCurrent,
 		onDrawStart,
+		onInk: forgetDrawing,
 	})
 
 	// A stroke ending or a clear is the field's "blur" — the user has acted on
@@ -158,6 +167,8 @@ export function useSignaturePadState({
 			context?.clearRect(0, 0, canvas.width, canvas.height)
 		}
 
+		forgetDrawing()
+
 		setEmpty(true)
 
 		lastEmittedRef.current = null
@@ -165,7 +176,7 @@ export function useSignaturePadState({
 		setCurrent(null)
 
 		setTouched()
-	}, [setCurrent, setTouched])
+	}, [forgetDrawing, setCurrent, setTouched])
 
 	useImperativeHandle(
 		ref,

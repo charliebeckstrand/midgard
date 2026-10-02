@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { motion, useMotionValue, useTransform } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -72,6 +72,14 @@ export function ProgressGauge({
 	// new value without a spring.
 	const still = usePrefersReducedMotion()
 
+	// The animation moves this value, which the fill reads through `style`.
+	const dashOffset = useMotionValue(offset)
+
+	// At 0% the dash has no length, but its round cap still paints a dot. The
+	// fill fades out over the last cap width of its length, so 0% shows the
+	// track only, and an arc longer than its caps shows at full opacity.
+	const fillOpacity = useTransform(dashOffset, [circumference - strokeWidth, circumference], [1, 0])
+
 	return (
 		<div
 			data-slot="progress-gauge"
@@ -108,6 +116,7 @@ export function ProgressGauge({
 					strokeLinecap="round"
 					strokeDasharray={circumference}
 					className={cn(k.color[color].stroke)}
+					style={{ strokeDashoffset: dashOffset, opacity: fillOpacity }}
 					initial={false}
 					animate={{ strokeDashoffset: offset }}
 					transition={still ? k.still : k.spring}

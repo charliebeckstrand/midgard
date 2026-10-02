@@ -53,6 +53,12 @@ describe('Avatar', () => {
 		expect(bySlot(container, 'avatar')).toBeInTheDocument()
 	})
 
+	it('fits the status wrapper to the circle, so a stretching parent cannot widen it', () => {
+		const { container } = renderUI(<Avatar initials="AB" status="active" />)
+
+		expect(bySlot(container, 'avatar-with-status')).toHaveClass('size-fit')
+	})
+
 	it('omits the status wrapper when no status is provided', () => {
 		const { container } = renderUI(<Avatar initials="AB" />)
 

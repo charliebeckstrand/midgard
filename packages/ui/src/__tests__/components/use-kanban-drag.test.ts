@@ -222,28 +222,37 @@ function startCrossColumnDrag() {
 }
 
 describe('useKanbanDrag: cross-column drop after the live preview', () => {
-	it('emits once for one cross-column drop', () => {
-		const { result, onReorder } = startCrossColumnDrag()
+	it('emits once for a drop at the slot where the card came in', () => {
+		const { result, onReorder, ids } = startCrossColumnDrag()
 
 		expect(onReorder).toHaveBeenCalledTimes(1)
 
+		expect(ids(1)).toEqual(['a', 'c'])
+
+		// The card is under the pointer at its entry slot, so the over target is
+		// the card itself.
 		act(() => {
-			result.current.handleDragEnd(makeDragEvent('a', 'c'))
+			result.current.handleDragEnd(makeDragEvent('a', 'a'))
 		})
 
 		expect(onReorder).toHaveBeenCalledTimes(1)
+
+		expect(ids(1)).toEqual(['a', 'c'])
 	})
 
-	it('leaves the card at the previewed position', () => {
-		const { result, ids } = startCrossColumnDrag()
+	it('commits the slot of the card under the pointer after a move in the new column', () => {
+		const { result, onReorder, ids } = startCrossColumnDrag()
 
-		expect(ids(1)).toEqual(['a', 'c'])
-
+		// The preview shows the card at the slot of `c`, below it.
 		act(() => {
 			result.current.handleDragEnd(makeDragEvent('a', 'c'))
 		})
 
-		expect(ids(1)).toEqual(['a', 'c'])
+		expect(onReorder).toHaveBeenCalledTimes(2)
+
+		expect(ids(0)).toEqual(['b'])
+
+		expect(ids(1)).toEqual(['c', 'a'])
 	})
 })
 

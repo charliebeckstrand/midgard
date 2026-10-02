@@ -1,8 +1,13 @@
 'use client'
 
-import { type RefObject, useEffect } from 'react'
+import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { useResizeObserver } from '../../hooks'
-import { configureStroke, drawSnapshot, resolveStrokeColor } from './signature-pad-utilities'
+import {
+	configureStroke,
+	copyDrawing,
+	type DrawingCopy,
+	resolveStrokeColor,
+} from './signature-pad-utilities'
 
 type CanvasSizingOptions = {
 	containerRef: RefObject<HTMLDivElement | null>
@@ -21,9 +26,17 @@ type CanvasSizingOptions = {
  * current stroke styling.
  * @remarks
  * A `ResizeObserver` resizes the backing store to `width * dpr` and scales the
- * context, so strokes stay crisp on HiDPI displays. The non-empty canvas is
- * snapshotted to a data URL and repainted afterward, since resizing the backing
- * store clears it.
+ * context, so strokes stay crisp on HiDPI displays. Resizing the backing store
+ * clears it, so the drawing is painted back at the CSS size it had, and keeps
+ * its scale. A larger pad shows more empty space, and a smaller pad hides the
+ * parts of the drawing outside the new box.
+ *
+ * The first resize after a change to the drawing copies the canvas, and each
+ * resize paints that copy until the drawing changes again. A pad that gets
+ * smaller and then larger thus shows the hidden parts again, and a stretch or a
+ * cut never accumulates over a series of resizes. Call the returned
+ * `forgetDrawing` each time the drawing changes: a mark of a stroke, a clear,
+ * or a value painted in.
  *
  * The observer reads the newest resize callback, so the callback reads the
  * stroke styling directly. A separate effect re-applies styling when
@@ -36,6 +49,13 @@ export function useSignaturePadCanvasSizing({
 	strokeColor,
 	strokeWidth,
 }: CanvasSizingOptions) {
+	// The drawing at its CSS size, from the first resize after it last changed.
+	const source = useRef<DrawingCopy | null>(null)
+
+	const forgetDrawing = useCallback(() => {
+		source.current = null
+	}, [])
+
 	// `useResizeObserver` calls the newest `resize` through an effect event, so a
 	// new identity does not subscribe again.
 	const resize = () => {
@@ -53,7 +73,8 @@ export function useSignaturePadCanvasSizing({
 
 		const dpr = window.devicePixelRatio || 1
 
-		const snapshot = empty ? null : canvas.toDataURL()
+		// Copy before the canvas takes the new size, which clears it.
+		source.current = empty ? null : (source.current ?? copyDrawing(canvas))
 
 		canvas.width = Math.round(width * dpr)
 		canvas.height = Math.round(height * dpr)
@@ -69,8 +90,10 @@ export function useSignaturePadCanvasSizing({
 
 		configureStroke(context, resolveStrokeColor(canvas, strokeColor), strokeWidth)
 
-		if (snapshot) {
-			drawSnapshot(canvas, snapshot)
+		const drawing = source.current
+
+		if (drawing) {
+			context.drawImage(drawing.canvas, 0, 0, drawing.width, drawing.height)
 		}
 	}
 
@@ -88,4 +111,6 @@ export function useSignaturePadCanvasSizing({
 	}, [canvasRef, strokeColor, strokeWidth])
 
 	useResizeObserver(containerRef, resize)
+
+	return { forgetDrawing }
 }

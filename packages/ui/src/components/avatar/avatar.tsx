@@ -90,11 +90,13 @@ export function Avatar({
 	}
 
 	// `className` and `{...props}` both land on the wrapper; consumer ids,
-	// handlers, and classes target one element, dot included.
+	// handlers, and classes target one element, dot included. The wrapper fits
+	// the circle, so a stretching flex or grid parent cannot widen it and move
+	// the dot off the circle.
 	return (
 		<span
 			data-slot="avatar-with-status"
-			className={cn('relative inline-flex', className)}
+			className={cn('relative inline-flex size-fit', className)}
 			{...props}
 		>
 			<span data-slot="avatar" data-size={size} className={cn(k({ variant, color, size }))}>
