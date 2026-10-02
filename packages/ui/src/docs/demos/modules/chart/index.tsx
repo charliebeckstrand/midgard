@@ -250,7 +250,7 @@ export function Demo() {
 								of="BarChart"
 								omit={['animate', 'size']}
 								render={(props, label) => (
-									<div className="w-80">
+									<div className="w-80 max-w-full">
 										<BarChart
 											{...props}
 											aria-label={`Revenue and costs by month, ${label}`}
@@ -353,7 +353,7 @@ export function Demo() {
 								of="LineChart"
 								omit={['animate', 'size']}
 								render={(props, label) => (
-									<div className="w-80">
+									<div className="w-80 max-w-full">
 										<LineChart
 											{...props}
 											aria-label={`Revenue and margin by month, ${label}`}
@@ -550,7 +550,7 @@ export function Demo() {
 								of="AreaChart"
 								omit={['animate', 'size']}
 								render={(props, label) => (
-									<div className="w-80">
+									<div className="w-80 max-w-full">
 										<AreaChart
 											{...props}
 											aria-label={`Revenue and costs by month, ${label}`}

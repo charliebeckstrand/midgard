@@ -269,8 +269,10 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
  * so the page gate can ask that each instance shows it. Without a caption the
  * wrapper takes no box of its own.
  *
- * The wrapper can shrink below the width of its content. An instance with a
- * fixed width and `max-w-full` thus fits a row that is narrower than that width.
+ * The stack aligns each instance to the start, so the wrapper takes the width
+ * of its content. `max-w-full` keeps the wrapper within the row. An instance
+ * with a fixed width and `max-w-full` thus fits a row that is narrower than
+ * that width.
  */
 function AxisInstance({
 	label,
@@ -297,7 +299,7 @@ function AxisInstance({
 			data-slot="axis-value"
 			data-label={label}
 			data-caption=""
-			className="flex min-w-0 flex-col gap-1"
+			className="flex max-w-full flex-col gap-1"
 		>
 			<span data-slot="axis-caption" className="text-xs text-zinc-500 dark:text-zinc-400">
 				{label}
