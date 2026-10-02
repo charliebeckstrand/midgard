@@ -26,6 +26,8 @@ import { createRoot } from 'react-dom/client'
 import { Button } from '../../components/button'
 import { useCopyButtonState } from '../../components/copy-button/use-copy-button-state'
 import { Icon } from '../../components/icon'
+import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
+import { cn } from '../../core/cn'
 
 const EVENTS = [
 	'touchstart',
@@ -203,48 +205,87 @@ function clear() {
 	write('cleared')
 }
 
+/** The padding keeps the bar and the lines out of the round corners of a phone screen. */
+const corners = 'pb-[max(env(safe-area-inset-bottom),--spacing(4))]'
+
 function TapLogPanel() {
 	const log = useSyncExternalStore(subscribe, () => logText)
 
 	const [open, setOpen] = useState(true)
 
+	// The height of the log, in percent of the screen. It stays when the log shrinks to its bar.
+	const [height, setHeight] = useState(25)
+
 	// The clipboard gets the lines in time order, oldest first.
 	const { copied, copy } = useCopyButtonState({ text: lines.join('\n') })
 
-	return (
-		// The padding keeps the bar and the lines out of the round corners of a phone screen.
-		<div className="dark fixed inset-x-0 bottom-0 z-[2147483647] flex max-h-[45vh] flex-col bg-zinc-950 pb-[max(env(safe-area-inset-bottom),--spacing(4))] text-white">
-			<div className="flex items-center gap-2 px-5 py-2">
-				<span className="me-auto font-semibold text-base">Tap log</span>
-				{open && (
-					<>
-						<Button
-							size="sm"
-							variant="soft"
-							color={copied ? 'green' : undefined}
-							onClick={() => void copy()}
-						>
-							{copied ? 'Copied' : 'Copy'}
-						</Button>
-						<Button size="sm" variant="soft" onClick={clear}>
-							Clear
-						</Button>
-					</>
-				)}
-				<Button
-					size="sm"
-					variant="plain"
-					aria-label={open ? 'Minimize' : 'Maximize'}
-					onClick={() => setOpen(!open)}
-				>
-					<Icon icon={open ? <Minimize2 /> : <Maximize2 />} />
-				</Button>
-			</div>
+	const bar = (
+		<div className="flex shrink-0 items-center gap-2 px-5 py-2">
+			<span className="me-auto font-semibold text-base">Tap log</span>
 			{open && (
-				<pre className="m-0 min-h-0 overflow-auto whitespace-pre-wrap px-5 font-mono text-[10px]/[1.3] text-green-400">
-					{log}
-				</pre>
+				<>
+					<Button
+						size="sm"
+						variant="soft"
+						color={copied ? 'green' : undefined}
+						onClick={() => void copy()}
+					>
+						{copied ? 'Copied' : 'Copy'}
+					</Button>
+					<Button size="sm" variant="soft" onClick={clear}>
+						Clear
+					</Button>
+				</>
 			)}
+			<Button
+				size="sm"
+				variant="plain"
+				aria-label={open ? 'Minimize' : 'Maximize'}
+				onClick={() => setOpen(!open)}
+			>
+				<Icon icon={open ? <Minimize2 /> : <Maximize2 />} />
+			</Button>
+		</div>
+	)
+
+	if (!open)
+		return (
+			<div
+				className={cn(
+					'dark fixed inset-x-0 bottom-0 z-[2147483647] bg-zinc-950 text-white',
+					corners,
+				)}
+			>
+				{bar}
+			</div>
+		)
+
+	// The group fills the screen so that the handle can drag the log up to 75%. Its
+	// empty top panel lets each tap through to the page.
+	return (
+		<div className="dark pointer-events-none fixed inset-0 z-[2147483647]">
+			<ResizableGroup
+				orientation="vertical"
+				className="h-full"
+				onSizesChange={(sizes) => setHeight(sizes[1] ?? height)}
+			>
+				<ResizablePanel defaultSize={100 - height} minSize={25} maxSize={75} />
+				<ResizableHandle
+					aria-label="Resize the tap log"
+					className="pointer-events-auto bg-zinc-950 py-3"
+				/>
+				<ResizablePanel
+					defaultSize={height}
+					minSize={25}
+					maxSize={75}
+					className={cn('pointer-events-auto flex flex-col bg-zinc-950 text-white', corners)}
+				>
+					{bar}
+					<pre className="m-0 min-h-0 flex-1 overflow-auto whitespace-pre-wrap px-5 font-mono text-[10px]/[1.3] text-green-400">
+						{log}
+					</pre>
+				</ResizablePanel>
+			</ResizableGroup>
 		</div>
 	)
 }
