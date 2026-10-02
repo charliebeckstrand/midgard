@@ -26,7 +26,7 @@ export type ProgressGaugeProps = AccessibleName &
 		/** Center readout; pass `true` to render the rounded percentage, or a node for custom content. */
 		centerLabel?: ReactNode | boolean
 		/**
-		 * Ring thickness in viewBox units.
+		 * Ring thickness in viewBox units, held between 0 and 18 (half the box).
 		 * @defaultValue 3.5
 		 */
 		strokeWidth?: number
@@ -42,19 +42,27 @@ export type ProgressGaugeProps = AccessibleName &
  *
  * @remarks
  * Always determinate: exposes `aria-valuenow`/`aria-valuemin`/`aria-valuemax`,
- * with `value` clamped to `[0, max]`. The decorative SVG is `aria-hidden`. The
+ * with `value` clamped to `[0, max]`. A `NaN` value reads as `0`. The decorative SVG is `aria-hidden`. The
  * accessible name is required by {@link ProgressGaugeProps}.
  */
 export function ProgressGauge({
-	value = 0,
+	value: rawValue = 0,
 	max = 100,
 	size,
 	color = 'zinc',
 	centerLabel,
-	strokeWidth = 3.5,
+	strokeWidth: rawStrokeWidth = 3.5,
 	className,
 	...labelProps
 }: ProgressGaugeProps) {
+	// The gauge is always determinate, so a NaN value reads as zero. Otherwise NaN
+	// reaches the ring offset, the readout, and `aria-valuenow`.
+	const value = Number.isNaN(rawValue) ? 0 : rawValue
+
+	// A ring as thick as half the box fills the disc to its center. A thicker
+	// ring gives a radius of zero or less, and the ring does not draw.
+	const strokeWidth = clamp(rawStrokeWidth, 0, GAUGE_VIEW_BOX / 2)
+
 	const radius = (GAUGE_VIEW_BOX - strokeWidth) / 2
 
 	const percent = clamp(pct(value, 0, max), 0, 100)

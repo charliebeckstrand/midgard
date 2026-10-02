@@ -28,7 +28,8 @@ export type ProgressBarProps = AccessibleName & {
 /**
  * Linear progress indicator rendered as a `role="progressbar"`. Determinate
  * when `value` is a usable number, with the fill width at its clamped
- * percentage; otherwise indeterminate. The fill mounts at its value and
+ * percentage; otherwise indeterminate, with a fill that sweeps along the
+ * track. The fill mounts at its value and
  * animates each change of value. The track takes the step of the nearest
  * density scope, and an explicit `size` opens a scope on it. It respects
  * reduced-motion.
@@ -63,11 +64,11 @@ export function ProgressBar({
 		<div
 			data-slot="progress-bar"
 			data-density={size}
+			{...labelProps}
 			role="progressbar"
 			aria-valuenow={determinate ? clamp(value, 0, max) : undefined}
 			aria-valuemin={0}
 			aria-valuemax={max}
-			{...labelProps}
 			className={cn(k(), className)}
 		>
 			{determinate ? (
@@ -78,7 +79,13 @@ export function ProgressBar({
 					transition={still ? k.still : k.spring}
 				/>
 			) : (
-				<div className={cn(k.bar.fill({ color }), k.bar.indeterminate)} />
+				// The sweep moves a transform, so it needs no keyframe in a stylesheet.
+				// Under reduced motion the fill stays at the start of the track.
+				<motion.div
+					className={cn(k.bar.fill({ color }), k.bar.indeterminate)}
+					animate={still ? undefined : k.sweep.animate}
+					transition={k.sweep.transition}
+				/>
 			)}
 		</div>
 	)
