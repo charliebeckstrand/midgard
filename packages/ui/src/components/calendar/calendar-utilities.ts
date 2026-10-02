@@ -139,6 +139,27 @@ export function formatDayName(date: Date, locale: string): string {
 	return formatter.format(date)
 }
 
+// The day number formatter is cached by locale for the same reason.
+const dayNumberFormatters = new Map<string, Intl.NumberFormat>()
+
+/**
+ * The day of the month of `date` in the digits of `locale`, such as "15" in
+ * `en-US` or "١٥" in `ar-EG`. The day and month names use the same digits.
+ *
+ * @internal
+ */
+export function formatDayNumber(date: Date, locale: string): string {
+	let formatter = dayNumberFormatters.get(locale)
+
+	if (!formatter) {
+		formatter = new Intl.NumberFormat(locale, { useGrouping: false })
+
+		dayNumberFormatters.set(locale, formatter)
+	}
+
+	return formatter.format(date.getDate())
+}
+
 /** Name of the month of `date` with its year in `locale`, such as "June 2025". @internal */
 export function formatMonthName(date: Date, locale: string): string {
 	return date.toLocaleDateString(locale, { ...GREGORIAN, month: 'long', year: 'numeric' })
