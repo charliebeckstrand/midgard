@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('Toolbar', () => {
 	it('renders children with role="toolbar"', () => {
@@ -138,6 +138,48 @@ describe('Toolbar', () => {
 		expect(a.tabIndex).toBe(-1)
 
 		expect(c.tabIndex).toBe(-1)
+	})
+
+	it('moves the Tab stop off a control that becomes disabled', async () => {
+		// The PdfViewer zoom limit: the user roves to Zoom in and presses it up
+		// to the limit, where it disables itself. Roving wrote `tabindex="0"` on
+		// it, and a disabled control can take no focus, so it must leave the query.
+		function Harness() {
+			const [atLimit, setAtLimit] = useState(false)
+
+			return (
+				<Toolbar aria-label="Zoom">
+					<button type="button">Out</button>
+					<button type="button" disabled={atLimit} onClick={() => setAtLimit(true)}>
+						In
+					</button>
+				</Toolbar>
+			)
+		}
+
+		const { container } = renderUI(<Harness />)
+
+		const toolbar = getSlot(container, 'toolbar')
+
+		const zoomOut = screen.getByRole('button', { name: 'Out' })
+
+		const zoomIn = screen.getByRole('button', { name: 'In' })
+
+		zoomOut.focus()
+
+		fireEvent.keyDown(toolbar, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(zoomIn)
+
+		expect(zoomIn).toHaveAttribute('tabindex', '0')
+
+		await userEvent.click(zoomIn)
+
+		expect(zoomIn).toBeDisabled()
+
+		expect(Array.from(toolbar.querySelectorAll(TOOLBAR_ITEM_SELECTOR))).toEqual([zoomOut])
+
+		await waitFor(() => expect(zoomOut.tabIndex).toBe(0))
 	})
 
 	it('moves along document order when element kinds interleave', () => {

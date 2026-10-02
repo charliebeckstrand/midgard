@@ -374,6 +374,31 @@ describe('Tab', () => {
 		expect(tab).toHaveAttribute('data-current', '')
 	})
 
+	it('renders segment TabContent as plain content, not a panel with a broken label', () => {
+		// A segment tab has no id, so a tabpanel would point aria-labelledby at
+		// nothing. The segment group renders plain content instead.
+		const { container } = renderUI(
+			<Tabs variant="segment" defaultValue="a">
+				<TabList aria-label="Tabs">
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="a">Panel A</TabContent>
+					<TabContent value="b">Panel B</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+
+		expect(screen.getByText('Panel A')).toBeInTheDocument()
+
+		expect(container.querySelector('[role="tabpanel"]')).toBeNull()
+
+		expect(container.querySelector('[aria-labelledby]')).toBeNull()
+
+		expect(bySlot(container, 'tab')).not.toHaveAttribute('aria-controls')
+	})
+
 	it('applies a custom className on Tab', () => {
 		const { container } = renderUI(
 			<TabList aria-label="Tabs">

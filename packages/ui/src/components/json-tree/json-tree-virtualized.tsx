@@ -14,8 +14,14 @@ import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
+import { flatTreeMoveTarget, treeMoveForKey } from './json-tree-keyboard'
 import { JsonTreeNodeRow } from './json-tree-node-row'
-import { collectMatchPaths, flattenTree, type SearchIndex } from './json-tree-utilities'
+import {
+	collectMatchPaths,
+	type FlatNode,
+	flattenTree,
+	type SearchIndex,
+} from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
@@ -56,6 +62,32 @@ function offWindowTarget(
 	if (target === undefined || rowAt(container, target)) return null
 
 	return target
+}
+
+/**
+ * The flat index that a horizontal arrow reaches in the tree model: the first child of
+ * an open branch, or the parent of a closed branch or a leaf.
+ *
+ * @returns Null when focus is not on a row, when the key makes no tree move, or when
+ * the move has no target. A branch row that opens or closes itself cancels the event
+ * first, so it does not reach this function.
+ */
+function treeMoveIndex(
+	container: HTMLElement,
+	event: KeyboardEvent<HTMLDivElement>,
+	nodes: readonly FlatNode[],
+): number | null {
+	const item = event.target
+
+	if (!(item instanceof HTMLElement) || !item.matches(TREE_ITEM_SELECTOR)) return null
+
+	const row = item.closest<HTMLElement>('[data-index]')
+
+	if (!row || !container.contains(row)) return null
+
+	const move = treeMoveForKey(event, item.getAttribute('aria-expanded') === 'true')
+
+	return move === null ? null : flatTreeMoveTarget(nodes, Number(row.dataset.index), move)
 }
 
 /**
@@ -197,6 +229,7 @@ export function JsonTreeVirtualized({
 
 	// The roving handler sees only the mounted rows. Home, End and the arrows that leave the
 	// window take their target from the flat index, scroll it in, and focus it when it mounts.
+	// The tree moves of the horizontal arrows also take their target from the flat index.
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLDivElement>) => {
 			// Each key press supersedes a focus that still waits for its row.
@@ -206,7 +239,13 @@ export function JsonTreeVirtualized({
 
 			const container = ref.current
 
-			const target = container ? offWindowTarget(container, event.key, focusable) : null
+			// A branch row that opened or closed itself has handled the key.
+			if (event.defaultPrevented) return
+
+			const target = container
+				? (treeMoveIndex(container, event, flatNodes) ??
+					offWindowTarget(container, event.key, focusable))
+				: null
 
 			if (container === null || target === null) {
 				onKeyDown(event)
@@ -216,11 +255,20 @@ export function JsonTreeVirtualized({
 
 			event.preventDefault()
 
+			// A tree move can land on a mounted row, which takes focus at once.
+			const mounted = rowAt(container, target)
+
+			if (mounted) {
+				mounted.focus()
+
+				return
+			}
+
 			scrollToIndex(target)
 
 			pendingFocusRef.current = focusRowOnMount(container, target)
 		},
-		[ref, focusable, scrollToIndex, onKeyDown],
+		[ref, flatNodes, focusable, scrollToIndex, onKeyDown],
 	)
 
 	return (

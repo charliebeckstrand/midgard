@@ -1,8 +1,10 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
+import { flatTreeMoveTarget } from '../../components/json-tree/json-tree-keyboard'
 import { JsonTreeNodeRow } from '../../components/json-tree/json-tree-node-row'
-import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { flattenTree } from '../../components/json-tree/json-tree-utilities'
+import { bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
 describe('JsonTree', () => {
 	it('renders with data-slot="json-tree" and role="tree"', () => {
@@ -574,5 +576,129 @@ describe('JsonTree tree semantics', () => {
 		const { container } = renderUI(<JsonTree data={{ outer: 1 }} defaultExpandDepth={5} />)
 
 		expect(bySlot(container, 'json-close')).toHaveAttribute('aria-hidden', 'true')
+	})
+})
+
+describe('JsonTree horizontal arrows', () => {
+	function rows(container: HTMLElement) {
+		return Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]'))
+	}
+
+	function key(container: HTMLElement, name: string) {
+		fireEvent.keyDown(present(document.activeElement, 'focused row'), { key: name })
+
+		return rows(container)
+	}
+
+	// jsdom renders no windowed rows; the browser suite covers the windowed tree.
+	it('opens, closes, and moves to the child or parent', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ outer: { inner: 1 } }} defaultExpandDepth={1} />,
+		)
+
+		const [root, outer] = rows(container)
+
+		present(root, 'root row').focus()
+
+		// An open branch: ArrowRight moves to its first child.
+		key(container, 'ArrowRight')
+
+		expect(document.activeElement).toBe(outer)
+
+		// A closed branch: ArrowRight opens it, and focus stays.
+		key(container, 'ArrowRight')
+
+		expect(document.activeElement).toHaveAttribute('aria-expanded', 'true')
+
+		expect(document.activeElement).toHaveTextContent('outer')
+
+		// Now open: ArrowRight moves to the leaf.
+		key(container, 'ArrowRight')
+
+		expect(document.activeElement).toHaveAttribute('aria-level', '3')
+
+		// A leaf: ArrowLeft moves to its parent.
+		key(container, 'ArrowLeft')
+
+		expect(document.activeElement).toHaveAttribute('aria-level', '2')
+
+		// An open branch: ArrowLeft closes it, and focus stays.
+		key(container, 'ArrowLeft')
+
+		expect(document.activeElement).toHaveAttribute('aria-expanded', 'false')
+
+		// A closed branch: ArrowLeft moves to its parent.
+		key(container, 'ArrowLeft')
+
+		expect(document.activeElement).toHaveAttribute('aria-level', '1')
+
+		// The root has no parent: ArrowLeft closes it, then does nothing.
+		key(container, 'ArrowLeft')
+
+		key(container, 'ArrowLeft')
+
+		expect(document.activeElement).toHaveAttribute('aria-level', '1')
+	})
+
+	it('swaps the arrows in a right-to-left layout', () => {
+		const { container } = renderUI(
+			<div dir="rtl" style={{ direction: 'rtl' }}>
+				<JsonTree data={{ outer: { inner: 1 } }} defaultExpandDepth={1} />
+			</div>,
+		)
+
+		const [root, outer] = rows(container)
+
+		present(root, 'root row').focus()
+
+		key(container, 'ArrowLeft')
+
+		expect(document.activeElement).toBe(outer)
+
+		key(container, 'ArrowRight')
+
+		expect(document.activeElement).toBe(root)
+	})
+})
+
+describe('flatTreeMoveTarget', () => {
+	const nodes = flattenTree({
+		data: { a: { b: 1 }, c: [], d: { e: 1 } },
+		rootKey: undefined,
+		isOpen: (path) => path !== '$.d',
+		search: '',
+		filter: false,
+		searchIndex: new WeakMap(),
+	})
+
+	const indexOf = (type: string, path: string) =>
+		nodes.findIndex((node) => node.type === type && node.path === path)
+
+	it('reaches the first child of an open branch', () => {
+		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$.a'), 'child')).toBe(
+			indexOf('leaf', '$.a.b'),
+		)
+	})
+
+	it('reaches the parent of a leaf and of a closed branch', () => {
+		expect(flatTreeMoveTarget(nodes, indexOf('leaf', '$.a.b'), 'parent')).toBe(
+			indexOf('branch-open', '$.a'),
+		)
+
+		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$.d'), 'parent')).toBe(
+			indexOf('branch-open', '$'),
+		)
+	})
+
+	it('has no target past the root or into an empty branch', () => {
+		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$'), 'parent')).toBeNull()
+
+		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$.c'), 'child')).toBeNull()
+	})
+
+	it('finds every row it names', () => {
+		expect(['$', '$.a', '$.c', '$.d'].map((path) => indexOf('branch-open', path))).not.toContain(-1)
+
+		expect(indexOf('leaf', '$.a.b')).not.toBe(-1)
 	})
 })

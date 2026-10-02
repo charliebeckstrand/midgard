@@ -1,7 +1,9 @@
 import { ChevronRight } from 'lucide-react'
+import type { KeyboardEvent } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
+import { branchToggleKey } from './json-tree-keyboard'
 import { NodeKey } from './json-tree-utilities'
 
 type JsonTreeBranchHeaderProps = {
@@ -39,6 +41,16 @@ export function JsonTreeBranchHeader({
 
 	const summary = count === 0 ? '' : count === 1 ? '1 item' : `${count} items`
 
+	// The row opens on the arrow toward its children and closes on the arrow
+	// back. The tree moves focus on the other two cases.
+	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+		if (!branchToggleKey(event, open)) return
+
+		event.preventDefault()
+
+		onToggle()
+	}
+
 	return (
 		<div className={cn(k.row)}>
 			<button
@@ -51,6 +63,7 @@ export function JsonTreeBranchHeader({
 				data-open={dataAttr(open)}
 				className={cn(k.toggle)}
 				onClick={onToggle}
+				onKeyDown={handleKeyDown}
 			>
 				<span className={cn(k.chevron.icon)} aria-hidden="true">
 					<Icon

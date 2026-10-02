@@ -34,6 +34,24 @@ describe('CopyButton', () => {
 		expect(el).toHaveAttribute('aria-label', 'Copy to clipboard')
 	})
 
+	it('is an action, not a toggle: no aria-pressed at rest or after a copy', async () => {
+		stubClipboard(vi.fn().mockResolvedValue(undefined))
+
+		const { container } = renderUI(<CopyButton text="hello" />)
+
+		const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+
+		expect(button).not.toHaveAttribute('aria-pressed')
+
+		await act(async () => {
+			fireEvent.click(button)
+		})
+
+		await waitFor(() => expect(button).toHaveAttribute('aria-label', 'Copied'))
+
+		expect(button).not.toHaveAttribute('aria-pressed')
+	})
+
 	it('lets a caller override the idle label', () => {
 		const { container } = renderUI(<CopyButton text="#6366F1" aria-label="Copy hex value" />)
 
