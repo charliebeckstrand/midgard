@@ -26,8 +26,10 @@ import { createRoot } from 'react-dom/client'
 import { Button } from '../../components/button'
 import { useCopyButtonState } from '../../components/copy-button/use-copy-button-state'
 import { Icon } from '../../components/icon'
-import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { cn } from '../../core/cn'
+import { usePanelResize } from '../../hooks/use-panel-resize'
+import { PanelHandle } from '../../primitives/panel/panel-handle'
+import { k as sheet } from '../../recipes/kata/sheet'
 
 const EVENTS = [
 	'touchstart',
@@ -213,8 +215,16 @@ function TapLogPanel() {
 
 	const [open, setOpen] = useState(true)
 
-	// The height of the log, in percent of the screen. It stays when the log shrinks to its bar.
-	const [height, setHeight] = useState(25)
+	// The grip of a bottom Sheet. The log takes 25% of the screen, and the grip
+	// makes it taller, up to 75%. A swipe down shrinks it to its bar. The hook
+	// lives here and not in the panel, so the height stays while the log is a bar.
+	const resize = usePanelResize({
+		side: 'bottom',
+		open: true,
+		onDismiss: () => setOpen(false),
+		floorOf: () => window.innerHeight * 0.25,
+		ceilingOf: (_, viewport) => viewport * 0.75,
+	})
 
 	// The clipboard gets the lines in time order, oldest first.
 	const { copied, copy } = useCopyButtonState({ text: lines.join('\n') })
@@ -248,11 +258,12 @@ function TapLogPanel() {
 		</div>
 	)
 
+	// The top padding is equal to the bottom padding, so the bar is in the vertical center.
 	if (!open)
 		return (
 			<div
 				className={cn(
-					'dark fixed inset-x-0 bottom-0 z-[2147483647] bg-zinc-950 text-white',
+					'dark fixed inset-x-0 bottom-0 z-[2147483647] bg-zinc-950 pt-[max(env(safe-area-inset-bottom),--spacing(4))] text-white',
 					corners,
 				)}
 			>
@@ -260,32 +271,27 @@ function TapLogPanel() {
 			</div>
 		)
 
-	// The group fills the screen so that the handle can drag the log up to 75%. Its
-	// empty top panel lets each tap through to the page.
 	return (
-		<div className="dark pointer-events-none fixed inset-0 z-[2147483647]">
-			<ResizableGroup
-				orientation="vertical"
-				className="h-full"
-				onSizesChange={(sizes) => setHeight(sizes[1] ?? height)}
-			>
-				<ResizablePanel defaultSize={100 - height} minSize={25} maxSize={75} />
-				<ResizableHandle
-					aria-label="Resize the tap log"
-					className="pointer-events-auto bg-zinc-950 py-3"
-				/>
-				<ResizablePanel
-					defaultSize={height}
-					minSize={25}
-					maxSize={75}
-					className={cn('pointer-events-auto flex flex-col bg-zinc-950 text-white', corners)}
-				>
-					{bar}
-					<pre className="m-0 min-h-0 flex-1 overflow-auto whitespace-pre-wrap px-5 font-mono text-[10px]/[1.3] text-green-400">
-						{log}
-					</pre>
-				</ResizablePanel>
-			</ResizableGroup>
+		<div
+			ref={resize.ref}
+			style={resize.size === null ? undefined : { height: resize.size }}
+			className={cn(
+				'dark fixed inset-x-0 bottom-0 z-[2147483647] flex h-[25dvh] flex-col bg-zinc-950 pt-6 text-white',
+				corners,
+			)}
+		>
+			<PanelHandle
+				slot="sheet-handle"
+				orientation="horizontal"
+				handleProps={resize.handleProps}
+				covers={resize.covers}
+				className={cn(sheet.handle.area, sheet.handle.side.bottom)}
+				bar={cn(sheet.handle.bar.horizontal)}
+			/>
+			{bar}
+			<pre className="m-0 min-h-0 flex-1 overflow-auto whitespace-pre-wrap px-5 font-mono text-[10px]/[1.3] text-green-400">
+				{log}
+			</pre>
 		</div>
 	)
 }
