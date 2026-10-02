@@ -7,6 +7,7 @@ import { SidebarLayout } from '../../layouts'
 import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
+import { DebugActions, DebugSettings } from './debug'
 import { DemoPage } from './demo-page'
 import { useHash } from './hooks/use-hash'
 import { demos, retryDemo } from './registry'
@@ -99,7 +100,14 @@ export function App() {
 			<SidebarLayout
 				stickyHeader
 				floating={!locked}
-				actions={<AppearanceSettings />}
+				actions={
+					<>
+						<DebugActions />
+						<AppearanceSettings>
+							<DebugSettings />
+						</AppearanceSettings>
+					</>
+				}
 				sidebar={<SidebarContent route={route} />}
 			>
 				<div ref={contentRef}>
