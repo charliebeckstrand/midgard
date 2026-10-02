@@ -1,5 +1,6 @@
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { Sparkline } from '../../components/sparkline'
+import { Sparkline, SparklineSkeleton } from '../../components/sparkline'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { bySlot, densityStepOf, getSlot, renderUI } from '../helpers'
 
@@ -179,5 +180,30 @@ describe('Sparkline density', () => {
 		expect(pinned).toHaveAttribute('viewBox', '0 0 120 32')
 
 		expect(pinned).toHaveAttribute('width', '120')
+	})
+
+	/*
+	 * A sparkline can sit in a line of text, so its skeleton has to be able to as well. Parsed back
+	 * from server markup, the way a browser meets it: a `div` inside a `<p>` makes the parser
+	 * close the paragraph there, and the tree it hydrates no longer matches.
+	 */
+	it('has a skeleton that stands in inside a paragraph, as server markup and inline', () => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToString(
+			<p>
+				Revenue <SparklineSkeleton size="sm" />
+			</p>,
+		)
+
+		const skeleton = getSlot(container, 'placeholder')
+
+		expect(skeleton.tagName).toBe('SPAN')
+
+		expect(skeleton.parentElement?.tagName).toBe('P')
+
+		expect(skeleton).toHaveClass('inline-block', 'align-middle')
+
+		expect(skeleton).not.toHaveClass('block')
 	})
 })
