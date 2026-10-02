@@ -8,6 +8,7 @@ export {
 	type FiltersFieldRenderProps,
 } from './filters-field'
 export { FiltersRow, type FiltersRowProps } from './filters-row'
+export { FiltersSkeleton, type FiltersSkeletonProps } from './filters-skeleton'
 export {
 	FiltersPrefix,
 	type FiltersPrefixProps,
