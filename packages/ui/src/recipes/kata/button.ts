@@ -1,4 +1,4 @@
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
 
@@ -27,7 +27,9 @@ export const k = defineRecipe({
 		// Each step is in a stepped `density-*` class: the button takes the step of
 		// its nearest density scope, and an explicit `size` makes the button its own
 		// scope. Five values give the steps from `xs` to `xl`, and `xl` takes the
-		// `lg` values. Square padding (`p`) keeps an icon-only button even-sided.
+		// `lg` values. A button has no `xl` size (`ControlStep`), so the `xl`
+		// value is only for a button in an `xl` scope. Square padding (`p`) keeps
+		// an icon-only button even-sided.
 		// When a text label is present the component sets `data-has-label`, which
 		// overrides `py` with the matching control step. A labeled button thus
 		// aligns with the Input and Select chrome of the same size (md → 38px).
@@ -75,5 +77,5 @@ export const k = defineRecipe({
 /** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
 export type ButtonVariants = VariantProps<typeof k> & {
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: DensityStep
+	size?: ControlStep
 }

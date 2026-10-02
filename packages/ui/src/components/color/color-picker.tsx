@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
@@ -49,7 +49,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 * of the nearest density scope. A step makes the trigger and the panel
 	 * density scopes.
 	 */
-	size?: DensityStep
+	size?: ControlStep
 	disabled?: boolean
 	className?: string
 }

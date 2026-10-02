@@ -30,6 +30,14 @@ export type MarkedStep = keyof typeof rootDensityClasses
 export type DensityStep = (typeof densitySteps)[number]
 
 /**
+ * A step that a control takes as its `size`: each step but `xl`. A control
+ * stops at `lg`, so in an `xl` scope it takes the `lg` value, and `xl` is not
+ * a size of its own. Input, Textarea, Select, Button, and the other controls
+ * type their `size` with it.
+ */
+export type ControlStep = Exclude<DensityStep, 'xl'>
+
+/**
  * An inner step: `sm`, `md`, or `lg`. A density level maps to one, and a JS
  * reader with three values, such as the chart tick cap, clamps to one.
  */

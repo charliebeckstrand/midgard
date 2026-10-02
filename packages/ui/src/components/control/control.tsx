@@ -2,7 +2,7 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/fieldset'
@@ -28,7 +28,7 @@ export type ControlProps = {
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the field a density scope.
 	 */
-	size?: DensityStep
+	size?: ControlStep
 	variant?: ControlVariant
 	className?: string
 	children: ReactNode

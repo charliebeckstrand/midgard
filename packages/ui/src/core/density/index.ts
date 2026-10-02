@@ -1,4 +1,5 @@
 export {
+	type ControlStep,
 	type DensityStep,
 	densitySteps,
 	type InnerStep,

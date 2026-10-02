@@ -4,7 +4,7 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { usePortalContainer } from '../../primitives/portal'
@@ -21,7 +21,7 @@ type ComboboxPanelProps = {
 	 * density scope of the combobox, which the portal carries. A step makes the
 	 * panel a density scope.
 	 */
-	size?: DensityStep
+	size?: ControlStep
 	/** Accessible name for the listbox, threaded from the combobox input's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string

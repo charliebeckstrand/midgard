@@ -51,7 +51,8 @@
  * control one step above: the `xs` value is for an `sm` control, the `sm`
  * value is for an `md` control, and the `md` value is for an `lg` control. The
  * `lg` and `xl` values repeat the `md` value, because a control stops at `lg`
- * on this axis.
+ * on this axis. A control has no `xl` size, so the `lg` value is only for a
+ * control in an `xl` scope.
  *
  * `autofill` is the input-side counterpart. The browser's autofill
  * highlight paints the inner input's full box, which sits flush against

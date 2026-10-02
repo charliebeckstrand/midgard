@@ -13,15 +13,20 @@ import {
 	ComboboxOption,
 	useComboboxDeferredQuery,
 } from '../../../components/combobox'
-import { ControlSkeleton } from '../../../components/control/control-skeleton'
+import { ControlSkeleton } from '../../../components/control'
+import { DescriptionListSkeleton } from '../../../components/description-list'
+import { FiltersSkeleton } from '../../../components/filters'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
+import { ListSkeleton } from '../../../components/list'
 import { PaginationSkeleton } from '../../../components/pagination'
 import { ProgressBarSkeleton, ProgressGaugeSkeleton } from '../../../components/progress'
 import { RadioSkeleton } from '../../../components/radio'
+import { RatingSkeleton } from '../../../components/rating'
 import { SegmentSkeleton } from '../../../components/segment'
 import { ShinyTextSkeleton } from '../../../components/shiny-text'
 import { SliderSkeleton } from '../../../components/slider'
+import { SparklineSkeleton } from '../../../components/sparkline'
 import {
 	StatDeltaSkeleton,
 	StatDescriptionSkeleton,
@@ -34,6 +39,8 @@ import { TabListSkeleton } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
+import { ChartSkeleton } from '../../../modules/chart'
+import { MapSkeleton } from '../../../modules/map'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
 import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
@@ -49,17 +56,24 @@ const skeletonVariants = [
 	{ name: 'Breadcrumb', skeleton: <BreadcrumbSkeleton /> },
 	{ name: 'Button', skeleton: <ButtonSkeleton /> },
 	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
+	{ name: 'Chart', skeleton: <ChartSkeleton /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
+	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
+	{ name: 'Filters', skeleton: <FiltersSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
+	{ name: 'List', skeleton: <ListSkeleton description /> },
+	{ name: 'Map', skeleton: <MapSkeleton /> },
 	{ name: 'Pagination', skeleton: <PaginationSkeleton /> },
 	{ name: 'Progress bar', skeleton: <ProgressBarSkeleton /> },
 	{ name: 'Progress gauge', skeleton: <ProgressGaugeSkeleton /> },
 	{ name: 'Radio', skeleton: <RadioSkeleton /> },
+	{ name: 'Rating', skeleton: <RatingSkeleton /> },
 	{ name: 'Segment', skeleton: <SegmentSkeleton /> },
 	{ name: 'Shiny text', skeleton: <ShinyTextSkeleton /> },
 	{ name: 'Slider', skeleton: <SliderSkeleton /> },
+	{ name: 'Sparkline', skeleton: <SparklineSkeleton /> },
 	{ name: 'Stat delta', skeleton: <StatDeltaSkeleton /> },
 	{ name: 'Stat description', skeleton: <StatDescriptionSkeleton /> },
 	{ name: 'Stat label', skeleton: <StatLabelSkeleton /> },
