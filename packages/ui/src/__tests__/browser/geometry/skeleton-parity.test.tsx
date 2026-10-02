@@ -570,6 +570,6 @@ describe('skeleton parity (real browser)', () => {
 
 		expect(reserved.width).toBe(800)
 
-		expect(Math.abs(reserved.height - 800 / ratio)).toBeLessThanOrEqual(PIXEL)
+		expect(reserved.height).toBeNear(800 / ratio, PIXEL)
 	})
 })
