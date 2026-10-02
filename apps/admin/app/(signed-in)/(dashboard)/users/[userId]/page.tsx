@@ -11,7 +11,7 @@ import {
 	BreadcrumbSkeleton,
 } from 'ui/breadcrumb'
 import { Card, CardHeader, CardTitle } from 'ui/card'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { HeadingSkeleton } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
 import { TextSkeleton } from 'ui/text'

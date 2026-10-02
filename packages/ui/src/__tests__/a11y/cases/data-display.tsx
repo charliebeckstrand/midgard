@@ -8,7 +8,11 @@ import { Avatar, AvatarSkeleton } from '../../../components/avatar'
 import { Badge, BadgeSkeleton } from '../../../components/badge'
 import { Code } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../components/dl'
+import {
+	DescriptionDetails,
+	DescriptionList,
+	DescriptionTerm,
+} from '../../../components/description-list'
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { Kbd } from '../../../components/kbd'

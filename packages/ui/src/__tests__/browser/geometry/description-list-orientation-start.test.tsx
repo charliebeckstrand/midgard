@@ -1,6 +1,10 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../components/dl'
+import {
+	DescriptionDetails,
+	DescriptionList,
+	DescriptionTerm,
+} from '../../../components/description-list'
 import { getSlot, present, renderUI } from '../../helpers'
 
 /**
