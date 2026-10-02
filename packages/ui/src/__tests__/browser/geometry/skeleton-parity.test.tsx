@@ -3,6 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../../components/button'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { ColorPanel, ColorPanelSkeleton } from '../../../components/color'
+import {
+	DescriptionDetails,
+	DescriptionList,
+	DescriptionListSkeleton,
+	DescriptionTerm,
+} from '../../../components/description-list'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import {
 	ProgressBar,
@@ -191,6 +197,33 @@ describe('skeleton parity (real browser)', () => {
 			getComputedStyle(present(document.querySelector('textarea'), 'textarea')).borderRadius,
 		)
 	})
+
+	it.each(['horizontal', 'vertical'] as const)(
+		'DescriptionListSkeleton has the box of a %s description list',
+		(orientation) => {
+			const real = box(
+				renderUI(
+					<DescriptionList orientation={orientation}>
+						<DescriptionTerm>Name</DescriptionTerm>
+						<DescriptionDetails>Wade Cooper</DescriptionDetails>
+						<DescriptionTerm>Email</DescriptionTerm>
+						<DescriptionDetails>wade@example.com</DescriptionDetails>
+						<DescriptionTerm>Role</DescriptionTerm>
+						<DescriptionDetails>Admin</DescriptionDetails>
+					</DescriptionList>,
+				).container.firstElementChild,
+				'description list',
+			)
+
+			expect(
+				box(
+					renderUI(<DescriptionListSkeleton rows={3} orientation={orientation} />).container
+						.firstElementChild,
+					'skeleton',
+				),
+			).toStrictEqual(real)
+		},
+	)
 
 	const listRows = [
 		{ id: 'a', label: 'Invoices' },
