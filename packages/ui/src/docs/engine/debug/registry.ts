@@ -9,8 +9,6 @@ export type DebugTool = {
 	id: string
 	/** The name on the switch. */
 	label: string
-	/** One sentence below the name that tells what the tool does. */
-	description: string
 	/**
 	 * Loads the part of the tool that goes in the header, such as a button that
 	 * opens a sheet. It mounts while the tool is on and unmounts when the tool
@@ -24,7 +22,6 @@ export const debugTools: readonly DebugTool[] = [
 	{
 		id: 'tap-log',
 		label: 'Tap log',
-		description: 'Logs the events of each tap. The pointer button in the header opens the log.',
 		load: () => import('./tap-log').then(({ TapLog }) => ({ default: TapLog })),
 	},
 ]
