@@ -21,6 +21,7 @@
  */
 
 import { Maximize2, Minimize2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Button } from '../../components/button'
@@ -258,41 +259,49 @@ function TapLogPanel() {
 		</div>
 	)
 
-	// The top padding is equal to the bottom padding, so the bar is in the vertical center.
-	if (!open)
-		return (
-			<div
-				className={cn(
-					'dark fixed inset-x-0 bottom-0 z-[2147483647] bg-zinc-950 pt-[max(env(safe-area-inset-bottom),--spacing(4))] text-white',
-					corners,
-				)}
-			>
-				{bar}
-			</div>
-		)
-
+	// The log and its bar slide in and out with the motion of a bottom Sheet. A
+	// minimize and a swipe down both set `open` to false, so both play the exit.
 	return (
-		<div
-			ref={resize.ref}
-			style={resize.size === null ? undefined : { height: resize.size }}
-			className={cn(
-				'dark fixed inset-x-0 bottom-0 z-[2147483647] flex h-[25dvh] flex-col bg-zinc-950 pt-6 text-white',
-				corners,
+		<AnimatePresence>
+			{open ? (
+				<motion.div
+					key="log"
+					{...sheet.motion.bottom}
+					ref={resize.ref}
+					style={resize.size === null ? undefined : { height: resize.size }}
+					className={cn(
+						'dark fixed inset-x-0 bottom-0 z-[2147483647] flex h-[25dvh] flex-col bg-zinc-950 pt-6 text-white',
+						corners,
+					)}
+				>
+					<PanelHandle
+						slot="sheet-handle"
+						orientation="horizontal"
+						handleProps={resize.handleProps}
+						covers={resize.covers}
+						className={cn(sheet.handle.area, sheet.handle.side.bottom)}
+						bar={cn(sheet.handle.bar.horizontal)}
+					/>
+					{bar}
+					<pre className="m-0 min-h-0 flex-1 overflow-auto whitespace-pre-wrap px-5 font-mono text-[10px]/[1.3] text-green-400">
+						{log}
+					</pre>
+				</motion.div>
+			) : (
+				// The top padding is equal to the bottom padding, so the bar is in the
+				// vertical center.
+				<motion.div
+					key="bar"
+					{...sheet.motion.bottom}
+					className={cn(
+						'dark fixed inset-x-0 bottom-0 z-[2147483647] bg-zinc-950 pt-[max(env(safe-area-inset-bottom),--spacing(4))] text-white',
+						corners,
+					)}
+				>
+					{bar}
+				</motion.div>
 			)}
-		>
-			<PanelHandle
-				slot="sheet-handle"
-				orientation="horizontal"
-				handleProps={resize.handleProps}
-				covers={resize.covers}
-				className={cn(sheet.handle.area, sheet.handle.side.bottom)}
-				bar={cn(sheet.handle.bar.horizontal)}
-			/>
-			{bar}
-			<pre className="m-0 min-h-0 flex-1 overflow-auto whitespace-pre-wrap px-5 font-mono text-[10px]/[1.3] text-green-400">
-				{log}
-			</pre>
-		</div>
+		</AnimatePresence>
 	)
 }
 
