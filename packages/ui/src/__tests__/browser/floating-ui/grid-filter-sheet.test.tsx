@@ -182,7 +182,7 @@ describe('grid column filter sheet: date picker layering (real browser)', () => 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Due' }))
 
 		// Open the date value editor; its calendar teleports to its own portal.
-		await userEvent.click(await screen.findByRole('button', { name: 'Due value' }))
+		await userEvent.click(await screen.findByRole('combobox', { name: 'Due value' }))
 
 		const calendar = await waitFor(() => {
 			const node = document.querySelector<HTMLElement>('[data-slot="datepicker-content"]')

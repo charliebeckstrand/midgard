@@ -816,7 +816,7 @@ describe('Grid date and boolean filters', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Filter Due' }))
 
 		// The date branch threads the column title through the DatePicker's aria-label.
-		expect(screen.getByRole('button', { name: 'Due value' })).toBeInTheDocument()
+		expect(screen.getByRole('combobox', { name: 'Due value' })).toBeInTheDocument()
 	})
 
 	it('filters rows by a date comparison (before)', () => {

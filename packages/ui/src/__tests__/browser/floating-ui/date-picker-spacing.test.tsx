@@ -15,18 +15,28 @@ import { present, renderUI, screen, waitFor } from '../../helpers'
  * focus manager (no fallback span) and has no layout.
  */
 describe('layout stability (real browser): date picker in space-y container', () => {
-	const cases: Array<{ name: string; element: ReactElement }> = [
-		{ name: 'trigger', element: <DatePicker clearable defaultValue={new Date(2025, 5, 15)} /> },
-		{ name: 'input', element: <DatePicker input clearable defaultValue={new Date(2025, 5, 15)} /> },
+	// `opener` is the role of the collapsed-state control that opens the popover.
+	const cases: Array<{ name: string; opener: 'button' | 'combobox'; element: ReactElement }> = [
+		{
+			name: 'trigger',
+			opener: 'combobox',
+			element: <DatePicker clearable defaultValue={new Date(2025, 5, 15)} />,
+		},
+		{
+			name: 'input',
+			opener: 'button',
+			element: <DatePicker input clearable defaultValue={new Date(2025, 5, 15)} />,
+		},
 		{
 			name: 'range',
+			opener: 'combobox',
 			element: (
 				<DatePicker range clearable defaultValue={[new Date(2025, 5, 15), new Date(2025, 5, 20)]} />
 			),
 		},
 	]
 
-	for (const { name, element } of cases) {
+	for (const { name, opener, element } of cases) {
 		it(`does not grow the container or add control margin when the ${name} popover opens`, async () => {
 			const { container } = renderUI(
 				<div className="space-y-4" data-testid="stack">
@@ -45,10 +55,10 @@ describe('layout stability (real browser): date picker in space-y container', ()
 
 			const closedChildren = stack.children.length
 
-			// Open via the collapsed-state button: the trigger/range display button,
-			// or input mode's suffix "Open calendar" button. Each carries
+			// Open via the collapsed-state control: the trigger/range combobox, or
+			// input mode's suffix "Open calendar" button. Each carries
 			// aria-expanded, which the clearable clear button does not.
-			await userEvent.click(screen.getByRole('button', { expanded: false }))
+			await userEvent.click(screen.getByRole(opener, { expanded: false }))
 
 			await screen.findByRole('dialog')
 

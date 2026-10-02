@@ -16,7 +16,7 @@ describe('nested overlay dismiss (real browser): date picker month/year picker',
 		renderUI(<DatePicker clearable defaultValue={new Date(2025, 5, 15)} />)
 
 		// The trigger carries aria-expanded; the clearable clear button does not.
-		await userEvent.click(screen.getByRole('button', { expanded: false }))
+		await userEvent.click(screen.getByRole('combobox', { expanded: false }))
 
 		await screen.findByRole('dialog')
 

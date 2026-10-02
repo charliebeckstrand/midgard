@@ -19,8 +19,8 @@ import { useDatePickerOpen } from './use-date-picker-open'
  * open/active wiring, the virtual-highlight keyboard handler, and the
  * clear/today footer.
  *
- * @returns Trigger props (`triggerId`, `displayValue`, `disabled`, `readOnly`,
- * `invalid`, …) and popover plumbing (`open`, `onOpenChange`, `setReference`,
+ * @returns Trigger props (`triggerId`, `dialogId`, `displayValue`, `disabled`,
+ * `readOnly`, `invalid`, …) and popover plumbing (`open`, `onOpenChange`, `setReference`,
  * `setFloating`, `floatingStyles`, floating-ui prop getters, `context`). It
  * also returns the keyboard handler `onTriggerKeyDown`, and the
  * `calendar`/`footer` prop bundles for the open dialog.
@@ -212,6 +212,7 @@ export function useDatePickerState({
 		getFloatingProps,
 		onOpenChange,
 		setReference,
+		dialogId,
 	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
 
 	// Captures the dialog for `useDatePickerInputTab`'s reference-side handler.
@@ -245,6 +246,7 @@ export function useDatePickerState({
 
 	return {
 		triggerId: scope.id,
+		dialogId,
 		describedBy: controlProps['aria-describedby'],
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,

@@ -18,6 +18,7 @@ import {
 	withFakeTime,
 	within,
 } from '../helpers'
+import { axe } from '../helpers/axe'
 
 // The footer Clear and the trigger clear share the "Clear selection" name; scope
 // footer-clear queries to the popover toolbar so the closed trigger's clear (now
@@ -68,7 +69,7 @@ describe('DatePicker', () => {
 	it('names the trigger via aria-label for unwrapped pickers', () => {
 		renderUI(<DatePicker aria-label="Due date" />)
 
-		expect(screen.getByRole('button', { name: 'Due date' })).toBeInTheDocument()
+		expect(screen.getByRole('combobox', { name: 'Due date' })).toBeInTheDocument()
 	})
 
 	it('renders trigger button', () => {
@@ -175,6 +176,62 @@ describe('DatePicker', () => {
 		expect(container.textContent).toContain('15.1.2025')
 
 		expect(container.textContent).not.toContain('1/15/2025')
+	})
+
+	it('pins the Gregorian calendar in the trigger label, as the grid does', () => {
+		const date = new Date(2025, 0, 15)
+
+		const { container } = renderUI(
+			<LocaleProvider locale="th-TH">
+				<DatePicker value={date} />
+			</LocaleProvider>,
+		)
+
+		// th-TH defaults to the Buddhist calendar, where 2025 is 2568. The grid
+		// names Gregorian months and years, so the trigger must agree with it.
+		expect(getSlot(container, 'datepicker-button')).toHaveTextContent('2025')
+
+		expect(getSlot(container, 'datepicker-button')).not.toHaveTextContent('2568')
+	})
+
+	it('exposes the selected date when an aria-label names the trigger', async () => {
+		const { container } = renderUI(
+			<DatePicker aria-label="Due date" defaultValue={new Date(2025, 0, 15)} />,
+		)
+
+		// A select-only combobox takes its value from its content, so a screen
+		// reader announces the date after the name. On a button, the label hides it.
+		const trigger = screen.getByRole('combobox', { name: 'Due date' })
+
+		expect(trigger).toHaveTextContent('1/15/2025')
+
+		expect(await axe(container)).toHaveNoViolations()
+	})
+
+	it('names the open dialog from the trigger with aria-controls', async () => {
+		const user = setupUser()
+
+		renderUI(<DatePicker aria-label="Due date" />)
+
+		const trigger = screen.getByRole('combobox', { name: 'Due date' })
+
+		expect(trigger).not.toHaveAttribute('aria-controls')
+
+		await user.click(trigger)
+
+		const controls = trigger.getAttribute('aria-controls')
+
+		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'dialog')
+	})
+
+	it('passes axe with read-only and required state', async () => {
+		const { container } = renderUI(
+			<Control required>
+				<DatePicker aria-label="Due date" readOnly defaultValue={new Date(2025, 0, 15)} />
+			</Control>,
+		)
+
+		expect(await axe(container)).toHaveNoViolations()
 	})
 
 	it('opens the calendar content on a trigger click, and closes it on the next', async () => {
@@ -806,7 +863,7 @@ describe('DatePicker range', () => {
 		// placeholder is not a programmatic name.
 		renderUI(<DatePicker range aria-label="Stay dates" />)
 
-		expect(screen.getByRole('button', { name: 'Stay dates' })).toBeInTheDocument()
+		expect(screen.getByRole('combobox', { name: 'Stay dates' })).toBeInTheDocument()
 	})
 
 	it('renders trigger with range placeholder', () => {

@@ -7,6 +7,10 @@ import { fromCalendarDate, toCalendarDate } from '../calendar/calendar-utilities
  * `<LocaleProvider>` tag at every call site. The trigger therefore reads the
  * same locale as the calendar beside it, not the runtime default.
  *
+ * The calendar is always Gregorian, as in the grid. A locale such as `th-TH`
+ * or `fa-IR` defaults to another calendar, and its year then disagrees with
+ * the grid.
+ *
  * @internal
  */
 export function formatDate(
@@ -14,7 +18,7 @@ export function formatDate(
 	locale?: string,
 	options?: Intl.DateTimeFormatOptions,
 ): string {
-	return new DateFormatter(resolveLocale(locale), options).format(date)
+	return new DateFormatter(resolveLocale(locale), { ...options, calendar: 'gregory' }).format(date)
 }
 
 /** Trigger label for a range, both endpoints in `locale`. @internal */

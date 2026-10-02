@@ -29,6 +29,8 @@ const ARROW_KEYS = new Set([
 
 /** Props for {@link DatePickerContent}. @internal */
 type DatePickerContentProps = {
+	/** The dialog id, which the trigger names in `aria-controls`. */
+	id?: string
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties
@@ -93,6 +95,7 @@ type DatePickerContentProps = {
  * @internal
  */
 export function DatePickerContent({
+	id,
 	open,
 	setFloating,
 	floatingStyles,
@@ -162,6 +165,7 @@ export function DatePickerContent({
 			trapFocusContext={context}
 			trapFocusProps={{ initialFocus: focusRef, getInsideElements }}
 			ref={dialogRef}
+			id={id}
 			role="dialog"
 			aria-modal="true"
 			aria-label={label}

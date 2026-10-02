@@ -222,6 +222,7 @@ export function useDatePickerRelativeState({
 		getFloatingProps,
 		onOpenChange,
 		setReference,
+		dialogId,
 	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
 
 	// --- Custom range (Start/End inputs) ---
@@ -367,6 +368,7 @@ export function useDatePickerRelativeState({
 
 	return {
 		triggerId: scope.id,
+		dialogId,
 		describedBy: controlProps['aria-describedby'],
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,

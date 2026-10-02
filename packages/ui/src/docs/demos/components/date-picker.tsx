@@ -27,16 +27,23 @@ export function Demo() {
 			/>
 
 			<Example title="Controlled">
-				<DatePicker value={date} onValueChange={setDate} />
+				<DatePicker aria-label="Due date" value={date} onValueChange={setDate} />
 			</Example>
 
 			<Example title="Range">
-				<DatePicker range value={range} onValueChange={setRange} placeholder="Select date range" />
+				<DatePicker
+					range
+					aria-label="Stay dates"
+					value={range}
+					onValueChange={setRange}
+					placeholder="Select date range"
+				/>
 			</Example>
 
 			<Example title="Relative">
 				<DatePicker
 					relative
+					aria-label="Reporting range"
 					value={relative}
 					onValueChange={setRelative}
 					placeholder="Select range"
@@ -46,6 +53,7 @@ export function Demo() {
 			<Example title="Relative (multiple)">
 				<DatePicker
 					relative={{ multiple: true }}
+					aria-label="Reporting ranges"
 					value={relativeMany}
 					onValueChange={setRelativeMany}
 					placeholder="Select ranges"
@@ -55,6 +63,7 @@ export function Demo() {
 			<Example title="Relative (text, no chips)">
 				<DatePicker
 					relative={{ multiple: true, chips: false }}
+					aria-label="Reporting ranges"
 					value={relativeText}
 					onValueChange={setRelativeText}
 					placeholder="Select ranges"
@@ -64,6 +73,7 @@ export function Demo() {
 			<Example title="Footer toggles">
 				<DatePicker
 					footer={{ clear: false, today: false }}
+					aria-label="Due date"
 					value={footerDate}
 					onValueChange={setFooterDate}
 					placeholder="No Clear button"
@@ -74,6 +84,7 @@ export function Demo() {
 				<GlassProvider>
 					<DatePicker
 						range
+						aria-label="Stay dates"
 						value={glassRange}
 						onValueChange={setGlassRange}
 						placeholder="Select date range"

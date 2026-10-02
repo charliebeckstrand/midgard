@@ -68,6 +68,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				open={state.open}
 				onOpenChange={state.onOpenChange}
 				triggerId={state.triggerId}
+				dialogId={state.dialogId}
 				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
@@ -91,6 +92,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				{chipRow}
 			</DatePickerTrigger>
 			<DatePickerContent
+				id={state.dialogId}
 				open={state.open}
 				setFloating={state.setFloating}
 				floatingStyles={state.floatingStyles}
@@ -155,7 +157,9 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						    preventDefaults mousedown to hold DOM focus on the dialog for
 						    the calendar variants' virtual model. Stop mousedown here, so a
 						    click focuses the input. `clearable` is off so the suffix —
-						    and thus the field width — stays fixed as a date is entered. */}
+						    and thus the field width — stays fixed as a date is entered.
+						    Each field takes the root `footer`, so a footer button that
+						    the author removes does not show in the field calendars. */}
 						<Field onMouseDown={(event) => event.stopPropagation()}>
 							<Label>Start</Label>
 							<DatePicker
@@ -168,6 +172,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								min={props.min}
 								max={state.custom.end ?? props.max}
 								size={size}
+								footer={props.footer}
 							/>
 						</Field>
 						<Field onMouseDown={(event) => event.stopPropagation()}>
@@ -182,6 +187,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								min={state.custom.start ?? props.min}
 								max={props.max}
 								size={size}
+								footer={props.footer}
 							/>
 						</Field>
 					</div>

@@ -267,7 +267,7 @@ describe('QueryBuilderRuleValue', () => {
 
 		renderUI(<QueryBuilderRuleValue field={due} value="2025-06-15" onValueChange={onValueChange} />)
 
-		await user.click(screen.getByRole('button', { name: /Due value/ }))
+		await user.click(screen.getByRole('combobox', { name: /Due value/ }))
 
 		const day = screen.getAllByRole('option').find((b) => b.textContent?.trim() === '20')
 
@@ -281,7 +281,7 @@ describe('QueryBuilderRuleValue', () => {
 	it('shows no date for a value that is not an ISO date', () => {
 		renderUI(<QueryBuilderRuleValue field={due} value="not a date" onValueChange={vi.fn()} />)
 
-		expect(screen.getByRole('button', { name: /Due value/ })).toHaveTextContent('Value')
+		expect(screen.getByRole('combobox', { name: /Due value/ })).toHaveTextContent('Value')
 	})
 
 	it('shows no date for an empty value, and emits a blank string when the date is cleared', async () => {
@@ -293,7 +293,7 @@ describe('QueryBuilderRuleValue', () => {
 			<QueryBuilderRuleValue field={due} value="" onValueChange={onValueChange} />,
 		)
 
-		const trigger = screen.getByRole('button', { name: /Due value/ })
+		const trigger = screen.getByRole('combobox', { name: /Due value/ })
 
 		expect(trigger).toHaveTextContent('Value')
 
