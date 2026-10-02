@@ -64,11 +64,23 @@ const below = { xs: 'xs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' } as const sati
 
 /**
  * The step below `step`, and `xs` for `xs`. A control slot, such as an Input
- * prefix, is a scope at the step below its host: the rungs give it this step
- * in CSS. Thus a chip or an icon in the slot is one step smaller than the host.
+ * prefix, is a scope one step below its host ({@link slotStep}). Thus a chip or
+ * an icon in the slot is one step smaller than the host.
  */
 export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 	return below[step]
+}
+
+/**
+ * The step of a control slot in a scope at `step`: the step below the step of
+ * the host. The host of a slot stops at `lg`, so in an `xl` scope it takes the
+ * `lg` look, and the slot takes `md`. Thus no part of the host grows past `lg`.
+ * The rungs give a slot this step in CSS.
+ *
+ * @internal
+ */
+export function slotStep(step: DensityStep) {
+	return stepDown(toInnerStep(step))
 }
 
 /**
@@ -121,8 +133,8 @@ export function stepsOfList(list: string): DensityStep[] | null {
  * Reads the step that the stepped classes give `element`, from its
  * `data-density` scopes, as the rungs of `rungs.ts` do. The nearest scope with
  * a step wins, the element itself included. A control slot between the
- * element and that scope takes the step below it, and a slot in a slot counts
- * once.
+ * element and that scope takes the slot step of it ({@link slotStep}), and a
+ * slot in a slot counts once.
  *
  * @param boundary - The element where the walk stops. The walk does not read it.
  * @param outer - The step above `boundary`, which applies when no scope is below it.
@@ -140,10 +152,10 @@ export function scopeStepOf<O extends DensityStep | null>(
 		const value = node.getAttribute('data-density')
 
 		if (value === 'slot') slot = true
-		else if (isDensityStep(value)) return slot ? stepDown(value) : value
+		else if (isDensityStep(value)) return slot ? slotStep(value) : value
 	}
 
-	return slot && outer !== null ? stepDown(outer) : outer
+	return slot && outer !== null ? slotStep(outer) : outer
 }
 
 /** The steps that the root marks with a class. */

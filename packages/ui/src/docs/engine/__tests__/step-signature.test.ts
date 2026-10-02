@@ -62,11 +62,14 @@ describe('stepSignature', () => {
 	})
 
 	it('gives a control slot the step below its host', () => {
-		// The slot takes `md` under `lg`, and `lg` under `xl`.
+		// The slot takes `sm` under `md`, and `md` under `lg`.
 		const html =
 			'<div data-density="{step}"><span data-density="slot" class="density-size-[3,4,5]"></span></div>'
 
-		expect(same(html, 'lg', 'xl')).toBe(false)
+		expect(same(html, 'md', 'lg')).toBe(false)
+
+		// The host stops at `lg`, so the slot takes `md` under `lg` and under `xl`.
+		expect(same(html, 'lg', 'xl')).toBe(true)
 
 		// The slot takes `xs` under `xs` and under `sm`.
 		expect(same(html, 'xs', 'sm')).toBe(true)
@@ -83,14 +86,14 @@ describe('stepSignature', () => {
 	})
 
 	it('reads a child variant at the step of each element in the subtree', () => {
-		// The class styles the slot, which takes `md` under `lg` and `lg` under `xl`.
+		// The class styles the slot, which takes `sm` under `md` and `md` under `lg`.
 		const html = [
 			'<span data-density="{step}" class="*:density-size-[3,4,5,6,6]">',
 			'<span data-density="slot"></span>',
 			'</span>',
 		].join('')
 
-		expect(same(html, 'lg', 'xl')).toBe(false)
+		expect(same(html, 'md', 'lg')).toBe(false)
 	})
 
 	it('reads an arbitrary variant before a combinator at the step of each element in the subtree', () => {
@@ -100,7 +103,7 @@ describe('stepSignature', () => {
 			'</span>',
 		].join('')
 
-		expect(same(html, 'lg', 'xl')).toBe(false)
+		expect(same(html, 'md', 'lg')).toBe(false)
 	})
 
 	it('compares the attributes, except the step, a `useId` value, and the label', () => {
