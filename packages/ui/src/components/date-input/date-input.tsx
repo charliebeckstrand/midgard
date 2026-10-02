@@ -1,9 +1,9 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useId, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
+import { useAriaIds, useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
@@ -39,7 +39,7 @@ export type DateInputProps = Omit<
 	/** Controlled date. `null` keeps the field controlled with no current value. */
 	value?: Date | null
 	defaultValue?: Date
-	/** Fires with the parsed Date once the text is a complete in-range date; fires `undefined` when it stops being one. */
+	/** Fires with the parsed Date once the text is a complete in-range date; fires `null` when it stops being one. */
 	onValueChange?: (value: Date | null) => void
 	/**
 	 * Fires on every change and on blur with the field's verdict on the typed
@@ -47,7 +47,7 @@ export type DateInputProps = Omit<
 	 *
 	 * The field already holds that verdict — it is what renders the error Message
 	 * and sets `aria-invalid` — and kept it. The `onValueChange` cannot stand in.
-	 * It emits `undefined` for a cleared field, a half-typed date, and an
+	 * It emits `null` for a cleared field, a half-typed date, and an
 	 * unparsable one alike. A caller therefore cannot tell "not finished" from
 	 * "wrong". The `isValid` says the text parses to a complete in-range date. The
 	 * `isPotentiallyValid` says it can still become one, so a growing entry is
@@ -66,14 +66,14 @@ export type DateInputProps = Omit<
 	 * else `'MM/DD/YYYY'`.
 	 */
 	format?: DateInputFormat
-	/** Earliest accepted day; a complete date before it marks the input invalid and emits `undefined`. */
+	/** Earliest accepted day; a complete date before it marks the input invalid and emits `null`. */
 	min?: Date
-	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
+	/** Latest accepted day; a complete date after it marks the input invalid and emits `null`. */
 	max?: Date
 	/**
 	 * Renders a clear button before the suffix whenever the field holds any text,
 	 * including a partial, not-yet-complete entry. Clearing empties the field,
-	 * emits `undefined`, and returns focus to the input. In a `DatePicker`'s
+	 * emits `null`, and returns focus to the input. In a `DatePicker`'s
 	 * `input` mode this clears the picker itself through the bound `onValueChange`.
 	 *
 	 * @defaultValue true
@@ -81,10 +81,11 @@ export type DateInputProps = Omit<
 	clearable?: boolean
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
-	 * `<Message>` wired into the field's `aria-describedby`. A complete entry that
-	 * parses to a real date but falls outside `min`/`max` instead shows a
-	 * bound-specific message (e.g. "Enter a date on or after 06/01/2026"). Pass
-	 * `null` (or `false`) to suppress both and supply your own.
+	 * `<Message>` wired into the `aria-describedby` of the input, also outside a
+	 * Field. A complete entry that parses to a real date but falls outside
+	 * `min`/`max` instead shows a bound-specific message (e.g. "Enter a date on
+	 * or after 06/01/2026"). Pass `null` (or `false`) to suppress both and supply
+	 * your own.
 	 *
 	 * @defaultValue `Enter a valid date (${format})`
 	 */
@@ -128,6 +129,7 @@ export function DateInput({
 	onBlur,
 	onKeyDown,
 	'aria-label': ariaLabel,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: DateInputProps) {
 	const control = useControl()
@@ -223,6 +225,18 @@ export function DateInput({
 	// buys one skipped parse of a ≤10-character text and costs this component its
 	// cognitive-complexity budget.
 	const activeMessage = resolveInvalidMessage(text, format, invalidMessage, min, max)
+
+	const showMessage = typedInvalid && Boolean(activeMessage)
+
+	const ownMessageId = useId()
+
+	const { messageId, describedId } = standaloneMessageIds(
+		control !== undefined,
+		ownMessageId,
+		showMessage,
+	)
+
+	const describedBy = useAriaIds(ariaDescribedBy, describedId)
 
 	// `atEnd: 'jump'`: the mask pads `1/` to `01/`, so a restore at the end would pin
 	// the caret before the padded digit.
@@ -325,15 +339,38 @@ export function DateInput({
 					if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
 				})}
 				{...props}
+				aria-describedby={describedBy}
 			/>
 
 			{/* Visible feedback gated on the component's own detection, not the
 			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. `resolveInvalidMessage`
 			    picks the bound- or format-specific text. */}
-			{typedInvalid && activeMessage ? <Message severity="error">{activeMessage}</Message> : null}
+			{showMessage ? (
+				<Message severity="error" id={messageId}>
+					{activeMessage}
+				</Message>
+			) : null}
 		</>
 	)
+}
+
+/**
+ * The ids that wire the invalid Message of a {@link DateInput} outside a
+ * Control. Inside a Control, the Message registers its id in the
+ * `aria-describedby` of the field, so both ids stay `undefined`. Outside one,
+ * the Message takes `ownId`, and the input references it while it shows.
+ *
+ * @internal
+ */
+function standaloneMessageIds(
+	inControl: boolean,
+	ownId: string,
+	shown: boolean,
+): { messageId: string | undefined; describedId: string | undefined } {
+	if (inControl) return { messageId: undefined, describedId: undefined }
+
+	return { messageId: ownId, describedId: shown ? ownId : undefined }
 }
 
 /**
