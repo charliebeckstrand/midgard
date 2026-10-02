@@ -2,15 +2,10 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import {
-	KanbanColumnContext,
-	kanbanColumnTitleId,
-	useKanbanContext,
-	useKanbanDragState,
-} from './context'
+import { KanbanColumnContext, useKanbanContext, useKanbanDragState } from './context'
 
 // One frozen array for every column that names nothing, so a mis-keyed column
 // does not mint a new identity per render and miss the memo below.
@@ -66,6 +61,8 @@ export function KanbanColumn({
 
 	const over = interactive && isOver && activeId !== null
 
+	const titleId = useId()
+
 	const [hasTitle, setHasTitle] = useState(false)
 
 	const registerTitle = useCallback(() => {
@@ -81,8 +78,8 @@ export function KanbanColumn({
 	const knownIds = process.env.NODE_ENV === 'production' ? NO_ITEMS : itemIds
 
 	const value = useMemo(
-		() => ({ columnId, registerTitle, itemIds: knownIds }),
-		[columnId, registerTitle, knownIds],
+		() => ({ columnId, registerTitle, titleId, itemIds: knownIds }),
+		[columnId, registerTitle, titleId, knownIds],
 	)
 
 	return (
@@ -96,7 +93,7 @@ export function KanbanColumn({
 					// Names the column from its rendered title; an explicit aria-label
 					// wins, and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}
-					aria-labelledby={!ariaLabel && hasTitle ? kanbanColumnTitleId(columnId) : undefined}
+					aria-labelledby={!ariaLabel && hasTitle ? titleId : undefined}
 					className={cn(k.column.base, over && k.column.over, className)}
 				>
 					{children}

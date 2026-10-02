@@ -80,6 +80,12 @@ export type KanbanColumnContextValue = {
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
 	/**
+	 * The id that the title renders with. The column `<section>` refers to it
+	 * through `aria-labelledby`. Each column mounts its own id, so two boards
+	 * with the same column keys do not share an id.
+	 */
+	titleId: string
+	/**
 	 * The card keys the board's `columns` entry holds for this column.
 	 *
 	 * @remarks
@@ -100,6 +106,3 @@ export type KanbanColumnContextValue = {
  */
 export const [KanbanColumnContext, useKanbanColumnContext] =
 	createContext<KanbanColumnContextValue>('KanbanColumn')
-
-/** Id the column's title renders with; the column `<section>` references it via `aria-labelledby`. */
-export const kanbanColumnTitleId = (columnId: string) => `kanban-column-title-${columnId}`

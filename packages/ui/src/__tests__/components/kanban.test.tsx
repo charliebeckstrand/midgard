@@ -548,6 +548,39 @@ describe('Kanban keyboard reorder', () => {
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
+
+	it('leaves Space and arrow keys to a control inside a card', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={onValueChange}
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1">
+							<input aria-label="Note" />
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const input = screen.getByRole('textbox', { name: 'Note' })
+
+		input.focus()
+
+		expect(fireEvent.keyDown(input, { key: ' ' })).toBe(true)
+
+		expect(fireEvent.keyDown(input, { key: 'ArrowDown' })).toBe(true)
+
+		expect(getSlot(container, 'kanban-card')).not.toHaveAttribute('data-lifted')
+
+		expect(document.activeElement).toBe(input)
+	})
 })
 
 describe('Kanban keyboard announcements', () => {
@@ -631,6 +664,33 @@ describe('KanbanColumn naming', () => {
 		for (const section of sections) {
 			expect(section).not.toHaveAttribute('aria-labelledby')
 		}
+	})
+
+	it('keeps the title ids of two boards with the same column keys apart', () => {
+		const board = (label: string) => (
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label={label}>
+				{columns.map((column) => (
+					<KanbanColumn key={column.id} value={column.id}>
+						<KanbanColumnHeader>
+							<KanbanColumnTitle>{`${label} ${column.title}`}</KanbanColumnTitle>
+						</KanbanColumnHeader>
+					</KanbanColumn>
+				))}
+			</Kanban>
+		)
+
+		renderUI(
+			<>
+				{board('First')}
+				{board('Second')}
+			</>,
+		)
+
+		const ids = allBySlot(document.body, 'kanban-column-title').map((title) => title.id)
+
+		expect(new Set(ids).size).toBe(ids.length)
+
+		expect(screen.getByRole('region', { name: 'Second Todo' })).toBeInTheDocument()
 	})
 })
 

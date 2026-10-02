@@ -3,7 +3,7 @@
 import { type ReactNode, useEffect } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import { kanbanColumnTitleId, useKanbanColumnContext } from './context'
+import { useKanbanColumnContext } from './context'
 
 /** Props for {@link KanbanColumnHeader}: native `<div>` content plus `className`. */
 export type KanbanColumnHeaderProps = {
@@ -33,16 +33,12 @@ export type KanbanColumnTitleProps = {
  * @remarks Client component.
  */
 export function KanbanColumnTitle({ children, className }: KanbanColumnTitleProps) {
-	const { columnId, registerTitle } = useKanbanColumnContext()
+	const { registerTitle, titleId } = useKanbanColumnContext()
 
 	useEffect(() => registerTitle(), [registerTitle])
 
 	return (
-		<span
-			id={kanbanColumnTitleId(columnId)}
-			data-slot="kanban-column-title"
-			className={cn(k.column.title, className)}
-		>
+		<span id={titleId} data-slot="kanban-column-title" className={cn(k.column.title, className)}>
 			{children}
 		</span>
 	)
