@@ -1,22 +1,27 @@
 /**
- * Sends a snapshot of each page of the docs site to Percy for visual review.
+ * Sends a snapshot of each fixture sheet to Percy for visual review.
  *
- * Run it on demand with `pnpm --filter ui visual`, or with the manual `Visual`
- * workflow. It does not run on a pull request. Give page ids as arguments to
- * snapshot only those pages, for example `pnpm --filter ui visual button tabs`.
+ * Run it on demand with `pnpm --filter ui visual`, or with the `Visual`
+ * workflow. It does not run on a pull request. Give sheet ids as arguments to
+ * snapshot only those sheets, for example `pnpm --filter ui visual buttons`.
+ *
+ * A sheet shows one family of components in fixed states: the defaults, and
+ * the states that need no interaction. The sheets are in src/docs/fixtures,
+ * apart from the docs pages, so an edit to a docs page does not change a
+ * snapshot. The id of a sheet is its file name in `sheets/`.
  *
  * The script needs `PERCY_TOKEN`. When the token is not set, it writes one
  * notice and stops with status 0. When the token is set, the script runs again
  * under `percy exec`, which starts the Percy server and finalizes the build.
  *
- * The page list comes from the sidebar of the built site, so a new, renamed,
- * or removed demo changes the snapshots with no change to this file. Each page
- * gets one snapshot for each theme. Percy renders each snapshot at each width
- * of `WIDTHS`, and in each browser of the Percy project.
+ * The sheet list comes from the index page of the built sheets, so a new,
+ * renamed, or removed sheet changes the snapshots with no change to this file.
+ * Each sheet gets one snapshot for each theme. Percy renders each snapshot at
+ * each width of `WIDTHS`, and in each browser of the Percy project.
  *
  * A run takes the default density, `snug`. Give `--density` with a list of
  * levels to snapshot other levels too, for example `--density=loose,compact`.
- * Each level adds one snapshot for each page and theme. The name of a snapshot
+ * Each level adds one snapshot for each sheet and theme. The name of a snapshot
  * at a level other than the default names the level.
  */
 
@@ -33,9 +38,12 @@ const WIDTHS = [390, 1280]
 
 const THEMES = ['light', 'dark'] as const
 
+/** The time that each sheet gets to settle before its snapshot, in milliseconds. */
+const SETTLE_MS = 1000
+
 const root = join(import.meta.dirname, '..')
 
-const configFile = join(root, 'vite.docs.config.ts')
+const configFile = join(root, 'vite.fixtures.config.ts')
 
 const args = process.argv.slice(2)
 
@@ -84,28 +92,28 @@ let browser: Browser | undefined
 try {
 	browser = await chromium.launch()
 
-	const pages = await readPages(browser, url)
+	const sheets = await readSheets(browser, url)
 
-	const selected = ids.length ? pages.filter((page) => ids.includes(page.id)) : pages
+	const selected = ids.length ? sheets.filter((id) => ids.includes(id)) : sheets
 
-	const unknown = ids.filter((id) => !pages.some((page) => page.id === id))
+	const unknown = ids.filter((id) => !sheets.includes(id))
 
-	if (unknown.length) throw new Error(`visual: no docs page has the id ${unknown.join(', ')}.`)
+	if (unknown.length) throw new Error(`visual: no fixture sheet has the id ${unknown.join(', ')}.`)
 
 	for (const { density, theme } of densities.flatMap((density) =>
 		THEMES.map((theme) => ({ density, theme })),
 	)) {
-		// The site follows the color scheme of the system until the reader picks a
-		// theme, so the scheme of the context sets the theme. Reduced motion lets
-		// each animation end before the capture.
+		// The sheets follow the color scheme of the system, so the scheme of the
+		// context sets the theme. Reduced motion lets each animation end before the
+		// capture.
 		const context = await browser.newContext({
 			colorScheme: theme,
 			reducedMotion: 'reduce',
 			viewport: { width: WIDTHS[WIDTHS.length - 1] ?? 1280, height: 900 },
 		})
 
-		// The pre-paint script of the site reads the stored level, as it does for a
-		// reader who picked it.
+		// The pre-paint script of the sheets reads the stored level, as the docs
+		// site does for a reader who picked it.
 		await context.addInitScript(([key, value]) => localStorage.setItem(key, value), [
 			DENSITY_KEY,
 			density,
@@ -113,20 +121,25 @@ try {
 
 		const suffix = density === DENSITY_DEFAULT ? theme : `${theme}, ${density}`
 
-		for (const { id, name } of selected) {
-			// A new page loads each demo from the start. A hash change in one page
-			// would keep the state that the last demo left.
+		for (const id of selected) {
+			// A new page loads each sheet from the start.
 			const page = await context.newPage()
 
 			await page.goto(`${url}#${id}`)
 
-			await page.locator('h1', { hasText: name }).first().waitFor()
+			await page.locator('[data-slot="fixture-sheet"]').waitFor()
 
 			await page.waitForLoadState('networkidle')
 
 			await page.evaluate(() => document.fonts.ready)
 
-			await percySnapshot(page, `${name} (${suffix})`, {
+			// Reduced motion stops the transform animations of `motion`, but a spring
+			// on another value still runs on mount, for example the arc of
+			// ProgressGauge. One second lets each spring settle, so that two runs on
+			// the same commit give the same snapshot.
+			await page.waitForTimeout(SETTLE_MS)
+
+			await percySnapshot(page, `Fixture ${id} (${suffix})`, {
 				widths: WIDTHS,
 				responsiveSnapshotCapture: true,
 			})
@@ -144,24 +157,21 @@ try {
 	await server.close()
 }
 
-/** Read the id and the name of each docs page from the sidebar of the site. */
-async function readPages(browser: Browser, url: string) {
+/** Read the id of each fixture sheet from the index page of the sheets. */
+async function readSheets(browser: Browser, url: string) {
 	const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
 
 	await page.goto(url)
 
-	const links = page.locator('[data-slot="sidebar"] a[data-slot="sidebar-item-inner"][href^="#"]')
+	const links = page.locator('[data-slot="fixture-index"] a[href^="#"]')
 
 	await links.first().waitFor()
 
-	const pages = await links.evaluateAll((nodes) =>
-		nodes.map((node) => ({
-			id: node.getAttribute('href')?.slice(1) ?? '',
-			name: node.textContent?.trim() ?? '',
-		})),
+	const sheets = await links.evaluateAll((nodes) =>
+		nodes.map((node) => node.getAttribute('href')?.slice(1) ?? ''),
 	)
 
 	await page.close()
 
-	return pages
+	return sheets
 }
