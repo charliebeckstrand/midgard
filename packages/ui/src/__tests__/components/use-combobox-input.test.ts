@@ -266,6 +266,38 @@ describe('useComboboxInput onKeyDown', () => {
 		expect(rovingKeyDown).toHaveBeenCalled()
 	})
 
+	// An IME takes Enter to confirm a composition and Escape to cancel it, so
+	// neither key reaches the menu while a composition runs.
+	it.each(['Escape', 'Enter', 'ArrowDown'])('leaves %s to the IME during a composition', (key) => {
+		const { result, close, openByArrowKey, rovingKeyDown, optionsRef } = setup<string>({
+			open: false,
+		})
+
+		const container = document.createElement('div')
+
+		const option = document.createElement('div')
+
+		option.setAttribute('role', 'option')
+
+		container.appendChild(option)
+
+		optionsRef.current = container as HTMLDivElement
+
+		const event = makeKeyEvent<HTMLInputElement>(key, {
+			nativeEvent: { isComposing: true } as KeyboardEvent<HTMLInputElement>['nativeEvent'],
+		})
+
+		result.current.onKeyDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(close).not.toHaveBeenCalled()
+
+		expect(openByArrowKey).not.toHaveBeenCalled()
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
+	})
+
 	it('forwards other keys to roving navigation', () => {
 		const { result, rovingKeyDown } = setup<string>()
 
