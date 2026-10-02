@@ -1,5 +1,4 @@
 import { mount } from './engine/host'
-import { mountTapLog } from './engine/tap-log'
 
 // `index.html` links `app.css`; an import here would delay the styles until
 // this whole module graph loads. See `engine/README.md`.
@@ -19,4 +18,6 @@ mount(
 	),
 )
 
-mountTapLog()
+// The tap log loads only at `?taplog`, so the entry chunk does not carry it.
+if (new URLSearchParams(window.location.search).has('taplog'))
+	void import('./engine/tap-log').then(({ mountTapLog }) => mountTapLog())

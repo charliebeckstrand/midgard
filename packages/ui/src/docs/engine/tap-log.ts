@@ -178,10 +178,8 @@ function button(text: string, onClick: () => void) {
 	return element
 }
 
-/** Mounts the log when the URL has `?taplog`. */
+/** Mounts the log. `main.tsx` loads this module only when the URL has `?taplog`. */
 export function mountTapLog() {
-	if (!new URLSearchParams(window.location.search).has('taplog')) return
-
 	start = performance.now()
 
 	const panel = document.createElement('div')
