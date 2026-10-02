@@ -1,7 +1,7 @@
 'use client'
 
 import { autoPlacement, type Middleware, offset, shift } from '@floating-ui/react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
@@ -25,6 +25,7 @@ import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { Icon } from '../icon'
+import { useMenuState } from './context'
 import { MenuViewport } from './menu-viewport'
 import { snapMenuHeight } from './menu-viewport-utilities'
 import { MenuLabel } from './slots'
@@ -119,9 +120,138 @@ export type MenuSubProps = {
  * its trigger and roves by `aria-activedescendant`, so the arrows for a submenu
  * open under one arrive there instead. {@link MenuTrigger} hands them over the
  * same way.
+ *
+ * In the bottom sheet of a phone dropdown (the `sheet` prop of {@link Menu}),
+ * there is no space for a panel at the side. There the row is a disclosure
+ * instead: a tap shows the rows of the submenu below it, indented, in the same
+ * sheet. The row then has `aria-expanded`, controls a `<fieldset>` (role
+ * `group`) of the rows, and has no `aria-haspopup`.
  * @see {@link MenuItem}
  */
-export function MenuSub({
+export function MenuSub(props: MenuSubProps) {
+	const { isSheet } = useMenuState()
+
+	return isSheet ? <MenuSubSheet {...props} /> : <MenuSubFloating {...props} />
+}
+
+/**
+ * The rows of a {@link MenuSub} in the bottom sheet of a phone. The sheet is
+ * the full width of the screen, so there is no space for a panel at the side
+ * of the row. The row is a disclosure: a tap, Enter, or Space shows the rows of
+ * the submenu below it, and does so again to hide them. The arrow away from the
+ * start edge shows them, and the arrow back hides them. The arrow back from a
+ * row inside also hides them, and puts focus on the parent row. The rows stay
+ * in the focus order of the sheet, so the up and down arrows go through them.
+ *
+ * @internal
+ */
+function MenuSubSheet({
+	label,
+	icon,
+	disabled = false,
+	onOpenChange,
+	className,
+	children,
+}: MenuSubProps) {
+	const [open, setOpen] = useState(false)
+
+	useOpenChange(open, onOpenChange)
+
+	const triggerRef = useRef<HTMLButtonElement>(null)
+
+	const triggerId = useId()
+
+	const groupId = useId()
+
+	const handlePointerMove = useMenuRowPointer(disabled)
+
+	const handleClick = useStableEvent(() => {
+		if (!disabled) setOpen((current) => !current)
+	})
+
+	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
+		if (disabled) return
+
+		const key = logicalArrowKey(event.key, event.currentTarget)
+
+		if (OPEN_KEYS.includes(event.key)) {
+			event.preventDefault()
+
+			setOpen((current) => !current)
+
+			return
+		}
+
+		// Consumed only when it changes the state, so the arrow back from a closed
+		// row reaches the group of an enclosing submenu, which closes.
+		if ((key === 'ArrowRight' && !open) || (key === 'ArrowLeft' && open)) {
+			event.preventDefault()
+
+			event.stopPropagation()
+
+			setOpen(key === 'ArrowRight')
+		}
+	})
+
+	const handleGroupKeyDown = useStableEvent((event: KeyboardEvent<HTMLFieldSetElement>) => {
+		if (logicalArrowKey(event.key, event.currentTarget) !== 'ArrowLeft') return
+
+		event.preventDefault()
+
+		event.stopPropagation()
+
+		setOpen(false)
+
+		triggerRef.current?.focus()
+	})
+
+	return (
+		<>
+			<button
+				id={triggerId}
+				ref={triggerRef}
+				type="button"
+				role="menuitem"
+				tabIndex={-1}
+				aria-expanded={open}
+				aria-controls={open ? groupId : undefined}
+				aria-disabled={ariaAttr(disabled)}
+				data-disabled={dataAttr(disabled)}
+				data-slot="menu-sub-trigger"
+				data-open={dataAttr(open)}
+				className={cn('group/option', k.item, k.subTrigger, className)}
+				onClick={handleClick}
+				onKeyDown={handleTriggerKeyDown}
+				onPointerMove={handlePointerMove}
+			>
+				{icon ? <Icon icon={icon} /> : null}
+
+				<MenuLabel>{label}</MenuLabel>
+
+				<Icon icon={<ChevronDown />} className={cn(k.subChevron, open && 'rotate-180')} />
+			</button>
+
+			{open ? (
+				<fieldset
+					id={groupId}
+					aria-labelledby={triggerId}
+					data-slot="menu-sub-group"
+					className={k.subGroup}
+					onKeyDown={handleGroupKeyDown}
+				>
+					{children}
+				</fieldset>
+			) : null}
+		</>
+	)
+}
+
+/**
+ * The floating panel of a {@link MenuSub}, beside its parent row.
+ *
+ * @internal
+ */
+function MenuSubFloating({
 	label,
 	icon,
 	disabled = false,
