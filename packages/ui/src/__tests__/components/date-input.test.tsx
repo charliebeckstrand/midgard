@@ -446,6 +446,24 @@ describe('DateInput', () => {
 		expect(input.getAttribute('aria-describedby')).toBe(message?.id)
 	})
 
+	it('wires a standalone message into aria-describedby, after the caller ids', async () => {
+		const { container } = renderUI(<DateInput aria-describedby="hint" />)
+
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
+
+		expect(input).toHaveAttribute('aria-describedby', 'hint')
+
+		const user = setupUser()
+
+		await user.type(input, '02312025')
+
+		const message = bySlot(container, 'message')
+
+		expect(message?.id).toBeTruthy()
+
+		expect(input.getAttribute('aria-describedby')).toBe(`hint ${message?.id}`)
+	})
+
 	it('uses a custom invalid message and clears it once valid', async () => {
 		const { container } = renderUI(<DateInput invalidMessage="Bad date" />)
 

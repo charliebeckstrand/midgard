@@ -95,4 +95,69 @@ describe('QueryBuilder rule row widths (real browser)', () => {
 
 		expect(value).toBeNear(field, PIXEL)
 	})
+
+	const statusFields: QueryField[] = [
+		{
+			name: 'status',
+			label: 'Status',
+			type: 'select',
+			options: [
+				{ value: 'active', label: 'Active' },
+				{ value: 'archived', label: 'Archived' },
+			],
+		},
+	]
+
+	const statusRule = () =>
+		createGroup('and', [
+			{ id: 'r', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
+		])
+
+	/** True when the select shows its whole text, with no ellipsis. */
+	const fits = (combobox: HTMLElement) => {
+		const text = [...combobox.querySelectorAll<HTMLElement>('*')].find(
+			(el) => el.children.length === 0 && el.textContent?.trim(),
+		)
+
+		if (!text) throw new Error('no text in the select')
+
+		return text.scrollWidth <= text.clientWidth
+	}
+
+	// In a container that sizes to its content, the equal shares gave each part
+	// the mean width of the three texts, which cut the longest text ("St…").
+	it('keeps the text of each select whole in a container that sizes to its content', () => {
+		renderUI(
+			<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+				<QueryBuilder fields={statusFields} defaultValue={statusRule()} />
+			</div>,
+		)
+
+		expect(fits(screen.getByRole('combobox', { name: 'Field' }))).toBe(true)
+
+		expect(fits(screen.getByRole('combobox', { name: 'Operator' }))).toBe(true)
+
+		expect(fits(screen.getByRole('combobox', { name: 'Status value' }))).toBe(true)
+	})
+
+	// The parts have a minimum width, so in a narrow container they wrap to a
+	// new line and do not push the row past its edge.
+	it('wraps the parts in a narrow container and does not overflow the rule', () => {
+		const { container } = renderUI(
+			<div style={{ width: 300 }}>
+				<QueryBuilder
+					fields={fields}
+					defaultValue={createGroup('and', [
+						{ id: 'r', type: 'rule', field: 'age', operator: 'between', value: ['', ''] },
+					])}
+				/>
+			</div>,
+		)
+
+		const rule = container.querySelector<HTMLElement>('[data-slot="query-rule"]')
+
+		if (!rule) throw new Error('no rule')
+
+		expect(rule.scrollWidth).toBeLessThanOrEqual(rule.clientWidth)
+	})
 })

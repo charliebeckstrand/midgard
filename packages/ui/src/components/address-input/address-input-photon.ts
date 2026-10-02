@@ -105,7 +105,11 @@ export type PhotonProviderOptions = {
 	 * @defaultValue 5
 	 */
 	limit?: number
-	/** Language for the returned names; the instance's default otherwise. */
+	/**
+	 * Language for the returned names; the instance's default otherwise. The
+	 * search inside a US state asks for no language, because it keeps the
+	 * matches by the English name of the state.
+	 */
 	lang?: string
 	/**
 	 * Rank matches near this point first. A geocoder asked for "Clearwater" with
@@ -185,15 +189,18 @@ function browserRegion(): string | undefined {
  * states.
  * The provider finds the position of the code first, then searches the rest of
  * the query with that position as the proximity bias. A query that is only a
- * code answers with that code. A query that ends in a code that the geocoder
- * does not know is searched as typed.
+ * code answers with that code. With `layers` or `osmTag`, it searches the code
+ * near that position instead, so the filters apply. A query that ends in a code
+ * that the geocoder does not know is searched as typed.
  *
  * Where the region is `US`, a query that ends in a state searches inside that
  * state. A full name matches in any case, and a USPS code only in capitals, so
  * "starbucks Oregon" and "starbucks OR" search Oregon. The query as typed wins
  * where the state has no match. It also wins where one of its matches holds the
- * state in its name, as "Mount Washington" does. See
- * {@link PhotonProviderOptions.region} for the country a code is read in.
+ * state in its name, as "Mount Washington" does. The search inside the state
+ * asks for no language, because it keeps the matches by the English name of
+ * the state. See {@link PhotonProviderOptions.region} for the country a code is
+ * read in.
  *
  * @param options - Endpoint, result count, language, proximity bias, postal
  * code region, and the layer / tag filters; see {@link PhotonProviderOptions}.
@@ -243,13 +250,20 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 		)
 	}
 
-	/** Where a search looks: near a point, or only inside a box. */
-	type Scope = { near?: PhotonProviderOptions['bias']; box?: [number, number, number, number] }
+	/**
+	 * Where a search looks: near a point, or only inside a box. `localize: false`
+	 * asks for no language, whatever `lang` is.
+	 */
+	type Scope = {
+		near?: PhotonProviderOptions['bias']
+		box?: [number, number, number, number]
+		localize?: boolean
+	}
 
 	function search(query: string, scope: Scope, signal: AbortSignal) {
 		const params = new URLSearchParams({ q: query, limit: String(limit) })
 
-		if (lang !== undefined) params.set('lang', lang)
+		if (lang !== undefined && scope.localize !== false) params.set('lang', lang)
 
 		if (scope.near !== undefined) {
 			params.set('lat', String(scope.near.latitude))
@@ -273,7 +287,10 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 	 * has no such match.
 	 *
 	 * Photon filters by a box, and a box around a state holds parts of the
-	 * states next to it. A match in another state is therefore removed.
+	 * states next to it. A match in another state is therefore removed. The
+	 * filter compares the English name or the USPS code of the state, so this
+	 * search asks for no language: `lang` would give the name of the state in
+	 * that language.
 	 */
 	async function searchInState(
 		rest: string,
@@ -293,7 +310,7 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 		if (box === undefined) return []
 
-		const features = await search(rest, { box }, signal)
+		const features = await search(rest, { box, localize: false }, signal)
 
 		return features.filter(
 			(feature) =>
@@ -316,13 +333,21 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 			if (code === undefined) continue
 
-			// A query that is only a code asks for the code, and the code in the
-			// region is the one the reader means.
-			if (rest === '') return [code]
-
 			const [longitude, latitude] = code.geometry.coordinates
 
-			return search(rest, { near: { latitude, longitude } }, signal)
+			const near = { latitude, longitude }
+
+			// A query that is only a code asks for the code, and the code in the
+			// region is the one the reader means. The code is not a layer or a tag
+			// that a filter keeps, so a filtered provider searches the code near
+			// its position, and the filters apply.
+			if (rest === '') {
+				return layers === undefined && osmTag === undefined
+					? [code]
+					: search(qualifier, { near }, signal)
+			}
+
+			return search(rest, { near }, signal)
 		}
 
 		return null

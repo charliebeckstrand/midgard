@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefCallback } from 'react'
-import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
+import { cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
@@ -28,7 +28,6 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	 */
 	size?: DensityStep
 	disabled?: boolean
-	required?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
 	validation?: ValidationAttrs
 	className?: string
@@ -38,6 +37,8 @@ type ColorPickerTriggerProps = GroupStampProps & {
  * Control-framed button showing the current color swatch and its hex value,
  * opening the picker dialog.
  *
+ * @remarks The trigger is a plain button, and a button does not take
+ * `aria-required`. So a required Control puts no required state on it.
  * @internal
  */
 export function ColorPickerTrigger({
@@ -51,7 +52,6 @@ export function ColorPickerTrigger({
 	alpha,
 	size,
 	disabled = false,
-	required = false,
 	validation,
 	className,
 	'data-group': dataGroup,
@@ -86,7 +86,6 @@ export function ColorPickerTrigger({
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						aria-describedby={describedBy}
-						aria-required={ariaAttr(required)}
 						data-slot="color-picker-button"
 						disabled={disabled}
 						{...validation}

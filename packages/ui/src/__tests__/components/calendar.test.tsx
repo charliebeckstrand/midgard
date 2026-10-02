@@ -84,6 +84,23 @@ describe('Calendar', () => {
 		expect(screen.getAllByRole('option')[14]).toHaveAccessibleName('วันอาทิตย์ที่ 15 มิถุนายน 2025')
 	})
 
+	it('writes the day numbers in the digits of the locale', () => {
+		// `ar-EG` writes Arabic-Indic digits, as its month and day names do.
+		renderUI(<Calendar locale="ar-EG" defaultValue={new Date(2025, 5, 15)} />)
+
+		const day = screen.getAllByRole('option')[14]
+
+		expect(day).toHaveTextContent('١٥')
+
+		expect(day).toHaveAccessibleName(expect.stringContaining('١٥'))
+	})
+
+	it('keeps a single-select day listbox', () => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		expect(screen.getByRole('listbox')).not.toHaveAttribute('aria-multiselectable')
+	})
+
 	it('steps one month for each handle call in one event', () => {
 		const ref = createRef<CalendarHandle>()
 

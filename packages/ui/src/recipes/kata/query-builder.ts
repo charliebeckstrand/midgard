@@ -4,8 +4,9 @@
  * `group.base` and `group.nested` condition boxes, a `rule` row, and its
  * `remove` control. The rest are the fixed `value` text standing in for a
  * value-less operator's input, the AND/OR `separator`, and the `actions` cluster.
- * The `part` and `rangePart` slots size the parts of a rule row. The
- * `sortable` slots hold a node and its drag `handle` when the builder reorders.
+ * The `part` and `rangePart` slots size the parts of a rule row, and `parts`
+ * holds them. The `sortable` slots hold a node and its drag `handle` when the
+ * builder reorders.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
@@ -26,10 +27,15 @@ export const k = {
 	rule: ['p-2.5', border.default, rounded.lg],
 	// The field, operator, and value of a rule share the row from a zero basis.
 	// A range value holds two number inputs, each with its steppers, so it takes
-	// two shares. `min-w-0` lets a part shrink past the intrinsic width of an
-	// input, so the shares hold. Below `sm` the parts stack, each at full width.
-	part: 'w-full sm:min-w-0 sm:flex-1',
-	rangePart: 'w-full sm:min-w-0 sm:flex-2',
+	// two shares. The minimum width lets a part shrink past the intrinsic width
+	// of an input, so the shares hold. It also keeps the text of a part
+	// readable in a container that sizes to its content, where the equal shares
+	// otherwise cut the longest text. The `parts` row wraps a part that cannot
+	// get its minimum to a new line. Below `sm` the parts stack, each at full
+	// width.
+	parts: 'sm:flex-wrap',
+	part: 'w-full sm:min-w-32 sm:flex-1',
+	rangePart: 'w-full sm:min-w-48 sm:flex-2',
 	remove: 'flex-none',
 	value: ['px-3', size.sm, ...text.muted],
 	separator: [size.xs, weight.medium, ...text.muted, 'uppercase'],

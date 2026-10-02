@@ -157,15 +157,17 @@ export function AddressInput({
 
 	const control = useControl()
 
-	// Disabled suppresses the clear button; keep the pin rather than letting
-	// the slot fall back to the Combobox chevron. The explicit prop wins, as it
-	// does everywhere in the cascade. With `clearable` off there is no clear
-	// button, so the pin stays too.
+	// Disabled and read-only suppress the clear button; keep the pin rather
+	// than letting the slot fall back to the Combobox chevron. The explicit prop
+	// wins, as it does everywhere in the cascade. With `clearable` off there is
+	// no clear button, so the pin stays too.
 	const disabled = props.disabled ?? control?.disabled
+
+	const readOnly = props.readOnly ?? control?.readOnly
 
 	const suffix = loading ? (
 		<LoadingSpinner />
-	) : selected === undefined || disabled || !clearable ? (
+	) : selected === undefined || disabled || readOnly || !clearable ? (
 		<Icon icon={<MapPin />} />
 	) : undefined
 

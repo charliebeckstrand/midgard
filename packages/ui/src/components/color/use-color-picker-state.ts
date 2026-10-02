@@ -30,7 +30,7 @@ export type ColorPickerStateOptions = {
  *
  * @returns The color state (`hsva`, `setHsva`), the open state (`open`,
  * `onOpenChange`), and the Control-derived field metadata (`triggerId`,
- * `describedBy`, `disabled`, `required`, `validation`). It also returns the
+ * `describedBy`, `disabled`, `validation`). It also returns the
  * Floating UI plumbing (`setReference`, `setFloating`, `floatingStyles`,
  * `getReferenceProps`, `getFloatingProps`, `context`).
  * @remarks
@@ -71,9 +71,12 @@ export function useColorPickerState({
 
 	const scope = useIdScope({ id: controlProps.id })
 
+	// `useFormValue` owns the seed: it gives `defaultValue` when the picker is
+	// unbound and uncontrolled, and ignores it for a bound field (§7.2). The
+	// color state is always controlled, so an empty value goes in as `null`
+	// and paints black.
 	const { hsva, setHsva } = useColorState({
-		value: bound.value,
-		defaultValue,
+		value: bound.value ?? null,
 		format,
 		alpha,
 		onValueChange: bound.setValue,
@@ -117,7 +120,6 @@ export function useColorPickerState({
 		triggerId: scope.id,
 		describedBy: controlProps['aria-describedby'],
 		disabled: controlProps.disabled === true,
-		required: controlProps.required,
 		validation: controlProps.validation,
 		hsva,
 		setHsva,

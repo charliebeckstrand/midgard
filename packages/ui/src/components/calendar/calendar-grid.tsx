@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'
@@ -28,6 +28,8 @@ type CalendarGridProps = {
 	listboxId?: string
 	/** Id stamped on the active cell, so a parent input's `aria-activedescendant` can reference the roved day. */
 	activeDescendantId?: string
+	/** Marks the listbox `aria-multiselectable`, for a `getDayProps` that selects more than one day. */
+	multiselectable?: boolean
 }
 
 /**
@@ -54,6 +56,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 	localeTag,
 	listboxId,
 	activeDescendantId,
+	multiselectable,
 }: CalendarGridProps) {
 	return (
 		<div className={k.grid}>
@@ -68,6 +71,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 				id={listboxId}
 				role="listbox"
 				aria-label={monthLabel}
+				aria-multiselectable={ariaAttr(multiselectable)}
 				onKeyDown={onGridKeyDown}
 				className="col-span-7 grid grid-cols-7"
 			>

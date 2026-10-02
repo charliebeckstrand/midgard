@@ -41,7 +41,11 @@ type ListboxBaseProps = GroupStampProps & {
 	suffix?: ReactNode
 	size?: DensityStep
 	disabled?: boolean
-	/** Keeps the trigger focusable and the value submitted, but blocks opening and selection. */
+	/**
+	 * Keeps the trigger focusable and the value submitted, but blocks opening and
+	 * selection. A controlled `open` can show the panel, but an option click does
+	 * not commit, as with `disabled`.
+	 */
 	readOnly?: boolean
 	/** Marks the field required; surfaces `aria-required` on the trigger. */
 	required?: boolean
@@ -66,7 +70,10 @@ type ListboxBaseProps = GroupStampProps & {
 	 * @defaultValue true
 	 */
 	truncate?: boolean
-	/** Show a clear button in place of the chevron when a value is selected. */
+	/**
+	 * Show a clear button in place of the chevron when a value is selected. A
+	 * custom `suffix` takes the slot before the clear button, as in Combobox.
+	 */
 	clearable?: boolean
 	/**
 	 * Capitalizes the first letter (first word only) of the selected
@@ -230,17 +237,20 @@ export function Listbox<T>({
 		setValue,
 	})
 
+	// A read-only or disabled listbox does not open and does not commit.
+	const locked = resolvedReadOnly || resolvedDisabled
+
 	// readOnly keeps the trigger focusable and the value submitted but blocks
 	// every open path (frame click, floating-ui keyboard/typeahead). disabled
 	// blocks the same paths. The frame takes the click, not the disabled button.
 	// Closing stays allowed, so an externally-opened menu can still dismiss.
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
-			if ((resolvedReadOnly || resolvedDisabled) && next) return
+			if (locked && next) return
 
 			setOpen(next)
 		},
-		[resolvedReadOnly, resolvedDisabled, setOpen],
+		[locked, setOpen],
 	)
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -314,7 +324,7 @@ export function Listbox<T>({
 
 	const hasValue = hasListboxValue(value, multiple)
 
-	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
+	const showClear = clearable && hasValue && !locked
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
@@ -332,6 +342,17 @@ export function Listbox<T>({
 		/>
 	) : null
 
+	// A controlled `open` can show the panel past the open guard, so the guard
+	// also blocks the selection: a read-only or disabled listbox never commits.
+	const guardedSelect = useCallback(
+		(next: T) => {
+			if (locked) return
+
+			select(next)
+		},
+		[locked, select],
+	)
+
 	// The trigger label reads the live `value` (updates instantly on select); the
 	// menu reads `selectionValue`, which stays frozen until the panel finishes
 	// closing, keeping the selected row stable during the exit animation.
@@ -339,10 +360,10 @@ export function Listbox<T>({
 		() => ({
 			value: selectionValue,
 			multiple,
-			onSelect: select as (v: unknown) => void,
+			onSelect: guardedSelect as (v: unknown) => void,
 			capitalize,
 		}),
-		[selectionValue, multiple, select, capitalize],
+		[selectionValue, multiple, guardedSelect, capitalize],
 	)
 
 	return (

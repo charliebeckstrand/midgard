@@ -35,6 +35,16 @@ describe('sparklineGeometry', () => {
 		expect(geo.line).toBe('M 2 20 L 98 20')
 	})
 
+	it('puts the end point of a lone drawn point at the end of its flat line', () => {
+		expect(sparklineGeometry([7], { ...box }).last).toEqual({ x: 98, y: 20 })
+
+		// One finite datum among non-finite ones also draws the full-width line.
+		expect(sparklineGeometry([Number.NaN, 7, Number.NaN], { ...box }).last).toEqual({
+			x: 98,
+			y: 20,
+		})
+	})
+
 	it('emits a bar per datum, floored so the minimum still shows', () => {
 		const geo = sparklineGeometry([0, 10], { ...box, minBarHeight: 1 })
 

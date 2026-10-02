@@ -222,6 +222,25 @@ describe('useRangePointer', () => {
 		expect(firstUpdate(setRange, [20, 30])).toEqual([30, 90])
 	})
 
+	it.each<[string, [number, number], number, number, ThumbIndex]>([
+		['the lower thumb crosses above the upper', [20, 30], 20, 90, 1],
+		['the upper thumb crosses below the lower', [70, 80], 80, 10, 0],
+	])(
+		'moves focus with the dragged value when %s in swap mode',
+		(_, current, downX, moveX, slot) => {
+			const { api, thumbs } = setup({ current, overlap: 'swap' })
+
+			api.onPointerDown(makeEvent({ clientX: downX }))
+
+			expect(document.activeElement).toBe(thumbs[slot === 0 ? 1 : 0])
+
+			api.onPointerMove(makeEvent({ clientX: moveX }))
+
+			// The value now sits in the other slot, so an arrow key must drive it there.
+			expect(document.activeElement).toBe(thumbs[slot])
+		},
+	)
+
 	it('reassigns the upper thumb to slot 0 when it crosses below the lower in swap mode', () => {
 		const { api, setRange } = setup({ current: [70, 80], overlap: 'swap' })
 

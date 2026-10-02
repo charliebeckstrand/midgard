@@ -110,6 +110,12 @@ export type CalendarProps = {
 	 * That is the active-descendant pattern; it pairs with `active` and `listboxId`.
 	 */
 	activeDescendantId?: string
+	/**
+	 * Marks the day listbox `aria-multiselectable`. Set it when `getDayProps`
+	 * selects more than one day, as {@link CalendarRange} does for its two
+	 * endpoints.
+	 */
+	multiselectable?: boolean
 	ref?: Ref<CalendarHandle>
 	/**
 	 * BCP 47 locale tag driving the first day of the week and the weekday /
@@ -169,6 +175,7 @@ export function Calendar({
 	footerRef,
 	listboxId,
 	activeDescendantId,
+	multiselectable,
 	ref,
 	locale,
 	size,
@@ -305,6 +312,7 @@ export function Calendar({
 				localeTag={localeTag}
 				listboxId={listboxId}
 				activeDescendantId={activeDescendantId}
+				multiselectable={multiselectable}
 			/>
 		</Box>
 	)

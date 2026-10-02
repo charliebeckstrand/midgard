@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { announce, cn } from '../../core'
-import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/toast/types'
+import type { ToastData, ToastSeverity } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
 
@@ -38,7 +38,8 @@ const severityAlertMap = {
 /** Props for {@link ToastAlert}, wired by {@link Toast} from the queue. @internal */
 type ToastAlertProps = {
 	toast: ToastData
-	position: ToastPosition
+	/** The viewport edge that the stack is on, after the `sm` breakpoint. */
+	edge: 'top' | 'bottom'
 	zIndex: number
 	/** @defaultValue true */
 	closable?: boolean
@@ -66,7 +67,7 @@ type ToastAlertProps = {
  */
 export function ToastAlert({
 	toast: t,
-	position,
+	edge,
 	zIndex,
 	closable = true,
 	onOpenChange,
@@ -74,7 +75,7 @@ export function ToastAlert({
 	onResume,
 	onReset,
 }: ToastAlertProps) {
-	const positionTop = position.startsWith('top')
+	const positionTop = edge === 'top'
 
 	const motionConfig = positionTop ? k.motion.top : k.motion.bottom
 

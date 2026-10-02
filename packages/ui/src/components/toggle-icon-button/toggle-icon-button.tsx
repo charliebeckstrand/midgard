@@ -79,12 +79,14 @@ export function ToggleIconButton({
 	// Animated: both icons ride the `prefix` slot and cross-fade. Instant: the
 	// current icon is the sole child and `prefix` stays absent.
 	return (
+		// No library selector reads the anchor, so it goes before the spread and a
+		// wrapper such as CopyButton can re-anchor the button (CONVENTIONS.md §3.9).
 		<Button
+			data-slot="toggle-icon-button"
 			{...props}
 			type="button"
 			variant="bare"
 			size={size}
-			data-slot="toggle-icon-button"
 			onClick={handleClick}
 			aria-pressed={pressed}
 			className={cn(k.base, className)}

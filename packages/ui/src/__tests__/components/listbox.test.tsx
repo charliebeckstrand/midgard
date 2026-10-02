@@ -224,6 +224,23 @@ describe('Listbox', () => {
 		expect(notCanceled).toBe(expected)
 	})
 
+	it('gives the suffix slot to a custom suffix over the clear button, as Combobox does', () => {
+		const { container } = renderUI(
+			<Listbox<string>
+				clearable
+				value="a"
+				displayValue={(v) => v}
+				suffix={<span data-testid="unit">USD</span>}
+			>
+				{option}
+			</Listbox>,
+		)
+
+		expect(bySlot(container, 'suffix')?.querySelector('[data-testid="unit"]')).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+	})
+
 	it('shows a clear button only when clearable and a value is selected', () => {
 		const { container, rerender } = renderUI(
 			<Listbox<string> clearable value="a" displayValue={(v) => v}>
@@ -521,6 +538,19 @@ describe('Listbox readOnly', () => {
 			expect.anything(),
 		)
 	})
+	it('does not commit an option under a controlled open while read-only', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Listbox readOnly open aria-label="Fruit" onValueChange={onValueChange}>
+				<ListboxOption value="apple">Apple</ListboxOption>
+			</Listbox>,
+		)
+
+		fireEvent.click(screen.getByRole('option', { name: 'Apple' }))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
 })
 
 describe('Listbox disabled', () => {
@@ -550,6 +580,20 @@ describe('Listbox disabled', () => {
 		fireEvent.click(getSlot(container, 'control-frame'))
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	it('does not commit an option under a controlled open while disabled', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Listbox disabled multiple open aria-label="Fruit" onValueChange={onValueChange}>
+				<ListboxOption value="apple">Apple</ListboxOption>
+			</Listbox>,
+		)
+
+		fireEvent.click(screen.getByRole('option', { name: 'Apple' }))
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 })
 

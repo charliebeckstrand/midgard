@@ -49,7 +49,7 @@ function resolveDraggingThumb(
 
 /**
  * After `useRangeUpdate` re-sorts on swap, follows `draggingRef` to the new
- * slot of the written value.
+ * slot of the written value. The caller moves the focus to that slot.
  *
  * @internal
  */
@@ -83,8 +83,10 @@ function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
  * @returns Pointer handlers to spread on the track.
  * @remarks
  * A primary press focuses the button of the thumb it resolves, so the press
- * also sets the keyboard focus (WAI-ARIA slider). `onDragStart` and `onDragEnd`
- * bracket the gesture on the thumb that the press grabbed.
+ * also sets the keyboard focus (WAI-ARIA slider). A drag that crosses the
+ * other thumb in `swap` mode moves the focus with the value to its new slot.
+ * `onDragStart` and `onDragEnd` bracket the gesture on the thumb that the
+ * press grabbed.
  */
 export function useRangePointer(opts: {
 	min: number
@@ -266,6 +268,12 @@ export function useRangePointer(opts: {
 				const snapped = snapToStep(clamp(raw, min, max), min, step)
 
 				applySwapResort(dragging, snapped, current, draggingRef)
+
+				// The value moved to the other slot, so the focus follows it there.
+				// Then an arrow key drives the thumb that the pointer dragged.
+				if (draggingRef.current !== null && draggingRef.current !== dragging) {
+					focusThumb(thumbRefs, draggingRef.current)
+				}
 			}
 
 			update(dragging, raw)

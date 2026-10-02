@@ -38,6 +38,27 @@ describe('MaskInput', () => {
 		expect(onChange).toHaveBeenLastCalledWith('123-456')
 	})
 
+	it('keeps the masking handler over a stray native onChange', async () => {
+		const onChange = vi.fn()
+
+		// The props type omits `onChange`; an untyped spread can still pass one.
+		const stray = { onChange: vi.fn() } as object
+
+		const { container } = renderUI(
+			<MaskInput mask={formatGroups} onValueChange={onChange} {...stray} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+		const user = setupUser()
+
+		await user.type(input, '123456')
+
+		expect(input.value).toBe('123-456')
+
+		expect(onChange).toHaveBeenLastCalledWith('123-456')
+	})
+
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<MaskInput mask={formatGroups} defaultValue="123456" />)
 

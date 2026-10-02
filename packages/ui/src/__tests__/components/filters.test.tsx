@@ -14,6 +14,7 @@ import {
 } from '../../components/filters'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
+import { SearchInput } from '../../components/search-input'
 import {
 	allBySlot,
 	bySlot,
@@ -24,6 +25,15 @@ import {
 	screen,
 	setupUser,
 } from '../helpers'
+
+/** A value-shaped control: no DOM event reaches its `onValueChange`. */
+function Toggle({ onValueChange }: { onValueChange?: (value: boolean) => void }) {
+	return (
+		<button type="button" onClick={() => onValueChange?.(true)}>
+			Toggle
+		</button>
+	)
+}
 
 describe('Filters group', () => {
 	it('exposes the bar as a named role="group"', () => {
@@ -118,6 +128,81 @@ describe('FiltersField', () => {
 		await user.click(radios[1] as HTMLInputElement)
 
 		expect(onValueChange).toHaveBeenCalledWith({ status: 'closed' })
+	})
+
+	it('checks a Radio with a numeric value against the slot', async () => {
+		const onValueChange = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<Filters aria-label="Filters" value={{}} onValueChange={onValueChange}>
+				<FiltersField name="rating">
+					<Radio name="rating" value={3} />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const radio = getSlot<HTMLInputElement>(container, 'radio')
+
+		await setupUser().click(radio)
+
+		// The slot holds the option value of the Radio, not the string of the DOM.
+		expect(onValueChange).toHaveBeenCalledWith({ rating: 3 })
+
+		rerender(
+			<Filters aria-label="Filters" value={{ rating: 3 }} onValueChange={onValueChange}>
+				<FiltersField name="rating">
+					<Radio name="rating" value={3} />
+				</FiltersField>
+			</Filters>,
+		)
+
+		expect(radio.checked).toBe(true)
+	})
+
+	it('runs the own handlers of the child beside the binding', async () => {
+		const onChange = vi.fn()
+
+		const onClear = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ q: 'a' }} onValueChange={onValueChange}>
+				<FiltersField name="q">
+					<SearchInput onChange={onChange} onClear={onClear} />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const user = setupUser()
+
+		await user.clear(getSlot<HTMLInputElement>(container, 'search-input'))
+
+		expect(onChange).toHaveBeenCalled()
+
+		expect(onClear).toHaveBeenCalled()
+
+		expect(onValueChange).toHaveBeenCalledWith({})
+	})
+
+	it('runs the own onValueChange of a value-shaped child beside the binding', async () => {
+		const own = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Filters aria-label="Filters" value={{}} onValueChange={onValueChange}>
+				<FiltersField name="done">
+					<Toggle onValueChange={own} />
+				</FiltersField>
+			</Filters>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Toggle' }))
+
+		expect(own).toHaveBeenCalledWith(true)
+
+		expect(onValueChange).toHaveBeenCalledWith({ done: true })
 	})
 
 	it('calls onChange when input changes (auto-binding)', async () => {
