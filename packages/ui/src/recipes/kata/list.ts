@@ -35,8 +35,7 @@ const pad = 'density-p-[2,3,4]'
 const item = defineRecipe({
 	// `list-none` is stated, not inherited from the flex display: a row only avoids
 	// drawing a marker today because `display: flex` generates no marker box, so a
-	// future non-flex variant — or a row lifted into a `<DragOverlay>`, which renders
-	// outside the `<ul>` preflight strips — would grow a bullet.
+	// future non-flex variant would grow a bullet.
 	base: ['group', 'list-none', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
 	variant: {
 		separated: [...bg.surface, border.default, rounded.lg, pad],
