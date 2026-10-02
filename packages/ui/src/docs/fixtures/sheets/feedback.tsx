@@ -1,0 +1,221 @@
+import { Alert } from '../../../components/alert'
+import { Badge } from '../../../components/badge'
+import { Banner } from '../../../components/banner'
+import { Button } from '../../../components/button'
+import { LoadingDots, LoadingSpinner } from '../../../components/loading'
+import { Placeholder } from '../../../components/placeholder'
+import { ProgressBar, ProgressGauge } from '../../../components/progress'
+import { StatusDot } from '../../../components/status'
+import { FixtureCase, FixtureGroup, FixtureSheet } from '../fixture'
+
+const SEVERITIES = ['info', 'success', 'warning', 'error'] as const
+
+const ALERT_VARIANTS = ['solid', 'soft', 'outline', 'plain'] as const
+
+const BADGE_VARIANTS = ['solid', 'soft', 'outline', 'plain'] as const
+
+const BADGE_COLORS = ['zinc', 'red', 'amber', 'green', 'blue', 'rose', 'violet', 'sky'] as const
+
+const STATUSES = ['inactive', 'active', 'info', 'warning', 'error'] as const
+
+const STATUS_VARIANTS = ['solid', 'outline', 'dashed'] as const
+
+const LOADING_COLORS = ['current', 'zinc', 'red', 'amber', 'green', 'blue'] as const
+
+const PROGRESS_COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+
+const SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+
+const VALUES = [0, 25, 60, 100] as const
+
+export function Sheet() {
+	return (
+		<FixtureSheet title="Feedback">
+			<FixtureGroup title="Alert">
+				{SEVERITIES.map((severity) => (
+					<FixtureCase key={severity} label={severity}>
+						<Alert severity={severity} title={severity} description="A fixed description." />
+					</FixtureCase>
+				))}
+				{ALERT_VARIANTS.map((variant) => (
+					<FixtureCase key={variant} label={variant}>
+						<Alert variant={variant} severity="info" title={variant} />
+					</FixtureCase>
+				))}
+				<FixtureCase label="default">
+					<Alert description="An alert with no severity and no title." />
+				</FixtureCase>
+				<FixtureCase label="actions, closable">
+					<Alert
+						severity="warning"
+						title="Storage is almost full"
+						actions={<Button size="sm">Upgrade</Button>}
+						closable
+					/>
+				</FixtureCase>
+				<FixtureCase label="long label, full width" wide>
+					<Alert
+						className="w-full"
+						severity="error"
+						title="An alert title that is long enough to wrap or to stretch the container"
+						description="The description is long too, so that the text wraps onto more than one line at the narrow width and fills the full width of the row at the wide width."
+						closable
+					/>
+				</FixtureCase>
+			</FixtureGroup>
+
+			<FixtureGroup title="Banner">
+				{SEVERITIES.map((severity) => (
+					<FixtureCase key={severity} label={severity} wide>
+						<Banner severity={severity} title={severity} description="A fixed description." />
+					</FixtureCase>
+				))}
+				<FixtureCase label="not closable, actions" wide>
+					<Banner
+						severity="info"
+						title="New version available"
+						actions={<Button size="sm">Update now</Button>}
+						closable={false}
+					/>
+				</FixtureCase>
+			</FixtureGroup>
+
+			<FixtureGroup title="Badge">
+				{BADGE_VARIANTS.map((variant) => (
+					<FixtureCase key={variant} label={variant}>
+						{BADGE_COLORS.map((color) => (
+							<Badge key={color} variant={variant} color={color}>
+								{color}
+							</Badge>
+						))}
+					</FixtureCase>
+				))}
+				<FixtureCase label="size">
+					{SIZES.map((size) => (
+						<Badge key={size} size={size}>
+							{size}
+						</Badge>
+					))}
+				</FixtureCase>
+				<FixtureCase label="radius full">
+					{BADGE_COLORS.slice(0, 4).map((color) => (
+						<Badge key={color} radius="full" color={color}>
+							{color}
+						</Badge>
+					))}
+				</FixtureCase>
+				<FixtureCase label="long label, full width" wide>
+					<Badge>A badge label that is long enough to wrap or to stretch the container</Badge>
+				</FixtureCase>
+			</FixtureGroup>
+
+			<FixtureGroup title="StatusDot">
+				{STATUS_VARIANTS.map((variant) => (
+					<FixtureCase key={variant} label={variant}>
+						{STATUSES.map((status) => (
+							<StatusDot key={status} variant={variant} status={status} label={status} />
+						))}
+					</FixtureCase>
+				))}
+				<FixtureCase label="size">
+					{SIZES.map((size) => (
+						<StatusDot key={size} size={size} status="active" label={size} />
+					))}
+				</FixtureCase>
+			</FixtureGroup>
+
+			<FixtureGroup title="Loading">
+				<FixtureCase label="spinner color">
+					{LOADING_COLORS.map((color) => (
+						<LoadingSpinner key={color} color={color} />
+					))}
+				</FixtureCase>
+				<FixtureCase label="spinner size">
+					{SIZES.map((size) => (
+						<LoadingSpinner key={size} size={size} />
+					))}
+				</FixtureCase>
+				<FixtureCase label="dots color">
+					{LOADING_COLORS.map((color) => (
+						<LoadingDots key={color} color={color} />
+					))}
+				</FixtureCase>
+				<FixtureCase label="dots size">
+					{SIZES.map((size) => (
+						<LoadingDots key={size} size={size} />
+					))}
+				</FixtureCase>
+				<FixtureCase label="inside a disabled button">
+					<Button disabled prefix={<LoadingSpinner />}>
+						Loading
+					</Button>
+					<Button variant="soft" disabled prefix={<LoadingDots />}>
+						Saving
+					</Button>
+				</FixtureCase>
+			</FixtureGroup>
+
+			<FixtureGroup title="Progress">
+				<FixtureCase label="bar value">
+					<div className="flex w-full flex-col gap-2">
+						{VALUES.map((value) => (
+							<ProgressBar key={value} value={value} aria-label={`${value} percent`} />
+						))}
+					</div>
+				</FixtureCase>
+				<FixtureCase label="bar color">
+					<div className="flex w-full flex-col gap-2">
+						{PROGRESS_COLORS.map((color) => (
+							<ProgressBar key={color} value={60} color={color} aria-label={color} />
+						))}
+					</div>
+				</FixtureCase>
+				<FixtureCase label="bar size">
+					<div className="flex w-full flex-col gap-2">
+						{SIZES.map((size) => (
+							<ProgressBar key={size} value={40} size={size} aria-label={size} />
+						))}
+					</div>
+				</FixtureCase>
+				<FixtureCase label="gauge value">
+					{VALUES.map((value) => (
+						<ProgressGauge key={value} value={value} aria-label={`${value} percent`} />
+					))}
+				</FixtureCase>
+				<FixtureCase label="gauge color, label">
+					{PROGRESS_COLORS.map((color) => (
+						<ProgressGauge key={color} value={75} color={color} centerLabel aria-label={color} />
+					))}
+				</FixtureCase>
+				<FixtureCase label="gauge size">
+					{SIZES.map((size) => (
+						<ProgressGauge key={size} value={50} size={size} aria-label={size} />
+					))}
+				</FixtureCase>
+				<FixtureCase label="long label, full width" wide>
+					<ProgressBar value={33} className="w-full" aria-label="Full width progress" />
+				</FixtureCase>
+			</FixtureGroup>
+
+			<FixtureGroup title="Placeholder">
+				<FixtureCase label="default">
+					<div className="flex w-full flex-col gap-2">
+						<Placeholder />
+					</div>
+				</FixtureCase>
+				<FixtureCase label="shapes">
+					<div className="flex w-full items-center gap-3">
+						<Placeholder className="size-10 rounded-full" />
+						<div className="flex flex-1 flex-col gap-2">
+							<Placeholder />
+							<Placeholder className="w-2/3" />
+						</div>
+					</div>
+				</FixtureCase>
+				<FixtureCase label="full width" wide>
+					<Placeholder className="h-24 w-full" />
+				</FixtureCase>
+			</FixtureGroup>
+		</FixtureSheet>
+	)
+}
