@@ -39,6 +39,8 @@ const EVENTS = [
 
 const lines: string[] = []
 
+let panel: HTMLDivElement | undefined
+
 let output: HTMLPreElement | undefined
 
 let start = 0
@@ -101,7 +103,14 @@ function state(label: string) {
 	write(`  ${label}: dom ${domState()} style ${styleState()}`)
 }
 
+/** True for a target in the panel. The log does not show its own taps and scrolls. */
+function inPanel(target: EventTarget | null) {
+	return target instanceof Node && Boolean(panel?.contains(target))
+}
+
 function onEvent(event: Event) {
+	if (inPanel(event.target)) return
+
 	if (event.type === 'touchstart') {
 		write('──── tap')
 
@@ -182,7 +191,7 @@ function button(text: string, onClick: () => void) {
 export function mountTapLog() {
 	start = performance.now()
 
-	const panel = document.createElement('div')
+	panel = document.createElement('div')
 
 	panel.className =
 		'fixed inset-x-0 bottom-0 z-[2147483647] flex max-h-[45vh] flex-col bg-black/85 font-mono text-[10px]/[1.3] text-green-400'
@@ -219,7 +228,9 @@ export function mountTapLog() {
 
 	window.addEventListener(
 		'scroll',
-		() => {
+		(event) => {
+			if (inPanel(event.target)) return
+
 			if (!scrolling) write('scroll starts')
 
 			clearTimeout(scrolling)
