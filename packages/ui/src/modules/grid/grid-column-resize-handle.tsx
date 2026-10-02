@@ -32,8 +32,7 @@ type GridColumnResizeHandleProps = {
  * Resize separator on a resizable column header's trailing edge: a focusable
  * window-splitter sized to the header. It starts a pointer drag-resize and
  * accepts Arrow keys to nudge the width. A double-click auto-sizes the column
- * to its content. Its grip is the `aria-hidden` child. The grip shows at rest
- * between columns, and in the last header only on hover, focus, or drag.
+ * to its content. Its always-visible grip is the `aria-hidden` child.
  *
  * @internal
  */

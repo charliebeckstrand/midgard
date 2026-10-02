@@ -654,22 +654,14 @@ export const k = {
 		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
 		// `ResizableHandle` grip (`kata/resizable`) so every resize affordance reads
 		// the same, centered in the grab zone (`justify-center` on the handle) one
-		// cell-padding in from the trailing edge. Visible between columns: muted at rest,
+		// cell-padding in from the trailing edge. Always visible: muted at rest,
 		// tinting on hover, turning accent on keyboard focus or active drag. Focus
 		// shows as a color change, not an outset ring, so the scroll container can't
 		// clip it.
-		//
-		// After the last column there is no column on the other side, so the grip
-		// does not read as a divider. It hides at rest in the last header and shows
-		// on hover, focus, and drag. The handle stays, so the last column resizes.
 		grip: [
 			'h-4 w-0.5',
 			rounded.full,
 			'transition-colors',
-			'in-[th:last-child]:opacity-0',
-			'group-hover/grid-resize:opacity-100',
-			'group-focus-visible/grid-resize:opacity-100',
-			'group-data-[resizing]/grid-resize:opacity-100',
 			...mode(
 				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
 				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',
