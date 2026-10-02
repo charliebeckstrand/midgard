@@ -57,6 +57,7 @@ import {
 	StatDescriptionSkeleton,
 	StatLabel,
 	StatLabelSkeleton,
+	StatSkeleton,
 	StatValue,
 	StatValueSkeleton,
 } from '../../../components/stat'
@@ -513,6 +514,24 @@ describe('skeleton parity (real browser)', () => {
 		expect(placeholder(renderUI(skeleton).container).height).toBe(
 			height(container.querySelector(`[data-slot="${slot}"]`), slot),
 		)
+	})
+
+	it.each(['sm', 'md', 'lg'] as const)('StatSkeleton has the height of a %s stat', (size) => {
+		const { container } = renderUI(
+			<Stat>
+				<StatLabel>Revenue</StatLabel>
+				<StatValue size={size}>$12,345</StatValue>
+				<StatDelta>+4%</StatDelta>
+				<StatDescription>Since last month</StatDescription>
+			</Stat>,
+		)
+
+		expect(
+			height(
+				renderUI(<StatSkeleton size={size} delta description />).container.firstElementChild,
+				'skeleton',
+			),
+		).toBe(height(container.querySelector('[data-slot="stat"]'), 'stat'))
 	})
 
 	it.each(['stack', 'rail'] as const)(
