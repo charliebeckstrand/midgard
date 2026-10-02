@@ -1,7 +1,11 @@
 import { act, render, renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { PdfViewer, type PdfViewerMagnifierZoom } from '../../components/pdf-viewer'
+import {
+	PdfViewer,
+	type PdfViewerMagnifierState,
+	type PdfViewerMagnifierZoom,
+} from '../../components/pdf-viewer'
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 import {
 	lensOffset,
@@ -166,6 +170,64 @@ describe('usePdfViewer over a re-rendered magnifier prop', () => {
 		expect(result.current.magnifierSettings).toEqual({ zoom: 2.5, size: 'md', delay: 300 })
 
 		rerender({ zoom: 'lg' })
+
+		expect(result.current.magnifierSettings).toEqual({ zoom: 4, size: 'md', delay: 300 })
+	})
+})
+
+describe('usePdfViewer over a stored magnifier state', () => {
+	const pages = [{ id: 'a', src: '/page-1.png' }]
+
+	const stored: PdfViewerMagnifierState = {
+		enabled: false,
+		zoom: 'lg',
+		size: 'md',
+		delay: 'default',
+	}
+
+	/** The report, handed back on the next mount, brings the loupe back as the reader left it. */
+	it('starts the loupe off when the stored state says so', () => {
+		const { result } = renderHook(() => usePdfViewer({ pages, magnifier: stored }))
+
+		expect(result.current.magnifierOn).toBe(false)
+
+		expect(result.current.magnifierSettings).toBeNull()
+	})
+
+	/** The same rule as the three settings: the prop holds until the reader makes a choice. */
+	it('lets the reader switch on a loupe that the prop starts off', () => {
+		const { result } = renderHook(() => usePdfViewer({ pages, magnifier: stored }))
+
+		act(() => result.current.setMagnifierOn(true))
+
+		expect(result.current.magnifierSettings).toEqual({ zoom: 4, size: 'md', delay: 300 })
+	})
+})
+
+describe('usePdfViewer over a withdrawn magnifier prop', () => {
+	const pages = [{ id: 'a', src: '/page-1.png' }]
+
+	type Props = { magnifier?: boolean }
+
+	/** No prop, no control to switch the loupe off, so no lens either. */
+	it('drops the lens with the prop, also after the reader made a choice', () => {
+		const initialProps: Props = { magnifier: true }
+
+		const { result, rerender } = renderHook(
+			({ magnifier }: Props) => usePdfViewer({ pages, magnifier }),
+			{ initialProps },
+		)
+
+		act(() => result.current.setMagnifierChoice({ zoom: 'lg', size: 'md', delay: 'default' }))
+
+		rerender({ magnifier: undefined })
+
+		expect(result.current.magnifierSettings).toBeNull()
+
+		expect(result.current.magnifierMode).toBeNull()
+
+		// Offered again, the loupe comes back with the choice of the reader.
+		rerender({ magnifier: true })
 
 		expect(result.current.magnifierSettings).toEqual({ zoom: 4, size: 'md', delay: 300 })
 	})
@@ -800,6 +862,61 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
 
 			expect(touchmove()).toBe(false)
+		})
+	})
+
+	/**
+	 * The lift after a read fires no compatibility mouse events. A `mousedown` from the lift
+	 * would press a region, or clear the selection, before any click arrives.
+	 */
+	it('cancels the touchend of the lift, and leaves the next click alone', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => hook.result.current.setReference(frame))
+
+			const touchend = () => {
+				const event = new Event('touchend', { cancelable: true })
+
+				frame.dispatchEvent(event)
+
+				return event.defaultPrevented
+			}
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+			expect(touchend()).toBe(true)
+
+			// The canceled touchend fires no click, so a later click presses as it always did.
+			const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+			props().onClickCapture(click)
+
+			expect(click.preventDefault).not.toHaveBeenCalled()
+		})
+	})
+
+	it('leaves the touchend of a plain tap alone', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => hook.result.current.setReference(frame))
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+			const event = new Event('touchend', { cancelable: true })
+
+			frame.dispatchEvent(event)
+
+			expect(event.defaultPrevented).toBe(false)
 		})
 	})
 

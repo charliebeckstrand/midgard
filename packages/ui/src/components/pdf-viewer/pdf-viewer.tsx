@@ -34,7 +34,12 @@ export type PdfViewerProps = {
 	 * omitted, and always powers the download and print toolbar actions.
 	 */
 	src?: string
-	/** Filename used for the download attribute. Only meaningful with `src`. */
+	/**
+	 * Filename used for the download attribute. Only meaningful with `src`.
+	 *
+	 * @remarks Without it, a download of a loaded `src` takes the last path segment of `src`
+	 * as its name, because the blob URL that the download uses has no name of its own.
+	 */
 	filename?: string
 	/** Controlled current page (1-based). */
 	page?: number
@@ -144,6 +149,9 @@ export type PdfViewerProps = {
 	 * underneath it. On touch, a finger that rests on the page for the dwell (300ms at the
 	 * least) opens the lens above the finger. The finger then moves the lens, and a lift
 	 * closes it. The browser's long-press menu stays as it is: when it opens, the lens closes.
+	 *
+	 * A withdrawn prop removes the lens and its control. The viewer keeps the choice of the
+	 * reader, so the prop offered again brings that choice back.
 	 * @defaultValue false
 	 */
 	magnifier?: boolean | PdfViewerMagnifierOptions

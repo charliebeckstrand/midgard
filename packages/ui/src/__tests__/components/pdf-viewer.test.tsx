@@ -7,7 +7,11 @@ import {
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
-import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
+import {
+	downloadPdf,
+	pdfNameFromSrc,
+	printPdf,
+} from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
 import { Toolbar } from '../../components/toolbar'
 import { BREAKPOINT_WIDTHS } from '../../types/responsive'
@@ -649,6 +653,24 @@ describe('downloadPdf', () => {
 	})
 })
 
+describe('pdfNameFromSrc', () => {
+	it('takes the last path segment, decoded, without the query', () => {
+		expect(pdfNameFromSrc('/files/March%20invoice.pdf?v=3#page=2')).toBe('March invoice.pdf')
+	})
+
+	it('adds the pdf extension to a segment that has none', () => {
+		expect(pdfNameFromSrc('https://example.com/documents/42')).toBe('42.pdf')
+	})
+
+	it('gives no name for a source with no legible name', () => {
+		expect(pdfNameFromSrc('https://example.com/')).toBeUndefined()
+
+		expect(pdfNameFromSrc('blob:https://example.com/0f6c1e2a')).toBeUndefined()
+
+		expect(pdfNameFromSrc('data:application/pdf;base64,JVBERi0=')).toBeUndefined()
+	})
+})
+
 describe('printPdf', () => {
 	it('appends a hidden iframe pointing at the src', () => {
 		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
@@ -1261,6 +1283,27 @@ describe('PdfViewer highlights', () => {
 		expect(onActiveHighlightChange).toHaveBeenLastCalledWith(null)
 
 		expect(onOuterKeyDown).not.toHaveBeenCalled()
+	})
+
+	/** With no selection to put down, Escape belongs to the surface that holds the viewer. */
+	it('lets Escape reach an enclosing surface when no region is selected', () => {
+		const onOuterKeyDown = vi.fn()
+
+		renderUI(
+			<div role="dialog" aria-label="Drawer" onKeyDown={onOuterKeyDown}>
+				<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />
+			</div>,
+		)
+
+		const region = screen.getByLabelText('Total charges')
+
+		region.focus()
+
+		const notCanceled = fireEvent.keyDown(region, { key: 'Escape' })
+
+		expect(notCanceled).toBe(true)
+
+		expect(onOuterKeyDown).toHaveBeenCalledTimes(1)
 	})
 
 	/*
