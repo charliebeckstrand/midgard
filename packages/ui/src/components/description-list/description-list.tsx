@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/dl'
+import { k } from '../../recipes/kata/description-list'
 import type { Orientation } from '../../types'
 
 type DlOrientation = Orientation

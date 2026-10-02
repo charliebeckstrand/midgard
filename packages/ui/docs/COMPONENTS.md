@@ -41,7 +41,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 ## Data display
 
-`table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `dl` · `timeline` · `stat` · `sparkline` · `odometer` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
+`table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `description-list` · `timeline` · `stat` · `sparkline` · `odometer` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
 
 ## Layout & surfaces
 
