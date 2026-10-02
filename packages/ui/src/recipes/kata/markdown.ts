@@ -20,7 +20,10 @@ import { ji, sen } from '../kiso'
 
 const { size, weight } = ji
 
-const headingBase = [weight.semibold]
+// A code span renders at the fixed `sm` step of the inline Code recipe, which
+// fits body text. In a heading, it takes a fraction of the heading size, so it
+// grows with the heading and stays below the heading text.
+const headingBase = [weight.semibold, '[&_code]:text-[0.875em]']
 
 export const k = {
 	// First/last-child margin collapse so the prose sits flush in its container
