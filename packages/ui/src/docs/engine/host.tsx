@@ -34,6 +34,13 @@ export function mount(loaders: DemoLoaders, rootEl?: HTMLElement | null) {
 
 	if (!root) throw new Error('docs: missing #root element')
 
+	// The app sets the scroll position on each route change (app.tsx). With
+	// `auto`, the browser also restores the last position of the history entry
+	// on a reload, on a tab restore, and on the recovery reload below. That
+	// restore can occur after the app scrolls to the top, because the demo
+	// continues to load. Then the page opens below the top.
+	history.scrollRestoration = 'manual'
+
 	// A lazy chunk 404s when a deploy swaps hashed filenames under a long-lived
 	// tab; Vite signals it with `vite:preloadError`. Reload once per history
 	// entry to pull the new index and its chunk names — hash routing lands the
