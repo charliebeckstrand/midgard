@@ -97,7 +97,8 @@ export function Axes(props: AxesProps) {
 
 	if (!pending) return null
 
-	// The demo paints while the chunk of the API data loads.
+	// The page waits for the API data (`DemoPage`), so the data is ready here,
+	// except after a failure and a retry.
 	return (
 		<Suspense fallback={null}>
 			<AxesBody pending={pending} {...props} />

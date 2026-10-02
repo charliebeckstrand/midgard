@@ -1,4 +1,6 @@
 import type { ComponentType } from 'react'
+import { type TrackedPromise, tracked } from '../registry'
+import { readDebugTools } from './store'
 
 /**
  * One tool of the Debug section of the settings. The tool is off until the
@@ -25,3 +27,31 @@ export const debugTools: readonly DebugTool[] = [
 		load: () => import('./tap-log').then(({ TapLog }) => ({ default: TapLog })),
 	},
 ]
+
+const cache = new Map<string, TrackedPromise<ComponentType | null>>()
+
+/**
+ * Return a cached promise for the header part of the tool `id`. It does not
+ * reject: a chunk that fails to load gives `null`, and the header then shows
+ * no part for the tool.
+ */
+export function loadDebugTool(id: string): Promise<ComponentType | null> {
+	return tracked(cache, id, () => {
+		const tool = debugTools.find((other) => other.id === id)
+
+		if (!tool) return Promise.resolve(null)
+
+		return tool.load().then(
+			({ default: Component }) => Component,
+			() => null,
+		)
+	})
+}
+
+/**
+ * Start the loads of the tools that are on. The entry awaits the promise
+ * before it mounts, so that the header paints with the parts of the tools.
+ */
+export function preloadDebugTools(): Promise<unknown> {
+	return Promise.all(readDebugTools().map(loadDebugTool))
+}
