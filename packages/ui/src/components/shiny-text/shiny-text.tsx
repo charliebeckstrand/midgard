@@ -33,7 +33,7 @@ export type ShinyTextProps = {
 	color?: string
 	/**
 	 * Highlight color swept across the text; any CSS color.
-	 * @defaultValue `'var(--color-white)'`
+	 * @defaultValue `'var(--shiny-text-shine)'` (zinc-950; white in dark mode)
 	 */
 	shineColor?: string
 	/**
@@ -62,9 +62,11 @@ export type ShinyTextProps = {
 	'className' | 'color' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 >
 
-// Background-position percentages that park the shine past each edge.
-const OFF_RIGHT = 150
-const OFF_LEFT = -50
+// Background-position percentages that park the shine past each edge. The
+// gradient is twice the width of the text, so a higher percentage moves the
+// gradient to the left, and the shine at its center goes past the left edge.
+const OFF_LEFT = 150
+const OFF_RIGHT = -50
 
 /**
  * Text masked by a gradient whose highlight sweeps across it on a loop.
@@ -84,7 +86,7 @@ export function ShinyText({
 	disabled = false,
 	speed = 2,
 	color = 'var(--shiny-text-color)',
-	shineColor = 'var(--color-white)',
+	shineColor = 'var(--shiny-text-shine)',
 	spread = 120,
 	yoyo = false,
 	pauseOnHover = false,
@@ -149,6 +151,8 @@ export function ShinyText({
 			className={cn(
 				'inline-block bg-clip-text text-transparent',
 				'[--shiny-text-color:var(--color-zinc-600)] dark:[--shiny-text-color:var(--color-zinc-400)]',
+				// A white shine erases the glyphs on a light page, so the light shine is dark.
+				'[--shiny-text-shine:var(--color-zinc-950)] dark:[--shiny-text-shine:var(--color-white)]',
 				className,
 			)}
 			{...props}

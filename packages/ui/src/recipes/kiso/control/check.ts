@@ -35,18 +35,22 @@ const validation = [
 	'has-[[data-valid]]:ring-2 has-[[data-valid]]:ring-green-600',
 ]
 
-/** Custom check surface (the visible box / circle). */
+/**
+ * Custom check surface (the visible box / circle). The resting border is the
+ * only mark of an unchecked control, so it keeps a 3:1 contrast against the
+ * page in each mode (WCAG 1.4.11).
+ */
 const surface = [
 	...mode(
 		[
 			'bg-white',
-			'border border-zinc-950/15',
-			'not-has-[:disabled]:hover:border-zinc-950/30 not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/30',
+			'border border-zinc-950/50',
+			'not-has-[:disabled]:hover:border-zinc-950/70 not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
 		],
 		[
 			'dark:bg-white/5',
-			'dark:border-white/15',
-			'dark:not-has-[:disabled]:hover:border-white/30 dark:not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-white/30',
+			'dark:border-white/35',
+			'dark:not-has-[:disabled]:hover:border-white/50 dark:not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-white/50',
 		],
 	),
 	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',

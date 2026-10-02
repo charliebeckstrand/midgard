@@ -6,7 +6,7 @@ import { control } from '../kiso/control'
 const { cursor, fg } = hannou
 const { rounded } = kasane
 const { toggle } = narabi
-const { focus, ring } = sen
+const { focus } = sen
 const { check } = control
 
 const color = defineColors({
@@ -50,7 +50,13 @@ const color = defineColors({
 	},
 })
 
-const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...ring.inset]
+// The ring is the only edge of an off switch, so it keeps a 3:1 contrast
+// against the page in each mode (WCAG 1.4.11). A checked track replaces it.
+const track = [
+	...mode('bg-zinc-200', 'dark:bg-white/10'),
+	'ring-1 ring-inset',
+	...mode('ring-zinc-950/40', 'dark:ring-white/30'),
+]
 
 // The control column sizes to the switch itself so the toggle grid's gap
 // stays uniform across switch sizes without a matching field-level prop.

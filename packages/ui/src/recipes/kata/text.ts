@@ -30,8 +30,8 @@ export const k = defineRecipe({
 		current: mode('text-current', 'dark:text-current'),
 		zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
 		red: mode('text-red-600', 'dark:text-red-500'),
-		amber: mode('text-amber-500', 'dark:text-amber-400'),
-		green: mode('text-green-600', 'dark:text-green-500'),
+		amber: mode('text-amber-700', 'dark:text-amber-400'),
+		green: mode('text-green-700', 'dark:text-green-500'),
 		blue: mode('text-blue-600', 'dark:text-blue-500'),
 	},
 	size: {

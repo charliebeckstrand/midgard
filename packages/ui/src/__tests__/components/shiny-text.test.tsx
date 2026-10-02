@@ -87,6 +87,19 @@ describe('ShinyText', () => {
 		expect(animate).toHaveBeenCalled()
 	})
 
+	// The gradient is twice the width of the text, so a position of p% puts the
+	// shine at (1 - p/100) of the text width. A shine that travels left needs a
+	// position that increases, and a shine that travels right needs one that
+	// decreases.
+	it.each([
+		['left', 150],
+		['right', -50],
+	] as const)('moves the shine to the %s', (sweep, to) => {
+		renderUI(<ShinyText sweep={sweep}>Shine</ShinyText>)
+
+		expect(vi.mocked(animate).mock.calls[0]?.[1]).toBe(to)
+	})
+
 	it('renders static text and starts no sweep under reduced motion', () => {
 		stubMatchMedia((query) => query.includes('prefers-reduced-motion'))
 
