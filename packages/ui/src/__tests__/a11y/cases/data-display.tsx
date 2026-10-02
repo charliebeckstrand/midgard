@@ -18,7 +18,15 @@ import { Odometer } from '../../../components/odometer'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../../components/resizable'
 import { Segment, SegmentControl, SegmentItem, SegmentSkeleton } from '../../../components/segment'
 import { Sparkline, SparklineSkeleton } from '../../../components/sparkline'
-import { Stat, StatLabel, StatValue } from '../../../components/stat'
+import {
+	Stat,
+	StatDeltaSkeleton,
+	StatDescriptionSkeleton,
+	StatLabel,
+	StatLabelSkeleton,
+	StatValue,
+	StatValueSkeleton,
+} from '../../../components/stat'
 import { StatusDot } from '../../../components/status'
 import {
 	Table,
@@ -279,6 +287,12 @@ export const dataDisplayCases: readonly Case[] = [
 			</Stat>
 		),
 		passthrough: [{ render: (props) => <Stat {...props}>content</Stat>, slot: 'stat' }],
+		skeleton: [
+			{ element: <StatLabelSkeleton />, absentSlot: 'stat-label' },
+			{ element: <StatValueSkeleton size="lg" />, absentSlot: 'stat-value' },
+			{ element: <StatDeltaSkeleton />, absentSlot: 'stat-delta' },
+			{ element: <StatDescriptionSkeleton />, absentSlot: 'stat-description' },
+		],
 	},
 	{
 		// Trend chart exposed as role="img" with a summarizing accessible name.

@@ -25,6 +25,7 @@ import { rating } from './rating'
 import { segment } from './segment'
 import { slider } from './slider'
 import { sparkline } from './sparkline'
+import { stat } from './stat'
 import { stepper } from './stepper'
 import { switchRecipe } from './switch'
 import { tabs } from './tabs'
@@ -51,6 +52,7 @@ export const kokkaku = {
 	segment,
 	slider,
 	sparkline,
+	stat,
 	stepper,
 	switch: switchRecipe,
 	tabs,

@@ -1,13 +1,8 @@
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/stat'
-import { Placeholder } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link StatDeltaSkeleton}: an optional `className`. */
-export type StatDeltaSkeletonProps = {
-	className?: string
-}
+export type StatDeltaSkeletonProps = SkeletonProps
 
 /** Delta-shaped placeholder. */
-export function StatDeltaSkeleton({ className }: StatDeltaSkeletonProps) {
-	return <Placeholder className={cn(k.skeleton.delta, className)} />
-}
+export const StatDeltaSkeleton = createSkeleton(k.skeleton.delta, 'StatDeltaSkeleton')
