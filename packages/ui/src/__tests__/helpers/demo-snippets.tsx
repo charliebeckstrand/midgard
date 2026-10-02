@@ -44,7 +44,8 @@ const KNOWN_FAILURES: Record<string, string> = {
 	// A `useState` value that the block declares and never reads, because the
 	// block prints the value's use from the live render: a text child as its live
 	// text, or a condition that renders nothing yet.
-	'components/hold-button › Default': "TS6133: 'count' is declared but its value is never read.",
+	'components/hold-button › Hold to confirm':
+		"TS6133: 'count' is declared but its value is never read.",
 	'components/hold-button › Lifecycle callbacks':
 		"TS6133: 'status' is declared but its value is never read.",
 	'components/signature-pad › Imperative handle':

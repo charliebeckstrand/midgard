@@ -208,7 +208,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="Coordinates">
 				<DefaultExample />
 			</Example>
 

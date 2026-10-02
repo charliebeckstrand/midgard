@@ -16,7 +16,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="With description">
 				<CheckboxField>
 					<Checkbox />
 					<Label>Accept terms and conditions</Label>

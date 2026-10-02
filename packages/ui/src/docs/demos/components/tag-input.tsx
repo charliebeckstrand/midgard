@@ -42,7 +42,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="Controlled">
 				<DefaultTagInputExample />
 			</Example>
 

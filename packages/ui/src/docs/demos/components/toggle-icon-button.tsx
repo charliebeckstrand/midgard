@@ -22,7 +22,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="Theme toggle">
 				<ToggleIconButton
 					pressed={dark}
 					icon={<Moon />}

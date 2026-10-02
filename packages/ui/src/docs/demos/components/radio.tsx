@@ -18,7 +18,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="Radio group">
 				<RadioGroup aria-label="Plan">
 					{plans.map((plan) => (
 						<RadioField key={plan}>

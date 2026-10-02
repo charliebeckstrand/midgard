@@ -84,6 +84,10 @@ the panel in `Opener`, which keeps the open state for them.
 
 Write a hand-authored `Example` only for what an axis cannot show: a
 composition, an adornment such as `prefix`, or a flow with state.
+The gate `demo-examples.test.ts` fails an example that one `<Axes>` covers,
+an example that repeats an earlier example, and an example of a component
+with a playground whose title is `Default`. The text of an element does not
+count, so an example that differs only in its words fails.
 
 `DemoPage` gives `<Axes>` the API data through `DemoApiContext`. The docs
 plugin serves no API data in a test run. Therefore the page gates

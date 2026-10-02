@@ -2,7 +2,7 @@ import { Copy, Download, Maximize2, Pencil, Share2 } from 'lucide-react'
 import { ContextMenu, type ContextMenuItem } from '../../../components/context-menu'
 import { Text } from '../../../components/text'
 import { Box } from '../../../structure/box'
-import { Axes, Example } from '../../engine'
+import { Axes } from '../../engine'
 
 const defaults: ContextMenuItem[] = [
 	{ key: 'fullscreen', label: 'Fullscreen', icon: <Maximize2 /> },
@@ -39,10 +39,6 @@ export function Demo() {
 					</ContextMenu>
 				)}
 			/>
-
-			<Example title="Defaults">
-				<ContextMenu defaults={defaults}>{surface('Right-click here')}</ContextMenu>
-			</Example>
 		</>
 	)
 }

@@ -12,7 +12,7 @@ function DefaultExample() {
 	const [previewOpen, setPreviewOpen] = useState(false)
 
 	return (
-		<Example title="Default">
+		<Example title="Preview and download">
 			<Stack gap="md">
 				<SignaturePad value={value} onValueChange={setValue} />
 				{value && (

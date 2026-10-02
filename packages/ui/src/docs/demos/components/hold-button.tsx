@@ -39,7 +39,7 @@ export function Demo() {
 				render={(props, label) => <HoldButton {...props}>{label}</HoldButton>}
 			/>
 
-			<Example title="Default">
+			<Example title="Hold to confirm">
 				<Flex direction="col" gap="lg">
 					<HoldButton onHoldComplete={() => setCount((c) => c + 1)}>Hold to confirm</HoldButton>
 					<Text tone="muted">Confirmed {count} times</Text>

@@ -26,13 +26,6 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
-				<Stat>
-					<StatLabel>Monthly recurring revenue</StatLabel>
-					<StatValue>$12,345</StatValue>
-				</Stat>
-			</Example>
-
 			<Example title="With delta and description">
 				<Stat>
 					<StatLabel>Monthly recurring revenue</StatLabel>
