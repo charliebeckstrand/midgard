@@ -68,9 +68,10 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo a
 | The rule documents, the Biome plugins, or the apps | `packages/ui` | `pnpm test:workspace` |
 | The accessibility corpus and its sweeps | `packages/ui` | `pnpm test:a11y` |
 | Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
+| Percy snapshots of the docs site, on demand (needs `PERCY_TOKEN`) | `packages/ui` | `pnpm visual [page ids]` |
 | Dev (docs site) | `packages/ui` | `pnpm docs` |
 
-`test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks.
+`test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks and the Percy snapshots. The manual `Visual` workflow runs the Percy snapshots.
 
 ## 5. Where to look
 

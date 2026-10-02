@@ -1,0 +1,43 @@
+name: Visual
+
+# Percy snapshots of the docs site, on demand only. A Percy build spends the
+# screenshot quota of the plan, so no pull request or push starts this
+# workflow. Start it from the Actions tab, or with `gh workflow run visual.yml`.
+# packages/ui/scripts/visual.ts tells what it captures.
+on:
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: Page ids to snapshot, separated by spaces. Empty means each page.
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  percy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      # The same browser cache as the `browser` job in ci.yml.
+      - id: playwright
+        working-directory: packages/ui
+        run: |
+          echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "executable=$(node -p "require('playwright').chromium.executablePath()")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+      - run: pnpm --filter ui exec playwright install chromium
+      # When the secret is not set, the script writes a notice and passes.
+      # Percy discovers the assets of each snapshot with the Playwright build
+      # of Chromium, so that it does not download a second browser.
+      - run: pnpm --filter ui visual $PAGES
+        env:
+          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+          PERCY_BROWSER_EXECUTABLE: ${{ steps.playwright.outputs.executable }}
+          PAGES: ${{ inputs.pages }}
