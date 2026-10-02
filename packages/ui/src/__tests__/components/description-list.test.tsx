@@ -1,6 +1,10 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
+import {
+	DescriptionDetails,
+	DescriptionList,
+	DescriptionTerm,
+} from '../../components/description-list'
 import { getSlot, renderUI } from '../helpers'
 
 describe('DescriptionList', () => {

@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import { k } from '../../recipes/kata/dl'
+import { k } from '../../recipes/kata/description-list'
 
 /** Props for {@link DescriptionDetails}: native `<dd>` attributes. */
 export type DescriptionDetailsProps = ComponentProps<'dd'>

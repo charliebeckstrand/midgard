@@ -1,7 +1,11 @@
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../components/dl'
+import {
+	DescriptionDetails,
+	DescriptionList,
+	DescriptionTerm,
+} from '../../../components/description-list'
 import { Axes } from '../../engine'
 
-export const meta = { name: 'DL' }
+export const meta = { name: 'Description list' }
 
 export function Demo() {
 	return (
