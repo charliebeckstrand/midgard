@@ -59,7 +59,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `pdf-viewer` · `filters`
 
-> `filters` composes its regions: `FiltersPrefix`, a `FiltersBar` holding a `FiltersRow` of `FiltersField`s beside a `FiltersClear`, and `FiltersSuffix`.
+> `filters` composes its regions: `FiltersPrefix`, a `FiltersBar` holding a `FiltersRow` of `FiltersField`s beside a `FiltersClear`, and `FiltersSuffix`. `FiltersSkeleton` stands in for the row while the fields load.
 
 ---
 
