@@ -3,6 +3,7 @@
 import { type ReactNode, type Ref, Suspense, use, useLayoutEffect, useRef, useState } from 'react'
 import { createContext } from '../../../core'
 import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import type { ComponentApi } from '../api-reference'
 import {
 	type Axis,
@@ -73,8 +74,8 @@ type AxesProps = {
  *
  * @remarks
  * The first example is a playground with one picker for each axis. Each next
- * example shows every value of one axis, and takes the other axes from the
- * playground. A new value in the source of the component thus shows on the
+ * example shows every value of one axis, one to a line, and takes the other
+ * axes from the playground. A new value in the source of the component thus shows on the
  * page with no change to the demo.
  *
  * An axis of density steps shows only the steps that render distinctly. A
@@ -224,7 +225,8 @@ function AxesExamples({
 				(axis) =>
 					valuesOf(axis).length > 1 && (
 						<Example key={axis.name} title={axisTitle(axis.name, title)}>
-							<Flex wrap gap="sm" align={captions ? 'start' : 'center'}>
+							{/* The instances stack, one to a line, so that each has the width of the row. */}
+							<Stack gap={captions ? 'lg' : 'sm'} align="start">
 								{valuesOf(axis).map((value) => (
 									<AxisInstance
 										key={String(value)}
@@ -237,7 +239,7 @@ function AxesExamples({
 										{render(propsWith(axis.name, value), valueLabel(value))}
 									</AxisInstance>
 								))}
-							</Flex>
+							</Stack>
 						</Example>
 					),
 			)}
