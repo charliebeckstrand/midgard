@@ -1,16 +1,10 @@
 name: Visual
 
-# Percy snapshots of the docs site, twice a month and on demand. A Percy build
-# spends the screenshot quota of the plan, so no pull request or push starts
-# this workflow. The schedule runs each page at the default density. Start
-# other runs from the Actions tab, or with `gh workflow run visual.yml`.
+# Percy snapshots of the docs site, on demand only. A Percy build spends the
+# screenshot quota of the plan, so no pull request or push starts this
+# workflow. Start it from the Actions tab, or with `gh workflow run visual.yml`.
 # packages/ui/scripts/visual.ts tells what it captures.
 on:
-  # On the 1st and the 15th of each month at 06:17 UTC. A full run in one
-  # browser is about 436 screenshots, so two runs fit a quota of 1,000 a
-  # month. The Testing routine reads this run.
-  schedule:
-    - cron: '17 6 1,15 * *'
   workflow_dispatch:
     inputs:
       pages:
@@ -28,7 +22,7 @@ permissions:
 jobs:
   percy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
@@ -46,23 +40,9 @@ jobs:
       # When the secret is not set, the script writes a notice and passes.
       # Percy discovers the assets of each snapshot with the Playwright build
       # of Chromium, so that it does not download a second browser.
-      # The log of `percy exec` gives the URL of the build, and the last part of
-      # that URL is the id of the build.
-      - id: visual
-        run: |
-          pnpm --filter ui visual $PAGES ${DENSITY:+--density=$DENSITY} | tee visual.log
-          echo "build=$(grep -oE 'percy\.io/[^ ]*/builds/[0-9]+' visual.log | tail -n 1 | grep -oE '[0-9]+$')" >> "$GITHUB_OUTPUT"
+      - run: pnpm --filter ui visual $PAGES ${DENSITY:+--density=$DENSITY}
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
           PERCY_BROWSER_EXECUTABLE: ${{ steps.playwright.outputs.executable }}
           PAGES: ${{ inputs.pages }}
           DENSITY: ${{ inputs.density }}
-      # Percy compares the snapshots after the build is finalized. Wait for the
-      # comparisons, so that the log gives the number of changes. The log is
-      # the only record of the result that a reader without percy.io access
-      # can see.
-      - if: steps.visual.outputs.build != ''
-        run: pnpm --filter ui exec percy build:wait --build "$BUILD"
-        env:
-          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
-          BUILD: ${{ steps.visual.outputs.build }}

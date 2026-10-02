@@ -22,6 +22,9 @@ test-results/
 packages/ui/coverage/
 packages/ui/test-results/
 
+# screenshots of the docs site (packages/ui/scripts/screens.ts)
+packages/ui/.screens/
+
 # env
 .env*
 !.env.example
