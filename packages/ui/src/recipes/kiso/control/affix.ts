@@ -40,19 +40,19 @@
  * it renders as `<button>` or, with `href`, as `<a>`.
  *
  * Each slot writes `data-density="slot"`. The rungs read it as a scope one
- * step below the scope above it (`stepDown` in `core/density`): sm → xs,
- * md → sm, lg → md. An `<Icon>`, a `<LoadingSpinner>`, or a `<Badge>` in the
- * slot takes that step through its stepped classes, and so does a `<Button>`.
+ * step below the scope above it (`slotStep` in `core/density`): sm → xs,
+ * md → sm, lg → md. A control stops at `lg`, so xl → md also. An `<Icon>`,
+ * a `<LoadingSpinner>`, or a `<Badge>` in the slot takes that step through its
+ * stepped classes, and so does a `<Button>`.
  * So the slot projects no size. An explicit `size` on a slot child wins, as it
  * does elsewhere.
  *
  * The slot is its own nearest scope, so its own padding takes the slot step
  * and not the step of the control. Each stepped list thus gives the value of a
  * control one step above: the `xs` value is for an `sm` control, the `sm`
- * value is for an `md` control, and the `md` value is for an `lg` control. The
- * `lg` and `xl` values repeat the `md` value, because a control stops at `lg`
- * on this axis. A control has no `xl` size, so the `lg` value is only for a
- * control in an `xl` scope.
+ * value is for an `md` control, and the `md` value is for an `lg` control. A
+ * slot does not take `lg` or `xl`, so the `lg` and `xl` values repeat the `md`
+ * value.
  *
  * `autofill` is the input-side counterpart. The browser's autofill
  * highlight paints the inner input's full box, which sits flush against
