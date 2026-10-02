@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../../components/button'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { ColorPanel, ColorPanelSkeleton } from '../../../components/color'
+import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import {
 	ProgressBar,
 	ProgressBarSkeleton,
@@ -189,5 +190,42 @@ describe('skeleton parity (real browser)', () => {
 		expect(getComputedStyle(present(skeleton, 'skeleton')).borderRadius).toBe(
 			getComputedStyle(present(document.querySelector('textarea'), 'textarea')).borderRadius,
 		)
+	})
+
+	const listRows = [
+		{ id: 'a', label: 'Invoices' },
+		{ id: 'b', label: 'Receipts' },
+		{ id: 'c', label: 'Statements' },
+	]
+
+	it.each([
+		['separated', false],
+		['outline', false],
+		['plain', false],
+		['solid', false],
+		['separated', true],
+		['outline', true],
+	] as const)('ListSkeleton has the box of a %s list (description: %s)', (variant, described) => {
+		const real = box(
+			renderUI(
+				<List items={listRows} variant={variant} sortable={false} aria-label="Files">
+					{(row) => (
+						<ListItem>
+							<ListLabel>{row.label}</ListLabel>
+							{described ? <ListDescription>Updated today</ListDescription> : null}
+						</ListItem>
+					)}
+				</List>,
+			).container.querySelector('[data-slot="list"]'),
+			'list',
+		)
+
+		expect(
+			box(
+				renderUI(<ListSkeleton items={3} variant={variant} description={described} />).container
+					.firstElementChild,
+				'skeleton',
+			),
+		).toStrictEqual(real)
 	})
 })

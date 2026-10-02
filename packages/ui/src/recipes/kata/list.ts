@@ -1,5 +1,5 @@
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, omote, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { cursor, disabled, fg, glassItem, grab, tint, tintFilled, tintSurface } = hannou
 const { onWash, text } = iro
@@ -168,4 +168,5 @@ export const k = {
 	// `onWash.muted`, not `muted`: the `solid` variant grounds a row on the
 	// wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: ['min-w-0 truncate', size.sm, onWash.muted],
+	skeleton: kokkaku.list,
 } as const

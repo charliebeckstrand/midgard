@@ -17,6 +17,7 @@ import { checkbox } from './checkbox'
 import { colorPanel } from './color-panel'
 import { control } from './control'
 import { heading } from './heading'
+import { list } from './list'
 import { map } from './map'
 import { pagination } from './pagination'
 import { progress } from './progress'
@@ -44,6 +45,7 @@ export const kokkaku = {
 	colorPanel,
 	control,
 	heading,
+	list,
 	map,
 	pagination,
 	progress,
