@@ -61,6 +61,14 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `filters` composes its regions: `FiltersPrefix`, a `FiltersBar` holding a `FiltersRow` of `FiltersField`s beside a `FiltersClear`, and `FiltersSuffix`. `FiltersSkeleton` stands in for the row while the fields load.
 
+## Loading skeletons
+
+A unit that can load late exports a `<Name>Skeleton` from its own entry point. The skeleton is a static leaf, so a Suspense fallback or a `loading.tsx` can render it on the server. It has the box of the real component and takes the same `size`, `level`, or `orientation`.
+
+`AvatarSkeleton` · `BadgeSkeleton` · `BreadcrumbSkeleton` · `ButtonSkeleton` · `CalendarSkeleton` · `CheckboxSkeleton` · `ColorPanelSkeleton` · `ControlSkeleton` · `DescriptionListSkeleton` · `FiltersSkeleton` · `HeadingSkeleton` · `ListSkeleton` · `PaginationSkeleton` · `ProgressBarSkeleton` · `ProgressGaugeSkeleton` · `RadioSkeleton` · `RatingSkeleton` · `SegmentSkeleton` · `ShinyTextSkeleton` · `SliderSkeleton` · `SparklineSkeleton` · `StatDeltaSkeleton` · `StatDescriptionSkeleton` · `StatLabelSkeleton` · `StatValueSkeleton` · `StepperSkeleton` · `SwitchSkeleton` · `TabListSkeleton` · `TextSkeleton` · `TextareaSkeleton` · `ToggleIconButtonSkeleton`
+
+> `ControlSkeleton` stands in for each control in a `ControlFrame`, such as `input`, `select`, `combobox`, and `date-picker`. Put `<HeadingSkeleton inline />` in a real `CardTitle` when only the title text loads. Pair a skeleton with `ReadyReveal`, which swaps it for the content and marks the region busy ([`PRIMITIVES.md`](PRIMITIVES.md)). The `chart` and `map` modules export `ChartSkeleton` and `MapSkeleton` ([`MODULES.md`](MODULES.md)).
+
 ---
 
 **See also:** [`HOOKS.md`](HOOKS.md) · [`PRIMITIVES.md`](PRIMITIVES.md) · [`PROVIDERS.md`](PROVIDERS.md) · [`RECIPES.md`](RECIPES.md) · [`../REFERENCE.md`](../REFERENCE.md). Keep this current per [`CONVENTIONS.md` §12](../../../CONVENTIONS.md).

@@ -1,10 +1,13 @@
 /**
  * Kokkaku (骨格): skeletal frames.
  *
- * Skeleton placeholder dimensions per component, stripped of chrome,
- * variant, and color; placeholders track the real component's
- * silhouette. One file per unit; this barrel assembles the named
- * bundle that every kata reads as `skeleton: kokkaku.<name>`.
+ * The skeleton form of each unit: the dimensions of its placeholders,
+ * with no chrome, variant, or color, so that a placeholder tracks the
+ * silhouette of the real component. A kata reads its form as
+ * `skeleton: kokkaku.<name>`. Some kata also read a measure of the form
+ * for the real component, such as the width of the calendar, so the two
+ * cannot drift apart. One file per unit; this barrel assembles the named
+ * bundle.
  */
 
 import { avatar } from './avatar'
