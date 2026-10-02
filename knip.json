@@ -19,6 +19,10 @@
 				"src/**/index.ts",
 				"src/__tests__/**/setup/*.ts",
 				"src/docs/app.css",
+				"src/docs/fixtures/main.tsx",
+				"src/docs/fixtures/app.css",
+				"src/docs/fixtures/sheets/*.tsx",
+				"vite.fixtures.config.ts",
 				"src/core/density/variants.ts",
 				"src/core/density/utilities.ts"
 			]
