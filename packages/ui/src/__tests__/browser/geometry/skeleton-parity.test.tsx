@@ -1,9 +1,20 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { Avatar, AvatarSkeleton } from '../../../components/avatar'
+import { Badge, BadgeSkeleton } from '../../../components/badge'
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbSeparator,
+	BreadcrumbSkeleton,
+} from '../../../components/breadcrumb'
 import { Button, ButtonSkeleton } from '../../../components/button'
 import { Calendar, CalendarSkeleton } from '../../../components/calendar'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { ColorPanel, ColorPanelSkeleton } from '../../../components/color'
+import { ControlSkeleton } from '../../../components/control'
 import {
 	DescriptionDetails,
 	DescriptionList,
@@ -20,6 +31,14 @@ import {
 import { Input } from '../../../components/input'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import {
+	Pagination,
+	PaginationList,
+	PaginationNext,
+	PaginationPage,
+	PaginationPrevious,
+	PaginationSkeleton,
+} from '../../../components/pagination'
+import {
 	ProgressBar,
 	ProgressBarSkeleton,
 	ProgressGauge,
@@ -27,7 +46,20 @@ import {
 } from '../../../components/progress'
 import { Radio, RadioSkeleton } from '../../../components/radio'
 import { Rating, RatingSkeleton } from '../../../components/rating'
+import { Segment, SegmentControl, SegmentItem, SegmentSkeleton } from '../../../components/segment'
 import { Slider, SliderSkeleton } from '../../../components/slider'
+import { Sparkline, SparklineSkeleton } from '../../../components/sparkline'
+import {
+	Stat,
+	StatDelta,
+	StatDeltaSkeleton,
+	StatDescription,
+	StatDescriptionSkeleton,
+	StatLabel,
+	StatLabelSkeleton,
+	StatValue,
+	StatValueSkeleton,
+} from '../../../components/stat'
 import { Stepper, StepperSkeleton, StepperStep, StepperTitle } from '../../../components/stepper'
 import { Switch, SwitchSkeleton } from '../../../components/switch'
 import { Tab, TabList, TabListSkeleton, Tabs } from '../../../components/tabs'
@@ -340,12 +372,134 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
-	it.each(['sm', 'md', 'lg'] as const)('CalendarSkeleton has the box of a %s calendar', (size) => {
-		// A month that spans six weeks, the tallest month a calendar draws.
-		const { container } = renderUI(<Calendar size={size} defaultValue={new Date(2026, 4, 15)} />)
+	const height = (el: Element | null | undefined, what: string) => box(el, what).height
 
-		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
-			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
+	it.each(['sm', 'md', 'lg'] as const)('AvatarSkeleton has the box of a %s avatar', (size) => {
+		const { container } = renderUI(<Avatar size={size} initials="WC" alt="Wade Cooper" />)
+
+		expect(placeholder(renderUI(<AvatarSkeleton size={size} />).container)).toStrictEqual(
+			box(container.querySelector('[data-slot="avatar"]'), 'avatar'),
+		)
+	})
+
+	it.each(['xs', 'sm', 'md', 'lg'] as const)(
+		'BadgeSkeleton has the height of a %s badge',
+		(size) => {
+			const { container } = renderUI(<Badge size={size}>New</Badge>)
+
+			expect(placeholder(renderUI(<BadgeSkeleton size={size} />).container).height).toBe(
+				height(container.querySelector('[data-slot="badge"]'), 'badge'),
+			)
+		},
+	)
+
+	it.each(['xs', 'sm', 'md', 'lg'] as const)(
+		'ControlSkeleton has the height of a %s input',
+		(size) => {
+			const { container } = renderUI(<Input aria-label="Name" size={size} />)
+
+			expect(placeholder(renderUI(<ControlSkeleton size={size} />).container).height).toBe(
+				height(container.querySelector('[data-slot="control-frame"]'), 'control'),
+			)
+		},
+	)
+
+	it.each(['sm', 'md', 'lg'] as const)(
+		'SparklineSkeleton has the box of a %s sparkline',
+		(size) => {
+			const { container } = renderUI(
+				<Sparkline data={[3, 5, 4, 8]} size={size} aria-label="Trend" />,
+			)
+
+			expect(placeholder(renderUI(<SparklineSkeleton size={size} />).container)).toStrictEqual(
+				box(container.querySelector('[data-slot="sparkline"]'), 'sparkline'),
+			)
+		},
+	)
+
+	it('SegmentSkeleton has the height of a segment control', () => {
+		const { container } = renderUI(
+			<Segment defaultValue="list" aria-label="View">
+				<SegmentControl aria-label="View">
+					<SegmentItem value="list">List</SegmentItem>
+					<SegmentItem value="grid">Grid</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		expect(placeholder(renderUI(<SegmentSkeleton />).container).height).toBe(
+			height(container.querySelector('[role="tablist"]'), 'segment control'),
+		)
+	})
+
+	it('PaginationSkeleton has the height of a pagination', () => {
+		const { container } = renderUI(
+			<Pagination>
+				<PaginationPrevious />
+				<PaginationList>
+					<PaginationPage current>1</PaginationPage>
+					<PaginationPage>2</PaginationPage>
+				</PaginationList>
+				<PaginationNext />
+			</Pagination>,
+		)
+
+		expect(
+			height(renderUI(<PaginationSkeleton pages={4} />).container.firstElementChild, 'skeleton'),
+		).toBe(height(container.querySelector('[data-slot="pagination"]'), 'pagination'))
+	})
+
+	it('BreadcrumbSkeleton has the height of a breadcrumb', () => {
+		const { container } = renderUI(
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="#home">Home</BreadcrumbLink>
+					</BreadcrumbItem>
+					<BreadcrumbSeparator />
+					<BreadcrumbItem>
+						<BreadcrumbLink current>Current</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>,
+		)
+
+		expect(
+			height(renderUI(<BreadcrumbSkeleton crumbs={2} />).container.firstElementChild, 'skeleton'),
+		).toBe(height(container.querySelector('ol'), 'breadcrumb list'))
+	})
+
+	it.each(['sm', 'md', 'lg'] as const)('StatValueSkeleton has the height of a %s value', (size) => {
+		const { container } = renderUI(
+			<Stat>
+				<StatValue size={size}>$12,345</StatValue>
+			</Stat>,
+		)
+
+		expect(placeholder(renderUI(<StatValueSkeleton size={size} />).container).height).toBe(
+			height(container.querySelector('[data-slot="stat-value"]'), 'stat value'),
+		)
+	})
+
+	it.each([
+		[
+			'StatLabel',
+			'stat-label',
+			<StatLabel key="l">Revenue</StatLabel>,
+			<StatLabelSkeleton key="s" />,
+		],
+		[
+			'StatDescription',
+			'stat-description',
+			<StatDescription key="d">Since last month</StatDescription>,
+			<StatDescriptionSkeleton key="s" />,
+		],
+		['StatDelta', 'stat-delta', <StatDelta key="t">+4%</StatDelta>, <StatDeltaSkeleton key="s" />],
+	] as const)('%sSkeleton has the height of its slot', (_, slot, real, skeleton) => {
+		const { container } = renderUI(<Stat>{real}</Stat>)
+
+		expect(placeholder(renderUI(skeleton).container).height).toBe(
+			height(container.querySelector(`[data-slot="${slot}"]`), slot),
 		)
 	})
 
@@ -378,4 +532,13 @@ describe('skeleton parity (real browser)', () => {
 			).toStrictEqual(real)
 		},
 	)
+
+	it.each(['sm', 'md', 'lg'] as const)('CalendarSkeleton has the box of a %s calendar', (size) => {
+		// A month that spans six weeks, the tallest month a calendar draws.
+		const { container } = renderUI(<Calendar size={size} defaultValue={new Date(2026, 4, 15)} />)
+
+		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
+			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
+		)
+	})
 })
