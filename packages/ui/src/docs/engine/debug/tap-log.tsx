@@ -29,7 +29,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from '../../../components/button'
 import { useCopyButtonState } from '../../../components/copy-button/use-copy-button-state'
 import { Icon } from '../../../components/icon'
-import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../../components/sheet'
+import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from '../../../components/sheet'
 
 const EVENTS = [
 	'touchstart',
@@ -235,25 +235,31 @@ function TapLogLines() {
 			<SheetBody className="min-h-0 flex-1 overflow-auto">
 				<pre className="m-0 whitespace-pre-wrap font-mono text-[10px]/[1.3]">{log}</pre>
 			</SheetBody>
-			{/* The buttons go in the footer, because the grip covers the top edge of the sheet. */}
-			<SheetFooter>
-				<Button
-					size="sm"
-					variant="soft"
-					color={copied ? 'green' : undefined}
-					onClick={() => void copy()}
-				>
-					{copied ? 'Copied' : 'Copy'}
-				</Button>
-				<Button size="sm" variant="soft" onClick={clear}>
-					Clear
-				</Button>
+			<SheetFooter className="justify-between">
+				<div className="flex gap-2">
+					<Button
+						size="sm"
+						variant="soft"
+						color={copied ? 'green' : undefined}
+						onClick={() => void copy()}
+					>
+						{copied ? 'Copied' : 'Copy'}
+					</Button>
+					<Button size="sm" variant="soft" onClick={clear}>
+						Clear
+					</Button>
+				</div>
+				<SheetClose>
+					<Button size="sm" variant="plain">
+						Close
+					</Button>
+				</SheetClose>
 			</SheetFooter>
 		</>
 	)
 }
 
-/** The header button and the sheet of the log. `app.tsx` renders it only when the URL has `?taplog`. */
+/** The header button and the sheet of the log. `DebugActions` renders it while the tool is on. */
 export function TapLog() {
 	const [open, setOpen] = useState(false)
 
@@ -273,9 +279,9 @@ export function TapLog() {
 			<Button variant="bare" data-slot={TRIGGER} aria-label="Tap log" onClick={() => change(true)}>
 				<Icon icon={<MousePointer />} />
 			</Button>
-			{/* A bottom sheet takes the height of what it holds, and the log can be long.
-			    The sheet thus opens at half the screen, and the grip changes the height. */}
-			<Sheet side="bottom" handle open={open} onOpenChange={change} className="h-[50dvh]">
+			{/* The sheet takes the height of the log, up to the height of the screen.
+			    A longer log scrolls in the body. */}
+			<Sheet side="bottom" open={open} onOpenChange={change} className="max-h-dvh">
 				<TapLogLines />
 			</Sheet>
 		</>
