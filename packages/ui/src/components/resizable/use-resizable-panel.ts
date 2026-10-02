@@ -9,6 +9,7 @@ import {
 	useState,
 } from 'react'
 import { useDragCursor } from '../../hooks'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities'
 import type { PanelConfig, ResizableOrientation } from './types'
@@ -18,6 +19,63 @@ type DragState = {
 	startPos: number
 	startSizes: number[]
 	availableSize: number
+	/** Whether the group lays out right to left. A horizontal drag then mirrors. */
+	rtl: boolean
+}
+
+/**
+ * How far a drag has moved the handle, as a percentage of the group: positive
+ * grows the panel before the handle. In a right-to-left row that panel is on
+ * the right, so a move to the right shrinks it.
+ *
+ * @internal
+ */
+function dragDeltaPercent(
+	drag: DragState,
+	event: PointerEvent,
+	orientation: ResizableOrientation,
+): number {
+	const horizontal = orientation === 'horizontal'
+
+	const pos = horizontal ? event.clientX : event.clientY
+
+	const sign = horizontal && drag.rtl ? -1 : 1
+
+	return ((pos - drag.startPos) / drag.availableSize) * 100 * sign
+}
+
+/**
+ * The interval where the left panel of a pair can go while both panels keep
+ * their min/max and the pair keeps its sum. An over-constrained pair has no
+ * such interval, so the left panel's own bounds apply.
+ *
+ * @internal
+ */
+export function pairRange(
+	sizes: number[],
+	leftIdx: number,
+	constraints: PanelConfig[],
+): { min: number; max: number } {
+	const rightIdx = leftIdx + 1
+
+	const total = (sizes[leftIdx] ?? 0) + (sizes[rightIdx] ?? 0)
+
+	const lc = constraints[leftIdx]
+	const rc = constraints[rightIdx]
+
+	// The left panel's own bounds, intersected with the complement of the
+	// bounds of the right panel.
+	const lcMin = lc?.minSize ?? 0
+	const lcMax = lc?.maxSize ?? Number.POSITIVE_INFINITY
+	const rcMin = rc?.minSize ?? 0
+	const rcMax = rc?.maxSize ?? Number.POSITIVE_INFINITY
+
+	const feasibleMin = Math.max(lcMin, total - rcMax)
+	const feasibleMax = Math.min(lcMax, total - rcMin)
+
+	return feasibleMin <= feasibleMax
+		? { min: feasibleMin, max: feasibleMax }
+		: { min: lcMin, max: lcMax }
 }
 
 /**
@@ -27,34 +85,16 @@ type DragState = {
  *
  * @internal
  */
-function clampPair(
-	sizes: number[],
-	leftIdx: number,
-	rightIdx: number,
-	constraints: PanelConfig[],
-): number[] {
+function clampPair(sizes: number[], leftIdx: number, constraints: PanelConfig[]): number[] {
+	const rightIdx = leftIdx + 1
+
 	const result = [...sizes]
 
 	const total = (sizes[leftIdx] ?? 0) + (sizes[rightIdx] ?? 0)
 
-	const lc = constraints[leftIdx]
-	const rc = constraints[rightIdx]
+	const { min, max } = pairRange(sizes, leftIdx, constraints)
 
-	let left = result[leftIdx] ?? 0
-
-	// Clamp into the interval where BOTH sides' constraints hold: left's own
-	// bounds intersected with the complement of right's.
-	const lcMin = lc?.minSize ?? 0
-	const lcMax = lc?.maxSize ?? Number.POSITIVE_INFINITY
-	const rcMin = rc?.minSize ?? 0
-	const rcMax = rc?.maxSize ?? Number.POSITIVE_INFINITY
-
-	const feasibleMin = Math.max(lcMin, total - rcMax)
-	const feasibleMax = Math.min(lcMax, total - rcMin)
-
-	// Over-constrained pairs have no feasible interval; left's own bounds win.
-	left =
-		feasibleMin <= feasibleMax ? clamp(left, feasibleMin, feasibleMax) : clamp(left, lcMin, lcMax)
+	const left = clamp(sizes[leftIdx] ?? 0, min, max)
 
 	result[leftIdx] = left
 	result[rightIdx] = total - left
@@ -62,13 +102,27 @@ function clampPair(
 	return result
 }
 
-/** Panel default sizes as percentages summing to 100; identity is not preserved. @internal */
-function normalizeSizes(configs: PanelConfig[]): number[] {
+/**
+ * The first sizes of the panels, as percentages summing to 100; identity is
+ * not preserved. Each `defaultSize` is a weight, so the sizes keep the ratio
+ * of the weights. Then each adjacent pair clamps in order from the start of
+ * the group. Thus each panel goes into its min/max, and the next panel takes
+ * the difference. The last panel gives the difference to the panel before it.
+ *
+ * @internal
+ */
+function seedSizes(configs: PanelConfig[]): number[] {
 	const raw = configs.map((c) => c.defaultSize)
 
 	const total = raw.reduce((sum, s) => sum + s, 0)
 
-	return total > 0 ? raw.map((s) => (s / total) * 100) : raw
+	let sizes = total > 0 ? raw.map((s) => (s / total) * 100) : raw
+
+	for (let leftIdx = 0; leftIdx < sizes.length - 1; leftIdx++) {
+		sizes = clampPair(sizes, leftIdx, configs)
+	}
+
+	return sizes
 }
 
 type PanelResize = {
@@ -98,8 +152,8 @@ export function useResizablePanel({
 }: PanelResize) {
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
-	// Initialize sizes from panel defaults, normalized to 100%.
-	const [sizes, setSizes] = useState(() => normalizeSizes(panelConfigs))
+	// Seed the sizes from the panel defaults: normalized to 100%, then clamped.
+	const [sizes, setSizes] = useState(() => seedSizes(panelConfigs))
 
 	// Re-derives sizes when the panel set changes: a panel added, removed, or
 	// replaced by another at the same count. The panel keys name the set, so a
@@ -113,7 +167,7 @@ export function useResizablePanel({
 	if (prevPanelSet !== panelSet) {
 		setPrevPanelSet(panelSet)
 
-		setSizes(normalizeSizes(panelConfigs))
+		setSizes(seedSizes(panelConfigs))
 	}
 
 	const [dragging, setDragging] = useState<number | null>(null)
@@ -145,7 +199,7 @@ export function useResizablePanel({
 		next[leftIdx] = prev[leftIdx] + delta
 		next[rightIdx] = prev[rightIdx] - delta
 
-		const clamped = clampPair(next, leftIdx, rightIdx, panelConfigs)
+		const clamped = clampPair(next, leftIdx, panelConfigs)
 
 		// Side effects run here, not inside the setSizes updater: StrictMode
 		// double-invokes the updater, firing onSizesChange twice per keypress.
@@ -201,6 +255,7 @@ export function useResizablePanel({
 			startPos,
 			startSizes: [...sizes],
 			availableSize,
+			rtl: isRtl(group),
 		}
 
 		setDragging(handleIndex)
@@ -235,9 +290,7 @@ export function useResizablePanel({
 
 			const { orientation: currentOrient, constraints } = readLayout()
 
-			const currentPos = currentOrient === 'horizontal' ? event.clientX : event.clientY
-
-			const deltaPercent = ((currentPos - drag.startPos) / drag.availableSize) * 100
+			const deltaPercent = dragDeltaPercent(drag, event, currentOrient)
 
 			const leftIdx = drag.handleIndex
 			const rightIdx = drag.handleIndex + 1
@@ -247,7 +300,7 @@ export function useResizablePanel({
 			next[leftIdx] = (drag.startSizes[leftIdx] ?? 0) + deltaPercent
 			next[rightIdx] = (drag.startSizes[rightIdx] ?? 0) - deltaPercent
 
-			pending = clampPair(next, leftIdx, rightIdx, constraints)
+			pending = clampPair(next, leftIdx, constraints)
 
 			if (frame === null) frame = requestAnimationFrame(commitPending)
 		}
