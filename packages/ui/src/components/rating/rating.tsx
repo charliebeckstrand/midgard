@@ -1,7 +1,7 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { type MouseEvent, useState } from 'react'
+import { type MouseEvent, type PointerEvent, useState } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -89,7 +89,8 @@ export type RatingProps = RatingVariants & {
 	 * so that click previews its result like every other one does. Without it the
 	 * clearing star is the only star on the row that answers the pointer with the
 	 * row already drawn. It is worst at a score of one, where the pointer sits on
-	 * the only filled star and nothing at all moves.
+	 * the only filled star and nothing at all moves. A touch has no hover, so it
+	 * shows no preview.
 	 * @defaultValue true
 	 */
 	clearable?: boolean
@@ -217,6 +218,16 @@ export function Rating({
 
 	const rowClass = cn(k({ color }), k.group, className)
 
+	// A touch has no hover, so it previews nothing. A tap also sends the
+	// compatibility mouse events, with no leave after them, so the preview reads
+	// the pointer type rather than listening for mouse events. Otherwise the tap
+	// leaves the clearing preview on the score it sets.
+	function handlePointerEnter(event: PointerEvent, star: number) {
+		if (event.pointerType === 'touch') return
+
+		setPreviewed(star)
+	}
+
 	function commit(next: number | null) {
 		setValue(next)
 
@@ -339,7 +350,7 @@ export function Rating({
 			aria-describedby={describedBy}
 			{...validation}
 			className={rowClass}
-			onMouseLeave={() => setPreviewed(null)}
+			onPointerLeave={() => setPreviewed(null)}
 			onBlur={() => setTouched()}
 		>
 			{stars.map((key, index) => {
@@ -351,7 +362,7 @@ export function Rating({
 						data-slot="rating-star"
 						data-value={star}
 						className={k.star({ interactive: true })}
-						onMouseEnter={() => setPreviewed(star)}
+						onPointerEnter={(event) => handlePointerEnter(event, star)}
 					>
 						<input
 							type="radio"

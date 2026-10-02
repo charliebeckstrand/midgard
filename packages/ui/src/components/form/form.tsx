@@ -73,6 +73,12 @@ export type FormProps<T extends Record<string, unknown>> = {
  * `onSubmit`, surfaces a returned `{ fieldErrors }` or thrown error, and
  * guards against superseding resets/unmounts via a monotonic token.
  *
+ * The `<form>` sets `noValidate`, so a native constraint such as `type="url"` or
+ * `required` never stops a submit before the validators run. Otherwise the
+ * browser bubble takes the place of the app message, and the other fields show
+ * no error. Each constraint therefore needs a validator. Pass
+ * `noValidate={false}` to turn native validation back on.
+ *
  * @typeParam T - Shape of the form-value record.
  */
 export function Form<T extends Record<string, unknown>>({
@@ -104,6 +110,7 @@ export function Form<T extends Record<string, unknown>>({
 		<FormProvider store={store} actions={actions}>
 			<form
 				data-slot="form"
+				noValidate
 				onSubmit={handleSubmit}
 				onReset={handleReset}
 				className={cn('contents', className)}

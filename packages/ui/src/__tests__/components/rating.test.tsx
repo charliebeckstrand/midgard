@@ -125,6 +125,26 @@ describe('Rating', () => {
 		}
 	})
 
+	// A tap sends the compatibility mouse events with no leave after them, so a
+	// preview from them stays on the new score and draws it as cleared.
+	it('does not recede the score that a tap sets', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<Rating aria-label="Score" onValueChange={onValueChange} />)
+
+		await user.pointer({ keys: '[TouchA]', target: stars(container)[2] as HTMLInputElement })
+
+		expect(onValueChange).toHaveBeenLastCalledWith(3)
+
+		expect(allBySlot(container, 'rating-fill')).toHaveLength(3)
+
+		for (const fill of allBySlot(container, 'rating-fill')) {
+			expect(fill).not.toHaveClass('opacity-40')
+		}
+	})
+
 	it('does not recede when there is nothing to clear', async () => {
 		const user = setupUser()
 
