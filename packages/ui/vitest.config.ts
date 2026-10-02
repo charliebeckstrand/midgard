@@ -1,4 +1,5 @@
 import { join, relative } from 'node:path'
+import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { docblockEnvironment, walkSource } from './src/__tests__/helpers/walk-source'
 import { docsPlugin } from './src/docs/engine/plugins'
@@ -67,6 +68,26 @@ const nodeScan = {
 	testTimeout: 30_000,
 } as const
 
+// Vitest keeps no module on disk that calls `import.meta.glob(`, because the
+// result depends on the files that the glob matches. The check reads that
+// exact text, so a typed call such as `import.meta.glob<ComponentType>(` passes
+// it, and the cache keeps the old expansion. After a rename of a docs demo, the
+// cached `demo-pages.tsx` then imports a file that is gone. CI restores the
+// cache, so the failure also occurs there. This generator keeps each glob call
+// out of the cache, typed or not.
+const typedGlob = /import\.meta\.glob\s*</
+
+function skipGlobCache({ sourceCode }: { sourceCode: string }): false | undefined {
+	return typedGlob.test(sourceCode) ? false : undefined
+}
+
+const globCache: Plugin = {
+	name: 'midgard:glob-cache',
+	configureVitest({ experimental_defineCacheKeyGenerator }) {
+		experimental_defineCacheKeyGenerator(skipGlobCache)
+	},
+}
+
 // Setup files for both jsdom projects (unit, integration). The first one also
 // gives `expect` the geometry matchers (`setup/geometry.ts`).
 const setupFiles = [
@@ -76,6 +97,7 @@ const setupFiles = [
 ]
 
 export default defineConfig({
+	plugins: [globCache],
 	test: {
 		environment: 'jsdom',
 		// Vitest caps a pool at one fewer worker than the machine has cores. Local
