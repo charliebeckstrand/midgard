@@ -146,6 +146,7 @@ export const k = {
 	// segment box behind `<Segment>`.
 	skeleton: {
 		tab: kokkaku.tabs.tab,
+		gap: kokkaku.tabs.gap,
 		segment: kokkaku.segment,
 	},
 } as const
