@@ -49,6 +49,14 @@ describe('Textarea', () => {
 		expect(screen.getByText('send')).toBeInTheDocument()
 	})
 
+	it.each([null, false])('renders no actions row for actions={%s}', (actions) => {
+		const { container } = renderUI(<Textarea actions={actions} resize="vertical" />)
+
+		expect(bySlot(container, 'textarea-actions')).not.toBeInTheDocument()
+
+		expect(getSlot(container, 'textarea').className).toContain('resize-y')
+	})
+
 	it('sizes the actions one step below the textarea, as the Input affixes do', () => {
 		const { container } = renderUI(<Textarea size="sm" actions={<Button>send</Button>} />)
 

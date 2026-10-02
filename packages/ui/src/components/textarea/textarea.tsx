@@ -25,7 +25,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 * @defaultValue false
 	 */
 	autoResize?: boolean
-	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none`. */
+	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none`. `null` and `false` count as absent. */
 	actions?: ReactNode
 	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
 	invalid?: boolean
@@ -131,7 +131,8 @@ export function Textarea({
 	}
 
 	// Under headless context the actions row is not rendered, so it sets no layout.
-	const hasActions = !headless && actions !== undefined
+	// An absent slot (`undefined`, `null`, or `false`) renders no row either.
+	const hasActions = !headless && actions != null && actions !== false
 
 	const textareaEl = (
 		<textarea
