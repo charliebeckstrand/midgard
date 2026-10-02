@@ -1,5 +1,5 @@
 import { Label } from '../../../components/fieldset'
-import { Filters, FiltersField } from '../../../components/filters'
+import { Filters, FiltersField, FiltersSkeleton } from '../../../components/filters'
 import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
 import {
@@ -190,5 +190,13 @@ export const dataComplexCases: readonly Case[] = [
 				</FiltersField>
 			</Filters>
 		),
+		skeleton: [
+			{ element: <FiltersSkeleton />, absentSlot: 'filter-field', placeholders: 3 },
+			{
+				element: <FiltersSkeleton layout="rail" fields={2} />,
+				absentSlot: 'filter-field',
+				placeholders: 2,
+			},
+		],
 	},
 ]

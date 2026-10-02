@@ -28,7 +28,8 @@ Holds the persisted theme and density of an app, and gives the settings button t
 |---|---|
 | `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage`, toggles the root `.dark` class, and writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. |
+| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
+| `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
 | `AppearanceScript` | Inline head script that applies the stored theme and density to the root element before the first paint. It has no `'use client'`, so a server layout can render it. |
 | `useAppearance` | Reads the theme, the density, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |

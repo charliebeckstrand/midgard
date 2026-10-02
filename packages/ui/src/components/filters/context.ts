@@ -2,6 +2,7 @@
 
 import { createContext } from '../../core'
 import type { ResponsiveAlign, ResponsiveDirection } from '../../structure/flex/variants'
+import { filtersAxis } from './filters-axis'
 
 /**
  * How a bar answers a width that cannot hold its fields.
@@ -47,18 +48,5 @@ export function useFiltersAxis(): {
 	direction: ResponsiveDirection
 	align: ResponsiveAlign
 } {
-	const { layout } = useFilters()
-
-	const rail = layout === 'rail'
-
-	return {
-		rail,
-		// One row at every width on a rail, a column on a narrow screen otherwise.
-		direction: rail ? 'row' : ({ initial: 'col', sm: 'row' } as const),
-		// A row lines its fields up on their bottom edges, so a label-less Clear
-		// sits on the controls and not on the middle of a label and its control. A
-		// rail is a row at every width. A stack is a row from the breakpoint where
-		// `direction` turns to a row.
-		align: rail ? 'end' : ({ initial: 'start', sm: 'end' } as const),
-	}
+	return filtersAxis(useFilters().layout)
 }
