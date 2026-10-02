@@ -1,6 +1,7 @@
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/tabs'
+import type { Orientation } from '../../types'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
 
@@ -12,6 +13,11 @@ export type TabListSkeletonProps = {
 	 */
 	tabs?: number
 	/**
+	 * The orientation of the tabs it stands in for.
+	 * @defaultValue 'horizontal'
+	 */
+	orientation?: Orientation
+	/**
 	 * The density step. Omit it to take the step of the nearest density scope,
 	 * as the tabs do. A step makes the silhouette a density scope.
 	 */
@@ -20,20 +26,29 @@ export type TabListSkeletonProps = {
 }
 
 /**
- * Tab-list-shaped placeholder: the horizontal list rail holding `tabs` line
- * placeholders as a row. Keyed off the tab count rather than a size step
+ * Tab-list-shaped placeholder: the list rail of the `orientation`, holding
+ * `tabs` line placeholders. Keyed off the tab count rather than a size step
  * alone; it does not use the size-driven `createSkeleton` factory.
  */
-export function TabListSkeleton({ tabs = 3, size, className }: TabListSkeletonProps) {
+export function TabListSkeleton({
+	tabs = 3,
+	orientation = 'horizontal',
+	size,
+	className,
+}: TabListSkeletonProps) {
 	const tabKeys = rangeKeys(tabs, 'tab')
 
 	return (
 		<div
 			data-density={size}
-			className={cn(k.list({ orientation: 'horizontal' }), k.skeleton.gap, className)}
+			className={cn(
+				k.list({ orientation }),
+				orientation === 'horizontal' && k.skeleton.gap,
+				className,
+			)}
 		>
 			{tabKeys.map((tabKey) => (
-				<Placeholder key={tabKey} className={k.skeleton.tab} />
+				<Placeholder key={tabKey} className={cn(k.skeleton.tab[orientation])} />
 			))}
 		</div>
 	)

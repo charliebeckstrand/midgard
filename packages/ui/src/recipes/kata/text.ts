@@ -41,7 +41,8 @@ export const k = defineRecipe({
 		lg: size.lg,
 	},
 	defaults: { tone: 'default' },
-	skeleton: kokkaku.text,
+	// The base line, plus one line height for each step of `size`.
+	skeleton: { base: kokkaku.text.base, size: kokkaku.text.line },
 })
 
 /** Recipe variant props for {@link Text} — the styling axes its kata exposes (`tone`, `color`, `size`), for consumers composing custom slots. */
