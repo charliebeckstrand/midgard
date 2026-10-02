@@ -5,7 +5,9 @@
  * select a Radio.
  *
  * Each tap writes one block. The block gives each event in order, its target,
- * and whether a script cancelled it. After the click, the block gives each
+ * and whether a script cancelled it. On iOS, a tap that sends `mouseover` and
+ * `mousemove` but no `mousedown` is a tap that the page took as a hover, and a
+ * `transitionrun` line shows a transition that the hover started. After the click, the block gives each
  * radio of the tapped group two times: in the DOM (`checked`) and in the
  * computed style of its dot, after the click and two frames later. A script
  * write to `checked` on a radio also writes a line. Thus the log shows which
@@ -22,6 +24,8 @@ const EVENTS = [
 	'pointerdown',
 	'pointerup',
 	'pointercancel',
+	'mouseover',
+	'mousemove',
 	'mousedown',
 	'mouseup',
 	'click',
@@ -30,6 +34,7 @@ const EVENTS = [
 	'focusin',
 	'contextmenu',
 	'selectstart',
+	'transitionrun',
 ] as const
 
 const lines: string[] = []
@@ -110,7 +115,9 @@ function onEvent(event: Event) {
 
 	const trusted = event.isTrusted ? '' : ' synthetic'
 
-	write(`${event.type} ${describe(event.target)}${where}${trusted}`)
+	const property = event instanceof TransitionEvent ? ` ${event.propertyName}` : ''
+
+	write(`${event.type} ${describe(event.target)}${property}${where}${trusted}`)
 
 	// Listeners on the target run after this capture listener; the check waits for them.
 	setTimeout(() => {
