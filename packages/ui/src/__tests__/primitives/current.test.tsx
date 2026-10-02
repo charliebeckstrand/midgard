@@ -10,7 +10,7 @@ import {
 	useCurrentPanelActive,
 	useCurrentState,
 } from '../../primitives/current'
-import { bySlot, renderUI, screen, setupUser } from '../helpers'
+import { act, bySlot, renderUI, screen, setupUser } from '../helpers'
 
 function ActiveProbe({ id }: { id: string }) {
 	return <span data-testid={id}>{String(useCurrentPanelActive())}</span>
@@ -340,6 +340,36 @@ describe('CurrentContent mount policy', () => {
 		// Visited panels stay mounted as fade-mode hidden panels; only `active`
 		// unmounts after its fade-out.
 		expect(screen.getByText('Content B')).toHaveStyle({ position: 'absolute' })
+	})
+
+	// A panel that stops being current before its first frame never started its
+	// fade, so no fade-out lands to release it.
+	it('mount="always" with fade rests a panel left before its fade starts', () => {
+		renderUI(<Panels mount="always" fade />)
+
+		act(() => {
+			screen.getByText('go-b').click()
+		})
+
+		act(() => {
+			screen.getByText('go-a').click()
+		})
+
+		expect(screen.getByText('Content B')).not.toBeVisible()
+	})
+
+	it('mount="active" with fade unmounts a panel left before its fade starts', () => {
+		renderUI(<Panels mount="active" fade />)
+
+		act(() => {
+			screen.getByText('go-b').click()
+		})
+
+		act(() => {
+			screen.getByText('go-a').click()
+		})
+
+		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
 	})
 
 	it('a non-fading container nested in a fading one keeps its plain rendering', () => {

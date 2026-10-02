@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ComponentProps, useCallback, useState } from 'react'
+import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
 import { MountHold, useMountHold } from '../mount'
@@ -68,6 +68,52 @@ function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
 }
 
 /**
+ * Entrance latch for a fading panel. An entering panel holds its fade until its
+ * first frame has painted. Motion takes the start time of a fade from the task
+ * that creates it. A fade created in the commit of the switch thus counts the
+ * render of the panel as fade time. The first frame then shows the fade
+ * partway, and on iOS Safari the composited fade fell out of step with Motion
+ * and showed a second transition.
+ *
+ * The flip of `current` is read in render (React's adjust-state-during-render
+ * form). A panel that stops being current before its fade starts calls
+ * `release` in that pass.
+ *
+ * @param current - Whether the panel is current.
+ * @param initiallyReady - Whether the panel starts ready. A panel in the first
+ * render of the container starts ready, so nothing fades on load.
+ * @param release - Releases a panel that stops being current before its fade
+ * starts.
+ * @returns Whether the fade of the panel can start.
+ */
+function useEntranceLatch(current: boolean, initiallyReady: boolean, release: () => void): boolean {
+	const [ready, setReady] = useState(initiallyReady)
+
+	const [wasCurrent, setWasCurrent] = useState(current)
+
+	if (wasCurrent !== current) {
+		setWasCurrent(current)
+
+		if (current) setReady(false)
+		else if (!ready) {
+			setReady(true)
+
+			release()
+		}
+	}
+
+	useEffect(() => {
+		if (ready || !current) return
+
+		const id = requestAnimationFrame(() => setReady(true))
+
+		return () => cancelAnimationFrame(id)
+	}, [ready, current])
+
+	return ready
+}
+
+/**
  * Whether a panel counts as current: an unvalued panel renders always, an
  * unvalued context keeps every panel current, and otherwise the values must
  * agree. A `null` context keeps no valued panel current.
@@ -92,7 +138,8 @@ function matchesCurrent(
  * Under a fading container the outgoing panel goes at once, and the incoming
  * panel fades in from the first frame. The lifecycle edges ride that switch:
  *
- * - a panel mounting after the container settles enters from transparent
+ * - a panel mounting after the container settles enters from transparent, and
+ *   its fade starts on the frame after its first paint
  * - an `active`-mounted outgoing panel holds its unmount until the fade-out
  *   completes
  * - a held (`always`/`lazy`) panel rests in `<Activity mode="hidden">` between
@@ -141,6 +188,13 @@ export function CurrentContent({
 	// exactly one of the two applies per mount policy.
 	const [exiting, releaseExit] = useExitHold(current, fade && mount === 'active')
 
+	// A panel that stops being current before its fade starts is still
+	// transparent, so no fade-out lands to release it. The latch releases it.
+	const ready = useEntranceLatch(current, !settled?.current, () => {
+		if (hold.held) hold.rest()
+		else releaseExit()
+	})
+
 	if (!hold.present && !exiting) return null
 
 	if (!fade) {
@@ -162,7 +216,7 @@ export function CurrentContent({
 			{...props}
 			data-slot={slot}
 			data-current={dataAttr(current)}
-			animate={{ opacity: current ? 1 : 0 }}
+			animate={{ opacity: current && ready ? 1 : 0 }}
 			// A panel mounting after the container settles enters from
 			// transparent; panels in the container's first render skip the
 			// entrance so nothing fades on load.
