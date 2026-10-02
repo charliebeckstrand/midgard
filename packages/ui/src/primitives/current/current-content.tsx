@@ -89,9 +89,8 @@ function matchesCurrent(
  * lazily mounts them on first activation, or unmounts them. The resolved
  * `mount` decides.
  *
- * Under a fading container a switch runs in sequence. The outgoing panel fades
- * out first, and the incoming panel fades in after it. The lifecycle edges
- * ride that fade:
+ * Under a fading container the outgoing panel goes at once, and the incoming
+ * panel fades in from the first frame. The lifecycle edges ride that switch:
  *
  * - a panel mounting after the container settles enters from transparent
  * - an `active`-mounted outgoing panel holds its unmount until the fade-out
@@ -168,8 +167,8 @@ export function CurrentContent({
 			// transparent; panels in the container's first render skip the
 			// entrance so nothing fades on load.
 			initial={settled?.current ? { opacity: 0 } : false}
-			// The outgoing panel clears before the incoming panel starts, so the
-			// two panels never show at the same time.
+			// The outgoing panel goes at once, so the two panels never show at
+			// the same time, and the box never shows empty.
 			transition={current ? k.enter : k.exit}
 			// Entrance completions arrive while still current and pass through; a
 			// landed fade-out releases the exit hold (`active`, unmounting) or
