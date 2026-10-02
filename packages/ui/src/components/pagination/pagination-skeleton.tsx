@@ -14,7 +14,8 @@ export type PaginationSkeletonProps = {
 }
 
 /**
- * Pagination-shaped placeholder: a row of page-button squares. Keyed off
+ * Pagination-shaped placeholder: a row of page-button squares between the
+ * squares of the Previous and Next buttons. Keyed off
  * the button count rather than a size step; it does not use the
  * size-driven `createSkeleton` factory.
  */
@@ -23,8 +24,11 @@ export function PaginationSkeleton({ pages = 7, className }: PaginationSkeletonP
 
 	return (
 		<div className={cn(k(), className)}>
-			{pageKeys.map((pageKey) => (
-				<Placeholder key={pageKey} className={cn(k.skeleton.item)} />
+			{pageKeys.map((pageKey, index) => (
+				<Placeholder
+					key={pageKey}
+					className={cn(index === 0 || index === pages - 1 ? k.skeleton.nav : k.skeleton.item)}
+				/>
 			))}
 		</div>
 	)
