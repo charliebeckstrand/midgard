@@ -41,6 +41,18 @@ describe('JsonTree', () => {
 		expect(screen.getByText('1')).toBeInTheDocument()
 	})
 
+	it('escapes quotes and control characters in keys and string values', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ 'say "hi"': 'line one\nline "two"' }} defaultExpandDepth={1} />,
+		)
+
+		const leaf = container.querySelector('[role="treeitem"][aria-level="2"]')
+
+		expect(leaf).toHaveTextContent('"say \\"hi\\"":"line one\\nline \\"two\\""', {
+			normalizeWhitespace: false,
+		})
+	})
+
 	it('toggles a branch open and closed on click', () => {
 		renderUI(<JsonTree data={{ nested: { value: 1 } }} defaultExpandDepth={1} />)
 

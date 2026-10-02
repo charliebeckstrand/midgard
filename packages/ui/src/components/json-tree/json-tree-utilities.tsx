@@ -308,7 +308,12 @@ export function flattenTree({
 	return out
 }
 
-/** Renders a node's key prefix — a numeric array index or a quoted object key — followed by the `:` separator; nothing for the root (`keyName == null`). @internal */
+/**
+ * Renders a node's key prefix — a numeric array index or a quoted object key — followed by the `:` separator; nothing for the root (`keyName == null`).
+ * An object key is a JSON string literal, so a quote or a newline in the key shows as an escape.
+ *
+ * @internal
+ */
 export function NodeKey({ keyName }: { keyName?: string | number }) {
 	if (keyName == null) return null
 
@@ -323,17 +328,22 @@ export function NodeKey({ keyName }: { keyName?: string | number }) {
 
 	return (
 		<>
-			<span className={cn(k.key)}>{`"${keyName}"`}</span>
+			<span className={cn(k.key)}>{JSON.stringify(keyName)}</span>
 			<span className={cn(k.punctuation)}>:</span>
 		</>
 	)
 }
 
-/** Renders a scalar {@link JsonValue} in its type color, quoting strings and printing `null` literally. @internal */
+/**
+ * Renders a scalar {@link JsonValue} in its type color, quoting strings and printing `null` literally.
+ * A string shows as a JSON string literal, so a quote or a newline in it shows as an escape.
+ *
+ * @internal
+ */
 export function PrimitiveValue({ value }: { value: JsonValue }) {
 	const type = valueType(value)
 
-	const display = value === null ? 'null' : type === 'string' ? `"${value}"` : String(value)
+	const display = type === 'string' ? JSON.stringify(value) : String(value)
 
 	return <span className={cn(k.valueColor[type])}>{display}</span>
 }
