@@ -19,6 +19,7 @@ import { demoApiOf } from './demo-api'
 const loaders = import.meta.glob<ComponentType>(
 	[
 		'../../docs/demos/components/*.tsx',
+		'../../docs/demos/primitives/*.tsx',
 		'../../docs/demos/providers/*.tsx',
 		'../../docs/demos/modules/*.tsx',
 		'../../docs/demos/modules/*/index.tsx',

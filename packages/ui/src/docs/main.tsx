@@ -9,6 +9,7 @@ mount(
 	import.meta.glob<import('react').ComponentType>(
 		[
 			'./demos/components/*.tsx',
+			'./demos/primitives/*.tsx',
 			'./demos/providers/*.tsx',
 			'./demos/modules/*.tsx',
 			'./demos/modules/*/index.tsx',
