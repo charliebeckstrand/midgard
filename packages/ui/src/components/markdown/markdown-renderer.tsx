@@ -1,4 +1,5 @@
 import type { ClassValue } from 'clsx'
+import { decodeHTMLStrict } from 'entities/decode'
 import type { Token, Tokens } from 'marked'
 import { Fragment, type ReactNode } from 'react'
 import type { BundledLanguage } from 'shiki'
@@ -60,6 +61,12 @@ function safeUrl(url: string, allowData = false): string | undefined {
  * is built only from elements this renderer controls, so source markup never
  * reaches the DOM.
  *
+ * marked keeps entity references such as `&amp;` as source text. The renderer
+ * decodes them in text, image `alt`, and titles, as CommonMark specifies. The
+ * decoded text goes into React text nodes and attributes, so a decoded `<`
+ * shows as a character and is never markup. Code spans and code blocks keep
+ * their references literal.
+ *
  * @param tokens - Token list from `marked`'s block lexer or inline lexer.
  */
 export function MarkdownRenderer({ tokens }: { tokens: Token[] }) {
@@ -93,7 +100,7 @@ function renderToken(token: Token, index: number): ReactNode {
 			return token.tokens ? (
 				<Fragment key={index}>{renderChildren(token.tokens)}</Fragment>
 			) : (
-				token.text
+				decodeHTMLStrict(token.text)
 			)
 		case 'strong':
 			return (
@@ -118,7 +125,7 @@ function renderToken(token: Token, index: number): ReactNode {
 				<a
 					key={index}
 					href={safeUrl(token.href)}
-					title={token.title ?? undefined}
+					title={decodeTitle(token.title)}
 					className={cn(k.link)}
 				>
 					{renderChildren(token.tokens)}
@@ -129,8 +136,8 @@ function renderToken(token: Token, index: number): ReactNode {
 				<img
 					key={index}
 					src={safeUrl(token.href, true)}
-					alt={token.text}
-					title={token.title ?? undefined}
+					alt={decodeHTMLStrict(token.text)}
+					title={decodeTitle(token.title)}
 					className={cn(k.img)}
 				/>
 			)
@@ -173,6 +180,15 @@ function renderToken(token: Token, index: number): ReactNode {
 		default:
 			return null
 	}
+}
+
+/**
+ * The text of a link or image title, with its entity references decoded.
+ *
+ * @internal
+ */
+function decodeTitle(title: string | null | undefined): string | undefined {
+	return title ? decodeHTMLStrict(title) : undefined
 }
 
 function renderList(token: Tokens.List, key: number): ReactNode {

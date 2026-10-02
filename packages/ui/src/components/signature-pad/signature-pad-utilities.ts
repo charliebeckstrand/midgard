@@ -25,9 +25,10 @@ export function getCanvasPoint(
  * @remarks
  * Decodes via an `Image`, so the draw lands asynchronously on `onload` — the
  * canvas is unchanged until then. Sizes the draw to the CSS box; the context is
- * assumed already scaled to devicePixelRatio by the sizing hook.
+ * assumed already scaled to devicePixelRatio by the sizing hook. `onDraw` runs
+ * after the draw.
  */
-export function drawSnapshot(canvas: HTMLCanvasElement, src: string) {
+export function drawSnapshot(canvas: HTMLCanvasElement, src: string, onDraw?: () => void) {
 	const context = canvas.getContext('2d')
 
 	if (!context) return
@@ -36,9 +37,56 @@ export function drawSnapshot(canvas: HTMLCanvasElement, src: string) {
 
 	const img = new Image()
 
-	img.onload = () => context.drawImage(img, 0, 0, width, height)
+	img.onload = () => {
+		context.drawImage(img, 0, 0, width, height)
+
+		onDraw?.()
+	}
 
 	img.src = src
+}
+
+/**
+ * A copy of the drawing on a canvas, with the CSS size that the drawing had.
+ *
+ * @internal
+ */
+export type DrawingCopy = {
+	/** A detached canvas that holds the pixels of the drawing. */
+	canvas: HTMLCanvasElement
+	/** The CSS width of the drawing. */
+	width: number
+	/** The CSS height of the drawing. */
+	height: number
+}
+
+/**
+ * Copies the pixels of a canvas to a detached canvas, with the CSS size of the
+ * canvas.
+ *
+ * @internal
+ * @remarks
+ * The copy is synchronous, so a resize can clear the backing store and paint
+ * the drawing back in the same task. A data URL decodes asynchronously, and a
+ * second resize before the decode would copy a blank canvas.
+ *
+ * @returns The copy, or `null` when no 2D context is available.
+ */
+export function copyDrawing(canvas: HTMLCanvasElement): DrawingCopy | null {
+	const copy = document.createElement('canvas')
+
+	copy.width = canvas.width
+	copy.height = canvas.height
+
+	const context = copy.getContext('2d')
+
+	if (!context) return null
+
+	context.drawImage(canvas, 0, 0)
+
+	const { width, height } = canvas.getBoundingClientRect()
+
+	return { canvas: copy, width, height }
 }
 
 /**

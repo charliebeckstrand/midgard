@@ -83,9 +83,16 @@ export function formatCardNumber(raw: string): {
 	return { formatted, digits, brand }
 }
 
-/** Strips a raw string to at most four digits and masks them into "MM/YY", inserting the slash after the month. */
+/** A one-digit month, 1 to 9, at the start of an entry, when a separator follows it. */
+const ONE_DIGIT_MONTH = /^\D*([1-9])(?=\D)/
+
+/**
+ * Strips a raw string to at most four digits and masks them into "MM/YY",
+ * inserting the slash after the month. A one-digit month that a typed
+ * separator follows gets a leading zero, so `4/27` masks to `04/27`.
+ */
 export function formatExpiry(raw: string): string {
-	const d = digitsOnly(raw).slice(0, 4)
+	const d = digitsOnly(raw.replace(ONE_DIGIT_MONTH, '0$1')).slice(0, 4)
 
 	if (d.length < 2) return d
 

@@ -47,10 +47,15 @@ export const k = defineRecipe(
 			 * its with-status wrapper, so the ring follows the round box.
 			 */
 			ring: '**:data-[slot=avatar]:ring-2 **:data-[slot=avatar]:ring-white dark:**:data-[slot=avatar]:ring-zinc-900',
+			/**
+			 * Overlap of each avatar onto the one before it. The overlap and the
+			 * ring together stay narrower than the space at the side of two
+			 * initials, so the next avatar does not cover the initials.
+			 */
 			spacing: {
-				sm: '-space-x-1.5',
-				md: '-space-x-2',
-				lg: '-space-x-2.5',
+				sm: '-space-x-0.5',
+				md: '-space-x-1',
+				lg: '-space-x-1',
 			},
 			/**
 			 * Child-avatar size projection. Avatar is a static leaf carrying its

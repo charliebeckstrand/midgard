@@ -102,6 +102,24 @@ describe('formatExpiry', () => {
 	it('strips non-digit characters', () => {
 		expect(formatExpiry('12/26')).toBe('12/26')
 	})
+
+	it('pads a one-digit month that a typed separator follows', () => {
+		expect(formatExpiry('4/')).toBe('04/')
+
+		expect(formatExpiry('4/2')).toBe('04/2')
+
+		expect(formatExpiry('4/27')).toBe('04/27')
+
+		expect(formatExpiry('1 26')).toBe('01/26')
+	})
+
+	it('does not pad a zero month or a two-digit month', () => {
+		expect(formatExpiry('0/')).toBe('0')
+
+		expect(formatExpiry('04/')).toBe('04/')
+
+		expect(formatExpiry('12/')).toBe('12/')
+	})
 })
 
 describe('formatCvv', () => {

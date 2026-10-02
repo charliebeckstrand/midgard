@@ -122,10 +122,12 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
  * the dnd-kit drag handlers.
  *
  * @remarks
- * Drag-end reads the column the drag started in, not the current `columns`.
- * The consumer has already re-rendered with the drag-over move by then, so
- * `columns` cannot identify a cross-column drop. A cancel after a cross-column
- * move reports the columns from the drag start, so the card goes back.
+ * A cross-column drag reports the move into the new column on drag-over. The
+ * drop then commits the slot that the preview shows, which is the slot of the
+ * card under the pointer, in the same way as a same-column drop. A drop at the
+ * slot where the card came into the column reports nothing more. A cancel after
+ * a cross-column move reports the columns from the drag start, so the card goes
+ * back.
  */
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
@@ -177,9 +179,6 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		[columns, findColumnByCardId],
 	)
 
-	// The column the drag started in; only the drag handlers read it.
-	const originColumnId = useRef<string | null>(null)
-
 	// The columns at the drag start. A cancel reports them again after a
 	// cross-column move. `null` when no move occurred.
 	const originColumns = useRef<C[] | null>(null)
@@ -188,8 +187,6 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	const handleDragStart = (event: DragStartEvent) => {
 		const cardId = String(event.active.id)
-
-		originColumnId.current = findColumnByCardId(cardId)?.id ?? null
 
 		startColumns.current = columns
 
@@ -229,9 +226,10 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		if (!activeCol || !overCol) return
 
-		// A drag end with no drag start records no origin — dnd-kit does not send
-		// one — so fall back to the current column.
-		if ((originColumnId.current ?? activeCol.id) !== overCol.id) return
+		// The card is in the column under the pointer by now: drag-over moved it
+		// there on a cross-column drag. The preview shows the card at the slot of
+		// the card under the pointer, so the drop commits that slot.
+		if (activeCol.id !== overCol.id) return
 
 		const oldIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
 

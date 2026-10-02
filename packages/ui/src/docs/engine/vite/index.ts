@@ -107,6 +107,7 @@ export function defineDocsConfig({
 				'@internationalized/date',
 				'card-validator',
 				'd3-geo',
+				'entities/decode',
 				'fflate',
 				'marked',
 				'tinykeys',

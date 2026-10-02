@@ -144,6 +144,39 @@ describe('Markdown', () => {
 		expect(bySlot(container, 'markdown')?.querySelector('a')).not.toHaveAttribute('href')
 	})
 
+	it('decodes entity references in text, image alt, and titles', () => {
+		const md =
+			'AT&amp;T &copy; &#8212; &#x41; &unknown; [l](/a "x &amp; y") ![a &lt; b](/i.png "&quot;t&quot;")'
+
+		const { container } = renderUI(<Markdown>{md}</Markdown>)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.querySelector('p')?.textContent).toContain('AT&T © — A &unknown;')
+
+		expect(el?.querySelector('a')).toHaveAttribute('title', 'x & y')
+
+		expect(el?.querySelector('img')).toHaveAttribute('alt', 'a < b')
+
+		expect(el?.querySelector('img')).toHaveAttribute('title', '"t"')
+	})
+
+	it('renders a decoded tag as text, never as markup', () => {
+		const { container } = renderUI(<Markdown>{'&lt;script&gt;alert(1)&lt;/script&gt;'}</Markdown>)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.querySelector('script')).toBeNull()
+
+		expect(el?.textContent).toBe('<script>alert(1)</script>')
+	})
+
+	it('keeps entity references literal in code', () => {
+		const { container } = renderUI(<Markdown>{'`&amp;`'}</Markdown>)
+
+		expect(bySlot(container, 'code')).toHaveTextContent('&amp;')
+	})
+
 	it('renders inline code through the Code component', () => {
 		const { container } = renderUI(<Markdown>{'Some `code`.'}</Markdown>)
 

@@ -129,6 +129,7 @@
 		"card-validator": "^10.0.4",
 		"clsx": "^2.0.0",
 		"d3-geo": "catalog:",
+		"entities": "^8.0.0",
 		"fflate": "^0.8.3",
 		"lucide-react": "catalog:",
 		"marked": "^18.0.5",

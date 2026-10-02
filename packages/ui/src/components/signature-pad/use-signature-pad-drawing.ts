@@ -21,6 +21,8 @@ type SignatureDrawingOptions = {
 	lastEmittedRef: RefObject<string | null>
 	setCurrent: (value: string | null) => void
 	onDrawStart?: () => void
+	/** Runs after each mark that a stroke paints. */
+	onInk?: () => void
 }
 
 /**
@@ -29,8 +31,8 @@ type SignatureDrawingOptions = {
  *
  * @internal
  * @param options - The `canvasRef`, stroke styling, the `disabled`/`readOnly`
- * flags, the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks, and
- * the `onDrawStart` report.
+ * flags, the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks, the
+ * `onDrawStart` report, and the `onInk` report of each mark.
  * @returns The `handlePointerDown`, `handlePointerMove`, and `commit` handlers
  * to wire onto the `<canvas>`.
  * @remarks
@@ -51,6 +53,7 @@ export function useSignaturePadDrawing({
 	lastEmittedRef,
 	setCurrent,
 	onDrawStart,
+	onInk,
 }: SignatureDrawingOptions) {
 	const drawingRef = useRef(false)
 
@@ -102,6 +105,8 @@ export function useSignaturePadDrawing({
 
 		context.fill()
 
+		onInk?.()
+
 		// A tap (pointerdown→up with no move) draws this dot; flipping `empty`
 		// here (not only in the move handler) keeps the placeholder hidden and
 		// the dot preserved on resize.
@@ -127,6 +132,8 @@ export function useSignaturePadDrawing({
 		context.lineTo(point.x, point.y)
 
 		context.stroke()
+
+		onInk?.()
 
 		lastPointRef.current = point
 
