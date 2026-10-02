@@ -25,10 +25,11 @@ export type PopoverTriggerProps = {
  * Disclosure trigger for {@link Popover}. Clones a single child element to
  * adopt the floating reference ref and toggle interactions, or renders its own
  * `<button>` otherwise, stamping `aria-haspopup="dialog"`, `aria-expanded`, and
- * `aria-controls`. Clicks within a `[data-popover-ignore]` subtree are ignored.
+ * `aria-controls`. A {@link PopoverContent} with no accessible name is not a
+ * dialog, so the trigger then omits `aria-haspopup`. Clicks within a `[data-popover-ignore]` subtree are ignored.
  */
 export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
-	const { open, panelId, triggerRef, setReference, getReferenceProps } = usePopoverContext()
+	const { open, panelId, dialog, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
 	const child = isValidElement(children)
 		? (children as ReactElement<
@@ -86,7 +87,7 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 				{...child.props}
 				{...(referenceProps as HTMLAttributes<HTMLElement>)}
 				ref={mergeRefs}
-				aria-haspopup="dialog"
+				aria-haspopup={dialog ? 'dialog' : undefined}
 				aria-expanded={open}
 				aria-controls={open ? panelId : undefined}
 				data-slot="popover-trigger"
@@ -102,7 +103,7 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 			{...referenceProps}
 			ref={mergeRefs}
 			type="button"
-			aria-haspopup="dialog"
+			aria-haspopup={dialog ? 'dialog' : undefined}
 			aria-expanded={open}
 			aria-controls={open ? panelId : undefined}
 			data-slot="popover-trigger"

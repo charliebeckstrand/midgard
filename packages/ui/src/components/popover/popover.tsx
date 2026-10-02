@@ -1,7 +1,7 @@
 'use client'
 
 import { type Placement, useClick, useInteractions } from '@floating-ui/react'
-import { type ReactNode, useEffect, useId, useMemo } from 'react'
+import { type ReactNode, useEffect, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { useFloatingDisclosure } from '../../hooks'
 import { notifyOverlaySignal } from '../../primitives/overlay'
@@ -16,6 +16,10 @@ export type PopoverProps = {
 	/** Initial open state when uncontrolled. */
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Classes for the root. The root is `display: contents`, so it adds no box to the layout, and a
+	 * box utility has no effect on it. A display class, such as `block`, replaces `contents`.
+	 */
 	className?: string
 	children: ReactNode
 }
@@ -42,6 +46,9 @@ export function Popover({
 	// wrapper. `panelId` wires the trigger's `aria-controls` to the real panel.
 	const panelId = useId()
 
+	// The panel reports its role, because only a named panel is a dialog.
+	const [dialog, setDialog] = useState(true)
+
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
 		useFloatingDisclosure({
 			open: openProp,
@@ -64,6 +71,8 @@ export function Popover({
 		() => ({
 			open,
 			panelId,
+			dialog,
+			setDialog,
 			setOpen,
 			close,
 			triggerRef,
@@ -75,6 +84,7 @@ export function Popover({
 		[
 			open,
 			panelId,
+			dialog,
 			setOpen,
 			close,
 			triggerRef,
@@ -95,7 +105,9 @@ export function Popover({
 	return (
 		<PopoverContext value={contextValue}>
 			<PopoverPositionContext value={position}>
-				<div data-slot="popover" className={cn(className)}>
+				{/* contents: the root only holds the context. A box here takes the place of the
+				    trigger in the layout of its parent, and breaks a run of text in two. */}
+				<div data-slot="popover" className={cn('contents', className)}>
 					{children}
 				</div>
 			</PopoverPositionContext>
