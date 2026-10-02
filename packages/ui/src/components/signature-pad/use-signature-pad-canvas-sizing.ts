@@ -74,11 +74,7 @@ export function useSignaturePadCanvasSizing({
 		const dpr = window.devicePixelRatio || 1
 
 		// Copy before the canvas takes the new size, which clears it.
-		if (empty) {
-			source.current = null
-		} else {
-			source.current ??= copyDrawing(canvas)
-		}
+		source.current = empty ? null : (source.current ?? copyDrawing(canvas))
 
 		canvas.width = Math.round(width * dpr)
 		canvas.height = Math.round(height * dpr)
