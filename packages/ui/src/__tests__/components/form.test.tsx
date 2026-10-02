@@ -19,6 +19,7 @@ import {
 	makeFocusEvent,
 	renderUI,
 	screen,
+	setupUser,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { makeFormWrapper } from '../helpers/form-wrapper'
@@ -931,5 +932,47 @@ describe('Form onInvalidSubmit', () => {
 		await submit(container)
 
 		expect(onInvalidSubmit).not.toHaveBeenCalled()
+	})
+})
+
+describe('Form native validation', () => {
+	// A native constraint (`type="url"`, `required`) would stop the submit in the
+	// browser before the validators run, so only one field shows its error, and
+	// the browser bubble takes the place of the app message.
+	it('runs the validators on a value that a native constraint refuses', async () => {
+		const user = setupUser()
+
+		const onInvalidSubmit = vi.fn()
+
+		renderUI(
+			<Form
+				defaultValues={{ url: 'foo', name: '' }}
+				validate={{
+					url: () => 'That is not a web address.',
+					name: (value) => (value ? undefined : 'required'),
+				}}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<input type="url" defaultValue="foo" aria-label="Website" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({
+			url: ['That is not a web address.'],
+			name: ['required'],
+		})
+	})
+
+	it('lets the consumer turn native validation back on', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{}} noValidate={false}>
+				<span />
+			</Form>,
+		)
+
+		expect(getSlot<HTMLFormElement>(container, 'form').noValidate).toBe(false)
 	})
 })
