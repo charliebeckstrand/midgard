@@ -61,9 +61,10 @@ export type CodeBlockProps = {
  * keyed by theme, language, and code, so repeat snippets paint synchronously.
  * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`), so a block
  * that fits adds no tab stop. The scroll container is a tab stop only while a
- * line overflows it ({@link useScrollRegion}). Markup paints only for the code that it
- * tokenized. While `code` streams, one tokenization runs at a time and the next
- * one takes the newest code.
+ * line overflows it ({@link useScrollRegion}). The code is always left to right,
+ * also under an RTL ancestor. Markup paints only for the current code. While
+ * `code` streams, one tokenization runs at a time and the next one takes the
+ * newest code.
  */
 export function CodeBlock({
 	code: rawCode,
@@ -100,8 +101,14 @@ export function CodeBlock({
 		const run = () => {
 			const job = latest.current
 
-			if (htmlCache.has(job.key)) {
+			const cached = htmlCache.get(job.key)
+
+			// Another block can cache the newest code while this pass runs. No render
+			// reads that entry, so paint it here.
+			if (cached !== undefined) {
 				running.current = false
+
+				setResult({ key: job.key, html: cached })
 
 				return
 			}
@@ -146,7 +153,8 @@ export function CodeBlock({
 
 	return (
 		<div data-slot="code-block" className={cn(k.wrapper, className)}>
-			<div ref={scrollRegionRef} className={cn(k.block.content)}>
+			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
+			<div ref={scrollRegionRef} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
 					<div
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
