@@ -57,7 +57,9 @@ picker of the playground offers the same values.
 
 The read takes the DOM and no layout, so a test run gives the same answer as
 the browser. A text difference does not count, because the content can show
-the label. The step that an instance shows does not count, so a Calendar at
+the label. An inline `style` does not count either, because it carries the
+state of the run, such as a fill that springs to its value. The step that an
+instance shows does not count, so a Calendar at
 `xs`, which opens a scope at `sm`, matches the Calendar at `sm`. A value stays
 when no element of its instance opens a density scope, for example a panel in a
 portal.

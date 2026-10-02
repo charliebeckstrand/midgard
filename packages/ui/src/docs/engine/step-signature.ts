@@ -145,15 +145,23 @@ function classAt(name: string, element: Element, index: number, steps: readonly 
 }
 
 /**
- * Write the attributes of an element, except `class`, and `data-density` when
- * it holds a step or a slot. A `useId` value and the label of the instance
- * read the same in each instance, because each instance gets its own.
+ * Write the attributes of an element, except `class`, `style`, and
+ * `data-density` when it holds a step or a slot. A `useId` value and the label
+ * of the instance read the same in each instance, because each instance gets
+ * its own.
+ *
+ * @remarks
+ * Tailwind classes carry each style that a prop sets. An inline `style`
+ * carries the state of the run, such as a fill that springs to its value. A
+ * read after a picker change compares an instance that mounts now with an
+ * instance that settled before, so their inline styles differ for no change in
+ * the props.
  */
 function attributesOf(element: Element, label: string): string[] {
 	const out: string[] = []
 
 	for (const { name, value } of element.attributes) {
-		if (name === 'class') continue
+		if (name === 'class' || name === 'style') continue
 
 		if (name === 'data-density' && (value === 'slot' || isDensityStep(value))) continue
 

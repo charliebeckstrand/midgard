@@ -182,3 +182,22 @@ describe('formSignature', () => {
 		expect(formSignature(wrap('<span class="a" data-x="1">two</span>'), 'L')).not.toBe(base)
 	})
 })
+
+describe('signatures and inline style', () => {
+	it('ignore an inline style, which carries the state of a run such as a spring', () => {
+		const at = (style: string) =>
+			instance(`<div data-density="{step}" class="density-h-[2,3,4]" style="${style}"></div>`, 'xs')
+
+		expect(stepSignature(at('width: 0%'), 'A')).toBe(stepSignature(at('width: 60%'), 'A'))
+
+		const plain = (style: string) => {
+			const wrapper = document.createElement('div')
+
+			wrapper.innerHTML = `<span class="a" style="${style}"></span>`
+
+			return wrapper
+		}
+
+		expect(formSignature(plain('width: 0%'), 'L')).toBe(formSignature(plain('width: 60%'), 'L'))
+	})
+})
