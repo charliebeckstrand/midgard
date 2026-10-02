@@ -1,13 +1,12 @@
 'use client'
 
-import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
 import { SidebarLayout } from '../../layouts'
 import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
-import { DebugActions, DebugSettings } from './debug'
 import { DemoPage } from './demo-page'
 import { useHash } from './hooks/use-hash'
 import { demos, retryDemo } from './registry'
@@ -23,6 +22,16 @@ const WARM_SNIPPETS = [
 	`// Reset on click.\n<Button color="blue" size={2} disabled={!value} onClick={() => setValue(null)}>\n\t{value ?? label}\n</Button>`,
 	`<>\n\t<Select options={options} value={value} onChange={(next) => setValue(next)} />\n</>`,
 ]
+
+// The debug tools are separate chunks, so the entry chunk does not carry them.
+// The Debug section of the settings loads when the dialog first opens.
+const DebugActions = lazy(() =>
+	import('./debug/debug-actions').then(({ DebugActions }) => ({ default: DebugActions })),
+)
+
+const DebugSettings = lazy(() =>
+	import('./debug/debug-settings').then(({ DebugSettings }) => ({ default: DebugSettings })),
+)
 
 /**
  * Root of the docs site: a sidebar layout whose body is the hash-routed demo,
@@ -102,9 +111,13 @@ export function App() {
 				floating={!locked}
 				actions={
 					<>
-						<DebugActions />
+						<Suspense fallback={null}>
+							<DebugActions />
+						</Suspense>
 						<AppearanceSettings>
-							<DebugSettings />
+							<Suspense fallback={null}>
+								<DebugSettings />
+							</Suspense>
 						</AppearanceSettings>
 					</>
 				}
