@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import type { GroupOrientation } from '../../recipes'
 import { k } from '../../recipes/kata/group'
 import { Box } from '../../structure/box'
@@ -15,7 +15,7 @@ type GroupBaseProps = {
 	 * The density step of the children. Omit it to take the step of the nearest
 	 * density scope. A step makes the group a density scope.
 	 */
-	size?: DensityStep
+	size?: ControlStep
 	className?: string
 	children?: ReactNode
 }

@@ -1,6 +1,6 @@
 import type { UserEvent } from '@testing-library/user-event'
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
-import type { DensityStep } from '../../../core/density'
+import type { InnerStep } from '../../../core/density'
 
 /**
  * A subject of the pass-through sweep: a render that takes the props the sweep
@@ -39,8 +39,11 @@ export type LinkSubject = {
  * `size` makes the subject a scope of its own.
  */
 export type DensitySubject = {
-	/** Renders the subject, with `size` as its explicit prop when the sweep passes one. */
-	render: (size?: DensityStep) => ReactElement
+	/**
+	 * Renders the subject, with `size` as its explicit prop when the sweep
+	 * passes one. The sweep passes an inner step, so a control fits too.
+	 */
+	render: (size?: InnerStep) => ReactElement
 	/** The `data-slot` whose step the sweep reads. */
 	slot: string
 }

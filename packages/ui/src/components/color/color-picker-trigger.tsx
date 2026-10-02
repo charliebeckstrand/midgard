@@ -2,7 +2,7 @@
 
 import type { RefCallback } from 'react'
 import { cn, dataAttr, type ValidationAttrs } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
@@ -26,7 +26,7 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	 * The density step of `<ColorPicker>`. Omit it to take the step of the
 	 * nearest density scope. A step makes the trigger a density scope.
 	 */
-	size?: DensityStep
+	size?: ControlStep
 	disabled?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
 	validation?: ValidationAttrs

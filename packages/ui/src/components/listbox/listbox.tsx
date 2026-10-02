@@ -10,7 +10,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
@@ -39,7 +39,7 @@ type ListboxBaseProps = GroupStampProps & {
 	placement?: FloatingPlacement
 	prefix?: ReactNode
 	suffix?: ReactNode
-	size?: DensityStep
+	size?: ControlStep
 	disabled?: boolean
 	/**
 	 * Keeps the trigger focusable and the value submitted, but blocks opening and
