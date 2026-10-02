@@ -42,6 +42,8 @@ Context composition is for client components; static-tier components style desce
 
 A skeleton variant is a static leaf ([`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) §2). It reads no context, and it mirrors the explicit props of the real component. It adds no `data-slot` of its own; `placeholder` is the family anchor. Fixed silhouette dimensions live in the `kokkaku` layer (`recipes/kiso/kokkaku/<name>.ts`), and the kata wires them in as `skeleton:`. Inline display leaves and data-heavy compositions have no skeleton; `table` ships `TableLoading` instead. The skeleton sweep in `sweeps/capabilities.test.tsx` holds each variant to its silhouette.
 
+A skeleton is `aria-hidden`, so the container that swaps it owns the loading signal. `ReadyReveal` sets `aria-busy` on its root while it is not ready, and its `loadingLabel` prop adds a polite live region. `TableLoading` sets `aria-busy` on its body. A Suspense fallback or a `loading.tsx` outside a `ReadyReveal` must set `aria-busy` on a region of its own.
+
 3.8 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) §2). `static-component-boundary.test.ts` gates the static tier.
 
 3.9 Spread order decides what a consumer can override. The load-bearing structural attributes come after `{...props}`: `role`, `tabIndex`, `type`, widget ARIA state, and the resolved wiring of the §7.2 cascade. Then a stray prop cannot drop a row out of roving, turn a button into a form submit, or clobber a bound field. `switch.tsx` is the example for the cascade. Presentational attributes stay open to override, and `className` merges through `cn`.

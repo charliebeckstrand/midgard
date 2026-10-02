@@ -1,13 +1,8 @@
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/stat'
-import { Placeholder } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link StatLabelSkeleton}: an optional `className`. */
-export type StatLabelSkeletonProps = {
-	className?: string
-}
+export type StatLabelSkeletonProps = SkeletonProps
 
 /** Label-shaped placeholder. */
-export function StatLabelSkeleton({ className }: StatLabelSkeletonProps) {
-	return <Placeholder className={cn(k.skeleton.label, className)} />
-}
+export const StatLabelSkeleton = createSkeleton(k.skeleton.label, 'StatLabelSkeleton')

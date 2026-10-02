@@ -36,11 +36,14 @@ const severityIconMap = {
 	error: <XCircle />,
 } satisfies Record<AlertSeverity, ReactElement>
 
+/** Whether `children` holds body content. `undefined`, `null`, and `false` are empty. @internal */
+function hasBody(children: ReactNode): boolean {
+	return children != null && children !== false
+}
+
 /** Wraps loose children in {@link AlertBody}; renders nothing for an empty child. @internal */
 function renderChildren(children: ReactNode): ReactNode {
-	if (children === undefined || children === null || children === false) return null
-
-	return <AlertBody>{children}</AlertBody>
+	return hasBody(children) ? <AlertBody>{children}</AlertBody> : null
 }
 
 /** Props for {@link Alert}; merges recipe variants with severity, content slots, and controlled/uncontrolled open state. */
@@ -162,6 +165,9 @@ function AlertContent({
  * by sniffing each child's `displayName`. That is the cost the second channel
  * carried, and it is gone with the slots.
  *
+ * The padding, the text, the title, and the icon take the step of the nearest
+ * density scope. At `md` the alert is `p-4` with a `text-lg` title.
+ *
  * Client component. Polite severities (`info`/`success`, `role="status"`) are
  * re-announced through the persistent announcer on appear. Screen readers can
  * miss a live region inserted together with its text (WCAG 4.1.3).
@@ -237,6 +243,10 @@ export function Alert({
 		Boolean(title),
 	)
 
+	// A title over more rows holds the close button on the title row. A lone
+	// row centers it, so the button keeps the height of the alert.
+	const multiRow = Boolean(title && (description || actions || hasBody(children)))
+
 	return (
 		<div
 			ref={alertRef}
@@ -263,23 +273,24 @@ export function Alert({
 			</AlertContent>
 
 			{closable && (
-				<Button
-					type="button"
-					variant="plain"
-					color={variant === 'solid' ? 'inherit' : resolvedColor}
-					aria-label="Dismiss"
-					className={cn(k.close, 'self-center')}
-					onClick={() => {
-						setOpen(false)
+				<div className={cn(k.close, multiRow ? k.closeTitleRow : 'self-center')}>
+					<Button
+						type="button"
+						variant="plain"
+						color={variant === 'solid' ? 'inherit' : resolvedColor}
+						aria-label="Dismiss"
+						onClick={() => {
+							setOpen(false)
 
-						if (controlledWithoutHandler) setLocallyDismissed(true)
+							if (controlledWithoutHandler) setLocallyDismissed(true)
 
-						// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
-						returnFocusTo?.current?.focus()
-					}}
-				>
-					<Icon icon={<X />} />
-				</Button>
+							// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
+							returnFocusTo?.current?.focus()
+						}}
+					>
+						<Icon icon={<X />} />
+					</Button>
+				</div>
 			)}
 		</div>
 	)

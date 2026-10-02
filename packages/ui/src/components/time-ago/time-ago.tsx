@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { useLocale } from '../../providers/locale'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
 /** Props for {@link TimeAgo}: the `date` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
@@ -9,7 +10,12 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
 	date: Date | string | number
 	/** Override the default `Intl.RelativeTimeFormat` output. */
 	format?: (diffMs: number, now: Date, then: Date) => string
-	/** Locale for the default formatter. */
+	/**
+	 * Locale for the default formatter. Resolution order: explicit prop, then
+	 * enclosing `LocaleProvider`, then the runtime default.
+	 *
+	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
+	 */
 	locale?: string
 	/** Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages. */
 	interval?: number | 'auto'
@@ -35,7 +41,14 @@ export function TimeAgo({
 	className,
 	...props
 }: TimeAgoProps) {
-	const { then, valid, text } = useTimeAgoRelativeTime({ date, format, locale, interval })
+	const ambient = useLocale()
+
+	const { then, valid, text } = useTimeAgoRelativeTime({
+		date,
+		format,
+		locale: locale ?? ambient.locale,
+		interval,
+	})
 
 	// An invalid date has no machine-readable timestamp; renders a plain <span>
 	// rather than an empty <time> with no dateTime.

@@ -30,7 +30,6 @@ const INERT: Record<string, string> = {
 	'kbd:k':
 		'A key keeps the mark size that the caller gives it. A host, such as Button, projects one.',
 	'stat:k.value': 'A figure takes its size from the layout of the dashboard, not from density.',
-	'stat:k.skeleton.value': 'The silhouette of a figure has the axis of the figure.',
 	'swatch:k': 'A chart gives each legend dot one size, not a density step.',
 	'text:k': 'Text keeps the size around it. Its `size` sets the type scale explicitly.',
 }

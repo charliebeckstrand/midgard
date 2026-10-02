@@ -3,6 +3,7 @@
 import { memo, useCallback } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
+import { formatInteger } from '../../utilities'
 import { Button, type ButtonVariants } from '../button'
 import { formatDayName } from './calendar-utilities'
 
@@ -18,7 +19,7 @@ type DayCellProps = {
 	/** Stamped on the active cell only, so a parent's `aria-activedescendant` can reference the roved day. */
 	id?: string
 	gridColumnStart?: number
-	/** Resolved BCP 47 tag; the day's accessible name uses the same locale as the visible grid. */
+	/** Resolved BCP 47 tag; the day number and the accessible name of the day use the same locale as the visible grid. */
 	localeTag: string
 	onSelect: (date: Date) => void
 	onMouseEnter?: () => void
@@ -73,7 +74,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 				className,
 			)}
 		>
-			{date.getDate()}
+			{formatInteger(date.getDate(), localeTag)}
 		</Button>
 	)
 })

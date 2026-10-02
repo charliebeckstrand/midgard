@@ -1,5 +1,7 @@
 import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
+import { Field } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
 import { liveRegion, renderUI, screen, setupUser } from '../helpers'
@@ -97,6 +99,40 @@ describe('NumberInput', () => {
 		expect(screen.getByLabelText('Increase')).toBeDisabled()
 	})
 
+	it('disables the steppers when readOnly', () => {
+		renderUI(<NumberInput readOnly defaultValue={5} />)
+
+		expect(screen.getByRole('spinbutton')).toHaveAttribute('readonly')
+
+		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+
+		expect(screen.getByLabelText('Increase')).toBeDisabled()
+	})
+
+	it('disables the steppers under a readOnly Control', () => {
+		renderUI(
+			<Control readOnly>
+				<NumberInput defaultValue={5} />
+			</Control>,
+		)
+
+		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+
+		expect(screen.getByLabelText('Increase')).toBeDisabled()
+	})
+
+	it('disables the steppers under a disabled Field', () => {
+		renderUI(
+			<Field disabled>
+				<NumberInput defaultValue={5} />
+			</Field>,
+		)
+
+		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+
+		expect(screen.getByLabelText('Increase')).toBeDisabled()
+	})
+
 	// Each row renders a NumberInput, clicks a stepper button, and asserts the
 	// onValueChange payload. step=1e-7 covers scientific-notation precision
 	// derivation; 9.99 + 0.1 with max=10.05 covers clamp-after-round.
@@ -188,6 +224,20 @@ describe('NumberInput', () => {
 		await user.tab()
 
 		expect(onChange).toHaveBeenLastCalledWith(10)
+	})
+
+	it('does not emit on a blur that leaves the value as it is', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput defaultValue={7} onValueChange={onChange} />)
+
+		const user = setupUser()
+
+		await user.click(screen.getByRole('spinbutton'))
+
+		await user.tab()
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 
 	it('clears the value when the input is emptied', async () => {

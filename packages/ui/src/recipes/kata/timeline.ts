@@ -67,7 +67,9 @@ const item = defineRecipe({
 	orientation: {
 		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
 		// 6.5px aligns the content with the rail. It matches the marker's `left-[6.5px]`.
-		horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
+		// The minimum width stops a column at a readable measure; past it, the
+		// row scrolls in the root.
+		horizontal: 'flex flex-col min-w-48 pl-[6.5px] pt-8 pr-8 last:pr-0',
 	},
 	defaults: { orientation: 'vertical' },
 })

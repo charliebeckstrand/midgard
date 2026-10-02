@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { createElement, isValidElement, type ReactNode, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/tree'
@@ -70,6 +70,8 @@ export function TreeItemChildren({ open, label, children }: TreeItemChildrenProp
 				role="group"
 				aria-label={typeof label === 'string' ? label : undefined}
 				data-slot="tree-group"
+				// Roving skips the items of a group without this mark. See `ROVING_ITEM_SELECTOR`.
+				data-open={dataAttr(open)}
 				{...motionProps}
 				className={cn(k.group, indent && k.indent)}
 			>

@@ -8,7 +8,14 @@ import { k, type LinkVariants } from '../../recipes/kata/link'
 /** Props for {@link Link}: `color`/`underline` variants atop the injected link primitive's props. */
 export type LinkProps = Omit<PrimitiveLinkProps, 'color'> & LinkVariants
 
-/** Styled anchor that defers to the link component supplied via `useLink`, letting a router's `Link` drive navigation. */
+/**
+ * Styled anchor that defers to the link component supplied via `useLink`, letting a router's `Link` drive navigation.
+ *
+ * @remarks
+ * `underline` draws the underline at rest, not only on hover. With the default
+ * `color: current`, the link has the color of the text around it, so give a link
+ * in running text `underline` or a `color`.
+ */
 export function Link({ href, color, underline, className, target, rel, ...props }: LinkProps) {
 	const { component: LinkComponent } = useLink()
 

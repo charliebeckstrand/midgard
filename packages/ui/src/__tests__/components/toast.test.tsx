@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Toast } from '../../components/toast'
 import { ToastProvider, useToast } from '../../providers/toast'
-import { act, fireEvent, liveRegion, renderUI, screen } from '../helpers'
+import { act, fireEvent, liveRegion, present, renderUI, screen, stubMatchMedia } from '../helpers'
 
 describe('Toast', () => {
 	it('renders a toast viewport that does not force a single politeness', () => {
@@ -487,6 +487,9 @@ describe('Toast: useToast behavior', () => {
 		['bottom-left', '100%'],
 		['bottom-right', '100%'],
 	] as const)('slides the %s toast in from its vertical edge', (position, expectedY) => {
+		// At `sm` and up, each position keeps its own edge.
+		stubMatchMedia(() => true)
+
 		let api: ReturnType<typeof useToast> | undefined
 
 		renderUI(
@@ -506,6 +509,43 @@ describe('Toast: useToast behavior', () => {
 
 		expect(animated).toHaveAttribute('data-initial-y', expectedY)
 	})
+
+	it.each(['top-left', 'top-right'] as const)(
+		'stacks the %s toast from the bottom edge below `sm`',
+		(position) => {
+			// Below `sm`, the viewport pins every position to the bottom edge. The
+			// order, the motion, and the gap must follow that edge.
+			stubMatchMedia(() => false)
+
+			let api: ReturnType<typeof useToast> | undefined
+
+			renderUI(
+				<ToastProvider>
+					<Toast position={position} />
+					<Trigger onReady={(c) => (api = c)} />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: `Narrow-${position}` })
+			})
+
+			const animated = present(
+				screen.getByText(`Narrow-${position}`).closest('[data-initial-y]'),
+				'the animated toast',
+			)
+
+			expect(animated).toHaveAttribute('data-initial-y', '100%')
+
+			const item = present(animated.parentElement, 'the toast item')
+
+			expect(item.style.paddingTop).toBe('8px')
+
+			expect(item.style.paddingBottom).toBe('')
+
+			expect(item.parentElement).toHaveClass('flex-col-reverse')
+		},
+	)
 
 	it.each([['info'], ['neutral'], ['success'], ['warning'], ['error']] as const)(
 		'renders a %s-severity toast',

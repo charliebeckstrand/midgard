@@ -7,7 +7,8 @@ import { clampHsva, sameColorValue, serializeColor, toHsva } from './color-utili
 import type { ColorFormat, Hsva } from './types'
 
 export type ColorStateOptions = {
-	value?: string | Hsva
+	/** The controlled color. `null` keeps the state controlled with no color (CONVENTIONS §7.3). */
+	value?: string | Hsva | null
 	defaultValue?: string | Hsva
 	format: ColorFormat
 	alpha: boolean
@@ -35,7 +36,8 @@ function sameHsva(a: Hsva, b: Hsva): boolean {
  * `setHsva` clamps, pins alpha to `1` when `alpha` is off, and emits the
  * serialized value through `onValueChange`.
  * @remarks
- * A controlled `value` wins (CONVENTIONS §7.2). Reconciliation runs in a
+ * A controlled `value` wins (CONVENTIONS §7.2). A `null` value paints
+ * {@link DEFAULT_HSVA} and ignores `defaultValue`. Reconciliation runs in a
  * layout effect keyed on `value` and `hsva`, before paint. A `value` that
  * differs from the last emission snaps the HSVA back, so an owner that does
  * not adopt an emission keeps its color. An owner that echoes the emission
@@ -52,7 +54,9 @@ export function useColorState({
 	alpha,
 	onValueChange,
 }: ColorStateOptions): ColorState {
-	const [hsva, setInternal] = useState<Hsva>(() => toHsva(value ?? defaultValue) ?? DEFAULT_HSVA)
+	const [hsva, setInternal] = useState<Hsva>(
+		() => toHsva(value === undefined ? defaultValue : value) ?? DEFAULT_HSVA,
+	)
 
 	// The newest HSVA, so that a second `setHsva` in one event resolves its
 	// updater against the first. Only the effect below and `setHsva` write it,
@@ -61,7 +65,7 @@ export function useColorState({
 
 	// Last external value adopted or emitted, in the consumer's wire format;
 	// the echo guard the reconcile effect compares against.
-	const cacheRef = useRef<string | Hsva>(serializeColor(hsva, format, alpha))
+	const cacheRef = useRef<string | Hsva | null>(serializeColor(hsva, format, alpha))
 
 	// Keyed on `hsva` too: an owner that does not adopt an emission keeps the
 	// same `value`, and the check must still run to snap the HSVA back (§7.2).
@@ -71,7 +75,8 @@ export function useColorState({
 		// Skip echoes of the last adopted or emitted value.
 		if (sameColorValue(value, cacheRef.current)) return
 
-		const parsed = toHsva(value)
+		// A controlled empty value has no color of its own, so it paints black.
+		const parsed = value === null ? DEFAULT_HSVA : toHsva(value)
 
 		if (!parsed) return
 

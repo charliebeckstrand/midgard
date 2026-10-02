@@ -1,14 +1,8 @@
-import { cn } from '../../core'
 import { k, type StatValueVariants } from '../../recipes/kata/stat'
-import { Placeholder } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link StatValueSkeleton}: the `size` variant (sizing the placeholder to match the live value) plus `className`. */
-export type StatValueSkeletonProps = {
-	size?: StatValueVariants['size']
-	className?: string
-}
+export type StatValueSkeletonProps = SkeletonProps<NonNullable<StatValueVariants['size']>>
 
 /** Value-shaped placeholder; pair with the real `<StatValue size>`. */
-export function StatValueSkeleton({ size, className }: StatValueSkeletonProps) {
-	return <Placeholder className={cn(k.skeleton.value({ size }), className)} />
-}
+export const StatValueSkeleton = createSkeleton(k.skeleton.value, 'StatValueSkeleton')

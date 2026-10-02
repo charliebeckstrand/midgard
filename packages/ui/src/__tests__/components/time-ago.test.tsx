@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeAgo } from '../../components/time-ago'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
+import { LocaleProvider } from '../../providers/locale'
 import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 const SEC = 1000
@@ -53,6 +54,30 @@ describe('TimeAgo', () => {
 		const { container } = renderUI(<TimeAgo date={past} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('5 minutes ago')
+	})
+
+	it('formats in the locale of an enclosing LocaleProvider', () => {
+		const past = new Date(Date.now() - 3 * HOUR)
+
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				<TimeAgo date={past} />
+			</LocaleProvider>,
+		)
+
+		expect(getSlot(container, 'time-ago')).toHaveTextContent('vor 3 Stunden')
+	})
+
+	it('lets an explicit locale win over an enclosing LocaleProvider', () => {
+		const past = new Date(Date.now() - 3 * HOUR)
+
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				<TimeAgo date={past} locale="en-US" />
+			</LocaleProvider>,
+		)
+
+		expect(getSlot(container, 'time-ago')).toHaveTextContent('3 hours ago')
 	})
 
 	it('renders a relative string for future timestamps', () => {
