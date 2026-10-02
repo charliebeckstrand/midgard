@@ -131,7 +131,8 @@ function AlertContent({
 				resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-2' : 'flex flex-col',
 			)}
 		>
-			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
+			{/* The title keeps one size at each density step, so the icon keeps one too. */}
+			{resolvedIcon && <Icon icon={resolvedIcon} size="md" className={cn(k.icon)} />}
 
 			{title && <div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>}
 
@@ -263,23 +264,33 @@ export function Alert({
 			</AlertContent>
 
 			{closable && (
-				<Button
-					type="button"
-					variant="plain"
-					color={variant === 'solid' ? 'inherit' : resolvedColor}
-					aria-label="Dismiss"
-					className={cn(k.close, 'self-center')}
-					onClick={() => {
-						setOpen(false)
-
-						if (controlledWithoutHandler) setLocallyDismissed(true)
-
-						// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
-						returnFocusTo?.current?.focus()
-					}}
+				<div
+					className={cn(
+						k.close,
+						// A title over more rows holds the button on the title row. A lone
+						// row centers it, so the button keeps the height of the alert.
+						title && (description || actions || renderChildren(children) !== null)
+							? k.closeTitleRow
+							: 'self-center',
+					)}
 				>
-					<Icon icon={<X />} />
-				</Button>
+					<Button
+						type="button"
+						variant="plain"
+						color={variant === 'solid' ? 'inherit' : resolvedColor}
+						aria-label="Dismiss"
+						onClick={() => {
+							setOpen(false)
+
+							if (controlledWithoutHandler) setLocallyDismissed(true)
+
+							// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
+							returnFocusTo?.current?.focus()
+						}}
+					>
+						<Icon icon={<X />} />
+					</Button>
+				</div>
 			)}
 		</div>
 	)
