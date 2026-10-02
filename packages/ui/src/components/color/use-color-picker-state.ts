@@ -6,6 +6,7 @@ import { useControllableFlag, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControlProps } from '../control/use-control-props'
+import { useFormField } from '../form/context'
 import { useFormValue } from '../form/use-form-value'
 import type { ColorFormat, Hsva } from './types'
 import { useColorState } from './use-color-state'
@@ -30,7 +31,7 @@ export type ColorPickerStateOptions = {
  *
  * @returns The color state (`hsva`, `setHsva`), the open state (`open`,
  * `onOpenChange`), and the Control-derived field metadata (`triggerId`,
- * `describedBy`, `disabled`, `required`, `validation`). It also returns the
+ * `describedBy`, `disabled`, `validation`). It also returns the
  * Floating UI plumbing (`setReference`, `setFloating`, `floatingStyles`,
  * `getReferenceProps`, `getFloatingProps`, `context`).
  * @remarks
@@ -71,8 +72,15 @@ export function useColorPickerState({
 
 	const scope = useIdScope({ id: controlProps.id })
 
+	// A bound field or an explicit `value` controls the color. Then an empty
+	// value goes in as `null`, so the state paints black and does not seed from
+	// `defaultValue`, which §7.2 tells a bound field to ignore.
+	const field = useFormField(name)
+
+	const controlled = value !== undefined || field !== undefined
+
 	const { hsva, setHsva } = useColorState({
-		value: bound.value,
+		value: bound.value ?? (controlled ? null : undefined),
 		defaultValue,
 		format,
 		alpha,
@@ -117,7 +125,6 @@ export function useColorPickerState({
 		triggerId: scope.id,
 		describedBy: controlProps['aria-describedby'],
 		disabled: controlProps.disabled === true,
-		required: controlProps.required,
 		validation: controlProps.validation,
 		hsva,
 		setHsva,

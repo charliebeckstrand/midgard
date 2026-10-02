@@ -195,8 +195,8 @@ export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean):
 
 /** Echo detection for controlled values: a string compares case-insensitively, an object by render-equality. */
 export function sameColorValue(
-	a: string | Hsva | undefined,
-	b: string | Hsva | undefined,
+	a: string | Hsva | null | undefined,
+	b: string | Hsva | null | undefined,
 ): boolean {
 	if (a == null || b == null) return a === b
 
