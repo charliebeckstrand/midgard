@@ -32,10 +32,9 @@ export function deriveStatus(password: string, confirm: string, lastEdited: Last
  * value and name from a bubbled event.
  *
  * @remarks
- * Reads only an `<input>` with the `password-input` anchor, which a
- * `PasswordInput` writes. Thus a username field, a checkbox, or the
- * confirmation field (`password-confirm-input`) does not feed these setters.
- * Marks `'password'` as last edited.
+ * Ignores events from non-input targets and from the confirmation field (which
+ * carries `data-slot="password-confirm-input"`), so only the password field feeds these
+ * setters. Marks `'password'` as last edited.
  * @internal
  */
 export function handlePasswordInput(
@@ -48,38 +47,9 @@ export function handlePasswordInput(
 
 	if (!(target instanceof HTMLInputElement)) return
 
-	if (target.dataset.slot !== 'password-input') return
+	if (target.dataset.slot === 'password-confirm-input') return
 
 	setPassword(target.value)
 	setPasswordName(target.name || undefined)
 	setLastEdited('password')
-}
-
-/** The current values of the two fields in a coordinator, as the DOM holds them. @internal */
-export type FieldValues = {
-	/** The password field, or `undefined` when no field has the anchor. */
-	password?: { value: string; name: string | undefined }
-	/** The value of the confirmation field, or `undefined` when no field has the anchor. */
-	confirm?: string
-}
-
-/**
- * Reads the values of the password field and the confirmation field under
- * `root`.
- *
- * @remarks
- * A seeded, controlled, or reset value gets to the DOM with no `input` event.
- * The coordinator reads the fields after each commit, so its state follows
- * such a value.
- * @internal
- */
-export function readFieldValues(root: HTMLElement): FieldValues {
-	const password = root.querySelector<HTMLInputElement>('input[data-slot="password-input"]')
-
-	const confirm = root.querySelector<HTMLInputElement>('input[data-slot="password-confirm-input"]')
-
-	return {
-		password: password ? { value: password.value, name: password.name || undefined } : undefined,
-		confirm: confirm?.value,
-	}
 }

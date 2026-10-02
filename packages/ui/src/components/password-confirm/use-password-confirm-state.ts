@@ -20,7 +20,6 @@ type PasswordConfirmStateResult = {
 	setPassword: (value: string) => void
 	setConfirm: (value: string) => void
 	setLastEdited: (which: LastEdited) => void
-	setConfirmValue: (value: string) => void
 }
 
 /**
@@ -28,7 +27,7 @@ type PasswordConfirmStateResult = {
  *
  * @returns The current `password` and `confirm` values, the derived `status`,
  * and the setters `setPassword`, `setConfirm` (which also marks confirm as last
- * edited), `setLastEdited`, and `setConfirmValue` (which does not mark it).
+ * edited), and `setLastEdited`.
  * @remarks
  * `onMatchChange(matched)` fires from an effect on transitions only, so a
  * match→match repeat won't re-fire. It is read through a ref, so a changed
@@ -80,13 +79,5 @@ export function usePasswordConfirmState({
 		else if (matchState === 'mismatch') reportMatch(false)
 	}, [matchState])
 
-	return {
-		password,
-		confirm,
-		status,
-		setPassword,
-		setConfirm,
-		setLastEdited,
-		setConfirmValue: setConfirmState,
-	}
+	return { password, confirm, status, setPassword, setConfirm, setLastEdited }
 }
