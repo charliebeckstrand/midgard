@@ -704,6 +704,11 @@ export const k = {
 		controls: [flex.inline, 'flex-1', 'items-center', 'gap-4'],
 		// Page navigation: the centered middle track.
 		nav: ['flex', 'flex-1', 'justify-center'],
+		// The `<Pagination>` in the track. The footer has its own narrow layout
+		// (`pages`), so the pagination is not a size container here, and the
+		// compact page list of `<Pagination>` stays off. It also takes the width
+		// of its content again, so the track centers it.
+		pagination: ['w-auto', '@container-normal'],
 		// Numbered pages: only from `@2xl`. Below it, Previous/Next carry the
 		// navigation and the status names the position.
 		pages: ['hidden', '@2xl:flex'],

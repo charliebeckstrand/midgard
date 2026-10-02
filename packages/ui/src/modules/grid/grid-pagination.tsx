@@ -172,7 +172,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 				{showNav && (
 					<div ref={navRef} className={cn(k.footer.nav, !showPicker && k.footer.bare.nav)}>
-						<Pagination>
+						<Pagination className={cn(k.footer.pagination)}>
 							<PaginationPrevious
 								onClick={() => goToPage((index) => index - 1)}
 								disabled={!canPrevious}

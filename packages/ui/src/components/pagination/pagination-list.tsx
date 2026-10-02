@@ -6,7 +6,12 @@ import { k } from '../../recipes/kata/pagination'
 /** Props for {@link PaginationList}: native `<ol>` attributes. */
 export type PaginationListProps = ComponentProps<'ol'>
 
-/** Ordered list of pagination items; establishes an active-indicator scope so the current page animates between siblings. */
+/**
+ * Ordered list of pagination items; establishes an active-indicator scope so the current page animates between siblings.
+ *
+ * @remarks
+ * Below the `sm` width of the {@link Pagination} container, the list shows only the current page.
+ */
 export function PaginationList({ className, children, ...props }: PaginationListProps) {
 	return (
 		<ActiveIndicatorScope>

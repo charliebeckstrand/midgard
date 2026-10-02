@@ -281,7 +281,7 @@ export function TagInput({
 					<Icon icon={<CornerLeftDown />} />
 				</Button>
 			}
-			className={cn(className, atMax && 'cursor-not-allowed')}
+			className={cn(k.input, className, atMax && 'cursor-not-allowed')}
 		/>
 	)
 }

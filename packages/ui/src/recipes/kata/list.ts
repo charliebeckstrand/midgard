@@ -19,8 +19,10 @@ const root = defineRecipe({
 		plain: divider.between,
 		solid: ['gap-2'],
 	},
+	// A horizontal row wraps onto the next line when its items do not fit, so it
+	// stays inside a narrow parent.
 	orientation: {
-		horizontal: 'flex-row',
+		horizontal: 'flex-row flex-wrap',
 		vertical: '',
 	},
 	defaults: { variant: 'separated', orientation: 'vertical' },

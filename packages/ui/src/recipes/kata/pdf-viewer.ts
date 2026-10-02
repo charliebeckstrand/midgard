@@ -33,9 +33,10 @@ export const k = {
 	fill: 'h-full min-h-0',
 	body: ['flex flex-1 min-h-0'],
 	toolbar: {
+		// The sections wrap onto a second row when the bar is narrow, so every
+		// control stays in view. A scrolled bar hid the end controls with no cue.
 		base: [
-			'flex flex-nowrap items-center justify-between',
-			'overflow-x-auto',
+			'flex flex-wrap items-center justify-between',
 			'gap-1',
 			'px-2 py-1.5',
 			'border-b',

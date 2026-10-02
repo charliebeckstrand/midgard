@@ -50,12 +50,16 @@ const list = defineRecipe({
  * active-indicator/focus rail sits flush with the content edge, so nothing is
  * lost. The native scrollbar is hidden, so it never crosses the rail. The
  * active tab scrolls into view, and roving keeps every tab reachable.
+ *
+ * A vertical list sits beside the panel in the `flex-row` group, and does not
+ * shrink. In a narrow group the panel gives up the width, and the clipped
+ * cross axis does not cut a tab label.
  */
 const scroll = defineRecipe({
 	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
 		horizontal: 'overflow-x-auto overflow-y-hidden',
-		vertical: 'overflow-y-auto overflow-x-hidden',
+		vertical: 'shrink-0 overflow-y-auto overflow-x-hidden',
 	},
 	defaults: { orientation: 'horizontal' },
 })
