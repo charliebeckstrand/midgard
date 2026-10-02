@@ -23,6 +23,8 @@ type JsonNodeRowProps = {
  * `data-index`, so the keyboard handler can map a focused row to its flat index.
  * The flat list has no nested group to pad, so the row root pads its start by
  * the depth. The padding is the `indent` of a nested group once per depth.
+ * Windowing keeps most siblings out of the DOM, so each treeitem states its
+ * `aria-setsize` and `aria-posinset`.
  *
  * @internal
  */
@@ -43,6 +45,8 @@ function JsonTreeNodeRowContent({ node, onToggle, tabbable }: Omit<JsonNodeRowPr
 				value={node.value}
 				highlighted={node.highlighted}
 				tabbable={tabbable}
+				setSize={node.setSize}
+				posInSet={node.posInSet}
 			/>
 		)
 	}
@@ -63,6 +67,8 @@ function JsonTreeNodeRowContent({ node, onToggle, tabbable }: Omit<JsonNodeRowPr
 				count={node.count}
 				highlighted={node.highlighted}
 				tabbable={tabbable}
+				setSize={node.setSize}
+				posInSet={node.posInSet}
 				onToggle={() => onToggle(node.path)}
 			/>
 		</div>

@@ -123,9 +123,9 @@ export function filterEntries(
 }
 
 /**
- * Paths of every branch whose subtree contains a search match. The virtualized
- * tree seeds a controlled `expanded` set with them, or opens them by default
- * when uncontrolled. Prunes on the index: a branch without a match has no
+ * Paths of every branch whose subtree contains a search match. Both variants
+ * seed a controlled `expanded` set with them. The virtualized tree also opens
+ * them by default when uncontrolled. Prunes on the index: a branch without a match has no
  * matching descendants.
  *
  * @internal
@@ -193,21 +193,35 @@ export function valueType(value: JsonValue): JsonValueType {
 }
 
 /**
+ * The place of a flat treeitem among its siblings. Windowing keeps most
+ * siblings out of the DOM, so assistive technology cannot count them. The row
+ * gives both values as `aria-setsize` and `aria-posinset`.
+ *
+ * @internal
+ */
+type FlatSetPosition = {
+	/** The number of siblings that the tree shows, the row included. */
+	setSize: number
+	/** The 1-based position of the row among those siblings. */
+	posInSet: number
+}
+
+/**
  * One row emitted by {@link flattenTree} for the virtualized tree: a `leaf`
  * scalar, a `branch-open` header, or a matching `branch-close` footer.
  *
  * @internal
  */
 export type FlatNode =
-	| {
+	| ({
 			type: 'leaf'
 			path: string
 			keyName: string | number | undefined
 			value: JsonValue
 			depth: number
 			highlighted: boolean
-	  }
-	| {
+	  } & FlatSetPosition)
+	| ({
 			type: 'branch-open'
 			path: string
 			keyName: string | number | undefined
@@ -216,7 +230,7 @@ export type FlatNode =
 			open: boolean
 			count: number
 			highlighted: boolean
-	  }
+	  } & FlatSetPosition)
 	| {
 			type: 'branch-close'
 			path: string
@@ -263,13 +277,14 @@ export function flattenTree({
 		keyName: string | number | undefined,
 		path: string,
 		depth: number,
+		position: FlatSetPosition,
 	) {
 		const highlighted = search ? matchesSearch(keyName, value, search) : false
 
 		if (!isBranch(value)) {
 			if (filter && search && !highlighted) return
 
-			out.push({ type: 'leaf', path, keyName, value, depth, highlighted })
+			out.push({ type: 'leaf', path, keyName, value, depth, highlighted, ...position })
 
 			return
 		}
@@ -290,25 +305,33 @@ export function flattenTree({
 			open,
 			count,
 			highlighted,
+			...position,
 		})
 
 		if (!open) return
 
-		for (const [childKey, childValue] of entries) {
+		// A filtered search already dropped the siblings that it hides, so the
+		// entries are the siblings that the tree shows.
+		for (const [index, [childKey, childValue]] of entries.entries()) {
 			const childPath = joinPath(path, childKey)
 
-			walk(childValue, childKey, childPath, depth + 1)
+			walk(childValue, childKey, childPath, depth + 1, { setSize: count, posInSet: index + 1 })
 		}
 
 		out.push({ type: 'branch-close', path, depth, value })
 	}
 
-	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0)
+	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0, { setSize: 1, posInSet: 1 })
 
 	return out
 }
 
-/** Renders a node's key prefix — a numeric array index or a quoted object key — followed by the `:` separator; nothing for the root (`keyName == null`). @internal */
+/**
+ * Renders a node's key prefix — a numeric array index or a quoted object key — followed by the `:` separator; nothing for the root (`keyName == null`).
+ * An object key is a JSON string literal, so a quote or a newline in the key shows as an escape.
+ *
+ * @internal
+ */
 export function NodeKey({ keyName }: { keyName?: string | number }) {
 	if (keyName == null) return null
 
@@ -323,17 +346,22 @@ export function NodeKey({ keyName }: { keyName?: string | number }) {
 
 	return (
 		<>
-			<span className={cn(k.key)}>{`"${keyName}"`}</span>
+			<span className={cn(k.key)}>{JSON.stringify(keyName)}</span>
 			<span className={cn(k.punctuation)}>:</span>
 		</>
 	)
 }
 
-/** Renders a scalar {@link JsonValue} in its type color, quoting strings and printing `null` literally. @internal */
+/**
+ * Renders a scalar {@link JsonValue} in its type color, quoting strings and printing `null` literally.
+ * A string shows as a JSON string literal, so a quote or a newline in it shows as an escape.
+ *
+ * @internal
+ */
 export function PrimitiveValue({ value }: { value: JsonValue }) {
 	const type = valueType(value)
 
-	const display = value === null ? 'null' : type === 'string' ? `"${value}"` : String(value)
+	const display = type === 'string' ? JSON.stringify(value) : String(value)
 
 	return <span className={cn(k.valueColor[type])}>{display}</span>
 }

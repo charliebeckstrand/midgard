@@ -26,7 +26,8 @@ type FileHandlersOptions = {
  * accepted selection, and wires drag-and-drop. Incoming files (picker or drop)
  * are split through `partitionFiles` against `accept`, `maxSize` and
  * `maxCount`. Accepted files fire `onAccept`, rejected ones fire `onReject`,
- * and the accepted set is announced to a live region. Drag highlight uses a depth counter so nested
+ * and the accepted set is announced to a live region. A batch with no
+ * accepted file keeps the current selection. Drag highlight uses a depth counter so nested
  * children don't flicker `dragOver`; `disabled` short-circuits the picker and
  * drop handling.
  *
@@ -74,11 +75,15 @@ export function useFileUploadHandlers({
 				maxCount,
 			})
 
+			if (rejected.length > 0) onReject?.(rejected)
+
+			// A text drag or an all-rejected batch accepts no file. It keeps the
+			// current selection: only `clearFiles` empties it.
+			if (accepted.length === 0) return
+
 			setFiles(accepted)
 
 			onAccept?.(accepted)
-
-			if (rejected.length > 0) onReject?.(rejected)
 
 			// The selection lands on a visually-hidden input with no audible
 			// feedback; announces through the live region (WCAG 4.1.3).

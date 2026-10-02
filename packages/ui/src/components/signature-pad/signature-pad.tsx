@@ -36,7 +36,8 @@ export type SignaturePadProps = {
 	disabled?: boolean
 	readOnly?: boolean
 	/**
-	 * Placeholder rendered over an empty pad.
+	 * Placeholder rendered over an empty pad. A disabled or read-only pad
+	 * hides it, because the pad takes no stroke.
 	 *
 	 * @defaultValue `'Sign here'`
 	 */
@@ -168,7 +169,7 @@ export function SignaturePad({
 				onPointerCancel={commit}
 				onPointerLeave={commit}
 			/>
-			{empty && !resolvedDisabled && (
+			{empty && !resolvedDisabled && !resolvedReadOnly && (
 				<div data-slot="signature-pad-placeholder" className={cn(k.placeholder)}>
 					{placeholder}
 				</div>

@@ -55,10 +55,10 @@ export function CommandPaletteGroup({ className, children, ...props }: CommandPa
 		// biome-ignore lint/a11y/useSemanticElements: the public props and ref of this part are those of a <div>. A <fieldset> changes both.
 		<div
 			data-slot="command-palette-group"
-			role="group"
 			{...scope.ariaProps}
 			className={cn(k.group, className)}
 			{...props}
+			role="group"
 		>
 			<CommandPaletteGroupContext value={value}>{children}</CommandPaletteGroupContext>
 		</div>

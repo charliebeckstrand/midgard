@@ -18,7 +18,7 @@ type SignatureDrawingOptions = {
 	strokeWidth: number
 	empty: boolean
 	setEmpty: Dispatch<SetStateAction<boolean>>
-	lastEmittedRef: RefObject<string | null>
+	/** Emits a committed snapshot. The state hook records it as shown first. */
 	setCurrent: (value: string | null) => void
 	onDrawStart?: () => void
 	/** Runs after each mark that a stroke paints. */
@@ -31,15 +31,15 @@ type SignatureDrawingOptions = {
  *
  * @internal
  * @param options - The `canvasRef`, stroke styling, the `disabled`/`readOnly`
- * flags, the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks, the
+ * flags, the `empty`/`setEmpty`/`setCurrent` state hooks, the
  * `onDrawStart` report, and the `onInk` report of each mark.
  * @returns The `handlePointerDown`, `handlePointerMove`, and `commit` handlers
  * to wire onto the `<canvas>`.
  * @remarks
  * `handlePointerDown` ignores non-primary mouse buttons and captures the pointer
- * so a stroke continues past the canvas edge. `commit` writes the snapshot into
- * `lastEmittedRef` before `setCurrent`, letting the state hook's value-sync effect
- * skip its own repaint of a value it just drew. `commit` returns `true` only
+ * so a stroke continues past the canvas edge. `commit` gives the snapshot to
+ * `setCurrent`, which the state hook records as shown, so its value-sync effect
+ * skips a repaint of a value it just drew. `commit` returns `true` only
  * when it committed a stroke, and `false` when no stroke was in progress.
  */
 export function useSignaturePadDrawing({
@@ -50,7 +50,6 @@ export function useSignaturePadDrawing({
 	strokeWidth,
 	empty,
 	setEmpty,
-	lastEmittedRef,
 	setCurrent,
 	onDrawStart,
 	onInk,
@@ -153,11 +152,7 @@ export function useSignaturePadDrawing({
 
 		if (!canvas) return false
 
-		const next = canvas.toDataURL()
-
-		lastEmittedRef.current = next
-
-		setCurrent(next)
+		setCurrent(canvas.toDataURL())
 
 		return true
 	}

@@ -257,4 +257,54 @@ describe('useFileUploadHandlers', () => {
 
 		expect(onAccept).toHaveBeenCalledWith([file])
 	})
+
+	it('keeps the selection when a drop carries no files', () => {
+		const onAccept = vi.fn()
+
+		const { result } = renderHook(() => useFileUploadHandlers({ onAccept }))
+
+		const file = makeFile('kept.txt')
+
+		act(() => {
+			result.current.handleDrop(makeDragEvent([file]))
+		})
+
+		onAccept.mockClear()
+
+		act(() => {
+			result.current.handleDrop(makeDragEvent([]))
+		})
+
+		expect(result.current.files).toEqual([file])
+
+		expect(onAccept).not.toHaveBeenCalled()
+	})
+
+	it('keeps the selection and reports only the rejection when no file is accepted', () => {
+		const onAccept = vi.fn()
+
+		const onReject = vi.fn()
+
+		const { result } = renderHook(() => useFileUploadHandlers({ maxSize: 10, onAccept, onReject }))
+
+		const file = makeFile('kept.txt')
+
+		const big = new File(['x'.repeat(50)], 'big.txt')
+
+		act(() => {
+			result.current.handleDrop(makeDragEvent([file]))
+		})
+
+		onAccept.mockClear()
+
+		act(() => {
+			result.current.handleDrop(makeDragEvent([big]))
+		})
+
+		expect(result.current.files).toEqual([file])
+
+		expect(onAccept).not.toHaveBeenCalled()
+
+		expect(onReject).toHaveBeenCalledWith([{ file: big, reason: 'size' }])
+	})
 })

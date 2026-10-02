@@ -8,8 +8,12 @@ type JsonTreeLeafRowProps = {
 	keyName?: string | number
 	value: JsonValue
 	highlighted: boolean
-	/** Carries the tree's single Tab stop. Defaults to the root row; the virtualized variant passes the first rendered row instead. */
+	/** Carries the tree's single Tab stop. Defaults to the root row, until roving moves the stop in the recursive variant; the virtualized variant passes the first rendered row instead. */
 	tabbable?: boolean
+	/** The sibling count for `aria-setsize`. The virtualized variant gives it, because windowing keeps most siblings out of the DOM. */
+	setSize?: number
+	/** The 1-based sibling position for `aria-posinset`. The virtualized variant gives it with `setSize`. */
+	posInSet?: number
 }
 
 /**
@@ -25,6 +29,8 @@ export function JsonTreeLeafRow({
 	value,
 	highlighted,
 	tabbable,
+	setSize,
+	posInSet,
 }: JsonTreeLeafRowProps) {
 	return (
 		<div data-highlighted={dataAttr(highlighted)}>
@@ -32,6 +38,8 @@ export function JsonTreeLeafRow({
 				<div
 					role="treeitem"
 					aria-level={depth + 1}
+					aria-setsize={setSize}
+					aria-posinset={posInSet}
 					tabIndex={(tabbable ?? depth === 0) ? 0 : -1}
 					data-slot="json-node"
 					className={cn(k.leaf)}

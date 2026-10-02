@@ -24,6 +24,7 @@ import {
 } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
+import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 const TREE_ITEM_SELECTOR = '[role="treeitem"]'
 
@@ -170,17 +171,9 @@ export function JsonTreeVirtualized({
 		autoOpen: matchPaths,
 	})
 
-	// Controlled, the flat walk follows only `expanded`. Seeds the match paths
-	// once per search term; a seeded branch stays collapsible afterwards.
-	const seededSearchRef = useRef<string | null>(null)
-
-	useEffect(() => {
-		if (!controlled || !matchPaths || seededSearchRef.current === searchValue) return
-
-		seededSearchRef.current = searchValue
-
-		expand(matchPaths)
-	}, [controlled, matchPaths, searchValue, expand])
+	// Controlled, the flat walk follows only `expanded`, so the match paths go
+	// into the set as a seed.
+	useJsonTreeSearchSeed(controlled ? matchPaths : undefined, expand)
 
 	const flatNodes = useMemo(
 		() => flattenTree({ data, rootKey, isOpen, search: searchValue, filter, searchIndex }),

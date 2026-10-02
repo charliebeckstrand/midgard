@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
 import { flatTreeMoveTarget } from '../../components/json-tree/json-tree-keyboard'
@@ -39,6 +39,18 @@ describe('JsonTree', () => {
 		expect(screen.getByText('0')).toBeInTheDocument()
 
 		expect(screen.getByText('1')).toBeInTheDocument()
+	})
+
+	it('escapes quotes and control characters in keys and string values', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ 'say "hi"': 'line one\nline "two"' }} defaultExpandDepth={1} />,
+		)
+
+		const leaf = container.querySelector('[role="treeitem"][aria-level="2"]')
+
+		expect(leaf).toHaveTextContent('"say \\"hi\\"":"line one\\nline \\"two\\""', {
+			normalizeWhitespace: false,
+		})
 	})
 
 	it('toggles a branch open and closed on click', () => {
@@ -149,6 +161,57 @@ describe('JsonTree', () => {
 
 		// Without expansion the inner "needle" key wouldn't be in the DOM.
 		expect(screen.getByText('"needle"')).toBeInTheDocument()
+	})
+
+	it('seeds the branches containing a match into a controlled set', () => {
+		const onExpandedChange = vi.fn()
+
+		renderUI(
+			<JsonTree
+				data={{ outer: { inner: { needle: 'match' } }, other: { value: 1 } }}
+				search="needle"
+				expanded={new Set()}
+				onExpandedChange={onExpandedChange}
+			/>,
+		)
+
+		expect(onExpandedChange).toHaveBeenCalledOnce()
+
+		expect(onExpandedChange.mock.calls[0]?.[0]).toEqual(new Set(['$', '$.outer', '$.outer.inner']))
+	})
+
+	it('opens a match of a controlled tree once the owner takes the seed', () => {
+		function Owner() {
+			const [expanded, setExpanded] = useState(() => new Set<string>())
+
+			return (
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					search="needle"
+					expanded={expanded}
+					onExpandedChange={setExpanded}
+				/>
+			)
+		}
+
+		renderUI(<Owner />)
+
+		expect(screen.getByText('"needle"')).toBeInTheDocument()
+	})
+
+	it('does not report a search seed that adds no branch to a controlled set', () => {
+		const onExpandedChange = vi.fn()
+
+		renderUI(
+			<JsonTree
+				data={{ outer: { needle: 'match' } }}
+				search="needle"
+				expanded={new Set(['$', '$.outer'])}
+				onExpandedChange={onExpandedChange}
+			/>,
+		)
+
+		expect(onExpandedChange).not.toHaveBeenCalled()
 	})
 
 	it('collapses branches without matches when filter + search produces no entries', () => {
@@ -312,6 +375,66 @@ describe('JsonTree', () => {
 			expect(onExpandedChange).not.toHaveBeenCalled()
 		})
 
+		it('seeds the matches of new data under the same term', () => {
+			const onExpandedChange = vi.fn()
+
+			const expanded = new Set<string>(['$', '$.outer'])
+
+			const { rerender } = renderUI(
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					virtualize={{ maxHeight: '200px' }}
+					search={{ value: 'needle' }}
+					expanded={expanded}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			expect(onExpandedChange).not.toHaveBeenCalled()
+
+			rerender(
+				<JsonTree
+					data={{ other: { needle: 'match' } }}
+					virtualize={{ maxHeight: '200px' }}
+					search={{ value: 'needle' }}
+					expanded={expanded}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			const seeded = onExpandedChange.mock.calls.at(-1)?.[0] as Set<string>
+
+			expect(seeded).toBeDefined()
+
+			expect(seeded.has('$.other')).toBe(true)
+		})
+
+		it('seeds again when the reader types the same term after a clear', () => {
+			const onExpandedChange = vi.fn()
+
+			const data = { outer: { needle: 'match' } }
+
+			const tree = (search: string) => (
+				<JsonTree
+					data={data}
+					virtualize={{ maxHeight: '200px' }}
+					search={search}
+					expanded={new Set()}
+					onExpandedChange={onExpandedChange}
+				/>
+			)
+
+			const { rerender } = renderUI(tree('needle'))
+
+			expect(onExpandedChange).toHaveBeenCalledOnce()
+
+			rerender(tree(''))
+
+			rerender(tree('needle'))
+
+			expect(onExpandedChange).toHaveBeenCalledTimes(2)
+		})
+
 		it('does not report expansion from an uncontrolled tree', () => {
 			const onExpandedChange = vi.fn()
 
@@ -354,6 +477,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: 'a',
 					value: 1,
 					depth: 1,
+					setSize: 1,
+					posInSet: 1,
 					highlighted: false,
 				}}
 				onToggle={() => {}}
@@ -379,6 +504,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: 1,
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					highlighted: false,
 				}}
 				onToggle={() => {}}
@@ -415,6 +542,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: [1, 2, 3],
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 3,
 					highlighted: false,
@@ -442,6 +571,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: {},
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 0,
 					highlighted: false,
@@ -465,6 +596,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: [1],
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 1,
 					highlighted: false,
@@ -488,6 +621,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: 'a',
 					value: { x: 1 },
 					depth: 1,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 1,
 					highlighted: false,
@@ -513,6 +648,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: { a: 1 },
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: true,
 					count: 1,
 					highlighted: false,
@@ -534,7 +671,16 @@ describe('JsonTreeNodeRow tab stop', () => {
 		const { container, rerender } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
+				node={{
+					type: 'leaf',
+					path: 'r.a.b',
+					keyName: 'b',
+					value: 1,
+					depth: 2,
+					highlighted: false,
+					setSize: 1,
+					posInSet: 1,
+				}}
 				onToggle={() => {}}
 				tabbable
 			/>,
@@ -545,12 +691,104 @@ describe('JsonTreeNodeRow tab stop', () => {
 		rerender(
 			<JsonTreeNodeRow
 				index={0}
-				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
+				node={{
+					type: 'leaf',
+					path: 'r.a.b',
+					keyName: 'b',
+					value: 1,
+					depth: 2,
+					highlighted: false,
+					setSize: 1,
+					posInSet: 1,
+				}}
 				onToggle={() => {}}
 			/>,
 		)
 
 		expect(container.querySelector('[role="treeitem"]')).toHaveAttribute('tabindex', '-1')
+	})
+})
+
+describe('JsonTree virtualized set position', () => {
+	it('gives each flat row its sibling count and its position', () => {
+		const nodes = flattenTree({
+			data: { a: 1, b: { c: 2 } },
+			rootKey: undefined,
+			isOpen: () => true,
+			search: '',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
+
+		const positions = nodes.flatMap((node) =>
+			node.type === 'branch-close' ? [] : [[node.path, node.posInSet, node.setSize]],
+		)
+
+		expect(positions).toEqual([
+			['$', 1, 1],
+			['$.a', 1, 2],
+			['$.b', 2, 2],
+			['$.b.c', 1, 1],
+		])
+	})
+
+	it('counts only the siblings that a filtered search keeps', () => {
+		const nodes = flattenTree({
+			data: { hit: 1, miss: 2, also_hit: 3 },
+			rootKey: undefined,
+			isOpen: () => true,
+			search: 'hit',
+			filter: true,
+			searchIndex: new WeakMap(),
+		})
+
+		const positions = nodes.flatMap((node) =>
+			node.type === 'leaf' ? [[node.path, node.posInSet, node.setSize]] : [],
+		)
+
+		expect(positions).toEqual([
+			['$.hit', 1, 2],
+			['$.also_hit', 2, 2],
+		])
+	})
+
+	it.each([
+		[
+			'leaf',
+			{
+				type: 'leaf',
+				path: '$.b',
+				keyName: 'b',
+				value: 1,
+				depth: 1,
+				highlighted: false,
+				setSize: 3,
+				posInSet: 2,
+			},
+		],
+		[
+			'branch',
+			{
+				type: 'branch-open',
+				path: '$.b',
+				keyName: 'b',
+				value: { x: 1 },
+				depth: 1,
+				open: false,
+				count: 1,
+				highlighted: false,
+				setSize: 3,
+				posInSet: 2,
+			},
+		],
+	] as const)('puts aria-setsize and aria-posinset on a %s row', (_name, node) => {
+		const { container } = renderUI(<JsonTreeNodeRow index={0} node={node} onToggle={() => {}} />)
+
+		const item = container.querySelector('[role="treeitem"]')
+
+		expect(item).toHaveAttribute('aria-setsize', '3')
+
+		expect(item).toHaveAttribute('aria-posinset', '2')
 	})
 })
 
@@ -576,6 +814,33 @@ describe('JsonTree tree semantics', () => {
 		const { container } = renderUI(<JsonTree data={{ outer: 1 }} defaultExpandDepth={5} />)
 
 		expect(bySlot(container, 'json-close')).toHaveAttribute('aria-hidden', 'true')
+	})
+})
+
+describe('JsonTree Tab stop', () => {
+	it('moves the single Tab stop to the row that takes focus', () => {
+		const { container } = renderUI(<JsonTree data={{ a: 1, b: 2 }} defaultExpandDepth={1} />)
+
+		const [root, first, second] = Array.from(
+			container.querySelectorAll<HTMLElement>('[role="treeitem"]'),
+		)
+
+		present(root, 'root row').focus()
+
+		fireEvent.keyDown(present(root, 'root row'), { key: 'ArrowDown' })
+
+		fireEvent.keyDown(present(first, 'first row'), { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(second)
+
+		// Tab out and back re-enters on the row that the reader left.
+		present(second, 'second row').blur()
+
+		const stops = container.querySelectorAll('[role="treeitem"][tabindex="0"]')
+
+		expect(stops).toHaveLength(1)
+
+		expect(stops[0]).toBe(second)
 	})
 })
 
