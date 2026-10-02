@@ -76,7 +76,7 @@ export const k = defineRecipe(
 	},
 	{
 		color,
-		/** Value-fill settle: the bar and gauge sweep to their value on this spring. */
+		/** Value-fill settle: the bar and gauge move to each new value on this spring. */
 		spring: spring.settle,
 		/** Value-fill jump: under reduced motion, the bar and gauge go to their value at once. */
 		still: { duration: 0 },

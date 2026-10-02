@@ -27,8 +27,9 @@ export type ProgressBarProps = AccessibleName & {
 
 /**
  * Linear progress indicator rendered as a `role="progressbar"`. Determinate
- * when `value` is a usable number, animating the fill width to its clamped
- * percentage; otherwise indeterminate. The track takes the step of the nearest
+ * when `value` is a usable number, with the fill width at its clamped
+ * percentage; otherwise indeterminate. The fill mounts at its value and
+ * animates each change of value. The track takes the step of the nearest
  * density scope, and an explicit `size` opens a scope on it. It respects
  * reduced-motion.
  *
@@ -51,9 +52,11 @@ export function ProgressBar({
 
 	const percent = determinate ? clamp(pct(value, 0, max), 0, 100) : 0
 
-	// The fill animates `width`, which is no transform, so the reduced-motion
-	// config of motion does not skip it. The fill mounts at rest and moves to
-	// each new value without a spring.
+	// The fill mounts at its value. A sweep up from zero on mount plays again
+	// each time a tab panel brings the bar back. The fill animates `width`,
+	// which is no transform, so the reduced-motion config of motion does not
+	// skip it. Under reduced motion the fill moves to each new value without a
+	// spring.
 	const still = usePrefersReducedMotion()
 
 	return (
@@ -70,7 +73,7 @@ export function ProgressBar({
 			{determinate ? (
 				<motion.div
 					className={k.bar.fill({ color })}
-					initial={still ? false : { width: 0 }}
+					initial={false}
 					animate={{ width: `${percent}%` }}
 					transition={still ? k.still : k.spring}
 				/>

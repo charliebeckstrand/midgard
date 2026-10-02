@@ -35,8 +35,8 @@ export type ProgressGaugeProps = AccessibleName &
 
 /**
  * Circular (radial) progress indicator rendered as a `role="progressbar"` over
- * an SVG ring whose arc animates to the clamped percentage, with an optional
- * center readout. The ring and the readout take the step of the nearest density
+ * an SVG ring whose arc shows the clamped percentage, with an optional center
+ * readout. The ring mounts at its value and animates each change of value. The ring and the readout take the step of the nearest density
  * scope, and an explicit `size` opens a scope on the root. It respects
  * reduced-motion.
  *
@@ -65,9 +65,11 @@ export function ProgressGauge({
 
 	const resolvedLabel = centerLabel === true ? Math.round(percent) : centerLabel
 
-	// The fill animates `strokeDashoffset`, which is no transform, so the
-	// reduced-motion config of motion does not skip it. The ring mounts at rest
-	// and moves to each new value without a spring.
+	// The ring mounts at its value. A sweep up from zero on mount plays again
+	// each time a tab panel brings the gauge back. The fill animates
+	// `strokeDashoffset`, which is no transform, so the reduced-motion config
+	// of motion does not skip it. Under reduced motion the ring moves to each
+	// new value without a spring.
 	const still = usePrefersReducedMotion()
 
 	return (
@@ -106,7 +108,7 @@ export function ProgressGauge({
 					strokeLinecap="round"
 					strokeDasharray={circumference}
 					className={cn(k.color[color].stroke)}
-					initial={still ? false : { strokeDashoffset: circumference }}
+					initial={false}
 					animate={{ strokeDashoffset: offset }}
 					transition={still ? k.still : k.spring}
 				/>
