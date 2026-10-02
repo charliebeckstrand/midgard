@@ -28,7 +28,10 @@ export function TabListSkeleton({ tabs = 3, size, className }: TabListSkeletonPr
 	const tabKeys = rangeKeys(tabs, 'tab')
 
 	return (
-		<div data-density={size} className={cn(k.list({ orientation: 'horizontal' }), className)}>
+		<div
+			data-density={size}
+			className={cn(k.list({ orientation: 'horizontal' }), k.skeleton.gap, className)}
+		>
 			{tabKeys.map((tabKey) => (
 				<Placeholder key={tabKey} className={k.skeleton.tab} />
 			))}
