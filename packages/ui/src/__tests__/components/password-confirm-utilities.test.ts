@@ -76,7 +76,9 @@ describe('handlePasswordInput', () => {
 	}
 
 	it('writes the value, name, and lastEdited when the password input changes', () => {
-		const { setPassword, setPasswordName, setLastEdited } = run(input({ name: 'password' }))
+		const { setPassword, setPasswordName, setLastEdited } = run(
+			input({ name: 'password', slot: 'password-input' }),
+		)
 
 		expect(setPassword).toHaveBeenCalledWith('hunter2')
 
@@ -86,7 +88,7 @@ describe('handlePasswordInput', () => {
 	})
 
 	it('treats a missing name attribute as undefined', () => {
-		expect(run(input()).setPasswordName).toHaveBeenCalledWith(undefined)
+		expect(run(input({ slot: 'password-input' })).setPasswordName).toHaveBeenCalledWith(undefined)
 	})
 
 	it.each([
@@ -95,6 +97,7 @@ describe('handlePasswordInput', () => {
 			() => input({ slot: 'password-confirm-input' }),
 		],
 		['targets that are not HTMLInputElement', () => document.createElement('div')],
+		['an input with no password-input anchor', () => input({ name: 'username', slot: 'input' })],
 	])('ignores %s', (_name, target) => {
 		const { setPassword, setPasswordName, setLastEdited } = run(target())
 

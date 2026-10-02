@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Form, useFormActions } from '../../components/form'
+import { Input } from '../../components/input'
 import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
 import { PasswordInput } from '../../components/password-input'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, renderUI, screen } from '../helpers'
 
 /** The password input and the confirm input, in document order. */
 function passwordInputs() {
@@ -143,5 +145,75 @@ describe('PasswordConfirm warning rendering', () => {
 		enter('abc', confirm)
 
 		expect(onMatchChange).toHaveBeenCalledWith(expected)
+	})
+})
+
+describe('PasswordConfirm field discovery', () => {
+	it('does not record another input as the password', () => {
+		renderUI(
+			<PasswordConfirm warning="Passwords do not match">
+				<Input name="username" aria-label="Username" />
+				<PasswordInput name="password" />
+				<PasswordConfirmInput name="confirm" />
+			</PasswordConfirm>,
+		)
+
+		const { confirm } = enter('abc', 'abc')
+
+		// A later edit of the username must not replace the password value.
+		fireEvent.input(screen.getByRole('textbox', { name: 'Username' }), {
+			target: { value: 'alice' },
+		})
+
+		expect(confirm).not.toHaveAttribute('data-warning')
+
+		expect(screen.queryByText('Passwords do not match')).not.toBeInTheDocument()
+	})
+
+	it('reads seeded values with no typed input', () => {
+		const onMatchChange = vi.fn()
+
+		renderUI(
+			<PasswordConfirm warning="Passwords do not match" onMatchChange={onMatchChange}>
+				<PasswordInput name="password" defaultValue="abc" />
+				<PasswordConfirmInput name="confirm" defaultValue="abd" />
+			</PasswordConfirm>,
+		)
+
+		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
+
+		expect(onMatchChange).toHaveBeenCalledWith(false)
+	})
+
+	it('follows a programmatic form reset', () => {
+		function ResetButton() {
+			const actions = useFormActions()
+
+			return (
+				<button type="button" onClick={() => actions?.reset()}>
+					Reset
+				</button>
+			)
+		}
+
+		renderUI(
+			<Form defaultValues={{ password: '', confirm: '' }}>
+				<PasswordConfirm warning="Passwords do not match">
+					<PasswordInput name="password" />
+					<PasswordConfirmInput name="confirm" />
+				</PasswordConfirm>
+				<ResetButton />
+			</Form>,
+		)
+
+		enter('abc', 'abcd')
+
+		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+		})
+
+		expect(screen.queryByText('Passwords do not match')).not.toBeInTheDocument()
 	})
 })
