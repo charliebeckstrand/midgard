@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
 import { type InputVariants, k } from '../../recipes/kata/input'
 
@@ -12,7 +12,7 @@ type InputFrameProps = {
 	suffix: ReactNode
 	variant: InputVariants['variant']
 	/** The `size` of the input. A step makes the frame a density scope. */
-	density?: DensityStep
+	density?: ControlStep
 	dataGroup?: string
 	dataGroupOrientation?: string
 }

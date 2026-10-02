@@ -1,3 +1,4 @@
+import type { ControlStep } from '../../core/density'
 import { type ColorPanelVariants, k } from '../../recipes/kata/color-panel'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 
@@ -8,4 +9,4 @@ export type ColorPanelSkeletonProps = SkeletonProps<NonNullable<ColorPanelVarian
  * Loading placeholder matching the {@link ColorPanel} footprint at the given
  * `size`. Compose in loading trees while color state resolves.
  */
-export const ColorPanelSkeleton = createSkeleton(k.skeleton, 'ColorPanelSkeleton')
+export const ColorPanelSkeleton = createSkeleton<ControlStep>(k.skeleton, 'ColorPanelSkeleton')

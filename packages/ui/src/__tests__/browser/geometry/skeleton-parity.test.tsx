@@ -242,27 +242,39 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
-	it.each(['horizontal', 'vertical'] as const)(
-		'DescriptionListSkeleton has the box of a %s description list',
-		(orientation) => {
+	it.each([
+		['horizontal', 'sm'],
+		['horizontal', 'md'],
+		['horizontal', 'lg'],
+		['vertical', 'sm'],
+		['vertical', 'md'],
+		['vertical', 'lg'],
+	] as const)(
+		'DescriptionListSkeleton has the box of a %s description list at %s',
+		(orientation, size) => {
 			const real = box(
 				renderUI(
-					<DescriptionList orientation={orientation}>
-						<DescriptionTerm>Name</DescriptionTerm>
-						<DescriptionDetails>Wade Cooper</DescriptionDetails>
-						<DescriptionTerm>Email</DescriptionTerm>
-						<DescriptionDetails>wade@example.com</DescriptionDetails>
-						<DescriptionTerm>Role</DescriptionTerm>
-						<DescriptionDetails>Admin</DescriptionDetails>
-					</DescriptionList>,
+					<Box density={size}>
+						<DescriptionList orientation={orientation}>
+							<DescriptionTerm>Name</DescriptionTerm>
+							<DescriptionDetails>Wade Cooper</DescriptionDetails>
+							<DescriptionTerm>Email</DescriptionTerm>
+							<DescriptionDetails>wade@example.com</DescriptionDetails>
+							<DescriptionTerm>Role</DescriptionTerm>
+							<DescriptionDetails>Admin</DescriptionDetails>
+						</DescriptionList>
+					</Box>,
 				).container.firstElementChild,
 				'description list',
 			)
 
 			expect(
 				box(
-					renderUI(<DescriptionListSkeleton rows={3} orientation={orientation} />).container
-						.firstElementChild,
+					renderUI(
+						<Box density={size}>
+							<DescriptionListSkeleton rows={3} orientation={orientation} />
+						</Box>,
+					).container.firstElementChild,
 					'skeleton',
 				),
 			).toStrictEqual(real)

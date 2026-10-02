@@ -1,3 +1,4 @@
+import type { ControlStep } from '../../core/density'
 import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 
@@ -8,4 +9,4 @@ export type ButtonSkeletonProps = SkeletonProps<NonNullable<ButtonVariants['size
  * Button-shaped loading placeholder; size-driven via the `createSkeleton`
  * factory. Compose in loading trees in place of `<Button>`.
  */
-export const ButtonSkeleton = createSkeleton(k.skeleton, 'ButtonSkeleton')
+export const ButtonSkeleton = createSkeleton<ControlStep>(k.skeleton, 'ButtonSkeleton')

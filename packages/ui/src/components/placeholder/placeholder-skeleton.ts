@@ -57,7 +57,8 @@ export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
  * explicit `size` prop (default `'md'`); the returned component takes an
  * optional `size` prop. A density recipe (`{ base, density }`) writes an
  * explicit `size` to `data-density`, and without `size` it follows the nearest
- * density scope. A base-only recipe (`{ base }`) has a fixed silhouette and
+ * density scope. Its type argument limits the `size`, such as `ControlStep`
+ * for a control. A base-only recipe (`{ base }`) has a fixed silhouette and
  * takes no `size` prop. An `inline` recipe renders an inline-block `<span>`.
  *
  * Use only for skeletons whose entire body is that. Components that compose
@@ -71,13 +72,13 @@ export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
  * @returns A static skeleton component rendering a `<Placeholder>` with the
  *   recipe's shape classes; it accepts a `size` prop only for a sized recipe.
  * @example
- *   export const ButtonSkeleton = createSkeleton(k.skeleton, 'ButtonSkeleton')
- *   export const RadioSkeleton = createSkeleton(k.skeleton, 'RadioSkeleton')
+ *   export const BadgeSkeleton = createSkeleton(k.skeleton, 'BadgeSkeleton')
+ *   export const RadioSkeleton = createSkeleton<ControlStep>(k.skeleton, 'RadioSkeleton')
  */
-export function createSkeleton(
+export function createSkeleton<S extends DensityStep = DensityStep>(
 	skeleton: DensitySkeletonRecipe,
 	name: string,
-): (props: SkeletonProps<DensityStep>) => ReactElement
+): (props: SkeletonProps<S>) => ReactElement
 export function createSkeleton<S extends DensityStep>(
 	skeleton: SizedSkeletonRecipe<S>,
 	name: string,

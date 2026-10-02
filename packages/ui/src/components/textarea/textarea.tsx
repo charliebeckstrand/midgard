@@ -2,7 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives/control'
@@ -16,7 +16,7 @@ import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
 /** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, an `invalid` override, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
-	size?: DensityStep
+	size?: ControlStep
 	variant?: ControlVariant
 	className?: string
 	/**

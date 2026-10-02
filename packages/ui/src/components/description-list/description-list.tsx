@@ -21,6 +21,10 @@ export type DescriptionListProps = DescriptionListVariants & {
  * details). It owns every orientation-varying style, and projects it onto
  * direct `dt` / `dd` children, so term and details stay context-free.
  *
+ * The text and the block padding of each cell take the step of the nearest
+ * density scope. At `md` the text is `text-sm`, and a horizontal cell has
+ * `py-2` from the `sm` breakpoint.
+ *
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components. Projection targets
  * only direct children — wrapping `dt`/`dd` in intermediate elements bypasses the layout.

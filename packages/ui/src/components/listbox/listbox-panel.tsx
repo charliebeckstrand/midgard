@@ -9,7 +9,7 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
@@ -25,7 +25,7 @@ type ListboxPanelProps = {
 	 * density scope of the listbox, which the portal carries. A step makes the
 	 * panel a density scope.
 	 */
-	size?: DensityStep
+	size?: ControlStep
 	/** Accessible name for the listbox, threaded from the trigger's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string

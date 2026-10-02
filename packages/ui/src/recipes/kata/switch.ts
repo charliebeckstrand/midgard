@@ -1,4 +1,4 @@
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
@@ -123,4 +123,4 @@ export const k = defineRecipe(
 )
 
 /** Recipe variant props for {@link Switch}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type SwitchVariants = VariantProps<typeof k> & { size?: DensityStep }
+export type SwitchVariants = VariantProps<typeof k> & { size?: ControlStep }

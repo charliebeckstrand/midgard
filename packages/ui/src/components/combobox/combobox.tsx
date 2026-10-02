@@ -13,7 +13,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import {
 	useA11yRoving,
 	useFloatingUI,
@@ -93,7 +93,7 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	placement?: Placement
 	prefix?: ReactNode
 	suffix?: ReactNode
-	size?: DensityStep
+	size?: ControlStep
 	disabled?: boolean
 	/**
 	 * Keeps the input focusable and the value submitted, but blocks typing and
