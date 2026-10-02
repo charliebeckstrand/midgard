@@ -2,9 +2,11 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 import { cn, dataAttr } from '../../core'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
+import { pairRange } from './use-resizable-panel'
 
 /** Props for {@link ResizableHandle}: an optional accessible name. */
 export type ResizableHandleProps = {
@@ -15,7 +17,8 @@ export type ResizableHandleProps = {
 
 /**
  * Resize delta for a key press: arrows move by `step` along the panel axis,
- * Home / End jump to the bounds. Returns 0 for keys that don't resize.
+ * Home / End jump to the bounds. Returns 0 for keys that don't resize. A
+ * horizontal arrow comes in the reading order, after `logicalArrowKey`.
  *
  * @internal
  */
@@ -38,7 +41,11 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * Draggable divider between two {@link ResizablePanel}s. Renders a focusable
  * `role="separator"` whose `aria-orientation` is perpendicular to the group
  * axis. A drag or the arrow keys adjust the adjacent panel within its min and
- * max bounds. Shift takes a larger step, and Home/End reach the extremes.
+ * max bounds. Shift takes a larger step, and Home/End reach the extremes. In a
+ * right-to-left group the panels start on the right, so the horizontal arrows
+ * and the drag mirror: ArrowLeft and a move to the left grow the panel before
+ * the handle. `aria-valuemin` and `aria-valuemax` give the range that this
+ * panel can reach while both panels keep their bounds.
  */
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { 'aria-label': ariaLabel = 'Resize', className } = props
@@ -46,9 +53,13 @@ export function ResizableHandle(props: ResizableHandleProps) {
 	const { orientation, dragging, sizes, panelConfigs, startDrag, resize } = useResizable()
 	const { handleIndex = 0 } = useResizableIndex()
 
+	// The range is where the left panel can go while both panels of the pair
+	// keep their bounds, so each end is one that the handle can reach.
+	const range = pairRange(sizes, handleIndex, panelConfigs)
+
 	const panelSize = Math.round(sizes[handleIndex] ?? 0)
-	const panelMinSize = Math.round(panelConfigs[handleIndex]?.minSize ?? 0)
-	const panelMaxSize = Math.round(panelConfigs[handleIndex]?.maxSize ?? 100)
+	const panelMinSize = Math.round(range.min)
+	const panelMaxSize = Math.round(range.max)
 
 	const isHorizontal = orientation === 'horizontal'
 
@@ -58,7 +69,13 @@ export function ResizableHandle(props: ResizableHandleProps) {
 		(event: KeyboardEvent) => {
 			const step = event.shiftKey ? 10 : 5
 
-			const delta = resizeDeltaForKey(event.key, isHorizontal, step)
+			// In a right-to-left group the first panel is on the right, so the
+			// horizontal arrows swap: ArrowLeft grows it.
+			const delta = resizeDeltaForKey(
+				logicalArrowKey(event.key, event.currentTarget),
+				isHorizontal,
+				step,
+			)
 
 			if (delta !== 0) {
 				event.preventDefault()

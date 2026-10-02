@@ -122,6 +122,60 @@ describe('Resizable', () => {
 	})
 })
 
+describe('Resizable: handle range', () => {
+	// The range is where the left panel can go while both panels keep their bounds
+	// (B08-C07). Before, it was the left panel's own bounds, so a constrained
+	// neighbor made the reported ends unreachable.
+	it('takes the maximum from the right minSize', () => {
+		const { container } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel defaultSize={50}>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={50} minSize={20}>
+					B
+				</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		const handle = bySlot(container, 'resizable-handle')
+
+		expect(handle).toHaveAttribute('aria-valuemin', '0')
+
+		expect(handle).toHaveAttribute('aria-valuemax', '80')
+	})
+
+	it('takes the minimum from the right maxSize', () => {
+		const { container } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel defaultSize={50}>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={50} maxSize={55}>
+					B
+				</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-valuemin', '45')
+	})
+
+	it('reads the range of the pair, not of the group, with three panels', () => {
+		const { container } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel defaultSize={1}>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={1}>B</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={2}>C</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		const [first] = allBySlot(container, 'resizable-handle')
+
+		// The pair A + B holds 50 of the 100, so A reaches 50 at most.
+		expect(first).toHaveAttribute('aria-valuemax', '50')
+	})
+})
+
 describe('Resizable: keyboard', () => {
 	// Each row presses one key on the handle between two 50% panels and reads the
 	// last sizes reported.

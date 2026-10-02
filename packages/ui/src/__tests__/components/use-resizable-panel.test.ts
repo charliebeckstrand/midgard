@@ -110,10 +110,56 @@ describe('useResizablePanel', () => {
 			['normalizes defaultSizes to sum to 100', equalPanels, [50, 50]],
 			['preserves sizes when defaults already sum to 100', panels(30, 70), [30, 70]],
 			['handles a three-panel configuration', panels(1, 2, 1), [25, 50, 25]],
+			// `defaultSize` is a weight, not a percentage (B08-C08, B08-Q2).
+			['reads defaultSizes as weights', panels(30, 50), [37.5, 62.5]],
+			// Seeding clamps each panel into its bounds, and the neighbor takes the
+			// difference (B08-C09, B08-Q3).
+			[
+				'raises a panel to its minSize',
+				[
+					{ key: '.0', defaultSize: 10, minSize: 30, maxSize: 100 },
+					{ key: '.1', defaultSize: 90, minSize: 0, maxSize: 100 },
+				],
+				[30, 70],
+			],
+			[
+				'lowers a panel to its maxSize',
+				[
+					{ key: '.0', defaultSize: 90, minSize: 0, maxSize: 60 },
+					{ key: '.1', defaultSize: 10, minSize: 0, maxSize: 100 },
+				],
+				[60, 40],
+			],
+			[
+				'raises the last panel and takes the difference from its neighbor',
+				[
+					{ key: '.0', defaultSize: 25, minSize: 0, maxSize: 100 },
+					{ key: '.1', defaultSize: 50, minSize: 0, maxSize: 100 },
+					{ key: '.2', defaultSize: 25, minSize: 40, maxSize: 100 },
+				],
+				[25, 35, 40],
+			],
 		])('%s', (_name, panelConfigs, expected) => {
 			const { result } = renderPanel({ panelConfigs })
 
 			expect(result.current.sizes).toEqual(expected)
+		})
+
+		it('clamps the sizes again when the panel set changes', () => {
+			const { result, rerender } = renderHook(
+				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
+					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
+				{ initialProps: { panelConfigs: equalPanels } },
+			)
+
+			rerender({
+				panelConfigs: [
+					{ key: '.0', defaultSize: 10, minSize: 30, maxSize: 100 },
+					{ key: '.$other', defaultSize: 90, minSize: 0, maxSize: 100 },
+				],
+			})
+
+			expect(result.current.sizes).toEqual([30, 70])
 		})
 	})
 
