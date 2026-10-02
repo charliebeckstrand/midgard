@@ -57,8 +57,20 @@ const surface = [
 	...validation,
 ]
 
-/** Layout shell: position, inline-flex centering, focus outline, cursor. */
-const shell = ['relative', flex.inline, 'justify-center', focus.outline, ...cursor]
+/**
+ * Layout shell: position, inline-flex centering, focus outline, cursor, and
+ * touch action. `touch-manipulation` stops the iOS double-tap wait on a
+ * Checkbox or a Radio without a field, as on Button. The toggle field sets it
+ * on the whole row.
+ */
+const shell = [
+	'relative',
+	flex.inline,
+	'justify-center',
+	focus.outline,
+	...cursor,
+	'touch-manipulation',
+]
 
 /** Pre-assembled chrome: shell + surface. The applicator's standard base. */
 const base = [...shell, ...surface]
