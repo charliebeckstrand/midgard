@@ -1,14 +1,15 @@
 import { ugoki } from '../kiso'
 
-const { duration, ease, reveal } = ugoki
+const { duration, ease } = ugoki
 
-// The outgoing panel clears before the incoming panel starts to show. Two
-// panels at half opacity read as one double image, most of all when the
-// panels share a layout.
-const exit = { duration: duration[100], ease: ease.out }
+// The incoming panel starts to show on the first frame, and the box height
+// moves with it on the same curve. A fade-out of the outgoing panel either
+// overlaps the fade-in, which shows a double image, or comes before it, which
+// shows an empty box. The outgoing panel thus goes at once.
+const enter = { duration: duration[200], ease: ease.out }
 
 export const k = {
-	transition: reveal.transition,
-	exit,
-	enter: { ...reveal.transition, delay: exit.duration },
+	transition: enter,
+	exit: { duration: 0 },
+	enter,
 }
