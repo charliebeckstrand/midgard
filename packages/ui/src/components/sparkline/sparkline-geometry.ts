@@ -65,7 +65,7 @@ export type SparklineGeometryOptions = {
  * and its bar is omitted. That beats emitting an invalid path or a vertex clamped
  * to an edge. A flat series (or one point) maps to the vertical middle rather than
  * dividing by a zero span. A single point draws as a horizontal line across the
- * box, so it stays visible.
+ * box, so it stays visible, and its `last` point sits at the end of that line.
  * @internal
  */
 export function sparklineGeometry(
@@ -130,7 +130,15 @@ export function sparklineGeometry(
 
 	const first = drawn[0]
 
-	const last = drawn.at(-1) ?? null
+	// A lone drawn point draws as a full-width line, so its end point sits at the
+	// end of that line, not at the x of the datum.
+	const lastDrawn = drawn.at(-1)
+
+	const last = lastDrawn
+		? drawn.length === 1
+			? { x: width - padding, y: lastDrawn.y }
+			: lastDrawn
+		: null
 
 	// Close the fill on the outermost drawn points, not the box corners: when a
 	// boundary datum is non-finite the drawn line stops short of the edge, and

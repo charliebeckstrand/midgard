@@ -50,6 +50,21 @@ describe('Sparkline', () => {
 		expect(rich.container.querySelector('circle')).toBeInTheDocument()
 	})
 
+	it('ignores endPoint for the bar shape, so the bars keep their inset', () => {
+		const data = [1, 4, 2, 8]
+
+		const plain = renderUI(<Sparkline data={data} shape="bar" aria-label="By period" />)
+
+		const marked = renderUI(<Sparkline data={data} shape="bar" endPoint aria-label="By period" />)
+
+		const boxes = (root: HTMLElement) =>
+			Array.from(root.querySelectorAll('rect'), (rect) =>
+				['x', 'y', 'width', 'height'].map((name) => rect.getAttribute(name)),
+			)
+
+		expect(boxes(marked.container)).toEqual(boxes(plain.container))
+	})
+
 	it('still renders the marks under animate for both variants', () => {
 		const line = renderUI(
 			<Sparkline data={[1, 4, 2, 8, 5]} animate fill endPoint aria-label="Animated line" />,
