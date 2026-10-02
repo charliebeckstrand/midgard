@@ -1,11 +1,12 @@
 import { act, render } from '@testing-library/react'
-import { createRef, type Ref } from 'react'
+import { createRef, type Ref, useState } from 'react'
 import { afterEach, describe, expect, it, type Mock, vi } from 'vitest'
 import {
 	type SignaturePadHandle,
 	type SignaturePadStateOptions,
 	useSignaturePadState,
 } from '../../components/signature-pad/use-signature-pad-state'
+import { makePointerEvent } from '../helpers'
 
 // Minimal mock shape for the CanvasRenderingContext2D members the hook reads.
 // Per-method overrides are attached via `Object.defineProperty` (no casts needed).
@@ -302,7 +303,7 @@ describe('useSignaturePadState', () => {
 		expect(toDataURL).toHaveBeenCalledWith('image/jpeg', 0.5)
 	})
 
-	it('does not repaint when a controlled value matches lastEmittedRef', () => {
+	it('does not repaint when a controlled value matches the shown value', () => {
 		// Re-rendering with the same controlled value triggers no additional
 		// clearRect. Guards the early-return path (effect dependency [current] is
 		// referentially stable).
@@ -325,5 +326,101 @@ describe('useSignaturePadState', () => {
 		)
 
 		expect(context?.clearRect.mock.calls.length).toBe(clearCallsAfterMount)
+	})
+
+	it('wipes a stroke that a controlled owner refuses to take', () => {
+		// The owner keeps `null`, so the stroke must not stay on the pad while the
+		// value says the pad is empty.
+		const onValueChange = vi.fn()
+
+		const { context, captured } = renderHarness({
+			value: null,
+			onValueChange,
+			canvasDataURL: 'data:,refused',
+		})
+
+		const clearCallsBefore = context?.clearRect.mock.calls.length ?? 0
+
+		const target = document.createElement('div')
+
+		target.setPointerCapture = vi.fn()
+
+		act(() => {
+			captured.state?.handlePointerDown(
+				makePointerEvent({
+					clientX: 10,
+					clientY: 10,
+					button: 0,
+					pointerId: 1,
+					pointerType: 'mouse',
+					currentTarget: target,
+				}),
+			)
+		})
+
+		expect(captured.state?.empty).toBe(false)
+
+		act(() => {
+			captured.state?.commit()
+		})
+
+		expect(onValueChange).toHaveBeenCalledWith('data:,refused')
+
+		expect(captured.state?.empty).toBe(true)
+
+		expect(context?.clearRect.mock.calls.length).toBeGreaterThan(clearCallsBefore)
+	})
+
+	it('keeps a stroke that a controlled owner takes', () => {
+		function Owner() {
+			const [value, setValue] = useState<string | null>(null)
+
+			return (
+				<Harness
+					value={value}
+					onValueChange={setValue}
+					strokeColor="#000"
+					strokeWidth={2}
+					context={ownerContext}
+					canvasDataURL="data:,taken"
+					captureState={(state) => {
+						ownerState.current = state
+					}}
+				/>
+			)
+		}
+
+		const ownerContext = makeContext()
+
+		const ownerState: { current?: ReturnType<typeof useSignaturePadState> } = {}
+
+		render(<Owner />)
+
+		const target = document.createElement('div')
+
+		target.setPointerCapture = vi.fn()
+
+		act(() => {
+			ownerState.current?.handlePointerDown(
+				makePointerEvent({
+					clientX: 10,
+					clientY: 10,
+					button: 0,
+					pointerId: 1,
+					pointerType: 'mouse',
+					currentTarget: target,
+				}),
+			)
+		})
+
+		const clearCallsBefore = ownerContext.clearRect.mock.calls.length
+
+		act(() => {
+			ownerState.current?.commit()
+		})
+
+		expect(ownerState.current?.empty).toBe(false)
+
+		expect(ownerContext.clearRect.mock.calls.length).toBe(clearCallsBefore)
 	})
 })

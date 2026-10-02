@@ -52,8 +52,9 @@ export type SignaturePadStateOptions = {
  * `commit` (stroke end) and `clear` both mark the bound field touched — the
  * pad's analogue of blur. `commit` marks it only when a stroke ends, not on a
  * pointer release or leave with no stroke. A controlled `current` change that
- * differs from the last emitted value repaints from the snapshot via an
- * effect. External resets therefore stay in sync without re-emitting.
+ * differs from the shown value repaints from the snapshot via an effect.
+ * External resets therefore stay in sync without re-emitting. A stroke that a
+ * controlled owner does not take is wiped, so the pad shows the owner's value.
  */
 export function useSignaturePadState({
 	name,
@@ -91,7 +92,10 @@ export function useSignaturePadState({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const lastEmittedRef = useRef<string | null>(null)
+	// The value that the pad shows: the last stroke it emitted, or the value it
+	// painted. It is state, so a stroke that a controlled owner refuses still
+	// runs the sync effect, and the effect wipes the stroke.
+	const [shown, setShown] = useState<string | null>(null)
 
 	const [empty, setEmpty] = useState(current == null)
 
@@ -104,7 +108,7 @@ export function useSignaturePadState({
 	})
 
 	useEffect(() => {
-		if (current === lastEmittedRef.current) return
+		if (current === shown) return
 
 		const canvas = canvasRef.current
 
@@ -121,7 +125,7 @@ export function useSignaturePadState({
 		if (!current) {
 			setEmpty(true)
 
-			lastEmittedRef.current = null
+			setShown(null)
 
 			return
 		}
@@ -130,8 +134,20 @@ export function useSignaturePadState({
 
 		setEmpty(false)
 
-		lastEmittedRef.current = current
-	}, [current, forgetDrawing])
+		setShown(current)
+	}, [current, shown, forgetDrawing])
+
+	// A stroke end records its snapshot as shown before it emits. The sync
+	// effect then skips a value that the pad drew, and wipes a value that the
+	// owner did not take.
+	const emit = useCallback(
+		(next: string | null) => {
+			setShown(next)
+
+			setCurrent(next)
+		},
+		[setCurrent],
+	)
 
 	const {
 		handlePointerDown,
@@ -145,8 +161,7 @@ export function useSignaturePadState({
 		strokeWidth,
 		empty,
 		setEmpty,
-		lastEmittedRef,
-		setCurrent,
+		setCurrent: emit,
 		onDrawStart,
 		onInk: forgetDrawing,
 	})
@@ -171,12 +186,10 @@ export function useSignaturePadState({
 
 		setEmpty(true)
 
-		lastEmittedRef.current = null
-
-		setCurrent(null)
+		emit(null)
 
 		setTouched()
-	}, [forgetDrawing, setCurrent, setTouched])
+	}, [forgetDrawing, emit, setTouched])
 
 	useImperativeHandle(
 		ref,

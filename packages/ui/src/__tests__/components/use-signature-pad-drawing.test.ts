@@ -36,8 +36,6 @@ function setup({
 
 	const setCurrent = vi.fn()
 
-	const lastEmittedRef = { current: null as string | null }
-
 	const onDrawStart = vi.fn()
 
 	const { result } = renderHook(() => {
@@ -51,13 +49,12 @@ function setup({
 			strokeWidth: 2,
 			empty,
 			setEmpty,
-			lastEmittedRef,
 			setCurrent,
 			onDrawStart,
 		})
 	})
 
-	return { result, context, canvas, setEmpty, setCurrent, lastEmittedRef, onDrawStart }
+	return { result, context, canvas, setEmpty, setCurrent, onDrawStart }
 }
 
 function pointerEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
@@ -193,7 +190,7 @@ describe('useSignaturePadDrawing', () => {
 	})
 
 	it('commits the canvas snapshot via setCurrent on commit()', () => {
-		const { result, setCurrent, lastEmittedRef } = setup()
+		const { result, setCurrent } = setup()
 
 		act(() => {
 			result.current.handlePointerDown(pointerEvent({ clientX: 0, clientY: 0 }))
@@ -204,8 +201,6 @@ describe('useSignaturePadDrawing', () => {
 		})
 
 		expect(setCurrent).toHaveBeenCalledWith('data:,strokes')
-
-		expect(lastEmittedRef.current).toBe('data:,strokes')
 	})
 
 	it('is a no-op when commit() is called without an active stroke', () => {
