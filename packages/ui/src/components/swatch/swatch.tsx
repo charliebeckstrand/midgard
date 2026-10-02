@@ -48,8 +48,8 @@ export type SwatchProps = SwatchVariants & {
 	 * - a `text-*` utility class, typically a data-viz palette token (e.g.
 	 *   `kata/chart`'s `series[c].text`) or an `iro.marker` shade.
 	 *
-	 * `solid` fills with it, `outline` frames with it, `soft` tints with it,
-	 * `dashed` strokes it. Omitted, the swatch inherits the ambient text color.
+	 * `solid` fills with it, `outline` frames with it, `soft` tints with it inside
+	 * a 1px edge, `dashed` strokes it. Omitted, the swatch inherits the ambient text color.
 	 */
 	color?: ChartColorSlot | (string & {})
 	className?: string

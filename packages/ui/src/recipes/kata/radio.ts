@@ -11,7 +11,7 @@ const color = defineColors({
 	zinc: {
 		light:
 			'[--check-bg:var(--color-zinc-900)] [--check-border:var(--color-zinc-950)]/90 [--check-mark:var(--color-white)]',
-		dark: 'dark:[--check-bg:var(--color-zinc-600)] dark:[--check-border:var(--color-zinc-700)]/90',
+		dark: 'dark:[--check-bg:var(--color-zinc-500)] dark:[--check-border:var(--color-zinc-500)]/90',
 	},
 	...control.check.color,
 })

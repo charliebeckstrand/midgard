@@ -10,9 +10,10 @@
  * utility, a `kata/chart` slot name, or a raw hex / `oklch()`. `Swatch` resolves
  * it. The CVD-validated data-viz palette therefore stays in `kata/chart` and
  * never forks, and any hue works. `solid` fills with it, `outline` frames with
- * it, and `soft` tints with it at 15%. `dashed` renders it per shape: a dashed
- * dash run across a `line`, a dashed border around a `square` or `circle`.
- * Either mirrors a dashed reference rule in a legend.
+ * it, and `soft` tints with it at 15% inside a 1px edge in the hue. `dashed`
+ * renders it per shape: a dashed dash run across a `line`, a dashed border
+ * around a `square` or `circle`. Either mirrors a dashed reference rule in a
+ * legend.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { omote } from '../kiso'
@@ -34,7 +35,9 @@ export const k = defineRecipe({
 	// dashed reference rule on a line and a dashed stroke around a box or dot.
 	variant: {
 		solid: 'bg-current',
-		soft: 'bg-current/15',
+		// The 15% tint alone is about 1.2:1 against the page, so a 1px edge in the
+		// hue keeps the mark visible (WCAG 1.4.11).
+		soft: 'border border-current bg-current/15',
 		outline: ['border-2 border-current', ...bg.surface],
 		// Shape-specific; the shape × dashed compounds carry the class.
 		dashed: '',
