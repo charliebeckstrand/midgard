@@ -32,9 +32,8 @@ const primitivesDir = join(srcDir, 'primitives')
 // (`Field`, `Label`, etc.). Never extend this list for new files; fix the
 // file or fix the export.
 const ALLOWLIST = new Set([
-	'dl/description-details.tsx',
-	'dl/description-list.tsx',
-	'dl/description-term.tsx',
+	'description-list/description-details.tsx',
+	'description-list/description-term.tsx',
 	'fieldset/description.tsx',
 	'fieldset/field.tsx',
 	'fieldset/label.tsx',

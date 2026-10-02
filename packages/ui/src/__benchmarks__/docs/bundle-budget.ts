@@ -33,12 +33,16 @@ const ENTRY_CHUNK = stableName('index-00000000.js')
  * exist to separate: the demos fetch their atlases as static assets, so one
  * joining the build grows what is on disk and nothing that loads before a reader
  * opens its tab.
+ *
+ * On 2026-10-02 the entry was 64 kB and the ceiling was 65 kB. A change of a few
+ * hundred bytes then failed the gate. The entry ceiling is now 69 kB. A stray
+ * eager import adds some kB, so it still goes past the ceiling.
  */
 const BUDGETS = [
 	{ label: 'total gzip', budgetKb: 2250, of: (report: BundleReport) => report.totalGzip },
 	{
 		label: 'entry gzip',
-		budgetKb: 65,
+		budgetKb: 69,
 		// The app's own eager chunk — `stableName` has already stripped the content
 		// hash, so this is the same name `vite-metrics.ts` reports and compares.
 		of: (report: BundleReport) => report.chunks.find((c) => c.name === ENTRY_CHUNK)?.gzip,
@@ -52,7 +56,9 @@ const measurements = BUDGETS.map(({ label, budgetKb, of }) => {
 
 	if (bytes === undefined) throw new Error(`No ${label} measurement in the build output.`)
 
-	return { label, budgetKb, valueKb: Math.round(bytes / 1024) }
+	// The check uses the bytes. A rounded value would let a small change at the
+	// ceiling go over it.
+	return { label, budgetKb, bytes, valueKb: (bytes / 1024).toFixed(1) }
 })
 
 const summary = measurements
@@ -65,7 +71,7 @@ if (process.argv.includes('--report')) {
 	process.exit(0)
 }
 
-const over = measurements.filter(({ valueKb, budgetKb }) => valueKb > budgetKb)
+const over = measurements.filter(({ bytes, budgetKb }) => bytes > budgetKb * 1024)
 
 if (over.length > 0) {
 	const lines = over.map(

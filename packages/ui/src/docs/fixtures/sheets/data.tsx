@@ -1,6 +1,10 @@
 import { ArrowDown, ArrowUp, File, Folder } from 'lucide-react'
 import { Avatar, AvatarGroup } from '../../../components/avatar'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../components/dl'
+import {
+	DescriptionDetails,
+	DescriptionList,
+	DescriptionTerm,
+} from '../../../components/description-list'
 import { Icon } from '../../../components/icon'
 import { JsonTree } from '../../../components/json-tree'
 import { List, ListDescription, ListItem, ListLabel } from '../../../components/list'

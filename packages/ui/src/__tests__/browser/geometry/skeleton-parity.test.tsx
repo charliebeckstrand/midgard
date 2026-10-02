@@ -3,6 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../../components/button'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { ColorPanel, ColorPanelSkeleton } from '../../../components/color'
+import {
+	DescriptionDetails,
+	DescriptionList,
+	DescriptionListSkeleton,
+	DescriptionTerm,
+} from '../../../components/description-list'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import {
 	ProgressBar,
@@ -13,7 +19,10 @@ import {
 import { Radio, RadioSkeleton } from '../../../components/radio'
 import { Rating, RatingSkeleton } from '../../../components/rating'
 import { Slider, SliderSkeleton } from '../../../components/slider'
+import { Stepper, StepperSkeleton, StepperStep, StepperTitle } from '../../../components/stepper'
 import { Switch, SwitchSkeleton } from '../../../components/switch'
+import { Tab, TabList, TabListSkeleton, Tabs } from '../../../components/tabs'
+import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
@@ -192,6 +201,33 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
+	it.each(['horizontal', 'vertical'] as const)(
+		'DescriptionListSkeleton has the box of a %s description list',
+		(orientation) => {
+			const real = box(
+				renderUI(
+					<DescriptionList orientation={orientation}>
+						<DescriptionTerm>Name</DescriptionTerm>
+						<DescriptionDetails>Wade Cooper</DescriptionDetails>
+						<DescriptionTerm>Email</DescriptionTerm>
+						<DescriptionDetails>wade@example.com</DescriptionDetails>
+						<DescriptionTerm>Role</DescriptionTerm>
+						<DescriptionDetails>Admin</DescriptionDetails>
+					</DescriptionList>,
+				).container.firstElementChild,
+				'description list',
+			)
+
+			expect(
+				box(
+					renderUI(<DescriptionListSkeleton rows={3} orientation={orientation} />).container
+						.firstElementChild,
+					'skeleton',
+				),
+			).toStrictEqual(real)
+		},
+	)
+
 	const listRows = [
 		{ id: 'a', label: 'Invoices' },
 		{ id: 'b', label: 'Receipts' },
@@ -228,4 +264,70 @@ describe('skeleton parity (real browser)', () => {
 			),
 		).toStrictEqual(real)
 	})
+
+	it.each(['xs', 'sm', 'md', 'lg'] as const)(
+		'TextSkeleton has the line height of %s text',
+		(size) => {
+			const real = box(renderUI(<Text size={size}>Total</Text>).container.firstElementChild, 'text')
+
+			expect(placeholder(renderUI(<TextSkeleton size={size} />).container).height).toBe(real.height)
+		},
+	)
+
+	// The browser viewport is 414 wide, below `sm`, so the responsive layout is vertical.
+	it.each(['horizontal', 'vertical', undefined] as const)(
+		'StepperSkeleton has the box of a stepper (orientation: %s)',
+		(orientation) => {
+			const real = box(
+				renderUI(
+					<Stepper orientation={orientation} value={0}>
+						<StepperStep value={0}>
+							<StepperTitle>Account</StepperTitle>
+						</StepperStep>
+						<StepperStep value={1}>
+							<StepperTitle>Profile</StepperTitle>
+						</StepperStep>
+						<StepperStep value={2}>
+							<StepperTitle>Review</StepperTitle>
+						</StepperStep>
+					</Stepper>,
+				).container.querySelector('[data-slot="stepper"]'),
+				'stepper',
+			)
+
+			const skeleton = box(
+				renderUI(<StepperSkeleton steps={3} orientation={orientation} />).container
+					.firstElementChild,
+				'skeleton',
+			)
+
+			expect(skeleton).toStrictEqual(real)
+		},
+	)
+
+	it.each(['horizontal', 'vertical'] as const)(
+		'TabListSkeleton has the height of a %s tab list',
+		(orientation) => {
+			const real = box(
+				renderUI(
+					<Tabs defaultValue="a" orientation={orientation}>
+						<TabList aria-label="Sections">
+							<Tab value="a">Overview</Tab>
+							<Tab value="b">Activity</Tab>
+							<Tab value="c">Settings</Tab>
+						</TabList>
+					</Tabs>,
+				).container.querySelector('[data-slot="tab-list"]'),
+				'tab list',
+			)
+
+			const skeleton = box(
+				renderUI(<TabListSkeleton tabs={3} orientation={orientation} />).container
+					.firstElementChild,
+				'skeleton',
+			)
+
+			expect(skeleton.height).toBe(real.height)
+		},
+	)
 })

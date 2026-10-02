@@ -50,7 +50,7 @@ packages/ui/src/components/<name>/
   Barrel                index.ts (re-exports only)
 ```
 
-When the folder name is plural, the singular stem prefixes its sub-files (`tabs/` → `tab.tsx`, `tab-list.tsx`). A namespace directory that ships only a family of parts has no `<name>.tsx` main; its barrel re-exports the parts directly (`dl`, `progress`, `resizable`, `status`). `component-filename-boundary.test.ts` pins both shapes, the bare-file allowlist, and the filename-matches-export rule.
+When the folder name is plural, the singular stem prefixes its sub-files (`tabs/` → `tab.tsx`, `tab-list.tsx`). A namespace directory that ships only a family of parts has no `<name>.tsx` main; its barrel re-exports the parts directly (`progress`, `resizable`, `status`). `component-filename-boundary.test.ts` pins both shapes, the bare-file allowlist, and the filename-matches-export rule.
 
 Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`. Document the new public exports and add the component to [`docs/COMPONENTS.md`](docs/COMPONENTS.md) in the same change ([CONVENTIONS.md](../../CONVENTIONS.md) §12).
 
