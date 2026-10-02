@@ -67,7 +67,6 @@ const WAIVERS = new Map<string, Waiver>([
 	['components/breadcrumb/breadcrumb-separator.tsx', { order: 1, note: 'lead' }],
 	['components/command-palette/slots.tsx', { order: 1, note: 'lead' }],
 	['components/menu/menu-item.tsx', { order: 1, note: 'lead' }],
-	['components/odometer/odometer.tsx', { order: 1, note: 'lead' }],
 	['components/pagination/pagination-page.tsx', { order: 1, note: 'lead' }],
 	['components/pagination/pagination-utilities.tsx', { order: 1, note: 'lead' }],
 	['components/stepper/stepper-separator.tsx', { order: 1, note: 'lead' }],

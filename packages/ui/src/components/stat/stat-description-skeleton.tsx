@@ -1,13 +1,11 @@
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/stat'
-import { Placeholder } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link StatDescriptionSkeleton}: an optional `className`. */
-export type StatDescriptionSkeletonProps = {
-	className?: string
-}
+export type StatDescriptionSkeletonProps = SkeletonProps
 
 /** Description-shaped placeholder. */
-export function StatDescriptionSkeleton({ className }: StatDescriptionSkeletonProps) {
-	return <Placeholder className={cn(k.skeleton.description, className)} />
-}
+export const StatDescriptionSkeleton = createSkeleton(
+	k.skeleton.description,
+	'StatDescriptionSkeleton',
+)

@@ -24,6 +24,16 @@ describe('ToggleIconButton', () => {
 		expect(el?.tagName).toBe('BUTTON')
 	})
 
+	it('lets a wrapper re-anchor it with its own data-slot', () => {
+		const { container } = renderUI(
+			<ToggleIconButton icon={icon} aria-label="Copy" data-slot="copy-button" />,
+		)
+
+		expect(bySlot(container, 'copy-button')?.tagName).toBe('BUTTON')
+
+		expect(bySlot(container, 'toggle-icon-button')).toBeNull()
+	})
+
 	it('sets aria-pressed based on pressed prop', () => {
 		const { container } = renderUI(
 			<ToggleIconButton pressed={true} icon={icon} pressedIcon={pressedIcon} aria-label="Toggle" />,

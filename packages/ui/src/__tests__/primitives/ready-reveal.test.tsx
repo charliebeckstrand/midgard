@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ReadyReveal } from '../../primitives/ready-reveal'
-import { renderUI, screen } from '../helpers'
+import { getSlot, renderUI, screen } from '../helpers'
 
 describe('ReadyReveal', () => {
 	it('renders children content', () => {
@@ -75,5 +75,63 @@ describe('ReadyReveal onReadyComplete', () => {
 		renderUI(reveal({ ready: true, onReadyComplete }))
 
 		expect(onReadyComplete).not.toHaveBeenCalled()
+	})
+
+	it('marks the root busy only while not ready', () => {
+		const { container, rerender } = renderUI(
+			<ReadyReveal ready={false} placeholder={<span>P</span>}>
+				<span>C</span>
+			</ReadyReveal>,
+		)
+
+		const root = getSlot(container, 'ready-reveal')
+
+		expect(root).toHaveAttribute('aria-busy', 'true')
+
+		rerender(
+			<ReadyReveal ready={true} placeholder={<span>P</span>}>
+				<span>C</span>
+			</ReadyReveal>,
+		)
+
+		expect(root).not.toHaveAttribute('aria-busy')
+	})
+
+	it('renders no live region without a loadingLabel', () => {
+		renderUI(
+			<ReadyReveal ready={false} placeholder={<span>P</span>}>
+				<span>C</span>
+			</ReadyReveal>,
+		)
+
+		expect(screen.queryByRole('status')).toBeNull()
+	})
+
+	it('announces the loadingLabel in a polite live region while not ready', () => {
+		const { rerender } = renderUI(
+			<ReadyReveal ready={false} loadingLabel="Loading orders" placeholder={<span>P</span>}>
+				<span>C</span>
+			</ReadyReveal>,
+		)
+
+		const status = screen.getByRole('status')
+
+		expect(status).toHaveTextContent('Loading orders')
+
+		rerender(
+			<ReadyReveal ready={true} loadingLabel="Loading orders" placeholder={<span>P</span>}>
+				<span>C</span>
+			</ReadyReveal>,
+		)
+
+		expect(status).toBeEmptyDOMElement()
+
+		rerender(
+			<ReadyReveal ready={false} loadingLabel="Loading orders" placeholder={<span>P</span>}>
+				<span>C</span>
+			</ReadyReveal>,
+		)
+
+		expect(status).toHaveTextContent('Loading orders')
 	})
 })

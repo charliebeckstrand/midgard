@@ -5,6 +5,7 @@ import {
 	TableCell,
 	TableHead,
 	TableHeader,
+	TableLoading,
 	TableRow,
 } from '../../components/table'
 import { DensityProvider } from '../../providers/density'
@@ -289,5 +290,17 @@ describe('Table density resolution', () => {
 		const { container } = renderUI(<Table size="sm">{body}</Table>)
 
 		expect(container.querySelector('[data-slot="table"]')).toHaveAttribute('data-density', 'sm')
+	})
+})
+
+describe('TableLoading', () => {
+	it('marks its body busy, so the hidden skeleton cells do not read as an empty table', () => {
+		const { container } = renderUI(
+			<Table>
+				<TableLoading columns={2} />
+			</Table>,
+		)
+
+		expect(bySlot(container, 'table-body')).toHaveAttribute('aria-busy', 'true')
 	})
 })

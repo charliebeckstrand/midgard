@@ -15,10 +15,10 @@ export type TableLoadingProps = {
  * Render in place of {@link TableBody} while data loads.
  *
  * @remarks
- * Known gap: the body carries no `aria-busy` or `role="status"`, and the
- * skeletons are `aria-hidden`. Assistive technology therefore perceives a table
- * of empty cells, with no loading signal. A consumer that owns a live region covers
- * it; one that does not has no cue.
+ * The body is `aria-busy`, so assistive technology does not read the hidden
+ * skeleton cells as an empty table. The body has no live region, because a
+ * `<tbody>` cannot hold one. To announce the load, the page must own a live
+ * region.
  *
  * @defaultValue rows `2`
  */
@@ -27,7 +27,7 @@ export function TableLoading({ columns, rows = 2 }: TableLoadingProps) {
 	const cellKeys = rangeKeys(columns, 'cell')
 
 	return (
-		<TableBody>
+		<TableBody aria-busy>
 			{rowKeys.map((rowKey) => (
 				<TableRow key={rowKey}>
 					{cellKeys.map((cellKey) => (

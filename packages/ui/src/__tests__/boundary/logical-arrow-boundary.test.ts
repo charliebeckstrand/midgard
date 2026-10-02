@@ -25,8 +25,6 @@ const PHYSICAL: Record<string, string> = {
 		'the track is placed with `left: %` and does not mirror',
 	'components/color/color-slider.tsx': 'the track is placed with `left: %` and does not mirror',
 	'components/color/color-area.tsx': 'the saturation axis is physical and does not mirror',
-	'components/resizable/resizable-handle.tsx':
-		'the panels are placed physically; ArrowRight moves the handle right',
 	'hooks/use-panel-resize.ts': 'the panel docks to a physical side',
 	'modules/chart/engine/use-chart-keyboard.ts': 'the chart axes do not mirror',
 	'modules/chart/engine/chart-legend/range-legend.tsx':

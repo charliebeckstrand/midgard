@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import {
 	equalHsva,
@@ -15,6 +15,7 @@ import type { Hsva } from '../../components/color/types'
 import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
+import { Form, useFormActions } from '../../components/form'
 import { allBySlot, bySlot, fireEvent, getAllSlots, getSlot, present, renderUI } from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
@@ -252,6 +253,58 @@ describe('ColorPanel', () => {
 
 		expect(allBySlot(container, 'color-swatch')).toHaveLength(0)
 	})
+
+	it('gives each chip its own key when the swatches repeat a color', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		onTestFinished(() => error.mockRestore())
+
+		const { container } = renderUI(
+			<ColorPanel defaultValue="#3b82f6" swatches={['#ffffff', '#000000', '#ffffff']} />,
+		)
+
+		expect(allBySlot(container, 'color-swatch')).toHaveLength(3)
+
+		// React reports a repeated key through `console.error`.
+		const keyWarnings = error.mock.calls.filter((args) =>
+			args.some((arg) => typeof arg === 'string' && arg.includes('same key')),
+		)
+
+		expect(keyWarnings).toEqual([])
+	})
+
+	it('commits a shorthand hex only on blur, not while the digits are typed', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<ColorPanel alpha defaultValue="#3b82f6ff" onValueChange={onValueChange} />,
+		)
+
+		const hex = getSlot<HTMLInputElement>(container, 'color-hex-input')
+
+		fireEvent.focus(hex)
+
+		// Each prefix of `12345678` that is 3 or 4 digits long parses as shorthand.
+		for (const draft of ['1', '12', '123', '1234', '12345', '123456', '1234567']) {
+			fireEvent.change(hex, { target: { value: draft } })
+		}
+
+		// `123456` is a full hex, so it commits live.
+		expect(onValueChange.mock.calls.map(([value]) => value)).toEqual(['#123456ff'])
+
+		fireEvent.change(hex, { target: { value: '12345678' } })
+
+		expect(onValueChange).toHaveBeenLastCalledWith('#12345678')
+
+		// A shorthand that stays in the field commits when the field loses focus.
+		fireEvent.change(hex, { target: { value: 'abc' } })
+
+		expect(onValueChange).toHaveBeenCalledTimes(2)
+
+		fireEvent.blur(hex)
+
+		expect(onValueChange).toHaveBeenLastCalledWith('#aabbccff')
+	})
 })
 
 describe('ColorPicker', () => {
@@ -273,6 +326,63 @@ describe('ColorPicker', () => {
 		)
 
 		expect(bySlot(container, 'color-picker-button')).toBeEnabled()
+	})
+
+	it('puts no aria-required on the trigger, a button that does not take it', () => {
+		const { container } = renderUI(
+			<Control required>
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		expect(button).not.toHaveAttribute('role')
+
+		expect(button).not.toHaveAttribute('aria-required')
+	})
+
+	it('paints black, not defaultValue, while the bound field is empty (§7.2)', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{}}>
+				<ColorPicker name="color" defaultValue="#ef4444" />
+			</Form>,
+		)
+
+		expect(getSlot(container, 'color-picker-button')).toHaveTextContent('#000000')
+	})
+
+	it('paints black when the bound field goes back to empty', () => {
+		let actions: ReturnType<typeof useFormActions>
+
+		function ActionsCapture() {
+			actions = useFormActions()
+
+			return null
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ color: '#ef4444' }}>
+				<ActionsCapture />
+				<ColorPicker name="color" />
+			</Form>,
+		)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		expect(button).toHaveTextContent('#EF4444')
+
+		act(() => actions?.setValue('color', undefined))
+
+		expect(button).toHaveTextContent('#000000')
+
+		act(() => actions?.setValue('color', '#3b82f6'))
+
+		expect(button).toHaveTextContent('#3B82F6')
+
+		act(() => actions?.reset({}))
+
+		expect(button).toHaveTextContent('#000000')
 	})
 
 	it('renders a dialog trigger with a color swatch', () => {

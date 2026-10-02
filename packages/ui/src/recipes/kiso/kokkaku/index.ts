@@ -18,6 +18,7 @@ import { colorPanel } from './color-panel'
 import { control } from './control'
 import { descriptionList } from './description-list'
 import { heading } from './heading'
+import { list } from './list'
 import { map } from './map'
 import { pagination } from './pagination'
 import { progress } from './progress'
@@ -26,6 +27,7 @@ import { rating } from './rating'
 import { segment } from './segment'
 import { slider } from './slider'
 import { sparkline } from './sparkline'
+import { stat } from './stat'
 import { stepper } from './stepper'
 import { switchRecipe } from './switch'
 import { tabs } from './tabs'
@@ -45,6 +47,7 @@ export const kokkaku = {
 	control,
 	descriptionList,
 	heading,
+	list,
 	map,
 	pagination,
 	progress,
@@ -53,6 +56,7 @@ export const kokkaku = {
 	segment,
 	slider,
 	sparkline,
+	stat,
 	stepper,
 	switch: switchRecipe,
 	tabs,

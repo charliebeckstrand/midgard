@@ -76,6 +76,22 @@ describe('Odometer', () => {
 		expect(el).toHaveAttribute('aria-label', '1,234')
 	})
 
+	it('keeps role="img" when a consumer passes another role', () => {
+		const { container } = renderUI(<Odometer value={1234} role="status" />)
+
+		expect(bySlot(container, 'odometer')).toHaveAttribute('role', 'img')
+	})
+
+	it('prints 0, not -0, for a value that rounds to negative zero', () => {
+		const { container } = renderUI(<Odometer value={-0.3} />)
+
+		const el = bySlot(container, 'odometer')
+
+		expect(el).toHaveTextContent(/^0$/)
+
+		expect(el).toHaveAttribute('aria-label', '0')
+	})
+
 	it('cancels the running animation when unmounted', async () => {
 		await withFakeTime(async (clock) => {
 			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})

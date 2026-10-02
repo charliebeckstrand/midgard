@@ -84,6 +84,25 @@ function controlValueProps(child: ReactElement, fieldValue: unknown): Record<str
 	return { value: fieldValue ?? null }
 }
 
+/**
+ * Runs the own callback of a child, then the binding. The binding always runs,
+ * also after a `preventDefault()` in the callback of the child.
+ *
+ * @internal
+ */
+function chainCallbacks<A extends unknown[]>(
+	theirs: unknown,
+	ours: (...args: A) => void,
+): (...args: A) => void {
+	if (typeof theirs !== 'function') return ours
+
+	return (...args) => {
+		theirs(...args)
+
+		ours(...args)
+	}
+}
+
 /** Slot value and setter passed to a {@link FiltersField} render-prop child. */
 export type FiltersFieldRenderProps = {
 	value: unknown
@@ -110,7 +129,10 @@ export type FiltersFieldProps = {
  * SearchInput, Textarea, Checkbox, Switch, Radio) receive `onChange` with a DOM
  * event; others receive value-shaped `onValueChange`. Checkbox/Switch bind
  * `checked` to the boolean slot, a Radio is checked when its `value` matches the
- * slot, and SearchInput's `onClear` clears the slot. Must render inside a `Filters`.
+ * slot, and SearchInput's `onClear` clears the slot. A Radio writes its own
+ * `value` to the slot, so a numeric option keeps its type. The own `onChange`,
+ * `onValueChange`, or `onClear` of the child runs first, then the binding. Must
+ * render inside a `Filters`.
  *
  * The element form matches on component identity, so it fits a control this
  * library exports directly. A wrapper around one of those controls is a
@@ -180,16 +202,28 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 
 		control.cloned = true
 
-		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
+		const props = child.props as Record<string, unknown>
 
 		// Toggles read `checked`, not `value`: a Checkbox/Switch reflects the
 		// boolean slot; a Radio keeps its own option `value`, checked when it
 		// matches the slot.
 		const cloned = controlValueProps(child, fieldValue)
 
-		cloned[handlerProp] = handleChange
+		// A Radio writes its own option `value` to the slot, not the string that
+		// the DOM holds, so a numeric option still matches the slot.
+		const bind =
+			child.type === Radio && props.value !== undefined
+				? () => setValue(name, props.value)
+				: handleChange
 
-		if (expectsClearCallback(child)) cloned.onClear = handleClear
+		// The own handlers of the child run first, then the binding. The binding
+		// keeps the slot true, so a `preventDefault()` does not skip it
+		// (CONVENTIONS.md §3.9).
+		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
+
+		cloned[handlerProp] = chainCallbacks(props[handlerProp], bind)
+
+		if (expectsClearCallback(child)) cloned.onClear = chainCallbacks(props.onClear, handleClear)
 
 		return cloneElement(child as ReactElement<Record<string, unknown>>, cloned)
 	})

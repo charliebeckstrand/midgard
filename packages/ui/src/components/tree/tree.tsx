@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/tree'
 import { Box } from '../../structure/box'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
-import { ITEM_SELECTOR } from './tree-constants'
+import { ITEM_SELECTOR, ROVING_ITEM_SELECTOR } from './tree-constants'
 import { stampTreePositions } from './tree-item-children'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
@@ -58,7 +58,7 @@ export function Tree({
 	const ref = useRef<HTMLDivElement>(null)
 
 	const rovingKeyDown = useA11yRoving(ref, {
-		itemSelector: ITEM_SELECTOR,
+		itemSelector: ROVING_ITEM_SELECTOR,
 		orientation: 'vertical',
 		focusOnEmpty: true,
 		// Roving owns the one tab stop. It seats the stop on the first treeitem, keeps

@@ -41,17 +41,18 @@ export function Odometer({ value, duration = 800, format, className, ...props }:
 
 	const integer = integerFormat(locale)
 
-	const resolvedFormat = format ?? ((next: number) => integer(Math.round(next)))
+	// `|| 0` turns a negative zero into zero, so a value such as -0.3 prints `0`, not `-0`.
+	const resolvedFormat = format ?? ((next: number) => integer(Math.round(next) || 0))
 
 	return (
 		// Exposes the settled target as `aria-label` rather than a live region;
 		// a live region announces each intermediate tween value.
 		<span
 			data-slot="odometer"
-			role="img"
 			aria-label={resolvedFormat(value)}
 			className={cn('tabular-nums', className)}
 			{...props}
+			role="img"
 		>
 			{resolvedFormat(display)}
 		</span>

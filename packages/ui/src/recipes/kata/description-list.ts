@@ -33,6 +33,10 @@ const projection = {
 		'sm:[&>dt]:py-2',
 		'[&>dd]:pb-2',
 		'sm:[&>dd]:py-2',
+		// The first row has no row above it, so it drops its top padding, as the
+		// vertical list does. The selectors outrank the rows above at each width.
+		'[&>dt:first-child]:pt-0',
+		'[&>dt:first-child+dd]:pt-0',
 	],
 	vertical: ['[&>dt]:pt-4', '[&>dt:first-child]:pt-0', '[&>dd]:pt-1'],
 } as const

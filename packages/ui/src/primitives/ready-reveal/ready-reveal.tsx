@@ -1,7 +1,15 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Activity, type FocusEvent, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import {
+	Activity,
+	type FocusEvent,
+	type ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
 import { FOCUSABLE_SELECTOR } from '../../utilities'
@@ -30,6 +38,12 @@ export type ReadyRevealProps = {
 	 * unready, and never on mount — a reveal mounted already ready plays no entrance.
 	 */
 	onReadyComplete?: () => void
+	/**
+	 * Text that a polite live region announces when the reveal goes unready, for
+	 * example `'Loading orders'`. Omit it when a parent owns the announcement. The
+	 * root is `aria-busy` while not ready with or without it.
+	 */
+	loadingLabel?: string
 	/** Outer container class. */
 	className?: string
 }
@@ -79,7 +93,9 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  *
  * @remarks
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honors
- * `prefers-reduced-motion`. The inactive layer is `inert` and `aria-hidden`,
+ * `prefers-reduced-motion`. While not ready, the root is `aria-busy`. Then the
+ * hidden content does not read as empty to assistive technology. With
+ * `loadingLabel`, a polite live region also announces the load. The inactive layer is `inert` and `aria-hidden`,
  * which keeps it out of the tab order and accessibility tree. If it held focus
  * when it deactivates, focus moves to the revealed layer, so keyboard users
  * aren't dropped to the document root.
@@ -104,6 +120,7 @@ export function ReadyReveal({
 	placeholder,
 	children,
 	onReadyComplete,
+	loadingLabel,
 	className,
 }: ReadyRevealProps) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
@@ -170,9 +187,27 @@ export function ReadyReveal({
 		activating?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
 	}, [ready])
 
+	// The live region mounts empty and takes its text in an effect. A screen
+	// reader announces a change to a live region, not the text it mounts with.
+	const [status, setStatus] = useState('')
+
+	useEffect(() => {
+		setStatus(ready ? '' : (loadingLabel ?? ''))
+	}, [ready, loadingLabel])
+
 	return (
 		<ReducedMotion>
-			<div data-slot="ready-reveal" className={cn('relative grid', className)} style={ROOT_GRID}>
+			<div
+				data-slot="ready-reveal"
+				aria-busy={ready ? undefined : true}
+				className={cn('relative grid', className)}
+				style={ROOT_GRID}
+			>
+				{loadingLabel === undefined ? null : (
+					<span role="status" className={k.status}>
+						{status}
+					</span>
+				)}
 				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
 					<motion.div
 						ref={placeholderRef}

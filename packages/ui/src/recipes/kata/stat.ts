@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, narabi } from '../kiso'
+import { iro, ji, kokkaku, narabi } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
@@ -27,32 +27,13 @@ const delta = defineRecipe({
 	defaults: { trend: 'neutral' },
 })
 
-/**
- * Skeleton placeholder dimensions for each Stat slot. Heights match the text
- * line-height of the live element. Widths are defaults; override via `className`.
- */
-const skeleton = {
-	value: defineRecipe({
-		base: '',
-		size: {
-			sm: 'h-8 w-16',
-			md: 'h-9 w-20',
-			lg: 'h-10 w-24',
-		},
-		defaults: { size: 'md' },
-	}),
-	label: 'h-5 w-24',
-	description: 'h-5 w-20',
-	delta: 'h-5 w-12',
-}
-
 export const k = defineRecipe(
 	{
 		base: [flex.col, 'justify-center', 'h-full', 'gap-1'],
 		slots: {
 			description: [size.sm, ...text.muted],
 		},
-		skeleton,
+		skeleton: kokkaku.stat,
 	},
 	{
 		label,
