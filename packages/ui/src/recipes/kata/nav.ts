@@ -9,33 +9,36 @@
  * - `bar` is the `<NavBar>` landmark frame.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, ji, kasane, narabi, omote, sen, shaku } from '../kiso'
+import { hannou, kasane, narabi, omote, sen, shaku, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
-const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border } = sen
 const { bg } = omote
 
 /**
- * Shared slot-wrapper structure for the prefix/suffix entries. The item chrome
- * is fixed at md, so each slot is an sm density scope. A slot icon or a client
- * slot child takes that step with no projection.
+ * Shared slot-wrapper structure for the prefix/suffix entries. Each slot is a
+ * density scope one step below the item (`data-density="slot"`). A slot icon
+ * or a client slot child takes that step with no projection.
  */
 const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0']
 
-/** Shared item structure minus the interaction surface. */
+/**
+ * Shared item structure minus the interaction surface. The padding, the gap,
+ * the text, and the icon take the step of the nearest density scope. At `md`
+ * the item is `p-2` with `gap-2`, `text-base`, and a `size-5` icon.
+ */
 const itemShell = [
 	'group relative',
 	flex.row,
 	'w-full',
-	'p-2',
+	'density-p-[1.5,2,2.5]',
 	...nav.base,
-	shaku.icon.md,
+	...shaku.iconSlotRamp,
 	...cursor,
-	'gap-2',
-	size.md,
+	'density-gap-[1.5,2,2.5]',
+	textRamp,
 	'text-start',
 	rounded.lg,
 ]
@@ -118,11 +121,13 @@ export const k = {
 		/**
 		 * Prefix/suffix slot wrappers; sit beside the inner button inside the
 		 * row chrome, above the active indicator. The margin insets the slot's
-		 * outer edge by the item's `p-2` so a control never sits flush against
-		 * the row chrome.
+		 * outer edge by the padding of the item, so a control never sits flush
+		 * against the row chrome. The slot is its own nearest scope, so its
+		 * margin takes the slot step. Each list thus gives the value of an item
+		 * one step above: the `xs` value is for an `sm` item.
 		 */
-		prefix: [...affixSlot, 'ms-2'],
-		suffix: [...affixSlot, 'me-2'],
+		prefix: [...affixSlot, 'density-ms-[1.5,2,2.5,2.5,2.5]'],
+		suffix: [...affixSlot, 'density-me-[1.5,2,2.5,2.5,2.5]'],
 	},
 } as const
 
