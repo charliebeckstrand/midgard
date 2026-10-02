@@ -236,6 +236,67 @@ describe('Axes', () => {
 		expect(probesOf('Size')).toHaveLength(5)
 	})
 
+	it('hides an axis example that the other axes make inert, and shows it again', async () => {
+		// The `outline` variant writes no color, so it makes the color axis inert.
+		renderUI(
+			<DemoApiContext value={settled(api)}>
+				<Axes
+					of="Badge"
+					render={(props, label) => {
+						const { variant, color } = props as { variant?: string; color?: string }
+
+						return (
+							<Probe variant={variant} color={variant === 'outline' ? undefined : color}>
+								{label}
+							</Probe>
+						)
+					}}
+				/>
+			</DemoApiContext>,
+		)
+
+		expect(probesOf('Color')).toHaveLength(2)
+
+		fireEvent.click(screen.getByRole('combobox', { name: 'Variant' }))
+
+		fireEvent.click(await screen.findByRole('option', { name: /outline/i }))
+
+		expect(screen.queryByRole('heading', { name: 'Color' })).toBeNull()
+
+		// The picker of an inert axis still offers each value.
+		fireEvent.click(screen.getByRole('combobox', { name: 'Color' }))
+
+		expect((await screen.findAllByRole('option')).map((option) => option.textContent)).toEqual([
+			'Default',
+			'Red',
+			'Blue',
+		])
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+
+		fireEvent.click(screen.getByRole('combobox', { name: 'Variant' }))
+
+		fireEvent.click(await screen.findByRole('option', { name: /solid/i }))
+
+		expect(probesOf('Color')).toHaveLength(2)
+	})
+
+	it('keeps an axis example whose instances render alike at the defaults', () => {
+		// A prop whose effect shows only in a later state, such as the panel of a closed dialog.
+		renderUI(
+			<DemoApiContext value={settled(api)}>
+				<Axes
+					of="Badge"
+					render={(props, label) => (
+						<Probe variant={(props as { variant?: string }).variant}>{label}</Probe>
+					)}
+				/>
+			</DemoApiContext>,
+		)
+
+		expect(probesOf('Color')).toHaveLength(2)
+	})
+
 	it('throws for a name that the barrel does not document', () => {
 		expect(() => renderAxes(settled(api), 'Missing')).toThrow(/no documented component "Missing"/)
 	})

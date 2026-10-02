@@ -160,3 +160,18 @@ export function distinctValues(
 
 	return kept
 }
+
+/**
+ * Whether each instance of an axis renders alike: two or more signatures, each
+ * known and each equal. A `null` signature is equal to no other.
+ */
+export function rendersAlike(signatures: readonly (string | null)[]): boolean {
+	const [first] = signatures
+
+	return (
+		signatures.length > 1 &&
+		first !== null &&
+		first !== undefined &&
+		signatures.every((signature) => signature === first)
+	)
+}

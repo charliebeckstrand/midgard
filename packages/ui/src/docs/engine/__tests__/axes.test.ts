@@ -1,7 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { ComponentApi } from '../api-reference'
-import { type Axis, type AxisValue, axesOf, distinctValues, isStepAxis, literalsOf } from '../axes'
+import {
+	type Axis,
+	type AxisValue,
+	axesOf,
+	distinctValues,
+	isStepAxis,
+	literalsOf,
+	rendersAlike,
+} from '../axes'
 
 describe('literalsOf', () => {
 	it('reads string literals in source order', () => {
@@ -127,5 +135,21 @@ describe('distinctValues', () => {
 		const signatureOf = from({ xs: 'a', sm: 'b', md: 'a', lg: 'b', xl: 'a' })
 
 		expect(distinctValues(steps, signatureOf)).toEqual(steps.values)
+	})
+})
+
+describe('rendersAlike', () => {
+	it('accepts two or more equal signatures', () => {
+		expect(rendersAlike(['a', 'a', 'a'])).toBe(true)
+	})
+
+	it('rejects a difference, an unknown signature, and a single instance', () => {
+		expect(rendersAlike(['a', 'b'])).toBe(false)
+
+		expect(rendersAlike([null, null])).toBe(false)
+
+		expect(rendersAlike(['a', null])).toBe(false)
+
+		expect(rendersAlike(['a'])).toBe(false)
 	})
 })
