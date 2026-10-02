@@ -107,6 +107,16 @@ export const k = {
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 		active: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
+		// A completed step fills in the hue of the current step and carries a
+		// checkmark, so it does not read as an upcoming step. The hover step comes
+		// after the neutral hover of `interactive`, and the merge keeps it.
+		completed: [
+			flex.inline,
+			'items-center justify-center',
+			'bg-blue-600 dark:bg-blue-600 text-white',
+			'group-enabled:group-hover:bg-blue-500',
+		],
+		check: 'size-2.5 stroke-[3.5]',
 	},
 	description: [size.sm, ...text.muted],
 	skeleton: kokkaku.stepper,

@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
@@ -27,9 +28,10 @@ const STATE_TEXT = {
  * @remarks
  * State reads visually through color and the checkmark glyph alone, so an
  * `sr-only` suffix ("completed"/"current step"/"not started") names it for
- * assistive tech (WCAG 1.4.1). `<StepperStep>` injects a default instance when
- * the consumer omits one, and that default draws no glyph. Pass the number or
- * checkmark as `children`; it renders ahead of the `sr-only` suffix.
+ * assistive tech (WCAG 1.4.1). A completed step fills blue and draws a
+ * checkmark. `<StepperStep>` injects a default instance when the consumer omits
+ * one. Pass a number or another glyph as `children` to replace the checkmark; it
+ * renders ahead of the `sr-only` suffix.
  */
 export function StepperIndicator({ className, children, ...props }: StepperIndicatorProps) {
 	const { onValueChange } = useStepper()
@@ -40,13 +42,19 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 	return (
 		<span
 			data-slot="stepper-indicator"
-			className={cn(k.indicator.base, interactive && k.indicator.interactive, className)}
+			className={cn(
+				k.indicator.base,
+				interactive && k.indicator.interactive,
+				state === 'completed' && k.indicator.completed,
+				className,
+			)}
 			{...props}
 		>
 			{state === 'current' && (
 				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
 			)}
-			{children}
+			{children ??
+				(state === 'completed' && <Check aria-hidden="true" className={k.indicator.check} />)}
 			<span className="sr-only">, {STATE_TEXT[state]}</span>
 		</span>
 	)
