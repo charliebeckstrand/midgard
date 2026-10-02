@@ -24,7 +24,9 @@ export const item = {
 	base: [
 		flex.row,
 		'justify-center',
-		'whitespace-nowrap',
+		// A label stays on one line while the control fits its container. Where it
+		// does not, the item shrinks to its longest word and the label wraps.
+		'text-center text-balance',
 		rounded.lg,
 		weight.medium,
 		// iOS Safari can select the text in a child of a `select-none` item on a long

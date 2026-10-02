@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { ReducedMotion } from '../../primitives/reduced-motion'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k, type ProgressBarFillVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types'
 import { clamp, pct } from '../../utilities'
@@ -51,6 +51,11 @@ export function ProgressBar({
 
 	const percent = determinate ? clamp(pct(value, 0, max), 0, 100) : 0
 
+	// The fill animates `width`, which is no transform, so the reduced-motion
+	// config of motion does not skip it. The fill mounts at rest and moves to
+	// each new value without a spring.
+	const still = usePrefersReducedMotion()
+
 	return (
 		<div
 			data-slot="progress-bar"
@@ -63,14 +68,12 @@ export function ProgressBar({
 			className={cn(k(), className)}
 		>
 			{determinate ? (
-				<ReducedMotion>
-					<motion.div
-						className={k.bar.fill({ color })}
-						initial={{ width: 0 }}
-						animate={{ width: `${percent}%` }}
-						transition={k.spring}
-					/>
-				</ReducedMotion>
+				<motion.div
+					className={k.bar.fill({ color })}
+					initial={still ? false : { width: 0 }}
+					animate={{ width: `${percent}%` }}
+					transition={still ? k.still : k.spring}
+				/>
 			) : (
 				<div className={cn(k.bar.fill({ color }), k.bar.indeterminate)} />
 			)}

@@ -10,7 +10,7 @@ import {
 	StepperTitle,
 } from '../../components/stepper'
 import type { Mount } from '../../primitives/mount'
-import { act, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 describe('Stepper', () => {
 	it('renders with data-slot="stepper"', () => {
@@ -90,6 +90,45 @@ describe('StepperIndicator', () => {
 		expect(steps[1]).toHaveAccessibleName(expect.stringContaining('current step'))
 
 		expect(steps[2]).toHaveAccessibleName(expect.stringContaining('not started'))
+	})
+
+	it('draws a checkmark on a completed step, and none on the others', () => {
+		const { container } = renderUI(
+			<Stepper value={2}>
+				<StepperStep value={1}>
+					<StepperTitle>One</StepperTitle>
+				</StepperStep>
+				<StepperStep value={2}>
+					<StepperTitle>Two</StepperTitle>
+				</StepperStep>
+				<StepperStep value={3}>
+					<StepperTitle>Three</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const marks = allBySlot(container, 'stepper-indicator').map(
+			(indicator) => indicator.querySelector('svg') !== null,
+		)
+
+		expect(marks).toEqual([true, false, false])
+	})
+
+	it('replaces the checkmark of a completed step with its children', () => {
+		const { container } = renderUI(
+			<Stepper value={2}>
+				<StepperStep value={1}>
+					<StepperIndicator>1</StepperIndicator>
+					<StepperTitle>One</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const indicator = bySlot(container, 'stepper-indicator')
+
+		expect(indicator?.querySelector('svg')).toBeNull()
+
+		expect(indicator).toHaveTextContent(/^1, completed$/)
 	})
 
 	it('renders its children ahead of the state suffix', () => {

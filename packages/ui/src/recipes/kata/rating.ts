@@ -55,8 +55,15 @@ const star = defineRecipe({
 	defaults: { interactive: false },
 })
 
-/** The empty glyph under every star, in the neutral the unfilled part reads as. */
-const track = mode('text-zinc-300', 'dark:text-zinc-600')
+/**
+ * The empty glyph under every star, in the neutral the unfilled part reads as.
+ * In an invalid row, the outline of each empty star turns red, as the box of an
+ * invalid checkbox does.
+ */
+const track = [
+	...mode('text-zinc-300', 'dark:text-zinc-600'),
+	...mode('group-data-invalid/rating:text-red-600', 'dark:group-data-invalid/rating:text-red-500'),
+]
 
 export const k = defineRecipe(
 	{
@@ -66,6 +73,8 @@ export const k = defineRecipe(
 		skeleton: kokkaku.rating,
 	},
 	{
+		/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */
+		group: 'group/rating',
 		star,
 		track,
 		/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
