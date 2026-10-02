@@ -1,7 +1,7 @@
 'use client'
 
 import { Settings2 } from 'lucide-react'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import {
 	Dialog,
@@ -60,6 +60,16 @@ function ChoiceListbox<T extends string>({ options, value, onValueChange }: Choi
 	)
 }
 
+/** Props for {@link AppearanceSettings}: more fields for the dialog. */
+export type AppearanceSettingsProps = {
+	/**
+	 * More fields for the dialog, such as the settings of one app. They go below
+	 * the density picker, in the same stack. Their floating panels portal into
+	 * the dialog, as the panels of the pickers do.
+	 */
+	children?: ReactNode
+}
+
 /**
  * Settings icon button that opens a dialog with the appearance and density
  * pickers of the nearest {@link AppearanceProvider}. A selection applies
@@ -75,7 +85,7 @@ function ChoiceListbox<T extends string>({ options, value, onValueChange }: Choi
  * fields render only after the node exists. `FloatingPortal` captures its
  * target on the first mount.
  */
-export function AppearanceSettings() {
+export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 	const { theme, density, setTheme, setDensity } = useAppearance()
 
 	const [open, setOpen] = useState(false)
@@ -107,6 +117,7 @@ export function AppearanceSettings() {
 										onValueChange={setDensity}
 									/>
 								</Field>
+								{children}
 							</UIProvider>
 						)}
 					</Stack>

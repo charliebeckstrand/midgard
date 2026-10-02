@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
 import { SidebarLayout } from '../../layouts'
@@ -22,6 +22,16 @@ const WARM_SNIPPETS = [
 	`// Reset on click.\n<Button color="blue" size={2} disabled={!value} onClick={() => setValue(null)}>\n\t{value ?? label}\n</Button>`,
 	`<>\n\t<Select options={options} value={value} onChange={(next) => setValue(next)} />\n</>`,
 ]
+
+// The debug tools are separate chunks, so the entry chunk does not carry them.
+// The Debug section of the settings loads when the dialog first opens.
+const DebugActions = lazy(() =>
+	import('./debug/debug-actions').then(({ DebugActions }) => ({ default: DebugActions })),
+)
+
+const DebugSettings = lazy(() =>
+	import('./debug/debug-settings').then(({ DebugSettings }) => ({ default: DebugSettings })),
+)
 
 /**
  * Root of the docs site: a sidebar layout whose body is the hash-routed demo,
@@ -99,7 +109,18 @@ export function App() {
 			<SidebarLayout
 				stickyHeader
 				floating={!locked}
-				actions={<AppearanceSettings />}
+				actions={
+					<>
+						<Suspense fallback={null}>
+							<DebugActions />
+						</Suspense>
+						<AppearanceSettings>
+							<Suspense fallback={null}>
+								<DebugSettings />
+							</Suspense>
+						</AppearanceSettings>
+					</>
+				}
 				sidebar={<SidebarContent route={route} />}
 			>
 				<div ref={contentRef}>
