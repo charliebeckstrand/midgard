@@ -17,7 +17,7 @@ describe('CurrentContents switch (real Motion)', () => {
 	it('removes the outgoing panel at once, with no partial fade-out', async () => {
 		renderUI(
 			<Tabs defaultValue="a">
-				<TabList>
+				<TabList aria-label="Sections">
 					<Tab value="a">A</Tab>
 					<Tab value="b">B</Tab>
 				</TabList>
