@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Description } from '../../components/fieldset'
+import { Description, Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { bySlot, densityStepOf, getSlot, renderUI, screen } from '../helpers'
 
@@ -80,5 +80,28 @@ describe('RadioField aria-describedby', () => {
 		expect(description.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', description.id)
+	})
+})
+
+describe('Radio touch', () => {
+	// When the page is zoomed in, iOS holds a tap for a possible double tap. A
+	// second tap on a near row in that time joins the first, and neither selects.
+	it('stops the double-tap wait on the group, the row, and the radio', () => {
+		const { container } = renderUI(
+			<RadioGroup aria-label="Plan">
+				<RadioField>
+					<Radio name="plan" value="starter" />
+					<Label>Starter</Label>
+				</RadioField>
+			</RadioGroup>,
+		)
+
+		expect(screen.getByRole('radiogroup')).toHaveClass('touch-manipulation')
+
+		const field = getSlot(container, 'field')
+
+		expect(field).toHaveClass('touch-manipulation')
+
+		expect(getSlot(field, 'control')).toHaveClass('touch-manipulation')
 	})
 })

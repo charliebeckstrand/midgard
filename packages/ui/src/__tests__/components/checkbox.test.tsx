@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
-import { Description } from '../../components/fieldset'
+import { Description, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
@@ -203,5 +203,28 @@ describe('Checkbox defaultChecked under a binding', () => {
 		expect(input.checked).toBe(true)
 
 		expect(input.defaultChecked).toBe(true)
+	})
+})
+
+describe('Checkbox touch', () => {
+	// When the page is zoomed in, iOS holds a tap for a possible double tap. A
+	// second tap on a near row in that time joins the first, and neither toggles.
+	it('stops the double-tap wait on the group, the row, and the checkbox', () => {
+		const { container } = renderUI(
+			<CheckboxGroup aria-label="Notifications">
+				<CheckboxField>
+					<Checkbox />
+					<Label>Email</Label>
+				</CheckboxField>
+			</CheckboxGroup>,
+		)
+
+		expect(screen.getByRole('group')).toHaveClass('touch-manipulation')
+
+		const field = getSlot(container, 'field')
+
+		expect(field).toHaveClass('touch-manipulation')
+
+		expect(getSlot(field, 'control')).toHaveClass('touch-manipulation')
 	})
 })
