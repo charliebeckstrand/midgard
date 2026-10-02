@@ -5,7 +5,9 @@
  * its nearest density scope, and a control with an explicit `size` writes that
  * scope on its own frame. So the classes are the same at each step, and the
  * control reads no context. Three values give `sm`, `md`, and `lg`. `xs` takes
- * the `sm` value, and `xl` takes the `lg` value.
+ * the `sm` value, and `xl` takes the `lg` value. A control has no `xl` size
+ * (`ControlStep`), so only an `xl` scope above the control gives it `xl`, and
+ * there the control stops at `lg`.
  *
  * The radius is the same as `py` at each step. The padding-to-radius ratio is
  * thus 1:1 across the controls with no ControlFrame (listbox, combobox,

@@ -4,7 +4,7 @@ import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
@@ -34,7 +34,7 @@ type DatePickerTriggerProps = GroupStampProps & {
 	 * The density step of `<DatePicker>`. Omit it to take the step of the
 	 * nearest density scope. A step makes the trigger a density scope.
 	 */
-	size?: DensityStep
+	size?: ControlStep
 	/** When `false`, the trigger grows to fit its content and omits the truncation Tooltip. */
 	truncate?: boolean
 	/**

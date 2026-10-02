@@ -7,7 +7,7 @@
  * here rather than as kiso tokens — they're picker-specific, used nowhere else.
  */
 
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
 import { kasane, kokkaku, sen } from '../kiso'
 
@@ -79,4 +79,4 @@ export const k = defineRecipe(
 )
 
 /** Props for the {@link ColorPanel} root: the `size` step that the component writes as a density scope. */
-export type ColorPanelVariants = { size?: DensityStep }
+export type ColorPanelVariants = { size?: ControlStep }

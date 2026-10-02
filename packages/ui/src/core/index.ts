@@ -10,6 +10,7 @@ export { createContext } from './create-context'
 export { createSlot } from './create-slot'
 export { dataAttr } from './data-attr'
 export {
+	type ControlStep,
 	type DensityStep,
 	densitySteps,
 	type InnerStep,

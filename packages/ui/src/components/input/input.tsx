@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ControlStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
@@ -16,7 +16,7 @@ import { useInputValue } from './use-input-value'
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = GroupStampProps &
 	Omit<InputVariants, 'size' | 'variant'> & {
-		size?: DensityStep
+		size?: ControlStep
 		variant?: ControlVariant
 		prefix?: ReactNode
 		suffix?: ReactNode
