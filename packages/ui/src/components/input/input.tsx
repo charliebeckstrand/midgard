@@ -32,7 +32,8 @@ export type InputProps = GroupStampProps &
  * Resolves variant and invalid state from enclosing Control, Form, and
  * GlassProvider context, and drops to a bare `<input>` under headless context.
  * The size takes the step of the nearest density scope through stepped
- * classes. An explicit `size` writes that scope on the frame.
+ * classes. An explicit `size` writes that scope on the frame. Plain text in
+ * an affix has the text size of the input at each step.
  *
  * @remarks Follows the §7.3 value contract and the resolution order
  * (explicit prop > bound field > internal state) owned by {@link useInputValue}.
