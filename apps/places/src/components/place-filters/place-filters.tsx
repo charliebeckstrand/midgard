@@ -3,9 +3,15 @@
 import dynamic from 'next/dynamic'
 import { ControlSkeleton } from 'ui/control'
 import type { DatePickerRelativeValue } from 'ui/date-picker'
-import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow } from 'ui/filters'
+import {
+	Filters,
+	FiltersBar,
+	FiltersClear,
+	FiltersField,
+	FiltersRow,
+	FiltersSkeleton,
+} from 'ui/filters'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-import { Flex } from 'ui/structure/flex'
 import type { PlaceCategory } from '../../types'
 import {
 	hasActiveFilter,
@@ -189,15 +195,5 @@ export function PlaceFilters({
  * one control shape for each field, at the same width and inset as the bar.
  */
 export function PlaceFiltersSkeleton() {
-	return (
-		<Flex gap="sm" className="overflow-hidden px-6 py-3">
-			<ControlSkeleton className="w-52 shrink-0" />
-
-			<ControlSkeleton className="w-52 shrink-0" />
-
-			<ControlSkeleton className="w-52 shrink-0" />
-
-			<ControlSkeleton className="w-52 shrink-0" />
-		</Flex>
-	)
+	return <FiltersSkeleton layout="rail" fields={4} fieldClassName="w-52" className="px-6 py-3" />
 }
