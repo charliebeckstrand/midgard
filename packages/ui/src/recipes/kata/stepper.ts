@@ -22,14 +22,17 @@ const root = defineRecipe({
 
 const verticalStep = [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.subtleColor]
 
+// A horizontal step is `w-32` where the row has the space, and shrinks to
+// `min-w-20` where it does not, so that a narrow row does not overlap its steps.
+// Its title and description then wrap in the narrower column.
 const step = defineRecipe({
 	base: ['group relative text-start', 'outline-none', ...disabled, ...cursor],
 	orientation: {
-		horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
+		horizontal: 'flex min-w-20 flex-col items-center w-32 gap-0.5 text-center',
 		vertical: verticalStep,
 		responsive: [
 			...verticalStep,
-			'sm:shrink-0 sm:flex-col sm:w-32 sm:gap-0.5 sm:py-0 sm:text-center',
+			'sm:min-w-20 sm:flex-col sm:w-32 sm:gap-0.5 sm:py-0 sm:text-center',
 		],
 	},
 	defaults: { orientation: 'horizontal' },
@@ -60,7 +63,16 @@ const title = defineRecipe({
 	defaults: { orientation: 'horizontal', interactive: false },
 })
 
-const horizontalRule = ['-mx-12 mt-2', flex.fill, 'self-start', 'border-t', ...border.defaultColor]
+// The negative margins run the rule under the steps on each side, out to their
+// indicators. With the `gap-4` of the row on each side, `min-w-20` keeps a gap of
+// 16px between the boxes of two steps on a narrow row.
+const horizontalRule = [
+	'-mx-12 mt-2 min-w-20',
+	flex.fill,
+	'self-start',
+	'border-t',
+	...border.defaultColor,
+]
 
 const separator = defineRecipe({
 	base: 'shrink-0',

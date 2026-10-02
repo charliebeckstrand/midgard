@@ -215,7 +215,7 @@ export function Rating({
 
 	const stars = rangeKeys(count, 'star')
 
-	const rowClass = cn(k({ color }), className)
+	const rowClass = cn(k({ color }), k.group, className)
 
 	function commit(next: number | null) {
 		setValue(next)

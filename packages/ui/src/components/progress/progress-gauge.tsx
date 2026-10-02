@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { ReducedMotion } from '../../primitives/reduced-motion'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types'
 import { clamp, pct } from '../../utilities'
@@ -65,6 +65,11 @@ export function ProgressGauge({
 
 	const resolvedLabel = centerLabel === true ? Math.round(percent) : centerLabel
 
+	// The fill animates `strokeDashoffset`, which is no transform, so the
+	// reduced-motion config of motion does not skip it. The ring mounts at rest
+	// and moves to each new value without a spring.
+	const still = usePrefersReducedMotion()
+
 	return (
 		<div
 			data-slot="progress-gauge"
@@ -76,38 +81,36 @@ export function ProgressGauge({
 			{...labelProps}
 			className={cn(k.gauge.root(), className)}
 		>
-			<ReducedMotion>
-				<svg
-					aria-hidden="true"
-					viewBox={`0 0 ${GAUGE_VIEW_BOX} ${GAUGE_VIEW_BOX}`}
-					className="size-full -rotate-90"
-				>
-					{/* Track */}
-					<circle
-						cx={GAUGE_VIEW_BOX / 2}
-						cy={GAUGE_VIEW_BOX / 2}
-						r={radius}
-						fill="none"
-						strokeWidth={strokeWidth}
-						className={cn(k.gauge.track)}
-					/>
+			<svg
+				aria-hidden="true"
+				viewBox={`0 0 ${GAUGE_VIEW_BOX} ${GAUGE_VIEW_BOX}`}
+				className="size-full -rotate-90"
+			>
+				{/* Track */}
+				<circle
+					cx={GAUGE_VIEW_BOX / 2}
+					cy={GAUGE_VIEW_BOX / 2}
+					r={radius}
+					fill="none"
+					strokeWidth={strokeWidth}
+					className={cn(k.gauge.track)}
+				/>
 
-					{/* Fill */}
-					<motion.circle
-						cx={GAUGE_VIEW_BOX / 2}
-						cy={GAUGE_VIEW_BOX / 2}
-						r={radius}
-						fill="none"
-						strokeWidth={strokeWidth}
-						strokeLinecap="round"
-						strokeDasharray={circumference}
-						className={cn(k.color[color].stroke)}
-						initial={{ strokeDashoffset: circumference }}
-						animate={{ strokeDashoffset: offset }}
-						transition={k.spring}
-					/>
-				</svg>
-			</ReducedMotion>
+				{/* Fill */}
+				<motion.circle
+					cx={GAUGE_VIEW_BOX / 2}
+					cy={GAUGE_VIEW_BOX / 2}
+					r={radius}
+					fill="none"
+					strokeWidth={strokeWidth}
+					strokeLinecap="round"
+					strokeDasharray={circumference}
+					className={cn(k.color[color].stroke)}
+					initial={still ? false : { strokeDashoffset: circumference }}
+					animate={{ strokeDashoffset: offset }}
+					transition={still ? k.still : k.spring}
+				/>
+			</svg>
 
 			{resolvedLabel != null && resolvedLabel !== false && (
 				<span className={k.gauge.label()}>{resolvedLabel}</span>

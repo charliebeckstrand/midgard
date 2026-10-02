@@ -1,7 +1,8 @@
 /**
  * Narabi toggle: the two-column grid that holds a check/radio/switch
  * control alongside its label and description. Control sits in column 1
- * row 1, label in column 2 row 1, description in column 2 row 2.
+ * row 1, label in column 2 row 1, description in column 2 row 2, and a
+ * message in column 2 of the next row.
  *
  * When disabled, the control and label adopt `cursor-not-allowed`; the
  * description is spared and keeps the text cursor, since clicking it never
@@ -16,6 +17,10 @@ export const toggle = [
 	'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:self-center',
 	'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
 	'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
+	// A message goes under the label and the description. Auto placement puts it in
+	// the first free cell, which is the narrow control column when the control
+	// spans one row.
+	'*:data-[slot=message]:col-start-2',
 	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
 	// Every slot but the description turns not-allowed when disabled; the
 	// description is non-interactive, so it keeps the text cursor.

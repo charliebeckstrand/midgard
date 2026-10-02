@@ -8,7 +8,9 @@ const { color } = slider
 
 export const k = defineRecipe({
 	base: [
-		'w-full',
+		// `block`, not the inline box of an input: an inline box sits on a line box
+		// and adds the strut of the line under the track.
+		'block w-full',
 		'appearance-none',
 		'bg-transparent',
 		...cursor,
@@ -29,6 +31,9 @@ export const k = defineRecipe({
 		'[&::-webkit-slider-thumb]:transition-transform',
 		'hover:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		'active:not-disabled:[&::-webkit-slider-thumb]:scale-110',
+		// An invalid slider rings its thumb in red, as an invalid checkbox rings its box.
+		'data-invalid:[&::-webkit-slider-thumb]:ring-2',
+		'data-invalid:[&::-webkit-slider-thumb]:ring-red-600',
 		'focus-visible:[&::-webkit-slider-thumb]:ring-4',
 		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-500',
@@ -46,6 +51,8 @@ export const k = defineRecipe({
 		'[&::-moz-range-thumb]:transition-transform',
 		'hover:not-disabled:[&::-moz-range-thumb]:scale-110',
 		'active:not-disabled:[&::-moz-range-thumb]:scale-110',
+		'data-invalid:[&::-moz-range-thumb]:ring-2',
+		'data-invalid:[&::-moz-range-thumb]:ring-red-600',
 		'focus-visible:[&::-moz-range-thumb]:ring-4',
 		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
