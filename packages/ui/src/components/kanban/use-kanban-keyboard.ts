@@ -311,6 +311,9 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 	const onCardKeyDown = useCallback(
 		(cardId: string, event: KeyboardEvent) => {
+			// A key from a control inside the card belongs to that control.
+			if (event.target !== event.currentTarget) return
+
 			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
 
 			const { describe, focusNeighbor, moveWithinColumn, moveToColumn } = latest.current

@@ -60,6 +60,10 @@ export type PivotTableProps<T> = {
  * aggregates the value field into each cell, optionally rendering row/column
  * totals. Renders over {@link Table}.
  *
+ * @remarks
+ * The numbers align to the inline end, so they follow the text direction. A
+ * row header keeps one line, and a table that is too wide scrolls.
+ *
  * @typeParam T - The shape of each source row.
  * @see {@link usePivotTable} for the headless aggregation hook.
  */
@@ -112,12 +116,12 @@ export function PivotTable<T>({
 				<TableRow>
 					<TableHeader scope="col">{rowHeader}</TableHeader>
 					{columnKeys.map((col) => (
-						<TableHeader key={col} scope="col" className="text-right">
+						<TableHeader key={col} scope="col" className="text-end">
 							{col}
 						</TableHeader>
 					))}
 					{showRowTotals && (
-						<TableHeader scope="col" className="text-right">
+						<TableHeader scope="col" className="text-end">
 							Total
 						</TableHeader>
 					)}
@@ -129,20 +133,20 @@ export function PivotTable<T>({
 
 					return (
 						<TableRow key={rowKey}>
-							<TableHeader scope="row" className="font-medium">
+							<TableHeader scope="row" className="font-medium whitespace-nowrap">
 								{rowKey}
 							</TableHeader>
 							{columnKeys.map((col) => {
 								const value = cellValue(rowKey, col)
 
 								return (
-									<TableCell key={col} className="text-right tabular-nums">
+									<TableCell key={col} className="text-end tabular-nums">
 										{value != null ? formatValue(value) : emptyCell}
 									</TableCell>
 								)
 							})}
 							{showRowTotals && (
-								<TableCell className="text-right font-semibold tabular-nums">
+								<TableCell className="text-end font-semibold tabular-nums">
 									{total != null ? formatValue(total) : emptyCell}
 								</TableCell>
 							)}
@@ -151,20 +155,20 @@ export function PivotTable<T>({
 				})}
 				{showColTotals && (
 					<TableRow className="font-semibold">
-						<TableHeader scope="row" className="font-semibold">
+						<TableHeader scope="row" className="font-semibold whitespace-nowrap">
 							Total
 						</TableHeader>
 						{columnKeys.map((col, i) => {
 							const total = colTotals[i]
 
 							return (
-								<TableCell key={col} className="text-right font-semibold tabular-nums">
+								<TableCell key={col} className="text-end font-semibold tabular-nums">
 									{total != null ? formatValue(total) : emptyCell}
 								</TableCell>
 							)
 						})}
 						{showRowTotals && (
-							<TableCell className="text-right font-semibold tabular-nums">
+							<TableCell className="text-end font-semibold tabular-nums">
 								{grandTotal != null ? formatValue(grandTotal) : emptyCell}
 							</TableCell>
 						)}
