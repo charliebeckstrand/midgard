@@ -57,6 +57,7 @@ const skeletonVariants = [
 	{ name: 'Button', skeleton: <ButtonSkeleton /> },
 	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
 	{ name: 'Chart', skeleton: <ChartSkeleton /> },
+	{ name: 'Chart (pie)', skeleton: <ChartSkeleton sector /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
