@@ -8,8 +8,10 @@ export const k = defineRecipe({
 		...palette.bare.text,
 		current: 'text-current dark:text-current',
 	},
+	// An underline at rest: with the default `current` color, it is the only
+	// mark of the link (WCAG 1.4.1).
 	underline: {
-		true: 'hover:underline underline-offset-4',
+		true: 'underline underline-offset-4',
 		false: '',
 	},
 	defaults: { color: 'current', underline: false },

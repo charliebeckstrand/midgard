@@ -13,7 +13,11 @@ import { type GroupOrientation, tsunagi } from '../kiso'
  */
 const frames = {
 	horizontal: ['inline-flex flex-row [--touch-target-gap-x:0px]', ...tsunagi.horizontal].join(' '),
-	vertical: ['inline-flex flex-col [--touch-target-gap-y:0px]', ...tsunagi.vertical].join(' '),
+	// A vertical group stretches each member to its width, so the outer edges line
+	// up. `w-auto` overrides the `w-fit` of a member such as Button.
+	vertical: ['inline-flex flex-col [--touch-target-gap-y:0px] *:w-auto', ...tsunagi.vertical].join(
+		' ',
+	),
 } as const satisfies Record<GroupOrientation, string>
 
 /**

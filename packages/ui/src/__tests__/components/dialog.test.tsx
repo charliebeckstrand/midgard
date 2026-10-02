@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Card } from '../../components/card'
 import { Dialog, DialogClose, DialogHeader, DialogTitle } from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -177,6 +178,26 @@ describe('Dialog', () => {
 			'data-density',
 			'sm',
 		)
+	})
+})
+
+describe('Dialog click containment', () => {
+	it('keeps a click in the panel from the click handler of a consumer ancestor', () => {
+		const onRowClick = vi.fn()
+
+		// A clickable card that opens its own Dialog. React carries a click in the
+		// portal up the component tree, so the card sees it unless the panel stops it.
+		renderUI(
+			<Card onClick={onRowClick}>
+				<Dialog open onOpenChange={() => {}} aria-label="Confirm">
+					<button type="button">Delete</button>
+				</Dialog>
+			</Card>,
+		)
+
+		fireEvent.click(screen.getByText('Delete'))
+
+		expect(onRowClick).not.toHaveBeenCalled()
 	})
 })
 

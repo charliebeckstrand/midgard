@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useCoveredBottom } from '../../hooks/use-covered-bottom'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { useMinBreakpoint } from '../../hooks/use-min-breakpoint'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useToastViewport } from '../../providers/toast/context'
@@ -36,13 +37,20 @@ export type ToastProps = {
  * Renders nothing on the server and during hydration; the portal mounts in an
  * effect afterwards, keeping the first client render identical to the SSR
  * output.
+ *
+ * Below the `sm` breakpoint, each `position` stacks on the bottom edge. A `top-*`
+ * stack there takes the order, the motion, and the gap of a bottom stack.
  */
 export function Toast({ position = 'bottom-right' }: ToastProps) {
 	const { toasts, dismiss, pause, resume, reset, handleExitComplete } = useToastViewport()
 
 	const portalContainer = usePortalContainer()
 
-	const isBottom = position.startsWith('bottom')
+	// Below `sm`, the viewport pins every position to the bottom edge. The order,
+	// the motion, and the gap of the stack follow the edge that the stack is on.
+	const isDesktop = useMinBreakpoint('sm')
+
+	const isTop = isDesktop && position.startsWith('top')
 
 	// Gate on post-mount state rather than `typeof document`: an SSR/client
 	// branch makes the first client render diverge from the server HTML and
@@ -60,13 +68,13 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 			{/* Not itself a live region: each toast carries its own `role` (status /
 			    alert) mapping severity to politeness directly. */}
 			<div data-slot="toast-viewport" className={cn(k.viewport({ position }))}>
-				<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
+				<div className={cn(k.scroll, !isTop && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>
 						{toasts.map((t, i) => (
 							<ToastAlert
 								key={t.id}
 								toast={t}
-								position={position}
+								edge={isTop ? 'top' : 'bottom'}
 								zIndex={toasts.length - i}
 								closable={t.closable}
 								onOpenChange={(open, id) => {

@@ -20,7 +20,10 @@ export const k = defineRecipe({
 		content: [flex.fill, 'min-w-0', 'gap-2'],
 		body: 'col-start-2',
 		actions: [flex.row, 'gap-1'],
-		close: 'shrink-0',
+		close: [flex.row, 'shrink-0'],
+		// One line box of the title: the button centers on it and overhangs it into
+		// the padding of the alert.
+		closeTitleRow: ['h-lh self-start', size.lg],
 	},
 	defaults: { variant: 'soft', color: 'zinc' },
 })
