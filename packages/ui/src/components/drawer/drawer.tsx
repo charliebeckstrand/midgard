@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
-import { dataAttr } from '../../core'
+import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
@@ -297,7 +297,13 @@ export function Drawer({
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
 				data-density={size}
-				{...drawerPanelProps({ surface: resolvedSurface, height, className })}
+				{...drawerPanelProps({
+					surface: resolvedSurface,
+					height,
+					// A non-modal overlay turns off pointer events on its full-viewport
+					// root, so the page stays live. The panel turns them on again for itself.
+					className: cn(!modal && 'pointer-events-auto', className),
+				})}
 				// The panel eases between its `height` variants, which is right for a step
 				// and wrong for a finger: eased, each frame's height becomes an animation
 				// toward where the pointer already is, so the edge trails the drag and

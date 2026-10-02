@@ -149,15 +149,29 @@ export function fitHeightMiddleware(snap?: FloatingHeightSnap): Middleware {
 	})
 }
 
-/** Default middleware chain: offset / flip / shift, plus the size middlewares that the options request. @internal */
+/**
+ * Default middleware chain: offset / flip / shift, plus the size middlewares
+ * that the options request.
+ *
+ * A panel on the left or the right side can fit on neither side, for example
+ * a wide panel on a phone. Then `flip` also tries the bottom and the top
+ * sides, and `shift` keeps the panel inside the viewport on that side. Without
+ * these fallbacks, `flip` selects the better of the two horizontal sides, and
+ * the panel goes off the screen. A panel on the top or the bottom side keeps
+ * its two vertical sides only, because `fitHeight` shrinks a tall panel into
+ * the space on one of them.
+ *
+ * @internal
+ */
 function buildMiddleware(
 	offsetPx: number,
 	matchReferenceWidth: boolean,
 	fitHeight: boolean | FloatingHeightSnap,
+	horizontal: boolean,
 ): Middleware[] {
 	return [
 		offset(offsetPx),
-		flip(),
+		flip(horizontal ? { fallbackAxisSideDirection: 'end' } : undefined),
 		shift({ padding: 8 }),
 		...(matchReferenceWidth ? [matchReferenceWidthMiddleware] : []),
 		...(fitHeight
@@ -239,7 +253,9 @@ export type FloatingPanelOptions = {
 
 /**
  * Base hook for floating panels: wires `useFloating` with `autoUpdate` and a
- * standardized middleware chain (offset/flip/shift, optional size).
+ * standardized middleware chain (offset/flip/shift, optional size). A panel on
+ * the left or the right side that fits on neither side moves to the bottom or
+ * the top side.
  *
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common
@@ -264,13 +280,16 @@ export function useFloatingPanel({
 }: FloatingPanelOptions): FloatingPanelResult {
 	const side = autoSide(placement)
 
+	const horizontal = placement.startsWith('left') || placement.startsWith('right')
+
 	// An `auto` placement starts at the start alignment. The alignment middleware
 	// goes first, so `flip` and `shift` act on the alignment that it selects.
 	const resolvedMiddleware = useMemo(() => {
-		const chain = middleware ?? buildMiddleware(offsetPx, matchReferenceWidth, fitHeight)
+		const chain =
+			middleware ?? buildMiddleware(offsetPx, matchReferenceWidth, fitHeight, horizontal)
 
 		return side ? [autoAlignMiddleware, ...chain] : chain
-	}, [middleware, offsetPx, matchReferenceWidth, fitHeight, side])
+	}, [middleware, offsetPx, matchReferenceWidth, fitHeight, horizontal, side])
 
 	// Reason of the pending close request; the focus-return effect reads it.
 	// Every close that flows through floating-ui's `context.onOpenChange`

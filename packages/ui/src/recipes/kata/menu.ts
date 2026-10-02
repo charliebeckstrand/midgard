@@ -5,7 +5,8 @@
  * `content` (the panel box), `surface` and `floating` (the wrapper and the
  * panel of a floating menu), `sheet` and `sheetBody` (the rows and the body of
  * the bottom sheet on a phone), `section`, `heading`, `label`, `text`,
- * `description`, and `shortcut`. The `subTrigger` wash on an open submenu parent and the
+ * `description`, and `shortcut`. The `subTrigger` wash on an open submenu parent, the
+ * `subChevron` and `subGroup` of a submenu in the bottom sheet, and the
  * `separator` divider join them.
  */
 import { defineRecipe, mode } from '../../core/recipe'
@@ -79,6 +80,12 @@ export const k = {
 	// the row the pointer traveled from still reads as the live trail back —
 	// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.
 	subTrigger: mode('data-open:bg-zinc-950/5', 'dark:data-open:bg-white/5'),
+	// The chevron of a `MenuSub` row in the bottom sheet, which turns over while
+	// the rows of the submenu show below the row.
+	subChevron: 'ms-auto transition-transform',
+	// The rows of a `MenuSub` in the bottom sheet, below their parent row. The
+	// indent shows that they belong to it.
+	subGroup: 'min-w-0 space-y-0.5 ps-4',
 	viewport,
 	item,
 	section: 'first:pt-0 last:pb-0',

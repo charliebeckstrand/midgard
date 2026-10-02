@@ -1111,6 +1111,91 @@ describe('Menu on a phone', () => {
 		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})
 
+	function renderPhoneSubmenu() {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		const onAction = vi.fn()
+
+		const user = setupUser()
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Add tile</button>
+				</MenuTrigger>
+
+				<MenuContent>
+					<MenuItem>Orders</MenuItem>
+					<MenuSub label="Charts">
+						<MenuItem onAction={onAction}>Line</MenuItem>
+						<MenuItem>Bar</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		return { onAction, user }
+	}
+
+	it('shows the rows of a submenu below its row in the sheet', async () => {
+		const { onAction, user } = renderPhoneSubmenu()
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		const row = screen.getByRole('menuitem', { name: 'Charts' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+
+		expect(row).not.toHaveAttribute('aria-haspopup')
+
+		expect(screen.queryByRole('menuitem', { name: 'Line' })).not.toBeInTheDocument()
+
+		await user.click(row)
+
+		const group = screen.getByRole('group', { name: 'Charts' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+
+		expect(row).toHaveAttribute('aria-controls', group.id)
+
+		// In the sheet, not in a floating panel of its own.
+		expect(screen.getByRole('menu')).toContainElement(group)
+
+		await user.click(screen.getByRole('menuitem', { name: 'Line' }))
+
+		expect(onAction).toHaveBeenCalledTimes(1)
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+	})
+
+	it('hides the rows of a submenu on a second tap and on the arrow back', async () => {
+		const { user } = renderPhoneSubmenu()
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		const row = screen.getByRole('menuitem', { name: 'Charts' })
+
+		await user.click(row)
+
+		await user.click(row)
+
+		expect(screen.queryByRole('group')).not.toBeInTheDocument()
+
+		row.focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		const line = screen.getByRole('menuitem', { name: 'Line' })
+
+		line.focus()
+
+		await user.keyboard('{ArrowLeft}')
+
+		expect(screen.queryByRole('group')).not.toBeInTheDocument()
+
+		expect(row).toHaveFocus()
+	})
+
 	it('keeps the popover when the sheet is turned off', async () => {
 		const { user } = renderPhoneMenu({ sheet: false })
 
