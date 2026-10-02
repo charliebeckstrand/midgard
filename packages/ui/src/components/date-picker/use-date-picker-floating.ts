@@ -1,7 +1,7 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { type RefObject, useCallback } from 'react'
+import { type RefObject, useCallback, useId } from 'react'
 import { type FloatingUIOptions, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 
@@ -16,10 +16,14 @@ type DatePickerFloatingOptions = {
 /**
  * The dialog popover that the three DatePicker variants share.
  *
- * It wraps {@link useFloatingUI} with the dialog role and the picker offset.
- * It also gives the public open-change entry and the trigger ref callback.
+ * It wraps {@link useFloatingUI} with the picker offset. It also gives the
+ * public open-change entry, the trigger ref callback, and the dialog id.
  *
- * @returns The {@link useFloatingUI} result, plus `onOpenChange` and `setReference`.
+ * The trigger and the panel set their own roles, so floating-ui's `useRole` is
+ * off. When it is on, it puts the popup ARIA on the positioning wrapper as well
+ * as on the trigger. Then a screen reader finds two controls for one dialog.
+ *
+ * @returns The {@link useFloatingUI} result, plus `onOpenChange`, `setReference`, and `dialogId`.
  * @internal
  */
 export function useDatePickerFloating({
@@ -33,11 +37,14 @@ export function useDatePickerFloating({
 		open,
 		onOpenChange: handleOpenChange,
 		offset: 8,
-		role: 'dialog',
+		role: null,
 		returnFocusTo: triggerRef,
 	})
 
 	const { context, refs } = floating
+
+	// The panel takes this id, and the trigger names it in `aria-controls`.
+	const dialogId = useId()
 
 	const { onOpenChange: engineOpenChange } = context
 
@@ -58,5 +65,5 @@ export function useDatePickerFloating({
 	// `null` during deletion effects (see {@link useFloatingReference}).
 	const setReference = useFloatingReference<HTMLElement>(refs.setReference, triggerRef, undefined)
 
-	return { ...floating, onOpenChange, setReference }
+	return { ...floating, onOpenChange, setReference, dialogId }
 }

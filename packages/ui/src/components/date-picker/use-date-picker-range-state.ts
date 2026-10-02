@@ -210,6 +210,7 @@ export function useDatePickerRangeState({
 		getFloatingProps,
 		onOpenChange,
 		setReference,
+		dialogId,
 	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
 
 	const setActive = useCallback(
@@ -237,6 +238,7 @@ export function useDatePickerRangeState({
 
 	return {
 		triggerId: scope.id,
+		dialogId,
 		describedBy: controlProps['aria-describedby'],
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,

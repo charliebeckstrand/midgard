@@ -22,6 +22,8 @@ type DatePickerTriggerProps = GroupStampProps & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
+	/** The id of the dialog panel. The trigger names it in `aria-controls` while open. */
+	dialogId?: string
 	describedBy?: string
 	setReference: (node: HTMLElement | null) => void
 	getReferenceProps: () => Record<string, unknown>
@@ -65,9 +67,14 @@ type DatePickerTriggerProps = GroupStampProps & {
 /**
  * Popover reference button showing the selected date label (or placeholder).
  * Carries the dialog ARIA wiring (`aria-haspopup`, `aria-expanded`,
- * `aria-describedby`) and shows a Tooltip with the full label when truncated.
- * Pass `children` to render custom value content (the relative variant's chips)
- * in place of the text label.
+ * `aria-controls`, `aria-describedby`) and shows a Tooltip with the full label
+ * when truncated. Pass `children` to render custom value content (the relative
+ * variant's chips) in place of the text label.
+ *
+ * The button has `role="combobox"`, as on Listbox. A select-only combobox
+ * takes its value from its content, so a screen reader announces the date
+ * after an `aria-label` or a Field label. The role also makes `aria-readonly`
+ * and `aria-required` valid.
  *
  * @internal
  */
@@ -75,6 +82,7 @@ export function DatePickerTrigger({
 	open,
 	onOpenChange,
 	triggerId,
+	dialogId,
 	describedBy,
 	setReference,
 	getReferenceProps,
@@ -140,9 +148,11 @@ export function DatePickerTrigger({
 						ref={triggerButtonRef}
 						type="button"
 						id={triggerId}
+						role="combobox"
 						aria-label={ariaLabel}
 						aria-haspopup="dialog"
 						aria-expanded={open}
+						aria-controls={open ? dialogId : undefined}
 						aria-describedby={describedBy}
 						aria-readonly={ariaAttr(readOnly)}
 						aria-required={ariaAttr(required)}

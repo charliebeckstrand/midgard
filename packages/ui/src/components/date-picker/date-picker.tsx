@@ -163,7 +163,8 @@ export type DatePickerBaseProps = GroupStampProps & {
 	 * Toggles the calendar footer's action buttons. Each key defaults to `true`;
 	 * set one `false` to hide that button — e.g. `footer={{ today: false }}` keeps
 	 * Clear but drops the Today shortcut. Honored across variants, though `today`
-	 * only renders in the single-date variant.
+	 * only renders in the single-date variant. The relative variant also gives it
+	 * to the calendars of its Start and End fields.
 	 *
 	 * @defaultValue { today: true, clear: true }
 	 */
@@ -217,6 +218,10 @@ export type DatePickerProps = DatePickerBaseProps &
  * cycle. The `relative` variant's preset list uses real focusable toggle
  * buttons, shown as chips in the trigger. It swaps to Start/End `input`-mode
  * date fields for a custom range.
+ *
+ * The trigger is a select-only combobox with a dialog popup, as on Listbox. Its
+ * content is its value, so a screen reader announces the selected date after
+ * the name from `aria-label` or a Field label.
  *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
@@ -281,6 +286,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		inputAria,
 		onOpenChange,
 		triggerId,
+		dialogId,
 		describedBy,
 		displayValue,
 		required,
@@ -309,6 +315,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const content = (
 		<DatePickerContent
+			id={dialogId}
 			open={open}
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
@@ -396,6 +403,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				open={open}
 				onOpenChange={onOpenChange}
 				triggerId={triggerId}
+				dialogId={dialogId}
 				describedBy={describedBy}
 				setReference={setReference}
 				getReferenceProps={getReferenceProps}

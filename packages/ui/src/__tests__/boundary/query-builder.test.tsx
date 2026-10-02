@@ -625,7 +625,7 @@ describe('QueryBuilderRuleValue', () => {
 
 		// The select/number/text branches name their controls "<label> value";
 		// the date branch threads the same name through DatePicker's aria-label.
-		expect(screen.getByRole('button', { name: 'Start value' })).toBeInTheDocument()
+		expect(screen.getByRole('combobox', { name: 'Start value' })).toBeInTheDocument()
 	})
 
 	// Regression: the bare `Date(year, month, day)` constructor maps years 0–99
@@ -639,7 +639,7 @@ describe('QueryBuilderRuleValue', () => {
 
 		yearOne.setFullYear(1)
 
-		const trigger = screen.getByRole('button', { name: 'Start value' })
+		const trigger = screen.getByRole('combobox', { name: 'Start value' })
 
 		// The trigger repeats the date in its truncation tooltip, so assert
 		// containment rather than the full text.

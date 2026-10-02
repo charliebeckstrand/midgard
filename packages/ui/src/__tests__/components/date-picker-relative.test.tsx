@@ -76,7 +76,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -97,7 +97,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'This year' }))
 
@@ -118,7 +118,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<ControlledRelativePicker multiple onChange={onChange} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'This year' }))
 
@@ -142,7 +142,7 @@ describe('DatePicker (relative)', () => {
 
 		renderUI(<ControlledRelativePicker onChange={onChange} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		const today = screen.getByRole('button', { name: 'Today' })
 
@@ -185,7 +185,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<CollidingPicker />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Beta' }))
 
@@ -326,7 +326,7 @@ describe('DatePicker (relative)', () => {
 
 		renderUI(<ControlledRelativePicker />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -351,10 +351,33 @@ describe('DatePicker (relative)', () => {
 			/>,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		// A committed span would normally surface the list-mode footer Clear.
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
+	})
+
+	it('forwards footer to the Start and End field calendars', async () => {
+		const user = openPicker()
+
+		renderUI(
+			<DatePicker relative footer={{ clear: false, today: false }} aria-label="Reporting range" />,
+		)
+
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+		await user.type(screen.getByRole('textbox', { name: 'Start' }), '06012026')
+
+		await user.click(
+			screen.getAllByRole('button', { name: 'Open calendar' })[0] as HTMLButtonElement,
+		)
+
+		// The nested calendar has a value, so its footer would show Clear and Today.
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
 	})
 
 	it('shows a custom footer Clear once both dates settle and clears the range', async () => {
@@ -364,7 +387,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
@@ -396,7 +419,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
@@ -428,7 +451,7 @@ describe('DatePicker (relative)', () => {
 			/>,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		expect(screen.getByRole('button', { name: 'Custom range' })).toHaveAttribute(
 			'aria-pressed',
@@ -449,7 +472,7 @@ describe('DatePicker (relative)', () => {
 			<ControlledRelativePicker initial={undefined} onChange={onChange} />,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -469,7 +492,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<ControlledRelativePicker chips={false} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -486,7 +509,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<ControlledRelativePicker multiple chips={false} />)
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'This year' }))
 
@@ -513,7 +536,7 @@ describe('DatePicker (relative)', () => {
 
 		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Select range')
 
-		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 
@@ -573,9 +596,9 @@ describe('DatePicker (relative)', () => {
 
 		const onMonthChange = vi.fn()
 
-		renderUI(<DatePicker relative onMonthChange={onMonthChange} />)
+		renderUI(<DatePicker relative aria-label="Range" onMonthChange={onMonthChange} />)
 
-		await user.click(screen.getByRole('button', { name: /select range/i }))
+		await user.click(screen.getByRole('combobox', { name: 'Range' }))
 
 		await user.click(screen.getByText('Custom range'))
 

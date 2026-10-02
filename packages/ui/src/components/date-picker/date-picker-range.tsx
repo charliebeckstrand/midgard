@@ -38,6 +38,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				open={state.open}
 				onOpenChange={state.onOpenChange}
 				triggerId={state.triggerId}
+				dialogId={state.dialogId}
 				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
@@ -59,6 +60,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				data-group-orientation={dataGroupOrientation}
 			/>
 			<DatePickerContent
+				id={state.dialogId}
 				open={state.open}
 				setFloating={state.setFloating}
 				floatingStyles={state.floatingStyles}
