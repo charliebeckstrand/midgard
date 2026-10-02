@@ -8,8 +8,19 @@ const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
 
+/**
+ * The page list. Below the `sm` width of the pagination container, the list
+ * goes compact: it keeps the current page and hides the other pages and the
+ * gaps, so Previous and Next stay in the row.
+ */
 const list = defineRecipe({
-	base: [flex.row, 'list-none', 'gap-1', 'm-0 p-0'],
+	base: [
+		flex.row,
+		'list-none',
+		'gap-1',
+		'm-0 p-0',
+		'@max-sm/pagination:[&>li:not(:has([aria-current=page]))]:hidden',
+	],
 })
 
 const button = defineRecipe({
@@ -41,7 +52,18 @@ export const k = defineRecipe(
 	{
 		// The gap also caps the hit areas of Previous and Next (`TouchTarget`). A
 		// narrow grid hides the page list, and the two buttons then sit side by side.
-		base: [flex.row, 'list-none', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
+		//
+		// The root is the size container of the compact page list. A size container
+		// takes no width from its content, so the root fills the inline axis. In a
+		// flex row, the consumer gives it a width, for example `flex-1`.
+		base: [
+			'@container/pagination',
+			'w-full',
+			flex.row,
+			'list-none',
+			'gap-1',
+			'[--touch-target-gap-x:--spacing(1)]',
+		],
 		skeleton: kokkaku.pagination,
 	},
 	{

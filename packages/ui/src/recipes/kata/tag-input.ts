@@ -23,4 +23,9 @@ export const k = {
 	// Along the row, a one-letter tag still puts the gap, the leading pad, and the
 	// inner gap of its `xs` chip between two buttons, 14px or more.
 	tags: 'density-py-ring-[2,2.5,3,3,3] [--touch-target-gap-x:--spacing(3.5)] [--touch-target-gap-y:--spacing(2.5)]',
+	// The text input keeps a usable width. When the tag row leaves less, the input
+	// moves to the next row of the wrapping frame, and the add button goes with
+	// it. Without the floor, the input took the last sliver of the tag row and the
+	// add button wrapped alone.
+	input: 'min-w-16',
 } as const
