@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -18,6 +18,13 @@ export type DrawerStaticProps = {
 	size?: DensityStep
 	/** As on {@link Drawer}: how much of the screen the panel docks over. @defaultValue 'auto' */
 	height?: DrawerPanelVariants['height']
+	/**
+	 * As on {@link Drawer}: the grip on the top edge of the panel, painted here and never
+	 * interactive. Pass the same value as the drawer, so its inset matches.
+	 *
+	 * @defaultValue false
+	 */
+	handle?: boolean
 	/** As on {@link Drawer}: the translucent glass panel and backdrop. */
 	glass?: boolean
 	/** As on {@link Drawer}: drain the colour from what shows through the backdrop. */
@@ -65,6 +72,7 @@ export type DrawerStaticProps = {
 export function DrawerStatic({
 	size,
 	height,
+	handle,
 	glass,
 	desaturate,
 	className,
@@ -85,7 +93,13 @@ export function DrawerStatic({
 				inert
 				density={size}
 				{...drawerPanelProps({ surface: resolvedSurface, height, className })}
+				data-handle={dataAttr(handle === true)}
 			>
+				{handle ? (
+					<div aria-hidden="true" className={cn(k.handle.area)}>
+						<div className={cn(k.handle.bar)} />
+					</div>
+				) : null}
 				{children}
 			</PolymorphicStatic>
 		</div>
