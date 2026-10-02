@@ -248,11 +248,12 @@ function TapLogPanel() {
 		</div>
 	)
 
+	// The top padding is equal to the bottom padding, so the bar is in the vertical center.
 	if (!open)
 		return (
 			<div
 				className={cn(
-					'dark fixed inset-x-0 bottom-0 z-[2147483647] bg-zinc-950 text-white',
+					'dark fixed inset-x-0 bottom-0 z-[2147483647] bg-zinc-950 pt-[max(env(safe-area-inset-bottom),--spacing(4))] text-white',
 					corners,
 				)}
 			>
