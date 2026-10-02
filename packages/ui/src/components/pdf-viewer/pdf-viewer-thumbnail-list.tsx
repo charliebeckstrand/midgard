@@ -17,6 +17,25 @@ type PdfViewerThumbnailItem = {
 // the length is the placeholder count.
 const PLACEHOLDER_KEYS = rangeKeys(6, 'placeholder')
 
+/** The overflow values of a node that scrolls. */
+const SCROLLABLE = /^(auto|scroll|overlay)$/
+
+/**
+ * The node that scrolls the tiles: the rail itself in the list layout, and the body of the
+ * Sheet in the grid layout.
+ *
+ * @remarks The observer needs this node as its root. A margin grows the root only, and the
+ * scroller clips each tile before the margin of the viewport can apply.
+ * @internal
+ */
+function scrollRoot(element: HTMLElement): HTMLElement | null {
+	for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+		if (SCROLLABLE.test(getComputedStyle(node).overflowY)) return node
+	}
+
+	return null
+}
+
 /** Props for {@link PdfViewerThumbnailList}. @internal */
 type PdfViewerThumbnailListProps = {
 	items: PdfViewerThumbnailItem[]
@@ -42,8 +61,9 @@ type PdfViewerThumbnailListProps = {
 /**
  * Reports the tiles of `list` that are in view, or within 200px of it, through one observer.
  *
- * @remarks One observer for the whole rail, not one for each tile. The observer clips each
- * tile by the scroll container of the rail, so a tile scrolled out of the rail is out of view.
+ * @remarks One observer for the whole rail, not one for each tile. The root of the observer is
+ * the scroll container of the rail, so a tile scrolled out of the rail is out of view, and the
+ * 200px margin grows the rail.
  * Where nothing can observe (the server, and jsdom without a stub), every tile counts as in
  * view, as `useInView` does. The cleanup reports none, because a rail that unmounts or hides
  * shows nothing.
@@ -78,7 +98,7 @@ function useVisibleTiles(
 
 				onVisibleChange([...visible].sort((a, b) => a - b))
 			},
-			{ rootMargin: '200px' },
+			{ root: scrollRoot(element), rootMargin: '200px' },
 		)
 
 		for (const tile of element.querySelectorAll('[data-index]')) observer.observe(tile)

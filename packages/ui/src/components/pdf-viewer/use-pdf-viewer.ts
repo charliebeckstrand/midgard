@@ -4,6 +4,7 @@ import type { RefObject, SyntheticEvent } from 'react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useMinBreakpoint, usePrefersReducedMotion } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { resolveDownloadName } from './pdf-viewer-utilities'
 import type {
 	PdfViewerFit,
 	PdfViewerMagnifierMode,
@@ -15,6 +16,7 @@ import type {
 } from './types'
 import { usePdfViewerDocument, usePdfViewerDocumentFocus } from './use-pdf-viewer-document'
 import {
+	currentMagnifierChoice,
 	type MagnifierChoice,
 	type ResolvedMagnifier,
 	resolveMagnifier,
@@ -150,6 +152,10 @@ export type PdfViewerResult = {
 	 * only those. `null` for pages that a caller supplies.
 	 */
 	showThumbnails: ((indices: number[]) => void) | null
+	/**
+	 * The download name: the `filename` of the consumer, else a name from `src` when the
+	 * download goes through the blob URL, which has no name of its own.
+	 */
 	filename: string | undefined
 	loading: boolean
 	/**
@@ -306,6 +312,7 @@ export function usePdfViewer({
 
 	const {
 		mode: magnifierModeProp,
+		enabled: magnifierEnabled = true,
 		zoom: magnifierZoom,
 		size: magnifierSize,
 		delay: magnifierDelay,
@@ -323,9 +330,16 @@ export function usePdfViewer({
 		[magnifierAsked, magnifierZoom, magnifierSize, magnifierDelay],
 	)
 
-	// Chrome, like the sidebar and the highlight toggle: nothing outside drives it, so it is
-	// state rather than a prop. On by default — a consumer that passed the prop wants the loupe.
-	const [magnifierOn, setMagnifierOnState] = useState(true)
+	/*
+	 * The switch of the reader, and `null` until they press it.
+	 *
+	 * The same rule as the three settings below. Until the reader presses the switch, the
+	 * `enabled` of the prop is the answer, so a stored state comes back as the reader left it.
+	 * On by default, because a consumer that passed the prop wants the loupe.
+	 */
+	const [magnifierOnState, setMagnifierOnState] = useState<boolean | null>(null)
+
+	const magnifierOn = magnifierOnState ?? magnifierEnabled
 
 	/*
 	 * The reader's own settings, and `null` until they have one.
@@ -337,7 +351,9 @@ export function usePdfViewer({
 	 */
 	const [magnifierChoiceState, setMagnifierChoiceState] = useState<MagnifierChoice | null>(null)
 
-	const magnifierChoice = magnifierChoiceState ?? magnifierOffered
+	// The choice of the reader stays in state while the prop is withdrawn, so a prop offered
+	// again brings it back.
+	const magnifierChoice = currentMagnifierChoice(magnifierOffered, magnifierChoiceState)
 
 	/*
 	 * One report for the whole of what the reader owns, rather than one per switch.
@@ -435,6 +451,8 @@ export function usePdfViewer({
 	// Falls back to `src` for same-origin docs; cross-origin docs open in
 	// the browser's PDF viewer.
 	const documentSrc = documentUrl ?? src
+
+	const downloadName = resolveDownloadName(filename, src, documentUrl)
 
 	const total = pages.length
 
@@ -564,7 +582,7 @@ export function usePdfViewer({
 			fit,
 			documentSrc,
 			showThumbnails,
-			filename,
+			filename: downloadName,
 			loading,
 			pending,
 			error,
@@ -604,7 +622,7 @@ export function usePdfViewer({
 			fit,
 			documentSrc,
 			showThumbnails,
-			filename,
+			downloadName,
 			loading,
 			pending,
 			error,

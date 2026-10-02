@@ -206,3 +206,26 @@ describe('usePdfViewer · load reporting', () => {
 		expect(onError).toHaveBeenCalledOnce()
 	})
 })
+
+describe('usePdfViewer · download name', () => {
+	/** The download goes through the blob URL, so the name must come from `src`. */
+	it('names the download after the last segment of src when no filename is given', async () => {
+		await seed('/files/invoice-42.pdf?v=3')
+
+		const { result } = renderHook(() => usePdfViewer({ src: '/files/invoice-42.pdf?v=3' }))
+
+		expect(result.current.documentSrc).toBe('blob:doc')
+
+		expect(result.current.filename).toBe('invoice-42.pdf')
+	})
+
+	it('keeps the filename of the consumer', async () => {
+		await seed('/files/invoice-42.pdf')
+
+		const { result } = renderHook(() =>
+			usePdfViewer({ src: '/files/invoice-42.pdf', filename: 'March invoice.pdf' }),
+		)
+
+		expect(result.current.filename).toBe('March invoice.pdf')
+	})
+})

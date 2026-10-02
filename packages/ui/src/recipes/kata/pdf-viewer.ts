@@ -130,7 +130,12 @@ export const k = {
 			'group-hover/thumb:opacity-75',
 			'group-data-current/thumb:hover:opacity-100',
 		],
-		image: ['block w-full h-full object-contain'],
+		/**
+		 * The page image. A white page on the white rail of light mode has no edge, so the
+		 * shadow draws one. It is a filter, not a box shadow, so it follows the page and not
+		 * the letterbox of `object-contain`.
+		 */
+		image: ['block w-full h-full object-contain', 'drop-shadow-sm'],
 		fallback: [flex.row, 'justify-center', 'h-full w-full', size.sm, text.muted],
 		placeholder: ['block w-full aspect-[3/4]', skeleton],
 		label: [

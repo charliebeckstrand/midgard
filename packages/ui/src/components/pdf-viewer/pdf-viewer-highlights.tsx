@@ -345,7 +345,9 @@ function PdfViewerHighlightLayer() {
 	}
 
 	function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-		if (event.key === 'Escape') {
+		// With no selection, Escape has nothing to clear here. It goes on to the surface that
+		// holds the viewer, such as a dialog that closes on Escape.
+		if (event.key === 'Escape' && anyActive) {
 			// While a region holds focus, Escape belongs to the selection. `preventDefault` is
 			// what says so: `useEscapeLayer` — which every dismissable surface in the package
 			// reads Escape through — ignores a press whose default is already prevented.
