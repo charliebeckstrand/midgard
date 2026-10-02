@@ -67,6 +67,10 @@ const vertical = [
 	'[&_[data-group-orientation=vertical][data-group=end]]:after:rounded-t-none',
 	'[&_[data-group-orientation=vertical][data-group=middle]]:-mt-px',
 	'[&_[data-group-orientation=vertical][data-group=end]]:-mt-px',
+	// A vertical group stretches each member to its width, so the outer edges
+	// line up. `w-auto` overrides the `w-fit` of a member such as Button. The
+	// child combinator keeps it on the members, and away from other children.
+	'[&>[data-group-orientation=vertical]]:w-auto',
 ] as const
 
 /**

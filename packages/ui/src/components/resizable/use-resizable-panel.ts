@@ -49,13 +49,14 @@ function dragDeltaPercent(
  * their min/max and the pair keeps its sum. An over-constrained pair has no
  * such interval, so the left panel's own bounds apply.
  *
+ * @returns The `min` and `max` of the left panel, and the `total` of the pair.
  * @internal
  */
 export function pairRange(
 	sizes: number[],
 	leftIdx: number,
 	constraints: PanelConfig[],
-): { min: number; max: number } {
+): { min: number; max: number; total: number } {
 	const rightIdx = leftIdx + 1
 
 	const total = (sizes[leftIdx] ?? 0) + (sizes[rightIdx] ?? 0)
@@ -74,8 +75,8 @@ export function pairRange(
 	const feasibleMax = Math.min(lcMax, total - rcMin)
 
 	return feasibleMin <= feasibleMax
-		? { min: feasibleMin, max: feasibleMax }
-		: { min: lcMin, max: lcMax }
+		? { min: feasibleMin, max: feasibleMax, total }
+		: { min: lcMin, max: lcMax, total }
 }
 
 /**
@@ -86,18 +87,14 @@ export function pairRange(
  * @internal
  */
 function clampPair(sizes: number[], leftIdx: number, constraints: PanelConfig[]): number[] {
-	const rightIdx = leftIdx + 1
-
-	const result = [...sizes]
-
-	const total = (sizes[leftIdx] ?? 0) + (sizes[rightIdx] ?? 0)
-
-	const { min, max } = pairRange(sizes, leftIdx, constraints)
+	const { min, max, total } = pairRange(sizes, leftIdx, constraints)
 
 	const left = clamp(sizes[leftIdx] ?? 0, min, max)
 
+	const result = [...sizes]
+
 	result[leftIdx] = left
-	result[rightIdx] = total - left
+	result[leftIdx + 1] = total - left
 
 	return result
 }

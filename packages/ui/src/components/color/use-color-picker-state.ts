@@ -6,7 +6,6 @@ import { useControllableFlag, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControlProps } from '../control/use-control-props'
-import { useFormField } from '../form/context'
 import { useFormValue } from '../form/use-form-value'
 import type { ColorFormat, Hsva } from './types'
 import { useColorState } from './use-color-state'
@@ -72,16 +71,12 @@ export function useColorPickerState({
 
 	const scope = useIdScope({ id: controlProps.id })
 
-	// A bound field or an explicit `value` controls the color. Then an empty
-	// value goes in as `null`, so the state paints black and does not seed from
-	// `defaultValue`, which §7.2 tells a bound field to ignore.
-	const field = useFormField(name)
-
-	const controlled = value !== undefined || field !== undefined
-
+	// `useFormValue` owns the seed: it gives `defaultValue` when the picker is
+	// unbound and uncontrolled, and ignores it for a bound field (§7.2). The
+	// color state is always controlled, so an empty value goes in as `null`
+	// and paints black.
 	const { hsva, setHsva } = useColorState({
-		value: bound.value ?? (controlled ? null : undefined),
-		defaultValue,
+		value: bound.value ?? null,
 		format,
 		alpha,
 		onValueChange: bound.setValue,

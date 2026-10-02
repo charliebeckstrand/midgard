@@ -3,8 +3,9 @@
 import { memo, useCallback } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
+import { formatInteger } from '../../utilities'
 import { Button, type ButtonVariants } from '../button'
-import { formatDayName, formatDayNumber } from './calendar-utilities'
+import { formatDayName } from './calendar-utilities'
 
 type DayCellProps = {
 	date: Date
@@ -73,7 +74,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 				className,
 			)}
 		>
-			{formatDayNumber(date, localeTag)}
+			{formatInteger(date.getDate(), localeTag)}
 		</Button>
 	)
 })

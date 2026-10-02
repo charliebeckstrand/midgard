@@ -10,7 +10,7 @@ import {
 	type SyntheticEvent,
 	useCallback,
 } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core'
 import { Checkbox } from '../checkbox'
 import { Description, Field, Label, Message } from '../fieldset'
 import { Input } from '../input'
@@ -85,8 +85,8 @@ function controlValueProps(child: ReactElement, fieldValue: unknown): Record<str
 }
 
 /**
- * Runs the own value callback of a child, then the binding. A value callback
- * has no event to cancel, so the binding always runs.
+ * Runs the own callback of a child, then the binding. The binding always runs,
+ * also after a `preventDefault()` in the callback of the child.
  *
  * @internal
  */
@@ -219,15 +219,9 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		// The own handlers of the child run first, then the binding. The binding
 		// keeps the slot true, so a `preventDefault()` does not skip it
 		// (CONVENTIONS.md §3.9).
-		if (expectsEventCallback(child)) {
-			cloned.onChange = composeEventHandlers(
-				props.onChange as ((event: SyntheticEvent) => void) | undefined,
-				bind,
-				{ checkForDefaultPrevented: false },
-			)
-		} else {
-			cloned.onValueChange = chainCallbacks(props.onValueChange, bind)
-		}
+		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
+
+		cloned[handlerProp] = chainCallbacks(props[handlerProp], bind)
 
 		if (expectsClearCallback(child)) cloned.onClear = chainCallbacks(props.onClear, handleClear)
 

@@ -132,13 +132,8 @@ export function sparklineGeometry(
 
 	// A lone drawn point draws as a full-width line, so its end point sits at the
 	// end of that line, not at the x of the datum.
-	const lastDrawn = drawn.at(-1)
-
-	const last = lastDrawn
-		? drawn.length === 1
-			? { x: width - padding, y: lastDrawn.y }
-			: lastDrawn
-		: null
+	const last =
+		drawn.length === 1 && first ? { x: width - padding, y: first.y } : (drawn.at(-1) ?? null)
 
 	// Close the fill on the outermost drawn points, not the box corners: when a
 	// boundary datum is non-finite the drawn line stops short of the edge, and

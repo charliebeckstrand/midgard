@@ -237,17 +237,20 @@ export function Listbox<T>({
 		setValue,
 	})
 
+	// A read-only or disabled listbox does not open and does not commit.
+	const locked = resolvedReadOnly || resolvedDisabled
+
 	// readOnly keeps the trigger focusable and the value submitted but blocks
 	// every open path (frame click, floating-ui keyboard/typeahead). disabled
 	// blocks the same paths. The frame takes the click, not the disabled button.
 	// Closing stays allowed, so an externally-opened menu can still dismiss.
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
-			if ((resolvedReadOnly || resolvedDisabled) && next) return
+			if (locked && next) return
 
 			setOpen(next)
 		},
-		[resolvedReadOnly, resolvedDisabled, setOpen],
+		[locked, setOpen],
 	)
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -321,7 +324,7 @@ export function Listbox<T>({
 
 	const hasValue = hasListboxValue(value, multiple)
 
-	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
+	const showClear = clearable && hasValue && !locked
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
@@ -343,11 +346,11 @@ export function Listbox<T>({
 	// also blocks the selection: a read-only or disabled listbox never commits.
 	const guardedSelect = useCallback(
 		(next: T) => {
-			if (resolvedReadOnly || resolvedDisabled) return
+			if (locked) return
 
 			select(next)
 		},
-		[resolvedReadOnly, resolvedDisabled, select],
+		[locked, select],
 	)
 
 	// The trigger label reads the live `value` (updates instantly on select); the

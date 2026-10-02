@@ -146,10 +146,9 @@ export function Dialog({
 		>
 			<div
 				className={cn(
-					'pointer-events-none inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
-					// The overlay root is `absolute` in a `container`. A `fixed` wrapper
-					// there puts the panel against the viewport, not the container.
-					container ? 'absolute' : 'fixed',
+					// The overlay root is positioned and `inset-0` in both modes, so the
+					// wrapper fills the root: the viewport, or the `container`.
+					'pointer-events-none absolute inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
 					alignClasses[align],
 				)}
 			>

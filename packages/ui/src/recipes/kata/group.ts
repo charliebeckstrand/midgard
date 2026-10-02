@@ -5,7 +5,7 @@ import { type GroupOrientation, tsunagi } from '../kiso'
  *
  * A string rather than the array this used to build per call, because `cn` can only
  * memoize a call whose every argument is keyable. An array sends the whole thing to the
- * plain `twMerge` (`core/cn.ts`, `keyable`). The frame is eleven arbitrary-variant tsunagi
+ * plain `twMerge` (`core/cn.ts`, `keyable`). The frame is a set of arbitrary-variant tsunagi
  * selectors, so that merge is not cheap, and every `Group` in the app was paying it on every
  * render. Nothing here varies at runtime, so there was never a reason to rebuild it.
  *
@@ -13,11 +13,7 @@ import { type GroupOrientation, tsunagi } from '../kiso'
  */
 const frames = {
 	horizontal: ['inline-flex flex-row [--touch-target-gap-x:0px]', ...tsunagi.horizontal].join(' '),
-	// A vertical group stretches each member to its width, so the outer edges line
-	// up. `w-auto` overrides the `w-fit` of a member such as Button.
-	vertical: ['inline-flex flex-col [--touch-target-gap-y:0px] *:w-auto', ...tsunagi.vertical].join(
-		' ',
-	),
+	vertical: ['inline-flex flex-col [--touch-target-gap-y:0px]', ...tsunagi.vertical].join(' '),
 } as const satisfies Record<GroupOrientation, string>
 
 /**

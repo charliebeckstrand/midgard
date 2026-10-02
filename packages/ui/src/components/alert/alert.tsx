@@ -36,11 +36,14 @@ const severityIconMap = {
 	error: <XCircle />,
 } satisfies Record<AlertSeverity, ReactElement>
 
+/** Whether `children` holds body content. `undefined`, `null`, and `false` are empty. @internal */
+function hasBody(children: ReactNode): boolean {
+	return children != null && children !== false
+}
+
 /** Wraps loose children in {@link AlertBody}; renders nothing for an empty child. @internal */
 function renderChildren(children: ReactNode): ReactNode {
-	if (children === undefined || children === null || children === false) return null
-
-	return <AlertBody>{children}</AlertBody>
+	return hasBody(children) ? <AlertBody>{children}</AlertBody> : null
 }
 
 /** Props for {@link Alert}; merges recipe variants with severity, content slots, and controlled/uncontrolled open state. */
@@ -238,6 +241,10 @@ export function Alert({
 		Boolean(title),
 	)
 
+	// A title over more rows holds the close button on the title row. A lone
+	// row centers it, so the button keeps the height of the alert.
+	const multiRow = Boolean(title && (description || actions || hasBody(children)))
+
 	return (
 		<div
 			ref={alertRef}
@@ -264,16 +271,7 @@ export function Alert({
 			</AlertContent>
 
 			{closable && (
-				<div
-					className={cn(
-						k.close,
-						// A title over more rows holds the button on the title row. A lone
-						// row centers it, so the button keeps the height of the alert.
-						title && (description || actions || renderChildren(children) !== null)
-							? k.closeTitleRow
-							: 'self-center',
-					)}
-				>
+				<div className={cn(k.close, multiRow ? k.closeTitleRow : 'self-center')}>
 					<Button
 						type="button"
 						variant="plain"
