@@ -1,23 +1,22 @@
 /**
- * Kokkaku skeleton: calendar. One block silhouette per width step; the
- * height approximates the header row above the seven square weekday/day
- * rows at that width.
+ * Kokkaku skeleton: calendar. The silhouette has the structure of the real
+ * month grid, so it has the height of the real calendar at each width step.
  *
- * `width` is the width of the real calendar. The Calendar kata reads it. Each
- * measure is a stepped `density-*` class, so the silhouette takes the step of
- * its nearest density scope, as the calendar does.
+ * `width` is the width of the real calendar. The Calendar kata reads it.
+ * `row` is the height of the header row and of each day row: the height of a
+ * button, because each of those rows holds buttons. The square weekday row
+ * comes from the `weekday` slot of the kata. Each measure is a stepped
+ * `density-*` class, so the silhouette takes the step of its nearest density
+ * scope, as the calendar does.
  *
  * Layer: kiso · Concern: skeleton form · Unit: calendar
  */
 
-import { kasane } from '../kasane'
-
-const { rounded } = kasane
+import { button } from './button'
 
 const width = 'density-w-[52,68,80]'
 
 export const calendar = {
-	base: [rounded.lg, 'density-h-[60,78,92]', width],
 	width,
-	density: true,
+	row: button.height,
 } as const

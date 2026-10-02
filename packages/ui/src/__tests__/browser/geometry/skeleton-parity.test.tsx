@@ -11,6 +11,7 @@ import {
 	BreadcrumbSkeleton,
 } from '../../../components/breadcrumb'
 import { Button, ButtonSkeleton } from '../../../components/button'
+import { Calendar, CalendarSkeleton } from '../../../components/calendar'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { ColorPanel, ColorPanelSkeleton } from '../../../components/color'
 import { ControlSkeleton } from '../../../components/control'
@@ -531,4 +532,13 @@ describe('skeleton parity (real browser)', () => {
 			).toStrictEqual(real)
 		},
 	)
+
+	it.each(['sm', 'md', 'lg'] as const)('CalendarSkeleton has the box of a %s calendar', (size) => {
+		// A month that spans six weeks, the tallest month a calendar draws.
+		const { container } = renderUI(<Calendar size={size} defaultValue={new Date(2026, 4, 15)} />)
+
+		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
+			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
+		)
+	})
 })
