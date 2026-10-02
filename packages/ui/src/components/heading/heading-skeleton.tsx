@@ -13,6 +13,15 @@ export type HeadingSkeletonProps = {
 	 * A step makes the silhouette a density scope.
 	 */
 	size?: DensityStep
+	/**
+	 * Render a `span` that sits inside a real heading, one em tall, in place of a
+	 * block. Use it when the heading renders at once and only its text loads, as
+	 * in `<CardTitle><HeadingSkeleton inline /></CardTitle>`. The heading then
+	 * keeps its settled height. `level` and `size` do not apply, because the
+	 * heading around the span sets the font size.
+	 * @defaultValue false
+	 */
+	inline?: boolean
 	className?: string
 }
 
@@ -20,10 +29,18 @@ export type HeadingSkeletonProps = {
  * Heading-shaped placeholder. Its height tracks the rung of the heading at each
  * step, and it takes the step of the nearest density scope, as the heading
  * does. Keyed off the level, so it does not use the `createSkeleton` factory.
+ * With `inline`, it is a span that sits inside a real heading.
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Heading}
  */
-export function HeadingSkeleton({ level = 1, size, className }: HeadingSkeletonProps) {
+export function HeadingSkeleton({
+	level = 1,
+	size,
+	inline = false,
+	className,
+}: HeadingSkeletonProps) {
+	if (inline) return <Placeholder as="span" className={cn(k.skeleton.inline, className)} />
+
 	return (
 		<Placeholder
 			data-density={size}
