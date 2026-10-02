@@ -134,8 +134,7 @@ function AlertContent({
 				resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-2' : 'flex flex-col',
 			)}
 		>
-			{/* The title keeps one size at each density step, so the icon keeps one too. */}
-			{resolvedIcon && <Icon icon={resolvedIcon} size="md" className={cn(k.icon)} />}
+			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
 
 			{title && <div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>}
 
@@ -165,6 +164,9 @@ function AlertContent({
  * one both paths can use. There used to be a slot trio beside it, reconciled
  * by sniffing each child's `displayName`. That is the cost the second channel
  * carried, and it is gone with the slots.
+ *
+ * The padding, the text, the title, and the icon take the step of the nearest
+ * density scope. At `md` the alert is `p-4` with a `text-lg` title.
  *
  * Client component. Polite severities (`info`/`success`, `role="status"`) are
  * re-announced through the persistent announcer on appear. Screen readers can

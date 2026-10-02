@@ -7,9 +7,9 @@ import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The leading icon and the close button of an Alert line up with the title.
- * The title of an Alert keeps one size at each density step, so the icon must
- * also keep one size. The close button sits on the title row, also when the
- * description wraps to more lines.
+ * The title and the icon of an Alert take the step of the nearest density
+ * scope, so the icon stays on the line of the title at each step. The close
+ * button sits on the title row, also when the description wraps to more lines.
  */
 
 const LONG =
@@ -24,26 +24,36 @@ function middleOf(box: DOMRect): number {
 }
 
 describe('Alert icon and close button', () => {
-	it('keeps the leading icon at one size at each density step', () => {
-		const snug = renderUI(
-			<DensityProvider density="snug">
-				<Alert severity="info" title="Scheduled maintenance" />
-			</DensityProvider>,
-		)
+	it('sizes the leading icon and the title by the density step', () => {
+		const measure = (density: 'compact' | 'snug' | 'loose') => {
+			const { container } = renderUI(
+				<DensityProvider density={density}>
+					<Alert severity="info" title="Scheduled maintenance" />
+				</DensityProvider>,
+			)
 
-		const compact = renderUI(
-			<DensityProvider density="compact">
-				<Alert severity="info" title="Scheduled maintenance" />
-			</DensityProvider>,
-		)
+			const icon = boxOf(container, '[data-slot="icon"]')
 
-		const snugIcon = boxOf(snug.container, '[data-slot="icon"]')
+			const title = present(container.querySelector('[data-slot="icon"] + div'), 'the title')
 
-		const compactIcon = boxOf(compact.container, '[data-slot="icon"]')
+			expect(middleOf(icon)).toBeNear(middleOf(title.getBoundingClientRect()), HALF_PIXEL)
 
-		expect(snugIcon.width).toBeGreaterThan(0)
+			return { icon: icon.width, title: Number.parseFloat(getComputedStyle(title).fontSize) }
+		}
 
-		expect(compactIcon.width).toBe(snugIcon.width)
+		const compact = measure('compact')
+
+		const snug = measure('snug')
+
+		const loose = measure('loose')
+
+		expect(compact.icon).toBeLessThan(snug.icon)
+
+		expect(snug.icon).toBeLessThan(loose.icon)
+
+		expect(compact.title).toBeLessThan(snug.title)
+
+		expect(snug.title).toBeLessThan(loose.title)
 	})
 
 	it.each([
