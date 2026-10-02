@@ -2,8 +2,10 @@
 
 import { Check, Clipboard } from 'lucide-react'
 import { type ComponentProps, type ReactElement, useCallback } from 'react'
-import type { ButtonVariants } from '../button'
-import { ToggleIconButton } from '../toggle-icon-button'
+import { cn } from '../../core'
+import { k } from '../../recipes/kata/toggle-icon-button'
+import { Button, type ButtonVariants } from '../button'
+import { ToggleIconButtonIcons } from '../toggle-icon-button/toggle-icon-button-icons'
 import { useCopyButtonState } from './use-copy-button-state'
 
 /**
@@ -40,15 +42,16 @@ export type CopyButtonProps = {
 } & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color'>
 
 /**
- * Clipboard-copy control built on ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after `timeout`.
+ * Clipboard-copy control with the look of ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after `timeout`.
  *
  * @remarks
- * Stays enabled and keeps focus through the success window so keyboard focus
- * survives (WCAG 2.4.3); a second copy during the window is ignored. The
+ * It is an action, not a toggle, so it sets no `aria-pressed`. Stays enabled
+ * and keeps focus through the success window so keyboard focus survives
+ * (WCAG 2.4.3); a second copy during the window is ignored. The
  * accessible name becomes "Copied" while flipped, otherwise the caller's
  * `aria-label` or "Copy to clipboard".
  * @see {@link useCopyButtonState} for the clipboard write and revert timing.
- * @see {@link ToggleIconButton} for the underlying two-state icon control.
+ * @see {@link ToggleIconButton} for the two-state icon control that it looks like.
  */
 export function CopyButton({
 	text,
@@ -80,12 +83,11 @@ export function CopyButton({
 	)
 
 	return (
-		<ToggleIconButton
+		<Button
 			{...props}
-			pressed={copied}
+			type="button"
+			variant="bare"
 			color={copied ? 'green' : undefined}
-			icon={icon ?? <Clipboard />}
-			pressedIcon={<Check />}
 			size={size}
 			data-slot="copy-button"
 			disabled={disabled}
@@ -93,7 +95,14 @@ export function CopyButton({
 			// In the copied state, the label is always "Copied"; at rest, the caller's
 			// label wins over the generic default.
 			aria-label={copied ? 'Copied' : (ariaLabel ?? 'Copy to clipboard')}
-			className={className}
+			className={cn(k.base, className)}
+			prefix={
+				<ToggleIconButtonIcons
+					icon={icon ?? <Clipboard />}
+					pressedIcon={<Check />}
+					pressed={copied}
+				/>
+			}
 		/>
 	)
 }

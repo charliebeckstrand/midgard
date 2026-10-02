@@ -102,6 +102,39 @@ describe('JsonTree under virtualize: keyboard reach past the window', () => {
 	})
 })
 
+describe('JsonTree under virtualize: the horizontal arrows', () => {
+	it('ArrowLeft on a leaf past the window focuses its parent branch', async () => {
+		const tree = await mountAndFocusRoot()
+
+		await userEvent.keyboard('{End}')
+
+		await waitFor(() => expect(focusedLabel()).toMatch(/v499\b/))
+
+		// The `list` branch scrolled out of the window with the root.
+		expect(rows(tree).some((row) => row.getAttribute('aria-level') === '2')).toBe(false)
+
+		await userEvent.keyboard('{ArrowLeft}')
+
+		await waitFor(() => expect(document.activeElement).toHaveAttribute('aria-level', '2'))
+
+		expect(focusedLabel()).toContain('list')
+
+		// An open branch: ArrowLeft closes it, then ArrowLeft moves to the root.
+		await userEvent.keyboard('{ArrowLeft}')
+
+		await waitFor(() => expect(document.activeElement).toHaveAttribute('aria-expanded', 'false'))
+
+		await userEvent.keyboard('{ArrowLeft}')
+
+		await waitFor(() => expect(focusedLabel()).toContain('root'))
+
+		// The root is open: ArrowRight moves to its first child.
+		await userEvent.keyboard('{ArrowRight}')
+
+		await waitFor(() => expect(focusedLabel()).toContain('list'))
+	})
+})
+
 describe('JsonTree under virtualize: the scroller', () => {
 	it.each([
 		['only maxHeight', undefined],

@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/toggle-icon-button'
 import type { AccessibleName } from '../../types'
 import { Button, type ButtonVariants } from '../button'
 import { Icon } from '../icon'
+import { ToggleIconButtonIcons } from './toggle-icon-button-icons'
 
 /**
  * Props for {@link ToggleIconButton}. Icon-only by design: `AccessibleName`
@@ -76,10 +77,7 @@ export function ToggleIconButton({
 	})
 
 	// Animated: both icons ride the `prefix` slot and cross-fade. Instant: the
-	// current icon is the sole child and `prefix` stays absent. Cross-fade
-	// classes sit on the icons themselves, not wrapper spans, so each icon stays
-	// a direct child that the Button's slot projection (`*:data-[slot=icon]`)
-	// sizes.
+	// current icon is the sole child and `prefix` stays absent.
 	return (
 		<Button
 			{...props}
@@ -92,17 +90,7 @@ export function ToggleIconButton({
 			className={cn(k.base, className)}
 			prefix={
 				animate ? (
-					<>
-						<Icon icon={icon} className={cn(k.transition, pressed ? k.inactive : k.active)} />
-						<Icon
-							icon={pressedIcon}
-							className={cn(
-								'absolute inset-0 m-auto',
-								k.transition,
-								pressed ? k.active : k.inactive,
-							)}
-						/>
-					</>
+					<ToggleIconButtonIcons icon={icon} pressedIcon={pressedIcon} pressed={pressed} />
 				) : undefined
 			}
 		>

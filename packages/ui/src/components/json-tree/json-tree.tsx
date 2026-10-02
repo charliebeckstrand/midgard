@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
+import { type KeyboardEvent, useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeContext } from './context'
+import { treeMoveForKey, treeMoveTarget } from './json-tree-keyboard'
 import { JsonTreeNode } from './json-tree-node'
 import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
@@ -56,10 +57,12 @@ function expansionReader(expanded: ReadonlySet<string> | undefined): (path: stri
  * `defaultExpandDepth` by default, or runs controlled via `expanded` /
  * `onExpandedChange`; `search` highlights and auto-expands matching nodes (and
  * hides non-matches in filter mode). Roving-focus keyboard navigation moves
- * between tree items. Under `virtualize`, flattens the visible tree to a linear
- * list and renders only the viewport slice plus overscan. There, Home, End and
- * the arrows also reach rows outside the window: the tree scrolls the row in and
- * focuses it when it mounts.
+ * between tree items. `ArrowRight` opens a closed branch or moves to the first
+ * child of an open one. `ArrowLeft` closes an open branch or moves to the
+ * parent. The two keys swap in a right-to-left layout. Under `virtualize`,
+ * flattens the visible tree to a linear list and renders only the viewport
+ * slice plus overscan. There, Home, End and the arrows also reach rows outside
+ * the window: the tree scrolls the row in and focuses it when it mounts.
  *
  * @remarks
  * Client component. `virtualize` carries its own `maxHeight` and
@@ -109,10 +112,37 @@ export function JsonTree({
 	// walk would cost more than the rebuild it avoids.
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
 
-	const handleKeyDown = useA11yRoving(ref, {
+	const handleRovingKeyDown = useA11yRoving(ref, {
 		itemSelector: '[role="treeitem"]',
 		orientation: 'vertical',
 	})
+
+	// The horizontal arrows of the tree model: to the first child of an open
+	// branch, or to the parent of a closed branch or a leaf. A branch row opens
+	// and closes itself first and cancels the event. The windowed variant moves
+	// over its flat rows, because the target row can be outside the window.
+	const handleKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLDivElement>) => {
+			const container = ref.current
+
+			const item = event.target
+
+			if (event.defaultPrevented || !container || !(item instanceof HTMLElement)) return
+
+			const move = treeMoveForKey(event, item.getAttribute('aria-expanded') === 'true')
+
+			if (move === null) {
+				handleRovingKeyDown(event)
+
+				return
+			}
+
+			event.preventDefault()
+
+			treeMoveTarget(container, item, move)?.focus()
+		},
+		[handleRovingKeyDown],
+	)
 
 	// One identity until an input of the tree changes. A new value would render
 	// each node, because each node reads the context.
@@ -146,7 +176,7 @@ export function JsonTree({
 				searchIndex={searchIndex}
 				virtualize={virtualize}
 				maxHeight={virtualize.maxHeight}
-				onKeyDown={handleKeyDown}
+				onKeyDown={handleRovingKeyDown}
 				className={className}
 			/>
 		)
