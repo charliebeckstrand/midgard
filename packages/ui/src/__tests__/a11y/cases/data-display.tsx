@@ -12,7 +12,7 @@ import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../c
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { Kbd } from '../../../components/kbd'
-import { List, ListDescription, ListItem, ListLabel } from '../../../components/list'
+import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { Odometer } from '../../../components/odometer'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../../components/resizable'
@@ -209,6 +209,7 @@ export const dataDisplayCases: readonly Case[] = [
 				)}
 			</List>
 		),
+		skeleton: [{ element: <ListSkeleton items={2} />, absentSlot: 'list-item', placeholders: 2 }],
 	},
 	{
 		// The `solid` variant, whose rows sit on `omote.bg.tint` rather than the page
@@ -233,6 +234,13 @@ export const dataDisplayCases: readonly Case[] = [
 				)}
 			</List>
 		),
+		skeleton: [
+			{
+				element: <ListSkeleton items={2} variant="solid" description />,
+				absentSlot: 'list-item',
+				placeholders: 4,
+			},
+		],
 	},
 	{
 		// Description list: term/details pairs in a <dl>.
