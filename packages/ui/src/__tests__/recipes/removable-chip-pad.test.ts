@@ -12,8 +12,9 @@ import { findBareCompoundP, findSteps } from '../helpers/class-stops'
 // 'full'` pill, so its `px` is the `radius: 'full'` compound ramp, one stop
 // above the base ramp. The button has no `size`, so it takes the step of the
 // chip. This holds the sum against the live recipes at each step that a chip
-// takes: TagInput, QueryChips (always `sm`), and ChatPrompt. If the badge px,
-// the pill bump, or the bare compound drifts, the case fails and names the step.
+// takes: TagInput, QueryChips (one step below its scope), and ChatPrompt. If
+// the badge px, the pill bump, or the bare compound drifts, the case fails and
+// names the step.
 
 // The chip is a `radius: 'full'` pill: its px is the step of the `radius:
 // 'full'` compound ramp, which bumps each step one stop above the base ramp.
