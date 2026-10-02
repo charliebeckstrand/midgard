@@ -17,3 +17,7 @@ mount(
 		{ import: 'Demo' },
 	),
 )
+
+// The tap log loads only at `?taplog`, so the entry chunk does not carry it.
+if (new URLSearchParams(window.location.search).has('taplog'))
+	void import('./engine/tap-log').then(({ mountTapLog }) => mountTapLog())
