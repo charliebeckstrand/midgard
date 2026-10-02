@@ -212,12 +212,18 @@ function TapLogPanel() {
 	const { copied, copy } = useCopyButtonState({ text: lines.join('\n') })
 
 	return (
-		<div className="dark fixed inset-x-0 bottom-0 z-[2147483647] flex max-h-[45vh] flex-col bg-zinc-950 text-white">
-			<div className="flex items-center gap-2 p-1.5">
-				<span className="me-auto font-mono text-xs">Tap log</span>
+		// The padding keeps the bar and the lines out of the round corners of a phone screen.
+		<div className="dark fixed inset-x-0 bottom-0 z-[2147483647] flex max-h-[45vh] flex-col bg-zinc-950 pb-[max(env(safe-area-inset-bottom),--spacing(4))] text-white">
+			<div className="flex items-center gap-2 px-5 py-2">
+				<span className="me-auto font-semibold text-base">Tap log</span>
 				{open && (
 					<>
-						<Button size="sm" variant="soft" onClick={() => void copy()}>
+						<Button
+							size="sm"
+							variant="soft"
+							color={copied ? 'green' : undefined}
+							onClick={() => void copy()}
+						>
 							{copied ? 'Copied' : 'Copy'}
 						</Button>
 						<Button size="sm" variant="soft" onClick={clear}>
@@ -235,7 +241,7 @@ function TapLogPanel() {
 				</Button>
 			</div>
 			{open && (
-				<pre className="m-0 min-h-0 overflow-auto whitespace-pre-wrap p-1.5 font-mono text-[10px]/[1.3] text-green-400">
+				<pre className="m-0 min-h-0 overflow-auto whitespace-pre-wrap px-5 font-mono text-[10px]/[1.3] text-green-400">
 					{log}
 				</pre>
 			)}
