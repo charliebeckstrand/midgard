@@ -67,6 +67,8 @@ import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
+import { MapSkeleton } from '../../../modules/map'
+import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { Box } from '../../../structure/box'
 import { present, renderUI } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
@@ -552,5 +554,22 @@ describe('skeleton parity (real browser)', () => {
 		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
+	})
+
+	it.each([
+		['the rectangle', undefined, 16 / 9],
+		['the outline', 'albers-usa', ALBERS_USA_ASPECT],
+	] as const)('MapSkeleton reserves its ratio with %s alone', (_, projection, ratio) => {
+		const { container } = renderUI(
+			<div style={{ width: 800 }}>
+				<MapSkeleton projection={projection} />
+			</div>,
+		)
+
+		const reserved = placeholder(container)
+
+		expect(reserved.width).toBe(800)
+
+		expect(Math.abs(reserved.height - 800 / ratio)).toBeLessThanOrEqual(PIXEL)
 	})
 })
