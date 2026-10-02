@@ -14,6 +14,11 @@
 export const toggle = [
 	'group/field grid grid-cols-[1.125rem_1fr]',
 	'gap-x-3',
+	// When the page is zoomed in, iOS holds each tap for a possible double tap
+	// and shows the tap highlight while it waits. A second tap on a near row in
+	// that time is a double tap, and neither tap toggles a control.
+	// `touch-manipulation` on the row, gaps included, stops the wait, as on Button.
+	'touch-manipulation',
 	'*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:self-center',
 	'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
 	'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
@@ -22,11 +27,6 @@ export const toggle = [
 	// spans one row.
 	'*:data-[slot=message]:col-start-2',
 	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
-	// When the page is zoomed in, iOS holds each tap for a possible double tap
-	// and shows the tap highlight while it waits. A second tap on a near row in
-	// that time is a double tap, and neither tap toggles a control.
-	// `touch-manipulation` on the row, gaps included, stops the wait, as on Button.
-	'touch-manipulation',
 	// Every slot but the description turns not-allowed when disabled; the
 	// description is non-interactive, so it keeps the text cursor.
 	'has-disabled:**:data-[slot]:not-data-[slot=description]:cursor-not-allowed',
