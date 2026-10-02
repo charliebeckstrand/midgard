@@ -44,9 +44,9 @@ export type CreditCardInputProps = Omit<
 /**
  * Numeric Input that masks card numbers into brand-aware spaced groups as you
  * type. It detects the brand from the digits and surfaces its label as the
- * suffix. Emits the formatted value, brand, and Luhn + length + pattern validity
- * through `onValueChange`, `onBrandChange`, and `onValidityChange`, and binds
- * to an enclosing Form field by `name`. Sets `autoComplete="cc-number"`.
+ * suffix, at the text size of the input. Emits the formatted value, brand, and
+ * Luhn + length + pattern validity through `onValueChange`, `onBrandChange`,
+ * and `onValidityChange`, and binds to an enclosing Form field by `name`. Sets `autoComplete="cc-number"`.
  *
  * @see {@link CreditCardInputExpiry}
  * @see {@link CreditCardInputCvv}
