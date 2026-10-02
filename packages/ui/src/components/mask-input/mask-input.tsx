@@ -84,12 +84,14 @@ export function MaskInput({
 			prefix={prefix ?? preset.prefix}
 			name={name}
 			value={maskedValue}
-			onChange={onMaskedChange}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, () => onMaskedBlur(), {
 				checkForDefaultPrevented: false,
 			})}
 			{...props}
+			// The props type omits `onChange`, but an untyped spread can still pass
+			// one. The masking handler comes after the spread, so it stays (§3.9).
+			onChange={onMaskedChange}
 		/>
 	)
 }
