@@ -8,7 +8,7 @@ type JsonTreeLeafRowProps = {
 	keyName?: string | number
 	value: JsonValue
 	highlighted: boolean
-	/** Carries the tree's single Tab stop. Defaults to the root row; the virtualized variant passes the first rendered row instead. */
+	/** Carries the tree's single Tab stop. Defaults to the root row, until roving moves the stop in the recursive variant; the virtualized variant passes the first rendered row instead. */
 	tabbable?: boolean
 	/** The sibling count for `aria-setsize`. The virtualized variant gives it, because windowing keeps most siblings out of the DOM. */
 	setSize?: number

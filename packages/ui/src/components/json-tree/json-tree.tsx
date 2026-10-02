@@ -157,6 +157,10 @@ export function JsonTree({
 	const handleRovingKeyDown = useA11yRoving(ref, {
 		itemSelector: '[role="treeitem"]',
 		orientation: 'vertical',
+		// The recursive variant gives its one Tab stop to roving, which moves the
+		// stop to the row that takes focus. Then Tab re-enters on the row that the
+		// reader left. The windowed variant seats the stop on a mounted row itself.
+		manageTabIndex: !windowed,
 	})
 
 	// The horizontal arrows of the tree model: to the first child of an open

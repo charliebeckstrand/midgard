@@ -817,6 +817,33 @@ describe('JsonTree tree semantics', () => {
 	})
 })
 
+describe('JsonTree Tab stop', () => {
+	it('moves the single Tab stop to the row that takes focus', () => {
+		const { container } = renderUI(<JsonTree data={{ a: 1, b: 2 }} defaultExpandDepth={1} />)
+
+		const [root, first, second] = Array.from(
+			container.querySelectorAll<HTMLElement>('[role="treeitem"]'),
+		)
+
+		present(root, 'root row').focus()
+
+		fireEvent.keyDown(present(root, 'root row'), { key: 'ArrowDown' })
+
+		fireEvent.keyDown(present(first, 'first row'), { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(second)
+
+		// Tab out and back re-enters on the row that the reader left.
+		present(second, 'second row').blur()
+
+		const stops = container.querySelectorAll('[role="treeitem"][tabindex="0"]')
+
+		expect(stops).toHaveLength(1)
+
+		expect(stops[0]).toBe(second)
+	})
+})
+
 describe('JsonTree horizontal arrows', () => {
 	function rows(container: HTMLElement) {
 		return Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]'))
