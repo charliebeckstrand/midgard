@@ -18,7 +18,9 @@ export type DescriptionListSkeletonProps = DescriptionListVariants & {
 /**
  * Description-list-shaped placeholder: `rows` pairs of a term line and a
  * details line, in the layout of the `orientation`. Keyed off the pair count,
- * so it does not use the size-driven `createSkeleton` factory.
+ * so it does not use the size-driven `createSkeleton` factory. It follows
+ * density as the list does: the lines and the cell padding take the step of
+ * the nearest density scope.
  *
  * @remarks Static leaf: renders in React Server Components. It renders the
  * `dl`, `dt`, and `dd` elements of the real list, so the list projects the
