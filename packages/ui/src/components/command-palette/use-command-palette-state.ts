@@ -104,8 +104,9 @@ export function useCommandPaletteState({
 
 	// The roving handler drives an `aria-activedescendant` highlight while focus
 	// stays in the search textbox. Reserve the keys that belong to the textbox
-	// itself — Home/End move the caret, Shift+Arrow extends the selection — so
-	// they aren't swallowed to move the option highlight (shared with Combobox).
+	// itself, so they don't move the option highlight or run the active item:
+	// Home/End move the caret, Shift+Arrow extends the selection, and an IME
+	// composition takes Enter and the arrows (shared with Combobox).
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
 			if (isReservedTextboxKey(event)) return

@@ -11,6 +11,7 @@ import {
 	type RefObject,
 	useCallback,
 } from 'react'
+import { isComposing } from '../../utilities'
 import { selectSoleOption } from './combobox-utilities'
 
 type ComboboxInputParams<T> = {
@@ -40,11 +41,15 @@ type ComboboxInputParams<T> = {
  * Keys the editable textbox owns natively: Home/End move the caret and
  * Shift+Arrow extends the text selection. Routed to the roving handler they
  * would `preventDefault` and snap the menu highlight to the first/last option
- * instead. Shared with the command palette's search textbox.
+ * instead. Every key of an IME composition also belongs to the textbox: the
+ * IME uses Enter to confirm the composition, Escape to cancel it, and the
+ * arrows to pick a candidate. Shared with the command palette's search textbox.
  *
  * @internal
  */
 export function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): boolean {
+	if (isComposing(event)) return true
+
 	if (event.key === 'Home' || event.key === 'End') return true
 
 	return event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')
@@ -156,6 +161,12 @@ export function useComboboxInput<T>({
 
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
+			// Home/End, Shift+Arrow and the keys of an IME composition belong to the
+			// editable textbox. The roving handler would preventDefault and move the
+			// menu highlight instead, and Escape or Enter would close the menu or pick
+			// an option.
+			if (isReservedTextboxKey(event)) return
+
 			if (event.key === 'Escape') {
 				close()
 
@@ -171,11 +182,6 @@ export function useComboboxInput<T>({
 					return
 				}
 			}
-
-			// Home/End and Shift+Arrow belong to the editable textbox (caret and
-			// text selection); the roving handler would preventDefault and move the
-			// menu highlight instead.
-			if (isReservedTextboxKey(event)) return
 
 			// A closed menu holds no options for the roving handler, so an arrow key
 			// opens it (APG editable combobox), matching the focus and chevron open

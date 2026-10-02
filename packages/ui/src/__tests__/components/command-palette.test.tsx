@@ -8,7 +8,7 @@ import {
 	CommandPaletteLabel,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
-import { bySlot, renderUI, screen, setupUser } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -253,6 +253,28 @@ describe('CommandPaletteItem', () => {
 		expect(onAction).toHaveBeenCalled()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('leaves the Enter that confirms an IME composition to the IME', async () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem onAction={onAction}>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().keyboard('{ArrowDown}')
+
+		fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+
+		expect(onAction).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onAction).toHaveBeenCalledTimes(1)
 	})
 
 	it('composes a consumer onClick with the selection handler', async () => {
