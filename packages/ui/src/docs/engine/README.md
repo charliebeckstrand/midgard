@@ -15,7 +15,7 @@ it now lives inside `ui` rather than as a standalone package.
 | API reference engine | [`api-reference`](api-reference) | ts-morph extraction of props, defaults, and TSDoc from a library's source. |
 | Code derivation | [`derive-code`](derive-code) | Walks a demo's React tree into a copy-pasteable snippet, merging in build-time source facts (authored prop expressions, render-prop children, referenced hook/helper declarations) extracted per `Example` by [`plugins/source-facts.ts`](plugins/source-facts.ts). |
 | Build plugin | [`plugins`](plugins), [`vite`](vite) | The Vite plugin + `defineDocsConfig` wired into `vite.docs.config.ts`. |
-| Tap log | [`tap-log.ts`](tap-log.ts) | An on-screen event log at `?taplog`, for touch bugs that occur only on a device. |
+| Tap log | [`tap-log.tsx`](tap-log.tsx) | An on-screen event log at `?taplog`, for touch bugs that occur only on a device. |
 
 ## Generated axes
 

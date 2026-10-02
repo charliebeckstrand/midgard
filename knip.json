@@ -24,7 +24,8 @@
 				"src/docs/fixtures/sheets/*.tsx",
 				"vite.fixtures.config.ts",
 				"src/core/density/variants.ts",
-				"src/core/density/utilities.ts"
+				"src/core/density/utilities.ts",
+				"src/core/touch/base.ts"
 			]
 		}
 	}
