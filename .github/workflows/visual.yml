@@ -11,6 +11,10 @@ on:
         description: Page ids to snapshot, separated by spaces. Empty means each page.
         required: false
         default: ''
+      density:
+        description: Density levels to snapshot, separated by commas, for example loose,snug,compact. Empty means snug.
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -36,8 +40,9 @@ jobs:
       # When the secret is not set, the script writes a notice and passes.
       # Percy discovers the assets of each snapshot with the Playwright build
       # of Chromium, so that it does not download a second browser.
-      - run: pnpm --filter ui visual $PAGES
+      - run: pnpm --filter ui visual $PAGES ${DENSITY:+--density=$DENSITY}
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
           PERCY_BROWSER_EXECUTABLE: ${{ steps.playwright.outputs.executable }}
           PAGES: ${{ inputs.pages }}
+          DENSITY: ${{ inputs.density }}

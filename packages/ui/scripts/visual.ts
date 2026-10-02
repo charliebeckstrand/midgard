@@ -13,6 +13,11 @@
  * or removed demo changes the snapshots with no change to this file. Each page
  * gets one snapshot for each theme. Percy renders each snapshot at each width
  * of `WIDTHS`, and in each browser of the Percy project.
+ *
+ * A run takes the default density, `snug`. Give `--density` with a list of
+ * levels to snapshot other levels too, for example `--density=loose,compact`.
+ * Each level adds one snapshot for each page and theme. The name of a snapshot
+ * at a level other than the default names the level.
  */
 
 import { spawnSync } from 'node:child_process'
@@ -20,6 +25,8 @@ import { join } from 'node:path'
 import percySnapshot from '@percy/playwright'
 import { type Browser, chromium } from 'playwright'
 import { build, preview } from 'vite'
+import { DENSITY_DEFAULT, DENSITY_KEY } from '../src/providers/appearance/appearance-storage'
+import { densityLevels } from '../src/providers/density/context'
 
 /** The phone width and the desktop width, in CSS pixels. */
 const WIDTHS = [390, 1280]
@@ -30,7 +37,21 @@ const root = join(import.meta.dirname, '..')
 
 const configFile = join(root, 'vite.docs.config.ts')
 
-const ids = process.argv.slice(2)
+const args = process.argv.slice(2)
+
+const ids = args.filter((arg) => !arg.startsWith('--'))
+
+const densityArg = args.find((arg) => arg.startsWith('--density='))
+
+const densities = densityArg ? densityArg.slice('--density='.length).split(',') : [DENSITY_DEFAULT]
+
+const unknownDensities = densities.filter(
+	(level) => !densityLevels.some((known) => known.value === level),
+)
+
+if (unknownDensities.length) {
+	throw new Error(`visual: no density level is named ${unknownDensities.join(', ')}.`)
+}
 
 if (!process.env.PERCY_TOKEN) {
 	console.log('visual: PERCY_TOKEN is not set, so no snapshots were sent.')
@@ -43,7 +64,7 @@ if (!process.env.PERCY_TOKEN) {
 if (!process.env.PERCY_SERVER_ADDRESS) {
 	const result = spawnSync(
 		'percy',
-		['exec', '--', 'tsx', join(import.meta.dirname, 'visual.ts'), ...ids],
+		['exec', '--', 'tsx', join(import.meta.dirname, 'visual.ts'), ...args],
 		{ cwd: root, stdio: 'inherit' },
 	)
 
@@ -71,7 +92,9 @@ try {
 
 	if (unknown.length) throw new Error(`visual: no docs page has the id ${unknown.join(', ')}.`)
 
-	for (const theme of THEMES) {
+	for (const { density, theme } of densities.flatMap((density) =>
+		THEMES.map((theme) => ({ density, theme })),
+	)) {
 		// The site follows the color scheme of the system until the reader picks a
 		// theme, so the scheme of the context sets the theme. Reduced motion lets
 		// each animation end before the capture.
@@ -80,6 +103,15 @@ try {
 			reducedMotion: 'reduce',
 			viewport: { width: WIDTHS[WIDTHS.length - 1] ?? 1280, height: 900 },
 		})
+
+		// The pre-paint script of the site reads the stored level, as it does for a
+		// reader who picked it.
+		await context.addInitScript(([key, value]) => localStorage.setItem(key, value), [
+			DENSITY_KEY,
+			density,
+		] as const)
+
+		const suffix = density === DENSITY_DEFAULT ? theme : `${theme}, ${density}`
 
 		for (const { id, name } of selected) {
 			// A new page loads each demo from the start. A hash change in one page
@@ -94,7 +126,7 @@ try {
 
 			await page.evaluate(() => document.fonts.ready)
 
-			await percySnapshot(page, `${name} (${theme})`, {
+			await percySnapshot(page, `${name} (${suffix})`, {
 				widths: WIDTHS,
 				responsiveSnapshotCapture: true,
 			})
@@ -105,7 +137,7 @@ try {
 		await context.close()
 	}
 
-	console.log(`visual: took ${selected.length * THEMES.length} snapshots.`)
+	console.log(`visual: took ${selected.length * THEMES.length * densities.length} snapshots.`)
 } finally {
 	await browser?.close()
 
