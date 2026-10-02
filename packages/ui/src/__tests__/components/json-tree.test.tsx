@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
 import { flatTreeMoveTarget } from '../../components/json-tree/json-tree-keyboard'
@@ -149,6 +149,57 @@ describe('JsonTree', () => {
 
 		// Without expansion the inner "needle" key wouldn't be in the DOM.
 		expect(screen.getByText('"needle"')).toBeInTheDocument()
+	})
+
+	it('seeds the branches containing a match into a controlled set', () => {
+		const onExpandedChange = vi.fn()
+
+		renderUI(
+			<JsonTree
+				data={{ outer: { inner: { needle: 'match' } }, other: { value: 1 } }}
+				search="needle"
+				expanded={new Set()}
+				onExpandedChange={onExpandedChange}
+			/>,
+		)
+
+		expect(onExpandedChange).toHaveBeenCalledOnce()
+
+		expect(onExpandedChange.mock.calls[0]?.[0]).toEqual(new Set(['$', '$.outer', '$.outer.inner']))
+	})
+
+	it('opens a match of a controlled tree once the owner takes the seed', () => {
+		function Owner() {
+			const [expanded, setExpanded] = useState(() => new Set<string>())
+
+			return (
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					search="needle"
+					expanded={expanded}
+					onExpandedChange={setExpanded}
+				/>
+			)
+		}
+
+		renderUI(<Owner />)
+
+		expect(screen.getByText('"needle"')).toBeInTheDocument()
+	})
+
+	it('does not report a search seed that adds no branch to a controlled set', () => {
+		const onExpandedChange = vi.fn()
+
+		renderUI(
+			<JsonTree
+				data={{ outer: { needle: 'match' } }}
+				search="needle"
+				expanded={new Set(['$', '$.outer'])}
+				onExpandedChange={onExpandedChange}
+			/>,
+		)
+
+		expect(onExpandedChange).not.toHaveBeenCalled()
 	})
 
 	it('collapses branches without matches when filter + search produces no entries', () => {
@@ -310,6 +361,66 @@ describe('JsonTree', () => {
 			)
 
 			expect(onExpandedChange).not.toHaveBeenCalled()
+		})
+
+		it('seeds the matches of new data under the same term', () => {
+			const onExpandedChange = vi.fn()
+
+			const expanded = new Set<string>(['$', '$.outer'])
+
+			const { rerender } = renderUI(
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					virtualize={{ maxHeight: '200px' }}
+					search={{ value: 'needle' }}
+					expanded={expanded}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			expect(onExpandedChange).not.toHaveBeenCalled()
+
+			rerender(
+				<JsonTree
+					data={{ other: { needle: 'match' } }}
+					virtualize={{ maxHeight: '200px' }}
+					search={{ value: 'needle' }}
+					expanded={expanded}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			const seeded = onExpandedChange.mock.calls.at(-1)?.[0] as Set<string>
+
+			expect(seeded).toBeDefined()
+
+			expect(seeded.has('$.other')).toBe(true)
+		})
+
+		it('seeds again when the reader types the same term after a clear', () => {
+			const onExpandedChange = vi.fn()
+
+			const data = { outer: { needle: 'match' } }
+
+			const tree = (search: string) => (
+				<JsonTree
+					data={data}
+					virtualize={{ maxHeight: '200px' }}
+					search={search}
+					expanded={new Set()}
+					onExpandedChange={onExpandedChange}
+				/>
+			)
+
+			const { rerender } = renderUI(tree('needle'))
+
+			expect(onExpandedChange).toHaveBeenCalledOnce()
+
+			rerender(tree(''))
+
+			rerender(tree('needle'))
+
+			expect(onExpandedChange).toHaveBeenCalledTimes(2)
 		})
 
 		it('does not report expansion from an uncontrolled tree', () => {

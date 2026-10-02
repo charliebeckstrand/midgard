@@ -123,9 +123,9 @@ export function filterEntries(
 }
 
 /**
- * Paths of every branch whose subtree contains a search match. The virtualized
- * tree seeds a controlled `expanded` set with them, or opens them by default
- * when uncontrolled. Prunes on the index: a branch without a match has no
+ * Paths of every branch whose subtree contains a search match. Both variants
+ * seed a controlled `expanded` set with them. The virtualized tree also opens
+ * them by default when uncontrolled. Prunes on the index: a branch without a match has no
  * matching descendants.
  *
  * @internal
