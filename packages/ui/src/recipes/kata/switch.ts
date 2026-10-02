@@ -59,13 +59,12 @@ const track = [
 ]
 
 // The control column sizes to the switch itself so the toggle grid's gap
-// stays uniform across switch sizes without a matching field-level prop.
+// stays uniform across switch sizes without a matching field-level prop. The
+// switch stays in the label row, as the Checkbox and the Radio do, so it
+// centers on the label and not on the label and the description. A large switch
+// is taller than the label line, so the label also centers in its row.
 const field = defineRecipe({
-	base: [
-		...toggle,
-		'grid-cols-[auto_1fr]',
-		'*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0',
-	],
+	base: [...toggle, 'grid-cols-[auto_1fr]', '*:data-[slot=label]:self-center'],
 })
 
 export const k = defineRecipe(
