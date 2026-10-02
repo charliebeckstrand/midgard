@@ -33,8 +33,10 @@ catalog:
   world-atlas: ^2.0.2
 
 allowBuilds:
+  '@percy/core': false
   esbuild: false
   lefthook: true
+  protobufjs: false
   sharp: false
 
 # These entries set a minimum safe version for transitive packages with known
