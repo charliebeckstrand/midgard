@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	DescriptionDetails,
 	DescriptionList,
+	DescriptionListSkeleton,
 	DescriptionTerm,
 } from '../../components/description-list'
 import { getSlot, renderUI } from '../helpers'
@@ -16,5 +17,23 @@ describe('DescriptionList', () => {
 		const { container } = renderUI(ui)
 
 		expect(getSlot(container, slot).tagName).toBe(tag)
+	})
+})
+
+describe('DescriptionListSkeleton', () => {
+	it('hides its list from assistive technology, so no empty terms are read', () => {
+		const { container } = renderUI(<DescriptionListSkeleton rows={2} />)
+
+		const wrapper = container.firstElementChild
+
+		expect(wrapper).toHaveAttribute('aria-hidden', 'true')
+
+		const root = wrapper?.firstElementChild
+
+		expect(root?.tagName).toBe('DL')
+
+		expect(root?.querySelectorAll(':scope > dt')).toHaveLength(2)
+
+		expect(root?.querySelectorAll(':scope > dd')).toHaveLength(2)
 	})
 })

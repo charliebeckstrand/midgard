@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, narabi } from '../kiso'
+import { iro, ji, kokkaku, narabi } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
@@ -42,4 +42,5 @@ export const k = {
 	projection,
 	term: [text.muted, weight.medium],
 	details: text.default,
+	skeleton: kokkaku.descriptionList,
 } as const

@@ -16,6 +16,7 @@ import { chart } from './chart'
 import { checkbox } from './checkbox'
 import { colorPanel } from './color-panel'
 import { control } from './control'
+import { descriptionList } from './description-list'
 import { heading } from './heading'
 import { map } from './map'
 import { pagination } from './pagination'
@@ -42,6 +43,7 @@ export const kokkaku = {
 	checkbox,
 	colorPanel,
 	control,
+	descriptionList,
 	heading,
 	map,
 	pagination,
