@@ -396,6 +396,20 @@ describe('AddressInput', () => {
 		expect(bySlot(container, 'icon')).toBeInTheDocument()
 	})
 
+	it('keeps the pin, not the Combobox chevron, while read-only with a selection', () => {
+		const selected: AddressSuggestion = {
+			id: '1',
+			label: '10 Main St',
+			description: 'Springfield, IL',
+		}
+
+		const { container } = renderUI(<AddressInput value={selected} readOnly />)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).toBeNull()
+
+		expect(bySlot(container, 'suffix')?.querySelector('svg.lucide-map-pin')).toBeInTheDocument()
+	})
+
 	it('pulses the field while a fetch is in flight, then settles', async () => {
 		await withFakeTime(async (clock) => {
 			const suggestions = deferred<AddressSuggestion[]>()
@@ -800,6 +814,27 @@ describe('createPhotonProvider', () => {
 			})
 		})
 
+		it('applies the layer and tag filters to a query that is only a code', async () => {
+			const fetchMock = stubPostcode(SHERWOOD)
+
+			const results = await createPhotonProvider({ region: 'US', layers: ['house'] })('97140', {
+				signal: new AbortController().signal,
+			})
+
+			// The code alone is not a house, so it is not the answer.
+			expect(results).toEqual([])
+
+			const search = urls(fetchMock).at(-1)
+
+			expect(search?.searchParams.get('q')).toBe('97140')
+
+			expect(search?.searchParams.getAll('layer')).toEqual(['house'])
+
+			expect(search?.searchParams.get('lat')).toBe('45.36')
+
+			expect(search?.searchParams.get('lon')).toBe('-122.85')
+		})
+
 		it('searches the query as typed where the code is not a code', async () => {
 			const fetchMock = stubPostcode({
 				...SHERWOOD,
@@ -919,6 +954,35 @@ describe('createPhotonProvider', () => {
 			const results = await createPhotonProvider({ region: 'US' })('clearwater oregon', { signal })
 
 			expect(results.map((result) => result.label)).toEqual(['Clearwater River'])
+		})
+
+		it('keeps the scoped matches of a state when a language is set', async () => {
+			// Photon gives the state in the language of the request, so a German
+			// request names California "Kalifornien". The filter compares the
+			// English name.
+			const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+				const url = new URL(String(input))
+
+				const german = url.searchParams.get('lang') === 'de'
+
+				const features =
+					url.searchParams.get('layer') === 'state'
+						? [{ ...OREGON, properties: { ...OREGON.properties, name: 'California' } }]
+						: url.searchParams.has('bbox')
+							? [place('Starbucks', german ? 'Kalifornien' : 'California')]
+							: []
+
+				return { ok: true, json: async () => ({ features }) } as Response
+			})
+
+			vi.stubGlobal('fetch', fetchMock)
+
+			const results = await createPhotonProvider({ region: 'US', lang: 'de' })(
+				'starbucks California',
+				{ signal },
+			)
+
+			expect(results.map((result) => result.label)).toEqual(['Starbucks'])
 		})
 
 		it('reads no state outside the US region', async () => {

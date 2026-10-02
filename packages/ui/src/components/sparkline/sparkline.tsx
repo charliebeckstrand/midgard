@@ -268,7 +268,9 @@ export function Sparkline({
 
 	// Inset enough to keep the stroke and the (optional) end-point marker inside
 	// the viewBox; the marker only applies to the line shape.
-	const padding = Math.max(strokeWidth / 2, endPoint ? SPARKLINE_METRICS.pointRadius : 0) + 1
+	const marker = endPoint && shape === 'line'
+
+	const padding = Math.max(strokeWidth / 2, marker ? SPARKLINE_METRICS.pointRadius : 0) + 1
 
 	// A Grid cell holds one sparkline per row, so a grid render pays this
 	// projection once per visible row. It rebuilds only when the series or the

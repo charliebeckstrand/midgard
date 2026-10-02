@@ -67,7 +67,6 @@ const WAIVERS = new Map<string, Waiver>([
 	['components/breadcrumb/breadcrumb-separator.tsx', { order: 1, note: 'lead' }],
 	['components/command-palette/slots.tsx', { order: 1, note: 'lead' }],
 	['components/menu/menu-item.tsx', { order: 1, note: 'lead' }],
-	['components/odometer/odometer.tsx', { order: 1, note: 'lead' }],
 	['components/pagination/pagination-page.tsx', { order: 1, note: 'lead' }],
 	['components/pagination/pagination-utilities.tsx', { order: 1, note: 'lead' }],
 	['components/stepper/stepper-separator.tsx', { order: 1, note: 'lead' }],
@@ -83,6 +82,14 @@ const WAIVERS = new Map<string, Waiver>([
 	['primitives/control/control-frame.tsx', { anchor: 1, note: 'lead S1' }],
 	['primitives/toggle/toggle-field.tsx', { anchor: 1, note: 'lead S1' }],
 	['primitives/toggle/toggle-group.tsx', { order: 1, anchor: 1, note: 'lead · lead S1' }],
+	[
+		'components/password-input/password-input.tsx',
+		{
+			anchor: 1,
+			keep: true,
+			note: 'PasswordConfirm reads the anchor, and PasswordConfirmInput re-anchors the PasswordInput it renders',
+		},
+	],
 	[
 		'components/scroll-area/scroll-area.tsx',
 		{
