@@ -89,13 +89,17 @@ describe('rungs', () => {
 		])
 	})
 
-	it('writes no slot rung for a step that no host steps down to', () => {
-		const layers = rungs(['xl'], body)
+	// A slot does not take `lg`: the host stops at `lg`, so the slot takes `md` under `xl`.
+	it.each(['lg', 'xl'] as const)(
+		'writes no slot rung for %s, a step that no slot takes',
+		(step) => {
+			const layers = rungs([step], body)
 
-		for (let depth = 1; depth <= maxDepth; depth++) {
-			expect(selectorsAt(layers, depth)).toHaveLength(2)
-		}
-	})
+			for (let depth = 1; depth <= maxDepth; depth++) {
+				expect(selectorsAt(layers, depth)).toHaveLength(2)
+			}
+		},
+	)
 
 	it('gives a slot under the unmarked root the step below md', () => {
 		const first = selectorsAt(rungs(['sm'], body), 1)
@@ -124,14 +128,17 @@ describe('rungs', () => {
 	it('gives a slot under a deeper scope the step below the host scope', () => {
 		const layers = rungs(['md'], body)
 
+		// The host stops at `lg`, so a slot takes `md` under `lg` and under `xl`.
+		const hosts = "[data-density]:is([data-density='lg'], [data-density='xl'])"
+
 		expect(selectorsAt(layers, 2).slice(2)).toEqual([
-			"[data-density='lg'] [data-density='slot'] &",
-			"[data-density='lg'] &[data-density='slot']",
+			`${hosts} [data-density='slot'] &`,
+			`${hosts} &[data-density='slot']`,
 		])
 
 		expect(selectorsAt(layers, 3).slice(2)).toEqual([
-			"[data-density] [data-density='lg'] [data-density='slot'] &",
-			"[data-density] [data-density='lg'] &[data-density='slot']",
+			`[data-density] ${hosts} [data-density='slot'] &`,
+			`[data-density] ${hosts} &[data-density='slot']`,
 		])
 	})
 

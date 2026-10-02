@@ -2,6 +2,7 @@ import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { densitySteps, stepDown, toInnerStep } from '../../core'
 import { writeRootDensity } from '../../core/density'
+import { slotStep } from '../../core/density/steps'
 import { Density, useDensityScope, useDensityStep } from '../../primitives/density'
 
 // A mounted reader re-renders when the root step changes, outside `act()`.
@@ -101,5 +102,11 @@ describe('toInnerStep', () => {
 describe('stepDown', () => {
 	it('takes each step one step down, and keeps xs', () => {
 		expect(densitySteps.map((step) => stepDown(step))).toEqual(['xs', 'xs', 'sm', 'md', 'lg'])
+	})
+})
+
+describe('slotStep', () => {
+	it('takes the step below the host, which stops at lg', () => {
+		expect(densitySteps.map((step) => slotStep(step))).toEqual(['xs', 'xs', 'sm', 'md', 'md'])
 	})
 })

@@ -33,10 +33,12 @@
  * before a pseudo-element, such as `density-md:before:p-2`.
  *
  * A control slot, such as the prefix of an Input, is an element with
- * `data-density="slot"`. It is a scope one step below the scope above it
- * (`stepDown`), so a slot needs no step in JS. The slot counts as one depth,
- * and its rung names the step of the scope above it. A slot in a slot takes
- * the step of the outer slot, because a rung reads one slot after a scope.
+ * `data-density="slot"`. It is a scope one step below the scope above it, so a
+ * slot needs no step in JS. The host of a slot stops at `lg`, so in an `xl`
+ * scope the slot takes `md`, as it does in an `lg` scope (`slotStep`). The slot
+ * counts as one depth, and its rung names the step of the scope above it. A
+ * slot in a slot takes the step of the outer slot, because a rung reads one
+ * slot after a scope.
  */
 
 import {
@@ -44,7 +46,7 @@ import {
 	densitySteps,
 	type MarkedStep,
 	rootDensityClasses,
-	stepDown,
+	slotStep,
 } from './steps'
 
 /** A CSS rule in the object form of the plugin API. */
@@ -61,7 +63,7 @@ export const maxDepth = 3
 /** A density scope under the root: an explicit scope or a control slot. */
 const scope = '[data-density]'
 
-/** A control slot: a scope one step below the scope above it. */
+/** A control slot: a scope one step below the scope above it, and `md` in an `xl` scope. */
 const slot = "[data-density='slot']"
 
 /**
@@ -129,7 +131,7 @@ export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
 	const own = stepIn(steps)
 
 	// The steps whose slots take one of `steps`.
-	const hosts = densitySteps.filter((host) => steps.includes(stepDown(host)))
+	const hosts = densitySteps.filter((host) => steps.includes(slotStep(host)))
 
 	const host = hosts.length > 0 ? stepIn(hosts) : null
 

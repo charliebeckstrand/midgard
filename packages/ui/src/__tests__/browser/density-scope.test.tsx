@@ -12,6 +12,7 @@ import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
 import { LoadingDots, LoadingSpinner } from '../../components/loading'
+import { PasswordInput } from '../../components/password-input'
 import { Placeholder } from '../../components/placeholder'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Radio } from '../../components/radio'
@@ -211,6 +212,77 @@ describe('the relative slot scope (real browser)', () => {
 		)
 
 		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.md)
+	})
+})
+
+/**
+ * A control stops at `lg`, so in an `xl` scope it takes the `lg` look. Its slot must also take the
+ * look that it has in an `lg` scope: the step below `lg`, not the step below `xl`. Thus nothing in
+ * the control grows past `lg`.
+ */
+describe('a control slot in an xl scope (real browser)', () => {
+	afterEach(() => {
+		writeRootDensity(document.documentElement, 'md')
+	})
+
+	const icon = (
+		<Icon
+			icon={
+				<svg viewBox="0 0 1 1" aria-hidden="true">
+					<title>icon</title>
+				</svg>
+			}
+		/>
+	)
+
+	/** The boxes and the font sizes that a control and its slots show. */
+	const measure = (container: HTMLElement) => {
+		const one = (selector: string) => present(container.querySelector(selector), selector)
+
+		const box = (element: Element) => {
+			const { width, height } = element.getBoundingClientRect()
+
+			return { width, height }
+		}
+
+		const frames = [...container.querySelectorAll('[data-slot="control-frame"]')]
+
+		return {
+			frames: frames.map(box),
+			reveal: box(one('[data-slot="suffix"] [data-slot="icon"]')),
+			affixIcon: box(one('[data-slot="prefix"] [data-slot="icon"]')),
+			affixText: getComputedStyle(one('[data-slot="prefix"]:not(:has([data-slot="icon"]))'))
+				.fontSize,
+			button: getComputedStyle(one('[data-slot="suffix"] button')).fontSize,
+		}
+	}
+
+	const controls = (
+		<>
+			<PasswordInput aria-label="Password" />
+			<Input aria-label="Search" prefix={icon} />
+			<Input aria-label="Price" prefix="$" />
+		</>
+	)
+
+	it('gives the slots of an xl card the look of an lg card', () => {
+		const xl = measure(mountMarkup(<Card size="xl">{controls}</Card>))
+
+		const lg = measure(mountMarkup(<Card size="lg">{controls}</Card>))
+
+		expect(xl).toEqual(lg)
+	})
+
+	it('gives the slots under an xl root the look under an lg root', () => {
+		writeRootDensity(document.documentElement, 'xl')
+
+		const xl = measure(mountMarkup(controls))
+
+		writeRootDensity(document.documentElement, 'lg')
+
+		const lg = measure(mountMarkup(controls))
+
+		expect(xl).toEqual(lg)
 	})
 })
 

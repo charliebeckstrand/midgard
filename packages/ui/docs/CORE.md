@@ -28,7 +28,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `ControlStep` *(type)* | The `size` of a control: each density step but `xl`. A control stops at `lg`, so in an `xl` scope it takes the `lg` value. |
 | `InnerStep` *(type)* | The three inner steps (`sm` / `md` / `lg`): a density level maps to one, and a JS reader with three values clamps to one. |
 | `toInnerStep` | Clamps a density step to the inner steps: `xs` becomes `sm`, `xl` becomes `lg`. |
-| `stepDown` | The step below a density step (`xs` stays `xs`). A control slot is a scope at the step below its host, and the rungs use this map to match a `data-density="slot"` element. |
+| `stepDown` | The step below a density step (`xs` stays `xs`). A control slot is a scope one step below its host. The host stops at `lg`, so in an `xl` scope the slot takes `md`. |
 
 > For declarative announcements that track a changing value, prefer `useA11yAnnouncements` ([`HOOKS.md`](HOOKS.md)) over calling `announce` directly.
 
