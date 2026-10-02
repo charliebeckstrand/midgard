@@ -149,6 +149,17 @@ export function resolveRelativePresets(
 	return relative.presets ?? DEFAULT_RELATIVE_PRESETS
 }
 
+/**
+ * The row count of the preset list: the presets and the trailing custom row,
+ * in two balanced columns that fill column-major.
+ *
+ * @param cellCount - The presets plus the custom row.
+ * @internal
+ */
+export function relativeListRows(cellCount: number): number {
+	return Math.ceil(cellCount / 2)
+}
+
 /** True while the trigger shows chips; `false` switches it to the text summary. @internal */
 export function resolveRelativeChips(relative: true | DatePickerRelativeConfig): boolean {
 	if (relative === true) return true

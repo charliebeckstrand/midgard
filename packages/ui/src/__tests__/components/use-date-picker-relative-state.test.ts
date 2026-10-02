@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { DEFAULT_RELATIVE_PRESETS } from '../../components/date-picker/date-picker-relative-utilities'
 import { useDatePickerRelativeState } from '../../components/date-picker/use-date-picker-relative-state'
 import { attach, makeKeyEvent } from '../helpers'
@@ -164,6 +164,31 @@ describe('useDatePickerRelativeState', () => {
 	})
 
 	describe('open and close', () => {
+		// B02-C09: the parent opens a controlled picker without `openPicker`, so
+		// the open transition itself must re-stamp `now`.
+		it('re-stamps the relative anchor when a controlled `open` turns on', () => {
+			vi.useFakeTimers({ now: new Date(2025, 0, 1, 23, 0) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
+			const value = [today.resolve(new Date(2025, 0, 2))]
+
+			const { result, rerender } = renderHook(
+				({ open }) => useDatePickerRelativeState({ relative: true, open, value }),
+				{ initialProps: { open: false } },
+			)
+
+			expect(result.current.selectedIds.has(today.id)).toBe(false)
+
+			vi.setSystemTime(new Date(2025, 0, 2, 9, 0))
+
+			rerender({ open: true })
+
+			expect(result.current.selectedIds.has(today.id)).toBe(true)
+		})
+
 		it('closes on onOpenChange(false)', () => {
 			const { result } = renderHook(() => useDatePickerRelativeState({ relative: true }))
 
@@ -286,6 +311,39 @@ describe('useDatePickerRelativeState', () => {
 			const empty = attach(document.createElement('div'))
 
 			expect(press('ArrowDown', empty, empty).defaultPrevented).toBe(false)
+		})
+
+		// B02-C10: the list is a two-column grid that fills column-major, so the
+		// horizontal arrows move between the columns on one row.
+		it('moves between the two columns on ArrowLeft and ArrowRight', () => {
+			const list = attach(document.createElement('div'))
+
+			// Six presets and the custom row: four rows, with 0-3 in the first column.
+			list.innerHTML = `${'<button data-relative-preset></button>'.repeat(6)}<button data-relative-custom></button>`
+
+			const cells = Array.from(list.querySelectorAll('button'))
+
+			press('ArrowRight', list, cells[1] as HTMLElement)
+
+			expect(document.activeElement).toBe(cells[5])
+
+			press('ArrowLeft', list, cells[5] as HTMLElement)
+
+			expect(document.activeElement).toBe(cells[1])
+
+			// The last row has no second cell, so the arrow takes the last cell.
+			press('ArrowRight', list, cells[3] as HTMLElement)
+
+			expect(document.activeElement).toBe(cells[6])
+
+			// An arrow toward the outer edge keeps focus on its cell.
+			press('ArrowRight', list, cells[4] as HTMLElement)
+
+			expect(document.activeElement).toBe(cells[4])
+
+			press('ArrowLeft', list, cells[0] as HTMLElement)
+
+			expect(document.activeElement).toBe(cells[0])
 		})
 
 		it('has no key handler in custom mode', () => {

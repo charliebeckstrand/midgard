@@ -1042,6 +1042,22 @@ describe('DatePicker input', () => {
 		expect(onChange).not.toHaveBeenCalled()
 	})
 
+	// B02-C07: readOnly blocks the open, so the calendar button must not offer it.
+	it('disables the calendar button when readOnly', () => {
+		const { rerender } = renderUI(
+			<Control readOnly>
+				<DatePicker input aria-label="Due date" />
+			</Control>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Open calendar' })).toBeDisabled()
+
+		// A controlled `open` still shows the calendar, so the button can close it.
+		rerender(<DatePicker input readOnly open aria-label="Due date" />)
+
+		expect(screen.getByRole('button', { name: 'Close calendar' })).toBeEnabled()
+	})
+
 	// The Calendar and the trigger label follow the ambient locale, so the typed
 	// field must follow it too. It was pinned to month-first before.
 	it('masks and parses the typed date in the ambient locale layout', async () => {
