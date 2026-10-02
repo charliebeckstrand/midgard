@@ -3,7 +3,6 @@
 import type { Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/nav'
@@ -23,6 +22,11 @@ export type NavMenuItemProps = NavItemProps & { value?: string }
  * the scope's active indicator when current. Current resolves from `current`,
  * else from the `value` selection binding. Hosts `prefix`/`suffix` affix slots outside the
  * inner button and closes an enclosing offcanvas on click unless `preventClose`.
+ *
+ * The height, the text, and the icon take the step of the nearest density
+ * scope. At `md` the item is `p-2` with `text-base` and a `size-5` icon. Each
+ * affix slot is a density scope one step below the item, so an Icon, a Badge,
+ * or a Button in a slot steps down with no `size`.
  *
  * @remarks
  * `aria-current="page"` marks the current link for assistive tech; the visual
@@ -64,15 +68,10 @@ export function NavItem({
 			{...tapHandlers}
 		>
 			{prefix != null && (
-				// The item chrome is fixed at md, so each slot is an sm scope.
-				<PolymorphicStatic
-					as="span"
-					data-slot="nav-item-prefix"
-					density="sm"
-					className={cn(k.item.prefix)}
-				>
+				// Each slot is a density scope one step below the item.
+				<span data-slot="nav-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
 					{prefix}
-				</PolymorphicStatic>
+				</span>
 			)}
 			<HeadlessProvider>
 				<Button
@@ -93,14 +92,9 @@ export function NavItem({
 				</Button>
 			</HeadlessProvider>
 			{suffix != null && (
-				<PolymorphicStatic
-					as="span"
-					data-slot="nav-item-suffix"
-					density="sm"
-					className={cn(k.item.suffix)}
-				>
+				<span data-slot="nav-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
 					{suffix}
-				</PolymorphicStatic>
+				</span>
 			)}
 			{isCurrent && (
 				<ActiveIndicator

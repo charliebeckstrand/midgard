@@ -384,7 +384,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						suffix={
 							<DatePickerCalendarButton
 								open={open}
-								disabled={disabled}
+								// readOnly blocks the open, but a controlled `open` can still close.
+								disabled={disabled || (readOnly && !open)}
 								onActivate={() => onOpenChange(!open)}
 							/>
 						}

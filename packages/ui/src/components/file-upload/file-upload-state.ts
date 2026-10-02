@@ -28,7 +28,8 @@ type FileUploadSharedProps = {
 	className?: string
 	/**
 	 * Fires with the accepted files (after `accept`, `multiple`, `maxSize` and
-	 * `maxCount` filtering).
+	 * `maxCount` filtering). A pick or a drop that accepts no file keeps the
+	 * current selection and does not fire. A clear fires with `[]`.
 	 */
 	onAccept?: (files: File[]) => void
 	/**

@@ -18,7 +18,7 @@ import type { PdfViewerMagnifierOptions } from './types'
  * The loupe's three settings, in the named steps the prop and the config dialog both speak.
  * @internal
  */
-export type MagnifierChoice = Required<Omit<PdfViewerMagnifierOptions, 'mode'>>
+export type MagnifierChoice = Required<Omit<PdfViewerMagnifierOptions, 'mode' | 'enabled'>>
 
 /**
  * The same three settings, in the numbers the lens draws with.
@@ -91,6 +91,24 @@ const TOUCH_SLOP = 10
 
 /** The gap between the lens and a held finger. It is larger than the cursor gap, because a fingertip covers more of the page. */
 const TOUCH_OFFSET = 48
+
+/**
+ * The settings the loupe runs on: the choice of the reader over the offer of the consumer.
+ *
+ * @param offered - The resolved prop, or `null` where the consumer offers no loupe.
+ * @param chosen - The choice of the reader, or `null` before they make one.
+ * @returns `null` without an offer, also after the reader made a choice. A withdrawn prop
+ * removes the control that switches the loupe off, so it must remove the lens too.
+ * @internal
+ */
+export function currentMagnifierChoice(
+	offered: MagnifierChoice | null,
+	chosen: MagnifierChoice | null,
+): MagnifierChoice | null {
+	if (!offered) return null
+
+	return chosen ?? offered
+}
 
 /**
  * Fill in the steps the consumer left out.
@@ -520,6 +538,7 @@ export function usePdfViewerMagnifier(
 	 * Native and non-passive, because React attaches its touch listeners as passive, and a
 	 * passive listener cannot cancel. It cancels only while a hold has the lens open. Before
 	 * that, a finger still scrolls the page as it did. The same technique as the map's pinch.
+	 * The `touchend` listener cancels the lift that ends a hold, for the same reason.
 	 */
 	useEffect(() => {
 		if (!enabled || !frameNode) return
@@ -528,9 +547,27 @@ export function usePdfViewerMagnifier(
 			if (holdingRef.current && event.cancelable) event.preventDefault()
 		}
 
+		// The lift at the end of a hold fires no compatibility mouse events. A `mousedown` from
+		// the lift reaches the highlight layer before any click, so it presses a region or clears
+		// the selection, and {@link swallowClick} cannot stop it. A canceled `touchend` fires no
+		// click either, so the click guard has no more work.
+		function handleTouchEnd(event: TouchEvent) {
+			if (!swallowClickRef.current || !event.cancelable) return
+
+			event.preventDefault()
+
+			swallowClickRef.current = false
+		}
+
 		frameNode.addEventListener('touchmove', handleTouchMove, { passive: false })
 
-		return () => frameNode.removeEventListener('touchmove', handleTouchMove)
+		frameNode.addEventListener('touchend', handleTouchEnd, { passive: false })
+
+		return () => {
+			frameNode.removeEventListener('touchmove', handleTouchMove)
+
+			frameNode.removeEventListener('touchend', handleTouchEnd)
+		}
 	}, [enabled, frameNode])
 
 	/* A hold does not outlive the loupe being switched off, or the viewer. */

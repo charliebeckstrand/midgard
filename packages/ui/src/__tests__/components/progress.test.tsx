@@ -32,6 +32,15 @@ describe('ProgressBar', () => {
 		expect(bySlot(container, 'progress-bar')).toHaveAttribute('aria-valuenow', '100')
 	})
 
+	it('keeps the progressbar role when a consumer passes another role', () => {
+		// The props type has no `role`, so a cast reaches the spread.
+		const stray = { role: 'status' } as Record<string, string>
+
+		renderUI(<ProgressBar value={50} aria-label="Progress" {...stray} />)
+
+		expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50')
+	})
+
 	it('honors aria-labelledby instead of aria-label', () => {
 		const { container } = renderUI(
 			<>
@@ -86,5 +95,31 @@ describe('ProgressGauge', () => {
 		)
 
 		expect(bySlot(container, 'progress-gauge')?.querySelector('span')).toBeNull()
+	})
+
+	it('reads a NaN value as zero', () => {
+		const { container } = renderUI(
+			<ProgressGauge value={Number.NaN} centerLabel aria-label="Progress" />,
+		)
+
+		const el = bySlot(container, 'progress-gauge')
+
+		expect(el).toHaveAttribute('aria-valuenow', '0')
+
+		expect(screen.getByText('0')).toBeInTheDocument()
+
+		for (const circle of el?.querySelectorAll('circle') ?? []) {
+			expect(circle.getAttribute('stroke-dasharray')).not.toBe('NaN')
+		}
+	})
+
+	it.each([36, 50])('keeps a positive ring radius for strokeWidth=%i', (strokeWidth) => {
+		const { container } = renderUI(
+			<ProgressGauge value={40} strokeWidth={strokeWidth} aria-label="Progress" />,
+		)
+
+		for (const circle of bySlot(container, 'progress-gauge')?.querySelectorAll('circle') ?? []) {
+			expect(Number(circle.getAttribute('r'))).toBeGreaterThan(0)
+		}
 	})
 })

@@ -14,8 +14,8 @@ const { focus } = sen
 
 export const nav = {
 	/**
-	 * Identity sans surface: ink. Each kata sets the icon-slot size: Nav at `md`,
-	 * and Sidebar in stepped classes. A long press on iOS selects the label text.
+	 * Identity sans surface: ink. Each kata sets the icon-slot size: Nav and
+	 * Sidebar in stepped classes. A long press on iOS selects the label text.
 	 * On iOS, Safari can select the text in a child of a `select-none` item, so the
 	 * children also set it. The headless Button of an item drops the `select-none`
 	 * of the button recipe.

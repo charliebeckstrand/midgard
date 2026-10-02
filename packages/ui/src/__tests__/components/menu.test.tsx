@@ -100,6 +100,35 @@ describe('MenuTrigger', () => {
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
 	})
 
+	it('forwards its own props to a cloned child', () => {
+		const triggerOnClick = vi.fn()
+
+		const childOnClick = vi.fn()
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger aria-label="Row actions" title="More" onClick={triggerOnClick}>
+					<button type="button" title="Actions" onClick={childOnClick}>
+						<svg aria-hidden="true" />
+					</button>
+				</MenuTrigger>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Row actions' })
+
+		// The props of the child element win a clash, as its `className` does.
+		expect(trigger).toHaveAttribute('title', 'Actions')
+
+		fireEvent.click(trigger)
+
+		expect(childOnClick).toHaveBeenCalledTimes(1)
+
+		expect(triggerOnClick).toHaveBeenCalledTimes(1)
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	it('calls the child onClick when present', () => {
 		const onClick = vi.fn()
 
@@ -1002,6 +1031,28 @@ describe('Menu context-menu mode', () => {
 		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
 	})
 
+	// A context menu has no trigger to name it, so it takes its name from the
+	// content, as a `static` menu does.
+	it.each([
+		['aria-label', { 'aria-label': 'Row actions' }],
+		['aria-labelledby', { 'aria-labelledby': 'context-menu-name' }],
+	])('names the context menu through %s', (_name, nameProps) => {
+		const { container } = renderUI(
+			<>
+				<span id="context-menu-name">Row actions</span>
+				<Menu>
+					<MenuContent {...nameProps}>
+						<MenuItem>Item</MenuItem>
+					</MenuContent>
+				</Menu>
+			</>,
+		)
+
+		fireEvent.contextMenu(getSlot(container, 'menu'), { clientX: 50, clientY: 80 })
+
+		expect(screen.getByRole('menu', { name: 'Row actions' })).toBeInTheDocument()
+	})
+
 	it('does not open from a contextmenu event when placement is provided (dropdown mode)', () => {
 		const { container } = renderUI(
 			<Menu placement="bottom-start">
@@ -1051,7 +1102,15 @@ describe('MenuItem density', () => {
  * other suites get the popover.
  */
 describe('Menu on a phone', () => {
-	function renderPhoneMenu({ sheet, title }: { sheet?: boolean; title?: string } = {}) {
+	function renderPhoneMenu({
+		sheet,
+		title,
+		glass,
+	}: {
+		sheet?: boolean
+		title?: string
+		glass?: boolean
+	} = {}) {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 
 		const onAction = vi.fn()
@@ -1064,7 +1123,7 @@ describe('Menu on a phone', () => {
 					<button type="button">Add tile</button>
 				</MenuTrigger>
 
-				<MenuContent title={title}>
+				<MenuContent title={title} glass={glass}>
 					<MenuItem onAction={onAction}>Orders</MenuItem>
 					<MenuItem>Revenue</MenuItem>
 				</MenuContent>
@@ -1097,6 +1156,16 @@ describe('Menu on a phone', () => {
 		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
 		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
+	})
+
+	// The per-surface opt-in reaches the sheet, as it reaches the popover, with
+	// no ambient GlassProvider above the menu.
+	it('takes the glass surface of the content', async () => {
+		const { user } = renderPhoneMenu({ glass: true })
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('dialog', { name: 'Add tile' })).toHaveAttribute('data-glass')
 	})
 
 	it('closes the sheet when a row is selected', async () => {

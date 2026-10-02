@@ -25,6 +25,16 @@ export type CreditCardInputProps = Omit<
 	defaultValue?: string
 	placeholder?: string
 	onValueChange?: (value: string) => void
+	/**
+	 * Fires on each edit in the field with the brand of the typed digits, or
+	 * `undefined` when no brand matches.
+	 *
+	 * @remarks
+	 * It fires only on an edit. A seeded `defaultValue`, a controlled `value`, and
+	 * a bound Form value do not fire it. To pair a seeded number with
+	 * {@link CreditCardInputCvv}, read the brand of the seed with
+	 * {@link detectCardBrand}.
+	 */
 	onBrandChange?: (brand: CreditCardBrand | undefined) => void
 	/** Fires on every change with the card number's Luhn + length + pattern verdict. */
 	onValidityChange?: (validity: CardValidity) => void

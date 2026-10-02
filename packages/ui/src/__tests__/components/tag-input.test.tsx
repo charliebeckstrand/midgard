@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
 import {
@@ -615,5 +616,97 @@ describe('TagInput + Form', () => {
 		fireEvent.blur(input)
 
 		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+})
+
+// B04-C11: the consumer handlers compose with the field's own handlers.
+describe('TagInput consumer handlers', () => {
+	it('runs a consumer onKeyDown, onPaste, and onBlur beside its own', () => {
+		const onKeyDown = vi.fn()
+
+		const onPaste = vi.fn()
+
+		const onBlur = vi.fn()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<TagInput onKeyDown={onKeyDown} onPaste={onPaste} onBlur={onBlur} onValueChange={onChange} />,
+		)
+
+		const input = getInput(container)
+
+		fireEvent.change(input, { target: { value: 'react' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		paste(input, 'vue,solid')
+
+		fireEvent.change(input, { target: { value: 'lit' } })
+
+		fireEvent.blur(input)
+
+		expect(onKeyDown).toHaveBeenCalledTimes(1)
+
+		expect(onPaste).toHaveBeenCalledTimes(1)
+
+		expect(onBlur).toHaveBeenCalledTimes(1)
+
+		expect(onChange).toHaveBeenLastCalledWith(['react', 'vue', 'solid', 'lit'])
+	})
+
+	it('skips the Enter commit when the consumer onKeyDown prevents the default', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<TagInput
+				onKeyDown={(event) => {
+					if (event.key === 'Enter') event.preventDefault()
+				}}
+				onValueChange={onChange}
+			/>,
+		)
+
+		const input = getInput(container)
+
+		fireEvent.change(input, { target: { value: 'react' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+})
+
+// B04-C12: an enclosing Control's `disabled` or `readOnly` locks the tags.
+describe('TagInput ambient state', () => {
+	it.each([
+		['disabled', { disabled: true }],
+		['read-only', { readOnly: true }],
+	])('keeps the tags and refuses new ones under a %s Control', (_, lock) => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control {...lock}>
+				<TagInput defaultValue={['react']} onValueChange={onChange} />
+			</Control>,
+		)
+
+		const input = getInput(container)
+
+		expect(getRemoveButtons(container)).toHaveLength(0)
+
+		fireEvent.keyDown(input, { key: 'Backspace' })
+
+		fireEvent.keyDown(getBadges(container)[0] as HTMLElement, { key: 'Backspace' })
+
+		paste(input, 'vue,solid')
+
+		fireEvent.blur(input)
+
+		expect(onChange).not.toHaveBeenCalled()
+
+		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['react'])
+
+		expect(screen.getByRole('button', { name: 'Add tag' })).toBeDisabled()
 	})
 })

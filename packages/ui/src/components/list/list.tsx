@@ -262,11 +262,16 @@ export function List<T>({
 					</SortableContext>
 					<DragOverlay dropAnimation={null}>
 						{activeItem != null ? (
-							<ListItemContext
-								value={{ ...STATIC_CONTEXT, id: effectiveGetKey(activeItem), dragging: true }}
-							>
-								{children(activeItem, activeIndex)}
-							</ListItemContext>
+							// The overlay is a picture of the dragged row. A `<ul>` holds its
+							// `<li>`, and `inert` keeps the picture out of the focus order and
+							// the accessibility tree.
+							<ul inert>
+								<ListItemContext
+									value={{ ...STATIC_CONTEXT, id: effectiveGetKey(activeItem), dragging: true }}
+								>
+									{children(activeItem, activeIndex)}
+								</ListItemContext>
+							</ul>
 						) : null}
 					</DragOverlay>
 				</DndContext>

@@ -95,9 +95,17 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	suffix?: ReactNode
 	size?: DensityStep
 	disabled?: boolean
-	/** Keeps the input focusable and the value submitted, but blocks typing and opening. */
+	/**
+	 * Keeps the input focusable and the value submitted, but blocks typing and
+	 * opening. A controlled `open` can show the panel, but an option click does
+	 * not commit, as with `disabled`.
+	 */
 	readOnly?: boolean
-	/** Marks the field required; surfaces `required`/`aria-required` on the input. */
+	/**
+	 * Marks the field required; surfaces `required`/`aria-required` on the input.
+	 * A selection satisfies it, so the native `required` drops while a value is
+	 * selected, also when the input shows no text.
+	 */
 	required?: boolean
 	className?: string
 	autoComplete?: ComponentProps<'input'>['autoComplete']
@@ -147,8 +155,8 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	/**
 	 * Capitalizes the first letter (first word only) of the input's resolved
 	 * `displayValue` and of each option's string label; custom label nodes
-	 * render as authored. Pass an object to target each surface independently.
-	 * Display-only: the underlying query and value are untouched.
+	 * render as authored. One flag sets both surfaces. Display-only: the
+	 * underlying query and value are untouched.
 	 * @defaultValue true
 	 */
 	capitalize?: boolean
@@ -415,16 +423,19 @@ export function Combobox<T>({
 		setValue,
 	})
 
-	// readOnly keeps the input focusable and the value submitted but blocks
-	// every open path (input focus/typing, suffix toggle, floating-ui); closing
-	// stays allowed. Typing is also stopped natively by the input's readOnly.
+	// A read-only or a disabled combobox does not open and does not commit. The
+	// guard blocks each open path (input focus and typing, the suffix toggle,
+	// floating-ui) and lets a close through. A read-only input stays focusable,
+	// its value still submits, and its native readOnly also stops typing.
+	const locked = resolvedReadOnly || resolvedDisabled
+
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
-			if (resolvedReadOnly && next) return
+			if (locked && next) return
 
 			setOpen(next)
 		},
-		[resolvedReadOnly, setOpen],
+		[locked, setOpen],
 	)
 
 	// Set when an arrow-key open must seat the highlight on the current
@@ -579,9 +590,6 @@ export function Combobox<T>({
 
 	const triggerHandlers = useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
 
-	// A disabled or read-only combobox takes no press on its chrome.
-	const inert = resolvedDisabled || resolvedReadOnly
-
 	const scrollWithin = useScrollWithin()
 
 	const scrollToSelected = useCallback(
@@ -599,7 +607,7 @@ export function Combobox<T>({
 		? Array.isArray(value) && value.length > 0
 		: value !== undefined && !Array.isArray(value)
 
-	const showClear = clearable && hasValue && !inert
+	const showClear = clearable && hasValue && !locked
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
@@ -626,16 +634,27 @@ export function Combobox<T>({
 		/>
 	) : null
 
+	// A controlled `open` can show the panel past the open guard, so the guard
+	// also blocks the selection: a read-only or disabled combobox never commits.
+	const guardedSelect = useCallback(
+		(next: T) => {
+			if (locked) return
+
+			select(next)
+		},
+		[locked, select],
+	)
+
 	// The input display reads the live `value`; the menu reads `selectionValue`,
 	// which stays frozen until the panel finishes closing.
 	const contextValue = useMemo(
 		() => ({
 			value: selectionValue,
 			multiple,
-			onSelect: select as (v: unknown) => void,
+			onSelect: guardedSelect as (v: unknown) => void,
 			capitalize,
 		}),
-		[selectionValue, multiple, select, capitalize],
+		[selectionValue, multiple, guardedSelect, capitalize],
 	)
 
 	// The menu content reads the frozen-through-close query so its filter (and a
@@ -663,7 +682,7 @@ export function Combobox<T>({
 							// The rounded corners of the input do not take a press, so the
 							// press falls through to the frame. The frame then toggles the
 							// menu, as the chevron does.
-							onMouseDown: inert ? undefined : triggerHandlers.onFrameMouseDown,
+							onMouseDown: locked ? undefined : triggerHandlers.onFrameMouseDown,
 						}}
 						prefix={prefix}
 						suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
@@ -674,7 +693,7 @@ export function Combobox<T>({
 							// LoadingSpinner) owns its own semantics. Interactive suffix
 							// content (the clear button) stops propagation to opt out.
 							'aria-hidden': suffix || showClear ? undefined : true,
-							onMouseDown: inert ? undefined : triggerHandlers.onMouseDown,
+							onMouseDown: locked ? undefined : triggerHandlers.onMouseDown,
 						}}
 					>
 						<ComboboxInput
@@ -692,6 +711,7 @@ export function Combobox<T>({
 							disabled={resolvedDisabled}
 							readOnly={resolvedReadOnly}
 							required={resolvedRequired}
+							selected={hasValue}
 							invalid={resolvedInvalid}
 							value={inputDisplay}
 							placeholder={placeholder}

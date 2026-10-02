@@ -1,8 +1,8 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji } from '../kiso'
+import { iro, ji, textRamp } from '../kiso'
 
 const { marker, text } = iro
-const { size, weight } = ji
+const { weight } = ji
 
 /**
  * Per-color marker appearance. `dot` uses the `iro.marker` shade, which clears
@@ -62,20 +62,30 @@ const root = defineRecipe({
 	defaults: { orientation: 'vertical', variant: 'solid' },
 })
 
+/**
+ * The item spacing and the text take the step of the nearest density scope.
+ * At `md` an item is `pb-8` (`pt-8` when horizontal) with a `gap-x-4` column
+ * gap, a `text-lg` title, a `text-base` description, and a `text-sm`
+ * timestamp. The marker and the gap between horizontal columns keep one size.
+ */
 const item = defineRecipe({
 	base: 'relative overflow-hidden',
 	orientation: {
-		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
+		vertical: [
+			'grid grid-cols-[0.875rem_1fr]',
+			'density-gap-x-[3,4,5]',
+			'density-pb-[6,8,10] last:pb-0',
+		],
 		// 6.5px aligns the content with the rail. It matches the marker's `left-[6.5px]`.
 		// The minimum width stops a column at a readable measure; past it, the
 		// row scrolls in the root.
-		horizontal: 'flex flex-col min-w-48 pl-[6.5px] pt-8 pr-8 last:pr-0',
+		horizontal: ['flex flex-col min-w-48 pl-[6.5px] pr-8 last:pr-0', 'density-pt-[6,8,10]'],
 	},
 	defaults: { orientation: 'vertical' },
 })
 
 const title = defineRecipe({
-	base: [weight.semibold, size.lg, ...text.default],
+	base: [weight.semibold, 'density-text-[base,lg,xl]', ...text.default],
 	orientation: {
 		vertical: 'col-start-2 row-start-1',
 		horizontal: 'order-1',
@@ -84,7 +94,7 @@ const title = defineRecipe({
 })
 
 const description = defineRecipe({
-	base: [size.md],
+	base: [textRamp],
 	orientation: {
 		vertical: 'col-start-2 row-start-2',
 		horizontal: 'order-2',
@@ -93,7 +103,7 @@ const description = defineRecipe({
 })
 
 const timestamp = defineRecipe({
-	base: [size.sm, ...text.muted],
+	base: ['density-text-[xs,sm,base]', ...text.muted],
 	orientation: {
 		vertical: 'col-start-2 row-start-3 mt-1',
 		horizontal: 'order-3 mt-1',

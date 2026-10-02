@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Pagination,
+	PaginationGap,
 	PaginationList,
 	PaginationNext,
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { axe } from '../helpers/axe'
 
 describe('Pagination', () => {
 	it('renders with data-slot="pagination"', () => {
@@ -70,6 +72,24 @@ describe.each([
 		)
 
 		expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
+	})
+})
+
+describe('PaginationGap', () => {
+	it('hides its list item, so the list counts only the pages', async () => {
+		const { container } = renderUI(
+			<Pagination>
+				<PaginationList>
+					<PaginationPage href="?page=1">1</PaginationPage>
+					<PaginationGap />
+					<PaginationPage href="?page=9">9</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		expect(screen.getAllByRole('listitem')).toHaveLength(2)
+
+		expect((await axe(container)).violations).toEqual([])
 	})
 })
 

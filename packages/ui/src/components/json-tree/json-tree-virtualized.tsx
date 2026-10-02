@@ -16,12 +16,7 @@ import { nextIndexForKey } from '../../utilities'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
 import { flatTreeMoveTarget, treeMoveForKey } from './json-tree-keyboard'
 import { JsonTreeNodeRow } from './json-tree-node-row'
-import {
-	collectMatchPaths,
-	type FlatNode,
-	flattenTree,
-	type SearchIndex,
-} from './json-tree-utilities'
+import { type FlatNode, flattenTree, type SearchIndex } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
@@ -131,6 +126,8 @@ type JsonTreeVirtualizedProps = {
 	searchValue: string
 	filter: boolean
 	searchIndex: SearchIndex
+	/** Every branch whose subtree holds a search match, or `undefined` with no term. */
+	matchPaths: ReadonlySet<string> | undefined
 	virtualize: { estimateSize?: number; overscan?: number }
 	maxHeight: string
 	onKeyDown: KeyboardEventHandler<HTMLDivElement>
@@ -147,40 +144,20 @@ export function JsonTreeVirtualized({
 	searchValue,
 	filter,
 	searchIndex,
+	matchPaths,
 	virtualize,
 	maxHeight,
 	onKeyDown,
 	className,
 }: JsonTreeVirtualizedProps) {
-	const controlled = expandedProp !== undefined
-
-	// Every branch whose subtree holds a search match. Also keyed on `data`, so
-	// the set follows a new payload.
-	const matchPaths = useMemo(
-		() => (searchValue ? collectMatchPaths(data, rootKey, searchIndex) : undefined),
-		[searchValue, data, rootKey, searchIndex],
-	)
-
 	// Uncontrolled, the open state resolves per render, as the recursive
 	// variant does. A match opens its branch, and a user toggle wins over both.
-	const { isOpen, toggle, expand } = useJsonTreeExpansion({
+	const { isOpen, toggle } = useJsonTreeExpansion({
 		expanded: expandedProp,
 		onExpandedChange,
 		defaultExpandDepth,
 		autoOpen: matchPaths,
 	})
-
-	// Controlled, the flat walk follows only `expanded`. Seeds the match paths
-	// once per search term; a seeded branch stays collapsible afterwards.
-	const seededSearchRef = useRef<string | null>(null)
-
-	useEffect(() => {
-		if (!controlled || !matchPaths || seededSearchRef.current === searchValue) return
-
-		seededSearchRef.current = searchValue
-
-		expand(matchPaths)
-	}, [controlled, matchPaths, searchValue, expand])
 
 	const flatNodes = useMemo(
 		() => flattenTree({ data, rootKey, isOpen, search: searchValue, filter, searchIndex }),

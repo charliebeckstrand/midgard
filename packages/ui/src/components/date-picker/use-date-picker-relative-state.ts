@@ -18,6 +18,7 @@ import {
 	isRelativeEmpty,
 	type RelativeChip,
 	relativeChips,
+	relativeListRows,
 	relativeSummary,
 	resolveRelativeChips,
 	resolveRelativePresets,
@@ -131,6 +132,23 @@ export function useDatePickerRelativeState({
 	// hold a valid date, so a half-typed range never overwrites the value.
 	const [draft, setDraft] = useState<{ from?: Date; to?: Date }>({})
 
+	// Each open transition re-stamps `now` and starts on the list with a clean
+	// draft, during render. The trigger and a controlled `open` both pass here,
+	// so the first frame of each open reads the current day.
+	const [wasOpen, setWasOpen] = useState(open)
+
+	if (open !== wasOpen) {
+		setWasOpen(open)
+
+		if (open) {
+			setNow(new Date())
+
+			setDraft({})
+
+			setMode('list')
+		}
+	}
+
 	const presets = resolveRelativePresets(relative)
 
 	const customActive = isCustomActive(value, presets, now, pickedIds)
@@ -175,15 +193,7 @@ export function useDatePickerRelativeState({
 		[multiple, now, pickedIds, presets, resolvedReadOnly, setValue, value],
 	)
 
-	const openPicker = useCallback(() => {
-		setNow(new Date())
-
-		setDraft({})
-
-		setMode('list')
-
-		setOpen(true)
-	}, [setOpen])
+	const openPicker = useCallback(() => setOpen(true), [setOpen])
 
 	const closePicker = useCallback(() => {
 		setOpen(false)
@@ -416,8 +426,10 @@ export function useDatePickerRelativeState({
 }
 
 // Index list-roving focus moves to for `key`, given the focused cell index (`-1`
-// when focus sits on the dialog or footer) and the total cell count; arrows
-// wrap, Home/PageUp jump to the first cell, End/PageDown to the last.
+// when focus sits on the dialog or footer) and the total cell count. The cells
+// fill two columns column-major. ArrowUp/Down step through the order and wrap.
+// ArrowLeft/Right move to the other column (see `columnTargetIndex`). Home/PageUp
+// jump to the first cell, End/PageDown to the last.
 function rovingTargetIndex(key: string, currentIndex: number, count: number): number {
 	if (key === 'Home' || key === 'PageUp') return 0
 
@@ -427,5 +439,21 @@ function rovingTargetIndex(key: string, currentIndex: number, count: number): nu
 
 	if (currentIndex === -1) return forward ? 0 : count - 1
 
-	return wrap(currentIndex + (forward ? 1 : -1), count)
+	if (key === 'ArrowUp' || key === 'ArrowDown')
+		return wrap(currentIndex + (forward ? 1 : -1), count)
+
+	return columnTargetIndex(forward, currentIndex, count)
+}
+
+// Index that ArrowLeft/Right (after the RTL swap) move to: the cell on the same
+// row in the other column. When that row has no second cell, the move goes to
+// the last cell. A move toward the outer edge keeps the index.
+function columnTargetIndex(forward: boolean, currentIndex: number, count: number): number {
+	const rows = relativeListRows(count)
+
+	const inFirstColumn = currentIndex < rows
+
+	if (forward) return inFirstColumn ? Math.min(currentIndex + rows, count - 1) : currentIndex
+
+	return inFirstColumn ? currentIndex : currentIndex - rows
 }

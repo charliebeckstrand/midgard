@@ -12,6 +12,29 @@ export function toggleExpandedSet(
 	onChange(toggleItem(expanded, path))
 }
 
+/**
+ * The union of `expanded` and `paths`.
+ *
+ * @internal
+ * @returns A new set, or `undefined` when `expanded` already holds each path.
+ */
+export function unionExpandedSet(
+	expanded: ReadonlySet<string>,
+	paths: ReadonlySet<string>,
+): Set<string> | undefined {
+	let next: Set<string> | undefined
+
+	for (const path of paths) {
+		if (expanded.has(path)) continue
+
+		next ??= new Set(expanded)
+
+		next.add(path)
+	}
+
+	return next
+}
+
 const NONE: ReadonlySet<string> = new Set()
 
 type JsonTreeExpansion = {
@@ -45,7 +68,7 @@ export function useJsonTreeExpansion({
 }: JsonTreeExpansion): {
 	isOpen: (path: string, depth: number) => boolean
 	toggle: (path: string, open: boolean) => void
-	expand: (paths: Set<string>) => void
+	expand: (paths: ReadonlySet<string>) => void
 } {
 	const controlled = expanded !== undefined
 
@@ -81,12 +104,12 @@ export function useJsonTreeExpansion({
 
 	/** Union `paths` into the controlled set; identity-stable when nothing is new. */
 	const expand = useCallback(
-		(paths: Set<string>) => {
+		(paths: ReadonlySet<string>) => {
 			// Bail before the setter. `useControllable` reports each call, also a
-			// call whose updater returns the previous set.
-			if ([...paths].every((path) => resolved.has(path))) return
+			// call that gives the previous set.
+			const next = unionExpandedSet(resolved, paths)
 
-			setExpanded((prev) => new Set([...(prev ?? []), ...paths]))
+			if (next) setExpanded(next)
 		},
 		[resolved, setExpanded],
 	)

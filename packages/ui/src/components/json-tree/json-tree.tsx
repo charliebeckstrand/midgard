@@ -8,10 +8,16 @@ import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeContext } from './context'
 import { treeMoveForKey, treeMoveTarget } from './json-tree-keyboard'
 import { JsonTreeNode } from './json-tree-node'
-import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-utilities'
+import {
+	buildSearchIndex,
+	collectMatchPaths,
+	normalizeSearch,
+	type Search,
+} from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
-import { toggleExpandedSet } from './use-json-tree-expansion'
+import { toggleExpandedSet, unionExpandedSet } from './use-json-tree-expansion'
+import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
 type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
@@ -24,11 +30,23 @@ export type JsonTreeProps = {
 	rootKey?: string
 	/** Nested levels open by default. Pass `Infinity` to expand everything. */
 	defaultExpandDepth?: number
-	/** Controlled set of expanded node paths. When provided, the tree becomes controlled and `onExpandedChange` fires on toggle. */
+	/**
+	 * Controlled set of expanded node paths. When provided, the tree becomes
+	 * controlled and `onExpandedChange` fires on toggle. A `search` term adds
+	 * the branches that hold a match to the set through `onExpandedChange`.
+	 */
 	expanded?: Set<string>
 	/** Called when the expanded set changes (controlled mode). */
 	onExpandedChange?: (expanded: Set<string>) => void
-	/** Search term to highlight and auto-expand matching nodes. Pass a string or `{ value, filter }` to also hide non-matching nodes. */
+	/**
+	 * Search term to highlight and auto-expand matching nodes. Pass a string or
+	 * `{ value, filter }` to also hide non-matching nodes.
+	 *
+	 * @remarks
+	 * A controlled tree opens a match through `onExpandedChange`: the tree adds
+	 * the branches that hold a match to `expanded`. It does this one time for
+	 * each new term or `data` value, so a seeded branch stays collapsible.
+	 */
 	search?: Search
 	/**
 	 * Enables row virtualization with `{ maxHeight }` (the cap on the scroll
@@ -112,9 +130,43 @@ export function JsonTree({
 	// walk would cost more than the rebuild it avoids.
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
 
+	const windowed = virtualize != null
+
+	// Every branch whose subtree holds a search match. Also keyed on `data`, so
+	// the set follows a new payload. A controlled tree takes the set as a seed,
+	// and the windowed variant also opens it when uncontrolled. The uncontrolled
+	// recursive variant finds its matches per node, so it skips the walk.
+	const matchPaths = useMemo(
+		() =>
+			searchValue && (controlled || windowed)
+				? collectMatchPaths(data, rootKey, searchIndex)
+				: undefined,
+		[controlled, windowed, searchValue, data, rootKey, searchIndex],
+	)
+
+	// Union the paths into the controlled set. Reports nothing when the set
+	// already holds each path, or when the tree has no handler.
+	const expandControlled = useCallback((paths: ReadonlySet<string>) => {
+		const { expanded: current, onExpandedChange: report } = latest.current
+
+		if (!current || !report) return
+
+		const next = unionExpandedSet(current, paths)
+
+		if (next) report(next)
+	}, [])
+
+	// A controlled walk follows only `expanded`, so the match paths go into the
+	// set as a seed. One seed serves both variants.
+	useJsonTreeSearchSeed(controlled ? matchPaths : undefined, expandControlled)
+
 	const handleRovingKeyDown = useA11yRoving(ref, {
 		itemSelector: '[role="treeitem"]',
 		orientation: 'vertical',
+		// The recursive variant gives its one Tab stop to roving, which moves the
+		// stop to the row that takes focus. Then Tab re-enters on the row that the
+		// reader left. The windowed variant seats the stop on a mounted row itself.
+		manageTabIndex: !windowed,
 	})
 
 	// The horizontal arrows of the tree model: to the first child of an open
@@ -162,7 +214,7 @@ export function JsonTree({
 		[defaultExpandDepth, searchValue, filter, searchIndex, controlled, expansion, toggleExpanded],
 	)
 
-	if (virtualize != null) {
+	if (windowed) {
 		return (
 			<JsonTreeVirtualized
 				ref={ref}
@@ -174,6 +226,7 @@ export function JsonTree({
 				searchValue={searchValue}
 				filter={filter}
 				searchIndex={searchIndex}
+				matchPaths={matchPaths}
 				virtualize={virtualize}
 				maxHeight={virtualize.maxHeight}
 				onKeyDown={handleRovingKeyDown}

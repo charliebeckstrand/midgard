@@ -8,6 +8,13 @@ type PopoverContextValue = {
 	open: boolean
 	/** Id of the popover panel; the trigger's `aria-controls` points at it. */
 	panelId: string
+	/**
+	 * Whether the panel is a dialog, so the trigger sets `aria-haspopup="dialog"`.
+	 * It is true until a panel with no accessible name reports that it is not one.
+	 */
+	dialog: boolean
+	/** Reports the role of the panel. {@link PopoverContent} calls it. */
+	setDialog: (dialog: boolean) => void
 	setOpen: (open: boolean) => void
 	/**
 	 * Published for a dismiss affordance composed inside the panel — the

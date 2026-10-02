@@ -33,7 +33,9 @@ export type KanbanCardProps = {
  * keyboard instructions) come from dnd-kit; set `aria-label` only when the
  * content yields no usable name. A read-only or disabled card is a
  * `role="listitem"` in its column body's list, so the name stays valid there
- * too. ARIA prohibits a name on an element with no role. Memoized: the card reads only the card-facing
+ * too. ARIA prohibits a name on an element with no role. The card keys act
+ * only on the card itself, so a control inside the card keeps Space and the
+ * arrow keys. Memoized: the card reads only the card-facing
  * {@link KanbanContext}, so a pointer drag doesn't re-render the whole board.
  */
 function KanbanCardImpl({

@@ -1002,6 +1002,26 @@ describe('Combobox required', () => {
 		expect(input).toHaveAttribute('aria-required', 'true')
 	})
 
+	// B04-C03: with no `displayValue`, a selection leaves the text input empty.
+	// The selection satisfies the field, so the native check must pass.
+	it('passes the native required check with a selection and an empty input', () => {
+		const { container } = renderUI(
+			<form>
+				<Combobox required aria-label="City" defaultValue="a">
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+
+		expect(input.value).toBe('')
+
+		expect(input.checkValidity()).toBe(true)
+
+		expect(input).toHaveAttribute('aria-required', 'true')
+	})
+
 	it('resolves required from an enclosing Control', () => {
 		const { container } = renderUI(
 			<Control required>
@@ -1054,6 +1074,25 @@ describe('Combobox readOnly', () => {
 		fireEvent.keyDown(getSlot<HTMLInputElement>(container, 'combobox-input'), { key: 'ArrowDown' })
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	// B04-C07: a controlled `open` shows the panel past the open guard, so the
+	// guard must also block the selection, as in Listbox.
+	it.each([
+		['read-only', { readOnly: true }],
+		['disabled', { disabled: true }],
+	])('does not commit an option under a controlled open while %s', (_, lock) => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Combobox {...lock} open aria-label="City" onValueChange={onValueChange}>
+				<ComboboxOption value="paris">Paris</ComboboxOption>
+			</Combobox>,
+		)
+
+		fireEvent.click(screen.getByRole('option', { name: 'Paris' }))
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('resolves readOnly from an enclosing Control', () => {

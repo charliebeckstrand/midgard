@@ -209,6 +209,16 @@ describe('CommandPaletteGroup', () => {
 		expect(bySlot(container, 'command-palette-group')).not.toHaveAttribute('aria-labelledby')
 	})
 
+	it('keeps role="group" when a consumer passes another role', () => {
+		const { container } = renderUI(
+			<CommandPaletteGroup role="presentation">
+				<div>child</div>
+			</CommandPaletteGroup>,
+		)
+
+		expect(bySlot(container, 'command-palette-group')).toHaveAttribute('role', 'group')
+	})
+
 	it('applies a custom className to the group', () => {
 		const { container } = renderUI(
 			<CommandPaletteGroup className="custom">

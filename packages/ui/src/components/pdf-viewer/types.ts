@@ -162,6 +162,14 @@ export type PdfViewerMagnifierOptions = {
 	 */
 	mode?: PdfViewerMagnifierMode
 	/**
+	 * Whether the loupe starts on.
+	 *
+	 * @remarks The prop holds until the reader presses the switch, as the three settings do.
+	 * Thus a stored {@link PdfViewerMagnifierState} comes back as the reader left it.
+	 * @defaultValue true
+	 */
+	enabled?: boolean
+	/**
 	 * How much the loupe magnifies what is under the cursor.
 	 * @defaultValue 'md'
 	 */

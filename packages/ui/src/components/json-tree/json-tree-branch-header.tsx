@@ -4,7 +4,7 @@ import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { branchToggleKey } from './json-tree-keyboard'
-import { NodeKey } from './json-tree-utilities'
+import { type FlatSetPosition, NodeKey } from './json-tree-utilities'
 
 type JsonTreeBranchHeaderProps = {
 	depth: number
@@ -13,10 +13,10 @@ type JsonTreeBranchHeaderProps = {
 	open: boolean
 	count: number
 	highlighted: boolean
-	/** Carries the tree's single Tab stop. Defaults to the root row; the virtualized variant passes the first rendered row instead. */
+	/** Carries the tree's single Tab stop. Defaults to the root row, until roving moves the stop in the recursive variant; the virtualized variant passes the first rendered row instead. */
 	tabbable?: boolean
 	onToggle: () => void
-}
+} & Partial<FlatSetPosition>
 
 /**
  * Branch row for a {@link JsonTree}: a `role="treeitem"` toggle button showing
@@ -34,6 +34,8 @@ export function JsonTreeBranchHeader({
 	count,
 	highlighted,
 	tabbable,
+	setSize,
+	posInSet,
 	onToggle,
 }: JsonTreeBranchHeaderProps) {
 	const openBracket = isArray ? '[' : '{'
@@ -58,6 +60,8 @@ export function JsonTreeBranchHeader({
 				role="treeitem"
 				aria-expanded={open}
 				aria-level={depth + 1}
+				aria-setsize={setSize}
+				aria-posinset={posInSet}
 				tabIndex={(tabbable ?? depth === 0) ? 0 : -1}
 				data-slot="json-node-toggle"
 				data-open={dataAttr(open)}

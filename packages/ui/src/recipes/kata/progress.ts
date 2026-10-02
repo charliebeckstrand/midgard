@@ -14,7 +14,7 @@ const { text } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { spring } = ugoki
+const { ease, spring } = ugoki
 
 /**
  * Per-color bg / stroke classes shared between bar and gauge. The bar's `fill`
@@ -82,7 +82,18 @@ export const k = defineRecipe(
 		still: { duration: 0 },
 		bar: {
 			fill,
-			indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
+			indeterminate: 'w-1/3',
+		},
+		/**
+		 * Indeterminate sweep: the third-width fill moves from before the start of
+		 * the track to past its end, on a loop. A percentage in `translateX` is a
+		 * fraction of the width of the fill, so 300% is the width of the track.
+		 * The keyframes set `transform` directly, so Motion can give the loop to
+		 * the animation engine of the browser.
+		 */
+		sweep: {
+			animate: { transform: ['translateX(-100%)', 'translateX(300%)'] },
+			transition: { duration: 1.5, ease: ease.inOut, repeat: Number.POSITIVE_INFINITY },
 		},
 		gauge: {
 			root,

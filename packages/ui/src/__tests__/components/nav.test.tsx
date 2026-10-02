@@ -218,9 +218,11 @@ describe('NavItem', () => {
 
 		expect(inner?.className).toContain('outline-none')
 
-		// The slot insets from the row edge so the control never sits flush
-		// against the chrome.
-		expect(affixed?.querySelector('[data-slot="nav-item-suffix"]')?.className).toContain('me-2')
+		// The slot insets from the row edge by the padding step of the item, so
+		// the control never sits flush against the chrome.
+		expect(affixed?.querySelector('[data-slot="nav-item-suffix"]')?.className).toContain(
+			'density-me-[1.5,2,2.5,2.5,2.5]',
+		)
 	})
 
 	it('re-draws the focus ring on the active indicator of a current affixed row', () => {

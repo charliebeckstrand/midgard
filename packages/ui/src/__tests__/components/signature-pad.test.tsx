@@ -49,6 +49,12 @@ describe('SignaturePad', () => {
 		expect(screen.queryByText('Sign here')).not.toBeInTheDocument()
 	})
 
+	it('hides the placeholder when readOnly', () => {
+		renderUI(<SignaturePad readOnly placeholder="Sign here" />)
+
+		expect(screen.queryByText('Sign here')).not.toBeInTheDocument()
+	})
+
 	it('sets data-disabled when disabled', () => {
 		const { container } = renderUI(<SignaturePad disabled />)
 

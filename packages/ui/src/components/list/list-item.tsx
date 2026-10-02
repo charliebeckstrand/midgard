@@ -141,8 +141,9 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 
 	// dnd-kit's attributes set role="button", overriding the host element's semantics
 	// (a row is a list item; its content area is a link or a button). Drop the role;
-	// keep the focus/aria hints.
-	const { role: _role, tabIndex, ...dragAttrs } = attributes
+	// keep the focus/aria hints. Also drop `aria-pressed`, which dnd-kit sets on the
+	// dragged node: a list item or a link is not a toggle button.
+	const { role: _role, tabIndex, 'aria-pressed': _pressed, ...dragAttrs } = attributes
 
 	// One row, one Tab stop of its own. An activatable content area is focusable
 	// already, so the reorder gestures ride it rather than the `<li>`. Wiring both
