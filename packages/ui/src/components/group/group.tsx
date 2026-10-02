@@ -31,6 +31,8 @@ export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className
  * 1 px, keyed on the stamped position. Each child also takes
  * `data-group-orientation`, which those selectors read; the root itself stamps
  * plain `data-orientation`, the axis marker every oriented container carries.
+ * A vertical group stretches each child to the width of the group, so the outer
+ * edges line up.
  *
  * An explicit `size` opens a density scope, so the children (Button, Input,
  * and so on) take that step unless they have a `size` of their own. With no
