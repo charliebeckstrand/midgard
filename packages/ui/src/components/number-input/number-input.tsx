@@ -6,6 +6,7 @@ import { announce, cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
+import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -25,7 +26,7 @@ export type NumberInputProps = Omit<
 > & {
 	value?: number | null
 	defaultValue?: number
-	/** Fires with the parsed value, or `undefined` when the field is cleared. */
+	/** Fires with the parsed value, or `null` when the field is cleared. */
 	onValueChange?: (value: number | null) => void
 	min?: number
 	max?: number
@@ -47,7 +48,9 @@ export type NumberInputProps = Omit<
  * mid-entry. The stepper buttons are `tabIndex={-1}` and mutate silently, so
  * each step mirrors the new value through the live-region announcer (WCAG 4.1.3).
  * Clamp/round-on-blur and the form's touched tracking compose with — rather than
- * replace — the consumer's `onBlur`.
+ * replace — the consumer's `onBlur`. A blur that leaves the value as it is does
+ * not fire `onValueChange`. The steppers turn off while the field is disabled
+ * or read-only, from its own prop or from an enclosing Control or Field.
  * @see {@link Input}
  * @see {@link CurrencyInput}
  */
@@ -59,6 +62,7 @@ export function NumberInput({
 	max,
 	step = 1,
 	disabled,
+	readOnly,
 	size,
 	className,
 	name,
@@ -66,6 +70,12 @@ export function NumberInput({
 	onBlur,
 	...props
 }: NumberInputProps) {
+	const control = useControl()
+
+	// The steppers follow the field: a disabled or read-only field, set here or
+	// on an enclosing Control or Field, takes no step.
+	const locked = Boolean((disabled ?? control?.disabled) || (readOnly ?? control?.readOnly))
+
 	const {
 		value: current,
 		setValue: setCurrent,
@@ -123,7 +133,12 @@ export function NumberInput({
 		() => {
 			setTouched()
 
-			setCurrent((prev) => (prev === undefined ? undefined : clampValue(round(prev))))
+			if (current === undefined) return
+
+			// A blur that leaves the value as it is emits nothing.
+			const next = clampValue(round(current))
+
+			if (next !== current) setCurrent(next)
 		},
 		{ checkForDefaultPrevented: false },
 	)
@@ -136,6 +151,7 @@ export function NumberInput({
 			data-slot="number-input"
 			name={name}
 			disabled={disabled}
+			readOnly={readOnly}
 			size={size}
 			value={current ?? ''}
 			onChange={handleChange}
@@ -157,7 +173,7 @@ export function NumberInput({
 						type="button"
 						variant="bare"
 						tabIndex={-1}
-						disabled={disabled || atMin}
+						disabled={locked || atMin}
 						aria-label="Decrease"
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={decrease}
@@ -168,7 +184,7 @@ export function NumberInput({
 						type="button"
 						variant="bare"
 						tabIndex={-1}
-						disabled={disabled || atMax}
+						disabled={locked || atMax}
 						aria-label="Increase"
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={increase}
