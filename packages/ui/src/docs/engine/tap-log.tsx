@@ -7,15 +7,25 @@
  * Each tap writes one block. The block gives each event in order, its target,
  * and whether a script cancelled it. On iOS, a tap that sends `mouseover` and
  * `mousemove` but no `mousedown` is a tap that the page took as a hover, and a
- * `transitionrun` line shows a transition that the hover started. After the click, the block gives each
- * radio of the tapped group two times: in the DOM (`checked`) and in the
- * computed style of its dot, after the click and two frames later. A script
- * write to `checked` on a radio also writes a line. Thus the log shows which
- * step fails: no click, a click that does not check the radio, a check that
- * a script undoes, or a check that the page does not paint.
+ * `transitionrun` line shows a transition that the hover started. After the
+ * click, the block gives each radio of the tapped group two times: in the DOM
+ * (`checked`) and in the computed style of its dot, after the click and two
+ * frames later. A script write to `checked` on a radio also writes a line.
+ * Thus the log shows which step fails: no click, a click that does not check
+ * the radio, a check that a script undoes, or a check that the page does not
+ * paint.
  *
- * "Copy" puts the log on the clipboard, so a report can carry the text.
+ * "Copy" puts the log on the clipboard, so a report can carry the text. The
+ * panel can shrink to its title bar. The log does not show the taps and
+ * scrolls on the panel itself.
  */
+
+import { Maximize2, Minimize2 } from 'lucide-react'
+import { useState, useSyncExternalStore } from 'react'
+import { createRoot } from 'react-dom/client'
+import { Button } from '../../components/button'
+import { useCopyButtonState } from '../../components/copy-button/use-copy-button-state'
+import { Icon } from '../../components/icon'
 
 const EVENTS = [
 	'touchstart',
@@ -41,7 +51,11 @@ const lines: string[] = []
 
 let panel: HTMLDivElement | undefined
 
-let output: HTMLPreElement | undefined
+/** The panel calls these when the lines change. */
+const listeners = new Set<() => void>()
+
+/** The log text, newest line first. */
+let logText = ''
 
 let start = 0
 
@@ -60,7 +74,9 @@ function write(text: string) {
 
 	if (lines.length > 300) lines.shift()
 
-	if (output) output.textContent = lines.slice().reverse().join('\n')
+	logText = lines.slice().reverse().join('\n')
+
+	for (const listener of listeners) listener()
 }
 
 function describe(target: EventTarget | null) {
@@ -173,18 +189,58 @@ function watchCheckedWrites() {
 	})
 }
 
-function button(text: string, onClick: () => void) {
-	const element = document.createElement('button')
+function subscribe(listener: () => void) {
+	listeners.add(listener)
 
-	element.type = 'button'
+	return () => {
+		listeners.delete(listener)
+	}
+}
 
-	element.textContent = text
+function clear() {
+	lines.length = 0
 
-	element.className = 'rounded bg-white/15 px-2 py-0.5'
+	write('cleared')
+}
 
-	element.addEventListener('click', onClick)
+function TapLogPanel() {
+	const log = useSyncExternalStore(subscribe, () => logText)
 
-	return element
+	const [open, setOpen] = useState(true)
+
+	// The clipboard gets the lines in time order, oldest first.
+	const { copied, copy } = useCopyButtonState({ text: lines.join('\n') })
+
+	return (
+		<div className="dark fixed inset-x-0 bottom-0 z-[2147483647] flex max-h-[45vh] flex-col bg-zinc-950 text-white">
+			<div className="flex items-center gap-2 p-1.5">
+				<span className="me-auto font-mono text-xs">Tap log</span>
+				{open && (
+					<>
+						<Button size="sm" variant="soft" onClick={() => void copy()}>
+							{copied ? 'Copied' : 'Copy'}
+						</Button>
+						<Button size="sm" variant="soft" onClick={clear}>
+							Clear
+						</Button>
+					</>
+				)}
+				<Button
+					size="sm"
+					variant="plain"
+					aria-label={open ? 'Minimize' : 'Maximize'}
+					onClick={() => setOpen(!open)}
+				>
+					<Icon icon={open ? <Minimize2 /> : <Maximize2 />} />
+				</Button>
+			</div>
+			{open && (
+				<pre className="m-0 min-h-0 overflow-auto whitespace-pre-wrap p-1.5 font-mono text-[10px]/[1.3] text-green-400">
+					{log}
+				</pre>
+			)}
+		</div>
+	)
 }
 
 /** Mounts the log. `main.tsx` loads this module only when the URL has `?taplog`. */
@@ -193,29 +249,9 @@ export function mountTapLog() {
 
 	panel = document.createElement('div')
 
-	panel.className =
-		'fixed inset-x-0 bottom-0 z-[2147483647] flex max-h-[45vh] flex-col bg-black/85 font-mono text-[10px]/[1.3] text-green-400'
-
-	const bar = document.createElement('div')
-
-	bar.className = 'flex gap-2 p-1.5'
-
-	bar.append(
-		button('Copy', () => void navigator.clipboard?.writeText(lines.join('\n'))),
-		button('Clear', () => {
-			lines.length = 0
-
-			write('cleared')
-		}),
-	)
-
-	output = document.createElement('pre')
-
-	output.className = 'm-0 overflow-auto whitespace-pre-wrap p-1.5'
-
-	panel.append(bar, output)
-
 	document.body.append(panel)
+
+	createRoot(panel).render(<TapLogPanel />)
 
 	for (const type of EVENTS)
 		document.addEventListener(type, onEvent, { capture: true, passive: true })
