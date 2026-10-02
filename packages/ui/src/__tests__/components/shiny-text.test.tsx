@@ -161,4 +161,16 @@ describe('ShinyText', () => {
 
 		expect(playSpy).toHaveBeenCalled()
 	})
+
+	it('resumes a paused sweep when pauseOnHover turns off during a hover', async () => {
+		const { container, rerender } = renderUI(<ShinyText pauseOnHover>Shine</ShinyText>)
+
+		await setupUser().hover(getSlot(container, 'shiny-text'))
+
+		expect(pauseSpy).toHaveBeenCalled()
+
+		rerender(<ShinyText pauseOnHover={false}>Shine</ShinyText>)
+
+		expect(playSpy).toHaveBeenCalled()
+	})
 })

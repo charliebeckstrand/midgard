@@ -128,4 +128,51 @@ describe('CodeBlock', () => {
 
 		expect(tokenized).toEqual(['stream-a', 'stream-abcd'])
 	})
+
+	it('paints markup that another block cached while its own pass ran', async () => {
+		const { codeToHtml } = await loadShiki()
+
+		const settle: { first: () => void } = { first: () => {} }
+
+		// Hold the first pass of block A, so that block B tokenizes the newest code
+		// and fills the cache before that pass settles.
+		vi.mocked(codeToHtml).mockImplementationOnce(
+			(code: string) =>
+				new Promise((resolve) => {
+					settle.first = () => resolve(`<pre class="shiki"><code>${code}</code></pre>`)
+				}),
+		)
+
+		const a = renderUI(<CodeBlock code="race-a" copy={false} />)
+
+		await waitFor(() =>
+			expect(vi.mocked(codeToHtml)).toHaveBeenLastCalledWith('race-a', expect.anything()),
+		)
+
+		a.rerender(<CodeBlock code="race-ab" copy={false} />)
+
+		const b = renderUI(<CodeBlock code="race-ab" copy={false} />)
+
+		await waitFor(() => expect(b.container.querySelector('pre.shiki')).toBeInTheDocument())
+
+		settle.first()
+
+		await waitFor(() => expect(a.container.querySelector('pre.shiki')?.textContent).toBe('race-ab'))
+	})
+
+	it('keeps the code left to right under a right-to-left ancestor', async () => {
+		const { container } = renderUI(
+			<div dir="rtl">
+				<CodeBlock code="const rtl = 1" copy={false} />
+			</div>,
+		)
+
+		const pre = container.querySelector('pre')
+
+		expect(pre?.closest('[dir]')).toHaveAttribute('dir', 'ltr')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+
+		expect(container.querySelector('pre.shiki')?.closest('[dir]')).toHaveAttribute('dir', 'ltr')
+	})
 })

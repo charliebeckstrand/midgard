@@ -134,6 +134,12 @@ export function ShinyText({
 		}
 	}, [disabled, reduceMotion, from, to, speed, yoyo, position])
 
+	// A hover can pause the sweep. When `pauseOnHover` turns off during that
+	// hover, the leave handler does not resume it, so resume it here.
+	useEffect(() => {
+		if (!pauseOnHover) controlsRef.current?.play()
+	}, [pauseOnHover])
+
 	// The handlers read the controls ref, so each is a stable event and not a
 	// closure that render passes to a function.
 	const pause = useStableEvent(() => {
