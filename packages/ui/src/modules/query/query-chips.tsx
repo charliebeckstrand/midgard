@@ -102,7 +102,6 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 			data-slot="query-chip"
 			variant="outline"
 			radius="full"
-			size="sm"
 			className={cn(k.chip, badgeKata.removable)}
 			suffix={
 				onRemove && (
@@ -164,6 +163,10 @@ function focusLadder(tokens: QuerySummaryToken[], id: string): string[] {
  * shows `emptyLabel`. The row is controlled or uncontrolled through
  * `value`/`onValueChange`. A blank or half-built rule has no chip, as in
  * `QuerySummary`.
+ *
+ * The row is a density scope one step below the scope around it. So the chips
+ * stay one step below the controls around them, and each combinator stays one
+ * step below the chips. At `md` the chips are `sm` Badges.
  */
 export function QueryChips({
 	fields,
@@ -255,11 +258,10 @@ export function QueryChips({
 			<Button
 				type="button"
 				variant="bare"
-				size="xs"
 				data-slot="query-chips-combinator"
 				aria-label={`${token.label}, switch to ${next}`}
 				disabled={disabled}
-				className={cn(k.combinator)}
+				className={cn(k.combinator, k.combinatorButton)}
 				onClick={() => {
 					actions.updateCombinator(token.id, token.combinator === 'and' ? 'or' : 'and')
 
@@ -287,6 +289,7 @@ export function QueryChips({
 		return (
 			<fieldset
 				data-slot="query-chips"
+				data-density="slot"
 				data-readonly=""
 				aria-label={ariaLabel}
 				className={cn(k.base, 'min-w-auto', className)}
@@ -302,6 +305,7 @@ export function QueryChips({
 		<div
 			ref={rowRef}
 			data-slot="query-chips"
+			data-density="slot"
 			data-empty={dataAttr(empty)}
 			role="toolbar"
 			aria-orientation="horizontal"

@@ -72,17 +72,20 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 				<QueryBuilderRule rule={child} removable={rulesRemovable} />
 			)
 
+		// The segment is a density scope one step below the scope around it, so it
+		// stays one step below the controls of the rules.
 		const separator = index > 0 && (
-			<Segment
-				size="sm"
-				value={child.combinator ?? 'and'}
-				onValueChange={(v) => v && updateCombinator(child.id, v as QueryCombinator)}
-			>
-				<SegmentControl aria-label="Combinator">
-					<SegmentItem value="and">AND</SegmentItem>
-					<SegmentItem value="or">OR</SegmentItem>
-				</SegmentControl>
-			</Segment>
+			<div data-density="slot">
+				<Segment
+					value={child.combinator ?? 'and'}
+					onValueChange={(v) => v && updateCombinator(child.id, v as QueryCombinator)}
+				>
+					<SegmentControl aria-label="Combinator">
+						<SegmentItem value="and">AND</SegmentItem>
+						<SegmentItem value="or">OR</SegmentItem>
+					</SegmentControl>
+				</Segment>
+			</div>
 		)
 
 		return (
