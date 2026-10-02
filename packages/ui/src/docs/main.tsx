@@ -1,4 +1,5 @@
 import { mount } from './engine/host'
+import { mountTapLog } from './engine/tap-log'
 
 // `index.html` links `app.css`; an import here would delay the styles until
 // this whole module graph loads. See `engine/README.md`.
@@ -17,3 +18,5 @@ mount(
 		{ import: 'Demo' },
 	),
 )
+
+mountTapLog()
