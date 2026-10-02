@@ -27,6 +27,9 @@ export type TimelineProps = Omit<ComponentProps<'ol'>, 'className' | 'children'>
  * Lays out along `orientation`, vertical or horizontal. It propagates both
  * `orientation` and `variant` to its items via context, so markers and connector
  * lines stay consistent across the run.
+ *
+ * The item spacing and the text take the step of the nearest density scope.
+ * At `md` an item has `pb-8` below it, with a `text-lg` title.
  */
 export function Timeline({
 	orientation = 'vertical',
