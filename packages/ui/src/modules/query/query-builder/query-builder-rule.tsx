@@ -99,7 +99,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 	return (
 		<Flex data-slot="query-rule" gap="sm" full className={cn(k.rule, className)}>
-			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }}>
+			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }} className={k.parts}>
 				{!hideFieldSelector && (
 					<Select
 						value={rule.field}
