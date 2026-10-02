@@ -82,15 +82,34 @@ export type PanelAxis = 'height' | 'width'
 const AXES = {
 	height: {
 		coordinate: (event: { clientX: number; clientY: number }) => event.clientY,
-		viewport: () => window.innerHeight,
+		viewport: (box: HTMLElement) => box.clientHeight,
+		window: () => window.innerHeight,
 		keys: ['ArrowUp', 'ArrowDown'],
 	},
 	width: {
 		coordinate: (event: { clientX: number; clientY: number }) => event.clientX,
-		viewport: () => window.innerWidth,
+		viewport: (box: HTMLElement) => box.clientWidth,
+		window: () => window.innerWidth,
 		keys: ['ArrowLeft', 'ArrowRight'],
 	},
 } as const satisfies Record<PanelAxis, unknown>
+
+/**
+ * The extent of the box that a panel docks in, along one axis, in pixels.
+ *
+ * The box is the positioned root that holds the panel. For an overlay on the
+ * viewport, that is the part of the screen that the reader sees
+ * (`useVisualViewport`), so a drag stops at a browser toolbar and not under it.
+ * For an overlay scoped to a container, it is the container. A panel with no
+ * such box measures against the window.
+ *
+ * @internal
+ */
+export function dockExtent(panel: HTMLElement, axis: PanelAxis): number {
+	const box = panel.offsetParent
+
+	return box instanceof HTMLElement ? AXES[axis].viewport(box) : AXES[axis].window()
+}
 
 /**
  * What each side is: the dimension it resizes, and the way it grows.
@@ -419,7 +438,7 @@ export function usePanelResize({
 }: PanelResizeOptions): PanelResize {
 	const { axis, sign } = SIDES[side]
 
-	const { coordinate: coordinateOf, viewport: viewportOf, keys } = AXES[axis]
+	const { coordinate: coordinateOf, keys } = AXES[axis]
 
 	// The arrow that lowers the coordinate is the one that grows a panel docked to
 	// the far edge, and the other one grows a panel docked to the near edge.
@@ -516,9 +535,9 @@ export function usePanelResize({
 	// path, whether or not anyone ever drags.
 	useEffect(() => {
 		if (panel !== null) {
-			setCovers(shareOf(panel.getBoundingClientRect()[axis], viewportOf()))
+			setCovers(shareOf(panel.getBoundingClientRect()[axis], dockExtent(panel, axis)))
 		}
-	}, [panel, axis, viewportOf])
+	}, [panel, axis])
 
 	// A pull that closes the panel stays on it for the slide out, so the panel
 	// leaves from where the reader let it go. A reopen before the slide ends takes
@@ -731,7 +750,7 @@ export function usePanelResize({
 
 		const coordinate = coordinateOf(event)
 
-		const viewport = viewportOf()
+		const viewport = dockExtent(panel, axis)
 
 		grab.current = {
 			at: coordinate - sign * held,
@@ -801,7 +820,7 @@ export function usePanelResize({
 		// the first.
 		const measured = size ?? panel.getBoundingClientRect()[axis]
 
-		const viewport = viewportOf()
+		const viewport = dockExtent(panel, axis)
 
 		const at: Grab = {
 			at: 0,

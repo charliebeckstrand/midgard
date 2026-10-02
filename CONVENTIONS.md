@@ -70,6 +70,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 | The reduced-motion setting of the reader | `usePrefersReducedMotion` in `ui/hooks` | `no-motion-reduced-motion-hook` |
 | A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
 | A value held inside a range | `clamp` in `src/utilities` | `no-hand-written-clamp` |
+| The box of a surface fixed to the viewport, which stays above a browser toolbar and an iOS keyboard | `useVisualViewport` in `ui/hooks`; `Overlay` and the toast stack hold it, and `frame` in `recipes/kata/overlay.ts` spells the box | `visual-viewport-boundary.test.ts` |
 
 An arrow key on a physical axis, such as a slider track or a map cursor, stays physical. The logical-arrow gate lists each such file with its reason.
 

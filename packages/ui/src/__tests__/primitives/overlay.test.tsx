@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Overlay } from '../../primitives/overlay'
-import { attach, fireEvent, present, renderUI, screen } from '../helpers'
+import { attach, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
 describe('Overlay', () => {
 	it('renders children when open', () => {
@@ -62,9 +62,10 @@ describe('Overlay', () => {
 			)
 		}
 
-		const covered = () => document.documentElement.style.getPropertyValue('--covered-bottom')
+		const covered = () =>
+			document.documentElement.style.getPropertyValue('--visual-viewport-height')
 
-		it('holds the strip while the root is in the page', () => {
+		it('holds the visible frame while the root is in the page', () => {
 			stubToolbar()
 
 			const { unmount } = renderUI(
@@ -73,11 +74,29 @@ describe('Overlay', () => {
 				</Overlay>,
 			)
 
-			expect(covered()).toBe('60px')
+			expect(covered()).toBe('740px')
 
 			unmount()
 
 			expect(covered()).toBe('')
+		})
+
+		it('takes the frame as the box of the root, and keeps the backdrop on the full viewport', () => {
+			stubToolbar()
+
+			renderUI(
+				<Overlay open onOpenChange={() => {}}>
+					<span>content</span>
+				</Overlay>,
+			)
+
+			const root = getSlot(document.body, 'overlay')
+
+			expect(root.className).toContain('h-[var(--visual-viewport-height,100%)]')
+
+			expect(root.className).not.toContain('inset-0')
+
+			expect(getSlot(document.body, 'overlay-backdrop').className).toContain('fixed')
 		})
 
 		it('holds nothing for an overlay scoped to a container', () => {
@@ -94,7 +113,7 @@ describe('Overlay', () => {
 			expect(covered()).toBe('')
 		})
 
-		it('keeps the strip for a ref that a consumer holds', () => {
+		it('keeps the frame for a ref that a consumer holds', () => {
 			stubToolbar()
 
 			const ref = createRef<HTMLDivElement>()
@@ -107,7 +126,7 @@ describe('Overlay', () => {
 
 			expect(ref.current).not.toBeNull()
 
-			expect(covered()).toBe('60px')
+			expect(covered()).toBe('740px')
 		})
 	})
 
@@ -177,7 +196,8 @@ describe('Overlay', () => {
 			'[data-slot="overlay-backdrop"]',
 		)
 
-		expect(backdrop.className).toBe('absolute inset-0')
+		// On the full viewport, under a browser toolbar too.
+		expect(backdrop.className).toBe('inset-0 fixed')
 
 		fireEvent.click(screen.getByText('content'))
 
@@ -248,7 +268,8 @@ describe('Overlay', () => {
 			'[data-slot="overlay-backdrop"]',
 		)
 
-		expect(backdrop.className).toBe('custom-backdrop')
+		// The override takes the place of the default, and the backdrop stays fixed.
+		expect(backdrop.className).toBe('custom-backdrop fixed')
 	})
 
 	it('does not steal focus when modal=false', () => {

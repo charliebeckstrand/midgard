@@ -6,15 +6,14 @@ const { spring, toast } = ugoki
 const viewport = defineRecipe({
 	base: [
 		sou.toast,
-		'fixed top-0 bottom-0 flex flex-col',
+		// The part of the screen that the reader sees (`useVisualViewport`), so a
+		// stack on the bottom edge stays above a browser toolbar and an iOS keyboard.
+		// Without a reading, the box is the full viewport.
+		'fixed top-[var(--visual-viewport-top,0px)] h-[var(--visual-viewport-height,100%)] flex flex-col',
 		'max-sm:inset-x-0 max-sm:justify-end',
 		// The stack keeps clear of the notch and the home indicator in a page with
 		// `viewport-fit=cover`. Elsewhere each inset is zero, and the padding is 1rem.
-		//
-		// At the bottom, the stack also keeps 1rem clear of a browser toolbar over
-		// the edge (`--covered-bottom`, from `useCoveredBottom`). The home indicator
-		// is empty space, so a toast can meet it. A toolbar is not, so the 1rem stays.
-		'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(calc(var(--covered-bottom,0px)+--spacing(4)),env(safe-area-inset-bottom))]',
+		'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(--spacing(4),env(safe-area-inset-bottom))]',
 		'pointer-events-none',
 	],
 	position: {

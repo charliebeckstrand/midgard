@@ -33,26 +33,27 @@ describe('safe-area insets on edge surfaces', () => {
 	})
 
 	it('pads the dialog where it docks to the bottom edge', () => {
-		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+max(${bottom},`)
+		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+${bottom})]`)
 	})
 
-	it('keeps each surface on the bottom edge clear of a browser toolbar there', () => {
-		const covered = 'var(--covered-bottom,0px)'
-
+	it('leaves the browser toolbar to the overlay root, and pads by the inset alone', () => {
+		// The root is the part of the screen that the reader sees. A panel that also
+		// padded for a toolbar would stand clear of it two times.
 		for (const height of ['auto', 'fit', 'half', 'full'] as const) {
-			expect(drawer.panel({ height })).toContain(`max(${bottom},${covered})`)
+			expect(drawer.panel({ height })).toContain(`pb-[${bottom}]`)
 		}
 
-		for (const side of ['bottom', 'right', 'left'] as const) {
-			expect(sheet.panel({ side })).toContain(`max(${bottom},${covered})`)
-		}
+		expect(sheet.panel({ side: 'bottom' })).toContain(`pb-[${bottom}]`)
 
-		expect(sheet.panel({ side: 'top' })).not.toContain(covered)
+		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+${bottom})]`)
+	})
 
-		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+max(${bottom},${covered}))]`)
+	it('fixes the toast stack to the visible frame', () => {
+		const cls = toast.viewport({ position: 'bottom-left' })
 
-		// The stack keeps its 1rem gap above a toolbar, which is not empty space.
-		expect(toast.viewport({ position: 'bottom-left' })).toContain(`calc(${covered}+--spacing(4))`)
+		expect(cls).toContain('top-[var(--visual-viewport-top,0px)]')
+
+		expect(cls).toContain('h-[var(--visual-viewport-height,100%)]')
 	})
 
 	it('pads the toast stack at both ends', () => {
