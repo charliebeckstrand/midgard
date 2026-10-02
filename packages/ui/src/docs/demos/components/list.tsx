@@ -107,7 +107,7 @@ export function Demo() {
 				of="List"
 				omit={['sortable', 'virtual']}
 				render={(props, label) => (
-					<div className="w-80">
+					<div className="w-80 max-w-full">
 						<List {...props} items={stages} getKey={(stage) => stage.id} aria-label={label}>
 							{(stage) => (
 								<ListItem>
@@ -123,7 +123,7 @@ export function Demo() {
 				of="ListItem"
 				title="List item"
 				render={(props, label) => (
-					<div className="w-80">
+					<div className="w-80 max-w-full">
 						<List variant="plain" sortable={false} items={stages} aria-label={label}>
 							{(stage) => (
 								<ListItem {...props}>
