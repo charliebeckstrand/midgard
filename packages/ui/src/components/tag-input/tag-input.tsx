@@ -2,7 +2,7 @@
 
 import { CornerLeftDown } from 'lucide-react'
 import { type ClipboardEvent, useCallback, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
@@ -10,6 +10,7 @@ import { Flex } from '../../structure/flex'
 import { keyByOccurrence } from '../../utilities'
 import { Button } from '../button'
 import { useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { TagInputBadge } from './tag-input-badge'
@@ -83,7 +84,10 @@ export type TagInputProps = Omit<
  *
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
- * nameless). At the cap the field switches to read-only rather than disabled,
+ * nameless). Resolves `disabled` and `readOnly` against an enclosing
+ * `<Control>`. Then the tags stay, and no tag is added or removed. A consumer
+ * `onKeyDown`, `onPaste`, or `onBlur` runs before the handler of the field.
+ * At the cap the field switches to read-only rather than disabled,
  * so the tags stay removable and the control isn't grayed. Announces each
  * add/remove/duplicate/limit outcome to the live region and returns focus to
  * the input after a removal (WCAG 4.1.3, 2.4.3).
@@ -117,6 +121,9 @@ export function TagInput({
 	ref,
 	className,
 	'aria-label': ariaLabel,
+	onKeyDown,
+	onPaste,
+	onBlur,
 	...props
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -124,6 +131,12 @@ export function TagInput({
 	const setRefs = useComposedRef(inputRef, ref)
 
 	const control = useControl()
+
+	// The Control cascade: an explicit `disabled` wins over the enclosing
+	// Control. A disabled or read-only field keeps its tags and adds none.
+	const ambient = useControlProps({ disabled })
+
+	const locked = ambient.disabled === true || ambient.readOnly === true
 
 	const { tags, atMax, addTags, removeTag, setTouched, invalid } = useTagInput({
 		name,
@@ -153,6 +166,8 @@ export function TagInput({
 	 */
 	const commit = useCallback(
 		(raw: string) => {
+			if (locked) return
+
 			const tokens = splitTokens(raw)
 
 			if (tokens.length === 0) return
@@ -163,21 +178,35 @@ export function TagInput({
 
 			setRefused(rejected.length > 0)
 		},
-		[addTags],
+		[addTags, locked],
 	)
 
-	const handleKeyDown = useTagInputKeyboard({
+	const keyboard = useTagInputKeyboard({
 		inputValue,
 		commit,
 		removeTag,
 		tagCount: tags.length,
 	})
 
-	const handleBlur = useCallback(() => {
-		setTouched()
+	// A consumer handler runs first. Its `preventDefault()` cancels the commit or
+	// the removal of the key (CONVENTIONS.md §3.9).
+	const handleKeyDown = composeEventHandlers(onKeyDown, (event) => {
+		if (locked) return
 
-		commit(inputValue)
-	}, [commit, inputValue, setTouched])
+		keyboard(event)
+	})
+
+	// The touched mark and the commit keep the state of the field true, so a
+	// consumer `preventDefault()` does not skip them.
+	const handleBlur = composeEventHandlers(
+		onBlur,
+		() => {
+			setTouched()
+
+			commit(inputValue)
+		},
+		{ checkForDefaultPrevented: false },
+	)
 
 	const handleSubmit = useCallback(() => {
 		commit(inputValue)
@@ -185,11 +214,11 @@ export function TagInput({
 		inputRef.current?.focus()
 	}, [commit, inputValue])
 
-	const handlePaste = useCallback(
+	const tokenizePaste = useCallback(
 		(event: ClipboardEvent<HTMLInputElement>) => {
 			// At the cap the field is read-only and there is nothing to add; let the browser's own
 			// no-op stand rather than consuming the event.
-			if (disabled || atMax) return
+			if (locked || atMax) return
 
 			const pasted = event.clipboardData.getData('text')
 
@@ -211,8 +240,12 @@ export function TagInput({
 
 			commit(inputValue.slice(0, start) + pasted + inputValue.slice(end))
 		},
-		[commit, inputValue, disabled, atMax],
+		[commit, inputValue, locked, atMax],
 	)
+
+	// A consumer handler runs first, and its `preventDefault()` keeps the paste as
+	// ordinary typing, as a paste with no delimiter is.
+	const handlePaste = composeEventHandlers(onPaste, tokenizePaste)
 
 	// Duplicate controlled values ('a','a') collide on a bare value key;
 	// repeats get an occurrence suffix (the validate path dedupes, the
@@ -227,7 +260,7 @@ export function TagInput({
 						key={key}
 						label={t}
 						color={resolvedColor}
-						disabled={disabled}
+						disabled={locked}
 						onRemove={() => {
 							removeTag(i)
 
@@ -274,7 +307,7 @@ export function TagInput({
 					type="button"
 					aria-label="Add tag"
 					variant="bare"
-					disabled={disabled || atMax || inputValue.trim() === ''}
+					disabled={locked || atMax || inputValue.trim() === ''}
 					onMouseDown={(event) => event.preventDefault()}
 					onClick={handleSubmit}
 				>

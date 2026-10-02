@@ -13,6 +13,7 @@ import { Icon } from '../icon'
 import { DatePicker, type DatePickerBaseProps, type DatePickerRelativeProps } from './date-picker'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
+import { relativeListRows } from './date-picker-relative-utilities'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRelativeState } from './use-date-picker-relative-state'
 
@@ -43,7 +44,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	// Row count that splits the presets plus the trailing custom row into two
 	// balanced, column-major columns (see the `relative.root` recipe): the leading
 	// half fills the first column, the rest the second.
-	const rows = Math.ceil((state.presets.length + 1) / 2)
+	const rows = relativeListRows(state.presets.length + 1)
 
 	// The chip row owns the trigger's value area and wraps, so each chip that does
 	// not fit grows the trigger a row taller. Leaving it undefined — for `chips:

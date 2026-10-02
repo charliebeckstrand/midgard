@@ -90,8 +90,9 @@ export function useDatePickerState({
 
 	const footerRef = useRef<HTMLDivElement>(null)
 
+	// With no value, the cursor starts on today. A `min` or a `max` only bounds it.
 	const getInitialActiveDate = useCallback(
-		() => clampDate(value ?? min ?? new Date(), min, max),
+		() => clampDate(value ?? new Date(), min, max),
 		[value, min, max],
 	)
 

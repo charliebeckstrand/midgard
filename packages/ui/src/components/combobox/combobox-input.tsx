@@ -37,6 +37,12 @@ type ComboboxInputProps = {
 	disabled?: boolean
 	readOnly?: boolean
 	required?: boolean
+	/**
+	 * True while the combobox holds a selection. A selection satisfies
+	 * `required`, also when the input shows no text, so the native `required`
+	 * drops. `aria-required` stays.
+	 */
+	selected: boolean
 	/** The bound field's validation state, so the frame rings for its own errors. */
 	invalid?: boolean
 	value: string
@@ -70,6 +76,7 @@ export function ComboboxInput({
 	disabled,
 	readOnly,
 	required,
+	selected,
 	invalid,
 	value,
 	placeholder,
@@ -103,7 +110,7 @@ export function ComboboxInput({
 				autoComplete={autoComplete}
 				disabled={disabled}
 				readOnly={readOnly}
-				required={required}
+				required={required && !selected}
 				// Transform only the resolved value; the live query renders as typed.
 				value={capitalize && !editing ? capitalizeFirst(value) : value}
 				placeholder={placeholder}

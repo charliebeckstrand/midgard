@@ -26,6 +26,9 @@ const button = defineRecipe({
 		'appearance-none',
 		...cursor,
 		...density,
+		// The calendar icon is inside the button, not in a suffix slot. This gap
+		// keeps it the control `px` from the value, as the Listbox chevron is.
+		'density-gap-[2.25,2.75,3.25]',
 	],
 })
 
