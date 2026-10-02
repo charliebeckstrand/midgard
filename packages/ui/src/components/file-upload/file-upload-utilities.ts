@@ -67,11 +67,16 @@ export function selectionSummary(files: File[], multiple?: boolean): string | un
 /** A file excluded from a selection, paired with the constraint it tripped. */
 export type FileRejection = {
 	file: File
-	/** `'size'` exceeds `maxSize`; `'count'` overflows `maxCount`. */
-	reason: 'size' | 'count'
+	/**
+	 * `'type'` does not match `accept`; `'size'` exceeds `maxSize`; `'count'`
+	 * overflows `maxCount`, or the one-file limit without `multiple`.
+	 */
+	reason: 'type' | 'size' | 'count'
 }
 
 type FileConstraints = {
+	/** Accepted file types, in the syntax of the `accept` attribute. */
+	accept?: string
 	/** Maximum size per file, in bytes. */
 	maxSize?: number
 	/** Maximum number of files accepted; overflow is rejected. */
@@ -79,34 +84,66 @@ type FileConstraints = {
 }
 
 /**
- * Splits a selection into accepted files and rejections. Oversized files are
- * dropped first (reason `'size'`); `maxCount` then caps the survivors in
- * selection order, rejecting the overflow (reason `'count'`). Both constraints
- * are optional — an unset limit never rejects.
+ * Returns `true` when a file matches an `accept` list, by the rules of the
+ * native attribute. A `.ext` token matches the end of the file name, a `type/*` token
+ * matches the MIME group, and other tokens match the full MIME type. Case does
+ * not count. An empty or absent list matches every file.
+ *
+ * @internal
+ */
+export function matchesAccept(file: File, accept: string | undefined): boolean {
+	const tokens = (accept ?? '')
+		.split(',')
+		.map((token) => token.trim().toLowerCase())
+		.filter(Boolean)
+
+	if (tokens.length === 0) return true
+
+	const name = file.name.toLowerCase()
+
+	const type = file.type.toLowerCase()
+
+	return tokens.some((token) => {
+		if (token.startsWith('.')) return name.endsWith(token)
+
+		if (token.endsWith('/*')) return type.startsWith(token.slice(0, -1))
+
+		return type === token
+	})
+}
+
+/**
+ * Splits a selection into accepted files and rejections. Files that do not
+ * match `accept` go first (reason `'type'`), then oversized files (reason
+ * `'size'`). `maxCount` then caps the survivors in selection order, and rejects
+ * the overflow (reason `'count'`). All constraints are optional. An unset limit
+ * never rejects.
  *
  * @returns `{ accepted, rejected }` — the kept files and the `FileRejection`s,
  * each tagged with the constraint it tripped.
  */
 export function partitionFiles(
 	files: File[],
-	{ maxSize, maxCount }: FileConstraints,
+	{ accept, maxSize, maxCount }: FileConstraints,
 ): { accepted: File[]; rejected: FileRejection[] } {
 	const rejected: FileRejection[] = []
-	const withinSize: File[] = []
+	const kept: File[] = []
 
 	for (const file of files) {
-		if (maxSize != null && file.size > maxSize) {
+		if (!matchesAccept(file, accept)) {
+			rejected.push({ file, reason: 'type' })
+		} else if (maxSize != null && file.size > maxSize) {
 			rejected.push({ file, reason: 'size' })
 		} else {
-			withinSize.push(file)
+			kept.push(file)
 		}
 	}
 
-	if (maxCount != null && withinSize.length > maxCount) {
-		for (const file of withinSize.slice(maxCount)) rejected.push({ file, reason: 'count' })
+	if (maxCount != null && kept.length > maxCount) {
+		for (const file of kept.slice(maxCount)) rejected.push({ file, reason: 'count' })
 
-		return { accepted: withinSize.slice(0, maxCount), rejected }
+		return { accepted: kept.slice(0, maxCount), rejected }
 	}
 
-	return { accepted: withinSize, rejected }
+	return { accepted: kept, rejected }
 }

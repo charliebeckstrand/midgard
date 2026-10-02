@@ -1,7 +1,14 @@
 'use client'
 
 import { Upload } from 'lucide-react'
-import { type ReactNode, useRef } from 'react'
+import {
+	type ChangeEvent,
+	type DragEvent,
+	type ReactNode,
+	type Ref,
+	useEffect,
+	useRef,
+} from 'react'
 import { cn, dataAttr } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { k } from '../../recipes/kata/file-upload'
@@ -31,6 +38,8 @@ type DropSelectionProps = {
 	disabled?: boolean
 	/** Forces the tooltip open for the multi-file summary (see {@link FileUploadRenderState.showTooltip}). */
 	alwaysTooltip: boolean
+	/** Takes the overlay trigger, so that focus can move to it after the swap. */
+	overlayRef: Ref<HTMLButtonElement>
 	/** Re-opens the picker; also fired by clicking the dropzone overlay. */
 	onPick: () => void
 	onClear: () => void
@@ -52,6 +61,7 @@ function DropSelection({
 	multiple,
 	disabled,
 	alwaysTooltip,
+	overlayRef,
 	onPick,
 	onClear,
 }: DropSelectionProps) {
@@ -66,6 +76,7 @@ function DropSelection({
 			<Tooltip disabled={!alwaysTooltip && !truncated}>
 				<TooltipTrigger>
 					<button
+						ref={overlayRef}
 						type="button"
 						aria-label="Choose a different file"
 						disabled={disabled}
@@ -114,6 +125,10 @@ function DropSelection({
  * or names in a tooltip. The zone stays clickable, focusable, and keyboard-operable, so
  * another file can be picked without clearing first.
  *
+ * The swap between the empty and the filled state replaces the focusable
+ * control. When focus is in the zone at a pick, a drop, or a `Reset`, it moves
+ * to the control that replaces it (WCAG 2.4.3).
+ *
  * It stands a fixed height and takes another through `className`, the way
  * `<SignaturePad>` does. It used to wrap itself in an `<AspectRatio>` for a
  * `ratio` prop, which is a whole dependency for what one class states.
@@ -142,19 +157,68 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 		handleDrop,
 	} = state
 
-	const dragProps = {
-		'data-drag-over': dataAttr(dragOver),
-		onDragOver: handleDragOver,
-		onDragEnter: handleDragEnter,
-		onDragLeave: handleDragLeave,
-		onDrop: handleDrop,
-	}
-
 	// The built-in filled state carries its own `Reset` button, which can't nest
 	// inside a trigger `<button>`; it renders a plain container plus the overlay
 	// trigger in {@link DropSelection}. Empty, or caller `children` (no built-in
 	// Reset): a single trigger `<button>` opens the picker.
 	const filled = hasFiles && children == null
+
+	// The root of each state. One of the two is mounted at a time. The root of
+	// the empty state is also its trigger.
+	const emptyRef = useRef<HTMLButtonElement>(null)
+
+	const filledRef = useRef<HTMLDivElement>(null)
+
+	const overlayRef = useRef<HTMLButtonElement>(null)
+
+	const refocusRef = useRef(false)
+
+	// Each event that can swap the state first notes if focus is in the zone.
+	// The hidden input is outside the zone, but the native picker leaves focus
+	// on the control that opened it.
+	const noteFocus = () => {
+		const zone = filledRef.current ?? emptyRef.current
+
+		refocusRef.current = zone?.contains(document.activeElement) ?? false
+	}
+
+	const handlePickChange = (event: ChangeEvent<HTMLInputElement>) => {
+		noteFocus()
+
+		handleChange(event)
+	}
+
+	const handleZoneDrop = (event: DragEvent) => {
+		noteFocus()
+
+		handleDrop(event)
+	}
+
+	const handleClear = () => {
+		noteFocus()
+
+		clearFiles()
+	}
+
+	const dragProps = {
+		'data-drag-over': dataAttr(dragOver),
+		onDragOver: handleDragOver,
+		onDragEnter: handleDragEnter,
+		onDragLeave: handleDragLeave,
+		onDrop: handleZoneDrop,
+	}
+
+	// The swap unmounts the focused control. Focus then moves to the control
+	// that replaces it, not to the page.
+	useEffect(() => {
+		if (!refocusRef.current) return
+
+		refocusRef.current = false
+
+		const target = filled ? overlayRef.current : emptyRef.current
+
+		target?.focus()
+	}, [filled])
 
 	return (
 		<>
@@ -168,10 +232,11 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 				multiple={multiple}
 				disabled={disabled}
 				filesEmpty={!hasFiles}
-				onChange={handleChange}
+				onChange={handlePickChange}
 			/>
 			{filled ? (
 				<div
+					ref={filledRef}
 					data-slot="file-upload"
 					data-disabled={dataAttr(disabled)}
 					className={cn(k.dropzone, 'relative h-40 w-full', className)}
@@ -182,12 +247,14 @@ export function FileUploadDrop(props: FileUploadDropProps) {
 						multiple={multiple}
 						disabled={disabled}
 						alwaysTooltip={showTooltip}
+						overlayRef={overlayRef}
 						onPick={openPicker}
-						onClear={clearFiles}
+						onClear={handleClear}
 					/>
 				</div>
 			) : (
 				<button
+					ref={emptyRef}
 					type="button"
 					data-slot="file-upload"
 					disabled={disabled}

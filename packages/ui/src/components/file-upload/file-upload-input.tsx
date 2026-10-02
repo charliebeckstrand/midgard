@@ -1,6 +1,7 @@
 'use client'
 
 import { Upload } from 'lucide-react'
+import { useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
@@ -16,7 +17,8 @@ import { activateOnEnterSpace, formatFileNames, selectionSummary } from './file-
 /**
  * File picker rendered as a read-only field over a hidden
  * `<input type="file">`. Clicking it opens the picker, and a selection shows
- * the file name with a clear button in the suffix.
+ * the file name with a clear button in the suffix. The clear button gives focus
+ * back to the field.
  *
  * @remarks
  * Shares every internal with {@link FileUploadDrop}: the hidden input is the
@@ -51,6 +53,23 @@ export function FileUploadInput(props: FileUploadInputProps) {
 
 	const label = selectionSummary(files, multiple)
 
+	const fieldRef = useRef<HTMLInputElement>(null)
+
+	const handleClear = () => {
+		clearFiles()
+
+		// Moves focus to the field once the clear button unmounts (WCAG 2.4.3).
+		fieldRef.current?.focus()
+	}
+
+	// A pick swaps the Browse button for the clear button. Focus moves to the
+	// field first, so that the picker gives it back to a control that stays.
+	const handleBrowse = () => {
+		fieldRef.current?.focus()
+
+		openPicker()
+	}
+
 	return (
 		<div data-slot="file-upload" className={cn('relative', className)}>
 			<FileUploadHiddenInput
@@ -71,6 +90,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 				<Tooltip disabled={!showTooltip}>
 					<TooltipTrigger>
 						<Input
+							ref={fieldRef}
 							readOnly
 							aria-labelledby={control?.labelledBy}
 							size={size}
@@ -89,7 +109,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 									<InputClearButton
 										label="Clear selected file(s)"
 										disabled={disabled}
-										onClick={clearFiles}
+										onClick={handleClear}
 									/>
 								) : (
 									<Button
@@ -98,7 +118,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 										className="pointer-events-auto"
 										aria-label="Browse files"
 										disabled={disabled}
-										onClick={openPicker}
+										onClick={handleBrowse}
 									>
 										<Icon icon={<Upload />} />
 									</Button>

@@ -582,3 +582,128 @@ describe('FileUpload drag-over reporting', () => {
 		expect(onDragOverChange).not.toHaveBeenCalled()
 	})
 })
+
+describe('FileUpload drop filtering', () => {
+	const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' })
+
+	const png = new File(['x'], 'a.png', { type: 'image/png' })
+
+	const jpg = new File(['x'], 'b.jpg', { type: 'image/jpeg' })
+
+	it('routes a dropped file outside accept to onReject with reason "type"', () => {
+		const onAccept = vi.fn()
+
+		const onReject = vi.fn()
+
+		const { container } = renderUI(
+			<FileUploadDrop accept="image/*" multiple onAccept={onAccept} onReject={onReject} />,
+		)
+
+		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([pdf, png]) } })
+
+		expect(onAccept).toHaveBeenCalledWith([png])
+
+		expect(onReject).toHaveBeenCalledWith([{ file: pdf, reason: 'type' }])
+	})
+
+	it('keeps the first file of a multi-file drop without multiple', () => {
+		const onAccept = vi.fn()
+
+		const onReject = vi.fn()
+
+		const { container } = renderUI(<FileUploadDrop onAccept={onAccept} onReject={onReject} />)
+
+		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([png, jpg]) } })
+
+		expect(onAccept).toHaveBeenCalledWith([png])
+
+		expect(onReject).toHaveBeenCalledWith([{ file: jpg, reason: 'count' }])
+
+		expect(screen.getByText('a.png')).toBeInTheDocument()
+	})
+})
+
+describe('FileUpload focus handoff', () => {
+	const file = new File(['x'], 'resume.pdf')
+
+	it('moves focus from the empty drop zone to the overlay after a pick', () => {
+		const { container } = renderUI(<FileUploadDrop />)
+
+		dropzone(container).focus()
+
+		selectFiles(container, [file])
+
+		expect(screen.getByRole('button', { name: 'Choose a different file' })).toHaveFocus()
+	})
+
+	it('moves focus from Reset to the empty drop zone', () => {
+		const { container } = renderUI(<FileUploadDrop />)
+
+		selectFiles(container, [file])
+
+		const reset = screen.getByRole('button', { name: 'Reset' })
+
+		reset.focus()
+
+		fireEvent.click(reset)
+
+		expect(dropzone(container)).toHaveFocus()
+	})
+
+	it('leaves focus alone when a drop lands while focus is outside the zone', () => {
+		const { container } = renderUI(
+			<>
+				<button type="button">Elsewhere</button>
+				<FileUploadDrop />
+			</>,
+		)
+
+		const elsewhere = screen.getByRole('button', { name: 'Elsewhere' })
+
+		elsewhere.focus()
+
+		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([file]) } })
+
+		expect(elsewhere).toHaveFocus()
+	})
+
+	it('moves focus from the button variant Reset to the trigger', () => {
+		const { container } = renderUI(<FileUploadButton />)
+
+		selectFiles(container, [file])
+
+		const reset = screen.getByRole('button', { name: 'Reset' })
+
+		reset.focus()
+
+		fireEvent.click(reset)
+
+		expect(screen.getByRole('button', { name: 'Upload' })).toHaveFocus()
+	})
+
+	it('moves focus from the input variant clear button to the field', () => {
+		const { container } = renderUI(<FileUploadInput />)
+
+		selectFiles(container, [file])
+
+		const clear = screen.getByRole('button', { name: 'Clear selected file(s)' })
+
+		clear.focus()
+
+		fireEvent.click(clear)
+
+		expect(screen.getByPlaceholderText('Choose a file')).toHaveFocus()
+	})
+
+	it('moves focus from the input variant Browse button to the field before the picker opens', () => {
+		renderUI(<FileUploadInput />)
+
+		const browse = screen.getByRole('button', { name: 'Browse files' })
+
+		browse.focus()
+
+		fireEvent.click(browse)
+
+		expect(screen.getByPlaceholderText('Choose a file')).toHaveFocus()
+	})
+})

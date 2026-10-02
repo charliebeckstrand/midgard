@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	fileListToArray,
 	formatFileNames,
+	matchesAccept,
 	partitionFiles,
 	selectionSummary,
 } from '../../components/file-upload/file-upload-utilities'
@@ -147,5 +148,39 @@ describe('partitionFiles', () => {
 		expect(accepted).toEqual([a, b])
 
 		expect(rejected).toEqual([{ file: big, reason: 'size' }])
+	})
+
+	it('rejects files outside accept with reason "type" before size and count', () => {
+		const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' })
+
+		const png = new File(['x'], 'a.png', { type: 'image/png' })
+
+		const { accepted, rejected } = partitionFiles([pdf, png], { accept: 'image/*', maxCount: 1 })
+
+		expect(accepted).toEqual([png])
+
+		expect(rejected).toEqual([{ file: pdf, reason: 'type' }])
+	})
+})
+
+describe('matchesAccept', () => {
+	const png = new File(['x'], 'Photo.PNG', { type: 'image/png' })
+
+	it('matches every file when accept is absent or empty', () => {
+		expect(matchesAccept(png, undefined)).toBe(true)
+
+		expect(matchesAccept(png, ' , ')).toBe(true)
+	})
+
+	it('matches a MIME group, an exact MIME type, and an extension without case', () => {
+		expect(matchesAccept(png, 'image/*')).toBe(true)
+
+		expect(matchesAccept(png, 'IMAGE/PNG')).toBe(true)
+
+		expect(matchesAccept(png, '.pdf, .png')).toBe(true)
+	})
+
+	it('rejects a file that no token matches', () => {
+		expect(matchesAccept(png, 'video/*,application/pdf,.jpg')).toBe(false)
 	})
 })
