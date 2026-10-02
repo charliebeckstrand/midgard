@@ -167,9 +167,9 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * bottom motion preset. Open state is controlled (`open`/`onOpenChange`) or uncontrolled
  * (`defaultOpen`).
  *
- * A browser toolbar over the bottom edge does not hide the content. Chrome on iOS can put
- * its toolbar there until the first scroll. The panel pads its content by the strip that
- * `useCoveredBottom` reads, which its `Overlay` holds.
+ * A browser toolbar or an iOS keyboard over the bottom edge does not hide the panel. Chrome
+ * on iOS lays the page out under its toolbars. The panel docks to the bottom of its `Overlay`
+ * root, which is the part of the screen that the reader sees (`useVisualViewport`).
  *
  * `height` sets how much of the screen it docks over:
  *

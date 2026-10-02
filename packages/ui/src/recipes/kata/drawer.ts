@@ -23,17 +23,14 @@ export const k = {
 			base: [
 				...surface.chrome.flat(),
 				layout.base,
-				'fixed inset-x-0 bottom-0',
-				// The panel sits on the bottom edge. In a page with `viewport-fit=cover`,
-				// this keeps the footer clear of the home indicator. Elsewhere the inset
-				// is zero.
-				//
-				// `--covered-bottom` is the strip of a browser toolbar over that edge
-				// (`useCoveredBottom`). The background stays under the toolbar, and the
-				// content stays above it. It is padding, not an offset, so a panel at the
-				// full height keeps its top edge. The larger of the two wins, because a
-				// toolbar over the edge also covers the home indicator.
-				'pb-[max(env(safe-area-inset-bottom),var(--covered-bottom,0px))]',
+				// The panel sits on the bottom edge of the overlay root. The root is the
+				// part of the screen that the reader sees (`useVisualViewport`), so the
+				// panel stays above a browser toolbar and an iOS keyboard. Each height
+				// below is a share of the root for the same reason.
+				'absolute inset-x-0 bottom-0',
+				// In a page with `viewport-fit=cover`, this keeps the footer clear of the
+				// home indicator. Elsewhere the inset is zero.
+				'pb-[env(safe-area-inset-bottom)]',
 				'overflow-hidden',
 				'w-full',
 			],
@@ -64,10 +61,10 @@ export const k = {
 			// `usePanelFit`, which measures the length and travels it under Framer
 			// Motion; `auto` snaps.
 			height: {
-				auto: 'max-h-[85dvh] rounded-t-xl',
-				fit: ['max-h-dvh rounded-t-xl', 'data-full:rounded-t-none', css.corner, css.duration],
-				half: ['h-[50dvh] rounded-t-xl', css.size, css.duration, RESIZING],
-				full: ['h-dvh rounded-t-none', css.size, css.duration, RESIZING],
+				auto: 'max-h-[85%] rounded-t-xl',
+				fit: ['max-h-full rounded-t-xl', 'data-full:rounded-t-none', css.corner, css.duration],
+				half: ['h-1/2 rounded-t-xl', css.size, css.duration, RESIZING],
+				full: ['h-full rounded-t-none', css.size, css.duration, RESIZING],
 			},
 			defaults: { surface: 'flat', height: 'auto' },
 		}),

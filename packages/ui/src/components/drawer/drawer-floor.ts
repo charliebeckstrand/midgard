@@ -35,7 +35,7 @@ export function drawerFloor(panel: HTMLElement, height: number): number {
 }
 
 /**
- * The tallest a drawer is drawn at: the screen, or the cap its own variant sets.
+ * The tallest a drawer is drawn at: the box it docks in, or the cap its own variant sets.
  *
  * `auto` stops short of the top edge, and a drag that ignored that would commit
  * and report a height the element never takes.
@@ -49,7 +49,13 @@ export function drawerFloor(panel: HTMLElement, height: number): number {
  * @internal
  */
 export function drawerCeiling(panel: HTMLElement, viewport: number): number {
-	const cap = Number.parseFloat(getComputedStyle(panel).maxHeight)
+	const value = getComputedStyle(panel).maxHeight
+
+	// A cap is a share of the box the panel docks in, and a browser can give it
+	// back as that share and not as pixels.
+	const cap = value.endsWith('%')
+		? (Number.parseFloat(value) / 100) * viewport
+		: Number.parseFloat(value)
 
 	return Number.isFinite(cap) ? Math.min(cap, viewport) : viewport
 }

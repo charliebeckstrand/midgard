@@ -4,7 +4,7 @@ import type { AnimationPlaybackControls, ValueAnimationTransition } from 'motion
 import { type RefCallback, useCallback, useEffect, useState } from 'react'
 import { type BorderBox, measureBox } from '../utilities'
 import { travelHeight } from './travel-height'
-import type { PanelCeiling } from './use-panel-resize'
+import { dockExtent, type PanelCeiling } from './use-panel-resize'
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /**
@@ -132,7 +132,7 @@ export function usePanelFit({
 
 			panel.toggleAttribute(
 				'data-full',
-				next.block >= ceilingOf(panel, window.innerHeight) - SUBPIXEL,
+				next.block >= ceilingOf(panel, dockExtent(panel, 'height')) - SUBPIXEL,
 			)
 
 			if (Math.abs(from - next.block) < SUBPIXEL || reduced) return

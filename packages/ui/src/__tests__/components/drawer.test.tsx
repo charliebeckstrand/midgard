@@ -290,7 +290,7 @@ describe('Drawer height and size', () => {
 
 		expect(drawerPanel()).toHaveAttribute('data-height', 'auto')
 
-		expect(drawerPanel()).toHaveClass('max-h-[85dvh]')
+		expect(drawerPanel()).toHaveClass('max-h-[85%]')
 	})
 
 	it('fixes the panel height at half the screen', () => {
@@ -302,7 +302,7 @@ describe('Drawer height and size', () => {
 
 		expect(drawerPanel()).toHaveAttribute('data-height', 'half')
 
-		expect(drawerPanel()).toHaveClass('h-[50dvh]')
+		expect(drawerPanel()).toHaveClass('h-1/2')
 	})
 
 	it('squares the top corners at full height, which meets the screen edge', () => {
@@ -312,7 +312,7 @@ describe('Drawer height and size', () => {
 			</Drawer>,
 		)
 
-		expect(drawerPanel()).toHaveClass('h-dvh')
+		expect(drawerPanel()).toHaveClass('h-full')
 
 		expect(drawerPanel()).not.toHaveClass('rounded-t-xl')
 	})
@@ -331,9 +331,9 @@ describe('Drawer height and size', () => {
 
 		expect(drawerPanel()).toHaveAttribute('data-height', 'fit')
 
-		expect(drawerPanel()).toHaveClass('max-h-dvh')
+		expect(drawerPanel()).toHaveClass('max-h-full')
 
-		expect(drawerPanel()).not.toHaveClass('max-h-[85dvh]')
+		expect(drawerPanel()).not.toHaveClass('max-h-[85%]')
 
 		expect(drawerPanel()).toHaveClass('rounded-t-xl')
 
@@ -370,7 +370,7 @@ describe('Drawer browser toolbar', () => {
 		)
 	}
 
-	it('pads the content by the strip that its overlay holds', () => {
+	it('docks to the bottom of the visible frame that its overlay holds', () => {
 		stubToolbar()
 
 		renderUI(
@@ -379,9 +379,12 @@ describe('Drawer browser toolbar', () => {
 			</Drawer>,
 		)
 
-		expect(document.documentElement.style.getPropertyValue('--covered-bottom')).toBe('60px')
+		expect(document.documentElement.style.getPropertyValue('--visual-viewport-height')).toBe(
+			'740px',
+		)
 
-		expect(getSlot(document.body, 'drawer').className).toContain('var(--covered-bottom,0px)')
+		// The panel is placed in the root, which takes the frame as its box.
+		expect(getSlot(document.body, 'drawer').className).toContain('absolute')
 	})
 })
 

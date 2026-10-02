@@ -281,7 +281,7 @@ export function TapLog() {
 			</Button>
 			{/* The sheet takes the height of the log, up to the height of the screen.
 			    A longer log scrolls in the body. */}
-			<Sheet side="bottom" open={open} onOpenChange={change} className="max-h-dvh">
+			<Sheet side="bottom" open={open} onOpenChange={change} className="max-h-full">
 				<TapLogLines />
 			</Sheet>
 		</>

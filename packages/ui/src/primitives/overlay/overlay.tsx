@@ -13,10 +13,10 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
-import { holdCoveredBottom } from '../../hooks/use-covered-bottom'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
+import { holdVisualViewport } from '../../hooks/use-visual-viewport'
 import { k } from '../../recipes/kata/overlay'
 import { chromeRegions } from '../chrome'
 import { useDensityScope } from '../density'
@@ -115,9 +115,10 @@ export type OverlayProps = {
  * the root writes the step of that scope as `data-density`, and the panel
  * follows the scope of the place that opened it.
  *
- * While the root is in the page, it holds the reading of `useCoveredBottom`. A
- * panel on the bottom edge pads by `var(--covered-bottom, 0px)` to keep its
- * content above a browser toolbar.
+ * While the root is in the page, it holds the reading of `useVisualViewport`,
+ * and the root takes the visible frame as its box. A panel on the bottom edge of
+ * the root therefore stays above a browser toolbar and an iOS keyboard. The
+ * backdrop stays on the full viewport.
  */
 export function Overlay({
 	open,
@@ -147,16 +148,15 @@ export function Overlay({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	// The strip of a browser toolbar over the bottom edge, held for as long as the
-	// root is in the page. The root stays through the exit, so a surface that
-	// slides out keeps its padding to the end. A scoped overlay sits in a
-	// container, which no toolbar covers.
-	const holdCovered = useCallback(
-		(node: HTMLDivElement | null) => (node === null || scoped ? undefined : holdCoveredBottom()),
+	// The visible frame, held for as long as the root is in the page. The root
+	// stays through the exit, so a surface that slides out keeps its box to the
+	// end. A scoped overlay sits in a container, which no toolbar covers.
+	const holdFrame = useCallback(
+		(node: HTMLDivElement | null) => (node === null || scoped ? undefined : holdVisualViewport()),
 		[scoped],
 	)
 
-	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef, ref, holdCovered)
+	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef, ref, holdFrame)
 
 	useDismissable({
 		open,
@@ -186,7 +186,7 @@ export function Overlay({
 			{...props}
 			className={cn(
 				k.root,
-				scoped ? 'absolute' : 'fixed',
+				scoped ? k.scoped : k.frame,
 				!modal && 'pointer-events-none',
 				className,
 			)}
@@ -197,11 +197,15 @@ export function Overlay({
 					// After the preset spread, so it overrides the preset's own `initial`.
 					initial={animateEnter ? k.motion.initial : false}
 					data-slot="overlay-backdrop"
-					className={
+					// The backdrop of a root on the viewport stays on the full viewport, under
+					// the toolbars too. The root is only the visible frame, and a strip of
+					// the page under it must not show without the dim.
+					className={cn(
 						backdrop
 							? (backdropClassName ?? cn('absolute inset-0', k.backdrop.base))
-							: 'absolute inset-0'
-					}
+							: 'absolute inset-0',
+						!scoped && 'fixed',
+					)}
 					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
 					aria-hidden="true"
 				/>

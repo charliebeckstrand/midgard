@@ -146,8 +146,8 @@ export function Dialog({
 		>
 			<div
 				className={cn(
-					// The overlay root is positioned and `inset-0` in both modes, so the
-					// wrapper fills the root: the viewport, or the `container`.
+					// The overlay root is positioned in both modes, so the wrapper fills the
+					// root: the part of the screen that the reader sees, or the `container`.
 					'pointer-events-none absolute inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
 					alignClasses[align],
 				)}
