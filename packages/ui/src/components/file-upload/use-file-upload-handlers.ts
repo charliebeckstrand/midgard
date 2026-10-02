@@ -87,15 +87,11 @@ export function useFileUploadHandlers({
 
 			// The selection lands on a visually-hidden input with no audible
 			// feedback; announces through the live region (WCAG 4.1.3).
-			if (accepted.length > 0) {
-				const names = formatFileNames(accepted)
+			const names = formatFileNames(accepted)
 
-				announce(
-					accepted.length === 1
-						? `Selected ${names}`
-						: `Selected ${accepted.length} files: ${names}`,
-				)
-			}
+			announce(
+				accepted.length === 1 ? `Selected ${names}` : `Selected ${accepted.length} files: ${names}`,
+			)
 		},
 		[accept, maxSize, maxCount, onAccept, onReject],
 	)

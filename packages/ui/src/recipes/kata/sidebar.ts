@@ -3,7 +3,7 @@ import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, narabi, sen, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
-const { flex } = narabi
+const { flex, inset } = narabi
 const { divider } = sen
 
 /**
@@ -96,12 +96,10 @@ const affix = ['relative', 'z-10', flex.row, 'shrink-0', '[--touch-target-gap-x:
 
 // Each slot is a density scope one step below the item (`data-density="slot"`),
 // so a slot icon or a small `<Button>` action takes that step with no
-// projection. The slot is its own nearest scope, so its margin takes the slot
-// step. Each list thus gives the value of an item one step above: the `xs`
-// value is for an `sm` item, and the `md` value is for an `lg` item.
-const itemPrefix = [...affix, 'density-ms-[1.5,2,2.5,2.5,2.5]']
+// projection. `narabi.inset` gives the margin at that step.
+const itemPrefix = [...affix, inset.prefix]
 
-const itemSuffix = [...affix, 'density-me-[1.5,2,2.5,2.5,2.5]']
+const itemSuffix = [...affix, inset.suffix]
 
 /** The cap on the hit areas of a stack of items: the `gap-0.5` of the stack (`TouchTarget`). */
 const stackTargets = '[--touch-target-gap-y:--spacing(0.5)]'

@@ -423,12 +423,12 @@ export function Combobox<T>({
 		setValue,
 	})
 
-	// A read-only or disabled combobox does not open and does not commit.
+	// A read-only or a disabled combobox does not open and does not commit. The
+	// guard blocks each open path (input focus and typing, the suffix toggle,
+	// floating-ui) and lets a close through. A read-only input stays focusable,
+	// its value still submits, and its native readOnly also stops typing.
 	const locked = resolvedReadOnly || resolvedDisabled
 
-	// readOnly keeps the input focusable and the value submitted but blocks
-	// every open path (input focus/typing, suffix toggle, floating-ui); closing
-	// stays allowed. Typing is also stopped natively by the input's readOnly.
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
 			if (locked && next) return

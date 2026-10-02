@@ -8,6 +8,7 @@ import { description } from './description'
 import { field } from './field'
 import { flex } from './flex'
 import { group } from './group'
+import { inset } from './inset'
 import { item } from './item'
 import { slide } from './slide'
 import { text } from './text'
@@ -19,6 +20,7 @@ export const narabi = {
 	toggle,
 	group,
 	item,
+	inset,
 	description,
 	text,
 	flex,

@@ -199,7 +199,7 @@ export function valueType(value: JsonValue): JsonValueType {
  *
  * @internal
  */
-type FlatSetPosition = {
+export type FlatSetPosition = {
 	/** The number of siblings that the tree shows, the row included. */
 	setSize: number
 	/** The 1-based position of the row among those siblings. */

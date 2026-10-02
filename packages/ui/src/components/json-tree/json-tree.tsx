@@ -16,7 +16,7 @@ import {
 } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
-import { toggleExpandedSet } from './use-json-tree-expansion'
+import { toggleExpandedSet, unionExpandedSet } from './use-json-tree-expansion'
 import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
@@ -132,11 +132,13 @@ export function JsonTree({
 
 	const windowed = virtualize != null
 
-	// The recursive variant seeds a controlled set here. The windowed variant
-	// seeds its own set, because it also opens the matches when uncontrolled.
-	const seedPaths = useMemo(
+	// Every branch whose subtree holds a search match. Also keyed on `data`, so
+	// the set follows a new payload. A controlled tree takes the set as a seed,
+	// and the windowed variant also opens it when uncontrolled. The uncontrolled
+	// recursive variant finds its matches per node, so it skips the walk.
+	const matchPaths = useMemo(
 		() =>
-			controlled && !windowed && searchValue
+			searchValue && (controlled || windowed)
 				? collectMatchPaths(data, rootKey, searchIndex)
 				: undefined,
 		[controlled, windowed, searchValue, data, rootKey, searchIndex],
@@ -144,15 +146,19 @@ export function JsonTree({
 
 	// Union the paths into the controlled set. Reports nothing when the set
 	// already holds each path, or when the tree has no handler.
-	const expandControlled = useCallback((paths: Set<string>) => {
+	const expandControlled = useCallback((paths: ReadonlySet<string>) => {
 		const { expanded: current, onExpandedChange: report } = latest.current
 
-		if (!current || !report || [...paths].every((path) => current.has(path))) return
+		if (!current || !report) return
 
-		report(new Set([...current, ...paths]))
+		const next = unionExpandedSet(current, paths)
+
+		if (next) report(next)
 	}, [])
 
-	useJsonTreeSearchSeed(seedPaths, expandControlled)
+	// A controlled walk follows only `expanded`, so the match paths go into the
+	// set as a seed. One seed serves both variants.
+	useJsonTreeSearchSeed(controlled ? matchPaths : undefined, expandControlled)
 
 	const handleRovingKeyDown = useA11yRoving(ref, {
 		itemSelector: '[role="treeitem"]',
@@ -220,6 +226,7 @@ export function JsonTree({
 				searchValue={searchValue}
 				filter={filter}
 				searchIndex={searchIndex}
+				matchPaths={matchPaths}
 				virtualize={virtualize}
 				maxHeight={virtualize.maxHeight}
 				onKeyDown={handleRovingKeyDown}

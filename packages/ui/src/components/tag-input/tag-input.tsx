@@ -1,7 +1,7 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { type ClipboardEvent, useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
@@ -214,38 +214,33 @@ export function TagInput({
 		inputRef.current?.focus()
 	}, [commit, inputValue])
 
-	const tokenizePaste = useCallback(
-		(event: ClipboardEvent<HTMLInputElement>) => {
-			// At the cap the field is read-only and there is nothing to add; let the browser's own
-			// no-op stand rather than consuming the event.
-			if (locked || atMax) return
-
-			const pasted = event.clipboardData.getData('text')
-
-			// A paste with no delimiter is ordinary typing — let it land at the caret so a user can
-			// paste one code into the middle of a draft and keep editing. The delimiter is the whole
-			// test: a token count cannot disagree with it, since two tokens can only come from a split
-			// that matched, while one token plus a trailing newline is still a pasted list.
-			if (!hasSeparator(pasted)) return
-
-			event.preventDefault()
-
-			// Spliced at the caret rather than appended, so pasting into a non-empty draft commits what
-			// the field would have read rather than a re-ordered concatenation.
-			const element = event.currentTarget
-
-			const start = element.selectionStart ?? inputValue.length
-
-			const end = element.selectionEnd ?? inputValue.length
-
-			commit(inputValue.slice(0, start) + pasted + inputValue.slice(end))
-		},
-		[commit, inputValue, locked, atMax],
-	)
-
 	// A consumer handler runs first, and its `preventDefault()` keeps the paste as
 	// ordinary typing, as a paste with no delimiter is.
-	const handlePaste = composeEventHandlers(onPaste, tokenizePaste)
+	const handlePaste = composeEventHandlers(onPaste, (event) => {
+		// At the cap the field is read-only and there is nothing to add; let the browser's own
+		// no-op stand rather than consuming the event.
+		if (locked || atMax) return
+
+		const pasted = event.clipboardData.getData('text')
+
+		// A paste with no delimiter is ordinary typing — let it land at the caret so a user can
+		// paste one code into the middle of a draft and keep editing. The delimiter is the whole
+		// test: a token count cannot disagree with it, since two tokens can only come from a split
+		// that matched, while one token plus a trailing newline is still a pasted list.
+		if (!hasSeparator(pasted)) return
+
+		event.preventDefault()
+
+		// Spliced at the caret rather than appended, so pasting into a non-empty draft commits what
+		// the field would have read rather than a re-ordered concatenation.
+		const element = event.currentTarget
+
+		const start = element.selectionStart ?? inputValue.length
+
+		const end = element.selectionEnd ?? inputValue.length
+
+		commit(inputValue.slice(0, start) + pasted + inputValue.slice(end))
+	})
 
 	// Duplicate controlled values ('a','a') collide on a bare value key;
 	// repeats get an occurrence suffix (the validate path dedupes, the

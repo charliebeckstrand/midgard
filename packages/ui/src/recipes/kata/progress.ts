@@ -86,11 +86,13 @@ export const k = defineRecipe(
 		},
 		/**
 		 * Indeterminate sweep: the third-width fill moves from before the start of
-		 * the track to past its end, on a loop. A percentage of `x` is a fraction of
-		 * the width of the fill, so 300% is the width of the track.
+		 * the track to past its end, on a loop. A percentage in `translateX` is a
+		 * fraction of the width of the fill, so 300% is the width of the track.
+		 * The keyframes set `transform` directly, so Motion can give the loop to
+		 * the animation engine of the browser.
 		 */
 		sweep: {
-			animate: { x: ['-100%', '300%'] },
+			animate: { transform: ['translateX(-100%)', 'translateX(300%)'] },
 			transition: { duration: 1.5, ease: ease.inOut, repeat: Number.POSITIVE_INFINITY },
 		},
 		gauge: {

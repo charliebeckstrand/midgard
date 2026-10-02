@@ -149,7 +149,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	if (isValidElement(children)) {
 		const child = children as ReactElement<Record<string, unknown>>
 
-		const childProps = mergeTriggerProps(props, child.props)
+		const childProps =
+			Object.keys(props).length > 0 ? mergeTriggerProps(props, child.props) : child.props
 
 		const childOnKeyDown = childProps.onKeyDown as ((event: KeyboardEvent) => void) | undefined
 

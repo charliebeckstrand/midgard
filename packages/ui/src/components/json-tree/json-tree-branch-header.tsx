@@ -4,7 +4,7 @@ import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { branchToggleKey } from './json-tree-keyboard'
-import { NodeKey } from './json-tree-utilities'
+import { type FlatSetPosition, NodeKey } from './json-tree-utilities'
 
 type JsonTreeBranchHeaderProps = {
 	depth: number
@@ -15,12 +15,8 @@ type JsonTreeBranchHeaderProps = {
 	highlighted: boolean
 	/** Carries the tree's single Tab stop. Defaults to the root row, until roving moves the stop in the recursive variant; the virtualized variant passes the first rendered row instead. */
 	tabbable?: boolean
-	/** The sibling count for `aria-setsize`. The virtualized variant gives it, because windowing keeps most siblings out of the DOM. */
-	setSize?: number
-	/** The 1-based sibling position for `aria-posinset`. The virtualized variant gives it with `setSize`. */
-	posInSet?: number
 	onToggle: () => void
-}
+} & Partial<FlatSetPosition>
 
 /**
  * Branch row for a {@link JsonTree}: a `role="treeitem"` toggle button showing

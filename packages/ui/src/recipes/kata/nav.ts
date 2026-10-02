@@ -13,7 +13,7 @@ import { hannou, kasane, narabi, omote, sen, shaku, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, inset } = narabi
 const { border } = sen
 const { bg } = omote
 
@@ -120,14 +120,11 @@ export const k = {
 		],
 		/**
 		 * Prefix/suffix slot wrappers; sit beside the inner button inside the
-		 * row chrome, above the active indicator. The margin insets the slot's
-		 * outer edge by the padding of the item, so a control never sits flush
-		 * against the row chrome. The slot is its own nearest scope, so its
-		 * margin takes the slot step. Each list thus gives the value of an item
-		 * one step above: the `xs` value is for an `sm` item.
+		 * row chrome, above the active indicator. `narabi.inset` moves the outer
+		 * edge of the slot in by the padding of the item.
 		 */
-		prefix: [...affixSlot, 'density-ms-[1.5,2,2.5,2.5,2.5]'],
-		suffix: [...affixSlot, 'density-me-[1.5,2,2.5,2.5,2.5]'],
+		prefix: [...affixSlot, inset.prefix],
+		suffix: [...affixSlot, inset.suffix],
 	},
 } as const
 

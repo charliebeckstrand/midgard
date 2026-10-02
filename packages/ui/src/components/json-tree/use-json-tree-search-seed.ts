@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 
 /**
  * Seeds the search matches of a controlled {@link JsonTree} into its `expanded`
- * set. Both variants call it.
+ * set. The root calls it for both variants.
  *
  * @internal
  * @param matchPaths - The paths of the branches that hold a match. Give
@@ -20,7 +20,7 @@ import { useEffect, useRef } from 'react'
  */
 export function useJsonTreeSearchSeed(
 	matchPaths: ReadonlySet<string> | undefined,
-	expand: (paths: Set<string>) => void,
+	expand: (paths: ReadonlySet<string>) => void,
 ): void {
 	const seededRef = useRef<ReadonlySet<string> | undefined>(undefined)
 
@@ -29,6 +29,6 @@ export function useJsonTreeSearchSeed(
 
 		seededRef.current = matchPaths
 
-		expand(new Set(matchPaths))
+		expand(matchPaths)
 	}, [matchPaths, expand])
 }
