@@ -14,7 +14,8 @@ type ColorPickerBaseProps = GroupStampProps & {
 	/**
 	 * Binds the color to the enclosing Form field of this name (CONVENTIONS
 	 * §7.2). Seed `Form.defaultValues` in the picker's own `format`; the field's
-	 * errors mark the control invalid.
+	 * errors mark the control invalid. A bound picker ignores `defaultValue`.
+	 * While the field is empty, the picker paints black.
 	 */
 	name?: string
 	/**
@@ -125,7 +126,6 @@ export function ColorPicker(props: ColorPickerProps) {
 				alpha={alpha}
 				size={size}
 				disabled={state.disabled}
-				required={state.required}
 				validation={state.validation}
 				className={className}
 				data-group={dataGroup}

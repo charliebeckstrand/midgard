@@ -30,8 +30,8 @@ export type RangeSliderProps = {
 	disabled?: boolean
 	/**
 	 * Whether moving a thumb past the other swaps their roles. When `false`,
-	 * each thumb is clamped at the other's value. On a keyboard swap, focus
-	 * follows the moving value to the other thumb button.
+	 * each thumb is clamped at the other's value. On a swap, from a key or a
+	 * pointer drag, focus follows the moving value to the other thumb button.
 	 *
 	 * @defaultValue `true`
 	 */
