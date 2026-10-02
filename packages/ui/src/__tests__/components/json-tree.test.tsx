@@ -477,6 +477,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: 'a',
 					value: 1,
 					depth: 1,
+					setSize: 1,
+					posInSet: 1,
 					highlighted: false,
 				}}
 				onToggle={() => {}}
@@ -502,6 +504,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: 1,
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					highlighted: false,
 				}}
 				onToggle={() => {}}
@@ -538,6 +542,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: [1, 2, 3],
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 3,
 					highlighted: false,
@@ -565,6 +571,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: {},
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 0,
 					highlighted: false,
@@ -588,6 +596,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: [1],
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 1,
 					highlighted: false,
@@ -611,6 +621,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: 'a',
 					value: { x: 1 },
 					depth: 1,
+					setSize: 1,
+					posInSet: 1,
 					open: false,
 					count: 1,
 					highlighted: false,
@@ -636,6 +648,8 @@ describe('JsonTreeNodeRow', () => {
 					keyName: undefined,
 					value: { a: 1 },
 					depth: 0,
+					setSize: 1,
+					posInSet: 1,
 					open: true,
 					count: 1,
 					highlighted: false,
@@ -657,7 +671,16 @@ describe('JsonTreeNodeRow tab stop', () => {
 		const { container, rerender } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
+				node={{
+					type: 'leaf',
+					path: 'r.a.b',
+					keyName: 'b',
+					value: 1,
+					depth: 2,
+					highlighted: false,
+					setSize: 1,
+					posInSet: 1,
+				}}
 				onToggle={() => {}}
 				tabbable
 			/>,
@@ -668,12 +691,104 @@ describe('JsonTreeNodeRow tab stop', () => {
 		rerender(
 			<JsonTreeNodeRow
 				index={0}
-				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
+				node={{
+					type: 'leaf',
+					path: 'r.a.b',
+					keyName: 'b',
+					value: 1,
+					depth: 2,
+					highlighted: false,
+					setSize: 1,
+					posInSet: 1,
+				}}
 				onToggle={() => {}}
 			/>,
 		)
 
 		expect(container.querySelector('[role="treeitem"]')).toHaveAttribute('tabindex', '-1')
+	})
+})
+
+describe('JsonTree virtualized set position', () => {
+	it('gives each flat row its sibling count and its position', () => {
+		const nodes = flattenTree({
+			data: { a: 1, b: { c: 2 } },
+			rootKey: undefined,
+			isOpen: () => true,
+			search: '',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
+
+		const positions = nodes.flatMap((node) =>
+			node.type === 'branch-close' ? [] : [[node.path, node.posInSet, node.setSize]],
+		)
+
+		expect(positions).toEqual([
+			['$', 1, 1],
+			['$.a', 1, 2],
+			['$.b', 2, 2],
+			['$.b.c', 1, 1],
+		])
+	})
+
+	it('counts only the siblings that a filtered search keeps', () => {
+		const nodes = flattenTree({
+			data: { hit: 1, miss: 2, also_hit: 3 },
+			rootKey: undefined,
+			isOpen: () => true,
+			search: 'hit',
+			filter: true,
+			searchIndex: new WeakMap(),
+		})
+
+		const positions = nodes.flatMap((node) =>
+			node.type === 'leaf' ? [[node.path, node.posInSet, node.setSize]] : [],
+		)
+
+		expect(positions).toEqual([
+			['$.hit', 1, 2],
+			['$.also_hit', 2, 2],
+		])
+	})
+
+	it.each([
+		[
+			'leaf',
+			{
+				type: 'leaf',
+				path: '$.b',
+				keyName: 'b',
+				value: 1,
+				depth: 1,
+				highlighted: false,
+				setSize: 3,
+				posInSet: 2,
+			},
+		],
+		[
+			'branch',
+			{
+				type: 'branch-open',
+				path: '$.b',
+				keyName: 'b',
+				value: { x: 1 },
+				depth: 1,
+				open: false,
+				count: 1,
+				highlighted: false,
+				setSize: 3,
+				posInSet: 2,
+			},
+		],
+	] as const)('puts aria-setsize and aria-posinset on a %s row', (_name, node) => {
+		const { container } = renderUI(<JsonTreeNodeRow index={0} node={node} onToggle={() => {}} />)
+
+		const item = container.querySelector('[role="treeitem"]')
+
+		expect(item).toHaveAttribute('aria-setsize', '3')
+
+		expect(item).toHaveAttribute('aria-posinset', '2')
 	})
 })
 

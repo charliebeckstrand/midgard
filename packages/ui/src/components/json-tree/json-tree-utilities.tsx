@@ -193,21 +193,35 @@ export function valueType(value: JsonValue): JsonValueType {
 }
 
 /**
+ * The place of a flat treeitem among its siblings. Windowing keeps most
+ * siblings out of the DOM, so assistive technology cannot count them. The row
+ * gives both values as `aria-setsize` and `aria-posinset`.
+ *
+ * @internal
+ */
+type FlatSetPosition = {
+	/** The number of siblings that the tree shows, the row included. */
+	setSize: number
+	/** The 1-based position of the row among those siblings. */
+	posInSet: number
+}
+
+/**
  * One row emitted by {@link flattenTree} for the virtualized tree: a `leaf`
  * scalar, a `branch-open` header, or a matching `branch-close` footer.
  *
  * @internal
  */
 export type FlatNode =
-	| {
+	| ({
 			type: 'leaf'
 			path: string
 			keyName: string | number | undefined
 			value: JsonValue
 			depth: number
 			highlighted: boolean
-	  }
-	| {
+	  } & FlatSetPosition)
+	| ({
 			type: 'branch-open'
 			path: string
 			keyName: string | number | undefined
@@ -216,7 +230,7 @@ export type FlatNode =
 			open: boolean
 			count: number
 			highlighted: boolean
-	  }
+	  } & FlatSetPosition)
 	| {
 			type: 'branch-close'
 			path: string
@@ -263,13 +277,14 @@ export function flattenTree({
 		keyName: string | number | undefined,
 		path: string,
 		depth: number,
+		position: FlatSetPosition,
 	) {
 		const highlighted = search ? matchesSearch(keyName, value, search) : false
 
 		if (!isBranch(value)) {
 			if (filter && search && !highlighted) return
 
-			out.push({ type: 'leaf', path, keyName, value, depth, highlighted })
+			out.push({ type: 'leaf', path, keyName, value, depth, highlighted, ...position })
 
 			return
 		}
@@ -290,20 +305,23 @@ export function flattenTree({
 			open,
 			count,
 			highlighted,
+			...position,
 		})
 
 		if (!open) return
 
-		for (const [childKey, childValue] of entries) {
+		// A filtered search already dropped the siblings that it hides, so the
+		// entries are the siblings that the tree shows.
+		for (const [index, [childKey, childValue]] of entries.entries()) {
 			const childPath = joinPath(path, childKey)
 
-			walk(childValue, childKey, childPath, depth + 1)
+			walk(childValue, childKey, childPath, depth + 1, { setSize: count, posInSet: index + 1 })
 		}
 
 		out.push({ type: 'branch-close', path, depth, value })
 	}
 
-	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0)
+	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0, { setSize: 1, posInSet: 1 })
 
 	return out
 }
