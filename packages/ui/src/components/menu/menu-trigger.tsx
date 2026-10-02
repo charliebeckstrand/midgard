@@ -6,9 +6,10 @@ import {
 	type KeyboardEvent,
 	type ReactElement,
 	type Ref,
+	type SyntheticEvent,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useMenuActions, useMenuState } from './context'
@@ -20,12 +21,45 @@ export type MenuTriggerProps =
 	| ComponentProps<'button'>
 
 /**
+ * The props of a cloned child, with the other props of the trigger merged in.
+ * The child wins a clash, as its `className` does. A handler on both runs the
+ * handler of the child first, and its `preventDefault()` cancels the other.
+ *
+ * @internal
+ */
+function mergeTriggerProps(
+	triggerProps: Record<string, unknown>,
+	childProps: Record<string, unknown>,
+): Record<string, unknown> {
+	const merged: Record<string, unknown> = { ...triggerProps, ...childProps }
+
+	for (const [key, triggerValue] of Object.entries(triggerProps)) {
+		const childValue = childProps[key]
+
+		if (
+			/^on[A-Z]/.test(key) &&
+			typeof triggerValue === 'function' &&
+			typeof childValue === 'function'
+		) {
+			merged[key] = composeEventHandlers(
+				childValue as (event: SyntheticEvent) => void,
+				triggerValue as (event: SyntheticEvent) => void,
+			)
+		}
+	}
+
+	return merged
+}
+
+/**
  * Disclosure trigger for a dropdown {@link Menu}. Clones a single child element
  * or renders its own `<button>`, wiring `aria-haspopup="menu"`,
  * `aria-expanded`, and `aria-controls`. It toggles open state on click, and
  * composes with the consumer's own `onClick`. A cloned child's own `ref`
  * merges with the floating reference, so the trigger element stays reachable
- * (e.g. as a focus target).
+ * (e.g. as a focus target). The other props of the trigger, such as an
+ * `aria-label`, go to a cloned child. The props of the child win a clash, and a
+ * handler on both runs the two.
  *
  * The trigger keeps focus while the menu is open. Tab off it therefore closes
  * the menu, and lets focus proceed to the next tabbable in one keystroke.
@@ -115,9 +149,11 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	if (isValidElement(children)) {
 		const child = children as ReactElement<Record<string, unknown>>
 
-		const childOnKeyDown = child.props.onKeyDown as ((event: KeyboardEvent) => void) | undefined
+		const childProps = mergeTriggerProps(props, child.props)
 
-		const childOnKeyUp = child.props.onKeyUp as ((event: KeyboardEvent) => void) | undefined
+		const childOnKeyDown = childProps.onKeyDown as ((event: KeyboardEvent) => void) | undefined
+
+		const childOnKeyUp = childProps.onKeyUp as ((event: KeyboardEvent) => void) | undefined
 
 		// The clone renders the child's type through JSX, not through `cloneElement`.
 		// The React Compiler rejects a ref passed to a function during render.
@@ -126,9 +162,9 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		return (
 			<Child
 				key={child.key}
-				{...child.props}
+				{...childProps}
 				{...getReferenceProps({
-					...child.props,
+					...childProps,
 					onKeyDown: (event: KeyboardEvent) => {
 						childOnKeyDown?.(event)
 						handleTriggerKeyDown(event)

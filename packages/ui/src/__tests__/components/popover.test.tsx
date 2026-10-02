@@ -171,6 +171,26 @@ describe('Popover non-modal semantics', () => {
 		expect(trigger).toHaveAttribute('aria-controls', panel?.id)
 	})
 
+	// The trigger announces a dialog popup only when the panel is a dialog, and an
+	// unlabeled panel is a generic surface.
+	it.each([
+		['an unlabeled panel', {}, null],
+		['a labeled panel', { 'aria-label': 'Details' }, 'dialog'],
+	])('sets aria-haspopup on the trigger to match %s', (_name, nameProps, haspopup) => {
+		const { container } = renderUI(
+			<Popover>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverContent {...nameProps}>Body</PopoverContent>
+			</Popover>,
+		)
+
+		const trigger = present(bySlot(container, 'popover-trigger'), 'trigger')
+
+		expect(trigger.getAttribute('aria-haspopup')).toBe(haspopup)
+	})
+
 	it('does not trap focus inside the panel', async () => {
 		const user = setupUser()
 

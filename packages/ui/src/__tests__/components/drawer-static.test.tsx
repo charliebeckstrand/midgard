@@ -64,6 +64,38 @@ describe('DrawerStatic', () => {
 		expect(classes(getSlot(staticDrawer, 'drawer-static-panel'), 'static panel')).toEqual(panel)
 	})
 
+	// A drawer with a handle lands on a static copy with the same grip and the same inset.
+	it('paints the grip of a drawer with a handle', () => {
+		const { unmount } = renderUI(
+			<Drawer open handle animateOnMount={false} onOpenChange={() => {}}>
+				<DrawerTitle>Resolve</DrawerTitle>
+			</Drawer>,
+		)
+
+		const panel = getSlot(document.body, 'drawer')
+		const grip = getSlot(panel, 'drawer-handle')
+		const area = classes(grip, 'handle area')
+		const bar = classes(grip.firstElementChild, 'handle bar')
+
+		expect(panel).toHaveAttribute('data-handle')
+
+		unmount()
+
+		const { container } = renderUI(
+			<DrawerStatic handle>
+				<DrawerTitle>Resolve</DrawerTitle>
+			</DrawerStatic>,
+		)
+
+		const staticPanel = getSlot(container, 'drawer-static-panel')
+		const staticGrip = staticPanel.firstElementChild
+
+		expect(staticPanel).toHaveAttribute('data-handle')
+		expect(classes(staticGrip, 'static handle area')).toEqual(area)
+		expect(classes(staticGrip?.firstElementChild, 'static handle bar')).toEqual(bar)
+		expect(staticGrip).toHaveAttribute('aria-hidden', 'true')
+	})
+
 	it('resolves glass from the ambient provider, as the drawer does', () => {
 		const { container } = renderUI(
 			<DrawerStatic>

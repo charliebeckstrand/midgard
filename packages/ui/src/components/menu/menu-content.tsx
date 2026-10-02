@@ -11,12 +11,15 @@ import { MenuSheet } from './menu-sheet'
 import { MenuViewport } from './menu-viewport'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
-/** Props for {@link MenuContent}: an optional accessible name for `static` menus. */
+/** Props for {@link MenuContent}: an optional accessible name for a `static` menu or a context menu. */
 export type MenuContentProps = {
 	className?: string
-	/** Accessible name for a `static` menu, which has no trigger to name it. */
+	/**
+	 * Accessible name for a `static` menu or a context menu, which has no trigger
+	 * to name it. A dropdown ignores it.
+	 */
 	'aria-label'?: string
-	/** Id of a visible element naming a `static` menu. */
+	/** Id of a visible element that names a `static` menu or a context menu. A dropdown ignores it. */
 	'aria-labelledby'?: string
 	/**
 	 * Opt the surface into the translucent glass chrome, as the panel family
@@ -63,7 +66,7 @@ export function MenuContent({
 
 	if (isSheet) {
 		return (
-			<MenuSheet title={title} className={className}>
+			<MenuSheet title={title} glass={glass} className={className}>
 				{children}
 			</MenuSheet>
 		)
@@ -103,6 +106,9 @@ export function MenuContent({
 				density={size}
 				id={menuId}
 				role="menu"
+				// A context menu has no trigger, so its name comes from the content.
+				aria-label={isDropdown ? undefined : ariaLabel}
+				aria-labelledby={isDropdown ? undefined : ariaLabelledby}
 				itemSelector={MENUITEM_SELECTOR}
 				// A dropdown keeps focus on its trigger while open; opening never
 				// pulls focus into the panel. Seating focus on the portaled,

@@ -12,6 +12,8 @@ import { MENUITEM_SELECTOR } from './use-menu-state'
 type MenuSheetProps = {
 	/** The heading of the sheet. Omit it to use the name of the trigger. */
 	title?: ReactNode
+	/** Opt the sheet into the glass surface, as the `glass` of {@link MenuContent} does for the popover. */
+	glass?: boolean
 	className?: string
 	children: ReactNode
 }
@@ -49,7 +51,7 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
  *
  * @internal
  */
-export function MenuSheet({ title, className, children }: MenuSheetProps) {
+export function MenuSheet({ title, glass, className, children }: MenuSheetProps) {
 	const { open, menuId, size } = useMenuState()
 	const { setOpen, triggerRef } = useMenuActions()
 
@@ -77,6 +79,7 @@ export function MenuSheet({ title, className, children }: MenuSheetProps) {
 			onOpenChange={setOpen}
 			size={size}
 			handle
+			glass={glass}
 			initialFocus={panelRef}
 			aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
 		>

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yAutoFocus } from '../../hooks'
@@ -45,7 +45,7 @@ export type PopoverContentProps = {
 	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
 	 * content renders as a **non-modal** `role="dialog"` without `aria-modal`;
 	 * focus is not trapped. Omit both to render it as an unlabeled generic
-	 * surface.
+	 * surface, and the trigger then omits `aria-haspopup`.
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string
@@ -70,7 +70,17 @@ export function PopoverContent({
 	'aria-labelledby': ariaLabelledby,
 	children,
 }: PopoverContentProps) {
-	const { open, panelId, setFloating, getFloatingProps } = usePopoverContext()
+	const { open, panelId, setDialog, setFloating, getFloatingProps } = usePopoverContext()
+
+	const dialog = Boolean(ariaLabel || ariaLabelledby)
+
+	// The trigger reads the role through the context, so its `aria-haspopup`
+	// names a dialog only when the panel is one.
+	useLayoutEffect(() => {
+		setDialog(dialog)
+
+		return () => setDialog(true)
+	}, [dialog, setDialog])
 
 	const { floatingStyles, floatingContext } = usePopoverPosition()
 
@@ -96,7 +106,7 @@ export function PopoverContent({
 				ref={setContent}
 				id={panelId}
 				tabIndex={autoFocus ? -1 : undefined}
-				role={ariaLabel || ariaLabelledby ? 'dialog' : undefined}
+				role={dialog ? 'dialog' : undefined}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				data-slot="popover-content"
