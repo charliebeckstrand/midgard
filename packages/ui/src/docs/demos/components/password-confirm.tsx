@@ -16,7 +16,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="Mismatch warning">
 				<PasswordConfirm warning="Passwords do not match">
 					<Field>
 						<Label>Password</Label>

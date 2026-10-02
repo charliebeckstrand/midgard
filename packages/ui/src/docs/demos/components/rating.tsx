@@ -23,7 +23,7 @@ function InteractiveExample() {
 	const [score, setScore] = useState<number | null>(4)
 
 	return (
-		<Example title="Default">
+		<Example title="Controlled">
 			<Stack gap="sm">
 				<Rating aria-label="Score" value={score} onValueChange={setScore} />
 

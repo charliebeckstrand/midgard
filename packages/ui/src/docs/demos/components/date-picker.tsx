@@ -26,7 +26,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="Controlled">
 				<DatePicker value={date} onValueChange={setDate} />
 			</Example>
 

@@ -23,7 +23,7 @@ export function Demo() {
 		<>
 			<Axes of="Calendar" render={(props) => <Calendar {...props} />} />
 
-			<Example title="Default">
+			<Example title="Controlled">
 				<Calendar value={date} onValueChange={setDate} />
 			</Example>
 

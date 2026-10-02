@@ -254,7 +254,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Basic">
+			<Example title="Search and status">
 				<BasicExample />
 			</Example>
 

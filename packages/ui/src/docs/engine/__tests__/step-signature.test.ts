@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DensityStep } from '../../../core/density'
-import { stepSignature } from '../step-signature'
+import { formSignature, stepSignature } from '../step-signature'
 
 /**
  * Render one axis instance: a wrapper that holds `html`, in which `{step}`
@@ -151,5 +151,34 @@ describe('stepSignature', () => {
 				'Small',
 			),
 		).toBeNull()
+	})
+})
+
+describe('formSignature', () => {
+	/** Render one axis instance that holds `html`. */
+	const wrap = (html: string) => {
+		const wrapper = document.createElement('div')
+
+		wrapper.innerHTML = html
+
+		return wrapper
+	}
+
+	it('reads two instances alike when only the label and a useId value differ', () => {
+		const a = formSignature(wrap('<button id="_r_1_" class="px-2">Red</button>'), 'Red')
+
+		const b = formSignature(wrap('<button id="_r_2_" class="px-2">Blue</button>'), 'Blue')
+
+		expect(a).toBe(b)
+	})
+
+	it('reads a class, an attribute, or a text as a difference', () => {
+		const base = formSignature(wrap('<span class="a" data-x="1">one</span>'), 'L')
+
+		expect(formSignature(wrap('<span class="b" data-x="1">one</span>'), 'L')).not.toBe(base)
+
+		expect(formSignature(wrap('<span class="a" data-x="2">one</span>'), 'L')).not.toBe(base)
+
+		expect(formSignature(wrap('<span class="a" data-x="1">two</span>'), 'L')).not.toBe(base)
 	})
 })

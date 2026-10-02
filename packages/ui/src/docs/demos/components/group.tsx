@@ -27,7 +27,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example title="Default">
+							<Example title="Item count">
 								<Stack gap="lg">
 									<Group>
 										<Button variant="outline">Cut</Button>
@@ -61,7 +61,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example title="Default">
+							<Example title="Item count">
 								<Stack gap="lg">
 									<Group>
 										<Input placeholder="First" />

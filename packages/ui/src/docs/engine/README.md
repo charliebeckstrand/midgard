@@ -62,6 +62,16 @@ the label. The step that an instance shows does not count, so a Calendar at
 when no element of its instance opens a density scope, for example a panel in a
 portal.
 
+The other axes can make an axis inert. For example, the `segment` variant of
+`Tabs` is always horizontal, so its `orientation` has no effect. After each
+change to a picker, `<Axes>` reads each other axis
+([`formSignature`](step-signature.ts)). When the instances of an axis differ at
+the defaults and render alike at the current values, the example of that axis
+hides. Its picker keeps each value. An axis whose instances render alike at
+the defaults stays, because its effect shows only in a later state, such as
+the panel of a closed dialog or the clear button of an empty input. An
+example with one value also hides.
+
 `valueLabel` writes each value for a reader: `xs` reads `Extra small`, `true`
 reads `On`, and `separated` reads `Separated`. `humanize` writes a prop name as
 the title of its example. A hand-written demo can use both helpers.
@@ -74,6 +84,10 @@ the panel in `Opener`, which keeps the open state for them.
 
 Write a hand-authored `Example` only for what an axis cannot show: a
 composition, an adornment such as `prefix`, or a flow with state.
+The gate `demo-examples.test.ts` fails an example that one `<Axes>` covers,
+an example that repeats an earlier example, and an example of a component
+with a playground whose title is `Default`. The text of an element does not
+count, so an example that differs only in its words fails.
 
 `DemoPage` gives `<Axes>` the API data through `DemoApiContext`. The docs
 plugin serves no API data in a test run. Therefore the page gates

@@ -4,8 +4,15 @@ import { type ReactNode, type Ref, Suspense, use, useLayoutEffect, useRef, useSt
 import { createContext } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
-import { type Axis, type AxisValue, axesOf, distinctValues, isStepAxis } from '../axes'
-import { stepSignature } from '../step-signature'
+import {
+	type Axis,
+	type AxisValue,
+	axesOf,
+	distinctValues,
+	isStepAxis,
+	rendersAlike,
+} from '../axes'
+import { formSignature, stepSignature } from '../step-signature'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
 import { OptionsListbox } from './options-listbox'
@@ -74,6 +81,14 @@ type AxesProps = {
  * value that renders as its neighbor drops from the example and from the
  * picker ({@link distinctValues}).
  *
+ * The other axes can make an axis inert, such as an `orientation` that a
+ * variant ignores. When the instances of an axis differ at the defaults and
+ * render alike at the current values, its example hides
+ * ({@link rendersAlike}). Its picker keeps each value. An axis whose
+ * instances render alike at the defaults stays, because its effect shows only
+ * in a later state, such as the panel of a closed dialog. An example with one
+ * value also hides.
+ *
  * Without API data, for example in a test run, it renders nothing.
  */
 export function Axes(props: AxesProps) {
@@ -119,37 +134,54 @@ function AxesExamples({
 		Object.fromEntries(axes.map((axis) => [axis.name, axis.default])),
 	)
 
-	const stepAxes = axes.filter(isStepAxis)
-
 	// The wrapper of each instance, keyed `axis:value`.
 	const instances = useRef(new Map<string, Element>())
 
-	// The values of each step axis that render distinctly. A step axis with no
-	// entry shows each value until the next read.
-	const [distinct, setDistinct] = useState<Record<string, AxisValue[]>>({})
+	// The values that the example of each axis shows. An axis with no entry
+	// shows each value until the next read.
+	const [shown, setShown] = useState<Record<string, AxisValue[]>>({})
 
-	// Read each step axis with no entry after the commit, before the paint. The
-	// read takes the DOM and no layout, so it gives one answer in each
-	// environment.
+	// The axes that are not density axes and whose instances differ at the
+	// defaults. The first read sets it. Only such an axis can become inert.
+	const live = useRef<ReadonlySet<string> | null>(null)
+
+	// Read each axis with no entry after the commit, before the paint. The read
+	// takes the DOM and no layout, so it gives one answer in each environment.
 	useLayoutEffect(() => {
-		const unread = stepAxes.filter((axis) => !distinct[axis.name])
+		const unread = axes.filter((axis) => !shown[axis.name])
 
 		if (unread.length === 0) return
 
+		const signatureOf = (axis: Axis, value: AxisValue) => {
+			const instance = instances.current.get(`${axis.name}:${value}`)
+
+			if (!instance) return null
+
+			const label = valueLabel(value)
+
+			return isStepAxis(axis) ? stepSignature(instance, label) : formSignature(instance, label)
+		}
+
+		const alike = (axis: Axis) => rendersAlike(axis.values.map((value) => signatureOf(axis, value)))
+
+		live.current ??= new Set(
+			unread.filter((axis) => !isStepAxis(axis) && !alike(axis)).map((axis) => axis.name),
+		)
+
 		const read = unread.map((axis) => {
-			const values = distinctValues(axis, (value) => {
-				const instance = instances.current.get(`${axis.name}:${value}`)
+			if (isStepAxis(axis)) return [axis.name, distinctValues(axis, (v) => signatureOf(axis, v))]
 
-				return instance ? stepSignature(instance, valueLabel(value)) : null
-			})
+			// The other axes make a live axis inert when its instances render alike.
+			// The example of an inert axis shows no value, so it hides.
+			const inert = live.current?.has(axis.name) && alike(axis)
 
-			return [axis.name, values] as const
+			return [axis.name, inert ? [] : axis.values]
 		})
 
-		setDistinct((prev) => ({ ...prev, ...Object.fromEntries(read) }))
+		setShown((prev) => ({ ...prev, ...Object.fromEntries(read) }))
 	})
 
-	const valuesOf = (axis: Axis) => distinct[axis.name] ?? axis.values
+	const valuesOf = (axis: Axis) => shown[axis.name] ?? axis.values
 
 	const propsWith = (name?: string, value?: AxisValue) => {
 		const merged = name === undefined ? state : { ...state, [name]: value }
@@ -170,14 +202,14 @@ function AxesExamples({
 							<AxisPicker
 								key={axis.name}
 								axis={axis}
-								values={valuesOf(axis)}
+								values={isStepAxis(axis) ? valuesOf(axis) : axis.values}
 								value={state[axis.name]}
 								onValueChange={(value) => {
 									setState((prev) => ({ ...prev, [axis.name]: value }))
 
 									// The example of each other axis takes the new value, so its read is
 									// stale. The example of this axis does not read its own value.
-									setDistinct(({ [axis.name]: own }) => (own ? { [axis.name]: own } : {}))
+									setShown(({ [axis.name]: own }) => (own ? { [axis.name]: own } : {}))
 								}}
 							/>
 						))}
@@ -187,24 +219,28 @@ function AxesExamples({
 				{render(propsWith(), of)}
 			</Example>
 
-			{axes.map((axis) => (
-				<Example key={axis.name} title={axisTitle(axis.name, title)}>
-					<Flex wrap gap="sm" align={captions ? 'start' : 'center'}>
-						{valuesOf(axis).map((value) => (
-							<AxisInstance
-								key={String(value)}
-								label={valueLabel(value)}
-								caption={captions}
-								ref={(element) => {
-									if (element) instances.current.set(`${axis.name}:${value}`, element)
-								}}
-							>
-								{render(propsWith(axis.name, value), valueLabel(value))}
-							</AxisInstance>
-						))}
-					</Flex>
-				</Example>
-			))}
+			{/* An example with one value has nothing to compare, so it hides. */}
+			{axes.map(
+				(axis) =>
+					valuesOf(axis).length > 1 && (
+						<Example key={axis.name} title={axisTitle(axis.name, title)}>
+							<Flex wrap gap="sm" align={captions ? 'start' : 'center'}>
+								{valuesOf(axis).map((value) => (
+									<AxisInstance
+										key={String(value)}
+										label={valueLabel(value)}
+										caption={captions}
+										ref={(element) => {
+											if (element) instances.current.set(`${axis.name}:${value}`, element)
+										}}
+									>
+										{render(propsWith(axis.name, value), valueLabel(value))}
+									</AxisInstance>
+								))}
+							</Flex>
+						</Example>
+					),
+			)}
 		</>
 	)
 }

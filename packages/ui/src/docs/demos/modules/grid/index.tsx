@@ -364,12 +364,16 @@ function SortableExample() {
 }
 
 function ClientSortExample() {
-	const [sort, setSort] = useState<GridSortState[]>([{ column: 'name', direction: 'asc' }])
+	// Seeded with a two-column sort (Role, then Name), so the priority badges show.
+	const [sort, setSort] = useState<GridSortState[]>([
+		{ column: 'role', direction: 'asc' },
+		{ column: 'name', direction: 'asc' },
+	])
 
 	// Client-side is the default: the grid sorts `people` itself by each column's
 	// value (here an explicit `value`; columns without one sort by their field).
-	// Shift-click a second header to sort by it too — the engine orders by the
-	// whole list, and a priority badge appears on each sorted header.
+	// Shift-click a header to extend or reorder the sort — the engine orders by
+	// the whole list, and a priority badge appears on each sorted header.
 	return (
 		<Grid
 			columns={clientSortColumns}
@@ -393,24 +397,6 @@ function AnimatedSortExample() {
 			rows={people}
 			getKey={(row) => row.id}
 			sort={{ value: sort, onValueChange: setSort, animate: true }}
-		/>
-	)
-}
-
-function MultiSortExample() {
-	// Seeded with a two-column sort (Role, then Name) so the priority badges show
-	// at a glance; Shift-click any sortable header to extend or reorder the sort.
-	const [sort, setSort] = useState<GridSortState[]>([
-		{ column: 'role', direction: 'asc' },
-		{ column: 'name', direction: 'asc' },
-	])
-
-	return (
-		<Grid
-			columns={clientSortColumns}
-			rows={people}
-			getKey={(row) => row.id}
-			sort={{ value: sort, onValueChange: setSort }}
 		/>
 	)
 }
@@ -449,16 +435,6 @@ const SmartSortExample = () => (
 		getKey={(row) => row.id}
 		sort={{ defaultValue: [{ column: 'amount', direction: 'asc' }] }}
 	/>
-)
-
-const ContextMenuExample = () => (
-	// Context menus are on by default. Right-click a header for the Sort, Pin, and
-	// Auto-size menus — each opening its actions on hover — plus "Manage columns"
-	// (which opens the manager without a toolbar button) and the Export menu;
-	// right-click a body cell for "Copy". Hold Ctrl while right-clicking for the
-	// browser's standard menu. Pass `contextMenu={false}` to disable, or a builder
-	// to reshape the items.
-	<Grid columns={columns} rows={people} getKey={(row) => row.id} />
 )
 
 const SelectionExample = () => {
@@ -1432,13 +1408,6 @@ export function Demo() {
 						</Example>
 
 						<Example
-							title="Multi-column sort"
-							code={code`<Grid sort={{ value: [{ column, direction }, ...] }} />`}
-						>
-							<MultiSortExample />
-						</Example>
-
-						<Example
 							title="Smart sorting"
 							code={code`<Grid columns={[{ ...col, sortFn: (a, b) => ... }]} />`}
 						>
@@ -1455,13 +1424,6 @@ export function Demo() {
 
 						<Example title="Batch actions">
 							<BatchActionsExample />
-						</Example>
-
-						<Example
-							title="Context menus"
-							code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
-						>
-							<ContextMenuExample />
 						</Example>
 					</Stack>
 				</TabContent>

@@ -204,3 +204,45 @@ export function stepSignature(instance: Element, label: string): string | null {
 		})
 		.join('\n')
 }
+
+/**
+ * Write the text that an element holds directly. The label of the instance
+ * reads the same in each instance.
+ */
+function ownTextOf(element: Element, label: string): string {
+	let text = ''
+
+	for (const node of element.childNodes) if (node instanceof Text) text += node.data
+
+	text = text.trim()
+
+	return label === '' ? text : text.replaceAll(label, '#label')
+}
+
+/**
+ * Write the rendered form of one instance of an axis that is not a density
+ * axis. Two instances give the same string when they render the same DOM.
+ *
+ * @remarks
+ * Each element gives its tag, its attributes, its classes, and its own text.
+ * The label of the instance does not count, because each instance can show
+ * its own label. A `useId` value does not count, because each instance gets
+ * its own.
+ *
+ * @param instance - The wrapper of the instance, whose descendants the component renders.
+ * @param label - The label of the instance, which the content can show.
+ *
+ * @internal
+ */
+export function formSignature(instance: Element, label: string): string {
+	return [...instance.querySelectorAll('*')]
+		.map((element) =>
+			[
+				element.localName,
+				...attributesOf(element, label),
+				...[...element.classList].sort(),
+				ownTextOf(element, label),
+			].join(' '),
+		)
+		.join('\n')
+}

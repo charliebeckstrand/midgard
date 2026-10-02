@@ -100,12 +100,6 @@ export function Demo() {
 
 					<TabContent value="label">
 						<Stack gap="xl">
-							<Example title="Captioning a control">
-								<Field>
-									<Label>Full name</Label>
-									<Input placeholder="Jane Smith" />
-								</Field>
-							</Example>
 							<Example title="A hint beside the label">
 								<Field>
 									<Flex gap="xs" align="center">

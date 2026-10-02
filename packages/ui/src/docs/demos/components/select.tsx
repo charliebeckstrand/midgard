@@ -37,7 +37,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="In a field">
 				<Field>
 					<Label>Country</Label>
 					<Select placeholder="Select a country" displayValue={(v: string) => v}>

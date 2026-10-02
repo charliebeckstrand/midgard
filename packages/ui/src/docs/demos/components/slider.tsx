@@ -9,7 +9,7 @@ function InteractiveExample() {
 
 	return (
 		<Example
-			title="Default"
+			title="Controlled"
 			actions={
 				<ValueStepper label="value" value={value} onValueChange={setValue} max={100} step={10} />
 			}

@@ -16,7 +16,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Default">
+			<Example title="With description">
 				<SwitchField>
 					<Label>Notifications</Label>
 					<Description>Receive email notifications for new activity.</Description>
