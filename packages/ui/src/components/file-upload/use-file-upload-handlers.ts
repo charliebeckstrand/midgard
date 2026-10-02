@@ -12,6 +12,8 @@ import {
 
 type FileHandlersOptions = {
 	disabled?: boolean
+	/** Accepted file types. The picker filters by them too, but a drop does not. */
+	accept?: string
 	maxSize?: number
 	maxCount?: number
 	onAccept?: (files: File[]) => void
@@ -22,20 +24,21 @@ type FileHandlersOptions = {
 /**
  * Drives a hidden `<input type="file">`: opens the native picker, tracks the
  * accepted selection, and wires drag-and-drop. Incoming files (picker or drop)
- * are split through `partitionFiles` against `maxSize`/`maxCount`. Accepted
- * files fire `onAccept`, rejected ones fire `onReject`, and the accepted set is
- * announced to a live region. Drag highlight uses a depth counter so nested
+ * are split through `partitionFiles` against `accept`, `maxSize` and
+ * `maxCount`. Accepted files fire `onAccept`, rejected ones fire `onReject`,
+ * and the accepted set is announced to a live region. Drag highlight uses a depth counter so nested
  * children don't flicker `dragOver`; `disabled` short-circuits the picker and
  * drop handling.
  *
- * @param options - Constraints (`maxSize`, `maxCount`), the `disabled` flag, and
- * the `onAccept`/`onReject`/`onDragOverChange` callbacks.
+ * @param options - Constraints (`accept`, `maxSize`, `maxCount`), the
+ * `disabled` flag, and the `onAccept`/`onReject`/`onDragOverChange` callbacks.
  * @returns The hidden input `ref`, the current `dragOver` flag, and the accepted
  * `files`. It also returns `openPicker`, `handleChange`, `clearFiles`, and the
  * drag/drop event handlers to spread onto the trigger and dropzone.
  */
 export function useFileUploadHandlers({
 	disabled,
+	accept,
 	maxSize,
 	maxCount,
 	onAccept,
@@ -66,6 +69,7 @@ export function useFileUploadHandlers({
 			if (!fileList) return
 
 			const { accepted, rejected } = partitionFiles(fileListToArray(fileList), {
+				accept,
 				maxSize,
 				maxCount,
 			})
@@ -88,7 +92,7 @@ export function useFileUploadHandlers({
 				)
 			}
 		},
-		[maxSize, maxCount, onAccept, onReject],
+		[accept, maxSize, maxCount, onAccept, onReject],
 	)
 
 	const handleChange = useCallback(

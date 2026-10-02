@@ -9,9 +9,15 @@ import { useFileUploadHandlers } from './use-file-upload-handlers'
 
 /** What every file-upload component takes: the accept and limit rules, and the selection reports. */
 type FileUploadSharedProps = {
-	/** Accepted file types (e.g. `"image/*"`, `".pdf,.doc"`). */
+	/**
+	 * Accepted file types (e.g. `"image/*"`, `".pdf,.doc"`). The picker shows
+	 * only these, and a dropped file of a different type goes to `onReject`.
+	 */
 	accept?: string
-	/** Allow selecting multiple files. */
+	/**
+	 * Allow selecting multiple files. Without it, a drop of more than one file
+	 * keeps the first, and the rest go to `onReject`.
+	 */
 	multiple?: boolean
 	/** Disables the picker. Without the prop, the component takes the disabled state of the enclosing Control. */
 	disabled?: boolean
@@ -20,9 +26,15 @@ type FileUploadSharedProps = {
 	/** Maximum number of accepted files. Overflow (in selection order) is routed to `onReject`. */
 	maxCount?: number
 	className?: string
-	/** Fires with the accepted files (after `maxSize`/`maxCount` filtering). */
+	/**
+	 * Fires with the accepted files (after `accept`, `multiple`, `maxSize` and
+	 * `maxCount` filtering).
+	 */
 	onAccept?: (files: File[]) => void
-	/** Fires with files excluded by `maxSize`/`maxCount`, each tagged with its reason. */
+	/**
+	 * Fires with files excluded by `accept`, `multiple`, `maxSize` or
+	 * `maxCount`, each tagged with its reason.
+	 */
 	onReject?: (rejected: FileRejection[]) => void
 	/**
 	 * Fires when the dropzone starts or stops to hold a dragged file.
@@ -106,7 +118,7 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * @internal
  */
 export function useFileUploadState(props: FileUploadSharedProps): FileUploadRenderState {
-	const { multiple, maxSize, maxCount, onAccept, onReject, onDragOverChange } = props
+	const { accept, multiple, maxSize, maxCount, onAccept, onReject, onDragOverChange } = props
 
 	// Mirrors Control/Field id + invalid + required + error-message wiring onto
 	// the hidden `<input type="file">`, the real control in each component. The
@@ -118,8 +130,11 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 
 	const handlers = useFileUploadHandlers({
 		disabled,
+		accept,
 		maxSize,
-		maxCount,
+		// A single-file component takes one file at most. The picker holds to
+		// that, but a drop can carry many.
+		maxCount: multiple ? maxCount : Math.min(maxCount ?? 1, 1),
 		onAccept,
 		onReject,
 		onDragOverChange,

@@ -1,6 +1,7 @@
 'use client'
 
 import { Upload } from 'lucide-react'
+import { useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
@@ -15,7 +16,8 @@ import { triggerLabel } from './file-upload-utilities'
  * @remarks
  * Shares every internal with {@link FileUploadDrop}. Once a selection exists a
  * `Reset` button joins the trigger, so another file can be picked or the
- * selection cleared without the trigger swapping out.
+ * selection cleared without the trigger swapping out. `Reset` gives focus back
+ * to the trigger.
  *
  * @see {@link FileUploadDrop} · {@link FileUploadInput}
  */
@@ -24,6 +26,15 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 
 	const { accept, multiple, className, children, size, color } = props
 	const { control, disabled, inputRef, hasFiles, handleChange, openPicker, clearFiles } = state
+
+	const triggerRef = useRef<HTMLButtonElement>(null)
+
+	const handleReset = () => {
+		clearFiles()
+
+		// Moves focus to the trigger once `Reset` unmounts (WCAG 2.4.3).
+		triggerRef.current?.focus()
+	}
 
 	// The upload trigger always stays; a selection adds `Reset` beside it, so a
 	// different file can be picked — or the selection cleared — without the
@@ -41,6 +52,7 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 				onChange={handleChange}
 			/>
 			<Button
+				ref={triggerRef}
 				type="button"
 				size={size}
 				color={color}
@@ -59,7 +71,7 @@ export function FileUploadButton(props: FileUploadButtonProps) {
 					color="red"
 					disabled={disabled}
 					className={cn(k.cursor)}
-					onClick={clearFiles}
+					onClick={handleReset}
 				>
 					Reset
 				</Button>
