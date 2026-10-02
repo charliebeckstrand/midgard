@@ -10,6 +10,14 @@ import {
 	DescriptionListSkeleton,
 	DescriptionTerm,
 } from '../../../components/description-list'
+import {
+	Filters,
+	FiltersBar,
+	FiltersField,
+	FiltersRow,
+	FiltersSkeleton,
+} from '../../../components/filters'
+import { Input } from '../../../components/input'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import {
 	ProgressBar,
@@ -340,4 +348,34 @@ describe('skeleton parity (real browser)', () => {
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
 	})
+
+	it.each(['stack', 'rail'] as const)(
+		'FiltersSkeleton has the box of a %s filter row',
+		(layout) => {
+			const real = box(
+				renderUI(
+					<Filters aria-label="Filters" layout={layout} defaultValue={{}}>
+						<FiltersBar>
+							<FiltersRow>
+								{['a', 'b', 'c'].map((name) => (
+									<FiltersField key={name} name={name} className="w-52">
+										<Input aria-label={name} />
+									</FiltersField>
+								))}
+							</FiltersRow>
+						</FiltersBar>
+					</Filters>,
+				).container.querySelector('[data-slot="filters-row"]'),
+				'filter row',
+			)
+
+			expect(
+				box(
+					renderUI(<FiltersSkeleton fields={3} layout={layout} fieldClassName="w-52" />).container
+						.firstElementChild,
+					'skeleton',
+				),
+			).toStrictEqual(real)
+		},
+	)
 })
