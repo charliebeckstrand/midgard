@@ -1,4 +1,4 @@
-import { Description, Fieldset, Label, Legend } from '../../../components/fieldset'
+import { Fieldset, Label, Legend } from '../../../components/fieldset'
 import { Switch, SwitchField } from '../../../components/switch'
 import { debugTools } from './registry'
 import { setDebugTool, useDebugTools } from './store'
@@ -13,7 +13,6 @@ export function DebugSettings() {
 			{debugTools.map((tool) => (
 				<SwitchField key={tool.id}>
 					<Label>{tool.label}</Label>
-					<Description>{tool.description}</Description>
 					<Switch
 						checked={enabled.includes(tool.id)}
 						onChange={(event) => setDebugTool(tool.id, event.target.checked)}
