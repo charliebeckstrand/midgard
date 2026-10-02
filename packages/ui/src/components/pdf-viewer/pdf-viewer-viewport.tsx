@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import { useA11yLiveRegion } from '../../hooks'
+import { useA11yLiveRegion, useComposedRef, useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
 import { hasRaster } from './pdf-viewer-document-cache'
@@ -21,7 +21,8 @@ import { PdfViewerPageImage } from './pdf-viewer-page-image'
  * reserves space before the image paints.
  *
  * @remarks A visually hidden live region announces "Page X of Y" on
- * navigation. Errors render in a `role="alert"`; loading shows an
+ * navigation. While the page overflows the viewport, the viewport is a tab
+ * stop, so a keyboard user can scroll it. Errors render in a `role="alert"`; loading shows an
  * `aria-label`'d placeholder.
  * @internal
  */
@@ -46,9 +47,14 @@ export function PdfViewerViewport() {
 
 	const pageStatus = useA11yLiveRegion({ srOnly: true })
 
+	// A zoomed page overflows the viewport; it is then a tab stop.
+	const scrollRegionRef = useScrollRegion()
+
+	const composedViewportRef = useComposedRef(viewportRef, scrollRegionRef)
+
 	return (
 		<div
-			ref={viewportRef}
+			ref={composedViewportRef}
 			data-slot="pdf-viewer-viewport"
 			className={cn(k.viewport.base, fit === 'width' && k.viewport.scrolls)}
 			style={{ aspectRatio }}

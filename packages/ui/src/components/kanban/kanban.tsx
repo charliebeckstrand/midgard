@@ -3,7 +3,7 @@
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useDragCursor, useSortableSensors } from '../../hooks'
+import { useComposedRef, useDragCursor, useScrollRegion, useSortableSensors } from '../../hooks'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/kanban'
 import type { AccessibleName } from '../../types'
@@ -43,7 +43,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
  *
  * @remarks
  * Client component. The board is a named `role="region"` (`<section>`), so the
- * type requires one of `aria-label` / `aria-labelledby`.
+ * type requires one of `aria-label` / `aria-labelledby`. While the columns
+ * overflow the board, the board is also a tab stop.
  *
  * **The board takes its data and its structure apart, and the keys join them.**
  * `columns` carries the ordering the board reorders, and the children carry
@@ -106,6 +107,12 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		[rawDragStart, setLiftedCardId],
 	)
 
+	// The board is a named region already. While its columns overflow, it is
+	// also a tab stop, so a keyboard user can scroll it.
+	const scrollRegionRef = useScrollRegion()
+
+	const boardRef = useComposedRef(containerRef, scrollRegionRef)
+
 	// Card-facing value: stays referentially stable through a pointer drag (which
 	// moves only activeId/columnItemIds), so cards don't re-render per drag move.
 	const contextValue = useMemo(
@@ -136,7 +143,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 				>
 					<section
 						{...labelProps}
-						ref={containerRef}
+						ref={boardRef}
 						data-slot="kanban"
 						className={cn(k.base, className)}
 					>

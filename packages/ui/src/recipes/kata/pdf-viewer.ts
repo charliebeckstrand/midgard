@@ -147,6 +147,8 @@ export const k = {
 			'max-h-[1280px]',
 			'box-content p-4',
 			...mode('bg-zinc-100', 'dark:bg-zinc-900'),
+			// A tab stop while the page overflows. The scroll clips, so the ring is inset.
+			focus.inset,
 		],
 		/**
 		 * Reserved gutter, only where a vertical scrollbar can come and go. Under

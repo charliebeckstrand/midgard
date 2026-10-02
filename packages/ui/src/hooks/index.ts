@@ -76,6 +76,7 @@ export { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
 export { type ScrollOverflowOptions, useScrollOverflow } from './use-scroll-overflow'
+export { type ScrollRegionOptions, useScrollRegion } from './use-scroll-region'
 export { type ScrollWithinOptions, useScrollWithin } from './use-scroll-within'
 export { useSelectableValueChange } from './use-selectable-value-change'
 export {

@@ -12,7 +12,7 @@ import { defineRecipe } from '../../core/recipe'
 import { iro, sen } from '../kiso'
 
 const { text } = iro
-const { border } = sen
+const { border, focus } = sen
 
 // Cell padding for each step.
 const padding = ['density-px-[1,2,3]', 'density-py-[1,2,3]']
@@ -76,6 +76,9 @@ const projection = {
 } as const
 
 export const k = {
+	// The scroll container is a tab stop while the table overflows. An outset
+	// ring would sit outside the box and stretch the page, so the ring is inset.
+	scroll: ['overflow-x-auto', focus.inset],
 	base: 'w-full text-start text-base',
 	// Color only. A `border.subtleColor` sat here with no border *width*, so it
 	// painted nothing: the shipped header carries no rule. Restoring one is a
