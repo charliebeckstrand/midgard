@@ -16,7 +16,9 @@ const { rounded } = kasane
 const box = ['density-w-[18,24,30]', 'density-h-[6,8,10]'] as const
 
 export const sparkline = {
-	base: ['inline-block', rounded.sm, ...box],
+	base: [rounded.sm, ...box],
 	box,
 	density: true,
+	// Inline-level, as the `inline-block` sparkline is, so the silhouette flows where the chart would.
+	inline: true,
 } as const

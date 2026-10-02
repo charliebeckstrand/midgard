@@ -1,3 +1,4 @@
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Description, Field, Label } from '../../components/fieldset'
 import { Form, useFormState } from '../../components/form'
@@ -357,4 +358,32 @@ describe('RatingSkeleton', () => {
 			expect(classes).toEqual([`${placeholder} ${glyph}`, `${placeholder} ${glyph}`])
 		},
 	)
+
+	/*
+	 * A rating can sit in a line of text, so its skeleton has to be able to as well. Parsed back
+	 * from server markup, the way a browser meets it: a `div` inside a `<p>` makes the parser
+	 * close the paragraph there, and the tree it hydrates no longer matches.
+	 */
+	it('stands in for a rating inside a paragraph, as server markup', () => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToString(
+			<p>
+				Rated <RatingSkeleton count={2} />
+			</p>,
+		)
+
+		const paragraph = container.querySelector('p')
+
+		const row = paragraph?.lastElementChild
+
+		expect(row?.tagName).toBe('SPAN')
+
+		expect(allBySlot(container, 'placeholder').map((star) => star.tagName)).toEqual([
+			'SPAN',
+			'SPAN',
+		])
+
+		expect(container.children).toHaveLength(1)
+	})
 })

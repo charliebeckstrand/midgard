@@ -24,15 +24,18 @@ export type RatingSkeletonProps = {
  * count as well as the size step, so it does not use the size-driven
  * `createSkeleton` factory. An explicit `size` writes `data-density` on the
  * row, and with no `size` the row follows the nearest density scope.
+ *
+ * @remarks A `<span>` row of `<span>` stars, as the rating itself is, so it stands in for one
+ * anywhere a rating can go, a line of text included.
  */
 export function RatingSkeleton({ count = 5, size, className }: RatingSkeletonProps) {
 	const stars = rangeKeys(count, 'star')
 
 	return (
-		<div data-density={size} className={cn(k(), className)}>
+		<span data-density={size} className={cn(k(), className)}>
 			{stars.map((key) => (
-				<Placeholder key={key} className={cn(k.skeleton.base, k.glyph)} />
+				<Placeholder key={key} as="span" className={cn(k.skeleton.base, k.glyph)} />
 			))}
-		</div>
+		</span>
 	)
 }
