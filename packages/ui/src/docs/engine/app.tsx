@@ -1,15 +1,25 @@
 'use client'
 
-import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import {
+	type ComponentType,
+	Suspense,
+	use,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
 import { SidebarLayout } from '../../layouts'
 import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
+import { DebugActions } from './debug/debug-actions'
 import { DemoPage } from './demo-page'
 import { useHash } from './hooks/use-hash'
-import { demos, retryDemo } from './registry'
+import { demos, retryDemo, type TrackedPromise, tracked } from './registry'
 
 // Snippets in the shape of a derived code block. The browser compiles each
 // grammar RegExp when the tokenizer first runs it, and that compile is most of
@@ -23,15 +33,31 @@ const WARM_SNIPPETS = [
 	`<>\n\t<Select options={options} value={value} onChange={(next) => setValue(next)} />\n</>`,
 ]
 
-// The debug tools are separate chunks, so the entry chunk does not carry them.
-// The Debug section of the settings loads when the dialog first opens.
-const DebugActions = lazy(() =>
-	import('./debug/debug-actions').then(({ DebugActions }) => ({ default: DebugActions })),
-)
+// The Debug section of the settings is a separate chunk, so the entry chunk
+// does not carry it. The app loads it on idle, before the reader can open the
+// dialog. If the dialog opens first, the section suspends until the chunk loads.
+// A chunk that fails to load gives `null`, and the dialog then shows no section.
+const debugSettings: Map<string, TrackedPromise<ComponentType | null>> = new Map()
 
-const DebugSettings = lazy(() =>
-	import('./debug/debug-settings').then(({ DebugSettings }) => ({ default: DebugSettings })),
-)
+function loadDebugSettings(): Promise<ComponentType | null> {
+	return tracked(debugSettings, 'settings', () =>
+		import('./debug/debug-settings').then(
+			({ DebugSettings }) => DebugSettings,
+			() => null,
+		),
+	)
+}
+
+/**
+ * Renders the Debug section when its chunk is ready. A `lazy` component
+ * suspends on its first render even when the chunk is ready, and then the
+ * section shows after the dialog lays out.
+ */
+function DebugSection() {
+	const DebugSettings = use(loadDebugSettings())
+
+	return DebugSettings ? <DebugSettings /> : null
+}
 
 /**
  * Root of the docs site: a sidebar layout whose body is the hash-routed demo,
@@ -76,6 +102,10 @@ export function App() {
 
 		let cancelled = false
 
+		ric(() => {
+			loadDebugSettings()
+		})
+
 		const warm = (index: number) => {
 			handle = ric(() => {
 				// A warm prefetch; a failed chunk fetch (offline, post-deploy 404) is
@@ -111,12 +141,10 @@ export function App() {
 				floating={!locked}
 				actions={
 					<>
-						<Suspense fallback={null}>
-							<DebugActions />
-						</Suspense>
+						<DebugActions />
 						<AppearanceSettings>
 							<Suspense fallback={null}>
-								<DebugSettings />
+								<DebugSection />
 							</Suspense>
 						</AppearanceSettings>
 					</>

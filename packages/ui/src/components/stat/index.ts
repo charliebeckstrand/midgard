@@ -9,5 +9,6 @@ export {
 } from './stat-description-skeleton'
 export { StatLabel, type StatLabelProps } from './stat-label'
 export { StatLabelSkeleton, type StatLabelSkeletonProps } from './stat-label-skeleton'
+export { StatSkeleton, type StatSkeletonProps } from './stat-skeleton'
 export { StatValue, type StatValueProps } from './stat-value'
 export { StatValueSkeleton, type StatValueSkeletonProps } from './stat-value-skeleton'

@@ -1,19 +1,26 @@
-import { lazy, Suspense } from 'react'
-import { debugTools } from './registry'
+import { Suspense, use } from 'react'
+import { debugTools, loadDebugTool } from './registry'
 import { useDebugTools } from './store'
-
-// Each tool is a separate chunk, so the entry chunk does not carry it.
-const tools = debugTools.map((tool) => ({ id: tool.id, Component: lazy(tool.load) }))
 
 /** The header parts of the debug tools that are on, in the order of {@link debugTools}. */
 export function DebugActions() {
 	const enabled = useDebugTools()
 
-	return tools
+	// Each tool is a separate chunk, so the entry chunk does not carry it. The
+	// entry loads the tools that are on before it mounts (`preloadDebugTools`),
+	// so their parts paint with the header. A tool that the reader turns on
+	// later suspends until its chunk loads.
+	return debugTools
 		.filter((tool) => enabled.includes(tool.id))
-		.map(({ id, Component }) => (
+		.map(({ id }) => (
 			<Suspense key={id} fallback={null}>
-				<Component />
+				<DebugToolPart id={id} />
 			</Suspense>
 		))
+}
+
+function DebugToolPart({ id }: { id: string }) {
+	const Component = use(loadDebugTool(id))
+
+	return Component ? <Component /> : null
 }

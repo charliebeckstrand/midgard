@@ -5,16 +5,15 @@ import { MAP_OUTLINE_DATA } from '../../modules/map/engine/map-outline-data'
 import { bySlot, renderUI } from '../helpers'
 
 describe('MapSkeleton', () => {
-	it('reserves the map frame in an aspect box at the plat fallback ratio', () => {
+	it('reserves the map frame at the plat fallback ratio, on one element', () => {
 		const { container } = renderUI(<MapSkeleton />)
 
-		const box = bySlot(container, 'aspect-ratio')
-
-		expect(box).toBeInTheDocument()
+		const box = bySlot(container, 'placeholder')
 
 		expect(box?.getAttribute('style')).toContain(`aspect-ratio: ${16 / 9}`)
 
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+		// The placeholder is the frame: no wrapper adds a second slot.
+		expect(container.querySelectorAll('[data-slot]')).toHaveLength(1)
 	})
 
 	it('reserves what the projection reserves, so the plat swaps in without a jump', () => {
@@ -24,7 +23,7 @@ describe('MapSkeleton', () => {
 		// the swap this component exists to prevent.
 		const composite = renderUI(<MapSkeleton projection="albers-usa" />)
 
-		expect(bySlot(composite.container, 'aspect-ratio')?.getAttribute('style')).toContain(
+		expect(bySlot(composite.container, 'placeholder')?.getAttribute('style')).toContain(
 			`aspect-ratio: ${ALBERS_USA_ASPECT}`,
 		)
 
@@ -32,14 +31,14 @@ describe('MapSkeleton', () => {
 		// falls through to the generic reserve.
 		const world = renderUI(<MapSkeleton projection="mercator" />)
 
-		expect(bySlot(world.container, 'aspect-ratio')?.getAttribute('style')).toContain(
+		expect(bySlot(world.container, 'placeholder')?.getAttribute('style')).toContain(
 			`aspect-ratio: ${16 / 9}`,
 		)
 
 		// An explicit ratio is the narrower statement and wins over both.
 		const fixed = renderUI(<MapSkeleton projection="albers-usa" aspectRatio="4/3" />)
 
-		expect(bySlot(fixed.container, 'aspect-ratio')?.getAttribute('style')).toContain(
+		expect(bySlot(fixed.container, 'placeholder')?.getAttribute('style')).toContain(
 			`aspect-ratio: ${4 / 3}`,
 		)
 	})
@@ -47,15 +46,13 @@ describe('MapSkeleton', () => {
 	it('takes an explicit ratio, and fills the container under ratio={false}', () => {
 		const fixed = renderUI(<MapSkeleton aspectRatio="4/3" />)
 
-		expect(bySlot(fixed.container, 'aspect-ratio')?.getAttribute('style')).toContain(
+		expect(bySlot(fixed.container, 'placeholder')?.getAttribute('style')).toContain(
 			`aspect-ratio: ${4 / 3}`,
 		)
 
 		const fill = renderUI(<MapSkeleton aspectRatio={false} />)
 
-		expect(bySlot(fill.container, 'aspect-ratio')).toBeNull()
-
-		expect(bySlot(fill.container, 'placeholder')).toBeInTheDocument()
+		expect(bySlot(fill.container, 'placeholder')?.getAttribute('style')).toBeNull()
 	})
 
 	it('draws the outline of a fixed-subject projection in place of the rectangle', () => {
@@ -72,8 +69,8 @@ describe('MapSkeleton', () => {
 
 		expect(composite.container.querySelector('div[data-slot=placeholder]')).toBeNull()
 
-		// The aspect box still reserves the frame around the outline.
-		expect(bySlot(composite.container, 'aspect-ratio')).toBeInTheDocument()
+		// The outline itself reserves the frame.
+		expect(outline?.getAttribute('style')).toContain(`aspect-ratio: ${ALBERS_USA_ASPECT}`)
 
 		const off = renderUI(<MapSkeleton projection="albers-usa" outline={false} />)
 
@@ -93,8 +90,8 @@ describe('MapSkeleton', () => {
 
 		expect(outline?.querySelector('path')?.getAttribute('d')).toBe(MAP_OUTLINE_DATA.mercator.d)
 
-		// A fill skeleton has no aspect box; the outline takes the container itself.
-		expect(bySlot(world.container, 'aspect-ratio')).toBeNull()
+		// A fill skeleton reserves no ratio; the outline takes the container itself.
+		expect(outline?.getAttribute('style')).toBeNull()
 
 		// No projection has no outline to draw.
 		const none = renderUI(<MapSkeleton outline />)
