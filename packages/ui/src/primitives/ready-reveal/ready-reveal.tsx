@@ -114,6 +114,13 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * The content layer never takes a filter. The revealed content therefore gets
  * no stacking context, containing block, or backdrop root from the reveal, and
  * its fade does not repaint it.
+ *
+ * When several leaves load together, such as the fields of a form, give each
+ * leaf its own reveal with the same `ready` value. Each reveal then keeps the
+ * box of its own leaf, and the leaves reveal together. Give the skeleton the
+ * same `size`, `level`, or `orientation` as its leaf. Put `loadingLabel` on one
+ * reveal only, or on none when a parent announces the load, so that the
+ * region announces the load one time.
  */
 export function ReadyReveal({
 	ready,
