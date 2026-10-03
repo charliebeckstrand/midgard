@@ -31,11 +31,7 @@ import { type DemoPage, demoPages, walkOf } from './demo-pages'
  * The violations of today, keyed `page › rule`, with the count of the nodes
  * that break the rule. Fix a node, and lower its count.
  */
-const KNOWN_FAILURES: Record<string, number> = {
-	// Two grids on one tab each name their pagination `Pagination`. The grid
-	// takes no name for its footer, so the demo cannot tell them apart.
-	'modules/grid › landmark-unique': 1,
-}
+const KNOWN_FAILURES: Record<string, number> = {}
 
 /** The entries of `KNOWN_FAILURES` for one page. */
 function knownFailuresOf(page: string): Record<string, number> {

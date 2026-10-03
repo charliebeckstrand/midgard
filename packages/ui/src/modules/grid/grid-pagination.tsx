@@ -1,6 +1,6 @@
 'use client'
 
-import { type SetStateAction, useLayoutEffect, useRef } from 'react'
+import { type SetStateAction, useId, useLayoutEffect, useRef } from 'react'
 import {
 	Pagination,
 	PaginationGap,
@@ -18,6 +18,13 @@ import type { GridPaginationView } from './use-grid-table'
 /** Props for {@link GridPagination}. @internal */
 type GridPaginationProps = {
 	pagination: GridPaginationView
+	/** The `aria-label` of the grid. The nav then has the name `<label> pagination`. */
+	label?: string
+	/**
+	 * The `aria-labelledby` of the grid. The nav then refers to the same ids and
+	 * to the word "pagination".
+	 */
+	labelledBy?: string
 }
 
 /**
@@ -60,9 +67,13 @@ function pageStatus({
  * Numbered pages render only when the total page count is known; an unbounded
  * server feed falls back to Previous/Next beside a "Page N" status.
  *
+ * The name of the nav comes from the name of the grid, so two grids on one
+ * page give two navs with different names. A grid with no name of its own
+ * keeps the name "Pagination".
+ *
  * @internal
  */
-export function GridPagination({ pagination }: GridPaginationProps) {
+export function GridPagination({ pagination, label, labelledBy }: GridPaginationProps) {
 	const {
 		pageIndex,
 		pageSize,
@@ -88,6 +99,15 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	const showNav = pageCount !== 0 && pageCount !== 1
 
 	const status = pageStatus({ from, to, rowCount, pageNumber, pageCount })
+
+	// The id of the word that follows the name of the grid in a composed name.
+	const wordId = useId()
+
+	const navName = labelledBy
+		? { 'aria-label': undefined, 'aria-labelledby': `${labelledBy} ${wordId}` }
+		: label
+			? { 'aria-label': `${label} pagination` }
+			: {}
 
 	// When a page change disables the control the user activated (reaching an
 	// extent), or scrolls its number out of the window, the browser drops focus to
@@ -172,7 +192,13 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 				{showNav && (
 					<div ref={navRef} className={cn(k.footer.nav, !showPicker && k.footer.bare.nav)}>
-						<Pagination className={cn(k.footer.pagination)}>
+						{labelledBy && (
+							<span id={wordId} hidden>
+								pagination
+							</span>
+						)}
+
+						<Pagination className={cn(k.footer.pagination)} {...navName}>
 							<PaginationPrevious
 								onClick={() => goToPage((index) => index - 1)}
 								disabled={!canPrevious}

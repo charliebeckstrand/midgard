@@ -426,4 +426,60 @@ describe('Grid pagination', () => {
 			expect(screen.queryByRole('combobox', { name: 'Rows per page' })).not.toBeInTheDocument()
 		})
 	})
+
+	describe('name of the nav', () => {
+		const paged = { defaultValue: { pageIndex: 0, pageSize: 5 } }
+
+		it('keeps the name "Pagination" when the grid has no name', () => {
+			renderUI(<Grid columns={columns} rows={many} getKey={getKey} pagination={paged} />)
+
+			expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
+		})
+
+		it('takes the name from the aria-label of the grid', () => {
+			renderUI(
+				<>
+					<Grid
+						columns={columns}
+						rows={many}
+						getKey={getKey}
+						pagination={paged}
+						tableProps={{ 'aria-label': 'Orders' }}
+					/>
+
+					<Grid
+						columns={columns}
+						rows={many}
+						getKey={getKey}
+						pagination={paged}
+						tableProps={{ 'aria-label': 'Invoices' }}
+					/>
+				</>,
+			)
+
+			expect(screen.getByRole('navigation', { name: 'Orders pagination' })).toBeInTheDocument()
+
+			expect(screen.getByRole('navigation', { name: 'Invoices pagination' })).toBeInTheDocument()
+
+			expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
+		})
+
+		it('takes the name from the aria-labelledby of the grid', () => {
+			renderUI(
+				<>
+					<h2 id="orders-title">Orders</h2>
+
+					<Grid
+						columns={columns}
+						rows={many}
+						getKey={getKey}
+						pagination={paged}
+						tableProps={{ 'aria-labelledby': 'orders-title' }}
+					/>
+				</>,
+			)
+
+			expect(screen.getByRole('navigation', { name: 'Orders pagination' })).toBeInTheDocument()
+		})
+	})
 })
