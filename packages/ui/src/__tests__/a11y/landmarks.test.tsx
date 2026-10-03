@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import {
 	Sidebar,
@@ -77,7 +78,12 @@ const pages: readonly [name: string, page: ReactElement][] = [
 	],
 	[
 		'sidebar layout',
-		<SidebarLayout key="sb" sidebar={sidebar}>
+		<SidebarLayout
+			key="sb"
+			sidebar={sidebar}
+			navbar={<Text>Midgard</Text>}
+			actions={<Button>Share</Button>}
+		>
 			<SidebarLayoutHeader>
 				<Heading level={1}>Project kickoff</Heading>
 			</SidebarLayoutHeader>
@@ -88,10 +94,43 @@ const pages: readonly [name: string, page: ReactElement][] = [
 	],
 ]
 
+/**
+ * The landmark elements and roles. A named `section` is a region, and an unnamed
+ * one is not a landmark.
+ */
+const LANDMARK = [
+	'main',
+	'header',
+	'footer',
+	'aside',
+	'nav',
+	'section[aria-label]',
+	'section[aria-labelledby]',
+	'[role="region"]',
+	'[role="banner"]',
+	'[role="contentinfo"]',
+	'[role="complementary"]',
+	'[role="navigation"]',
+	'[role="main"]',
+].join(', ')
+
 describe('a11y landmarks (axe, page scope)', () => {
 	it.each(pages)('%s composes a valid landmark structure', async (_name, page) => {
 		renderUI(page)
 
 		expect(await axePage(document.body)).toHaveNoViolations()
+	})
+
+	// The `region` rule of axe looks at text and skips a control, so a stray
+	// button passes it. A layout renders each breakpoint at once in jsdom, so this
+	// check covers the controls of the mobile bars too.
+	it.each(pages)('%s puts each control inside a landmark', (_name, page) => {
+		renderUI(page)
+
+		const stray = [...document.body.querySelectorAll('button, a[href], input')]
+			.filter((control) => !control.closest(LANDMARK))
+			.map((control) => control.getAttribute('aria-label') ?? control.textContent)
+
+		expect(stray).toEqual([])
 	})
 })
