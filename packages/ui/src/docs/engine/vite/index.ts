@@ -6,8 +6,8 @@ import type { UserConfig } from 'vite'
 import { docsPlugin } from '../plugins'
 
 // Curated `shiki/core` shim (precompiled tsx, typescript, bash grammars,
-// github-dark-default, JS raw engine) that replaces the bare `shiki` specifier
-// in the docs build.
+// github-dark-default, JS raw engine, in a worker) that replaces the bare
+// `shiki` specifier in the docs build.
 const shikiCore = fileURLToPath(new URL('../shiki.ts', import.meta.url))
 
 export { docsPlugin } from '../plugins'
@@ -84,9 +84,9 @@ export function defineDocsConfig({
 		// Vite finds each the first time a demo importing it renders and re-runs
 		// the optimizer, which triggers a full-page reload mid-session — the same
 		// failure the vitest browser config guards against. `shiki` resolves
-		// through the alias below to the curated core shim, so declaring it here
-		// prebundles that shim (and its `shiki/core` grammars) as one entry that
-		// CodeBlock's lazy `import('shiki')` then reuses.
+		// through the alias below to the curated shim, which imports no package
+		// at runtime. Its worker imports `shiki/core`, the engine, the theme, and
+		// the three grammars, so they are listed here.
 		optimizeDeps: {
 			include: [
 				'@dnd-kit/core',
@@ -99,7 +99,12 @@ export function defineDocsConfig({
 				'lucide-react',
 				'motion',
 				'motion/react',
-				'shiki',
+				'shiki/core',
+				'shiki/engine/javascript',
+				'shiki/themes/github-dark-default.mjs',
+				'@shikijs/langs-precompiled/shellscript',
+				'@shikijs/langs-precompiled/tsx',
+				'@shikijs/langs-precompiled/typescript',
 				// Reached only through lazy demo chunks, so the scanner misses them and
 				// the first navigation to a map, date, markdown, payment, export, or
 				// shortcut demo triggers an optimizer re-run and the mid-session full
