@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DensityStep } from '../../../core/density'
-import { formSignature, stepSignature } from '../step-signature'
+import { formSignature, lookSignature, stepSignature } from '../step-signature'
 
 /**
  * Render one axis instance: a wrapper that holds `html`, in which `{step}`
@@ -183,6 +183,34 @@ describe('formSignature', () => {
 		expect(formSignature(wrap('<span class="a" data-x="2">one</span>'), 'L')).not.toBe(base)
 
 		expect(formSignature(wrap('<span class="a" data-x="1">two</span>'), 'L')).not.toBe(base)
+	})
+})
+
+describe('lookSignature', () => {
+	const wrap = (html: string) => {
+		const wrapper = document.createElement('div')
+
+		wrapper.innerHTML = html
+
+		return wrapper
+	}
+
+	it('reads two headings alike when only the level differs', () => {
+		const h2 = wrap('<h2 class="text-lg">Title</h2>')
+
+		const h3 = wrap('<h3 class="text-lg">Title</h3>')
+
+		expect(formSignature(h2, 'L')).not.toBe(formSignature(h3, 'L'))
+
+		expect(lookSignature(h2, 'L')).toBe(lookSignature(h3, 'L'))
+	})
+
+	it('reads a class or another tag as a difference', () => {
+		const base = lookSignature(wrap('<h2 class="text-lg">Title</h2>'), 'L')
+
+		expect(lookSignature(wrap('<h3 class="text-xl">Title</h3>'), 'L')).not.toBe(base)
+
+		expect(lookSignature(wrap('<div class="text-lg">Title</div>'), 'L')).not.toBe(base)
 	})
 })
 

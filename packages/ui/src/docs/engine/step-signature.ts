@@ -227,6 +227,26 @@ function ownTextOf(element: Element, label: string): string {
 	return label === '' ? text : text.replaceAll(label, '#label')
 }
 
+/** A heading tag: `h1` through `h6`. */
+const HEADING = /^h[1-6]$/
+
+/**
+ * Write the form of each element of an instance: its tag, its attributes, its
+ * classes, and its own text. `tagOf` writes the tag.
+ */
+function elementsForm(instance: Element, label: string, tagOf: (tag: string) => string): string {
+	return [...instance.querySelectorAll('*')]
+		.map((element) =>
+			[
+				tagOf(element.localName),
+				...attributesOf(element, label),
+				...[...element.classList].sort(),
+				ownTextOf(element, label),
+			].join(' '),
+		)
+		.join('\n')
+}
+
 /**
  * Write the rendered form of one instance of an axis that is not a density
  * axis. Two instances give the same string when they render the same DOM.
@@ -243,14 +263,21 @@ function ownTextOf(element: Element, label: string): string {
  * @internal
  */
 export function formSignature(instance: Element, label: string): string {
-	return [...instance.querySelectorAll('*')]
-		.map((element) =>
-			[
-				element.localName,
-				...attributesOf(element, label),
-				...[...element.classList].sort(),
-				ownTextOf(element, label),
-			].join(' '),
-		)
-		.join('\n')
+	return elementsForm(instance, label, (tag) => tag)
+}
+
+/**
+ * Write the look of one instance: the {@link formSignature} with the level of
+ * each heading removed. Tailwind preflight resets the font and the margin of
+ * each heading, so `h2` and `h3` with the same classes look the same. Two
+ * instances with different forms and the same look differ only in the
+ * document outline.
+ *
+ * @param instance - The wrapper of the instance, whose descendants the component renders.
+ * @param label - The label of the instance, which the content can show.
+ *
+ * @internal
+ */
+export function lookSignature(instance: Element, label: string): string {
+	return elementsForm(instance, label, (tag) => (HEADING.test(tag) ? 'h' : tag))
 }
