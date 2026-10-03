@@ -90,10 +90,11 @@ type AxesProps = {
  * in a later state, such as the panel of a closed dialog. An example with one
  * value also hides.
  *
- * An axis that changes only the document outline, such as the heading level
- * of a title, has nothing to show. Its instances differ in form and look the
- * same ({@link lookSignature}), so its example hides. Its picker keeps each
- * value, and the code of the playground shows the prop.
+ * An axis that changes only the accessibility tree has nothing to show, such
+ * as the heading level of a title or an unstyled `aria-*` attribute. When its
+ * instances differ in form and look the same at the defaults
+ * ({@link lookSignature}), its example and its picker hide. The API reference
+ * still lists the prop.
  *
  * Without API data, for example in a test run, it renders nothing.
  */
@@ -135,10 +136,15 @@ function AxesExamples({
 	title,
 	captions = true,
 }: AxesProps & { component: ComponentApi }) {
-	const axes = axesOf(component, omit)
+	const all = axesOf(component, omit)
+
+	// The axes that change only the accessibility tree. The first read sets it.
+	const [unseen, setUnseen] = useState<ReadonlySet<string> | null>(null)
+
+	const axes = unseen ? all.filter((axis) => !unseen.has(axis.name)) : all
 
 	const [state, setState] = useState<Record<string, AxisValue | undefined>>(() =>
-		Object.fromEntries(axes.map((axis) => [axis.name, axis.default])),
+		Object.fromEntries(all.map((axis) => [axis.name, axis.default])),
 	)
 
 	// The wrapper of each instance, keyed `axis:value`.
@@ -171,16 +177,24 @@ function AxesExamples({
 
 		const alike = (axis: Axis) => rendersAlike(axis.values.map((value) => signatureOf(axis, value)))
 
-		// An axis whose instances differ in form and look the same changes only the outline.
-		const outlineOnly = (axis: Axis) =>
-			!alike(axis) &&
-			rendersAlike(
-				axis.values.map((value) => {
-					const instance = instances.current.get(`${axis.name}:${value}`)
+		// An axis whose instances differ in form and look the same changes only the
+		// accessibility tree. It hides from the first read on.
+		if (!unseen) {
+			const silent = unread.filter(
+				(axis) =>
+					!isStepAxis(axis) &&
+					!alike(axis) &&
+					rendersAlike(
+						axis.values.map((value) => {
+							const instance = instances.current.get(`${axis.name}:${value}`)
 
-					return instance ? lookSignature(instance, valueLabel(value)) : null
-				}),
+							return instance ? lookSignature(instance, valueLabel(value)) : null
+						}),
+					),
 			)
+
+			setUnseen(new Set(silent.map((axis) => axis.name)))
+		}
 
 		live.current ??= new Set(
 			unread.filter((axis) => !isStepAxis(axis) && !alike(axis)).map((axis) => axis.name),
@@ -191,7 +205,7 @@ function AxesExamples({
 
 			// The other axes make a live axis inert when its instances render alike.
 			// The example of an inert axis shows no value, so it hides.
-			const inert = (live.current?.has(axis.name) && alike(axis)) || outlineOnly(axis)
+			const inert = live.current?.has(axis.name) && alike(axis)
 
 			return [axis.name, inert ? [] : axis.values]
 		})

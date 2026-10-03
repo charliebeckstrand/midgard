@@ -317,8 +317,47 @@ describe('Axes', () => {
 
 		expect(screen.queryByRole('heading', { name: 'Level' })).toBeNull()
 
-		// The picker keeps each value, so the code of the playground can show the prop.
-		expect(screen.getByRole('combobox', { name: 'Level' })).toBeInTheDocument()
+		expect(screen.queryByRole('combobox', { name: 'Level' })).toBeNull()
+	})
+
+	it('hides the example and the picker of an axis that sets only an unstyled ARIA attribute', () => {
+		const grid: ComponentApi[] = [
+			{
+				name: 'Grid',
+				props: [
+					{ name: 'multiselectable', type: 'boolean' },
+					{ name: 'color', type: "'red' | 'blue'" },
+				],
+			},
+		]
+
+		renderUI(
+			<DemoApiContext value={settled(grid)}>
+				<Axes
+					of="Grid"
+					render={(props, label) => {
+						const { multiselectable, color } = props as {
+							multiselectable?: boolean
+							color?: string
+						}
+
+						return (
+							<div role="listbox" aria-multiselectable={multiselectable} data-color={color}>
+								{label}
+							</div>
+						)
+					}}
+				/>
+			</DemoApiContext>,
+		)
+
+		expect(screen.queryByRole('heading', { name: 'Multiselectable' })).toBeNull()
+
+		expect(screen.queryByRole('combobox', { name: 'Multiselectable' })).toBeNull()
+
+		expect(screen.getByRole('heading', { name: 'Color' })).toBeInTheDocument()
+
+		expect(screen.getByRole('combobox', { name: 'Color' })).toBeInTheDocument()
 	})
 
 	it('throws for a name that the barrel does not document', () => {

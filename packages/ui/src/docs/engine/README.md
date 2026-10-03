@@ -83,6 +83,14 @@ the defaults stays, because its effect shows only in a later state, such as
 the panel of a closed dialog or the clear button of an empty input. An
 example with one value also hides.
 
+An axis that changes only the accessibility tree has nothing to show, such as
+the heading level of a title or an `aria-*` attribute that no class styles,
+such as `multiselectable` of `Calendar`. On the first read, `<Axes>` compares
+the look of its instances ([`lookSignature`](step-signature.ts)): the form
+with each heading level and each unstyled `aria-*` attribute removed. When the
+forms differ and the looks match, the example and the picker of the axis hide.
+The API reference still lists the prop.
+
 `valueLabel` writes each value for a reader: `xs` reads `Extra small`, `true`
 reads `On`, and `separated` reads `Separated`. `humanize` writes a prop name as
 the title of its example. A hand-written demo can use both helpers.
