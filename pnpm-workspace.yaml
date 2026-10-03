@@ -47,11 +47,10 @@ allowBuilds:
 overrides:
   esbuild: '>=0.28.2 <0.29'
   postcss: '>=8.5.28 <9'
-  sharp: '>=0.35.0 <1'
   undici: '>=7.29.0 <8'
 
 minimumReleaseAgeExclude:
-  - hlidskjalf@0.3.1 || 0.3.2 || 0.3.3 || 0.3.4 || 0.3.5 || 0.3.6 || 0.3.7 || 0.4.0 || 0.4.4
+  - hlidskjalf
 
 # `useFloatingPortalNode` builds its portal node in a layout effect and removes it in that
 # effect's cleanup, deliberately rebuilding it on the next run (floating-ui#2454). React's
