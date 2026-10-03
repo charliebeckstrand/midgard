@@ -1,25 +1,11 @@
-import type { InnerStep } from '../../../core/density'
-
 /**
- * Density-resolved frame metrics: the values that scale with the size step.
- * The frame's height is not one of them — it derives from the width and the
- * aspect ratio, so density and a fixed height never conflict. Mark specs that
- * must read identically at every density (bar thickness, stroke widths, gaps)
- * live below as flat constants instead.
+ * The most ticks that a value axis aims for. The height of the plot box can
+ * lower the count. The tick step snaps to 1, 2, or 5 times a power of ten, so
+ * the count does not follow the density step.
  *
  * @internal
  */
-export type ChartMetrics = {
-	/** Tick count the value axis aims for. */
-	tickTarget: number
-}
-
-/** Per-density frame metrics, keyed by the resolved size step. @internal */
-export const CHART_METRICS: Record<InnerStep, ChartMetrics> = {
-	sm: { tickTarget: 3 },
-	md: { tickTarget: 4 },
-	lg: { tickTarget: 5 },
-}
+export const TICK_TARGET = 4
 
 /** Bar thickness ceiling; the band's leftover stays air, never fill. @internal */
 export const BAR_MAX_WIDTH = 24

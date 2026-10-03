@@ -1,7 +1,7 @@
 import { Children, type ComponentProps, isValidElement, type ReactNode } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/table'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/table'
 import { TableCaption, type TableCaptionProps } from './table-caption'
 import { TableScroll } from './table-scroll'
 
@@ -12,7 +12,7 @@ export type TableVariants = {
 	 * nearest density scope. A step makes the table a density scope, and the
 	 * cells take it.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	bleed?: boolean
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean

@@ -1,8 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useLocale } from '../../providers/locale'
+import type { scale } from '../../recipes/kata/table'
 import { fractionFormat } from '../../utilities'
 import { Table, TableBody, TableCell, TableFoot, TableHead, TableHeader, TableRow } from '../table'
 import type { PivotAggregation } from './types'
@@ -41,7 +42,7 @@ export type PivotTableProps<T> = {
 	 * The density step of the cell padding. Omit it to take the step of the
 	 * nearest density scope. A step makes the table a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean
 	/** Zebra-stripe the body rows; `'odd'` / `'even'` pick which. @defaultValue false */

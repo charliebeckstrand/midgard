@@ -2,7 +2,8 @@
 
 import type { CSSProperties, KeyboardEvent, RefObject } from 'react'
 import { createContext } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/menu'
 
 type MenuStateValue = {
 	open: boolean
@@ -27,7 +28,7 @@ type MenuStateValue = {
 	 * density scope of the menu, which the portal carries. A step makes the
 	 * panel a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 }
 
 type MenuActionsValue = {

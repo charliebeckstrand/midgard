@@ -2,10 +2,10 @@
 
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
-import { k } from '../../recipes/kata/tabs'
+import { k, type scale } from '../../recipes/kata/tabs'
 import { Box } from '../../structure/box'
 import { TabsContext, type TabsOrientation, type TabsVariant } from './context'
 
@@ -25,7 +25,7 @@ export type TabsProps = ComponentProps<'div'> & {
 	 * The density step of the tab text and the tab padding. Omit it to take the
 	 * step of the nearest density scope. A step makes the group a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 }
 
 /**

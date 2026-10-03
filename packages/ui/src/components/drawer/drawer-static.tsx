@@ -2,10 +2,10 @@
 
 import type { ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { useResolvedSurface } from '../../providers/glass/context'
-import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
+import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { k as overlay } from '../../recipes/kata/overlay'
 import { drawerPanelProps } from './drawer-panel-props'
 
@@ -15,7 +15,7 @@ export type DrawerStaticProps = {
 	 * The density step of the painted content, as on {@link Drawer}. Omit it to take the step of
 	 * the nearest density scope, which the static drawer sits inside.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/** As on {@link Drawer}: how much of the screen the panel docks over. @defaultValue 'auto' */
 	height?: DrawerPanelVariants['height']
 	/**

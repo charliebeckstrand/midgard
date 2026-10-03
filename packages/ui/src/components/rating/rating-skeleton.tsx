@@ -31,7 +31,7 @@ export function RatingSkeleton({ count = 5, size, className }: RatingSkeletonPro
 		count,
 		root: [k(), className],
 		item: [k.skeleton.base, k.glyph],
-		size,
+		density: size,
 		as: 'span',
 	})
 }

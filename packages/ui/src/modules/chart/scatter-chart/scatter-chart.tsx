@@ -1,12 +1,9 @@
 'use client'
 
-import { toInnerStep } from '../../../core'
-import type { DensityStep } from '../../../core/density'
-import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
 import type { AccessibleName } from '../../../types'
 import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
-import { CHART_METRICS, SCATTER_HIT_SLACK } from '../engine/chart-constants'
+import { SCATTER_HIT_SLACK, TICK_TARGET } from '../engine/chart-constants'
 import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
@@ -57,12 +54,6 @@ import { useScatterChartReadout } from './use-scatter-chart-readout'
  * @internal
  */
 export type ScatterFrameProps = {
-	/**
-	 * The density step, which caps the target count of the ticks. The tier of the
-	 * box can lower it further. Omit it to take the step of the nearest density
-	 * scope.
-	 */
-	size?: DensityStep
 	/**
 	 * The chart's axes. `true` (the default) draws both value axes at their
 	 * defaults; `false` drops the axis chrome for a bare-marks plot. The object
@@ -222,7 +213,6 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	const {
 		data,
 		series,
-		size,
 		width,
 		height,
 		aspectRatio = '16/9',
@@ -243,10 +233,6 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
 	// switch and each axis's domain, formatter, title, and grid participation.
 	const { draw, config: axesConfig } = resolveAxes(axes)
-
-	const resolvedSize = toInnerStep(useDensityStep(size))
-
-	const metrics = CHART_METRICS[resolvedSize]
 
 	// A live ratio carries on the figure wrapper, so a definite-height parent
 	// clamps the whole chart, and the plot measures the height a stacked legend
@@ -278,7 +264,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			headerLines: headerLineCount(props.title, props.subtitle),
 			legend: legendBands(resolvedLegend.value, series.length),
 		},
-		tickTarget: metrics.tickTarget,
+		tickTarget: TICK_TARGET,
 	})
 
 	// Spark stands the chart's chrome down to bare marks: ScatterChartChrome and

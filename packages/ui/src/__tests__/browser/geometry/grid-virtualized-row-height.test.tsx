@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { DensityStep } from '../../../core/density'
+import type { ScaleStep } from '../../../core/density'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import type { scale } from '../../../recipes/kata/table'
 import { present, renderUI, screen, waitFor, windowBody } from '../../helpers'
 
 /**
@@ -17,7 +18,7 @@ describe('grid virtualized row height (real browser)', () => {
 	const rows: Row[] = Array.from({ length: 300 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
 
 	/** Renders a windowed grid at `size`, and returns its body once rows render. */
-	async function windowAt(size: DensityStep) {
+	async function windowAt(size: ScaleStep<typeof scale>) {
 		const view = renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid
@@ -64,7 +65,7 @@ describe('grid virtualized row height (real browser)', () => {
 		expect(heights[0]).toBeLessThan(heights[1] as number)
 	})
 	it('keeps the scroll position and the rows when the density changes', async () => {
-		const ui = (size: DensityStep) => (
+		const ui = (size: ScaleStep<typeof scale>) => (
 			<div style={{ width: '320px' }}>
 				<Grid
 					virtualize

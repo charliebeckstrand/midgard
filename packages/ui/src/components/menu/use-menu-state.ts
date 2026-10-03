@@ -2,9 +2,10 @@
 
 import { useClick, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingDisclosure, useMediaQuery } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import type { scale } from '../../recipes/kata/menu'
 import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import { isNativeContextMenuRequest } from '../../utilities'
 import { snapMenuHeight } from './menu-viewport-utilities'
@@ -33,7 +34,7 @@ type MenuStateOptions = {
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
 	placement?: FloatingPlacement
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	sheet?: boolean
 }
 

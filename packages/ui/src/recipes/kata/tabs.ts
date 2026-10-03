@@ -6,6 +6,7 @@
  * Tabs share through this kata, and `skeleton` carries a loading placeholder
  * for each unit.
  */
+import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, textRamp } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -155,3 +156,13 @@ export const k = {
 		segment: kokkaku.segment,
 	},
 } as const
+
+/** The size scale of {@link Tabs} and {@link Segment}: the steps of the tab text, padding, and silhouette. */
+export const scale = defineScale(
+	dan.text.body,
+	dan.space.tabX,
+	dan.space.tabBottom,
+	dan.space.pillTabX,
+	dan.space.pillTabY,
+	dan.size.segment,
+)

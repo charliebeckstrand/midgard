@@ -37,8 +37,15 @@ export type Scale<S extends DensityStep = DensityStep> = readonly S[] & {
 	readonly __scale: true
 }
 
-/** A step of a scale: the type of a `size` prop that the scale drives. */
-export type ScaleStep<T> = T extends Scale<infer S> ? S : never
+/**
+ * A step of a scale: the type of a `size` prop that the scale drives. The type
+ * is a plain union of step literals, such as `'sm' | 'md' | 'lg'`, so an editor
+ * and the API reference show the steps.
+ */
+export type ScaleStep<T> = T extends Scale<infer S> ? StepIn<S> : never
+
+/** Each step of `S`, in a fresh union with no alias. */
+type StepIn<S> = DensityStep extends infer Step ? (Step extends S ? Step : never) : never
 
 /** The steps in the order of `densitySteps`. */
 const order: readonly DensityStep[] = ['xs', 'sm', 'md', 'lg', 'xl']

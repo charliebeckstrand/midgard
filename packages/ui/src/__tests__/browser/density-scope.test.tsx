@@ -265,10 +265,10 @@ describe('a control slot in an xl scope (real browser)', () => {
 		</>
 	)
 
-	it('gives the slots of an xl card the look of an lg card', () => {
-		const xl = measure(mountMarkup(<Card size="xl">{controls}</Card>))
+	it('gives the slots of an xl scope the look of an lg scope', () => {
+		const xl = measure(mountMarkup(<div data-density="xl">{controls}</div>))
 
-		const lg = measure(mountMarkup(<Card size="lg">{controls}</Card>))
+		const lg = measure(mountMarkup(<div data-density="lg">{controls}</div>))
 
 		expect(xl).toEqual(lg)
 	})
@@ -655,7 +655,15 @@ describe('density scopes on static leaves (real browser)', () => {
 			),
 			10,
 		],
-		['takes an explicit xl step', () => <LoadingDots size="xl" />, 12],
+		[
+			'gives an xl scope the lg dot',
+			() => (
+				<div data-density="xl">
+					<LoadingDots />
+				</div>
+			),
+			10,
+		],
 	])('a loading dot %s', (_name, element, width) => {
 		const { container } = renderUI(element())
 

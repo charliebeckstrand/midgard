@@ -11,11 +11,11 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import { type ScaleStep, snapToScale } from '../../core/density'
 import { useA11yAnnouncements } from '../../hooks'
 import { useDensityStep } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
-import { k } from '../../recipes/kata/calendar'
+import { k, scale } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
@@ -133,7 +133,7 @@ export type CalendarProps = {
 	 * a density scope, so the navigation buttons and the day cells take the step
 	 * too. `sm` is the smallest step: `xs` renders as `sm`.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 }
 
@@ -183,10 +183,16 @@ export function Calendar({
 }: CalendarProps) {
 	const ambient = useLocale()
 
-	// The width steps from `sm`, so at `xs` the buttons and the cells would
-	// shrink inside the `sm` width. Only a `size` or a scope sets `xs`, and the
-	// server reads both, so the server and the client agree on the scope.
-	const density = useDensityStep(size) === 'xs' ? 'sm' : size
+	// The width has no `xs` value, so at `xs` the buttons and the cells would
+	// shrink inside the `sm` width. A step off the scale makes the calendar a
+	// scope at the nearest step of the scale. Only a `size` or a scope sets such
+	// a step, and the server reads both, so the server and the client agree on
+	// the scope.
+	const step = useDensityStep(size)
+
+	const snapped = snapToScale(step, scale)
+
+	const density = snapped === step ? size : snapped
 
 	const localeTag = resolveLocale(locale ?? ambient.locale)
 

@@ -1,3 +1,4 @@
+import { defineScale } from '../../core/density'
 import { iro, ji, narabi, omote, sen, textRamp, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -49,3 +50,6 @@ export const k = {
 	},
 	motion: tooltip,
 } as const
+
+/** The size scale of {@link TooltipContent}: the steps of its padding and radius. */
+export const scale = defineScale(dan.space.tooltip, dan.radius.tooltip)

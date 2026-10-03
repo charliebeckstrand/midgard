@@ -1,6 +1,8 @@
+import { defineScale } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
 import { hannou, narabi, omote, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 import { panel } from '../kiso/panel'
 
 const { flex } = narabi
@@ -135,3 +137,6 @@ export const k = {
 
 /** Recipe variant props for the {@link Drawer} panel — its styling axes (`surface`, `height`), for consumers composing custom slots. */
 export type DrawerPanelVariants = VariantProps<typeof k.panel>
+
+/** The size scale of {@link Drawer}: the steps of the panel title, which the drawer writes as a density scope. */
+export const scale = defineScale(dan.text.title)

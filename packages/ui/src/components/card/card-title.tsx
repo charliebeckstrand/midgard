@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { titleRamp } from '../../recipes/kata/heading'
+import type { ScaleStep } from '../../core/density'
+import { type scale, titleRamp } from '../../recipes/kata/heading'
 import { Heading } from '../heading'
 
 /** Props for {@link CardTitle}: the density `size` step, heading `level`, and the underlying `<h3>` attributes. */
@@ -11,7 +11,7 @@ export type CardTitleProps = {
 	 * The density step. Omit it to take the step of the nearest density scope,
 	 * such as a `<Card size>`. A step makes the title a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Heading level of the rendered title.
 	 * @defaultValue 3

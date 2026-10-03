@@ -3,11 +3,11 @@
 import { motion } from 'motion/react'
 import { type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useA11yAutoFocus } from '../../hooks'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
-import { k } from '../../recipes/kata/popover'
+import { k, type scale } from '../../recipes/kata/popover'
 import { Box } from '../../structure/box'
 import { usePopoverContext, usePopoverPosition } from './context'
 
@@ -40,7 +40,7 @@ export type PopoverContentProps = {
 	 * of the nearest density scope of the trigger, which the portal carries. A
 	 * step makes the panel a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
 	 * content renders as a **non-modal** `role="dialog"` without `aria-modal`;

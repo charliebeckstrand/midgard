@@ -1,5 +1,5 @@
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/tabs'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/tabs'
 import type { Orientation } from '../../types'
 import { renderRowSkeleton } from '../placeholder/placeholder-skeleton'
 
@@ -19,7 +19,7 @@ export type TabListSkeletonProps = {
 	 * The density step. Omit it to take the step of the nearest density scope,
 	 * as the tabs do. A step makes the silhouette a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 }
 
@@ -38,6 +38,6 @@ export function TabListSkeleton({
 		count: tabs,
 		root: [k.list({ orientation }), orientation === 'horizontal' && k.skeleton.gap, className],
 		item: k.skeleton.tab[orientation],
-		size,
+		density: size,
 	})
 }

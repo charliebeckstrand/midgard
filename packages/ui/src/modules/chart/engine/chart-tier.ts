@@ -190,8 +190,8 @@ export function isSparkBox(width: number, height: number): boolean {
  * number format, and the band-label density.
  * @param height The plot box's height in px — pays for the tick count and the
  * band-axis row.
- * @param tickCap The density-resolved tick ceiling (`CHART_METRICS[size]`), so
- * space can take ticks away but never add past the density step.
+ * @param tickCap The tick ceiling (`TICK_TARGET`), so space can take ticks
+ * away but never add past it.
  * @param fill The frame fills its container (`aspectRatio={false}`), so the
  * measured `height` is the remainder the chart's own chrome leaves — a value
  * every chrome decision perturbs. Spark dropping the header and legend (or the

@@ -3,9 +3,9 @@
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { k } from '../../recipes/kata/sparkline'
+import { k, type scale } from '../../recipes/kata/sparkline'
 import type { AccessibleName } from '../../types'
 import { SPARKLINE_METRICS } from './sparkline-constants'
 import { type SparklineGeometry, sparklineGeometry } from './sparkline-geometry'
@@ -42,7 +42,7 @@ export type SparklineProps = AccessibleName & {
 	 * is 3:1 (72×24, 96×32, 120×40), so each step is the same drawing at a
 	 * different size.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Box width in px. With `width` or `height`, the box has a fixed size and
 	 * does not follow the density. The other side is then 96 or 32.

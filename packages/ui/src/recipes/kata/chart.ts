@@ -5,8 +5,11 @@
  * chrome: the axis title, the tick labels, the marker stroke, the focus ring,
  * and the spark posture.
  */
+
+import { defineScale } from '../../core/density'
 import { mode } from '../../core/recipe'
 import { iro, kokkaku, type SeriesSlot, sen, zu } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 
@@ -81,3 +84,6 @@ export const k = {
 	motion,
 	skeleton: kokkaku.chart,
 } as const
+
+/** The size scale of {@link ChartSkeleton}: the steps of the block height that it takes with no ratio. */
+export const skeletonScale = defineScale(dan.size.chart)

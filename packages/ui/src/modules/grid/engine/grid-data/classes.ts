@@ -1,6 +1,7 @@
 import { cn } from '../../../../core'
-import type { DensityStep } from '../../../../core/density'
+import type { ScaleStep } from '../../../../core/density'
 import { k } from '../../../../recipes/kata/grid'
+import type { scale } from '../../../../recipes/kata/table'
 
 /**
  * The density step of the table under {@link GridDataProps.condensed}. The
@@ -12,7 +13,10 @@ import { k } from '../../../../recipes/kata/grid'
  *
  * @internal
  */
-export function resolveStep(condensed: boolean, size: DensityStep | undefined) {
+export function resolveStep(
+	condensed: boolean,
+	size: ScaleStep<typeof scale> | undefined,
+): ScaleStep<typeof scale> | undefined {
 	return condensed ? 'sm' : size
 }
 

@@ -14,6 +14,7 @@ import { Toolbar, ToolbarGroup } from '../../../components/toolbar'
 import { ChatPrompt } from '../../../modules/chat'
 import { Dashboard, DashboardTile } from '../../../modules/dashboard'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import { Box } from '../../../structure/box'
 import { baseline, rows } from '../../a11y/cases'
 import { present, renderUI } from '../../helpers'
 import { overlappingHitAreas } from './helpers/geometry-invariants'
@@ -111,22 +112,24 @@ const packed: readonly { name: string; element: ReactElement }[] = [
 			/>
 		),
 	})),
-	...(['xs', 'sm', 'md'] as const).map((size) => ({
-		name: `grid cell editor, ${size}`,
+	// The grid has no `xs` step, so the `xs` case puts the grid in an `xs` scope.
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `grid cell editor, ${step}`,
 		element: (
-			<Grid
-				aria-label="People"
-				size={size}
-				columns={columns}
-				rows={people.slice(0, 2)}
-				getKey={(row) => row.id}
-				editable={{
-					session: 'managed',
-					scope: 'cell',
-					defaultCell: { rowKey: 1, columnId: 'name' },
-					onCommit: noop,
-				}}
-			/>
+			<Box density={step}>
+				<Grid
+					aria-label="People"
+					columns={columns}
+					rows={people.slice(0, 2)}
+					getKey={(row) => row.id}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						defaultCell: { rowKey: 1, columnId: 'name' },
+						onCommit: noop,
+					}}
+				/>
+			</Box>
 		),
 	})),
 	{

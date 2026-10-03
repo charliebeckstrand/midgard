@@ -1,3 +1,4 @@
+import { defineScale } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, kokkaku } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -49,6 +50,16 @@ export const headingRamp = {
  * scope.
  */
 export const titleRamp = headingRamp[4]
+
+/** The size scale of {@link Heading}: the steps at which a level ramp renders a value of its own. */
+export const scale = defineScale(
+	headingRamp[1],
+	headingRamp[2],
+	headingRamp[3],
+	headingRamp[4],
+	headingRamp[5],
+	headingRamp[6],
+)
 
 /**
  * Heading font weight for a `level`. Used by heading-like elements that don't

@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
-import { type HeadingLevel, headingRamp, k } from '../../recipes/kata/heading'
+import { type HeadingLevel, headingRamp, k, type scale } from '../../recipes/kata/heading'
 
 export type { HeadingLevel }
 
@@ -15,7 +15,7 @@ export type HeadingProps = {
 	 * A step makes the heading a density scope. The level sets the natural size
 	 * at `md`, and each step moves it one rung of the type scale.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 } & Omit<ComponentProps<'h1'>, 'className'>
 

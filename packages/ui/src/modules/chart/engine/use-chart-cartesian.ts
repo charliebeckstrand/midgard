@@ -1,10 +1,9 @@
 'use client'
 
 import { type RefObject, useMemo } from 'react'
-import { cn, toInnerStep } from '../../../core'
+import { cn } from '../../../core'
 import type { FrameReserve, PlotFrameRef } from '../../../hooks'
 import { useStableValue } from '../../../hooks/use-stable-value'
-import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
@@ -26,7 +25,7 @@ import {
 	seriesMetas,
 } from './chart-cartesian/series'
 import { stackModeOf } from './chart-cartesian/stack'
-import { CHART_METRICS, GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH } from './chart-constants'
+import { GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH, TICK_TARGET } from './chart-constants'
 import { chartFrameLayout, frameFills } from './chart-frame/sizing'
 import {
 	type BandLabel,
@@ -61,7 +60,6 @@ export type CartesianData<T> = Pick<
 	CartesianChartProps<T>,
 	| 'data'
 	| 'series'
-	| 'size'
 	| 'width'
 	| 'height'
 	| 'aspectRatio'
@@ -372,7 +370,7 @@ export function useChartCartesian<T>(
 	props: CartesianData<T>,
 	config: CartesianConfig<T>,
 ): CartesianChart {
-	const { data, series, size, width, height, aspectRatio = '16/9' } = props
+	const { data, series, width, height, aspectRatio = '16/9' } = props
 
 	// The legend prop resolves to its placement / show value and the inert flag.
 	// The hook reads the value, and the legend reads the flag.
@@ -402,15 +400,11 @@ export function useChartCartesian<T>(
 		[timeAxis, xKey, data],
 	)
 
-	const resolvedSize = toInnerStep(useDensityStep(size))
-
 	// The band axis writes dates in the ambient locale's field order, and a time
 	// axis floors its week ticks on that locale's first weekday. Outside a
 	// `<LocaleProvider>` this is `undefined`, which both fall back to the runtime
 	// locale on.
 	const { locale } = useLocale()
-
-	const metrics = CHART_METRICS[resolvedSize]
 
 	// A live ratio carries on the figure so a definite-height parent clamps the
 	// whole chart (the box-law); a side legend instead keeps the ratio on the plot
@@ -440,7 +434,7 @@ export function useChartCartesian<T>(
 		aside,
 		aspect: outerAspect,
 		chrome: cartesianChrome(props, legend),
-		tickTarget: metrics.tickTarget,
+		tickTarget: TICK_TARGET,
 	})
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps

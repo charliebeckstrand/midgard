@@ -26,9 +26,7 @@ export const gap = {
 	/** The gap of a badge. */
 	badge: 'density-gap-[0.5,0.75,1,1.25,1.25]',
 	/** The gap of loading dots. */
-	dots: 'density-gap-[0.5,1,1.5,2,2.5]',
-	/** The gap of loading dots in a button. */
-	dotsInButton: '[&:is([data-variant]>*)]:density-gap-[0.5,1,1.5,2,2]',
+	dots: 'density-gap-[0.5,1,1.5,2,2]',
 	/** The gap of a rating skeleton. */
 	rating: 'density-gap-[0.5,0.5,1]',
 } as const

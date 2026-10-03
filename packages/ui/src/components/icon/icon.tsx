@@ -1,7 +1,7 @@
 import { type CSSProperties, cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/icon'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/icon'
 
 /** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {
@@ -21,7 +21,7 @@ export type IconProps = {
 	 * it is a scope one step below its control, so an icon with no `size` takes
 	 * that step.
 	 */
-	size?: DensityStep | number
+	size?: ScaleStep<typeof scale> | number
 	className?: string
 	/**
 	 * Accessible name for a meaningful icon. When set, the icon is exposed to

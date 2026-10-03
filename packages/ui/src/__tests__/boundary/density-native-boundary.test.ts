@@ -201,8 +201,6 @@ describe('density after a pseudo-element', () => {
 
 const STEP_READERS = [
 	'components/calendar/calendar.tsx',
-	'modules/chart/engine/use-chart-cartesian.ts',
-	'modules/chart/scatter-chart/scatter-chart.tsx',
 	'modules/grid/grid-data.tsx',
 	'primitives/density/density.tsx',
 	'primitives/density/index.ts',

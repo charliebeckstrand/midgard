@@ -5,21 +5,12 @@
  */
 
 export const size = {
-	/** An icon. `shaku.iconSize` holds the same steps. */
+	/** An icon and a loading spinner. `shaku.iconSize` holds the same steps. */
 	icon: 'density-size-[3,4,5,6,6]',
 	/** An icon in the icon slot of a host. */
 	iconSlot: '*:data-[slot=icon]:density-size-[3,4,5,6,6]',
-	/** A spinner in a button: the icon size. */
-	iconInButton: '[&:is([data-variant]>*)]:density-size-[3,4,5,6,6]',
-	/** A spinner in a sidebar item: the icon size. */
-	iconInSidebarItem:
-		'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[3,4,5,6,6]',
-	/** A loading spinner. */
-	spinner: 'density-size-[3,4,5,6,8]',
 	/** A loading dot. */
-	dot: 'density-size-[1,1.5,2,2.5,3]',
-	/** A loading dot in a button. */
-	dotInButton: '[&:is([data-variant]>*>*)]:density-size-[1,1.5,2,2.5,2.5]',
+	dot: 'density-size-[1,1.5,2,2.5,2.5]',
 	/** An avatar in a sidebar item. */
 	avatarInSidebarItem:
 		'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[5,6,7]',

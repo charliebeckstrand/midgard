@@ -7,7 +7,7 @@
  * palette wired through `basePalette`.
  */
 
-import type { DensityStep } from '../../core/density'
+import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
@@ -81,8 +81,18 @@ export const k = defineRecipe(
 	},
 )
 
+/** The size scale of {@link Badge}: the steps of its text, gap, padding, and skeleton box. */
+export const scale = defineScale(
+	dan.text.chip,
+	dan.gap.badge,
+	dan.space.badgeX,
+	dan.space.badgePillX,
+	dan.size.badge,
+	dan.size.badgeWidth,
+)
+
 /** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `radius`) and the `size` step, for consumers composing custom slots. */
 export type BadgeVariants = VariantProps<typeof k> & {
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 }

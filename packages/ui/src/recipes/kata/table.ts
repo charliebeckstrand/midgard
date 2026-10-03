@@ -8,6 +8,7 @@
  * context, and the family renders in RSC. `head`, `row`, and `empty` are
  * static slots.
  */
+import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
 import { iro, ji, sen } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -96,3 +97,6 @@ export const k = {
 	projection,
 	empty: ['text-center', text.muted],
 }
+
+/** The size scale of {@link Table}: the steps of its cell padding. */
+export const scale = defineScale(dan.space.cellX, dan.space.cellY)

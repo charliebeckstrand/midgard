@@ -11,4 +11,7 @@ export type BadgeSkeletonProps = SkeletonProps<NonNullable<BadgeVariants['size']
  * anywhere a badge can go, a line of text included. A `div` there would be invalid inside a
  * `<p>` and break hydration of a server-rendered tree.
  */
-export const BadgeSkeleton = createSkeleton(k.skeleton, 'BadgeSkeleton')
+export const BadgeSkeleton = createSkeleton<NonNullable<BadgeVariants['size']>>(
+	k.skeleton,
+	'BadgeSkeleton',
+)

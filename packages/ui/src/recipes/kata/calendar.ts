@@ -5,6 +5,7 @@
  * stepped classes; the `grid`, `day` (with active/range-edge state classes),
  * and `skeleton` slots are static.
  */
+import { defineScale } from '../../core/density'
 import { iro, ji, kokkaku, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -64,3 +65,11 @@ export const k = {
 	},
 	skeleton: kokkaku.calendar,
 } as const
+
+/** The size scale of {@link Calendar}: the steps of its width, padding, gap, and weekday text. */
+export const scale = defineScale(
+	dan.size.calendarWidth,
+	dan.space.calendarHeaderBottom,
+	dan.gap.default,
+	dan.text.small,
+)
