@@ -21,13 +21,19 @@ export type TextProps = TextVariants & {
  * set, or a composed element via `render` (e.g. `render={<Link />}`) to wire
  * the app router link at the call site. Static leaf: renders in React Server
  * Components. Compose `<TextSkeleton>` in the loading tree for a placeholder.
+ *
+ * @remarks
+ * Without `size`, the text takes the size of its parent. An explicit `size`
+ * makes the text a density scope, so the text and its children, such as a
+ * Code or a Kbd, take that step.
  */
 export function Text({ as = 'p', tone, color, size, className, children, ...props }: TextProps) {
 	return (
 		<PolymorphicStatic
 			as={as}
 			data-slot="text"
-			className={cn(k({ tone, color, size }), className)}
+			data-density={size}
+			className={cn(k({ tone, color }), size && k.sized, className)}
 			{...props}
 		>
 			{children}

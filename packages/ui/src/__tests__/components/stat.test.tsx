@@ -23,10 +23,10 @@ describe('Stat skeleton variants', () => {
 })
 
 describe('StatValue size resolution', () => {
-	it('renders with the explicit size prop applied', () => {
+	it('writes an explicit size as a density scope', () => {
 		const { container } = renderUI(<StatValue size="sm">100</StatValue>)
 
-		expect(bySlot(container, 'stat-value')).toHaveClass('text-2xl')
+		expect(bySlot(container, 'stat-value')).toHaveAttribute('data-density', 'sm')
 	})
 
 	it('accepts trend on StatDelta', () => {

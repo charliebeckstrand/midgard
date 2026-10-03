@@ -8,8 +8,8 @@ import { StatValueSkeleton } from './stat-value-skeleton'
 /** Props for {@link StatSkeleton}: the value size, the optional slots, and `className`. */
 export type StatSkeletonProps = {
 	/**
-	 * The `size` of the `StatValue` it stands in for.
-	 * @defaultValue 'md'
+	 * The `size` of the `StatValue` it stands in for. Without it, the value
+	 * line takes the step of the nearest density scope.
 	 */
 	size?: NonNullable<StatValueVariants['size']>
 	/**

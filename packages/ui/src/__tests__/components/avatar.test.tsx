@@ -144,20 +144,18 @@ describe('AvatarGroup', () => {
 		).not.toBeNull()
 	})
 
-	it.each([
-		['sm', 'size-2'],
-		['md', 'size-2.5'],
-		['lg', 'size-3'],
-	] as const)('projects the %s size onto a child status dot', (size, dot) => {
+	it.each(['sm', 'md', 'lg'] as const)('writes the %s size as the scope of its avatars', (size) => {
 		const { container } = renderUI(
 			<AvatarGroup size={size}>
 				<Avatar initials="A" status="active" />
 			</AvatarGroup>,
 		)
 
-		// The child passes its own md size to the dot, so the group must override it.
-		expect(bySlot(container, 'avatar-group')).toHaveClass(`**:data-[slot=status-dot]:${dot}`)
+		expect(bySlot(container, 'avatar-group')).toHaveAttribute('data-density', size)
 
-		expect(bySlot(container, 'status-dot')).toBeInTheDocument()
+		// The child and its dot write no scope, so both take the step of the group.
+		expect(bySlot(container, 'avatar-with-status')).not.toHaveAttribute('data-density')
+
+		expect(bySlot(container, 'status-dot')).not.toHaveAttribute('data-density')
 	})
 })

@@ -25,7 +25,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `omote` 面 | Generic surface fills and chromes (`bg`, `blur`, `surface`, `popover`, `glass`, `backdrop`, `content`, `skeleton`). |
 | `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `tint`, `active`, and the `::before` washes `tintBefore` and `glassItemBefore`) plus the kata-shaped `item` / `nav` composites. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
-| `shaku` 尺 | Dimension scales per surface (`icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
+| `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |

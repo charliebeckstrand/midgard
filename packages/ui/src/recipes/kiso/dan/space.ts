@@ -125,6 +125,10 @@ export const space = {
 	termTopStacked: '[&>dt]:density-pt-[3,4,5]',
 	/** The top padding of a detail in a stacked description list. */
 	detailTopStacked: '[&>dd]:density-pt-[0.5,1,1.5]',
+	/** The inline padding of an inline code mark and a key. */
+	markX: 'density-px-[1,1.5,2]',
+	/** The block padding of an inline code mark and a key. */
+	markY: 'density-py-[0.5,1,1.5]',
 	/** The inline padding of a key in a button. */
 	kbdXInButton: '[&:is([data-variant]>*)]:density-px-[1,1.5,1.5]',
 	/** The block padding of a key in a button. */

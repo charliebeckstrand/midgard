@@ -7,16 +7,15 @@ export type CodeProps = ComponentProps<'code'> & {
 	size?: CodeVariants['size']
 }
 
-// `size` resolves from the prop or the recipe default only. Inline Code stays
-// density-inert: it follows no density scope.
 /**
- * Inline monospace `<code>` span; `size` selects the type scale, resolving
- * against the recipe default when omitted.
+ * Inline monospace `<code>` span. Without `size`, the mark takes the step of
+ * the nearest density scope. An explicit `size` makes the mark a density scope.
  *
  * @remarks
- * A pure server-renderable display leaf: it stays density-inert and reads no
- * context, so it carries no `'use client'` boundary.
+ * A pure server-renderable display leaf: it reads no context, so it carries no
+ * `'use client'` boundary. The kata writes each step in a stepped `density-*`
+ * utility.
  */
 export function Code({ className, size, ...props }: CodeProps) {
-	return <code data-slot="code" className={cn(k({ size }), className)} {...props} />
+	return <code data-slot="code" data-density={size} className={cn(k(), className)} {...props} />
 }

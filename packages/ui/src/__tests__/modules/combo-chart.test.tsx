@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ComboChart } from '../../modules/chart/combo-chart'
+import { dan } from '../../recipes/kiso/dan'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { subpathCount } from '../helpers/geometry/svg-path'
 
@@ -132,11 +133,11 @@ describe('ComboChart', () => {
 
 		// Bar wears a rect swatch, area and line the stroke-shaped one. The swatch
 		// is the second span, because the hit-target sibling of the Button leads.
-		expect(items[0]?.querySelector('span:nth-child(2)')?.className).toContain('size-2.5')
+		expect(items[0]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatch)
 
-		expect(items[1]?.querySelector('span:nth-child(2)')?.className).toContain('w-3')
+		expect(items[1]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatchLine)
 
-		expect(items[2]?.querySelector('span:nth-child(2)')?.className).toContain('w-3')
+		expect(items[2]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatchLine)
 	})
 
 	it('reads an area series where the pointer sits inside its fill', () => {

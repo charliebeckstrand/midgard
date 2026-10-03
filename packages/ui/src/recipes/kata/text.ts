@@ -5,45 +5,51 @@
  * meaning-bearing axis. It is an emphasis ladder, not the feedback set
  * `severity` names on Alert and the Control cascade. `color` is a separate
  * literal-hue override authored inline with `mode()`. A consumer sets one or
- * the other — tone for emphasis, color for a bespoke tint. `size` steps the type scale (`xs`/`sm`/`md`/`lg` →
- * `text-xs`/`text-sm`/`text-base`/`text-lg`). It has no default, so an unset
- * size leaves Text at its inherited size and existing call sites are unchanged.
- * `xs` is the scale's own smallest step (`ji.size`), for a subordinate line set
- * under a `sm` one — a legend entry's trailing readout under its label.
+ * the other — tone for emphasis, color for a bespoke tint.
+ *
+ * `size` is a density step from `xs` to `lg` (`text-xs` to `text-lg`). The
+ * component writes it as a density scope, and `sized` gives the text the step
+ * of that scope. Without `size`, Text takes the size of its parent text, which
+ * follows the density of its scope. `xs` is for a subordinate line set under a
+ * `sm` one, such as the trailing readout of a legend entry under its label.
  */
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, kokkaku } from '../kiso'
+import { iro, kokkaku } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
-const { size } = ji
 
-export const k = defineRecipe({
-	tone: {
-		default: [...text.default],
-		primary: [...text.primary],
-		success: [...text.success],
-		warning: [...text.warning],
-		error: [...text.error],
-		muted: [...text.muted],
+export const k = defineRecipe(
+	{
+		tone: {
+			default: [...text.default],
+			primary: [...text.primary],
+			success: [...text.success],
+			warning: [...text.warning],
+			error: [...text.error],
+			muted: [...text.muted],
+		},
+		color: {
+			current: mode('text-current', 'dark:text-current'),
+			zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
+			red: mode('text-red-600', 'dark:text-red-500'),
+			amber: mode('text-amber-700', 'dark:text-amber-400'),
+			green: mode('text-green-700', 'dark:text-green-500'),
+			blue: mode('text-blue-600', 'dark:text-blue-500'),
+		},
+		defaults: { tone: 'default' },
+		// One line at the line height of each step of the text.
+		skeleton: { base: kokkaku.text.line, density: true as const },
 	},
-	color: {
-		current: mode('text-current', 'dark:text-current'),
-		zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
-		red: mode('text-red-600', 'dark:text-red-500'),
-		amber: mode('text-amber-700', 'dark:text-amber-400'),
-		green: mode('text-green-700', 'dark:text-green-500'),
-		blue: mode('text-blue-600', 'dark:text-blue-500'),
+	{
+		/** The text ramp of a Text with a `size`. */
+		sized: dan.text.chip,
 	},
-	size: {
-		xs: size.xs,
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-	},
-	defaults: { tone: 'default' },
-	// The base line, plus one line height for each step of `size`.
-	skeleton: { base: kokkaku.text.base, size: kokkaku.text.line },
-})
+)
 
-/** Recipe variant props for {@link Text} — the styling axes its kata exposes (`tone`, `color`, `size`), for consumers composing custom slots. */
-export type TextVariants = VariantProps<typeof k>
+/** The size scale of {@link Text}: the steps of its text. */
+export const scale = defineScale(dan.text.chip)
+
+/** Recipe variant props for {@link Text}: the `tone` and `color` axes of its kata, and the `size` step that the component writes as a density scope. */
+export type TextVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }

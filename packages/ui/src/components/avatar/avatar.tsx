@@ -22,11 +22,14 @@ export type AvatarProps = AvatarVariants & {
  * User image, initials, or fallback in a sized circle. Pair with `status` to
  * overlay a corner StatusDot. With no `src` and no `initials`, the circle is
  * empty, and an inner `role="img"` node carries `alt` as its name. Static
- * leaf: renders in React Server Components. `size` is explicit and passes
- * through to the StatusDot; compose `<AvatarSkeleton>` in the loading tree.
- * With no `size`, the avatar takes the `md` box at the rank below each density
- * step, so a parent that sizes its avatars with stepped classes, such as
- * SidebarItem, wins over it.
+ * leaf: renders in React Server Components. Compose `<AvatarSkeleton>` in the
+ * loading tree.
+ *
+ * @remarks
+ * Without `size`, the avatar takes the step of the nearest density scope. An
+ * explicit `size` makes the avatar a density scope, so the StatusDot takes the
+ * step of the avatar. A parent can size its avatars with more specific stepped
+ * classes, as SidebarItem does.
  */
 export function Avatar({
 	src,
@@ -40,8 +43,6 @@ export function Avatar({
 	className,
 	...props
 }: AvatarProps) {
-	const resolvedSize = size ?? 'md'
-
 	// With an image present the initials are a visual fallback; aria-hidden
 	// leaves the image's alt as the single accessible name.
 	const initialsHidden = !!src || !alt
@@ -80,8 +81,8 @@ export function Avatar({
 		return (
 			<span
 				data-slot="avatar"
-				data-size={size}
-				className={cn(k({ variant, color, size }), className)}
+				data-density={size}
+				className={cn(k({ variant, color }), className)}
 				{...props}
 			>
 				{content}
@@ -96,17 +97,14 @@ export function Avatar({
 	return (
 		<span
 			data-slot="avatar-with-status"
+			data-density={size}
 			className={cn('relative inline-flex size-fit', className)}
 			{...props}
 		>
-			<span data-slot="avatar" data-size={size} className={cn(k({ variant, color, size }))}>
+			<span data-slot="avatar" className={cn(k({ variant, color }))}>
 				{content}
 			</span>
-			<StatusDot
-				status={status}
-				size={resolvedSize}
-				className={cn('absolute top-0 right-0', k.statusRing)}
-			/>
+			<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
 			{/* Color alone conveys status; the sr-only span names it for assistive technology. */}
 			<span className="sr-only">{statusLabel ?? capitalizeFirst(status)}</span>
 		</span>
