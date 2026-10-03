@@ -2,10 +2,9 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
-import { headingRamp, k } from '../../recipes/kata/heading'
+import { type HeadingLevel, headingRamp, k } from '../../recipes/kata/heading'
 
-/** Semantic heading level, `1`-`6`, selecting the rendered `h1`-`h6` tag. */
-export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
+export type { HeadingLevel }
 
 /** Props for {@link Heading}: `level`, the density `size` step, plus native heading attributes. */
 export type HeadingProps = {

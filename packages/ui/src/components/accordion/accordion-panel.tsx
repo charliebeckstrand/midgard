@@ -21,8 +21,9 @@ export type AccordionPanelProps = {
  * height/opacity via `AnimatePresence`, honoring reduced-motion.
  *
  * @remarks
- * Carries `role="region"` for assistive tech. `className` lands on the inner body
- * element, not the animated wrapper.
+ * Carries `role="region"`, named by its header button, unless the accordion
+ * sets `region={false}`. `className` lands on the inner body element, not the
+ * animated wrapper.
  *
  * Under the accordion's default `mount="active"` the panel is mounted only while
  * open, so reopening resets its state. `always` and `lazy` instead hold it in
@@ -35,7 +36,11 @@ export type AccordionPanelProps = {
 export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	const { value, open, panelProps } = useAccordionItem()
 
-	const { mount, onOpenComplete } = useAccordion()
+	const { mount, region, onOpenComplete } = useAccordion()
+
+	// Without the region, the panel keeps only the id that its header button's
+	// `aria-controls` points to.
+	const a11yProps = region ? { ...panelProps, role: 'region' } : { id: panelProps.id }
 
 	const hold = useMountHold(open, mount, { defer: true })
 
@@ -48,13 +53,7 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 
 	// One shape across every branch below; only how it animates differs.
 	const panel = (motionProps: object) => (
-		<motion.div
-			data-slot="accordion-panel"
-			{...panelProps}
-			role="region"
-			{...motionProps}
-			className={cn(k.panel)}
-		>
+		<motion.div data-slot="accordion-panel" {...a11yProps} {...motionProps} className={cn(k.panel)}>
 			<div className={cn(k.body, className)}>{children}</div>
 		</motion.div>
 	)

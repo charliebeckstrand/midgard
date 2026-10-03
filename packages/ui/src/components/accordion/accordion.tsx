@@ -36,6 +36,19 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 */
 		mount?: Mount
 		/**
+		 * Whether each open panel is a `region` landmark, named by its header button.
+		 *
+		 * @remarks
+		 * A region helps a short accordion, where the panels are the main parts of
+		 * the page. Each panel adds one landmark, so set it to `false` for an
+		 * accordion of more than about six panels, or for one inside a page that has
+		 * its own landmarks for these parts. The panels then have no role and no name,
+		 * and the header buttons keep their `aria-controls`.
+		 *
+		 * @defaultValue true
+		 */
+		region?: boolean
+		/**
 		 * Fires once a section has finished opening and is at rest, with the `value` of the
 		 * section that landed.
 		 *
@@ -75,6 +88,7 @@ export function Accordion(props: AccordionProps) {
 	const {
 		variant,
 		mount = 'active',
+		region = true,
 		onOpenComplete,
 		className,
 		children,
@@ -108,12 +122,13 @@ export function Accordion(props: AccordionProps) {
 		() => ({
 			variant: variant ?? 'separated',
 			mount,
+			region,
 			openStore,
 			toggle,
 			onOpenComplete: reportOpenComplete,
 			onTriggerKeyDown: handleTriggerKeyDown,
 		}),
-		[variant, mount, openStore, toggle, reportOpenComplete, handleTriggerKeyDown],
+		[variant, mount, region, openStore, toggle, reportOpenComplete, handleTriggerKeyDown],
 	)
 
 	return (

@@ -66,20 +66,20 @@ export function DashboardLayout({ filters, onOpenChange, children }: DashboardLa
 			>
 				{filters && (
 					<>
-						{/* Filters on desktop */}
-						<aside aria-label="Filters" data-slot="filters" className="shrink-0 max-lg:hidden">
-							<Stack>{filters}</Stack>
-						</aside>
+						{/* One filter landmark at each width: the filters from `lg` up, and the
+						    trigger of the drawer below `lg`. The trigger is then in a landmark. */}
+						<aside aria-label="Filters" data-slot="filters" className="shrink-0">
+							<Stack className="max-lg:hidden">{filters}</Stack>
 
-						{/* Filter trigger on mobile */}
-						<Box className="shrink-0 lg:hidden">
-							<DrawerTrigger open={open} onClick={() => setOpen(true)}>
-								<Button type="button" variant="outline">
-									<Icon icon={<SlidersHorizontal />} />
-									Filters
-								</Button>
-							</DrawerTrigger>
-						</Box>
+							<Box className="lg:hidden">
+								<DrawerTrigger open={open} onClick={() => setOpen(true)}>
+									<Button type="button" variant="outline">
+										<Icon icon={<SlidersHorizontal />} />
+										Filters
+									</Button>
+								</DrawerTrigger>
+							</Box>
+						</aside>
 
 						{/* Filter drawer on mobile */}
 						<Drawer open={open} onOpenChange={setOpen}>

@@ -13,7 +13,7 @@ import {
 } from '../../primitives/panel'
 import { k } from '../../recipes/kata/drawer'
 
-/** Props for {@link DrawerTitle} (`<h2>` attributes). */
+/** Props for {@link DrawerTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type DrawerTitleProps = PanelTitleProps
 /** Props for {@link DrawerDescription} (`<p>` attributes). */
 export type DrawerDescriptionProps = PanelDescriptionProps
@@ -58,6 +58,6 @@ export {
 	 */
 	PanelTrigger as DrawerTrigger,
 	type PanelTriggerProps as DrawerTriggerProps,
-	/** `<h2>` heading; registers as the drawer's `aria-labelledby` target with density-scaled type. */
+	/** `h{level}` heading, `<h2>` by default; registers as the drawer's `aria-labelledby` target with density-scaled type. */
 	Title as DrawerTitle,
 }

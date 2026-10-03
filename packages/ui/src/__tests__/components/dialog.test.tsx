@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Card } from '../../components/card'
 import { Dialog, DialogClose, DialogHeader, DialogTitle } from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
+import { headingWeight } from '../../recipes/kata/heading'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Dialog', () => {
@@ -19,6 +20,31 @@ describe('Dialog', () => {
 		expect(el).toHaveAttribute('aria-modal', 'true')
 
 		expect(screen.getByText('Dialog content')).toBeInTheDocument()
+	})
+
+	it('renders the title as an h2, or at the level that it is given', () => {
+		const { unmount } = renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogTitle>Modal title</DialogTitle>
+			</Dialog>,
+		)
+
+		expect(screen.getByRole('heading', { level: 2, name: 'Modal title' })).toBeInTheDocument()
+
+		unmount()
+
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogTitle level={4}>Nested title</DialogTitle>
+			</Dialog>,
+		)
+
+		const nested = screen.getByRole('heading', { level: 4, name: 'Nested title' })
+
+		expect(nested).toHaveAttribute('data-slot', 'dialog-title')
+
+		// The weight follows the level, as on `Heading`.
+		expect(nested).toHaveClass(headingWeight(4))
 	})
 
 	it('does not render when closed', () => {

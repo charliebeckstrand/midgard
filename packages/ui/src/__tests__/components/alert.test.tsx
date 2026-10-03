@@ -5,6 +5,19 @@ import { Button } from '../../components/button'
 import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
+	it('renders the title in a div with no titleLevel, and as a heading with one', () => {
+		renderUI(
+			<>
+				<Alert title="Plain" />
+				<Alert severity="error" title="Payment failed" titleLevel={2} />
+			</>,
+		)
+
+		expect(screen.getByText('Plain').tagName).toBe('DIV')
+
+		expect(screen.getByRole('heading', { level: 2, name: 'Payment failed' })).toBeInTheDocument()
+	})
+
 	it('gives a button in its actions the soft variant in its own color', () => {
 		renderUI(
 			<>

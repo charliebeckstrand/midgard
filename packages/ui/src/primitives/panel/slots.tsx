@@ -48,17 +48,19 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		content: contentClass = k.content,
 	} = slots ?? {}
 
-	function Title({ className, id, ...props }: PanelTitleProps) {
+	function Title({ className, id, level = 2, ...props }: PanelTitleProps) {
 		const { titleId, registerTitle } = usePanelA11y()
 		useEffect(() => registerTitle?.(id), [registerTitle, id])
 
+		const Heading = `h${level}` as const
+
 		return (
-			<h2
+			<Heading
 				id={id ?? titleId}
 				data-slot={`${slotPrefix}-title`}
-				// The weight of level 2 and the title size come from the heading scale. The
-				// size follows the nearest density scope.
-				className={cn(titleClass, headingWeight(2), titleRamp, className)}
+				// The weight of the level and the title size come from the heading scale.
+				// The size follows the nearest density scope.
+				className={cn(titleClass, headingWeight(level), titleRamp, className)}
 				{...props}
 			/>
 		)

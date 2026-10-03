@@ -14,6 +14,7 @@ import { useControllableFlag } from '../../hooks'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsContext } from '../button/context'
+import type { HeadingLevel } from '../heading'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
 
@@ -58,6 +59,12 @@ export type AlertProps = AlertVariants & {
 	/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
 	icon?: ReactElement
 	title?: ReactNode
+	/**
+	 * Heading level of the `title`. Set it when the alert heads a part of the page,
+	 * so that a screen reader can find the title in the heading list. Omit it to
+	 * render the title in a `<div>`. The look does not change with the level.
+	 */
+	titleLevel?: HeadingLevel
 	description?: ReactNode
 	/**
 	 * Controls under the text. A button in them with no `variant` or `color`
@@ -115,6 +122,7 @@ function resolveAlertPresentation(
 function AlertContent({
 	resolvedIcon,
 	title,
+	titleLevel,
 	description,
 	actions,
 	actionDefaults,
@@ -122,11 +130,16 @@ function AlertContent({
 }: {
 	resolvedIcon: ReactElement | undefined
 	title: ReactNode
+	titleLevel: HeadingLevel | undefined
 	description: ReactNode
 	actions: ReactNode
 	actionDefaults: ButtonDefaults
 	children: ReactNode
 }) {
+	// Tailwind preflight resets the font and the margin of a heading, so a heading
+	// title looks the same as a `<div>` title.
+	const Title = titleLevel === undefined ? 'div' : (`h${titleLevel}` as const)
+
 	return (
 		<div
 			className={cn(
@@ -136,7 +149,7 @@ function AlertContent({
 		>
 			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
 
-			{title && <div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>}
+			{title && <Title className={cn(k.title, resolvedIcon && 'self-center')}>{title}</Title>}
 
 			{description && <div className={cn(k.description)}>{description}</div>}
 
@@ -179,6 +192,7 @@ export function Alert({
 	color,
 	icon,
 	title,
+	titleLevel,
 	description,
 	actions,
 	closable,
@@ -261,6 +275,7 @@ export function Alert({
 			<AlertContent
 				resolvedIcon={resolvedIcon}
 				title={title}
+				titleLevel={titleLevel}
 				description={description}
 				actions={actions}
 				actionDefaults={
