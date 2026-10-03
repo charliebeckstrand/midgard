@@ -30,9 +30,10 @@ type TagInputBadgeProps = {
  *
  * @remarks
  * The chip sits in the prefix scope of the host {@link Input}, one step below
- * the control, so it takes that step with no `size`. The chip is keyboard-focusable and removes on
- * Backspace/Delete; its remove button is held out of the tab order (`tabIndex=-1`)
- * to avoid a redundant stop.
+ * the control, so it takes that step with no `size`. The remove button is the
+ * one Tab stop of the chip. It has the name "Remove <tag>", and it removes the
+ * tag on a click, Enter, Space, Backspace, or Delete. A disabled chip has no
+ * remove button and no Tab stop.
  *
  * @internal
  */
@@ -51,27 +52,21 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 						aria-label={`Remove ${label}`}
 						variant="bare"
 						onMouseDown={(event) => event.preventDefault()}
-						tabIndex={-1}
 						onClick={(event) => {
 							event.stopPropagation()
 
 							onRemove()
+						}}
+						onKeyDown={(event) => {
+							if (event.key === 'Backspace' || event.key === 'Delete') {
+								onRemove()
+							}
 						}}
 					>
 						<Icon icon={<X />} />
 					</Button>
 				)
 			}
-			// Disabled badges drop out of the tab order and ignore removal keys;
-			// the remove button above is already suppressed.
-			tabIndex={disabled ? undefined : 0}
-			onKeyDown={(event) => {
-				if (disabled) return
-
-				if (event.key === 'Backspace' || event.key === 'Delete') {
-					onRemove()
-				}
-			}}
 		>
 			<span className="truncate">{label}</span>
 		</Badge>
