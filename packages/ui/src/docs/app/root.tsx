@@ -1,5 +1,5 @@
-import { type ComponentType, type ReactNode, useEffect } from 'react'
-import { Links, Meta, Scripts, ScrollRestoration } from 'react-router'
+import type { ComponentType, ReactNode } from 'react'
+import { Links, Meta, Scripts } from 'react-router'
 import fontUrl from '../../fonts/google-sans-flex.woff2?url'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
@@ -32,31 +32,6 @@ export const links = () => [
 	{ rel: 'stylesheet', href: appCss },
 ]
 
-/**
- * Keeps the scroll restoration mode of the history `auto`, so the browser
- * always restores the position of a history entry itself, as react.dev does.
- * `<ScrollRestoration>` sets the mode to `manual` when it mounts and when a page
- * shows from the back-forward cache. This effect and its listener run after the
- * ones of `<ScrollRestoration>`, because the component is after it. The router
- * still moves the page to the top on a page change and restores the kept
- * position on Back and Forward.
- */
-function AutoScrollRestoration() {
-	useEffect(() => {
-		const auto = () => {
-			window.history.scrollRestoration = 'auto'
-		}
-
-		auto()
-
-		window.addEventListener('pageshow', auto)
-
-		return () => window.removeEventListener('pageshow', auto)
-	}, [])
-
-	return null
-}
-
 export function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" className="antialiased" suppressHydrationWarning>
@@ -75,8 +50,6 @@ export function Layout({ children }: { children: ReactNode }) {
 			<body className="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
 				{children}
 				<AxesReadsScript />
-				<ScrollRestoration />
-				<AutoScrollRestoration />
 				<Scripts />
 			</body>
 		</html>
