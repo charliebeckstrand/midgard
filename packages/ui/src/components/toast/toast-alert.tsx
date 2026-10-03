@@ -62,7 +62,9 @@ type ToastAlertProps = {
  * independently (source-counted), and unmount releases this toast's holds. A
  * node removed under a stationary pointer or held focus gets no
  * `mouseleave`/`blur`, and an unreleased hold would freeze auto-dismiss for
- * every later toast. Not exported; rendered by {@link Toast}.
+ * every later toast. The outer element is an `li` of the toast list, and the
+ * live `role` stays on the inner element, because an `li` takes no live role.
+ * Not exported; rendered by {@link Toast}.
  * @internal
  */
 export function ToastAlert({
@@ -148,7 +150,7 @@ export function ToastAlert({
 	}
 
 	return (
-		<motion.div
+		<motion.li
 			layout
 			style={{
 				...(positionTop ? { paddingBottom: k.gap } : { paddingTop: k.gap }),
@@ -191,6 +193,6 @@ export function ToastAlert({
 					className={cn(k.card)}
 				/>
 			</motion.div>
-		</motion.div>
+		</motion.li>
 	)
 }
