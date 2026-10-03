@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import type { Project } from 'ts-morph'
 import type { ComponentApi } from '../../docs/engine/api-reference'
 import { extractBarrel, openProject } from '../../docs/engine/api-reference/engine/build-api'
+import { settled } from './settled'
 
 // The docs plugin serves no API data in a test run, so `<Axes>` renders nothing
 // there. The page gates read this module instead, and give each page that uses
@@ -13,13 +14,6 @@ const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 // One project for each worker. It opens on the first page that needs it.
 let project: Project | undefined
-
-type Settled<T> = Promise<T> & { status: 'fulfilled'; value: T }
-
-/** A fulfilled promise that `use()` reads with no suspend. */
-function settled<T>(value: T): Settled<T> {
-	return Object.assign(Promise.resolve(value), { status: 'fulfilled' as const, value })
-}
 
 /**
  * The API data of the barrel that a page documents, for `DemoApiContext`. It

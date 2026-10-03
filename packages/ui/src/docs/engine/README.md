@@ -79,9 +79,8 @@ The run keeps the value nearest the default, so `xs` and `sm` keep `sm`. The
 picker of the playground offers the same values.
 
 The read takes the DOM and no layout, so a test run gives the same answer as
-the browser. The build also makes the first read of each `<Axes>`
-([`axes-prerender.tsx`](axes-prerender.tsx)). Thus the HTML of a page shows
-the axes and the values that the page shows after it hydrates. A text difference does not count, because the content can show
+the browser. The build also makes the first read of each `<Axes>`, so the HTML of a page
+shows what the page shows after it hydrates. A text difference does not count, because the content can show
 the label. An inline `style` does not count either, because it carries the
 state of the run, such as a fill that springs to its value. The step that an
 instance shows does not count, so a Calendar at
@@ -152,10 +151,8 @@ The entry of the server ([`entry.server.tsx`](../app/entry.server.tsx))
 renders each page in full, with no streamed Suspense boundaries. Thus the
 first layout has the full height of the page.
 
-A page with `<Axes>` renders two times, because the prerender runs no effect.
-The server reads the instances of each `<Axes>` in the HTML of the first pass,
-in jsdom. The second pass starts from those reads, and the page carries them
-as JSON for the client entry. Thus the page does not change when it hydrates.
+A page with `<Axes>` renders two times, so that its HTML starts from the
+first read of each `<Axes>` ([`axes-prerender.tsx`](axes-prerender.tsx)).
 
 After the prerender, [`inline-styles.ts`](vite/inline-styles.ts) puts the
 styles of each page in a `<style>` in its HTML. Tailwind compiles the entry

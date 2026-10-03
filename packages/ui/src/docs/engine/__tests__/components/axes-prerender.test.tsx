@@ -1,11 +1,13 @@
 import { act } from 'react'
-import { hydrateRoot } from 'react-dom/client'
+import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { attach } from '../../../../__tests__/helpers/attach'
 import type { ComponentApi } from '../../api-reference'
 import type { Axis } from '../../axes'
 import { type AxesPrerender, AxesPrerenderContext, readPrerenderedAxes } from '../../axes-prerender'
 import { Axes, DemoApiContext } from '../../components/axes'
+import { settled } from '../helpers'
 
 const api: ComponentApi[] = [
 	{
@@ -16,11 +18,6 @@ const api: ComponentApi[] = [
 		],
 	},
 ]
-
-/** A fulfilled promise that `use()` reads with no suspend. */
-function settled<T>(value: T): Promise<T> {
-	return Object.assign(Promise.resolve(value), { status: 'fulfilled', value })
-}
 
 /** A page with one `Axes` of a note whose level changes only the heading tag. */
 function page(prerender: AxesPrerender) {
@@ -52,9 +49,9 @@ function prerender(): { html: string; reads: AxesPrerender } {
 
 	const first = document.createElement('div')
 
-	first.innerHTML = renderToString(page({ path: '/note', collect }))
+	first.innerHTML = renderToString(page({ collect }))
 
-	const reads = { path: '/note', reads: readPrerenderedAxes(first, collect) }
+	const reads = { reads: readPrerenderedAxes(first, collect) }
 
 	return { html: renderToString(page(reads)), reads }
 }
@@ -65,22 +62,16 @@ function titles(html: string): string[] {
 
 	root.innerHTML = html
 
-	return [...root.querySelectorAll('[data-slot="example"] h2, [data-slot="example"] h3')]
-		.map((heading) => heading.textContent ?? '')
-		.filter((title) => ['Playground', 'Level', 'Color'].includes(title))
+	return [...root.querySelectorAll('[data-slot="example"] [data-slot="heading"]')].map(
+		(heading) => heading.textContent ?? '',
+	)
 }
-
-afterEach(() => {
-	document.body.innerHTML = ''
-
-	vi.restoreAllMocks()
-})
 
 describe('Axes prerender', () => {
 	it('shows each axis in the first pass, as a render with no effects does', () => {
 		const collect = new Map<string, readonly Axis[]>()
 
-		const html = renderToString(page({ path: '/note', collect }))
+		const html = renderToString(page({ collect }))
 
 		expect(titles(html)).toEqual(['Playground', 'Color', 'Level'])
 
@@ -95,22 +86,30 @@ describe('Axes prerender', () => {
 		expect(Object.values(reads.reads ?? {})[0]?.unseen).toEqual(['level'])
 	})
 
-	it('hydrates the second pass with no change and no error', async () => {
+	it('hydrates the second pass with no mismatch and no change', () => {
 		const { html, reads } = prerender()
 
-		const container = document.body.appendChild(document.createElement('div'))
+		const container = attach(document.createElement('div'))
 
 		container.innerHTML = html
 
 		const before = container.innerHTML
 
-		const error = vi.spyOn(console, 'error')
+		const onRecoverableError = vi.fn()
 
-		await act(async () => {
-			hydrateRoot(container, page(reads))
+		const consoleError = vi.spyOn(console, 'error')
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, page(reads), { onRecoverableError })
 		})
 
-		expect(error).not.toHaveBeenCalled()
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
 
 		expect(container.innerHTML).toBe(before)
 	})

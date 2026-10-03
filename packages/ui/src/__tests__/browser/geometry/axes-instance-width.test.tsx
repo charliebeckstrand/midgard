@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import type { ComponentApi } from '../../../docs/engine/api-reference'
 import { Axes, DemoApiContext } from '../../../docs/engine/components/axes'
-import { renderUI, waitFor } from '../../helpers'
+import { renderUI, settled, waitFor } from '../../helpers'
 
 const api: ComponentApi[] = [
 	{
@@ -10,11 +10,6 @@ const api: ComponentApi[] = [
 		props: [{ name: 'variant', type: "'solid' | 'outline'", default: "'solid'" }],
 	},
 ]
-
-/** A fulfilled promise that `use()` reads with no suspend. */
-function settled<T>(value: T): Promise<T> {
-	return Object.assign(Promise.resolve(value), { status: 'fulfilled', value })
-}
 
 /**
  * A captioned axis instance with a fixed width and `max-w-full` fits a row that

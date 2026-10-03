@@ -19,19 +19,16 @@ async function render(app: ReactNode): Promise<string> {
 	return new Response(prelude).text()
 }
 
-// A page with `Axes` renders two times. The first pass gives the DOM that the
-// first read of each `Axes` takes, and the second pass starts from those
-// reads (`AxesPrerender`).
+// A page with `Axes` renders two times, so that its HTML starts from the
+// first read of each `Axes` (`AxesPrerender`).
 export default async function handleRequest(
 	request: Request,
 	status: number,
 	headers: Headers,
 	context: EntryContext,
 ) {
-	const path = new URL(request.url).pathname
-
 	// The router reads the data stream of the page in each render, and a stream
-	// can have one reader. Each pass gets its own branch.
+	// has one reader. Each pass gets its own branch.
 	const [first, second] = context.serverHandoffStream?.tee() ?? []
 
 	const page = (prerender: AxesPrerender, stream: ReadableStream<Uint8Array> | undefined) => (
@@ -42,15 +39,17 @@ export default async function handleRequest(
 
 	const collect = new Map<string, readonly Axis[]>()
 
-	let html = await render(page({ path, collect }, first))
+	let html = await render(page({ collect }, first))
 
 	if (collect.size > 0) {
-		// Only the build loads jsdom, so the client bundle does not hold it.
+		// Only the build loads jsdom. The read needs no window, so a fragment does.
 		const { JSDOM } = await import('jsdom')
 
-		const reads = readPrerenderedAxes(new JSDOM(html).window.document, collect)
+		const reads = readPrerenderedAxes(JSDOM.fragment(html), collect)
 
-		html = await render(page({ path, reads }, second))
+		html = await render(page({ reads }, second))
+	} else {
+		await second?.cancel()
 	}
 
 	headers.set('Content-Type', 'text/html')

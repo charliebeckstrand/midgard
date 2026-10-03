@@ -19,12 +19,13 @@ import {
 	type Axis,
 	type AxisValue,
 	axesOf,
-	distinctValues,
+	instanceKey,
 	isStepAxis,
 	readAxes,
-	rendersAlike,
+	shownValues,
+	signaturesIn,
 } from '../axes'
-import { signaturesIn, useAxesPrerender } from '../axes-prerender'
+import { useAxesPrerender } from '../axes-prerender'
 import { noAutofill } from '../no-autofill'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
@@ -161,12 +162,11 @@ function AxesExamples({
 
 	const prerender = useAxesPrerender()
 
-	// The first pass of the prerender takes the axes of each `Axes`. The server
-	// reads their instances in the HTML of the pass (`AxesPrerender`).
+	// The first pass of the build takes the axes (`AxesPrerender`).
 	prerender?.collect?.set(id, all)
 
-	// The first read: the read of the prerender, or the read of the first layout
-	// effect. Its unseen axes hide, and its live axes can become inert.
+	// The first read, from the build or from the first layout effect. Its unseen
+	// axes hide, and its live axes can become inert.
 	const [read, setRead] = useState<AxesRead | null>(() => prerender?.reads?.[id] ?? null)
 
 	const axes = read ? all.filter((axis) => !read.unseen.includes(axis.name)) : all
@@ -175,16 +175,14 @@ function AxesExamples({
 		Object.fromEntries(all.map((axis) => [axis.name, axis.default])),
 	)
 
-	// The wrapper of each instance, keyed `axis:value`.
+	// The wrapper of each instance, keyed by `instanceKey`.
 	const instances = useRef(new Map<string, Element>())
 
 	// The values that the example of each axis shows. An axis with no entry
 	// shows each value until the next read.
 	const [shown, setShown] = useState<Record<string, AxisValue[]>>(() => read?.shown ?? {})
 
-	// Read each axis with no entry after the commit, before the paint. The read
-	// takes the DOM and no layout, so the prerender can make the first read
-	// (`AxesPrerender`).
+	// Read each axis with no entry after the commit, before the paint.
 	useLayoutEffect(() => {
 		const unread = axes.filter((axis) => !shown[axis.name])
 
@@ -192,29 +190,11 @@ function AxesExamples({
 
 		const signatures = signaturesIn(instances.current)
 
-		if (!read) {
-			const first = readAxes(unread, signatures)
+		const current = read ?? readAxes(unread, signatures)
 
-			setRead(first)
+		if (!read) setRead(current)
 
-			setShown((prev) => ({ ...prev, ...first.shown }))
-
-			return
-		}
-
-		const alike = (axis: Axis) =>
-			rendersAlike(axis.values.map((value) => signatures.form(axis, value)))
-
-		const next = unread.map((axis) => {
-			if (isStepAxis(axis))
-				return [axis.name, distinctValues(axis, (v) => signatures.form(axis, v))]
-
-			// The other axes make a live axis inert when its instances render alike.
-			// The example of an inert axis shows no value, so it hides.
-			const inert = read.live.includes(axis.name) && alike(axis)
-
-			return [axis.name, inert ? [] : axis.values]
-		})
+		const next = unread.map((axis) => [axis.name, shownValues(axis, signatures, current.live)])
 
 		setShown((prev) => ({ ...prev, ...Object.fromEntries(next) }))
 	})
@@ -277,7 +257,7 @@ function AxesExamples({
 									label={valueLabel(value)}
 									caption={captions}
 									ref={(element) => {
-										if (element) instances.current.set(`${axis.name}:${value}`, element)
+										if (element) instances.current.set(instanceKey(axis.name, value), element)
 									}}
 								>
 									{render(propsWith(axis.name, value), valueLabel(value))}
@@ -322,7 +302,7 @@ function AxisInstance({
 	ref,
 	children,
 }: {
-	/** The `useId` of the `Axes`, which the prerender reads (`readPrerenderedAxes`). */
+	/** The `useId` of the `Axes`. With `axis` and `value`, it is for the read of the build (`readPrerenderedAxes`). */
 	axes: string
 	axis: string
 	value: AxisValue

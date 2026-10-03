@@ -8,7 +8,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { GlassContext } from '../../../providers/glass'
 
 export { fireEvent, screen } from '@testing-library/react'
-
+export { settled } from '../../../__tests__/helpers/settled'
 // Re-exported rather than redeclared: these were a verbatim second copy, and a
 // change to the `data-slot` convention has to reach both programs at once.
 export { allBySlot, bySlot, getSlot } from '../../../__tests__/helpers/slot-queries'

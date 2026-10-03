@@ -2,14 +2,12 @@
 
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { Fragment, Suspense, use } from 'react'
-import { useLocation } from 'react-router'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { SidebarLayoutHeader } from '../../layouts'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
-import { AxesPrerenderContext, useAxesPrerender } from './axes-prerender'
 import { DemoApiContext } from './components/axes'
 import { DemoErrorBoundary } from './components/error-boundary'
 import type { Demo } from './registry'
@@ -42,14 +40,6 @@ export function DemoPage({
 	// them down.
 	if (hasComponentApi(demo.id)) use(settleComponentApi(demo.id))
 
-	// The reads of the prerender are for the page that the browser loaded. A
-	// page that the reader opens after it reads its own axes.
-	const prerender = useAxesPrerender()
-
-	const { pathname } = useLocation()
-
-	const loaded = prerender !== null && samePath(prerender.path, pathname)
-
 	return (
 		<Fragment>
 			<SidebarLayoutHeader>
@@ -68,9 +58,7 @@ export function DemoPage({
 			<Stack gap="xl">
 				{/* `Axes` in the demo reads the API data of the barrel from here. */}
 				<DemoApiContext value={hasComponentApi(demo.id) ? loadComponentApi(demo.id) : null}>
-					<AxesPrerenderContext value={loaded ? prerender : null}>
-						<Component />
-					</AxesPrerenderContext>
+					<Component />
 				</DemoApiContext>
 				{hasComponentApi(demo.id) && (
 					// The page waits for the API data, so the data is ready here, except
@@ -106,11 +94,4 @@ function ApiReferenceSection({ id }: { id: string }) {
 			<ApiReference api={api} />
 		</Stack>
 	)
-}
-
-/** Whether two paths name the same page. The build renders `/alert` from the path `/alert/`. */
-function samePath(a: string, b: string): boolean {
-	const trim = (path: string) => (path.length > 1 ? path.replace(/\/$/, '') : path)
-
-	return trim(a) === trim(b)
 }
