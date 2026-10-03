@@ -8,6 +8,7 @@ import {
 	fireEvent,
 	liveRegion,
 	renderUI,
+	waitFor,
 } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
@@ -176,6 +177,39 @@ describe('MapPlat keyboard navigation', () => {
 		fireEvent.keyDown(plot as Element, { key: 'Enter' })
 
 		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+	})
+
+	it('speaks the name of each region a key moves onto when the readout is off', async () => {
+		const { plot } = renderNavigable(categoricalPlat({ tooltip: false, onRegionClick: vi.fn() }))
+
+		// No tooltip shows the name, so the live region carries it alone.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Alpha'))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Beta'))
+	})
+
+	it('speaks the new scale for each zoom key', async () => {
+		const { plot } = renderNavigable(categoricalPlat({ zoom: true }))
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom 160%'))
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom 256%'))
+
+		fireEvent.keyDown(plot, { key: '-' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom 160%'))
+
+		fireEvent.keyDown(plot, { key: '0' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom reset'))
 	})
 
 	it('takes no tab stop before the geography lands', () => {

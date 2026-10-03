@@ -142,6 +142,25 @@ export function describeMapTarget(target: MapHoverTarget, props: MapTooltipProps
 }
 
 /**
+ * The name of `target` alone, for the announcement of a keyboard cursor step on
+ * a map that shows no readout. A region reads its display name, and an overlay
+ * stop reads the name that {@link markReadout} gives it. Returns `null` for a
+ * target with no name, or an overlay that its legend toggled off.
+ *
+ * @internal
+ */
+export function nameMapTarget(
+	target: MapHoverTarget,
+	{ regionNames, entries, hidden }: Pick<MapTooltipProps, 'regionNames' | 'entries' | 'hidden'>,
+): string | null {
+	if (target.kind === 'region') return regionNames[target.index] || null
+
+	const entry = hidden.has(target.id) ? undefined : entries.get(target.id)
+
+	return entry === undefined ? null : markReadout(entry, target.stop).name || null
+}
+
+/**
  * The hover readout: the pointed region's name over its category, or an
  * overlay's name over its detail. It is a {@link TooltipPointer} anchored at the
  * pointer client point, so the map's readout wears exactly the Tooltip chrome,

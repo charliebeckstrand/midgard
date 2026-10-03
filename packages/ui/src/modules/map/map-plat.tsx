@@ -52,6 +52,7 @@ import {
 	MapTooltip,
 	type MapTooltipEntry,
 	type MapTooltipProps,
+	nameMapTarget,
 } from './map-tooltip'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
@@ -152,7 +153,8 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * matches and no mark draws on has nothing to name, so it takes no tab stop
 		 * whatever this prop says. An unmatched region raises no tooltip, takes no
 		 * emphasis, and fills no table row. A pick or a zoom still earns
-		 * one, because each is an output of its own.
+		 * one, because each is an output of its own. On that stop, with the readout
+		 * off, each arrow key speaks the name of the stop alone.
 		 */
 		tooltip?: boolean
 		/**
@@ -183,8 +185,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Let the reader zoom and pan the drawn geography. Shift and a wheel zoom
 		 * about the pointer, a drag pans, and two touches pan and pinch. The plot's
 		 * own tab stop takes `+`, `-`, and `0`, so the keyboard reaches every scale
-		 * the pointer does. `true` takes the default ceiling, a number sets its own,
-		 * and the object form adds `modifier` (below).
+		 * the pointer does. Each of these keys speaks the result through a polite
+		 * live region: `+` and `-` the new scale as a percent of the fit, such as
+		 * `Zoom 160%`, and `0` the text `Zoom reset`. `true` takes the default
+		 * ceiling, a number sets its own, and the object form adds `modifier`
+		 * (below).
 		 *
 		 * It is a transform over the fitted geography, not a refit. The projection
 		 * places the regions once and the layer moves what it placed, so a gesture
@@ -1132,8 +1137,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[regionNames, regionCategory, regionValues, categoryMetas, tooltipEntries, hidden, nameRegions],
 	)
 
+	// Without the readout the cursor still speaks the name of its stop, so a
+	// picker or a zooming map with `tooltip={false}` does not rove in silence.
 	const describeTarget = useCallback(
-		(target: MapHoverTarget) => (readable ? describeMapTarget(target, tooltipProps) : null),
+		(target: MapHoverTarget) =>
+			readable ? describeMapTarget(target, tooltipProps) : nameMapTarget(target, tooltipProps),
 		[readable, tooltipProps],
 	)
 

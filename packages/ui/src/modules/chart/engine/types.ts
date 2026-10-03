@@ -269,8 +269,9 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 *
 	 * The tooltip also gates keyboard navigation of the plot. Each arrow key
 	 * that moves the cursor onto a point speaks the readout of that point
-	 * through a polite live region, because the tooltip is `aria-hidden`. A
-	 * pointer hover speaks nothing.
+	 * through a polite live region, because the tooltip is `aria-hidden`. A key
+	 * that moves the cursor onto a reference line speaks the label and the value
+	 * of that line. A pointer hover speaks nothing.
 	 * @defaultValue true
 	 */
 	tooltip?: boolean | ChartTooltipConfig
@@ -370,6 +371,10 @@ export type CartesianFrameProps = {
 	 * off-data line stays on-frame. The rules draw over the marks, so a mark
 	 * crossing one stays legible. Where the legend shows, each rule also names
 	 * itself in it as a switch that toggles the rule.
+	 *
+	 * The keyboard cursor stops on each rule as it roves the value axis. A key
+	 * that moves the cursor onto a rule speaks its label and its value through a
+	 * polite live region, or its value alone where it has no label.
 	 */
 	reference?: ChartReferenceLine[]
 	/**
