@@ -1,44 +1,47 @@
 'use client'
 
 import { Upload } from 'lucide-react'
-import { useRef } from 'react'
-import { cn } from '../../core'
+import { useId, useRef } from 'react'
+import { cn, invalidAttrs } from '../../core'
+import { useGlass } from '../../providers/glass/context'
+import { useHeadless } from '../../providers/headless/context'
 import { k } from '../../recipes/kata/file-upload'
+import { k as inputKata } from '../../recipes/kata/input'
 import { Button } from '../button'
-import { ControlContext } from '../control/context'
 import { Icon } from '../icon'
-import { Input } from '../input'
 import { InputClearButton } from '../input/input-clear-button'
+import { InputFrame } from '../input/input-frame'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { type FileUploadInputProps, useFileUploadState } from './file-upload-state'
-import { activateOnEnterSpace, formatFileNames, selectionSummary } from './file-upload-utilities'
+import { formatFileNames, selectionSummary } from './file-upload-utilities'
 
 /**
- * File picker rendered as a read-only field over a hidden
- * `<input type="file">`. Clicking it opens the picker, and a selection shows
- * the file name with a clear button in the suffix. The clear button gives focus
- * back to the field.
+ * File picker rendered as a field-shaped button over a hidden
+ * `<input type="file">`. Activating the button opens the picker, and a
+ * selection shows the file name with a clear button in the suffix. The clear
+ * button gives focus back to the display button.
  *
  * @remarks
  * Shares every internal with {@link FileUploadDrop}: the hidden input is the
  * real control, and selection, limits, and announcements run through
- * {@link useFileUploadHandlers}. It takes no children: a read-only field has
- * no slot for them. The `variant` union these three replace shared one
- * `children` prop, and this arm dropped it in silence.
+ * {@link useFileUploadHandlers}. It takes no children: the display button
+ * shows the selection or the placeholder. The `variant` union these three
+ * replace shared one `children` prop, and this arm dropped it in silence.
  *
- * The visible field is presentational. It opts out of the enclosing
- * `<Control>` / `<Field>`, so the id, `required` and `aria-describedby` go to
- * the hidden input only. The field still shows the disabled state, the
- * variant and the error ring of the enclosing Field. It is focusable, so it
- * takes the Field Label as its name through `aria-labelledby`.
+ * The display button is not the control. It does not take the id, `required`,
+ * or `aria-describedby` of the enclosing `<Control>` / `<Field>`; those go to
+ * the hidden input only. The button still shows the disabled state, the
+ * variant, and the error ring of the enclosing Field. Its name is the Field
+ * Label and then the selection summary or the placeholder, through
+ * `aria-labelledby`. With no Label, its content gives the name.
  *
  * @see {@link FileUploadDrop} · {@link FileUploadButton}
  */
 export function FileUploadInput(props: FileUploadInputProps) {
 	const state = useFileUploadState(props)
 
-	const { accept, multiple, className, size, placeholder } = props
+	const { accept, multiple, className, size, placeholder = 'Choose a file' } = props
 	const {
 		control,
 		disabled,
@@ -51,9 +54,15 @@ export function FileUploadInput(props: FileUploadInputProps) {
 		clearFiles,
 	} = state
 
+	const glass = useGlass()
+
+	const headless = useHeadless()
+
 	const label = selectionSummary(files, multiple)
 
-	const fieldRef = useRef<HTMLInputElement>(null)
+	const valueId = useId()
+
+	const fieldRef = useRef<HTMLButtonElement>(null)
 
 	const handleClear = () => {
 		clearFiles()
@@ -70,10 +79,36 @@ export function FileUploadInput(props: FileUploadInputProps) {
 		openPicker()
 	}
 
+	const variant = control?.variant ?? (glass ? 'glass' : undefined)
+
+	// The display button is not the control, so it takes no Field id, `required`,
+	// or `aria-describedby`. It shows the state of the Field through its own props.
+	const field = (
+		<Tooltip disabled={!showTooltip}>
+			<TooltipTrigger>
+				<button
+					ref={fieldRef}
+					type="button"
+					data-slot="file-upload-field"
+					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
+					disabled={disabled}
+					{...invalidAttrs(control?.severity === 'error' || undefined)}
+					className={cn(!headless && inputKata({ variant }), k.field, k.cursor)}
+					onClick={openPicker}
+				>
+					<span id={valueId} className={cn(k.value, !label && k.placeholder)}>
+						{label ?? placeholder}
+					</span>
+				</button>
+			</TooltipTrigger>
+			<TooltipContent>{formatFileNames(files)}</TooltipContent>
+		</Tooltip>
+	)
+
 	return (
 		<div data-slot="file-upload" className={cn('relative', className)}>
 			<FileUploadHiddenInput
-				ariaLabel={placeholder ?? 'Choose a file'}
+				ariaLabel={placeholder}
 				control={control}
 				inputRef={inputRef}
 				accept={accept}
@@ -82,53 +117,36 @@ export function FileUploadInput(props: FileUploadInputProps) {
 				filesEmpty={!hasFiles}
 				onChange={handleChange}
 			/>
-			{/* The display field is not the control. It must not take the Field id,
-			    `required` or `aria-describedby`, so it renders outside the Control
-			    context and gets its presentational props explicitly. It is focusable,
-			    so it also takes the Field Label as its name. */}
-			<ControlContext value={undefined}>
-				<Tooltip disabled={!showTooltip}>
-					<TooltipTrigger>
-						<Input
-							ref={fieldRef}
-							readOnly
-							aria-labelledby={control?.labelledBy}
-							size={size}
-							variant={control?.variant}
-							disabled={disabled}
-							invalid={control?.severity === 'error' || undefined}
-							value={label ?? ''}
-							placeholder={placeholder ?? 'Choose a file'}
-							onClick={openPicker}
-							// The readOnly field opens the picker on activation; responds to
-							// keyboard activation like a button.
-							onKeyDown={activateOnEnterSpace(openPicker)}
-							className={cn('file:hidden', k.cursor)}
-							suffix={
-								hasFiles ? (
-									<InputClearButton
-										label="Clear selected file(s)"
-										disabled={disabled}
-										onClick={handleClear}
-									/>
-								) : (
-									<Button
-										type="button"
-										variant="bare"
-										className="pointer-events-auto"
-										aria-label="Browse files"
-										disabled={disabled}
-										onClick={handleBrowse}
-									>
-										<Icon icon={<Upload />} />
-									</Button>
-								)
-							}
-						/>
-					</TooltipTrigger>
-					<TooltipContent>{formatFileNames(files)}</TooltipContent>
-				</Tooltip>
-			</ControlContext>
+			{headless ? (
+				field
+			) : (
+				<InputFrame
+					inputEl={field}
+					prefix={undefined}
+					suffix={
+						hasFiles ? (
+							<InputClearButton
+								label="Clear selected file(s)"
+								disabled={disabled}
+								onClick={handleClear}
+							/>
+						) : (
+							<Button
+								type="button"
+								variant="bare"
+								className="pointer-events-auto"
+								aria-label="Browse files"
+								disabled={disabled}
+								onClick={handleBrowse}
+							>
+								<Icon icon={<Upload />} />
+							</Button>
+						)
+					}
+					variant={variant}
+					density={size}
+				/>
+			)}
 		</div>
 	)
 }

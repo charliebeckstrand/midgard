@@ -35,5 +35,11 @@ export const k = {
 	overlay: ['absolute inset-0', rounded.lg, focus.ring, ...cursor],
 	icon: 'shrink-0',
 	label: [weight.medium, text.default],
+	/** The display button of `FileUploadInput`. It lays out its text as the text of an input. */
+	field: 'flex items-center text-start',
+	/** The selection summary or the placeholder inside the display button. Block, so that the ellipsis paints. */
+	value: 'block min-w-0 truncate',
+	/** The placeholder inside the display button, in the shade of an input placeholder. */
+	placeholder: text.muted,
 	cursor,
 } as const
