@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import { Links, Meta, Scripts, ScrollRestoration } from 'react-router'
+import { Links, Meta, Scripts } from 'react-router'
 import fontUrl from '../../fonts/google-sans-flex.woff2?url'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
@@ -50,7 +50,6 @@ export function Layout({ children }: { children: ReactNode }) {
 			<body className="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
 				{children}
 				<AxesReadsScript />
-				<ScrollRestoration />
 				<Scripts />
 			</body>
 		</html>

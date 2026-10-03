@@ -1,6 +1,14 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ComponentType, Suspense, use, useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useLocation } from 'react-router'
+import {
+	type ComponentType,
+	Suspense,
+	use,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
+import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { Button } from '../../components/button'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
@@ -89,25 +97,32 @@ export function App() {
 
 	const id = parseDemoPath(pathname).id || defaultDemo
 
+	const navigationType = useNavigationType()
+
 	const [locked, setLocked] = useState(true)
 
 	const current = demos.find((d) => d.id === id)
 
 	const contentRef = useRef<HTMLDivElement>(null)
 
-	// The page that the content pane shows. A page load starts at the top, so
-	// the effect below moves the pane only after a navigation.
-	const shownPath = useRef(pathname)
+	// The page that the layout shows. A page load starts at the top, so the
+	// effect below moves the page only after a page change. A tab change keeps
+	// the page, and thus its position.
+	const shownId = useRef(id)
 
-	useEffect(() => {
-		if (shownPath.current === pathname) return
+	useLayoutEffect(() => {
+		if (shownId.current === id) return
 
-		shownPath.current = pathname
+		shownId.current = id
 
-		// From `lg` up the content pane scrolls, not the window, so the router's
-		// scroll restoration does not reach it. Start each page at its top.
+		// From `lg` up the content pane scrolls, not the window. The browser does
+		// not keep the position of the pane, so each page starts at its top.
 		contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
-	}, [pathname])
+
+		// On Back and Forward the browser restores the position of the window
+		// itself. A new page starts at the top.
+		if (navigationType !== 'POP') window.scrollTo(0, 0)
+	}, [id, navigationType])
 
 	// Warm Shiki on idle, then tokenize the warm snippets one per idle slice, so
 	// the first "Show code" does not pay for the grammar compile. Per-demo

@@ -439,36 +439,18 @@ function viewportState(probe: HTMLElement) {
 	return `vv ${visual} win ${window.innerHeight} doc ${document.documentElement.clientHeight} fixed ${fixed} s/d/lvh ${units} safe ${safe} y ${Math.round(window.scrollY)} screen ${window.screen.height}`
 }
 
-/** The storage key of the scroll positions that `<ScrollRestoration>` keeps. */
-const SCROLL_POSITIONS = 'react-router-scroll-positions'
-
 /**
  * How the page loaded: the navigation type (`navigate`, `reload`, or
- * `back_forward`), the scroll restoration mode of the history, the scroll
- * position that `<ScrollRestoration>` keeps for the history entry, and the time
- * of the first contentful paint. `<ScrollRestoration>` sets the mode to `auto`
- * when the page hides, so on a reload the browser can also restore the
- * position. Its inline script scrolls the page to the kept position before the
- * log starts, so this line is the only record of that scroll.
+ * `back_forward`), the scroll restoration mode of the history, and the time of
+ * the first contentful paint. The browser restores the scroll position of a
+ * reload before the log starts, so this line is the only record of the load.
  */
 function loadState() {
 	const [entry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
 
 	const paint = performance.getEntriesByName('first-contentful-paint')[0]
 
-	let kept = '-'
-
-	try {
-		const key = (window.history.state as { key?: string } | null)?.key
-
-		const y: unknown = key
-			? JSON.parse(sessionStorage.getItem(SCROLL_POSITIONS) ?? '{}')[key]
-			: undefined
-
-		if (typeof y === 'number') kept = String(Math.round(y))
-	} catch {}
-
-	return `load ${entry?.type ?? '-'} restore ${window.history.scrollRestoration} kept y ${kept} paint ${paint ? Math.round(paint.startTime) : '-'} start ${Math.round(startTime)}`
+	return `load ${entry?.type ?? '-'} restore ${window.history.scrollRestoration} paint ${paint ? Math.round(paint.startTime) : '-'} start ${Math.round(startTime)}`
 }
 
 /** Adds the listeners, and returns a function that removes them. */
