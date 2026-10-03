@@ -42,8 +42,9 @@ export function mount(loaders: DemoLoaders, rootEl?: HTMLElement | null) {
 	// below. That restore can occur after the app scrolls to the top, because
 	// the demo continues to load. Then the page opens below the top.
 	//
-	// The mode belongs to one history entry. WebKit gives `auto` to each new
-	// entry that a hash link makes, and does not copy the mode of the entry
+	// The mode belongs to one history entry. On a hash change, WebKit makes a
+	// new history item, also when the change replaces the current entry. The
+	// item gets `auto`, because WebKit does not copy the mode of the item
 	// before it. Thus set the mode again on each hash change.
 	const manualScrollRestoration = () => {
 		history.scrollRestoration = 'manual'

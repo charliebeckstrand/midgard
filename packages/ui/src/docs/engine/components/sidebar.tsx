@@ -20,6 +20,7 @@ import { cn } from '../../../core'
 import { useScrollWithin } from '../../../hooks'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
 import { Flex } from '../../../structure/flex'
+import { showDemo } from '../hooks/use-hash'
 import { type Demo, demos, preloadDemo } from '../registry'
 import { titleCase } from './format'
 
@@ -88,6 +89,20 @@ function SearchResults({ limit, onLoadMore }: { limit: number; onLoadMore: () =>
 	)
 }
 
+/**
+ * Whether a click asks the browser for more than a plain follow: a button
+ * other than the main one, or a held modifier (Cmd, Ctrl, Shift, or Alt).
+ */
+export function isModifiedClick(event: {
+	button: number
+	metaKey: boolean
+	ctrlKey: boolean
+	shiftKey: boolean
+	altKey: boolean
+}): boolean {
+	return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+}
+
 // Memoized so a navigation re-renders only the two items whose `current`
 // flipped: `demo` is a stable registry reference, leaving `current` as the sole
 // changing prop across the ~110-item list.
@@ -96,10 +111,18 @@ const DemoItem = memo(function DemoItem({ demo, current }: { demo: Demo; current
 
 	return (
 		<SidebarItem
-			// A plain hash link. The browser makes the history entry and sends
-			// `hashchange`, and the app scrolls to the top when the demo shows.
 			href={`#${demo.id}`}
 			current={current}
+			onClick={(event) => {
+				// A modified click, or a click of another button, opens the link
+				// where the reader asks for it: a new tab or a new window.
+				if (isModifiedClick(event)) return
+
+				// A plain click shows the demo in this entry, and adds no entry.
+				event.preventDefault()
+
+				showDemo(demo.id)
+			}}
 			// A touch device has no hover, and a tap does not focus the link. The press
 			// starts the fetch, so the demo is ready while the drawer closes.
 			onPointerDown={prefetch}
@@ -165,8 +188,7 @@ export function SidebarContent({ route }: { route: string }) {
 						onValueChange={(id) => {
 							if (!id) return
 
-							// The same hash change as a click on a sidebar link.
-							window.location.hash = id
+							showDemo(id)
 
 							// Scroll the matching sidebar item into view
 							const sidebar = document.querySelector('[data-slot="sidebar"]')
