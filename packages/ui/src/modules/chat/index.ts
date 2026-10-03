@@ -13,7 +13,7 @@ export {
 	ChatTranscriptSkeleton,
 	type ChatTranscriptSkeletonProps,
 } from './chat-transcript-skeleton'
-export { type ChatEmbedRegistry, type ChatEmbedRenderer, useInChatList } from './context'
+export { useInChatList } from './context'
 export { chatContentText } from './engine/chat-content/text'
 export type {
 	ChatEmbedPart,
@@ -23,6 +23,7 @@ export type {
 	ChatToolStatus,
 } from './engine/chat-content/types'
 export type { ChatMessageData } from './engine/types'
+export type { ChatEmbedRegistry, ChatEmbedRenderer } from './types'
 export { type ChatDraft, type ChatDraftOptions, useChatDraft } from './use-chat-draft'
 export { useChatScroll } from './use-chat-scroll'
 export {

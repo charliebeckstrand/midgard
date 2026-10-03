@@ -127,6 +127,8 @@ The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runt
 
 8.2 Feature folders mirror their route segment. Co-located helpers carry intent-revealing suffixes: `<feature>-api.ts`, `types.ts`, `constants.ts`, `utilities.ts`.
 
+8.3 A provider takes its name from what it holds. `<Unit>Provider` holds the full state of one unit, as `ToastProvider` does. `<Unit><Thing>Provider` registers one kind of thing for a unit, as `ChatEmbedProvider` and `DashboardWidgetProvider` do. A registry takes its props from a `<Unit><Thing>Registry` type in the `types.ts` of the unit. A provider that serves one unit stays in the directory of that unit. `ui/providers/*` holds only the providers that many unrelated components read.
+
 ## 9. Imports
 
 9.1 In apps, the `@/*` alias maps to the source root: `src` in `places`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
