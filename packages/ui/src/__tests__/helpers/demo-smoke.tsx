@@ -46,7 +46,6 @@ const KNOWN_FAILURES: Record<string, number> = {
 	'components/kanban › landmark-unique': 1,
 	'components/pdf-viewer › landmark-unique': 1,
 	'components/sidebar › landmark-unique': 1,
-	'modules/grid › landmark-unique': 1,
 }
 
 /** The entries of `KNOWN_FAILURES` for one page. */

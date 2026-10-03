@@ -845,7 +845,13 @@ export function GridData<T>({
 
 						<GridFooterBar config={footer} stats={footerStats} />
 
-						{pagination && <GridPaginationFooter pagination={pagination} />}
+						{pagination && (
+							<GridPaginationFooter
+								pagination={pagination}
+								label={tableProps?.['aria-label']}
+								labelledBy={tableProps?.['aria-labelledby']}
+							/>
+						)}
 					</div>
 				</GridSettleContext>
 			</GridOverlayDensityContext>

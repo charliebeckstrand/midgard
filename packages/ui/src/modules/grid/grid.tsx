@@ -29,6 +29,12 @@ export type GridProps<T> = Omit<GridDataProps<T>, 'pagination'> & {
 	 * page has no scroll region inside a scroll region. Pass `false` to keep the
 	 * rows in the scroll region of the box.
 	 *
+	 * The page navigation is a `<nav>` landmark. Its name comes from the name that
+	 * `tableProps` gives the grid: an `aria-label` of `Orders` gives
+	 * `Orders pagination`, and an `aria-labelledby` gives the same label followed
+	 * by "pagination". A grid with no name gives the name `Pagination`. Give each
+	 * grid on a page its own name, so that each nav also has its own name.
+	 *
 	 * @see {@link GridPagination}
 	 */
 	pagination?: GridPagination | false
