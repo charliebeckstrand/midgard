@@ -60,10 +60,7 @@ export const k = {
 					'sm:top-4 sm:left-4 sm:bottom-4',
 				],
 				// Each side keeps its content clear of the screen edge it sits on, in a
-				// page with `viewport-fit=cover`. Elsewhere the inset is zero. The overlay
-				// root is the part of the screen that the reader sees
-				// (`useVisualViewport`), so a side on its bottom edge also stays above a
-				// browser toolbar.
+				// page with `viewport-fit=cover`. Elsewhere the inset is zero.
 				top: [slide.top, 'pt-[env(safe-area-inset-top)]'],
 				bottom: [slide.bottom, 'pb-[env(safe-area-inset-bottom)]'],
 			},

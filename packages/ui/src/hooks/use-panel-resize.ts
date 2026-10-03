@@ -98,9 +98,8 @@ const AXES = {
  * The extent of the box that a panel docks in, along one axis, in pixels.
  *
  * The box is the positioned root that holds the panel. For an overlay on the
- * viewport, that is the part of the screen that the reader sees
- * (`useVisualViewport`), so a drag stops at a browser toolbar and not under it.
- * For an overlay scoped to a container, it is the container. A panel with no
+ * viewport, that is the viewport. For an overlay scoped to a container, it is
+ * the container. A panel with no
  * such box measures against the window.
  *
  * @internal

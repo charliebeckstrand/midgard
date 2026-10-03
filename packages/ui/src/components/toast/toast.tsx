@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useMinBreakpoint } from '../../hooks/use-min-breakpoint'
-import { useVisualViewport } from '../../hooks/use-visual-viewport'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useToastViewport } from '../../providers/toast/context'
@@ -56,10 +55,6 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 	// branch makes the first client render diverge from the server HTML and
 	// trips React's hydration mismatch.
 	const hydrated = useHydrated()
-
-	// The stack is fixed to the part of the screen that the reader sees. Below
-	// `sm`, every position stacks on the bottom edge of it, above a browser toolbar.
-	useVisualViewport()
 
 	if (!hydrated) return null
 
