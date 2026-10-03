@@ -1,6 +1,6 @@
 import { animate } from 'motion'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ShinyText } from '../../components/shiny-text'
+import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
 import { bySlot, getSlot, renderUI, setupUser, stubMatchMedia } from '../helpers'
 
 // `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts,
@@ -172,5 +172,23 @@ describe('ShinyText', () => {
 		rerender(<ShinyText pauseOnHover={false}>Shine</ShinyText>)
 
 		expect(playSpy).toHaveBeenCalled()
+	})
+})
+
+describe('ShinyTextSkeleton', () => {
+	it('renders an inline span with a width, so it is valid in a paragraph and does not collapse', () => {
+		const { container } = renderUI(
+			<p>
+				Status: <ShinyTextSkeleton />
+			</p>,
+		)
+
+		const el = getSlot(container, 'placeholder')
+
+		expect(el.tagName).toBe('SPAN')
+
+		expect(el.parentElement?.tagName).toBe('P')
+
+		expect(el).toHaveClass('inline-block', 'w-full')
 	})
 })
