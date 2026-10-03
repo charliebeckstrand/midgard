@@ -42,6 +42,7 @@ import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { TimelineSkeleton } from '../../../components/timeline'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { ChartSkeleton } from '../../../modules/chart'
+import { ChatTranscriptSkeleton } from '../../../modules/chat'
 import { MapSkeleton } from '../../../modules/map'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
 import { Flex } from '../../../structure/flex'
@@ -60,6 +61,7 @@ const skeletonVariants = [
 	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
 	{ name: 'Chart', skeleton: <ChartSkeleton /> },
 	{ name: 'Chart (pie)', skeleton: <ChartSkeleton sector /> },
+	{ name: 'Chat transcript', skeleton: <ChatTranscriptSkeleton /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },

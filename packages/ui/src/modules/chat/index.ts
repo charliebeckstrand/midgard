@@ -9,6 +9,10 @@ export { ChatListItem, type ChatListItemProps } from './chat-list-item'
 export { ChatMessage, type ChatMessageProps } from './chat-message'
 export { ChatPrompt, type ChatPromptProps } from './chat-prompt'
 export { ChatTranscript, type ChatTranscriptProps } from './chat-transcript'
+export {
+	ChatTranscriptSkeleton,
+	type ChatTranscriptSkeletonProps,
+} from './chat-transcript-skeleton'
 export { type ChatEmbedRegistry, type ChatEmbedRenderer, useInChatList } from './context'
 export { chatContentText } from './engine/chat-content/text'
 export type {

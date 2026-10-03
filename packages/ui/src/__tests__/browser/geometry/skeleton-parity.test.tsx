@@ -76,6 +76,7 @@ import {
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
+import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
 import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { Box } from '../../../structure/box'
@@ -626,6 +627,39 @@ describe('skeleton parity (real browser)', () => {
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
 	})
+
+	// A transcript has no fixed height, so this compares one bubble of each side. The real
+	// bubble holds as many lines as the skeleton bubble of its side: one for the user, and two for
+	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges.
+	it.each([
+		['user', 0, 'right', 'Where are the stops?'],
+		['assistant', 1, 'left', 'Here are the stops.\nTwo of them run late.'],
+	] as const)(
+		'ChatTranscriptSkeleton has the %s bubble of a transcript',
+		(role, index, edge, text) => {
+			const real = present(
+				renderUI(
+					<div className="w-120">
+						<ChatMessage role={role}>{text}</ChatMessage>
+					</div>,
+				).container.querySelector('[data-slot="chat-message-bubble"]'),
+				'bubble',
+			).getBoundingClientRect()
+
+			const skeleton = present(
+				renderUI(
+					<div className="w-120">
+						<ChatTranscriptSkeleton messages={2} />
+					</div>,
+				).container.querySelectorAll('[data-slot="placeholder"]')[index]?.parentElement,
+				'skeleton bubble',
+			).getBoundingClientRect()
+
+			expect(skeleton.height).toBeNear(real.height, PIXEL)
+
+			expect(skeleton[edge]).toBeNear(real[edge], PIXEL)
+		},
+	)
 
 	// A chart sizes its box from its width after it measures, so the test waits until the chart
 	// settles at the box of its skeleton. Density does not change the height of a chart, so each

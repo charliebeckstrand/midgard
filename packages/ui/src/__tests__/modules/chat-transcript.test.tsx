@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ChatMessageData } from '../../modules/chat'
-import { ChatTranscript } from '../../modules/chat'
+import { ChatTranscript, ChatTranscriptSkeleton } from '../../modules/chat'
 import {
 	allBySlot,
 	bySlot,
@@ -129,5 +129,22 @@ describe('ChatTranscript', () => {
 			// reply has not been spoken because the reply has not settled.
 			expect(liveRegion()).toHaveTextContent('Assistant is replying')
 		})
+	})
+})
+
+describe('ChatTranscriptSkeleton', () => {
+	it('alternates its bubbles between the user side and the assistant side', () => {
+		const { container } = renderUI(<ChatTranscriptSkeleton messages={3} />)
+
+		const root = container.firstElementChild
+
+		expect(root).toHaveAttribute('aria-hidden', 'true')
+
+		const lines = Array.from(
+			root?.children ?? [],
+			(row) => row.querySelectorAll('[data-slot="placeholder"]').length,
+		)
+
+		expect(lines).toStrictEqual([1, 2, 1])
 	})
 })

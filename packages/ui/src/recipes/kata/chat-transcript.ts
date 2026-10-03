@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { sen } from '../kiso'
+import { kokkaku, omote, sen } from '../kiso'
 
 const { focus } = sen
 
@@ -14,5 +14,11 @@ export const k = defineRecipe({
 		// The gap is each row's own top padding instead. Every row after the first
 		// carries it, because the first sits flush.
 		row: 'pt-6',
+	},
+	// The skeleton bubble takes the tint fill, so the bubble shape shows
+	// behind the placeholder lines in it.
+	skeleton: {
+		...kokkaku.chat,
+		bubble: [...kokkaku.chat.bubble, omote.bg.tint],
 	},
 })

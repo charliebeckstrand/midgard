@@ -16,6 +16,7 @@ import { breadcrumb } from './breadcrumb'
 import { button } from './button'
 import { calendar } from './calendar'
 import { chart } from './chart'
+import { chat } from './chat'
 import { checkbox } from './checkbox'
 import { colorPanel } from './color-panel'
 import { control } from './control'
@@ -46,6 +47,7 @@ export const kokkaku = {
 	button,
 	calendar,
 	chart,
+	chat,
 	checkbox,
 	colorPanel,
 	control,
