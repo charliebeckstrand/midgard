@@ -53,6 +53,12 @@ export const k = {
 	 * The color of the series or the rule fills it.
 	 */
 	markLabel: ['text-xs', 'font-semibold', 'tabular-nums'],
+	/**
+	 * The hit layer of the plot. Under the `'click'` trigger, the pointer hook sets
+	 * `data-hit` on the layer while the pointer is on a mark that a click reads.
+	 * The attribute gives the layer the pointer cursor.
+	 */
+	hit: ['data-hit:cursor-pointer'],
 	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
 	focusRing: sen.focus.ring,
 	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */
