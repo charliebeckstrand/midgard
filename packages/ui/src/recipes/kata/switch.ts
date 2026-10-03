@@ -2,6 +2,7 @@ import type { ControlStep } from '../../core/density'
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
 const { rounded } = kasane
@@ -112,8 +113,8 @@ export const k = defineRecipe(
 				'pointer-events-none',
 				'transition-[left] duration-200 ease-in-out',
 				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(--switch-shadow) [:checked~&]:ring-(--switch-ring)',
-				'density-size-[3,4,5]',
-				'[:checked~&]:density-left-[4,5,6]',
+				dan.size.thumb,
+				dan.size.switchThumbOn,
 			],
 		}),
 		field,

@@ -9,15 +9,16 @@
  * Layer: kiso · Concern: skeleton form · Unit: button
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 // The height of a button at each step. The calendar skeleton reads it too.
-const height = 'density-h-[5.5,7.5,9.5,11.5,11.5]'
+const height = dan.size.button
 
 export const button = {
-	base: [rounded.lg, height, 'density-w-[16,20,24,28,28]'],
+	base: [rounded.lg, height, dan.size.buttonWidth],
 	height,
 	density: true,
 } as const

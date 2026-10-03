@@ -70,21 +70,23 @@
  * Layer: kiso · Archetype: control · Concern: affix
  */
 
+import { dan } from '../dan'
+
 export const affix = {
 	prefix: [
-		'density-ps-ring-[2.5,3,3.5,3.5,3.5]',
+		dan.space.affixStart,
 		'has-[[data-slot=badge]]:ps-ring-2',
 		'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
-		'has-[[data-variant=bare]:not([data-has-label])]:density-ps-ring-[1.75,2,2.25,2.25,2.25]',
+		dan.space.affixBareStart,
 	],
 	suffix: [
-		'density-pe-ring-[2.5,3,3.5,3.5,3.5]',
+		dan.space.affixEnd,
 		'has-[[data-slot=badge]]:pe-ring-2',
 		'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
-		'has-[[data-variant=bare]:not([data-has-label])]:density-pe-ring-[1.75,2,2.25,2.25,2.25]',
+		dan.space.affixBareEnd,
 	],
 	autofill: {
-		prefix: 'group-has-[[data-slot=prefix]]/control:autofill:density-ms-ring-[2.5,3,3.5]',
-		suffix: 'group-has-[[data-slot=suffix]]/control:autofill:density-me-ring-[2.5,3,3.5]',
+		prefix: dan.space.autofillStart,
+		suffix: dan.space.autofillEnd,
 	},
 } as const

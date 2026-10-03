@@ -5,6 +5,8 @@
  * Layer: kiso · Concern: type size
  */
 
+import { dan } from '../dan'
+
 export const size = {
 	xs: 'text-xs',
 	sm: 'text-sm',
@@ -22,4 +24,4 @@ export const size = {
  * step takes the class of its neighbor. `ji-text-ramp.test.ts` pins it to
  * {@link size}.
  */
-export const textRamp = 'density-text-[sm,base,lg]'
+export const textRamp = dan.text.body

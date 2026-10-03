@@ -3,6 +3,7 @@ import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe
 import { bridge } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 
 const { rounded } = kasane
 const { radio } = kokkaku
@@ -41,7 +42,7 @@ export const k = bridge.check(
 			base: [
 				'absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none',
 				'[:checked~&]:opacity-100',
-				'density-size-[1,1.5,2]',
+				dan.size.radioDot,
 			],
 		}),
 	},

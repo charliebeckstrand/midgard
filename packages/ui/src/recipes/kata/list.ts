@@ -1,5 +1,6 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const {
 	cursor,
@@ -41,7 +42,7 @@ const root = defineRecipe({
 
 // The padding of a row follows the nearest density scope. The card-like
 // variants use the uniform `ma.p` scale, and `plain` uses a tighter ratio.
-const pad = 'density-p-[2,3,4]'
+const pad = dan.space.box
 
 // The rounded wash layer of a divided row. The layer takes no pointer, so a
 // press still reaches the row and its slots.
@@ -58,7 +59,7 @@ const item = defineRecipe({
 	variant: {
 		separated: [...bg.surface, border.default, rounded.lg, pad],
 		outline: pad,
-		plain: 'density-px-[1.5,2,2.5] density-py-[1,1.5,2]',
+		plain: `${dan.space.listPlainX} ${dan.space.rowY}`,
 		solid: [...bg.tint, border.default, rounded.lg, pad],
 	},
 	active: {

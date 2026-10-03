@@ -12,11 +12,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: nav
  */
 
+import { dan } from '../dan'
 import { shaku } from '../shaku'
 
 const { iconRamp } = shaku
 
 export const nav = {
 	icon: ['shrink-0', iconRamp],
-	label: 'density-h-[5,6,7] w-24 max-w-full',
+	label: `${dan.size.row} w-24 max-w-full`,
 } as const

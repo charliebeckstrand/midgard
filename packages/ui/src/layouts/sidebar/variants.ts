@@ -1,5 +1,6 @@
 import { defineRecipe } from '../../core/recipe'
 import { omote, sen, sou } from '../../recipes/kiso'
+import { dan } from '../../recipes/kiso/dan'
 
 const { focus } = sen
 
@@ -33,7 +34,7 @@ const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', 'density-p-[4,6,8] lg:hidden'],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${dan.space.shell} lg:hidden`],
 })
 
 const panel = defineRecipe({
@@ -87,7 +88,7 @@ const content = defineRecipe({
 		'grow lg:min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
-		'density-px-[4,6,8] density-pb-[4,6,8] lg:not-has-[[data-slot=header]]:density-pt-[4,6,8]',
+		`${dan.space.shellX} ${dan.space.shellBottom} ${dan.space.shellTopNoHeader}`,
 	],
 	// From `lg` up only. Below `lg`, the navbar is the one sticky bar of the page, and
 	// the header scrolls with the content. Two stacked sticky bars show a seam on iOS.
@@ -107,7 +108,7 @@ const content = defineRecipe({
 
 // The padding follows the nearest density scope.
 const header = defineRecipe({
-	base: ['flex items-center shrink-0', 'lg:density-pt-[4,6,8] density-pb-[4,6,8]'],
+	base: ['flex items-center shrink-0', `${dan.space.shellTopLarge} ${dan.space.shellBottom}`],
 })
 
 const body = defineRecipe({

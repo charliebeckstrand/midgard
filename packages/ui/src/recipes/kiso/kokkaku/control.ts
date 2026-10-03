@@ -11,6 +11,7 @@
  * Layer: kiso · Concern: skeleton form · Unit: control
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
@@ -20,7 +21,7 @@ export const control = {
 	// 38px · lg 46px, so the placeholder fills the same space as the resolved
 	// control. Each step is a stepped class, so the silhouette takes the step of
 	// its nearest density scope, as the control does.
-	base: [rounded.lg, 'density-h-[7.5,9.5,11.5]'],
+	base: [rounded.lg, dan.size.control],
 	full: 'w-full',
-	group: 'flex-1 density-min-w-[16,24,32]',
+	group: `flex-1 ${dan.size.controlMinWidth}`,
 } as const

@@ -10,7 +10,9 @@
  * Layer: kiso · Concern: slot inset of a nav row
  */
 
+import { dan } from '../dan'
+
 export const inset = {
-	prefix: 'density-ms-[1.5,2,2.5,2.5,2.5]',
-	suffix: 'density-me-[1.5,2,2.5,2.5,2.5]',
+	prefix: dan.space.slotStart,
+	suffix: dan.space.slotEnd,
 } as const

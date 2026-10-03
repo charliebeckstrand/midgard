@@ -1,6 +1,7 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, narabi, textRamp } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { palette } = iro
 const { weight, leading } = ji
@@ -8,7 +9,7 @@ const { rounded } = kasane
 const { flex } = narabi
 
 /** The title size: `text-lg` at `md`, one rung above {@link textRamp} at each step. */
-const titleRamp = 'density-text-[base,lg,xl]'
+const titleRamp = dan.text.title
 
 /**
  * Alert kata. The padding, the text, and the title take the step of the
@@ -17,7 +18,7 @@ const titleRamp = 'density-text-[base,lg,xl]'
  * the alert is `p-4` with `text-base` and a `text-lg` title.
  */
 export const k = defineRecipe({
-	base: [flex.row, 'w-fit', 'density-p-[3,4,5]', 'gap-2', rounded.lg, textRamp],
+	base: [flex.row, 'w-fit', dan.space.alert, 'gap-2', rounded.lg, textRamp],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},

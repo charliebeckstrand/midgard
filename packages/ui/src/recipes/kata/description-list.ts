@@ -1,5 +1,6 @@
 import { defineRecipe } from '../../core/recipe'
 import { iro, ji, kokkaku, narabi } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { weight } = ji
@@ -10,7 +11,7 @@ const { flex } = narabi
  * `text-sm`, and each outer step is one size of the text scale away.
  */
 const root = defineRecipe({
-	base: 'density-text-[xs,sm,base]',
+	base: dan.text.small,
 	orientation: {
 		horizontal: 'grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]',
 		vertical: flex.col,
@@ -38,21 +39,17 @@ const root = defineRecipe({
 const projection = {
 	horizontal: [
 		'[&>dt]:col-start-1',
-		'[&>dt]:density-pt-[1.5,2,2.5]',
+		dan.space.termTop,
 		'[&>dt]:pr-2',
-		'sm:[&>dt]:density-pb-[1.5,2,2.5]',
-		'[&>dd]:density-pb-[1.5,2,2.5]',
-		'sm:[&>dd]:density-pt-[1.5,2,2.5]',
+		dan.space.termBottomRow,
+		dan.space.detailBottom,
+		dan.space.detailTopRow,
 		// The first row has no row above it, so it drops its top padding, as the
 		// vertical list does. The selectors outrank the rows above at each width.
 		'[&>dt:first-child]:pt-0',
 		'[&>dt:first-child+dd]:pt-0',
 	],
-	vertical: [
-		'[&>dt]:density-pt-[3,4,5]',
-		'[&>dt:first-child]:pt-0',
-		'[&>dd]:density-pt-[0.5,1,1.5]',
-	],
+	vertical: [dan.space.termTopStacked, '[&>dt:first-child]:pt-0', dan.space.detailTopStacked],
 } as const
 
 export const k = {

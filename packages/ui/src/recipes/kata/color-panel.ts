@@ -9,6 +9,7 @@
 
 import { defineRecipe } from '../../core/recipe'
 import { kasane, kokkaku, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { rounded } = kasane
 const { focus, ring } = sen
@@ -21,20 +22,20 @@ const handle = [
 	'border-2 border-white shadow-sm ring-1 ring-black/25',
 ] as const
 
-const area = ['relative w-full cursor-crosshair touch-none', ...focus.ring, 'density-h-[32,40,48]']
+const area = ['relative w-full cursor-crosshair touch-none', ...focus.ring, dan.size.colorArea]
 
 const track = [
 	'relative w-full cursor-pointer touch-none',
 	rounded.full,
 	...focus.outline,
-	'density-h-[3,3.5,4]',
+	dan.size.colorChannel,
 ]
 
-const preview = ['relative shrink-0 overflow-hidden', rounded.md, 'density-size-[8,9,10]']
+const preview = ['relative shrink-0 overflow-hidden', rounded.md, dan.size.colorPreview]
 
 export const k = defineRecipe(
 	{
-		base: ['flex flex-col select-none', kokkaku.colorPanel.width, 'density-gap-[2,4,6]'],
+		base: ['flex flex-col select-none', kokkaku.colorPanel.width, dan.gap.loose],
 		skeleton: kokkaku.colorPanel,
 	},
 	{

@@ -12,6 +12,8 @@
  * Layer: kiso · Concern: icon dimension
  */
 
+import { dan } from '../dan'
+
 export const iconSize = {
 	xs: 'size-3',
 	sm: 'size-4',
@@ -28,14 +30,11 @@ export const icon = {
  * `size` takes the step of its nearest density scope. `shaku-icon-ramp.test.ts`
  * pins it to `iconSize`.
  */
-export const iconRamp = 'density-size-[3,4,5,6,6]'
+export const iconRamp = dan.size.icon
 
 /**
  * The slot form in a stepped `density-size` class: a density host sizes its
  * `data-slot="icon"` children by the step of its nearest density scope.
  * `shaku-icon-ramp.test.ts` pins it to `iconSize`.
  */
-export const iconSlotRamp = [
-	'*:data-[slot=icon]:shrink-0',
-	'*:data-[slot=icon]:density-size-[3,4,5,6,6]',
-]
+export const iconSlotRamp = ['*:data-[slot=icon]:shrink-0', dan.size.iconSlot]

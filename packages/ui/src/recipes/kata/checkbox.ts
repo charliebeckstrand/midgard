@@ -3,6 +3,7 @@ import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe
 import { bridge } from '../katakana'
 import { kokkaku } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 
 const { checkbox } = kokkaku
 
@@ -23,7 +24,7 @@ export const k = bridge.check(
 			'not-has-[:disabled]:has-[:indeterminate]:hover:opacity-90',
 			// The box takes the step of the nearest density scope.
 			kokkaku.checkbox.box,
-			'density-rounded-[0.75,1,1.25]',
+			dan.radius.check,
 		],
 		color,
 		skeleton: checkbox,
@@ -39,7 +40,7 @@ export const k = bridge.check(
 			base: [
 				'pointer-events-none absolute stroke-(--check-mark) opacity-0',
 				'[:checked~&]:opacity-100 [:indeterminate~&]:opacity-100',
-				'density-size-[3,3.5,4]',
+				dan.size.check,
 			],
 		}),
 	},

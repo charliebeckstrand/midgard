@@ -6,6 +6,7 @@
  * and `skeleton` slots are static.
  */
 import { iro, ji, kokkaku, narabi, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { palette, text } = iro
 const { weight } = ji
@@ -14,9 +15,9 @@ const { focus } = sen
 
 const base = ['inline-flex flex-col', 'select-none', kokkaku.calendar.width]
 
-const header = [flex.row, 'justify-between', 'density-mb-[1,2,3]']
+const header = [flex.row, 'justify-between', dan.space.calendarHeaderBottom]
 
-const footer = [flex.row, 'justify-center', 'density-gap-[1,2,3]']
+const footer = [flex.row, 'justify-center', dan.gap.default]
 
 /**
  * The cap on the hit areas of a grid of cells (`TouchTarget`). The cells touch,
@@ -24,7 +25,7 @@ const footer = [flex.row, 'justify-center', 'density-gap-[1,2,3]']
  */
 const cellTargets = '[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]'
 
-const pickerGrid = ['grid grid-cols-3', 'density-px-[2,3,4]', cellTargets]
+const pickerGrid = ['grid grid-cols-3', dan.space.tabX, cellTargets]
 
 const weekday = [
 	flex.row,
@@ -32,7 +33,7 @@ const weekday = [
 	'w-full aspect-square',
 	weight.medium,
 	text.muted,
-	'density-text-[xs,sm,base]',
+	dan.text.small,
 ]
 
 export const k = {

@@ -11,11 +11,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: tree
  */
 
+import { dan } from '../dan'
 import { shaku } from '../shaku'
 
 export const tree = {
 	icon: ['flex-none', shaku.iconRamp],
-	label: 'density-h-[5,6,7] max-w-full',
+	label: `${dan.size.row} max-w-full`,
 	labels: ['w-32', 'w-24', 'w-28', 'w-20'],
 	first: 'pt-0',
 	last: 'pb-0',

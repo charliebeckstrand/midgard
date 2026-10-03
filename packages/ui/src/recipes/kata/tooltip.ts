@@ -1,4 +1,5 @@
 import { iro, ji, narabi, omote, sen, textRamp, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { weight } = ji
@@ -14,7 +15,7 @@ const content = [
 	'text-pretty',
 	text.default,
 	weight.medium,
-	'density-p-ring-[1,2,3] density-rounded-[1,2,3]',
+	`${dan.space.tooltip} ${dan.radius.tooltip}`,
 	textRamp,
 ]
 

@@ -11,6 +11,7 @@ import type { DensityStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { extendedPalette } = iro
 const { weight } = ji
@@ -39,11 +40,11 @@ export const k = defineRecipe(
 			// scope. A LoadingSpinner follows the same scope, so it takes the step of
 			// the badge with no projection. A bare icon element carries no size, so
 			// the badge projects one onto its icon slots.
-			'density-text-[xs,sm,base,lg,lg]',
-			'density-gap-[0.5,0.75,1,1.25,1.25]',
+			dan.text.chip,
+			dan.gap.badge,
 			iconSlotRamp,
 			'py-ring-1',
-			'density-px-ring-[1,1.5,2,2.5,2.5]',
+			dan.space.badgeX,
 		],
 		variant: {
 			outline: 'ring-1 ring-inset',
@@ -59,7 +60,7 @@ export const k = defineRecipe(
 		// `px` stops jump 0.5 (1.5 → 2 → 2.5), so lifting only the small end would
 		// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
 		// base scale — and the affix `px` lockstep keyed off it — stays put.
-		compound: [{ radius: 'full', class: 'density-px-ring-[1.5,2,2.5,3,3]' }],
+		compound: [{ radius: 'full', class: dan.space.badgePillX }],
 		defaults: { variant: 'soft', color: 'zinc', radius: 'md' },
 		skeleton: badge,
 	},
@@ -76,7 +77,7 @@ export const k = defineRecipe(
 		 * `px`. The button takes the step of the chip, so the pad is a stepped
 		 * class. `removable-chip-pad.test.ts` holds the sum at each step.
 		 */
-		removable: 'data-[has-suffix]:density-ps-ring-[2.25,3,3.75,4.5,4.5]',
+		removable: dan.space.badgeRemovableStart,
 	},
 )
 

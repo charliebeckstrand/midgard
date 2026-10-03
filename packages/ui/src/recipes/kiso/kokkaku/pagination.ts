@@ -10,11 +10,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: pagination
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 export const pagination = {
 	item: [rounded.lg, 'size-9'],
-	nav: [rounded.lg, 'density-size-[5.5,7.5,9.5,11.5,11.5]'],
+	nav: [rounded.lg, dan.size.pagination],
 } as const

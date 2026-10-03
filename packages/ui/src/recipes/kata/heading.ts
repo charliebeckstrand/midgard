@@ -1,5 +1,6 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, kokkaku } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { weight } = ji
@@ -34,12 +35,12 @@ const levelWeight = {
  * its nearest density scope. `heading-ramp.test.ts` pins the rungs.
  */
 export const headingRamp = {
-	1: 'density-text-[2xl,3xl,4xl]',
-	2: 'density-text-[xl,2xl,3xl]',
-	3: 'density-text-[lg,xl,2xl]',
-	4: 'density-text-[base,lg,xl]',
-	5: 'density-text-[sm,base,lg]',
-	6: 'density-text-[xs,sm,base]',
+	1: dan.text.h1,
+	2: dan.text.h2,
+	3: dan.text.h3,
+	4: dan.text.title,
+	5: dan.text.body,
+	6: dan.text.small,
 } as const satisfies Record<HeadingLevel, string>
 
 /**

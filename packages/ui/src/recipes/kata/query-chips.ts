@@ -6,6 +6,7 @@
  * nested-group `bracket`, and the `empty` text.
  */
 import { iro, ji, narabi } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { weight } = ji
@@ -34,7 +35,7 @@ export const k = {
 		'density-md:[--touch-target-gap-x:--spacing(3.75)]',
 		'density-[lg,xl]:[--touch-target-gap-x:--spacing(4.25)]',
 		'[--touch-target-gap-y:--spacing(3)]',
-		'density-text-[xs,sm,base,lg,lg]',
+		dan.text.chip,
 	],
 	// The chip is a Badge with no `size`, so it takes the step of the row. The
 	// leading pad of the removable chip is `removable` of the Badge kata.
@@ -44,17 +45,13 @@ export const k = {
 	value: [weight.semibold, ...text.default],
 	// The combinator is one step below the chips. No step is below `xs`, so at
 	// `xs` the combinator takes the `xs` values.
-	combinator: ['density-text-[xs,xs,sm,base,base]', weight.medium, ...text.muted, 'uppercase'],
+	combinator: [dan.text.chipCaption, weight.medium, ...text.muted, 'uppercase'],
 	/**
 	 * The pad of the combinator Button: the values of the Button kata, one step
 	 * below the step of the row. The Button has no `size`, so it takes the step
 	 * of the row, and these classes replace its own stepped pad.
 	 */
-	combinatorButton: [
-		'density-p-ring-[1.5,1.5,2,2.5,2.5]',
-		'data-[has-label]:density-py-ring-[1,1,1.5,2,2]',
-		'density-rounded-[1,1,1.5,2,2]',
-	],
+	combinatorButton: [dan.space.chipQuery, dan.space.chipQueryLabelY, dan.radius.chipQuery],
 	bracket: [...text.muted],
 	empty: [...text.muted],
 } as const

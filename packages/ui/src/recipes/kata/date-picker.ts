@@ -9,6 +9,7 @@
 import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
 
 const { cursor } = hannou
@@ -28,7 +29,7 @@ const button = defineRecipe({
 		...density,
 		// The calendar icon is inside the button, not in a suffix slot. This gap
 		// keeps it the control `px` from the value, as the Listbox chevron is.
-		'density-gap-[2.25,2.75,3.25]',
+		dan.gap.datePicker,
 	],
 })
 
@@ -44,7 +45,7 @@ const value = defineRecipe({
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
 // not in the calendar kata. Each takes the step of the nearest density scope.
-const body = [flex.col, 'density-p-[2,3,4]', 'density-gap-y-[1,2,3]']
+const body = [flex.col, dan.space.box, dan.gap.y]
 
 export const k = {
 	surface: {

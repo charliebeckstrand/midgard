@@ -1,6 +1,7 @@
 import type { DensityStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, kokkaku, narabi, sen, textRamp } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
 const { flex, inset } = narabi
@@ -39,9 +40,9 @@ const itemBox = [
 	'w-full',
 	mini.square,
 	textRamp,
-	'density-gap-[1.5,2,2.5]',
-	'density-p-ring-[1.5,2,2.5]',
-	'density-rounded-[1.5,2,2.5]',
+	dan.gap.item,
+	dan.space.sidebarItem,
+	dan.radius.control,
 ]
 
 const itemBase = defineRecipe({
@@ -53,7 +54,7 @@ const itemBase = defineRecipe({
 		'text-start',
 		// The inner Button has a text label, so its `data-has-label` padding
 		// repeats the row padding. Thus the Button class merges away.
-		'data-[has-label]:density-py-ring-[1.5,2,2.5]',
+		dan.space.sidebarItemLabelY,
 		// The item wraps its `icon` in Icon, which takes the step of the nearest
 		// scope by itself. An Avatar or a LoadingSpinner child sizes itself in a
 		// row: its own recipe selects the inner button of the row. See
@@ -83,7 +84,7 @@ const itemRow = defineRecipe({
 		true: [
 			'flex items-center',
 			// The wrapper only needs a radius when it carries the affixed row chrome.
-			'density-rounded-[1.5,2,2.5]',
+			dan.radius.control,
 			...nav.tint,
 			'ring-inset has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2 has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-blue-600',
 		],

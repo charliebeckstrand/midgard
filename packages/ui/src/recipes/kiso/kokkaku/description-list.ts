@@ -9,7 +9,9 @@
  * Layer: kiso · Concern: skeleton form · Unit: description-list
  */
 
+import { dan } from '../dan'
+
 export const descriptionList = {
-	term: 'density-h-[4,5,6] w-24 max-w-full',
-	details: 'density-h-[4,5,6] w-48 max-w-full',
+	term: `${dan.size.line} w-24 max-w-full`,
+	details: `${dan.size.line} w-48 max-w-full`,
 } as const

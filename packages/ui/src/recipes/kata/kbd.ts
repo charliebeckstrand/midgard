@@ -1,5 +1,6 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { shaku } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { mark } = shaku
 
@@ -20,9 +21,9 @@ export const k = defineRecipe({
 		// text and padding that fit in the line of the label, so the key does not
 		// make the button taller. Each class selects the key itself, so Chromium
 		// tests the rule only against the keys.
-		'[&:is([data-variant]>*)]:density-text-[xs,sm,base]',
-		'[&:is([data-variant]>*)]:density-px-[1,1.5,1.5]',
-		'[&:is([data-variant]>*)]:density-py-[0,0.5,0.5,0.5,0.5]',
+		dan.text.smallInButton,
+		dan.space.kbdXInButton,
+		dan.space.kbdYInButton,
 	],
 	size: mark.size,
 })

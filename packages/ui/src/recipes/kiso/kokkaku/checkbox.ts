@@ -9,11 +9,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: checkbox
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const box = 'density-size-[4,5,5]'
+const box = dan.size.checkBox
 
 export const checkbox = {
 	base: [rounded.sm, box],
