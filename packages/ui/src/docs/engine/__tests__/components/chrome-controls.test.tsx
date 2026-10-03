@@ -1,36 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
 import { OptionsListbox } from '../../components/options-listbox'
-import { isModifiedClick, SidebarContent } from '../../components/sidebar'
+import { SidebarContent } from '../../components/sidebar'
 import { ValueStepper } from '../../components/value-stepper'
 import { initRegistry } from '../../registry'
 import { fireEvent, renderUI, screen } from '../helpers'
 
-const click = { button: 0, metaKey: false, ctrlKey: false, shiftKey: false, altKey: false }
-
 describe('sidebar item', () => {
-	it('reads only a plain click of the main button as a follow', () => {
-		expect(isModifiedClick(click)).toBe(false)
-
-		for (const modifier of ['metaKey', 'ctrlKey', 'shiftKey', 'altKey'] as const) {
-			expect(isModifiedClick({ ...click, [modifier]: true })).toBe(true)
-		}
-
-		expect(isModifiedClick({ ...click, button: 1 })).toBe(true)
-	})
-
 	// `fireEvent` returns false when a handler called `preventDefault`.
-	it('leaves a modified click to the browser, and routes a plain one', () => {
+	it('leaves each click to the browser, which follows the hash link', () => {
 		initRegistry({ './demos/components/alpha.tsx': () => Promise.resolve(() => null) })
 
 		renderUI(<SidebarContent route="" />)
 
 		const link = screen.getByRole('link', { name: 'Alpha' })
 
+		expect(link).toHaveAttribute('href', '#alpha')
+
 		expect(fireEvent.click(link, { metaKey: true })).toBe(true)
 
-		expect(fireEvent.click(link, { ctrlKey: true })).toBe(true)
-
-		expect(fireEvent.click(link)).toBe(false)
+		expect(fireEvent.click(link)).toBe(true)
 	})
 })
 

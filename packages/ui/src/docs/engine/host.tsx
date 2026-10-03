@@ -36,12 +36,22 @@ export function mount(loaders: DemoLoaders, rootEl?: HTMLElement | null) {
 
 	if (!root) throw new Error('docs: missing #root element')
 
-	// The app sets the scroll position on each route change (app.tsx). With
-	// `auto`, the browser also restores the last position of the history entry
-	// on a reload, on a tab restore, and on the recovery reload below. That
-	// restore can occur after the app scrolls to the top, because the demo
-	// continues to load. Then the page opens below the top.
-	history.scrollRestoration = 'manual'
+	// The app scrolls to the top on each route change and on the first render
+	// (app.tsx). With `auto`, the browser also restores the last position of the
+	// history entry on a reload, on a tab restore, and on the recovery reload
+	// below. That restore can occur after the app scrolls to the top, because
+	// the demo continues to load. Then the page opens below the top.
+	//
+	// The mode belongs to one history entry. WebKit gives `auto` to each new
+	// entry that a hash link makes, and does not copy the mode of the entry
+	// before it. Thus set the mode again on each hash change.
+	const manualScrollRestoration = () => {
+		history.scrollRestoration = 'manual'
+	}
+
+	manualScrollRestoration()
+
+	window.addEventListener('hashchange', manualScrollRestoration)
 
 	// A lazy chunk 404s when a deploy swaps hashed filenames under a long-lived
 	// tab; Vite signals it with `vite:preloadError`. Reload once per history

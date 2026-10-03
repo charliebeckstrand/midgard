@@ -4,10 +4,6 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-	overscroll-behavior: none;
-}
-
 /* JsonTree: merge adjacent highlighted rows into one visual block.
    Rows merge when the previous sibling is a highlighted leaf (no data-slot).
    Branches keep bottom rounding because their children create a visual break. */
