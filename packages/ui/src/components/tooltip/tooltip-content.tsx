@@ -12,14 +12,18 @@ import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
 /**
- * Tab cycle for the interactive trap: trigger first, then the panel's own
- * tabbables. Including the reference is what makes a tooltip trap reachable.
- * The trigger keeps focus when the tooltip opens, so a content-only cycle
- * would leave Tab walking into the page instead of the panel. Floating-ui also
- * `aria-hidden`s everything outside the cycle, which would swallow the very
- * trigger that names the panel.
+ * The focus manager of an interactive panel that holds a tabbable control. The
+ * panel is a non-modal dialog, so the manager does not trap Tab and does not
+ * hide the page from assistive tech. The guards of the portal keep the tab
+ * order of the trigger: Tab from the trigger goes into the panel controls, and
+ * Tab after the last control goes to the element after the trigger.
+ * `returnFocus` puts focus back on the trigger when the tooltip closes from
+ * inside the panel.
  */
-const TRAP_ORDER: FloatingFocusManagerProps['order'] = ['reference', 'content']
+const DIALOG_FOCUS: Omit<FloatingFocusManagerProps, 'context' | 'children'> = {
+	modal: false,
+	returnFocus: true,
+}
 
 /** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
@@ -58,11 +62,13 @@ export type TooltipContentProps = {
  *
  * @remarks Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel
- * that holds something tabbable also traps focus. Tab steps off the trigger
- * into the panel, cycles its controls, and wraps back to the trigger. Focus is
- * restored there if the tooltip closes from inside (WCAG 2.1.2). The
- * trap engages only once the panel actually has a tabbable — a prose tooltip
- * the pointer can merely reach never captures the keyboard.
+ * that holds something tabbable joins the tab order of the trigger. Tab goes
+ * from the trigger into the panel controls, and Tab after the last control
+ * goes to the element after the trigger. Shift+Tab goes back the same way.
+ * Focus does not stay in the panel, and the page stays visible to assistive
+ * tech. When the tooltip closes from inside the panel, focus goes back to the
+ * trigger. A prose panel that the pointer can only reach adds nothing to the
+ * tab order.
  *
  * The same probe sets the role. An `interactive` panel that holds a tabbable
  * control is a non-modal `role="dialog"` without `aria-modal`, and the trigger
@@ -112,11 +118,11 @@ export function TooltipContent({
 			// subtree; the inner surface carries no rule of its own.
 			style={{ pointerEvents: interactive ? 'auto' : 'none' }}
 			// Mounted for the whole open lifetime of an interactive tooltip and
-			// gated through `disabled`, so the probe finding a tabbable one commit
-			// after the panel mounts engages the trap in place rather than
-			// remounting the panel around a newly-inserted manager.
+			// gated through `disabled`. The probe finds a tabbable control one commit
+			// after the panel mounts, and the manager then starts in place. It does
+			// not remount the panel around a new manager.
 			trapFocusContext={interactive ? floatingContext : undefined}
-			trapFocusProps={{ disabled: !hasTabbable, order: TRAP_ORDER, returnFocus: true }}
+			trapFocusProps={{ ...DIALOG_FOCUS, disabled: !hasTabbable }}
 			data-slot="tooltip-content"
 			density={size}
 		>

@@ -38,8 +38,10 @@ export type TooltipProps = {
 	 *
 	 * Content that holds a tabbable control makes the panel a non-modal
 	 * `role="dialog"`, because a tooltip must not hold interactive content. The
-	 * trigger names the dialog, and Tab moves between the trigger and the panel
-	 * controls. Prose content keeps `role="tooltip"`.
+	 * trigger names the dialog. The dialog is not modal: Tab goes from the
+	 * trigger into the panel controls and then on to the element after the
+	 * trigger, and the page stays visible to assistive tech. Prose content keeps
+	 * `role="tooltip"`.
 	 */
 	interactive?: boolean
 	/**

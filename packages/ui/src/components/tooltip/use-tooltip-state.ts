@@ -74,8 +74,8 @@ function fieldsetAncestors(reference: Element): Element[] {
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`, re-opening on hover once the
  * disabled state clears. Hands the floating root context out as
- * `floatingContext`, which an `interactive` `<TooltipContent>` mounts its focus
- * trap on.
+ * `floatingContext`, which the focus manager of an `interactive`
+ * `<TooltipContent>` mounts on.
  * @internal
  * @see {@link isReferenceDisabled}
  * @see {@link useFloatingDisclosure}

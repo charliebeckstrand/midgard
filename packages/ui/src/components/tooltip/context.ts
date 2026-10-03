@@ -21,9 +21,9 @@ export type TooltipContextValue = {
 	getReferenceProps: (userProps?: object) => Record<string, unknown>
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
 	/**
-	 * Floating-ui root context an interactive `<TooltipContent>`'s focus trap
-	 * mounts on. Absent for the point-anchored readout, which is never
-	 * `interactive` and so never traps.
+	 * Floating-ui root context that the focus manager of an interactive
+	 * `<TooltipContent>` mounts on. Absent for the point-anchored readout, which
+	 * is never `interactive`.
 	 */
 	floatingContext?: FloatingRootContext
 	/**

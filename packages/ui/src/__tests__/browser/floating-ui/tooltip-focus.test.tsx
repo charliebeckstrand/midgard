@@ -5,17 +5,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
- * Interactive-Tooltip focus trap against the real floating engine. The jsdom
- * and main browser suites mock `@floating-ui/react`, so the guards, the
- * `markOthers` pass, and the reference-first Tab cycle only run here; real
- * keystrokes are required, as testing-library simulation strands focus on a
- * guard sentinel.
+ * Focus order of an interactive Tooltip against the real floating engine. The
+ * jsdom suite and the main browser suite mock `@floating-ui/react`. Thus the
+ * portal guards and the focus manager run only here. The tests use real key
+ * presses, because a testing-library simulation leaves focus on a guard.
  *
- * The contract: an `interactive` panel holding something tabbable contains Tab
- * (WCAG 2.1.2) across the trigger and its own controls, and restores focus to
- * the trigger when dismissed from inside. A panel with nothing to reach — and
- * any non-`interactive` panel, whose contents the pointer can't even hit —
- * leaves the tab order alone.
+ * The contract: an `interactive` panel that holds a tabbable control is a
+ * non-modal dialog. Tab goes from the trigger into the panel controls, and Tab
+ * after the last control goes to the element after the trigger. Shift+Tab goes
+ * back the same way. Focus does not stay in the panel, and the page stays
+ * visible to assistive tech. When the tooltip closes from inside the panel,
+ * focus goes back to the trigger. A panel with no tabbable control, and a
+ * panel that is not `interactive`, add nothing to the tab order.
  */
 
 function Harness({ interactive = true, children }: { interactive?: boolean; children: ReactNode }) {
@@ -43,8 +44,8 @@ async function openByKeyboard() {
 	return trigger
 }
 
-describe('Tooltip focus trap (real browser)', () => {
-	it('cycles Tab across the trigger and the panel controls', async () => {
+describe('Tooltip focus order (real browser)', () => {
+	it('puts the panel controls in the tab order after the trigger', async () => {
 		renderUI(
 			<Harness>
 				<button type="button">Undo</button>
@@ -52,8 +53,6 @@ describe('Tooltip focus trap (real browser)', () => {
 			</Harness>,
 		)
 
-		// Captured before the trap marks it: `markOthers` aria-hides it, which
-		// puts it out of reach of a default `getByRole`.
 		const after = screen.getByRole('button', { name: 'After' })
 
 		const trigger = await openByKeyboard()
@@ -62,15 +61,11 @@ describe('Tooltip focus trap (real browser)', () => {
 
 		const dismiss = screen.getByRole('button', { name: 'Dismiss' })
 
-		// The probe engages the trap a commit after the panel mounts; the
-		// aria-hidden sweep over outside content is that commit landing.
-		await waitFor(() => expect(after).toHaveAttribute('aria-hidden', 'true'))
+		// The focus manager starts a commit after the panel mounts, when the role
+		// changes to dialog.
+		await screen.findByRole('dialog', { name: 'Details' })
 
-		// The trigger stays in the cycle, so it keeps the accessible name that
-		// labels the panel it opened.
-		expect(trigger).not.toHaveAttribute('aria-hidden')
-
-		// Tab steps off the trigger into the panel rather than on to `After`.
+		// Tab goes from the trigger into the panel, not to `After`.
 		await userEvent.keyboard('{Tab}')
 
 		await waitFor(() => expect(undo).toHaveFocus())
@@ -79,18 +74,31 @@ describe('Tooltip focus trap (real browser)', () => {
 
 		await waitFor(() => expect(dismiss).toHaveFocus())
 
-		// Past the last control, the cycle wraps back to the trigger.
-		await userEvent.keyboard('{Tab}')
+		// Shift+Tab goes back through the panel to the trigger.
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+		await waitFor(() => expect(undo).toHaveFocus())
+
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 
 		await waitFor(() => expect(trigger).toHaveFocus())
 
-		// …and backward from the trigger lands on the last control.
-		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+		// After the last control, Tab goes on to the element after the trigger.
+		// It does not go back to the trigger.
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(undo).toHaveFocus())
+
+		await userEvent.keyboard('{Tab}')
 
 		await waitFor(() => expect(dismiss).toHaveFocus())
+
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(after).toHaveFocus())
 	})
 
-	it('restores focus to the trigger when dismissed from inside', async () => {
+	it('keeps the page visible to assistive tech while the dialog is open', async () => {
 		renderUI(
 			<Harness>
 				<button type="button">Undo</button>
@@ -101,9 +109,43 @@ describe('Tooltip focus trap (real browser)', () => {
 
 		const trigger = await openByKeyboard()
 
+		const panel = await screen.findByRole('dialog', { name: 'Details' })
+
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus())
+
+		// A non-modal dialog hides nothing outside it, and has no `aria-modal`.
+		expect(panel).not.toHaveAttribute('aria-modal')
+
+		expect(after).not.toHaveAttribute('aria-hidden')
+
+		expect(trigger).not.toHaveAttribute('aria-hidden')
+
+		// Floating-ui adds empty `aria-hidden` sentinels that keep the tab order.
+		// They hide no content. A modal manager hides the page itself, so the
+		// check looks for a hidden element that holds content.
+		const hidden = [...document.querySelectorAll('[aria-hidden="true"]')].filter(
+			(node) => !node.closest('svg') && node.childNodes.length > 0,
+		)
+
+		expect(hidden).toEqual([])
+
+		expect(document.querySelectorAll('[inert]')).toHaveLength(0)
+	})
+
+	it('puts focus back on the trigger when the tooltip closes from inside', async () => {
+		renderUI(
+			<Harness>
+				<button type="button">Undo</button>
+			</Harness>,
+		)
+
+		const trigger = await openByKeyboard()
+
 		const undo = await screen.findByRole('button', { name: 'Undo' })
 
-		await waitFor(() => expect(after).toHaveAttribute('aria-hidden', 'true'))
+		await screen.findByRole('dialog', { name: 'Details' })
 
 		await userEvent.keyboard('{Tab}')
 
@@ -113,10 +155,8 @@ describe('Tooltip focus trap (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull())
 
-		// Focus can't be left on the panel that just left the DOM.
+		// Focus cannot stay on a panel that is no longer in the DOM.
 		await waitFor(() => expect(trigger).toHaveFocus())
-
-		expect(after).not.toHaveAttribute('aria-hidden')
 	})
 
 	it('leaves the tab order alone for a panel with nothing tabbable', async () => {
