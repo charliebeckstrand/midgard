@@ -283,7 +283,7 @@ describe('KanbanCard', () => {
 			</Kanban>,
 		)
 
-		const card = bySlot(container, 'kanban-card')
+		const card = getSlot(container, 'kanban-card')
 
 		expect(card.tagName).toBe('LI')
 
