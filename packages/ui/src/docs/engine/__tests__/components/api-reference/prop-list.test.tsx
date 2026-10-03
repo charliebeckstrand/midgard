@@ -40,7 +40,7 @@ describe('readSignature', () => {
 })
 
 describe('PropList', () => {
-	it('marks a prop optional or required', () => {
+	it('marks only a required prop', () => {
 		renderUI(
 			<PropList
 				rows={[
@@ -50,9 +50,9 @@ describe('PropList', () => {
 			/>,
 		)
 
-		expect(screen.getByText('required')).toBeInTheDocument()
+		expect(screen.getAllByText('required')).toHaveLength(1)
 
-		expect(screen.getByText('optional')).toBeInTheDocument()
+		expect(screen.queryByText('optional')).toBeNull()
 	})
 
 	it('shows options as chips with no prefix, then the default', () => {
