@@ -1,5 +1,5 @@
 import { type ComponentType, Suspense, use, useCallback, useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useLocation, useOutletContext, useParams } from 'react-router'
+import { Link, Outlet, useLocation, useOutletContext } from 'react-router'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
 import { SidebarLayout } from '../../layouts'
@@ -9,6 +9,7 @@ import { UIProvider } from '../../providers/ui'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
 import { DebugActions } from './debug/debug-actions'
+import { parseDemoPath } from './demo-id'
 import { DemoPage } from './demo-page'
 import { defaultDemo, demos, retryDemo, type TrackedPromise, tracked } from './registry'
 
@@ -82,9 +83,9 @@ type ChromeContext = { locked: boolean; onToggleLocked: () => void }
  * on screen while the next demo's chunk loads.
  */
 export function App() {
-	const { id = defaultDemo } = useParams()
-
 	const { pathname } = useLocation()
+
+	const id = parseDemoPath(pathname).id || defaultDemo
 
 	const [locked, setLocked] = useState(true)
 

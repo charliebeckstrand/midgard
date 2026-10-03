@@ -4,12 +4,18 @@ import { parseSource } from './ts-source'
 /** The tabs of a demo's `PageTabs`: the tab at the page's own path, and the others. */
 export type PageTabsInfo = { defaultValue: string; others: string[] }
 
+// A tab value is a part of the page path, so it has only lowercase letters,
+// digits, and hyphens (`/progress/gauge`).
+const TAB_PATH = /^[a-z0-9]+(-[a-z0-9]+)*$/
+
 /**
  * Read the `PageTabs` element of a demo source. It gives the `defaultValue`,
  * and the `value` of each `Tab` that belongs to the element. A `Tab` inside a
  * nested `Tabs` belongs to that `Tabs`. A value is a string literal, or the
  * item of a `.map` over a module constant array of string literals. Any other
- * value is an error, because the build cannot list the page of that tab.
+ * value is an error, because the build cannot list the page of that tab. A
+ * value with a character other than a lowercase letter, a digit, or a hyphen is
+ * an error, because the value is a part of the path.
  * Returns null when the demo has no `PageTabs`.
  */
 export function parsePageTabs(fileName: string, source: string): PageTabsInfo | null {
@@ -116,6 +122,8 @@ export function parsePageTabs(fileName: string, source: string): PageTabsInfo | 
 			for (const v of typeof value === 'string'
 				? [value]
 				: valuesOf(node, value as ts.Expression)) {
+				if (!TAB_PATH.test(v)) fail(node, `the PageTabs value "${v}" is not a path part`)
+
 				into.add(v)
 			}
 		}
@@ -132,6 +140,10 @@ export function parsePageTabs(fileName: string, source: string): PageTabsInfo | 
 			const defaultValue = literalAttr(el, 'defaultValue')
 
 			if (typeof defaultValue !== 'string') fail(node, 'PageTabs needs a literal defaultValue')
+
+			if (!TAB_PATH.test(defaultValue as string)) {
+				fail(node, `the PageTabs value "${defaultValue}" is not a path part`)
+			}
 
 			const values = new Set<string>()
 

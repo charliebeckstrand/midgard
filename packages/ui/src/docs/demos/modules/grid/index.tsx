@@ -1335,41 +1335,33 @@ const SparklineExample = () => {
 // capabilities rather than one scroll. Panels unmount when inactive
 // (`fade={false}`) so the page's jump nav only ever lists the visible tab's
 // examples and never scrolls to a hidden one.
-const tabs = [
-	'Variants',
-	'Sorting',
-	'Selection',
-	'Events',
-	'Reorder',
-	'Resize',
-	'Expand',
-	'Groups',
-	'Pin',
-	'Lock',
-	'Filters',
-	'Header',
-	'Footer',
-	'Toolbar',
-	'Export',
-	'Sparkline',
-	'Pagination',
-	'Virtualization',
-	'State',
-	'Editable',
-] as const
-
 export function Demo() {
 	return (
-		<PageTabs defaultValue="Variants">
+		<PageTabs defaultValue="variants">
 			<TabList aria-label="Grid examples">
-				{tabs.map((tab) => (
-					<Tab key={tab} value={tab}>
-						{tab}
-					</Tab>
-				))}
+				<Tab value="variants">Variants</Tab>
+				<Tab value="sorting">Sorting</Tab>
+				<Tab value="selection">Selection</Tab>
+				<Tab value="events">Events</Tab>
+				<Tab value="reorder">Reorder</Tab>
+				<Tab value="resize">Resize</Tab>
+				<Tab value="expand">Expand</Tab>
+				<Tab value="groups">Groups</Tab>
+				<Tab value="pin">Pin</Tab>
+				<Tab value="lock">Lock</Tab>
+				<Tab value="filters">Filters</Tab>
+				<Tab value="header">Header</Tab>
+				<Tab value="footer">Footer</Tab>
+				<Tab value="toolbar">Toolbar</Tab>
+				<Tab value="export">Export</Tab>
+				<Tab value="sparkline">Sparkline</Tab>
+				<Tab value="pagination">Pagination</Tab>
+				<Tab value="virtualization">Virtualization</Tab>
+				<Tab value="state">State</Tab>
+				<Tab value="editable">Editable</Tab>
 			</TabList>
 			<TabContents fade={false}>
-				<TabContent value="Variants">
+				<TabContent value="variants">
 					<Stack gap="xl">
 						<Axes
 							of="Grid"
@@ -1389,7 +1381,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Sorting">
+				<TabContent value="sorting">
 					<Stack gap="xl">
 						<Example
 							title="Server-side sorting"
@@ -1418,7 +1410,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Selection">
+				<TabContent value="selection">
 					<Stack gap="xl">
 						<Example title="Selection">
 							<SelectionExample />
@@ -1430,7 +1422,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Events">
+				<TabContent value="events">
 					<Stack gap="xl">
 						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
 							<RowClickExample />
@@ -1456,7 +1448,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Reorder">
+				<TabContent value="reorder">
 					<Stack gap="xl">
 						<Example title="Column reorder: with handle">
 							<ReorderExample />
@@ -1478,7 +1470,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Resize">
+				<TabContent value="resize">
 					<Stack gap="xl">
 						<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
 							<ResizableExample />
@@ -1486,7 +1478,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Expand">
+				<TabContent value="expand">
 					<Stack gap="xl">
 						<Example
 							title="Expandable rows"
@@ -1497,7 +1489,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Groups">
+				<TabContent value="groups">
 					{/* A second row of tabs splits column groups (banding a run of columns)
 					    from row groups (collecting rows by a column's value). */}
 					<Tabs defaultValue="Column">
@@ -1574,7 +1566,7 @@ export function Demo() {
 					</Tabs>
 				</TabContent>
 
-				<TabContent value="Pin">
+				<TabContent value="pin">
 					<Stack gap="xl">
 						<Example
 							title="Pinned columns"
@@ -1592,7 +1584,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Lock">
+				<TabContent value="lock">
 					<Stack gap="xl">
 						<Example
 							title="Locked left"
@@ -1617,7 +1609,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Filters">
+				<TabContent value="filters">
 					<Stack gap="xl">
 						<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>
 							<SearchExample />
@@ -1646,7 +1638,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Header">
+				<TabContent value="header">
 					<Stack gap="xl">
 						<Example
 							title="Sticky header"
@@ -1663,7 +1655,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Footer">
+				<TabContent value="footer">
 					<Stack gap="xl">
 						<Example title="Row total" code={code`<Grid footer={{ rowTotal: true }} />`}>
 							<RowTotalExample />
@@ -1678,7 +1670,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Toolbar">
+				<TabContent value="toolbar">
 					<Stack gap="xl">
 						<Example title="Column manager">
 							<ColumnManagerExample />
@@ -1686,7 +1678,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Export">
+				<TabContent value="export">
 					<Stack gap="xl">
 						<Example
 							title="Export"
@@ -1711,7 +1703,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Sparkline">
+				<TabContent value="sparkline">
 					<Stack gap="xl">
 						<Example
 							title="In-cell sparklines"
@@ -1722,7 +1714,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Pagination">
+				<TabContent value="pagination">
 					<Stack gap="xl">
 						<Example
 							title="Server pagination"
@@ -1737,7 +1729,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Virtualization">
+				<TabContent value="virtualization">
 					<Tabs defaultValue="Client">
 						<TabList aria-label="Virtualization type">
 							<Tab value="Client">Client</Tab>
@@ -1780,7 +1772,7 @@ export function Demo() {
 					</Tabs>
 				</TabContent>
 
-				<TabContent value="State">
+				<TabContent value="state">
 					<Stack gap="xl">
 						<Example title="Loading">
 							<Grid loading columns={columns} rows={[]} getKey={(row) => row.id} />
@@ -1796,7 +1788,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Editable">
+				<TabContent value="editable">
 					<Stack gap="xl">
 						<Example
 							title="Editable"
