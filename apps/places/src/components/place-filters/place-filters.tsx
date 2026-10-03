@@ -89,8 +89,13 @@ export function PlaceFilters({
 				{/* The bar's own padding rides the field row rather than a wrapper
 				    around it. Outside the row, a padded band is not the scroll
 				    container. A wheel over the strip above or below the controls —
-				    most of what the pointer can land on — would reach nothing. */}
-				<FiltersRow className="px-6 py-3">
+				    most of what the pointer can land on — would reach nothing.
+
+				    While Clear follows the row, the row has no right padding. Clear
+				    holds the inset at the right edge, and the gap of the bar holds
+				    the space between the two. With the padding too, the last field
+				    stood four gaps away from Clear. */}
+				<FiltersRow className="px-6 py-3 not-last:pr-0">
 					{/* Navigation rather than a filter — it projects one region instead of
 					    narrowing the places — but it rides the same rail: two scroll
 					    containers side by side is one the reader's wheel finds and one it
