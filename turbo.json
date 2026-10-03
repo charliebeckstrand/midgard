@@ -43,6 +43,10 @@
 			"dependsOn": ["docs:build"],
 			"inputs": ["src/docs/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
 		},
+		"docs:hydration": {
+			"dependsOn": ["docs:build"],
+			"inputs": ["src/docs/dist/**", "scripts/docs-*.ts"]
+		},
 		"lint": {
 			"inputs": [
 				"src/**",

@@ -4,8 +4,8 @@
  * Nothing else in the gate notices a bundle regression: a stray eager import
  * that pulls a lazy demo's dependency into the entry chunk type-checks, lints,
  * and tests clean. This asserts the two numbers such a regression moves — total
- * gzip, and the eager entry chunk — and fails with the delta when either passes
- * its ceiling.
+ * gzip, and the chunks each page loads before it hydrates — and fails with the
+ * delta when either passes its ceiling.
  *
  * Ceilings are deliberately loose. They are a tripwire for a doubling, not a
  * ratchet on every kilobyte; a change that legitimately grows the bundle raises
@@ -18,10 +18,7 @@
  * ```
  */
 
-import { type BundleReport, readBundle, stableName } from './bundle-report'
-
-/** The app's eager entry chunk, named as `readBundle` reports it. */
-const ENTRY_CHUNK = stableName('index-00000000.js')
+import { type BundleReport, readBundle } from './bundle-report'
 
 /**
  * Measured 2026-08-13 at 1960 kB total gzip and 46 kB entry gzip, after the
@@ -37,16 +34,16 @@ const ENTRY_CHUNK = stableName('index-00000000.js')
  * On 2026-10-02 the entry was 64 kB and the ceiling was 65 kB. A change of a few
  * hundred bytes then failed the gate. The entry ceiling is now 69 kB. A stray
  * eager import adds some kB, so it still goes past the ceiling.
+ *
+ * On 2026-10-03 the docs moved to React Router with a prerendered page for each
+ * demo. The app has no single entry chunk now. The budget sums the chunks that
+ * each page preloads before it hydrates: the router, React, the vendors that
+ * the chrome uses, and the chrome. They were 268 kB, and 218 kB on main before
+ * the move. The ceiling is 290 kB, with the same headroom of about 20 kB.
  */
 const BUDGETS = [
 	{ label: 'total gzip', budgetKb: 2250, of: (report: BundleReport) => report.totalGzip },
-	{
-		label: 'entry gzip',
-		budgetKb: 69,
-		// The app's own eager chunk — `stableName` has already stripped the content
-		// hash, so this is the same name `vite-metrics.ts` reports and compares.
-		of: (report: BundleReport) => report.chunks.find((c) => c.name === ENTRY_CHUNK)?.gzip,
-	},
+	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
 ] as const
 
 const report = readBundle()

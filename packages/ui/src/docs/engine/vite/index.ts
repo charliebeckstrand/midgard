@@ -21,8 +21,8 @@ export type DocsConfigOptions = {
 	 */
 	packageName: string
 	/**
-	 * Vite root — the directory holding `index.html`, the entry `main.tsx`, and
-	 * the `demos/` tree.
+	 * Vite root — the directory holding `app.css`, the React Router app in
+	 * `app/`, and the `demos/` tree.
 	 *
 	 * @defaultValue `'src/docs'`
 	 */
@@ -74,10 +74,10 @@ export function defineDocsConfig({
 		],
 		server: {
 			port: 3456,
-			// Transform the entry graph (chrome, host, providers) on server start
-			// so the first page paints without an on-demand transform stall.
-			// `app.css` is warmed too: `index.html` links it instead of importing
-			// it, so it is no longer in the entry graph, and it blocks the paint.
+			// Transform the entry graph (the root, the chrome, the providers) on
+			// server start, so the first page paints without an on-demand transform
+			// stall. The root links `app.css` with a `?url` import, so it is not in
+			// the module graph, and it blocks the paint. It is warmed too.
 			warmup: { clientFiles: ['./app/root.tsx', './app.css'] },
 		},
 		// Pre-bundle the heavy component deps up front. Left to lazy discovery,
