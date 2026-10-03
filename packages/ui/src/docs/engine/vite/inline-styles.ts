@@ -1,20 +1,6 @@
-import { globSync, readFileSync, writeFileSync } from 'node:fs'
-import path from 'node:path'
-import { compile, optimize } from '@tailwindcss/node'
-
-// The `class` attribute of an element in the HTML.
-const CLASS_ATTRIBUTE = / class="([^"]*)"/g
-
-// The entities that React writes in the value of an attribute.
-const ENTITY = /&(amp|lt|gt|quot|#x27);/g
-
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', '#x27': "'" }
-
-// A `@font-face` rule of a minified stylesheet. The rule has no nested block.
-const FONT_FACE = /@font-face\{[^}]*\}/g
-
-// The link to the full stylesheet that the build writes in the head.
-const STYLESHEET_LINK = /<link rel="stylesheet" href="([^"]+\.css)"\/>/
+import { globSync } from 'node:fs'
+import { availableParallelism } from 'node:os'
+import { Worker } from 'node:worker_threads'
 
 /** Options of {@link inlinePageStyles}. */
 export type InlinePageStylesOptions = {
@@ -35,54 +21,33 @@ export type InlinePageStylesOptions = {
  *
  * Only Vite knows the hashed URL of a font file, so the `@font-face` rules
  * come from the full stylesheet.
+ *
+ * Each compile loads the Tailwind plugins again, so the pages go to one worker
+ * thread for each CPU.
  */
 export async function inlinePageStyles({
 	clientDir,
 	stylesheet,
 }: InlinePageStylesOptions): Promise<void> {
-	const source = readFileSync(stylesheet, 'utf8')
+	const pages = globSync('**/index.html', { cwd: clientDir })
 
-	const base = path.dirname(stylesheet)
+	const count = Math.min(availableParallelism(), pages.length)
 
-	const fontFaces = new Map<string, string>()
+	await Promise.all(
+		Array.from({ length: count }, (_, index) => {
+			const files = pages.filter((_, page) => page % count === index)
 
-	for (const file of globSync('**/index.html', { cwd: clientDir })) {
-		const target = path.join(clientDir, file)
+			const worker = new Worker(new URL('./inline-styles-worker.ts', import.meta.url), {
+				workerData: { clientDir, stylesheet, files },
+			})
 
-		const html = readFileSync(target, 'utf8')
+			return new Promise<void>((resolve, reject) => {
+				worker.once('error', reject)
 
-		const [tag, href] = html.match(STYLESHEET_LINK) ?? []
-
-		if (!tag || !href) throw new Error(`${file}: no stylesheet link`)
-
-		let faces = fontFaces.get(href)
-
-		if (faces === undefined) {
-			faces = readFileSync(path.join(clientDir, href), 'utf8').match(FONT_FACE)?.join('') ?? ''
-
-			fontFaces.set(href, faces)
-		}
-
-		const classes = new Set<string>()
-
-		for (const [, value = ''] of html.matchAll(CLASS_ATTRIBUTE)) {
-			for (const name of value
-				.replace(ENTITY, (match, entity) => ENTITIES[entity] ?? match)
-				.split(/\s+/)) {
-				if (name) classes.add(name)
-			}
-		}
-
-		// A compiler keeps each class that it builds, so each page gets its own.
-		const compiler = await compile(source, { base, onDependency: () => {} })
-
-		const css =
-			faces + optimize(compiler.build([...classes]), { minify: true }).code.replace(FONT_FACE, '')
-
-		if (css.includes('</')) throw new Error(`${file}: the styles cannot go in a <style>`)
-
-		const swap = `<style>${css}</style><link rel="preload" as="style" href="${href}" onload="this.onload=null;this.rel='stylesheet'"/><noscript>${tag}</noscript>`
-
-		writeFileSync(target, html.replace(tag, swap))
-	}
+				worker.once('exit', (code) =>
+					code === 0 ? resolve() : reject(new Error(`inline styles: worker exit code ${code}`)),
+				)
+			})
+		}),
+	)
 }
