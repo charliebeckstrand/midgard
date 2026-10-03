@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# CodeRabbit reviews each pull request. The repository documents are the rules
+# that it applies, so this file names them and does not restate them.
+
+language: en-US
+
+tone_instructions: >-
+  Write short, technical comments. Name the repository rule that a finding
+  rests on, as a file and a clause, for example CONVENTIONS.md §3.4.
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  in_progress_fortune: false
+  review_status: true
+  collapse_walkthrough: true
+  sequence_diagrams: false
+  auto_review:
+    enabled: true
+    # A draft pull request is not ready. The review starts when the author
+    # marks it ready.
+    drafts: false
+  # These files come from a generator. Review the generator, not its output.
+  path_filters:
+    - '!apps/places/src/api/openapi.d.ts'
+    - '!packages/auth/src/openapi.d.ts'
+    - '!packages/ui/src/fonts/fonts.css'
+    - '!packages/ui/src/modules/map/engine/map-outline-data.ts'
+  tools:
+    # The CI gate runs Biome with the repository configuration, so a second
+    # report adds noise only.
+    biome:
+      enabled: false
+    # STE.md and CADENCE.md set the rules for Markdown text. These tools apply
+    # different rules, and the two sets disagree.
+    markdownlint:
+      enabled: false
+    languagetool:
+      enabled: false
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - CLAUDE.md
+      - CONVENTIONS.md
+      - REFERENCE.md
+      - STE.md
+      - CADENCE.md
+      - packages/ui/REFERENCE.md
