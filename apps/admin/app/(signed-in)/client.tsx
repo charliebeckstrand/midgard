@@ -9,6 +9,7 @@ import {
 	UsersIcon,
 } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { signOut } from 'shared/auth'
@@ -81,7 +82,7 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 				<Sidebar>
 					<SidebarHeader>
 						<SidebarItem href="/" current={pathname === '/'}>
-							<img src="/gradient.png" alt="" width={24} height={24} />
+							<Image src="/gradient.png" alt="" width={24} height={24} />
 							<SidebarLabel>
 								<Text className="font-black text-lg">Admin</Text>
 							</SidebarLabel>
@@ -162,7 +163,7 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 function Brand() {
 	return (
 		<>
-			<img src="/gradient.png" alt="" width={24} height={24} />
+			<Image src="/gradient.png" alt="" width={24} height={24} />
 			<Text className="font-black text-lg">Admin</Text>
 		</>
 	)

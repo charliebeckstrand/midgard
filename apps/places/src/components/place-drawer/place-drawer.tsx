@@ -1,6 +1,7 @@
 'use client'
 
 import { CalendarDays, Globe, MapPin, Pencil, Trash, X } from 'lucide-react'
+import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -303,10 +304,11 @@ export function PlaceDrawer({
 			<DrawerBody>
 				{place ? (
 					<Stack gap="md" className="pb-6">
-						{/* A plain `img`, not `next/image`: the address is whatever the reader
-						    typed, and optimizing an arbitrary remote host means listing that
-						    host first. The name is the alt text because it is the one thing
-						    known about what the picture shows.
+						{/* `next/image` with `unoptimized`: the address is the one that the
+						    reader typed, so the host is not known at build time. The optimizer
+						    serves only the hosts that `images.remotePatterns` lists, so the
+						    browser gets the photo from its own address. The name is the alt
+						    text because it is the one thing known about the picture.
 
 						    One square, stated on both axes, so every place reads the same
 						    however its photo was shot. `max-h-48 w-full` clamped the tall
@@ -322,10 +324,12 @@ export function PlaceDrawer({
 						    text down on load. `object-cover` fills the box and crops the
 						    overflow, which is what makes one size honest for any aspect. */}
 						{place.photo ? (
-							<img
+							<Image
 								src={place.photo}
 								alt={place.name}
-								loading="lazy"
+								width={128}
+								height={128}
+								unoptimized
 								className="size-32 rounded-lg bg-white/5 object-cover"
 							/>
 						) : null}
