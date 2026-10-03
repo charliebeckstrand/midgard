@@ -266,7 +266,7 @@ export function Example({
 				)}
 				<div
 					data-example-section=""
-					className="flex flex-col items-start p-4 gap-4 overflow-x-auto"
+					className="flex flex-col items-start p-4 gap-4 overflow-x-auto phrasing:flex-row phrasing:flex-wrap phrasing:items-baseline phrasing:*:w-max phrasing:*:min-w-0"
 				>
 					{Children.toArray(children).map((child, index) => (
 						<div
