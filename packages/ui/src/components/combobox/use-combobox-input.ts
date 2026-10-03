@@ -9,6 +9,7 @@ import {
 	type KeyboardEventHandler,
 	type MouseEvent,
 	type RefObject,
+	type UIEvent,
 	useCallback,
 } from 'react'
 import { isComposing } from '../../utilities'
@@ -81,7 +82,7 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 /**
  * Event handlers for the combobox input element.
  *
- * @returns `{ onChange, onFocus, onMouseDown, onBlur, onKeyDown, onPaste }` for the
+ * @returns `{ onChange, onFocus, onMouseDown, onBlur, onKeyDown, onPaste, onScroll }` for the
  *   input. `onChange` enters editing mode, updates the query, opens the menu, and
  *   clears the value on empty when `clearOnEmpty`. `onFocus` opens once the
  *   keyboard has settled. `onMouseDown` does the same for a press on the input
@@ -89,7 +90,8 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
  *   panel, else marks touched and closes. `onKeyDown` handles Escape/Enter, and reserves Home/End and
  *   Shift+Arrow for native caret/selection. It opens the closed menu from an
  *   arrow key at the matching text edge: ArrowDown at the end, ArrowUp at the
- *   start. It then delegates to the roving handler.
+ *   start. It then delegates to the roving handler. `onScroll` holds an unfocused
+ *   input at its start, so a truncated value does not scroll sideways.
  * @remarks Enter selects the sole remaining option when the list has narrowed to
  *   one; the roving handler's activation key selects the highlighted option.
  * @internal
@@ -230,5 +232,30 @@ export function useComboboxInput<T>({
 		[onPaste, setQuery, setEditing],
 	)
 
-	return { onChange, onFocus, onMouseDown, onBlur, onKeyDown, onPaste: onPasteHandler }
+	/*
+	 * A sideways wheel or trackpad gesture scrolls a text input, also when it does not have focus.
+	 * A resting value that truncates then scrolls away from its ellipsis. The field shows the middle
+	 * of the value, with blank space past its end. No CSS stops it, because `overflow` does not reach
+	 * the inner text box of an `<input>`. This handler puts the unfocused input back at its start.
+	 * The browser fires `scroll` before it paints, so the moved text never shows.
+	 *
+	 * A focused input keeps its scroll. There the caret moves the text, as Home, End, and typing do.
+	 */
+	const onScroll = useCallback((event: UIEvent<HTMLInputElement>) => {
+		const input = event.currentTarget
+
+		if (document.activeElement === input) return
+
+		input.scrollLeft = 0
+	}, [])
+
+	return {
+		onChange,
+		onFocus,
+		onMouseDown,
+		onBlur,
+		onKeyDown,
+		onPaste: onPasteHandler,
+		onScroll,
+	}
 }

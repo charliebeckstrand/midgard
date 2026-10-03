@@ -1,10 +1,12 @@
 'use client'
 
-import type { FocusEventHandler, ReactNode, Ref } from 'react'
+import { type FocusEventHandler, type Ref, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
+import { useIsTruncated } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 type ListboxButtonProps = {
 	id?: string
@@ -19,10 +21,46 @@ type ListboxButtonProps = {
 	required?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
 	validation?: ValidationAttrs
-	label: ReactNode
+	label?: string
 	onBlur?: FocusEventHandler<HTMLButtonElement>
 	placeholder: string
 	truncate: boolean
+	/** Shows the whole label in a hover tooltip while the trigger truncates it. */
+	valueTooltip: boolean
+	/** Holds the value tooltip closed while the panel is open. */
+	valueTooltipSuppressed: boolean
+}
+
+/**
+ * The label span of the trigger, in a tooltip that shows `label` while the span
+ * truncates it. A separate unit, so a listbox without `valueTooltip` mounts no
+ * measure and no tooltip.
+ *
+ * @internal
+ */
+function ListboxValueTooltip({
+	label,
+	truncate,
+	suppressed,
+}: {
+	label: string
+	truncate: boolean
+	suppressed: boolean
+}) {
+	const valueRef = useRef<HTMLSpanElement>(null)
+
+	const truncated = useIsTruncated(valueRef, label)
+
+	return (
+		<Tooltip disabled={suppressed || !truncated}>
+			<TooltipTrigger>
+				<span ref={valueRef} className={cn(k.value({ truncate }))}>
+					{label}
+				</span>
+			</TooltipTrigger>
+			<TooltipContent>{label}</TooltipContent>
+		</Tooltip>
+	)
 }
 
 /**
@@ -48,6 +86,8 @@ export function ListboxButton({
 	onBlur,
 	placeholder,
 	truncate,
+	valueTooltip,
+	valueTooltipSuppressed,
 }: ListboxButtonProps) {
 	return (
 		<HeadlessProvider>
@@ -71,9 +111,17 @@ export function ListboxButton({
 				{...validation}
 				className={cn(k())}
 			>
-				<span className={cn(k.value({ truncate }))}>
-					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
-				</span>
+				{valueTooltip && label ? (
+					<ListboxValueTooltip
+						label={label}
+						truncate={truncate}
+						suppressed={valueTooltipSuppressed}
+					/>
+				) : (
+					<span className={cn(k.value({ truncate }))}>
+						{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
+					</span>
+				)}
 			</Button>
 		</HeadlessProvider>
 	)

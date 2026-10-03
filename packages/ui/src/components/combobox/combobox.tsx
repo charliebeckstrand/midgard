@@ -62,8 +62,8 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * Tighter than `Listbox`, which joins up to three, and for a reason particular
 	 * to this control. A listbox trigger is a button whose text truncates and
 	 * stops, while this is a text input. A joined value longer than the field
-	 * therefore scrolls, showing the middle of a sentence, with blank space past
-	 * its end. Without a resolver a `multiple` combobox can only ever show the
+	 * therefore scrolls under the caret while the input has focus, and shows the
+	 * middle of a sentence. Without a resolver a `multiple` combobox can only ever show the
 	 * count, and a single-selection one shows nothing. Supply one wherever the
 	 * selection needs to be legible with the panel closed.
 	 */
@@ -161,6 +161,14 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * @defaultValue true
 	 */
 	capitalize?: boolean
+	/**
+	 * Shows the whole value in a tooltip on hover while the input truncates it.
+	 * The tooltip does not open while the panel is open or the user types, so it
+	 * does not cover the options. A touch press does not open it, as with any
+	 * hover tooltip.
+	 * @defaultValue false
+	 */
+	valueTooltip?: boolean
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -318,6 +326,7 @@ export function Combobox<T>({
 	clearable = false,
 	onClear,
 	capitalize = true,
+	valueTooltip,
 	open: openProp,
 	onOpenChange,
 	onQueryChange,
@@ -734,6 +743,7 @@ export function Combobox<T>({
 							title={inputTitle}
 							editing={editing}
 							capitalize={capitalize}
+							valueTooltip={valueTooltip}
 							handlers={inputHandlers}
 						/>
 					</SelectTrigger>

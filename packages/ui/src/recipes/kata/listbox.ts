@@ -25,7 +25,9 @@ export const k = defineRecipe(
 	{
 		value: defineRecipe({
 			truncate: {
-				true: 'flex-1 min-w-0 truncate',
+				// `block`, because a value tooltip stamps `inline-flex` on the span, and an
+				// ellipsis paints against a block box. A flex item is a block box anyway.
+				true: 'block flex-1 min-w-0 truncate',
 				false: '',
 			},
 			defaults: { truncate: true },

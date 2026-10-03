@@ -450,3 +450,45 @@ describe('useComboboxInput onKeyDown', () => {
 		})
 	})
 })
+
+describe('useComboboxInput onScroll', () => {
+	function scrollEvent(input: HTMLInputElement) {
+		return { currentTarget: input } as unknown as Parameters<
+			ReturnType<typeof useComboboxInput<string>>['onScroll']
+		>[0]
+	}
+
+	it('puts an unfocused input back at its start', () => {
+		const input = document.createElement('input')
+
+		document.body.append(input)
+
+		input.scrollLeft = 40
+
+		const { result } = setup<string>()
+
+		result.current.onScroll(scrollEvent(input))
+
+		expect(input.scrollLeft).toBe(0)
+
+		input.remove()
+	})
+
+	it('keeps the scroll of a focused input, where the caret moves the text', () => {
+		const input = document.createElement('input')
+
+		document.body.append(input)
+
+		input.focus()
+
+		input.scrollLeft = 40
+
+		const { result } = setup<string>()
+
+		result.current.onScroll(scrollEvent(input))
+
+		expect(input.scrollLeft).toBe(40)
+
+		input.remove()
+	})
+})
