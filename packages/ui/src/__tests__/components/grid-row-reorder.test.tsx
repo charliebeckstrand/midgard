@@ -55,6 +55,9 @@ describe('Grid row reorder', () => {
 
 		for (const handle of handles) expect(handle).toBeEnabled()
 
+		// The grip is a native `<button>`, so dnd-kit's `role="button"` is redundant.
+		for (const handle of handles) expect(handle).not.toHaveAttribute('role')
+
 		// The empty drag-handle header still names itself for assistive tech.
 		expect(screen.getByText('Reorder rows')).toBeInTheDocument()
 	})

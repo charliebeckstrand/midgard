@@ -143,16 +143,16 @@ export function ChatPrompt({
 							<>
 								{/* Sibling of the button, not nested inside it: a focusable
 								    `<input>` inside an interactive control produces
-								    nested-interactive markup. */}
+								    nested-interactive markup. The Button is the one control:
+								    the input is `hidden`, so browse mode does not read a
+								    second "Add attachment", and `click()` still opens the picker. */}
 								<input
 									ref={inputRef}
 									type="file"
-									aria-label="Add attachment"
 									accept={accept}
 									multiple
 									onChange={handleChange}
-									className="sr-only"
-									tabIndex={-1}
+									hidden
 								/>
 								<Button
 									type="button"

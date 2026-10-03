@@ -318,11 +318,20 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 	const canResize = resizeActions !== null && interactive
 
 	// dnd-kit's activator attributes set `role="button"`, which on the `<th>` would
-	// override its columnheader role and drop `aria-sort`. Strip the role (keeping
-	// the focus/aria hints and the sortable roledescription) for the handle-less
-	// header, where the cell itself carries these; a gripped header spreads the
-	// full set onto its button, where `role="button"` is correct.
-	const { role: _role, ...cellActivatorAttributes } = attributes
+	// override its columnheader role and drop `aria-sort`. They also set
+	// `aria-pressed` while a drag runs, which a columnheader does not allow, and
+	// `aria-roledescription="sortable"`, which hides "column header". The
+	// handle-less header strips all three and keeps the focus stop and the
+	// `aria-disabled` and `aria-describedby` hints. The grip of a gripped header is
+	// a native `<button>`, so it strips only the redundant role.
+	const {
+		role: _role,
+		'aria-pressed': _pressed,
+		'aria-roledescription': _roleDescription,
+		...cellActivatorAttributes
+	} = attributes
+
+	const { role: _gripRole, ...gripAttributes } = attributes
 
 	const cellActivators = useSurfaceSafeActivators(listeners)
 
@@ -364,7 +373,7 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 						data-dragging={dataAttr(isDragging)}
 						className={cn(k.reorder.handle)}
 						aria-label={`Reorder ${columnLabel(column)}`}
-						{...attributes}
+						{...gripAttributes}
 						{...listeners}
 					>
 						<Icon icon={<GripVertical />} />

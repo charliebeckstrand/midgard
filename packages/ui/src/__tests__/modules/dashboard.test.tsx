@@ -195,6 +195,11 @@ describe('Dashboard', () => {
 
 		// Each tile gets a grip; the tile with no header gets it on its corner.
 		expect(allBySlot(container, 'dashboard-handle')).toHaveLength(3)
+
+		// The grip is a native `<button>`, so dnd-kit's `role="button"` is redundant.
+		for (const handle of allBySlot(container, 'dashboard-handle')) {
+			expect(handle).not.toHaveAttribute('role')
+		}
 	})
 
 	it('gives the widget a slot in the header row at rest, and none in edit mode', () => {
@@ -789,6 +794,9 @@ describe('Dashboard', () => {
 		expect(onTileError).toHaveBeenCalledWith('a', expect.any(Error))
 
 		fail = false
+
+		// `Button` sets no `type`, so without one Retry would submit an enclosing form.
+		expect(screen.getByRole('button', { name: 'Retry' })).toHaveAttribute('type', 'button')
 
 		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
@@ -2314,6 +2322,12 @@ describe('Dashboard scope', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'West' }))
 
 		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		// `Button` sets no `type`, so without one Clear would submit an enclosing form.
+		expect(screen.getByRole('button', { name: 'Clear the selection in Regions' })).toHaveAttribute(
+			'type',
+			'button',
+		)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Clear the selection in Regions' }))
 

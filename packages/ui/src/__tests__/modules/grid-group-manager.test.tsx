@@ -24,6 +24,7 @@ import {
 	groupAwareKeyboardCoordinates,
 	groupManagerAnnouncements,
 } from '../../modules/grid/grid-group-manager'
+import { GridManagerGrip } from '../../modules/grid/grid-manager-grip'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('group manager reducers', () => {
@@ -628,5 +629,34 @@ describe('groupManagerAnnouncements', () => {
 		expect(announcements.onDragCancel({ active: at(`${GROUP_PREFIX}g1`), over: null })).toBe(
 			'Returned Contact group to where it started.',
 		)
+	})
+})
+
+describe('GridManagerGrip', () => {
+	it('drops the redundant role of dnd-kit from its native button', () => {
+		renderUI(
+			<GridManagerGrip
+				label="Reorder Name"
+				sortable={{
+					setActivatorNodeRef: () => {},
+					attributes: {
+						role: 'button',
+						tabIndex: 0,
+						'aria-disabled': false,
+						'aria-pressed': undefined,
+						'aria-roledescription': 'sortable',
+						'aria-describedby': 'hint',
+					},
+					listeners: undefined,
+					dragging: false,
+				}}
+			/>,
+		)
+
+		const grip = screen.getByRole('button', { name: 'Reorder Name' })
+
+		expect(grip).not.toHaveAttribute('role')
+
+		expect(grip).toHaveAttribute('aria-describedby', 'hint')
 	})
 })
