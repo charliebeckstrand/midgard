@@ -129,7 +129,7 @@ function DefaultExample() {
 				<PdfViewer src="/sample.pdf" filename="sample.pdf" />
 			`}
 		>
-			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" />
+			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" className="w-full" />
 		</Example>
 	)
 }
@@ -173,7 +173,7 @@ function DrivenExample() {
 				/>
 			`}
 		>
-			<div className="flex flex-col gap-3">
+			<div className="flex w-full flex-col gap-3">
 				<div className="flex flex-wrap gap-2">
 					{regions.map((region) => (
 						<Button
@@ -204,7 +204,7 @@ function FitWidthExample() {
 				<PdfViewer pages={pages} fit="width" className="h-96" />
 			`}
 		>
-			<PdfViewer pages={pages} fit="width" className="h-96" />
+			<PdfViewer pages={pages} fit="width" className="h-96 w-full" />
 		</Example>
 	)
 }
@@ -221,7 +221,7 @@ function MagnifierExample() {
 				<PdfViewer pages={pages} magnifier={{ zoom: 'lg', size: 'lg', delay: 'none' }} />
 			`}
 		>
-			<PdfViewer pages={pages} magnifier />
+			<PdfViewer pages={pages} magnifier className="w-full" />
 		</Example>
 	)
 }
@@ -247,7 +247,12 @@ function MagnifierConfigExample() {
 				/>
 			`}
 		>
-			<PdfViewer pages={pages} magnifier={{ mode: 'config' }} onMagnifierChange={setState} />
+			<PdfViewer
+				pages={pages}
+				magnifier={{ mode: 'config' }}
+				onMagnifierChange={setState}
+				className="w-full"
+			/>
 		</Example>
 	)
 }
@@ -255,7 +260,7 @@ function MagnifierConfigExample() {
 function EmptyExample() {
 	return (
 		<Example title="Empty">
-			<PdfViewer pages={[]} />
+			<PdfViewer pages={[]} className="w-full" />
 		</Example>
 	)
 }

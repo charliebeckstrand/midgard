@@ -45,29 +45,33 @@ export function Demo() {
 			/>
 
 			<Example title="Loading">
-				<Table>
-					<TableHead>
-						<TableRow>
-							<TableHeader>Name</TableHeader>
-							<TableHeader>Email</TableHeader>
-							<TableHeader>Role</TableHeader>
-						</TableRow>
-					</TableHead>
-					<TableLoading columns={3} />
-				</Table>
+				<div className="w-full">
+					<Table>
+						<TableHead>
+							<TableRow>
+								<TableHeader>Name</TableHeader>
+								<TableHeader>Email</TableHeader>
+								<TableHeader>Role</TableHeader>
+							</TableRow>
+						</TableHead>
+						<TableLoading columns={3} />
+					</Table>
+				</div>
 			</Example>
 
 			<Example title="Empty">
-				<Table>
-					<TableHead>
-						<TableRow>
-							<TableHeader>Name</TableHeader>
-							<TableHeader>Email</TableHeader>
-							<TableHeader>Role</TableHeader>
-						</TableRow>
-					</TableHead>
-					<TableEmpty columns={3} />
-				</Table>
+				<div className="w-full">
+					<Table>
+						<TableHead>
+							<TableRow>
+								<TableHeader>Name</TableHeader>
+								<TableHeader>Email</TableHeader>
+								<TableHeader>Role</TableHeader>
+							</TableRow>
+						</TableHead>
+						<TableEmpty columns={3} />
+					</Table>
+				</div>
 			</Example>
 		</>
 	)

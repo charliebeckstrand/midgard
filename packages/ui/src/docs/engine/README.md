@@ -17,6 +17,14 @@ it now lives inside `ui` rather than as a standalone package.
 | Build plugin | [`plugins`](plugins), [`vite`](vite) | The Vite plugin + `defineDocsConfig` wired into `vite.docs.config.ts`. |
 | Debug tools | [`debug`](debug) | The Debug section of the settings: a switch for each tool in [`registry.ts`](debug/registry.ts). A tool that is on loads before the first paint, and it puts its button in the header. The event log logs the events of each tap, for touch bugs that occur only on a device. |
 
+## Example width
+
+Each child of an `Example` aligns to the start and keeps the width of its
+content. The playground, the axis examples, and the other examples thus show a
+component at the same width. `max-w-full` keeps a wide child within the frame.
+A component with no content width, such as a chart, a progress bar, or a split,
+collapses at the start. Its demo gives it a width, such as `w-full` or `w-48`.
+
 ## Generated axes
 
 A demo does not list the values of a styling axis by hand. `<Axes>` reads the

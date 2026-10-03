@@ -5,7 +5,7 @@ import { Example } from '../../engine'
 export function Demo() {
 	return (
 		<Example title="Default">
-			<Stack gap="sm" className="sm:max-w-90">
+			<Stack gap="sm" className="w-full sm:max-w-90">
 				<Placeholder />
 			</Stack>
 		</Example>

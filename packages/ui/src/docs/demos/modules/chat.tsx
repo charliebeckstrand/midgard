@@ -214,17 +214,17 @@ export function Demo() {
 							of="ChatMessage"
 							captions={false}
 							render={(props, label) => (
-								<ChatMessage role="assistant" {...props}>
+								<ChatMessage role="assistant" className="w-full" {...props}>
 									{label}
 								</ChatMessage>
 							)}
 						/>
 
 						<Example title="Timestamped">
-							<ChatMessage role="assistant" timestamp="11:10 AM">
+							<ChatMessage role="assistant" timestamp="11:10 AM" className="w-full">
 								Heading out now, ETA 3pm.
 							</ChatMessage>
-							<ChatMessage role="user" timestamp="11:12 AM">
+							<ChatMessage role="user" timestamp="11:12 AM" className="w-full">
 								Got it — door code is 4421.
 							</ChatMessage>
 						</Example>
@@ -232,6 +232,7 @@ export function Demo() {
 						<Example title="With actions">
 							<ChatMessage
 								role="assistant"
+								className="w-full"
 								actions={
 									<>
 										<CopyButton size="sm" text="Heading out now, ETA 3pm." />

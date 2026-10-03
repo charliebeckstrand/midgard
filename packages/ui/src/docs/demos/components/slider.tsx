@@ -59,7 +59,7 @@ function RangeStepSliderExample() {
 
 	return (
 		<>
-			<Stack gap="sm">
+			<Stack gap="sm" full>
 				<Text>Clamped</Text>
 
 				<RangeSlider
@@ -77,7 +77,7 @@ function RangeStepSliderExample() {
 				</Text>
 			</Stack>
 
-			<Stack gap="sm">
+			<Stack gap="sm" full>
 				<Text className="mt-lg">Swap</Text>
 
 				<RangeSlider

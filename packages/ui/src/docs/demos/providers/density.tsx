@@ -148,7 +148,7 @@ export function Demo() {
 				/>
 			}
 		>
-			<Stack gap="md">
+			<Stack gap="md" full>
 				<DensityProvider density={density}>
 					{/* The layout can pin itself to the viewport. Layout containment makes
 					    this box the containing block of the pinned layout, so the demo stays

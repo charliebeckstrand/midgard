@@ -8,11 +8,9 @@ function ClosableExample() {
 
 	if (!visible) {
 		return (
-			<div className="px-4">
-				<Button variant="soft" color="red" onClick={() => setVisible(true)}>
-					Reset
-				</Button>
-			</div>
+			<Button variant="soft" color="red" onClick={() => setVisible(true)}>
+				Reset
+			</Button>
 		)
 	}
 
@@ -37,36 +35,30 @@ export function Demo() {
 			/>
 
 			<Example title="With description">
-				<div className="-mx-4">
-					<Banner
-						severity="warning"
-						title="Scheduled maintenance"
-						description="The system will be offline on Sunday from 2am to 4am."
-						closable={false}
-					/>
-				</div>
+				<Banner
+					severity="warning"
+					title="Scheduled maintenance"
+					description="The system will be offline on Sunday from 2am to 4am."
+					closable={false}
+				/>
 			</Example>
 
 			<Example title="Closable">
-				<div className="-mx-4">
-					<ClosableExample />
-				</div>
+				<ClosableExample />
 			</Example>
 
 			<Example title="With actions">
-				<div className="-mx-4">
-					<Banner
-						severity="info"
-						title="New version available"
-						description="Version 2.0 has been released with new features and improvements."
-						actions={
-							<Button size="sm" color="blue">
-								Update now
-							</Button>
-						}
-						closable={false}
-					/>
-				</div>
+				<Banner
+					severity="info"
+					title="New version available"
+					description="Version 2.0 has been released with new features and improvements."
+					actions={
+						<Button size="sm" color="blue">
+							Update now
+						</Button>
+					}
+					closable={false}
+				/>
 			</Example>
 		</>
 	)
