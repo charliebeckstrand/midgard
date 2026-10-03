@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode, RefObject } from 'react'
+import { type ReactNode, type RefObject, useId } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllableFlag } from '../../hooks/use-controllable'
@@ -176,6 +176,9 @@ export function Sheet({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
+	// The handle names the panel in `aria-controls`.
+	const panelId = useId()
+
 	// The dimension this side is docked across, which is the one the gesture moves
 	// and the one the cap is measured on.
 	const axis = panelAxis(edge)
@@ -207,6 +210,7 @@ export function Sheet({
 				onAnimationComplete={onAnimationComplete}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
+				id={panelId}
 				data-slot="sheet"
 				ref={handle ? resize.ref : undefined}
 				onClick={(event) => event.stopPropagation()}
@@ -236,7 +240,12 @@ export function Sheet({
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? (
-						<SheetHandle handleProps={resize.handleProps} covers={resize.covers} side={edge} />
+						<SheetHandle
+							handleProps={resize.handleProps}
+							covers={resize.covers}
+							controls={panelId}
+							side={edge}
+						/>
 					) : null}
 
 					{children}

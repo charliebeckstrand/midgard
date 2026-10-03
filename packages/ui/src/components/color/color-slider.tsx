@@ -1,7 +1,7 @@
 'use client'
 
-import { type KeyboardEvent, useRef } from 'react'
-import { ariaAttr, cn } from '../../core'
+import { type ChangeEvent, type KeyboardEvent, useRef } from 'react'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp, pct } from '../../utilities'
 import { hsvaToHex } from './color-utilities'
@@ -17,23 +17,36 @@ type ColorSliderProps = {
  * A single-axis track for either hue or alpha, sharing the panel's drag +
  * keyboard model.
  *
+ * @remarks
+ * A native `<input type="range">` covers the track and holds the focus, the
+ * keys, and the slider semantics. The input lets the pointer through, so the
+ * track keeps the drag. The input has the same box as the track, so the drag
+ * measures the input and focuses it on a press.
+ *
  * @internal
  */
 export function ColorSlider({ channel }: ColorSliderProps) {
 	const { hsva, setHsva, disabled } = useColorPanelContext()
 
-	const ref = useRef<HTMLDivElement>(null)
+	const ref = useRef<HTMLInputElement>(null)
 
 	const isHue = channel === 'hue'
 	const max = isHue ? 360 : 1
 	const value = isHue ? hsva.h : hsva.a
 
-	const onPosition = ({ x }: DragPosition) =>
-		setHsva((prev) => (isHue ? { ...prev, h: x * 360 } : { ...prev, a: x }))
+	const setValue = (next: number) => {
+		const clamped = clamp(next, 0, max)
+
+		setHsva((prev) => (isHue ? { ...prev, h: clamped } : { ...prev, a: clamped }))
+	}
+
+	const onPosition = ({ x }: DragPosition) => setValue(x * max)
 
 	const drag = useColorDrag(ref, onPosition, disabled, 'pointer')
 
-	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+	// The native keys step by `step` only, and the Page keys of a range input
+	// differ by browser. This handler keeps the Shift step and the Page step.
+	const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 		if (disabled) return
 
 		const step = isHue ? (event.shiftKey ? 10 : 1) : event.shiftKey ? 0.1 : 0.01
@@ -70,10 +83,11 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 
 		event.preventDefault()
 
-		const clamped = clamp(next, 0, max)
-
-		setHsva((prev) => (isHue ? { ...prev, h: clamped } : { ...prev, a: clamped }))
+		setValue(next)
 	}
+
+	// An assistive-technology increment changes the value with no key event.
+	const onChange = (event: ChangeEvent<HTMLInputElement>) => setValue(Number(event.target.value))
 
 	// Transparent-to-opaque gradient for the alpha track ends on the current
 	// color at full opacity.
@@ -81,19 +95,10 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 
 	return (
 		<div
-			ref={ref}
 			data-slot="color-slider"
 			data-channel={channel}
-			role="slider"
-			tabIndex={disabled ? -1 : 0}
-			aria-label={isHue ? 'Hue' : 'Alpha'}
-			aria-valuemin={0}
-			aria-valuemax={max}
-			aria-valuenow={isHue ? Math.round(value) : Math.round(value * 100) / 100}
-			aria-valuetext={isHue ? `${Math.round(value)}°` : `${Math.round(value * 100)}%`}
-			aria-disabled={ariaAttr(disabled)}
 			className={cn(
-				k.track,
+				k.track.base,
 				isHue ? k.hue : k.checkerboard,
 				disabled && 'pointer-events-none opacity-50',
 			)}
@@ -102,7 +107,6 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			onPointerUp={drag.onPointerUp}
 			onPointerCancel={drag.onPointerCancel}
 			onLostPointerCapture={drag.onLostPointerCapture}
-			onKeyDown={onKeyDown}
 		>
 			{!isHue && (
 				<div
@@ -111,6 +115,21 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 					style={{ backgroundImage: `linear-gradient(to right, transparent, ${opaque})` }}
 				/>
 			)}
+			<input
+				ref={ref}
+				type="range"
+				data-slot="color-slider-input"
+				min={0}
+				max={max}
+				step={isHue ? 1 : 0.01}
+				value={isHue ? Math.round(value) : Math.round(value * 100) / 100}
+				disabled={disabled}
+				aria-label={isHue ? 'Hue' : 'Alpha'}
+				aria-valuetext={isHue ? `${Math.round(value)}°` : `${Math.round(value * 100)}%`}
+				className={k.track.input}
+				onKeyDown={onKeyDown}
+				onChange={onChange}
+			/>
 			<div
 				data-slot="color-slider-thumb"
 				className={cn(k.handle, 'top-1/2')}

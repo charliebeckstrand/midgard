@@ -15,6 +15,30 @@ describe('Resizable', () => {
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('role', 'separator')
 	})
 
+	it('names the panel before each handle in aria-controls', () => {
+		const { container } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel>B</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel>C</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		const panels = allBySlot(container, 'resizable-panel')
+
+		const handles = allBySlot(container, 'resizable-handle')
+
+		expect(new Set(panels.map((panel) => panel.id)).size).toBe(3)
+
+		// The primary pane of each splitter is the panel before it, whose size the value gives.
+		expect(handles.map((handle) => handle.getAttribute('aria-controls'))).toEqual([
+			panels[0]?.id,
+			panels[1]?.id,
+		])
+	})
+
 	it('reports the separator orientation perpendicular to the group axis', () => {
 		const { container } = renderUI(
 			<ResizableGroup orientation="horizontal">

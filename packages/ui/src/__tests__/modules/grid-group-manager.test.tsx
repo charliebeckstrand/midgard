@@ -359,6 +359,27 @@ describe('Grid column-group editor', () => {
 		expect(band(container)?.textContent).toContain('Identity')
 	})
 
+	it('renders the group zones and the column rows as the items of lists', () => {
+		renderUI(<Harness />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+		fireEvent.click(screen.getByText('Move to New group'))
+
+		const zone = screen.getByLabelText('Group name for New group').closest('li')
+
+		expect(zone?.parentElement?.tagName).toBe('UL')
+
+		const row = screen.getByRole('button', { name: 'Move First' }).closest('li')
+
+		expect(row?.parentElement?.tagName).toBe('UL')
+
+		// The row is an item of the list in the zone of its group.
+		expect(row?.parentElement?.closest('li')).toBe(zone)
+	})
+
 	it('narrows a zone to its matching members without touching membership', () => {
 		const { container } = renderUI(<Harness />)
 

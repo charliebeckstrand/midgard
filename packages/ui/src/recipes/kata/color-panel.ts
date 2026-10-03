@@ -26,7 +26,7 @@ const area = ['relative w-full cursor-crosshair touch-none', ...focus.ring, 'den
 const track = [
 	'relative w-full cursor-pointer touch-none',
 	rounded.full,
-	...focus.ring,
+	...focus.outline,
 	'density-h-[3,3.5,4]',
 ]
 
@@ -45,7 +45,15 @@ export const k = defineRecipe(
 			/** Transparent-to-black wash painting the value axis. */
 			value: 'absolute inset-0 [background-image:linear-gradient(to_top,#000,transparent)]',
 		},
-		track,
+		track: {
+			base: track,
+			/**
+			 * The native range input over the track. It is transparent and lets the
+			 * pointer through, so the track keeps the drag. The input keeps the
+			 * focus, the keys, and the semantics.
+			 */
+			input: 'absolute inset-0 m-0 size-full appearance-none opacity-0 pointer-events-none',
+		},
 		preview: {
 			base: preview,
 			/**
@@ -67,12 +75,16 @@ export const k = defineRecipe(
 		field: 'flex min-w-0 flex-col gap-1',
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',
-		/** One preset chip. The inset ring gives a white or a black chip an edge on the panel. */
+		/**
+		 * One preset chip: a label around a visually hidden radio. The inset ring
+		 * gives a white or a black chip an edge on the panel. The outline shows
+		 * when the radio inside has keyboard focus.
+		 */
 		swatch: [
-			'aspect-square w-full cursor-pointer rounded-md',
+			'relative aspect-square w-full cursor-pointer rounded-md',
 			...ring.inset,
 			'hover:scale-110',
-			...focus.ring,
+			...focus.outline,
 		],
 	},
 )

@@ -308,14 +308,20 @@ export function GridGroupManager({
 					{/* Groups reorder as a vertical list, dragged by the handle beside each
 					    name; the grid's group order follows this order. */}
 					<SortableContext items={groupSortIds} strategy={verticalListSortingStrategy}>
-						{groupZones.map((zone) => (
-							<GridGroupManagerGroupZone
-								key={zone.id}
-								zone={zone}
-								columnIds={mgr.zoneMap[String(zone.id)] ?? []}
-								{...shared}
-							/>
-						))}
+						{/* A list, so assistive tech reads the count of the groups. With no
+						    group, no empty list adds a gap to the stack. */}
+						{groupZones.length > 0 && (
+							<ul className={cn(k.manager.groups)}>
+								{groupZones.map((zone) => (
+									<GridGroupManagerGroupZone
+										key={zone.id}
+										zone={zone}
+										columnIds={mgr.zoneMap[String(zone.id)] ?? []}
+										{...shared}
+									/>
+								))}
+							</ul>
+						)}
 					</SortableContext>
 
 					<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
@@ -379,9 +385,9 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 	)
 
 	return (
-		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
+		<li ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
 			<GridGroupManagerZoneView {...props} handle={handle} />
-		</div>
+		</li>
 	)
 }
 
@@ -459,23 +465,25 @@ function GridGroupManagerZoneView({
 					</output>
 				) : (
 					<SortableContext items={visibleIds} strategy={verticalListSortingStrategy}>
-						{visibleIds.map((id) => {
-							const item = byId.get(id)
+						<ul>
+							{visibleIds.map((id) => {
+								const item = byId.get(id)
 
-							if (!item) return null
+								if (!item) return null
 
-							return (
-								<GridGroupManagerColumnRow
-									key={id}
-									item={item}
-									zoneId={zone.id}
-									movable={groups.length > 0}
-									hidden={hidden}
-									onToggle={onToggle}
-									assign={assign}
-								/>
-							)
-						})}
+								return (
+									<GridGroupManagerColumnRow
+										key={id}
+										item={item}
+										zoneId={zone.id}
+										movable={groups.length > 0}
+										hidden={hidden}
+										onToggle={onToggle}
+										assign={assign}
+									/>
+								)
+							})}
+						</ul>
 					</SortableContext>
 				)}
 			</CardBody>
@@ -572,7 +580,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	const label = columnLabel(item)
 
 	return (
-		<div
+		<li
 			ref={setNodeRef}
 			style={style}
 			className={cn(k.manager.row.root)}
@@ -608,7 +616,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 					</MenuContent>
 				</Menu>
 			)}
-		</div>
+		</li>
 	)
 })
 

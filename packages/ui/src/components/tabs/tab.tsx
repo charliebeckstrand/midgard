@@ -50,7 +50,7 @@ export type TabProps = {
 
 /**
  * Resolves the tab's current state plus its auto-wired tab/panel id pair (an
- * explicit `id` overrides; segments never auto-wire `aria-controls`).
+ * explicit `id` overrides).
  *
  * @internal
  */
@@ -60,16 +60,11 @@ function resolveTabState(opts: {
 	currentProp: boolean | undefined
 	contextCurrent: boolean
 	baseId: string | undefined
-	isSegment: boolean
 	disclosure: { triggerId: string; panelId: string }
 }): { current: boolean; tabId: string | undefined; controlsId: string | undefined } {
 	const current = opts.currentProp ?? opts.contextCurrent
 
-	const auto =
-		!opts.isSegment &&
-		opts.id === undefined &&
-		opts.value !== undefined &&
-		opts.baseId !== undefined
+	const auto = opts.id === undefined && opts.value !== undefined && opts.baseId !== undefined
 
 	const tabId = opts.id ?? (auto ? opts.disclosure.triggerId : undefined)
 
@@ -83,8 +78,9 @@ function resolveTabState(opts: {
  * `tabIndex`, and an `<ActiveIndicator>` while selected. Its padding and text
  * follow the nearest density scope. In the `tab` variant it
  * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id +
- * `value`. A `segment` tab has no panel. Clicking sets the enclosing selection
- * state.
+ * `value`. A `segment` tab does the same while the group renders a
+ * `<TabContents>`, because a segmented control often has no panels. Clicking
+ * sets the enclosing selection state.
  */
 export function Tab({
 	value,
@@ -116,8 +112,7 @@ export function Tab({
 
 	// Derives a matched tab/panel id pair from the Tabs base id + value,
 	// auto-wiring <TabContent value>. An explicit `id` prop overrides this to
-	// link a panel the consumer renders. Segments have no panels and never
-	// auto-wire `aria-controls`.
+	// link a panel the consumer renders.
 	const disclosure = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
 	const { current, tabId, controlsId } = resolveTabState({
@@ -126,9 +121,16 @@ export function Tab({
 		currentProp,
 		contextCurrent: item.current,
 		baseId: tabsContext?.baseId,
-		isSegment,
 		disclosure,
 	})
+
+	// Explicit-id panels stay mounted; `aria-controls` is always set. Auto panels
+	// unmount when inactive unless an all-mounted TabContents keeps them mounted
+	// (registered via context); then every tab references its panel. A segmented
+	// control often has no panels, so a segment tab also waits for a TabContents.
+	const panelInDom =
+		id !== undefined ||
+		((current || tabsContext?.panelsMounted) && (!isSegment || tabsContext?.panelsPresent))
 
 	// Selection is the activation a tab exists to perform, so a consumer's
 	// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
@@ -177,13 +179,7 @@ export function Tab({
 					role="tab"
 					id={tabId}
 					aria-selected={current}
-					// Explicit-id panels stay mounted; `aria-controls` is always set.
-					// Auto panels unmount when inactive unless an all-mounted
-					// TabContents keeps them mounted (registered via context);
-					// then every tab references its panel.
-					aria-controls={
-						id !== undefined || current || tabsContext?.panelsMounted ? controlsId : undefined
-					}
+					aria-controls={panelInDom ? controlsId : undefined}
 					tabIndex={current ? 0 : -1}
 					disabled={disabled}
 					type="button"

@@ -9,6 +9,16 @@ describe('PasswordStrength', () => {
 		expect(allBySlot(container, 'password-strength-segment')).toHaveLength(4)
 	})
 
+	it('exposes the gauge as a meter whose value text is the level', () => {
+		renderUI(<PasswordStrength value="Abcdefg1" />)
+
+		const meter = screen.getByRole('meter', { name: 'Password strength' })
+
+		expect(meter).toHaveAttribute('value', '3')
+		expect(meter).toHaveAttribute('aria-valuetext', 'Good')
+		expect(screen.queryByRole('progressbar')).toBeNull()
+	})
+
 	it('renders one rule per default rule', () => {
 		const { container } = renderUI(<PasswordStrength value="" />)
 

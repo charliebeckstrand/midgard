@@ -17,6 +17,8 @@ export type PanelHandleProps = {
 	handleProps: PanelResize['handleProps']
 	/** The share of the screen the panel covers, which is what the value reports. */
 	covers: number
+	/** The id of the panel that the handle sizes. The separator names it in `aria-controls`. */
+	controls: string
 	/** The grab area's styling, which is the panel's own kata to say. */
 	className?: string
 	/** The bar inside it, likewise. */
@@ -30,7 +32,8 @@ export type PanelHandleProps = {
  * arrow keys as well as the drag. A panel only a pointer can size is one a
  * keyboard reader cannot open up.
  * `aria-valuenow` reads as the share of the screen the panel covers, so the
- * value means the same thing a reader can see.
+ * value means the same thing a reader can see. `aria-controls` names the panel,
+ * which is the primary pane of the APG window splitter.
  *
  * Shared by the drawer and the sheet, which differ in where the grip sits and
  * what it looks like and in nothing else. The contract above is the part that
@@ -46,6 +49,7 @@ export function PanelHandle({
 	orientation,
 	handleProps,
 	covers,
+	controls,
 	className,
 	bar,
 }: PanelHandleProps) {
@@ -54,6 +58,7 @@ export function PanelHandle({
 			data-slot={slot}
 			aria-label="Resize panel"
 			aria-orientation={orientation}
+			aria-controls={controls}
 			aria-valuenow={covers}
 			aria-valuemin={0}
 			aria-valuemax={100}

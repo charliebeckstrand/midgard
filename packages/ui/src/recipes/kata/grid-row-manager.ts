@@ -13,6 +13,8 @@ const { flex } = narabi
 export const k = {
 	// Vertical stack of the group zones.
 	root: [flex.col, 'gap-3'],
+	// The list of the group zones, with the gap of the stack.
+	list: [flex.col, 'gap-3'],
 	zone: {
 		// A group zone's row: the grip + label + count grouped at the leading edge,
 		// the color Menu pushed to the trailing edge (`justify-between`).

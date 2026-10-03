@@ -94,7 +94,7 @@ describe('NavItem', () => {
 
 		expect(inner).toHaveAttribute('type', 'button')
 
-		expect(inner).toHaveAttribute('aria-current', 'page')
+		expect(inner).toHaveAttribute('aria-current', 'true')
 	})
 
 	it('renders as a button by default', () => {
@@ -122,9 +122,23 @@ describe('NavItem', () => {
 
 		const inner = bySlot(container, 'nav-item-inner')
 
-		expect(inner).toHaveAttribute('aria-current', 'page')
+		expect(inner).toHaveAttribute('aria-current', 'true')
 
 		expect(inner).toHaveAttribute('data-current')
+	})
+
+	it('marks a current link as the page, not as a view in the page', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem href="/home" current>
+						Home
+					</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		expect(bySlot(container, 'nav-item-inner')).toHaveAttribute('aria-current', 'page')
 	})
 
 	it('treats the item as current when its value matches the Nav value', () => {
@@ -139,7 +153,7 @@ describe('NavItem', () => {
 
 		const inners = container.querySelectorAll('[data-slot="nav-item-inner"]')
 
-		expect(inners[0]).toHaveAttribute('aria-current', 'page')
+		expect(inners[0]).toHaveAttribute('aria-current', 'true')
 
 		expect(inners[1]).not.toHaveAttribute('aria-current')
 	})

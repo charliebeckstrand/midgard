@@ -11,7 +11,17 @@ import {
 	StepperTitle,
 } from '../../components/stepper'
 import type { Mount } from '../../primitives/mount'
-import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser, within } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	fireEvent,
+	present,
+	renderUI,
+	screen,
+	setupUser,
+	within,
+} from '../helpers'
 
 describe('Stepper', () => {
 	it('renders with data-slot="stepper"', () => {
@@ -60,23 +70,60 @@ describe('Stepper', () => {
 		expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
 	})
 
-	it('keeps the toolbar role on an interactive stepper', () => {
+	it('holds an ordered list of the step buttons in the toolbar of an interactive stepper', () => {
 		renderUI(
 			<Stepper defaultValue={0}>
 				<StepperStep value={0}>
 					<StepperTitle>Account</StepperTitle>
 				</StepperStep>
+				<StepperSeparator />
 				<StepperStep value={1}>
 					<StepperTitle>Profile</StepperTitle>
 				</StepperStep>
 			</Stepper>,
 		)
 
-		expect(screen.getByRole('toolbar', { name: 'Steps' })).toBeInTheDocument()
+		const toolbar = screen.getByRole('toolbar', { name: 'Steps' })
 
-		expect(screen.queryByRole('list')).not.toBeInTheDocument()
+		const list = within(toolbar).getByRole('list')
 
-		expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
+		expect(list.tagName).toBe('OL')
+
+		// The separator is aria-hidden, so the list counts the steps only.
+		const items = within(list).getAllByRole('listitem')
+
+		expect(items).toHaveLength(2)
+
+		expect(within(present(items[0], 'item')).getByRole('button')).toHaveAttribute(
+			'aria-current',
+			'step',
+		)
+	})
+
+	it('roves the arrow keys across the step buttons inside the list', async () => {
+		renderUI(
+			<Stepper defaultValue={0} orientation="horizontal">
+				<StepperStep value={0}>
+					<StepperTitle>Account</StepperTitle>
+				</StepperStep>
+				<StepperSeparator />
+				<StepperStep value={1}>
+					<StepperTitle>Profile</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const [first, second] = screen.getAllByRole('button')
+
+		expect(first?.tabIndex).toBe(0)
+
+		expect(second?.tabIndex).toBe(-1)
+
+		first?.focus()
+
+		fireEvent.keyDown(present(first, 'first step'), { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(second)
 	})
 
 	it('takes an aria-label, so two steppers on one page have distinct names', () => {

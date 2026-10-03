@@ -54,6 +54,11 @@ export function TabContents({ mount, ...props }: TabContentsProps) {
 		return registerMountedPanels?.()
 	}, [allMounted, registerMountedPanels])
 
+	const registerPanels = tabsContext?.registerPanels
+
+	// A segment tab references its panel only while the group has panels.
+	useEffect(() => registerPanels?.(), [registerPanels])
+
 	return <CurrentContents slotPrefix="tab" mount={mount} {...props} />
 }
 
@@ -61,9 +66,8 @@ export function TabContents({ mount, ...props }: TabContentsProps) {
  * Idiomatic tab panel; renders when its `value` matches the active tab. Inside
  * `<Tabs>` it auto-wires `role="tabpanel"`, `aria-labelledby` to the matching
  * tab, and a computed `tabIndex` (`0` when the panel has no focusable child,
- * per APG). It pairs with its `Tab` via the Tabs base id + value. Under the
- * `segment` variant it renders plain content, because a segment tab has no
- * panel: it takes no role, id, `aria-labelledby`, or `tabIndex`. A content-only
+ * per APG). It pairs with its `Tab` via the Tabs base id + value, under the
+ * `tab` and the `segment` variant alike. A content-only
  * panel that becomes tab-focusable signals focus with the design-system blue
  * ring rather than the browser default.
  */
@@ -72,10 +76,7 @@ export function TabContent({ value, className, ref: consumerRef, ...props }: Tab
 
 	const { panelProps } = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
-	// A segment tab has no panel, so a segment group gets plain content: no
-	// tabpanel role, and no reference to a tab id that does not exist.
-	const auto =
-		value !== undefined && tabsContext?.baseId !== undefined && tabsContext.variant !== 'segment'
+	const auto = value !== undefined && tabsContext?.baseId !== undefined
 
 	// State, not a ref: the probe re-measures on the node React attaches, which
 	// a `mount` policy that swaps panels in and out recreates.

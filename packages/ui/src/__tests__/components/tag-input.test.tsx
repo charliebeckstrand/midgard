@@ -174,24 +174,27 @@ describe('TagInput', () => {
 		expect(getInput(container)).not.toHaveAttribute('readonly')
 	})
 
-	it('makes each tag badge focusable', () => {
+	it('makes the remove button the one Tab stop of each tag', async () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
 		const badges = getBadges(container)
 
 		expect(badges.length).toBe(2)
 
+		// The listitem has no name and no action, so it must not take focus.
 		for (const badge of badges) {
-			expect(badge).toHaveAttribute('tabindex', '0')
+			expect(badge).not.toHaveAttribute('tabindex')
 		}
-	})
 
-	it('keeps the remove button out of the tab order', () => {
-		const { container } = renderUI(<TagInput defaultValue={['react']} />)
+		const user = setupUser()
 
-		// The badge owns keyboard removal (Backspace/Delete); its inner button is
-		// reachable by pointer only, so Tab lands on the badge, not the button.
-		expect(getRemoveButtons(container)[0]).toHaveAttribute('tabindex', '-1')
+		await user.tab()
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Remove react' }))
+
+		await user.tab()
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Remove vue' }))
 	})
 
 	it.each([
@@ -206,23 +209,23 @@ describe('TagInput', () => {
 
 		const user = setupUser()
 
-		;(getBadges(container)[index] as HTMLElement).focus()
+		getRemoveButtons(container)[index]?.focus()
 
 		await user.keyboard(`{${key}}`)
 
 		expect(onChange).toHaveBeenCalledWith(expected)
 	})
 
-	it('leaves the focused tag in place on other keys', async () => {
+	it('leaves the focused tag in place on keys other than activation and removal', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<TagInput defaultValue={['react']} onValueChange={onChange} />)
 
 		const user = setupUser()
 
-		;(getBadges(container)[0] as HTMLElement).focus()
+		getRemoveButtons(container)[0]?.focus()
 
-		await user.keyboard('{Enter}')
+		await user.keyboard('{ArrowLeft}')
 
 		await user.keyboard('a')
 
@@ -234,7 +237,7 @@ describe('TagInput', () => {
 
 		const user = setupUser()
 
-		;(getBadges(container)[0] as HTMLElement).focus()
+		getRemoveButtons(container)[0]?.focus()
 
 		await user.keyboard('{Backspace}')
 

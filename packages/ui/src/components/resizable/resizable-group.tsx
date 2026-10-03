@@ -1,6 +1,14 @@
 'use client'
 
-import { Children, isValidElement, type ReactNode, useMemo, useRef } from 'react'
+import {
+	Children,
+	isValidElement,
+	type ReactNode,
+	useCallback,
+	useId,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
 import { ResizableContext, ResizableIndexContext } from './context'
@@ -87,6 +95,11 @@ export function ResizableGroup({
 		onResizeEnd,
 	})
 
+	const baseId = useId()
+
+	// Each panel takes an id from its index, so the handle after it can name it.
+	const panelId = useCallback((panelIndex: number) => `${baseId}-panel-${panelIndex}`, [baseId])
+
 	// Wraps each panel/handle in an index provider; context carries its position.
 	const wrapped = useMemo(() => {
 		const next = { panel: 0, handle: 0 }
@@ -115,8 +128,8 @@ export function ResizableGroup({
 	}, [children])
 
 	const contextValue = useMemo(
-		() => ({ orientation, dragging, sizes, panelConfigs, startDrag, resize }),
-		[orientation, dragging, sizes, panelConfigs, startDrag, resize],
+		() => ({ orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId }),
+		[orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId],
 	)
 
 	return (
