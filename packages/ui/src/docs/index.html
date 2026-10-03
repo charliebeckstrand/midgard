@@ -4,7 +4,15 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Docs</title>
-		<!-- Fonts load via CSS @font-face with font-display: swap — no preload needed. -->
+		<!-- The preload fetches the font with the document, and not after the first
+		     layout finds text in it. `engine/fonts.css` gives the font face. -->
+		<link
+			rel="preload"
+			href="./engine/fonts/GoogleSansFlex-VariableFont.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
 		<!-- Linked here, never imported from `main.tsx` — an import delays the
 		     styles until the whole module graph loads. See engine/README.md. -->
 		<link rel="stylesheet" href="./app.css" />
