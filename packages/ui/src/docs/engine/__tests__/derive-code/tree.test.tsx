@@ -1,11 +1,10 @@
 // @vitest-environment node
 import { createElement, Fragment, type FunctionComponent } from 'react'
 import { describe, expect, it } from 'vitest'
+import { elementChildren, isPassThrough } from '../../derive-code/classify'
 import {
 	collectChildItems,
-	elementChildren,
 	getElementName,
-	isPassThrough,
 	isPrimitive,
 	resolveType,
 } from '../../derive-code/internals'

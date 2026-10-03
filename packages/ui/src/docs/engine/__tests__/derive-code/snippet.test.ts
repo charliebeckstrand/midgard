@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { readSnippet } from '../../derive-code/classify'
 import { reindent } from '../../derive-code/indent'
-import { readSnippet, registerUses } from '../../derive-code/internals'
+import { registerUses } from '../../derive-code/internals'
 import { makeContext } from './helpers'
 
 describe('readSnippet', () => {
