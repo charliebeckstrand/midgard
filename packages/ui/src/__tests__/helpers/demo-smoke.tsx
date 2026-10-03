@@ -44,7 +44,7 @@ const KNOWN_FAILURES: Record<string, number> = {
 	// Two examples show a landmark with the same name, or with none, so a
 	// landmark list cannot tell them apart.
 	'components/accordion › landmark-unique': 1,
-	'components/kanban › landmark-unique': 5,
+	'components/kanban › landmark-unique': 1,
 	'components/pdf-viewer › landmark-unique': 1,
 	'components/sidebar › landmark-unique': 1,
 	'modules/grid › landmark-unique': 1,
