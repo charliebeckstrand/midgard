@@ -446,6 +446,12 @@ describe('MenuContent', () => {
 		expect(menu.firstElementChild).toBe(header)
 
 		expect(header).toHaveTextContent('Ada Lovelaceada@example.com')
+
+		// The panel sets no text color, so the title carries its own for each theme.
+		expect(present(header.firstElementChild, 'the header title')).toHaveClass(
+			'text-zinc-950',
+			'dark:text-white',
+		)
 	})
 
 	it('shows no header and no description on a dropdown without a title', () => {

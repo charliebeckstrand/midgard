@@ -95,7 +95,7 @@ export const k = {
 	// The title and the description of a panel, above its rows. The header does
 	// not shrink, so the rows below it scroll when the panel is capped.
 	header: 'shrink-0 px-3 pb-1 pt-2',
-	headerTitle: [textRamp, weight.semibold],
+	headerTitle: [textRamp, weight.semibold, text.default],
 	headerDescription: [size.xs, text.muted],
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
