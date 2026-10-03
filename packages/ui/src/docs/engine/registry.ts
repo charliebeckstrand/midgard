@@ -3,7 +3,7 @@ import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
 import type { ApiReference } from './components/api-reference'
-import { titleCase } from './components/format'
+import { pascalCase } from './components/format'
 
 /** One sidebar entry: a demo's id, display name, and category. */
 export type Demo = { id: string; name: string; category: string }
@@ -251,12 +251,13 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 		const folder = folderOf(path)
 
 		// Strip the category prefix the id carries for namespaced subfolders
-		// (`pages-auth` → `auth`), then title-case for the fallback display name.
+		// (`pages-auth` → `auth`), then write the fallback display name as the
+		// component name (`copy-button` → `CopyButton`).
 		const label = id.startsWith(`${folder}-`) ? id.slice(folder.length + 1) : id
 
 		const meta = metaById.get(id)
 
-		const name = meta?.name ?? titleCase(label)
+		const name = meta?.name ?? pascalCase(label)
 
 		// A meta `category` moves the demo to another sidebar section. The id stays
 		// on the folder, so the hash route and the API reference key do not change.

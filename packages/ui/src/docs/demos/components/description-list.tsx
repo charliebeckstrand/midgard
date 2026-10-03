@@ -5,8 +5,6 @@ import {
 } from '../../../components/description-list'
 import { Axes } from '../../engine'
 
-export const meta = { name: 'Description list' }
-
 export function Demo() {
 	return (
 		<Axes
