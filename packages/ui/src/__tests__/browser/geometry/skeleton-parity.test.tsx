@@ -57,6 +57,7 @@ import {
 	StatDescriptionSkeleton,
 	StatLabel,
 	StatLabelSkeleton,
+	StatSkeleton,
 	StatValue,
 	StatValueSkeleton,
 } from '../../../components/stat'
@@ -74,6 +75,8 @@ import {
 } from '../../../components/timeline'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
+import { MapSkeleton } from '../../../modules/map'
+import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { Box } from '../../../structure/box'
 import { present, renderUI } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
@@ -566,6 +569,24 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
+	it.each(['sm', 'md', 'lg'] as const)('StatSkeleton has the height of a %s stat', (size) => {
+		const { container } = renderUI(
+			<Stat>
+				<StatLabel>Revenue</StatLabel>
+				<StatValue size={size}>$12,345</StatValue>
+				<StatDelta>+4%</StatDelta>
+				<StatDescription>Since last month</StatDescription>
+			</Stat>,
+		)
+
+		expect(
+			height(
+				renderUI(<StatSkeleton size={size} delta description />).container.firstElementChild,
+				'skeleton',
+			),
+		).toBe(height(container.querySelector('[data-slot="stat"]'), 'stat'))
+	})
+
 	it.each(['stack', 'rail'] as const)(
 		'FiltersSkeleton has the box of a %s filter row',
 		(layout) => {
@@ -603,5 +624,22 @@ describe('skeleton parity (real browser)', () => {
 		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
+	})
+
+	it.each([
+		['the rectangle', undefined, 16 / 9],
+		['the outline', 'albers-usa', ALBERS_USA_ASPECT],
+	] as const)('MapSkeleton reserves its ratio with %s alone', (_, projection, ratio) => {
+		const { container } = renderUI(
+			<div style={{ width: 800 }}>
+				<MapSkeleton projection={projection} />
+			</div>,
+		)
+
+		const reserved = placeholder(container)
+
+		expect(reserved.width).toBe(800)
+
+		expect(reserved.height).toBeNear(800 / ratio, PIXEL)
 	})
 })

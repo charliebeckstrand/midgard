@@ -29,6 +29,7 @@ import {
 	StatDescriptionSkeleton,
 	StatLabel,
 	StatLabelSkeleton,
+	StatSkeleton,
 	StatValue,
 	StatValueSkeleton,
 } from '../../../components/stat'
@@ -312,6 +313,7 @@ export const dataDisplayCases: readonly Case[] = [
 			{ element: <StatValueSkeleton size="lg" />, absentSlot: 'stat-value' },
 			{ element: <StatDeltaSkeleton />, absentSlot: 'stat-delta' },
 			{ element: <StatDescriptionSkeleton />, absentSlot: 'stat-description' },
+			{ element: <StatSkeleton delta description />, absentSlot: 'stat', placeholders: 4 },
 		],
 	},
 	{
