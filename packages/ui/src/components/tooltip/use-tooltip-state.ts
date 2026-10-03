@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type ElementProps,
 	type Placement,
 	safePolygon,
 	useClick,
@@ -8,7 +9,15 @@ import {
 	useHover,
 	useInteractions,
 } from '@floating-ui/react'
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
@@ -84,8 +93,14 @@ export function useTooltipState({
 	// reveal that skips the pointer, for a tooltip whose trigger can't take hover (an
 	// SVG rule the keyboard drives). Left `undefined`, the disclosure stays
 	// uncontrolled and hover / focus / click own it; a disabled tooltip never holds.
+	// Whether the panel holds a tabbable control. `<TooltipContent>` reports it,
+	// as `<PopoverContent>` reports its role to `<Popover>`.
+	const [tabbable, setTabbable] = useState(false)
+
+	const dialog = interactive && tabbable
+
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
-		role: 'tooltip',
+		role: dialog ? 'dialog' : 'tooltip',
 		placement,
 		offset: 8,
 		open: enabled && held ? true : undefined,
@@ -187,12 +202,25 @@ export function useTooltipState({
 
 	const focus = useFocus(context, { enabled })
 
+	// The trigger names the dialog. `<TooltipTrigger>` stamps this id on the
+	// trigger when the trigger has no id of its own, so the label reads the id
+	// from the node.
+	const generatedTriggerId = useId()
+
+	const triggerId = dialog ? domReference?.id || generatedTriggerId : undefined
+
+	const label = useMemo<ElementProps>(
+		() => (triggerId ? { floating: { 'aria-labelledby': triggerId } } : {}),
+		[triggerId],
+	)
+
 	const { getReferenceProps, getFloatingProps } = useInteractions([
 		hover,
 		click,
 		focus,
 		dismiss,
 		role,
+		label,
 	])
 
 	return useMemo(
@@ -206,8 +234,12 @@ export function useTooltipState({
 			getReferenceProps,
 			getFloatingProps,
 			floatingContext: context,
+			triggerId: dialog ? generatedTriggerId : undefined,
+			reportTabbable: setTabbable,
 		}),
 		[
+			dialog,
+			generatedTriggerId,
 			open,
 			interactive,
 			enabled,

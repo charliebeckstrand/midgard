@@ -37,6 +37,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
 
+> An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Other tooltips are `role="tooltip"` and describe the trigger.
+
 > `drawer` also exports `DrawerStatic`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
 
 ## Data display

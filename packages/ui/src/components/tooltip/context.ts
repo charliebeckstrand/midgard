@@ -26,6 +26,17 @@ export type TooltipContextValue = {
 	 * `interactive` and so never traps.
 	 */
 	floatingContext?: FloatingRootContext
+	/**
+	 * The id that `<TooltipTrigger>` stamps on a trigger that has no id of its
+	 * own. Set only while the panel is a dialog, which the trigger names
+	 * through `aria-labelledby`.
+	 */
+	triggerId?: string
+	/**
+	 * Reports whether the open panel holds a tabbable control. An `interactive`
+	 * panel that holds one is a dialog. Absent for the point-anchored readout.
+	 */
+	reportTabbable?: (tabbable: boolean) => void
 }
 
 export const [TooltipContext, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')

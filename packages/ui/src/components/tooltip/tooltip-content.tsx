@@ -2,7 +2,7 @@
 
 import type { FloatingFocusManagerProps } from '@floating-ui/react'
 import { motion } from 'motion/react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yHasTabbable } from '../../hooks'
@@ -17,7 +17,7 @@ import { useTooltipContext } from './context'
  * The trigger keeps focus when the tooltip opens, so a content-only cycle
  * would leave Tab walking into the page instead of the panel. Floating-ui also
  * `aria-hidden`s everything outside the cycle, which would swallow the very
- * trigger the panel describes.
+ * trigger that names the panel.
  */
 const TRAP_ORDER: FloatingFocusManagerProps['order'] = ['reference', 'content']
 
@@ -63,6 +63,11 @@ export type TooltipContentProps = {
  * restored there if the tooltip closes from inside (WCAG 2.1.2). The
  * trap engages only once the panel actually has a tabbable — a prose tooltip
  * the pointer can merely reach never captures the keyboard.
+ *
+ * The same probe sets the role. An `interactive` panel that holds a tabbable
+ * control is a non-modal `role="dialog"` without `aria-modal`, and the trigger
+ * gives its name. Any other panel is a `role="tooltip"` that describes the
+ * trigger.
  * @see {@link useA11yHasTabbable}
  */
 export function TooltipContent({
@@ -72,8 +77,15 @@ export function TooltipContent({
 	glass: glassProp,
 	children,
 }: TooltipContentProps) {
-	const { open, interactive, setFloating, floatingStyles, getFloatingProps, floatingContext } =
-		useTooltipContext()
+	const {
+		open,
+		interactive,
+		setFloating,
+		floatingStyles,
+		getFloatingProps,
+		floatingContext,
+		reportTabbable,
+	} = useTooltipContext()
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
@@ -82,6 +94,12 @@ export function TooltipContent({
 	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
 
 	const hasTabbable = useA11yHasTabbable(panel)
+
+	// Reported only while the panel is mounted. A closed tooltip keeps the last
+	// state, so the trigger relation does not change between two opens.
+	useLayoutEffect(() => {
+		if (panel) reportTabbable?.(hasTabbable)
+	}, [panel, hasTabbable, reportTabbable])
 
 	return (
 		<FloatingSurface

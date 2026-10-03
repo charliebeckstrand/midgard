@@ -35,6 +35,11 @@ export type TooltipProps = {
 	 * @defaultValue false
 	 * @remarks The travel must read as deliberate: a pointer that crosses slower
 	 * than 0.1 px/ms reads as a drift and closes the content anyway.
+	 *
+	 * Content that holds a tabbable control makes the panel a non-modal
+	 * `role="dialog"`, because a tooltip must not hold interactive content. The
+	 * trigger names the dialog, and Tab moves between the trigger and the panel
+	 * controls. Prose content keeps `role="tooltip"`.
 	 */
 	interactive?: boolean
 	/**
@@ -75,8 +80,11 @@ export type TooltipProps = {
  * focus. A hover tooltip does not open on a touch press. Stays
  * suppressed while the trigger is `:disabled` (own attribute, ancestor
  * `<fieldset disabled>`, or a disabled descendant) and dismisses on the shared
- * overlay-close signal. The `tooltip` role and `aria-describedby` land on the
- * trigger via `<TooltipTrigger>`.
+ * overlay-close signal. The panel takes `role="tooltip"`, and `<TooltipTrigger>`
+ * puts `aria-describedby` on the trigger. An `interactive` panel that holds a
+ * tabbable control is a non-modal `role="dialog"` that the trigger names. The
+ * trigger then carries `aria-haspopup="dialog"`, `aria-expanded`, and
+ * `aria-controls`.
  * @see {@link useTooltipState}
  */
 export function Tooltip({ disabled, children, ...props }: TooltipProps) {

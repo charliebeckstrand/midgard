@@ -66,8 +66,8 @@ describe('Tooltip focus trap (real browser)', () => {
 		// aria-hidden sweep over outside content is that commit landing.
 		await waitFor(() => expect(after).toHaveAttribute('aria-hidden', 'true'))
 
-		// The trigger stays in the cycle, so it keeps the accessible name and
-		// the `aria-describedby` pointing at the panel it opened.
+		// The trigger stays in the cycle, so it keeps the accessible name that
+		// labels the panel it opened.
 		expect(trigger).not.toHaveAttribute('aria-hidden')
 
 		// Tab steps off the trigger into the panel rather than on to `After`.
@@ -160,5 +160,83 @@ describe('Tooltip focus trap (real browser)', () => {
 		await waitFor(() => expect(after).toHaveFocus())
 
 		expect(after).not.toHaveAttribute('aria-hidden')
+	})
+})
+
+describe('Tooltip role (real browser)', () => {
+	it('makes an interactive panel with a control a dialog that the trigger names', async () => {
+		renderUI(
+			<Harness>
+				<button type="button">Undo</button>
+			</Harness>,
+		)
+
+		const trigger = await openByKeyboard()
+
+		await screen.findByRole('button', { name: 'Undo' })
+
+		// The probe finds the control a commit after the panel mounts, and the
+		// role follows it. A non-modal dialog carries no `aria-modal`.
+		const panel = await screen.findByRole('dialog', { name: 'Details' })
+
+		expect(panel).not.toHaveAttribute('aria-modal')
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+		expect(trigger).toHaveAttribute('aria-controls', panel.id)
+
+		expect(trigger).not.toHaveAttribute('aria-describedby')
+
+		expect(panel).toHaveAttribute('aria-labelledby', trigger.id)
+	})
+
+	it('names the dialog through the trigger id that the consumer gives', async () => {
+		renderUI(
+			<Tooltip delay={0} interactive>
+				<TooltipTrigger>
+					<button type="button" id="own-trigger">
+						Details
+					</button>
+				</TooltipTrigger>
+				<TooltipContent>
+					<button type="button">Undo</button>
+				</TooltipContent>
+			</Tooltip>,
+		)
+
+		const trigger = await openByKeyboard()
+
+		expect(trigger).toHaveAttribute('id', 'own-trigger')
+
+		const panel = await screen.findByRole('dialog', { name: 'Details' })
+
+		expect(panel).toHaveAttribute('aria-labelledby', 'own-trigger')
+	})
+
+	it.each([
+		['an interactive panel with prose only', true, <span key="p">Last edited</span>],
+		[
+			'a non-interactive panel',
+			false,
+			<button key="b" type="button">
+				Undo
+			</button>,
+		],
+	])('keeps the tooltip role for %s', async (_, interactive, content) => {
+		renderUI(<Harness interactive={interactive}>{content}</Harness>)
+
+		const trigger = await openByKeyboard()
+
+		const panel = await screen.findByRole('tooltip')
+
+		expect(screen.queryByRole('dialog')).toBeNull()
+
+		expect(trigger).toHaveAttribute('aria-describedby', panel.id)
+
+		expect(trigger).not.toHaveAttribute('aria-haspopup')
 	})
 })
