@@ -10,7 +10,6 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import type { scale } from '../../recipes/kata/listbox'
@@ -70,11 +69,8 @@ export function ListboxPanel({
 	// running its initial-focus effect.
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
-	// A portal takes the panel out of the DOM subtree of its scope, so the root
-	// writes the step of the scope that opened it, as `FloatingSurface` does. An
-	// explicit `size` is the scope of the `PopoverPanel` inside.
-	const inherited = useDensityScope()
-
+	// The portal carries the density scope of the listbox. An explicit `size` is
+	// the scope of the `PopoverPanel` inside.
 	return (
 		// `Portal` mounts the portal only while open, so a closed Select keeps
 		// no empty portal node in the document.
@@ -100,7 +96,6 @@ export function ListboxPanel({
 							node?.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
 							node
 					}}
-					data-density={inherited ?? undefined}
 					style={floatingStyles}
 					className={k.portal}
 					tabIndex={-1}

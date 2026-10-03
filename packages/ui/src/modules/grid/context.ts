@@ -110,19 +110,6 @@ export const [GridHighlightContext, useGridHighlight] = createContext<string | n
 )
 
 /**
- * The direction of the enclosing grid, or `null` outside one. The column
- * manager opens in a dialog that portals out of the grid, so it cannot inherit
- * the `dir` of the grid. It reads the direction here instead. The pin labels
- * and arrows of the manager name the physical edge in that direction.
- *
- * @internal
- */
-export const [GridDirectionContext, useGridDirection] = createContext<'ltr' | 'rtl' | null>(
-	'GridDirection',
-	{ default: null },
-)
-
-/**
  * Reports an open editor to the truncating content of its cell (see
  * `GridCellContent`). The editor calls it with `true` as it mounts and with
  * `false` as it unmounts. While an editor is open, the cell keeps its element

@@ -326,6 +326,7 @@ describe('TooltipContent', () => {
 
 		const panel = getSlot(container, 'tooltip-content')
 
-		expect(panel).toHaveAttribute('data-density', 'lg')
+		// The portal host writes the scope of the surface.
+		expect(panel.closest('[data-slot="portal"]')).toHaveAttribute('data-density', 'lg')
 	})
 })

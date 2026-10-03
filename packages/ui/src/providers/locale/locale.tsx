@@ -1,10 +1,22 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
+import { Direction, type TextDirection } from '../../primitives/direction'
 import { type LocaleConfig, LocaleContext, useLocale } from './context'
 
-/** Props for {@link LocaleProvider}: the {@link LocaleConfig} defaults to broadcast, plus `children`. */
+/**
+ * Props for {@link LocaleProvider}: the {@link LocaleConfig} defaults to
+ * broadcast, the optional `dir` of the region, plus `children`.
+ */
 export type LocaleProviderProps = LocaleConfig & {
+	/**
+	 * The text direction of the region. A wrapper element writes it as `dir`,
+	 * and the provider opens a direction scope at the same value. So a dialog,
+	 * a menu, or a panel that the region opens lays out in that direction,
+	 * although it portals out of the region. Omit it to add no element and keep
+	 * the direction of the enclosing region.
+	 */
+	dir?: TextDirection
 	children: ReactNode
 }
 
@@ -23,12 +35,18 @@ export type LocaleProviderProps = LocaleConfig & {
  * A nested provider overrides one field and leaves the rest of the enclosing
  * config alone. So a nested `<LocaleProvider currency="EUR">` keeps the outer
  * `locale` and `dateFormat` for its subtree rather than clearing them.
+ *
+ * Set the direction of a region through `dir` here, not through a raw `dir`
+ * attribute. A raw attribute is a DOM setting only, and a portaled surface
+ * goes out of its subtree. A `dir` on the root element needs neither, because
+ * every portal sits under the root.
  */
 export function LocaleProvider({
 	locale,
 	currency,
 	numberFormat,
 	dateFormat,
+	dir,
 	children,
 }: LocaleProviderProps) {
 	const {
@@ -57,5 +75,13 @@ export function LocaleProvider({
 		],
 	)
 
-	return <LocaleContext value={value}>{children}</LocaleContext>
+	const scoped = dir ? (
+		<span data-slot="locale" dir={dir} className="contents">
+			<Direction dir={dir}>{children}</Direction>
+		</span>
+	) : (
+		children
+	)
+
+	return <LocaleContext value={value}>{scoped}</LocaleContext>
 }

@@ -55,7 +55,7 @@ export function useStep<S extends DensityStep>(explicit: S | undefined, scale: S
 /**
  * Reads the step of the nearest density scope under the root, or `null`
  * outside each such scope. Use it when "no scope" must differ from a step: a
- * portal root writes the step of its scope, and writes nothing at the root, so
+ * `Portal` writes the step of its scope, and writes nothing at the root, so
  * its panel follows the root element. Each other reader uses
  * {@link useDensityStep}.
  */

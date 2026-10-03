@@ -12,11 +12,6 @@ type GridManagerDialogProps = {
 	/** The manager the dialog hosts — the column editor or the row-group editor. */
 	children: ReactNode
 	/**
-	 * The direction of the grid. The dialog portals out of the grid, so its body
-	 * takes this `dir` to lay out as the grid does.
-	 */
-	dir?: 'ltr' | 'rtl'
-	/**
 	 * Whether focus opens on Done. A dialog that opens from a menu item names
 	 * its target, because the item that held focus is gone by then. Otherwise
 	 * the dialog takes its first control.
@@ -40,7 +35,6 @@ export function GridManagerDialog({
 	onOpenChange,
 	label,
 	children,
-	dir,
 	focusDone = false,
 }: GridManagerDialogProps) {
 	const doneRef = useRef<HTMLButtonElement>(null)
@@ -48,12 +42,7 @@ export function GridManagerDialog({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange} initialFocus={focusDone ? doneRef : undefined}>
 			<DialogTitle>{label}</DialogTitle>
-			<DialogBody>
-				{/* `contents` adds no box, and its children still inherit the direction. */}
-				<div dir={dir} className="contents">
-					{children}
-				</div>
-			</DialogBody>
+			<DialogBody>{children}</DialogBody>
 			<DialogFooter>
 				<Button ref={doneRef} type="button" variant="plain" onClick={() => onOpenChange(false)}>
 					Done

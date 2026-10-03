@@ -20,7 +20,6 @@ import { cn, createContext } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
-import { useGridDirection } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { effectivePinSide, physicalSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
@@ -44,22 +43,18 @@ const [ManagerRtlContext, useManagerRtl] = createContext<boolean>('GridColumnMan
 })
 
 /**
- * The direction of the manager: the direction of its grid when a grid hosts
- * it, else its own computed direction. A standalone manager has no grid, so it
- * reads its root once it mounts. @internal
+ * The direction of the manager: its own computed direction, read from its root
+ * once it mounts. In the dialog of a grid, the portal of the dialog writes the
+ * direction of the grid, so the root inherits it. @internal
  */
 function useManagerDirection(root: RefObject<HTMLElement | null>): boolean {
-	const grid = useGridDirection()
-
-	const [own, setOwn] = useState(false)
+	const [rtl, setRtl] = useState(false)
 
 	useLayoutEffect(() => {
-		if (grid !== null || !root.current) return
+		if (root.current) setRtl(isRtl(root.current))
+	}, [root])
 
-		setOwn(isRtl(root.current))
-	}, [grid, root])
-
-	return grid === null ? own : grid === 'rtl'
+	return rtl
 }
 
 /**

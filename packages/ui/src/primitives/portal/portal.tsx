@@ -3,6 +3,8 @@
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useEffectEvent, useLayoutEffect, useState } from 'react'
+import { useDensityScope } from '../density'
+import { useDirectionScope } from '../direction'
 import { ReducedMotion } from '../reduced-motion'
 import { type PortalContainer, usePortalContainer } from './context'
 
@@ -39,12 +41,25 @@ export type PortalProps = {
  * the portal context, rather than being stranded inert by a modal focus
  * manager's `markOthers`. Client-only: returns `null` during SSR.
  *
+ * The teleport takes the surface out of the DOM subtree of the place that
+ * opened it, so the attributes that cascade through the DOM do not reach it.
+ * Portal therefore renders one host, `data-slot="portal"` with
+ * `display: contents`, around the surface. The host writes the step of the
+ * nearest density scope as `data-density` and the direction of the nearest
+ * direction scope as `dir`. Outside a scope it writes nothing, and the surface
+ * follows the root element. A host never makes a box, so it changes no
+ * layout or positioning.
+ *
  * A Suspense boundary or an `<Activity>` above the surface can hide it during its
  * exit. When the boundary reveals it, the exit completes at once, without the
  * animation.
  */
 export function Portal({ open, container, onExitComplete, children }: PortalProps) {
 	const root = usePortalContainer(container)
+
+	const density = useDensityScope()
+
+	const dir = useDirectionScope()
 
 	// `mounted` flips on with `open` (adjusted during render) and off once the
 	// exit animation completes, so a closed surface keeps no portal node in the DOM.
@@ -76,9 +91,16 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 
 	return (
 		<FloatingPortal root={root ?? undefined}>
-			<ReducedMotion>
-				<AnimatePresence onExitComplete={handleExitComplete}>{open && children}</AnimatePresence>
-			</ReducedMotion>
+			<div
+				data-slot="portal"
+				data-density={density ?? undefined}
+				dir={dir ?? undefined}
+				className="contents"
+			>
+				<ReducedMotion>
+					<AnimatePresence onExitComplete={handleExitComplete}>{open && children}</AnimatePresence>
+				</ReducedMotion>
+			</div>
 		</FloatingPortal>
 	)
 }
