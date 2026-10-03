@@ -26,5 +26,13 @@ export function navigate(id: string) {
 	// on entries whose history.state is not its reload marker (host.tsx).
 	history.pushState(null, '', `#${id}`)
 
+	// The scroll restoration mode belongs to a history entry. `mount` sets it on
+	// the first entry (host.tsx). On Chrome for iOS, a reload of an entry that
+	// `pushState` made restores a position below the top, while a reload of the
+	// first entry opens at the top. Thus set the mode on each new entry too. The
+	// HTML standard copies the mode to the new entry, so where a browser does
+	// that, this line changes nothing.
+	history.scrollRestoration = 'manual'
+
 	window.dispatchEvent(new HashChangeEvent('hashchange'))
 }
