@@ -54,7 +54,7 @@ export type PasswordStrengthProps = {
 	className?: string
 }
 
-/** Password strength meter and rule checklist driven by a `value` against a set of `rules`. Renders a four-segment `progressbar` and reports the level via `onStrengthChange`. */
+/** Password strength meter and rule checklist driven by a `value` against a set of `rules`. Renders a native `meter` with the level as its value text, beside a decorative four-segment bar, and reports the level via `onStrengthChange`. */
 export function PasswordStrength({
 	value,
 	rules = defaultPasswordRules,
@@ -72,14 +72,16 @@ export function PasswordStrength({
 
 	return (
 		<div data-slot="password-strength" className={cn(k.root, className)}>
-			<div
-				role="progressbar"
-				aria-valuenow={activeCount}
-				aria-valuemin={0}
-				aria-valuemax={strengthLevels.length}
-				aria-label={`Password strength: ${label}`}
-				className={cn(k.meter)}
-			>
+			{/* A native meter cannot draw the segments, so it carries the value for AT, and the segment row is decorative. */}
+			<meter
+				value={activeCount}
+				min={0}
+				max={strengthLevels.length}
+				aria-valuetext={label}
+				aria-label="Password strength"
+				className="sr-only"
+			/>
+			<div aria-hidden="true" className={cn(k.meter)}>
 				{strengthLevels.map((strengthLevel, i) => (
 					<div
 						key={strengthLevel.id}
