@@ -1,8 +1,5 @@
-import { Fragment } from 'react'
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/breadcrumb'
-import { rangeKeys } from '../../utilities'
-import { Placeholder } from '../placeholder'
+import { renderRowSkeleton } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link BreadcrumbSkeleton}; the placeholder crumb count. */
 export type BreadcrumbSkeletonProps = {
@@ -17,16 +14,10 @@ export type BreadcrumbSkeletonProps = {
  * step; it does not use the size-driven `createSkeleton` factory.
  */
 export function BreadcrumbSkeleton({ crumbs = 3, className }: BreadcrumbSkeletonProps) {
-	const itemKeys = rangeKeys(crumbs, 'item')
-
-	return (
-		<div className={cn(k.list(), className)}>
-			{itemKeys.map((itemKey, index) => (
-				<Fragment key={itemKey}>
-					{index > 0 && <Placeholder className={cn(k.skeleton.separator)} />}
-					<Placeholder className={cn(k.skeleton.item)} />
-				</Fragment>
-			))}
-		</div>
-	)
+	return renderRowSkeleton({
+		count: crumbs,
+		root: [k.list(), className],
+		item: k.skeleton.item,
+		separator: k.skeleton.separator,
+	})
 }

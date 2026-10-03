@@ -1,8 +1,6 @@
-import { cn } from '../../core'
 import type { ControlStep } from '../../core/density'
 import { k } from '../../recipes/kata/rating'
-import { rangeKeys } from '../../utilities'
-import { Placeholder } from '../placeholder'
+import { renderRowSkeleton } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link RatingSkeleton}: the star `count` and the `size` step the silhouette draws at. */
 export type RatingSkeletonProps = {
@@ -29,13 +27,11 @@ export type RatingSkeletonProps = {
  * anywhere a rating can go, a line of text included.
  */
 export function RatingSkeleton({ count = 5, size, className }: RatingSkeletonProps) {
-	const stars = rangeKeys(count, 'star')
-
-	return (
-		<span data-density={size} className={cn(k(), className)}>
-			{stars.map((key) => (
-				<Placeholder key={key} as="span" className={cn(k.skeleton.base, k.glyph)} />
-			))}
-		</span>
-	)
+	return renderRowSkeleton({
+		count,
+		root: [k(), className],
+		item: [k.skeleton.base, k.glyph],
+		size,
+		as: 'span',
+	})
 }

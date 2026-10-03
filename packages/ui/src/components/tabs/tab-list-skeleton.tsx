@@ -1,9 +1,7 @@
-import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/tabs'
 import type { Orientation } from '../../types'
-import { rangeKeys } from '../../utilities'
-import { Placeholder } from '../placeholder'
+import { renderRowSkeleton } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link TabListSkeleton}. */
 export type TabListSkeletonProps = {
@@ -36,20 +34,10 @@ export function TabListSkeleton({
 	size,
 	className,
 }: TabListSkeletonProps) {
-	const tabKeys = rangeKeys(tabs, 'tab')
-
-	return (
-		<div
-			data-density={size}
-			className={cn(
-				k.list({ orientation }),
-				orientation === 'horizontal' && k.skeleton.gap,
-				className,
-			)}
-		>
-			{tabKeys.map((tabKey) => (
-				<Placeholder key={tabKey} className={cn(k.skeleton.tab[orientation])} />
-			))}
-		</div>
-	)
+	return renderRowSkeleton({
+		count: tabs,
+		root: [k.list({ orientation }), orientation === 'horizontal' && k.skeleton.gap, className],
+		item: k.skeleton.tab[orientation],
+		size,
+	})
 }
