@@ -33,8 +33,9 @@ function quietWithin(node: Node) {
 
 /**
  * Stop the autofill and the typing suggestions of the browser in each text
- * field under `root`. The docs site calls it once on the body, so it covers
- * the demos, the fields that a demo portals to the body, and the docs search.
+ * field in a docs region: the preview of a playground, or the docs search.
+ * Give it as the `ref` of the region. The other examples keep the defaults of
+ * the components, because they show how the components behave.
  *
  * @remarks
  * The docs chrome sets the attributes on the DOM, so the ui components keep
@@ -44,7 +45,9 @@ function quietWithin(node: Node) {
  *
  * @returns A cleanup that stops the observer.
  */
-export function noAutofill(root: Element) {
+export function noAutofill(root: Element | null) {
+	if (!root) return
+
 	quietWithin(root)
 
 	const observer = new MutationObserver((records) => {

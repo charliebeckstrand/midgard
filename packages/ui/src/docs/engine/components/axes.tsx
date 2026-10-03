@@ -13,6 +13,7 @@ import {
 	isStepAxis,
 	rendersAlike,
 } from '../axes'
+import { noAutofill } from '../no-autofill'
 import { formSignature, lookSignature, stepSignature } from '../step-signature'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
@@ -234,7 +235,11 @@ function AxesExamples({
 					</Flex>
 				}
 			>
-				{render(propsWith(), of)}
+				{/* A playground field gets no autofill and no typing suggestions. The
+				    wrapper takes no box, and the derived code skips it. */}
+				<div ref={noAutofill} className="contents">
+					{render(propsWith(), of)}
+				</div>
 			</Example>
 
 			{/* An example with one value has nothing to compare, so it hides. */}
