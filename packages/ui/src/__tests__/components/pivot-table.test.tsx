@@ -126,6 +126,9 @@ describe('PivotTable', () => {
 		expect(within(totalRow).getByText('20')).toBeInTheDocument()
 
 		expect(within(totalRow).getByText('39')).toBeInTheDocument()
+
+		// A totals row is a summary, so it is in the foot, not with the data rows.
+		expect(totalRow.parentElement?.tagName).toBe('TFOOT')
 	})
 
 	it('aggregates by count', () => {

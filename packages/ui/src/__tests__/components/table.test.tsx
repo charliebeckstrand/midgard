@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
 	Table,
 	TableBody,
+	TableCaption,
 	TableCell,
+	TableFoot,
 	TableHead,
 	TableHeader,
 	TableLoading,
@@ -12,6 +14,30 @@ import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Table', () => {
+	it('names the table from a TableCaption, and groups summary rows in a TableFoot', () => {
+		const { container } = renderUI(
+			<Table>
+				<TableCaption>Loads by lane</TableCaption>
+				<TableBody>
+					<TableRow>
+						<TableCell>1</TableCell>
+					</TableRow>
+				</TableBody>
+				<TableFoot>
+					<TableRow>
+						<TableCell>Total</TableCell>
+					</TableRow>
+				</TableFoot>
+			</Table>,
+		)
+
+		expect(screen.getByRole('table', { name: 'Loads by lane' })).toBeInTheDocument()
+
+		expect(bySlot(container, 'table-caption')?.tagName).toBe('CAPTION')
+
+		expect(bySlot(container, 'table-foot')?.tagName).toBe('TFOOT')
+	})
+
 	it('renders a table element inside the wrapper', () => {
 		const { container } = renderUI(
 			<Table>

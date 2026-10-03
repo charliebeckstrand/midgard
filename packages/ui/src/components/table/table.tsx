@@ -1,7 +1,8 @@
-import type { ComponentProps, ReactNode } from 'react'
+import { Children, type ComponentProps, isValidElement, type ReactNode } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/table'
+import { TableCaption, type TableCaptionProps } from './table-caption'
 import { TableScroll } from './table-scroll'
 
 /** Visual modifiers for {@link Table}: the `size` step, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
@@ -60,7 +61,8 @@ export type TableProps = TableVariants & {
  * While the table is wider than its container, the scroll container is a tab
  * stop, so a keyboard user can scroll it with the arrow keys. It then also
  * takes `role="region"` and the name of the table, from `aria-label` or
- * `aria-labelledby` in `tableProps`. A table that fits adds no tab stop.
+ * `aria-labelledby` in `tableProps`, else from a {@link TableCaption} child. A
+ * table that fits adds no tab stop.
  *
  * @remarks
  * Projection reaches descendant cells through DOM selectors, not React
@@ -83,11 +85,16 @@ export function Table({
 	// `true` keeps the historical default of shading even rows.
 	const stripe = striped === true ? 'even' : striped
 
+	// A caption names the scroll region too, through its id or its plain text.
+	const caption = captionProps(children)
+
+	const captionText = typeof caption?.children === 'string' ? caption.children : undefined
+
 	return (
 		<TableScroll
 			density={size}
-			label={tableProps?.['aria-label']}
-			labelledBy={tableProps?.['aria-labelledby']}
+			label={tableProps?.['aria-label'] ?? (caption?.id ? undefined : captionText)}
+			labelledBy={tableProps?.['aria-labelledby'] ?? caption?.id}
 			className={cn(k.scroll, bleed && '-mx-4 sm:-mx-6')}
 		>
 			<table
@@ -105,4 +112,13 @@ export function Table({
 			</table>
 		</TableScroll>
 	)
+}
+
+/** Finds the props of a {@link TableCaption} child, which the scroll region takes its name from. */
+function captionProps(children: ReactNode): TableCaptionProps | undefined {
+	for (const child of Children.toArray(children)) {
+		if (isValidElement<TableCaptionProps>(child) && child.type === TableCaption) return child.props
+	}
+
+	return undefined
 }
