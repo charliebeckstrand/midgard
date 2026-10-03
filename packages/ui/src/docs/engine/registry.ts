@@ -245,7 +245,7 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 		const name = meta?.name ?? pascalCase(label)
 
 		// A meta `category` moves the demo to another sidebar section. The id stays
-		// on the folder, so the hash route and the API reference key do not change.
+		// on the folder, so the path and the API reference key do not change.
 		list.push({ id, name, category: meta?.category ?? folder })
 	}
 

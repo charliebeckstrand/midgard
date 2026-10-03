@@ -1,5 +1,3 @@
-'use client'
-
 import { useNavigate, useParams } from 'react-router'
 import { Tabs, type TabsProps } from '../../../components/tabs'
 import { pageTabPath } from '../demo-id'

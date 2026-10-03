@@ -27,8 +27,6 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
-export const meta = { name: 'Glass' }
-
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 
 function FilteredPeople() {

@@ -1,5 +1,3 @@
-'use client'
-
 import { cloneElement, type ReactElement, useState } from 'react'
 
 /** A trigger that the {@link Opener} wires: a `DialogTrigger`, `DrawerTrigger`, or `SheetTrigger`. */

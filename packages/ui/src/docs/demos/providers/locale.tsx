@@ -7,8 +7,6 @@ import { LocaleProvider } from '../../../providers/locale'
 import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
-export const meta = { name: 'Locale' }
-
 const PRESETS = [
 	{ label: 'US', locale: 'en-US', currency: 'USD' },
 	{ label: 'UK', locale: 'en-GB', currency: 'GBP' },

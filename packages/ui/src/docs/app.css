@@ -1,6 +1,7 @@
-/* ui's docs entry stylesheet. The shared base (Tailwind, fonts, the docs
-   chrome's own classes) comes from the engine; this file adds ui's own
-   source so Tailwind generates the classes ui's components and demos use. */
+/* ui's docs entry stylesheet. The engine sheet gives Tailwind and the docs
+   chrome's own rules. ui's sheet gives the fonts and the tokens. The source
+   line makes Tailwind generate the classes of ui's components, of the demos,
+   and of the engine. */
 @import './engine/app.css';
 @import '../../tailwind.css';
 

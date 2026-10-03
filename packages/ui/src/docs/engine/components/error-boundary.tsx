@@ -1,5 +1,3 @@
-'use client'
-
 import { Component, type ReactNode } from 'react'
 import { Button } from '../../../components/button'
 import { Heading } from '../../../components/heading'

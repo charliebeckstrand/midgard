@@ -6,7 +6,7 @@ import { moduleNameFor } from '../../plugins/docs'
 // `moduleNameFor` maps a file in a library's source root to its derived-code
 // module name, or null when the file isn't a public barrel. The derivation
 // walker has no allow/deny list: the only thing keeping a docs-internal control
-// (VariantListbox, LabeledRow, …) or a demo out of generated snippets is that
+// (OptionsListbox, LabeledRow, …) or a demo out of generated snippets is that
 // `moduleNameFor` declines to name anything under the `docs/` subtree. These
 // pin that contract against a synthetic source root.
 const SRC = path.join('/lib', 'src')

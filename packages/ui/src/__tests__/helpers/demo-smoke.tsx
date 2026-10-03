@@ -33,7 +33,6 @@ import { type DemoPage, demoPages, walkOf } from './demo-pages'
  */
 const KNOWN_FAILURES: Record<string, number> = {
 	// A Listbox trigger that the demo builds with no label.
-	'components/aspect-ratio › button-name': 1,
 	'providers/density › button-name': 1,
 
 	// An icon-only trigger with no `aria-label`: the sidebar's menu, and the

@@ -1,5 +1,5 @@
 import { ArrowUp, Paperclip } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
@@ -9,13 +9,10 @@ import { Axes, Example } from '../../engine'
 function WithActionsExample() {
 	const [withActionsValue, setWithActionsValue] = useState('')
 
-	const id = useId()
-
 	return (
 		<Field>
-			<Label htmlFor={id}>With actions</Label>
+			<Label>With actions</Label>
 			<Textarea
-				id={id}
 				value={withActionsValue}
 				onChange={(event) => setWithActionsValue(event.target.value)}
 				autoResize
@@ -51,19 +48,15 @@ export function Demo() {
 
 			<Example title="Valid">
 				<Field>
-					<Label htmlFor="textarea-valid">Valid</Label>
-					<Textarea id="textarea-valid" data-valid={true} placeholder="Everything is fine" />
+					<Label>Valid</Label>
+					<Textarea data-valid={true} placeholder="Everything is fine" />
 				</Field>
 			</Example>
 
 			<Example title="Warning">
 				<Field>
-					<Label htmlFor="textarea-warning">Warning</Label>
-					<Textarea
-						id="textarea-warning"
-						data-warning={true}
-						placeholder="Something might be wrong"
-					/>
+					<Label>Warning</Label>
+					<Textarea data-warning={true} placeholder="Something might be wrong" />
 				</Field>
 			</Example>
 		</>

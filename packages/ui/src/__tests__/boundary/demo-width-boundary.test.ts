@@ -20,7 +20,6 @@ import {
 //
 //   - The layout in a module demo: an editor in a grid cell, an error state, a
 //     template picker, and the alerts of a board.
-//   - The size of an action, such as the preset picker of `AspectRatio`.
 //   - A frame that a demo draws to hold the component: the mock page of
 //     `Sidebar` and of `Drawer`, and the boxes of `Flex` and `Stack`.
 //   - The expiry and CVV fields of `CreditCardInput`, which share their row.
@@ -32,7 +31,6 @@ import {
 
 const WIDTHS: Record<string, readonly string[]> = {
 	'docs/demos/components/alert.tsx': ['w-full'],
-	'docs/demos/components/aspect-ratio.tsx': ['w-32'],
 	'docs/demos/components/credit-card-input.tsx': ['w-full', 'w-full'],
 	'docs/demos/components/drawer.tsx': ['w-60', 'w-full'],
 	'docs/demos/components/scroll-area.tsx': ['max-w-96', 'max-w-96', 'max-w-96', 'w-max', 'w-max'],

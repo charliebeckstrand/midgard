@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../../components/aspect-ratio'
 import { Card } from '../../../components/card'
-import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
-import { Example } from '../../engine'
+import { Example, OptionsListbox } from '../../engine'
 
 const presets: { label: string; value: AspectRatioPreset }[] = [
 	{ label: 'Square', value: 'square' },
@@ -22,20 +21,7 @@ function PresetsExample() {
 		<Example
 			title="Presets"
 			actions={
-				<Listbox
-					value={ratio}
-					onValueChange={(v) => v && setRatio(v)}
-					displayValue={(v: AspectRatioPreset) =>
-						presets.find((preset) => preset.value === v)?.label || v
-					}
-					className="w-32"
-				>
-					{presets.map((preset) => (
-						<ListboxOption key={preset.value} value={preset.value}>
-							<ListboxLabel>{preset.label}</ListboxLabel>
-						</ListboxOption>
-					))}
-				</Listbox>
+				<OptionsListbox label="Ratio" options={presets} value={ratio} onValueChange={setRatio} />
 			}
 		>
 			<Card className="p-0">
