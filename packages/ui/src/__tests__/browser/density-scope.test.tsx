@@ -463,7 +463,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it.each([
-		['xs', 12],
+		['sm', 16],
 		['md', 20],
 		['lg', 24],
 	] as const)('sizes a spinner in a %s sidebar item as its icon', (size, width) => {

@@ -39,7 +39,8 @@ export type ControlStep = Exclude<DensityStep, 'xl'>
 
 /**
  * An inner step: `sm`, `md`, or `lg`. A density level maps to one, and a JS
- * reader with three values, such as the chart tick cap, clamps to one.
+ * reader with three values, such as the chart tick cap, clamps to one. The
+ * `size` of a `SidebarItem` is one, because the row stops at `sm` and `lg`.
  */
 export type InnerStep = Extract<DensityStep, 'sm' | 'md' | 'lg'>
 

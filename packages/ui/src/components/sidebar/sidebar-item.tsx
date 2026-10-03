@@ -2,7 +2,7 @@
 
 import { type ReactNode, type Ref, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { InnerStep } from '../../core/density'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -20,11 +20,12 @@ import { SidebarLabel } from './sidebar-label'
 /** Props for {@link SidebarItem}: the `NavItem` surface plus a `size` step. */
 export type SidebarItemProps = NavItemProps & {
 	/**
-	 * The density step of the row. Omit it to take the step of the nearest
-	 * density scope. A step makes the row a density scope, so the icon and the
-	 * slots take the step too.
+	 * The density step of the row: `sm`, `md`, or `lg`. Omit it to take the step
+	 * of the nearest density scope. A step makes the row a density scope, so the
+	 * icon and the slots take the step too. The row has no `xs` or `xl` step,
+	 * because the text, the padding, and the gap stop at `sm` and `lg`.
 	 */
-	size?: DensityStep
+	size?: InnerStep
 }
 
 /**
