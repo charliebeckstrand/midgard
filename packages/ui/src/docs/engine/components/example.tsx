@@ -271,7 +271,17 @@ export function Example({
 				)}
 				<div
 					data-example-section=""
-					className="flex flex-col items-start p-4 gap-4 overflow-x-auto phrasing:flex-row phrasing:flex-wrap phrasing:items-center phrasing:has-[[data-slot=axis-caption]]:items-start phrasing:*:w-max phrasing:*:min-w-0"
+					className={cn(
+						'flex flex-col items-start p-4 gap-4 overflow-x-auto',
+						// A row of phrasing content centers its instances on one line.
+						'phrasing:flex-row phrasing:flex-wrap phrasing:items-center phrasing:*:w-max phrasing:*:min-w-0',
+						// In a row with captions, each axis value fills the height of the line.
+						// The captions stay at the top, and each instance centers in the room
+						// below its caption, so the captions align and the instances align.
+						'phrasing:has-[[data-slot=axis-caption]]:items-stretch',
+						'phrasing:*:*:data-[slot=axis-value]:flex phrasing:*:*:data-[slot=axis-value]:h-full phrasing:*:*:data-[slot=axis-value]:flex-col phrasing:*:*:data-[slot=axis-value]:items-start',
+						'phrasing:*:*:data-[slot=axis-value]:*:last:my-auto',
+					)}
 				>
 					{Children.toArray(children).map((child, index) => (
 						<div
