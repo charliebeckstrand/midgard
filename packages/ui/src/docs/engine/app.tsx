@@ -98,9 +98,9 @@ export function App() {
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		// Scroll to the top on each route change; skip the empty landing route
-		// (`useHash` returns '' there, never null). From `lg` up the content pane
-		// scrolls, and below `lg` the page scrolls.
+		// Scroll to the top on the first render and on each route change; skip the
+		// empty landing route (`useHash` returns '' there, never null). From `lg` up
+		// the content pane scrolls, and below `lg` the page scrolls.
 		if (!deferredRoute) return
 
 		contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
