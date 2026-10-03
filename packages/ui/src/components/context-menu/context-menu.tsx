@@ -18,6 +18,11 @@ export type ContextMenuProps = ContextMenuConfig & {
 	 * @defaultValue false
 	 */
 	disabled?: boolean
+	/**
+	 * Accessible name for the menu. A context menu has no trigger to name it, so
+	 * give it a name such as "Row actions".
+	 */
+	'aria-label'?: string
 	className?: string
 	/** The content a right-click within opens the menu over. */
 	children: ReactNode
@@ -42,6 +47,7 @@ export function ContextMenu({
 	insert,
 	capped,
 	disabled = false,
+	'aria-label': ariaLabel,
 	className,
 	children,
 }: ContextMenuProps) {
@@ -56,7 +62,7 @@ export function ContextMenu({
 		<Menu className={className} capped={capped}>
 			{children}
 
-			<MenuContent>
+			<MenuContent aria-label={ariaLabel}>
 				<ContextMenuList entries={entries} />
 			</MenuContent>
 		</Menu>

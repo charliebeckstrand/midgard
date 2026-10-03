@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/menu'
@@ -46,8 +46,9 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
  * row, so a tap does not show a focused row. Focus goes back to the trigger on
  * close.
  *
- * The heading names the sheet. It is the `title` of {@link MenuContent}, or the
- * name of the trigger, which is read when the sheet opens.
+ * The heading names the sheet and the menu in it. It is the `title` of
+ * {@link MenuContent}, or the name of the trigger, which is read when the sheet
+ * opens.
  *
  * @internal
  */
@@ -56,6 +57,8 @@ export function MenuSheet({ title, glass, className, children }: MenuSheetProps)
 	const { setOpen, triggerRef } = useMenuActions()
 
 	const panelRef = useRef<HTMLDivElement>(null)
+
+	const titleId = useId()
 
 	const [triggerTitle, setTriggerTitle] = useState<string>()
 
@@ -85,7 +88,7 @@ export function MenuSheet({ title, glass, className, children }: MenuSheetProps)
 		>
 			{heading === undefined ? null : (
 				<DrawerHeader>
-					<DrawerTitle>{heading}</DrawerTitle>
+					<DrawerTitle id={titleId}>{heading}</DrawerTitle>
 				</DrawerHeader>
 			)}
 
@@ -94,6 +97,7 @@ export function MenuSheet({ title, glass, className, children }: MenuSheetProps)
 					ref={panelRef}
 					id={menuId}
 					role="menu"
+					aria-labelledby={heading === undefined ? undefined : titleId}
 					tabIndex={-1}
 					data-slot="menu-sheet"
 					className={cn(k.sheet, className)}

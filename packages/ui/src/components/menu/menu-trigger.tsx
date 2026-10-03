@@ -7,6 +7,7 @@ import {
 	type ReactElement,
 	type Ref,
 	type SyntheticEvent,
+	useId,
 	useRef,
 } from 'react'
 import { cn, composeEventHandlers } from '../../core'
@@ -61,6 +62,9 @@ function mergeTriggerProps(
  * `aria-label`, go to a cloned child. The props of the child win a clash, and a
  * handler on both runs the two.
  *
+ * The trigger names the dropdown panel through `aria-labelledby`. It keeps the
+ * `id` of a cloned child or of the consumer, and else gets a generated `id`.
+ *
  * The trigger keeps focus while the menu is open. Tab off it therefore closes
  * the menu, and lets focus proceed to the next tabbable in one keystroke.
  */
@@ -70,6 +74,10 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	const { dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
 
 	const { enterSubmenu } = useMenuPointer()
+
+	// The dropdown panel points its `aria-labelledby` at the trigger, so the
+	// trigger always has an id. An id of the child or of the consumer stays.
+	const fallbackId = useId()
 
 	// Merge the child's own ref (React 19 ref-as-prop) with the floating
 	// reference so a consumer can register the trigger element (e.g. as a focus
@@ -176,6 +184,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					},
 				})}
 				ref={mergeRefs}
+				id={(childProps.id as string | undefined) ?? fallbackId}
 				aria-haspopup="menu"
 				aria-expanded={open}
 				aria-controls={open ? menuId : undefined}
@@ -210,6 +219,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 				},
 			})}
 			type="button"
+			id={rest.id ?? fallbackId}
 			aria-haspopup="menu"
 			aria-expanded={open}
 			aria-controls={open ? menuId : undefined}
