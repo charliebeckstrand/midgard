@@ -12,9 +12,10 @@
  * Layer: kiso · Concern: skeleton form · Unit: calendar
  */
 
+import { dan } from '../dan'
 import { button } from './button'
 
-const width = 'density-w-[52,68,80]'
+const width = dan.size.calendarWidth
 
 export const calendar = {
 	width,

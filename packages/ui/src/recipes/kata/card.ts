@@ -1,4 +1,5 @@
 import { iro, ji } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { size } = ji
@@ -13,8 +14,8 @@ const { size } = ji
  * `size` is its own scope, so its sections do not follow the outer card.
  */
 export const k = {
-	frame: ['density-p-[2,3,4]', 'density-rounded-[sm,md,lg]'],
-	header: [text.default, 'density-pb-[2,3,4]'],
-	footer: ['flex items-center', 'density-pt-[2,3,4]', 'density-gap-[1,2,3]'],
+	frame: [dan.space.box, dan.radius.card],
+	header: [text.default, dan.space.boxBottom],
+	footer: ['flex items-center', dan.space.boxTop, dan.gap.default],
 	description: [size.sm, text.muted],
 } as const

@@ -8,11 +8,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: radio
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const circle = 'density-size-[4,5,5]'
+const circle = dan.size.checkBox
 
 export const radio = {
 	base: [rounded.full, circle],

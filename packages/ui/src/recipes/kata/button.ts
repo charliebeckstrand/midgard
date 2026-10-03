@@ -1,6 +1,7 @@
 import type { ControlStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { extendedPalette } = iro
 const { cursor, disabled } = hannou
@@ -33,12 +34,12 @@ export const k = defineRecipe({
 		// When a text label is present the component sets `data-has-label`, which
 		// overrides `py` with the matching control step. A labeled button thus
 		// aligns with the Input and Select chrome of the same size (md → 38px).
-		'density-text-[xs,sm,base,lg,lg]',
+		dan.text.chip,
 		...iconSlotRamp,
-		'density-gap-[0.75,1,1.25,1.5,1.5]',
-		'density-p-ring-[1.5,2,2.5,3,3]',
-		'density-rounded-[1,1.5,2,2.5,2.5]',
-		'data-[has-label]:density-py-ring-[1,1.5,2,2.5,2.5]',
+		dan.gap.button,
+		dan.space.button,
+		dan.radius.button,
+		dan.space.buttonLabelY,
 		// A LoadingSpinner, LoadingDots, or Kbd child sizes itself in a button: its
 		// own recipe selects a parent with `data-variant`, which Button always
 		// writes. See `kata/loading.ts` and `kata/kbd.ts`.
@@ -51,7 +52,7 @@ export const k = defineRecipe({
 		// Icon-only floor: a square pad per step keeps an icon-only bare button
 		// even-sided. `not-data-[has-label]` yields to the base padding once a
 		// label is present.
-		bare: [focus.inset, 'not-data-[has-label]:density-p-[0.75,1,1.25,1.5,1.5]'],
+		bare: [focus.inset, dan.space.buttonBare],
 	},
 	// Opt into the wide palette: Button's `color` axis carries the standard set
 	// plus the extended hues (rose / violet / sky), matching Badge.

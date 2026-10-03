@@ -17,12 +17,17 @@
  * Layer: kiso · Concern: skeleton form · Unit: tabs
  */
 
-const line = 'density-h-[5,6,7] density-w-[14,16,20]'
+import { dan } from '../dan'
+
+const line = `${dan.size.row} ${dan.size.tabWidth}`
 
 export const tabs = {
 	tab: {
-		horizontal: ['density-mb-[3,4,5]', line],
-		vertical: ['density-ms-[3,4,5] density-me-[3,4,5] density-my-[1.5,2,2.5]', line],
+		horizontal: [dan.space.tabsSkeletonMarginBottom, line],
+		vertical: [
+			`${dan.space.tabsSkeletonMarginStart} ${dan.space.tabsSkeletonMarginEnd} ${dan.space.tabsSkeletonMarginY}`,
+			line,
+		],
 	},
-	gap: 'density-gap-[1,2,3]',
+	gap: dan.gap.default,
 } as const

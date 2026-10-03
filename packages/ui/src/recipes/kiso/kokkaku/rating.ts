@@ -11,12 +11,13 @@
  * Layer: kiso · Concern: skeleton form · Unit: rating
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 export const rating = {
 	base: [rounded.sm],
-	star: 'density-size-[4,5,6]',
-	gap: 'density-gap-[0.5,0.5,1]',
+	star: dan.size.optionCheck,
+	gap: dan.gap.rating,
 } as const

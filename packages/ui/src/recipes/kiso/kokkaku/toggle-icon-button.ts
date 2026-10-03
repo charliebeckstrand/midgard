@@ -9,11 +9,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: toggle-icon-button
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 export const toggleIconButton = {
-	base: [rounded.lg, 'density-size-[4.5,6,7.5,9,9]'],
+	base: [rounded.lg, dan.size.iconButton],
 	density: true,
 } as const

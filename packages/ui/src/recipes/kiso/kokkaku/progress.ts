@@ -10,13 +10,14 @@
  * Layer: kiso · Concern: skeleton form · Unit: progress
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const height = 'density-h-[2,3,4]'
+const height = dan.size.lineTiny
 
-const diameter = 'density-size-[12,16,20]'
+const diameter = dan.size.gauge
 
 export const progress = {
 	bar: {

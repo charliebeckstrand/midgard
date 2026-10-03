@@ -10,13 +10,14 @@
  */
 import { defineRecipe } from '../../core/recipe'
 import { iro, ji, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { size } = ji
 const { border, focus } = sen
 
 // Cell padding for each step.
-const padding = ['density-px-[1,2,3]', 'density-py-[1,2,3]']
+const padding = [dan.space.cellX, dan.space.cellY]
 
 const outline = {
 	true: border.subtle,

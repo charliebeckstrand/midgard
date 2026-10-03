@@ -12,13 +12,14 @@
  * Layer: kiso · Concern: skeleton form · Unit: chart
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 import { button } from './button'
 
 const { rounded } = kasane
 
 export const chart = {
-	base: ['block', 'w-full', rounded.md, 'density-h-[40,60,80]'],
+	base: ['block', 'w-full', rounded.md, dan.size.chart],
 	aspect: ['block', 'w-full', 'h-auto', rounded.md],
 	sector: ['flex', 'w-full', 'flex-col', 'gap-3'],
 	plot: ['block', 'aspect-square', 'w-full', 'h-auto', 'rounded-full'],

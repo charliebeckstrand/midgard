@@ -6,6 +6,7 @@
  * Layer: kiso · Archetype: segment · Concern: item
  */
 
+import { dan } from '../dan'
 import { hannou } from '../hannou'
 import { iro } from '../iro'
 import { ji } from '../ji'
@@ -46,6 +47,6 @@ export const item = {
 		focus.ring,
 		...disabled,
 		...cursor,
-		'density-text-[xs,sm,base] density-px-[2.5,3,4] density-py-[1,1.5,2]',
+		`${dan.text.small} ${dan.space.segmentItemX} ${dan.space.rowY}`,
 	],
 } as const

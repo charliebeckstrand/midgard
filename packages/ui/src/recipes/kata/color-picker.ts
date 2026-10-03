@@ -1,6 +1,7 @@
 import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, kasane } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
 
 const { cursor } = hannou
@@ -29,7 +30,7 @@ const value = defineRecipe({
 const swatch = [
 	'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
 	rounded.sm,
-	'density-size-[4,5,5]',
+	dan.size.checkBox,
 ]
 
 export const k = {

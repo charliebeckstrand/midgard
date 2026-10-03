@@ -11,6 +11,7 @@
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen, textRamp } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { onWash, text } = iro
 const { size, weight } = ji
@@ -28,7 +29,7 @@ const item = [
 	...hannou.item,
 	...hannou.active,
 	...narabi.item,
-	'density-gap-[2,3,3] density-px-[2.5,3,3.5] density-py-[1,1.5,2.5]',
+	`${dan.gap.option} ${dan.space.menuItemX} ${dan.space.optionY}`,
 	textRamp,
 ]
 
@@ -56,7 +57,7 @@ const viewport = defineRecipe({
 	// The cap of each density step cuts the last visible row at about its
 	// middle. Thus a clipped row, and not only the edge fade, shows that more
 	// content is below. A panel that is not capped gets no `max-h` class.
-	capped: { true: 'density-max-h-[48,52,56]', false: '' },
+	capped: { true: dan.size.menuMaxHeight, false: '' },
 	defaults: { capped: false },
 })
 

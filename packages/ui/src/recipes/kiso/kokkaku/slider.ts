@@ -10,14 +10,15 @@
  * Layer: kiso · Concern: skeleton form · Unit: slider
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const track = 'density-h-[1,1.5,2]'
+const track = dan.size.sliderTrack
 
 export const slider = {
-	base: ['w-full', rounded.full, track, 'density-my-[3,4,5]'],
+	base: ['w-full', rounded.full, track, dan.space.sliderTrackY],
 	track,
 	density: true,
 } as const

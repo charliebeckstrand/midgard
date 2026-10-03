@@ -1,5 +1,6 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, kokkaku, omote, sen, textRamp } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { marker, text } = iro
 const { weight } = ji
@@ -77,19 +78,19 @@ const item = defineRecipe({
 	orientation: {
 		vertical: [
 			'grid grid-cols-[0.875rem_1fr]',
-			'density-gap-x-[3,4,5]',
-			'density-pb-[6,8,10] last:pb-0',
+			dan.gap.timelineX,
+			`${dan.space.timelineBottom} last:pb-0`,
 		],
 		// 6.5px aligns the content with the rail. It matches the marker's `left-[6.5px]`.
 		// The minimum width stops a column at a readable measure; past it, the
 		// row scrolls in the root.
-		horizontal: ['flex flex-col min-w-48 pl-[6.5px] pr-8 last:pr-0', 'density-pt-[6,8,10]'],
+		horizontal: ['flex flex-col min-w-48 pl-[6.5px] pr-8 last:pr-0', dan.space.timelineTop],
 	},
 	defaults: { orientation: 'vertical' },
 })
 
 const title = defineRecipe({
-	base: [weight.semibold, 'density-text-[base,lg,xl]', ...text.default],
+	base: [weight.semibold, dan.text.title, ...text.default],
 	orientation: {
 		vertical: 'col-start-2 row-start-1',
 		horizontal: 'order-1',
@@ -107,7 +108,7 @@ const description = defineRecipe({
 })
 
 const timestamp = defineRecipe({
-	base: ['density-text-[xs,sm,base]', ...text.muted],
+	base: [dan.text.small, ...text.muted],
 	orientation: {
 		vertical: 'col-start-2 row-start-3 mt-1',
 		horizontal: 'order-3 mt-1',

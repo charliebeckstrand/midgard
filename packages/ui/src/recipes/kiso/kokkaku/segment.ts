@@ -9,11 +9,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: segment
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 export const segment = {
-	base: [rounded.lg, 'density-h-[8,10,12]', 'density-w-[40,48,56]'],
+	base: [rounded.lg, dan.size.segment, dan.size.segmentWidth],
 	density: true,
 } as const

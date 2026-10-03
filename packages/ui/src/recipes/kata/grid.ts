@@ -7,6 +7,7 @@
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 import { panel } from '../kiso/panel'
 
 const { cursor, fg, grab } = hannou
@@ -39,7 +40,7 @@ const sortIcon = defineRecipe({
  * values truncate at that line, so the grip meets the value and does not cut
  * through it.
  */
-const resizeMetrics = ['[&>*>tr>th[data-resizable]]:density-pe-[2,4,6]']
+const resizeMetrics = [dan.space.resizeEnd]
 
 /**
  * Opaque fill behind every sticky grid surface: the sticky header bar and the
@@ -564,7 +565,7 @@ export const k = {
 			// The cell padding on the reveal wrapper, in the stepped class of the
 			// kata/table cell padding, so an animated leaf cell matches an ordinary one —
 			// and collapses that padding to nothing at height 0.
-			pad: 'density-p-[1,2,3]',
+			pad: dan.space.cell,
 		},
 	},
 	aggregate: {
@@ -649,7 +650,7 @@ export const k = {
 		// boundary: an outward overhang gets painted over by a neighbor's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			'group/grid-resize absolute top-0 end-0 z-10 h-full density-w-[2,4,6]',
+			`group/grid-resize absolute top-0 end-0 z-10 h-full ${dan.size.resizeHandle}`,
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],

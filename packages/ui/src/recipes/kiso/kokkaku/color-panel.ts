@@ -11,14 +11,15 @@
  * Layer: kiso · Concern: skeleton form · Unit: color-panel
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const width = ['density-w-[72,80,88]', 'max-w-full'] as const
+const width = [dan.size.colorPanelWidth, 'max-w-full'] as const
 
 export const colorPanel = {
-	base: [rounded.lg, 'density-h-[76.5,98,120]', ...width],
+	base: [rounded.lg, dan.size.colorPanelHeight, ...width],
 	width,
 	density: true,
 } as const

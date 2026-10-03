@@ -15,16 +15,16 @@ import {
 //
 //   - Each ramp has three or five values. The utility writes no rule for a list
 //     of another length, so such a list fails with no sign.
-//   - A ramp lives in `recipes/kiso/ramp/`. A kata, a skeleton dimension, or a
+//   - A ramp lives in `recipes/kiso/dan/`. A kata, a skeleton dimension, or a
 //     component imports the ramp and writes no list of its own.
 //   - No file outside the density core picks or clamps steps by hand. A `size`
 //     prop takes `ScaleStep<typeof scale>`, and a JS reader snaps its step
 //     through `useStep`.
 //
-// The backlog maps below hold the files of today, with the count of each
-// pattern in each file. A new list or a new hand step fails the gate, and so
-// does a count that a change makes too high. The rollout of the size scales
-// lowers each count to zero.
+// The backlog map of the hand steps holds the files of today, with the count
+// of each file. A new hand step fails the gate, and so does a count that a
+// change makes too high. The rollout of the size scales lowers each count to
+// zero.
 //
 // The scan reads the code of the `ui` package with the comments removed. It
 // leaves out the density core, which defines the steps, and the docs site,
@@ -54,76 +54,11 @@ function countsOf(pattern: RegExp, files = sources): Record<string, number> {
 /** A stepped utility with its list, such as `density-p-[2,3,4]`. */
 const RAMP = /\bdensity-[a-z]+(?:-[a-z]+)*-\[([^\]\s'"`]*)\]/g
 
-/** The home of the ramps. */
-const RAMP_HOME = 'recipes/kiso/ramp/'
+/** A ramp with its variant prefix, such as `lg:density-pt-[4,6,8]`. */
+const RAMP_CLASS = /[^\s'"`]*density-[a-z]+(?:-[a-z]+)*-\[[^\]\s'"`]*\]/g
 
-/** The files outside the home of the ramps that write a ramp today, with the count of each. */
-const RAMP_BACKLOG: Record<string, number> = {
-	'layouts/sidebar/variants.ts': 6,
-	'recipes/kata/alert.ts': 2,
-	'recipes/kata/avatar.ts': 1,
-	'recipes/kata/badge.ts': 5,
-	'recipes/kata/button.ts': 6,
-	'recipes/kata/calendar.ts': 4,
-	'recipes/kata/card.ts': 5,
-	'recipes/kata/checkbox.ts': 2,
-	'recipes/kata/color-panel.ts': 4,
-	'recipes/kata/color-picker.ts': 1,
-	'recipes/kata/dashboard.ts': 1,
-	'recipes/kata/date-picker.ts': 3,
-	'recipes/kata/description-list.ts': 7,
-	'recipes/kata/grid.ts': 3,
-	'recipes/kata/heading.ts': 6,
-	'recipes/kata/kbd.ts': 3,
-	'recipes/kata/list.ts': 3,
-	'recipes/kata/loading.ts': 7,
-	'recipes/kata/menu.ts': 4,
-	'recipes/kata/nav.ts': 2,
-	'recipes/kata/option.ts': 4,
-	'recipes/kata/popover.ts': 1,
-	'recipes/kata/progress.ts': 1,
-	'recipes/kata/query-chips.ts': 5,
-	'recipes/kata/radio.ts': 1,
-	'recipes/kata/sidebar.ts': 5,
-	'recipes/kata/slider-range.ts': 2,
-	'recipes/kata/slider.ts': 1,
-	'recipes/kata/switch.ts': 2,
-	'recipes/kata/table.ts': 2,
-	'recipes/kata/tabs.ts': 4,
-	'recipes/kata/tag-input.ts': 1,
-	'recipes/kata/timeline.ts': 5,
-	'recipes/kata/tooltip.ts': 2,
-	'recipes/kata/tree.ts': 4,
-	'recipes/kiso/control/affix.ts': 6,
-	'recipes/kiso/control/density.ts': 4,
-	'recipes/kiso/ji/size.ts': 1,
-	'recipes/kiso/kokkaku/badge.ts': 2,
-	'recipes/kiso/kokkaku/button.ts': 2,
-	'recipes/kiso/kokkaku/calendar.ts': 1,
-	'recipes/kiso/kokkaku/chart.ts': 1,
-	'recipes/kiso/kokkaku/checkbox.ts': 1,
-	'recipes/kiso/kokkaku/color-panel.ts': 2,
-	'recipes/kiso/kokkaku/control.ts': 2,
-	'recipes/kiso/kokkaku/description-list.ts': 2,
-	'recipes/kiso/kokkaku/heading.ts': 6,
-	'recipes/kiso/kokkaku/nav.ts': 1,
-	'recipes/kiso/kokkaku/pagination.ts': 1,
-	'recipes/kiso/kokkaku/progress.ts': 2,
-	'recipes/kiso/kokkaku/radio.ts': 1,
-	'recipes/kiso/kokkaku/rating.ts': 2,
-	'recipes/kiso/kokkaku/segment.ts': 2,
-	'recipes/kiso/kokkaku/slider.ts': 2,
-	'recipes/kiso/kokkaku/sparkline.ts': 2,
-	'recipes/kiso/kokkaku/switch.ts': 2,
-	'recipes/kiso/kokkaku/tabs.ts': 7,
-	'recipes/kiso/kokkaku/timeline.ts': 2,
-	'recipes/kiso/kokkaku/toggle-icon-button.ts': 1,
-	'recipes/kiso/kokkaku/tree.ts': 1,
-	'recipes/kiso/narabi/inset.ts': 2,
-	'recipes/kiso/segment/control.ts': 1,
-	'recipes/kiso/segment/item.ts': 3,
-	'recipes/kiso/shaku/icon.ts': 2,
-}
+/** The home of the ramps. */
+const RAMP_HOME = 'recipes/kiso/dan/'
 
 /**
  * A step picked by hand: a comparison with an outer step, a clamp outside the
@@ -223,10 +158,27 @@ describe('size scale', () => {
 		expect(broken).toEqual([])
 	})
 
-	it('writes a ramp only in the home of the ramps, less the backlog', () => {
+	it('writes a ramp only in the home of the ramps', () => {
 		const outside = sources.filter(({ file }) => !file.startsWith(RAMP_HOME))
 
-		expect(countsOf(RAMP, outside)).toEqual(RAMP_BACKLOG)
+		expect(countsOf(RAMP, outside)).toEqual({})
+	})
+
+	it('writes each ramp once in the home of the ramps', () => {
+		// Two names for one class would let one name change and leave the other.
+		// The variant forms of one list, such as `lg:density-pt-[4,6,8]`, are
+		// different classes, because Tailwind reads each form as a literal.
+		const home = sources.filter(({ file }) => file.startsWith(RAMP_HOME))
+
+		const ramps = home.flatMap(({ code }) =>
+			Array.from(code.matchAll(RAMP_CLASS), ([ramp]) => ramp),
+		)
+
+		const twice = ramps.filter((ramp, index) => ramps.indexOf(ramp) !== index)
+
+		expect(ramps.length).toBeGreaterThan(0)
+
+		expect(twice).toEqual([])
 	})
 
 	it('picks no step by hand outside the density core, less the backlog', () => {

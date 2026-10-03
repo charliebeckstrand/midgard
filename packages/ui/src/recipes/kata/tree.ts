@@ -7,6 +7,7 @@
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, kasane, kokkaku, narabi, sen, textRamp, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -46,7 +47,7 @@ const check = [
 	flex.inline,
 	'items-center justify-center',
 	kokkaku.checkbox.box,
-	'density-rounded-[0.75,1,1.25]',
+	dan.radius.check,
 	...mode(
 		['bg-white', 'border border-zinc-950/50', 'group-hover/tree-item:border-zinc-950/70'],
 		['dark:bg-white/5', 'dark:border-white/35', 'dark:group-hover/tree-item:border-white/50'],
@@ -57,14 +58,14 @@ const check = [
 ]
 
 /** The mark in the check box. It takes the step of the nearest density scope. */
-const checkMark = ['stroke-white', 'density-size-[3,3.5,4]']
+const checkMark = ['stroke-white', dan.size.check]
 
 /** The chevron column. Its width is the icon size of the step. */
 const chevron = [
 	'flex-none',
 	flex.row,
 	'justify-center',
-	'density-w-[4,5,6]',
+	dan.size.treeIndentWidth,
 	css.transform,
 	css.duration,
 ]
@@ -90,7 +91,7 @@ export const k = {
 	 * The start padding of a nested group when `indent` is enabled. It equals
 	 * the chevron width plus the row gap, so each depth adds one step of it.
 	 */
-	indent: 'density-ps-[6,7,8]',
+	indent: dan.space.treeIndent,
 	motion: collapse.fade,
 	skeleton: { ...kokkaku.tree, row },
 } as const

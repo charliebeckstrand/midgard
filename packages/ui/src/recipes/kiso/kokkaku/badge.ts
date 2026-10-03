@@ -6,12 +6,13 @@
  * Layer: kiso · Concern: skeleton form · Unit: badge
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 export const badge = {
-	base: [rounded.md, 'density-h-[5.5,6.5,7.5,8.5,8.5]', 'density-w-[10,12,14,16,16]'],
+	base: [rounded.md, dan.size.badge, dan.size.badgeWidth],
 	density: true,
 	// Inline-level, as the `inline-flex` badge is, so the silhouette flows where the badge would.
 	inline: true,

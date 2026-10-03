@@ -6,6 +6,7 @@
  * Layer: kiso · Archetype: segment · Concern: control
  */
 
+import { dan } from '../dan'
 import { textRamp } from '../ji'
 import { kasane } from '../kasane'
 import { narabi } from '../narabi'
@@ -25,7 +26,7 @@ export const control = {
 		'self-start max-w-full',
 		...bg.tint,
 		rounded.lg,
-		'p-1 density-gap-[1,2,3]',
+		`p-1 ${dan.gap.default}`,
 		textRamp,
 	],
 } as const

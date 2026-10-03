@@ -1,6 +1,7 @@
 import type { DensityStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, narabi } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { marker } = iro
 const { flex } = narabi
@@ -31,10 +32,10 @@ const dot = defineRecipe({
 	base: [
 		'shrink-0 rounded-full bg-current',
 		'motion-safe:animate-pulse',
-		'density-size-[1,1.5,2,2.5,3]',
+		dan.size.dot,
 		// In a Button (`data-variant`), the dots stop at the `lg` values, as the
 		// button does. The parent of a dot is always its LoadingDots.
-		'[&:is([data-variant]>*>*)]:density-size-[1,1.5,2,2.5,2.5]',
+		dan.size.dotInButton,
 	],
 })
 
@@ -49,13 +50,13 @@ const dot = defineRecipe({
 const spinner = defineRecipe({
 	base: [
 		'inline-block shrink-0 motion-safe:animate-spin',
-		'density-size-[3,4,5,6,8]',
+		dan.size.spinner,
 		// A child of a Button (`data-variant`) or of the inner button of a
 		// SidebarItem stops at the `lg` values, as the button does. Each class
 		// selects the spinner itself, so Chromium tests the rule only against the
 		// spinners.
-		'[&:is([data-variant]>*)]:density-size-[3,4,5,6,6]',
-		'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[3,4,5,6,6]',
+		dan.size.iconInButton,
+		dan.size.iconInSidebarItem,
 	],
 	color,
 	defaults: { color: 'current' },
@@ -67,9 +68,9 @@ export const k = defineRecipe(
 		base: [
 			flex.inline,
 			'shrink-0',
-			'density-gap-[0.5,1,1.5,2,2.5]',
+			dan.gap.dots,
 			// In a Button (`data-variant`), the gap stops at the `lg` value.
-			'[&:is([data-variant]>*)]:density-gap-[0.5,1,1.5,2,2]',
+			dan.gap.dotsInButton,
 		],
 		color,
 		defaults: { color: 'current' },

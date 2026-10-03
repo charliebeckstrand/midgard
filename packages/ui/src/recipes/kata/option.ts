@@ -1,5 +1,6 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, kasane, narabi, textRamp } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { onWash } = iro
 const { rounded } = kasane
@@ -12,7 +13,7 @@ const base = [
 	rounded.lg,
 	...hannou.active,
 	// Gap, padding, and text follow the nearest density scope.
-	'density-gap-[2,3,3] density-px-[2,2.5,3] density-py-[1,1.5,2.5]',
+	`${dan.gap.option} ${dan.space.optionX} ${dan.space.optionY}`,
 	textRamp,
 	...mode(
 		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
@@ -34,5 +35,5 @@ export const k = {
 	 * The size of the selected-state check icon. It is the `sm`, `md`, and `lg`
 	 * steps of `shaku.iconSize`, and each outer step takes the size of its neighbor.
 	 */
-	checkSize: 'density-size-[4,5,6]',
+	checkSize: dan.size.optionCheck,
 } as const

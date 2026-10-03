@@ -8,6 +8,7 @@
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, textRamp } from '../kiso'
+import { dan } from '../kiso/dan'
 import { segment } from '../kiso/segment'
 
 const { cursor, disabled, fg } = hannou
@@ -94,11 +95,11 @@ const tab = defineRecipe({
 	orientation: {
 		horizontal: [
 			'after:inset-x-0 after:-bottom-px after:h-0.5',
-			'density-px-[2,3,4] density-pb-[3,4,5]',
+			`${dan.space.tabX} ${dan.space.tabBottom}`,
 		],
 		vertical: [
 			'after:inset-y-0 after:-left-px after:w-0.5',
-			'density-px-[3,4,5] density-py-[1.5,2,2.5]',
+			`${dan.space.pillTabX} ${dan.space.pillTabY}`,
 		],
 	},
 	defaults: { orientation: 'horizontal' },

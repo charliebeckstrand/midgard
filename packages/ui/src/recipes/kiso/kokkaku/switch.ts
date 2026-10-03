@@ -10,11 +10,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: switch
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const track = ['density-h-[5,6,7]', 'density-w-[8,10,12]'] as const
+const track = [dan.size.row, dan.size.switchWidth] as const
 
 export const switchRecipe = {
 	base: [rounded.full, ...track],

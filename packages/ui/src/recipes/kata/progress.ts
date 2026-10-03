@@ -9,6 +9,7 @@
 import type { DensityStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { weight } = ji
@@ -61,7 +62,7 @@ const root = defineRecipe({
 })
 
 const label = defineRecipe({
-	base: ['absolute', weight.semibold, ...text.default, 'density-text-[xs,sm,base]'],
+	base: ['absolute', weight.semibold, ...text.default, dan.text.small],
 })
 
 export const k = defineRecipe(

@@ -11,6 +11,7 @@
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, kasane, kokkaku, narabi, omote, sen, shaku, textRamp } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
 const { rounded } = kasane
@@ -31,14 +32,7 @@ const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0']
  * is `p-2` with `gap-2` and `text-base`. The skeleton row takes the same box,
  * so the two boxes match.
  */
-const itemBox = [
-	flex.row,
-	'w-full',
-	'density-p-[1.5,2,2.5]',
-	'density-gap-[1.5,2,2.5]',
-	textRamp,
-	rounded.lg,
-]
+const itemBox = [flex.row, 'w-full', dan.space.navItem, dan.gap.item, textRamp, rounded.lg]
 
 /**
  * Shared item structure minus the interaction surface. The icon takes the

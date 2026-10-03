@@ -1,6 +1,7 @@
 import type { ControlStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, kokkaku } from '../kiso'
+import { dan } from '../kiso/dan'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
@@ -63,7 +64,7 @@ export const k = defineRecipe({
 		// explicit `size` on the input also sizes the track and the thumb. The
 		// negative margin centers the WebKit thumb on its track: half of the
 		// track height less the thumb height.
-		'density-py-[3,4,5]',
+		dan.space.sliderY,
 		'density-[xs,sm]:[&::-webkit-slider-runnable-track]:h-1',
 		'density-md:[&::-webkit-slider-runnable-track]:h-1.5',
 		'density-[lg,xl]:[&::-webkit-slider-runnable-track]:h-2',

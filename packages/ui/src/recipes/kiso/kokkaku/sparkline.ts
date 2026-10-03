@@ -9,11 +9,12 @@
  * Layer: kiso · Concern: skeleton form · Unit: sparkline
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const box = ['density-w-[18,24,30]', 'density-h-[6,8,10]'] as const
+const box = [dan.size.sparklineWidth, dan.size.sparkline] as const
 
 export const sparkline = {
 	base: [rounded.sm, ...box],

@@ -12,12 +12,13 @@
  * Layer: kiso · Concern: skeleton form · Unit: timeline
  */
 
+import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 export const timeline = {
 	dot: rounded.full,
-	title: 'density-h-[6,7,7] w-40 max-w-full',
-	timestamp: 'density-h-[4,5,6] w-20 max-w-full',
+	title: `${dan.size.lineTimeline} w-40 max-w-full`,
+	timestamp: `${dan.size.line} w-20 max-w-full`,
 } as const

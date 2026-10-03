@@ -10,6 +10,7 @@
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, kasane, omote, sen } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { fg, grab } = hannou
 const { text } = iro
@@ -99,7 +100,7 @@ const card = defineRecipe({
  * the floor.
  */
 const header = [
-	'flex min-w-0 items-center gap-2 density-pb-[2,3,4] [--touch-target-gap-x:0px]',
+	`flex min-w-0 items-center gap-2 ${dan.space.boxBottom} [--touch-target-gap-x:0px]`,
 	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	'**:data-[variant=bare]:not-data-[has-label]:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-[has-label]:density-sm:-mx-1',

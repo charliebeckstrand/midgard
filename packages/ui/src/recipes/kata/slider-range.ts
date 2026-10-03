@@ -1,6 +1,7 @@
 import type { ControlStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, kasane, kokkaku, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
@@ -9,15 +10,7 @@ const { css } = ugoki
 const { color } = slider
 
 const root = defineRecipe({
-	base: [
-		'relative',
-		'w-full',
-		...cursor,
-		'select-none',
-		'touch-none',
-		disabled,
-		'density-py-[3,4,5]',
-	],
+	base: ['relative', 'w-full', ...cursor, 'select-none', 'touch-none', disabled, dan.space.sliderY],
 	color,
 	defaults: { color: 'blue' },
 })
@@ -38,7 +31,7 @@ const thumb = defineRecipe({
 		'hover:scale-110',
 		'active:scale-110',
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
-		'density-size-[3,4,5]',
+		dan.size.thumb,
 	],
 })
 

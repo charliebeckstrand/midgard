@@ -1,6 +1,7 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, kasane, kokkaku, narabi, shaku } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { palette } = iro
 const { rounded } = kasane
@@ -23,7 +24,7 @@ export const k = defineRecipe(
 			// button of the row is the child of the row that is not an affix slot:
 			// its own `data-slot` changes in the mini rail. Each class selects the
 			// avatar itself, so Chromium tests the rule only against the avatars.
-			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[5,6,7]',
+			dan.size.avatarInSidebarItem,
 			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5',
 		],
 		variant: {

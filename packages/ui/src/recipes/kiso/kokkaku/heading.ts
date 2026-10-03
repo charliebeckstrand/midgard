@@ -13,15 +13,17 @@
  * Layer: kiso · Concern: skeleton form · Unit: heading
  */
 
+import { dan } from '../dan'
+
 export const heading = {
 	base: 'sm:max-w-sm',
 	inline: 'inline-block h-[1em] w-40 max-w-full align-middle',
 	ramp: {
-		1: 'density-h-[7,8,9]',
-		2: 'density-h-[6,7,8]',
-		3: 'density-h-[5,6,7]',
-		4: 'density-h-[4,5,6]',
-		5: 'density-h-[3,4,5]',
-		6: 'density-h-[2,3,4]',
+		1: dan.size.lineTitleLarge,
+		2: dan.size.lineTitle,
+		3: dan.size.row,
+		4: dan.size.line,
+		5: dan.size.lineSmall,
+		6: dan.size.lineTiny,
 	},
 }
