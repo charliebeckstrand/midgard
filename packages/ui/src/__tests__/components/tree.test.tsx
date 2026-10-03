@@ -186,36 +186,8 @@ describe('TreeItem', () => {
 		expect(screen.getByTestId('suf')).toBeInTheDocument()
 	})
 
-	it('does not toggle when clicking inside the prefix slot', () => {
-		const onPrefixClick = vi.fn()
-
-		const { container } = renderUI(
-			<Tree aria-label="Files">
-				<TreeItem
-					label="Parent"
-					prefix={
-						<button type="button" data-testid="pre-btn" onClick={onPrefixClick}>
-							pre
-						</button>
-					}
-				>
-					<TreeItem label="Child" />
-				</TreeItem>
-			</Tree>,
-		)
-
-		const row = bySlot(container, 'tree-item-content')
-
-		expect(row).toHaveAttribute('aria-expanded', 'false')
-
-		fireEvent.click(screen.getByTestId('pre-btn'))
-
-		expect(onPrefixClick).toHaveBeenCalledOnce()
-
-		expect(row).toHaveAttribute('aria-expanded', 'false')
-	})
-
-	it('toggles when clicking outside the prefix slot', () => {
+	// The affixes are decorative, so a click on their content is a click on the row.
+	it('toggles when clicking inside the prefix slot', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
 				<TreeItem label="Parent" prefix={<span>pre</span>}>
@@ -228,30 +200,25 @@ describe('TreeItem', () => {
 
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 
-		fireEvent.click(screen.getByText('Parent'))
+		fireEvent.click(screen.getByText('pre'))
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 	})
 
-	it('forwards leaf-row clicks to a clickable control in the prefix slot', () => {
-		const onPrefixClick = vi.fn()
-
-		renderUI(
+	it('toggles when clicking the label', () => {
+		const { container } = renderUI(
 			<Tree aria-label="Files">
-				<TreeItem
-					label="Leaf"
-					prefix={
-						<button type="button" data-testid="pre-btn" onClick={onPrefixClick}>
-							pre
-						</button>
-					}
-				/>
+				<TreeItem label="Parent" prefix={<span>pre</span>}>
+					<TreeItem label="Child" />
+				</TreeItem>
 			</Tree>,
 		)
 
-		fireEvent.click(screen.getByText('Leaf'))
+		const row = bySlot(container, 'tree-item-content')
 
-		expect(onPrefixClick).toHaveBeenCalledOnce()
+		fireEvent.click(screen.getByText('Parent'))
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
 	})
 
 	// Each row presses one key on a parent row that starts open or closed and
@@ -279,29 +246,6 @@ describe('TreeItem', () => {
 		fireEvent.keyDown(row, { key })
 
 		expect(row).toHaveAttribute('aria-expanded', expanded)
-	})
-
-	it('Enter on a leaf forwards the click to a prefix-interactive control', () => {
-		const onPrefixClick = vi.fn()
-
-		const { container } = renderUI(
-			<Tree aria-label="Files">
-				<TreeItem
-					label="Leaf"
-					prefix={
-						<button type="button" data-testid="pre-btn" onClick={onPrefixClick}>
-							pre
-						</button>
-					}
-				/>
-			</Tree>,
-		)
-
-		const row = getSlot(container, 'tree-item-content')
-
-		fireEvent.keyDown(row, { key: 'Enter' })
-
-		expect(onPrefixClick).toHaveBeenCalledOnce()
 	})
 
 	it('ignores key events that bubble from descendants', () => {
@@ -577,24 +521,19 @@ describe('TreeItem onAction', () => {
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
 	})
 
-	// The affix slots own their own clicks; the row was never activated.
-	it('says nothing for a click inside prefix or suffix', () => {
+	// The box and Space toggle the check; the row was never activated.
+	it('says nothing for a click on the check box or for Space on a checkable row', () => {
 		const onAction = vi.fn()
 
 		const { container } = renderUI(
 			<Tree aria-label="Files">
-				<TreeItem
-					label="a.ts"
-					onAction={onAction}
-					prefix={<input type="checkbox" aria-label="Pick a.ts" />}
-					suffix={<button type="button">More</button>}
-				/>
+				<TreeItem label="a.ts" defaultChecked={false} onAction={onAction} />
 			</Tree>,
 		)
 
-		fireEvent.click(screen.getByRole('checkbox', { name: 'Pick a.ts' }))
+		fireEvent.click(getSlot(container, 'tree-item-check'))
 
-		fireEvent.click(screen.getByRole('button', { name: 'More' }))
+		fireEvent.keyDown(row(container), { key: ' ' })
 
 		expect(onAction).not.toHaveBeenCalled()
 
@@ -621,6 +560,118 @@ describe('TreeItem onAction', () => {
 		fireEvent.keyDown(row(container), { key: 'ArrowLeft' })
 
 		expect(onAction).not.toHaveBeenCalled()
+	})
+})
+
+describe('TreeItem checked', () => {
+	const row = (container: HTMLElement, index = 0) =>
+		(container.querySelectorAll('[role="treeitem"]')[index] as HTMLElement) ?? null
+
+	it('puts the state on the treeitem and draws a box hidden from AT', () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" checked="mixed" onCheckedChange={() => {}} defaultOpen>
+					<TreeItem label="a.ts" checked onCheckedChange={() => {}} />
+					<TreeItem label="b.ts" checked={false} onCheckedChange={() => {}} />
+				</TreeItem>
+				<TreeItem label="README.md" />
+			</Tree>,
+		)
+
+		expect(row(container, 0)).toHaveAttribute('aria-checked', 'mixed')
+
+		expect(row(container, 3)).not.toHaveAttribute('aria-checked')
+
+		const box = getSlot(row(container, 0), 'tree-item-check')
+
+		expect(box).toHaveAttribute('aria-hidden', 'true')
+
+		// No control sits inside a row, so the tree keeps one Tab stop.
+		expect(container.querySelector('[role="treeitem"] :is(input, button, [tabindex])')).toBeNull()
+
+		expect(row(container, 3).querySelector('[data-slot="tree-item-check"]')).toBeNull()
+	})
+
+	it('toggles an uncontrolled check by Space, by a box click, and by a leaf activation', () => {
+		const onCheckedChange = vi.fn()
+
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="a.ts" defaultChecked={false} onCheckedChange={onCheckedChange} />
+			</Tree>,
+		)
+
+		fireEvent.keyDown(row(container), { key: ' ' })
+
+		expect(row(container)).toHaveAttribute('aria-checked', 'true')
+
+		fireEvent.click(getSlot(container, 'tree-item-check'))
+
+		expect(row(container)).toHaveAttribute('aria-checked', 'false')
+
+		fireEvent.click(screen.getByText('a.ts'))
+
+		expect(row(container)).toHaveAttribute('aria-checked', 'true')
+
+		fireEvent.keyDown(row(container), { key: 'Enter' })
+
+		expect(row(container)).toHaveAttribute('aria-checked', 'false')
+
+		expect(onCheckedChange.mock.calls).toEqual([[true], [false], [true], [false]])
+	})
+
+	it('reports a mixed row as checked on toggle, without changing a controlled row', () => {
+		const onCheckedChange = vi.fn()
+
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" checked="mixed" onCheckedChange={onCheckedChange}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		fireEvent.keyDown(row(container), { key: ' ' })
+
+		expect(onCheckedChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		expect(row(container)).toHaveAttribute('aria-checked', 'mixed')
+	})
+
+	// A branch row keeps Enter and a label click for its expansion.
+	it('toggles a checkable branch open on Enter and checks it on Space', () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultChecked={false}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		fireEvent.keyDown(row(container), { key: 'Enter' })
+
+		expect(row(container)).toHaveAttribute('aria-expanded', 'true')
+
+		expect(row(container)).toHaveAttribute('aria-checked', 'false')
+
+		fireEvent.keyDown(row(container), { key: ' ' })
+
+		expect(row(container)).toHaveAttribute('aria-expanded', 'true')
+
+		expect(row(container)).toHaveAttribute('aria-checked', 'true')
+	})
+
+	it('has no axe violations', async () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultChecked="mixed" defaultOpen>
+					<TreeItem label="a.ts" defaultChecked />
+					<TreeItem label="b.ts" defaultChecked={false} />
+				</TreeItem>
+			</Tree>,
+		)
+
+		expect((await axe(container)).violations).toEqual([])
 	})
 })
 

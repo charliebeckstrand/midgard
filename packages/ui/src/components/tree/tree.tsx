@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, type KeyboardEvent, type ReactNode, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yRoving } from '../../hooks'
@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/tree'
 import { Box } from '../../structure/box'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
-import { ITEM_SELECTOR, ROVING_ITEM_SELECTOR } from './tree-constants'
+import { ROVING_ITEM_SELECTOR } from './tree-constants'
 import { stampTreePositions } from './tree-item-children'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
@@ -67,24 +67,6 @@ export function Tree({
 		manageTabIndex: true,
 	})
 
-	// `focusOnEmpty` seeds the first item when no treeitem is active, but a
-	// focused prefix/suffix control inside an item also reads as "empty"
-	// (indexOf === -1). Roving runs only for the tree container itself or a
-	// treeitem; arrows/Home/End on an inner control stay with the control.
-	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		const target = event.target
-
-		if (
-			target instanceof HTMLElement &&
-			target !== event.currentTarget &&
-			!target.matches(ITEM_SELECTOR)
-		) {
-			return
-		}
-
-		rovingKeyDown(event)
-	}
-
 	const rootContextValue = useMemo(() => ({ depth: 0, indent, mount }), [indent, mount])
 
 	return (
@@ -96,7 +78,7 @@ export function Tree({
 				data-slot="tree"
 				density={size}
 				className={cn(k.base, className)}
-				onKeyDown={handleKeyDown}
+				onKeyDown={rovingKeyDown}
 			>
 				{stampTreePositions(children)}
 			</Box>
