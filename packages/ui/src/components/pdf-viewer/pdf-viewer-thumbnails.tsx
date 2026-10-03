@@ -117,19 +117,21 @@ export function PdfViewerThumbnails() {
 
 			{!isDesktop && (
 				<Sheet side="start" open={thumbsOpen} onOpenChange={setThumbsOpen} container={root}>
-					<SheetTitle>
-						<Flex gap="sm" justify="between" align="center">
-							<div>Pages</div>
-							<Button
-								type="button"
-								variant="plain"
-								aria-label="Close thumbnails"
-								onClick={() => setThumbsOpen(false)}
-							>
-								<Icon icon={<X />} />
-							</Button>
-						</Flex>
-					</SheetTitle>
+					{/* The close button sits beside the `<h2>`, not in it: a heading takes
+					    phrasing content only, and the title names the dialog. The button
+					    margins repeat the `px-6 pt-6` inset of the title. */}
+					<Flex gap="sm" justify="between" align="center">
+						<SheetTitle>Pages</SheetTitle>
+						<Button
+							type="button"
+							variant="plain"
+							aria-label="Close thumbnails"
+							className="me-6 mt-6"
+							onClick={() => setThumbsOpen(false)}
+						>
+							<Icon icon={<X />} />
+						</Button>
+					</Flex>
 					<SheetBody>
 						<PdfViewerThumbnailList
 							items={thumbnailList}

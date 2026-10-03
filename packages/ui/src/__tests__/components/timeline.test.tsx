@@ -80,6 +80,22 @@ describe('TimelineTimestamp', () => {
 		expect(el).toHaveAttribute('datetime', '2024-01-01')
 	})
 
+	it('renders a span without dateTime, because free text is not a valid <time> value', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineTimestamp>Last week</TimelineTimestamp>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		const el = bySlot(container, 'timeline-timestamp')
+
+		expect(el?.tagName).toBe('SPAN')
+
+		expect(el).not.toHaveAttribute('datetime')
+	})
+
 	it('reads horizontal orientation from the Timeline context', () => {
 		const { container } = renderUI(
 			<Timeline orientation="horizontal">

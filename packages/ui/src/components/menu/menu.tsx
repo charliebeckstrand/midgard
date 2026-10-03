@@ -107,6 +107,11 @@ export function Menu({
 
 	const touchContextMenu = useMenuTouchHold()
 
+	// A dropdown can sit in phrasing content such as a `<p>`, and its panel renders in a
+	// portal, so its root is a `<span>`. A context menu wraps block page content, and a
+	// static panel renders in place, so their root is a `<div>`.
+	const Root = state.isDropdown ? 'span' : 'div'
+
 	return (
 		<MenuActionsContext value={actions}>
 			<MenuCappedContext value={capped}>
@@ -117,7 +122,7 @@ export function Menu({
 				`aria-activedescendant` from there, so the pointer marks `data-active`;
 				every other mode roves by real focus and the pointer moves it. */}
 					<MenuPointerLevel virtual={state.isDropdown && !state.isSheet} owner={actions.triggerRef}>
-						<div
+						<Root
 							data-slot="menu"
 							// contents: this wrapper must not participate in layout, or it
 							// introduces a box between the trigger/content and whatever flex or
@@ -131,7 +136,7 @@ export function Menu({
 							{...(isContextMenu && { ...touchContextMenu, onContextMenu: handleContextMenu })}
 						>
 							{children}
-						</div>
+						</Root>
 					</MenuPointerLevel>
 				</MenuStateContext>
 			</MenuCappedContext>

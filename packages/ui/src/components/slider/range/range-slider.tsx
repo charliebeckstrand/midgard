@@ -14,7 +14,7 @@ import { useRangePointer } from './use-range-pointer'
 
 /** Props for {@link RangeSlider}: the `[start, end]` controllable triad, `min`/`max`/`step` bounds, `allowCross` overlap policy, the pointer-drag bracket, per-thumb `labels` and `getValueText` for assistive tech, plus `size`/`color` variants. */
 export type RangeSliderProps = {
-	/** Id of the root. Without the prop, the root takes the id of the enclosing Control, else a generated id. */
+	/** Id of the start thumb. Without the prop, the start thumb takes the id of the enclosing Control, else a generated id. */
 	id?: string
 	/** Binds the range to an enclosing Form field. Seed `Form.defaultValues` with a `[number, number]`. */
 	name?: string
@@ -89,11 +89,12 @@ export type RangeSliderProps = {
  * on the field, or an `error` severity on an enclosing Control, marks each thumb invalid.
  * Each thumb also takes the `disabled` state and the `aria-describedby` of the Control.
  *
- * The root takes `id`, else the id of the enclosing Control. In a Field with a Label, each
- * thumb takes `aria-labelledby`. It points at the Label, then at a hidden span with the
- * `labels` entry. Without a Field Label, each thumb takes its `labels` entry as `aria-label`.
+ * The start thumb takes `id`, else the id of the enclosing Control, so a `<label>` for that id
+ * is valid HTML. In a Field with a Label, each thumb takes `aria-labelledby`. It points at the
+ * Label, then at a hidden span with the `labels` entry. Without a Field Label, each thumb takes
+ * its `labels` entry as `aria-label`.
  *
- * A click on a label for the root focuses the start thumb and keeps both values. The Field
+ * A click on a label for the slider focuses the start thumb and keeps both values. The Field
  * Label is such a label. A disabled slider takes no focus from the click.
  */
 export function RangeSlider({
@@ -172,9 +173,10 @@ export function RangeSlider({
 	// One tuple for both hooks, so the pair cannot drift between them.
 	const thumbRefs: ThumbButtonRefs = [loThumbRef, hiThumbRef]
 
-	// The root is a `<div>`, and a `<div>` is not labelable. A click on a label for the root
-	// thus does nothing natively. This listener focuses the start thumb, as a label click
-	// focuses the native input of `Slider`. The focus does not change a value.
+	// The field id is on the start thumb, because a `<button>` is labelable and the `<div>`
+	// root is not. A label click sends a click to the button, but some browsers do not focus a
+	// button. This listener focuses the start thumb, as a label click focuses the native input
+	// of `Slider`. The focus does not change a value.
 	useEffect(() => {
 		const root = loThumbRef.current?.ownerDocument
 
@@ -227,7 +229,6 @@ export function RangeSlider({
 		// biome-ignore lint/a11y/noStaticElementInteractions: the root only hears the focus that leaves its two role="slider" thumbs. The thumbs carry the widget semantics.
 		<div
 			ref={ref}
-			id={scope.id}
 			data-slot="slider-range"
 			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
@@ -257,6 +258,7 @@ export function RangeSlider({
 			{/* Low thumb */}
 			<button
 				ref={loThumbRef}
+				id={scope.id}
 				type="button"
 				role="slider"
 				tabIndex={resolvedDisabled ? -1 : 0}

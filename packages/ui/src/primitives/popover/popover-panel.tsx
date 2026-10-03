@@ -22,8 +22,8 @@ import { ReducedMotion } from '../reduced-motion'
  * on the panel itself when nothing is selected.
  *
  * @remarks Defaults to `role="listbox"`; override `role` for menus and the
- * like. `aria-multiselectable` is honored only on listbox roles. Pass `glass`
- * for the translucent surface variant.
+ * like. `role="none"` renders no role attribute. `aria-multiselectable` is honored
+ * only on listbox roles. Pass `glass` for the translucent surface variant.
  */
 export function PopoverPanel({
 	id,
@@ -46,7 +46,10 @@ export function PopoverPanel({
 	children: ReactNode
 	/**
 	 * ARIA role for the panel. Override the `listbox` default for menus and
-	 * the like.
+	 * the like. Set `'none'` for a panel that only holds a widget with its own
+	 * role, such as the listbox of a Combobox. The panel then renders no role
+	 * attribute: it is focusable (`tabIndex={-1}`), and a browser ignores
+	 * `role="none"` on a focusable element.
 	 *
 	 * @defaultValue `'listbox'`
 	 */
@@ -141,7 +144,7 @@ export function PopoverPanel({
 				// below is the other half. See `recipes/kiso/hannou/glass-item.ts`.
 				data-glass={dataAttr(glass)}
 				data-density={density}
-				role={role}
+				role={role === 'none' ? undefined : role}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				// ARIA allows `aria-multiselectable` on listbox and grid roles; this

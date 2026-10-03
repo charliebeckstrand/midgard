@@ -85,7 +85,9 @@ export function ComboboxPanel({
 				>
 					<PopoverPanel
 						density={size}
-						role="group"
+						// No role: an unnamed `group` adds nothing, and the listbox
+						// inside carries the widget role.
+						role="none"
 						autoFocus={false}
 						glass={glass}
 						className={cn('relative', k.options)}

@@ -7,6 +7,7 @@ import {
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
+import { PdfViewerThumbnailList } from '../../components/pdf-viewer/pdf-viewer-thumbnail-list'
 import {
 	downloadPdf,
 	pdfNameFromSrc,
@@ -539,6 +540,23 @@ describe('PdfViewer', () => {
 		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'true')
 	})
 
+	it('keeps the close button out of the heading of the mobile thumbnails sheet', async () => {
+		stubMatchMedia(() => false)
+
+		renderUI(<PdfViewer pages={pages} />)
+
+		await setupUser().click(screen.getByLabelText('Show thumbnails'))
+
+		const heading = screen.getByRole('heading', { name: 'Pages' })
+
+		// A heading takes phrasing content only, and its text names the dialog.
+		expect(heading.querySelector('button, div')).toBeNull()
+
+		expect(screen.getByRole('dialog', { name: 'Pages' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Close thumbnails' })).toBeInTheDocument()
+	})
+
 	it('exposes the aria-label on the root', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} aria-label="Invoice viewer" />)
 
@@ -624,6 +642,41 @@ describe('PdfViewer', () => {
 		rerender(<PdfViewer pages={[{ src: 'second.png' }]} />)
 
 		expect(viewport.style.aspectRatio).toBe('8.5 / 11')
+	})
+})
+
+describe('PdfViewerThumbnailList', () => {
+	const renderList = (loading: boolean, count: number) =>
+		renderUI(
+			<PdfViewerThumbnailList
+				items={pages.slice(0, count).map((page, index) => ({
+					key: index,
+					pageNumber: index + 1,
+					label: page.label ?? `Page ${index + 1}`,
+					thumbnail: page.src,
+				}))}
+				loading={loading}
+				safePage={1}
+				goToPage={noop}
+				scrollCurrentIntoView={null}
+			/>,
+		)
+
+	it('hides the list of loading placeholders from assistive tech', () => {
+		const { container } = renderList(true, 0)
+
+		const list = getSlot(container, 'pdf-viewer-thumbnails')
+
+		// Empty placeholder items would read as a list of blank entries.
+		expect(list).toHaveAttribute('aria-hidden', 'true')
+
+		expect(allBySlot(container, 'pdf-viewer-thumbnail-placeholder').length).toBeGreaterThan(0)
+	})
+
+	it('exposes the list once a thumbnail resolves', () => {
+		const { container } = renderList(true, 2)
+
+		expect(getSlot(container, 'pdf-viewer-thumbnails')).not.toHaveAttribute('aria-hidden')
 	})
 })
 

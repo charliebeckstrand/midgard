@@ -49,6 +49,15 @@ describe('Textarea', () => {
 		expect(screen.getByText('send')).toBeInTheDocument()
 	})
 
+	it('renders the actions row as a span inside the span frame', () => {
+		const { container } = renderUI(<Textarea actions={<span>send</span>} />)
+
+		// The ControlFrame is a `<span>`, which takes phrasing content only.
+		expect(getSlot(container, 'textarea-actions').tagName).toBe('SPAN')
+
+		expect(getSlot(container, 'control-frame').querySelector('div')).toBeNull()
+	})
+
 	it.each([null, false])('renders no actions row for actions={%s}', (actions) => {
 		const { container } = renderUI(<Textarea actions={actions} resize="vertical" />)
 

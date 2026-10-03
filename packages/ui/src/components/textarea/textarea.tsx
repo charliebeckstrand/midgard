@@ -165,10 +165,11 @@ export function Textarea({
 			)}
 		>
 			{textareaEl}
+			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
-				<div data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
+				<span data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
 					{actions}
-				</div>
+				</span>
 			)}
 		</ControlFrame>
 	)

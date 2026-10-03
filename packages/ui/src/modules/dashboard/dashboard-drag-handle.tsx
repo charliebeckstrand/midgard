@@ -38,13 +38,16 @@ export function DashboardDragHandle({
 	floating,
 	dragging,
 }: DashboardDragHandleProps) {
+	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
+	const { role: _role, ...gripAttributes } = attributes
+
 	return (
 		<button
 			data-slot="dashboard-handle"
 			data-dragging={dataAttr(dragging)}
 			ref={setActivatorNodeRef}
 			className={cn(k.handle({ floating, dragging }))}
-			{...attributes}
+			{...gripAttributes}
 			{...listeners}
 			type="button"
 			aria-label={label}

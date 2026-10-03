@@ -39,6 +39,9 @@ export function GridManagerGrip({
 
 	const { setActivatorNodeRef, attributes, listeners, dragging } = sortable
 
+	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
+	const { role: _role, ...gripAttributes } = attributes
+
 	return (
 		<button
 			type="button"
@@ -46,7 +49,7 @@ export function GridManagerGrip({
 			data-dragging={dataAttr(dragging)}
 			className={cn(k.manager.row.grip)}
 			aria-label={label}
-			{...attributes}
+			{...gripAttributes}
 			{...listeners}
 		>
 			<Icon icon={<GripVertical />} />

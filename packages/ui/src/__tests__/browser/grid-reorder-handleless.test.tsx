@@ -60,6 +60,16 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 
 		await waitFor(() => expect(headerA).toHaveAttribute('data-dragging'))
 
+		// The cell stays a columnheader through the drag. dnd-kit's `aria-pressed`
+		// is not allowed on it, and its roledescription would hide "column header".
+		expect(headerA).not.toHaveAttribute('role')
+
+		expect(headerA).not.toHaveAttribute('aria-pressed')
+
+		expect(headerA).not.toHaveAttribute('aria-roledescription')
+
+		expect(headerA).toHaveAttribute('tabindex', '0')
+
 		// Drop the drag so the held column doesn't outlive the test.
 		fireEvent.keyDown(headerA, { code: 'Escape' })
 	})
@@ -68,6 +78,9 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder={{}} />)
 
 		// The object form with the default `handle` still renders the grip button.
-		expect(screen.queryByRole('button', { name: 'Reorder A' })).not.toBeNull()
+		const grip = screen.getByRole('button', { name: 'Reorder A' })
+
+		// The grip is a native `<button>`, so it carries no redundant `role="button"`.
+		expect(grip).not.toHaveAttribute('role')
 	})
 })

@@ -59,7 +59,7 @@ function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
 /**
  * Navigation row inside a `Sidebar`, rendering as a `Button` (or `Link` when
  * `href` is set) marked `aria-current="page"` while `current`. Wraps in an
- * `<li>` inside a `SidebarList`, else a `<span>`. A `prefix`/`suffix` affix
+ * `<li>` inside a `SidebarList`, else a `<div>`. A `prefix`/`suffix` affix
  * flips the row to a flex layout. Its slots join the cross-axis roving model,
  * and sit inside the shared hover tint and focus ring. A `SidebarItemActions`
  * child hoists into the `suffix` slot. An explicit `suffix` prop wins, and the
@@ -88,10 +88,11 @@ export function SidebarItem({
 		handleClick,
 	} = useNavItem({ current, preventClose, onClick })
 
-	// Inside a SidebarList the wrapper is an <li>; standalone it is a <span>.
+	// Inside a SidebarList the wrapper is an <li>; standalone it is a <div>. The
+	// wrapper holds the affix slots, which can hold flow content.
 	const inList = useInSidebarList()
 
-	const Wrapper = inList ? 'li' : 'span'
+	const Wrapper = inList ? 'li' : 'div'
 
 	// A SidebarItemActions child hoists into the suffix slot, the rest renders
 	// inside the button, and the mini-rail tooltip surfaces only the labels.
@@ -152,16 +153,16 @@ export function SidebarItem({
 	return (
 		<PolymorphicStatic
 			as={Wrapper}
-			ref={itemRef as Ref<HTMLLIElement & HTMLSpanElement>}
+			ref={itemRef as Ref<HTMLLIElement & HTMLDivElement>}
 			data-slot="sidebar-item"
 			density={size}
 			className={k.item.row({ affix: hasAffix })}
 			{...tapHandlers}
 		>
 			{prefix != null && (
-				<span data-slot="sidebar-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
+				<div data-slot="sidebar-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
 					{prefix}
-				</span>
+				</div>
 			)}
 			<HeadlessProvider>
 				{mini ? (
@@ -176,9 +177,9 @@ export function SidebarItem({
 				)}
 			</HeadlessProvider>
 			{resolvedSuffix != null && (
-				<span data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
+				<div data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
 					{resolvedSuffix}
-				</span>
+				</div>
 			)}
 			{isCurrent && (
 				// A current affixed row re-draws its focus ring on the active indicator,

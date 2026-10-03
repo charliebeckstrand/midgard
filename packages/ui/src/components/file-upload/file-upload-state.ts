@@ -57,7 +57,8 @@ export type FileUploadDropProps = FileUploadSharedProps & {
 	/**
 	 * Replaces the built-in icon-and-prompt inside the empty zone, and names the
 	 * hidden input. The zone keeps its own height; set another through
-	 * `className`, as `<SignaturePad>` does.
+	 * `className`, as `<SignaturePad>` does. The empty zone is a `<button>`, so
+	 * the children must be phrasing content with no interactive element.
 	 */
 	children?: ReactNode
 }
