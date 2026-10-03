@@ -6,12 +6,12 @@ import { setDebugTool } from '../../debug/store'
 import { renderUI, screen } from '../helpers'
 
 afterEach(() => {
-	setDebugTool('tap-log', false)
+	setDebugTool('event-log', false)
 })
 
 describe('DebugActions', () => {
 	it('paints the part of a preloaded tool in the first commit', async () => {
-		setDebugTool('tap-log', true)
+		setDebugTool('event-log', true)
 
 		await preloadDebugTools()
 
@@ -23,7 +23,7 @@ describe('DebugActions', () => {
 
 		expect(screen.queryByText('loading')).toBeNull()
 
-		expect(screen.getByRole('button', { name: 'Tap log' })).toBeDefined()
+		expect(screen.getByRole('button', { name: 'Event log' })).toBeDefined()
 	})
 
 	it('gives null for a tool that is not in the registry', async () => {

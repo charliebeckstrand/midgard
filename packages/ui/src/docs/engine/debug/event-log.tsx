@@ -68,7 +68,7 @@ let paused = false
 let sheetOpen = false
 
 /** The `data-slot` of the header button. */
-const TRIGGER = 'tap-log-trigger'
+const TRIGGER = 'event-log-trigger'
 
 /** The sheet calls these when the lines change. */
 const listeners = new Set<() => void>()
@@ -137,7 +137,7 @@ function caller() {
 	return (new Error().stack ?? '')
 		.split('\n')
 		.map((frame) => frame.trim())
-		.filter((frame) => frame && frame !== 'Error' && !frame.includes('tap-log'))
+		.filter((frame) => frame && frame !== 'Error' && !frame.includes('event-log'))
 		.slice(0, 2)
 		.map((frame) => frame.replace(/https?:\/\/[^\s)]*\//g, ''))
 		.join(' < ')
@@ -305,7 +305,7 @@ function clear() {
 }
 
 /** The lines of the open sheet. It reads the store only while it is open, so the closed log does not render for each event. */
-function TapLogLines() {
+function EventLogLines() {
 	const log = useSyncExternalStore(subscribe, () => logText)
 
 	// The clipboard gets the lines in time order, oldest first.
@@ -313,7 +313,7 @@ function TapLogLines() {
 
 	return (
 		<>
-			<SheetTitle>Tap log</SheetTitle>
+			<SheetTitle>Event log</SheetTitle>
 			<SheetBody className="min-h-0 flex-1 overflow-auto">
 				<pre className="m-0 whitespace-pre-wrap font-mono text-[10px]/[1.3]">{log}</pre>
 			</SheetBody>
@@ -342,7 +342,7 @@ function TapLogLines() {
 }
 
 /** The header button and the sheet of the log. `DebugActions` renders it while the tool is on. */
-export function TapLog() {
+export function EventLog() {
 	const [open, setOpen] = useState(false)
 
 	// The log records while the tool is on. Off, the tool unmounts and the log stops.
@@ -358,19 +358,24 @@ export function TapLog() {
 
 	return (
 		<>
-			<Button variant="bare" data-slot={TRIGGER} aria-label="Tap log" onClick={() => change(true)}>
+			<Button
+				variant="bare"
+				data-slot={TRIGGER}
+				aria-label="Event log"
+				onClick={() => change(true)}
+			>
 				<Icon icon={<MousePointer />} />
 			</Button>
 			{/* The sheet takes the height of the log, up to the height of the screen.
 			    A longer log scrolls in the body. */}
 			<Sheet side="bottom" open={open} onOpenChange={change} className="max-h-full">
-				<TapLogLines />
+				<EventLogLines />
 			</Sheet>
 		</>
 	)
 }
 
-/** The count of the mounted {@link TapLog} instances. The layout renders the header actions two times, one for each width. */
+/** The count of the mounted {@link EventLog} instances. The layout renders the header actions two times, one for each width. */
 let users = 0
 
 let stop: (() => void) | undefined
@@ -510,7 +515,7 @@ function listen() {
 
 	heights.observe(document.documentElement)
 
-	write(`tap log ready ${viewportState(probe)}`)
+	write(`event log ready ${viewportState(probe)}`)
 
 	return () => {
 		for (const type of EVENTS) document.removeEventListener(type, onEvent, options)
