@@ -353,6 +353,15 @@ describe('TagInput', () => {
 		expect(list.querySelectorAll('[role="listitem"]')).toHaveLength(2)
 	})
 
+	it('keeps the tag list to phrasing content inside the span frame', () => {
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
+
+		// The list sits in the prefix `<span>` of the ControlFrame `<span>`.
+		expect(getSlot(container, 'tags').tagName).toBe('SPAN')
+
+		expect(getSlot(container, 'control-frame').querySelector('div')).toBeNull()
+	})
+
 	it.each([
 		['derived from placeholder', 'Add tags...', 'Add tags...'],
 		['defaulted when no placeholder', undefined, 'Add tags'],

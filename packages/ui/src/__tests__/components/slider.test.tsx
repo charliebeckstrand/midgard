@@ -84,6 +84,26 @@ describe('RangeSlider', () => {
 		expect(allBySlot(container, 'slider-range-thumb')).toHaveLength(2)
 	})
 
+	it('puts the field id on the start thumb, so the Field Label targets a labelable element', () => {
+		const { container, getByText } = renderUI(
+			<Field>
+				<Label>Price</Label>
+				<RangeSlider />
+			</Field>,
+		)
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		const label = getByText('Price') as HTMLLabelElement
+
+		// A `<div>` is not labelable, so a label for the root is an HTML conformance error.
+		expect(getSlot(container, 'slider-range')).not.toHaveAttribute('id')
+
+		expect(label.htmlFor).not.toBe('')
+
+		expect(label.control).toBe(lo)
+	})
+
 	it.each<[string, () => ReactElement, string, string, string]>([
 		[
 			'sets aria-valuenow on each thumb to reflect the default value',
@@ -331,14 +351,14 @@ describe('RangeSlider + Control', () => {
 		}
 	})
 
-	it('puts the Control id on the root', () => {
+	it('puts the Control id on the start thumb', () => {
 		const { container } = renderUI(
 			<Control id="price">
 				<RangeSlider />
 			</Control>,
 		)
 
-		expect(getSlot(container, 'slider-range')).toHaveAttribute('id', 'price')
+		expect(allBySlot(container, 'slider-range-thumb')[0]).toHaveAttribute('id', 'price')
 	})
 
 	it('keeps an explicit id over the Control id', () => {
@@ -348,7 +368,7 @@ describe('RangeSlider + Control', () => {
 			</Control>,
 		)
 
-		expect(getSlot(container, 'slider-range')).toHaveAttribute('id', 'band')
+		expect(allBySlot(container, 'slider-range-thumb')[0]).toHaveAttribute('id', 'band')
 	})
 
 	it('names each thumb from the Field label, then the thumb label', () => {
