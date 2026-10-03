@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Divider } from '../../components/divider'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Divider', () => {
 	it('renders with data-slot="divider"', () => {
@@ -13,12 +13,15 @@ describe('Divider', () => {
 		expect(el?.tagName).toBe('HR')
 	})
 
-	it('sets role and aria-orientation for vertical dividers', () => {
+	it('keeps the implicit separator role and sets aria-orientation for vertical dividers', () => {
 		const { container } = renderUI(<Divider orientation="vertical" />)
 
 		const el = bySlot(container, 'divider')
 
-		expect(el).toHaveAttribute('role', 'separator')
+		// The native <hr> is a separator; an explicit role on it is redundant.
+		expect(el).not.toHaveAttribute('role')
+
+		expect(screen.getByRole('separator')).toBe(el)
 
 		expect(el).toHaveAttribute('aria-orientation', 'vertical')
 	})
@@ -38,9 +41,11 @@ describe('Divider', () => {
 
 		const el = bySlot(container, 'divider')
 
-		// §3.9: `role` and the widget ARIA state are load-bearing, so the vertical
-		// separator semantics stay.
-		expect(el).toHaveAttribute('role', 'separator')
+		// §3.9: the role and the widget ARIA state are load-bearing, so the vertical
+		// separator semantics stay. The component drops the consumer role.
+		expect(el).not.toHaveAttribute('role')
+
+		expect(screen.getByRole('separator')).toBe(el)
 
 		expect(el).toHaveAttribute('aria-orientation', 'vertical')
 	})

@@ -271,7 +271,7 @@ describe('ToolbarGroup', () => {
 })
 
 describe('ToolbarSeparator', () => {
-	it('has role="separator" with aria-orientation opposite the toolbar', () => {
+	it('is a separator with aria-orientation opposite the toolbar', () => {
 		const { container } = renderUI(
 			<Toolbar aria-label="Editor" orientation="horizontal">
 				<button type="button">A</button>
@@ -281,7 +281,8 @@ describe('ToolbarSeparator', () => {
 
 		const el = bySlot(container, 'toolbar-separator')
 
-		expect(el).toHaveAttribute('role', 'separator')
+		// The implicit role of the <hr>; the rule writes no explicit role.
+		expect(screen.getByRole('separator')).toBe(el)
 
 		expect(el).toHaveAttribute('aria-orientation', 'vertical')
 	})
