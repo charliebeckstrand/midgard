@@ -21,6 +21,7 @@ import {
 	getSlot,
 	liveRegion,
 	renderUI,
+	waitFor,
 } from '../helpers'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
@@ -811,6 +812,43 @@ describe('LineChart keyboard announcements', () => {
 		await act(async () => {})
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
+	})
+})
+
+describe('LineChart keyboard announcements on a reference line', () => {
+	it('speaks the label and the value of a rule that a key moves the cursor onto', async () => {
+		const { container } = renderUI(line({ reference: [{ value: 50, label: 'Target' }] }))
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('W1, A: 10')
+
+		// Up the screen from A at 10, the rule at 50 comes before B at 90.
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		await expectAnnouncement('Target: 50')
+
+		// A band step slides the parked rule along. The rule reads the same, so it
+		// speaks nothing new.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await act(async () => {})
+
+		expect(liveRegion()?.textContent).toBe('Target: 50')
+	})
+
+	it('speaks the value alone for a rule with no label', async () => {
+		const { container } = renderUI(line({ reference: [{ value: 50 }] }))
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('50'))
 	})
 })
 

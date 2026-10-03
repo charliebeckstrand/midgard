@@ -13,6 +13,7 @@ import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend/legend'
 import { legendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
+import { referenceText } from '../chart-reference'
 import { ChartReferenceLines, ChartReferenceList, referenceStops } from '../chart-reference-lines'
 import { snappedSeriesAt, snapTargets } from '../chart-snap'
 import { resolveTooltip } from '../chart-tooltip'
@@ -223,6 +224,11 @@ export function ChartCartesianFrame({
 				referenceStops(labels?.references, chart.referencePositions),
 				focus.series,
 			)}
+			describeReference={(index) => {
+				const line = reference?.[index]
+
+				return line ? referenceText(line, chart.formatAxisValue) : null
+			}}
 			keyboardEmphasis
 			selected={chart.selected}
 			orientation={orientation}
