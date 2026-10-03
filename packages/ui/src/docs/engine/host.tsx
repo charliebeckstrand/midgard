@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app'
 import { preloadDebugTools } from './debug/registry'
+import { noAutofill } from './no-autofill'
 import { type DemoLoaders, initRegistry } from './registry'
 
 export type { DemoLoaders } from './registry'
@@ -68,6 +69,10 @@ export function mount(loaders: DemoLoaders, rootEl?: HTMLElement | null) {
 
 		window.location.reload()
 	})
+
+	// The docs site has no form to fill. A field in a demo, in a portal of a demo,
+	// or in the docs search thus gets no autofill and no typing suggestions.
+	noAutofill(document.body)
 
 	const { initialPreload } = initRegistry(loaders)
 

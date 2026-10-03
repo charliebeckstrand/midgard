@@ -8,7 +8,6 @@ import { cn } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { deriveCode, hasDerivableCode, type SourceFacts } from '../derive-code'
-import { noAutofill } from '../no-autofill'
 import {
 	ExampleResizeHandle,
 	maxDefined,
@@ -36,9 +35,6 @@ import {
  * dashed. The drag stops at the content's own minimum width, which the handle
  * measures from the rendered sections, so no demo guesses a floor. See
  * {@link resolveResize} for how the boolean and object forms normalize.
- *
- * A text field in the preview gets no autofill and no typing suggestions
- * ({@link noAutofill}).
  */
 export function Example({
 	title,
@@ -174,10 +170,8 @@ export function Example({
 						{prefix}
 					</div>
 				)}
-				{/* `max-w-full` keeps a wide child within the frame. A demo field gets no
-				    autofill and no typing suggestions. */}
+				{/* `max-w-full` keeps a wide child within the frame. */}
 				<div
-					ref={noAutofill}
 					data-example-section=""
 					className="flex flex-col items-start p-4 gap-4 overflow-x-auto *:max-w-full"
 				>

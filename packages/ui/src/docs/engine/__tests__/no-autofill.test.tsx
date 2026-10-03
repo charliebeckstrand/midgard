@@ -1,77 +1,73 @@
-import { act } from '@testing-library/react'
-import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Example } from '../components/example'
-import { fireEvent, renderUI, screen } from './helpers'
+import { NO_AUTOFILL_ATTRIBUTES, noAutofill } from '../no-autofill'
 
-const QUIET = {
-	autocomplete: 'off',
-	autocorrect: 'off',
-	autocapitalize: 'off',
-	spellcheck: 'false',
+function expectQuiet(field: Element) {
+	for (const [name, value] of Object.entries(NO_AUTOFILL_ATTRIBUTES)) {
+		expect(field).toHaveAttribute(name, value)
+	}
 }
 
-function expectQuiet(field: HTMLElement) {
-	for (const [name, value] of Object.entries(QUIET)) expect(field).toHaveAttribute(name, value)
-}
+// The observer delivers its records in a microtask after the change.
+const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve))
 
-function Swap() {
-	const [shown, setShown] = useState(false)
+function setup(html: string) {
+	const root = document.createElement('div')
 
-	return (
-		<>
-			<button type="button" onClick={() => setShown(true)}>
-				Show
-			</button>
-			{shown && <textarea aria-label="Late" />}
-		</>
-	)
+	root.innerHTML = html
+
+	return { root, stop: noAutofill(root) }
 }
 
 describe('noAutofill', () => {
-	it('quiets each text field in the frame of an example', () => {
-		renderUI(
-			<Example>
-				<input aria-label="Name" autoComplete="name" />
-				<input aria-label="Agree" type="checkbox" />
-			</Example>,
-		)
+	it('quiets each text field, and leaves a checkbox alone', () => {
+		const { root, stop } = setup('<input autocomplete="name"><input type="checkbox">')
 
-		expectQuiet(screen.getByLabelText('Name'))
+		const [text, checkbox] = root.querySelectorAll('input')
 
-		expect(screen.getByLabelText('Agree')).not.toHaveAttribute('autocomplete')
+		expectQuiet(text as Element)
+
+		expect(checkbox).not.toHaveAttribute('autocomplete')
+
+		stop()
 	})
 
 	it('quiets a field that mounts later', async () => {
-		renderUI(
-			<Example>
-				<Swap />
-			</Example>,
-		)
+		const { root, stop } = setup('')
 
-		fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+		root.append(document.createElement('textarea'))
 
-		// The observer runs in a microtask after the commit.
-		await act(async () => {})
+		await flush()
 
-		expectQuiet(screen.getByLabelText('Late'))
+		expectQuiet(root.querySelector('textarea') as Element)
+
+		stop()
 	})
 
 	it('restores an attribute that a prop writes over', async () => {
-		const { rerender } = renderUI(
-			<Example>
-				<input aria-label="Phone" autoComplete="tel" />
-			</Example>,
-		)
+		const { root, stop } = setup('<input>')
 
-		rerender(
-			<Example>
-				<input aria-label="Phone" autoComplete="postal-code" />
-			</Example>,
-		)
+		const field = root.querySelector('input') as HTMLInputElement
 
-		await act(async () => {})
+		field.setAttribute('autocomplete', 'postal-code')
 
-		expectQuiet(screen.getByLabelText('Phone'))
+		await flush()
+
+		expectQuiet(field)
+
+		stop()
+	})
+
+	it('quiets a field that a new type makes a text field', async () => {
+		const { root, stop } = setup('<input type="checkbox">')
+
+		const field = root.querySelector('input') as HTMLInputElement
+
+		field.type = 'text'
+
+		await flush()
+
+		expectQuiet(field)
+
+		stop()
 	})
 })
