@@ -19,6 +19,7 @@ const SCAN_DIRS = [
 	'primitives',
 	'providers',
 	'recipes',
+	'structure',
 	'types',
 	'utilities',
 ]
@@ -33,7 +34,6 @@ const ELEMENT_ATTRS = /\b[A-Za-z]*HTMLAttributes\s*</g
 const ELEMENT_ATTRS_ALLOWED = new Map([
 	['components/fieldset/message.tsx', 'renders a `<p>` or a `<div>`'],
 	['components/popover/popover-trigger.tsx', 'casts a cloned child of unknown tag'],
-	['components/stepper/stepper-separator.tsx', 'renders a `<div>` or an `<li>`'],
 	['components/stepper/stepper.tsx', 'renders a `<div>` or an `<ol>`'],
 	['components/tooltip/tooltip-trigger.tsx', 'casts a cloned child of unknown tag'],
 ])

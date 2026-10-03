@@ -4,8 +4,6 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { code, Example } from '../../engine'
 
-export const meta = { name: 'Toast' }
-
 function BasicExample() {
 	const { toast } = useToast()
 

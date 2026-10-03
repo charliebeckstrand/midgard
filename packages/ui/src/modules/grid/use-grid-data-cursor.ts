@@ -1,6 +1,14 @@
 'use client'
 
-import { type Ref, type RefObject, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import {
+	type Ref,
+	type RefObject,
+	useImperativeHandle,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import {
@@ -92,20 +100,25 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 }
 
 /**
- * Writes the edit source into its ref, during render. The editing layer reads
- * the source in the same render, so the write comes before the cursor.
+ * Writes the edit source into its ref, in a layout effect. The editing layer
+ * reads the source value during render, and it reads the ref only in events
+ * and effects. The call comes before the cursor, so the write comes before
+ * the layout effects of the editing layer.
  *
  * @remarks
- * The React Compiler does not compile this hook, by intent. A write to a ref
- * during render is what the compiler rejects, and a write in an effect would
- * come one render late.
+ * A child renders and runs its layout effects before this effect. Thus a child
+ * must not read the ref in its render or in a layout effect, because there it
+ * gets the source of the last commit.
  *
  * @internal
  */
-function useGridEditSourceSync<T>(refs: GridIndexRefs<T>, source: GridEditSource<T>): void {
-	'use no memo'
-
-	refs.editSourceRef.current = source
+function useGridEditSourceSync<T>(
+	editSourceRef: RefObject<GridEditSource<T>>,
+	source: GridEditSource<T>,
+): void {
+	useLayoutEffect(() => {
+		editSourceRef.current = source
+	}, [editSourceRef, source])
 }
 
 /**
@@ -115,14 +128,14 @@ function useGridEditSourceSync<T>(refs: GridIndexRefs<T>, source: GridEditSource
  * an effect would give them the maps of the last commit.
  *
  * @remarks
- * The React Compiler does not compile this hook, by intent. The writes are the
- * one place where {@link GridData} changes a ref during render.
+ * The writes are the one place where {@link GridData} changes a ref during
+ * render. The React Compiler does not compile the hook, because the hook calls
+ * no hook. If the hook calls a hook, the compiler skips it on the ref writes,
+ * and the skip gate (`react-compiler-skips.test.ts`) fails.
  *
  * @internal
  */
 export function useGridIndexSync<T>(refs: GridIndexRefs<T>, values: GridIndexValues<T>): void {
-	'use no memo'
-
 	refs.rowsRef.current = values.rows
 
 	refs.colCountRef.current = values.dataColumns.length
@@ -209,7 +222,7 @@ export function useGridDataCursor<T>({
 	// The editing layer's commit path resolves a staged draft against the grid's
 	// own inputs, not against the index refs: those narrow to what the window
 	// renders, and a draft can outlive that window.
-	useGridEditSourceSync(refs, source)
+	useGridEditSourceSync(refs.editSourceRef, source)
 
 	// Space on the active row toggles its selection. The toggle comes from the
 	// view phase, after the engine resolves the row keys, so the cursor reads it

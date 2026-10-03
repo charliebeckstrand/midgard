@@ -36,8 +36,6 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Example, OptionsListbox } from '../../engine'
 
-export const meta = { name: 'Density' }
-
 const navItems = [
 	{ icon: <Inbox />, label: 'Inbox', current: true },
 	{ icon: <Users />, label: 'Customers' },
@@ -87,7 +85,7 @@ function OrdersFilters({ value, onValueChange }: OrdersFiltersProps) {
 						<SearchInput placeholder="Search by order ID" autoComplete="off" />
 					</FiltersField>
 					<FiltersField name="status">
-						<Select placeholder="All statuses" displayValue={(v: string) => v}>
+						<Select aria-label="Status" placeholder="All statuses" displayValue={(v: string) => v}>
 							<SelectOption value="Completed">
 								<SelectLabel>Completed</SelectLabel>
 							</SelectOption>

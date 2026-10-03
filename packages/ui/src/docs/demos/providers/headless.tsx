@@ -6,8 +6,6 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
-export const meta = { name: 'Headless' }
-
 export function Demo() {
 	return (
 		<>

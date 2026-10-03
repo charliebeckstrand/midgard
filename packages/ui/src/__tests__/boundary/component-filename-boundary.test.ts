@@ -28,9 +28,11 @@ const structureDir = join(srcDir, 'structure')
 
 const primitivesDir = join(srcDir, 'primitives')
 
-// Grandfathered files where renaming would break a stable public API
-// (`Field`, `Label`, etc.). Never extend this list for new files; fix the
-// file or fix the export.
+// The files below are deliberate exemptions. Their exports (`Field`, `Label`,
+// `Description`, `Message`, `Legend`, `DescriptionTerm`, and
+// `DescriptionDetails`) are public API, and the apps and `packages/shared`
+// import them. A rename of an export is a breaking change, so these names stay.
+// Do not add a new file to this list. Fix the file or fix the export.
 const ALLOWLIST = new Set([
 	'description-list/description-details.tsx',
 	'description-list/description-term.tsx',

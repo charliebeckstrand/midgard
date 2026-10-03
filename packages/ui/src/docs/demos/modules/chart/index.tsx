@@ -4,7 +4,6 @@ import statesUrl from 'us-atlas/states-10m.json?url'
 import { Alert } from '../../../../components/alert'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
-import { Listbox, ListboxOption } from '../../../../components/listbox'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList } from '../../../../components/tabs'
 import {
@@ -23,7 +22,14 @@ import type { MapGeography } from '../../../../modules/map'
 import { Flex } from '../../../../structure/flex'
 import { Spacer } from '../../../../structure/spacer'
 import { Stack } from '../../../../structure/stack'
-import { Axes, code, Example as ExampleFrame, PageTabs } from '../../../engine'
+import {
+	Axes,
+	code,
+	Example as ExampleFrame,
+	OptionsListbox,
+	PageTabs,
+	valueLabel,
+} from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 // The frame of each chart demo, and of each generated example (`Axes`).
@@ -160,6 +166,11 @@ function useGeography(url: string): { geography: MapGeography | null; failed: bo
 
 type LegendPlacement = 'right' | 'left' | 'top' | 'bottom'
 
+const legendPlacements = (['right', 'left', 'top', 'bottom'] as const).map((value) => ({
+	value,
+	label: valueLabel(value),
+}))
+
 const LegendPlacementExample = ({
 	children,
 }: {
@@ -173,18 +184,12 @@ const LegendPlacementExample = ({
 			code={code`<BarChart aspectRatio={16 / 9} legend={placement} … /> // plot stays 16:9`}
 			prefix={
 				<Flex>
-					<Listbox
-						aria-label="Legend placement"
+					<OptionsListbox
+						label="Legend placement"
+						options={legendPlacements}
 						value={placement}
-						displayValue={(value) => value}
-						onValueChange={(value) => setPlacement(value as LegendPlacement)}
-					>
-						{(['right', 'left', 'top', 'bottom'] as LegendPlacement[]).map((option) => (
-							<ListboxOption key={option} value={option}>
-								{option}
-							</ListboxOption>
-						))}
-					</Listbox>
+						onValueChange={setPlacement}
+					/>
 				</Flex>
 			}
 		>
@@ -661,7 +666,7 @@ export function Demo() {
 
 					<TabContent value="donut">
 						<Stack gap="xl">
-							<Example title="Basic" code={code`<DonutChart>`}>
+							<Example title="Basic" code={code`<DonutChart />`}>
 								<DonutChart
 									aria-label="Traffic by source"
 									data={sources}

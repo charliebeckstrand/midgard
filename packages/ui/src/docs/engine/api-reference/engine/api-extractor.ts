@@ -4,7 +4,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type Project, ts } from 'ts-morph'
 import type { ComponentApi } from '../types'
-import { type Barrel, extractBarrel, listBarrels, openProject, tsConfigPathFor } from './build-api'
+import { type Barrel, listBarrels } from './barrels'
+import { extractBarrel, openProject, tsConfigPathFor } from './build-api'
 
 /**
  * An incremental, disk-cached driver over {@link extractBarrel}. The docs plugin
@@ -70,7 +71,9 @@ type DiskCache = { fingerprint: string; hash: string; record: Record<string, Com
 const CACHE_FILE = 'api.json'
 
 /** The docs engine, two levels above this file. */
-const ENGINE_DIR = fileURLToPath(new URL('../..', import.meta.url))
+// Resolved from the path, not with `new URL`: under jsdom, `URL` is the jsdom
+// class, which `fileURLToPath` rejects.
+const ENGINE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
 /** A directory of the engine that holds no code of the extractor. */
 const NON_SOURCE_DIR = /(?:^|\/)(?:__tests__|__benchmarks__)\//

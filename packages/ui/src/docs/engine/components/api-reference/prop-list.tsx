@@ -1,5 +1,3 @@
-'use client'
-
 import { Badge } from '../../../../components/badge'
 import { CodeBlock } from '../../../../components/code'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'

@@ -90,6 +90,28 @@ function edgeKm(
 	return Math.hypot(ax + along * runX, ay + along * runY) * KM_PER_DEGREE
 }
 
+/**
+ * The distance in kilometers from a position to the nearest edge of one ring.
+ * A ring with no edge is infinitely far.
+ */
+function ringKm(at: [number, number], ring: readonly [number, number][]): number {
+	let shortest = Number.POSITIVE_INFINITY
+
+	for (let step = 1; step < ring.length; step++) {
+		const from = ring[step - 1]
+
+		const to = ring[step]
+
+		if (from === undefined || to === undefined) continue
+
+		const km = edgeKm(at, from, to)
+
+		if (km < shortest) shortest = km
+	}
+
+	return shortest
+}
+
 /** Every ring of an area geometry. Anything else has none. */
 function rings(geometry: NonNullable<MapFeature['geometry']>): [number, number][][] {
 	if (geometry.type === 'Polygon') return geometry.coordinates as [number, number][][]
@@ -140,20 +162,12 @@ export function nearestRegion(
 		if (!withinBounds(region.bounds, at, pad)) continue
 
 		for (const ring of rings(region.feature.geometry)) {
-			for (let step = 1; step < ring.length; step++) {
-				const from = ring[step - 1]
+			const km = ringKm(at, ring)
 
-				const to = ring[step]
+			if (km < shortest) {
+				shortest = km
 
-				if (from === undefined || to === undefined) continue
-
-				const km = edgeKm(at, from, to)
-
-				if (km < shortest) {
-					shortest = km
-
-					nearest = region.name
-				}
+				nearest = region.name
 			}
 		}
 	}

@@ -749,6 +749,7 @@ export function useGridEditing<T>({
 		managed,
 		position: newRowPosition,
 		drafts,
+		editSource,
 		editSourceRef,
 		dataColumnsRef,
 		tableRef,

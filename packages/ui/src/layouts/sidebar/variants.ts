@@ -1,8 +1,7 @@
 import { defineRecipe } from '../../core/recipe'
-import { omote, sen, sou } from '../../recipes/kiso'
-import { dan } from '../../recipes/kiso/dan'
+import { k as kata } from '../../recipes/kata/sidebar-layout'
 
-const { focus } = sen
+const { space } = kata
 
 // Below `lg`, the layout is in the flow and the page scrolls. A mobile browser
 // moves the scroll offset of the page when its toolbar changes size, and only a
@@ -34,7 +33,7 @@ const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${dan.space.shell} lg:hidden`],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell} lg:hidden`],
 })
 
 const panel = defineRecipe({
@@ -65,7 +64,7 @@ const floatingBody = defineRecipe({ base: ['flex flex-col h-full', sidebarWidth]
 // starts at the far edge of the floating sheet at each step.
 const floatingBuffer = defineRecipe({
 	base: [
-		sou.chrome,
+		kata.chrome,
 		'fixed top-0 bottom-0 w-10 max-lg:hidden',
 		'density-[xs,sm]:start-72 density-md:start-80 density-[lg,xl]:start-96',
 	],
@@ -82,13 +81,13 @@ const contentWrapper = defineRecipe({
 
 const content = defineRecipe({
 	base: [
-		...omote.content,
+		...kata.content,
 		'flex flex-col',
 		'lg:overflow-y-auto',
 		'grow lg:min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
-		`${dan.space.shellX} ${dan.space.shellBottom} ${dan.space.shellTopNoHeader}`,
+		`${space.shellX} ${space.shellBottom} ${space.shellTopNoHeader}`,
 	],
 	// From `lg` up only. Below `lg`, the navbar is the one sticky bar of the page, and
 	// the header scrolls with the content. Two stacked sticky bars show a seam on iOS.
@@ -108,11 +107,11 @@ const content = defineRecipe({
 
 // The padding follows the nearest density scope.
 const header = defineRecipe({
-	base: ['flex items-center shrink-0', `${dan.space.shellTopLarge} ${dan.space.shellBottom}`],
+	base: ['flex items-center shrink-0', `${space.shellTopLarge} ${space.shellBottom}`],
 })
 
 const body = defineRecipe({
-	base: ['flex-1 lg:min-h-0 lg:overflow-y-auto', focus.inset],
+	base: ['flex-1 lg:min-h-0 lg:overflow-y-auto', kata.focus],
 })
 
 const footer = defineRecipe({ base: 'shrink-0' })

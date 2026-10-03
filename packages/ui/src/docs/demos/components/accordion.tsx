@@ -55,8 +55,10 @@ export function Demo() {
 				</Accordion>
 			</Example>
 
+			{/* The sections start closed, since "Multiple" opens these panels already.
+			    Two open panels with one name break the landmark rule. */}
 			<Example title="Disabled item">
-				<Accordion variant="plain" defaultValue="shipping">
+				<Accordion variant="plain">
 					{items.map((item) => (
 						<AccordionItem key={item.value} value={item.value} disabled={item.value === 'support'}>
 							<AccordionTrigger>{item.title}</AccordionTrigger>

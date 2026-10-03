@@ -1,10 +1,8 @@
 // @vitest-environment node
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { type DensityStep, densitySteps } from '../../core/density'
 import { isDensityStep } from '../../core/density/steps'
-import { buildApi } from '../../docs/engine/api-reference/engine/build-api'
+import { apiRecord } from '../helpers/api-record'
 import { SIZE_AXES } from '../helpers/size-axes'
 
 // The distinct-steps gate renders each step of each `size` axis in
@@ -12,8 +10,6 @@ import { SIZE_AXES } from '../helpers/size-axes'
 // builds, so the gate cannot miss an axis. A `size` axis is a `size` prop
 // whose string literals are all density steps. A number member, as on Icon,
 // does not count.
-
-const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 /** The string literals of a type, such as `'sm' | 'md' | number`. */
 function stringLiteralsOf(type: string): string[] {
@@ -27,7 +23,7 @@ function stringLiteralsOf(type: string): string[] {
 function sizeAxesOfApi(): Record<string, DensityStep[]> {
 	const axes: Record<string, DensityStep[]> = {}
 
-	for (const components of Object.values(buildApi(SRC))) {
+	for (const components of Object.values(apiRecord())) {
 		for (const component of components ?? []) {
 			const size = component.props.find((prop) => prop.name === 'size')
 

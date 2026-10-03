@@ -136,7 +136,7 @@ function DefaultExample() {
 				<PdfViewer src="/sample.pdf" filename="sample.pdf" />
 			`}
 		>
-			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" />
+			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" aria-label="TraceMonkey paper" />
 		</Example>
 	)
 }
@@ -158,7 +158,12 @@ function HighlightsExample() {
 				<PdfViewer pages={pages} highlights={regions} onActiveHighlightChange={setActive} />
 			`}
 		>
-			<PdfViewer pages={pages} highlights={regions} onActiveHighlightChange={setActive} />
+			<PdfViewer
+				pages={pages}
+				highlights={regions}
+				onActiveHighlightChange={setActive}
+				aria-label="Statement with highlights"
+			/>
 		</Example>
 	)
 }
@@ -197,6 +202,7 @@ function DrivenExample() {
 					highlights={regions}
 					activeHighlightId={active}
 					onActiveHighlightChange={setActive}
+					aria-label="Statement driven from a list"
 				/>
 			</div>
 		</Example>
@@ -211,7 +217,7 @@ function FitWidthExample() {
 				<PdfViewer pages={pages} fit="width" className="h-96" />
 			`}
 		>
-			<PdfViewer pages={pages} fit="width" className="h-96" />
+			<PdfViewer pages={pages} fit="width" className="h-96" aria-label="Statement at full width" />
 		</Example>
 	)
 }
@@ -228,7 +234,7 @@ function MagnifierExample() {
 				<PdfViewer pages={pages} magnifier={{ zoom: 'lg', size: 'lg', delay: 'none' }} />
 			`}
 		>
-			<PdfViewer pages={pages} magnifier />
+			<PdfViewer pages={pages} magnifier aria-label="Statement with a magnifier" />
 		</Example>
 	)
 }
@@ -254,7 +260,12 @@ function MagnifierConfigExample() {
 				/>
 			`}
 		>
-			<PdfViewer pages={pages} magnifier={{ mode: 'config' }} onMagnifierChange={setState} />
+			<PdfViewer
+				pages={pages}
+				magnifier={{ mode: 'config' }}
+				onMagnifierChange={setState}
+				aria-label="Statement with magnifier settings"
+			/>
 		</Example>
 	)
 }
@@ -262,7 +273,7 @@ function MagnifierConfigExample() {
 function EmptyExample() {
 	return (
 		<Example title="Empty">
-			<PdfViewer pages={[]} />
+			<PdfViewer pages={[]} aria-label="Empty viewer" />
 		</Example>
 	)
 }

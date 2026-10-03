@@ -1,5 +1,3 @@
-'use client'
-
 import { type ComponentType, Suspense, use, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useOutletContext, useParams } from 'react-router'
 import { loadShiki } from '../../components/code'

@@ -32,21 +32,8 @@ import { type DemoPage, demoPages, walkOf } from './demo-pages'
  * that break the rule. Fix a node, and lower its count.
  */
 const KNOWN_FAILURES: Record<string, number> = {
-	// A Listbox trigger that the demo builds with no label.
-	'components/aspect-ratio › button-name': 1,
-	'providers/density › button-name': 1,
-
-	// An icon-only trigger with no `aria-label`: the sidebar's menu, and the
-	// edit button of each row in the grid's actions column.
-	'components/sidebar › button-name': 1,
-	'modules/grid › button-name': 5,
-
-	// Two examples show a landmark with the same name, or with none, so a
-	// landmark list cannot tell them apart.
-	'components/accordion › landmark-unique': 1,
-	'components/kanban › landmark-unique': 1,
-	'components/pdf-viewer › landmark-unique': 1,
-	'components/sidebar › landmark-unique': 1,
+	// Two grids on one tab each name their pagination `Pagination`. The grid
+	// takes no name for its footer, so the demo cannot tell them apart.
 	'modules/grid › landmark-unique': 1,
 }
 

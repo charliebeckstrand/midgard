@@ -875,4 +875,66 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 
 		expect(result).not.toContain('useState')
 	})
+
+	it('prints a value in a line of text from source, so its state is read', () => {
+		const source = [
+			`import { useState } from 'react'`,
+			`import { Label } from '../../../components/fieldset'`,
+			`import { Example } from '../../engine'`,
+			``,
+			`export function Demo() {`,
+			`\tconst [count, setCount] = useState(0)`,
+			``,
+			`\treturn (`,
+			`\t\t<Example title="Count">`,
+			`\t\t\t<Label>Confirmed {count} times</Label>`,
+			`\t\t</Example>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const Label = tag<{ children?: unknown }>('Label', 'fieldset')
+
+		const result = roundTrip(source, createElement(Label, null, 'Confirmed ', 0, ' times'))
+
+		expect(result).toContain('<Label>Confirmed {count} times</Label>')
+
+		expect(result).toContain('const [count, setCount] = useState(0)')
+	})
+
+	it('prints a condition from source, though it renders nothing now', () => {
+		const source = [
+			`import { useState } from 'react'`,
+			`import { Field, Label } from '../../../components/fieldset'`,
+			`import { Example } from '../../engine'`,
+			``,
+			`export function Demo() {`,
+			`\tconst [open, setOpen] = useState(false)`,
+			``,
+			`\treturn (`,
+			`\t\t<Example title="Condition">`,
+			`\t\t\t<Field>`,
+			`\t\t\t\t<Label>Name</Label>`,
+			`\t\t\t\t{open && <Label>Open</Label>}`,
+			`\t\t\t</Field>`,
+			`\t\t</Example>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const Field = tag<{ children?: unknown }>('Field', 'fieldset')
+
+		const Label = tag<{ children?: unknown }>('Label', 'fieldset')
+
+		const result = roundTrip(
+			source,
+			createElement(Field, null, createElement(Label, null, 'Name'), false),
+		)
+
+		expect(result).toContain('{open && <Label>Open</Label>}')
+
+		expect(result).toContain('const [open, setOpen] = useState(false)')
+
+		expect(result).toContain(`import { Field, Label } from 'ui/fieldset'`)
+	})
 })
