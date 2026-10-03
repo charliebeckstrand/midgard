@@ -135,6 +135,10 @@ export type GridColumn<T> = {
 	 * Receives the cell's value plus `onValueUpdate` / `commit` / `cancel`; render
 	 * a control (select, date picker, currency input, …) and stage or commit the
 	 * value through them.
+	 *
+	 * @remarks The grid stretches the control to the width of the cell, so the
+	 * control needs no width of its own. To keep the width of the content, give
+	 * the control `self-start`.
 	 */
 	editCell?: GridEditCell<T>
 	/**

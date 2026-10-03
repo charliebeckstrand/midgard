@@ -94,7 +94,6 @@ function CellListbox({
 	return (
 		<Listbox<string>
 			aria-label={ariaLabel}
-			className="w-full"
 			value={value || undefined}
 			onValueChange={(next) => onValueUpdate(next ?? '')}
 			displayValue={(v) => options.find((option) => option.value === v)?.label ?? v}
@@ -129,7 +128,6 @@ function CellDate({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unkno
 			input
 			format="YYYY-MM-DD"
 			aria-label={ariaLabel}
-			className="w-full"
 			value={typeof value === 'string' ? isoToDate(value) : undefined}
 			onValueChange={(date) => onValueUpdate(date ? dateToIso(date) : '')}
 		/>
@@ -141,7 +139,6 @@ function CellCurrency({ value, onValueUpdate, ariaLabel }: GridEditCellContext<u
 	return (
 		<CurrencyInput
 			aria-label={ariaLabel}
-			className="w-full"
 			value={typeof value === 'number' ? value : null}
 			onValueChange={(next) => onValueUpdate(next ?? undefined)}
 		/>

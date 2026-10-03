@@ -872,6 +872,12 @@ export const k = {
 	edit: {
 		// Host for a cell's editor; anchors the absolute validation message.
 		host: 'relative flex w-full items-center',
+		// The slot that holds the editor, beside the settle pair. A column flex
+		// stretches the editor to the width of the slot, also through the
+		// `display: contents` wrapper of a listbox or a date picker. Thus a
+		// consumer's `editCell` control fills the cell with no width of its own.
+		// `min-w-0` lets the slot shrink, so the settle pair stays in the cell.
+		slot: 'flex min-w-0 flex-1 flex-col',
 		// The in-cell control fills the cell width.
 		input: 'w-full',
 		// The settle pair a cell-scoped session shows beside its editor. No padding
