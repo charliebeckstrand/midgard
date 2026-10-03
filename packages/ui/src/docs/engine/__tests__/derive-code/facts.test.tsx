@@ -133,6 +133,36 @@ describe('deriveCode source-fact props', () => {
 		expect(result).not.toContain('const variant')
 	})
 
+	it('prints the name of a declaration whose value is empty for now', () => {
+		const Plat = tag<{ geography?: object | null }>('Plat', 'map')
+
+		const result = deriveCode(
+			createElement(Plat, { geography: null }),
+			registry,
+			facts({
+				elements: [{ name: 'Plat', props: { geography: 'states' } }],
+				bindings: { states: 0 },
+				declarations: [{ names: ['states'], code: 'const states = useGeography()' }],
+			}),
+		)
+
+		expect(result).toContain('<Plat geography={states} />')
+
+		expect(result).toContain('const states = useGeography()')
+	})
+
+	it('prints a constant arithmetic source as written', () => {
+		const Frame = tag<{ ratio?: number }>('Frame', 'aspect-ratio')
+
+		const result = deriveCode(
+			createElement(Frame, { ratio: 16 / 9 }),
+			registry,
+			facts({ elements: [{ name: 'Frame', props: { ratio: '16 / 9' } }] }),
+		)
+
+		expect(result).toContain('<Frame ratio={16 / 9} />')
+	})
+
 	it('reads no key that a record of the facts inherits, such as `toString`', () => {
 		const tree = createElement(MaskInput, { format: (v) => v })
 

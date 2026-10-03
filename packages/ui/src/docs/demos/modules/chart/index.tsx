@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Alert } from '../../../../components/alert'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
@@ -7,6 +7,7 @@ import {
 	AreaChart,
 	BarChart,
 	BubbleChart,
+	type ChartLegendPlacement,
 	ChoroplethChart,
 	ComboChart,
 	DonutChart,
@@ -18,7 +19,7 @@ import {
 import type { MapGeography } from '../../../../modules/map'
 import { Flex } from '../../../../structure/flex'
 import { Stack } from '../../../../structure/stack'
-import { Axes, code, Example, OptionsListbox, PageTabs, valueLabel } from '../../../engine'
+import { Axes, Example, OptionsListbox, PageTabs, valueLabel } from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
@@ -141,45 +142,78 @@ function useGeography(url: string): { geography: MapGeography | null; failed: bo
 	return { geography, failed }
 }
 
-type LegendPlacement = 'right' | 'left' | 'top' | 'bottom'
-
 const legendPlacements = (['right', 'left', 'top', 'bottom'] as const).map((value) => ({
 	value,
 	label: valueLabel(value),
 }))
 
-const LegendPlacementExample = ({
-	children,
+/** The control of the legend examples. It is not part of the derived code. */
+function LegendPicker({
+	value,
+	onValueChange,
 }: {
-	children: (placement: LegendPlacement) => ReactNode
-}) => {
-	const [placement, setPlacement] = useState<LegendPlacement>('right')
+	value: ChartLegendPlacement
+	onValueChange: (value: ChartLegendPlacement) => void
+}) {
+	return (
+		<Flex>
+			<OptionsListbox
+				label="Legend placement"
+				options={legendPlacements}
+				value={value}
+				onValueChange={onValueChange}
+			/>
+		</Flex>
+	)
+}
 
-	// The chart comes from a render prop, so the derived code cannot read its
-	// data or its series. The block gives the props that the example changes.
+// The plot keeps its aspect ratio as the legend moves.
+function BarLegendExample() {
+	const [placement, setPlacement] = useState<ChartLegendPlacement>('right')
+
 	return (
 		<Example
 			surface
 			title="Legend placement"
-			code={code`<BarChart aspectRatio={16 / 9} legend={placement} … /> // plot stays 16:9`}
-			prefix={
-				<Flex>
-					<OptionsListbox
-						label="Legend placement"
-						options={legendPlacements}
-						value={placement}
-						onValueChange={setPlacement}
-					/>
-				</Flex>
-			}
+			prefix={<LegendPicker value={placement} onValueChange={setPlacement} />}
 		>
-			{children(placement)}
+			<BarChart
+				aria-label={`Revenue and costs by month, legend ${placement}`}
+				data={months}
+				series={[
+					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+				]}
+				aspectRatio={16 / 9}
+				legend={placement}
+			/>
+		</Example>
+	)
+}
+
+function PieLegendExample() {
+	const [placement, setPlacement] = useState<ChartLegendPlacement>('right')
+
+	return (
+		<Example
+			surface
+			title="Legend placement"
+			prefix={<LegendPicker value={placement} onValueChange={setPlacement} />}
+		>
+			<PieChart
+				aria-label={`Traffic by source, legend ${placement}`}
+				data={sources}
+				series={[{ xKey: 'source', yKey: 'visits' }]}
+				legend={placement}
+			/>
 		</Example>
 	)
 }
 
 export function Demo() {
-	const { geography: states, failed: statesFailed } = useGeography(statesUrl)
+	const atlas = useGeography(statesUrl)
+
+	const states = atlas.geography
 
 	return (
 		<PageTabs defaultValue="bar">
@@ -238,20 +272,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<LegendPlacementExample>
-								{(placement) => (
-									<BarChart
-										aria-label={`Revenue and costs by month, legend ${placement}`}
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										aspectRatio={16 / 9}
-										legend={placement}
-									/>
-								)}
-							</LegendPlacementExample>
+							<BarLegendExample />
 
 							<Example surface replay title="Animated">
 								<BarChart
@@ -548,16 +569,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<LegendPlacementExample>
-								{(placement) => (
-									<PieChart
-										aria-label={`Traffic by source, legend ${placement}`}
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-										legend={placement}
-									/>
-								)}
-							</LegendPlacementExample>
+							<PieLegendExample />
 
 							<Example surface replay title="Animated">
 								<PieChart
@@ -758,16 +770,10 @@ export function Demo() {
 
 					<TabContent value="choropleth">
 						<Stack gap="xl">
-							{statesFailed && (
+							{atlas.failed && (
 								<Alert color="red" variant="soft" title="Couldn't load the states atlas" />
 							)}
-							{/* The geography loads after the mount, so the derived code would
-							    not show it. */}
-							<Example
-								surface
-								title="Heatmap"
-								code={code`<ChoroplethChart legend="range" series={[{ …, colorRange: heat }]} … />`}
-							>
+							<Example surface title="Heatmap">
 								<ChoroplethChart
 									aria-label="Resident population by state, heatmap"
 									geography={states}
