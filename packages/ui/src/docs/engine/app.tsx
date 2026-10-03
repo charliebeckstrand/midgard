@@ -94,11 +94,17 @@ export function App() {
 
 	const contentRef = useRef<HTMLDivElement>(null)
 
+	// The page that the content pane shows. A page load starts at the top, so
+	// the effect below moves the pane only after a navigation.
+	const shownPath = useRef(pathname)
+
 	useEffect(() => {
+		if (shownPath.current === pathname) return
+
+		shownPath.current = pathname
+
 		// From `lg` up the content pane scrolls, not the window, so the router's
 		// scroll restoration does not reach it. Start each page at its top.
-		void pathname
-
 		contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
 	}, [pathname])
 
