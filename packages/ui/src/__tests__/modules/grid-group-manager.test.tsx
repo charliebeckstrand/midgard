@@ -539,7 +539,8 @@ describe('Grid column-group editor', () => {
 			/>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Color for Contact' }))
+		// The name starts with the visible color (WCAG 2.5.3).
+		fireEvent.click(screen.getByRole('button', { name: 'Blue color for Contact' }))
 
 		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
 	})
