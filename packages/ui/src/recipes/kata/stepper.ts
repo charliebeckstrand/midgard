@@ -63,6 +63,23 @@ const title = defineRecipe({
 	defaults: { orientation: 'horizontal', interactive: false },
 })
 
+// The `li` around an interactive step button. It takes the place of the step in
+// the row, so it carries the width bounds and the vertical padding of the step,
+// and the button fills it. The button is always the first child of its `li`, so
+// the `first:` rule of a vertical step must read the `li`.
+const item = defineRecipe({
+	base: 'flex',
+	orientation: {
+		horizontal: 'min-w-20',
+		vertical: 'w-full py-1 first:pt-0',
+		responsive: 'w-full py-1 first:pt-0 sm:w-auto sm:min-w-20 sm:py-0',
+	},
+	defaults: { orientation: 'horizontal' },
+})
+
+/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
+const itemButton = 'py-0'
+
 // The negative margins run the rule under the steps on each side, out to their
 // indicators. With the `gap-4` of the row on each side, `min-w-20` keeps a gap of
 // 16px between the boxes of two steps on a narrow row.
@@ -87,6 +104,8 @@ const separator = defineRecipe({
 export const k = {
 	root,
 	step,
+	item,
+	itemButton,
 	title,
 	separator,
 	content: {

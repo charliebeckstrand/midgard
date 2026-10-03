@@ -13,8 +13,8 @@ export type StepperSeparatorProps = {
 	 * The ref of the separator.
 	 *
 	 * @remarks
-	 * The separator is a `<div>` in an interactive stepper and an `<li>` in a
-	 * display-only stepper, so the ref type is `HTMLElement`.
+	 * The separator is an `<li>`. The ref type stays `HTMLElement`, so a
+	 * consumer ref of an earlier version still fits.
 	 */
 	ref?: Ref<HTMLElement>
 } & Omit<HTMLAttributes<HTMLElement>, 'className'>
@@ -25,34 +25,20 @@ export type StepperSeparatorProps = {
  * carries no semantics for assistive tech.
  *
  * @remarks
- * In an interactive stepper it is a `<div>` with `role="presentation"`. In a
- * display-only stepper it is an `<li>`, because the row is an `<ol>`. The
- * `aria-hidden` keeps it out of the step count.
+ * It is an `<li>`, because the steps are in an `<ol>` in an interactive and in
+ * a display-only stepper. The `aria-hidden` keeps it out of the step count.
  */
 export function StepperSeparator({ className, ref, ...props }: StepperSeparatorProps) {
-	const { layout, onValueChange } = useStepper()
+	const { layout } = useStepper()
 
 	const composedRef = useComposedRef<HTMLElement>(ref)
 
 	const classes = cn(k.separator({ orientation: layout }), className)
 
-	// A display-only row is an <ol>, which holds only <li> children.
-	if (onValueChange === undefined) {
-		return (
-			<li
-				data-slot="stepper-separator"
-				aria-hidden="true"
-				className={classes}
-				{...props}
-				ref={composedRef}
-			/>
-		)
-	}
-
+	// The row is an <ol>, which holds only <li> children.
 	return (
-		<div
+		<li
 			data-slot="stepper-separator"
-			role="presentation"
 			aria-hidden="true"
 			className={classes}
 			{...props}
