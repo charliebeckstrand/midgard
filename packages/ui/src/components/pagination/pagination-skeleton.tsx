@@ -1,7 +1,5 @@
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/pagination'
-import { rangeKeys } from '../../utilities'
-import { Placeholder } from '../placeholder'
+import { renderRowSkeleton } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link PaginationSkeleton}: the count of page-button placeholders. */
 export type PaginationSkeletonProps = {
@@ -20,16 +18,9 @@ export type PaginationSkeletonProps = {
  * size-driven `createSkeleton` factory.
  */
 export function PaginationSkeleton({ pages = 7, className }: PaginationSkeletonProps) {
-	const pageKeys = rangeKeys(pages, 'page')
-
-	return (
-		<div className={cn(k(), className)}>
-			{pageKeys.map((pageKey, index) => (
-				<Placeholder
-					key={pageKey}
-					className={cn(index === 0 || index === pages - 1 ? k.skeleton.nav : k.skeleton.item)}
-				/>
-			))}
-		</div>
-	)
+	return renderRowSkeleton({
+		count: pages,
+		root: [k(), className],
+		item: (index) => (index === 0 || index === pages - 1 ? k.skeleton.nav : k.skeleton.item),
+	})
 }
