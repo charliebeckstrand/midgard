@@ -2,13 +2,20 @@ import { useSyncExternalStore } from 'react'
 import { createEmitter } from '../../../utilities'
 
 /** The `localStorage` key of the list of the tools that are on. */
-const KEY = 'docs-debug'
+export const DEBUG_KEY = 'docs-debug'
+
+/**
+ * The attribute of the root element that lists the tools that are on,
+ * separated by spaces. `DebugScript` sets it before the first paint, and
+ * CSS shows the header button of each tool that it lists.
+ */
+export const DEBUG_ATTRIBUTE = 'data-debug'
 
 const change = createEmitter()
 
 function read(): readonly string[] {
 	try {
-		const stored: unknown = JSON.parse(localStorage.getItem(KEY) ?? '[]')
+		const stored: unknown = JSON.parse(localStorage.getItem(DEBUG_KEY) ?? '[]')
 
 		return Array.isArray(stored) ? stored.filter((id) => typeof id === 'string') : []
 	} catch {
@@ -36,10 +43,13 @@ export function setDebugTool(id: string, on: boolean) {
 		: enabled.filter((other) => other !== id)
 
 	try {
-		localStorage.setItem(KEY, JSON.stringify(enabled))
+		localStorage.setItem(DEBUG_KEY, JSON.stringify(enabled))
 	} catch {
 		// The change then applies for the life of the page only.
 	}
+
+	if (enabled.length > 0) document.documentElement.setAttribute(DEBUG_ATTRIBUTE, enabled.join(' '))
+	else document.documentElement.removeAttribute(DEBUG_ATTRIBUTE)
 
 	change.emit()
 }
@@ -48,8 +58,9 @@ const NONE: readonly string[] = []
 
 /**
  * Returns the ids of the tools that are on, and renders again when the list
- * changes. The HTML that the build renders has all tools off, and the tools
- * that are on show after hydration.
+ * changes. The HTML that the build renders has all tools off. Thus the sheets
+ * of the tools that are on mount after hydration, but CSS shows their header
+ * buttons at the first paint ({@link DEBUG_ATTRIBUTE}).
  */
 export function useDebugTools() {
 	return useSyncExternalStore(

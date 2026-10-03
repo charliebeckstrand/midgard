@@ -4,6 +4,7 @@ import fontUrl from '../../fonts/google-sans-flex.woff2?url'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
 import { App } from '../engine/app'
+import { DebugScript } from '../engine/debug/debug-script'
 import { initRegistry } from '../engine/registry'
 
 // The preload fetches the font with the document, and not after the first
@@ -38,6 +39,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 				<title>Docs</title>
 				<AppearanceScript />
+				<DebugScript />
 				<Meta />
 				<Links />
 			</head>
