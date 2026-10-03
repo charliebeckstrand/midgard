@@ -201,6 +201,20 @@ describe('Grid row manager', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
 	})
+
+	it('names the color menu by its trigger', async () => {
+		const user = setupUser()
+
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		rightClickDeveloperHeader()
+
+		await user.click(screen.getByRole('menuitem', { name: 'Manage rows' }))
+
+		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
+
+		expect(screen.getByRole('menu', { name: 'Color for Developer' })).toBeInTheDocument()
+	})
 })
 
 describe('GridRowManager list', () => {
