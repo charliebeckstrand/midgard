@@ -38,9 +38,9 @@ This document obeys the rules that it defines; read it as the reference.
 
 ## Scope in this repository
 
-Rules 3, 6, and 10 are reported. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. It writes each break to the log. The report is advisory and does not fail the run, so review decides what to fix.
+Rules 3, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. The curated surface docs and the rule documents carry no debt in any of the three rules. In the comments, a rule 3 or a rule 10 break fails the run. Rule 6 in the comments is advisory: the test writes each break to the log, and review decides what to fix.
 
-The rule 3 report reads spelling only. It finds a British form such as `colour`, `centre`, or `normalise`, and the fix is the American form. A second word for one thing needs a reader, so review holds the rest of rule 3.
+The rule 3 gate reads spelling only. It finds a British form such as `colour`, `centre`, or `normalise`, and the fix is the American form. A second word for one thing needs a reader, so review holds the rest of rule 3.
 
 Rule 6 held a per-file ledger while the tree paid its debt down. The last of it closed, so the ledger is gone and the report lists each new break.
 

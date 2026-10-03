@@ -1,9 +1,6 @@
-import { RefreshCw } from 'lucide-react'
-import { type ComponentProps, type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Alert } from '../../../../components/alert'
-import { Button } from '../../../../components/button'
-import { Icon } from '../../../../components/icon'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList } from '../../../../components/tabs'
 import {
@@ -20,29 +17,9 @@ import {
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { Flex } from '../../../../structure/flex'
-import { Spacer } from '../../../../structure/spacer'
 import { Stack } from '../../../../structure/stack'
-import {
-	Axes,
-	code,
-	Example as ExampleFrame,
-	OptionsListbox,
-	PageTabs,
-	valueLabel,
-} from '../../../engine'
+import { Axes, code, Example, OptionsListbox, PageTabs, valueLabel } from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
-
-// The frame of each chart demo, and of each generated example (`Axes`).
-const FRAME = { width: 720, minWidth: 160, resize: true } as const
-
-// Every chart demo renders in the same fixed-width, resizable frame so its
-// responsive behavior is visible at a glance. Wrapping the engine Example once
-// here injects those defaults into all the `<Example>` call sites below —
-// including AnimatedExample's — without repeating the props on each. A call site
-// can still override either default by passing its own `width`/`resize`.
-function Example(props: ComponentProps<typeof ExampleFrame>) {
-	return <ExampleFrame {...FRAME} {...props} />
-}
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -180,6 +157,7 @@ const LegendPlacementExample = ({
 
 	return (
 		<Example
+			surface
 			title="Legend placement"
 			code={code`<BarChart aspectRatio={16 / 9} legend={placement} … /> // plot stays 16:9`}
 			prefix={
@@ -194,41 +172,6 @@ const LegendPlacementExample = ({
 			}
 		>
 			{children(placement)}
-		</Example>
-	)
-}
-
-// The mount animation plays once; a refresh button remounts the chart
-// (bumping its `key`) so the reveal replays on demand.
-function AnimatedExample({
-	title,
-	source,
-	children,
-}: {
-	title: string
-	source: ReturnType<typeof code>
-	children: ReactNode
-}) {
-	const [runKey, setRunKey] = useState(0)
-
-	return (
-		<Example
-			title={title}
-			code={source}
-			prefix={
-				<Flex>
-					<Spacer />
-					<Button
-						variant="bare"
-						aria-label="Replay animation"
-						onClick={() => setRunKey((n) => n + 1)}
-					>
-						<Icon icon={<RefreshCw />} />
-					</Button>
-				</Flex>
-			}
-		>
-			<div key={runKey}>{children}</div>
 		</Example>
 	)
 }
@@ -257,7 +200,7 @@ export function Demo() {
 							<Axes
 								of="BarChart"
 								omit={['animate', 'size']}
-								frame={FRAME}
+								frame={{ surface: true }}
 								render={(props, label) => (
 									<BarChart
 										{...props}
@@ -271,7 +214,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example title="Negative values" code={code`<BarChart crosshair … />`}>
+							<Example surface title="Negative values" code={code`<BarChart crosshair … />`}>
 								<BarChart
 									aria-label="Month-over-month swing"
 									data={swings}
@@ -281,6 +224,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Reference lines"
 								code={code`<BarChart legend reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 80, label: 'Ceiling', color: '#e11d48' }]} … />`}
 							>
@@ -311,7 +255,7 @@ export function Demo() {
 								)}
 							</LegendPlacementExample>
 
-							<AnimatedExample title="Animated" source={code`<BarChart animate … />`}>
+							<Example surface replay title="Animated" code={code`<BarChart animate … />`}>
 								<BarChart
 									aria-label="Revenue and costs by month, animated"
 									data={months}
@@ -322,9 +266,10 @@ export function Demo() {
 									reference={[{ value: 55, label: 'Margin', color: 'amber' }]}
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 
 							<Example
+								surface
 								title="Tooltip trigger"
 								code={code`<BarChart tooltip={{ trigger: 'click' }} … />`}
 							>
@@ -339,7 +284,11 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example title="Title & subtitle" code={code`<BarChart title="…" subtitle="…" … />`}>
+							<Example
+								surface
+								title="Title & subtitle"
+								code={code`<BarChart title="…" subtitle="…" … />`}
+							>
 								<BarChart
 									aria-label="Revenue and costs by month"
 									data={months}
@@ -359,7 +308,7 @@ export function Demo() {
 							<Axes
 								of="LineChart"
 								omit={['animate', 'size']}
-								frame={FRAME}
+								frame={{ surface: true }}
 								render={(props, label) => (
 									<LineChart
 										{...props}
@@ -373,7 +322,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example title="Single-series" code={code`<LineChart … />`}>
+							<Example surface title="Single-series" code={code`<LineChart … />`}>
 								<LineChart
 									aria-label="Revenue by month"
 									data={months}
@@ -382,6 +331,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Multi-series"
 								code={code`<LineChart crosshair={{ x: false, y: true }} … />`}
 							>
@@ -398,6 +348,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Custom colors"
 								code={code`<LineChart series={[{ …, color: '#e11d48' }, { …, color: 'oklch(0.68 0.17 250)' }]} … />`}
 							>
@@ -417,6 +368,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Dual axis"
 								code={code`<LineChart axes={{ y: { format: … }, y2: { format: … } }} series={[…, { …, axis: 'y2' }]} … />`}
 							>
@@ -441,6 +393,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Dashed line"
 								code={code`<LineChart series={[{ … }, { …, axis: 'y2', dashed: true }]} … />`}
 							>
@@ -472,6 +425,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Time axis"
 								code={code`<LineChart axes={{ x: { type: 'time' } }} … />`}
 							>
@@ -483,7 +437,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example title="Date labels" code={code`<LineChart … />`}>
+							<Example surface title="Date labels" code={code`<LineChart … />`}>
 								{/* A plain category axis whose every key parses as a date labels
 								    itself in the locale's month/day order on its own — no time axis,
 								    so the per-row labels stay, just normalized. */}
@@ -496,6 +450,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Category dividers"
 								code={code`<LineChart axes={{ x: { separator: 'dashed' } }} … />`}
 							>
@@ -508,6 +463,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Value labels"
 								code={code`<LineChart labels={{ endpoints: true, extremes: true }} … />`}
 							>
@@ -523,6 +479,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Reference labels"
 								code={code`<LineChart reference={[{ value: 60, label: 'Target', color: 'green' }]} labels={{ references: true }} … />`}
 							>
@@ -535,7 +492,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<LineChart animate … />`}>
+							<Example surface replay title="Animated" code={code`<LineChart animate … />`}>
 								<LineChart
 									aria-label="Revenue and margin by month, animated"
 									data={months}
@@ -546,7 +503,7 @@ export function Demo() {
 									fill
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 						</Stack>
 					</TabContent>
 
@@ -555,7 +512,7 @@ export function Demo() {
 							<Axes
 								of="AreaChart"
 								omit={['animate', 'size']}
-								frame={FRAME}
+								frame={{ surface: true }}
 								render={(props, label) => (
 									<AreaChart
 										{...props}
@@ -569,7 +526,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example title="Single-series" code={code`<AreaChart … />`}>
+							<Example surface title="Single-series" code={code`<AreaChart … />`}>
 								<AreaChart
 									aria-label="Revenue by month"
 									data={months}
@@ -578,6 +535,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Smooth interpolation"
 								code={code`<AreaChart interpolation="smooth" crosshair={{ x: false, y: true }} … />`}
 							>
@@ -593,7 +551,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<AreaChart stacked animate … />`}>
+							<Example surface replay title="Animated" code={code`<AreaChart stacked animate … />`}>
 								<AreaChart
 									aria-label="Revenue and costs by month, stacked and animated"
 									data={months}
@@ -604,13 +562,13 @@ export function Demo() {
 									stacked
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="pie">
 						<Stack gap="xl">
-							<Example title="No labels" code={code`<PieChart … />`}>
+							<Example surface title="No labels" code={code`<PieChart … />`}>
 								<PieChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -619,6 +577,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Segment labels"
 								code={code`<PieChart labels={{ segment: true }} … />`}
 							>
@@ -631,6 +590,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Callout labels"
 								code={code`<PieChart labels={{ callouts: true }} … />`}
 							>
@@ -653,20 +613,20 @@ export function Demo() {
 								)}
 							</LegendPlacementExample>
 
-							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
+							<Example surface replay title="Animated" code={code`<PieChart animate … />`}>
 								<PieChart
 									aria-label="Traffic by source, animated"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="donut">
 						<Stack gap="xl">
-							<Example title="Basic" code={code`<DonutChart>`}>
+							<Example surface title="Basic" code={code`<DonutChart />`}>
 								<DonutChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -674,7 +634,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
+							<Example surface title="Center content" code={code`<DonutChart>…</DonutChart>`}>
 								<DonutChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -687,20 +647,21 @@ export function Demo() {
 								</DonutChart>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<DonutChart animate … />`}>
+							<Example surface replay title="Animated" code={code`<DonutChart animate … />`}>
 								<DonutChart
 									aria-label="Traffic by source, animated"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="combo">
 						<Stack gap="xl">
 							<Example
+								surface
 								title="Bar and line"
 								code={code`<ComboChart crosshair={{ x: true, y: false }} … />`}
 							>
@@ -716,6 +677,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Bar, area, and line"
 								code={code`<ComboChart series={[{ type: 'bar' … }, { type: 'area' … }, { type: 'line' … }]} … />`}
 							>
@@ -731,6 +693,7 @@ export function Demo() {
 							</Example>
 
 							<Example
+								surface
 								title="Dual axis"
 								code={code`<ComboChart axes={{ y2: { title: 'Exceptions' } }} series={[…, { …, axis: 'y2' }]} … />`}
 							>
@@ -754,7 +717,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<ComboChart animate … />`}>
+							<Example surface replay title="Animated" code={code`<ComboChart animate … />`}>
 								<ComboChart
 									aria-label="Revenue bars over a cost area with a margin line by month, animated"
 									data={months}
@@ -765,13 +728,13 @@ export function Demo() {
 									]}
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="scatter">
 						<Stack gap="xl">
-							<Example title="Multi-series" code={code`<ScatterChart crosshair … />`}>
+							<Example surface title="Multi-series" code={code`<ScatterChart crosshair … />`}>
 								<ScatterChart
 									aria-label="Dwell and handling time against stop distance"
 									data={stops}
@@ -784,7 +747,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<ScatterChart animate … />`}>
+							<Example surface replay title="Animated" code={code`<ScatterChart animate … />`}>
 								<ScatterChart
 									aria-label="Dwell and handling time against stop distance, animated"
 									data={stops}
@@ -794,13 +757,14 @@ export function Demo() {
 									]}
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="bubble">
 						<Stack gap="xl">
 							<Example
+								surface
 								title="Size encoding"
 								code={code`<BubbleChart series={[{ …, sizeKey: 'weight' }]} crosshair … />`}
 							>
@@ -821,7 +785,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<BubbleChart animate … />`}>
+							<Example surface replay title="Animated" code={code`<BubbleChart animate … />`}>
 								<BubbleChart
 									aria-label="Dwell against distance, sized by weight, animated"
 									data={stops}
@@ -837,13 +801,14 @@ export function Demo() {
 									axes={{ x: { format: (value) => `${value} mi` } }}
 									animate
 								/>
-							</AnimatedExample>
+							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="heatmap">
 						<Stack gap="xl">
 							<Example
+								surface
 								title="Activity"
 								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
 							>
@@ -871,6 +836,7 @@ export function Demo() {
 								<Alert color="red" variant="soft" title="Couldn't load the states atlas" />
 							)}
 							<Example
+								surface
 								title="Heatmap"
 								code={code`<ChoroplethChart legend="range" series={[{ …, colorRange: heat }]} … />`}
 							>

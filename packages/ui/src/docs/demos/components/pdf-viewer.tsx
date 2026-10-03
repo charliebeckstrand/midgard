@@ -1,4 +1,4 @@
-import { type ComponentProps, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '../../../components/button'
 import {
 	PdfViewer,
@@ -7,14 +7,7 @@ import {
 	type PdfViewerMagnifierState,
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
-import { code, Example as ExampleFrame } from '../../engine'
-
-// A viewer is a surface of a page, so each demo renders it in one resizable
-// frame of a fixed width, as the map and chart demos do. The viewer fills the
-// frame, and a drag of the frame shows how the toolbar and the pages respond.
-function Example(props: ComponentProps<typeof ExampleFrame>) {
-	return <ExampleFrame width={720} resize {...props} />
-}
+import { code, Example } from '../../engine'
 
 const SAMPLE = 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf'
 
@@ -129,6 +122,7 @@ const regions: PdfViewerHighlight[] = [
 function DefaultExample() {
 	return (
 		<Example
+			surface
 			title="Default"
 			code={code`
 				import { PdfViewer } from 'ui/pdf-viewer'
@@ -136,7 +130,7 @@ function DefaultExample() {
 				<PdfViewer src="/sample.pdf" filename="sample.pdf" />
 			`}
 		>
-			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" />
+			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" aria-label="TraceMonkey paper" />
 		</Example>
 	)
 }
@@ -148,6 +142,7 @@ function HighlightsExample() {
 
 	return (
 		<Example
+			surface
 			title="Highlights"
 			footer={label ? `Selected: ${label}` : undefined}
 			code={code`
@@ -158,7 +153,12 @@ function HighlightsExample() {
 				<PdfViewer pages={pages} highlights={regions} onActiveHighlightChange={setActive} />
 			`}
 		>
-			<PdfViewer pages={pages} highlights={regions} onActiveHighlightChange={setActive} />
+			<PdfViewer
+				pages={pages}
+				highlights={regions}
+				onActiveHighlightChange={setActive}
+				aria-label="Statement with highlights"
+			/>
 		</Example>
 	)
 }
@@ -168,6 +168,7 @@ function DrivenExample() {
 
 	return (
 		<Example
+			surface
 			title="Driven from a list"
 			code={code`
 				const [active, setActive] = useState<string | null>('remit')
@@ -197,6 +198,7 @@ function DrivenExample() {
 					highlights={regions}
 					activeHighlightId={active}
 					onActiveHighlightChange={setActive}
+					aria-label="Statement driven from a list"
 				/>
 			</div>
 		</Example>
@@ -206,12 +208,13 @@ function DrivenExample() {
 function FitWidthExample() {
 	return (
 		<Example
+			surface
 			title="Fit to width"
 			code={code`
 				<PdfViewer pages={pages} fit="width" className="h-96" />
 			`}
 		>
-			<PdfViewer pages={pages} fit="width" className="h-96" />
+			<PdfViewer pages={pages} fit="width" className="h-96" aria-label="Statement at full width" />
 		</Example>
 	)
 }
@@ -219,6 +222,7 @@ function FitWidthExample() {
 function MagnifierExample() {
 	return (
 		<Example
+			surface
 			title="Magnifier"
 			footer="Rest the pointer on the page, or hold a finger on it. The toolbar's lens button switches it off and on."
 			code={code`
@@ -228,7 +232,7 @@ function MagnifierExample() {
 				<PdfViewer pages={pages} magnifier={{ zoom: 'lg', size: 'lg', delay: 'none' }} />
 			`}
 		>
-			<PdfViewer pages={pages} magnifier />
+			<PdfViewer pages={pages} magnifier aria-label="Statement with a magnifier" />
 		</Example>
 	)
 }
@@ -242,6 +246,7 @@ function MagnifierConfigExample() {
 
 	return (
 		<Example
+			surface
 			title="Magnifier settings"
 			footer={`Magnifier: ${summary}`}
 			code={code`
@@ -254,15 +259,20 @@ function MagnifierConfigExample() {
 				/>
 			`}
 		>
-			<PdfViewer pages={pages} magnifier={{ mode: 'config' }} onMagnifierChange={setState} />
+			<PdfViewer
+				pages={pages}
+				magnifier={{ mode: 'config' }}
+				onMagnifierChange={setState}
+				aria-label="Statement with magnifier settings"
+			/>
 		</Example>
 	)
 }
 
 function EmptyExample() {
 	return (
-		<Example title="Empty">
-			<PdfViewer pages={[]} />
+		<Example surface title="Empty">
+			<PdfViewer pages={[]} aria-label="Empty viewer" />
 		</Example>
 	)
 }

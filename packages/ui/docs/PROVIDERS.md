@@ -26,7 +26,7 @@ Holds the persisted theme and density of an app, and gives the settings button t
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage`, toggles the root `.dark` class, and writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. |
+| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage` and toggles the root `.dark` class. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
 | `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
@@ -43,7 +43,7 @@ Opens a density scope for a region, and maps the friendly density levels to dens
 
 | Export | Summary |
 |---|---|
-| `DensityProvider` | Opens a density scope for a region at a friendly level (`compact` / `snug` / `loose`). Its wrapper writes the step of the level to `data-density`, which the stepped classes read, and it opens the `Density` context at the same step for the portal roots and the JS readers. |
+| `DensityProvider` | Opens a density scope for a region at a friendly level (`compact` / `snug` / `loose`). Its wrapper writes the step of the level to `data-density`, which the stepped classes read. The wrapper also opens the `Density` context at the same step for the portal roots and the JS readers. |
 | `DensityProviderProps` *(type)* | Props for `DensityProvider`. |
 | `DensityLevel` *(type)* | Friendly density level: the stored density setting and the `density` prop of `DensityProvider`; `'snug'` is the baseline. |
 | `densityLevels` | Selectable density levels with display labels, ordered loose → compact, for density pickers. |
@@ -78,8 +78,8 @@ Broadcasts `Intl` formatting defaults; explicit component props still win. This 
 
 | Export | Summary |
 |---|---|
-| `LocaleProvider` | Broadcasts `Intl` formatting defaults (locale tag, currency, number and date options); explicit component props still win. The default number formats of charts, maps, PivotTable, grid aggregates, and Odometer take its `locale`. |
-| `LocaleProviderProps` *(type)* | Props for `LocaleProvider`. |
+| `LocaleProvider` | Broadcasts `Intl` formatting defaults (locale tag, currency, number and date options); explicit component props still win. The default number formats of charts, maps, PivotTable, grid aggregates, and Odometer take its `locale`. Its `dir` writes the direction of a region on a `contents` wrapper and opens a direction scope. Thus dialogs, menus, and panels that the region opens keep the direction across their portals. |
+| `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields and an optional `dir`. |
 | `LocaleConfig` *(type)* | Ambient `Intl` defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`. Every field feeds an `Intl.*` formatter, and none holds strings. A nested provider folds over the enclosing config per field. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |

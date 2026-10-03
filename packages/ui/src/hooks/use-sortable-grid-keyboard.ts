@@ -73,8 +73,9 @@ export type SortableGridKeyboardOptions<T> = {
  * lifts, arrows move, Escape or Enter drops, and every step is announced.
  *
  * @remarks
- * Left/Right step by one position; Up/Down step by a full row, so a card moves
- * the way it looks like it should rather than crawling through reading order.
+ * Left/Right step by one position; Up/Down step by a full row. Thus a card
+ * moves in the direction of the arrow and does not crawl through the reading
+ * order.
  * The grid wraps in the reading order, so in a right-to-left layout Left is the
  * next position and Right the previous one.
  * Both steps clamp at the ends instead of wrapping — an Up on the first row is a

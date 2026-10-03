@@ -11,7 +11,7 @@
  * closes, so the tap that closes the sheet does not go in the log.
  *
  * Each tap writes one block. The block gives each event in order, its target,
- * and whether a script cancelled it. On iOS, a tap that sends `mouseover` and
+ * and whether a script canceled it. On iOS, a tap that sends `mouseover` and
  * `mousemove` but no `mousedown` is a tap that the page took as a hover, and a
  * `transitionrun` line shows a transition that the hover started. After the
  * click, the block gives each radio of the tapped group two times: in the DOM

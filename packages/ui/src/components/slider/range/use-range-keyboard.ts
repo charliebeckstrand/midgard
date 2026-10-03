@@ -1,6 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useCallback } from 'react'
+import { logicalArrowKey } from '../../../hooks/a11y/logical-arrow'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
@@ -8,7 +9,7 @@ import { useRangeUpdate } from './use-range-update'
 
 /**
  * Raw value for an arrow / page / home / end key, or null when the key is not a
- * range key.
+ * range key. `key` is the logical key, so `ArrowRight` always steps up.
  *
  * @internal
  */
@@ -63,6 +64,10 @@ function focusSwappedThumb(
  * move the thumb by `step`, clamped and snapped. In `swap` overlap, focus
  * follows a thumb that crosses past its partner.
  *
+ * The track mirrors in a right-to-left layout, so the horizontal arrows mirror
+ * too, as on a native range input. There, `ArrowLeft` steps up and `ArrowRight`
+ * steps down. `ArrowUp` and `ArrowDown` do not change.
+ *
  * @returns A factory `(index) => onKeyDown` for the thumb at `index`.
  */
 export function useRangeKeyboard(opts: {
@@ -80,7 +85,9 @@ export function useRangeKeyboard(opts: {
 
 	return useCallback(
 		(index: ThumbIndex) => (event: KeyboardEvent) => {
-			const raw = rangeKeyValue(event.key, index, current, step, min, max)
+			const key = logicalArrowKey(event.key, event.currentTarget)
+
+			const raw = rangeKeyValue(key, index, current, step, min, max)
 
 			if (raw === null) return
 

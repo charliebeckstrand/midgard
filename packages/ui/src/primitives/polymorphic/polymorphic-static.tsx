@@ -116,14 +116,18 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 	// branch. Unrelated to the generic.
 	const Element = as as ElementType
 
+	const { type, ...props } = rest as ComponentProps<Fallback> & { type?: string }
+
 	return (
 		<Element
 			ref={ref}
 			data-slot={slot}
 			data-density={density}
-			type={as === 'button' ? 'button' : undefined}
 			className={className}
-			{...(rest as ComponentProps<Fallback>)}
+			{...props}
+			// After the spread: a consumer `type` wins, and a stray `undefined`
+			// does not turn a `<button>` into a form submit.
+			type={type ?? (as === 'button' ? 'button' : undefined)}
 		>
 			{children}
 		</Element>

@@ -24,6 +24,8 @@ const thumb = defineRecipe({
 		'absolute',
 		rounded.full,
 		'-translate-x-1/2',
+		// The thumb sits at `inset-inline-start`, so its center offset mirrors in a right-to-left layout.
+		'rtl:translate-x-1/2',
 		'bg-white',
 		...mode('ring-1 ring-zinc-950/20', 'dark:ring-white/20'),
 		'shadow-sm',

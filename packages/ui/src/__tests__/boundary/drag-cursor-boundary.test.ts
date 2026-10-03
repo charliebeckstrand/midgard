@@ -20,7 +20,8 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 //      reason names the file that holds the cursor for it.
 //
 //   2. No file but the home writes a cursor rule for the page or sets a cursor
-//      from script. A file on SCRIPTED sets one for a reason that is not a drag.
+//      from script. A cursor that is not a drag cursor comes from a class, which
+//      can read a data attribute that script sets.
 
 /** The one file that owns the rule. */
 const HOME = 'hooks/use-drag-cursor.ts'
@@ -56,13 +57,7 @@ const DELEGATED: Record<string, string> = {
 		'tracks the hover through a scroll; no press is held, so no drag starts',
 }
 
-/** Files that set a cursor from script for a reason that is not a drag, each with the reason. */
-const SCRIPTED: Record<string, string> = {
-	'modules/chart/engine/use-chart-pointer.ts':
-		'shows the hover affordance of a data hit on the plot; no press is held',
-}
-
-/** The key of a file in the lists above: relative to `src/` in ui, to the workspace root elsewhere. */
+/** The key of a file in the list above: relative to `src/` in ui, to the workspace root elsewhere. */
 function keyOf(path: string): string {
 	if (path.startsWith(srcDir + sep)) return srcRelative(path)
 
@@ -107,12 +102,12 @@ describe('drag-cursor boundary', () => {
 
 	it('sets a cursor from script only in the rule', () => {
 		const violations = [...files]
-			.filter(([key, code]) => SCRIPTED_CURSOR.test(code) && !(key in SCRIPTED))
+			.filter(([, code]) => SCRIPTED_CURSOR.test(code))
 			.map(([key]) => key)
 
 		expect(
 			violations,
-			`files that set a cursor from script (hold a drag cursor through \`useDragCursor\`, or list the file in SCRIPTED with the reason it is not a drag):\n  ${violations.join('\n  ')}`,
+			`files that set a cursor from script (hold a drag cursor through \`useDragCursor\`, or set a data attribute and give it the cursor in the kata):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -121,14 +116,7 @@ describe('drag-cursor boundary', () => {
 			starts.filter(([, code]) => !CALLS_RULE.test(code)).map(([key]) => key),
 		)
 
-		const scripted = new Set(
-			[...files].filter(([, code]) => SCRIPTED_CURSOR.test(code)).map(([key]) => key),
-		)
-
-		const stale = [
-			...Object.keys(DELEGATED).filter((key) => !delegated.has(key)),
-			...Object.keys(SCRIPTED).filter((key) => !scripted.has(key)),
-		]
+		const stale = Object.keys(DELEGATED).filter((key) => !delegated.has(key))
 
 		expect(stale, `entries that no longer apply:\n  ${stale.join('\n  ')}`).toEqual([])
 	})

@@ -33,7 +33,6 @@
 				"useExhaustiveDependencies": "error"
 			},
 			"performance": {
-				"noImgElement": "off",
 				"noReExportAll": "error"
 			},
 			"style": {
@@ -53,6 +52,16 @@
 	},
 	"overrides": [
 		{
+			"includes": ["packages/ui/**"],
+			"linter": {
+				"rules": {
+					"performance": {
+						"noImgElement": "off"
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"packages/ui/**",
 				"!packages/ui/**/__tests__/**",
@@ -60,6 +69,23 @@
 				"!packages/ui/**/*.test.tsx",
 				"!packages/ui/**/*.bench.ts",
 				"!packages/ui/src/docs/**"
+			],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noExcessiveCognitiveComplexity": "error"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"apps/**",
+				"packages/auth/**",
+				"packages/shared/**",
+				"!**/__tests__/**",
+				"!**/*.test.ts",
+				"!**/*.test.tsx"
 			],
 			"linter": {
 				"rules": {
@@ -199,6 +225,7 @@
 			"includes": [
 				"packages/ui/src/components/**",
 				"packages/ui/src/structure/**",
+				"packages/ui/src/layouts/**",
 				"!packages/ui/src/components/**/variants.ts",
 				"!packages/ui/src/structure/**/variants.ts"
 			],
@@ -407,8 +434,7 @@
 				"!packages/ui/src/**/__tests__/**",
 				"!packages/ui/src/**/__benchmarks__/**",
 				"!packages/ui/src/recipes/kata/**/*.ts",
-				"!packages/ui/src/recipes/katakana/**/*.ts",
-				"!packages/ui/src/layouts/*/variants.ts"
+				"!packages/ui/src/recipes/katakana/**/*.ts"
 			],
 			"plugins": ["./.biome/plugins/no-unsanctioned-define-recipe.grit"]
 		},
@@ -539,6 +565,7 @@
 				"packages/ui/src/structure/**",
 				"packages/ui/src/modules/**",
 				"packages/ui/src/primitives/**",
+				"packages/ui/src/layouts/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"
 			],

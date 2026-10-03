@@ -39,13 +39,6 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta charSet="UTF-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 				<title>Docs</title>
-				{/* `<ScrollRestoration>` restores the scroll position of a reload itself,
-				    before the first paint, and sets this mode after the hydration. The
-				    browser restores the position too while the mode is `auto`, which it is
-				    at load, because the router sets `auto` when a page hides. In Chrome
-				    for iOS that second restore lands the page under the toolbar after a
-				    page switch. Thus the mode is `manual` from the start of the load. */}
-				<script suppressHydrationWarning>{"history.scrollRestoration='manual'"}</script>
 				<AppearanceScript />
 				<DebugScript />
 				<Meta />

@@ -1,10 +1,20 @@
 import { useState } from 'react'
 import { Calendar } from '../../../components/calendar'
+import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+function ControlledExample() {
 	const [date, setDate] = useState<Date | null>(null)
 
+	return (
+		<Example title="Controlled">
+			<Calendar value={date} onValueChange={setDate} />
+			<Text className="tabular-nums">{date ? date.toDateString() : 'Empty'}</Text>
+		</Example>
+	)
+}
+
+export function Demo() {
 	// Freeze the ±30-day window at mount so it doesn't recompute on every render
 	// (including on each selection) — mirrors the demos' `useNow` freeze pattern.
 	const [{ min, max }] = useState(() => {
@@ -23,9 +33,7 @@ export function Demo() {
 		<>
 			<Axes of="Calendar" render={(props) => <Calendar {...props} />} />
 
-			<Example title="Controlled">
-				<Calendar value={date} onValueChange={setDate} />
-			</Example>
+			<ControlledExample />
 
 			<Example title="With min/max">
 				<Calendar min={min} max={max} />

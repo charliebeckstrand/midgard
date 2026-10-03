@@ -119,7 +119,7 @@ export type ChartPointerOptions = {
  * isolates no mark, and pins nothing. The data stays available through the
  * "View data" item of the chart menu. A tap only activates: it reports from the
  * tap that {@link useChartTouchTap} finds, and not from the click. The click of
- * a touch press is cancelled, so the browser cannot send it to a control near
+ * a touch press is canceled, so the browser cannot send it to a control near
  * the finger, such as a legend switch.
  *
  * @remarks The hit element's own bounding box anchors the coordinate math,
@@ -306,10 +306,11 @@ export function useChartPointer({
 
 	// The click trigger's pointer move: isolation stays a hover affordance even with
 	// the readout click-pinned, so movement isolates the mark under the pointer here
-	// too. Under a non-snap chart it also points the cursor only where a click reads
-	// — on a mark, not the bare plot above or between them — written straight to the
-	// node so tracking the marks never re-renders the plot; a snapping chart reads a
-	// click anywhere, so a static class carries its cursor and this leaves it be.
+	// too. Under a non-snap chart it also marks the node with `data-hit` only where a
+	// click reads — on a mark, not the bare plot above or between them — and the kata
+	// gives that attribute the pointer cursor. The write goes straight to the node, so
+	// tracking the marks never re-renders the plot. A snapping chart reads a click
+	// anywhere, so a static class carries its cursor and this leaves it be.
 	const pointCursor = useCallback(
 		(clientX: number, clientY: number) => {
 			const node = ref.current
@@ -325,7 +326,7 @@ export function useChartPointer({
 			point(mark)
 
 			// A band click reads anywhere, as a snap does, so the class keeps the cursor.
-			if (!snaps && !onIndexClick) node.style.cursor = onDataHit ? 'pointer' : 'default'
+			if (!snaps && !onIndexClick) node.toggleAttribute('data-hit', onDataHit)
 		},
 		[plot, resolveIndex, probe, snaps, onIndexClick, point],
 	)
@@ -363,7 +364,7 @@ export function useChartPointer({
 		return {
 			ref,
 			// A touch reads nothing from the chart. A tap only activates, and its
-			// click is cancelled, so it does not pin the readout.
+			// click is canceled, so it does not pin the readout.
 			onPointerDown: touch.onPointerDown,
 			onPointerUp: touch.onPointerUp,
 			onPointerCancel: touch.onPointerCancel,
@@ -378,7 +379,11 @@ export function useChartPointer({
 
 				if (event.pointerType !== 'touch') pointCursor(event.clientX, event.clientY)
 			},
-			onPointerLeave: () => point(null),
+			onPointerLeave: () => {
+				ref.current?.removeAttribute('data-hit')
+
+				point(null)
+			},
 		}
 	}
 
@@ -397,7 +402,7 @@ export function useChartPointer({
 	return {
 		ref,
 		// Activation only — the tracked readout stays hover-owned. A touch
-		// activates from its tap, and its click is cancelled.
+		// activates from its tap, and its click is canceled.
 		...(onIndexClick || onMarkClick
 			? {
 					onPointerDown: touch.onPointerDown,

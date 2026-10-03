@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { existsSync, readdirSync } from 'node:fs'
+import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
@@ -15,26 +15,17 @@ import {
 // step and no JS code selects it. Two rules hold that design:
 //
 //   - No recipe of the component has a `size` or a `density` axis. The walk
-//     below reads each recipe of each kata and each layout variant module, so a
-//     new kata is native by default.
+//     below reads each recipe of each kata, so a new kata is native by default.
 //   - The component reads no density context. An explicit `size` becomes a
 //     scope (the `density` prop of PolymorphicStatic or Box), not a lookup. The
 //     reader allowlists at the end of this file hold this rule for each file.
 
-/** The kata modules and the layout variant modules, by the path under `src`. */
+/** The kata modules, by the path under `src`. */
 function recipeFiles(): string[] {
-	const kata = readdirSync(join(srcDir, 'recipes', 'kata'))
+	return readdirSync(join(srcDir, 'recipes', 'kata'))
 		.filter((file) => file.endsWith('.ts'))
 		.map((file) => `recipes/kata/${file}`)
-
-	const layouts = readdirSync(join(srcDir, 'layouts'), { withFileTypes: true })
-		.filter(
-			(entry) =>
-				entry.isDirectory() && existsSync(join(srcDir, 'layouts', entry.name, 'variants.ts')),
-		)
-		.map((entry) => `layouts/${entry.name}/variants.ts`)
-
-	return [...kata, ...layouts].sort()
+		.sort()
 }
 
 /** A recipe: a callable with the config it was defined from. */
@@ -66,7 +57,7 @@ function steppedAxes(value: unknown, path: string, seen: Set<unknown>, found: st
 describe('density-native boundary', () => {
 	const files = recipeFiles()
 
-	it('no kata or layout recipe has a size or density axis', async () => {
+	it('no kata recipe has a size or density axis', async () => {
 		const found: string[] = []
 
 		// The modules are independent, so they load at once.
@@ -77,7 +68,7 @@ describe('density-native boundary', () => {
 		for (const [index, file] of files.entries()) {
 			const module = modules[index] ?? {}
 
-			const name = file.replace(/^(?:recipes\/kata|layouts)\//, '').replace(/\.ts$/, '')
+			const name = file.replace(/^recipes\/kata\//, '').replace(/\.ts$/, '')
 
 			const seen = new Set<unknown>()
 
@@ -89,11 +80,11 @@ describe('density-native boundary', () => {
 		expect(found).toEqual([])
 	})
 
-	it('walks the recipes of each kata and each layout', () => {
+	it('walks the recipes of each kata', () => {
 		// A walk that read no file would pass the case above with an empty list.
 		expect(files.length).toBeGreaterThan(50)
 
-		expect(files).toContain('layouts/sidebar/variants.ts')
+		expect(files).toContain('recipes/kata/sidebar-layout.ts')
 	})
 })
 
@@ -194,19 +185,15 @@ const STEP_READERS = [
 
 const STEP_READ = /\buse(?:Density)?Step\b/
 
-// `useDensityScope` gives the nearest explicit scope, or `null` at the root. A
-// portal root writes that scope on its element, so a portaled panel keeps the
-// step of the tree that opened it. Only the portal roots and the primitive may
-// read it: Overlay, FloatingSurface, and the Listbox and Combobox panels, which
-// portal through their own wrappers.
+// `useDensityScope` gives the nearest explicit scope, or `null` at the root.
+// `Portal` writes that scope on its host, so a portaled panel keeps the step of
+// the tree that opened it. Only `Portal` and the primitive may read it. A
+// surface that portals goes through `Portal`, and writes no scope of its own.
 
 const SCOPE_READERS = [
-	'components/combobox/combobox-panel.tsx',
-	'components/listbox/listbox-panel.tsx',
 	'primitives/density/density.tsx',
 	'primitives/density/index.ts',
-	'primitives/floating-surface/floating-surface.tsx',
-	'primitives/overlay/overlay.tsx',
+	'primitives/portal/portal.tsx',
 ]
 
 const SCOPE_READ = /\buseDensityScope\b/
@@ -216,7 +203,7 @@ describe('density readers', () => {
 		expect(filesMatching(STEP_READ)).toEqual(STEP_READERS)
 	})
 
-	it('only the portal roots read the nearest density scope', () => {
+	it('only the portal reads the nearest density scope', () => {
 		expect(filesMatching(SCOPE_READ)).toEqual(SCOPE_READERS)
 	})
 })

@@ -112,6 +112,64 @@ describe('Option', () => {
 		expect(onSelect).not.toHaveBeenCalled()
 	})
 
+	it('runs a consumer onClick first, then selects', () => {
+		const calls: string[] = []
+
+		renderUI(
+			<Option
+				selected={false}
+				onSelect={() => calls.push('select')}
+				onClick={() => calls.push('consumer')}
+			>
+				Option
+			</Option>,
+		)
+
+		fireEvent.click(screen.getByRole('option'))
+
+		expect(calls).toEqual(['consumer', 'select'])
+	})
+
+	it('selects after a consumer preventDefault, on click and on Enter', () => {
+		const onSelect = vi.fn()
+
+		renderUI(
+			<Option
+				selected={false}
+				onSelect={onSelect}
+				onClick={(event) => event.preventDefault()}
+				onKeyDown={(event) => event.preventDefault()}
+			>
+				Option
+			</Option>,
+		)
+
+		const option = screen.getByRole('option')
+
+		fireEvent.click(option)
+
+		fireEvent.keyDown(option, { key: 'Enter' })
+
+		expect(onSelect).toHaveBeenCalledTimes(2)
+	})
+
+	it('runs a consumer onMouseDown and still holds focus in an active-descendant list', () => {
+		const onMouseDown = vi.fn()
+
+		renderUI(
+			<Option selected={false} onSelect={() => {}} activeDescendant onMouseDown={onMouseDown}>
+				Option
+			</Option>,
+		)
+
+		const held = fireEvent.mouseDown(screen.getByRole('option'))
+
+		expect(onMouseDown).toHaveBeenCalledOnce()
+
+		// `fireEvent` returns false when a handler canceled the event.
+		expect(held).toBe(false)
+	})
+
 	it('renders the default check icon hidden until the row is selected', () => {
 		const { container } = renderUI(
 			<Option selected={false} onSelect={() => {}}>

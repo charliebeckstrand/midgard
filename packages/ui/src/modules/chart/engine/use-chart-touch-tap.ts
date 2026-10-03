@@ -37,7 +37,7 @@ type Press = { x: number; y: number; tap: boolean }
  *
  * A tap is a touch press that lifts before {@link TOUCH_TAP_WINDOW} and
  * travels less than {@link TOUCH_TAP_SLOP}. A longer press is a hold, and a
- * press that travels is a drag or a scroll. A cancelled press is a scroll that
+ * press that travels is a drag or a scroll. A canceled press is a scroll that
  * the browser took. None of these is a tap, and none of them does anything.
  * A touch reads nothing from a chart, so the tap is the only thing that a touch
  * does on the marks.
@@ -118,8 +118,8 @@ export function useChartTouchTap(onTap: (clientX: number, clientY: number) => vo
 			tapWindow.clear()
 		},
 		onTouchEnd: (event) => {
-			// The browser makes no click from a touch end that is cancelled. A touch
-			// end that follows a scroll cannot be cancelled.
+			// The browser makes no click from a touch end that is canceled. A touch
+			// end that follows a scroll cannot be canceled.
 			if (event.cancelable) event.preventDefault()
 		},
 		fromTouch: () => {

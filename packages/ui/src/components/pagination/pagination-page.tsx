@@ -28,6 +28,7 @@ export function PaginationPage({
 	className,
 	children,
 	href,
+	'aria-current': ariaCurrent,
 	...props
 }: PaginationPageProps) {
 	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
@@ -39,9 +40,11 @@ export function PaginationPage({
 					as="button"
 					data-slot="pagination-page"
 					href={href}
-					aria-current={current ? 'page' : undefined}
 					className={cn(k.pageButton({ current }), className)}
 					{...props}
+					// After the spread: `current` owns the state. A consumer value
+					// holds only while the page is not current.
+					aria-current={current ? 'page' : ariaCurrent}
 				>
 					{children}
 				</Polymorphic>

@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useInView } from '../../hooks/use-in-view'
 import { renderUI, screen } from '../helpers'
 
@@ -11,8 +11,6 @@ type Observed = {
 }
 
 let observers: Observed[] = []
-
-const original = window.IntersectionObserver
 
 beforeEach(() => {
 	observers = []
@@ -36,11 +34,7 @@ beforeEach(() => {
 		}
 	}
 
-	window.IntersectionObserver = ControlledObserver as unknown as typeof IntersectionObserver
-})
-
-afterEach(() => {
-	window.IntersectionObserver = original
+	vi.stubGlobal('IntersectionObserver', ControlledObserver)
 })
 
 /** Sends one entry to the newest observer, as a scroll would. */
@@ -64,8 +58,7 @@ const state = () => screen.getByTestId('probe').getAttribute('data-in-view')
 
 describe('useInView', () => {
 	it('reports in view where no IntersectionObserver exists', () => {
-		// @ts-expect-error — the environment without an observer.
-		window.IntersectionObserver = undefined
+		vi.stubGlobal('IntersectionObserver', undefined)
 
 		renderUI(<Probe />)
 

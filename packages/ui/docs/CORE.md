@@ -33,7 +33,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `Scale` *(type)* | A size scale: the steps that a component renders with a look of its own. |
 | `ScaleStep` *(type)* | A step of a scale: the type of a `size` prop that the scale drives. It is a plain union of step literals, such as `sm`, `md`, and `lg`. |
 | `Ramp` *(type)* | A stepped `density-*` utility with three or five values, such as `density-p-[2,3,4]`. |
-| `RampSteps` *(type)* | The steps that a ramp renders with a value of its own: `sm` / `md` / `lg`, and an outer step when its value differs from its inner neighbor. |
+| `RampSteps` *(type)* | The steps that a ramp renders with a value of its own. These are `sm` / `md` / `lg`, and an outer step when its value differs from its inner neighbor. |
 | `snapToScale` | Snaps a density step to the nearest step of a scale: `xs` becomes `sm`, and `xl` becomes `lg`, when the scale does not hold them. |
 
 > For declarative announcements that track a changing value, prefer `useA11yAnnouncements` ([`HOOKS.md`](HOOKS.md)) over calling `announce` directly.

@@ -180,38 +180,12 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 					<>
 						<Divider soft />
 
-						{codes ? (
-							<Section
-								title="Recovery codes"
-								description="Keep these codes in a safe place. Each code works once, in place of your passkey or app. They do not show again."
-								action={<CopyButton text={codes.join('\n')} aria-label="Copy the recovery codes" />}
-							>
-								<ul className="grid grid-cols-2 gap-2 font-mono">
-									{codes.map((code) => (
-										<li key={code}>{code}</li>
-									))}
-								</ul>
-							</Section>
-						) : (
-							<Section
-								title="Recovery codes"
-								description={
-									factors.recovery_codes === 0
-										? 'You have no recovery codes. Make some, so that you can sign in if you lose your passkey or app.'
-										: `You have ${factors.recovery_codes} unused recovery codes.`
-								}
-								action={
-									<Button
-										variant="outline"
-										color={factors.recovery_codes === 0 ? 'blue' : undefined}
-										disabled={makeCodes.isPending}
-										onClick={() => makeCodes.mutate(undefined, { onSuccess: setCodes })}
-									>
-										{factors.recovery_codes === 0 ? 'Make codes' : 'Make new codes'}
-									</Button>
-								}
-							/>
-						)}
+						<RecoveryCodes
+							codes={codes}
+							count={factors.recovery_codes}
+							pending={makeCodes.isPending}
+							onMake={() => makeCodes.mutate(undefined, { onSuccess: setCodes })}
+						/>
 					</>
 				)}
 			</Stack>
@@ -229,5 +203,61 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 				confirm={{ label: 'Remove', color: 'red' }}
 			/>
 		</Card>
+	)
+}
+
+type RecoveryCodesProps = {
+	/** The codes that the gateway just made, or `null` before the user makes them. */
+	codes: string[] | null
+	/** The number of unused recovery codes that the user has. */
+	count: number
+	/** Whether a request to make new codes is in progress. */
+	pending: boolean
+	/** Makes a new set of codes. */
+	onMake: () => void
+}
+
+/**
+ * The recovery codes section of {@link TwoStep}: the new codes once the gateway
+ * makes them, or else the count of unused codes and the button that makes them.
+ *
+ * @internal
+ */
+function RecoveryCodes({ codes, count, pending, onMake }: RecoveryCodesProps) {
+	if (codes) {
+		return (
+			<Section
+				title="Recovery codes"
+				description="Keep these codes in a safe place. Each code works once, in place of your passkey or app. They do not show again."
+				action={<CopyButton text={codes.join('\n')} aria-label="Copy the recovery codes" />}
+			>
+				<ul className="grid grid-cols-2 gap-2 font-mono">
+					{codes.map((code) => (
+						<li key={code}>{code}</li>
+					))}
+				</ul>
+			</Section>
+		)
+	}
+
+	return (
+		<Section
+			title="Recovery codes"
+			description={
+				count === 0
+					? 'You have no recovery codes. Make some, so that you can sign in if you lose your passkey or app.'
+					: `You have ${count} unused recovery codes.`
+			}
+			action={
+				<Button
+					variant="outline"
+					color={count === 0 ? 'blue' : undefined}
+					disabled={pending}
+					onClick={onMake}
+				>
+					{count === 0 ? 'Make codes' : 'Make new codes'}
+				</Button>
+			}
+		/>
 	)
 }

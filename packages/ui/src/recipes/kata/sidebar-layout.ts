@@ -1,8 +1,12 @@
+/**
+ * Sidebar layout kata: the recipes of `layouts/sidebar`. It is not the kata of
+ * the Sidebar component (`kata/sidebar.ts`).
+ */
 import { defineRecipe } from '../../core/recipe'
-import { omote, sen, sou } from '../../recipes/kiso'
-import { dan } from '../../recipes/kiso/dan'
+import { omote, sen, sou } from '../kiso'
+import { dan } from '../kiso/dan'
 
-const { focus } = sen
+const { space } = dan
 
 // Below `lg`, the layout is in the flow and the page scrolls. A mobile browser
 // moves the scroll offset of the page when its toolbar changes size, and only a
@@ -34,7 +38,7 @@ const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${dan.space.shell} lg:hidden`],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell} lg:hidden`],
 })
 
 const panel = defineRecipe({
@@ -88,7 +92,7 @@ const content = defineRecipe({
 		'grow lg:min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
-		`${dan.space.shellX} ${dan.space.shellBottom} ${dan.space.shellTopNoHeader}`,
+		`${space.shellX} ${space.shellBottom} ${space.shellTopNoHeader}`,
 	],
 	// From `lg` up only. Below `lg`, the navbar is the one sticky bar of the page, and
 	// the header scrolls with the content. Two stacked sticky bars show a seam on iOS.
@@ -108,11 +112,11 @@ const content = defineRecipe({
 
 // The padding follows the nearest density scope.
 const header = defineRecipe({
-	base: ['flex items-center shrink-0', `${dan.space.shellTopLarge} ${dan.space.shellBottom}`],
+	base: ['flex items-center shrink-0', `${space.shellTopLarge} ${space.shellBottom}`],
 })
 
 const body = defineRecipe({
-	base: ['flex-1 lg:min-h-0 lg:overflow-y-auto', focus.inset],
+	base: ['flex-1 lg:min-h-0 lg:overflow-y-auto', sen.focus.inset],
 })
 
 const footer = defineRecipe({ base: 'shrink-0' })
