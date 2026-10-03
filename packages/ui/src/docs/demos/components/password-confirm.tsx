@@ -1,17 +1,20 @@
 import { Field, Label } from '../../../components/fieldset'
-import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
-import { PasswordInput } from '../../../components/password-input'
+import {
+	PasswordConfirm,
+	PasswordConfirmNew,
+	PasswordConfirmRepeat,
+} from '../../../components/password-confirm'
 import { Axes, Example } from '../../engine'
 
 export function Demo() {
 	return (
 		<>
 			<Axes
-				of="PasswordConfirmInput"
+				of="PasswordConfirmRepeat"
 				captions={false}
 				render={(props, label) => (
 					<PasswordConfirm>
-						<PasswordConfirmInput {...props} aria-label={label} placeholder={label} />
+						<PasswordConfirmRepeat {...props} aria-label={label} placeholder={label} />
 					</PasswordConfirm>
 				)}
 			/>
@@ -20,11 +23,11 @@ export function Demo() {
 				<PasswordConfirm warning="Passwords do not match">
 					<Field>
 						<Label>Password</Label>
-						<PasswordInput placeholder="Enter password" />
+						<PasswordConfirmNew placeholder="Enter password" />
 					</Field>
 					<Field>
 						<Label>Confirm password</Label>
-						<PasswordConfirmInput placeholder="Confirm password" />
+						<PasswordConfirmRepeat placeholder="Confirm password" />
 					</Field>
 				</PasswordConfirm>
 			</Example>

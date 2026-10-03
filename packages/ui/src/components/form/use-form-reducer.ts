@@ -112,6 +112,8 @@ type FormReducerResult = {
 	actions: FormActions
 	handleSubmit: (event: SyntheticEvent<HTMLFormElement>) => Promise<void>
 	handleReset: (event: SyntheticEvent<HTMLFormElement>) => void
+	/** How many times the form has reset. */
+	resets: number
 }
 
 /**
@@ -148,6 +150,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	)
 
 	const [submitting, setSubmitting] = useState(false)
+
+	// Counts resets for the controls that keep state about their typed text. A
+	// reset that leaves a value as it was does not change the field slice.
+	const [resets, setResets] = useState(0)
 
 	// Mount-time snapshot of `defaultValues`; restores the original baseline
 	// when `controlledValues` transitions to `undefined`. The reducer's
@@ -246,6 +252,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			// No `nextDefaults` resets to the defaults the reducer holds.
 			dispatch({ type: 'reset', defaults: nextDefaults as T | undefined })
+
+			setResets((count) => count + 1)
 
 			onReset?.()
 		},
@@ -389,5 +397,5 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	const store = useFormStore(formState)
 
-	return { formState, store, actions, handleSubmit, handleReset }
+	return { formState, store, actions, handleSubmit, handleReset, resets }
 }

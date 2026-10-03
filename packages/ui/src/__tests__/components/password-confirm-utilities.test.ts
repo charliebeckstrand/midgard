@@ -1,8 +1,8 @@
-import type { SyntheticEvent } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+// @vitest-environment node
+import { describe, expect, it } from 'vitest'
 import {
 	deriveStatus,
-	handlePasswordInput,
+	toFieldText,
 } from '../../components/password-confirm/password-confirm-utilities'
 
 describe('deriveStatus', () => {
@@ -43,65 +43,13 @@ describe('deriveStatus', () => {
 	})
 })
 
-describe('handlePasswordInput', () => {
-	function makeEvent(target: HTMLElement): SyntheticEvent<HTMLDivElement> {
-		const partial: Partial<SyntheticEvent<HTMLDivElement>> = { target }
-
-		return partial as SyntheticEvent<HTMLDivElement>
-	}
-
-	/** Runs the handler on `target` with a fresh spy for each setter. */
-	function run(target: HTMLElement) {
-		const setPassword = vi.fn()
-
-		const setPasswordName = vi.fn()
-
-		const setLastEdited = vi.fn()
-
-		handlePasswordInput(makeEvent(target), setPassword, setPasswordName, setLastEdited)
-
-		return { setPassword, setPasswordName, setLastEdited }
-	}
-
-	function input(attributes: { name?: string; slot?: string } = {}) {
-		const el = document.createElement('input')
-
-		if (attributes.name) el.name = attributes.name
-
-		if (attributes.slot) el.dataset.slot = attributes.slot
-
-		el.value = 'hunter2'
-
-		return el
-	}
-
-	it('writes the value, name, and lastEdited when the password input changes', () => {
-		const { setPassword, setPasswordName, setLastEdited } = run(input({ name: 'password' }))
-
-		expect(setPassword).toHaveBeenCalledWith('hunter2')
-
-		expect(setPasswordName).toHaveBeenCalledWith('password')
-
-		expect(setLastEdited).toHaveBeenCalledWith('password')
-	})
-
-	it('treats a missing name attribute as undefined', () => {
-		expect(run(input()).setPasswordName).toHaveBeenCalledWith(undefined)
-	})
-
-	it.each([
-		[
-			'the confirm input identified by its data-slot',
-			() => input({ slot: 'password-confirm-input' }),
-		],
-		['targets that are not HTMLInputElement', () => document.createElement('div')],
-	])('ignores %s', (_name, target) => {
-		const { setPassword, setPasswordName, setLastEdited } = run(target())
-
-		expect(setPassword).not.toHaveBeenCalled()
-
-		expect(setPasswordName).not.toHaveBeenCalled()
-
-		expect(setLastEdited).not.toHaveBeenCalled()
+describe('toFieldText', () => {
+	it.each<[unknown, string]>([
+		[undefined, ''],
+		[null, ''],
+		['hunter2', 'hunter2'],
+		[42, '42'],
+	])('converts %s to %j', (value, expected) => {
+		expect(toFieldText(value)).toBe(expected)
 	})
 })

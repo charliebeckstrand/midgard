@@ -789,3 +789,34 @@ describe('DateInput onValidityChange', () => {
 		})
 	})
 })
+
+describe('DateInput form reset', () => {
+	it('drops a refused partial entry when the bound form resets to the same empty value', async () => {
+		const user = setupUser()
+
+		const onValidityChange = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ due: undefined as Date | undefined }}>
+				<DateInput name="due" aria-label="Due" onValidityChange={onValidityChange} />
+				<Button type="reset">Reset</Button>
+			</Form>,
+		)
+
+		const input = screen.getByLabelText('Due')
+
+		await user.type(input, '12/3')
+
+		await user.tab()
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(input).toHaveValue('')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({ isValid: false, isPotentiallyValid: true })
+	})
+})
