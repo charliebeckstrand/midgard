@@ -37,6 +37,7 @@ import { Button } from '../../../components/button'
 import { useCopyButtonState } from '../../../components/copy-button/use-copy-button-state'
 import { Icon } from '../../../components/icon'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from '../../../components/sheet'
+import { subscribeOverlaySignal } from '../../../primitives/overlay'
 
 const EVENTS = [
 	'touchstart',
@@ -370,6 +371,33 @@ function start() {
 	}
 }
 
+/**
+ * The box that a fixed surface takes, from `useVisualViewport`: its value on the
+ * root element, or `-` when it is not set.
+ */
+function frameState() {
+	const height = document.documentElement.style.getPropertyValue('--visual-viewport-height')
+
+	const top = document.documentElement.style.getPropertyValue('--visual-viewport-top')
+
+	return height === '' ? '-' : `${parseFloat(height)}@${parseFloat(top)}`
+}
+
+/**
+ * The heights that decide where a surface fixed to the bottom edge sits: the
+ * visual viewport (height at offset), the window, the root element, a box fixed
+ * to the layout viewport, the screen, and the frame of `useVisualViewport`.
+ */
+function viewportState(probe: HTMLElement) {
+	const viewport = window.visualViewport
+
+	const visual = viewport ? `${Math.round(viewport.height)}@${Math.round(viewport.offsetTop)}` : '-'
+
+	const fixed = Math.round(probe.getBoundingClientRect().height)
+
+	return `vv ${visual} win ${window.innerHeight} doc ${document.documentElement.clientHeight} fixed ${fixed} screen ${window.screen.height} frame ${frameState()}`
+}
+
 /** Adds the listeners, and returns a function that removes them. */
 function listen() {
 	startTime = performance.now()
@@ -378,9 +406,45 @@ function listen() {
 
 	for (const type of EVENTS) document.addEventListener(type, onEvent, options)
 
-	const onResize = () => write('viewport resize')
+	// A box fixed to the layout viewport. Its height is where `bottom: 0` puts a
+	// fixed surface, which a browser toolbar can cover.
+	const probe = document.createElement('div')
+
+	probe.setAttribute('aria-hidden', 'true')
+
+	probe.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none'
+
+	document.body.append(probe)
+
+	const onResize = () => write(`viewport resize ${viewportState(probe)}`)
+
+	const onWindowResize = () => write(`window resize ${viewportState(probe)}`)
 
 	window.visualViewport?.addEventListener('resize', onResize)
+
+	window.addEventListener('resize', onWindowResize)
+
+	// The frame of `useVisualViewport` changes when an overlay opens or the
+	// toolbar moves. One line for each change shows what a surface was given.
+	let frame = frameState()
+
+	const frames = new MutationObserver(() => {
+		const next = frameState()
+
+		if (next === frame) return
+
+		frame = next
+
+		write(`frame ${viewportState(probe)}`)
+	})
+
+	frames.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
+
+	// An overlay that opens reads the frame. The line shows the readings at that
+	// moment, also when the frame stays the full screen and no frame line comes.
+	const stopOverlays = subscribeOverlaySignal(() => {
+		if (!paused) write(`overlay opens ${viewportState(probe)}`)
+	})
 
 	// A tap while the page still scrolls only stops the scroll on iOS. One line
 	// for each scroll that starts shows such a tap.
@@ -420,12 +484,20 @@ function listen() {
 
 	heights.observe(document.documentElement)
 
-	write('tap log ready')
+	write(`tap log ready ${viewportState(probe)}`)
 
 	return () => {
 		for (const type of EVENTS) document.removeEventListener(type, onEvent, options)
 
 		window.visualViewport?.removeEventListener('resize', onResize)
+
+		window.removeEventListener('resize', onWindowResize)
+
+		frames.disconnect()
+
+		stopOverlays()
+
+		probe.remove()
 
 		window.removeEventListener('scroll', onScroll, options)
 
