@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
@@ -41,7 +41,8 @@ export type CreditCardInputExpiryProps = Omit<
  * the slash and handling backspace across it. Emits the month-range + not-in-past
  * verdict through `onValidityChange`. Marks itself invalid, and renders the
  * `invalidMessage`, when a complete entry can't be valid (a bad month or a past
- * date). It does the same when blur leaves a partial entry behind. Sets `autoComplete="cc-exp"`
+ * date). It does the same when blur leaves a partial entry behind. A value from
+ * outside, such as a form reset, clears that mark. Sets `autoComplete="cc-exp"`
  * and defaults an "Expiration date" aria-label, yielding to a registered Field
  * `<Label>`.
  *
@@ -80,10 +81,41 @@ export function CreditCardInputExpiry({
 		ref,
 	})
 
+	// Last text this field typed. Tells a value from outside (a form reset, a
+	// controlled change) apart from the echo of a keystroke.
+	const [typed, setTyped] = useState(maskedValue)
+
+	const [known, setKnown] = useState(maskedValue)
+
+	// A count of the typed verdicts that a value from outside cleared. The change
+	// clears the verdict during render, where a report must not run. The effect
+	// below carries the report, as in DateInput.
+	const [clearedVerdicts, setClearedVerdicts] = useState(0)
+
+	if (known !== maskedValue) {
+		setKnown(maskedValue)
+
+		if (typedInvalid && maskedValue !== typed) {
+			setTypedInvalid(false)
+
+			setClearedVerdicts((count) => count + 1)
+		}
+	}
+
+	const reportClearedVerdict = useEffectEvent(() => {
+		onValidityChange?.(validateCardExpiry(maskedValue))
+	})
+
+	useEffect(() => {
+		if (clearedVerdicts > 0) reportClearedVerdict()
+	}, [clearedVerdicts])
+
 	// Reports validity and, mirroring DateInput, flags only a complete entry
 	// that isn't valid; a still-growing one stays unmarked until blur.
 	const report = (next: string) => {
 		const validity = validateCardExpiry(next)
+
+		setTyped(next)
 
 		onValidityChange?.(validity)
 

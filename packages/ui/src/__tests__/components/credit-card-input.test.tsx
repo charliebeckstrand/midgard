@@ -1,11 +1,12 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-
+import { Button } from '../../components/button'
 import {
 	CreditCardInput,
 	CreditCardInputCvv,
 	CreditCardInputExpiry,
 } from '../../components/credit-card-input'
+import { validateCardExpiry } from '../../components/credit-card-input/credit-card-input-utilities'
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { bySlot, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
@@ -469,5 +470,38 @@ describe('Credit card trio + Form', () => {
 		await user.tab()
 
 		expect(getFieldProbe('cvv')).toHaveAttribute('data-touched', 'true')
+	})
+})
+
+describe('CreditCardInputExpiry form reset', () => {
+	it('clears the typed invalid mark when the form resets', async () => {
+		const user = setupUser()
+
+		const onValidityChange = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ exp: '' }}>
+				<CreditCardInputExpiry name="exp" onValidityChange={onValidityChange} />
+				<Button type="reset">Reset</Button>
+			</Form>,
+		)
+
+		const input = screen.getByLabelText('Expiration date')
+
+		await user.type(input, '1399')
+
+		await user.tab()
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(input).toHaveValue('')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		expect(screen.queryByText('Enter a valid expiration date (MM/YY)')).not.toBeInTheDocument()
+
+		expect(onValidityChange).toHaveBeenLastCalledWith(validateCardExpiry(''))
 	})
 })

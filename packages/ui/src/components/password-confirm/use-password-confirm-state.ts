@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { deriveStatus, type LastEdited, type Status } from './password-confirm-utilities'
 
 type PasswordConfirmStateOptions = {
@@ -26,8 +26,10 @@ type PasswordConfirmStateResult = {
  * Tracks password/confirm values and derives match status for the coordinator.
  *
  * @returns The current `password` and `confirm` values, the derived `status`,
- * and the setters `setPassword`, `setConfirm` (which also marks confirm as last
- * edited), and `setLastEdited`.
+ * and the setters `setPassword`, `setConfirm`, and `setLastEdited`. The value
+ * setters record a value from any source. Only a user edit calls
+ * `setLastEdited`, so a reset or a seeded value does not start the grace
+ * period.
  * @remarks
  * `onMatchChange(matched)` fires from an effect on transitions only, so a
  * match→match repeat won't re-fire. It is read through a ref, so a changed
@@ -43,14 +45,9 @@ export function usePasswordConfirmState({
 }: PasswordConfirmStateOptions = {}): PasswordConfirmStateResult {
 	const [password, setPassword] = useState('')
 
-	const [confirm, setConfirmState] = useState('')
+	const [confirm, setConfirm] = useState('')
 
 	const [lastEdited, setLastEdited] = useState<LastEdited>(null)
-
-	const setConfirm = useCallback((value: string) => {
-		setConfirmState(value)
-		setLastEdited('confirm')
-	}, [])
 
 	const status: Status = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
 

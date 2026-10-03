@@ -19,6 +19,8 @@ describe('usePasswordConfirmState', () => {
 		act(() => {
 			result.current.setPassword('hunter2')
 
+			result.current.setLastEdited('confirm')
+
 			result.current.setConfirm('hunt')
 		})
 
@@ -31,6 +33,8 @@ describe('usePasswordConfirmState', () => {
 		act(() => {
 			result.current.setPassword('hunter2')
 
+			result.current.setLastEdited('confirm')
+
 			result.current.setConfirm('hunter3')
 		})
 
@@ -42,6 +46,8 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
+			result.current.setLastEdited('confirm')
 
 			result.current.setConfirm('hunter3')
 		})
@@ -56,6 +62,8 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
+			result.current.setLastEdited('confirm')
 
 			result.current.setConfirm('hunter2')
 		})
@@ -73,6 +81,8 @@ describe('usePasswordConfirmState', () => {
 		act(() => {
 			result.current.setPassword('hunter2')
 
+			result.current.setLastEdited('confirm')
+
 			result.current.setConfirm('hunter3')
 		})
 
@@ -88,6 +98,8 @@ describe('usePasswordConfirmState', () => {
 
 		act(() => {
 			result.current.setPassword('hunter2')
+
+			result.current.setLastEdited('confirm')
 
 			result.current.setConfirm('hunter2')
 		})

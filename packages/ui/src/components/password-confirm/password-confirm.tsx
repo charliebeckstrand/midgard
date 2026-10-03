@@ -1,11 +1,10 @@
 'use client'
 
-import { type ReactNode, type SyntheticEvent, useCallback, useId, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { useA11yLiveRegion } from '../../hooks'
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
-import { PasswordConfirmContext } from './context'
-import { handlePasswordInput } from './password-confirm-utilities'
+import { PasswordConfirmContext, type PasswordConfirmRole } from './context'
 import { usePasswordConfirmState } from './use-password-confirm-state'
 
 /** Props for {@link PasswordConfirm}. */
@@ -25,8 +24,14 @@ export type PasswordConfirmProps = {
 
 /**
  * Coordinator for a password and its confirmation field. Tracks match status
- * across both inputs and surfaces a `warning` until they agree, suppressed
- * while the password has a form error.
+ * across a {@link PasswordConfirmNew} and a {@link PasswordConfirmRepeat},
+ * and surfaces a `warning` until they agree, suppressed while the password has
+ * a form error.
+ *
+ * @remarks
+ * The two parts report the values that they show, so a form reset, a seeded
+ * value, and a controlled value update the match state. Other inputs inside
+ * the coordinator, such as a username field, do not feed it.
  */
 export function PasswordConfirm({
 	onMatchChange,
@@ -48,10 +53,16 @@ export function PasswordConfirm({
 		onMatchChange,
 	})
 
-	const handleInput = useCallback(
-		(event: SyntheticEvent<HTMLDivElement>) =>
-			handlePasswordInput(event, setPassword, setPasswordName, setLastEdited),
-		[setPassword, setLastEdited],
+	const setValue = useCallback(
+		(role: PasswordConfirmRole, value: string) =>
+			role === 'password' ? setPassword(value) : setConfirm(value),
+		[setPassword, setConfirm],
+	)
+
+	const setName = useCallback(
+		(role: PasswordConfirmRole, name: string | undefined) =>
+			role === 'password' ? setPasswordName(name) : setConfirmName(name),
+		[],
 	)
 
 	const generatedWarningId = useId()
@@ -63,15 +74,22 @@ export function PasswordConfirm({
 	const warningId = warning ? generatedWarningId : undefined
 
 	const context = useMemo(
-		() => ({ status, setConfirm, setConfirmName, confirmHasFormError, warningId }),
-		[status, setConfirm, confirmHasFormError, warningId],
+		() => ({
+			status,
+			setValue,
+			setName,
+			setEdited: setLastEdited,
+			confirmHasFormError,
+			warningId,
+		}),
+		[status, setValue, setName, setLastEdited, confirmHasFormError, warningId],
 	)
 
 	const liveWarning = useA11yLiveRegion()
 
 	return (
 		<PasswordConfirmContext value={context}>
-			<div data-slot="password-confirm" className={className} onInput={handleInput}>
+			<div data-slot="password-confirm" className={className}>
 				<div className="space-y-4">{children}</div>
 				{/*
 					The region stays mounted and only its children change: a live region that

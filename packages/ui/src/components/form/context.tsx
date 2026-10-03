@@ -58,6 +58,22 @@ const [FormActionsContext, useFormActions] = createContext<FormActions | undefin
  */
 export { useFormActions }
 
+const [FormResetContext, useFormResetContext] = createContext<number>('FormReset', { default: 0 })
+
+/**
+ * Returns how many times the enclosing form has reset: by a reset button, or by
+ * `reset` from the actions or the submit helpers.
+ *
+ * @returns The reset count, or `0` outside a `Form`.
+ * @remarks A reset that leaves a field's value as it was does not change the
+ * field slice. A control that keeps its own state about the typed text (a
+ * partial entry, a typed verdict) reads this count to drop that state.
+ * @internal
+ */
+export function useFormResets(): number {
+	return useFormResetContext()
+}
+
 const noopSubscribe = () => () => {}
 
 /**
@@ -68,15 +84,19 @@ const noopSubscribe = () => () => {}
 export function FormProvider({
 	store,
 	actions,
+	resets,
 	children,
 }: {
 	store: FormStore
 	actions: FormActions
+	resets: number
 	children: ReactNode
 }) {
 	return (
 		<FormActionsContext value={actions}>
-			<FormStoreContext value={store}>{children}</FormStoreContext>
+			<FormStoreContext value={store}>
+				<FormResetContext value={resets}>{children}</FormResetContext>
+			</FormStoreContext>
 		</FormActionsContext>
 	)
 }
