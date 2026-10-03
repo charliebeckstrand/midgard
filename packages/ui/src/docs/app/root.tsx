@@ -1,5 +1,10 @@
 import type { ComponentType, ReactNode } from 'react'
-import { Links, Meta, Scripts, ScrollRestoration } from 'react-router'
+import {
+	Links,
+	Meta,
+	Scripts,
+	UNSAFE_useScrollRestoration as useScrollRestoration,
+} from 'react-router'
 import fontUrl from '../../fonts/google-sans-flex.woff2?url'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
@@ -32,6 +37,21 @@ export const links = () => [
 	{ rel: 'stylesheet', href: appCss },
 ]
 
+/**
+ * Keeps the scroll position of each history entry for the page changes in the
+ * app, as `<ScrollRestoration>` does. It does not use the inline script of
+ * `<ScrollRestoration>`, because that script is at the end of the document. The
+ * browser paints the top of the page before it gets to the script, and then
+ * the script moves the page. On a document load the browser restores the
+ * position itself, before the first paint, because the router sets the mode to
+ * `auto` when a page hides.
+ */
+function ScrollPositions() {
+	useScrollRestoration()
+
+	return null
+}
+
 export function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" className="antialiased" suppressHydrationWarning>
@@ -39,13 +59,6 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta charSet="UTF-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 				<title>Docs</title>
-				{/* `<ScrollRestoration>` restores the scroll position of a reload itself,
-				    before the first paint, and sets this mode after the hydration. The
-				    browser restores the position too while the mode is `auto`, which it is
-				    at load, because the router sets `auto` when a page hides. In Chrome
-				    for iOS that second restore lands the page under the toolbar after a
-				    page switch. Thus the mode is `manual` from the start of the load. */}
-				<script suppressHydrationWarning>{"history.scrollRestoration='manual'"}</script>
 				<AppearanceScript />
 				<DebugScript />
 				<Meta />
@@ -57,7 +70,7 @@ export function Layout({ children }: { children: ReactNode }) {
 			<body className="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
 				{children}
 				<AxesReadsScript />
-				<ScrollRestoration />
+				<ScrollPositions />
 				<Scripts />
 			</body>
 		</html>
