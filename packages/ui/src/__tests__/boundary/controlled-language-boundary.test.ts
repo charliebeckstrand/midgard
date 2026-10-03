@@ -14,20 +14,19 @@ import {
 } from '../helpers/controlled-language'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
-// every authored statement. This test reports the breaks of the rules that a
-// reader can count. It is advisory: it writes each break to the log and does
-// not fail the run, so a comment does not stop a build. Review decides what to
-// fix.
+// every authored statement. This test reads the breaks of the rules that a
+// reader can count, in five shapes:
 //
-// It reports in five shapes:
-//
-//   1. Rule 10 in the comments. The rule admits no judgment — "must" states a
-//      requirement and "can" states a possibility — so any site is a break.
-//   2. Rule 6 in the comments.
-//   3. Rules 3, 6, and 10 in the curated surface docs.
-//   4. Rules 3, 6, and 10 in the rule documents at the repository root.
-//   5. Rule 3 in the comments: one spelling, the American one that the
-//      identifiers use, so a search for `color` finds all the prose about color.
+//   1. Rule 10 in the comments is pinned at zero. The rule admits no judgment —
+//      "must" states a requirement and "can" states a possibility — so any site
+//      is a break.
+//   2. Rule 6 in the comments is advisory. The test writes each break to the
+//      log and does not fail the run, and review decides what to fix.
+//   3. The curated surface docs carry no debt in rules 3, 6, and 10.
+//   4. Neither do the rule documents at the repository root.
+//   5. Rule 3 in the comments is pinned at zero: one spelling, the American one
+//      that the identifiers use, so a search for `color` finds all the prose
+//      about color.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
 // halves behave differently. The descriptive half is conditional — the rule
@@ -43,26 +42,26 @@ import {
 describe('controlled-language boundary', () => {
 	const breaks = scanPackage()
 
-	it('reports a banned modal in a comment (STE.md rule 10)', () => {
+	it('no comment uses a banned modal (STE.md rule 10)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 10)
 			.map((item) => `${item.file}:${item.line} — ${item.text}`)
 
-		advise(
-			`banned modal in a comment — "must" for a requirement, "can" for a possibility (STE.md rule 10)`,
+		expect(
 			violations,
-		)
+			`banned modal in a comment — "must" for a requirement, "can" for a possibility (STE.md rule 10):\n${violations.join('\n')}`,
+		).toEqual([])
 	})
 
-	it('reports a British spelling in a comment (STE.md rule 3)', () => {
+	it('no comment uses a British spelling (STE.md rule 3)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 3)
 			.map((item) => `${item.file}:${item.line} — ${item.text}`)
 
-		advise(
-			`British spelling in a comment — the prose uses the American form, as the identifiers do (STE.md rule 3)`,
+		expect(
 			violations,
-		)
+			`British spelling in a comment — the prose uses the American form, as the identifiers do (STE.md rule 3):\n${violations.join('\n')}`,
+		).toEqual([])
 	})
 
 	it('reports a comment past the sentence cap (STE.md rule 6)', () => {
@@ -76,7 +75,7 @@ describe('controlled-language boundary', () => {
 		)
 	})
 
-	it('reports breaks of rules 3, 6, and 10 in the living Markdown (CONVENTIONS.md §12.2)', () => {
+	it('the living Markdown keeps rules 3, 6, and 10 (CONVENTIONS.md §12.2)', () => {
 		const violations: string[] = []
 
 		for (const file of LIVING_MARKDOWN) {
@@ -85,13 +84,13 @@ describe('controlled-language boundary', () => {
 			}
 		}
 
-		advise(
-			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10)`,
+		expect(
 			violations,
-		)
+			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10):\n${violations.join('\n')}`,
+		).toEqual([])
 	})
 
-	it('reports breaks of rules 3, 6, and 10 in the rule documents (CLAUDE.md §2.5)', () => {
+	it('the rule documents keep rules 3, 6, and 10 (CLAUDE.md §2.5)', () => {
 		const violations: string[] = []
 
 		for (const file of RULE_DOCUMENTS) {
@@ -100,15 +99,15 @@ describe('controlled-language boundary', () => {
 			}
 		}
 
-		advise(
-			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10)`,
+		expect(
 			violations,
-		)
+			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10):\n${violations.join('\n')}`,
+		).toEqual([])
 	})
 })
 
-// Both comment reports read through `extractComments`, so a comment it skips
-// is a comment neither report checks.
+// Each comment check reads through `extractComments`, so a comment it skips is
+// a comment no check reads.
 describe('comment reader', () => {
 	const texts = (file: string, source: string) =>
 		extractComments(file, source).map((comment) => comment.text.trim())
@@ -137,7 +136,7 @@ describe('comment reader', () => {
 	})
 })
 
-// The rule 3 report reads prose only, so a code span that names a key keeps its
+// The rule 3 gate reads prose only, so a code span that names a key keeps its
 // own spelling.
 describe('spelling reader', () => {
 	const flagged = (source: string) =>
