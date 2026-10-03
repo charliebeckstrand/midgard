@@ -14,6 +14,7 @@ import {
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useTimeout } from '../../hooks/use-timeout'
+import { useMapHoverSet } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
@@ -115,6 +116,16 @@ export type MapZoomOptions = {
 type MapPress = {
 	from: MapPoint2D
 	moved: boolean
+}
+
+/**
+ * The pointer ids that a pinch takes onto the surface: the pair itself on a map
+ * that claims touch, or the touch pointers of a modifier map. {@link takePinch}
+ * deletes an id whose pointer has ended.
+ */
+type MapPinchPointers = {
+	keys: () => Iterable<number>
+	delete: (id: number) => boolean
 }
 
 /** A wheel stream in flight: what it last pushed, and whether it has been seen running down. */
@@ -230,6 +241,14 @@ export function useMapZoom({
 	// none of it belongs in a render. On a modifier map a touch contact lands here
 	// from the touch events instead — see {@link useMapTouchPinch}.
 	const pointers = useRef(new Map<number, MapPoint2D>())
+
+	// The touch pointers down on the plot of a modifier map, by pointer id. The
+	// touch events carry the pinch there, and they report no pointer id. So a
+	// pinch reads these to take its fingers off the marks. See {@link takePinch}.
+	const touchPointers = useRef(new Set<number>())
+
+	// The readout's writer, so a pinch can clear the readout that its first finger raised.
+	const setHover = useMapHoverSet()
 
 	// Whether a modifier map holds the touch sequence in flight. Two fingers set
 	// it, and it stays set until every finger lifts. A finger left down after a
@@ -385,7 +404,11 @@ export function useMapZoom({
 	}
 
 	function release(event: PointerEvent<HTMLElement>) {
-		if (fromTouch(event)) return
+		if (fromTouch(event)) {
+			touchPointers.current.delete(event.pointerId)
+
+			return
+		}
 
 		// The travel before the lift is part of the pinch, so it applies first.
 		flushPinch()
@@ -430,6 +453,45 @@ export function useMapZoom({
 		event.currentTarget.setPointerCapture(event.pointerId)
 
 		cursorHold.start()
+	}
+
+	/**
+	 * Takes every finger of a pinch onto `surface`, and clears the readout.
+	 *
+	 * A touch pointer is captured on contact by the region or the mark under it.
+	 * That element then gets each move of the finger, and the layer's
+	 * `pointer-events` does not stop it. Each move raised the readout again, so the
+	 * map receded behind a tooltip for the whole pinch. Once the surface holds the
+	 * finger, no mark gets its moves. A finger that stays still never moves off its
+	 * mark, so this also clears the readout that it raised on contact.
+	 */
+	function takePinch(surface: Element, ids: MapPinchPointers) {
+		for (const id of ids.keys()) {
+			if (surface.hasPointerCapture(id)) continue
+
+			// A pointer can end out of sight of the plot: the mark that held it can
+			// leave the tree before the finger lifts. A capture of an ended pointer
+			// throws, and the rest of the pinch still needs the surface.
+			try {
+				surface.setPointerCapture(id)
+			} catch {
+				ids.delete(id)
+			}
+		}
+
+		setHover(null, null)
+	}
+
+	/**
+	 * Ends the gesture when the surface itself loses a pointer.
+	 *
+	 * The loss of a descendant bubbles here too, and it is not the end of the
+	 * gesture. A touch pointer is captured on contact by the region or the mark
+	 * under it, and {@link hold} takes it from that element. Read as a release, that
+	 * loss dropped the finger one frame into each touch pan and each pinch.
+	 */
+	function onLostPointerCapture(event: PointerEvent<HTMLElement>) {
+		if (event.target === event.currentTarget) release(event)
 	}
 
 	/** Reads the SVG's box once, when the gesture starts. See {@link gestureBox}. */
@@ -477,7 +539,8 @@ export function useMapZoom({
 	/**
 	 * Keeps the touch sequence from the page once two contacts have held the map,
 	 * and clears the last pan's flag when a sequence begins. No click follows a
-	 * pinch, so that flag must not swallow the tap after it.
+	 * pinch, so that flag must not swallow the tap after it. A finger that lands
+	 * on a pinch goes onto the SVG with the rest of the pinch.
 	 */
 	function claimTouch(event: TouchEvent, contacts: Map<number, MapPoint2D>) {
 		if (pointers.current.size === 0) panned.current = false
@@ -485,6 +548,12 @@ export function useMapZoom({
 		if (contacts.size > 1) touchHeld.current = true
 
 		if (touchHeld.current && event.cancelable) event.preventDefault()
+
+		const svg = svgRef.current
+
+		if (event.type === 'touchstart' && contacts.size > 1 && svg !== null) {
+			takePinch(svg, touchPointers.current)
+		}
 	}
 
 	/** Measures the pinch afresh from the pair the contacts hold now, or clears it. */
@@ -514,7 +583,11 @@ export function useMapZoom({
 	}
 
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
-		if (fromTouch(event)) return
+		if (fromTouch(event)) {
+			touchPointers.current.add(event.pointerId)
+
+			return
+		}
 
 		// A right-click opens the region menu the plat reports for; only the
 		// primary button drives the view.
@@ -529,7 +602,11 @@ export function useMapZoom({
 
 		// A second finger settles it: a pinch is under way and no click follows two
 		// pointers, so the pair is taken now rather than on the first travel.
-		if (pointers.current.size > 1) hold(event)
+		if (pointers.current.size > 1) {
+			hold(event)
+
+			takePinch(event.currentTarget, pointers.current)
+		}
 
 		panned.current = false
 
@@ -670,7 +747,7 @@ export function useMapZoom({
 			// gesture, and on the node leaving the tree mid-drag alike. The other two
 			// stand beside it because a test environment dispatches neither capture
 			// nor its loss — the discipline `useColorDrag` keeps.
-			onLostPointerCapture: release,
+			onLostPointerCapture,
 			onClickCapture,
 		},
 		cursor: { transform, stepZoom, fit, show },

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { MapFeatureCollection } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import { act, bySlot, fireEvent, layerScale, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, firstRegion, layerScale, present, withFakeTime } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
@@ -637,6 +637,108 @@ describe('MapPlat two-finger gestures', () => {
 
 			expect(scaleOf(container)).toBeCloseTo(3, 3)
 		})
+	})
+})
+
+/**
+ * A browser captures a touch pointer on contact, onto the region or the mark
+ * under the finger. jsdom captures nothing on contact, so these cases send the
+ * events that a browser sends for that capture.
+ */
+describe('MapPlat touch over the marks', () => {
+	/** Raises the readout on the first region, as a finger that lands on it does. */
+	function raiseReadout(container: HTMLElement, pointerId: number) {
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		const at = { pointerId, pointerType: 'touch', clientX: 40, clientY: 20 }
+
+		fireEvent.pointerEnter(region, at)
+
+		fireEvent.pointerDown(region, at)
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		return region
+	}
+
+	it('keeps a touch pan when the plot takes the finger from the region under it', () => {
+		const { container, plot } = renderZoomable(DIRECT)
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		const region = raiseReadout(container, 1)
+
+		fireEvent.pointerMove(region, { pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 10 })
+
+		// The pan took the finger onto the plot, so the region lost it. That loss
+		// bubbles to the plot, and it is not the end of the pan.
+		fireEvent.lostPointerCapture(region, { pointerId: 1, pointerType: 'touch' })
+
+		const before = transformOf(container)
+
+		fireEvent.pointerMove(plot, { pointerId: 1, pointerType: 'touch', clientX: 0, clientY: 0 })
+
+		expect(transformOf(container)).not.toBe(before)
+	})
+
+	it('takes both fingers of a pinch onto the plot, and clears the readout', () => {
+		const { container, plot } = renderZoomable(DIRECT)
+
+		raiseReadout(container, 1)
+
+		fireEvent.pointerDown(plot, { pointerId: 2, pointerType: 'touch', clientX: 80, clientY: 20 })
+
+		// The first finger has not moved, and it is taken all the same. On its
+		// region, each move would raise the readout again.
+		expect(plot.hasPointerCapture(1)).toBe(true)
+
+		expect(plot.hasPointerCapture(2)).toBe(true)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('takes both fingers of a pinch onto the SVG by default, and clears the readout', () => {
+		const { container, plot, svg } = renderZoomable()
+
+		raiseReadout(container, 1)
+
+		fireEvent.pointerDown(plot, { pointerId: 2, pointerType: 'touch', clientX: 80, clientY: 20 })
+
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 40, y: 20 },
+			{ id: 2, x: 80, y: 20 },
+		])
+
+		expect(svg.hasPointerCapture(1)).toBe(true)
+
+		expect(svg.hasPointerCapture(2)).toBe(true)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('still pinches when the browser refuses to capture a finger that ended out of sight', () => {
+		const { container, plot, svg } = renderZoomable()
+
+		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 190, clientY: 100 })
+
+		vi.spyOn(svg, 'setPointerCapture').mockImplementation(() => {
+			throw new DOMException('No active pointer with the given id is found.', 'NotFoundError')
+		})
+
+		twoFinger(
+			svg,
+			[
+				{ x: 190, y: 100 },
+				{ x: 210, y: 100 },
+			],
+			[
+				{ x: 170, y: 100 },
+				{ x: 230, y: 100 },
+			],
+		)
+
+		// The spread went from 20 to 60, so the scale is three times the fit.
+		expect(scaleOf(container)).toBeCloseTo(3, 3)
 	})
 })
 
