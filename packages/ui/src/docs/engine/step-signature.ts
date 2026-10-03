@@ -224,12 +224,18 @@ export function stepSignature(instance: Element, label: string): string | null {
 function ownTextOf(element: Element, label: string): string {
 	let text = ''
 
-	for (const node of element.childNodes) if (node instanceof Text) text += node.data
+	// The node type and not `instanceof Text`, so that the read also works on a
+	// document of the prerender, which has its own `Text` class.
+	for (const node of element.childNodes)
+		if (node.nodeType === TEXT_NODE) text += node.textContent ?? ''
 
 	text = text.trim()
 
 	return label === '' ? text : text.replaceAll(label, '#label')
 }
+
+/** The `nodeType` of a text node. */
+const TEXT_NODE = 3
 
 /** A heading tag: `h1` through `h6`. */
 const HEADING = /^h[1-6]$/

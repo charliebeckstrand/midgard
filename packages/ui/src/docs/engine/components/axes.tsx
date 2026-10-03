@@ -6,6 +6,7 @@ import {
 	type Ref,
 	Suspense,
 	use,
+	useId,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -14,15 +15,17 @@ import { createContext, dataAttr } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
 import {
+	type AxesRead,
 	type Axis,
 	type AxisValue,
 	axesOf,
 	distinctValues,
 	isStepAxis,
+	readAxes,
 	rendersAlike,
 } from '../axes'
+import { signaturesIn, useAxesPrerender } from '../axes-prerender'
 import { noAutofill } from '../no-autofill'
-import { formSignature, lookSignature, stepSignature } from '../step-signature'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
 import { OptionsListbox } from './options-listbox'
@@ -154,10 +157,19 @@ function AxesExamples({
 }: AxesProps & { component: ComponentApi }) {
 	const all = axesOf(component, omit)
 
-	// The axes that change only the accessibility tree. The first read sets it.
-	const [unseen, setUnseen] = useState<ReadonlySet<string> | null>(null)
+	const id = useId()
 
-	const axes = unseen ? all.filter((axis) => !unseen.has(axis.name)) : all
+	const prerender = useAxesPrerender()
+
+	// The first pass of the prerender takes the axes of each `Axes`. The server
+	// reads their instances in the HTML of the pass (`AxesPrerender`).
+	prerender?.collect?.set(id, all)
+
+	// The first read: the read of the prerender, or the read of the first layout
+	// effect. Its unseen axes hide, and its live axes can become inert.
+	const [read, setRead] = useState<AxesRead | null>(() => prerender?.reads?.[id] ?? null)
+
+	const axes = read ? all.filter((axis) => !read.unseen.includes(axis.name)) : all
 
 	const [state, setState] = useState<Record<string, AxisValue | undefined>>(() =>
 		Object.fromEntries(all.map((axis) => [axis.name, axis.default])),
@@ -168,65 +180,43 @@ function AxesExamples({
 
 	// The values that the example of each axis shows. An axis with no entry
 	// shows each value until the next read.
-	const [shown, setShown] = useState<Record<string, AxisValue[]>>({})
-
-	// The axes that are not density axes and whose instances differ at the
-	// defaults. The first read sets it. Only such an axis can become inert.
-	const live = useRef<ReadonlySet<string> | null>(null)
+	const [shown, setShown] = useState<Record<string, AxisValue[]>>(() => read?.shown ?? {})
 
 	// Read each axis with no entry after the commit, before the paint. The read
-	// takes the DOM and no layout, so it gives one answer in each environment.
+	// takes the DOM and no layout, so the prerender can make the first read
+	// (`AxesPrerender`).
 	useLayoutEffect(() => {
 		const unread = axes.filter((axis) => !shown[axis.name])
 
 		if (unread.length === 0) return
 
-		const signatureOf = (axis: Axis, value: AxisValue) => {
-			const instance = instances.current.get(`${axis.name}:${value}`)
+		const signatures = signaturesIn(instances.current)
 
-			if (!instance) return null
+		if (!read) {
+			const first = readAxes(unread, signatures)
 
-			const label = valueLabel(value)
+			setRead(first)
 
-			return isStepAxis(axis) ? stepSignature(instance, label) : formSignature(instance, label)
+			setShown((prev) => ({ ...prev, ...first.shown }))
+
+			return
 		}
 
-		const alike = (axis: Axis) => rendersAlike(axis.values.map((value) => signatureOf(axis, value)))
+		const alike = (axis: Axis) =>
+			rendersAlike(axis.values.map((value) => signatures.form(axis, value)))
 
-		// An axis whose instances differ in form and look the same changes only the
-		// accessibility tree. It hides from the first read on.
-		if (!unseen) {
-			const silent = unread.filter(
-				(axis) =>
-					!isStepAxis(axis) &&
-					!alike(axis) &&
-					rendersAlike(
-						axis.values.map((value) => {
-							const instance = instances.current.get(`${axis.name}:${value}`)
-
-							return instance ? lookSignature(instance, valueLabel(value)) : null
-						}),
-					),
-			)
-
-			setUnseen(new Set(silent.map((axis) => axis.name)))
-		}
-
-		live.current ??= new Set(
-			unread.filter((axis) => !isStepAxis(axis) && !alike(axis)).map((axis) => axis.name),
-		)
-
-		const read = unread.map((axis) => {
-			if (isStepAxis(axis)) return [axis.name, distinctValues(axis, (v) => signatureOf(axis, v))]
+		const next = unread.map((axis) => {
+			if (isStepAxis(axis))
+				return [axis.name, distinctValues(axis, (v) => signatures.form(axis, v))]
 
 			// The other axes make a live axis inert when its instances render alike.
 			// The example of an inert axis shows no value, so it hides.
-			const inert = live.current?.has(axis.name) && alike(axis)
+			const inert = read.live.includes(axis.name) && alike(axis)
 
 			return [axis.name, inert ? [] : axis.values]
 		})
 
-		setShown((prev) => ({ ...prev, ...Object.fromEntries(read) }))
+		setShown((prev) => ({ ...prev, ...Object.fromEntries(next) }))
 	})
 
 	const valuesOf = (axis: Axis) => shown[axis.name] ?? axis.values
@@ -281,6 +271,9 @@ function AxesExamples({
 							{valuesOf(axis).map((value) => (
 								<AxisInstance
 									key={String(value)}
+									axes={id}
+									axis={axis.name}
+									value={value}
 									label={valueLabel(value)}
 									caption={captions}
 									ref={(element) => {
@@ -321,18 +314,33 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
  * same child takes in a custom example, with or without a caption.
  */
 function AxisInstance({
+	axes,
+	axis,
+	value,
 	label,
 	caption,
 	ref,
 	children,
 }: {
+	/** The `useId` of the `Axes`, which the prerender reads (`readPrerenderedAxes`). */
+	axes: string
+	axis: string
+	value: AxisValue
 	label: string
 	caption: boolean
 	ref?: Ref<HTMLDivElement> | undefined
 	children: ReactNode
 }) {
 	return (
-		<div ref={ref} data-slot="axis-value" data-label={label} data-caption={dataAttr(caption)}>
+		<div
+			ref={ref}
+			data-slot="axis-value"
+			data-axes={axes}
+			data-axis={axis}
+			data-value={String(value)}
+			data-label={label}
+			data-caption={dataAttr(caption)}
+		>
 			{caption && (
 				<span
 					data-slot="axis-caption"

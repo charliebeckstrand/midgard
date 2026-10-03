@@ -198,3 +198,60 @@ export function rendersAlike(signatures: readonly (string | null)[]): boolean {
 		signatures.every((signature) => signature === first)
 	)
 }
+
+/**
+ * The first read of the axes of one `Axes`, at the default values. Each field
+ * is a list, so that the read can go in the HTML of a page as JSON.
+ */
+export type AxesRead = {
+	/** The axes that change only the accessibility tree. They hide. */
+	unseen: string[]
+	/** The values that the example of each axis shows. An empty list hides the example. */
+	shown: Record<string, AxisValue[]>
+	/** The axes that are not density axes and whose instances differ at the defaults. Only such an axis can become inert. */
+	live: string[]
+}
+
+/**
+ * The rendered forms of the instances of each axis, which {@link readAxes}
+ * compares. Each function returns `null` when the instance is not known.
+ */
+export type AxisSignatures = {
+	/** The {@link stepSignature} of a density axis, or the form of another axis. */
+	form: (axis: Axis, value: AxisValue) => string | null
+	/** The look of an instance of an axis that is not a density axis. */
+	look: (axis: Axis, value: AxisValue) => string | null
+}
+
+/**
+ * Read the axes of one `Axes` at the default values.
+ *
+ * @remarks
+ * An axis whose instances differ in form and look the same changes only the
+ * accessibility tree, so it is unseen. A density axis shows its
+ * {@link distinctValues}. Each other axis shows each value.
+ */
+export function readAxes(axes: readonly Axis[], signatures: AxisSignatures): AxesRead {
+	const alike = (axis: Axis) =>
+		rendersAlike(axis.values.map((value) => signatures.form(axis, value)))
+
+	const unseen = axes.filter(
+		(axis) =>
+			!isStepAxis(axis) &&
+			!alike(axis) &&
+			rendersAlike(axis.values.map((value) => signatures.look(axis, value))),
+	)
+
+	return {
+		unseen: unseen.map((axis) => axis.name),
+		shown: Object.fromEntries(
+			axes.map((axis) => [
+				axis.name,
+				isStepAxis(axis)
+					? distinctValues(axis, (value) => signatures.form(axis, value))
+					: [...axis.values],
+			]),
+		),
+		live: axes.filter((axis) => !isStepAxis(axis) && !alike(axis)).map((axis) => axis.name),
+	}
+}
