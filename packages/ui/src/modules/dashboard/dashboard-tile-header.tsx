@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { useTruncation } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/dashboard'
+import { useDashboardTitleLevel } from './context'
 import { DashboardTileGuard } from './dashboard-tile-boundary'
 
 /** Props for {@link DashboardTileTitle}. @internal */
@@ -19,7 +20,8 @@ type DashboardTileTitleProps = {
 }
 
 /**
- * The title of a tile, clipped to one line. When the title truncates, a hover
+ * The title of a tile, a heading at the `titleLevel` of the dashboard, clipped
+ * to one line. When the title truncates, a hover
  * tooltip shows the full text. This is the reveal of the chart header and the
  * grid header.
  *
@@ -30,13 +32,21 @@ type DashboardTileTitleProps = {
 function DashboardTileTitle({ id, title, editing }: DashboardTileTitleProps) {
 	const [ref, truncated] = useTruncation<HTMLHeadingElement>()
 
+	const level = useDashboardTitleLevel()
+
 	return (
 		<Tooltip disabled={!truncated || editing}>
 			<TooltipTrigger>
 				{/* The trigger gives its own slot to a child with no slot, so the title
 				    states its slot. `block` wins over the `inline-flex` of the trigger,
 				    because an ellipsis paints only on a block box. */}
-				<CardTitle ref={ref} id={id} data-slot="card-title" className="block truncate">
+				<CardTitle
+					ref={ref}
+					id={id}
+					level={level}
+					data-slot="card-title"
+					className="block truncate"
+				>
 					{title}
 				</CardTitle>
 			</TooltipTrigger>
