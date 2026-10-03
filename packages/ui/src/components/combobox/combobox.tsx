@@ -12,6 +12,7 @@ import {
 	useId,
 	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import type { ControlStep } from '../../core/density'
 import {
@@ -373,6 +374,17 @@ export function Combobox<T>({
 
 	const optionsRef = useRef<HTMLDivElement>(null)
 
+	// The options container mounts with the portal of the panel, after the open
+	// commits. The effects below key on this state, so that they read the
+	// options when the container attaches. The ref serves the key handlers.
+	const [optionsNode, setOptionsNode] = useState<HTMLDivElement | null>(null)
+
+	const attachOptions = useCallback((node: HTMLDivElement | null) => {
+		optionsRef.current = node
+
+		setOptionsNode(node)
+	}, [])
+
 	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
 	// via `VirtualItemSourceContext`; null for a non-virtualized combobox, which
 	// keeps the DOM-query roving below unchanged.
@@ -487,6 +499,10 @@ export function Combobox<T>({
 			return
 		}
 
+		// The panel is open, but its options are not attached yet. Keep the
+		// arrow-key flag until they attach and this effect runs again.
+		if (!optionsNode) return
+
 		const anchorSelected = anchorSelectedOnOpenRef.current
 
 		anchorSelectedOnOpenRef.current = false
@@ -496,7 +512,7 @@ export function Combobox<T>({
 		// open leaves; with nothing selected it falls through to that empty
 		// highlight. Single mode only — `multiple` carries no single selection.
 		if (anchorSelected && !source) {
-			const items = queryItems(optionsRef.current, OPTION_SELECTOR)
+			const items = queryItems(optionsNode, OPTION_SELECTOR)
 
 			const selectedIndex = multiple
 				? -1
@@ -516,8 +532,8 @@ export function Combobox<T>({
 
 		lastQueryRef.current = deferredQuery
 
-		seedTopMatch(optionsRef.current, source, activeIndexRef, inputRef)
-	}, [open, deferredQuery, multiple])
+		seedTopMatch(optionsNode, source, activeIndexRef, inputRef)
+	}, [open, optionsNode, deferredQuery, multiple])
 
 	// Async option swaps for an unchanged query (e.g. address suggestions
 	// resolving) unmount the highlighted option while `deferredQuery`, the key
@@ -534,7 +550,7 @@ export function Combobox<T>({
 	useEffect(() => {
 		if (!open) return
 
-		const node = optionsRef.current
+		const node = optionsNode
 
 		if (!node) return
 
@@ -545,7 +561,7 @@ export function Combobox<T>({
 		observer.observe(node, { childList: true, subtree: true })
 
 		return () => observer.disconnect()
-	}, [open])
+	}, [open, optionsNode])
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
@@ -735,7 +751,7 @@ export function Combobox<T>({
 						ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
 						floatingStyles={floatingStyles}
 						getFloatingProps={getFloatingProps}
-						optionsRef={optionsRef}
+						optionsRef={attachOptions}
 						setFloating={refs.setFloating}
 						scrollToSelected={scrollToSelected}
 						flushPending={flushPending}
