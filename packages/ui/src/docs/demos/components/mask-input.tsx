@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Field, Label } from '../../../components/fieldset'
 import { MaskInput, phoneMask, zipcodeMask } from '../../../components/mask-input'
+import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
@@ -49,6 +50,7 @@ function ControlledExample() {
 					placeholder="ABC-1234"
 				/>
 			</Field>
+			<Text className="tabular-nums">{value || 'Empty'}</Text>
 		</Example>
 	)
 }

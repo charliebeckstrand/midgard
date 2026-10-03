@@ -1,12 +1,23 @@
 import { useState } from 'react'
 import { DatePicker, type DatePickerRelativeValue } from '../../../components/date-picker'
+import { Text } from '../../../components/text'
 import { GlassProvider } from '../../../providers/glass'
 import { Axes, Example } from '../../engine'
 
 const launch = new Date(2026, 0, 15)
 
-export function Demo() {
+function ControlledExample() {
 	const [date, setDate] = useState<Date | null>(null)
+
+	return (
+		<Example title="Controlled">
+			<DatePicker aria-label="Due date" value={date} onValueChange={setDate} />
+			<Text className="tabular-nums">{date ? date.toDateString() : 'Empty'}</Text>
+		</Example>
+	)
+}
+
+export function Demo() {
 	const [footerDate, setFooterDate] = useState<Date | null>(null)
 	const [range, setRange] = useState<[Date, Date] | null>(null)
 	const [relative, setRelative] = useState<DatePickerRelativeValue[] | null>(null)
@@ -26,9 +37,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Controlled">
-				<DatePicker aria-label="Due date" value={date} onValueChange={setDate} />
-			</Example>
+			<ControlledExample />
 
 			<Example title="Range">
 				<DatePicker
