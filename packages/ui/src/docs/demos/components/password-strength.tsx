@@ -59,11 +59,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="PasswordStrength"
-				// The meter has no width of its own. Without the rules, it shrinks to the
-				// gaps between the segments. Each instance thus takes one width.
-				render={(props) => (
-					<PasswordStrength {...props} value="Secret12" className="w-64 max-w-full" />
-				)}
+				render={(props) => <PasswordStrength {...props} value="Secret12" />}
 			/>
 
 			<Example title="With input">

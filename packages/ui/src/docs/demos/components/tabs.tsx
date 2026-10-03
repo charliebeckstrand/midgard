@@ -133,7 +133,7 @@ export function Demo() {
 			/>
 
 			<Example title="Stretch">
-				<Tabs defaultValue="Sign in" className="w-full max-w-sm">
+				<Tabs defaultValue="Sign in">
 					<TabList aria-label="Authentication">
 						<Tab value="Sign in" stretch>
 							Sign in

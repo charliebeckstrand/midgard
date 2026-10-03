@@ -39,7 +39,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Dashboard grid">
-				<div className="grid w-full gap-4 sm:grid-cols-3">
+				<div className="grid gap-4 sm:grid-cols-3">
 					<Card bg="none">
 						<CardBody>
 							<Stat>
