@@ -84,6 +84,10 @@ export type RangeSliderProps = {
  * `false` to clamp each thumb at the other. Each thumb carries `aria-valuemin`/`max`/`now` and a
  * `labels` name, with optional `getValueText` for `aria-valuetext`.
  *
+ * The track mirrors in a right-to-left layout, as the native input of `Slider` does. The start
+ * thumb is then on the right, and a pointer press reads the value from the right edge.
+ * `ArrowLeft` steps a thumb up, and `ArrowRight` steps it down.
+ *
  * @remarks Bound to a Form field through `name`, the slider marks the field touched when
  * focus leaves the widget. A move from one thumb to the other does not mark it. An error
  * on the field, or an `error` severity on an enclosing Control, marks each thumb invalid.
@@ -156,19 +160,19 @@ export function RangeSlider({
 
 	const validation = invalidAttrs(controlProps.invalid)
 
-	// The widget has two thumbs and no native input. Focus that moves from one thumb to the
-	// other stays in the widget, so only a blur to a node outside the root marks the field.
-	const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
-		const next = event.relatedTarget as Node | null
-
-		if (event.currentTarget.contains(next)) return
-
-		setTouched()
-	}
-
 	const trackRef = useRef<HTMLDivElement>(null)
 	const loThumbRef = useRef<HTMLButtonElement>(null)
 	const hiThumbRef = useRef<HTMLButtonElement>(null)
+
+	// The widget has two thumbs and no native input. Focus that moves from one thumb to the
+	// other stays in the widget, so only a blur to a node that is not a thumb marks the field.
+	const handleThumbBlur = (event: FocusEvent<HTMLButtonElement>) => {
+		const next = event.relatedTarget
+
+		if (next !== null && (next === loThumbRef.current || next === hiThumbRef.current)) return
+
+		setTouched()
+	}
 
 	// One tuple for both hooks, so the pair cannot drift between them.
 	const thumbRefs: ThumbButtonRefs = [loThumbRef, hiThumbRef]
@@ -226,7 +230,6 @@ export function RangeSlider({
 	const hi = pct(current[1], min, max)
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: the root only hears the focus that leaves its two role="slider" thumbs. The thumbs carry the widget semantics.
 		<div
 			ref={ref}
 			data-slot="slider-range"
@@ -239,7 +242,6 @@ export function RangeSlider({
 			onPointerUp={onPointerUp}
 			onPointerCancel={onPointerCancel}
 			onLostPointerCapture={onLostPointerCapture}
-			onBlur={handleBlur}
 		>
 			{/* Track */}
 			<div
@@ -251,7 +253,7 @@ export function RangeSlider({
 				<div
 					data-slot="slider-range-fill"
 					className={cn(k.fill, 'h-full')}
-					style={{ left: `${lo}%`, right: `${100 - hi}%` }}
+					style={{ insetInlineStart: `${lo}%`, insetInlineEnd: `${100 - hi}%` }}
 				/>
 			</div>
 
@@ -272,8 +274,9 @@ export function RangeSlider({
 				{...validation}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
-				style={{ left: `${lo}%` }}
+				style={{ insetInlineStart: `${lo}%` }}
 				onKeyDown={handleKeyDown(0)}
+				onBlur={handleThumbBlur}
 			/>
 
 			{/* High thumb */}
@@ -292,8 +295,9 @@ export function RangeSlider({
 				{...validation}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
-				style={{ left: `${hi}%` }}
+				style={{ insetInlineStart: `${hi}%` }}
 				onKeyDown={handleKeyDown(1)}
+				onBlur={handleThumbBlur}
 			/>
 
 			{fieldLabelledBy && (
