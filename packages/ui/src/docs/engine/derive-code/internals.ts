@@ -186,17 +186,40 @@ export function formatProps(
 			continue
 		}
 
+		// A constant arithmetic source, such as `aspectRatio={16 / 9}`, prints as
+		// written. The live value of a fraction does not read as the demo wrote it.
+		const constant = fact?.props[key]
+
+		if (constant !== undefined && CONSTANT_RE.test(constant)) {
+			slots.push({ key, text: `${key}={${constant}}`, live: false })
+
+			continue
+		}
+
 		const live = formatLiveProp(key, value, context)
 
 		if (live === null) {
 			// A live `false`, `null`, or `undefined` reads as absent. An authored
 			// `false` turns off a prop whose default is on, and an authored `null`
-			// keeps a prop controlled, so each prints. Another source prints only
-			// through the consistency pass below, as a controlled `open={open}` does.
+			// keeps a prop controlled, so each prints. A live `null` whose source
+			// names a declaration of the demo prints that name: the value is empty
+			// only for now, as data that loads after the mount is. Another source
+			// prints only through the consistency pass below, as a controlled
+			// `open={open}` does.
 			const source = fact?.props[key]
 
 			if (source !== undefined) {
 				const literal = value === false ? 'false' : value === null ? 'null' : undefined
+
+				if (value === null && source !== literal && isDeclared(source, context)) {
+					slots.push({
+						key,
+						text: `${key}={${registerFactText(source, context)}}`,
+						live: false,
+					})
+
+					continue
+				}
 
 				slots.push({ key, text: source === literal ? `${key}={${literal}}` : '', live: true })
 			}
@@ -291,6 +314,14 @@ function formatLiveProp(key: string, value: unknown, context: Context): string |
 }
 
 const IDENTIFIER_RE = /^[A-Za-z_$][\w$]*$/
+
+/** A source of number literals and arithmetic alone, such as `16 / 9`. */
+const CONSTANT_RE = /^[\d\s.+\-*/()]+$/
+
+/** Whether a source is one name that a declaration of the demo binds. */
+function isDeclared(source: string, context: Context): boolean {
+	return IDENTIFIER_RE.test(source) && own(context.facts?.bindings, source) !== undefined
+}
 
 /**
  * The live form of an element prop's value, as inline JSX with its children.
