@@ -33,7 +33,6 @@
 				"useExhaustiveDependencies": "error"
 			},
 			"performance": {
-				"noImgElement": "off",
 				"noReExportAll": "error"
 			},
 			"style": {
@@ -53,6 +52,16 @@
 	},
 	"overrides": [
 		{
+			"includes": ["packages/ui/**"],
+			"linter": {
+				"rules": {
+					"performance": {
+						"noImgElement": "off"
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"packages/ui/**",
 				"!packages/ui/**/__tests__/**",
@@ -60,6 +69,23 @@
 				"!packages/ui/**/*.test.tsx",
 				"!packages/ui/**/*.bench.ts",
 				"!packages/ui/src/docs/**"
+			],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noExcessiveCognitiveComplexity": "error"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"apps/**",
+				"packages/auth/**",
+				"packages/shared/**",
+				"!**/__tests__/**",
+				"!**/*.test.ts",
+				"!**/*.test.tsx"
 			],
 			"linter": {
 				"rules": {
