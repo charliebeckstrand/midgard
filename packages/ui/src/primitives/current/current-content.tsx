@@ -91,16 +91,25 @@ function useEntranceLatch(current: boolean, initiallyReady: boolean, release: ()
 
 	const [wasCurrent, setWasCurrent] = useState(current)
 
+	// Whether the last render showed the panel, which is the target of its fade.
+	const [wasShown, setWasShown] = useState(current && initiallyReady)
+
 	if (wasCurrent !== current) {
 		setWasCurrent(current)
 
 		if (current) setReady(false)
-		else if (!ready) {
-			setReady(true)
+		else {
+			if (!ready) setReady(true)
 
-			release()
+			// The ready flip and the switch away can land in one render. Then the fade
+			// target stays at 0, no fade-out runs, and no landing releases the panel.
+			if (!wasShown) release()
 		}
 	}
+
+	const shown = current && ready
+
+	if (wasShown !== shown) setWasShown(shown)
 
 	useEffect(() => {
 		if (ready || !current) return
