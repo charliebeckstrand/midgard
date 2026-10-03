@@ -155,6 +155,8 @@ const LegendPlacementExample = ({
 }) => {
 	const [placement, setPlacement] = useState<LegendPlacement>('right')
 
+	// The chart comes from a render prop, so the derived code cannot read its
+	// data or its series. The block gives the props that the example changes.
 	return (
 		<Example
 			surface
@@ -214,7 +216,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example surface title="Negative values" code={code`<BarChart crosshair … />`}>
+							<Example surface title="Negative values">
 								<BarChart
 									aria-label="Month-over-month swing"
 									data={swings}
@@ -223,11 +225,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Reference lines"
-								code={code`<BarChart legend reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 80, label: 'Ceiling', color: '#e11d48' }]} … />`}
-							>
+							<Example surface title="Reference lines">
 								<BarChart
 									aria-label="Revenue by month against a target and ceiling"
 									data={months}
@@ -255,7 +253,7 @@ export function Demo() {
 								)}
 							</LegendPlacementExample>
 
-							<Example surface replay title="Animated" code={code`<BarChart animate … />`}>
+							<Example surface replay title="Animated">
 								<BarChart
 									aria-label="Revenue and costs by month, animated"
 									data={months}
@@ -268,11 +266,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Tooltip trigger"
-								code={code`<BarChart tooltip={{ trigger: 'click' }} … />`}
-							>
+							<Example surface title="Tooltip trigger">
 								<BarChart
 									aria-label="Revenue and costs by month"
 									data={months}
@@ -284,11 +278,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Title & subtitle"
-								code={code`<BarChart title="…" subtitle="…" … />`}
-							>
+							<Example surface title="Title & subtitle">
 								<BarChart
 									aria-label="Revenue and costs by month"
 									data={months}
@@ -322,7 +312,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example surface title="Single-series" code={code`<LineChart … />`}>
+							<Example surface title="Single-series">
 								<LineChart
 									aria-label="Revenue by month"
 									data={months}
@@ -330,11 +320,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Multi-series"
-								code={code`<LineChart crosshair={{ x: false, y: true }} … />`}
-							>
+							<Example surface title="Multi-series">
 								<LineChart
 									aria-label="Revenue and margin by month"
 									data={months}
@@ -347,11 +333,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Custom colors"
-								code={code`<LineChart series={[{ …, color: '#e11d48' }, { …, color: 'oklch(0.68 0.17 250)' }]} … />`}
-							>
+							<Example surface title="Custom colors">
 								<LineChart
 									aria-label="Revenue and margin by month, in custom colors"
 									data={months}
@@ -367,11 +349,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Dual axis"
-								code={code`<LineChart axes={{ y: { format: … }, y2: { format: … } }} series={[…, { …, axis: 'y2' }]} … />`}
-							>
+							<Example surface title="Dual axis">
 								<LineChart
 									aria-label="Rate per pound against shipped weight by month"
 									data={freight}
@@ -392,11 +370,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Dashed line"
-								code={code`<LineChart series={[{ … }, { …, axis: 'y2', dashed: true }]} … />`}
-							>
+							<Example surface title="Dashed line">
 								<LineChart
 									aria-label="Rate per pound against shipped weight by month, the weight line dashed"
 									data={freight}
@@ -424,11 +398,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Time axis"
-								code={code`<LineChart axes={{ x: { type: 'time' } }} … />`}
-							>
+							<Example surface title="Time axis">
 								<LineChart
 									aria-label="Visits by day"
 									data={dailyVisits}
@@ -437,7 +407,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example surface title="Date labels" code={code`<LineChart … />`}>
+							<Example surface title="Date labels">
 								{/* A plain category axis whose every key parses as a date labels
 								    itself in the locale's month/day order on its own — no time axis,
 								    so the per-row labels stay, just normalized. */}
@@ -449,11 +419,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Category dividers"
-								code={code`<LineChart axes={{ x: { separator: 'dashed' } }} … />`}
-							>
+							<Example surface title="Category dividers">
 								<LineChart
 									aria-label="Revenue by month, with a divider between each"
 									data={months}
@@ -462,11 +428,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Value labels"
-								code={code`<LineChart labels={{ endpoints: true, extremes: true }} … />`}
-							>
+							<Example surface title="Value labels">
 								{/* Point labels are single-series only: a lone line has room to name
 								    its endpoints and extremes without crowding a neighbor. */}
 								<LineChart
@@ -478,11 +440,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Reference labels"
-								code={code`<LineChart reference={[{ value: 60, label: 'Target', color: 'green' }]} labels={{ references: true }} … />`}
-							>
+							<Example surface title="Reference labels">
 								<LineChart
 									aria-label="Revenue by month against a target, with reference labels"
 									data={months}
@@ -492,7 +450,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example surface replay title="Animated" code={code`<LineChart animate … />`}>
+							<Example surface replay title="Animated">
 								<LineChart
 									aria-label="Revenue and margin by month, animated"
 									data={months}
@@ -526,7 +484,7 @@ export function Demo() {
 								)}
 							/>
 
-							<Example surface title="Single-series" code={code`<AreaChart … />`}>
+							<Example surface title="Single-series">
 								<AreaChart
 									aria-label="Revenue by month"
 									data={months}
@@ -534,11 +492,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Smooth interpolation"
-								code={code`<AreaChart interpolation="smooth" crosshair={{ x: false, y: true }} … />`}
-							>
+							<Example surface title="Smooth interpolation">
 								<AreaChart
 									aria-label="Revenue and margin by month"
 									data={months}
@@ -551,7 +505,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example surface replay title="Animated" code={code`<AreaChart stacked animate … />`}>
+							<Example surface replay title="Animated">
 								<AreaChart
 									aria-label="Revenue and costs by month, stacked and animated"
 									data={months}
@@ -568,7 +522,7 @@ export function Demo() {
 
 					<TabContent value="pie">
 						<Stack gap="xl">
-							<Example surface title="No labels" code={code`<PieChart … />`}>
+							<Example surface title="No labels">
 								<PieChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -576,11 +530,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Segment labels"
-								code={code`<PieChart labels={{ segment: true }} … />`}
-							>
+							<Example surface title="Segment labels">
 								<PieChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -589,11 +539,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Callout labels"
-								code={code`<PieChart labels={{ callouts: true }} … />`}
-							>
+							<Example surface title="Callout labels">
 								<PieChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -613,7 +559,7 @@ export function Demo() {
 								)}
 							</LegendPlacementExample>
 
-							<Example surface replay title="Animated" code={code`<PieChart animate … />`}>
+							<Example surface replay title="Animated">
 								<PieChart
 									aria-label="Traffic by source, animated"
 									data={sources}
@@ -626,7 +572,7 @@ export function Demo() {
 
 					<TabContent value="donut">
 						<Stack gap="xl">
-							<Example surface title="Basic" code={code`<DonutChart />`}>
+							<Example surface title="Basic">
 								<DonutChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -634,7 +580,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example surface title="Center content" code={code`<DonutChart>…</DonutChart>`}>
+							<Example surface title="Center content">
 								<DonutChart
 									aria-label="Traffic by source"
 									data={sources}
@@ -647,7 +593,7 @@ export function Demo() {
 								</DonutChart>
 							</Example>
 
-							<Example surface replay title="Animated" code={code`<DonutChart animate … />`}>
+							<Example surface replay title="Animated">
 								<DonutChart
 									aria-label="Traffic by source, animated"
 									data={sources}
@@ -660,11 +606,7 @@ export function Demo() {
 
 					<TabContent value="combo">
 						<Stack gap="xl">
-							<Example
-								surface
-								title="Bar and line"
-								code={code`<ComboChart crosshair={{ x: true, y: false }} … />`}
-							>
+							<Example surface title="Bar and line">
 								<ComboChart
 									aria-label="Revenue bars with margin line by month"
 									data={months}
@@ -676,11 +618,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Bar, area, and line"
-								code={code`<ComboChart series={[{ type: 'bar' … }, { type: 'area' … }, { type: 'line' … }]} … />`}
-							>
+							<Example surface title="Bar, area, and line">
 								<ComboChart
 									aria-label="Revenue bars over a cost area with a margin line by month"
 									data={months}
@@ -692,11 +630,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								surface
-								title="Dual axis"
-								code={code`<ComboChart axes={{ y2: { title: 'Exceptions' } }} series={[…, { …, axis: 'y2' }]} … />`}
-							>
+							<Example surface title="Dual axis">
 								<ComboChart
 									aria-label="Weekly shipments with exception counts"
 									data={operations}
@@ -717,7 +651,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example surface replay title="Animated" code={code`<ComboChart animate … />`}>
+							<Example surface replay title="Animated">
 								<ComboChart
 									aria-label="Revenue bars over a cost area with a margin line by month, animated"
 									data={months}
@@ -734,7 +668,7 @@ export function Demo() {
 
 					<TabContent value="scatter">
 						<Stack gap="xl">
-							<Example surface title="Multi-series" code={code`<ScatterChart crosshair … />`}>
+							<Example surface title="Multi-series">
 								<ScatterChart
 									aria-label="Dwell and handling time against stop distance"
 									data={stops}
@@ -747,7 +681,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example surface replay title="Animated" code={code`<ScatterChart animate … />`}>
+							<Example surface replay title="Animated">
 								<ScatterChart
 									aria-label="Dwell and handling time against stop distance, animated"
 									data={stops}
@@ -763,11 +697,7 @@ export function Demo() {
 
 					<TabContent value="bubble">
 						<Stack gap="xl">
-							<Example
-								surface
-								title="Size encoding"
-								code={code`<BubbleChart series={[{ …, sizeKey: 'weight' }]} crosshair … />`}
-							>
+							<Example surface title="Size encoding">
 								<BubbleChart
 									aria-label="Dwell against distance, sized by weight"
 									data={stops}
@@ -785,7 +715,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example surface replay title="Animated" code={code`<BubbleChart animate … />`}>
+							<Example surface replay title="Animated">
 								<BubbleChart
 									aria-label="Dwell against distance, sized by weight, animated"
 									data={stops}
@@ -807,11 +737,7 @@ export function Demo() {
 
 					<TabContent value="heatmap">
 						<Stack gap="xl">
-							<Example
-								surface
-								title="Activity"
-								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
-							>
+							<Example surface title="Activity">
 								<HeatmapChart
 									aria-label="Commits by weekday and hour"
 									data={activity}
@@ -835,6 +761,8 @@ export function Demo() {
 							{statesFailed && (
 								<Alert color="red" variant="soft" title="Couldn't load the states atlas" />
 							)}
+							{/* The geography loads after the mount, so the derived code would
+							    not show it. */}
 							<Example
 								surface
 								title="Heatmap"
