@@ -12,7 +12,7 @@ describe('Odometer', () => {
 	it('renders the initial value using the default formatter', () => {
 		const { container } = renderUI(<Odometer value={1234} />)
 
-		expect(bySlot(container, 'odometer')).toHaveTextContent('1,234')
+		expect(bySlot(container, 'odometer-display')).toHaveTextContent('1,234')
 	})
 
 	it('groups the default in the ambient locale', () => {
@@ -22,15 +22,15 @@ describe('Odometer', () => {
 			</LocaleProvider>,
 		)
 
-		expect(bySlot(container, 'odometer')).toHaveTextContent('1.234')
+		expect(bySlot(container, 'odometer-display')).toHaveTextContent('1.234')
 
-		expect(bySlot(container, 'odometer')).toHaveAttribute('aria-label', '1.234')
+		expect(bySlot(container, 'odometer-value')).toHaveTextContent('1.234')
 	})
 
 	it('applies a custom format function', () => {
 		const { container } = renderUI(<Odometer value={42} format={(n) => `${Math.round(n)} pts`} />)
 
-		expect(bySlot(container, 'odometer')).toHaveTextContent('42 pts')
+		expect(bySlot(container, 'odometer-display')).toHaveTextContent('42 pts')
 	})
 
 	it('snaps immediately when duration is 0', () => {
@@ -38,7 +38,7 @@ describe('Odometer', () => {
 
 		rerender(<Odometer value={500} duration={0} />)
 
-		expect(bySlot(container, 'odometer')).toHaveTextContent('500')
+		expect(bySlot(container, 'odometer-display')).toHaveTextContent('500')
 	})
 
 	it('animates toward the new value', () => {
@@ -59,10 +59,10 @@ describe('Odometer', () => {
 
 		rerender(<Odometer value={100} duration={50} />)
 
-		expect(bySlot(container, 'odometer')).toHaveTextContent('100')
+		expect(bySlot(container, 'odometer-display')).toHaveTextContent('100')
 	})
 
-	it('exposes the settled value as an image label, not a live region', () => {
+	it('exposes the settled value as text, not as an image or a live region', () => {
 		const { container } = renderUI(<Odometer value={1234} />)
 
 		const el = bySlot(container, 'odometer')
@@ -70,26 +70,28 @@ describe('Odometer', () => {
 		// No live region: the per-frame tween must not be announced.
 		expect(el).not.toHaveAttribute('aria-live')
 
-		expect(el).toHaveAttribute('role', 'img')
+		// A number is text, so AT must not announce it as an image.
+		expect(el).not.toHaveAttribute('role')
 
-		// The label reflects the final target, regardless of the animated digits.
-		expect(el).toHaveAttribute('aria-label', '1,234')
+		expect(el).not.toHaveAttribute('aria-label')
+
+		expect(bySlot(container, 'odometer-display')).toHaveAttribute('aria-hidden', 'true')
+
+		expect(bySlot(container, 'odometer-value')).toHaveTextContent('1,234')
 	})
 
-	it('keeps role="img" when a consumer passes another role', () => {
+	it('drops a consumer role, so the root never becomes a live region', () => {
 		const { container } = renderUI(<Odometer value={1234} role="status" />)
 
-		expect(bySlot(container, 'odometer')).toHaveAttribute('role', 'img')
+		expect(bySlot(container, 'odometer')).not.toHaveAttribute('role')
 	})
 
 	it('prints 0, not -0, for a value that rounds to negative zero', () => {
 		const { container } = renderUI(<Odometer value={-0.3} />)
 
-		const el = bySlot(container, 'odometer')
+		expect(bySlot(container, 'odometer-display')).toHaveTextContent(/^0$/)
 
-		expect(el).toHaveTextContent(/^0$/)
-
-		expect(el).toHaveAttribute('aria-label', '0')
+		expect(bySlot(container, 'odometer-value')).toHaveTextContent(/^0$/)
 	})
 
 	it('cancels the running animation when unmounted', async () => {
