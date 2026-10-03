@@ -1,4 +1,5 @@
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/switch'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 
@@ -6,4 +7,4 @@ import { createSkeleton, type SkeletonProps } from '../placeholder'
 export type SwitchSkeletonProps = SkeletonProps<NonNullable<SwitchVariants['size']>>
 
 /** Switch-shaped loading placeholder sized to the switch's size scale. Compose in loading trees in place of a {@link Switch}. */
-export const SwitchSkeleton = createSkeleton<ControlStep>(k.skeleton, 'SwitchSkeleton')
+export const SwitchSkeleton = createSkeleton<ScaleStep<typeof scale>>(k.skeleton, 'SwitchSkeleton')

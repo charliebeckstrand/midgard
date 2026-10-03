@@ -3,8 +3,9 @@
 import { Star } from 'lucide-react'
 import { type MouseEvent, type PointerEvent, useState } from 'react'
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
+import type { scale } from '../../recipes/kata/rating'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
 import { useControl } from '../control/context'
@@ -67,7 +68,7 @@ export type RatingProps = RatingVariants & {
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the row a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Show the score and take no input. The row renders as one `role="img"`,
 	 * because a reader has no reason to walk five radios that answer nothing. Its

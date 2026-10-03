@@ -9,11 +9,11 @@ import {
 	type RefObject,
 	useRef,
 } from 'react'
-
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
+import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
 
@@ -41,7 +41,7 @@ type DatePickerContentProps = {
 	 * nearest density scope of the picker, which the portal carries. A step
 	 * makes the panel a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * The picker's virtual-focus key handler (zones + active highlight). It
 	 * lives on the trigger and, via this prop, on the dialog itself. Initial

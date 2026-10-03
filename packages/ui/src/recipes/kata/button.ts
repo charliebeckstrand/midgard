@@ -1,4 +1,4 @@
-import type { ControlStep } from '../../core/density'
+import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -28,8 +28,8 @@ export const k = defineRecipe({
 		// Each step is in a stepped `density-*` class: the button takes the step of
 		// its nearest density scope, and an explicit `size` makes the button its own
 		// scope. Five values give the steps from `xs` to `xl`, and `xl` takes the
-		// `lg` values. A button has no `xl` size (`ControlStep`), so the `xl`
-		// value is only for a button in an `xl` scope. Square padding (`p`) keeps
+		// `lg` values, so the size scale is `xs` to `lg` (`scale`). The `xl` value
+		// is only for a button in an `xl` scope. Square padding (`p`) keeps
 		// an icon-only button even-sided.
 		// When a text label is present the component sets `data-has-label`, which
 		// overrides `py` with the matching control step. A labeled button thus
@@ -75,8 +75,18 @@ export const k = defineRecipe({
 	skeleton: button,
 })
 
+/** The size scale of {@link Button}: the steps of its text, gap, padding, radius, and skeleton box. */
+export const scale = defineScale(
+	dan.text.chip,
+	dan.gap.button,
+	dan.space.button,
+	dan.radius.button,
+	dan.size.button,
+	dan.size.buttonWidth,
+)
+
 /** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
 export type ButtonVariants = VariantProps<typeof k> & {
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 }

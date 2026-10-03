@@ -2,7 +2,8 @@
 
 import { useMemo } from 'react'
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/color-panel'
 import { k } from '../../recipes/kata/color-panel'
 import { Box } from '../../structure/box'
 import { ColorArea } from './color-area'
@@ -34,7 +35,7 @@ type ColorPanelBaseProps = {
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the panel a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	disabled?: boolean
 	className?: string
 }

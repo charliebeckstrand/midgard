@@ -1,7 +1,8 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/color-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
@@ -49,7 +50,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 * of the nearest density scope. A step makes the trigger and the panel
 	 * density scopes.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	disabled?: boolean
 	className?: string
 }

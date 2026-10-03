@@ -2,8 +2,9 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import type { GroupOrientation } from '../../recipes'
+import type { scale } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/group'
 import { Box } from '../../structure/box'
 import { useGroup } from './use-group'
@@ -15,7 +16,7 @@ type GroupBaseProps = {
 	 * The density step of the children. Omit it to take the step of the nearest
 	 * density scope. A step makes the group a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 	children?: ReactNode
 }

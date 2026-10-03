@@ -21,11 +21,6 @@ import {
 //     prop takes `ScaleStep<typeof scale>`, and a JS reader snaps its step
 //     through `useStep`.
 //
-// The backlog map of the hand steps holds the files of today, with the count
-// of each file. A new hand step fails the gate, and so does a count that a
-// change makes too high. The rollout of the size scales lowers each count to
-// zero.
-//
 // The scan reads the code of the `ui` package with the comments removed. It
 // leaves out the density core, which defines the steps, and the docs site,
 // which is a consumer of the package.
@@ -75,37 +70,6 @@ const HAND_STEP = new RegExp(
 	'g',
 )
 
-/** The files that pick a step by hand today, with the count of each. */
-const HAND_STEP_BACKLOG: Record<string, number> = {
-	'components/color/color-panel.tsx': 1,
-	'components/color/color-picker-content.tsx': 1,
-	'components/color/color-picker-trigger.tsx': 1,
-	'components/color/color-picker.tsx': 1,
-	'components/combobox/combobox-panel.tsx': 1,
-	'components/combobox/combobox.tsx': 1,
-	'components/control/control-skeleton.tsx': 1,
-	'components/control/control.tsx': 1,
-	'components/date-picker/date-picker-content.tsx': 1,
-	'components/date-picker/date-picker-trigger.tsx': 1,
-	'components/date-picker/date-picker.tsx': 1,
-	'components/file-upload/file-upload-state.ts': 2,
-	'components/group/group.tsx': 1,
-	'components/input/input.tsx': 1,
-	'components/listbox/listbox-panel.tsx': 1,
-	'components/listbox/listbox.tsx': 1,
-	'components/rating/rating-skeleton.tsx': 1,
-	'components/rating/rating.tsx': 1,
-	'components/textarea/textarea-skeleton.tsx': 1,
-	'components/textarea/textarea.tsx': 1,
-	'primitives/select-trigger/select-trigger.tsx': 1,
-	'recipes/kata/button.ts': 1,
-	'recipes/kata/checkbox.ts': 1,
-	'recipes/kata/radio.ts': 1,
-	'recipes/kata/slider-range.ts': 1,
-	'recipes/kata/slider.ts': 1,
-	'recipes/kata/switch.ts': 1,
-}
-
 describe('size scale', () => {
 	it('reads the source of the package', () => {
 		// A walk that read no file would pass each case below with an empty map.
@@ -145,7 +109,7 @@ describe('size scale', () => {
 		expect(twice).toEqual([])
 	})
 
-	it('picks no step by hand outside the density core, less the backlog', () => {
-		expect(countsOf(HAND_STEP)).toEqual(HAND_STEP_BACKLOG)
+	it('picks no step by hand outside the density core', () => {
+		expect(countsOf(HAND_STEP)).toEqual({})
 	})
 })

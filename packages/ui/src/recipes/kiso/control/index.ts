@@ -9,7 +9,7 @@
 
 import { affix } from './affix'
 import { check } from './check'
-import { density, radius } from './density'
+import { density, radius, scale } from './density'
 import { frame } from './frame'
 import { input } from './input'
 import { reset } from './reset'
@@ -23,6 +23,7 @@ export const control = {
 	input,
 	density,
 	radius,
+	scale,
 	affix,
 	resets,
 	check,

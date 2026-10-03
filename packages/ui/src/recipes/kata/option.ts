@@ -35,5 +35,5 @@ export const k = {
 	 * The size of the selected-state check icon. It is the `sm`, `md`, and `lg`
 	 * steps of `shaku.iconSize`, and each outer step takes the size of its neighbor.
 	 */
-	checkSize: dan.size.optionCheck,
+	checkSize: dan.size.checkBox,
 } as const

@@ -28,9 +28,13 @@ import type { SelectTrigger } from '../../primitives/select-trigger'
 
 // A control stops at `lg`, so its `size` has no `xl` (Q-B, 2026-10-02). The
 // density engine keeps `xl` for a scope, and a control in that scope takes
-// the `lg` value.
+// the `lg` value. The size scale of a control other than Button has no `xs`
+// either, because its affix slot is a scope one step below it. The Button
+// family keeps `xs`, so a button in the slot of an `sm` control has a step.
 
-type Size = ControlStep | undefined
+type ButtonSize = Exclude<DensityStep, 'xl'> | undefined
+
+type ControlSize = Exclude<DensityStep, 'xs' | 'xl'> | undefined
 
 describe('ControlStep', () => {
 	it('is each density step but xl', () => {
@@ -44,39 +48,49 @@ describe('ControlStep', () => {
 	})
 })
 
+describe('the size of a button', () => {
+	it('runs from xs to lg', () => {
+		expectTypeOf<ComponentProps<typeof Button>['size']>().toEqualTypeOf<ButtonSize>()
+		expectTypeOf<ComponentProps<typeof ButtonSkeleton>['size']>().toEqualTypeOf<ButtonSize>()
+		expectTypeOf<ComponentProps<typeof CopyButton>['size']>().toEqualTypeOf<ButtonSize>()
+		expectTypeOf<ComponentProps<typeof ToggleIconButton>['size']>().toEqualTypeOf<ButtonSize>()
+		expectTypeOf<ComponentProps<typeof FileUploadButton>['size']>().toEqualTypeOf<ButtonSize>()
+		expectTypeOf<ComponentProps<typeof Group>['size']>().toEqualTypeOf<ButtonSize>()
+	})
+})
+
 describe('the size of a control', () => {
-	it('has no xl step', () => {
-		expectTypeOf<ComponentProps<typeof Button>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof ButtonSkeleton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof CopyButton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof ToggleIconButton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Checkbox>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof CheckboxSkeleton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Radio>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof RadioSkeleton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Switch>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof SwitchSkeleton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Control>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof ControlSkeleton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Input>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof NumberInput>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof PasswordInput>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof TagInput>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Textarea>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof TextareaSkeleton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Listbox>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Select>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Combobox>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof DatePicker>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof ColorPicker>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof ColorPanel>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof FileUploadInput>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof FileUploadButton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Slider>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof RangeSlider>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Rating>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof Group>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof SelectTrigger>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof ControlFrame>['density']>().toEqualTypeOf<Size>()
+	it('runs from sm to lg', () => {
+		expectTypeOf<ComponentProps<typeof Checkbox>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof CheckboxSkeleton>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Radio>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof RadioSkeleton>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Switch>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof SwitchSkeleton>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Control>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof ControlSkeleton>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Input>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof NumberInput>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof PasswordInput>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof TagInput>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Textarea>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof TextareaSkeleton>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Listbox>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Select>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Combobox>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof DatePicker>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof ColorPicker>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof ColorPanel>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof FileUploadInput>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Slider>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof RangeSlider>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof Rating>['size']>().toEqualTypeOf<ControlSize>()
+		expectTypeOf<ComponentProps<typeof SelectTrigger>['size']>().toEqualTypeOf<ControlSize>()
+	})
+
+	it('leaves xs on the frame density, which a button host can write', () => {
+		expectTypeOf<ComponentProps<typeof ControlFrame>['density']>().toEqualTypeOf<
+			ControlStep | undefined
+		>()
 	})
 })

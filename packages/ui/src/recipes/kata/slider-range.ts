@@ -1,4 +1,4 @@
-import type { ControlStep } from '../../core/density'
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, kasane, kokkaku, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -42,5 +42,13 @@ export const k = {
 	thumb,
 } as const
 
+/** The size scale of {@link RangeSlider}: the steps of its padding, track, and thumbs. */
+export const scale = defineScale(
+	dan.space.sliderY,
+	dan.size.sliderTrack,
+	dan.space.sliderTrackY,
+	dan.size.thumb,
+)
+
 /** Recipe variant props for {@link RangeSlider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type RangeSliderVariants = VariantProps<typeof root> & { size?: ControlStep }
+export type RangeSliderVariants = VariantProps<typeof root> & { size?: ScaleStep<typeof scale> }

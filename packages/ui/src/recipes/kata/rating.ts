@@ -16,9 +16,12 @@
  * The display form draws a whole or an empty star as one glyph: the fill glyph
  * alone, or the track glyph alone.
  */
+
+import { defineScale } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { control } from '../kiso/control'
+import { dan } from '../kiso/dan'
 
 const { cursor, disabled } = hannou
 const { css } = ugoki
@@ -107,3 +110,6 @@ export const k = defineRecipe(
 
 /** Recipe variant props for {@link Rating}: the `color` axis of its kata, for consumers composing custom slots. */
 export type RatingVariants = VariantProps<typeof k>
+
+/** The size scale of {@link Rating}: the steps of its stars and gap. */
+export const scale = defineScale(dan.size.checkBox, dan.gap.rating)

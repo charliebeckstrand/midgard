@@ -53,3 +53,6 @@ export const k = {
 		glass: panel.glass,
 	},
 }
+
+/** The size scale of the control: `sm`, `md`, and `lg`. */
+export const scale = control.scale

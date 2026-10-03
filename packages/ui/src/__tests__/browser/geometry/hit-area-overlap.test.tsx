@@ -96,20 +96,22 @@ const plainIconButton = (name: string) => (
  * corpus: the small steps, and rows that wrap.
  */
 const packed: readonly { name: string; element: ReactElement }[] = [
-	...(['xs', 'sm', 'md'] as const).map((size) => ({
-		name: `number input, ${size}`,
-		element: <NumberInput aria-label="Quantity" size={size} defaultValue={1} min={0} max={10} />,
-	})),
-	...(['xs', 'sm', 'md'] as const).map((size) => ({
-		name: `clearable date picker input, ${size}`,
+	// A control has no `xs` step, so each case puts the control in a scope of the
+	// step. In an `xs` scope, the control takes `sm`.
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `number input, ${step}`,
 		element: (
-			<DatePicker
-				aria-label="Date"
-				input
-				clearable
-				size={size}
-				defaultValue={new Date(2026, 0, 5)}
-			/>
+			<Box density={step}>
+				<NumberInput aria-label="Quantity" defaultValue={1} min={0} max={10} />
+			</Box>
+		),
+	})),
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `clearable date picker input, ${step}`,
+		element: (
+			<Box density={step}>
+				<DatePicker aria-label="Date" input clearable defaultValue={new Date(2026, 0, 5)} />
+			</Box>
 		),
 	})),
 	// The grid has no `xs` step, so the `xs` case puts the grid in an `xs` scope.

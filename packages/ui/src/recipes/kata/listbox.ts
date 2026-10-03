@@ -36,3 +36,6 @@ export const k = defineRecipe(
 		placeholder: text.muted,
 	},
 )
+
+/** The size scale of the control: `sm`, `md`, and `lg`. */
+export const scale = control.scale

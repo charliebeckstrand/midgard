@@ -1,5 +1,6 @@
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/control'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Placeholder } from '../placeholder'
@@ -10,7 +11,7 @@ export type ControlSkeletonProps = GroupStampProps & {
 	 * The density step. Omit it to take the step of the nearest density scope,
 	 * as the control does. A step makes the silhouette a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 }
 

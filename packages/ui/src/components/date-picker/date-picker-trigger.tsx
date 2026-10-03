@@ -2,13 +2,13 @@
 
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
-
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
+import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
 import type { GroupStampProps } from '../../types/group-stamp'
@@ -34,7 +34,7 @@ type DatePickerTriggerProps = GroupStampProps & {
 	 * The density step of `<DatePicker>`. Omit it to take the step of the
 	 * nearest density scope. A step makes the trigger a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	/** When `false`, the trigger grows to fit its content and omits the truncation Tooltip. */
 	truncate?: boolean
 	/**

@@ -26,3 +26,6 @@ export const k = defineRecipe(
 		portal,
 	},
 )
+
+/** The size scale of the control: `sm`, `md`, and `lg`. */
+export const scale = control.scale
