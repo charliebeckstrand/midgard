@@ -56,6 +56,7 @@ playground. A new value in the source of a component thus shows on the page
 with no change to the demo. `omit` removes a prop from the axes. On a page with more than one
 `<Axes>`, each `<Axes>` after the first gives a `title`, so that no two examples share a
 title. The first one can have no title, so that its examples do not repeat the name of the page.
+A playground without a title shows only its pickers above the instance.
 
 Each instance in an axis example has a caption with the label of its value,
 so that a reader sees which value it shows. When `render` shows `label` itself,
