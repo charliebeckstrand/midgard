@@ -40,6 +40,15 @@ reviews:
       enabled: false
     languagetool:
       enabled: false
+  # CONVENTIONS.md §12.1 requires TSDoc on the public surface only, and
+  # `tsdoc-coverage-boundary.test.ts` gates it. A coverage figure for each
+  # function in a diff applies a different rule.
+  pre_merge_checks:
+    docstrings:
+      mode: 'off'
+  finishing_touches:
+    docstrings:
+      enabled: false
 
 knowledge_base:
   code_guidelines:
