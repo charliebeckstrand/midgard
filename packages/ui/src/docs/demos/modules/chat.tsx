@@ -214,7 +214,7 @@ export function Demo() {
 							of="ChatMessage"
 							captions={false}
 							render={(props, label) => (
-								<ChatMessage role="assistant" className="w-full" {...props}>
+								<ChatMessage role="assistant" className="w-80 max-w-full" {...props}>
 									{label}
 								</ChatMessage>
 							)}

@@ -21,7 +21,9 @@ it now lives inside `ui` rather than as a standalone package.
 
 Each child of an `Example` aligns to the start and keeps the width of its
 content. The playground, the axis examples, and the other examples thus show a
-component at the same width. `max-w-full` keeps a wide child within the frame.
+component at the same width. Each generated instance sits in a box that takes
+the width of its content, so a control with `w-full` shows at its own width, as
+in a `Field`. `max-w-full` keeps a wide child within the frame.
 A component with no content width, such as a chart, a progress bar, or a split,
 collapses at the start. Its demo gives it a width, such as `w-full` or `w-48`.
 

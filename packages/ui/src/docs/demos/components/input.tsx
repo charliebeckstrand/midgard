@@ -16,14 +16,19 @@ export function Demo() {
 			/>
 
 			<Example title="Prefix">
-				<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
-				<Input prefix={<Icon icon={<Lock />} />} placeholder="Password" />
-				<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
+				{/* The column takes the width of the inputs, as a `Field` does. */}
+				<div className="flex flex-col gap-4">
+					<Input prefix={<Icon icon={<Search />} />} placeholder="Search" />
+					<Input prefix={<Icon icon={<Lock />} />} placeholder="Password" />
+					<Input prefix={<Icon icon={<Hash />} />} placeholder="Channel name" />
+				</div>
 			</Example>
 
 			<Example title="Suffix">
-				<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
-				<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
+				<div className="flex flex-col gap-4">
+					<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
+					<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
+				</div>
 			</Example>
 
 			<Example title="Disabled">
