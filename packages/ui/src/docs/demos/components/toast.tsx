@@ -1,6 +1,5 @@
 import { Button } from '../../../components/button'
-import { Toast } from '../../../components/toast'
-import { ToastProvider, useToast } from '../../../providers/toast'
+import { Toast, ToastProvider, useToast } from '../../../components/toast'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { code, Example } from '../../engine'
@@ -125,8 +124,7 @@ function ActionsExample() {
 // children, so these snippets are authored. The viewport is portaled, so it
 // can sit anywhere inside the provider; mount one per app.
 const SETUP_CODE = code`
-	import { ToastProvider, useToast } from 'ui/providers/toast'
-	import { Toast } from 'ui/toast'
+	import { Toast, ToastProvider, useToast } from 'ui/toast'
 	import { Button } from 'ui/button'
 
 	function App() {
@@ -147,7 +145,7 @@ const SETUP_CODE = code`
 `
 
 const SEVERITY_CODE = code`
-	import { useToast } from 'ui/providers/toast'
+	import { useToast } from 'ui/toast'
 
 	const { toast } = useToast()
 
@@ -160,7 +158,7 @@ const SEVERITY_CODE = code`
 `
 
 const PERSIST_CODE = code`
-	import { useToast } from 'ui/providers/toast'
+	import { useToast } from 'ui/toast'
 
 	const { toast } = useToast()
 
@@ -169,7 +167,7 @@ const PERSIST_CODE = code`
 `
 
 const ACTIONS_CODE = code`
-	import { useToast } from 'ui/providers/toast'
+	import { useToast } from 'ui/toast'
 	import { Button } from 'ui/button'
 
 	const { toast, dismiss } = useToast()

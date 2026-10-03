@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Toast } from '../../components/toast'
-import { ToastProvider, useToast } from '../../providers/toast'
+import { Toast, ToastProvider, useToast } from '../../components/toast'
 import {
 	act,
 	fireEvent,

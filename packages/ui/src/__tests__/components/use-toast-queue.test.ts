@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { ToastData } from '../../providers/toast/types'
-import { useToastQueue } from '../../providers/toast/use-toast-queue'
+import type { ToastData } from '../../components/toast/types'
+import { useToastQueue } from '../../components/toast/use-toast-queue'
 
 function makeToast(id: string): ToastData {
 	return { id, title: id, duration: 1000 }
