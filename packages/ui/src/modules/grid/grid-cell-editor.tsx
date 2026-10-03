@@ -370,7 +370,9 @@ export function GridCellEditor<T>({
 
 	return (
 		<span ref={hostRef} className={cn(k.edit.host, error && k.edit.errorRing)}>
-			{body}
+			<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
+				{body}
+			</span>
 
 			<GridSettleControls
 				label={label}

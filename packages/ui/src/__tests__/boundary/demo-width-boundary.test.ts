@@ -18,8 +18,8 @@ import {
 // is the one record of each such width, and a change to it shows in the diff of
 // the commit that makes it:
 //
-//   - The layout in a module demo: an editor in a grid cell, an error state, a
-//     template picker, and the alerts of a board.
+//   - The layout in a module demo: an error state, a template picker, and the
+//     alerts of a board.
 //   - The size of an action, such as the preset picker of `AspectRatio`.
 //   - A frame that a demo draws to hold the component: the mock page of
 //     `Sidebar` and of `Drawer`, and the boxes of `Flex` and `Stack`.
@@ -38,7 +38,6 @@ const WIDTHS: Record<string, readonly string[]> = {
 	'docs/demos/components/scroll-area.tsx': ['max-w-96', 'max-w-96', 'max-w-96', 'w-max', 'w-max'],
 	'docs/demos/components/sidebar.tsx': ['w-72', 'w-fit'],
 	'docs/demos/modules/dashboard/index.tsx': ['w-56', 'w-full', 'w-full'],
-	'docs/demos/modules/grid/editable.tsx': ['w-full', 'w-full', 'w-full'],
 	'docs/demos/modules/grid/index.tsx': ['w-full'],
 	'docs/demos/structure/flex.tsx': ['w-64', 'w-64'],
 	'docs/demos/structure/stack.tsx': ['w-64'],
