@@ -16,6 +16,7 @@
 			"inputs": [
 				"src/**",
 				"app/**",
+				"scripts/**",
 				"*.ts",
 				"tsconfig.json",
 				"tsconfig.scripts.json",

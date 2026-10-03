@@ -413,7 +413,7 @@
 			"plugins": ["./.biome/plugins/no-unsanctioned-define-recipe.grit"]
 		},
 		{
-			"includes": ["packages/ui/src/**", "!packages/ui/src/**/*.d.ts"],
+			"includes": ["packages/ui/src/**"],
 			"plugins": ["./.biome/plugins/no-camel-case-data-slot.grit"]
 		},
 		{
