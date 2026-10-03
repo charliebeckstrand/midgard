@@ -6,6 +6,7 @@ import {
 	type Ref,
 	type RefObject,
 	useCallback,
+	useId,
 	useMemo,
 	useRef,
 	useState,
@@ -65,21 +66,28 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  * as the title does on the veil. A chart with no title or subtitle draws no
  * header either way, and neither does a chart with `heading` off.
  *
+ * The figure takes its name from the title of an inline header, through
+ * `aria-labelledby`. A `figcaption` would not do: the header row also holds the
+ * touch menu button, and the name of a figcaption includes the name of that
+ * button.
+ *
  * @internal
  */
 function chartChrome(
 	tier: ChartTier | undefined,
 	heading: boolean,
 	title: string | undefined,
+	titleId: string,
 	subtitle: string | undefined,
 	legend: ReactNode,
-): { header: ReactNode; sparkVeil: ReactNode; legend: ReactNode } {
+): { header: ReactNode; sparkVeil: ReactNode; legend: ReactNode; labelledBy?: string } {
 	const spark = tier === 'spark'
 
 	const head =
 		heading && (title || subtitle) ? (
 			<ChartHeader
 				title={title}
+				titleId={titleId}
 				subtitle={subtitle}
 				veil={spark}
 				action={<ChartMenuButton title={title} place="header" />}
@@ -90,6 +98,7 @@ function chartChrome(
 		header: spark ? null : head,
 		sparkVeil: spark ? head : null,
 		legend: spark ? null : legend,
+		labelledBy: !spark && heading && title ? titleId : undefined,
 	}
 }
 
@@ -512,11 +521,14 @@ export function ChartFrame({
 	// strips both to bare marks — the header to a centered hover / focus veil, the
 	// legend gone so the plot reclaims the whole aspect box (see chartChrome).
 	// A chart with `heading` off keeps its title for the context menu alone.
+	const titleId = useId()
+
 	const {
 		header,
 		sparkVeil,
 		legend: legendFrame,
-	} = chartChrome(tier, heading, title, subtitle, legend)
+		labelledBy,
+	} = chartChrome(tier, heading, title, titleId, subtitle, legend)
 
 	const plotRegion = (
 		<div
@@ -603,6 +615,7 @@ export function ChartFrame({
 											<ChartFigure
 												plot={plotRegion}
 												header={header}
+												labelledBy={labelledBy}
 												legend={legendFrame}
 												legendPlacement={legendPlacement}
 												rail={rail}
@@ -651,6 +664,8 @@ type ChartFigureProps = {
 	plot: ReactNode
 	/** The inline header banded above the plot inside the aspect box, or `null`. */
 	header: ReactNode
+	/** The id of the visible title, which names the figure, or `undefined` for no visible title. */
+	labelledBy?: string
 	legend: ReactNode
 	legendPlacement: ChartLegendPlacement
 	/** The legend is a color-scale rail, which keeps a wider gap beside the plot. */
@@ -678,6 +693,7 @@ type ChartFigureProps = {
 function ChartFigure({
 	plot,
 	header,
+	labelledBy,
 	legend,
 	legendPlacement,
 	rail,
@@ -725,8 +741,11 @@ function ChartFigure({
 	)
 
 	return (
-		<div
+		// A figure, so the visible title, the plot, and the legend are one unit that
+		// the title names.
+		<figure
 			data-slot="chart-figure"
+			aria-labelledby={labelledBy}
 			// The free-form fill frame's own box: its height is the tile's, unmoved by
 			// the header and legend the tier mounts or drops inside it, so `usePlotFrame`
 			// reads the tier's spark height off this rather than the plot's chrome-shrunk
@@ -749,6 +768,6 @@ function ChartFigure({
 			{header}
 
 			{body}
-		</div>
+		</figure>
 	)
 }

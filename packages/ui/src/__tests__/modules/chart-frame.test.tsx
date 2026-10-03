@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { ChartFrame } from '../../modules/chart/engine/chart-frame/frame'
 import { ChartLegend } from '../../modules/chart/engine/chart-legend/legend'
-import { bySlot, noop, renderUI } from '../helpers'
+import { bySlot, noop, renderUI, screen } from '../helpers'
 
 function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>) {
 	return (
@@ -110,5 +110,25 @@ describe('ChartFrame', () => {
 		const unheaded = renderUI(frame(400, { title: 'Revenue', heading: false }))
 
 		expect(bySlot(unheaded.container, 'chart-header')).toBeNull()
+	})
+
+	it('names the figure of the plot and the legend from its visible title', () => {
+		renderUI(frame(400, { title: 'Revenue', subtitle: 'By quarter' }))
+
+		const figure = screen.getByRole('figure', { name: 'Revenue' })
+
+		expect(figure).toHaveAttribute('data-slot', 'chart-figure')
+
+		expect(figure).toContainElement(screen.getByRole('img', { name: 'Revenue by quarter' }))
+	})
+
+	it('leaves the figure unnamed when no title shows above the plot', () => {
+		const { container } = renderUI(frame(400, { title: 'Revenue', heading: false }))
+
+		expect(bySlot(container, 'chart-figure')).not.toHaveAttribute('aria-labelledby')
+
+		const spark = renderUI(frame(400, { title: 'Revenue', tier: 'spark' }))
+
+		expect(bySlot(spark.container, 'chart-figure')).not.toHaveAttribute('aria-labelledby')
 	})
 })
