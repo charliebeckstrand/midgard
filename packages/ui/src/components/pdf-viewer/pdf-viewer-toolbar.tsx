@@ -115,9 +115,13 @@ export function PdfViewerToolbar() {
 									)
 								})}
 							</Listbox>
-							<span className="mx-1 select-none">/</span>
+							{/* A screen reader reads "of 12", not "slash 12". */}
+							<span aria-hidden="true" className="mx-1 select-none">
+								/
+							</span>
 							{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
 							<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.pageStatus)}>
+								<span className="sr-only">of </span>
 								{total}
 							</span>
 						</ToolbarGroup>

@@ -34,6 +34,7 @@ export function PopoverPanel({
 	autoFocus = true,
 	typeahead = false,
 	trapTab = false,
+	manageTabIndex = false,
 	glass = false,
 	multiselectable,
 	density,
@@ -84,6 +85,15 @@ export function PopoverPanel({
 	 */
 	trapTab?: boolean
 	/**
+	 * Make the panel one Tab stop. The panel sets `tabIndex=0` on one row and
+	 * `tabIndex=-1` on the other rows, and moves the `0` to the row that gets
+	 * focus. Use it for a panel that stays in the page, such as a `static` menu,
+	 * where Tab must reach a row.
+	 *
+	 * @defaultValue false
+	 */
+	manageTabIndex?: boolean
+	/**
 	 * Apply glass surface chrome instead of the default popover surface.
 	 *
 	 * @remarks Items inside take the deeper glass wash on hover and focus.
@@ -112,6 +122,7 @@ export function PopoverPanel({
 		focusOnEmpty: true,
 		typeahead,
 		trapTab,
+		manageTabIndex,
 	})
 
 	const scrollWithin = useScrollWithin()

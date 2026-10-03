@@ -18,6 +18,7 @@ import {
 	stubMatchMedia,
 	tableRows,
 	withFakeTime,
+	within,
 } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
@@ -708,6 +709,30 @@ describe('MapPlat', () => {
 		])
 
 		expect(table?.querySelector('thead th')?.textContent).toBe('zone')
+	})
+
+	// A user who moves from table to table knows which map a table is for.
+	it('names the visually-hidden table by the name of the map', () => {
+		const labelled = renderUI(categoricalPlat())
+
+		expect(within(labelled.container).getByRole('table', { name: 'Zones' })).toHaveAttribute(
+			'data-slot',
+			'map-table',
+		)
+
+		labelled.unmount()
+
+		const { container } = renderUI(
+			<>
+				<h2 id="map-name">Delivery zones</h2>
+				{categoricalPlat({ 'aria-label': undefined, 'aria-labelledby': 'map-name' })}
+			</>,
+		)
+
+		expect(within(container).getByRole('table', { name: 'Delivery zones' })).toHaveAttribute(
+			'data-slot',
+			'map-table',
+		)
 	})
 
 	it('resolves region identity and names through the accessors', () => {

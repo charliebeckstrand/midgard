@@ -51,7 +51,14 @@ export function GridManagerColorMenu({
 	return (
 		<Menu aria-label={`Color menu for ${label}`} placement="bottom-end">
 			<MenuTrigger>
-				<Button type="button" color={color} variant="soft" aria-label={`Color for ${label}`}>
+				{/* The name starts with the visible text, so a voice user can say what
+				    they see (WCAG 2.5.3). */}
+				<Button
+					type="button"
+					color={color}
+					variant="soft"
+					aria-label={color ? `${capitalizeFirst(color)} color for ${label}` : `Color for ${label}`}
+				>
 					{color ? capitalizeFirst(color) : 'Color'}
 				</Button>
 			</MenuTrigger>

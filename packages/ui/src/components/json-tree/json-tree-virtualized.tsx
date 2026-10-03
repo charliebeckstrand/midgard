@@ -131,6 +131,8 @@ type JsonTreeVirtualizedProps = {
 	virtualize: { estimateSize?: number; overscan?: number }
 	maxHeight: string
 	onKeyDown: KeyboardEventHandler<HTMLDivElement>
+	'aria-label': string | undefined
+	'aria-labelledby': string | undefined
 	className?: string
 }
 
@@ -148,6 +150,8 @@ export function JsonTreeVirtualized({
 	virtualize,
 	maxHeight,
 	onKeyDown,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
 	className,
 }: JsonTreeVirtualizedProps) {
 	// Uncontrolled, the open state resolves per render, as the recursive
@@ -252,6 +256,8 @@ export function JsonTreeVirtualized({
 		<div
 			ref={ref}
 			role="tree"
+			aria-label={ariaLabel}
+			aria-labelledby={ariaLabelledby}
 			data-slot="json-tree"
 			className={cn(k.base, className)}
 			style={{ maxHeight, overflow: 'auto' }}

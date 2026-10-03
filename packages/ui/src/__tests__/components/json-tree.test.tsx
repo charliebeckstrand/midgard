@@ -815,6 +815,50 @@ describe('JsonTree tree semantics', () => {
 
 		expect(bySlot(container, 'json-close')).toHaveAttribute('aria-hidden', 'true')
 	})
+
+	// ARIA 1.2 requires a name on a tree.
+	describe.each([
+		['recursive', undefined],
+		['virtualized', { maxHeight: '200px' }],
+	])('names the %s tree', (_name, virtualize) => {
+		it('with "JSON" when it has no name and no root key', () => {
+			renderUI(<JsonTree data={{ a: 1 }} virtualize={virtualize} />)
+
+			expect(screen.getByRole('tree', { name: 'JSON' })).toBeInTheDocument()
+		})
+
+		it('with the root key when it has no name', () => {
+			renderUI(<JsonTree data={{ a: 1 }} rootKey="payload" virtualize={virtualize} />)
+
+			expect(screen.getByRole('tree', { name: 'payload' })).toBeInTheDocument()
+		})
+
+		it('with its aria-label', () => {
+			renderUI(
+				<JsonTree
+					data={{ a: 1 }}
+					rootKey="payload"
+					aria-label="Response"
+					virtualize={virtualize}
+				/>,
+			)
+
+			expect(screen.getByRole('tree', { name: 'Response' })).toBeInTheDocument()
+		})
+
+		it('with its aria-labelledby, in place of the default name', () => {
+			renderUI(
+				<>
+					<h2 id="json-tree-name">Request body</h2>
+					<JsonTree data={{ a: 1 }} aria-labelledby="json-tree-name" virtualize={virtualize} />
+				</>,
+			)
+
+			const tree = screen.getByRole('tree', { name: 'Request body' })
+
+			expect(tree).not.toHaveAttribute('aria-label')
+		})
+	})
 })
 
 describe('JsonTree Tab stop', () => {

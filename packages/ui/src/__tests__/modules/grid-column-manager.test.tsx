@@ -23,6 +23,15 @@ describe('GridColumnManager', () => {
 		expect(allBySlot(container, 'list-item')).toHaveLength(3)
 	})
 
+	// One checkbox is not a group, and the rows are already in a list.
+	it('wraps no row in an unnamed group', () => {
+		const { container } = renderUI(<GridColumnManager columns={columns} />)
+
+		expect(container.querySelectorAll('[role="group"]')).toHaveLength(0)
+
+		expect(screen.getAllByRole('checkbox')).toHaveLength(3)
+	})
+
 	it('toggles a column visibility when its checkbox is clicked', async () => {
 		const onHiddenChange = vi.fn()
 

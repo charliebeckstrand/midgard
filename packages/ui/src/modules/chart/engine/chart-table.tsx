@@ -5,12 +5,18 @@ import type { ChartReadoutSource } from './types'
 /** Props for {@link ChartTable}. @internal */
 export type ChartTableProps = {
 	readout: ChartReadoutSource
+	/** The `aria-label` of the plot. The table shows it as its `<caption>`. */
+	label?: string
+	/** The `aria-labelledby` of the plot. The table takes it when it has no `label`. */
+	labelledBy?: string
 }
 
 /**
  * The chart's visually-hidden data table: every category × series value in
  * plain markup, outside the `role="img"` region. Assistive tech gets full
- * value parity without the pointer, so the tooltip stays an enhancement.
+ * value parity without the pointer, so the tooltip stays an enhancement. The
+ * name of the plot also names the table, so a user who moves from table to
+ * table knows which chart a table is for.
  *
  * The table holds one row for each datum, so at large row counts building and
  * committing it costs the most. Nothing visual waits on it, and assistive tech
@@ -24,10 +30,10 @@ export type ChartTableProps = {
  *
  * @internal
  */
-export function ChartTable({ readout }: ChartTableProps) {
+export function ChartTable({ readout, label, labelledBy }: ChartTableProps) {
 	const deferred = useDeferredValue(readout, null)
 
-	return deferred && <ChartTableBody readout={deferred} />
+	return deferred && <ChartTableBody readout={deferred} label={label} labelledBy={labelledBy} />
 }
 
 /**
@@ -40,7 +46,11 @@ export function ChartTable({ readout }: ChartTableProps) {
  *
  * @internal
  */
-const ChartTableBody = memo(function ChartTableBody({ readout: source }: ChartTableProps) {
+const ChartTableBody = memo(function ChartTableBody({
+	readout: source,
+	label,
+	labelledBy,
+}: ChartTableProps) {
 	const readout = source()
 
 	if (readout === null) return null
@@ -51,7 +61,9 @@ const ChartTableBody = memo(function ChartTableBody({ readout: source }: ChartTa
 		// full size — invisible, but still stretching the page's scroll range.
 		// The block wrapper collapses to 1px and clips it.
 		<div className="sr-only">
-			<table data-slot="chart-table">
+			<table data-slot="chart-table" aria-labelledby={label ? undefined : labelledBy}>
+				{label && <caption>{label}</caption>}
+
 				<thead>
 					<tr>
 						<td />

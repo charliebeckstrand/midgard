@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, memo, type ReactNode } from 'react'
-import { TableBody, TableCell, TableRow } from '../../components/table'
+import { TableBody, TableHeader, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { MountHold } from '../../primitives/mount'
@@ -213,9 +213,10 @@ function GridTotalRowImpl<T>({
 
 	return (
 		<TableRow data-total-row="grand" {...windowRow}>
-			<TableCell colSpan={span} className={cn(k.aggregate.label)}>
+			{/* The label is the row header of the totals, so each total reads with it. */}
+			<TableHeader scope="row" colSpan={span} className={cn(k.aggregate.label)}>
 				{label}
-			</TableCell>
+			</TableHeader>
 
 			<GridAggregateCells columns={columns} rows={rows} from={span} />
 		</TableRow>
