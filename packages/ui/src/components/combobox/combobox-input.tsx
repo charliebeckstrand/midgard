@@ -7,13 +7,17 @@ import type {
 	FocusEventHandler,
 	KeyboardEventHandler,
 	MouseEventHandler,
-	Ref,
+	ReactElement,
+	RefObject,
+	UIEventHandler,
 } from 'react'
 import { ariaAttr, cn } from '../../core'
+import { useIsTruncated } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import { capitalizeFirst } from '../../utilities'
 import { Input } from '../input'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 type ComboboxInputHandlers = {
 	onChange: ChangeEventHandler<HTMLInputElement>
@@ -22,11 +26,12 @@ type ComboboxInputHandlers = {
 	onBlur: FocusEventHandler<HTMLInputElement>
 	onKeyDown: KeyboardEventHandler<HTMLInputElement>
 	onPaste: ClipboardEventHandler<HTMLInputElement>
+	onScroll: UIEventHandler<HTMLInputElement>
 }
 
 type ComboboxInputProps = {
 	id?: string
-	ref: Ref<HTMLInputElement>
+	ref: RefObject<HTMLInputElement | null>
 	type?: ComponentProps<'input'>['type']
 	autoComplete?: ComponentProps<'input'>['autoComplete']
 	'aria-label'?: string
@@ -53,7 +58,40 @@ type ComboboxInputProps = {
 	editing: boolean
 	/** First-word-capitalizes the resolved display value (its first letter). */
 	capitalize: boolean
+	/**
+	 * Shows the whole value in a hover tooltip while the input truncates it. The
+	 * tooltip stays closed while the panel is open or the input shows a query.
+	 */
+	truncateTooltip?: boolean
 	handlers: ComboboxInputHandlers
+}
+
+/**
+ * Wraps the input in a tooltip that shows `text` while the input truncates it.
+ * A separate unit, so a combobox without `truncateTooltip` mounts no measure and no
+ * tooltip.
+ *
+ * @internal
+ */
+function ComboboxTruncateTooltip({
+	inputRef,
+	text,
+	suppressed,
+	children,
+}: {
+	inputRef: RefObject<HTMLInputElement | null>
+	text: string
+	suppressed: boolean
+	children: ReactElement
+}) {
+	const truncated = useIsTruncated(inputRef, text)
+
+	return (
+		<Tooltip disabled={suppressed || !truncated}>
+			<TooltipTrigger>{children}</TooltipTrigger>
+			<TooltipContent>{text}</TooltipContent>
+		</Tooltip>
+	)
 }
 
 /**
@@ -83,40 +121,53 @@ export function ComboboxInput({
 	title,
 	editing,
 	capitalize,
+	truncateTooltip = false,
 	handlers,
 }: ComboboxInputProps) {
+	// Transform only the resolved value; the live query renders as typed.
+	const display = capitalize && !editing ? capitalizeFirst(value) : value
+
+	const input = (
+		<Input
+			invalid={invalid}
+			id={id}
+			ref={ref}
+			type={type}
+			role="combobox"
+			aria-haspopup="listbox"
+			aria-expanded={open}
+			aria-controls={open ? controlsId : undefined}
+			aria-autocomplete="list"
+			aria-label={ariaLabel}
+			aria-labelledby={ariaLabelledby}
+			aria-describedby={ariaDescribedBy}
+			title={title}
+			// role="combobox" overrides the native textbox semantics, so the
+			// required/readOnly host-language attributes need explicit ARIA to
+			// reach assistive tech.
+			aria-readonly={ariaAttr(readOnly)}
+			aria-required={ariaAttr(required)}
+			data-slot="combobox-input"
+			autoComplete={autoComplete}
+			disabled={disabled}
+			readOnly={readOnly}
+			required={required && !selected}
+			value={display}
+			placeholder={placeholder}
+			className={cn(k())}
+			{...handlers}
+		/>
+	)
+
 	return (
 		<HeadlessProvider>
-			<Input
-				invalid={invalid}
-				id={id}
-				ref={ref}
-				type={type}
-				role="combobox"
-				aria-haspopup="listbox"
-				aria-expanded={open}
-				aria-controls={open ? controlsId : undefined}
-				aria-autocomplete="list"
-				aria-label={ariaLabel}
-				aria-labelledby={ariaLabelledby}
-				aria-describedby={ariaDescribedBy}
-				title={title}
-				// role="combobox" overrides the native textbox semantics, so the
-				// required/readOnly host-language attributes need explicit ARIA to
-				// reach assistive tech.
-				aria-readonly={ariaAttr(readOnly)}
-				aria-required={ariaAttr(required)}
-				data-slot="combobox-input"
-				autoComplete={autoComplete}
-				disabled={disabled}
-				readOnly={readOnly}
-				required={required && !selected}
-				// Transform only the resolved value; the live query renders as typed.
-				value={capitalize && !editing ? capitalizeFirst(value) : value}
-				placeholder={placeholder}
-				className={cn(k())}
-				{...handlers}
-			/>
+			{truncateTooltip ? (
+				<ComboboxTruncateTooltip inputRef={ref} text={display} suppressed={open || editing}>
+					{input}
+				</ComboboxTruncateTooltip>
+			) : (
+				input
+			)}
 		</HeadlessProvider>
 	)
 }

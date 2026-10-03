@@ -22,9 +22,8 @@ function selectedValues<T>(value: T | T[] | undefined): T[] {
  * **One label, then a count** — deliberately tighter than `Listbox`, which joins up
  * to three. The two differ because their triggers do. A listbox trigger is a button
  * whose text truncates and stops. This is a real text input, so a joined value
- * longer than the field becomes horizontally scrollable. The field shows the middle
- * of a sentence, and scrolling right reveals blank space past the end of the text.
- * It also has to stay typeable. A value the user must first scroll to read is worse
+ * longer than the field scrolls under the caret while the input has focus. The
+ * field then shows the middle of a sentence. It also has to stay typeable. A value the user must first scroll to read is worse
  * than a count that says how much is there. The full list is still one hover away;
  * see {@link resolveInputTitle}.
  *
