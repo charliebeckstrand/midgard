@@ -19,6 +19,30 @@ describe('Markdown', () => {
 		expect(el?.querySelector('h1')?.textContent).toBe('Title')
 	})
 
+	it('moves each heading down by headingOffset, to h6 at most, and keeps the look of its depth', () => {
+		const md = '# Title\n\n> ## Quoted\n\n- ### Listed\n\n##### Deep'
+
+		const { container: plain } = renderUI(<Markdown>{md}</Markdown>)
+
+		const { container } = renderUI(<Markdown headingOffset={2}>{md}</Markdown>)
+
+		const tags = [...container.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((h) => [
+			h.tagName,
+			h.textContent,
+		])
+
+		expect(tags).toEqual([
+			['H3', 'Title'],
+			['H4', 'Quoted'],
+			['H5', 'Listed'],
+			['H6', 'Deep'],
+		])
+
+		// The look stays that of the source depth: the `#` heading keeps the classes
+		// of the `<h1>` of the plain render.
+		expect(container.querySelector('h3')?.className).toBe(plain.querySelector('h1')?.className)
+	})
+
 	it('renders inline emphasis, code, and links', () => {
 		const md = 'Some **bold**, `code`, and a [link](https://example.com).'
 
