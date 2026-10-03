@@ -740,6 +740,96 @@ describe('MapPlat touch over the marks', () => {
 		// The spread went from 20 to 60, so the scale is three times the fit.
 		expect(scaleOf(container)).toBeCloseTo(3, 3)
 	})
+
+	it('keeps a finger in the pinch after the node under it leaves the tree', () => {
+		const { container, svg } = renderZoomable()
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		const a = { identifier: 1, clientX: 190, clientY: 100, target: region }
+
+		const b = { identifier: 2, clientX: 210, clientY: 100, target: svg }
+
+		fireEvent.touchStart(region, { touches: [a], changedTouches: [a] })
+
+		fireEvent.touchStart(svg, { touches: [a, b], changedTouches: [b] })
+
+		// A zoom out merges the dots, and the hit circle under a finger unmounts. Its
+		// touch events still go to it, and a detached node passes nothing up.
+		const parent = present<Element>(region.parentNode as Element, 'region layer')
+
+		const next = region.nextSibling
+
+		region.remove()
+
+		const moved = { ...a, clientX: 170 }
+
+		const spread = { ...b, clientX: 230 }
+
+		fireEvent.touchMove(region, { touches: [moved, spread], changedTouches: [moved] })
+
+		fireEvent.touchEnd(region, { touches: [spread], changedTouches: [moved] })
+
+		fireEvent.touchEnd(svg, { touches: [], changedTouches: [spread] })
+
+		parent.insertBefore(region, next)
+
+		// The spread went from 20 to 60, so the scale is three times the fit.
+		expect(scaleOf(container)).toBeCloseTo(3, 3)
+	})
+})
+
+describe('MapPlat pinch under the page', () => {
+	it('holds the ground under the fingers while the page scrolls under the pinch', () => {
+		const { container, svg } = renderZoomable()
+
+		zoomWheel(svg, -400)
+
+		const before = transformOf(container)
+
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 180, y: 100 },
+			{ id: 2, x: 220, y: 100 },
+		])
+
+		// A scroll that the first finger started cannot be canceled. iOS carries
+		// the page 30px up under the pinch, and the map and the fingers go with it.
+		vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, -30, 400, 200))
+
+		fireEvent.scroll(window)
+
+		act(() => {
+			touch(svg, 'touchMove', [
+				{ id: 1, x: 180, y: 70 },
+				{ id: 2, x: 220, y: 70 },
+			])
+		})
+
+		touch(svg, 'touchEnd', [])
+
+		// The pair moved with the map, not over it, so the view holds.
+		expect(transformOf(container)).toBe(before)
+	})
+
+	it("cancels Safari's own pinch over a zooming map", () => {
+		const { svg } = renderZoomable()
+
+		const gesture = new Event('gesturestart', { bubbles: true, cancelable: true })
+
+		svg.dispatchEvent(gesture)
+
+		expect(gesture.defaultPrevented).toBe(true)
+	})
+
+	it("leaves Safari's pinch alone over a map that does not zoom", () => {
+		const { svg } = renderZoomable({ zoom: undefined })
+
+		const gesture = new Event('gesturestart', { bubbles: true, cancelable: true })
+
+		svg.dispatchEvent(gesture)
+
+		expect(gesture.defaultPrevented).toBe(false)
+	})
 })
 
 describe('MapPlat wheel zoom', () => {
