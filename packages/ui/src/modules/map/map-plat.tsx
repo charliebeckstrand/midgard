@@ -47,7 +47,12 @@ import { MapFrame, MapPlotRegion } from './map-frame'
 import { MapLegendRegion } from './map-legend-region'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
-import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
+import {
+	describeMapTarget,
+	MapTooltip,
+	type MapTooltipEntry,
+	type MapTooltipProps,
+} from './map-tooltip'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
 import { useMapShape } from './use-map-shape'
@@ -136,9 +141,12 @@ export type MapPlatProps<T = never> = AccessibleName &
 		sphere?: boolean
 		/**
 		 * Show the readout naming the pointed region or overlay. It also gates
-		 * keyboard navigation, which the readout is the whole output of. Turned off,
-		 * the plot region takes no tab stop and stays a plain `role="img"` leaf, and
-		 * the data table carries the values alone.
+		 * keyboard navigation, which the readout is the whole output of. Each arrow
+		 * key that moves the cursor onto a stop speaks the readout of that stop
+		 * through a polite live region, because the tooltip is `aria-hidden`. A
+		 * pointer hover speaks nothing. Turned off, the plot region takes no tab
+		 * stop and stays a plain `role="img"` leaf, and the data table carries the
+		 * values alone.
 		 * @defaultValue true
 		 * @remarks It asks for a readout rather than asserting one. A map no row
 		 * matches and no mark draws on has nothing to name, so it takes no tab stop
@@ -1109,6 +1117,26 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// pair. Bound once rather than spelled at each of them.
 	const readable = tooltip && hasReadout
 
+	// What the tooltip reads, held once: the tooltip shows it, and the keyboard
+	// cursor speaks the same text for the stop it moves onto.
+	const tooltipProps = useMemo<MapTooltipProps>(
+		() => ({
+			regionNames,
+			regionCategory,
+			regionValues,
+			categories: categoryMetas,
+			entries: tooltipEntries,
+			hidden,
+			nameRegions,
+		}),
+		[regionNames, regionCategory, regionValues, categoryMetas, tooltipEntries, hidden, nameRegions],
+	)
+
+	const describeTarget = useCallback(
+		(target: MapHoverTarget) => (readable ? describeMapTarget(target, tooltipProps) : null),
+		[readable, tooltipProps],
+	)
+
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
 	// readout alone would leave `tooltip={false}` with `onRegionClick` — a
 	// supported pairing — a picker no keyboard can reach. Without the readout the
@@ -1293,6 +1321,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,
+						describe: describeTarget,
 						resolveStops,
 						view: { width: shape.viewWidth, height: shape.viewHeight },
 						svgRef,
@@ -1300,17 +1329,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					tooltip={
 						// A backdrop map mounted a Tooltip that resolved `null` for every
 						// region it was ever pointed at.
-						readable ? (
-							<MapTooltip
-								regionNames={regionNames}
-								regionCategory={regionCategory}
-								regionValues={regionValues}
-								categories={categoryMetas}
-								entries={tooltipEntries}
-								hidden={hidden}
-								nameRegions={nameRegions}
-							/>
-						) : null
+						readable ? <MapTooltip {...tooltipProps} /> : null
 					}
 				>
 					{svg}

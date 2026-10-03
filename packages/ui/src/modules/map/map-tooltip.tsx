@@ -127,6 +127,21 @@ function resolve(
 }
 
 /**
+ * The readout for `target` as one line of text, for the announcement of a
+ * keyboard cursor step. It reads what {@link MapTooltip} shows: the title, then
+ * the row text. Returns `null` where the tooltip stays away.
+ *
+ * @internal
+ */
+export function describeMapTarget(target: MapHoverTarget, props: MapTooltipProps): string | null {
+	const content = resolve(target, props)
+
+	if (content === null) return null
+
+	return [content.title, content.row?.text].filter(Boolean).join(', ') || null
+}
+
+/**
  * The hover readout: the pointed region's name over its category, or an
  * overlay's name over its detail. It is a {@link TooltipPointer} anchored at the
  * pointer client point, so the map's readout wears exactly the Tooltip chrome,

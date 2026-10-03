@@ -266,6 +266,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * opens. `{ trigger: 'hover' }` tracks the pointer. `{ trigger: 'click' }` pins
 	 * the readout to a click and gives the plot a pointer cursor, dismissing on a
 	 * second click of the same mark.
+	 *
+	 * The tooltip also gates keyboard navigation of the plot. Each arrow key
+	 * that moves the cursor onto a point speaks the readout of that point
+	 * through a polite live region, because the tooltip is `aria-hidden`. A
+	 * pointer hover speaks nothing.
 	 * @defaultValue true
 	 */
 	tooltip?: boolean | ChartTooltipConfig
