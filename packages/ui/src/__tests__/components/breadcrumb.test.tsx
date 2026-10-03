@@ -4,6 +4,7 @@ import {
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
+	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -16,6 +17,32 @@ describe('Breadcrumb', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('NAV')
+	})
+})
+
+describe('BreadcrumbSeparator', () => {
+	it('hides the separator item with aria-hidden and sets no role on the <li>', () => {
+		const { container } = renderUI(
+			<BreadcrumbList>
+				<BreadcrumbItem>
+					<BreadcrumbLink href="/">Home</BreadcrumbLink>
+				</BreadcrumbItem>
+				<BreadcrumbSeparator />
+				<BreadcrumbItem>
+					<BreadcrumbLink href="/docs">Docs</BreadcrumbLink>
+				</BreadcrumbItem>
+			</BreadcrumbList>,
+		)
+
+		const separator = bySlot(container, 'breadcrumb-separator')
+
+		// ARIA in HTML allows only `listitem` on an `<li>` in a list.
+		expect(separator).not.toHaveAttribute('role')
+
+		expect(separator).toHaveAttribute('aria-hidden', 'true')
+
+		// The hidden item stays out of the list count.
+		expect(screen.getAllByRole('listitem')).toHaveLength(2)
 	})
 })
 

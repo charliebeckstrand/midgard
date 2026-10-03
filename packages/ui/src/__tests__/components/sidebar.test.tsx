@@ -645,13 +645,38 @@ describe('SidebarList', () => {
 		expect(items[0]?.tagName).toBe('LI')
 	})
 
-	it('keeps standalone items as <span> wrappers', () => {
+	it('renders standalone items as <div> wrappers', () => {
 		const { container } = renderUI(
 			<Sidebar>
 				<SidebarItem>Home</SidebarItem>
 			</Sidebar>,
 		)
 
-		expect(bySlot(container, 'sidebar-item')?.tagName).toBe('SPAN')
+		// The wrapper holds the affix slots, which can hold flow content.
+		expect(bySlot(container, 'sidebar-item')?.tagName).toBe('DIV')
+	})
+
+	it('renders the affix slots as <div> elements, so SidebarItemActions is valid inside', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarList>
+					<SidebarItem prefix={<span>P</span>}>
+						Home
+						<SidebarItemActions>
+							<button type="button">Edit</button>
+						</SidebarItemActions>
+					</SidebarItem>
+				</SidebarList>
+			</Sidebar>,
+		)
+
+		expect(bySlot(container, 'sidebar-item-prefix')?.tagName).toBe('DIV')
+
+		// SidebarItemActions is a `<div>`, which a `<span>` slot cannot hold.
+		const suffix = bySlot(container, 'sidebar-item-suffix')
+
+		expect(suffix?.tagName).toBe('DIV')
+
+		expect(suffix?.querySelector('[data-slot="sidebar-item-actions"]')).not.toBeNull()
 	})
 })

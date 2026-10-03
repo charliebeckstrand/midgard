@@ -61,7 +61,7 @@ const itemBase = defineRecipe({
 })
 
 /**
- * The `<li>`/`<span>` wrapper. Affixless it is a bare row carrying no chrome.
+ * The `<li>`/`<div>` wrapper. Affixless it is a bare row carrying no chrome.
  * With an affix (`affix: true`) it goes flex and takes over the interaction
  * surface. The hover tint wraps the whole row, and the inner item's keyboard
  * focus projects onto the row ring via `:has`. The row-focus ring wraps the
