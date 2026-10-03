@@ -1,9 +1,12 @@
 /*
- * The Tailwind extensions of ui: the `density-*` variants, the stepped and
- * ring utilities (`density-p-[2,3,4]`, `px-ring-2`, …), and one base style,
+ * The Tailwind extensions of ui: the font of ui and its font stack
+ * (`src/fonts/fonts.css`), the `density-*` variants, the stepped and ring
+ * utilities (`density-p-[2,3,4]`, `px-ring-2`, …), and one base style,
  * `touch-action: manipulation` on the root element. Import this file in each
  * Tailwind entry that scans ui. Each plugin explains its classes or its style.
  */
+@import './src/fonts/fonts.css';
+
 @plugin './src/core/density/variants.ts';
 @plugin './src/core/density/utilities.ts';
 @plugin './src/core/touch/base.ts';

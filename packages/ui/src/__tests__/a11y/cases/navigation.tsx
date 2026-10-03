@@ -225,8 +225,8 @@ export const navigationCases: readonly Case[] = [
 		],
 	},
 	{
-		// Process steps with separators between them; current step marked via the
-		// active value.
+		// Display-only: a role=list of steps with separators between them; current
+		// step marked via the active value.
 		name: 'stepper',
 		element: (
 			<Stepper key="st" value={1}>
@@ -251,6 +251,25 @@ export const navigationCases: readonly Case[] = [
 				placeholders: 6,
 			},
 		],
+	},
+	{
+		// Interactive: a role=toolbar of step buttons.
+		name: 'stepper (interactive)',
+		element: (
+			<Stepper key="sti" defaultValue={1}>
+				<StepperStep value={0}>
+					<StepperTitle>Account</StepperTitle>
+				</StepperStep>
+				<StepperSeparator />
+				<StepperStep value={1}>
+					<StepperTitle>Profile</StepperTitle>
+				</StepperStep>
+				<StepperSeparator />
+				<StepperStep value={2}>
+					<StepperTitle>Confirm</StepperTitle>
+				</StepperStep>
+			</Stepper>
+		),
 	},
 	{
 		// role=toolbar with an accessible name; grouped controls named by their

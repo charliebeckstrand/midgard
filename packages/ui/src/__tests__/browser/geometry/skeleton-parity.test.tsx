@@ -81,8 +81,16 @@ import { Switch, SwitchSkeleton } from '../../../components/switch'
 import { Tab, TabList, TabListSkeleton, Tabs } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import {
+	Timeline,
+	TimelineItem,
+	TimelineSkeleton,
+	TimelineTimestamp,
+	TimelineTitle,
+} from '../../../components/timeline'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
+import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
 import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { Box } from '../../../structure/box'
@@ -529,6 +537,50 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
+	// A horizontal item is a narrow column, so each title is one word. A longer title wraps to
+	// two lines, and the skeleton draws one.
+	it.each([
+		['vertical', 'sm'],
+		['vertical', 'md'],
+		['vertical', 'lg'],
+		['horizontal', 'sm'],
+		['horizontal', 'md'],
+		['horizontal', 'lg'],
+	] as const)('TimelineSkeleton has the box of a %s timeline at %s', (orientation, size) => {
+		const real = box(
+			renderUI(
+				<Box density={size}>
+					<Timeline orientation={orientation}>
+						<TimelineItem>
+							<TimelineTitle>Kickoff</TimelineTitle>
+							<TimelineTimestamp>Jan 2026</TimelineTimestamp>
+						</TimelineItem>
+						<TimelineItem status="info">
+							<TimelineTitle>Design</TimelineTitle>
+							<TimelineTimestamp>Feb 2026</TimelineTimestamp>
+						</TimelineItem>
+						<TimelineItem>
+							<TimelineTitle>Launch</TimelineTitle>
+							<TimelineTimestamp>Mar 2026</TimelineTimestamp>
+						</TimelineItem>
+					</Timeline>
+				</Box>,
+			).container.querySelector('[data-slot="timeline"]'),
+			'timeline',
+		)
+
+		const skeleton = box(
+			renderUI(
+				<Box density={size}>
+					<TimelineSkeleton items={3} orientation={orientation} />
+				</Box>,
+			).container.querySelector('ol'),
+			'skeleton',
+		)
+
+		expect(skeleton).toStrictEqual(real)
+	})
+
 	it.each(['horizontal', 'vertical'] as const)(
 		'TabListSkeleton has the height of a %s tab list',
 		(orientation) => {
@@ -742,6 +794,73 @@ describe('skeleton parity (real browser)', () => {
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
 	})
+
+	// A chart sizes its box from its width after it measures, so the test waits until the chart
+	// settles at the box of its skeleton. Density does not change the height of a chart, so each
+	// case runs in a density scope too.
+	const settlesAt = async (chart: ReactElement, skeleton: ReactElement, width: number) => {
+		const frame = (child: ReactElement) =>
+			renderUI(<div style={{ width }}>{child}</div>).container.firstElementChild?.firstElementChild
+
+		const reserved = box(frame(skeleton), 'skeleton')
+
+		const real = frame(chart)
+
+		expect(reserved.width).toBe(width)
+
+		await expect.poll(() => box(real, 'chart').height).toBeNear(reserved.height, PIXEL)
+	}
+
+	const sales = [
+		{ quarter: 'Q1', revenue: 40, costs: 24 },
+		{ quarter: 'Q2', revenue: 80, costs: 31 },
+		{ quarter: 'Q3', revenue: 65, costs: 28 },
+	]
+
+	it.each([
+		[400, 'sm'],
+		[800, 'lg'],
+	] as const)('ChartSkeleton has the box of a cartesian chart %ipx wide in %s', (width, step) =>
+		settlesAt(
+			<Box density={step}>
+				<BarChart
+					aria-label="Revenue"
+					data={sales}
+					series={[
+						{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+						{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
+					]}
+				/>
+			</Box>,
+			<Box density={step}>
+				<ChartSkeleton />
+			</Box>,
+			width,
+		),
+	)
+
+	it.each([
+		[300, 'sm'],
+		[800, 'lg'],
+	] as const)('the sector ChartSkeleton has the box of a pie %ipx wide in %s', (width, step) =>
+		settlesAt(
+			<Box density={step}>
+				<PieChart
+					aria-label="Traffic"
+					data={[
+						{ source: 'Search', visits: 60 },
+						{ source: 'Direct', visits: 25 },
+						{ source: 'Referral', visits: 15 },
+					]}
+					series={[{ xKey: 'source', yKey: 'visits' }]}
+				/>
+			</Box>,
+			<Box density={step}>
+				<ChartSkeleton sector />
+			</Box>,
+			width,
+		),
+	)
 
 	it.each([
 		['the rectangle', undefined, 16 / 9],

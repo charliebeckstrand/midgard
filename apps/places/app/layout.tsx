@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { fontSans } from 'shared/fonts'
-import { AppearanceScript } from 'ui/providers/appearance'
+import { AppearanceScript, FontPreload } from 'ui/providers/appearance'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -13,9 +12,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className={`h-full ${fontSans.variable}`} suppressHydrationWarning>
+		<html lang="en" className="h-full" suppressHydrationWarning>
 			<head>
 				<AppearanceScript />
+				<FontPreload />
 			</head>
 			{/* The map fills the screen, so the page never scrolls: the body is the
 			    frame every panel docks against. */}

@@ -1,4 +1,3 @@
-@import './fonts.css';
 @import 'ui/tailwind.css';
 
 /* The classes of `shared` and `ui`. Each path is from this file. Tests, benchmarks, and the ui docs never ship with an app, so their classes stay out of its CSS. */

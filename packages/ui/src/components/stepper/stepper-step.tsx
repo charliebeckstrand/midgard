@@ -73,10 +73,10 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
  * @remarks
  * Renders as a `<button>` (with `aria-current`, and `aria-controls` wiring to the
  * matching `<StepperPanel>`) when the stepper has an `onValueChange` handler,
- * otherwise a display-only `<div>`. In `linear` steppers, upcoming steps are
- * disabled. In a vertical or `responsive` layout it splits children into an
- * indicator column and a content column to align the title baseline with the
- * indicator. From `sm`, CSS dissolves the content column of a `responsive` step.
+ * otherwise a display-only `<li>` (with `aria-current`) in the list of the
+ * stepper. In `linear` steppers, upcoming steps are disabled. In a vertical or
+ * `responsive` layout it splits children into an indicator column and a content
+ * column to align the title baseline with the indicator. From `sm`, CSS dissolves the content column of a `responsive` step.
  */
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
 	const {
@@ -137,7 +137,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 	}
 
 	return (
-		<div
+		<li
 			id={triggerId}
 			data-slot="stepper-step"
 			data-state={state}
@@ -146,6 +146,6 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 			className={cn(classes, 'cursor-default')}
 		>
 			{inner}
-		</div>
+		</li>
 	)
 }

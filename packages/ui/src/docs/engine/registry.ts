@@ -2,6 +2,7 @@ import apiManifest from 'virtual:api-reference-manifest'
 import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
+import type { ApiReference } from './components/api-reference'
 import { titleCase } from './components/format'
 
 /** One sidebar entry: a demo's id, display name, and category. */
@@ -131,6 +132,8 @@ export function retryDemo(id: string) {
 	evictRejected(promiseCache, id)
 
 	evictRejected(apiPromiseCache, id)
+
+	evictRejected(apiViewCache, API_VIEW)
 }
 
 /**
@@ -142,7 +145,11 @@ export function preloadDemo(id: string) {
 
 	if (loaderById.has(id)) loadDemo(id)
 
-	if (hasComponentApi(id)) loadComponentApi(id)
+	if (hasComponentApi(id)) {
+		loadComponentApi(id)
+
+		loadApiReferenceView()
+	}
 }
 
 // Component API: extracted at build time, one lazy chunk per component behind
@@ -172,6 +179,21 @@ export function loadComponentApi(id: string): Promise<ComponentApi[]> {
 
 		return loader().then((mod) => mod.default ?? [])
 	})
+}
+
+// The view of the API reference is a chunk of its own. It renders the TSDoc
+// text as Markdown, so it carries `marked`, and the entry chunk does not. The
+// first paint does not wait for it: the reference is the last section of the
+// page, so it moves no content when it paints.
+const API_VIEW = 'view'
+
+const apiViewCache = new Map<string, TrackedPromise<typeof ApiReference>>()
+
+/** Return a cached promise for the view of the API reference. The first call fetches its chunk. */
+export function loadApiReferenceView(): Promise<typeof ApiReference> {
+	return tracked(apiViewCache, API_VIEW, () =>
+		import('./components/api-reference').then(({ ApiReference }) => ApiReference),
+	)
 }
 
 const apiSettledCache = new Map<string, TrackedPromise<void>>()
@@ -250,6 +272,9 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 	// shows the whole page.
 	const initialId =
 		typeof window === 'undefined' ? '' : window.location.hash.slice(1) || defaultDemo
+
+	// The view of the API reference loads beside the page, and the entry does not await it.
+	if (hasComponentApi(initialId)) loadApiReferenceView()
 
 	const initialPreload: Promise<unknown> = loaderById.has(initialId)
 		? Promise.all([

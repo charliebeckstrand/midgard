@@ -3,6 +3,7 @@ import {
 	Timeline,
 	TimelineItem,
 	TimelineMarker,
+	TimelineSkeleton,
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../components/timeline'
@@ -181,5 +182,19 @@ describe('TimelineMarker', () => {
 		)
 
 		expect(bySlot(container, 'timeline-marker')).toHaveClass('absolute', 'top-0')
+	})
+})
+
+describe('TimelineSkeleton', () => {
+	it('hides its list from assistive technology, so no empty items are read', () => {
+		const { container } = renderUI(<TimelineSkeleton items={2} />)
+
+		const root = container.firstElementChild
+
+		expect(root?.tagName).toBe('OL')
+
+		expect(root).toHaveAttribute('aria-hidden', 'true')
+
+		expect(root?.querySelectorAll(':scope > li')).toHaveLength(2)
 	})
 })

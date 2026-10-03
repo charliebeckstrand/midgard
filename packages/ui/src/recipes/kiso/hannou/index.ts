@@ -9,10 +9,10 @@ import { active } from './active'
 import { cursor, grab } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
-import { glassItem } from './glass-item'
+import { glassItem, glassItemBefore } from './glass-item'
 import { item } from './item'
 import { nav } from './nav'
-import { tint } from './tint'
+import { tint, tintBefore } from './tint'
 import { tintFilled } from './tint-filled'
 import { tintSurface } from './tint-surface'
 
@@ -30,6 +30,10 @@ export const hannou = {
 	tint,
 	/** {@link tint} at double strength, applied only inside a glass parent, where 5% reads as nothing. */
 	glassItem,
+	/** {@link tint} on a `::before` layer, for a box that stays square while a rounded inner layer carries the wash. */
+	tintBefore,
+	/** {@link glassItem} on a `::before` layer, the glass partner of {@link tintBefore}. */
+	glassItemBefore,
 	/** {@link tint} one step up, for a surface carrying a translucent fill. */
 	tintFilled,
 	/** The opaque hover step, for a surface on `omote.bg.surface` that a wash would make see-through. */
