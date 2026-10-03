@@ -8,7 +8,7 @@ import {
 	AppearanceSettings,
 	useAppearance,
 } from '../../providers/appearance'
-import { act, bySlot, renderUI, screen, stubMatchMedia, userEvent, waitFor } from '../helpers'
+import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function Probe() {
 	const { theme, density, setTheme, setDensity } = useAppearance()
