@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import type { ComponentApi } from '../../api-reference'
 import { Axes, DemoApiContext } from '../../components/axes'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen, settled } from '../helpers'
 
 const api: ComponentApi[] = [
 	{
@@ -31,11 +31,6 @@ function Probe({
 			{children}
 		</span>
 	)
-}
-
-/** A fulfilled promise that `use()` reads with no suspend. */
-function settled<T>(value: T): Promise<T> {
-	return Object.assign(Promise.resolve(value), { status: 'fulfilled', value })
 }
 
 function renderAxes(value: Promise<ComponentApi[]> | null = settled(api), of = 'Badge') {
