@@ -1,4 +1,12 @@
 export {
+	defineScale,
+	type Ramp,
+	type RampSteps,
+	type Scale,
+	type ScaleStep,
+	snapToScale,
+} from './scale'
+export {
 	type ControlStep,
 	type DensityStep,
 	densitySteps,
