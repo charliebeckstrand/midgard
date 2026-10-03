@@ -43,6 +43,27 @@ describe('Chart context menu', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Copy image' })).not.toBeInTheDocument()
 	})
 
+	// A context menu has no trigger to name it, so the chart gives it a name.
+	it('names the right-click menu after the chart title', () => {
+		const { container } = renderUI(
+			<BarChart title="Revenue" aria-label="Revenue by quarter" data={data} series={[...series]} />,
+		)
+
+		openChartMenu(container)
+
+		expect(screen.getByRole('menu', { name: 'Revenue menu' })).toBeInTheDocument()
+	})
+
+	it('names the right-click menu after the accessible name of an untitled chart', () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue by quarter" data={data} series={[...series]} />,
+		)
+
+		openChartMenu(container)
+
+		expect(screen.getByRole('menu', { name: 'Revenue by quarter menu' })).toBeInTheDocument()
+	})
+
 	it('drops the data actions from an empty pie', () => {
 		const { container } = renderUI(
 			<PieChart

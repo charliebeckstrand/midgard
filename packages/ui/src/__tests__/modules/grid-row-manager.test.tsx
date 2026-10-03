@@ -39,6 +39,14 @@ describe('Grid row manager', () => {
 		fireEvent.contextMenu(header)
 	}
 
+	it('names the group menu by its group', () => {
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		rightClickDeveloperHeader()
+
+		expect(screen.getByRole('menu', { name: 'Developer group menu' })).toBeInTheDocument()
+	})
+
 	it('opens a group menu with Manage rows and expand controls on a group-header right-click', () => {
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
@@ -200,6 +208,20 @@ describe('Grid row manager', () => {
 		await user.click(screen.getByRole('button', { name: 'Red color for Developer' }))
 
 		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
+	})
+
+	it('names the color menu by its trigger', async () => {
+		const user = setupUser()
+
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		rightClickDeveloperHeader()
+
+		await user.click(screen.getByRole('menuitem', { name: 'Manage rows' }))
+
+		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
+
+		expect(screen.getByRole('menu', { name: 'Color for Developer' })).toBeInTheDocument()
 	})
 })
 

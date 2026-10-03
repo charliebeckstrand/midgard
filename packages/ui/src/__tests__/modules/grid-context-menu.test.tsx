@@ -64,6 +64,23 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
 	})
 
+	// A context menu has no trigger to name it, so the grid names it by its target.
+	it('names the column menu by its column', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.getByRole('menu', { name: 'Name column menu' })).toBeInTheDocument()
+	})
+
+	it('names the cell menu', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ cell: true }} />)
+
+		rightClick('cell', 'Alice')
+
+		expect(screen.getByRole('menu', { name: 'Cell menu' })).toBeInTheDocument()
+	})
+
 	it('sorts the column when a sort item is chosen', () => {
 		const onValueChange = vi.fn()
 

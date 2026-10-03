@@ -185,6 +185,16 @@ describe('Grid column groups', () => {
 		])
 	})
 
+	it('names the band menu by its column group', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
+		)
+
+		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
+
+		expect(screen.getByRole('menu', { name: 'Name group menu' })).toBeInTheDocument()
+	})
+
 	it('clears the band color when Clear color is chosen', () => {
 		const { container } = renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
