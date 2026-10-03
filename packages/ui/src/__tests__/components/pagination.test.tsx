@@ -56,6 +56,23 @@ describe('PaginationPage', () => {
 
 		expect(el).not.toHaveAttribute('aria-current')
 	})
+
+	it('keeps a consumer aria-current while not current, and current wins', () => {
+		renderUI(
+			<Pagination>
+				<PaginationList>
+					<PaginationPage aria-current="step">1</PaginationPage>
+					<PaginationPage current aria-current="step">
+						2
+					</PaginationPage>
+				</PaginationList>
+			</Pagination>,
+		)
+
+		expect(screen.getByRole('button', { name: '1' })).toHaveAttribute('aria-current', 'step')
+
+		expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('aria-current', 'page')
+	})
 })
 
 describe.each([
@@ -72,6 +89,21 @@ describe.each([
 		)
 
 		expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
+	})
+
+	it('does not submit a form by default, and a caller type wins', () => {
+		renderUI(
+			<Pagination>
+				<PaginationList>
+					<Step />
+					<Step aria-label="Submit" type="submit" />
+				</PaginationList>
+			</Pagination>,
+		)
+
+		expect(screen.getByRole('button', { name: label })).toHaveAttribute('type', 'button')
+
+		expect(screen.getByRole('button', { name: 'Submit' })).toHaveAttribute('type', 'submit')
 	})
 })
 

@@ -750,6 +750,25 @@ describe('MenuItem', () => {
 		expect(item).toHaveAttribute('aria-disabled', 'true')
 	})
 
+	it('keeps the disabled state over a consumer aria-disabled', () => {
+		const { container } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem disabled aria-disabled={false}>
+						Disabled
+					</MenuItem>
+					<MenuItem aria-disabled>Enabled</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const [disabled, enabled] = container.querySelectorAll('[data-slot="menu-item"]')
+
+		expect(disabled).toHaveAttribute('aria-disabled', 'true')
+
+		expect(enabled).not.toHaveAttribute('aria-disabled')
+	})
+
 	it.each(['Enter', ' '])('invokes onAction when %j is pressed', (key) => {
 		const onAction = vi.fn()
 

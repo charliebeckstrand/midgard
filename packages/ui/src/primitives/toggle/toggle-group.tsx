@@ -10,5 +10,5 @@ export type ToggleGroupProps = ComponentProps<'div'>
  * layout. Pass `role` (e.g. `radiogroup`, `group`) to match the control type.
  */
 export function ToggleGroup({ className, role, ...props }: ToggleGroupProps) {
-	return <div data-slot="control" role={role} className={cn(k.group, className)} {...props} />
+	return <div data-slot="control" className={cn(k.group, className)} {...props} role={role} />
 }

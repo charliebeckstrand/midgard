@@ -22,7 +22,7 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 // form-submit hazard, which is a button concern, so `type="password"` on a CVV
 // field is a legitimate override.
 
-const SCAN_ROOTS = ['components', 'primitives', 'layouts']
+const SCAN_ROOTS = ['components', 'primitives', 'layouts', 'structure', 'modules']
 
 // The spread a consumer's props arrive through. An internal bag under another
 // name (`{...triggerProps}`) is resolved wiring, not consumer input.
@@ -49,26 +49,20 @@ const LOAD_BEARING =
 const BUTTON_HOST = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
 
 /** A rule this file does not hold yet, and how many violations it still has. */
-type Waiver = { order?: number; anchor?: number; ref?: number; keep?: true; note: string }
+type Waiver = { order?: number; anchor?: number; ref?: number; note: string }
 
 /**
  * Files a rule does not hold yet, pinned to the violation count each one
  * covers.
  *
  * @remarks
- * Almost every entry is backlog, not exemption: `note` names the audit row or
- * lead that owns it, and the step that closes the row deletes the entry. Only
- * a `keep` entry is a decision. The count is what makes the waiver narrow — a
- * file-wide waiver would absorb a new violation in an already-waived file, and
- * the third test fails the moment a count moves in either direction.
+ * Every entry is backlog, not exemption: `note` names the audit row or lead
+ * that owns it, and the step that closes the row deletes the entry. The count
+ * is what makes the waiver narrow — a file-wide waiver would absorb a new
+ * violation in an already-waived file, and the pin test fails the moment a
+ * count moves in either direction.
  */
 const WAIVERS = new Map<string, Waiver>([
-	['components/breadcrumb/breadcrumb-link.tsx', { order: 1, note: 'lead' }],
-	['components/menu/menu-item.tsx', { order: 1, note: 'lead' }],
-	['components/pagination/pagination-page.tsx', { order: 1, note: 'lead' }],
-	['components/pagination/pagination-utilities.tsx', { order: 1, note: 'lead' }],
-	['primitives/option/option.tsx', { order: 4, note: 'lead' }],
-	['primitives/polymorphic/polymorphic-static.tsx', { order: 1, note: 'lead' }],
 	['components/badge/badge.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/description.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/field.tsx', { anchor: 1, note: 'lead S1' }],
@@ -78,7 +72,9 @@ const WAIVERS = new Map<string, Waiver>([
 	['components/switch/switch-field.tsx', { anchor: 1, note: 'lead S1' }],
 	['primitives/control/control-frame.tsx', { anchor: 1, note: 'lead S1' }],
 	['primitives/toggle/toggle-field.tsx', { anchor: 1, note: 'lead S1' }],
-	['primitives/toggle/toggle-group.tsx', { order: 1, anchor: 1, note: 'lead · lead S1' }],
+	['primitives/toggle/toggle-group.tsx', { anchor: 1, note: 'lead S1' }],
+	// `recipes/kiso/narabi/field.ts` reads the anchor.
+	['structure/flex/flex.tsx', { anchor: 1, note: 'lead S1, joined with the structure scan' }],
 ])
 
 /** One JSX attribute written before the consumer spread. */

@@ -2,7 +2,7 @@
 
 import { Check } from 'lucide-react'
 import { type ComponentProps, memo, type ReactNode, use, useCallback, useId } from 'react'
-import { ariaAttr, cn, createContext, dataAttr } from '../../core'
+import { ariaAttr, cn, composeEventHandlers, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
 import { capitalizeFirst, getOrCompute } from '../../utilities'
 
@@ -32,16 +32,11 @@ export type OptionProps = {
 	commitOnTab?: boolean
 } & Omit<
 	ComponentProps<'div'>,
-	| 'className'
-	| 'onSelect'
-	| 'onClick'
-	| 'onKeyDown'
-	| 'onMouseDown'
-	| 'role'
-	| 'aria-selected'
-	| 'aria-disabled'
-	| 'tabIndex'
+	'className' | 'onSelect' | 'role' | 'aria-selected' | 'aria-disabled' | 'tabIndex'
 >
+
+// Selection and the focus hold run after a consumer `preventDefault()`.
+const alwaysRun = { checkForDefaultPrevented: false }
 
 /**
  * Shared option row for select-like components: stamps `role="option"` with
@@ -51,11 +46,14 @@ export type OptionProps = {
  * For active-descendant lists it mints a stable `id` and `preventDefault`s
  * mousedown to keep DOM focus on the owning input; an explicit `id` always
  * wins. With `commitOnTab`, an unselected option commits on Tab before the
- * keystroke leaves the widget. The row and its check icon follow the nearest
- * density scope through stepped classes, and they read no context. Memoized:
- * with a stable `onSelect`, an option skips re-rendering when its own `selected`
- * state is unchanged. Committing a selection therefore re-renders only the rows
- * that actually changed, rather than every option in the list.
+ * keystroke leaves the widget. A consumer `onClick`, `onKeyDown`, or
+ * `onMouseDown` runs first. Its `preventDefault()` does not cancel selection,
+ * which is the activation the row exists to perform. The row and its check
+ * icon follow the nearest density scope through stepped classes, and they read
+ * no context. Memoized: with a stable `onSelect`, an option skips re-rendering
+ * when its own `selected` state is unchanged. Committing a selection therefore
+ * re-renders only the rows that actually changed, rather than every option in
+ * the list.
  */
 function OptionImpl({
 	children,
@@ -66,6 +64,9 @@ function OptionImpl({
 	activeDescendant = false,
 	commitOnTab = false,
 	id,
+	onClick,
+	onKeyDown,
+	onMouseDown,
 	...props
 }: OptionProps) {
 	const autoId = useId()
@@ -90,27 +91,47 @@ function OptionImpl({
 	return (
 		<div
 			id={optionId}
+			className={cn(k.base)}
+			{...props}
+			// After the spread: a consumer prop must not drop the row out of the
+			// list (role), the roving model (tabIndex), or its state.
 			role="option"
 			aria-selected={selected}
 			aria-disabled={ariaAttr(disabled)}
 			data-selected={dataAttr(selected)}
 			data-disabled={dataAttr(disabled)}
 			tabIndex={-1}
-			// Active-descendant lists keep DOM focus on the owning input;
-			// `preventDefault` stops mousedown from transferring focus.
-			onMouseDown={activeDescendant ? (event) => event.preventDefault() : undefined}
-			onClick={() => !disabled && onSelect()}
-			onKeyDown={(event) => {
-				if (event.key === 'Enter' || event.key === ' ') {
-					event.preventDefault()
-
+			// Composed after the spread: the consumer handler runs first. Selection
+			// is the activation the row exists to perform, so a consumer
+			// `preventDefault()` does not cancel it (CONVENTIONS §3.9).
+			onClick={composeEventHandlers(
+				onClick,
+				() => {
 					if (!disabled) onSelect()
-				}
+				},
+				alwaysRun,
+			)}
+			onKeyDown={composeEventHandlers(
+				onKeyDown,
+				(event) => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						event.preventDefault()
 
-				if (event.key === 'Tab' && commitOnTab && !disabled && !selected) onSelect()
-			}}
-			className={cn(k.base)}
-			{...props}
+						if (!disabled) onSelect()
+					}
+
+					if (event.key === 'Tab' && commitOnTab && !disabled && !selected) onSelect()
+				},
+				alwaysRun,
+			)}
+			// Active-descendant lists keep DOM focus on the owning input;
+			// `preventDefault` stops mousedown from transferring focus. The focus
+			// hold keeps the active descendant true, so it takes no gate either.
+			onMouseDown={
+				activeDescendant
+					? composeEventHandlers(onMouseDown, (event) => event.preventDefault(), alwaysRun)
+					: onMouseDown
+			}
 		>
 			<span className={cn(k.content, className)}>{children}</span>
 			{checkIcon}

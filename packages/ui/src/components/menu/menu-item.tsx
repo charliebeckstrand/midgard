@@ -149,16 +149,16 @@ export function MenuItem(props: MenuItemProps) {
 	return (
 		<button
 			id={id}
-			aria-disabled={ariaAttr(disabled)}
-			data-disabled={dataAttr(disabled)}
 			className={classes}
 			{...rest}
 			// After the spread, like the composed handlers below: a consumer prop
 			// must not drop the row out of roving (role), the tab model (tabIndex),
-			// or turn it into a form-submit (type).
+			// turn it into a form-submit (type), or hide the disabled state.
 			type="button"
 			role="menuitem"
 			tabIndex={-1}
+			aria-disabled={ariaAttr(disabled)}
+			data-disabled={dataAttr(disabled)}
 			data-slot="menu-item"
 			// Composed after the spread: runs consumer handlers, then selection
 			// (onAction/close). The disabled guard precedes both so disabled
