@@ -50,14 +50,16 @@ export type SheetCloseProps = Partial<PanelCloseProps>
  * a click on the child closes the sheet, and the child's own `onClick` runs
  * first.
  */
-export function SheetClose({
-	children = (
-		<Button type="button" variant="plain" data-slot="sheet-close">
-			Close
-		</Button>
-	),
-}: SheetCloseProps) {
-	return <PanelClose>{children}</PanelClose>
+export function SheetClose({ children }: SheetCloseProps) {
+	return (
+		<PanelClose>
+			{children ?? (
+				<Button type="button" variant="plain" data-slot="sheet-close">
+					Close
+				</Button>
+			)}
+		</PanelClose>
+	)
 }
 
 export {

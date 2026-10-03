@@ -37,14 +37,16 @@ export type DialogCloseProps = Partial<PanelCloseProps>
  * a click on the child closes the dialog, and the child's own `onClick` runs
  * first.
  */
-export function DialogClose({
-	children = (
-		<Button type="button" variant="plain" data-slot="dialog-close">
-			Close
-		</Button>
-	),
-}: DialogCloseProps) {
-	return <PanelClose>{children}</PanelClose>
+export function DialogClose({ children }: DialogCloseProps) {
+	return (
+		<PanelClose>
+			{children ?? (
+				<Button type="button" variant="plain" data-slot="dialog-close">
+					Close
+				</Button>
+			)}
+		</PanelClose>
+	)
 }
 
 export {

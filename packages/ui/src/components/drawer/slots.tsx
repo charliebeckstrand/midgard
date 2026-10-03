@@ -44,14 +44,16 @@ export type DrawerCloseProps = Partial<PanelCloseProps>
  * a click on the child closes the drawer, and the child's own `onClick` runs
  * first.
  */
-export function DrawerClose({
-	children = (
-		<Button type="button" variant="plain" data-slot="drawer-close">
-			Close
-		</Button>
-	),
-}: DrawerCloseProps) {
-	return <PanelClose>{children}</PanelClose>
+export function DrawerClose({ children }: DrawerCloseProps) {
+	return (
+		<PanelClose>
+			{children ?? (
+				<Button type="button" variant="plain" data-slot="drawer-close">
+					Close
+				</Button>
+			)}
+		</PanelClose>
+	)
 }
 
 export {
