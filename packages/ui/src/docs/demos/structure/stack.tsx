@@ -52,7 +52,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Column">
-				<Stack gap="md">
+				<Stack gap="md" full>
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -68,7 +68,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Card bg="none">
+				<Card bg="none" className="w-full">
 					<Flex gap="md" justify="between" align="center" full>
 						<Card>Start</Card>
 						<Card>Middle</Card>
@@ -78,7 +78,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Composed with buttons">
-				<Flex gap="md" justify="end">
+				<Flex gap="md" justify="end" full>
 					<Button variant="plain">Cancel</Button>
 					<Button>Save changes</Button>
 				</Flex>

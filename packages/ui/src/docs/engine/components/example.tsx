@@ -26,6 +26,10 @@ import {
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
  * slots frame the preview.
  *
+ * Each child aligns to the start and keeps the width of its content, as an
+ * instance of an axis example does. A child that must fill the frame sets its
+ * own width, such as `w-full`.
+ *
  * The optional `width` and `minWidth` props size the frame. `resize` makes it
  * horizontally draggable via a right-edge handle, and switches its border to
  * dashed. The drag stops at the content's own minimum width, which the handle
@@ -166,7 +170,11 @@ export function Example({
 						{prefix}
 					</div>
 				)}
-				<div data-example-section="" className="flex flex-col p-4 gap-4 overflow-x-auto">
+				{/* `max-w-full` keeps a wide child within the frame. */}
+				<div
+					data-example-section=""
+					className="flex flex-col items-start p-4 gap-4 overflow-x-auto *:max-w-full"
+				>
 					{children}
 				</div>
 				{preview && (

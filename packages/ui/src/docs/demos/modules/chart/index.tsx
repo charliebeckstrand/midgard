@@ -220,7 +220,9 @@ function AnimatedExample({
 				</Flex>
 			}
 		>
-			<div key={runKey}>{children}</div>
+			<div key={runKey} className="w-full">
+				{children}
+			</div>
 		</Example>
 	)
 }

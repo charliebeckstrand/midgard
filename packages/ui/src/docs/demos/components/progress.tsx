@@ -42,7 +42,7 @@ export function Demo() {
 									/>
 								}
 							>
-								<ProgressBar value={barValue} aria-label="Progress" />
+								<ProgressBar value={barValue} className="w-48" aria-label="Progress" />
 							</Example>
 						</Stack>
 					</TabContent>

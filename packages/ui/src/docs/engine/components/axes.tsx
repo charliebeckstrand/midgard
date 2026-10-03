@@ -226,8 +226,9 @@ function AxesExamples({
 				(axis) =>
 					valuesOf(axis).length > 1 && (
 						<Example key={axis.name} title={axisTitle(axis.name, title)}>
-							{/* The instances stack, one to a line, so that each has the width of the row. */}
-							<Stack gap={captions ? 'lg' : 'sm'} align="start">
+							{/* The instances stack, one to a line. The stack fills the frame, so that an
+							    instance with `w-full` takes the width of the row. */}
+							<Stack gap={captions ? 'lg' : 'sm'} align="start" className="self-stretch">
 								{valuesOf(axis).map((value) => (
 									<AxisInstance
 										key={String(value)}

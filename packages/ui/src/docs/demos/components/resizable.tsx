@@ -25,7 +25,7 @@ export function Demo() {
 			/>
 
 			<Example title="Three panels">
-				<div className="h-48">
+				<div className="h-48 w-full">
 					<ResizableGroup>
 						<ResizablePanel defaultSize={25} minSize={15}>
 							<Pane />

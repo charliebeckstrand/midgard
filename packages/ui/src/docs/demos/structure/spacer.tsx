@@ -9,7 +9,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Justify">
-				<Card bg="none">
+				<Card bg="none" className="w-full">
 					<Flex align="center" full>
 						<Heading level={3}>Title</Heading>
 						<Spacer />
@@ -19,7 +19,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Between groups">
-				<Card bg="none">
+				<Card bg="none" className="w-full">
 					<Flex gap="md" align="center" full>
 						<Button variant="plain">Back</Button>
 						<Spacer />
