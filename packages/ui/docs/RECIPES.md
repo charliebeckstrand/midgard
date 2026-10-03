@@ -69,7 +69,7 @@ Variant types derive from the concrete result — `export type FooVariants = Var
 
 ## Recipe engine
 
-The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/recipe). **Internal** — imported by `katakana`, `kata`, and `layouts/*/variants.ts` via relative path; not on the `ui/core` barrel.
+The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/recipe). **Internal** — imported by `katakana` and `kata` via relative path; not on the `ui/core` barrel.
 
 | Export | Summary |
 |---|---|
