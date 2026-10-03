@@ -6,6 +6,7 @@ import {
 	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
+	CommandPaletteText,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import { bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
@@ -411,7 +412,7 @@ describe('CommandPaletteItem', () => {
 	})
 })
 
-describe('CommandPaletteLabel and CommandPaletteDescription', () => {
+describe('CommandPaletteLabel, CommandPaletteText, and CommandPaletteDescription', () => {
 	it('renders the label with data-slot="command-palette-label"', () => {
 		const { container } = renderUI(<CommandPaletteLabel>Label</CommandPaletteLabel>)
 
@@ -422,6 +423,24 @@ describe('CommandPaletteLabel and CommandPaletteDescription', () => {
 		const { container } = renderUI(<CommandPaletteDescription>About</CommandPaletteDescription>)
 
 		expect(bySlot(container, 'command-palette-description')).toHaveTextContent('About')
+	})
+
+	it('renders the text with data-slot="command-palette-text", which stacks the label over the description', () => {
+		const { container } = renderUI(
+			<CommandPaletteText>
+				<CommandPaletteLabel>Label</CommandPaletteLabel>
+
+				<CommandPaletteDescription>About</CommandPaletteDescription>
+			</CommandPaletteText>,
+		)
+
+		const text = bySlot(container, 'command-palette-text')
+
+		expect(text).toContainElement(bySlot(container, 'command-palette-label'))
+
+		expect(text).toContainElement(bySlot(container, 'command-palette-description'))
+
+		expect(text).toHaveClass('flex-col')
 	})
 })
 

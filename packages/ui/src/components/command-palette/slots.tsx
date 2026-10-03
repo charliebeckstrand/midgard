@@ -100,6 +100,27 @@ export type CommandPaletteLabelProps = ComponentProps<'span'>
 /** Primary text slot for a {@link CommandPaletteItem}. */
 export const CommandPaletteLabel = createSlot('span', 'command-palette-label', k.label)
 
+/** Props for {@link CommandPaletteText}; extends native `<span>` attributes. */
+export type CommandPaletteTextProps = ComponentProps<'span'>
+
+/**
+ * Stacks a {@link CommandPaletteLabel} over a {@link CommandPaletteDescription}
+ * in a {@link CommandPaletteItem}; renders a `<span>`. Without it, the
+ * description sits beside the label. It takes the free width of the row, so a
+ * leading icon stays beside the text and a shortcut stays at the end.
+ *
+ * @example
+ * ```tsx
+ * <CommandPaletteItem>
+ *   <CommandPaletteText>
+ *     <CommandPaletteLabel>Stella's Ice Cream</CommandPaletteLabel>
+ *     <CommandPaletteDescription>Sherwood, Oregon</CommandPaletteDescription>
+ *   </CommandPaletteText>
+ * </CommandPaletteItem>
+ * ```
+ */
+export const CommandPaletteText = createSlot('span', 'command-palette-text', k.text)
+
 /** Props for {@link CommandPaletteDescription}; extends native `<span>` attributes. */
 export type CommandPaletteDescriptionProps = ComponentProps<'span'>
 
