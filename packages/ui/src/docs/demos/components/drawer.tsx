@@ -3,7 +3,6 @@ import { Button } from '../../../components/button'
 import {
 	Drawer,
 	DrawerBody,
-	DrawerClose,
 	DrawerFooter,
 	DrawerStatic,
 	DrawerTitle,
@@ -70,10 +69,9 @@ function FitExample() {
 export function Demo() {
 	return (
 		<>
-			{/* With `handle`, drag the grip to resize, or focus it and use the arrow
-			    keys. The panel never shrinks past its own header and footer. A drag
-			    past them pulls the panel down, and a release there or a downward flick
-			    puts it away. */}
+			{/* With `handle` on a `half` or `full` drawer, drag the grip to resize, or
+			    focus it and use the arrow keys. The panel never shrinks past its own
+			    header and footer. */}
 			<Axes
 				of="Drawer"
 				captions={false}
@@ -93,11 +91,7 @@ export function Demo() {
 								</Text>
 							</DrawerBody>
 
-							<DrawerFooter>
-								<DrawerClose>
-									<Button>Close</Button>
-								</DrawerClose>
-							</DrawerFooter>
+							{/* With no footer of its own, the drawer shows the standard Close button. */}
 						</Drawer>
 					</Opener>
 				)}
@@ -111,7 +105,8 @@ export function Demo() {
 				captions={false}
 				title="Static drawer"
 				// A height is a share of the screen, so the drawer above shows it at its true size.
-				omit={['height']}
+				// The grip shows only at a `half` or `full` height, so it goes with the height.
+				omit={['height', 'handle']}
 				render={(props, label) => (
 					<div className="relative h-[55dvh] w-60 overflow-hidden rounded-lg border border-zinc-200 [contain:paint] dark:border-zinc-800">
 						<Text className="p-4 text-blue-600 dark:text-blue-400">{LoremIpsum}</Text>

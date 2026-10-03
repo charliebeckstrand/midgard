@@ -13,46 +13,17 @@ export type DrawerHandleProps = {
 	covers: number
 	/** The id of the drawer panel, which the separator names in `aria-controls`. */
 	controls: string
-	/**
-	 * Whether the grip resizes the panel. A grip that does not is only a thing to
-	 * pull, so it is not a splitter.
-	 */
-	resizable: boolean
 	className?: string
 }
 
 /**
- * The grab bar at the top of a drawer, lying across the panel's own edge.
- *
- * On a drawer that resizes, it is a {@link PanelHandle}: a window splitter that
- * takes focus and the arrow keys. On a drawer grown to its content, it is only a
- * thing to pull down. It then takes no focus, and assistive technology does not
- * see it. A splitter there would name a control that sets nothing, and the
- * drawer closes on `Escape` and on its backdrop already.
+ * The grab bar at the top of a drawer, lying across the panel's own edge. It is a
+ * {@link PanelHandle}: a window splitter that takes focus and the arrow keys. Only
+ * a drawer that resizes renders it.
  *
  * @internal
  */
-export function DrawerHandle({
-	handleProps,
-	covers,
-	controls,
-	resizable,
-	className,
-}: DrawerHandleProps) {
-	if (!resizable) {
-		return (
-			<div
-				data-slot="drawer-handle"
-				aria-hidden="true"
-				onPointerDown={handleProps.onPointerDown}
-				data-dragging={handleProps['data-dragging']}
-				className={cn(k.handle.area, className)}
-			>
-				<div className={cn(k.handle.bar)} />
-			</div>
-		)
-	}
-
+export function DrawerHandle({ handleProps, covers, controls, className }: DrawerHandleProps) {
 	return (
 		<PanelHandle
 			slot="drawer-handle"

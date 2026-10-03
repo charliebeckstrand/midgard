@@ -2,7 +2,6 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
-import { settleResize, speedOf } from '../../hooks/use-panel-resize'
 import {
 	bySlot,
 	densityStepOf,
@@ -243,7 +242,7 @@ describe('DrawerClose', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Drawer open onOpenChange={onOpenChange}>
+			<Drawer open onOpenChange={onOpenChange} footer={null}>
 				<DrawerClose>
 					<button type="button">Close</button>
 				</DrawerClose>
@@ -259,7 +258,7 @@ describe('DrawerClose', () => {
 		const childClick = vi.fn()
 
 		renderUI(
-			<Drawer open onOpenChange={() => {}}>
+			<Drawer open onOpenChange={() => {}} footer={null}>
 				<DrawerClose>
 					<button type="button" onClick={childClick}>
 						Close
@@ -393,96 +392,6 @@ describe('Drawer uncontrolled', () => {
 })
 
 describe('Drawer drag handle', () => {
-	// What a released drag means is arithmetic, and it is the half a synthetic
-	// pointer cannot reach — the gesture writes the height straight to the element
-	// across real pointer frames. Driven directly instead.
-	describe('settleResize', () => {
-		it('keeps whatever height the drag landed on', () => {
-			// Not a step: the reader is deciding how much of the screen the panel
-			// gets, and the answer is wherever they let go.
-			expect(settleResize(420, 0)).toBe(420)
-
-			expect(settleResize(140, 0)).toBe(140)
-		})
-
-		it('keeps the panel at the floor rather than taking it away there', () => {
-			// The smallest size is still a size. Closing when the reader reaches it
-			// would take the panel from someone who was still placing it.
-			expect(settleResize(140, 0.1)).toBe(140)
-		})
-
-		it('throws the panel away on a flick, whatever height it was left at', () => {
-			// Speed, not position, is what separates a resize from a dismissal — a
-			// reader placing an edge slows to a stop, and one dismissing does not.
-			expect(settleResize(600, 0.9)).toBe('close')
-
-			expect(settleResize(140, 0.9)).toBe('close')
-		})
-
-		it('never reads an upward flick as a dismissal', () => {
-			expect(settleResize(600, -2)).toBe(600)
-		})
-
-		it('lets a panel pulled well past its floor go on a slow release', () => {
-			// Over a quarter of the panel is off the screen, so the release lets it go.
-			expect(settleResize(300, 0, 0.4)).toBe('close')
-		})
-
-		it('keeps a panel pulled a short way, which springs back as a phone sheet does', () => {
-			// A reader who tried the grip, or who changed their mind, keeps the panel.
-			expect(settleResize(300, 0, 0.03)).toBe(300)
-
-			expect(settleResize(300, 0, 0.2)).toBe(300)
-		})
-
-		it('throws away a panel pulled a short way on a flick', () => {
-			expect(settleResize(300, 0.9, 0.1)).toBe('close')
-		})
-	})
-
-	describe('speedOf', () => {
-		it('measures the end of the gesture, not the whole gesture', () => {
-			// A reader who drags slowly and then flicks means the flick; averaged over
-			// the travel it would disappear. The slow part is 20 px in 900 ms.
-			const trail = [
-				{ at: 100, t: 0 },
-				{ at: 120, t: 900 },
-				{ at: 150, t: 950 },
-			]
-
-			expect(speedOf(trail, 180, 1000)).toBeCloseTo(0.6, 5)
-		})
-
-		it('reads a flick whose release lands on the spot of the last move', () => {
-			// iOS reports a touch that way. The last move alone would read as still.
-			const trail = [
-				{ at: 100, t: 0 },
-				{ at: 140, t: 40 },
-				{ at: 180, t: 80 },
-			]
-
-			expect(speedOf(trail, 180, 80)).toBeCloseTo(1, 5)
-		})
-
-		it('reads a hand at rest before the release as still', () => {
-			const trail = [
-				{ at: 100, t: 0 },
-				{ at: 180, t: 80 },
-			]
-
-			expect(speedOf(trail, 180, 1000)).toBe(0)
-		})
-
-		it('reads no speed from a gesture with nothing behind it', () => {
-			expect(speedOf([], 160, 100)).toBe(0)
-		})
-
-		it('reads no speed from a release in the same instant as the press', () => {
-			// The interval is the divisor, so a zero one has no speed to give.
-			expect(speedOf([{ at: 100, t: 100 }], 160, 100)).toBe(0)
-		})
-	})
-
 	/** A drawer with a grab bar, and the bar itself. */
 	function renderHandled(props?: { onOpenChange?: (open: boolean) => void; open?: boolean }) {
 		const rendered = renderUI(
@@ -528,42 +437,38 @@ describe('Drawer drag handle', () => {
 		expect(handle).toHaveAttribute('aria-controls', panel?.id)
 	})
 
-	it('gives a drawer grown to its content a grip to pull, not a splitter', () => {
-		const { container } = renderUI(
-			<Drawer open handle onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
-			</Drawer>,
-		)
+	it.each(['auto', 'fit'] as const)(
+		'shows no grip on a drawer grown to its content (%s)',
+		(height) => {
+			const { container } = renderUI(
+				<Drawer open handle height={height} onOpenChange={() => {}} aria-label="Panel">
+					<p>Body</p>
+				</Drawer>,
+			)
 
-		const handle = getSlot(container, 'drawer-handle')
+			// The content sets the height, so a grip there would resize nothing. The grip
+			// does not close a panel either, so it has nothing to do.
+			expect(bySlot(container, 'drawer-handle')).toBeNull()
 
-		// The grip sets no size here, so a splitter would name a control that does
-		// nothing. Escape and the backdrop close the panel for a keyboard reader.
-		expect(handle).not.toHaveAttribute('role')
+			expect(getSlot(container, 'drawer')).not.toHaveAttribute('data-handle')
+		},
+	)
 
-		expect(handle).not.toHaveAttribute('tabindex')
+	it('stops a fast drag down at the floor, and keeps the drawer open', () => {
+		const onOpenChange = vi.fn()
 
-		expect(handle).toHaveAttribute('aria-hidden', 'true')
-	})
+		const { handle, panel } = renderHandled({ onOpenChange })
 
-	it('writes no height on a drawer grown to its content when its grip is pressed', () => {
-		const { container } = renderUI(
-			<Drawer open handle height="fit" onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
-			</Drawer>,
-		)
+		fireEvent.pointerDown(handle, { pointerType: 'touch', clientY: 100, timeStamp: 0 })
 
-		const handle = getSlot(container, 'drawer-handle')
+		fireEvent.pointerMove(window, { pointerType: 'touch', clientY: 600, timeStamp: 10 })
 
-		fireEvent.pointerDown(handle, { pointerType: 'touch', clientY: 400 })
+		fireEvent.pointerUp(window, { pointerType: 'touch', clientY: 900, timeStamp: 20 })
 
-		fireEvent.pointerMove(window, { pointerType: 'touch', clientY: 300 })
+		// A flick down no longer throws the panel away. It only resizes.
+		expect(onOpenChange).not.toHaveBeenCalled()
 
-		fireEvent.pointerUp(window, { pointerType: 'touch', clientY: 300 })
-
-		// A height written here would stop the panel from following its content for
-		// the rest of the open.
-		expect(getSlot(container, 'drawer').style.height).toBe('')
+		expect(panel.style.translate).toBe('')
 	})
 
 	it('marks the bar as held while a pointer drags it, so the grab hand closes', () => {

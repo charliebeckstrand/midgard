@@ -11,7 +11,11 @@ import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { Code } from '../../../components/code'
 import { ColorPanel, ColorPanelSkeleton, ColorPicker } from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
-import { CommandPaletteShortcut } from '../../../components/command-palette'
+import {
+	CommandPalette,
+	CommandPaletteClose,
+	CommandPaletteShortcut,
+} from '../../../components/command-palette'
 import { Control, ControlSkeleton } from '../../../components/control'
 import { CopyButton } from '../../../components/copy-button'
 import {
@@ -169,6 +173,16 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 		<Combobox size={size as never} aria-label="Stage" displayValue={(v: string) => v}>
 			{options(ComboboxOption as never, ComboboxLabel as never)}
 		</Combobox>
+	),
+	CommandPaletteClose: (size) => (
+		<CommandPalette
+			open
+			onOpenChange={() => {}}
+			triggerShortcut={false}
+			footer={<CommandPaletteClose size={size as never} />}
+		>
+			{null}
+		</CommandPalette>
 	),
 	CommandPaletteShortcut: (size) => (
 		<CommandPaletteShortcut size={size as never}>⌘K</CommandPaletteShortcut>

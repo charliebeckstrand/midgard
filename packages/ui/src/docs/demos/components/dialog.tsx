@@ -3,7 +3,6 @@ import { Button } from '../../../components/button'
 import {
 	Dialog,
 	DialogBody,
-	DialogClose,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
@@ -41,11 +40,7 @@ export function Demo() {
 								</Text>
 							</DialogBody>
 
-							<DialogFooter>
-								<DialogClose>
-									<Button>Close</Button>
-								</DialogClose>
-							</DialogFooter>
+							{/* With no footer of its own, the dialog shows the standard Close button. */}
 						</Dialog>
 					</Opener>
 				)}

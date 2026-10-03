@@ -58,7 +58,7 @@ export type MenuProps = {
 	/**
 	 * Open a dropdown as a bottom sheet on a phone, which is a narrow viewport
 	 * with no hover. The sheet holds the same rows at the full width of the
-	 * screen, and the reader closes it with a swipe down. Set `false` for a
+	 * screen, and a pick, the backdrop, or `Escape` closes it. Set `false` for a
 	 * dropdown that must stay next to its trigger. A context menu and a static
 	 * menu never open as a sheet.
 	 * @defaultValue true
