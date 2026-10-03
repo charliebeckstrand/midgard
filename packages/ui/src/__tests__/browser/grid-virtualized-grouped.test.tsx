@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
+	frame,
 	frames,
 	getSlot,
 	present,
@@ -116,17 +117,33 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		let headDrift = 0
 
-		// Scroll down through the whole list, so each row measures once.
-		for (let top = 0; top < scroll.scrollHeight; top += 400) {
-			scroll.scrollTop = top
-
-			await settle(1)
-
+		const readHead = () => {
 			headDrift = Math.max(
 				headDrift,
 				Math.abs(head.getBoundingClientRect().top - scroll.getBoundingClientRect().top),
 			)
 		}
+
+		// Scroll down through the whole list, so each row measures once. The body
+		// is more than 50,000px tall, so the loop takes more than 120 steps. The
+		// wait in each step thus sets most of the time of this case, and one frame
+		// is enough. The scroll event of the frame renders the rows of the step in
+		// a `flushSync`. The `ResizeObserver` measures them at the end of the same
+		// frame. The next step moves the scroll position before that delivery, but
+		// the rows stay mounted until the scroll event of the next frame. A row
+		// that does not measure keeps the estimate, and the height check fails.
+		for (let top = 0; top < scroll.scrollHeight; top += 400) {
+			scroll.scrollTop = top
+
+			await frame()
+
+			readHead()
+		}
+
+		// Let the measurements of the last step land, and read the head after them.
+		await settle(1)
+
+		readHead()
 
 		// The spacers stand in for the rows outside the window, so the body is as
 		// tall as the unwindowed body.
