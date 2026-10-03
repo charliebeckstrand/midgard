@@ -89,6 +89,8 @@ export const k = {
 	manager: {
 		// Vertical stack of the "New group" button, the group zones, and the column rows.
 		root: [flex.col, 'gap-3'],
+		// The list of the group zones, with the gap of the stack.
+		groups: [flex.col, 'gap-3'],
 		// Zone shell: a column stack inside the zone's Card, which a column can be
 		// dropped into. The Card draws the outline, and a colored group tints it
 		// (see {@link cardOutline}). The zone has no drop-over style.

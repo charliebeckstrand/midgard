@@ -63,14 +63,18 @@ export function GridRowManager({
 		<div data-slot="grid-row-manager" className={cn(k.root, className)}>
 			<DndContext {...dndContextProps} modifiers={GROUP_DRAG_MODIFIERS}>
 				<SortableContext items={itemIds} strategy={strategy}>
-					{groups.map((group) => (
-						<GridRowManagerZone
-							key={group.key}
-							group={group}
-							onRecolor={onRecolor}
-							colorOptions={colorOptions}
-						/>
-					))}
+					{/* A list, so assistive tech reads the count of the zones and the
+					    position of each. The DndContext nodes stay outside it. */}
+					<ul className={cn(k.list)}>
+						{groups.map((group) => (
+							<GridRowManagerZone
+								key={group.key}
+								group={group}
+								onRecolor={onRecolor}
+								colorOptions={colorOptions}
+							/>
+						))}
+					</ul>
 				</SortableContext>
 			</DndContext>
 		</div>
@@ -98,7 +102,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 	const label = columnLabel({ id: group.key, title: group.label })
 
 	return (
-		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
+		<li ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
 			{/* Content sits directly in the Card, so its padding is uniform on every
 			    edge. A CardHeader would add a bottom gap for a body that isn't here. */}
 			<Card className={cn(group.color && groupK.cardOutline[group.color])}>
@@ -122,6 +126,6 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 					/>
 				</div>
 			</Card>
-		</div>
+		</li>
 	)
 }
