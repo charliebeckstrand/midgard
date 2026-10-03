@@ -9,7 +9,7 @@ export function Demo() {
 				of="Link"
 				captions={false}
 				render={(props, label) => (
-					<Link {...props} href="#link">
+					<Link {...props} href="/link">
 						{label}
 					</Link>
 				)}
@@ -18,7 +18,7 @@ export function Demo() {
 			<Example title="Inline with text">
 				<Text>
 					For more information, see the{' '}
-					<Link href="#link" color="blue">
+					<Link href="/link" color="blue">
 						getting started guide
 					</Link>
 					.
