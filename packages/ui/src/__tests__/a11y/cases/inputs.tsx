@@ -151,7 +151,7 @@ export const inputCases: readonly Case[] = [
 	{
 		name: 'checkbox',
 		element: (
-			<CheckboxGroup key="c">
+			<CheckboxGroup aria-label="Terms" key="c">
 				<CheckboxField>
 					<Checkbox />
 					<Label>Accept terms and conditions</Label>

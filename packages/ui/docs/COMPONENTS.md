@@ -17,6 +17,8 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
+> `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
+
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover.
 
 ## Form structure
