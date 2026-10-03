@@ -2,7 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
-import { useComposedRef, useScrollOverflow } from '../../hooks'
+import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'
@@ -35,7 +35,10 @@ export type TimelineProps = Omit<ComponentProps<'ol'>, 'className' | 'children'>
  * @remarks
  * A horizontal timeline scrolls its row inside the root. While the row
  * overflows, the edge with more items behind it fades
- * ({@link useScrollOverflow}).
+ * ({@link useScrollOverflow}). The root is then also a tab stop
+ * ({@link useScrollRegion}), so a keyboard user can scroll it. The root keeps
+ * its `list` role and the name that you give it with `aria-label` or
+ * `aria-labelledby`.
  */
 export function Timeline({
 	ref,
@@ -51,7 +54,16 @@ export function Timeline({
 
 	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal', enabled: horizontal })
 
-	const setRoot = useComposedRef<HTMLOListElement>(ref, scrollOverflowRef)
+	// No name goes to the hook. A `region` role replaces the `list` role of the
+	// `<ol>`, and the cleanup of the hook removes the name it set, which can be
+	// the name that the consumer gave.
+	const scrollRegionRef = useScrollRegion()
+
+	const setRoot = useComposedRef<HTMLOListElement>(
+		ref,
+		scrollOverflowRef,
+		horizontal ? scrollRegionRef : undefined,
+	)
 
 	return (
 		<TimelineContext value={value}>

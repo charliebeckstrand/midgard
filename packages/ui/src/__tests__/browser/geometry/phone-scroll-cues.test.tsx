@@ -5,12 +5,14 @@ import { Label } from '../../../components/fieldset'
 import { Filters, FiltersBar, FiltersField, FiltersRow } from '../../../components/filters'
 import { Input } from '../../../components/input'
 import { Timeline, TimelineItem, TimelineTitle } from '../../../components/timeline'
-import { getSlot, renderUI, screen, waitFor } from '../../helpers'
+import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * At a phone width, a `rail` Filters row and a horizontal Timeline scroll
  * inside themselves. Each fades the edge that has more content behind it, so
- * the cut does not look like a clip.
+ * the cut does not look like a clip. While it overflows, each is also a tab
+ * stop, so a keyboard user can scroll it. The Filters row is a region with the
+ * name of the bar. The Timeline keeps its `list` role and its own name.
  *
  * jsdom lays nothing out and compiles no Tailwind. Only a real browser proves
  * the overflow, the scroll, and the mask that the attributes open.
@@ -154,6 +156,80 @@ describe('phone scroll cues (real browser, 375px)', () => {
 			await waitFor(() => expect(edges(el)).toEqual([false, false]))
 
 			expect(fadedSides(el)).toEqual({ left: false, right: false })
+		})
+	})
+
+	describe('Filters rail row as a scroll region', () => {
+		it('is a named region and a tab stop only while it overflows', async () => {
+			const { container } = renderUI(<Rail />)
+
+			const row = getSlot(container, 'filters-row')
+
+			await waitFor(() => expect(row.getAttribute('tabindex')).toBe('0'))
+
+			expect(screen.getByRole('region', { name: 'Order filters' })).toBe(row)
+
+			screen.getByTestId('toggle').click()
+
+			await waitFor(() => expect(row.hasAttribute('tabindex')).toBe(false))
+
+			expect(row.hasAttribute('role')).toBe(false)
+
+			expect(row.hasAttribute('aria-label')).toBe(false)
+
+			expect(screen.queryByRole('region')).toBeNull()
+		})
+
+		it('adds nothing to a stack row', async () => {
+			const { container } = renderUI(<Rail layout="stack" />)
+
+			const row = getSlot(container, 'filters-row')
+
+			await frames()
+
+			expect(row.hasAttribute('tabindex')).toBe(false)
+
+			expect(row.hasAttribute('role')).toBe(false)
+
+			expect(edges(row)).toEqual([false, false])
+		})
+	})
+
+	describe('horizontal Timeline as a scroll region', () => {
+		it('is a tab stop only while it overflows, and keeps its list role and name', async () => {
+			const { container } = renderUI(<Line />)
+
+			const root = getSlot(container, 'timeline')
+
+			await waitFor(() => expect(root.getAttribute('tabindex')).toBe('0'))
+
+			expect(screen.getByRole('list', { name: 'Release history' })).toBe(root)
+
+			screen.getByTestId('toggle').click()
+
+			await waitFor(() => expect(root.hasAttribute('tabindex')).toBe(false))
+
+			expect(screen.getByRole('list', { name: 'Release history' })).toBe(root)
+		})
+
+		it('adds nothing to a vertical timeline', async () => {
+			const { container } = renderUI(
+				<Timeline aria-label="Release history">
+					{TITLES.map((title) => (
+						<TimelineItem key={title}>
+							<TimelineTitle>{title}</TimelineTitle>
+						</TimelineItem>
+					))}
+				</Timeline>,
+			)
+
+			const root = getSlot(container, 'timeline')
+
+			await frames()
+
+			expect(root.hasAttribute('tabindex')).toBe(false)
+
+			expect(edges(root)).toEqual([false, false])
 		})
 	})
 })
