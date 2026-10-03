@@ -37,9 +37,14 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 */
 	interactive?: boolean
 	/**
-	 * Rounds the row's corners. The `separated` and `solid` variants are rounded
-	 * already; this is for the `plain` and `outline` rows, whose hover wash would
-	 * otherwise paint a square block.
+	 * Rounds the row's hover and focus wash. The `separated` and `solid` variants
+	 * are rounded already; this is for the `plain` and `outline` rows, whose wash
+	 * would otherwise paint a square block.
+	 *
+	 * @remarks
+	 * The row itself keeps square corners, so the dividers between rows stay
+	 * straight lines. The wash paints on a rounded layer inside the row, set in
+	 * from its edges. The keyboard focus ring stays on the square row.
 	 */
 	rounded?: boolean
 	className?: string

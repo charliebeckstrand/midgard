@@ -15,3 +15,12 @@ export const glassItem = mode(
 	'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-zinc-950/10 group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-zinc-950/10',
 	'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10 dark:group-data-[glass]/glass:not-disabled:not-data-disabled:focus:bg-white/10',
 )
+
+/**
+ * {@link glassItem} on the `::before` layer, the glass partner of
+ * `tintBefore`. The composer gives the layer its position, inset, and radius.
+ */
+export const glassItemBefore = mode(
+	'group-data-[glass]/glass:not-disabled:not-data-disabled:hover:before:bg-zinc-950/10 group-data-[glass]/glass:not-disabled:not-data-disabled:focus:before:bg-zinc-950/10',
+	'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:before:bg-white/10 dark:group-data-[glass]/glass:not-disabled:not-data-disabled:focus:before:bg-white/10',
+)

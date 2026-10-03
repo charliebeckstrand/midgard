@@ -237,6 +237,30 @@ describe('ListItem', () => {
 		}
 	})
 
+	it('moves both washes of a rounded divided row onto its `::before` layer', () => {
+		for (const variant of ['plain', 'outline'] as const) {
+			const { container } = renderUI(
+				<List items={items.slice(0, 1)} variant={variant} getKey={(i) => i.id}>
+					{(item) => (
+						<ListItem rounded as="button" onClick={vi.fn()}>
+							{item.label}
+						</ListItem>
+					)}
+				</List>,
+			)
+
+			const cls = bySlot(container, 'list-item')?.className ?? ''
+
+			expect(cls).toContain('not-disabled:not-data-disabled:hover:before:bg-zinc-950/5')
+
+			expect(cls).toContain(
+				'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:before:bg-white/10',
+			)
+
+			expect(cls).not.toContain('hover:bg-')
+		}
+	})
+
 	it('steps a card to the neighboring shade rather than washing its surface away', () => {
 		const cls = washOf('separated')
 
