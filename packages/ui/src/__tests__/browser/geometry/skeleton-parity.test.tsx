@@ -75,6 +75,7 @@ import {
 } from '../../../components/timeline'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
+import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
 import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { Box } from '../../../structure/box'
@@ -625,6 +626,73 @@ describe('skeleton parity (real browser)', () => {
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
 	})
+
+	// A chart sizes its box from its width after it measures, so the test waits until the chart
+	// settles at the box of its skeleton. Density does not change the height of a chart, so each
+	// case runs in a density scope too.
+	const settlesAt = async (chart: ReactElement, skeleton: ReactElement, width: number) => {
+		const frame = (child: ReactElement) =>
+			renderUI(<div style={{ width }}>{child}</div>).container.firstElementChild?.firstElementChild
+
+		const reserved = box(frame(skeleton), 'skeleton')
+
+		const real = frame(chart)
+
+		expect(reserved.width).toBe(width)
+
+		await expect.poll(() => box(real, 'chart').height).toBeNear(reserved.height, PIXEL)
+	}
+
+	const sales = [
+		{ quarter: 'Q1', revenue: 40, costs: 24 },
+		{ quarter: 'Q2', revenue: 80, costs: 31 },
+		{ quarter: 'Q3', revenue: 65, costs: 28 },
+	]
+
+	it.each([
+		[400, 'sm'],
+		[800, 'lg'],
+	] as const)('ChartSkeleton has the box of a cartesian chart %ipx wide in %s', (width, step) =>
+		settlesAt(
+			<Box density={step}>
+				<BarChart
+					aria-label="Revenue"
+					data={sales}
+					series={[
+						{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+						{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
+					]}
+				/>
+			</Box>,
+			<Box density={step}>
+				<ChartSkeleton />
+			</Box>,
+			width,
+		),
+	)
+
+	it.each([
+		[300, 'sm'],
+		[800, 'lg'],
+	] as const)('the sector ChartSkeleton has the box of a pie %ipx wide in %s', (width, step) =>
+		settlesAt(
+			<Box density={step}>
+				<PieChart
+					aria-label="Traffic"
+					data={[
+						{ source: 'Search', visits: 60 },
+						{ source: 'Direct', visits: 25 },
+						{ source: 'Referral', visits: 15 },
+					]}
+					series={[{ xKey: 'source', yKey: 'visits' }]}
+				/>
+			</Box>,
+			<Box density={step}>
+				<ChartSkeleton sector />
+			</Box>,
+			width,
+		),
+	)
 
 	it.each([
 		['the rectangle', undefined, 16 / 9],
