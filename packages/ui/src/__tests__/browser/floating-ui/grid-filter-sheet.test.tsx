@@ -111,11 +111,14 @@ describe('grid column filter sheet (real browser)', () => {
 		// Tab before that leaves from the trigger, outside the trap.
 		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
 
-		// Cycle past every control; the modal focus manager keeps focus inside.
+		// Cycle past every control; the modal focus manager keeps focus inside. A
+		// Tab past the last control lands on a focus guard beside the panel, and
+		// the guard moves focus back in on the next animation frame. Thus wait for
+		// the focus, and do not read it at once.
 		for (let i = 0; i < 6; i++) {
 			await userEvent.tab()
 
-			expect(panel.contains(document.activeElement)).toBe(true)
+			await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
 		}
 	})
 
