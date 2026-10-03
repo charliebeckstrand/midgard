@@ -19,6 +19,7 @@ import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/draw
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
 import { drawerPanelProps } from './drawer-panel-props'
+import { DrawerClose, DrawerDefaultFooter } from './slots'
 
 /** Props for {@link Drawer}: open-state control, panel `height`, density `size` scope, and accessible naming. */
 export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
@@ -150,6 +151,14 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		animateOnMount?: boolean
 		children: ReactNode
 		/**
+		 * The content of the footer row that the drawer shows when no `DrawerFooter`
+		 * is in its children. A `DrawerFooter` child replaces it. Set `null` to show
+		 * no footer row.
+		 *
+		 * @defaultValue `<DrawerClose />`, the standard Close button
+		 */
+		footer?: ReactNode
+		/**
 		 * Element to receive initial focus when the drawer opens.
 		 * @defaultValue the first tabbable child
 		 */
@@ -176,7 +185,8 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * Resolves the surface variant against the enclosing Glass provider. An explicit `size`
  * opens a density scope on the panel, so descendants scale in step. Compose `<DrawerTrigger>`,
  * `<DrawerClose>`, and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
- * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within.
+ * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within. With no `<DrawerFooter>` in
+ * its children, the drawer shows a footer with the standard Close button.
  *
  * @remarks
  * A registered `<DrawerTitle>` supplies `aria-labelledby` and takes precedence over the
@@ -198,6 +208,7 @@ export function Drawer({
 	className,
 	animateOnMount = true,
 	children,
+	footer,
 	initialFocus,
 	dismissOnBackdrop,
 	modal = true,
@@ -328,7 +339,12 @@ export function Drawer({
 						/>
 					) : null}
 
-					<Density step={size}>{children}</Density>
+					<Density step={size}>
+						{children}
+						<DrawerDefaultFooter>
+							{footer === undefined ? <DrawerClose /> : footer}
+						</DrawerDefaultFooter>
+					</Density>
 				</PanelProviders>
 			</motion.div>
 		</Overlay>

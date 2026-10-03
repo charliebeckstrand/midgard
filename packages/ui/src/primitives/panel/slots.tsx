@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { type ReactNode, useEffect, useLayoutEffect } from 'react'
 import { cn } from '../../core'
 import { headingWeight, titleRamp } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
+import { DEFAULT_FOOTER_SCOPE, PanelFooterContext, usePanelFooter } from './panel-footer-context'
 import { usePanelA11y } from './panel-providers'
 import type {
 	PanelBodyProps,
@@ -34,8 +35,12 @@ type PanelSlots = {
  * Title and Description adopt the ambient `PanelA11yContext` ids; Body is the
  * scroll region. Pass `slots` to override individual slot classes.
  *
- * @returns The `{ Title, Description, Header, Body, Footer, Content }` slot
- * family bound to `slotPrefix`.
+ * A mounted Footer registers with the panel. `DefaultFooter` is the footer that
+ * the root renders after its children, and it renders only while no Footer is
+ * registered. So a Footer from the consumer replaces the default footer.
+ *
+ * @returns The `{ Title, Description, Header, Body, Footer, Content,
+ * DefaultFooter }` slot family bound to `slotPrefix`.
  * @see {@link PanelProviders}
  */
 export function createPanel(slotPrefix: string, slots?: PanelSlots) {
@@ -99,8 +104,32 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	}
 
 	function Footer({ className, ...props }: PanelFooterProps) {
+		const { register } = usePanelFooter()
+
+		// A layout effect, so the default footer goes before the first paint and
+		// the two footers never show together.
+		useLayoutEffect(() => register?.(), [register])
+
 		return (
 			<div data-slot={`${slotPrefix}-footer`} className={cn(footerClass, className)} {...props} />
+		)
+	}
+
+	/**
+	 * The footer that the root shows when no Footer slot is registered. Pass the
+	 * content of the footer row. `null` or `false` shows no footer.
+	 */
+	function DefaultFooter({ children }: { children?: ReactNode }) {
+		const { registered } = usePanelFooter()
+
+		if (registered || children === undefined || children === null || children === false) {
+			return null
+		}
+
+		return (
+			<PanelFooterContext value={DEFAULT_FOOTER_SCOPE}>
+				<Footer>{children}</Footer>
+			</PanelFooterContext>
 		)
 	}
 
@@ -110,5 +139,5 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		)
 	}
 
-	return { Title, Description, Header, Body, Footer, Content }
+	return { Title, Description, Header, Body, Footer, Content, DefaultFooter }
 }

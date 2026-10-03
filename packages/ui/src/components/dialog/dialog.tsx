@@ -10,6 +10,7 @@ import { Overlay } from '../../primitives/overlay'
 import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
+import { DialogClose, DialogDefaultFooter } from './slots'
 
 /** Props for {@link Dialog}: open-state control, `width` variant, align, dismissal, and accessible naming. */
 export type DialogProps = Omit<DialogPanelVariants, 'surface'> &
@@ -51,6 +52,14 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> &
 		className?: string
 		children: ReactNode
 		/**
+		 * The content of the footer row that the dialog shows when no `DialogFooter`
+		 * is in its children. A `DialogFooter` child replaces it. Set `null` to show
+		 * no footer row.
+		 *
+		 * @defaultValue `<DialogClose />`, the standard Close button
+		 */
+		footer?: ReactNode
+		/**
 		 * Dialog role. Use `'alertdialog'` for confirmations and other prompts that
 		 * require a response before proceeding.
 		 * @defaultValue 'dialog'
@@ -81,7 +90,8 @@ const alignClasses = {
  * It animates as a bottom sheet on mobile and a centered (or `top`-aligned) panel on
  * desktop. The surface variant resolves against the enclosing Glass provider. Compose
  * `<DialogTrigger>`, `<DialogClose>`, and the slot family (`<DialogContent>`, `<DialogHeader>`,
- * `<DialogTitle>`, `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within.
+ * `<DialogTitle>`, `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within. With no
+ * `<DialogFooter>` in its children, the dialog shows a footer with the standard Close button.
  *
  * @remarks
  * A registered `<DialogTitle>` supplies `aria-labelledby` and takes precedence over the
@@ -105,6 +115,7 @@ export function Dialog({
 	glass,
 	className,
 	children,
+	footer,
 	role = 'dialog',
 	initialFocus,
 	'aria-label': ariaLabel,
@@ -174,6 +185,9 @@ export function Dialog({
 				>
 					<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 						{children}
+						<DialogDefaultFooter>
+							{footer === undefined ? <DialogClose /> : footer}
+						</DialogDefaultFooter>
 					</PanelProviders>
 				</motion.div>
 			</div>

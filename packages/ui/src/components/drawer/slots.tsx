@@ -12,6 +12,7 @@ import {
 	type PanelTriggerProps,
 } from '../../primitives/panel'
 import { k } from '../../recipes/kata/drawer'
+import { Button } from '../button'
 
 /** Props for {@link DrawerTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type DrawerTitleProps = PanelTitleProps
@@ -26,7 +27,7 @@ export type DrawerFooterProps = PanelFooterProps
 /** Props for {@link DrawerContent} (`<div>` attributes). */
 export type DrawerContentProps = PanelContentProps
 
-const { Title, Description, Header, Body, Footer, Content } = createPanel('drawer', {
+const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('drawer', {
 	title: k.title,
 	description: k.description,
 	header: k.header,
@@ -34,23 +35,46 @@ const { Title, Description, Header, Body, Footer, Content } = createPanel('drawe
 	footer: k.footer,
 })
 
+/** Props for {@link DrawerClose}: one clickable child, or none for the standard Close button. */
+export type DrawerCloseProps = Partial<PanelCloseProps>
+
+/**
+ * Closes the enclosing {@link Drawer}. With no child, it renders the standard
+ * Close button, which is also the default footer of the drawer. With one child,
+ * a click on the child closes the drawer, and the child's own `onClick` runs
+ * first.
+ */
+export function DrawerClose({
+	children = (
+		<Button type="button" variant="plain" data-slot="drawer-close">
+			Close
+		</Button>
+	),
+}: DrawerCloseProps) {
+	return <PanelClose>{children}</PanelClose>
+}
+
 export {
 	/** `<div>` scroll region for the drawer's main content; fills remaining height and scrolls on overflow. */
 	Body as DrawerBody,
 	/** `<div>` wrapper for arbitrary drawer content outside the header/body/footer rhythm. */
 	Content as DrawerContent,
+	/**
+	 * The footer that {@link Drawer} renders after its children while no `DrawerFooter` is
+	 * mounted. Its child is the content of the row.
+	 *
+	 * @internal
+	 */
+	DefaultFooter as DrawerDefaultFooter,
 	/** `<p>` supporting copy; registers as the drawer's `aria-describedby` target. */
 	Description as DrawerDescription,
-	/** `<div>` action row pinned to the drawer's foot. */
+	/**
+	 * `<div>` action row pinned to the drawer's foot. It replaces the default footer of
+	 * the drawer, which holds the standard Close button.
+	 */
 	Footer as DrawerFooter,
 	/** `<div>` grouping the drawer's title and description. */
 	Header as DrawerHeader,
-	/**
-	 * Wraps a single child so clicking it dismisses the enclosing {@link Drawer}; the child's own
-	 * `onClick` runs first, then the drawer closes. Aliases the shared `PanelClose` primitive.
-	 */
-	PanelClose as DrawerClose,
-	type PanelCloseProps as DrawerCloseProps,
 	/**
 	 * Wraps a single child so clicking it opens the controlled {@link Drawer}; stamps the child
 	 * `aria-haspopup="dialog"` and, when `open` is supplied, `aria-expanded`. Aliases the shared

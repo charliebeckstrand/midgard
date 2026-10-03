@@ -243,7 +243,7 @@ describe('DrawerClose', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Drawer open onOpenChange={onOpenChange}>
+			<Drawer open onOpenChange={onOpenChange} footer={null}>
 				<DrawerClose>
 					<button type="button">Close</button>
 				</DrawerClose>
@@ -259,7 +259,7 @@ describe('DrawerClose', () => {
 		const childClick = vi.fn()
 
 		renderUI(
-			<Drawer open onOpenChange={() => {}}>
+			<Drawer open onOpenChange={() => {}} footer={null}>
 				<DrawerClose>
 					<button type="button" onClick={childClick}>
 						Close

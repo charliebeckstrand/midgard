@@ -85,6 +85,8 @@ export function MenuSheet({ title, glass, className, children }: MenuSheetProps)
 			glass={glass}
 			initialFocus={panelRef}
 			aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
+			// A pick, the grip, the backdrop, and Escape close the menu, so it has no Close row.
+			footer={null}
 		>
 			{heading === undefined ? null : (
 				<DrawerHeader>

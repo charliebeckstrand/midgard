@@ -11,8 +11,9 @@ import {
 	PanelTrigger,
 	type PanelTriggerProps,
 } from '../../primitives/panel'
+import { Button } from '../button'
 
-const { Title, Description, Header, Body, Footer, Content } = createPanel('dialog')
+const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('dialog')
 
 /** Props for {@link DialogTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type DialogTitleProps = PanelTitleProps
@@ -27,23 +28,46 @@ export type DialogFooterProps = PanelFooterProps
 /** Props for {@link DialogContent} (`<div>` attributes). */
 export type DialogContentProps = PanelContentProps
 
+/** Props for {@link DialogClose}: one clickable child, or none for the standard Close button. */
+export type DialogCloseProps = Partial<PanelCloseProps>
+
+/**
+ * Closes the enclosing {@link Dialog}. With no child, it renders the standard
+ * Close button, which is also the default footer of the dialog. With one child,
+ * a click on the child closes the dialog, and the child's own `onClick` runs
+ * first.
+ */
+export function DialogClose({
+	children = (
+		<Button type="button" variant="plain" data-slot="dialog-close">
+			Close
+		</Button>
+	),
+}: DialogCloseProps) {
+	return <PanelClose>{children}</PanelClose>
+}
+
 export {
 	/** `<div>` scroll region for the dialog's main content; marked as a scroll region for overflow handling. */
 	Body as DialogBody,
 	/** `<div>` wrapper for arbitrary dialog content outside the header/body/footer rhythm. */
 	Content as DialogContent,
+	/**
+	 * The footer that {@link Dialog} renders after its children while no `DialogFooter` is
+	 * mounted. Its child is the content of the row.
+	 *
+	 * @internal
+	 */
+	DefaultFooter as DialogDefaultFooter,
 	/** `<p>` supporting copy; registers as the dialog's `aria-describedby` target. */
 	Description as DialogDescription,
-	/** `<div>` action row pinned to the dialog's foot. */
+	/**
+	 * `<div>` action row pinned to the dialog's foot. It replaces the default footer of
+	 * the dialog, which holds the standard Close button.
+	 */
 	Footer as DialogFooter,
 	/** `<div>` grouping the dialog's title and description. */
 	Header as DialogHeader,
-	/**
-	 * Wraps a single child so clicking it dismisses the enclosing {@link Dialog}; the child's own
-	 * `onClick` runs first, then the dialog closes. Aliases the shared `PanelClose` primitive.
-	 */
-	PanelClose as DialogClose,
-	type PanelCloseProps as DialogCloseProps,
 	/**
 	 * Wraps a single child so clicking it opens the controlled {@link Dialog}; stamps the child
 	 * `aria-haspopup="dialog"` and, when `open` is supplied, `aria-expanded`. Aliases the shared

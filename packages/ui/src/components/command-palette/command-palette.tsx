@@ -149,6 +149,9 @@ export function CommandPalette({
 			initialFocus={inputRef}
 			// Names the dialog directly; the palette has no visible heading.
 			aria-label="Command palette"
+			// The palette renders its own footer from `footer`, inside the query
+			// context, so the dialog adds none.
+			footer={null}
 		>
 			<CommandPaletteContext value={context}>
 				<QueryContext value={queryValue}>

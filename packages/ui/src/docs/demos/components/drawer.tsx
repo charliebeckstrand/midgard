@@ -3,7 +3,6 @@ import { Button } from '../../../components/button'
 import {
 	Drawer,
 	DrawerBody,
-	DrawerClose,
 	DrawerFooter,
 	DrawerStatic,
 	DrawerTitle,
@@ -93,11 +92,7 @@ export function Demo() {
 								</Text>
 							</DrawerBody>
 
-							<DrawerFooter>
-								<DrawerClose>
-									<Button>Close</Button>
-								</DrawerClose>
-							</DrawerFooter>
+							{/* With no footer of its own, the drawer shows the standard Close button. */}
 						</Drawer>
 					</Opener>
 				)}

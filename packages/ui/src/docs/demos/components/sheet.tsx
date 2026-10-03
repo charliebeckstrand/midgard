@@ -1,12 +1,5 @@
 import { Button } from '../../../components/button'
-import {
-	Sheet,
-	SheetBody,
-	SheetClose,
-	SheetFooter,
-	SheetTitle,
-	SheetTrigger,
-} from '../../../components/sheet'
+import { Sheet, SheetBody, SheetTitle, SheetTrigger } from '../../../components/sheet'
 import { Text } from '../../../components/text'
 import { Axes, Opener } from '../../engine'
 
@@ -32,11 +25,7 @@ export function Demo() {
 							<Text>Press the backdrop, press Escape, or use the button to close the sheet.</Text>
 						</SheetBody>
 
-						<SheetFooter>
-							<SheetClose>
-								<Button>Close</Button>
-							</SheetClose>
-						</SheetFooter>
+						{/* With no footer of its own, the sheet shows the standard Close button. */}
 					</Sheet>
 				</Opener>
 			)}

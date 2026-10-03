@@ -156,7 +156,7 @@ describe('SheetClose', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Sheet open onOpenChange={onOpenChange}>
+			<Sheet open onOpenChange={onOpenChange} footer={null}>
 				<SheetClose>
 					<button type="button" onClick={childOnClick}>
 						Close

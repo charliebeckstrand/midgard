@@ -194,7 +194,15 @@ export function PlacesIndex({
 		// No grip, because there is nothing left for it to say: the panel is already
 		// the width of what it holds, and a drag could only make the table scroll or
 		// pad it with space.
-		<Sheet glass open={open} onOpenChange={onOpenChange} width="fit" aria-label="My places">
+		<Sheet
+			glass
+			open={open}
+			onOpenChange={onOpenChange}
+			width="fit"
+			aria-label="My places"
+			// The close beside the title closes the sheet, so it has no Close row.
+			footer={null}
+		>
 			{/* The title and the close on one line, laid out here rather than through
 			    the header slot: that slot stacks a title over a description, which puts
 			    the close under the title instead of opposite it. The form drawer's

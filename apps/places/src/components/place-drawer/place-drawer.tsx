@@ -408,6 +408,8 @@ export function PlaceDrawer({
 			open={open}
 			onOpenChange={onOpenChange}
 			aria-label={title}
+			// The close in the header row closes the drawer, so it has no Close row.
+			footer={null}
 		>
 			{/* The grip above is the top inset of the panel, so the header adds none. */}
 			<Flex justify="between" align="start" gap="md" className="px-6">
