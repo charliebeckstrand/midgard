@@ -39,6 +39,13 @@ export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className
  * `size`, the group opens no scope, and the children take the step of the
  * nearest scope, such as a surrounding `<Card>`, `<Drawer>`, or `<Popover>`.
  *
+ * @remarks
+ * The group takes no role by default. A group that joins an input to its addon
+ * is one control to the reader, and an unnamed `role="group"` there is noise.
+ * When the children are a set of related controls, such as the buttons of a
+ * text format bar, pass `role="group"` and an `aria-label`. Pass
+ * `role="toolbar"` when the set acts as a toolbar.
+ *
  * @example
  *   <Group>
  *     <Button>Cut</Button>
