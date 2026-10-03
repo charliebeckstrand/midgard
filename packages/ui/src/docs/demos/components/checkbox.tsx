@@ -1,13 +1,19 @@
+import { useState } from 'react'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
 import { Description, Label } from '../../../components/fieldset'
 import { Axes, Example } from '../../engine'
 
+const toppings = ['Cheese', 'Mushrooms', 'Olives']
+
 export function Demo() {
+	const [selected, setSelected] = useState<readonly string[]>(['Cheese'])
+
 	return (
 		<>
 			<Axes
 				of="Checkbox"
 				captions={false}
+				omit={['indeterminate']}
 				render={(props, label) => (
 					<CheckboxField>
 						<Checkbox {...props} defaultChecked />
@@ -37,6 +43,35 @@ export function Demo() {
 						<Label>Opt out of data collection</Label>
 						<Description>We will not collect any personal data.</Description>
 					</CheckboxField>
+				</CheckboxGroup>
+			</Example>
+
+			<Example title="Select all">
+				<CheckboxGroup aria-label="Toppings">
+					<CheckboxField>
+						<Checkbox
+							checked={selected.length === toppings.length}
+							indeterminate={selected.length > 0 && selected.length < toppings.length}
+							onChange={(event) => setSelected(event.target.checked ? toppings : [])}
+						/>
+						<Label>All toppings</Label>
+					</CheckboxField>
+
+					{toppings.map((topping) => (
+						<CheckboxField key={topping}>
+							<Checkbox
+								checked={selected.includes(topping)}
+								onChange={(event) =>
+									setSelected((prev) =>
+										event.target.checked
+											? toppings.filter((t) => t === topping || prev.includes(t))
+											: prev.filter((t) => t !== topping),
+									)
+								}
+							/>
+							<Label>{topping}</Label>
+						</CheckboxField>
+					))}
 				</CheckboxGroup>
 			</Example>
 
