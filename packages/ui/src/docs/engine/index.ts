@@ -12,6 +12,7 @@ export { capitalize, humanize, sizeLabels, valueLabel } from './components/forma
 export { LabeledColumn, LabeledRow, LabeledRows } from './components/labeled'
 export { Opener } from './components/opener'
 export { OptionsListbox } from './components/options-listbox'
+export { PageTabs, type PageTabsProps } from './components/page-tabs'
 export { SizeListbox } from './components/size-listbox'
 export { ValueStepper } from './components/value-stepper'
 export { VariantListbox } from './components/variant-listbox'

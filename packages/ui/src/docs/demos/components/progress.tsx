@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { ProgressBar, ProgressGauge } from '../../../components/progress'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Stack } from '../../../structure/stack'
-import { Axes, Example, ValueStepper } from '../../engine'
+import { Axes, Example, PageTabs, ValueStepper } from '../../engine'
 
 export function Demo() {
 	const [barValue, setBarValue] = useState(50)
 	const [gaugeValue, setGaugeValue] = useState(50)
 
 	return (
-		<Tabs defaultValue="bar">
+		<PageTabs defaultValue="bar">
 			<Stack gap="lg">
 				<TabList aria-label="Progress style">
 					<Tab value="bar">Bar</Tab>
@@ -83,6 +83,6 @@ export function Demo() {
 					</TabContent>
 				</TabContents>
 			</Stack>
-		</Tabs>
+		</PageTabs>
 	)
 }

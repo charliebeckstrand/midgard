@@ -4,16 +4,16 @@ import { Description, Field, Fieldset, Label, Legend, Message } from '../../../c
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Textarea } from '../../../components/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { Axes, Example } from '../../engine'
+import { Axes, Example, PageTabs } from '../../engine'
 
 export function Demo() {
 	return (
-		<Tabs defaultValue="fieldset">
+		<PageTabs defaultValue="fieldset">
 			<Stack gap="lg">
 				<TabList aria-label="Fieldset primitives">
 					<Tab value="fieldset">Fieldset</Tab>
@@ -154,6 +154,6 @@ export function Demo() {
 					</TabContent>
 				</TabContents>
 			</Stack>
-		</Tabs>
+		</PageTabs>
 	)
 }

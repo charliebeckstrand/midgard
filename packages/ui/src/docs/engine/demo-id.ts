@@ -12,3 +12,8 @@ export function pathToId(path: string) {
 		.replace('.tsx', '')
 		.replaceAll('/', '-')
 }
+
+/** The path of the tab `value` on the page `id`. The default tab has the page's own path. */
+export function pageTabPath(id: string, value: string, defaultValue: string): string {
+	return value === defaultValue ? `/${id}` : `/${id}/${encodeURIComponent(value)}`
+}
