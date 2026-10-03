@@ -2,17 +2,26 @@ import { Marked } from 'marked'
 import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
-import { MarkdownRenderer } from './markdown-renderer'
+import { type MarkdownHeadingOffset, MarkdownRenderer } from './markdown-renderer'
 
 // Module-scoped instance: keeps options local instead of mutating the shared
 // `marked` singleton a consuming app can also configure. GFM is on (tables,
 // task lists, strikethrough, autolinks).
 const md = new Marked({ gfm: true })
 
-/** Props for {@link Markdown}: the Markdown source string to render as prose. */
+/** Props for {@link Markdown}: the Markdown source string to render as prose, and the heading offset. */
 export type MarkdownProps = {
 	/** Markdown source to render. */
 	children: string
+	/**
+	 * The number of levels to add to each heading of the source, so that the
+	 * headings fit under the outline of the page. With `1`, a `#` heading renders
+	 * as an `<h2>`. The level stops at 6. The look of a heading stays that of its
+	 * source depth. Use it for content that the app does not write, such as a chat
+	 * message, which must not add an `<h1>` to the page.
+	 * @defaultValue 0
+	 */
+	headingOffset?: MarkdownHeadingOffset
 	className?: string
 }
 
@@ -51,10 +60,14 @@ export type MarkdownProps = {
  * re-rendering on every streamed chunk of the *last* message. Every earlier,
  * settled bubble's `children` stays the same string.
  */
-export const Markdown = memo(function Markdown({ children, className }: MarkdownProps) {
+export const Markdown = memo(function Markdown({
+	children,
+	headingOffset,
+	className,
+}: MarkdownProps) {
 	return (
 		<div data-slot="markdown" className={cn(k.root, className)}>
-			<MarkdownRenderer tokens={md.lexer(children)} />
+			<MarkdownRenderer tokens={md.lexer(children)} headingOffset={headingOffset} />
 		</div>
 	)
 })

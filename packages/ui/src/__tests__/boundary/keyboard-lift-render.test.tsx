@@ -168,7 +168,10 @@ describe('keyboard lift renders', () => {
 		// Moves the card from `todo` to `doing`. The `done` column stays as it is.
 		press(card(container, 'todo-3'), 'ArrowRight')
 
-		expect(card(container, 'todo-3').closest('section')).toHaveAttribute('aria-label', 'doing')
+		expect(card(container, 'todo-3').closest('[data-slot="kanban-column"]')).toHaveAttribute(
+			'aria-label',
+			'doing',
+		)
 
 		expect(renderedCards().filter((id) => id.startsWith('done-'))).toEqual([])
 	})

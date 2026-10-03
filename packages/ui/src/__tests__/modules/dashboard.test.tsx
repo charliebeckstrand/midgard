@@ -157,6 +157,22 @@ describe('Dashboard', () => {
 		expect(bySlot(container, 'dashboard')?.tagName).toBe('SECTION')
 	})
 
+	it('renders each tile title as a level 3 heading, or at the titleLevel of the board', () => {
+		const { unmount } = renderUI(<Board />)
+
+		expect(screen.getByRole('heading', { level: 3, name: 'Revenue' })).toBeInTheDocument()
+
+		unmount()
+
+		renderUI(
+			<Dashboard aria-label="Sales" titleLevel={2}>
+				<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
+			</Dashboard>,
+		)
+
+		expect(screen.getByRole('heading', { level: 2, name: 'Revenue' })).toBeInTheDocument()
+	})
+
 	it('names each titled tile, and draws no grip at rest', () => {
 		renderUI(<Board />)
 

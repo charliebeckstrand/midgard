@@ -18,7 +18,7 @@ export type CollapsePanelProps = {
 }
 
 /**
- * Collapsible content region for the {@link Collapse} compound API. Reads
+ * Collapsible content panel for the {@link Collapse} compound API. Reads
  * `open`, the resolved `animate` mode, and the `mount` policy from context. It
  * animates height (plus opacity for `'fade'`) via `AnimatePresence`; the
  * `false` mode renders synchronously without motion. Honors reduced-motion.
@@ -53,17 +53,22 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 		if (!preset && next) report()
 	})
 
+	// The panel takes only the id that the trigger's `aria-controls` points to.
+	// The disclosure pattern gives the panel no role, and a named section is a
+	// region landmark, so each panel would add one landmark to the page.
+	const { id } = panelProps
+
 	// The panel's identity — element, a11y wiring, classes — is one shape across
 	// every branch below; only how it animates (or whether it does) differs.
-	const section = (motionProps: object) => (
-		<motion.section
-			{...panelProps}
+	const panel = (motionProps: object) => (
+		<motion.div
+			id={id}
 			data-slot="collapse-panel"
 			{...motionProps}
 			className={cn(k.panel, className)}
 		>
 			{children}
-		</motion.section>
+		</motion.div>
 	)
 
 	if (!preset) {
@@ -71,9 +76,9 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 		return (
 			<MountHold hold={hold} name="collapse-panel">
-				<section {...panelProps} data-slot="collapse-panel" className={cn(k.panel, className)}>
+				<div id={id} data-slot="collapse-panel" className={cn(k.panel, className)}>
 					{children}
-				</section>
+				</div>
 			</MountHold>
 		)
 	}
@@ -84,7 +89,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 		return (
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
-					{open && section({ ...preset, onAnimationComplete })}
+					{open && panel({ ...preset, onAnimationComplete })}
 				</AnimatePresence>
 			</ReducedMotion>
 		)
@@ -95,7 +100,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	return (
 		<ReducedMotion>
 			<MountHold hold={hold} name="collapse-panel">
-				{section(heldMotionProps(preset, open, hold, onAnimationComplete))}
+				{panel(heldMotionProps(preset, open, hold, onAnimationComplete))}
 			</MountHold>
 		</ReducedMotion>
 	)

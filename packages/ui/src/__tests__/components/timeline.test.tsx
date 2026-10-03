@@ -7,7 +7,7 @@ import {
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../components/timeline'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Timeline', () => {
 	it('renders with data-slot="timeline"', () => {
@@ -36,6 +36,28 @@ describe('Timeline', () => {
 		)
 
 		expect(bySlot(container, 'timeline-item')).toHaveAttribute('aria-current', 'step')
+	})
+})
+
+describe('TimelineTitle', () => {
+	it('renders a div with no level, and a heading at the level that it is given', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineTitle>Plain</TimelineTitle>
+				</TimelineItem>
+				<TimelineItem>
+					<TimelineTitle level={3}>Shipped</TimelineTitle>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		expect(bySlot(container, 'timeline-title')?.tagName).toBe('DIV')
+
+		expect(screen.getByRole('heading', { level: 3, name: 'Shipped' })).toHaveAttribute(
+			'data-slot',
+			'timeline-title',
+		)
 	})
 })
 

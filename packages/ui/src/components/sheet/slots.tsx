@@ -13,7 +13,7 @@ import {
 } from '../../primitives/panel'
 import { k } from '../../recipes/kata/sheet'
 
-/** Props for {@link SheetTitle} (`<h2>` attributes). */
+/** Props for {@link SheetTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type SheetTitleProps = PanelTitleProps
 /** Props for {@link SheetDescription} (`<p>` attributes). */
 export type SheetDescriptionProps = PanelDescriptionProps
@@ -64,6 +64,6 @@ export {
 	 */
 	PanelTrigger as SheetTrigger,
 	type PanelTriggerProps as SheetTriggerProps,
-	/** `<h2>` heading; registers as the sheet's `aria-labelledby` target with density-scaled type. */
+	/** `h{level}` heading, `<h2>` by default; registers as the sheet's `aria-labelledby` target with density-scaled type. */
 	Title as SheetTitle,
 }

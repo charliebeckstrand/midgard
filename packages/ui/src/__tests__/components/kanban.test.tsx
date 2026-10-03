@@ -630,7 +630,7 @@ describe('Kanban keyboard announcements', () => {
 })
 
 describe('KanbanColumn naming', () => {
-	it('names the column section from its title when no aria-label is given', () => {
+	it('names the column group from its title when no aria-label is given', () => {
 		renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
 				{columns.map((column) => (
@@ -643,10 +643,49 @@ describe('KanbanColumn naming', () => {
 			</Kanban>,
 		)
 
-		// The section's aria-labelledby resolves to the rendered title.
-		expect(screen.getByRole('region', { name: 'Todo' })).toBeInTheDocument()
+		// The group's aria-labelledby resolves to the rendered title.
+		expect(screen.getByRole('group', { name: 'Todo' })).toBeInTheDocument()
 
-		expect(screen.getByRole('region', { name: 'Done' })).toBeInTheDocument()
+		expect(screen.getByRole('group', { name: 'Done' })).toBeInTheDocument()
+	})
+
+	it('adds no region landmark for a column, so the board is the one region', () => {
+		renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				{columns.map((column) => (
+					<KanbanColumn key={column.id} value={column.id}>
+						<KanbanColumnHeader>
+							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
+						</KanbanColumnHeader>
+					</KanbanColumn>
+				))}
+			</Kanban>,
+		)
+
+		expect(
+			screen.getAllByRole('region').map((region) => region.getAttribute('aria-label')),
+		).toEqual(['Board'])
+	})
+
+	it('renders the title as a level 3 heading, or at the level that it is given', () => {
+		renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
+					<KanbanColumnHeader>
+						<KanbanColumnTitle>Todo</KanbanColumnTitle>
+					</KanbanColumnHeader>
+				</KanbanColumn>
+				<KanbanColumn value="done">
+					<KanbanColumnHeader>
+						<KanbanColumnTitle level={2}>Done</KanbanColumnTitle>
+					</KanbanColumnHeader>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(screen.getByRole('heading', { level: 3, name: 'Todo' })).toBeInTheDocument()
+
+		expect(screen.getByRole('heading', { level: 2, name: 'Done' })).toBeInTheDocument()
 	})
 
 	it('omits aria-labelledby when no title is rendered, so it never dangles', () => {
@@ -691,7 +730,7 @@ describe('KanbanColumn naming', () => {
 
 		expect(new Set(ids).size).toBe(ids.length)
 
-		expect(screen.getByRole('region', { name: 'Second Todo' })).toBeInTheDocument()
+		expect(screen.getByRole('group', { name: 'Second Todo' })).toBeInTheDocument()
 	})
 })
 

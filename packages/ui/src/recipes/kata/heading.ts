@@ -5,7 +5,12 @@ const { text } = iro
 const { weight } = ji
 const { heading } = kokkaku
 
-type Level = 1 | 2 | 3 | 4 | 5 | 6
+/**
+ * Semantic heading level, `1`-`6`, selecting the rendered `h1`-`h6` tag. A
+ * component that renders a heading at a level that the consumer sets takes this
+ * type for its `level` prop.
+ */
+export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 /**
  * Font weight per heading level: bold at the top of the scale, easing to
@@ -19,7 +24,7 @@ const levelWeight = {
 	4: weight.medium,
 	5: weight.medium,
 	6: weight.medium,
-} as const satisfies Record<Level, string>
+} as const satisfies Record<HeadingLevel, string>
 
 /**
  * The text size of each level in a stepped `density-text` class. At `md` a
@@ -35,7 +40,7 @@ export const headingRamp = {
 	4: 'density-text-[base,lg,xl]',
 	5: 'density-text-[sm,base,lg]',
 	6: 'density-text-[xs,sm,base]',
-} as const satisfies Record<Level, string>
+} as const satisfies Record<HeadingLevel, string>
 
 /**
  * The text size of a component title (Card, and the Dialog, Sheet, and Drawer
@@ -46,9 +51,9 @@ export const titleRamp = headingRamp[4]
 
 /**
  * Heading font weight for a `level`. Used by heading-like elements that don't
- * render `<Heading>` directly, e.g. the panel title (`<h2>`, level 2).
+ * render `<Heading>` directly, e.g. the panel title.
  */
-export function headingWeight(level: Level): string {
+export function headingWeight(level: HeadingLevel): string {
 	return levelWeight[level]
 }
 

@@ -47,6 +47,28 @@ describe('Collapse', () => {
 		expect(document.getElementById(controls as string)).not.toBeNull()
 	})
 
+	it.each([
+		['animated', undefined],
+		['not animated', false as const],
+	])('keeps the %s open panel out of the landmarks, with no role and no name', (_name, animate) => {
+		renderUI(
+			<Collapse defaultOpen animate={animate}>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Content</p>
+				</CollapsePanel>
+			</Collapse>,
+		)
+
+		expect(screen.queryByRole('region')).not.toBeInTheDocument()
+
+		const panel = bySlot(document.body, 'collapse-panel')
+
+		expect(panel?.tagName).toBe('DIV')
+
+		expect(panel).not.toHaveAttribute('aria-labelledby')
+	})
+
 	// `data-slot` is admitted on JSX but not on a props object, so widen it.
 	const triggered = (props: CollapseTriggerProps & { 'data-slot'?: string }) => (
 		<Collapse>

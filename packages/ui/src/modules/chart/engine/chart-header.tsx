@@ -12,6 +12,8 @@ type ChartHeaderLineProps = {
 	text: string
 	/** The subtitle mutes and shrinks under the title. */
 	subtitle?: boolean
+	/** The id of the line, which the chart figure points to for its name. */
+	id?: string
 }
 
 /**
@@ -27,7 +29,7 @@ type ChartHeaderLineProps = {
  *
  * @internal
  */
-function ChartHeaderLine({ text, subtitle = false }: ChartHeaderLineProps) {
+function ChartHeaderLine({ text, subtitle = false, id }: ChartHeaderLineProps) {
 	const [ref, truncated] = useTruncation<HTMLSpanElement>()
 
 	return (
@@ -36,6 +38,7 @@ function ChartHeaderLine({ text, subtitle = false }: ChartHeaderLineProps) {
 				<Text
 					as="span"
 					ref={ref}
+					id={id}
 					data-slot={subtitle ? 'chart-subtitle' : 'chart-title'}
 					size={subtitle ? 'sm' : 'md'}
 					tone={subtitle ? 'muted' : undefined}
@@ -57,6 +60,8 @@ function ChartHeaderLine({ text, subtitle = false }: ChartHeaderLineProps) {
 /** Props for {@link ChartHeader}. @internal */
 type ChartHeaderProps = {
 	title?: string
+	/** The id of the title line, which the chart figure points to for its name. */
+	titleId?: string
 	subtitle?: string
 	/**
 	 * The centered hover / focus veil over a spark plot, rather than the inline
@@ -79,12 +84,12 @@ type ChartHeaderProps = {
  *
  * @internal
  */
-export function ChartHeader({ title, subtitle, veil = false, action }: ChartHeaderProps) {
+export function ChartHeader({ title, titleId, subtitle, veil = false, action }: ChartHeaderProps) {
 	if (!title && !subtitle) return null
 
 	const lines = (
 		<>
-			{title && <ChartHeaderLine text={title} />}
+			{title && <ChartHeaderLine text={title} id={titleId} />}
 
 			{subtitle && <ChartHeaderLine text={subtitle} subtitle />}
 		</>

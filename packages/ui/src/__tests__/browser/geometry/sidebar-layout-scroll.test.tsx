@@ -31,10 +31,11 @@ function renderTallLayout() {
 
 	const content = present(header.parentElement, 'content region')
 
+	// The bar is the section that holds the menu button.
 	const navbar = present(
 		screen
 			.getByRole('button', { name: 'Open navigation', hidden: true })
-			.closest<HTMLElement>('[data-slot=flex]'),
+			.closest<HTMLElement>('section'),
 		'navbar',
 	)
 

@@ -17,16 +17,17 @@ export type KanbanColumnProps = {
 	value: string
 	children?: ReactNode
 	className?: string
-	/** Explicit name for the column section. Defaults to the rendered `KanbanColumnTitle`. */
+	/** Explicit name for the column group. Defaults to the rendered `KanbanColumnTitle`. */
 	'aria-label'?: string
 }
 
 /**
  * Drop target and sortable context for one board column, keyed by `value`.
  * Highlights while a card hovers over it, and provides column context to its
- * cards and title. It names its `<section>` from a mounted
- * {@link KanbanColumnTitle}, or from an explicit `aria-label`. Compose {@link KanbanColumnHeader} and
- * {@link KanbanColumnBody} within.
+ * cards and title. It is a named group, a `<fieldset>`, and not a landmark: the
+ * board is the one region of the board. It takes its name from a mounted
+ * {@link KanbanColumnTitle}, or from an explicit `aria-label`. Compose
+ * {@link KanbanColumnHeader} and {@link KanbanColumnBody} within.
  *
  * @remarks Client component.
  */
@@ -85,7 +86,11 @@ export function KanbanColumn({
 	return (
 		<KanbanColumnContext value={value}>
 			<SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-				<section
+				{/* A named section is a region landmark, and each column then adds one more
+				    landmark to the page. A fieldset is a group, which keeps the name for
+				    the announcements and adds no landmark. `min-w-0` in the recipe replaces
+				    the min-content width floor of a fieldset. */}
+				<fieldset
 					ref={setNodeRef}
 					data-slot="kanban-column"
 					data-column-id={columnId}
@@ -97,7 +102,7 @@ export function KanbanColumn({
 					className={cn(k.column.base, over && k.column.over, className)}
 				>
 					{children}
-				</section>
+				</fieldset>
 			</SortableContext>
 		</KanbanColumnContext>
 	)

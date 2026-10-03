@@ -31,6 +31,41 @@ describe('drag state attribute (real browser)', () => {
 		return drag(el, from, [{ x: from.x, y: from.y + 20 }])
 	}
 
+	it('keeps the kanban overlay clone out of the accessibility tree and the tab order', async () => {
+		const { container } = renderUI(
+			<Kanban
+				columns={[{ id: 'todo', items }]}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo" aria-label="Todo">
+					<KanbanColumnBody>
+						{items.map((item) => (
+							<KanbanCard key={item.id} value={item.id}>
+								{item.label}
+							</KanbanCard>
+						))}
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const [card] = allBySlot(container, 'kanban-card')
+
+		if (!card) throw new Error('expected a kanban card')
+
+		const held = await startDrag(card)
+
+		await expect.poll(() => card.hasAttribute('data-dragging')).toBe(true)
+
+		const overlay = document.querySelector<HTMLElement>('[data-slot="kanban-card"][data-overlay]')
+
+		expect(overlay?.inert).toBe(true)
+
+		await held.release()
+	})
+
 	it('marks the dragged kanban card and its overlay with data-dragging only', async () => {
 		const { container } = renderUI(
 			<Kanban

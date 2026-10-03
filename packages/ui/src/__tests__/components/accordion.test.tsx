@@ -104,6 +104,29 @@ describe('AccordionTrigger', () => {
 		expect(document.getElementById(controls as string)).toBe(screen.getByRole('region'))
 	})
 
+	it('keeps the panels out of the landmarks with region={false}, and keeps aria-controls', () => {
+		renderUI(
+			<Accordion region={false}>
+				<AccordionItem value="a">
+					<AccordionTrigger>Toggle</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Toggle' })
+
+		fireEvent.click(trigger)
+
+		expect(screen.queryByRole('region')).not.toBeInTheDocument()
+
+		const panel = bySlot(document.body, 'accordion-panel')
+
+		expect(panel).not.toHaveAttribute('aria-labelledby')
+
+		expect(trigger).toHaveAttribute('aria-controls', panel?.id)
+	})
+
 	it('keeps type="button" when a consumer supplies a type', () => {
 		renderUI(triggered({ type: 'submit' }))
 
