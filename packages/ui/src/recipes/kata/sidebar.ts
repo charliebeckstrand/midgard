@@ -1,6 +1,6 @@
 import type { DensityStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, narabi, sen, textRamp } from '../kiso'
+import { hannou, kokkaku, narabi, sen, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
 const { flex, inset } = narabi
@@ -26,24 +26,34 @@ const mini = {
 	square: 'lg:group-data-[mini]/sidebar:aspect-square lg:group-data-[mini]/sidebar:justify-center',
 } as const
 
+/**
+ * The box of an item: the axis, the text, the gap, the padding, the radius,
+ * and the mini-rail square. The skeleton row takes the same box, so the two
+ * boxes match.
+ *
+ * Each step is in a stepped `density-*` class: the item takes the step of its
+ * nearest density scope, and an explicit `size` makes the row its own scope.
+ */
+const itemBox = [
+	flex.row,
+	'w-full',
+	mini.square,
+	textRamp,
+	'density-gap-[1.5,2,2.5]',
+	'density-p-ring-[1.5,2,2.5]',
+	'density-rounded-[1.5,2,2.5]',
+]
+
 const itemBase = defineRecipe({
 	base: [
 		...nav.base,
 		...cursor,
 		'group relative z-10',
-		flex.row,
-		'w-full',
+		...itemBox,
 		'text-start',
-		mini.square,
-		// Each step is in a stepped `density-*` class: the item takes the step of
-		// its nearest density scope, and an explicit `size` makes the row its own
-		// scope. The inner Button has a text label, so its `data-has-label`
-		// padding repeats the row padding. Thus the Button class merges away.
-		textRamp,
-		'density-gap-[1.5,2,2.5]',
-		'density-p-ring-[1.5,2,2.5]',
+		// The inner Button has a text label, so its `data-has-label` padding
+		// repeats the row padding. Thus the Button class merges away.
 		'data-[has-label]:density-py-ring-[1.5,2,2.5]',
-		'density-rounded-[1.5,2,2.5]',
 		// The item wraps its `icon` in Icon, which takes the step of the nearest
 		// scope by itself. An Avatar or a LoadingSpinner child sizes itself in a
 		// row: its own recipe selects the inner button of the row. See
@@ -123,6 +133,8 @@ export const k = {
 		],
 		prefix: itemPrefix,
 		suffix: itemSuffix,
+		/** The box of the inner button, with no interaction surface, for the skeleton row. */
+		box: itemBox,
 	},
 	// `stackTargets` caps the hit areas, so two adjacent items do not overlap.
 	section: [flex.col, 'gap-0.5', stackTargets],
@@ -132,6 +144,12 @@ export const k = {
 	body: ['overflow-y-auto', flex.col, flex.fill, 'gap-4'],
 	divider: divider.top,
 	footer: ['sticky bottom-0', flex.col, 'gap-0.5', stackTargets, 'mt-auto'],
+	// A sidebar item has the form of a nav item. The mini rail removes the label
+	// line, as it hides the label of a real item.
+	skeleton: {
+		icon: kokkaku.nav.icon,
+		label: [kokkaku.nav.label, mini.hidden],
+	},
 } as const
 
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */

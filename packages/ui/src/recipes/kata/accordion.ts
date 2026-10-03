@@ -1,5 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, disabled, fg } = hannou
 const { text } = iro
@@ -24,6 +24,12 @@ const item = defineRecipe({
 	defaults: { variant: 'separated' },
 })
 
+/**
+ * The box of an item header: the axis, the gap, the padding, and the text. The
+ * skeleton header takes the same box, so the two boxes match.
+ */
+const header = ['w-full', flex.row, 'justify-between', 'gap-2', 'p-4', size.md]
+
 export const k = defineRecipe(
 	{
 		base: flex.col,
@@ -34,12 +40,7 @@ export const k = defineRecipe(
 		},
 		slots: {
 			trigger: [
-				'w-full',
-				flex.row,
-				'justify-between',
-				'gap-2',
-				'p-4',
-				size.md,
+				...header,
 				text.muted,
 				fg.hover,
 				'text-start',
@@ -61,8 +62,9 @@ export const k = defineRecipe(
 			body: ['px-4 pb-4 pt-0', size.md, text.muted],
 		},
 		defaults: { variant: 'separated' },
+		skeleton: kokkaku.accordion,
 	},
-	{ item, motion: collapse.fade },
+	{ item, motion: collapse.fade, header },
 )
 
 /** Recipe variant props for {@link Accordion} — the styling axes its kata exposes (`variant`), for consumers composing custom slots. */

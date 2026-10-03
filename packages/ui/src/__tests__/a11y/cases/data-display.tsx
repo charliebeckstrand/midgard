@@ -2,6 +2,7 @@ import {
 	Accordion,
 	AccordionItem,
 	AccordionPanel,
+	AccordionSkeleton,
 	AccordionTrigger,
 } from '../../../components/accordion'
 import { Avatar, AvatarSkeleton } from '../../../components/avatar'
@@ -129,7 +130,10 @@ export const dataDisplayCases: readonly Case[] = [
 					<AccordionPanel>Unworn items can be returned within 30 days.</AccordionPanel>
 				</AccordionItem>
 			</Accordion>
-		),
+		), // Two collapsed headers of a label line and an indicator square.
+		skeleton: [
+			{ element: <AccordionSkeleton items={2} />, absentSlot: 'accordion-item', placeholders: 4 },
+		],
 	},
 	{
 		// Single-select segmented control (radiogroup); the group carries an

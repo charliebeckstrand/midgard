@@ -10,6 +10,7 @@
  * bundle.
  */
 
+import { accordion } from './accordion'
 import { avatar } from './avatar'
 import { badge } from './badge'
 import { breadcrumb } from './breadcrumb'
@@ -24,6 +25,7 @@ import { descriptionList } from './description-list'
 import { heading } from './heading'
 import { list } from './list'
 import { map } from './map'
+import { nav } from './nav'
 import { pagination } from './pagination'
 import { progress } from './progress'
 import { radio } from './radio'
@@ -41,6 +43,7 @@ import { timeline } from './timeline'
 import { toggleIconButton } from './toggle-icon-button'
 
 export const kokkaku = {
+	accordion,
 	avatar,
 	badge,
 	breadcrumb,
@@ -55,6 +58,7 @@ export const kokkaku = {
 	heading,
 	list,
 	map,
+	nav,
 	pagination,
 	progress,
 	radio,
