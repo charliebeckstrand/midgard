@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	liveRegion,
+	renderUI,
+} from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
@@ -117,6 +125,32 @@ describe('MapPlat keyboard navigation', () => {
 		fireEvent.blur(plot)
 
 		expect(readout(container)).toBeNull()
+	})
+
+	it('speaks the readout of each region that an arrow key moves the cursor onto', async () => {
+		const { plot } = renderNavigable(categoricalPlat())
+
+		// The tooltip is `aria-hidden`, so the live region carries the readout.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('Alpha, East')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('Beta, West')
+
+		expect(liveRegion()).toHaveAttribute('aria-atomic', 'true')
+	})
+
+	it('speaks nothing for a stop with no readout', async () => {
+		const { plot } = renderNavigable(categoricalPlat())
+
+		// Gamma matches no row, so the tooltip stays away and the cursor is silent.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		await act(async () => {})
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
 	})
 
 	it('takes no tab stop when the cursor would have nothing to output', () => {

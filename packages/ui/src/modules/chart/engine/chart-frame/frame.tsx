@@ -11,7 +11,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../../../core'
+import { announce, cn } from '../../../../core'
 import { type FrameReserve, useComposedRef } from '../../../../hooks'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
@@ -25,7 +25,7 @@ import { ChartPlotBox } from '../chart-plot-box'
 import type { ChartSnap } from '../chart-snap'
 import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'
-import { ChartTooltip } from '../chart-tooltip'
+import { ChartTooltip, describeReadout } from '../chart-tooltip'
 import {
 	type ChartEmphasis,
 	ChartEmphasisContext,
@@ -453,6 +453,15 @@ export function ChartFrame({
 	// keeps the caller's `tooltip`.
 	const tooltipShown = tooltip && !spark
 
+	// The tooltip is `aria-hidden`, so a key that moves the cursor onto a point
+	// also speaks the readout of that point through the shared polite live
+	// region. A pointer move speaks nothing.
+	const announceRead = (index: number, series: number | null) => {
+		const text = readout && describeReadout(readout(), index, series, readoutOrder)
+
+		if (text) announce(text)
+	}
+
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does — a tab stop only where a readout can answer it.
 	const keyboard = useChartKeyboard(
@@ -462,6 +471,7 @@ export function ChartFrame({
 		hoverStore,
 		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
+		announceRead,
 	)
 
 	// The marks recede when either input emphasizes a reference: the pointer over a

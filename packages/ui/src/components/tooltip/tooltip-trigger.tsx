@@ -33,6 +33,11 @@ export type TooltipTriggerProps = {
  * `useRole` tooltip `aria-describedby`. Keyboard focus reaches the trigger, and
  * the description announces on the focusable node itself (WCAG 2.1.1 / 1.4.13 / 4.1.2).
  *
+ * When the panel is a dialog (an `interactive` panel that holds a tabbable
+ * control), the trigger carries `aria-haspopup="dialog"`, `aria-expanded`, and
+ * `aria-controls` in place of `aria-describedby`. The trigger also names the
+ * dialog. It keeps its own `id` for that, or takes a generated one.
+ *
  * The child's own ref merges with the floating ref. The non-element fallback
  * renders a plain `<span>`, which is valid in phrasing content. A `<button>`
  * fallback nested inside interactive content is invalid markup. The fallback
@@ -47,7 +52,7 @@ export type TooltipTriggerProps = {
  * Reversing the merge order would silently drop the ellipsis at all of them.
  */
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
-	const { setReference, getReferenceProps, enabled } = useTooltipContext()
+	const { setReference, getReferenceProps, enabled, triggerId } = useTooltipContext()
 
 	const child = isValidElement(children)
 		? (children as ReactElement<
@@ -77,6 +82,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 					child.props as Record<string, unknown>,
 				) as HTMLAttributes<HTMLElement>)}
 				ref={mergeRefs}
+				id={child.props.id ?? triggerId}
 				data-slot={child.props['data-slot'] ?? 'tooltip-trigger'}
 				className={cn(triggerClassName, child.props.className)}
 			/>
@@ -86,6 +92,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	return (
 		<span
 			ref={mergeRefs}
+			id={triggerId}
 			data-slot="tooltip-trigger"
 			className={triggerClassName}
 			{...(getReferenceProps() as ComponentProps<'span'>)}

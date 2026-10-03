@@ -12,7 +12,16 @@ import {
 } from '../../modules/chart/engine/use-chart-keyboard'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	liveRegion,
+	renderUI,
+} from '../helpers'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
 // same value); the later categories separate them.
@@ -758,6 +767,52 @@ const WEEKS = [
 	{ week: 'W4', a: 60, b: 40 },
 	{ week: 'W5', a: 70, b: 20 },
 ]
+
+describe('LineChart keyboard announcements', () => {
+	it('speaks the readout of each point that an arrow key moves the cursor onto', async () => {
+		const { container } = renderUI(line())
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// The tooltip is `aria-hidden`, so the live region carries the readout.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('W1, A: 10')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('W2, A: 30')
+
+		// The value axis steps to the other series, and the text follows it.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await expectAnnouncement('W2, B: 70')
+
+		expect(liveRegion()).toHaveAttribute('aria-atomic', 'true')
+	})
+
+	it('speaks nothing for a pointer hover', async () => {
+		const { container } = renderUI(line({ crosshair: { x: false, y: true, snap: true } }))
+
+		const hit = getSlot(container, 'chart-hit')
+
+		const width = Number(hit.getAttribute('width'))
+
+		const height = Number(hit.getAttribute('height'))
+
+		hit.getBoundingClientRect = () =>
+			({ left: 0, top: 0, right: width, bottom: height, width, height, x: 0, y: 0 }) as DOMRect
+
+		fireEvent.pointerEnter(hit, { clientX: width - 2, clientY: height / 2 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W3')
+
+		// The announcer writes on a microtask. Let one pass before the check.
+		await act(async () => {})
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+	})
+})
 
 describe('LineChart keyboard cursor after a data change', () => {
 	it('drops a cursor that a shorter data set leaves past its end', () => {
