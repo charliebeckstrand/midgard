@@ -81,7 +81,7 @@ type ListboxBaseProps = GroupStampProps & {
 	 * press does not open it, as with any hover tooltip.
 	 * @defaultValue false
 	 */
-	valueTooltip?: boolean
+	truncateTooltip?: boolean
 	/**
 	 * Capitalizes the first letter (first word only) of the selected
 	 * `displayValue` and of each option's string label; custom label nodes
@@ -170,7 +170,7 @@ export function Listbox<T>({
 	className,
 	id,
 	truncate = true,
-	valueTooltip = false,
+	truncateTooltip = false,
 	clearable = false,
 	capitalize = true,
 	open: openProp,
@@ -430,8 +430,8 @@ export function Listbox<T>({
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}
 						truncate={truncate}
-						valueTooltip={valueTooltip}
-						valueTooltipSuppressed={open}
+						truncateTooltip={truncateTooltip}
+						truncateTooltipSuppressed={open}
 					/>
 				</SelectTrigger>
 

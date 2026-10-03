@@ -15,19 +15,19 @@ type Case = {
 	name: string
 	/** The element the pointer rests on. */
 	slot: string
-	render: (value: string, valueTooltip: boolean) => ReactElement
+	render: (value: string, truncateTooltip: boolean) => ReactElement
 }
 
 const cases: Case[] = [
 	{
 		name: 'Combobox',
 		slot: 'combobox-input',
-		render: (value, valueTooltip) => (
+		render: (value, truncateTooltip) => (
 			<Combobox
 				aria-label="Stage"
 				defaultValue={value}
 				displayValue={(v: string) => v}
-				valueTooltip={valueTooltip}
+				truncateTooltip={truncateTooltip}
 			>
 				<ComboboxOption value={value}>
 					<ComboboxLabel>{value}</ComboboxLabel>
@@ -38,12 +38,12 @@ const cases: Case[] = [
 	{
 		name: 'Listbox',
 		slot: 'listbox-button',
-		render: (value, valueTooltip) => (
+		render: (value, truncateTooltip) => (
 			<Listbox
 				aria-label="Stage"
 				defaultValue={value}
 				displayValue={(v: string) => v}
-				valueTooltip={valueTooltip}
+				truncateTooltip={truncateTooltip}
 			>
 				<ListboxOption value={value}>
 					<ListboxLabel>{value}</ListboxLabel>
@@ -54,12 +54,12 @@ const cases: Case[] = [
 	{
 		name: 'Select',
 		slot: 'listbox-button',
-		render: (value, valueTooltip) => (
+		render: (value, truncateTooltip) => (
 			<Select
 				aria-label="Stage"
 				defaultValue={value}
 				displayValue={(v: string) => v}
-				valueTooltip={valueTooltip}
+				truncateTooltip={truncateTooltip}
 			>
 				<SelectOption value={value}>
 					<SelectLabel>{value}</SelectLabel>
@@ -80,13 +80,15 @@ async function tooltipAfterHover(): Promise<HTMLElement | null> {
 }
 
 /**
- * The value tooltip of the select family, against the real floating engine and
+ * The truncation tooltip of the select family, against the real floating engine and
  * the real layout. The tooltip opens only while the trigger truncates its value.
  * jsdom has no layout, so a value there never truncates.
  */
-describe.each(cases)('$name valueTooltip (real browser)', ({ slot, render }) => {
-	function mount(value: string, valueTooltip: boolean) {
-		const { container } = renderUI(<div style={{ width: 160 }}>{render(value, valueTooltip)}</div>)
+describe.each(cases)('$name truncateTooltip (real browser)', ({ slot, render }) => {
+	function mount(value: string, truncateTooltip: boolean) {
+		const { container } = renderUI(
+			<div style={{ width: 160 }}>{render(value, truncateTooltip)}</div>,
+		)
 
 		return present(bySlot(container, slot), slot)
 	}
@@ -150,7 +152,7 @@ describe('Combobox resting value (real browser)', () => {
 		expect(input.scrollLeft).toBeGreaterThan(0)
 	})
 
-	it('opens no value tooltip while the panel is open', async () => {
+	it('opens no truncation tooltip while the panel is open', async () => {
 		const { container } = renderUI(<div style={{ width: 160 }}>{cases[0]?.render(LONG, true)}</div>)
 
 		const input = present(bySlot(container, 'combobox-input'), 'combobox-input')

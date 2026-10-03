@@ -168,7 +168,7 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * hover tooltip.
 	 * @defaultValue false
 	 */
-	valueTooltip?: boolean
+	truncateTooltip?: boolean
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -326,7 +326,7 @@ export function Combobox<T>({
 	clearable = false,
 	onClear,
 	capitalize = true,
-	valueTooltip,
+	truncateTooltip,
 	open: openProp,
 	onOpenChange,
 	onQueryChange,
@@ -743,7 +743,7 @@ export function Combobox<T>({
 							title={inputTitle}
 							editing={editing}
 							capitalize={capitalize}
-							valueTooltip={valueTooltip}
+							truncateTooltip={truncateTooltip}
 							handlers={inputHandlers}
 						/>
 					</SelectTrigger>

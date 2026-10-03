@@ -26,19 +26,19 @@ type ListboxButtonProps = {
 	placeholder: string
 	truncate: boolean
 	/** Shows the whole label in a hover tooltip while the trigger truncates it. */
-	valueTooltip: boolean
-	/** Holds the value tooltip closed while the panel is open. */
-	valueTooltipSuppressed: boolean
+	truncateTooltip: boolean
+	/** Holds the truncation tooltip closed while the panel is open. */
+	truncateTooltipSuppressed: boolean
 }
 
 /**
  * The label span of the trigger, in a tooltip that shows `label` while the span
- * truncates it. A separate unit, so a listbox without `valueTooltip` mounts no
+ * truncates it. A separate unit, so a listbox without `truncateTooltip` mounts no
  * measure and no tooltip.
  *
  * @internal
  */
-function ListboxValueTooltip({
+function ListboxTruncateTooltip({
 	label,
 	truncate,
 	suppressed,
@@ -86,8 +86,8 @@ export function ListboxButton({
 	onBlur,
 	placeholder,
 	truncate,
-	valueTooltip,
-	valueTooltipSuppressed,
+	truncateTooltip,
+	truncateTooltipSuppressed,
 }: ListboxButtonProps) {
 	return (
 		<HeadlessProvider>
@@ -111,11 +111,11 @@ export function ListboxButton({
 				{...validation}
 				className={cn(k())}
 			>
-				{valueTooltip && label ? (
-					<ListboxValueTooltip
+				{truncateTooltip && label ? (
+					<ListboxTruncateTooltip
 						label={label}
 						truncate={truncate}
-						suppressed={valueTooltipSuppressed}
+						suppressed={truncateTooltipSuppressed}
 					/>
 				) : (
 					<span className={cn(k.value({ truncate }))}>

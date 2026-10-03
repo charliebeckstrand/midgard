@@ -62,18 +62,18 @@ type ComboboxInputProps = {
 	 * Shows the whole value in a hover tooltip while the input truncates it. The
 	 * tooltip stays closed while the panel is open or the input shows a query.
 	 */
-	valueTooltip?: boolean
+	truncateTooltip?: boolean
 	handlers: ComboboxInputHandlers
 }
 
 /**
  * Wraps the input in a tooltip that shows `text` while the input truncates it.
- * A separate unit, so a combobox without `valueTooltip` mounts no measure and no
+ * A separate unit, so a combobox without `truncateTooltip` mounts no measure and no
  * tooltip.
  *
  * @internal
  */
-function ComboboxValueTooltip({
+function ComboboxTruncateTooltip({
 	inputRef,
 	text,
 	suppressed,
@@ -121,7 +121,7 @@ export function ComboboxInput({
 	title,
 	editing,
 	capitalize,
-	valueTooltip = false,
+	truncateTooltip = false,
 	handlers,
 }: ComboboxInputProps) {
 	// Transform only the resolved value; the live query renders as typed.
@@ -161,10 +161,10 @@ export function ComboboxInput({
 
 	return (
 		<HeadlessProvider>
-			{valueTooltip ? (
-				<ComboboxValueTooltip inputRef={ref} text={display} suppressed={open || editing}>
+			{truncateTooltip ? (
+				<ComboboxTruncateTooltip inputRef={ref} text={display} suppressed={open || editing}>
 					{input}
-				</ComboboxValueTooltip>
+				</ComboboxTruncateTooltip>
 			) : (
 				input
 			)}
