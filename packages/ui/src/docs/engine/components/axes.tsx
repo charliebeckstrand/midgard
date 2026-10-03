@@ -67,7 +67,7 @@ type AxesProps = {
 	 * give it to each `Axes` after the first, so that no two examples share a
 	 * title.
 	 *
-	 * @defaultValue `'Playground'`, and no prefix
+	 * @defaultValue no title, and no prefix
 	 */
 	title?: string
 	/**
@@ -213,7 +213,7 @@ function AxesExamples({
 		<>
 			<Example
 				{...frame}
-				title={title ?? 'Playground'}
+				title={title}
 				actions={
 					<Flex wrap gap="sm">
 						{axes.map((axis) => (

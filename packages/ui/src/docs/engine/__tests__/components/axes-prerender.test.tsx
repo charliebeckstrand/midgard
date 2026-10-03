@@ -73,7 +73,7 @@ describe('Axes prerender', () => {
 
 		const html = renderToString(page({ collect }))
 
-		expect(titles(html)).toEqual(['Playground', 'Color', 'Level'])
+		expect(titles(html)).toEqual(['Color', 'Level'])
 
 		expect([...collect.values()][0]?.map((axis) => axis.name)).toEqual(['color', 'level'])
 	})
@@ -81,7 +81,7 @@ describe('Axes prerender', () => {
 	it('hides the axes of the first read in the second pass', () => {
 		const { html, reads } = prerender()
 
-		expect(titles(html)).toEqual(['Playground', 'Color'])
+		expect(titles(html)).toEqual(['Color'])
 
 		expect(Object.values(reads.reads ?? {})[0]?.unseen).toEqual(['level'])
 	})

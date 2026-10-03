@@ -48,6 +48,13 @@ function probesOf(title: string): HTMLElement[] {
 	return [...(example?.querySelectorAll<HTMLElement>('[data-slot="probe"]') ?? [])]
 }
 
+/** The probes of the playground, the first example, which has no heading. */
+function playgroundProbes(): HTMLElement[] {
+	const example = document.querySelector('[data-slot="example"]')
+
+	return [...(example?.querySelectorAll<HTMLElement>('[data-slot="probe"]') ?? [])]
+}
+
 describe('Axes', () => {
 	it('renders nothing without API data', () => {
 		const { container } = renderAxes(null)
@@ -55,12 +62,12 @@ describe('Axes', () => {
 		expect(container).toBeEmptyDOMElement()
 	})
 
-	it('renders a playground and one example for each literal prop', () => {
+	it('renders an untitled playground and one example for each literal prop', () => {
 		renderAxes()
 
 		const titles = screen.getAllByRole('heading').map((heading) => heading.textContent)
 
-		expect(titles).toEqual(['Playground', 'Variant', 'Color'])
+		expect(titles).toEqual(['Variant', 'Color'])
 
 		expect(probesOf('Variant').map((probe) => probe.textContent)).toEqual(['Solid', 'Outline'])
 
@@ -119,7 +126,7 @@ describe('Axes', () => {
 	it('starts each axis at its default, and leaves an axis with no default unset', () => {
 		renderAxes()
 
-		const [playground] = probesOf('Playground')
+		const [playground] = playgroundProbes()
 
 		expect(playground).toHaveTextContent('Badge')
 
@@ -139,7 +146,7 @@ describe('Axes', () => {
 
 		fireEvent.click(await screen.findByRole('option', { name: /outline/i }))
 
-		expect(probesOf('Playground')[0]).toHaveAttribute('data-variant', 'outline')
+		expect(playgroundProbes()[0]).toHaveAttribute('data-variant', 'outline')
 
 		for (const probe of probesOf('Color')) expect(probe).toHaveAttribute('data-variant', 'outline')
 
