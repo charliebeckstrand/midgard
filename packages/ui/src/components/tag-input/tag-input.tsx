@@ -247,9 +247,19 @@ export function TagInput({
 	// controlled path can't).
 	const keyedTags = keyByOccurrence(tags)
 
+	// The list sits in the prefix `<span>` of the ControlFrame `<span>`, so it is
+	// a `<span>` and not a `<ul>`.
 	const badges =
 		tags.length > 0 ? (
-			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap className={k.tags}>
+			<Flex
+				as="span"
+				data-slot="tags"
+				role="list"
+				aria-label="Tags"
+				gap="xs"
+				wrap
+				className={k.tags}
+			>
 				{keyedTags.map(({ value: t, key }, i) => (
 					<TagInputBadge
 						key={key}

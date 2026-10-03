@@ -27,7 +27,7 @@ export type PivotTableProps<T> = {
 	aggregation?: PivotAggregation
 	/** Format cell values. @defaultValue up to two fraction digits in the `<LocaleProvider>` locale, so a whole number prints with no fraction */
 	format?: (value: number) => ReactNode
-	/** Label for the row-dimension column. */
+	/** Label for the row-dimension column. Without it, the corner cell is an empty `<td>`, not a header. */
 	rowHeader?: ReactNode
 	/** Which totals to render. @defaultValue 'none' */
 	totals?: PivotTotals
@@ -114,7 +114,9 @@ export function PivotTable<T>({
 		>
 			<TableHead>
 				<TableRow>
-					<TableHeader scope="col">{rowHeader}</TableHeader>
+					{/* An empty `<th>` is a header with no text (axe empty-table-header), so
+					    the corner without a `rowHeader` is a `<td>`. */}
+					{rowHeader == null ? <TableCell /> : <TableHeader scope="col">{rowHeader}</TableHeader>}
 					{columnKeys.map((col) => (
 						<TableHeader key={col} scope="col" className="text-end">
 							{col}

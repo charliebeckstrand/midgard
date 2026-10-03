@@ -166,6 +166,37 @@ describe('ListItem', () => {
 		expect(cls).toContain('cursor-pointer')
 	})
 
+	it('renders a button content area for a row with onClick and no as', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<List items={items.slice(0, 2)} getKey={(i) => i.id}>
+				{(item) =>
+					item === items[0] ? (
+						<ListItem onClick={onClick}>{item.label}</ListItem>
+					) : (
+						<ListItem>{item.label}</ListItem>
+					)
+				}
+			</List>,
+		)
+
+		const [clickable, inert] = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot="list-item-content"]'),
+		)
+
+		// A `<div>` with a click handler takes no focus and no Enter or Space.
+		expect(clickable?.tagName).toBe('BUTTON')
+
+		expect(clickable).toHaveAttribute('type', 'button')
+
+		expect(inert?.tagName).toBe('DIV')
+
+		fireEvent.click(present(clickable, 'clickable content'))
+
+		expect(onClick).toHaveBeenCalledOnce()
+	})
+
 	it('reads a conditional handler by its value, not by the key it leaves behind', () => {
 		// `onClick={enabled ? open : undefined}` keeps the key on an inert row, so a
 		// key-presence test would promise a pointer the row never honors.

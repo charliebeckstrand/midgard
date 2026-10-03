@@ -1,7 +1,7 @@
 'use client'
 
 import { type Ref, type RefObject, useEffect, useRef } from 'react'
-import { cn, dataAttr } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { rangeKeys } from '../../utilities'
 
@@ -133,13 +133,19 @@ export function PdfViewerThumbnailList({
 
 	useVisibleTiles(listRef, items.length, onVisibleChange)
 
+	// While the list holds only the loading placeholders, it hides from
+	// assistive tech as a whole. Empty items would read as a list of blank
+	// entries, and a hidden item would give a wrong item count.
+	const placeholdersOnly = loading && items.length === 0
+
 	return (
 		<ul
 			ref={listRef}
 			data-slot="pdf-viewer-thumbnails"
+			aria-hidden={ariaAttr(placeholdersOnly)}
 			className={cn(layout === 'grid' ? k.thumbnails.grid : k.thumbnails.base)}
 		>
-			{loading && items.length === 0
+			{placeholdersOnly
 				? PLACEHOLDER_KEYS.map((key) => (
 						<li key={key}>
 							<span

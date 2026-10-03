@@ -63,6 +63,13 @@ describe('PopoverPanel', () => {
 		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
 
+	it('renders no role attribute for role="none"', () => {
+		const { container } = renderUI(<PopoverPanel role="none">items</PopoverPanel>)
+
+		// The panel is focusable, and a browser ignores `role="none"` on a focusable element.
+		expect(container.querySelector('[data-slot="popover-panel"]')).not.toHaveAttribute('role')
+	})
+
 	it('sets tabIndex to -1', () => {
 		renderUI(<PopoverPanel>items</PopoverPanel>)
 

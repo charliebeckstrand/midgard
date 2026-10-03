@@ -52,8 +52,10 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 * Element rendered for the content area when no `href` is given — an
 	 * intrinsic tag (`'button'`, `'span'`) or a custom component. Ignored when
 	 * `href` is set, which always renders the app-registered router link.
+	 * Without `as`, a row with `onClick` renders a `<button>`, so the keyboard
+	 * can reach and activate it. Its children must then be phrasing content.
 	 *
-	 * @defaultValue 'div'
+	 * @defaultValue `'button'` with `onClick`, else `'div'`
 	 */
 	as?: Fallback
 	// The content area is the link switch: with `href` set it renders the
@@ -67,7 +69,7 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * A row within a {@link List}, rendered as `<li>` with `prefix`/`suffix` slots
  * around a polymorphic content area. That area switches to the app's router link
  * when `href` is set, and otherwise renders the `as` element (`'div'` by
- * default). A
+ * default, or `'button'` for a row with `onClick`). A
  * content area that acts on activation — `href` or `onClick` — counts as
  * interactive and takes the muted text plus hover and pointer treatment. Its hit
  * area covers the whole painted row, the padding and the slot chrome included. In
@@ -102,9 +104,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	href,
 	interactive: interactiveProp,
 	rounded = false,
-	// The default is reached only when `Fallback` was left at its `'div'`
-	// default, so the cast is sound at runtime.
-	as = 'div' as Fallback,
+	as: asProp,
 	...props
 }: ListItemProps<Fallback>) {
 	const { id, setNodeRef, attributes, style, dragging, position } = useListItemContext()
@@ -126,12 +126,21 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// Whether the content area itself acts on activation. Read the handler's
 	// value, not its key: `onClick={enabled ? open : undefined}` leaves the key on
 	// an inert row, which `in` would still count as a target.
-	const activates = href !== undefined || (props as { onClick?: unknown }).onClick !== undefined
+	const onClickSet = (props as { onClick?: unknown }).onClick !== undefined
+
+	const activates = href !== undefined || onClickSet
 
 	// A row that navigates and a row that fires a handler read the same to the
 	// user, so both take the interactive treatment. The prop overrides the
 	// reading, for the rows whose activation the derivation cannot see.
 	const interactive = interactiveProp ?? activates
+
+	// A `<div>` with a click handler is not focusable and takes no Enter or
+	// Space, so a row with `onClick` and no `as` renders a `<button>`. The
+	// default is reached only when `Fallback` was left at its `'div'` default.
+	// The global attributes of a `<div>` row also fit a `<button>`, so the cast
+	// is sound at runtime.
+	const as = asProp ?? ((href === undefined && onClickSet ? 'button' : 'div') as Fallback)
 
 	// The content column is only `flex-1`: the row's padding, the gaps, and the
 	// prefix / suffix chrome lie outside it, so a press there hit the `<li>`, which

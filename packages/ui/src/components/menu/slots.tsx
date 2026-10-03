@@ -12,7 +12,11 @@ export const MenuSection = createSlot('fieldset', 'menu-section', k.section)
 /** Props for {@link MenuHeading}: native `<legend>` attributes. */
 export type MenuHeadingProps = ComponentProps<'legend'>
 
-/** Names a {@link MenuSection}; renders a `<legend>`. */
+/**
+ * Names a {@link MenuSection}; renders a `<legend>`. Put it as the first child of a
+ * `MenuSection` only. HTML allows a `<legend>` only as the first child of a
+ * `<fieldset>`, so a `MenuHeading` in another place is invalid and names nothing.
+ */
 export const MenuHeading = createSlot('legend', 'menu-heading', k.heading)
 
 /** Props for {@link MenuSeparator}: native `<hr>` attributes. */

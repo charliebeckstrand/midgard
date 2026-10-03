@@ -116,7 +116,9 @@ export function Form<T extends Record<string, unknown>>({
 				className={cn('contents', className)}
 				{...props}
 			>
-				<Fieldset disabled={disabled || formState.submitting} className="contents">
+				{/* The fieldset only cascades `disabled`. It has no legend, so `role="none"`
+				keeps it from an unnamed `group` around every form. */}
+				<Fieldset role="none" disabled={disabled || formState.submitting} className="contents">
 					{children}
 				</Fieldset>
 			</form>

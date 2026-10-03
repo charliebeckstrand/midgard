@@ -12,8 +12,9 @@ const DEFAULT_SEPARATOR = (
 )
 
 /**
- * Visual divider between crumbs, presentational and hidden from assistive tech
- * (`role="presentation"`, `aria-hidden`). Defaults to a chevron `<Icon>`;
+ * Visual divider between crumbs, hidden from assistive tech (`aria-hidden`), so
+ * the list count holds only the crumbs. It has no `role`: ARIA in HTML allows
+ * only `listitem` on an `<li>` in a list. Defaults to a chevron `<Icon>`;
  * pass `children` to override. The default chevron mirrors in a right-to-left
  * document. Static leaf: renders in React Server Components.
  */
@@ -21,7 +22,6 @@ export function BreadcrumbSeparator({ children, className, ...props }: Breadcrum
 	return (
 		<li
 			data-slot="breadcrumb-separator"
-			role="presentation"
 			aria-hidden="true"
 			className={cn(k.separator(), className)}
 			{...props}

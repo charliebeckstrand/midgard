@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { humanize, valueLabel } from '../components/format'
+import { humanize, pascalCase, valueLabel } from '../components/format'
 
 describe('humanize', () => {
 	it.each([
@@ -11,6 +11,16 @@ describe('humanize', () => {
 		['onValueChange', 'On value change'],
 	])('writes %s as %s', (identifier, label) => {
 		expect(humanize(identifier)).toBe(label)
+	})
+})
+
+describe('pascalCase', () => {
+	it.each([
+		['button', 'Button'],
+		['copy-button', 'CopyButton'],
+		['toggle-icon-button', 'ToggleIconButton'],
+	])('writes %s as %s', (identifier, name) => {
+		expect(pascalCase(identifier)).toBe(name)
 	})
 })
 

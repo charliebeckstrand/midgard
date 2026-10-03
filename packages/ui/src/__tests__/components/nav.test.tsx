@@ -225,6 +225,22 @@ describe('NavItem', () => {
 		)
 	})
 
+	it('renders the affix slots as <div> elements, so a slot can hold flow content', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem prefix={<span>P</span>} suffix={<span>S</span>}>
+						Dashboard
+					</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		expect(bySlot(container, 'nav-item-prefix')?.tagName).toBe('DIV')
+
+		expect(bySlot(container, 'nav-item-suffix')?.tagName).toBe('DIV')
+	})
+
 	it('re-draws the focus ring on the active indicator of a current affixed row', () => {
 		const { container } = renderUI(
 			<Nav>

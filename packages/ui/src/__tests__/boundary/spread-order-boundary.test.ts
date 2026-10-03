@@ -64,7 +64,6 @@ type Waiver = { order?: number; anchor?: number; ref?: number; keep?: true; note
  */
 const WAIVERS = new Map<string, Waiver>([
 	['components/breadcrumb/breadcrumb-link.tsx', { order: 1, note: 'lead' }],
-	['components/breadcrumb/breadcrumb-separator.tsx', { order: 1, note: 'lead' }],
 	['components/menu/menu-item.tsx', { order: 1, note: 'lead' }],
 	['components/pagination/pagination-page.tsx', { order: 1, note: 'lead' }],
 	['components/pagination/pagination-utilities.tsx', { order: 1, note: 'lead' }],
@@ -81,14 +80,6 @@ const WAIVERS = new Map<string, Waiver>([
 	['primitives/control/control-frame.tsx', { anchor: 1, note: 'lead S1' }],
 	['primitives/toggle/toggle-field.tsx', { anchor: 1, note: 'lead S1' }],
 	['primitives/toggle/toggle-group.tsx', { order: 1, anchor: 1, note: 'lead · lead S1' }],
-	[
-		'components/scroll-area/scroll-area.tsx',
-		{
-			order: 1,
-			keep: true,
-			note: 'the viewport documents the override: a consumer supplies tabIndex with its own role and label',
-		},
-	],
 ])
 
 /** One JSX attribute written before the consumer spread. */

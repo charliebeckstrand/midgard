@@ -61,7 +61,10 @@ export class DashboardTileBoundary extends Component<
 			<div data-slot="dashboard-tile-error" role="alert" className={cn(k.error)}>
 				<Text tone="muted">{this.props.label} failed to render.</Text>
 
-				<Button onClick={this.retry}>Retry</Button>
+				{/* `Button` sets no `type`, and a `submit` would send an enclosing form. */}
+				<Button type="button" onClick={this.retry}>
+					Retry
+				</Button>
 			</div>
 		)
 	}

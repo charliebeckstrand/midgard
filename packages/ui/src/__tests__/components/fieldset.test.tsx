@@ -324,9 +324,17 @@ describe('Message', () => {
 			</Message>,
 		)
 
-		expect(message.tagName).toBe('UL')
+		// ARIA in HTML does not allow a live-region role on a `<ul>`, so the
+		// role sits on a `<div>` and a plain list sits inside it.
+		expect(message.tagName).toBe('DIV')
 
-		expect(message.querySelectorAll('li')).toHaveLength(2)
+		expect(message).toHaveAttribute('role', 'alert')
+
+		const list = message.querySelector('ul')
+
+		expect(list).not.toHaveAttribute('role')
+
+		expect(list?.querySelectorAll('li')).toHaveLength(2)
 
 		expect(message.textContent).toContain('Too short')
 
@@ -354,7 +362,7 @@ describe('Message', () => {
 			</Message>,
 		)
 
-		expect(message.tagName).toBe('UL')
+		expect(message.tagName).toBe('DIV')
 
 		// §3.9: the list branch spreads the consumer props that the paragraph
 		// branch spreads, so a second error does not drop a native attribute.
@@ -369,7 +377,7 @@ describe('Message', () => {
 			</Message>,
 		)
 
-		expect(message.tagName).toBe('UL')
+		expect(message.tagName).toBe('DIV')
 
 		// §3.9: `role` is load-bearing, so the assertive live region survives.
 		expect(message).toHaveAttribute('role', 'alert')

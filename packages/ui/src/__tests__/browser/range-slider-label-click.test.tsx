@@ -8,9 +8,10 @@ import { allBySlot, renderUI } from '../helpers'
  * A click on the Field Label of a `RangeSlider` focuses the start thumb, as a click on the Label
  * of a `Slider` focuses its native input.
  *
- * The root of the range is a `<div>`, and a `<div>` is not labelable. The test uses a real browser,
- * because the label activation of jsdom is a model, not the platform behavior. The real click also
- * sends the full pointer sequence, so the test shows that the click moves no value.
+ * The Field Label targets the start thumb, a `<button>`, and some browsers do not focus a button on
+ * a label click. The test uses a real browser, because the label activation of jsdom is a model, not
+ * the platform behavior. The real click also sends the full pointer sequence, so the test shows that
+ * the click moves no value.
  */
 describe('a click on the RangeSlider Field Label (real browser)', () => {
 	const renderLabeled = (disabled?: boolean) => {
@@ -41,7 +42,9 @@ describe('a click on the RangeSlider Field Label (real browser)', () => {
 	it('focuses no thumb when the slider is disabled', async () => {
 		const { lo, hi, label } = renderLabeled(true)
 
-		await userEvent.click(label)
+		// The label targets the disabled start thumb, so Playwright reads the label as
+		// disabled and waits. `force` skips that check, as a user can still click the label.
+		await userEvent.click(label, { force: true })
 
 		expect(document.activeElement).not.toBe(lo)
 

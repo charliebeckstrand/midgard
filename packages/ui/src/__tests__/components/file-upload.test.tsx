@@ -53,6 +53,15 @@ describe('FileUpload drop variant selection', () => {
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 	})
 
+	it('keeps the drop prompt to phrasing content inside the button', () => {
+		const { container } = renderUI(<FileUploadDrop />)
+
+		// A `<button>` takes phrasing content only, so the prompt is not a `<div>`.
+		expect(dropzone(container).querySelector('div')).toBeNull()
+
+		expect(screen.getByText('Drop files here or click to browse').tagName).toBe('SPAN')
+	})
+
 	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 

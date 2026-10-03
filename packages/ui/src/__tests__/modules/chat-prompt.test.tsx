@@ -258,6 +258,24 @@ describe('ChatPrompt', () => {
 		expect(openPicker).toHaveBeenCalledOnce()
 	})
 
+	it('exposes one "Add attachment" control: the button, not the hidden file input', () => {
+		const { container } = renderUI(
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} onAttach={noop} />,
+		)
+
+		const input = present<HTMLInputElement>(
+			container.querySelector('input[type="file"]'),
+			'input[type="file"]',
+		)
+
+		// An `sr-only` input with the same name read as a second control in browse mode.
+		expect(input).not.toBeVisible()
+
+		expect(input).not.toHaveAttribute('aria-label')
+
+		expect(screen.getAllByLabelText('Add attachment')).toHaveLength(1)
+	})
+
 	it('passes picked files to onAttach and clears the input for re-selection', () => {
 		const onAttach = vi.fn()
 

@@ -106,10 +106,12 @@ export function Popover({
 		<PopoverContext value={contextValue}>
 			<PopoverPositionContext value={position}>
 				{/* contents: the root only holds the context. A box here takes the place of the
-				    trigger in the layout of its parent, and breaks a run of text in two. */}
-				<div data-slot="popover" className={cn('contents', className)}>
+				    trigger in the layout of its parent, and breaks a run of text in two. The root
+				    is a `<span>`, so it is valid in phrasing content such as a `<p>`. The panel
+				    renders in a portal, so only the trigger is inside the `<span>`. */}
+				<span data-slot="popover" className={cn('contents', className)}>
 					{children}
-				</div>
+				</span>
 			</PopoverPositionContext>
 		</PopoverContext>
 	)

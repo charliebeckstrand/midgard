@@ -68,10 +68,11 @@ export function NavItem({
 			{...tapHandlers}
 		>
 			{prefix != null && (
-				// Each slot is a density scope one step below the item.
-				<span data-slot="nav-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
+				// Each slot is a density scope one step below the item. A slot is a
+				// `<div>`, so it can hold flow content.
+				<div data-slot="nav-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
 					{prefix}
-				</span>
+				</div>
 			)}
 			<HeadlessProvider>
 				<Button
@@ -92,9 +93,9 @@ export function NavItem({
 				</Button>
 			</HeadlessProvider>
 			{suffix != null && (
-				<span data-slot="nav-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
+				<div data-slot="nav-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
 					{suffix}
-				</span>
+				</div>
 			)}
 			{isCurrent && (
 				<ActiveIndicator
