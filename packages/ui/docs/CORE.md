@@ -26,7 +26,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `densitySteps` | The steps of density (`xs` / `sm` / `md` / `lg` / `xl`). The `density-*` Tailwind variants and utilities, `data-density`, and the density context all use them. |
 | `DensityStep` *(type)* | A step of density: a value of `data-density` and of the density context. |
 | `ControlStep` *(type)* | The `size` of a control: each density step but `xl`. A control stops at `lg`, so in an `xl` scope it takes the `lg` value. |
-| `InnerStep` *(type)* | The three inner steps (`sm` / `md` / `lg`): a density level maps to one, and a JS reader with three values clamps to one. |
+| `InnerStep` *(type)* | The three inner steps (`sm` / `md` / `lg`): a density level maps to one, and a JS reader with three values clamps to one. A `SidebarItem` `size` takes one. |
 | `toInnerStep` | Clamps a density step to the inner steps: `xs` becomes `sm`, `xl` becomes `lg`. |
 | `stepDown` | The step below a density step (`xs` stays `xs`). A control slot is a scope one step below its host. The host stops at `lg`, so in an `xl` scope the slot takes `md`. |
 

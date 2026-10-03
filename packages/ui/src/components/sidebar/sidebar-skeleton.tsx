@@ -1,8 +1,8 @@
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/sidebar'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
+import type { SidebarItemProps } from './sidebar-item'
 
 /** Props for {@link SidebarSkeleton}: the row count and an optional `size` step. */
 export type SidebarSkeletonProps = {
@@ -16,7 +16,7 @@ export type SidebarSkeletonProps = {
 	 * take the step of the nearest density scope, as the items do. A step makes
 	 * the silhouette a density scope.
 	 */
-	size?: DensityStep
+	size?: SidebarItemProps['size']
 	className?: string
 }
 
