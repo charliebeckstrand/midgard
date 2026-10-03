@@ -107,6 +107,138 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 }
 
 /**
+ * The body of the drawer over one place: its photo, its address, its web
+ * address, the visit date, and the review.
+ */
+function PlaceDetails({ place }: { place: Place }) {
+	return (
+		<Stack gap="md" className="pb-6">
+			{/* `next/image` with `unoptimized`: the address is the one that the
+			    reader typed, so the host is not known at build time. The optimizer
+			    serves only the hosts that `images.remotePatterns` lists, so the
+			    browser gets the photo from its own address. The name is the alt
+			    text because it is the one thing known about the picture.
+
+			    One square, stated on both axes, so every place reads the same
+			    however its photo was shot. `max-h-48 w-full` clamped the tall
+			    ones only: a panoramic shot scaled to the panel's width came out
+			    under the cap and drew a thin strip, a portrait one filled it, and
+			    the address below them landed somewhere different each time — and
+			    on a wide panel the picture ran the whole width, which is a banner
+			    rather than a thumbnail. A square answers both, and it holds its
+			    size as the panel resizes, where a full-width band grew with it.
+
+			    Stating the size also reserves the space before the picture
+			    arrives; unsized, the `img` laid out at nothing and shoved the
+			    text down on load. `object-cover` fills the box and crops the
+			    overflow, which is what makes one size honest for any aspect. */}
+			{place.photo ? (
+				<Image
+					src={place.photo}
+					alt={place.name}
+					width={128}
+					height={128}
+					unoptimized
+					className="size-32 rounded-lg bg-white/5 object-cover"
+				/>
+			) : null}
+
+			<Stack gap="sm">
+				<PlaceFact icon={<MapPin />}>
+					<Text>{place.address}</Text>
+				</PlaceFact>
+
+				{place.url ? (
+					<PlaceFact icon={<Globe />}>
+						<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
+							{place.url}
+						</Link>
+					</PlaceFact>
+				) : null}
+
+				<PlaceFact icon={<CalendarDays />}>
+					<Text>
+						Visited{' '}
+						{fromDay(place.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+					</Text>
+				</PlaceFact>
+			</Stack>
+
+			{place.review ? (
+				<>
+					<Divider className="my-2" />
+
+					<Stack gap="sm">
+						<Text className="font-medium">Your review</Text>
+
+						<Text>{place.review}</Text>
+					</Stack>
+				</>
+			) : null}
+		</Stack>
+	)
+}
+
+/** Props for {@link PlaceList}. */
+type PlaceListProps = {
+	/** The places that the category filter lets through. */
+	shown: readonly Place[]
+	/** The number of categories that the full list spans. */
+	spanned: number
+	/** The categories that narrow the list; empty is unfiltered. */
+	categories: PlaceCategory[]
+	onCategoriesChange: (categories: PlaceCategory[]) => void
+	/** Opens one place of the list, by id. */
+	onOpen: (id: string) => void
+}
+
+/**
+ * The body of the drawer over a group: the category picker and the list of the
+ * places that it lets through.
+ */
+function PlaceList({ shown, spanned, categories, onCategoriesChange, onOpen }: PlaceListProps) {
+	return (
+		<Stack gap="md">
+			{/* Over the list rather than in the header, because it narrows the
+			    list and not the panel — and only where there is more than one
+			    category to choose between. */}
+			{spanned > 1 ? (
+				<CategoryPicker
+					value={categories}
+					onValueChange={onCategoriesChange}
+					className="w-full sm:w-52"
+				/>
+			) : null}
+
+			{shown.length === 0 ? (
+				<Text tone="warning">
+					No places match the selected {categories.length > 1 ? 'categories' : 'category'}.
+				</Text>
+			) : (
+				<List items={[...shown]} sortable={false} virtual getKey={(item) => item.id}>
+					{(item) => (
+						// The `onClick` marks the row interactive, which is where its
+						// cursor, focus ring, and hover wash come from — the card variant's
+						// wash being an opaque step, so a hovered row stays a surface over
+						// the map rather than turning see-through to it. The content area
+						// is a button, so Tab reaches each row and Enter or Space opens it.
+						<ListItem as="button" type="button" onClick={() => onOpen(item.id)}>
+							<Stack as="span" gap="sm" className="text-left">
+								<Text as="span" className="font-medium">
+									{item.name}
+								</Text>
+
+								<PlaceMeta place={item} />
+							</Stack>
+						</ListItem>
+					)}
+				</List>
+			)}
+		</Stack>
+	)
+}
+
+/**
  * The glass drawer that shows what a dot stands for.
  *
  * It is as tall as the step it is showing. One place leaves most of the map up,
@@ -303,116 +435,19 @@ export function PlaceDrawer({
 
 			<DrawerBody>
 				{place ? (
-					<Stack gap="md" className="pb-6">
-						{/* `next/image` with `unoptimized`: the address is the one that the
-						    reader typed, so the host is not known at build time. The optimizer
-						    serves only the hosts that `images.remotePatterns` lists, so the
-						    browser gets the photo from its own address. The name is the alt
-						    text because it is the one thing known about the picture.
-
-						    One square, stated on both axes, so every place reads the same
-						    however its photo was shot. `max-h-48 w-full` clamped the tall
-						    ones only: a panoramic shot scaled to the panel's width came out
-						    under the cap and drew a thin strip, a portrait one filled it, and
-						    the address below them landed somewhere different each time — and
-						    on a wide panel the picture ran the whole width, which is a banner
-						    rather than a thumbnail. A square answers both, and it holds its
-						    size as the panel resizes, where a full-width band grew with it.
-
-						    Stating the size also reserves the space before the picture
-						    arrives; unsized, the `img` laid out at nothing and shoved the
-						    text down on load. `object-cover` fills the box and crops the
-						    overflow, which is what makes one size honest for any aspect. */}
-						{place.photo ? (
-							<Image
-								src={place.photo}
-								alt={place.name}
-								width={128}
-								height={128}
-								unoptimized
-								className="size-32 rounded-lg bg-white/5 object-cover"
-							/>
-						) : null}
-
-						<Stack gap="sm">
-							<PlaceFact icon={<MapPin />}>
-								<Text>{place.address}</Text>
-							</PlaceFact>
-
-							{place.url ? (
-								<PlaceFact icon={<Globe />}>
-									<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
-										{place.url}
-									</Link>
-								</PlaceFact>
-							) : null}
-
-							<PlaceFact icon={<CalendarDays />}>
-								<Text>
-									Visited{' '}
-									{fromDay(place.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-								</Text>
-							</PlaceFact>
-						</Stack>
-
-						{place.review ? (
-							<>
-								<Divider className="my-2" />
-
-								<Stack gap="sm">
-									<Text className="font-medium">Your review</Text>
-
-									<Text>{place.review}</Text>
-								</Stack>
-							</>
-						) : null}
-					</Stack>
+					<PlaceDetails place={place} />
 				) : (
-					<Stack gap="md">
-						{/* Over the list rather than in the header, because it narrows the
-						    list and not the panel — and only where there is more than one
-						    category to choose between. */}
-						{spanned > 1 ? (
-							<CategoryPicker
-								value={categories}
-								onValueChange={setCategories}
-								className="w-full sm:w-52"
-							/>
-						) : null}
+					<PlaceList
+						shown={shown}
+						spanned={spanned}
+						categories={categories}
+						onCategoriesChange={setCategories}
+						onOpen={(id) => {
+							setOpenedId(id)
 
-						{shown.length === 0 ? (
-							<Text tone="warning">
-								No places match the selected {categories.length > 1 ? 'categories' : 'category'}.
-							</Text>
-						) : (
-							<List items={[...shown]} sortable={false} virtual getKey={(item) => item.id}>
-								{(item) => (
-									// The `onClick` marks the row interactive, which is where its
-									// cursor, focus ring, and hover wash come from — the card variant's
-									// wash being an opaque step, so a hovered row stays a surface over
-									// the map rather than turning see-through to it. The content area
-									// is a button, so Tab reaches each row and Enter or Space opens it.
-									<ListItem
-										as="button"
-										type="button"
-										onClick={() => {
-											setOpenedId(item.id)
-
-											setListing(false)
-										}}
-									>
-										<Stack as="span" gap="sm" className="text-left">
-											<Text as="span" className="font-medium">
-												{item.name}
-											</Text>
-
-											<PlaceMeta place={item} />
-										</Stack>
-									</ListItem>
-								)}
-							</List>
-						)}
-					</Stack>
+							setListing(false)
+						}}
+					/>
 				)}
 			</DrawerBody>
 

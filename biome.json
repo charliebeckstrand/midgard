@@ -79,6 +79,23 @@
 			}
 		},
 		{
+			"includes": [
+				"apps/**",
+				"packages/auth/**",
+				"packages/shared/**",
+				"!**/__tests__/**",
+				"!**/*.test.ts",
+				"!**/*.test.tsx"
+			],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noExcessiveCognitiveComplexity": "error"
+					}
+				}
+			}
+		},
+		{
 			"includes": ["packages/ui/src/hooks/**"],
 			"linter": {
 				"rules": {

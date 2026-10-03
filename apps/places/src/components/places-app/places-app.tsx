@@ -24,6 +24,7 @@ import {
 import type { Place, Visits } from '../../types'
 import { filterPlaces } from '../../utilities/places-filter'
 import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
+import type { PaletteSource } from '../../utilities/places-palette'
 import {
 	COUNTRY_SNAP_KM,
 	countryOf,
@@ -31,6 +32,7 @@ import {
 	groupTrail,
 	initialView,
 	knownCountry,
+	type PlaceAtlas,
 	type PlaceView,
 	pickerRegions,
 	regionOf,
@@ -47,7 +49,7 @@ import {
 } from '../../utilities/places-view'
 import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
 import { actionSource, PlacePalette, placeSource, regionSource } from '../place-palette'
-import { PlaceTrail } from '../place-trail'
+import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 import { PlacesMap } from '../places-map'
 import { UserMenu } from '../user-menu'
 import { usePlaceLocation } from './use-place-location'
@@ -131,6 +133,341 @@ function placesInRegion(
 	const inRegion = new Set(byRegion.get(cut)?.map((place) => place.id) ?? [])
 
 	return filtered.filter((place) => inRegion.has(place.id))
+}
+
+/**
+ * The view that the region picker of the bar opens: the view cut to `region`,
+ * or the view one step up when the reader clears the pick. The top view stays
+ * where it is.
+ */
+function drillOrUp(view: PlaceView, region: string | null): PlaceView {
+	return region === null ? (viewUp(view) ?? view) : drillInto(view, region)
+}
+
+/**
+ * The places of the last step of `trail`: a state's where the trail reached
+ * one, the drawn region's otherwise. Empty where the trail is empty.
+ */
+function trailPlaces(
+	trail: readonly string[],
+	byState: ReadonlyMap<string, readonly Place[]>,
+	byRegion: ReadonlyMap<string, readonly Place[]>,
+): readonly Place[] {
+	const deepest = trail[trail.length - 1]
+
+	if (deepest === undefined) return NO_PLACES
+
+	return (trail.length > 1 ? byState : byRegion).get(deepest) ?? NO_PLACES
+}
+
+/**
+ * The props of a map for `view`, from the same sources as the map that shows:
+ * the atlas that the view draws, the filtered places in its cut, and the
+ * visited regions of that atlas.
+ */
+function mapForView<Regions>(
+	view: PlaceView,
+	sources: {
+		atlases: Record<PlaceAtlas, Regions>
+		groupings: Record<PlaceAtlas, ReadonlyMap<string, readonly Place[]>>
+		filtered: Place[]
+		visits: Visits
+	},
+) {
+	const at = viewAtlas(view)
+
+	return {
+		view,
+		regions: sources.atlases[at],
+		places: placesInRegion(sources.filtered, sources.groupings[at], viewRegion(view)),
+		visited: new Set(sources.visits[at]),
+	}
+}
+
+/**
+ * The visited toggle of the region that the last crumb names. The tooltip
+ * names the region, because the view does not always show it.
+ */
+function VisitedToggle({
+	region,
+	marked,
+	onMarkedChange,
+}: {
+	region: string
+	marked: boolean
+	onMarkedChange: (visited: boolean) => void
+}) {
+	return (
+		<Tooltip>
+			<TooltipTrigger>
+				<ToggleIconButton
+					pressed={marked}
+					onPressedChange={onMarkedChange}
+					icon={<MapPin />}
+					pressedIcon={<MapPinCheck />}
+					color={marked ? 'green' : 'zinc'}
+					aria-label="Visited"
+					className="shrink-0"
+				/>
+			</TooltipTrigger>
+
+			<TooltipContent>
+				{marked ? `${region} is marked visited` : `Mark ${region} visited`}
+			</TooltipContent>
+		</Tooltip>
+	)
+}
+
+/**
+ * The confirmation before a delete. It is open while `place` is set, and it
+ * names the place.
+ */
+function DeleteConfirm({
+	place,
+	onClose,
+	onDelete,
+}: {
+	place: Place | null
+	onClose: () => void
+	onDelete: (place: Place) => void
+}) {
+	return (
+		<Confirm
+			open={place !== null}
+			onOpenChange={(next) => {
+				if (!next) onClose()
+			}}
+			onConfirm={() => {
+				if (place !== null) onDelete(place)
+
+				onClose()
+			}}
+			title={place === null ? '' : `Delete "${place.name}"?`}
+			description={place === null ? undefined : 'This cannot be undone.'}
+			confirm={{ label: 'Delete', color: 'red' }}
+		/>
+	)
+}
+
+/**
+ * Fetches the code of the panels when the main thread is idle, after the
+ * opening view has settled. The first open of a panel then waits for nothing.
+ * The browser runs the code of a chunk when it arrives, so a fetch at the
+ * settle ran it while the map drew its first frame.
+ */
+function usePanelPrefetch(settling: boolean) {
+	useEffect(() => {
+		if (settling) return
+
+		const load = () => {
+			void loadIndex()
+
+			void loadForm()
+
+			void loadDrawer()
+		}
+
+		const idle = window.requestIdleCallback?.(load)
+
+		if (idle !== undefined) return () => window.cancelIdleCallback?.(idle)
+
+		const timer = window.setTimeout(load, IDLE_FALLBACK_MS)
+
+		return () => window.clearTimeout(timer)
+	}, [settling])
+}
+
+/**
+ * The action commands of the palette: add a place, open the list where there
+ * are places, and mark the region of the view as visited.
+ */
+function useActionCommands({
+	mark,
+	marked,
+	hasPlaces,
+	setAdding,
+	setListing,
+	onMark,
+}: {
+	mark: { scope: PlaceAtlas; region: string } | null
+	marked: boolean
+	hasPlaces: boolean
+	setAdding: (adding: boolean) => void
+	setListing: (listing: boolean) => void
+	onMark: (mark: { scope: PlaceAtlas; region: string; visited: boolean }) => void
+}) {
+	// Keyed on the fields of the mark: `viewMark` gives a new object on each render.
+	const markScope = mark?.scope ?? null
+
+	const markRegion = mark?.region ?? null
+
+	return useMemo(
+		() =>
+			actionSource({
+				onAdd: () => setAdding(true),
+				onList: hasPlaces ? () => setListing(true) : undefined,
+				mark: markRegion,
+				marked,
+				onMark: (visited) => {
+					if (markScope !== null && markRegion !== null) {
+						onMark({ scope: markScope, region: markRegion, visited })
+					}
+				},
+			}),
+		[hasPlaces, markScope, markRegion, marked, setAdding, setListing, onMark],
+	)
+}
+
+/** Props for {@link PlacesHeader}. */
+type PlacesHeaderProps = {
+	user: User
+	/** The page trail, as steps that navigate. */
+	steps: readonly PlaceTrailStep[]
+	/** The region that the visited toggle acts on, or `null` for no toggle. */
+	mark: { scope: PlaceAtlas; region: string } | null
+	/** Whether the reader marked that region as visited. */
+	marked: boolean
+	onMarkedChange: (mark: { scope: PlaceAtlas; region: string; visited: boolean }) => void
+	paletteSources: PaletteSource[]
+	/** Whether the opening view has settled, so the palette can open a region. */
+	ready: boolean
+	/** The one region that the view is cut to, or `null`. */
+	cut: string | null
+	/** The number of places that the bar admits in the cut. */
+	count: number
+	/** Whether the store holds a place, so the list has rows to show. */
+	hasPlaces: boolean
+	onAdd: () => void
+	onList: () => void
+}
+
+/**
+ * The header over the map: the page trail with the visited toggle, and the
+ * palette, the appearance settings, and the user menu.
+ */
+function PlacesHeader({
+	user,
+	steps,
+	mark,
+	marked,
+	onMarkedChange,
+	paletteSources,
+	ready,
+	cut,
+	count,
+	hasPlaces,
+	onAdd,
+	onList,
+}: PlacesHeaderProps) {
+	return (
+		<Flex
+			justify="between"
+			align="center"
+			gap="md"
+			className="shrink-0 border-b border-zinc-950/10 dark:border-white/10 px-6 py-4"
+		>
+			{/* The title is the trail: "Places" alone at the top, and a step per level
+				    under it, where every crumb but the last is the way back. It carries the
+				    heading's own size rather than the breadcrumb's, so the line reads as the
+				    page title it is and does not shrink on a drill.
+
+				    `min-w-0` on the wrapper is what lets the trail give way at all: without
+				    it this flex child holds its full width and pushes the controls beside it
+				    off the row instead of truncating. `flex-1` is what lets it come back: the
+				    trail measures the box it is given, and a box that shrinks to the trail
+				    would narrow with it and never report the room to expand again. */}
+			{/* The trail and the toggle together, because the toggle acts on the
+				    region the last crumb names — not on the app, which is what the
+				    cluster on the far side holds. `min-w-0` stays on the trail alone, so
+				    the crumbs give way and the button never does. */}
+			<Flex gap="md" align="center" className="flex-1 min-w-0">
+				<div className="min-w-0">
+					<PlaceTrail className="text-xl/8" steps={steps} />
+				</div>
+
+				{/* The visited toggle. It is a button rather than a checkbox, because
+					    the reader does not check a place as visited — they mark it as such.
+					    The button's own state is the visited state, so the reader sees what
+					    they are about to do and the action is a single click rather than a
+					    check and a submit.
+
+					    An icon and not a label, so it reads as a mark on the title rather
+					    than a second title beside it. It stays on screen rather than coming
+					    in on hover, because its pressed state is an answer the reader looks
+					    for, and a touch screen has no hover to show it. The tooltip names
+					    the region, because the view does not always say it: over the United
+					    States the map draws states, and the toggle marks the country. */}
+				{mark === null ? null : (
+					<VisitedToggle
+						region={mark.region}
+						marked={marked}
+						onMarkedChange={(visited) => onMarkedChange({ ...mark, visited })}
+					/>
+				)}
+			</Flex>
+
+			<Flex gap="sm" align="center" className="shrink-0">
+				{/* Ready with the map, as the map's own drill is: a pick before the view
+					    settles would open a region onto a skeleton. */}
+				<PlacePalette sources={paletteSources} ready={ready} />
+
+				<AppearanceSettings />
+
+				{/* The list item shows only once there is a list to read. Over an empty
+					    store it would open on an empty sheet.
+					    The count shows only where the view is cut to one region, because it
+					    is the count of that region: `count` is the length of the list of
+					    the bar, narrowed to the cut. */}
+				<UserMenu
+					user={user}
+					count={cut !== null && count > 0 ? count : undefined}
+					onAdd={onAdd}
+					onList={hasPlaces ? onList : undefined}
+				/>
+			</Flex>
+		</Flex>
+	)
+}
+
+/**
+ * The region that holds the first place of `selected`, or `null` where nothing
+ * is selected or no region holds it.
+ */
+function regionOfFirst(
+	selected: readonly Place[],
+	regionOfPlace: ReadonlyMap<string, string>,
+): string | null {
+	const first = selected[0]
+
+	if (first === undefined) return null
+
+	return regionOfPlace.get(first.id) ?? null
+}
+
+/**
+ * The view of a preload request that is still live: one that came from the
+ * view `here`, and that goes to another view. Else `null`.
+ */
+function livePreload(
+	preload: { from: string; view: PlaceView } | null,
+	here: string,
+): PlaceView | null {
+	if (preload === null || preload.from !== here) return null
+
+	return viewKey(preload.view) === here ? null : preload.view
+}
+
+/** The error of the places query, over the top of the map. */
+function PlacesError({ error }: { error: Error | null }) {
+	if (!error) return null
+
+	return (
+		<div className="absolute inset-x-0 top-0 p-6">
+			<Alert severity="error">
+				<Text>{error.message}</Text>
+			</Alert>
+		</div>
+	)
 }
 
 /**
@@ -252,29 +589,7 @@ export function PlacesApp({
 	// first frame.
 	const { data: countriesAtlas = null } = useAtlas('countries', atlas === 'countries' || !settling)
 
-	// The panels' code, fetched when the main thread is idle after the opening view
-	// has settled. The first open of a panel then waits for nothing. The browser
-	// runs the code of a chunk when it arrives, so a fetch at the settle ran it
-	// while the map drew its first frame.
-	useEffect(() => {
-		if (settling) return
-
-		const load = () => {
-			void loadIndex()
-
-			void loadForm()
-
-			void loadDrawer()
-		}
-
-		const idle = window.requestIdleCallback?.(load)
-
-		if (idle !== undefined) return () => window.cancelIdleCallback?.(idle)
-
-		const timer = window.setTimeout(load, IDLE_FALLBACK_MS)
-
-		return () => window.clearTimeout(timer)
-	}, [settling])
+	usePanelPrefetch(settling)
 
 	const formOpen = adding || editing !== null
 
@@ -336,8 +651,6 @@ export function PlacesApp({
 		[boundedCountries, places, stateOfPlace],
 	)
 
-	const placesByRegion = atlas === 'states' ? placesByState : placesByCountry
-
 	const selected = useMemo(() => {
 		if (selectedIds.length === 0) return NO_PLACES
 
@@ -352,15 +665,27 @@ export function PlacesApp({
 	// grouping is: one settled answer per atlas.
 	const countryOfPlace = useMemo(() => regionOf(placesByCountry), [placesByCountry])
 
-	// The region the open drawer stands in — the list its first crumb leads back
+	// The grouping of the drawn atlas, and its inverse. The inverse gives the
+	// region the open drawer stands in — the list its first crumb leads back
 	// to, which for a lone dot is the only list there is.
 	//
 	// Read out of the drawn grouping's own inverse, so the crumb names the region
 	// the map would open rather than the string the geocoder happened to return.
-	// Picked the same way the grouping above is, rather than inverted from it:
+	// Picked the same way the grouping is, rather than inverted from it:
 	// inside the United States the drawn grouping is the states one, which is
 	// already inverted, and inverting the pick would walk it a second time.
-	const regionOfPlace = atlas === 'states' ? stateOfPlace : countryOfPlace
+	//
+	// The state of each place goes to the index only where the region column is
+	// not already it: inside the United States the drawn region is the state, and
+	// the two columns would print every state beside itself.
+	const { placesByRegion, regionOfPlace, stateByPlace } =
+		atlas === 'states'
+			? { placesByRegion: placesByState, regionOfPlace: stateOfPlace, stateByPlace: undefined }
+			: {
+					placesByRegion: placesByCountry,
+					regionOfPlace: countryOfPlace,
+					stateByPlace: stateOfPlace,
+				}
 
 	// The regions the bar's picker offers. Among countries, only the ones that
 	// hold a place: the palette reaches every other one. Among states the
@@ -372,8 +697,7 @@ export function PlacesApp({
 		[atlas, regionNames, places, countryOfPlace, cut],
 	)
 
-	const openedRegion =
-		selected[0] === undefined ? null : (regionOfPlace.get(selected[0].id) ?? null)
+	const openedRegion = regionOfFirst(selected, regionOfPlace)
 
 	// The regions the open panel names itself with, and the list under them.
 	//
@@ -389,13 +713,10 @@ export function PlacesApp({
 	// The last step's places: a state's where the trail reached one, the drawn
 	// region's otherwise. Empty where nothing holds the group, which the panel
 	// reads as "stand the picked group in for a list".
-	const openedRegionPlaces = useMemo(() => {
-		const deepest = trail[trail.length - 1]
-
-		if (deepest === undefined) return NO_PLACES
-
-		return (trail.length > 1 ? placesByState : placesByRegion).get(deepest) ?? NO_PLACES
-	}, [trail, placesByState, placesByRegion])
+	const openedRegionPlaces = useMemo(
+		() => trailPlaces(trail, placesByState, placesByRegion),
+		[trail, placesByState, placesByRegion],
+	)
 
 	// What the bar admits, then what the view holds — in that order, because the
 	// view is a frame over the filtered set and not a filter of its own.
@@ -414,10 +735,7 @@ export function PlacesApp({
 
 	const here = viewKey(view)
 
-	const preloaded =
-		preload !== null && preload.from === here && viewKey(preload.view) !== here
-			? preload.view
-			: null
+	const preloaded = livePreload(preload, here)
 
 	// The palette and the map both ask for it: the palette for the region of its
 	// active row, and the map for the region that the pointer stays on.
@@ -432,22 +750,18 @@ export function PlacesApp({
 	)
 
 	// The props of the hidden map, from the same sources as the visible map.
-	const preloadedMap = useMemo(() => {
-		if (preloaded === null) return null
-
-		const at = viewAtlas(preloaded)
-
-		return {
-			view: preloaded,
-			regions: at === 'states' ? statesAtlas : countriesAtlas,
-			places: placesInRegion(
-				filtered,
-				at === 'states' ? placesByState : placesByCountry,
-				viewRegion(preloaded),
-			),
-			visited: new Set(visits[at]),
-		}
-	}, [preloaded, statesAtlas, countriesAtlas, filtered, placesByState, placesByCountry, visits])
+	const preloadedMap = useMemo(
+		() =>
+			preloaded === null
+				? null
+				: mapForView(preloaded, {
+						atlases: { states: statesAtlas, countries: countriesAtlas },
+						groupings: { states: placesByState, countries: placesByCountry },
+						filtered,
+						visits,
+					}),
+		[preloaded, statesAtlas, countriesAtlas, filtered, placesByState, placesByCountry, visits],
+	)
 
 	// Held, because the drawer keys its own trail on this: a fresh arrow each
 	// render would rebuild those steps whatever else stayed still.
@@ -489,28 +803,14 @@ export function PlacesApp({
 		[countriesAtlas, statesAtlas, placesByCountry, placesByState, setView, preloadView],
 	)
 
-	// Keyed on the fields of the mark: `viewMark` gives a new object on each render.
-	const markScope = mark?.scope ?? null
-
-	const markRegion = mark?.region ?? null
-
-	const markVisited = setVisit.mutate
-
-	const actionCommands = useMemo(
-		() =>
-			actionSource({
-				onAdd: () => setAdding(true),
-				onList: places.length > 0 ? () => setListing(true) : undefined,
-				mark: markRegion,
-				marked,
-				onMark: (visited) => {
-					if (markScope !== null && markRegion !== null) {
-						markVisited({ scope: markScope, region: markRegion, visited })
-					}
-				},
-			}),
-		[places.length, markScope, markRegion, marked, markVisited],
-	)
+	const actionCommands = useActionCommands({
+		mark,
+		marked,
+		hasPlaces: places.length > 0,
+		setAdding,
+		setListing,
+		onMark: setVisit.mutate,
+	})
 
 	const paletteSources = useMemo(
 		() => [placeCommands, regionCommands, actionCommands],
@@ -519,84 +819,20 @@ export function PlacesApp({
 
 	return (
 		<Flex direction="col" className="h-full">
-			<Flex
-				justify="between"
-				align="center"
-				gap="md"
-				className="shrink-0 border-b border-zinc-950/10 dark:border-white/10 px-6 py-4"
-			>
-				{/* The title is the trail: "Places" alone at the top, and a step per level
-				    under it, where every crumb but the last is the way back. It carries the
-				    heading's own size rather than the breadcrumb's, so the line reads as the
-				    page title it is and does not shrink on a drill.
-
-				    `min-w-0` on the wrapper is what lets the trail give way at all: without
-				    it this flex child holds its full width and pushes the controls beside it
-				    off the row instead of truncating. `flex-1` is what lets it come back: the
-				    trail measures the box it is given, and a box that shrinks to the trail
-				    would narrow with it and never report the room to expand again. */}
-				{/* The trail and the toggle together, because the toggle acts on the
-				    region the last crumb names — not on the app, which is what the
-				    cluster on the far side holds. `min-w-0` stays on the trail alone, so
-				    the crumbs give way and the button never does. */}
-				<Flex gap="md" align="center" className="flex-1 min-w-0">
-					<div className="min-w-0">
-						<PlaceTrail className="text-xl/8" steps={pageTrail} />
-					</div>
-
-					{/* The visited toggle. It is a button rather than a checkbox, because
-					    the reader does not check a place as visited — they mark it as such.
-					    The button's own state is the visited state, so the reader sees what
-					    they are about to do and the action is a single click rather than a
-					    check and a submit.
-
-					    An icon and not a label, so it reads as a mark on the title rather
-					    than a second title beside it. It stays on screen rather than coming
-					    in on hover, because its pressed state is an answer the reader looks
-					    for, and a touch screen has no hover to show it. The tooltip names
-					    the region, because the view does not always say it: over the United
-					    States the map draws states, and the toggle marks the country. */}
-					{mark === null ? null : (
-						<Tooltip>
-							<TooltipTrigger>
-								<ToggleIconButton
-									pressed={marked}
-									onPressedChange={(visited) => setVisit.mutate({ ...mark, visited })}
-									icon={<MapPin />}
-									pressedIcon={<MapPinCheck />}
-									color={marked ? 'green' : 'zinc'}
-									aria-label="Visited"
-									className="shrink-0"
-								/>
-							</TooltipTrigger>
-
-							<TooltipContent>
-								{marked ? `${mark.region} is marked visited` : `Mark ${mark.region} visited`}
-							</TooltipContent>
-						</Tooltip>
-					)}
-				</Flex>
-
-				<Flex gap="sm" align="center" className="shrink-0">
-					{/* Ready with the map, as the map's own drill is: a pick before the view
-					    settles would open a region onto a skeleton. */}
-					<PlacePalette sources={paletteSources} ready={!settling} />
-
-					<AppearanceSettings />
-
-					{/* The list item shows only once there is a list to read. Over an empty
-					    store it would open on an empty sheet.
-					    The count shows only where the view is cut to one region, because it
-					    is the count of that region: `shown` is the list of the bar,
-					    narrowed to the cut. */}
-					<UserMenu
-						user={user}
-						count={cut !== null && shown.length > 0 ? shown.length : undefined}
-						onAdd={() => setAdding(true)}
-						onList={places.length > 0 ? () => setListing(true) : undefined}
-					/>
-				</Flex>
-			</Flex>
+			<PlacesHeader
+				user={user}
+				steps={pageTrail}
+				mark={mark}
+				marked={marked}
+				onMarkedChange={(next) => setVisit.mutate(next)}
+				paletteSources={paletteSources}
+				ready={!settling}
+				cut={cut}
+				count={shown.length}
+				hasPlaces={places.length > 0}
+				onAdd={() => setAdding(true)}
+				onList={() => setListing(true)}
+			/>
 
 			{/* The bar shows only when there are places to filter. The places come
 			    from the server, so the bar is there on the first paint and the map
@@ -625,9 +861,7 @@ export function PlacesApp({
 							regionNames={pickedRegions}
 							regionLabel={REGION_LABEL[atlas]}
 							drilled={cut}
-							onDrill={(region) =>
-								setView(region === null ? (viewUp(view) ?? view) : drillInto(view, region))
-							}
+							onDrill={(region) => setView(drillOrUp(view, region))}
 						/>
 					</ReadyReveal>
 				</div>
@@ -669,13 +903,7 @@ export function PlacesApp({
 					</Activity>
 				)}
 
-				{error ? (
-					<div className="absolute inset-x-0 top-0 p-6">
-						<Alert severity="error">
-							<Text>{error.message}</Text>
-						</Alert>
-					</div>
-				) : null}
+				<PlacesError error={error} />
 			</div>
 
 			{/* One drawer for both writes, opened on a place to edit it and on nothing
@@ -712,10 +940,7 @@ export function PlacesApp({
 					// anything. The reader came from that projection, so it is the narrowing
 					// they already made; clearing the filter widens it back to the bar's.
 					region={cut}
-					// The state, but only where the region column is not already it: inside
-					// the United States the drawn region is the state, and the two columns
-					// would print every state beside itself.
-					stateByPlace={atlas === 'states' ? undefined : stateOfPlace}
+					stateByPlace={stateByPlace}
 					onOpen={(place) => {
 						// One step, not two: the view and the selection are both the address,
 						// so writing them apart would leave a history entry standing on a map
@@ -742,19 +967,10 @@ export function PlacesApp({
 			{/* A delete is the one action here the reader cannot undo — the store keeps
 			    no history — so it is the one that asks first. It names the place, because
 			    a reader who opened a summary has several in front of them. */}
-			<Confirm
-				open={deleting !== null}
-				onOpenChange={(next) => {
-					if (!next) setDeleting(null)
-				}}
-				onConfirm={() => {
-					if (deleting !== null) void deletePlace.mutateAsync(deleting.id)
-
-					setDeleting(null)
-				}}
-				title={deleting === null ? '' : `Delete "${deleting.name}"?`}
-				description={deleting === null ? undefined : 'This cannot be undone.'}
-				confirm={{ label: 'Delete', color: 'red' }}
+			<DeleteConfirm
+				place={deleting}
+				onClose={() => setDeleting(null)}
+				onDelete={(place) => void deletePlace.mutateAsync(place.id)}
 			/>
 		</Flex>
 	)
