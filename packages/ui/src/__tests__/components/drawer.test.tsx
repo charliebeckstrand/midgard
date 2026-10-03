@@ -356,38 +356,6 @@ describe('Drawer height and size', () => {
 	})
 })
 
-describe('Drawer browser toolbar', () => {
-	// jsdom lays nothing out: every box reads a layout viewport of 800 px, under a
-	// visual viewport of 740 px, as under a toolbar of 60 px.
-	function stubToolbar() {
-		vi.stubGlobal(
-			'visualViewport',
-			Object.assign(new EventTarget(), { offsetTop: 0, height: 740, scale: 1 }),
-		)
-
-		vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
-			DOMRect.fromRect({ width: 400, height: 800 }),
-		)
-	}
-
-	it('docks to the bottom of the visible frame that its overlay holds', () => {
-		stubToolbar()
-
-		renderUI(
-			<Drawer open onOpenChange={() => {}} aria-label="Options">
-				Rows
-			</Drawer>,
-		)
-
-		expect(document.documentElement.style.getPropertyValue('--visual-viewport-height')).toBe(
-			'740px',
-		)
-
-		// The panel is placed in the root, which takes the frame as its box.
-		expect(getSlot(document.body, 'drawer').className).toContain('absolute')
-	})
-})
-
 describe('Drawer uncontrolled', () => {
 	it('opens from defaultOpen', () => {
 		renderUI(<Drawer defaultOpen>Drawer body</Drawer>)

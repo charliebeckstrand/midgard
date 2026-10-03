@@ -23,10 +23,8 @@ export const k = {
 			base: [
 				...surface.chrome.flat(),
 				layout.base,
-				// The panel sits on the bottom edge of the overlay root. The root is the
-				// part of the screen that the reader sees (`useVisualViewport`), so the
-				// panel stays above a browser toolbar and an iOS keyboard. Each height
-				// below is a share of the root for the same reason.
+				// The panel sits on the bottom edge of the overlay root. Each height below
+				// is a share of the root, so a panel in a scoped overlay fits its container.
 				'absolute inset-x-0 bottom-0',
 				// In a page with `viewport-fit=cover`, this keeps the footer clear of the
 				// home indicator. Elsewhere the inset is zero.

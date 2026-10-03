@@ -86,10 +86,7 @@ export function DrawerStatic({
 	// hooks are the drawer's, because its slots and rows style off those.
 	return (
 		<div data-slot="drawer-static" className={cn(overlay.root, overlay.frame, rootClassName)}>
-			<div
-				className={cn(k.backdrop({ surface: resolvedSurface, desaturate }), 'fixed')}
-				aria-hidden="true"
-			/>
+			<div className={k.backdrop({ surface: resolvedSurface, desaturate })} aria-hidden="true" />
 			<PolymorphicStatic
 				as="div"
 				data-slot="drawer-static-panel"

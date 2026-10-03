@@ -392,18 +392,6 @@ function start() {
 	}
 }
 
-/**
- * The box that a fixed surface takes, from `useVisualViewport`: its value on the
- * root element, or `-` when it is not set.
- */
-function frameState() {
-	const height = document.documentElement.style.getPropertyValue('--visual-viewport-height')
-
-	const top = document.documentElement.style.getPropertyValue('--visual-viewport-top')
-
-	return height === '' ? '-' : `${parseFloat(height)}@${parseFloat(top)}`
-}
-
 /** The viewport units that the probe measures, one child box for each. */
 const UNITS = ['svh', 'dvh', 'lvh'] as const
 
@@ -437,8 +425,7 @@ function makeProbe() {
  * The heights that decide where a surface fixed to an edge sits: the visual
  * viewport (height at offset), the window, the root element, a box fixed to the
  * layout viewport (height at top), the viewport units, the safe-area insets (top
- * and bottom), the scroll offset, the screen, and the frame of
- * `useVisualViewport`.
+ * and bottom), the scroll offset, and the screen.
  */
 function viewportState(probe: HTMLElement) {
 	const viewport = window.visualViewport
@@ -457,7 +444,7 @@ function viewportState(probe: HTMLElement) {
 
 	const safe = `${parseFloat(insets?.paddingTop ?? '')}/${parseFloat(insets?.paddingBottom ?? '')}`
 
-	return `vv ${visual} win ${window.innerHeight} doc ${document.documentElement.clientHeight} fixed ${fixed} s/d/lvh ${units} safe ${safe} y ${Math.round(window.scrollY)} screen ${window.screen.height} frame ${frameState()}`
+	return `vv ${visual} win ${window.innerHeight} doc ${document.documentElement.clientHeight} fixed ${fixed} s/d/lvh ${units} safe ${safe} y ${Math.round(window.scrollY)} screen ${window.screen.height}`
 }
 
 /** Adds the listeners, and returns a function that removes them. */
@@ -480,24 +467,7 @@ function listen() {
 
 	window.addEventListener('resize', onWindowResize)
 
-	// The frame of `useVisualViewport` changes when an overlay opens or the
-	// toolbar moves. One line for each change shows what a surface was given.
-	let frame = frameState()
-
-	const frames = new MutationObserver(() => {
-		const next = frameState()
-
-		if (next === frame) return
-
-		frame = next
-
-		write(`frame ${viewportState(probe)}`)
-	})
-
-	frames.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
-
-	// An overlay that opens reads the frame. The line shows the readings at that
-	// moment, also when the frame stays the full screen and no frame line comes.
+	// One line for each overlay that opens shows the readings at that moment.
 	const stopOverlays = subscribeOverlaySignal(() => {
 		if (!paused) write(`overlay opens ${viewportState(probe)}`)
 	})
@@ -548,8 +518,6 @@ function listen() {
 		window.visualViewport?.removeEventListener('resize', onResize)
 
 		window.removeEventListener('resize', onWindowResize)
-
-		frames.disconnect()
 
 		stopOverlays()
 

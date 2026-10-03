@@ -36,9 +36,7 @@ describe('safe-area insets on edge surfaces', () => {
 		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+${bottom})]`)
 	})
 
-	it('leaves the browser toolbar to the overlay root, and pads by the inset alone', () => {
-		// The root is the part of the screen that the reader sees. A panel that also
-		// padded for a toolbar would stand clear of it two times.
+	it('pads each drawer height by the inset alone', () => {
 		for (const height of ['auto', 'fit', 'half', 'full'] as const) {
 			expect(drawer.panel({ height })).toContain(`pb-[${bottom}]`)
 		}
@@ -46,14 +44,6 @@ describe('safe-area insets on edge surfaces', () => {
 		expect(sheet.panel({ side: 'bottom' })).toContain(`pb-[${bottom}]`)
 
 		expect(dialog.panel({})).toContain(`max-sm:pb-[calc(1.5rem+${bottom})]`)
-	})
-
-	it('fixes the toast stack to the visible frame', () => {
-		const cls = toast.viewport({ position: 'bottom-left' })
-
-		expect(cls).toContain('top-[var(--visual-viewport-top,0px)]')
-
-		expect(cls).toContain('h-[var(--visual-viewport-height,100%)]')
 	})
 
 	it('pads the toast stack at both ends', () => {

@@ -10,13 +10,10 @@ export const k = {
 	// sit above — see the `sou` ladder.
 	root: sou.overlay,
 	/**
-	 * The box of a root fixed to the viewport: the part of the screen that the
-	 * reader sees, from `useVisualViewport`. A panel on the bottom edge of the box
-	 * stays above a browser toolbar and an iOS keyboard. Without a reading, the
-	 * box is the full viewport.
+	 * The box of a root fixed to the viewport: the full viewport. The browser keeps
+	 * a fixed box clear of its own toolbars.
 	 */
-	frame:
-		'fixed inset-x-0 top-[var(--visual-viewport-top,0px)] h-[var(--visual-viewport-height,100%)]',
+	frame: 'fixed inset-0',
 	/** The box of a root scoped to a container: the full container. */
 	scoped: 'absolute inset-0',
 }
