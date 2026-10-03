@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Button } from '../../components/button'
 import {
 	CommandPalette,
+	CommandPaletteClose,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
 	CommandPaletteHeading,
@@ -46,7 +48,9 @@ describe('CommandPalette', () => {
 
 		expect(list).toHaveAttribute('role', 'listbox')
 
-		expect(screen.getByLabelText('Close')).toBeInTheDocument()
+		const footer = bySlot(document.body, 'command-palette-footer')
+
+		expect(footer).toContainElement(screen.getByRole('button', { name: 'Close' }))
 	})
 
 	it('does not render when closed', () => {
@@ -57,6 +61,78 @@ describe('CommandPalette', () => {
 		)
 
 		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
+	})
+
+	it('closes the palette from the default footer Close button', async () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Close' }))
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('replaces the default Close button with the footer content', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} footer={<Button type="button">Create</Button>}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		const footer = bySlot(document.body, 'command-palette-footer')
+
+		expect(footer).toContainElement(screen.getByRole('button', { name: 'Create' }))
+
+		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+	})
+
+	it('removes the footer row when footer is null', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} footer={null}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(bySlot(document.body, 'command-palette-input')).toBeInTheDocument()
+
+		expect(bySlot(document.body, 'command-palette-footer')).not.toBeInTheDocument()
+	})
+
+	it('keeps CommandPaletteClose beside custom footer actions', async () => {
+		const onOpenChange = vi.fn()
+
+		const onClick = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		renderUI(
+			<CommandPalette
+				open
+				onOpenChange={onOpenChange}
+				footer={
+					<>
+						<Button type="button">Create</Button>
+						<CommandPaletteClose onClick={onClick}>Done</CommandPaletteClose>
+					</>
+				}
+			>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		const done = screen.getByRole('button', { name: 'Done' })
+
+		expect(done).toHaveAttribute('type', 'button')
+
+		await setupUser().click(done)
+
+		// The caller handler runs first, and its `preventDefault()` does not stop the close.
+		expect(onClick).toHaveBeenCalled()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
 	it('applies placeholder to input', () => {

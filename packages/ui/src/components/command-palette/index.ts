@@ -1,5 +1,9 @@
 export { CommandPalette, type CommandPaletteProps } from './command-palette'
 export {
+	CommandPaletteClose,
+	type CommandPaletteCloseProps,
+} from './command-palette-close'
+export {
 	CommandPaletteItem,
 	type CommandPaletteItemProps,
 } from './command-palette-item'
