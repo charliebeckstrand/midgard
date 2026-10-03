@@ -361,12 +361,16 @@ let stop: (() => void) | undefined
 function start() {
 	users += 1
 
-	if (users === 1) stop = listen()
+	if (users === 1) stop ??= listen()
 
 	return () => {
 		users -= 1
 
-		if (users === 0) stop?.()
+		if (users === 0) {
+			stop?.()
+
+			stop = undefined
+		}
 	}
 }
 
@@ -444,3 +448,9 @@ function listen() {
 		paused = false
 	}
 }
+
+// The module loads before the first render of the app, while the tool is on
+// (`preloadDebugTools`). The log starts here and not at the first mount, so it
+// also records a focus or a scroll in the first commit, before the first paint.
+// The first mount takes this run of the listeners.
+stop = listen()
