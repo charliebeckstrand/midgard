@@ -315,7 +315,7 @@ function EventLogLines() {
 		<>
 			<SheetTitle>Event log</SheetTitle>
 			<SheetBody className="min-h-0 flex-1 overflow-auto">
-				<pre className="m-0 whitespace-pre-wrap font-mono text-[10px]/[1.3]">{log}</pre>
+				<pre className="m-0 whitespace-pre-wrap font-mono text-xs">{log}</pre>
 			</SheetBody>
 			<SheetFooter className="justify-between">
 				<div className="flex gap-2">
