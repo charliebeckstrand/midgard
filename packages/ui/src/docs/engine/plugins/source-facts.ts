@@ -106,6 +106,68 @@ function renderPropChild(node: ts.JsxElement): ts.Expression | null {
 }
 
 /**
+ * Whether a child expression shows at run time only as its value: a value in
+ * a line of text, or a condition. The runtime tree holds the text that the
+ * value makes, or nothing when the condition is false, so the walk cannot
+ * print the name that the source reads. A literal, an element, a render prop,
+ * and a map are not such expressions: the walk prints each of them on its own.
+ */
+function isValueChild(
+	child: ts.JsxChild,
+): child is ts.JsxExpression & { expression: ts.Expression } {
+	if (!ts.isJsxExpression(child) || !child.expression) return false
+
+	let expr = child.expression
+
+	while (ts.isParenthesizedExpression(expr)) expr = expr.expression
+
+	if (ts.isConditionalExpression(expr)) return true
+
+	if (ts.isBinaryExpression(expr)) {
+		const op = expr.operatorToken.kind
+
+		if (
+			op === ts.SyntaxKind.AmpersandAmpersandToken ||
+			op === ts.SyntaxKind.BarBarToken ||
+			op === ts.SyntaxKind.QuestionQuestionToken
+		)
+			return true
+	}
+
+	return false
+}
+
+/**
+ * The children of an element that print from source: children with a
+ * condition among them, or a line of text with a value in it. Returns null
+ * for any other children.
+ */
+function sourceChildren(node: ts.JsxElement): ts.JsxChild[] | null {
+	const children = meaningfulChildren(node)
+
+	if (children.some(isValueChild)) return children
+
+	// A line of text with a value in it, such as `Confirmed {count} times`.
+	const isText = children.some((child) => ts.isJsxText(child))
+
+	const values = children.filter(
+		(child): child is ts.JsxExpression & { expression: ts.Expression } =>
+			ts.isJsxExpression(child) && child.expression !== undefined,
+	)
+
+	const textOnly = children.every((child) => ts.isJsxText(child) || ts.isJsxExpression(child))
+
+	const showsValue = values.some(
+		({ expression }) =>
+			!ts.isStringLiteral(expression) &&
+			!ts.isNoSubstitutionTemplateLiteral(expression) &&
+			!ts.isNumericLiteral(expression),
+	)
+
+	return isText && textOnly && showsValue ? children : null
+}
+
+/**
  * The names that the JSX of an Example binds itself: the parameters of each
  * callback in it, such as the item of a `.map`, and the variables that a
  * callback body declares. JSX declares a name nowhere else.
@@ -346,6 +408,26 @@ function collectElementFacts(
 		return text
 	}
 
+	// Children that print from source: the text from the first child to the
+	// last, keyed like `record`, with the names that each child uses.
+	const recordChildren = (nodes: readonly ts.JsxChild[]): string => {
+		const first = nodes[0] as ts.JsxChild
+
+		const last = nodes[nodes.length - 1] as ts.JsxChild
+
+		const text = sf.text.slice(first.getStart(sf), last.getEnd()).trim()
+
+		if (!sources.has(text)) {
+			const names = new Set<string>()
+
+			for (const node of nodes) for (const name of referencedNames(node)) names.add(name)
+
+			sources.set(text, names)
+		}
+
+		return text
+	}
+
 	const locals = localNames(children)
 
 	const maps = mapsOf(children, locals, record)
@@ -363,6 +445,15 @@ function collectElementFacts(
 
 				if (renderProp && locals.size > 0 && usesAny(renderProp, locals)) local.push('children')
 
+				// A source that reads a name of a callback in the JSX, such as the item
+				// of a map, does not stand on its own, so the walk prints the live text.
+				const body = !renderProp && ts.isJsxElement(node) ? sourceChildren(node) : null
+
+				const bodySource =
+					body && !body.some((child) => locals.size > 0 && usesAny(child as ts.Expression, locals))
+						? recordChildren(body)
+						: undefined
+
 				const map = maps.get(node)
 
 				facts.push({
@@ -370,10 +461,11 @@ function collectElementFacts(
 					props,
 					...(local.length > 0 ? { local } : {}),
 					...(renderProp ? { children: record(renderProp) } : {}),
+					...(bodySource ? { body: bodySource } : {}),
 					...(map ? { map: map.source, ...(map.local ? { mapLocal: true } : {}) } : {}),
 				})
 
-				if (renderProp) return
+				if (renderProp || bodySource) return
 			}
 
 			if (ts.isJsxElement(node)) node.children.forEach(visit)

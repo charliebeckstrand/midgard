@@ -3,7 +3,8 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import type { ComponentApi } from '../../docs/engine/api-reference'
-import { buildApi, listBarrels } from '../../docs/engine/api-reference/engine/build-api'
+import { listBarrels } from '../../docs/engine/api-reference/engine/barrels'
+import { apiRecord } from '../helpers/api-record'
 import { advise } from '../helpers/controlled-language'
 import { demoSourcesOf } from '../helpers/demo-sources'
 import { propGaps, propsSetIn } from '../helpers/prop-coverage'
@@ -20,7 +21,7 @@ const DEMOS = join(SRC, 'docs', 'demos')
 
 describe('prop coverage', () => {
 	it('reports the documented props that a demo page does not set', { timeout: 60_000 }, () => {
-		const api = buildApi(SRC)
+		const api = apiRecord()
 
 		const gaps: string[] = []
 

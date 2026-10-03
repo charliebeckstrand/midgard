@@ -31,22 +31,7 @@ import { type DemoPage, demoPages, walkOf } from './demo-pages'
  * The violations of today, keyed `page › rule`, with the count of the nodes
  * that break the rule. Fix a node, and lower its count.
  */
-const KNOWN_FAILURES: Record<string, number> = {
-	// A Listbox trigger that the demo builds with no label.
-	'providers/density › button-name': 1,
-
-	// An icon-only trigger with no `aria-label`: the sidebar's menu, and the
-	// edit button of each row in the grid's actions column.
-	'components/sidebar › button-name': 1,
-	'modules/grid › button-name': 5,
-
-	// Two examples show a landmark with the same name, or with none, so a
-	// landmark list cannot tell them apart.
-	'components/accordion › landmark-unique': 1,
-	'components/kanban › landmark-unique': 1,
-	'components/pdf-viewer › landmark-unique': 1,
-	'components/sidebar › landmark-unique': 1,
-}
+const KNOWN_FAILURES: Record<string, number> = {}
 
 /** The entries of `KNOWN_FAILURES` for one page. */
 function knownFailuresOf(page: string): Record<string, number> {

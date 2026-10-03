@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react'
 import { Button, type ButtonProps } from '../button'
 
 /**
@@ -9,9 +10,22 @@ import { Button, type ButtonProps } from '../button'
  *
  * @internal
  */
-export function PaginationNavButton({ slot, children, ...props }: { slot: string } & ButtonProps) {
+export function PaginationNavButton({
+	slot,
+	type,
+	children,
+	...props
+}: { slot: string } & ButtonProps) {
 	return (
-		<Button type="button" data-slot={slot} variant="plain" {...props}>
+		<Button
+			data-slot={slot}
+			variant="plain"
+			{...props}
+			// After the spread: the control does not submit a form unless the
+			// caller asks for it. The anchor arm of the union widens `type` to a
+			// MIME string, and Button reads it only on its `<button>` arm.
+			type={(type ?? 'button') as ComponentProps<'button'>['type']}
+		>
 			{children}
 		</Button>
 	)

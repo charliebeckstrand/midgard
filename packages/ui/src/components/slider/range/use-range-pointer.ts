@@ -1,6 +1,7 @@
 'use client'
 
 import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { isRtl } from '../../../hooks/a11y/logical-arrow'
 import { useDragCursorHold } from '../../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { clamp } from '../../../utilities'
@@ -12,14 +13,15 @@ type ThumbRef = { current: ThumbIndex | null }
 
 /**
  * Resolves which thumb a move drives. Stacked thumbs defer until the first move
- * reveals direction.
+ * reveals direction. `inline` is the pointer position on the inline axis, so a
+ * larger value is nearer the end of the track in each direction.
  *
  * @returns The thumb now being dragged, or null to keep waiting (no movement
  * yet, or pinned at a boundary).
  * @internal
  */
 function resolveDraggingThumb(
-	clientX: number,
+	inline: number,
 	draggingRef: ThumbRef,
 	pendingStackedRef: { current: number | null },
 	bounds: { stacked: number; min: number; max: number },
@@ -28,7 +30,7 @@ function resolveDraggingThumb(
 
 	if (pendingStackedRef.current === null) return null
 
-	const dx = clientX - pendingStackedRef.current
+	const dx = inline - pendingStackedRef.current
 
 	if (dx === 0) return null
 
@@ -78,7 +80,8 @@ function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
 /**
  * Pointer control for a range slider's two thumbs. Pointerdown grabs the
  * closest thumb, or on a stack defers to the first move's direction. A drag
- * writes the snapped value, and capture-end resets the drag.
+ * writes the snapped value, and capture-end resets the drag. The track mirrors
+ * in a right-to-left layout, so the value grows from right to left there.
  *
  * @returns Pointer handlers to spread on the track.
  * @remarks
@@ -118,9 +121,13 @@ export function useRangePointer(opts: {
 	const update = useRangeUpdate({ min, max, step, setRange, overlap })
 
 	const draggingRef = useRef<ThumbIndex | null>(null)
-	// Stores the clientX of pointerdown on stacked thumbs until the first
-	// move reveals direction, then resolves which thumb to drag.
+	// Stores the inline position of pointerdown on stacked thumbs until the
+	// first move reveals direction, then resolves which thumb to drag.
 	const pendingStackedRef = useRef<number | null>(null)
+
+	// Whether the track lays out right to left. The press reads it, and it holds
+	// for the whole gesture.
+	const rtlRef = useRef(false)
 
 	// The thumb that the press grabbed. It holds for the whole gesture, so the
 	// bracket pairs. `draggingRef` follows a swap to the other slot; this ref
@@ -148,6 +155,10 @@ export function useRangePointer(opts: {
 		[reportDragStart],
 	)
 
+	// The pointer position on the inline axis: `clientX`, negated in a
+	// right-to-left layout. A larger value is nearer the end of the track.
+	const inlinePosition = useCallback((clientX: number) => (rtlRef.current ? -clientX : clientX), [])
+
 	const valueFromPointer = useCallback(
 		(clientX: number) => {
 			const track = trackRef.current
@@ -156,7 +167,10 @@ export function useRangePointer(opts: {
 
 			const rect = track.getBoundingClientRect()
 
-			const ratio = clamp((clientX - rect.left) / rect.width, 0, 1)
+			// In a right-to-left layout the track starts at its right edge.
+			const offset = rtlRef.current ? rect.right - clientX : clientX - rect.left
+
+			const ratio = clamp(offset / rect.width, 0, 1)
 
 			return min + ratio * (max - min)
 		},
@@ -187,6 +201,8 @@ export function useRangePointer(opts: {
 
 			cursorHold.start()
 
+			rtlRef.current = isRtl(event.currentTarget)
+
 			const raw = valueFromPointer(event.clientX)
 
 			if (current[0] === current[1]) {
@@ -212,7 +228,7 @@ export function useRangePointer(opts: {
 				// Pointer on the stack: defer until the first move shows direction.
 				// Thumb 1 matches `closestThumb`'s equidistant tie-break, and keeps
 				// a press with no move keyboard-operable.
-				pendingStackedRef.current = event.clientX
+				pendingStackedRef.current = inlinePosition(event.clientX)
 				focusThumb(thumbRefs, 1)
 
 				return
@@ -235,6 +251,7 @@ export function useRangePointer(opts: {
 			thumbRefs,
 			beginDrag,
 			cursorHold,
+			inlinePosition,
 		],
 	)
 
@@ -242,11 +259,16 @@ export function useRangePointer(opts: {
 		(event: PointerEvent) => {
 			const wasPending = pendingStackedRef.current !== null
 
-			const dragging = resolveDraggingThumb(event.clientX, draggingRef, pendingStackedRef, {
-				stacked: current[0],
-				min,
-				max,
-			})
+			const dragging = resolveDraggingThumb(
+				inlinePosition(event.clientX),
+				draggingRef,
+				pendingStackedRef,
+				{
+					stacked: current[0],
+					min,
+					max,
+				},
+			)
 
 			if (dragging === null) return
 
@@ -278,7 +300,18 @@ export function useRangePointer(opts: {
 
 			update(dragging, raw)
 		},
-		[update, valueFromPointer, current, min, max, step, overlap, thumbRefs, beginDrag],
+		[
+			update,
+			valueFromPointer,
+			inlinePosition,
+			current,
+			min,
+			max,
+			step,
+			overlap,
+			thumbRefs,
+			beginDrag,
+		],
 	)
 
 	const endDrag = useCallback(() => {

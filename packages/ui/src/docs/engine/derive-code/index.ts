@@ -1,13 +1,12 @@
-import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { Children, type ReactElement, type ReactNode } from 'react'
+import { classifyElement, elementChildren } from './classify'
 import { reindent } from './indent'
 import {
 	addImport,
 	assemble,
-	classifyElement,
 	closePulledDecls,
 	collectChildItems,
 	createContext,
-	elementChildren,
 	formatProps,
 	hoistSnippet,
 	INDENT,
@@ -20,6 +19,7 @@ import {
 import { defaultRegistry } from './registry'
 import type { ComponentRegistry, Context, ElementFact, HelperSnippet, SourceFacts } from './types'
 
+export { hasDerivableCode } from './probe'
 export { defaultRegistry } from './registry'
 export type {
 	ComponentInfo,
@@ -105,58 +105,6 @@ export function deriveCode(
 	const preamble = resolvePreamble(context)
 
 	return assemble(context, jsx, preamble)
-}
-
-/**
- * Whether {@link deriveCode} would produce anything for this subtree — that is,
- * whether anything in it registers an import.
- *
- * `deriveCode` returns `null` exactly when its walk collected no imports, so
- * finding one element that contributes answers the question. This
- * short-circuits there instead of rendering the whole JSX string, resolving a
- * preamble, and possibly walking a second pass for the consistency rule.
- *
- * Both walks sort an element through {@link classifyElement}, so neither
- * restates the other's rule. A recognized component imports itself. An
- * unrecognized one renders its children in its place, so the walk descends.
- * Without children it stands for its build-time snippet, which contributes
- * when its import table has an entry — the case a demo-local helper rests on,
- * as in `<Example><ClosableExample /></Example>`.
- *
- * @remarks
- * Element-valued props and {@link SourceFacts} need no case of their own.
- * `renderElement` reads both only from an element it has already recognized,
- * which answers `true` on its own.
- */
-export function hasDerivableCode(
-	children: ReactNode,
-	registry: ComponentRegistry = defaultRegistry,
-): boolean {
-	const stack: ReactNode[] = Children.toArray(children)
-
-	while (stack.length > 0) {
-		const node = stack.pop()
-
-		if (!isValidElement(node)) continue
-
-		const classified = classifyElement(node, registry)
-
-		if (classified.kind === 'recognized') return true
-
-		if (classified.kind === 'snippet') {
-			if (Object.keys(classified.snippet.imports).length > 0) return true
-
-			continue
-		}
-
-		if (classified.kind === 'none') continue
-
-		// Not `push(...nodes)`: a spread passes each entry as an argument and
-		// blows the call-argument ceiling on a large array.
-		for (const child of classified.nodes) stack.push(child)
-	}
-
-	return false
 }
 
 /**
@@ -426,7 +374,8 @@ function renderElement(
 /**
  * Renders the children of a recognized component. A render-prop child — a
  * function the walker could never invoke — emits its authored source verbatim
- * when the element's fact carries it. Otherwise children render via
+ * when the element's fact carries it. So do children with a condition or a
+ * value in a line of text, which the runtime tree shows only as their result. Otherwise children render via
  * `renderNodes`; when they exist but nothing renders, a `...` placeholder
  * keeps the parent as `<Foo>...</Foo>`.
  */
@@ -443,6 +392,8 @@ function renderChildren(
 
 		return `${indent}{${reindent(registerFactText(fact.children, context), indent)}}`
 	}
+
+	if (fact?.body) return `${indent}${reindent(registerFactText(fact.body, context), indent)}`
 
 	const nodes = elementChildren(element)
 

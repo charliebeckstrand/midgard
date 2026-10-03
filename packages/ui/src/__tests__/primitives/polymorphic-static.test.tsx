@@ -200,11 +200,17 @@ describe('PolymorphicStatic', () => {
 				<PolymorphicStatic as="button" type="submit" data-slot="submit" className="">
 					Submit
 				</PolymorphicStatic>
+				<PolymorphicStatic as="button" type={undefined} data-slot="stray" className="">
+					Stray
+				</PolymorphicStatic>
 			</>,
 		)
 
 		expect(bySlot(container, 'plain')).toHaveAttribute('type', 'button')
 
 		expect(bySlot(container, 'submit')).toHaveAttribute('type', 'submit')
+
+		// A stray `undefined` does not drop the default and make a form submit.
+		expect(bySlot(container, 'stray')).toHaveAttribute('type', 'button')
 	})
 })

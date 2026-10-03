@@ -522,8 +522,8 @@ const RowClickExample = () => {
 					...columns,
 					{
 						id: 'actions',
-						actions: () => (
-							<Button variant="bare" color="blue">
+						actions: (row) => (
+							<Button variant="bare" color="blue" aria-label={`Edit ${row.name}`}>
 								<Icon icon={<PencilIcon />} />
 							</Button>
 						),

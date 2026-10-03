@@ -68,6 +68,29 @@ describe('BreadcrumbLink', () => {
 
 		expect(link).toBe(bySlot(container, 'breadcrumb-link'))
 	})
+
+	it('keeps a consumer aria-current while not current, and current wins', () => {
+		renderUI(
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="/a" aria-current="location">
+							A
+						</BreadcrumbLink>
+					</BreadcrumbItem>
+					<BreadcrumbItem>
+						<BreadcrumbLink href="/b" current aria-current="location">
+							B
+						</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>,
+		)
+
+		expect(screen.getByRole('link', { name: 'A' })).toHaveAttribute('aria-current', 'location')
+
+		expect(screen.getByRole('link', { name: 'B' })).toHaveAttribute('aria-current', 'page')
+	})
 })
 
 describe('Breadcrumb keyboard model', () => {

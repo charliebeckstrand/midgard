@@ -26,6 +26,7 @@ export function BreadcrumbLink({
 	href,
 	render,
 	children,
+	'aria-current': ariaCurrent,
 	...props
 }: BreadcrumbLinkProps) {
 	return (
@@ -34,9 +35,11 @@ export function BreadcrumbLink({
 			href={href}
 			render={render}
 			data-slot="breadcrumb-link"
-			aria-current={current ? 'page' : undefined}
 			className={cn(k.link({ current }), className)}
 			{...props}
+			// After the spread: `current` owns the state. A consumer value holds
+			// only while the crumb is not current.
+			aria-current={current ? 'page' : ariaCurrent}
 		>
 			{children}
 		</PolymorphicStatic>

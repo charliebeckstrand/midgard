@@ -12,9 +12,7 @@ language js
 // cannot express this exemption.
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the component,
-// module, and primitive layers, minus tests and benchmarks. `layouts` stays
-// out, because `layouts/sidebar/variants.ts` value-imports kiso and nothing
-// forbids it.
+// structure, module, primitive, and layout layers, minus tests and benchmarks.
 `import $clause from $source` as $import where {
 	$source <: r"['\"][\s\S]*/recipes['\"]",
 	not $import <: r"import\s+type\b[\s\S]*",

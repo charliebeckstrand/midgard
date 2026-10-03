@@ -1,23 +1,15 @@
 'use client'
 
-import type { HTMLAttributes, Ref } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
 
-/** Props for {@link StepperSeparator}: `className`, a `ref`, and HTML attributes. */
+/** Props for {@link StepperSeparator}: `className` plus `<li>` attributes, `ref` included. */
 export type StepperSeparatorProps = {
 	className?: string
-	/**
-	 * The ref of the separator.
-	 *
-	 * @remarks
-	 * The separator is an `<li>`. The ref type stays `HTMLElement`, so a
-	 * consumer ref of an earlier version still fits.
-	 */
-	ref?: Ref<HTMLElement>
-} & Omit<HTMLAttributes<HTMLElement>, 'className'>
+} & Omit<ComponentProps<'li'>, 'className'>
 
 /**
  * Decorative connector rule drawn between adjacent {@link StepperStep}s,
@@ -27,11 +19,12 @@ export type StepperSeparatorProps = {
  * @remarks
  * It is an `<li>`, because the steps are in an `<ol>` in an interactive and in
  * a display-only stepper. The `aria-hidden` keeps it out of the step count.
+ * The `ref` gets the `<li>` as an `HTMLLIElement`.
  */
 export function StepperSeparator({ className, ref, ...props }: StepperSeparatorProps) {
 	const { layout } = useStepper()
 
-	const composedRef = useComposedRef<HTMLElement>(ref)
+	const composedRef = useComposedRef<HTMLLIElement>(ref)
 
 	const classes = cn(k.separator({ orientation: layout }), className)
 

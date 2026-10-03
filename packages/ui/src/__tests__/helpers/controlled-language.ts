@@ -329,6 +329,7 @@ export const LIVING_MARKDOWN = [
 	'docs/PRIMITIVES.md',
 	'docs/PROVIDERS.md',
 	'docs/RECIPES.md',
+	'docs/STRUCTURE.md',
 	'docs/UTILITIES.md',
 ]
 
