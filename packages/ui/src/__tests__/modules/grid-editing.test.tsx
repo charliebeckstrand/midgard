@@ -4589,6 +4589,35 @@ describe('Grid new row', () => {
 		expect(editorsIn(view.container)).toHaveLength(2)
 	})
 
+	it('infers the editor of a slot cell from the rows of the same render', () => {
+		const editable: GridEditableConfig = {
+			session: 'managed',
+			newRow: 'bottom',
+			onRowAdd: vi.fn(),
+			onCommit: vi.fn(),
+		}
+
+		const grid = (rows: SessionRow[]) => (
+			<Grid columns={sessionColumns} rows={rows} getKey={(row) => row.id} editable={editable} />
+		)
+
+		const view = renderUI(grid([]))
+
+		const countEditor = () =>
+			present(
+				view.container.querySelector<HTMLElement>('td[data-grid-new-col="count"]'),
+				'new-row cell count',
+			)
+
+		// With no row to sample, the slot has a text editor.
+		expect(bySlot(countEditor(), 'grid-edit-input')).toBeInTheDocument()
+
+		// The rows arrive. The slot reads them in the render that brings them.
+		view.rerender(grid(sessionRows))
+
+		expect(bySlot(countEditor(), 'grid-edit-number-input')).toBeInTheDocument()
+	})
+
 	it('stays out of the sort, the filter, and the pagination', () => {
 		const rows = Array.from({ length: 5 }, (_, i) => ({
 			id: i + 1,

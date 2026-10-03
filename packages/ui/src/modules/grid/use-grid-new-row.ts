@@ -67,6 +67,7 @@ export function useGridNewRow<T>({
 	managed,
 	position,
 	drafts,
+	editSource,
 	editSourceRef,
 	dataColumnsRef,
 	tableRef,
@@ -79,7 +80,12 @@ export function useGridNewRow<T>({
 	/** Where the slot shows, from {@link resolveNewRow}. */
 	position: GridNewRowPosition
 	drafts: GridDraftStore
-	/** The grid's own rows and columns. A column's editor kind reads a sample row. */
+	/**
+	 * The grid's own rows and columns in this render. A column's editor kind
+	 * reads a sample row, and a cell of the slot asks for it during render.
+	 */
+	editSource: GridEditSource<T>
+	/** The grid's own rows and columns, which the add and its refusals read at event time. */
 	editSourceRef: RefObject<GridEditSource<T>>
 	/** Visible data columns in display order. */
 	dataColumnsRef: RefObject<GridColumn<T>[]>
@@ -151,19 +157,23 @@ export function useGridNewRow<T>({
 		[editSourceRef],
 	)
 
+	const { rows: sourceRows } = editSource
+
 	// The slot holds no value of its own, so the inferred editor reads the
 	// first source row with a value in the column. With none, it is a text editor.
+	// A cell of the slot calls it during render, so it reads the rows of the
+	// render and not the ref.
 	const editorKind = useCallback(
 		(column: { id: string | number; field?: PropertyKey }) => {
 			const field = column.field as keyof T | undefined
 
 			if (field == null) return inferEditorKind(undefined)
 
-			const sample = editSourceRef.current.rows.find((row) => row[field] != null)
+			const sample = sourceRows.find((row) => row[field] != null)
 
 			return inferEditorKind(sample?.[field])
 		},
-		[editSourceRef],
+		[sourceRows],
 	)
 
 	// Moves the keyboard cursor onto a cell of the slot.
