@@ -29,6 +29,7 @@ import {
 	StatDescriptionSkeleton,
 	StatLabel,
 	StatLabelSkeleton,
+	StatSkeleton,
 	StatValue,
 	StatValueSkeleton,
 } from '../../../components/stat'
@@ -46,6 +47,7 @@ import {
 	Timeline,
 	TimelineDescription,
 	TimelineItem,
+	TimelineSkeleton,
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../../components/timeline'
@@ -293,6 +295,9 @@ export const dataDisplayCases: readonly Case[] = [
 				</TimelineItem>
 			</Timeline>
 		),
+		skeleton: [
+			{ element: <TimelineSkeleton items={2} />, absentSlot: 'timeline-item', placeholders: 6 },
+		],
 	},
 	{
 		name: 'stat',
@@ -308,6 +313,7 @@ export const dataDisplayCases: readonly Case[] = [
 			{ element: <StatValueSkeleton size="lg" />, absentSlot: 'stat-value' },
 			{ element: <StatDeltaSkeleton />, absentSlot: 'stat-delta' },
 			{ element: <StatDescriptionSkeleton />, absentSlot: 'stat-description' },
+			{ element: <StatSkeleton delta description />, absentSlot: 'stat', placeholders: 4 },
 		],
 	},
 	{

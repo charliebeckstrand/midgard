@@ -1,4 +1,4 @@
-import { AspectRatio } from '../../components/aspect-ratio'
+import type { CSSProperties } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
@@ -56,7 +56,7 @@ export type MapSkeletonProps = {
 
 /**
  * Map-shaped loading placeholder reserving the frame a {@link MapPlat} will
- * take. An `AspectRatio` box holds the resolved ratio, so swapping the loaded
+ * take. The placeholder holds the resolved ratio, so swapping the loaded
  * map in causes no layout shift. Compose it in loading trees that stand in for a
  * plat, such as a Suspense fallback while geography data fetches. Pass the
  * plat's own `aspectRatio` when it fixes one, and its `projection` otherwise,
@@ -66,7 +66,7 @@ export type MapSkeletonProps = {
 export function MapSkeleton({ aspectRatio, projection, outline, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function
 	// `use-map-shape` resolves the frame through, so the order — an explicit
-	// the explicit aspect, then what the projection knows before its atlas lands, then the
+	// aspect, then what the projection knows before its atlas lands, then the
 	// generic fallback — and the rule that an unparseable ratio fills instead of
 	// reserving are both stated once. Sharing only `projectionFallbackAspect`
 	// would share the number and duplicate the policy over it.
@@ -83,22 +83,20 @@ export function MapSkeleton({ aspectRatio, projection, outline, className }: Map
 	// default that reads another parameter.
 	const shape = (outline ?? projection === 'albers-usa') ? mapOutline(projection) : null
 
-	if (sizing.mode !== 'aspect') {
-		return shape === null ? (
-			<Placeholder className={cn(...k.skeleton.base, className)} />
-		) : (
-			<MapSkeletonOutline outline={shape} className={className} />
-		)
-	}
+	// An aspect frame is the placeholder itself: full width, and an inline
+	// `aspect-ratio` for the height. One element holds the box, so the skeleton
+	// has one `data-slot`.
+	const aspect = sizing.mode === 'aspect'
 
-	return (
-		<AspectRatio ratio={sizing.ratio} className={className}>
-			{shape === null ? (
-				<Placeholder className={cn(...k.skeleton.base)} />
-			) : (
-				<MapSkeletonOutline outline={shape} />
-			)}
-		</AspectRatio>
+	const style = aspect ? { aspectRatio: sizing.ratio } : undefined
+
+	return shape === null ? (
+		<Placeholder
+			className={cn(...(aspect ? k.skeleton.aspect : k.skeleton.base), className)}
+			style={style}
+		/>
+	) : (
+		<MapSkeletonOutline outline={shape} aspect={aspect} style={style} className={className} />
 	)
 }
 
@@ -107,14 +105,25 @@ export function MapSkeleton({ aspectRatio, projection, outline, className }: Map
  * the box and centers the remainder, which is the rule the plat's measured fit
  * follows.
  */
-function MapSkeletonOutline({ outline, className }: { outline: MapOutline; className?: string }) {
+function MapSkeletonOutline({
+	outline,
+	aspect,
+	style,
+	className,
+}: {
+	outline: MapOutline
+	aspect: boolean
+	style: CSSProperties | undefined
+	className?: string
+}) {
 	return (
 		<svg
 			data-slot="placeholder"
 			aria-hidden="true"
 			viewBox={`0 0 ${outline.width} ${outline.height}`}
 			preserveAspectRatio="xMidYMid meet"
-			className={cn(...k.skeleton.outline, className)}
+			className={cn(...(aspect ? k.skeleton.outlineAspect : k.skeleton.outline), className)}
+			style={style}
 		>
 			<path d={outline.d} />
 		</svg>

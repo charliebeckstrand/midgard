@@ -6,11 +6,12 @@ import {
 	StepperIndicator,
 	StepperPanel,
 	StepperPanels,
+	StepperSeparator,
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
 import type { Mount } from '../../primitives/mount'
-import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser, within } from '../helpers'
 
 describe('Stepper', () => {
 	it('renders with data-slot="stepper"', () => {
@@ -26,7 +27,56 @@ describe('Stepper', () => {
 
 		expect(el).toBeInTheDocument()
 
+		expect(screen.getByRole('list', { name: 'Steps' })).toBeInTheDocument()
+	})
+
+	it('reads a display-only stepper as a list of its steps', () => {
+		renderUI(
+			<Stepper value={1}>
+				<StepperStep value={0}>
+					<StepperTitle>Account</StepperTitle>
+				</StepperStep>
+				<StepperSeparator />
+				<StepperStep value={1}>
+					<StepperTitle>Profile</StepperTitle>
+				</StepperStep>
+				<StepperSeparator />
+				<StepperStep value={2}>
+					<StepperTitle>Confirm</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const list = screen.getByRole('list', { name: 'Steps' })
+
+		expect(list).not.toHaveAttribute('aria-orientation')
+
+		const items = within(list).getAllByRole('listitem')
+
+		expect(items).toHaveLength(3)
+
+		expect(items[1]).toHaveAttribute('aria-current', 'step')
+
+		expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+	})
+
+	it('keeps the toolbar role on an interactive stepper', () => {
+		renderUI(
+			<Stepper defaultValue={0}>
+				<StepperStep value={0}>
+					<StepperTitle>Account</StepperTitle>
+				</StepperStep>
+				<StepperStep value={1}>
+					<StepperTitle>Profile</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
 		expect(screen.getByRole('toolbar', { name: 'Steps' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('list')).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
 	})
 
 	it('takes an aria-label, so two steppers on one page have distinct names', () => {
@@ -45,9 +95,9 @@ describe('Stepper', () => {
 			</>,
 		)
 
-		expect(screen.getByRole('toolbar', { name: 'Checkout' })).toBeInTheDocument()
+		expect(screen.getByRole('list', { name: 'Checkout' })).toBeInTheDocument()
 
-		expect(screen.getByRole('toolbar', { name: 'Onboarding' })).toBeInTheDocument()
+		expect(screen.getByRole('list', { name: 'Onboarding' })).toBeInTheDocument()
 	})
 })
 
@@ -325,7 +375,7 @@ describe('StepperStep interactive mode', () => {
 
 		const el = bySlot(container, 'stepper-step')
 
-		expect(el?.tagName).toBe('DIV')
+		expect(el?.tagName).toBe('LI')
 
 		expect(el).toHaveAttribute('data-disabled', '')
 	})
@@ -353,7 +403,7 @@ describe('StepperStep interactive mode', () => {
 			</Stepper>,
 		)
 
-		const rootTag = html.match(/<div[^>]*data-slot="stepper"[^>]*>/)?.[0] ?? ''
+		const rootTag = html.match(/<ol[^>]*data-slot="stepper"[^>]*>/)?.[0] ?? ''
 
 		expect(rootTag).toContain('flex-col')
 

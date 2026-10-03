@@ -37,6 +37,7 @@ import { switchRecipe } from './switch'
 import { tabs } from './tabs'
 import { text } from './text'
 import { textarea } from './textarea'
+import { timeline } from './timeline'
 import { toggleIconButton } from './toggle-icon-button'
 
 export const kokkaku = {
@@ -67,5 +68,6 @@ export const kokkaku = {
 	tabs,
 	text,
 	textarea,
+	timeline,
 	toggleIconButton,
 } as const

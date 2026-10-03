@@ -13,3 +13,14 @@ export const tint = mode(
 	'not-disabled:not-data-disabled:hover:bg-zinc-950/5 not-disabled:not-data-disabled:focus:bg-zinc-950/5',
 	'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
 )
+
+/**
+ * {@link tint} on the `::before` layer, not on the element. Use it where the
+ * element keeps square corners and a rounded inner layer carries the wash. The
+ * element state sets the wash, and the layer paints it. The composer gives the
+ * layer its position, inset, and radius.
+ */
+export const tintBefore = mode(
+	'not-disabled:not-data-disabled:hover:before:bg-zinc-950/5 not-disabled:not-data-disabled:focus:before:bg-zinc-950/5',
+	'dark:not-disabled:not-data-disabled:hover:before:bg-white/5 dark:not-disabled:not-data-disabled:focus:before:bg-white/5',
+)

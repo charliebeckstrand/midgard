@@ -31,6 +31,7 @@ import {
 	StatDeltaSkeleton,
 	StatDescriptionSkeleton,
 	StatLabelSkeleton,
+	StatSkeleton,
 	StatValueSkeleton,
 } from '../../../components/stat'
 import { StepperSkeleton } from '../../../components/stepper'
@@ -38,6 +39,7 @@ import { SwitchSkeleton } from '../../../components/switch'
 import { TabListSkeleton } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import { TimelineSkeleton } from '../../../components/timeline'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { ChartSkeleton } from '../../../modules/chart'
 import { ChatTranscriptSkeleton } from '../../../modules/chat'
@@ -58,6 +60,7 @@ const skeletonVariants = [
 	{ name: 'Button', skeleton: <ButtonSkeleton /> },
 	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
 	{ name: 'Chart', skeleton: <ChartSkeleton /> },
+	{ name: 'Chart (pie)', skeleton: <ChartSkeleton sector /> },
 	{ name: 'Chat transcript', skeleton: <ChatTranscriptSkeleton /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
@@ -76,6 +79,7 @@ const skeletonVariants = [
 	{ name: 'Shiny text', skeleton: <ShinyTextSkeleton /> },
 	{ name: 'Slider', skeleton: <SliderSkeleton /> },
 	{ name: 'Sparkline', skeleton: <SparklineSkeleton /> },
+	{ name: 'Stat', skeleton: <StatSkeleton delta description /> },
 	{ name: 'Stat delta', skeleton: <StatDeltaSkeleton /> },
 	{ name: 'Stat description', skeleton: <StatDescriptionSkeleton /> },
 	{ name: 'Stat label', skeleton: <StatLabelSkeleton /> },
@@ -85,6 +89,7 @@ const skeletonVariants = [
 	{ name: 'Tab list', skeleton: <TabListSkeleton /> },
 	{ name: 'Text', skeleton: <TextSkeleton /> },
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
+	{ name: 'Timeline', skeleton: <TimelineSkeleton /> },
 	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
 ]
 
