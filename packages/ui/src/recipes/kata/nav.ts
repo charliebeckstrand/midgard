@@ -6,10 +6,11 @@
  *   inner `button`, which trade off the interaction chrome;
  * - `item` also carries the focus-projection `indicator` and the
  *   `prefix`/`suffix` slot wrappers;
- * - `bar` is the `<NavBar>` landmark frame.
+ * - `bar` is the `<NavBar>` landmark frame;
+ * - `skeleton` is the form of the `<NavSkeleton>` rows.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, narabi, omote, sen, shaku, textRamp } from '../kiso'
+import { hannou, kasane, kokkaku, narabi, omote, sen, shaku, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
 const { rounded } = kasane
@@ -25,22 +26,31 @@ const { bg } = omote
 const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0']
 
 /**
- * Shared item structure minus the interaction surface. The padding, the gap,
- * the text, and the icon take the step of the nearest density scope. At `md`
- * the item is `p-2` with `gap-2`, `text-base`, and a `size-5` icon.
+ * The box of an item: the axis, the padding, the gap, the text, and the
+ * radius. These take the step of the nearest density scope. At `md` the item
+ * is `p-2` with `gap-2` and `text-base`. The skeleton row takes the same box,
+ * so the two boxes match.
  */
-const itemShell = [
-	'group relative',
+const itemBox = [
 	flex.row,
 	'w-full',
 	'density-p-[1.5,2,2.5]',
+	'density-gap-[1.5,2,2.5]',
+	textRamp,
+	rounded.lg,
+]
+
+/**
+ * Shared item structure minus the interaction surface. The icon takes the
+ * step of the nearest density scope. At `md` it is `size-5`.
+ */
+const itemShell = [
+	'group relative',
+	...itemBox,
 	...nav.base,
 	...shaku.iconSlotRamp,
 	...cursor,
-	'density-gap-[1.5,2,2.5]',
-	textRamp,
 	'text-start',
-	rounded.lg,
 ]
 
 /**
@@ -125,7 +135,10 @@ export const k = {
 		 */
 		prefix: [...affixSlot, inset.prefix],
 		suffix: [...affixSlot, inset.suffix],
+		/** The box of the inner button, with no interaction surface, for the skeleton row. */
+		box: itemBox,
 	},
+	skeleton: kokkaku.nav,
 } as const
 
 /** Recipe variant props for {@link NavBar}: the `variant` style (`solid` | `outline` | `plain`). */

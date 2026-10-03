@@ -2,5 +2,6 @@ export type { AccordionItemVariants, AccordionVariants } from '../../recipes/kat
 export { Accordion, type AccordionProps } from './accordion'
 export { AccordionItem, type AccordionItemProps } from './accordion-item'
 export { AccordionPanel, type AccordionPanelProps } from './accordion-panel'
+export { AccordionSkeleton, type AccordionSkeletonProps } from './accordion-skeleton'
 export { AccordionTrigger, type AccordionTriggerProps } from './accordion-trigger'
 export { useAccordionItem } from './context'

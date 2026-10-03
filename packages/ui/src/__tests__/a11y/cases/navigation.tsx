@@ -8,7 +8,7 @@ import {
 } from '../../../components/breadcrumb'
 import { Button } from '../../../components/button'
 import { Link } from '../../../components/link'
-import { Nav, NavBar, NavItem, NavList } from '../../../components/nav'
+import { Nav, NavBar, NavItem, NavList, NavSkeleton } from '../../../components/nav'
 import {
 	Pagination,
 	PaginationList,
@@ -23,6 +23,7 @@ import {
 	SidebarItem,
 	SidebarLabel,
 	SidebarList,
+	SidebarSkeleton,
 } from '../../../components/sidebar'
 import {
 	Stepper,
@@ -120,7 +121,8 @@ export const navigationCases: readonly Case[] = [
 				),
 				slot: 'nav-item-inner',
 			},
-		],
+		], // Two rows of an icon square and a label line.
+		skeleton: [{ element: <NavSkeleton items={2} />, absentSlot: 'nav-item', placeholders: 4 }],
 	},
 	{
 		// Sidebar navigation: items wrapped in a SidebarList <ul> that exposes
@@ -149,6 +151,9 @@ export const navigationCases: readonly Case[] = [
 				),
 				slot: 'sidebar-item-inner',
 			},
+		], // Two rows of an icon square and a label line.
+		skeleton: [
+			{ element: <SidebarSkeleton items={2} />, absentSlot: 'sidebar-item', placeholders: 4 },
 		],
 	},
 	{
