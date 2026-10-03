@@ -1,6 +1,6 @@
 # Structure
 
-> **Quick-glance index of `ui/structure`.** These units arrange other elements on the page. They have no behavior of their own: each one maps its props to flex, grid, and spacing classes. Per-unit props and defaults live in the TSDoc and in the docs site (`pnpm docs`). For the components that you arrange with them, see [`COMPONENTS.md`](COMPONENTS.md).
+> **Quick-glance index of `ui/structure`.** These units arrange other elements on the page. They have no behavior of their own: each one maps its props to flex, grid, and spacing classes. Per-unit props and defaults live in the TSDoc and in the docs site (`pnpm --filter ui dev`). For the components that you arrange with them, see [`COMPONENTS.md`](COMPONENTS.md).
 
 Each unit is its own entry point under `ui/structure/*`, and keeps the bare `ui/<name>` path it had before the move:
 
