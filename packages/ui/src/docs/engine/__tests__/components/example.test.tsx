@@ -332,6 +332,18 @@ describe('Example resize drag', () => {
 		expect(frame.style.width).toBe('120px')
 	})
 
+	it('holds the col-resize cursor on the page while the drag runs', () => {
+		const { handle } = startDrag()
+
+		const rule = () => document.head.querySelector('style[data-drag-cursor]')
+
+		expect(rule()?.textContent).toContain('col-resize')
+
+		fireEvent.pointerUp(handle, { clientX: 120, pointerId: 1 })
+
+		expect(rule()).toBeNull()
+	})
+
 	it('stops resizing once the pointer is released', () => {
 		const { handle, frame } = startDrag()
 

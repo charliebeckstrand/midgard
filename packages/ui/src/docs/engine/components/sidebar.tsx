@@ -1,5 +1,5 @@
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
-import { memo, use, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { memo, use, useId, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '../../../components/button'
 import { Combobox, ComboboxOption, useComboboxDeferredQuery } from '../../../components/combobox'
@@ -24,8 +24,6 @@ import { noAutofill } from '../no-autofill'
 import { type Demo, demos, preloadDemo } from '../registry'
 import { titleCase } from './format'
 
-const SEARCH_PAGE_SIZE = 20
-
 // Section-label horizontal inset at the step of the nearest density scope.
 // Aligns the label text with item text; mirrors the padding of the `ui` sidebar
 // item without reaching into ui's private recipe surface.
@@ -43,50 +41,19 @@ function orderedCategories(list: readonly Demo[]): string[] {
 	)
 }
 
-function SearchLoadMore({ onVisible }: { onVisible: () => void }) {
-	const ref = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		const node = ref.current
-
-		if (!node) return
-
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				if (entry?.isIntersecting) onVisible()
-			},
-			{ threshold: 0 },
-		)
-
-		observer.observe(node)
-
-		return () => observer.disconnect()
-	}, [onVisible])
-
-	return <div ref={ref} aria-hidden="true" />
-}
-
-function SearchResults({ limit, onLoadMore }: { limit: number; onLoadMore: () => void }) {
+// About 110 names at most, so the list renders every match and needs no paging.
+function SearchResults() {
 	const deferredQuery = useComboboxDeferredQuery()
 
 	const q = deferredQuery.toLowerCase()
 
-	const filtered = demos.filter((d) => !q || d.name.toLowerCase().includes(q))
-
-	const visible = filtered.slice(0, limit)
-
-	const hasMore = visible.length < filtered.length
-
-	return (
-		<>
-			{visible.map((d) => (
-				<ComboboxOption key={d.id} value={d.id}>
-					{d.name}
-				</ComboboxOption>
-			))}
-			{hasMore && <SearchLoadMore onVisible={onLoadMore} />}
-		</>
-	)
+	return demos
+		.filter((d) => !q || d.name.toLowerCase().includes(q))
+		.map((d) => (
+			<ComboboxOption key={d.id} value={d.id}>
+				{d.name}
+			</ComboboxOption>
+		))
 }
 
 // Memoized so a navigation re-renders only the two items whose `current`
@@ -123,13 +90,6 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const scrollWithin = useScrollWithin()
 
-	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
-
-	// Stable so SearchLoadMore's IntersectionObserver isn't torn down and re-observed
-	// on every SidebarContent render — a fresh closure re-fires load-more whenever the
-	// sentinel is in view (navigation, sort toggle, density change).
-	const loadMore = useCallback(() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE), [])
-
 	const [direction, setDirection] = useState<SortDirection>('asc')
 
 	// `demos` is name-sorted ascending; 'asc' shows it as-is, 'desc' reverses.
@@ -162,10 +122,6 @@ export function SidebarContent({ route }: { route: string }) {
 						// Controlled empty: selecting a result navigates via onValueChange
 						// without the search box retaining the picked option.
 						value=""
-						onQueryChange={() => setSearchLimit(SEARCH_PAGE_SIZE)}
-						onOpenChange={(open) => {
-							if (!open) setSearchLimit(SEARCH_PAGE_SIZE)
-						}}
 						onValueChange={(id) => {
 							if (!id) return
 
@@ -182,7 +138,7 @@ export function SidebarContent({ route }: { route: string }) {
 							offcanvas?.close()
 						}}
 					>
-						<SearchResults limit={searchLimit} onLoadMore={loadMore} />
+						<SearchResults />
 					</Combobox>
 				</div>
 				<Button

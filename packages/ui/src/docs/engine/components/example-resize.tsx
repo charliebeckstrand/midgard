@@ -1,11 +1,12 @@
 import {
 	type KeyboardEvent as ReactKeyboardEvent,
 	type PointerEvent as ReactPointerEvent,
-	useCallback,
 	useRef,
 	useState,
 } from 'react'
 import { cn, dataAttr } from '../../../core'
+import { useDragCursor } from '../../../hooks/use-drag-cursor'
+import { useStableEvent } from '../../../hooks/use-stable-event'
 import { PanelSplitter } from '../../../primitives/panel/panel-splitter'
 import { TouchTarget } from '../../../primitives/touch-target'
 
@@ -171,8 +172,9 @@ type DragStart = { pointerX: number; width: number; containerMax: number; floor:
  * `pointercancel`, ends the drag. A missed `pointerup` thus cannot leave the
  * drag stuck.
  * Arrow keys nudge by a grid step (Shift for a coarser jump) and Home/End jump
- * to a defined bound. The latest `resolved` is read through a ref, keeping the
- * handlers stable across renders.
+ * to a defined bound. The handlers are stable events, so they read the latest
+ * `resolved` and keep one identity across renders. The page holds the
+ * `col-resize` cursor while a drag runs, through the drag-cursor rule.
  *
  * @param initialWidth - The frame's starting width in pixels; omit for auto.
  */
@@ -190,41 +192,34 @@ export function useExampleResize(
 
 	const startRef = useRef<DragStart | null>(null)
 
-	const resolvedRef = useRef(resolved)
+	useDragCursor(resizing, 'col-resize')
 
-	resolvedRef.current = resolved
+	const setResolvedWidth = (proposed: number, cap = Number.POSITIVE_INFINITY, contentMin = 0) => {
+		if (!resolved) return
 
-	const setResolvedWidth = useCallback(
-		(proposed: number, cap = Number.POSITIVE_INFINITY, contentMin = 0) => {
-			const settings = resolvedRef.current
+		// The container caps the width even when `max` is auto, so the frame stays
+		// relative to its container rather than overflowing it.
+		const max = Math.min(resolved.max ?? Number.POSITIVE_INFINITY, cap)
 
-			if (!settings) return
+		// The content's own minimum floors it, composed with any `min`.
+		const min = maxDefined(resolved.min, contentMin || undefined)
 
-			// The container caps the width even when `max` is auto, so the frame stays
-			// relative to its container rather than overflowing it.
-			const max = Math.min(settings.max ?? Number.POSITIVE_INFINITY, cap)
-
-			// The content's own minimum floors it, composed with any `min`.
-			const min = maxDefined(settings.min, contentMin || undefined)
-
-			setWidth(
-				resolveWidth(proposed, { ...settings, min, max: Number.isFinite(max) ? max : undefined }),
-			)
-		},
-		[],
-	)
+		setWidth(
+			resolveWidth(proposed, { ...resolved, min, max: Number.isFinite(max) ? max : undefined }),
+		)
+	}
 
 	// Reads the content floor once per gesture and mirrors it to state, so the
 	// handle's `aria-valuemin` reports the bound the drag enforces.
-	const measureFloor = useCallback((container: HTMLElement) => {
+	const measureFloor = (container: HTMLElement) => {
 		const measured = contentFloor(container)
 
 		setFloor(measured || undefined)
 
 		return measured
-	}, [])
+	}
 
-	const endDrag = useCallback((event: ReactPointerEvent) => {
+	const endDrag = useStableEvent((event: ReactPointerEvent) => {
 		if (!startRef.current) return
 
 		startRef.current = null
@@ -234,94 +229,83 @@ export function useExampleResize(
 		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
 			event.currentTarget.releasePointerCapture(event.pointerId)
 		}
-	}, [])
+	})
 
-	const onPointerDown = useCallback(
-		(event: ReactPointerEvent) => {
-			const container = containerRef.current
+	const onPointerDown = useStableEvent((event: ReactPointerEvent) => {
+		const container = containerRef.current
 
-			if (!container || event.button !== 0) return
+		if (!container || event.button !== 0) return
 
+		event.preventDefault()
+
+		startRef.current = {
+			pointerX: event.clientX,
+			width: container.getBoundingClientRect().width,
+			containerMax: availableWidth(container),
+			floor: measureFloor(container),
+		}
+
+		event.currentTarget.setPointerCapture(event.pointerId)
+
+		setResizing(true)
+	})
+
+	const onPointerMove = useStableEvent((event: ReactPointerEvent) => {
+		const start = startRef.current
+
+		if (!start) return
+
+		// A move with no button down means the pointerup was missed (an OS
+		// gesture, the pointer leaving the window); end the drag so it doesn't
+		// keep resizing without a held button.
+		if (event.buttons === 0) {
+			endDrag(event)
+
+			return
+		}
+
+		setResolvedWidth(
+			start.width + (event.clientX - start.pointerX),
+			start.containerMax,
+			start.floor,
+		)
+	})
+
+	const onKeyDown = useStableEvent((event: ReactKeyboardEvent) => {
+		const container = containerRef.current
+
+		if (!resolved || !container) return
+
+		const cap = availableWidth(container)
+
+		const contentMin = measureFloor(container)
+
+		const min = maxDefined(resolved.min, contentMin || undefined)
+
+		// Keyboard resizing starts from the current width, falling back to the
+		// measured width before the first nudge sets one.
+		const base = width ?? container.getBoundingClientRect().width
+
+		const step = event.shiftKey ? KEY_STEP_LARGE : KEY_STEP
+
+		if (event.key === 'ArrowLeft') {
 			event.preventDefault()
 
-			startRef.current = {
-				pointerX: event.clientX,
-				width: container.getBoundingClientRect().width,
-				containerMax: availableWidth(container),
-				floor: measureFloor(container),
-			}
+			setResolvedWidth(base - step, cap, contentMin)
+		} else if (event.key === 'ArrowRight') {
+			event.preventDefault()
 
-			event.currentTarget.setPointerCapture(event.pointerId)
+			setResolvedWidth(base + step, cap, contentMin)
+		} else if (event.key === 'Home' && min !== undefined) {
+			event.preventDefault()
 
-			setResizing(true)
-		},
-		[measureFloor],
-	)
+			setResolvedWidth(min, cap, contentMin)
+		} else if (event.key === 'End' && resolved.max !== undefined) {
+			event.preventDefault()
 
-	const onPointerMove = useCallback(
-		(event: ReactPointerEvent) => {
-			const start = startRef.current
-
-			if (!start) return
-
-			// A move with no button down means the pointerup was missed (an OS
-			// gesture, the pointer leaving the window); end the drag so it doesn't
-			// keep resizing without a held button.
-			if (event.buttons === 0) {
-				endDrag(event)
-
-				return
-			}
-
-			setResolvedWidth(
-				start.width + (event.clientX - start.pointerX),
-				start.containerMax,
-				start.floor,
-			)
-		},
-		[endDrag, setResolvedWidth],
-	)
-
-	const onKeyDown = useCallback(
-		(event: ReactKeyboardEvent) => {
-			const settings = resolvedRef.current
-
-			const container = containerRef.current
-
-			if (!settings || !container) return
-
-			const cap = availableWidth(container)
-
-			const contentMin = measureFloor(container)
-
-			const min = maxDefined(settings.min, contentMin || undefined)
-
-			// Keyboard resizing starts from the current width, falling back to the
-			// measured width before the first nudge sets one.
-			const base = width ?? container.getBoundingClientRect().width
-
-			const step = event.shiftKey ? KEY_STEP_LARGE : KEY_STEP
-
-			if (event.key === 'ArrowLeft') {
-				event.preventDefault()
-
-				setResolvedWidth(base - step, cap, contentMin)
-			} else if (event.key === 'ArrowRight') {
-				event.preventDefault()
-
-				setResolvedWidth(base + step, cap, contentMin)
-			} else if (event.key === 'Home' && min !== undefined) {
-				event.preventDefault()
-
-				setResolvedWidth(min, cap, contentMin)
-			} else if (event.key === 'End' && settings.max !== undefined) {
-				event.preventDefault()
-
-				setResolvedWidth(settings.max, cap, contentMin)
-			}
-		},
-		[measureFloor, setResolvedWidth, width],
-	)
+			setResolvedWidth(resolved.max, cap, contentMin)
+		}
+	})
 
 	return {
 		containerRef,
