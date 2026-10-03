@@ -153,6 +153,11 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 						<DragOverlay dropAnimation={null}>
 							{activeId ? (
 								<div
+									// The clone repeats the content of the card that it follows, and
+									// can hold controls. Inert takes the copy out of the
+									// accessibility tree and the tab order. The pointer drag reads
+									// no event from the overlay, so the drag is not affected.
+									inert
 									data-slot="kanban-card"
 									data-card-id={activeId}
 									data-overlay="true"
