@@ -3,7 +3,7 @@ import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ChatEmbed } from './chat-embed'
-import { ChatTool } from './chat-tool'
+import { ChatTool, MESSAGE_HEADING_OFFSET } from './chat-tool'
 import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
@@ -34,7 +34,11 @@ const AUTHOR = {
 function ChatMessageBlock({ part, className }: { part: ChatPart; className?: string }) {
 	switch (part.kind) {
 		case 'text':
-			return <Markdown className={className}>{part.text}</Markdown>
+			return (
+				<Markdown className={className} headingOffset={MESSAGE_HEADING_OFFSET}>
+					{part.text}
+				</Markdown>
+			)
 		case 'embed':
 			return <ChatEmbed part={part} className={className} />
 		case 'tool':
@@ -69,7 +73,9 @@ export type ChatMessageProps = ChatMessageVariants & {
  * tech.
  *
  * Content renders as GitHub-flavored Markdown ({@link Markdown}, complete with
- * syntax-highlighted code fences). {@link Markdown} sets no color of its own,
+ * syntax-highlighted code fences). The app does not write the message, so each
+ * heading in it renders one level down: a `#` heading is an `<h2>`, and the
+ * message adds no `<h1>` to the page. {@link Markdown} sets no color of its own,
  * so the prose inherits the bubble's foreground for free. It is white on the
  * user bubble's blue fill, the default tone on the assistant bubble, and muted
  * on the system bubble. That holds in both light and dark mode. While `streaming`, the bubble
@@ -110,7 +116,7 @@ export const ChatMessage = memo(function ChatMessage({
 					{author}:{' '}
 				</span>
 				{typeof children === 'string' ? (
-					<Markdown>{children}</Markdown>
+					<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
 				) : (
 					children.map((part, index) => (
 						<ChatMessageBlock
