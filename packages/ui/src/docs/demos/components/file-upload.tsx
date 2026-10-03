@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { useState } from 'react'
 import {
 	FileUploadButton,
 	FileUploadDrop,
@@ -11,24 +11,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { Stack } from '../../../structure/stack'
 import { Axes, Example } from '../../engine'
 
-function Sizer({ children }: { children: ReactNode }) {
-	return <div className="sm:max-w-sm">{children}</div>
-}
-
 function DropAcceptExample() {
-	return (
-		<Sizer>
-			<FileUploadDrop accept="image/*" />
-		</Sizer>
-	)
+	return <FileUploadDrop accept="image/*" />
 }
 
 function InputAcceptExample() {
-	return (
-		<Sizer>
-			<FileUploadInput accept="image/*" />
-		</Sizer>
-	)
+	return <FileUploadInput accept="image/*" />
 }
 
 function ButtonSelectedFilesExample() {
@@ -37,21 +25,17 @@ function ButtonSelectedFilesExample() {
 	const manyFiles = files.length > 1
 
 	return (
-		<Sizer>
-			<Stack gap="md">
-				<FileUploadButton multiple onAccept={setFiles} />
-				{files.length > 0 && (
-					<Tooltip disabled={!manyFiles}>
-						<TooltipTrigger>
-							<Text tone="muted">
-								{manyFiles ? `${files.length} files` : formatFileNames(files)}
-							</Text>
-						</TooltipTrigger>
-						<TooltipContent>{formatFileNames(files)}</TooltipContent>
-					</Tooltip>
-				)}
-			</Stack>
-		</Sizer>
+		<Stack gap="md">
+			<FileUploadButton multiple onAccept={setFiles} />
+			{files.length > 0 && (
+				<Tooltip disabled={!manyFiles}>
+					<TooltipTrigger>
+						<Text tone="muted">{manyFiles ? `${files.length} files` : formatFileNames(files)}</Text>
+					</TooltipTrigger>
+					<TooltipContent>{formatFileNames(files)}</TooltipContent>
+				</Tooltip>
+			)}
+		</Stack>
 	)
 }
 
@@ -59,12 +43,10 @@ function ButtonAcceptExample() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
-		<Sizer>
-			<Stack gap="md">
-				<FileUploadButton accept="image/*" onAccept={setFiles} />
-				{files.length > 0 && <Text tone="muted">{formatFileNames(files)}</Text>}
-			</Stack>
-		</Sizer>
+		<Stack gap="md">
+			<FileUploadButton accept="image/*" onAccept={setFiles} />
+			{files.length > 0 && <Text tone="muted">{formatFileNames(files)}</Text>}
+		</Stack>
 	)
 }
 
@@ -80,14 +62,7 @@ export function Demo() {
 				<TabContents>
 					<TabContent value="drop">
 						<Stack gap="xl">
-							<Axes
-								of="FileUploadDrop"
-								render={(props) => (
-									<div className="w-72">
-										<FileUploadDrop {...props} />
-									</div>
-								)}
-							/>
+							<Axes of="FileUploadDrop" render={(props) => <FileUploadDrop {...props} />} />
 
 							<Example title="Accept">
 								<DropAcceptExample />
@@ -97,14 +72,7 @@ export function Demo() {
 
 					<TabContent value="input">
 						<Stack gap="xl">
-							<Axes
-								of="FileUploadInput"
-								render={(props) => (
-									<div className="w-72">
-										<FileUploadInput {...props} />
-									</div>
-								)}
-							/>
+							<Axes of="FileUploadInput" render={(props) => <FileUploadInput {...props} />} />
 
 							<Example title="Accept">
 								<InputAcceptExample />

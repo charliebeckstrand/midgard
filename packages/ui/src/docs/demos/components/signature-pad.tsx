@@ -101,9 +101,7 @@ export function Demo() {
 				of="SignaturePad"
 				render={(props) => (
 					// The pad draws no stored value, so the clear button shows only after a stroke.
-					<div className="w-72">
-						<SignaturePad {...props} />
-					</div>
+					<SignaturePad {...props} />
 				)}
 			/>
 

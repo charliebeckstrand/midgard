@@ -171,20 +171,18 @@ export function Demo() {
 					'clearOnEmpty',
 				]}
 				render={(props, label) => (
-					<div className="w-48">
-						<Combobox
-							{...props}
-							aria-label={label}
-							defaultValue={stages[0]}
-							displayValue={(v: string) => v}
-						>
-							{stages.map((stage) => (
-								<ComboboxOption key={stage} value={stage}>
-									<ComboboxLabel>{stage}</ComboboxLabel>
-								</ComboboxOption>
-							))}
-						</Combobox>
-					</div>
+					<Combobox
+						{...props}
+						aria-label={label}
+						defaultValue={stages[0]}
+						displayValue={(v: string) => v}
+					>
+						{stages.map((stage) => (
+							<ComboboxOption key={stage} value={stage}>
+								<ComboboxLabel>{stage}</ComboboxLabel>
+							</ComboboxOption>
+						))}
+					</Combobox>
 				)}
 			/>
 

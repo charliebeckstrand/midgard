@@ -10,16 +10,14 @@ export function Demo() {
 		<Axes
 			of="DescriptionList"
 			render={(props) => (
-				<div className="w-96 max-w-full">
-					<DescriptionList {...props}>
-						<DescriptionTerm>Name</DescriptionTerm>
-						<DescriptionDetails>Wade Cooper</DescriptionDetails>
-						<DescriptionTerm>Email</DescriptionTerm>
-						<DescriptionDetails>wade@example.com</DescriptionDetails>
-						<DescriptionTerm>Role</DescriptionTerm>
-						<DescriptionDetails>Administrator</DescriptionDetails>
-					</DescriptionList>
-				</div>
+				<DescriptionList {...props}>
+					<DescriptionTerm>Name</DescriptionTerm>
+					<DescriptionDetails>Wade Cooper</DescriptionDetails>
+					<DescriptionTerm>Email</DescriptionTerm>
+					<DescriptionDetails>wade@example.com</DescriptionDetails>
+					<DescriptionTerm>Role</DescriptionTerm>
+					<DescriptionDetails>Administrator</DescriptionDetails>
+				</DescriptionList>
 			)}
 		/>
 	)

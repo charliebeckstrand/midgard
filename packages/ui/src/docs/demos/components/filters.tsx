@@ -229,14 +229,14 @@ export function Demo() {
 			<Axes
 				of="Filters"
 				render={(props) => (
-					<Filters {...props} aria-label="Filters" className="w-96 max-w-full">
+					<Filters {...props} aria-label="Filters">
 						<FiltersBar>
 							<FiltersRow>
-								<FiltersField name="search" className="w-48">
+								<FiltersField name="search">
 									<Label>Search</Label>
 									<Input placeholder="Search" />
 								</FiltersField>
-								<FiltersField name="status" className="w-48">
+								<FiltersField name="status">
 									<Label>Status</Label>
 									<Select nullable placeholder="All statuses" displayValue={(v: string) => v}>
 										<SelectOption value="active">

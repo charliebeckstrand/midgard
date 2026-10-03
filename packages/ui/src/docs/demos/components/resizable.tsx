@@ -10,7 +10,7 @@ export function Demo() {
 			<Axes
 				of="ResizableGroup"
 				render={(props) => (
-					<div className="h-48 w-80 max-w-full">
+					<div className="h-48">
 						<ResizableGroup {...props}>
 							<ResizablePanel defaultSize={50} minSize={20}>
 								<Pane />
@@ -25,7 +25,7 @@ export function Demo() {
 			/>
 
 			<Example title="Three panels">
-				<div className="h-48 w-full">
+				<div className="h-48">
 					<ResizableGroup>
 						<ResizablePanel defaultSize={25} minSize={15}>
 							<Pane />

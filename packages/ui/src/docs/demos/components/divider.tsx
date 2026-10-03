@@ -6,9 +6,9 @@ export function Demo() {
 		<Axes
 			of="Divider"
 			render={(props) => (
-				// The frame gives a vertical divider a height, and a horizontal divider a width.
-				// A caption column takes no width of its own, so the frame sets a fixed width.
-				<div className="flex h-12 w-48 items-center">
+				// The frame gives a vertical divider a height. It fills the instance box, so
+				// a horizontal divider takes the width of the box.
+				<div className="flex h-12 items-center">
 					<Divider {...props} />
 				</div>
 			)}

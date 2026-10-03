@@ -26,13 +26,16 @@ import { Stack } from '../../../../structure/stack'
 import { Axes, code, Example as ExampleFrame } from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
+// The frame of each chart demo, and of each generated example (`Axes`).
+const FRAME = { width: 720, minWidth: 160, resize: true } as const
+
 // Every chart demo renders in the same fixed-width, resizable frame so its
 // responsive behavior is visible at a glance. Wrapping the engine Example once
 // here injects those defaults into all the `<Example>` call sites below —
 // including AnimatedExample's — without repeating the props on each. A call site
 // can still override either default by passing its own `width`/`resize`.
 function Example(props: ComponentProps<typeof ExampleFrame>) {
-	return <ExampleFrame width={720} minWidth={160} resize {...props} />
+	return <ExampleFrame {...FRAME} {...props} />
 }
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
@@ -220,9 +223,7 @@ function AnimatedExample({
 				</Flex>
 			}
 		>
-			<div key={runKey} className="w-full">
-				{children}
-			</div>
+			<div key={runKey}>{children}</div>
 		</Example>
 	)
 }
@@ -251,18 +252,17 @@ export function Demo() {
 							<Axes
 								of="BarChart"
 								omit={['animate', 'size']}
+								frame={FRAME}
 								render={(props, label) => (
-									<div className="w-80 max-w-full">
-										<BarChart
-											{...props}
-											aria-label={`Revenue and costs by month, ${label}`}
-											data={months}
-											series={[
-												{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-												{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-											]}
-										/>
-									</div>
+									<BarChart
+										{...props}
+										aria-label={`Revenue and costs by month, ${label}`}
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										]}
+									/>
 								)}
 							/>
 
@@ -354,18 +354,17 @@ export function Demo() {
 							<Axes
 								of="LineChart"
 								omit={['animate', 'size']}
+								frame={FRAME}
 								render={(props, label) => (
-									<div className="w-80 max-w-full">
-										<LineChart
-											{...props}
-											aria-label={`Revenue and margin by month, ${label}`}
-											data={months}
-											series={[
-												{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-												{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-											]}
-										/>
-									</div>
+									<LineChart
+										{...props}
+										aria-label={`Revenue and margin by month, ${label}`}
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+										]}
+									/>
 								)}
 							/>
 
@@ -551,18 +550,17 @@ export function Demo() {
 							<Axes
 								of="AreaChart"
 								omit={['animate', 'size']}
+								frame={FRAME}
 								render={(props, label) => (
-									<div className="w-80 max-w-full">
-										<AreaChart
-											{...props}
-											aria-label={`Revenue and costs by month, ${label}`}
-											data={months}
-											series={[
-												{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-												{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-											]}
-										/>
-									</div>
+									<AreaChart
+										{...props}
+										aria-label={`Revenue and costs by month, ${label}`}
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										]}
+									/>
 								)}
 							/>
 

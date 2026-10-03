@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../../components/aspect-ratio'
 import { Card } from '../../../components/card'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
@@ -14,10 +14,6 @@ const presets: { label: string; value: AspectRatioPreset }[] = [
 	{ label: '3/2', value: '3/2' },
 	{ label: '1/1', value: '1/1' },
 ]
-
-function Sizer({ children }: { children: ReactNode }) {
-	return <div className="w-full sm:max-w-sm">{children}</div>
-}
 
 function PresetsExample() {
 	const [ratio, setRatio] = useState<AspectRatioPreset>('square')
@@ -42,13 +38,11 @@ function PresetsExample() {
 				</Listbox>
 			}
 		>
-			<Sizer>
-				<Card className="p-0">
-					<AspectRatio ratio={ratio} className="flex items-center justify-center">
-						{ratio}
-					</AspectRatio>
-				</Card>
-			</Sizer>
+			<Card className="p-0">
+				<AspectRatio ratio={ratio} className="flex items-center justify-center">
+					{ratio}
+				</AspectRatio>
+			</Card>
 		</Example>
 	)
 }
@@ -59,13 +53,11 @@ export function Demo() {
 			<PresetsExample />
 
 			<Example title="Custom ratio">
-				<Sizer>
-					<Card className="p-0">
-						<AspectRatio ratio={1.618} className="flex items-center justify-center">
-							1.618
-						</AspectRatio>
-					</Card>
-				</Sizer>
+				<Card className="p-0">
+					<AspectRatio ratio={1.618} className="flex items-center justify-center">
+						1.618
+					</AspectRatio>
+				</Card>
 			</Example>
 		</>
 	)
