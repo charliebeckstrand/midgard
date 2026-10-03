@@ -27,6 +27,12 @@ export type SidebarProps = ComponentProps<'nav'> & {
  * item. Establishes an active-indicator scope.
  *
  * @remarks
+ * The `<nav>` takes no composite role, so AT does not announce the arrow keys.
+ * The model stays, because a change to one Tab stop for each item is a change in
+ * behavior. Each item stays reachable: Tab enters the list at the resting stop,
+ * and the arrow keys move from there. Tell the reader about the arrow keys in
+ * the content of the page when the readers need the hint.
+ *
  * Content that has to differ between the full sidebar and the mini rail reads
  * the resolved state with {@link useSidebarMini}, from a component inside the
  * sidebar. The root took a render prop for that once, and it was the library's

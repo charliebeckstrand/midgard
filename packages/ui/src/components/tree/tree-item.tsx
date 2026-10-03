@@ -30,7 +30,15 @@ export type TreeItemProps = {
 	 * expansion, not the row, so neither fires.
 	 */
 	onAction?: () => void
-	/** Current/selected state. */
+	/**
+	 * Marks the row as the current item, such as the page that a navigation tree
+	 * shows. The row gets `aria-current="true"`.
+	 *
+	 * @remarks
+	 * `current` is not a selection. The tree has no selection model, so the row
+	 * gets no `aria-selected`. With `aria-selected` on one row, AT reads
+	 * "not selected" on each other row.
+	 */
 	current?: boolean
 	/** Slot before the icon (e.g. a Checkbox). Clicks here don't toggle the row. */
 	prefix?: ReactNode
