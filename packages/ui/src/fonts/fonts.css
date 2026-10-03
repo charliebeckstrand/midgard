@@ -3,7 +3,7 @@
 @font-face {
 	font-family: 'Google Sans Flex';
 	font-weight: 100 1000;
-	font-display: swap;
+	font-display: block;
 	src: url('./google-sans-flex.woff2') format('woff2-variations');
 }
 
