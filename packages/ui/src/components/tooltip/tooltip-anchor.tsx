@@ -1,7 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/tooltip'
 import { TooltipContext } from './context'
 import { TooltipContent } from './tooltip-content'
 import { type TooltipAnchorOptions, useTooltipAnchor } from './use-tooltip-anchor'
@@ -12,7 +13,7 @@ export type TooltipAnchorProps = TooltipAnchorOptions & {
 	 * The density step, forwarded to the inner `<TooltipContent>`. Omit it to
 	 * take the step of the nearest density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/** Class forwarded to the inner `<TooltipContent>`. */
 	className?: string
 	/** Class for the positioned wrapper; see {@link TooltipContentProps.surfaceClassName}. */

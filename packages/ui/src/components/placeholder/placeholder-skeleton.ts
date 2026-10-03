@@ -132,7 +132,7 @@ export type RowSkeletonOptions = {
 	 * The density step that the row writes to `data-density`. Omit it to follow
 	 * the nearest density scope.
 	 */
-	size?: DensityStep
+	density?: DensityStep
 	/**
 	 * The element of the row and of each placeholder. A `span` row stands in for
 	 * an inline component, where a `div` is invalid inside a `<p>`.
@@ -168,7 +168,7 @@ export function renderRowSkeleton({
 	root,
 	item,
 	separator,
-	size,
+	density,
 	as = 'div',
 }: RowSkeletonOptions): ReactElement {
 	const items = rangeKeys(count, 'item').map((key, index) =>
@@ -185,5 +185,5 @@ export function renderRowSkeleton({
 		),
 	)
 
-	return createElement(as, { 'data-density': size, className: cn(root) }, items)
+	return createElement(as, { 'data-density': density, className: cn(root) }, items)
 }

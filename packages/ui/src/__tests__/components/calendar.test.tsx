@@ -264,8 +264,12 @@ describe('Calendar', () => {
 		expect(el).toHaveAttribute('data-density', 'sm')
 	})
 
-	it('opens a scope at `sm` for an `xs` size, because `sm` is its smallest step', () => {
-		const { container } = renderUI(<Calendar size="xs" />)
+	it('opens a scope at `sm` in an `xs` scope, because `sm` is its smallest step', () => {
+		const { container } = renderUI(
+			<Box density="xs">
+				<Calendar />
+			</Box>,
+		)
 
 		expect(bySlot(container, 'calendar')).toHaveAttribute('data-density', 'sm')
 	})

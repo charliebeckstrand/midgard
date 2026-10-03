@@ -2,8 +2,9 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
+import type { scale } from '../../recipes/kata/menu'
 import { MenuActionsContext, MenuCappedContext, MenuStateContext } from './context'
 import { MenuPointerLevel } from './use-menu-pointer'
 import { useMenuState } from './use-menu-state'
@@ -41,7 +42,7 @@ export type MenuProps = {
 	 * step of the nearest density scope of the menu, which the portal carries.
 	 * A step makes the panel a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Cap the panel at its density height, scrolling past it. Off by default. A
 	 * menu is normally a short, fixed item set. A cap there clips the last row and

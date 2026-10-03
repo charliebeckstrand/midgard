@@ -1,11 +1,11 @@
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/calendar'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/calendar'
 import { rangeKeys } from '../../utilities'
 import { Placeholder, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link CalendarSkeleton}; the size-stepped skeleton surface. */
-export type CalendarSkeletonProps = SkeletonProps<DensityStep>
+export type CalendarSkeletonProps = SkeletonProps<ScaleStep<typeof scale>>
 
 /**
  * One cell for each day of the week. The browser rounds the width of each

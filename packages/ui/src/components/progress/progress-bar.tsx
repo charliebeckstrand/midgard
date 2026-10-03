@@ -2,9 +2,12 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { k, type ProgressBarFillVariants } from '../../recipes/kata/progress'
+import {
+	k,
+	type ProgressBarFillVariants,
+	type ProgressTrackVariants,
+} from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types'
 import { clamp, pct } from '../../utilities'
 
@@ -19,7 +22,7 @@ export type ProgressBarProps = AccessibleName & {
 	value?: number
 	/** @defaultValue 100 */
 	max?: number
-	size?: DensityStep
+	size?: ProgressTrackVariants['size']
 	/** @defaultValue 'zinc' */
 	color?: ProgressColor
 	className?: string

@@ -1,6 +1,6 @@
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/tree'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/tree'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
 
@@ -23,7 +23,7 @@ export type TreeSkeletonProps = {
 	 * of the nearest density scope, as the tree does. A step makes the
 	 * silhouette a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Indents each nested row by the chevron width plus the row gap, as the
 	 * tree does.

@@ -9,6 +9,7 @@
  * `subChevron` and `subGroup` of a submenu in the bottom sheet, and the
  * `separator` divider join them.
  */
+import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen, textRamp } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -100,3 +101,11 @@ export const k = {
 	shortcut: 'ms-auto',
 	separator: divider.top,
 } as const
+
+/** The size scale of {@link Menu}: the steps of its item gap, padding, and height cap. */
+export const scale = defineScale(
+	dan.gap.option,
+	dan.space.menuItemX,
+	dan.space.optionY,
+	dan.size.menuMaxHeight,
+)

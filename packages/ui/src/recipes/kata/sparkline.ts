@@ -7,8 +7,10 @@
  * the same color read as one family.
  */
 
+import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
 import { kokkaku, ugoki } from '../kiso'
+import { dan } from '../kiso/dan'
 
 /**
  * Per-color `stroke` (line / point) and `fill` (bars / area) classes. The area
@@ -48,3 +50,6 @@ export const k = defineRecipe(
 	// read as one.
 	{ color, motion: ugoki.mark, svg: ['block', ...kokkaku.sparkline.box] },
 )
+
+/** The size scale of {@link Sparkline}: the steps of its box. */
+export const scale = defineScale(dan.size.sparkline, dan.size.sparklineWidth)

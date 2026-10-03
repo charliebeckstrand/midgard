@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../components/heading'
-import { densitySteps } from '../../core/density'
-import { headingRamp, headingWeight } from '../../recipes/kata/heading'
+import { headingRamp, headingWeight, scale } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
@@ -47,7 +46,7 @@ describe('Heading', () => {
 	})
 
 	describe('size', () => {
-		it.each(densitySteps)('makes the heading a density scope at %s', (step) => {
+		it.each(scale)('makes the heading a density scope at %s', (step) => {
 			const rendered = levels.map((level) => {
 				const { container } = renderUI(
 					<Heading level={level} size={step}>

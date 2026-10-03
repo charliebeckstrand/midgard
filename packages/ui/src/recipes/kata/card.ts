@@ -1,3 +1,4 @@
+import { defineScale } from '../../core/density'
 import { iro, ji } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -19,3 +20,12 @@ export const k = {
 	footer: ['flex items-center', dan.space.boxTop, dan.gap.default],
 	description: [size.sm, text.muted],
 } as const
+
+/** The size scale of {@link Card}: the steps of its padding, gap, and radius ramps. */
+export const scale = defineScale(
+	dan.space.box,
+	dan.space.boxBottom,
+	dan.space.boxTop,
+	dan.gap.default,
+	dan.radius.card,
+)

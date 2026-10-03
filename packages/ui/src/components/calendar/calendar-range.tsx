@@ -2,8 +2,8 @@
 
 import { type Ref, type RefObject, useCallback } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/calendar'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/calendar'
 import { getOrCompute } from '../../utilities'
 import {
 	Calendar,
@@ -48,7 +48,7 @@ export type CalendarRangeProps = {
 	 * The density step, forwarded to `<Calendar>`. Omit it to take the step of
 	 * the nearest density scope. `sm` is the smallest step: `xs` renders as `sm`.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 }
 

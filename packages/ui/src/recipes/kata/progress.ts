@@ -6,7 +6,7 @@
  * reads the `bg` slice, the gauge the `stroke` slice.
  */
 
-import type { DensityStep } from '../../core/density'
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -104,8 +104,14 @@ export const k = defineRecipe(
 	},
 )
 
+/** The size scale of {@link ProgressBar}: the steps of its track height and label text. */
+export const barScale = defineScale(dan.size.lineTiny, dan.text.small)
+
+/** The size scale of {@link ProgressGauge}: the steps of its diameter and label text. */
+export const gaugeScale = defineScale(dan.size.gauge, dan.text.small)
+
 /** Props for the {@link ProgressBar} track: the `size` step that the component writes as a density scope. */
-export type ProgressTrackVariants = { size?: DensityStep }
+export type ProgressTrackVariants = { size?: ScaleStep<typeof barScale> }
 export type ProgressBarFillVariants = VariantProps<typeof fill>
 /** Props for the {@link ProgressGauge} root: the `size` step that the component writes as a density scope. */
-export type ProgressGaugeVariants = { size?: DensityStep }
+export type ProgressGaugeVariants = { size?: ScaleStep<typeof gaugeScale> }

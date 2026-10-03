@@ -78,15 +78,7 @@ import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import type { DensityStep } from '../../../core/density'
-import {
-	AreaChart,
-	BarChart,
-	BubbleChart,
-	ChartSkeleton,
-	ComboChart,
-	LineChart,
-	ScatterChart,
-} from '../../../modules/chart'
+import { ChartSkeleton } from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI } from '../../helpers'
 import { SIZE_AXES, type SizedComponent } from '../../helpers/size-axes'
@@ -106,30 +98,16 @@ import { SIZE_AXES, type SizedComponent } from '../../helpers/size-axes'
 
 /**
  * The pairs of neighbor steps that render the same today, by the component.
- * Most come from a ramp with three values, which gives `xs` the `sm` value and
- * `xl` the `lg` value. A chart takes its tick count from the height of its
- * plot, and its step only caps that count, so a chart of one height shows one
- * look at each step. The Checkbox and Radio skeletons give `md` and `lg` one
- * box (`density-size-[4,5,5]`).
+ * Each control but Button gives `xs` the `sm` value, because its ramps have
+ * three values. The Checkbox and Radio skeletons give `md` and `lg` one box
+ * (`density-size-[4,5,5]`).
  */
 const KNOWN_SAME: Partial<Record<SizedComponent, readonly string[]>> = {
 	AddressInput: ['xs=sm'],
-	AreaChart: ['xs=sm', 'sm=md', 'md=lg', 'lg=xl'],
-	Badge: ['lg=xl'],
-	BadgeSkeleton: ['lg=xl'],
-	BarChart: ['xs=sm', 'sm=md', 'md=lg', 'lg=xl'],
-	BubbleChart: ['xs=sm', 'md=lg', 'lg=xl'],
-	Calendar: ['xs=sm', 'lg=xl'],
-	CalendarRange: ['xs=sm', 'lg=xl'],
-	CalendarSkeleton: ['lg=xl'],
-	Card: ['xs=sm', 'lg=xl'],
-	CardTitle: ['xs=sm', 'lg=xl'],
-	ChartSkeleton: ['xs=sm', 'lg=xl'],
 	Checkbox: ['xs=sm'],
 	CheckboxSkeleton: ['xs=sm', 'md=lg'],
 	ColorPanelSkeleton: ['xs=sm'],
 	ColorPicker: ['xs=sm'],
-	ComboChart: ['xs=sm', 'sm=md', 'md=lg', 'lg=xl'],
 	Combobox: ['xs=sm'],
 	Control: ['xs=sm'],
 	ControlSkeleton: ['xs=sm'],
@@ -139,53 +117,28 @@ const KNOWN_SAME: Partial<Record<SizedComponent, readonly string[]>> = {
 	CurrencyInput: ['xs=sm'],
 	DateInput: ['xs=sm'],
 	DatePicker: ['xs=sm'],
-	Drawer: ['xs=sm', 'lg=xl'],
-	DrawerStatic: ['xs=sm', 'lg=xl'],
 	FileUploadInput: ['xs=sm'],
-	Grid: ['xs=sm', 'lg=xl'],
-	Heading: ['xs=sm', 'lg=xl'],
-	HeadingSkeleton: ['xs=sm', 'lg=xl'],
-	Icon: ['lg=xl'],
 	Input: ['xs=sm'],
-	LineChart: ['xs=sm', 'sm=md', 'md=lg', 'lg=xl'],
 	Listbox: ['xs=sm'],
 	MaskInput: ['xs=sm'],
-	Menu: ['xs=sm', 'lg=xl'],
 	NumberInput: ['xs=sm'],
 	PasswordConfirmNew: ['xs=sm'],
 	PasswordConfirmRepeat: ['xs=sm'],
 	PasswordInput: ['xs=sm'],
-	PivotTable: ['xs=sm', 'lg=xl'],
-	PopoverContent: ['xs=sm', 'lg=xl'],
-	ProgressBar: ['xs=sm', 'lg=xl'],
-	ProgressBarSkeleton: ['xs=sm', 'lg=xl'],
-	ProgressGauge: ['xs=sm', 'lg=xl'],
-	ProgressGaugeSkeleton: ['xs=sm', 'lg=xl'],
 	Radio: ['xs=sm'],
 	RadioSkeleton: ['xs=sm', 'md=lg'],
 	RangeSlider: ['xs=sm'],
 	Rating: ['xs=sm'],
 	RatingSkeleton: ['xs=sm'],
-	ScatterChart: ['xs=sm', 'md=lg', 'lg=xl'],
 	SearchInput: ['xs=sm'],
-	Segment: ['xs=sm', 'lg=xl'],
-	SegmentSkeleton: ['xs=sm', 'lg=xl'],
 	Select: ['xs=sm'],
 	Slider: ['xs=sm'],
 	SliderSkeleton: ['xs=sm'],
-	Sparkline: ['xs=sm', 'lg=xl'],
-	SparklineSkeleton: ['xs=sm', 'lg=xl'],
 	Switch: ['xs=sm'],
 	SwitchSkeleton: ['xs=sm'],
-	TabListSkeleton: ['xs=sm', 'lg=xl'],
-	Table: ['xs=sm', 'lg=xl'],
-	Tabs: ['xs=sm', 'lg=xl'],
 	TagInput: ['xs=sm'],
 	Textarea: ['xs=sm'],
 	TextareaSkeleton: ['xs=sm'],
-	TooltipContent: ['xs=sm', 'lg=xl'],
-	Tree: ['lg=xl'],
-	TreeSkeleton: ['lg=xl'],
 }
 
 const icon = (
@@ -195,15 +148,6 @@ const icon = (
 )
 
 const series = [3, 5, 4, 7, 6, 8]
-
-// Twelve points over a wide range, so the tick count of each step shows.
-const months = [37, 112, 64, 189, 143, 221, 98, 176, 254, 131, 207, 288].map((revenue, index) => ({
-	month: `M${index + 1}`,
-	revenue,
-	costs: Math.round(revenue * 0.6),
-}))
-
-const points = months.map(({ revenue, costs }, index) => ({ x: index * 17, y: revenue, w: costs }))
 
 type Row = { id: number; name: string }
 
@@ -222,20 +166,12 @@ const options = (Option: typeof ListboxOption, Label: typeof ListboxLabel) =>
 	))
 
 /** A render of each component with a `size` axis. */
-const FIXTURES: Record<SizedComponent, (size: DensityStep) => ReactNode> = {
+const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) => ReactNode } = {
 	AddressInput: (size) => (
 		<AddressInput
 			size={size as never}
 			aria-label="Address"
 			provider={{ search: async () => [], resolve: async () => null } as never}
-		/>
-	),
-	AreaChart: (size) => (
-		<AreaChart
-			size={size}
-			aria-label="Area"
-			data={months}
-			series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
 		/>
 	),
 	Avatar: (size) => <Avatar size={size as never} initials="CB" />,
@@ -252,22 +188,6 @@ const FIXTURES: Record<SizedComponent, (size: DensityStep) => ReactNode> = {
 		</Badge>
 	),
 	BadgeSkeleton: (size) => <BadgeSkeleton size={size} />,
-	BarChart: (size) => (
-		<BarChart
-			size={size}
-			aria-label="Bar"
-			data={months}
-			series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-		/>
-	),
-	BubbleChart: (size) => (
-		<BubbleChart
-			size={size}
-			aria-label="Bubble"
-			data={points}
-			series={[{ xKey: 'x', yKey: 'y', sizeKey: 'w', sizeName: 'Weight', yName: 'Y' }]}
-		/>
-	),
 	Button: (size) => (
 		<Button size={size as never} prefix={icon}>
 			Label
@@ -292,17 +212,6 @@ const FIXTURES: Record<SizedComponent, (size: DensityStep) => ReactNode> = {
 	ColorPanelSkeleton: (size) => <ColorPanelSkeleton size={size as never} />,
 	ColorPicker: (size) => (
 		<ColorPicker size={size as never} aria-label="Color" defaultValue="#3b82f6" />
-	),
-	ComboChart: (size) => (
-		<ComboChart
-			size={size}
-			aria-label="Combo"
-			data={months}
-			series={[
-				{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-				{ type: 'line', xKey: 'month', yKey: 'costs', yName: 'Costs' },
-			]}
-		/>
 	),
 	Combobox: (size) => (
 		<Combobox size={size as never} aria-label="Stage" displayValue={(v: string) => v}>
@@ -360,14 +269,6 @@ const FIXTURES: Record<SizedComponent, (size: DensityStep) => ReactNode> = {
 	Icon: (size) => <Icon size={size} icon={icon} />,
 	Input: (size) => <Input size={size as never} aria-label="Value" defaultValue="Value" />,
 	Kbd: (size) => <Kbd size={size as never}>⌘K</Kbd>,
-	LineChart: (size) => (
-		<LineChart
-			size={size}
-			aria-label="Line"
-			data={months}
-			series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-		/>
-	),
 	Listbox: (size) => (
 		<Listbox
 			size={size as never}
@@ -440,14 +341,6 @@ const FIXTURES: Record<SizedComponent, (size: DensityStep) => ReactNode> = {
 	),
 	Rating: (size) => <Rating size={size as never} aria-label="Rating" defaultValue={3} />,
 	RatingSkeleton: (size) => <RatingSkeleton size={size as never} />,
-	ScatterChart: (size) => (
-		<ScatterChart
-			size={size}
-			aria-label="Scatter"
-			data={points}
-			series={[{ xKey: 'x', yKey: 'y', yName: 'Y' }]}
-		/>
-	),
 	SearchInput: (size) => <SearchInput size={size as never} aria-label="Search" />,
 	Segment: (size) => (
 		<Segment size={size} defaultValue="List">
@@ -608,9 +501,13 @@ describe('distinct size steps (real browser)', () => {
 		async (name) => {
 			const steps: readonly DensityStep[] = SIZE_AXES[name]
 
+			// Each step comes from the axis of `name`, so it fits the fixture of `name`.
+			// TypeScript does not relate the two lookups by `name`.
+			const render = FIXTURES[name] as (size: DensityStep) => ReactNode
+
 			const readings = new Map<DensityStep, string>()
 
-			for (const step of steps) readings.set(step, await settledReading(FIXTURES[name](step)))
+			for (const step of steps) readings.set(step, await settledReading(render(step)))
 
 			const same = steps
 				.slice(1)

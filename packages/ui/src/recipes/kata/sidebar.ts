@@ -1,4 +1,4 @@
-import type { DensityStep } from '../../core/density'
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, kokkaku, narabi, sen, textRamp } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -153,5 +153,15 @@ export const k = {
 	},
 } as const
 
+/** The size scale of {@link SidebarItem}: the steps of its text, gap, padding, and radius. */
+export const itemScale = defineScale(
+	dan.text.body,
+	dan.gap.item,
+	dan.space.sidebarItem,
+	dan.radius.control,
+)
+
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
-export type SidebarItemVariants = VariantProps<typeof itemBase> & { size?: DensityStep }
+export type SidebarItemVariants = VariantProps<typeof itemBase> & {
+	size?: ScaleStep<typeof itemScale>
+}

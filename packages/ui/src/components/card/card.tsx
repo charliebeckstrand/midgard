@@ -1,6 +1,6 @@
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/card'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../../structure/box'
 
 /** Props for {@link Card}: Box surface props (radius and padding follow the step) plus the `size` step. */
@@ -10,7 +10,7 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density'> & {
 	 * Omit it to take the step of the nearest density scope. A step makes the
 	 * card a density scope, so its children take the step too.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 }
 
 /**

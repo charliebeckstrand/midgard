@@ -31,7 +31,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `stepDown` | The step below a density step (`xs` stays `xs`). A control slot is a scope one step below its host. The host stops at `lg`, so in an `xl` scope the slot takes `md`. |
 | `defineScale` | Makes the size scale of a component from the ramps that its `size` drives. The scale holds each step at which one ramp at least has a value of its own. |
 | `Scale` *(type)* | A size scale: the steps that a component renders with a look of its own. |
-| `ScaleStep` *(type)* | A step of a scale: the type of a `size` prop that the scale drives. |
+| `ScaleStep` *(type)* | A step of a scale: the type of a `size` prop that the scale drives. It is a plain union of step literals, such as `sm`, `md`, and `lg`. |
 | `Ramp` *(type)* | A stepped `density-*` utility with three or five values, such as `density-p-[2,3,4]`. |
 | `RampSteps` *(type)* | The steps that a ramp renders with a value of its own: `sm` / `md` / `lg`, and an outer step when its value differs from its inner neighbor. |
 | `snapToScale` | Snaps a density step to the nearest step of a scale: `xs` becomes `sm`, and `xl` becomes `lg`, when the scale does not hold them. |

@@ -6,7 +6,7 @@ import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
 import { fractionFormat, once, percentFormat } from '../../../utilities'
 import { categorySlots } from '../engine/chart-color/palette'
-import { CHART_METRICS, MARK_GAP } from '../engine/chart-constants'
+import { MARK_GAP, TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -253,7 +253,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		aside,
 		aspect: frameAspect,
 		chrome: { headerLines: headerLineCount(props.title, props.subtitle), legend: stackedLegend },
-		tickTarget: CHART_METRICS.md.tickTarget,
+		tickTarget: TICK_TARGET,
 	})
 
 	const colors = categorySlots(sliceLabels, categories)

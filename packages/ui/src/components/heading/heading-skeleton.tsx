@@ -1,6 +1,6 @@
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { k } from '../../recipes/kata/heading'
+import type { ScaleStep } from '../../core/density'
+import { k, type scale } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
 import type { HeadingLevel } from './heading'
 
@@ -12,7 +12,7 @@ export type HeadingSkeletonProps = {
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the silhouette a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Render a `span` that sits inside a real heading, one em tall, in place of a
 	 * block. Use it when the heading renders at once and only its text loads, as

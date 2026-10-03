@@ -4,11 +4,11 @@ import type { FloatingFocusManagerProps } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import { type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useA11yHasTabbable } from '../../hooks'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
-import { k } from '../../recipes/kata/tooltip'
+import { k, type scale } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
 /**
@@ -32,7 +32,7 @@ export type TooltipContentProps = {
 	 * the step of the nearest density scope of the trigger, which the portal
 	 * carries. A step makes the panel a density scope.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 	/**
 	 * Class for the positioned wrapper around the panel, rather than for the panel

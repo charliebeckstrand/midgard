@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
-import type { DensityStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/table'
 import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
@@ -708,7 +709,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * density scope. The autosizer and the virtualizer read the step in JS after
 	 * mount.
 	 */
-	size?: DensityStep
+	size?: ScaleStep<typeof scale>
 
 	/**
 	 * Tight, all-dimensions-down preset that steps the grid below what

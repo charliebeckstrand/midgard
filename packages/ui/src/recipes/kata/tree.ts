@@ -5,6 +5,7 @@
  * `label`, and `group`. `indent` pads each nested group, and `motion` is the collapse
  * transition. `skeleton` is the form of the `TreeSkeleton` rows.
  */
+import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, kasane, kokkaku, narabi, sen, textRamp, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -95,3 +96,11 @@ export const k = {
 	motion: collapse.fade,
 	skeleton: { ...kokkaku.tree, row },
 } as const
+
+/** The size scale of {@link Tree}: the steps of its icon, row, and indent. */
+export const scale = defineScale(
+	dan.size.icon,
+	dan.size.row,
+	dan.space.treeIndent,
+	dan.size.treeIndentWidth,
+)

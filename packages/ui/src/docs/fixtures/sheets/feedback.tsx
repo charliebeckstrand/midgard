@@ -6,6 +6,9 @@ import { LoadingDots, LoadingSpinner } from '../../../components/loading'
 import { Placeholder } from '../../../components/placeholder'
 import { ProgressBar, ProgressGauge } from '../../../components/progress'
 import { StatusDot } from '../../../components/status'
+import { scale as badgeScale } from '../../../recipes/kata/badge'
+import { dotsScale, spinnerScale } from '../../../recipes/kata/loading'
+import { barScale, gaugeScale } from '../../../recipes/kata/progress'
 import { FixtureCase, FixtureGroup, FixtureSheet } from '../fixture'
 
 const SEVERITIES = ['info', 'success', 'warning', 'error'] as const
@@ -91,7 +94,7 @@ export function Sheet() {
 					</FixtureCase>
 				))}
 				<FixtureCase label="size">
-					{SIZES.map((size) => (
+					{badgeScale.map((size) => (
 						<Badge key={size} size={size}>
 							{size}
 						</Badge>
@@ -131,7 +134,7 @@ export function Sheet() {
 					))}
 				</FixtureCase>
 				<FixtureCase label="spinner size">
-					{SIZES.map((size) => (
+					{spinnerScale.map((size) => (
 						<LoadingSpinner key={size} size={size} />
 					))}
 				</FixtureCase>
@@ -141,7 +144,7 @@ export function Sheet() {
 					))}
 				</FixtureCase>
 				<FixtureCase label="dots size">
-					{SIZES.map((size) => (
+					{dotsScale.map((size) => (
 						<LoadingDots key={size} size={size} />
 					))}
 				</FixtureCase>
@@ -172,7 +175,7 @@ export function Sheet() {
 				</FixtureCase>
 				<FixtureCase label="bar size">
 					<div className="flex w-full flex-col gap-2">
-						{SIZES.map((size) => (
+						{barScale.map((size) => (
 							<ProgressBar key={size} value={40} size={size} aria-label={size} />
 						))}
 					</div>
@@ -188,7 +191,7 @@ export function Sheet() {
 					))}
 				</FixtureCase>
 				<FixtureCase label="gauge size">
-					{SIZES.map((size) => (
+					{gaugeScale.map((size) => (
 						<ProgressGauge key={size} value={50} size={size} aria-label={size} />
 					))}
 				</FixtureCase>
