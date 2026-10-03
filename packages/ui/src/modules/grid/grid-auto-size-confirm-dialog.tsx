@@ -32,11 +32,6 @@ type GridAutoSizeConfirmDialogProps = {
 	action: GridWidthAction
 	/** Runs the confirmed action; called on confirm, after the dialog closes. */
 	onConfirm: (action: GridWidthAction) => void
-	/**
-	 * The direction of the grid. The dialog portals out of the grid, so its
-	 * title, body, and footer take this `dir` to lay out as the grid does.
-	 */
-	dir?: 'ltr' | 'rtl'
 }
 
 /**
@@ -53,20 +48,19 @@ export function GridAutoSizeConfirmDialog({
 	onOpenChange,
 	action,
 	onConfirm,
-	dir,
 }: GridAutoSizeConfirmDialogProps) {
 	const copy = COPY[action]
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange} width="md">
-			<DialogTitle dir={dir}>{copy.title}</DialogTitle>
-			<DialogBody dir={dir}>
+			<DialogTitle>{copy.title}</DialogTitle>
+			<DialogBody>
 				<Text>
 					{copy.body} Your other layout preferences — order, visibility, and pinned columns — stay
 					just as they are.
 				</Text>
 			</DialogBody>
-			<DialogFooter dir={dir}>
+			<DialogFooter>
 				<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
 					Keep my widths
 				</Button>

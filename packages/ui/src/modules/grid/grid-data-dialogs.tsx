@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { GridDirectionContext } from './context'
+import { Direction } from '../../primitives/direction'
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridColumnManager, type GridColumnManagerProps } from './grid-column-manager'
 import { GridManagerDialog } from './grid-manager-dialog'
@@ -37,26 +37,23 @@ export function GridDataDialogs({
 	rowManager,
 	widthConfirm,
 }: GridDataDialogsProps) {
+	// The dialogs portal out of the grid. The direction scope makes each portal
+	// write the direction of the grid, so a dialog lays out as the grid does.
 	return (
-		<>
+		<Direction dir={direction}>
 			{columnManager && (
-				<GridDirectionContext value={direction}>
-					<GridManagerDialog
-						open={columnManager.open}
-						onOpenChange={columnManager.onOpenChange}
-						label={columnManager.label}
-						dir={direction}
-					>
-						<GridColumnManager {...columnManager.manager} />
-					</GridManagerDialog>
-				</GridDirectionContext>
+				<GridManagerDialog
+					open={columnManager.open}
+					onOpenChange={columnManager.onOpenChange}
+					label={columnManager.label}
+				>
+					<GridColumnManager {...columnManager.manager} />
+				</GridManagerDialog>
 			)}
 
-			<GridDirectionContext value={direction}>
-				<GridRowManagerRegionDialog region={rowManager} dir={direction} />
-			</GridDirectionContext>
+			<GridRowManagerRegionDialog region={rowManager} />
 
-			{widthConfirm && <GridAutoSizeConfirmDialog {...widthConfirm} dir={direction} />}
-		</>
+			{widthConfirm && <GridAutoSizeConfirmDialog {...widthConfirm} />}
+		</Direction>
 	)
 }

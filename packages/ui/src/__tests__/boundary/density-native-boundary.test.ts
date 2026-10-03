@@ -194,19 +194,15 @@ const STEP_READERS = [
 
 const STEP_READ = /\buse(?:Density)?Step\b/
 
-// `useDensityScope` gives the nearest explicit scope, or `null` at the root. A
-// portal root writes that scope on its element, so a portaled panel keeps the
-// step of the tree that opened it. Only the portal roots and the primitive may
-// read it: Overlay, FloatingSurface, and the Listbox and Combobox panels, which
-// portal through their own wrappers.
+// `useDensityScope` gives the nearest explicit scope, or `null` at the root.
+// `Portal` writes that scope on its host, so a portaled panel keeps the step of
+// the tree that opened it. Only `Portal` and the primitive may read it. A
+// surface that portals goes through `Portal`, and writes no scope of its own.
 
 const SCOPE_READERS = [
-	'components/combobox/combobox-panel.tsx',
-	'components/listbox/listbox-panel.tsx',
 	'primitives/density/density.tsx',
 	'primitives/density/index.ts',
-	'primitives/floating-surface/floating-surface.tsx',
-	'primitives/overlay/overlay.tsx',
+	'primitives/portal/portal.tsx',
 ]
 
 const SCOPE_READ = /\buseDensityScope\b/
@@ -216,7 +212,7 @@ describe('density readers', () => {
 		expect(filesMatching(STEP_READ)).toEqual(STEP_READERS)
 	})
 
-	it('only the portal roots read the nearest density scope', () => {
+	it('only the portal reads the nearest density scope', () => {
 		expect(filesMatching(SCOPE_READ)).toEqual(SCOPE_READERS)
 	})
 })
