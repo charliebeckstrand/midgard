@@ -6,10 +6,7 @@ const { spring, toast } = ugoki
 const viewport = defineRecipe({
 	base: [
 		sou.toast,
-		// The part of the screen that the reader sees (`useVisualViewport`), so a
-		// stack on the bottom edge stays above a browser toolbar and an iOS keyboard.
-		// Without a reading, the box is the full viewport.
-		'fixed top-[var(--visual-viewport-top,0px)] h-[var(--visual-viewport-height,100%)] flex flex-col',
+		'fixed top-0 bottom-0 flex flex-col',
 		'max-sm:inset-x-0 max-sm:justify-end',
 		// The stack keeps clear of the notch and the home indicator in a page with
 		// `viewport-fit=cover`. Elsewhere each inset is zero, and the padding is 1rem.

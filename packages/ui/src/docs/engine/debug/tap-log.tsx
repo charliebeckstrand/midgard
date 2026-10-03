@@ -37,6 +37,7 @@ import { Button } from '../../../components/button'
 import { useCopyButtonState } from '../../../components/copy-button/use-copy-button-state'
 import { Icon } from '../../../components/icon'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from '../../../components/sheet'
+import { subscribeOverlaySignal } from '../../../primitives/overlay'
 
 const EVENTS = [
 	'touchstart',
@@ -391,6 +392,61 @@ function start() {
 	}
 }
 
+/** The viewport units that the probe measures, one child box for each. */
+const UNITS = ['svh', 'dvh', 'lvh'] as const
+
+/**
+ * Makes the probe: a box fixed to the layout viewport, with one child box for
+ * each viewport unit and one for the safe-area insets. Its height is where
+ * `bottom: 0` puts a fixed surface, which a browser toolbar can cover.
+ */
+function makeProbe() {
+	const probe = document.createElement('div')
+
+	probe.setAttribute('aria-hidden', 'true')
+
+	probe.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none'
+
+	for (const unit of UNITS) {
+		const box = probe.appendChild(document.createElement('div'))
+
+		box.style.cssText = `position:absolute;top:0;width:1px;height:100${unit}`
+	}
+
+	const insets = probe.appendChild(document.createElement('div'))
+
+	insets.style.cssText =
+		'position:absolute;top:0;width:1px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'
+
+	return probe
+}
+
+/**
+ * The heights that decide where a surface fixed to an edge sits: the visual
+ * viewport (height at offset), the window, the root element, a box fixed to the
+ * layout viewport (height at top), the viewport units, the safe-area insets (top
+ * and bottom), the scroll offset, and the screen.
+ */
+function viewportState(probe: HTMLElement) {
+	const viewport = window.visualViewport
+
+	const visual = viewport ? `${Math.round(viewport.height)}@${Math.round(viewport.offsetTop)}` : '-'
+
+	const box = probe.getBoundingClientRect()
+
+	const fixed = `${Math.round(box.height)}@${Math.round(box.top)}`
+
+	const [svh, dvh, lvh, insets] = Array.from(probe.children, (child) => getComputedStyle(child))
+
+	const units = [svh, dvh, lvh]
+		.map((style) => Math.round(parseFloat(style?.height ?? '')))
+		.join('/')
+
+	const safe = `${parseFloat(insets?.paddingTop ?? '')}/${parseFloat(insets?.paddingBottom ?? '')}`
+
+	return `vv ${visual} win ${window.innerHeight} doc ${document.documentElement.clientHeight} fixed ${fixed} s/d/lvh ${units} safe ${safe} y ${Math.round(window.scrollY)} screen ${window.screen.height}`
+}
+
 /** Adds the listeners, and returns a function that removes them. */
 function listen() {
 	startTime = performance.now()
@@ -399,9 +455,22 @@ function listen() {
 
 	for (const type of EVENTS) document.addEventListener(type, onEvent, options)
 
-	const onResize = () => write(`viewport resize ${viewport()}`)
+	const probe = makeProbe()
+
+	document.body.append(probe)
+
+	const onResize = () => write(`viewport resize ${viewportState(probe)}`)
+
+	const onWindowResize = () => write(`window resize ${viewportState(probe)}`)
 
 	window.visualViewport?.addEventListener('resize', onResize)
+
+	window.addEventListener('resize', onWindowResize)
+
+	// One line for each overlay that opens shows the readings at that moment.
+	const stopOverlays = subscribeOverlaySignal(() => {
+		if (!paused) write(`overlay opens ${viewportState(probe)}`)
+	})
 
 	// A tap while the page still scrolls only stops the scroll on iOS. One line
 	// for each scroll that starts shows such a tap.
@@ -441,12 +510,18 @@ function listen() {
 
 	heights.observe(document.documentElement)
 
-	write('tap log ready')
+	write(`tap log ready ${viewportState(probe)}`)
 
 	return () => {
 		for (const type of EVENTS) document.removeEventListener(type, onEvent, options)
 
 		window.visualViewport?.removeEventListener('resize', onResize)
+
+		window.removeEventListener('resize', onWindowResize)
+
+		stopOverlays()
+
+		probe.remove()
 
 		window.removeEventListener('scroll', onScroll, options)
 

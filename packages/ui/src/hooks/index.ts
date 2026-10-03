@@ -92,4 +92,3 @@ export {
 	useVirtualWindow,
 	type VirtualWindowOptions,
 } from './use-virtual-window'
-export { useVisualViewport, type VisibleFrame } from './use-visual-viewport'

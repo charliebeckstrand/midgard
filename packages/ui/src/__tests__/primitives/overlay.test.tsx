@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Overlay } from '../../primitives/overlay'
-import { attach, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
+import { attach, fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Overlay', () => {
 	it('renders children when open', () => {
@@ -46,88 +46,6 @@ describe('Overlay', () => {
 		)
 
 		expect(document.body.style.overflow).toBe('hidden')
-	})
-
-	describe('browser toolbar over the bottom edge', () => {
-		// jsdom lays nothing out: every box reads a layout viewport of 800 px, under
-		// a visual viewport of 740 px, as under a toolbar of 60 px.
-		function stubToolbar() {
-			vi.stubGlobal(
-				'visualViewport',
-				Object.assign(new EventTarget(), { offsetTop: 0, height: 740, scale: 1 }),
-			)
-
-			vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
-				DOMRect.fromRect({ width: 400, height: 800 }),
-			)
-		}
-
-		const covered = () =>
-			document.documentElement.style.getPropertyValue('--visual-viewport-height')
-
-		it('holds the visible frame while the root is in the page', () => {
-			stubToolbar()
-
-			const { unmount } = renderUI(
-				<Overlay open onOpenChange={() => {}}>
-					<span>content</span>
-				</Overlay>,
-			)
-
-			expect(covered()).toBe('740px')
-
-			unmount()
-
-			expect(covered()).toBe('')
-		})
-
-		it('takes the frame as the box of the root, and keeps the backdrop on the full viewport', () => {
-			stubToolbar()
-
-			renderUI(
-				<Overlay open onOpenChange={() => {}}>
-					<span>content</span>
-				</Overlay>,
-			)
-
-			const root = getSlot(document.body, 'overlay')
-
-			expect(root.className).toContain('h-[var(--visual-viewport-height,100%)]')
-
-			expect(root.className).not.toContain('inset-0')
-
-			expect(getSlot(document.body, 'overlay-backdrop').className).toContain('fixed')
-		})
-
-		it('holds nothing for an overlay scoped to a container', () => {
-			stubToolbar()
-
-			const container = attach(document.createElement('div'))
-
-			renderUI(
-				<Overlay open onOpenChange={() => {}} container={container}>
-					<span>content</span>
-				</Overlay>,
-			)
-
-			expect(covered()).toBe('')
-		})
-
-		it('keeps the frame for a ref that a consumer holds', () => {
-			stubToolbar()
-
-			const ref = createRef<HTMLDivElement>()
-
-			renderUI(
-				<Overlay open onOpenChange={() => {}} ref={ref}>
-					<span>content</span>
-				</Overlay>,
-			)
-
-			expect(ref.current).not.toBeNull()
-
-			expect(covered()).toBe('740px')
-		})
 	})
 
 	it('restores body overflow on unmount', () => {
@@ -196,8 +114,7 @@ describe('Overlay', () => {
 			'[data-slot="overlay-backdrop"]',
 		)
 
-		// On the full viewport, under a browser toolbar too.
-		expect(backdrop.className).toBe('inset-0 fixed')
+		expect(backdrop.className).toBe('absolute inset-0')
 
 		fireEvent.click(screen.getByText('content'))
 
@@ -268,8 +185,8 @@ describe('Overlay', () => {
 			'[data-slot="overlay-backdrop"]',
 		)
 
-		// The override takes the place of the default, and the backdrop stays fixed.
-		expect(backdrop.className).toBe('custom-backdrop fixed')
+		// The override takes the place of the default.
+		expect(backdrop.className).toBe('custom-backdrop')
 	})
 
 	it('does not steal focus when modal=false', () => {

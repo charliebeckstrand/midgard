@@ -16,8 +16,7 @@ export const k = {
 				'relative',
 				'w-full',
 				'p-6',
-				// Each cap is a share of the overlay root, which is the part of the screen
-				// that the reader sees (`useVisualViewport`). Above `sm`, the root has an
+				// Each cap is a share of the overlay root. Above `sm`, the root has an
 				// inset of 1rem on each edge, so the full share stops 1rem short of each.
 				'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto',
 				// Below `sm`, the panel sits on the bottom edge. In a page with
