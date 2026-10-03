@@ -1,8 +1,8 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useId, useMemo, useRef } from 'react'
+import { type HTMLAttributes, type ReactNode, type Ref, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useA11yRoving, useMinBreakpoint } from '../../hooks'
+import { useA11yRoving, useComposedRef, useMinBreakpoint } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
@@ -14,9 +14,17 @@ import { StepperPanels } from './stepper-panels'
 
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
 export type StepperProps = Omit<
-	ComponentProps<'div'>,
+	HTMLAttributes<HTMLElement>,
 	'className' | 'children' | 'onKeyDown' | 'aria-label' | 'aria-orientation' | 'defaultValue'
 > & {
+	/**
+	 * The ref of the step row.
+	 *
+	 * @remarks
+	 * The row is a `<div>` in an interactive stepper and an `<ol>` in a
+	 * display-only stepper, so the ref type is `HTMLElement`.
+	 */
+	ref?: Ref<HTMLElement>
 	/**
 	 * The accessible name of the step row. Give each stepper its own name when
 	 * a page shows more than one.
@@ -77,7 +85,7 @@ function partitionStepperChildren(children: ReactNode): {
 
 /**
  * Controlled, indexed multi-step flow keyed by a numeric `value`. Partitions
- * its children into a `role="toolbar"` step row and a `<StepperPanels>` group,
+ * its children into a step row and a `<StepperPanels>` group,
  * scopes an `ActiveIndicator` for the current-step marker, and shares step state
  * via context. Each `<StepperStep>` derives its completed/current/upcoming state
  * by comparing its own index against `value`.
@@ -89,8 +97,12 @@ function partitionStepperChildren(children: ReactNode): {
  * not shift after hydration. The arrow-key axis and `aria-orientation` follow
  * the viewport in JavaScript. When `onValueChange` is set, steps
  * render as buttons and the row is a single Tab stop with roving arrow-key
- * navigation; `linear` then disables upcoming steps. Compose `<StepperSkeleton>`
- * in loading trees.
+ * navigation; `linear` then disables upcoming steps. That row has
+ * `role="toolbar"`. A display-only stepper (`value` with no `onValueChange` and
+ * no `defaultValue`) has no controls, so its row is an `<ol>` and each step is
+ * an `<li>`. A screen reader then reads it as a list of N steps.
+ * `aria-label` names the row in the two forms, and only the toolbar has
+ * `aria-orientation`. Compose `<StepperSkeleton>` in loading trees.
  */
 export function Stepper({
 	value,
@@ -102,6 +114,7 @@ export function Stepper({
 	'aria-label': ariaLabel = 'Steps',
 	className,
 	children,
+	ref,
 	...props
 }: StepperProps) {
 	const [current = 0, setCurrent] = useControllable<number>({
@@ -132,6 +145,8 @@ export function Stepper({
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
+	const composedRef = useComposedRef<HTMLElement>(ref, rowRef)
+
 	const baseId = useId()
 
 	const handleKeyDown = useA11yRoving(rowRef, {
@@ -160,20 +175,34 @@ export function Stepper({
 		[current, interactive, setCurrent, layout, linear, baseId, hasPanels, mount],
 	)
 
-	const row = (
+	const rowClassName = cn(k.root({ orientation: layout }), className)
+
+	// A display-only row has no controls to group, so it is a list of its steps.
+	const row = interactive ? (
 		<div
 			{...props}
-			ref={rowRef}
+			ref={composedRef}
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}
 			role="toolbar"
 			aria-label={ariaLabel}
 			aria-orientation={resolvedOrientation}
-			onKeyDown={interactive ? handleKeyDown : undefined}
-			className={cn(k.root({ orientation: layout }), className)}
+			onKeyDown={handleKeyDown}
+			className={rowClassName}
 		>
 			{rowChildren}
 		</div>
+	) : (
+		<ol
+			{...props}
+			ref={composedRef}
+			data-slot="stepper"
+			data-orientation={resolvedOrientation}
+			aria-label={ariaLabel}
+			className={rowClassName}
+		>
+			{rowChildren}
+		</ol>
 	)
 
 	return (

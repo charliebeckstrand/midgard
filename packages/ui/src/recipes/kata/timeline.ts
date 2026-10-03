@@ -1,5 +1,5 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, textRamp } from '../kiso'
+import { iro, ji, kokkaku, textRamp } from '../kiso'
 
 const { marker, text } = iro
 const { weight } = ji
@@ -148,6 +148,7 @@ export const k = {
 	title,
 	description,
 	timestamp,
+	skeleton: kokkaku.timeline,
 } as const
 
 /** Recipe variant props for {@link Timeline} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */

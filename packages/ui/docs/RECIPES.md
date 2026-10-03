@@ -23,7 +23,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `ma` 間 | Named spacing scale projected as Tailwind padding, margin, and gap utilities — all-sides and axis variants. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, truncation, flex primitives. |
 | `omote` 面 | Generic surface fills and chromes (`bg`, `blur`, `surface`, `popover`, `glass`, `backdrop`, `content`, `skeleton`). |
-| `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `tint`, `active`) plus the kata-shaped `item` / `nav` composites. |
+| `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `tint`, `active`, and the `::before` washes `tintBefore` and `glassItemBefore`) plus the kata-shaped `item` / `nav` composites. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |

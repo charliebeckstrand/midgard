@@ -40,6 +40,7 @@ import { SwitchSkeleton } from '../../../components/switch'
 import { TabListSkeleton } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import { TimelineSkeleton } from '../../../components/timeline'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { TreeSkeleton } from '../../../components/tree'
 import { ChartSkeleton } from '../../../modules/chart'
@@ -60,6 +61,7 @@ const skeletonVariants = [
 	{ name: 'Button', skeleton: <ButtonSkeleton /> },
 	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
 	{ name: 'Chart', skeleton: <ChartSkeleton /> },
+	{ name: 'Chart (pie)', skeleton: <ChartSkeleton sector /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
@@ -88,6 +90,7 @@ const skeletonVariants = [
 	{ name: 'Tab list', skeleton: <TabListSkeleton /> },
 	{ name: 'Text', skeleton: <TextSkeleton /> },
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
+	{ name: 'Timeline', skeleton: <TimelineSkeleton /> },
 	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
 	{ name: 'Tree', skeleton: <TreeSkeleton /> },
 ]
