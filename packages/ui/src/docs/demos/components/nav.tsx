@@ -17,14 +17,14 @@ export function Demo() {
 	const [current, setCurrent] = useState<string | null>('account')
 
 	return (
-		<PageTabs defaultValue="List">
+		<PageTabs defaultValue="list">
 			<TabList aria-label="Nav examples">
-				<Tab value="List">List</Tab>
-				<Tab value="Bar">Bar</Tab>
-				<Tab value="Context">Context</Tab>
+				<Tab value="list">List</Tab>
+				<Tab value="bar">Bar</Tab>
+				<Tab value="context">Context</Tab>
 			</TabList>
 			<TabContents>
-				<TabContent value="List">
+				<TabContent value="list">
 					<Stack gap="xl">
 						<Axes
 							of="NavList"
@@ -47,7 +47,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Bar">
+				<TabContent value="bar">
 					<Stack gap="xl">
 						<Axes
 							of="NavBar"
@@ -65,7 +65,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Context">
+				<TabContent value="context">
 					<Stack gap="xl">
 						<Example title="With content">
 							<NavContext value={{ value: current ?? undefined, onValueChange: setCurrent }}>

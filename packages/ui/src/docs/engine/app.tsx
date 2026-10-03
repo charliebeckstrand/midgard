@@ -1,6 +1,6 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { type ComponentType, Suspense, use, useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useLocation, useParams } from 'react-router'
+import { Link, Outlet, useLocation } from 'react-router'
 import { Button } from '../../components/button'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
@@ -13,6 +13,7 @@ import { Flex } from '../../structure/flex'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
 import { DebugActions } from './debug/debug-actions'
+import { parseDemoPath } from './demo-id'
 import { DemoPage } from './demo-page'
 import { defaultDemo, demos, retryDemo, type TrackedPromise, tracked } from './registry'
 
@@ -84,9 +85,9 @@ export function RouterLink({ href, ...props }: LinkProps) {
  * on screen while the next demo's chunk loads.
  */
 export function App() {
-	const { id = defaultDemo } = useParams()
-
 	const { pathname } = useLocation()
+
+	const id = parseDemoPath(pathname).id || defaultDemo
 
 	const [locked, setLocked] = useState(true)
 

@@ -145,6 +145,13 @@ renders each path to its own HTML file, and the browser hydrates it. A link of
 the chrome or of a ui component goes through the router, because the root
 gives `UIProvider` a `link` that renders the `Link` of React Router.
 
+[`demo-id.ts`](demo-id.ts) gives the path of each page. A component page is at
+its id (`/card`). A page in a namespace folder is in that folder of the path
+(`/structure/box`). A tab adds one part (`/progress/gauge`), and its value has
+only lowercase letters, digits, and hyphens. A path from before nested paths
+(`/structure-box`) has no HTML file, so the host sends the fallback document,
+and the app moves to the current path.
+
 Use `react-router build src/docs --config vite.docs.config.ts`, not
 `vite build`. The `vite build` command does not stop after the prerender.
 
