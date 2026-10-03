@@ -1,8 +1,8 @@
 /**
  * Tree kata: object-literal surface for the `<Tree>` treeview. The
  * `item.content` row and its `chevron` take the step of the nearest density
- * scope. The static slots cover the `base` container, `affix`, `label`, and
- * `group`. `indent` pads each nested group, and `motion` is the collapse
+ * scope. The static slots cover the `base` container, `check` box, `affix`,
+ * `label`, and `group`. `indent` pads each nested group, and `motion` is the collapse
  * transition. `skeleton` is the form of the `TreeSkeleton` rows.
  */
 import { defineRecipe, mode } from '../../core/recipe'
@@ -35,6 +35,30 @@ const itemContent = defineRecipe(
 	{ current: text.default },
 )
 
+/**
+ * The check box of a checkable row. It is a picture of the state, not a
+ * control: the treeitem carries `aria-checked` and takes the keys. It has the
+ * size, the corners, and the zinc fill of the Checkbox box. The row hover
+ * darkens its border, as a label hover does on a Checkbox.
+ */
+const check = [
+	'flex-none',
+	flex.inline,
+	'items-center justify-center',
+	kokkaku.checkbox.box,
+	'density-rounded-[0.75,1,1.25]',
+	...mode(
+		['bg-white', 'border border-zinc-950/50', 'group-hover/tree-item:border-zinc-950/70'],
+		['dark:bg-white/5', 'dark:border-white/35', 'dark:group-hover/tree-item:border-white/50'],
+	),
+	'data-[checked]:bg-zinc-600 data-[checked]:border-zinc-700/90',
+	'dark:data-[checked]:bg-zinc-600 dark:data-[checked]:border-zinc-700/90',
+	'data-[checked]:group-hover/tree-item:opacity-90',
+]
+
+/** The mark in the check box. It takes the step of the nearest density scope. */
+const checkMark = ['stroke-white', 'density-size-[3,3.5,4]']
+
 /** The chevron column. Its width is the icon size of the step. */
 const chevron = [
 	'flex-none',
@@ -56,7 +80,9 @@ export const k = {
 		content: itemContent,
 	},
 	chevron,
-	/** Prefix/suffix slot wrappers flanking the label. */
+	check,
+	checkMark,
+	/** Prefix/suffix slot wrappers flanking the label. The slots hold no control. */
 	affix: 'flex flex-none items-center',
 	label: 'flex-1 truncate text-start',
 	group: 'overflow-hidden',

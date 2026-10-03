@@ -1,4 +1,5 @@
 import { File, Folder, Image, Music, Video } from 'lucide-react'
+import { useState } from 'react'
 import { Tree, TreeItem } from '../../../components/tree'
 import { Axes, Example } from '../../engine'
 
@@ -53,6 +54,10 @@ export function Demo() {
 				</Tree>
 			</Example>
 
+			<Example title="Checkboxes">
+				<CheckboxesExample />
+			</Example>
+
 			<Example title="Without icons">
 				<Tree aria-label="Animal taxonomy">
 					<TreeItem label="Animals">
@@ -68,5 +73,46 @@ export function Demo() {
 				</Tree>
 			</Example>
 		</>
+	)
+}
+
+const sources = ['Button.tsx', 'Input.tsx', 'index.ts']
+
+function CheckboxesExample() {
+	const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set(['Button.tsx']))
+
+	// The caller holds each item, so it computes the state of the branch.
+	const branch = picked.size === sources.length ? true : picked.size > 0 ? 'mixed' : false
+
+	const pick = (name: string) => (checked: boolean) =>
+		setPicked((prev) => {
+			const next = new Set(prev)
+
+			if (checked) next.add(name)
+			else next.delete(name)
+
+			return next
+		})
+
+	return (
+		<Tree aria-label="Files to commit">
+			<TreeItem
+				label="src"
+				icon={<Folder />}
+				defaultOpen
+				checked={branch}
+				onCheckedChange={(checked) => setPicked(new Set(checked ? sources : []))}
+			>
+				{sources.map((name) => (
+					<TreeItem
+						key={name}
+						label={name}
+						icon={<File />}
+						checked={picked.has(name)}
+						onCheckedChange={pick(name)}
+					/>
+				))}
+			</TreeItem>
+		</Tree>
 	)
 }
