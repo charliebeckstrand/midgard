@@ -47,13 +47,38 @@ export function heldMotionProps<P extends HeldMotionPreset>(
 	onAnimationComplete: (definition: unknown) => void
 } {
 	return {
-		initial: hold.mountedActive ? preset.animate : preset.initial,
-		animate: open ? preset.animate : preset.exit,
-		transition: preset.transition,
+		...heldMotionTargets(preset, open, hold),
 		onAnimationComplete: (definition) => {
 			hold.rest()
 
 			onAnimationComplete(definition)
 		},
+	}
+}
+
+/**
+ * The targets of {@link heldMotionProps} without its landing handler. Use it for a
+ * motion element inside a held panel, for example the content that moves in the
+ * panel. The panel element itself rests the hold, so this element must not.
+ *
+ * @param preset - The recipe's enter/exit preset.
+ * @param open - Whether the panel is open now.
+ * @param hold - The panel's hold; `mountedActive` names the state it mounted in.
+ * @returns The `initial`/`animate`/`transition` bag to spread onto the motion element.
+ * @internal
+ */
+export function heldMotionTargets<P extends HeldMotionPreset>(
+	preset: P,
+	open: boolean,
+	hold: Pick<MountHoldState, 'mountedActive'>,
+): {
+	initial: P['initial'] | P['animate']
+	animate: P['animate'] | P['exit']
+	transition: P['transition']
+} {
+	return {
+		initial: hold.mountedActive ? preset.animate : preset.initial,
+		animate: open ? preset.animate : preset.exit,
+		transition: preset.transition,
 	}
 }

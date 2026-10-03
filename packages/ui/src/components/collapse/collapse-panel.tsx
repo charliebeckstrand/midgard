@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { MountHold, useMountHold } from '../../primitives/mount'
-import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
+import { heldMotionProps, heldMotionTargets } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
@@ -20,8 +20,9 @@ export type CollapsePanelProps = {
 /**
  * Collapsible content panel for the {@link Collapse} compound API. Reads
  * `open`, the resolved `animate` mode, and the `mount` policy from context. It
- * animates height (plus opacity for `'fade'`) via `AnimatePresence`; the
- * `false` mode renders synchronously without motion. Honors reduced-motion.
+ * animates height via `AnimatePresence`. `'fade'` adds opacity, and `'slide'`
+ * moves the content down with the panel edge. The `false` mode renders
+ * synchronously without motion. Honors reduced-motion.
  *
  * @remarks
  * Under the default `mount="active"` the panel unmounts while closed, so
@@ -60,16 +61,20 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 	// The panel's identity — element, a11y wiring, classes — is one shape across
 	// every branch below; only how it animates (or whether it does) differs.
-	const panel = (motionProps: object) => (
+	const panel = (motionProps: object, contentProps?: object) => (
 		<motion.div
 			id={id}
 			data-slot="collapse-panel"
 			{...motionProps}
 			className={cn(k.panel, className)}
 		>
-			{children}
+			{contentProps ? <motion.div {...contentProps}>{children}</motion.div> : children}
 		</motion.div>
 	)
+
+	// `slide` moves the content inside the clip of the panel. The panel element
+	// alone lands the transition, so the content takes no completion handler.
+	const content = preset && 'content' in preset ? preset.content : undefined
 
 	if (!preset) {
 		if (!hold.present) return null
@@ -89,7 +94,17 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 		return (
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
-					{open && panel({ ...preset, onAnimationComplete })}
+					{open &&
+						panel(
+							{
+								initial: preset.initial,
+								animate: preset.animate,
+								exit: preset.exit,
+								transition: preset.transition,
+								onAnimationComplete,
+							},
+							content,
+						)}
 				</AnimatePresence>
 			</ReducedMotion>
 		)
@@ -100,7 +115,10 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	return (
 		<ReducedMotion>
 			<MountHold hold={hold} name="collapse-panel">
-				{panel(heldMotionProps(preset, open, hold, onAnimationComplete))}
+				{panel(
+					heldMotionProps(preset, open, hold, onAnimationComplete),
+					content && heldMotionTargets(content, open, hold),
+				)}
 			</MountHold>
 		</ReducedMotion>
 	)
