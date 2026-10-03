@@ -59,7 +59,7 @@ function RangeStepSliderExample() {
 
 	return (
 		<>
-			<Stack gap="sm" full>
+			<Stack gap="sm">
 				<Text>Clamped</Text>
 
 				<RangeSlider
@@ -77,7 +77,7 @@ function RangeStepSliderExample() {
 				</Text>
 			</Stack>
 
-			<Stack gap="sm" full>
+			<Stack gap="sm">
 				<Text className="mt-lg">Swap</Text>
 
 				<RangeSlider
@@ -103,11 +103,7 @@ export function Demo() {
 		<>
 			<Axes
 				of="Slider"
-				render={(props, label) => (
-					<div className="w-48">
-						<Slider {...props} aria-label={label} defaultValue={50} />
-					</div>
-				)}
+				render={(props, label) => <Slider {...props} aria-label={label} defaultValue={50} />}
 			/>
 
 			<InteractiveExample />

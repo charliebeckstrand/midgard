@@ -19,13 +19,23 @@ it now lives inside `ui` rather than as a standalone package.
 
 ## Example width
 
-Each child of an `Example` aligns to the start and keeps the width of its
-content. The playground, the axis examples, and the other examples thus show a
-component at the same width. Each generated instance sits in a box that takes
-the width of its content, so a control with `w-full` shows at its own width, as
-in a `Field`. `max-w-full` keeps a wide child within the frame.
-A component with no content width, such as a chart, a progress bar, or a split,
-collapses at the start. Its demo gives it a width, such as `w-full` or `w-48`.
+`Example` puts each child in its own instance box. The box acts as a column of
+24rem on a page. It widens to fit wider content, up to the frame, and it
+narrows with a narrow frame. In the box, a child takes the width that it takes
+in the flow of a page. A component with a width of its own, such as a button
+with `w-fit`, keeps that width at the start. A block, such as an input, a
+progress bar, or a chart, fills the box. The playground, the axis examples, and
+the custom examples use the same box, so a component shows at one width on its
+page.
+
+A frame with a width of its own, from `width` or `resize`, is the column. Each
+box then fills the frame. A demo of a surface of a page, such as a map or a PDF
+viewer, uses a sized frame. `Axes` takes the same sizes in `frame`, so its
+examples match the custom examples of the page.
+
+A demo sets no width on the component that it shows.
+`demo-width-boundary.test.ts` records each width in a demo, such as the mock
+page that holds a `Sidebar`.
 
 ## Generated axes
 

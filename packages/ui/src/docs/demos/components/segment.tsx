@@ -54,7 +54,7 @@ export function Demo() {
 			/>
 
 			<Example title="Switch views">
-				<Stack gap="lg" full>
+				<Stack gap="lg">
 					<Segment value={view} onValueChange={(v) => setView(v ?? 'List')}>
 						<SegmentControl aria-label="View">
 							<SegmentItem value="List">List</SegmentItem>
@@ -88,7 +88,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Filter">
-				<Stack gap="lg" full>
+				<Stack gap="lg">
 					<Segment value={filter} onValueChange={(v) => setFilter(v ?? 'All')}>
 						<SegmentControl aria-label="Filter">
 							<SegmentItem value="All">All</SegmentItem>

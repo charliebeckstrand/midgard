@@ -1,9 +1,17 @@
 'use client'
 
-import { type ReactNode, type Ref, Suspense, use, useLayoutEffect, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	type ReactNode,
+	type Ref,
+	Suspense,
+	use,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { createContext, dataAttr } from '../../../core'
 import { Flex } from '../../../structure/flex'
-import { Stack } from '../../../structure/stack'
 import type { ComponentApi } from '../api-reference'
 import {
 	type Axis,
@@ -66,6 +74,12 @@ type AxesProps = {
 	 * @defaultValue true
 	 */
 	captions?: boolean
+	/**
+	 * The size of each frame, as on {@link Example}. Give it when the custom
+	 * examples of the page share a sized frame, so that the generated examples
+	 * show the component at the same width.
+	 */
+	frame?: Pick<ComponentProps<typeof Example>, 'width' | 'minWidth' | 'resize'>
 }
 
 /**
@@ -134,6 +148,7 @@ function AxesExamples({
 	omit,
 	title,
 	captions = true,
+	frame,
 }: AxesProps & { component: ComponentApi }) {
 	const axes = axesOf(component, omit)
 
@@ -213,6 +228,7 @@ function AxesExamples({
 	return (
 		<>
 			<Example
+				{...frame}
 				title={title ?? 'Playground'}
 				actions={
 					<Flex wrap gap="sm">
@@ -234,31 +250,27 @@ function AxesExamples({
 					</Flex>
 				}
 			>
-				{/* The playground instance takes the box of an axis instance, so that it shows at the same width. */}
-				<div className={INSTANCE}>{render(propsWith(), of)}</div>
+				{render(propsWith(), of)}
 			</Example>
 
 			{/* An example with one value has nothing to compare, so it hides. */}
 			{axes.map(
 				(axis) =>
 					valuesOf(axis).length > 1 && (
-						<Example key={axis.name} title={axisTitle(axis.name, title)}>
-							{/* The instances stack, one to a line. The stack fills the frame, so that an
-							    instance with `w-full` takes the width of the row. */}
-							<Stack gap={captions ? 'lg' : 'sm'} align="start" className="self-stretch">
-								{valuesOf(axis).map((value) => (
-									<AxisInstance
-										key={String(value)}
-										label={valueLabel(value)}
-										caption={captions}
-										ref={(element) => {
-											if (element) instances.current.set(`${axis.name}:${value}`, element)
-										}}
-									>
-										{render(propsWith(axis.name, value), valueLabel(value))}
-									</AxisInstance>
-								))}
-							</Stack>
+						<Example key={axis.name} {...frame} title={axisTitle(axis.name, title)}>
+							{/* Each instance is a child of the frame, so it takes the instance box of the frame, one to a line. */}
+							{valuesOf(axis).map((value) => (
+								<AxisInstance
+									key={String(value)}
+									label={valueLabel(value)}
+									caption={captions}
+									ref={(element) => {
+										if (element) instances.current.set(`${axis.name}:${value}`, element)
+									}}
+								>
+									{render(propsWith(axis.name, value), valueLabel(value))}
+								</AxisInstance>
+							))}
 						</Example>
 					),
 			)}
@@ -284,17 +296,10 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
 }
 
 /**
- * The box of each instance. It aligns to the start, so it takes the width of
- * its content. A control with `w-full` thus takes the width of its own content,
- * as in a `Field`. `max-w-full` keeps the box within the row. An instance with a
- * fixed width and `max-w-full` thus fits a row that is narrower than that width.
- */
-const INSTANCE = 'flex max-w-full flex-col gap-1'
-
-/**
  * One instance of an axis example. The `axis-value` anchor carries the label,
- * so the page gate can ask that each instance shows it. The wrapper takes the
- * {@link INSTANCE} box, with or without a caption.
+ * so the page gate can ask that each instance shows it. The wrapper is a block
+ * in the instance box of the frame, so the instance takes the width that the
+ * same child takes in a custom example, with or without a caption.
  */
 function AxisInstance({
 	label,
@@ -308,15 +313,12 @@ function AxisInstance({
 	children: ReactNode
 }) {
 	return (
-		<div
-			ref={ref}
-			data-slot="axis-value"
-			data-label={label}
-			data-caption={dataAttr(caption)}
-			className={INSTANCE}
-		>
+		<div ref={ref} data-slot="axis-value" data-label={label} data-caption={dataAttr(caption)}>
 			{caption && (
-				<span data-slot="axis-caption" className="text-xs text-zinc-500 dark:text-zinc-400">
+				<span
+					data-slot="axis-caption"
+					className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400"
+				>
 					{label}
 				</span>
 			)}

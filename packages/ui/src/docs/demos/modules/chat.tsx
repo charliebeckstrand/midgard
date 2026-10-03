@@ -214,17 +214,17 @@ export function Demo() {
 							of="ChatMessage"
 							captions={false}
 							render={(props, label) => (
-								<ChatMessage role="assistant" className="w-80 max-w-full" {...props}>
+								<ChatMessage role="assistant" {...props}>
 									{label}
 								</ChatMessage>
 							)}
 						/>
 
 						<Example title="Timestamped">
-							<ChatMessage role="assistant" timestamp="11:10 AM" className="w-full">
+							<ChatMessage role="assistant" timestamp="11:10 AM">
 								Heading out now, ETA 3pm.
 							</ChatMessage>
-							<ChatMessage role="user" timestamp="11:12 AM" className="w-full">
+							<ChatMessage role="user" timestamp="11:12 AM">
 								Got it — door code is 4421.
 							</ChatMessage>
 						</Example>
@@ -232,7 +232,6 @@ export function Demo() {
 						<Example title="With actions">
 							<ChatMessage
 								role="assistant"
-								className="w-full"
 								actions={
 									<>
 										<CopyButton size="sm" text="Heading out now, ETA 3pm." />
@@ -291,7 +290,7 @@ export function Demo() {
 
 				<TabContent value="List">
 					<Example title="List">
-						<ChatList aria-label="Conversations" className="max-w-xs">
+						<ChatList aria-label="Conversations">
 							{conversations.map((conversation) => (
 								<ChatListItem
 									key={conversation.id}

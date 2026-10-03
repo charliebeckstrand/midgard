@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { Button } from '../../../components/button'
 import {
 	PdfViewer,
@@ -7,7 +7,14 @@ import {
 	type PdfViewerMagnifierState,
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
-import { code, Example } from '../../engine'
+import { code, Example as ExampleFrame } from '../../engine'
+
+// A viewer is a surface of a page, so each demo renders it in one resizable
+// frame of a fixed width, as the map and chart demos do. The viewer fills the
+// frame, and a drag of the frame shows how the toolbar and the pages respond.
+function Example(props: ComponentProps<typeof ExampleFrame>) {
+	return <ExampleFrame width={720} resize {...props} />
+}
 
 const SAMPLE = 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf'
 
@@ -129,7 +136,7 @@ function DefaultExample() {
 				<PdfViewer src="/sample.pdf" filename="sample.pdf" />
 			`}
 		>
-			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" className="w-full" />
+			<PdfViewer src={SAMPLE} filename="tracemonkey.pdf" />
 		</Example>
 	)
 }
@@ -173,7 +180,7 @@ function DrivenExample() {
 				/>
 			`}
 		>
-			<div className="flex w-full flex-col gap-3">
+			<div className="flex flex-col gap-3">
 				<div className="flex flex-wrap gap-2">
 					{regions.map((region) => (
 						<Button
@@ -204,7 +211,7 @@ function FitWidthExample() {
 				<PdfViewer pages={pages} fit="width" className="h-96" />
 			`}
 		>
-			<PdfViewer pages={pages} fit="width" className="h-96 w-full" />
+			<PdfViewer pages={pages} fit="width" className="h-96" />
 		</Example>
 	)
 }
@@ -221,7 +228,7 @@ function MagnifierExample() {
 				<PdfViewer pages={pages} magnifier={{ zoom: 'lg', size: 'lg', delay: 'none' }} />
 			`}
 		>
-			<PdfViewer pages={pages} magnifier className="w-full" />
+			<PdfViewer pages={pages} magnifier />
 		</Example>
 	)
 }
@@ -247,12 +254,7 @@ function MagnifierConfigExample() {
 				/>
 			`}
 		>
-			<PdfViewer
-				pages={pages}
-				magnifier={{ mode: 'config' }}
-				onMagnifierChange={setState}
-				className="w-full"
-			/>
+			<PdfViewer pages={pages} magnifier={{ mode: 'config' }} onMagnifierChange={setState} />
 		</Example>
 	)
 }
@@ -260,7 +262,7 @@ function MagnifierConfigExample() {
 function EmptyExample() {
 	return (
 		<Example title="Empty">
-			<PdfViewer pages={[]} className="w-full" />
+			<PdfViewer pages={[]} />
 		</Example>
 	)
 }

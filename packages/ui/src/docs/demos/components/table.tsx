@@ -23,55 +23,49 @@ export function Demo() {
 				of="Table"
 				omit={['bleed']}
 				render={(props) => (
-					<div className="w-96 max-w-full">
-						<Table {...props}>
-							<TableHead>
-								<TableRow>
-									<TableHeader>Name</TableHeader>
-									<TableHeader>Role</TableHeader>
+					<Table {...props}>
+						<TableHead>
+							<TableRow>
+								<TableHeader>Name</TableHeader>
+								<TableHeader>Role</TableHeader>
+							</TableRow>
+						</TableHead>
+						<TableBody>
+							{users.map((user) => (
+								<TableRow key={user.email}>
+									<TableCell>{user.name}</TableCell>
+									<TableCell>{user.role}</TableCell>
 								</TableRow>
-							</TableHead>
-							<TableBody>
-								{users.map((user) => (
-									<TableRow key={user.email}>
-										<TableCell>{user.name}</TableCell>
-										<TableCell>{user.role}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					</div>
+							))}
+						</TableBody>
+					</Table>
 				)}
 			/>
 
 			<Example title="Loading">
-				<div className="w-full">
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableHeader>Name</TableHeader>
-								<TableHeader>Email</TableHeader>
-								<TableHeader>Role</TableHeader>
-							</TableRow>
-						</TableHead>
-						<TableLoading columns={3} />
-					</Table>
-				</div>
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Email</TableHeader>
+							<TableHeader>Role</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableLoading columns={3} />
+				</Table>
 			</Example>
 
 			<Example title="Empty">
-				<div className="w-full">
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableHeader>Name</TableHeader>
-								<TableHeader>Email</TableHeader>
-								<TableHeader>Role</TableHeader>
-							</TableRow>
-						</TableHead>
-						<TableEmpty columns={3} />
-					</Table>
-				</div>
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Email</TableHeader>
+							<TableHeader>Role</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableEmpty columns={3} />
+				</Table>
 			</Example>
 		</>
 	)

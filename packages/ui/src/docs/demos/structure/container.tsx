@@ -10,7 +10,7 @@ export function Demo() {
 			omit={['size']}
 			render={(props, label) => (
 				// The dashed frame shows the padding. The padding applies only from the `lg` breakpoint up.
-				<div className="w-full rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
+				<div className="rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
 					<Container {...props}>
 						<div className="rounded-md bg-zinc-950/5 px-3 py-2 text-sm dark:bg-white/10">
 							{label}

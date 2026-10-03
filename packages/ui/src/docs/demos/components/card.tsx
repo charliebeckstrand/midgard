@@ -34,7 +34,7 @@ export function Demo() {
 				of="Card"
 				captions={false}
 				render={(props, label) => (
-					<Card {...props} className="w-64">
+					<Card {...props}>
 						<CardHeader>
 							<CardTitle>{label}</CardTitle>
 							<CardDescription>Manage your project configuration.</CardDescription>
@@ -52,7 +52,7 @@ export function Demo() {
 				title="Card title"
 				omit={['level']}
 				render={(props, label) => (
-					<Card className="w-64">
+					<Card>
 						<CardHeader>
 							<CardTitle {...props}>{label}</CardTitle>
 						</CardHeader>

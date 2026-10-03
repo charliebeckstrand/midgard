@@ -137,8 +137,11 @@ export function Demo() {
 		</Sidebar>
 	)
 
+	// The demo is the shell of a page, so the frame is resizable, and the shell
+	// fills it.
 	return (
 		<Example
+			resize
 			actions={
 				<OptionsListbox
 					label="Density"
@@ -148,7 +151,7 @@ export function Demo() {
 				/>
 			}
 		>
-			<Stack gap="md" full>
+			<Stack gap="md">
 				<DensityProvider density={density}>
 					{/* The layout can pin itself to the viewport. Layout containment makes
 					    this box the containing block of the pinned layout, so the demo stays

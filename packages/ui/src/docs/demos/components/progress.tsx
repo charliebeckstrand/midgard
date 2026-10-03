@@ -21,12 +21,7 @@ export function Demo() {
 							<Axes
 								of="ProgressBar"
 								render={(props, label) => (
-									<ProgressBar
-										{...props}
-										value={60}
-										className="w-48"
-										aria-label={`${label} progress`}
-									/>
+									<ProgressBar {...props} value={60} aria-label={`${label} progress`} />
 								)}
 							/>
 
@@ -42,7 +37,7 @@ export function Demo() {
 									/>
 								}
 							>
-								<ProgressBar value={barValue} className="w-48" aria-label="Progress" />
+								<ProgressBar value={barValue} aria-label="Progress" />
 							</Example>
 						</Stack>
 					</TabContent>

@@ -67,20 +67,18 @@ export function Demo() {
 				of="Listbox"
 				omit={['placement', 'open', 'multiple', 'required', 'nullable']}
 				render={(props, label) => (
-					<div className="w-48">
-						<Listbox
-							{...props}
-							aria-label={label}
-							defaultValue={stages[0]}
-							displayValue={(v: string) => v}
-						>
-							{stages.map((stage) => (
-								<ListboxOption key={stage} value={stage}>
-									<ListboxLabel>{stage}</ListboxLabel>
-								</ListboxOption>
-							))}
-						</Listbox>
-					</div>
+					<Listbox
+						{...props}
+						aria-label={label}
+						defaultValue={stages[0]}
+						displayValue={(v: string) => v}
+					>
+						{stages.map((stage) => (
+							<ListboxOption key={stage} value={stage}>
+								<ListboxLabel>{stage}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
 				)}
 			/>
 

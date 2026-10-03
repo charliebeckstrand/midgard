@@ -32,14 +32,12 @@ export function Demo() {
 				of="PivotTable"
 				omit={['bleed']}
 				render={(props) => (
-					<div className="w-96 max-w-full">
-						<PivotTable
-							{...props}
-							rows={loads}
-							keys={{ row: 'lane', column: 'period', value: 'loads' }}
-							rowHeader="Lane"
-						/>
-					</div>
+					<PivotTable
+						{...props}
+						rows={loads}
+						keys={{ row: 'lane', column: 'period', value: 'loads' }}
+						rowHeader="Lane"
+					/>
 				)}
 			/>
 
