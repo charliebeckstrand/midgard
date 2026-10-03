@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from 'react'
 import { Links, Meta, Scripts, ScrollRestoration } from 'react-router'
 import fontUrl from '../../fonts/google-sans-flex.woff2?url'
+import { CurrentScrollScript } from '../../primitives/current'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
 import { App } from '../engine/app'
@@ -32,6 +33,9 @@ export const links = () => [
 	{ rel: 'stylesheet', href: appCss },
 ]
 
+// The id of the last script that must run before the first paint.
+const FIRST_PAINT = 'first-paint'
+
 export function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" className="antialiased" suppressHydrationWarning>
@@ -39,6 +43,10 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta charSet="UTF-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 				<title>Docs</title>
+				{/* The page paints only when the parser reaches the script with this id.
+				    Without it, the browser paints the part of the page that it has, and
+				    the sidebar shows before the main panel. */}
+				<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
 				<AppearanceScript />
 				<DebugScript />
 				<Meta />
@@ -51,6 +59,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				{children}
 				<AxesReadsScript />
 				<ScrollRestoration />
+				<CurrentScrollScript id={FIRST_PAINT} />
 				<Scripts />
 			</body>
 		</html>
