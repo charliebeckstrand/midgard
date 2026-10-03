@@ -2,11 +2,8 @@
 
 import { Project } from 'ts-morph'
 import { bench, describe } from 'vitest'
-import {
-	DOCUMENTED_ROOTS,
-	openProject,
-	tsConfigPathFor,
-} from '../../docs/engine/api-reference/engine/build-api'
+import { DOCUMENTED_ROOTS } from '../../docs/engine/api-reference/engine/barrels'
+import { openProject, tsConfigPathFor } from '../../docs/engine/api-reference/engine/build-api'
 import { srcDir } from './paths'
 
 // Hypothesis suite for `openProject` (`build-api.ts`): project construction is
