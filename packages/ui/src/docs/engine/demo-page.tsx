@@ -1,5 +1,3 @@
-'use client'
-
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { Fragment, Suspense, use } from 'react'
 import { Button } from '../../components/button'

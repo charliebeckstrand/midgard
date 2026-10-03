@@ -46,9 +46,9 @@ import {
 
 // Every map demo renders in the same fixed-width, resizable frame so its
 // responsive behavior is visible at a glance. Wrapping the engine Example once
-// here injects those defaults into all the `<Example>` call sites below —
-// including AnimatedExample's — without repeating the props on each. A call site
-// can still override either default by passing its own `width`/`resize`.
+// here injects those defaults into all the `<Example>` call sites below,
+// without repeating the props on each. A call site can still override either
+// default by passing its own `width`/`resize`.
 function Example(props: ComponentProps<typeof ExampleFrame>) {
 	return <ExampleFrame width={720} resize {...props} />
 }

@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Project } from 'ts-morph'
 import type { ComponentApi } from '../../docs/engine/api-reference'
-import { extractBarrel, openProject } from '../../docs/engine/api-reference/engine/build-api'
+import { listBarrels } from '../../docs/engine/api-reference/engine/barrels'
+import { apiRecord } from './api-record'
 import { settled } from './settled'
 
 // The docs plugin serves no API data in a test run, so `<Axes>` renders nothing
@@ -11,9 +11,6 @@ import { settled } from './settled'
 // `<Axes>` the data that the site ships for its barrel.
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
-
-// One project for each worker. It opens on the first page that needs it.
-let project: Project | undefined
 
 /**
  * The API data of the barrel that a page documents, for `DemoApiContext`. It
@@ -32,11 +29,9 @@ export function demoApiOf(page: string): Promise<ComponentApi[]> | null {
 
 	const indexPath = join(SRC, page, 'index.ts')
 
-	if (!existsSync(indexPath)) return null
+	const barrel = listBarrels(SRC).find((candidate) => candidate.indexPath === indexPath)
 
-	project ??= openProject(SRC)
+	if (!barrel) return null
 
-	const api = extractBarrel(project, project.getTypeChecker().compilerObject, indexPath)
-
-	return settled(api ?? [])
+	return settled(apiRecord()[barrel.key] ?? [])
 }

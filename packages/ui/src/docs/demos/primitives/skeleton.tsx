@@ -53,8 +53,6 @@ import { ReadyReveal } from '../../../primitives/ready-reveal'
 import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
-export const meta = { name: 'Skeleton' }
-
 // Compose loading trees explicitly: each component ships a `<XSkeleton>`
 // counterpart mirroring its silhouette. The variants are static leaves, so
 // a Suspense fallback or loading.tsx can server-render them.

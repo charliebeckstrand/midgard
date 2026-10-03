@@ -1,5 +1,3 @@
-'use client'
-
 import { Markdown } from '../../../../components/markdown'
 import { linksToMarkdown } from '../../api-reference/link-syntax'
 

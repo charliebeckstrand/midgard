@@ -28,10 +28,9 @@ jobs:
       # turbo.json and knip.json. `biome ci` also writes its findings as
       # annotations on the pull request.
       - run: pnpm biome ci .
-      # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
-      # orders them; see bundle-budget.ts for what it asserts and why. The
-      # tests run in the `test` job below, and the builds in the `build` job.
-      - run: pnpm turbo run check-types knip bundle:budget --summarize
+      # The tests run in the `test` job below, the builds in the `build` job,
+      # and the docs build and its budget in the `browser` job.
+      - run: pnpm turbo run check-types knip --summarize
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
@@ -115,6 +114,15 @@ jobs:
           key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
+      # The disk cache of the docs API extractor, for the docs tests that read
+      # the API record (`src/__tests__/helpers/api-record.ts`). See the same
+      # step in `browser`.
+      - uses: actions/cache@v6
+        with:
+          path: packages/ui/node_modules/.cache/docs-api-reference
+          key: ${{ runner.os }}-docs-api-test-${{ matrix.shard }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docs-api-test-${{ matrix.shard }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The other packages have few test files, and a shard of them can be
       # empty. The first shard runs them whole.
@@ -164,10 +172,24 @@ jobs:
       # library, Chromium does not launch, and the error names the library.
       # Put `--with-deps` back then.
       - run: pnpm --filter ui exec playwright install chromium
+      # The disk cache of the docs API extractor. A cold extraction took about
+      # 9s of the docs build, and a read of the cache took under 1s. The cache
+      # stores the hash of each input file and a fingerprint of the extractor,
+      # the tsconfig chain, and the lockfile, and it is not used when one of
+      # them changed. A prefix restore is therefore safe. The SHA makes each
+      # run save what it wrote for the next run to restore.
+      - uses: actions/cache@v6
+        with:
+          path: packages/ui/node_modules/.cache/docs-api-reference
+          key: ${{ runner.os }}-docs-api-browser-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docs-api-browser-
       # Filtered to `ui`, as in `compiler`. `docs:hydration` loads prerendered
-      # docs pages in the same Chromium. It depends on `docs:build`, so this job
-      # builds the docs too.
-      - run: pnpm turbo run test:browser docs:hydration --filter=ui --summarize
+      # docs pages in the same Chromium, and `bundle:budget` measures the same
+      # build (see bundle-budget.ts for what it asserts and why). Both depend
+      # on `docs:build`, so this job builds the docs one time. Before, `gate`
+      # also built them for the budget.
+      - run: pnpm turbo run test:browser docs:hydration bundle:budget --filter=ui --summarize
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 

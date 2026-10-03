@@ -61,8 +61,8 @@ export function defineDocsConfig({
 			docsPlugin({ packageName, srcDir }),
 			reactRouter(),
 			tailwindcss(),
-			analyze &&
-				visualizer({
+			analyze && {
+				...visualizer({
 					// Filenames resolve against the process cwd, not the Vite root, so
 					// this lands next to the build output at <root>/dist/.
 					filename: `${root}/dist/stats.html`,
@@ -71,6 +71,10 @@ export function defineDocsConfig({
 					brotliSize: true,
 					sourcemap: true,
 				}),
+				// The server build runs after the client build and writes the same
+				// file. The report shows the client bundle only.
+				applyToEnvironment: (environment) => environment.name === 'client',
+			},
 		],
 		server: {
 			port: 3456,

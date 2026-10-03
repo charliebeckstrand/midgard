@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-@source '../';
-
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* JsonTree: merge adjacent highlighted rows into one visual block.

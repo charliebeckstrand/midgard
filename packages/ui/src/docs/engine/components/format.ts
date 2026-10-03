@@ -1,7 +1,4 @@
-/** Uppercase the first character; pass the rest through. */
-export function capitalize(s: string): string {
-	return s.charAt(0).toUpperCase() + s.slice(1)
-}
+import { capitalizeFirst } from '../../../utilities'
 
 /** Title-case a hyphenated identifier: 'components' → 'Components', 'data-display' → 'Data Display'. */
 export function titleCase(s: string): string {
@@ -33,7 +30,7 @@ export function humanize(identifier: string): string {
 		.trim()
 		.toLowerCase()
 
-	return capitalize(words)
+	return capitalizeFirst(words)
 }
 
 /**

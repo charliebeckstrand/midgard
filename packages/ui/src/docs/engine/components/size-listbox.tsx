@@ -1,5 +1,4 @@
-'use client'
-
+import type { ListboxProps } from '../../../components/listbox'
 import { sizeLabels } from './format'
 import { OptionsListbox } from './options-listbox'
 
@@ -8,7 +7,7 @@ type SizeListboxProps<T extends string> = {
 	/** The picker's accessible name. Defaults to `Size`. */
 	label?: string
 	value: T
-	placement?: 'bottom-start' | 'bottom-end' | 'bottom-auto'
+	placement?: ListboxProps<T>['placement']
 	onValueChange: (value: T) => void
 }
 

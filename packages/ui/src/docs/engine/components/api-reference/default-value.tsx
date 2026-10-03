@@ -1,5 +1,3 @@
-'use client'
-
 import type { ReactNode } from 'react'
 import { cn } from '../../../../core'
 import { parseLinkToken } from '../../api-reference/link-syntax'

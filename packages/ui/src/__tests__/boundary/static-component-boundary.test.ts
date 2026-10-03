@@ -82,7 +82,6 @@ const STATIC_COMPONENT_FILES = [
 	'text/text.tsx',
 ] as const
 
-// Paths are relative to `src/primitives`.
 // Every `structure` file is static: layout scaffolding takes props and
 // returns markup. Paths are relative to `src/structure`.
 const STATIC_STRUCTURE_FILES = [
@@ -94,6 +93,7 @@ const STATIC_STRUCTURE_FILES = [
 	'stack/stack.tsx',
 ] as const
 
+// Paths are relative to `src/primitives`.
 const STATIC_PRIMITIVE_FILES = [
 	'polymorphic/polymorphic-static.tsx',
 	'polymorphic/types.ts',

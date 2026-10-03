@@ -1,7 +1,10 @@
-'use client'
-
 import type { ReactNode } from 'react'
-import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
+import {
+	Listbox,
+	ListboxLabel,
+	ListboxOption,
+	type ListboxProps,
+} from '../../../components/listbox'
 
 /** One selectable option: the token `value` and its display `label`. */
 type LabeledOption<T extends string> = { value: T; label: string }
@@ -13,7 +16,7 @@ type OptionsListboxProps<T extends string> = {
 	value: T
 	/** Content before the value in the trigger, such as a visible name for the picker. */
 	prefix?: ReactNode
-	placement?: 'bottom-start' | 'bottom-end' | 'bottom-auto'
+	placement?: ListboxProps<T>['placement']
 	onValueChange: (value: T) => void
 }
 

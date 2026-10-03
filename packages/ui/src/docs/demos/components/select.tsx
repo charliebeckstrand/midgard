@@ -6,7 +6,6 @@ import {
 	SelectOption,
 	SelectText,
 } from '../../../components/select'
-import { Stack } from '../../../structure/stack'
 import { Axes, Example } from '../../engine'
 
 // The selected value starts in lower case and is long, so the `capitalize` and
@@ -15,7 +14,7 @@ const stages = ['awaiting approval from finance', 'in review', 'shipped']
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Axes
 				of="Select"
 				omit={['placement', 'open', 'multiple', 'required', 'nullable']}
@@ -81,6 +80,6 @@ export function Demo() {
 					</Select>
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

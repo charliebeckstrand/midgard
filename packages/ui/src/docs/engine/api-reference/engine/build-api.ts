@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { Node, Project, type SourceFile, SyntaxKind, ts } from 'ts-morph'
 import type { ComponentApi } from '../types'
+import { listBarrels } from './barrels'
 import { extractDefaults } from './extract-defaults'
 import { extractDocFromText } from './extract-doc'
 import { extractPassThrough } from './extract-passthrough'
@@ -17,51 +18,12 @@ import {
 } from './find-components'
 
 /**
- * The documented roots and the key prefix each barrel takes. Components key by
- * bare directory name. Modules and structure units namespace their key as
- * `<root>-<name>` to match the demo id (`pathToId('demos/modules/<name>')`).
- */
-export const DOCUMENTED_ROOTS = [
-	['components', ''],
-	['modules', 'modules-'],
-	['structure', 'structure-'],
-] as const
-
-/**
  * The `tsconfig.json` a Project for `srcDir` opens, one level above it. The
  * docs benchmarks A/B alternative constructions against {@link openProject},
  * and that comparison only holds while both sides open the same config.
  */
 export function tsConfigPathFor(srcDir: string): string {
 	return path.resolve(srcDir, '..', 'tsconfig.json')
-}
-
-/** One documentable barrel: its result key and the `index.ts` that exports it. */
-export type Barrel = { key: string; indexPath: string }
-
-/**
- * List every documentable barrel under `<srcDir>/components`,
- * `<srcDir>/modules`, and `<srcDir>/structure` in a stable order, keyed to match the demo ids. Missing
- * roots and directories without an `index.ts` are skipped.
- */
-export function listBarrels(srcDir: string): Barrel[] {
-	const barrels: Barrel[] = []
-
-	for (const [root, prefix] of DOCUMENTED_ROOTS) {
-		const rootDir = path.join(srcDir, root)
-
-		if (!fs.existsSync(rootDir)) continue
-
-		for (const dir of fs.readdirSync(rootDir, { withFileTypes: true })) {
-			if (!dir.isDirectory()) continue
-
-			const indexPath = path.join(rootDir, dir.name, 'index.ts')
-
-			if (fs.existsSync(indexPath)) barrels.push({ key: `${prefix}${dir.name}`, indexPath })
-		}
-	}
-
-	return barrels
 }
 
 /**

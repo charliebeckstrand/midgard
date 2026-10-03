@@ -1,5 +1,3 @@
-'use client'
-
 import { Link } from '../../../../components/link'
 import { MarkdownInline } from '../../../../components/markdown'
 import type { LinkToken } from '../../api-reference/link-syntax'

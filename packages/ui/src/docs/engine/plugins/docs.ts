@@ -1,9 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import ts from '@typescript/typescript6'
-import { Node, Project, SyntaxKind } from 'ts-morph'
 import type { Plugin } from 'vite'
-import { type ApiExtractorWorker, listBarrels, startApiExtractorWorker } from '../api-reference'
+import { listBarrels } from '../api-reference/engine/barrels'
+import {
+	type ApiExtractorWorker,
+	startApiExtractorWorker,
+} from '../api-reference/engine/extractor-worker'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { isPascalCase } from '../identifiers'
 import { collectHelpers } from './collect-helpers'
@@ -23,32 +26,39 @@ function isMetaKey(key: string): key is keyof DemoMeta {
  * Parse `export const meta = { name?: '...', category?: '...' }` out of a demo source file.
  * Drops unknown keys and non-string-literal values.
  */
-function parseMeta(project: Project, fileName: string, source: string): DemoMeta {
-	const sf = project.createSourceFile(fileName, source, { overwrite: true })
+function parseMeta(fileName: string, source: string): DemoMeta {
+	const sf = parseSource(fileName, source)
 
-	const decl = sf.getVariableDeclaration('meta')
+	for (const stmt of sf.statements) {
+		if (!ts.isVariableStatement(stmt)) continue
 
-	if (!decl?.isExported()) return {}
+		const exported = stmt.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false
 
-	const init = decl.getInitializerIfKind(SyntaxKind.ObjectLiteralExpression)
+		const decl = stmt.declarationList.declarations.find(
+			(d) => ts.isIdentifier(d.name) && d.name.text === 'meta',
+		)
 
-	if (!init) return {}
+		if (!decl) continue
 
-	const meta: DemoMeta = {}
+		if (!exported || !decl.initializer || !ts.isObjectLiteralExpression(decl.initializer)) return {}
 
-	for (const prop of init.getProperties()) {
-		if (!Node.isPropertyAssignment(prop)) continue
+		const meta: DemoMeta = {}
 
-		const key = prop.getName()
+		for (const prop of decl.initializer.properties) {
+			if (!ts.isPropertyAssignment(prop)) continue
 
-		if (!isMetaKey(key)) continue
+			const key =
+				ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name) ? prop.name.text : undefined
 
-		const value = prop.getInitializerIfKind(SyntaxKind.StringLiteral)
+			if (!key || !isMetaKey(key)) continue
 
-		if (value) meta[key] = value.getLiteralText()
+			if (ts.isStringLiteral(prop.initializer)) meta[key] = prop.initializer.text
+		}
+
+		return meta
 	}
 
-	return meta
+	return {}
 }
 
 /**
@@ -119,14 +129,7 @@ function generateDemoMetas(
 	demosDir: string,
 	cache: DemoParseCache<DemoMeta>,
 ): Record<string, DemoMeta> {
-	// Created on the first parse, so a pass that reuses every parse opens none.
-	let project: Project | undefined
-
-	const parsed = parseDemoFiles(demosDir, cache, (full, source) => {
-		project ??= new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
-
-		return parseMeta(project, full, source)
-	})
+	const parsed = parseDemoFiles(demosDir, cache, parseMeta)
 
 	return Object.fromEntries(
 		[...parsed].map(([full, meta]) => [
