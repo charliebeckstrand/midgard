@@ -114,6 +114,23 @@ function scrollTarget(target: EventTarget | null) {
 		: describe(target)
 }
 
+/**
+ * The sizes of the two viewports and the focused element: the height of the
+ * layout viewport (`inner`), the height and the top of the visual viewport
+ * (`visual`), and `focus` when an element other than the body has the focus.
+ */
+function viewport() {
+	const visual = window.visualViewport
+
+	const box = visual ? ` visual ${Math.round(visual.height)}@${Math.round(visual.offsetTop)}` : ''
+
+	const active = document.activeElement
+
+	const focus = active && active !== document.body ? ` focus ${describe(active)}` : ''
+
+	return `inner ${window.innerHeight}${box}${focus}`
+}
+
 /** The first two frames of the caller of a patched method, with the file names cut to the last part. */
 function caller() {
 	return (new Error().stack ?? '')
@@ -382,7 +399,7 @@ function listen() {
 
 	for (const type of EVENTS) document.addEventListener(type, onEvent, options)
 
-	const onResize = () => write('viewport resize')
+	const onResize = () => write(`viewport resize ${viewport()}`)
 
 	window.visualViewport?.addEventListener('resize', onResize)
 
@@ -393,7 +410,7 @@ function listen() {
 	const onScroll = (event: Event) => {
 		if (paused) return
 
-		if (!scrolling) write(`scroll starts ${scrollTarget(event.target)}`)
+		if (!scrolling) write(`scroll starts ${scrollTarget(event.target)} ${viewport()}`)
 
 		clearTimeout(scrolling)
 
