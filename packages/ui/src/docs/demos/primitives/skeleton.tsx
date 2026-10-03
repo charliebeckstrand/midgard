@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AccordionSkeleton } from '../../../components/accordion'
 import { Avatar, AvatarSkeleton } from '../../../components/avatar'
 import { BadgeSkeleton } from '../../../components/badge'
 import { BreadcrumbSkeleton } from '../../../components/breadcrumb'
@@ -20,12 +21,14 @@ import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
 import { KanbanCardSkeleton } from '../../../components/kanban'
 import { ListSkeleton } from '../../../components/list'
+import { NavSkeleton } from '../../../components/nav'
 import { PaginationSkeleton } from '../../../components/pagination'
 import { ProgressBarSkeleton, ProgressGaugeSkeleton } from '../../../components/progress'
 import { RadioSkeleton } from '../../../components/radio'
 import { RatingSkeleton } from '../../../components/rating'
 import { SegmentSkeleton } from '../../../components/segment'
 import { ShinyTextSkeleton } from '../../../components/shiny-text'
+import { SidebarSkeleton } from '../../../components/sidebar'
 import { SliderSkeleton } from '../../../components/slider'
 import { SparklineSkeleton } from '../../../components/sparkline'
 import {
@@ -44,6 +47,7 @@ import { TimelineSkeleton } from '../../../components/timeline'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { TreeSkeleton } from '../../../components/tree'
 import { ChartSkeleton } from '../../../modules/chart'
+import { ChatTranscriptSkeleton } from '../../../modules/chat'
 import { MapSkeleton } from '../../../modules/map'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
 import { Flex } from '../../../structure/flex'
@@ -55,6 +59,7 @@ export const meta = { name: 'Skeleton' }
 // counterpart mirroring its silhouette. The variants are static leaves, so
 // a Suspense fallback or loading.tsx can server-render them.
 const skeletonVariants = [
+	{ name: 'Accordion', skeleton: <AccordionSkeleton /> },
 	{ name: 'Avatar', skeleton: <AvatarSkeleton /> },
 	{ name: 'Badge', skeleton: <BadgeSkeleton /> },
 	{ name: 'Breadcrumb', skeleton: <BreadcrumbSkeleton /> },
@@ -62,6 +67,7 @@ const skeletonVariants = [
 	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
 	{ name: 'Chart', skeleton: <ChartSkeleton /> },
 	{ name: 'Chart (pie)', skeleton: <ChartSkeleton sector /> },
+	{ name: 'Chat transcript', skeleton: <ChatTranscriptSkeleton /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
@@ -71,6 +77,7 @@ const skeletonVariants = [
 	{ name: 'Kanban card', skeleton: <KanbanCardSkeleton /> },
 	{ name: 'List', skeleton: <ListSkeleton description /> },
 	{ name: 'Map', skeleton: <MapSkeleton /> },
+	{ name: 'Nav', skeleton: <NavSkeleton /> },
 	{ name: 'Pagination', skeleton: <PaginationSkeleton /> },
 	{ name: 'Progress bar', skeleton: <ProgressBarSkeleton /> },
 	{ name: 'Progress gauge', skeleton: <ProgressGaugeSkeleton /> },
@@ -78,6 +85,7 @@ const skeletonVariants = [
 	{ name: 'Rating', skeleton: <RatingSkeleton /> },
 	{ name: 'Segment', skeleton: <SegmentSkeleton /> },
 	{ name: 'Shiny text', skeleton: <ShinyTextSkeleton /> },
+	{ name: 'Sidebar', skeleton: <SidebarSkeleton /> },
 	{ name: 'Slider', skeleton: <SliderSkeleton /> },
 	{ name: 'Sparkline', skeleton: <SparklineSkeleton /> },
 	{ name: 'Stat', skeleton: <StatSkeleton delta description /> },

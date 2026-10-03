@@ -21,6 +21,13 @@
  * the radio, a check that a script undoes, or a check that the page does not
  * paint.
  *
+ * Each line also gives the scroll position of the page (`y`). A scroll gives
+ * the element that scrolls, or `page`. A script call that scrolls or moves
+ * the focus (`scrollTo`, `scrollBy`, `scroll`, `scrollIntoView`, `focus`)
+ * writes a line with its target and the first frames of its caller, and a
+ * change to the height of the page writes a line. Thus the log shows what
+ * moves the page when no tap occurs.
+ *
  * "Copy" puts the log on the clipboard, so a report can carry the text.
  */
 
@@ -81,7 +88,7 @@ function write(text: string) {
 
 	const scale = (window.visualViewport?.scale ?? 1).toFixed(2)
 
-	lines.push(`${time} z${scale} ${text}`)
+	lines.push(`${time} z${scale} y${Math.round(window.scrollY)} ${text}`)
 
 	if (lines.length > 300) lines.shift()
 
@@ -98,6 +105,63 @@ function describe(target: EventTarget | null) {
 	const value = target instanceof HTMLInputElement && target.value ? `=${target.value}` : ''
 
 	return `${target.tagName.toLowerCase()}${slot ? `[${slot}]` : ''}${value}`
+}
+
+/** The name of the target of a scroll or of a scroll call: `page` for the document or the window. */
+function scrollTarget(target: EventTarget | null) {
+	return target === document || target === window || target === document.documentElement
+		? 'page'
+		: describe(target)
+}
+
+/** The first two frames of the caller of a patched method, with the file names cut to the last part. */
+function caller() {
+	return (new Error().stack ?? '')
+		.split('\n')
+		.map((frame) => frame.trim())
+		.filter((frame) => frame && frame !== 'Error' && !frame.includes('tap-log'))
+		.slice(0, 2)
+		.map((frame) => frame.replace(/https?:\/\/[^\s)]*\//g, ''))
+		.join(' < ')
+}
+
+type Patch = { owner: object; name: string; original: unknown }
+
+/**
+ * Writes a line when a script scrolls the page or an element, or moves the
+ * focus. The return value puts the native methods back.
+ */
+function watchScrollCalls() {
+	const patches: Patch[] = []
+
+	const patch = (owner: object, name: string) => {
+		const original: unknown = Reflect.get(owner, name)
+
+		if (typeof original !== 'function') return
+
+		patches.push({ owner, name, original })
+
+		Reflect.set(owner, name, function (this: unknown, ...args: unknown[]) {
+			if (!paused) {
+				const detail = args.length ? ` ${JSON.stringify(args)}` : ''
+
+				write(`  script ${name} ${scrollTarget(this as EventTarget)}${detail} from ${caller()}`)
+			}
+
+			return Reflect.apply(original as (...rest: unknown[]) => unknown, this, args)
+		})
+	}
+
+	for (const name of ['scrollTo', 'scrollBy', 'scroll']) patch(window, name)
+
+	for (const name of ['scrollTo', 'scrollBy', 'scroll', 'scrollIntoView'])
+		patch(Element.prototype, name)
+
+	patch(HTMLElement.prototype, 'focus')
+
+	return () => {
+		for (const { owner, name, original } of patches) Reflect.set(owner, name, original)
+	}
 }
 
 function radios() {
@@ -322,10 +386,10 @@ function listen() {
 	// for each scroll that starts shows such a tap.
 	let scrolling = 0
 
-	const onScroll = () => {
+	const onScroll = (event: Event) => {
 		if (paused) return
 
-		if (!scrolling) write('scroll starts')
+		if (!scrolling) write(`scroll starts ${scrollTarget(event.target)}`)
 
 		clearTimeout(scrolling)
 
@@ -340,6 +404,22 @@ function listen() {
 
 	const restoreChecked = watchCheckedWrites()
 
+	const restoreScrollCalls = watchScrollCalls()
+
+	let height = 0
+
+	const heights = new ResizeObserver(() => {
+		const next = Math.round(document.documentElement.scrollHeight)
+
+		if (next === height) return
+
+		height = next
+
+		if (!paused) write(`page height ${next}`)
+	})
+
+	heights.observe(document.documentElement)
+
 	write('tap log ready')
 
 	return () => {
@@ -352,6 +432,10 @@ function listen() {
 		clearTimeout(scrolling)
 
 		restoreChecked?.()
+
+		restoreScrollCalls()
+
+		heights.disconnect()
 
 		lines.length = 0
 

@@ -92,6 +92,7 @@
 		"build:dist": "tsup",
 		"dev": "vite --config vite.docs.config.ts",
 		"docs": "vite --config vite.docs.config.ts",
+		"fonts": "tsx scripts/fonts.ts",
 		"docs:build": "vite build --config vite.docs.config.ts",
 		"docs:analyze": "ANALYZE=1 vite build --config vite.docs.config.ts",
 		"docs:preview": "vite preview --config vite.docs.config.ts --port 3456",
@@ -145,6 +146,9 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.29.7",
+		"@capsizecss/core": "^4.1.3",
+		"@capsizecss/metrics": "^4.3.0",
+		"@capsizecss/unpack": "^4.0.1",
 		"@fast-check/vitest": "^0.5.0",
 		"@percy/cli": "^1.32.11",
 		"@percy/playwright": "^1.1.2",

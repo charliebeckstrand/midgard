@@ -1,6 +1,12 @@
-import { File } from 'lucide-react'
+import { File, Inbox, Settings, Star } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import {
+	Accordion,
+	AccordionItem,
+	AccordionSkeleton,
+	AccordionTrigger,
+} from '../../../components/accordion'
 import { Avatar, AvatarSkeleton } from '../../../components/avatar'
 import { Badge, BadgeSkeleton } from '../../../components/badge'
 import {
@@ -40,6 +46,7 @@ import {
 	KanbanColumnTitle,
 } from '../../../components/kanban'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
+import { Nav, NavItem, NavList, NavSkeleton } from '../../../components/nav'
 import {
 	Pagination,
 	PaginationList,
@@ -57,6 +64,13 @@ import {
 import { Radio, RadioSkeleton } from '../../../components/radio'
 import { Rating, RatingSkeleton } from '../../../components/rating'
 import { Segment, SegmentControl, SegmentItem, SegmentSkeleton } from '../../../components/segment'
+import {
+	Sidebar,
+	SidebarItem,
+	SidebarLabel,
+	SidebarList,
+	SidebarSkeleton,
+} from '../../../components/sidebar'
 import { Slider, SliderSkeleton } from '../../../components/slider'
 import { Sparkline, SparklineSkeleton } from '../../../components/sparkline'
 import {
@@ -87,6 +101,7 @@ import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import type { InnerStep } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
+import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
 import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { Box } from '../../../structure/box'
@@ -339,6 +354,159 @@ describe('skeleton parity (real browser)', () => {
 			),
 		).toStrictEqual(real)
 	})
+
+	const navRows = [
+		{ id: 'inbox', label: 'Inbox', icon: <Inbox /> },
+		{ id: 'starred', label: 'Starred', icon: <Star /> },
+		{ id: 'settings', label: 'Settings', icon: <Settings /> },
+	]
+
+	it.each(['sm', 'md', 'lg'] as const)(
+		'SidebarSkeleton has the box of a %s sidebar list',
+		(size) => {
+			const real = box(
+				renderUI(
+					<Box density={size}>
+						<Sidebar>
+							<SidebarList aria-label="Primary">
+								{navRows.map((row) => (
+									<SidebarItem key={row.id} href={`#${row.id}`} icon={row.icon}>
+										<SidebarLabel>{row.label}</SidebarLabel>
+									</SidebarItem>
+								))}
+							</SidebarList>
+						</Sidebar>
+					</Box>,
+				).container.querySelector('[data-slot="sidebar-list"]'),
+				'sidebar list',
+			)
+
+			expect(
+				box(
+					renderUI(
+						<Box density={size}>
+							<Sidebar>
+								<SidebarSkeleton items={3} />
+							</Sidebar>
+						</Box>,
+					).container.querySelector('[data-slot="sidebar"]')?.firstElementChild,
+					'skeleton',
+				),
+			).toStrictEqual(real)
+		},
+	)
+
+	it('SidebarSkeleton takes the step of its size, as the items do', () => {
+		const real = box(
+			renderUI(
+				<Sidebar>
+					<SidebarList aria-label="Primary">
+						{navRows.map((row) => (
+							<SidebarItem key={row.id} href={`#${row.id}`} icon={row.icon} size="lg">
+								<SidebarLabel>{row.label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarList>
+				</Sidebar>,
+			).container.querySelector('[data-slot="sidebar-list"]'),
+			'sidebar list',
+		)
+
+		expect(
+			box(
+				renderUI(
+					<Sidebar>
+						<SidebarSkeleton items={3} size="lg" />
+					</Sidebar>,
+				).container.querySelector('[data-slot="sidebar"]')?.firstElementChild,
+				'skeleton',
+			),
+		).toStrictEqual(real)
+	})
+
+	it.each([
+		['vertical', 'sm'],
+		['vertical', 'md'],
+		['vertical', 'lg'],
+		['horizontal', 'sm'],
+		['horizontal', 'md'],
+		['horizontal', 'lg'],
+	] as const)('NavSkeleton has the box of a %s nav list at %s', (orientation, size) => {
+		const real = box(
+			renderUI(
+				<Box density={size}>
+					<Nav>
+						<NavList orientation={orientation}>
+							{navRows.map((row) => (
+								<NavItem key={row.id} href={`#${row.id}`} icon={row.icon}>
+									{row.label}
+								</NavItem>
+							))}
+						</NavList>
+					</Nav>
+				</Box>,
+			).container.querySelector('[data-slot="nav-list"]'),
+			'nav list',
+		)
+
+		expect(
+			box(
+				renderUI(
+					<Box density={size}>
+						<Nav>
+							<NavSkeleton items={3} orientation={orientation} />
+						</Nav>
+					</Box>,
+				).container.querySelector('[data-slot="nav"]')?.firstElementChild,
+				'skeleton',
+			),
+		).toStrictEqual(real)
+	})
+
+	it.each([
+		['separated', 'sm'],
+		['separated', 'md'],
+		['separated', 'lg'],
+		['outline', 'sm'],
+		['outline', 'md'],
+		['outline', 'lg'],
+		['plain', 'sm'],
+		['plain', 'md'],
+		['plain', 'lg'],
+	] as const)(
+		'AccordionSkeleton has the box of a collapsed %s accordion at %s',
+		(variant, size) => {
+			const real = box(
+				renderUI(
+					<Box density={size}>
+						<Accordion type="single" variant={variant}>
+							<AccordionItem value="shipping">
+								<AccordionTrigger>Shipping</AccordionTrigger>
+							</AccordionItem>
+							<AccordionItem value="returns">
+								<AccordionTrigger>Returns</AccordionTrigger>
+							</AccordionItem>
+							<AccordionItem value="warranty">
+								<AccordionTrigger>Warranty</AccordionTrigger>
+							</AccordionItem>
+						</Accordion>
+					</Box>,
+				).container.querySelector('[data-slot="accordion"]'),
+				'accordion',
+			)
+
+			expect(
+				box(
+					renderUI(
+						<Box density={size}>
+							<AccordionSkeleton items={3} variant={variant} />
+						</Box>,
+					).container.firstElementChild?.firstElementChild,
+					'skeleton',
+				),
+			).toStrictEqual(real)
+		},
+	)
 
 	it.each(['xs', 'sm', 'md', 'lg'] as const)(
 		'TextSkeleton has the line height of %s text',
@@ -637,6 +805,39 @@ describe('skeleton parity (real browser)', () => {
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
 	})
+
+	// A transcript has no fixed height, so this compares one bubble of each side. The real
+	// bubble holds as many lines as the skeleton bubble of its side: one for the user, and two for
+	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges.
+	it.each([
+		['user', 0, 'right', 'Where are the stops?'],
+		['assistant', 1, 'left', 'Here are the stops.\nTwo of them run late.'],
+	] as const)(
+		'ChatTranscriptSkeleton has the %s bubble of a transcript',
+		(role, index, edge, text) => {
+			const real = present(
+				renderUI(
+					<div className="w-120">
+						<ChatMessage role={role}>{text}</ChatMessage>
+					</div>,
+				).container.querySelector('[data-slot="chat-message-bubble"]'),
+				'bubble',
+			).getBoundingClientRect()
+
+			const skeleton = present(
+				renderUI(
+					<div className="w-120">
+						<ChatTranscriptSkeleton messages={2} />
+					</div>,
+				).container.querySelectorAll('[data-slot="placeholder"]')[index]?.parentElement,
+				'skeleton bubble',
+			).getBoundingClientRect()
+
+			expect(skeleton.height).toBeNear(real.height, PIXEL)
+
+			expect(skeleton[edge]).toBeNear(real[edge], PIXEL)
+		},
+	)
 
 	// A chart sizes its box from its width after it measures, so the test waits until the chart
 	// settles at the box of its skeleton. Density does not change the height of a chart, so each

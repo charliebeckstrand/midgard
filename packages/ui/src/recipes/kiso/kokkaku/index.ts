@@ -10,12 +10,14 @@
  * bundle.
  */
 
+import { accordion } from './accordion'
 import { avatar } from './avatar'
 import { badge } from './badge'
 import { breadcrumb } from './breadcrumb'
 import { button } from './button'
 import { calendar } from './calendar'
 import { chart } from './chart'
+import { chat } from './chat'
 import { checkbox } from './checkbox'
 import { colorPanel } from './color-panel'
 import { control } from './control'
@@ -24,6 +26,7 @@ import { heading } from './heading'
 import { kanban } from './kanban'
 import { list } from './list'
 import { map } from './map'
+import { nav } from './nav'
 import { pagination } from './pagination'
 import { progress } from './progress'
 import { radio } from './radio'
@@ -42,12 +45,14 @@ import { toggleIconButton } from './toggle-icon-button'
 import { tree } from './tree'
 
 export const kokkaku = {
+	accordion,
 	avatar,
 	badge,
 	breadcrumb,
 	button,
 	calendar,
 	chart,
+	chat,
 	checkbox,
 	colorPanel,
 	control,
@@ -56,6 +61,7 @@ export const kokkaku = {
 	kanban,
 	list,
 	map,
+	nav,
 	pagination,
 	progress,
 	radio,

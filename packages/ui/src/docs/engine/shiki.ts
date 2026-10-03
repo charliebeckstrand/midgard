@@ -1,53 +1,99 @@
-import shellscript from '@shikijs/langs-precompiled/shellscript'
-import tsx from '@shikijs/langs-precompiled/tsx'
-import typescript from '@shikijs/langs-precompiled/typescript'
 import type { CodeToHastOptions } from 'shiki/core'
-import { createHighlighterCore } from 'shiki/core'
-import { createJavaScriptRawEngine } from 'shiki/engine/javascript'
-import githubDarkDefault from 'shiki/themes/github-dark-default.mjs'
+import type { WorkerReply, WorkerRequest } from './shiki-worker'
 
-// Curated Shiki build for the docs site, aliased over the bare `shiki`
-// specifier by the docs engine (see engine/vite/index.ts). The public
-// CodeBlock highlights only tsx, typescript, and the lone `lang="bash"` demo
-// with github-dark-default, so we register those three grammars and one theme
-// against `shiki/core` instead of pulling `shiki/bundle/web` — that bundle ships
-// ~50 grammars (cpp, php, blade, julia, vue-vine…), ~30 themes, and a 622 kB
-// oniguruma-wasm chunk, none of which the docs reach.
+// The `shiki` module of the docs site. The docs engine aliases it over the bare
+// `shiki` specifier (see engine/vite/index.ts), so `CodeBlock` calls this
+// `codeToHtml` through its lazy `import('shiki')`.
+//
+// The highlighter runs in a worker. A first tokenization of a grammar compiles
+// its RegExps, and on a phone at 4x CPU that took up to 1.2 s on the main
+// thread. In the worker, the warm-up and each block cost the page only a
+// message.
 
-// The grammars come precompiled: their Oniguruma patterns are already JS
-// RegExp source, so the raw engine does not translate each rule on its first
-// use. That translation was about 40% of the first highlight on a demo page. The
-// engine tokenizes in-process, so no oniguruma-wasm chunk is emitted or
-// prebundled.
-const engine = createJavaScriptRawEngine()
+type Pending = { resolve: (html: string) => void; reject: (reason: unknown) => void }
 
-// Memoize the in-flight promise so the highlighter (and its grammars) is built
-// at most once, mirroring the lazy `import('shiki')` boundary in CodeBlock.
-let highlighter: ReturnType<typeof createHighlighterCore> | null = null
+let worker: Worker | null = null
 
-function getHighlighter() {
-	if (!highlighter) {
-		highlighter = createHighlighterCore({
-			langs: [tsx, typescript, shellscript],
-			themes: [githubDarkDefault],
-			engine,
-		})
+let nextId = 0
+
+const pending = new Map<number, Pending>()
+
+/** Reject each request in flight, and drop the worker, so that the next request starts a new one. */
+function fail(reason: unknown) {
+	for (const request of pending.values()) request.reject(reason)
+
+	pending.clear()
+
+	worker?.terminate()
+
+	worker = null
+}
+
+function getWorker(): Worker {
+	if (worker) return worker
+
+	const next = new Worker(new URL('./shiki-worker.ts', import.meta.url), { type: 'module' })
+
+	next.onmessage = ({ data }: MessageEvent<WorkerReply>) => {
+		const request = pending.get(data.id)
+
+		if (!request) return
+
+		pending.delete(data.id)
+
+		if ('error' in data) request.reject(new Error(data.error))
+		else request.resolve(data.html)
 	}
 
-	return highlighter
+	// A worker chunk that does not load, such as after a deploy, gives an error
+	// event and no reply. Each request in flight then fails, and `CodeBlock`
+	// shows its plain fallback.
+	next.onerror = (event) => {
+		event.preventDefault()
+
+		fail(new Error(`docs: the Shiki worker failed: ${event.message}`))
+	}
+
+	worker = next
+
+	return next
 }
 
 /**
- * Tokenize `code` to a highlighted `<pre>` string, matching the signature of
- * Shiki's bundled `codeToHtml` shorthand that {@link CodeBlock} consumes.
+ * Tokenize `code` to a highlighted `<pre>` string, with the signature of
+ * Shiki's bundled `codeToHtml` shorthand that {@link CodeBlock} calls.
  *
  * @param code - Source to highlight.
- * @param options - Shiki options; `lang` must be one of the curated grammars
- *   (`tsx`, `typescript`, `bash`) and `theme` `github-dark-default`.
+ * @param options - `lang` must be one of the curated grammars (`tsx`,
+ *   `typescript`, `bash`), and `theme` must be `github-dark-default`. The
+ *   `transformers` of `CodeBlock` do not go to the worker, which applies the
+ *   same change (see `highlight` in `shiki-highlighter.ts`). Other options give
+ *   an error.
  * @returns The highlighted markup.
  */
-export async function codeToHtml(code: string, options: CodeToHastOptions): Promise<string> {
-	const hl = await getHighlighter()
+export function codeToHtml(code: string, options: CodeToHastOptions): Promise<string> {
+	const unsupported = new Error('docs: the Shiki worker takes only a `lang` and a `theme` by name')
 
-	return hl.codeToHtml(code, options)
+	// A `themes` pair, the other form of the options, is not supported.
+	if (!('theme' in options)) return Promise.reject(unsupported)
+
+	const { lang, theme, transformers: _transformers, ...rest } = options
+
+	if (Object.keys(rest).length > 0 || typeof lang !== 'string' || typeof theme !== 'string') {
+		return Promise.reject(unsupported)
+	}
+
+	// Each browser at the floor of `.browserslistrc` runs module workers. The
+	// unit tests replace `shiki` with a double and never reach this module.
+	if (typeof Worker === 'undefined') {
+		return Promise.reject(new Error('docs: the Shiki worker needs Worker support'))
+	}
+
+	const id = nextId++
+
+	return new Promise((resolve, reject) => {
+		pending.set(id, { resolve, reject })
+
+		getWorker().postMessage({ id, code, lang, theme } satisfies WorkerRequest)
+	})
 }

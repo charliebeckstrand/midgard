@@ -7,6 +7,7 @@ export { SidebarItemActions, type SidebarItemActionsProps } from './sidebar-item
 export { SidebarLabel, type SidebarLabelProps } from './sidebar-label'
 export { SidebarList, type SidebarListProps } from './sidebar-list'
 export { SidebarSection, type SidebarSectionProps } from './sidebar-section'
+export { SidebarSkeleton, type SidebarSkeletonProps } from './sidebar-skeleton'
 export {
 	SidebarBody,
 	type SidebarBodyProps,

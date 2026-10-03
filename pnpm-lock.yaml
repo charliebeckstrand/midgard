@@ -550,6 +550,15 @@ importers:
       '@babel/core':
         specifier: ^7.29.7
         version: 7.29.7(supports-color@7.2.0)
+      '@capsizecss/core':
+        specifier: ^4.1.3
+        version: 4.1.3
+      '@capsizecss/metrics':
+        specifier: ^4.3.0
+        version: 4.3.0
+      '@capsizecss/unpack':
+        specifier: ^4.0.1
+        version: 4.0.1
       '@fast-check/vitest':
         specifier: ^0.5.0
         version: 0.5.0(vitest@4.1.11)
@@ -852,6 +861,16 @@ packages:
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
+
+  '@capsizecss/core@4.1.3':
+    resolution: {integrity: sha512-d2sTTBwKuVioYxpwpU4URMp8VkFK+GI1VNGNawQcF8HBMHzCDa1FLcbeXJSzb5AJik7ZGv3aFVCTs7IS9MhvHg==}
+
+  '@capsizecss/metrics@4.3.0':
+    resolution: {integrity: sha512-93Ea1eMXUoOHf5BNidOsMv9glODtGjMEBUeqLei8S5Ffy1Hd4Q81zrsLA5VAsNVVMJpFRxtDnk2QtvPdJf/S+w==}
+
+  '@capsizecss/unpack@4.0.1':
+    resolution: {integrity: sha512-CuNiSqg7+e1cO/GjffyMOm5Tt2jUF9CWHHnvQ/UkqvtkGfHdgwEC0wpmq7fkN3gxwpRnrAN0WzO3vREKmNolMQ==}
+    engines: {node: '>=18'}
 
   '@commitlint/cli@21.0.2':
     resolution: {integrity: sha512-YMmfLbqBg+ZRvvmPhc+cilSQFrh/AgzVgCT1U/OifmUZEwPbvCtA8rN//YNaF9d5eoZphxVMGYtmwA2QgQORgg==}
@@ -3308,6 +3327,10 @@ packages:
   fix-dts-default-cjs-exports@1.0.1:
     resolution: {integrity: sha512-pVIECanWFC61Hzl2+oOCtoJ3F17kglZC/6N94eRWycFgBH35hHx0Li604ZIzhseh97mf2p0cv7vVrOZGoqhlEg==}
 
+  fontkitten@1.0.3:
+    resolution: {integrity: sha512-Wp1zXWPVUPBmfoa3Cqc9ctaKuzKAV6uLstRqlR56kSjplf5uAce+qeyYym7F+PHbGTk+tCEdkCW6RD7DX/gBZw==}
+    engines: {node: '>=20'}
+
   formatly@0.3.0:
     resolution: {integrity: sha512-9XNj/o4wrRFyhSMJOvsuyMwy8aUfBaZ1VrqHVfohyXf0Sw0e+yfKG+xZaY3arGCOMdwFsqObtzVOc1gU9KiT9w==}
     engines: {node: '>=18.3.0'}
@@ -4597,6 +4620,9 @@ packages:
   thenify@3.3.1:
     resolution: {integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==}
 
+  tiny-inflate@1.0.3:
+    resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
+
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -5192,6 +5218,16 @@ snapshots:
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
+
+  '@capsizecss/core@4.1.3':
+    dependencies:
+      csstype: 3.2.3
+
+  '@capsizecss/metrics@4.3.0': {}
+
+  '@capsizecss/unpack@4.0.1':
+    dependencies:
+      fontkitten: 1.0.3
 
   '@commitlint/cli@21.0.2(@types/node@25.9.1)(conventional-commits-parser@6.4.0)(typescript@7.0.2)':
     dependencies:
@@ -7412,6 +7448,10 @@ snapshots:
       mlly: 1.8.2
       rollup: 4.60.4
 
+  fontkitten@1.0.3:
+    dependencies:
+      tiny-inflate: 1.0.3
+
   formatly@0.3.0:
     dependencies:
       fd-package-json: 2.0.0
@@ -8845,6 +8885,8 @@ snapshots:
   thenify@3.3.1:
     dependencies:
       any-promise: 1.3.0
+
+  tiny-inflate@1.0.3: {}
 
   tinybench@2.9.0: {}
 

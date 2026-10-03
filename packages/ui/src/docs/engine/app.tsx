@@ -24,13 +24,31 @@ import { demos, retryDemo, type TrackedPromise, tracked } from './registry'
 // Snippets in the shape of a derived code block. The browser compiles each
 // grammar RegExp when the tokenizer first runs it, and that compile is most of
 // the cost of a first highlight. The warm-up tokenizes one snippet per idle
-// slice, so each slice stays short.
-const WARM_SNIPPETS = [
-	`import { Select, type SelectOption } from 'ui/select'`,
-	`const options: SelectOption<string>[] = [{ value: 'a', label: \`Beta \${1 + 2}\`, disabled: false }]`,
-	`export function Demo({ label = 'Pick' }: { label?: string }) {\n\tconst [value, setValue] = useState<string | null>(null)\n}`,
-	`// Reset on click.\n<Button color="blue" size={2} disabled={!value} onClick={() => setValue(null)}>\n\t{value ?? label}\n</Button>`,
-	`<>\n\t<Select options={options} value={value} onChange={(next) => setValue(next)} />\n</>`,
+// slice. The tokenizer runs in the worker of `shiki.ts`, so the warm-up does
+// not block the page. Each grammar compiles its own RegExps, so the last
+// snippet warms `ts`, which a fence in Markdown and in a TSDoc description uses.
+const WARM_SNIPPETS: readonly { lang: 'tsx' | 'ts'; code: string }[] = [
+	{ lang: 'tsx', code: `import { Select, type SelectOption } from 'ui/select'` },
+	{
+		lang: 'tsx',
+		code: `const options: SelectOption<string>[] = [{ value: 'a', label: \`Beta \${1 + 2}\`, disabled: false }]`,
+	},
+	{
+		lang: 'tsx',
+		code: `export function Demo({ label = 'Pick' }: { label?: string }) {\n\tconst [value, setValue] = useState<string | null>(null)\n}`,
+	},
+	{
+		lang: 'tsx',
+		code: `// Reset on click.\n<Button color="blue" size={2} disabled={!value} onClick={() => setValue(null)}>\n\t{value ?? label}\n</Button>`,
+	},
+	{
+		lang: 'tsx',
+		code: `<>\n\t<Select options={options} value={value} onChange={(next) => setValue(next)} />\n</>`,
+	},
+	{
+		lang: 'ts',
+		code: `export function greet(name: string): string {\n\treturn 'Hello, ' + name\n}`,
+	},
 ]
 
 // The Debug section of the settings is a separate chunk, so the entry chunk
@@ -117,7 +135,10 @@ export function App() {
 
 						if (cancelled || snippet === undefined) return
 
-						return codeToHtml(snippet, { lang: 'tsx', theme: 'github-dark-default' }).then(() => {
+						return codeToHtml(snippet.code, {
+							lang: snippet.lang,
+							theme: 'github-dark-default',
+						}).then(() => {
 							if (!cancelled) warm(index + 1)
 						})
 					})

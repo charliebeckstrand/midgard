@@ -1,9 +1,6 @@
 import { afterAll, beforeAll } from 'vitest'
 
-const DOCS_FONT_URL = new URL(
-	'../../../docs/engine/fonts/GoogleSansFlex-VariableFont.woff2',
-	import.meta.url,
-).href
+const DOCS_FONT_URL = new URL('../../../fonts/google-sans-flex.woff2', import.meta.url).href
 
 /**
  * Loads the docs font, Google Sans Flex, for the cases of the calling
