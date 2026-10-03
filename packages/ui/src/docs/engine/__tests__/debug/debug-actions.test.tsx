@@ -1,29 +1,51 @@
-import { Suspense } from 'react'
+import { act, Suspense } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { DebugActions } from '../../debug/debug-actions'
 import { loadDebugTool, preloadDebugTools } from '../../debug/registry'
-import { setDebugTool } from '../../debug/store'
+import { DEBUG_ATTRIBUTE, setDebugTool } from '../../debug/store'
 import { renderUI, screen } from '../helpers'
 
 afterEach(() => {
-	setDebugTool('event-log', false)
+	// The test can end with the tree still mounted, so the store change renders.
+	act(() => setDebugTool('event-log', false))
 })
 
 describe('DebugActions', () => {
-	it('paints the part of a preloaded tool in the first commit', async () => {
+	it('renders the button of each tool, also while the tool is off', () => {
+		renderUI(<DebugActions />)
+
+		const button = screen.getByRole('button', { name: 'Event log', hidden: true })
+
+		// CSS shows the button only while the root element lists the tool.
+		expect(button.parentElement?.className).toContain('hidden')
+
+		expect(button.parentElement?.className).toContain('[:root[data-debug~=event-log]_&]:contents')
+	})
+
+	it('lists the tools that are on in the attribute of the root element', () => {
+		setDebugTool('event-log', true)
+
+		expect(document.documentElement.getAttribute(DEBUG_ATTRIBUTE)).toBe('event-log')
+
+		setDebugTool('event-log', false)
+
+		expect(document.documentElement.hasAttribute(DEBUG_ATTRIBUTE)).toBe(false)
+	})
+
+	it('opens the sheet of a tool that is on from its button', async () => {
 		setDebugTool('event-log', true)
 
 		await preloadDebugTools()
 
 		renderUI(
-			<Suspense fallback={<p>loading</p>}>
+			<Suspense fallback={null}>
 				<DebugActions />
 			</Suspense>,
 		)
 
-		expect(screen.queryByText('loading')).toBeNull()
+		await act(async () => screen.getByRole('button', { name: 'Event log', hidden: true }).click())
 
-		expect(screen.getByRole('button', { name: 'Event log' })).toBeDefined()
+		expect(await screen.findByRole('dialog')).toBeDefined()
 	})
 
 	it('gives null for a tool that is not in the registry', async () => {

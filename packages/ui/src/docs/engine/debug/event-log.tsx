@@ -5,7 +5,7 @@
  * does not select a Radio.
  *
  * While the tool is on, a pointer button in the header, next to the settings
- * button, opens the log in a bottom Sheet. The log records from the page load,
+ * button, opens the log in a bottom Sheet. `DebugActions` renders the button. The log records from the page load,
  * while the sheet is closed. It does not record the taps on the button, and it stops
  * while the sheet is open. It starts again at the first tap after the sheet
  * closes, so the tap that closes the sheet does not go in the log.
@@ -31,13 +31,12 @@
  * "Copy" puts the log on the clipboard, so a report can carry the text.
  */
 
-import { MousePointer } from 'lucide-react'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useSyncExternalStore } from 'react'
 import { Button } from '../../../components/button'
 import { useCopyButtonState } from '../../../components/copy-button/use-copy-button-state'
-import { Icon } from '../../../components/icon'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from '../../../components/sheet'
 import { subscribeOverlaySignal } from '../../../primitives/overlay'
+import type { DebugSheetProps } from './registry'
 
 const EVENTS = [
 	'touchstart',
@@ -67,7 +66,7 @@ let paused = false
 /** True while the sheet is open. */
 let sheetOpen = false
 
-/** The `data-slot` of the header button. */
+/** The `data-slot` of the header button, which `DebugActions` renders as `<id>-trigger`. */
 const TRIGGER = 'event-log-trigger'
 
 /** The sheet calls these when the lines change. */
@@ -341,41 +340,29 @@ function EventLogLines() {
 	)
 }
 
-/** The header button and the sheet of the log. `DebugActions` renders it while the tool is on. */
-export function EventLog() {
-	const [open, setOpen] = useState(false)
-
+/** The sheet of the log. `DebugActions` renders it while the tool is on, and its header button opens it. */
+export function EventLogSheet({ open, onOpenChange }: DebugSheetProps) {
 	// The log records while the tool is on. Off, the tool unmounts and the log stops.
 	useEffect(start, [])
 
-	const change = (next: boolean) => {
-		sheetOpen = next
+	// The log pauses while the sheet is open. The tap on the header button opens
+	// it, and the log skips that tap (`TRIGGER`).
+	useLayoutEffect(() => {
+		sheetOpen = open
 
-		if (next) paused = true
-
-		setOpen(next)
-	}
+		if (open) paused = true
+	}, [open])
 
 	return (
-		<>
-			<Button
-				variant="bare"
-				data-slot={TRIGGER}
-				aria-label="Event log"
-				onClick={() => change(true)}
-			>
-				<Icon icon={<MousePointer />} />
-			</Button>
-			{/* The sheet takes the height of the log, up to the height of the screen.
-			    A longer log scrolls in the body. */}
-			<Sheet side="bottom" open={open} onOpenChange={change} className="max-h-full">
-				<EventLogLines />
-			</Sheet>
-		</>
+		// The sheet takes the height of the log, up to the height of the screen.
+		// A longer log scrolls in the body.
+		<Sheet side="bottom" open={open} onOpenChange={onOpenChange} className="max-h-full">
+			<EventLogLines />
+		</Sheet>
 	)
 }
 
-/** The count of the mounted {@link EventLog} instances. The layout renders the header actions two times, one for each width. */
+/** The count of the mounted {@link EventLogSheet} instances. The layout renders the header actions two times, one for each width. */
 let users = 0
 
 let stop: (() => void) | undefined
@@ -546,8 +533,8 @@ function listen() {
 	}
 }
 
-// The module loads before the first render of the app, while the tool is on
+// The client entry loads the module before it hydrates, while the tool is on
 // (`preloadDebugTools`). The log starts here and not at the first mount, so it
-// also records a focus or a scroll in the first commit, before the first paint.
-// The first mount takes this run of the listeners.
+// also records a focus or a scroll while the page hydrates. The first mount
+// takes this run of the listeners.
 stop = listen()
