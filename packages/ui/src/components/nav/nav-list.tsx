@@ -20,7 +20,7 @@ export type NavListProps = ComponentProps<'ul'> & {
  * `<ul>` of navigation links; establishes an active-indicator scope so the
  * current item animates between siblings. Each link is individually
  * Tab-focusable (a link list, not a roving menubar) with the current one marked
- * `aria-current="page"`.
+ * `aria-current`.
  */
 export function NavList({ orientation, className, children, ...props }: NavListProps) {
 	const inNavBar = useNavBar()
@@ -29,7 +29,7 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 
 	// A `<ul>` of links inside the enclosing `<nav>` landmark. Each link is
 	// individually Tab-focusable with the current one marked
-	// `aria-current="page"`: a link list, not a roving-tabindex menubar. The
+	// `aria-current`: a link list, not a roving-tabindex menubar. The
 	// list element preserves count/position semantics; Tailwind preflight
 	// zeroes its default margin/padding/marker.
 	return (

@@ -186,6 +186,26 @@ describe('Sidebar', () => {
 		// stop per item.
 		expect(items.map((b) => b.tabIndex)).toEqual([-1, 0, -1])
 	})
+
+	it('marks a current link as the page, and a current button as the current view', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem href="/home" current>
+					Home
+				</SidebarItem>
+				<SidebarItem current>Settings</SidebarItem>
+			</Sidebar>,
+		)
+
+		const [link, button] = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot="sidebar-item-inner"]'),
+		)
+
+		expect(link).toHaveAttribute('aria-current', 'page')
+
+		// A button switches a view in the page, so it is not the current page.
+		expect(button).toHaveAttribute('aria-current', 'true')
+	})
 })
 
 describe('Sidebar mini', () => {
@@ -409,7 +429,7 @@ describe('SidebarItem', () => {
 
 		expect(inner).toHaveAttribute('type', 'button')
 
-		expect(inner).toHaveAttribute('aria-current', 'page')
+		expect(inner).toHaveAttribute('aria-current', 'true')
 	})
 
 	it('renders an icon prop through the SidebarItem icon slot', () => {

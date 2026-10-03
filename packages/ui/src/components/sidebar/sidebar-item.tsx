@@ -58,7 +58,8 @@ function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
 
 /**
  * Navigation row inside a `Sidebar`, rendering as a `Button` (or `Link` when
- * `href` is set) marked `aria-current="page"` while `current`. Wraps in an
+ * `href` is set) marked `aria-current` while `current`: `"page"` on a link, and
+ * `"true"` on a button, which switches a view in the page. Wraps in an
  * `<li>` inside a `SidebarList`, else a `<span>`. A `prefix`/`suffix` affix
  * flips the row to a flex layout. Its slots join the cross-axis roving model,
  * and sit inside the shared hover tint and focus ring. A `SidebarItemActions`
@@ -140,7 +141,7 @@ export function SidebarItem({
 			{...props}
 			type="button"
 			data-slot="sidebar-item-inner"
-			aria-current={isCurrent ? 'page' : undefined}
+			aria-current={isCurrent ? (props.href ? 'page' : 'true') : undefined}
 		>
 			<TouchTarget>
 				{icon && <Icon icon={icon} />}

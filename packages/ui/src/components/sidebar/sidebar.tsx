@@ -23,7 +23,7 @@ export type SidebarProps = ComponentProps<'nav'> & {
  * Vertical navigation landmark with a true roving-tabindex keyboard model. The
  * item list is a single Tab stop, Up/Down arrows move focus between items, and
  * Left/Right rove into an item's prefix/suffix actions. The resting stop
- * sits on the current page (`aria-current="page"`), falling back to the first
+ * sits on the current item (`aria-current`), falling back to the first
  * item. Establishes an active-indicator scope.
  *
  * @remarks
@@ -49,9 +49,9 @@ export function Sidebar({
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="sidebar-item-inner"]:not(:disabled)',
-		// Nav is a single Tab stop; the resting position is the current-page item.
+		// Nav is a single Tab stop; the resting position is the current item.
 		manageTabIndex: true,
-		activeSelector: '[aria-current="page"]',
+		activeSelector: '[aria-current]',
 		/**
 		 * Affix actions inside items (prefix/suffix buttons and links) join the
 		 * keyboard model on the cross axis. Left/Right rove through the focused row's
