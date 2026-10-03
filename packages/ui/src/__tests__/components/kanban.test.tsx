@@ -17,6 +17,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	within,
 } from '../helpers'
 import { axe } from '../helpers/axe'
 
@@ -284,11 +285,11 @@ describe('KanbanCard', () => {
 
 		const card = bySlot(container, 'kanban-card')
 
-		expect(card).toHaveAttribute('role', 'listitem')
+		expect(card.tagName).toBe('LI')
 
 		expect(card).toHaveAttribute('aria-label', 'Card One')
 
-		expect(bySlot(container, 'kanban-column-body')).toHaveAttribute('role', 'list')
+		expect(bySlot(container, 'kanban-column-body')?.tagName).toBe('UL')
 	})
 
 	it('names a disabled card, and leaves no ARIA result for axe to review', async () => {
@@ -321,7 +322,7 @@ describe('KanbanCard', () => {
 		expect(results.incomplete.map((result) => result.id)).not.toContain('aria-prohibited-attr')
 	})
 
-	it('keeps no list role on an interactive body or on an empty body', () => {
+	it('lists the cards of an interactive body in li items, and keeps an empty body out of a list', () => {
 		const { container } = renderUI(
 			<Kanban
 				columns={columns}
@@ -337,7 +338,16 @@ describe('KanbanCard', () => {
 			</Kanban>,
 		)
 
-		expect(bySlot(container, 'kanban-column-body')).not.toHaveAttribute('role')
+		const list = screen.getByRole('list')
+
+		expect(list).toBe(bySlot(container, 'kanban-column-body'))
+
+		const [item] = within(list).getAllByRole('listitem')
+
+		// The dnd-kit button is inside the list item, not the list item itself.
+		expect(within(present(item, 'listitem')).getByRole('button', { name: 'One' })).toBe(
+			bySlot(container, 'kanban-card'),
+		)
 
 		const empty = renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
@@ -347,7 +357,9 @@ describe('KanbanCard', () => {
 			</Kanban>,
 		)
 
-		expect(bySlot(empty.container, 'kanban-column-body')).not.toHaveAttribute('role')
+		expect(bySlot(empty.container, 'kanban-column-body')?.tagName).toBe('DIV')
+
+		expect(empty.container.querySelector('ul, li')).toBeNull()
 	})
 
 	it('marks an interactive card as lifted on Space, and clears it when the card blurs', () => {
@@ -410,15 +422,15 @@ describe('KanbanColumnBody', () => {
 
 		expect(screen.getByText('No cards')).toBeInTheDocument()
 
-		expect(bySlot(container, 'kanban-column-body')).not.toHaveAttribute('role')
+		expect(bySlot(container, 'kanban-column-body')?.tagName).toBe('DIV')
 	})
 
-	it('keeps the list role for a rendered slot on a read-only board', () => {
+	it('keeps the list for a rendered slot on a read-only board', () => {
 		const { container } = renderUI(<EmptyBody show pair />)
 
 		expect(screen.queryByText('No cards')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'kanban-column-body')).toHaveAttribute('role', 'list')
+		expect(bySlot(container, 'kanban-column-body')?.tagName).toBe('UL')
 	})
 
 	it('renders children when the column has cards, omitting the empty fallback', () => {
