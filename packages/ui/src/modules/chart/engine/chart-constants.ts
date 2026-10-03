@@ -129,8 +129,14 @@ export const TICK_ROTATION_HEIGHT = 56
  */
 export const BAND_LABEL_HEIGHT = 16
 
-/** Air above the plot so the top tick label and markers stay inside the frame. @internal */
-export const PLOT_TOP_PAD = 8
+/**
+ * Air above the plot so the top tick label and markers stay inside the frame.
+ * A tick label centers on its tick, so half of its text box goes above the
+ * plot. In the font of ui at `text-sm`, that half is 9 px.
+ *
+ * @internal
+ */
+export const PLOT_TOP_PAD = 9
 
 /**
  * Air below the plot for the floor value-tick label's lower half, when the band
@@ -141,7 +147,7 @@ export const PLOT_TOP_PAD = 8
  *
  * @internal
  */
-export const FLOOR_LABEL_PAD = 8
+export const FLOOR_LABEL_PAD = 9
 
 /** Band a value-axis title adds to its gutter — one `text-xs` line box plus a breath of air. @internal */
 export const AXIS_TITLE_BAND = 16
