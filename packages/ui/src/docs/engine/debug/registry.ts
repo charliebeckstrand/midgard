@@ -22,9 +22,9 @@ export type DebugTool = {
 /** The debug tools. To add a tool, add its module to this folder and its row here. */
 export const debugTools: readonly DebugTool[] = [
 	{
-		id: 'tap-log',
-		label: 'Tap log',
-		load: () => import('./tap-log').then(({ TapLog }) => ({ default: TapLog })),
+		id: 'event-log',
+		label: 'Event log',
+		load: () => import('./event-log').then(({ EventLog }) => ({ default: EventLog })),
 	},
 ]
 
