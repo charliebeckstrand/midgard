@@ -96,15 +96,14 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
  * the source in the same render, so the write comes before the cursor.
  *
  * @remarks
- * The React Compiler does not compile this hook, by intent. A write to a ref
- * during render is what the compiler rejects, and a write in an effect would
- * come one render late.
+ * The hook writes a ref during render, and a write in an effect would come one
+ * render late. The React Compiler does not compile the hook, because the hook
+ * calls no hook. If the hook calls a hook, the compiler skips it on the ref
+ * write, and the skip gate (`react-compiler-skips.test.ts`) fails.
  *
  * @internal
  */
 function useGridEditSourceSync<T>(refs: GridIndexRefs<T>, source: GridEditSource<T>): void {
-	'use no memo'
-
 	refs.editSourceRef.current = source
 }
 
@@ -115,14 +114,14 @@ function useGridEditSourceSync<T>(refs: GridIndexRefs<T>, source: GridEditSource
  * an effect would give them the maps of the last commit.
  *
  * @remarks
- * The React Compiler does not compile this hook, by intent. The writes are the
- * one place where {@link GridData} changes a ref during render.
+ * The writes are the one place where {@link GridData} changes a ref during
+ * render. The React Compiler does not compile the hook, because the hook calls
+ * no hook. If the hook calls a hook, the compiler skips it on the ref writes,
+ * and the skip gate (`react-compiler-skips.test.ts`) fails.
  *
  * @internal
  */
 export function useGridIndexSync<T>(refs: GridIndexRefs<T>, values: GridIndexValues<T>): void {
-	'use no memo'
-
 	refs.rowsRef.current = values.rows
 
 	refs.colCountRef.current = values.dataColumns.length
