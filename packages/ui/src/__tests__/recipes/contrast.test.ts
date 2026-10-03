@@ -245,6 +245,8 @@ const TINT_CONSUMERS: readonly {
 	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item.button({ affix: false })] },
 	{ file: 'recipes/kata/toolbar.ts', surfaces: [] },
 	{ file: 'recipes/kata/box.ts', surfaces: [] },
+	// The skeleton bubble, which holds placeholders and no ink.
+	{ file: 'recipes/kata/chat-transcript.ts', surfaces: [] },
 	// The interaction washes. `hannou.item` grounds a hovered or focused row and
 	// `hannou.active` a roved one; both sit a step darker than `bg.tint` in dark.
 	{

@@ -67,6 +67,7 @@ import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
+import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
 import { Box } from '../../../structure/box'
 import { present, renderUI } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
@@ -553,4 +554,37 @@ describe('skeleton parity (real browser)', () => {
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
 	})
+
+	// A transcript has no fixed height, so this compares one bubble of each side. The real
+	// bubble holds as many lines as the skeleton bubble of its side: one for the user, and two for
+	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges.
+	it.each([
+		['user', 0, 'right', 'Where are the stops?'],
+		['assistant', 1, 'left', 'Here are the stops.\nTwo of them run late.'],
+	] as const)(
+		'ChatTranscriptSkeleton has the %s bubble of a transcript',
+		(role, index, edge, text) => {
+			const real = present(
+				renderUI(
+					<div className="w-120">
+						<ChatMessage role={role}>{text}</ChatMessage>
+					</div>,
+				).container.querySelector('[data-slot="chat-message-bubble"]'),
+				'bubble',
+			).getBoundingClientRect()
+
+			const skeleton = present(
+				renderUI(
+					<div className="w-120">
+						<ChatTranscriptSkeleton messages={2} />
+					</div>,
+				).container.querySelectorAll('[data-slot="placeholder"]')[index]?.parentElement,
+				'skeleton bubble',
+			).getBoundingClientRect()
+
+			expect(skeleton.height).toBeNear(real.height, PIXEL)
+
+			expect(skeleton[edge]).toBeNear(real[edge], PIXEL)
+		},
+	)
 })

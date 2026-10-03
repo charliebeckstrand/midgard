@@ -5,6 +5,7 @@ import {
 	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
+	ChatTranscriptSkeleton,
 } from '../../../modules/chat'
 import { HeadlessProvider } from '../../../providers/headless'
 import { noop } from '../../helpers'
@@ -80,6 +81,13 @@ export const specializedCases: readonly Case[] = [
 		// fits the window, so the log holds every message.
 		name: 'chat transcript',
 		element: <ChatTranscript key="ct" messages={transcript} />,
+		skeleton: [
+			{
+				element: <ChatTranscriptSkeleton messages={2} />,
+				absentSlot: 'chat-message-bubble',
+				placeholders: 3,
+			},
+		],
 	},
 	{
 		// A reader who walks a long log finds a slice: the rows near the viewport,
