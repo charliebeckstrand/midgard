@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { configureAxe } from 'jest-axe'
 import type { ComponentType } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
@@ -322,6 +322,13 @@ async function walk(page: string, load: () => Promise<ComponentType>): Promise<D
 
 			await act(async () => {
 				fireEvent.click(trigger)
+			})
+
+			// The walk that prints a block loads on the first open, so the block of
+			// the first open can show after the click.
+			await waitFor(() => {
+				if (frame.querySelectorAll('[data-slot="code-block"]').length === blocks)
+					throw new Error('The block is not open')
 			})
 
 			const code = frame.querySelector('[data-slot="code-block"] code')?.textContent

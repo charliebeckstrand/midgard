@@ -5,7 +5,9 @@ import { Heading } from '../../../components/heading'
 import { cn } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { deriveCode, hasDerivableCode, type SourceFacts } from '../derive-code'
+import type { deriveCode as DeriveCode } from '../derive-code'
+import { hasDerivableCode } from '../derive-code/probe'
+import type { SourceFacts } from '../derive-code/types'
 import {
 	ExampleResizeHandle,
 	maxDefined,
@@ -14,12 +16,41 @@ import {
 	useExampleResize,
 } from './example-resize'
 
+type Derive = typeof DeriveCode
+
+/** The walk that prints a code block, once its chunk has loaded. */
+let loadedDerive: Derive | undefined
+
+let deriveLoad: Promise<Derive> | undefined
+
+/**
+ * Load the walk that prints a code block. A page needs it only when a reader
+ * opens a block, so it is not in the chunk of the page. A failed load is not
+ * kept, so the next call tries again.
+ */
+function loadDerive(): Promise<Derive> {
+	deriveLoad ??= import('../derive-code').then(
+		(module) => {
+			loadedDerive = module.deriveCode
+
+			return module.deriveCode
+		},
+		(error: unknown) => {
+			deriveLoad = undefined
+
+			throw error
+		},
+	)
+
+	return deriveLoad
+}
+
 /**
  * The demo showcase frame: renders its `children` in a bordered preview with a
  * collapsible "Show code" block beneath.
  *
  * @remarks
- * The block derives from the rendered subtree via {@link deriveCode}; an
+ * The block derives from the rendered subtree via `deriveCode`; an
  * explicit `code` overrides it, and when neither yields anything the block is
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
  * slots frame the preview.
@@ -78,7 +109,7 @@ export function Example({
 	resize?: ResizeProp
 	/**
 	 * Build-time source facts injected by the docs plugin's pre-transform —
-	 * never authored by hand. {@link deriveCode} reads them to render props and
+	 * never authored by hand. `deriveCode` reads them to render props and
 	 * render-prop children the runtime tree can't express.
 	 *
 	 * @internal
@@ -104,11 +135,24 @@ export function Example({
 
 	const derivedRef = useRef<string | null>(null)
 
+	// The walk loads when the reader points at the trigger, focuses it, or
+	// opens the block, so it is ready by the time the panel shows.
+	const [derive, setDerive] = useState(() => loadedDerive)
+
+	const prepareDerive = () => {
+		if (!derive && hasDerivedCode)
+			loadDerive().then(
+				(loaded) => setDerive(() => loaded),
+				// The block stays empty. The next point or open tries again.
+				() => {},
+			)
+	}
+
 	const derived = useMemo(() => {
-		if (!code && open) derivedRef.current = deriveCode(children, undefined, facts)
+		if (!code && open && derive) derivedRef.current = derive(children, undefined, facts)
 
 		return derivedRef.current
-	}, [code, open, children, facts])
+	}, [code, open, derive, children, facts])
 
 	const resolvedCode = code ?? derived
 
@@ -210,9 +254,22 @@ export function Example({
 					</div>
 				)}
 				{showCode && (
-					<Collapse animate="slide" open={open} onOpenChange={setOpen}>
+					<Collapse
+						animate="slide"
+						open={open}
+						onOpenChange={(next) => {
+							if (next) prepareDerive()
+
+							setOpen(next)
+						}}
+					>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
-							<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:-outline-offset-2">
+							<CollapseTrigger
+								className="flex text-sm px-4 py-2 focus-visible:-outline-offset-2"
+								onPointerEnter={prepareDerive}
+								onPointerDown={prepareDerive}
+								onFocus={prepareDerive}
+							>
 								{open ? 'Hide code' : 'Show code'}
 							</CollapseTrigger>
 						</div>
