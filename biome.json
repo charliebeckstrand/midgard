@@ -227,8 +227,7 @@
 				"packages/ui/src/structure/**",
 				"packages/ui/src/layouts/**",
 				"!packages/ui/src/components/**/variants.ts",
-				"!packages/ui/src/structure/**/variants.ts",
-				"!packages/ui/src/layouts/**/variants.ts"
+				"!packages/ui/src/structure/**/variants.ts"
 			],
 			"linter": {
 				"rules": {
@@ -286,8 +285,7 @@
 		{
 			"includes": [
 				"packages/ui/src/components/**/variants.ts",
-				"packages/ui/src/structure/**/variants.ts",
-				"packages/ui/src/layouts/**/variants.ts"
+				"packages/ui/src/structure/**/variants.ts"
 			],
 			"linter": {
 				"rules": {
@@ -436,8 +434,7 @@
 				"!packages/ui/src/**/__tests__/**",
 				"!packages/ui/src/**/__benchmarks__/**",
 				"!packages/ui/src/recipes/kata/**/*.ts",
-				"!packages/ui/src/recipes/katakana/**/*.ts",
-				"!packages/ui/src/layouts/*/variants.ts"
+				"!packages/ui/src/recipes/katakana/**/*.ts"
 			],
 			"plugins": ["./.biome/plugins/no-unsanctioned-define-recipe.grit"]
 		},

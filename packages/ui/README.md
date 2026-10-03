@@ -44,7 +44,7 @@ No root barrel; the `exports` map exposes each component path.
 | `src/providers/<name>/` | Context providers. |
 | `src/core/` | Recipe engine, `cn()`, utilities. |
 | `src/recipes/` | Layered variant system. |
-| `src/layouts/` | Layout primitives and their variants. |
+| `src/layouts/` | Layout primitives. |
 | `src/__tests__/` | Component, primitive, and boundary tests. |
 | `src/docs/` | The docs-site entry — demos, host, and Vite config wiring the shared [`docs`](../docs) engine to ui's source. |
 

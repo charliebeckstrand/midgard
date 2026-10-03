@@ -10,7 +10,7 @@
 | [Katakana 片仮名 — Bridge](./katakana/README.md) | Structure | Pure functions that receive a kiso token bundle and wire it into a recipe surface. Imports only the recipe engine — **never kiso values**. |
 | [Kata 型 — Form](./kata/README.md) | Application | Per-unit recipes — the funnel for components and primitives, and **the only layer that touches kiso**. |
 
-The recipe engine (`defineRecipe`, `definePalette`), the color axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the bridge helpers (`applyRecipe`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). Files in `katakana`, `kata`, and `layouts/*/variants.ts` import them directly.
+The recipe engine (`defineRecipe`, `definePalette`), the color axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the bridge helpers (`applyRecipe`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). Files in `katakana` and `kata` import them directly.
 
 ## 2. Direction
 
@@ -39,7 +39,7 @@ The contract is pinned by:
 - `__tests__/boundary/recipe-boundary.test.ts` — barrel is types-only; `package.json` `exports` never lists `./recipes`.
 - `biome.json`, the `recipes/kiso/**` override — kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, or providers.
 - `biome.json`, the `recipes/katakana/**` override — katakana imports nothing from kiso (neither values nor types).
-- `.biome/plugins/no-unsanctioned-define-recipe.grit` — `defineRecipe` is invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`.
+- `.biome/plugins/no-unsanctioned-define-recipe.grit` — `defineRecipe` is invoked only in `recipes/kata/*` and `recipes/katakana/*`.
 - `.biome/plugins/no-value-import-from-recipes-barrel.grit` — components, structure, modules, primitives, and layouts import no value from the `recipes` barrel, so each value arrives through `recipes/kata/<name>`.
 - `.biome/plugins/no-value-import-from-sibling-kata.grit` — a kata imports no value from a sibling kata.
 

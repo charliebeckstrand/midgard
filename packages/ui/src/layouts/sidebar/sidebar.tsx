@@ -21,8 +21,8 @@ import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
-import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
