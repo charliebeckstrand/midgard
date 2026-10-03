@@ -444,6 +444,9 @@ export function ChartContextMenu({
 				defaultItems={defaultItems}
 				insert={insert}
 				capped={config?.capped}
+				// The same name as the menu button that a touch screen shows, because
+				// the two hold the same entries.
+				aria-label={`${title ?? label ?? 'Chart'} menu`}
 			>
 				<ChartMenuEntriesContext value={entries}>{children}</ChartMenuEntriesContext>
 			</ContextMenu>
