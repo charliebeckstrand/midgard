@@ -46,6 +46,13 @@ export type CodeBlockProps = {
 	theme?: BundledTheme
 	/** Renders a CopyButton overlay. @defaultValue `true` */
 	copy?: boolean
+	/**
+	 * Accessible name of the scroll container. While a line overflows it, the
+	 * container is a region with this name.
+	 *
+	 * @defaultValue `'Code'`
+	 */
+	label?: string
 	className?: string
 }
 
@@ -61,16 +68,17 @@ export type CodeBlockProps = {
  * keyed by theme, language, and code, so repeat snippets paint synchronously.
  * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`), so a block
  * that fits adds no tab stop. The scroll container is a tab stop only while a
- * line overflows it ({@link useScrollRegion}). The code is always left to right,
- * also under an RTL ancestor. Markup paints only for the current code. While
- * `code` streams, one tokenization runs at a time and the next one takes the
- * newest code.
+ * line overflows it ({@link useScrollRegion}), and it is then a region named by
+ * `label`. The code is always left to right, also under an RTL ancestor.
+ * Markup paints only for the current code. While `code` streams, one
+ * tokenization runs at a time and the next one takes the newest code.
  */
 export function CodeBlock({
 	code: rawCode,
 	lang = 'tsx',
 	theme = 'github-dark-default',
 	copy = true,
+	label = 'Code',
 	className,
 }: CodeBlockProps) {
 	const code = rawCode.trim()
@@ -149,7 +157,7 @@ export function CodeBlock({
 		run()
 	}, [key, code, lang, theme])
 
-	const scrollRegionRef = useScrollRegion()
+	const scrollRegionRef = useScrollRegion({ label })
 
 	return (
 		<div data-slot="code-block" className={cn(k.wrapper, className)}>

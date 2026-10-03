@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
+import { CodeBlock } from '../../components/code'
+import { PdfViewer } from '../../components/pdf-viewer'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { frames, present, renderUI, screen, waitFor } from '../helpers'
@@ -151,5 +153,64 @@ describe('Table scroll container', () => {
 		expect(container().hasAttribute('tabindex')).toBe(false)
 
 		expect(container().hasAttribute('role')).toBe(false)
+	})
+})
+
+describe('CodeBlock scroll container', () => {
+	/** The scroll container of the block, once painted. */
+	function content(): HTMLElement {
+		const block = present(
+			document.querySelector<HTMLElement>('[data-slot="code-block"]'),
+			'the code block',
+		)
+
+		return present(block.firstElementChild as HTMLElement | null, 'the code scroll container')
+	}
+
+	it.each([
+		['the default name', undefined, 'Code'],
+		['its label', 'Install command', 'Install command'],
+	])('is a region with %s while a line overflows', async (_name, label, name) => {
+		renderUI(
+			<div style={{ width: 200 }}>
+				<CodeBlock code={'const value = 1; '.repeat(40)} copy={false} label={label} />
+			</div>,
+		)
+
+		await waitFor(() => expect(content().getAttribute('tabindex')).toBe('0'))
+
+		expect(content().getAttribute('role')).toBe('region')
+
+		expect(content().getAttribute('aria-label')).toBe(name)
+	})
+})
+
+describe('PdfViewer viewport', () => {
+	// A plain 600 by 800 page, so no PDF has to load.
+	const page = `data:image/svg+xml,${encodeURIComponent(
+		'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="600" height="800" fill="white"/></svg>',
+	)}`
+
+	it('is a region named "Page" while a zoomed page overflows it', async () => {
+		renderUI(
+			<div style={{ width: 400, height: 600 }}>
+				<PdfViewer pages={[{ src: page }]} defaultZoom={3} aria-label="Report" />
+			</div>,
+		)
+
+		const viewport = await waitFor(() => {
+			const node = present(
+				document.querySelector<HTMLElement>('[data-slot="pdf-viewer-viewport"]'),
+				'the viewport',
+			)
+
+			expect(node.getAttribute('tabindex')).toBe('0')
+
+			return node
+		})
+
+		expect(viewport.getAttribute('role')).toBe('region')
+
+		expect(viewport.getAttribute('aria-label')).toBe('Page')
 	})
 })

@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useMemo, useRef } from 'react'
+import { useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { MountHold, useMountHold } from '../../primitives/mount'
@@ -74,6 +74,10 @@ export function PdfViewerThumbnails() {
 		[pages],
 	)
 
+	// The "Pages" header names the sidebar, so the sidebar is a named
+	// complementary landmark.
+	const sidebarTitleId = useId()
+
 	if (pages.length === 0 && !loading) return null
 
 	return (
@@ -82,6 +86,7 @@ export function PdfViewerThumbnails() {
 				<aside
 					ref={sidebarRef}
 					data-slot="pdf-viewer-sidebar"
+					aria-labelledby={sidebarTitleId}
 					aria-hidden={!sidebarOpen}
 					inert={!sidebarOpen}
 					className={cn(
@@ -102,7 +107,9 @@ export function PdfViewerThumbnails() {
 					}}
 				>
 					<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
-						<div className={cn(k.sidebar.header)}>Pages</div>
+						<div id={sidebarTitleId} className={cn(k.sidebar.header)}>
+							Pages
+						</div>
 						<PdfViewerThumbnailList
 							items={thumbnailList}
 							loading={loading}

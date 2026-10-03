@@ -73,6 +73,28 @@ describe('PdfViewer', () => {
 		expect(bySlot(container, 'pdf-viewer-page-total')).toHaveTextContent('3')
 	})
 
+	// A screen reader reads "of 3", not "slash 3".
+	it('reads the page count as "of" the total', () => {
+		const { container } = renderUI(<PdfViewer pages={pages} />)
+
+		const total = getSlot(container, 'pdf-viewer-page-total')
+
+		expect(total).toHaveTextContent(/^of 3$/)
+
+		expect(total.previousElementSibling).toHaveTextContent('/')
+
+		expect(total.previousElementSibling).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('names the thumbnail sidebar by its "Pages" header', () => {
+		renderUI(<PdfViewer pages={pages} />)
+
+		expect(screen.getByRole('complementary', { name: 'Pages' })).toHaveAttribute(
+			'data-slot',
+			'pdf-viewer-sidebar',
+		)
+	})
+
 	// One anchor for each node. The status anchor names the live region, not the toolbar count.
 	it('anchors the page status on the live region alone', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
