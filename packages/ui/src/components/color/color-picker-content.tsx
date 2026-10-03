@@ -4,9 +4,10 @@ import type { FloatingRootContext } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
+import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
 import { Box } from '../../structure/box'
 
@@ -21,7 +22,7 @@ type ColorPickerContentProps = {
 	 * nearest density scope of the picker, which the portal carries. A step
 	 * makes the panel a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	children: ReactNode
 }
 

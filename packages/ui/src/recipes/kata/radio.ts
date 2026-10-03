@@ -1,4 +1,4 @@
-import type { ControlStep } from '../../core/density'
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
@@ -48,5 +48,8 @@ export const k = bridge.check(
 	},
 )
 
+/** The size scale of {@link Radio}: the steps of its circle and dot. */
+export const scale = defineScale(dan.size.checkBox, dan.size.radioDot)
+
 /** Recipe variant props for {@link Radio}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type RadioVariants = VariantProps<typeof k> & { size?: ControlStep }
+export type RadioVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }

@@ -2,7 +2,8 @@
 
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/select'
 import { k } from '../../recipes/kata/select'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { ControlFrame } from '../control'
@@ -22,7 +23,7 @@ export type SelectTriggerProps = GroupStampProps & {
 	 * The density step of the host. Omit it to take the step of the nearest
 	 * density scope. A step makes the trigger a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	prefix?: ReactNode
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
 	suffix?: ReactNode

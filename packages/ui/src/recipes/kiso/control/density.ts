@@ -5,9 +5,11 @@
  * its nearest density scope, and a control with an explicit `size` writes that
  * scope on its own frame. So the classes are the same at each step, and the
  * control reads no context. Three values give `sm`, `md`, and `lg`. `xs` takes
- * the `sm` value, and `xl` takes the `lg` value. A control has no `xl` size
- * (`ControlStep`), so only an `xl` scope above the control gives it `xl`, and
- * there the control stops at `lg`.
+ * the `sm` value, and `xl` takes the `lg` value, so the size scale of a
+ * control is `sm`, `md`, and `lg` (`scale`). A control in an `xs` or `xl`
+ * scope takes the nearest step of its scale. A control has no `xs` step,
+ * because its affix slot is a scope one step below it, and no step is below
+ * `xs`.
  *
  * The radius is the same as `py` at each step. The padding-to-radius ratio is
  * thus 1:1 across the controls with no ControlFrame (listbox, combobox,
@@ -26,6 +28,7 @@
  * Layer: kiso · Archetype: control · Concern: density
  */
 
+import { defineScale } from '../../../core/density'
 import { dan } from '../dan'
 import { textRamp } from '../ji'
 import { affix } from './affix'
@@ -45,3 +48,12 @@ export const density = [
 	affix.autofill.suffix,
 	textRamp,
 ] as const
+
+/** The size scale of a control: the steps of its padding, radius, gap, and text. */
+export const scale = defineScale(
+	dan.space.controlX,
+	dan.space.controlY,
+	dan.radius.control,
+	dan.gap.control,
+	dan.text.body,
+)

@@ -3,7 +3,8 @@
 import type { Placement } from '@floating-ui/react'
 import { type ReactElement, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
@@ -142,7 +143,7 @@ export type DatePickerBaseProps = GroupStampProps & {
 	 * the panel. Omit it to take the step of the nearest density scope. A step
 	 * makes the trigger and the panel density scopes.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	/**
 	 * Truncates the displayed date label when it overflows the trigger.
 	 * Set `false` to let the trigger grow to fit its content. An example is inside

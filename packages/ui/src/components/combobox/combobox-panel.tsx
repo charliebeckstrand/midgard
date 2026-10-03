@@ -2,10 +2,11 @@
 
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
+import type { scale } from '../../recipes/kata/combobox'
 import { k } from '../../recipes/kata/combobox'
 
 type ComboboxPanelProps = {
@@ -19,7 +20,7 @@ type ComboboxPanelProps = {
 	 * density scope of the combobox, which the portal carries. A step makes the
 	 * panel a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	/** Accessible name for the listbox, threaded from the combobox input's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string

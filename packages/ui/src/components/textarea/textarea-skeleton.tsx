@@ -1,5 +1,6 @@
 import { cn } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale } from '../../recipes/kata/textarea'
 import { k } from '../../recipes/kata/textarea'
 import { Placeholder } from '../placeholder'
 
@@ -14,7 +15,7 @@ export type TextareaSkeletonProps = {
 	 * The density step. Omit it to take the step of the nearest density scope,
 	 * as the textarea does. A step makes the silhouette a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	className?: string
 }
 

@@ -1,4 +1,4 @@
-import type { ControlStep } from '../../core/density'
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
 import { kokkaku } from '../kiso'
@@ -46,5 +46,8 @@ export const k = bridge.check(
 	},
 )
 
+/** The size scale of {@link Checkbox}: the steps of its box, radius, and mark. */
+export const scale = defineScale(dan.size.checkBox, dan.radius.check, dan.size.check)
+
 /** Recipe variant props for {@link Checkbox}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type CheckboxVariants = VariantProps<typeof k> & { size?: ControlStep }
+export type CheckboxVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }

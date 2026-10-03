@@ -33,3 +33,6 @@ export const k = bridge.control(control, {
 
 /** Recipe variant props for {@link Textarea} — the styling axes its kata exposes (`resize`), for consumers composing custom slots. */
 export type TextareaVariants = VariantProps<typeof k>
+
+/** The size scale of the control: `sm`, `md`, and `lg`. */
+export const scale = control.scale

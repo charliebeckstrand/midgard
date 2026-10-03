@@ -2,10 +2,11 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
+import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { type ControlVariant, useControl } from '../control/context'
@@ -16,7 +17,7 @@ import { useInputValue } from './use-input-value'
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = GroupStampProps &
 	Omit<InputVariants, 'size' | 'variant'> & {
-		size?: ControlStep
+		size?: ScaleStep<typeof scale>
 		variant?: ControlVariant
 		prefix?: ReactNode
 		suffix?: ReactNode

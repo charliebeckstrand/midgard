@@ -1,7 +1,9 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
+import type { scale as buttonScale } from '../../recipes/kata/button'
+import type { scale as controlScale } from '../../recipes/kata/control'
 import type { Button } from '../button'
 import { useControl } from '../control/context'
 import type { FileRejection } from './file-upload-utilities'
@@ -69,7 +71,7 @@ export type FileUploadInputProps = FileUploadSharedProps & {
 	 * The density step of the field. Omit it to take the step of the nearest
 	 * density scope. A step makes the field a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof controlScale>
 	/**
 	 * Placeholder when empty; also the hidden input's accessible name.
 	 *
@@ -84,7 +86,7 @@ export type FileUploadButtonProps = FileUploadSharedProps & {
 	 * The density step of the button. Omit it to take the step of the nearest
 	 * density scope. A step makes the button a density scope.
 	 */
-	size?: ControlStep
+	size?: ScaleStep<typeof buttonScale>
 	/** Button color. */
 	color?: ComponentProps<typeof Button>['color']
 	/**

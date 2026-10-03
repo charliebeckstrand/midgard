@@ -10,10 +10,11 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
+import type { scale } from '../../recipes/kata/listbox'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { capitalizeFirst } from '../../utilities'
 import { useControl } from '../control/context'
@@ -39,7 +40,7 @@ type ListboxBaseProps = GroupStampProps & {
 	placement?: FloatingPlacement
 	prefix?: ReactNode
 	suffix?: ReactNode
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	disabled?: boolean
 	/**
 	 * Keeps the trigger focusable and the value submitted, but blocks opening and

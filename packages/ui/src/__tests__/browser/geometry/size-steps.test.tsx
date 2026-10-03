@@ -88,58 +88,10 @@ import { SIZE_AXES, type SizedComponent } from '../../helpers/size-axes'
  * with a look of its own. The gate renders each step of each axis in
  * `SIZE_AXES`, and reads the box, the text, the padding, the gap, and the
  * radius of each element on the page. Two neighbor steps with the same reading
- * are one look under two names, so the prop must not offer both.
- *
- * `KNOWN_SAME` lists the pairs of today. A pair that a change makes the same
- * fails the gate, and so does a listed pair that a change makes distinct. The
- * list only shrinks: the rollout of the size scales (`defineScale`) removes
- * each pair. Rides the real browser, because jsdom loads no stylesheet.
+ * are one look under two names, so the prop must not offer both. A size
+ * scale (`defineScale`) offers only the steps of its ramps, so no axis has
+ * such a pair. Rides the real browser, because jsdom loads no stylesheet.
  */
-
-/**
- * The pairs of neighbor steps that render the same today, by the component.
- * Each control but Button gives `xs` the `sm` value, because its ramps have
- * three values. The Checkbox and Radio skeletons give `md` and `lg` one box
- * (`density-size-[4,5,5]`).
- */
-const KNOWN_SAME: Partial<Record<SizedComponent, readonly string[]>> = {
-	AddressInput: ['xs=sm'],
-	Checkbox: ['xs=sm'],
-	CheckboxSkeleton: ['xs=sm', 'md=lg'],
-	ColorPanelSkeleton: ['xs=sm'],
-	ColorPicker: ['xs=sm'],
-	Combobox: ['xs=sm'],
-	Control: ['xs=sm'],
-	ControlSkeleton: ['xs=sm'],
-	CreditCardInput: ['xs=sm'],
-	CreditCardInputCvv: ['xs=sm'],
-	CreditCardInputExpiry: ['xs=sm'],
-	CurrencyInput: ['xs=sm'],
-	DateInput: ['xs=sm'],
-	DatePicker: ['xs=sm'],
-	FileUploadInput: ['xs=sm'],
-	Input: ['xs=sm'],
-	Listbox: ['xs=sm'],
-	MaskInput: ['xs=sm'],
-	NumberInput: ['xs=sm'],
-	PasswordConfirmNew: ['xs=sm'],
-	PasswordConfirmRepeat: ['xs=sm'],
-	PasswordInput: ['xs=sm'],
-	Radio: ['xs=sm'],
-	RadioSkeleton: ['xs=sm', 'md=lg'],
-	RangeSlider: ['xs=sm'],
-	Rating: ['xs=sm'],
-	RatingSkeleton: ['xs=sm'],
-	SearchInput: ['xs=sm'],
-	Select: ['xs=sm'],
-	Slider: ['xs=sm'],
-	SliderSkeleton: ['xs=sm'],
-	Switch: ['xs=sm'],
-	SwitchSkeleton: ['xs=sm'],
-	TagInput: ['xs=sm'],
-	Textarea: ['xs=sm'],
-	TextareaSkeleton: ['xs=sm'],
-}
 
 const icon = (
 	<svg viewBox="0 0 16 16" aria-hidden="true">
@@ -491,10 +443,6 @@ async function settledReading(node: ReactNode): Promise<string> {
 }
 
 describe('distinct size steps (real browser)', () => {
-	it('lists only components with a size axis', () => {
-		for (const name of Object.keys(KNOWN_SAME)) expect(SIZE_AXES).toHaveProperty(name)
-	})
-
 	it.each(Object.keys(SIZE_AXES) as SizedComponent[])(
 		'renders each size step of %s with a look of its own',
 		{ timeout: 30_000 },
@@ -514,7 +462,7 @@ describe('distinct size steps (real browser)', () => {
 				.filter((step, index) => readings.get(step) === readings.get(steps[index] as DensityStep))
 				.map((step) => `${steps[steps.indexOf(step) - 1]}=${step}`)
 
-			expect(same).toEqual(KNOWN_SAME[name] ?? [])
+			expect(same).toEqual([])
 		},
 	)
 })

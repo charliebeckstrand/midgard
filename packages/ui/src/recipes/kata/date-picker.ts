@@ -105,3 +105,6 @@ export const k = {
 		chips: 'flex flex-wrap items-center gap-1 min-w-0 py-1',
 	},
 }
+
+/** The size scale of the control: `sm`, `md`, and `lg`. */
+export const scale = control.scale

@@ -7,6 +7,7 @@
  * here rather than as kiso tokens — they're picker-specific, used nowhere else.
  */
 
+import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
 import { kasane, kokkaku, sen } from '../kiso'
 import { dan } from '../kiso/dan'
@@ -88,4 +89,12 @@ export const k = defineRecipe(
 			...focus.outline,
 		],
 	},
+)
+
+/** The size scale of {@link ColorPanel}: the steps of its area, channels, preview, and gap. */
+export const scale = defineScale(
+	dan.size.colorArea,
+	dan.size.colorChannel,
+	dan.size.colorPreview,
+	dan.gap.loose,
 )

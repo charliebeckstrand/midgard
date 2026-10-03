@@ -16,10 +16,11 @@ export const size = {
 		'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[5,6,7]',
 	/** The check mark of a checkbox and a tree item. */
 	check: 'density-size-[3,3.5,4]',
-	/** The box of a checkbox and a radio, and the color picker swatch. */
-	checkBox: 'density-size-[4,5,5]',
-	/** The check of an option, and a rating star skeleton. */
-	optionCheck: 'density-size-[4,5,6]',
+	/**
+	 * The box of a checkbox and a radio, the color picker swatch, the check of an
+	 * option, and a rating star.
+	 */
+	checkBox: 'density-size-[4,5,6]',
 	/** The dot of a checked radio. */
 	radioDot: 'density-size-[1,1.5,2]',
 	/** The thumb of a switch and a range slider. */

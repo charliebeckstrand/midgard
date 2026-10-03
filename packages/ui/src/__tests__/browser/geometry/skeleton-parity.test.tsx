@@ -639,16 +639,13 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
-	it.each(['xs', 'sm', 'md', 'lg'] as const)(
-		'ControlSkeleton has the height of a %s input',
-		(size) => {
-			const { container } = renderUI(<Input aria-label="Name" size={size} />)
+	it.each(['sm', 'md', 'lg'] as const)('ControlSkeleton has the height of a %s input', (size) => {
+		const { container } = renderUI(<Input aria-label="Name" size={size} />)
 
-			expect(placeholder(renderUI(<ControlSkeleton size={size} />).container).height).toBe(
-				height(container.querySelector('[data-slot="control-frame"]'), 'control'),
-			)
-		},
-	)
+		expect(placeholder(renderUI(<ControlSkeleton size={size} />).container).height).toBe(
+			height(container.querySelector('[data-slot="control-frame"]'), 'control'),
+		)
+	})
 
 	it.each(['sm', 'md', 'lg'] as const)(
 		'SparklineSkeleton has the box of a %s sparkline',

@@ -14,7 +14,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { ControlStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density'
 import {
 	useA11yRoving,
 	useFloatingUI,
@@ -34,6 +34,7 @@ import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primiti
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { useGlass } from '../../providers/glass/context'
+import type { scale } from '../../recipes/kata/combobox'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -94,7 +95,7 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	placement?: Placement
 	prefix?: ReactNode
 	suffix?: ReactNode
-	size?: ControlStep
+	size?: ScaleStep<typeof scale>
 	disabled?: boolean
 	/**
 	 * Keeps the input focusable and the value submitted, but blocks typing and
