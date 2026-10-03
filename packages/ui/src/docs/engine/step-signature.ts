@@ -157,11 +157,15 @@ function classAt(name: string, element: Element, index: number, steps: readonly 
  * instance that settled before, so their inline styles differ for no change in
  * the props.
  */
-function attributesOf(element: Element, label: string): string[] {
+function attributesOf(
+	element: Element,
+	label: string,
+	keep: (name: string) => boolean = () => true,
+): string[] {
 	const out: string[] = []
 
 	for (const { name, value } of element.attributes) {
-		if (name === 'class' || name === 'style') continue
+		if (name === 'class' || name === 'style' || !keep(name)) continue
 
 		if (name === 'data-density' && (value === 'slot' || isDensityStep(value))) continue
 
@@ -232,14 +236,20 @@ const HEADING = /^h[1-6]$/
 
 /**
  * Write the form of each element of an instance: its tag, its attributes, its
- * classes, and its own text. `tagOf` writes the tag.
+ * classes, and its own text. `tagOf` writes the tag, and `keep` selects the
+ * attributes.
  */
-function elementsForm(instance: Element, label: string, tagOf: (tag: string) => string): string {
+function elementsForm(
+	instance: Element,
+	label: string,
+	tagOf: (tag: string) => string,
+	keep?: (name: string) => boolean,
+): string {
 	return [...instance.querySelectorAll('*')]
 		.map((element) =>
 			[
 				tagOf(element.localName),
-				...attributesOf(element, label),
+				...attributesOf(element, label, keep),
 				...[...element.classList].sort(),
 				ownTextOf(element, label),
 			].join(' '),
@@ -267,11 +277,26 @@ export function formSignature(instance: Element, label: string): string {
 }
 
 /**
+ * Whether a class of the instance can style an `aria-*` attribute, such as
+ * `aria-checked:` and `group-aria-checked:` for `aria-checked`, or
+ * `aria-[sort=ascending]:` for `aria-sort`.
+ */
+function styledAria(instance: Element): (name: string) => boolean {
+	const classes = [...instance.querySelectorAll('[class]')]
+		.map((element) => element.getAttribute('class'))
+		.join(' ')
+
+	return (name) => classes.includes(name) || classes.includes(`aria-[${name.slice(5)}`)
+}
+
+/**
  * Write the look of one instance: the {@link formSignature} with the level of
- * each heading removed. Tailwind preflight resets the font and the margin of
- * each heading, so `h2` and `h3` with the same classes look the same. Two
+ * each heading and each unstyled `aria-*` attribute removed. Tailwind
+ * preflight resets the font and the margin of each heading, so `h2` and `h3`
+ * with the same classes look the same. An `aria-*` attribute that no class of
+ * the instance names changes only what assistive technology reads. Two
  * instances with different forms and the same look differ only in the
- * document outline.
+ * accessibility tree, which includes the document outline.
  *
  * @param instance - The wrapper of the instance, whose descendants the component renders.
  * @param label - The label of the instance, which the content can show.
@@ -279,5 +304,12 @@ export function formSignature(instance: Element, label: string): string {
  * @internal
  */
 export function lookSignature(instance: Element, label: string): string {
-	return elementsForm(instance, label, (tag) => (HEADING.test(tag) ? 'h' : tag))
+	const styled = styledAria(instance)
+
+	return elementsForm(
+		instance,
+		label,
+		(tag) => (HEADING.test(tag) ? 'h' : tag),
+		(name) => !name.startsWith('aria-') || styled(name),
+	)
 }

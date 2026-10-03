@@ -205,6 +205,36 @@ describe('lookSignature', () => {
 		expect(lookSignature(h2, 'L')).toBe(lookSignature(h3, 'L'))
 	})
 
+	it('reads an unstyled ARIA attribute as no difference', () => {
+		const one = wrap('<div role="listbox" class="grid" aria-multiselectable="false"></div>')
+
+		const many = wrap('<div role="listbox" class="grid" aria-multiselectable="true"></div>')
+
+		expect(formSignature(one, 'L')).not.toBe(formSignature(many, 'L'))
+
+		expect(lookSignature(one, 'L')).toBe(lookSignature(many, 'L'))
+	})
+
+	it('reads an ARIA attribute that a class styles as a difference', () => {
+		const styled = (value: string, variant: string) =>
+			lookSignature(
+				wrap(`<button class="${variant}:bg-blue-500" aria-pressed="${value}"></button>`),
+				'L',
+			)
+
+		expect(styled('false', 'aria-pressed')).not.toBe(styled('true', 'aria-pressed'))
+
+		expect(styled('false', 'group-aria-pressed')).not.toBe(styled('true', 'group-aria-pressed'))
+
+		const sorted = (value: string) =>
+			lookSignature(
+				wrap(`<div class="aria-[sort=ascending]:underline" aria-sort="${value}"></div>`),
+				'L',
+			)
+
+		expect(sorted('ascending')).not.toBe(sorted('descending'))
+	})
+
 	it('reads a class or another tag as a difference', () => {
 		const base = lookSignature(wrap('<h2 class="text-lg">Title</h2>'), 'L')
 

@@ -358,6 +358,34 @@ describe('CurrentContent mount policy', () => {
 		expect(screen.getByText('Content B')).not.toBeVisible()
 	})
 
+	// The frame that readies the fade and the switch away can land in one render.
+	// Then the fade target stays at 0, and no fade-out lands to release the panel.
+	it('mount="always" with fade rests a panel left in the render that readies its fade', () => {
+		renderUI(<Panels mount="always" fade />)
+
+		const frames: FrameRequestCallback[] = []
+
+		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+			frames.push(callback)
+
+			return frames.length
+		})
+
+		act(() => {
+			screen.getByText('go-b').click()
+		})
+
+		act(() => {
+			for (const frame of frames.splice(0)) frame(performance.now())
+
+			screen.getByText('go-a').click()
+		})
+
+		raf.mockRestore()
+
+		expect(screen.getByText('Content B')).not.toBeVisible()
+	})
+
 	it('mount="active" with fade unmounts a panel left before its fade starts', () => {
 		renderUI(<Panels mount="active" fade />)
 
