@@ -48,7 +48,9 @@ extracted API of the barrel, and generates the examples from it:
 
 An axis is a prop whose type is a finite set of literals, such as `variant`,
 `color`, `size`, or a `boolean`. `<Axes>` renders a playground with one picker
-for each axis. Then it renders one example for each axis, which shows every
+for each axis. The shared styling axes come first, in one order on each page:
+`variant`, then `color` or `tone`, then `size`, then `radius`, `rounded`, or
+`shape`. Each other axis follows in the order of the props. Then it renders one example for each axis, which shows every
 value of that axis, one to a line. The other axes of that example take the values of the
 playground. A new value in the source of a component thus shows on the page
 with no change to the demo. `omit` removes a prop from the axes. A page with more than one
