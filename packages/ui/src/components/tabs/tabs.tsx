@@ -70,6 +70,19 @@ export function Tabs({
 
 	const panelsMounted = mountedPanelCount > 0
 
+	// Ref-count every TabContents, so a segment tab sets `aria-controls` only
+	// when a panel can exist. A segmented control with no panels then has no
+	// reference to a missing id.
+	const [panelsCount, setPanelsCount] = useState(0)
+
+	const registerPanels = useCallback(() => {
+		setPanelsCount((count) => count + 1)
+
+		return () => setPanelsCount((count) => count - 1)
+	}, [])
+
+	const panelsPresent = panelsCount > 0
+
 	const tabsContext = useMemo(
 		() => ({
 			variant,
@@ -77,8 +90,18 @@ export function Tabs({
 			baseId,
 			panelsMounted,
 			registerMountedPanels,
+			panelsPresent,
+			registerPanels,
 		}),
-		[variant, resolvedOrientation, baseId, panelsMounted, registerMountedPanels],
+		[
+			variant,
+			resolvedOrientation,
+			baseId,
+			panelsMounted,
+			registerMountedPanels,
+			panelsPresent,
+			registerPanels,
+		],
 	)
 
 	return (
