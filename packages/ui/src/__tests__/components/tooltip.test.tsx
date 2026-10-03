@@ -123,6 +123,20 @@ describe('Tooltip', () => {
 		expect(trigger).toHaveTextContent('Hover me')
 	})
 
+	it('wraps a non-element child in a span, which is valid in phrasing content', () => {
+		const { container } = renderUI(
+			<p>
+				<Tooltip>
+					<TooltipTrigger>Hover text</TooltipTrigger>
+					<TooltipContent>Tooltip text</TooltipContent>
+				</Tooltip>
+			</p>,
+		)
+
+		// A `<div>` inside a `<p>` is invalid HTML.
+		expect(getSlot(container, 'tooltip-trigger').tagName).toBe('SPAN')
+	})
+
 	it("preserves the child's own data-slot instead of overwriting it", () => {
 		const { container } = renderUI(
 			<Tooltip>

@@ -61,6 +61,9 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 
 	const { setActivatorNodeRef, dragging, attributes, listeners } = sortable
 
+	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
+	const { role: _role, ...gripAttributes } = attributes
+
 	return (
 		<button
 			type="button"
@@ -68,7 +71,7 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 			data-dragging={dataAttr(dragging)}
 			className={cn(k.rowReorder.handle.root)}
 			aria-label={label}
-			{...attributes}
+			{...gripAttributes}
 			{...listeners}
 		>
 			<Icon icon={<GripVertical />} />

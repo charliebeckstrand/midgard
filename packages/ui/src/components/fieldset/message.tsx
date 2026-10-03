@@ -11,7 +11,7 @@ import { hasIssues } from '../form/form-reducer'
 /** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. Aliases the shared {@link Severity} so the validation vocabulary stays single-sourced. */
 export type MessageSeverity = Severity
 
-/** Props for {@link Message}: `severity`, optional form-field `name` binding, and the `all`-errors flag atop the native attributes of the `<p>` or the `<ul>` that it renders. */
+/** Props for {@link Message}: `severity`, optional form-field `name` binding, and the `all`-errors flag atop the native attributes of the `<p>` or the `<div>` that it renders. */
 export type MessageProps = {
 	severity?: MessageSeverity
 	className?: string
@@ -60,7 +60,7 @@ function resolveMessageElementId(
  * Validation or status feedback for a form control. The `error` severity renders
  * `role="alert"` and registers its id into the field's `aria-describedby`. Bound
  * to a form field by `name`, it auto-renders that field's first error, or every
- * error as a `<ul>` with `all`. It suppresses itself when there are none. The `success` severity renders `role="status"` from its children and
+ * error as a `<ul>` inside a live-region `<div>` with `all`. It suppresses itself when there are none. The `success` severity renders `role="status"` from its children and
  * does not register as a description.
  *
  * @remarks A nested `<Message>` is presentational: it does not mark the control
@@ -121,8 +121,11 @@ export function Message({
 		// dedupe identical messages. Repeats get an occurrence suffix.
 		const keyed = keyByOccurrence(issues)
 
+		// ARIA in HTML does not allow `alert` or `status` on a `<ul>`, and the
+		// role removes the list semantics of the items. The live region is a
+		// `<div>`, and a plain `<ul>` inside it keeps the list.
 		return (
-			<ul
+			<div
 				data-slot="message"
 				data-severity={severity}
 				id={elementId}
@@ -132,10 +135,12 @@ export function Message({
 				{...props}
 				role={role}
 			>
-				{keyed.map(({ key, value }) => (
-					<li key={key}>{value}</li>
-				))}
-			</ul>
+				<ul>
+					{keyed.map(({ key, value }) => (
+						<li key={key}>{value}</li>
+					))}
+				</ul>
+			</div>
 		)
 	}
 

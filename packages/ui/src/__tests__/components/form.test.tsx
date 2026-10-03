@@ -20,6 +20,7 @@ import {
 	renderUI,
 	screen,
 	setupUser,
+	within,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { makeFormWrapper } from '../helpers/form-wrapper'
@@ -119,6 +120,19 @@ describe('Form', () => {
 		const fieldset = container.querySelector('fieldset')
 
 		expect(fieldset).toBeDisabled()
+	})
+
+	it('exposes no unnamed group for the inner fieldset', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }}>
+				<input name="name" aria-label="Name" />
+			</Form>,
+		)
+
+		// The inner fieldset only cascades `disabled`, and it has no legend.
+		expect(container.querySelector('fieldset')).toHaveAttribute('role', 'none')
+
+		expect(within(container).queryByRole('group')).toBeNull()
 	})
 
 	it('skips onSubmit and keeps errors when validation fails on submit', async () => {

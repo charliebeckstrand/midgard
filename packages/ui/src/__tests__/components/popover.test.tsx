@@ -56,6 +56,22 @@ describe('Popover', () => {
 	})
 })
 
+describe('Popover root', () => {
+	it('renders a span root, which is valid in phrasing content', () => {
+		const { container } = renderUI(
+			<p>
+				See the{' '}
+				<Popover>
+					<PopoverTrigger>note</PopoverTrigger>
+				</Popover>
+			</p>,
+		)
+
+		// A `<div>` inside a `<p>` is invalid HTML. The panel renders in a portal.
+		expect(bySlot(container, 'popover')?.tagName).toBe('SPAN')
+	})
+})
+
 describe('PopoverContent size scope', () => {
 	// PopoverContent renders through FloatingPortal; query the document.
 	const buttonInPopover = () => document.querySelector<HTMLElement>('[data-slot="button"]')

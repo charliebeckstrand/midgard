@@ -145,6 +145,28 @@ describe('Combobox', () => {
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
 
+	it('gives the panel chrome no role around the listbox', () => {
+		const { container } = renderUI(
+			<Combobox<string> displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const suffix = getSlot(container, 'suffix')
+
+		fireEvent.mouseDown(suffix)
+
+		const panel = present(
+			screen.getByRole('listbox').closest<HTMLElement>('[data-slot="popover-panel"]'),
+			'popover-panel',
+		)
+
+		// An unnamed `group` adds a nameless container to the accessibility tree.
+		expect(panel).not.toHaveAttribute('role')
+
+		expect(screen.queryByRole('group')).toBeNull()
+	})
+
 	it('focuses the input and toggles the panel from a custom suffix', async () => {
 		const { container } = renderUI(
 			<Combobox<string> suffix={<span>pin</span>} displayValue={(v) => v}>

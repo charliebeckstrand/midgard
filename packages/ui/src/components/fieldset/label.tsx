@@ -26,8 +26,8 @@ export type LabelProps = {
  * activation still focuses the control, and a press that starts on the label and ends outside
  * it does not focus the control.
  *
- * The labeled element is `label.control`. When the target of `htmlFor` is not labelable (the
- * `<div>` root of `RangeSlider`), it is the element with that id.
+ * The labeled element is `label.control`. When the target of `htmlFor` is not labelable, it is
+ * the element with that id.
  *
  * @internal
  */

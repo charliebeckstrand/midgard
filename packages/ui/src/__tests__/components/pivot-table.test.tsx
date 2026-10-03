@@ -36,6 +36,19 @@ describe('PivotTable', () => {
 		expect(screen.getByRole('columnheader', { name: 'Feb' })).toBeInTheDocument()
 	})
 
+	it('renders the corner as a <td> when no rowHeader is given', () => {
+		const { container } = renderUI(
+			<PivotTable rows={data} keys={{ row: 'lane', column: 'period', value: 'loads' }} />,
+		)
+
+		const corner = present(container.querySelector('thead tr')?.firstElementChild, 'corner cell')
+
+		// An empty `<th>` is a header with no text (axe empty-table-header).
+		expect(corner.tagName).toBe('TD')
+
+		expect(screen.getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Jan', 'Feb'])
+	})
+
 	it('names the table from the optional aria-label', () => {
 		renderUI(
 			<PivotTable

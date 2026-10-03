@@ -3,6 +3,7 @@
 import type { ComponentProps } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import {
 	k,
 	type ScrollAreaViewportVariants,
@@ -25,8 +26,9 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
 /**
  * Scrollable viewport with custom overlay scrollbars and draggable thumbs.
  * `scrollbar` toggles between `auto` (fade in while scrolling), `visible`, and
- * `hidden`. The viewport is keyboard-focusable on every axis its `orientation`
- * enables.
+ * `hidden`. The viewport is a keyboard tab stop only while its content
+ * overflows. An `aria-label` or an `aria-labelledby` then names it as a
+ * `role="region"`. A consumer `tabIndex` replaces that behavior.
  */
 export function ScrollArea({
 	orientation = 'vertical',
@@ -38,6 +40,8 @@ export function ScrollArea({
 	children,
 	onScroll,
 	ref,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
 	...props
 }: ScrollAreaProps) {
 	const {
@@ -53,8 +57,20 @@ export function ScrollArea({
 		startDrag,
 	} = useScrollAreaScrollbar({ orientation, scrollbar })
 
+	// The viewport is a tab stop, and a named region, only while its content
+	// overflows (axe scrollable-region-focusable). A static tab stop is a dead,
+	// unnamed stop when the content fits.
+	const scrollRegionRef = useScrollRegion({ label: ariaLabel, labelledBy: ariaLabelledby })
+
+	// A consumer `tabIndex` turns the hook off, so the name then passes through
+	// with the other consumer props, as the consumer set it.
+	const consumerName =
+		props.tabIndex === undefined
+			? {}
+			: { 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledby }
+
 	// A consumer ref joins the viewport ref instead of replacing it (CONVENTIONS.md §3.9).
-	const composedViewportRef = useComposedRef(viewportRef, ref)
+	const composedViewportRef = useComposedRef(viewportRef, scrollRegionRef, ref)
 
 	const showScrollbar = scrollbar !== 'hidden'
 
@@ -67,19 +83,18 @@ export function ScrollArea({
 			data-orientation={orientation}
 			className={cn(k.wrapper({ rounded, orientation, extent, bare }), className)}
 		>
-			{/* Keyboard-focusable on any enabled axis (axe scrollable-region-focusable).
-			    tabIndex is omitted when no axis is enabled; consumers can override
-			    via props (e.g. tabIndex={-1} with role="region" + aria-label). */}
+			{/* A consumer can set its own stop through props (e.g. tabIndex={-1}
+			    with role="region" and aria-label). */}
 			<div
 				data-slot="scroll-area-viewport"
 				ref={composedViewportRef}
-				tabIndex={hasVertical || hasHorizontal ? 0 : undefined}
 				className={k.viewport({ orientation, bare })}
 				// Thumb tracking and the auto-fade follow an event the browser cannot
 				// cancel, so they run whatever the consumer does (CONVENTIONS.md §3.9).
 				onScroll={composeEventHandlers(onScroll, handleScroll, {
 					checkForDefaultPrevented: false,
 				})}
+				{...consumerName}
 				{...props}
 			>
 				{children}

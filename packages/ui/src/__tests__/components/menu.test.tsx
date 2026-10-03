@@ -41,6 +41,35 @@ describe.each([
 	})
 })
 
+describe('Menu root', () => {
+	it('renders a span root for a dropdown, which is valid in phrasing content', () => {
+		const { container } = renderUI(
+			<p>
+				<Menu placement="bottom-start">
+					<MenuTrigger>Options</MenuTrigger>
+				</Menu>
+			</p>,
+		)
+
+		// The dropdown panel renders in a portal, so only the trigger is in the root.
+		expect(getSlot(container, 'menu').tagName).toBe('SPAN')
+	})
+
+	it.each([
+		['context menu', {}],
+		['static menu', { defaultOpen: true }],
+	])('renders a div root for a %s', (_name, props) => {
+		const { container } = renderUI(
+			<Menu {...props}>
+				<div>Page content</div>
+			</Menu>,
+		)
+
+		// A context menu wraps block content, and a static panel renders in place.
+		expect(getSlot(container, 'menu').tagName).toBe('DIV')
+	})
+})
+
 describe('MenuTrigger', () => {
 	it('clones a single child element with data-slot="menu-trigger"', () => {
 		renderUI(

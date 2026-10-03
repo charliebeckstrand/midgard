@@ -25,7 +25,7 @@ function dropPrompt(children: ReactNode) {
 		children ?? (
 			<>
 				<Icon icon={<Upload />} size="lg" className={k.icon} />
-				<div className={cn(k.label)}>Drop files here or click to browse</div>
+				<span className={cn('block', k.label)}>Drop files here or click to browse</span>
 			</>
 		)
 	)

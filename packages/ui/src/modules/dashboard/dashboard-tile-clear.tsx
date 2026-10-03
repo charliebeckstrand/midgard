@@ -44,6 +44,8 @@ export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
 	return (
 		<Button
 			data-slot="dashboard-tile-clear"
+			// `Button` sets no `type`, and a `submit` would send an enclosing form.
+			type="button"
 			variant="plain"
 			onClick={clear}
 			aria-label={`Clear the selection in ${label}`}

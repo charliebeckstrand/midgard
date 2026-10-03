@@ -45,6 +45,9 @@ export function QueryBuilderSortableItem({
 		isDragging,
 	} = useSortable({ id, disabled: disabled || !handle })
 
+	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
+	const { role: _role, ...gripAttributes } = attributes
+
 	return (
 		<div
 			ref={setNodeRef}
@@ -59,7 +62,7 @@ export function QueryBuilderSortableItem({
 					data-slot="query-reorder-handle"
 					data-dragging={dataAttr(isDragging)}
 					className={cn(k.sortable.handle)}
-					{...attributes}
+					{...gripAttributes}
 					{...listeners}
 					type="button"
 					aria-label={`Reorder ${label}`}
