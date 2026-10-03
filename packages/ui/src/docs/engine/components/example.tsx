@@ -277,9 +277,10 @@ export function Example({
 						'phrasing:flex-row phrasing:flex-wrap phrasing:items-center phrasing:*:w-max phrasing:*:min-w-0',
 						// In a row with captions, each axis value fills the height of the line.
 						// The captions stay at the top, and each instance centers in the room
-						// below its caption, so the captions align and the instances align.
+						// below its caption, so the captions align and the instances align. A
+						// caption and its instance center on one another.
 						'phrasing:has-[[data-slot=axis-caption]]:items-stretch',
-						'phrasing:*:*:data-[slot=axis-value]:flex phrasing:*:*:data-[slot=axis-value]:h-full phrasing:*:*:data-[slot=axis-value]:flex-col phrasing:*:*:data-[slot=axis-value]:items-start',
+						'phrasing:*:*:data-[slot=axis-value]:flex phrasing:*:*:data-[slot=axis-value]:h-full phrasing:*:*:data-[slot=axis-value]:flex-col phrasing:*:*:data-[slot=axis-value]:items-center',
 						'phrasing:*:*:data-[slot=axis-value]:*:last:my-auto',
 					)}
 				>

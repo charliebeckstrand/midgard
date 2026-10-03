@@ -50,8 +50,10 @@ the width of its instance.
 The `phrasing` variant in [`app.css`](app.css) holds the rule. It is CSS, so a
 prerendered page shows the row before it hydrates. The rule reads the tag, not
 the CSS `display`: a calendar with `inline-flex` stacks, and an icon button
-with `flex` shows in a row. A row centers its instances. When an instance has a
-caption, the row aligns the instances at the top, so the captions align.
+with `flex` shows in a row. A row centers its instances on one line. When the
+instances have captions, the captions align at the top, and each instance
+centers on one line below them. A caption and its instance center on one
+another.
 
 A demo does not wrap its instances in a `Flex` to put them in a row. It gives
 each instance as a child of `Example`.
