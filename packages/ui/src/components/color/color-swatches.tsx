@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/color-panel'
 import { keyByOccurrence } from '../../utilities'
@@ -12,9 +12,20 @@ type ColorSwatchesProps = {
 	swatches: readonly string[]
 }
 
-/** Preset color chips; the chip matching the current color reads as pressed. */
+/**
+ * Preset color chips as a radio group; the chip that matches the current color is checked.
+ *
+ * @remarks
+ * Each chip is a label around a native radio, so the browser gives the group
+ * one Tab stop and the arrow keys. A custom color checks no chip. When the list
+ * repeats a color, only the first chip of that color is checked.
+ *
+ * @internal
+ */
 export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 	const { hsva, setHsva, disabled } = useColorPanelContext()
+
+	const name = useId()
 
 	// Parse once per preset list, not once per render: an area or slider drag
 	// re-renders the panel every frame and the hexes never change with it. A
@@ -29,25 +40,30 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 		[swatches],
 	)
 
-	return (
-		<div data-slot="color-swatches" className={k.swatches}>
-			{parsedSwatches.map(({ key, swatch, parsed }) => {
-				const active = parsed ? equalHsva(parsed, hsva) : false
+	// One radio of a group can be checked, so a repeated color checks its first chip only.
+	const checkedKey = parsedSwatches.find(({ parsed }) => parsed && equalHsva(parsed, hsva))?.key
 
-				return (
-					<button
-						key={key}
-						type="button"
-						data-slot="color-swatch"
+	return (
+		<div data-slot="color-swatches" role="radiogroup" aria-label="Swatches" className={k.swatches}>
+			{parsedSwatches.map(({ key, swatch, parsed }) => (
+				<label
+					key={key}
+					data-slot="color-swatch"
+					className={cn(k.swatch)}
+					style={{ backgroundColor: swatch }}
+				>
+					<input
+						type="radio"
+						name={name}
+						value={swatch}
 						aria-label={swatch}
-						aria-pressed={active}
+						checked={key === checkedKey}
 						disabled={disabled}
-						className={cn(k.swatch)}
-						style={{ backgroundColor: swatch }}
-						onClick={() => parsed && setHsva(parsed)}
+						className="sr-only"
+						onChange={() => parsed && setHsva(parsed)}
 					/>
-				)
-			})}
+				</label>
+			))}
 		</div>
 	)
 }

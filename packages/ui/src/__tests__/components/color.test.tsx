@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react'
+import { act, within as inside, renderHook } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
@@ -16,7 +16,16 @@ import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormActions } from '../../components/form'
-import { allBySlot, bySlot, fireEvent, getAllSlots, getSlot, present, renderUI } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	fireEvent,
+	getAllSlots,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+} from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -213,9 +222,9 @@ describe('ColorPanel', () => {
 	it('supports Page keys on the sliders (APG slider pattern)', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
-		const slider = getSlot(container, 'color-slider')
+		const slider = getSlot<HTMLInputElement>(container, 'color-slider-input')
 
-		const hue = () => Number(slider.getAttribute('aria-valuenow'))
+		const hue = () => Number(slider.value)
 
 		const before = hue()
 
@@ -252,6 +261,43 @@ describe('ColorPanel', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" swatches={false} />)
 
 		expect(allBySlot(container, 'color-swatch')).toHaveLength(0)
+	})
+
+	it('exposes the swatches as a named radio group with one checked chip', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<ColorPanel
+				defaultValue="#ffffff"
+				swatches={['#ffffff', '#000000', '#ffffff']}
+				onValueChange={onValueChange}
+			/>,
+		)
+
+		const group = screen.getByRole('radiogroup', { name: 'Swatches' })
+
+		const radios = inside(group).getAllByRole('radio')
+
+		expect(radios).toHaveLength(3)
+
+		// A repeated color checks its first chip only.
+		expect(radios.map((radio) => (radio as HTMLInputElement).checked)).toEqual([true, false, false])
+
+		fireEvent.click(screen.getByRole('radio', { name: '#000000' }))
+
+		expect(onValueChange).toHaveBeenLastCalledWith('#000000')
+
+		expect(screen.getByRole('radio', { name: '#000000' })).toBeChecked()
+
+		expect(inside(group).queryAllByRole('button')).toHaveLength(0)
+	})
+
+	it('checks no chip for a custom color', () => {
+		renderUI(<ColorPanel defaultValue="#123456" swatches={['#ffffff', '#000000']} />)
+
+		for (const radio of screen.getAllByRole('radio')) {
+			expect(radio).not.toBeChecked()
+		}
 	})
 
 	it('gives each chip its own key when the swatches repeat a color', () => {
