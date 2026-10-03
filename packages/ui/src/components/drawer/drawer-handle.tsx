@@ -11,6 +11,8 @@ export type DrawerHandleProps = {
 	handleProps: PanelResize['handleProps']
 	/** The share of the screen the panel covers, which is what the value reports. */
 	covers: number
+	/** The id of the drawer panel, which the separator names in `aria-controls`. */
+	controls: string
 	/**
 	 * Whether the grip resizes the panel. A grip that does not is only a thing to
 	 * pull, so it is not a splitter.
@@ -30,7 +32,13 @@ export type DrawerHandleProps = {
  *
  * @internal
  */
-export function DrawerHandle({ handleProps, covers, resizable, className }: DrawerHandleProps) {
+export function DrawerHandle({
+	handleProps,
+	covers,
+	controls,
+	resizable,
+	className,
+}: DrawerHandleProps) {
 	if (!resizable) {
 		return (
 			<div
@@ -51,6 +59,7 @@ export function DrawerHandle({ handleProps, covers, resizable, className }: Draw
 			orientation="horizontal"
 			handleProps={handleProps}
 			covers={covers}
+			controls={controls}
 			className={cn(k.handle.area, className)}
 			bar={cn(k.handle.bar)}
 		/>

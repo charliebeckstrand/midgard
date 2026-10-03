@@ -31,7 +31,7 @@ export type ResizablePanelProps = {
 export function ResizablePanel(props: ResizablePanelProps) {
 	const { defaultSize = 50, className, children } = props
 
-	const { sizes } = useResizable()
+	const { sizes, panelId } = useResizable()
 
 	const { panelIndex } = useResizableIndex()
 
@@ -40,6 +40,7 @@ export function ResizablePanel(props: ResizablePanelProps) {
 	return (
 		<div
 			data-slot="resizable-panel"
+			id={panelIndex !== undefined ? panelId(panelIndex) : undefined}
 			className={cn(k.panel, className)}
 			style={{ flex: `${size} 0 0px` }}
 		>

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useEffect } from 'react'
+import { type ReactNode, type RefObject, useEffect, useId } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
@@ -270,6 +270,9 @@ export function Drawer({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
+	// The handle names the panel in `aria-controls`.
+	const panelId = useId()
+
 	return (
 		<Overlay
 			open={resolvedOpen}
@@ -295,6 +298,7 @@ export function Drawer({
 				ref={panelRef}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
+				id={panelId}
 				data-slot="drawer"
 				data-density={size}
 				{...drawerPanelProps({
@@ -323,6 +327,7 @@ export function Drawer({
 						<DrawerHandle
 							handleProps={resize.handleProps}
 							covers={resize.covers}
+							controls={panelId}
 							resizable={resizable}
 						/>
 					) : null}
