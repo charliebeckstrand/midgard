@@ -25,7 +25,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `form` · `fieldset` · `control`
 
-> `Form` turns off native validation (`noValidate`), so its validators run on each submit and every field shows its own message. Give each native constraint, such as `type="url"` or `required`, a validator, or pass `noValidate={false}`. `fieldset` provides the `Field` / `Label` / `Description` / `Message` / `Legend` family. `Field` takes `severity` (`error` / `warning` / `success`) and broadcasts it to the nested control. Nest a `<Message>` to render the feedback; bind it to a form field through its own `name`. `control` provides `Control`, the context that broadcasts the same field state to one control-aware descendant. Nest one `Control` for each field to group fields. A press on a `Label` keeps the focus on a control that has it, and the `click` focuses a control that does not, as on a native label.
+> `Form` turns off native validation (`noValidate`), so its validators run on each submit and every field shows its own message. Give each native constraint, such as `type="url"` or `required`, a validator, or pass `noValidate={false}`. `fieldset` provides the `Field` / `Label` / `Description` / `Message` / `Legend` family. `Field` takes `severity` (`error` / `warning` / `success`) and broadcasts it to the nested control. Nest a `<Message>` to render the feedback; bind it to a form field through its own `name`. `control` provides `Control`, the context that broadcasts the same field state to one control-aware descendant. Nest one `Control` for each field to group fields. A press on a `Label` keeps the focus on a control that has it. The `click` focuses a control that does not have it, as on a native label.
 
 ## Buttons & actions
 
@@ -41,7 +41,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Tab goes from the trigger into the panel controls and then on to the element after the trigger. Focus does not stay in the panel, and the page stays visible to assistive tech. Other tooltips are `role="tooltip"` and describe the trigger.
 
-> `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers at the app root, `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. Put one viewport anywhere in the provider.
+> `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers at the app root. `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. Put one viewport anywhere in the provider.
 
 > `drawer` also exports `DrawerStatic`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
 

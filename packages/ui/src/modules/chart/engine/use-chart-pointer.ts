@@ -119,7 +119,7 @@ export type ChartPointerOptions = {
  * isolates no mark, and pins nothing. The data stays available through the
  * "View data" item of the chart menu. A tap only activates: it reports from the
  * tap that {@link useChartTouchTap} finds, and not from the click. The click of
- * a touch press is cancelled, so the browser cannot send it to a control near
+ * a touch press is canceled, so the browser cannot send it to a control near
  * the finger, such as a legend switch.
  *
  * @remarks The hit element's own bounding box anchors the coordinate math,
@@ -363,7 +363,7 @@ export function useChartPointer({
 		return {
 			ref,
 			// A touch reads nothing from the chart. A tap only activates, and its
-			// click is cancelled, so it does not pin the readout.
+			// click is canceled, so it does not pin the readout.
 			onPointerDown: touch.onPointerDown,
 			onPointerUp: touch.onPointerUp,
 			onPointerCancel: touch.onPointerCancel,
@@ -397,7 +397,7 @@ export function useChartPointer({
 	return {
 		ref,
 		// Activation only — the tracked readout stays hover-owned. A touch
-		// activates from its tap, and its click is cancelled.
+		// activates from its tap, and its click is canceled.
 		...(onIndexClick || onMarkClick
 			? {
 					onPointerDown: touch.onPointerDown,

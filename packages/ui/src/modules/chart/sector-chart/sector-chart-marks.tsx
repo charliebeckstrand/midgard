@@ -375,7 +375,7 @@ export function SectorChartMarks({
 								onPointerCancel: touch.onPointerCancel,
 								onPointerMove: touch.onPointerMove,
 								onTouchEnd: touch.onTouchEnd,
-								// A tap only activates. Its click is cancelled, so it does not pin
+								// A tap only activates. Its click is canceled, so it does not pin
 								// the readout.
 								onClick: (event: MouseEvent<SVGPathElement>) => {
 									if (touch.fromTouch()) return
