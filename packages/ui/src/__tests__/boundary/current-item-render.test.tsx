@@ -113,6 +113,6 @@ describe('current item renders', () => {
 
 		expect(click('button', 'item-5', navItemRenders)).toBe(2)
 
-		expect(screen.getByRole('button', { name: 'item-5' })).toHaveAttribute('aria-current', 'page')
+		expect(screen.getByRole('button', { name: 'item-5' })).toHaveAttribute('aria-current', 'true')
 	})
 })
