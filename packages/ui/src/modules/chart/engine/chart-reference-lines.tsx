@@ -22,6 +22,7 @@ import {
 	type ChartReferenceLine,
 	DEFAULT_REFERENCE_COLOR,
 	type ReferenceFormat,
+	referenceText,
 	ruleKeys,
 } from './chart-reference'
 import type { LinearScale } from './chart-scale'
@@ -483,12 +484,10 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 
 	const keys = ruleKeys(lines)
 
-	const value = (line: ChartReferenceLine) => format(line.value, line.axis ?? 'y')
-
 	return (
 		<ul data-slot="chart-reference-list" className="sr-only">
 			{lines.map((line, index) => (
-				<li key={keys[index]}>{line.label ? `${line.label}: ${value(line)}` : value(line)}</li>
+				<li key={keys[index]}>{referenceText(line, format)}</li>
 			))}
 		</ul>
 	)

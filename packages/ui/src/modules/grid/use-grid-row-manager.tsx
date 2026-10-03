@@ -6,12 +6,14 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { groupValueLabel } from './engine/grid-column/label'
 import {
 	applyRowKeyOrder,
 	buildRowManagerGroups,
 	normalizeRowGroups,
 } from './engine/grid-group/row-manager'
 import type { GridGroup } from './engine/grid-group/tree'
+import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import type { GridGroupBy } from './grid-data-types'
 import type {
 	GridRowGroup,
@@ -200,7 +202,7 @@ export type GridRowManagerRegionResult = {
 	recolor: (key: string | number, color: PaletteColor | undefined) => void
 	reorderGroups: (orderedKeys: (string | number)[]) => void
 	/** The group-header menu resolver, keyed by a group's stringified value. */
-	rowGroupMenu: (key: string, header: HTMLElement) => GridMenuItem[] | null
+	rowGroupMenu: (key: string, header: HTMLElement) => GridMenuResolution | null
 	/** Whether the "Manage rows" dialog is reachable (mount it when true). */
 	reachable: boolean
 	open: boolean
@@ -284,12 +286,12 @@ export function useGridRowManagerRegion<T>({
 	const { recolor } = manager
 
 	const rowGroupMenu = useCallback(
-		(key: string, header: HTMLElement): GridMenuItem[] | null => {
+		(key: string, header: HTMLElement): GridMenuResolution | null => {
 			if (!reachable) return null
 
 			const group = groupByKey.get(key)
 
-			return buildRowGroupMenu({
+			const items = buildRowGroupMenu({
 				expanded: group?.expanded ?? false,
 				color: color(key),
 				manageLabel: 'Manage rows',
@@ -301,6 +303,8 @@ export function useGridRowManagerRegion<T>({
 				onCollapseAll: () => setGroupExpanded({}),
 				onClearColor: () => recolor(key, undefined),
 			})
+
+			return { items, name: `${groupValueLabel(group ? group.value : key)} group menu` }
 		},
 		[reachable, groupByKey, color, recolor, toggleGroup, setGroupExpanded, openFrom],
 	)

@@ -57,8 +57,8 @@ type MapZoomSurface = {
 export type MapZoomCursor = {
 	/** The live transform, so the cursor anchors its readout where the map draws its stop. */
 	transform: MapTransform
-	/** Steps the scale about the frame's center. */
-	stepZoom: (factor: number) => void
+	/** Steps the scale about the frame's center, and returns where the view landed. */
+	stepZoom: (factor: number) => MapTransform
 	/** Returns the view to the fit. */
 	fit: () => void
 	/**
@@ -627,7 +627,17 @@ export function useMapZoom({
 	function stepZoom(factor: number) {
 		const { transform: from, view: frame, max: limit } = live.current
 
-		commit(zoomTransform(from, { x: frame.width / 2, y: frame.height / 2 }, factor, frame, limit))
+		const next = zoomTransform(
+			from,
+			{ x: frame.width / 2, y: frame.height / 2 },
+			factor,
+			frame,
+			limit,
+		)
+
+		commit(next)
+
+		return next
 	}
 
 	function fit() {
