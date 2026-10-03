@@ -1,4 +1,8 @@
+import { waitFor } from '@testing-library/react'
+import { createRoutesStub, useLocation } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
+import { UIProvider } from '../../../../providers/ui'
+import { RouterLink } from '../../app'
 import { OptionsListbox } from '../../components/options-listbox'
 import { SidebarContent } from '../../components/sidebar'
 import { ValueStepper } from '../../components/value-stepper'
@@ -6,19 +10,34 @@ import { initRegistry } from '../../registry'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('sidebar item', () => {
-	// `fireEvent` returns false when a handler called `preventDefault`.
-	it('leaves each click to the browser, which follows the hash link', () => {
+	it('links to the path of its demo, and the router follows it in place', async () => {
 		initRegistry({ './demos/components/alpha.tsx': () => Promise.resolve(() => null) })
 
-		renderUI(<SidebarContent route="" />)
+		function Path() {
+			return <output>{useLocation().pathname}</output>
+		}
 
-		const link = screen.getByRole('link', { name: 'Alpha' })
+		const Stub = createRoutesStub([
+			{
+				path: '/*',
+				Component: () => (
+					<UIProvider link={RouterLink}>
+						<SidebarContent route="" />
+						<Path />
+					</UIProvider>
+				),
+			},
+		])
 
-		expect(link).toHaveAttribute('href', '#alpha')
+		renderUI(<Stub initialEntries={['/']} />)
 
-		expect(fireEvent.click(link, { metaKey: true })).toBe(true)
+		const link = await screen.findByRole('link', { name: 'Alpha' })
 
-		expect(fireEvent.click(link)).toBe(true)
+		expect(link).toHaveAttribute('href', '/alpha')
+
+		fireEvent.click(link)
+
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('/alpha'))
 	})
 })
 

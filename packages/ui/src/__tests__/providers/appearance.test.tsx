@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { cleanup } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
@@ -206,53 +204,5 @@ describe('AppearanceScript', () => {
 		runScript()
 
 		expect(document.documentElement).toHaveClass('dark')
-	})
-
-	// The docs page cannot render the component, so it keeps its own copy of the
-	// script. This runs both over the same stored values and the same scheme.
-	it('matches the pre-paint script of the docs page', () => {
-		const page = readFileSync(join(import.meta.dirname, '../../docs/index.html'), 'utf8')
-
-		const docsScript = page.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
-
-		const root = document.documentElement
-
-		const paint = (script: () => void) => {
-			root.classList.remove('dark')
-
-			writeRootDensity(root, 'md')
-
-			script()
-
-			return root.className
-		}
-
-		const mismatches: string[] = []
-
-		for (const dark of [false, true]) {
-			stubMatchMedia(() => dark)
-
-			for (const theme of [null, 'light', 'dark', 'system', 'blue']) {
-				for (const density of [null, 'loose', 'snug', 'compact', '__proto__', 'wide']) {
-					localStorage.clear()
-
-					if (theme !== null) localStorage.setItem('theme', theme)
-
-					if (density !== null) localStorage.setItem('density', density)
-
-					const docs = paint(() => new Function(docsScript)())
-
-					const component = paint(runScript)
-
-					if (docs !== component) {
-						mismatches.push(`${dark} ${theme} ${density}: docs ${docs}, component ${component}`)
-					}
-				}
-			}
-		}
-
-		expect(docsScript).not.toBe('')
-
-		expect(mismatches).toEqual([])
 	})
 })

@@ -19,6 +19,8 @@
 				"src/**/index.ts",
 				"src/__tests__/**/setup/*.ts",
 				"src/docs/app.css",
+				"src/docs/react-router.config.ts",
+				"src/docs/app/**/*.{ts,tsx}",
 				"src/docs/fixtures/main.tsx",
 				"src/docs/fixtures/app.css",
 				"src/docs/fixtures/sheets/*.tsx",

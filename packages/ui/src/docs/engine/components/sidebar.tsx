@@ -2,6 +2,7 @@
 
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
 import { memo, use, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Button } from '../../../components/button'
 import { Combobox, ComboboxOption, useComboboxDeferredQuery } from '../../../components/combobox'
 import { Heading } from '../../../components/heading'
@@ -98,7 +99,7 @@ const DemoItem = memo(function DemoItem({ demo, current }: { demo: Demo; current
 		<SidebarItem
 			// A plain hash link. The browser makes the history entry and sends
 			// `hashchange`, and the app scrolls to the top when the demo shows.
-			href={`#${demo.id}`}
+			href={`/${demo.id}`}
 			current={current}
 			// A touch device has no hover, and a tap does not focus the link. The press
 			// starts the fetch, so the demo is ready while the drawer closes.
@@ -117,6 +118,8 @@ export function SidebarContent({ route }: { route: string }) {
 	const id = useId()
 
 	const offcanvas = use(OffcanvasContext)
+
+	const navigate = useNavigate()
 
 	const scrollWithin = useScrollWithin()
 
@@ -166,12 +169,12 @@ export function SidebarContent({ route }: { route: string }) {
 							if (!id) return
 
 							// The same hash change as a click on a sidebar link.
-							window.location.hash = id
+							navigate(`/${id}`)
 
 							// Scroll the matching sidebar item into view
 							const sidebar = document.querySelector('[data-slot="sidebar"]')
 
-							const item = sidebar?.querySelector<HTMLElement>(`[href="#${id}"]`)
+							const item = sidebar?.querySelector<HTMLElement>(`[href="/${id}"]`)
 
 							if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
 

@@ -313,6 +313,7 @@
 				"apps/*/app/**/error.tsx",
 				"apps/*/app/**/global-error.tsx",
 				"apps/*/app/**/default.tsx",
+				"packages/ui/src/docs/app/**",
 				"**/*.config.ts",
 				"**/*.d.ts"
 			],
@@ -596,6 +597,7 @@
 			"**/*.css",
 			"!**/dist",
 			"!**/.next",
+			"!**/.react-router",
 			"!**/.turbo",
 			"!**/next-env.d.ts",
 			"!.mcp-servers",

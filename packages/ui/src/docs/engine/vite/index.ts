@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
+import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import type { UserConfig } from 'vite'
 import { docsPlugin } from '../plugins'
@@ -59,7 +59,7 @@ export function defineDocsConfig({
 		root,
 		plugins: [
 			docsPlugin({ packageName, srcDir }),
-			react(),
+			reactRouter(),
 			tailwindcss(),
 			analyze &&
 				visualizer({
@@ -78,7 +78,7 @@ export function defineDocsConfig({
 			// so the first page paints without an on-demand transform stall.
 			// `app.css` is warmed too: `index.html` links it instead of importing
 			// it, so it is no longer in the entry graph, and it blocks the paint.
-			warmup: { clientFiles: ['./main.tsx', './app.css'] },
+			warmup: { clientFiles: ['./app/root.tsx', './app.css'] },
 		},
 		// Pre-bundle the heavy component deps up front. Left to lazy discovery,
 		// Vite finds each the first time a demo importing it renders and re-runs

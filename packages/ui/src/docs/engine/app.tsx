@@ -1,25 +1,18 @@
 'use client'
 
-import {
-	type ComponentType,
-	Suspense,
-	use,
-	useCallback,
-	useDeferredValue,
-	useEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type ComponentType, Suspense, use, useCallback, useEffect, useRef, useState } from 'react'
+import { Link, Outlet, useLocation, useOutletContext, useParams } from 'react-router'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
 import { SidebarLayout } from '../../layouts'
+import type { LinkProps } from '../../primitives/link'
 import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
+import { UIProvider } from '../../providers/ui'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
 import { DebugActions } from './debug/debug-actions'
 import { DemoPage } from './demo-page'
-import { useHash } from './hooks/use-hash'
-import { demos, retryDemo, type TrackedPromise, tracked } from './registry'
+import { defaultDemo, demos, retryDemo, type TrackedPromise, tracked } from './registry'
 
 // Snippets in the shape of a derived code block. The browser compiles each
 // grammar RegExp when the tokenizer first runs it, and that compile is most of
@@ -77,36 +70,37 @@ function DebugSection() {
 	return DebugSettings ? <DebugSettings /> : null
 }
 
+// The library's links navigate through the router, so a page switch keeps the
+// app and swaps the route in place.
+export function RouterLink({ href, ...props }: LinkProps) {
+	return <Link to={href} {...props} />
+}
+
+type ChromeContext = { locked: boolean; onToggleLocked: () => void }
+
 /**
- * Root of the docs site: a sidebar layout whose body is the hash-routed demo,
- * wired to the persisted theme and density preferences. Defers the route during
- * navigation so the previous demo stays on screen while the next chunk loads.
+ * Root of the docs site: a sidebar layout whose body is the route, wired to the
+ * persisted theme and density preferences. The router keeps the previous page
+ * on screen while the next demo's chunk loads.
  */
 export function App() {
-	const route = useHash()
+	const { id = defaultDemo } = useParams()
 
-	// Defers the route while the next demo's chunk is in flight; the previous
-	// demo stays on screen during navigation.
-	const deferredRoute = useDeferredValue(route)
+	const { pathname } = useLocation()
 
 	const [locked, setLocked] = useState(true)
 
 	const toggleLocked = useCallback(() => setLocked((l) => !l), [])
 
-	const current = demos.find((d) => d.id === deferredRoute)
-
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		// Scroll to the top on the first render and on each route change; skip the
-		// empty landing route (`useHash` returns '' there, never null). From `lg` up
-		// the content pane scrolls, and below `lg` the page scrolls.
-		if (!deferredRoute) return
+		// From `lg` up the content pane scrolls, not the window, so the router's
+		// scroll restoration does not reach it. Start each page at its top.
+		void pathname
 
 		contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
-
-		window.scrollTo(0, 0)
-	}, [deferredRoute])
+	}, [pathname])
 
 	// Warm Shiki on idle, then tokenize the warm snippets one per idle slice, so
 	// the first "Show code" does not pay for the grammar compile. Per-demo
@@ -156,53 +150,62 @@ export function App() {
 	}, [])
 
 	return (
-		<AppearanceProvider>
-			<SidebarLayout
-				stickyHeader
-				floating={!locked}
-				actions={
-					<>
-						<DebugActions />
-						<AppearanceSettings>
-							<Suspense fallback={null}>
-								<DebugSection />
-							</Suspense>
-						</AppearanceSettings>
-					</>
-				}
-				sidebar={<SidebarContent route={route} />}
-			>
-				<div ref={contentRef}>
-					{/* One Suspense boundary spans every route. Keeping it mounted, rather
-					    than keyed per demo, is what lets the deferred route hold the previous
-					    demo on screen while the next chunk loads. A boundary recreated per
-					    navigation has no revealed content to keep, and flashes its fallback
-					    instead. The error boundary stays keyed so a load failure resets per
-					    demo. */}
-					<Suspense fallback={null}>
-						{current ? (
-							<DemoErrorBoundary
-								key={current.id}
-								fallback={(retry) => (
-									<DemoLoadError
-										onRetry={() => {
-											retryDemo(current.id)
+		<UIProvider link={RouterLink}>
+			<AppearanceProvider>
+				<SidebarLayout
+					stickyHeader
+					floating={!locked}
+					actions={
+						<>
+							<DebugActions />
+							<AppearanceSettings>
+								<Suspense fallback={null}>
+									<DebugSection />
+								</Suspense>
+							</AppearanceSettings>
+						</>
+					}
+					sidebar={<SidebarContent route={id} />}
+				>
+					<div ref={contentRef}>
+						<Suspense fallback={null}>
+							<Outlet context={{ locked, onToggleLocked: toggleLocked } satisfies ChromeContext} />
+						</Suspense>
+					</div>
+				</SidebarLayout>
+			</AppearanceProvider>
+		</UIProvider>
+	)
+}
 
-											retry()
-										}}
-									/>
-								)}
-							>
-								<DemoPage demo={current} locked={locked} onToggleLocked={toggleLocked} />
-							</DemoErrorBoundary>
-						) : (
-							<div className="p-6">
-								<Heading>Select a component</Heading>
-							</div>
-						)}
-					</Suspense>
-				</div>
-			</SidebarLayout>
-		</AppearanceProvider>
+/** The body of one route: the demo page, or a prompt when the id names no demo. */
+export function DemoRoute({ id }: { id: string }) {
+	const { locked, onToggleLocked } = useOutletContext<ChromeContext>()
+
+	const current = demos.find((d) => d.id === id)
+
+	if (!current) {
+		return (
+			<div className="p-6">
+				<Heading>Select a component</Heading>
+			</div>
+		)
+	}
+
+	return (
+		<DemoErrorBoundary
+			key={current.id}
+			fallback={(retry) => (
+				<DemoLoadError
+					onRetry={() => {
+						retryDemo(current.id)
+
+						retry()
+					}}
+				/>
+			)}
+		>
+			<DemoPage demo={current} locked={locked} onToggleLocked={onToggleLocked} />
+		</DemoErrorBoundary>
 	)
 }
