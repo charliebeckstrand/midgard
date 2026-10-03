@@ -123,6 +123,21 @@ describe('Checkbox in a Form', () => {
 })
 
 describe('CheckboxGroup', () => {
+	it('requires an accessible name (compile-time)', () => {
+		// Never rendered; exists for `tsc`. The group is `role="group"`, so a group
+		// with no `aria-label` and no `aria-labelledby` must not typecheck.
+		const typeChecks = () => (
+			<>
+				{/* @ts-expect-error: a checkbox group needs aria-label or aria-labelledby */}
+				<CheckboxGroup>items</CheckboxGroup>
+
+				<CheckboxGroup aria-labelledby="notifications-heading">items</CheckboxGroup>
+			</>
+		)
+
+		expect(typeChecks).toBeTypeOf('function')
+	})
+
 	it('exposes role="group" and accepts an accessible name', () => {
 		renderUI(<CheckboxGroup aria-label="Notifications">items</CheckboxGroup>)
 
