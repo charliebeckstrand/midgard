@@ -38,16 +38,18 @@ export function demoPath(id: string, tab?: string): string {
 			? `/${id.slice(0, dash)}/${id.slice(dash + 1)}`
 			: `/${id}`
 
-	return tab === undefined ? page : `${page}/${encodeURIComponent(tab)}`
+	return tab === undefined ? page : `${page}/${tab}`
 }
 
 /**
  * The page id and the tab of a path, the opposite of {@link demoPath}.
  * A path from before nested paths (`/structure-box`) gives the same id as its
- * new path. The root path gives an empty id.
+ * new path. The root path gives an empty id. A part is not decoded: an id and a
+ * tab have only lowercase letters, digits, and hyphens, so a path with an escape
+ * names no page.
  */
 export function parseDemoPath(pathname: string): { id: string; tab: string | undefined } {
-	const [first = '', ...rest] = pathname.split('/').filter(Boolean).map(decodeURIComponent)
+	const [first = '', ...rest] = pathname.split('/').filter(Boolean)
 
 	if (NAMESPACES.has(first) && rest.length > 0) {
 		const [name, tab] = rest

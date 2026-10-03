@@ -48,4 +48,8 @@ describe('parseDemoPath', () => {
 
 		expect(parseDemoPath('/')).toEqual({ id: '', tab: undefined })
 	})
+
+	it('reads a malformed escape as a part, and does not throw', () => {
+		expect(parseDemoPath('/%ZZ')).toEqual({ id: '%ZZ', tab: undefined })
+	})
 })
