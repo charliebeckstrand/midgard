@@ -73,6 +73,7 @@ describe('SignaturePad', () => {
 		const canvas = bySlot(container, 'signature-pad-canvas')
 
 		expect(canvas).toHaveClass('cursor-default')
+
 		expect(canvas).not.toHaveClass('cursor-not-allowed', 'cursor-crosshair')
 	})
 
