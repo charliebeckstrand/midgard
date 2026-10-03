@@ -485,6 +485,10 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  * @param setActiveSeries - The series-emphasis setter, moved to the series the
  * cursor sits on. It is `null` off any series: a reference, a cleared cursor, or
  * a chart with no series map.
+ * @param onRead - Called when a key moves the cursor onto a data point, with the
+ * hover index and the series that the cursor writes. The frame announces the
+ * readout of that point through it. A re-anchor, a pointer move, and a stop on a
+ * reference line do not call it.
  * @internal
  */
 export function useChartKeyboard(
@@ -494,6 +498,7 @@ export function useChartKeyboard(
 	store: ChartHoverStore,
 	setReference: (reference: number | null) => void,
 	setActiveSeries: (series: number | null) => void,
+	onRead?: (index: number, series: number | null) => void,
 ): ChartKeyboardProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
@@ -542,8 +547,11 @@ export function useChartKeyboard(
 	// line the cursor parks on owns the emphasis, not the marks: recede the whole
 	// field and drop the series readout so the rule reads alone. Anywhere else,
 	// carry the readout to the cursor's anchor, and emphasize the series it sits
-	// on so the rest recede. A `null` cursor clears all of them.
-	const applyCursor = (next: ChartCursor | null) => {
+	// on so the rest recede. A `null` cursor clears all of them. Returns the hover
+	// index and the series that the cursor writes, or `null` when it writes none.
+	const applyCursor = (
+		next: ChartCursor | null,
+	): { index: number; series: number | null } | null => {
 		if (!sameCursor(cursor, next)) setCursor(next)
 
 		const reference = next?.reference
@@ -554,12 +562,23 @@ export function useChartKeyboard(
 
 		setReference(onRule ? reference : null)
 
-		setActiveSeries(next !== null && targets && point ? cursorSeries(next, targets) : null)
+		const series = next !== null && targets && point ? cursorSeries(next, targets) : null
+
+		setActiveSeries(series)
 
 		written.current = point
 
-		if (next !== null && targets && point) store.set(cursorIndex(next, targets), point, true)
-		else store.set(null, null)
+		if (next !== null && targets && point) {
+			const index = cursorIndex(next, targets)
+
+			store.set(index, point, true)
+
+			return { index, series }
+		}
+
+		store.set(null, null)
+
+		return null
 	}
 
 	// Reads the cursor, the store, and `applyCursor` when it runs. The re-anchor
@@ -603,13 +622,11 @@ export function useChartKeyboard(
 
 		// The first arrow enters at the first point rather than stepping past it;
 		// Home / End are absolute jumps and place directly.
-		if (cursor === null && isArrowKey(event.key)) {
-			applyCursor(firstCursor(targets))
+		const read = applyCursor(
+			cursor === null && isArrowKey(event.key) ? firstCursor(targets) : move.cursor,
+		)
 
-			return
-		}
-
-		applyCursor(move.cursor)
+		if (read !== null) onRead?.(read.index, read.series)
 	}
 
 	return active ? { tabIndex: 0, onKeyDown, onBlur } : null

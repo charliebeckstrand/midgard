@@ -7,9 +7,14 @@ import { useKeyboardLifted } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import type { KanbanColumnBase } from './types'
 
-/** Accessible name of a card, for announcements. @internal */
+/**
+ * Accessible name of a card, for announcements. The `<li>` of an interactive
+ * card carries the name, so the name comes from the list item.
+ *
+ * @internal
+ */
 const cardName = (container: ParentNode | null, cardId: string) =>
-	accessibleName(querySlot(container, 'kanban-card', 'card-id', cardId))
+	accessibleName(querySlot(container, 'kanban-card', 'card-id', cardId)?.closest('li') ?? null)
 
 /** Accessible name of a column, for announcements. @internal */
 const columnName = (container: ParentNode | null, columnId: string) =>
@@ -158,9 +163,10 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	/** Board root; scopes card lookups so concurrent boards (and the drag overlay clone) don't cross-match. */
 	containerRef: RefObject<HTMLElement | null>
 }) {
+	// The handle is the keyboard stop of a card.
 	const focusCard = useCallback(
 		(cardId: string) => {
-			querySlot(containerRef.current, 'kanban-card', 'card-id', cardId)?.focus()
+			querySlot(containerRef.current, 'kanban-card-handle', 'card-id', cardId)?.focus()
 		},
 		[containerRef],
 	)

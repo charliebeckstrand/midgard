@@ -115,6 +115,38 @@ function readoutRows(readout: ChartReadout | null, order: number[] | undefined) 
 	})
 }
 
+/**
+ * The readout at hover `index` as one line of text, for the announcement of a
+ * keyboard cursor step. It reads what the tooltip shows: the category, then
+ * each row label with its value, in the display order. A cursor on one series
+ * reads only the row of that series, which is the row the tooltip keeps lit.
+ * Returns `null` for an index past the categories.
+ *
+ * @internal
+ */
+export function describeReadout(
+	readout: ChartReadout | null,
+	index: number,
+	series: number | null,
+	order?: number[],
+): string | null {
+	if (readout === null || index >= readout.categories.length) return null
+
+	const rows = readoutRows(readout, order)
+
+	const lit = series === null ? [] : rows.filter((row) => row.index === series)
+
+	const values = (lit.length > 0 ? lit : rows).flatMap((row) => {
+		const value = row.values[index]
+
+		if (!value) return []
+
+		return [row.label ? `${row.label}: ${value}` : value]
+	})
+
+	return [readout.categories[index], ...values].filter(Boolean).join(', ')
+}
+
 /** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
 const TRACK_OFFSET = 12
 

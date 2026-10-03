@@ -21,11 +21,22 @@ export type TooltipContextValue = {
 	getReferenceProps: (userProps?: object) => Record<string, unknown>
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
 	/**
-	 * Floating-ui root context an interactive `<TooltipContent>`'s focus trap
-	 * mounts on. Absent for the point-anchored readout, which is never
-	 * `interactive` and so never traps.
+	 * Floating-ui root context that the focus manager of an interactive
+	 * `<TooltipContent>` mounts on. Absent for the point-anchored readout, which
+	 * is never `interactive`.
 	 */
 	floatingContext?: FloatingRootContext
+	/**
+	 * The id that `<TooltipTrigger>` stamps on a trigger that has no id of its
+	 * own. Set only while the panel is a dialog, which the trigger names
+	 * through `aria-labelledby`.
+	 */
+	triggerId?: string
+	/**
+	 * Reports whether the open panel holds a tabbable control. An `interactive`
+	 * panel that holds one is a dialog. Absent for the point-anchored readout.
+	 */
+	reportTabbable?: (tabbable: boolean) => void
 }
 
 export const [TooltipContext, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')

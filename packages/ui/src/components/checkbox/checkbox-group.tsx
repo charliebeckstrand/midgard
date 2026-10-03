@@ -1,12 +1,24 @@
 import type { ComponentProps } from 'react'
 import { ToggleGroup } from '../../primitives/toggle'
-
-/** Props for {@link CheckboxGroup}. */
-export type CheckboxGroupProps = ComponentProps<'div'>
+import type { AccessibleName } from '../../types'
 
 /**
- * Stacks related CheckboxFields under a shared group layout, exposing them as a
- * `role="group"` to assistive tech. Pair with an `aria-labelledby` group label.
+ * Props for {@link CheckboxGroup}. Requires an accessible name (`aria-label` or
+ * `aria-labelledby`), enforced at the type level by `AccessibleName`.
+ */
+// An enclosing `<fieldset>`'s `<legend>` does not name a `group` div;
+// pass an explicit `aria-label` or `aria-labelledby`.
+export type CheckboxGroupProps = AccessibleName &
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>
+
+/**
+ * Group layout container for a set of related {@link CheckboxField} controls,
+ * rendered as a `role="group"`. Requires its own accessible name; an enclosing
+ * `<fieldset>` legend does not name the group.
+ *
+ * @remarks Layout and ARIA role only; it adds no roving-focus or arrow-key
+ * handling. Each checkbox stays its own Tab stop.
+ * @see {@link Checkbox}
  */
 export function CheckboxGroup(props: CheckboxGroupProps) {
 	// Consumer props spread first; the group role after them takes precedence.

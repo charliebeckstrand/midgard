@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, type ReactElement, type ReactNode } from 'react'
+import { Children, type ReactElement, type ReactNode, useId } from 'react'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
@@ -59,7 +59,10 @@ export type TreeItemProps = {
  *
  * @remarks
  * Client component. Reflects expansion as `aria-expanded` and nesting as
- * `aria-level`/`aria-posinset`/`aria-setsize`. Keyboard: Enter/Space toggle (or
+ * `aria-level`/`aria-posinset`/`aria-setsize`. The child group is a sibling of
+ * the row in the DOM, so the open row owns it through `aria-owns`. The row takes
+ * its name from its `label` alone through `aria-labelledby`, so the text of an
+ * affix or of the owned group does not join the name. Keyboard: Enter/Space toggle (or
  * activate a leaf's prefix control), ArrowRight expands a collapsed branch,
  * ArrowLeft collapses an open one; cross-item roving lives on {@link Tree}.
  *
@@ -90,6 +93,9 @@ export function TreeItem({
 	// collapsed parent.
 	const hasChildren = Children.toArray(children).length > 0
 
+	// The row owns the group by this id, which keeps two trees apart.
+	const groupId = useId()
+
 	return (
 		<div data-slot="tree-item">
 			<TreeItemContent
@@ -102,10 +108,11 @@ export function TreeItem({
 				onAction={onAction}
 				open={open}
 				onOpenChange={setOpen}
+				groupId={groupId}
 				className={className}
 			/>
 			{hasChildren && (
-				<TreeItemChildren open={open} label={label}>
+				<TreeItemChildren id={groupId} open={open} label={label}>
 					{children}
 				</TreeItemChildren>
 			)}

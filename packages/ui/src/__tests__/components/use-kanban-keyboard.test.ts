@@ -98,13 +98,12 @@ describe('useKanbanKeyboard: lift state', () => {
 describe('useKanbanKeyboard: focus navigation', () => {
 	beforeEach(() => {
 		for (const id of ['a1', 'a2', 'b1']) {
-			const el = document.createElement('div')
+			// The handle is the keyboard stop of a card.
+			const el = document.createElement('button')
 
-			el.setAttribute('data-slot', 'kanban-card')
+			el.setAttribute('data-slot', 'kanban-card-handle')
 
 			el.setAttribute('data-card-id', id)
-
-			el.setAttribute('tabindex', '0')
 
 			attach(el)
 		}

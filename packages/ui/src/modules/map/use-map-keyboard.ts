@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { announce } from '../../core'
 import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { once } from '../../utilities'
@@ -63,6 +64,13 @@ export type MapKeyboardOptions = {
 	/** Picks the stop under the cursor — a region by index, an overlay through its own reporter. */
 	activate: (target: MapHoverTarget) => void
 	/**
+	 * The readout of a stop as one line of text, or `null` for none. A key that
+	 * moves the cursor onto a stop speaks this text through the shared polite
+	 * live region, because the tooltip is `aria-hidden`. Absent, the cursor
+	 * speaks nothing.
+	 */
+	describe?: (target: MapHoverTarget) => string | null
+	/**
 	 * The view the zoom layer draws through, or `null` on a map that does not
 	 * zoom. The cursor reads it to anchor its readout where the map draws the
 	 * stop, and drives it two ways. `+`, `-`, and `0` step and reset the scale. A
@@ -82,7 +90,8 @@ export type MapKeyboardOptions = {
  * From there each arrow steps to the nearest stop bearing that way. Regions and
  * overlay marks stand in one field, as the pointer crosses them. Home and End
  * jump to the ends of the list. Enter or Space picks the stop under the cursor,
- * and Escape leaves through the shared {@link usePlotTabStop} exit.
+ * and Escape leaves through the shared {@link usePlotTabStop} exit. Each step
+ * onto a stop speaks its readout through the shared polite live region.
  *
  * A zooming map answers three more keys on that one stop. `+` and `-` step the
  * scale about the frame's center, and `0` returns to the fit. The cursor takes
@@ -113,6 +122,7 @@ export function useMapKeyboard({
 	view,
 	svgRef,
 	activate,
+	describe,
 	zoom,
 }: MapKeyboardOptions): MapKeyboardProps | null {
 	const set = useMapHoverSet()
@@ -195,6 +205,16 @@ export function useMapKeyboard({
 		anchor(stop, stop === null || zoom === null ? transform : zoom.show(stop.at, MAP_CURSOR_INSET))
 	}
 
+	/**
+	 * Speaks the readout of the stop a key moved the cursor onto. Only a key
+	 * calls this. A pointer move and a re-anchor speak nothing.
+	 */
+	const speak = (stop: MapStop | null) => {
+		const text = stop === null ? null : describe?.(stop.target)
+
+		if (text) announce(text)
+	}
+
 	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
 
 	// Release what the cursor held once navigation switches off — the readout
@@ -268,6 +288,8 @@ export function useMapKeyboard({
 		event.preventDefault()
 
 		show(move.stop)
+
+		speak(move.stop)
 
 		if (move.stop === null) exit(event.currentTarget)
 	}

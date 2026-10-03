@@ -1,7 +1,13 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react'
+import {
+	type KeyboardEvent,
+	type MouseEvent,
+	type ReactElement,
+	type ReactNode,
+	useId,
+} from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { k } from '../../recipes/kata/tree'
@@ -25,6 +31,8 @@ type TreeItemContentProps = {
 	onAction?: () => void
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/** The id of the child group, which the open row owns. */
+	groupId: string
 	className?: string
 }
 
@@ -47,9 +55,12 @@ export function TreeItemContent({
 	onAction,
 	open,
 	onOpenChange,
+	groupId,
 	className,
 }: TreeItemContentProps) {
 	const { depth } = useTreeContext()
+
+	const labelId = useId()
 
 	const { posinset, setsize } = useTreePosition()
 
@@ -120,6 +131,11 @@ export function TreeItemContent({
 		<div
 			role="treeitem"
 			aria-expanded={hasChildren ? open : undefined}
+			// The group is a sibling of the row, so the row owns it. The group is in the
+			// DOM while the row is open, so the reference never dangles.
+			aria-owns={hasChildren && open ? groupId : undefined}
+			// The label alone names the row, so the affixes and the owned group stay out.
+			aria-labelledby={labelId}
 			aria-current={ariaAttr(current)}
 			aria-level={depth + 1}
 			aria-posinset={posinset}
@@ -150,7 +166,9 @@ export function TreeItemContent({
 				</span>
 			)}
 			{icon && <Icon icon={icon} />}
-			<span className={k.label}>{label}</span>
+			<span id={labelId} className={k.label}>
+				{label}
+			</span>
 			{suffix != null && (
 				<span data-slot="tree-item-suffix" className={k.affix}>
 					{suffix}
