@@ -69,7 +69,7 @@ const api: ComponentApi = {
 }
 
 describe('axesOf', () => {
-	it('lists each literal prop in prop order, with its default, also in a code span', () => {
+	it('lists each literal prop with its default, also in a code span', () => {
 		expect(axesOf(api)).toEqual([
 			{ name: 'variant', values: ['solid', 'soft'], default: 'soft' },
 			{ name: 'size', values: ['sm', 'md'] },
@@ -84,6 +84,22 @@ describe('axesOf', () => {
 		expect(axesOf(api, ['size', 'odd', 'side', 'note']).map((axis) => axis.name)).toEqual([
 			'variant',
 			'loading',
+		])
+	})
+
+	it('shows the variant, the color, the size, and the shape first, then each other axis in prop order', () => {
+		const props = ['open', 'radius', 'side', 'size', 'tone', 'variant'].map((name) => ({
+			name,
+			type: "'a' | 'b'",
+		}))
+
+		expect(axesOf({ name: 'Chip', props }).map((axis) => axis.name)).toEqual([
+			'variant',
+			'tone',
+			'size',
+			'radius',
+			'open',
+			'side',
 		])
 	})
 })

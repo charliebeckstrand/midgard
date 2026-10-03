@@ -81,10 +81,33 @@ export function literalsOf(type: string): AxisValue[] | null {
 }
 
 /**
+ * The rank of the shared styling props. An axis shows in this order: the
+ * variant, then the color, then the size, then the shape. A prop on one line
+ * shares its rank.
+ */
+const AXIS_RANK: readonly (readonly string[])[] = [
+	['variant'],
+	['color', 'tone'],
+	['size'],
+	['radius', 'rounded', 'shape'],
+]
+
+/** The rank of an axis. A prop that is not a shared styling prop comes last. */
+function rankOf(name: string): number {
+	const rank = AXIS_RANK.findIndex((names) => names.includes(name))
+
+	return rank === -1 ? AXIS_RANK.length : rank
+}
+
+/**
  * List the styling axes of a component from its extracted API: each prop whose
- * type is a finite set of literals, in the order of the props. A prop in `omit`
- * does not become an axis. A deprecated prop, and a prop with one value, do not
- * become an axis.
+ * type is a finite set of literals. A prop in `omit` does not become an axis.
+ * A deprecated prop, and a prop with one value, do not become an axis.
+ *
+ * @remarks
+ * The shared styling props come first, in the order of {@link AXIS_RANK}.
+ * Each other axis follows in the order of the props. Thus each page shows its
+ * axes in the same order, whatever order the source gives its props.
  */
 export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] {
 	const axes: Axis[] = []
@@ -108,7 +131,7 @@ export function axesOf(api: ComponentApi, omit: readonly string[] = []): Axis[] 
 		})
 	}
 
-	return axes
+	return axes.toSorted((a, b) => rankOf(a.name) - rankOf(b.name))
 }
 
 /**
