@@ -16,7 +16,7 @@ import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
-import { Density, useDensityScope } from '../density'
+import { Density } from '../density'
 import { Portal } from '../portal'
 
 /**
@@ -46,9 +46,9 @@ export type FloatingSurfaceProps = {
 	onExitComplete?: () => void
 	/**
 	 * The density step. Omit it to take the step of the scope of the place that
-	 * opened the surface, which the wrapper carries. A step makes the surface a
-	 * density scope: it writes `data-density` and opens the density context
-	 * around the children.
+	 * opened the surface, which the portal carries. A step makes the surface a
+	 * density scope: the portal host writes it as `data-density`, and the
+	 * density context opens around the children.
 	 */
 	density?: DensityStep
 	children: ReactNode
@@ -61,9 +61,8 @@ export type FloatingSurfaceProps = {
  * lifecycle, and the exit animation. Consumers render the animated inner
  * surface as `children`.
  *
- * The portal takes the surface out of the DOM subtree of its density scope. So
- * the wrapper writes the step of that scope as `data-density`, and the surface
- * follows the scope of its trigger.
+ * The portal carries the density scope and the direction of the trigger (see
+ * {@link Portal}), so the surface follows the scope of its trigger.
  *
  * @remarks Passing `trapFocusContext` wraps the open surface in a modal
  * `FloatingFocusManager` that traps Tab. It cedes initial focus and close-time
@@ -85,8 +84,6 @@ export function FloatingSurface({
 	ref,
 	...rest
 }: FloatingSurfaceProps) {
-	const inherited = useDensityScope()
-
 	const wrapperRef = useRef<HTMLDivElement | null>(null)
 
 	const setWrapper = useComposedRef<HTMLDivElement>(wrapperRef, setFloating, ref)
@@ -112,38 +109,41 @@ export function FloatingSurface({
 	const surface = (
 		<div
 			ref={setWrapper}
-			data-density={density ?? inherited ?? undefined}
 			style={style ? { ...floatingStyles, ...style } : floatingStyles}
 			className={cn(k.portal, className)}
 			// Routed through getFloatingProps so consumer handlers compose
 			// with floating-ui's own instead of being overwritten.
 			{...getFloatingProps(rest)}
 		>
-			<Density step={density}>{children}</Density>
+			{children}
 		</div>
 	)
 
+	// `Density` sits above the portal, so an explicit step is the scope that the
+	// portal host writes, and the children read the same step in context.
 	return (
-		<Portal open={open} onExitComplete={onExitComplete}>
-			{trapFocusContext ? (
-				// `returnFocus={false}`: `useFloatingPanel`'s reason-aware effect owns
-				// the close restore, as in DatePickerContent. `initialFocus={-1}`: the
-				// surface owns initial focus (the month picker seats it on the selected
-				// cell), so the manager must not race it to the first tabbable. A
-				// surface whose trap works the other way round — one that opens without
-				// taking focus, like an interactive Tooltip — overrides both.
-				<FloatingFocusManager
-					context={trapFocusContext}
-					modal
-					returnFocus={false}
-					initialFocus={-1}
-					{...trapFocusProps}
-				>
-					{surface}
-				</FloatingFocusManager>
-			) : (
-				surface
-			)}
-		</Portal>
+		<Density step={density}>
+			<Portal open={open} onExitComplete={onExitComplete}>
+				{trapFocusContext ? (
+					// `returnFocus={false}`: `useFloatingPanel`'s reason-aware effect owns
+					// the close restore, as in DatePickerContent. `initialFocus={-1}`: the
+					// surface owns initial focus (the month picker seats it on the selected
+					// cell), so the manager must not race it to the first tabbable. A
+					// surface whose trap works the other way round — one that opens without
+					// taking focus, like an interactive Tooltip — overrides both.
+					<FloatingFocusManager
+						context={trapFocusContext}
+						modal
+						returnFocus={false}
+						initialFocus={-1}
+						{...trapFocusProps}
+					>
+						{surface}
+					</FloatingFocusManager>
+				) : (
+					surface
+				)}
+			</Portal>
+		</Density>
 	)
 }

@@ -3,7 +3,6 @@
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import type { scale } from '../../recipes/kata/combobox'
@@ -63,16 +62,13 @@ export function ComboboxPanel({
 	onClose,
 	children,
 }: ComboboxPanelProps) {
-	// A portal takes the panel out of the DOM subtree of its scope, so the root
-	// writes the step of the scope that opened it, as `FloatingSurface` does. An
-	// explicit `size` is the scope of the `PopoverPanel` inside.
-	const inherited = useDensityScope()
-
+	// The portal carries the density scope of the combobox. An explicit `size` is
+	// the scope of the `PopoverPanel` inside.
 	return (
 		// `Portal` mounts the portal only while open, so a closed Combobox keeps no
 		// empty portal node in the document.
 		<Portal open={open} onExitComplete={flushPending}>
-			<div ref={optionsRef} data-density={inherited ?? undefined}>
+			<div ref={optionsRef}>
 				<div
 					ref={(node) => {
 						setFloating(node)

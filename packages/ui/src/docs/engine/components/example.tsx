@@ -1,4 +1,13 @@
-import { Children, isValidElement, type ReactNode, useMemo, useRef, useState } from 'react'
+import {
+	Children,
+	isValidElement,
+	lazy,
+	type ReactNode,
+	Suspense,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { Heading } from '../../../components/heading'
@@ -72,6 +81,13 @@ function loadDerive(): Promise<Derive> {
  * dashed. The drag stops at the content's own minimum width, which the handle
  * measures from the rendered sections, so no demo guesses a floor. See
  * {@link resolveResize} for how the boolean and object forms normalize.
+ *
+ * `surface` is the frame of a component that is a surface of a page, such as
+ * a chart, a map, or a document viewer: {@link SURFACE}. An explicit `width`,
+ * `minWidth`, or `resize` overrides its part of the preset.
+ *
+ * `replay` adds a button to the title row that mounts the children again, so a
+ * mount animation plays again.
  */
 export function Example({
 	title,
@@ -80,9 +96,11 @@ export function Example({
 	preview,
 	footer,
 	code,
-	width: initialWidth,
-	minWidth,
-	resize,
+	surface,
+	replay,
+	width: initialWidth = surface ? SURFACE.width : undefined,
+	minWidth = surface ? SURFACE.minWidth : undefined,
+	resize = surface ? SURFACE.resize : undefined,
 	__facts: facts,
 	children,
 }: {
@@ -93,6 +111,10 @@ export function Example({
 	footer?: ReactNode
 	/** Explicit override. When omitted, the block derives from `children`. */
 	code?: string
+	/** Gives the frame the preset of a page surface ({@link SURFACE}). */
+	surface?: boolean
+	/** Adds a button that mounts the children again, so a mount animation plays again. */
+	replay?: boolean
 	/** The frame's width in pixels; the starting width when `resize` is on. Auto when omitted. */
 	width?: number
 	/**
@@ -118,6 +140,9 @@ export function Example({
 	children: ReactNode
 }) {
 	const [open, setOpen] = useState(false)
+
+	// A new key on each instance box mounts the children again.
+	const [run, setRun] = useState(0)
 
 	// `deriveCode` walks the whole children subtree, and a demo hands `Example` a
 	// fresh tree on every render, so the old `useMemo([code, children])` re-walked
@@ -160,6 +185,22 @@ export function Example({
 
 	const resolvedResize = resolveResize(resize)
 
+	const replayButton = replay && (
+		<Suspense fallback={null}>
+			<ReplayButton onReplay={() => setRun((n) => n + 1)} />
+		</Suspense>
+	)
+
+	const trailing =
+		actions && replayButton ? (
+			<Flex gap="sm" align="center">
+				{actions}
+				{replayButton}
+			</Flex>
+		) : (
+			(actions ?? replayButton)
+		)
+
 	// `minWidth` floors the resize range too, composing with any `resize.min`.
 	const boundedResize = resolvedResize && {
 		...resolvedResize,
@@ -188,7 +229,7 @@ export function Example({
 			// right edge, so it isn't clipped at full width.
 			className={cn(resolvedResize && 'pr-2')}
 		>
-			{(title || actions) && (
+			{(title || trailing) && (
 				<Flex
 					gap="md"
 					direction={{ initial: 'col', sm: 'row' }}
@@ -196,7 +237,7 @@ export function Example({
 					justify={{ initial: 'start', sm: 'between' }}
 				>
 					{title && <Heading level={3}>{title}</Heading>}
-					{actions}
+					{trailing}
 				</Flex>
 			)}
 			<div
@@ -229,7 +270,7 @@ export function Example({
 				>
 					{Children.toArray(children).map((child, index) => (
 						<div
-							key={isValidElement(child) ? child.key : index}
+							key={`${run}:${isValidElement(child) ? child.key : index}`}
 							data-slot="example-instance"
 							className={sized ? 'w-full' : INSTANCE}
 						>
@@ -296,6 +337,17 @@ export function Example({
 		</Stack>
 	)
 }
+
+// Few pages replay an animation, so the button loads only where one does.
+const ReplayButton = lazy(() =>
+	import('./replay-button').then((module) => ({ default: module.ReplayButton })),
+)
+
+/**
+ * The frame of a page surface: 720px wide, with a drag to show how the
+ * surface responds, and a floor of 160px.
+ */
+const SURFACE = { width: 720, minWidth: 160, resize: true } as const
 
 /**
  * The box of each child of the frame. `w-max` takes the width of the content,

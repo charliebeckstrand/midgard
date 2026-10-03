@@ -199,8 +199,8 @@ describe('Dialog', () => {
 		)
 
 		// The jsdom portal renders inline, so the provider span is an ancestor too.
-		// The root of the overlay must write the step itself.
-		expect(screen.getByText('Settings').closest('[data-slot="overlay"]')).toHaveAttribute(
+		// The portal host must write the step itself.
+		expect(screen.getByText('Settings').closest('[data-slot="portal"]')).toHaveAttribute(
 			'data-density',
 			'sm',
 		)

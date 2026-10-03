@@ -306,10 +306,11 @@ export function useChartPointer({
 
 	// The click trigger's pointer move: isolation stays a hover affordance even with
 	// the readout click-pinned, so movement isolates the mark under the pointer here
-	// too. Under a non-snap chart it also points the cursor only where a click reads
-	// — on a mark, not the bare plot above or between them — written straight to the
-	// node so tracking the marks never re-renders the plot; a snapping chart reads a
-	// click anywhere, so a static class carries its cursor and this leaves it be.
+	// too. Under a non-snap chart it also marks the node with `data-hit` only where a
+	// click reads — on a mark, not the bare plot above or between them — and the kata
+	// gives that attribute the pointer cursor. The write goes straight to the node, so
+	// tracking the marks never re-renders the plot. A snapping chart reads a click
+	// anywhere, so a static class carries its cursor and this leaves it be.
 	const pointCursor = useCallback(
 		(clientX: number, clientY: number) => {
 			const node = ref.current
@@ -325,7 +326,7 @@ export function useChartPointer({
 			point(mark)
 
 			// A band click reads anywhere, as a snap does, so the class keeps the cursor.
-			if (!snaps && !onIndexClick) node.style.cursor = onDataHit ? 'pointer' : 'default'
+			if (!snaps && !onIndexClick) node.toggleAttribute('data-hit', onDataHit)
 		},
 		[plot, resolveIndex, probe, snaps, onIndexClick, point],
 	)
@@ -378,7 +379,11 @@ export function useChartPointer({
 
 				if (event.pointerType !== 'touch') pointCursor(event.clientX, event.clientY)
 			},
-			onPointerLeave: () => point(null),
+			onPointerLeave: () => {
+				ref.current?.removeAttribute('data-hit')
+
+				point(null)
+			},
 		}
 	}
 

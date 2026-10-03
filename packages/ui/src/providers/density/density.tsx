@@ -15,7 +15,7 @@ export type DensityProviderProps = {
  * An `<Input>` in `<DensityProvider density="compact">` is `sm` with no change
  * to its props.
  *
- * The provider also opens the `Density` context at the same step. A portal root
+ * The provider also opens the `Density` context at the same step. A `Portal`
  * reads it, so a panel that the region opens keeps the step. The few client
  * components that need the step as a JS value, such as Grid and the charts,
  * read it too.

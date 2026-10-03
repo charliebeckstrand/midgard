@@ -82,7 +82,7 @@ type AxesProps = {
 	 * examples of the page share a sized frame, so that the generated examples
 	 * show the component at the same width.
 	 */
-	frame?: Pick<ComponentProps<typeof Example>, 'width' | 'minWidth' | 'resize'>
+	frame?: Pick<ComponentProps<typeof Example>, 'surface' | 'width' | 'minWidth' | 'resize'>
 }
 
 /**

@@ -863,6 +863,13 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * Renders a footer with a row-range status, page navigation, and an optional
 	 * page-size picker. Omit to render every row with no footer.
 	 *
+	 * The page navigation is a `<nav>` landmark. Its name comes from the name that
+	 * {@link GridDataProps.tableProps} gives the grid: an `aria-label` of
+	 * `Orders` gives `Orders pagination`, and an `aria-labelledby` gives the same
+	 * label followed by "pagination". A grid with no name gives the name
+	 * `Pagination`. Give each grid on a page its own name, so that each nav
+	 * also has its own name.
+	 *
 	 * @see {@link GridPagination}
 	 */
 	pagination?: GridPagination

@@ -17,7 +17,6 @@ import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { chromeRegions } from '../chrome'
-import { useDensityScope } from '../density'
 import { Portal } from '../portal'
 import { notifyOverlaySignal } from './overlay-signal'
 
@@ -109,9 +108,8 @@ export type OverlayProps = {
  * trap without modality being given up. Fires the overlay signal on open so
  * non-modal floats (tooltips) dismiss.
  *
- * The portal takes the overlay out of the DOM subtree of its density scope. So
- * the root writes the step of that scope as `data-density`, and the panel
- * follows the scope of the place that opened it.
+ * The portal carries the density scope and the direction of the place that
+ * opened the overlay (see {@link Portal}), so the panel follows that place.
  */
 export function Overlay({
 	open,
@@ -131,8 +129,6 @@ export function Overlay({
 	const { refs, context } = useFloating({ open, onOpenChange })
 
 	const animateEnter = useEnterAnimation(open, animateOnMount)
-
-	const density = useDensityScope()
 
 	// `Portal` owns the teleport and the mount-while-open lifecycle. An
 	// explicit `container` scopes the overlay to that element (`absolute`, no
@@ -167,7 +163,6 @@ export function Overlay({
 		<div
 			ref={setPanel}
 			data-slot="overlay"
-			data-density={density ?? undefined}
 			{...props}
 			className={cn(
 				k.root,

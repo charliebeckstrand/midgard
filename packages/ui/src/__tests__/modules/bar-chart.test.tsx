@@ -385,17 +385,27 @@ describe('BarChart', () => {
 		const hit = getSlot(container, 'chart-hit')
 
 		// Movement never summons the readout under the click trigger; it only points
-		// the cursor at the bars — a pointer over Q3's bar, the default over the gap
+		// the cursor at the bars — `data-hit` over Q3's bar, none over the gap
 		// above it (this chart doesn't snap).
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		expect(hit.style.cursor).toBe('pointer')
+		expect(hit.hasAttribute('data-hit')).toBe(true)
+
+		// The kata gives the attribute the pointer cursor.
+		expect(hit.getAttribute('class')).toContain('data-hit:cursor-pointer')
 
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 20 })
 
-		expect(hit.style.cursor).toBe('default')
+		expect(hit.hasAttribute('data-hit')).toBe(false)
+
+		// A pointer that leaves on a mark takes the attribute with it.
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
+
+		fireEvent.pointerLeave(hit)
+
+		expect(hit.hasAttribute('data-hit')).toBe(false)
 
 		// A click on Q3's bar pins its readout.
 		fireEvent.click(hit, { clientX: 280, clientY: 100 })
@@ -484,7 +494,7 @@ describe('BarChart', () => {
 		// Above the bars a click still reports the band, so the cursor stays a pointer.
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 20 })
 
-		expect(hit.style.cursor).not.toBe('default')
+		expect(hit.getAttribute('class')).toContain('cursor-pointer')
 	})
 
 	it('clears the readout and the crosshair when the hit layer unmounts under the pointer', () => {

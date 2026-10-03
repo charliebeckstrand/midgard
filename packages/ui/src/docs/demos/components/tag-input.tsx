@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { Field, Label } from '../../../components/fieldset'
 import { TagInput } from '../../../components/tag-input'
+import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
 
-function DefaultTagInputExample() {
+function ControlledExample() {
 	const [tags, setTags] = useState<string[]>(['React', 'TypeScript'])
 
 	return (
-		<Field>
-			<Label>Tags</Label>
-			<TagInput value={tags} onValueChange={(v) => setTags(v ?? [])} placeholder="Add a tag" />
-		</Field>
+		<Example title="Controlled">
+			<Field>
+				<Label>Tags</Label>
+				<TagInput value={tags} onValueChange={(v) => setTags(v ?? [])} placeholder="Add a tag" />
+			</Field>
+			<Text>{tags.length > 0 ? tags.join(', ') : 'Empty'}</Text>
+		</Example>
 	)
 }
 
@@ -42,9 +46,7 @@ export function Demo() {
 				)}
 			/>
 
-			<Example title="Controlled">
-				<DefaultTagInputExample />
-			</Example>
+			<ControlledExample />
 
 			<Example title="Max tags">
 				<MaxTagInputExample />
