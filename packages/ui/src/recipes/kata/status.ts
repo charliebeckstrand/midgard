@@ -36,8 +36,8 @@ export type StatusDotVariants = {
 	 */
 	status?: keyof typeof statusColor
 	/**
-	 * The dot size, forwarded to Swatch.
-	 * @defaultValue 'md'
+	 * The dot size, forwarded to Swatch. Without it, the dot takes the step of
+	 * the nearest density scope.
 	 */
 	size?: SwatchVariants['size']
 	/**

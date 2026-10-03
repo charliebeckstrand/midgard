@@ -20,19 +20,6 @@ import {
 //   - The component reads no density context. An explicit `size` becomes a
 //     scope (the `density` prop of PolymorphicStatic or Box), not a lookup. The
 //     reader allowlists at the end of this file hold this rule for each file.
-//
-// The recipes below keep a `size` axis on purpose. Each names its reason. A
-// recipe that drops its axis must leave the list too.
-
-const INERT: Record<string, string> = {
-	'avatar:k': 'An avatar is content. Its box is explicit, and a host projects a size onto it.',
-	'code:k': 'Inline code keeps the mark size that the caller gives it.',
-	'kbd:k':
-		'A key keeps the mark size that the caller gives it. A host, such as Button, projects one.',
-	'stat:k.value': 'A figure takes its size from the layout of the dashboard, not from density.',
-	'swatch:k': 'A chart gives each legend dot one size, not a density step.',
-	'text:k': 'Text keeps the size around it. Its `size` sets the type scale explicitly.',
-}
 
 /** The kata modules and the layout variant modules, by the path under `src`. */
 function recipeFiles(): string[] {
@@ -79,7 +66,7 @@ function steppedAxes(value: unknown, path: string, seen: Set<unknown>, found: st
 describe('density-native boundary', () => {
 	const files = recipeFiles()
 
-	it('no kata or layout recipe has a size or density axis, except the listed ones', async () => {
+	it('no kata or layout recipe has a size or density axis', async () => {
 		const found: string[] = []
 
 		// The modules are independent, so they load at once.
@@ -99,7 +86,7 @@ describe('density-native boundary', () => {
 			}
 		}
 
-		expect(found.sort()).toEqual(Object.keys(INERT).sort())
+		expect(found).toEqual([])
 	})
 
 	it('walks the recipes of each kata and each layout', () => {

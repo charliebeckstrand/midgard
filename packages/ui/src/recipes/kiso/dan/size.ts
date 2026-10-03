@@ -14,6 +14,12 @@ export const size = {
 	/** An avatar in a sidebar item. */
 	avatarInSidebarItem:
 		'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[5,6,7]',
+	/** An avatar. */
+	avatar: 'density-size-[7,9,11]',
+	/** A square or circle swatch, and a status dot. */
+	swatch: 'density-size-[1.5,2,2.5,3,4]',
+	/** The width of a line swatch. */
+	swatchLine: 'density-w-[2,2.5,3,3.5,4]',
 	/** The check mark of a checkbox and a tree item. */
 	check: 'density-size-[3,3.5,4]',
 	/**
@@ -55,6 +61,15 @@ export const size = {
 	line: 'density-h-[4,5,6]',
 	/** A small line of text in a skeleton. */
 	lineSmall: 'density-h-[3,4,5]',
+	/**
+	 * A line of a Text skeleton with a `size`: the line height of each step of
+	 * the text. The skeleton writes `data-density` only for a `size`.
+	 */
+	lineText: 'data-density:density-h-[4,5,6,7,7]',
+	/** The height of a stat value skeleton. */
+	statValue: 'density-h-[8,9,10]',
+	/** The width of a stat value skeleton. */
+	statValueWidth: 'density-w-[16,20,24]',
 	/** A tiny line in a skeleton: a heading rule or a progress bar. */
 	lineTiny: 'density-h-[2,3,4]',
 	/** A title line in a heading skeleton. */

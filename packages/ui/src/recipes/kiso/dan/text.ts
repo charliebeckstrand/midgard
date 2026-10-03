@@ -15,12 +15,10 @@ export const text = {
 	h3: 'density-text-[lg,xl,2xl]',
 	/** Heading level 2. */
 	h2: 'density-text-[xl,2xl,3xl]',
-	/** Heading level 1. */
+	/** Heading level 1 and the value of a stat. */
 	h1: 'density-text-[2xl,3xl,4xl]',
-	/** The label of a button, a badge, or a query chip. */
+	/** The label of a button, a badge, or a query chip, and a Text with a `size`. */
 	chip: 'density-text-[xs,sm,base,lg,lg]',
 	/** The combinator caption between query chips. */
 	chipCaption: 'density-text-[xs,xs,sm,base,base]',
-	/** A key in a button: the small text, one step below the button text. */
-	smallInButton: '[&:is([data-variant]>*)]:density-text-[xs,sm,base]',
 } as const

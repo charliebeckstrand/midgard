@@ -7,13 +7,17 @@ export type KbdProps = ComponentProps<'kbd'> & {
 	size?: KbdVariants['size']
 }
 
-// `size` resolves from the prop, else the `md` default of the recipe. Kbd is a
-// pure, server-renderable display leaf and stays density-inert. A parent such
-// as Button can still size its keys, because the default ranks below a step.
-/** Keyboard-key glyph. Write a modifier as part of the children, in platform order (⌃⌘). */
+/**
+ * Keyboard-key glyph. Write a modifier as part of the children, in platform order (⌃⌘).
+ *
+ * @remarks
+ * A pure, server-renderable display leaf. Without `size`, the key takes the
+ * step of the nearest density scope, so a key in a Button takes the step of
+ * the button. An explicit `size` makes the key a density scope.
+ */
 export function Kbd({ size, className, children, ...props }: KbdProps) {
 	return (
-		<kbd data-slot="kbd" className={cn(k({ size }), className)} {...props}>
+		<kbd data-slot="kbd" data-density={size} className={cn(k(), className)} {...props}>
 			{children}
 		</kbd>
 	)

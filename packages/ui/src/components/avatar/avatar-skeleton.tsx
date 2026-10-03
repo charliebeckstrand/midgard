@@ -10,4 +10,7 @@ export type AvatarSkeletonProps = SkeletonProps<NonNullable<AvatarVariants['size
  * @remarks A `<span>` flowing inline, as the avatar itself does, so it stands in for one
  * anywhere an avatar can go, a line of text included.
  */
-export const AvatarSkeleton = createSkeleton(k.skeleton, 'AvatarSkeleton')
+export const AvatarSkeleton = createSkeleton<NonNullable<AvatarVariants['size']>>(
+	k.skeleton,
+	'AvatarSkeleton',
+)

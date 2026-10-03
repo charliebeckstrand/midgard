@@ -72,7 +72,8 @@ export type SwatchProps = SwatchVariants & {
 /**
  * The color key that stands in for a mark: a `square` box, a `circle` dot, or
  * a `line` bar. `color` inks it `solid`-filled, `soft`-tinted, `outline`-framed,
- * or `dashed`, at any `size` from `xs` to `xl`. A `dashed` swatch draws a dashed
+ * or `dashed`, at any `size` from `xs` to `xl`. Without `size`, the swatch
+ * takes the step of the nearest density scope. A `dashed` swatch draws a dashed
  * run on a `line` and a dashed border on a `square` or `circle`, for a dashed
  * reference rule. A static leaf with no client hooks, so it renders in React
  * Server Components.
@@ -111,8 +112,8 @@ export function Swatch({
 			data-slot={slot}
 			data-shape={shape ?? 'square'}
 			data-variant={variant ?? 'solid'}
-			data-size={size ?? 'md'}
-			className={cn(k({ shape, variant, size }), colorClass, className)}
+			data-density={size}
+			className={cn(k({ shape, variant }), colorClass, className)}
 			// A raw `color` inks inline; an explicit `style` prop still wins on conflict.
 			style={colorStyle ? { ...colorStyle, ...style } : style}
 			{...labelProps}

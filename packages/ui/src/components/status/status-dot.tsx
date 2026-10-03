@@ -28,8 +28,8 @@ export type StatusDotProps = StatusDotVariants & {
  * hooks, so it renders in React Server Components.
  *
  * @remarks
- * `size` is explicit and defaults to `md`; hosts that render the dot (Avatar)
- * pass their own size rather than relying on the default. Color
+ * Without `size`, the dot takes the step of the nearest density scope, so a
+ * dot in an Avatar takes the step of the avatar. Color
  * alone conveys status. Pass `label` for a standalone dot to name it via
  * `role="img"` (WCAG 1.4.1 / 1.1.1). Omit it when the dot is decorative beside
  * visible text.

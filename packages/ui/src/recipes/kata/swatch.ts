@@ -4,7 +4,9 @@
  *
  * - `shape`: the mark geometry — `square` box, `circle` dot, `line` bar
  * - `variant`: the fill treatment — `solid` / `outline` / `soft` / `dashed`
- * - `size`: `xs`–`xl`, one scale shared by legends, tooltips, and StatusDot
+ * - `size`: `xs`–`xl`, one scale shared by legends, tooltips, and StatusDot. The
+ *   component writes it as a density scope. Without it, the swatch takes the
+ *   step of its nearest density scope.
  *
  * The hue is a caller-supplied `currentColor` value applied on top: a `text-*`
  * utility, a `kata/chart` slot name, or a raw hex / `oklch()`. `Swatch` resolves
@@ -15,15 +17,17 @@
  * around a `square` or `circle`. Either mirrors a dashed reference rule in a
  * legend.
  */
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { omote } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { bg } = omote
 
 export const k = defineRecipe({
 	base: ['inline-block', 'shrink-0'],
-	// Shape sets only the corner radius; dimensions come from the size
-	// compounds below, keyed on shape × size so no two size utilities collide.
+	// Shape sets only the corner radius; the dimensions come from the shape
+	// compounds below, so no two size utilities collide.
 	shape: {
 		square: 'rounded-xs',
 		circle: 'rounded-full',
@@ -42,27 +46,13 @@ export const k = defineRecipe({
 		// Shape-specific; the shape × dashed compounds carry the class.
 		dashed: '',
 	},
-	// Selection-only; box/bar dimensions live in the compounds.
-	size: { xs: '', sm: '', md: '', lg: '', xl: '' },
-	// A box and a dot share one 6px→16px scale; a line holds a 2px height and
+	// A box and a dot share one 6px→16px ramp; a line holds a 2px height and
 	// grows in width. `md` matches the legend swatches, `sm` the tooltip
 	// swatches, and the full range covers StatusDot's dots.
 	compound: [
-		{ shape: 'square', size: 'xs', class: 'size-1.5' },
-		{ shape: 'square', size: 'sm', class: 'size-2' },
-		{ shape: 'square', size: 'md', class: 'size-2.5' },
-		{ shape: 'square', size: 'lg', class: 'size-3' },
-		{ shape: 'square', size: 'xl', class: 'size-4' },
-		{ shape: 'circle', size: 'xs', class: 'size-1.5' },
-		{ shape: 'circle', size: 'sm', class: 'size-2' },
-		{ shape: 'circle', size: 'md', class: 'size-2.5' },
-		{ shape: 'circle', size: 'lg', class: 'size-3' },
-		{ shape: 'circle', size: 'xl', class: 'size-4' },
-		{ shape: 'line', size: 'xs', class: 'h-0.5 w-2' },
-		{ shape: 'line', size: 'sm', class: 'h-0.5 w-2.5' },
-		{ shape: 'line', size: 'md', class: 'h-0.5 w-3' },
-		{ shape: 'line', size: 'lg', class: 'h-0.5 w-3.5' },
-		{ shape: 'line', size: 'xl', class: 'h-0.5 w-4' },
+		{ shape: 'square', class: dan.size.swatch },
+		{ shape: 'circle', class: dan.size.swatch },
+		{ shape: 'line', class: ['h-0.5', dan.size.swatchLine] },
 		// Dashed treatment per shape. A line paints a horizontal `currentColor`
 		// dash run — the reference rule's 3:2 dash:gap halved so the pattern reads
 		// across a swatch-width line. A box or dot has no length to run, so it
@@ -84,8 +74,11 @@ export const k = defineRecipe({
 			class: ['border-2 border-dashed border-current', ...bg.surface],
 		},
 	],
-	defaults: { shape: 'square', variant: 'solid', size: 'md' },
+	defaults: { shape: 'square', variant: 'solid' },
 })
 
-/** Recipe variant props for {@link Swatch} — the `shape`, `variant`, and `size` axes, for consumers composing custom slots. */
-export type SwatchVariants = VariantProps<typeof k>
+/** The size scale of {@link Swatch}: the steps of its box, dot, and line. */
+export const scale = defineScale(dan.size.swatch, dan.size.swatchLine)
+
+/** Recipe variant props for {@link Swatch}: the `shape` and `variant` axes of its kata, and the `size` step that the component writes as a density scope. */
+export type SwatchVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }

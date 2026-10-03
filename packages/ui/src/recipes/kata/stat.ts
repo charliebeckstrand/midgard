@@ -1,24 +1,22 @@
+import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, kokkaku, narabi } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { text } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { flex } = narabi
 
-const label = [...text.muted, weight.medium, size.sm]
+// Each text is a ramp, so each slot takes the step of its nearest density
+// scope. An explicit `size` on StatValue makes the value its own scope.
+const label = [...text.muted, weight.medium, dan.text.small]
 
 const value = defineRecipe({
-	base: [weight.semibold, 'tracking-tight tabular-nums', ...text.default],
-	size: {
-		sm: size['2xl'],
-		md: size['3xl'],
-		lg: size['4xl'],
-	},
-	defaults: { size: 'md' },
+	base: [weight.semibold, 'tracking-tight tabular-nums', ...text.default, dan.text.h1],
 })
 
 const delta = defineRecipe({
-	base: [flex.inline, size.sm, 'gap-1', weight.medium, 'tabular-nums'],
+	base: [flex.inline, dan.text.small, 'gap-1', weight.medium, 'tabular-nums'],
 	trend: {
 		up: text.success,
 		down: text.error,
@@ -31,7 +29,7 @@ export const k = defineRecipe(
 	{
 		base: [flex.col, 'justify-center', 'h-full', 'gap-1'],
 		slots: {
-			description: [size.sm, ...text.muted],
+			description: [dan.text.small, ...text.muted],
 		},
 		skeleton: kokkaku.stat,
 	},
@@ -42,7 +40,10 @@ export const k = defineRecipe(
 	},
 )
 
-/** Recipe variant props for {@link StatValue} — its styling axes (`size`), for consumers composing custom slots. */
-export type StatValueVariants = VariantProps<typeof value>
+/** The size scale of {@link StatValue}: the steps of its text. */
+export const valueScale = defineScale(dan.text.h1)
+
+/** Recipe variant props for {@link StatValue}: the `size` step that the component writes as a density scope. */
+export type StatValueVariants = { size?: ScaleStep<typeof valueScale> }
 /** Recipe variant props for {@link StatDelta} — its styling axes (`trend`), for consumers composing custom slots. */
 export type StatDeltaVariants = VariantProps<typeof delta>

@@ -9,12 +9,13 @@ export type StatValueProps = StatValueVariants & {
 
 /**
  * Headline figure of a `Stat` — the metric's primary number. Static leaf:
- * renders in React Server Components. `size` is explicit and defaults to `md`;
- * compose `<StatValueSkeleton>` in the loading tree.
+ * renders in React Server Components. Without `size`, the value takes the
+ * step of the nearest density scope. An explicit `size` makes the value a
+ * density scope. Compose `<StatValueSkeleton>` in the loading tree.
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	return (
-		<div data-slot="stat-value" className={cn(k.value({ size }), className)} {...props}>
+		<div data-slot="stat-value" data-density={size} className={cn(k.value(), className)} {...props}>
 			{children}
 		</div>
 	)

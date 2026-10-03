@@ -1,11 +1,13 @@
 /**
- * Code kata: serves both inline `<Code>` (the size-axed `mark` surface) and
+ * Code kata: serves both inline `<Code>` (the stepped `mark` surface) and
  * the block `<CodeBlock>` (the `wrapper` / `block` / `copy` slots attached as
  * extras). One kata, two units — the inline mark recipe is the callable `k`;
  * the block chrome rides as sibling slot fragments.
  */
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineScale, type ScaleStep } from '../../core/density'
+import { defineRecipe } from '../../core/recipe'
 import { ji, kasane, omote, sen, shaku } from '../kiso'
+import { dan } from '../kiso/dan'
 
 const { size } = ji
 const { rounded } = kasane
@@ -16,9 +18,9 @@ const bg = omote.bg.code
 
 export const k = defineRecipe(
 	{
-		base: mark.base,
-		size: mark.size,
-		defaults: { size: 'md' },
+		// The mark takes the step of its nearest density scope, as the text around
+		// it does. An explicit `size` makes the mark its own scope.
+		base: [...mark.base, ...mark.density],
 	},
 	{
 		wrapper: ['overflow-hidden flex items-start gap-4 p-4', rounded.lg, bg],
@@ -49,8 +51,11 @@ export const k = defineRecipe(
 	},
 )
 
-/** Recipe variant props for inline {@link Code} — its styling axes (`size`), for consumers composing custom slots. */
-export type CodeVariants = VariantProps<typeof k>
+/** The size scale of inline {@link Code}: the steps of the mark text and padding. */
+export const scale = defineScale(dan.text.small, dan.space.markX, dan.space.markY)
+
+/** Recipe variant props for inline {@link Code}: the `size` step that the component writes as a density scope. */
+export type CodeVariants = { size?: ScaleStep<typeof scale> }
 /**
  * Recipe variant props for {@link CodeBlock}. The block chrome carries no
  * variants of its own: it shares the inline `Code` `size` axis. This is

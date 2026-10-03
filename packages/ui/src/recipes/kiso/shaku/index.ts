@@ -5,7 +5,6 @@
  * named bundle that every kata reads.
  */
 
-import { avatar } from './avatar'
 import { combobox } from './combobox'
 import { icon, iconRamp, iconSize, iconSlotRamp } from './icon'
 import { listbox } from './listbox'
@@ -18,7 +17,6 @@ export const shaku = {
 	iconSize,
 	iconRamp,
 	iconSlotRamp,
-	avatar,
 	panel,
 	scrollArea,
 	mark,

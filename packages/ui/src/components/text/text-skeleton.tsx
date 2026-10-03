@@ -11,4 +11,7 @@ export type TextSkeletonProps = SkeletonProps<NonNullable<TextVariants['size']>>
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Text}
  */
-export const TextSkeleton = createSkeleton(k.skeleton, 'TextSkeleton')
+export const TextSkeleton = createSkeleton<NonNullable<TextVariants['size']>>(
+	k.skeleton,
+	'TextSkeleton',
+)
