@@ -14,7 +14,7 @@ import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { once } from '../../utilities'
 import { useMapHoverSet } from './context'
-import { MAP_CURSOR_INSET } from './engine/map-constants'
+import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { isMapActivateKey, moveMapCursor } from './engine/map-keyboard/cursor'
 import type { MapStop } from './engine/map-keyboard/stops'
@@ -34,6 +34,16 @@ import type { MapZoomCursor } from './use-map-zoom'
  */
 function stopKey(target: MapHoverTarget): string {
 	return target.kind === 'region' ? `r${target.index}` : `e${target.id}:${target.stop}`
+}
+
+/**
+ * The view scale as one short line of text, for the announcement of a zoom
+ * step: the scale as a percent of the fit.
+ *
+ * @internal
+ */
+function describeZoom(transform: MapTransform): string {
+	return `Zoom ${Math.round((transform.k / MAP_ZOOM_FIT) * 100)}%`
 }
 
 /** The handlers {@link useMapKeyboard} spreads onto the plot region to make it a navigable tab stop. @internal */
@@ -94,10 +104,11 @@ export type MapKeyboardOptions = {
  * onto a stop speaks its readout through the shared polite live region.
  *
  * A zooming map answers three more keys on that one stop. `+` and `-` step the
- * scale about the frame's center, and `0` returns to the fit. The cursor takes
- * the view with it: a step onto a stop the zoom put off-frame pans the map to
- * show it. Navigation therefore never points a reader at something the plot
- * does not draw.
+ * scale about the frame's center, and `0` returns to the fit. A step speaks the
+ * new scale through the same live region ({@link describeZoom}), and the return
+ * speaks `Zoom reset`. The cursor takes the view with it: a step onto a stop the
+ * zoom put off-frame pans the map to show it. Navigation therefore never points
+ * a reader at something the plot does not draw.
  *
  * No drawn mark is focusable. The plot is a `role="img"` leaf over an
  * `aria-hidden` SVG. A focusable path would therefore be unreachable to
@@ -261,8 +272,15 @@ export function useMapKeyboard({
 			if (scale !== null) {
 				event.preventDefault()
 
-				if (scale === 'fit') zoom.fit()
-				else zoom.stepZoom(zoomKeyFactor(scale))
+				// The scale change shows only on the `aria-hidden` plot, so the key
+				// speaks the new scale.
+				if (scale === 'fit') {
+					zoom.fit()
+
+					announce('Zoom reset')
+				} else {
+					announce(describeZoom(zoom.stepZoom(zoomKeyFactor(scale))))
+				}
 
 				return
 			}
