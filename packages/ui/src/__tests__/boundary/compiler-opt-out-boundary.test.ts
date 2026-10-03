@@ -19,12 +19,9 @@ import {
 //     render its window as plain values, so `useVirtualWindow` compiles. The
 //     opt-out is permanent, because the compiler marks react-virtual as
 //     incompatible.
-//   - `useGridEditSourceSync` and `useGridIndexSync`: each writes refs during
-//     render, which the grid cells read in the same pass.
 
 const OPT_OUTS = {
 	'hooks/use-virtual-window.ts': 1,
-	'modules/grid/use-grid-data-cursor.ts': 2,
 }
 
 const OPT_OUT = /(['"])use no memo\1/g
