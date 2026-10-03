@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, beforeEach, expect, inject } from 'vitest'
+import { afterEach, beforeAll, beforeEach, expect, inject } from 'vitest'
 import { commands } from 'vitest/browser'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
@@ -38,6 +38,15 @@ declare module 'vitest/browser' {
 }
 
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
+
+// `tailwind.css` gives the font of ui (`src/fonts/fonts.css`). The browser
+// loads a font face only when text first needs it, and then it swaps the font
+// in. A case that reads a text box at that moment reads the fallback face, and
+// a later case reads the font. Each file thus loads the font before its first
+// case, so each case measures the same face.
+beforeAll(async () => {
+	await document.fonts.load('1em "Google Sans Flex"')
+})
 
 installResidueGuard()
 

@@ -1,0 +1,31 @@
+/* Do not edit. `pnpm fonts` (`scripts/fonts.ts`) writes this file from the font file. */
+
+@font-face {
+	font-family: 'Google Sans Flex';
+	font-weight: 100 1000;
+	font-display: swap;
+	src: url('./google-sans-flex.woff2') format('woff2-variations');
+}
+
+@font-face {
+	font-family: 'Google Sans Flex Fallback: Arial';
+	src: local('Arial'), local('ArialMT');
+	ascent-override: 95.3806%;
+	descent-override: 28.239%;
+	line-gap-override: 0%;
+	size-adjust: 101.2784%;
+}
+
+@font-face {
+	font-family: 'Google Sans Flex Fallback: Roboto';
+	src: local('Roboto Regular'), local('Roboto-Regular');
+	ascent-override: 95.1717%;
+	descent-override: 28.1771%;
+	size-adjust: 101.5008%;
+}
+
+@theme {
+	--font-sans:
+		'Google Sans Flex', 'Google Sans Flex Fallback: Arial', 'Google Sans Flex Fallback: Roboto',
+		Arial, Roboto, sans-serif;
+}

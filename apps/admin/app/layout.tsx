@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { fontSans } from 'shared/fonts'
-import { AppearanceScript } from 'ui/providers/appearance'
+import { AppearanceScript, FontPreload } from 'ui/providers/appearance'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -12,9 +11,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className={fontSans.variable} suppressHydrationWarning>
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<AppearanceScript />
+				<FontPreload />
 			</head>
 			<body className="flex justify-center bg-white dark:bg-zinc-900 antialiased">
 				<Providers>{children}</Providers>
