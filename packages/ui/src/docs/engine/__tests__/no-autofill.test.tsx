@@ -28,7 +28,7 @@ describe('noAutofill', () => {
 
 		expect(checkbox).not.toHaveAttribute('autocomplete')
 
-		stop()
+		stop?.()
 	})
 
 	it('quiets a field that mounts later', async () => {
@@ -40,7 +40,7 @@ describe('noAutofill', () => {
 
 		expectQuiet(root.querySelector('textarea') as Element)
 
-		stop()
+		stop?.()
 	})
 
 	it('restores an attribute that a prop writes over', async () => {
@@ -54,7 +54,7 @@ describe('noAutofill', () => {
 
 		expectQuiet(field)
 
-		stop()
+		stop?.()
 	})
 
 	it('quiets a field that a new type makes a text field', async () => {
@@ -68,6 +68,6 @@ describe('noAutofill', () => {
 
 		expectQuiet(field)
 
-		stop()
+		stop?.()
 	})
 })
