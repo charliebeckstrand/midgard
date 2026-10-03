@@ -71,14 +71,21 @@ function safeUrl(url: string, allowData = false): string | undefined {
  * @param tokens - Token list from `marked`'s block lexer or inline lexer.
  */
 export function MarkdownRenderer({ tokens }: { tokens: Token[] }) {
-	return <>{tokens.map(renderToken)}</>
+	return <>{renderChildren(tokens)}</>
 }
 
-function renderChildren(tokens: Token[] | undefined): ReactNode {
-	return tokens?.map(renderToken)
+/**
+ * Render a token list. A `taskLabel` reaches the checkbox of a GFM task item,
+ * through the paragraph that holds it in a loose item. A nested list does not
+ * get it.
+ *
+ * @internal
+ */
+function renderChildren(tokens: Token[] | undefined, taskLabel?: string): ReactNode {
+	return tokens?.map((token, index) => renderToken(token, index, taskLabel))
 }
 
-function renderToken(token: Token, index: number): ReactNode {
+function renderToken(token: Token, index: number, taskLabel?: string): ReactNode {
 	switch (token.type) {
 		case 'heading': {
 			const depth = clamp(token.depth, 1, 6) as 1 | 2 | 3 | 4 | 5 | 6
@@ -94,7 +101,7 @@ function renderToken(token: Token, index: number): ReactNode {
 		case 'paragraph':
 			return (
 				<p key={index} className={cn(k.paragraph)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, taskLabel)}
 				</p>
 			)
 		case 'text':
@@ -159,6 +166,8 @@ function renderToken(token: Token, index: number): ReactNode {
 		case 'list':
 			return renderList(token as Tokens.List, index)
 		case 'checkbox':
+			// The checkbox cannot be in a `<label>`, because a loose item holds
+			// paragraphs and nested lists. The plain text of the item names it.
 			return (
 				<input
 					key={index}
@@ -166,6 +175,7 @@ function renderToken(token: Token, index: number): ReactNode {
 					checked={token.checked}
 					disabled
 					readOnly
+					aria-label={taskLabel}
 					className={cn(k.checkbox)}
 				/>
 			)
@@ -215,9 +225,50 @@ function renderList(token: Tokens.List, key: number): ReactNode {
 function renderListItem(item: Tokens.ListItem, index: number): ReactNode {
 	return (
 		<li key={index} className={cn(k.li, item.task && k.task)}>
-			{renderChildren(item.tokens)}
+			{renderChildren(item.tokens, item.task ? taskLabel(item.tokens) : undefined)}
 		</li>
 	)
+}
+
+/**
+ * The accessible name of a task item: the plain text of its first block after
+ * the checkbox. In a loose item, the checkbox is in that block. A nested list
+ * or a second paragraph is not part of the name. Returns `undefined` for an
+ * item with no text.
+ *
+ * @internal
+ */
+function taskLabel(tokens: Token[]): string | undefined {
+	const first = tokens.find((token) => token.type !== 'checkbox' && token.type !== 'space')
+
+	return (first ? plainText([first]).trim() : '') || undefined
+}
+
+/**
+ * The text of a token tree, with no markup. It decodes entity references as
+ * the renderer does, takes the `alt` of an image, and reads a line break as a
+ * space.
+ *
+ * @internal
+ */
+function plainText(tokens: Token[]): string {
+	return tokens
+		.map((token) => {
+			switch (token.type) {
+				case 'codespan':
+				case 'escape':
+					return token.text
+				case 'image':
+					return decodeEntities(token.text)
+				case 'br':
+					return ' '
+				default:
+					if ('tokens' in token && token.tokens) return plainText(token.tokens)
+
+					return token.type === 'text' ? decodeEntities(token.text) : ''
+			}
+		})
+		.join('')
 }
 
 function renderTable(token: Tokens.Table, key: number): ReactNode {
