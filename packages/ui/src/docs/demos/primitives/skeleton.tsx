@@ -18,7 +18,7 @@ import { DescriptionListSkeleton } from '../../../components/description-list'
 import { FiltersSkeleton } from '../../../components/filters'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
-import { KanbanSkeleton } from '../../../components/kanban'
+import { KanbanCardSkeleton } from '../../../components/kanban'
 import { ListSkeleton } from '../../../components/list'
 import { PaginationSkeleton } from '../../../components/pagination'
 import { ProgressBarSkeleton, ProgressGaugeSkeleton } from '../../../components/progress'
@@ -68,7 +68,7 @@ const skeletonVariants = [
 	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
 	{ name: 'Filters', skeleton: <FiltersSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
-	{ name: 'Kanban', skeleton: <KanbanSkeleton /> },
+	{ name: 'Kanban card', skeleton: <KanbanCardSkeleton /> },
 	{ name: 'List', skeleton: <ListSkeleton description /> },
 	{ name: 'Map', skeleton: <MapSkeleton /> },
 	{ name: 'Pagination', skeleton: <PaginationSkeleton /> },

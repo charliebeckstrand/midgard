@@ -5,11 +5,11 @@ import { JsonTree } from '../../../components/json-tree'
 import {
 	Kanban,
 	KanbanCard,
+	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
-	KanbanSkeleton,
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
 import { Grid, type GridColumn } from '../../../modules/grid'
@@ -136,9 +136,9 @@ export const dataComplexCases: readonly Case[] = [
 		),
 		skeleton: [
 			{
-				element: <KanbanSkeleton columns={2} cards={1} />,
+				element: <KanbanCardSkeleton />,
 				absentSlot: 'kanban-card',
-				placeholders: 6,
+				placeholders: 2,
 			},
 		],
 	},

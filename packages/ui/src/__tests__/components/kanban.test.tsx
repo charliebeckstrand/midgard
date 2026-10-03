@@ -3,11 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	Kanban,
 	KanbanCard,
+	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
-	KanbanSkeleton,
 } from '../../components/kanban'
 import {
 	allBySlot,
@@ -729,21 +729,14 @@ describe('Kanban key joins', () => {
 	})
 })
 
-describe('KanbanSkeleton', () => {
-	it('hides its board from assistive technology and draws each column with its cards', () => {
-		const { container } = renderUI(<KanbanSkeleton columns={2} cards={4} />)
+describe('KanbanCardSkeleton', () => {
+	it('hides its card from assistive technology and draws two lines', () => {
+		const { container } = renderUI(<KanbanCardSkeleton />)
 
 		const root = present(container.firstElementChild, 'skeleton')
 
 		expect(root).toHaveAttribute('aria-hidden', 'true')
 
-		expect(root.children).toHaveLength(2)
-
-		for (const column of root.children) {
-			// The header holds one title line, and the body holds the cards.
-			expect(column.children[1]?.children).toHaveLength(4)
-		}
-
-		expect(allBySlot(container, 'placeholder')).toHaveLength(2 * (1 + 4 * 2))
+		expect(allBySlot(container, 'placeholder')).toHaveLength(2)
 	})
 })

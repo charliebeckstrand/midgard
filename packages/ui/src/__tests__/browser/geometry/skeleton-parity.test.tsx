@@ -33,11 +33,11 @@ import { Input } from '../../../components/input'
 import {
 	Kanban,
 	KanbanCard,
+	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
-	KanbanSkeleton,
 } from '../../../components/kanban'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import {
@@ -758,48 +758,54 @@ describe('skeleton parity (real browser)', () => {
 		expect(skeletonIcon).toBe(realIcon)
 	})
 
-	const lanes = [
-		{ id: 'todo', title: 'To do', items: ['a', 'b', 'c'] },
-		{ id: 'doing', title: 'Doing', items: ['d', 'e', 'f'] },
-		{ id: 'done', title: 'Done', items: ['g', 'h', 'i'] },
-	]
-
-	it('KanbanSkeleton has the box of a board', () => {
-		const { container } = renderUI(
-			<Kanban columns={lanes} getKey={(item: string) => item} aria-label="Loads">
-				{lanes.map((lane) => (
-					<KanbanColumn key={lane.id} value={lane.id}>
-						<KanbanColumnHeader>
-							<KanbanColumnTitle>{lane.title}</KanbanColumnTitle>
-						</KanbanColumnHeader>
-						<KanbanColumnBody>
-							{lane.items.map((item) => (
-								<KanbanCard key={item} value={item}>
-									<span>Load {item}</span>
-									<span>Acme Freight</span>
-								</KanbanCard>
-							))}
-						</KanbanColumnBody>
-					</KanbanColumn>
-				))}
-			</Kanban>,
+	// A lane that loads keeps its real column, header, and body. The title text and the cards are
+	// the leaves that load, so the skeleton lane holds a TextSkeleton title and skeleton cards.
+	it('KanbanCardSkeleton and a TextSkeleton title keep the box of a lane', () => {
+		const lane = (title: ReactElement | string, cards: ReactElement[]) => (
+			<Kanban
+				columns={[{ id: 'todo', items: ['a', 'b', 'c'] }]}
+				getKey={(item: string) => item}
+				aria-label="Loads"
+			>
+				<KanbanColumn value="todo">
+					<KanbanColumnHeader>
+						<KanbanColumnTitle>{title}</KanbanColumnTitle>
+					</KanbanColumnHeader>
+					<KanbanColumnBody>{cards}</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>
 		)
 
-		const skeleton = renderUI(<KanbanSkeleton columns={3} cards={3} />).container.firstElementChild
+		const real = renderUI(
+			lane(
+				'To do',
+				['a', 'b', 'c'].map((item) => (
+					<KanbanCard key={item} value={item}>
+						<span>Load {item}</span>
+						<span>Acme Freight</span>
+					</KanbanCard>
+				)),
+			),
+		).container
 
-		expect(box(skeleton, 'skeleton')).toStrictEqual(
-			box(container.querySelector('[data-slot="kanban"]'), 'board'),
-		)
+		const skeleton = renderUI(
+			lane(
+				<TextSkeleton />,
+				['a', 'b', 'c'].map((item) => <KanbanCardSkeleton key={item} />),
+			),
+		).container
 
-		expect(box(skeleton?.firstElementChild, 'skeleton column')).toStrictEqual(
-			box(container.querySelector('[data-slot="kanban-column"]'), 'column'),
-		)
+		for (const slot of ['kanban-column', 'kanban-column-header', 'kanban-column-body']) {
+			expect(
+				box(skeleton.querySelector(`[data-slot="${slot}"]`), `skeleton ${slot}`),
+			).toStrictEqual(box(real.querySelector(`[data-slot="${slot}"]`), slot))
+		}
 
-		// The second child of a column is its body, and the body holds the cards.
-		const skeletonCard = skeleton?.firstElementChild?.children[1]?.firstElementChild
-
-		expect(box(skeletonCard, 'skeleton card')).toStrictEqual(
-			box(container.querySelector('[data-slot="kanban-card"]'), 'card'),
-		)
+		expect(
+			box(
+				skeleton.querySelector('[data-slot="kanban-column-body"]')?.firstElementChild,
+				'skeleton card',
+			),
+		).toStrictEqual(box(real.querySelector('[data-slot="kanban-card"]'), 'card'))
 	})
 })
