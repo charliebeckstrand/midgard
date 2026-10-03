@@ -35,7 +35,7 @@ export function Demo() {
 				omit={['capped']}
 				render={(props, label) => (
 					<ContextMenu {...props} defaults={defaults} items={custom}>
-						{surface(`Right-click: ${label}`)}
+						{surface(label)}
 					</ContextMenu>
 				)}
 			/>
