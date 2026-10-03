@@ -26,7 +26,7 @@ type DateInputOverrideOptions = {
  * a calendar pick, or a reset of the bound Form. A reset that leaves the value
  * as it was (a partial entry over an empty field) does not change the value, so
  * the Form reset count tells it apart. The check runs during render, so
- * `onOverride` may only set state.
+ * `onOverride` must only set state.
  * @internal
  */
 export function useDateInputOverride({

@@ -27,7 +27,7 @@ export type DrawerStaticProps = {
 	handle?: boolean
 	/** As on {@link Drawer}: the translucent glass panel and backdrop. */
 	glass?: boolean
-	/** As on {@link Drawer}: drain the colour from what shows through the backdrop. */
+	/** As on {@link Drawer}: drain the color from what shows through the backdrop. */
 	desaturate?: boolean
 	/** Classes for the panel, as {@link Drawer}'s `className` — pass the same ones. */
 	className?: string
@@ -63,11 +63,11 @@ export type DrawerStaticProps = {
  * focus arrive with the drawer. The root and backdrop still take pointer presses, so a click
  * while the drawer is on its way cannot land on the page behind it.
  *
- * Positioned `fixed` in place rather than portalled. It resolves against the viewport as long as
+ * Positioned `fixed` in place rather than portaled. It resolves against the viewport as long as
  * no ancestor is a containing block for fixed descendants (a `transform`, `filter`, `contain`,
  * or `will-change` of those). Its stacking layer also ranks within its nearest stacking context
  * rather than the document's. Sitting in place, it is inside the density scope it was rendered
- * in, which the portalled drawer carries over as its root's `data-density`.
+ * in, which the portaled drawer carries over as its root's `data-density`.
  */
 export function DrawerStatic({
 	size,
