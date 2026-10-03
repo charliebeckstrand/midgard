@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { describeNode } from '../../modules/query/engine/query-announcements'
 import { createGroup } from '../../modules/query/engine/query-node'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
 import {
@@ -184,6 +185,30 @@ describe('QueryBuilderRule', () => {
 		expect(screen.queryAllByRole('option')).toHaveLength(0)
 
 		expect(bySlot(container, 'query-rule')).toBeInTheDocument()
+	})
+
+	// Each rule has a "Field" and an "Operator" select, so the group name tells
+	// one rule from the next.
+	it('names the rule as a group by its summary', () => {
+		const blank = renderRule(makeRule({}))
+
+		expect(screen.getByRole('group', { name: 'Name rule' })).toBe(
+			bySlot(blank.container, 'query-rule'),
+		)
+
+		blank.unmount()
+
+		const rule = makeRule({ value: 'Ada' })
+
+		const filled = renderRule(rule)
+
+		const group = within(filled.container).getByRole('group', {
+			name: describeNode(rule, fields),
+		})
+
+		expect(group).toHaveAccessibleName(/Ada/)
+
+		expect(within(group).getByRole('combobox', { name: 'Operator' })).toBeInTheDocument()
 	})
 
 	it('shows a pair of bound inputs for a range operator', () => {

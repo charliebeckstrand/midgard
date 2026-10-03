@@ -9,6 +9,7 @@ import { Select } from '../../../components/select'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
+import { describeNode } from '../engine/query-announcements'
 import { getOperators } from '../engine/query-operators'
 import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
@@ -32,7 +33,8 @@ export type QueryBuilderRuleProps = {
  * value input, and, when `removable`, a remove button. For a `noValue` operator
  * the value input is replaced by its fixed `valueLabel` as static text
  * ("is" · "Empty"). It is replaced by nothing when the operator names none.
- * Changing the field resets the operator and value. Memoized.
+ * Changing the field resets the operator and value. The rule is a `role="group"`
+ * named by its summary, so its controls read as part of one rule. Memoized.
  */
 function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilderRuleProps) {
 	const { fields, getField, disabled, hideFieldSelector } = useQueryBuilderState()
@@ -98,7 +100,16 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	return (
-		<Flex data-slot="query-rule" gap="sm" full className={cn(k.rule, className)}>
+		// Each rule has a "Field" and an "Operator" select. The group name tells
+		// one rule from the next ("Status is Active", or "Status rule" while blank).
+		<Flex
+			data-slot="query-rule"
+			role="group"
+			aria-label={describeNode(rule, fields)}
+			gap="sm"
+			full
+			className={cn(k.rule, className)}
+		>
 			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }} className={k.parts}>
 				{!hideFieldSelector && (
 					<Select
