@@ -21,7 +21,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `iro` 色 | Variant × color × slot palette matrix plus the semantic intent-color text bundle. `palette` is the standard five-color set; `extendedPalette` is the opt-in wide palette (standard + rose / violet / sky). |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. |
 | `ma` 間 | Named spacing scale projected as Tailwind padding, margin, and gap utilities — all-sides and axis variants. |
-| `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, truncation, flex primitives. |
+| `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, truncation, flex primitives, width of revealed content. |
 | `omote` 面 | Generic surface fills and chromes (`bg`, `blur`, `surface`, `popover`, `glass`, `backdrop`, `content`, `skeleton`). |
 | `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `tint`, `active`, and the `::before` washes `tintBefore` and `glassItemBefore`) plus the kata-shaped `item` / `nav` composites. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |

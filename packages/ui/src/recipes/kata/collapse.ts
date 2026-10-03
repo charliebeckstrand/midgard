@@ -4,7 +4,7 @@ import { hannou, iro, ji, narabi, sen, ugoki } from '../kiso'
 const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { size } = ji
-const { flex } = narabi
+const { flex, revealed } = narabi
 const { focus } = sen
 const { collapse } = ugoki
 
@@ -24,6 +24,6 @@ export const k = {
 		...disabled,
 		...cursor,
 	],
-	panel: 'overflow-hidden',
+	panel: ['overflow-hidden', revealed],
 	motion: collapse,
 } as const

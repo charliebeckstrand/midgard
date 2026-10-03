@@ -16,15 +16,19 @@ const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { weight } = ji
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, revealed } = narabi
 const { border, focus } = sen
 
-/** Tab-group root: stacks the list and panels, swapping axis with orientation. */
+/**
+ * Tab-group root: stacks the list and panels, swapping axis with orientation.
+ * Beside a vertical list, the panels take the rest of the row: their content
+ * does not set their width.
+ */
 const group = defineRecipe({
 	base: ['flex gap-4'],
 	orientation: {
 		horizontal: 'flex-col',
-		vertical: 'flex-row',
+		vertical: ['flex-row', '*:data-[slot=tab-contents]:flex-1'],
 	},
 	defaults: { orientation: 'horizontal' },
 })
@@ -135,8 +139,10 @@ const trigger = defineRecipe({
  * scroll it. The design-system blue focus ring replaces the browser default
  * when it takes focus. The ring is `:focus-visible`-gated, so a panel
  * that holds its own focusable content — and is never tabbable — never shows it.
+ * The panel content does not set the width of the group, so a tab change keeps
+ * that width.
  */
-const panel = focus.ring
+const panel = [...focus.ring, revealed]
 
 export const k = {
 	group,

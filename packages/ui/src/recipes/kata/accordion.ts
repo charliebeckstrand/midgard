@@ -5,7 +5,7 @@ const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, revealed } = narabi
 const { border, divider } = sen
 const { collapse, css } = ugoki
 
@@ -58,7 +58,7 @@ export const k = defineRecipe(
 				css.duration,
 				'group-data-[open]/accordion-item:rotate-180',
 			],
-			panel: 'overflow-hidden',
+			panel: ['overflow-hidden', revealed],
 			body: ['px-4 pb-4 pt-0', size.md, text.muted],
 		},
 		defaults: { variant: 'separated' },
