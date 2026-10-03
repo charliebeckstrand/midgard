@@ -650,7 +650,7 @@ describe('PdfViewerThumbnailList', () => {
 		renderUI(
 			<PdfViewerThumbnailList
 				items={pages.slice(0, count).map((page, index) => ({
-					key: page.id,
+					key: index,
 					pageNumber: index + 1,
 					label: page.label ?? `Page ${index + 1}`,
 					thumbnail: page.src,
