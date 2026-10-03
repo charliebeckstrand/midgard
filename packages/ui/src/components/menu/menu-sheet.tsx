@@ -4,7 +4,7 @@ import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/menu'
-import { Drawer, DrawerBody, DrawerHeader, DrawerTitle } from '../drawer'
+import { Drawer, DrawerBody, DrawerDescription, DrawerHeader, DrawerTitle } from '../drawer'
 import { useMenuActions, useMenuState } from './context'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
@@ -12,6 +12,8 @@ import { MENUITEM_SELECTOR } from './use-menu-state'
 type MenuSheetProps = {
 	/** The heading of the sheet. Omit it to use the name of the trigger. */
 	title?: ReactNode
+	/** A line of text below the heading. */
+	description?: ReactNode
 	/** Opt the sheet into the glass surface, as the `glass` of {@link MenuContent} does for the popover. */
 	glass?: boolean
 	className?: string
@@ -44,11 +46,12 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
  *
  * The heading names the sheet and the menu in it. It is the `title` of
  * {@link MenuContent}, or the name of the trigger, which is read when the sheet
- * opens.
+ * opens. The `description` of {@link MenuContent} shows below the heading and
+ * describes the sheet.
  *
  * @internal
  */
-export function MenuSheet({ title, glass, className, children }: MenuSheetProps) {
+export function MenuSheet({ title, description, glass, className, children }: MenuSheetProps) {
 	const { open, menuId, size } = useMenuState()
 	const { setOpen, triggerRef } = useMenuActions()
 
@@ -86,6 +89,8 @@ export function MenuSheet({ title, glass, className, children }: MenuSheetProps)
 			{heading === undefined ? null : (
 				<DrawerHeader>
 					<DrawerTitle id={titleId}>{heading}</DrawerTitle>
+
+					{description === undefined ? null : <DrawerDescription>{description}</DrawerDescription>}
 				</DrawerHeader>
 			)}
 

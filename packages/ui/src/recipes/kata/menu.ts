@@ -1,13 +1,15 @@
 /**
  * Menu kata: object-literal surface for `<Menu>` / `<Dropdown>` popover lists.
- * The `item` row and the `viewport` scroll container follow the nearest density
- * scope through stepped classes. The panel is that scope. The rest are static slots:
- * `content` (the panel box), `surface` and `floating` (the wrapper and the
- * panel of a floating menu), `sheet` and `sheetBody` (the rows and the body of
- * the bottom sheet on a phone), `section`, `heading`, `label`, `text`,
- * `description`, and `shortcut`. The `subTrigger` wash on an open submenu parent, the
- * `subChevron` and `subGroup` of a submenu in the bottom sheet, and the
- * `separator` divider join them.
+ * The `item` row, the `headerTitle`, and the `viewport` scroll container follow
+ * the nearest density scope through stepped classes. The panel is that scope.
+ * The rest are static slots: `content` (the panel box), `surface` and
+ * `floating` (the wrapper and the panel of a floating menu), `sheet` and
+ * `sheetBody` (the rows and the body of the bottom sheet on a phone), `header`
+ * and `headerDescription` (the box and the second line of the header above the
+ * rows), `section`, `heading`, `label`, `text`, `description`, and `shortcut`.
+ * The `subTrigger` wash on an open submenu parent, the `subChevron` and
+ * `subGroup` of a submenu in the bottom sheet, and the `separator` divider join
+ * them.
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
@@ -90,6 +92,11 @@ export const k = {
 	subGroup: 'min-w-0 space-y-0.5 ps-4',
 	viewport,
 	item,
+	// The title and the description of a panel, above its rows. The header does
+	// not shrink, so the rows below it scroll when the panel is capped.
+	header: 'shrink-0 px-3 pb-1 pt-2',
+	headerTitle: [textRamp, weight.semibold, text.default],
+	headerDescription: [size.xs, text.muted],
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
 	label: 'truncate',

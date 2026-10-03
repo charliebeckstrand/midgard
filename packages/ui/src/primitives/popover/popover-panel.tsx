@@ -40,6 +40,7 @@ export function PopoverPanel({
 	density,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
+	'aria-describedby': ariaDescribedby,
 	onKeyDown: onKeyDownProp,
 }: {
 	id?: string
@@ -113,6 +114,8 @@ export function PopoverPanel({
 	/** Accessible name for the panel's role (e.g. the listbox), threaded from the owning control. */
 	'aria-label'?: string
 	'aria-labelledby'?: string
+	/** Id of the element that describes the panel, such as the description of a menu. */
+	'aria-describedby'?: string
 	onKeyDown?: KeyboardEventHandler
 }) {
 	const panelRef = useRef<HTMLDivElement>(null)
@@ -158,6 +161,7 @@ export function PopoverPanel({
 				role={role === 'none' ? undefined : role}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
+				aria-describedby={ariaDescribedby}
 				// ARIA allows `aria-multiselectable` on listbox and grid roles; this
 				// panel only sets it on the listbox role.
 				aria-multiselectable={role === 'listbox' ? multiselectable : undefined}
