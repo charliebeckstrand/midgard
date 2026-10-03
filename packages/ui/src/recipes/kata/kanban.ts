@@ -3,10 +3,10 @@
  * cards. No variants axis. The `column` group nests `base` / `header` / `title`
  * / `body` / `empty` slots and the `over` drop-target state. The `card` group
  * nests `base` plus the drag-state classes (`draggable`, `dragging`, `lifted`,
- * `active`).
+ * `active`). `skeleton` is the form of the lines of the `KanbanSkeleton`.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { disabled, grab } = hannou
 const { text } = iro
@@ -57,4 +57,5 @@ export const k = {
 		lifted: [...focus.lifted.raise, focus.lifted.ring],
 		active: 'z-10 shadow-lg relative opacity-95',
 	},
+	skeleton: kokkaku.kanban,
 } as const

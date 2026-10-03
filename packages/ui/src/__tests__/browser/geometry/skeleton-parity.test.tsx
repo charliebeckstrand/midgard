@@ -1,3 +1,4 @@
+import { File } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarSkeleton } from '../../../components/avatar'
@@ -29,6 +30,15 @@ import {
 	FiltersSkeleton,
 } from '../../../components/filters'
 import { Input } from '../../../components/input'
+import {
+	Kanban,
+	KanbanCard,
+	KanbanColumn,
+	KanbanColumnBody,
+	KanbanColumnHeader,
+	KanbanColumnTitle,
+	KanbanSkeleton,
+} from '../../../components/kanban'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import {
 	Pagination,
@@ -67,6 +77,7 @@ import { Tab, TabList, TabListSkeleton, Tabs } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
+import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import type { InnerStep } from '../../../core/density'
 import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
@@ -590,5 +601,86 @@ describe('skeleton parity (real browser)', () => {
 		expect(reserved.width).toBe(800)
 
 		expect(reserved.height).toBeNear(800 / ratio, PIXEL)
+	})
+
+	// The rows go to the depths 0, 1, 2, 1, 0: the pattern of the skeleton.
+	const fileTree = (size: InnerStep) => (
+		<Tree size={size} aria-label="Files">
+			<TreeItem label="src" icon={<File />} defaultOpen>
+				<TreeItem label="components" icon={<File />} defaultOpen>
+					<TreeItem label="Button.tsx" icon={<File />} />
+				</TreeItem>
+				<TreeItem label="hooks" icon={<File />} />
+			</TreeItem>
+			<TreeItem label="README.md" icon={<File />} />
+		</Tree>
+	)
+
+	it.each(['sm', 'md', 'lg'] as const)('TreeSkeleton has the box of a %s tree', (size) => {
+		const { container } = renderUI(fileTree(size))
+
+		const real = box(container.querySelector('[data-slot="tree"]'), 'tree')
+
+		const skeleton = renderUI(<TreeSkeleton rows={5} size={size} />).container.firstElementChild
+
+		expect(box(skeleton, 'skeleton')).toStrictEqual(real)
+
+		// The deepest icon starts where the icon of the real row starts, so the indent matches.
+		const realIcon = present(
+			container.querySelector('[aria-level="3"] [data-slot="icon"]'),
+			'real icon',
+		).getBoundingClientRect().left
+
+		const skeletonIcon = present(
+			skeleton?.children[2]?.querySelector('[data-slot="placeholder"]'),
+			'skeleton icon',
+		).getBoundingClientRect().left
+
+		expect(skeletonIcon).toBe(realIcon)
+	})
+
+	const lanes = [
+		{ id: 'todo', title: 'To do', items: ['a', 'b', 'c'] },
+		{ id: 'doing', title: 'Doing', items: ['d', 'e', 'f'] },
+		{ id: 'done', title: 'Done', items: ['g', 'h', 'i'] },
+	]
+
+	it('KanbanSkeleton has the box of a board', () => {
+		const { container } = renderUI(
+			<Kanban columns={lanes} getKey={(item: string) => item} aria-label="Loads">
+				{lanes.map((lane) => (
+					<KanbanColumn key={lane.id} value={lane.id}>
+						<KanbanColumnHeader>
+							<KanbanColumnTitle>{lane.title}</KanbanColumnTitle>
+						</KanbanColumnHeader>
+						<KanbanColumnBody>
+							{lane.items.map((item) => (
+								<KanbanCard key={item} value={item}>
+									<span>Load {item}</span>
+									<span>Acme Freight</span>
+								</KanbanCard>
+							))}
+						</KanbanColumnBody>
+					</KanbanColumn>
+				))}
+			</Kanban>,
+		)
+
+		const skeleton = renderUI(<KanbanSkeleton columns={3} cards={3} />).container.firstElementChild
+
+		expect(box(skeleton, 'skeleton')).toStrictEqual(
+			box(container.querySelector('[data-slot="kanban"]'), 'board'),
+		)
+
+		expect(box(skeleton?.firstElementChild, 'skeleton column')).toStrictEqual(
+			box(container.querySelector('[data-slot="kanban-column"]'), 'column'),
+		)
+
+		// The second child of a column is its body, and the body holds the cards.
+		const skeletonCard = skeleton?.firstElementChild?.children[1]?.firstElementChild
+
+		expect(box(skeletonCard, 'skeleton card')).toStrictEqual(
+			box(container.querySelector('[data-slot="kanban-card"]'), 'card'),
+		)
 	})
 })

@@ -9,6 +9,7 @@ import {
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
+	KanbanSkeleton,
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
 import { Grid, type GridColumn } from '../../../modules/grid'
@@ -133,6 +134,13 @@ export const dataComplexCases: readonly Case[] = [
 				))}
 			</Kanban>
 		),
+		skeleton: [
+			{
+				element: <KanbanSkeleton columns={2} cards={1} />,
+				absentSlot: 'kanban-card',
+				placeholders: 6,
+			},
+		],
 	},
 	{
 		// Pivot of rows into a row × column matrix with an aggregated value.

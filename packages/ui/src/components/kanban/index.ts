@@ -20,4 +20,5 @@ export {
 	KanbanColumnTitle,
 	type KanbanColumnTitleProps,
 } from './kanban-column-header'
+export { KanbanSkeleton, type KanbanSkeletonProps } from './kanban-skeleton'
 export type { KanbanColumnBase } from './types'

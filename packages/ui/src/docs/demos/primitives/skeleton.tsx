@@ -18,6 +18,7 @@ import { DescriptionListSkeleton } from '../../../components/description-list'
 import { FiltersSkeleton } from '../../../components/filters'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
+import { KanbanSkeleton } from '../../../components/kanban'
 import { ListSkeleton } from '../../../components/list'
 import { PaginationSkeleton } from '../../../components/pagination'
 import { ProgressBarSkeleton, ProgressGaugeSkeleton } from '../../../components/progress'
@@ -40,6 +41,7 @@ import { TabListSkeleton } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
+import { TreeSkeleton } from '../../../components/tree'
 import { ChartSkeleton } from '../../../modules/chart'
 import { MapSkeleton } from '../../../modules/map'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
@@ -64,6 +66,7 @@ const skeletonVariants = [
 	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
 	{ name: 'Filters', skeleton: <FiltersSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
+	{ name: 'Kanban', skeleton: <KanbanSkeleton /> },
 	{ name: 'List', skeleton: <ListSkeleton description /> },
 	{ name: 'Map', skeleton: <MapSkeleton /> },
 	{ name: 'Pagination', skeleton: <PaginationSkeleton /> },
@@ -86,6 +89,7 @@ const skeletonVariants = [
 	{ name: 'Text', skeleton: <TextSkeleton /> },
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
 	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
+	{ name: 'Tree', skeleton: <TreeSkeleton /> },
 ]
 
 // Combobox filtering is consumer-driven: read the deferred query from context

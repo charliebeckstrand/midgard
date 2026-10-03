@@ -21,6 +21,7 @@ import { colorPanel } from './color-panel'
 import { control } from './control'
 import { descriptionList } from './description-list'
 import { heading } from './heading'
+import { kanban } from './kanban'
 import { list } from './list'
 import { map } from './map'
 import { pagination } from './pagination'
@@ -37,6 +38,7 @@ import { tabs } from './tabs'
 import { text } from './text'
 import { textarea } from './textarea'
 import { toggleIconButton } from './toggle-icon-button'
+import { tree } from './tree'
 
 export const kokkaku = {
 	avatar,
@@ -50,6 +52,7 @@ export const kokkaku = {
 	control,
 	descriptionList,
 	heading,
+	kanban,
 	list,
 	map,
 	pagination,
@@ -66,4 +69,5 @@ export const kokkaku = {
 	text,
 	textarea,
 	toggleIconButton,
+	tree,
 } as const
