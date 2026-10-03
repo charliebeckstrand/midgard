@@ -61,8 +61,11 @@ export const size = {
 	line: 'density-h-[4,5,6]',
 	/** A small line of text in a skeleton. */
 	lineSmall: 'density-h-[3,4,5]',
-	/** A line of a Text skeleton: the line height of each step of the text. */
-	lineText: 'density-h-[4,5,6,7,7]',
+	/**
+	 * A line of a Text skeleton with a `size`: the line height of each step of
+	 * the text. The skeleton writes `data-density` only for a `size`.
+	 */
+	lineText: 'data-density:density-h-[4,5,6,7,7]',
 	/** The height of a stat value skeleton. */
 	statValue: 'density-h-[8,9,10]',
 	/** The width of a stat value skeleton. */

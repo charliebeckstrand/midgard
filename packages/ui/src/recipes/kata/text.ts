@@ -39,7 +39,7 @@ export const k = defineRecipe(
 			blue: mode('text-blue-600', 'dark:text-blue-500'),
 		},
 		defaults: { tone: 'default' },
-		// One line at the line height of each step of the text.
+		// One line: the `md` line, or the line of the explicit `size`.
 		skeleton: { base: kokkaku.text.line, density: true as const },
 	},
 	{
