@@ -383,19 +383,60 @@ function frameState() {
 	return height === '' ? '-' : `${parseFloat(height)}@${parseFloat(top)}`
 }
 
+/** The viewport units that the probe measures, one child box for each. */
+const UNITS = ['svh', 'dvh', 'lvh'] as const
+
 /**
- * The heights that decide where a surface fixed to the bottom edge sits: the
- * visual viewport (height at offset), the window, the root element, a box fixed
- * to the layout viewport, the screen, and the frame of `useVisualViewport`.
+ * Makes the probe: a box fixed to the layout viewport, with one child box for
+ * each viewport unit and one for the safe-area insets. Its height is where
+ * `bottom: 0` puts a fixed surface, which a browser toolbar can cover.
+ */
+function makeProbe() {
+	const probe = document.createElement('div')
+
+	probe.setAttribute('aria-hidden', 'true')
+
+	probe.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none'
+
+	for (const unit of UNITS) {
+		const box = probe.appendChild(document.createElement('div'))
+
+		box.style.cssText = `position:absolute;top:0;width:1px;height:100${unit}`
+	}
+
+	const insets = probe.appendChild(document.createElement('div'))
+
+	insets.style.cssText =
+		'position:absolute;top:0;width:1px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'
+
+	return probe
+}
+
+/**
+ * The heights that decide where a surface fixed to an edge sits: the visual
+ * viewport (height at offset), the window, the root element, a box fixed to the
+ * layout viewport (height at top), the viewport units, the safe-area insets (top
+ * and bottom), the scroll offset, the screen, and the frame of
+ * `useVisualViewport`.
  */
 function viewportState(probe: HTMLElement) {
 	const viewport = window.visualViewport
 
 	const visual = viewport ? `${Math.round(viewport.height)}@${Math.round(viewport.offsetTop)}` : '-'
 
-	const fixed = Math.round(probe.getBoundingClientRect().height)
+	const box = probe.getBoundingClientRect()
 
-	return `vv ${visual} win ${window.innerHeight} doc ${document.documentElement.clientHeight} fixed ${fixed} screen ${window.screen.height} frame ${frameState()}`
+	const fixed = `${Math.round(box.height)}@${Math.round(box.top)}`
+
+	const [svh, dvh, lvh, insets] = Array.from(probe.children, (child) => getComputedStyle(child))
+
+	const units = [svh, dvh, lvh]
+		.map((style) => Math.round(parseFloat(style?.height ?? '')))
+		.join('/')
+
+	const safe = `${parseFloat(insets?.paddingTop ?? '')}/${parseFloat(insets?.paddingBottom ?? '')}`
+
+	return `vv ${visual} win ${window.innerHeight} doc ${document.documentElement.clientHeight} fixed ${fixed} s/d/lvh ${units} safe ${safe} y ${Math.round(window.scrollY)} screen ${window.screen.height} frame ${frameState()}`
 }
 
 /** Adds the listeners, and returns a function that removes them. */
@@ -406,13 +447,7 @@ function listen() {
 
 	for (const type of EVENTS) document.addEventListener(type, onEvent, options)
 
-	// A box fixed to the layout viewport. Its height is where `bottom: 0` puts a
-	// fixed surface, which a browser toolbar can cover.
-	const probe = document.createElement('div')
-
-	probe.setAttribute('aria-hidden', 'true')
-
-	probe.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none'
+	const probe = makeProbe()
 
 	document.body.append(probe)
 
