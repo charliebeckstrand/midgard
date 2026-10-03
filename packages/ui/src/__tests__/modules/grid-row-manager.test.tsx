@@ -39,6 +39,14 @@ describe('Grid row manager', () => {
 		fireEvent.contextMenu(header)
 	}
 
+	it('names the group menu by its group', () => {
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		rightClickDeveloperHeader()
+
+		expect(screen.getByRole('menu', { name: 'Developer group menu' })).toBeInTheDocument()
+	})
+
 	it('opens a group menu with Manage rows and expand controls on a group-header right-click', () => {
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 

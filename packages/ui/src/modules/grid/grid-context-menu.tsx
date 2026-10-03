@@ -15,9 +15,11 @@ import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
 import { copyText } from '../../utilities/export-output'
 import type { GridSortState } from './context'
+import { columnLabel } from './engine/grid-column/label'
 import { cellText } from './engine/grid-export/accessor'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
+	type GridMenuResolution,
 	openKeyboardMenu,
 	resolveTarget,
 	tryCellMenu,
@@ -42,6 +44,9 @@ import type {
 	GridMenuItem,
 } from './types'
 import type { GridColumnFilter } from './use-grid-table'
+
+/** The name of the menu of a data cell. @internal */
+const CELL_MENU_NAME = 'Cell menu'
 
 /** Props for {@link GridContextMenu}. @internal */
 export type GridContextMenuProps<T> = {
@@ -86,17 +91,17 @@ export type GridContextMenuProps<T> = {
 	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
 	fill: GridRangeFill | undefined
 	/**
-	 * Resolves the group-header menu items for a right-clicked group by its key
-	 * (the group's text key) and its header row, or `null` when the row manager /
-	 * grouping isn't live. Backs the "Manage rows" menu on the group-header row.
+	 * Resolves the group-header menu items and name for a right-clicked group by
+	 * its key (the group's text key) and its header row, or `null` when the row
+	 * manager / grouping isn't live. Backs the "Manage rows" menu on the group-header row.
 	 */
-	rowGroupMenu: ((key: string, header: HTMLElement) => GridMenuItem[] | null) | null
+	rowGroupMenu: ((key: string, header: HTMLElement) => GridMenuResolution | null) | null
 	/**
-	 * Resolves the column-group band menu for a right-clicked group by its id
-	 * (`data-group-id`), or `null` when grouping is off. Backs the badge menu's
+	 * Resolves the column-group band menu items and name for a right-clicked
+	 * group by its id (`data-group-id`), or `null` when grouping is off. Backs the badge menu's
 	 * Clear color / Manage columns items.
 	 */
-	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
+	columnGroupMenu: ((id: string) => GridMenuResolution | null) | null
 	/**
 	 * The grid's column-filter model, or `null` when it has none. Backs the column
 	 * menu's "Filter …" item under the `'menu'` filter affordance.
@@ -146,14 +151,20 @@ export function GridContextMenu<T>({
 
 	const [items, setItems] = useState<GridMenuItem[]>([])
 
+	// The name of the open menu, from its target. A context menu has no trigger
+	// to name it.
+	const [name, setName] = useState<string>()
+
 	// Bumped on every open so the rendered list remounts. Right-clicking a second
 	// header while the menu is still open swaps the items under it, and a submenu
 	// the previous column left open — same entry key, same component instance —
 	// would otherwise carry over, showing one column's rows under another's menu.
 	const [generation, setGeneration] = useState(0)
 
-	const commitItems = useCallback((next: GridMenuItem[]) => {
-		setItems(next)
+	const commitItems = useCallback((next: GridMenuResolution) => {
+		setItems(next.items)
+
+		setName(next.name)
 
 		setGeneration((value) => value + 1)
 	}, [])
@@ -168,7 +179,7 @@ export function GridContextMenu<T>({
 	)
 
 	const resolveColumnItems = useCallback(
-		(columnId: string, rtl: boolean): GridMenuItem[] | null => {
+		(columnId: string, rtl: boolean): GridMenuResolution | null => {
 			if (!columnMenu) return null
 
 			const column = columnById.get(columnId)
@@ -202,9 +213,11 @@ export function GridContextMenu<T>({
 				rtl,
 			})
 
+			const name = `${columnLabel(column)} column menu`
+
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
 			// function needs the context, so it's built solely on that path.
-			if (typeof columnMenu !== 'function') return defaults
+			if (typeof columnMenu !== 'function') return { items: defaults, name }
 
 			const context: GridColumnMenuContext<T> = {
 				column,
@@ -225,7 +238,7 @@ export function GridContextMenu<T>({
 				exportActions,
 			}
 
-			return columnMenu(context, defaults)
+			return { items: columnMenu(context, defaults), name }
 		},
 		[
 			columnMenu,
@@ -245,7 +258,7 @@ export function GridContextMenu<T>({
 	)
 
 	const resolveCellItems = useCallback(
-		(columnId: string, rowKey: string, text: string): GridMenuItem[] | null => {
+		(columnId: string, rowKey: string, text: string): GridMenuResolution | null => {
 			if (!cellMenu) return null
 
 			const column = columnById.get(columnId)
@@ -264,7 +277,7 @@ export function GridContextMenu<T>({
 
 			// As with columns: the context is built only for a builder function, not
 			// the boolean opt-in that takes the defaults as-is.
-			if (typeof cellMenu !== 'function') return defaults
+			if (typeof cellMenu !== 'function') return { items: defaults, name: CELL_MENU_NAME }
 
 			const context: GridCellMenuContext<T> = {
 				row,
@@ -274,7 +287,7 @@ export function GridContextMenu<T>({
 				exportActions,
 			}
 
-			return cellMenu(context, defaults)
+			return { items: cellMenu(context, defaults), name: CELL_MENU_NAME }
 		},
 		[cellMenu, columnById, rows, rowKeys, exportActions, fill],
 	)
@@ -285,7 +298,7 @@ export function GridContextMenu<T>({
 	// The pin items name the physical edge, so the column items read the direction
 	// of the header the menu opens on. The menu itself portals out of the grid.
 	const resolveItems = useCallback(
-		(target: HTMLElement): GridMenuItem[] | null => {
+		(target: HTMLElement): GridMenuResolution | null => {
 			if (!enabled) return null
 
 			const rtl = isRtl(target)
@@ -298,7 +311,7 @@ export function GridContextMenu<T>({
 	// Group-header rows carry their own menu (Manage rows, expand/collapse, color),
 	// keyed by the group's text key; `null` when the row manager isn't live.
 	const resolveGroupItems = useCallback(
-		(key: string, header: HTMLElement): GridMenuItem[] | null =>
+		(key: string, header: HTMLElement): GridMenuResolution | null =>
 			enabled && rowGroupMenu ? rowGroupMenu(key, header) : null,
 		[enabled, rowGroupMenu],
 	)
@@ -306,7 +319,7 @@ export function GridContextMenu<T>({
 	// Column-group band badges carry their own menu (Clear color, Manage columns),
 	// keyed by the group's id; `null` when grouping is off.
 	const resolveColumnGroupItems = useCallback(
-		(id: string): GridMenuItem[] | null =>
+		(id: string): GridMenuResolution | null =>
 			enabled && columnGroupMenu ? columnGroupMenu(id) : null,
 		[enabled, columnGroupMenu],
 	)
@@ -335,7 +348,7 @@ export function GridContextMenu<T>({
 				{children}
 			</GridContextMenuSurface>
 
-			<MenuContent>
+			<MenuContent aria-label={name}>
 				<ContextMenuList key={generation} entries={items} />
 			</MenuContent>
 		</Menu>
@@ -361,10 +374,10 @@ function GridContextMenuSurface({
 	returnFocus,
 	children,
 }: {
-	resolveItems: (target: HTMLElement) => GridMenuItem[] | null
-	resolveGroupItems: (key: string, header: HTMLElement) => GridMenuItem[] | null
-	resolveColumnGroupItems: (id: string) => GridMenuItem[] | null
-	setItems: (items: GridMenuItem[]) => void
+	resolveItems: (target: HTMLElement) => GridMenuResolution | null
+	resolveGroupItems: (key: string, header: HTMLElement) => GridMenuResolution | null
+	resolveColumnGroupItems: (id: string) => GridMenuResolution | null
+	setItems: (menu: GridMenuResolution) => void
 	returnFocus: RefObject<HTMLElement | null>
 	children: ReactNode
 }) {
@@ -386,12 +399,17 @@ function GridContextMenuSurface({
 
 			// Opens the menu at a point with the resolved items, suppressing the native
 			// menu; an empty/absent set leaves the browser's own menu alone.
-			const commit = (items: GridMenuItem[] | null, anchor: HTMLElement, x: number, y: number) => {
-				if (!items || items.length === 0) return
+			const commit = (
+				menu: GridMenuResolution | null,
+				anchor: HTMLElement,
+				x: number,
+				y: number,
+			) => {
+				if (!menu || menu.items.length === 0) return
 
 				event.preventDefault()
 
-				setItems(items)
+				setItems(menu)
 
 				openAt(anchor, x, y)
 			}

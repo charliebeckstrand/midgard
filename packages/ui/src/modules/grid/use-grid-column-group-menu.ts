@@ -1,13 +1,15 @@
 'use client'
 
 import { type ReactNode, useCallback } from 'react'
+import { columnLabel } from './engine/grid-column/label'
+import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import { buildColumnGroupMenu } from './grid-context-menu-utilities'
 import type { GridColumnGroup } from './grid-group-types'
-import type { GridMenuItem } from './types'
 
 /**
  * Resolves the column-group band menu for a right-clicked group by its id, or
- * `null` when grouping is off or the group offers no action. Backs the badge
+ * `null` when grouping is off or the group offers no action. The menu takes
+ * the name "<group> group menu". Backs the badge
  * menu's Clear color / Manage columns items; clearing commits the recolored
  * groups through the binding {@link useGridGroup} owns.
  *
@@ -22,11 +24,11 @@ export function useGridColumnGroupMenu(args: {
 	chooseColumns: (() => void) | null
 	/** Label for the "Manage columns" item. */
 	manageLabel: ReactNode
-}): (id: string) => GridMenuItem[] | null {
+}): (id: string) => GridMenuResolution | null {
 	const { groups, setGroups, enabled, chooseColumns, manageLabel } = args
 
 	return useCallback(
-		(id: string): GridMenuItem[] | null => {
+		(id: string): GridMenuResolution | null => {
 			if (!enabled) return null
 
 			const group = groups.find((candidate) => String(candidate.id) === id)
@@ -41,7 +43,7 @@ export function useGridColumnGroupMenu(args: {
 				manageLabel,
 			})
 
-			return items.length > 0 ? items : null
+			return items.length > 0 ? { items, name: `${columnLabel(group)} group menu` } : null
 		},
 		[groups, setGroups, enabled, chooseColumns, manageLabel],
 	)
