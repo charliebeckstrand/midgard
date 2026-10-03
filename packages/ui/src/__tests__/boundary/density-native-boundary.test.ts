@@ -178,11 +178,10 @@ describe('density after a pseudo-element', () => {
 //
 //   - Calendar: a test for `xs`, which opens a scope at `sm`. Only a `size` or
 //     a scope sets `xs`, and the server reads both, so the first paint is right.
-//   - Chart and scatter chart: the tick cap. With no `width`, the server
-//     renders an empty frame, and the chart measures before the first paint.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
 //     step of the overlays that the grid opens.
-//   - The density primitive and its barrel: the hook itself.
+//   - The density primitive and its barrel: `useDensityStep` itself, and
+//     `useStep`, which snaps the step to the scale of a component.
 //
 // The check reads each name, not only each call, so an aliased import fails it.
 
@@ -193,7 +192,7 @@ const STEP_READERS = [
 	'primitives/density/index.ts',
 ]
 
-const STEP_READ = /\buseDensityStep\b/
+const STEP_READ = /\buse(?:Density)?Step\b/
 
 // `useDensityScope` gives the nearest explicit scope, or `null` at the root. A
 // portal root writes that scope on its element, so a portaled panel keeps the

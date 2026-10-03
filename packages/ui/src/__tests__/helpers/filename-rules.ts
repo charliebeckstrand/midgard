@@ -22,7 +22,7 @@ const BARE_ALLOWED = new Set([
 
 // Suffixes that name a collection of utilities rather than a single component
 // or hook. Files matching these are exempt from the filename-vs-symbol match.
-const UTILITY_SUFFIXES = ['-utilities', '-constants'] as const
+const UTILITY_SUFFIXES = ['-utilities'] as const
 
 function stem(file: string): string {
 	return parse(file).name
