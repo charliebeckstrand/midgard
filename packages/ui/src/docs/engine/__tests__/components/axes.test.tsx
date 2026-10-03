@@ -297,6 +297,30 @@ describe('Axes', () => {
 		expect(probesOf('Color')).toHaveLength(2)
 	})
 
+	it('hides an axis example that changes only the heading level', () => {
+		const leveled: ComponentApi[] = [
+			{ name: 'Note', props: [{ name: 'level', type: '2 | 3 | 4' }] },
+		]
+
+		renderUI(
+			<DemoApiContext value={settled(leveled)}>
+				<Axes
+					of="Note"
+					render={(props, label) => {
+						const Title = `h${(props as { level?: number }).level ?? 2}` as 'h2'
+
+						return <Title className="text-lg">{label}</Title>
+					}}
+				/>
+			</DemoApiContext>,
+		)
+
+		expect(screen.queryByRole('heading', { name: 'Level' })).toBeNull()
+
+		// The picker keeps each value, so the code of the playground can show the prop.
+		expect(screen.getByRole('combobox', { name: 'Level' })).toBeInTheDocument()
+	})
+
 	it('throws for a name that the barrel does not document', () => {
 		expect(() => renderAxes(settled(api), 'Missing')).toThrow(/no documented component "Missing"/)
 	})

@@ -90,7 +90,7 @@ function ApiReferenceSection({ id }: { id: string }) {
 
 	return (
 		<Stack gap="sm">
-			<Heading level={2}>API Reference</Heading>
+			<Heading level={2}>API reference</Heading>
 			<ApiReference api={api} />
 		</Stack>
 	)

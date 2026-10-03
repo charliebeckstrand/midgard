@@ -13,7 +13,7 @@ import {
 	isStepAxis,
 	rendersAlike,
 } from '../axes'
-import { formSignature, stepSignature } from '../step-signature'
+import { formSignature, lookSignature, stepSignature } from '../step-signature'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
 import { OptionsListbox } from './options-listbox'
@@ -89,6 +89,11 @@ type AxesProps = {
  * instances render alike at the defaults stays, because its effect shows only
  * in a later state, such as the panel of a closed dialog. An example with one
  * value also hides.
+ *
+ * An axis that changes only the document outline, such as the heading level
+ * of a title, has nothing to show. Its instances differ in form and look the
+ * same ({@link lookSignature}), so its example hides. Its picker keeps each
+ * value, and the code of the playground shows the prop.
  *
  * Without API data, for example in a test run, it renders nothing.
  */
@@ -166,6 +171,17 @@ function AxesExamples({
 
 		const alike = (axis: Axis) => rendersAlike(axis.values.map((value) => signatureOf(axis, value)))
 
+		// An axis whose instances differ in form and look the same changes only the outline.
+		const outlineOnly = (axis: Axis) =>
+			!alike(axis) &&
+			rendersAlike(
+				axis.values.map((value) => {
+					const instance = instances.current.get(`${axis.name}:${value}`)
+
+					return instance ? lookSignature(instance, valueLabel(value)) : null
+				}),
+			)
+
 		live.current ??= new Set(
 			unread.filter((axis) => !isStepAxis(axis) && !alike(axis)).map((axis) => axis.name),
 		)
@@ -175,7 +191,7 @@ function AxesExamples({
 
 			// The other axes make a live axis inert when its instances render alike.
 			// The example of an inert axis shows no value, so it hides.
-			const inert = live.current?.has(axis.name) && alike(axis)
+			const inert = (live.current?.has(axis.name) && alike(axis)) || outlineOnly(axis)
 
 			return [axis.name, inert ? [] : axis.values]
 		})
