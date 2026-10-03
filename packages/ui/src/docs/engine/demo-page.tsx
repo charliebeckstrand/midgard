@@ -1,10 +1,5 @@
-import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { Fragment, Suspense, use } from 'react'
-import { Button } from '../../components/button'
+import { Suspense, use } from 'react'
 import { Heading } from '../../components/heading'
-import { Icon } from '../../components/icon'
-import { SidebarLayoutHeader } from '../../layouts'
-import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
 import { DemoApiContext } from './components/axes'
 import { DemoErrorBoundary } from './components/error-boundary'
@@ -18,19 +13,11 @@ import {
 } from './registry'
 
 /**
- * The route body for one demo. It holds the lazily-loaded component, a
- * sidebar-lock toggle in the layout header, and the component's API reference
- * when one was extracted at build time.
+ * The route body for one demo. It holds the lazily-loaded component and the
+ * component's API reference when one was extracted at build time. The header
+ * of the page is part of the `App` chrome.
  */
-export function DemoPage({
-	demo,
-	locked,
-	onToggleLocked,
-}: {
-	demo: Demo
-	locked: boolean
-	onToggleLocked: () => void
-}) {
+export function DemoPage({ demo }: { demo: Demo }) {
 	const Component = use(loadDemo(demo.id))
 
 	// The playground of `Axes` needs the API data. The page waits for the data,
@@ -39,39 +26,24 @@ export function DemoPage({
 	if (hasComponentApi(demo.id)) use(settleComponentApi(demo.id))
 
 	return (
-		<Fragment>
-			<SidebarLayoutHeader>
-				<Flex align="center" gap="md">
-					<Button
-						variant="bare"
-						className="max-lg:hidden"
-						aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
-						onClick={onToggleLocked}
-					>
-						<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
-					</Button>
-					<Heading>{demo.name}</Heading>
-				</Flex>
-			</SidebarLayoutHeader>
-			<Stack gap="xl">
-				{/* `Axes` in the demo reads the API data of the barrel from here. */}
-				<DemoApiContext value={hasComponentApi(demo.id) ? loadComponentApi(demo.id) : null}>
-					<Component />
-				</DemoApiContext>
-				{hasComponentApi(demo.id) && (
-					// The page waits for the API data, so the data is ready here, except
-					// after a failure and a retry. Its own error boundary makes a failed
-					// chunk degrade to nothing, instead of replacing the already-rendered
-					// demo through the route-level boundary. The rejection stays cached,
-					// so the section stays empty until a sidebar prefetch re-attempts it.
-					<DemoErrorBoundary fallback={() => null}>
-						<Suspense fallback={null}>
-							<ApiReferenceSection id={demo.id} />
-						</Suspense>
-					</DemoErrorBoundary>
-				)}
-			</Stack>
-		</Fragment>
+		<Stack gap="xl">
+			{/* `Axes` in the demo reads the API data of the barrel from here. */}
+			<DemoApiContext value={hasComponentApi(demo.id) ? loadComponentApi(demo.id) : null}>
+				<Component />
+			</DemoApiContext>
+			{hasComponentApi(demo.id) && (
+				// The page waits for the API data, so the data is ready here, except
+				// after a failure and a retry. Its own error boundary makes a failed
+				// chunk degrade to nothing, instead of replacing the already-rendered
+				// demo through the route-level boundary. The rejection stays cached,
+				// so the section stays empty until a sidebar prefetch re-attempts it.
+				<DemoErrorBoundary fallback={() => null}>
+					<Suspense fallback={null}>
+						<ApiReferenceSection id={demo.id} />
+					</Suspense>
+				</DemoErrorBoundary>
+			)}
+		</Stack>
 	)
 }
 

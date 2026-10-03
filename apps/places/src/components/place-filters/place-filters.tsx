@@ -175,13 +175,16 @@ export function PlaceFilters({
 				    offers to undo nothing, and reads as a control that does not work.
 
 				    It sits outside the row: it clears every field, and an action on the
-				    whole bar must not scroll away from the bar. Its own right inset
-				    matches the row's, so the bar reads as evenly set either way. */}
+				    whole bar must not scroll away from the bar. Its margin matches the
+				    padding of the row. The bar lines up its regions on their bottom
+				    edges, and the bottom edge of the row is its padding, not its
+				    controls. Without the same inset, Clear sits lower than the
+				    controls. */}
 				{hasActiveFilter(value) && (
 					// The weight is this app's own: the bar sits over a map that redraws
 					// under it, so the one control that undoes the lot has to be findable
 					// at a glance. The shared default stays neutral for every other bar.
-					<FiltersClear variant="soft" color="red" className="mr-6">
+					<FiltersClear variant="soft" color="red" className="my-3 mr-6">
 						Clear
 					</FiltersClear>
 				)}

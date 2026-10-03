@@ -63,8 +63,9 @@ type AxesProps = {
 	omit?: readonly string[]
 	/**
 	 * The title of the playground, and the prefix of each axis title: `Group`
-	 * gives `Group` and `Group size`. Give it when a page has more than one
-	 * `Axes`, so that no two examples share a title.
+	 * gives `Group` and `Group size`. On a page with more than one `Axes`,
+	 * give it to each `Axes` after the first, so that no two examples share a
+	 * title.
 	 *
 	 * @defaultValue `'Playground'`, and no prefix
 	 */

@@ -64,7 +64,7 @@ function keyOf(path: string): string {
 	return relative(workspaceRoot, path).split(sep).join('/')
 }
 
-/** Each source file outside the tests and the docs site, keyed, with its code and no comments. */
+/** Each source file outside the tests and the docs build output, keyed, with its code and no comments. */
 function sourceFiles(): Map<string, string> {
 	const files = new Map<string, string>()
 
@@ -74,7 +74,7 @@ function sourceFiles(): Map<string, string> {
 
 			const key = keyOf(path)
 
-			if (key.startsWith('docs/') || key === HOME) return
+			if (key.startsWith('docs/dist/') || key === HOME) return
 
 			// Prose that names a call is not a use of it.
 			files.set(key, stripSourceComments(source))
