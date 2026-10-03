@@ -19,6 +19,7 @@ import { DescriptionListSkeleton } from '../../../components/description-list'
 import { FiltersSkeleton } from '../../../components/filters'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
+import { KanbanCardSkeleton } from '../../../components/kanban'
 import { ListSkeleton } from '../../../components/list'
 import { NavSkeleton } from '../../../components/nav'
 import { PaginationSkeleton } from '../../../components/pagination'
@@ -44,6 +45,7 @@ import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { TimelineSkeleton } from '../../../components/timeline'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
+import { TreeSkeleton } from '../../../components/tree'
 import { ChartSkeleton } from '../../../modules/chart'
 import { ChatTranscriptSkeleton } from '../../../modules/chat'
 import { MapSkeleton } from '../../../modules/map'
@@ -72,6 +74,7 @@ const skeletonVariants = [
 	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
 	{ name: 'Filters', skeleton: <FiltersSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
+	{ name: 'Kanban card', skeleton: <KanbanCardSkeleton /> },
 	{ name: 'List', skeleton: <ListSkeleton description /> },
 	{ name: 'Map', skeleton: <MapSkeleton /> },
 	{ name: 'Nav', skeleton: <NavSkeleton /> },
@@ -97,6 +100,7 @@ const skeletonVariants = [
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
 	{ name: 'Timeline', skeleton: <TimelineSkeleton /> },
 	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
+	{ name: 'Tree', skeleton: <TreeSkeleton /> },
 ]
 
 // Combobox filtering is consumer-driven: read the deferred query from context

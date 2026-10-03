@@ -5,6 +5,7 @@ import { JsonTree } from '../../../components/json-tree'
 import {
 	Kanban,
 	KanbanCard,
+	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
 	KanbanColumnHeader,
@@ -133,6 +134,13 @@ export const dataComplexCases: readonly Case[] = [
 				))}
 			</Kanban>
 		),
+		skeleton: [
+			{
+				element: <KanbanCardSkeleton />,
+				absentSlot: 'kanban-card',
+				placeholders: 2,
+			},
+		],
 	},
 	{
 		// Pivot of rows into a row × column matrix with an aggregated value.

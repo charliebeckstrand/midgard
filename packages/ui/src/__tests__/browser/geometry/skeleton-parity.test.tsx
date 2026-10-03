@@ -1,4 +1,4 @@
-import { Inbox, Settings, Star } from 'lucide-react'
+import { File, Inbox, Settings, Star } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import {
@@ -36,6 +36,15 @@ import {
 	FiltersSkeleton,
 } from '../../../components/filters'
 import { Input } from '../../../components/input'
+import {
+	Kanban,
+	KanbanCard,
+	KanbanCardSkeleton,
+	KanbanColumn,
+	KanbanColumnBody,
+	KanbanColumnHeader,
+	KanbanColumnTitle,
+} from '../../../components/kanban'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import { Nav, NavItem, NavList, NavSkeleton } from '../../../components/nav'
 import {
@@ -89,6 +98,7 @@ import {
 	TimelineTitle,
 } from '../../../components/timeline'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
+import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import type { InnerStep } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
 import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
@@ -911,5 +921,92 @@ describe('skeleton parity (real browser)', () => {
 		expect(reserved.width).toBe(800)
 
 		expect(reserved.height).toBeNear(800 / ratio, PIXEL)
+	})
+
+	// The rows go to the depths 0, 1, 2, 1, 0: the pattern of the skeleton.
+	const fileTree = (size: InnerStep) => (
+		<Tree size={size} aria-label="Files">
+			<TreeItem label="src" icon={<File />} defaultOpen>
+				<TreeItem label="components" icon={<File />} defaultOpen>
+					<TreeItem label="Button.tsx" icon={<File />} />
+				</TreeItem>
+				<TreeItem label="hooks" icon={<File />} />
+			</TreeItem>
+			<TreeItem label="README.md" icon={<File />} />
+		</Tree>
+	)
+
+	it.each(['sm', 'md', 'lg'] as const)('TreeSkeleton has the box of a %s tree', (size) => {
+		const { container } = renderUI(fileTree(size))
+
+		const real = box(container.querySelector('[data-slot="tree"]'), 'tree')
+
+		const skeleton = renderUI(<TreeSkeleton rows={5} size={size} />).container.firstElementChild
+
+		expect(box(skeleton, 'skeleton')).toStrictEqual(real)
+
+		// The deepest icon starts where the icon of the real row starts, so the indent matches.
+		const realIcon = present(
+			container.querySelector('[aria-level="3"] [data-slot="icon"]'),
+			'real icon',
+		).getBoundingClientRect().left
+
+		const skeletonIcon = present(
+			skeleton?.children[2]?.querySelector('[data-slot="placeholder"]'),
+			'skeleton icon',
+		).getBoundingClientRect().left
+
+		expect(skeletonIcon).toBe(realIcon)
+	})
+
+	// A lane that loads keeps its real column, header, and body. The title text and the cards are
+	// the leaves that load, so the skeleton lane holds a TextSkeleton title and skeleton cards.
+	it('KanbanCardSkeleton and a TextSkeleton title keep the box of a lane', () => {
+		const lane = (title: ReactElement | string, cards: ReactElement[]) => (
+			<Kanban
+				columns={[{ id: 'todo', items: ['a', 'b', 'c'] }]}
+				getKey={(item: string) => item}
+				aria-label="Loads"
+			>
+				<KanbanColumn value="todo">
+					<KanbanColumnHeader>
+						<KanbanColumnTitle>{title}</KanbanColumnTitle>
+					</KanbanColumnHeader>
+					<KanbanColumnBody>{cards}</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>
+		)
+
+		const real = renderUI(
+			lane(
+				'To do',
+				['a', 'b', 'c'].map((item) => (
+					<KanbanCard key={item} value={item}>
+						<span>Load {item}</span>
+						<span>Acme Freight</span>
+					</KanbanCard>
+				)),
+			),
+		).container
+
+		const skeleton = renderUI(
+			lane(
+				<TextSkeleton />,
+				['a', 'b', 'c'].map((item) => <KanbanCardSkeleton key={item} />),
+			),
+		).container
+
+		for (const slot of ['kanban-column', 'kanban-column-header', 'kanban-column-body']) {
+			expect(
+				box(skeleton.querySelector(`[data-slot="${slot}"]`), `skeleton ${slot}`),
+			).toStrictEqual(box(real.querySelector(`[data-slot="${slot}"]`), slot))
+		}
+
+		expect(
+			box(
+				skeleton.querySelector('[data-slot="kanban-column-body"]')?.firstElementChild,
+				'skeleton card',
+			),
+		).toStrictEqual(box(real.querySelector('[data-slot="kanban-card"]'), 'card'))
 	})
 })

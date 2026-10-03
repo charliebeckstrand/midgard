@@ -9,6 +9,7 @@ export {
 } from './context'
 export { Kanban, type KanbanProps } from './kanban'
 export { KanbanCard, type KanbanCardProps } from './kanban-card'
+export { KanbanCardSkeleton, type KanbanCardSkeletonProps } from './kanban-card-skeleton'
 export { KanbanColumn, type KanbanColumnProps } from './kanban-column'
 export {
 	KanbanColumnBody,

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	Kanban,
 	KanbanCard,
+	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
 	KanbanColumnHeader,
@@ -725,5 +726,17 @@ describe('Kanban key joins', () => {
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('names no item'))
 
 		warn.mockRestore()
+	})
+})
+
+describe('KanbanCardSkeleton', () => {
+	it('hides its card from assistive technology and draws two lines', () => {
+		const { container } = renderUI(<KanbanCardSkeleton />)
+
+		const root = present(container.firstElementChild, 'skeleton')
+
+		expect(root).toHaveAttribute('aria-hidden', 'true')
+
+		expect(allBySlot(container, 'placeholder')).toHaveLength(2)
 	})
 })

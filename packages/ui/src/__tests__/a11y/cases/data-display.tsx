@@ -52,7 +52,7 @@ import {
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../../components/timeline'
-import { Tree, TreeItem } from '../../../components/tree'
+import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import {
 	AreaChart,
 	BarChart,
@@ -164,6 +164,7 @@ export const dataDisplayCases: readonly Case[] = [
 				</TreeItem>
 			</Tree>
 		),
+		skeleton: [{ element: <TreeSkeleton rows={3} />, absentSlot: 'tree-item', placeholders: 6 }],
 	},
 	{
 		// Closed listbox: the trigger is a button named by its Field Label; the

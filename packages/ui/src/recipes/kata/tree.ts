@@ -3,10 +3,10 @@
  * `item.content` row and its `chevron` take the step of the nearest density
  * scope. The static slots cover the `base` container, `affix`, `label`, and
  * `group`. `indent` pads each nested group, and `motion` is the collapse
- * transition.
+ * transition. `skeleton` is the form of the `TreeSkeleton` rows.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, kasane, narabi, sen, textRamp, ugoki } from '../kiso'
+import { hannou, iro, kasane, kokkaku, narabi, sen, textRamp, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -15,13 +15,13 @@ const { flex } = narabi
 const { focus } = sen
 const { css, collapse } = ugoki
 
+/** The box of a row: its layout, padding, and gap. The skeleton rows take it too. */
+const row = [flex.row, 'w-full', 'py-1 px-2', 'gap-2']
+
 const itemContent = defineRecipe(
 	{
 		base: [
-			flex.row,
-			'w-full',
-			'py-1 px-2',
-			'gap-2',
+			...row,
 			text.muted,
 			fg.hover,
 			rounded.lg,
@@ -66,4 +66,5 @@ export const k = {
 	 */
 	indent: 'density-ps-[6,7,8]',
 	motion: collapse.fade,
+	skeleton: { ...kokkaku.tree, row },
 } as const

@@ -1,6 +1,6 @@
 import { fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { Tree, TreeItem } from '../../components/tree'
+import { Tree, TreeItem, TreeSkeleton } from '../../components/tree'
 import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
 
 describe('Tree', () => {
@@ -568,5 +568,28 @@ describe('TreeItem onAction', () => {
 		fireEvent.keyDown(row(container), { key: 'ArrowLeft' })
 
 		expect(onAction).not.toHaveBeenCalled()
+	})
+})
+
+describe('TreeSkeleton', () => {
+	// Each row holds its depth spacers, the chevron column, and two placeholders.
+	const spacers = (row: Element) => row.querySelectorAll(':scope > span').length - 1
+
+	it('hides its rows from assistive technology and nests them in a fixed pattern', () => {
+		const { container } = renderUI(<TreeSkeleton rows={5} />)
+
+		const root = present(container.firstElementChild, 'skeleton')
+
+		expect(root).toHaveAttribute('aria-hidden', 'true')
+
+		expect(Array.from(root.children, spacers)).toStrictEqual([0, 1, 2, 1, 0])
+	})
+
+	it('draws no indent when the tree does not indent', () => {
+		const { container } = renderUI(<TreeSkeleton rows={5} indent={false} />)
+
+		const root = present(container.firstElementChild, 'skeleton')
+
+		expect(Array.from(root.children, spacers)).toStrictEqual([0, 0, 0, 0, 0])
 	})
 })
