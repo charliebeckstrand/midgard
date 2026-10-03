@@ -66,6 +66,13 @@ import { Switch, SwitchSkeleton } from '../../../components/switch'
 import { Tab, TabList, TabListSkeleton, Tabs } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import {
+	Timeline,
+	TimelineItem,
+	TimelineSkeleton,
+	TimelineTimestamp,
+	TimelineTitle,
+} from '../../../components/timeline'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { InnerStep } from '../../../core/density'
 import { MapSkeleton } from '../../../modules/map'
@@ -360,6 +367,50 @@ describe('skeleton parity (real browser)', () => {
 			expect(skeleton).toStrictEqual(real)
 		},
 	)
+
+	// A horizontal item is a narrow column, so each title is one word. A longer title wraps to
+	// two lines, and the skeleton draws one.
+	it.each([
+		['vertical', 'sm'],
+		['vertical', 'md'],
+		['vertical', 'lg'],
+		['horizontal', 'sm'],
+		['horizontal', 'md'],
+		['horizontal', 'lg'],
+	] as const)('TimelineSkeleton has the box of a %s timeline at %s', (orientation, size) => {
+		const real = box(
+			renderUI(
+				<Box density={size}>
+					<Timeline orientation={orientation}>
+						<TimelineItem>
+							<TimelineTitle>Kickoff</TimelineTitle>
+							<TimelineTimestamp>Jan 2026</TimelineTimestamp>
+						</TimelineItem>
+						<TimelineItem status="info">
+							<TimelineTitle>Design</TimelineTitle>
+							<TimelineTimestamp>Feb 2026</TimelineTimestamp>
+						</TimelineItem>
+						<TimelineItem>
+							<TimelineTitle>Launch</TimelineTitle>
+							<TimelineTimestamp>Mar 2026</TimelineTimestamp>
+						</TimelineItem>
+					</Timeline>
+				</Box>,
+			).container.querySelector('[data-slot="timeline"]'),
+			'timeline',
+		)
+
+		const skeleton = box(
+			renderUI(
+				<Box density={size}>
+					<TimelineSkeleton items={3} orientation={orientation} />
+				</Box>,
+			).container.querySelector('ol'),
+			'skeleton',
+		)
+
+		expect(skeleton).toStrictEqual(real)
+	})
 
 	it.each(['horizontal', 'vertical'] as const)(
 		'TabListSkeleton has the height of a %s tab list',
