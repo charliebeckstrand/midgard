@@ -1,6 +1,6 @@
 # Kata 型 — Form
 
-> **Scope:** per-unit recipes. One file per unit — usually `src/components/<name>/`, sometimes `src/primitives/<name>/` when the primitive needs its own recipe surface.
+> **Scope:** per-unit recipes. One file per unit — usually `src/components/<name>/`, sometimes `src/primitives/<name>/` when the primitive needs its own recipe surface. A layout keeps its recipes in `src/layouts/<name>/variants.ts` and reads kiso through `<name>-layout.ts`, so `sidebar-layout.ts` and the Sidebar component's `sidebar.ts` do not collide.
 
 ## 1. Boundary
 

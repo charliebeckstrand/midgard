@@ -199,8 +199,10 @@
 			"includes": [
 				"packages/ui/src/components/**",
 				"packages/ui/src/structure/**",
+				"packages/ui/src/layouts/**",
 				"!packages/ui/src/components/**/variants.ts",
-				"!packages/ui/src/structure/**/variants.ts"
+				"!packages/ui/src/structure/**/variants.ts",
+				"!packages/ui/src/layouts/**/variants.ts"
 			],
 			"linter": {
 				"rules": {
@@ -258,7 +260,8 @@
 		{
 			"includes": [
 				"packages/ui/src/components/**/variants.ts",
-				"packages/ui/src/structure/**/variants.ts"
+				"packages/ui/src/structure/**/variants.ts",
+				"packages/ui/src/layouts/**/variants.ts"
 			],
 			"linter": {
 				"rules": {
@@ -539,6 +542,7 @@
 				"packages/ui/src/structure/**",
 				"packages/ui/src/modules/**",
 				"packages/ui/src/primitives/**",
+				"packages/ui/src/layouts/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"
 			],
