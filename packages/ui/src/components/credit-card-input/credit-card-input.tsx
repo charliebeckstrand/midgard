@@ -1,8 +1,10 @@
 'use client'
 
 import { CreditCard } from 'lucide-react'
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useId, useMemo } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useAriaIds } from '../../hooks'
+import { useHeadless } from '../../providers/headless/context'
 import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -44,7 +46,8 @@ export type CreditCardInputProps = Omit<
 /**
  * Numeric Input that masks card numbers into brand-aware spaced groups as you
  * type. It detects the brand from the digits and surfaces its label as the
- * suffix, at the text size of the input. Emits the formatted value, brand, and
+ * suffix, at the text size of the input. The brand describes the input
+ * (`aria-describedby`), so a screen reader reads it with the number. Emits the formatted value, brand, and
  * Luhn + length + pattern validity through `onValueChange`, `onBrandChange`,
  * and `onValidityChange`, and binds to an enclosing Form field by `name`. Sets `autoComplete="cc-number"`.
  *
@@ -63,8 +66,13 @@ export function CreditCardInput({
 	name,
 	onBlur,
 	ref,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: CreditCardInputProps) {
+	const headless = useHeadless()
+
+	const brandId = useId()
+
 	const {
 		ref: maskedRef,
 		value: maskedValue,
@@ -83,6 +91,13 @@ export function CreditCardInput({
 	// return a `formatted` string the masked input already holds.
 	const brand = useMemo(() => detectCardBrand(digitsOnly(maskedValue)), [maskedValue])
 
+	// The brand is text in an affix, so focus mode does not read it. The brand
+	// describes the input, unless the caller replaces the suffix. A headless
+	// input has no affix.
+	const brandShows = !headless && suffix === undefined && brand !== undefined
+
+	const describedBy = useAriaIds(brandShows && brandId, ariaDescribedBy)
+
 	return (
 		<Input
 			ref={maskedRef}
@@ -92,7 +107,8 @@ export function CreditCardInput({
 			autoComplete="cc-number"
 			placeholder={placeholder ?? '1234 1234 1234 1234'}
 			prefix={prefix ?? <Icon icon={<CreditCard />} />}
-			suffix={suffix ?? (brand ? brand.label : undefined)}
+			suffix={suffix ?? (brandShows ? <span id={brandId}>{brand.label}</span> : undefined)}
+			aria-describedby={describedBy}
 			name={name}
 			value={maskedValue}
 			{...props}
