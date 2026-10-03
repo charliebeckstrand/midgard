@@ -465,14 +465,30 @@ describe('RangeSlider + Form', () => {
 			</Form>,
 		)
 
-	it('marks the bound field touched when focus leaves the widget', () => {
+	it.each([0, 1])('marks the bound field touched when focus leaves thumb %i', (index) => {
 		const { container } = renderBound()
 
-		const [lo] = allBySlot(container, 'slider-range-thumb')
+		const thumb = allBySlot(container, 'slider-range-thumb')[index]
 
 		expect(getFieldProbe('price')).toHaveAttribute('data-touched', 'false')
 
-		fireEvent.blur(lo as HTMLElement, { relatedTarget: null })
+		fireEvent.blur(thumb as HTMLElement, { relatedTarget: null })
+
+		expect(getFieldProbe('price')).toHaveAttribute('data-touched', 'true')
+	})
+
+	it('marks the bound field touched when focus moves to a control outside the widget', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ price: [20, 50] as [number, number] }}>
+				<RangeSlider name="price" />
+				<button type="button">Next</button>
+				<FieldProbe name="price" />
+			</Form>,
+		)
+
+		const [, hi] = allBySlot(container, 'slider-range-thumb')
+
+		fireEvent.blur(hi as HTMLElement, { relatedTarget: screen.getByText('Next') })
 
 		expect(getFieldProbe('price')).toHaveAttribute('data-touched', 'true')
 	})
@@ -483,6 +499,8 @@ describe('RangeSlider + Form', () => {
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
 
 		fireEvent.blur(lo as HTMLElement, { relatedTarget: hi })
+
+		fireEvent.blur(hi as HTMLElement, { relatedTarget: lo })
 
 		expect(getFieldProbe('price')).toHaveAttribute('data-touched', 'false')
 	})
