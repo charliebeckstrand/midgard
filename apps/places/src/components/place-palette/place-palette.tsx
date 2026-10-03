@@ -10,6 +10,7 @@ import {
 	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
+	CommandPaletteText,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
 import { useTimeout } from 'ui/hooks'
@@ -64,10 +65,12 @@ function PaletteGroups({ sources, prefix }: { sources: readonly PaletteSource[];
 						onAction={command.run}
 					>
 						{command.icon}
-						<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
-						{command.description === undefined ? null : (
-							<CommandPaletteDescription>{command.description}</CommandPaletteDescription>
-						)}
+						<CommandPaletteText>
+							<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
+							{command.description === undefined ? null : (
+								<CommandPaletteDescription>{command.description}</CommandPaletteDescription>
+							)}
+						</CommandPaletteText>
 					</CommandPaletteItem>
 				))}
 			</CommandPaletteGroup>

@@ -2,8 +2,8 @@
  * Command-palette kata: object-literal surface for `<CommandPalette>`'s grouped
  * result listbox. Static slots only, no variants axis: `group` / `list` (the
  * listbox, hidden when empty), and the peer-driven `empty` status. `title` is
- * the group heading. Each result row adds `item`, `label`, `description`, and
- * `shortcut`.
+ * the group heading. Each result row adds `item`, `label`, `text`, `description`,
+ * and `shortcut`.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kara, narabi, shaku } from '../kiso'
@@ -43,6 +43,8 @@ export const k = {
 		),
 	],
 	label: 'truncate',
+	// A column that stacks a label over its description.
+	text: narabi.text,
 	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: [description, size.xs, onWash.muted],
