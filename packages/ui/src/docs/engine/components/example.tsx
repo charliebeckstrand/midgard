@@ -72,6 +72,11 @@ function loadDerive(): Promise<Derive> {
  * fills the box. Each example thus shows a component at one width, with no
  * width in the demo.
  *
+ * When the root of each child is phrasing content, such as a button or a
+ * badge, the boxes show in a row that wraps, and each box takes the width of
+ * its child. Otherwise they stack, one to a line. The `phrasing` variant of
+ * the docs stylesheet holds the rule.
+ *
  * A frame with a width of its own, from `width` or `resize`, is itself the
  * column. Each box then fills the frame, so a block follows the width that the
  * reader drags.
@@ -266,7 +271,7 @@ export function Example({
 				)}
 				<div
 					data-example-section=""
-					className="flex flex-col items-start p-4 gap-4 overflow-x-auto phrasing:flex-row phrasing:flex-wrap phrasing:items-baseline phrasing:*:w-max phrasing:*:min-w-0"
+					className="flex flex-col items-start p-4 gap-4 overflow-x-auto phrasing:flex-row phrasing:flex-wrap phrasing:items-center phrasing:has-[[data-slot=axis-caption]]:items-start phrasing:*:w-max phrasing:*:min-w-0"
 				>
 					{Children.toArray(children).map((child, index) => (
 						<div

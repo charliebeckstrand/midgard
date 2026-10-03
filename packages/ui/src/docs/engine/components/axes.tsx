@@ -92,7 +92,7 @@ type AxesProps = {
  *
  * @remarks
  * The first example is a playground with one picker for each axis. Each next
- * example shows every value of one axis, one to a line, and takes the other
+ * example shows every value of one axis, in the flow of {@link Example}, and takes the other
  * axes from the playground. A new value in the source of the component thus shows on the
  * page with no change to the demo.
  *
@@ -246,7 +246,7 @@ function AxesExamples({
 				(axis) =>
 					valuesOf(axis).length > 1 && (
 						<Example key={axis.name} {...frame} title={axisTitle(axis.name, title)}>
-							{/* Each instance is a child of the frame, so it takes the instance box of the frame, one to a line. */}
+							{/* Each instance is a child of the frame, so it takes the instance box and the flow of the frame. */}
 							{valuesOf(axis).map((value) => (
 								<AxisInstance
 									key={String(value)}

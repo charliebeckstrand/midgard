@@ -37,6 +37,25 @@ A demo sets no width on the component that it shows.
 `demo-width-boundary.test.ts` records each width in a demo, such as the mock
 page that holds a `Sidebar`.
 
+## Example flow
+
+An example puts its instances in a row when the root of each instance is
+phrasing content: an element that HTML lets sit in a line of text, such as a
+`span`, a `button`, an `a`, a `kbd`, or an `svg`. Thus avatars, badges, and
+buttons show side by side, and the row wraps in a narrow frame. When the root
+of an instance is a block, such as a `div`, the example stacks its instances,
+one to a line. Thus alerts, calendars, and inputs stack. A box in a row takes
+the width of its instance.
+
+The `phrasing` variant in [`app.css`](app.css) holds the rule. It is CSS, so a
+prerendered page shows the row before it hydrates. The rule reads the tag, not
+the CSS `display`: a calendar with `inline-flex` stacks, and an icon button
+with `flex` shows in a row. A row centers its instances. When an instance has a
+caption, the row aligns the instances at the top, so the captions align.
+
+A demo does not wrap its instances in a `Flex` to put them in a row. It gives
+each instance as a child of `Example`.
+
 ## Generated axes
 
 A demo does not list the values of a styling axis by hand. `<Axes>` reads the
@@ -50,8 +69,9 @@ An axis is a prop whose type is a finite set of literals, such as `variant`,
 `color`, `size`, or a `boolean`. `<Axes>` renders a playground with one picker
 for each axis. The shared styling axes come first, in one order on each page:
 `variant`, then `color` or `tone`, then `size`, then `radius`, `rounded`, or
-`shape`. Each other axis follows in the order of the props. Then it renders one example for each axis, which shows every
-value of that axis, one to a line. The other axes of that example take the values of the
+`shape`. Each other axis follows in the order of the props. The values of a
+`size`, or of any other union of density steps, show from `xs` to `xl`. Then it renders one example for each axis, which shows every
+value of that axis, in a row or one to a line ([Example flow](#example-flow)). The other axes of that example take the values of the
 playground. A new value in the source of a component thus shows on the page
 with no change to the demo. `omit` removes a prop from the axes. On a page with more than one
 `<Axes>`, each `<Axes>` after the first gives a `title`, so that no two examples share a

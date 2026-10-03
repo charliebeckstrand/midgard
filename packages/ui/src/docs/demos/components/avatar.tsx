@@ -1,5 +1,4 @@
 import { Avatar, AvatarGroup } from '../../../components/avatar'
-import { Flex } from '../../../structure/flex'
 import { Axes, Example, valueLabel } from '../../engine'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
@@ -10,11 +9,9 @@ export function Demo() {
 			<Axes of="Avatar" render={(props) => <Avatar {...props} initials="AB" />} />
 
 			<Example title="Colors">
-				<Flex gap="sm">
-					{colors.map((color) => (
-						<Avatar key={color} color={color} initials={valueLabel(color)[0]} />
-					))}
-				</Flex>
+				{colors.map((color) => (
+					<Avatar key={color} color={color} initials={valueLabel(color)[0]} />
+				))}
 			</Example>
 
 			<Axes

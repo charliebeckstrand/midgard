@@ -51,17 +51,15 @@ export function Demo() {
 			</Example>
 
 			<Example title="Durations">
-				<Flex wrap gap="sm">
-					<HoldButton duration={500} onHoldComplete={() => {}}>
-						Fast
-					</HoldButton>
-					<HoldButton duration={1000} onHoldComplete={() => {}}>
-						Default
-					</HoldButton>
-					<HoldButton duration={3000} onHoldComplete={() => {}}>
-						Slow
-					</HoldButton>
-				</Flex>
+				<HoldButton duration={500} onHoldComplete={() => {}}>
+					Fast
+				</HoldButton>
+				<HoldButton duration={1000} onHoldComplete={() => {}}>
+					Default
+				</HoldButton>
+				<HoldButton duration={3000} onHoldComplete={() => {}}>
+					Slow
+				</HoldButton>
 			</Example>
 
 			<Example title="Lifecycle callbacks">

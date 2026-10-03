@@ -262,29 +262,49 @@ describe('sourceOrder — recipe props', () => {
 
 describe('orderMembers', () => {
 	const source = [
-		`type Early = 'sm' | 'md'`,
-		`type Step = 'xs' | 'sm' | 'md'`,
-		`type Props = { size?: Step }`,
+		`type Early = 'start' | 'center'`,
+		`type Align = 'end' | 'start' | 'center'`,
+		`type Props = { align?: Align }`,
 	].join('\n')
 
 	it('prints a union in its source order where the checker order differs', () => {
-		const { checker, declaration, type, location } = propOf(source, 'size', ['Early'])
+		const { checker, declaration, type, location } = propOf(source, 'align', ['Early'])
 
-		// The checker met `sm` and `md` first, so its order puts `xs` last.
+		// The checker met `start` and `center` first, so its order puts `end` last.
 		const members = type.isUnion() ? type.types.filter((member) => member.isLiteral()) : []
 
-		expect(members.map((member) => checker.typeToString(member))).toEqual([`"sm"`, `"md"`, `"xs"`])
+		expect(members.map((member) => checker.typeToString(member))).toEqual([
+			`"start"`,
+			`"center"`,
+			`"end"`,
+		])
 
 		expect(formatPropType(type, checker, location, sourceOrder(declaration, checker))).toBe(
-			`'xs' | 'sm' | 'md'`,
+			`'end' | 'start' | 'center'`,
 		)
 	})
 
 	it('keeps the checker order when the source order leaves out a literal member', () => {
-		const { type } = propOf(source, 'size', ['Early'])
+		const { type } = propOf(source, 'align', ['Early'])
 
 		const members = type.isUnion() ? type.types : []
 
-		expect(orderMembers(members, [`'md'`, `'sm'`])).toBe(members)
+		expect(orderMembers(members, [`'center'`, `'start'`])).toBe(members)
+	})
+
+	it('prints a union of density steps from `xs` to `xl`, whatever the source order', () => {
+		const steps = [
+			`type Early = 'sm' | 'md'`,
+			`type Step = 'sm' | 'md' | 'lg' | 'xs'`,
+			`type Props = { size?: Step }`,
+		].join('\n')
+
+		const { checker, declaration, type, location } = propOf(steps, 'size', ['Early'])
+
+		expect(formatPropType(type, checker, location, sourceOrder(declaration, checker))).toBe(
+			`'xs' | 'sm' | 'md' | 'lg'`,
+		)
+
+		expect(formatPropType(type, checker, location, null)).toBe(`'xs' | 'sm' | 'md' | 'lg'`)
 	})
 })
