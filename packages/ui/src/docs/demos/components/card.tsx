@@ -22,7 +22,7 @@ export function Demo() {
 				description={
 					<>
 						See the{' '}
-						<Link href="/structure-box" underline>
+						<Link href="/structure/box" underline>
 							Box documentation
 						</Link>{' '}
 						for more details and examples.

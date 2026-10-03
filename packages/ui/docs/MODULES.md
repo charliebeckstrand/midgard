@@ -1,6 +1,6 @@
 # Modules
 
-> **Quick-glance index of every `ui` module** — the complex, multi-part compositions that bundle their own sub-components, hooks, types, and docs. Per-symbol behavior, props, and defaults live in each module's TSDoc and the docs site (`pnpm docs`). For the atomic components a module composes from, see [`COMPONENTS.md`](COMPONENTS.md).
+> **Quick-glance index of every `ui` module** — the complex, multi-part compositions that bundle their own sub-components, hooks, types, and docs. Per-symbol behavior, props, and defaults live in each module's TSDoc and the docs site (`pnpm --filter ui dev`). For the atomic components a module composes from, see [`COMPONENTS.md`](COMPONENTS.md).
 
 A module is larger than a component. It owns a family of sub-components and hooks behind one entry point, ships its own demo, and earns its own surface entry here. A module builds on the atomic `ui` components and primitives; it does not sit beside them.
 

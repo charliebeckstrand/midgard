@@ -23,7 +23,7 @@ No root barrel; the `exports` map exposes each component path.
 | Goal | Command |
 |---|---|
 | Build `dist` (tsup; no app reads it) | `pnpm --filter ui build:dist` |
-| Docs site (dev) | `pnpm --filter ui docs` |
+| Docs site (dev) | `pnpm --filter ui dev` |
 | Docs site (build) | `pnpm --filter ui docs:build` |
 | Tests | `pnpm --filter ui test` |
 | Tests (scoped) | `pnpm --filter ui test:related` / `pnpm --filter ui test:changed` |

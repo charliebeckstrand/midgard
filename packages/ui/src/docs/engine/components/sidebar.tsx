@@ -19,6 +19,7 @@ import { cn } from '../../../core'
 import { useScrollWithin } from '../../../hooks'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
 import { Flex } from '../../../structure/flex'
+import { demoPath } from '../demo-id'
 import { noAutofill } from '../no-autofill'
 import { type Demo, demos, preloadDemo } from '../registry'
 import { titleCase } from './format'
@@ -98,7 +99,7 @@ const DemoItem = memo(function DemoItem({ demo, current }: { demo: Demo; current
 		<SidebarItem
 			// A plain path link. The router makes the history entry, and the app
 			// scrolls to the top when the demo shows.
-			href={`/${demo.id}`}
+			href={demoPath(demo.id)}
 			current={current}
 			// A touch device has no hover, and a tap does not focus the link. The press
 			// starts the fetch, so the demo is ready while the drawer closes.
@@ -169,12 +170,12 @@ export function SidebarContent({ route }: { route: string }) {
 							if (!id) return
 
 							// The same navigation as a click on a sidebar link.
-							navigate(`/${id}`)
+							navigate(demoPath(id))
 
 							// Scroll the matching sidebar item into view
 							const sidebar = document.querySelector('[data-slot="sidebar"]')
 
-							const item = sidebar?.querySelector<HTMLElement>(`[href="/${id}"]`)
+							const item = sidebar?.querySelector<HTMLElement>(`[href="${demoPath(id)}"]`)
 
 							if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
 

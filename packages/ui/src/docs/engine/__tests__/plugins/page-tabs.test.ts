@@ -22,14 +22,14 @@ describe('parsePageTabs', () => {
 
 	it('reads the items of a constant array that a map turns into tabs', () => {
 		const source = `
-			const tabs = ['One', 'Two', 'Three']
+			const tabs = ['one', 'two', 'three']
 			export function Demo() {
-				return <PageTabs defaultValue="One">{tabs.map((tab) => <Tab key={tab} value={tab} />)}</PageTabs>
+				return <PageTabs defaultValue="one">{tabs.map((tab) => <Tab key={tab} value={tab} />)}</PageTabs>
 			}`
 
 		expect(parsePageTabs('demo.tsx', source)).toEqual({
-			defaultValue: 'One',
-			others: ['Two', 'Three'],
+			defaultValue: 'one',
+			others: ['two', 'three'],
 		})
 	})
 
@@ -37,6 +37,16 @@ describe('parsePageTabs', () => {
 		const source = `export function Demo({ v }) { return <PageTabs defaultValue="a"><Tab value={v} /></PageTabs> }`
 
 		expect(() => parsePageTabs('demo.tsx', source)).toThrow(/literal value/)
+	})
+
+	it('rejects a value that is not a lowercase path part', () => {
+		const tab = `export function Demo() { return <PageTabs defaultValue="a"><Tab value="Sorting" /></PageTabs> }`
+
+		const defaultValue = `export function Demo() { return <PageTabs defaultValue="Two words" /> }`
+
+		expect(() => parsePageTabs('demo.tsx', tab)).toThrow(/"Sorting" is not a path part/)
+
+		expect(() => parsePageTabs('demo.tsx', defaultValue)).toThrow(/"Two words" is not a path part/)
 	})
 
 	it('gives null for a demo without PageTabs', () => {

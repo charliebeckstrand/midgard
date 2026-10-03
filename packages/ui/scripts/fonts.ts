@@ -12,6 +12,12 @@
  * the system font the same metrics. Text in a fallback face thus takes the
  * same space as text in the font, and the swap to the font moves no layout.
  * Arial is on Apple and Windows devices, and Roboto is on Android devices.
+ *
+ * The font face uses `font-display: block`. Text does not paint until the
+ * font loads, for a maximum of 3 seconds. The pages preload the font, so the
+ * wait is usually zero. Safari does not apply the ascent, descent, and line
+ * gap overrides, and it applies only `size-adjust`. With `swap`, an iPhone
+ * thus paints text in Arial for a short time before the font loads.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -66,7 +72,7 @@ export async function fontsCss(): Promise<string> {
 		block('@font-face', {
 			'font-family': `'${metrics.familyName}'`,
 			'font-weight': '100 1000',
-			'font-display': 'swap',
+			'font-display': 'block',
 			src: `url('./${FONT_FILE}') format('woff2-variations')`,
 		}),
 		...fallbacks,

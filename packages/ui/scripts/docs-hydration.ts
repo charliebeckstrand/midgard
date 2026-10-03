@@ -15,7 +15,7 @@
 import { chromium } from 'playwright'
 import { serveDocs } from './docs-server'
 
-const PAGES = ['/', '/button', '/select', '/stepper', '/progress/gauge', '/modules-grid']
+const PAGES = ['/', '/button', '/select', '/stepper', '/progress/gauge', '/modules/grid']
 
 // Hydration gives the heading a React fiber. A prerendered heading has none.
 const HYDRATED = () => {

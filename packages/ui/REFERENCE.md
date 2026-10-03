@@ -17,7 +17,7 @@
 | Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
 | Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, color contrast, caret, dismiss-layers, keyboard navigation). |
 
-Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm docs`) renders them beside live demos through the [docs engine](src/docs/engine). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
+Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm --filter ui dev`) renders them beside live demos through the [docs engine](src/docs/engine). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
 
 ## 2. Server and client boundaries
 
@@ -69,7 +69,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo a
 | The accessibility corpus and its sweeps | `packages/ui` | `pnpm test:a11y` |
 | Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
 | Percy snapshots of the fixture sheets in `src/docs/fixtures` (needs `PERCY_TOKEN`) | `packages/ui` | `pnpm visual [sheet ids] [--density=<levels>]` |
-| Dev (docs site) | `packages/ui` | `pnpm docs` |
+| Dev (docs site) | `packages/ui` | `pnpm dev` |
 
 `test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks and the Percy snapshots. The `Visual` workflow runs the Percy snapshots each Thursday, and on demand from the Actions tab. A Thursday on which `packages/ui` and the lockfile did not change takes no snapshots. No pull request or push starts it.
 

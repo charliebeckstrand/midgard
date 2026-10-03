@@ -4,7 +4,7 @@ import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
 import type { ApiReference } from './components/api-reference'
 import { pascalCase } from './components/format'
-import { pathToId } from './demo-id'
+import { parseDemoPath, pathToId } from './demo-id'
 
 /** One sidebar entry: a demo's id, display name, and category. */
 export type Demo = { id: string; name: string; category: string }
@@ -257,7 +257,7 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 	// promise. The entry awaits it before it mounts, so that the first paint
 	// shows the whole page.
 	const initialId =
-		typeof window === 'undefined' ? '' : window.location.pathname.slice(1) || defaultDemo
+		typeof window === 'undefined' ? '' : parseDemoPath(window.location.pathname).id || defaultDemo
 
 	// The view of the API reference loads beside the page, and the entry does not await it.
 	if (hasComponentApi(initialId)) loadApiReferenceView()

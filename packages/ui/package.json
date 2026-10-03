@@ -90,8 +90,7 @@
 	},
 	"scripts": {
 		"build:dist": "tsup",
-		"dev": "vite --config vite.docs.config.ts",
-		"docs": "react-router dev src/docs --config vite.docs.config.ts",
+		"dev": "react-router dev src/docs --config vite.docs.config.ts",
 		"fonts": "tsx scripts/fonts.ts",
 		"docs:build": "react-router build src/docs --config vite.docs.config.ts",
 		"docs:analyze": "ANALYZE=1 react-router build src/docs --config vite.docs.config.ts",
@@ -114,7 +113,7 @@
 		"bench:docs:vite": "tsx src/__benchmarks__/docs/vite-metrics.ts",
 		"visual": "tsx scripts/visual.ts",
 		"bundle:budget": "tsx src/__benchmarks__/docs/bundle-budget.ts",
-		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p tsconfig.docs.json",
+		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p src/docs/tsconfig.json",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write ."
 	},
