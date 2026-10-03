@@ -67,6 +67,21 @@ describe('SignaturePad', () => {
 		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-readonly', '')
 	})
 
+	it('shows the default cursor when readOnly', () => {
+		const { container } = renderUI(<SignaturePad readOnly />)
+
+		const canvas = bySlot(container, 'signature-pad-canvas')
+
+		expect(canvas).toHaveClass('cursor-default')
+		expect(canvas).not.toHaveClass('cursor-not-allowed', 'cursor-crosshair')
+	})
+
+	it('keeps the not-allowed cursor when disabled and readOnly', () => {
+		const { container } = renderUI(<SignaturePad disabled readOnly />)
+
+		expect(bySlot(container, 'signature-pad-canvas')).toHaveClass('cursor-not-allowed')
+	})
+
 	it('does not render the clear action when empty', () => {
 		const { container } = renderUI(<SignaturePad />)
 
