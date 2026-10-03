@@ -196,17 +196,17 @@ export function Demo() {
 	const [current, setCurrent] = useState('1')
 
 	return (
-		<PageTabs defaultValue="Message">
+		<PageTabs defaultValue="message">
 			<TabList aria-label="Chat module">
-				<Tab value="Message">Message</Tab>
-				<Tab value="Transcript">Transcript</Tab>
-				<Tab value="Embeds">Embeds</Tab>
-				<Tab value="Steps">Steps</Tab>
-				<Tab value="List">List</Tab>
-				<Tab value="Prompt">Prompt</Tab>
+				<Tab value="message">Message</Tab>
+				<Tab value="transcript">Transcript</Tab>
+				<Tab value="embeds">Embeds</Tab>
+				<Tab value="steps">Steps</Tab>
+				<Tab value="list">List</Tab>
+				<Tab value="prompt">Prompt</Tab>
 			</TabList>
 			<TabContents fade={false}>
-				<TabContent value="Message">
+				<TabContent value="message">
 					<Stack gap="xl">
 						<Axes
 							of="ChatMessage"
@@ -254,13 +254,13 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Transcript">
+				<TabContent value="transcript">
 					<Example title="Transcript">
 						<ChatTranscript messages={transcript} />
 					</Example>
 				</TabContent>
 
-				<TabContent value="Embeds">
+				<TabContent value="embeds">
 					<ChatEmbedProvider renderers={embedRenderers}>
 						<Stack gap="xl">
 							<Example title="Registered renderer">
@@ -274,7 +274,7 @@ export function Demo() {
 					</ChatEmbedProvider>
 				</TabContent>
 
-				<TabContent value="Steps">
+				<TabContent value="steps">
 					<Stack gap="xl">
 						<Example title="A step behind the answer">
 							<ChatTranscript messages={steps} />
@@ -286,7 +286,7 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="List">
+				<TabContent value="list">
 					<Example title="List">
 						<ChatList aria-label="Conversations">
 							{conversations.map((conversation) => (
@@ -301,7 +301,7 @@ export function Demo() {
 					</Example>
 				</TabContent>
 
-				<TabContent value="Prompt">
+				<TabContent value="prompt">
 					<Stack gap="xl">
 						<Example title="Default">
 							<DefaultPrompt />
