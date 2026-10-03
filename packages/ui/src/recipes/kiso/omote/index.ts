@@ -10,6 +10,7 @@ import { backdrop } from './backdrop'
 import { bg } from './bg'
 import { blur } from './blur'
 import { content } from './content'
+import { fade } from './fade'
 import { glass } from './glass'
 import { grayscale } from './grayscale'
 import { popover } from './popover'
@@ -25,4 +26,5 @@ export const omote = {
 	skeletonShape,
 	blur,
 	grayscale,
+	fade,
 } as const

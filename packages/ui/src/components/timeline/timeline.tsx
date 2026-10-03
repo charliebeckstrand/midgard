@@ -2,6 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
+import { useComposedRef, useScrollOverflow } from '../../hooks'
 import { k } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'
@@ -30,8 +31,14 @@ export type TimelineProps = Omit<ComponentProps<'ol'>, 'className' | 'children'>
  *
  * The item spacing and the text take the step of the nearest density scope.
  * At `md` an item has `pb-8` below it, with a `text-lg` title.
+ *
+ * @remarks
+ * A horizontal timeline scrolls its row inside the root. While the row
+ * overflows, the edge with more items behind it fades
+ * ({@link useScrollOverflow}).
  */
 export function Timeline({
+	ref,
 	orientation = 'vertical',
 	variant = 'solid',
 	className,
@@ -40,10 +47,17 @@ export function Timeline({
 }: TimelineProps) {
 	const value = useMemo(() => ({ orientation, variant }), [orientation, variant])
 
+	const horizontal = orientation === 'horizontal'
+
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal', enabled: horizontal })
+
+	const setRoot = useComposedRef<HTMLOListElement>(ref, scrollOverflowRef)
+
 	return (
 		<TimelineContext value={value}>
 			<ol
 				{...props}
+				ref={setRoot}
 				data-slot="timeline"
 				className={cn(k.root({ orientation, variant }), className)}
 			>

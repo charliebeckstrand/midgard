@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { useScrollOverflow } from '../../hooks'
+import { k } from '../../recipes/kata/filters'
 import { Flex } from '../../structure/flex'
 import { useFiltersAxis } from './context'
 
@@ -34,23 +36,25 @@ export type FiltersRowProps = {
  * The `min-w-0` is what lets the row overflow at all. A flex child sizes to its
  * content otherwise, and this one would push its siblings off the bar rather
  * than scroll.
+ *
+ * While a `rail` row overflows, the edge with more fields behind it fades
+ * ({@link useScrollOverflow}). When the fields fit, the row has no fade.
  */
 export function FiltersRow({ equal, className, children }: FiltersRowProps) {
 	const { rail, direction, align } = useFiltersAxis()
 
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal', enabled: rail })
+
 	return (
 		<Flex
+			ref={scrollOverflowRef}
 			data-slot="filters-row"
 			direction={direction}
 			gap="sm"
 			align={align}
 			full
 			flex="auto"
-			className={cn(
-				equal && '*:flex-1',
-				rail && 'min-w-0 overflow-x-auto overscroll-x-contain',
-				rail && className,
-			)}
+			className={cn(equal && '*:flex-1', rail && k.rail, rail && className)}
 		>
 			{children}
 		</Flex>
