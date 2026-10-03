@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { configureAxe } from 'jest-axe'
 import type { ComponentType } from 'react'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { onTestFinished, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
 import { DemoApiContext } from '../../docs/engine/components/axes'
@@ -250,12 +251,22 @@ async function walk(page: string, load: () => Promise<ComponentType>): Promise<D
 
 	const Demo = await load()
 
+	// The route of a docs page, so that `PageTabs` can read and change its tab.
 	const { container } = render(
-		<AppearanceProvider>
-			<DemoApiContext value={demoApiOf(page)}>
-				<Demo />
-			</DemoApiContext>
-		</AppearanceProvider>,
+		<MemoryRouter initialEntries={['/demo']}>
+			<Routes>
+				<Route
+					path="/:id/:tab?"
+					element={
+						<AppearanceProvider>
+							<DemoApiContext value={demoApiOf(page)}>
+								<Demo />
+							</DemoApiContext>
+						</AppearanceProvider>
+					}
+				/>
+			</Routes>
+		</MemoryRouter>,
 	)
 
 	const violations = new Map<string, Set<Element>>()
