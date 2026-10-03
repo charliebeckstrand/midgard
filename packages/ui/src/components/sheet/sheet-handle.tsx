@@ -12,6 +12,8 @@ export type SheetHandleProps = {
 	handleProps: PanelResize['handleProps']
 	/** The share of the screen the panel covers, which is what the value reports. */
 	covers: number
+	/** The id of the sheet panel, which the separator names in `aria-controls`. */
+	controls: string
 	/** Which edge the panel is docked to, which decides the edge the grip rides. */
 	side: NonNullable<SheetPanelVariants['side']>
 	className?: string
@@ -27,7 +29,7 @@ export type SheetHandleProps = {
  *
  * @internal
  */
-export function SheetHandle({ handleProps, covers, side, className }: SheetHandleProps) {
+export function SheetHandle({ handleProps, covers, controls, side, className }: SheetHandleProps) {
 	// A panel resized across its width is grabbed by a separator standing upright.
 	const orientation = panelAxis(side) === 'width' ? 'vertical' : 'horizontal'
 
@@ -37,6 +39,7 @@ export function SheetHandle({ handleProps, covers, side, className }: SheetHandl
 			orientation={orientation}
 			handleProps={handleProps}
 			covers={covers}
+			controls={controls}
 			className={cn(k.handle.area, k.handle.side[side], className)}
 			bar={cn(k.handle.bar[orientation])}
 		/>

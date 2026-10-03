@@ -18,7 +18,7 @@ export type NavMenuItemProps = NavItemProps & { value?: string }
 
 /**
  * Navigation link/button within a {@link NavList}. Renders a polymorphic
- * {@link Button} as an `<li>`, marking itself `aria-current="page"` and mounting
+ * {@link Button} as an `<li>`, marking itself `aria-current` and mounting
  * the scope's active indicator when current. Current resolves from `current`,
  * else from the `value` selection binding. Hosts `prefix`/`suffix` affix slots outside the
  * inner button and closes an enclosing offcanvas on click unless `preventClose`.
@@ -29,7 +29,8 @@ export type NavMenuItemProps = NavItemProps & { value?: string }
  * or a Button in a slot steps down with no `size`.
  *
  * @remarks
- * `aria-current="page"` marks the current link for assistive tech; the visual
+ * `aria-current` marks the current item for assistive tech: `"page"` on a link
+ * (`href`), and `"true"` on a button, which switches a view in the page. The visual
  * active indicator animates between siblings within the enclosing
  * {@link NavList}'s active-indicator scope.
  *
@@ -84,7 +85,7 @@ export function NavItem({
 					{...props}
 					type="button"
 					data-slot="nav-item-inner"
-					aria-current={isCurrent ? 'page' : undefined}
+					aria-current={isCurrent ? (props.href ? 'page' : 'true') : undefined}
 				>
 					<TouchTarget>
 						{icon && <Icon icon={icon} />}

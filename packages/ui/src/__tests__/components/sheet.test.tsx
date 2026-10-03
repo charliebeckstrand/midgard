@@ -356,6 +356,13 @@ describe('Sheet handle', () => {
 		expect(handle).toHaveAttribute('aria-valuenow')
 
 		expect(handle.tabIndex).toBe(0)
+
+		// The APG window splitter names its primary pane: the sheet panel.
+		const panel = handle.closest<HTMLElement>('[data-slot="sheet"]')
+
+		expect(panel?.id).toBeTruthy()
+
+		expect(handle).toHaveAttribute('aria-controls', panel?.id)
 	})
 
 	it('grows a panel away from the edge it is docked to, whichever edge that is', async () => {

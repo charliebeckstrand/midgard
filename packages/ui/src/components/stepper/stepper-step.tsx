@@ -71,10 +71,10 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
  * Injects a default `<StepperIndicator>` when none is supplied.
  *
  * @remarks
- * Renders as a `<button>` (with `aria-current`, and `aria-controls` wiring to the
- * matching `<StepperPanel>`) when the stepper has an `onValueChange` handler,
- * otherwise a display-only `<li>` (with `aria-current`) in the list of the
- * stepper. In `linear` steppers, upcoming steps are disabled. In a vertical or
+ * Renders as a `<button>` in an `<li>` (with `aria-current`, and `aria-controls`
+ * wiring to the matching `<StepperPanel>`) when the stepper has an
+ * `onValueChange` handler, otherwise a display-only `<li>` (with `aria-current`).
+ * Both are items in the list of the stepper. In `linear` steppers, upcoming steps are disabled. In a vertical or
  * `responsive` layout it splits children into an indicator column and a content
  * column to align the title baseline with the indicator. From `sm`, CSS dissolves the content column of a `responsive` step.
  */
@@ -115,24 +115,26 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
 		return (
-			<button
-				type="button"
-				id={triggerId}
-				data-slot="stepper-step"
-				data-state={state}
-				aria-current={state === 'current' ? 'step' : undefined}
-				// aria-controls needs the panel id to actually be in the DOM: guaranteed
-				// for the current step, and for every step under a policy that mounts
-				// them all.
-				aria-controls={
-					hasPanels && (state === 'current' || mountsEveryPanel(mount)) ? panelId : undefined
-				}
-				disabled={isDisabled}
-				onClick={() => onValueChange(value)}
-				className={classes}
-			>
-				{inner}
-			</button>
+			<li data-slot="stepper-item" className={k.item({ orientation: layout })}>
+				<button
+					type="button"
+					id={triggerId}
+					data-slot="stepper-step"
+					data-state={state}
+					aria-current={state === 'current' ? 'step' : undefined}
+					// aria-controls needs the panel id to actually be in the DOM: guaranteed
+					// for the current step, and for every step under a policy that mounts
+					// them all.
+					aria-controls={
+						hasPanels && (state === 'current' || mountsEveryPanel(mount)) ? panelId : undefined
+					}
+					disabled={isDisabled}
+					onClick={() => onValueChange(value)}
+					className={cn(k.step({ orientation: layout }), k.itemButton, className)}
+				>
+					{inner}
+				</button>
+			</li>
 		)
 	}
 

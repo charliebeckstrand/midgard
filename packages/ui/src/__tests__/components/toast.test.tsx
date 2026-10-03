@@ -3,7 +3,16 @@ import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Toast } from '../../components/toast'
 import { ToastProvider, useToast } from '../../providers/toast'
-import { act, fireEvent, liveRegion, present, renderUI, screen, stubMatchMedia } from '../helpers'
+import {
+	act,
+	fireEvent,
+	liveRegion,
+	present,
+	renderUI,
+	screen,
+	stubMatchMedia,
+	within,
+} from '../helpers'
 
 describe('Toast', () => {
 	it('renders a toast viewport that does not force a single politeness', () => {
@@ -20,6 +29,46 @@ describe('Toast', () => {
 		// Politeness lives on each toast (status / alert), not the container, so a
 		// wrapping live region can't double-announce or flatten severity.
 		expect(viewport).not.toHaveAttribute('aria-live')
+	})
+
+	it('stacks the toasts as a list, with the live role inside each item', () => {
+		function Fire() {
+			const { toast } = useToast()
+
+			const fired = useRef(false)
+
+			// A strict-mode effect runs twice; the ref keeps the count at two.
+			useEffect(() => {
+				if (fired.current) return
+
+				fired.current = true
+
+				toast({ title: 'Saved', severity: 'success' })
+
+				toast({ title: 'Failed', severity: 'error' })
+			}, [toast])
+
+			return null
+		}
+
+		renderUI(
+			<ToastProvider>
+				<Fire />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const list = screen.getByRole('list')
+
+		const items = within(list).getAllByRole('listitem')
+
+		expect(items).toHaveLength(2)
+
+		for (const item of items) {
+			expect(item.tagName).toBe('LI')
+
+			expect(item.querySelector('[role="status"], [role="alert"]')).toBeInTheDocument()
+		}
 	})
 })
 

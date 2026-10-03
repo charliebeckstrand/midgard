@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { CodeBlock } from '../../components/code'
 import { PdfViewer } from '../../components/pdf-viewer'
 import { ScrollArea } from '../../components/scroll-area'
-import { Table, TableBody, TableCell, TableRow } from '../../components/table'
+import { Table, TableBody, TableCaption, TableCell, TableRow } from '../../components/table'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { frames, present, renderUI, screen, waitFor } from '../helpers'
 
@@ -155,6 +155,33 @@ describe('Table scroll container', () => {
 
 		expect(container().hasAttribute('role')).toBe(false)
 	})
+
+	it.each([
+		['the id', { id: 'activity-caption' }, 'aria-labelledby', 'activity-caption'],
+		['the text', {}, 'aria-label', 'Activity'],
+	])(
+		'takes the name of a TableCaption through %s while the table overflows',
+		async (_, captionProps, attribute, value) => {
+			renderUI(
+				<div style={{ width: 300 }}>
+					<Table>
+						<TableCaption {...captionProps}>Activity</TableCaption>
+						<TableBody>
+							<TableRow>
+								<TableCell>
+									<div style={{ width: 600 }}>wide cell</div>
+								</TableCell>
+							</TableRow>
+						</TableBody>
+					</Table>
+				</div>,
+			)
+
+			await waitFor(() => expect(container().getAttribute('role')).toBe('region'))
+
+			expect(container().getAttribute(attribute)).toBe(value)
+		},
+	)
 })
 
 describe('ScrollArea viewport', () => {

@@ -20,6 +20,11 @@ function fileInput(container: HTMLElement) {
 	)
 }
 
+/** The display button of `FileUploadInput`. */
+function display(container: HTMLElement) {
+	return getSlot<HTMLButtonElement>(container, 'file-upload-field')
+}
+
 /** The drop zone. */
 function dropzone(container: HTMLElement) {
 	return getSlot(container, 'file-upload')
@@ -124,26 +129,39 @@ describe('FileUpload drop variant selection', () => {
 })
 
 describe('FileUpload input variant', () => {
-	it('renders a read-only input with the configured placeholder', () => {
-		renderUI(<FileUploadInput placeholder="Choose…" />)
+	it('renders the display as a button that shows the configured placeholder', () => {
+		const { container } = renderUI(<FileUploadInput placeholder="Choose…" />)
 
-		const input = screen.getByPlaceholderText('Choose…')
+		const field = screen.getByRole('button', { name: 'Choose…' })
 
-		expect(input).toBeInTheDocument()
+		expect(field).toBe(display(container))
 
-		expect(input).toHaveAttribute('readonly')
+		// Not a read-only text field: AT must not read an edit box that a user cannot type in.
+		expect(container.querySelector('input:not([type="file"])')).toBeNull()
+
+		expect(screen.queryByRole('textbox')).toBeNull()
+	})
+
+	it('opens the picker when the display button is activated', () => {
+		const { container } = renderUI(<FileUploadInput />)
+
+		const click = vi.spyOn(fileInput(container), 'click')
+
+		fireEvent.click(display(container))
+
+		expect(click).toHaveBeenCalledTimes(1)
 	})
 
 	it('falls back to a default placeholder when none is provided', () => {
-		renderUI(<FileUploadInput />)
+		const { container } = renderUI(<FileUploadInput />)
 
-		expect(screen.getByPlaceholderText('Choose a file')).toBeInTheDocument()
+		expect(display(container)).toHaveTextContent('Choose a file')
 	})
 
-	it('disables the input when disabled is set', () => {
-		renderUI(<FileUploadInput disabled />)
+	it('disables the display button when disabled is set', () => {
+		const { container } = renderUI(<FileUploadInput disabled />)
 
-		expect(screen.getByPlaceholderText('Choose a file')).toBeDisabled()
+		expect(display(container)).toBeDisabled()
 	})
 
 	it('renders the empty-state upload affordance as a button that opens the picker', () => {
@@ -165,7 +183,7 @@ describe('FileUpload input variant selection', () => {
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		expect(screen.getByDisplayValue('resume.pdf')).toBeInTheDocument()
+		expect(display(container)).toHaveTextContent('resume.pdf')
 	})
 
 	it('shows an "x files selected" summary for a multi-file selection', () => {
@@ -173,7 +191,7 @@ describe('FileUpload input variant selection', () => {
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
-		expect(screen.getByDisplayValue('2 files selected')).toBeInTheDocument()
+		expect(display(container)).toHaveTextContent('2 files selected')
 	})
 
 	it('swaps the suffix to a clear button once a file is selected', () => {
@@ -195,7 +213,7 @@ describe('FileUpload input variant selection', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file(s)' }))
 
-		expect(screen.getByPlaceholderText('Choose…')).toHaveValue('')
+		expect(display(container)).toHaveTextContent('Choose…')
 
 		expect(onAccept).toHaveBeenLastCalledWith([])
 	})
@@ -306,7 +324,7 @@ describe('FileUpload + Control', () => {
 
 		const hidden = fileInput(container)
 
-		const display = screen.getByPlaceholderText('Choose a file')
+		const field = display(container)
 
 		const label = getSlot<HTMLLabelElement>(container, 'label')
 
@@ -320,11 +338,11 @@ describe('FileUpload + Control', () => {
 
 		expect(hidden.getAttribute('aria-describedby')).toContain(messageId)
 
-		expect(display.id).not.toBe(hidden.id)
+		expect(field.id).not.toBe(hidden.id)
 
-		expect(display).not.toBeRequired()
+		expect(field).not.toBeRequired()
 
-		expect(display).not.toHaveAttribute('aria-describedby')
+		expect(field).not.toHaveAttribute('aria-describedby')
 	})
 
 	it('names the hidden input from the Field label, not the placeholder', () => {
@@ -342,15 +360,19 @@ describe('FileUpload + Control', () => {
 		expect(hidden).not.toHaveAttribute('aria-label')
 	})
 
-	it('names the display field from the Field label', () => {
-		renderUI(
+	it('names the display button from the Field label and then the selection', () => {
+		const { container } = renderUI(
 			<Field>
 				<Label>Resume</Label>
 				<FileUploadInput />
 			</Field>,
 		)
 
-		expect(screen.getByPlaceholderText('Choose a file')).toHaveAccessibleName('Resume')
+		expect(display(container)).toHaveAccessibleName('Resume Choose a file')
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		expect(display(container)).toHaveAccessibleName('Resume resume.pdf')
 	})
 
 	it.each([
@@ -701,11 +723,11 @@ describe('FileUpload focus handoff', () => {
 
 		fireEvent.click(clear)
 
-		expect(screen.getByPlaceholderText('Choose a file')).toHaveFocus()
+		expect(display(container)).toHaveFocus()
 	})
 
 	it('moves focus from the input variant Browse button to the field before the picker opens', () => {
-		renderUI(<FileUploadInput />)
+		const { container } = renderUI(<FileUploadInput />)
 
 		const browse = screen.getByRole('button', { name: 'Browse files' })
 
@@ -713,6 +735,6 @@ describe('FileUpload focus handoff', () => {
 
 		fireEvent.click(browse)
 
-		expect(screen.getByPlaceholderText('Choose a file')).toHaveFocus()
+		expect(display(container)).toHaveFocus()
 	})
 })

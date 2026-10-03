@@ -45,12 +45,14 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * right-to-left group the panels start on the right, so the horizontal arrows
  * and the drag mirror: ArrowLeft and a move to the left grow the panel before
  * the handle. `aria-valuemin` and `aria-valuemax` give the range that this
- * panel can reach while both panels keep their bounds.
+ * panel can reach while both panels keep their bounds. `aria-controls` names
+ * the panel before the handle, which is the primary pane of the APG window
+ * splitter.
  */
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { 'aria-label': ariaLabel = 'Resize', className } = props
 
-	const { orientation, dragging, sizes, panelConfigs, startDrag, resize } = useResizable()
+	const { orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId } = useResizable()
 	const { handleIndex = 0 } = useResizableIndex()
 
 	// The range is where the left panel can go while both panels of the pair
@@ -94,6 +96,8 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			// handle between side-by-side panels is a vertical bar.
 			aria-orientation={isHorizontal ? 'vertical' : 'horizontal'}
 			aria-label={ariaLabel}
+			// The primary pane is the panel before the handle, whose size the value gives.
+			aria-controls={handleIndex < panelConfigs.length ? panelId(handleIndex) : undefined}
 			aria-valuenow={panelSize}
 			aria-valuemin={panelMinSize}
 			aria-valuemax={panelMaxSize}

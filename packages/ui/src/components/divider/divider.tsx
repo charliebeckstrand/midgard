@@ -13,24 +13,28 @@ export type DividerProps = DividerVariants & {
  * lightens the line under `soft` (default false).
  *
  * @remarks
- * The `vertical` orientation adds `role="separator"` and
- * `aria-orientation="vertical"` for assistive tech; the default horizontal
- * rule relies on the native `<hr>` semantics. Both are load-bearing and are
- * written after the spread. The root stamps `data-orientation`, the axis marker
+ * The rule keeps the implicit `separator` role of the native `<hr>`. The
+ * component drops a consumer `role`, so no role can replace it. The `vertical`
+ * orientation adds `aria-orientation="vertical"` for assistive tech. That
+ * attribute is load-bearing and is written after the spread. The root stamps `data-orientation`, the axis marker
  * every oriented container in the library carries. The `data-slot` anchor stays renameable, so a
  * wrapper such as `ToolbarSeparator` can re-anchor the rule
  * ([CONVENTIONS.md](CONVENTIONS.md) §3.9).
  */
-export function Divider({ orientation = 'horizontal', soft, className, ...props }: DividerProps) {
+export function Divider({
+	orientation = 'horizontal',
+	soft,
+	className,
+	role: _role,
+	...props
+}: DividerProps) {
 	return (
 		<hr
 			data-slot="divider"
 			data-orientation={orientation}
 			className={cn(k({ orientation, soft }), className)}
-			// Consumer props spread first; the separator semantics below take
-			// precedence.
+			// Consumer props spread first; the orientation below takes precedence.
 			{...props}
-			role={orientation === 'vertical' ? 'separator' : undefined}
 			aria-orientation={orientation === 'vertical' ? 'vertical' : undefined}
 		/>
 	)

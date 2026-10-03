@@ -31,9 +31,10 @@ export type KanbanCardProps = {
  * @remarks
  * Client component. Drag affordances (`role`, `aria-roledescription`,
  * keyboard instructions) come from dnd-kit; set `aria-label` only when the
- * content yields no usable name. A read-only or disabled card is a
- * `role="listitem"` in its column body's list, so the name stays valid there
- * too. ARIA prohibits a name on an element with no role. The card keys act
+ * content yields no usable name. A read-only or disabled card is an `<li>` in
+ * the `<ul>` of its column body, so the name stays valid there too. ARIA
+ * prohibits a name on an element with no role. An interactive card is a `<div>`
+ * inside an `<li>`, because an `<li>` takes no `button` role. The card keys act
  * only on the card itself, so a control inside the card keeps Space and the
  * arrow keys. Memoized: the card reads only the card-facing
  * {@link KanbanContext}, so a pointer drag doesn't re-render the whole board.
@@ -86,35 +87,52 @@ function KanbanCardImpl({
 		}
 	}, [interactive, cardId, children, overlayMap])
 
+	const cardClassName = cn(
+		k.card.base,
+		interactive && k.card.draggable,
+		dragging && k.card.dragging,
+		lifted && k.card.lifted,
+		className,
+	)
+
+	// A read-only or disabled card is the list item itself.
+	if (!interactive) {
+		return (
+			<li
+				aria-label={ariaLabel}
+				data-slot="kanban-card"
+				data-card-id={cardId}
+				data-disabled={dataAttr(disabled)}
+				data-readonly={dataAttr(!disabled)}
+				className={cardClassName}
+			>
+				{children}
+			</li>
+		)
+	}
+
+	// An `li` takes no `button` role, so the dnd-kit node is a `div` inside the list item.
 	return (
-		// biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is provided by dnd-kit's spread attributes
-		// biome-ignore lint/a11y/noStaticElementInteractions: role="button" is provided by dnd-kit's spread attributes
-		<div
-			ref={interactive ? setNodeRef : undefined}
-			style={interactive ? style : undefined}
-			// Before the spread: an interactive card takes dnd-kit's `button` role.
-			role={interactive ? undefined : 'listitem'}
-			{...(interactive ? attributes : {})}
-			{...(interactive ? listeners : {})}
-			onKeyDown={interactive ? (event) => onCardKeyDown(cardId, event) : undefined}
-			onBlur={interactive ? onCardBlur : undefined}
-			aria-label={ariaLabel}
-			data-slot="kanban-card"
-			data-card-id={cardId}
-			data-dragging={dataAttr(dragging)}
-			data-lifted={dataAttr(lifted)}
-			data-disabled={dataAttr(disabled)}
-			data-readonly={dataAttr(!interactive && !disabled)}
-			className={cn(
-				k.card.base,
-				interactive && k.card.draggable,
-				dragging && k.card.dragging,
-				lifted && k.card.lifted,
-				className,
-			)}
-		>
-			{children}
-		</div>
+		<li data-slot="kanban-card-item">
+			{/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is provided by dnd-kit's spread attributes */}
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: role="button" is provided by dnd-kit's spread attributes */}
+			<div
+				ref={setNodeRef}
+				style={style}
+				{...attributes}
+				{...listeners}
+				onKeyDown={(event) => onCardKeyDown(cardId, event)}
+				onBlur={onCardBlur}
+				aria-label={ariaLabel}
+				data-slot="kanban-card"
+				data-card-id={cardId}
+				data-dragging={dataAttr(dragging)}
+				data-lifted={dataAttr(lifted)}
+				className={cardClassName}
+			>
+				{children}
+			</div>
+		</li>
 	)
 }
 

@@ -21,8 +21,9 @@ export type StepperProps = Omit<
 	 * The ref of the step row.
 	 *
 	 * @remarks
-	 * The row is a `<div>` in an interactive stepper and an `<ol>` in a
-	 * display-only stepper, so the ref type is `HTMLElement`.
+	 * The row is a `role="toolbar"` `<div>` around the `<ol>` of the steps in an
+	 * interactive stepper, and the `<ol>` in a display-only stepper, so the ref
+	 * type is `HTMLElement`.
 	 */
 	ref?: Ref<HTMLElement>
 	/**
@@ -177,7 +178,9 @@ export function Stepper({
 
 	const rowClassName = cn(k.root({ orientation: layout }), className)
 
-	// A display-only row has no controls to group, so it is a list of its steps.
+	// The steps are an ordered list, so AT gives the count and the position of
+	// each step. An interactive row also groups its step buttons as a toolbar,
+	// which holds the list. The roving queries the buttons inside the list.
 	const row = interactive ? (
 		<div
 			{...props}
@@ -188,9 +191,11 @@ export function Stepper({
 			aria-label={ariaLabel}
 			aria-orientation={resolvedOrientation}
 			onKeyDown={handleKeyDown}
-			className={rowClassName}
+			className={cn('w-full', className)}
 		>
-			{rowChildren}
+			<ol data-slot="stepper-list" className={k.root({ orientation: layout })}>
+				{rowChildren}
+			</ol>
 		</div>
 	) : (
 		<ol

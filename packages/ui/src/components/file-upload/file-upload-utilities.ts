@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 /**
  * Resolves the hidden input's accessible name from a variant's visible
@@ -9,22 +9,6 @@ import type { KeyboardEvent, ReactNode } from 'react'
  */
 export function triggerLabel(children: ReactNode, fallback: string): string {
 	return typeof children === 'string' ? children : fallback
-}
-
-/**
- * Builds a keydown handler that activates a non-button control (the readonly
- * file `input`) on Enter / Space, matching native button keyboard behavior.
- *
- * @internal
- */
-export function activateOnEnterSpace(onActivate: () => void) {
-	return (event: KeyboardEvent) => {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault()
-
-			onActivate()
-		}
-	}
 }
 
 /**

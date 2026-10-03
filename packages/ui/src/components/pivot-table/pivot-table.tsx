@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import type { DensityStep } from '../../core/density'
 import { useLocale } from '../../providers/locale'
 import { fractionFormat } from '../../utilities'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
+import { Table, TableBody, TableCell, TableFoot, TableHead, TableHeader, TableRow } from '../table'
 import type { PivotAggregation } from './types'
 import { type PivotTableKeys, usePivotTable } from './use-pivot-table'
 
@@ -155,7 +155,9 @@ export function PivotTable<T>({
 						</TableRow>
 					)
 				})}
-				{showColTotals && (
+			</TableBody>
+			{showColTotals && (
+				<TableFoot>
 					<TableRow className="font-semibold">
 						<TableHeader scope="row" className="font-semibold whitespace-nowrap">
 							Total
@@ -175,8 +177,8 @@ export function PivotTable<T>({
 							</TableCell>
 						)}
 					</TableRow>
-				)}
-			</TableBody>
+				</TableFoot>
+			)}
 		</Table>
 	)
 }

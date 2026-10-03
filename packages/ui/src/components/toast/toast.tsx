@@ -63,7 +63,8 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 			{/* Not itself a live region: each toast carries its own `role` (status /
 			    alert) mapping severity to politeness directly. */}
 			<div data-slot="toast-viewport" className={cn(k.viewport({ position }))}>
-				<div className={cn(k.scroll, !isTop && 'flex-col-reverse')}>
+				{/* A list, so AT gives the count of the toasts and the position of each. */}
+				<ol className={cn(k.scroll, !isTop && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>
 						{toasts.map((t, i) => (
 							<ToastAlert
@@ -82,7 +83,7 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 							/>
 						))}
 					</AnimatePresence>
-				</div>
+				</ol>
 			</div>
 		</ReducedMotion>,
 		portalContainer ?? document.body,

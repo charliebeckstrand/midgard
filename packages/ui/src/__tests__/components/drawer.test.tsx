@@ -519,6 +519,13 @@ describe('Drawer drag handle', () => {
 		expect(handle).toHaveAttribute('aria-valuenow')
 
 		expect(handle.tabIndex).toBe(0)
+
+		// The APG window splitter names its primary pane: the drawer panel.
+		const panel = handle.closest<HTMLElement>('[data-slot="drawer"]')
+
+		expect(panel?.id).toBeTruthy()
+
+		expect(handle).toHaveAttribute('aria-controls', panel?.id)
 	})
 
 	it('gives a drawer grown to its content a grip to pull, not a splitter', () => {

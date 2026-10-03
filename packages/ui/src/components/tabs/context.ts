@@ -17,6 +17,10 @@ type TabsContextValue = {
 	panelsMounted: boolean
 	/** Registers a `TabContents`; returns the deregister cleanup. */
 	registerMountedPanels: () => () => void
+	/** `true` while the group renders a `TabContents`. A `segment` tab references its panel only then, because a segmented control often has no panels. */
+	panelsPresent: boolean
+	/** Registers a `TabContents` of any mount policy; returns the deregister cleanup. */
+	registerPanels: () => () => void
 }
 
 export const [TabsContext, useTabsContext] = createContext<TabsContextValue | undefined>('Tabs', {

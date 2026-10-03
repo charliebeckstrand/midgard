@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn, type GridRowGroup } from '../../modules/grid'
-import { fireEvent, renderUI, screen, setupUser, waitFor } from '../helpers'
+import { Grid, type GridColumn, type GridRowGroup, GridRowManager } from '../../modules/grid'
+import { fireEvent, renderUI, screen, setupUser, waitFor, within } from '../helpers'
 
 /**
  * The row manager: a "Manage rows" dialog reached from the group-header
@@ -200,5 +200,26 @@ describe('Grid row manager', () => {
 		await user.click(screen.getByRole('button', { name: 'Red color for Developer' }))
 
 		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
+	})
+})
+
+describe('GridRowManager list', () => {
+	it('renders the group zones as the items of a list', () => {
+		renderUI(
+			<GridRowManager
+				groups={[
+					{ key: 'a', label: 'Alpha', count: 2 },
+					{ key: 'b', label: 'Beta', count: 1 },
+				]}
+				onRecolor={() => {}}
+				onReorderGroups={() => {}}
+			/>,
+		)
+
+		const list = screen.getByRole('list')
+
+		expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+
+		expect(screen.getByText('Alpha').closest('li')?.parentElement).toBe(list)
 	})
 })

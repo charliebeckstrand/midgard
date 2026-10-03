@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel } from '../../components/color'
 import type { Hsva } from '../../components/color/types'
-import { fireEvent, getAllSlots, getSlot, renderUI } from '../helpers'
+import { fireEvent, getAllSlots, getSlot, renderUI, screen } from '../helpers'
 
 const start: Hsva = { h: 180, s: 50, v: 50, a: 0.5 }
 
@@ -18,7 +18,7 @@ function setup(initial: Hsva = start, disabled = false) {
 		/>,
 	)
 
-	const [hue, alpha] = getAllSlots(container, 'color-slider')
+	const [hue, alpha] = getAllSlots<HTMLInputElement>(container, 'color-slider-input')
 
 	if (!hue || !alpha) throw new Error('expected a hue and an alpha slider')
 
@@ -28,9 +28,51 @@ function setup(initial: Hsva = start, disabled = false) {
 // The width of the track in the bounding rect that the drag tests give.
 const WIDTH = 200
 
+// The drag measures the input, which covers the track, so the rect goes on the input.
 function giveRect(el: HTMLElement) {
 	el.getBoundingClientRect = () => DOMRect.fromRect({ width: WIDTH, height: 20 })
 }
+
+// The track takes the pointer, and the input over it lets the pointer through.
+function track(input: HTMLElement) {
+	const el = input.closest<HTMLElement>('[data-slot="color-slider"]')
+
+	if (!el) throw new Error('expected the input inside a track')
+
+	return el
+}
+
+describe('ColorSlider (semantics)', () => {
+	it('renders each channel as a native range input', () => {
+		setup()
+
+		for (const name of ['Hue', 'Alpha']) {
+			const slider = screen.getByRole('slider', { name })
+
+			expect(slider.tagName).toBe('INPUT')
+
+			expect(slider).toHaveAttribute('type', 'range')
+		}
+	})
+
+	it('takes a value change with no key event, as an AT increment gives', () => {
+		const { hue, onValueChange } = setup()
+
+		fireEvent.change(hue, { target: { value: '200' } })
+
+		expect(onValueChange).toHaveBeenLastCalledWith(expect.objectContaining({ h: 200 }))
+	})
+
+	it('focuses the input on a press on the track', () => {
+		const { hue } = setup()
+
+		giveRect(hue)
+
+		fireEvent.pointerDown(track(hue), { button: 0, pointerId: 1, clientX: 0 })
+
+		expect(document.activeElement).toBe(hue)
+	})
+})
 
 describe('ColorSlider (hue)', () => {
 	it('announces the hue in degrees', () => {
@@ -38,9 +80,9 @@ describe('ColorSlider (hue)', () => {
 
 		expect(hue).toHaveAttribute('aria-label', 'Hue')
 
-		expect(hue).toHaveAttribute('aria-valuemax', '360')
+		expect(hue).toHaveAttribute('max', '360')
 
-		expect(hue).toHaveAttribute('aria-valuenow', '180')
+		expect(hue).toHaveValue('180')
 
 		expect(hue).toHaveAttribute('aria-valuetext', '180°')
 	})
@@ -50,19 +92,19 @@ describe('ColorSlider (hue)', () => {
 
 		fireEvent.keyDown(hue, { key: 'ArrowRight' })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '181')
+		expect(hue).toHaveValue('181')
 
 		fireEvent.keyDown(hue, { key: 'ArrowUp', shiftKey: true })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '191')
+		expect(hue).toHaveValue('191')
 
 		fireEvent.keyDown(hue, { key: 'ArrowLeft' })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '190')
+		expect(hue).toHaveValue('190')
 
 		fireEvent.keyDown(hue, { key: 'ArrowDown', shiftKey: true })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '180')
+		expect(hue).toHaveValue('180')
 	})
 
 	it('pins the ends on Home and End, and clamps a step past an end', () => {
@@ -70,19 +112,19 @@ describe('ColorSlider (hue)', () => {
 
 		fireEvent.keyDown(hue, { key: 'End' })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '360')
+		expect(hue).toHaveValue('360')
 
 		fireEvent.keyDown(hue, { key: 'PageUp' })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '360')
+		expect(hue).toHaveValue('360')
 
 		fireEvent.keyDown(hue, { key: 'Home' })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '0')
+		expect(hue).toHaveValue('0')
 
 		fireEvent.keyDown(hue, { key: 'ArrowLeft' })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '0')
+		expect(hue).toHaveValue('0')
 	})
 
 	it('leaves an unbound key to the page', () => {
@@ -101,9 +143,9 @@ describe('ColorSlider (hue)', () => {
 
 		giveRect(hue)
 
-		fireEvent.pointerDown(hue, { button: 0, pointerId: 1, clientX: WIDTH / 4 })
+		fireEvent.pointerDown(track(hue), { button: 0, pointerId: 1, clientX: WIDTH / 4 })
 
-		expect(hue).toHaveAttribute('aria-valuenow', '90')
+		expect(hue).toHaveValue('90')
 
 		expect(onValueChange).toHaveBeenLastCalledWith(expect.objectContaining({ h: 90, a: 0.5 }))
 	})
@@ -115,9 +157,9 @@ describe('ColorSlider (alpha)', () => {
 
 		expect(alpha).toHaveAttribute('aria-label', 'Alpha')
 
-		expect(alpha).toHaveAttribute('aria-valuemax', '1')
+		expect(alpha).toHaveAttribute('max', '1')
 
-		expect(alpha).toHaveAttribute('aria-valuenow', '0.5')
+		expect(alpha).toHaveValue('0.5')
 
 		expect(alpha).toHaveAttribute('aria-valuetext', '50%')
 	})
@@ -127,19 +169,19 @@ describe('ColorSlider (alpha)', () => {
 
 		fireEvent.keyDown(alpha, { key: 'ArrowRight' })
 
-		expect(alpha).toHaveAttribute('aria-valuenow', '0.51')
+		expect(alpha).toHaveValue('0.51')
 
 		fireEvent.keyDown(alpha, { key: 'ArrowLeft', shiftKey: true })
 
-		expect(alpha).toHaveAttribute('aria-valuenow', '0.41')
+		expect(alpha).toHaveValue('0.41')
 
 		fireEvent.keyDown(alpha, { key: 'PageUp' })
 
-		expect(alpha).toHaveAttribute('aria-valuenow', '0.51')
+		expect(alpha).toHaveValue('0.51')
 
 		fireEvent.keyDown(alpha, { key: 'PageDown', shiftKey: true })
 
-		expect(alpha).toHaveAttribute('aria-valuenow', '0.41')
+		expect(alpha).toHaveValue('0.41')
 	})
 
 	it('pins the alpha to 0 on Home and to 1 on End', () => {
@@ -167,27 +209,25 @@ describe('ColorSlider (alpha)', () => {
 
 		giveRect(alpha)
 
-		fireEvent.pointerDown(alpha, { button: 0, pointerId: 1, clientX: (WIDTH * 3) / 4 })
+		fireEvent.pointerDown(track(alpha), { button: 0, pointerId: 1, clientX: (WIDTH * 3) / 4 })
 
-		expect(alpha).toHaveAttribute('aria-valuenow', '0.75')
+		expect(alpha).toHaveValue('0.75')
 	})
 })
 
 describe('ColorSlider (disabled)', () => {
-	it('leaves the tab order, marks itself disabled, and ignores keys', () => {
+	it('disables the native input and ignores keys', () => {
 		const { hue, alpha, onValueChange } = setup(start, true)
 
 		for (const slider of [hue, alpha]) {
-			expect(slider).toHaveAttribute('tabindex', '-1')
-
-			expect(slider).toHaveAttribute('aria-disabled', 'true')
+			expect(slider).toBeDisabled()
 
 			fireEvent.keyDown(slider, { key: 'End' })
 		}
 
-		expect(hue).toHaveAttribute('aria-valuenow', '180')
+		expect(hue).toHaveValue('180')
 
-		expect(alpha).toHaveAttribute('aria-valuenow', '0.5')
+		expect(alpha).toHaveValue('0.5')
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -197,8 +237,8 @@ describe('ColorSlider (thumb)', () => {
 	it('places the thumb at the fraction of the range that the value holds', () => {
 		const { hue, alpha } = setup({ h: 90, s: 50, v: 50, a: 0.25 })
 
-		expect(getSlot(hue, 'color-slider-thumb').style.left).toBe('25%')
+		expect(getSlot(track(hue), 'color-slider-thumb').style.left).toBe('25%')
 
-		expect(getSlot(alpha, 'color-slider-thumb').style.left).toBe('25%')
+		expect(getSlot(track(alpha), 'color-slider-thumb').style.left).toBe('25%')
 	})
 })

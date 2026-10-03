@@ -374,10 +374,10 @@ describe('Tab', () => {
 		expect(tab).toHaveAttribute('data-current', '')
 	})
 
-	it('renders segment TabContent as plain content, not a panel with a broken label', () => {
-		// A segment tab has no id, so a tabpanel would point aria-labelledby at
-		// nothing. The segment group renders plain content instead.
-		const { container } = renderUI(
+	it('wires a segment tab to its TabContent as a tab and a tabpanel', () => {
+		// The segment swaps the content under it, so the content is a tabpanel
+		// that the tab controls and that the tab names.
+		renderUI(
 			<Tabs variant="segment" defaultValue="a">
 				<TabList aria-label="Tabs">
 					<Tab value="a">A</Tab>
@@ -390,13 +390,29 @@ describe('Tab', () => {
 			</Tabs>,
 		)
 
-		expect(screen.getByText('Panel A')).toBeInTheDocument()
+		const tab = screen.getByRole('tab', { name: 'A' })
 
-		expect(container.querySelector('[role="tabpanel"]')).toBeNull()
+		const panel = screen.getByRole('tabpanel', { name: 'A' })
 
-		expect(container.querySelector('[aria-labelledby]')).toBeNull()
+		expect(panel).toHaveTextContent('Panel A')
 
-		expect(bySlot(container, 'tab')).not.toHaveAttribute('aria-controls')
+		expect(tab).toHaveAttribute('aria-controls', panel.id)
+	})
+
+	it('sets no aria-controls on a segment tab with no TabContents', () => {
+		// A segmented control often has no panels, so a reference would point at a missing id.
+		renderUI(
+			<Tabs variant="segment" defaultValue="a">
+				<TabList aria-label="Tabs">
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		for (const tab of screen.getAllByRole('tab')) {
+			expect(tab).not.toHaveAttribute('aria-controls')
+		}
 	})
 
 	it('applies a custom className on Tab', () => {

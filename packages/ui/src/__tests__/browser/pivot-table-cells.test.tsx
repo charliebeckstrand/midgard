@@ -48,9 +48,10 @@ describe('PivotTable cells (real browser)', () => {
 			/>,
 		)
 
+		// The totals row is in the foot, so the row headers are in the body or the foot.
 		for (const text of ['LAX → DFW', 'ORD → ATL', 'Total']) {
 			const header = present(
-				screen.getAllByText(text).find((node) => node.closest('tbody')),
+				screen.getAllByText(text).find((node) => node.closest('tbody, tfoot')),
 				`the row header "${text}"`,
 			)
 

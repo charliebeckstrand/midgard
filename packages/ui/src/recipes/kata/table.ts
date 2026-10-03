@@ -9,9 +9,10 @@
  * static slots.
  */
 import { defineRecipe } from '../../core/recipe'
-import { iro, sen } from '../kiso'
+import { iro, ji, sen } from '../kiso'
 
 const { text } = iro
+const { size } = ji
 const { border, focus } = sen
 
 // Cell padding for each step.
@@ -84,6 +85,10 @@ export const k = {
 	// painted nothing: the shipped header carries no rule. Restoring one is a
 	// visual change, not a cleanup — it needs a width and a design call.
 	head: [text.muted],
+	// Above the table and aligned to the start, with the muted color of the head.
+	caption: ['caption-top text-start pb-2', size.sm, text.muted],
+	// A summary row group. It takes no style of its own; a caller sets the weight of a totals row.
+	foot: [],
 	header,
 	row: [],
 	cell,
