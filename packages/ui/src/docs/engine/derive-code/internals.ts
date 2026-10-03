@@ -581,6 +581,8 @@ export function matchElementFact(
 
 	const children = rest.every((c) => c.children === first.children) ? first.children : undefined
 
+	const body = rest.every((c) => c.body === first.body) ? first.body : undefined
+
 	const local = first.local?.filter((key) => key in agreed || (key === 'children' && children))
 
 	const map = rest.every((c) => c.map === first.map) ? first.map : undefined
@@ -590,6 +592,7 @@ export function matchElementFact(
 		props: agreed,
 		...(local?.length ? { local } : {}),
 		children,
+		...(body === undefined ? {} : { body }),
 		...(map === undefined ? {} : { map, ...(first.mapLocal ? { mapLocal: true as const } : {}) }),
 	}
 }

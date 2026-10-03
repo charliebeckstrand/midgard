@@ -96,7 +96,11 @@ function DefaultExample() {
 function ReadOnlyExample() {
 	return (
 		<Example title="Read-only">
-			<Kanban columns={initialColumns} getKey={(load: Load) => load.id} aria-label="Loads">
+			<Kanban
+				columns={initialColumns}
+				getKey={(load: Load) => load.id}
+				aria-label="Read-only load board"
+			>
 				{initialColumns.map((column) => (
 					<KanbanColumn key={column.id} value={column.id}>
 						<KanbanColumnHeader>
@@ -128,7 +132,7 @@ function DisabledExample() {
 				getKey={(load: Load) => load.id}
 				onReorder={setColumns}
 				disabled
-				aria-label="Loads"
+				aria-label="Disabled load board"
 			>
 				{columns.map((column) => (
 					<KanbanColumn key={column.id} value={column.id}>

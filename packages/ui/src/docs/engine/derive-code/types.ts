@@ -42,12 +42,16 @@ export type ComponentRegistry = {
  * - in `map`, for an element that a `.map` callback returns, the source of the
  *   JSX expression that holds the call. `mapLocal` marks a map source that
  *   itself uses a name of an enclosing callback.
+ * - in `body`, the source of the children, when they hold a condition or a
+ *   line of text with a value in it. The runtime tree shows only what such an
+ *   expression makes now, so the walk prints the source instead.
  */
 export type ElementFact = {
 	name: string
 	props: Record<string, string>
 	local?: string[]
 	children?: string
+	body?: string
 	map?: string
 	mapLocal?: true
 }
@@ -61,6 +65,7 @@ export function hasFacts(element: ElementFact): boolean {
 	return (
 		Object.keys(element.props).length > 0 ||
 		element.children !== undefined ||
+		element.body !== undefined ||
 		element.map !== undefined
 	)
 }
