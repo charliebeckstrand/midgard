@@ -8,6 +8,11 @@ export function titleCase(s: string): string {
 	return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
+/** Write a hyphenated identifier in PascalCase, as a component name: 'copy-button' → 'CopyButton'. */
+export function pascalCase(s: string): string {
+	return s.replace(/(?:^|-)(\w)/g, (_, c: string) => c.toUpperCase())
+}
+
 /** Display labels for the standard size scale, keyed by token. Backs {@link valueLabel} and `SizeListbox`. */
 export const sizeLabels: Record<string, string> = {
 	xs: 'Extra small',
