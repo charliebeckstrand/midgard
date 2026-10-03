@@ -10,8 +10,8 @@ import { PropFacts } from './prop-facts'
 
 /**
  * Prop entries, written the way the React docs write them. Each entry is the
- * name with a plain "optional" or "required" beside it, one sentence of facts via
- * `PropFacts`, then the description. The facts lead, so a long description never
+ * name with a plain "required" beside it when the prop is required, one sentence of
+ * facts via `PropFacts`, then the description. A prop without "required" is optional. The facts lead, so a long description never
  * buries the type, the options, or the default. A default that is a sentence joins the
  * description as its own line. Absent fields drop out, so an undocumented prop
  * collapses to its name and type.
@@ -46,14 +46,7 @@ function PropRow({ prop }: { prop: PropDef }) {
 				>
 					{prop.name}
 				</span>
-				<span
-					className={cn(
-						'text-sm',
-						prop.required ? 'text-red-600 dark:text-red-500' : 'text-zinc-500 dark:text-zinc-400',
-					)}
-				>
-					{prop.required ? 'required' : 'optional'}
-				</span>
+				{prop.required && <span className="text-red-600 text-sm dark:text-red-500">required</span>}
 				{deprecated && (
 					<Tooltip>
 						<TooltipTrigger>
