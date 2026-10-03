@@ -41,6 +41,21 @@ export const [MapHoverStateContext, useMapHoverState] =
 export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
 
 /**
+ * Holds the readout through a pinch, or lets it go. A held readout takes a clear
+ * and no new target, and holding it clears it.
+ *
+ * A touch pointer is captured on contact by the region or the mark under it.
+ * That element gets each move of the finger, whatever the layer's
+ * `pointer-events`. So each move of a pinch would raise the readout again, and
+ * the map would recede behind a tooltip. The hold stops every writer at once.
+ *
+ * @internal
+ */
+export type MapHoverHold = (held: boolean) => void
+
+export const [MapHoverHoldContext, useMapHoverHold] = createContext<MapHoverHold>('MapHoverHold')
+
+/**
  * The mark the pointer sits on — a region or an overlay entry — taking the
  * emphasis, so everything else on the map recedes behind it. It is the map's
  * twin of the chart's pointed-mark emphasis. Derived from the hover target but

@@ -1,10 +1,19 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useLayoutEffect, useState } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import { createEmitter } from '../../utilities'
 import { samePoint } from '../chart/engine/context'
 import {
+	type MapHoverHold,
+	MapHoverHoldContext,
 	type MapHoverSet,
 	MapHoverSetContext,
 	type MapHoverState,
@@ -88,21 +97,33 @@ export function MapHoverProvider({
 }: MapHoverProviderProps) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
 
-	const set = useCallback<MapHoverSet>(
-		(target, point) =>
-			// Bail on a no-op so a scroll's repeated clears cost one render, and a
-			// page scroll far from this map costs none. A same-mark move keeps the
-			// held target's identity — every tracked pointer event builds a fresh
-			// target object — so the pointed-mark context below changes only on a
-			// crossing, never per pixel.
-			setState((prev) => {
-				const same = sameTarget(prev.target, target)
+	// Whether a pinch holds the readout. See {@link MapHoverHold}.
+	const held = useRef(false)
 
-				if (same && samePoint(prev.point, point)) return prev
+	const set = useCallback<MapHoverSet>((target, point) => {
+		if (held.current && target !== null) return
 
-				return { target: same ? prev.target : target, point }
-			}),
-		[],
+		// Bail on a no-op so a scroll's repeated clears cost one render, and a
+		// page scroll far from this map costs none. A same-mark move keeps the
+		// held target's identity — every tracked pointer event builds a fresh
+		// target object — so the pointed-mark context below changes only on a
+		// crossing, never per pixel.
+		setState((prev) => {
+			const same = sameTarget(prev.target, target)
+
+			if (same && samePoint(prev.point, point)) return prev
+
+			return { target: same ? prev.target : target, point }
+		})
+	}, [])
+
+	const hold = useCallback<MapHoverHold>(
+		(on) => {
+			held.current = on
+
+			if (on) set(null, null)
+		},
+		[set],
 	)
 
 	// The pointed mark the marks dim against: the hover target, gated so a
@@ -178,9 +199,11 @@ export function MapHoverProvider({
 
 	return (
 		<MapHoverSetContext value={set}>
-			<MapPointedMarkContext value={pointedStore}>
-				<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
-			</MapPointedMarkContext>
+			<MapHoverHoldContext value={hold}>
+				<MapPointedMarkContext value={pointedStore}>
+					<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+				</MapPointedMarkContext>
+			</MapHoverHoldContext>
 		</MapHoverSetContext>
 	)
 }

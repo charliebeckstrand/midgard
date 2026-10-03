@@ -14,7 +14,7 @@ import {
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useTimeout } from '../../hooks/use-timeout'
-import { useMapHoverSet } from './context'
+import { useMapHoverHold } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
@@ -116,16 +116,6 @@ export type MapZoomOptions = {
 type MapPress = {
 	from: MapPoint2D
 	moved: boolean
-}
-
-/**
- * The pointer ids that a pinch takes onto the surface. On a map that claims
- * touch, they are the pair itself. On a modifier map, they are the touch
- * pointers. {@link takePinch} deletes an id whose pointer has ended.
- */
-type MapPinchPointers = {
-	keys: () => Iterable<number>
-	delete: (id: number) => boolean
 }
 
 /** A wheel stream in flight: what it last pushed, and whether it has been seen running down. */
@@ -242,13 +232,8 @@ export function useMapZoom({
 	// from the touch events instead — see {@link useMapTouchPinch}.
 	const pointers = useRef(new Map<number, MapPoint2D>())
 
-	// The touch pointers down on the plot of a modifier map, by pointer id. The
-	// touch events carry the pinch there, and they report no pointer id. So a
-	// pinch reads these to take its fingers off the marks. See {@link takePinch}.
-	const touchPointers = useRef(new Set<number>())
-
-	// The readout's writer, so a pinch can clear the readout that its first finger raised.
-	const setHover = useMapHoverSet()
+	// A pinch holds the readout until the gesture settles. See {@link MapHoverHold}.
+	const holdReadout = useMapHoverHold()
 
 	// Whether a modifier map holds the touch sequence in flight. Two fingers set
 	// it, and it stays set until every finger lifts. A finger left down after a
@@ -295,8 +280,12 @@ export function useMapZoom({
 	const wheelStream = useRef<MapWheelStream | null>(null)
 
 	const settleGesture = useCallback(() => {
-		if (pointers.current.size === 0 && !wheelSettle.pending()) setGesturing(false)
-	}, [wheelSettle])
+		if (pointers.current.size > 0 || wheelSettle.pending()) return
+
+		setGesturing(false)
+
+		holdReadout(false)
+	}, [wheelSettle, holdReadout])
 
 	// Claims one wheel event for the map: what it pushed, whether the stream it
 	// belongs to is running down, and the window that outlives it. All of it is set
@@ -359,7 +348,7 @@ export function useMapZoom({
 	// pointer events. The first finger of a pinch that lands a moment early starts
 	// the page's scroll, and the browser then cancels that pointer and sends no
 	// pointer event for the second finger at all. The touch events still arrive.
-	const touchDriven = settings !== null && modifier !== null
+	const touchDriven = zooms && modifier !== null
 
 	/**
 	 * Moves the view by what two pointers did: the midpoint's travel pans, and the
@@ -374,9 +363,6 @@ export function useMapZoom({
 	 */
 	function pinch(first: MapPoint2D, second: MapPoint2D) {
 		const { transform: from, view: frame, max: limit } = live.current
-
-		// A scroll since the last frame cleared the box, so this reads it afresh.
-		measureGesture()
 
 		const gap = pointerGap(first, second)
 
@@ -405,7 +391,7 @@ export function useMapZoom({
 
 	/** Where the midpoint of two pointers lands in the frame, or `null` with no box to read. */
 	function pairFocus(first: MapPoint2D, second: MapPoint2D): MapPoint2D | null {
-		const box = gestureBox.current
+		const box = measureGesture()
 
 		const { view: frame } = live.current
 
@@ -433,11 +419,7 @@ export function useMapZoom({
 	}
 
 	function release(event: PointerEvent<HTMLElement>) {
-		if (fromTouch(event)) {
-			touchPointers.current.delete(event.pointerId)
-
-			return
-		}
+		if (fromTouch(event)) return
 
 		// The travel before the lift is part of the pinch, so it applies first.
 		flushPinch()
@@ -485,33 +467,6 @@ export function useMapZoom({
 	}
 
 	/**
-	 * Takes every finger of a pinch onto `surface`, and clears the readout.
-	 *
-	 * A touch pointer is captured on contact by the region or the mark under it.
-	 * That element then gets each move of the finger, and the layer's
-	 * `pointer-events` does not stop it. Each move raised the readout again, so the
-	 * map receded behind a tooltip for the whole pinch. Once the surface holds the
-	 * finger, no mark gets its moves. A finger that stays still never moves off its
-	 * mark, so this also clears the readout that it raised on contact.
-	 */
-	function takePinch(surface: Element, ids: MapPinchPointers) {
-		for (const id of ids.keys()) {
-			if (surface.hasPointerCapture(id)) continue
-
-			// A pointer can end out of sight of the plot: the mark that held it can
-			// leave the tree before the finger lifts. A capture of an ended pointer
-			// throws, and the rest of the pinch still needs the surface.
-			try {
-				surface.setPointerCapture(id)
-			} catch {
-				ids.delete(id)
-			}
-		}
-
-		setHover(null, null)
-	}
-
-	/**
 	 * Ends the gesture when the surface itself loses a pointer.
 	 *
 	 * The loss of a descendant bubbles here too, and it is not the end of the
@@ -523,11 +478,14 @@ export function useMapZoom({
 		if (event.target === event.currentTarget) release(event)
 	}
 
-	/** Reads the SVG's box when the gesture starts, and again after a scroll. See {@link gestureBox}. */
-	function measureGesture() {
-		if (gestureBox.current !== null) return
+	/**
+	 * The SVG's box, read when the gesture starts and again after a scroll. Every
+	 * read of the box goes through here. See {@link gestureBox}.
+	 */
+	function measureGesture(): MapClientBox | null {
+		gestureBox.current ??= svgRef.current?.getBoundingClientRect() ?? null
 
-		gestureBox.current = svgRef.current?.getBoundingClientRect() ?? null
+		return gestureBox.current
 	}
 
 	/**
@@ -571,21 +529,19 @@ export function useMapZoom({
 	/**
 	 * Keeps the touch sequence from the page once two contacts have held the map,
 	 * and clears the last pan's flag when a sequence begins. No click follows a
-	 * pinch, so that flag must not swallow the tap after it. A finger that lands
-	 * on a pinch goes onto the SVG with the rest of the pinch.
+	 * pinch, so that flag must not swallow the tap after it. The readout holds
+	 * from the moment two contacts hold the map.
 	 */
 	function claimTouch(event: TouchEvent, contacts: Map<number, MapPoint2D>) {
 		if (pointers.current.size === 0) panned.current = false
 
-		if (contacts.size > 1) touchHeld.current = true
+		if (contacts.size > 1 && !touchHeld.current) {
+			touchHeld.current = true
+
+			holdReadout(true)
+		}
 
 		if (touchHeld.current && event.cancelable) event.preventDefault()
-
-		const svg = svgRef.current
-
-		if (event.type === 'touchstart' && contacts.size > 1 && svg !== null) {
-			takePinch(svg, touchPointers.current)
-		}
 	}
 
 	/** Measures the pinch afresh from the pair the contacts hold now, or clears it. */
@@ -600,8 +556,6 @@ export function useMapZoom({
 			return
 		}
 
-		measureGesture()
-
 		spread.current = pointerGap(first, second)
 
 		midpoint.current = pairFocus(first, second)
@@ -615,11 +569,7 @@ export function useMapZoom({
 	}
 
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
-		if (fromTouch(event)) {
-			touchPointers.current.add(event.pointerId)
-
-			return
-		}
+		if (fromTouch(event)) return
 
 		// A right-click opens the region menu the plat reports for; only the
 		// primary button drives the view.
@@ -637,7 +587,7 @@ export function useMapZoom({
 		if (pointers.current.size > 1) {
 			hold(event)
 
-			takePinch(event.currentTarget, pointers.current)
+			holdReadout(true)
 		}
 
 		panned.current = false
@@ -651,13 +601,7 @@ export function useMapZoom({
 			return
 		}
 
-		const [first, second] = [...pointers.current.values()]
-
-		if (first !== undefined && second !== undefined) {
-			spread.current = pointerGap(first, second)
-
-			midpoint.current = pairFocus(first, second)
-		}
+		measurePair()
 	}
 
 	/** Moves the view by one pointer's travel, once the press has become a pan. */
@@ -681,10 +625,7 @@ export function useMapZoom({
 
 		const { transform: from, view: frame } = live.current
 
-		// A scroll mid-drag cleared the box, so this reads it afresh.
-		measureGesture()
-
-		const box = gestureBox.current
+		const box = measureGesture()
 
 		const scale = box === null ? 0 : frameScale(box, frame.width, frame.height)
 

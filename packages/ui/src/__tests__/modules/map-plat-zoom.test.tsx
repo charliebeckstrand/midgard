@@ -681,64 +681,52 @@ describe('MapPlat touch over the marks', () => {
 		expect(transformOf(container)).not.toBe(before)
 	})
 
-	it('takes both fingers of a pinch onto the plot, and clears the readout', () => {
+	it('holds the readout through a pinch on a map that claims touch', () => {
 		const { container, plot } = renderZoomable(DIRECT)
 
-		raiseReadout(container, 1)
+		const region = raiseReadout(container, 1)
 
 		fireEvent.pointerDown(plot, { pointerId: 2, pointerType: 'touch', clientX: 80, clientY: 20 })
-
-		// The first finger has not moved, and it is taken all the same. On its
-		// region, each move would raise the readout again.
-		expect(plot.hasPointerCapture(1)).toBe(true)
-
-		expect(plot.hasPointerCapture(2)).toBe(true)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// The region holds the first finger's capture, so it gets the moves of that
+		// finger. None of them raises the readout while the pinch holds it.
+		fireEvent.pointerMove(region, { pointerId: 1, pointerType: 'touch', clientX: 30, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		for (const pointerId of [1, 2]) fireEvent.pointerUp(plot, { pointerId, pointerType: 'touch' })
+
+		// The pinch has settled, so a finger that lands on the region reads it again.
+		fireEvent.pointerEnter(region, { pointerId: 3, pointerType: 'touch', clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 	})
 
-	it('takes both fingers of a pinch onto the SVG by default, and clears the readout', () => {
-		const { container, plot, svg } = renderZoomable()
+	it('holds the readout through a pinch on a default map', () => {
+		const { container, svg } = renderZoomable()
 
-		raiseReadout(container, 1)
+		const region = raiseReadout(container, 1)
 
-		fireEvent.pointerDown(plot, { pointerId: 2, pointerType: 'touch', clientX: 80, clientY: 20 })
+		touch(svg, 'touchStart', [{ id: 1, x: 40, y: 20 }])
 
 		touch(svg, 'touchStart', [
 			{ id: 1, x: 40, y: 20 },
 			{ id: 2, x: 80, y: 20 },
 		])
 
-		expect(svg.hasPointerCapture(1)).toBe(true)
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		expect(svg.hasPointerCapture(2)).toBe(true)
+		fireEvent.pointerMove(region, { pointerId: 1, pointerType: 'touch', clientX: 30, clientY: 20 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
-	})
 
-	it('still pinches when the browser refuses to capture a finger that ended out of sight', () => {
-		const { container, plot, svg } = renderZoomable()
+		touch(svg, 'touchEnd', [])
 
-		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 190, clientY: 100 })
+		fireEvent.pointerEnter(region, { pointerId: 3, pointerType: 'touch', clientX: 40, clientY: 20 })
 
-		vi.spyOn(svg, 'setPointerCapture').mockImplementation(() => {
-			throw new DOMException('No active pointer with the given id is found.', 'NotFoundError')
-		})
-
-		twoFinger(
-			svg,
-			[
-				{ x: 190, y: 100 },
-				{ x: 210, y: 100 },
-			],
-			[
-				{ x: 170, y: 100 },
-				{ x: 230, y: 100 },
-			],
-		)
-
-		// The spread went from 20 to 60, so the scale is three times the fit.
-		expect(scaleOf(container)).toBeCloseTo(3, 3)
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 	})
 
 	it('keeps a finger in the pinch after the node under it leaves the tree', () => {
