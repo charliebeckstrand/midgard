@@ -483,7 +483,10 @@ export function useMapZoom({
 	 * read of the box goes through here. See {@link gestureBox}.
 	 */
 	function measureGesture(): MapClientBox | null {
-		gestureBox.current ??= svgRef.current?.getBoundingClientRect() ?? null
+		// Not `??=`, which the React Compiler cannot compile yet.
+		if (gestureBox.current === null) {
+			gestureBox.current = svgRef.current?.getBoundingClientRect() ?? null
+		}
 
 		return gestureBox.current
 	}
