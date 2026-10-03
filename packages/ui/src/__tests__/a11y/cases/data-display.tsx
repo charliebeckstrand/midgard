@@ -151,11 +151,11 @@ export const dataDisplayCases: readonly Case[] = [
 	},
 	{
 		// role=tree with nested role=group; each item exposes its label and
-		// expanded state.
+		// expanded state. The open branch owns its group through aria-owns.
 		name: 'tree',
 		element: (
 			<Tree key="tr" aria-label="File tree">
-				<TreeItem label="Documents">
+				<TreeItem label="Documents" defaultOpen>
 					<TreeItem label="report.pdf" />
 					<TreeItem label="budget.xlsx" />
 				</TreeItem>

@@ -35,6 +35,8 @@ export function stampTreePositions(children: ReactNode): ReactNode {
 const DEFER = { defer: true } as const
 
 type TreeItemChildrenProps = {
+	/** The id that the treeitem row refers to through `aria-owns`. */
+	id: string
 	open: boolean
 	label: ReactNode
 	children: ReactNode
@@ -54,7 +56,7 @@ type TreeItemChildrenProps = {
  *
  * @internal
  */
-export function TreeItemChildren({ open, label, children }: TreeItemChildrenProps) {
+export function TreeItemChildren({ id, open, label, children }: TreeItemChildrenProps) {
 	const { depth, indent, mount } = useTreeContext()
 
 	const hold = useMountHold(open, mount, DEFER)
@@ -67,6 +69,7 @@ export function TreeItemChildren({ open, label, children }: TreeItemChildrenProp
 	const group = (motionProps: object) => (
 		<TreeContext value={childContextValue}>
 			<motion.div
+				id={id}
 				role="group"
 				aria-label={typeof label === 'string' ? label : undefined}
 				data-slot="tree-group"

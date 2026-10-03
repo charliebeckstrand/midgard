@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { memo, useMemo, useState } from 'react'
+import { memo, useId, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -95,6 +95,9 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 	// Explicit user toggle; `undefined` defers to the default/search rules below.
 	// Seeded from the tree-level memory so a node that was toggled, unmounted by
 	// an ancestor collapsing, and remounted comes back the way the user left it.
+	// The branch row owns its group by this id, which keeps two trees apart.
+	const groupId = useId()
+
 	const [userOpen, setUserOpenState] = useState<boolean | undefined>(() =>
 		userOpenMemory.current.get(nodePath),
 	)
@@ -180,12 +183,19 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 				open={open}
 				count={count}
 				highlighted={highlighted}
+				groupId={groupId}
 				onToggle={toggle}
 			/>
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
 					{open && (
-						<motion.div role="group" data-slot="json-group" {...k.motion} className={k.group}>
+						<motion.div
+							id={groupId}
+							role="group"
+							data-slot="json-group"
+							{...k.motion}
+							className={k.group}
+						>
 							{/* The children are one depth in, and the close bracket aligns with the header. */}
 							<div className={cn(k.indent)}>
 								<JsonTreeContext value={childContextValue}>
