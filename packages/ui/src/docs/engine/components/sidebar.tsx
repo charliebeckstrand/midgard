@@ -20,6 +20,7 @@ import { cn } from '../../../core'
 import { useScrollWithin } from '../../../hooks'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
 import { Flex } from '../../../structure/flex'
+import { noAutofill } from '../no-autofill'
 import { type Demo, demos, preloadDemo } from '../registry'
 import { titleCase } from './format'
 
@@ -150,7 +151,8 @@ export function SidebarContent({ route }: { route: string }) {
 				<Heading level={2}>Docs</Heading>
 			</SidebarHeader>
 			<Flex gap="sm">
-				<div className="flex-1">
+				{/* The search gets no autofill and no typing suggestions. */}
+				<div ref={noAutofill} className="flex-1">
 					<Combobox<string>
 						id={`${id}-search-docs`}
 						placeholder="Search docs"
