@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import { ArrowLeft } from 'lucide-react'
-import { type ComponentProps, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
 import countiesUrl from 'us-atlas/counties-10m.json?url'
 import statesUrl from 'us-atlas/states-10m.json?url'
@@ -29,7 +29,7 @@ import {
 } from '../../../../modules/map'
 import { Flex } from '../../../../structure/flex'
 import { Stack } from '../../../../structure/stack'
-import { Example as ExampleFrame, PageTabs } from '../../../engine'
+import { Example, PageTabs } from '../../../engine'
 import {
 	corridors,
 	deliveryStops,
@@ -43,15 +43,6 @@ import {
 	warehouses,
 	zoneCategories,
 } from './data'
-
-// Every map demo renders in the same fixed-width, resizable frame so its
-// responsive behavior is visible at a glance. Wrapping the engine Example once
-// here injects those defaults into all the `<Example>` call sites below,
-// without repeating the props on each. A call site can still override either
-// default by passing its own `width`/`resize`.
-function Example(props: ComponentProps<typeof ExampleFrame>) {
-	return <ExampleFrame width={720} resize {...props} />
-}
 
 // The timezone rows key by state name, so region identity is the name rather
 // than the atlas's own numeric id. Module scope, not an inline arrow: it closes
@@ -692,7 +683,7 @@ function WorldMaps() {
 
 	return (
 		<Stack gap="xl">
-			<Example title="Equal Earth">
+			<Example surface title="Equal Earth">
 				<MapPlat
 					aria-label="Countries of the world on Equal Earth"
 					geography={world}
@@ -704,7 +695,7 @@ function WorldMaps() {
 				/>
 			</Example>
 
-			<Example title="Mercator">
+			<Example surface title="Mercator">
 				<MapPlat
 					aria-label="Countries of the world on Mercator"
 					geography={world}
@@ -772,7 +763,7 @@ function MapDemo() {
 				<TabContents fade={false}>
 					<TabContent value="plat">
 						<Stack gap="xl">
-							<Example title="Timezones across America">
+							<Example surface title="Timezones across America">
 								<MapPlat
 									aria-label="Timezones across America"
 									geography={states}
@@ -787,7 +778,7 @@ function MapDemo() {
 								/>
 							</Example>
 
-							<Example title="Pick a state">
+							<Example surface title="Pick a state">
 								<ClickableStates geography={states} />
 							</Example>
 						</Stack>
@@ -795,7 +786,7 @@ function MapDemo() {
 
 					<TabContent value="point">
 						<Stack gap="xl">
-							<Example title="Warehouses">
+							<Example surface title="Warehouses">
 								<MapPlat
 									aria-label="Warehouse network"
 									geography={states}
@@ -818,21 +809,21 @@ function MapDemo() {
 							    legend row each and run past the eight-slot palette. Every dot
 							    still names itself in the readout — and every summary names how
 							    many it stands for. */}
-							<Example title="Delivery rounds">
+							<Example surface title="Delivery rounds">
 								<DeliveryRounds geography={states} />
 							</Example>
 
 							{/* The same rounds under a view transform rather than a refit: the
 							    summaries break apart as the frame closes on them, and every dot,
 							    hit target, and count holds its size through the whole gesture. */}
-							<Example title="Zoom into the rounds">
+							<Example surface title="Zoom into the rounds">
 								<ZoomableRounds geography={states} />
 							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="marker">
-						<Example title="Line haul">
+						<Example surface title="Line haul">
 							<MapPlat
 								aria-label="Line haul"
 								geography={states}
@@ -847,7 +838,7 @@ function MapDemo() {
 
 					<TabContent value="route">
 						<Stack gap="xl">
-							<Example title="IKEA distribution network">
+							<Example surface title="IKEA distribution network">
 								<MapPlat
 									aria-label="IKEA distribution network"
 									geography={states}
@@ -866,7 +857,7 @@ function MapDemo() {
 								</MapPlat>
 							</Example>
 
-							<Example title="Long-haul corridors">
+							<Example surface title="Long-haul corridors">
 								<MapPlat
 									aria-label="Long-haul corridors"
 									geography={states}
@@ -895,7 +886,7 @@ function MapDemo() {
 							    rather than the six marks drawn to make them. The group takes the
 							    catchment's color, since it registers first, and the depot needs
 							    no color of its own. */}
-							<Example title="Depot catchments">
+							<Example surface title="Depot catchments">
 								<MapPlat
 									aria-label="Depot catchments"
 									geography={states}
@@ -927,14 +918,14 @@ function MapDemo() {
 								</MapPlat>
 							</Example>
 
-							<Example title="Texas Triangle">
+							<Example surface title="Texas Triangle">
 								<TexasTriangle geography={states} />
 							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="county">
-						<Example title="Drill into a state's counties">
+						<Example surface title="Drill into a state's counties">
 							<CountyDrill geography={states} />
 						</Example>
 					</TabContent>

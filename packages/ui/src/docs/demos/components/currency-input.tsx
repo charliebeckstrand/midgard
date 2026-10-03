@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CurrencyInput } from '../../../components/currency-input'
 import { Field, Label } from '../../../components/fieldset'
+import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
 export const meta = { category: 'input' }
@@ -14,6 +15,7 @@ function ControlledExample() {
 				<Label>Freight rate</Label>
 				<CurrencyInput value={value} onValueChange={setValue} />
 			</Field>
+			<Text className="tabular-nums">{value ?? 'Empty'}</Text>
 		</Example>
 	)
 }

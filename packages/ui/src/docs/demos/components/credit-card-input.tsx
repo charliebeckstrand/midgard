@@ -6,6 +6,7 @@ import {
 	CreditCardInputExpiry,
 } from '../../../components/credit-card-input'
 import { Field, Label, Message } from '../../../components/fieldset'
+import { Text } from '../../../components/text'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example } from '../../engine'
@@ -21,6 +22,7 @@ function ControlledExample() {
 				<Label>Card number</Label>
 				<CreditCardInput value={value} onValueChange={setValue} />
 			</Field>
+			<Text className="tabular-nums">{value || 'Empty'}</Text>
 		</Example>
 	)
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Example } from '../../components/example'
 import { maxDefined, resolveResize, resolveWidth, SNAP_STEP } from '../../components/example-resize'
@@ -161,6 +162,79 @@ describe('Example width', () => {
 			'aria-valuenow',
 			'400',
 		)
+	})
+})
+
+describe('Example surface', () => {
+	it('gives the frame the surface preset', () => {
+		const { container } = renderUI(<Example surface>demo</Example>)
+
+		const frame = bySlot(container, 'example-frame')
+
+		expect(frame?.style.width).toBe('720px')
+
+		expect(frame?.style.minWidth).toBe('160px')
+
+		expect(frame).toHaveClass('border-dashed')
+	})
+
+	it('lets an explicit prop override its part of the preset', () => {
+		const { container } = renderUI(
+			<Example surface width={480} resize={false}>
+				demo
+			</Example>,
+		)
+
+		const frame = bySlot(container, 'example-frame')
+
+		expect(frame?.style.width).toBe('480px')
+
+		expect(frame).not.toHaveClass('border-dashed')
+	})
+})
+
+describe('Example replay', () => {
+	// Each mount takes a new number, so the text tells how many times the child mounted.
+	let mounts = 0
+
+	function Mounted() {
+		const [mount] = useState(() => ++mounts)
+
+		return <>mount {mount}</>
+	}
+
+	it('renders no replay button by default', () => {
+		renderUI(<Example title="Animated">demo</Example>)
+
+		expect(screen.queryByRole('button', { name: 'Replay animation' })).toBeNull()
+	})
+
+	it('mounts the children again on a press', async () => {
+		mounts = 0
+
+		renderUI(
+			<Example title="Animated" replay>
+				<Mounted />
+			</Example>,
+		)
+
+		expect(screen.getByText('mount 1')).toBeInTheDocument()
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Replay animation' }))
+
+		expect(screen.getByText('mount 2')).toBeInTheDocument()
+	})
+
+	it('keeps the actions beside the replay button', async () => {
+		renderUI(
+			<Example title="Animated" replay actions={<button type="button">Action</button>}>
+				demo
+			</Example>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument()
+
+		expect(await screen.findByRole('button', { name: 'Replay animation' })).toBeInTheDocument()
 	})
 })
 
