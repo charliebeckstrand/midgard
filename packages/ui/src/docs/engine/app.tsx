@@ -1,11 +1,15 @@
-import { type ComponentType, Suspense, use, useCallback, useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useLocation, useOutletContext, useParams } from 'react-router'
+import { PanelLeft, PanelLeftDashed } from 'lucide-react'
+import { type ComponentType, Suspense, use, useEffect, useRef, useState } from 'react'
+import { Link, Outlet, useLocation, useParams } from 'react-router'
+import { Button } from '../../components/button'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
-import { SidebarLayout } from '../../layouts'
+import { Icon } from '../../components/icon'
+import { SidebarLayout, SidebarLayoutHeader } from '../../layouts'
 import type { LinkProps } from '../../primitives/link'
 import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
 import { UIProvider } from '../../providers/ui'
+import { Flex } from '../../structure/flex'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
 import { DebugActions } from './debug/debug-actions'
@@ -74,8 +78,6 @@ export function RouterLink({ href, ...props }: LinkProps) {
 	return <Link to={href} {...props} />
 }
 
-type ChromeContext = { locked: boolean; onToggleLocked: () => void }
-
 /**
  * Root of the docs site: a sidebar layout whose body is the route, wired to the
  * persisted theme and density preferences. The router keeps the previous page
@@ -88,7 +90,7 @@ export function App() {
 
 	const [locked, setLocked] = useState(true)
 
-	const toggleLocked = useCallback(() => setLocked((l) => !l), [])
+	const current = demos.find((d) => d.id === id)
 
 	const contentRef = useRef<HTMLDivElement>(null)
 
@@ -171,9 +173,26 @@ export function App() {
 					}
 					sidebar={<SidebarContent route={id} />}
 				>
+					{/* A navigation is a transition, so the header and the next page show
+					    together when the chunk of the page is ready. */}
+					{current && (
+						<SidebarLayoutHeader>
+							<Flex align="center" gap="md">
+								<Button
+									variant="bare"
+									className="max-lg:hidden"
+									aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
+									onClick={() => setLocked(!locked)}
+								>
+									<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
+								</Button>
+								<Heading>{current.name}</Heading>
+							</Flex>
+						</SidebarLayoutHeader>
+					)}
 					<div ref={contentRef}>
 						<Suspense fallback={null}>
-							<Outlet context={{ locked, onToggleLocked: toggleLocked } satisfies ChromeContext} />
+							<Outlet />
 						</Suspense>
 					</div>
 				</SidebarLayout>
@@ -184,8 +203,6 @@ export function App() {
 
 /** The body of one route: the demo page, or a prompt when the id names no demo. */
 export function DemoRoute({ id }: { id: string }) {
-	const { locked, onToggleLocked } = useOutletContext<ChromeContext>()
-
 	const current = demos.find((d) => d.id === id)
 
 	if (!current) {
@@ -209,7 +226,7 @@ export function DemoRoute({ id }: { id: string }) {
 				/>
 			)}
 		>
-			<DemoPage demo={current} locked={locked} onToggleLocked={onToggleLocked} />
+			<DemoPage demo={current} />
 		</DemoErrorBoundary>
 	)
 }
