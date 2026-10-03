@@ -6,8 +6,9 @@ import { useInView } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
-import { type ChatEmbedRenderer, useChatEmbeds, useChatRowKey } from './context'
+import { useChatEmbeds, useChatRowKey } from './context'
 import type { ChatEmbedPart } from './engine/chat-content/types'
+import type { ChatEmbedRenderer } from './types'
 
 /**
  * The space a held-back embed reserves, in pixels, when its part names no

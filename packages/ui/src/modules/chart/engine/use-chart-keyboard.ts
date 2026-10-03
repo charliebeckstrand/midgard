@@ -136,6 +136,24 @@ function stepCategory(targets: ChartFocusTargets, from: number, dir: 1 | -1): nu
 	return from
 }
 
+/**
+ * What a cursor step lands on: the reference line it parks on, or the hover
+ * index and the series that it writes. @internal
+ */
+type ChartCursorRead = { reference: number } | { index: number; series: number | null }
+
+/** The reference line a cursor parks on, or `null` off any live rule. @internal */
+function cursorRule(
+	cursor: ChartCursor | null,
+	targets: ChartFocusTargets | undefined,
+): number | null {
+	const reference = cursor?.reference
+
+	if (reference === undefined || targets?.references?.[reference] == null) return null
+
+	return reference
+}
+
 /** Whether a reference index names a live (finite) reference stop. @internal */
 function isReferenceStop(targets: ChartFocusTargets, reference: number | undefined): boolean {
 	return reference !== undefined && targets.references?.[reference] != null
@@ -485,6 +503,14 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  * @param setActiveSeries - The series-emphasis setter, moved to the series the
  * cursor sits on. It is `null` off any series: a reference, a cleared cursor, or
  * a chart with no series map.
+ * @param onRead - Called when a key moves the cursor onto a data point, with the
+ * hover index and the series that the cursor writes. The frame announces the
+ * readout of that point through it. A re-anchor, a pointer move, and a stop on a
+ * reference line do not call it.
+ * @param onReadReference - Called when a key moves the cursor onto a reference
+ * line from another stop, with the index of that line. The frame announces the
+ * label and the value of the line through it. A band step along the same line, a
+ * re-anchor, and a pointer move do not call it.
  * @internal
  */
 export function useChartKeyboard(
@@ -494,6 +520,8 @@ export function useChartKeyboard(
 	store: ChartHoverStore,
 	setReference: (reference: number | null) => void,
 	setActiveSeries: (series: number | null) => void,
+	onRead?: (index: number, series: number | null) => void,
+	onReadReference?: (reference: number) => void,
 ): ChartKeyboardProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
@@ -542,24 +570,35 @@ export function useChartKeyboard(
 	// line the cursor parks on owns the emphasis, not the marks: recede the whole
 	// field and drop the series readout so the rule reads alone. Anywhere else,
 	// carry the readout to the cursor's anchor, and emphasize the series it sits
-	// on so the rest recede. A `null` cursor clears all of them.
-	const applyCursor = (next: ChartCursor | null) => {
+	// on so the rest recede. A `null` cursor clears all of them. Returns the rule
+	// the cursor parks on, or the hover index and the series that the cursor
+	// writes, or `null` when it writes none.
+	const applyCursor = (next: ChartCursor | null): ChartCursorRead | null => {
 		if (!sameCursor(cursor, next)) setCursor(next)
 
-		const reference = next?.reference
+		const rule = cursorRule(next, targets)
 
-		const onRule = reference !== undefined && targets?.references?.[reference] != null
+		const point = next !== null && targets && rule === null ? cursorPoint(next, targets) : null
 
-		const point = next !== null && targets && !onRule ? cursorPoint(next, targets) : null
+		setReference(rule)
 
-		setReference(onRule ? reference : null)
+		const series = next !== null && targets && point ? cursorSeries(next, targets) : null
 
-		setActiveSeries(next !== null && targets && point ? cursorSeries(next, targets) : null)
+		setActiveSeries(series)
 
 		written.current = point
 
-		if (next !== null && targets && point) store.set(cursorIndex(next, targets), point, true)
-		else store.set(null, null)
+		if (next !== null && targets && point) {
+			const index = cursorIndex(next, targets)
+
+			store.set(index, point, true)
+
+			return { index, series }
+		}
+
+		store.set(null, null)
+
+		return rule === null ? null : { reference: rule }
 	}
 
 	// Reads the cursor, the store, and `applyCursor` when it runs. The re-anchor
@@ -576,6 +615,21 @@ export function useChartKeyboard(
 	}, [stop])
 
 	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => applyCursor(null))
+
+	// Reports what a key moved the cursor onto. A band step slides a parked rule
+	// along with the cursor, and the rule reads the same at each band, so only the
+	// step onto the rule reports it.
+	const read = (landed: ChartCursorRead | null) => {
+		if (landed === null) return
+
+		if ('reference' in landed) {
+			if (cursor?.reference !== landed.reference) onReadReference?.(landed.reference)
+
+			return
+		}
+
+		onRead?.(landed.index, landed.series)
+	}
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		if (!targets) return
@@ -603,13 +657,7 @@ export function useChartKeyboard(
 
 		// The first arrow enters at the first point rather than stepping past it;
 		// Home / End are absolute jumps and place directly.
-		if (cursor === null && isArrowKey(event.key)) {
-			applyCursor(firstCursor(targets))
-
-			return
-		}
-
-		applyCursor(move.cursor)
+		read(applyCursor(cursor === null && isArrowKey(event.key) ? firstCursor(targets) : move.cursor))
 	}
 
 	return active ? { tabIndex: 0, onKeyDown, onBlur } : null

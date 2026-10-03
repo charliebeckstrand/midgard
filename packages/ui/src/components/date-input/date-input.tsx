@@ -26,6 +26,7 @@ import {
 	parseDateText,
 	resolveDateInputFormat,
 } from './date-input-utilities'
+import { useDateInputOverride } from './use-date-input-override'
 
 /**
  * Props for {@link DateInput}. Extends {@link InputProps} but takes over the
@@ -105,6 +106,9 @@ export type DateInputProps = Omit<
  * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` is
  * registered; `placeholder` is not a programmatic name (WCAG 3.3.2 / 4.1.2).
  * Enter blurs the input, committing or renormalizing the current entry.
+ * A reset of the bound Form drops the typed text and its verdict, also when
+ * the value stays the same. A controlled value that is set again to the same
+ * value does not: remount the field with a new `key` to drop the typed text.
  *
  * @see {@link maskDateText} for the masking rules.
  * @see {@link parseDateText} for the parse/validation contract.
@@ -173,26 +177,26 @@ export function DateInput({
 	// also sees it.
 	const [emitted, setEmitted] = useState<Date | undefined>(undefined)
 
-	const [known, setKnown] = useState(date)
-
 	// A count of the typed verdicts that an external change cleared. The change
 	// clears the verdict during render, where a report must not run. The effect
 	// below carries the report, so the reported verdict cannot drift from the one
 	// the field renders.
 	const [clearedVerdicts, setClearedVerdicts] = useState(0)
 
-	if (known !== date) {
-		setKnown(date)
-
-		// An external change overrides any in-progress text.
-		if (editingText !== null && !isSameDay(date, emitted)) {
+	// An external change or a form reset overrides any in-progress text.
+	useDateInputOverride({
+		date,
+		emitted,
+		name,
+		editing: editingText !== null,
+		onOverride: () => {
 			setEditingText(null)
 
 			setTypedInvalid(false)
 
 			setClearedVerdicts((count) => count + 1)
-		}
-	}
+		},
+	})
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 

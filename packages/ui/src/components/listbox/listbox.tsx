@@ -76,6 +76,13 @@ type ListboxBaseProps = GroupStampProps & {
 	 */
 	clearable?: boolean
 	/**
+	 * Shows the whole selected label in a tooltip on hover while the trigger
+	 * truncates it. The tooltip does not open while the panel is open. A touch
+	 * press does not open it, as with any hover tooltip.
+	 * @defaultValue false
+	 */
+	truncateTooltip?: boolean
+	/**
 	 * Capitalizes the first letter (first word only) of the selected
 	 * `displayValue` and of each option's string label; custom label nodes
 	 * render as authored. Display-only: the underlying value is untouched.
@@ -163,6 +170,7 @@ export function Listbox<T>({
 	className,
 	id,
 	truncate = true,
+	truncateTooltip = false,
 	clearable = false,
 	capitalize = true,
 	open: openProp,
@@ -422,6 +430,8 @@ export function Listbox<T>({
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}
 						truncate={truncate}
+						truncateTooltip={truncateTooltip}
+						truncateTooltipSuppressed={open}
 					/>
 				</SelectTrigger>
 

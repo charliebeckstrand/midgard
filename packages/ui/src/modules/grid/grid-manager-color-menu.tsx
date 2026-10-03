@@ -49,7 +49,7 @@ export function GridManagerColorMenu({
 	onRecolor,
 }: GridManagerColorMenuProps): ReactNode {
 	return (
-		<Menu aria-label={`Color menu for ${label}`} placement="bottom-end">
+		<Menu placement="bottom-end">
 			<MenuTrigger>
 				{/* The name starts with the visible text, so a voice user can say what
 				    they see (WCAG 2.5.3). */}

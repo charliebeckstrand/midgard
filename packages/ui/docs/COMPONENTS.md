@@ -17,6 +17,8 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
+> `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
+
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover.
 
 ## Form structure
@@ -37,11 +39,19 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
 
+> An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Tab goes from the trigger into the panel controls and then on to the element after the trigger. Focus does not stay in the panel, and the page stays visible to assistive tech. Other tooltips are `role="tooltip"` and describe the trigger.
+
+> `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers at the app root, `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. Put one viewport anywhere in the provider.
+
 > `drawer` also exports `DrawerStatic`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
 
 ## Data display
 
 `table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `description-list` · `timeline` · `stat` · `sparkline` · `odometer` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
+
+> A `TreeItem` row is one control, so its `prefix` and `suffix` hold no control. For a checkbox tree, give each item `checked` (or `defaultChecked`) and `onCheckedChange`. The row carries `aria-checked` and draws the box, Space toggles the check, and Enter toggles a branch. The caller computes the `'mixed'` state of a branch.
+
+> `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the keyboard stop of the card and takes the keyboard lift, and a pointer drags the card from any part of it.
 
 ## Layout & surfaces
 

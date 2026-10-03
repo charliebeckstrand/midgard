@@ -59,7 +59,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Column">
-				<Flex direction="col" gap="md" full>
+				<Flex direction="col" gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -67,8 +67,8 @@ export function Demo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Card bg="none" className="w-full">
-					<Flex gap="md" justify="between" align="center" full>
+				<Card bg="none">
+					<Flex gap="md" justify="between" align="center">
 						<Card>Start</Card>
 						<Card>Middle</Card>
 						<Card>End</Card>
@@ -77,7 +77,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Equal">
-				<Flex gap="md" full className="*:flex-1">
+				<Flex gap="md" className="*:flex-1">
 					<Card>Narrow</Card>
 					<Card>Wider content here</Card>
 					<Card>Even wider content in this card</Card>
@@ -85,7 +85,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Responsive direction">
-				<Flex direction={{ initial: 'col', md: 'row' }} gap="md" full>
+				<Flex direction={{ initial: 'col', md: 'row' }} gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
 					<Card>Three</Card>
@@ -93,7 +93,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Composed with buttons">
-				<Flex gap="md" justify="end" full>
+				<Flex gap="md" justify="end">
 					<Button variant="plain">Cancel</Button>
 					<Button>Save changes</Button>
 				</Flex>

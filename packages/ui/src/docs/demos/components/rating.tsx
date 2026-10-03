@@ -53,9 +53,7 @@ function FormExample() {
 				</Field>
 
 				<Stack gap="sm">
-					<Button type="submit" className="w-fit">
-						Submit
-					</Button>
+					<Button type="submit">Submit</Button>
 
 					<Text className="tabular-nums">
 						{submitted === null ? 'Not submitted' : `Submitted ${submitted}`}

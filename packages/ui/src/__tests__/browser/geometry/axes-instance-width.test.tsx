@@ -18,11 +18,10 @@ function settled<T>(value: T): Promise<T> {
 
 /**
  * A captioned axis instance with a fixed width and `max-w-full` fits a row that
- * is narrower than that width. The stack aligns each instance to the start, so
- * the caption wrapper takes the width of its content. Without a cap on the
- * wrapper, `max-w-full` on the instance resolves against that width, and the
- * frame scrolls. Intrinsic sizes need a layout engine, so this rides the real
- * browser.
+ * is narrower than that width. The instance box of the frame has a minimum of
+ * 24rem, capped at the frame, and `max-w-full` on the instance resolves against
+ * that box. A minimum with no cap makes the frame scroll. Intrinsic sizes need a
+ * layout engine, so this rides the real browser.
  */
 describe('Axes instance width (real browser)', () => {
 	beforeAll(() => page.viewport(390, 800))

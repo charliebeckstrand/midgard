@@ -47,7 +47,13 @@ import { MapFrame, MapPlotRegion } from './map-frame'
 import { MapLegendRegion } from './map-legend-region'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
-import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
+import {
+	describeMapTarget,
+	MapTooltip,
+	type MapTooltipEntry,
+	type MapTooltipProps,
+	nameMapTarget,
+} from './map-tooltip'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
 import { useMapShape } from './use-map-shape'
@@ -136,15 +142,19 @@ export type MapPlatProps<T = never> = AccessibleName &
 		sphere?: boolean
 		/**
 		 * Show the readout naming the pointed region or overlay. It also gates
-		 * keyboard navigation, which the readout is the whole output of. Turned off,
-		 * the plot region takes no tab stop and stays a plain `role="img"` leaf, and
-		 * the data table carries the values alone.
+		 * keyboard navigation, which the readout is the whole output of. Each arrow
+		 * key that moves the cursor onto a stop speaks the readout of that stop
+		 * through a polite live region, because the tooltip is `aria-hidden`. A
+		 * pointer hover speaks nothing. Turned off, the plot region takes no tab
+		 * stop and stays a plain `role="img"` leaf, and the data table carries the
+		 * values alone.
 		 * @defaultValue true
 		 * @remarks It asks for a readout rather than asserting one. A map no row
 		 * matches and no mark draws on has nothing to name, so it takes no tab stop
 		 * whatever this prop says. An unmatched region raises no tooltip, takes no
 		 * emphasis, and fills no table row. A pick or a zoom still earns
-		 * one, because each is an output of its own.
+		 * one, because each is an output of its own. On that stop, with the readout
+		 * off, each arrow key speaks the name of the stop alone.
 		 */
 		tooltip?: boolean
 		/**
@@ -175,8 +185,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Let the reader zoom and pan the drawn geography. Shift and a wheel zoom
 		 * about the pointer, a drag pans, and two touches pan and pinch. The plot's
 		 * own tab stop takes `+`, `-`, and `0`, so the keyboard reaches every scale
-		 * the pointer does. `true` takes the default ceiling, a number sets its own,
-		 * and the object form adds `modifier` (below).
+		 * the pointer does. Each of these keys speaks the result through a polite
+		 * live region: `+` and `-` the new scale as a percent of the fit, such as
+		 * `Zoom 160%`, and `0` the text `Zoom reset`. `true` takes the default
+		 * ceiling, a number sets its own, and the object form adds `modifier`
+		 * (below).
 		 *
 		 * It is a transform over the fitted geography, not a refit. The projection
 		 * places the regions once and the layer moves what it placed, so a gesture
@@ -1109,6 +1122,29 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// pair. Bound once rather than spelled at each of them.
 	const readable = tooltip && hasReadout
 
+	// What the tooltip reads, held once: the tooltip shows it, and the keyboard
+	// cursor speaks the same text for the stop it moves onto.
+	const tooltipProps = useMemo<MapTooltipProps>(
+		() => ({
+			regionNames,
+			regionCategory,
+			regionValues,
+			categories: categoryMetas,
+			entries: tooltipEntries,
+			hidden,
+			nameRegions,
+		}),
+		[regionNames, regionCategory, regionValues, categoryMetas, tooltipEntries, hidden, nameRegions],
+	)
+
+	// Without the readout the cursor still speaks the name of its stop, so a
+	// picker or a zooming map with `tooltip={false}` does not rove in silence.
+	const describeTarget = useCallback(
+		(target: MapHoverTarget) =>
+			readable ? describeMapTarget(target, tooltipProps) : nameMapTarget(target, tooltipProps),
+		[readable, tooltipProps],
+	)
+
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
 	// readout alone would leave `tooltip={false}` with `onRegionClick` — a
 	// supported pairing — a picker no keyboard can reach. Without the readout the
@@ -1293,6 +1329,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,
+						describe: describeTarget,
 						resolveStops,
 						view: { width: shape.viewWidth, height: shape.viewHeight },
 						svgRef,
@@ -1300,17 +1337,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					tooltip={
 						// A backdrop map mounted a Tooltip that resolved `null` for every
 						// region it was ever pointed at.
-						readable ? (
-							<MapTooltip
-								regionNames={regionNames}
-								regionCategory={regionCategory}
-								regionValues={regionValues}
-								categories={categoryMetas}
-								entries={tooltipEntries}
-								hidden={hidden}
-								nameRegions={nameRegions}
-							/>
-						) : null
+						readable ? <MapTooltip {...tooltipProps} /> : null
 					}
 				>
 					{svg}

@@ -7,10 +7,10 @@ import { useHydrated } from '../../hooks/use-hydrated'
 import { useMinBreakpoint } from '../../hooks/use-min-breakpoint'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { useToastViewport } from '../../providers/toast/context'
-import type { ToastPosition } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
+import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
+import type { ToastPosition } from './types'
 
 /** Props for {@link Toast}. */
 export type ToastProps = {

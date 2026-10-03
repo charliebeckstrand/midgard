@@ -1,6 +1,6 @@
 # Providers
 
-> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier. They give ambient state — appearance, density, glass, locale, motion, toasts, and link/portal integration — to descendant client components through React context. Density also crosses to static components as a `data-density` attribute. A static (server-renderable) component reads no context; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
+> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier. They give ambient state — appearance, density, glass, locale, motion, and link/portal integration — to descendant client components through React context. A provider is here only when many unrelated components read it. A provider that serves one unit stays with that unit: `ToastProvider` is in `ui/toast`, and `ChatEmbedProvider` is in `ui/chat`. Density also crosses to static components as a `data-density` attribute. A static (server-renderable) component reads no context; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
 
 ```ts
 import { AppearanceProvider } from 'ui/providers/appearance'
@@ -84,20 +84,6 @@ Broadcasts `Intl` formatting defaults; explicit component props still win. This 
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
-
-## `ui/providers/toast`
-
-App-root toast state; pairs with the `Toast` component which portals the queue.
-
-| Export | Summary |
-|---|---|
-| `ToastProvider` | App-root toast state: manages queue, timers, and pause/resume; exposes `useToast()` to descendants. Each toast times out on its own `duration`, and a hover or focus on any toast pauses them all. |
-| `ToastProviderProps` *(type)* | Props for `ToastProvider`. |
-| `useToast` | Caller-facing toast API (`toast(data)` enqueues and returns id, `dismiss(id)` removes); throws outside a provider. |
-| `ToastInput` *(type)* | A toast to enqueue via `useToast().toast(...)`: `title` plus optional `description` / `severity` / `actions` / `duration` / `id` / `closable` / `persist` / `onDismiss`. |
-| `ToastDismissReason` *(type)* | Why a toast left the queue, handed to its `onDismiss`: `timeout` / `close` / `evicted` / `dismissed`. |
-| `ToastSeverity` *(type)* | Severity of a toast, mapped to the underlying `Alert` tone: `info` / `neutral` / `success` / `warning` / `error`. |
-| `ToastPosition` *(type)* | Viewport corner the toast stack anchors to. |
 
 ---
 

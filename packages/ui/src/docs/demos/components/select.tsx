@@ -20,20 +20,18 @@ export function Demo() {
 				of="Select"
 				omit={['placement', 'open', 'multiple', 'required', 'nullable']}
 				render={(props, label) => (
-					<div className="w-48">
-						<Select
-							{...props}
-							aria-label={label}
-							defaultValue={stages[0]}
-							displayValue={(v: string) => v}
-						>
-							{stages.map((stage) => (
-								<SelectOption key={stage} value={stage}>
-									<SelectLabel>{stage}</SelectLabel>
-								</SelectOption>
-							))}
-						</Select>
-					</div>
+					<Select
+						{...props}
+						aria-label={label}
+						defaultValue={stages[0]}
+						displayValue={(v: string) => v}
+					>
+						{stages.map((stage) => (
+							<SelectOption key={stage} value={stage}>
+								<SelectLabel>{stage}</SelectLabel>
+							</SelectOption>
+						))}
+					</Select>
 				)}
 			/>
 

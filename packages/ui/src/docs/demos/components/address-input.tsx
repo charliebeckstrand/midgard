@@ -197,14 +197,12 @@ export function Demo() {
 				of="AddressInput"
 				omit={['placement', 'required', 'nullable', 'closeOnSelect']}
 				render={(props, label) => (
-					<div className="w-72">
-						<AddressInput
-							{...props}
-							aria-label={label}
-							defaultValue={home}
-							provider={mockGooglePlaces}
-						/>
-					</div>
+					<AddressInput
+						{...props}
+						aria-label={label}
+						defaultValue={home}
+						provider={mockGooglePlaces}
+					/>
 				)}
 			/>
 

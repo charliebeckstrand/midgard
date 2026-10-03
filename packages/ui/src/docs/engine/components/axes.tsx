@@ -1,9 +1,17 @@
 'use client'
 
-import { type ReactNode, type Ref, Suspense, use, useLayoutEffect, useRef, useState } from 'react'
-import { createContext } from '../../../core'
+import {
+	type ComponentProps,
+	type ReactNode,
+	type Ref,
+	Suspense,
+	use,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
+import { createContext, dataAttr } from '../../../core'
 import { Flex } from '../../../structure/flex'
-import { Stack } from '../../../structure/stack'
 import type { ComponentApi } from '../api-reference'
 import {
 	type Axis,
@@ -13,6 +21,7 @@ import {
 	isStepAxis,
 	rendersAlike,
 } from '../axes'
+import { noAutofill } from '../no-autofill'
 import { formSignature, lookSignature, stepSignature } from '../step-signature'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
@@ -66,6 +75,12 @@ type AxesProps = {
 	 * @defaultValue true
 	 */
 	captions?: boolean
+	/**
+	 * The size of each frame, as on {@link Example}. Give it when the custom
+	 * examples of the page share a sized frame, so that the generated examples
+	 * show the component at the same width.
+	 */
+	frame?: Pick<ComponentProps<typeof Example>, 'width' | 'minWidth' | 'resize'>
 }
 
 /**
@@ -90,10 +105,11 @@ type AxesProps = {
  * in a later state, such as the panel of a closed dialog. An example with one
  * value also hides.
  *
- * An axis that changes only the document outline, such as the heading level
- * of a title, has nothing to show. Its instances differ in form and look the
- * same ({@link lookSignature}), so its example hides. Its picker keeps each
- * value, and the code of the playground shows the prop.
+ * An axis that changes only the accessibility tree has nothing to show, such
+ * as the heading level of a title or an unstyled `aria-*` attribute. When its
+ * instances differ in form and look the same at the defaults
+ * ({@link lookSignature}), its example and its picker hide. The API reference
+ * still lists the prop.
  *
  * Without API data, for example in a test run, it renders nothing.
  */
@@ -134,11 +150,17 @@ function AxesExamples({
 	omit,
 	title,
 	captions = true,
+	frame,
 }: AxesProps & { component: ComponentApi }) {
-	const axes = axesOf(component, omit)
+	const all = axesOf(component, omit)
+
+	// The axes that change only the accessibility tree. The first read sets it.
+	const [unseen, setUnseen] = useState<ReadonlySet<string> | null>(null)
+
+	const axes = unseen ? all.filter((axis) => !unseen.has(axis.name)) : all
 
 	const [state, setState] = useState<Record<string, AxisValue | undefined>>(() =>
-		Object.fromEntries(axes.map((axis) => [axis.name, axis.default])),
+		Object.fromEntries(all.map((axis) => [axis.name, axis.default])),
 	)
 
 	// The wrapper of each instance, keyed `axis:value`.
@@ -171,16 +193,24 @@ function AxesExamples({
 
 		const alike = (axis: Axis) => rendersAlike(axis.values.map((value) => signatureOf(axis, value)))
 
-		// An axis whose instances differ in form and look the same changes only the outline.
-		const outlineOnly = (axis: Axis) =>
-			!alike(axis) &&
-			rendersAlike(
-				axis.values.map((value) => {
-					const instance = instances.current.get(`${axis.name}:${value}`)
+		// An axis whose instances differ in form and look the same changes only the
+		// accessibility tree. It hides from the first read on.
+		if (!unseen) {
+			const silent = unread.filter(
+				(axis) =>
+					!isStepAxis(axis) &&
+					!alike(axis) &&
+					rendersAlike(
+						axis.values.map((value) => {
+							const instance = instances.current.get(`${axis.name}:${value}`)
 
-					return instance ? lookSignature(instance, valueLabel(value)) : null
-				}),
+							return instance ? lookSignature(instance, valueLabel(value)) : null
+						}),
+					),
 			)
+
+			setUnseen(new Set(silent.map((axis) => axis.name)))
+		}
 
 		live.current ??= new Set(
 			unread.filter((axis) => !isStepAxis(axis) && !alike(axis)).map((axis) => axis.name),
@@ -191,7 +221,7 @@ function AxesExamples({
 
 			// The other axes make a live axis inert when its instances render alike.
 			// The example of an inert axis shows no value, so it hides.
-			const inert = (live.current?.has(axis.name) && alike(axis)) || outlineOnly(axis)
+			const inert = live.current?.has(axis.name) && alike(axis)
 
 			return [axis.name, inert ? [] : axis.values]
 		})
@@ -213,6 +243,7 @@ function AxesExamples({
 	return (
 		<>
 			<Example
+				{...frame}
 				title={title ?? 'Playground'}
 				actions={
 					<Flex wrap gap="sm">
@@ -234,30 +265,31 @@ function AxesExamples({
 					</Flex>
 				}
 			>
-				{render(propsWith(), of)}
+				{/* A playground field gets no autofill and no typing suggestions. The
+				    wrapper takes no box, and the derived code skips it. */}
+				<div ref={noAutofill} className="contents">
+					{render(propsWith(), of)}
+				</div>
 			</Example>
 
 			{/* An example with one value has nothing to compare, so it hides. */}
 			{axes.map(
 				(axis) =>
 					valuesOf(axis).length > 1 && (
-						<Example key={axis.name} title={axisTitle(axis.name, title)}>
-							{/* The instances stack, one to a line. The stack fills the frame, so that an
-							    instance with `w-full` takes the width of the row. */}
-							<Stack gap={captions ? 'lg' : 'sm'} align="start" className="self-stretch">
-								{valuesOf(axis).map((value) => (
-									<AxisInstance
-										key={String(value)}
-										label={valueLabel(value)}
-										caption={captions}
-										ref={(element) => {
-											if (element) instances.current.set(`${axis.name}:${value}`, element)
-										}}
-									>
-										{render(propsWith(axis.name, value), valueLabel(value))}
-									</AxisInstance>
-								))}
-							</Stack>
+						<Example key={axis.name} {...frame} title={axisTitle(axis.name, title)}>
+							{/* Each instance is a child of the frame, so it takes the instance box of the frame, one to a line. */}
+							{valuesOf(axis).map((value) => (
+								<AxisInstance
+									key={String(value)}
+									label={valueLabel(value)}
+									caption={captions}
+									ref={(element) => {
+										if (element) instances.current.set(`${axis.name}:${value}`, element)
+									}}
+								>
+									{render(propsWith(axis.name, value), valueLabel(value))}
+								</AxisInstance>
+							))}
 						</Example>
 					),
 			)}
@@ -284,13 +316,9 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
 
 /**
  * One instance of an axis example. The `axis-value` anchor carries the label,
- * so the page gate can ask that each instance shows it. Without a caption the
- * wrapper takes no box of its own.
- *
- * The stack aligns each instance to the start, so the wrapper takes the width
- * of its content. `max-w-full` keeps the wrapper within the row. An instance
- * with a fixed width and `max-w-full` thus fits a row that is narrower than
- * that width.
+ * so the page gate can ask that each instance shows it. The wrapper is a block
+ * in the instance box of the frame, so the instance takes the width that the
+ * same child takes in a custom example, with or without a caption.
  */
 function AxisInstance({
 	label,
@@ -303,25 +331,16 @@ function AxisInstance({
 	ref?: Ref<HTMLDivElement> | undefined
 	children: ReactNode
 }) {
-	if (!caption) {
-		return (
-			<div ref={ref} data-slot="axis-value" data-label={label} className="contents">
-				{children}
-			</div>
-		)
-	}
-
 	return (
-		<div
-			ref={ref}
-			data-slot="axis-value"
-			data-label={label}
-			data-caption=""
-			className="flex max-w-full flex-col gap-1"
-		>
-			<span data-slot="axis-caption" className="text-xs text-zinc-500 dark:text-zinc-400">
-				{label}
-			</span>
+		<div ref={ref} data-slot="axis-value" data-label={label} data-caption={dataAttr(caption)}>
+			{caption && (
+				<span
+					data-slot="axis-caption"
+					className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400"
+				>
+					{label}
+				</span>
+			)}
 			{children}
 		</div>
 	)

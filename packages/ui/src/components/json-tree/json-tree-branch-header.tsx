@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react'
-import type { KeyboardEvent } from 'react'
+import { type KeyboardEvent, useId } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
@@ -15,6 +15,8 @@ type JsonTreeBranchHeaderProps = {
 	highlighted: boolean
 	/** Carries the tree's single Tab stop. Defaults to the root row, until roving moves the stop in the recursive variant; the virtualized variant passes the first rendered row instead. */
 	tabbable?: boolean
+	/** The id of the child group, which the open row owns. The virtualized variant has no group and omits it. */
+	groupId?: string
 	onToggle: () => void
 } & Partial<FlatSetPosition>
 
@@ -22,7 +24,9 @@ type JsonTreeBranchHeaderProps = {
  * Branch row for a {@link JsonTree}: a `role="treeitem"` toggle button showing
  * the key, the open/close bracket, and — while collapsed — an item-count
  * summary. Shared by the recursive {@link JsonTreeNode} and the virtualized
- * {@link JsonTreeNodeRow}.
+ * {@link JsonTreeNodeRow}. The row takes its name from its own content through
+ * `aria-labelledby`. In the recursive variant, the child group is a sibling of
+ * the row, so the open row owns it through `aria-owns`.
  *
  * @internal
  */
@@ -36,8 +40,11 @@ export function JsonTreeBranchHeader({
 	tabbable,
 	setSize,
 	posInSet,
+	groupId,
 	onToggle,
 }: JsonTreeBranchHeaderProps) {
+	const contentId = useId()
+
 	const openBracket = isArray ? '[' : '{'
 	const closeBracket = isArray ? ']' : '}'
 
@@ -59,6 +66,11 @@ export function JsonTreeBranchHeader({
 				type="button"
 				role="treeitem"
 				aria-expanded={open}
+				// The group is a sibling of the row, so the row owns it. The group is in the
+				// DOM while the row is open, so the reference never dangles.
+				aria-owns={groupId && open ? groupId : undefined}
+				// The content of the row names it, so the text of the owned group stays out.
+				aria-labelledby={contentId}
 				aria-level={depth + 1}
 				aria-setsize={setSize}
 				aria-posinset={posInSet}
@@ -76,7 +88,7 @@ export function JsonTreeBranchHeader({
 						className={cn('rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
 					/>
 				</span>
-				<span className={cn(k.content, highlighted && k.highlight)}>
+				<span id={contentId} className={cn(k.content, highlighted && k.highlight)}>
 					<NodeKey keyName={keyName} />
 					<span className={cn(k.punctuation)}>{openBracket}</span>
 					{!open && (

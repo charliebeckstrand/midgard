@@ -101,6 +101,8 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 5.4 An app renders a link with `Link` from `ui/link`, not with `next/link`. `UIProvider` registers `next/link` under it, so client navigation stays. Biome's `noRestrictedImports` holds the rule in `apps`.
 
+5.5 In `ui`, a ramp is the one place that writes a value for each density step, for example `density-p-[2,3,4]`. A ramp has three or five values. A component makes its size scale from its ramps with `defineScale`, and types its `size` prop with `ScaleStep`. Thus the prop offers only the steps that render with a look of their own. A JS reader resolves its step with `useStep`, which snaps the step to the scale. Do not pick or clamp a step by hand. `size-scale-boundary.test.ts` holds the ramps and the hand steps, and its backlog maps list the files of today. `browser/geometry/size-steps.test.tsx` renders each step of each `size` axis, and fails when two neighbor steps render the same.
+
 ## 6. State & data
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.
@@ -126,6 +128,8 @@ The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runt
 8.1 kebab-case files/directories; PascalCase components; `useCamelCase` hooks (`use-*.ts`); PascalCase types with a contextual suffix (`<Component>Props`, `<Thing>Option`, `<Feature>State`). Biome's `useFilenamingConvention` pins the file names.
 
 8.2 Feature folders mirror their route segment. Co-located helpers carry intent-revealing suffixes: `<feature>-api.ts`, `types.ts`, `constants.ts`, `utilities.ts`.
+
+8.3 A provider takes its name from what it holds. `<Unit>Provider` holds the full state of one unit, as `ToastProvider` does. `<Unit><Thing>Provider` registers one kind of thing for a unit, as `ChatEmbedProvider` and `DashboardWidgetProvider` do. A registry takes its props from a `<Unit><Thing>Registry` type in the `types.ts` of the unit. A provider that serves one unit stays in the directory of that unit. `ui/providers/*` holds only the providers that many unrelated components read.
 
 ## 9. Imports
 

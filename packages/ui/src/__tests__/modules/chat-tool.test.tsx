@@ -67,6 +67,16 @@ describe('ChatTool', () => {
 			expect(bySlot(container, 'chat-tool-detail')).toHaveTextContent('Matched 12 of 240 rows.')
 		})
 
+		it('renders a `#` heading in the detail as an h2, under the page outline', async () => {
+			const user = setupUser()
+
+			renderTool(tool({ detail: '# Query' }))
+
+			await user.click(screen.getByRole('button', { name: /Filter shipments/ }))
+
+			expect(screen.getByRole('heading', { name: 'Query' }).tagName).toBe('H2')
+		})
+
 		it('starts closed, because the reader wants the answer before the working', () => {
 			const { container } = renderTool(withDetail)
 

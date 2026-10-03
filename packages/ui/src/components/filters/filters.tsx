@@ -5,7 +5,12 @@ import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import type { AccessibleName } from '../../types'
-import { FiltersContext, type FiltersContextValue, type FiltersLayout } from './context'
+import {
+	FiltersContext,
+	type FiltersContextValue,
+	type FiltersLayout,
+	FiltersNameContext,
+} from './context'
 
 type FilterValue = Record<string, unknown>
 
@@ -131,6 +136,12 @@ export function Filters<T extends FilterValue = FilterValue>({
 	// (WCAG 4.1.3). The hook skips the initial value.
 	useA11yAnnouncements(`${activeCount} ${activeCount === 1 ? 'filter' : 'filters'} active`)
 
+	const label = 'aria-label' in labelProps ? labelProps['aria-label'] : undefined
+
+	const labelledBy = 'aria-labelledby' in labelProps ? labelProps['aria-labelledby'] : undefined
+
+	const name = useMemo(() => ({ label, labelledBy }), [label, labelledBy])
+
 	const context: FiltersContextValue = useMemo(
 		() => ({ value: filterValue, setValue, clear: handleClear, activeCount, layout }),
 		[filterValue, setValue, handleClear, activeCount, layout],
@@ -138,15 +149,17 @@ export function Filters<T extends FilterValue = FilterValue>({
 
 	return (
 		<FiltersContext value={context}>
-			{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
+			<FiltersNameContext value={name}>
+				{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
 			    bar sizes as a `<div>` does. */}
-			<fieldset
-				{...labelProps}
-				data-slot="filters"
-				className={cn('flex min-w-auto flex-col gap-4', className)}
-			>
-				{children}
-			</fieldset>
+				<fieldset
+					{...labelProps}
+					data-slot="filters"
+					className={cn('flex min-w-auto flex-col gap-4', className)}
+				>
+					{children}
+				</fieldset>
+			</FiltersNameContext>
 		</FiltersContext>
 	)
 }

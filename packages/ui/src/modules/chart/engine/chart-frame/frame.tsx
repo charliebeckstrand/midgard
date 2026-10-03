@@ -11,7 +11,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../../../core'
+import { announce, cn } from '../../../../core'
 import { type FrameReserve, useComposedRef } from '../../../../hooks'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
@@ -25,7 +25,7 @@ import { ChartPlotBox } from '../chart-plot-box'
 import type { ChartSnap } from '../chart-snap'
 import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'
-import { ChartTooltip } from '../chart-tooltip'
+import { ChartTooltip, describeReadout } from '../chart-tooltip'
 import {
 	type ChartEmphasis,
 	ChartEmphasisContext,
@@ -310,6 +310,13 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	focus?: ChartFocusTargets
 	/**
+	 * The text of the reference line at an index of {@link focus}'s `references`,
+	 * or `null` for none. A key that moves the cursor onto the line speaks this
+	 * text through the shared polite live region, because the rule's tooltip sits
+	 * in the `aria-hidden` plot. Absent, a stop on a rule speaks nothing.
+	 */
+	describeReference?: (reference: number) => string | null
+	/**
 	 * The keyboard cursor emphasizes the series it lands on (`null` off any), in
 	 * the same channel as the legend. The marks then recede the rest and the
 	 * tooltip dims their rows. Off, keyboard navigation leaves the emphasis alone:
@@ -385,6 +392,7 @@ export function ChartFrame({
 	customTooltip,
 	snap,
 	focus,
+	describeReference,
 	keyboardEmphasis = false,
 	selected = null,
 	orientation,
@@ -453,6 +461,23 @@ export function ChartFrame({
 	// keeps the caller's `tooltip`.
 	const tooltipShown = tooltip && !spark
 
+	// The tooltip is `aria-hidden`, so a key that moves the cursor onto a point
+	// also speaks the readout of that point through the shared polite live
+	// region. A pointer move speaks nothing.
+	const announceRead = (index: number, series: number | null) => {
+		const text = readout && describeReadout(readout(), index, series, readoutOrder)
+
+		if (text) announce(text)
+	}
+
+	// The same for a key that moves the cursor onto a reference line: it speaks the
+	// label and the value of that line.
+	const announceReference = (reference: number) => {
+		const text = describeReference?.(reference)
+
+		if (text) announce(text)
+	}
+
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does — a tab stop only where a readout can answer it.
 	const keyboard = useChartKeyboard(
@@ -462,6 +487,8 @@ export function ChartFrame({
 		hoverStore,
 		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
+		announceRead,
+		announceReference,
 	)
 
 	// The marks recede when either input emphasizes a reference: the pointer over a

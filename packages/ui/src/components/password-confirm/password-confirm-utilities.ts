@@ -1,5 +1,3 @@
-import type { SyntheticEvent } from 'react'
-
 /** Mismatch status for the confirm coordinator: `warning` only once both fields are non-empty and unequal. @internal */
 export type Status = 'idle' | 'warning'
 
@@ -28,28 +26,11 @@ export function deriveStatus(password: string, confirm: string, lastEdited: Last
 }
 
 /**
- * Delegated `input` handler for the coordinator: records the password field's
- * value and name from a bubbled event.
+ * Converts an input value to the text that the coordinator compares.
  *
- * @remarks
- * Ignores events from non-input targets and from the confirmation field (which
- * carries `data-slot="password-confirm-input"`), so only the password field feeds these
- * setters. Marks `'password'` as last edited.
+ * @returns An empty string for `null` or `undefined`, else the value as a string.
  * @internal
  */
-export function handlePasswordInput(
-	event: SyntheticEvent<HTMLDivElement>,
-	setPassword: (value: string) => void,
-	setPasswordName: (name: string | undefined) => void,
-	setLastEdited: (value: LastEdited) => void,
-) {
-	const target = event.target
-
-	if (!(target instanceof HTMLInputElement)) return
-
-	if (target.dataset.slot === 'password-confirm-input') return
-
-	setPassword(target.value)
-	setPasswordName(target.name || undefined)
-	setLastEdited('password')
+export function toFieldText(value: unknown): string {
+	return value == null ? '' : String(value)
 }

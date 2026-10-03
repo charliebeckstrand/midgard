@@ -12,8 +12,14 @@ export { dataAttr } from './data-attr'
 export {
 	type ControlStep,
 	type DensityStep,
+	defineScale,
 	densitySteps,
 	type InnerStep,
+	type Ramp,
+	type RampSteps,
+	type Scale,
+	type ScaleStep,
+	snapToScale,
 	stepDown,
 	toInnerStep,
 } from './density'

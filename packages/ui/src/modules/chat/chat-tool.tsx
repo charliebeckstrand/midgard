@@ -7,6 +7,16 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/chat-message'
 import type { ChatToolPart, ChatToolStatus } from './engine/chat-content/types'
 
+/**
+ * The number of levels that the Markdown of a message adds to each heading. The
+ * app does not write the content of a message, so a `#` heading in it must not
+ * add an `<h1>` to the page. With `1`, it renders as an `<h2>`. The look of the
+ * heading does not change.
+ *
+ * @internal
+ */
+export const MESSAGE_HEADING_OFFSET = 1
+
 /** How one status draws and what it is called. @internal */
 type StatusLook = { status: StatusDotProps['status']; label: string; pulse: boolean }
 
@@ -80,7 +90,7 @@ export function ChatTool({ part, className }: ChatToolProps) {
 					<CollapseTrigger className={cn(k.tool.head, k.tool.trigger)}>{head}</CollapseTrigger>
 					<CollapsePanel>
 						<div data-slot="chat-tool-detail" className={cn(k.tool.details)}>
-							<Markdown>{part.detail}</Markdown>
+							<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{part.detail}</Markdown>
 						</div>
 					</CollapsePanel>
 				</Collapse>

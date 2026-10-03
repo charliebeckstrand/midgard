@@ -98,4 +98,20 @@ describe('ChatMessage', () => {
 			expect(markdown?.className ?? '').not.toMatch(/\[&_/)
 		},
 	)
+
+	// The app does not write a message, so its headings sit one level under the
+	// page outline: a message must not add an `<h1>` to the page.
+	it('renders a `#` heading in a string message as an h2', () => {
+		renderUI(<ChatMessage>{'# Summary'}</ChatMessage>)
+
+		expect(screen.getByRole('heading', { name: 'Summary' }).tagName).toBe('H2')
+
+		expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument()
+	})
+
+	it('renders a `#` heading in a text part as an h2', () => {
+		renderUI(<ChatMessage>{[{ kind: 'text', id: 'p1', text: '# Summary' }]}</ChatMessage>)
+
+		expect(screen.getByRole('heading', { name: 'Summary' }).tagName).toBe('H2')
+	})
 })

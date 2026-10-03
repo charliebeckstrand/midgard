@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo, useRef, useState } from 'react'
+import { Children, isValidElement, type ReactNode, useMemo, useRef, useState } from 'react'
 import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { Heading } from '../../../components/heading'
@@ -26,9 +26,17 @@ import {
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
  * slots frame the preview.
  *
- * Each child aligns to the start and keeps the width of its content, as an
- * instance of an axis example does. A child that must fill the frame sets its
- * own width, such as `w-full`.
+ * Each child sits in its own instance box, as on a page in a column of 24rem.
+ * The box widens to fit wider content, up to the frame, and a narrow frame
+ * narrows it. In the box, a child takes the width that it takes in the flow of
+ * a page. A component with a width of its own, such as a button with `w-fit`,
+ * keeps that width at the start. A block, such as an input or a progress bar,
+ * fills the box. Each example thus shows a component at one width, with no
+ * width in the demo.
+ *
+ * A frame with a width of its own, from `width` or `resize`, is itself the
+ * column. Each box then fills the frame, so a block follows the width that the
+ * reader drags.
  *
  * The optional `width` and `minWidth` props size the frame. `resize` makes it
  * horizontally draggable via a right-edge handle, and switches its border to
@@ -122,6 +130,9 @@ export function Example({
 			? Math.max(initialWidth, minWidth)
 			: initialWidth
 
+	// A frame with a width of its own is the column of its children.
+	const sized = initialWidth !== undefined || Boolean(resolvedResize)
+
 	const { containerRef, width, floor, resizing, handlers } = useExampleResize(
 		boundedResize,
 		startWidth,
@@ -170,12 +181,19 @@ export function Example({
 						{prefix}
 					</div>
 				)}
-				{/* `max-w-full` keeps a wide child within the frame. */}
 				<div
 					data-example-section=""
-					className="flex flex-col items-start p-4 gap-4 overflow-x-auto *:max-w-full"
+					className="flex flex-col items-start p-4 gap-4 overflow-x-auto"
 				>
-					{children}
+					{Children.toArray(children).map((child, index) => (
+						<div
+							key={isValidElement(child) ? child.key : index}
+							data-slot="example-instance"
+							className={sized ? 'w-full' : INSTANCE}
+						>
+							{child}
+						</div>
+					))}
 				</div>
 				{preview && (
 					<div
@@ -223,3 +241,12 @@ export function Example({
 		</Stack>
 	)
 }
+
+/**
+ * The box of each child of the frame. `w-max` takes the width of the content,
+ * and the minimum gives a block the room of a form column. The minimum is the
+ * frame when the frame is narrower than 24rem. `max-w-full` keeps the box
+ * within the frame, and long text wraps at that width. The box is a block, so
+ * its child takes the width that it takes on a page.
+ */
+const INSTANCE = 'w-max min-w-[min(24rem,100%)] max-w-full'

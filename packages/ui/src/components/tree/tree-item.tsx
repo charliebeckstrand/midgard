@@ -1,7 +1,7 @@
 'use client'
 
-import { Children, type ReactElement, type ReactNode } from 'react'
-import { useControllableFlag } from '../../hooks/use-controllable'
+import { Children, type ReactElement, type ReactNode, useId } from 'react'
+import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
 
@@ -18,16 +18,16 @@ export type TreeItemProps = {
 	/** Called when the user toggles the item. Fires in both controlled and uncontrolled modes. */
 	onOpenChange?: (open: boolean) => void
 	/**
-	 * Fires when the row is activated, by a click or by Enter/Space.
+	 * Fires when the row is activated, by a click or by Enter. Space also
+	 * activates a row that is not checkable.
 	 *
-	 * A branch row toggles, which `onOpenChange` already reports. A leaf row
-	 * forwards the activation to the first interactive control in `prefix` and
-	 * otherwise does nothing a caller can see. Without this, selecting a leaf
-	 * meant planting a control in `prefix` to catch the synthesized click. It
-	 * fires for both kinds of row, because the fact reported is the activation
-	 * rather than what follows it. A click inside `prefix` or `suffix` is that
-	 * slot's own and never reaches here. ArrowRight and ArrowLeft move the
-	 * expansion, not the row, so neither fires.
+	 * A branch row toggles, which `onOpenChange` already reports. A checkable
+	 * leaf row toggles its check, which `onCheckedChange` reports. Another leaf
+	 * row does nothing a caller can see, so this is how a caller selects a leaf.
+	 * It fires for each kind of row, because the fact reported is the activation
+	 * rather than what follows it. A click on the check box and Space on a
+	 * checkable row toggle the check only, so neither fires. ArrowRight and
+	 * ArrowLeft move the expansion, not the row, so neither fires.
 	 */
 	onAction?: () => void
 	/**
@@ -40,9 +40,36 @@ export type TreeItemProps = {
 	 * "not selected" on each other row.
 	 */
 	current?: boolean
-	/** Slot before the icon (e.g. a Checkbox). Clicks here don't toggle the row. */
+	/**
+	 * The controlled check state. A value makes the row a checkable item: the row
+	 * gets `aria-checked` and draws a check box before the icon.
+	 *
+	 * @remarks
+	 * The row is the checkbox, as in the ARIA checkbox tree. Do not put a
+	 * Checkbox in `prefix`. Use `'mixed'` for a branch with only some children
+	 * checked. The tree does not compute it, because the caller holds the state
+	 * of each item.
+	 */
+	checked?: boolean | 'mixed'
+	/** The initial check state (uncontrolled). A value makes the row a checkable item. Ignored when `checked` is provided. */
+	defaultChecked?: boolean | 'mixed'
+	/**
+	 * Called when the user toggles the check, by Space, by a click on the box, or
+	 * by an activation of a leaf row. A `'mixed'` row toggles to `true`. Fires in
+	 * both controlled and uncontrolled modes.
+	 */
+	onCheckedChange?: (checked: boolean) => void
+	/**
+	 * Slot before the icon, for content such as a status dot. It must hold no
+	 * interactive control: a treeitem is one control, so a nested control is a
+	 * second Tab stop that AT reads as part of the row. A click here activates
+	 * the row.
+	 */
 	prefix?: ReactNode
-	/** Slot after the label. Clicks here don't toggle the row. */
+	/**
+	 * Slot after the label, for content such as a count or a badge. It must hold
+	 * no interactive control, as `prefix`. A click here activates the row.
+	 */
 	suffix?: ReactNode
 	/** Nested tree items. */
 	children?: ReactNode
@@ -51,17 +78,23 @@ export type TreeItemProps = {
 
 /**
  * A `role="treeitem"` row within a `<Tree>`. It renders a chevron when it has
- * children, the optional `icon` and `label`, and `prefix`/`suffix` slots
- * whose clicks don't toggle expansion. Tracks expanded state controllably
+ * children, an optional check box, the optional `icon` and `label`, and
+ * decorative `prefix`/`suffix` slots. Tracks expanded state controllably
  * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), nests its
  * `children` as a collapsible group, and inherits depth and indent from tree
  * context. Its row takes the step of the nearest density scope.
  *
  * @remarks
  * Client component. Reflects expansion as `aria-expanded` and nesting as
- * `aria-level`/`aria-posinset`/`aria-setsize`. Keyboard: Enter/Space toggle (or
- * activate a leaf's prefix control), ArrowRight expands a collapsed branch,
- * ArrowLeft collapses an open one; cross-item roving lives on {@link Tree}.
+ * `aria-level`/`aria-posinset`/`aria-setsize`. The child group is a sibling of
+ * the row in the DOM, so the open row owns it through `aria-owns`. The row takes
+ * its name from its `label` alone through `aria-labelledby`, so the text of an
+ * affix or of the owned group does not join the name. With `checked` or
+ * `defaultChecked`, the row is a checkable item and reflects the state as
+ * `aria-checked`. Keyboard: Enter toggles a branch (or the check of a checkable
+ * leaf), Space toggles the check of a checkable row and acts as Enter on
+ * another row, ArrowRight expands a collapsed branch, ArrowLeft collapses an
+ * open one; cross-item roving lives on {@link Tree}.
  *
  * @see {@link Tree}
  */
@@ -73,6 +106,9 @@ export function TreeItem({
 	onOpenChange,
 	onAction,
 	current,
+	checked: controlledChecked,
+	defaultChecked,
+	onCheckedChange,
 	prefix,
 	suffix,
 	children,
@@ -84,11 +120,23 @@ export function TreeItem({
 		onValueChange: onOpenChange,
 	})
 
+	const [checked, setChecked] = useControllable<boolean | 'mixed'>({
+		value: controlledChecked,
+		defaultValue: defaultChecked,
+		onValueChange: (next) => onCheckedChange?.(next === true),
+	})
+
+	// A `'mixed'` row toggles to `true`, as a tri-state checkbox does.
+	const toggleChecked = () => setChecked((prev) => prev !== true)
+
 	// `Children.toArray` drops `null`/`undefined`/`false` and empty arrays, so a
 	// falsy or empty `children` reads as a leaf — no chevron, `aria-expanded`
 	// stays off. A bare `!= null` check would announce `children={[]}` as a
 	// collapsed parent.
 	const hasChildren = Children.toArray(children).length > 0
+
+	// The row owns the group by this id, which keeps two trees apart.
+	const groupId = useId()
 
 	return (
 		<div data-slot="tree-item">
@@ -98,14 +146,17 @@ export function TreeItem({
 				prefix={prefix}
 				suffix={suffix}
 				current={current}
+				checked={checked}
+				onToggleChecked={toggleChecked}
 				hasChildren={hasChildren}
 				onAction={onAction}
 				open={open}
 				onOpenChange={setOpen}
+				groupId={groupId}
 				className={className}
 			/>
 			{hasChildren && (
-				<TreeItemChildren open={open} label={label}>
+				<TreeItemChildren id={groupId} open={open} label={label}>
 					{children}
 				</TreeItemChildren>
 			)}

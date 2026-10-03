@@ -162,7 +162,11 @@ export function SignaturePad({
 				// A Form field error (from `name`) or an ambient error severity marks
 				// it invalid; otherwise a warning or success severity shows.
 				{...validation}
-				className={cn(k.canvas, (resolvedDisabled || resolvedReadOnly) && 'cursor-not-allowed')}
+				// A disabled pad refuses input; a read-only pad only shows its value.
+				className={cn(
+					k.canvas,
+					resolvedDisabled ? 'cursor-not-allowed' : resolvedReadOnly && 'cursor-default',
+				)}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={commit}

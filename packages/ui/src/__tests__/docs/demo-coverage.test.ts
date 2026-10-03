@@ -26,7 +26,7 @@ function directoryNames(dir: string): string[] {
 /**
  * Demo file basenames (sans `.tsx`). A component demo is
  * `demos/components/<name>.tsx`; a few provider-like components (e.g.
- * `headless`, `toast`) are namespaced under `demos/providers/<name>.tsx`, so
+ * `headless`) are namespaced under `demos/providers/<name>.tsx`, so
  * both directories count toward coverage. A structure demo is
  * `demos/structure/<name>.tsx`.
  */

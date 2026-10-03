@@ -47,14 +47,14 @@ export function KanbanColumn({
 
 	// The board takes its columns as data and its structure as children, so the
 	// same key is written twice and nothing joins them. A key that names no
-	// column silently renders an empty, undroppable section.
+	// column silently renders an empty group that takes no drop.
 	useEffect(() => {
 		if (process.env.NODE_ENV === 'production') return
 
 		if (known !== undefined) return
 
 		console.warn(
-			`Kanban: <KanbanColumn value="${columnId}"> names no column in the board's \`columns\`. The section renders, takes no drop, and holds no cards.`,
+			`Kanban: <KanbanColumn value="${columnId}"> names no column in the board's \`columns\`. The column renders, takes no drop, and holds no cards.`,
 		)
 	}, [columnId, known])
 

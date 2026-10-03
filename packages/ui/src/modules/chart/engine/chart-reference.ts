@@ -55,6 +55,19 @@ export type ChartReferenceLine = {
 /** Formats a reference value with its own axis's formatter. @internal */
 export type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
 
+/**
+ * The text of one rule: its label and its value, or its value alone where it
+ * has no label. The visually-hidden list reads it, and the keyboard cursor
+ * speaks it for a stop on the rule.
+ *
+ * @internal
+ */
+export function referenceText(line: ChartReferenceLine, format: ReferenceFormat): string {
+	const value = format(line.value, line.axis ?? 'y')
+
+	return line.label ? `${line.label}: ${value}` : value
+}
+
 /** The neutral de-emphasis slot a reference takes until colored. @internal */
 export const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
 

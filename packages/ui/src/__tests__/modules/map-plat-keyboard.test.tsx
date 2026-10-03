@@ -1,6 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	liveRegion,
+	renderUI,
+	waitFor,
+} from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
@@ -119,6 +128,32 @@ describe('MapPlat keyboard navigation', () => {
 		expect(readout(container)).toBeNull()
 	})
 
+	it('speaks the readout of each region that an arrow key moves the cursor onto', async () => {
+		const { plot } = renderNavigable(categoricalPlat())
+
+		// The tooltip is `aria-hidden`, so the live region carries the readout.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('Alpha, East')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement('Beta, West')
+
+		expect(liveRegion()).toHaveAttribute('aria-atomic', 'true')
+	})
+
+	it('speaks nothing for a stop with no readout', async () => {
+		const { plot } = renderNavigable(categoricalPlat())
+
+		// Gamma matches no row, so the tooltip stays away and the cursor is silent.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		await act(async () => {})
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+	})
+
 	it('takes no tab stop when the cursor would have nothing to output', () => {
 		const { container } = renderUI(categoricalPlat({ tooltip: false }))
 
@@ -142,6 +177,39 @@ describe('MapPlat keyboard navigation', () => {
 		fireEvent.keyDown(plot as Element, { key: 'Enter' })
 
 		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+	})
+
+	it('speaks the name of each region a key moves onto when the readout is off', async () => {
+		const { plot } = renderNavigable(categoricalPlat({ tooltip: false, onRegionClick: vi.fn() }))
+
+		// No tooltip shows the name, so the live region carries it alone.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Alpha'))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Beta'))
+	})
+
+	it('speaks the new scale for each zoom key', async () => {
+		const { plot } = renderNavigable(categoricalPlat({ zoom: true }))
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom 160%'))
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom 256%'))
+
+		fireEvent.keyDown(plot, { key: '-' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom 160%'))
+
+		fireEvent.keyDown(plot, { key: '0' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom reset'))
 	})
 
 	it('takes no tab stop before the geography lands', () => {

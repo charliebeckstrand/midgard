@@ -276,7 +276,7 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 	const pick = (state: string) => setPicked((prev) => (prev === state ? null : state))
 
 	return (
-		<Stack gap="md" full>
+		<Stack gap="md">
 			<Flex>
 				<Select<string>
 					aria-label="State"

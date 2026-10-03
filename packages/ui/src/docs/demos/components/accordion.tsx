@@ -33,7 +33,7 @@ export function Demo() {
 				render={(props) => (
 					// All the sections start closed. An open panel is a named region, and the
 					// same name in each instance breaks the landmark rule.
-					<Accordion {...props} className="w-96 max-w-full">
+					<Accordion {...props}>
 						{items.map((item) => (
 							<AccordionItem key={item.value} value={item.value}>
 								<AccordionTrigger>{item.title}</AccordionTrigger>

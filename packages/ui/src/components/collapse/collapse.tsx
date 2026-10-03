@@ -28,8 +28,9 @@ export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'
 	 */
 	onOpenComplete?: () => void
 	/**
-	 * Animation style for the panel. `'fade'` for height + opacity, `'slide'`
-	 * for height only, `false` to disable.
+	 * Animation style for the panel. `'fade'` animates height and opacity.
+	 * `'slide'` animates height and moves the content down with the panel edge.
+	 * `false` disables the animation.
 	 * @defaultValue 'fade'
 	 */
 	animate?: 'fade' | 'slide' | false

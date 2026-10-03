@@ -20,7 +20,11 @@ import { FileUploadButton, FileUploadDrop } from '../../../components/file-uploa
 import { Input } from '../../../components/input'
 import { MaskInput, phoneMask, zipcodeMask } from '../../../components/mask-input'
 import { NumberInput } from '../../../components/number-input'
-import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
+import {
+	PasswordConfirm,
+	PasswordConfirmNew,
+	PasswordConfirmRepeat,
+} from '../../../components/password-confirm'
 import { PasswordInput } from '../../../components/password-input'
 import { PasswordStrength } from '../../../components/password-strength'
 import { Radio, RadioField, RadioGroup, RadioSkeleton } from '../../../components/radio'
@@ -151,7 +155,7 @@ export const inputCases: readonly Case[] = [
 	{
 		name: 'checkbox',
 		element: (
-			<CheckboxGroup key="c">
+			<CheckboxGroup aria-label="Terms" key="c">
 				<CheckboxField>
 					<Checkbox />
 					<Label>Accept terms and conditions</Label>
@@ -465,11 +469,11 @@ export const inputCases: readonly Case[] = [
 			<PasswordConfirm key="pwc" warning="Passwords do not match">
 				<Field>
 					<Label>Password</Label>
-					<PasswordInput placeholder="Enter password" autoComplete="new-password" />
+					<PasswordConfirmNew placeholder="Enter password" autoComplete="new-password" />
 				</Field>
 				<Field>
 					<Label>Confirm password</Label>
-					<PasswordConfirmInput placeholder="Confirm password" autoComplete="new-password" />
+					<PasswordConfirmRepeat placeholder="Confirm password" autoComplete="new-password" />
 				</Field>
 			</PasswordConfirm>
 		),

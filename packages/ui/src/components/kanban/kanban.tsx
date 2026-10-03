@@ -39,7 +39,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
  * `columns` array through `onReorder`. The board is read-only when `onReorder`
  * is omitted or `disabled` is set. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
- * Compose the column header/body slots within.
+ * Compose the column header/body slots within. A pointer drags a card from any
+ * part of it, and the keyboard lifts a card from its {@link KanbanCardHandle}.
  *
  * @remarks
  * Client component. The board is a named `role="region"` (`<section>`), so the

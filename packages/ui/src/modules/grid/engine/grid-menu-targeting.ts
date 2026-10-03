@@ -2,9 +2,18 @@ import type { MouseEvent, RefObject } from 'react'
 import type { GridMenuItem } from '../types'
 import { GRID_ROLE } from './grid-constants'
 
-/** Opens the menu with a point's resolved items; an empty/absent set no-ops. @internal */
+/**
+ * The menu that a right-click resolves to: its items, and the accessible name of
+ * the menu. A context menu has no trigger to name it, so the name comes from
+ * the target, such as "Name column menu".
+ *
+ * @internal
+ */
+export type GridMenuResolution = { items: GridMenuItem[]; name: string }
+
+/** Opens the menu with a point's resolved menu; an empty/absent set no-ops. @internal */
 export type CommitMenu = (
-	items: GridMenuItem[] | null,
+	menu: GridMenuResolution | null,
 	anchor: HTMLElement,
 	x: number,
 	y: number,
@@ -22,7 +31,7 @@ export type CommitMenu = (
 export function tryGroupMenu(
 	target: HTMLElement,
 	event: MouseEvent<HTMLDivElement>,
-	resolveGroupItems: (key: string, header: HTMLElement) => GridMenuItem[] | null,
+	resolveGroupItems: (key: string, header: HTMLElement) => GridMenuResolution | null,
 	commit: CommitMenu,
 ): boolean {
 	const groupRow = target.closest<HTMLElement>('tr[data-group-row]')
@@ -50,7 +59,7 @@ export function tryGroupMenu(
 export function tryColumnGroupMenu(
 	target: HTMLElement,
 	event: MouseEvent<HTMLDivElement>,
-	resolveColumnGroupItems: (id: string) => GridMenuItem[] | null,
+	resolveColumnGroupItems: (id: string) => GridMenuResolution | null,
 	commit: CommitMenu,
 ): boolean {
 	const band = target.closest<HTMLElement>('th[data-group-band]')
@@ -81,7 +90,7 @@ const TEXT_FIELD =
 export function tryCellMenu(
 	target: HTMLElement,
 	event: MouseEvent<HTMLDivElement>,
-	resolveItems: (target: HTMLElement) => GridMenuItem[] | null,
+	resolveItems: (target: HTMLElement) => GridMenuResolution | null,
 	commit: CommitMenu,
 ): boolean {
 	const cell = target.closest<HTMLElement>('td[data-grid-col], th[data-grid-col]')
@@ -111,7 +120,7 @@ export function tryCellMenu(
  */
 export function openKeyboardMenu(
 	target: HTMLElement,
-	resolveItems: (target: HTMLElement) => GridMenuItem[] | null,
+	resolveItems: (target: HTMLElement) => GridMenuResolution | null,
 	commit: CommitMenu,
 	returnFocus: RefObject<HTMLElement | null>,
 ): void {
@@ -126,28 +135,28 @@ export function openKeyboardMenu(
 
 	if (!active) return
 
-	const items = resolveItems(active)
+	const menu = resolveItems(active)
 
-	if (!items || items.length === 0) return
+	if (!menu || menu.items.length === 0) return
 
 	returnFocus.current = grid
 
 	const rect = active.getBoundingClientRect()
 
-	commit(items, active, rect.left, rect.bottom)
+	commit(menu, active, rect.left, rect.bottom)
 }
 
 /**
- * Resolves a right-click to its header or cell menu items, or `null` when it hit
+ * Resolves a right-click to its header or cell menu, or `null` when it hit
  * neither a header nor a data cell.
  *
  * @internal
  */
 export function resolveTarget(
 	target: HTMLElement,
-	resolveColumn: (columnId: string) => GridMenuItem[] | null,
-	resolveCell: (columnId: string, rowKey: string, text: string) => GridMenuItem[] | null,
-): GridMenuItem[] | null {
+	resolveColumn: (columnId: string) => GridMenuResolution | null,
+	resolveCell: (columnId: string, rowKey: string, text: string) => GridMenuResolution | null,
+): GridMenuResolution | null {
 	const th = target.closest<HTMLElement>('th[data-grid-col]')
 
 	if (th?.dataset.gridCol !== undefined) return resolveColumn(th.dataset.gridCol)

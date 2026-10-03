@@ -11,7 +11,7 @@ export function Demo() {
 			render={(props, label) => (
 				// The tint and the subtle outline show the radius when the background is unset or clear.
 				// The button shows the density step.
-				<Box p="lg" bg="tint" outline="subtle" className="w-40" {...props}>
+				<Box p="lg" bg="tint" outline="subtle" {...props}>
 					<Stack gap="sm">
 						<span className="text-sm">{label}</span>
 						<Button>Action</Button>

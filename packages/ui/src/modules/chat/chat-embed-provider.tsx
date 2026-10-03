@@ -1,12 +1,8 @@
 'use client'
 
 import { type ReactNode, useMemo, useState } from 'react'
-import {
-	ChatEmbedContext,
-	type ChatEmbedRegistry,
-	type ChatEmbedScope,
-	useChatEmbeds,
-} from './context'
+import { ChatEmbedContext, type ChatEmbedScope, useChatEmbeds } from './context'
+import type { ChatEmbedRegistry } from './types'
 
 /** Props for {@link ChatEmbedProvider}. */
 export type ChatEmbedProviderProps = ChatEmbedRegistry & {
