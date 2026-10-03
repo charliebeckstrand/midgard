@@ -62,6 +62,14 @@ export type JsonTreeProps = {
 	 * spacers and the first window use it.
 	 */
 	virtualize?: JsonTreeVirtualize
+	/**
+	 * Accessible name for the tree.
+	 *
+	 * @defaultValue `rootKey`, else `'JSON'`
+	 */
+	'aria-label'?: string
+	/** Id of a visible element that names the tree. It replaces the default `aria-label`. */
+	'aria-labelledby'?: string
 	className?: string
 }
 
@@ -94,9 +102,14 @@ export function JsonTree({
 	onExpandedChange,
 	search,
 	virtualize,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
 	className,
 }: JsonTreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
+
+	// A tree needs a name. A visible label replaces the default.
+	const label = ariaLabelledby === undefined ? (ariaLabel ?? rootKey ?? 'JSON') : ariaLabel
 
 	// Outlives the nodes that write it, so a collapsed-then-reopened branch
 	// restores the expansions made inside it. See `JsonTreeContext.userOpen`.
@@ -230,6 +243,8 @@ export function JsonTree({
 				virtualize={virtualize}
 				maxHeight={virtualize.maxHeight}
 				onKeyDown={handleRovingKeyDown}
+				aria-label={label}
+				aria-labelledby={ariaLabelledby}
 				className={className}
 			/>
 		)
@@ -240,6 +255,8 @@ export function JsonTree({
 			<div
 				ref={ref}
 				role="tree"
+				aria-label={label}
+				aria-labelledby={ariaLabelledby}
 				data-slot="json-tree"
 				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}

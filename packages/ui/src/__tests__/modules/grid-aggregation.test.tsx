@@ -253,6 +253,26 @@ describe('Grid aggregation rendering', () => {
 		expect(flat.container.querySelector('[data-total-row="grand"]')?.textContent).toContain('$1200')
 	})
 
+	// Each total reads with the "Total" label as its row header.
+	it('makes the grand-total label a row header', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={sales} getKey={getKey} grandTotalRow />,
+		)
+
+		const label = container.querySelector('[data-total-row="grand"] > :first-child')
+
+		expect(label?.tagName).toBe('TH')
+
+		expect(label).toHaveAttribute('scope', 'row')
+
+		expect(label).toHaveTextContent('Total')
+
+		// The label keeps the weight of the figures, not the bold of a column header.
+		expect(label).toHaveClass('font-medium')
+
+		expect(label).not.toHaveClass('font-bold')
+	})
+
 	it('recomputes the grand total when the rows change', () => {
 		const view = renderUI(<Grid columns={columns} rows={sales} getKey={getKey} grandTotalRow />)
 

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 import { cn, composeEventHandlers } from '../../core'
+import { useAriaIds } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { useHeadless } from '../../providers/headless/context'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
 import { useFormValue } from '../form/use-form-value'
@@ -27,6 +29,44 @@ export type CurrencyInputProps = Omit<
 }
 
 /**
+ * The affixes of a {@link CurrencyInput} and its `aria-describedby`. The symbol
+ * goes in the slot that the locale puts it in. A slot from the caller wins.
+ *
+ * The symbol is text in an affix, so focus mode does not read it. The symbol
+ * therefore describes the input, unless the caller replaces its slot. A
+ * headless input has no affix, so it gets no symbol id.
+ *
+ * @internal
+ */
+function useSymbolAffix({
+	symbol,
+	symbolIsPrefix,
+	prefix,
+	suffix,
+	ariaDescribedBy,
+}: {
+	symbol: string
+	symbolIsPrefix: boolean
+	prefix: ReactNode
+	suffix: ReactNode
+	ariaDescribedBy: string | undefined
+}) {
+	const headless = useHeadless()
+
+	const id = useId()
+
+	const shows = !headless && (symbolIsPrefix ? prefix : suffix) === undefined
+
+	const node = shows ? <span id={id}>{symbol}</span> : undefined
+
+	return {
+		prefix: prefix ?? (symbolIsPrefix ? node : undefined),
+		suffix: suffix ?? (symbolIsPrefix ? undefined : node),
+		describedBy: useAriaIds(shows && id, ariaDescribedBy),
+	}
+}
+
+/**
  * Numeric Input that formats its value as localized currency. Emits a `number`
  * via `onValueChange` while displaying grouped digits and the currency symbol,
  * and binds to an enclosing Form field by `name`. Resolves `currency` and
@@ -39,7 +79,8 @@ export type CurrencyInputProps = Omit<
  * down to grouped output on every keystroke through {@link useFormattedInput},
  * which restores the caret to the typed character across separator insertion. The symbol
  * renders in the `prefix` or `suffix` slot per the locale's symbol position; a
- * caller-supplied `prefix`/`suffix` wins. `Enter` blurs to commit. Group and
+ * caller-supplied `prefix`/`suffix` wins. The symbol describes the input
+ * (`aria-describedby`), so a screen reader reads the currency with the value. `Enter` blurs to commit. Group and
  * decimal separators are pinned to the resolved locale via Intl and digits to
  * ASCII (`numberingSystem: 'latn'`), so native-digit locales are normalized.
  * See {@link useCurrencyInputFormatting} for the Intl caveats.
@@ -62,6 +103,7 @@ export function CurrencyInput({
 	name,
 	className,
 	ref,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: CurrencyInputProps) {
 	const ambient = useLocale()
@@ -101,6 +143,8 @@ export function CurrencyInput({
 
 	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 
+	const affix = useSymbolAffix({ symbol, symbolIsPrefix, prefix, suffix, ariaDescribedBy })
+
 	// `atEnd: 'jump'`: the formatter pads `.` to `0.`, so a restore at the end would
 	// put the next digit in the integer part (`.5` to `5.`).
 	const { ref: setRefs, reformat } = useFormattedInput({
@@ -116,8 +160,9 @@ export function CurrencyInput({
 			data-slot="currency-input"
 			type="text"
 			inputMode="decimal"
-			prefix={prefix ?? (symbolIsPrefix ? symbol : undefined)}
-			suffix={suffix ?? (symbolIsPrefix ? undefined : symbol)}
+			prefix={affix.prefix}
+			suffix={affix.suffix}
+			aria-describedby={affix.describedBy}
 			className={cn('tabular-nums', className)}
 			name={name}
 			value={text}

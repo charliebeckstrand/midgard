@@ -1231,6 +1231,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// table rides as one memoized element, so the deferred render can't tear
 	// across a data change. Parity is unchanged — the table always converges
 	// on the current readout, one low-priority commit behind.
+	// The name of the map also names its table.
+	const tableLabel = 'aria-label' in name ? name['aria-label'] : undefined
+
+	const tableLabelledBy = 'aria-labelledby' in name ? name['aria-labelledby'] : undefined
+
 	const table = useMemo(
 		() =>
 			hasReadout ? (
@@ -1243,6 +1248,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					entries={entries}
 					selected={selected}
 					selectedOverlay={markSelection}
+					label={tableLabel}
+					labelledBy={tableLabelledBy}
 				/>
 			) : null,
 		[
@@ -1257,6 +1264,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			entries,
 			selected,
 			markSelection,
+			tableLabel,
+			tableLabelledBy,
 		],
 	)
 

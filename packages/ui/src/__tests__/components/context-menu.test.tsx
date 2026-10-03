@@ -93,6 +93,18 @@ describe('ContextMenu', () => {
 		expect(screen.getByRole('menuitem', { name: 'Bravo' })).toBeInTheDocument()
 	})
 
+	it('names the menu through its aria-label', () => {
+		renderUI(
+			<ContextMenu defaults={defaults} aria-label="Row actions">
+				{surface}
+			</ContextMenu>,
+		)
+
+		fireEvent.contextMenu(screen.getByTestId('surface'))
+
+		expect(screen.getByRole('menu', { name: 'Row actions' })).toBeInTheDocument()
+	})
+
 	it('runs an item onAction and closes the menu', () => {
 		const onAction = vi.fn()
 

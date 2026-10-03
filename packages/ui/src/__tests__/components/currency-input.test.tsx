@@ -35,6 +35,26 @@ describe('CurrencyInput', () => {
 		expect(container.textContent).toContain('$')
 	})
 
+	// Focus mode does not read affix text, so the symbol describes the input.
+	it('ties the currency symbol to the input as a description', () => {
+		renderUI(
+			<>
+				<CurrencyInput aria-label="Amount" defaultValue={5} aria-describedby="amount-hint" />
+				<p id="amount-hint">Up to 100</p>
+			</>,
+		)
+
+		expect(screen.getByRole('textbox', { name: 'Amount' })).toHaveAccessibleDescription(
+			'$ Up to 100',
+		)
+	})
+
+	it('describes the input by no symbol when the caller replaces its slot', () => {
+		renderUI(<CurrencyInput aria-label="Amount" prefix="USD" />)
+
+		expect(screen.getByRole('textbox', { name: 'Amount' })).not.toHaveAttribute('aria-describedby')
+	})
+
 	it('respects the currency prop', () => {
 		const { container } = renderUI(
 			<CurrencyInput currency="EUR" locale="en-IE" defaultValue={1000} />,

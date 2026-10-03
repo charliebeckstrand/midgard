@@ -275,6 +275,41 @@ describe('MenuContent', () => {
 		expect(screen.getByText('Item')).not.toHaveFocus()
 	})
 
+	// A static menu is part of the page, so Tab must reach it (WCAG 2.1.1). The
+	// rows rove with the arrow keys, so the menu is one Tab stop.
+	it('makes a static menu one Tab stop', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent aria-label="Actions">
+					<MenuItem>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const edit = screen.getByRole('menuitem', { name: 'Edit' })
+
+		const duplicate = screen.getByRole('menuitem', { name: 'Duplicate' })
+
+		expect(edit).toHaveAttribute('tabindex', '0')
+
+		expect(duplicate).toHaveAttribute('tabindex', '-1')
+
+		await user.tab()
+
+		expect(edit).toHaveFocus()
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(duplicate).toHaveFocus()
+
+		expect(duplicate).toHaveAttribute('tabindex', '0')
+
+		expect(edit).toHaveAttribute('tabindex', '-1')
+	})
+
 	it('leaves Escape alone when rendered as a static menu', async () => {
 		const onOpenChange = vi.fn()
 
@@ -322,6 +357,69 @@ describe('MenuContent', () => {
 		expect(screen.getByRole('menu')).not.toHaveFocus()
 
 		expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toHaveFocus()
+	})
+
+	it.each([
+		[
+			'a cloned child',
+			<button key="child" type="button">
+				Open
+			</button>,
+		],
+		['the fallback button', 'Open'],
+	])('names a dropdown by its trigger through %s', (_name, child) => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>{child}</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		expect(screen.getByRole('menu', { name: 'Open' })).toBeInTheDocument()
+	})
+
+	it('keeps the id of a cloned trigger child', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button" id="own-trigger">
+						Open
+					</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		fireEvent.click(trigger)
+
+		expect(trigger).toHaveAttribute('id', 'own-trigger')
+
+		expect(screen.getByRole('menu')).toHaveAttribute('aria-labelledby', 'own-trigger')
+	})
+
+	it('names a dropdown by the aria-label of the content when one is given', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent aria-label="Row actions">
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		expect(screen.getByRole('menu', { name: 'Row actions' })).not.toHaveAttribute('aria-labelledby')
 	})
 
 	it('closes the menu when Tab is pressed on the trigger', async () => {
@@ -1185,6 +1283,17 @@ describe('Menu on a phone', () => {
 		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
 		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
+	})
+
+	it.each([
+		['the trigger', undefined, 'Add tile'],
+		['the title of the content', 'New tile', 'New tile'],
+	])('names the menu in the sheet by the heading from %s', async (_name, title, name) => {
+		const { user } = renderPhoneMenu({ title })
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('menu', { name })).toBeInTheDocument()
 	})
 
 	// The per-surface opt-in reaches the sheet, as it reaches the popover, with

@@ -571,8 +571,10 @@ export const k = {
 		// Aggregated figures on group-header and total rows: firmer than the data
 		// they summarize, tabular so they align down their columns.
 		cell: ['tabular-nums', 'font-medium'],
-		// The total row's leading "Total" label, matching the figures' weight.
-		label: ['font-medium'],
+		// The total row's leading "Total" label, matching the figures' weight. The
+		// grand total label is a row header, so the label sets the cell text color
+		// over the muted color of a header.
+		label: [text.default, 'font-medium'],
 	},
 	detail: {
 		// The master-detail chevron in an expander cell: rotates a quarter-turn as

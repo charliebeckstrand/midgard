@@ -86,6 +86,19 @@ describe('CreditCardInput', () => {
 		expect(onBrandChange).toHaveBeenLastCalledWith('visa')
 	})
 
+	// Focus mode does not read affix text, so the brand describes the input.
+	it('ties the detected brand to the input as a description', async () => {
+		renderUI(<CreditCardInput aria-label="Card number" />)
+
+		const input = screen.getByRole('textbox', { name: 'Card number' })
+
+		expect(input).not.toHaveAttribute('aria-describedby')
+
+		await setupUser().type(input, '4242')
+
+		expect(input).toHaveAccessibleDescription('Visa')
+	})
+
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<CreditCardInput defaultValue="4242424242424242" />)
 

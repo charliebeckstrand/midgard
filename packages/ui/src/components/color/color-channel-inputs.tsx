@@ -69,8 +69,13 @@ export function ColorChannelInputs() {
 
 	const field = (channel: Channel) => (
 		<div key={channel} className={k.field}>
+			{/* The label holds the full name of the input, and the visible letter
+			    starts that name ("R channel", "Alpha channel"). */}
 			<label className={k.label} htmlFor={scope.sub(channel)}>
-				{channel === 'a' ? 'A' : channel}
+				<span aria-hidden="true">{channel === 'a' ? 'A' : channel.toUpperCase()}</span>
+				<span className="sr-only">
+					{channel === 'a' ? 'Alpha channel' : `${channel.toUpperCase()} channel`}
+				</span>
 			</label>
 			<Input
 				{...draftProps(channel)}
@@ -88,7 +93,6 @@ export function ColorChannelInputs() {
 				inputMode="numeric"
 				min={0}
 				max={channel === 'a' ? 100 : 255}
-				aria-label={channel === 'a' ? 'Alpha channel' : `${channel.toUpperCase()} channel`}
 				className="tabular-nums"
 			/>
 		</div>

@@ -16,7 +16,16 @@ import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormActions } from '../../components/form'
-import { allBySlot, bySlot, fireEvent, getAllSlots, getSlot, present, renderUI } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	fireEvent,
+	getAllSlots,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+} from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -113,6 +122,22 @@ describe('color conversions', () => {
 })
 
 describe('ColorPanel', () => {
+	// The visible label names each channel input, and no aria-label replaces it.
+	it('names each channel input by its visible label', () => {
+		renderUI(<ColorPanel defaultValue="#3b82f6" alpha />)
+
+		for (const name of ['R channel', 'G channel', 'B channel', 'Alpha channel']) {
+			const input = screen.getByRole('spinbutton', { name })
+
+			expect(input).not.toHaveAttribute('aria-label')
+
+			// The visible letter starts the name (WCAG 2.5.3).
+			expect(
+				(input as HTMLInputElement).labels?.[0]?.querySelector('[aria-hidden="true"]')?.textContent,
+			).toBe(name[0])
+		}
+	})
+
 	it('keeps the Field identity off the channel inputs', () => {
 		const { container } = renderUI(
 			<Control required>

@@ -30,6 +30,10 @@ export type MapTableProps = {
 	 * halo sits on.
 	 */
 	selectedOverlay: MapOverlaySelection | null
+	/** The `aria-label` of the map. The table shows it as its `<caption>`. */
+	label?: string
+	/** The `aria-labelledby` of the map. The table takes it when it has no `label`. */
+	labelledBy?: string
 }
 
 /** Props for {@link MapTableRow}: one row's resolved text, and whether it is the picked one. @internal */
@@ -84,6 +88,8 @@ export const MapTable = memo(function MapTable({
 	entries,
 	selected,
 	selectedOverlay,
+	label,
+	labelledBy,
 }: MapTableProps) {
 	// The row keys, held across the re-maps a selection costs: the array depends
 	// on the row count alone, where rebuilding it would allocate one string per
@@ -144,7 +150,9 @@ export const MapTable = memo(function MapTable({
 		// full size — invisible, but still stretching the page's scroll range on
 		// a large atlas. The block wrapper collapses to 1px and clips it.
 		<div className="sr-only">
-			<table data-slot="map-table">
+			<table data-slot="map-table" aria-labelledby={label ? undefined : labelledBy}>
+				{label && <caption>{label}</caption>}
+
 				<thead>
 					<tr>
 						<td />

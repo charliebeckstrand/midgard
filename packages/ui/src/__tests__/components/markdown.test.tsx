@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Markdown, MarkdownInline } from '../../components/markdown'
-import { bySlot, renderUI, waitFor } from '../helpers'
+import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts (its markup carries
 // `data-lang` from `options.lang`); a per-file mock here would bleed across
@@ -106,6 +106,26 @@ describe('Markdown', () => {
 		expect((boxes?.[1] as HTMLInputElement | undefined)?.checked).toBe(false)
 
 		expect(boxes?.[0]).toBeDisabled()
+	})
+
+	it.each([
+		['a tight item', '- [x] Ship **the** `fix` &amp; [docs](https://example.com)'],
+		[
+			'a loose item',
+			'- [x] Ship **the** `fix` &amp; [docs](https://example.com)\n\n  More text\n\n- [ ] b',
+		],
+	])('names the checkbox of %s from the plain text of the item', (_name, md) => {
+		renderUI(<Markdown>{md}</Markdown>)
+
+		expect(screen.getByRole('checkbox', { name: 'Ship the fix & docs' })).toBeChecked()
+	})
+
+	it('names the checkbox of a task item without its nested list', () => {
+		renderUI(<Markdown>{'- [ ] Parent\n  - [x] Child'}</Markdown>)
+
+		expect(screen.getByRole('checkbox', { name: 'Parent' })).not.toBeChecked()
+
+		expect(screen.getByRole('checkbox', { name: 'Child' })).toBeChecked()
 	})
 
 	it('renders GFM tables', () => {

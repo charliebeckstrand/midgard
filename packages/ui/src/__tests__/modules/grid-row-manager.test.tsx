@@ -195,8 +195,9 @@ describe('Grid row manager', () => {
 
 		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
 
-		// Colored: reopening the menu now offers None.
-		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
+		// Colored: reopening the menu now offers None. The name of the trigger
+		// starts with the visible color (WCAG 2.5.3).
+		await user.click(screen.getByRole('button', { name: 'Red color for Developer' }))
 
 		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
 	})

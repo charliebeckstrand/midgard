@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
@@ -11,15 +11,19 @@ import { MenuSheet } from './menu-sheet'
 import { MenuViewport } from './menu-viewport'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
-/** Props for {@link MenuContent}: an optional accessible name for a `static` menu or a context menu. */
+/** Props for {@link MenuContent}: an optional accessible name for the menu. */
 export type MenuContentProps = {
 	className?: string
 	/**
-	 * Accessible name for a `static` menu or a context menu, which has no trigger
-	 * to name it. A dropdown ignores it.
+	 * Accessible name for the menu. A `static` menu or a context menu has no
+	 * trigger to name it, so it needs this name or `aria-labelledby`. Omit it on
+	 * a dropdown, and the trigger names the menu.
 	 */
 	'aria-label'?: string
-	/** Id of a visible element that names a `static` menu or a context menu. A dropdown ignores it. */
+	/**
+	 * Id of a visible element that names the menu. Omit it on a dropdown, and
+	 * the trigger names the menu.
+	 */
 	'aria-labelledby'?: string
 	/**
 	 * Opt the surface into the translucent glass chrome, as the panel family
@@ -40,7 +44,9 @@ export type MenuContentProps = {
 /**
  * The menu panel: a `role="menu"` surface with roving focus and typeahead over
  * its items. A `static` menu renders inline as part of the page, with no
- * autofocus. Otherwise it mounts as a floating overlay that closes on `Escape`.
+ * autofocus, and it is one Tab stop: Tab goes to one row, and the arrow keys
+ * move between the rows. Otherwise it mounts as a floating overlay that closes
+ * on `Escape`. The trigger of a dropdown names the menu.
  * Takes the `size` of the enclosing {@link Menu} as its density scope.
  * On a phone, a dropdown opens as a bottom sheet instead, with the same rows
  * (see the `sheet` prop of {@link Menu}).
@@ -61,8 +67,19 @@ export function MenuContent({
 }: MenuContentProps) {
 	const { open, menuId, isDropdown, isSheet, floatingStyles, getFloatingProps, size } =
 		useMenuState()
-	const { close, static: isStatic, setFloating } = useMenuActions()
+	const { close, static: isStatic, setFloating, triggerRef } = useMenuActions()
 	const glass = useResolvedSurface(glassProp) === 'glass'
+
+	const [triggerId, setTriggerId] = useState<string>()
+
+	// The trigger of a dropdown names the menu. Its id can come from a cloned
+	// child, so read it from the DOM node on open, not in render.
+	useLayoutEffect(() => {
+		if (open && isDropdown) setTriggerId(triggerRef.current?.id || undefined)
+	}, [open, isDropdown, triggerRef])
+
+	// A name from the consumer replaces the name from the trigger.
+	const named = ariaLabel !== undefined || ariaLabelledby !== undefined
 
 	if (isSheet) {
 		return (
@@ -87,6 +104,8 @@ export function MenuContent({
 				// A static menu is part of the page, not a transient overlay;
 				// `autoFocus={false}` keeps it from grabbing focus on mount.
 				autoFocus={false}
+				// The page reaches the menu with Tab, so one row holds the Tab stop.
+				manageTabIndex
 				className={cn(k.content, className)}
 			>
 				{viewport}
@@ -106,9 +125,10 @@ export function MenuContent({
 				density={size}
 				id={menuId}
 				role="menu"
-				// A context menu has no trigger, so its name comes from the content.
-				aria-label={isDropdown ? undefined : ariaLabel}
-				aria-labelledby={isDropdown ? undefined : ariaLabelledby}
+				// The trigger names a dropdown, unless the consumer gives a name. A
+				// context menu has no trigger, so its name comes from the content.
+				aria-label={ariaLabel}
+				aria-labelledby={named || !isDropdown ? ariaLabelledby : triggerId}
 				itemSelector={MENUITEM_SELECTOR}
 				// A dropdown keeps focus on its trigger while open; opening never
 				// pulls focus into the panel. Seating focus on the portaled,

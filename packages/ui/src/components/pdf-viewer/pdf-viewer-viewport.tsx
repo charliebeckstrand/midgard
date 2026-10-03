@@ -47,8 +47,10 @@ export function PdfViewerViewport() {
 
 	const pageStatus = useA11yLiveRegion({ srOnly: true })
 
-	// A zoomed page overflows the viewport; it is then a tab stop.
-	const scrollRegionRef = useScrollRegion()
+	// A zoomed page overflows the viewport. It is then a tab stop and a region
+	// with the name "Page". The name is static, because the status text above
+	// changes on each page.
+	const scrollRegionRef = useScrollRegion({ label: 'Page' })
 
 	const composedViewportRef = useComposedRef(viewportRef, scrollRegionRef)
 
