@@ -20,6 +20,20 @@ describe('sidebar item', () => {
 
 		expect(fireEvent.click(link)).toBe(true)
 	})
+
+	it('gives the docs search no autofill and no typing suggestions', () => {
+		initRegistry({ './demos/components/alpha.tsx': () => Promise.resolve(() => null) })
+
+		renderUI(<SidebarContent route="" />)
+
+		const search = screen.getByPlaceholderText('Search docs')
+
+		expect(search).toHaveAttribute('autocomplete', 'off')
+
+		expect(search).toHaveAttribute('autocorrect', 'off')
+
+		expect(search).toHaveAttribute('spellcheck', 'false')
+	})
 })
 
 describe('ValueStepper', () => {
