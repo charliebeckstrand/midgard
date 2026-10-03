@@ -13,11 +13,11 @@ export function Demo() {
 			<Breadcrumb>
 				<BreadcrumbList>
 					<BreadcrumbItem>
-						<BreadcrumbLink href="#breadcrumb">Home</BreadcrumbLink>
+						<BreadcrumbLink href="/breadcrumb">Home</BreadcrumbLink>
 					</BreadcrumbItem>
 					<BreadcrumbSeparator />
 					<BreadcrumbItem>
-						<BreadcrumbLink href="#breadcrumb">Components</BreadcrumbLink>
+						<BreadcrumbLink href="/breadcrumb">Components</BreadcrumbLink>
 					</BreadcrumbItem>
 					<BreadcrumbSeparator />
 					<BreadcrumbItem>
