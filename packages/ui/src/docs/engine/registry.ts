@@ -4,6 +4,7 @@ import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
 import type { ApiReference } from './components/api-reference'
 import { pascalCase } from './components/format'
+import { pathToId } from './demo-id'
 
 /** One sidebar entry: a demo's id, display name, and category. */
 export type Demo = { id: string; name: string; category: string }
@@ -22,27 +23,11 @@ export type DemoLoaders = Record<string, () => Promise<ComponentType>>
 // renders a section per category present, in no fixed set. A demo's
 // `meta.category` overrides the folder for the sidebar section only.
 function folderOf(path: string): string {
-	const rel = path.replace(/^\.\/demos\//, '')
+	const rel = path.replace(/^(\.\.?\/)?demos\//, '')
 
 	const slash = rel.indexOf('/')
 
 	return slash === -1 ? 'components' : rel.slice(0, slash)
-}
-
-// Subfolders namespace the id with their folder (`pages/x` → `pages-x`,
-// `providers/x` → `providers-x`); a provider demo and a component demo of the
-// same name (e.g. Link) get distinct ids. `components/` is the one subfolder
-// exempted: it's just the explicit form of the top-level default, so its ids
-// stay bare (`components/button` → `button`) to match the component's API
-// reference key (`buildApi` keys the components root unprefixed) and keep
-// existing hash routes stable.
-function pathToId(path: string) {
-	return path
-		.replace(/^\.\/demos\//, '')
-		.replace(/^components\//, '')
-		.replace(/\/index\.tsx$/, '')
-		.replace('.tsx', '')
-		.replaceAll('/', '-')
 }
 
 // Metas come from a build-time virtual module; demo sources stay in their lazy
@@ -272,7 +257,7 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 	// promise. The entry awaits it before it mounts, so that the first paint
 	// shows the whole page.
 	const initialId =
-		typeof window === 'undefined' ? '' : window.location.hash.slice(1) || defaultDemo
+		typeof window === 'undefined' ? '' : window.location.pathname.slice(1) || defaultDemo
 
 	// The view of the API reference loads beside the page, and the entry does not await it.
 	if (hasComponentApi(initialId)) loadApiReferenceView()

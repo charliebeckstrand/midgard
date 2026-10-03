@@ -5,11 +5,11 @@ import {
 	FileUploadInput,
 	formatFileNames,
 } from '../../../components/file-upload'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Stack } from '../../../structure/stack'
-import { Axes, Example } from '../../engine'
+import { Axes, Example, PageTabs } from '../../engine'
 
 function DropAcceptExample() {
 	return <FileUploadDrop accept="image/*" />
@@ -52,7 +52,7 @@ function ButtonAcceptExample() {
 
 export function Demo() {
 	return (
-		<Tabs defaultValue="drop">
+		<PageTabs defaultValue="drop">
 			<Stack gap="lg">
 				<TabList aria-label="FileUpload variant">
 					<Tab value="drop">Drop</Tab>
@@ -96,6 +96,6 @@ export function Demo() {
 					</TabContent>
 				</TabContents>
 			</Stack>
-		</Tabs>
+		</PageTabs>
 	)
 }

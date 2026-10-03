@@ -9,15 +9,15 @@ import {
 	NavItem,
 	NavList,
 } from '../../../components/nav'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Stack } from '../../../structure/stack'
-import { Axes, Example } from '../../engine'
+import { Axes, Example, PageTabs } from '../../engine'
 
 export function Demo() {
 	const [current, setCurrent] = useState<string | null>('account')
 
 	return (
-		<Tabs defaultValue="List">
+		<PageTabs defaultValue="List">
 			<TabList aria-label="Nav examples">
 				<Tab value="List">List</Tab>
 				<Tab value="Bar">Bar</Tab>
@@ -86,6 +86,6 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 			</TabContents>
-		</Tabs>
+		</PageTabs>
 	)
 }

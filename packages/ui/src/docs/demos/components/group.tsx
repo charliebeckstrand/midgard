@@ -1,13 +1,13 @@
 import { Button } from '../../../components/button'
 import { Group } from '../../../components/group'
 import { Input } from '../../../components/input'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Stack } from '../../../structure/stack'
-import { Axes, Example } from '../../engine'
+import { Axes, Example, PageTabs } from '../../engine'
 
 export function Demo() {
 	return (
-		<Tabs defaultValue="button">
+		<PageTabs defaultValue="button">
 			<Stack gap="lg">
 				<TabList aria-label="Group child">
 					<Tab value="button">Button</Tab>
@@ -83,6 +83,6 @@ export function Demo() {
 					</TabContent>
 				</TabContents>
 			</Stack>
-		</Tabs>
+		</PageTabs>
 	)
 }

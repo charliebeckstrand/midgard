@@ -6,7 +6,7 @@ import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxOption } from '../../../../components/listbox'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../../components/tabs'
 import {
 	AreaChart,
 	BarChart,
@@ -23,7 +23,7 @@ import type { MapGeography } from '../../../../modules/map'
 import { Flex } from '../../../../structure/flex'
 import { Spacer } from '../../../../structure/spacer'
 import { Stack } from '../../../../structure/stack'
-import { Axes, code, Example as ExampleFrame } from '../../../engine'
+import { Axes, code, Example as ExampleFrame, PageTabs } from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 // The frame of each chart demo, and of each generated example (`Axes`).
@@ -232,7 +232,7 @@ export function Demo() {
 	const { geography: states, failed: statesFailed } = useGeography(statesUrl)
 
 	return (
-		<Tabs defaultValue="bar">
+		<PageTabs defaultValue="bar">
 			<Stack gap="lg">
 				<TabList aria-label="Chart kind">
 					<Tab value="bar">Bar</Tab>
@@ -891,6 +891,6 @@ export function Demo() {
 					</TabContent>
 				</TabContents>
 			</Stack>
-		</Tabs>
+		</PageTabs>
 	)
 }

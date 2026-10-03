@@ -1,7 +1,7 @@
 # docs engine
 
 ui's documentation engine — the machinery behind ui's docs site. It renders a
-hash-routed site over a component library: the library supplies its demos and a
+site over a component library, with a path and a prerendered page for each demo: the library supplies its demos and a
 thin Vite config (`vite.docs.config.ts`), the engine supplies everything else.
 Still parameterized by `packageName`, so it stays library-agnostic even though
 it now lives inside `ui` rather than as a standalone package.
@@ -11,7 +11,7 @@ it now lives inside `ui` rather than as a standalone package.
 | Layer | Path | Role |
 |---|---|---|
 | Demo-authoring kit | [`index.ts`](index.ts) | `Example`, `Axes`, the listbox/labeled/stepper controls, `code`, format helpers — the surface a library's demos import. |
-| App shell | [`host.tsx`](host.tsx), [`app.tsx`](app.tsx) | The hash-routed site chrome (`App`, sidebar, settings) plus `mount`. |
+| App shell | [`app.tsx`](app.tsx), [`../app`](../app) | The site chrome (`App`, sidebar, settings) and the React Router app of ui: the routes, the root layout, and the entries. |
 | API reference engine | [`api-reference`](api-reference) | ts-morph extraction of props, defaults, and TSDoc from a library's source. |
 | Code derivation | [`derive-code`](derive-code) | Walks a demo's React tree into a copy-pasteable snippet, merging in build-time source facts (authored prop expressions, render-prop children, referenced hook/helper declarations) extracted per `Example` by [`plugins/source-facts.ts`](plugins/source-facts.ts). |
 | Build plugin | [`plugins`](plugins), [`vite`](vite) | The Vite plugin + `defineDocsConfig` wired into `vite.docs.config.ts`. |
@@ -134,32 +134,24 @@ import { defineDocsConfig } from './src/docs/engine/vite'
 export default defineDocsConfig({ packageName: 'ui' })
 ```
 
-```ts
-// packages/ui/src/docs/main.tsx
-import { mount } from './engine/host'
+The site is a React Router app in framework mode, with no server at run time
+(`ssr: false`). [`react-router.config.ts`](../react-router.config.ts) gives a
+path to each demo, and to each tab of a page that has `PageTabs`. The build
+renders each path to its own HTML file, and the browser hydrates it. A link of
+the chrome or of a ui component goes through the router, because the root
+gives `UIProvider` a `link` that renders the `Link` of React Router.
 
-mount(import.meta.glob(['./demos/components/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
-```
+Use `react-router build src/docs --config vite.docs.config.ts`, not
+`vite build`. The `vite build` command does not stop after the prerender.
 
-```html
-<!-- packages/ui/src/docs/index.html -->
-<link rel="stylesheet" href="./app.css" />
-```
+The entry of the server ([`entry.server.tsx`](../app/entry.server.tsx))
+renders each page in full, with no streamed Suspense boundaries. Thus the
+first layout has the full height of the page.
 
-`index.html` links the stylesheet; `main.tsx` does not import it. An ES module
-evaluates only after its full static graph loads. A CSS import in `main.tsx`
-therefore delays the styles until the last module arrives, and the page paints
-unstyled until then. The browser requests a `<link>` in parallel with the
-modules, so the first paint has the correct theme. The dev server keeps
-`app.css` warm ([`vite/index.ts`](vite/index.ts)) because the link makes it
-block the paint.
-
-The gain applies to the dev server only. The production build extracts the CSS
-to a `<link>` in `<head>` from either form, so the built HTML is the same.
-
-Knip reads only the `<script>` tags in `index.html`. Therefore
-[`knip.json`](../../../../../knip.json) names `src/docs/app.css` as a second
-entry of this site.
+After the prerender, [`inline-styles.ts`](vite/inline-styles.ts) puts the
+styles of each page in a `<style>` in its HTML. Tailwind compiles the entry
+stylesheet for the classes of that page only. The full stylesheet then loads
+without a block on the first paint.
 
 The chrome renders with ui's own components (imported relatively from
 `src/components`, `src/core`, …). That dogfooding is why the engine lives inside

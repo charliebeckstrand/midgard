@@ -19,7 +19,7 @@ import {
 	type GridSortState,
 } from '../../../../modules/grid'
 import { Stack } from '../../../../structure/stack'
-import { Axes, code, Example } from '../../../engine'
+import { Axes, code, Example, PageTabs } from '../../../engine'
 import {
 	AsyncCommitExample,
 	BulkEditExample,
@@ -1358,7 +1358,7 @@ const tabs = [
 
 export function Demo() {
 	return (
-		<Tabs defaultValue="Variants">
+		<PageTabs defaultValue="Variants">
 			<TabList aria-label="Grid examples">
 				{tabs.map((tab) => (
 					<Tab key={tab} value={tab}>
@@ -1851,6 +1851,6 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 			</TabContents>
-		</Tabs>
+		</PageTabs>
 	)
 }

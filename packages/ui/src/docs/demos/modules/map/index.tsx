@@ -10,7 +10,7 @@ import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
 	fetchOsrmRoute,
@@ -29,7 +29,7 @@ import {
 } from '../../../../modules/map'
 import { Flex } from '../../../../structure/flex'
 import { Stack } from '../../../../structure/stack'
-import { Example as ExampleFrame } from '../../../engine'
+import { Example as ExampleFrame, PageTabs } from '../../../engine'
 import {
 	corridors,
 	deliveryStops,
@@ -731,7 +731,7 @@ function MapDemo() {
 	}
 
 	return (
-		<Tabs defaultValue="plat">
+		<PageTabs defaultValue="plat">
 			<Stack gap="lg">
 				<TabList aria-label="Map feature">
 					<Tab value="plat">Plat</Tab>
@@ -944,7 +944,7 @@ function MapDemo() {
 					</TabContent>
 				</TabContents>
 			</Stack>
-		</Tabs>
+		</PageTabs>
 	)
 }
 

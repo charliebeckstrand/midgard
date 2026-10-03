@@ -8,8 +8,7 @@ import { DARK_SCHEME, DENSITY_DEFAULT, DENSITY_KEY, THEME_KEY } from './appearan
 // step other than `md` adds its class to the root, and `md` adds no mark.
 // Storage access can throw, and then the script uses the defaults. The
 // own-property check keeps a stored `__proto__` or `toString` from reading the
-// prototype. The docs page keeps a copy (`docs/index.html`), and a test in
-// `providers/appearance.test.tsx` holds the two copies to the same results.
+// prototype. The docs site renders this component too.
 const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY_DEFAULT)}];if(h.call(c,v))r.classList.add(c[v])})()`
 
 /**

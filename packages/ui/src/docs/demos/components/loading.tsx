@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { LoadingDots, LoadingSpinner } from '../../../components/loading'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
-import { Axes, Example, SizeListbox } from '../../engine'
+import { Axes, Example, PageTabs, SizeListbox } from '../../engine'
 
 const buttonSizes = ['xs', 'sm', 'md', 'lg'] as const
 
@@ -14,7 +14,7 @@ export function Demo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
 	return (
-		<Tabs defaultValue="spinner">
+		<PageTabs defaultValue="spinner">
 			<Stack gap="lg">
 				<TabList aria-label="Loader style">
 					<Tab value="spinner">Spinner</Tab>
@@ -73,6 +73,6 @@ export function Demo() {
 					</TabContent>
 				</TabContents>
 			</Stack>
-		</Tabs>
+		</PageTabs>
 	)
 }

@@ -14,8 +14,20 @@ import path from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { pkgRoot } from './paths'
 
+/** The client directory of the docs build. */
+const distClient = path.join(pkgRoot, 'src', 'docs', 'dist', 'client')
+
 /** Where the docs build emits its hashed chunks and assets. */
-const distAssets = path.join(pkgRoot, 'src', 'docs', 'dist', 'assets')
+const distAssets = path.join(distClient, 'assets')
+
+/**
+ * The page that the build writes with no route content. Its `modulepreload`
+ * links are the chunks that each page loads before it hydrates.
+ */
+const shellPage = path.join(distClient, '__spa-fallback.html')
+
+// A `modulepreload` link to a chunk of the build.
+const MODULE_PRELOAD = /<link rel="modulepreload" href="\/assets\/([^"]+)"/g
 
 type ChunkEntry = { name: string; raw: number; gzip: number }
 
@@ -27,6 +39,8 @@ export type BundleReport = {
 	jsGzip: number
 	cssRaw: number
 	cssGzip: number
+	/** The gzip size of the chunks that each page loads before it hydrates. */
+	eagerGzip: number
 	chunks: ChunkEntry[]
 }
 
@@ -54,8 +68,13 @@ export function readBundle(): BundleReport {
 		jsGzip: 0,
 		cssRaw: 0,
 		cssGzip: 0,
+		eagerGzip: 0,
 		chunks: [],
 	}
+
+	const eager = new Set(
+		Array.from(fs.readFileSync(shellPage, 'utf8').matchAll(MODULE_PRELOAD), ([, file]) => file),
+	)
 
 	// Different chunks can share a hash-stripped name (a component chunk and a
 	// demo chunk with the same basename); aggregate so `--compare` matches
@@ -74,6 +93,8 @@ export function readBundle(): BundleReport {
 		report.totalRaw += raw
 
 		report.totalGzip += gzip
+
+		if (eager.has(file)) report.eagerGzip += gzip
 
 		if (/\.(js|mjs)$/.test(file)) {
 			report.jsRaw += raw

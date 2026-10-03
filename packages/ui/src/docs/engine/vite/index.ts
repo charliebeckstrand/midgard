@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
+import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import type { UserConfig } from 'vite'
 import { docsPlugin } from '../plugins'
@@ -21,8 +21,8 @@ export type DocsConfigOptions = {
 	 */
 	packageName: string
 	/**
-	 * Vite root — the directory holding `index.html`, the entry `main.tsx`, and
-	 * the `demos/` tree.
+	 * Vite root — the directory holding `app.css`, the React Router app in
+	 * `app/`, and the `demos/` tree.
 	 *
 	 * @defaultValue `'src/docs'`
 	 */
@@ -59,7 +59,7 @@ export function defineDocsConfig({
 		root,
 		plugins: [
 			docsPlugin({ packageName, srcDir }),
-			react(),
+			reactRouter(),
 			tailwindcss(),
 			analyze &&
 				visualizer({
@@ -74,11 +74,11 @@ export function defineDocsConfig({
 		],
 		server: {
 			port: 3456,
-			// Transform the entry graph (chrome, host, providers) on server start
-			// so the first page paints without an on-demand transform stall.
-			// `app.css` is warmed too: `index.html` links it instead of importing
-			// it, so it is no longer in the entry graph, and it blocks the paint.
-			warmup: { clientFiles: ['./main.tsx', './app.css'] },
+			// Transform the entry graph (the root, the chrome, the providers) on
+			// server start, so the first page paints without an on-demand transform
+			// stall. The root links `app.css` with a `?url` import, so it is not in
+			// the module graph, and it blocks the paint. It is warmed too.
+			warmup: { clientFiles: ['./app/root.tsx', './app.css'] },
 		},
 		// Pre-bundle the heavy component deps up front. Left to lazy discovery,
 		// Vite finds each the first time a demo importing it renders and re-runs

@@ -136,8 +136,8 @@ services:
         value: ${CLIENT_IP_SECRET}
 
 static_sites:
-  # The site routes by the URL hash, so each page is `index.html` and no path
-  # needs a catch-all document.
+  # The build writes each page to `<path>/index.html`. A path with no page gets
+  # the fallback document, and the app shows its own page for it.
   - name: docs
     github:
       repo: charliebeckstrand/midgard
@@ -145,4 +145,5 @@ static_sites:
       deploy_on_push: false
     dockerfile_path: Dockerfile.docs
     # The path in the built image.
-    output_dir: /app/packages/ui/src/docs/dist
+    output_dir: /app/packages/ui/src/docs/dist/client
+    catchall_document: __spa-fallback.html

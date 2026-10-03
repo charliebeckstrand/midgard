@@ -21,7 +21,10 @@ import { stripVTControlCharacters } from 'node:util'
 import { type BundleReport, readBundle } from './bundle-report'
 import { pkgRoot } from './paths'
 
-const viteBin = path.join(pkgRoot, 'node_modules', '.bin', 'vite')
+const reactRouterBin = path.join(pkgRoot, 'node_modules', '.bin', 'react-router')
+
+// The arguments that select the docs app: its Vite root and its config.
+const docsArgs = ['src/docs', '--config', 'vite.docs.config.ts']
 
 // A source file whose edit invalidates the api-reference family; touched (mtime
 // only, content untouched) to measure HMR re-extraction.
@@ -70,7 +73,7 @@ function runBuild(): Promise<number> {
 	return new Promise((resolve, reject) => {
 		const t0 = performance.now()
 
-		const child = spawn(viteBin, ['build', '--config', 'vite.docs.config.ts'], {
+		const child = spawn(reactRouterBin, ['build', ...docsArgs], {
 			cwd: pkgRoot,
 			stdio: ['ignore', 'ignore', 'inherit'],
 		})
@@ -78,7 +81,7 @@ function runBuild(): Promise<number> {
 		child.on('error', reject)
 
 		child.on('exit', (code) => {
-			if (code !== 0) return reject(new Error(`vite build exited with ${code}`))
+			if (code !== 0) return reject(new Error(`react-router build exited with ${code}`))
 
 			resolve(performance.now() - t0)
 		})
@@ -92,7 +95,7 @@ function runBuild(): Promise<number> {
 type DevMetrics = {
 	/** Spawn → the server printing its Local URL. */
 	readyMs: number
-	/** First `/main.tsx` transform completing (rides the configured warmup). */
+	/** First `/app/root.tsx` transform completing (rides the configured warmup). */
 	entryMs: number
 	/**
 	 * First `virtual:api-reference-manifest` read. The manifest lists the barrels
@@ -175,14 +178,14 @@ function waitForReady(child: ChildProcess, t0: number): Promise<{ readyMs: numbe
 
 		child.on('error', reject)
 
-		child.on('exit', (code) => reject(new Error(`vite dev exited early with ${code}`)))
+		child.on('exit', (code) => reject(new Error(`react-router dev exited early with ${code}`)))
 	})
 }
 
 async function runDev(): Promise<DevMetrics> {
 	const t0 = performance.now()
 
-	const child = spawn(viteBin, ['--config', 'vite.docs.config.ts', '--port', '0'], {
+	const child = spawn(reactRouterBin, ['dev', ...docsArgs, '--port', '0'], {
 		cwd: pkgRoot,
 		stdio: ['ignore', 'pipe', 'inherit'],
 	})
@@ -190,7 +193,7 @@ async function runDev(): Promise<DevMetrics> {
 	try {
 		const { readyMs, url } = await waitForReady(child, t0)
 
-		const entryMs = await timedFetch(`${url}/main.tsx`)
+		const entryMs = await timedFetch(`${url}/app/root.tsx`)
 
 		const apiManifestMs = await timedFetch(`${url}${MANIFEST_PATH}`)
 

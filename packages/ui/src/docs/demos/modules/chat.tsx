@@ -4,7 +4,7 @@ import { Button } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
 import { Icon } from '../../../components/icon'
 import { Sparkline } from '../../../components/sparkline'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import {
 	ChatEmbedProvider,
@@ -17,7 +17,7 @@ import {
 	ChatTranscript,
 } from '../../../modules/chat'
 import { Stack } from '../../../structure/stack'
-import { Axes, Example } from '../../engine'
+import { Axes, Example, PageTabs } from '../../engine'
 
 const conversations = [
 	{ id: '1', title: 'Project kickoff', timestamp: '2h' },
@@ -198,7 +198,7 @@ export function Demo() {
 	const [current, setCurrent] = useState('1')
 
 	return (
-		<Tabs defaultValue="Message">
+		<PageTabs defaultValue="Message">
 			<TabList aria-label="Chat module">
 				<Tab value="Message">Message</Tab>
 				<Tab value="Transcript">Transcript</Tab>
@@ -323,6 +323,6 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 			</TabContents>
-		</Tabs>
+		</PageTabs>
 	)
 }

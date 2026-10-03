@@ -44,7 +44,17 @@ export function setDebugTool(id: string, on: boolean) {
 	change.emit()
 }
 
-/** Returns the ids of the tools that are on, and renders again when the list changes. */
+const NONE: readonly string[] = []
+
+/**
+ * Returns the ids of the tools that are on, and renders again when the list
+ * changes. The HTML that the build renders has all tools off, and the tools
+ * that are on show after hydration.
+ */
 export function useDebugTools() {
-	return useSyncExternalStore(change.subscribe, () => enabled)
+	return useSyncExternalStore(
+		change.subscribe,
+		() => enabled,
+		() => NONE,
+	)
 }
