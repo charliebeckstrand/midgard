@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import { cn } from '../../../core'
+import { k } from '../../../recipes/kata/chart'
 import type { ResolvedCrosshair } from './chart-crosshair'
 import { bandCoord, type ChartOrientation, type PlotRect } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
@@ -159,6 +160,7 @@ function ChartHitRect({
 			fill="none"
 			pointerEvents="all"
 			className={cn(
+				k.hit,
 				((trigger === 'click' && snaps) || onIndexClick || onMarkClick) && 'cursor-pointer',
 			)}
 			{...handlers}
