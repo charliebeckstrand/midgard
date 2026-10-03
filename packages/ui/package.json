@@ -169,6 +169,7 @@
 		"@types/istanbul-lib-report": "^3.0.3",
 		"@types/istanbul-reports": "^3.0.4",
 		"@types/jest-axe": "^3.5.9",
+		"@types/jsdom": "^28.0.3",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",

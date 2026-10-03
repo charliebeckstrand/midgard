@@ -1,6 +1,9 @@
 import { isDensityStep } from '../../core/density/steps'
 import { clamp } from '../../utilities/clamp'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import type { ComponentApi } from './api-reference'
+import { valueLabel } from './components/format'
+import { formSignature, lookSignature, stepSignature } from './step-signature'
 
 /** One value of a finite prop type: a string, number, or boolean literal. */
 export type AxisValue = string | number | boolean
@@ -197,4 +200,113 @@ export function rendersAlike(signatures: readonly (string | null)[]): boolean {
 		first !== undefined &&
 		signatures.every((signature) => signature === first)
 	)
+}
+
+/**
+ * The first read of the axes of one `Axes`, at the default values. Each field
+ * is a list, so that the read can go in the HTML of a page as JSON.
+ */
+export type AxesRead = {
+	/** The axes that change only the accessibility tree. They hide. */
+	unseen: string[]
+	/** The values that the example of each axis shows. */
+	shown: Record<string, AxisValue[]>
+	/** The axes that are not density axes and whose instances differ at the defaults. Only such an axis can become inert. */
+	live: string[]
+}
+
+/**
+ * The rendered forms of the instances of each axis. Each function returns
+ * `null` when the instance is not known.
+ */
+export type AxisSignatures = {
+	/** The {@link stepSignature} of an instance of a density axis, or the {@link formSignature} of another. */
+	form: (axis: Axis, value: AxisValue) => string | null
+	/** The {@link lookSignature} of an instance. */
+	look: (axis: Axis, value: AxisValue) => string | null
+}
+
+/** The key of the wrapper of one instance: `axis:value`. */
+export function instanceKey(axis: string, value: AxisValue): string {
+	return `${axis}:${value}`
+}
+
+/**
+ * The signatures of the instances of one `Axes`. Each signature is computed
+ * one time.
+ *
+ * @param instances - The wrapper of each instance, keyed by {@link instanceKey}.
+ */
+export function signaturesIn(instances: ReadonlyMap<string, Element>): AxisSignatures {
+	const signature = (
+		read: (instance: Element, label: string) => string | null,
+	): AxisSignatures['form'] => {
+		const cache = new Map<string, string | null>()
+
+		return (axis, value) => {
+			const key = instanceKey(axis.name, value)
+
+			const instance = instances.get(key)
+
+			if (!instance) return null
+
+			return getOrCompute(cache, key, () => read(instance, valueLabel(value)))
+		}
+	}
+
+	const step = signature(stepSignature)
+
+	const form = signature(formSignature)
+
+	return {
+		form: (axis, value) => (isStepAxis(axis) ? step : form)(axis, value),
+		look: signature(lookSignature),
+	}
+}
+
+/** Whether each instance of an axis renders alike in form. */
+function formsAlike(axis: Axis, signatures: AxisSignatures): boolean {
+	return rendersAlike(axis.values.map((value) => signatures.form(axis, value)))
+}
+
+/**
+ * The values that the example of an axis shows: the {@link distinctValues} of
+ * a density axis, no value of a live axis that renders alike at the current
+ * values (inert), and each value of another axis.
+ *
+ * @param live - The live axes of the first read ({@link AxesRead}).
+ */
+export function shownValues(
+	axis: Axis,
+	signatures: AxisSignatures,
+	live: readonly string[],
+): AxisValue[] {
+	if (isStepAxis(axis)) return distinctValues(axis, (value) => signatures.form(axis, value))
+
+	return live.includes(axis.name) && formsAlike(axis, signatures) ? [] : [...axis.values]
+}
+
+/**
+ * Read the axes of one `Axes` at the default values.
+ *
+ * @remarks
+ * An axis whose instances differ in form and look the same changes only the
+ * accessibility tree, so it is unseen.
+ */
+export function readAxes(axes: readonly Axis[], signatures: AxisSignatures): AxesRead {
+	const live = axes
+		.filter((axis) => !isStepAxis(axis) && !formsAlike(axis, signatures))
+		.map((axis) => axis.name)
+
+	const unseen = axes.filter(
+		(axis) =>
+			live.includes(axis.name) &&
+			rendersAlike(axis.values.map((value) => signatures.look(axis, value))),
+	)
+
+	return {
+		unseen: unseen.map((axis) => axis.name),
+		shown: Object.fromEntries(axes.map((axis) => [axis.name, shownValues(axis, signatures, live)])),
+		live,
+	}
 }

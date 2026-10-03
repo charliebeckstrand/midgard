@@ -224,7 +224,10 @@ export function stepSignature(instance: Element, label: string): string | null {
 function ownTextOf(element: Element, label: string): string {
 	let text = ''
 
-	for (const node of element.childNodes) if (node instanceof Text) text += node.data
+	// The node type and not `instanceof Text`, because the build reads a jsdom
+	// document, which has its own `Text` class.
+	for (const node of element.childNodes)
+		if (node.nodeType === node.TEXT_NODE) text += node.textContent ?? ''
 
 	text = text.trim()
 

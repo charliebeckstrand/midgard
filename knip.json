@@ -8,7 +8,6 @@
 			"entry": ["postcss.config.mjs"]
 		},
 		"apps/*": {
-			"entry": ["next.config.{js,ts,mjs}"],
 			"ignoreDependencies": ["@tailwindcss/postcss"]
 		},
 		"packages/*": {
@@ -22,7 +21,6 @@
 				"src/docs/app/**/*.{ts,tsx}",
 				"src/docs/fixtures/main.tsx",
 				"src/docs/fixtures/app.css",
-				"src/docs/fixtures/sheets/*.tsx",
 				"vite.fixtures.config.ts",
 				"src/core/density/variants.ts",
 				"src/core/density/utilities.ts",
