@@ -12,7 +12,6 @@ import {
 	MenuTrigger,
 } from '../../../components/menu'
 import { GlassProvider } from '../../../providers/glass'
-import { Stack } from '../../../structure/stack'
 import { Axes, Example } from '../../engine'
 
 export function Demo() {
@@ -139,7 +138,7 @@ export function Demo() {
 	)
 
 	return (
-		<Stack gap="xl">
+		<>
 			{/* A short menu shows no effect of `capped`, so the axis is left out. The
 			    placement comes first, so each example is a dropdown. Without one, the
 			    menu is a context menu, which never opens as a sheet. */}
@@ -210,6 +209,6 @@ export function Demo() {
 			<Example title="Glass">
 				<GlassProvider>{dropdown}</GlassProvider>
 			</Example>
-		</Stack>
+		</>
 	)
 }

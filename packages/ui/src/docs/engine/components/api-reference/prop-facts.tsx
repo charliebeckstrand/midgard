@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '../../../../core'
 import type { PropDef } from '../../api-reference/types'
 import { DefaultValue, isProseDefault, literalBlock } from './default-value'

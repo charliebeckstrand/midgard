@@ -28,7 +28,6 @@ const TYPES: Record<string, string> = {
 	'.js': 'text/javascript',
 	'.json': 'application/json',
 	'.svg': 'image/svg+xml',
-	'.wasm': 'application/wasm',
 	'.woff2': 'font/woff2',
 }
 

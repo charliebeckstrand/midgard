@@ -19,19 +19,15 @@ export function Demo() {
 
 			<Example title="Prefix">
 				<Field>
-					<Label htmlFor="password-prefix">Password</Label>
-					<PasswordInput
-						id="password-prefix"
-						prefix={<Icon icon={<Lock />} />}
-						placeholder="Enter password"
-					/>
+					<Label>Password</Label>
+					<PasswordInput prefix={<Icon icon={<Lock />} />} placeholder="Enter password" />
 				</Field>
 			</Example>
 
 			<Example title="Disabled">
 				<Field>
-					<Label htmlFor="password-disabled">Disabled</Label>
-					<PasswordInput id="password-disabled" disabled placeholder="Disabled" />
+					<Label>Disabled</Label>
+					<PasswordInput disabled placeholder="Disabled" />
 				</Field>
 			</Example>
 

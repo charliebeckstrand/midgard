@@ -36,8 +36,6 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Example, OptionsListbox } from '../../engine'
 
-export const meta = { name: 'Density' }
-
 const navItems = [
 	{ icon: <Inbox />, label: 'Inbox', current: true },
 	{ icon: <Users />, label: 'Customers' },

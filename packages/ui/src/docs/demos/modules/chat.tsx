@@ -192,8 +192,6 @@ function StreamingPrompt() {
 	)
 }
 
-export const meta = { name: 'Chat' }
-
 export function Demo() {
 	const [current, setCurrent] = useState('1')
 

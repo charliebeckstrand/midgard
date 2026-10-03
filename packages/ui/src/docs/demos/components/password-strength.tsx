@@ -15,9 +15,8 @@ function BasicExample() {
 	return (
 		<Stack gap="md">
 			<Field>
-				<Label htmlFor="password-strength-basic">Password</Label>
+				<Label>Password</Label>
 				<PasswordInput
-					id="password-strength-basic"
 					value={value}
 					onChange={(event) => setValue(event.target.value)}
 					placeholder="Enter password"
@@ -40,9 +39,8 @@ function CustomRulesExample() {
 	return (
 		<Stack gap="md">
 			<Field>
-				<Label htmlFor="password-strength-custom">Password</Label>
+				<Label>Password</Label>
 				<PasswordInput
-					id="password-strength-custom"
 					value={value}
 					onChange={(event) => setValue(event.target.value)}
 					placeholder="Enter password"

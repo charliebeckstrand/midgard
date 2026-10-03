@@ -1,5 +1,3 @@
-'use client'
-
 import { Children, isValidElement, type ReactNode, useMemo, useRef, useState } from 'react'
 import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'

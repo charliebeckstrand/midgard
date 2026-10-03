@@ -1,5 +1,3 @@
-'use client'
-
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
 import { memo, use, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -98,8 +96,8 @@ const DemoItem = memo(function DemoItem({ demo, current }: { demo: Demo; current
 
 	return (
 		<SidebarItem
-			// A plain hash link. The browser makes the history entry and sends
-			// `hashchange`, and the app scrolls to the top when the demo shows.
+			// A plain path link. The router makes the history entry, and the app
+			// scrolls to the top when the demo shows.
 			href={`/${demo.id}`}
 			current={current}
 			// A touch device has no hover, and a tap does not focus the link. The press
@@ -170,7 +168,7 @@ export function SidebarContent({ route }: { route: string }) {
 						onValueChange={(id) => {
 							if (!id) return
 
-							// The same hash change as a click on a sidebar link.
+							// The same navigation as a click on a sidebar link.
 							navigate(`/${id}`)
 
 							// Scroll the matching sidebar item into view

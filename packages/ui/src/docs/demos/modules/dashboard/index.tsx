@@ -613,7 +613,7 @@ export function Demo() {
 	const [selection, setSelection] = useState<DashboardSelection[]>([])
 
 	return (
-		<Stack gap="lg">
+		<>
 			<Example title="Query">
 				<Stack gap="md">
 					<Alert
@@ -712,6 +712,6 @@ export function Demo() {
 			</Example>
 
 			<RegistryExample />
-		</Stack>
+		</>
 	)
 }

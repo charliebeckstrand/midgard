@@ -1,5 +1,3 @@
-'use client'
-
 import {
 	type KeyboardEvent as ReactKeyboardEvent,
 	type PointerEvent as ReactPointerEvent,

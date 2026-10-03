@@ -1,5 +1,3 @@
-'use client'
-
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { reindent } from './indent'
 import {

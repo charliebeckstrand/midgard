@@ -28,8 +28,8 @@ export function Demo() {
 
 			<Example title="Disabled">
 				<Field>
-					<Label htmlFor="input-disabled">Disabled</Label>
-					<Input id="input-disabled" disabled placeholder="Disabled" />
+					<Label>Disabled</Label>
+					<Input disabled placeholder="Disabled" />
 				</Field>
 			</Example>
 
