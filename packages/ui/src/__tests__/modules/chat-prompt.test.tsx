@@ -315,6 +315,24 @@ describe('ChatPrompt', () => {
 		expect(screen.getByText('second.pdf')).toBeInTheDocument()
 	})
 
+	it('renders the attachments as the items of a list', () => {
+		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
+
+		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
+
+		const { container } = renderUI(
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[first, second]} />,
+		)
+
+		const list = getSlot(container, 'chat-prompt-attachments')
+
+		expect(list.tagName).toBe('UL')
+
+		expect(screen.getAllByRole('listitem')).toHaveLength(2)
+
+		expect(screen.getByText('first.pdf').closest('li')?.parentElement).toBe(list)
+	})
+
 	it('omits chip remove buttons when onRemoveAttachment is not provided', () => {
 		const file = new File(['a'], 'first.pdf', { type: 'application/pdf' })
 

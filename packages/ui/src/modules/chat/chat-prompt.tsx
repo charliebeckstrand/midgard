@@ -191,36 +191,39 @@ export function ChatPrompt({
 				// The row wraps. The remove buttons of two rows are the `gap-1` of the
 				// row and the `py-ring-1` pad of two chips apart, so the row caps the
 				// height of each hit area (`TouchTarget`) at that 10px.
-				<div
+				// A list, so assistive tech reads the count of the attachments.
+				<ul
 					data-slot="chat-prompt-attachments"
-					className="mt-2 flex flex-wrap gap-1 [--touch-target-gap-y:--spacing(2.5)]"
+					className="mt-2 flex list-none flex-wrap gap-1 [--touch-target-gap-y:--spacing(2.5)]"
 				>
 					{attachments.map((file, index) => (
-						<Badge
-							key={`${file.name}-${file.lastModified}-${file.size}`}
-							// Outline (page-surface bg) keeps the bare remove button's muted
-							// `onSurface` glyph above the 3:1 non-text-contrast floor; a solid
-							// fill would sink it. The chip is the removable chip of TagInput.
-							variant="outline"
-							radius="full"
-							className={badgeKata.removable}
-							suffix={
-								onRemoveAttachment && (
-									<Button
-										type="button"
-										variant="bare"
-										aria-label={`Remove ${file.name}`}
-										onClick={() => onRemoveAttachment(index)}
-									>
-										<Icon icon={<X />} />
-									</Button>
-								)
-							}
-						>
-							{file.name}
-						</Badge>
+						// `flex` keeps the line box of the item off the height of the chip.
+						<li key={`${file.name}-${file.lastModified}-${file.size}`} className="flex">
+							<Badge
+								// Outline (page-surface bg) keeps the bare remove button's muted
+								// `onSurface` glyph above the 3:1 non-text-contrast floor; a solid
+								// fill would sink it. The chip is the removable chip of TagInput.
+								variant="outline"
+								radius="full"
+								className={badgeKata.removable}
+								suffix={
+									onRemoveAttachment && (
+										<Button
+											type="button"
+											variant="bare"
+											aria-label={`Remove ${file.name}`}
+											onClick={() => onRemoveAttachment(index)}
+										>
+											<Icon icon={<X />} />
+										</Button>
+									)
+								}
+							>
+								{file.name}
+							</Badge>
+						</li>
 					))}
-				</div>
+				</ul>
 			)}
 		</Control>
 	)
