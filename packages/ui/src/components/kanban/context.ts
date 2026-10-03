@@ -1,5 +1,6 @@
 'use client'
 
+import type { DraggableAttributes } from '@dnd-kit/core'
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
@@ -80,7 +81,7 @@ export type KanbanColumnContextValue = {
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
 	/**
-	 * The id that the title renders with. The column `<section>` refers to it
+	 * The id that the title renders with. The column `<fieldset>` refers to it
 	 * through `aria-labelledby`. Each column mounts its own id, so two boards
 	 * with the same column keys do not share an id.
 	 */
@@ -106,3 +107,35 @@ export type KanbanColumnContextValue = {
  */
 export const [KanbanColumnContext, useKanbanColumnContext] =
 	createContext<KanbanColumnContextValue>('KanbanColumn')
+
+/**
+ * Per-card state shared with its {@link KanbanCardHandle}: the card key, the
+ * dnd-kit activator bindings, and the id of the list item that names the card.
+ *
+ * @internal
+ */
+export type KanbanCardContextValue = {
+	cardId: string
+	/** Whether the board takes a drag and a keyboard lift. */
+	interactive: boolean
+	/** dnd-kit activator ref. The handle is the node that dnd-kit focuses again after a drag. */
+	setActivatorNodeRef: (node: HTMLElement | null) => void
+	/** dnd-kit drag attributes: the role description, the instructions, and the disabled state. */
+	attributes: DraggableAttributes
+	/** Whether a pointer drags the card now. */
+	dragging: boolean
+	/** The id of the `<li>` of the card. The handle takes the name of the card from it. */
+	itemId: string
+	/** Handle registrar. The card warns in development when no handle mounts. */
+	registerHandle: () => () => void
+}
+
+/**
+ * Per-card cascade. Provided by `<KanbanCard>`; read by its handle. The drag
+ * overlay copies the card content outside of a card, so the value there is
+ * `null`, and the handle renders as a picture only.
+ *
+ * @internal
+ */
+export const [KanbanCardContext, useKanbanCardContext] =
+	createContext<KanbanCardContextValue | null>('KanbanCard', { default: null })

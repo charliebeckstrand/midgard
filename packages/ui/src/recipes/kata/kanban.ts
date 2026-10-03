@@ -2,8 +2,9 @@
  * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
  * cards. No variants axis. The `column` group nests `base` / `header` / `title`
  * / `body` / `empty` slots and the `over` drop-target state. The `card` group
- * nests `base` plus the drag-state classes (`draggable`, `dragging`, `lifted`,
- * `active`). `skeleton` is the form of the lines of the `KanbanCardSkeleton`.
+ * nests `base`, the `handle`, and the drag-state classes (`draggable`,
+ * `dragging`, `lifted`, `active`). `skeleton` is the form of the lines of the
+ * `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
@@ -53,6 +54,17 @@ export const k = {
 			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
 		draggable: [...grab.default],
+		// The keyboard stop of an interactive card. The card is the pointer
+		// surface, so the handle shows the same hand.
+		handle: [
+			flex.row,
+			'size-6 shrink-0 justify-center',
+			rounded.md,
+			text.muted,
+			...grab.default,
+			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
+			focus.ring,
+		],
 		dragging: '',
 		lifted: [...focus.lifted.raise, focus.lifted.ring],
 		active: 'z-10 shadow-lg relative opacity-95',

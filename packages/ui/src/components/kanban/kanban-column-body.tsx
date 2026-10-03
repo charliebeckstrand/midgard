@@ -18,8 +18,7 @@ export type KanbanColumnBodyProps = {
  *
  * @remarks With cards, the body is a `<ul>`, and each card is in an `<li>`, so
  * AT gives the count of the cards and the position of each. On an interactive
- * board, dnd-kit makes each card a `button`, so the card is a `<div>` inside its
- * `<li>`. The `empty` placeholder is not a list item, so the body is a `<div>`
+ * board, the dnd-kit node of each card is a `<div>` inside its `<li>`. The `empty` placeholder is not a list item, so the body is a `<div>`
  * while it shows it. While the cards overflow the body, the body is a tab stop.
  */
 export function KanbanColumnBody({ empty, children, className }: KanbanColumnBodyProps) {
