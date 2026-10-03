@@ -25,12 +25,4 @@ export const spring = {
 	 * strip of nothing under the last line.
 	 */
 	fit: { type: 'spring', stiffness: 260, damping: 34 },
-	/**
-	 * A panel that the reader lets go of on its way off the screen — the drawer
-	 * that a swipe throws away.
-	 *
-	 * Softer than `fit`, so the panel glides off its edge in place of a snap.
-	 * Critically damped, so the travel has no bounce.
-	 */
-	glide: { type: 'spring', stiffness: 120, damping: 22 },
 } as const

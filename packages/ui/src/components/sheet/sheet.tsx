@@ -62,12 +62,13 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 		defaultOpen?: boolean
 		/**
 		 * Give the panel a drag handle. The reader can then resize it past the `width`
-		 * scale, and throw it away toward its own edge.
+		 * scale.
 		 *
 		 * The drag sets the width directly rather than stepping between the `width`
 		 * variants. The reader is deciding how much of the screen the panel gets, and
 		 * the answer is wherever they let go. `width` still states where it
-		 * opens, and a closed panel forgets what it was dragged to.
+		 * opens, and a closed panel forgets what it was dragged to. The handle does
+		 * not close the panel.
 		 *
 		 * @defaultValue false
 		 */
@@ -200,7 +201,6 @@ export function Sheet({
 	const resize = usePanelResize({
 		side: edge,
 		open: resolvedOpen,
-		onDismiss: () => setOpen(false),
 		floorOf: (panel, size) => sheetFloor(panel, size, axis),
 		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, axis),
 	})

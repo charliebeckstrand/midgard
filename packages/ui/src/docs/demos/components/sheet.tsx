@@ -6,8 +6,8 @@ import { Axes, Opener } from '../../engine'
 export function Demo() {
 	return (
 		// With `handle`, the grip rides the inner edge. Drag it to set the width, or
-		// focus it and use the arrow keys. A flick toward the edge puts the panel
-		// away, and the panel opens again at the width of its variant.
+		// focus it and use the arrow keys. The panel opens again at the width of its
+		// variant.
 		<Axes
 			of="Sheet"
 			captions={false}

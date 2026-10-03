@@ -67,7 +67,7 @@ describe('DrawerStatic', () => {
 	// A drawer with a handle lands on a static copy with the same grip and the same inset.
 	it('paints the grip of a drawer with a handle', () => {
 		const { unmount } = renderUI(
-			<Drawer open handle animateOnMount={false} onOpenChange={() => {}}>
+			<Drawer open handle height="half" animateOnMount={false} onOpenChange={() => {}}>
 				<DrawerTitle>Resolve</DrawerTitle>
 			</Drawer>,
 		)
@@ -82,7 +82,7 @@ describe('DrawerStatic', () => {
 		unmount()
 
 		const { container } = renderUI(
-			<DrawerStatic handle>
+			<DrawerStatic handle height="half">
 				<DrawerTitle>Resolve</DrawerTitle>
 			</DrawerStatic>,
 		)

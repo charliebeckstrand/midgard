@@ -397,13 +397,6 @@ export function PlaceDrawer({
 			// the panel following it. A region with places enough covers the map, which
 			// is the honest answer for a step with that much to show — the crumb above
 			// is how the reader gets back to it.
-			//
-			// A grip to pull the panel down and go back to the map, as a sheet closes
-			// on a phone. The grip of a grown drawer sets no height, so the panel keeps
-			// the height of each step and follows the crumb. A drag is how a reader
-			// states a height the panel cannot work out, and this panel works out a
-			// height for each step.
-			handle
 			height="fit"
 			open={open}
 			onOpenChange={onOpenChange}
@@ -411,8 +404,8 @@ export function PlaceDrawer({
 			// The close in the header row closes the drawer, so it has no Close row.
 			footer={null}
 		>
-			{/* The grip above is the top inset of the panel, so the header adds none. */}
-			<Flex justify="between" align="start" gap="md" className="px-6">
+			{/* The panel has no inset of its own, so the row takes the inset of a drawer title. */}
+			<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
 				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating — the crumbs cannot shrink below a parent that

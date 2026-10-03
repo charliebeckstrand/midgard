@@ -35,3 +35,18 @@ export function drawerPanelProps({
 		),
 	}
 }
+
+/**
+ * Whether the drawer shows its grip. The grip only resizes, so only a panel with a fixed height
+ * (`half` or `full`) shows it. A panel grown to its content (`auto` or `fit`) has no height for the
+ * grip to set. {@link Drawer} and {@link DrawerStatic} both read it, so the static drawer paints
+ * the grip that the drawer then mounts.
+ *
+ * @internal
+ */
+export function drawerShowsGrip(
+	handle: boolean | undefined,
+	height: DrawerPanelVariants['height'],
+): boolean {
+	return handle === true && (height === 'half' || height === 'full')
+}
