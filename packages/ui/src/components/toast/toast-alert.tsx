@@ -3,9 +3,9 @@
 import { motion } from 'motion/react'
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { announce, cn } from '../../core'
-import type { ToastData, ToastSeverity } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
+import type { ToastData, ToastSeverity } from './types'
 
 /** Fade-out for a user dismissal; the height collapse is left to the neighbors' layout spring. @internal */
 const manualDismiss = { opacity: 0, transition: k.motion.dismiss }

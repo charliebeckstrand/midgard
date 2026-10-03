@@ -19,8 +19,7 @@ import {
 } from '../../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Sheet, SheetBody, SheetTitle } from '../../../components/sheet'
-import { Toast } from '../../../components/toast'
-import { ToastProvider, useToast } from '../../../providers/toast'
+import { Toast, ToastProvider, useToast } from '../../../components/toast'
 import { noop } from '../../helpers'
 import type { Case } from './types'
 
