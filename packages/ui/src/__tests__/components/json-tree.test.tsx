@@ -861,6 +861,71 @@ describe('JsonTree tree semantics', () => {
 	})
 })
 
+describe('JsonTree group ownership', () => {
+	// The child group is a sibling of the branch row in the DOM. The open row
+	// owns it, and the content of the row alone names the row.
+	it('owns the group of an open branch, and keeps the group text out of the name', () => {
+		renderUI(<JsonTree data={{ user: { name: 'Ada' } }} rootKey="payload" defaultExpandDepth={5} />)
+
+		const [root] = screen.getAllByRole('treeitem')
+
+		const row = present(root, 'root row')
+
+		const groupId = row.getAttribute('aria-owns')
+
+		expect(groupId).toBeTruthy()
+
+		const group = present(document.getElementById(groupId ?? ''), 'owned group')
+
+		expect(group).toHaveAttribute('role', 'group')
+
+		expect(group.parentElement).toBe(row.closest('[data-slot="json-node"]'))
+
+		const label = present(
+			document.getElementById(row.getAttribute('aria-labelledby') ?? ''),
+			'row label',
+		)
+
+		expect(row).toHaveAccessibleName(label.textContent ?? '')
+
+		expect(row).toHaveAccessibleName(expect.stringContaining('payload'))
+
+		expect(row).not.toHaveAccessibleName(expect.stringContaining('Ada'))
+	})
+
+	it('drops the ownership when the branch closes, so the reference never dangles', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ user: { name: 'Ada' } }} defaultExpandDepth={5} />,
+		)
+
+		const toggle = getSlot(container, 'json-node-toggle')
+
+		fireEvent.click(toggle)
+
+		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+
+		expect(toggle).not.toHaveAttribute('aria-owns')
+	})
+
+	it('gives each branch of two trees its own group id', () => {
+		renderUI(
+			<>
+				<JsonTree data={{ a: { b: 1 } }} aria-label="First" defaultExpandDepth={5} />
+				<JsonTree data={{ a: { b: 1 } }} aria-label="Second" defaultExpandDepth={5} />
+			</>,
+		)
+
+		const ids = screen
+			.getAllByRole('treeitem')
+			.map((item) => item.getAttribute('aria-owns'))
+			.filter(Boolean)
+
+		expect(ids.length).toBeGreaterThan(1)
+
+		expect(new Set(ids).size).toBe(ids.length)
+	})
+})
+
 describe('JsonTree Tab stop', () => {
 	it('moves the single Tab stop to the row that takes focus', () => {
 		const { container } = renderUI(<JsonTree data={{ a: 1, b: 2 }} defaultExpandDepth={1} />)

@@ -3,6 +3,7 @@ import { Badge } from '../../../components/badge'
 import {
 	Kanban,
 	KanbanCard,
+	KanbanCardHandle,
 	KanbanColumn,
 	KanbanColumnBody,
 	KanbanColumnHeader,
@@ -75,7 +76,10 @@ function DefaultExample() {
 							<KanbanColumnBody>
 								{column.items.map((load) => (
 									<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
-										<span className="font-medium">{load.code}</span>
+										<div className="flex items-center gap-1">
+											<KanbanCardHandle />
+											<span className="font-medium">{load.code}</span>
+										</div>
 										<span className="text-zinc-500 dark:text-zinc-400">{load.customer}</span>
 										<span className="text-xs text-zinc-500 dark:text-zinc-400">{load.weight}</span>
 									</KanbanCard>

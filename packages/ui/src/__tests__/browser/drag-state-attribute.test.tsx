@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { Kanban, KanbanCard, KanbanColumn, KanbanColumnBody } from '../../components/kanban'
+import {
+	Kanban,
+	KanbanCard,
+	KanbanCardHandle,
+	KanbanColumn,
+	KanbanColumnBody,
+} from '../../components/kanban'
 import { List, ListItem } from '../../components/list'
 import { allBySlot, getSlot, renderUI } from '../helpers'
 import { drag } from './helpers/drag'
@@ -43,6 +49,7 @@ describe('drag state attribute (real browser)', () => {
 					<KanbanColumnBody>
 						{items.map((item) => (
 							<KanbanCard key={item.id} value={item.id}>
+								<KanbanCardHandle />
 								{item.label}
 							</KanbanCard>
 						))}
@@ -78,6 +85,7 @@ describe('drag state attribute (real browser)', () => {
 					<KanbanColumnBody>
 						{items.map((item) => (
 							<KanbanCard key={item.id} value={item.id}>
+								<KanbanCardHandle />
 								{item.label}
 							</KanbanCard>
 						))}

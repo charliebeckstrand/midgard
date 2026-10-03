@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Kanban, KanbanCard, KanbanColumn, KanbanColumnBody } from '../../components/kanban'
+import {
+	Kanban,
+	KanbanCard,
+	KanbanCardHandle,
+	KanbanColumn,
+	KanbanColumnBody,
+} from '../../components/kanban'
 import { List } from '../../components/list'
 import { ListItem } from '../../components/list/list-item'
 import { useSortableItem } from '../../hooks'
@@ -61,6 +67,28 @@ const columns: Column[] = ['todo', 'doing', 'done'].map((id) => ({
 	})),
 }))
 
+// The content of each card, made once. A card is memoized on its props, and
+// new children each render would render each card. A consumer that wants the
+// memo keeps its card content stable in the same way.
+const contentCache = new Map<string, ReactNode>()
+
+function contentOf(item: Item): ReactNode {
+	let content = contentCache.get(item.id)
+
+	if (!content) {
+		content = (
+			<>
+				<KanbanCardHandle />
+				{item.title}
+			</>
+		)
+
+		contentCache.set(item.id, content)
+	}
+
+	return content
+}
+
 function Board() {
 	const [value, setValue] = useState(columns)
 
@@ -76,7 +104,7 @@ function Board() {
 					<KanbanColumnBody>
 						{column.items.map((item) => (
 							<KanbanCard key={item.id} value={item.id}>
-								{item.title}
+								{contentOf(item)}
 							</KanbanCard>
 						))}
 					</KanbanColumnBody>
@@ -104,6 +132,17 @@ function card(container: HTMLElement, id: string): HTMLElement {
 	)
 
 	if (!element) throw new Error(`no card ${id}`)
+
+	return element
+}
+
+/** The handle of a card: the element that takes the keys. */
+function handle(container: HTMLElement, id: string): HTMLElement {
+	const element = container.querySelector<HTMLElement>(
+		`[data-slot="kanban-card-handle"][data-card-id="${id}"]`,
+	)
+
+	if (!element) throw new Error(`no handle ${id}`)
 
 	return element
 }
@@ -149,7 +188,7 @@ describe('keyboard lift renders', () => {
 
 		vi.mocked(useSortableItem).mockClear()
 
-		press(card(container, 'todo-3'), ' ')
+		press(handle(container, 'todo-3'), ' ')
 
 		expect(card(container, 'todo-3')).toHaveAttribute('data-lifted')
 
@@ -161,12 +200,12 @@ describe('keyboard lift renders', () => {
 
 		expect(renderedCards().filter((id) => id.startsWith('done-'))).not.toEqual([])
 
-		press(card(container, 'todo-3'), ' ')
+		press(handle(container, 'todo-3'), ' ')
 
 		vi.mocked(useSortableItem).mockClear()
 
 		// Moves the card from `todo` to `doing`. The `done` column stays as it is.
-		press(card(container, 'todo-3'), 'ArrowRight')
+		press(handle(container, 'todo-3'), 'ArrowRight')
 
 		expect(card(container, 'todo-3').closest('[data-slot="kanban-column"]')).toHaveAttribute(
 			'aria-label',

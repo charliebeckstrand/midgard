@@ -2,6 +2,7 @@ import { fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tree, TreeItem, TreeSkeleton } from '../../components/tree'
 import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
+import { axe } from '../helpers/axe'
 
 describe('Tree', () => {
 	it('announces sibling position via aria-posinset/aria-setsize', () => {
@@ -473,6 +474,58 @@ describe('TreeItem', () => {
 
 		// Controlled: open stays false until the parent flips the prop.
 		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
+})
+
+describe('TreeItem group ownership', () => {
+	// The child group is a sibling of the row in the DOM. The open row owns it,
+	// and the label alone names the row.
+	it('owns the group of an open branch, and takes its name from the label alone', async () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultOpen suffix={<span>3 files</span>}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = screen.getByRole('treeitem', { name: 'src' })
+
+		const group = present(document.getElementById(row.getAttribute('aria-owns') ?? ''), 'group')
+
+		expect(group).toHaveAttribute('role', 'group')
+
+		expect(group).toBe(getSlot(container, 'tree-group'))
+
+		expect(group).toContainElement(screen.getByRole('treeitem', { name: 'a.ts' }))
+
+		const results = await axe(container)
+
+		expect(results.violations).toEqual([])
+	})
+
+	it('drops the ownership while the branch is closed, so the reference never dangles', () => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src">
+					<TreeItem label="a.ts" />
+				</TreeItem>
+				<TreeItem label="README" />
+			</Tree>,
+		)
+
+		const row = screen.getByRole('treeitem', { name: 'src' })
+
+		expect(row).not.toHaveAttribute('aria-owns')
+
+		fireEvent.click(row)
+
+		expect(document.getElementById(row.getAttribute('aria-owns') ?? '')).toHaveAttribute(
+			'role',
+			'group',
+		)
+
+		expect(screen.getByRole('treeitem', { name: 'README' })).not.toHaveAttribute('aria-owns')
 	})
 })
 
