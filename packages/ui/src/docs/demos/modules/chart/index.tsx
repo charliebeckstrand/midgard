@@ -666,7 +666,7 @@ export function Demo() {
 
 					<TabContent value="donut">
 						<Stack gap="xl">
-							<Example title="Basic" code={code`<DonutChart>`}>
+							<Example title="Basic" code={code`<DonutChart />`}>
 								<DonutChart
 									aria-label="Traffic by source"
 									data={sources}

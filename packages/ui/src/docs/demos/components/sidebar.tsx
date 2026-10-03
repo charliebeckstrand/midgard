@@ -83,7 +83,7 @@ function HeaderFooterSidebarExample() {
 
 	return (
 		<SidebarFrame>
-			<Sidebar>
+			<Sidebar aria-label="Sidebar with header and footer">
 				<SidebarHeader>
 					<Heading level={3}>Acme Inc.</Heading>
 				</SidebarHeader>
@@ -117,7 +117,7 @@ function SectionedSidebarExample() {
 
 	return (
 		<SidebarFrame>
-			<Sidebar>
+			<Sidebar aria-label="Sidebar with sections">
 				<SidebarHeader>
 					<Heading level={3}>Workspace</Heading>
 				</SidebarHeader>
@@ -207,7 +207,7 @@ function SectionedSidebarExample() {
 function SuffixSidebarExample() {
 	return (
 		<SidebarFrame>
-			<Sidebar>
+			<Sidebar aria-label="Sidebar with suffixes">
 				<SidebarBody>
 					<SidebarList aria-label="Main">
 						<SidebarItem
@@ -241,7 +241,7 @@ function SuffixSidebarExample() {
 function ActionsSidebarExample() {
 	return (
 		<SidebarFrame>
-			<Sidebar>
+			<Sidebar aria-label="Sidebar with actions">
 				<SidebarBody>
 					<SidebarList aria-label="Main">
 						<SidebarItem icon={<Inbox />}>
@@ -249,7 +249,7 @@ function ActionsSidebarExample() {
 							<SidebarItemActions>
 								<Menu placement="bottom-end">
 									<MenuTrigger>
-										<Button variant="bare">
+										<Button variant="bare" aria-label="Inbox actions">
 											<Icon icon={<ChevronDown />} />
 										</Button>
 									</MenuTrigger>

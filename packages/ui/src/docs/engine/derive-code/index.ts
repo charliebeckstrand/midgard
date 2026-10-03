@@ -374,7 +374,8 @@ function renderElement(
 /**
  * Renders the children of a recognized component. A render-prop child — a
  * function the walker could never invoke — emits its authored source verbatim
- * when the element's fact carries it. Otherwise children render via
+ * when the element's fact carries it. So do children with a condition or a
+ * value in a line of text, which the runtime tree shows only as their result. Otherwise children render via
  * `renderNodes`; when they exist but nothing renders, a `...` placeholder
  * keeps the parent as `<Foo>...</Foo>`.
  */
@@ -391,6 +392,8 @@ function renderChildren(
 
 		return `${indent}{${reindent(registerFactText(fact.children, context), indent)}}`
 	}
+
+	if (fact?.body) return `${indent}${reindent(registerFactText(fact.body, context), indent)}`
 
 	const nodes = elementChildren(element)
 

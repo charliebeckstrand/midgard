@@ -40,20 +40,7 @@ import { type DemoPage, demoPages, walkOf } from './demo-pages'
  * The blocks that fail the gate today, keyed `page › example`, with the first
  * diagnostic of each. Fix a block, and remove its entry.
  */
-const KNOWN_FAILURES: Record<string, string> = {
-	// A `useState` value that the block declares and never reads, because the
-	// block prints the value's use from the live render: a text child as its live
-	// text, or a condition that renders nothing yet.
-	'components/hold-button › Hold to confirm':
-		"TS6133: 'count' is declared but its value is never read.",
-	'components/hold-button › Lifecycle callbacks':
-		"TS6133: 'status' is declared but its value is never read.",
-	'components/signature-pad › Imperative handle':
-		"TS6133: 'value' is declared but its value is never read.",
-
-	// A hand-written override that does not parse.
-	'modules/chart › Basic': 'TS17014: JSX fragment has no corresponding closing tag.',
-}
+const KNOWN_FAILURES: Record<string, string> = {}
 
 // The semantic diagnostics that the gate keeps: a name declared twice, or a
 // name used and never declared. The others are out of scope. The checker

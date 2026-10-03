@@ -85,7 +85,7 @@ function OrdersFilters({ value, onValueChange }: OrdersFiltersProps) {
 						<SearchInput placeholder="Search by order ID" autoComplete="off" />
 					</FiltersField>
 					<FiltersField name="status">
-						<Select placeholder="All statuses" displayValue={(v: string) => v}>
+						<Select aria-label="Status" placeholder="All statuses" displayValue={(v: string) => v}>
 							<SelectOption value="Completed">
 								<SelectLabel>Completed</SelectLabel>
 							</SelectOption>
