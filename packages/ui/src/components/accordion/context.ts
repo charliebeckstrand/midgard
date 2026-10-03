@@ -10,6 +10,8 @@ import type { KeyedStore } from '../../utilities'
 type AccordionContextValue = {
 	variant: NonNullable<AccordionVariants['variant']>
 	mount: Mount
+	/** Whether each open panel is a named `region` landmark. */
+	region: boolean
 	/** Whether each value is open. An item subscribes to its own value. */
 	openStore: KeyedStore<string, boolean>
 	toggle: (value: string) => void

@@ -10,6 +10,9 @@ import { decodeEntities } from './markdown-entities'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
+/** The number of levels that a heading in Markdown source moves down the outline of the page. */
+export type MarkdownHeadingOffset = 0 | 1 | 2 | 3 | 4 | 5
+
 const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
 
 /**
@@ -68,57 +71,75 @@ function safeUrl(url: string, allowData = false): string | undefined {
  * shows as a character and is never markup. Code spans and code blocks keep
  * their references literal.
  *
+ * A heading takes the level of its source depth plus `headingOffset`, in the
+ * range 1 to 6. Its look stays that of its source depth.
+ *
  * @param tokens - Token list from `marked`'s block lexer or inline lexer.
+ * @param headingOffset - The number of levels to add to each heading.
  */
-export function MarkdownRenderer({ tokens }: { tokens: Token[] }) {
-	return <>{tokens.map(renderToken)}</>
+export function MarkdownRenderer({
+	tokens,
+	headingOffset = 0,
+}: {
+	tokens: Token[]
+	headingOffset?: MarkdownHeadingOffset
+}) {
+	return <>{renderChildren(tokens, headingOffset)}</>
 }
 
-function renderChildren(tokens: Token[] | undefined): ReactNode {
-	return tokens?.map(renderToken)
+/**
+ * Renders a token list. A heading can be in a blockquote or in a list item, so
+ * each level of the tree takes the heading offset.
+ *
+ * @internal
+ */
+function renderChildren(tokens: Token[] | undefined, offset: number): ReactNode {
+	return tokens?.map((token, index) => renderToken(token, index, offset))
 }
 
-function renderToken(token: Token, index: number): ReactNode {
+function renderToken(token: Token, index: number, offset: number): ReactNode {
 	switch (token.type) {
 		case 'heading': {
 			const depth = clamp(token.depth, 1, 6) as 1 | 2 | 3 | 4 | 5 | 6
 
-			const Tag = HEADING_TAGS[depth - 1] ?? 'h1'
+			// The offset moves the level in the outline of the page. The look stays
+			// that of the source depth.
+			const Tag = HEADING_TAGS[clamp(depth + offset, 1, 6) - 1] ?? 'h1'
 
 			return (
 				<Tag key={index} className={cn(k.heading[depth])}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, offset)}
 				</Tag>
 			)
 		}
 		case 'paragraph':
 			return (
 				<p key={index} className={cn(k.paragraph)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, offset)}
 				</p>
 			)
 		case 'text':
 			return token.tokens ? (
-				<Fragment key={index}>{renderChildren(token.tokens)}</Fragment>
+				<Fragment key={index}>{renderChildren(token.tokens, offset)}</Fragment>
 			) : (
 				decodeEntities(token.text)
 			)
 		case 'strong':
 			return (
 				<strong key={index} className={cn(k.strong)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, offset)}
 				</strong>
 			)
 		case 'em':
 			return (
 				<em key={index} className={cn(k.em)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, offset)}
 				</em>
 			)
 		case 'del':
 			return (
 				<del key={index} className={cn(k.del)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, offset)}
 				</del>
 			)
 		case 'link':
@@ -129,7 +150,7 @@ function renderToken(token: Token, index: number): ReactNode {
 					title={decodeTitle(token.title)}
 					className={cn(k.link)}
 				>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, offset)}
 				</a>
 			)
 		case 'image':
@@ -153,11 +174,11 @@ function renderToken(token: Token, index: number): ReactNode {
 		case 'blockquote':
 			return (
 				<blockquote key={index} className={cn(k.blockquote)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, offset)}
 				</blockquote>
 			)
 		case 'list':
-			return renderList(token as Tokens.List, index)
+			return renderList(token as Tokens.List, index, offset)
 		case 'checkbox':
 			return (
 				<input
@@ -170,7 +191,7 @@ function renderToken(token: Token, index: number): ReactNode {
 				/>
 			)
 		case 'table':
-			return renderTable(token as Tokens.Table, index)
+			return renderTable(token as Tokens.Table, index, offset)
 		case 'hr':
 			return <hr key={index} className={cn(k.hr)} />
 		case 'br':
@@ -192,8 +213,8 @@ function decodeTitle(title: string | null | undefined): string | undefined {
 	return title ? decodeEntities(title) : undefined
 }
 
-function renderList(token: Tokens.List, key: number): ReactNode {
-	const items = token.items.map(renderListItem)
+function renderList(token: Tokens.List, key: number, offset: number): ReactNode {
+	const items = token.items.map((item, index) => renderListItem(item, index, offset))
 
 	if (token.ordered) {
 		const start = typeof token.start === 'number' && token.start !== 1 ? token.start : undefined
@@ -212,40 +233,44 @@ function renderList(token: Tokens.List, key: number): ReactNode {
 	)
 }
 
-function renderListItem(item: Tokens.ListItem, index: number): ReactNode {
+function renderListItem(item: Tokens.ListItem, index: number, offset: number): ReactNode {
 	return (
 		<li key={index} className={cn(k.li, item.task && k.task)}>
-			{renderChildren(item.tokens)}
+			{renderChildren(item.tokens, offset)}
 		</li>
 	)
 }
 
-function renderTable(token: Tokens.Table, key: number): ReactNode {
+function renderTable(token: Tokens.Table, key: number, offset: number): ReactNode {
 	return (
 		<table key={key} className={cn(k.table)}>
 			<thead>
-				<tr>{token.header.map(renderHeaderCell)}</tr>
+				<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
 			</thead>
-			<tbody>{token.rows.map(renderRow)}</tbody>
+			<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
 		</table>
 	)
 }
 
-/** A renderer of the cells of one table section: `th` in the head, `td` in the body. */
-function cellRenderer(Cell: 'th' | 'td', className: ClassValue) {
-	return (cell: Tokens.TableCell, index: number): ReactNode => (
-		<Cell key={index} className={cn(className, alignClass(cell.align))}>
-			{renderChildren(cell.tokens)}
-		</Cell>
+function renderRow(row: Tokens.TableCell[], index: number, offset: number): ReactNode {
+	return (
+		<tr key={index}>{row.map((cell, column) => renderCell('td', k.td, cell, column, offset))}</tr>
 	)
 }
 
-const renderHeaderCell = cellRenderer('th', k.th)
-
-const renderCell = cellRenderer('td', k.td)
-
-function renderRow(row: Tokens.TableCell[], index: number): ReactNode {
-	return <tr key={index}>{row.map(renderCell)}</tr>
+/** Renders one table cell: a `th` in the head, a `td` in the body. */
+function renderCell(
+	Cell: 'th' | 'td',
+	className: ClassValue,
+	cell: Tokens.TableCell,
+	index: number,
+	offset: number,
+): ReactNode {
+	return (
+		<Cell key={index} className={cn(className, alignClass(cell.align))}>
+			{renderChildren(cell.tokens, offset)}
+		</Cell>
+	)
 }
 
 function alignClass(align: Tokens.TableCell['align']): string | undefined {

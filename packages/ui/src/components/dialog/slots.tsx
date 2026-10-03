@@ -14,7 +14,7 @@ import {
 
 const { Title, Description, Header, Body, Footer, Content } = createPanel('dialog')
 
-/** Props for {@link DialogTitle} (`<h2>` attributes). */
+/** Props for {@link DialogTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type DialogTitleProps = PanelTitleProps
 /** Props for {@link DialogDescription} (`<p>` attributes). */
 export type DialogDescriptionProps = PanelDescriptionProps
@@ -51,6 +51,6 @@ export {
 	 */
 	PanelTrigger as DialogTrigger,
 	type PanelTriggerProps as DialogTriggerProps,
-	/** `<h2>` heading; registers as the dialog's `aria-labelledby` target with density-scaled type. */
+	/** `h{level}` heading, `<h2>` by default; registers as the dialog's `aria-labelledby` target with density-scaled type. */
 	Title as DialogTitle,
 }

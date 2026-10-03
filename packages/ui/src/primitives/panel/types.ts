@@ -1,7 +1,16 @@
 import type { ComponentProps } from 'react'
+import type { HeadingLevel } from '../../recipes/kata/heading'
 
-/** Props for a panel `Title` slot (`<h2>`). */
-export type PanelTitleProps = ComponentProps<'h2'>
+/** Props for a panel `Title` slot (`<h2>` by default): the heading `level` plus the native heading attributes. */
+export type PanelTitleProps = ComponentProps<'h2'> & {
+	/**
+	 * Heading level of the rendered title. Level 2 fits a modal panel, which is
+	 * the top of its own outline. Set it for a non-modal panel, which is a part of
+	 * the outline of the page. The font weight follows the level.
+	 * @defaultValue 2
+	 */
+	level?: HeadingLevel
+}
 /** Props for a panel `Description` slot (`<p>`). */
 export type PanelDescriptionProps = ComponentProps<'p'>
 /** Props for a panel `Header` slot (`<div>`). */

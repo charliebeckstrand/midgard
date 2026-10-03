@@ -54,7 +54,8 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
  * @remarks Below `lg`, the page scrolls, and the navbar is the one bar that sticks
- * to the top. The header scrolls with the content. From `lg` up, the layout is
+ * to the top. The navbar is a region named "Navigation bar", which holds the menu
+ * button, `navbar`, and `actions`. The header scrolls with the content. From `lg` up, the layout is
  * pinned to the viewport (`fixed inset-0`), and only the content region scrolls.
  * There, `stickyHeader` keeps the header at the top of the content region.
  * To show the layout inside another page, put it in a box that has a height and
@@ -174,19 +175,23 @@ export function SidebarLayout({
 				</OffcanvasContext>
 			</Drawer>
 
-			{/* Navbar on mobile */}
-			<Flex align="center" className={k.navbar()}>
-				<DrawerTrigger open={open} onClick={() => setOpen(true)}>
-					<Button
-						type="button"
-						variant="bare"
-						aria-label="Open navigation"
-						prefix={<Icon icon={<Menu />} />}
-					/>
-				</DrawerTrigger>
-				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-				{actions && <div className="flex items-center shrink-0 ms-auto">{actions}</div>}
-			</Flex>
+			{/* Navbar on mobile. A named section, so the menu button, the navbar, and the
+			    actions are in a landmark below `lg`. The section is the sticky bar, as a
+			    sticky child sticks only inside the box of its parent. */}
+			<section aria-label="Navigation bar" className={k.navbar()}>
+				<Flex align="center">
+					<DrawerTrigger open={open} onClick={() => setOpen(true)}>
+						<Button
+							type="button"
+							variant="bare"
+							aria-label="Open navigation"
+							prefix={<Icon icon={<Menu />} />}
+						/>
+					</DrawerTrigger>
+					{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
+					{actions && <div className="flex items-center shrink-0 ms-auto">{actions}</div>}
+				</Flex>
+			</section>
 
 			{/* Content */}
 			<SidebarLayoutContext value={layoutValue}>

@@ -17,6 +17,7 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
+import type { HeadingLevel } from '../../components/heading'
 import { cn, dataAttr } from '../../core'
 import { useControllable, useDragCursor, useEscapeLayer, useResizeObserver } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -29,6 +30,7 @@ import {
 	DashboardActionsContext,
 	DashboardStoreContext,
 	DashboardTileRankContext,
+	DashboardTitleLevelContext,
 } from './context'
 import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
@@ -230,6 +232,12 @@ export type DashboardProps = AccessibleName & {
 	 * @defaultValue 12
 	 */
 	gap?: number
+	/**
+	 * Heading level of each tile title. The dashboard shows no heading of its own,
+	 * so set it one level below the heading above the dashboard on the page.
+	 * @defaultValue 3
+	 */
+	titleLevel?: HeadingLevel
 	/** Receives the start of each drag. */
 	onDragStart?: (event: DashboardGestureStartEvent) => void
 	/** Receives the end of each drag, with `canceled` when it changed nothing. */
@@ -316,6 +324,7 @@ export function Dashboard({
 	editing = false,
 	columns = DEFAULT_COLUMNS,
 	gap = DEFAULT_GAP,
+	titleLevel = 3,
 	onDragStart,
 	onDragEnd,
 	onResizeStart,
@@ -541,7 +550,7 @@ export function Dashboard({
 							style={canvasStyle(columns, gap)}
 							className={cn(k.canvas({ editable }))}
 						>
-							{tiles}
+							<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>
 
 							<DashboardPlaceholder />
 						</div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { HeadingLevel } from '../../components/heading'
 import { createContext } from '../../core'
 import type { QueryGroup } from '../query/engine/types'
 import type { DashboardTileRank } from './engine/dashboard-layout'
@@ -37,6 +38,17 @@ export type DashboardActions = DashboardResizeHandlers & {
 /** @internal */
 export const [DashboardActionsContext, useDashboardActions] =
 	createContext<DashboardActions>('Dashboard')
+
+/**
+ * The heading level of each tile title in the nearest `Dashboard`. With no
+ * provider above it, a tile title is a level 3 heading.
+ *
+ * @internal
+ */
+export const [DashboardTitleLevelContext, useDashboardTitleLevel] = createContext<HeadingLevel>(
+	'Dashboard',
+	{ default: 3 },
+)
 
 /**
  * The id of the tile that encloses the reader, or `null` outside any tile. The
