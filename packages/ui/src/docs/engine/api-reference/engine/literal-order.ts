@@ -1,4 +1,5 @@
 import { ts } from 'ts-morph'
+import { densitySteps } from '../../../../core/density/steps'
 import {
 	componentPropsAnnotation,
 	RECIPE_ENGINE_PATH,
@@ -523,19 +524,39 @@ function recipeConfigs(node: ts.TypeNode | undefined, walk: Walk): ts.Type[] {
 	})
 }
 
+/** The key of each density step, in the order of the steps. */
+const STEP_KEYS: readonly string[] = densitySteps.map((step) => `'${step}'`)
+
 /**
- * The members of a union in source order. Each member with a key in `order`
- * takes the place that `order` gives it, among the places of such members.
+ * Whether each string literal of a union is a density step, such as the
+ * members of a `size`. A union with fewer than two string literals is not.
+ */
+function isStepUnion(members: readonly ts.Type[]): boolean {
+	const keys = members.filter((member) => member.isStringLiteral()).map(memberKey)
+
+	return keys.length > 1 && keys.every((key) => key !== null && STEP_KEYS.includes(key))
+}
+
+/**
+ * The members of a union in source order. Each member with a key in `source`
+ * takes the place that `source` gives it, among the places of such members.
  * Any other member keeps its place.
  *
- * Returns `members` itself when `order` is null, or when it leaves out a
+ * A union of density steps takes the order of the steps, from `xs` to `xl`,
+ * in place of `source`. A recipe can give its steps in any order, and a type
+ * such as `Exclude<DensityStep, 'xl'>` spells none. Thus each scale shows from
+ * small to large.
+ *
+ * Returns `members` itself when the order is null, or when it leaves out a
  * literal member: a partial order would place that member by type id among
  * members that it places by source.
  */
 export function orderMembers(
 	members: readonly ts.Type[],
-	order: readonly string[] | null,
+	source: readonly string[] | null,
 ): readonly ts.Type[] {
+	const order = isStepUnion(members) ? STEP_KEYS : source
+
 	if (!order) return members
 
 	// Each member with its rank in `order`, or -1 when `order` cannot place it.

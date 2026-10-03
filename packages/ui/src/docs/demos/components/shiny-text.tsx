@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { ShinyText } from '../../../components/shiny-text'
-import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example, ValueStepper } from '../../engine'
 
@@ -69,13 +68,11 @@ export function Demo() {
 			</Example>
 
 			<Example title="Spread">
-				<Flex gap="lg" wrap>
-					{spreads.map((spread) => (
-						<ShinyText key={spread} spread={spread} className="text-3xl font-semibold tabular-nums">
-							{spread}°
-						</ShinyText>
-					))}
-				</Flex>
+				{spreads.map((spread) => (
+					<ShinyText key={spread} spread={spread} className="text-3xl font-semibold tabular-nums">
+						{spread}°
+					</ShinyText>
+				))}
 			</Example>
 		</>
 	)

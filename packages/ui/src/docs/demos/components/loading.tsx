@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { LoadingDots, LoadingSpinner } from '../../../components/loading'
 import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
-import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example, PageTabs, SizeListbox } from '../../engine'
 
@@ -35,14 +34,12 @@ export function Demo() {
 									/>
 								}
 							>
-								<Flex gap="md">
-									<Button disabled size={buttonSize} prefix={<LoadingSpinner />}>
-										Loading
-									</Button>
-									<Button variant="soft" disabled size={buttonSize} prefix={<LoadingSpinner />}>
-										Saving
-									</Button>
-								</Flex>
+								<Button disabled size={buttonSize} prefix={<LoadingSpinner />}>
+									Loading
+								</Button>
+								<Button variant="soft" disabled size={buttonSize} prefix={<LoadingSpinner />}>
+									Saving
+								</Button>
 							</Example>
 						</Stack>
 					</TabContent>
@@ -60,14 +57,12 @@ export function Demo() {
 									/>
 								}
 							>
-								<Flex gap="md">
-									<Button disabled size={buttonSize} prefix={<LoadingDots />}>
-										Loading
-									</Button>
-									<Button variant="soft" disabled size={buttonSize} prefix={<LoadingDots />}>
-										Saving
-									</Button>
-								</Flex>
+								<Button disabled size={buttonSize} prefix={<LoadingDots />}>
+									Loading
+								</Button>
+								<Button variant="soft" disabled size={buttonSize} prefix={<LoadingDots />}>
+									Saving
+								</Button>
 							</Example>
 						</Stack>
 					</TabContent>

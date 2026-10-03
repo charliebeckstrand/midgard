@@ -72,6 +72,11 @@ function loadDerive(): Promise<Derive> {
  * fills the box. Each example thus shows a component at one width, with no
  * width in the demo.
  *
+ * When the root of each child is phrasing content, such as a button or a
+ * badge, the boxes show in a row that wraps, and each box takes the width of
+ * its child. Otherwise they stack, one to a line. The `phrasing` variant of
+ * the docs stylesheet holds the rule.
+ *
  * A frame with a width of its own, from `width` or `resize`, is itself the
  * column. Each box then fills the frame, so a block follows the width that the
  * reader drags.
@@ -266,7 +271,18 @@ export function Example({
 				)}
 				<div
 					data-example-section=""
-					className="flex flex-col items-start p-4 gap-4 overflow-x-auto"
+					className={cn(
+						'flex flex-col items-start p-4 gap-4 overflow-x-auto',
+						// A row of phrasing content centers its instances on one line.
+						'phrasing:flex-row phrasing:flex-wrap phrasing:items-center phrasing:*:w-max phrasing:*:min-w-0',
+						// In a row with captions, each axis value fills the height of the line.
+						// The captions stay at the top, and each instance centers in the room
+						// below its caption, so the captions align and the instances align. A
+						// caption and its instance center on one another.
+						'phrasing:has-[[data-slot=axis-caption]]:items-stretch',
+						'phrasing:*:*:data-[slot=axis-value]:flex phrasing:*:*:data-[slot=axis-value]:h-full phrasing:*:*:data-[slot=axis-value]:flex-col phrasing:*:*:data-[slot=axis-value]:items-center',
+						'phrasing:*:*:data-[slot=axis-value]:*:last:my-auto',
+					)}
 				>
 					{Children.toArray(children).map((child, index) => (
 						<div
