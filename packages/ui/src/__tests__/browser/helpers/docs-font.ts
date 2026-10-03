@@ -1,7 +1,7 @@
 import { afterAll, beforeAll } from 'vitest'
 
 const DOCS_FONT_URL = new URL(
-	'../../../docs/engine/fonts/GoogleSansFlex-VariableFont_opsz,wght.woff2',
+	'../../../docs/engine/fonts/GoogleSansFlex-VariableFont.woff2',
 	import.meta.url,
 ).href
 
