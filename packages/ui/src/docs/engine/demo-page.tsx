@@ -8,11 +8,16 @@ import { Icon } from '../../components/icon'
 import { SidebarLayoutHeader } from '../../layouts'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
-import { ApiReference } from './components/api-reference'
 import { DemoApiContext } from './components/axes'
 import { DemoErrorBoundary } from './components/error-boundary'
 import type { Demo } from './registry'
-import { hasComponentApi, loadComponentApi, loadDemo, settleComponentApi } from './registry'
+import {
+	hasComponentApi,
+	loadApiReferenceView,
+	loadComponentApi,
+	loadDemo,
+	settleComponentApi,
+} from './registry'
 
 /**
  * The route body for one demo. It holds the lazily-loaded component, a
@@ -73,11 +78,13 @@ export function DemoPage({
 }
 
 /**
- * The API-reference section for a component, suspending on its lazy chunk. A
- * barrel with nothing to document renders nothing.
+ * The API-reference section for a component. It suspends on its lazy data and
+ * on the chunk of its view. A barrel with nothing to document renders nothing.
  */
 function ApiReferenceSection({ id }: { id: string }) {
 	const api = use(loadComponentApi(id))
+
+	const ApiReference = use(loadApiReferenceView())
 
 	if (api.length === 0) return null
 
