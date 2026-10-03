@@ -194,15 +194,7 @@ export function PlacesIndex({
 		// No grip, because there is nothing left for it to say: the panel is already
 		// the width of what it holds, and a drag could only make the table scroll or
 		// pad it with space.
-		<Sheet
-			glass
-			open={open}
-			onOpenChange={onOpenChange}
-			width="fit"
-			aria-label="My places"
-			// The close beside the title closes the sheet, so it has no Close row.
-			footer={null}
-		>
+		<Sheet glass open={open} onOpenChange={onOpenChange} width="fit" aria-label="My places">
 			{/* The title and the close on one line, laid out here rather than through
 			    the header slot: that slot stacks a title over a description, which puts
 			    the close under the title instead of opposite it. The form drawer's
@@ -217,9 +209,8 @@ export function PlacesIndex({
 
 			{/* `min-h-0` so the body is the box the grid fills rather than one that
 			    grows with its rows; the panel's own height then bounds the table.
-			    `pb-6` sits here rather than on the grid, so the inset is outside the
-			    scroll region and the last row does not stop short of the edge. */}
-			<SheetBody className="min-h-0 pb-6">
+			    The footer under it, with the Close button, holds the bottom inset. */}
+			<SheetBody className="min-h-0">
 				{/* `maxHeight="fill"` rather than a measured one: the grid takes the box it is
 				    given and flexes its scroll region to the remainder, so the rows
 				    scroll under a sticky header without this file having to know the
