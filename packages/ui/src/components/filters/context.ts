@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { ScrollRegionOptions } from '../../hooks'
 import type { ResponsiveAlign, ResponsiveDirection } from '../../structure/flex/variants'
 import { filtersAxis } from './filters-axis'
 
@@ -32,6 +33,22 @@ export type FiltersContextValue = {
  * @throws If called outside a `Filters`.
  */
 export const [FiltersContext, useFilters] = createContext<FiltersContextValue>('Filters')
+
+/**
+ * The accessible name of the enclosing {@link Filters} bar: its `aria-label` as
+ * `label`, or its `aria-labelledby` as `labelledBy`. A `rail` row takes this
+ * name while it scrolls, as a named region.
+ *
+ * @remarks
+ * The name has a context of its own, so a new name renders only the row again,
+ * and not each consumer of {@link useFilters}.
+ *
+ * @internal
+ */
+export const [FiltersNameContext, useFiltersName] = createContext<ScrollRegionOptions>(
+	'FiltersName',
+	{ default: {} },
+)
 
 /**
  * The flex axis the bar's regions share, read from the layout.

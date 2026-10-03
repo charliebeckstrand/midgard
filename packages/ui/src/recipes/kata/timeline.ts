@@ -1,8 +1,10 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, kokkaku, textRamp } from '../kiso'
+import { iro, ji, kokkaku, omote, sen, textRamp } from '../kiso'
 
 const { marker, text } = iro
 const { weight } = ji
+const { fade } = omote
+const { focus } = sen
 
 /**
  * Per-color marker appearance. `dot` uses the `iro.marker` shade, which clears
@@ -53,7 +55,9 @@ const root = defineRecipe({
 	base: ['list-none p-0 m-0'],
 	orientation: {
 		vertical: 'flex flex-col',
-		horizontal: 'flex flex-row overflow-x-auto',
+		// The row scrolls in the root. While it overflows, the edge with more
+		// content behind it fades, and the root is a tab stop with an inset ring.
+		horizontal: ['flex flex-row overflow-x-auto', ...fade.inline, ...focus.inset],
 	},
 	variant: {
 		solid: '',
