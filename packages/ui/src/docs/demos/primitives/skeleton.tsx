@@ -38,6 +38,7 @@ import { SwitchSkeleton } from '../../../components/switch'
 import { TabListSkeleton } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import { TimelineSkeleton } from '../../../components/timeline'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { ChartSkeleton } from '../../../modules/chart'
 import { MapSkeleton } from '../../../modules/map'
@@ -83,6 +84,7 @@ const skeletonVariants = [
 	{ name: 'Tab list', skeleton: <TabListSkeleton /> },
 	{ name: 'Text', skeleton: <TextSkeleton /> },
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
+	{ name: 'Timeline', skeleton: <TimelineSkeleton /> },
 	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
 ]
 

@@ -46,6 +46,7 @@ import {
 	Timeline,
 	TimelineDescription,
 	TimelineItem,
+	TimelineSkeleton,
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../../components/timeline'
@@ -293,6 +294,9 @@ export const dataDisplayCases: readonly Case[] = [
 				</TimelineItem>
 			</Timeline>
 		),
+		skeleton: [
+			{ element: <TimelineSkeleton items={2} />, absentSlot: 'timeline-item', placeholders: 6 },
+		],
 	},
 	{
 		name: 'stat',
