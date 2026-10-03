@@ -1062,6 +1062,26 @@ describe('BarChart', () => {
 		).toBe('260px')
 	})
 
+	// A user who moves from table to table knows which chart a table is for.
+	it('names the visually-hidden table by the name of the plot', () => {
+		const labelled = renderUI(chart())
+
+		const caption = getSlot(labelled.container, 'chart-table').querySelector('caption')
+
+		expect(caption?.textContent).toBe('Revenue by quarter')
+
+		labelled.unmount()
+
+		const { container } = renderUI(
+			<>
+				<h2 id="chart-name">Quarterly revenue</h2>
+				{chart({ 'aria-label': undefined, 'aria-labelledby': 'chart-name' })}
+			</>,
+		)
+
+		expect(getSlot(container, 'chart-table')).toHaveAttribute('aria-labelledby', 'chart-name')
+	})
+
 	it('renders an empty frame for empty data', () => {
 		const { container } = renderUI(chart({ data: [] }))
 

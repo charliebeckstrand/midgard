@@ -619,7 +619,13 @@ export function ChartFrame({
 				</ChartEmphasisContext>
 			</ChartTierContext>
 
-			{readout && <ChartTable readout={readout} />}
+			{readout && (
+				<ChartTable
+					readout={readout}
+					label={plotName(label)['aria-label']}
+					labelledBy={plotName(label)['aria-labelledby']}
+				/>
+			)}
 
 			{annotations}
 
