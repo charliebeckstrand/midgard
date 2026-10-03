@@ -31,6 +31,7 @@ import {
 	StatDeltaSkeleton,
 	StatDescriptionSkeleton,
 	StatLabelSkeleton,
+	StatSkeleton,
 	StatValueSkeleton,
 } from '../../../components/stat'
 import { StepperSkeleton } from '../../../components/stepper'
@@ -74,6 +75,7 @@ const skeletonVariants = [
 	{ name: 'Shiny text', skeleton: <ShinyTextSkeleton /> },
 	{ name: 'Slider', skeleton: <SliderSkeleton /> },
 	{ name: 'Sparkline', skeleton: <SparklineSkeleton /> },
+	{ name: 'Stat', skeleton: <StatSkeleton delta description /> },
 	{ name: 'Stat delta', skeleton: <StatDeltaSkeleton /> },
 	{ name: 'Stat description', skeleton: <StatDescriptionSkeleton /> },
 	{ name: 'Stat label', skeleton: <StatLabelSkeleton /> },
