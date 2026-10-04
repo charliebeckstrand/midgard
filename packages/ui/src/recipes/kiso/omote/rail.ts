@@ -4,9 +4,9 @@
  * overflow indicator.
  *
  * While the content overflows, the edge with more content behind it fades
- * ({@link fade}). The fade keys off the attributes that
- * `useScrollOverflow({ axis: 'horizontal' })` stamps, so the component that
- * reads the rail must also call that hook. The `min-w-0` lets a flex child
+ * ({@link fade}). The fade shows only while the attributes that
+ * `useScrollOverflow({ axis: 'horizontal' })` stamps are present, so the
+ * component that reads the rail must also call that hook. The `min-w-0` lets a flex child
  * overflow at all, and the scroll does not chain to the page. A rail that is a
  * tab stop shows an inset ring, because the scroll clips an outset ring.
  *

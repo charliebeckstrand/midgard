@@ -15,7 +15,7 @@ import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
  * name of the bar. The Timeline keeps its `list` role and its own name.
  *
  * jsdom lays nothing out and compiles no Tailwind. Only a real browser proves
- * the overflow, the scroll, and the mask that the attributes open.
+ * the overflow, the scroll, and the mask.
  */
 
 const FIELDS = ['Search', 'Status', 'Owner', 'Region', 'Team']
@@ -75,14 +75,22 @@ function edges(el: HTMLElement): [boolean, boolean] {
 }
 
 /**
- * The physical sides that the mask fades, read from the computed mask. An edge
- * that does not fade keeps the opaque gradient of Tailwind, which has no
- * direction keyword.
+ * The physical sides that the mask fades. The mask holds a width for each
+ * logical edge (`core/scroll/fade.ts`), and its direction turns in a
+ * right-to-left context. An edge with a width of zero does not fade.
  */
 function fadedSides(el: HTMLElement): { left: boolean; right: boolean } {
-	const mask = getComputedStyle(el).maskImage
+	const style = getComputedStyle(el)
 
-	return { left: mask.includes('to left'), right: mask.includes('to right') }
+	if (style.maskImage === 'none') return { left: false, right: false }
+
+	const start = Number.parseFloat(style.getPropertyValue('--scroll-fade-start')) > 0
+
+	const end = Number.parseFloat(style.getPropertyValue('--scroll-fade-end')) > 0
+
+	const rtl = style.getPropertyValue('--scroll-fade-to').trim() === 'left'
+
+	return rtl ? { left: end, right: start } : { left: start, right: end }
 }
 
 /** Scrolls `el` to the end of its reading direction. */
@@ -113,19 +121,19 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			await waitFor(() => expect(edges(el)).toEqual([false, true]))
 
-			expect(fadedSides(el)).toEqual({ left: false, right: true })
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
 
 			scrollToMiddle(el)
 
 			await waitFor(() => expect(edges(el)).toEqual([true, true]))
 
-			expect(fadedSides(el)).toEqual({ left: true, right: true })
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: true }))
 
 			scrollToEnd(el)
 
 			await waitFor(() => expect(edges(el)).toEqual([true, false]))
 
-			expect(fadedSides(el)).toEqual({ left: true, right: false })
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: false }))
 		})
 
 		it('fades the physical left edge as the end in a right-to-left document', async () => {
@@ -135,13 +143,13 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			await waitFor(() => expect(edges(el)).toEqual([false, true]))
 
-			expect(fadedSides(el)).toEqual({ left: true, right: false })
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: false }))
 
 			scrollToEnd(el, true)
 
 			await waitFor(() => expect(edges(el)).toEqual([true, false]))
 
-			expect(fadedSides(el)).toEqual({ left: false, right: true })
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
 		})
 
 		it('drops the fade when the content fits', async () => {
@@ -155,7 +163,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			await waitFor(() => expect(edges(el)).toEqual([false, false]))
 
-			expect(fadedSides(el)).toEqual({ left: false, right: false })
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: false }))
 		})
 	})
 
