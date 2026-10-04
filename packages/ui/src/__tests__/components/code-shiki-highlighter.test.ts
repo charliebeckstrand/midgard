@@ -1,7 +1,12 @@
 // @vitest-environment node
 import { codeToHtml } from 'shiki'
-import { describe, expect, it } from 'vitest'
-import { highlightShiki, loadShikiPair } from '../../components/code/code-shiki-highlighter'
+import { describe, expect, it, vi } from 'vitest'
+import {
+	getHighlighter,
+	highlightShiki,
+	loadShikiPair,
+	warmShikiPair,
+} from '../../components/code/code-shiki-highlighter'
 
 // The highlighter of the Shiki worker, with real grammars. The jsdom suites
 // replace the worker with a fake, so this suite holds the markup to the
@@ -52,5 +57,53 @@ describe('highlightShiki', () => {
 		['a theme that Shiki does not bundle', 'tsx', 'no-such-theme'],
 	])('rejects %s', async (_case, lang, theme) => {
 		await expect(loadShikiPair(lang, theme)).rejects.toThrow('Shiki bundles no')
+	})
+})
+
+describe('warmShikiPair', () => {
+	/** A spy on the tokenizer that the warm-up runs, which still tokenizes. */
+	async function spyTokenizer() {
+		return vi.spyOn(await getHighlighter(), 'codeToTokensBase')
+	}
+
+	it('tokenizes the tsx samples on the first warm-up of the grammar only', async () => {
+		const tokenize = await spyTokenizer()
+
+		await warmShikiPair('tsx', 'github-dark-default')
+
+		expect(tokenize).toHaveBeenCalledTimes(5)
+
+		expect(tokenize.mock.calls.map(([, options]) => options.lang)).toEqual(Array(5).fill('tsx'))
+
+		// The RegExps of a grammar serve each theme, so another theme does not
+		// tokenize the samples again.
+		await warmShikiPair('tsx', 'github-light-default')
+
+		expect(tokenize).toHaveBeenCalledTimes(5)
+	})
+
+	it('finds the samples by the grammar name, so an alias warms the grammar', async () => {
+		const tokenize = await spyTokenizer()
+
+		await warmShikiPair('ts', 'github-dark-default')
+
+		expect(tokenize).toHaveBeenCalledOnce()
+
+		expect(tokenize).toHaveBeenCalledWith(expect.stringContaining('function greet'), {
+			lang: 'ts',
+			theme: 'github-dark-default',
+		})
+
+		await warmShikiPair('typescript', 'github-dark-default')
+
+		expect(tokenize).toHaveBeenCalledOnce()
+	})
+
+	it.each(['css', 'text'])('only loads %s, which has no samples', async (lang) => {
+		const tokenize = await spyTokenizer()
+
+		await warmShikiPair(lang, 'github-dark-default')
+
+		expect(tokenize).not.toHaveBeenCalled()
 	})
 })

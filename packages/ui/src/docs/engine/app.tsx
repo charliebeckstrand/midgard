@@ -17,8 +17,9 @@ import { type Page, pageAt } from './pages'
 
 // The grammars that the warm-up loads in the worker of `CodeBlock`, one per
 // idle slice: `tsx` for a derived code block, and `ts`, which a fence in
-// Markdown and in a TSDoc description uses. The worker loads them off the main
-// thread, so the warm-up does not block the page.
+// Markdown and in a TSDoc description uses. The worker loads each one and
+// tokenizes its samples off the main thread, so the warm-up does not block the
+// page.
 const WARM_LANGS = ['tsx', 'ts'] as const
 
 // The Debug section of the settings is a separate chunk, so the entry chunk
@@ -75,9 +76,9 @@ export function App({ pages }: { pages: readonly Page[] }) {
 		if (page) navigate(page.path, { replace: true })
 	}, [pathname, hash, pages, navigate])
 
-	// Start the Shiki worker on idle and load the warm grammars in it, so the
-	// first "Show code" does not wait for the chunks. Per-demo prefetch happens
-	// via sidebar hover/focus.
+	// Start the Shiki worker on idle and warm the grammars in it, so the first
+	// "Show code" waits neither for the chunks nor for the build of the grammar
+	// RegExps. Per-demo prefetch happens via sidebar hover/focus.
 	useEffect(() => {
 		const ric = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 1))
 

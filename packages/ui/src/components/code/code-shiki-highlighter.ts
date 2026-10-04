@@ -16,7 +16,10 @@ import { bundledThemes } from 'shiki/themes'
 // halves the first tokenization, but that cost is in the worker, not on the
 // page, so the smaller and wider form wins.
 
-/** A request to the worker. A request with no `code` only loads the grammar and the theme. */
+/**
+ * A request to the worker. A request with no `code` loads the grammar and the
+ * theme, and warms the grammar (see {@link warmShikiPair}).
+ */
 export type ShikiRequest = {
 	/** Pairs the request with its reply. */
 	id: number
@@ -36,7 +39,33 @@ let highlighter: Promise<HighlighterCore> | null = null
 /** The pending or settled load of each grammar and each theme, by kind and id. */
 const loads = new Map<string, Promise<void>>()
 
-function getHighlighter(): Promise<HighlighterCore> {
+// Samples in the shape of a derived code block, from the warm-up of the docs
+// app before this worker (#1812). The engine builds the RegExp of a grammar
+// rule when the tokenizer first runs the rule, and that build is most of the
+// cost of a first highlight. A warm-up tokenizes the samples of its grammar, so
+// the first real block finds the RegExps of the frequent rules ready. Only
+// `tsx` and `typescript` have samples. The key is the name of the grammar, so
+// an alias such as `ts` finds the samples too.
+const WARM_SAMPLES: Readonly<Record<string, readonly string[]>> = {
+	tsx: [
+		`import { Select, type SelectOption } from 'ui/select'`,
+		`const options: SelectOption<string>[] = [{ value: 'a', label: \`Beta \${1 + 2}\`, disabled: false }]`,
+		`export function Demo({ label = 'Pick' }: { label?: string }) {\n\tconst [value, setValue] = useState<string | null>(null)\n}`,
+		`// Reset on click.\n<Button color="blue" size={2} disabled={!value} onClick={() => setValue(null)}>\n\t{value ?? label}\n</Button>`,
+		`<>\n\t<Select options={options} value={value} onChange={(next) => setValue(next)} />\n</>`,
+	],
+	typescript: [`export function greet(name: string): string {\n\treturn 'Hello, ' + name\n}`],
+}
+
+/** The grammars whose samples the worker tokenized, by grammar name. */
+const warmed = new Set<string>()
+
+/**
+ * Creates the highlighter on first use.
+ *
+ * @internal
+ */
+export function getHighlighter(): Promise<HighlighterCore> {
 	highlighter ??= createHighlighterCore({ engine: createJavaScriptRegexEngine() })
 
 	return highlighter
@@ -99,6 +128,32 @@ function loadTheme(theme: string): Promise<void> {
  */
 export async function loadShikiPair(lang: string, theme: string): Promise<void> {
 	await Promise.all([loadGrammar(lang), loadTheme(theme)])
+}
+
+/**
+ * Loads the grammar of `lang` and the theme `theme`, and then tokenizes the
+ * samples of the grammar one time. A grammar with no samples only loads.
+ *
+ * @remarks
+ * A warm-up request (`loadShiki`) runs this. A highlight request does not: its
+ * own code builds the RegExps that it needs, and a sample first only delays it.
+ *
+ * @internal
+ */
+export async function warmShikiPair(lang: string, theme: string): Promise<void> {
+	await loadShikiPair(lang, theme)
+
+	if (isSpecialLang(lang)) return
+
+	const hl = await getHighlighter()
+
+	const { name } = hl.getLanguage(lang)
+
+	if (warmed.has(name) || !Object.hasOwn(WARM_SAMPLES, name)) return
+
+	warmed.add(name)
+
+	for (const sample of WARM_SAMPLES[name] ?? []) hl.codeToTokensBase(sample, { lang, theme })
 }
 
 /**

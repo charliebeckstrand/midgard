@@ -1,8 +1,8 @@
 import {
 	highlightShiki,
-	loadShikiPair,
 	type ShikiReply,
 	type ShikiRequest,
+	warmShikiPair,
 } from './code-shiki-highlighter'
 
 // The entry of the Shiki worker, which `code-shiki-port.ts` starts. Each
@@ -12,7 +12,7 @@ self.onmessage = ({ data }: MessageEvent<ShikiRequest>) => {
 
 	const work =
 		code === undefined
-			? loadShikiPair(lang, theme).then((): ShikiReply => ({ id }))
+			? warmShikiPair(lang, theme).then((): ShikiReply => ({ id }))
 			: highlightShiki(code, lang, theme).then((html): ShikiReply => ({ id, html }))
 
 	work.then(

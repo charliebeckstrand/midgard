@@ -104,8 +104,10 @@ export async function highlightCode(code: string, lang: string, theme: string): 
  * @remarks
  * The worker loads Shiki, then each grammar and each theme as a lazy chunk.
  * Nothing loads on the main thread. Call this at idle time to remove the load
- * from the wait of the first block. The wait of a first tokenization stays,
- * but that work runs in the worker and does not block the page.
+ * from the wait of the first block. For `tsx` and `ts`, the worker then
+ * tokenizes a few short samples, so the first block finds the RegExps of the
+ * frequent rules ready. For another grammar, the first block builds them. That
+ * work runs in the worker and does not block the page.
  *
  * The promise of each pair of `lang` and `theme` is memoized. A rejection
  * clears it and reaches the caller, so the next call loads again. That beats
