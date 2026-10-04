@@ -98,7 +98,7 @@ export const layoutCases: readonly Case[] = [
 	{
 		name: 'aspect ratio',
 		element: (
-			<AspectRatio key="ar" ratio="square">
+			<AspectRatio key="ar" ratio="1/1">
 				<div>Content</div>
 			</AspectRatio>
 		),
