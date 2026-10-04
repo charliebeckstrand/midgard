@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { ComponentApi } from '../../docs/engine/api-reference'
-import { listBarrels } from '../../docs/engine/api-reference/engine/barrels'
+import type { ComponentApi } from '../../docs-legacy/engine/api-reference'
+import { listBarrels } from '../../docs-legacy/engine/api-reference/engine/barrels'
 import { apiRecord } from './api-record'
 
 // The docs plugin serves no API data in a test run, so `<Axes>` renders nothing
@@ -20,8 +20,8 @@ const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
  */
 export function demoApiOf(page: string): ComponentApi[] | null {
 	const demo = [
-		join(SRC, 'docs', 'demos', `${page}.tsx`),
-		join(SRC, 'docs', 'demos', page, 'index.tsx'),
+		join(SRC, 'docs-legacy', 'demos', `${page}.tsx`),
+		join(SRC, 'docs-legacy', 'demos', page, 'index.tsx'),
 	].find(existsSync)
 
 	if (!demo || !readFileSync(demo, 'utf8').includes('<Axes')) return null

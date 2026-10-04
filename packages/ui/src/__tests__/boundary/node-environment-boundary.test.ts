@@ -26,7 +26,7 @@ const SCAN_SKIP = new Set(['browser', 'boundary', 'compiler'])
 
 const SCANS = [
 	{ dir: testsDir, skip: SCAN_SKIP },
-	{ dir: join(srcDir, 'docs', 'engine', '__tests__') },
+	{ dir: join(srcDir, 'docs-legacy', 'engine', '__tests__') },
 ]
 
 const TEST_FILE = /\.test\.tsx?$/

@@ -5,7 +5,7 @@ import type { ComponentType } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { onTestFinished, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
-import { DemoApiContext } from '../../docs/engine/components/axes'
+import { DemoApiContext } from '../../docs-legacy/engine/components/axes'
 import { AppearanceProvider } from '../../providers/appearance'
 import { demoApiOf } from './demo-api'
 
@@ -19,19 +19,19 @@ import { demoApiOf } from './demo-api'
 
 const loaders = import.meta.glob<ComponentType>(
 	[
-		'../../docs/demos/components/*.tsx',
-		'../../docs/demos/primitives/*.tsx',
-		'../../docs/demos/providers/*.tsx',
-		'../../docs/demos/modules/*.tsx',
-		'../../docs/demos/modules/*/index.tsx',
-		'../../docs/demos/structure/*.tsx',
+		'../../docs-legacy/demos/components/*.tsx',
+		'../../docs-legacy/demos/primitives/*.tsx',
+		'../../docs-legacy/demos/providers/*.tsx',
+		'../../docs-legacy/demos/modules/*.tsx',
+		'../../docs-legacy/demos/modules/*/index.tsx',
+		'../../docs-legacy/demos/structure/*.tsx',
 	],
 	{ import: 'default' },
 )
 
-/** `components/button` for `../../docs/demos/components/button.tsx`. */
+/** `components/button` for `../../docs-legacy/demos/components/button.tsx`. */
 function pageOf(path: string): string {
-	return path.replace('../../docs/demos/', '').replace(/(\/index)?\.tsx$/, '')
+	return path.replace('../../docs-legacy/demos/', '').replace(/(\/index)?\.tsx$/, '')
 }
 
 /** A demo page, as its name and a loader of its default export. */

@@ -529,7 +529,7 @@ describe('extractSourceFacts imports', () => {
 	it('keeps the authored specifier of a data module beside the demo', () => {
 		const srcDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..')
 
-		const filePath = resolve(srcDir, 'docs/demos/modules/map/index.tsx')
+		const filePath = resolve(srcDir, 'docs-legacy/demos/modules/map/index.tsx')
 
 		const file = parseSource(
 			filePath,

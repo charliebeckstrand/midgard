@@ -2,8 +2,8 @@
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import type { ComponentApi } from '../../docs/engine/api-reference'
-import { listBarrels } from '../../docs/engine/api-reference/engine/barrels'
+import type { ComponentApi } from '../../docs-legacy/engine/api-reference'
+import { listBarrels } from '../../docs-legacy/engine/api-reference/engine/barrels'
 import { apiRecord } from '../helpers/api-record'
 import { advise } from '../helpers/controlled-language'
 import { demoSourcesOf } from '../helpers/demo-sources'
@@ -17,7 +17,7 @@ import { propGaps, propsSetIn } from '../helpers/prop-coverage'
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
-const DEMOS = join(SRC, 'docs', 'demos')
+const DEMOS = join(SRC, 'docs-legacy', 'demos')
 
 describe('prop coverage', () => {
 	it('reports the documented props that a demo page does not set', { timeout: 60_000 }, () => {

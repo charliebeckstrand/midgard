@@ -1,5 +1,6 @@
 /**
- * Size budget for the docs bundle, run in CI after `docs:build`.
+ * Size budget for the bundle of the legacy docs app, run in CI after
+ * `docs:legacy:build`.
  *
  * Nothing else in the gate notices a bundle regression: a stray eager import
  * that pulls a lazy demo's dependency into the entry chunk type-checks, lints,

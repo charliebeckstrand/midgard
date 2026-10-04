@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import type { ComponentApi } from '../../../docs/engine/api-reference'
-import { Axes, DemoApiContext } from '../../../docs/engine/components/axes'
+import type { ComponentApi } from '../../../docs-legacy/engine/api-reference'
+import { Axes, DemoApiContext } from '../../../docs-legacy/engine/components/axes'
 import { renderUI, waitFor } from '../../helpers'
 
 const api: ComponentApi[] = [

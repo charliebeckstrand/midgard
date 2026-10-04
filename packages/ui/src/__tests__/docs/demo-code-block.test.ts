@@ -3,10 +3,14 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
-import { defaultRegistry, type ImportFact } from '../../docs/engine/derive-code'
-import { collectHelpers, declaredNames } from '../../docs/engine/plugins/collect-helpers'
-import { importFacts } from '../../docs/engine/plugins/source-facts'
-import { namedImportsOf, parseSource, referencedNames } from '../../docs/engine/plugins/ts-source'
+import { defaultRegistry, type ImportFact } from '../../docs-legacy/engine/derive-code'
+import { collectHelpers, declaredNames } from '../../docs-legacy/engine/plugins/collect-helpers'
+import { importFacts } from '../../docs-legacy/engine/plugins/source-facts'
+import {
+	namedImportsOf,
+	parseSource,
+	referencedNames,
+} from '../../docs-legacy/engine/plugins/ts-source'
 import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // A corpus gate on the docs site's "Show code" block.
@@ -40,7 +44,7 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // snippet stands in for them. All three err toward passing, and none reaches
 // the shape this test exists to catch.
 
-const DEMOS = join(srcDir, 'docs', 'demos')
+const DEMOS = join(srcDir, 'docs-legacy', 'demos')
 
 const EXAMPLE_TAG = 'Example'
 

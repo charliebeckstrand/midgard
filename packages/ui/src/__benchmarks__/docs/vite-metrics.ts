@@ -24,7 +24,7 @@ import { pkgRoot } from './paths'
 const reactRouterBin = path.join(pkgRoot, 'node_modules', '.bin', 'react-router')
 
 // The arguments that select the docs app: its Vite root and its config.
-const docsArgs = ['src/docs', '--config', 'vite.docs.config.ts']
+const docsArgs = ['src/docs-legacy', '--config', 'vite.docs-legacy.config.ts']
 
 // A source file whose edit invalidates the api-reference family; touched (mtime
 // only, content untouched) to measure HMR re-extraction.

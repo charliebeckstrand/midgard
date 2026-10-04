@@ -18,7 +18,7 @@ export type DocsConfigOptions = {
 	 * Vite root — the directory holding `app.css`, the React Router app in
 	 * `app/`, and the `demos/` tree.
 	 *
-	 * @defaultValue `'src/docs'`
+	 * @defaultValue `'src/docs-legacy'`
 	 */
 	root?: string
 	/**
@@ -35,15 +35,15 @@ export type DocsConfigOptions = {
  * `root`.
  *
  * ```ts
- * // packages/ui/vite.docs.config.ts
- * import { defineDocsConfig } from './src/docs/engine/vite'
+ * // packages/ui/vite.docs-legacy.config.ts
+ * import { defineDocsConfig } from './src/docs-legacy/engine/vite'
  *
  * export default defineDocsConfig({ packageName: 'ui' })
  * ```
  */
 export function defineDocsConfig({
 	packageName,
-	root = 'src/docs',
+	root = 'src/docs-legacy',
 	srcDir,
 }: DocsConfigOptions): UserConfig {
 	const analyze = process.env.ANALYZE === '1'

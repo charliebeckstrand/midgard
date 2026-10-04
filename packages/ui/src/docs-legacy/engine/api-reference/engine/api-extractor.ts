@@ -164,7 +164,7 @@ function toPosix(file: string): string {
  * under them, so the walk prunes them instead of descending and discarding.
  * They hold about a third of the files under this package's `src`.
  */
-const SKIPPED_DIRS = new Set(['node_modules', 'docs', '__tests__', '__benchmarks__'])
+const SKIPPED_DIRS = new Set(['node_modules', 'docs', 'docs-legacy', '__tests__', '__benchmarks__'])
 
 /**
  * A file that can feed a barrel's output: project source, never `node_modules`,
@@ -176,7 +176,7 @@ function isInputFile(file: string): boolean {
 
 	if (!/\.tsx?$/.test(posix)) return false
 
-	if (posix.includes('/node_modules/') || posix.includes('/docs/')) return false
+	if (posix.includes('/node_modules/') || /\/docs(?:-legacy)?\//.test(posix)) return false
 
 	if (posix.includes('/__tests__/') || posix.includes('/__benchmarks__/')) return false
 

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { Example } from '../../../docs/engine/components/example'
+import { Example } from '../../../docs-legacy/engine/components/example'
 import { MapGeofence, MapPlat } from '../../../modules/map'
 import { getSlot, renderUI, waitFor } from '../../helpers'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'

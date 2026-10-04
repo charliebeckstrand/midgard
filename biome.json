@@ -68,7 +68,7 @@
 				"!packages/ui/**/*.test.ts",
 				"!packages/ui/**/*.test.tsx",
 				"!packages/ui/**/*.bench.ts",
-				"!packages/ui/src/docs/**"
+				"!packages/ui/src/docs-legacy/**"
 			],
 			"linter": {
 				"rules": {
@@ -313,7 +313,7 @@
 		{
 			"includes": [
 				"**/src/modules/chat/**",
-				"**/src/docs/demos/modules/chat.tsx",
+				"**/src/docs-legacy/demos/modules/chat.tsx",
 				"**/src/__tests__/modules/chat-*",
 				"**/src/__tests__/a11y/cases/specialized.tsx"
 			],
@@ -340,9 +340,13 @@
 				"apps/*/app/**/error.tsx",
 				"apps/*/app/**/global-error.tsx",
 				"apps/*/app/**/default.tsx",
-				"packages/ui/src/docs/app/**",
-				"packages/ui/src/docs/demos/*/*.tsx",
-				"packages/ui/src/docs/demos/*/*/index.tsx",
+				"packages/ui/src/docs/app/root.tsx",
+				"packages/ui/src/docs/app/routes/*.tsx",
+				"packages/ui/src/docs/app/entry.server.tsx",
+				"packages/ui/src/docs/pages/**/index.tsx",
+				"packages/ui/src/docs-legacy/app/**",
+				"packages/ui/src/docs-legacy/demos/*/*.tsx",
+				"packages/ui/src/docs-legacy/demos/*/*/index.tsx",
 				"**/*.config.ts",
 				"**/*.d.ts"
 			],
@@ -530,6 +534,7 @@
 				"packages/ui/src/layouts/**",
 				"packages/ui/src/hooks/**",
 				"packages/ui/src/docs/**",
+				"packages/ui/src/docs-legacy/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"
 			],

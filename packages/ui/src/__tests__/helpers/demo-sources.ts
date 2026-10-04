@@ -16,7 +16,7 @@ function tsxFilesIn(dir: string): string[] {
  * `demos/components/button.tsx`, and `modules/grid` reads each file under
  * `demos/modules/grid/`. A few components have their page under `providers/`.
  *
- * @param demos - The `docs/demos` directory.
+ * @param demos - The `docs-legacy/demos` directory.
  * @param rel - The path of the barrel directory under `src`, such as `components/button`.
  */
 export function demoSourcesOf(demos: string, rel: string): DemoSource[] {

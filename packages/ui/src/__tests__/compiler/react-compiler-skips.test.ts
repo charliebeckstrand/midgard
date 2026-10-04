@@ -20,8 +20,8 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 /** Each file with skips, and in it each skipped function with its cause. */
 type Skips = Record<string, Record<string, string>>
 
-/** The docs site. An app does not import it. `walkSource` leaves out the tests and the build output. */
-const SKIP = new Set(['docs'])
+/** The docs sites. An app does not import them. `walkSource` leaves out the tests and the build output. */
+const SKIP = new Set(['docs', 'docs-legacy'])
 
 /** A TypeScript source file, not a declaration file. */
 const SOURCE = /(?<!\.d)\.tsx?$/

@@ -56,7 +56,7 @@ const SKIP = new Set(['node_modules', 'dist'])
  * and whose `skip` parameter only adds to it, so a caller can prune more and
  * never less. Naming the pruned roots instead of walking them does not scale:
  * the tree holds four such trees, because the docs engine keeps its own pair
- * under `docs/engine/`, and a list of roots goes quietly stale when a fifth
+ * under `docs-legacy/engine/`, and a list of roots goes quietly stale when a fifth
  * appears. A walk blind to any of them reads a file that exists as a dangling
  * citation.
  *

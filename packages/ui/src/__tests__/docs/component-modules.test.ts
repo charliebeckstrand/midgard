@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { defaultRegistry } from '../../docs/engine/derive-code'
+import { defaultRegistry } from '../../docs-legacy/engine/derive-code'
 
 // Integration: the docs engine, pointed at ui by the docs vite plugin (see
 // vitest.config.ts), resolves ui's real components, providers, and demo
 // externals into the name map that backs snippet-import resolution. This is
-// ui-specific — the agnostic engine behavior lives under src/docs/engine/__tests__.
+// ui-specific — the agnostic engine behavior lives under src/docs-legacy/engine/__tests__.
 describe('docs engine ⇄ ui component map', () => {
 	it.each([
 		// `Button` is the canonical recognizable export; it lives in components/button.

@@ -1,6 +1,6 @@
 import { ts } from 'ts-morph'
-import type { ComponentApi } from '../../docs/engine/api-reference'
-import { axesOf } from '../../docs/engine/axes'
+import type { ComponentApi } from '../../docs-legacy/engine/api-reference'
+import { axesOf } from '../../docs-legacy/engine/axes'
 
 /** A hand-written example that shows nothing that the generated axes do not show. */
 export type RedundantExample = { title: string; line: number; reason: string }

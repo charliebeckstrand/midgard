@@ -31,7 +31,8 @@ const sources: { file: string; code: string }[] = []
 walkSource(srcDir, (file, content) => {
 	const path = srcRelative(file)
 
-	if (!isSourceFile(file) || path.startsWith('docs/') || path.startsWith('core/density/')) return
+	if (!isSourceFile(file) || /^docs(?:-legacy)?\//.test(path) || path.startsWith('core/density/'))
+		return
 
 	sources.push({ file: path, code: stripSourceComments(content) })
 })

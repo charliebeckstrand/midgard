@@ -42,9 +42,9 @@ beforeEach(() => {
 		`export { Button } from './button'\n`,
 	)
 
-	fs.mkdirSync(path.join(srcDir, 'docs', 'demos'), { recursive: true })
+	fs.mkdirSync(path.join(srcDir, 'docs-legacy', 'demos'), { recursive: true })
 
-	demo = path.join(srcDir, 'docs', 'demos', 'button.tsx')
+	demo = path.join(srcDir, 'docs-legacy', 'demos', 'button.tsx')
 
 	write(
 		`import { Star } from 'lucide-react'\n\nexport const handle = { name: 'Button' }\n`,
@@ -67,7 +67,7 @@ function write(source: string, mtime: Date) {
 function serve(): Hooks {
 	const main = docsPlugin({ srcDir })[1] as unknown as Hooks
 
-	main.configResolved({ root: path.join(srcDir, 'docs') })
+	main.configResolved({ root: path.join(srcDir, 'docs-legacy') })
 
 	main.load(main.resolveId('virtual:component-modules') ?? '')
 

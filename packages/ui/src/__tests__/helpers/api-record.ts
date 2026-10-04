@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { ComponentApi } from '../../docs/engine/api-reference'
-import { createApiExtractor } from '../../docs/engine/api-reference/engine/api-extractor'
+import type { ComponentApi } from '../../docs-legacy/engine/api-reference'
+import { createApiExtractor } from '../../docs-legacy/engine/api-reference/engine/api-extractor'
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 

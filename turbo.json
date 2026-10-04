@@ -31,21 +31,34 @@
 		},
 		"docs:build": {
 			"dependsOn": ["^build"],
+			"inputs": ["src/**", "tsconfig.json", "$TURBO_ROOT$/tsconfig.base.json"],
+			"outputs": ["src/docs/dist/**"]
+		},
+		"docs:legacy:build": {
+			"dependsOn": ["^build"],
 			"inputs": [
 				"src/**",
-				"vite.docs.config.ts",
+				"vite.docs-legacy.config.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			],
-			"outputs": ["src/docs/dist/**"]
+			"outputs": ["src/docs-legacy/dist/**"]
 		},
 		"bundle:budget": {
-			"dependsOn": ["docs:build"],
-			"inputs": ["src/docs/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
+			"dependsOn": ["docs:legacy:build"],
+			"inputs": ["src/docs-legacy/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
 		},
 		"docs:hydration": {
 			"dependsOn": ["docs:build"],
 			"inputs": ["src/docs/dist/**", "scripts/docs-*.ts"]
+		},
+		"docs:legacy:hydration": {
+			"dependsOn": ["docs:legacy:build"],
+			"inputs": ["src/docs-legacy/dist/**", "scripts/docs-*.ts"]
+		},
+		"docs:bench": {
+			"dependsOn": ["docs:build", "docs:legacy:build"],
+			"cache": false
 		},
 		"lint": {
 			"inputs": [

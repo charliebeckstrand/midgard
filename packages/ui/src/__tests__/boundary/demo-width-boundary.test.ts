@@ -30,15 +30,21 @@ import {
 //   - The fit of the mini `Sidebar` at `lg`, which is a prop of the demo.
 
 const WIDTHS: Record<string, readonly string[]> = {
-	'docs/demos/components/alert.tsx': ['w-full'],
-	'docs/demos/components/credit-card-input.tsx': ['w-full', 'w-full'],
-	'docs/demos/components/drawer.tsx': ['w-60', 'w-full'],
-	'docs/demos/components/scroll-area.tsx': ['max-w-96', 'max-w-96', 'max-w-96', 'w-max', 'w-max'],
-	'docs/demos/components/sidebar.tsx': ['w-72', 'w-fit'],
-	'docs/demos/modules/dashboard/index.tsx': ['w-56', 'w-full', 'w-full'],
-	'docs/demos/modules/grid/index.tsx': ['w-full'],
-	'docs/demos/structure/flex.tsx': ['w-64', 'w-64'],
-	'docs/demos/structure/stack.tsx': ['w-64'],
+	'docs-legacy/demos/components/alert.tsx': ['w-full'],
+	'docs-legacy/demos/components/credit-card-input.tsx': ['w-full', 'w-full'],
+	'docs-legacy/demos/components/drawer.tsx': ['w-60', 'w-full'],
+	'docs-legacy/demos/components/scroll-area.tsx': [
+		'max-w-96',
+		'max-w-96',
+		'max-w-96',
+		'w-max',
+		'w-max',
+	],
+	'docs-legacy/demos/components/sidebar.tsx': ['w-72', 'w-fit'],
+	'docs-legacy/demos/modules/dashboard/index.tsx': ['w-56', 'w-full', 'w-full'],
+	'docs-legacy/demos/modules/grid/index.tsx': ['w-full'],
+	'docs-legacy/demos/structure/flex.tsx': ['w-64', 'w-64'],
+	'docs-legacy/demos/structure/stack.tsx': ['w-64'],
 }
 
 // A width utility, with or without a variant, such as `w-48` or `sm:max-w-sm`.
@@ -51,7 +57,7 @@ describe('demo width boundary', () => {
 	it('sets no width on the component that an example shows', () => {
 		const found: Record<string, string[]> = {}
 
-		walkSource(join(srcDir, 'docs', 'demos'), (file, content) => {
+		walkSource(join(srcDir, 'docs-legacy', 'demos'), (file, content) => {
 			if (!isSourceFile(file)) return
 
 			const source = stripSourceComments(content)

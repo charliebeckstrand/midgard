@@ -22,9 +22,9 @@ const DOCS_VIRTUAL_MODULES: ReadonlyMap<string, string> = new Map([
  * Resolves the virtual modules of the docs engine to empty values.
  *
  * Nothing this suite runs imports them — a crawl of every relative import from
- * `src/__tests__/browser/` reaches 1,492 files and none under `src/docs/`.
+ * `src/__tests__/browser/` reaches 1,492 files and none under `src/docs-legacy/`.
  * Esbuild's dependency scan reaches them anyway: it starts from every test file
- * of the package, the `unit` suites under `src/docs/engine/__tests__/`
+ * of the package, the `unit` suites under `src/docs-legacy/engine/__tests__/`
  * included. An unresolvable module stops the scan dead: Vite then reports
  * "Failed to run dependency scan. Skipping dependency pre-bundling" and
  * pre-bundles only the `include` list below, finding every other package one

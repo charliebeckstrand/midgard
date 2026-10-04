@@ -313,7 +313,7 @@ function buildNameMap(
 
 	collectIndexNames(names, path.join(srcDir, 'layouts', 'index.ts'), 'layouts')
 
-	// `demosDir` is the plugin's resolved demos path, not `srcDir/docs/demos`: the
+	// `demosDir` is the plugin's resolved demos path, not `srcDir/docs-legacy/demos`: the
 	// two diverge when the `srcDir` option overrides source-root detection, and
 	// recomputing from `srcDir` there would read a non-existent directory and drop
 	// every external component from the name map.
@@ -392,7 +392,7 @@ export function buildTaggedBarrel(reExports: ReExport[], moduleName: string): st
 /**
  * Locate the library's source root (the directory holding `components/`)
  * relative to the Vite `root`. A docs build sets `root` to the site directory
- * (`src/docs`, so `..` is the source root). A test run sets `root` to the
+ * (`src/docs-legacy`, so `..` is the source root). A test run sets `root` to the
  * package directory, so `src` is one level down. Try both. The plugin's
  * `srcDir` option overrides this lookup.
  */
@@ -478,11 +478,11 @@ export function docsPlugin({
 			srcDir = srcDirOption ?? findSrcDir(config.root)
 
 			// Derive the demos dir from the resolved source root, not `config.root`:
-			// a docs build roots at `src/docs` (so `config.root/demos` happens to
+			// a docs build roots at `src/docs-legacy` (so `config.root/demos` happens to
 			// match), but a test run roots at the package dir, where only
-			// `srcDir/docs/demos` points at the real demos. One source keeps every
+			// `srcDir/docs-legacy/demos` points at the real demos. One source keeps every
 			// consumer (the name map, the `__snippet` transform) aligned.
-			demosDir = path.join(srcDir, 'docs', 'demos')
+			demosDir = path.join(srcDir, 'docs-legacy', 'demos')
 		},
 
 		configureServer() {
@@ -512,7 +512,7 @@ export function docsPlugin({
 						vitest ||
 						!file.startsWith(srcDir) ||
 						!/\.tsx?$/.test(file) ||
-						file.includes(`${path.sep}docs${path.sep}`)
+						/[\\/]docs(?:-legacy)?[\\/]/.test(file)
 					) {
 						return false
 					}

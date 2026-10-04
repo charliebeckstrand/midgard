@@ -189,7 +189,7 @@ function scan(): { sites: Site[]; anchors: Set<string> } {
 				sites.push(...sitesIn(file, source))
 			}
 		},
-		new Set(['docs']),
+		new Set(['docs', 'docs-legacy']),
 	)
 
 	return { sites, anchors }

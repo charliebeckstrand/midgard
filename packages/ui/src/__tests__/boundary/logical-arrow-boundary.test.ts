@@ -48,7 +48,7 @@ function arrowFiles(): Map<string, boolean> {
 
 		const rel = srcRelative(path)
 
-		if (rel.startsWith('__tests__/') || rel.startsWith('docs/') || rel === HOME) return
+		if (rel.startsWith('__tests__/') || /^docs(?:-legacy)?\//.test(rel) || rel === HOME) return
 
 		// Prose that names the key is not a use of it.
 		if (HORIZONTAL_ARROW.test(stripSourceComments(source)))

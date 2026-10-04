@@ -14,8 +14,8 @@ import path from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { pkgRoot } from './paths'
 
-/** The client directory of the docs build. */
-const distClient = path.join(pkgRoot, 'src', 'docs', 'dist', 'client')
+/** The client directory of the build of the legacy docs app. */
+const distClient = path.join(pkgRoot, 'src', 'docs-legacy', 'dist', 'client')
 
 /** Where the docs build emits its hashed chunks and assets. */
 const distAssets = path.join(distClient, 'assets')
@@ -53,11 +53,11 @@ export function stableName(file: string): string {
  * Measure every asset in the build output.
  *
  * @throws When no build is present — the caller is expected to run
- *   `pnpm docs:build` first.
+ *   `pnpm docs:legacy:build` first.
  */
 export function readBundle(): BundleReport {
 	if (!fs.existsSync(distAssets)) {
-		throw new Error(`No build to measure at ${distAssets} — run \`pnpm docs:build\` first.`)
+		throw new Error(`No build to measure at ${distAssets} — run \`pnpm docs:legacy:build\` first.`)
 	}
 
 	const report: BundleReport = {
