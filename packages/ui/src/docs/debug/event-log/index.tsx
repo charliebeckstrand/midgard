@@ -4,6 +4,7 @@ import { Button } from 'ui/button'
 import { Fieldset, Label, Legend } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
 import { Switch, SwitchField } from 'ui/switch'
+import { createEmitter } from '../../../utilities/emitter.ts'
 
 // The part of the Event log that the shell loads with each page: the head
 // script, the header button, and the switch of the settings. The recorder and
@@ -15,7 +16,8 @@ const SETTING = 'docs:event-log'
 /** The attribute of the root element while the tool is on. CSS shows the header button by it. */
 const ATTRIBUTE = 'data-debug'
 
-const listeners = new Set<() => void>()
+// Tells the switch that the tool turned on or off.
+const changes = createEmitter()
 
 const loadRecorder = () => import('./recorder.ts')
 
@@ -48,19 +50,11 @@ function setEventLog(on: boolean): void {
 
 	void loadRecorder().then((recorder) => (on ? recorder.start() : recorder.halt()))
 
-	for (const listener of listeners) listener()
+	changes.emit()
 }
 
 function useEventLogOn(): boolean {
-	return useSyncExternalStore(
-		(listener) => {
-			listeners.add(listener)
-
-			return () => listeners.delete(listener)
-		},
-		isEventLogOn,
-		() => false,
-	)
+	return useSyncExternalStore(changes.subscribe, isEventLogOn, () => false)
 }
 
 // The head script: it sets the attribute while the tool is on, and keeps the

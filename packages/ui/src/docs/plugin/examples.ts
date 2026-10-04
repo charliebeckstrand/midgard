@@ -1,7 +1,9 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { type ESTree, Visitor } from 'vite'
+import { DEFAULT_LANG, DEFAULT_THEME } from '../../components/code/code-shiki.ts'
 import { highlightShiki } from '../../components/code/code-shiki-highlighter.ts'
+import { capitalizeFirst } from '../../utilities/capitalize-first.ts'
 
 /** The code module of an example: the source of its file, and the markup that `CodeBlock` paints. */
 export type ExampleCode = {
@@ -33,11 +35,6 @@ export const CODE = 'virtual:docs/code/'
 
 // The file name of the playground of a page.
 const PLAYGROUND = 'playground'
-
-// The language and the theme that `CodeBlock` takes by default.
-const LANG = 'tsx'
-
-const THEME = 'github-dark-default'
 
 type Example = {
 	/** The name of the default export. */
@@ -109,9 +106,7 @@ function readExample(parse: Parse, code: string, file: string): Example | undefi
 
 /** The title of an example from its file: `with-icon.tsx` gives `With icon`. */
 function titleOf(file: string): string {
-	const words = path.basename(file, '.tsx').replaceAll('-', ' ')
-
-	return words.charAt(0).toUpperCase() + words.slice(1)
+	return capitalizeFirst(path.basename(file, '.tsx').replaceAll('-', ' '))
 }
 
 /**
@@ -156,7 +151,7 @@ export async function loadCode(parse: Parse, file: string): Promise<ExampleCode>
 
 	const code = spread ? source.slice(0, spread.start) + source.slice(spread.end) : source
 
-	const html = await highlightShiki(code.trim(), LANG, THEME)
+	const html = await highlightShiki(code.trim(), DEFAULT_LANG, DEFAULT_THEME)
 
 	return {
 		code,

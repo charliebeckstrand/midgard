@@ -1,17 +1,22 @@
 import { subscribeOverlaySignal } from 'ui/primitives/overlay'
+import { createEmitter } from '../../../utilities/emitter.ts'
+
+/** The kinds of an {@link Entry}, in the order of the filter chips of the sheet. */
+export const KINDS = [
+	'load',
+	'paint',
+	'route',
+	'input',
+	'scroll',
+	'viewport',
+	'call',
+	'overlay',
+	'error',
+	'hmr',
+] as const
 
 /** The kind of an {@link Entry}, which the sheet filters by. */
-export type Kind =
-	| 'load'
-	| 'paint'
-	| 'route'
-	| 'input'
-	| 'scroll'
-	| 'viewport'
-	| 'call'
-	| 'overlay'
-	| 'error'
-	| 'hmr'
+export type Kind = (typeof KINDS)[number]
 
 /** One line of the log. */
 export type Entry = {
@@ -46,7 +51,7 @@ export const OWN = 'data-event-log'
 export class EventLog {
 	entries: readonly Entry[] = []
 
-	private readonly listeners = new Set<() => void>()
+	private readonly changes = createEmitter()
 
 	private saveTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -69,7 +74,7 @@ export class EventLog {
 		if (on) this.save()
 		else write(this.store, ENTRIES, null)
 
-		this.emit()
+		this.changes.emit()
 	}
 
 	/**
@@ -97,7 +102,7 @@ export class EventLog {
 
 		this.save()
 
-		this.emit()
+		this.changes.emit()
 	}
 
 	/** Writes the entries to `sessionStorage` while "Preserve log" is on. */
@@ -107,28 +112,20 @@ export class EventLog {
 		if (this.preserve) write(this.store, ENTRIES, JSON.stringify(this.entries))
 	}
 
-	subscribe = (listener: () => void): (() => void) => {
-		this.listeners.add(listener)
-
-		return () => this.listeners.delete(listener)
-	}
+	subscribe = (listener: () => void): (() => void) => this.changes.subscribe(listener)
 
 	private insert(index: number, entry: Entry): void {
 		this.entries = this.entries.toSpliced(index, 0, entry).slice(-CAPACITY)
 
 		this.scheduleSave()
 
-		this.emit()
+		this.changes.emit()
 	}
 
 	private scheduleSave(): void {
 		clearTimeout(this.saveTimer)
 
 		this.saveTimer = setTimeout(() => this.save(), 500)
-	}
-
-	private emit(): void {
-		for (const listener of this.listeners) listener()
 	}
 }
 

@@ -4,6 +4,7 @@ import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 
 function isExample(component: object): component is ExampleMeta {
@@ -28,10 +29,8 @@ export function metaOf(component: { readonly name: string }): ExampleMeta {
 const loads = new WeakMap<ExampleMeta, Promise<ExampleCode | undefined>>()
 
 function loadCode(meta: ExampleMeta): Promise<ExampleCode | undefined> {
-	let load = loads.get(meta)
-
-	if (!load) {
-		load = meta.code().then(
+	return getOrCompute(loads, meta, () =>
+		meta.code().then(
 			({ default: code }) => {
 				// The markup from the build paints in the first frame of the block.
 				primeCodeBlock({ code: code.code, html: code.html })
@@ -39,12 +38,8 @@ function loadCode(meta: ExampleMeta): Promise<ExampleCode | undefined> {
 				return code
 			},
 			() => undefined,
-		)
-
-		loads.set(meta, load)
-	}
-
-	return load
+		),
+	)
 }
 
 function Code({ meta, print }: { meta: ExampleMeta; print?: (code: ExampleCode) => string }) {

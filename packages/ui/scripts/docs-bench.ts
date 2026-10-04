@@ -31,6 +31,7 @@ import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, chromium } from 'playwright'
+import { getOrCompute } from '../src/utilities/get-or-compute'
 import { clientDirOf, type DocsApp, fileOf, TYPES } from './docs-server'
 
 const APPS: readonly DocsApp[] = ['docs-legacy', 'docs']
@@ -159,10 +160,8 @@ async function serve(
 	const bodyOf = (file: string, compress: boolean): Promise<Buffer> => {
 		const key = `${compress ? 'br' : 'raw'}:${file}`
 
-		let body = bodies.get(key)
-
-		if (!body) {
-			body = readFile(file).then((data) =>
+		return getOrCompute(bodies, key, () =>
+			readFile(file).then((data) =>
 				compress
 					? new Promise<Buffer>((done, fail) =>
 							brotliCompress(
@@ -172,12 +171,8 @@ async function serve(
 							),
 						)
 					: data,
-			)
-
-			bodies.set(key, body)
-		}
-
-		return body
+			),
+		)
 	}
 
 	const server = createSecureServer(tls, async (request, response) => {

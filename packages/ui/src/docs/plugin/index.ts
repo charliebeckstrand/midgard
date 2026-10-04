@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { prefixRegex } from '@rolldown/pluginutils'
 import type { EnvironmentModuleGraph, EnvironmentModuleNode, Plugin } from 'vite'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createApiExtractor } from './api.ts'
 import { attachMeta, CODE, loadCode } from './examples.ts'
 import { findPages, type PageLink } from './pages.ts'
@@ -76,13 +77,9 @@ export function reactDocs(): Plugin {
 				if (name.startsWith(API)) {
 					const barrel = name.slice(API.length)
 
-					let api = barrels.get(barrel)
-
-					if (!api) {
-						api = extractor.extract(barrel).then((data) => JSON.stringify(data))
-
-						barrels.set(barrel, api)
-					}
+					const api = getOrCompute(barrels, barrel, () =>
+						extractor.extract(barrel).then((data) => JSON.stringify(data)),
+					)
 
 					return { code: await api, moduleType: 'json' as const }
 				}

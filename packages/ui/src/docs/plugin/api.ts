@@ -1,6 +1,6 @@
 import path from 'node:path'
 import type { Checker, Program, Symbol as TsSymbol, Type } from 'typescript/unstable/sync'
-import { densitySteps } from '../../core/density/steps.ts'
+import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
 
 // The API data of the docs comes from the TypeScript 7 API, which is
 // `typescript/unstable/sync`. Its name says that a minor release can change
@@ -61,16 +61,16 @@ export function compareLiterals(a: Literal, b: Literal): number {
 	if (byRank !== 0) return byRank
 
 	if (typeof a === 'string' && typeof b === 'string') {
-		return rankOf(a) === 0 ? SCALE.indexOf(a) - SCALE.indexOf(b) : a.localeCompare(b)
+		return isDensityStep(a) && isDensityStep(b)
+			? densitySteps.indexOf(a) - densitySteps.indexOf(b)
+			: a.localeCompare(b)
 	}
 
 	return Number(a) - Number(b)
 }
 
-const SCALE: readonly string[] = densitySteps
-
 function rankOf(value: Literal): number {
-	if (typeof value === 'string') return SCALE.includes(value) ? 0 : 1
+	if (typeof value === 'string') return isDensityStep(value) ? 0 : 1
 
 	return typeof value === 'number' ? 2 : 3
 }

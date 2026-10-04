@@ -5,7 +5,6 @@ import { Button } from 'ui/button'
 import { Combobox, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
-import { useScrollWithin } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
 import {
@@ -67,8 +66,6 @@ export function DocsSidebar({
 
 	const navigate = useNavigate()
 
-	const scrollWithin = useScrollWithin()
-
 	const [descending, setDescending] = useState(false)
 
 	const sections = sectionsOf(pages)
@@ -89,13 +86,8 @@ export function DocsSidebar({
 					onValueChange={(path) => {
 						if (!path) return
 
+						// The item of the page scrolls into view when it becomes current.
 						navigate(path)
-
-						const item = document.querySelector<HTMLElement>(
-							`[data-slot="sidebar"] [href="${CSS.escape(path)}"]`,
-						)
-
-						if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
 
 						offcanvas?.close()
 					}}

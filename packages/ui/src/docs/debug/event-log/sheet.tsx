@@ -1,22 +1,11 @@
 import { useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
+import { CopyButton } from 'ui/copy-button'
 import { Label } from 'ui/fieldset'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from 'ui/sheet'
-import { type Entry, type Kind, start } from './recorder.ts'
-
-const KINDS: readonly Kind[] = [
-	'load',
-	'paint',
-	'route',
-	'input',
-	'scroll',
-	'viewport',
-	'call',
-	'overlay',
-	'error',
-	'hmr',
-]
+import { toggleItem } from '../../../utilities/toggle-item.ts'
+import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
 /** One line of text: the time, the scroll position, the kind, and the text. */
 function line({ time, kind, text, y }: Entry): string {
@@ -43,24 +32,7 @@ export function EventLogSheet({
 
 	const [hidden, setHidden] = useState<ReadonlySet<Kind>>(new Set())
 
-	const [copied, setCopied] = useState(false)
-
 	const shown = entries.filter((entry) => !hidden.has(entry.kind))
-
-	const toggle = (kind: Kind) => {
-		const next = new Set(hidden)
-
-		if (!next.delete(kind)) next.add(kind)
-
-		setHidden(next)
-	}
-
-	const copy = () => {
-		navigator.clipboard.writeText(shown.map(line).join('\n')).then(
-			() => setCopied(true),
-			() => setCopied(false),
-		)
-	}
 
 	return (
 		// The sheet takes the height of the log, up to the height of the screen.
@@ -76,7 +48,7 @@ export function EventLogSheet({
 								size="xs"
 								variant={hidden.has(kind) ? 'outline' : 'soft'}
 								aria-pressed={!hidden.has(kind)}
-								onClick={() => toggle(kind)}
+								onClick={() => setHidden(toggleItem(hidden, kind))}
 							>
 								{kind}
 							</Button>
@@ -88,9 +60,7 @@ export function EventLogSheet({
 				</SheetBody>
 				<SheetFooter className="flex-wrap justify-between">
 					<div className="flex items-center gap-2">
-						<Button size="sm" variant="soft" color={copied ? 'green' : undefined} onClick={copy}>
-							{copied ? 'Copied' : 'Copy'}
-						</Button>
+						<CopyButton text={shown.map(line).join('\n')} size="sm" aria-label="Copy log" />
 						<Button size="sm" variant="soft" onClick={() => log.clear()}>
 							Clear
 						</Button>
