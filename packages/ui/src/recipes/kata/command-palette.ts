@@ -13,7 +13,10 @@ const { size, weight } = ji
 const { flex, description } = narabi
 
 export const k = {
-	group: 'flex flex-col gap-0.5 first:pt-0 last:pb-0',
+	// A group after another takes the `gap-4` of the panel, which is the space
+	// between the search input and the first group. Each heading therefore has
+	// the same space above it.
+	group: 'flex flex-col gap-0.5 not-first:mt-4',
 	// Inner listbox: collapses when empty. `peer` drives the sibling `empty` slot
 	// below; `kara` adds the virtualized case, which `:empty` alone cannot see.
 	list: ['peer', 'empty:hidden', kara.list],
