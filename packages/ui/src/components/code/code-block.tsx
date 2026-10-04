@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
 import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
-import { loadShiki } from './code-shiki'
+import { DEFAULT_LANG, DEFAULT_THEME, highlightCode } from './code-shiki'
 
 const MAX_CACHE_SIZE = 200
 
@@ -14,6 +15,8 @@ const MAX_CACHE_SIZE = 200
  * Token cache keyed by theme + language + code. Process-wide, so it serves every
  * CodeBlock instance, not only a remounting one. A mount policy that keeps a
  * hidden block alive shifts the hit rate here, but never retires the cache.
+ * The cache is on the main thread, so a hit paints on the render that asks for
+ * it. The worker gives the markup of a miss.
  */
 const htmlCache = new Map<string, string>()
 
@@ -57,15 +60,63 @@ export type CodeBlockProps = {
 }
 
 /**
- * Syntax-highlighted code block. Lazily loads Shiki via {@link loadShiki},
- * tokenizes `code` for the given `lang` and `theme`, and renders an unstyled
- * `<pre>` fallback during the async pass. An optional CopyButton overlays the
+ * Stores markup that was highlighted elsewhere, such as at build time. A
+ * {@link CodeBlock} with the same code, language, and theme then paints it on
+ * its first render, and the worker does not run.
+ *
+ * @param entry - The `code`, `lang`, and `theme` of the block, as its props
+ *   give them, and the `html` for them. `lang` and `theme` have the defaults of
+ *   the block. The cache trims `code`, as the block does.
+ * @remarks
+ * The markup must have the shape that the worker of the block gives. Make it
+ * with Shiki's `codeToHtml` from `shiki`, from the trimmed code, with these
+ * options: `{ lang, theme, tabindex: -1, tokenizeTimeLimit: 0 }`. Use the
+ * Shiki version of `ui`. With no `tokenizeTimeLimit`, a slow line can stop
+ * after 500 ms, and the rest of the line then has no highlight.
+ * Another engine or a transformer can give other markup.
+ *
+ * The block sets the markup with `dangerouslySetInnerHTML`. Prime only markup
+ * that you trust.
+ *
+ * Call this on the client, before the block renders. A block reads the cache
+ * when it renders, so a block that is on the page already keeps its own pass.
+ * The server output and the hydration render never read the cache, so a primed
+ * block hydrates the plain block and paints the markup in the render after
+ * hydration. The cache holds 200 entries and evicts the oldest entry first, so
+ * prime the blocks of one page, not the blocks of a whole site.
+ */
+export function primeCodeBlock({
+	code,
+	lang = DEFAULT_LANG,
+	theme = DEFAULT_THEME,
+	html,
+}: Pick<CodeBlockProps, 'code' | 'lang' | 'theme'> & { html: string }): void {
+	cacheSet(cacheKey(code.trim(), lang, theme), html)
+}
+
+/**
+ * Syntax-highlighted code block. Highlights `code` for the given `lang` and
+ * `theme` with Shiki in a module worker, and renders an unstyled `<pre>`
+ * fallback until the markup arrives. An optional CopyButton overlays the
  * snippet.
  *
  * @remarks
- * Client-only (`'use client'`): highlighting runs in an effect. Results are
- * memoized in a process-wide cache (max 200 entries, oldest insertion evicted)
- * keyed by theme, language, and code, so repeat snippets paint synchronously.
+ * Client-only (`'use client'`). The worker loads Shiki, each grammar, and each
+ * theme on first use, so the main thread never loads a grammar or a regex
+ * engine. {@link loadShiki} starts the worker ahead of the first block. A Vite
+ * app must set `worker.format` to `'es'`. The default `'iife'` cannot split a
+ * worker, so Vite then puts every grammar and every theme into one worker file
+ * of about 9.5 MB. Webpack and Turbopack split the worker with no option.
+ *
+ * Results are memoized in a process-wide cache (max 200 entries, oldest
+ * insertion evicted) keyed by theme, language, and code. A cached snippet
+ * paints highlighted on the first render of a block, and
+ * {@link primeCodeBlock} fills the cache with markup made elsewhere. The server
+ * renders the fallback, and so does the hydration render, so the hydration
+ * matches the server output. The render after hydration paints a cached
+ * snippet. Where the environment has no `Worker`, such as jsdom, the fallback
+ * stays.
+ *
  * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`), so a block
  * that fits adds no tab stop. The scroll container is a tab stop only while a
  * line overflows it ({@link useScrollRegion}), and it is then a region named by
@@ -75,8 +126,8 @@ export type CodeBlockProps = {
  */
 export function CodeBlock({
 	code: rawCode,
-	lang = 'tsx',
-	theme = 'github-dark-default',
+	lang = DEFAULT_LANG,
+	theme = DEFAULT_THEME,
 	copy = true,
 	label = 'Code',
 	className,
@@ -90,8 +141,15 @@ export function CodeBlock({
 	// code has its own markup.
 	const [result, setResult] = useState<{ key: string; html: string } | null>(null)
 
-	// A cached snippet paints on the render that asks for it.
-	const html = result?.key === key ? result.html : (htmlCache.get(key) ?? null)
+	// The server has no worker and no cache, so it renders the fallback. The
+	// hydration render must render the same, also when the client cache holds
+	// the snippet.
+	const hydrated = useHydrated()
+
+	// After hydration, a cached snippet paints on the render that asks for it.
+	let html: string | null = null
+
+	if (hydrated) html = result?.key === key ? result.html : (htmlCache.get(key) ?? null)
 
 	// The snippet that the next tokenization takes, and whether one runs now.
 	// Streamed code changes on each chunk. One tokenization runs at a time, and
@@ -123,29 +181,17 @@ export function CodeBlock({
 
 			running.current = true
 
-			loadShiki()
-				.then(({ codeToHtml }) =>
-					codeToHtml(job.code, {
-						lang: job.lang,
-						theme: job.theme,
-						transformers: [
-							{
-								pre(node) {
-									node.properties.tabindex = '-1'
-								},
-							},
-						],
-					}),
-				)
+			highlightCode(job.code, job.lang, job.theme)
 				.then(
 					(markup) => {
 						cacheSet(job.key, markup)
 
 						if (latest.current.key === job.key) setResult({ key: job.key, html: markup })
 					},
-					// Shiki can fail to load (offline chunk fetch, post-deploy 404) or to
-					// tokenize (a lang/theme outside the bundled set). Keep the plain
-					// fallback rather than leaking an unhandled rejection.
+					// The worker can fail to start (no `Worker`, a CSP refusal), to load
+					// (offline chunk fetch, post-deploy 404), or to tokenize (a lang or
+					// theme outside the bundled set). Keep the plain fallback rather than
+					// leaking an unhandled rejection.
 					() => {},
 				)
 				.finally(() => {
@@ -169,7 +215,7 @@ export function CodeBlock({
 			<div ref={setContent} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
 					<div
-						// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: the markup is Shiki output or primed markup that the app trusts
 						dangerouslySetInnerHTML={{ __html: html }}
 					/>
 				) : (

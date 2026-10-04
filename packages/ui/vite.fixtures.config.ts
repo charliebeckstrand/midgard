@@ -10,4 +10,6 @@ export default {
 	root: 'src/docs/fixtures',
 	plugins: [react(), tailwindcss()],
 	build: { target: 'esnext' },
+	// The Shiki worker of `CodeBlock` needs the `es` format (see `CodeBlock`).
+	worker: { format: 'es' },
 } satisfies UserConfig
