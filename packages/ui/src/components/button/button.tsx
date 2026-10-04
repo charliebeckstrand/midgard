@@ -2,7 +2,7 @@
 
 import type { ComponentProps, Ref } from 'react'
 import { Children } from 'react'
-import { ariaAttr, cn } from '../../core'
+import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -12,7 +12,7 @@ import { Link } from '../link'
 import { LoadingSpinner } from '../loading'
 import { loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
-import { type ButtonBaseProps, isIconElement } from './button-utilities'
+import { type ButtonBaseProps, isIconElement, isVisuallyHiddenElement } from './button-utilities'
 import { useButtonDefaults } from './context'
 
 /**
@@ -31,6 +31,10 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
  * icon-only, and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
  * in loading trees. A button with no `variant` or `color` takes the one of the
  * surface around it, such as the soft color of an alert for its actions.
+ *
+ * A loading button stays enabled, so it keeps the focus that it has. It is
+ * `aria-disabled`, leaves the tab order, and cancels each activation, the
+ * submission of its form included.
  *
  * @remarks
  * Mirrors native `<button>` submission semantics. An untyped Button emits no
@@ -69,6 +73,8 @@ export function Button({
 				data-slot={slot}
 				className={className}
 				loading={loading}
+				prefix={prefix}
+				suffix={suffix}
 				type={type as ComponentProps<'button'>['type']}
 				{...(props as ComponentProps<'button'>)}
 			>
@@ -79,7 +85,11 @@ export function Button({
 
 	// Non-icon children count as a text label; labeled buttons use control height
 	// (see `data-[has-label]` in the button recipe), icon-only buttons stay square.
-	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
+	// A visually hidden child, such as an `sr-only` name, takes no room, so it is
+	// not a label.
+	const hasLabel = Children.toArray(children).some(
+		(child) => !isIconElement(child) && !isVisuallyHiddenElement(child),
+	)
 
 	const classes = cn(k({ variant, color }), className)
 
@@ -101,27 +111,26 @@ export function Button({
 	const content = (
 		<Density step={size}>
 			{loading ? <LoadingSpinner /> : prefix}
-			{children}
+			{/* The spinner takes the place of the icon of an icon-only button, so the
+			    button keeps its square. The icon stays for assistive technology. */}
+			{loading && !hasLabel ? <span className="sr-only">{children}</span> : children}
 			{suffix}
 		</Density>
 	)
 
 	if (href !== undefined) {
 		return (
-			// The wrapping span is the anchor branch's layout box; it carried the
-			// press spring before that prop went, and the DOM shape stays.
-			<span>
-				<Link
-					ref={ref as Ref<HTMLAnchorElement>}
-					{...sharedProps}
-					href={href}
-					className={classes}
-					{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
-					{...(loading && loadingProps)}
-				>
-					<TouchTarget>{content}</TouchTarget>
-				</Link>
-			</span>
+			<Link
+				ref={ref as Ref<HTMLAnchorElement>}
+				{...sharedProps}
+				href={href}
+				type={type}
+				className={classes}
+				{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
+				{...(loading && loadingProps)}
+			>
+				<TouchTarget>{content}</TouchTarget>
+			</Link>
 		)
 	}
 
@@ -134,8 +143,9 @@ export function Button({
 			type={type}
 			className={classes}
 			{...buttonProps}
-			disabled={loading || buttonProps.disabled}
-			aria-busy={ariaAttr(loading)}
+			// A loading button stays enabled, so it keeps the focus that it has. These
+			// props cancel its activation instead of `disabled`.
+			{...(loading && loadingProps)}
 		>
 			<TouchTarget>{content}</TouchTarget>
 		</button>

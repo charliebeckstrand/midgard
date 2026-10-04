@@ -1,8 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode, Ref } from 'react'
-import { ariaAttr } from '../../core'
 import { Link } from '../link'
+import { LoadingSpinner } from '../loading'
 import { loadingProps } from './button-constants'
 
 // Loose type at the call boundary: the public discriminated union lives on
@@ -14,14 +14,17 @@ type ButtonHeadlessProps = {
 	'data-slot'?: string
 	className?: string
 	loading?: boolean
+	prefix?: ReactNode
+	suffix?: ReactNode
 	children?: ReactNode
-} & Omit<ComponentProps<'button'>, 'href' | 'ref' | 'className' | 'children'>
+} & Omit<ComponentProps<'button'>, 'href' | 'ref' | 'className' | 'children' | 'prefix'>
 
 /**
  * Unstyled `Button` fallback rendered under the headless provider: a bare
  * `<button>`, or a `<Link>` anchor when `href` is set. Drops recipe classes,
- * motion, and density resolution; applies {@link loadingProps} to a loading
- * anchor so it leaves the tab order.
+ * motion, and density resolution, and keeps the content: `prefix`, the
+ * children, and `suffix`, with the spinner in place of `prefix` while loading.
+ * Applies {@link loadingProps} to a loading button or anchor.
  *
  * @internal
  */
@@ -31,21 +34,32 @@ export function ButtonHeadless({
 	'data-slot': slot = 'button',
 	className,
 	loading = false,
+	prefix,
+	suffix,
 	children,
 	type,
 	...props
 }: ButtonHeadlessProps) {
+	const content = (
+		<>
+			{loading ? <LoadingSpinner /> : prefix}
+			{children}
+			{suffix}
+		</>
+	)
+
 	if (href !== undefined) {
 		return (
 			<Link
 				ref={ref as Ref<HTMLAnchorElement>}
 				data-slot={slot}
 				href={href}
+				type={type}
 				className={className}
 				{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
 				{...(loading && loadingProps)}
 			>
-				{children}
+				{content}
 			</Link>
 		)
 	}
@@ -59,10 +73,9 @@ export function ButtonHeadless({
 			type={type}
 			className={className}
 			{...bareButtonProps}
-			disabled={loading || bareButtonProps.disabled}
-			aria-busy={ariaAttr(loading)}
+			{...(loading && loadingProps)}
 		>
-			{children}
+			{content}
 		</button>
 	)
 }

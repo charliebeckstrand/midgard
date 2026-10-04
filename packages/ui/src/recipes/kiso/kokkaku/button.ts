@@ -21,4 +21,7 @@ export const button = {
 	base: [rounded.lg, height, dan.size.buttonWidth],
 	height,
 	density: true,
+	// Inline-level, as the `inline-flex` button is, so the silhouette can stand in
+	// for a button in a line of text, a paragraph included.
+	inline: true,
 } as const
