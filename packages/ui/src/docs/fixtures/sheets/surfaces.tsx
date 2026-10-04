@@ -203,7 +203,7 @@ export function Sheet() {
 			</FixtureGroup>
 
 			<FixtureGroup title="Aspect ratio">
-				{(['square', 'video', '4/3'] as const).map((ratio) => (
+				{(['1/1', '16/9', '4/3'] as const).map((ratio) => (
 					<FixtureCase key={ratio} label={ratio}>
 						<Card className="w-40 p-0">
 							<AspectRatio ratio={ratio} className="flex items-center justify-center">
