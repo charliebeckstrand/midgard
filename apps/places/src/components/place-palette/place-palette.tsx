@@ -86,8 +86,9 @@ function PaletteGroups({ sources, prefix }: { sources: readonly PaletteSource[];
  * ⌘K or Ctrl+K also opens the palette. The page does not show the shortcut.
  *
  * A row is active when the pointer is on it, or when the arrow keys highlight
- * it. When a row stays active for {@link PRELOAD_DWELL_MS}, the palette calls
- * the `preload` of its command, if it has one.
+ * it. On a device with hover, a filter change also makes the top result active.
+ * When a row stays active for {@link PRELOAD_DWELL_MS}, the palette calls the
+ * `preload` of its command, if it has one.
  */
 export function PlacePalette({ sources, ready }: PlacePaletteProps) {
 	const [open, setOpen] = useState(false)

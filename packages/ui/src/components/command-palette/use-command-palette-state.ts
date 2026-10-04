@@ -11,13 +11,11 @@ import {
 	useState,
 } from 'react'
 import {
-	clearVirtualActiveIndexed,
 	seedVirtualTopMatch,
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { matchesMediaQuery } from '../../utilities/media-query'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
@@ -27,14 +25,6 @@ type CommandPaletteStateOptions = {
 }
 
 const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
-
-/**
- * A device with no hover, such as a phone. The reader taps a row there, so a
- * filter change clears the highlight and does not seed the top result. The
- * query asks for the device with no hover, so an environment that matches
- * nothing seeds.
- */
-const NO_HOVER_QUERY = '(hover: none)'
 
 /**
  * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}.
@@ -137,8 +127,7 @@ export function useCommandPaletteState({
 	// value; the first arrow key on open picks the first item. Under a
 	// registered `virtualSourceRef`, index math replaces the DOM query (a
 	// windowed-out item isn't in the DOM to find). On a device with no hover,
-	// the change clears the highlight. A seeded row there looks like a tapped
-	// row, and an arrow-key highlight can sit on a row that the filter removed.
+	// `seedVirtualTopMatch` clears the highlight.
 	const lastDeferredRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -154,17 +143,13 @@ export function useCommandPaletteState({
 		// false; guard on it directly.
 		if (!open) return
 
-		if (matchesMediaQuery(NO_HOVER_QUERY)) {
-			clearVirtualActiveIndexed(listRef.current, activeIndexRef, inputRef)
-		} else {
-			seedVirtualTopMatch(
-				listRef.current,
-				ITEM_SELECTOR,
-				virtualSourceRef.current,
-				activeIndexRef,
-				inputRef,
-			)
-		}
+		seedVirtualTopMatch(
+			listRef.current,
+			ITEM_SELECTOR,
+			virtualSourceRef.current,
+			activeIndexRef,
+			inputRef,
+		)
 
 		reportActiveFromDom()
 	}, [deferredQuery, open, reportActiveFromDom])

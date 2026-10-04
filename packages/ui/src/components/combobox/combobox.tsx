@@ -300,7 +300,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
  * @remarks
  * Supply `aria-label` when no `<Field>`/`<Label>` wraps the combobox; the
  * placeholder is not a programmatic name. Composes `<ComboboxOption>` with
- * optional `<ComboboxLabel>`/`<ComboboxDescription>` inside.
+ * optional `<ComboboxLabel>`/`<ComboboxDescription>` inside. A filter change
+ * moves the highlight to the top match, so Enter picks it. On a device with no
+ * hover, such as a phone, a filter change clears the highlight, and only an
+ * arrow key sets it.
  *
  * @typeParam T - The option value type.
  */
@@ -481,10 +484,11 @@ export function Combobox<T>({
 
 	// Keeps the virtual highlight anchored to a real option: clears
 	// `aria-activedescendant` while the menu is closed, on each filter change
-	// jumps it to the top match (or clears it when nothing matches), and on an
-	// arrow-key open seats it on the current single-mode selection. Skips the
-	// initial query; the first arrow key then picks the first option. Passes
-	// `ariaSelected: false`; options own their selection state.
+	// jumps it to the top match (or clears it when nothing matches, or on a
+	// device with no hover), and on an arrow-key open seats it on the current
+	// single-mode selection. Skips the initial query; the first arrow key then
+	// picks the first option. Passes `ariaSelected: false`; options own their
+	// selection state.
 	//
 	// Under a registered `virtualSourceRef`, index math replaces the DOM query
 	// (a windowed-out option isn't in the DOM to find), via

@@ -15,6 +15,7 @@ import {
 	renderUI,
 	screen,
 	setupUser,
+	stubMatchMedia,
 	waitFor,
 	within,
 } from '../helpers'
@@ -484,6 +485,47 @@ describe('Combobox active-descendant keyboard model', () => {
 
 			expect(active).toHaveAttribute('data-active')
 		})
+	})
+
+	it('moves the highlight to the top match when the query changes', async () => {
+		const user = setupUser()
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.type(input, 'ap')
+
+		const [first] = screen.getAllByRole('option')
+
+		expect(first).toHaveAttribute('data-active')
+
+		expect(input).toHaveAttribute('aria-activedescendant', first?.id)
+	})
+
+	// A phone has no hover. The reader taps an option there, so a highlight on the
+	// top match looks like an option that they picked.
+	it('leaves the highlight clear when the query changes on a device with no hover', async () => {
+		stubMatchMedia((query) => query === '(hover: none)')
+
+		const user = setupUser()
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.type(input, 'ap')
+
+		const options = screen.getAllByRole('option')
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		for (const option of options) expect(option).not.toHaveAttribute('data-active')
+
+		// An arrow key still sets the highlight, on the first option.
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
 
 	it('clears aria-activedescendant when the menu closes', async () => {
