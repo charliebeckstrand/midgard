@@ -9,6 +9,7 @@
 
 import { backdrop } from './backdrop'
 import { bg } from './bg'
+import { checkerboard } from './checkerboard'
 import { content } from './content'
 import { glass } from './glass'
 import { popover } from './popover'
@@ -23,4 +24,5 @@ export const omote = {
 	content,
 	skeleton,
 	rail,
+	checkerboard,
 } as const

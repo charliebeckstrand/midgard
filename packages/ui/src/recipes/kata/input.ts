@@ -1,9 +1,7 @@
 import type { VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { iro, ji } from '../kiso'
+import { ji } from '../kiso'
 import { control } from '../kiso/control'
-
-const { text } = iro
 
 export const k = bridge.control(control, {
 	base: 'block',
@@ -25,12 +23,7 @@ export const k = bridge.control(control, {
 		 * the slot on each side.
 		 */
 		affix: {
-			base: [
-				'flex items-center min-w-0',
-				'*:data-[slot=icon]:pointer-events-none',
-				'has-[>*+*]:[--touch-target-gap-x:0px]',
-				...text.muted,
-			],
+			base: [...control.affix.base, 'has-[>*+*]:[--touch-target-gap-x:0px]'],
 			prefix: control.affix.prefix,
 			suffix: control.affix.suffix,
 		},

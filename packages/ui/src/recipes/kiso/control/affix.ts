@@ -72,8 +72,15 @@
  */
 
 import { dan } from '../dan'
+import { iro } from '../iro'
+import { narabi } from '../narabi'
 
 export const affix = {
+	/**
+	 * The layout that each affix slot shares: a centered row that can shrink, in
+	 * the muted text color. An icon in the slot takes no pointer.
+	 */
+	base: [narabi.flex.row, 'min-w-0', '*:data-[slot=icon]:pointer-events-none', ...iro.text.muted],
 	prefix: [
 		dan.space.affix.prefix,
 		'has-[[data-slot=badge]]:ps-ring-2',

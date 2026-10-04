@@ -1,4 +1,3 @@
-export type { ChatListItemVariants } from '../../recipes/kata/chat-list-item'
 export type {
 	ChatMessageBubbleVariants,
 	ChatMessageVariants,
