@@ -32,7 +32,7 @@ const items = [
 
 const statusColor = { Active: 'green', Archived: 'zinc' } as const
 
-export function Demo() {
+export default function Demo() {
 	const [view, setView] = useState('List')
 
 	const [filter, setFilter] = useState('All')

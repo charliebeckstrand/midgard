@@ -109,7 +109,7 @@ function SheetExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [comboboxValue, setComboboxValue] = useState<string | null>(null)
 
 	const [date, setDate] = useState<Date | null>(null)

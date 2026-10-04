@@ -5,7 +5,7 @@ import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example, PageTabs } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<PageTabs defaultValue="button">
 			<Stack gap="lg">

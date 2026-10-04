@@ -7,7 +7,7 @@ import { Example, LabeledColumn } from '../../engine'
 
 const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Alert

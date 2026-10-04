@@ -3,7 +3,7 @@ import { Box } from '../../../structure/box'
 import { Stack } from '../../../structure/stack'
 import { Axes } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<Axes
 			of="Box"

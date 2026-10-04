@@ -19,9 +19,8 @@ import { cn } from '../../../core'
 import { useScrollWithin } from '../../../hooks'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
 import { Flex } from '../../../structure/flex'
-import { demoPath } from '../demo-id'
 import { noAutofill } from '../no-autofill'
-import { type Demo, demos, preloadDemo } from '../registry'
+import type { Page } from '../pages'
 import { titleCase } from './format'
 
 // Section-label horizontal inset at the step of the nearest density scope.
@@ -29,11 +28,11 @@ import { titleCase } from './format'
 // item without reaching into ui's private recipe surface.
 const SECTION_LABEL_PX = 'density-px-ring-[1.5,2,2.5]'
 
-// Categories present in the demo set, rendered top to bottom: 'components'
-// first, then any others alphabetically. Derived from the demos themselves so a
+// Categories present in the page set, rendered top to bottom: 'components'
+// first, then any others alphabetically. Derived from the pages themselves so a
 // library can introduce new groups (a new `demos/` subfolder) without touching
 // the chrome.
-function orderedCategories(list: readonly Demo[]): string[] {
+function orderedCategories(list: readonly Page[]): string[] {
 	const unique = [...new Set(list.map((d) => d.category))]
 
 	return unique.sort((a, b) =>
@@ -42,46 +41,42 @@ function orderedCategories(list: readonly Demo[]): string[] {
 }
 
 // About 110 names at most, so the list renders every match and needs no paging.
-function SearchResults() {
+function SearchResults({ pages }: { pages: readonly Page[] }) {
 	const deferredQuery = useComboboxDeferredQuery()
 
 	const q = deferredQuery.toLowerCase()
 
-	return demos
-		.filter((d) => !q || d.name.toLowerCase().includes(q))
-		.map((d) => (
-			<ComboboxOption key={d.id} value={d.id}>
-				{d.name}
+	return pages
+		.filter((page) => !q || page.name.toLowerCase().includes(q))
+		.map((page) => (
+			<ComboboxOption key={page.id} value={page.id}>
+				{page.name}
 			</ComboboxOption>
 		))
 }
 
 // Memoized so a navigation re-renders only the two items whose `current`
-// flipped: `demo` is a stable registry reference, leaving `current` as the sole
+// flipped: `page` is a stable reference, leaving `current` as the sole
 // changing prop across the ~110-item list.
-const DemoItem = memo(function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
-	const prefetch = () => preloadDemo(demo.id)
-
+const PageItem = memo(function PageItem({ page, current }: { page: Page; current: boolean }) {
 	return (
-		<SidebarItem
-			// A plain path link. The router makes the history entry, and the app
-			// scrolls to the top when the demo shows.
-			href={demoPath(demo.id)}
-			current={current}
-			// A touch device has no hover, and a tap does not focus the link. The press
-			// starts the fetch, so the demo is ready while the drawer closes.
-			onPointerDown={prefetch}
-			onMouseEnter={prefetch}
-			onFocus={prefetch}
-		>
-			<SidebarLabel>{demo.name}</SidebarLabel>
+		// A plain path link. The router makes the history entry, and loads the page
+		// when the reader points at the link or focuses it.
+		<SidebarItem href={page.path} current={current}>
+			<SidebarLabel>{page.name}</SidebarLabel>
 		</SidebarItem>
 	)
 })
 
 type SortDirection = 'asc' | 'desc'
 
-export function SidebarContent({ route }: { route: string }) {
+export function SidebarContent({
+	pages,
+	current,
+}: {
+	pages: readonly Page[]
+	current: Page | undefined
+}) {
 	const id = useId()
 
 	const offcanvas = use(OffcanvasContext)
@@ -92,20 +87,20 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const [direction, setDirection] = useState<SortDirection>('asc')
 
-	// `demos` is name-sorted ascending; 'asc' shows it as-is, 'desc' reverses.
+	// `pages` is name-sorted ascending; 'asc' shows it as-is, 'desc' reverses.
 	// Memoized so category ordering and per-category filtering recompute only when
 	// the sort direction flips, not on every navigation or lock toggle.
 	const sections = useMemo(() => {
-		const sorted = direction === 'asc' ? demos : [...demos].reverse()
+		const sorted = direction === 'asc' ? pages : pages.toReversed()
 
 		return orderedCategories(sorted)
 			.map((category) => ({
 				category,
 				label: titleCase(category),
-				items: sorted.filter((demo) => demo.category === category),
+				items: sorted.filter((page) => page.category === category),
 			}))
 			.filter((section) => section.items.length > 0)
-	}, [direction])
+	}, [direction, pages])
 
 	return (
 		<Sidebar>
@@ -123,22 +118,24 @@ export function SidebarContent({ route }: { route: string }) {
 						// without the search box retaining the picked option.
 						value=""
 						onValueChange={(id) => {
-							if (!id) return
+							const page = pages.find((candidate) => candidate.id === id)
+
+							if (!page) return
 
 							// The same navigation as a click on a sidebar link.
-							navigate(demoPath(id))
+							navigate(page.path)
 
 							// Scroll the matching sidebar item into view
 							const sidebar = document.querySelector('[data-slot="sidebar"]')
 
-							const item = sidebar?.querySelector<HTMLElement>(`[href="${demoPath(id)}"]`)
+							const item = sidebar?.querySelector<HTMLElement>(`[href="${page.path}"]`)
 
 							if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
 
 							offcanvas?.close()
 						}}
 					>
-						<SearchResults />
+						<SearchResults pages={pages} />
 					</Combobox>
 				</div>
 				<Button
@@ -162,8 +159,8 @@ export function SidebarContent({ route }: { route: string }) {
 							{label}
 						</Text>
 						<SidebarList aria-label={label}>
-							{items.map((demo) => (
-								<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
+							{items.map((page) => (
+								<PageItem key={page.id} page={page} current={page.id === current?.id} />
 							))}
 						</SidebarList>
 					</SidebarSection>

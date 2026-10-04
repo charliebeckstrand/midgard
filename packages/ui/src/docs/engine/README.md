@@ -124,8 +124,9 @@ an example that repeats an earlier example, and an example of a component
 with a playground whose title is `Default`. The text of an element does not
 count, so an example that differs only in its words fails.
 
-`DemoPage` gives `<Axes>` the API data through `DemoApiContext`. The docs
-plugin serves no API data in a test run. Therefore the page gates
+The layout of the pages ([`page.tsx`](../app/routes/page.tsx)) gives `<Axes>`
+the API data through `DemoApiContext`. The docs plugin serves no API data in a
+test run. Therefore the page gates
 (`__tests__/helpers/demo-api.ts`) extract the barrel of each page that uses
 `<Axes>`, and give the data to the same context.
 
@@ -139,18 +140,27 @@ export default defineDocsConfig({ packageName: 'ui' })
 ```
 
 The site is a React Router app in framework mode, with no server at run time
-(`ssr: false`). [`react-router.config.ts`](../react-router.config.ts) gives a
-path to each demo, and to each tab of a page that has `PageTabs`. The build
-renders each path to its own HTML file, and the browser hydrates it. A link of
-the chrome or of a ui component goes through the router, because the root
-gives `UIProvider` a `link` that renders the `Link` of React Router.
+(`ssr: false`). Each demo file is the route of its page: it exports its page as
+the default export, and [`routes.ts`](../app/routes.ts) gives it a path. The
+build renders each path to its own HTML file, and the browser hydrates it. The
+HTML of a page preloads the chunk of its demo. A link of the chrome or of a ui
+component goes through the router, because the root gives `UIProvider` a
+`link` that renders the `Link` of React Router. The link loads the next page
+when the reader points at it or focuses it.
 
-[`demo-id.ts`](demo-id.ts) gives the path of each page. A component page is at
-its id (`/card`). A page in a namespace folder is in that folder of the path
+[`pages.ts`](pages.ts) gives the path of each page. A component page is at its
+file name (`/card`). A page in another folder is in that folder of the path
 (`/structure/box`). A tab adds one part (`/progress/gauge`), and its value has
-only lowercase letters, digits, and hyphens. A path from before nested paths
+only lowercase letters, digits, and hyphens. A demo can give its page a
+`handle`, the route data of React Router: `name` changes the name in the
+sidebar, and `category` moves the page to another section.
+
+The root `loader` gives the chrome the list of the pages. The `loader` of the
+layout of the pages gives each page the API data of its barrel. The build runs
+both for each page and puts the data in its HTML. A navigation fetches the data
+of the next page from its `.data` file. A path from before nested paths
 (`/structure-box`) has no HTML file, so the host sends the fallback document,
-and the app moves to the current path.
+and [`legacy.tsx`](../app/routes/legacy.tsx) moves to the current path.
 
 Use `react-router build src/docs --config vite.docs.config.ts`, not
 `vite build`. The `vite build` command does not stop after the prerender.

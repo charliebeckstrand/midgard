@@ -3,7 +3,7 @@ import type { LinkProps } from '../../../primitives/link'
 import { UIProvider } from '../../../providers/ui'
 import { Example } from '../../engine'
 
-export const meta = { name: 'UI' }
+export const handle = { name: 'UI' }
 
 const RouterLink = ({ children, ...props }: LinkProps) => <a {...props}>{children}</a>
 
@@ -15,7 +15,7 @@ function RegisteredLinkExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Example title="Default link component">

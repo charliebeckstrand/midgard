@@ -210,7 +210,7 @@ function PieLegendExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const atlas = useGeography(statesUrl)
 
 	const states = atlas.geography

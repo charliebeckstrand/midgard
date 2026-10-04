@@ -5,7 +5,7 @@ import { Flex } from '../../../structure/flex'
 import { Spacer } from '../../../structure/spacer'
 import { Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Example title="Justify">

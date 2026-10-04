@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	const [dark, setDark] = useState(false)
 	const [muted, setMuted] = useState(false)
 

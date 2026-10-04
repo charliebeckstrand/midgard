@@ -1,7 +1,7 @@
 import { MousePointer } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { type TrackedPromise, tracked } from '../registry'
 import { readDebugTools } from './store'
+import { type TrackedPromise, tracked } from './tracked'
 
 /** The props of the sheet of a tool. The header button of the tool opens it. */
 export type DebugSheetProps = {

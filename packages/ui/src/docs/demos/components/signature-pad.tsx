@@ -94,7 +94,7 @@ function ImperativeHandleExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

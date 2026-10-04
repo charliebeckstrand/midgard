@@ -17,7 +17,7 @@ import { Textarea } from '../../../components/textarea'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example, Opener } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	const [open, setOpen] = useState(false)
 
 	return (

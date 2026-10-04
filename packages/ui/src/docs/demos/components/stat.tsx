@@ -4,7 +4,7 @@ import { Icon } from '../../../components/icon'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../../components/stat'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

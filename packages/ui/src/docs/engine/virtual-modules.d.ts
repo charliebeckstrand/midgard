@@ -19,11 +19,3 @@ declare module 'virtual:component-modules' {
 
 	export default data
 }
-
-declare module 'virtual:demo-metas' {
-	import type { DemoMeta } from './demo-meta'
-
-	const data: Record<string, DemoMeta>
-
-	export default data
-}

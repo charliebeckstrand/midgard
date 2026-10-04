@@ -4,7 +4,7 @@ import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example, PageTabs, ValueStepper } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	const [barValue, setBarValue] = useState(50)
 	const [gaugeValue, setGaugeValue] = useState(50)
 

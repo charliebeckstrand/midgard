@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 import type { ComponentApi } from '../../docs/engine/api-reference'
 import { listBarrels } from '../../docs/engine/api-reference/engine/barrels'
 import { apiRecord } from './api-record'
-import { settled } from './settled'
 
 // The docs plugin serves no API data in a test run, so `<Axes>` renders nothing
 // there. The page gates read this module instead, and give each page that uses
@@ -19,7 +18,7 @@ const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
  *
  * @param page - The page name, such as `components/button`.
  */
-export function demoApiOf(page: string): Promise<ComponentApi[]> | null {
+export function demoApiOf(page: string): ComponentApi[] | null {
 	const demo = [
 		join(SRC, 'docs', 'demos', `${page}.tsx`),
 		join(SRC, 'docs', 'demos', page, 'index.tsx'),
@@ -33,5 +32,5 @@ export function demoApiOf(page: string): Promise<ComponentApi[]> | null {
 
 	if (!barrel) return null
 
-	return settled(apiRecord()[barrel.key] ?? [])
+	return apiRecord()[barrel.key] ?? []
 }

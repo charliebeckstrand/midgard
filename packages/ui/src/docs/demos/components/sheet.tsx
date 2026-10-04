@@ -10,7 +10,7 @@ import {
 import { Text } from '../../../components/text'
 import { Axes, Opener } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		// With `handle`, the grip rides the inner edge. Drag it to set the width, or
 		// focus it and use the arrow keys. A flick toward the edge puts the panel

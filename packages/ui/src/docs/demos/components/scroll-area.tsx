@@ -34,7 +34,7 @@ const tags = [
 	'shiki',
 ]
 
-export function Demo() {
+export default function Demo() {
 	const [verticalSize, setVerticalSize] = useState<Size>('md')
 	const [horizontalSize, setHorizontalSize] = useState<Size>('md')
 

@@ -7,7 +7,7 @@ import {
 } from '../../../components/breadcrumb'
 import { Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<Example title="Default">
 			<Breadcrumb>

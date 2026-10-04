@@ -3,7 +3,7 @@ import { Text } from '../../../components/text'
 import { Flex } from '../../../structure/flex'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes of="Swatch" render={(props) => <Swatch {...props} color="blue" />} />

@@ -1335,7 +1335,7 @@ const SparklineExample = () => {
 // capabilities rather than one scroll. Panels unmount when inactive
 // (`fade={false}`) so the page's jump nav only ever lists the visible tab's
 // examples and never scrolls to a hidden one.
-export function Demo() {
+export default function Demo() {
 	return (
 		<PageTabs defaultValue="variants">
 			<TabList aria-label="Grid examples">

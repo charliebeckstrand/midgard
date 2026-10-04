@@ -4,7 +4,7 @@ import { TagInput } from '../../../components/tag-input'
 import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
 function ControlledExample() {
 	const [tags, setTags] = useState<string[]>(['React', 'TypeScript'])
@@ -36,7 +36,7 @@ function MaxTagInputExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

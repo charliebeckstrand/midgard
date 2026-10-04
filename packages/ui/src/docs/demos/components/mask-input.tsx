@@ -4,7 +4,7 @@ import { MaskInput, phoneMask, zipcodeMask } from '../../../components/mask-inpu
 import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
 function formatLicensePlate(raw: string) {
 	const clean = raw
@@ -55,7 +55,7 @@ function ControlledExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

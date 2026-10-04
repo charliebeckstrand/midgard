@@ -2,7 +2,7 @@ import { Code, CodeBlock } from '../../../components/code'
 import { Text } from '../../../components/text'
 import { Axes, code, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes of="Code" render={(props) => <Code {...props}>pnpm install</Code>} />

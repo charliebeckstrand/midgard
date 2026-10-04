@@ -67,7 +67,7 @@ function FitExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			{/* With `handle`, drag the grip to resize, or focus it and use the arrow

@@ -4,7 +4,7 @@ import { Axes, Example } from '../../engine'
 
 const plans = ['Starter', 'Business', 'Enterprise'] as const
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

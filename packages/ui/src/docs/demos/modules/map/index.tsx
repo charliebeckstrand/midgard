@@ -939,7 +939,7 @@ function MapDemo() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	// A client scoped to the demo and sitting above the tabs, so a route fetched
 	// in one tab survives a switch away and back. The data is static, so nothing
 	// restales, focus never refetches, and a failed OSRM call doesn't retry-storm

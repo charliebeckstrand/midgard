@@ -192,7 +192,7 @@ function StreamingPrompt() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [current, setCurrent] = useState('1')
 
 	return (

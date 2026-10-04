@@ -3,7 +3,7 @@ import { Axes, Example, valueLabel } from '../../engine'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes of="Avatar" render={(props) => <Avatar {...props} initials="AB" />} />

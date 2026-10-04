@@ -26,7 +26,7 @@ const loaders = import.meta.glob<ComponentType>(
 		'../../docs/demos/modules/*/index.tsx',
 		'../../docs/demos/structure/*.tsx',
 	],
-	{ import: 'Demo' },
+	{ import: 'default' },
 )
 
 /** `components/button` for `../../docs/demos/components/button.tsx`. */
@@ -34,7 +34,7 @@ function pageOf(path: string): string {
 	return path.replace('../../docs/demos/', '').replace(/(\/index)?\.tsx$/, '')
 }
 
-/** A demo page, as its name and a loader of its `Demo`. */
+/** A demo page, as its name and a loader of its default export. */
 export type DemoPage = readonly [string, () => Promise<ComponentType>]
 
 /** Each demo page, in name order. */

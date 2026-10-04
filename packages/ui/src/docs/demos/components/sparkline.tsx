@@ -5,7 +5,7 @@ import { Axes, code, Example } from '../../engine'
 // A rising then cresting series so line, area, and bar variants all read clearly.
 const series = [4, 6, 5, 9, 8, 12, 11, 15, 14, 19, 22, 20]
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

@@ -91,7 +91,7 @@ function FilterExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Example title="Default">

@@ -6,7 +6,7 @@ import {
 } from '../../../components/password-confirm'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

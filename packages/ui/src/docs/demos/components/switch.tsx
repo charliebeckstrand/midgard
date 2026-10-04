@@ -2,7 +2,7 @@ import { Description, Label } from '../../../components/fieldset'
 import { Switch, SwitchField } from '../../../components/switch'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

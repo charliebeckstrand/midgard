@@ -52,7 +52,7 @@ function CustomRulesExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

@@ -10,7 +10,7 @@ import { Field, Label } from '../../../components/fieldset'
 import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
 const places = [
 	{
@@ -174,7 +174,7 @@ function CustomProviderExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Alert severity="info" closable>

@@ -19,7 +19,7 @@ const steps = [
 	},
 ]
 
-export function Demo() {
+export default function Demo() {
 	const [panelsValue, setPanelsValue] = useState(0)
 
 	return (

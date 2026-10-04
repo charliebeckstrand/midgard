@@ -1,32 +1,20 @@
-import type { ComponentType, ReactNode } from 'react'
-import { Links, Meta, Scripts, ScrollRestoration } from 'react-router'
+import type { ReactNode } from 'react'
+import { Links, Meta, Scripts, ScrollRestoration, useLoaderData } from 'react-router'
 import fontUrl from '../../fonts/google-sans-flex.woff2?url'
 import { CurrentScrollScript } from '../../primitives/current'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
 import { App } from '../engine/app'
 import { DebugScript } from '../engine/debug/debug-script'
-import { initRegistry } from '../engine/registry'
+import { pages } from '../engine/pages.server'
+
+/** The pages of the sidebar. The build runs it once for each page. */
+export function loader() {
+	return { pages }
+}
 
 // The preload fetches the font with the document, and not after the first
 // layout finds text in it.
-// The glob runs here, in ui, so Vite resolves it against ui's own `demos/`
-// tree. Keep the patterns the same as `demo-globs.ts`, which lists the pages
-// that the build renders.
-initRegistry(
-	import.meta.glob<ComponentType>(
-		[
-			'../demos/components/*.tsx',
-			'../demos/primitives/*.tsx',
-			'../demos/providers/*.tsx',
-			'../demos/modules/*.tsx',
-			'../demos/modules/*/index.tsx',
-			'../demos/structure/*.tsx',
-		],
-		{ import: 'Demo' },
-	),
-)
-
 export const links = () => [
 	{ rel: 'preload', href: fontUrl, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
 	{ rel: 'stylesheet', href: appCss },
@@ -64,4 +52,8 @@ export function Layout({ children }: { children: ReactNode }) {
 	)
 }
 
-export default App
+export default function Root() {
+	const { pages } = useLoaderData<typeof loader>()
+
+	return <App pages={pages} />
+}

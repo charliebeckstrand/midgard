@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { Flex } from '../../../structure/flex'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

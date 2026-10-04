@@ -14,7 +14,7 @@ function ControlledExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	// Freeze the ±30-day window at mount so it doesn't recompute on every render
 	// (including on each selection) — mirrors the demos' `useNow` freeze pattern.
 	const [{ min, max }] = useState(() => {

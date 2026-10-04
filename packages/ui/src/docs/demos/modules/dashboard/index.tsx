@@ -595,7 +595,7 @@ function RegistryExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [editing, setEditing] = useState(false)
 
 	// A narrow board paints the re-pack, where edit mode stands down. The control

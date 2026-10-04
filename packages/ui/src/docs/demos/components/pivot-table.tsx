@@ -23,7 +23,7 @@ const loads: LoadRow[] = [
 	{ lane: 'SEA → JFK', carrier: 'Crest', period: 'Feb', loads: 6, cost: 17400 },
 ]
 
-export function Demo() {
+export default function Demo() {
 	const currency = useFormat({ type: 'currency', maximumFractionDigits: 0 })
 
 	return (

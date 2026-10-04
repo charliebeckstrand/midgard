@@ -16,7 +16,7 @@ const users = [
 	{ name: 'Devon Webb', email: 'devon@example.com', role: 'Viewer' },
 ]
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

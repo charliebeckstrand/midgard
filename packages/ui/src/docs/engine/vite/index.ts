@@ -161,6 +161,10 @@ export function defineDocsConfig({
 							},
 							{ name: 'vendor-floating-ui', test: /node_modules[\\/]@floating-ui[\\/]/ },
 							{ name: 'vendor-tanstack', test: /node_modules[\\/]@tanstack[\\/]/ },
+							// Each page is a route of its own, so the bundler splits the code that
+							// pages share into a chunk for each set of pages that import it. The
+							// code of ui that many pages share goes into one chunk instead.
+							{ name: 'ui', test: /[\\/]src[\\/](?!docs[\\/]demos[\\/])/, minShareCount: 24 },
 						],
 					},
 				},

@@ -14,7 +14,7 @@ function CurrentAppearance() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Example title="Settings button">

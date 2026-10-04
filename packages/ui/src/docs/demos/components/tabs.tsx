@@ -107,7 +107,7 @@ function PreloadExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

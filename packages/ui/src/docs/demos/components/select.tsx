@@ -12,7 +12,7 @@ import { Axes, Example } from '../../engine'
 // `truncate` axes show a change.
 const stages = ['awaiting approval from finance', 'in review', 'shipped']
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

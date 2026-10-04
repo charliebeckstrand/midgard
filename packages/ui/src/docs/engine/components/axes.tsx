@@ -1,4 +1,4 @@
-import { type ComponentProps, type ReactNode, Suspense, use, useState } from 'react'
+import { type ComponentProps, type ReactNode, useState } from 'react'
 import { createContext, dataAttr } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
@@ -10,13 +10,12 @@ import { OptionsListbox } from './options-listbox'
 
 /**
  * The extracted API of the barrel that the current demo page documents. The
- * page supplies the promise, and {@link Axes} reads it. The value is `null`
- * when the barrel has no API data, such as in a test run.
+ * page supplies it from the data of its route, and {@link Axes} reads it. The
+ * value is `null` when the page has no barrel, such as in a test run.
  */
-export const [DemoApiContext, useDemoApi] = createContext<Promise<ComponentApi[]> | null>(
-	'DemoApi',
-	{ default: null },
-)
+export const [DemoApiContext, useDemoApi] = createContext<ComponentApi[] | null>('DemoApi', {
+	default: null,
+})
 
 /**
  * The props that {@link Axes} gives to its `render` function. The keys and the
@@ -89,27 +88,9 @@ type AxesProps = {
  * Without API data, for example in a test run, it renders nothing.
  */
 export function Axes(props: AxesProps) {
-	const pending = useDemoApi()
+	const api = useDemoApi()
 
-	if (!pending) return null
-
-	// The page waits for the API data (`DemoPage`), so the data is ready here,
-	// except after a failure and a retry.
-	return (
-		<Suspense fallback={null}>
-			<AxesBody pending={pending} {...props} />
-		</Suspense>
-	)
-}
-
-/**
- * Read the API data, and find the component. It calls no other hook. A render
- * that suspends on `use()` replays once the data arrives, and the replay reads
- * the settled value with no `use()`. A hook after that call would then run in a
- * second place, so the state lives in {@link AxesExamples}.
- */
-function AxesBody({ pending, ...props }: AxesProps & { pending: Promise<ComponentApi[]> }) {
-	const api = settledValue(pending) ?? use(pending)
+	if (!api) return null
 
 	const component = api.find((entry) => entry.name === props.of)
 
@@ -193,18 +174,6 @@ function AxesExamples({
 /** The title of the example of one axis, with the prefix of the `Axes` when it has one. */
 function axisTitle(name: string, prefix: string | undefined): string {
 	return prefix ? `${prefix} ${humanize(name).toLowerCase()}` : humanize(name)
-}
-
-/**
- * The value of a promise that the registry marks as fulfilled, or `undefined`.
- * A read of a settled promise needs no `use()`. In development, `use()` inside
- * a synchronous `act` logs a warning even for a settled promise, and a page
- * that mounts `Axes` in a tab panel does exactly that.
- */
-function settledValue<T>(promise: Promise<T>): T | undefined {
-	const tracked = promise as Promise<T> & { status?: string; value?: T }
-
-	return tracked.status === 'fulfilled' ? tracked.value : undefined
 }
 
 /**

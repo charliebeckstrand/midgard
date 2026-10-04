@@ -4,7 +4,7 @@ import { NumberInput } from '../../../components/number-input'
 import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
 function ControlledExample() {
 	const [value, setValue] = useState<number | null>(3)
@@ -20,7 +20,7 @@ function ControlledExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

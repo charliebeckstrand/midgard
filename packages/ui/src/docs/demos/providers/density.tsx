@@ -104,7 +104,7 @@ function OrdersFilters({ value, onValueChange }: OrdersFiltersProps) {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [density, setDensity] = useState<DensityLevel>('snug')
 
 	const [filters, setFilters] = useState<OrderFilters>({

@@ -213,7 +213,7 @@ function ProfileCardExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<VariantExample />

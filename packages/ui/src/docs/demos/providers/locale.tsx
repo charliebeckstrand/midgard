@@ -27,7 +27,7 @@ function LocalProviderExample({ preset }: { preset: (typeof PRESETS)[number] }) 
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [index, setIndex] = useState(0)
 
 	const preset = PRESETS[index]
