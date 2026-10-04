@@ -36,7 +36,7 @@ import { affix } from './affix'
 /** The radius at each step. `kata/control.ts` also gives it to ControlFrame. */
 export const radius = dan.radius.control
 
-/** The vertical padding at each step. The textarea skeleton also reads it. */
+/** The vertical padding at each step. */
 export const py = dan.space.control.y
 
 export const density = [
@@ -50,10 +50,4 @@ export const density = [
 ] as const
 
 /** The size scale of a control: the steps of its padding, radius, gap, and text. */
-export const scale = defineScale(
-	dan.space.control.x,
-	dan.space.control.y,
-	dan.radius.control,
-	dan.gap.control,
-	dan.text.body,
-)
+export const scale = defineScale(dan.space.control.x, py, radius, dan.gap.control, ji.ramp)

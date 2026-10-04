@@ -3,18 +3,18 @@
  * count of lines (`lh`), and the silhouette adds the vertical padding of the
  * textarea: `box-content` puts the padding outside that height.
  *
- * The padding, the radius, and the text are the stepped classes of the control
- * density axis (`kiso/control/density.ts`). The text sets `lh`. So the
- * silhouette takes the step of its nearest density scope, as the textarea
- * does. The `skeleton-parity` browser test holds the box at each step.
+ * The padding, the radius, and the text are the ramps of the control density
+ * (`dan.space.control.y`, `dan.radius.control`, and `ji.ramp`). The text sets
+ * `lh`. So the silhouette takes the step of its nearest density scope, as the
+ * textarea does. The `skeleton-parity` browser test holds the box at each step.
  *
  * Layer: kiso · Concern: skeleton form · Unit: textarea
  */
 
-import { py, radius } from '../control/density'
+import { dan } from '../dan'
 import { ji } from '../ji'
 
 export const textarea = {
-	base: ['w-full', 'box-content', py, radius, ji.ramp],
+	base: ['w-full', 'box-content', dan.space.control.y, dan.radius.control, ji.ramp],
 	density: true,
 } as const
