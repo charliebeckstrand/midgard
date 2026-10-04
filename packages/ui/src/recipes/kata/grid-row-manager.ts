@@ -5,9 +5,10 @@
  * the shared `kata/grid-group` `outline` (Card outline) — so this carries
  * only the flex layout.
  */
-import { iro, narabi } from '../kiso'
+import { iro, ji, narabi } from '../kiso'
 
 const { text } = iro
+const { weight } = ji
 const { flex } = narabi
 
 export const k = {
@@ -18,12 +19,12 @@ export const k = {
 	zone: {
 		// A group zone's row: the grip + label + count grouped at the leading edge,
 		// the color Menu pushed to the trailing edge (`justify-between`).
-		header: [flex.row, 'items-center', 'justify-between', 'gap-2'],
+		header: [flex.row, 'justify-between', 'gap-2'],
 		// The leading group: the reorder grip, the label, and the count, sitting
 		// together; `min-w-0` lets the label truncate rather than shove the count.
-		main: [flex.row, 'items-center', 'gap-2', 'min-w-0'],
+		main: [flex.row, 'gap-2', 'min-w-0'],
 		// The group label, beside the grip; truncates when long.
-		label: ['min-w-0', 'truncate', 'font-medium'],
+		label: ['min-w-0', 'truncate', weight.medium],
 		// The row count, sitting right beside the label.
 		count: [text.muted, 'tabular-nums', 'shrink-0'],
 	},

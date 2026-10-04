@@ -1,6 +1,6 @@
 /**
  * Kokkaku skeleton: switch. Pill silhouette across three switch size
- * steps. Exported as `switchRecipe` (`switch` is a reserved JS keyword);
+ * steps. Exported as `switchSkeleton` (`switch` is a reserved JS keyword);
  * surfaced through the bundle as `switch:`.
  *
  * `track` is the height and the width of the real track. The Switch kata reads
@@ -17,7 +17,7 @@ const { rounded } = kasane
 
 const track = [dan.size.row, dan.size.switch.width] as const
 
-export const switchRecipe = {
+export const switchSkeleton = {
 	base: [rounded.full, ...track],
 	track,
 	density: true,
