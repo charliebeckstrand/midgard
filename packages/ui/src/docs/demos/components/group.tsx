@@ -52,6 +52,8 @@ export function Demo() {
 						<Stack gap="xl">
 							<Axes
 								of="Group"
+								// An input has no `xs` step, so an `xs` group shows it at `sm`.
+								values={{ size: ['sm', 'md', 'lg'] }}
 								render={(props) => (
 									<Group {...props}>
 										<Input placeholder="First" />

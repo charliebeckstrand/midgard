@@ -1,7 +1,6 @@
 import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
-import { AxesPrerenderContext, parseAxesReads } from '../engine/axes-prerender'
 import { preloadDebugTools } from '../engine/debug/registry'
 
 // Marks a history entry that already recovery-reloaded once. history.state
@@ -32,10 +31,7 @@ startTransition(() => {
 	hydrateRoot(
 		document,
 		<StrictMode>
-			{/* The first read of each `Axes` from the prerender, so the page hydrates to its HTML. */}
-			<AxesPrerenderContext value={parseAxesReads()}>
-				<HydratedRouter />
-			</AxesPrerenderContext>
+			<HydratedRouter />
 		</StrictMode>,
 	)
 })

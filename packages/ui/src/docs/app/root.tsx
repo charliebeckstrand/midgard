@@ -5,7 +5,6 @@ import { CurrentScrollScript } from '../../primitives/current'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
 import { App } from '../engine/app'
-import { AxesReadsScript } from '../engine/axes-prerender'
 import { DebugScript } from '../engine/debug/debug-script'
 import { initRegistry } from '../engine/registry'
 
@@ -57,7 +56,6 @@ export function Layout({ children }: { children: ReactNode }) {
 			    The body color matches the layout, so an overscroll shows no band. */}
 			<body className="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
 				{children}
-				<AxesReadsScript />
 				<ScrollRestoration />
 				<CurrentScrollScript id={FIRST_PAINT} />
 				<Scripts />

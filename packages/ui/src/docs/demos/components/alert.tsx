@@ -31,7 +31,7 @@ export function Demo() {
 			<Axes
 				of="Alert"
 				captions={false}
-				omit={['open', 'defaultOpen', 'closable']}
+				omit={['open', 'defaultOpen', 'closable', 'titleLevel']}
 				render={(props, label) => <Alert {...props} title={label} />}
 			/>
 

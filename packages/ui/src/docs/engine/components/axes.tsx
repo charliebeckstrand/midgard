@@ -1,29 +1,8 @@
-import {
-	type ComponentProps,
-	type ReactNode,
-	type Ref,
-	Suspense,
-	use,
-	useId,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type ComponentProps, type ReactNode, Suspense, use, useState } from 'react'
 import { createContext, dataAttr } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
-import {
-	type AxesRead,
-	type Axis,
-	type AxisValue,
-	axesOf,
-	instanceKey,
-	isStepAxis,
-	readAxes,
-	shownValues,
-	signaturesIn,
-} from '../axes'
-import { useAxesPrerender } from '../axes-prerender'
+import { type Axis, type AxisValue, axesOf } from '../axes'
 import { noAutofill } from '../no-autofill'
 import { Example } from './example'
 import { humanize, valueLabel } from './format'
@@ -62,6 +41,12 @@ type AxesProps = {
 	/** The props that do not become an axis. */
 	omit?: readonly string[]
 	/**
+	 * The values to show for an axis, in place of each value of its type. Give
+	 * it when a value renders as its neighbor in the composition of `render`,
+	 * such as the `xs` of a group of inputs, which take `sm`.
+	 */
+	values?: { readonly [prop: string]: readonly AxisValue[] }
+	/**
 	 * The title of the playground, and the prefix of each axis title: `Group`
 	 * gives `Group` and `Group size`. On a page with more than one `Axes`,
 	 * give it to each `Axes` after the first, so that no two examples share a
@@ -96,23 +81,10 @@ type AxesProps = {
  * axes from the playground. A new value in the source of the component thus shows on the
  * page with no change to the demo.
  *
- * An axis of density steps shows only the steps that render distinctly. A
- * value that renders as its neighbor drops from the example and from the
- * picker ({@link distinctValues}).
- *
- * The other axes can make an axis inert, such as an `orientation` that a
- * variant ignores. When the instances of an axis differ at the defaults and
- * render alike at the current values, its example hides
- * ({@link rendersAlike}). Its picker keeps each value. An axis whose
- * instances render alike at the defaults stays, because its effect shows only
- * in a later state, such as the panel of a closed dialog. An example with one
- * value also hides.
- *
- * An axis that changes only the accessibility tree has nothing to show, such
- * as the heading level of a title or an unstyled `aria-*` attribute. When its
- * instances differ in form and look the same at the defaults
- * ({@link lookSignature}), its example and its picker hide. The API reference
- * still lists the prop.
+ * The values come from the type of each prop, in source order, so the page
+ * needs no read of the DOM. An axis that changes only the accessibility tree,
+ * such as the heading level of a title, has nothing to show: give it in
+ * `omit`. The API reference still lists the prop.
  *
  * Without API data, for example in a test run, it renders nothing.
  */
@@ -151,54 +123,20 @@ function AxesExamples({
 	of,
 	render,
 	omit,
+	values,
 	title,
 	captions = true,
 	frame,
 }: AxesProps & { component: ComponentApi }) {
-	const all = axesOf(component, omit)
+	const axes = axesOf(component, omit).map((axis) => {
+		const only = values?.[axis.name]
 
-	const id = useId()
-
-	const prerender = useAxesPrerender()
-
-	// The first pass of the build takes the axes (`AxesPrerender`).
-	prerender?.collect?.set(id, all)
-
-	// The first read, from the build or from the first layout effect. Its unseen
-	// axes hide, and its live axes can become inert.
-	const [read, setRead] = useState<AxesRead | null>(() => prerender?.reads?.[id] ?? null)
-
-	const axes = read ? all.filter((axis) => !read.unseen.includes(axis.name)) : all
-
-	const [state, setState] = useState<Record<string, AxisValue | undefined>>(() =>
-		Object.fromEntries(all.map((axis) => [axis.name, axis.default])),
-	)
-
-	// The wrapper of each instance, keyed by `instanceKey`.
-	const instances = useRef(new Map<string, Element>())
-
-	// The values that the example of each axis shows. An axis with no entry
-	// shows each value until the next read.
-	const [shown, setShown] = useState<Record<string, AxisValue[]>>(() => read?.shown ?? {})
-
-	// Read each axis with no entry after the commit, before the paint.
-	useLayoutEffect(() => {
-		const unread = axes.filter((axis) => !shown[axis.name])
-
-		if (unread.length === 0) return
-
-		const signatures = signaturesIn(instances.current)
-
-		const current = read ?? readAxes(unread, signatures)
-
-		if (!read) setRead(current)
-
-		const next = unread.map((axis) => [axis.name, shownValues(axis, signatures, current.live)])
-
-		setShown((prev) => ({ ...prev, ...Object.fromEntries(next) }))
+		return only ? { ...axis, values: axis.values.filter((value) => only.includes(value)) } : axis
 	})
 
-	const valuesOf = (axis: Axis) => shown[axis.name] ?? axis.values
+	const [state, setState] = useState<Record<string, AxisValue | undefined>>(() =>
+		Object.fromEntries(axes.map((axis) => [axis.name, axis.default])),
+	)
 
 	const propsWith = (name?: string, value?: AxisValue) => {
 		const merged = name === undefined ? state : { ...state, [name]: value }
@@ -220,15 +158,8 @@ function AxesExamples({
 							<AxisPicker
 								key={axis.name}
 								axis={axis}
-								values={isStepAxis(axis) ? valuesOf(axis) : axis.values}
 								value={state[axis.name]}
-								onValueChange={(value) => {
-									setState((prev) => ({ ...prev, [axis.name]: value }))
-
-									// The example of each other axis takes the new value, so its read is
-									// stale. The example of this axis does not read its own value.
-									setShown(({ [axis.name]: own }) => (own ? { [axis.name]: own } : {}))
-								}}
+								onValueChange={(value) => setState((prev) => ({ ...prev, [axis.name]: value }))}
 							/>
 						))}
 					</Flex>
@@ -244,21 +175,11 @@ function AxesExamples({
 			{/* An example with one value has nothing to compare, so it hides. */}
 			{axes.map(
 				(axis) =>
-					valuesOf(axis).length > 1 && (
+					axis.values.length > 1 && (
 						<Example key={axis.name} {...frame} title={axisTitle(axis.name, title)}>
 							{/* Each instance is a child of the frame, so it takes the instance box and the flow of the frame. */}
-							{valuesOf(axis).map((value) => (
-								<AxisInstance
-									key={String(value)}
-									axes={id}
-									axis={axis.name}
-									value={value}
-									label={valueLabel(value)}
-									caption={captions}
-									ref={(element) => {
-										if (element) instances.current.set(instanceKey(axis.name, value), element)
-									}}
-								>
+							{axis.values.map((value) => (
+								<AxisInstance key={String(value)} label={valueLabel(value)} caption={captions}>
 									{render(propsWith(axis.name, value), valueLabel(value))}
 								</AxisInstance>
 							))}
@@ -293,33 +214,16 @@ function settledValue<T>(promise: Promise<T>): T | undefined {
  * same child takes in a custom example, with or without a caption.
  */
 function AxisInstance({
-	axes,
-	axis,
-	value,
 	label,
 	caption,
-	ref,
 	children,
 }: {
-	/** The `useId` of the `Axes`. With `axis` and `value`, it is for the read of the build (`readPrerenderedAxes`). */
-	axes: string
-	axis: string
-	value: AxisValue
 	label: string
 	caption: boolean
-	ref?: Ref<HTMLDivElement> | undefined
 	children: ReactNode
 }) {
 	return (
-		<div
-			ref={ref}
-			data-slot="axis-value"
-			data-axes={axes}
-			data-axis={axis}
-			data-value={String(value)}
-			data-label={label}
-			data-caption={dataAttr(caption)}
-		>
+		<div data-slot="axis-value" data-label={label} data-caption={dataAttr(caption)}>
 			{caption && (
 				<span
 					data-slot="axis-caption"
@@ -339,25 +243,18 @@ const UNSET = 'unset'
 
 function AxisPicker({
 	axis,
-	values,
 	value,
 	onValueChange,
 }: {
 	axis: Axis
-	/** The values to offer: the values of the axis that render distinctly. */
-	values: readonly AxisValue[]
 	value: AxisValue | undefined
 	onValueChange: (value: AxisValue | undefined) => void
 }) {
-	// The picker keeps its current value as an option. Another axis can make that
-	// value render the same as a neighbor after the reader picks it.
-	const offered = axis.values.filter((v) => values.includes(v) || v === value)
-
 	// An axis with no documented default offers an unset option, so the component
 	// takes its own fallback, such as the step of the nearest density scope.
 	const options = [
 		...(axis.default === undefined ? [{ value: UNSET, label: 'Default' }] : []),
-		...offered.map((v) => ({ value: JSON.stringify(v), label: valueLabel(v) })),
+		...axis.values.map((v) => ({ value: JSON.stringify(v), label: valueLabel(v) })),
 	]
 
 	return (

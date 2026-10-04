@@ -31,7 +31,7 @@ export function Demo() {
 
 	return (
 		<>
-			<Axes of="Calendar" render={(props) => <Calendar {...props} />} />
+			<Axes of="Calendar" omit={['multiselectable']} render={(props) => <Calendar {...props} />} />
 
 			<ControlledExample />
 

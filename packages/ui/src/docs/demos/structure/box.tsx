@@ -8,6 +8,8 @@ export function Demo() {
 		<Axes
 			of="Box"
 			captions={false}
+			// The button has no `xl` step, so an `xl` box shows it at `lg`.
+			values={{ density: ['xs', 'sm', 'md', 'lg'] }}
 			render={(props, label) => (
 				// The tint and the subtle outline show the radius when the background is unset or clear.
 				// The button shows the density step.
