@@ -16,6 +16,9 @@ const { flex } = narabi
 const { bg } = omote
 const { focus } = sen
 
+/** The stack of the column-manager group editor, and the list of its zones in it. */
+const managerStack = [flex.col, 'gap-3']
+
 /**
  * The fill for a group's 2px underline rule, keyed by {@link PaletteColor} so a
  * band reads `rule.color[group.color]`. Full literals for Tailwind's scanner; the
@@ -90,9 +93,9 @@ export const k = {
 	// Column-manager group editor: the create button, group zones, and column rows.
 	manager: {
 		// Vertical stack of the "New group" button, the group zones, and the column rows.
-		base: [flex.col, 'gap-3'],
+		base: managerStack,
 		// The list of the group zones, with the gap of the stack.
-		groups: [flex.col, 'gap-3'],
+		groups: managerStack,
 		// Zone shell: a column stack inside the zone's Card, which a column can be
 		// dropped into. The Card draws the outline, and a colored group tints it
 		// (see {@link outline}). The zone has no drop-over style.

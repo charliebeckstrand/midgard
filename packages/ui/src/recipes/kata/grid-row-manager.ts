@@ -11,11 +11,14 @@ const { text } = iro
 const { weight } = ji
 const { flex } = narabi
 
+/** The stack of the row-manager editor, and the list of its zones in it. */
+const stack = [flex.col, 'gap-3']
+
 export const k = {
 	// Vertical stack of the group zones.
-	base: [flex.col, 'gap-3'],
+	base: stack,
 	// The list of the group zones, with the gap of the stack.
-	list: [flex.col, 'gap-3'],
+	list: stack,
 	zone: {
 		// A group zone's row: the grip + label + count grouped at the leading edge,
 		// the color Menu pushed to the trailing edge (`justify-between`).

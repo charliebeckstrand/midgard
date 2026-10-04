@@ -2,12 +2,15 @@ import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/aspect-ratio'
 
-/** Named aspect-ratio preset (e.g. `square`, `video`); the keys of the recipe's ratio map. */
+/**
+ * An aspect-ratio preset: a ratio (`1/1`, `3/2`, `4/3`, `16/9`, `21/9`) or
+ * `auto`. `square` and `video` are aliases of `1/1` and `16/9`.
+ */
 export type AspectRatioPreset = keyof typeof k.ratio
 
 /** Props for {@link AspectRatio}; extends `<div>` attributes with `ratio`. */
 export type AspectRatioProps = {
-	/** Preset name or numeric ratio. @defaultValue 'square' */
+	/** Preset or numeric ratio. @defaultValue '1/1' */
 	ratio?: AspectRatioPreset | number
 	className?: string
 	children?: ReactNode
@@ -19,7 +22,7 @@ export type AspectRatioProps = {
  * inline `aspect-ratio` style. Static leaf: renders in React Server Components.
  */
 export function AspectRatio({
-	ratio = 'square',
+	ratio = '1/1',
 	className,
 	style,
 	children,

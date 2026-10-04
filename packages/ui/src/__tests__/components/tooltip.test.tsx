@@ -1,5 +1,8 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Button } from '../../components/button'
+import { CardTitle } from '../../components/card'
+import { HoldButton } from '../../components/hold-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
@@ -152,6 +155,24 @@ describe('Tooltip', () => {
 		// A child that declares its own slot keeps it; only slotless children
 		// fall back to the generic `tooltip-trigger` marker.
 		expect(bySlot(container, 'custom-trigger')).toBeInTheDocument()
+
+		expect(bySlot(container, 'tooltip-trigger')).not.toBeInTheDocument()
+	})
+
+	it.each([
+		['button', <Button key="button">Hover me</Button>],
+		['hold-button', <HoldButton key="hold-button">Hold me</HoldButton>],
+		['card-title', <CardTitle key="card-title">Title</CardTitle>],
+	])('keeps the %s anchor that a component child writes for itself', (slot, child) => {
+		const { container } = renderUI(
+			<Tooltip>
+				<TooltipTrigger>{child}</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		// The component writes its own anchor, so the trigger stamps no slot on it.
+		expect(bySlot(container, slot)).toBeInTheDocument()
 
 		expect(bySlot(container, 'tooltip-trigger')).not.toBeInTheDocument()
 	})

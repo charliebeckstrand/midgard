@@ -64,7 +64,7 @@ export const k = {
 	icon: [flex.row, 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	affix: {
-		base: [flex.row, 'min-w-0', '*:data-[slot=icon]:pointer-events-none', ...text.muted],
+		base: affix.base,
 		suffix: affix.suffix,
 	},
 	content: {

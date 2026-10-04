@@ -38,6 +38,10 @@ export type TooltipTriggerProps = {
  * `aria-controls` in place of `aria-describedby`. The trigger also names the
  * dialog. It keeps its own `id` for that, or takes a generated one.
  *
+ * The trigger writes `data-slot="tooltip-trigger"` only on a host element child,
+ * such as a `<button>`, that has no `data-slot` of its own. A component child,
+ * such as a `<Button>`, keeps the anchor that it writes for itself.
+ *
  * The child's own ref merges with the floating ref. The non-element fallback
  * renders a plain `<span>`, which is valid in phrasing content. A `<button>`
  * fallback nested inside interactive content is invalid markup. The fallback
@@ -83,7 +87,13 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 				) as HTMLAttributes<HTMLElement>)}
 				ref={mergeRefs}
 				id={child.props.id ?? triggerId}
-				data-slot={child.props['data-slot'] ?? 'tooltip-trigger'}
+				// A component child writes its own default anchor, so only a host child
+				// takes the anchor of the trigger. The key stays out of a component
+				// child's props, because an undefined value also overrides an anchor
+				// that the component writes before its spread.
+				{...(typeof Child === 'string' && {
+					'data-slot': child.props['data-slot'] ?? 'tooltip-trigger',
+				})}
 				className={cn(triggerClassName, child.props.className)}
 			/>
 		)

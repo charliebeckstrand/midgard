@@ -4,13 +4,14 @@
  * of the nearest density scope. The `area`, `track`, and `preview` pieces take
  * that step too. The `handle` and the `swatches` have a fixed size at each step.
  *
- * The wash gradients and the alpha and preview checkerboard are raw CSS
- * `background-image` literals here, not kiso tokens. Only the picker uses them.
+ * The wash gradients are raw CSS `background-image` literals here, not kiso
+ * tokens, because only the panel uses them. The checkerboard behind the alpha
+ * track and the preview is `omote.checkerboard`, which the color picker shares.
  */
 
 import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { kasane, kokkaku, sen } from '../kiso'
+import { kasane, kokkaku, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { rounded } = kasane
@@ -74,8 +75,7 @@ export const k = defineRecipe(
 		/** Full hue wheel laid left to right for the hue track. */
 		hue: '[background-image:linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
 		/** Alpha / preview chequerboard surfaced behind translucent color. */
-		checkerboard:
-			'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:12px_12px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
+		checkerboard: [omote.checkerboard, '[background-size:12px_12px]'],
 		/** Full-width stack for the hue (and optional alpha) tracks. */
 		sliders: 'flex flex-col gap-2',
 		/** Label-above-input column for one channel input. */

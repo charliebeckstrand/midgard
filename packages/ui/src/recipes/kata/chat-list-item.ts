@@ -1,4 +1,4 @@
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
 
 const { nav, cursor } = hannou
@@ -60,6 +60,3 @@ export const k = defineRecipe({
 		],
 	},
 })
-
-/** Recipe variant props for {@link ChatListItem} — the styling axes its kata exposes, for consumers composing custom slots. */
-export type ChatListItemVariants = VariantProps<typeof k>
