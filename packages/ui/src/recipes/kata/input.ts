@@ -21,14 +21,19 @@ export const k = bridge.control(control, {
 		 * A prefix or a suffix. It has no gap, so two controls in it touch, such
 		 * as a clear button and the calendar button of a date input. Then each
 		 * hit area keeps to the width of its control (`TouchTarget`). One control
-		 * alone keeps the full floor.
+		 * alone keeps the full floor. `prefix` and `suffix` add the padding of
+		 * the slot on each side.
 		 */
-		affix: [
-			'flex items-center min-w-0',
-			'*:data-[slot=icon]:pointer-events-none',
-			'has-[>*+*]:[--touch-target-gap-x:0px]',
-			...text.muted,
-		],
+		affix: {
+			base: [
+				'flex items-center min-w-0',
+				'*:data-[slot=icon]:pointer-events-none',
+				'has-[>*+*]:[--touch-target-gap-x:0px]',
+				...text.muted,
+			],
+			prefix: control.affix.prefix,
+			suffix: control.affix.suffix,
+		},
 	},
 })
 

@@ -1,14 +1,13 @@
 /**
- * Backdrop bridge: the modal scrim shared by `drawer` and `sheet`. A pure
+ * Backdrop bridge: the modal scrim shared by `dialog`, `drawer`, and `sheet`. A pure
  * bridge: it receives the `omote.backdrop` tokens from the calling kata and
  * returns the standard `defineRecipe` for a full-bleed backdrop. That backdrop
  * has a `surface` axis (`flat` scrim, denser `glass` fill) and a `desaturate`
  * axis (color drained from what shows through). It references kiso in neither
  * value nor type.
  *
- * Dialog has no backdrop of this shape, so unlike `panel` this isn't wired
- * through the panel bridge. The two modal edge-panels call it directly and
- * hand the result to `bridge.panel(…, { backdrop })`.
+ * The panel bridge does not build it. Each modal panel calls it directly and
+ * hands the result to `bridge.panel(…, { backdrop })`.
  */
 
 import type { ClassValue } from 'clsx'

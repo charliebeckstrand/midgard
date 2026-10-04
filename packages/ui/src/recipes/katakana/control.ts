@@ -5,21 +5,21 @@
  * recipe engine. It declares the token shape it needs as its own contract
  * (`ControlTokens`); katakana references kiso in neither value nor type.
  *
- * `control(t, overlay)` covers `input`, `textarea`, `listbox`, `combobox`,
- * `date-picker`: kata that frame a user-input element with the library's
- * signature kasane chrome. Public variant surface is `'default' |
- * 'outline'`; `'glass'` is internal, routed via `useGlass()` when nested
- * in a glass overlay.
+ * `control(t, overlay)` covers `input` and `textarea`: kata that frame a
+ * user-input element with the library's signature kasane chrome. Public
+ * variant surface is `'default' | 'outline'`; `'glass'` is internal, routed
+ * via `useGlass()` when nested in a glass overlay. Listbox, combobox, and
+ * date-picker read a subset of the `control` tokens with no bridge.
  *
  * Returns a recipe callable as `k({ variant, …extraAxes })`. The density
  * classes are stepped `density-*` utilities in the base, so the recipe has no
  * step axis. The control takes the step of its nearest density scope.
  * It returns:
- *   - `k.number` and caller-defined slots are direct strings.
- *   - `k.inputControl({ variant })` is the surface recipe for the inner
- *     `<input>`: `default` paints `surface.default`, `glass` paints
- *     `surface.glass`, `outline` is empty; kata layer their own borders.
- *   - `k.prefix` / `k.suffix` are the affix padding classes of a slot.
+ *   - `k.number` and the slots of the caller are merged class strings, or
+ *     groups of them.
+ *   - `k.surface({ variant })` is the surface recipe of the ControlFrame:
+ *     `default` paints `surface.default`, `glass` paints `surface.glass`,
+ *     `outline` is empty; kata layer their own borders.
  *
  * `check(t, overlay)` is the check-input branch (`checkbox`, `radio`):
  * native `<input>` overlaid on the `check.surface` chrome. `switch` reads
@@ -37,7 +37,6 @@ type ControlTokens = {
 	density: ClassValue
 	resets: { number: ClassValue }
 	surface: { default: ClassValue; glass: ClassValue }
-	affix: { prefix: ClassValue; suffix: ClassValue }
 	check: { base: ClassValue; hidden: ClassValue; disabled: ClassValue }
 }
 
@@ -57,7 +56,7 @@ function controlStandard(t: ControlTokens) {
 			defaults: { variant: 'default' },
 		},
 		extras: {
-			inputControl: defineRecipe({
+			surface: defineRecipe({
 				variant: {
 					default: t.surface.default,
 					outline: [],
@@ -65,8 +64,6 @@ function controlStandard(t: ControlTokens) {
 				},
 				defaults: { variant: 'default' },
 			}),
-			prefix: t.affix.prefix,
-			suffix: t.affix.suffix,
 		},
 	}
 }
@@ -74,8 +71,8 @@ function controlStandard(t: ControlTokens) {
 /**
  * Wire a text-input control from its `control` tokens. It returns a
  * `defineRecipe` callable (`variant`) carrying the kasane chrome, plus
- * `k.inputControl`, `k.number`, and the `k.prefix` / `k.suffix` affix
- * classes. `overlay` adds kata-specific axes; `extras` adds siblings.
+ * `k.surface` and `k.number`. `overlay` adds kata-specific axes and slots;
+ * `extras` adds siblings.
  */
 export function control<
 	Overlay extends RecipeConfig = Empty,

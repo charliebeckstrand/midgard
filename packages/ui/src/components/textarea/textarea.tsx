@@ -162,7 +162,7 @@ export function Textarea({
 			className={cn(
 				hasActions && k.frame,
 				hasActions && k.stack,
-				k.inputControl({ variant: resolvedVariant }),
+				k.surface({ variant: resolvedVariant }),
 			)}
 		>
 			{textareaEl}

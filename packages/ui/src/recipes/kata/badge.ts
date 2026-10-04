@@ -4,12 +4,12 @@
  * are `density-*` classes in the base, not an axis.
  * Reads `iro.extendedPalette` rather than `iro.palette`, so its `color` axis
  * carries the extended hues. The rest of the surface is the shared chromatic
- * palette wired through `basePalette`.
+ * palette wired through `bridge.palette`.
  */
 
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { basePalette } from '../katakana'
+import { bridge } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -52,7 +52,10 @@ export const k = defineRecipe(
 		radius: rounded,
 		// Opt into the wide palette: Badge's `color` axis carries the standard set
 		// plus the extended hues (rose / violet / sky).
-		palette: definePalette({ ...basePalette(extendedPalette), plain: extendedPalette.plain.text }),
+		palette: definePalette({
+			...bridge.palette(extendedPalette),
+			plain: extendedPalette.plain.text,
+		}),
 		// `radius: 'full'` caps swallow horizontal space, so pills read tighter than
 		// the base `px` (tuned for the default `radius: 'md'`) — most visibly at small
 		// sizes. Bump every pill one `px` step (the later class replaces the base

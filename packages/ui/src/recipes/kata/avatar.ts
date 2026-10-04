@@ -1,6 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { basePalette } from '../katakana'
+import { bridge } from '../katakana'
 import { iro, kasane, kokkaku, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -30,7 +30,7 @@ export const k = defineRecipe(
 			soft: 'border border-transparent',
 			outline: 'border',
 		},
-		palette: definePalette(basePalette(palette)),
+		palette: definePalette(bridge.palette(palette)),
 		defaults: { variant: 'solid', color: 'zinc' },
 		skeleton: kokkaku.avatar,
 	},
