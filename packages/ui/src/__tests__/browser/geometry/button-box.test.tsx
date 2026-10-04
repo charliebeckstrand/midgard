@@ -4,7 +4,7 @@ import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI, screen } from '../../helpers'
 
 /**
  * The box of a Button holds in each form.
@@ -19,12 +19,12 @@ import { present, renderUI } from '../../helpers'
  */
 describe('the box of a Button (real browser)', () => {
 	/** The box of the element with the test id `id`. */
-	function box(container: HTMLElement, id: string) {
-		return present(container.querySelector(`[data-testid="${id}"]`), id).getBoundingClientRect()
+	function box(id: string) {
+		return screen.getByTestId(id).getBoundingClientRect()
 	}
 
 	it('gives a link button the flex box of a button', () => {
-		const { container } = renderUI(
+		renderUI(
 			<div style={{ display: 'flex', gap: 8, width: 300 }}>
 				<Button data-testid="link" href="/a" className="flex-1">
 					A
@@ -35,11 +35,11 @@ describe('the box of a Button (real browser)', () => {
 			</div>,
 		)
 
-		expect(box(container, 'link').width).toBe(box(container, 'button').width)
+		expect(box('link').width).toBe(box('button').width)
 	})
 
 	it('keeps the square of an icon-only button while it loads, and with an sr-only name', () => {
-		const { container } = renderUI(
+		renderUI(
 			<div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
 				<Button data-testid="idle" type="button" aria-label="Search">
 					<Icon icon={<Search />} />
@@ -54,22 +54,21 @@ describe('the box of a Button (real browser)', () => {
 			</div>,
 		)
 
-		const idle = box(container, 'idle')
+		const idle = box('idle')
 
 		expect(idle.width).toBe(idle.height)
 
-		expect(box(container, 'busy').width).toBe(idle.width)
+		expect(box('busy').width).toBe(idle.width)
 
-		expect(box(container, 'named').width).toBe(idle.width)
+		expect(box('named').width).toBe(idle.width)
 
-		expect(box(container, 'named').height).toBe(idle.height)
+		expect(box('named').height).toBe(idle.height)
 	})
 
 	it('keeps the inset of a button in an Input affix inside a TooltipTrigger', () => {
-		const { container } = renderUI(
+		renderUI(
 			<div>
 				<Input
-					data-testid="plain"
 					aria-label="Plain"
 					suffix={
 						<Button type="button" variant="outline" size="xs">
@@ -78,7 +77,6 @@ describe('the box of a Button (real browser)', () => {
 					}
 				/>
 				<Input
-					data-testid="tipped"
 					aria-label="Tipped"
 					suffix={
 						<Tooltip>
@@ -95,13 +93,11 @@ describe('the box of a Button (real browser)', () => {
 		)
 
 		const padding = (label: string) => {
-			const input = present(container.querySelector(`[aria-label="${label}"]`), label)
+			const input = screen.getByLabelText(label)
 
-			const frame = present(input.closest('[data-slot="control-frame"]'), `${label} frame`)
+			const frame = present(input.closest<HTMLElement>('[data-slot="control-frame"]'), label)
 
-			const suffix = present(frame.querySelector('[data-slot="suffix"]'), `${label} suffix`)
-
-			return getComputedStyle(suffix).paddingInlineEnd
+			return getComputedStyle(getSlot(frame, 'suffix')).paddingInlineEnd
 		}
 
 		expect(padding('Tipped')).toBe(padding('Plain'))

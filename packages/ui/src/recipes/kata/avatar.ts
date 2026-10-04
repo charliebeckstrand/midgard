@@ -52,10 +52,8 @@ export const k = defineRecipe(
 		 * The background layer of the image. A browser leaves out a background in
 		 * print by default, so the layer asks for its colors and image in print.
 		 */
-		image: [
-			'size-full bg-cover bg-center',
-			'[-webkit-print-color-adjust:exact] [print-color-adjust:exact]',
-		],
+		image:
+			'size-full bg-cover bg-center [-webkit-print-color-adjust:exact] [print-color-adjust:exact]',
 		/** Avatar-group container classes. */
 		group: {
 			base: flex.row,

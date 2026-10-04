@@ -1,7 +1,8 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { BreadcrumbLink } from '../../components/breadcrumb'
-import { present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 /**
  * Only a crumb that is a link answers the pointer.
@@ -13,16 +14,10 @@ import { present, renderUI } from '../helpers'
  * `:hover` is not a state that it can enter.
  */
 describe('a breadcrumb crumb under the pointer (real browser)', () => {
-	async function colorBeforeAndAfterHover(href: string | undefined) {
-		const { container } = renderUI(
-			href === undefined ? (
-				<BreadcrumbLink>Crumb</BreadcrumbLink>
-			) : (
-				<BreadcrumbLink href={href}>Crumb</BreadcrumbLink>
-			),
-		)
+	async function colorBeforeAndAfterHover(element: ReactElement) {
+		const { container } = renderUI(element)
 
-		const crumb = present(container.querySelector('[data-slot="breadcrumb-link"]'), 'crumb')
+		const crumb = getSlot(container, 'breadcrumb-link')
 
 		const before = getComputedStyle(crumb).color
 
@@ -32,14 +27,16 @@ describe('a breadcrumb crumb under the pointer (real browser)', () => {
 	}
 
 	it('keeps the color of a text crumb', async () => {
-		const { before, after } = await colorBeforeAndAfterHover(undefined)
+		const { before, after } = await colorBeforeAndAfterHover(<BreadcrumbLink>Crumb</BreadcrumbLink>)
 
 		expect(after).toBe(before)
 	})
 
 	/** The hover still exists. A fix that removed it everywhere would pass the case above. */
 	it('darkens a link crumb', async () => {
-		const { before, after } = await colorBeforeAndAfterHover('/docs')
+		const { before, after } = await colorBeforeAndAfterHover(
+			<BreadcrumbLink href="/docs">Crumb</BreadcrumbLink>,
+		)
 
 		expect(after).not.toBe(before)
 	})

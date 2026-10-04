@@ -62,6 +62,9 @@ export function Button({
 
 	const { variant, color } = useButtonDefaults({ variant: variantProp, color: colorProp })
 
+	// The spinner takes the place of the leading content while the button loads.
+	const leading = loading ? <LoadingSpinner /> : prefix
+
 	if (headless) {
 		return (
 			<ButtonHeadless
@@ -70,12 +73,12 @@ export function Button({
 				data-slot={slot}
 				className={className}
 				loading={loading}
-				prefix={prefix}
-				suffix={suffix}
 				type={type as ComponentProps<'button'>['type']}
 				{...(props as ComponentProps<'button'>)}
 			>
+				{leading}
 				{children}
+				{suffix}
 			</ButtonHeadless>
 		)
 	}
@@ -107,7 +110,7 @@ export function Button({
 
 	const content = (
 		<Density step={size}>
-			{loading ? <LoadingSpinner /> : prefix}
+			{leading}
 			{/* The spinner takes the place of the icon of an icon-only button, so the
 			    button keeps its square. The icon stays for assistive technology. */}
 			{loading && !hasLabel ? <span className="sr-only">{children}</span> : children}
@@ -131,15 +134,13 @@ export function Button({
 		)
 	}
 
-	const buttonProps = props as Omit<ComponentProps<'button'>, 'className'>
-
 	return (
 		<button
 			ref={ref as Ref<HTMLButtonElement>}
 			{...sharedProps}
-			type={type}
 			className={classes}
-			{...buttonProps}
+			{...(props as Omit<ComponentProps<'button'>, 'className'>)}
+			type={type}
 			// A loading button stays enabled, so it keeps the focus that it has. These
 			// props cancel its activation instead of `disabled`.
 			{...(loading && loadingProps)}

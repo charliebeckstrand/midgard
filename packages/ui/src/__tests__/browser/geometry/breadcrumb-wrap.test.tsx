@@ -7,7 +7,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from '../../../components/breadcrumb'
-import { present, renderUI } from '../../helpers'
+import { getSlot, renderUI, screen } from '../../helpers'
 
 /**
  * A long breadcrumb trail stays inside a narrow box.
@@ -40,15 +40,12 @@ describe('a long breadcrumb trail (real browser)', () => {
 			</div>,
 		)
 
-		const list = present(container.querySelector('[data-slot="breadcrumb-list"]'), 'list')
+		const list = getSlot(container, 'breadcrumb-list')
 
 		expect(list.scrollWidth).toBeLessThanOrEqual(list.clientWidth)
 
-		const links = Array.from(container.querySelectorAll('[data-slot="breadcrumb-link"]'))
+		const top = (crumb: string) => screen.getByText(crumb).getBoundingClientRect().top
 
-		const top = (index: number) =>
-			present(links[index], `crumb ${index}`).getBoundingClientRect().top
-
-		expect(top(links.length - 1)).toBeGreaterThan(top(0))
+		expect(top('Production')).toBeGreaterThan(top('Home'))
 	})
 })

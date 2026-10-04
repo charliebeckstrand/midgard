@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { cn } from '../../core'
 import { hannou } from '../../recipes/kiso'
-import { present, renderUI } from '../helpers'
+import { renderUI, screen } from '../helpers'
 
 /**
  * An element with the shared pointer cursor refuses the pointer over a disabled descendant, in
@@ -16,13 +16,13 @@ import { present, renderUI } from '../helpers'
  */
 describe('the shared pointer cursor over a disabled descendant (real browser)', () => {
 	function cursorOver(descendant: ReactNode) {
-		const { container } = renderUI(
+		renderUI(
 			<div data-testid="host" className={cn(hannou.cursor)}>
 				{descendant}
 			</div>,
 		)
 
-		return getComputedStyle(present(container.querySelector('[data-testid="host"]'), 'host')).cursor
+		return getComputedStyle(screen.getByTestId('host')).cursor
 	}
 
 	it('refuses the pointer over a data-disabled descendant', () => {

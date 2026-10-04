@@ -41,6 +41,9 @@ export const k = defineRecipe(
 			flex.inline,
 			'w-fit',
 			weight.medium,
+			// The ring shows only on keyboard focus, so a label badge, which takes no
+			// focus, never shows it.
+			focus.ring,
 			// A uniform 4px height scale: the type ramp (text-xs → text-lg) sets the
 			// step while vertical padding holds constant (`py-ring-1`), landing
 			// xs/sm/md/lg on 22/26/30/34px. `md` matches a `sm` Button's 30px box.
@@ -64,11 +67,11 @@ export const k = defineRecipe(
 			outline: 'ring-1 ring-inset',
 		},
 		radius: rounded,
-		// A badge with an `href` is a link. It takes the focus ring, and the hover
-		// wash of its variant and color (`linkHover`). A badge with no `href` is a
-		// label, so the pointer gets no response from it.
+		// A badge with an `href` is a link, and it takes the hover wash of its
+		// variant and color. The classes are in the compound rules (`linkHover`). A
+		// badge with no `href` is a label, so the pointer gets no response from it.
 		interactive: {
-			true: focus.ring,
+			true: '',
 			false: '',
 		},
 		// Opt into the wide palette: Badge's `color` axis carries the standard set
@@ -126,7 +129,7 @@ export type BadgeVariants = Omit<
 	variant?: VariantProps<typeof k>['variant']
 	/** The palette color of the badge. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']
-	/** Whether the badge is a link, with a focus ring and a hover wash. @defaultValue false */
+	/** Whether the badge is a link, which takes a hover wash. @defaultValue false */
 	interactive?: VariantProps<typeof k>['interactive']
 	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>

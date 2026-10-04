@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Link } from '../../components/link'
-import { present, renderUI } from '../helpers'
+import { renderUI, screen } from '../helpers'
 
 /**
  * A host that renders through Link keeps its own text color in dark mode.
@@ -20,8 +20,8 @@ describe('a host that renders through Link, in dark mode (real browser)', () => 
 	})
 
 	/** The computed text color of the element with the test id `id`. */
-	function color(container: HTMLElement, id: string) {
-		return getComputedStyle(present(container.querySelector(`[data-testid="${id}"]`), id)).color
+	function color(id: string) {
+		return getComputedStyle(screen.getByTestId(id)).color
 	}
 
 	it.each([false, true])(
@@ -29,7 +29,7 @@ describe('a host that renders through Link, in dark mode (real browser)', () => 
 		(dark) => {
 			if (dark) document.documentElement.classList.add('dark')
 
-			const { container } = renderUI(
+			renderUI(
 				<div style={{ color: 'rgb(255, 255, 255)' }}>
 					<Button data-testid="button" color="amber">
 						Plain
@@ -46,16 +46,16 @@ describe('a host that renders through Link, in dark mode (real browser)', () => 
 				</div>,
 			)
 
-			expect(color(container, 'button-link')).toBe(color(container, 'button'))
+			expect(color('button-link')).toBe(color('button'))
 
-			expect(color(container, 'badge-link')).toBe(color(container, 'badge'))
+			expect(color('badge-link')).toBe(color('badge'))
 		},
 	)
 
 	it('keeps a text color that a consumer gives a Link', () => {
 		document.documentElement.classList.add('dark')
 
-		const { container } = renderUI(
+		renderUI(
 			<div style={{ color: 'rgb(255, 255, 255)' }}>
 				<span data-testid="reference" className="text-red-600">
 					Reference
@@ -66,6 +66,6 @@ describe('a host that renders through Link, in dark mode (real browser)', () => 
 			</div>,
 		)
 
-		expect(color(container, 'link')).toBe(color(container, 'reference'))
+		expect(color('link')).toBe(color('reference'))
 	})
 })

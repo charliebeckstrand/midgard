@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Avatar } from '../../components/avatar'
-import { attach, present, renderUI } from '../helpers'
+import { attach, getSlot, renderUI } from '../helpers'
 
 /** A 1×1 PNG. */
 const PIXEL =
@@ -11,34 +11,17 @@ const PIXEL =
  * The image of an avatar is a background layer over the initials.
  *
  * The image was an `<img>`. When the image failed to load, Chromium drew its broken-image icon
- * over the initials. A failed background paints nothing, so the initials show.
+ * over the initials. A failed background paints nothing, so the initials show. The unit test
+ * holds that no `<img>` renders.
  *
  * Rides the real browser because the claims are computed ones: jsdom loads no image and no
  * stylesheet.
  */
 describe('the image of an avatar (real browser)', () => {
-	it('draws no broken image over the initials when the image fails to load', async () => {
-		const { container } = renderUI(
-			<Avatar src="/no-such-avatar.png" initials="JD" alt="Jane Doe" />,
-		)
-
-		const images = Array.from(container.querySelectorAll('img'))
-
-		await vi.waitFor(() => {
-			for (const image of images) expect(image.complete).toBe(true)
-		})
-
-		expect(images.filter((image) => image.naturalWidth === 0)).toEqual([])
-
-		expect(present(container.querySelector('svg text'), 'initials')).toHaveTextContent('JD')
-	})
-
 	it('paints a loaded image, and asks the browser to print it', () => {
 		const { container } = renderUI(<Avatar src={PIXEL} initials="JD" />)
 
-		const style = getComputedStyle(
-			present(container.querySelector('[data-slot="avatar-image"]'), 'image layer'),
-		)
+		const style = getComputedStyle(getSlot(container, 'avatar-image'))
 
 		expect(style.backgroundImage).toContain('data:image/png')
 
@@ -52,9 +35,9 @@ describe('the image of an avatar (real browser)', () => {
 			<Avatar src={'/a.png"); color: rgb(255, 0, 0); --x: url("'} initials="JD" />,
 		)
 
-		const avatar = present(container.querySelector('[data-slot="avatar"]'), 'avatar')
+		const avatar = getSlot(container, 'avatar')
 
-		const layer = present(container.querySelector('[data-slot="avatar-image"]'), 'image layer')
+		const layer = getSlot(container, 'avatar-image')
 
 		expect(getComputedStyle(layer).color).toBe(getComputedStyle(avatar).color)
 

@@ -7,6 +7,14 @@ import { StatusDot, type StatusDotProps } from '../status'
 // The StatusDot union is the single source of truth for status values.
 type Status = NonNullable<StatusDotProps['status']>
 
+/** A character that ends a CSS string: a quote, a backslash, or a line break. @internal */
+const CSS_STRING_END = /["\\\n\r\f]/g
+
+/** The hex escape of `char`, with the space that ends the escape. @internal */
+function hexEscape(char: string): string {
+	return `\\${char.charCodeAt(0).toString(16)} `
+}
+
 /**
  * The CSS `url()` of `src`, as a quoted string. A quote, a backslash, or a line
  * break in `src` would end the string, so each one takes a hex escape.
@@ -14,7 +22,7 @@ type Status = NonNullable<StatusDotProps['status']>
  * @internal
  */
 function cssUrl(src: string): string {
-	return `url("${src.replace(/["\\\n\r\f]/g, (char) => `\\${char.charCodeAt(0).toString(16)} `)}")`
+	return `url("${src.replace(CSS_STRING_END, hexEscape)}")`
 }
 
 /** Props for {@link Avatar}; merges recipe variants with image/initials sources and optional status. */
@@ -85,7 +93,7 @@ export function Avatar({
 			{src && (
 				<span
 					data-slot="avatar-image"
-					className={cn(k.image)}
+					className={k.image}
 					style={{ backgroundImage: cssUrl(src) }}
 				/>
 			)}

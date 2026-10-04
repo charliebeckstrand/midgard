@@ -27,6 +27,18 @@ export type PortalProps = {
 }
 
 /**
+ * Opens the portal scope of one mounted portal. A closed portal renders no
+ * scope, so it holds no id.
+ *
+ * @internal
+ */
+function PortalScope({ children }: { children: ReactNode }) {
+	const scope = useId()
+
+	return <PortalScopeContext value={scope}>{children}</PortalScopeContext>
+}
+
+/**
  * Portal + presence mount cell shared by the floating and overlay shells: owns
  * the teleport ({@link usePortalContainer} → `FloatingPortal`), the
  * mount-only-while-open lifecycle, and the `AnimatePresence` exit under
@@ -64,8 +76,6 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 
 	const dir = useDirectionScope()
 
-	const scope = useId()
-
 	// `mounted` flips on with `open` (adjusted during render) and off once the
 	// exit animation completes, so a closed surface keeps no portal node in the DOM.
 	const [mounted, setMounted] = useState(open)
@@ -102,13 +112,13 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 				dir={dir ?? undefined}
 				className="contents"
 			>
-				<PortalScopeContext value={scope}>
+				<PortalScope>
 					<ReducedMotion>
 						<AnimatePresence onExitComplete={handleExitComplete}>
 							{open && children}
 						</AnimatePresence>
 					</ReducedMotion>
-				</PortalScopeContext>
+				</PortalScope>
 			</div>
 		</FloatingPortal>
 	)

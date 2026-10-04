@@ -1,8 +1,8 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, use } from 'react'
 import { createContext } from '../../core'
-import { usePortalScope } from '../../primitives/portal/context'
+import { PortalScopeContext, usePortalScope } from '../../primitives/portal/context'
 import type { ButtonVariants } from '../../recipes/kata/button'
 
 /**
@@ -46,23 +46,8 @@ export function ButtonDefaultsProvider({
 }
 
 /**
- * Whether a variant paints a fill. An unset variant is `solid`, the default of
- * the recipe.
- *
- * @internal
- */
-function hasFill(variant: ButtonDefaults['variant']): boolean {
-	return variant === undefined || variant === 'solid' || variant === 'soft'
-}
-
-/**
  * Resolves the `variant` and the `color` of a button against the
  * {@link ButtonDefaults} of the surface around it. A prop wins over a default.
- *
- * @remarks
- * The `inherit` color takes the text color of the surface and paints no fill.
- * A button with a fill thus does not take `inherit` from a surface. It takes
- * the color of the recipe.
  *
  * @returns The `variant` and the `color` to give the recipe.
  * @internal
@@ -70,14 +55,9 @@ function hasFill(variant: ButtonDefaults['variant']): boolean {
 export function useButtonDefaults({ variant, color }: ButtonDefaults): ButtonDefaults {
 	const surface = useSurfaceDefaults()
 
-	const scope = usePortalScope()
+	// `use` can run in a condition, so a button outside each surface reads no
+	// portal scope.
+	if (surface === null || surface.scope !== use(PortalScopeContext)) return { variant, color }
 
-	if (surface === null || surface.scope !== scope) return { variant, color }
-
-	const resolvedVariant = variant ?? surface.variant
-
-	const surfaceColor =
-		surface.color === 'inherit' && hasFill(resolvedVariant) ? undefined : surface.color
-
-	return { variant: resolvedVariant, color: color ?? surfaceColor }
+	return { variant: variant ?? surface.variant, color: color ?? surface.color }
 }

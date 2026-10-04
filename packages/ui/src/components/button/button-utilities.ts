@@ -42,6 +42,9 @@ export function isIconElement(node: unknown): boolean {
 	return props['data-slot'] === 'icon'
 }
 
+/** The `sr-only` token in a class list. @internal */
+const SR_ONLY = /(?:^|\s)sr-only(?:\s|$)/
+
 /**
  * Whether a child is visually hidden, such as an `sr-only` span that names an
  * icon-only button. Such a child takes no room, so it does not count as a label
@@ -55,5 +58,5 @@ export function isVisuallyHiddenElement(node: unknown): boolean {
 
 	const { className } = node.props as { className?: unknown }
 
-	return typeof className === 'string' && className.split(/\s+/).includes('sr-only')
+	return typeof className === 'string' && SR_ONLY.test(className)
 }

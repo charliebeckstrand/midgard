@@ -1,7 +1,8 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Badge } from '../../components/badge'
-import { present, renderUI } from '../helpers'
+import { getSlot, renderUI, screen } from '../helpers'
 
 /**
  * A badge that is a link answers the pointer and shows the focus ring. A badge that is a label
@@ -14,20 +15,10 @@ import { present, renderUI } from '../helpers'
  * `:hover` is not a state that it can enter.
  */
 describe('a link badge (real browser)', () => {
-	async function backgroundBeforeAndAfterHover(href: string | undefined) {
-		const { container } = renderUI(
-			href === undefined ? (
-				<Badge variant="soft" color="blue">
-					Label
-				</Badge>
-			) : (
-				<Badge variant="soft" color="blue" href={href}>
-					Label
-				</Badge>
-			),
-		)
+	async function backgroundBeforeAndAfterHover(element: ReactElement) {
+		const { container } = renderUI(element)
 
-		const badge = present(container.querySelector('[data-slot="badge"]'), 'badge')
+		const badge = getSlot(container, 'badge')
 
 		const before = getComputedStyle(badge).backgroundColor
 
@@ -37,23 +28,31 @@ describe('a link badge (real browser)', () => {
 	}
 
 	it('washes a link badge under the pointer', async () => {
-		const { before, after } = await backgroundBeforeAndAfterHover('/docs')
+		const { before, after } = await backgroundBeforeAndAfterHover(
+			<Badge variant="soft" color="blue" href="/docs">
+				Label
+			</Badge>,
+		)
 
 		expect(after).not.toBe(before)
 	})
 
 	it('keeps the fill of a label badge under the pointer', async () => {
-		const { before, after } = await backgroundBeforeAndAfterHover(undefined)
+		const { before, after } = await backgroundBeforeAndAfterHover(
+			<Badge variant="soft" color="blue">
+				Label
+			</Badge>,
+		)
 
 		expect(after).toBe(before)
 	})
 
 	it('shows the focus ring of the library on a link badge that the keyboard focuses', async () => {
-		const { container } = renderUI(<Badge href="/docs">Docs</Badge>)
+		renderUI(<Badge href="/docs">Docs</Badge>)
 
 		await userEvent.tab()
 
-		const badge = present(container.querySelector('a[data-slot="badge"]'), 'badge')
+		const badge = screen.getByRole('link', { name: 'Docs' })
 
 		expect(badge).toHaveFocus()
 

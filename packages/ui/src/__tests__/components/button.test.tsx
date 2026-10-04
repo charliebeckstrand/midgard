@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react'
 import { createRef } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, type Mock, vi } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
@@ -78,6 +78,22 @@ describe('Button', () => {
 		expect(button).toBeDisabled()
 	})
 
+	/**
+	 * A loading button or link is out of the tab order, and it cancels a click
+	 * before the `onClick` of the consumer runs.
+	 */
+	function expectGated(element: HTMLElement, onClick: Mock) {
+		expect(element).toHaveAttribute('aria-disabled', 'true')
+
+		expect(element).toHaveAttribute('aria-busy', 'true')
+
+		expect(element).toHaveAttribute('tabindex', '-1')
+
+		expect(fireEvent.click(element)).toBe(false)
+
+		expect(onClick).not.toHaveBeenCalled()
+	}
+
 	it('gates a loading button: enabled for its focus, no onClick, no form submission', () => {
 		const onClick = vi.fn()
 
@@ -96,17 +112,7 @@ describe('Button', () => {
 		// A disabled button drops the focus that it has, so a loading button stays enabled.
 		expect(button).toBeEnabled()
 
-		expect(button).toHaveAttribute('aria-disabled', 'true')
-
-		expect(button).toHaveAttribute('aria-busy', 'true')
-
-		expect(button).toHaveAttribute('tabindex', '-1')
-
-		const notCanceled = fireEvent.click(button)
-
-		expect(notCanceled).toBe(false)
-
-		expect(onClick).not.toHaveBeenCalled()
+		expectGated(button, onClick)
 
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
@@ -122,20 +128,8 @@ describe('Button', () => {
 
 		const link = getSlot<HTMLAnchorElement>(container, 'button')
 
-		expect(link).toHaveAttribute('aria-disabled', 'true')
-
-		expect(link).toHaveAttribute('aria-busy', 'true')
-
-		// Removed from the tab order, mirroring the disabled <button> branch.
-		expect(link).toHaveAttribute('tabindex', '-1')
-
-		// Activation is canceled: the default navigation is prevented and the
-		// consumer's handler never fires.
-		const notCanceled = fireEvent.click(link)
-
-		expect(notCanceled).toBe(false)
-
-		expect(onClick).not.toHaveBeenCalled()
+		// The canceled click prevents the navigation.
+		expectGated(link, onClick)
 
 		// A middle click opens a link in a new tab unless its own event is canceled.
 		const auxNotCanceled = fireEvent(
@@ -144,6 +138,28 @@ describe('Button', () => {
 		)
 
 		expect(auxNotCanceled).toBe(false)
+	})
+
+	it('paints the zinc fill for a solid or soft button with the inherit color', () => {
+		// `inherit` is a text color, and a text color cannot fill a button.
+		renderUI(
+			<>
+				<Button variant="solid" color="inherit">
+					Solid
+				</Button>
+				<Button variant="solid">Solid reference</Button>
+				<Button variant="soft" color="inherit">
+					Soft
+				</Button>
+				<Button variant="soft">Soft reference</Button>
+			</>,
+		)
+
+		for (const name of ['Solid', 'Soft']) {
+			expect(screen.getByRole('button', { name }).className).toBe(
+				screen.getByRole('button', { name: `${name} reference` }).className,
+			)
+		}
 	})
 
 	it('renders a link button as the anchor itself, with no wrapper', () => {
