@@ -256,6 +256,27 @@ describe('Calendar', () => {
 		expect(styled).toBeDefined()
 	})
 
+	it('keeps the fill that getDayProps gives a selected day while the day is active', () => {
+		const day = new Date(2025, 5, 15)
+
+		renderUI(
+			<Calendar
+				defaultValue={day}
+				active={{ zone: 'grid', date: day }}
+				getDayProps={({ selected }) => (selected ? { color: 'red' } : {})}
+			/>,
+		)
+
+		const cell = selectedDay()
+
+		// The active ring paints, and the red solid fill holds under it.
+		expect(cell).toHaveClass('outline-blue-600')
+
+		expect(cell).toHaveClass('bg-red-600')
+
+		expect(cell).not.toHaveClass('bg-blue-600')
+	})
+
 	it('respects an explicit size prop on the root', () => {
 		const { container } = renderUI(<Calendar size="sm" />)
 

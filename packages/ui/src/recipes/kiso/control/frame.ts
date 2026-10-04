@@ -12,4 +12,4 @@ import { narabi } from '../narabi'
 const { layers } = kasane
 const { flex } = narabi
 
-export const frame = ['relative', 'group/control', flex.row, 'w-full', ...layers.all]
+export const frame = ['relative', 'group/control', flex.row, 'w-full', ...layers]

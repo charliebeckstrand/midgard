@@ -156,8 +156,8 @@ const content = defineRecipe({
 	// Whether the hit area covers the whole row. This column is only `flex-1`, so
 	// the row's padding, the gaps, and the prefix / suffix chrome sit outside it,
 	// and a press on any of that reached the `<li>`, which acts on nothing. A
-	// pointer-capturing `::after` — the inverse of `kasane.layers.overlay`, which
-	// adds `pointer-events-none` to stop exactly this — pulls the painted row into
+	// pointer-capturing `::after` — the inverse of the overlay in `kasane.layers`,
+	// which adds `pointer-events-none` to stop exactly this — pulls the painted row into
 	// the one click and hover target, cursor and text step included. The `<li>` is
 	// the containing block, so `item.stretched` rides with it.
 	stretched: {

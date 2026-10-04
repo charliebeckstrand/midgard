@@ -155,7 +155,7 @@ export const k = {
 
 /** The size scale of {@link SidebarItem}: the steps of its text, gap, padding, and radius. */
 export const scale = defineScale(
-	dan.text.body,
+	ji.ramp,
 	dan.gap.item,
 	dan.space.sidebar.item.base,
 	dan.radius.control,
