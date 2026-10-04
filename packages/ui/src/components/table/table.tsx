@@ -95,7 +95,7 @@ export function Table({
 			density={size}
 			label={tableProps?.['aria-label'] ?? (caption?.id ? undefined : captionText)}
 			labelledBy={tableProps?.['aria-labelledby'] ?? caption?.id}
-			className={cn(k.scroll, bleed && '-mx-4 sm:-mx-6')}
+			className={cn(bleed && '-mx-4 sm:-mx-6')}
 		>
 			<table
 				{...tableProps}

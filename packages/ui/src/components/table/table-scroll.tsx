@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import {
 	type ScrollRegionOptions,
@@ -8,7 +9,9 @@ import {
 	useScrollOverflow,
 	useScrollRegion,
 } from '../../hooks'
+import { k } from '../../recipes/kata/table'
 import { Box } from '../../structure/box'
+import { useTableScrolls } from './context'
 
 /** Props for {@link TableScroll}. @internal */
 export type TableScrollProps = ScrollRegionOptions & {
@@ -24,17 +27,30 @@ export type TableScrollProps = ScrollRegionOptions & {
  * ({@link useScrollOverflow}), and the container is a tab stop and a named
  * region ({@link useScrollRegion}).
  *
+ * A container that scrolls the table for it, such as a Grid with a sticky
+ * header, turns all of this off ({@link TableScrollsContext}).
+ *
  * @internal
  */
 export function TableScroll({ density, className, label, labelledBy, children }: TableScrollProps) {
-	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
+	const scrolls = useTableScrolls()
+
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal', enabled: scrolls })
 
 	const scrollRegionRef = useScrollRegion({ label, labelledBy })
 
-	const setScroll = useComposedRef<HTMLElement>(scrollOverflowRef, scrollRegionRef)
+	const setScroll = useComposedRef<HTMLElement>(
+		scrollOverflowRef,
+		scrolls ? scrollRegionRef : undefined,
+	)
 
 	return (
-		<Box ref={setScroll ?? undefined} data-slot="table" density={density} className={className}>
+		<Box
+			ref={setScroll ?? undefined}
+			data-slot="table"
+			density={density}
+			className={cn(scrolls && k.scroll, className)}
+		>
 			{children}
 		</Box>
 	)
