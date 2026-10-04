@@ -1,7 +1,8 @@
 /**
  * Serves a docs build the way App Platform serves it, for `docs:preview`,
  * `docs:hydration`, and their `docs:legacy:` forms. The first argument names
- * the app: `docs` or `docs-legacy`.
+ * the app: `docs` or `docs-legacy`. `docs:bench` serves the builds with the
+ * same paths, over HTTP/2.
  *
  * A path gets the file at that path, or `index.html` in the directory at that
  * path. Thus `/stepper` gets `stepper/index.html` with no redirect. Any other
@@ -36,7 +37,8 @@ export function clientDirOf(app: DocsApp): string {
 	return path.resolve(import.meta.dirname, '..', 'src', app, 'dist', 'client')
 }
 
-const TYPES: Record<string, string> = {
+/** The content type of each kind of file in a build. */
+export const TYPES: Record<string, string> = {
 	'.css': 'text/css',
 	'.html': 'text/html; charset=utf-8',
 	'.js': 'text/javascript',
@@ -50,7 +52,7 @@ async function isFile(file: string): Promise<boolean> {
 }
 
 /** The file that a path of the site gets. */
-async function resolve(root: string, pathname: string): Promise<string> {
+export async function fileOf(root: string, pathname: string): Promise<string> {
 	const file = path.join(root, decodeURIComponent(pathname))
 
 	// A path that goes out of the build gets the fallback page.
@@ -71,7 +73,7 @@ export async function serveDocs(
 	const root = clientDirOf(app)
 
 	const server = createServer(async (request, response) => {
-		const file = await resolve(root, new URL(request.url ?? '/', 'http://localhost').pathname)
+		const file = await fileOf(root, new URL(request.url ?? '/', 'http://localhost').pathname)
 
 		const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
 
