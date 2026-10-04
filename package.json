@@ -17,10 +17,10 @@
 		"@commitlint/config-conventional": "^21.0.2",
 		"knip": "^6.26.0",
 		"lefthook": "^2.1.10",
-		"turbo": "^2.11.2"
+		"turbo": "^2.11.7"
 	},
-	"packageManager": "pnpm@12.5.1",
+	"packageManager": "pnpm@12.8.1",
 	"dependencies": {
-		"hlidskjalf": "^0.4.4"
+		"hlidskjalf": "^0.4.5"
 	}
 }

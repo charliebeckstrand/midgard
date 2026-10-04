@@ -11,8 +11,7 @@ type Status = NonNullable<StatusDotProps['status']>
 export type AvatarProps = AvatarVariants & {
 	src?: string | null
 	/**
-	 * The text alternative of the image. With no `src` and no `initials`, it
-	 * names the empty circle.
+	 * The accessible name of the avatar. An empty `alt` makes the avatar decorative.
 	 * @defaultValue ''
 	 */
 	alt?: string
@@ -21,16 +20,22 @@ export type AvatarProps = AvatarVariants & {
 	/** Accessible text for the status dot. Defaults to the humanized `status`. */
 	statusLabel?: string
 	className?: string
-} & Omit<ComponentProps<'span'>, 'className'>
+} & Omit<ComponentProps<'span'>, 'className' | 'children'>
 
 /**
  * User image, initials, or fallback in a sized circle. Pair with `status` to
- * overlay a corner StatusDot. With no `src` and no `initials`, the circle is
- * empty, and an inner `role="img"` node carries `alt` as its name. Static
- * leaf: renders in React Server Components. Compose `<AvatarSkeleton>` in the
- * loading tree.
+ * overlay a corner StatusDot. Static leaf: renders in React Server Components.
+ * Compose `<AvatarSkeleton>` in the loading tree.
  *
  * @remarks
+ * An inner `role="img"` node carries `alt` as the name, so the image and the
+ * initials stay out of the accessibility tree. The image takes an empty `alt`,
+ * so an image that fails to load draws no alt text over the initials. Chromium
+ * still draws its small broken-image icon in the corner of the image.
+ *
+ * The initials also show through the clear areas of an image. Give no
+ * `initials` with an image that has clear areas, such as a logo.
+ *
  * Without `size`, the avatar takes the step of the nearest density scope. An
  * explicit `size` makes the avatar a density scope, so the StatusDot takes the
  * step of the avatar. A parent can size its avatars with more specific stepped
@@ -48,20 +53,11 @@ export function Avatar({
 	className,
 	...props
 }: AvatarProps) {
-	// With an image present the initials are a visual fallback; aria-hidden
-	// leaves the image's alt as the single accessible name.
-	const initialsHidden = !!src || !alt
-
 	const content = (
 		<>
+			{alt && <span role="img" aria-label={alt} />}
 			{initials && (
-				<svg
-					className={k.initials}
-					viewBox="0 0 100 100"
-					aria-hidden={initialsHidden ? 'true' : undefined}
-					role="img"
-					aria-label={initialsHidden ? undefined : alt}
-				>
+				<svg className={k.initials} viewBox="0 0 100 100" aria-hidden="true">
 					<text
 						x="50%"
 						y="50%"
@@ -74,21 +70,18 @@ export function Avatar({
 					</text>
 				</svg>
 			)}
-			{src && <img className={k.image} src={src} alt={alt} />}
-			{/* With no source, this node carries `alt`, as the svg and the img do. */}
-			{!src && !initials && (
-				<span role="img" aria-label={alt || undefined} aria-hidden={alt ? undefined : 'true'} />
-			)}
+			{src && <img className={k.image} src={src} alt="" />}
 		</>
 	)
 
 	if (!status) {
 		return (
 			<span
-				data-slot="avatar"
 				data-density={size}
 				className={cn(k({ variant, color }), className)}
 				{...props}
+				// The ring of AvatarGroup selects the anchor, so it comes after the spread.
+				data-slot="avatar"
 			>
 				{content}
 			</span>
@@ -96,15 +89,15 @@ export function Avatar({
 	}
 
 	// `className` and `{...props}` both land on the wrapper; consumer ids,
-	// handlers, and classes target one element, dot included. The wrapper fits
-	// the circle, so a stretching flex or grid parent cannot widen it and move
-	// the dot off the circle.
+	// handlers, and classes target one element, dot included.
 	return (
 		<span
-			data-slot="avatar-with-status"
 			data-density={size}
-			className={cn('relative inline-flex size-fit', className)}
+			className={cn(k.withStatus, className)}
 			{...props}
+			// The size of an avatar in a SidebarItem selects the anchor, so it comes
+			// after the spread.
+			data-slot="avatar-with-status"
 		>
 			<span data-slot="avatar" className={cn(k({ variant, color }))}>
 				{content}

@@ -74,9 +74,19 @@ export type Recipe<C extends RecipeBase> = {
 	(props?: ComputedProps<C>): string
 	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
-} & { [K in keyof NonNullable<C['slots']>]: string } & (C['skeleton'] extends undefined
+} & { [K in keyof NonNullable<C['slots']>]: string } & SkeletonOf<C>
+
+/**
+ * The `skeleton` property of a recipe. A config without a `skeleton` field
+ * gives no property, because the engine attaches none. The type finds the key
+ * before it reads the field: a read of `C['skeleton']` on a config without the
+ * field gives `unknown`, and that type would put `k.skeleton` on each recipe.
+ */
+type SkeletonOf<C> = 'skeleton' extends keyof C
+	? C[keyof C & 'skeleton'] extends undefined
 		? unknown
-		: { skeleton: C['skeleton'] })
+		: { skeleton: C[keyof C & 'skeleton'] }
+	: unknown
 
 /** Explicit `variant:` keys declared by the kata, or `never` if absent. */
 type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never
@@ -88,7 +98,14 @@ type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string 
  */
 type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean : keyof A) : keyof A
 
-/** Computed prop shape for a given config; used internally and by `VariantProps`. */
+/**
+ * Computed prop shape for a given config; used internally and by `VariantProps`.
+ *
+ * @remarks A config without a `variant` axis or a palette adds `unknown` to the
+ * axis props, not `Record<never, never>`. An intersection with an empty object
+ * type stops the weak-type check of TypeScript, so a call such as `k(true)`
+ * would compile. The engine then reads no prop and gives the defaults.
+ */
 export type ComputedProps<C> = {
 	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: AxisValue<AxesOf<C>[K]>
 } & (C extends { palette: PaletteConfig<infer E, infer M, infer Col> }
@@ -98,17 +115,20 @@ export type ComputedProps<C> = {
 		}
 	: C extends { variant: VariantAxis }
 		? { variant?: ExplicitVariantKeys<C> }
-		: Record<never, never>)
+		: unknown)
 
 /**
  * Extracts the prop shape from either a `Recipe<C>` or a `RecipeConfig`.
  *
+ * @remarks A recipe gives the type of its call parameter. The type does not
+ * infer `C` back from `Recipe<C>`, because that inference fails on a recipe
+ * whose extras hold other recipes.
+ *
  * @example
  *   export type ButtonVariants = VariantProps<typeof button>
  */
-export type VariantProps<R> =
-	R extends Recipe<infer C extends RecipeBase>
-		? ComputedProps<C>
-		: R extends RecipeBase
-			? ComputedProps<R>
-			: never
+export type VariantProps<R> = R extends (props?: infer P) => string
+	? NonNullable<P>
+	: R extends RecipeBase
+		? ComputedProps<R>
+		: never

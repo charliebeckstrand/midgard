@@ -5,6 +5,7 @@ import { createContext } from '../../core'
 import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import type { Mount } from '../../primitives/mount'
 import type { AccordionVariants } from '../../recipes/kata/accordion'
+import type { AriaProps } from '../../types'
 import type { KeyedStore } from '../../utilities'
 
 type AccordionContextValue = {
@@ -15,6 +16,8 @@ type AccordionContextValue = {
 	/** Whether each value is open. An item subscribes to its own value. */
 	openStore: KeyedStore<string, boolean>
 	toggle: (value: string) => void
+	/** Whether a toggle can close an open section. */
+	collapsible: boolean
 	/** The root's arrival callback, raised by the section panel that owns the motion. */
 	onOpenComplete?: (value: string) => void
 	/** The arrow-key navigation of the root, which each header button runs. */
@@ -33,7 +36,12 @@ type AccordionItemContextValue = {
 	open: boolean
 	toggle: () => void
 	disabled: boolean
-	triggerProps: A11yDisclosure['triggerProps']
+	/**
+	 * The ARIA props of the header button: its `id` and `aria-expanded`. The
+	 * `aria-controls` names the panel only while the panel is in the DOM. The
+	 * `aria-disabled` marks an open section that a toggle cannot close.
+	 */
+	triggerProps: AriaProps & { id: string }
 	panelProps: A11yDisclosure['panelProps']
 }
 

@@ -52,8 +52,9 @@ export type AlertProps = AlertVariants & {
 	/**
 	 * Semantic kind: drives the default color, an icon, and the ARIA role
 	 * (`'alert'` for warning/error, `'status'` for info/success). The icon shows
-	 * only when the alert has a `title`. Use `color` to render a colored alert
-	 * with no semantic meaning.
+	 * only when the alert has a `title`. An explicit `color` replaces the color
+	 * of the severity. Use `color` alone to render a colored alert with no
+	 * semantic meaning.
 	 */
 	severity?: AlertSeverity
 	/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
@@ -84,6 +85,20 @@ export type AlertProps = AlertVariants & {
 	/** Called when the open state changes. */
 	onOpenChange?: (open: boolean) => void
 	/**
+	 * Whether an `info` or `success` alert that mounts open is mirrored through
+	 * the announcer, as one that opens later is.
+	 *
+	 * @remarks
+	 * Set it on an alert that a user action renders, such as
+	 * `{saved && <Alert severity="success" announceOnMount />}`. Without it, an
+	 * alert that mounts open stays silent, because it can be part of the page
+	 * as it loads. A `warning` or `error` alert announces on insertion, so the
+	 * prop has no effect there.
+	 *
+	 * @defaultValue false
+	 */
+	announceOnMount?: boolean
+	/**
 	 * When the alert is dismissed via its close button, move focus to this
 	 * element instead of letting it fall to the document body (WCAG 2.4.3).
 	 * Opt-in; focus is untouched when unset. Point it at the control that
@@ -97,8 +112,9 @@ export type AlertProps = AlertVariants & {
 }
 
 /**
- * Resolves color, icon, and ARIA role from severity, falling back to the explicit `color`/`icon` props.
- * The icon of a severity needs a title: beside body text alone, it looks too heavy.
+ * Resolves the color, the icon, and the ARIA role from the severity. An explicit
+ * `color` or `icon` wins over the default of the severity. The icon of a severity
+ * needs a title: beside body text alone, it looks too heavy.
  *
  * @internal
  */
@@ -113,7 +129,7 @@ function resolveAlertPresentation(
 	resolvedIcon: ReactElement | undefined
 	role: 'status' | 'alert' | undefined
 } {
-	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
+	const resolvedColor = color ?? (severity ? severityColorMap[severity] : 'zinc')
 
 	const resolvedIcon = icon ?? (severity && hasTitle ? severityIconMap[severity] : undefined)
 
@@ -186,9 +202,10 @@ function AlertContent({
  * density scope. At `md` the alert is `p-4` with a `text-lg` title.
  *
  * Client component. Polite severities (`info`/`success`, `role="status"`) are
- * re-announced through the persistent announcer on appear. Screen readers can
- * miss a live region inserted together with its text (WCAG 4.1.3).
- * `warning`/`error` use `role="alert"` and announce on insertion.
+ * re-announced through the persistent announcer when they open after the mount.
+ * With `announceOnMount`, the announcer also takes an alert that mounts open.
+ * Screen readers can miss a live region inserted together with its text (WCAG
+ * 4.1.3). `warning`/`error` use `role="alert"` and announce on insertion.
  */
 export function Alert({
 	severity,
@@ -203,6 +220,7 @@ export function Alert({
 	defaultOpen = true,
 	open: openProp,
 	onOpenChange,
+	announceOnMount = false,
 	returnFocusTo,
 	className,
 	children,
@@ -231,7 +249,8 @@ export function Alert({
 
 	const alertRef = useRef<HTMLDivElement>(null)
 
-	const wasOpen = useRef(open)
+	// An alert that mounts open counts as one that opened, when the caller asks for it.
+	const wasOpen = useRef(open && !announceOnMount)
 
 	// Screen readers can miss `role="status"` (info/success) when the live
 	// region and its text are inserted together. On closed→open, mirrors
@@ -270,11 +289,7 @@ export function Alert({
 			ref={alertRef}
 			data-slot={slot}
 			role={role}
-			className={cn(
-				k({ variant, color: resolvedColor }),
-				severity && !closable && 'pr-6',
-				className,
-			)}
+			className={cn(k({ variant, color: resolvedColor }), className)}
 		>
 			<AlertContent
 				resolvedIcon={resolvedIcon}

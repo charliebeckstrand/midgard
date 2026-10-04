@@ -35,6 +35,24 @@ describe('Alert', () => {
 		expect(action.className).toBe(screen.getByRole('button', { name: 'Reference' }).className)
 	})
 
+	it('lets an explicit color win over the color of the severity, as an explicit icon does', () => {
+		renderUI(
+			<>
+				<Alert severity="error" color="blue" title="Severity" />
+				<Alert color="blue" title="Reference" />
+			</>,
+		)
+
+		const [withSeverity, reference] = Array.from(
+			document.querySelectorAll<HTMLElement>('[data-slot="alert"]'),
+		)
+
+		expect(withSeverity?.className).toBe(reference?.className)
+
+		// The severity keeps its role.
+		expect(withSeverity).toHaveAttribute('role', 'alert')
+	})
+
 	it('keeps the variant and color that a button in its actions gives', () => {
 		renderUI(
 			<Alert
@@ -215,6 +233,29 @@ describe('Alert', () => {
 			await Promise.resolve()
 
 			// Lazily created on first announce; absent means nothing was announced.
+			expect(liveRegion()?.textContent ?? '').toBe('')
+		})
+
+		it('announces an alert that mounts open when the caller asks for it', async () => {
+			renderUI(
+				<Alert severity="success" announceOnMount>
+					Saved
+				</Alert>,
+			)
+
+			await expectAnnouncement('Saved')
+		})
+
+		it('keeps announceOnMount out of a warning alert, which announces on insertion', async () => {
+			renderUI(
+				<Alert severity="warning" announceOnMount>
+					Storage is almost full
+				</Alert>,
+			)
+
+			// Flush the announcer's microtask, then confirm nothing was written.
+			await Promise.resolve()
+
 			expect(liveRegion()?.textContent ?? '').toBe('')
 		})
 

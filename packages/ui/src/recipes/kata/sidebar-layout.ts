@@ -8,18 +8,25 @@ import { dan } from '../kiso/dan'
 
 const { space } = dan
 
-// Below `lg`, the layout is in the flow and the page scrolls. A mobile browser
-// moves the scroll offset of the page when its toolbar changes size, and only a
-// page that can scroll takes that offset back. From `lg` up, the layout is
-// pinned to the viewport box, and only the content region scrolls.
+// The layout is in the flow, and the page scrolls at each width. A mobile
+// browser moves the scroll offset of the page when its toolbar changes size,
+// and only a page that can scroll takes that offset back. The scroll
+// restoration of a router also reads and sets the scroll position of the page.
 //
 // Below `lg`, do not clip the overflow of the layout. WebKit then gives the
 // sticky navbar an ancestor clipping layer, and on iOS the bar stutters while
-// the page scrolls (WebKit bug 247130).
+// the page scrolls (WebKit bug 247130). From `lg` up, the sticky header and the
+// sticky panel need the same rule, so no width clips the layout.
+//
+// `100cqh` is the height of the nearest size container. With no size
+// container, it is the height of the small viewport (`svh`). The layout thus
+// fills the viewport in an app, and it fills its box in a demo.
+//
+// The layout takes the full width, so a parent that is a flex row does not
+// shrink it to the width of its content.
 const layout = defineRecipe({
 	base: [
-		'relative min-h-svh',
-		'lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden',
+		'relative w-full min-h-[100cqh]',
 		'isolate',
 		'flex max-lg:flex-col',
 		'bg-white lg:bg-zinc-100',
@@ -41,9 +48,14 @@ const navbar = defineRecipe({
 	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell} lg:hidden`],
 })
 
+// From `lg` up, the panel sticks to the top of the page. It is as tall as the
+// layout at its minimum (`100cqh`), and it scrolls on its own. A long sidebar
+// thus does not scroll with the page. A scroll that reaches the end of the
+// panel stops there and does not move on to the page (`overscroll-contain`).
 const panel = defineRecipe({
 	base: [
 		'shrink-0 min-w-0',
+		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
 		'overflow-x-hidden overflow-y-auto',
 		'max-lg:hidden',
 		// A mini sidebar sets the rail width; the panel follows it instead of
@@ -75,8 +87,11 @@ const floatingBuffer = defineRecipe({
 	],
 })
 
+// The content flows in the page. Do not give the content or this wrapper an
+// overflow. That box then becomes the scroller of the sticky header, and the
+// header does not stick to the top of the page.
 const contentWrapper = defineRecipe({
-	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2', 'lg:overflow-hidden'],
+	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2'],
 	floating: {
 		true: 'lg:ps-2',
 		false: '',
@@ -87,15 +102,14 @@ const contentWrapper = defineRecipe({
 const content = defineRecipe({
 	base: [
 		...omote.content,
-		'flex flex-col',
-		'lg:overflow-y-auto',
-		'grow lg:min-h-0',
+		'flex flex-col grow',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
 		`${space.shellX} ${space.shellBottom} ${space.shellTopNoHeader}`,
 	],
-	// From `lg` up only. Below `lg`, the navbar is the one sticky bar of the page, and
-	// the header scrolls with the content. Two stacked sticky bars show a seam on iOS.
+	// From `lg` up only, where the header sticks to the top of the page. Below `lg`,
+	// the navbar is the one sticky bar of the page, and the header scrolls with the
+	// content. Two stacked sticky bars show a seam on iOS.
 	stickyHeader: {
 		true: [
 			'**:data-[slot=header]:lg:sticky',
@@ -115,8 +129,10 @@ const header = defineRecipe({
 	base: ['flex items-center shrink-0', `${space.shellTopLarge} ${space.shellBottom}`],
 })
 
+// The body grows into the free height of the content region, so the footer
+// sits at the bottom of a short page. It scrolls with the page.
 const body = defineRecipe({
-	base: ['flex-1 lg:min-h-0 lg:overflow-y-auto', sen.focus.inset],
+	base: ['flex-1', sen.focus.inset],
 })
 
 const footer = defineRecipe({ base: 'shrink-0' })

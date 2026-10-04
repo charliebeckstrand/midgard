@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Links, Meta, Scripts, ScrollRestoration, useLoaderData } from 'react-router'
-import fontUrl from '../../fonts/google-sans-flex.woff2?url'
+import fontUrl from '../../fonts/google-sans-flex-latin.woff2?url'
 import { CurrentScrollScript } from '../../primitives/current'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
@@ -13,8 +13,8 @@ export function loader() {
 	return { pages }
 }
 
-// The preload fetches the font with the document, and not after the first
-// layout finds text in it.
+// The preload fetches the latin subset of the font with the document, and not
+// after the first layout finds text in it.
 export const links = () => [
 	{ rel: 'preload', href: fontUrl, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
 	{ rel: 'stylesheet', href: appCss },
@@ -39,9 +39,10 @@ export function Layout({ children }: { children: ReactNode }) {
 				<Meta />
 				<Links />
 			</head>
-			{/* No full height here. The sidebar layout sets its own height: below lg
-			    the page scrolls, and from lg up the layout is pinned to the viewport.
-			    The body color matches the layout, so an overscroll shows no band. */}
+			{/* No full height here. The sidebar layout sets its own height, and the
+			    page scrolls at each width, so the scroll restoration of the router
+			    reaches it. The body color matches the layout, so an overscroll shows
+			    no band. */}
 			<body className="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
 				{children}
 				<ScrollRestoration />
