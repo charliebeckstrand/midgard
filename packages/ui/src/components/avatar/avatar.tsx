@@ -7,8 +7,19 @@ import { StatusDot, type StatusDotProps } from '../status'
 // The StatusDot union is the single source of truth for status values.
 type Status = NonNullable<StatusDotProps['status']>
 
+/**
+ * The CSS `url()` of `src`, as a quoted string. A quote, a backslash, or a line
+ * break in `src` would end the string, so each one takes a hex escape.
+ *
+ * @internal
+ */
+function cssUrl(src: string): string {
+	return `url("${src.replace(/["\\\n\r\f]/g, (char) => `\\${char.charCodeAt(0).toString(16)} `)}")`
+}
+
 /** Props for {@link Avatar}; merges recipe variants with image/initials sources and optional status. */
 export type AvatarProps = AvatarVariants & {
+	/** The URL of the image. It paints as a CSS background over the initials. */
 	src?: string | null
 	/** The accessible name of the avatar. An empty `alt` makes the avatar decorative. */
 	alt?: string
@@ -26,9 +37,10 @@ export type AvatarProps = AvatarVariants & {
  *
  * @remarks
  * An inner `role="img"` node carries `alt` as the name, so the image and the
- * initials stay out of the accessibility tree. The image takes an empty `alt`,
- * so an image that fails to load draws no alt text over the initials. Chromium
- * still draws its small broken-image icon in the corner of the image.
+ * initials stay out of the accessibility tree. The image is a CSS background
+ * layer over the initials, so an image that fails to load paints nothing, and
+ * the initials show. A browser leaves out each background in print by
+ * default, so the layer asks the browser to print it.
  *
  * The initials also show through the clear areas of an image. Give no
  * `initials` with an image that has clear areas, such as a logo.
@@ -67,7 +79,13 @@ export function Avatar({
 					</text>
 				</svg>
 			)}
-			{src && <img className={k.image} src={src} alt="" />}
+			{src && (
+				<span
+					data-slot="avatar-image"
+					className={cn(k.image)}
+					style={{ backgroundImage: cssUrl(src) }}
+				/>
+			)}
 		</>
 	)
 
