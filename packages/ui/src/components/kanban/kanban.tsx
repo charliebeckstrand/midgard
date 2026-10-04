@@ -83,7 +83,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 
 	const {
 		activeId,
-		originColumnId,
+		dropColumnId,
 		overlayMap,
 		columnItemIds,
 		handleDragStart: rawDragStart,
@@ -144,8 +144,8 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 
 	// Column-facing drag state: churns every drag-over move; confined to columns.
 	const dragStateValue = useMemo(
-		() => ({ activeId, originColumnId, columnItemIds }),
-		[activeId, originColumnId, columnItemIds],
+		() => ({ activeId, dropColumnId, columnItemIds }),
+		[activeId, dropColumnId, columnItemIds],
 	)
 
 	return (

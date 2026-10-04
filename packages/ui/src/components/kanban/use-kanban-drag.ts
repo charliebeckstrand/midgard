@@ -118,7 +118,7 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
  * Pointer drag-and-drop for the {@link Kanban} board via `@dnd-kit`. Tracks the
  * `activeId` and overlay, applies cross-column moves live on drag-over and
  * commits same-column reorders on drag-end, emitting the next columns through
- * `onReorder`. Returns the active id, the column that the drag started in, the
+ * `onReorder`. Returns the active id, the column that the drop goes to, the
  * overlay map, the per-column item ids, and the dnd-kit drag handlers.
  *
  * @remarks
@@ -140,8 +140,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
 
-	// The column that holds the card at the drag start. A column reads it to show
-	// a drop only when the card comes from another column.
+	// The column that holds the card at the drag start.
 	const [originColumnId, setOriginColumnId] = useState<string | null>(null)
 
 	const overlayMap = useRef(new Map<string, ReactNode>())
@@ -173,6 +172,12 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}, [columns, getKey])
 
 	const findColumnByCardId = useCallback((id: string) => cardIndex.get(id), [cardIndex])
+
+	// The live move on drag-over puts the card in the column that the drop goes
+	// to. That column shows the drop, unless the drag started in it.
+	const holderId = activeId === null ? null : (cardIndex.get(activeId)?.id ?? null)
+
+	const dropColumnId = holderId === originColumnId ? null : holderId
 
 	const findColumn = useCallback(
 		(id: string) => {
@@ -267,7 +272,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	return {
 		activeId,
-		originColumnId,
+		dropColumnId,
 		overlayMap,
 		columnItemIds,
 		handleDragStart,

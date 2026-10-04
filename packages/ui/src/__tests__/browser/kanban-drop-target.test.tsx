@@ -12,9 +12,8 @@ import { drag, type Point } from './helpers/drag'
 
 /**
  * Kanban drop target (real paint). A column takes `data-over` while a dragged
- * card from another column is bound for it: over the column itself, or after a
- * live move puts the card in the column. Its fill then steps up one rung. The
- * column that the drag started in stays quiet. jsdom compiles no Tailwind and
+ * card from another column is in it, after the live move on drag-over. Its fill
+ * then steps up one rung. The column that the drag started in stays quiet. jsdom compiles no Tailwind and
  * lays nothing out for the pointer sensor, so only a real browser reads the fill.
  */
 describe('Kanban drop target (real browser)', () => {
