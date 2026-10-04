@@ -412,6 +412,51 @@ describe('Accordion keyboard navigation', () => {
 
 		expect(trigger('Third').tabIndex).toBe(0)
 	})
+
+	it('keeps the headers of a nested accordion out of the arrow keys of the outer one', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Accordion type="multiple" defaultValue={['outer']}>
+				<AccordionItem value="outer">
+					<AccordionTrigger>Outer first</AccordionTrigger>
+					<AccordionPanel>
+						<Accordion>
+							<AccordionItem value="inner-a">
+								<AccordionTrigger>Inner first</AccordionTrigger>
+								<AccordionPanel>A</AccordionPanel>
+							</AccordionItem>
+							<AccordionItem value="inner-b">
+								<AccordionTrigger>Inner second</AccordionTrigger>
+								<AccordionPanel>B</AccordionPanel>
+							</AccordionItem>
+						</Accordion>
+					</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="next">
+					<AccordionTrigger>Outer second</AccordionTrigger>
+					<AccordionPanel>C</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		act(() => trigger('Outer first').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(trigger('Outer second')).toHaveFocus()
+
+		await user.keyboard('{End}')
+
+		expect(trigger('Outer second')).toHaveFocus()
+
+		// The nested accordion moves between its own headers.
+		act(() => trigger('Inner first').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(trigger('Inner second')).toHaveFocus()
+	})
 })
 
 describe('Accordion mount policy', () => {

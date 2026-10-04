@@ -14,6 +14,17 @@ import {
 } from './use-accordion-selection'
 
 /**
+ * The header buttons that the arrow keys move between: the enabled triggers of
+ * this accordion. `:scope` is the root that the roving hook queries from. A nested
+ * accordion is in a panel and moves between its own headers, so the query leaves
+ * out each trigger in a nested root. A closed panel under `always` or `lazy` keeps
+ * its nested root in the DOM but hidden. A move to a hidden button leaves the focus
+ * where it was, so the arrow keys could not pass that item.
+ */
+const TRIGGER_SELECTOR =
+	'[data-slot="accordion-trigger"]:not(:disabled):not(:scope [data-slot="accordion"] *)'
+
+/**
  * Props for {@link Accordion}. The `type` discriminant selects single- vs
  * multiple-open semantics and the matching `value`/`defaultValue`/`onValueChange`
  * shapes.
@@ -114,9 +125,7 @@ export function Accordion(props: AccordionProps) {
 	// Each header button runs the handler. The container has no role in the
 	// WAI-ARIA accordion pattern, so it takes no key handler. The handler finds
 	// the buttons in the container.
-	const handleTriggerKeyDown = useA11yRoving(ref, {
-		itemSelector: '[data-slot="accordion-trigger"]:not(:disabled)',
-	})
+	const handleTriggerKeyDown = useA11yRoving(ref, { itemSelector: TRIGGER_SELECTOR })
 
 	const context = useMemo(
 		() => ({
