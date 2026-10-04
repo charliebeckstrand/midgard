@@ -53,13 +53,13 @@ The rules are in `src/recipes/README.md` §4. In short: one word for each key, a
 
 ## 5. Open leads
 
-These were found in the sweep and are not fixed. Each is outside the key-name lens, or needs a decision.
+These were found in the sweep. Each is outside the key-name lens, or needs a decision.
 
 | ID | Where | Finding | Proposed change | Class | Status |
 |---|---|---|---|---|---|
-| O1 | `kata/heading.ts` | `headingRamp`, `titleRamp`, and `headingWeight` are values beside `k`, against `src/recipes/README.md` §4 rule 6. The audit did not change the file. | Fold them into `k` (`k.ramp`, `k.weight`), or state the exception. | B | Open |
-| O2 | `components/kanban/kanban-column.tsx:26` | The TSDoc says that a column highlights while a card hovers over it. Nothing styles that state; the removed `column.over` was an empty string. | Add the highlight, or fix the TSDoc. | C | Open |
-| O3 | `kata/accordion.ts:16` | `ring-blue-500`, but the focus accent is `blue-600` in both modes (`kiso/sen/focus.ts`). | `blue-600`. A visual change. | C | Open |
+| O1 | `kata/heading.ts` | `headingRamp`, `titleRamp`, and `headingWeight` are values beside `k`, against `src/recipes/README.md` §4 rule 6. | Fold them into `k` (`k.ramp`, `k.weight`), or state the exception. | B | Fixed on branch |
+| O2 | `components/kanban/kanban-column.tsx:26` | The TSDoc says that a column highlights while a card hovers over it. Nothing styles that state; the removed `column.over` was an empty string. | Add the highlight, or fix the TSDoc. | C | Fixed on branch |
+| O3 | `kata/accordion.ts:16` | `ring-blue-500`, but the focus accent is `blue-600` in both modes (`kiso/sen/focus.ts`). | `blue-600`. A visual change. | C | Fixed on branch |
 | O4 | `kata/checkbox.ts:21` | `has-[disabled]:cursor-not-allowed has-[disabled]:opacity-50` repeats the bridge base, which spells `has-[:disabled]`. The two selectors differ, so `cn` keeps both. | Remove the kata copy after a check of the two selectors. | B | Open |
 | O5 | `kata/grid.ts` `footer.controls`; `kata/grid-group.ts` `band.row`, `manager.zone.header`, `manager.row.base`; `kata/grid-row-manager.ts` `zone.header`, `zone.main`; `kata/toggle-icon-button.ts` `base` | `items-center` after a token that holds it (`flex.row`, `flex.inline`). | Remove. | A | Open |
 | O6 | `kata/card.ts`, `select.ts`, `date-picker.ts`, `query-builder.ts`, `json-tree.ts`, `grid.ts` (`summary.*`), `dashboard.ts`, `grid-row-manager.ts` | Raw literals where a kiso token exists (`'flex items-center'`, `'flex flex-col'`, `'text-xs'`, `'font-medium'`). Some sit inside longer strings, and a swap reorders the class string. | Swap where the merged string is the same. | A | Open |
