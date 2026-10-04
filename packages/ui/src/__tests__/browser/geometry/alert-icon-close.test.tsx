@@ -56,6 +56,26 @@ describe('Alert icon and close button', () => {
 		expect(snug.title).toBeLessThan(loose.title)
 	})
 
+	it.each(['compact', 'snug', 'loose'] as const)(
+		'pads a severity alert with no close button the same on each side at %s',
+		(density) => {
+			const { container } = renderUI(
+				<DensityProvider density={density}>
+					<Alert severity="info" title="Scheduled maintenance" />
+				</DensityProvider>,
+			)
+
+			const style = getComputedStyle(
+				present(container.querySelector('[data-slot="alert"]'), 'alert'),
+			)
+
+			expect(Number.parseFloat(style.paddingRight)).toBeNear(
+				Number.parseFloat(style.paddingLeft),
+				HALF_PIXEL,
+			)
+		},
+	)
+
 	it.each([
 		['Alert', Alert, 'alert'],
 		['Banner', Banner, 'banner'],

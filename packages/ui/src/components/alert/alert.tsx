@@ -52,8 +52,9 @@ export type AlertProps = AlertVariants & {
 	/**
 	 * Semantic kind: drives the default color, an icon, and the ARIA role
 	 * (`'alert'` for warning/error, `'status'` for info/success). The icon shows
-	 * only when the alert has a `title`. Use `color` to render a colored alert
-	 * with no semantic meaning.
+	 * only when the alert has a `title`. An explicit `color` replaces the color
+	 * of the severity. Use `color` alone to render a colored alert with no
+	 * semantic meaning.
 	 */
 	severity?: AlertSeverity
 	/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
@@ -93,8 +94,9 @@ export type AlertProps = AlertVariants & {
 }
 
 /**
- * Resolves color, icon, and ARIA role from severity, falling back to the explicit `color`/`icon` props.
- * The icon of a severity needs a title: beside body text alone, it looks too heavy.
+ * Resolves the color, the icon, and the ARIA role from the severity. An explicit
+ * `color` or `icon` wins over the default of the severity. The icon of a severity
+ * needs a title: beside body text alone, it looks too heavy.
  *
  * @internal
  */
@@ -109,7 +111,7 @@ function resolveAlertPresentation(
 	resolvedIcon: ReactElement | undefined
 	role: 'status' | 'alert' | undefined
 } {
-	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
+	const resolvedColor = color ?? (severity ? severityColorMap[severity] : 'zinc')
 
 	const resolvedIcon = icon ?? (severity && hasTitle ? severityIconMap[severity] : undefined)
 
@@ -266,11 +268,7 @@ export function Alert({
 			ref={alertRef}
 			data-slot={slot}
 			role={role}
-			className={cn(
-				k({ variant, color: resolvedColor }),
-				severity && !closable && 'pr-6',
-				className,
-			)}
+			className={cn(k({ variant, color: resolvedColor }), className)}
 		>
 			<AlertContent
 				resolvedIcon={resolvedIcon}

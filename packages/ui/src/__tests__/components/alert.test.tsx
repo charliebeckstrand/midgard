@@ -35,6 +35,24 @@ describe('Alert', () => {
 		expect(action.className).toBe(screen.getByRole('button', { name: 'Reference' }).className)
 	})
 
+	it('lets an explicit color win over the color of the severity, as an explicit icon does', () => {
+		renderUI(
+			<>
+				<Alert severity="error" color="blue" title="Severity" />
+				<Alert color="blue" title="Reference" />
+			</>,
+		)
+
+		const [withSeverity, reference] = Array.from(
+			document.querySelectorAll<HTMLElement>('[data-slot="alert"]'),
+		)
+
+		expect(withSeverity?.className).toBe(reference?.className)
+
+		// The severity keeps its role.
+		expect(withSeverity).toHaveAttribute('role', 'alert')
+	})
+
 	it('keeps the variant and color that a button in its actions gives', () => {
 		renderUI(
 			<Alert
