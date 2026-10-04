@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../../../core'
+import { useScrollOverflow } from '../../../../hooks'
+import { omote } from '../../../../recipes/kiso'
 import { parseLinkToken } from '../../api-reference/link-syntax'
 import { splitTopLevel } from '../../split-top-level'
 import { LinkText, Prose } from './doc-inline'
@@ -33,11 +35,18 @@ const KIND_COLOR: Record<LiteralKind, string> = {
 export function DefaultValue({ value }: { value: string }) {
 	const kind = classifyLiteral(value)
 
+	// While a line overflows, the edge with more text behind it fades.
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
+
 	const block = literalBlock(value)
 
 	if (kind && block) {
 		return (
-			<pre data-slot="default-value" className={cn('overflow-x-auto font-mono', KIND_COLOR[kind])}>
+			<pre
+				ref={scrollOverflowRef}
+				data-slot="default-value"
+				className={cn(omote.rail, 'font-mono', KIND_COLOR[kind])}
+			>
 				{block}
 			</pre>
 		)

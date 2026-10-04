@@ -7,6 +7,20 @@ import { observeScrollExtent } from './observe-scroll-extent'
 /** Tolerance for fractional scroll offsets on zoomed or high-DPI displays. */
 const EDGE_EPSILON_PX = 1
 
+/** An overflow value that lets the user scroll the box. @internal */
+const SCROLLABLE = /auto|scroll/
+
+/**
+ * Whether the overflow value of `node` on one axis lets the user scroll it. The
+ * hook asks only when the content extends past an edge, so a box that fits
+ * reads no style.
+ *
+ * @internal
+ */
+function scrollsOn(node: HTMLElement, axis: 'overflowX' | 'overflowY'): boolean {
+	return SCROLLABLE.test(getComputedStyle(node)[axis])
+}
+
 /** Options for {@link useScrollOverflow}: the enable gate and the axis to watch. */
 export type ScrollOverflowOptions = {
 	/**
@@ -51,6 +65,12 @@ export type ScrollOverflowOptions = {
  * that sets no `axis` gets no horizontal attribute. The ref cleans up its
  * listeners and attributes on detach (React 19 ref cleanup).
  *
+ * An axis shows overflow only while its overflow value lets the user scroll
+ * it. A parent can set a scroll container to `visible` and scroll the content
+ * itself, as the Grid does with its Table. The content then extends past the
+ * edge of the container, but the container does not scroll, so it carries no
+ * attribute on that axis.
+ *
  * The horizontal edges are logical. The `start` edge is the edge where the
  * reading direction starts: the left edge in a left-to-right document, and the
  * right edge in a right-to-left document. A browser reports `scrollLeft` as
@@ -92,9 +112,11 @@ export function useScrollOverflow(options: ScrollOverflowOptions = {}): RefCallb
 
 					const below = node.scrollTop + node.clientHeight < node.scrollHeight - EDGE_EPSILON_PX
 
-					node.toggleAttribute('data-overflow-above', above)
+					const scrolls = (above || below) && scrollsOn(node, 'overflowY')
 
-					node.toggleAttribute('data-overflow-below', below)
+					node.toggleAttribute('data-overflow-above', scrolls && above)
+
+					node.toggleAttribute('data-overflow-below', scrolls && below)
 				}
 
 				if (horizontal) {
@@ -106,9 +128,11 @@ export function useScrollOverflow(options: ScrollOverflowOptions = {}): RefCallb
 
 					const end = offset + node.clientWidth < node.scrollWidth - EDGE_EPSILON_PX
 
-					node.toggleAttribute('data-overflow-start', start)
+					const scrolls = (start || end) && scrollsOn(node, 'overflowX')
 
-					node.toggleAttribute('data-overflow-end', end)
+					node.toggleAttribute('data-overflow-start', scrolls && start)
+
+					node.toggleAttribute('data-overflow-end', scrolls && end)
 				}
 			}
 

@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useComposedRef } from '../../hooks'
+import { useComposedRef, useScrollOverflow } from '../../hooks'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import {
 	k,
@@ -26,7 +26,8 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
 /**
  * Scrollable viewport with custom overlay scrollbars and draggable thumbs.
  * `scrollbar` toggles between `auto` (fade in while scrolling), `visible`, and
- * `hidden`. The viewport is a keyboard tab stop only while its content
+ * `hidden`. A horizontal viewport fades the edge with more content behind it.
+ * The viewport is a keyboard tab stop only while its content
  * overflows. An `aria-label` or an `aria-labelledby` then names it as a
  * `role="region"`. A consumer `tabIndex` replaces that behavior.
  */
@@ -69,8 +70,14 @@ export function ScrollArea({
 			? {}
 			: { 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledby }
 
+	// A horizontal viewport fades the edge with more content behind it.
+	const scrollOverflowRef = useScrollOverflow({
+		axis: 'horizontal',
+		enabled: orientation === 'horizontal',
+	})
+
 	// A consumer ref joins the viewport ref instead of replacing it (CONVENTIONS.md §3.9).
-	const composedViewportRef = useComposedRef(viewportRef, scrollRegionRef, ref)
+	const composedViewportRef = useComposedRef(viewportRef, scrollOverflowRef, scrollRegionRef, ref)
 
 	const showScrollbar = scrollbar !== 'hidden'
 

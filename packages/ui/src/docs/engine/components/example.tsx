@@ -12,6 +12,8 @@ import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { Heading } from '../../../components/heading'
 import { cn } from '../../../core'
+import { useScrollOverflow } from '../../../hooks'
+import { omote } from '../../../recipes/kiso'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import type { deriveCode as DeriveCode } from '../derive-code'
@@ -144,6 +146,9 @@ export function Example({
 	__facts?: SourceFacts
 	children: ReactNode
 }) {
+	// While the instances overflow, the edge with more content behind them fades.
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
+
 	const [open, setOpen] = useState(false)
 
 	// A new key on each instance box mounts the children again.
@@ -270,9 +275,11 @@ export function Example({
 					</div>
 				)}
 				<div
+					ref={scrollOverflowRef}
 					data-example-section=""
 					className={cn(
-						'flex flex-col items-start p-4 gap-4 overflow-x-auto',
+						'flex flex-col items-start p-4 gap-4',
+						omote.rail,
 						// A row of phrasing content centers its instances on one line.
 						'phrasing:flex-row phrasing:flex-wrap phrasing:items-center phrasing:*:w-max phrasing:*:min-w-0',
 						// In a row with captions, each axis value fills the height of the line.

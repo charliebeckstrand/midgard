@@ -14,6 +14,7 @@ import { fade } from './fade'
 import { glass } from './glass'
 import { grayscale } from './grayscale'
 import { popover } from './popover'
+import { rail } from './rail'
 import { skeleton, skeletonShape } from './skeleton'
 
 export const omote = {
@@ -27,4 +28,5 @@ export const omote = {
 	blur,
 	grayscale,
 	fade,
+	rail,
 } as const
