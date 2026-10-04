@@ -94,7 +94,10 @@ function measureChips(density: Density, readOnly = false) {
 		</DensityProvider>,
 	)
 
-	const chip = present(container.querySelector('[data-slot="query-chip"]'), 'a chip')
+	const chip = present(
+		container.querySelector('[data-slot="query-chips"] [data-slot="badge"]'),
+		'a chip',
+	)
 
 	const combinator = present(
 		readOnly

@@ -53,4 +53,20 @@ describe('Badge', () => {
 
 		expect(bySlot(container, 'badge')).toHaveAttribute('data-density', 'xs')
 	})
+
+	// The affix of a control selects the anchor to fit a chip (CONVENTIONS.md §3.9).
+	it('keeps its anchor against a consumer data-slot', () => {
+		const { container } = renderUI(
+			<>
+				<Badge data-slot="mine">Span</Badge>
+				<Badge href="/tags" data-slot="mine">
+					Link
+				</Badge>
+			</>,
+		)
+
+		expect(container.querySelectorAll('[data-slot="badge"]')).toHaveLength(2)
+
+		expect(bySlot(container, 'mine')).toBeNull()
+	})
 })

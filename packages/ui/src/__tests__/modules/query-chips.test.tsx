@@ -45,7 +45,7 @@ describe('QueryChips', () => {
 
 		expect(row).toHaveAttribute('data-slot', 'query-chips')
 
-		expect(allBySlot(row, 'query-chip').map((chip) => chip.textContent)).toEqual([
+		expect(allBySlot(row, 'badge').map((chip) => chip.textContent)).toEqual([
 			'Status is Active',
 			'Age > 30',
 		])
@@ -58,7 +58,7 @@ describe('QueryChips', () => {
 			<QueryChips fields={fields} defaultValue={tree(statusRule(), { ...name, value: '' })} />,
 		)
 
-		expect(allBySlot(container, 'query-chip')).toHaveLength(1)
+		expect(allBySlot(container, 'badge')).toHaveLength(1)
 	})
 
 	it('describes the row with the full sentence, brackets included', () => {

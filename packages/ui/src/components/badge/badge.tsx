@@ -49,7 +49,6 @@ export function Badge({
 	return (
 		<PolymorphicStatic
 			as="span"
-			data-slot="badge"
 			density={size}
 			data-has-prefix={dataAttr(!!prefix)}
 			data-has-suffix={dataAttr(!!suffix)}
@@ -57,6 +56,9 @@ export function Badge({
 			render={render}
 			className={cn(k({ variant, color, radius }), className)}
 			{...props}
+			// The affix of a control selects the anchor to fit a chip, so it comes
+			// after the spread (CONVENTIONS.md §3.9).
+			data-slot="badge"
 		>
 			{prefix}
 			{children}
