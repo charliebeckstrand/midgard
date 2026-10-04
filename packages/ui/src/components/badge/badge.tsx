@@ -3,9 +3,8 @@ import { cn, dataAttr } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 
-type BadgeBaseProps = Omit<BadgeVariants, 'variant'> & {
-	/** The fill style of the badge. @defaultValue 'solid' */
-	variant?: BadgeVariants['variant']
+// The badge sets `interactive` from `href`, so the prop is not open.
+type BadgeBaseProps = Omit<BadgeVariants, 'interactive'> & {
 	className?: string
 	/** Leading content (typically an icon), rendered before `children`. */
 	prefix?: ReactNode
@@ -20,7 +19,8 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * Compact label chip for status, counts, or tags, with optional `prefix`/`suffix`
  * icons. Polymorphic: renders a `<span>`, a plain anchor when `href` is set, or a
  * composed element via `render` (e.g. `render={<Link />}`) to wire the app router
- * link at the call site.
+ * link at the call site. A link badge takes a focus ring, and the hover wash of
+ * its variant and color.
  *
  * @remarks
  * Static leaf: renders in React Server Components. Without `size`, the badge
@@ -34,7 +34,7 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * `size` fixes the chip at one step for each density.
  */
 export function Badge({
-	variant = 'solid',
+	variant,
 	color,
 	size,
 	radius,
@@ -54,7 +54,7 @@ export function Badge({
 			data-has-suffix={dataAttr(!!suffix)}
 			href={href}
 			render={render}
-			className={cn(k({ variant, color, radius }), className)}
+			className={cn(k({ variant, color, radius, interactive: href !== undefined }), className)}
 			{...props}
 			// The affix of a control selects the anchor to fit a chip, so it comes
 			// after the spread (CONVENTIONS.md §3.9).
