@@ -34,15 +34,17 @@ function nodeEnvironmentFiles(): string[] {
 
 const nodeFiles = nodeEnvironmentFiles()
 
-// The boundary suites that read files outside this package: the rule documents
-// at the repository root, the Biome plugins, and the sources of the apps and of
-// the other packages. They run as the `workspace` project, which the
-// `test:workspace` task of turbo runs with those files as its inputs. Thus an
-// edit outside ui does not clear the cache of the whole ui suite.
+// The boundary suites that read files outside this package: the rule documents,
+// the Dockerfiles, `package.json`, and the lockfile at the repository root, the
+// Biome plugins, and the sources of the apps and of the other packages. They run
+// as the `workspace` project, which the `test:workspace` task of turbo runs with
+// those files as its inputs. Thus an edit outside ui does not clear the cache of
+// the whole ui suite.
 const workspaceScans = [
 	'src/__tests__/boundary/biome-plugin-boundary.test.ts',
 	'src/__tests__/boundary/cadence-boundary.test.ts',
 	'src/__tests__/boundary/controlled-language-boundary.test.ts',
+	'src/__tests__/boundary/dockerfile-pin-boundary.test.ts',
 	'src/__tests__/boundary/drag-cursor-boundary.test.ts',
 	'src/__tests__/boundary/recipe-boundary.test.ts',
 ]

@@ -9,7 +9,7 @@
  * and one lookup for each of its items.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, kasane, omote, sen } from '../kiso'
+import { hannou, iro, ji, kasane, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { fg, grab } = hannou
@@ -231,7 +231,8 @@ const readout = [
 	'pointer-events-none absolute bottom-3 end-3 z-30',
 	rounded.md,
 	'px-2 py-1',
-	'text-xs tabular-nums',
+	ji.size.xs,
+	'tabular-nums',
 	'shadow-sm',
 	...sen.border.default,
 	...omote.bg.surface,

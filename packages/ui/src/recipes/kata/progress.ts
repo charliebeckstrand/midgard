@@ -116,6 +116,7 @@ export const scale = {
 
 /** Props for the {@link ProgressBar} track: the `size` step that the component writes as a density scope. */
 export type ProgressTrackVariants = { size?: ScaleStep<typeof scale.bar> }
+/** Props for the {@link ProgressBar} fill: its `color`. */
 export type ProgressBarFillVariants = Omit<VariantProps<typeof fill>, 'color'> & {
 	/** The color of the fill. @defaultValue 'zinc' */
 	color?: VariantProps<typeof fill>['color']

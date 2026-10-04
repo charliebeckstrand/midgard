@@ -22,7 +22,8 @@ const { portal, panel } = popover
 
 const button = defineRecipe({
 	base: [
-		'flex items-center justify-between',
+		flex.row,
+		'justify-between',
 		...reset.base,
 		'text-start',
 		'appearance-none',
@@ -60,10 +61,10 @@ export const k = {
 	// the nested message. Reuse that same adjacency here to space the message
 	// from the input exactly as a <Field> would.
 	control: field,
-	icon: ['flex items-center', 'pointer-events-none', text.muted],
+	icon: [flex.row, 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	affix: {
-		base: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...text.muted],
+		base: [flex.row, 'min-w-0', '*:data-[slot=icon]:pointer-events-none', ...text.muted],
 		suffix: affix.suffix,
 	},
 	content: {
@@ -93,7 +94,7 @@ export const k = {
 			// The row itself: label left, chevron right.
 			row: 'w-full justify-between',
 			// Custom mode: the back affordance above the stacked Start/End inputs.
-			panel: 'flex flex-col gap-3',
+			panel: [flex.col, 'gap-3'],
 			// The back affordance of custom mode, which returns to the preset list.
 			back: 'justify-start gap-1',
 		},

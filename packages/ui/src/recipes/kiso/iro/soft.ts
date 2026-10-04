@@ -10,7 +10,7 @@
 
 import { shades } from '../../../core/recipe'
 
-import { text } from './text'
+import { onTint } from './ramp'
 
 export const soft = {
 	bg: shades({
@@ -20,7 +20,7 @@ export const soft = {
 		green: 'bg-green-500/15',
 		blue: 'bg-blue-500/15',
 	}),
-	text,
+	text: onTint,
 	strong: shades({
 		zinc: 'bg-zinc-500/30',
 		red: 'bg-red-500/30',
