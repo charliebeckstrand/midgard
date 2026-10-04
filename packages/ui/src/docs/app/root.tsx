@@ -39,9 +39,10 @@ export function Layout({ children }: { children: ReactNode }) {
 				<Meta />
 				<Links />
 			</head>
-			{/* No full height here. The sidebar layout sets its own height: below lg
-			    the page scrolls, and from lg up the layout is pinned to the viewport.
-			    The body color matches the layout, so an overscroll shows no band. */}
+			{/* No full height here. The sidebar layout sets its own height, and the
+			    page scrolls at each width, so the scroll restoration of the router
+			    reaches it. The body color matches the layout, so an overscroll shows
+			    no band. */}
 			<body className="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
 				{children}
 				<ScrollRestoration />

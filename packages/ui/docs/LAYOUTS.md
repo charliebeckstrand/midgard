@@ -41,9 +41,9 @@ Client app shell: a desktop sidebar, a mobile drawer-and-navbar, and a content r
 
 | Export | Summary |
 |---|---|
-| `SidebarLayout` | App shell: a desktop sidebar (inline, or a hover-revealed floating sheet), a mobile drawer-and-navbar, and a density-aware content region. Below `lg` the page scrolls under a sticky navbar; from `lg` up the shell is pinned to the viewport. The sidebar sits on the start edge. |
+| `SidebarLayout` | App shell: a desktop sidebar (inline, or a hover-revealed floating sheet), a mobile drawer-and-navbar, and a density-aware content region. The page scrolls at each width: under a sticky navbar below `lg`, and beside a sticky desktop panel from `lg` up. The sidebar sits on the start edge. |
 | `SidebarLayoutHeader` | Header slot; surfaces the layout's `actions` inline on desktop (`data-slot="header"`). |
-| `SidebarLayoutBody` | Main slot (`data-slot="body"`); scrolls on its own from `lg` up, and with the page below `lg`. |
+| `SidebarLayoutBody` | Main slot (`data-slot="body"`); scrolls with the page at each width. |
 | `SidebarLayoutFooter` | Footer slot (`data-slot="footer"`). |
 
 ---
