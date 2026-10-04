@@ -15,9 +15,11 @@ export type ListHandleProps = {
 
 /**
  * Drag handle for a sortable {@link ListItem}, defaulting to a grip icon.
- * Carries the item's drag listeners when the list is interactive and renders
- * nothing for a single-item list. Decorative (`aria-hidden`); keyboard reorder
- * lives on the item.
+ * Carries the item's drag listeners when the list is interactive, and shows
+ * a disabled grip when the list is disabled. Renders nothing in a read-only
+ * list (no `onReorder`) and in a single-item list, because those lists have
+ * no order to change. Decorative (`aria-hidden`); keyboard reorder lives on
+ * the item.
  *
  * @remarks Client component.
  */
@@ -26,7 +28,8 @@ export function ListHandle({ children, className }: ListHandleProps) {
 
 	const { listeners, dragging } = useListItemContext()
 
-	if (itemCount <= 1) return null
+	// A list that cannot reorder shows no grip. A disabled list keeps a muted one.
+	if (itemCount <= 1 || (!interactive && !disabled)) return null
 
 	return (
 		<span
@@ -34,7 +37,6 @@ export function ListHandle({ children, className }: ListHandleProps) {
 			data-slot="list-handle"
 			data-dragging={dataAttr(dragging)}
 			data-disabled={dataAttr(disabled)}
-			data-readonly={dataAttr(!interactive && !disabled)}
 			className={cn(k.handle, className)}
 			{...(interactive ? listeners : {})}
 		>

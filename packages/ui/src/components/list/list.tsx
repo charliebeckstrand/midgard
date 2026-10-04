@@ -38,7 +38,7 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 export type ListProps<T> = BaseListProps<T> &
 	(
 		| {
-				/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. */
+				/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set. */
 				sortable?: true
 				/** Stable key extractor; required for DnD tracking. */
 				getKey: (item: T) => string
@@ -73,7 +73,8 @@ export type ListProps<T> = BaseListProps<T> &
  * function, in one of four `variant`s and either orientation. With `onReorder`
  * it becomes reorderable over `@dnd-kit`, by pointer drag (with a drag overlay)
  * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}
- * per item unless `sortable: false`. Read-only lists skip per-item sortable
+ * per item unless `sortable: false`. A read-only list (no `onReorder`) shows
+ * no handle. Read-only lists skip per-item sortable
  * registration entirely. Compose {@link ListItem} (with {@link ListLabel} /
  * {@link ListDescription}) in the render function.
  *
@@ -150,7 +151,8 @@ export function List<T>({
 		() => ({
 			variant,
 			interactive,
-			disabled: !!disabled,
+			// A read-only list has no reorder to disable, so its handles stay hidden.
+			disabled: !!disabled && onReorder !== undefined,
 			liftedStore,
 			itemCount: items.length,
 			sortable,
@@ -161,6 +163,7 @@ export function List<T>({
 			variant,
 			interactive,
 			disabled,
+			onReorder,
 			liftedStore,
 			items.length,
 			sortable,

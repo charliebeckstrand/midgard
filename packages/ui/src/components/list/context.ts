@@ -14,7 +14,7 @@ export type ListContextValue = {
 	variant: ListVariant
 	/** Whether the list allows drag / keyboard reorder. */
 	interactive: boolean
-	/** Whether the list is explicitly disabled (vs. merely non-interactive / read-only). */
+	/** Whether a reorderable list (one with `onReorder`) is disabled. A read-only list is never disabled. */
 	disabled: boolean
 	/**
 	 * Whether each item id is "lifted" via keyboard (Space). Read one item with
