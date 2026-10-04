@@ -16,7 +16,7 @@ WORKDIR /app
 FROM base AS prune
 COPY . .
 # Keep the same version as the `turbo` dependency of the root `package.json`.
-RUN pnpm dlx turbo@2.11.2 prune ui --docker
+RUN pnpm dlx turbo@2.11.7 prune ui --docker
 
 FROM base AS build
 COPY --from=prune /app/out/json/ ./
