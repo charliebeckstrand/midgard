@@ -1,0 +1,53 @@
+import { cacheLife } from 'next/cache'
+import type { Game, Schedule } from '../types'
+import { readGames, readSchedule } from './espn-scoreboard'
+
+/** The scoreboard of the NFL in the public API of ESPN. It needs no key. */
+const SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard'
+
+async function scoreboard(search: Record<string, string> = {}): Promise<unknown> {
+	const response = await fetch(`${SCOREBOARD}?${new URLSearchParams(search)}`)
+
+	if (!response.ok) throw new Error(`The scoreboard answered ${response.status}.`)
+
+	return response.json()
+}
+
+/**
+ * The weeks of the current regular season. The scoreboard without a date gives
+ * the current season, and its calendar holds every week.
+ *
+ * @remarks The calendar changes once a season, so the cache holds it for days.
+ */
+export async function getSchedule(): Promise<Schedule> {
+	'use cache'
+
+	cacheLife('days')
+
+	const schedule = readSchedule(await scoreboard())
+
+	if (schedule === null) throw new Error('The scoreboard gave no calendar.')
+
+	return schedule
+}
+
+/**
+ * The games of one week of a regular season.
+ *
+ * @remarks
+ * A week in play changes each minute, a week that is over does not change, and
+ * a week to come changes only when a kickoff moves. The cache life follows.
+ */
+export async function getWeekGames(season: number, week: number): Promise<Game[]> {
+	'use cache'
+
+	const games = readGames(
+		await scoreboard({ dates: String(season), seasontype: '2', week: String(week) }),
+	)
+
+	if (games.some((game) => game.state === 'live')) cacheLife('minutes')
+	else if (games.length > 0 && games.every((game) => game.state === 'final')) cacheLife('days')
+	else cacheLife('hours')
+
+	return games
+}

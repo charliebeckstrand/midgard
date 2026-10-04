@@ -31,13 +31,14 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 |---|---|
 | [`apps/admin`](apps/admin/README.md) | Next.js admin app (App Router, Turbopack). |
 | [`apps/places`](apps/places/README.md) | Next.js map of the places you have been (App Router, Turbopack). |
+| [`apps/picks`](apps/picks/README.md) | Next.js picks of the NFL winners, week by week (App Router, Turbopack). |
 | [`packages/ui`](packages/ui/README.md) | Design system: components, primitives, hooks, providers, recipes. |
 | [`packages/auth`](packages/auth/README.md) | Auth library: config, proxy, user. |
 | [`packages/shared`](packages/shared/README.md) | Shared auth UI and the global stylesheet. |
 
 ## 4. Gateway
 
-Both apps get auth and API responses from the bifrost gateway. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
+Each app gets auth and API responses from the bifrost gateway. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
 
 | Environment | `BIFROST_URL` |
 |---|---|
@@ -56,6 +57,7 @@ Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs C
 |---|---|---|
 | `admin.ivoryimage.dev` | `apps/admin` | [`Dockerfile`](Dockerfile), with `APP=admin` |
 | `places.ivoryimage.dev` | `apps/places` | [`Dockerfile`](Dockerfile), with `APP=places` |
+| `picks.ivoryimage.dev` | `apps/picks` | [`Dockerfile`](Dockerfile), with `APP=picks` |
 | `docs.ivoryimage.dev` | The docs site of `ui`, a static site | [`Dockerfile.docs`](Dockerfile.docs) |
 
 The Next apps build with `output: 'standalone'`. To build one image locally:
