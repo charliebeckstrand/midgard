@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { definePalette, defineRecipe } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
@@ -158,6 +158,22 @@ describe('defineRecipe', () => {
 		expect(recipe.title).toBe('font-semibold text-lg')
 
 		expect(recipe.body).toBe('text-sm')
+	})
+
+	it('types `skeleton` only on a recipe whose config declares one', () => {
+		// The engine attaches no `skeleton` to a recipe without one, so the type
+		// must not offer `k.skeleton` there.
+		const plain = defineRecipe({ base: 'block' })
+
+		const withSkeleton = defineRecipe({ base: 'block', skeleton: { base: 'h-4' } as const })
+
+		expectTypeOf(plain).not.toHaveProperty('skeleton')
+
+		expectTypeOf(withSkeleton.skeleton).toEqualTypeOf<{ readonly base: 'h-4' }>()
+
+		expect('skeleton' in plain).toBe(false)
+
+		expect(withSkeleton.skeleton).toEqual({ base: 'h-4' })
 	})
 
 	it('keeps the default color active when only variant is overridden', () => {

@@ -74,9 +74,19 @@ export type Recipe<C extends RecipeBase> = {
 	(props?: ComputedProps<C>): string
 	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
-} & { [K in keyof NonNullable<C['slots']>]: string } & (C['skeleton'] extends undefined
+} & { [K in keyof NonNullable<C['slots']>]: string } & SkeletonOf<C>
+
+/**
+ * The `skeleton` property of a recipe. A config without a `skeleton` field
+ * gives no property, because the engine attaches none. The type finds the key
+ * before it reads the field: a read of `C['skeleton']` on a config without the
+ * field gives `unknown`, and that type would put `k.skeleton` on each recipe.
+ */
+type SkeletonOf<C> = 'skeleton' extends keyof C
+	? C[keyof C & 'skeleton'] extends undefined
 		? unknown
-		: { skeleton: C['skeleton'] })
+		: { skeleton: C[keyof C & 'skeleton'] }
+	: unknown
 
 /** Explicit `variant:` keys declared by the kata, or `never` if absent. */
 type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never
