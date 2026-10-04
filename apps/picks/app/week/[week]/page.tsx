@@ -37,7 +37,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 		<>
 			<PicksHeader user={user} week={week.label} />
 
-			<Container className="p-6">
+			<Container size="full" className="p-6">
 				{games.length === 0 ? (
 					<Text tone="muted">No games this week.</Text>
 				) : (

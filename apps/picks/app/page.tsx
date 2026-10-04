@@ -58,7 +58,7 @@ export default async function Page() {
 		<>
 			<PicksHeader user={user} />
 
-			<Container className="p-6">
+			<Container size="full" className="p-6">
 				<Suspense>
 					<ScheduleList
 						season={schedule.season}
