@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Avatar } from '../../../components/avatar'
+import { Avatar, AvatarSkeleton } from '../../../components/avatar'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
 import { Kbd } from '../../../components/kbd'
@@ -46,14 +46,40 @@ describe('a static leaf in a sized parent (real browser)', () => {
 						<Avatar initials="C" />
 						<SidebarLabel>Charlie</SidebarLabel>
 					</SidebarItem>
+					<SidebarItem size={size}>
+						<Avatar initials="C" status="active" />
+						<SidebarLabel>Charlie</SidebarLabel>
+					</SidebarItem>
+					<SidebarItem size={size}>
+						<AvatarSkeleton />
+						<SidebarLabel>Charlie</SidebarLabel>
+					</SidebarItem>
 				</Sidebar>,
 			)
 
-			const [plain, withAvatar] = Array.from(container.querySelectorAll('button'), (button) =>
-				button.getBoundingClientRect(),
+			const [plain, withAvatar, withStatus, withSkeleton] = Array.from(
+				container.querySelectorAll('button'),
+				(button) => button.getBoundingClientRect(),
 			)
 
 			expect(withAvatar?.height).toBe(plain?.height)
+
+			// The circle of an avatar with a status sits in a wrapper, and a skeleton
+			// stands in for the avatar. Each keeps the height of the row too.
+			expect(withStatus?.height).toBe(plain?.height)
+
+			expect(withSkeleton?.height).toBe(plain?.height)
+
+			const [circle, statusCircle] = Array.from(
+				container.querySelectorAll('[data-slot="avatar"]'),
+				(avatar) => avatar.getBoundingClientRect().width,
+			)
+
+			const skeleton = present(container.querySelector('[data-slot="placeholder"]'), 'skeleton')
+
+			expect(statusCircle).toBe(circle)
+
+			expect(skeleton.getBoundingClientRect().width).toBe(circle)
 		})
 	}
 

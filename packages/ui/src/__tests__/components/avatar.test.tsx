@@ -42,7 +42,7 @@ describe('Avatar', () => {
 
 		expect(img).toHaveAttribute('src', '/avatar.png')
 
-		expect(img).toHaveAttribute('alt', 'User')
+		expect(screen.getByRole('img', { name: 'User' })).toBeInTheDocument()
 	})
 
 	it('wraps the avatar with a status dot when status is provided', () => {
@@ -67,15 +67,21 @@ describe('Avatar', () => {
 		expect(bySlot(container, 'avatar')).toBeInTheDocument()
 	})
 
-	it('hides the initials fallback from assistive tech when an image is present', () => {
+	it('names the avatar once, and keeps the image and the initials out of the tree', () => {
 		const { container } = renderUI(<Avatar src="/avatar.png" initials="JD" alt="User" />)
 
-		// The image's alt is the single accessible name; the svg is decorative.
+		// One inner node carries the name; the svg is decorative.
+		expect(screen.getAllByRole('img')).toHaveLength(1)
+
+		expect(screen.getByRole('img', { name: 'User' })).toBeInTheDocument()
+
 		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
 
 		expect(container.querySelector('svg')).not.toHaveAttribute('aria-label')
 
-		expect(container.querySelector('img')).toHaveAttribute('alt', 'User')
+		// An image with an empty alt that fails to load draws no alt text over the
+		// initials.
+		expect(container.querySelector('img')).toHaveAttribute('alt', '')
 	})
 
 	it('names an avatar with alt but no src and no initials', () => {
@@ -93,6 +99,38 @@ describe('Avatar', () => {
 		renderUI(<Avatar />)
 
 		expect(screen.queryByRole('img')).toBeNull()
+	})
+
+	it('keeps an image and its initials out of the tree when alt is empty', () => {
+		renderUI(<Avatar src="/avatar.png" initials="JD" />)
+
+		expect(screen.queryByRole('img')).toBeNull()
+	})
+
+	it('keeps its anchors against a consumer data-slot', () => {
+		// `data-slot` types through as any other `data-*` attribute.
+		const { container } = renderUI(
+			<>
+				<Avatar initials="A" data-slot="mine" />
+				<Avatar initials="B" status="active" data-slot="mine" />
+			</>,
+		)
+
+		// The ring of AvatarGroup and the size in a SidebarItem select these anchors.
+		expect(allBySlot(container, 'avatar')).toHaveLength(2)
+
+		expect(bySlot(container, 'avatar-with-status')).toBeInTheDocument()
+
+		expect(bySlot(container, 'mine')).toBeNull()
+	})
+
+	it('takes no children, because it renders its own content', () => {
+		const { container } = renderUI(
+			// @ts-expect-error: the avatar renders its own content
+			<Avatar initials="A">Child</Avatar>,
+		)
+
+		expect(container).not.toHaveTextContent('Child')
 	})
 
 	it('applies className and spread props to the same element when status is set', () => {
@@ -142,6 +180,21 @@ describe('AvatarGroup', () => {
 		expect(
 			bySlot(container, 'avatar-with-status')?.querySelector('[data-slot="avatar"]'),
 		).not.toBeNull()
+	})
+
+	it('spreads native attributes onto the group, so a caller can name it', () => {
+		renderUI(
+			<AvatarGroup role="group" aria-label="Assignees" id="assignees">
+				<Avatar initials="A" alt="Ada" />
+				<Avatar initials="B" alt="Bo" />
+			</AvatarGroup>,
+		)
+
+		const group = screen.getByRole('group', { name: 'Assignees' })
+
+		expect(group).toHaveAttribute('id', 'assignees')
+
+		expect(group).toHaveAttribute('data-slot', 'avatar-group')
 	})
 
 	it.each(['sm', 'md', 'lg'] as const)('writes the %s size as the scope of its avatars', (size) => {

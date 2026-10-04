@@ -8,6 +8,13 @@ const { palette } = iro
 const { rounded } = kasane
 const { flex } = narabi
 
+/**
+ * The negative margin of an avatar in a SidebarItem. It lands on the element in
+ * the flow of the row: the circle, the status wrapper, or the skeleton. The row
+ * then keeps the height of a row with an icon.
+ */
+const sidebarItemMargin = '[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5'
+
 export const k = defineRecipe(
 	{
 		base: [
@@ -23,7 +30,7 @@ export const k = defineRecipe(
 			// its own `data-slot` changes in the mini rail. Each class selects the
 			// avatar itself, so Chromium tests the rule only against the avatars.
 			dan.size.avatarInSidebarItem,
-			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5',
+			sidebarItemMargin,
 		],
 		variant: {
 			solid: 'border border-transparent text-white',
@@ -32,11 +39,22 @@ export const k = defineRecipe(
 		},
 		palette: definePalette(basePalette(palette)),
 		defaults: { variant: 'solid', color: 'zinc' },
-		skeleton: kokkaku.avatar,
+		// The skeleton takes the size and the margin of an avatar in a SidebarItem,
+		// so the row keeps its height when the avatar replaces the skeleton.
+		skeleton: {
+			...kokkaku.avatar,
+			base: [...kokkaku.avatar.base, dan.size.avatarInSidebarItem, sidebarItemMargin],
+		},
 	},
 	{
 		initials: 'select-none fill-current text-[48px] font-medium uppercase',
 		image: 'size-full object-cover',
+		/**
+		 * The wrapper of an avatar with a status. It fits the circle, so a stretching
+		 * flex or grid parent cannot widen it and move the dot off the circle. In a
+		 * SidebarItem, the wrapper is in the flow of the row, so it takes the margin.
+		 */
+		withStatus: ['relative inline-flex size-fit', sidebarItemMargin],
 		/** Avatar-group container classes. */
 		group: {
 			base: flex.row,
