@@ -31,7 +31,8 @@ export function AspectRatio({
 		<div
 			data-slot="aspect-ratio"
 			className={cn('overflow-hidden', isPreset && k.ratio[ratio], className)}
-			style={isPreset ? style : { aspectRatio: ratio, ...style }}
+			// The consumer style spreads first, and the ratio wins (CONVENTIONS.md §3.9).
+			style={isPreset ? style : { ...style, aspectRatio: ratio }}
 			{...props}
 		>
 			{children}
