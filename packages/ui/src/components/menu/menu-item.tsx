@@ -16,6 +16,10 @@ import {
 import { useMenuRowPointer } from './use-menu-pointer'
 
 type MenuItemBaseProps = {
+	/**
+	 * Disables the item, so that it cannot be selected.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	className?: string
 	children?: ReactNode

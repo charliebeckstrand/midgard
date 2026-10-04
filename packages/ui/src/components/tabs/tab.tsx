@@ -25,6 +25,10 @@ export type TabProps = {
 	 * @defaultValue false
 	 */
 	stretch?: boolean
+	/**
+	 * Disables the tab, so that it cannot be selected.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	/**
 	 * Fires once when the user first signals intent to open an inactive tab, with

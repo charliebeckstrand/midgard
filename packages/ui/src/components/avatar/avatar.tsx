@@ -21,7 +21,10 @@ function cssUrl(src: string): string {
 export type AvatarProps = AvatarVariants & {
 	/** The URL of the image. It paints as a CSS background over the initials. */
 	src?: string | null
-	/** The accessible name of the avatar. An empty `alt` makes the avatar decorative. */
+	/**
+	 * The accessible name of the avatar. An empty `alt` makes the avatar decorative.
+	 * @defaultValue ''
+	 */
 	alt?: string
 	initials?: string
 	status?: Status

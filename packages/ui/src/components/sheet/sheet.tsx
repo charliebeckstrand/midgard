@@ -58,7 +58,10 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 		width?: SheetPanelVariants['width']
 		/** Controlled open state. Pair with `onOpenChange`. */
 		open?: boolean
-		/** Initial open state when uncontrolled. */
+		/**
+		 * Initial open state when uncontrolled.
+		 * @defaultValue false
+		 */
 		defaultOpen?: boolean
 		/**
 		 * Give the panel a drag handle. The reader can then resize it past the `width`

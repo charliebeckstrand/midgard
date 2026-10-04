@@ -75,6 +75,10 @@ export type AlertProps = AlertVariants & {
 	 * defaults stop at a portal, such as a dialog that an action opens.
 	 */
 	actions?: ReactNode
+	/**
+	 * Shows a close button that dismisses the alert.
+	 * @defaultValue false
+	 */
 	closable?: boolean
 	/** Initial open state (uncontrolled). @defaultValue true */
 	defaultOpen?: boolean

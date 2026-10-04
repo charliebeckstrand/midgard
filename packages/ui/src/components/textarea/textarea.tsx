@@ -38,7 +38,12 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	invalid?: boolean
 	/** Controlled value. `undefined` leaves the textarea uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: ComponentProps<'textarea'>['value'] | null
-} & Omit<ComponentProps<'textarea'>, 'className' | 'size' | 'value'>
+	/**
+	 * The visible height in lines. With `autoResize`, it is the minimum height.
+	 * @defaultValue 3
+	 */
+	rows?: ComponentProps<'textarea'>['rows']
+} & Omit<ComponentProps<'textarea'>, 'className' | 'size' | 'value' | 'rows'>
 
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.

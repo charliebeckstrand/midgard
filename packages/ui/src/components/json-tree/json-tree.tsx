@@ -28,7 +28,10 @@ export type JsonTreeProps = {
 	data: JsonValue
 	/** Root label (renders as the root key). */
 	rootKey?: string
-	/** Nested levels open by default. Pass `Infinity` to expand everything. */
+	/**
+	 * Nested levels open by default. Pass `Infinity` to expand everything.
+	 * @defaultValue 1
+	 */
 	defaultExpandDepth?: number
 	/**
 	 * Controlled set of expanded node paths. When provided, the tree becomes

@@ -29,9 +29,10 @@ export type CreditCardInputExpiryProps = Omit<
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
 	 * `<Message>` wired into the field's `aria-describedby`. Pass `null` (or
-	 * `false`) to suppress it and supply your own.
+	 * `false`) to suppress it and supply your own. The default message is
+	 * "Enter a valid expiration date (MM/YY)".
 	 *
-	 * @defaultValue `Enter a valid expiration date (MM/YY)`
+	 * @defaultValue {@link DEFAULT_INVALID_MESSAGE}
 	 */
 	invalidMessage?: ReactNode
 }

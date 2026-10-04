@@ -13,7 +13,10 @@ export type PopoverProps = {
 	placement?: Placement
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
-	/** Initial open state when uncontrolled. */
+	/**
+	 * Initial open state when uncontrolled.
+	 * @defaultValue false
+	 */
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
 	/**
