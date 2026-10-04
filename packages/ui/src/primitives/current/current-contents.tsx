@@ -42,6 +42,7 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
 	 * An `active` outgoing panel stays mounted until its fade-out completes, then
 	 * unmounts.
 	 *
+	 * @defaultValue 'active'
 	 * @see {@link CurrentMount}
 	 */
 	mount?: CurrentMount

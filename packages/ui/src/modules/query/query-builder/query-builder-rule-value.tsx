@@ -16,7 +16,10 @@ export type QueryBuilderRuleValueProps = {
 	field: QueryField
 	value: unknown
 	onValueChange: (value: unknown) => void
-	/** When true, edit a two-bound `[min, max]` tuple (the operator is a range). */
+	/**
+	 * When true, edit a two-bound `[min, max]` tuple (the operator is a range).
+	 * @defaultValue false
+	 */
 	range?: boolean
 	className?: string
 }

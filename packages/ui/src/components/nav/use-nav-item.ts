@@ -25,7 +25,10 @@ export type NavItemProps = {
 	icon?: ReactElement
 	current?: boolean
 	className?: string
-	/** Keep an enclosing offcanvas drawer open on click instead of dismissing it. */
+	/**
+	 * Keep an enclosing offcanvas drawer open on click instead of dismissing it.
+	 * @defaultValue false
+	 */
 	preventClose?: boolean
 	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
 	prefix?: ReactNode

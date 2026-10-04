@@ -7,6 +7,10 @@ import { TableRow } from './table-row'
 /** Props for {@link TableLoading}: the `columns` count per row, and the number of placeholder `rows`. */
 export type TableLoadingProps = {
 	columns: number
+	/**
+	 * The number of placeholder rows.
+	 * @defaultValue 2
+	 */
 	rows?: number
 }
 
@@ -19,8 +23,6 @@ export type TableLoadingProps = {
  * skeleton cells as an empty table. The body has no live region, because a
  * `<tbody>` cannot hold one. To announce the load, the page must own a live
  * region.
- *
- * @defaultValue rows `2`
  */
 export function TableLoading({ columns, rows = 2 }: TableLoadingProps) {
 	const rowKeys = rangeKeys(rows, 'row')

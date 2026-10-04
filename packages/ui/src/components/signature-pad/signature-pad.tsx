@@ -39,7 +39,7 @@ export type SignaturePadProps = {
 	 * Placeholder rendered over an empty pad. A disabled or read-only pad
 	 * hides it, because the pad takes no stroke.
 	 *
-	 * @defaultValue `'Sign here'`
+	 * @defaultValue 'Sign here'
 	 */
 	placeholder?: string
 	/**
@@ -52,19 +52,19 @@ export type SignaturePadProps = {
 	/**
 	 * Stroke width in CSS pixels.
 	 *
-	 * @defaultValue `2`
+	 * @defaultValue 2
 	 */
 	strokeWidth?: number
 	/**
 	 * Render the built-in clear button.
 	 *
-	 * @defaultValue `true`
+	 * @defaultValue true
 	 */
 	clearable?: boolean
 	/**
 	 * Accessible name for the canvas; `, empty` is appended while no stroke is present.
 	 *
-	 * @defaultValue `'Signature'`
+	 * @defaultValue 'Signature'
 	 */
 	'aria-label'?: string
 	ref?: Ref<SignaturePadHandle>

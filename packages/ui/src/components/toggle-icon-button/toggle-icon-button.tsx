@@ -29,7 +29,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	icon: ReactElement
 	/**
 	 * Icon shown in the pressed state.
-	 * @defaultValue `icon`
+	 * @defaultValue icon
 	 */
 	pressedIcon?: ReactElement
 	/**

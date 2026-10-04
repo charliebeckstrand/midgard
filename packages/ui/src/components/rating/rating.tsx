@@ -98,8 +98,9 @@ export type RatingProps = RatingVariants & {
 	/**
 	 * The readout, for the score in the display form's accessible name and for
 	 * each star's own name in the interactive one. Say what the stars mean where they mean
-	 * something particular: `` (v) => `${v} of 5 — ${LEVELS[v]}` ``.
-	 * @defaultValue `` `${value} out of ${count} stars` ``
+	 * something particular: `` (v) => `${v} of 5 — ${LEVELS[v]}` ``. The
+	 * default readout is `` `${value} out of ${count} stars` ``.
+	 * @defaultValue {@link defaultValueText}
 	 */
 	getValueText?: (value: number, count: number) => string
 	/** Id for the row; resolves through the explicit prop, then an enclosing `<Control>` / `<Field>`. */

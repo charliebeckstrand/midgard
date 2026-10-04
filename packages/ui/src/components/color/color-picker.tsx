@@ -22,7 +22,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	/**
 	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
 	 *
-	 * @defaultValue `false`
+	 * @defaultValue false
 	 */
 	alpha?: boolean
 	/**
@@ -34,7 +34,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	/**
 	 * Floating placement of the panel relative to the trigger.
 	 *
-	 * @defaultValue `'bottom-start'`
+	 * @defaultValue 'bottom-start'
 	 */
 	placement?: Placement
 	/**

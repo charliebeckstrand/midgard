@@ -5,7 +5,12 @@ import { k } from '../../recipes/kata/table'
 /** Props for {@link TableHeader}: native `<th>` attributes, including a `ref` to the cell. */
 export type TableHeaderProps = {
 	className?: string
-} & Omit<ComponentProps<'th'>, 'className'>
+	/**
+	 * The cells that the header names.
+	 * @defaultValue 'col'
+	 */
+	scope?: ComponentProps<'th'>['scope']
+} & Omit<ComponentProps<'th'>, 'className' | 'scope'>
 
 /**
  * A header cell (`<th>`) within a {@link Table}, defaulting `scope="col"`.
@@ -16,7 +21,6 @@ export type TableHeaderProps = {
  *
  * @remarks Forwards `ref` to the underlying `<th>`, so a client caller can make
  * the cell a drag node (e.g. the data table's reorderable column headers).
- * @defaultValue scope `'col'`
  */
 export function TableHeader({
 	className,

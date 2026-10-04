@@ -26,7 +26,10 @@ export type SearchInputProps = Omit<
 	defaultValue?: string
 	/** Fires with the current query text; the value-first counterpart to `onChange`. */
 	onValueChange?: (value: string) => void
-	/** Replaces the clear button with a spinner suffix while a query is in flight. */
+	/**
+	 * Replaces the clear button with a spinner suffix while a query is in flight.
+	 * @defaultValue false
+	 */
 	loading?: boolean
 	/**
 	 * Renders a clear button in the suffix once the query is non-empty, under the

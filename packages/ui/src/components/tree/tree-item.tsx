@@ -38,6 +38,7 @@ export type TreeItemProps = {
 	 * `current` is not a selection. The tree has no selection model, so the row
 	 * gets no `aria-selected`. With `aria-selected` on one row, AT reads
 	 * "not selected" on each other row.
+	 * @defaultValue false
 	 */
 	current?: boolean
 	/**

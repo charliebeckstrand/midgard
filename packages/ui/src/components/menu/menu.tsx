@@ -23,6 +23,7 @@ export type MenuProps = {
 	 * Open state at mount, uncontrolled. With no `placement`, a `true` value also
 	 * selects the static inline mode. The panel then renders in place, traps no
 	 * focus, and never dismisses. With a `placement`, the dropdown starts open.
+	 * @defaultValue false
 	 */
 	defaultOpen?: boolean
 	/** Fires when the open state changes, in any of the three modes. */

@@ -385,6 +385,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Say it in words too. This is nothing at all to a screen reader, so a caption
 		 * or a status line remains the load's actual disclosure. This only stops the
 		 * drawn map lying in the meantime.
+		 * @defaultValue false
 		 */
 		pending?: boolean
 		/**

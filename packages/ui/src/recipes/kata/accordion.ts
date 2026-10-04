@@ -11,10 +11,15 @@ const { collapse, css } = ugoki
 
 const item = defineRecipe({
 	base: [
+		// Content in the item can read the `data-open` of the item through this group.
 		'group/accordion-item',
-		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-2',
-		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-blue-500',
-		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
+		// The item rings while its own header button has keyboard focus. A nested
+		// accordion is in the panel, so the focus of a nested header does not ring the
+		// item. The variant is arbitrary because `not-has-[]` wraps its selector in
+		// `:is()`, and `:is()` matches a panel anywhere above the button, not only in the item.
+		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-2',
+		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-blue-500',
+		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-inset',
 	],
 	variant: {
 		separated: ['overflow-hidden', rounded.lg, ...border.default],
@@ -41,13 +46,14 @@ export const k = defineRecipe(
 		slots: {
 			trigger: [
 				...header,
+				// The open look reads the `aria-expanded` of the button itself, and the
+				// indicator reads it through this group. A button cannot hold a button, so
+				// an open outer item does not give its look to a nested header.
+				'group/accordion-trigger',
 				text.muted,
 				fg.hover,
 				'text-start',
-				...mode(
-					'group-data-[open]/accordion-item:text-zinc-950',
-					'dark:group-data-[open]/accordion-item:text-white',
-				),
+				...mode('aria-expanded:text-zinc-950', 'dark:aria-expanded:text-white'),
 				'focus-visible:outline-none',
 				...disabled,
 				...cursor,
@@ -56,9 +62,13 @@ export const k = defineRecipe(
 				'shrink-0',
 				css.transform,
 				css.duration,
-				'group-data-[open]/accordion-item:rotate-180',
+				'group-aria-expanded/accordion-trigger:rotate-180',
 			],
-			panel: 'overflow-hidden',
+			// The panel adds nothing to the intrinsic width of the accordion. A host that
+			// fits its content thus keeps one width while a section opens and closes, and
+			// the text of an open panel wraps at that width. A block host sets the width
+			// itself, so there nothing changes.
+			panel: ['overflow-hidden', 'contain-inline-size'],
 			body: ['px-4 pb-4 pt-0', size.md, text.muted],
 		},
 		defaults: { variant: 'separated' },

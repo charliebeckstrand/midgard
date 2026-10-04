@@ -43,17 +43,17 @@ function cacheSet(key: string, value: string) {
 export type CodeBlockProps = {
 	/** Source to highlight; surrounding whitespace is trimmed before tokenizing. */
 	code: string
-	/** Shiki language grammar. @defaultValue `'tsx'` */
+	/** Shiki language grammar. @defaultValue 'tsx' */
 	lang?: BundledLanguage
-	/** Shiki color theme. @defaultValue `'github-dark-default'` */
+	/** Shiki color theme. @defaultValue 'github-dark-default' */
 	theme?: BundledTheme
-	/** Renders a CopyButton overlay. @defaultValue `true` */
+	/** Renders a CopyButton overlay. @defaultValue true */
 	copy?: boolean
 	/**
 	 * Accessible name of the scroll container. While a line overflows it, the
 	 * container is a region with this name.
 	 *
-	 * @defaultValue `'Code'`
+	 * @defaultValue 'Code'
 	 */
 	label?: string
 	className?: string

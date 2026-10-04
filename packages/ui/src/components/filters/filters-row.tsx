@@ -9,7 +9,10 @@ import { useFiltersAxis, useFiltersName } from './context'
 
 /** Props for {@link FiltersRow}: the bar's field row, plus the `equal` and scroll knobs it owns. */
 export type FiltersRowProps = {
-	/** Stretch each field to equal width. */
+	/**
+	 * Stretch each field to equal width.
+	 * @defaultValue false
+	 */
 	equal?: boolean
 	/**
 	 * Classes for the scrolling row itself, which only a `rail` has.

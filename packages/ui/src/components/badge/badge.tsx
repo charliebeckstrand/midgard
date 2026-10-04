@@ -34,7 +34,7 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * `size` fixes the chip at one step for each density.
  */
 export function Badge({
-	variant = 'solid',
+	variant,
 	color,
 	size,
 	radius,

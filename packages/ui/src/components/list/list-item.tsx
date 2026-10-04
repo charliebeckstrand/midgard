@@ -45,6 +45,7 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 * The row itself keeps square corners, so the dividers between rows stay
 	 * straight lines. The wash paints on a rounded layer inside the row, set in
 	 * from its edges. The keyboard focus ring stays on the square row.
+	 * @defaultValue false
 	 */
 	rounded?: boolean
 	className?: string

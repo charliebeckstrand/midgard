@@ -3,6 +3,7 @@
 import { type ComponentProps, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { Mount } from '../../primitives/mount'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'
@@ -14,13 +15,24 @@ import {
 } from './use-accordion-selection'
 
 /**
+ * The header buttons that the arrow keys move between: the enabled triggers of
+ * this accordion. `:scope` is the root that the roving hook queries from. A nested
+ * accordion is in a panel and moves between its own headers, so the query leaves
+ * out each trigger in a nested root. A closed panel under `always` or `lazy` keeps
+ * its nested root in the DOM but hidden. A move to a hidden button leaves the focus
+ * where it was, so the arrow keys could not pass that item.
+ */
+const TRIGGER_SELECTOR =
+	'[data-slot="accordion-trigger"]:not(:disabled):not(:scope [data-slot="accordion"] *)'
+
+/**
  * Props for {@link Accordion}. The `type` discriminant selects single- vs
  * multiple-open semantics and the matching `value`/`defaultValue`/`onValueChange`
  * shapes.
  */
 export type AccordionProps = (SingleProps | MultipleProps) &
 	AccordionVariants &
-	Omit<ComponentProps<'div'>, 'className' | 'onKeyDown' | 'value' | 'defaultValue' | 'onChange'> & {
+	Omit<ComponentProps<'div'>, 'className' | 'value' | 'defaultValue' | 'onChange'> & {
 		/**
 		 * How item panels are held while closed.
 		 *
@@ -92,6 +104,7 @@ export function Accordion(props: AccordionProps) {
 		onOpenComplete,
 		className,
 		children,
+		ref: consumerRef,
 		type: _type,
 		value: _value,
 		defaultValue: _defaultValue,
@@ -100,7 +113,7 @@ export function Accordion(props: AccordionProps) {
 		...rest
 	} = props
 
-	const { openStore, toggle } = useAccordionSelection(props)
+	const { openStore, toggle, collapsible } = useAccordionSelection(props)
 
 	// A stable event, so the context memo does not key on the caller's callback. That
 	// callback would otherwise be the one unstable member, and each item and panel
@@ -111,12 +124,13 @@ export function Accordion(props: AccordionProps) {
 
 	const ref = useRef<HTMLDivElement>(null)
 
+	// Roving reads `ref`, so a consumer `ref` joins it.
+	const setRoot = useComposedRef(ref, consumerRef)
+
 	// Each header button runs the handler. The container has no role in the
-	// WAI-ARIA accordion pattern, so it takes no key handler. The handler finds
-	// the buttons in the container.
-	const handleTriggerKeyDown = useA11yRoving(ref, {
-		itemSelector: '[data-slot="accordion-trigger"]:not(:disabled)',
-	})
+	// WAI-ARIA accordion pattern, so the library puts no key handler on it. The
+	// handler finds the buttons in the container.
+	const handleTriggerKeyDown = useA11yRoving(ref, { itemSelector: TRIGGER_SELECTOR })
 
 	const context = useMemo(
 		() => ({
@@ -125,15 +139,25 @@ export function Accordion(props: AccordionProps) {
 			region,
 			openStore,
 			toggle,
+			collapsible,
 			onOpenComplete: reportOpenComplete,
 			onTriggerKeyDown: handleTriggerKeyDown,
 		}),
-		[variant, mount, region, openStore, toggle, reportOpenComplete, handleTriggerKeyDown],
+		[
+			variant,
+			mount,
+			region,
+			openStore,
+			toggle,
+			collapsible,
+			reportOpenComplete,
+			handleTriggerKeyDown,
+		],
 	)
 
 	return (
 		<AccordionContext value={context}>
-			<div {...rest} ref={ref} data-slot="accordion" className={cn(k({ variant }), className)}>
+			<div {...rest} ref={setRoot} data-slot="accordion" className={cn(k({ variant }), className)}>
 				{children}
 			</div>
 		</AccordionContext>
