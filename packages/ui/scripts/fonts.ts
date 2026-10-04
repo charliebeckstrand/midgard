@@ -13,9 +13,8 @@
  * into subsets by script, as Google Fonts does. Each subset is a face of the
  * same family with a `unicode-range`. The browser thus downloads only the
  * subsets that the text of a page uses, and the pages preload only `latin`.
- * Each subset keeps the full optical size axis, because the browser sets the
- * optical size from the font size. It keeps the weights from 300 to 900, and
- * only the layout features that ui uses.
+ * Each subset keeps the weights from 300 to 900, the optical sizes from 10 to
+ * 18, and only the layout features that ui uses.
  *
  * Capsize reads the metrics of the font: the ascent, the descent, the line
  * gap, and the average width of the letters by their frequency in text. It
@@ -55,6 +54,16 @@ export const FONTS_CSS = fileURLToPath(new URL('fonts.css', FONT_DIR))
 
 /** The weights that ui and the apps use, from `font-light` to `font-black`. */
 const WEIGHT = { min: 300, max: 900 }
+
+/**
+ * The optical sizes that the subsets keep. The browser sets the optical size
+ * from the font size, in pixels, and holds it inside this range. The smallest
+ * text of ui is 10 px, so text from 10 to 18 px renders as in the source font.
+ * Larger text uses the design for 18 px. A line at 24 px is 0.4% wider, and
+ * the largest text of ui, at 48 px, is about 2% wider. The cap removes the
+ * large designs, so the subsets are about a third smaller.
+ */
+const OPTICAL_SIZE = { min: 10, max: 18 }
 
 /**
  * The layout features that the subsets keep. A browser applies the first
@@ -170,7 +179,7 @@ export async function subsetBytes(subset: FontSubset): Promise<Buffer> {
 	return subsetFont(await readFile(SOURCE_FONT), String.fromCodePoint(...subset.codePoints), {
 		targetFormat: 'woff2',
 		keepFeatures: FEATURES,
-		variationAxes: { wght: WEIGHT },
+		variationAxes: { wght: WEIGHT, opsz: OPTICAL_SIZE },
 	})
 }
 
