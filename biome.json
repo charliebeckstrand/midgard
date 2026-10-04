@@ -629,7 +629,6 @@
 			"!**/.react-router",
 			"!**/.turbo",
 			"!**/next-env.d.ts",
-			"!.mcp-servers",
 			"!.claude/worktrees",
 			"!.claude/skills"
 		],

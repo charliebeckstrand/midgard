@@ -1,6 +1,5 @@
 {
 	"$schema": "https://unpkg.com/knip@6/schema.json",
-	"ignore": [".mcp-servers/**"],
 	"ignoreUnresolved": ["next"],
 	"ignoreExportsUsedInFile": true,
 	"workspaces": {
