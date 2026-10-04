@@ -51,6 +51,20 @@ export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
 	: { size?: S; className?: string }
 
 /**
+ * Props of a {@link createSkeleton} component built from a sized recipe: the
+ * {@link SkeletonProps}, with the default of `size`.
+ * @internal
+ */
+type SizedSkeletonProps<S extends DensityStep> = {
+	/**
+	 * The size of the component that the silhouette stands in for.
+	 * @defaultValue 'md'
+	 */
+	size?: S
+	className?: string
+}
+
+/**
  * Build a skeleton component from a recipe's `skeleton` surface, rendering a
  * `<Placeholder>` that carries the recipe's shape classes.
  *
@@ -84,7 +98,7 @@ export function createSkeleton<S extends DensityStep = DensityStep>(
 export function createSkeleton<S extends DensityStep>(
 	skeleton: SizedSkeletonRecipe<S>,
 	name: string,
-): (props: SkeletonProps<S>) => ReactElement
+): (props: SizedSkeletonProps<S>) => ReactElement
 export function createSkeleton(
 	skeleton: BaseSkeletonRecipe,
 	name: string,

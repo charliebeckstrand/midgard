@@ -34,10 +34,11 @@ The docs read the tag, so each component that uses the type shows the default. A
 The same rule applies to the props of each public component. Each default that a user of the component gets is a `@defaultValue` tag on the declaration of the prop. The gate reads the components through the TS 7 checker and fails on these conditions:
 
 - A destructured default (`{ size = 'md' }` in the parameter, or `const { size = 'md' } = props` in the body) does not have one tag that equals it. A constant with a primitive value reads as that value. Another name reads as the name or as `{@link name}`.
+- A fallback on an optional prop with no destructured default (`ariaLabel ?? 'Rating'`, or `props.format ?? 'hex'`) does not have one tag that equals it. The fallback must be a literal or a `const` at the top level of a module. The result of the `??` must be the value of the prop at that place: a JSX attribute or child, a property, or a variable. A fallback in a call argument, in a destructure, or in the fallback of another `??` is a default of that computation.
 - A prop that the component gives unset to a recipe axis with a default does not have one tag that equals the recipe default. This rule also reads the recipes that no exported type reaches.
 - The TSDoc of the component has a `@defaultValue` tag. Put the tag on the prop.
 
-The gate does not read the `data-*` props, because the docs do not show them. An optional flag that is off when it is unset has the tag `false`. The gate does not read these flags.
+The gate does not read the `data-*` props, because the docs do not show them. It reads only the body of the component. Thus it does not read the tag of a default that a hook or a factory applies. Examples are the `aspectRatio` of the cartesian charts and the `size` of a sized `createSkeleton` component. An optional flag that is off when it is unset has the tag `false`. The gate does not read these flags.
 
 When a component would read kiso tokens directly (`kokkaku.<name>` for skeletons, `ugoki.<thing>` for motion, the popover bundle for popover content), the kata re-exposes them as `k.skeleton`, `k.motion`, `k.content`. The component imports only its kata; the reach into kiso and katakana stops there.
 

@@ -11,6 +11,7 @@ export type ContextMenuProps = ContextMenuConfig & {
 	/**
 	 * The host's built-in items, shown unless `defaultItems` is off. A consumer
 	 * embedding a bare menu leaves this empty and supplies `items`.
+	 * @defaultValue []
 	 */
 	defaults?: ContextMenuItem[]
 	/**

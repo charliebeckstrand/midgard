@@ -53,6 +53,11 @@ export type StepperProps = Omit<
 	 * @defaultValue false
 	 */
 	linear?: boolean
+	/**
+	 * The axis of the row. Omit it to get the responsive layout: vertical below
+	 * `sm`, and horizontal from it.
+	 * @defaultValue 'responsive'
+	 */
 	orientation?: StepperOrientation
 	/**
 	 * How {@link StepperPanel}s off the current step are held.

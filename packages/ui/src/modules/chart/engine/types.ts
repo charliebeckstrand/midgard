@@ -340,6 +340,14 @@ export type ChartBaseProps<T> = AccessibleName & {
  */
 export type CartesianFrameProps = {
 	/**
+	 * Height as a ratio of the width: a `width / height` number, a `"16/9"`
+	 * string, or `false` to fall back to the frame's own height policy. An
+	 * explicit `height` wins over it. {@link ChartBaseProps.aspectRatio} gives
+	 * the full rules.
+	 * @defaultValue '16/9'
+	 */
+	aspectRatio?: ChartAspectRatio
+	/**
 	 * The chart's axes. `true` (the default) draws the value and category axes
 	 * at their defaults; `false` drops the axis chrome for a bare-marks plot.
 	 * The object form configures each axis under its own key, matching the names a
@@ -401,7 +409,8 @@ export type CartesianFrameProps = {
  *
  * @internal
  */
-export type CartesianChartProps<T> = ChartBaseProps<T> &
+export type CartesianChartProps<T> = AccessibleName &
+	Omit<ChartBaseProps<T>, 'aria-label' | 'aria-labelledby' | 'aspectRatio'> &
 	CartesianFrameProps & {
 		/** The series to plot, one mark set each; slot colors follow this order. */
 		series: ChartSeries<T>[]

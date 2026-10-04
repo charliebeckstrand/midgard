@@ -25,6 +25,10 @@ export type CreditCardInputProps = Omit<
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
 	defaultValue?: string
+	/**
+	 * The placeholder of the card number field.
+	 * @defaultValue '1234 1234 1234 1234'
+	 */
 	placeholder?: string
 	onValueChange?: (value: string) => void
 	/**

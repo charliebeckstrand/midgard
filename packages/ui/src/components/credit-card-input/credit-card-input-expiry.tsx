@@ -22,6 +22,10 @@ export type CreditCardInputExpiryProps = Omit<
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
 	defaultValue?: string
+	/**
+	 * The placeholder of the expiry field.
+	 * @defaultValue 'MM/YY'
+	 */
 	placeholder?: string
 	onValueChange?: (value: string) => void
 	/** Fires on every change with the expiry's month-range + not-in-past verdict. */
