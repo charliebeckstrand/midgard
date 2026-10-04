@@ -7,7 +7,7 @@ import { type FloatingPlacement, useFloatingDisclosure, useMediaQuery } from '..
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import type { scale } from '../../recipes/kata/menu'
 import { BREAKPOINT_WIDTHS } from '../../types/responsive'
-import { isNativeContextMenuRequest } from '../../utilities'
+import { isNativeContextMenuRequest, NO_HOVER_QUERY } from '../../utilities'
 import { snapMenuHeight } from './menu-viewport-utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
@@ -27,7 +27,7 @@ const MENU_ACTIVATION_KEYS = ['Enter', ' '] as const
  * asks for the phone, so an environment that matches nothing gets the popover.
  * @internal
  */
-const PHONE_QUERY = `(hover: none) and (width < ${BREAKPOINT_WIDTHS.sm})`
+const PHONE_QUERY = `${NO_HOVER_QUERY} and (width < ${BREAKPOINT_WIDTHS.sm})`
 
 type MenuStateOptions = {
 	open?: boolean

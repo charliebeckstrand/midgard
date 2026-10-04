@@ -8,10 +8,12 @@ import {
 	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
+	type CommandPaletteProps,
 	CommandPaletteText,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
-import { bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
+import { bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -25,9 +27,9 @@ function FilteredItems() {
 	).map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
 }
 
-function FilteredPalette() {
+function FilteredPalette({ onActiveChange }: Pick<CommandPaletteProps, 'onActiveChange'>) {
 	return (
-		<CommandPalette open onOpenChange={() => {}}>
+		<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
 			<FilteredItems />
 		</CommandPalette>
 	)
@@ -233,6 +235,45 @@ describe('CommandPalette active descendant', () => {
 		expect(screen.queryAllByRole('option')).toHaveLength(0)
 
 		expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-activedescendant')
+	})
+
+	// A phone has no hover. The reader taps a row there, so a highlight on the top
+	// result looks like a row that they picked.
+	it('clears the active item when the filter changes on a device with no hover', async () => {
+		stubMatchMedia((query) => query === NO_HOVER_QUERY)
+
+		const onActiveChange = vi.fn()
+
+		renderUI(<FilteredPalette onActiveChange={onActiveChange} />)
+
+		const user = setupUser()
+
+		const input = screen.getByRole('combobox')
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		await user.type(input, 'a')
+
+		const options = screen.getAllByRole('option')
+
+		expect(options).toHaveLength(3)
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		for (const option of options) {
+			expect(option).not.toHaveAttribute('data-active')
+
+			expect(option).not.toHaveAttribute('aria-selected', 'true')
+		}
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(null)
+
+		// An arrow key still sets the highlight, on the first option.
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
 
 	it('exposes a persistent no-results status region as a listbox sibling', () => {
@@ -707,6 +748,18 @@ describe('CommandPalette onActiveChange', () => {
 		await user.keyboard('{End}')
 
 		expect(onActiveChange).not.toHaveBeenCalled()
+	})
+
+	it('reports the top result on a filter change', async () => {
+		const onActiveChange = vi.fn()
+
+		renderUI(<FilteredPalette onActiveChange={onActiveChange} />)
+
+		const user = setupUser()
+
+		await user.type(screen.getByRole('combobox'), 'gam')
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(screen.getByRole('option').id)
 	})
 
 	it('reports null when the palette closes', async () => {

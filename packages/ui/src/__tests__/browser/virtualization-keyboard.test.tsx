@@ -8,7 +8,8 @@ import {
 	CommandPaletteLabel,
 } from '../../components/command-palette'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { renderUI, screen, waitFor } from '../helpers'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
+import { renderUI, screen, stubMatchMedia, waitFor } from '../helpers'
 
 /**
  * Keyboard-complete virtualization (real browser). `VirtualOptions` renders
@@ -86,6 +87,28 @@ describe('Combobox + VirtualOptions: arrow reaches an option outside the window'
 		await userEvent.keyboard('{Enter}')
 
 		await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(LARGE_COUNT - 1))
+	})
+
+	// The arrow key is an explicit move. A device with no hover clears the
+	// highlight on a filter change, but not on this open.
+	it('seats the first option when ArrowDown opens it on a device with no hover', async () => {
+		stubMatchMedia((query) => query === NO_HOVER_QUERY)
+
+		renderUI(<LargeCombobox onValueChange={vi.fn()} />)
+
+		const input = screen.getByRole('combobox')
+
+		// Focus opens the menu, so close it first. The input keeps focus, and the
+		// next ArrowDown opens the menu.
+		await userEvent.click(input)
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		await waitFor(() => expect(input.getAttribute('aria-activedescendant')).toBe('combo-opt-0'))
 	})
 })
 

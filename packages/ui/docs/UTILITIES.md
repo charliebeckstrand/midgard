@@ -80,6 +80,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
+| `NO_HOVER_QUERY` | The `(hover: none)` query, which matches a device with no hover, such as a phone. |
 | `REDUCED_MOTION_QUERY` | The `(prefers-reduced-motion: reduce)` query, for a caller that reads it outside React. |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 | `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content. A gutter press starts a pan, so a floating surface does not dismiss for it and no selection follows it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. The border widths are not part of the gutter. |

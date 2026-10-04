@@ -27,6 +27,14 @@ export const layout = {
 	 * left in a kata, is a step of dead space no test would catch.
 	 */
 	flush: '-mb-4',
+	/**
+	 * Puts the gap of `base` above a child that follows a sibling. A list in the
+	 * body uses it to keep the rhythm of the panel slots. The groups of a command
+	 * palette below its search input are an example.
+	 *
+	 * Here, beside the gap it repeats, for the reason that `flush` gives.
+	 */
+	gapAbove: 'not-first:mt-4',
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',
 	/** Color and leading only; weight and font size are derived from the heading scale by the Title component. */

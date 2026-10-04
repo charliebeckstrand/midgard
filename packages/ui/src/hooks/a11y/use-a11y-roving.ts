@@ -7,6 +7,7 @@ import {
 	nextIndexForKey,
 	wrap,
 } from '../../utilities/keyboard-navigation'
+import { matchesMediaQuery, NO_HOVER_QUERY } from '../../utilities/media-query'
 import { useScrollWithin } from '../use-scroll-within'
 import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
@@ -330,10 +331,15 @@ export function clearVirtualActiveIndexed(
  * Seeds the virtual highlight to the top match, or clears it when there is
  * none. That is index 0 of `source` when a `VirtualOptions` has registered
  * one, else the first DOM `itemSelector` match. The owner-side move `Combobox`
- * and `CommandPalette` make on each filter change, so `data-active` /
- * `aria-activedescendant` always point at a live option. Kept here so the
- * source-vs-DOM branch stays in one place as more owners adopt an indexed
- * source.
+ * and `CommandPalette` make when the result set changes under the reader, so
+ * `data-active` / `aria-activedescendant` always point at a live option. Kept
+ * here so the source-vs-DOM branch stays in one place as more owners adopt an
+ * indexed source.
+ *
+ * On a device with no hover ({@link NO_HOVER_QUERY}), it clears the highlight.
+ * The reader taps a row there, so a seeded row looks like a row that they
+ * picked. An arrow key still sets the highlight. An owner that seats the
+ * highlight for an explicit key calls {@link setVirtualActiveIndexed} instead.
  *
  * @internal
  */
@@ -345,11 +351,15 @@ export function seedVirtualTopMatch(
 	activeDescendantRef: RefObject<HTMLElement | null>,
 	options?: { ariaSelected?: boolean },
 ): void {
+	// The count test comes first: an empty list clears on every device, so it
+	// needs no media query.
+	const seed = (count: number) => count > 0 && !matchesMediaQuery(NO_HOVER_QUERY)
+
 	if (source) {
 		setVirtualActiveIndexed(
 			container,
 			source,
-			source.count > 0 ? 0 : -1,
+			seed(source.count) ? 0 : -1,
 			activeIndexRef,
 			activeDescendantRef,
 			options,
@@ -360,7 +370,7 @@ export function seedVirtualTopMatch(
 
 	const items = queryItems(container, itemSelector)
 
-	setVirtualActive(items, items.length > 0 ? 0 : -1, activeDescendantRef, options)
+	setVirtualActive(items, seed(items.length) ? 0 : -1, activeDescendantRef, options)
 }
 
 /**

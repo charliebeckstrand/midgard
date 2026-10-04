@@ -1,6 +1,13 @@
 /** The media query that matches when the reader asks the platform for reduced motion. */
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
+/**
+ * The media query that matches a device with no hover, such as a phone. It asks
+ * for the device with no hover, so an environment that matches nothing, such as
+ * jsdom, takes the path of a device with hover.
+ */
+export const NO_HOVER_QUERY = '(hover: none)'
+
 type Registry = {
 	mql: MediaQueryList
 	handlers: Set<() => void>

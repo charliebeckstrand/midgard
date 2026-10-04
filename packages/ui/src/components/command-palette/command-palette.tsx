@@ -30,8 +30,9 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	 * `aria-activedescendant`, so the only readout was that attribute. Use it to
 	 * preview the highlighted command beside the palette, or to prefetch what it
 	 * will need. An arrow key, a filter change that reseats the highlight on the
-	 * top result, and the close that clears it all report. The id is the one the
-	 * option renders with — `getOptionId` mints it for a windowed list.
+	 * top result, and the close that clears it all report. On a device with no
+	 * hover, a filter change clears the highlight and reports `null`. The id is
+	 * the one the option renders with — `getOptionId` mints it for a windowed list.
 	 */
 	onActiveChange?: (optionId: string | null) => void
 	/**
@@ -86,9 +87,12 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  *
  * @remarks Focus moves into the search input on open via the Dialog
  * `initialFocus`. Arrow keys drive a virtual roving highlight via
- * `aria-activedescendant` while focus stays on the input. The listbox owns only
- * options (`aria-required-children`), so the no-results message lives in a
- * sibling live `<output>` that announces when the filtered set empties. A
+ * `aria-activedescendant` while focus stays on the input. A filter change
+ * moves the highlight to the top result, so Enter runs it. On a device with no
+ * hover, such as a phone, a filter change clears the highlight, and only an
+ * arrow key sets it. The listbox owns only options (`aria-required-children`),
+ * so the no-results message lives in a sibling live `<output>` that announces
+ * when the filtered set empties. A
  * `VirtualOptions` inside `children` registers its windowed item source
  * automatically, so the highlight reaches items outside the rendered window.
  * Roving type-ahead stays off: the search input owns every printable key.
