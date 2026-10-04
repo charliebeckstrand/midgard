@@ -58,8 +58,9 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * bar that sticks to the top. The navbar is a region named "Navigation bar", which
  * holds the menu button, `navbar`, and `actions`. The header scrolls with the
  * content. From `lg` up, the desktop panel sticks to the top, has the height of
- * the viewport, and scrolls on its own. There, `stickyHeader` keeps the header at
- * the top of the page.
+ * the viewport, and scrolls on its own. A scroll that reaches the end of the
+ * panel stops there, and the page does not move. There, `stickyHeader` keeps the
+ * header at the top of the page.
  *
  * To show the layout inside another page, put it in a box that has a height and
  * scrolls. Make the box a size container (`@container-size`). The layout then
