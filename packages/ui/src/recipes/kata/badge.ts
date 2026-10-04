@@ -10,7 +10,7 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { extended } = iro
@@ -18,6 +18,21 @@ const { weight } = ji
 const { rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
+const { focus } = sen
+
+/**
+ * The hover wash of a link badge: one compound rule for each variant and color,
+ * from the hover slot of the palette. A Button of the same variant and color
+ * takes the same wash.
+ */
+const linkHover = (['solid', 'soft', 'outline', 'plain'] as const).flatMap((variant) =>
+	Object.entries(extended[variant].hover).map(([color, hover]) => ({
+		variant,
+		color,
+		interactive: true,
+		class: hover,
+	})),
+)
 
 export const k = defineRecipe(
 	{
@@ -26,6 +41,9 @@ export const k = defineRecipe(
 			flex.inline,
 			'w-fit',
 			weight.medium,
+			// The ring shows only on keyboard focus, so a label badge, which takes no
+			// focus, never shows it.
+			focus.ring,
 			// A uniform 4px height scale: the type ramp (text-xs → text-lg) sets the
 			// step while vertical padding holds constant (`py-ring-1`), landing
 			// xs/sm/md/lg on 22/26/30/34px. `md` matches a `sm` Button's 30px box.
@@ -49,6 +67,13 @@ export const k = defineRecipe(
 			outline: 'ring-1 ring-inset',
 		},
 		radius: rounded,
+		// A badge with an `href` is a link, and it takes the hover wash of its
+		// variant and color. The classes are in the compound rules (`linkHover`). A
+		// badge with no `href` is a label, so the pointer gets no response from it.
+		interactive: {
+			true: '',
+			false: '',
+		},
 		// Opt into the wide palette: Badge's `color` axis carries the standard set
 		// plus the extended hues (rose / violet / sky).
 		palette: definePalette({
@@ -62,8 +87,8 @@ export const k = defineRecipe(
 		// `px` stops jump 0.5 (1.5 → 2 → 2.5), so lifting only the small end would
 		// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
 		// base scale — and the affix `px` lockstep keyed off it — stays put.
-		compound: [{ radius: 'full', class: dan.space.badge.pill }],
-		defaults: { variant: 'solid', color: 'zinc', radius: 'md' },
+		compound: [{ radius: 'full', class: dan.space.badge.pill }, ...linkHover],
+		defaults: { variant: 'solid', color: 'zinc', radius: 'md', interactive: false },
 		skeleton: badge,
 	},
 	{
@@ -93,14 +118,19 @@ export const scale = defineScale(
 	dan.size.badge.width,
 )
 
-/** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `radius`) and the `size` step, for consumers composing custom slots. */
-export type BadgeVariants = Omit<VariantProps<typeof k>, 'radius' | 'variant' | 'color'> & {
+/** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `radius`, `interactive`) and the `size` step, for consumers composing custom slots. */
+export type BadgeVariants = Omit<
+	VariantProps<typeof k>,
+	'radius' | 'variant' | 'color' | 'interactive'
+> & {
 	/** The corner radius of the badge. @defaultValue 'md' */
 	radius?: VariantProps<typeof k>['radius']
 	/** The fill style of the badge. @defaultValue 'solid' */
 	variant?: VariantProps<typeof k>['variant']
 	/** The palette color of the badge. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']
+	/** Whether the badge is a link, which takes a hover wash. @defaultValue false */
+	interactive?: VariantProps<typeof k>['interactive']
 	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>
 }

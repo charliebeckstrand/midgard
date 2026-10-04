@@ -1,7 +1,4 @@
-export type {
-	BreadcrumbItemVariants,
-	BreadcrumbLinkVariants,
-} from '../../recipes/kata/breadcrumb'
+export type { BreadcrumbLinkVariants } from '../../recipes/kata/breadcrumb'
 export { Breadcrumb, type BreadcrumbProps } from './breadcrumb'
 export { BreadcrumbItem, type BreadcrumbItemProps } from './breadcrumb-item'
 export { BreadcrumbLink, type BreadcrumbLinkProps } from './breadcrumb-link'

@@ -32,12 +32,13 @@
  * and stays on the base path of the control `px`, hence the
  * `:not([data-has-label])` scope.
  *
- * The bare arm keys on `data-variant`, not `data-slot`: a wrapper can
+ * The button arms key on `data-variant`, not `data-slot`: a wrapper can
  * hijack the slot id (e.g. `<TooltipTrigger>` rewrites a child's
  * `data-slot` to `tooltip-trigger`, as the `<PasswordInput>` toggle does),
- * but `data-variant` survives. It also stays exclusive to `<Button>`
- * (`<Badge>` emits only `data-slot=badge`) and matches the button whether
- * it renders as `<button>` or, with `href`, as `<a>`.
+ * but `data-variant` survives. On a `<button>` or an `<a>` it is exclusive
+ * to `<Button>`: `<Badge>` emits only `data-slot=badge`, and the
+ * `data-variant` of `<Swatch>` sits on a `<span>`. The arms match the
+ * button whether it renders as `<button>` or, with `href`, as `<a>`.
  *
  * Each slot writes `data-density="slot"`. The rungs read it as a scope one
  * step below the scope above it (`slotStep` in `core/density`): sm → xs,
@@ -76,13 +77,13 @@ export const affix = {
 	prefix: [
 		dan.space.affix.prefix,
 		'has-[[data-slot=badge]]:ps-ring-2',
-		'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
+		'has-[:is(button,a)[data-variant]:not([data-variant=bare])]:ps-ring-1.5',
 		dan.space.affix.bare.prefix,
 	],
 	suffix: [
 		dan.space.affix.suffix,
 		'has-[[data-slot=badge]]:pe-ring-2',
-		'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
+		'has-[:is(button,a)[data-variant]:not([data-variant=bare])]:pe-ring-1.5',
 		dan.space.affix.bare.suffix,
 	],
 	autofill: {

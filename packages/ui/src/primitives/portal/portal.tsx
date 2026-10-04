@@ -2,11 +2,11 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useEffectEvent, useLayoutEffect, useState } from 'react'
+import { type ReactNode, useEffectEvent, useId, useLayoutEffect, useState } from 'react'
 import { useDensityScope } from '../density'
 import { useDirectionScope } from '../direction'
 import { ReducedMotion } from '../reduced-motion'
-import { type PortalContainer, usePortalContainer } from './context'
+import { type PortalContainer, PortalScopeContext, usePortalContainer } from './context'
 
 /** Props for {@link Portal}. */
 export type PortalProps = {
@@ -24,6 +24,18 @@ export type PortalProps = {
 	onExitComplete?: () => void
 	/** The open surface, mounted while `open` and kept through its exit animation. */
 	children: ReactNode
+}
+
+/**
+ * Opens the portal scope of one mounted portal. A closed portal renders no
+ * scope, so it holds no id.
+ *
+ * @internal
+ */
+function PortalScope({ children }: { children: ReactNode }) {
+	const scope = useId()
+
+	return <PortalScopeContext value={scope}>{children}</PortalScopeContext>
 }
 
 /**
@@ -49,6 +61,9 @@ export type PortalProps = {
  * direction scope as `dir`. Outside a scope it writes nothing, and the surface
  * follows the root element. A host never makes a box, so it changes no
  * layout or positioning.
+ *
+ * Each portal also opens a portal scope (`usePortalScope`). A context that a
+ * surface keeps to itself ends there, such as the button defaults of an alert.
  *
  * A Suspense boundary or an `<Activity>` above the surface can hide it during its
  * exit. When the boundary reveals it, the exit completes at once, without the
@@ -97,9 +112,13 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 				dir={dir ?? undefined}
 				className="contents"
 			>
-				<ReducedMotion>
-					<AnimatePresence onExitComplete={handleExitComplete}>{open && children}</AnimatePresence>
-				</ReducedMotion>
+				<PortalScope>
+					<ReducedMotion>
+						<AnimatePresence onExitComplete={handleExitComplete}>
+							{open && children}
+						</AnimatePresence>
+					</ReducedMotion>
+				</PortalScope>
 			</div>
 		</FloatingPortal>
 	)

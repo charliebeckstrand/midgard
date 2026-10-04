@@ -99,7 +99,6 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 
 	return (
 		<Badge
-			data-slot="query-chip"
 			variant="outline"
 			radius="full"
 			className={cn(k.chip, badgeKata.removable)}

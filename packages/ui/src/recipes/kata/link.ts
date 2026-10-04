@@ -6,7 +6,10 @@ const { palette } = iro
 export const k = defineRecipe({
 	color: {
 		...palette.bare.text,
-		current: 'text-current dark:text-current',
+		// One class for both modes. A `dark:` half would outlive the merge with a host
+		// whose own text color has no `dark:` form, such as a solid Button or Badge that
+		// renders through Link, and would win over that color in dark mode.
+		current: 'text-current',
 	},
 	// An underline at rest: with the default `current` color, it is the only
 	// mark of the link (WCAG 1.4.1).

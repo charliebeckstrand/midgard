@@ -22,6 +22,21 @@ export const [PortalContext, usePortalContext] = createContext<PortalContainer>(
 })
 
 /**
+ * The id of the nearest {@link Portal}, or `null` outside each portal.
+ *
+ * @remarks
+ * React context crosses a portal, but a surface ends at one. A dialog that a
+ * button in an alert opens is not part of the alert. A context that a surface
+ * keeps to itself records this id where the surface provides it. A consumer in
+ * another portal reads another id, and ignores the context.
+ *
+ * @internal
+ */
+export const [PortalScopeContext, usePortalScope] = createContext<string | null>('PortalScope', {
+	default: null,
+})
+
+/**
  * Resolves the effective portal container for a single call site. An explicit
  * per-call `container` wins, then the ambient `<UIProvider>` value, then
  * `null` (the caller's own fallback).
