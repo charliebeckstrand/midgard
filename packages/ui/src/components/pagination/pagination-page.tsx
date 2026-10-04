@@ -35,12 +35,12 @@ export function PaginationPage({
 
 	return (
 		<li>
-			<span className={k.wrapper} {...tapHandlers}>
+			<span className={k.page.base} {...tapHandlers}>
 				<Polymorphic
 					as="button"
 					data-slot="pagination-page"
 					href={href}
-					className={cn(k.pageButton({ current }), className)}
+					className={cn(k.page.button({ current }), className)}
 					{...props}
 					// After the spread: `current` owns the state. A consumer value
 					// holds only while the page is not current.

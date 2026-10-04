@@ -42,7 +42,7 @@ export function StepperSkeleton({ steps = 3, orientation, className }: StepperSk
 	const title = <Placeholder className={cn(k.title({ orientation: layout }), k.skeleton.title)} />
 
 	return (
-		<div className={cn(k.root({ orientation: layout }), className)}>
+		<div className={cn(k.base({ orientation: layout }), className)}>
 			{stepKeys.map((stepKey, index) => (
 				<Fragment key={stepKey}>
 					{index > 0 && <div className={k.separator({ orientation: layout })} />}

@@ -89,7 +89,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 		)
 
 		return (
-			<div key={child.id} className="flex flex-col gap-3">
+			<div key={child.id} className={cn(k.group.base)}>
 				{reorderable && separator ? (
 					<div className={cn(k.sortable.separator)}>{separator}</div>
 				) : (
@@ -118,7 +118,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 			aria-label={root ? undefined : 'Condition group'}
 			className={cn(k.group.base, !root && k.group.nested, className)}
 		>
-			<div className={k.group.base}>
+			<div className={cn(k.group.base)}>
 				{group.children.length === 0 ? (
 					<Alert severity="warning" variant="soft" title="No rules added" className="w-full" />
 				) : reorderable ? (

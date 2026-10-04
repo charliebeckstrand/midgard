@@ -288,7 +288,7 @@ export function Alert({
 			</AlertContent>
 
 			{closable && (
-				<div className={cn(k.close, multiRow ? k.closeTitleRow : 'self-center')}>
+				<div className={cn(k.close.base, multiRow ? k.close.line : 'self-center')}>
 					<Button
 						type="button"
 						variant="plain"

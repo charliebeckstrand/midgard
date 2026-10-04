@@ -26,7 +26,7 @@ export const k = bridge.check(
 			'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
 			// The circle takes the step of the nearest density scope.
-			kokkaku.radio.circle,
+			radio.circle,
 		],
 		color,
 		skeleton: radio,

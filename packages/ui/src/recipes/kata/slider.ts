@@ -83,7 +83,7 @@ export const k = defineRecipe({
 	skeleton: kokkaku.slider,
 })
 
-/** The size scale of {@link Slider}: the steps of its padding and track. */
+/** The size scale of {@link Slider}: the steps of its padding, track, and thumb. */
 export const scale = defineScale(
 	dan.space.sliderY,
 	dan.size.sliderTrack,

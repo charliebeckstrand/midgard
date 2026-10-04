@@ -31,7 +31,7 @@ export function DrawerHandle({ handleProps, covers, controls, className }: Drawe
 			handleProps={handleProps}
 			covers={covers}
 			controls={controls}
-			className={cn(k.handle.area, className)}
+			className={cn(k.handle.base, className)}
 			bar={cn(k.handle.bar)}
 		/>
 	)

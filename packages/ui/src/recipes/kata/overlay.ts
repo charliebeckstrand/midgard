@@ -8,12 +8,12 @@ export const k = {
 	backdrop,
 	// Seals the page for a transaction. `Chrome`, floats, and toasts all
 	// sit above — see the `sou` ladder.
-	root: sou.overlay,
+	base: sou.overlay,
 	/**
-	 * The box of a root fixed to the viewport: the full viewport. The browser keeps
-	 * a fixed box clear of its own toolbars.
+	 * The box of an overlay fixed to the viewport: the full viewport. The browser
+	 * keeps a fixed box clear of its own toolbars.
 	 */
 	frame: 'fixed inset-0',
-	/** The box of a root scoped to a container: the full container. */
+	/** The box of an overlay scoped to a container: the full container. */
 	scoped: 'absolute inset-0',
 }

@@ -30,10 +30,10 @@ export const k = {
 	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: [description, onWash.muted],
-	check: mode('text-green-600', 'dark:text-green-500'),
 	/**
-	 * The size of the selected-state check icon. It is the `sm`, `md`, and `lg`
-	 * steps of `shaku.iconSize`, and each outer step takes the size of its neighbor.
+	 * The selected-state check icon: its color and its size. The size is the
+	 * `sm`, `md`, and `lg` steps of `shaku.iconSize`, and each outer step takes
+	 * the size of its neighbor.
 	 */
-	checkSize: dan.size.checkBox,
+	check: [...mode('text-green-600', 'dark:text-green-500'), dan.size.checkBox],
 } as const

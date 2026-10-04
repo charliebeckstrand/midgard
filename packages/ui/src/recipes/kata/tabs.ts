@@ -1,10 +1,10 @@
 /**
  * Tabs kata: serves both the underline `<Tabs>` list and the `<Segment>` box,
  * two units through one surface. Orientation-axed sub-recipes (`group`,
- * `list`, `scroll`, `tab`, `indicator`, `wrapper`, `trigger`) build the
- * underline tabs. `segment` reads the kiso segment recipe, which Segment and
- * Tabs share through this kata, and `skeleton` carries a loading placeholder
- * for each unit.
+ * `list`, `scroll`, `tab`, `indicator`) build the underline tabs. The
+ * `wrapper` and `trigger` sub-recipes have a `stretch` axis instead. `segment`
+ * reads the kiso segment recipe, which Segment and Tabs share through this
+ * kata, and `skeleton` carries a loading placeholder for each unit.
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'

@@ -88,7 +88,7 @@ export function DrawerStatic({
 	// for the real drawer must not find its static copy. The panel's group names and `data-*`
 	// hooks are the drawer's, because its slots and rows style off those.
 	return (
-		<div data-slot="drawer-static" className={cn(overlay.root, overlay.frame, rootClassName)}>
+		<div data-slot="drawer-static" className={cn(overlay.base, overlay.frame, rootClassName)}>
 			<div className={k.backdrop({ surface: resolvedSurface, desaturate })} aria-hidden="true" />
 			<PolymorphicStatic
 				as="div"
@@ -99,7 +99,7 @@ export function DrawerStatic({
 				data-handle={dataAttr(grip)}
 			>
 				{grip ? (
-					<div aria-hidden="true" className={cn(k.handle.area)}>
+					<div aria-hidden="true" className={cn(k.handle.base)}>
 						<div className={cn(k.handle.bar)} />
 					</div>
 				) : null}

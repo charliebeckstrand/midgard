@@ -2,8 +2,8 @@
  * Sheet kata: object-literal surface for the `<Sheet>` edge drawer, built by
  * bridging the shared `panel` recipe. The `panel` sub-recipe axes on `side`,
  * `width`, and `surface`. The `backdrop` mirrors the glass/flat surface. The
- * bridged `title` / `description` / `body` / `footer` slots, the `handle` drag
- * grip, and `motion` complete the dialog chrome.
+ * bridged `header` / `title` / `description` / `body` / `footer` slots, the
+ * `handle` drag grip, and `motion` complete the dialog chrome.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
@@ -97,15 +97,15 @@ export const k = {
 		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
 	}),
 	/**
-	 * The drag handle: a grab area tall enough to aim at, and the bar inside it
-	 * the reader actually sees.
+	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar
+	 * inside it the reader actually sees (`bar`).
 	 *
 	 * It rides the panel's inline edge rather than sitting in the flow, because a
 	 * sheet resizes across its own scrolling body. Laid out in the column with
 	 * the slots, the grip would scroll away from the edge it moves. On a sheet
-	 * docked to a side, the area is the full height, so the reach is the panel's
-	 * rather than the bar's. A sheet docked across gets a strip on its edge, not
-	 * a cover over the whole panel.
+	 * docked to a side, the grab area is the full height, so the reach is the
+	 * panel's rather than the bar's. A sheet docked across gets a strip on its
+	 * edge, not a cover over the whole panel.
 	 * `hannou.grab.default` carries the rest, including the `touch-none` that
 	 * makes the gesture work at all under a finger.
 	 *
@@ -113,7 +113,7 @@ export const k = {
 	 * leftward, so its grip is on the left.
 	 */
 	handle: {
-		area: [
+		base: [
 			flex.col,
 			// The same reach the drawer's grip has, turned on its side: `px-3` around
 			// a `w-1.5` bar is the `py-3` around its `h-1.5` one, so both panels are

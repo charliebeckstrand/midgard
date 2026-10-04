@@ -2,18 +2,18 @@
  * Query-builder kata: object-literal surface for the `<QueryBuilder>` rule
  * editor. No variants axis: flat slots for the `base` container, the
  * `group.base` and `group.nested` condition boxes, a `rule` row, and its
- * `remove` control. The rest are the fixed `value` text standing in for a
- * value-less operator's input, the AND/OR `separator`, and the `actions` cluster.
- * The `part` and `rangePart` slots size the parts of a rule row, and `parts`
- * holds them. The `sortable` slots hold a node and its drag `handle` when the
- * builder reorders.
+ * `remove` control. The rest are the fixed `value` text that stands in for the
+ * input of an operator with no value, and the `actions` cluster. The `parts`
+ * group holds the parts of a rule row (`parts.base`) and sizes each one
+ * (`parts.item`, and `parts.range` for a range value). The `sortable` slots hold
+ * a node, its drag `handle`, and the AND/OR `separator` when the builder reorders.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const { disabled, grab } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
@@ -21,7 +21,7 @@ const { border, focus } = sen
 export const k = {
 	base: [flex.col, 'gap-3 p-3', border.default, rounded.lg],
 	group: {
-		base: 'flex flex-col gap-3',
+		base: [flex.col, 'gap-3'],
 		nested: ['p-3', ...mode('bg-zinc-50', 'dark:bg-zinc-900/40'), border.default, rounded.lg],
 	},
 	rule: ['p-2.5', border.default, rounded.lg],
@@ -30,15 +30,16 @@ export const k = {
 	// two shares. The minimum width lets a part shrink past the intrinsic width
 	// of an input, so the shares hold. It also keeps the text of a part
 	// readable in a container that sizes to its content, where the equal shares
-	// otherwise cut the longest text. The `parts` row wraps a part that cannot
+	// otherwise cut the longest text. The row (`base`) wraps a part that cannot
 	// get its minimum to a new line. Below `sm` the parts stack, each at full
 	// width.
-	parts: 'sm:flex-wrap',
-	part: 'w-full sm:min-w-32 sm:flex-1',
-	rangePart: 'w-full sm:min-w-48 sm:flex-2',
+	parts: {
+		base: 'sm:flex-wrap',
+		item: 'w-full sm:min-w-32 sm:flex-1',
+		range: 'w-full sm:min-w-48 sm:flex-2',
+	},
 	remove: 'flex-none',
 	value: ['px-3', size.sm, ...text.muted],
-	separator: [size.xs, weight.medium, ...text.muted, 'uppercase'],
 	actions: 'flex items-center gap-2',
 	sortable: {
 		// The children of a group while they reorder. The box adds no layout, and
@@ -56,7 +57,8 @@ export const k = {
 		// and `p-2.5`, then half a control. Beside a group, it sits at the same
 		// height.
 		handle: [
-			'mt-4.5 flex size-6 shrink-0 items-center justify-center rounded-md',
+			'mt-4.5 flex size-6 shrink-0 items-center justify-center',
+			rounded.md,
 			...grab.default,
 			...text.muted,
 			...mode(

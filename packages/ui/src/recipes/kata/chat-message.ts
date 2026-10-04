@@ -103,18 +103,20 @@ export const k = defineRecipe(
 			// across two parts reads as prose split across two paragraphs. Carried by
 			// every part after the first, because the first sits flush.
 			part: 'mt-3',
-			// The embed's own box holds no look — the registered renderer draws a
-			// chart, a grid, or a map, and dictating a border or a fill here would
-			// fight it. It only refuses to push the bubble wider than the bubble is.
-			embed: 'max-w-full',
-			// The line a block draws when no renderer claims its name. Quiet, because
-			// it reports a gap rather than an error the reader can act on — but quiet
-			// by slant, never by color. `text.muted` is `onSurface.zinc`, which
-			// clears AA against the page and the card and says nothing about a tinted
-			// bubble: it lands at 3.8:1 on the assistant fill and worse on the user
-			// bubble's blue. This inherits the bubble's foreground instead, the same
-			// bargain the markdown kata takes, so the line reads on all four bubbles.
-			embedFallback: [size.md, 'italic'],
+			embed: {
+				// The embed's own box holds no look — the registered renderer draws a
+				// chart, a grid, or a map, and dictating a border or a fill here would
+				// fight it. It only refuses to push the bubble wider than the bubble is.
+				base: 'max-w-full',
+				// The line a block draws when no renderer claims its name. Quiet, because
+				// it reports a gap rather than an error the reader can act on — but quiet
+				// by slant, never by color. `text.muted` is `onSurface.zinc`, which
+				// clears AA against the page and the card and says nothing about a tinted
+				// bubble: it lands at 3.8:1 on the assistant fill and worse on the user
+				// bubble's blue. This inherits the bubble's foreground instead, the same
+				// bargain the markdown kata takes, so the line reads on all four bubbles.
+				fallback: [size.md, 'italic'],
+			},
 		},
 		defaults: { role: 'assistant' },
 	},

@@ -1,9 +1,10 @@
 /**
  * Tree kata: object-literal surface for the `<Tree>` treeview. The
- * `item.content` row and its `chevron` take the step of the nearest density
- * scope. The static slots cover the `base` container, `check` box, `affix`,
- * `label`, and `group`. `indent` pads each nested group, and `motion` is the collapse
- * transition. `skeleton` is the form of the `TreeSkeleton` rows.
+ * `item.content` row, its `chevron`, and the `check.mark` take the step of the
+ * nearest density scope. The static slots cover the `base` container, the
+ * `check` box, `affix`, `label`, and `group`. `group.indent` pads each nested
+ * group, and `motion` is the collapse transition. `skeleton` is the form of the
+ * `TreeSkeleton` rows.
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
@@ -46,7 +47,7 @@ const itemContent = defineRecipe(
 const check = [
 	'flex-none',
 	flex.inline,
-	'items-center justify-center',
+	'justify-center',
 	kokkaku.checkbox.box,
 	dan.radius.check,
 	...mode(
@@ -59,7 +60,7 @@ const check = [
 ]
 
 /** The mark in the check box. It takes the step of the nearest density scope. */
-const checkMark = ['stroke-white', dan.size.check]
+const mark = ['stroke-white', dan.size.check]
 
 /** The chevron column. Its width is the icon size of the step. */
 const chevron = [
@@ -82,17 +83,21 @@ export const k = {
 		content: itemContent,
 	},
 	chevron,
-	check,
-	checkMark,
+	check: {
+		base: check,
+		mark,
+	},
 	/** Prefix/suffix slot wrappers flanking the label. The slots hold no control. */
 	affix: 'flex flex-none items-center',
 	label: 'flex-1 truncate text-start',
-	group: 'overflow-hidden',
-	/**
-	 * The start padding of a nested group when `indent` is enabled. It equals
-	 * the chevron width plus the row gap, so each depth adds one step of it.
-	 */
-	indent: dan.space.treeIndent,
+	group: {
+		base: 'overflow-hidden',
+		/**
+		 * The start padding of a nested group when `indent` is enabled. It equals
+		 * the chevron width plus the row gap, so each depth adds one step of it.
+		 */
+		indent: dan.space.treeIndent,
+	},
 	motion: collapse.fade,
 	skeleton: { ...kokkaku.tree, row },
 } as const

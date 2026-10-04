@@ -6,7 +6,8 @@
  *   inner `button`, which trade off the interaction chrome;
  * - `item` also carries the focus-projection `indicator` and the
  *   `prefix`/`suffix` slot wrappers;
- * - `bar` is the `<NavBar>` landmark frame;
+ * - `bar.base` is the `<NavBar>` landmark frame, and `bar.rail` is the row of
+ *   items inside it;
  * - `skeleton` is the form of the `<NavSkeleton>` rows.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
@@ -38,14 +39,7 @@ const itemBox = [flex.row, 'w-full', dan.space.navItem, dan.gap.item, textRamp, 
  * Shared item structure minus the interaction surface. The icon takes the
  * step of the nearest density scope. At `md` it is `size-5`.
  */
-const itemShell = [
-	'group relative',
-	...itemBox,
-	...nav.base,
-	...shaku.iconSlotRamp,
-	...cursor,
-	'text-start',
-]
+const itemShell = ['group', ...itemBox, ...nav.base, ...shaku.iconSlotRamp, ...cursor, 'text-start']
 
 /**
  * The `<li>` wrapper. Affixless it is a bare list row carrying no chrome. With
@@ -85,7 +79,7 @@ const button = defineRecipe({
 
 /**
  * The {@link NavBar} landmark frame, with an optional border. The row of items
- * scrolls in the `barRail` inside it, because the edge fade of the rail masks
+ * scrolls in the `bar.rail` inside it, because the edge fade of the rail masks
  * the whole box, and the frame keeps its border and fill.
  */
 const bar = defineRecipe({
@@ -108,10 +102,12 @@ export const k = {
 			horizontal: ['flex-row', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
 		},
 	},
-	/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */
-	bar,
-	/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
-	barRail: [flex.row, 'gap-4', ...rail],
+	bar: {
+		/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */
+		base: bar,
+		/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
+		rail: [flex.row, 'gap-4', ...rail],
+	},
 	item: {
 		/** The `<li>` wrapper; pass `affix` to take over the interaction chrome. */
 		base,
@@ -142,4 +138,4 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link NavBar}: the `variant` style (`solid` | `outline` | `plain`). */
-export type NavBarVariants = VariantProps<typeof k.bar>
+export type NavBarVariants = VariantProps<typeof k.bar.base>

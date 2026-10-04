@@ -2,8 +2,8 @@
  * Calendar kata: object-literal surface for `<Calendar>`'s month grid and its
  * month/year `picker`. The `base`, `header`, `footer`, `weekday`, and
  * `picker.grid` slots take the step of the nearest density scope through
- * stepped classes; the `grid`, `day` (with active/range-edge state classes),
- * and `skeleton` slots are static.
+ * stepped classes. The `grid`, `day`, and `skeleton` slots are static. The
+ * `day` slot holds the `active` state classes and the `range` edge classes.
  */
 import { defineScale } from '../../core/density'
 import { iro, ji, kokkaku, narabi, sen } from '../kiso'
@@ -44,7 +44,7 @@ export const k = {
 	footer,
 	picker: {
 		grid: pickerGrid,
-		cellCurrent: [
+		current: [
 			weight.semibold,
 			palette.soft.bg.blue,
 			palette.soft.text.blue,
@@ -59,14 +59,14 @@ export const k = {
 			selected: ['bg-blue-600', ...focus.virtual],
 		},
 		range: {
-			leftEdge: 'rounded-r-none',
-			rightEdge: 'rounded-l-none',
+			left: 'rounded-r-none',
+			right: 'rounded-l-none',
 		},
 	},
 	skeleton: kokkaku.calendar,
 } as const
 
-/** The size scale of {@link Calendar}: the steps of its width, padding, gap, and weekday text. */
+/** The size scale of {@link Calendar}: the steps of its width, header margin, gap, and weekday text. */
 export const scale = defineScale(
 	dan.size.calendarWidth,
 	dan.space.calendarHeaderBottom,

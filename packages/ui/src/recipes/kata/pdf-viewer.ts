@@ -44,7 +44,7 @@ export const k = {
 			'shrink-0',
 		],
 		section: [flex.row, 'shrink-0', 'gap-1'],
-		pageStatus: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
+		total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	},
 	/**
 	 * The magnifier's config dialog. `Dialog` owns the panel and `Stack` the column inside it,
@@ -73,7 +73,7 @@ export const k = {
 		 */
 		options: [
 			flex.row,
-			'flex-row flex-wrap',
+			'flex-wrap',
 			'gap-x-6 gap-y-2',
 			'[&>[data-slot=field]+[data-slot=field]]:mt-0',
 		],
@@ -204,7 +204,7 @@ export const k = {
 			// transform — so a region positioned in percentages of it lands on the same
 			// ink at every zoom and rotation, with no per-region math.
 			highlights: {
-				layer: [centered],
+				base: [centered],
 				/**
 				 * The layer without `onActiveHighlightChange`. Its regions are decoration inside an
 				 * `aria-hidden` layer, so there is nothing to press. Every region still has its
@@ -215,7 +215,7 @@ export const k = {
 				 * The name drawn over the selected region.
 				 *
 				 * It takes no pointer events, so on a dense page it stands over boxes the reader can
-				 * still hover and press through it. {@link behind} is the part they see. The name
+				 * still hover and press through it. `behind` is the part they see. The name
 				 * goes faint over the box they point at. That is the page saying the press lands
 				 * there, and not on the name.
 				 *
@@ -232,23 +232,26 @@ export const k = {
 					base: ['absolute block', 'ring-1 ring-inset', ...cursor, ...focus.inset],
 					/** Translucent per-color wash, from the shared palette. */
 					fill: palette.soft.bg,
-					/**
-					 * The selected region's wash — the palette's doubled rung.
-					 *
-					 * A heavier stroke alone did not carry it. At 15% over printed ink the fill is
-					 * near-invisible either way, so the only thing distinguishing the selection was
-					 * one pixel of ring.
-					 */
-					activeFill: palette.soft.strong,
 					ring: palette.outline.ring,
-					/**
-					 * The selected region: a heavier stroke, and lifted above its neighbors.
-					 *
-					 * `z-10` matters on a dense page. Regions paint in document order. Without it, a
-					 * later region overlapping the selected one covers the very emphasis that says
-					 * which is selected.
-					 */
-					active: ['ring-4', 'z-10'],
+					/** The selected region: its stroke and lift (`base`), and its wash (`fill`). */
+					active: {
+						/**
+						 * A heavier stroke, and lifted above its neighbors.
+						 *
+						 * `z-10` matters on a dense page. Regions paint in document order. Without it, a
+						 * later region overlapping the selected one covers the very emphasis that says
+						 * which is selected.
+						 */
+						base: ['ring-4', 'z-10'],
+						/**
+						 * The wash — the palette's doubled rung.
+						 *
+						 * A heavier stroke alone did not carry it. At 15% over printed ink the fill is
+						 * near-invisible either way, so the only thing distinguishing the selection was
+						 * one pixel of ring.
+						 */
+						fill: palette.soft.strong,
+					},
 					/**
 					 * A resting region under the pointer: the same stroke, doubled.
 					 *
@@ -258,7 +261,7 @@ export const k = {
 					 * find out. The cursor already changes, but only a pointer user sees that, and
 					 * only once they are over it.
 					 *
-					 * A width step rather than a color or a fill. `activeFill` is what *selected*
+					 * A width step rather than a color or a fill. `active.fill` is what *selected*
 					 * looks like, and a hover that previewed it would say the region is chosen a
 					 * moment before it is. This lands between `ring-1` and the selection's `ring-4`,
 					 * which is the order the three states must read in.
@@ -266,7 +269,7 @@ export const k = {
 					 * Applied to resting regions only. On the selected one it would fight `ring-4`
 					 * and win — `:hover` outranks a bare class — undoing the emphasis that says
 					 * which region is selected. A decorative layer never sees it either way:
-					 * {@link inert} takes its pointer events, so nothing there can be hovered.
+					 * `inert` takes its pointer events, so nothing there can be hovered.
 					 */
 					hover: ['hover:ring-2'],
 					/**

@@ -83,7 +83,6 @@ function OptionImpl({
 			className={cn(
 				'relative hidden shrink-0 self-center group-data-selected/option:inline',
 				k.check,
-				k.checkSize,
 			)}
 		/>
 	)

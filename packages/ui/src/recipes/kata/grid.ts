@@ -1,9 +1,10 @@
 /**
- * Data-table kata: object-literal surface for the table chrome that sits
- * around `kata/table` — sticky head, batch-action bar, sort controls, column
- * drag-reorder, and the row-loading pulse. No top-level variants axis. One
- * sub-recipe: `sort.icon`, inked or muted by the active sort. The
- * `resize.metrics` and `rowGroup.reveal.pad` classes are stepped.
+ * Data-table kata: the object-literal surface of the table chrome around
+ * `kata/table`. It styles the sticky head, the toolbar, the sort controls, the
+ * column and row drag-reorder, and the row-loading pulse. It has no top-level
+ * variants axis. It has one sub-recipe: `sort.icon`, which the active sort
+ * inks or mutes. The `resize.metrics` and `row.group.reveal.pad` classes are
+ * stepped.
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
@@ -11,12 +12,12 @@ import { dan } from '../kiso/dan'
 import { panel } from '../kiso/panel'
 
 const { cursor, fg, grab } = hannou
-const { onWash, text } = iro
+const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { backdrop, bg } = omote
-const { border, focus } = sen
+const { backdrop } = omote
+const { focus } = sen
 const { css, spring } = ugoki
 
 /** Sort-direction arrow: inked while its column is the active sort, muted otherwise. */
@@ -94,9 +95,10 @@ const railBorder = ['border-s-2', ...mode('border-s-zinc-950/5', 'dark:border-s-
 
 /**
  * A colored group rail, keyed by {@link PaletteColor} so a group reads
- * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
- * group's palette hue at the solid `-600` shade, when the row manager assigns
- * one. That shade matches a column group's `bandColor` underline.
+ * `row.group.rail.color[group.color]`. Swaps the neutral {@link railBorder} tint
+ * for the group's palette hue at the solid `-600` shade, when the row manager
+ * assigns one. That shade matches the underline of a column group (`rule.color`
+ * in `kata/grid-group`).
  * Inline-start-specific (`border-s-<color>`) with a matching `dark:` variant, so it
  * shares the neutral rail's tailwind-merge group *and* variants. It replaces the
  * neutral outright (no `!important`, no dark-mode fallthrough). Full literals
@@ -115,7 +117,7 @@ const railColor: Record<PaletteColor, string> = {
 
 /**
  * A group's aggregation / total-footer tint, keyed by {@link PaletteColor} so a
- * cell reads `rowGroupTint[group.color]`. A low-opacity fill of the group's hue
+ * cell reads `row.group.tint[group.color]`. A low-opacity fill of the group's hue
  * (`/10`). The summarizing figures therefore sit on a faint wash of the group
  * color while staying legible over both surfaces. Full literals for Tailwind's
  * scanner.
@@ -165,25 +167,6 @@ export const k = {
 		// The row selector outranks the `top-0` of each cell, and a pinned cell
 		// keeps its inline-start or inline-end offset.
 		stack: '[&>th]:top-(--grid-band-height)',
-	},
-	// The new-row slot of an editable grid. Its cells stick to the top or the
-	// bottom edge of the scroll container, over the data rows (`z-[1]` for a
-	// pinned cell) and under the sticky header (`z-10`). A pinned cell of the
-	// slot rides one layer higher, so a scrolled cell of the slot slides under
-	// it. The top offset is the height of a sticky header, which the slot
-	// measures into `--grid-new-row-top`.
-	newRow: {
-		cell: ['sticky z-[2]', hostSurface],
-		pinned: 'z-[3]',
-		top: 'top-(--grid-new-row-top)',
-		bottom: 'bottom-0',
-		// The cell of the Add column. It also sticks to the inline end, over a
-		// scrolled cell of the slot, like a pinned cell. The column is empty in the
-		// other rows, so only this cell sticks there.
-		add: 'end-0 z-[3] w-px whitespace-nowrap',
-		// The box around the control of the Add cell. It is as wide as the
-		// control at any width of the cell, so the cell can measure it.
-		control: 'inline-flex w-max align-middle',
 	},
 	pinned: {
 		// Frozen data cell: opaque surface so the scrolling columns don't show
@@ -281,10 +264,10 @@ export const k = {
 	// the grid's above-table controls. A vertical stack of the top control row and,
 	// while a row is selected, the batch-action row beneath it.
 	toolbar: {
-		root: ['flex', 'flex-col', 'gap-2'],
+		base: [flex.col, 'gap-2'],
 		// Top row: the quick-search field at the start, the column-manager trigger at
 		// the end. Stacks on narrow viewports, then lays out as a row from `sm`.
-		bar: ['flex', 'flex-col', 'gap-2', 'sm:flex-row', 'sm:items-center'],
+		bar: [flex.col, 'gap-2', 'sm:flex-row', 'sm:items-center'],
 		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
 		// from the search field. The toolbar applies it only when no consumer content
 		// renders, because two auto margins in one row share the free space.
@@ -296,28 +279,12 @@ export const k = {
 	},
 	// Group-by icon button in a column header (see `GridGroupByButton`): press to
 	// group the rows by the column, press again to ungroup.
-	groupButton: {
+	group: {
 		// Layout only. The active accent (this column is the group) comes from the
 		// Button's `color` prop; `idle` is the resting muted tint, dropped when
 		// active so it doesn't override that color — mirroring the filter button.
 		button: ['shrink-0'],
 		idle: [text.muted, fg.hover],
-	},
-	batch: {
-		bar: [
-			flex.row,
-			'min-h-12',
-			'gap-2',
-			'px-2',
-			'py-1',
-			border.subtle,
-			rounded.lg,
-			'border-b',
-			bg.tint,
-		],
-		// `count` nests inside `bar`, so it inks on that tint wash, which `muted` is
-		// not legal over. See `iro/ramp.ts`.
-		count: [weight.medium, 'whitespace-nowrap', size.sm, onWash.muted],
 	},
 	cell: {
 		// Utility columns sized to their content: the selection checkbox, the
@@ -341,7 +308,7 @@ export const k = {
 		// yellow/black <mark> ink, and the wash carries no box metrics, so the marked
 		// run's width matches the plain text and the column autosizer still measures
 		// the intrinsic content width.
-		mark: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), 'rounded-sm', 'text-inherit'],
+		mark: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.sm, 'text-inherit'],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'break-words'],
 		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the
@@ -417,7 +384,7 @@ export const k = {
 		icon: sortIcon,
 		// Priority number beside the arrow under a multi-column sort: small, muted,
 		// tabular (so digits hold their box), and non-shrinking next to the title.
-		badge: ['text-xs', 'leading-none', 'tabular-nums', 'shrink-0', text.muted],
+		badge: [size.xs, 'leading-none', 'tabular-nums', 'shrink-0', text.muted],
 	},
 	reorder: {
 		// Lift the actively dragged column above its neighbors and float it on its
@@ -484,98 +451,129 @@ export const k = {
 			...grab.default,
 		],
 	},
-	rowReorder: {
-		// The row drag-handle cell: a narrow, centered column holding the grip,
-		// sized to content like the selection cell.
-		cell: 'w-px text-center align-middle [line-height:0]',
-		// Grip button carrying the row's drag activator. Mirrors the column
-		// reorder handle (`k.reorder.handle`): grab cursor tracking the live drag
-		// (`data-[dragging]`, not `:active`, so a context-menu press doesn't strand
-		// it), muted at rest and tinting on hover, an inset focus ring (clip-safe in
-		// the scroll wrapper), and a centered transparent `::before` expanding the
-		// 20px glyph's hit area to >=24x24 (WCAG 2.5.8). `touch-none` keeps a
-		// touch-drag from scrolling the page instead of lifting the row.
-		handle: {
-			root: [
-				flex.inline,
-				'shrink-0',
-				'relative',
-				"before:absolute before:-inset-1 before:content-['']",
-				text.muted,
-				fg.hover,
-				focus.inset,
-				...grab.default,
-			],
-			// The grip while reordering is unavailable — a column sort orders the rows,
-			// or `rowReorder.disabled` is set: shown for layout stability but inert and
-			// dimmed, so it reads as "not draggable now" rather than missing.
-			disabled: [flex.inline, 'shrink-0', text.muted, 'opacity-50', 'cursor-not-allowed'],
+	row: {
+		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
+		// ring (the row is a roving tab stop). The ring is `inset` — clip-safe, like
+		// `k.nav.cell` and the reorder grip — since the grid's horizontal scroll
+		// wrapper (`overflow-x-auto`) shaves the outset `ring`'s offset stroke at the
+		// row's leading/trailing edge. Its hover wash is the shared `<Table hover>`
+		// variant `GridData` enables for a row click. Interactive cell content
+		// (buttons, the select checkbox) handles its own clicks; the row guard skips
+		// those.
+		clickable: ['cursor-pointer', focus.inset],
+		loading: [css.pulse, 'opacity-50'],
+		group: {
+			// A 2px colored rail down the group's leading edge — carried by the first
+			// cell of every row in the group (its header and each leaf) so it reads as one
+			// continuous bar, the row-group analog of a column group's underline rule. It
+			// takes a neutral tint by default; the row manager swaps in a per-group
+			// palette color (`rail.color[group.color]`).
+			rail: {
+				// The padded group cells' variant (the leaf/header cells manage their own padding).
+				padded: ['py-0', ...railBorder],
+				// The border alone, for the loading placeholder rows that keep ordinary cell padding.
+				border: railBorder,
+				// Per-group rail color (see {@link railColor}) — the manager's palette hue,
+				// replacing the neutral `border` tint on the leading cell of every group row.
+				color: railColor,
+			},
+			// The group's aggregation / total-footer color wash (see {@link rowGroupTint}).
+			tint: rowGroupTint,
+			// Chevron at the row's trailing edge: the group row renders a right chevron
+			// when collapsed and a down chevron when expanded; `shrink-0` holds its size
+			// beside the label. A right-to-left grid mirrors it, so a collapsed chevron
+			// points to the inline end. The mirror leaves the down chevron as it is.
+			chevron: ['shrink-0', 'rtl:-scale-x-100'],
+			// The reveal wrapper inside each leaf cell: a one-row CSS grid whose `track`
+			// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
+			// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is not.
+			reveal: {
+				// Transitions the track over 200ms, honoring `prefers-reduced-motion`.
+				track: [
+					'grid',
+					'[grid-template-rows:0fr]',
+					'data-[open]:[grid-template-rows:1fr]',
+					'transition-[grid-template-rows]',
+					'duration-200',
+					'ease-in-out',
+					'motion-reduce:transition-none',
+				],
+				// The clip between the grid track and the content: `min-h-0` lets the track
+				// shrink past the content, `overflow-hidden` hides what the collapse clips.
+				clip: ['overflow-hidden', 'min-h-0'],
+				// The cell padding on the reveal wrapper, in the stepped class of the
+				// kata/table cell padding, so an animated leaf cell matches an ordinary one —
+				// and collapses that padding to nothing at height 0.
+				pad: dan.space.cell,
+			},
 		},
-		// Lifts the actively dragged row above its siblings on an opaque surface
-		// with a shadow, so the rows it slides over stay hidden behind it — a
-		// transparent `<tr>` would let their content bleed through. Gated on the
-		// `data-[dragging]` the row carries; the fill matches the surface under the
-		// grid (see `hostSurface`/`draggingSurface`).
-		dragging: [
-			'data-[dragging]:relative',
-			'data-[dragging]:z-10',
-			'data-[dragging]:shadow-lg',
-			...draggingSurface,
-		],
-	},
-	rowGroup: {
-		// A 2px colored rail down the group's leading edge — carried by the first
-		// cell of every row in the group (its header and each leaf) so it reads as one
-		// continuous bar, the row-group analog of a column group's underline rule. It
-		// takes a neutral tint by default; the row manager swaps in a per-group
-		// palette color (`rail.color[group.color]`).
-		rail: {
-			// The padded group cells' variant (the leaf/header cells manage their own padding).
-			padded: ['py-0', ...railBorder],
-			// The border alone, for the loading placeholder rows that keep ordinary cell padding.
-			border: railBorder,
-			// Per-group rail color (see {@link railColor}) — the manager's palette hue,
-			// replacing the neutral `border` tint on the leading cell of every group row.
-			color: railColor,
-		},
-		// The group's aggregation / total-footer color wash (see {@link rowGroupTint}).
-		tint: rowGroupTint,
-		// Chevron at the row's trailing edge: the group row renders a right chevron
-		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
-		// beside the label. A right-to-left grid mirrors it, so a collapsed chevron
-		// points to the inline end. The mirror leaves the down chevron as it is.
-		chevron: ['shrink-0', 'rtl:-scale-x-100'],
-		// The reveal wrapper inside each leaf cell: a one-row CSS grid whose `track`
-		// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
-		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is not.
-		reveal: {
-			// Transitions the track over 200ms, honoring `prefers-reduced-motion`.
-			track: [
-				'grid',
-				'[grid-template-rows:0fr]',
-				'data-[open]:[grid-template-rows:1fr]',
-				'transition-[grid-template-rows]',
-				'duration-200',
-				'ease-in-out',
-				'motion-reduce:transition-none',
+		reorder: {
+			// The row drag-handle cell: a narrow, centered column holding the grip,
+			// sized to content like the selection cell.
+			cell: 'w-px text-center align-middle [line-height:0]',
+			// Grip button carrying the row's drag activator. Mirrors the column
+			// reorder handle (`k.reorder.handle`): grab cursor tracking the live drag
+			// (`data-[dragging]`, not `:active`, so a context-menu press doesn't strand
+			// it), muted at rest and tinting on hover, an inset focus ring (clip-safe in
+			// the scroll wrapper), and a centered transparent `::before` expanding the
+			// 20px glyph's hit area to >=24x24 (WCAG 2.5.8). `touch-none` keeps a
+			// touch-drag from scrolling the page instead of lifting the row.
+			handle: {
+				base: [
+					flex.inline,
+					'shrink-0',
+					'relative',
+					"before:absolute before:-inset-1 before:content-['']",
+					text.muted,
+					fg.hover,
+					focus.inset,
+					...grab.default,
+				],
+				// The grip while reordering is unavailable — a column sort orders the rows,
+				// or the `rowReorder` prop sets `disabled`: shown for layout stability but
+				// inert and dimmed, so it reads as "not draggable now" rather than missing.
+				disabled: [flex.inline, 'shrink-0', text.muted, 'opacity-50', 'cursor-not-allowed'],
+			},
+			// Lifts the actively dragged row above its siblings on an opaque surface
+			// with a shadow, so the rows it slides over stay hidden behind it — a
+			// transparent `<tr>` would let their content bleed through. Gated on the
+			// `data-[dragging]` the row carries; the fill matches the surface under the
+			// grid (see `hostSurface`/`draggingSurface`).
+			dragging: [
+				'data-[dragging]:relative',
+				'data-[dragging]:z-10',
+				'data-[dragging]:shadow-lg',
+				...draggingSurface,
 			],
-			// The clip between the grid track and the content: `min-h-0` lets the track
-			// shrink past the content, `overflow-hidden` hides what the collapse clips.
-			clip: ['overflow-hidden', 'min-h-0'],
-			// The cell padding on the reveal wrapper, in the stepped class of the
-			// kata/table cell padding, so an animated leaf cell matches an ordinary one —
-			// and collapses that padding to nothing at height 0.
-			pad: dan.space.cell,
+		},
+		// The new-row slot of an editable grid. Its cells stick to the top or the
+		// bottom edge of the scroll container, over the data rows (`z-[1]` for a
+		// pinned cell) and under the sticky header (`z-10`). A pinned cell of the
+		// slot rides one layer higher, so a scrolled cell of the slot slides under
+		// it. The top offset is the height of a sticky header, which the slot
+		// measures into `--grid-new-row-top`.
+		new: {
+			cell: ['sticky z-[2]', hostSurface],
+			pinned: 'z-[3]',
+			top: 'top-(--grid-new-row-top)',
+			bottom: 'bottom-0',
+			// The cell of the Add column. It also sticks to the inline end, over a
+			// scrolled cell of the slot, like a pinned cell. The column is empty in the
+			// other rows, so only this cell sticks there.
+			add: 'end-0 z-[3] w-px whitespace-nowrap',
+			// The box around the control of the Add cell. It is as wide as the
+			// control at any width of the cell, so the cell can measure it.
+			control: 'inline-flex w-max align-middle',
 		},
 	},
 	aggregate: {
 		// Aggregated figures on group-header and total rows: firmer than the data
 		// they summarize, tabular so they align down their columns.
-		cell: ['tabular-nums', 'font-medium'],
+		cell: ['tabular-nums', weight.medium],
 		// The total row's leading "Total" label, matching the figures' weight. The
 		// grand total label is a row header, so the label sets the cell text color
 		// over the muted color of a header.
-		label: [text.default, 'font-medium'],
+		label: [text.default, weight.medium],
 	},
 	detail: {
 		// The master-detail chevron in an expander cell: rotates a quarter-turn as
@@ -674,19 +672,10 @@ export const k = {
 		],
 	},
 	filter: {
-		// Per-column filter row beneath the header.
-		row: bg.surface,
-		cell: ['px-2', 'py-1', 'align-middle'],
 		// Header row: title on the left, filter button across from it on the right.
 		// In a narrow column the group-by and filter buttons close to the gap, so
 		// the gap also caps their hit areas (`TouchTarget`).
-		slot: [
-			'flex',
-			'items-center',
-			'justify-between',
-			'gap-1',
-			'[--touch-target-gap-x:--spacing(1)]',
-		],
+		slot: [flex.row, 'justify-between', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
 		// Filter icon button in a column header: layout only. The active accent comes
 		// from the Button's `color` prop; `idle` is the resting muted tint, dropped
 		// when active so it doesn't override that color.
@@ -697,11 +686,11 @@ export const k = {
 		// Footer below the table. The footer is its own size container, so the
 		// layout follows the width that the grid has (a dashboard tile, a
 		// dialog, a page), not the viewport.
-		root: ['@container', 'pt-2'],
+		base: ['@container', 'pt-2'],
 		// One row of three equal `flex-1` tracks at all widths: the page-size
 		// picker at the start, the navigation centered, and the row-range status
 		// at the end.
-		bar: ['flex', 'items-center', 'gap-3'],
+		bar: [flex.row, 'gap-3'],
 		// Page-size picker: the start track. It renders even when it is empty,
 		// so the navigation stays centered.
 		controls: [flex.inline, 'flex-1', 'items-center', 'gap-4'],
@@ -771,18 +760,6 @@ export const k = {
 			'[&>tbody:first-of-type]:motion-reduce:opacity-50',
 		],
 	},
-	row: {
-		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
-		// ring (the row is a roving tab stop). The ring is `inset` — clip-safe, like
-		// `k.nav.cell` and the reorder grip — since the grid's horizontal scroll
-		// wrapper (`overflow-x-auto`) shaves the outset `ring`'s offset stroke at the
-		// row's leading/trailing edge. Its hover wash is the shared `<Table hover>`
-		// variant `GridData` enables for a row click. Interactive cell content
-		// (buttons, the select checkbox) handles its own clicks; the row guard skips
-		// those.
-		clickable: ['cursor-pointer', focus.inset],
-		loading: [css.pulse, 'opacity-50'],
-	},
 	// The "Exporting" overlay: a scrim over the whole grid while an async export
 	// resolves its rows, with a centered label.
 	//
@@ -818,11 +795,11 @@ export const k = {
 		// row FLIPs from its old place to its new one on the shared `layoutId`
 		// spring. Reduced motion stands the whole animation down upstream, so no
 		// `duration: 0` branch is needed here.
-		rowSort: { layout: spring.slide },
+		sort: { layout: spring.slide },
 		// The make-room glide of an in-flight column drag. Applied imperatively
 		// (`animate()` onto the shift CSS variable in `grid-reorder.ts`), never
 		// spread onto a motion element.
-		columnShift: spring.snap,
+		shift: spring.snap,
 	},
 	nav: {
 		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
@@ -846,24 +823,27 @@ export const k = {
 				'dark:data-[in-range]:bg-blue-950 dark:data-[in-range]:outline-blue-500',
 			),
 		],
-		// The anchor of the fill handle overlay: a line of no height after the
-		// table, in its scroll container. It holds the overlay, so the overlay
-		// scrolls with the cells.
-		fillAnchor: 'relative h-0',
-		// The box of the overlay, which the grid places on the active cell. It lets
-		// the pointer through to the cell. A pinned cell sits over the scrolled
-		// cells, and the box sits over the pinned cell.
-		fillBox: 'pointer-events-none absolute top-0 left-0 z-0 data-[pinned]:z-[1]',
-		// The fill handle on the bottom end corner of the active cell (`range` in
-		// a managed editable grid). A drag from it fills. The square sits inside
-		// the corner, so the scroll region does not clip it at the last row or
-		// column, and a wider hit area sits around it. The keys and the cell menu
-		// give the same fills with no drag (WCAG 2.5.7).
-		fillHandle: [
-			'pointer-events-auto absolute bottom-0 end-0 size-2 cursor-crosshair border',
-			'before:absolute before:-inset-1.5',
-			...mode('border-white bg-blue-600', 'dark:border-zinc-900 dark:bg-blue-500'),
-		],
+		// These keys style the fill handle overlay on the active cell.
+		fill: {
+			// The anchor of the overlay: a line of no height after the table, in its
+			// scroll container. It holds the overlay, so the overlay scrolls with the
+			// cells.
+			anchor: 'relative h-0',
+			// The box of the overlay, which the grid places on the active cell. It
+			// lets the pointer through to the cell. A pinned cell sits over the
+			// scrolled cells, and the box sits over the pinned cell.
+			box: 'pointer-events-none absolute top-0 left-0 z-0 data-[pinned]:z-[1]',
+			// The fill handle on the bottom end corner of the active cell (`range` in
+			// a managed editable grid). A drag from it fills. The square sits inside
+			// the corner, so the scroll region does not clip it at the last row or
+			// column, and a wider hit area sits around it. The keys and the cell menu
+			// give the same fills with no drag (WCAG 2.5.7).
+			handle: [
+				'pointer-events-auto absolute bottom-0 end-0 size-2 cursor-crosshair border',
+				'before:absolute before:-inset-1.5',
+				...mode('border-white bg-blue-600', 'dark:border-zinc-900 dark:bg-blue-500'),
+			],
+		},
 	},
 	// Inline per-row editing: an editable row's cells render their editors (the
 	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot) with
@@ -891,13 +871,16 @@ export const k = {
 		// `body.settling` does for a server sort: a `motion-safe` pulse, or a
 		// static 50% dim for a reduced-motion user, never both.
 		pending: [css.pulse, 'motion-reduce:opacity-50'],
-		// A failed validation rings the editor and anchors a small message below it.
-		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
-		error: [
-			'absolute top-full start-0 z-20 mt-0.5 max-w-xs',
-			'rounded px-1.5 py-0.5 text-xs whitespace-normal',
-			'text-white shadow',
-			...mode('bg-red-600', 'dark:bg-red-500'),
-		],
+		// The state of a failed validation: `base` is the message below the
+		// editor, and `ring` rings the editor host.
+		error: {
+			base: [
+				'absolute top-full start-0 z-20 mt-0.5 max-w-xs',
+				'rounded px-1.5 py-0.5 text-xs whitespace-normal',
+				'text-white shadow',
+				...mode('bg-red-600', 'dark:bg-red-500'),
+			],
+			ring: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), rounded.md],
+		},
 	},
 } as const

@@ -38,33 +38,39 @@ export const k = {
 	 */
 	clickable: CLICKABLE,
 	/**
-	 * Takes a mark's hit circle from the coarse reach its `r` attribute carries,
-	 * down to the fine-pointer one. That coarse reach is 44px for a finger, WCAG
-	 * 2.5.5's enhanced target. It is the one form an SVG shape allows, because only
-	 * CSS can read the input modality. `dotHitProps` sets the radius itself on
-	 * {@link k.hitRadius}, and carries this class on the dots that have ground to
-	 * give back. A dot standing clear of every zone and every neighbor keeps the
-	 * coarse target on both pointers.
-	 *
-	 * It is what lets a small area mark be pointed at. A `MapGeofence` drawn tight
-	 * around a `MapPoint` sits wholly inside a finger-sized circle. Without this
-	 * the dot claims the zone's whole face, and the two can never be told apart. The
-	 * mouse target can sit under WCAG 2.5.8's 24px minimum deliberately, and
-	 * `POINT_HIT_RADIUS_FINE` states why.
-	 *
-	 * The fallback is spelled out rather than read from that constant, because
-	 * Tailwind scans source for whole class strings; `map-hit-target.test.tsx` pins
-	 * the two together. It is the floor a budget can never take a target under —
-	 * the radius a dot of the default size draws at.
+	 * The hit circle of a dot on a fine pointer. The `fine` class narrows it, and
+	 * the `radius` custom property gives that class its radius.
 	 */
-	hitFine: 'pointer-fine:[r:var(--map-hit-radius,5.5px)]',
-	/**
-	 * The custom property {@link k.hitFine} reads its radius from: what the ground
-	 * under the dot can spare it. That is divided by the plat's zoom scale, so the
-	 * target holds one device-pixel size at every scale. Named here beside the
-	 * class that reads it, so the setter and the reader hold one spelling.
-	 */
-	hitRadius: '--map-hit-radius',
+	hit: {
+		/**
+		 * Takes a mark's hit circle from the coarse reach its `r` attribute carries,
+		 * down to the fine-pointer one. That coarse reach is 44px for a finger, WCAG
+		 * 2.5.5's enhanced target. It is the one form an SVG shape allows, because only
+		 * CSS can read the input modality. `dotHitProps` sets the radius itself on
+		 * {@link k.hit.radius}, and carries this class on the dots that have ground to
+		 * give back. A dot standing clear of every zone and every neighbor keeps the
+		 * coarse target on both pointers.
+		 *
+		 * It is what lets a small area mark be pointed at. A `MapGeofence` drawn tight
+		 * around a `MapPoint` sits wholly inside a finger-sized circle. Without this
+		 * the dot claims the zone's whole face, and the two can never be told apart. The
+		 * mouse target can sit under WCAG 2.5.8's 24px minimum deliberately, and
+		 * `POINT_HIT_RADIUS_FINE` states why.
+		 *
+		 * The fallback is spelled out rather than read from that constant, because
+		 * Tailwind scans source for whole class strings; `map-hit-target.test.tsx` pins
+		 * the two together. It is the floor a budget can never take a target under —
+		 * the radius a dot of the default size draws at.
+		 */
+		fine: 'pointer-fine:[r:var(--map-hit-radius,5.5px)]',
+		/**
+		 * The custom property {@link k.hit.fine} reads its radius from: what the ground
+		 * under the dot can spare it. That is divided by the plat's zoom scale, so the
+		 * target holds one device-pixel size at every scale. Named here beside the
+		 * class that reads it, so the setter and the reader hold one spelling.
+		 */
+		radius: '--map-hit-radius',
+	},
 	/**
 	 * The standing pick's ink, on an overlay mark's halo. It is the same token the
 	 * region ring takes (`region.selected`). One map therefore never marks its
@@ -74,10 +80,6 @@ export const k = {
 	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
 	series: palette.series,
 	order: palette.order,
-	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
-	label: ink.label,
-	/** Tooltip value ink: the strong element, values lead. */
-	value: ink.value,
 	/** The map's own region tokens beside the shared data-viz palette. */
 	region: {
 		/** A region with no matching datum — and a toggled-off category's fallback. */
@@ -165,17 +167,20 @@ export const k = {
 	 *
 	 * The plot's width therefore never depends on what has registered.
 	 */
-	legendBox: {
+	legend: {
 		row: 'min-h-4',
 		panel: ['min-h-4', 'shrink-0', '@lg:w-48'],
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
 	skeleton: {
-		...kokkaku.map,
+		base: kokkaku.map.base,
+		aspect: kokkaku.map.aspect,
 		/** The outline skeleton: the placeholder's pulse and tone, as the fill of the projection's outline. */
-		outline: [...kokkaku.map.outline, ...omote.skeletonShape],
-		/** The outline skeleton in an aspect frame: full width, with the height from the ratio. */
-		outlineAspect: [...kokkaku.map.outlineAspect, ...omote.skeletonShape],
+		outline: {
+			base: [...kokkaku.map.outline, ...omote.skeletonShape],
+			/** The outline skeleton in an aspect frame: full width, with the height from the ratio. */
+			aspect: [...kokkaku.map.outlineAspect, ...omote.skeletonShape],
+		},
 	},
 } as const

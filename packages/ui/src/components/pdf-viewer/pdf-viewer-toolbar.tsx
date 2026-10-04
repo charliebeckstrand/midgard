@@ -120,7 +120,7 @@ export function PdfViewerToolbar() {
 								/
 							</span>
 							{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
-							<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.pageStatus)}>
+							<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.total)}>
 								<span className="sr-only">of </span>
 								{total}
 							</span>

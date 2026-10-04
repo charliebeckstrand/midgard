@@ -119,7 +119,7 @@ export function DashboardResizeHandle({
 			data-slot="dashboard-resize-handle"
 			data-edge={edge}
 			data-resizing={dataAttr(resizing)}
-			className={cn(k.resizeHandle({ edge }))}
+			className={cn(k.resize.handle({ edge }))}
 			onPointerDown={(event) => beginResize(id, edge, event)}
 			{...keyboard}
 		/>

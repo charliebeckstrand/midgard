@@ -39,11 +39,11 @@ function regionClass(color: Color, active: boolean, dimmed: boolean) {
 	if (classes === undefined) {
 		classes = cn(
 			region.base,
-			active ? region.activeFill[color] : region.fill[color],
+			active ? region.active.fill[color] : region.fill[color],
 			region.ring[color],
 			// Selected or hoverable, never both: see the kata's `hover` note — a hover step on
 			// the selected region outranks its own `ring-4` and flattens the selection.
-			active ? region.active : region.hover,
+			active ? region.active.base : region.hover,
 			dimmed && region.dimmed,
 		)
 
@@ -412,7 +412,7 @@ function PdfViewerHighlightLayer() {
 		<div
 			ref={layerRef}
 			data-slot="pdf-viewer-highlights"
-			className={cn(layer.layer, !interactive && layer.inert)}
+			className={cn(layer.base, !interactive && layer.inert)}
 			// Hidden, not unmounted: a reader who reads the page under the boxes comes back
 			// to the same selection.
 			hidden={!highlightsVisible}

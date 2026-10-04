@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 
 import { colors, extendedColors } from '../../core/recipe'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
-import { k as grid } from '../../recipes/kata/grid'
 import { k as list } from '../../recipes/kata/list'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as nav } from '../../recipes/kata/nav'
@@ -241,8 +240,6 @@ const TINT_CONSUMERS: readonly {
 			list.description,
 		],
 	},
-	// `batch.bar`, which `batch.count` nests inside.
-	{ file: 'recipes/kata/grid.ts', surfaces: [grid.batch.count] },
 	// The control track, inked by `segment/item.ts`.
 	{ file: 'recipes/kiso/segment/control.ts', surfaces: [segment.item.base] },
 	// The `solid` bar; items ink at `hannou.nav.base`, not at a muted rung.

@@ -57,7 +57,7 @@ const fill = defineRecipe({
 	defaults: { color: 'zinc' },
 })
 
-const root = defineRecipe({
+const gauge = defineRecipe({
 	base: ['relative', flex.inline, 'justify-center', kokkaku.progress.gauge.diameter],
 })
 
@@ -97,21 +97,25 @@ export const k = defineRecipe(
 			transition: { duration: 1.5, ease: ease.inOut, repeat: Number.POSITIVE_INFINITY },
 		},
 		gauge: {
-			root,
+			base: gauge,
 			label,
 			track: mode('stroke-zinc-200', 'dark:stroke-zinc-700'),
 		},
 	},
 )
 
-/** The size scale of {@link ProgressBar}: the steps of its track height and label text. */
-export const barScale = defineScale(dan.size.lineTiny, dan.text.small)
-
-/** The size scale of {@link ProgressGauge}: the steps of its diameter and label text. */
-export const gaugeScale = defineScale(dan.size.gauge, dan.text.small)
+/**
+ * The size scales. `bar` is the scale of {@link ProgressBar}: the steps of its
+ * track height. `gauge` is the scale of {@link ProgressGauge}: the steps of its
+ * diameter and label text.
+ */
+export const scale = {
+	bar: defineScale(dan.size.lineTiny),
+	gauge: defineScale(dan.size.gauge, dan.text.small),
+} as const
 
 /** Props for the {@link ProgressBar} track: the `size` step that the component writes as a density scope. */
-export type ProgressTrackVariants = { size?: ScaleStep<typeof barScale> }
+export type ProgressTrackVariants = { size?: ScaleStep<typeof scale.bar> }
 export type ProgressBarFillVariants = VariantProps<typeof fill>
 /** Props for the {@link ProgressGauge} root: the `size` step that the component writes as a density scope. */
-export type ProgressGaugeVariants = { size?: ScaleStep<typeof gaugeScale> }
+export type ProgressGaugeVariants = { size?: ScaleStep<typeof scale.gauge> }

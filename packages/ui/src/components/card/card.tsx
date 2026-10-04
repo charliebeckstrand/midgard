@@ -39,7 +39,7 @@ export function Card({
 			density={size}
 			bg={bg}
 			outline={outline}
-			className={cn('overflow-hidden -outline-offset-1', k.frame, className)}
+			className={cn('overflow-hidden -outline-offset-1', k.base, className)}
 			{...props}
 		>
 			{children}

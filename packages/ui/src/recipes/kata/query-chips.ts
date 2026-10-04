@@ -2,7 +2,7 @@
  * Query-chips kata: object-literal surface for the `<QueryChips>` filter bar.
  * No variants axis. The flat slots are the wrapping `base` row and the rule
  * `chip` with its `field`, `operator`, and `value` parts. The rest are the AND/OR
- * `combinator` with the pad of its Button (`combinatorButton`), the
+ * `combinator` with the pad of its Button (`combinator.button`), the
  * nested-group `bracket`, and the `empty` text.
  */
 import { iro, ji, narabi } from '../kiso'
@@ -45,13 +45,15 @@ export const k = {
 	value: [weight.semibold, ...text.default],
 	// The combinator is one step below the chips. No step is below `xs`, so at
 	// `xs` the combinator takes the `xs` values.
-	combinator: [dan.text.chipCaption, weight.medium, ...text.muted, 'uppercase'],
-	/**
-	 * The pad of the combinator Button: the values of the Button kata, one step
-	 * below the step of the row. The Button has no `size`, so it takes the step
-	 * of the row, and these classes replace its own stepped pad.
-	 */
-	combinatorButton: [dan.space.chipQuery, dan.space.chipQueryLabelY, dan.radius.chipQuery],
+	combinator: {
+		base: [dan.text.chipCaption, weight.medium, ...text.muted, 'uppercase'],
+		/**
+		 * The pad of the combinator Button: the values of the Button kata, one step
+		 * below the step of the row. The Button has no `size`, so it takes the step
+		 * of the row, and these classes replace its own stepped pad.
+		 */
+		button: [dan.space.chipQuery, dan.space.chipQueryLabelY, dan.radius.chipQuery],
+	},
 	bracket: [...text.muted],
 	empty: [...text.muted],
 } as const

@@ -9,7 +9,7 @@ const { rounded } = kasane
 const { css } = ugoki
 const { color } = slider
 
-const root = defineRecipe({
+const range = defineRecipe({
 	base: ['relative', 'w-full', ...cursor, 'select-none', 'touch-none', disabled, dan.space.sliderY],
 	color,
 	defaults: { color: 'blue' },
@@ -38,7 +38,7 @@ const thumb = defineRecipe({
 })
 
 export const k = {
-	root,
+	base: range,
 	track,
 	fill: ['absolute', rounded.full, 'bg-[var(--slider-fill)]'],
 	thumb,
@@ -53,4 +53,4 @@ export const scale = defineScale(
 )
 
 /** Recipe variant props for {@link RangeSlider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type RangeSliderVariants = VariantProps<typeof root> & { size?: ScaleStep<typeof scale> }
+export type RangeSliderVariants = VariantProps<typeof k.base> & { size?: ScaleStep<typeof scale> }

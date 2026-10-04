@@ -118,12 +118,12 @@ export function SidebarLayout({
 	const layoutValue = useMemo(() => ({ actions }), [actions])
 
 	return (
-		<div className={k.layout()}>
+		<div className={k.base()}>
 			{/* Hot zone to peek the floating sidebar */}
 			{floating && (
 				<div
 					aria-hidden
-					className={k.floatingHotZone()}
+					className={k.floating.peek()}
 					onPointerEnter={() => setFloatingOpen(true)}
 				/>
 			)}
@@ -145,12 +145,12 @@ export function SidebarLayout({
 					// The peek closes when the pointer leaves, so it has no Close row.
 					footer={null}
 					className={cn(
-						k.floatingSheet(),
+						k.floating.sheet(),
 						rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none',
 					)}
 				>
 					<div
-						className={k.floatingBody()}
+						className={k.floating.body()}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={() => setFloatingOpen(false)}
 					>
@@ -166,7 +166,7 @@ export function SidebarLayout({
 				createPortal(
 					<div
 						aria-hidden
-						className={k.floatingBuffer()}
+						className={k.floating.buffer()}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={() => setFloatingOpen(false)}
 					/>,
@@ -203,8 +203,8 @@ export function SidebarLayout({
 
 			{/* Content */}
 			<SidebarLayoutContext value={layoutValue}>
-				<div className={k.contentWrapper({ floating })}>
-					<div className={k.content({ stickyHeader })}>{children}</div>
+				<div className={k.content.wrapper({ floating })}>
+					<div className={k.content.base({ stickyHeader })}>{children}</div>
 				</div>
 			</SidebarLayoutContext>
 		</div>

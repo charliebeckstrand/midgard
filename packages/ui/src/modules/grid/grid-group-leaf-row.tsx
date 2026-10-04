@@ -207,8 +207,8 @@ function GridGroupLeafCell<T>({
 			// color when the row manager assigns one, else the neutral tint.
 			className={cn(
 				cellRoving && dataCell && k.cell.rovable,
-				leading && k.rowGroup.rail.padded,
-				leading && color && k.rowGroup.rail.color[color],
+				leading && k.row.group.rail.padded,
+				leading && color && k.row.group.rail.color[color],
 				leafCellClass(col),
 				pinned.className,
 				extra?.className,
@@ -216,8 +216,8 @@ function GridGroupLeafCell<T>({
 			style={{ ...extra?.style, ...NO_PADDING, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
-			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
-				<div className={cn(k.rowGroup.reveal.clip)}>
+			<div className={cn(k.row.group.reveal.track)} data-open={dataAttr(open)}>
+				<div className={cn(k.row.group.reveal.clip)}>
 					<div className={cn(pad)}>
 						{leafCellInner({
 							col,
@@ -273,7 +273,7 @@ function GridGroupLeafRowImpl<T>({
 	level,
 	...windowRow
 }: GridGroupLeafRowProps<T>) {
-	const pad = k.rowGroup.reveal.pad
+	const pad = k.row.group.reveal.pad
 
 	// The cursor makes a client-grouped grid a treegrid, which reads the level.
 	const tree = useGridNavContext().enabled

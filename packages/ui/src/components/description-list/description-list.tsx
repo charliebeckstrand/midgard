@@ -40,7 +40,7 @@ export function DescriptionList({
 		<dl
 			data-slot="dl"
 			data-orientation={orientation}
-			className={cn(k.root({ orientation }), k.projection[orientation], className)}
+			className={cn(k.base({ orientation }), k.projection[orientation], className)}
 			{...props}
 		/>
 	)

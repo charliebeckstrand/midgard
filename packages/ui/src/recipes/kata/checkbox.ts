@@ -23,7 +23,7 @@ export const k = bridge.check(
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
 			'not-has-[:disabled]:has-[:indeterminate]:hover:opacity-90',
 			// The box takes the step of the nearest density scope.
-			kokkaku.checkbox.box,
+			checkbox.box,
 			dan.radius.check,
 		],
 		color,

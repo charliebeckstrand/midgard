@@ -45,7 +45,7 @@ export type ChartLineMarksProps = {
 
 /** The marker dot's classes: series fill, gaining a white surface stroke only where a dot crosses opaque marks. @internal */
 function markerClass(paint: ChartPaint, stroke: boolean): string {
-	return cn(fillClass(paint), stroke && k.stroke)
+	return cn(fillClass(paint), stroke && k.mark.stroke)
 }
 
 /** A line segment's shared presentation, dashed for a dashed series. @internal */

@@ -1,10 +1,11 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, kokkaku, omote, textRamp } from '../kiso'
+import { iro, ji, kokkaku, omote, textRamp, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { marker, text } = iro
 const { weight } = ji
 const { rail } = omote
+const { css } = ugoki
 
 /**
  * Per-color marker appearance. `dot` uses the `iro.marker` shade, which clears
@@ -51,12 +52,12 @@ const palette = {
 	},
 } satisfies Record<Color, { dot: string[]; line: { before: string; after: string } }>
 
-const root = defineRecipe({
+const timeline = defineRecipe({
 	base: ['list-none p-0 m-0'],
 	orientation: {
 		vertical: 'flex flex-col',
-		// The row scrolls in the root. While it overflows, the edge with more
-		// content behind it fades, and the root is a tab stop with an inset ring.
+		// The row scrolls in the list. While it overflows, the edge with more
+		// content behind it fades, and the list is a tab stop with an inset ring.
 		horizontal: ['flex flex-row', ...rail],
 	},
 	variant: {
@@ -82,7 +83,7 @@ const item = defineRecipe({
 		],
 		// 6.5px aligns the content with the rail. It matches the marker's `left-[6.5px]`.
 		// The minimum width stops a column at a readable measure; past it, the
-		// row scrolls in the root.
+		// row scrolls in the list.
 		horizontal: ['flex flex-col min-w-48 pl-[6.5px] pr-8 last:pr-0', dan.space.timelineTop],
 	},
 	defaults: { orientation: 'vertical' },
@@ -116,7 +117,7 @@ const timestamp = defineRecipe({
 })
 
 export const k = {
-	root,
+	base: timeline,
 	item,
 	marker: {
 		base: [
@@ -132,6 +133,8 @@ export const k = {
 		// The inner dot (a StatusDot or a decorative Swatch) fills the marker box
 		// and rides above the connector rails.
 		dot: 'z-10 relative size-full',
+		/** The pulse animation of a decorative dot, applied when `pulse` is set. A StatusDot pulses itself. */
+		pulse: css.pulse,
 		vertical: [
 			'col-start-1 row-start-1 self-center justify-self-center',
 			'before:bottom-full before:left-1/2 before:-translate-x-1/2',
@@ -156,4 +159,4 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link Timeline} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
-export type TimelineVariants = VariantProps<typeof root>
+export type TimelineVariants = VariantProps<typeof k.base>

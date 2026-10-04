@@ -1,6 +1,6 @@
 /**
  * JSON-tree kata: object-literal surface for the collapsible JSON viewer.
- * Carries a per-value-type syntax-color table (`valueColor`, keyed by
+ * Carries a per-value-type syntax-color table (`color`, keyed by
  * {@link JsonValueType}) authored inline with `mode()`. These editor-style
  * hues are local to this viewer, not a shared iro palette. Rows, the expand
  * toggle, chevron, and the collapse motion config round out the surface.
@@ -62,10 +62,9 @@ export const k = {
 	],
 	content: [flex.inline, 'min-w-0', 'gap-1'],
 	chevron: {
-		icon: ['flex-none', css.transform, css.duration],
+		base: ['flex-none', css.transform, css.duration],
 		spacer: 'inline-block w-4 flex-none',
 	},
-	key: color.key,
 	index: text.muted,
 	punctuation: text.muted,
 	summary: text.muted,
@@ -77,5 +76,5 @@ export const k = {
 	indent: 'ps-5',
 	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg],
 	motion: collapse.fade,
-	valueColor: color,
+	color,
 } as const

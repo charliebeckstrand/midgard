@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { Color } from '../../recipes'
-import { pulse as pulseAnimation } from '../../recipes/kata/status'
 import { k } from '../../recipes/kata/timeline'
 import { capitalizeFirst } from '../../utilities'
 import { StatusDot, type StatusDotProps } from '../status'
@@ -74,7 +73,7 @@ export function TimelineMarker({
 					shape="circle"
 					variant={variant}
 					color={cn(k.marker.palette[color].dot)}
-					className={cn(k.marker.dot, pulse && pulseAnimation)}
+					className={cn(k.marker.dot, pulse && k.marker.pulse)}
 				/>
 			) : (
 				<StatusDot

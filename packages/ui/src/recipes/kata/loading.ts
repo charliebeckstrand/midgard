@@ -56,19 +56,23 @@ export const k = defineRecipe(
 	{ dot, spinner },
 )
 
-/** The size scale of {@link LoadingDots}: the steps of the dot and the gap. */
-export const dotsScale = defineScale(dan.size.dot, dan.gap.dots)
-
-/** The size scale of {@link LoadingSpinner}: the steps of the icon ramp. */
-export const spinnerScale = defineScale(dan.size.icon)
+/**
+ * The size scales. `dots` is the scale of {@link LoadingDots}: the steps of the
+ * dot and the gap. `spinner` is the scale of {@link LoadingSpinner}: the steps
+ * of the icon ramp.
+ */
+export const scale = {
+	dots: defineScale(dan.size.dot, dan.gap.dots),
+	spinner: defineScale(dan.size.icon),
+} as const
 
 /** Recipe variant props for {@link LoadingDots} — its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingDotsVariants = VariantProps<typeof k> & {
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: ScaleStep<typeof dotsScale>
+	size?: ScaleStep<typeof scale.dots>
 }
 /** Recipe variant props for {@link LoadingSpinner} — its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingSpinnerVariants = VariantProps<typeof spinner> & {
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: ScaleStep<typeof spinnerScale>
+	size?: ScaleStep<typeof scale.spinner>
 }

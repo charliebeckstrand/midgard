@@ -104,7 +104,7 @@ export function Avatar({
 			<span data-slot="avatar" className={cn(k({ variant, color }))}>
 				{content}
 			</span>
-			<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
+			<StatusDot status={status} className={cn(k.status.base, k.status.ring)} />
 			{/* Color alone conveys status; the sr-only span names it for assistive technology. */}
 			<span className="sr-only">{statusLabel ?? capitalizeFirst(status)}</span>
 		</span>

@@ -6,9 +6,10 @@ const { text } = iro
 const { surface, affix } = control
 
 export const k = {
-	surface,
+	surface: {
+		default: surface.default,
+	},
 	affix: {
-		...affix,
 		base: [
 			// The slot fills the height of the frame, so the whole column of the
 			// affix is a press target with the pointer cursor, and not only the
@@ -21,6 +22,8 @@ export const k = {
 			// the cursor reacts to the enclosing control frame.
 			'group-has-[:disabled]/control:cursor-not-allowed group-has-[[data-disabled]]/control:cursor-not-allowed',
 		],
+		prefix: affix.prefix,
+		suffix: affix.suffix,
 	},
 }
 

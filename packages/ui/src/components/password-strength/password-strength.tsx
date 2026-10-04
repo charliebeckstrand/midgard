@@ -71,7 +71,7 @@ export function PasswordStrength({
 	const label = activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? '')
 
 	return (
-		<div data-slot="password-strength" className={cn(k.root, className)}>
+		<div data-slot="password-strength" className={cn(k.base, className)}>
 			{/* A native meter cannot draw the segments, so it carries the value for AT, and the segment row is decorative. */}
 			<meter
 				value={activeCount}

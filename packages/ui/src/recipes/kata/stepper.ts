@@ -8,7 +8,7 @@ const { rounded } = kasane
 const { flex } = narabi
 const { border } = sen
 
-const root = defineRecipe({
+const base = defineRecipe({
 	base: 'flex w-full',
 	orientation: {
 		horizontal: 'flex-row items-start gap-4 px-4',
@@ -77,9 +77,6 @@ const item = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
-/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
-const itemButton = 'py-0'
-
 // The negative margins run the rule under the steps on each side, out to their
 // indicators. With the `gap-4` of the row on each side, `min-w-20` keeps a gap of
 // 16px between the boxes of two steps on a narrow row.
@@ -102,10 +99,13 @@ const separator = defineRecipe({
 })
 
 export const k = {
-	root,
+	base,
 	step,
-	item,
-	itemButton,
+	item: {
+		base: item,
+		/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
+		button: 'py-0',
+	},
 	title,
 	separator,
 	content: {
@@ -131,7 +131,7 @@ export const k = {
 		// after the neutral hover of `interactive`, and the merge keeps it.
 		completed: [
 			flex.inline,
-			'items-center justify-center',
+			'justify-center',
 			'bg-blue-600 dark:bg-blue-600 text-white',
 			'group-enabled:group-hover:bg-blue-500',
 		],
@@ -142,7 +142,7 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link Stepper} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperVariants = VariantProps<typeof root>
+export type StepperVariants = VariantProps<typeof base>
 /** Recipe variant props for {@link StepperStep} — its styling axes (`orientation`), for consumers composing custom slots. */
 export type StepperStepVariants = VariantProps<typeof step>
 /** Recipe variant props for {@link StepperTitle} — its styling axes (`orientation`, `interactive`), for consumers composing custom slots. */

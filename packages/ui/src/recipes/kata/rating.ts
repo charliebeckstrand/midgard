@@ -70,7 +70,7 @@ const track = [
 
 export const k = defineRecipe(
 	{
-		base: [flex.inline, 'items-center', 'w-fit', ...disabled, kokkaku.rating.gap],
+		base: [flex.inline, 'w-fit', ...disabled, kokkaku.rating.gap],
 		color,
 		defaults: { color: 'amber' },
 		skeleton: kokkaku.rating,

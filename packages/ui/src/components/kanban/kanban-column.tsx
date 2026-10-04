@@ -99,7 +99,7 @@ export function KanbanColumn({
 					// wins, and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}
 					aria-labelledby={!ariaLabel && hasTitle ? titleId : undefined}
-					className={cn(k.column.base, over && k.column.over, className)}
+					className={cn(k.column.base, className)}
 				>
 					{children}
 				</fieldset>

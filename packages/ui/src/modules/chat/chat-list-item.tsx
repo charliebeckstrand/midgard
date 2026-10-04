@@ -76,12 +76,12 @@ export function ChatListItem({
 					data-slot="chat-list-item-select"
 					aria-current={current ? 'true' : undefined}
 					onClick={onSelect}
-					className={cn(k.select, k.overlay)}
+					className={cn(k.select.base, k.select.overlay)}
 				>
 					{body}
 				</button>
 			) : (
-				<span data-slot="chat-list-item-select" className={k.select}>
+				<span data-slot="chat-list-item-select" className={k.select.base}>
 					{body}
 				</span>
 			)}

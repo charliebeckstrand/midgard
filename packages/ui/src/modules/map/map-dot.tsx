@@ -214,7 +214,7 @@ export function MapDotCount({
  * Every attribute of the invisible circle that answers the pointer over a
  * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
  * them. The `r` attribute carries WCAG 2.5.5's 44px, and a mouse gives back the
- * reach that something else needs, through `k.hitFine`. A drawn zone under the
+ * reach that something else needs, through `k.hit.fine`. A drawn zone under the
  * dot needs it. That is what lets a `MapGeofence` drawn tight around a
  * `MapPoint` still answer, and keeps a depot off the middle of its own
  * catchment. A neighboring dot inside the reach needs it too. Without it the
@@ -240,7 +240,7 @@ export function MapDotCount({
  * Both reaches are pixel measures, and the shape draws in frame units. `scale` —
  * what one device pixel spans under the plat's zoom — therefore divides both
  * here. The coarse one rides the `r` attribute. The fine one rides a custom
- * property the class reads (`k.hitRadius`), because only CSS can answer the
+ * property the class reads (`k.hit.radius`), because only CSS can answer the
  * modality. A CSS length on an SVG shape is a user unit like any other.
  * Resolving both here is what keeps a target from ballooning with the view. The
  * rule has one home, and a mark added later gets it by construction.
@@ -283,9 +283,9 @@ export function dotHitProps({
 		// makes, the radius takes the circle. A fine pointer narrowing inside a clipped target composes
 		// without either knowing about the other.
 		clipPath: clip === undefined ? undefined : `url(#${clip})`,
-		style: fine ? ({ [k.hitRadius]: `${target * scale}px` } as CSSProperties) : undefined,
+		style: fine ? ({ [k.hit.radius]: `${target * scale}px` } as CSSProperties) : undefined,
 		...hit,
-		className: cn(fine ? k.hitFine : undefined, hit.className),
+		className: cn(fine ? k.hit.fine : undefined, hit.className),
 	}
 }
 

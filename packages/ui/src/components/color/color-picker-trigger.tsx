@@ -93,7 +93,10 @@ export function ColorPickerTrigger({
 						onClick={() => onOpenChange(!open)}
 						className={cn(k.button())}
 					>
-						<span data-slot="color-picker-swatch" className={cn(k.swatch, alpha && k.checkerboard)}>
+						<span
+							data-slot="color-picker-swatch"
+							className={cn(k.swatch.base, alpha && k.swatch.checkerboard)}
+						>
 							<span className="block size-full" style={{ backgroundColor: swatchColor }} />
 						</span>
 						<span className={cn(k.value({ truncate: true }), 'min-w-0 flex-1 font-mono')}>

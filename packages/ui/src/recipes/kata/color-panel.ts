@@ -1,10 +1,11 @@
 /**
- * Color-panel kata: the saturation/value picking surface. The root and the
- * inner pieces (area, track, preview, handle, swatches) take the step of the
- * nearest density scope through stepped classes; the pieces attach as slot
- * extras. The wash gradients and the
- * alpha/preview chequerboard are authored as raw CSS background-image literals
- * here rather than as kiso tokens — they're picker-specific, used nowhere else.
+ * Color-panel kata: the saturation/value picking surface. The pieces attach as
+ * slot extras. Stepped classes give the width and the gap of the root the step
+ * of the nearest density scope. The `area`, `track`, and `preview` pieces take
+ * that step too. The `handle` and the `swatches` have a fixed size at each step.
+ *
+ * The wash gradients and the alpha and preview checkerboard are raw CSS
+ * `background-image` literals here, not kiso tokens. Only the picker uses them.
  */
 
 import { defineScale } from '../../core/density'
@@ -83,7 +84,8 @@ export const k = defineRecipe(
 		 * when the radio inside has keyboard focus.
 		 */
 		swatch: [
-			'relative aspect-square w-full cursor-pointer rounded-md',
+			'relative aspect-square w-full cursor-pointer',
+			rounded.md,
 			...ring.inset,
 			'hover:scale-110',
 			...focus.outline,

@@ -11,17 +11,18 @@ import type { SwatchVariants } from './swatch'
 const { marker } = iro
 const { css } = ugoki
 
-/** Each status's `iro.marker` currentColor shade, fed to Swatch's `color`. */
-export const statusColor = {
-	inactive: marker.zinc,
-	active: marker.green,
-	info: marker.blue,
-	warning: marker.amber,
-	error: marker.red,
+export const k = {
+	/** Each status's `iro.marker` currentColor shade, fed to Swatch's `color`. */
+	color: {
+		inactive: marker.zinc,
+		active: marker.green,
+		info: marker.blue,
+		warning: marker.amber,
+		error: marker.red,
+	},
+	/** The pulse animation, applied when `pulse` is set. */
+	pulse: css.pulse,
 } as const
-
-/** The pulse animation, applied when `pulse` is set. */
-export const pulse = css.pulse
 
 /** Recipe variant props for {@link StatusDot} — the semantic `status`, the `solid` / `outline` / `dashed` fill, Swatch's `size`, and `pulse`. */
 export type StatusDotVariants = {
@@ -34,7 +35,7 @@ export type StatusDotVariants = {
 	 * The semantic status; sets the dot's color.
 	 * @defaultValue 'inactive'
 	 */
-	status?: keyof typeof statusColor
+	status?: keyof typeof k.color
 	/**
 	 * The dot size, forwarded to Swatch. Without it, the dot takes the step of
 	 * the nearest density scope.

@@ -164,7 +164,7 @@ export function CodeBlock({
 	const setContent = useComposedRef<HTMLDivElement>(scrollOverflowRef, scrollRegionRef)
 
 	return (
-		<div data-slot="code-block" className={cn(k.wrapper, className)}>
+		<div data-slot="code-block" className={cn(k.block.base, className)}>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
 			<div ref={setContent} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
@@ -178,7 +178,7 @@ export function CodeBlock({
 					</pre>
 				)}
 			</div>
-			{copy && <CopyButton text={code} size="sm" className={cn(k.copy)} />}
+			{copy && <CopyButton text={code} size="sm" className={cn(k.block.copy)} />}
 		</div>
 	)
 }

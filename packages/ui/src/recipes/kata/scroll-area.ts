@@ -97,7 +97,7 @@ const thumb = defineRecipe({
 })
 
 export const k = {
-	wrapper,
+	base: wrapper,
 	viewport,
 	scrollbar,
 	thumb,

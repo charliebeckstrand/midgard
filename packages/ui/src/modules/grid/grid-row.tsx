@@ -381,7 +381,7 @@ function GridRowImpl<T>({
 	return (
 		<Row
 			layout={animate ? 'position' : undefined}
-			transition={animate ? k.motion.rowSort : undefined}
+			transition={animate ? k.motion.sort : undefined}
 			// The `<tr>` is the row's dnd-kit sortable node when reorderable; its
 			// transform/transition ride the inline style, and `data-dragging` lifts it.
 			// A windowed master-detail body measures the row. Row reorder, which
@@ -418,7 +418,7 @@ function GridRowImpl<T>({
 			className={cn(
 				loading && k.row.loading,
 				rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
-				sortable && k.rowReorder.dragging,
+				sortable && k.row.reorder.dragging,
 				className,
 			)}
 		>
@@ -501,7 +501,7 @@ export const GridRow = memo(GridRowImpl) as typeof GridRowImpl
  * sortable keyed by its row key, and composes the lift transform/transition. It
  * threads the activator ref and listeners down to its drag-handle grip. Unlike
  * {@link useSortableItem}, the dragged row stays visible (no `<DragOverlay>`) and
- * lifts in place via {@link k.rowReorder.dragging}.
+ * lifts in place via {@link k.row.reorder.dragging}.
  *
  * @internal
  */

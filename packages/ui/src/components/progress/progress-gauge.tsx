@@ -97,7 +97,7 @@ export function ProgressGauge({
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
-			className={cn(k.gauge.root(), className)}
+			className={cn(k.gauge.base(), className)}
 		>
 			<svg
 				aria-hidden="true"

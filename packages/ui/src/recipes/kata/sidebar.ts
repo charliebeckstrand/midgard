@@ -56,9 +56,9 @@ const itemBase = defineRecipe({
 		// repeats the row padding. Thus the Button class merges away.
 		dan.space.sidebarItemLabelY,
 		// The item wraps its `icon` in Icon, which takes the step of the nearest
-		// scope by itself. An Avatar or a LoadingSpinner child sizes itself in a
-		// row: its own recipe selects the inner button of the row. See
-		// `kata/avatar.ts` and `kata/loading.ts`.
+		// scope by itself. A LoadingSpinner takes the icon ramp, so it does the
+		// same. An Avatar child sizes itself in a row: its own recipe selects the
+		// inner button of the row. See `kata/avatar.ts`.
 	],
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix
@@ -82,7 +82,7 @@ const itemRow = defineRecipe({
 	base: ['group relative list-none'],
 	affix: {
 		true: [
-			'flex items-center',
+			flex.row,
 			// The wrapper only needs a radius when it carries the affixed row chrome.
 			dan.radius.control,
 			...nav.tint,
@@ -154,7 +154,7 @@ export const k = {
 } as const
 
 /** The size scale of {@link SidebarItem}: the steps of its text, gap, padding, and radius. */
-export const itemScale = defineScale(
+export const scale = defineScale(
 	dan.text.body,
 	dan.gap.item,
 	dan.space.sidebarItem,
@@ -163,5 +163,5 @@ export const itemScale = defineScale(
 
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
 export type SidebarItemVariants = VariantProps<typeof itemBase> & {
-	size?: ScaleStep<typeof itemScale>
+	size?: ScaleStep<typeof scale>
 }

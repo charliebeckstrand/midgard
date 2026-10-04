@@ -79,15 +79,15 @@ export const k = {
 		body: { extra: [flex.fill, 'overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'] },
 	}),
 	/**
-	 * The drag handle: a grab area wide enough to aim at, and the bar inside it
-	 * the reader actually sees.
+	 * The drag handle: a grab area wide enough to aim at (`base`), and the bar
+	 * inside it the reader actually sees (`bar`).
 	 *
-	 * The area is the full width, so the reach is the panel's rather than the
+	 * The grab area is the full width, so the reach is the panel's rather than the
 	 * bar's. `hannou.grab.default` carries the rest, including the `touch-none`
 	 * that makes the gesture work at all under a finger.
 	 */
 	handle: {
-		area: [
+		base: [
 			flex.row,
 			'w-full shrink-0 items-center justify-center',
 			// Even top and bottom: the handle is the panel's own inset, so the space

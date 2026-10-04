@@ -23,7 +23,7 @@ const { border, divider, focus } = sen
 
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
-const root = defineRecipe({
+const base = defineRecipe({
 	base: [flex.col, 'm-0 p-0'],
 	variant: {
 		separated: ['gap-2'],
@@ -41,7 +41,8 @@ const root = defineRecipe({
 })
 
 // The padding of a row follows the nearest density scope. The card-like
-// variants use the uniform `ma.p` scale, and `plain` uses a tighter ratio.
+// variants use the uniform `dan.space.box` padding, and `plain` uses a tighter
+// ratio (`dan.space.listPlainX` and `dan.space.rowY`).
 const pad = dan.space.box
 
 // The rounded wash layer of a divided row. The layer takes no pointer, so a
@@ -172,7 +173,7 @@ const content = defineRecipe({
 })
 
 export const k = {
-	root,
+	base,
 	item,
 	handle: [
 		flex.inline,

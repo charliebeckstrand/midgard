@@ -173,7 +173,8 @@ const placeholder = [
 /** The drag grip. The floating form sits on the corner of a tile that has no header row. */
 const handle = defineRecipe({
 	base: [
-		'flex size-6 shrink-0 items-center justify-center rounded-md',
+		'flex size-6 shrink-0 items-center justify-center',
+		rounded.md,
 		...grab.default,
 		...text.muted,
 		...fg.hover,
@@ -228,7 +229,8 @@ const resizeHandle = defineRecipe({
 /** The chip that shows the span of a tile while it resizes. */
 const readout = [
 	'pointer-events-none absolute bottom-3 end-3 z-30',
-	'rounded-md px-2 py-1',
+	rounded.md,
+	'px-2 py-1',
 	'text-xs tabular-nums',
 	'shadow-sm',
 	...sen.border.default,
@@ -249,6 +251,5 @@ export const k = {
 	missing,
 	placeholder,
 	handle,
-	resizeHandle,
-	readout,
+	resize: { handle: resizeHandle, readout },
 } as const

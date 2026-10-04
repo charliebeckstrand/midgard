@@ -34,25 +34,28 @@ export const k = {
 	},
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
 	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
-	/**
-	 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
-	 * where it crosses an opaque mark or another dot. It reads `--surface-fill`, which a
-	 * surface card sets. Without a card, it takes the page ground, as the grid host does.
-	 * A white ring in dark mode showed as a halo on each dot.
-	 */
-	stroke: mode('stroke-[var(--surface-fill,var(--color-white))]', [
-		'dark:stroke-[var(--surface-fill,var(--color-zinc-950))]',
-		'dark:lg:stroke-[var(--surface-fill,var(--color-zinc-900))]',
-	]),
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ink.label,
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ink.value,
-	/**
-	 * The ink of an SVG label beside a mark or a rule: small, semibold, and tabular.
-	 * The color of the series or the rule fills it.
-	 */
-	markLabel: ['text-xs', 'font-semibold', 'tabular-nums'],
+	/** The paint beside a mark: the ink of its label (`label`) and the stroke of a point marker (`stroke`). */
+	mark: {
+		/**
+		 * The ink of an SVG label beside a mark or a rule: small, semibold, and tabular.
+		 * The color of the series or the rule fills it.
+		 */
+		label: ['text-xs', 'font-semibold', 'tabular-nums'],
+		/**
+		 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
+		 * where it crosses an opaque mark or another dot. It reads `--surface-fill`, which a
+		 * surface card sets. Without a card, it takes the page ground, as the grid host does.
+		 * A white ring in dark mode showed as a halo on each dot.
+		 */
+		stroke: mode('stroke-[var(--surface-fill,var(--color-white))]', [
+			'dark:stroke-[var(--surface-fill,var(--color-zinc-950))]',
+			'dark:lg:stroke-[var(--surface-fill,var(--color-zinc-900))]',
+		]),
+	},
 	/**
 	 * The hit layer of the plot. Under the `'click'` trigger, the pointer hook sets
 	 * `data-hit` on the layer while the pointer is on a mark that a click reads.
@@ -60,7 +63,7 @@ export const k = {
 	 */
 	hit: ['data-hit:cursor-pointer'],
 	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
-	focusRing: sen.focus.ring,
+	focus: sen.focus.ring,
 	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */
 	arrow: text.default,
 	/**
@@ -73,23 +76,26 @@ export const k = {
 	 * nothing.
 	 */
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
-	/**
-	 * The root of a readout surface: a chart, a heatmap, a choropleth, or a map
-	 * plot. A long press opens the readout on a map. The surface selects no text
-	 * and opens no callout under a hold. Safari on iOS can select text in a
-	 * descendant of a `select-none` box, so every descendant also sets it.
-	 */
-	touchReadout: ['select-none', '**:select-none', '[-webkit-touch-callout:none]'],
-	/**
-	 * The root of a chart, whose marks take a tap. It turns off the double-tap
-	 * zoom, so a tap lands without the wait for a second tap. A pan and a pinch
-	 * still work.
-	 */
-	tap: ['touch-manipulation'],
+	/** The touch posture of a root: no text selection under a hold (`readout`), and no double-tap wait (`tap`). */
+	touch: {
+		/**
+		 * The root of a readout surface: a chart, a heatmap, a choropleth, or a map
+		 * plot. A long press opens the readout on a map. The surface selects no text
+		 * and opens no callout under a hold. Safari on iOS can select text in a
+		 * descendant of a `select-none` box, so every descendant also sets it.
+		 */
+		readout: ['select-none', '**:select-none', '[-webkit-touch-callout:none]'],
+		/**
+		 * The root of a chart, whose marks take a tap. It turns off the double-tap
+		 * zoom, so a tap lands without the wait for a second tap. A pan and a pinch
+		 * still work.
+		 */
+		tap: ['touch-manipulation'],
+	},
 	/** Motion vocabulary for the mount reveals, from `zu`. `chart-motion.ts` composes the chart's timings from it. */
 	motion,
 	skeleton: kokkaku.chart,
 } as const
 
 /** The size scale of {@link ChartSkeleton}: the steps of the block height that it takes with no ratio. */
-export const skeletonScale = defineScale(dan.size.chart)
+export const scale = defineScale(dan.size.chart)

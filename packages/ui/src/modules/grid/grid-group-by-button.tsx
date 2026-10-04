@@ -56,7 +56,7 @@ export function GridGroupByButton({
 					color={grouped ? 'blue' : undefined}
 					data-active={dataAttr(grouped)}
 					aria-label={action}
-					className={cn(k.groupButton.button, !grouped && k.groupButton.idle)}
+					className={cn(k.group.button, !grouped && k.group.idle)}
 					onClick={() => context.setGrouping(grouped ? null : column.id)}
 				>
 					<Icon icon={grouped ? <Ungroup /> : <Group />} />

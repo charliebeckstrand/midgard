@@ -54,8 +54,13 @@ export const k = defineRecipe(
 			 */
 			spacing: 'density-[xs,sm]:-space-x-0.5 density-[md,lg,xl]:-space-x-1',
 		},
-		/** Ring around an avatar's status indicator. */
-		statusRing: 'ring-2 ring-white dark:ring-zinc-900',
+		/** The status indicator of an avatar. */
+		status: {
+			/** Puts the indicator on the top-right corner of the avatar. */
+			base: 'absolute top-0 right-0',
+			/** Ring around the indicator. */
+			ring: 'ring-2 ring-white dark:ring-zinc-900',
+		},
 	},
 )
 

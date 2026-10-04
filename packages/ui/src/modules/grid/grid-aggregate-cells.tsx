@@ -46,7 +46,7 @@ export function GridAggregateCells<T>({
 		<TableCell
 			key={column.id}
 			data-grid-col={column.id}
-			className={cn(k.aggregate.cell, color && k.rowGroup.tint[color], column.className)}
+			className={cn(k.aggregate.cell, color && k.row.group.tint[color], column.className)}
 		>
 			{renderAggregate(column, rows, locale, headerRow)}
 		</TableCell>

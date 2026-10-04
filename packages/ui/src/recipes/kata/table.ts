@@ -10,41 +10,31 @@
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, omote, sen } from '../kiso'
+import { iro, ji, omote } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { size } = ji
-const { border } = sen
 const { rail } = omote
 
 // Cell padding for each step.
 const padding = [dan.space.cellX, dan.space.cellY]
 
-const outline = {
-	true: border.subtle,
-	false: '',
-}
-
 const cell = defineRecipe({
 	base: [text.default, padding],
-	outline,
-	defaults: { outline: false },
 })
 
 // A browser centers a `<th>` through its own stylesheet, and the `text-start` of
 // the table does not reach it. So the header states its alignment, as a cell does.
 const header = defineRecipe({
 	base: ['text-start font-bold', text.muted, padding],
-	outline,
-	defaults: { outline: false },
 })
 
 /**
  * Table-side projections onto descendant cells. Cells and headers are
- * static leaves carrying their own padding steps. The table overrides the
- * outline-, stripe-, and hover-varying properties from the `<table>` element.
- * No descendant therefore reads context, and the whole family renders in React
+ * static leaves that carry only their own padding steps. The `<table>` element
+ * sets the outline-, stripe-, and hover-varying properties on them. No
+ * descendant therefore reads context, and the whole family renders in React
  * Server Components. The exact-depth child chains (`>*>tr>` walks
  * thead/tbody/tfoot) keep a nested table's cells independent.
  *

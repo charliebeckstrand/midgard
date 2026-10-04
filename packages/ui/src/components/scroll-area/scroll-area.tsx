@@ -88,7 +88,7 @@ export function ScrollArea({
 		<div
 			data-slot="scroll-area"
 			data-orientation={orientation}
-			className={cn(k.wrapper({ rounded, orientation, extent, bare }), className)}
+			className={cn(k.base({ rounded, orientation, extent, bare }), className)}
 		>
 			{/* A consumer can set its own stop through props (e.g. tabIndex={-1}
 			    with role="region" and aria-label). */}

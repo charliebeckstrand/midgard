@@ -50,7 +50,7 @@ function markProps(paint: ChartPaint, sized: boolean) {
 		strokeWidth: MARKER_RING_WIDTH,
 		fillOpacity: sized ? BUBBLE_FILL_OPACITY : undefined,
 		fill: rawColor(paint),
-		className: cn(fillClass(paint), k.stroke),
+		className: cn(fillClass(paint), k.mark.stroke),
 	}
 }
 

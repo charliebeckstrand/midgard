@@ -39,7 +39,7 @@ const label = defineRecipe({
 })
 
 export const k = {
-	root: [flex.col, 'gap-2'],
+	base: [flex.col, 'gap-2'],
 	meter: [flex.row, 'gap-1'],
 	segment,
 	label,

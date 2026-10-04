@@ -128,7 +128,6 @@ function KanbanCardImpl({
 	const cardClassName = cn(
 		k.card.base,
 		interactive && k.card.draggable,
-		dragging && k.card.dragging,
 		lifted && k.card.lifted,
 		className,
 	)
