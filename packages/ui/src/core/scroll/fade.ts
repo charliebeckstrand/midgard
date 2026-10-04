@@ -78,7 +78,7 @@ export const handler: PluginCreator = ({ addBase, addUtilities }) => {
 			[RTL]: { '--scroll-fade-to': 'left' },
 			// Longhands, because Lightning CSS expands the `animation` shorthand
 			// with a duration of `0s`. A scroll timeline needs `auto`, the length of
-			// its range.
+			// its range (https://github.com/parcel-bundler/lightningcss/issues/1012).
 			[SCROLL_TIMELINE]: {
 				'animation-name': 'scroll-fade-start, scroll-fade-end',
 				'animation-duration': 'auto',
