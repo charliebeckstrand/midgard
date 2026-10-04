@@ -17,7 +17,7 @@ import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 function nodeEnvironmentFiles(): string[] {
 	const files: string[] = []
 
-	for (const dir of ['src/__tests__', 'src/docs-legacy/engine/__tests__']) {
+	for (const dir of ['src/__tests__', 'src/docs/__tests__', 'src/docs-legacy/engine/__tests__']) {
 		walkSource(
 			join(import.meta.dirname, dir),
 			(file, content) => {
@@ -179,7 +179,8 @@ export default defineConfig({
 				// The docs engine, pointed at ui, backs the `docs/*` integration
 				// tests under src/__tests__/docs/ (the real component-modules map +
 				// barrel tagging) and runs its own suite under
-				// src/docs-legacy/engine/__tests__.
+				// src/docs-legacy/engine/__tests__. The suite of the new docs app,
+				// under src/docs/__tests__, runs here too.
 				plugins: [docsPlugin({ vitest: true })],
 				test: {
 					name: 'unit',
@@ -199,6 +200,7 @@ export default defineConfig({
 					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',
+						'src/docs/__tests__/**/*.test.{ts,tsx}',
 						'src/docs-legacy/engine/__tests__/**/*.test.{ts,tsx}',
 					],
 					// The browser suite (vitest.browser.config.ts) verifies behavior

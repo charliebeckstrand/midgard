@@ -72,27 +72,24 @@ export class EventLog {
 		this.emit()
 	}
 
-	/** Adds an entry in time order among the entries of the current page load. */
+	/**
+	 * Starts the lines of a page load with a separator at time 0, after the
+	 * lines of the page loads before it.
+	 */
+	separate(text: string): void {
+		this.insert(this.entries.length, { time: 0, kind: 'load', text, y: 0 })
+	}
+
+	/**
+	 * Adds an entry in time order among the entries of the current page load.
+	 * The separator of the page load is at time 0, so no entry goes before it.
+	 */
 	add(entry: Entry): void {
-		const next = [...this.entries]
+		let index = this.entries.length
 
-		let index = next.length
+		while (index > 0 && (this.entries[index - 1]?.time ?? 0) > entry.time) index -= 1
 
-		while (index > 0) {
-			const previous = next[index - 1]
-
-			if (!previous || previous.kind === 'load' || previous.time <= entry.time) break
-
-			index -= 1
-		}
-
-		next.splice(index, 0, entry)
-
-		this.entries = next.slice(-CAPACITY)
-
-		this.scheduleSave()
-
-		this.emit()
+		this.insert(index, entry)
 	}
 
 	clear(): void {
@@ -114,6 +111,14 @@ export class EventLog {
 		this.listeners.add(listener)
 
 		return () => this.listeners.delete(listener)
+	}
+
+	private insert(index: number, entry: Entry): void {
+		this.entries = this.entries.toSpliced(index, 0, entry).slice(-CAPACITY)
+
+		this.scheduleSave()
+
+		this.emit()
 	}
 
 	private scheduleSave(): void {
@@ -194,9 +199,14 @@ export function halt(): void {
 	stop = undefined
 }
 
-/** Adds an entry with the time and the scroll position of now. */
-export function record(kind: Kind, text: string, time = performance.now()): void {
-	log?.add({ time: Math.round(time), kind, text, y: Math.round(window.scrollY) })
+/** An entry with the scroll position of now, at the time of now by default. */
+function entryOf(kind: Kind, text: string, time = performance.now()): Entry {
+	return { time: Math.round(time), kind, text, y: Math.round(window.scrollY) }
+}
+
+/** Adds an entry to the log of this tab while it runs. */
+export function record(kind: Kind, text: string, time?: number): void {
+	log?.add(entryOf(kind, text, time))
 }
 
 /** Whether an event target is in the button or the sheet of the log. */
@@ -302,19 +312,19 @@ function createProbe(): HTMLElement {
 }
 
 /** Writes the separator and the readings of a page load, and takes the readings of the head script. */
-function begin(target: EventLog): void {
+export function begin(target: EventLog): void {
 	const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
 
-	target.add({
-		time: 0,
-		kind: 'load',
-		text: `──── ${navigation?.type ?? 'load'} ${location.pathname}`,
-		y: 0,
-	})
+	target.separate(`──── ${navigation?.type ?? 'load'} ${location.pathname}`)
 
 	const probe = document.body.appendChild(createProbe())
 
-	record('load', `restore ${history.scrollRestoration} kept y ${keptScroll()} ${viewport(probe)}`)
+	target.add(
+		entryOf(
+			'load',
+			`restore ${history.scrollRestoration} kept y ${keptScroll()} ${viewport(probe)}`,
+		),
+	)
 
 	probe.remove()
 
@@ -325,8 +335,10 @@ function begin(target: EventLog): void {
 	delete window.__eventLog
 }
 
-/** Adds the listeners and the patches of the log, and returns a function that removes them. */
-function listen(target: EventLog): () => void {
+/** Adds the listeners and the patches of a log, and returns a function that removes them. */
+export function listen(target: EventLog): () => void {
+	const note = (kind: Kind, text: string, time?: number) => target.add(entryOf(kind, text, time))
+
 	const probe = document.body.appendChild(createProbe())
 
 	const cleanups: (() => void)[] = []
@@ -343,10 +355,10 @@ function listen(target: EventLog): () => void {
 		on(document, type, (event) => {
 			if (isOwn(event.target)) return
 
-			record('input', `${type} ${describe(event.target)}${event.isTrusted ? '' : ' synthetic'}`)
+			note('input', `${type} ${describe(event.target)}${event.isTrusted ? '' : ' synthetic'}`)
 
 			// The listeners of the target run after this capture listener.
-			setTimeout(() => event.defaultPrevented && record('input', `${type} cancelled`))
+			setTimeout(() => event.defaultPrevented && note('input', `${type} cancelled`))
 		})
 	}
 
@@ -355,32 +367,32 @@ function listen(target: EventLog): () => void {
 	on(document, 'scroll', (event) => {
 		if (isOwn(event.target)) return
 
-		if (!scrolling) record('scroll', `scroll starts ${describe(event.target)}`)
+		if (!scrolling) note('scroll', `scroll starts ${describe(event.target)}`)
 
 		clearTimeout(scrolling)
 
 		scrolling = setTimeout(() => {
 			scrolling = undefined
 
-			record('scroll', 'scroll ends')
+			note('scroll', 'scroll ends')
 		}, 150)
 	})
 
-	on(window, 'resize', () => record('viewport', `window resize ${viewport(probe)}`))
+	on(window, 'resize', () => note('viewport', `window resize ${viewport(probe)}`))
 
 	on(window.visualViewport ?? undefined, 'resize', () =>
-		record('viewport', `visual resize ${viewport(probe)}`),
+		note('viewport', `visual resize ${viewport(probe)}`),
 	)
 
-	on(window, 'error', (event) => record('error', (event as ErrorEvent).message))
+	on(window, 'error', (event) => note('error', (event as ErrorEvent).message))
 
 	on(window, 'unhandledrejection', (event) =>
-		record('error', `unhandled rejection ${String((event as PromiseRejectionEvent).reason)}`),
+		note('error', `unhandled rejection ${String((event as PromiseRejectionEvent).reason)}`),
 	)
 
 	on(window, 'pagehide', () => target.save())
 
-	cleanups.push(subscribeOverlaySignal(() => record('overlay', `overlay opens ${viewport(probe)}`)))
+	cleanups.push(subscribeOverlaySignal(() => note('overlay', `overlay opens ${viewport(probe)}`)))
 
 	let height = 0
 
@@ -389,7 +401,7 @@ function listen(target: EventLog): () => void {
 
 		height = document.documentElement.scrollHeight
 
-		record('viewport', `page height ${height}`)
+		note('viewport', `page height ${height}`)
 	})
 
 	heights.observe(document.documentElement)
@@ -404,7 +416,7 @@ function listen(target: EventLog): () => void {
 			const detail = paint.entryType === 'layout-shift' ? ` ${shift.value?.toFixed(4)}` : ''
 
 			if (!shift.hadRecentInput)
-				record('paint', `${paint.name || paint.entryType}${detail}`, paint.startTime)
+				note('paint', `${paint.name || paint.entryType}${detail}`, paint.startTime)
 		}
 	})
 
@@ -423,7 +435,7 @@ function listen(target: EventLog): () => void {
 
 		Reflect.set(owner, name, function (this: unknown, ...args: unknown[]) {
 			if (!isOwn(this))
-				record('call', `${name} ${describe(this)} ${JSON.stringify(args)} from ${caller()}`)
+				note('call', `${name} ${describe(this)} ${JSON.stringify(args)} from ${caller()}`)
 
 			return Reflect.apply(original, this, args)
 		})
@@ -442,10 +454,14 @@ function listen(target: EventLog): () => void {
 	}
 }
 
+/** What the old module of the recorder gives to the new one on a hot update. */
+type Kept = { entries?: readonly Entry[]; running?: boolean }
+
 // In dev, the log records each hot update, and an edit to this module keeps
-// the entries: the old module gives them to the new one.
+// the entries: the old module gives them to the new one. The `import.meta.hot`
+// of Vitest has no `data`.
 if (import.meta.hot) {
-	const kept: { entries?: readonly Entry[]; running?: boolean } = import.meta.hot.data
+	const kept: Kept = import.meta.hot.data ?? {}
 
 	if (kept.entries) {
 		log = new EventLog(sessionStorage)
@@ -461,7 +477,7 @@ if (import.meta.hot) {
 
 	import.meta.hot.on('vite:error', ({ err }) => record('hmr', `error ${err.message}`))
 
-	import.meta.hot.dispose((data: { entries?: readonly Entry[]; running?: boolean }) => {
+	import.meta.hot.dispose((data: Kept) => {
 		data.entries = log?.entries
 
 		data.running = stop !== undefined

@@ -26,6 +26,7 @@ const SCAN_SKIP = new Set(['browser', 'boundary', 'compiler'])
 
 const SCANS = [
 	{ dir: testsDir, skip: SCAN_SKIP },
+	{ dir: join(srcDir, 'docs', '__tests__') },
 	{ dir: join(srcDir, 'docs-legacy', 'engine', '__tests__') },
 ]
 
