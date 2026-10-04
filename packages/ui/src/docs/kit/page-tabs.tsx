@@ -1,3 +1,4 @@
+import pages from 'virtual:docs/pages'
 import { type ReactNode, useState } from 'react'
 import {
 	PrefetchPageLinks,
@@ -40,7 +41,19 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 
 	const { pathname } = useLocation()
 
-	const [first = ''] = tabs
+	const [first = '', ...others] = tabs
+
+	// Each tab but the first is a folder. The prerender renders each page, so a
+	// tab with no folder, or a folder with no tab, fails the build.
+	const slugs = others.map(slugOf).toSorted()
+
+	const folders = pages.find((link) => link.path === page)?.tabs ?? []
+
+	if (slugs.join() !== folders.join()) {
+		throw new Error(
+			`docs: the tabs of ${page} (${slugs.join()}) are not its folders (${folders.join()})`,
+		)
+	}
 
 	const current = trimSlash(pathname).slice(page.length + 1) || slugOf(first)
 

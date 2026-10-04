@@ -15,24 +15,16 @@ export default defineConfig({
 		// Transform the shell on server start, so the first page does not wait for it.
 		warmup: { clientFiles: ['./app/root.tsx', './app/sidebar.tsx', './kit/index.ts'] },
 	},
-	// Pre-bundle the packages that only a page reaches. Left to discovery, Vite
-	// finds each on the first visit to its page, bundles again, and reloads
-	// the page. The Shiki worker of `CodeBlock` imports the Shiki modules.
+	// The dependency scan starts from each module of the app and from the Shiki
+	// worker of `CodeBlock`, which no import reaches. Left to discovery, Vite
+	// finds the packages of a page on its first visit, bundles again, and
+	// reloads the page.
 	optimizeDeps: {
-		include: [
-			'@dnd-kit/core',
-			'@dnd-kit/sortable',
-			'@dnd-kit/utilities',
-			'@floating-ui/react',
-			'@tanstack/react-table',
-			'@tanstack/react-virtual',
-			'lucide-react',
-			'marked',
-			'motion/react',
-			'shiki/core',
-			'shiki/engine/javascript',
-			'shiki/langs',
-			'shiki/themes',
+		entries: [
+			'app/**/*.tsx',
+			'kit/**/*.tsx',
+			'pages/**/*.tsx',
+			'../components/code/code-shiki-worker.ts',
 		],
 	},
 	build: { target: 'esnext' },
@@ -49,7 +41,7 @@ export default defineConfig({
 							groups: [
 								{
 									name: 'framework',
-									test: /node_modules[\\/](?:react|react-dom|react-router|scheduler)[\\/]/,
+									test: /node_modules[\\/](?:react|react-dom|react-router)[\\/]/,
 									priority: 2,
 								},
 								{

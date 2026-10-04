@@ -1,10 +1,9 @@
 import { ScrollText } from 'lucide-react'
-import { lazy, Suspense, useState, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Button } from 'ui/button'
 import { Fieldset, Label, Legend } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
 import { Switch, SwitchField } from 'ui/switch'
-import { createEmitter } from '../../../utilities/emitter.ts'
 
 // The part of the Event log that the shell loads with each page: the head
 // script, the header button, and the switch of the settings. The recorder and
@@ -16,13 +15,12 @@ const SETTING = 'docs:event-log'
 /** The attribute of the root element while the tool is on. CSS shows the header button by it. */
 const ATTRIBUTE = 'data-debug'
 
-// Tells the switch that the tool turned on or off.
-const changes = createEmitter()
-
 const loadRecorder = () => import('./recorder.ts')
 
+const loadSheet = () => import('./sheet.tsx')
+
 const EventLogSheet = lazy(() =>
-	import('./sheet.tsx').then(({ EventLogSheet }) => ({ default: EventLogSheet })),
+	loadSheet().then(({ EventLogSheet }) => ({ default: EventLogSheet })),
 )
 
 /** Whether the tool is on. The head script sets the attribute before the first paint. */
@@ -49,12 +47,6 @@ function setEventLog(on: boolean): void {
 	document.documentElement.toggleAttribute(ATTRIBUTE, on)
 
 	void loadRecorder().then((recorder) => (on ? recorder.start() : recorder.halt()))
-
-	changes.emit()
-}
-
-function useEventLogOn(): boolean {
-	return useSyncExternalStore(changes.subscribe, isEventLogOn, () => false)
 }
 
 // The head script: it sets the attribute while the tool is on, and keeps the
@@ -76,25 +68,20 @@ export function EventLogScript() {
  * loads on the first open.
  */
 export function EventLogButton() {
-	const [open, setOpen] = useState(false)
-
-	const [loaded, setLoaded] = useState(false)
+	// No sheet renders before the first open.
+	const [open, setOpen] = useState<boolean>()
 
 	return (
 		<span data-event-log="" className="hidden [:root[data-debug]_&]:contents">
 			<Button
 				variant="bare"
 				aria-label="Event log"
-				onPointerEnter={() => setLoaded(true)}
-				onClick={() => {
-					setLoaded(true)
-
-					setOpen(true)
-				}}
+				onPointerEnter={() => void loadSheet()}
+				onClick={() => setOpen(true)}
 			>
 				<Icon icon={<ScrollText />} />
 			</Button>
-			{loaded && (
+			{open !== undefined && (
 				<Suspense fallback={null}>
 					<EventLogSheet open={open} onOpenChange={setOpen} />
 				</Suspense>
@@ -103,16 +90,26 @@ export function EventLogButton() {
 	)
 }
 
-/** The Debug section of the settings: the switch of the Event log. */
+/**
+ * The Debug section of the settings: the switch of the Event log. The settings
+ * render on the client only, so the switch reads the root element.
+ */
 export function EventLogSwitch() {
-	const on = useEventLogOn()
+	const [on, setOn] = useState(isEventLogOn)
 
 	return (
 		<Fieldset>
 			<Legend>Debug</Legend>
 			<SwitchField>
 				<Label>Event log</Label>
-				<Switch checked={on} onChange={(event) => setEventLog(event.target.checked)} />
+				<Switch
+					checked={on}
+					onChange={(event) => {
+						setEventLog(event.target.checked)
+
+						setOn(event.target.checked)
+					}}
+				/>
 			</SwitchField>
 		</Fieldset>
 	)

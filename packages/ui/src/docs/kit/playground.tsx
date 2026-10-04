@@ -41,17 +41,13 @@ function labelOf(value: Literal): string {
 	return typeof value === 'string' ? (SIZES[value] ?? humanize(value)) : String(value)
 }
 
-/** Whether `text`, the text of a `@defaultValue` tag, writes `value`. */
-function writes(text: string, value: Literal): boolean {
-	return text === JSON.stringify(value) || text === `'${value}'`
-}
-
 /** A field for each prop whose type is a union of literals. */
 function fieldsOf(props: readonly PropApi[], omit: readonly string[]): Field[] {
 	return props.flatMap(({ name, values, default: text, deprecated }) => {
 		if (!values || deprecated !== undefined || omit.includes(name)) return []
 
-		const fallback = text === undefined ? undefined : values.find((value) => writes(text, value))
+		// The tag writes the default as code, such as `'md'` or `true`.
+		const fallback = values.find((value) => text === JSON.stringify(value) || text === `'${value}'`)
 
 		return [{ name, values, ...(fallback !== undefined && { default: fallback }) }]
 	})
@@ -155,7 +151,7 @@ function FieldPicker({
  *
  * <Playground of={ButtonPlayground} api={api} />
  */
-export function Playground({
+export function Playground<P extends object>({
 	of,
 	api,
 	omit = [],
@@ -164,11 +160,11 @@ export function Playground({
 	 * The default export of the playground module. It types its props as the
 	 * props of its component, and the fields give them from the API data.
 	 */
-	of: ComponentType<never>
+	of: ComponentType<P>
 	/** The API data of the barrel of the component. */
 	api: BarrelApi
 	/** The props that get no field. */
-	omit?: readonly string[]
+	omit?: readonly (keyof P & string)[]
 }) {
 	const meta = metaOf(of)
 

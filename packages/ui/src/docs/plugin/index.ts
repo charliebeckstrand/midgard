@@ -2,8 +2,8 @@ import path from 'node:path'
 import { prefixRegex } from '@rolldown/pluginutils'
 import type { EnvironmentModuleGraph, EnvironmentModuleNode, Plugin } from 'vite'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { createApiExtractor } from './api.ts'
-import { attachMeta, CODE, loadCode } from './examples.ts'
+import { type BarrelApi, createApiExtractor } from './api.ts'
+import { attachMeta, CODE, type ExampleCode, loadCode } from './examples.ts'
 import { findPages, type PageLink } from './pages.ts'
 
 const VIRTUAL = 'virtual:docs/'
@@ -13,22 +13,27 @@ const API = `${VIRTUAL}api/`
 const PAGES = `${VIRTUAL}pages`
 
 // A source file of `ui`: TypeScript, outside the docs and the tests.
-const SOURCE = /\.tsx?$/
+const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
 
 // An example module in `pages/`: a TSX file that is not the index of a page or a tab.
 const EXAMPLE = /(?<!\/index)\.tsx$/
 
-/**
- * The resolved id of a virtual module. Each virtual module is JSON. In dev,
- * Vite gives a module to its JSON plugin by the `.json` at the end of the id,
- * and not by the module type of the load result.
- */
+/** The resolved id of a virtual module. */
 function virtualId(name: string): string {
-	return `\0${name}.json`
+	return `\0${name}`
 }
 
 /**
- * The Vite plugin of the docs. It gives three virtual modules, each as JSON:
+ * A module whose default export is `value`. `JSON.parse` of a string is
+ * faster to parse than the same data as an object literal.
+ */
+function data(value: unknown): string {
+	return `export default JSON.parse(${JSON.stringify(JSON.stringify(value))})`
+}
+
+/**
+ * The Vite plugin of the docs. It gives three virtual modules, each of which
+ * exports data:
  *
  * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiExtractor}).
  * - `virtual:docs/pages`: the link of each page ({@link findPages}).
@@ -47,11 +52,13 @@ export function reactDocs(): Plugin {
 
 	const extractor = createApiExtractor(ui)
 
-	// The JSON of each barrel. The client build and the server build read the
-	// same barrels, so the TypeScript server runs once for both.
-	const barrels = new Map<string, Promise<string>>()
+	// The API data of each barrel. The client build and the server build read
+	// the same barrels, so the TypeScript server runs once for both.
+	const barrels = new Map<string, Promise<BarrelApi>>()
 
-	const json = (value: unknown) => ({ code: JSON.stringify(value), moduleType: 'json' as const })
+	// The code of each example, by file. The client build and the server build
+	// import the same examples, so each highlight runs once for both.
+	const codes = new Map<string, Promise<ExampleCode>>()
 
 	return {
 		name: 'vite-plugin-react-docs',
@@ -64,24 +71,16 @@ export function reactDocs(): Plugin {
 		load: {
 			filter: { id: prefixRegex(`\0${VIRTUAL}`) },
 			async handler(id) {
-				const name = id.slice(1, -'.json'.length)
-
-				const parse = this.parse.bind(this)
+				const name = id.slice(1)
 
 				if (name === PAGES) {
-					return json(
-						findPages(docs).map(({ path, name, category }): PageLink => ({ path, name, category })),
-					)
+					return data(findPages(docs).map(({ folder, ...link }): PageLink => link))
 				}
 
 				if (name.startsWith(API)) {
 					const barrel = name.slice(API.length)
 
-					const api = getOrCompute(barrels, barrel, () =>
-						extractor.extract(barrel).then((data) => JSON.stringify(data)),
-					)
-
-					return { code: await api, moduleType: 'json' as const }
+					return data(await getOrCompute(barrels, barrel, () => extractor.extract(barrel)))
 				}
 
 				if (name.startsWith(CODE)) {
@@ -89,7 +88,7 @@ export function reactDocs(): Plugin {
 
 					this.addWatchFile(file)
 
-					return json(await loadCode(parse, file))
+					return data(await getOrCompute(codes, file, () => loadCode(this.parse.bind(this), file)))
 				}
 
 				return null
@@ -105,17 +104,19 @@ export function reactDocs(): Plugin {
 				return meta === undefined ? null : { code: meta, map: null }
 			},
 		},
-		hotUpdate({ file, modules }) {
+		hotUpdate({ file, type, modules }) {
 			const graph = this.environment.moduleGraph
 
 			let stale: EnvironmentModuleNode[] = []
 
 			if (file.startsWith(pages)) {
+				codes.delete(file)
+
 				stale = staleExample(graph, pages, file, modules)
 			} else if (SOURCE.test(file) && !file.startsWith(docs)) {
 				barrels.clear()
 
-				extractor.refresh()
+				extractor.refresh({ file, type })
 
 				stale = [...graph.idToModuleMap.values()].filter((module) =>
 					module.id?.startsWith(`\0${API}`),

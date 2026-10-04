@@ -7,8 +7,6 @@ import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { ComponentApi, PropApi } from '../plugin/api.ts'
 
-const EVENT = /^on[A-Z]/
-
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
 const OPTION = cn(
@@ -29,18 +27,13 @@ const KINDS: readonly [RegExp, string][] = [
 	[/^\{/, 'text-rose-600 dark:text-rose-400'],
 ]
 
-/** Whether a default is a sentence, such as "An empty set.", and not a value. */
-function isSentence(text: string): boolean {
-	return text.endsWith('.')
-}
-
 /** What a prop takes: a chip for each literal of a union, or one chip for its type, and the default. */
 function PropFacts({ prop }: { prop: PropApi }) {
 	const options = prop.values?.some((value) => typeof value !== 'boolean') ? prop.values : undefined
 
 	const type = options ? undefined : (prop.type ?? 'boolean')
 
-	const fallback = prop.default && !isSentence(prop.default) ? prop.default : undefined
+	const fallback = prop.default
 
 	const kind = fallback && KINDS.find(([pattern]) => pattern.test(fallback))?.[1]
 
@@ -65,14 +58,9 @@ function PropFacts({ prop }: { prop: PropApi }) {
 
 /**
  * One prop, as the React docs write one: the name, "required" when the prop
- * is required, what it takes, and the description. A default that is a
- * sentence goes at the end of the description.
+ * is required, what it takes, and the description.
  */
 function PropRow({ prop }: { prop: PropApi }) {
-	const sentence = prop.default && isSentence(prop.default) ? `Default: ${prop.default}` : undefined
-
-	const description = [prop.description, sentence].filter(Boolean).join('\n\n')
-
 	return (
 		<Stack gap="sm" className="py-5 first:pt-0 last:pb-0">
 			<span className="flex flex-wrap items-baseline gap-x-2">
@@ -97,7 +85,7 @@ function PropRow({ prop }: { prop: PropApi }) {
 				)}
 			</span>
 			<PropFacts prop={prop} />
-			{description && <Markdown>{description}</Markdown>}
+			{prop.description && <Markdown>{prop.description}</Markdown>}
 		</Stack>
 	)
 }
@@ -141,17 +129,13 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 
 /** The description, the props, the events, and the HTML attributes of one component. */
 export function ApiEntry({ component }: { component: ComponentApi }) {
-	const props = component.props.filter((prop) => !EVENT.test(prop.name))
-
-	const events = component.props.filter((prop) => EVENT.test(prop.name))
-
 	return (
 		<div className="space-y-4">
 			{component.description && <Markdown>{component.description}</Markdown>}
-			{component.props.length > 0 ? (
+			{component.props.length + component.events.length > 0 ? (
 				<div className="space-y-6">
-					<PropSection title="Props" props={props} />
-					<PropSection title="Events" props={events} />
+					<PropSection title="Props" props={component.props} />
+					<PropSection title="Events" props={component.events} />
 				</div>
 			) : (
 				<Text tone="muted">This component accepts no explicit props.</Text>

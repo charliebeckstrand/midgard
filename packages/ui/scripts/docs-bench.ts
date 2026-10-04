@@ -29,12 +29,15 @@ import { readFile, stat } from 'node:fs/promises'
 import { createSecureServer, type Http2SecureServer, type SecureServerOptions } from 'node:http2'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
+import { promisify } from 'node:util'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, chromium } from 'playwright'
 import { getOrCompute } from '../src/utilities/get-or-compute'
 import { clientDirOf, type DocsApp, fileOf, TYPES } from './docs-server'
 
 const APPS: readonly DocsApp[] = ['docs-legacy', 'docs']
+
+const brotli = promisify(brotliCompress)
 
 const PAGE = '/button'
 
@@ -147,7 +150,7 @@ function createCertificate(): SecureServerOptions {
 async function serve(
 	app: DocsApp,
 	tls: SecureServerOptions,
-): Promise<{ origin: string; server: Http2SecureServer }> {
+): Promise<{ app: DocsApp; origin: string; server: Http2SecureServer }> {
 	const root = clientDirOf(app)
 
 	await stat(root).catch(() => {
@@ -162,15 +165,7 @@ async function serve(
 
 		return getOrCompute(bodies, key, () =>
 			readFile(file).then((data) =>
-				compress
-					? new Promise<Buffer>((done, fail) =>
-							brotliCompress(
-								data,
-								{ params: { [constants.BROTLI_PARAM_QUALITY]: 9 } },
-								(error, out) => (error ? fail(error) : done(out)),
-							),
-						)
-					: data,
+				compress ? brotli(data, { params: { [constants.BROTLI_PARAM_QUALITY]: 9 } }) : data,
 			),
 		)
 	}
@@ -204,7 +199,7 @@ async function serve(
 
 	await new Promise<void>((done) => server.listen(0, 'localhost', done))
 
-	return { origin: `https://localhost:${(server.address() as AddressInfo).port}`, server }
+	return { app, origin: `https://localhost:${(server.address() as AddressInfo).port}`, server }
 }
 
 // The code below runs in the page, and it is text: the TypeScript runner of
@@ -381,8 +376,8 @@ const samples: Sample[] = []
 
 try {
 	for (let index = 0; index < Number(runs); index++) {
-		for (const [position, app] of APPS.entries()) {
-			const sample = await run(browser, app, servers[position]?.origin ?? '')
+		for (const { app, origin } of servers) {
+			const sample = await run(browser, app, origin)
 
 			samples.push(sample)
 

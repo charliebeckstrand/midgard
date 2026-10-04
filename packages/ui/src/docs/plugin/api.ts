@@ -18,7 +18,11 @@ export type PropApi = {
 	/** Each member of a type that is a union of literals, in the order of {@link compareLiterals}. */
 	values?: Literal[]
 	required?: true
-	/** The text of the `@defaultValue` tag. */
+	/**
+	 * The code of the `@defaultValue` tag, such as `'md'` or `2000`. A tag that is
+	 * a sentence, such as "The step of the scope.", goes at the end of
+	 * `description` instead.
+	 */
 	default?: string
 	/** Markdown. */
 	description?: string
@@ -31,8 +35,13 @@ export type ComponentApi = {
 	name: string
 	/** Markdown. */
 	description?: string
-	/** The props that `ui` declares, in name order. A prop that only a package declares, such as a DOM attribute, is not in the list. */
+	/**
+	 * The props that `ui` declares, in name order, without the events. A prop
+	 * that only a package declares, such as a DOM attribute, is not in the list.
+	 */
 	props: PropApi[]
+	/** The props whose name is `on` and an uppercase letter, such as `onChange`, in name order. */
+	events: PropApi[]
 	/** The tags whose HTML attributes the component also takes. An empty tag stands for any element. */
 	elements?: string[]
 }
@@ -40,12 +49,15 @@ export type ComponentApi = {
 /** The components of one barrel, by name, in name order. */
 export type BarrelApi = { readonly [component: string]: ComponentApi }
 
-/** The extractor of the plugin. The TypeScript server starts on the first {@link ApiExtractor.extract}. */
-export type ApiExtractor = {
+/** A change to a source file, as the `hotUpdate` hook of Vite gives it. */
+export type SourceChange = { file: string; type: 'create' | 'update' | 'delete' }
+
+/** The extractor of the plugin. The TypeScript server starts on the first `extract`. */
+type ApiExtractor = {
 	/** Returns the API data of a barrel, such as `components/button`. */
 	extract(barrel: string): Promise<BarrelApi>
-	/** Makes the next extract read each source file again. */
-	refresh(): void
+	/** Makes the next extract read a file that changed. */
+	refresh(change: SourceChange): void
 	/** Stops the TypeScript server. A later extract starts it again. */
 	close(): void
 }
@@ -55,7 +67,7 @@ export type ApiExtractor = {
  * scale order, then each other string in alphabetical order, then the numbers
  * from low to high, then `false` and `true`.
  */
-export function compareLiterals(a: Literal, b: Literal): number {
+function compareLiterals(a: Literal, b: Literal): number {
 	const byRank = rankOf(a) - rankOf(b)
 
 	if (byRank !== 0) return byRank
@@ -80,22 +92,9 @@ const EVENT = /^on[A-Z]/
 // An inline link of TSDoc: `{@link target}` or `{@link target | label}`.
 const LINK = /\{@link\s+([^\s|}]+)\s*\|?\s*([^}]*)\}/g
 
-// The class name of an element whose tag is not its lowercase name.
-const TAGS: Readonly<Record<string, string>> = {
-	Anchor: 'a',
-	DList: 'dl',
-	Heading: 'h1',
-	Image: 'img',
-	OList: 'ol',
-	Paragraph: 'p',
-	Quote: 'blockquote',
-	TableCaption: 'caption',
-	TableCell: 'td',
-	TableCol: 'col',
-	TableRow: 'tr',
-	TableSection: 'tbody',
-	UList: 'ul',
-}
+const CHANGES = { create: 'created', update: 'changed', delete: 'deleted' } as const
+
+type Ts = typeof import('typescript/unstable/sync')
 
 /**
  * Creates the extractor for the `ui` package at `root`. It reads the barrel
@@ -104,122 +103,115 @@ const TAGS: Readonly<Record<string, string>> = {
 export function createApiExtractor(root: string): ApiExtractor {
 	const config = path.join(root, 'tsconfig.json')
 
-	let server: Promise<Server> | undefined
+	let server: Promise<{ ts: Ts; api: InstanceType<Ts['API']> }> | undefined
 
-	// Whether a source file changed after the snapshot of the server.
-	let stale = false
+	let snapshot: ReturnType<InstanceType<Ts['API']>['updateSnapshot']> | undefined
+
+	// The files that changed after the snapshot.
+	let changes: Record<(typeof CHANGES)[keyof typeof CHANGES], string[]> | undefined
 
 	return {
 		async extract(barrel) {
-			server ??= openServer(root, config)
+			server ??= import('typescript/unstable/sync').then((ts) => ({
+				ts,
+				api: new ts.API({ cwd: root }),
+			}))
 
-			const current = await server
+			const { ts, api } = await server
 
-			if (stale) {
-				stale = false
+			if (!snapshot || changes) {
+				const previous = snapshot
 
-				current.refresh()
+				snapshot = api.updateSnapshot(
+					previous ? { fileChanges: changes } : { openProjects: [config] },
+				)
+
+				previous?.dispose()
+
+				changes = undefined
 			}
 
-			return current.reader().barrel(path.join(root, 'src', barrel, 'index.ts'))
-		},
-		refresh() {
-			stale = server !== undefined
-		},
-		close() {
-			server?.then((current) => current.close())
-
-			server = undefined
-		},
-	}
-}
-
-type Ts = typeof import('typescript/unstable/sync')
-
-type Server = { reader(): Reader; refresh(): void; close(): void }
-
-/** Starts the TypeScript server, and opens the project of `config`. */
-async function openServer(root: string, config: string): Promise<Server> {
-	const ts = await import('typescript/unstable/sync')
-
-	const api = new ts.API({ cwd: root })
-
-	let snapshot = api.updateSnapshot({ openProjects: [config] })
-
-	return {
-		reader() {
 			const project = snapshot.getProject(config)
 
 			if (!project) throw new Error(`docs: TypeScript did not open ${config}`)
 
-			return new Reader(ts, project.program, project.checker)
+			return readBarrel(
+				ts,
+				project.program,
+				project.checker,
+				path.join(root, 'src', barrel, 'index.ts'),
+			)
 		},
-		refresh() {
-			const previous = snapshot
+		refresh({ file, type }) {
+			if (!snapshot) return
 
-			snapshot = api.updateSnapshot({ fileChanges: { invalidateAll: true } })
+			changes ??= { created: [], changed: [], deleted: [] }
 
-			previous.dispose()
+			// Each environment of Vite gives the same change.
+			const files = changes[CHANGES[type]]
+
+			if (!files.includes(file)) files.push(file)
 		},
 		close() {
-			api.close()
+			void server?.then(({ api }) => api.close())
+
+			server = undefined
+
+			snapshot = undefined
+
+			changes = undefined
 		},
 	}
 }
 
-/** Reads the components and the props of a barrel in one snapshot. */
-class Reader {
+/** Reads the components, the props, and the events of the barrel at `file`. */
+function readBarrel(ts: Ts, program: Program, checker: Checker, file: string): BarrelApi {
+	const { NodeBuilderFlags, SignatureKind, SymbolFlags, TypeFlags } = ts
+
 	// Each literal in single quotes, as the source writes it, and no `...` in a long type.
-	private readonly format: number
+	const format =
+		NodeBuilderFlags.NoTruncation |
+		NodeBuilderFlags.UseSingleQuotesForStringLiteralType |
+		NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope
 
-	private readonly ts: Ts
+	const source = program.getSourceFile(file)
 
-	private readonly program: Program
+	const module = source && checker.getSymbolAtLocation(source)
 
-	private readonly checker: Checker
+	if (!module) throw new Error(`docs: no barrel at ${file}`)
 
-	constructor(ts: Ts, program: Program, checker: Checker) {
-		this.ts = ts
+	let elementTags: Map<string, string> | undefined
 
-		this.program = program
+	/**
+	 * The first tag of each element interface, from `HTMLElementTagNameMap`,
+	 * such as `a` for `HTMLAnchorElement`.
+	 */
+	function tagsOf(): Map<string, string> {
+		if (elementTags) return elementTags
 
-		this.checker = checker
+		elementTags = new Map()
 
-		const { NodeBuilderFlags } = ts
+		const map = checker.resolveName('HTMLElementTagNameMap', SymbolFlags.Interface, source)
 
-		this.format =
-			NodeBuilderFlags.NoTruncation |
-			NodeBuilderFlags.UseSingleQuotesForStringLiteralType |
-			NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope
-	}
+		for (const [tag, member] of map?.getMembers() ?? []) {
+			const name = checker.getTypeOfSymbol(member)?.getSymbol()?.name
 
-	barrel(file: string): BarrelApi {
-		const source = this.program.getSourceFile(file)
+			if (name && !elementTags.has(name)) elementTags.set(name, String(tag))
+		}
 
-		const module = source && this.checker.getSymbolAtLocation(source)
-
-		if (!module) throw new Error(`docs: no barrel at ${file}`)
-
-		const components = this.checker
-			.getExportsOfModule(module)
-			.flatMap((symbol) => this.component(symbol) ?? [])
-			.toSorted(byName)
-
-		return Object.fromEntries(components.map((component) => [component.name, component]))
+		return elementTags
 	}
 
 	/** The component of an export: a PascalCase value that takes props, or nothing. */
-	private component(exported: TsSymbol): ComponentApi | undefined {
-		const { checker, ts } = this
-
+	function component(exported: TsSymbol): ComponentApi | undefined {
 		if (!/^[A-Z]/.test(exported.name)) return undefined
 
 		const symbol =
-			exported.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported
+			exported.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported
 
-		const type = symbol.flags & ts.SymbolFlags.Value ? checker.getTypeOfSymbol(symbol) : undefined
+		const type = symbol.flags & SymbolFlags.Value ? checker.getTypeOfSymbol(symbol) : undefined
 
-		const [signature] = type ? checker.getSignaturesOfType(type, ts.SignatureKind.Call) : []
+		const [signature] = type ? checker.getSignaturesOfType(type, SignatureKind.Call) : []
 
 		if (!signature) return undefined
 
@@ -235,43 +227,52 @@ class Reader {
 
 		const event = members.find((member) => EVENT.test(member.name) && !own.includes(member))
 
-		const elements = this.elements(event)
+		const elements = elementsOf(event)
+
+		const apis = own.flatMap((member) => prop(member) ?? []).toSorted(byName)
 
 		return {
 			name: exported.name,
 			...(description && { description }),
-			props: own.flatMap((member) => this.prop(member) ?? []).toSorted(byName),
+			props: apis.filter((api) => !EVENT.test(api.name)),
+			events: apis.filter((api) => EVENT.test(api.name)),
 			...(elements.length > 0 && { elements }),
 		}
 	}
 
-	private prop(symbol: TsSymbol): PropApi | undefined {
-		const { checker, ts } = this
-
+	function prop(symbol: TsSymbol): PropApi | undefined {
 		const type = checker.getTypeOfSymbol(symbol)
 
 		const defined = type && checker.getNonNullableType(type)
 
 		// A `never` prop is the rest of a union arm that rules the key out.
-		if (!type || !defined || defined.flags & ts.TypeFlags.Never) return undefined
+		if (!type || !defined || defined.flags & TypeFlags.Never) return undefined
 
 		const tags = new Map(
 			checker.getJsDocTagsOfSymbol(symbol).map((tag) => [tag.name, tag.text ?? '']),
 		)
 
-		const description = checker.getDocumentationCommentOfSymbol(symbol)
-
-		const values = this.values(defined)
+		const values = valuesOf(defined)
 
 		const deprecated = tags.get('deprecated')
 
-		const fallback = tags.get('defaultValue')
+		const fallback = plainText(tags.get('defaultValue') ?? '')
+
+		// A default that is a sentence, such as "The step of the scope.", is not code.
+		const sentence = fallback.endsWith('.')
+
+		const description = [
+			checker.getDocumentationCommentOfSymbol(symbol),
+			sentence && `Default: ${fallback}`,
+		]
+			.filter(Boolean)
+			.join('\n\n')
 
 		return {
 			name: symbol.name,
-			...(values ? { values } : { type: this.text(type, defined) }),
-			...(!(symbol.flags & ts.SymbolFlags.Optional) && { required: true }),
-			...(fallback && { default: plainText(fallback) }),
+			...(values ? { values } : { type: textOf(type, defined) }),
+			...(!(symbol.flags & SymbolFlags.Optional) && { required: true }),
+			...(fallback && !sentence && { default: fallback }),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
 		}
@@ -282,17 +283,11 @@ class Reader {
 	 * holds `undefined` itself, and the type without it is a new union of each
 	 * member, so the alias prints in its place. A `null` member stays.
 	 */
-	private text(type: Type, defined: Type): string {
-		const { checker, ts } = this
-
-		const text = checker.typeToString(
-			type.getAliasSymbol() ? type : defined,
-			undefined,
-			this.format,
-		)
+	function textOf(type: Type, defined: Type): string {
+		const text = checker.typeToString(type.getAliasSymbol() ? type : defined, undefined, format)
 
 		const nullable =
-			type.isUnionType() && type.getTypes().some((member) => member.flags & ts.TypeFlags.Null)
+			type.isUnionType() && type.getTypes().some((member) => member.flags & TypeFlags.Null)
 
 		return nullable ? `${text} | null` : text
 	}
@@ -301,7 +296,7 @@ class Reader {
 	 * The members of a union of literals, in order. A union that a package
 	 * names, such as the 300 languages of Shiki, keeps its name.
 	 */
-	private values(type: Type): Literal[] | undefined {
+	function valuesOf(type: Type): Literal[] | undefined {
 		if (!type.isUnionType() || type.getAliasSymbol()?.declarations.some(isPackage)) return undefined
 
 		const values: Literal[] = []
@@ -315,21 +310,31 @@ class Reader {
 		return values.toSorted(compareLiterals)
 	}
 
-	/** The tags of the elements in the type of an inherited event prop, such as `MouseEventHandler<HTMLButtonElement>`. */
-	private elements(event: TsSymbol | undefined): string[] {
-		const type = event && this.checker.getTypeOfSymbol(event)
+	/**
+	 * The tags of the elements in the type of an inherited event prop, such as
+	 * `MouseEventHandler<HTMLButtonElement>`. `HTMLElement` stands for any
+	 * element, and gives an empty tag.
+	 */
+	function elementsOf(event: TsSymbol | undefined): string[] {
+		const type = event && checker.getTypeOfSymbol(event)
 
-		const text = type ? this.checker.typeToString(type, undefined, this.format) : ''
+		const text = type ? checker.typeToString(type, undefined, format) : ''
 
-		const names = new Set(
-			Array.from(text.matchAll(/\bHTML(\w*)Element\b/g), ([, name = '']) => name),
-		)
+		const names = new Set(Array.from(text.matchAll(/\bHTML\w*Element\b/g), ([name]) => name))
 
-		return [...names].map((name) => TAGS[name] ?? name.toLowerCase()).toSorted()
+		return [...names]
+			.flatMap((name) => (name === 'HTMLElement' ? '' : (tagsOf().get(name) ?? [])))
+			.toSorted()
 	}
+
+	const components = checker
+		.getExportsOfModule(module)
+		.flatMap((symbol) => component(symbol) ?? [])
+		.toSorted(byName)
+
+	return Object.fromEntries(components.map((entry) => [entry.name, entry]))
 }
 
-/** Whether a declaration is in a package, such as a DOM attribute from `@types/react`. */
 /**
  * The order of the components and of the props. The plugin sorts them, so
  * the page does not sort them as it renders.
@@ -338,6 +343,7 @@ function byName(a: { name: string }, b: { name: string }): number {
 	return a.name.localeCompare(b.name)
 }
 
+/** Whether a declaration is in a package, such as a DOM attribute from `@types/react`. */
 function isPackage(declaration: { path: string }): boolean {
 	return declaration.path.includes('/node_modules/')
 }

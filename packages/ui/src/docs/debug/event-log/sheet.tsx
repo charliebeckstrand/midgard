@@ -1,7 +1,6 @@
 import { useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
-import { CopyButton } from 'ui/copy-button'
 import { Label } from 'ui/fieldset'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from 'ui/sheet'
 import { toggleItem } from '../../../utilities/toggle-item.ts'
@@ -60,7 +59,15 @@ export function EventLogSheet({
 				</SheetBody>
 				<SheetFooter className="flex-wrap justify-between">
 					<div className="flex items-center gap-2">
-						<CopyButton text={shown.map(line).join('\n')} size="sm" aria-label="Copy log" />
+						{/* A plain button. With `CopyButton` here, the build splits it from the
+						    code block of each page, and each page loads two more chunks. */}
+						<Button
+							size="sm"
+							variant="soft"
+							onClick={() => void navigator.clipboard.writeText(shown.map(line).join('\n'))}
+						>
+							Copy
+						</Button>
 						<Button size="sm" variant="soft" onClick={() => log.clear()}>
 							Clear
 						</Button>

@@ -53,6 +53,9 @@ export class EventLog {
 
 	private readonly changes = createEmitter()
 
+	/** Calls `listener` on each change of the entries or of "Preserve log". */
+	readonly subscribe = this.changes.subscribe
+
 	private saveTimer: ReturnType<typeof setTimeout> | undefined
 
 	private readonly store: Store
@@ -60,7 +63,11 @@ export class EventLog {
 	constructor(store: Store) {
 		this.store = store
 
-		if (this.preserve) this.entries = parse(read(store, ENTRIES)).slice(-CAPACITY)
+		// Only `save` writes the entries, so the kept value is an array of at
+		// most `CAPACITY` entries.
+		try {
+			if (this.preserve) this.entries = JSON.parse(read(store, ENTRIES) ?? '[]')
+		} catch {}
 	}
 
 	get preserve(): boolean {
@@ -90,11 +97,7 @@ export class EventLog {
 	 * The separator of the page load is at time 0, so no entry goes before it.
 	 */
 	add(entry: Entry): void {
-		let index = this.entries.length
-
-		while (index > 0 && (this.entries[index - 1]?.time ?? 0) > entry.time) index -= 1
-
-		this.insert(index, entry)
+		this.insert(this.entries.findLastIndex(({ time }) => time <= entry.time) + 1, entry)
 	}
 
 	clear(): void {
@@ -112,20 +115,14 @@ export class EventLog {
 		if (this.preserve) write(this.store, ENTRIES, JSON.stringify(this.entries))
 	}
 
-	subscribe = (listener: () => void): (() => void) => this.changes.subscribe(listener)
-
 	private insert(index: number, entry: Entry): void {
 		this.entries = this.entries.toSpliced(index, 0, entry).slice(-CAPACITY)
 
-		this.scheduleSave()
-
-		this.changes.emit()
-	}
-
-	private scheduleSave(): void {
 		clearTimeout(this.saveTimer)
 
 		this.saveTimer = setTimeout(() => this.save(), 500)
+
+		this.changes.emit()
 	}
 }
 
@@ -146,13 +143,12 @@ function write(store: Store, key: string, value: string | null): void {
 	} catch {}
 }
 
-function parse(json: string | null): Entry[] {
+/** The `sessionStorage` of the tab, or a store that keeps nothing where the read of the property throws. */
+function sessionStore(): Store {
 	try {
-		const value: unknown = JSON.parse(json ?? '[]')
-
-		return Array.isArray(value) ? value : []
+		return sessionStorage
 	} catch {
-		return []
+		return { getItem: () => null, setItem: () => {}, removeItem: () => {} }
 	}
 }
 
@@ -166,7 +162,7 @@ declare global {
 }
 
 /** The log of this tab. It starts with {@link start}. */
-export let log: EventLog | undefined
+let log: EventLog | undefined
 
 let stop: (() => void) | undefined
 
@@ -176,15 +172,13 @@ let stop: (() => void) | undefined
  * while the log runs returns the same log.
  */
 export function start(): EventLog {
-	if (log && stop) return log
-
 	if (!log) {
-		log = new EventLog(sessionStorage)
+		log = new EventLog(sessionStore())
 
 		begin(log)
 	}
 
-	stop = listen(log)
+	stop ??= listen(log)
 
 	return log
 }
@@ -202,8 +196,8 @@ function entryOf(kind: Kind, text: string, time = performance.now()): Entry {
 }
 
 /** Adds an entry to the log of this tab while it runs. */
-export function record(kind: Kind, text: string, time?: number): void {
-	log?.add(entryOf(kind, text, time))
+export function record(kind: Kind, text: string): void {
+	log?.add(entryOf(kind, text))
 }
 
 /** Whether an event target is in the button or the sheet of the log. */
@@ -213,9 +207,7 @@ function isOwn(target: unknown): boolean {
 
 /** A short name of an event target: the tag, the anchor, and the value of an input. */
 function describe(target: unknown): string {
-	if (target === document || target === window || target === document.documentElement) return 'page'
-
-	if (!(target instanceof Element)) return String(target)
+	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
 	const slot = target.getAttribute('data-slot')
 
@@ -252,16 +244,24 @@ const CALLS: readonly [object, string][] = [
 ]
 
 /** The heights that place a surface fixed to an edge: the visual viewport, the window, the viewport units, and the safe area. */
-function viewport(probe: HTMLElement): string {
+function viewport(): string {
 	const visual = window.visualViewport
 
-	const [svh, dvh, lvh, safe] = Array.from(probe.children, (child) => getComputedStyle(child))
+	const probe = document.body.appendChild(createProbe())
 
-	const units = [svh, dvh, lvh]
-		.map((style) => Math.round(Number.parseFloat(style?.height ?? '')))
-		.join('/')
+	// A computed style is live, so the probe stays until each value is read.
+	const [svh, dvh, lvh, safe] = Array.from(probe.children, (child) => {
+		const { height, paddingTop, paddingBottom } = getComputedStyle(child)
 
-	return `visual ${Math.round(visual?.height ?? 0)}@${Math.round(visual?.offsetTop ?? 0)} window ${window.innerHeight} s/d/lvh ${units} safe ${safe?.paddingTop}/${safe?.paddingBottom}`
+		return {
+			height: Math.round(Number.parseFloat(height)),
+			insets: `${paddingTop}/${paddingBottom}`,
+		}
+	})
+
+	probe.remove()
+
+	return `visual ${Math.round(visual?.height ?? 0)}@${Math.round(visual?.offsetTop ?? 0)} window ${window.innerHeight} s/d/lvh ${svh?.height}/${dvh?.height}/${lvh?.height} safe ${safe?.insets}`
 }
 
 /** The first two frames of the caller of a patched method, with each URL cut to its file name. */
@@ -277,13 +277,9 @@ function caller(): string {
 /** The kept scroll position of `<ScrollRestoration>` for this history entry. */
 function keptScroll(): string {
 	try {
-		const key = (history.state as { key?: string } | null)?.key ?? 'default'
+		const positions = JSON.parse(sessionStorage.getItem('react-router-scroll-positions') ?? '{}')
 
-		const positions: unknown = JSON.parse(
-			sessionStorage.getItem('react-router-scroll-positions') ?? '{}',
-		)
-
-		return String((positions as Record<string, unknown>)[key] ?? '-')
+		return String(positions[history.state?.key ?? 'default'] ?? '-')
 	} catch {
 		return '-'
 	}
@@ -314,16 +310,9 @@ export function begin(target: EventLog): void {
 
 	target.separate(`──── ${navigation?.type ?? 'load'} ${location.pathname}`)
 
-	const probe = document.body.appendChild(createProbe())
-
 	target.add(
-		entryOf(
-			'load',
-			`restore ${history.scrollRestoration} kept y ${keptScroll()} ${viewport(probe)}`,
-		),
+		entryOf('load', `restore ${history.scrollRestoration} kept y ${keptScroll()} ${viewport()}`),
 	)
-
-	probe.remove()
 
 	window.__eventLog?.stop()
 
@@ -335,8 +324,6 @@ export function begin(target: EventLog): void {
 /** Adds the listeners and the patches of a log, and returns a function that removes them. */
 export function listen(target: EventLog): () => void {
 	const note = (kind: Kind, text: string, time?: number) => target.add(entryOf(kind, text, time))
-
-	const probe = document.body.appendChild(createProbe())
 
 	const cleanups: (() => void)[] = []
 
@@ -375,10 +362,10 @@ export function listen(target: EventLog): () => void {
 		}, 150)
 	})
 
-	on(window, 'resize', () => note('viewport', `window resize ${viewport(probe)}`))
+	on(window, 'resize', () => note('viewport', `window resize ${viewport()}`))
 
 	on(window.visualViewport ?? undefined, 'resize', () =>
-		note('viewport', `visual resize ${viewport(probe)}`),
+		note('viewport', `visual resize ${viewport()}`),
 	)
 
 	on(window, 'error', (event) => note('error', (event as ErrorEvent).message))
@@ -389,7 +376,7 @@ export function listen(target: EventLog): () => void {
 
 	on(window, 'pagehide', () => target.save())
 
-	cleanups.push(subscribeOverlaySignal(() => note('overlay', `overlay opens ${viewport(probe)}`)))
+	cleanups.push(subscribeOverlaySignal(() => note('overlay', `overlay opens ${viewport()}`)))
 
 	let height = 0
 
@@ -444,28 +431,24 @@ export function listen(target: EventLog): () => void {
 		for (const cleanup of cleanups) cleanup()
 
 		clearTimeout(scrolling)
-
-		probe.remove()
-
-		target.save()
 	}
 }
 
 /** What the old module of the recorder gives to the new one on a hot update. */
-type Kept = { entries?: readonly Entry[]; running?: boolean }
+type Kept = { entries?: readonly Entry[] }
 
-// In dev, the log records each hot update, and an edit to this module keeps
-// the entries: the old module gives them to the new one. The `import.meta.hot`
-// of Vitest has no `data`.
+// In dev, the log records each hot update, and an edit to this module while
+// the log runs keeps the entries: the old module gives them to the new one.
+// The `import.meta.hot` of Vitest has no `data`.
 if (import.meta.hot) {
 	const kept: Kept = import.meta.hot.data ?? {}
 
 	if (kept.entries) {
-		log = new EventLog(sessionStorage)
+		log = new EventLog(sessionStore())
 
 		log.entries = kept.entries
 
-		if (kept.running) start()
+		start()
 	}
 
 	import.meta.hot.on('vite:afterUpdate', ({ updates }) =>
@@ -475,9 +458,7 @@ if (import.meta.hot) {
 	import.meta.hot.on('vite:error', ({ err }) => record('hmr', `error ${err.message}`))
 
 	import.meta.hot.dispose((data: Kept) => {
-		data.entries = log?.entries
-
-		data.running = stop !== undefined
+		data.entries = stop ? log?.entries : undefined
 
 		halt()
 	})

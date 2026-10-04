@@ -9,14 +9,14 @@ export type PageLink = {
 	name: string
 	/** The folder of the page in `pages/`, which is its section of the sidebar, such as `components`. */
 	category: string
+	/** The folder name of each tab of the page that has a path of its own, such as `sorting`, in name order. */
+	tabs: string[]
 }
 
 /** A page of the docs, as the routes read it. */
 export type Page = PageLink & {
 	/** The folder of the page, relative to `pages/`, such as `modules/grid`. */
 	folder: string
-	/** The folder name of each tab of the page that has a path of its own, such as `sorting`. */
-	tabs: string[]
 }
 
 // The folder of the components. Its pages have no folder in their path.
@@ -48,16 +48,11 @@ export function findPages(docs: string): Page[] {
 				tabs: tabs.map((tab) => path.dirname(tab)).toSorted(),
 			}
 		})
-		.toSorted((a, b) => sectionOrder(a.category, b.category) || a.name.localeCompare(b.name))
-}
-
-/** The order of the sections: the components first, and then each other section in name order. */
-function sectionOrder(a: string, b: string): number {
-	if (a === b) return 0
-
-	if (a === COMPONENTS) return -1
-
-	if (b === COMPONENTS) return 1
-
-	return a.localeCompare(b)
+		.toSorted(
+			// The components first, and then each other section in name order.
+			(a, b) =>
+				Number(a.category !== COMPONENTS) - Number(b.category !== COMPONENTS) ||
+				a.category.localeCompare(b.category) ||
+				a.name.localeCompare(b.name),
+		)
 }
