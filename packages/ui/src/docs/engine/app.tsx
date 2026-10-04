@@ -1,5 +1,5 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ComponentType, Suspense, use, useEffect, useRef, useState } from 'react'
+import { type ComponentType, Suspense, use, useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { Button } from '../../components/button'
 import { loadShiki } from '../../components/code'
@@ -99,22 +99,6 @@ export function App({ pages }: { pages: readonly Page[] }) {
 		if (page) navigate(page.path, { replace: true })
 	}, [pathname, hash, pages, navigate])
 
-	const contentRef = useRef<HTMLDivElement>(null)
-
-	// The page that the content pane shows. A page load starts at the top, so
-	// the effect below moves the pane only after a navigation.
-	const shownPath = useRef(pathname)
-
-	useEffect(() => {
-		if (shownPath.current === pathname) return
-
-		shownPath.current = pathname
-
-		// From `lg` up the content pane scrolls, not the window, so the router's
-		// scroll restoration does not reach it. Start each page at its top.
-		contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
-	}, [pathname])
-
 	// Warm Shiki on idle, then tokenize the warm snippets one per idle slice, so
 	// the first "Show code" does not pay for the grammar compile. Per-demo
 	// prefetch happens via sidebar hover/focus.
@@ -197,11 +181,9 @@ export function App({ pages }: { pages: readonly Page[] }) {
 							</Flex>
 						</SidebarLayoutHeader>
 					)}
-					<div ref={contentRef}>
-						<Suspense fallback={null}>
-							<Outlet />
-						</Suspense>
-					</div>
+					<Suspense fallback={null}>
+						<Outlet />
+					</Suspense>
 				</SidebarLayout>
 			</AppearanceProvider>
 		</UIProvider>

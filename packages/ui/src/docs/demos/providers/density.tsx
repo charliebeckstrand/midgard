@@ -151,10 +151,9 @@ export default function Demo() {
 		>
 			<Stack gap="md">
 				<DensityProvider density={density}>
-					{/* The layout can pin itself to the viewport. Layout containment makes
-					    this box the containing block of the pinned layout, so the demo stays
-					    inside its frame and does not cover the page. */}
-					<div className="h-[40rem] overflow-auto rounded-lg contain-layout">
+					{/* The box is a size container, so the layout fills the box and not
+					    the viewport. The box scrolls in place of the page. */}
+					<div className="@container-size h-[40rem] overflow-auto rounded-lg">
 						<SidebarLayout sidebar={sidebar}>
 							<SidebarLayoutHeader>
 								<Heading level={1}>Orders</Heading>

@@ -53,13 +53,17 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
- * @remarks Below `lg`, the page scrolls, and the navbar is the one bar that sticks
- * to the top. The navbar is a region named "Navigation bar", which holds the menu
- * button, `navbar`, and `actions`. The header scrolls with the content. From `lg` up, the layout is
- * pinned to the viewport (`fixed inset-0`), and only the content region scrolls.
- * There, `stickyHeader` keeps the header at the top of the content region.
+ * @remarks The page scrolls at each width, so the scroll restoration of a router
+ * resets and restores the position of the page. Below `lg`, the navbar is the one
+ * bar that sticks to the top. The navbar is a region named "Navigation bar", which
+ * holds the menu button, `navbar`, and `actions`. The header scrolls with the
+ * content. From `lg` up, the desktop panel sticks to the top, has the height of
+ * the viewport, and scrolls on its own. There, `stickyHeader` keeps the header at
+ * the top of the page.
+ *
  * To show the layout inside another page, put it in a box that has a height and
- * layout containment, or the pinned layout covers the page.
+ * scrolls. Make the box a size container (`@container-size`). The layout then
+ * fills the box, and the box scrolls in place of the page.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The
@@ -234,8 +238,9 @@ export type SidebarLayoutBodyProps = PropsWithChildren<{
 }>
 
 /**
- * Main content slot for {@link SidebarLayout} (`data-slot="body"`). From `lg` up,
- * it scrolls between the header and the footer. Below `lg`, it scrolls with the page.
+ * Main content slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
+ * with the page at each width. It grows into the free height of the content
+ * region, so the footer sits at the bottom of a short page.
  */
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
