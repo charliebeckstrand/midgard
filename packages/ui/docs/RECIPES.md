@@ -18,6 +18,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 
 | Token | Concern |
 |---|---|
+| `dan` 段 | Density ramps — each stepped `density-*` class that writes a value for each step, nested under the unit that reads it (`space.box.bottom`). |
 | `iro` 色 | Variant × color × slot palette matrix plus the semantic intent-color text bundle. `palette` is the standard five-color set; `extended` is the opt-in wide palette (standard + rose / violet / sky). `marker` inks a chromatic dot, and `on.wash` inks text on the neutral wash. |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases, and `ramp`, the stepped text size of a density-native component. |
 | `ma` 間 | Named spacing scale projected as Tailwind padding, margin, and gap utilities — all-sides and axis variants. |
@@ -31,6 +32,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |
 | `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |
+| `kara` 空 | Virtualized emptiness — selectors that read `data-empty` on a `VirtualOptions` wrapper. |
 
 ## Kiso — semantic tier
 
@@ -38,11 +40,12 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 
 | Bundle | Composes | Consumers |
 |---|---|---|
-| `control` | Field archetype: frame + surface + input + reset + density + radius + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch. |
+| `control` | Field archetype: frame + surface + input + reset (`reset.base`, `reset.number`) + density + radius + scale + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch, color-picker, rating, signature-pad, control. |
 | `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. | `bridge.popover`; subset reach from combobox, listbox, date-picker. |
 | `segment` | Segmented control — `control` / `item` fragments plus `indicator` color fragments. *No bridge.* | `kata/tabs`, which Segment and Tabs share. |
-| `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer), and `grip`. The grip is the drag bar that resizes a panel, keyed by the separator's line. | `bridge.panel`; subset reach from box, panel. |
+| `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer), and `grip`. The grip is the drag bar that resizes a panel, keyed by the separator's line. | `bridge.panel`; subset reach from box, panel, grid, command-palette. |
 | `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per color. *No bridge.* | `kata/slider`, `kata/slider-range`. |
+| `zu` 図 | Data-viz substrate — the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. *No bridge.* | `kata/chart`, `kata/map`. |
 
 ## Katakana — bridges
 
@@ -59,7 +62,7 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 
 ## Kata — shape
 
-Every kata exports exactly one runtime value, `k`, in one of three shapes ([`src/recipes/kata/README.md`](../src/recipes/kata/README.md)):
+Every kata exports its runtime surface as `k`, plus its `scale` when it has one, and `k` takes one of three shapes ([`src/recipes/kata/README.md`](../src/recipes/kata/README.md)). Its keys follow the key-name rules of [`src/recipes/README.md`](../src/recipes/README.md#4-key-names). Each key is one word, and a part with children is an object whose own classes are `base`.
 
 - **Archetype** — `k = bridge.<archetype>(tokens, { … })`. The kata reads its token bundle from `kiso/<archetype>` and hands it to the bridge, which builds the surface.
 - **Recipe-shaped** — `k = defineRecipe(…)`, called as `k({ variant, size, … })`; slots and sub-recipes attach as properties (`k.title`, `k.thumb`).

@@ -26,9 +26,9 @@ export type CompoundRule = Record<string, string | ClassValue> & { class: ClassV
 
 /**
  * The classes of one slot, or a group of named slots. The engine merges a class
- * list into one string. A plain object is a group, and the engine merges each of
- * its entries the same way, so a part keeps its children under its own name
- * (`close: { base, line }` gives `k.close.base` and `k.close.line`). The group
+ * list into one string. A plain object is a group, and the engine merges each
+ * of its entries the same way. Thus a part keeps its children under its own
+ * name: `close: { base, line }` gives `k.close.base` and `k.close.line`. The group
  * takes the place of the object form of clsx, which no recipe uses.
  */
 export type SlotValue =
@@ -110,7 +110,7 @@ export type Recipe<C extends RecipeBase> = {
 /**
  * The `skeleton` property of a recipe. A config without a `skeleton` field
  * gives no property, because the engine attaches none. The type finds the key
- * before it reads the field: a read of `C['skeleton']` on a config without the
+ * before it reads the field. A read of `C['skeleton']` on a config without the
  * field gives `unknown`, and that type would put `k.skeleton` on each recipe.
  */
 type SkeletonOf<C> = 'skeleton' extends keyof C

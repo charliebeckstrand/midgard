@@ -86,8 +86,8 @@ const button = defineRecipe({
 
 /**
  * The {@link NavBar} landmark frame, with an optional border. The row of items
- * scrolls in the `bar.rail` inside it, because the edge fade of the rail masks
- * the whole box, and the frame keeps its border and fill.
+ * scrolls in the `bar.rail` inside it. The edge fade of the rail masks the
+ * whole box, so the frame keeps its border and fill.
  */
 const bar = defineRecipe({
 	base: ['px-4 py-2.5', rounded.lg, 'border'],

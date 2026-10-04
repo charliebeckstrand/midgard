@@ -10,8 +10,9 @@
  *   the body of that sheet.
  * - `header` is the box above the rows, and `header.title` and
  *   `header.description` are its two lines.
- * - `sub` holds the parts of a submenu: the `trigger` wash on an open parent
- *   row, and the `chevron` and the `group` of a submenu in the bottom sheet.
+ * - `sub` holds the parts of a submenu. `trigger` is the wash on an open
+ *   parent row, and `chevron` and `group` are parts of a submenu in the bottom
+ *   sheet.
  * - `section`, `heading`, `label`, `text`, `description`, `shortcut`, and the
  *   `separator` divider are the other parts of a panel.
  */

@@ -1,11 +1,10 @@
 /**
  * Iro extended palette: the opt-in **wide palette**, read as `iro.extended`. It
  * has the shape of `iro.palette` (solid / soft / outline / plain / bare), less
- * the `soft.strong` text, but keyed by
- * {@link PaletteColor} — every standard color plus the extended set
- * (rose / violet / sky). A kata reading this bundle instead of `iro.palette`
- * offers the broader `color` axis; the standard palette and the components
- * that read it are untouched.
+ * the `soft.strong` text. Its keys are each {@link PaletteColor}: every
+ * standard color plus the extended set (rose / violet / sky). A kata reading
+ * this bundle instead of `iro.palette` offers the broader `color` axis; the
+ * standard palette and the components that read it are untouched.
  *
  * The extended hues' foreground roles (`onSurface`, `onTint`) are authored
  * color-major below alongside the standard ramp — same policy, same

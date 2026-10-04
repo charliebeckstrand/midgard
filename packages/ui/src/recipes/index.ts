@@ -2,10 +2,11 @@
  * Recipes: the design-system layer of the UI package.
  *
  *   kiso/     - the design tokens, in two tiers. The primitive atomic concerns
- *               are iro / ji / ma / narabi / omote / hannou / sen / shaku /
- *               sou / tsunagi / ugoki / kokkaku / kasane. The semantic
- *               archetype bundles (control / popover / segment / panel /
- *               slider) are composed from them. Read only by kata.
+ *               are dan / iro / ji / ma / narabi / omote / hannou / sen /
+ *               shaku / sou / tsunagi / ugoki / kokkaku / kasane / kara. The
+ *               semantic archetype bundles (control / popover / segment /
+ *               panel / slider / zu) are composed from them. Read only by
+ *               kata.
  *   katakana/ - the bridge. Pure functions that receive a kiso token
  *               bundle by argument and wire it into a recipe surface,
  *               importing only the recipe engine, never kiso values.
