@@ -1,10 +1,11 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import type { ScrollOrientation } from '../../types'
-import { kasane, sen, shaku, ugoki } from '../kiso'
+import { kasane, omote, sen, shaku, ugoki } from '../kiso'
 
 const { rounded } = kasane
 const { border } = sen
 const { scrollArea } = shaku
+const { rail } = omote
 const { css } = ugoki
 
 type Orientation = ScrollOrientation
@@ -45,7 +46,7 @@ const viewport = defineRecipe({
 	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
 		vertical: 'h-full overflow-x-hidden overflow-y-auto',
-		horizontal: 'w-full overflow-x-auto overflow-y-hidden',
+		horizontal: ['w-full overflow-y-hidden', ...rail],
 		both: 'size-full overflow-auto',
 	},
 	bare: {

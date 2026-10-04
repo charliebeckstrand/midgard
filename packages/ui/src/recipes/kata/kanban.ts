@@ -7,19 +7,20 @@
  * `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { disabled, grab } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
+const { rail } = omote
 const { border, focus } = sen
 
 export const k = {
-	// The board and each column body are tab stops while they overflow. The
-	// scroll clips, so the ring is inset.
-	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0', focus.inset],
+	// While the columns overflow, the edge with more columns behind it fades, and
+	// the board is a tab stop with an inset ring.
+	base: ['flex gap-4 items-stretch', 'min-h-0', ...rail],
 	column: {
 		base: [
 			flex.col,

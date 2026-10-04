@@ -154,7 +154,7 @@ export const k = {
 		// `scrollbar-gutter: stable` reserves the scrollbar's track up front, so the
 		// bar appearing on the first overflow (an infinite-scroll viewport-fill, a
 		// grown row set) doesn't shrink the content width and reflow every column.
-		wrapper: 'overflow-auto [scrollbar-gutter:stable] [&>[data-slot=table]]:!overflow-visible',
+		wrapper: 'overflow-auto [scrollbar-gutter:stable]',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. The fill matches the surface under the grid (see `hostSurface`): a
 		// card or dialog that holds the grid, else the content host.

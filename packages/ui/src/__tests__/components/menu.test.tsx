@@ -685,6 +685,10 @@ describe('MenuContent', () => {
 		it('scrolls its rows through a watched viewport', () => {
 			const viewport = viewportFor(true)
 
+			// jsdom reads no class, so the overflow value that lets the viewport
+			// scroll is written inline.
+			viewport.style.overflowY = 'auto'
+
 			mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
 
 			fireEvent.scroll(viewport)
@@ -1057,6 +1061,10 @@ describe('MenuViewport', () => {
 
 		const viewport = getSlot(container, 'menu-viewport')
 
+		// jsdom reads no class, so the overflow value that lets the viewport
+		// scroll is written inline.
+		viewport.style.overflowY = 'auto'
+
 		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
 
 		return { viewport, unmount }
@@ -1164,8 +1172,11 @@ describe('MenuSub', () => {
 			'submenu [data-slot="menu-viewport"]',
 		)
 
-		// jsdom reports a zero scroll extent, so write one and scroll. The watch
-		// then stamps an edge, which gives the teardown something to remove.
+		// jsdom reports a zero scroll extent and reads no class, so write an
+		// extent and an overflow value, and scroll. The watch then stamps an edge,
+		// which gives the teardown something to remove.
+		viewport.style.overflowY = 'auto'
+
 		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
 
 		fireEvent.scroll(viewport)

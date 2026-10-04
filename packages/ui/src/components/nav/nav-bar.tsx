@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { useScrollOverflow } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k, type NavBarVariants } from '../../recipes/kata/nav'
 import { NavBarContext } from './context'
@@ -11,7 +12,8 @@ export type NavBarProps = NavBarVariants & ComponentProps<'nav'>
 
 /**
  * Horizontal top-level navigation landmark; establishes an active-indicator
- * scope for its child items.
+ * scope for its child items. The items scroll in a row inside the frame. While
+ * they overflow, the edge with more items behind it fades.
  *
  * @remarks
  * That scope resolves nothing in any valid composition today. The only
@@ -27,6 +29,8 @@ export function NavBar({
 	children,
 	...props
 }: NavBarProps) {
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
+
 	return (
 		<NavBarContext value={true}>
 			<ActiveIndicatorScope>
@@ -36,7 +40,9 @@ export function NavBar({
 					className={cn(k.bar({ variant }), className)}
 					{...props}
 				>
-					{children}
+					<div ref={scrollOverflowRef} data-slot="nav-bar-rail" className={cn(k.barRail)}>
+						{children}
+					</div>
 				</nav>
 			</ActiveIndicatorScope>
 		</NavBarContext>

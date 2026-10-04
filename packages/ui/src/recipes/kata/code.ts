@@ -6,13 +6,13 @@
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { ji, kasane, omote, sen, shaku } from '../kiso'
+import { ji, kasane, omote, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { size } = ji
 const { rounded } = kasane
 const { mark } = shaku
-const { focus } = sen
+const { rail } = omote
 
 const bg = omote.bg.code
 
@@ -26,8 +26,9 @@ export const k = defineRecipe(
 		wrapper: ['overflow-hidden flex items-start gap-4 p-4', rounded.lg, bg],
 		/** Block-specific slot classes; consumed by `CodeBlock`. */
 		block: {
-			// A tab stop while a line overflows. The wrapper clips, so the ring is inset.
-			content: ['min-w-0 flex-1 overflow-x-auto', size.sm, focus.inset],
+			// While a line overflows, the edge with more code behind it fades, and the
+			// content is a tab stop with an inset ring.
+			content: ['flex-1', ...rail, size.sm],
 			fallback: 'text-zinc-400',
 		},
 		// Sits in the flex row, not absolutely positioned: `items-start` lands it on

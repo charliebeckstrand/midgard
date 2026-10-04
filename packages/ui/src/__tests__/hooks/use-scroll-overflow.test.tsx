@@ -27,7 +27,9 @@ import { stubResizeObserver } from '../helpers/stub-resize-observer'
 function Probe({ enabled }: { enabled: boolean }) {
 	const ref = useScrollOverflow({ enabled })
 
-	return <div ref={ref} data-testid="scroller" />
+	// jsdom reads no class, so the overflow value that lets the box scroll is
+	// written inline.
+	return <div ref={ref} data-testid="scroller" style={{ overflowY: 'auto' }} />
 }
 
 function buildScroller(geometry: {
@@ -35,7 +37,11 @@ function buildScroller(geometry: {
 	clientHeight: number
 	scrollHeight: number
 }) {
-	return mockDomGeometry(attach(document.createElement('div')), geometry)
+	const node = attach(document.createElement('div'))
+
+	node.style.overflowY = 'auto'
+
+	return mockDomGeometry(node, geometry)
 }
 
 function scrollTo(node: HTMLElement, scrollTop: number) {

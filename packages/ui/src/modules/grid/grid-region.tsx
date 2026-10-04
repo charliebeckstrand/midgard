@@ -3,6 +3,7 @@
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import type { ComponentProps, ReactNode, RefObject } from 'react'
+import { TableScrollsContext } from '../../components/table/context'
 import { cn, createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { restrictToHorizontalAxis, restrictToVerticalAxis } from '../../hooks/use-sortable-list'
@@ -287,7 +288,8 @@ export function GridScrollRegion({
 			className={cn(k.sticky.wrapper, fillHeight && k.fill.scroll)}
 			style={maxHeight && !fillHeight ? { maxHeight } : undefined}
 		>
-			{children}
+			{/* The wrapper scrolls the table, so the table does not scroll itself. */}
+			<TableScrollsContext value={false}>{children}</TableScrollsContext>
 		</div>
 	)
 }

@@ -2,7 +2,7 @@
 
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useA11yRoving } from '../../hooks'
+import { useA11yRoving, useScrollOverflow } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/tabs'
@@ -21,7 +21,8 @@ export type TabListProps = AccessibleName &
  * animation. A MutationObserver keeps at least one tab tabbable as a floor; the
  * single Tab stop itself comes from each `<Tab>`'s roving `tabIndex`. The
  * underline variant sits in an overflow viewport, so an over-long tab row
- * scrolls in place rather than widening the page. The active tab is scrolled
+ * scrolls in place rather than widening the page, and the edge with more tabs
+ * behind it fades. The active tab is scrolled
  * into view on mount and as focus roves. A consumer `ref` reaches the
  * `role="tablist"` element.
  */
@@ -53,6 +54,14 @@ export function TabList({
 	// The segment variant is a fixed pill control; only the underline list
 	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
 	useTabListScroll(scrollRef, orientation, !isSegment)
+
+	// While a horizontal row overflows, the edge with more tabs behind it fades.
+	const scrollOverflowRef = useScrollOverflow({
+		axis: 'horizontal',
+		enabled: !isSegment && orientation === 'horizontal',
+	})
+
+	const setScroll = useComposedRef(scrollRef, scrollOverflowRef)
 
 	useEffect(() => {
 		const el = ref.current
@@ -109,7 +118,7 @@ export function TabList({
 				list
 			) : (
 				<div
-					ref={scrollRef}
+					ref={setScroll}
 					data-slot="tab-list-scroll"
 					data-scroll-region
 					className={k.scroll({ orientation })}

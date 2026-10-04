@@ -17,7 +17,7 @@ const { nav, cursor } = hannou
 const { rounded } = kasane
 const { flex, inset } = narabi
 const { border } = sen
-const { bg } = omote
+const { bg, rail } = omote
 
 /**
  * Shared slot-wrapper structure for the prefix/suffix entries. Each slot is a
@@ -83,9 +83,13 @@ const button = defineRecipe({
 	defaults: { affix: false },
 })
 
-/** The {@link NavBar} landmark frame: a horizontal row of items with an optional border. */
+/**
+ * The {@link NavBar} landmark frame, with an optional border. The row of items
+ * scrolls in the `barRail` inside it, because the edge fade of the rail masks
+ * the whole box, and the frame keeps its border and fill.
+ */
 const bar = defineRecipe({
-	base: [flex.row, 'gap-4', 'overflow-x-auto', 'px-4 py-2.5', rounded.lg, 'border'],
+	base: ['px-4 py-2.5', rounded.lg, 'border'],
 	variant: {
 		solid: [...border.defaultColor, ...bg.tint],
 		outline: [...border.defaultColor],
@@ -106,6 +110,8 @@ export const k = {
 	},
 	/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */
 	bar,
+	/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
+	barRail: [flex.row, 'gap-4', ...rail],
 	item: {
 		/** The `<li>` wrapper; pass `affix` to take over the interaction chrome. */
 		base,

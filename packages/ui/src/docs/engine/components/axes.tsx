@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { cn, createContext, dataAttr } from '../../../core'
 import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../../hooks'
-import { omote, sen } from '../../../recipes/kiso'
+import { omote } from '../../../recipes/kiso'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
 import {
@@ -289,11 +289,7 @@ function PickerRail({ label, children }: { label: string; children: ReactNode })
 			ref={setRail ?? undefined}
 			data-slot="axis-pickers"
 			gap="sm"
-			className={cn(
-				'min-w-0 max-w-full overflow-x-auto overscroll-x-contain whitespace-nowrap',
-				omote.fade.inline,
-				sen.focus.inset,
-			)}
+			className={cn('max-w-full whitespace-nowrap', omote.rail)}
 		>
 			{children}
 		</Flex>

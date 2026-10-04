@@ -10,12 +10,13 @@
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, sen } from '../kiso'
+import { iro, ji, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { size } = ji
-const { border, focus } = sen
+const { border } = sen
+const { rail } = omote
 
 // Cell padding for each step.
 const padding = [dan.space.cellX, dan.space.cellY]
@@ -79,9 +80,9 @@ const projection = {
 } as const
 
 export const k = {
-	// The scroll container is a tab stop while the table overflows. An outset
-	// ring would sit outside the box and stretch the page, so the ring is inset.
-	scroll: ['overflow-x-auto', focus.inset],
+	// The scroll container. While the table overflows, the edge with more
+	// columns behind it fades, and the container is a tab stop with an inset ring.
+	scroll: [...rail],
 	base: 'w-full text-start text-base',
 	// Color only. A `border.subtleColor` sat here with no border *width*, so it
 	// painted nothing: the shipped header carries no rule. Restoring one is a

@@ -8,7 +8,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen, textRamp } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen, textRamp } from '../kiso'
 import { dan } from '../kiso/dan'
 import { segment } from '../kiso/segment'
 
@@ -17,6 +17,7 @@ const { text } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
+const { rail } = omote
 const { border, focus } = sen
 
 /** Tab-group root: stacks the list and panels, swapping axis with orientation. */
@@ -51,7 +52,8 @@ const list = defineRecipe({
  * within it instead of widening the page. The cross axis stays clipped: the
  * active-indicator/focus rail sits flush with the content edge, so nothing is
  * lost. The native scrollbar is hidden, so it never crosses the rail. The
- * active tab scrolls into view, and roving keeps every tab reachable.
+ * active tab scrolls into view, and roving keeps every tab reachable. While a
+ * horizontal row overflows, the edge with more tabs behind it fades.
  *
  * A vertical list sits beside the panel in the `flex-row` group, and does not
  * shrink. In a narrow group the panel gives up the width, and the clipped
@@ -60,7 +62,7 @@ const list = defineRecipe({
 const scroll = defineRecipe({
 	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
-		horizontal: 'overflow-x-auto overflow-y-hidden',
+		horizontal: ['overflow-y-hidden', ...rail],
 		vertical: 'shrink-0 overflow-y-auto overflow-x-hidden',
 	},
 	defaults: { orientation: 'horizontal' },

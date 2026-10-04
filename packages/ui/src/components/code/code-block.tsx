@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
-import { useScrollRegion } from '../../hooks'
+import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
 import { loadShiki } from './code-shiki'
@@ -157,12 +157,16 @@ export function CodeBlock({
 		run()
 	}, [key, code, lang, theme])
 
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
+
 	const scrollRegionRef = useScrollRegion({ label })
+
+	const setContent = useComposedRef<HTMLDivElement>(scrollOverflowRef, scrollRegionRef)
 
 	return (
 		<div data-slot="code-block" className={cn(k.wrapper, className)}>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
-			<div ref={scrollRegionRef} dir="ltr" className={cn(k.block.content)}>
+			<div ref={setContent} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
 					<div
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted

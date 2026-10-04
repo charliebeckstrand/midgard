@@ -193,16 +193,20 @@ describe('useScrollOverflow against a real scroller', () => {
 })
 
 /** A fixed-width scroller, 600 wide in a 200 viewport, on the axis the case sets. */
-function WideProbe({ axis, dir }: { axis?: ScrollOverflowOptions['axis']; dir?: 'rtl' }) {
+function WideProbe({
+	axis,
+	dir,
+	overflow = 'auto',
+}: {
+	axis?: ScrollOverflowOptions['axis']
+	dir?: 'rtl'
+	overflow?: 'auto' | 'visible'
+}) {
 	const attach = useScrollOverflow({ axis })
 
 	return (
 		<div dir={dir}>
-			<div
-				ref={attach}
-				data-testid="scroller"
-				style={{ width: 200, height: 200, overflow: 'auto' }}
-			>
+			<div ref={attach} data-testid="scroller" style={{ width: 200, height: 200, overflow }}>
 				<div style={{ width: 600, height: 400 }} />
 			</div>
 		</div>
@@ -258,6 +262,16 @@ describe('useScrollOverflow on the horizontal axis against a real scroller', () 
 		el.scrollLeft = -400
 
 		await waitFor(() => expect(inlineEdges()).toEqual([true, false]))
+	})
+
+	it('stamps no edge on a box that does not scroll', async () => {
+		// The content extends past the edges, but a parent scrolls it, as the Grid
+		// does with its Table. The box itself does not scroll.
+		renderUI(<WideProbe axis="both" overflow="visible" />)
+
+		await frames()
+
+		expect([...edges(), ...inlineEdges()]).toEqual([false, false, false, false])
 	})
 
 	it('stamps all four edges on both axes, and clears them on detach', async () => {
