@@ -23,12 +23,11 @@
  * ```
  */
 
-import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { generateKeyPairSync, sign } from 'node:crypto'
+import { writeFileSync } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import { createSecureServer, type Http2SecureServer, type SecureServerOptions } from 'node:http2'
 import type { AddressInfo } from 'node:net'
-import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, chromium } from 'playwright'
@@ -79,40 +78,67 @@ declare global {
 	}
 }
 
-/** A certificate for `localhost` that signs itself, from `openssl`. */
+/** A DER element: the tag, the length of the content, and the content. */
+function der(tag: number, ...content: Buffer[]): Buffer {
+	const body = Buffer.concat(content)
+
+	const bytes: number[] = []
+
+	for (let rest = body.length; rest > 0; rest >>= 8) bytes.unshift(rest & 0xff)
+
+	// A length below 128 is one byte. A longer length gives the count of its bytes first.
+	const length = body.length < 0x80 ? [body.length] : [0x80 | bytes.length, ...bytes]
+
+	return Buffer.concat([Buffer.of(tag, ...length), body])
+}
+
+/** A UTC time of X.509, such as `261004120000Z`. */
+function utcTime(date: Date): Buffer {
+	return der(0x17, Buffer.from(`${date.toISOString().slice(2, 19).replace(/[-T:]/g, '')}Z`))
+}
+
+/**
+ * A certificate for `localhost` that signs itself, with an ECDSA P-256 key.
+ * Chromium needs TLS for HTTP/2, and the bench tells it to accept this
+ * certificate.
+ */
 function createCertificate(): SecureServerOptions {
-	const dir = mkdtempSync(path.join(tmpdir(), 'docs-bench-'))
+	const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' })
 
-	const key = path.join(dir, 'key.pem')
+	// ecdsa-with-SHA256 (1.2.840.10045.4.3.2).
+	const algorithm = der(0x30, der(0x06, Buffer.of(0x2a, 0x86, 0x48, 0xce, 0x3d, 0x04, 0x03, 0x02)))
 
-	const cert = path.join(dir, 'cert.pem')
+	// CN=localhost: the common name is 2.5.4.3.
+	const name = der(
+		0x30,
+		der(
+			0x31,
+			der(0x30, der(0x06, Buffer.of(0x55, 0x04, 0x03)), der(0x0c, Buffer.from('localhost'))),
+		),
+	)
 
-	try {
-		execFileSync(
-			'openssl',
-			[
-				'req',
-				'-x509',
-				'-newkey',
-				'ec',
-				'-pkeyopt',
-				'ec_paramgen_curve:prime256v1',
-				'-nodes',
-				'-days',
-				'1',
-				'-subj',
-				'/CN=localhost',
-				'-keyout',
-				key,
-				'-out',
-				cert,
-			],
-			{ stdio: 'ignore' },
-		)
+	const now = Date.now()
 
-		return { key: readFileSync(key), cert: readFileSync(cert) }
-	} finally {
-		rmSync(dir, { recursive: true, force: true })
+	const certificate = der(
+		0x30,
+		der(0xa0, der(0x02, Buffer.of(2))),
+		der(0x02, Buffer.of(1)),
+		algorithm,
+		name,
+		der(0x30, utcTime(new Date(now - 60_000)), utcTime(new Date(now + 86_400_000))),
+		name,
+		publicKey.export({ type: 'spki', format: 'der' }),
+	)
+
+	const signature = sign('sha256', certificate, privateKey)
+
+	const body = der(0x30, certificate, algorithm, der(0x03, Buffer.of(0), signature))
+
+	const lines = body.toString('base64').match(/.{1,64}/g) ?? []
+
+	return {
+		key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+		cert: ['-----BEGIN CERTIFICATE-----', ...lines, '-----END CERTIFICATE-----', ''].join('\n'),
 	}
 }
 
