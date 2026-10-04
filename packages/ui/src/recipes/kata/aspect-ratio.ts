@@ -6,9 +6,10 @@ export const k = {
 		video: 'aspect-video',
 		auto: 'aspect-auto',
 		'21/9': 'aspect-[21/9]',
-		'16/9': 'aspect-[16/9]',
+		// The ratio names of `video` and `square`, with the same class.
+		'16/9': 'aspect-video',
 		'4/3': 'aspect-[4/3]',
 		'3/2': 'aspect-[3/2]',
-		'1/1': 'aspect-[1/1]',
+		'1/1': 'aspect-square',
 	},
 } as const

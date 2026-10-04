@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, kasane } from '../kiso'
+import { hannou, iro, kasane, omote } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
@@ -21,11 +21,8 @@ const button = defineRecipe({
 	],
 })
 
-const value = defineRecipe({
-	base: ['block'],
-	truncate: { true: 'truncate', false: '' },
-	defaults: { truncate: true },
-})
+/** The text of the color value in the trigger, cut to one line. */
+const value = ['block', 'truncate']
 
 const swatch = {
 	base: [
@@ -34,8 +31,7 @@ const swatch = {
 		dan.size.check.box,
 	],
 	/** The checkerboard behind the trigger swatch while the color is translucent. */
-	checkerboard:
-		'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:8px_8px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
+	checkerboard: [omote.checkerboard, '[background-size:8px_8px]'],
 }
 
 export const k = {

@@ -99,9 +99,7 @@ export function ColorPickerTrigger({
 						>
 							<span className="block size-full" style={{ backgroundColor: swatchColor }} />
 						</span>
-						<span className={cn(k.value({ truncate: true }), 'min-w-0 flex-1 font-mono')}>
-							{label}
-						</span>
+						<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>{label}</span>
 					</Button>
 				</HeadlessProvider>
 			</ControlFrame>
