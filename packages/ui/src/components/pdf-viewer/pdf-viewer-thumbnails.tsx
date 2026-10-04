@@ -123,7 +123,14 @@ export function PdfViewerThumbnails() {
 			)}
 
 			{!isDesktop && (
-				<Sheet side="start" open={thumbsOpen} onOpenChange={setThumbsOpen} container={root}>
+				<Sheet
+					side="start"
+					open={thumbsOpen}
+					onOpenChange={setThumbsOpen}
+					container={root}
+					// The close button beside the title closes the sheet, so it has no Close row.
+					footer={null}
+				>
 					{/* The close button sits beside the `<h2>`, not in it: a heading takes
 					    phrasing content only, and the title names the dialog. The button
 					    margins repeat the `px-6 pt-6` inset of the title. */}

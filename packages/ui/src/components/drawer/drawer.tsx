@@ -18,7 +18,8 @@ import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
-import { drawerPanelProps } from './drawer-panel-props'
+import { drawerPanelProps, drawerShowsGrip } from './drawer-panel-props'
+import { DrawerClose, DrawerDefaultFooter } from './slots'
 
 /** Props for {@link Drawer}: open-state control, panel `height`, density `size` scope, and accessible naming. */
 export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
@@ -90,29 +91,21 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		height?: DrawerPanelVariants['height']
 		/**
-		 * Give the panel a drag handle: a grip on its top edge that the reader pulls
-		 * down to close the panel, as a sheet closes on a phone.
+		 * Give the panel a drag handle: a grip on its top edge that resizes the panel.
 		 *
-		 * A panel with a fixed height (`half` or `full`) also resizes on the grip.
-		 * The drag sets the height directly, rather than stepping between the `height`
+		 * The grip only shows on a panel with a fixed height (`half` or `full`). The
+		 * drag sets the height directly, rather than stepping between the `height`
 		 * variants. The reader is deciding how much of the screen the panel gets, and
 		 * the answer is wherever they let go. `height` still states where it opens.
 		 * The drag stops at the chrome that does not scroll: the handle, a header,
 		 * and a footer. The grip is a window splitter, so the arrow keys resize too.
 		 *
-		 * A panel grown to its content (`auto` or `fit`) does not resize. A shorter
-		 * panel hides content behind a scroll, and a taller one adds empty space. The
-		 * grip there only pulls the panel down. It takes no focus, and assistive
-		 * technology does not see it, because `Escape` and the backdrop close the
-		 * panel already.
+		 * A panel grown to its content (`auto` or `fit`) does not resize, so it shows
+		 * no grip. A shorter panel hides content behind a scroll, and a taller one
+		 * adds empty space.
 		 *
-		 * Below the floor, the panel follows the pointer off the bottom of the screen.
-		 * The floor is the chrome of a fixed panel, and the full height of a grown
-		 * one. A release closes the panel once a quarter of the floor is off the
-		 * screen. A shorter pull springs back to the floor, as a sheet does on a
-		 * phone. A flick downward closes it from any height. Both closes arrive
-		 * through `onOpenChange`, like every other close. A pulled panel then glides
-		 * off the screen from where the release left it, at the speed of the release.
+		 * The grip does not close the panel. `Escape`, the backdrop, and the close
+		 * controls of the panel do that.
 		 *
 		 * A resize is the drawer's own state, and reports nowhere. Nothing outside it
 		 * needs to hold a pixel height that only means anything on the screen it was
@@ -150,6 +143,14 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		animateOnMount?: boolean
 		children: ReactNode
 		/**
+		 * The content of the footer row that the drawer shows when no `DrawerFooter`
+		 * is in its children. A `DrawerFooter` child replaces it. Set `null` to show
+		 * no footer row.
+		 *
+		 * @defaultValue `<DrawerClose />`, the standard Close button
+		 */
+		footer?: ReactNode
+		/**
 		 * Element to receive initial focus when the drawer opens.
 		 * @defaultValue the first tabbable child
 		 */
@@ -176,7 +177,8 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * Resolves the surface variant against the enclosing Glass provider. An explicit `size`
  * opens a density scope on the panel, so descendants scale in step. Compose `<DrawerTrigger>`,
  * `<DrawerClose>`, and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
- * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within.
+ * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within. With no `<DrawerFooter>` in
+ * its children, the drawer shows a footer with the standard Close button.
  *
  * @remarks
  * A registered `<DrawerTitle>` supplies `aria-labelledby` and takes precedence over the
@@ -198,6 +200,7 @@ export function Drawer({
 	className,
 	animateOnMount = true,
 	children,
+	footer,
 	initialFocus,
 	dismissOnBackdrop,
 	modal = true,
@@ -230,9 +233,7 @@ export function Drawer({
 		if (resolvedOpen && !animateEnter) report()
 	}, [resolvedOpen, animateEnter, report])
 
-	// Only a fixed height resizes. A grown panel's height is its content, so the
-	// grip on it only pulls the panel off.
-	const resizable = height === 'half' || height === 'full'
+	const grip = drawerShowsGrip(handle, height)
 
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
@@ -240,13 +241,8 @@ export function Drawer({
 	const resize = usePanelResize({
 		side: 'bottom',
 		open: resolvedOpen,
-		onDismiss: () => setOpen(false),
 		floorOf: drawerFloor,
 		ceilingOf: drawerCeiling,
-		pull: true,
-		resize: resizable,
-		pullBack: k.pullBack,
-		throwAway: k.throwAway,
 	})
 
 	// The other half of the panel's height, and the one the panel itself decides:
@@ -285,11 +281,6 @@ export function Drawer({
 				{...k.motion}
 				// After the preset spread, so it overrides the preset's own `initial`.
 				initial={animateEnter ? k.motion.initial : false}
-				// A panel that a release throws away leaves at the speed of the release,
-				// and only over the part of it still on the screen. The slide of the
-				// preset moves the whole panel in a fixed time, which after a long pull
-				// takes it off the screen in a frame or two.
-				exit={resize.exit ?? k.motion.exit}
 				onAnimationComplete={onAnimationComplete}
 				ref={panelRef}
 				{...ariaProps}
@@ -311,7 +302,7 @@ export function Drawer({
 				data-resizing={dataAttr(resize.resizing)}
 				// Named so the slots below can key off it: a handle changes the panel's
 				// top inset, and the header that follows must not add its own on top.
-				data-handle={dataAttr(handle === true)}
+				data-handle={dataAttr(grip)}
 				onClick={(event) => event.stopPropagation()}
 				// A dragged height beats the variant's — and a `fit` panel's, which stands
 				// down for as long as one is held. It is inline because it is a
@@ -319,16 +310,20 @@ export function Drawer({
 				style={resize.size === null ? undefined : { height: resize.size }}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-					{handle ? (
+					{grip ? (
 						<DrawerHandle
 							handleProps={resize.handleProps}
 							covers={resize.covers}
 							controls={panelId}
-							resizable={resizable}
 						/>
 					) : null}
 
-					<Density step={size}>{children}</Density>
+					<Density step={size}>
+						{children}
+						<DrawerDefaultFooter>
+							{footer === undefined ? <DrawerClose /> : footer}
+						</DrawerDefaultFooter>
+					</Density>
 				</PanelProviders>
 			</motion.div>
 		</Overlay>

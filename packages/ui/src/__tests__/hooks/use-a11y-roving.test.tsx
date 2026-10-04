@@ -5,13 +5,15 @@ import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
 	queryItems,
+	seedVirtualTopMatch,
 	setVirtualActive,
 	setVirtualActiveElement,
 	setVirtualActiveIndexed,
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
-import { attach, makeKeyEvent } from '../helpers'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
+import { attach, makeKeyEvent, stubMatchMedia } from '../helpers'
 
 describe('queryItems', () => {
 	it('returns empty array for null container', () => {
@@ -1060,6 +1062,75 @@ describe('clearVirtualActiveIndexed', () => {
 		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 
 		expect(row.hasAttribute('data-active')).toBe(false)
+	})
+})
+
+describe('seedVirtualTopMatch', () => {
+	/** Two mounted options in a container, and an owner input. */
+	function mountOptions() {
+		const container = document.createElement('div')
+
+		for (const id of ['opt-0', 'opt-1']) {
+			const row = document.createElement('div')
+
+			row.id = id
+
+			row.setAttribute('role', 'option')
+
+			container.appendChild(row)
+		}
+
+		attach(container)
+
+		const owner = document.createElement('input')
+
+		attach(owner)
+
+		return { container, owner }
+	}
+
+	const source: VirtualItemSource = {
+		count: 2,
+		getKey: (i) => `opt-${i}`,
+		scrollToIndex: vi.fn(),
+	}
+
+	it.each([
+		{ branch: 'DOM', source: null },
+		{ branch: 'indexed source', source },
+	])('seeds the top match through the $branch branch', ({ source }) => {
+		const { container, owner } = mountOptions()
+
+		const activeIndexRef = { current: -1 }
+
+		seedVirtualTopMatch(container, '[role="option"]', source, activeIndexRef, { current: owner })
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-0')
+
+		expect(container.querySelector('#opt-0')?.hasAttribute('data-active')).toBe(true)
+	})
+
+	it.each([
+		{ branch: 'DOM', source: null },
+		{ branch: 'indexed source', source },
+	])('clears the highlight through the $branch branch on a device with no hover', ({ source }) => {
+		stubMatchMedia((query) => query === NO_HOVER_QUERY)
+
+		const { container, owner } = mountOptions()
+
+		container.querySelector('#opt-1')?.setAttribute('data-active', '')
+
+		owner.setAttribute('aria-activedescendant', 'opt-1')
+
+		const activeIndexRef = { current: 1 }
+
+		seedVirtualTopMatch(container, '[role="option"]', source, activeIndexRef, { current: owner })
+
+		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+
+		expect(container.querySelector('[data-active]')).toBeNull()
+
+		if (source) expect(activeIndexRef.current).toBe(-1)
 	})
 })
 

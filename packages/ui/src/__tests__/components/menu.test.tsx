@@ -422,6 +422,90 @@ describe('MenuContent', () => {
 		expect(screen.getByRole('menu', { name: 'Row actions' })).not.toHaveAttribute('aria-labelledby')
 	})
 
+	it('shows the title and the description of a dropdown above its rows', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent title="Ada Lovelace" description="ada@example.com">
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		// The title replaces the trigger as the name of the menu.
+		const menu = screen.getByRole('menu', { name: 'Ada Lovelace' })
+
+		expect(menu).toHaveAccessibleDescription('ada@example.com')
+
+		const header = getSlot(menu, 'menu-header')
+
+		expect(menu.firstElementChild).toBe(header)
+
+		expect(header).toHaveTextContent('Ada Lovelaceada@example.com')
+
+		// The panel sets no text color, so the title carries its own for each theme.
+		expect(present(header.firstElementChild, 'the header title')).toHaveClass(
+			'text-zinc-950',
+			'dark:text-white',
+		)
+	})
+
+	it('shows no header and no description on a dropdown without a title', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent description="ada@example.com">
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		const menu = screen.getByRole('menu', { name: 'Open' })
+
+		expect(bySlot(menu, 'menu-header')).toBeNull()
+
+		expect(menu).not.toHaveAttribute('aria-describedby')
+	})
+
+	it('keeps a name from the consumer over the title', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent aria-label="Row actions" title="Ada Lovelace">
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		expect(screen.getByRole('menu', { name: 'Row actions' })).toHaveTextContent('Ada Lovelace')
+	})
+
+	it('names a static menu by its title', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent title="Ada Lovelace" description="ada@example.com">
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		expect(screen.getByRole('menu', { name: 'Ada Lovelace' })).toHaveAccessibleDescription(
+			'ada@example.com',
+		)
+	})
+
 	it('closes the menu when Tab is pressed on the trigger', async () => {
 		const user = setupUser()
 
@@ -1251,10 +1335,12 @@ describe('Menu on a phone', () => {
 	function renderPhoneMenu({
 		sheet,
 		title,
+		description,
 		glass,
 	}: {
 		sheet?: boolean
 		title?: string
+		description?: string
 		glass?: boolean
 	} = {}) {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
@@ -1269,7 +1355,7 @@ describe('Menu on a phone', () => {
 					<button type="button">Add tile</button>
 				</MenuTrigger>
 
-				<MenuContent title={title} glass={glass}>
+				<MenuContent title={title} description={description} glass={glass}>
 					<MenuItem onAction={onAction}>Orders</MenuItem>
 					<MenuItem>Revenue</MenuItem>
 				</MenuContent>
@@ -1304,6 +1390,16 @@ describe('Menu on a phone', () => {
 		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
 	})
 
+	it('shows the description of the content below its heading', async () => {
+		const { user } = renderPhoneMenu({ title: 'New tile', description: 'Pick a chart' })
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		expect(screen.getByRole('dialog', { name: 'New tile' })).toHaveAccessibleDescription(
+			'Pick a chart',
+		)
+	})
+
 	it.each([
 		['the trigger', undefined, 'Add tile'],
 		['the title of the content', 'New tile', 'New tile'],
@@ -1333,6 +1429,25 @@ describe('Menu on a phone', () => {
 		await user.click(screen.getByRole('menuitem', { name: 'Orders' }))
 
 		expect(onAction).toHaveBeenCalledTimes(1)
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+	})
+
+	it('closes the sheet with the Close button below the rows', async () => {
+		const { onAction, user } = renderPhoneMenu()
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		// The button is in the sheet, but not in the menu, which holds only rows.
+		expect(screen.getByRole('dialog', { name: 'Add tile' })).toContainElement(close)
+
+		expect(screen.getByRole('menu')).not.toContainElement(close)
+
+		await user.click(close)
+
+		expect(onAction).not.toHaveBeenCalled()
 
 		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})

@@ -2107,6 +2107,8 @@ export interface components {
 			 * @example user@example.com
 			 */
 			email: string
+			/** @description The name the user gave at sign-up, or null when none */
+			name: string | null
 			is_active: boolean
 			is_verified: boolean
 			/** @description The roles of the account; none means it can change nothing */

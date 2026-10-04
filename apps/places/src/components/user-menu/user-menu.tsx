@@ -6,16 +6,7 @@ import { useState } from 'react'
 import { sendVerificationEmail, signOut } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
-import {
-	Menu,
-	MenuContent,
-	MenuHeading,
-	MenuItem,
-	MenuLabel,
-	MenuSection,
-	MenuSeparator,
-	MenuTrigger,
-} from 'ui/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 
 type UserMenuProps = {
 	user: User
@@ -36,7 +27,8 @@ const verifyLabels = {
 /**
  * The menu of the signed-in user: add a place, open the list, and sign out. A
  * user whose email is not verified can also send a verification link, since
- * places can't be changed until it is.
+ * places can't be changed until it is. The heading is the name of the user,
+ * with the email below it. A user with no name gets the email as the heading.
  *
  * @remarks Sign-out and the link are `signOut` and `sendVerificationEmail` from
  * `shared/auth`. Sign-out loads `/login` as a full page, so no data of the user
@@ -60,22 +52,18 @@ export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
 				</Button>
 			</MenuTrigger>
 
-			<MenuContent>
-				<MenuSection>
-					<MenuHeading>{user.email}</MenuHeading>
+			<MenuContent title={user.name ?? user.email} description={user.name ? user.email : undefined}>
+				<MenuItem onAction={onAdd}>
+					<Icon icon={<Plus />} />
+					<MenuLabel>Add place</MenuLabel>
+				</MenuItem>
 
-					<MenuItem onAction={onAdd}>
-						<Icon icon={<Plus />} />
-						<MenuLabel>Add place</MenuLabel>
+				{onList === undefined ? null : (
+					<MenuItem onAction={onList}>
+						<Icon icon={<MapPinned />} />
+						<MenuLabel>{count === undefined ? 'My places' : `My places (${count})`}</MenuLabel>
 					</MenuItem>
-
-					{onList === undefined ? null : (
-						<MenuItem onAction={onList}>
-							<Icon icon={<MapPinned />} />
-							<MenuLabel>{count === undefined ? 'My places' : `My places (${count})`}</MenuLabel>
-						</MenuItem>
-					)}
-				</MenuSection>
+				)}
 
 				{user.is_verified ? null : (
 					<>
@@ -91,8 +79,6 @@ export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
 						</MenuItem>
 					</>
 				)}
-
-				<MenuSeparator />
 
 				<MenuItem onAction={signOut}>
 					<Icon icon={<LogOut />} />

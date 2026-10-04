@@ -7,13 +7,17 @@
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kara, narabi, shaku } from '../kiso'
+import { panel } from '../kiso/panel'
 
 const { onWash, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 
 export const k = {
-	group: 'flex flex-col gap-0.5 first:pt-0 last:pb-0',
+	// A group after any sibling takes the slot gap of the panel, which is the
+	// space between the search input and the first group. Each heading
+	// therefore has the same space above it.
+	group: ['flex flex-col gap-0.5', panel.layout.gapAbove],
 	// Inner listbox: collapses when empty. `peer` drives the sibling `empty` slot
 	// below; `kara` adds the virtualized case, which `:empty` alone cannot see.
 	list: ['peer', 'empty:hidden', kara.list],

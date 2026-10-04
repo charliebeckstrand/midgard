@@ -1,5 +1,7 @@
 import { type ComponentProps, type ReactNode, Suspense, use, useState } from 'react'
-import { createContext, dataAttr } from '../../../core'
+import { cn, createContext, dataAttr } from '../../../core'
+import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../../hooks'
+import { omote, sen } from '../../../recipes/kiso'
 import { Flex } from '../../../structure/flex'
 import type { ComponentApi } from '../api-reference'
 import { type Axis, type AxisValue, axesOf } from '../axes'
@@ -153,7 +155,7 @@ function AxesExamples({
 				{...frame}
 				title={title}
 				actions={
-					<Flex wrap gap="sm">
+					<PickerRail label={title ? `${title} props` : 'Props'}>
 						{axes.map((axis) => (
 							<AxisPicker
 								key={axis.name}
@@ -162,7 +164,7 @@ function AxesExamples({
 								onValueChange={(value) => setState((prev) => ({ ...prev, [axis.name]: value }))}
 							/>
 						))}
-					</Flex>
+					</PickerRail>
 				}
 			>
 				{/* A playground field gets no autofill and no typing suggestions. The
@@ -187,6 +189,35 @@ function AxesExamples({
 					),
 			)}
 		</>
+	)
+}
+
+/**
+ * The row of axis pickers. The row stays on one line and scrolls when the
+ * pickers do not fit, as the `rail` row of a `Filters` bar does. While the row
+ * overflows, the edge with more pickers behind it fades, and the row is a tab
+ * stop and a region with the name `label`.
+ */
+function PickerRail({ label, children }: { label: string; children: ReactNode }) {
+	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
+
+	const scrollRegionRef = useScrollRegion({ label })
+
+	const setRail = useComposedRef<HTMLElement>(scrollOverflowRef, scrollRegionRef)
+
+	return (
+		<Flex
+			ref={setRail ?? undefined}
+			data-slot="axis-pickers"
+			gap="sm"
+			className={cn(
+				'min-w-0 max-w-full overflow-x-auto overscroll-x-contain whitespace-nowrap',
+				omote.fade.inline,
+				sen.focus.inset,
+			)}
+		>
+			{children}
+		</Flex>
 	)
 }
 
