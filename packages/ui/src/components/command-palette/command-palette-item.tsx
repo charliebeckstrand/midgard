@@ -10,6 +10,10 @@ import { k } from '../../recipes/kata/command-palette'
 import { useCommandPaletteContext } from './context'
 
 type CommandPaletteItemBaseProps = {
+	/**
+	 * Disables the item, so that it cannot be selected.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	className?: string
 	children?: ReactNode

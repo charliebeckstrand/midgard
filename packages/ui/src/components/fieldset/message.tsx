@@ -13,10 +13,17 @@ export type MessageSeverity = Severity
 
 /** Props for {@link Message}: `severity`, optional form-field `name` binding, and the `all`-errors flag atop the native attributes of the `<p>` or the `<div>` that it renders. */
 export type MessageProps = {
+	/**
+	 * The tone of the message. Only `error` renders the errors of a bound field.
+	 * @defaultValue 'error'
+	 */
 	severity?: MessageSeverity
 	className?: string
 	name?: string
-	/** When form-bound and the field has multiple errors, render every one as a list. Defaults to the first error only. */
+	/**
+	 * When form-bound and the field has multiple errors, render every one as a list. Defaults to the first error only.
+	 * @defaultValue false
+	 */
 	all?: boolean
 } & Omit<HTMLAttributes<HTMLElement>, 'className' | 'name'>
 
@@ -67,7 +74,6 @@ function resolveMessageElementId(
  * invalid. Drive the validation ring (and, for `error`, `aria-invalid`) with
  * `<Field severity>` / `<Control severity>`, an explicit `invalid`, or a form
  * binding. Its type scale takes the step of the nearest density scope.
- * @defaultValue severity `'error'`
  */
 export function Message({
 	severity = 'error',

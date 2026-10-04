@@ -10,6 +10,11 @@ type Status = NonNullable<StatusDotProps['status']>
 /** Props for {@link Avatar}; merges recipe variants with image/initials sources and optional status. */
 export type AvatarProps = AvatarVariants & {
 	src?: string | null
+	/**
+	 * The text alternative of the image. With no `src` and no `initials`, it
+	 * names the empty circle.
+	 * @defaultValue ''
+	 */
 	alt?: string
 	initials?: string
 	status?: Status

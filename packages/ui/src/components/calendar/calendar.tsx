@@ -114,6 +114,7 @@ export type CalendarProps = {
 	 * Marks the day listbox `aria-multiselectable`. Set it when `getDayProps`
 	 * selects more than one day, as {@link CalendarRange} does for its two
 	 * endpoints.
+	 * @defaultValue false
 	 */
 	multiselectable?: boolean
 	ref?: Ref<CalendarHandle>

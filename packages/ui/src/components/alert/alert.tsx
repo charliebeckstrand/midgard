@@ -72,6 +72,10 @@ export type AlertProps = AlertVariants & {
 	 * it the plain variant in the text color.
 	 */
 	actions?: ReactNode
+	/**
+	 * Shows a close button that dismisses the alert.
+	 * @defaultValue false
+	 */
 	closable?: boolean
 	/** Initial open state (uncontrolled). @defaultValue true */
 	defaultOpen?: boolean

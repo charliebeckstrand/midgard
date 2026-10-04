@@ -9,6 +9,10 @@ import { TableRow } from './table-row'
 /** Props for {@link TableEmpty}: the `columns` count to span, and optional placeholder `children`. */
 export type TableEmptyProps = {
 	columns: number
+	/**
+	 * The content of the empty row.
+	 * @defaultValue a soft, block {@link Alert} titled `'No items'`
+	 */
 	children?: ReactNode
 }
 
@@ -19,8 +23,6 @@ const TableEmptyAlert = () => <Alert variant="soft" title="No items" className="
  * Empty-state body for a {@link Table}: a single row whose cell spans all
  * `columns` and shows the empty message. Render in place of {@link TableBody}
  * when there are no rows.
- *
- * @defaultValue children a soft, block {@link Alert} titled `'No items'`
  */
 export function TableEmpty({ columns, children }: TableEmptyProps) {
 	// The default resolves in the body. The React Compiler cannot compile a JSX

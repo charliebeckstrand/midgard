@@ -8,7 +8,15 @@ import { k, type NavBarVariants } from '../../recipes/kata/nav'
 import { NavBarContext } from './context'
 
 /** Props for {@link NavBar}: recipe `variant` plus native `<nav>` attributes. */
-export type NavBarProps = NavBarVariants & ComponentProps<'nav'>
+export type NavBarProps = NavBarVariants &
+	Omit<ComponentProps<'nav'>, 'aria-label'> & {
+		/**
+		 * The accessible name of the landmark. Give each navigation landmark its
+		 * own name when a page shows more than one.
+		 * @defaultValue 'Main'
+		 */
+		'aria-label'?: string
+	}
 
 /**
  * Horizontal top-level navigation landmark; establishes an active-indicator

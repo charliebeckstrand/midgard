@@ -29,7 +29,15 @@ export type InputVariants = Omit<VariantProps<typeof k>, 'variant'> & {
 }
 ```
 
-The docs read the tag, so each component that uses the type shows the default. A component that applies a different default omits the axis. Then it declares the axis again with its own tag, as `Badge` does. `recipe-default-boundary.test.ts` compares the tags with `recipe.config.defaults`. It fails when a defaulted axis has no tag, when a tag and its default are different, or when an axis with no default has a tag.
+The docs read the tag, so each component that uses the type shows the default. A component that applies a different default declares the axis again with its own tag, as `CommandPalette` does for `width`. `default-value-boundary.test.ts` compares the tags with `recipe.config.defaults`. It fails when a defaulted axis has no tag, when a tag and its default are different, or when an axis with no default has a tag.
+
+The same rule applies to the props of each public component. Each default that a user of the component gets is a `@defaultValue` tag on the declaration of the prop. The gate reads the components through the TS 7 checker and fails on these conditions:
+
+- A destructured default (`{ size = 'md' }` in the parameter, or `const { size = 'md' } = props` in the body) does not have one tag that equals it. A constant with a primitive value reads as that value. Another name reads as the name or as `{@link name}`.
+- A prop that the component gives unset to a recipe axis with a default does not have one tag that equals the recipe default. This rule also reads the recipes that no exported type reaches.
+- The TSDoc of the component has a `@defaultValue` tag. Put the tag on the prop.
+
+The gate does not read the `data-*` props, because the docs do not show them. An optional flag that is off when it is unset has the tag `false`. The gate does not read these flags.
 
 When a component would read kiso tokens directly (`kokkaku.<name>` for skeletons, `ugoki.<thing>` for motion, the popover bundle for popover content), the kata re-exposes them as `k.skeleton`, `k.motion`, `k.content`. The component imports only its kata; the reach into kiso and katakana stops there.
 

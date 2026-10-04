@@ -34,7 +34,7 @@ export type FormProps<T extends Record<string, unknown>> = {
 	validate?: Validators<T>
 	/**
 	 * When validators run.
-	 * @defaultValue `'touched'`
+	 * @defaultValue 'touched'
 	 */
 	validateOn?: ValidateOn
 	onSubmit?: FormSubmitHandler<T>
@@ -51,7 +51,10 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 */
 	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>) => void
 	onReset?: () => void
-	/** Disables the form's `<Fieldset>`; submitting disables it regardless. */
+	/**
+	 * Disables the form's `<Fieldset>`; submitting disables it regardless.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	className?: string
 	children: ReactNode

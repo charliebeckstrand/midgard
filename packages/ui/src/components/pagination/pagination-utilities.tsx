@@ -8,13 +8,14 @@ import type { ButtonBaseProps } from '../button/button-utilities'
  * `plain` as the default `variant`. The type omits the `variant` of the Button,
  * so the docs read one default.
  *
+ * @typeParam Omitted - The keys that a control declares again with its own default.
  * @internal
  */
-export type PaginationNavProps = {
+export type PaginationNavProps<Omitted extends PropertyKey = never> = {
 	/** The fill style of the button. @defaultValue 'plain' */
 	variant?: ButtonProps['variant']
-} & Omit<ButtonBaseProps, 'variant'> &
-	PolymorphicProps<'button', 'prefix'>
+} & Omit<ButtonBaseProps, 'variant' | Omitted> &
+	PolymorphicProps<'button', 'prefix' | Omitted>
 
 /**
  * Plain-variant {@link Button} backing the Previous/Next controls.

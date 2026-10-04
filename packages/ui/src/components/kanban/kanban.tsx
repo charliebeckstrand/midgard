@@ -33,7 +33,10 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 		getKey: (item: T) => string
 		/** Called with the next columns whenever ordering changes. Omit for read-only. */
 		onReorder?: (next: C[]) => void
-		/** Disable all drag / keyboard reorder interaction. */
+		/**
+		 * Disable all drag / keyboard reorder interaction.
+		 * @defaultValue false
+		 */
 		disabled?: boolean
 		children?: ReactNode
 		className?: string

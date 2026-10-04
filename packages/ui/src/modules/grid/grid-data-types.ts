@@ -784,6 +784,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * whose header reads the same figures — and renders only once a visible
 	 * column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
 	 * where the backend owns the figures.
+	 * @defaultValue false
 	 */
 	groupTotalRow?: boolean
 
@@ -794,6 +795,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * pagination it is the supplied page, because the grid holds nothing more. Works grouped or
 	 * flat, and renders only once a visible column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
 	 * where the backend owns the figures.
+	 * @defaultValue false
 	 */
 	grandTotalRow?: boolean
 

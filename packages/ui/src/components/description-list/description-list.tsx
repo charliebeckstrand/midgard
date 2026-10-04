@@ -7,6 +7,11 @@ type DlOrientation = Orientation
 
 /** Variant axis for {@link DescriptionList}: term/details `orientation`. */
 export type DescriptionListVariants = {
+	/**
+	 * The layout of each term and its details: `horizontal` puts the term beside
+	 * its details, and `vertical` puts the term above them.
+	 * @defaultValue 'horizontal'
+	 */
 	orientation?: DlOrientation
 }
 
@@ -28,8 +33,6 @@ export type DescriptionListProps = DescriptionListVariants & {
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components. Projection targets
  * only direct children — wrapping `dt`/`dd` in intermediate elements bypasses the layout.
- *
- * @defaultValue orientation 'horizontal'
  */
 export function DescriptionList({
 	orientation = 'horizontal',
