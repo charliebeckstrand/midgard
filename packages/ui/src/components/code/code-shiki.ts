@@ -82,7 +82,8 @@ function send(request: Omit<ShikiRequest, 'id'>): Promise<string | undefined> {
 /**
  * Highlights `code` in the Shiki worker.
  *
- * @returns The markup, the output of Shiki's `codeToHtml` with `tabindex: -1`.
+ * @returns The markup, the output of Shiki's `codeToHtml` with the options of
+ *   `highlightShiki`.
  * @internal
  */
 export async function highlightCode(code: string, lang: string, theme: string): Promise<string> {

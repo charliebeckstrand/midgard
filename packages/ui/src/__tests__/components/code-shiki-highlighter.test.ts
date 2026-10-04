@@ -21,8 +21,13 @@ export function Counter({ start = 0 }: { start?: number }) {
 }`
 
 describe('highlightShiki', () => {
-	it('gives the markup of codeToHtml with tabindex -1, which primeCodeBlock asks for', async () => {
-		const options = { lang: 'tsx', theme: 'github-dark-default', tabindex: -1 } as const
+	it('gives the markup of codeToHtml with the options that primeCodeBlock asks for', async () => {
+		const options = {
+			lang: 'tsx',
+			theme: 'github-dark-default',
+			tabindex: -1,
+			tokenizeTimeLimit: 0,
+		} as const
 
 		const html = await highlightShiki(SAMPLE, options.lang, options.theme)
 
@@ -39,8 +44,29 @@ describe('highlightShiki', () => {
 				lang: 'ts',
 				theme: 'github-light-default',
 				tabindex: -1,
+				tokenizeTimeLimit: 0,
 			}),
 		)
+	})
+
+	it('gives each token of a line that tokenizes slowly', async ({ signal }) => {
+		const code = 'const answer: number = 42'
+
+		const whole = await highlightShiki(code, 'tsx', 'github-dark-default')
+
+		signal.throwIfAborted()
+
+		// Each read of the clock is one second later. Shiki stops a line after
+		// 500 ms by default, and then gives the rest of the line as one token.
+		let now = 0
+
+		vi.spyOn(Date, 'now').mockImplementation(() => {
+			now += 1000
+
+			return now
+		})
+
+		expect(await highlightShiki(code, 'tsx', 'github-dark-default')).toBe(whole)
 	})
 
 	it('highlights plain text with no grammar', async () => {

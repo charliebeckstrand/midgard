@@ -161,8 +161,13 @@ export async function warmShikiPair(lang: string, theme: string): Promise<void> 
  *
  * @remarks
  * The markup is the output of Shiki's `codeToHtml(code, { lang, theme,
- * tabindex: -1 })`. The `<pre>` takes no tab stop, so a block that fits adds
- * none. `primeCodeBlock` asks for markup of this shape.
+ * tabindex: -1, tokenizeTimeLimit: 0 })`. The `<pre>` takes no tab stop, so a
+ * block that fits adds none. `primeCodeBlock` asks for markup of this shape.
+ *
+ * By default, Shiki stops a line after 500 ms and gives the rest of the line as
+ * one token. The first line of a cold grammar builds its RegExps, and on a slow
+ * device that can take more than 500 ms. The worker does not block the page, so
+ * it sets no limit, and each line gets all of its tokens.
  *
  * @internal
  */
@@ -171,5 +176,5 @@ export async function highlightShiki(code: string, lang: string, theme: string):
 
 	const hl = await getHighlighter()
 
-	return hl.codeToHtml(code, { lang, theme, tabindex: -1 })
+	return hl.codeToHtml(code, { lang, theme, tabindex: -1, tokenizeTimeLimit: 0 })
 }

@@ -70,7 +70,9 @@ export type CodeBlockProps = {
  * @remarks
  * The markup must have the shape that the worker of the block gives. Make it
  * with Shiki's `codeToHtml` from `shiki`, from the trimmed code, with these
- * options: `{ lang, theme, tabindex: -1 }`. Use the Shiki version of `ui`.
+ * options: `{ lang, theme, tabindex: -1, tokenizeTimeLimit: 0 }`. Use the
+ * Shiki version of `ui`. With no `tokenizeTimeLimit`, a slow line can stop
+ * after 500 ms, and the rest of the line then has no highlight.
  * Another engine or a transformer can give other markup.
  *
  * The block sets the markup with `dangerouslySetInnerHTML`. Prime only markup
