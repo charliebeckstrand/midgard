@@ -23,7 +23,10 @@ import { QueryBuilderSortableItem } from './query-builder-sortable-item'
 /** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. */
 export type QueryBuilderGroupProps = {
 	group: QueryGroup
-	/** When true, the group is the root and omits its "remove" button. */
+	/**
+	 * When true, the group is the root and omits its "remove" button.
+	 * @defaultValue false
+	 */
 	root?: boolean
 	className?: string
 }

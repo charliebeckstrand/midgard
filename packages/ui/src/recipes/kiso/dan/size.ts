@@ -16,8 +16,12 @@ export const size = {
 	avatar: {
 		/** An avatar. */
 		base: 'density-size-[7,9,11]',
-		/** An avatar in a sidebar item. */
-		sidebar: '[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:density-size-[5,6,7]',
+		/**
+		 * An avatar in a sidebar item: a child of the row button, or the circle in a
+		 * status wrapper that is such a child.
+		 */
+		sidebar:
+			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*,[data-slot=sidebar-item]>:not([data-density=slot])>[data-slot=avatar-with-status]>*)]:density-size-[5,6,7]',
 	},
 	swatch: {
 		/** A square or circle swatch, and a status dot. */

@@ -1,5 +1,26 @@
-import { isValidElement } from 'react'
+import { isValidElement, type ReactNode } from 'react'
+import type { ButtonVariants } from '../../recipes/kata/button'
 import { Icon } from '../icon'
+
+/**
+ * Shared, element-agnostic half of {@link ButtonProps}: the recipe variants plus
+ * the behavior flags and adornments common to the button and anchor branches.
+ *
+ * @internal
+ */
+export type ButtonBaseProps = ButtonVariants & {
+	/**
+	 * Swap the leading content for a spinner and gate activation.
+	 * @defaultValue false
+	 */
+	loading?: boolean
+	/** Content before the label; hidden while `loading`. */
+	prefix?: ReactNode
+	/** Content after the label. */
+	suffix?: ReactNode
+	'data-slot'?: string
+	className?: string
+}
 
 /**
  * Whether a child reads as an icon rather than a textual label, deciding square

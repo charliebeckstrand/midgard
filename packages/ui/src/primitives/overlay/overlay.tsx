@@ -28,6 +28,10 @@ import { notifyOverlaySignal } from './overlay-signal'
 export type OverlayProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/**
+	 * Whether a press on the backdrop closes the overlay.
+	 * @defaultValue true
+	 */
 	dismissOnBackdrop?: boolean
 	/**
 	 * Class for the dimming backdrop. It fully replaces the backdrop's default
@@ -63,6 +67,7 @@ export type OverlayProps = {
 	 * unless `backdrop` is set. The page behind stays interactive, because the
 	 * panel re-enables its own pointer events. Escape or a pointer press outside
 	 * the panel dismisses.
+	 * @defaultValue true
 	 */
 	modal?: boolean
 	/**
@@ -89,7 +94,7 @@ export type OverlayProps = {
 	 * a backdrop with no paint, so it still closes on a press outside the panel,
 	 * unless `dismissOnBackdrop` is `false`.
 	 *
-	 * @defaultValue `modal`
+	 * @defaultValue modal
 	 */
 	backdrop?: boolean
 } & Omit<ComponentProps<'div'>, 'children'>

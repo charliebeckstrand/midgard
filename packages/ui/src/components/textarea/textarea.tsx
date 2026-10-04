@@ -18,6 +18,12 @@ import { useTextareaAutoResize } from './use-textarea-auto-resize'
 /** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, an `invalid` override, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: ScaleStep<typeof scale>
+	/**
+	 * The surface of the control: `default` fills it, and `outline` draws a border
+	 * with no fill. When the prop is unset, the textarea takes the variant of the
+	 * enclosing Control. Without one, it takes the glass surface in a GlassProvider.
+	 * @defaultValue 'default'
+	 */
 	variant?: ControlVariant
 	className?: string
 	/**
@@ -32,7 +38,12 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	invalid?: boolean
 	/** Controlled value. `undefined` leaves the textarea uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: ComponentProps<'textarea'>['value'] | null
-} & Omit<ComponentProps<'textarea'>, 'className' | 'size' | 'value'>
+	/**
+	 * The visible height in lines. With `autoResize`, it is the minimum height.
+	 * @defaultValue 3
+	 */
+	rows?: ComponentProps<'textarea'>['rows']
+} & Omit<ComponentProps<'textarea'>, 'className' | 'size' | 'value' | 'rows'>
 
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.

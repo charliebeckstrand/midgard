@@ -140,4 +140,14 @@ export const k = {
 }
 
 /** Recipe variant props for the {@link Sheet} panel — its styling axes (`side`, `width`, `surface`), for consumers composing custom slots. */
-export type SheetPanelVariants = VariantProps<typeof k.panel>
+export type SheetPanelVariants = Omit<
+	VariantProps<typeof k.panel>,
+	'side' | 'width' | 'surface'
+> & {
+	/** The edge of the screen that the panel docks to. @defaultValue 'right' */
+	side?: VariantProps<typeof k.panel>['side']
+	/** The maximum width of a panel on the left or the right side. `fit` takes the width of the content. @defaultValue 'md' */
+	width?: VariantProps<typeof k.panel>['width']
+	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. @defaultValue 'flat' */
+	surface?: VariantProps<typeof k.panel>['surface']
+}

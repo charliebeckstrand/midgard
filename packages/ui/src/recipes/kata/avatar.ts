@@ -8,6 +8,13 @@ const { palette } = iro
 const { rounded } = kasane
 const { flex } = narabi
 
+/**
+ * The negative margin of an avatar in a SidebarItem. It lands on the element in
+ * the flow of the row: the circle, the status wrapper, or the skeleton. The row
+ * then keeps the height of a row with an icon.
+ */
+const sidebarItemMargin = '[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5'
+
 export const k = defineRecipe(
 	{
 		base: [
@@ -23,7 +30,7 @@ export const k = defineRecipe(
 			// its own `data-slot` changes in the mini rail. Each class selects the
 			// avatar itself, so Chromium tests the rule only against the avatars.
 			dan.size.avatar.sidebar,
-			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5',
+			sidebarItemMargin,
 		],
 		variant: {
 			solid: 'border border-transparent text-white',
@@ -32,7 +39,12 @@ export const k = defineRecipe(
 		},
 		palette: definePalette(bridge.palette(palette)),
 		defaults: { variant: 'solid', color: 'zinc' },
-		skeleton: kokkaku.avatar,
+		// The skeleton takes the size and the margin of an avatar in a SidebarItem,
+		// so the row keeps its height when the avatar replaces the skeleton.
+		skeleton: {
+			...kokkaku.avatar,
+			base: [...kokkaku.avatar.base, dan.size.avatar.sidebar, sidebarItemMargin],
+		},
 	},
 	{
 		initials: 'select-none fill-current text-[48px] font-medium uppercase',
@@ -54,12 +66,17 @@ export const k = defineRecipe(
 			 */
 			spacing: 'density-[xs,sm]:-space-x-0.5 density-[md,lg,xl]:-space-x-1',
 		},
-		/** The status indicator of an avatar. */
+		/** An avatar with a status. */
 		status: {
-			/** Puts the indicator on the top-right corner of the avatar. */
-			base: 'absolute top-0 right-0',
-			/** Ring around the indicator. */
-			ring: 'ring-2 ring-white dark:ring-zinc-900',
+			/**
+			 * The wrapper of an avatar with a status. It fits the circle, so a
+			 * stretching flex or grid parent cannot widen it and move the dot off the
+			 * circle. In a SidebarItem, the wrapper is in the flow of the row, so it
+			 * takes the margin.
+			 */
+			base: ['relative inline-flex size-fit', sidebarItemMargin],
+			/** The indicator, on the top-right corner of the avatar, with a ring around it. */
+			dot: ['absolute top-0 right-0', 'ring-2 ring-white dark:ring-zinc-900'],
 		},
 	},
 )
@@ -68,4 +85,10 @@ export const k = defineRecipe(
 export const scale = defineScale(dan.size.avatar.base)
 
 /** Recipe variant props for {@link Avatar}: the `variant` and `color` axes of its kata, and the `size` step that the component writes as a density scope. */
-export type AvatarVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }
+export type AvatarVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> & {
+	/** The fill style of the avatar. @defaultValue 'solid' */
+	variant?: VariantProps<typeof k>['variant']
+	/** The palette color of the avatar. @defaultValue 'zinc' */
+	color?: VariantProps<typeof k>['color']
+	size?: ScaleStep<typeof scale>
+}

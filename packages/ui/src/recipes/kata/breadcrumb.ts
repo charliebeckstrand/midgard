@@ -40,4 +40,7 @@ export const k = {
 /** Recipe variant props for a {@link Breadcrumb} item. The item has no styling axis, so the type is empty. The current-page style is on the link. */
 export type BreadcrumbItemVariants = VariantProps<typeof item>
 /** Recipe variant props for a {@link Breadcrumb} link — its styling axes (`current`), for consumers composing custom slots. */
-export type BreadcrumbLinkVariants = VariantProps<typeof link>
+export type BreadcrumbLinkVariants = Omit<VariantProps<typeof link>, 'current'> & {
+	/** Whether the link goes to the current page. @defaultValue false */
+	current?: VariantProps<typeof link>['current']
+}

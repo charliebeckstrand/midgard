@@ -53,13 +53,13 @@ export function PopoverPanel({
 	 * attribute: it is focusable (`tabIndex={-1}`), and a browser ignores
 	 * `role="none"` on a focusable element.
 	 *
-	 * @defaultValue `'listbox'`
+	 * @defaultValue 'listbox'
 	 */
 	role?: AriaRole
 	/**
 	 * CSS selector matching the navigable option rows.
 	 *
-	 * @defaultValue `'[role="option"]:not([data-disabled])'`
+	 * @defaultValue '[role="option"]:not([data-disabled])'
 	 */
 	itemSelector?: string
 	/**
@@ -102,7 +102,10 @@ export function PopoverPanel({
 	 * @defaultValue false
 	 */
 	glass?: boolean
-	/** Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections. */
+	/**
+	 * Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections.
+	 * @defaultValue false
+	 */
 	multiselectable?: boolean
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope.

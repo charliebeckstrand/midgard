@@ -46,4 +46,11 @@ export const scale = defineScale(dan.text.h1)
 /** Recipe variant props for {@link StatValue}: the `size` step that the component writes as a density scope. */
 export type StatValueVariants = { size?: ScaleStep<typeof scale> }
 /** Recipe variant props for {@link StatDelta} — its styling axes (`trend`), for consumers composing custom slots. */
-export type StatDeltaVariants = VariantProps<typeof delta>
+export type StatDeltaVariants = Omit<VariantProps<typeof delta>, 'trend'> & {
+	/**
+	 * The direction of the change, which sets the color: the success color for
+	 * `up`, the error color for `down`, and the muted color for `neutral`.
+	 * @defaultValue 'neutral'
+	 */
+	trend?: VariantProps<typeof delta>['trend']
+}

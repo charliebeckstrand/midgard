@@ -159,4 +159,9 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link Timeline} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
-export type TimelineVariants = VariantProps<typeof k.base>
+export type TimelineVariants = Omit<VariantProps<typeof k.base>, 'orientation' | 'variant'> & {
+	/** The axis of the timeline. @defaultValue 'vertical' */
+	orientation?: VariantProps<typeof k.base>['orientation']
+	/** The style of the markers and the connector lines. @defaultValue 'solid' */
+	variant?: VariantProps<typeof k.base>['variant']
+}

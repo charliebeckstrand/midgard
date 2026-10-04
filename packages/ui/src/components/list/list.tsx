@@ -21,7 +21,10 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 	variant?: ListVariant
 	/** Layout axis. @defaultValue 'vertical' */
 	orientation?: Orientation
-	/** Disable all drag / keyboard reorder interaction. */
+	/**
+	 * Disable all drag / keyboard reorder interaction.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	/** Render function for each item. */
 	children: (item: T, index: number) => ReactNode
@@ -38,7 +41,10 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 export type ListProps<T> = BaseListProps<T> &
 	(
 		| {
-				/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set. */
+				/**
+				 * Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
+				 * @defaultValue true
+				 */
 				sortable?: true
 				/** Stable key extractor; required for DnD tracking. */
 				getKey: (item: T) => string
@@ -63,6 +69,7 @@ export type ListProps<T> = BaseListProps<T> &
 				 * Render only the rows in view, plus a few on each side, in the scroll
 				 * region of the nearest panel body. For a long read-only vertical list.
 				 * See {@link List}.
+				 * @defaultValue false
 				 */
 				virtual?: boolean
 		  }

@@ -61,4 +61,8 @@ export const scale = defineScale(
 )
 
 /** Recipe variant props for {@link RangeSlider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type RangeSliderVariants = VariantProps<typeof k.base> & { size?: ScaleStep<typeof scale> }
+export type RangeSliderVariants = Omit<VariantProps<typeof k.base>, 'color'> & {
+	/** The color of the filled part of the track. @defaultValue 'blue' */
+	color?: VariantProps<typeof k.base>['color']
+	size?: ScaleStep<typeof scale>
+}

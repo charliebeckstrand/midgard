@@ -21,10 +21,14 @@ export type RangeSliderProps = {
 	value?: [number, number]
 	defaultValue?: [number, number]
 	onValueChange?: (value: [number, number]) => void
+	/** @defaultValue 0 */
 	min?: number
+	/** @defaultValue 100 */
 	max?: number
+	/** @defaultValue 1 */
 	step?: number
 	size?: RangeSliderVariants['size']
+	/** The color of the filled part of the track. @defaultValue 'blue' */
 	color?: RangeSliderVariants['color']
 	/** Disables both thumbs. Without the prop, the slider takes the disabled state of the enclosing Control. */
 	disabled?: boolean
@@ -33,7 +37,7 @@ export type RangeSliderProps = {
 	 * each thumb is clamped at the other's value. On a swap, from a key or a
 	 * pointer drag, focus follows the moving value to the other thumb button.
 	 *
-	 * @defaultValue `true`
+	 * @defaultValue true
 	 */
 	allowCross?: boolean
 	/**
@@ -41,7 +45,7 @@ export type RangeSliderProps = {
 	 * bounds (e.g. `['Min price', 'Max price']`). In a Field with a Label, each
 	 * thumb name starts with the Label text, for example "Price Minimum".
 	 *
-	 * @defaultValue `['Range start', 'Range end']`
+	 * @defaultValue ['Range start', 'Range end']
 	 */
 	labels?: [string, string]
 	/** Formats a thumb's value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */

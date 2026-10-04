@@ -176,6 +176,7 @@ export type PdfViewerProps = {
 	 */
 	onMagnifierChange?: (state: PdfViewerMagnifierState) => void
 	className?: string
+	/** The accessible name of the viewer. @defaultValue 'PDF viewer' */
 	'aria-label'?: string
 }
 

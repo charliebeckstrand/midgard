@@ -3,7 +3,9 @@ import { cn, dataAttr } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 
-type BadgeBaseProps = BadgeVariants & {
+type BadgeBaseProps = Omit<BadgeVariants, 'variant'> & {
+	/** The fill style of the badge. @defaultValue 'solid' */
+	variant?: BadgeVariants['variant']
 	className?: string
 	/** Leading content (typically an icon), rendered before `children`. */
 	prefix?: ReactNode
@@ -32,7 +34,7 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * `size` fixes the chip at one step for each density.
  */
 export function Badge({
-	variant = 'solid',
+	variant,
 	color,
 	size,
 	radius,

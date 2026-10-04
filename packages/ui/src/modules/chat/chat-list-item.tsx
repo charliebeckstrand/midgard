@@ -12,7 +12,10 @@ export type ChatListItemProps = {
 	title: ReactNode
 	/** Secondary line under the title (e.g. the last message), truncated. */
 	preview?: ReactNode
-	/** Marks this row as the open conversation (`aria-current="true"`, morphing indicator). */
+	/**
+	 * Marks this row as the open conversation (`aria-current="true"`, morphing indicator).
+	 * @defaultValue false
+	 */
 	current?: boolean
 	/** Selects this conversation. When set, the title/preview region is a button. */
 	onSelect?: () => void

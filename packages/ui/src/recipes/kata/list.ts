@@ -1,4 +1,4 @@
-import { defineRecipe, mode } from '../../core/recipe'
+import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -10,7 +10,8 @@ const { flex } = narabi
 const { bg } = omote
 const { border, divider, focus } = sen
 
-export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
+/** The `variant` axis of the list: the keys that the recipe of the root declares. */
+export type ListVariant = NonNullable<VariantProps<typeof base>['variant']>
 
 const base = defineRecipe({
 	base: [flex.col, 'm-0 p-0'],

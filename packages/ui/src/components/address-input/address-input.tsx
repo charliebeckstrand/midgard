@@ -35,6 +35,8 @@ export type AddressInputProps = Omit<
 	| 'onQueryChange'
 	| 'clearOnEmpty'
 	| 'children'
+	| 'placeholder'
+	| 'clearable'
 > & {
 	/**
 	 * Binds the selection to the enclosing Form field of this name

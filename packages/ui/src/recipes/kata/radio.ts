@@ -52,4 +52,8 @@ export const k = bridge.check(
 export const scale = defineScale(dan.size.check.box, dan.size.radio.dot)
 
 /** Recipe variant props for {@link Radio}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type RadioVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }
+export type RadioVariants = Omit<VariantProps<typeof k>, 'color'> & {
+	/** The color of the circle when it is checked. @defaultValue 'zinc' */
+	color?: VariantProps<typeof k>['color']
+	size?: ScaleStep<typeof scale>
+}

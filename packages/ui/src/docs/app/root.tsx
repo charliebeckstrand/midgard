@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Links, Meta, Scripts, ScrollRestoration, useLoaderData } from 'react-router'
-import fontUrl from '../../fonts/google-sans-flex.woff2?url'
+import fontUrl from '../../fonts/google-sans-flex-latin.woff2?url'
 import { CurrentScrollScript } from '../../primitives/current'
 import { AppearanceScript } from '../../providers/appearance'
 import appCss from '../app.css?url'
@@ -13,8 +13,8 @@ export function loader() {
 	return { pages }
 }
 
-// The preload fetches the font with the document, and not after the first
-// layout finds text in it.
+// The preload fetches the latin subset of the font with the document, and not
+// after the first layout finds text in it.
 export const links = () => [
 	{ rel: 'preload', href: fontUrl, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
 	{ rel: 'stylesheet', href: appCss },

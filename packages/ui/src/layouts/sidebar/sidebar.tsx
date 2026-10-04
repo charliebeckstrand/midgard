@@ -33,7 +33,13 @@ export type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
+	/** From `lg` up, keeps the header at the top of the content region. @defaultValue false */
 	stickyHeader?: boolean
+	/**
+	 * From `lg` up, shows the sidebar as a sheet that opens when the pointer comes
+	 * near the start edge, in place of the inline panel.
+	 * @defaultValue false
+	 */
 	floating?: boolean
 	/**
 	 * Fires when the mobile navigation drawer opens or closes, whatever drove it. The

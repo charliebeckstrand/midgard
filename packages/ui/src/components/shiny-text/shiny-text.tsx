@@ -27,13 +27,15 @@ export type ShinyTextProps = {
 	 */
 	speed?: number
 	/**
-	 * Base text color; any CSS color.
-	 * @defaultValue `'var(--shiny-text-color)'` (zinc-600; zinc-400 in dark mode)
+	 * Base text color; any CSS color. The default is zinc-600, and zinc-400 in
+	 * dark mode.
+	 * @defaultValue 'var(--shiny-text-color)'
 	 */
 	color?: string
 	/**
-	 * Highlight color swept across the text; any CSS color.
-	 * @defaultValue `'var(--shiny-text-shine)'` (zinc-950; white in dark mode)
+	 * Highlight color swept across the text; any CSS color. The default is
+	 * zinc-950, and white in dark mode.
+	 * @defaultValue 'var(--shiny-text-shine)'
 	 */
 	shineColor?: string
 	/**
@@ -53,7 +55,7 @@ export type ShinyTextProps = {
 	pauseOnHover?: boolean
 	/**
 	 * Direction the shine travels: `'left'` or `'right'`.
-	 * @defaultValue `'left'`
+	 * @defaultValue 'left'
 	 */
 	sweep?: 'left' | 'right'
 	className?: string

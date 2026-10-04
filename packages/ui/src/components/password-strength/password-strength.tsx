@@ -39,7 +39,7 @@ export type PasswordStrengthProps = {
 	rules?: readonly PasswordRule[]
 	/**
 	 * Renders the per-rule checklist below the meter.
-	 * @defaultValue `true`
+	 * @defaultValue true
 	 */
 	showRules?: boolean
 	/**

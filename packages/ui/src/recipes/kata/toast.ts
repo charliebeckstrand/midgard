@@ -38,4 +38,7 @@ export const k = {
 }
 
 /** Recipe variant props for the {@link Toast} viewport — its styling axes (`position`), for consumers composing custom slots. */
-export type ToastViewportVariants = VariantProps<typeof viewport>
+export type ToastViewportVariants = Omit<VariantProps<typeof viewport>, 'position'> & {
+	/** The corner of the screen that holds the stack of toasts. @defaultValue 'bottom-right' */
+	position?: VariantProps<typeof viewport>['position']
+}

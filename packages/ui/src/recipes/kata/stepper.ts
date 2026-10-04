@@ -142,10 +142,31 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link Stepper} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperVariants = VariantProps<typeof base>
+export type StepperVariants = Omit<VariantProps<typeof base>, 'orientation'> & {
+	/**
+	 * The axis of the steps. `responsive` is vertical below the `sm` width and
+	 * horizontal from it.
+	 * @defaultValue 'horizontal'
+	 */
+	orientation?: VariantProps<typeof base>['orientation']
+}
 /** Recipe variant props for {@link StepperStep} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperStepVariants = VariantProps<typeof step>
+export type StepperStepVariants = Omit<VariantProps<typeof step>, 'orientation'> & {
+	/** The axis of the stepper that holds the step. @defaultValue 'horizontal' */
+	orientation?: VariantProps<typeof step>['orientation']
+}
 /** Recipe variant props for {@link StepperTitle} — its styling axes (`orientation`, `interactive`), for consumers composing custom slots. */
-export type StepperTitleVariants = VariantProps<typeof title>
+export type StepperTitleVariants = Omit<
+	VariantProps<typeof title>,
+	'orientation' | 'interactive'
+> & {
+	/** The axis of the stepper that holds the title. @defaultValue 'horizontal' */
+	orientation?: VariantProps<typeof title>['orientation']
+	/** Whether the step is a button, so that the title brightens on hover. @defaultValue false */
+	interactive?: VariantProps<typeof title>['interactive']
+}
 /** Recipe variant props for {@link StepperSeparator} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperSeparatorVariants = VariantProps<typeof separator>
+export type StepperSeparatorVariants = Omit<VariantProps<typeof separator>, 'orientation'> & {
+	/** The axis of the stepper that holds the separator. @defaultValue 'horizontal' */
+	orientation?: VariantProps<typeof separator>['orientation']
+}

@@ -17,7 +17,10 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> &
 	PanelOverlayProps & {
 		/** Controlled open state. Pair with `onOpenChange`. */
 		open?: boolean
-		/** Initial open state when uncontrolled. */
+		/**
+		 * Initial open state when uncontrolled.
+		 * @defaultValue false
+		 */
 		defaultOpen?: boolean
 		/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 		onOpenChange?: (open: boolean) => void

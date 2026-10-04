@@ -50,7 +50,7 @@ function ChatMessageBlock({ part, className }: { part: ChatPart; className?: str
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
 	timestamp?: ReactNode
-	/** Pulses the bubble content and shows the progress cursor, while a response streams in. */
+	/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
 	streaming?: boolean
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode

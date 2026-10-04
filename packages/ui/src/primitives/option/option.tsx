@@ -13,6 +13,10 @@ import { capitalizeFirst, getOrCompute } from '../../utilities'
 export type OptionProps = {
 	className?: string
 	selected: boolean
+	/**
+	 * Disables the option, so that it cannot be selected.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	onSelect: () => void
 	/**
@@ -20,6 +24,7 @@ export type OptionProps = {
 	 * `aria-activedescendant` at, and blocks mousedown from pulling focus off
 	 * that input. Off for focus-roving lists (listbox/select), which move real
 	 * focus to the option.
+	 * @defaultValue false
 	 */
 	activeDescendant?: boolean
 	/**
@@ -28,6 +33,7 @@ export type OptionProps = {
 	 * cancels). Skipped when the option is already selected: `onSelect` on
 	 * the current value clears a `nullable` selection. The event is not
 	 * consumed; the owning panel redirects the focus move.
+	 * @defaultValue false
 	 */
 	commitOnTab?: boolean
 } & Omit<

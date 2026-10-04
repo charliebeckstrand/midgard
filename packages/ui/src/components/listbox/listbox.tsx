@@ -30,6 +30,7 @@ import { useListboxState } from './use-listbox-state'
 
 type ListboxBaseProps = GroupStampProps & {
 	name?: string
+	/** @defaultValue 'Select' */
 	placeholder?: string
 	/**
 	 * Side and alignment of the panel. A `<side>-auto` value, such as
@@ -74,6 +75,7 @@ type ListboxBaseProps = GroupStampProps & {
 	/**
 	 * Show a clear button in place of the chevron when a value is selected. A
 	 * custom `suffix` takes the slot before the clear button, as in Combobox.
+	 * @defaultValue false
 	 */
 	clearable?: boolean
 	/**
@@ -116,6 +118,10 @@ type ListboxSingleProps<T> = {
 	defaultValue?: T
 	/** Fires with the new selection, or `null` when it is cleared. */
 	onValueChange?: (value: T | null) => void
+	/**
+	 * Allows more than one selection. Set it to `true` to take an array `value`.
+	 * @defaultValue false
+	 */
 	multiple?: false
 }
 

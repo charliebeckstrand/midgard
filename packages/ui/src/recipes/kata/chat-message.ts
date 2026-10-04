@@ -124,6 +124,14 @@ export const k = defineRecipe(
 )
 
 /** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`role`), for consumers composing custom slots. */
-export type ChatMessageVariants = VariantProps<typeof k>
+export type ChatMessageVariants = Omit<VariantProps<typeof k>, 'role'> & {
+	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
+	role?: VariantProps<typeof k>['role']
+}
 /** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`role`, `streaming`), for consumers composing custom slots. */
-export type ChatMessageBubbleVariants = VariantProps<typeof bubble>
+export type ChatMessageBubbleVariants = Omit<VariantProps<typeof bubble>, 'role' | 'streaming'> & {
+	/** The author of the message, which sets the fill and the corners of the bubble. @defaultValue 'assistant' */
+	role?: VariantProps<typeof bubble>['role']
+	/** Whether the reply still streams in. The content of the bubble then pulses. @defaultValue false */
+	streaming?: VariantProps<typeof bubble>['streaming']
+}

@@ -19,6 +19,7 @@ type FileUploadSharedProps = {
 	/**
 	 * Allow selecting multiple files. Without it, a drop of more than one file
 	 * keeps the first, and the rest go to `onReject`.
+	 * @defaultValue false
 	 */
 	multiple?: boolean
 	/** Disables the picker. Without the prop, the component takes the disabled state of the enclosing Control. */
@@ -75,7 +76,7 @@ export type FileUploadInputProps = FileUploadSharedProps & {
 	/**
 	 * Placeholder when empty; also the hidden input's accessible name.
 	 *
-	 * @defaultValue `'Choose a file'`
+	 * @defaultValue 'Choose a file'
 	 */
 	placeholder?: string
 }
@@ -87,12 +88,12 @@ export type FileUploadButtonProps = FileUploadSharedProps & {
 	 * density scope. A step makes the button a density scope.
 	 */
 	size?: ScaleStep<typeof buttonScale>
-	/** Button color. */
+	/** The palette color of the button. @defaultValue 'zinc' */
 	color?: ComponentProps<typeof Button>['color']
 	/**
 	 * The trigger's label, and the hidden input's accessible name.
 	 *
-	 * @defaultValue `'Upload'`
+	 * @defaultValue 'Upload'
 	 */
 	children?: ReactNode
 }

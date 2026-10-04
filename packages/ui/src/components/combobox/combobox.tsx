@@ -54,6 +54,7 @@ import { useComboboxTrigger } from './use-combobox-trigger'
 type ComboboxBaseProps<T> = GroupStampProps & {
 	id?: string
 	name?: string
+	/** @defaultValue 'Search' */
 	placeholder?: string
 	/**
 	 * Formats a stored value for the input's resting display — what shows when the
@@ -93,6 +94,10 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * @defaultValue `` `${selected.length} selected` ``
 	 */
 	summarize?: (selected: T[]) => string
+	/**
+	 * The side of the input that the panel opens on, and its alignment.
+	 * @defaultValue 'bottom-start'
+	 */
 	placement?: Placement
 	prefix?: ReactNode
 	suffix?: ReactNode
@@ -111,6 +116,10 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 */
 	required?: boolean
 	className?: string
+	/**
+	 * The `autocomplete` attribute of the input.
+	 * @defaultValue 'off'
+	 */
 	autoComplete?: ComponentProps<'input'>['autoComplete']
 	/**
 	 * Accessible name for the input. Required when no `<Field>`/`<Label>` wraps
@@ -129,9 +138,15 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * @defaultValue `true` for single selection, `false` for `multiple`
 	 */
 	closeOnSelect?: boolean
-	/** Clears the value when the user empties the input while editing. */
+	/**
+	 * Clears the value when the user empties the input while editing.
+	 * @defaultValue false
+	 */
 	clearOnEmpty?: boolean
-	/** Show a clear button in place of the chevron when a value is selected. */
+	/**
+	 * Show a clear button in place of the chevron when a value is selected.
+	 * @defaultValue false
+	 */
 	clearable?: boolean
 	/**
 	 * Runs when the clear button empties the selection, with the combobox's own
@@ -209,6 +224,10 @@ type ComboboxSingleProps<T> = {
 	defaultValue?: T
 	/** Fires with the new selection, or `null` when it is cleared. */
 	onValueChange?: (value: T | null) => void
+	/**
+	 * Allows more than one selection. Set it to `true` to take an array `value`.
+	 * @defaultValue false
+	 */
 	multiple?: false
 }
 

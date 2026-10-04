@@ -25,6 +25,11 @@ export type AccordionPanelProps = {
  * sets `region={false}`. `className` lands on the inner body element, not the
  * animated wrapper.
  *
+ * The panel adds nothing to the intrinsic width of the accordion. In a host that
+ * fits its content, such as a popover, the accordion thus keeps one width while
+ * a section opens. The panel text wraps at that width. Content that cannot wrap,
+ * such as a wide table, needs a width on the accordion.
+ *
  * Under the accordion's default `mount="active"` the panel is mounted only while
  * open, so reopening resets its state. `always` and `lazy` instead hold it in
  * `<Activity mode="hidden">`, with state preserved and effects torn down. There

@@ -29,7 +29,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	icon: ReactElement
 	/**
 	 * Icon shown in the pressed state.
-	 * @defaultValue `icon`
+	 * @defaultValue icon
 	 */
 	pressedIcon?: ReactElement
 	/**
@@ -37,7 +37,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	 * @defaultValue true
 	 */
 	animate?: boolean
-	/** Recipe color forwarded to the underlying {@link Button}. */
+	/** Recipe color forwarded to the underlying {@link Button}. @defaultValue 'zinc' */
 	color?: ButtonVariants['color']
 	size?: ButtonVariants['size']
 	className?: string

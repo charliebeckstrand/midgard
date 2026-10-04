@@ -10,7 +10,10 @@ import { useFormToggle } from '../form/use-form-toggle'
 
 /** Props for {@link Checkbox}. */
 export type CheckboxProps = CheckboxVariants & {
-	/** Renders the partial tri-state: a minus glyph and `indeterminate` DOM property regardless of `checked`. */
+	/**
+	 * Renders the partial tri-state: a minus glyph and `indeterminate` DOM property regardless of `checked`.
+	 * @defaultValue false
+	 */
 	indeterminate?: boolean
 	className?: string
 } & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>

@@ -127,4 +127,8 @@ export const k = defineRecipe(
 export const scale = defineScale(dan.size.row, dan.size.switch.width, dan.size.thumb.base)
 
 /** Recipe variant props for {@link Switch}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type SwitchVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }
+export type SwitchVariants = Omit<VariantProps<typeof k>, 'color'> & {
+	/** The color of the track when the switch is on. @defaultValue 'zinc' */
+	color?: VariantProps<typeof k>['color']
+	size?: ScaleStep<typeof scale>
+}

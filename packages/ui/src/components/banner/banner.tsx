@@ -2,7 +2,12 @@ import { cn } from '../../core'
 import { Alert, type AlertProps } from '../alert'
 
 /** Props for {@link Banner}; the full {@link AlertProps} surface plus `sticky`. */
-export type BannerProps = AlertProps & {
+export type BannerProps = Omit<AlertProps, 'closable'> & {
+	/**
+	 * Shows a close button that dismisses the banner.
+	 * @defaultValue true
+	 */
+	closable?: AlertProps['closable']
 	/**
 	 * Pin the banner to the top of its scroll container.
 	 * @defaultValue false

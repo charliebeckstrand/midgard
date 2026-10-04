@@ -109,7 +109,10 @@ export const k = defineRecipe(
 )
 
 /** Recipe variant props for {@link Rating}: the `color` axis of its kata, for consumers composing custom slots. */
-export type RatingVariants = VariantProps<typeof k>
+export type RatingVariants = Omit<VariantProps<typeof k>, 'color'> & {
+	/** The color of the filled stars. @defaultValue 'amber' */
+	color?: VariantProps<typeof k>['color']
+}
 
 /** The size scale of {@link Rating}: the steps of its stars and gap. */
 export const scale = defineScale(dan.size.check.box, dan.gap.rating)

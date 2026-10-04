@@ -28,7 +28,7 @@ export type DrawerStaticProps = {
 	handle?: boolean
 	/** As on {@link Drawer}: the translucent glass panel and backdrop. */
 	glass?: boolean
-	/** As on {@link Drawer}: drain the color from what shows through the backdrop. */
+	/** As on {@link Drawer}: drain the color from what shows through the backdrop. @defaultValue false */
 	desaturate?: boolean
 	/** Classes for the panel, as {@link Drawer}'s `className` — pass the same ones. */
 	className?: string

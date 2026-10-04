@@ -79,8 +79,16 @@ export type ScatterFrameProps = {
  * name for it.
  */
 export type ScatterChartProps<T = never> = AccessibleName &
-	Omit<ChartBaseProps<T>, 'texture' | 'aria-label' | 'aria-labelledby'> &
+	Omit<ChartBaseProps<T>, 'texture' | 'aria-label' | 'aria-labelledby' | 'aspectRatio'> &
 	ScatterFrameProps & {
+		/**
+		 * Height as a ratio of the width: a `width / height` number, a `"16/9"`
+		 * string, or `false` to fall back to the frame's own height policy. An
+		 * explicit `height` wins over it. {@link ChartBaseProps.aspectRatio} gives
+		 * the full rules.
+		 * @defaultValue '16/9'
+		 */
+		aspectRatio?: ChartBaseProps<T>['aspectRatio']
 		/** The series to plot, one disc per parseable row; slot colors follow this order. */
 		series: ScatterChartSeries<T>[]
 		/**

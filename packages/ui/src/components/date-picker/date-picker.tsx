@@ -24,7 +24,15 @@ import { useDatePickerState } from './use-date-picker-state'
 
 /** Single-date arm of {@link DatePickerProps} (`range` and `relative` absent or `false`). */
 export type DatePickerSingleProps = {
+	/**
+	 * Picks a `[Date, Date]` range in place of one date ({@link DatePickerRangeProps}).
+	 * @defaultValue false
+	 */
 	range?: false
+	/**
+	 * Shows the relative presets in place of the calendar ({@link DatePickerRelativeProps}).
+	 * @defaultValue false
+	 */
 	relative?: false
 	value?: Date | null
 	defaultValue?: Date
@@ -35,6 +43,7 @@ export type DatePickerSingleProps = {
 	 * picked date writes back into the input. Opening keeps focus on the input.
 	 * ArrowDown opens, and the arrow keys then rove the grid through the input's
 	 * `aria-activedescendant`. Enter commits the highlighted day.
+	 * @defaultValue false
 	 */
 	input?: boolean
 	/**
@@ -181,7 +190,10 @@ export type DatePickerBaseProps = GroupStampProps & {
 	readOnly?: boolean
 	/** Controlled calendar open state. Pair with `onOpenChange`. */
 	open?: boolean
-	/** Initial calendar open state when uncontrolled. */
+	/**
+	 * Initial calendar open state when uncontrolled.
+	 * @defaultValue false
+	 */
 	defaultOpen?: boolean
 	/** Fires when the calendar opens or closes (trigger, dismiss, Escape, selection). */
 	onOpenChange?: (open: boolean) => void

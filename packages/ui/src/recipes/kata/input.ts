@@ -38,7 +38,10 @@ export const k = bridge.control(control, {
 })
 
 /** Recipe variant props for {@link Input} — the styling axes its kata exposes, for consumers composing custom slots. */
-export type InputVariants = VariantProps<typeof k>
+export type InputVariants = Omit<VariantProps<typeof k>, 'variant'> & {
+	/** The surface of the control: `default` fills it, and `outline` draws a border with no fill. @defaultValue 'default' */
+	variant?: VariantProps<typeof k>['variant']
+}
 
 /** The size scale of the control: `sm`, `md`, and `lg`. */
 export const scale = control.scale

@@ -52,4 +52,10 @@ export const k = defineRecipe(
 export const scale = defineScale(dan.text.chip)
 
 /** Recipe variant props for {@link Text}: the `tone` and `color` axes of its kata, and the `size` step that the component writes as a density scope. */
-export type TextVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }
+export type TextVariants = Omit<VariantProps<typeof k>, 'tone' | 'color'> & {
+	/** The emphasis of the text, which sets a semantic text color. @defaultValue 'default' */
+	tone?: VariantProps<typeof k>['tone']
+	/** A literal hue for the text. Set it in place of `tone` for a custom tint. */
+	color?: VariantProps<typeof k>['color']
+	size?: ScaleStep<typeof scale>
+}

@@ -27,7 +27,11 @@ export type GridRowManagerProps = {
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void
 	/** Commits the next group order (by key) after a group drag. */
 	onReorderGroups: (orderedKeys: (string | number)[]) => void
-	/** Palette presets for the color Menu; defaults to the full standard + extended palette. */
+	/**
+	 * Palette presets for the color Menu. The default is the full standard and
+	 * extended palette.
+	 * @defaultValue {@link DEFAULT_COLOR_OPTIONS}
+	 */
 	colorOptions?: PaletteColor[]
 	className?: string
 }

@@ -16,7 +16,10 @@ import { useTimeline } from './context'
  * decorative dot.
  */
 export type TimelineMarkerConfig = {
-	/** Animates the status dot. */
+	/**
+	 * Animates the status dot.
+	 * @defaultValue false
+	 */
 	pulse?: StatusDotProps['pulse']
 	/** Connector-line color leading into the marker. @defaultValue 'zinc' */
 	lineBefore?: Color

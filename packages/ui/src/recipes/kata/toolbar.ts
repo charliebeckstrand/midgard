@@ -52,6 +52,14 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link Toolbar} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
-export type ToolbarVariants = VariantProps<typeof k.base>
+export type ToolbarVariants = Omit<VariantProps<typeof k.base>, 'orientation' | 'variant'> & {
+	/** The axis of the toolbar. @defaultValue 'horizontal' */
+	orientation?: VariantProps<typeof k.base>['orientation']
+	/** The frame of the toolbar: no frame, a border, or a tinted fill. @defaultValue 'plain' */
+	variant?: VariantProps<typeof k.base>['variant']
+}
 /** Recipe variant props for a {@link Toolbar} group — its styling axes (`orientation`), for consumers composing custom slots. */
-export type ToolbarGroupVariants = VariantProps<typeof group>
+export type ToolbarGroupVariants = Omit<VariantProps<typeof group>, 'orientation'> & {
+	/** The axis of the group. @defaultValue 'horizontal' */
+	orientation?: VariantProps<typeof group>['orientation']
+}

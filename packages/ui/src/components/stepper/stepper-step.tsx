@@ -12,6 +12,10 @@ import { StepperIndicator } from './stepper-indicator'
 /** Props for {@link StepperStep}: the step's `value` index, an optional `disabled` flag, and child indicator/title/description content. */
 export type StepperStepProps = {
 	value: number
+	/**
+	 * Disables the step, so that a press does not select it.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	className?: string
 	children?: ReactNode

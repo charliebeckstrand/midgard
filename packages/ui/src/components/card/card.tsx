@@ -4,7 +4,17 @@ import { k, type scale } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../../structure/box'
 
 /** Props for {@link Card}: Box surface props (radius and padding follow the step) plus the `size` step. */
-export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density'> & {
+export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density' | 'bg' | 'outline'> & {
+	/**
+	 * Background surface token.
+	 * @defaultValue 'none'
+	 */
+	bg?: BoxProps['bg']
+	/**
+	 * Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight.
+	 * @defaultValue true
+	 */
+	outline?: BoxProps['outline']
 	/**
 	 * The density step of the card's own padding, its sections, and its radius.
 	 * Omit it to take the step of the nearest density scope. A step makes the

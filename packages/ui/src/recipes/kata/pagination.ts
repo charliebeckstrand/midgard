@@ -78,4 +78,7 @@ export const k = defineRecipe(
 )
 
 /** Recipe variant props for the {@link PaginationPage} button — its styling axes (`current`), for consumers composing custom slots. */
-export type PageButtonVariants = VariantProps<typeof button>
+export type PageButtonVariants = Omit<VariantProps<typeof button>, 'current'> & {
+	/** Whether the button is the current page. @defaultValue false */
+	current?: VariantProps<typeof button>['current']
+}
