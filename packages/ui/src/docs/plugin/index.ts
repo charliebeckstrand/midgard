@@ -18,6 +18,15 @@ const SOURCE = /\.tsx?$/
 const EXAMPLE = /(?<!\/index)\.tsx$/
 
 /**
+ * The resolved id of a virtual module. Each virtual module is JSON. In dev,
+ * Vite gives a module to its JSON plugin by the `.json` at the end of the id,
+ * and not by the module type of the load result.
+ */
+function virtualId(name: string): string {
+	return `\0${name}.json`
+}
+
+/**
  * The Vite plugin of the docs. It gives three virtual modules, each as JSON:
  *
  * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiExtractor}).
@@ -49,12 +58,12 @@ export function reactDocs(): Plugin {
 		enforce: 'pre',
 		resolveId: {
 			filter: { id: prefixRegex(VIRTUAL) },
-			handler: (id) => `\0${id}`,
+			handler: virtualId,
 		},
 		load: {
 			filter: { id: prefixRegex(`\0${VIRTUAL}`) },
 			async handler(id) {
-				const name = id.slice(1)
+				const name = id.slice(1, -'.json'.length)
 
 				const parse = this.parse.bind(this)
 
@@ -141,7 +150,7 @@ function staleExample(
 	if (!EXAMPLE.test(file)) return []
 
 	const code = graph.getModuleById(
-		`\0${CODE}${path.relative(pages, file).slice(0, -'.tsx'.length)}`,
+		virtualId(`${CODE}${path.relative(pages, file).slice(0, -'.tsx'.length)}`),
 	)
 
 	return [...(code ? [code] : []), ...modules.flatMap((module) => [...module.importers])]
