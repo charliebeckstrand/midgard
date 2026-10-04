@@ -87,11 +87,7 @@ export class FakeShikiWorker {
 	}
 }
 
-/** Opens a fake worker where the real port opens the module worker. */
-export const openShikiWorker = vi.fn(
-	(): Worker | null => new FakeShikiWorker() as unknown as Worker,
-)
-
-const port = { openShikiWorker }
-
-export default port
+/** The worker port, which opens a fake worker where the real port opens the module worker. */
+export default {
+	openShikiWorker: (): Worker | null => new FakeShikiWorker() as unknown as Worker,
+}

@@ -7,7 +7,7 @@ import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
-import { highlightCode } from './code-shiki'
+import { DEFAULT_LANG, DEFAULT_THEME, highlightCode } from './code-shiki'
 
 const MAX_CACHE_SIZE = 200
 
@@ -87,8 +87,8 @@ export type CodeBlockProps = {
  */
 export function primeCodeBlock({
 	code,
-	lang = 'tsx',
-	theme = 'github-dark-default',
+	lang = DEFAULT_LANG,
+	theme = DEFAULT_THEME,
 	html,
 }: Pick<CodeBlockProps, 'code' | 'lang' | 'theme'> & { html: string }): void {
 	cacheSet(cacheKey(code.trim(), lang, theme), html)
@@ -126,8 +126,8 @@ export function primeCodeBlock({
  */
 export function CodeBlock({
 	code: rawCode,
-	lang = 'tsx',
-	theme = 'github-dark-default',
+	lang = DEFAULT_LANG,
+	theme = DEFAULT_THEME,
 	copy = true,
 	label = 'Code',
 	className,

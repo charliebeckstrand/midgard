@@ -21,33 +21,22 @@ export function Counter({ start = 0 }: { start?: number }) {
 }`
 
 describe('highlightShiki', () => {
-	it('gives the markup of codeToHtml with the options that primeCodeBlock asks for', async () => {
-		const options = {
-			lang: 'tsx',
-			theme: 'github-dark-default',
-			tabindex: -1,
-			tokenizeTimeLimit: 0,
-		} as const
+	// The second case loads a grammar by its alias, and a theme other than the default.
+	it.each([
+		['tsx', 'github-dark-default'],
+		['ts', 'github-light-default'],
+	])(
+		'gives the markup of codeToHtml for %s in %s, with the options that primeCodeBlock asks for',
+		async (lang, theme) => {
+			const html = await highlightShiki(SAMPLE, lang, theme)
 
-		const html = await highlightShiki(SAMPLE, options.lang, options.theme)
+			expect(html).toBe(
+				await codeToHtml(SAMPLE, { lang, theme, tabindex: -1, tokenizeTimeLimit: 0 }),
+			)
 
-		expect(html).toBe(await codeToHtml(SAMPLE, options))
-
-		expect(html).toContain('tabindex="-1"')
-	})
-
-	it('loads a grammar by its alias and a theme other than the default', async () => {
-		const html = await highlightShiki('const a: number = 1', 'ts', 'github-light-default')
-
-		expect(html).toBe(
-			await codeToHtml('const a: number = 1', {
-				lang: 'ts',
-				theme: 'github-light-default',
-				tabindex: -1,
-				tokenizeTimeLimit: 0,
-			}),
-		)
-	})
+			expect(html).toContain('tabindex="-1"')
+		},
+	)
 
 	it('gives each token of a line that tokenizes slowly', async ({ signal }) => {
 		const code = 'const answer: number = 42'

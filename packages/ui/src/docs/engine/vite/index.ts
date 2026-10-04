@@ -150,9 +150,7 @@ export function defineDocsConfig({
 				},
 			},
 		},
-		// The Shiki worker of `CodeBlock` loads each grammar and each theme as a
-		// lazy chunk. The default `iife` format cannot split a worker, so it puts
-		// every grammar and every theme into one worker file of about 9.5 MB.
+		// The Shiki worker of `CodeBlock` needs the `es` format (see `CodeBlock`).
 		worker: { format: 'es' },
 		// Tailwind runs via `@tailwindcss/vite` above; the docs site never needs
 		// the root `postcss.config.mjs` (which targets Next.js apps). Skip the

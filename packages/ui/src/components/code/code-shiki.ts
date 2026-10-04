@@ -3,9 +3,15 @@ import type { ShikiReply, ShikiRequest } from './code-shiki-highlighter'
 import { openShikiWorker } from './code-shiki-port'
 
 // The main-thread side of the Shiki worker. Its one runtime import is the
-// small module that starts the worker. A test that must empty the memo cells
-// resets its module registry and imports this file again, and a small import
-// keeps the cost of that step out of the time limit of the test.
+// small module that starts the worker. A test that must empty the state of this
+// module resets its module registry and imports this file again, and a small
+// import keeps the cost of that step out of the time limit of the test.
+
+/** The grammar of a `CodeBlock` that gives no `lang`. */
+export const DEFAULT_LANG = 'tsx' satisfies BundledLanguage
+
+/** The theme of a `CodeBlock` that gives no `theme`. */
+export const DEFAULT_THEME = 'github-dark-default' satisfies BundledTheme
 
 type Pending = { resolve: (html: string | undefined) => void; reject: (reason: unknown) => void }
 
@@ -15,19 +21,14 @@ let nextId = 0
 
 const pending = new Map<number, Pending>()
 
-/** The pending or settled warm-up of each language and theme. */
-const warmups = new Map<string, Promise<void>>()
-
 /**
  * Rejects each request in flight and drops the worker, so the next request
- * starts a new one. The new worker holds no grammar, so the warm-ups go too.
+ * starts a new one.
  */
 function fail(reason: unknown) {
 	for (const request of pending.values()) request.reject(reason)
 
 	pending.clear()
-
-	warmups.clear()
 
 	worker?.terminate()
 
@@ -98,8 +99,8 @@ export async function highlightCode(code: string, lang: string, theme: string): 
  * Starts the Shiki worker and loads a grammar and a theme in it, ahead of the
  * first `CodeBlock` that uses them.
  *
- * @param lang - The grammar to load. The default is `'tsx'`, the default of `CodeBlock`.
- * @param theme - The theme to load. The default is `'github-dark-default'`.
+ * @param lang - The grammar to load. The default is the default of `CodeBlock`.
+ * @param theme - The theme to load. The default is the default of `CodeBlock`.
  * @returns A promise that settles when the worker holds the grammar and the
  *   theme. A failure rejects it.
  * @remarks
@@ -110,33 +111,12 @@ export async function highlightCode(code: string, lang: string, theme: string): 
  * frequent rules ready. For another grammar, the first block builds them. That
  * work runs in the worker and does not block the page.
  *
- * The promise of each pair of `lang` and `theme` is memoized. A rejection
- * clears it and reaches the caller, so the next call loads again. That beats
- * replaying one transient chunk failure for the rest of the session. A failure
- * of the worker clears each promise, because the next worker holds no grammar.
+ * The worker loads each grammar and each theme one time. A call for a pair that
+ * it holds settles at once, and a call after a failure loads again.
  */
 export function loadShiki(
-	lang: BundledLanguage = 'tsx',
-	theme: BundledTheme = 'github-dark-default',
+	lang: BundledLanguage = DEFAULT_LANG,
+	theme: BundledTheme = DEFAULT_THEME,
 ): Promise<void> {
-	const key = `${lang}\u0000${theme}`
-
-	let warmup = warmups.get(key)
-
-	if (!warmup) {
-		warmup = send({ lang, theme }).then(
-			() => {},
-			(error: unknown) => {
-				// Drop the memo before the rejection leaves. A cell left holding it
-				// answers every later call with the same failure.
-				warmups.delete(key)
-
-				throw error
-			},
-		)
-
-		warmups.set(key, warmup)
-	}
-
-	return warmup
+	return send({ lang, theme }).then(() => {})
 }

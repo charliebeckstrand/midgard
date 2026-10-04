@@ -15,13 +15,6 @@ import { DebugActions } from './debug/debug-actions'
 import { type TrackedPromise, tracked } from './debug/tracked'
 import { type Page, pageAt } from './pages'
 
-// The grammars that the warm-up loads in the worker of `CodeBlock`, one per
-// idle slice: `tsx` for a derived code block, and `ts`, which a fence in
-// Markdown and in a TSDoc description uses. The worker loads each one and
-// tokenizes its samples off the main thread, so the warm-up does not block the
-// page.
-const WARM_LANGS = ['tsx', 'ts'] as const
-
 // The Debug section of the settings is a separate chunk, so the entry chunk
 // does not carry it. The app loads it on idle, before the reader can open the
 // dialog. If the dialog opens first, the section suspends until the chunk loads.
@@ -84,40 +77,20 @@ export function App({ pages }: { pages: readonly Page[] }) {
 
 		const cic = window.cancelIdleCallback ?? clearTimeout
 
-		let handle: number
-
-		let cancelled = false
-
 		ric(() => {
 			loadDebugSettings()
 		})
 
-		const warm = (index: number) => {
-			handle = ric(() => {
-				const lang = WARM_LANGS[index]
+		// `tsx` is the grammar of a derived code block, and `ts` is the grammar of a
+		// fence in Markdown and in a TSDoc description. Each call is one message to
+		// the worker, so one idle slice sends both. A failed chunk fetch (offline,
+		// or a 404 after a deploy) is harmless here: CodeBlock asks the worker
+		// again when it renders, and shows its plain fallback until then.
+		const handle = ric(() => {
+			for (const lang of ['tsx', 'ts'] as const) loadShiki(lang).catch(() => {})
+		}) as number
 
-				if (cancelled || lang === undefined) return
-
-				// A warm prefetch; a failed chunk fetch (offline, post-deploy 404) is
-				// harmless here — CodeBlock asks the worker again when it renders and
-				// shows its plain fallback — so swallow the rejection rather than
-				// leaking it.
-				loadShiki(lang).then(
-					() => {
-						if (!cancelled) warm(index + 1)
-					},
-					() => {},
-				)
-			}) as number
-		}
-
-		warm(0)
-
-		return () => {
-			cancelled = true
-
-			cic(handle)
-		}
+		return () => cic(handle)
 	}, [])
 
 	return (

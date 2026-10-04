@@ -2,9 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { FakeShikiWorker, load } from '../mocks/shiki'
 
 /**
- * `code-shiki` keeps one worker, the requests in flight, and a memo cell for
- * each warm-up in module scope. Each case therefore needs a module whose state
- * starts empty, and a worker port of its own. Both want `vi.resetModules()` and
+ * `code-shiki` keeps one worker and the requests in flight in module scope.
+ * Each case therefore needs a module whose state starts empty, and a worker port of its own. Both want `vi.resetModules()` and
  * a mock of its own, which the `unit` project bars: one registry serves every
  * file a worker runs (see `test-isolation-boundary.test.ts`). This suite sits
  * in `boundary/`, which the `integration` project runs on forks, for the reason
@@ -58,7 +57,7 @@ function portOf(...workers: (FakeShikiWorker | null)[]) {
 }
 
 describe('loadShiki', () => {
-	it('memoizes the warm-up of each pair, so the worker loads it once', async ({ signal }) => {
+	it('sends a warm-up for the defaults of CodeBlock, and opens one worker', async ({ signal }) => {
 		const worker = new FakeShikiWorker()
 
 		const post = vi.spyOn(worker, 'postMessage')
@@ -69,13 +68,9 @@ describe('loadShiki', () => {
 
 		signal.throwIfAborted()
 
-		const first = loadShiki()
+		await expect(loadShiki()).resolves.toBeUndefined()
 
-		await expect(first).resolves.toBeUndefined()
-
-		expect(loadShiki()).toBe(first)
-
-		expect(loadShiki('ts')).not.toBe(first)
+		await expect(loadShiki('ts')).resolves.toBeUndefined()
 
 		expect(post.mock.calls.map(([request]) => request)).toEqual([
 			{ id: expect.any(Number), lang: 'tsx', theme: 'github-dark-default' },
@@ -85,7 +80,7 @@ describe('loadShiki', () => {
 		expect(open).toHaveBeenCalledOnce()
 	})
 
-	it('drops a rejected warm-up from the memo so a later call retries', async ({ signal }) => {
+	it('loads again on a later call after a rejected warm-up', async ({ signal }) => {
 		const { loadShiki } = await coldClient(portOf())
 
 		signal.throwIfAborted()
@@ -100,11 +95,7 @@ describe('loadShiki', () => {
 
 		signal.throwIfAborted()
 
-		const retry = loadShiki()
-
-		expect(retry).not.toBe(rejected)
-
-		await expect(retry).resolves.toBeUndefined()
+		await expect(loadShiki()).resolves.toBeUndefined()
 	})
 
 	it('rejects where the environment has no Worker, and retries later', async ({ signal }) => {
@@ -161,28 +152,5 @@ describe('highlightCode', () => {
 		)
 
 		expect(open).toHaveBeenCalledTimes(2)
-	})
-
-	it('warms the new worker again after the old one fails', async ({ signal }) => {
-		const failing = new FakeShikiWorker()
-
-		const { loadShiki } = await coldClient(portOf(failing))
-
-		signal.throwIfAborted()
-
-		const first = loadShiki()
-
-		await expect(first).resolves.toBeUndefined()
-
-		signal.throwIfAborted()
-
-		failing.crash('worker lost')
-
-		// The new worker holds no grammar, so the call loads again.
-		const again = loadShiki()
-
-		expect(again).not.toBe(first)
-
-		await expect(again).resolves.toBeUndefined()
 	})
 })
