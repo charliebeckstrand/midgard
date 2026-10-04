@@ -42,6 +42,11 @@ type AccordionSelection = {
 	openStore: KeyedStore<string, boolean>
 	/** Toggles a value. It keeps its identity across renders. */
 	toggle: (value: string) => void
+	/**
+	 * Whether a toggle can close an open section. Only a single accordion with
+	 * `collapsible={false}` holds its open section.
+	 */
+	collapsible: boolean
 }
 
 /** Reads whether a value is in the open list. It builds a set once for each list. */
@@ -67,7 +72,8 @@ function toArray(value: string | string[] | null | undefined): string[] {
  * transitions, collapsing both modes onto a shared string-array of open values.
  *
  * @returns `openStore`, which holds whether each value is open, and a stable
- * `toggle(value)` over the current open set.
+ * `toggle(value)` over the current open set. Also `collapsible`, which says
+ * whether a toggle can close an open section.
  *
  * @remarks
  * Single mode keeps at most one value open (honoring `collapsible`); multiple
@@ -85,9 +91,8 @@ function toArray(value: string | string[] | null | undefined): string[] {
 export function useAccordionSelection(props: SingleProps | MultipleProps): AccordionSelection {
 	const isMultiple = props.type === 'multiple'
 
-	// Single-mode state only: the multiple-mode `toggle` branch adds and removes
-	// unconditionally and returns before any read.
-	const collapsible = isMultiple ? undefined : (props.collapsible ?? true)
+	// A multiple accordion closes each open section on a toggle.
+	const collapsible = isMultiple || (props.collapsible ?? true)
 
 	// The single-mode `toArray` wrap mints a new array each call; memoization
 	// keeps the context identity stable across controlled renders.
@@ -123,33 +128,49 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 		onValueChange: onControllableChange,
 	})
 
-	// The open set of the last commit, for a toggle that keeps its identity.
+	// The open set that the next toggle starts from. A toggle writes its result here
+	// at once, so a second toggle in the same batch starts from the first.
 	const latest = useRef(current)
 
 	const openStore = useKeyedStore(current, openReader)
 
+	// Each commit writes the committed set again, also a commit that keeps it. A
+	// controlled owner that refuses a toggle keeps its `value`, and the eager write
+	// of the toggle must fall back to that value.
 	useLayoutEffect(() => {
 		latest.current = current
-	}, [current])
+	})
 
 	const toggle = useCallback(
 		(value: string) => {
-			const open = latest.current
+			const next = nextOpenSet(latest.current, value, isMultiple, collapsible)
 
-			if (isMultiple) {
-				setCurrent(toggleListItem(open, value))
+			// A toggle that changes nothing reports no change.
+			if (!next) return
 
-				return
-			}
+			latest.current = next
 
-			if (open.includes(value)) {
-				if (collapsible) setCurrent([])
-			} else {
-				setCurrent([value])
-			}
+			setCurrent(next)
 		},
 		[collapsible, setCurrent, isMultiple],
 	)
 
-	return { openStore, toggle }
+	return { openStore, toggle, collapsible }
+}
+
+/**
+ * The open set after a toggle of `value`, or `null` when the toggle changes
+ * nothing. A single accordion with `collapsible={false}` keeps its open section.
+ */
+function nextOpenSet(
+	open: readonly string[],
+	value: string,
+	isMultiple: boolean,
+	collapsible: boolean,
+): string[] | null {
+	if (isMultiple) return toggleListItem(open, value)
+
+	if (!open.includes(value)) return [value]
+
+	return collapsible ? [] : null
 }

@@ -1,3 +1,4 @@
+import { createRef, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Accordion,
@@ -133,6 +134,91 @@ describe('AccordionTrigger', () => {
 		// §3.9: a stray `type` must not turn a header into a submit button for the
 		// form that encloses the accordion.
 		expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('type', 'button')
+	})
+
+	it('takes no disabled of its own, because the item owns it', () => {
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					{/* @ts-expect-error: the item owns `disabled` */}
+					<AccordionTrigger disabled>Toggle</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		// A JavaScript caller can still pass it, and the state of the item wins.
+		expect(screen.getByRole('button', { name: 'Toggle' })).toBeEnabled()
+	})
+
+	// Roving is a keyboard model that no consumer switches off (CONVENTIONS.md §3.9).
+	it('keeps the arrow keys when a consumer onKeyDown prevents the default', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger onKeyDown={(event) => event.preventDefault()}>First</AccordionTrigger>
+					<AccordionPanel>A</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="b">
+					<AccordionTrigger>Second</AccordionTrigger>
+					<AccordionPanel>B</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		act(() => screen.getByRole('button', { name: 'First' }).focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(screen.getByRole('button', { name: 'Second' })).toHaveFocus()
+	})
+
+	it('marks the open header aria-disabled while its section cannot close', () => {
+		renderUI(
+			<Accordion defaultValue="a" collapsible={false}>
+				<AccordionItem value="a">
+					<AccordionTrigger>A</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="b">
+					<AccordionTrigger>B</AccordionTrigger>
+					<AccordionPanel>Panel B</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		const a = screen.getByRole('button', { name: 'A' })
+
+		const b = screen.getByRole('button', { name: 'B' })
+
+		// The WAI-ARIA accordion pattern: a header whose panel cannot collapse is
+		// aria-disabled. The header stays in the Tab sequence.
+		expect(a).toHaveAttribute('aria-disabled', 'true')
+
+		expect(a).toBeEnabled()
+
+		expect(b).not.toHaveAttribute('aria-disabled')
+
+		fireEvent.click(b)
+
+		expect(a).not.toHaveAttribute('aria-disabled')
+
+		expect(b).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it('leaves aria-disabled off the open header of a collapsible accordion', () => {
+		renderUI(
+			<Accordion defaultValue="a">
+				<AccordionItem value="a">
+					<AccordionTrigger>A</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(screen.getByRole('button', { name: 'A' })).not.toHaveAttribute('aria-disabled')
 	})
 })
 
@@ -327,6 +413,76 @@ describe('Accordion multiple-select behavior', () => {
 
 		expect(screen.getByText('Panel B')).toBeInTheDocument()
 	})
+
+	it('keeps each toggle of one batch', () => {
+		const onValueChange = vi.fn()
+
+		const toggles = new Map<string, () => void>()
+
+		function Grab() {
+			const { value, toggle } = useAccordionItem()
+
+			useEffect(() => {
+				toggles.set(value, toggle)
+			}, [value, toggle])
+
+			return null
+		}
+
+		renderUI(
+			<Accordion type="multiple" onValueChange={onValueChange}>
+				<AccordionItem value="a">
+					<AccordionTrigger>A</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+					<Grab />
+				</AccordionItem>
+				<AccordionItem value="b">
+					<AccordionTrigger>B</AccordionTrigger>
+					<AccordionPanel>Panel B</AccordionPanel>
+					<Grab />
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		// The second toggle of the batch starts from the first.
+		act(() => {
+			toggles.get('a')?.()
+
+			toggles.get('b')?.()
+		})
+
+		expect(onValueChange).toHaveBeenLastCalledWith(['a', 'b'])
+
+		expect(screen.getByText('Panel A')).toBeInTheDocument()
+
+		expect(screen.getByText('Panel B')).toBeInTheDocument()
+	})
+
+	it('starts a toggle from the committed set after a controlled owner refuses one', () => {
+		const onValueChange = vi.fn()
+
+		// One identity across renders, so a refused toggle leaves the value unchanged.
+		const none: string[] = []
+
+		renderUI(
+			<Accordion type="multiple" value={none} onValueChange={onValueChange}>
+				<AccordionItem value="a">
+					<AccordionTrigger>A</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="b">
+					<AccordionTrigger>B</AccordionTrigger>
+					<AccordionPanel>Panel B</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'A' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'B' }))
+
+		expect(onValueChange).toHaveBeenLastCalledWith(['b'])
+	})
 })
 
 describe('useAccordionItem in trigger children', () => {
@@ -352,6 +508,38 @@ describe('useAccordionItem in trigger children', () => {
 		)
 
 		expect(screen.getByText(label)).toBeInTheDocument()
+	})
+
+	it('gives a custom header aria-controls only while its panel is in the DOM', () => {
+		function CustomHeader() {
+			const { toggle, triggerProps } = useAccordionItem()
+
+			return (
+				<button type="button" {...triggerProps} onClick={toggle}>
+					Custom
+				</button>
+			)
+		}
+
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<CustomHeader />
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		const header = screen.getByRole('button', { name: 'Custom' })
+
+		// Closed: the panel is unmounted, so the reference would dangle.
+		expect(header).not.toHaveAttribute('aria-controls')
+
+		fireEvent.click(header)
+
+		expect(document.getElementById(header.getAttribute('aria-controls') ?? '')).toBe(
+			bySlot(document.body, 'accordion-panel'),
+		)
 	})
 })
 
@@ -411,6 +599,51 @@ describe('Accordion keyboard navigation', () => {
 		expect(trigger('First')).toHaveFocus()
 
 		expect(trigger('Third').tabIndex).toBe(0)
+	})
+
+	it('keeps the headers of a nested accordion out of the arrow keys of the outer one', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Accordion type="multiple" defaultValue={['outer']}>
+				<AccordionItem value="outer">
+					<AccordionTrigger>Outer first</AccordionTrigger>
+					<AccordionPanel>
+						<Accordion>
+							<AccordionItem value="inner-a">
+								<AccordionTrigger>Inner first</AccordionTrigger>
+								<AccordionPanel>A</AccordionPanel>
+							</AccordionItem>
+							<AccordionItem value="inner-b">
+								<AccordionTrigger>Inner second</AccordionTrigger>
+								<AccordionPanel>B</AccordionPanel>
+							</AccordionItem>
+						</Accordion>
+					</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="next">
+					<AccordionTrigger>Outer second</AccordionTrigger>
+					<AccordionPanel>C</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		act(() => trigger('Outer first').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(trigger('Outer second')).toHaveFocus()
+
+		await user.keyboard('{End}')
+
+		expect(trigger('Outer second')).toHaveFocus()
+
+		// The nested accordion moves between its own headers.
+		act(() => trigger('Inner first').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(trigger('Inner second')).toHaveFocus()
 	})
 })
 
@@ -571,6 +804,51 @@ describe('structure roots pass native props through', () => {
 		expect(root).toHaveAttribute('id', 'a11y-accordion')
 
 		expect(root).toHaveAttribute('data-testid', 'acc')
+	})
+
+	it('joins a consumer ref to the root, and keeps the arrow keys', async () => {
+		const user = setupUser()
+
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(
+			<Accordion ref={ref}>
+				<AccordionItem value="one">
+					<AccordionTrigger>One</AccordionTrigger>
+					<AccordionPanel>Body one</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="two">
+					<AccordionTrigger>Two</AccordionTrigger>
+					<AccordionPanel>Body two</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'accordion'))
+
+		// Roving reads the internal ref, which the consumer ref joins.
+		act(() => screen.getByRole('button', { name: 'One' }).focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(screen.getByRole('button', { name: 'Two' })).toHaveFocus()
+	})
+
+	it('spreads a consumer onKeyDown onto the root element', () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Accordion onKeyDown={onKeyDown}>
+				<AccordionItem value="one">
+					<AccordionTrigger>One</AccordionTrigger>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('button', { name: 'One' }), { key: 'x' })
+
+		expect(onKeyDown).toHaveBeenCalledTimes(1)
 	})
 
 	// React drops a boolean on an unknown attribute, and it warns once for each
