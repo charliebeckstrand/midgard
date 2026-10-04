@@ -13,7 +13,7 @@ const item = defineRecipe({
 	base: [
 		'group/accordion-item',
 		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-2',
-		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-blue-500',
+		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-blue-600',
 		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
 	],
 	variant: {
