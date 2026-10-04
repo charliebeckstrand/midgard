@@ -15,6 +15,10 @@ export type Hsva = Hsv & { a: number }
 
 /** Hex wire contract: a `#rrggbb(aa)` string in and out. The default `format`. */
 type ColorHexValueProps = {
+	/**
+	 * The wire format of the value props: a hex string, or an HSVA object.
+	 * @defaultValue 'hex'
+	 */
 	format?: 'hex'
 	value?: string
 	defaultValue?: string

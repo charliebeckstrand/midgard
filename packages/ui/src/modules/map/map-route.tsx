@@ -16,6 +16,7 @@ export type MapRouteProps = MapOverlayProps & {
 	/**
 	 * Waypoints in travel order, drawn as straight segments. Optional when a
 	 * `path` is supplied — a routed leg already carries its geometry.
+	 * @defaultValue []
 	 */
 	stops?: LngLat[]
 	/**

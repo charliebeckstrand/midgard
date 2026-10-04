@@ -47,9 +47,8 @@ export type TagInputProps = Omit<
 	onValueChange?: (value: string[]) => void
 	/**
 	 * Placeholder shown while the tag list is empty. It also names the input,
-	 * where no `aria-label` and no wrapping `<Field>`/`<Label>` does.
-	 *
-	 * @defaultValue `'Add tags'` (aria-label fallback when unset)
+	 * where no `aria-label` and no wrapping `<Field>`/`<Label>` does. With no
+	 * placeholder either, the name is "Add tags".
 	 */
 	placeholder?: string
 	/** Maximum number of tags; at the cap the field goes read-only (further additions are rejected) while existing tags stay removable. */

@@ -13,6 +13,7 @@ export type KanbanCardHandleProps = {
 	 * Replaces the accessible name of the handle. By default the name is "Drag",
 	 * followed by the name of the card: the `aria-label` of the card, or else
 	 * the text of the card.
+	 * @defaultValue 'Drag'
 	 */
 	'aria-label'?: string
 	/** Content of the handle. @defaultValue a grip icon */

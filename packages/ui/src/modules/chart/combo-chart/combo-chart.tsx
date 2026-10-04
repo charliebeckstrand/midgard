@@ -1,5 +1,6 @@
 'use client'
 
+import type { AccessibleName } from '../../../types'
 import { barProjection } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
@@ -24,7 +25,8 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type ComboChartProps<T = never> = ChartBaseProps<T> &
+export type ComboChartProps<T = never> = AccessibleName &
+	Omit<ChartBaseProps<T>, 'aria-label' | 'aria-labelledby' | 'aspectRatio'> &
 	CartesianFrameProps & {
 		/** The series to plot, each drawn as bars, a line, or a filled area; slot colors follow this order. */
 		series: ComboChartSeries<T>[]
