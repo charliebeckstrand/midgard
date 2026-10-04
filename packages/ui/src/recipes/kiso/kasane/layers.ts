@@ -3,8 +3,8 @@
  *
  * The library's signature 4-layer stack on a single element; inset
  * fill, hover ring, focus ring, and validation ring compose without
- * conflict. Spread `all` for the full effect, or pick individual layers
- * when a kata only wants a subset.
+ * conflict. `layers` is the whole stack. The parts stay in this module,
+ * because the control frame is the one reader, and it spreads all of them.
  *
  * Layer: kiso · Concern: layered chrome
  */
@@ -99,16 +99,13 @@ const disabled = [
 	'has-[>:disabled]:**:cursor-not-allowed',
 ]
 
-/** Every fragment in the correct spread order for a `className`. */
-const all = [...base, ...inset, ...overlay, ...hover, ...focus, ...validation, ...disabled]
-
-export const layers = {
-	base,
-	inset,
-	overlay,
-	hover,
-	focus,
-	validation,
-	disabled,
-	all,
-} as const
+/** The whole stack: each part in the correct spread order for a `className`. */
+export const layers = [
+	...base,
+	...inset,
+	...overlay,
+	...hover,
+	...focus,
+	...validation,
+	...disabled,
+]

@@ -18,7 +18,6 @@ export const k = bridge.check(
 		base: [
 			'[--check-border:transparent]',
 			'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
-			'has-[disabled]:cursor-not-allowed has-[disabled]:opacity-50',
 			'has-[:indeterminate]:bg-(--check-bg) has-[:indeterminate]:border-(--check-border)',
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
 			'not-has-[:disabled]:has-[:indeterminate]:hover:opacity-90',

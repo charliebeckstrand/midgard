@@ -56,8 +56,8 @@ export const CalendarHeader = memo(function CalendarHeader({
 			nextLabel="Next month"
 			onPrev={onPrevMonth}
 			onNext={onNextMonth}
-			prevClassName={cn(activeIndex === 0 && k.day.active.base)}
-			nextClassName={cn(activeIndex === 2 && k.day.active.base)}
+			prevClassName={cn(activeIndex === 0 && k.day.active)}
+			nextClassName={cn(activeIndex === 2 && k.day.active)}
 		>
 			<CalendarPicker
 				year={year}
@@ -68,7 +68,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 				monthLabels={monthLabels}
 				open={pickerOpen}
 				onOpenChange={onPickerOpenChange}
-				triggerClassName={cn(activeIndex === 1 && k.day.active.base)}
+				triggerClassName={cn(activeIndex === 1 && k.day.active)}
 			/>
 		</CalendarToolbar>
 	)

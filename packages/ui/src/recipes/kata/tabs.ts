@@ -161,7 +161,7 @@ export const k = {
 
 /** The size scale of {@link Tabs} and {@link Segment}: the steps of the tab text, padding, and silhouette. */
 export const scale = defineScale(
-	dan.text.body,
+	ji.ramp,
 	dan.space.tab.x,
 	dan.space.tab.bottom,
 	dan.space.tab.pill.x,
