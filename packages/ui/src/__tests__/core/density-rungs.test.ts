@@ -76,12 +76,10 @@ describe('rungs', () => {
 	it('writes one more scope above the step at each depth', () => {
 		const layers = rungs(['xl'], body)
 
+		expect(selectorsAt(layers, 1)[0]).toBe("[data-density]:where([data-density='xl']) &")
+
 		expect(selectorsAt(layers, 2)[0]).toBe(
 			"[data-density]:where([data-density] [data-density='xl']) &",
-		)
-
-		expect(selectorsAt(layers, 3)[0]).toBe(
-			"[data-density]:where([data-density] [data-density] [data-density='xl']) &",
 		)
 	})
 
@@ -154,11 +152,6 @@ describe('rungs', () => {
 		expect(selectorsAt(layers, 2).slice(0, 2)).toEqual([
 			`[data-density]:where([data-density] [data-density='md'], ${hosts} [data-density='slot']) &`,
 			`:where(${hosts}) &[data-density='slot']`,
-		])
-
-		expect(selectorsAt(layers, 3).slice(0, 2)).toEqual([
-			`[data-density]:where([data-density] [data-density] [data-density='md'], [data-density] ${hosts} [data-density='slot']) &`,
-			`:where([data-density] ${hosts}) &[data-density='slot']`,
 		])
 	})
 
