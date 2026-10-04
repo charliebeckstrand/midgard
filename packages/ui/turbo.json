@@ -33,7 +33,7 @@
 				"vitest.base.ts",
 				"package.json",
 				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,CADENCE,STE,REFERENCE}.md",
-				"$TURBO_ROOT$/{Dockerfile,Dockerfile.*,pnpm-lock.yaml}",
+				"$TURBO_ROOT$/{Dockerfile,Dockerfile.*,package.json,pnpm-lock.yaml}",
 				"$TURBO_ROOT$/biome.json",
 				"$TURBO_ROOT$/.biome/plugins/**",
 				"$TURBO_ROOT$/apps/**/*.{ts,tsx,mts,cts}",
