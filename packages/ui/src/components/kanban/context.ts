@@ -60,6 +60,11 @@ export function useKanbanCardLifted(cardId: string): boolean {
 export type KanbanDragStateValue = {
 	/** Card id currently being dragged, if any. */
 	activeId: string | null
+	/**
+	 * The column that the dragged card moved into from another column, if any.
+	 * `null` while the card is in the column that the drag started in.
+	 */
+	dropColumnId: string | null
 	/** Column id → ordered card ids, for `SortableContext`. */
 	columnItemIds: Record<string, string[]>
 }

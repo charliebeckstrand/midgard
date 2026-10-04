@@ -29,8 +29,9 @@ export type KanbanColumnProps = {
  * explicit `aria-label`. Compose {@link KanbanColumnHeader} and
  * {@link KanbanColumnBody} within.
  *
- * The column highlights while a dragged card is over the column itself, as over
- * an empty column. Over a card in the column, the live move shows the drop.
+ * The column highlights while a dragged card from another column is in it,
+ * after the live move on drag-over. The column that the drag started in does
+ * not highlight.
  *
  * @remarks Client component.
  */
@@ -42,7 +43,7 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
 	const { interactive } = useKanbanContext()
 
-	const { activeId, columnItemIds } = useKanbanDragState()
+	const { dropColumnId, columnItemIds } = useKanbanDragState()
 
 	const known = columnItemIds[columnId]
 
@@ -61,9 +62,7 @@ export function KanbanColumn({
 		)
 	}, [columnId, known])
 
-	const { setNodeRef, isOver } = useDroppable({ id: columnId, disabled: !interactive })
-
-	const over = interactive && isOver && activeId !== null
+	const { setNodeRef } = useDroppable({ id: columnId, disabled: !interactive })
 
 	const titleId = useId()
 
@@ -97,7 +96,7 @@ export function KanbanColumn({
 					ref={setNodeRef}
 					data-slot="kanban-column"
 					data-column-id={columnId}
-					data-over={dataAttr(over)}
+					data-over={dataAttr(columnId === dropColumnId)}
 					// Names the column from its rendered title; an explicit aria-label
 					// wins, and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}
