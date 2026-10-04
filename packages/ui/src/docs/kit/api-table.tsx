@@ -11,11 +11,12 @@ const loadEntry = () => import('./api-entry.tsx').then(({ ApiEntry }) => ({ defa
 const ApiEntry = lazy(loadEntry)
 
 /**
- * The API reference of a barrel: one entry for each component, in name order.
- * The entry loads when the reader points at the list or focuses it.
+ * The API reference of a barrel: one entry for each component, in the name
+ * order of the API data. The entry loads when the reader points at the list
+ * or focuses it.
  */
 export function ApiTable({ api }: { api: BarrelApi }) {
-	const components = Object.values(api).toSorted((a, b) => a.name.localeCompare(b.name))
+	const components = Object.values(api)
 
 	if (components.length === 0) return null
 

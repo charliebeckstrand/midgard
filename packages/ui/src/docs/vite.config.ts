@@ -36,6 +36,34 @@ export default defineConfig({
 		],
 	},
 	build: { target: 'esnext' },
+	// The client build puts React and the router in one chunk, and the shell
+	// with each module that it imports in one more chunk. Thus a page loads a
+	// few large chunks and not many small ones, and it makes fewer requests.
+	// The code of each page stays in the chunks of that page.
+	environments: {
+		client: {
+			build: {
+				rolldownOptions: {
+					output: {
+						codeSplitting: {
+							groups: [
+								{
+									name: 'framework',
+									test: /node_modules[\\/](?:react|react-dom|react-router|scheduler)[\\/]/,
+									priority: 2,
+								},
+								{
+									name: 'shell',
+									test: /[\\/]src[\\/]docs[\\/]app[\\/]root\.tsx$/,
+									priority: 1,
+								},
+							],
+						},
+					},
+				},
+			},
+		},
+	},
 	// The Shiki worker of `CodeBlock` needs the `es` format (see `CodeBlock`).
 	worker: { format: 'es' },
 	// Tailwind runs through its Vite plugin. The `postcss.config.mjs` of the

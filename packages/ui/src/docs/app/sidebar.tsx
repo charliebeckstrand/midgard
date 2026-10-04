@@ -20,11 +20,12 @@ import {
 import { Text } from 'ui/text'
 import type { PageLink } from '../plugin/pages.ts'
 
-/** The pages of each section, in the order of `pages`. The components come first, and then each other section in name order. */
+/** The pages of each section, in the order of `pages`, which the plugin gives by section and then by name. */
 export function sectionsOf(pages: readonly PageLink[]): { section: string; links: PageLink[] }[] {
-	return [...new Set(pages.map((page) => page.category))]
-		.toSorted((a, b) => (a === 'components' ? -1 : b === 'components' ? 1 : a.localeCompare(b)))
-		.map((section) => ({ section, links: pages.filter((page) => page.category === section) }))
+	return [...new Set(pages.map((page) => page.category))].map((section) => ({
+		section,
+		links: pages.filter((page) => page.category === section),
+	}))
 }
 
 // The search lists each match, as the site has about a hundred pages.
@@ -70,7 +71,7 @@ export function DocsSidebar({
 
 	const [descending, setDescending] = useState(false)
 
-	const sorted = descending ? pages.toReversed() : pages
+	const sections = sectionsOf(pages)
 
 	return (
 		<Sidebar>
@@ -112,7 +113,7 @@ export function DocsSidebar({
 			{/* A reversed list moves each item, and scroll anchoring then follows an
 			    item to its new place. The list keeps its scroll position instead. */}
 			<SidebarBody className="[overflow-anchor:none]">
-				{sectionsOf(sorted).map(({ section, links }) => (
+				{sections.map(({ section, links }) => (
 					<SidebarSection key={section}>
 						<Text
 							tone="muted"
@@ -121,7 +122,7 @@ export function DocsSidebar({
 							{section}
 						</Text>
 						<SidebarList aria-label={section}>
-							{links.map((page) => (
+							{(descending ? links.toReversed() : links).map((page) => (
 								<PageItem key={page.path} page={page} current={page.path === current} />
 							))}
 						</SidebarList>

@@ -48,5 +48,16 @@ export function findPages(docs: string): Page[] {
 				tabs: tabs.map((tab) => path.dirname(tab)).toSorted(),
 			}
 		})
-		.toSorted((a, b) => a.name.localeCompare(b.name))
+		.toSorted((a, b) => sectionOrder(a.category, b.category) || a.name.localeCompare(b.name))
+}
+
+/** The order of the sections: the components first, and then each other section in name order. */
+function sectionOrder(a: string, b: string): number {
+	if (a === b) return 0
+
+	if (a === COMPONENTS) return -1
+
+	if (b === COMPONENTS) return 1
+
+	return a.localeCompare(b)
 }

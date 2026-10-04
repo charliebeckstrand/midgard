@@ -34,10 +34,6 @@ function isSentence(text: string): boolean {
 	return text.endsWith('.')
 }
 
-function byName(a: PropApi, b: PropApi): number {
-	return a.name.localeCompare(b.name)
-}
-
 /** What a prop takes: a chip for each literal of a union, or one chip for its type, and the default. */
 function PropFacts({ prop }: { prop: PropApi }) {
 	const options = prop.values?.some((value) => typeof value !== 'boolean') ? prop.values : undefined
@@ -145,9 +141,9 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 
 /** The description, the props, the events, and the HTML attributes of one component. */
 export function ApiEntry({ component }: { component: ComponentApi }) {
-	const props = component.props.filter((prop) => !EVENT.test(prop.name)).toSorted(byName)
+	const props = component.props.filter((prop) => !EVENT.test(prop.name))
 
-	const events = component.props.filter((prop) => EVENT.test(prop.name)).toSorted(byName)
+	const events = component.props.filter((prop) => EVENT.test(prop.name))
 
 	return (
 		<div className="space-y-4">

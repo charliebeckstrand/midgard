@@ -31,13 +31,13 @@ export type ComponentApi = {
 	name: string
 	/** Markdown. */
 	description?: string
-	/** The props that `ui` declares. A prop that only a package declares, such as a DOM attribute, is not in the list. */
+	/** The props that `ui` declares, in name order. A prop that only a package declares, such as a DOM attribute, is not in the list. */
 	props: PropApi[]
 	/** The tags whose HTML attributes the component also takes. An empty tag stands for any element. */
 	elements?: string[]
 }
 
-/** The components of one barrel, by name. */
+/** The components of one barrel, by name, in name order. */
 export type BarrelApi = { readonly [component: string]: ComponentApi }
 
 /** The extractor of the plugin. The TypeScript server starts on the first {@link ApiExtractor.extract}. */
@@ -203,6 +203,7 @@ class Reader {
 		const components = this.checker
 			.getExportsOfModule(module)
 			.flatMap((symbol) => this.component(symbol) ?? [])
+			.toSorted(byName)
 
 		return Object.fromEntries(components.map((component) => [component.name, component]))
 	}
@@ -239,7 +240,7 @@ class Reader {
 		return {
 			name: exported.name,
 			...(description && { description }),
-			props: own.flatMap((member) => this.prop(member) ?? []),
+			props: own.flatMap((member) => this.prop(member) ?? []).toSorted(byName),
 			...(elements.length > 0 && { elements }),
 		}
 	}
@@ -329,6 +330,14 @@ class Reader {
 }
 
 /** Whether a declaration is in a package, such as a DOM attribute from `@types/react`. */
+/**
+ * The order of the components and of the props. The plugin sorts them, so
+ * the page does not sort them as it renders.
+ */
+function byName(a: { name: string }, b: { name: string }): number {
+	return a.name.localeCompare(b.name)
+}
+
 function isPackage(declaration: { path: string }): boolean {
 	return declaration.path.includes('/node_modules/')
 }
