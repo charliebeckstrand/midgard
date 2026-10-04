@@ -235,7 +235,11 @@ const TINT_CONSUMERS: readonly {
 	// interactive `content` column.
 	{
 		file: 'recipes/kata/list.ts',
-		surfaces: [list.item({ variant: 'solid' }), list.content(true), list.description],
+		surfaces: [
+			list.item({ variant: 'solid' }),
+			list.content({ interactive: true }),
+			list.description,
+		],
 	},
 	// `batch.bar`, which `batch.count` nests inside.
 	{ file: 'recipes/kata/grid.ts', surfaces: [grid.batch.count] },

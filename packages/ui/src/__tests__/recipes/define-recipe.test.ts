@@ -176,6 +176,20 @@ describe('defineRecipe', () => {
 		expect(withSkeleton.skeleton).toEqual({ base: 'h-4' })
 	})
 
+	it('rejects a prop that is not an object', () => {
+		// The engine reads each axis as a key of the prop object, so `true` in
+		// place of `{ interactive: true }` would give the defaults.
+		const recipe = defineRecipe({
+			base: 'block',
+			interactive: { true: 'cursor-pointer', false: '' },
+		})
+
+		// @ts-expect-error a bare boolean is not a prop object
+		expect(recipe(true)).toBe('block')
+
+		expect(recipe({ interactive: true })).toBe('block cursor-pointer')
+	})
+
 	it('keeps the default color active when only variant is overridden', () => {
 		// Guards the (variant × default-color) compound: omitting `color` must
 		// still resolve the default.
