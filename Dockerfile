@@ -18,7 +18,7 @@ FROM base AS prune
 ARG APP
 COPY . .
 # Keep the same version as the `turbo` dependency of the root `package.json`.
-RUN pnpm dlx turbo@2.11.2 prune ${APP} --docker
+RUN pnpm dlx turbo@2.11.7 prune ${APP} --docker
 
 FROM base AS build
 ARG APP
