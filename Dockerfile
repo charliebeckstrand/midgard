@@ -11,13 +11,15 @@ ARG NODE_VERSION=24
 
 FROM node:${NODE_VERSION}-alpine AS base
 # Keep the same version as the `packageManager` field of the root `package.json`.
-RUN npm install --global pnpm@12.5.1
+# `dockerfile-pin-boundary.test.ts` in ui checks it.
+RUN npm install --global pnpm@12.8.1
 WORKDIR /app
 
 FROM base AS prune
 ARG APP
 COPY . .
-# Keep the same version as the `turbo` dependency of the root `package.json`.
+# Keep the same version as the turbo that `pnpm-lock.yaml` installs for the
+# root package. `dockerfile-pin-boundary.test.ts` in ui checks it.
 RUN pnpm dlx turbo@2.11.7 prune ${APP} --docker
 
 FROM base AS build
