@@ -1,7 +1,10 @@
-/* The stylesheet of the fixture sheets: the docs base (Tailwind and the font),
-   and the source of ui, so that Tailwind generates each class that a component
-   uses. */
-@import '../engine/app.css';
+/* The stylesheet of the fixture sheets: Tailwind, the font and the tokens of
+   ui, and the source of ui, so that Tailwind generates each class that a
+   component uses. */
+@import 'tailwindcss';
 @import '../../../tailwind.css';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../../';
+@source not '../../docs-legacy';

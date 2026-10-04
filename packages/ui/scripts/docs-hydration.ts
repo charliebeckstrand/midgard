@@ -11,14 +11,14 @@
  * reads browser state with no server snapshot, React reports a recoverable
  * error and renders the page again on the client. No test without a build sees
  * this. The pages below are the home page, component pages, a page with a tab
- * in its path, and a module page.
+ * in its path, a module page, and, for the new app, a path with no page.
  */
 
 import { chromium } from 'playwright'
 import { type DocsApp, docsAppOf, serveDocs } from './docs-server'
 
 const PAGES: Record<DocsApp, readonly string[]> = {
-	docs: ['/', '/button', '/accordion', '/modules/grid', '/modules/grid/sorting'],
+	docs: ['/', '/button', '/accordion', '/modules/grid', '/modules/grid/sorting', '/no-such-page'],
 	'docs-legacy': ['/', '/button', '/select', '/stepper', '/progress/gauge', '/modules/grid'],
 }
 
