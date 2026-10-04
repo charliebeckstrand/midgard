@@ -36,7 +36,7 @@ import { slider } from './slider'
 import { sparkline } from './sparkline'
 import { stat } from './stat'
 import { stepper } from './stepper'
-import { switchRecipe } from './switch'
+import { switchSkeleton } from './switch'
 import { tabs } from './tabs'
 import { text } from './text'
 import { textarea } from './textarea'
@@ -71,7 +71,7 @@ export const kokkaku = {
 	sparkline,
 	stat,
 	stepper,
-	switch: switchRecipe,
+	switch: switchSkeleton,
 	tabs,
 	text,
 	textarea,

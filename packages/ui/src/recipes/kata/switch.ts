@@ -4,7 +4,7 @@ import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 
-const { cursor, fg } = hannou
+const { cursor } = hannou
 const { rounded } = kasane
 const { toggle } = narabi
 const { focus } = sen
@@ -85,7 +85,7 @@ export const k = defineRecipe(
 			// Validation ring overrides the resting / checked track ring when the
 			// input carries a data-* severity attribute.
 			...check.validation,
-			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
+			'has-[:disabled]:opacity-50',
 			// The track takes the step of the nearest density scope.
 			...kokkaku.switch.track,
 		],
@@ -119,7 +119,7 @@ export const k = defineRecipe(
 		}),
 		field,
 		/** Disabled-state text class shared by the switch field wrapper. */
-		disabled: fg.disabled,
+		disabled: check.disabled,
 	},
 )
 

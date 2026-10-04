@@ -131,7 +131,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 				)}
 			</div>
 
-			<Flex gap="sm" className={k.actions}>
+			<Flex gap="sm" className={cn(k.actions)}>
 				<Menu placement="bottom-start">
 					<MenuTrigger>
 						<Button

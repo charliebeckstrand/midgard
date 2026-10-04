@@ -25,7 +25,7 @@ const bubble = defineRecipe({
 			...mode('bg-zinc-200 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
 			'rounded-bl-md',
 		],
-		system: [size.md, ...text.muted, 'bg-transparent px-0'],
+		system: [...text.muted, 'bg-transparent px-0'],
 	},
 	// One state, one place. The pointer reports the wait the pulse reports to the
 	// eye: `progress` rather than `wait`, because the page stays live — the

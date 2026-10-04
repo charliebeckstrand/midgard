@@ -649,7 +649,8 @@ export const k = {
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
 			`group/grid-resize absolute top-0 end-0 z-10 h-full ${dan.size.resize.handle}`,
-			'flex items-center justify-center',
+			flex.row,
+			'justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
 		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
@@ -693,9 +694,9 @@ export const k = {
 		bar: [flex.row, 'gap-3'],
 		// Page-size picker: the start track. It renders even when it is empty,
 		// so the navigation stays centered.
-		controls: [flex.inline, 'flex-1', 'items-center', 'gap-4'],
+		controls: [flex.inline, flex.fill, 'gap-4'],
 		// Page navigation: the centered middle track.
-		nav: ['flex', 'flex-1', 'justify-center'],
+		nav: ['flex', flex.fill, 'justify-center'],
 		// The `<Pagination>` in the track. The footer has its own narrow layout
 		// (`pages`), so the pagination is not a size container here, and the
 		// compact page list of `<Pagination>` stays off. It also takes the width
@@ -706,7 +707,7 @@ export const k = {
 		pages: ['hidden', '@2xl:flex'],
 		// Row-range status ("1–10 of 47"): the end track, aligned to the inline
 		// end.
-		status: [size.md, text.muted, 'flex-1', 'whitespace-nowrap', 'text-end'],
+		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end'],
 		// A footer with no page-size picker, below `@2xl`: the empty start track
 		// goes, so Previous/Next sit at the start and the status at the end. From
 		// `@2xl` the numbered pages stay centered.
@@ -736,11 +737,11 @@ export const k = {
 	// (the selected total swaps in over the row total in place), and any custom
 	// content is pushed to the far edge by `ms-auto` in the trailing cluster.
 	summary: {
-		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
+		bar: [flex.row, 'flex-wrap', 'gap-x-4', 'gap-y-1', size.md, text.muted],
 		// `min-w-0` so the cluster can shrink past its content: a flex item's automatic
 		// minimum is its content width, which pinned this slot to the intrinsic width of
 		// whatever the consumer rendered, overflowing the bar instead of clipping inside it.
-		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ms-auto', 'min-w-0'],
+		trailing: [flex.row, 'flex-wrap', 'gap-x-4', 'gap-y-1', 'ms-auto', 'min-w-0'],
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
@@ -851,13 +852,13 @@ export const k = {
 	// grows to fit the controls.
 	edit: {
 		// Host for a cell's editor; anchors the absolute validation message.
-		host: 'relative flex w-full items-center',
+		host: ['relative', flex.row, 'w-full'],
 		// The slot that holds the editor, beside the settle pair. A column flex
 		// stretches the editor to the width of the slot, also through the
 		// `display: contents` wrapper of a listbox or a date picker. Thus a
 		// consumer's `editCell` control fills the cell with no width of its own.
 		// `min-w-0` lets the slot shrink, so the settle pair stays in the cell.
-		slot: 'flex min-w-0 flex-1 flex-col',
+		slot: [flex.col, 'min-w-0', flex.fill],
 		// The in-cell control fills the cell width.
 		input: 'w-full',
 		// The settle pair a cell-scoped session shows beside its editor. No padding
@@ -876,7 +877,8 @@ export const k = {
 		error: {
 			base: [
 				'absolute top-full start-0 z-20 mt-0.5 max-w-xs',
-				'rounded px-1.5 py-0.5 text-xs whitespace-normal',
+				'rounded px-1.5 py-0.5 whitespace-normal',
+				size.xs,
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),
 			],
