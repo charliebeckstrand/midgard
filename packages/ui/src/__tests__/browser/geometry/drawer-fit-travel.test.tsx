@@ -10,9 +10,7 @@ import {
 	screen,
 	waitFor,
 } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { drag } from '../helpers/drag'
 
 /**
  * Real-browser probe of the `fit` drawer's height. Everything this variant does
@@ -25,7 +23,7 @@ import { drag } from '../helpers/drag'
  */
 
 /** A `fit` drawer whose one content block swaps between two heights. */
-function FitProbe({ short, tall, handle }: { short: number; tall: number; handle?: boolean }) {
+function FitProbe({ short, tall }: { short: number; tall: number }) {
 	const [grown, setGrown] = useState(false)
 
 	return (
@@ -34,7 +32,7 @@ function FitProbe({ short, tall, handle }: { short: number; tall: number; handle
 				swap
 			</button>
 
-			<Drawer open handle={handle} height="fit" onOpenChange={() => {}} aria-label="Probe">
+			<Drawer open height="fit" onOpenChange={() => {}} aria-label="Probe">
 				<DrawerBody>
 					<div style={{ height: grown ? tall : short }} />
 				</DrawerBody>
@@ -75,38 +73,6 @@ describe('fit drawer height (real browser)', () => {
 
 		// It lands on the content's own height — 200 more than it opened at — and
 		// hands the box back to layout.
-		await waitFor(() =>
-			expect(panel.getBoundingClientRect().height - short).toBeNear(200, HALF_PIXEL),
-		)
-
-		await waitFor(() => expect(panel.style.height).toBe(''))
-	})
-
-	it('keeps following its content after a drag on the grip', async () => {
-		renderUI(<FitProbe short={120} tall={320} handle />)
-
-		const panel = getSlot(document.body, 'drawer')
-
-		const swap = screen.getByTestId('swap')
-
-		const handle = getSlot(document.body, 'drawer-handle')
-
-		await frames()
-
-		const short = panel.getBoundingClientRect().height
-
-		// A drag up on the grip of a grown panel sets no height. A height set here
-		// would hold the panel at it, and the swap below would move nothing.
-		const { x, y } = centerOf(handle)
-
-		const held = await drag(handle, { x, y }, [{ x, y: y - 40 }])
-
-		await held.release()
-
-		expect(panel.getBoundingClientRect().height).toBeNear(short, HALF_PIXEL)
-
-		swap.click()
-
 		await waitFor(() =>
 			expect(panel.getBoundingClientRect().height - short).toBeNear(200, HALF_PIXEL),
 		)

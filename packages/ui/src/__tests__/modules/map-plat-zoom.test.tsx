@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { MapFeatureCollection } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import { act, bySlot, fireEvent, layerScale, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, firstRegion, layerScale, present, withFakeTime } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
@@ -637,6 +637,186 @@ describe('MapPlat two-finger gestures', () => {
 
 			expect(scaleOf(container)).toBeCloseTo(3, 3)
 		})
+	})
+})
+
+/**
+ * A browser captures a touch pointer on contact, onto the region or the mark
+ * under the finger. jsdom captures nothing on contact, so these cases send the
+ * events that a browser sends for that capture.
+ */
+describe('MapPlat touch over the marks', () => {
+	/** Raises the readout on the first region, as a finger that lands on it does. */
+	function raiseReadout(container: HTMLElement, pointerId: number) {
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		const at = { pointerId, pointerType: 'touch', clientX: 40, clientY: 20 }
+
+		fireEvent.pointerEnter(region, at)
+
+		fireEvent.pointerDown(region, at)
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		return region
+	}
+
+	it('keeps a touch pan when the plot takes the finger from the region under it', () => {
+		const { container, plot } = renderZoomable(DIRECT)
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		const region = raiseReadout(container, 1)
+
+		fireEvent.pointerMove(region, { pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 10 })
+
+		// The pan took the finger onto the plot, so the region lost it. That loss
+		// bubbles to the plot, and it is not the end of the pan.
+		fireEvent.lostPointerCapture(region, { pointerId: 1, pointerType: 'touch' })
+
+		const before = transformOf(container)
+
+		fireEvent.pointerMove(plot, { pointerId: 1, pointerType: 'touch', clientX: 0, clientY: 0 })
+
+		expect(transformOf(container)).not.toBe(before)
+	})
+
+	it('holds the readout through a pinch on a map that claims touch', () => {
+		const { container, plot } = renderZoomable(DIRECT)
+
+		const region = raiseReadout(container, 1)
+
+		fireEvent.pointerDown(plot, { pointerId: 2, pointerType: 'touch', clientX: 80, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// The region holds the first finger's capture, so it gets the moves of that
+		// finger. None of them raises the readout while the pinch holds it.
+		fireEvent.pointerMove(region, { pointerId: 1, pointerType: 'touch', clientX: 30, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		for (const pointerId of [1, 2]) fireEvent.pointerUp(plot, { pointerId, pointerType: 'touch' })
+
+		// The pinch has settled, so a finger that lands on the region reads it again.
+		fireEvent.pointerEnter(region, { pointerId: 3, pointerType: 'touch', clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
+	it('holds the readout through a pinch on a default map', () => {
+		const { container, svg } = renderZoomable()
+
+		const region = raiseReadout(container, 1)
+
+		touch(svg, 'touchStart', [{ id: 1, x: 40, y: 20 }])
+
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 40, y: 20 },
+			{ id: 2, x: 80, y: 20 },
+		])
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		fireEvent.pointerMove(region, { pointerId: 1, pointerType: 'touch', clientX: 30, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		touch(svg, 'touchEnd', [])
+
+		fireEvent.pointerEnter(region, { pointerId: 3, pointerType: 'touch', clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
+	it('keeps a finger in the pinch after the node under it leaves the tree', () => {
+		const { container, svg } = renderZoomable()
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		const a = { identifier: 1, clientX: 190, clientY: 100, target: region }
+
+		const b = { identifier: 2, clientX: 210, clientY: 100, target: svg }
+
+		fireEvent.touchStart(region, { touches: [a], changedTouches: [a] })
+
+		fireEvent.touchStart(svg, { touches: [a, b], changedTouches: [b] })
+
+		// A zoom out merges the dots, and the hit circle under a finger unmounts. Its
+		// touch events still go to it, and a detached node passes nothing up.
+		const parent = present<Element>(region.parentNode as Element, 'region layer')
+
+		const next = region.nextSibling
+
+		region.remove()
+
+		const moved = { ...a, clientX: 170 }
+
+		const spread = { ...b, clientX: 230 }
+
+		fireEvent.touchMove(region, { touches: [moved, spread], changedTouches: [moved] })
+
+		fireEvent.touchEnd(region, { touches: [spread], changedTouches: [moved] })
+
+		fireEvent.touchEnd(svg, { touches: [], changedTouches: [spread] })
+
+		parent.insertBefore(region, next)
+
+		// The spread went from 20 to 60, so the scale is three times the fit.
+		expect(scaleOf(container)).toBeCloseTo(3, 3)
+	})
+})
+
+describe('MapPlat pinch under the page', () => {
+	it('holds the ground under the fingers while the page scrolls under the pinch', () => {
+		const { container, svg } = renderZoomable()
+
+		zoomWheel(svg, -400)
+
+		const before = transformOf(container)
+
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 180, y: 100 },
+			{ id: 2, x: 220, y: 100 },
+		])
+
+		// A scroll that the first finger started cannot be canceled. iOS carries
+		// the page 30px up under the pinch, and the map and the fingers go with it.
+		vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, -30, 400, 200))
+
+		fireEvent.scroll(window)
+
+		act(() => {
+			touch(svg, 'touchMove', [
+				{ id: 1, x: 180, y: 70 },
+				{ id: 2, x: 220, y: 70 },
+			])
+		})
+
+		touch(svg, 'touchEnd', [])
+
+		// The pair moved with the map, not over it, so the view holds.
+		expect(transformOf(container)).toBe(before)
+	})
+
+	it("cancels Safari's own pinch over a zooming map", () => {
+		const { svg } = renderZoomable()
+
+		const gesture = new Event('gesturestart', { bubbles: true, cancelable: true })
+
+		svg.dispatchEvent(gesture)
+
+		expect(gesture.defaultPrevented).toBe(true)
+	})
+
+	it("leaves Safari's pinch alone over a map that does not zoom", () => {
+		const { svg } = renderZoomable({ zoom: undefined })
+
+		const gesture = new Event('gesturestart', { bubbles: true, cancelable: true })
+
+		svg.dispatchEvent(gesture)
+
+		expect(gesture.defaultPrevented).toBe(false)
 	})
 })
 

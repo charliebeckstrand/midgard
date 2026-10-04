@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import type { KeybindingsMap } from 'tinykeys'
 import { cn } from '../../core'
@@ -8,11 +8,10 @@ import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
-import { Flex } from '../../structure/flex'
-import { Button } from '../button'
-import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
+import { Dialog, DialogBody, DialogFooter, type DialogPanelVariants } from '../dialog'
 import { Icon } from '../icon'
 import { Input } from '../input'
+import { CommandPaletteClose } from './command-palette-close'
 import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
@@ -31,8 +30,9 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	 * `aria-activedescendant`, so the only readout was that attribute. Use it to
 	 * preview the highlighted command beside the palette, or to prefetch what it
 	 * will need. An arrow key, a filter change that reseats the highlight on the
-	 * top result, and the close that clears it all report. The id is the one the
-	 * option renders with — `getOptionId` mints it for a windowed list.
+	 * top result, and the close that clears it all report. On a device with no
+	 * hover, a filter change clears the highlight and reports `null`. The id is
+	 * the one the option renders with — `getOptionId` mints it for a windowed list.
 	 */
 	onActiveChange?: (optionId: string | null) => void
 	/**
@@ -44,6 +44,15 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	placeholder?: string
 	/** Close the palette when the backdrop is clicked. @defaultValue true */
 	dismissOnBackdrop?: boolean
+	/**
+	 * Content of the footer row under the results. Set it to replace the
+	 * default Close button with your own actions. Put a
+	 * {@link CommandPaletteClose} in it to keep the close action. Set `null` to
+	 * remove the footer row.
+	 *
+	 * @defaultValue `<CommandPaletteClose />`
+	 */
+	footer?: ReactNode
 	className?: string
 	/**
 	 * Global shortcut that toggles the palette; tinykeys syntax, e.g.
@@ -78,9 +87,12 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  *
  * @remarks Focus moves into the search input on open via the Dialog
  * `initialFocus`. Arrow keys drive a virtual roving highlight via
- * `aria-activedescendant` while focus stays on the input. The listbox owns only
- * options (`aria-required-children`), so the no-results message lives in a
- * sibling live `<output>` that announces when the filtered set empties. A
+ * `aria-activedescendant` while focus stays on the input. A filter change
+ * moves the highlight to the top result, so Enter runs it. On a device with no
+ * hover, such as a phone, a filter change clears the highlight, and only an
+ * arrow key sets it. The listbox owns only options (`aria-required-children`),
+ * so the no-results message lives in a sibling live `<output>` that announces
+ * when the filtered set empties. A
  * `VirtualOptions` inside `children` registers its windowed item source
  * automatically, so the highlight reaches items outside the rendered window.
  * Roving type-ahead stays off: the search input owns every printable key.
@@ -91,6 +103,7 @@ export function CommandPalette({
 	onActiveChange,
 	placeholder = 'Type a command or search',
 	dismissOnBackdrop = true,
+	footer,
 	width = '2xl',
 	className,
 	triggerShortcut = DEFAULT_TRIGGER_SHORTCUT,
@@ -104,7 +117,6 @@ export function CommandPalette({
 		inputRef,
 		listRef,
 		onKeyDown,
-		close,
 		context,
 		virtualSourceRef,
 	} = useCommandPaletteState({ open, onOpenChange, onActiveChange })
@@ -127,6 +139,9 @@ export function CommandPalette({
 
 	const queryValue = useQueryValue(query, deferredQuery)
 
+	// `undefined` takes the default Close button; `null` or `false` removes the row.
+	const footerContent = footer === undefined ? <CommandPaletteClose /> : footer
+
 	return (
 		<Dialog
 			open={open}
@@ -138,32 +153,30 @@ export function CommandPalette({
 			initialFocus={inputRef}
 			// Names the dialog directly; the palette has no visible heading.
 			aria-label="Command palette"
+			// The palette renders its own footer from `footer`, inside the query
+			// context, so the dialog adds none.
+			footer={null}
 		>
 			<CommandPaletteContext value={context}>
 				<QueryContext value={queryValue}>
 					{/* A filtering consumer reads the deferred query alone, so a keystroke
 					    renders it one time and not also on the pass of the live query. */}
 					<DeferredQueryContext value={deferredQuery}>
-						<Flex gap="sm">
-							<Input
-								ref={inputRef}
-								prefix={<Icon icon={<Search />} />}
-								role="combobox"
-								aria-label={placeholder}
-								aria-expanded={open}
-								aria-haspopup="listbox"
-								aria-controls={listboxId}
-								aria-autocomplete="list"
-								data-slot="command-palette-input"
-								placeholder={placeholder}
-								value={query}
-								onChange={(event) => setQuery(event.target.value)}
-								onKeyDown={onKeyDown}
-							/>
-							<Button type="button" variant="plain" aria-label="Close" onClick={close}>
-								<Icon icon={<X />} />
-							</Button>
-						</Flex>
+						<Input
+							ref={inputRef}
+							prefix={<Icon icon={<Search />} />}
+							role="combobox"
+							aria-label={placeholder}
+							aria-expanded={open}
+							aria-haspopup="listbox"
+							aria-controls={listboxId}
+							aria-autocomplete="list"
+							data-slot="command-palette-input"
+							placeholder={placeholder}
+							value={query}
+							onChange={(event) => setQuery(event.target.value)}
+							onKeyDown={onKeyDown}
+						/>
 						<DialogBody>
 							<div
 								ref={listRef}
@@ -184,6 +197,9 @@ export function CommandPalette({
 								No results
 							</output>
 						</DialogBody>
+						{footerContent === null || footerContent === false ? null : (
+							<DialogFooter data-slot="command-palette-footer">{footerContent}</DialogFooter>
+						)}
 					</DeferredQueryContext>
 				</QueryContext>
 			</CommandPaletteContext>

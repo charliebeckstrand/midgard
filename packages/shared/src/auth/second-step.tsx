@@ -248,7 +248,12 @@ export function SecondStepDialog() {
 	}, [router])
 
 	return (
-		<Dialog open={pending !== undefined} onOpenChange={(open) => open || pending?.resolve(false)}>
+		<Dialog
+			open={pending !== undefined}
+			onOpenChange={(open) => open || pending?.resolve(false)}
+			// The Cancel button of the form closes the dialog, so it has no Close row.
+			footer={null}
+		>
 			<DialogHeader>
 				<DialogTitle>Confirm that it is you</DialogTitle>
 			</DialogHeader>

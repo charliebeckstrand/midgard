@@ -14,6 +14,7 @@ import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
+import { SheetClose, SheetDefaultFooter } from './slots'
 
 /** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
 export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> &
@@ -61,12 +62,13 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 		defaultOpen?: boolean
 		/**
 		 * Give the panel a drag handle. The reader can then resize it past the `width`
-		 * scale, and throw it away toward its own edge.
+		 * scale.
 		 *
 		 * The drag sets the width directly rather than stepping between the `width`
 		 * variants. The reader is deciding how much of the screen the panel gets, and
 		 * the answer is wherever they let go. `width` still states where it
-		 * opens, and a closed panel forgets what it was dragged to.
+		 * opens, and a closed panel forgets what it was dragged to. The handle does
+		 * not close the panel.
 		 *
 		 * @defaultValue false
 		 */
@@ -106,6 +108,14 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 		className?: string
 		children: ReactNode
 		/**
+		 * The content of the footer row that the sheet shows when no `SheetFooter`
+		 * is in its children. A `SheetFooter` child replaces it. Set `null` to show
+		 * no footer row.
+		 *
+		 * @defaultValue `<SheetClose />`, the standard Close button
+		 */
+		footer?: ReactNode
+		/**
 		 * Element to receive initial focus when the sheet opens.
 		 * @defaultValue the first tabbable child
 		 */
@@ -124,7 +134,8 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
  * absolute positioning and no scroll lock. Resolves the surface variant against
  * the enclosing Glass provider. Compose `<SheetTrigger>`, `<SheetClose>`, and
  * the slot family (`<SheetHeader>`, `<SheetTitle>`, `<SheetDescription>`,
- * `<SheetBody>`, `<SheetFooter>`) within.
+ * `<SheetBody>`, `<SheetFooter>`) within. With no `<SheetFooter>` in its
+ * children, the sheet shows a footer with the standard Close button.
  *
  * @remarks
  * A registered `<SheetTitle>` supplies `aria-labelledby` and takes precedence
@@ -149,6 +160,7 @@ export function Sheet({
 	desaturate,
 	className,
 	children,
+	footer,
 	container,
 	dismissOnBackdrop,
 	initialFocus,
@@ -189,7 +201,6 @@ export function Sheet({
 	const resize = usePanelResize({
 		side: edge,
 		open: resolvedOpen,
-		onDismiss: () => setOpen(false),
 		floorOf: (panel, size) => sheetFloor(panel, size, axis),
 		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, axis),
 	})
@@ -249,6 +260,7 @@ export function Sheet({
 					) : null}
 
 					{children}
+					<SheetDefaultFooter>{footer === undefined ? <SheetClose /> : footer}</SheetDefaultFooter>
 				</PanelProviders>
 			</motion.div>
 		</Overlay>

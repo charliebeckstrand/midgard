@@ -13,6 +13,7 @@ import { type ReactElement, useMemo, useState } from 'react'
 import { Button } from '../../../components/button'
 import {
 	CommandPalette,
+	CommandPaletteClose,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
 	CommandPaletteHeading,
@@ -188,6 +189,34 @@ function VirtualizedCommandPaletteExample() {
 	)
 }
 
+function CustomFooterExample() {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<>
+			<Button color="blue" variant="soft" onClick={() => setOpen(true)}>
+				Open command palette
+			</Button>
+
+			<CommandPalette
+				open={open}
+				onOpenChange={setOpen}
+				triggerShortcut={false}
+				footer={
+					<>
+						<Button type="button" variant="outline" prefix={<Icon icon={<Settings />} />}>
+							Preferences
+						</Button>
+						<CommandPaletteClose />
+					</>
+				}
+			>
+				<CommandResults />
+			</CommandPalette>
+		</>
+	)
+}
+
 export default function Demo() {
 	const [open, setOpen] = useState(false)
 
@@ -204,6 +233,9 @@ export default function Demo() {
 			</Example>
 			<Example title="Virtualized">
 				<VirtualizedCommandPaletteExample />
+			</Example>
+			<Example title="Custom footer">
+				<CustomFooterExample />
 			</Example>
 		</>
 	)

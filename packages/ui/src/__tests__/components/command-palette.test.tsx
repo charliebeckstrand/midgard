@@ -1,15 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Button } from '../../components/button'
 import {
 	CommandPalette,
+	CommandPaletteClose,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
 	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
+	type CommandPaletteProps,
 	CommandPaletteText,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
-import { bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
+import { bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -23,9 +27,9 @@ function FilteredItems() {
 	).map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
 }
 
-function FilteredPalette() {
+function FilteredPalette({ onActiveChange }: Pick<CommandPaletteProps, 'onActiveChange'>) {
 	return (
-		<CommandPalette open onOpenChange={() => {}}>
+		<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
 			<FilteredItems />
 		</CommandPalette>
 	)
@@ -47,7 +51,9 @@ describe('CommandPalette', () => {
 
 		expect(list).toHaveAttribute('role', 'listbox')
 
-		expect(screen.getByLabelText('Close')).toBeInTheDocument()
+		const footer = bySlot(document.body, 'command-palette-footer')
+
+		expect(footer).toContainElement(screen.getByRole('button', { name: 'Close' }))
 	})
 
 	it('does not render when closed', () => {
@@ -58,6 +64,78 @@ describe('CommandPalette', () => {
 		)
 
 		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
+	})
+
+	it('closes the palette from the default footer Close button', async () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Close' }))
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('replaces the default Close button with the footer content', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} footer={<Button type="button">Create</Button>}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		const footer = bySlot(document.body, 'command-palette-footer')
+
+		expect(footer).toContainElement(screen.getByRole('button', { name: 'Create' }))
+
+		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+	})
+
+	it('removes the footer row when footer is null', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} footer={null}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(bySlot(document.body, 'command-palette-input')).toBeInTheDocument()
+
+		expect(bySlot(document.body, 'command-palette-footer')).not.toBeInTheDocument()
+	})
+
+	it('keeps CommandPaletteClose beside custom footer actions', async () => {
+		const onOpenChange = vi.fn()
+
+		const onClick = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		renderUI(
+			<CommandPalette
+				open
+				onOpenChange={onOpenChange}
+				footer={
+					<>
+						<Button type="button">Create</Button>
+						<CommandPaletteClose onClick={onClick}>Done</CommandPaletteClose>
+					</>
+				}
+			>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		const done = screen.getByRole('button', { name: 'Done' })
+
+		expect(done).toHaveAttribute('type', 'button')
+
+		await setupUser().click(done)
+
+		// The caller handler runs first, and its `preventDefault()` does not stop the close.
+		expect(onClick).toHaveBeenCalled()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
 	it('applies placeholder to input', () => {
@@ -157,6 +235,45 @@ describe('CommandPalette active descendant', () => {
 		expect(screen.queryAllByRole('option')).toHaveLength(0)
 
 		expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-activedescendant')
+	})
+
+	// A phone has no hover. The reader taps a row there, so a highlight on the top
+	// result looks like a row that they picked.
+	it('clears the active item when the filter changes on a device with no hover', async () => {
+		stubMatchMedia((query) => query === NO_HOVER_QUERY)
+
+		const onActiveChange = vi.fn()
+
+		renderUI(<FilteredPalette onActiveChange={onActiveChange} />)
+
+		const user = setupUser()
+
+		const input = screen.getByRole('combobox')
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		await user.type(input, 'a')
+
+		const options = screen.getAllByRole('option')
+
+		expect(options).toHaveLength(3)
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		for (const option of options) {
+			expect(option).not.toHaveAttribute('data-active')
+
+			expect(option).not.toHaveAttribute('aria-selected', 'true')
+		}
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(null)
+
+		// An arrow key still sets the highlight, on the first option.
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
 
 	it('exposes a persistent no-results status region as a listbox sibling', () => {
@@ -631,6 +748,18 @@ describe('CommandPalette onActiveChange', () => {
 		await user.keyboard('{End}')
 
 		expect(onActiveChange).not.toHaveBeenCalled()
+	})
+
+	it('reports the top result on a filter change', async () => {
+		const onActiveChange = vi.fn()
+
+		renderUI(<FilteredPalette onActiveChange={onActiveChange} />)
+
+		const user = setupUser()
+
+		await user.type(screen.getByRole('combobox'), 'gam')
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(screen.getByRole('option').id)
 	})
 
 	it('reports null when the palette closes', async () => {

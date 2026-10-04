@@ -49,7 +49,12 @@ export { keyByOccurrence } from './key-by-occurrence'
 export { crossAxisDelta, type NavigationConfig, nextIndexForKey, wrap } from './keyboard-navigation'
 export { createKeyedStore, type KeyedStore } from './keyed-store'
 export { type BorderBox, measureBox } from './measure-box'
-export { matchesMediaQuery, REDUCED_MOTION_QUERY, subscribeMediaQuery } from './media-query'
+export {
+	matchesMediaQuery,
+	NO_HOVER_QUERY,
+	REDUCED_MOTION_QUERY,
+	subscribeMediaQuery,
+} from './media-query'
 export { moveItem } from './move-item'
 export { isNativeContextMenuRequest } from './native-context-menu'
 export { noop } from './noop'

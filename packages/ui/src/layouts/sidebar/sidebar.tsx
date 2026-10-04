@@ -137,6 +137,8 @@ export function SidebarLayout({
 					onOpenChange={setFloatingOpen}
 					modal={false}
 					backdrop
+					// The peek closes when the pointer leaves, so it has no Close row.
+					footer={null}
 					className={cn(
 						k.floatingSheet(),
 						rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none',
@@ -167,7 +169,8 @@ export function SidebarLayout({
 				)}
 
 			{/* Sidebar on mobile */}
-			<Drawer open={open} onOpenChange={setOpen}>
+			{/* A nav item and the close of `SidebarHeader` close the navigation, so it has no Close row. */}
+			<Drawer open={open} onOpenChange={setOpen} footer={null}>
 				<OffcanvasContext value={offcanvasValue}>
 					<div ref={scrollToCurrent} className="contents">
 						{sidebar}

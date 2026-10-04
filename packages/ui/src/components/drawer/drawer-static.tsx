@@ -7,7 +7,7 @@ import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { k as overlay } from '../../recipes/kata/overlay'
-import { drawerPanelProps } from './drawer-panel-props'
+import { drawerPanelProps, drawerShowsGrip } from './drawer-panel-props'
 
 /** Props for {@link DrawerStatic}: the {@link Drawer} styling props it has to match, and the content it paints. */
 export type DrawerStaticProps = {
@@ -20,7 +20,8 @@ export type DrawerStaticProps = {
 	height?: DrawerPanelVariants['height']
 	/**
 	 * As on {@link Drawer}: the grip on the top edge of the panel, painted here and never
-	 * interactive. Pass the same value as the drawer, so its inset matches.
+	 * interactive. Pass the same value as the drawer, so its inset matches. Only a `half` or
+	 * `full` panel shows it, as on the drawer.
 	 *
 	 * @defaultValue false
 	 */
@@ -81,6 +82,8 @@ export function DrawerStatic({
 }: DrawerStaticProps) {
 	const resolvedSurface = useResolvedSurface(glass)
 
+	const grip = drawerShowsGrip(handle, height)
+
 	// None of the drawer's own `data-slot`s: nothing styles off them, and a selector written
 	// for the real drawer must not find its static copy. The panel's group names and `data-*`
 	// hooks are the drawer's, because its slots and rows style off those.
@@ -93,9 +96,9 @@ export function DrawerStatic({
 				inert
 				density={size}
 				{...drawerPanelProps({ surface: resolvedSurface, height, className })}
-				data-handle={dataAttr(handle === true)}
+				data-handle={dataAttr(grip)}
 			>
-				{handle ? (
+				{grip ? (
 					<div aria-hidden="true" className={cn(k.handle.area)}>
 						<div className={cn(k.handle.bar)} />
 					</div>
