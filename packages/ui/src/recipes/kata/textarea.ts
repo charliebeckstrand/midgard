@@ -16,10 +16,11 @@ export const k = bridge.control(control, {
 	slots: {
 		/** Strips textarea chrome when nested inside a framed container. */
 		bare: ['border-0', 'rounded-none', 'focus:outline-hidden'],
-		/** ControlFrame border when an actions slot is present. */
-		frame: [...border.default],
-		/** Stacks the field above its actions row when an actions slot is present. */
-		stack: 'flex-col items-stretch',
+		/**
+		 * ControlFrame border when an actions slot is present. The frame also
+		 * stacks the field above its actions row.
+		 */
+		frame: [...border.default, 'flex-col items-stretch'],
 		/**
 		 * Right-justified actions row beneath the textarea. Its gap also caps the
 		 * hit areas of the actions (`TouchTarget`), so they do not overlap.

@@ -22,10 +22,14 @@ type ToggleIconButtonIconsProps = {
 export function ToggleIconButtonIcons({ icon, pressedIcon, pressed }: ToggleIconButtonIconsProps) {
 	return (
 		<>
-			<Icon icon={icon} className={cn(k.transition, pressed ? k.inactive : k.active)} />
+			<Icon icon={icon} className={cn(k.icon.base, pressed ? k.icon.inactive : k.icon.active)} />
 			<Icon
 				icon={pressedIcon}
-				className={cn('absolute inset-0 m-auto', k.transition, pressed ? k.active : k.inactive)}
+				className={cn(
+					'absolute inset-0 m-auto',
+					k.icon.base,
+					pressed ? k.icon.active : k.icon.inactive,
+				)}
 			/>
 		</>
 	)

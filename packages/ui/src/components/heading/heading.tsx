@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
-import { type HeadingLevel, headingRamp, k, type scale } from '../../recipes/kata/heading'
+import { type HeadingLevel, k, type scale } from '../../recipes/kata/heading'
 
 export type { HeadingLevel }
 
@@ -33,7 +33,7 @@ export function Heading({ level = 1, size, className, children, ...props }: Head
 			as={`h${level}`}
 			data-slot="heading"
 			density={size}
-			className={cn(k({ level }), headingRamp[level], className)}
+			className={cn(k({ level }), k.ramp[level], className)}
 			{...props}
 		>
 			{children}

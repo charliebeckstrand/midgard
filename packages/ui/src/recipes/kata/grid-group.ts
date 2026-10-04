@@ -3,8 +3,8 @@
  * draws above its column headers. The band's label tint comes from the
  * {@link Badge} it renders (standard + extended palette). This surface carries
  * the band's flex layout, the `+N` count, and the underline rule with its fills
- * (`band.color`, `band.neutral`). It also carries the column-manager group
- * editor (`manager`) and its Card outline colors (`cardOutline`).
+ * (`rule.color`, `rule.neutral`). It also carries the column-manager group
+ * editor (`manager`) and its Card outline colors (`outline`).
  */
 import type { PaletteColor } from '../../core/recipe'
 import { hannou, iro, kasane, narabi, omote, sen } from '../kiso'
@@ -18,7 +18,7 @@ const { focus } = sen
 
 /**
  * The fill for a group's 2px underline rule, keyed by {@link PaletteColor} so a
- * band reads `band.color[group.color]`. Full literals for Tailwind's scanner; the
+ * band reads `rule.color[group.color]`. Full literals for Tailwind's scanner; the
  * `-600` shade reads over both light and dark surfaces.
  */
 const bandColor: Record<PaletteColor, string> = {
@@ -41,10 +41,10 @@ const bandNeutral = 'bg-zinc-950/10 dark:bg-white/15'
 
 /**
  * The outline color for a group's editor Card, keyed by {@link PaletteColor} so a
- * zone reads `cardOutline[group.color]`. `!` forces it over the Card's default
+ * zone reads `outline[group.color]`. `!` forces it over the Card's default
  * neutral outline; full literals for Tailwind's scanner.
  */
-const cardOutline: Record<PaletteColor, string> = {
+const outline: Record<PaletteColor, string> = {
 	zinc: '!outline-zinc-600',
 	red: '!outline-red-600',
 	amber: '!outline-amber-600',
@@ -56,8 +56,8 @@ const cardOutline: Record<PaletteColor, string> = {
 }
 
 export const k = {
-	// Outline color for a group's editor Card in its color (see {@link cardOutline}).
-	cardOutline,
+	// Outline color for a group's editor Card in its color (see {@link outline}).
+	outline,
 	// The group row's cells align their band vertically; no bottom rule — the
 	// colored Badge alone sets the tier off from the column headers.
 	cell: ['align-middle'],
@@ -66,9 +66,15 @@ export const k = {
 	// so it lines up with the column titles and leaves a gap between groups.
 	content: [flex.col, 'gap-2'],
 	// A group's 2px underline rule: a rounded bar spanning the band content width,
-	// under the Badge. Every group draws it. A colored group takes `band.color`,
-	// and a colorless group takes `band.neutral`.
-	rule: ['h-0.5', rounded.full],
+	// under the Badge. Every group draws it. A colored group takes `color`, and a
+	// colorless group takes `neutral`.
+	rule: {
+		base: ['h-0.5', rounded.full],
+		// Fill for a group's underline rule in its color (see {@link bandColor}).
+		color: bandColor,
+		// Neutral fill for a colorless group's underline rule (see {@link bandNeutral}).
+		neutral: bandNeutral,
+	},
 	band: {
 		// A group band's row: the colored Badge, then the bare chevron toggle when
 		// collapsible, then the `+N` count. `min-w-0` lets the Badge label truncate
@@ -78,26 +84,22 @@ export const k = {
 		// group to the inline start. The glyphs are physical, so a right-to-left
 		// grid mirrors them.
 		caret: 'rtl:-scale-x-100',
-		// Fill for a group's underline rule in its color (see {@link bandColor}).
-		color: bandColor,
-		// Neutral fill for a colorless group's underline rule (see {@link bandNeutral}).
-		neutral: bandNeutral,
 	},
 	// The "+N" hidden-count shown on a collapsed band, beside the expand toggle.
 	count: [text.muted, 'tabular-nums'],
 	// Column-manager group editor: the create button, group zones, and column rows.
 	manager: {
 		// Vertical stack of the "New group" button, the group zones, and the column rows.
-		root: [flex.col, 'gap-3'],
+		base: [flex.col, 'gap-3'],
 		// The list of the group zones, with the gap of the stack.
 		groups: [flex.col, 'gap-3'],
 		// Zone shell: a column stack inside the zone's Card, which a column can be
 		// dropped into. The Card draws the outline, and a colored group tints it
-		// (see {@link cardOutline}). The zone has no drop-over style.
+		// (see {@link outline}). The zone has no drop-over style.
 		zone: {
 			// The gap also caps the hit areas (`TouchTarget`), so the move buttons of
 			// two adjacent rows do not overlap.
-			root: [flex.col, 'gap-1', '[--touch-target-gap-y:--spacing(1)]'],
+			base: [flex.col, 'gap-1', '[--touch-target-gap-y:--spacing(1)]'],
 			// A group zone's header row: the reorder handle, the name Input, the color
 			// Menu, and the remove button, on one row.
 			header: [flex.row, 'items-center', 'gap-2'],
@@ -110,7 +112,7 @@ export const k = {
 		// One column row: the drag grip, the visibility checkbox + label, and the
 		// move menu, in a line.
 		row: {
-			root: [flex.row, 'items-center', 'gap-2'],
+			base: [flex.row, 'items-center', 'gap-2'],
 			// The checkbox Control grows to fill the row, pushing the move menu (or,
 			// on the overlay, the row's own right edge) flush against it.
 			control: 'grow',

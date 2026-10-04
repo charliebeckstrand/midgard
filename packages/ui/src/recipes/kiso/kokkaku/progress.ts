@@ -15,7 +15,7 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const height = dan.size.lineTiny
+const height = dan.size.line.tiny
 
 const diameter = dan.size.gauge
 

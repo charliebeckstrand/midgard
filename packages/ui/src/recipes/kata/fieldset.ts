@@ -1,12 +1,12 @@
 /**
  * Fieldset kata: object-literal surface for `<Fieldset>` and the form-field
  * primitives. `legend`, `label`, `description`, and `message` take the text
- * step of their nearest density scope through `textRamp`; `message` adds an
+ * step of their nearest density scope through `ji.ramp`; `message` adds an
  * error/warning/success severity axis. The `base` and `field` slots are
  * static, threading the disabled state down through the group.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, textRamp } from '../kiso'
+import { hannou, iro, ji, narabi } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -20,17 +20,17 @@ const label = defineRecipe({
 		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
 		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',
 		text.default,
-		textRamp,
+		ji.ramp,
 		...disabled,
 	],
 })
 
 const description = defineRecipe({
-	base: [text.muted, textRamp, ...disabled],
+	base: [text.muted, ji.ramp, ...disabled],
 })
 
 const message = defineRecipe({
-	base: [textRamp, ...disabled],
+	base: [ji.ramp, ...disabled],
 	severity: {
 		error: text.error,
 		warning: text.warning,
@@ -39,7 +39,7 @@ const message = defineRecipe({
 	defaults: { severity: 'error' },
 })
 
-const legend = [textRamp, weight.semibold, text.default, ...disabled]
+const legend = [ji.ramp, weight.semibold, text.default, ...disabled]
 
 export const k = {
 	base: ['[&>legend+*]:pt-4', ...disabled],

@@ -9,13 +9,17 @@ import {
 	type Expression,
 	type FunctionDeclaration,
 	type FunctionExpression,
+	isArrayLiteralExpression,
 	isArrowFunction,
 	isAsExpression,
+	isBinaryExpression,
 	isBindingElement,
 	isCallExpression,
+	isConditionalExpression,
 	isFunctionDeclaration,
 	isFunctionExpression,
 	isIdentifier,
+	isJsxExpression,
 	isNoSubstitutionTemplateLiteral,
 	isNumericLiteral,
 	isObjectBindingPattern,
@@ -26,12 +30,14 @@ import {
 	isPropertyAssignment,
 	isSatisfiesExpression,
 	isShorthandPropertyAssignment,
+	isSourceFile,
 	isStringLiteral,
 	isTypeAliasDeclaration,
 	isTypeQueryNode,
 	isTypeReferenceNode,
 	isVariableDeclaration,
 	isVariableDeclarationList,
+	isVariableStatement,
 	NodeFlags,
 	SyntaxKind,
 } from 'typescript/unstable/ast'
@@ -70,9 +76,11 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // barrel of the `exports` map in `package.json` re-exports, and that resolves
 // to a function. The first parameter of the function holds the props.
 //
-//   4. Each default that the component destructures from its props has one tag
-//      on the prop, and the tag equals the default. The destructure is in the
-//      parameter, or in a `const { … } = props` in the body.
+//   4. Each default that the component gives a prop has one tag on the prop,
+//      and the tag equals the default. A default is in a destructure, in the
+//      parameter or in a `const { … } = props` in the body. A default is also a
+//      fallback after `??` on a prop with no destructured default, as in
+//      `ariaLabel ?? 'Rating'` or `props.format ?? 'hex'`.
 //   5. Each prop that the component gives unset to a recipe axis with a default
 //      has one tag on the prop, and the tag equals the recipe default. This rule
 //      also reads the recipes that no exported kata type reaches.
@@ -83,6 +91,14 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // name of a `const` that holds a string, a number, or a boolean reads as that
 // value, so `= DEFAULT_GAP` expects `12`. Any other name reads as itself, and a
 // `{@link}` to the name is equal to the name.
+//
+// A fallback is a default of an optional prop under two conditions. It is a
+// literal or a `const` at the top level of a module. The result of the `??` is
+// the value of the prop at that place: a JSX attribute or child, a property,
+// or a variable. A value that the component computes or reads from a context
+// is not a default. A `null` fallback only changes an unset value to `null`.
+// A `??` in a call argument, in a destructure, or in the fallback of another
+// `??` gives a default to the result of that computation, not to the prop.
 //
 // Rule 5 follows a prop one step only: from the destructure of the component
 // to the call of the recipe in the body of the component. A prop that goes
@@ -265,6 +281,7 @@ type Scan = {
 	types: number
 	components: number
 	destructured: number
+	fallbacks: number
 	reached: number
 }
 
@@ -333,12 +350,16 @@ function scan(): Scan {
 
 		let destructured = 0
 
+		let fallbacks = 0
+
 		let reached = 0
 
 		for (const component of components) {
 			const counts = scanComponent(project, component, recipeByType, violations)
 
 			destructured += counts.destructured
+
+			fallbacks += counts.fallbacks
 
 			reached += counts.reached
 		}
@@ -348,6 +369,7 @@ function scan(): Scan {
 			types,
 			components: components.length,
 			destructured,
+			fallbacks,
 			reached,
 		}
 	} finally {
@@ -603,13 +625,102 @@ function expectedDefault(
 	return { text: node.text, name: true }
 }
 
+/** Whether two handles name the same node of one file. */
+function sameNode(a: AstNode, b: AstNode): boolean {
+	return a.pos === b.pos && a.end === b.end
+}
+
+/**
+ * Whether the result of a `??` is the value of its prop at that place: a JSX
+ * attribute or child, a property, or a variable with one name. A branch of a
+ * `?:` keeps the place of the `?:`. In any other place, the result goes into a
+ * computation.
+ */
+function standsAlone(node: AstNode): boolean {
+	let child = node
+
+	let parent = node.parent
+
+	while (
+		parent &&
+		(isParenthesizedExpression(parent) ||
+			isAsExpression(parent) ||
+			isSatisfiesExpression(parent) ||
+			(isConditionalExpression(parent) && !sameNode(parent.condition, child)))
+	) {
+		child = parent
+
+		parent = parent.parent
+	}
+
+	if (!parent) return false
+
+	if (isJsxExpression(parent)) return true
+
+	if (isPropertyAssignment(parent)) return sameNode(parent.initializer, child)
+
+	return isVariableDeclaration(parent) && isIdentifier(parent.name)
+}
+
+/**
+ * The tag text that a fallback after `??` expects, and whether the fallback is
+ * a name. A literal of a primitive, or an array of them, reads as its source
+ * text. A `const` at the top level of a module reads as its value when it
+ * holds a primitive, else as its name. Another expression is `undefined`: the
+ * component computes it, or reads it from a context.
+ */
+function fallbackDefault(
+	project: Project,
+	fallback: Expression,
+): { text: string; name: boolean } | undefined {
+	const node = bare(fallback)
+
+	if (node.kind === SyntaxKind.NullKeyword) return undefined
+
+	const primitive = primitiveText(node)
+
+	if (primitive !== undefined) return { text: primitive, name: false }
+
+	if (
+		isArrayLiteralExpression(node) &&
+		node.elements.every((element) => primitiveText(bare(element)) !== undefined)
+	) {
+		return { text: node.getText(), name: false }
+	}
+
+	if (!isIdentifier(node)) return undefined
+
+	const symbol = project.checker.getSymbolAtLocation(node)
+
+	const declaration = symbol && resolved(project.checker, symbol).valueDeclaration?.resolve(project)
+
+	const list = declaration?.parent
+
+	if (
+		!declaration ||
+		!isVariableDeclaration(declaration) ||
+		!declaration.initializer ||
+		!list ||
+		!isVariableDeclarationList(list) ||
+		!(list.flags & NodeFlags.Const) ||
+		!isVariableStatement(list.parent) ||
+		!isSourceFile(list.parent.parent)
+	) {
+		return undefined
+	}
+
+	const value = primitiveText(bare(declaration.initializer))
+
+	return value === undefined ? { text: node.text, name: true } : { text: value, name: false }
+}
+
 /** Rules 4 and 5: hold the tags on the props of one component to its defaults. */
 function scanComponent(
 	project: Project,
 	{ name, callable }: Component,
 	recipeByType: ReadonlyMap<number, Recipe>,
 	violations: Set<string>,
-): { destructured: number; reached: number } {
+): { destructured: number; fallbacks: number; reached: number } {
 	const { checker } = project
 
 	const label = `${srcRelative(callable.getSourceFile().fileName)} → ${name}`
@@ -618,7 +729,7 @@ function scanComponent(
 
 	const [parameter] = callable.parameters
 
-	if (!parameter || bindings.length === 0) return { destructured: 0, reached: 0 }
+	if (!parameter) return { destructured: 0, fallbacks: 0, reached: 0 }
 
 	const propsType = parameter.type
 		? checker.getTypeFromTypeNode(parameter.type)
@@ -660,8 +771,8 @@ function scanComponent(
 		check(prop, expected.text, expected.name, 'default')
 	}
 
-	// Rule 5: a prop that reaches a recipe axis unset. These are the bindings
-	// with no default, by the key of their node.
+	// The bindings with no default, by the key of their node. Rule 4 reads the
+	// fallback of such a prop, and rule 5 reads the recipe axis that it reaches.
 	const unset = new Map(
 		bindings
 			.filter(({ element }) => !element.initializer)
@@ -672,7 +783,7 @@ function scanComponent(
 		? checker.getSymbolAtLocation(parameter.name)
 		: undefined
 
-	/** The prop that the value of an axis reads unset, or `undefined`. */
+	/** The prop that a value reads unset, or `undefined`. */
 	const unsetProp = (value: AstNode): string | undefined => {
 		if (isPropertyAccessExpression(value) && isIdentifier(value.expression)) {
 			const owner = checker.getSymbolAtLocation(value.expression)
@@ -695,16 +806,43 @@ function scanComponent(
 
 	const calls: CallExpression[] = []
 
+	let fallbacks = 0
+
 	const visit = (node: AstNode) => {
 		const [argument] = isCallExpression(node) ? node.arguments : []
 
 		if (isCallExpression(node) && argument && isObjectLiteralExpression(argument)) calls.push(node)
+
+		// Rule 4: a fallback after `??` on an optional prop that the component
+		// reads unset.
+		if (
+			isBinaryExpression(node) &&
+			node.operatorToken.kind === SyntaxKind.QuestionQuestionToken &&
+			standsAlone(node)
+		) {
+			const prop = unsetProp(bare(node.left))
+
+			const symbol =
+				prop === undefined ? undefined : propsType && checker.getPropertyOfType(propsType, prop)
+
+			const expected =
+				symbol && symbol.flags & SymbolFlags.Optional
+					? fallbackDefault(project, node.right)
+					: undefined
+
+			if (prop !== undefined && expected) {
+				fallbacks++
+
+				check(prop, expected.text, expected.name, 'fallback')
+			}
+		}
 
 		node.forEachChild(visit)
 	}
 
 	if (callable.body) visit(callable.body)
 
+	// Rule 5: a prop that reaches a recipe axis unset.
 	let reached = 0
 
 	for (const call of calls) {
@@ -737,11 +875,11 @@ function scanComponent(
 		}
 	}
 
-	return { destructured, reached }
+	return { destructured, fallbacks, reached }
 }
 
 describe('default value boundary', () => {
-	const { violations, types, components, destructured, reached } = scan()
+	const { violations, types, components, destructured, fallbacks, reached } = scan()
 
 	it('reads the kata types, the components, and their defaults', () => {
 		// A scan that linked no type to its recipe, found no component, or read no
@@ -751,6 +889,8 @@ describe('default value boundary', () => {
 		expect(components).toBeGreaterThan(300)
 
 		expect(destructured).toBeGreaterThan(250)
+
+		expect(fallbacks).toBeGreaterThan(20)
 
 		expect(reached).toBeGreaterThan(30)
 	})

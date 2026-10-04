@@ -22,12 +22,15 @@ export type KanbanColumnProps = {
 }
 
 /**
- * Drop target and sortable context for one board column, keyed by `value`.
- * Highlights while a card hovers over it, and provides column context to its
- * cards and title. It is a named group, a `<fieldset>`, and not a landmark: the
- * board is the one region of the board. It takes its name from a mounted
- * {@link KanbanColumnTitle}, or from an explicit `aria-label`. Compose
- * {@link KanbanColumnHeader} and {@link KanbanColumnBody} within.
+ * Drop target and sortable context for one board column, keyed by `value`. It
+ * provides column context to its cards and title. It is a named group, a
+ * `<fieldset>`, and not a landmark: the board is the one region of the board.
+ * It takes its name from a mounted {@link KanbanColumnTitle}, or from an
+ * explicit `aria-label`. Compose {@link KanbanColumnHeader} and
+ * {@link KanbanColumnBody} within.
+ *
+ * The column highlights while a dragged card is over the column itself, as over
+ * an empty column. Over a card in the column, the live move shows the drop.
  *
  * @remarks Client component.
  */
@@ -99,7 +102,7 @@ export function KanbanColumn({
 					// wins, and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}
 					aria-labelledby={!ariaLabel && hasTitle ? titleId : undefined}
-					className={cn(k.column.base, over && k.column.over, className)}
+					className={cn(k.column.base, className)}
 				>
 					{children}
 				</fieldset>

@@ -53,6 +53,11 @@ export type StepperProps = Omit<
 	 * @defaultValue false
 	 */
 	linear?: boolean
+	/**
+	 * The axis of the row. Omit it to get the responsive layout: vertical below
+	 * `sm`, and horizontal from it.
+	 * @defaultValue 'responsive'
+	 */
 	orientation?: StepperOrientation
 	/**
 	 * How {@link StepperPanel}s off the current step are held.
@@ -176,7 +181,7 @@ export function Stepper({
 		[current, interactive, setCurrent, layout, linear, baseId, hasPanels, mount],
 	)
 
-	const rowClassName = cn(k.root({ orientation: layout }), className)
+	const rowClassName = cn(k.base({ orientation: layout }), className)
 
 	// The steps are an ordered list, so AT gives the count and the position of
 	// each step. An interactive row also groups its step buttons as a toolbar,
@@ -193,7 +198,7 @@ export function Stepper({
 			onKeyDown={handleKeyDown}
 			className={cn('w-full', className)}
 		>
-			<ol data-slot="stepper-list" className={k.root({ orientation: layout })}>
+			<ol data-slot="stepper-list" className={k.base({ orientation: layout })}>
 				{rowChildren}
 			</ol>
 		</div>

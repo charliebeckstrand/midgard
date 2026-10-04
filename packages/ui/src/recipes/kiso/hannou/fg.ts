@@ -21,4 +21,4 @@ export const fg = {
 		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],
 	),
 	current: mode('data-current:text-zinc-950', 'dark:data-current:text-white'),
-}
+} as const

@@ -110,7 +110,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 			full
 			className={cn(k.rule, className)}
 		>
-			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }} className={k.parts}>
+			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }} className={k.parts.base}>
 				{!hideFieldSelector && (
 					<Select
 						value={rule.field}
@@ -118,7 +118,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						onValueChange={onFieldChange}
 						placeholder="Field"
 						aria-label="Field"
-						className={cn(k.part)}
+						className={cn(k.parts.item)}
 					>
 						{fields.map((f) => (
 							<ListboxOption key={f.name} value={f.name}>
@@ -134,7 +134,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					onValueChange={onOperatorChange}
 					placeholder="Operator"
 					aria-label="Operator"
-					className={cn(k.part)}
+					className={cn(k.parts.item)}
 				>
 					{operators.map((op) => (
 						<ListboxOption key={op.value} value={op.value}>
@@ -147,7 +147,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    affixes puts its `className` on the inner `<input>`, not on the
 				    frame that the row sizes. */}
 				{field && !selectedOperator?.noValue && (
-					<div className={cn(selectedOperator?.range ? k.rangePart : k.part)}>
+					<div className={cn(selectedOperator?.range ? k.parts.range : k.parts.item)}>
 						<QueryBuilderRuleValue
 							field={field}
 							value={rule.value}
@@ -162,7 +162,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    as static text in the value column. The rule then still reads as a
 				    sentence. There is nothing to edit, hence no control. */}
 				{selectedOperator?.noValue && selectedOperator.valueLabel && (
-					<Flex align="center" full className={cn(k.value, k.part)}>
+					<Flex align="center" full className={cn(k.value, k.parts.item)}>
 						{selectedOperator.valueLabel}
 					</Flex>
 				)}

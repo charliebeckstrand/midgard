@@ -20,7 +20,8 @@
  * kata, `kata/tabs`, which reads kiso directly. `slider` has no bridge either;
  * it's a pure color token bundle the slider kata read from kiso directly.
  * Alongside the archetypes, `backdrop` is a small shared recipe (not an
- * archetype) for the drawer/sheet modal scrim.
+ * archetype) for the modal scrim of dialog, drawer, and sheet, and `palette` is
+ * a shared palette wiring (not an archetype either).
  *
  * **The bridge is namespaced.** Bridges are reached through the `bridge`
  * object. A kata imports the token bundle under its bare archetype
@@ -30,11 +31,10 @@
  *     import { bridge } from '../katakana'
  *     export const k = bridge.control(control, { base: 'block', slots: { … } })
  *
- * **What the barrel surfaces.** The `bridge` object of archetype wirings, plus
- * the `backdrop` shared recipe. It also surfaces `basePalette`, a shared palette
- * wiring rather than an archetype. That wiring bundles an injected
- * `iro.palette` into the solid / soft / outline matrix the chromatic surface
- * kata share. The bridges are generic over the token
+ * **What the barrel surfaces.** The `bridge` object only: the archetype
+ * wirings, the `backdrop` shared recipe, and the `palette` wiring. That wiring
+ * bundles an injected `iro` palette into the solid / soft / outline matrix the
+ * chromatic surface kata share. The bridges are generic over the token
  * bundle they receive; variant types resolve from the concrete `k` at the
  * kata (`VariantProps<typeof k>`), not from the bridge. Engine primitives
  * (`defineRecipe`, `definePalette`, `VariantProps`, …) stay in `core/recipe`;
@@ -43,9 +43,8 @@
 
 import { backdrop } from './backdrop'
 import { check, control } from './control'
+import { palette } from './palette'
 import { panel } from './panel'
 import { popover } from './popover'
 
-export const bridge = { control, check, popover, panel, backdrop }
-
-export { basePalette } from './palette'
+export const bridge = { control, check, popover, panel, backdrop, palette }

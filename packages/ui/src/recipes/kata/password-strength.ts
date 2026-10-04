@@ -15,7 +15,7 @@ const { flex } = narabi
 const { bg } = omote
 
 const segment = defineRecipe({
-	base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton],
+	base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton.base],
 	level: {
 		weak: mode('bg-red-600', 'dark:bg-red-500'),
 		fair: mode('bg-amber-600', 'dark:bg-amber-500'),
@@ -39,7 +39,7 @@ const label = defineRecipe({
 })
 
 export const k = {
-	root: [flex.col, 'gap-2'],
+	base: [flex.col, 'gap-2'],
 	meter: [flex.row, 'gap-1'],
 	segment,
 	label,

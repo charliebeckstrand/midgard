@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { type scale, titleRamp } from '../../recipes/kata/heading'
+import { k, type scale } from '../../recipes/kata/heading'
 import { Heading } from '../heading'
 
 /** Props for {@link CardTitle}: the density `size` step, heading `level`, and the underlying `<h3>` attributes. */
@@ -30,7 +30,7 @@ export function CardTitle({ className, size, level = 3, children, ...props }: Ca
 			level={level}
 			size={size}
 			data-slot="card-title"
-			className={cn(titleRamp, className)}
+			className={cn(k.ramp[4], className)}
 			{...props}
 		>
 			{children}

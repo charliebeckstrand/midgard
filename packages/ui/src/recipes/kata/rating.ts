@@ -70,7 +70,7 @@ const track = [
 
 export const k = defineRecipe(
 	{
-		base: [flex.inline, 'items-center', 'w-fit', ...disabled, kokkaku.rating.gap],
+		base: [flex.inline, 'w-fit', ...disabled, kokkaku.rating.gap],
 		color,
 		defaults: { color: 'amber' },
 		skeleton: kokkaku.rating,
@@ -115,4 +115,4 @@ export type RatingVariants = Omit<VariantProps<typeof k>, 'color'> & {
 }
 
 /** The size scale of {@link Rating}: the steps of its stars and gap. */
-export const scale = defineScale(dan.size.checkBox, dan.gap.rating)
+export const scale = defineScale(dan.size.check.box, dan.gap.rating)

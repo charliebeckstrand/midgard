@@ -111,6 +111,7 @@ export type RatingProps = RatingVariants & {
 	 * `role="radiogroup"` is not named by an enclosing `<fieldset>` legend, so a
 	 * bare Rating needs one of these. The display form puts the
 	 * {@link getValueText} readout after this name.
+	 * @defaultValue 'Rating'
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string

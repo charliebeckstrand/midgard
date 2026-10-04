@@ -23,7 +23,7 @@ export const k = bridge.check(
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
 			'not-has-[:disabled]:has-[:indeterminate]:hover:opacity-90',
 			// The box takes the step of the nearest density scope.
-			kokkaku.checkbox.box,
+			checkbox.box,
 			dan.radius.check,
 		],
 		color,
@@ -40,14 +40,14 @@ export const k = bridge.check(
 			base: [
 				'pointer-events-none absolute stroke-(--check-mark) opacity-0',
 				'[:checked~&]:opacity-100 [:indeterminate~&]:opacity-100',
-				dan.size.check,
+				dan.size.check.mark,
 			],
 		}),
 	},
 )
 
 /** The size scale of {@link Checkbox}: the steps of its box, radius, and mark. */
-export const scale = defineScale(dan.size.checkBox, dan.radius.check, dan.size.check)
+export const scale = defineScale(dan.size.check.box, dan.radius.check, dan.size.check.mark)
 
 /** Recipe variant props for {@link Checkbox}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
 export type CheckboxVariants = Omit<VariantProps<typeof k>, 'color'> & {

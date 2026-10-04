@@ -1,10 +1,9 @@
 /**
  * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
  * cards. No variants axis. The `column` group nests `base` / `header` / `title`
- * / `body` / `empty` slots and the `over` drop-target state. The `card` group
- * nests `base`, the `handle`, and the drag-state classes (`draggable`,
- * `dragging`, `lifted`, `active`). `skeleton` is the form of the lines of the
- * `KanbanCardSkeleton`.
+ * / `body` / `empty` slots, and `base` marks the column a card is over. The `card` group nests `base`, the `handle`, and
+ * the drag-state classes (`draggable`, `lifted`, `active`). `skeleton` is the
+ * form of the lines of the `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
@@ -31,8 +30,14 @@ export const k = {
 			...mode('bg-zinc-50', 'dark:bg-zinc-900/50'),
 			border.default,
 			rounded.lg,
+			// A dragged card over the column itself (`data-over`), as over an empty
+			// column, steps the fill and the border up one rung, so the drop target
+			// shows.
+			...mode(
+				'data-over:bg-zinc-100 data-over:border-zinc-950/20',
+				'dark:data-over:bg-zinc-800/50 dark:data-over:border-white/20',
+			),
 		],
-		over: '',
 		header: [flex.row, 'gap-2', size.md, text.default, weight.semibold],
 		title: [flex.fill, 'min-w-0 truncate'],
 		body: [flex.col, flex.fill, 'gap-1', 'overflow-y-auto', focus.inset],
@@ -66,7 +71,6 @@ export const k = {
 			'data-disabled:cursor-not-allowed',
 			focus.ring,
 		],
-		dragging: '',
 		lifted: [...focus.lifted.raise, focus.lifted.ring],
 		active: 'z-10 shadow-lg relative opacity-95',
 	},

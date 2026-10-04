@@ -129,7 +129,7 @@ export function TooltipContent({
 			<motion.div
 				{...k.motion}
 				ref={setPanel}
-				className={cn(k.content, k.surface[glass ? 'glass' : 'default'], className)}
+				className={cn(k.content.base, k.content.surface[glass ? 'glass' : 'default'], className)}
 			>
 				{children}
 			</motion.div>

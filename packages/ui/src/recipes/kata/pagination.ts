@@ -68,10 +68,12 @@ export const k = defineRecipe(
 	},
 	{
 		list,
-		pageButton: button,
+		page: {
+			/** Positioning wrapper around each page button; hosts the active indicator. */
+			base: 'group relative inline-flex',
+			button,
+		},
 		gap,
-		/** Positioning wrapper around each page button; hosts the active indicator. */
-		wrapper: 'group relative inline-flex',
 	},
 )
 

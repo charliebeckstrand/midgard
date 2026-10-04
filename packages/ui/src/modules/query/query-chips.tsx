@@ -249,7 +249,7 @@ export function QueryChips({
 			return <span className={cn(k.bracket)}>{token.kind === 'group-open' ? '(' : ')'}</span>
 		}
 
-		if (readOnly) return <span className={cn(k.combinator)}>{token.label}</span>
+		if (readOnly) return <span className={cn(k.combinator.base)}>{token.label}</span>
 
 		const next = token.combinator === 'and' ? 'OR' : 'AND'
 
@@ -260,7 +260,7 @@ export function QueryChips({
 				data-slot="query-chips-combinator"
 				aria-label={`${token.label}, switch to ${next}`}
 				disabled={disabled}
-				className={cn(k.combinator, k.combinatorButton)}
+				className={cn(k.combinator.base, k.combinator.button)}
 				onClick={() => {
 					actions.updateCombinator(token.id, token.combinator === 'and' ? 'or' : 'and')
 

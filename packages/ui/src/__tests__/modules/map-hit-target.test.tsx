@@ -37,12 +37,12 @@ function catchment(children: ReactNode, radius = 300_000) {
 
 /** Whether a target has given the ground it does not paint back to what lies under it. */
 function fine(target: Element | null) {
-	return (target?.getAttribute('class') ?? '').includes(k.hitFine)
+	return (target?.getAttribute('class') ?? '').includes(k.hit.fine)
 }
 
 /** What a target budgets a fine pointer, in device pixels, off the property it rides. */
 function budget(target: Element | null, name: string) {
-	return Number.parseFloat(present(target, name).style.getPropertyValue(k.hitRadius))
+	return Number.parseFloat(present(target, name).style.getPropertyValue(k.hit.radius))
 }
 
 /**
@@ -62,7 +62,7 @@ describe('dot hit targets', () => {
 		// Tailwind scans source for whole class strings, so the radius cannot be
 		// interpolated from the constant. This is what keeps the two in step. The
 		// fallback is what a shape with no property of its own resolves to.
-		expect(k.hitFine).toBe(`pointer-fine:[r:var(${k.hitRadius},${POINT_HIT_RADIUS_FINE}px)]`)
+		expect(k.hit.fine).toBe(`pointer-fine:[r:var(${k.hit.radius},${POINT_HIT_RADIUS_FINE}px)]`)
 	})
 
 	it('holds the coarse reach, and pins the fine target to the drawn dot', () => {
@@ -79,7 +79,7 @@ describe('dot hit targets', () => {
 		// This is the class's fallback; `dotHitProps` sets each shape's own figure.
 		//
 		// Two literals held equal here rather than one derived from the other: the
-		// fine radius ships inside `hitFine`'s class string and nothing reads the
+		// fine radius ships inside `hit.fine`'s class string and nothing reads the
 		// constant at runtime, so binding it to `POINT_RADIUS` would leave one
 		// export under two names. This assertion is the tie.
 		expect(POINT_HIT_RADIUS_FINE).toBe(POINT_RADIUS)
@@ -178,7 +178,7 @@ describe('dot hit targets', () => {
 		// both pointers — and carries no property for a class that isn't there.
 		expect(fine(target)).toBe(false)
 
-		expect(present(target, 'point hit target').style.getPropertyValue(k.hitRadius)).toBe('')
+		expect(present(target, 'point hit target').style.getPropertyValue(k.hit.radius)).toBe('')
 	})
 
 	it('leaves a dot outside a drawn zone on the whole target', () => {
@@ -270,7 +270,7 @@ describe('dot hit targets', () => {
 		const className = bySlot(container, 'map-point-hit')?.getAttribute('class') ?? ''
 
 		// A clickable mark carries the pointer affordance; the target rides beside it.
-		expect(className).toContain(k.hitFine)
+		expect(className).toContain(k.hit.fine)
 
 		expect(className).toContain(k.clickable)
 	})

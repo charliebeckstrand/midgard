@@ -1,9 +1,13 @@
-import { describe, expect, it, vi } from 'vitest'
-import { CodeBlock } from '../../components/code/code-block'
-import { loadShiki } from '../../components/code/code-shiki'
-import { bySlot, renderUI, screen, tick, waitFor } from '../helpers'
+import type { ReactElement } from 'react'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { CodeBlock, primeCodeBlock } from '../../components/code/code-block'
+import { act, attach, bySlot, renderUI, screen, tick, waitFor } from '../helpers'
+import { highlight } from '../mocks/shiki'
 
-// `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here
+// The worker port of `CodeBlock` is mocked globally in setup/module-mocks.ts,
+// and `highlight` is the tokenization of its fake worker. A per-file mock here
 // would bleed across files (see markdown.test.tsx for the failure it caused).
 // The `loadShiki` cases need their own registry, so they sit in
 // boundary/code-block-load-shiki.test.ts, which runs on forks.
@@ -65,17 +69,18 @@ describe('CodeBlock', () => {
 	it('finishes a load that outlives its block, and reports nothing', async () => {
 		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
 
+		const calls = highlight.mock.results.length
+
 		const { unmount } = renderUI(<CodeBlock code="unique-unmount-token" />)
 
-		// Tear the component down on the same tick, before shiki resolves.
+		// Tear the component down on the same tick, before the worker answers.
 		unmount()
 
-		// The whole load chain runs after the unmount. One microtask ended the case
-		// before any of it ran, so nothing the case read could change. The chain
-		// waits on the memoized load first, and a worker's first import of shiki
-		// takes more than one macrotask, so the case waits on that same load. One
-		// macrotask then runs the highlight and the cache write behind it.
-		await loadShiki()
+		// The whole chain runs after the unmount. One microtask ended the case
+		// before any of it ran, so nothing the case read could change. The case
+		// waits on the tokenization in the fake worker. The reply and the cache
+		// write behind it are microtasks, so one tick then runs them.
+		await highlight.mock.results[calls]?.value
 
 		await tick()
 
@@ -107,9 +112,7 @@ describe('CodeBlock', () => {
 	})
 
 	it('tokenizes streamed code one pass at a time, ending on the newest code', async () => {
-		const { codeToHtml } = await loadShiki()
-
-		const calls = vi.mocked(codeToHtml).mock.calls.length
+		const calls = highlight.mock.calls.length
 
 		const { container, rerender } = renderUI(<CodeBlock code="stream-a" copy={false} />)
 
@@ -121,22 +124,17 @@ describe('CodeBlock', () => {
 			expect(container.querySelector('pre.shiki')?.textContent).toBe('stream-abcd'),
 		)
 
-		const tokenized = vi
-			.mocked(codeToHtml)
-			.mock.calls.slice(calls)
-			.map(([code]) => code)
+		const tokenized = highlight.mock.calls.slice(calls).map(([code]) => code)
 
 		expect(tokenized).toEqual(['stream-a', 'stream-abcd'])
 	})
 
 	it('paints markup that another block cached while its own pass ran', async () => {
-		const { codeToHtml } = await loadShiki()
-
 		const settle: { first: () => void } = { first: () => {} }
 
 		// Hold the first pass of block A, so that block B tokenizes the newest code
 		// and fills the cache before that pass settles.
-		vi.mocked(codeToHtml).mockImplementationOnce(
+		highlight.mockImplementationOnce(
 			(code: string) =>
 				new Promise((resolve) => {
 					settle.first = () => resolve(`<pre class="shiki"><code>${code}</code></pre>`)
@@ -146,7 +144,7 @@ describe('CodeBlock', () => {
 		const a = renderUI(<CodeBlock code="race-a" copy={false} />)
 
 		await waitFor(() =>
-			expect(vi.mocked(codeToHtml)).toHaveBeenLastCalledWith('race-a', expect.anything()),
+			expect(highlight).toHaveBeenLastCalledWith('race-a', expect.anything(), expect.anything()),
 		)
 
 		a.rerender(<CodeBlock code="race-ab" copy={false} />)
@@ -174,5 +172,103 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 
 		expect(container.querySelector('pre.shiki')?.closest('[dir]')).toHaveAttribute('dir', 'ltr')
+	})
+
+	it('paints primed markup on its first render, and the worker does not run', () => {
+		const calls = highlight.mock.calls.length
+
+		// The defaults of the block and the trim of the code key the entry, as
+		// they key a block.
+		primeCodeBlock({
+			code: '  primed-token  ',
+			html: '<pre class="shiki" data-primed=""><code>primed-token</code></pre>',
+		})
+
+		const { container } = renderUI(<CodeBlock code="primed-token" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
+	it('keeps primed markup to its own language and theme', async () => {
+		primeCodeBlock({
+			code: 'primed-lang-token',
+			lang: 'ts',
+			html: '<pre class="shiki" data-primed=""><code>primed-lang-token</code></pre>',
+		})
+
+		const { container } = renderUI(<CodeBlock code="primed-lang-token" copy={false} />)
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+
+		expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'tsx')
+
+		expect(container.querySelector('[data-primed]')).toBeNull()
+	})
+})
+
+describe('CodeBlock hydration', () => {
+	/** Hydrates `markup` in a new container, and records each recoverable error. */
+	function hydrate(markup: string, element: ReactElement) {
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = markup
+
+		const onRecoverableError = vi.fn()
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, element, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		return { container, onRecoverableError }
+	}
+
+	it('renders the plain block on the server, also for a snippet in the cache', () => {
+		primeCodeBlock({
+			code: 'server-token',
+			html: '<pre class="shiki"><code>server-token</code></pre>',
+		})
+
+		const markup = renderToString(<CodeBlock code="server-token" copy={false} />)
+
+		expect(markup).toContain('server-token')
+
+		expect(markup).not.toContain('shiki')
+	})
+
+	it('hydrates the server output, and paints a primed snippet in the next render', () => {
+		const element = <CodeBlock code="hydrate-token" copy={false} />
+
+		// The server has an empty cache, and the client primes the snippet before
+		// it hydrates.
+		const markup = renderToString(element)
+
+		primeCodeBlock({
+			code: 'hydrate-token',
+			html: '<pre class="shiki" data-primed=""><code>hydrate-token</code></pre>',
+		})
+
+		const { container, onRecoverableError } = hydrate(markup, element)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+	})
+
+	it('hydrates the server output, and highlights in the worker after it', async () => {
+		const element = <CodeBlock code="hydrate-worker-token" copy={false} />
+
+		const { container, onRecoverableError } = hydrate(renderToString(element), element)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		await waitFor(() =>
+			expect(container.querySelector('pre.shiki')?.textContent).toBe('hydrate-worker-token'),
+		)
 	})
 })

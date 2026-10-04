@@ -16,6 +16,7 @@ export type StepperSkeletonProps = {
 	 * The orientation of the stepper it stands in for. Omit it to get the
 	 * responsive layout that a stepper with no `orientation` has: vertical below
 	 * `sm`, and horizontal from it.
+	 * @defaultValue 'responsive'
 	 */
 	orientation?: Orientation
 	className?: string
@@ -42,7 +43,7 @@ export function StepperSkeleton({ steps = 3, orientation, className }: StepperSk
 	const title = <Placeholder className={cn(k.title({ orientation: layout }), k.skeleton.title)} />
 
 	return (
-		<div className={cn(k.root({ orientation: layout }), className)}>
+		<div className={cn(k.base({ orientation: layout }), className)}>
 			{stepKeys.map((stepKey, index) => (
 				<Fragment key={stepKey}>
 					{index > 0 && <div className={k.separator({ orientation: layout })} />}

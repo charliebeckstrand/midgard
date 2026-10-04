@@ -40,7 +40,7 @@ export function SheetHandle({ handleProps, covers, controls, side, className }: 
 			handleProps={handleProps}
 			covers={covers}
 			controls={controls}
-			className={cn(k.handle.area, k.handle.side[side], className)}
+			className={cn(k.handle.base, k.handle.side[side], className)}
 			bar={cn(k.handle.bar[orientation])}
 		/>
 	)

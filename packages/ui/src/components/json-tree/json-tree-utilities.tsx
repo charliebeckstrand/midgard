@@ -346,7 +346,7 @@ export function NodeKey({ keyName }: { keyName?: string | number }) {
 
 	return (
 		<>
-			<span className={cn(k.key)}>{JSON.stringify(keyName)}</span>
+			<span className={cn(k.color.key)}>{JSON.stringify(keyName)}</span>
 			<span className={cn(k.punctuation)}>:</span>
 		</>
 	)
@@ -363,5 +363,5 @@ export function PrimitiveValue({ value }: { value: JsonValue }) {
 
 	const display = type === 'string' ? JSON.stringify(value) : String(value)
 
-	return <span className={cn(k.valueColor[type])}>{display}</span>
+	return <span className={cn(k.color[type])}>{display}</span>
 }

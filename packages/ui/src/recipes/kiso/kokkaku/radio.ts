@@ -13,7 +13,7 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const circle = dan.size.checkBox
+const circle = dan.size.check.box
 
 export const radio = {
 	base: [rounded.full, circle],

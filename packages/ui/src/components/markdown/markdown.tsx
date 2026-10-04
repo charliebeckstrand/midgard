@@ -66,7 +66,7 @@ export const Markdown = memo(function Markdown({
 	className,
 }: MarkdownProps) {
 	return (
-		<div data-slot="markdown" className={cn(k.root, className)}>
+		<div data-slot="markdown" className={cn(k.base, className)}>
 			<MarkdownRenderer tokens={md.lexer(children)} headingOffset={headingOffset} />
 		</div>
 	)
@@ -102,7 +102,7 @@ export const MarkdownInline = memo(function MarkdownInline({
 	className,
 }: MarkdownInlineProps) {
 	return (
-		<span data-slot="markdown" className={cn(k.inline, className)}>
+		<span data-slot="markdown" className={cn(className)}>
 			<MarkdownRenderer tokens={md.Lexer.lexInline(children, { gfm: true })} />
 		</span>
 	)

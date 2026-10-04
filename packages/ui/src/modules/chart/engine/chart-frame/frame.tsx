@@ -130,7 +130,7 @@ function plotRegionProps(keyboard: ChartKeyboardProps | null, aside: boolean, fi
 		...keyboard,
 		className: cn(
 			'relative rounded-sm',
-			keyboard && k.focusRing,
+			keyboard && k.focus,
 			(aside || fill) && 'flex-1',
 			aside && 'min-w-0',
 			fill && 'min-h-0',
@@ -617,9 +617,9 @@ export function ChartFrame({
 				'group/chart @container flex flex-col gap-3',
 				// The whole chart, labels included, selects no text and opens no callout
 				// under a hold.
-				k.touchReadout,
+				k.touch.readout,
 				// A tap selects, so no double-tap zoom holds it back.
-				k.tap,
+				k.touch.tap,
 				fixedWidth === undefined && 'w-full',
 				// A chart that fills its box keeps all of its boxes in that box. The touch
 				// target of a legend control reaches past the control. At the bottom edge

@@ -93,7 +93,7 @@ export function CalendarPickerGrid({
 						onClick={cell.onSelect}
 						className={cn(
 							cellBlock && 'w-full',
-							cell.current && !cell.selected && k.picker.cellCurrent,
+							cell.current && !cell.selected && k.picker.current,
 						)}
 					>
 						{cell.label}

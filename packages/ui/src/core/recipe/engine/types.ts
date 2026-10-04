@@ -24,6 +24,35 @@ export type VariantAxis = Record<string, ClassValue>
  */
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
+/**
+ * The classes of one slot, or a group of named slots. The engine merges a class
+ * list into one string. A plain object is a group, and the engine merges each
+ * of its entries the same way. Thus a part keeps its children under its own
+ * name: `close: { base, line }` gives `k.close.base` and `k.close.line`. The group
+ * takes the place of the object form of clsx, which no recipe uses.
+ */
+export type SlotValue =
+	| string
+	| number
+	| bigint
+	| boolean
+	| null
+	| undefined
+	| readonly ClassValue[]
+	| { readonly [name: string]: SlotValue }
+
+/**
+ * The merged form of a slot: a class string, or a group of them. A type with a
+ * string index signature, such as the wide `ClassValue`, is a class list.
+ */
+type SlotClasses<S> = [S] extends [object]
+	? [S] extends [readonly unknown[]]
+		? string
+		: string extends keyof S
+			? string
+			: { readonly [K in keyof S]: SlotClasses<S[K]> }
+	: string
+
 /** Reserved top-level config field names; kata must not use these as axis names. */
 export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
@@ -32,7 +61,7 @@ type RecipeBase = {
 	base?: ClassValue
 	palette?: PaletteConfig
 	compound?: CompoundRule[]
-	slots?: Record<string, ClassValue>
+	slots?: Record<string, SlotValue>
 	defaults?: Record<string, string | number | boolean>
 	/**
 	 * Skeleton payload: a `kokkaku.<name>` config the consumer reads as
@@ -66,7 +95,7 @@ export type ResolvedConfig = {
 	base?: ClassValue
 	variants: Record<string, Record<string, ClassValue>>
 	compound: CompoundRule[]
-	slots: Record<string, ClassValue>
+	slots: Record<string, SlotValue>
 	defaults: Record<string, string | number | boolean>
 }
 
@@ -74,12 +103,14 @@ export type Recipe<C extends RecipeBase> = {
 	(props?: ComputedProps<C>): string
 	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
-} & { [K in keyof NonNullable<C['slots']>]: string } & SkeletonOf<C>
+} & {
+	[K in keyof NonNullable<C['slots']>]: SlotClasses<NonNullable<C['slots']>[K]>
+} & SkeletonOf<C>
 
 /**
  * The `skeleton` property of a recipe. A config without a `skeleton` field
  * gives no property, because the engine attaches none. The type finds the key
- * before it reads the field: a read of `C['skeleton']` on a config without the
+ * before it reads the field. A read of `C['skeleton']` on a config without the
  * field gives `unknown`, and that type would put `k.skeleton` on each recipe.
  */
 type SkeletonOf<C> = 'skeleton' extends keyof C

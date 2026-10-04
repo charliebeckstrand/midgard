@@ -9,4 +9,4 @@
 import { hover } from './hover'
 import { text } from './text'
 
-export const plain = { text, hover }
+export const plain = { text, hover } as const

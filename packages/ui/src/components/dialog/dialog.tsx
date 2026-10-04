@@ -175,7 +175,7 @@ export function Dialog({
 					// React carries a click in the portal up the component tree. Stop it at
 					// the panel, so a clickable ancestor of the Dialog does not see it.
 					onClick={(event) => event.stopPropagation()}
-					// Half the marker `hannou.glassItem` keys on; the `group/glass` class
+					// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
 					// below is the other half. See `recipes/kiso/hannou/glass-item.ts`. A
 					// command palette's rows hover inside this panel, not inside a popover.
 					data-glass={dataAttr(isGlass)}

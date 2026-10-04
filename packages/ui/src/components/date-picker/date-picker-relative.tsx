@@ -42,7 +42,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	const state = useDatePickerRelativeState(props)
 
 	// Row count that splits the presets plus the trailing custom row into two
-	// balanced, column-major columns (see the `relative.root` recipe): the leading
+	// balanced, column-major columns (see the `relative.list` recipe): the leading
 	// half fills the first column, the rest the second.
 	const rows = relativeListRows(state.presets.length + 1)
 
@@ -106,7 +106,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 			>
 				{state.mode === 'list' ? (
 					<div
-						className={cn(k.relative.root)}
+						className={cn(k.relative.list)}
 						// Pins the column-major row count; static recipe classes can't
 						// carry a data-dependent track count.
 						style={{ gridTemplateRows: `repeat(${rows}, minmax(0, auto))` }}
@@ -147,7 +147,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						<Button
 							type="button"
 							variant="bare"
-							className={cn(k.relative.back)}
+							className={cn(k.relative.custom.back)}
 							onClick={state.backToList}
 						>
 							<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />

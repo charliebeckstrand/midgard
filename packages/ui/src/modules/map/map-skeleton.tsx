@@ -122,7 +122,7 @@ function MapSkeletonOutline({
 			aria-hidden="true"
 			viewBox={`0 0 ${outline.width} ${outline.height}`}
 			preserveAspectRatio="xMidYMid meet"
-			className={cn(...(aspect ? k.skeleton.outlineAspect : k.skeleton.outline), className)}
+			className={cn(...(aspect ? k.skeleton.outline.aspect : k.skeleton.outline.base), className)}
 			style={style}
 		>
 			<path d={outline.d} />

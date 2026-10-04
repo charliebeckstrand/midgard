@@ -95,7 +95,6 @@ const color = {
 export const check = {
 	hidden,
 	surface,
-	shell,
 	base,
 	color,
 	/** Validation ring fragment keyed off the overlaid input's `data-*` state; spread by the switch track and the signature pad, already folded into `surface` for checkbox / radio. */

@@ -15,7 +15,7 @@
 import { dan } from '../dan'
 import { button } from './button'
 
-const width = dan.size.calendarWidth
+const width = dan.size.calendar.width
 
 export const calendar = {
 	width,

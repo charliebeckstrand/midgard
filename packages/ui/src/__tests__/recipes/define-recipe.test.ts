@@ -190,6 +190,25 @@ describe('defineRecipe', () => {
 		expect(recipe({ interactive: true })).toBe('block cursor-pointer')
 	})
 
+	it('pre-merges a slot group into a group of class strings', () => {
+		// A part keeps its children under its own name. Each entry merges on its
+		// own, so a conflict inside an entry resolves, and the entries stay apart.
+		const recipe = defineRecipe({
+			slots: {
+				close: { base: ['p-1', 'p-2'], line: 'h-lh' },
+				title: 'font-semibold',
+			},
+		})
+
+		expect(recipe.close).toEqual({ base: 'p-2', line: 'h-lh' })
+
+		expect(recipe.title).toBe('font-semibold')
+
+		expectTypeOf(recipe.close).toEqualTypeOf<{ readonly base: string; readonly line: string }>()
+
+		expectTypeOf(recipe.title).toEqualTypeOf<string>()
+	})
+
 	it('keeps the default color active when only variant is overridden', () => {
 		// Guards the (variant × default-color) compound: omitting `color` must
 		// still resolve the default.

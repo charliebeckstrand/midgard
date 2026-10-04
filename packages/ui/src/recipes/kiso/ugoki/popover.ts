@@ -12,4 +12,4 @@ export const popover = {
 	animate: { opacity: 1, scale: 1 },
 	exit: { opacity: 0, scale: 1 },
 	transition: { duration: duration[150], ease: ease.out },
-}
+} as const

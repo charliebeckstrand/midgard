@@ -3,9 +3,10 @@
  * the Sidebar component (`kata/sidebar.ts`).
  */
 import { defineRecipe } from '../../core/recipe'
-import { omote, sen, sou } from '../kiso'
+import { narabi, omote, sen, sou } from '../kiso'
 import { dan } from '../kiso/dan'
 
+const { flex } = narabi
 const { space } = dan
 
 // The layout is in the flow, and the page scrolls at each width. A mobile
@@ -45,7 +46,7 @@ const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell} lg:hidden`],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell.base} lg:hidden`],
 })
 
 // From `lg` up, the panel sticks to the top of the page. It is as tall as the
@@ -73,12 +74,13 @@ const floatingHotZone = defineRecipe({
 // of the inline panel at each step.
 const floatingSheet = defineRecipe({ base: 'sm:top-0 sm:bottom-0' })
 
-const floatingBody = defineRecipe({ base: ['flex flex-col h-full', sidebarWidth] })
+const floatingBody = defineRecipe({ base: [flex.col, 'h-full', sidebarWidth] })
 
 // Portaled to the body, so it escapes the layout's stacking context and needs a
-// ladder rung rather than a local `z-30` like the hot zone above. It is the
-// sidebar's own furniture, which is the `chrome` rung's other inhabitant. It
-// starts at the far edge of the floating sheet at each step.
+// ladder rung rather than a local `z-30` like the hot zone above
+// (`floating.peek`). It is the sidebar's own furniture, which is the `chrome`
+// rung's other inhabitant. It starts at the far edge of the floating sheet at
+// each step.
 const floatingBuffer = defineRecipe({
 	base: [
 		sou.chrome,
@@ -91,7 +93,7 @@ const floatingBuffer = defineRecipe({
 // overflow. That box then becomes the scroller of the sticky header, and the
 // header does not stick to the top of the page.
 const contentWrapper = defineRecipe({
-	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2'],
+	base: [flex.col, 'flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2'],
 	floating: {
 		true: 'lg:ps-2',
 		false: '',
@@ -102,10 +104,11 @@ const contentWrapper = defineRecipe({
 const content = defineRecipe({
 	base: [
 		...omote.content,
-		'flex flex-col grow',
+		flex.col,
+		'grow',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
-		`${space.shellX} ${space.shellBottom} ${space.shellTopNoHeader}`,
+		`${space.shell.x} ${space.shell.bottom} ${space.shell.top.headless}`,
 	],
 	// From `lg` up only, where the header sticks to the top of the page. Below `lg`,
 	// the navbar is the one sticky bar of the page, and the header scrolls with the
@@ -126,7 +129,7 @@ const content = defineRecipe({
 
 // The padding follows the nearest density scope.
 const header = defineRecipe({
-	base: ['flex items-center shrink-0', `${space.shellTopLarge} ${space.shellBottom}`],
+	base: ['flex items-center shrink-0', `${space.shell.top.lg} ${space.shell.bottom}`],
 })
 
 // The body grows into the free height of the content region, so the footer
@@ -138,15 +141,21 @@ const body = defineRecipe({
 const footer = defineRecipe({ base: 'shrink-0' })
 
 export const k = {
-	layout,
+	base: layout,
 	navbar,
 	panel,
-	floatingHotZone,
-	floatingSheet,
-	floatingBody,
-	floatingBuffer,
-	contentWrapper,
-	content,
+	// The parts of the floating sidebar: the `peek` hot zone at the start edge,
+	// the `sheet`, its `body`, and the `buffer` at the far edge of the sheet.
+	floating: {
+		peek: floatingHotZone,
+		sheet: floatingSheet,
+		body: floatingBody,
+		buffer: floatingBuffer,
+	},
+	content: {
+		base: content,
+		wrapper: contentWrapper,
+	},
 	header,
 	body,
 	footer,

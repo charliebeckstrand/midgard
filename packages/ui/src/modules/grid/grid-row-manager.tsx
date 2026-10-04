@@ -64,7 +64,7 @@ export function GridRowManager({
 	})
 
 	return (
-		<div data-slot="grid-row-manager" className={cn(k.root, className)}>
+		<div data-slot="grid-row-manager" className={cn(k.base, className)}>
 			<DndContext {...dndContextProps} modifiers={GROUP_DRAG_MODIFIERS}>
 				<SortableContext items={itemIds} strategy={strategy}>
 					{/* A list, so assistive tech reads the count of the zones and the
@@ -109,7 +109,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 		<li ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
 			{/* Content sits directly in the Card, so its padding is uniform on every
 			    edge. A CardHeader would add a bottom gap for a body that isn't here. */}
-			<Card className={cn(group.color && groupK.cardOutline[group.color])}>
+			<Card className={cn(group.color && groupK.outline[group.color])}>
 				<div className={cn(k.zone.header)}>
 					<div className={cn(k.zone.main)}>
 						<GridManagerGrip

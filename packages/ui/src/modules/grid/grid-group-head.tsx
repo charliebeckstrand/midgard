@@ -35,7 +35,7 @@ type GridGroupHeadProps = {
  * {@link GridColumnGroup.collapsible}). A `plain` span is an empty spacer that
  * sticks to a pinned column's edge, so the band tracks the frozen columns.
  * Under a sticky header the band sticks at the top edge, and the column row
- * sticks below it (see `k.sticky.stack`).
+ * sticks below it (see `gridK.sticky.stack`).
  *
  * @internal
  */
@@ -111,8 +111,8 @@ function GridGroupHeadCell({
 	const ruleColor =
 		span.kind === 'group'
 			? span.group.color
-				? k.band.color[span.group.color]
-				: k.band.neutral
+				? k.rule.color[span.group.color]
+				: k.rule.neutral
 			: null
 
 	// The description of a group reaches the keyboard and a screen reader as
@@ -149,7 +149,11 @@ function GridGroupHeadCell({
 					/>
 
 					{ruleColor && (
-						<div data-slot="grid-group-rule" className={cn(k.rule, ruleColor)} aria-hidden="true" />
+						<div
+							data-slot="grid-group-rule"
+							className={cn(k.rule.base, ruleColor)}
+							aria-hidden="true"
+						/>
 					)}
 
 					{description && (

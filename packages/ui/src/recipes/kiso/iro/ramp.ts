@@ -80,7 +80,7 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
  * than hue; `muted` is the only rung so far.
  *
  * `wash`, not `tint`: the ramp's `onTint` role above serves the *chromatic* 15%
- * soft fill (`iro.soft.bg`). Its zinc rung (`text-zinc-700`, 9.40:1 here) is
+ * soft fill (`iro.palette.soft.bg`). Its zinc rung (`text-zinc-700`, 9.40:1 here) is
  * darker than this ground asks for. Two different grounds, so two names.
  *
  * One rung spans both neutral washes, which differ only in dark:

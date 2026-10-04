@@ -1,6 +1,6 @@
 /**
  * Kokkaku skeleton: heading. `ramp` gives the height of each level in a stepped
- * `density-h` class that tracks the rung of `headingRamp` at each step, so the
+ * `density-h` class that tracks the rung of the heading ramp at each step, so the
  * silhouette matches the real heading at each density. The silhouette takes the
  * step of its nearest scope, as the heading does. Width caps at `sm:max-w-sm`,
  * placing multi-line skeletons below rather than alongside.
@@ -19,11 +19,11 @@ export const heading = {
 	base: 'sm:max-w-sm',
 	inline: 'inline-block h-[1em] w-40 max-w-full align-middle',
 	ramp: {
-		1: dan.size.lineTitleLarge,
-		2: dan.size.lineTitle,
+		1: dan.size.line.title.large,
+		2: dan.size.line.title.base,
 		3: dan.size.row,
-		4: dan.size.line,
-		5: dan.size.lineSmall,
-		6: dan.size.lineTiny,
+		4: dan.size.line.base,
+		5: dan.size.line.small,
+		6: dan.size.line.tiny,
 	},
-}
+} as const

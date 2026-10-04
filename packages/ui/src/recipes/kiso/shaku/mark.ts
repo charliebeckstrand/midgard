@@ -14,5 +14,5 @@ const { rounded } = kasane
 
 export const mark = {
 	base: [family.mono, 'bg-current/15', rounded.md],
-	density: [dan.text.small, dan.space.markX, dan.space.markY],
+	density: [dan.text.small, dan.space.mark.x, dan.space.mark.y],
 } as const

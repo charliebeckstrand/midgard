@@ -14,7 +14,7 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const box = dan.size.checkBox
+const box = dan.size.check.box
 
 export const checkbox = {
 	base: [rounded.sm, box],

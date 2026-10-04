@@ -22,4 +22,4 @@ export const panel = {
 	left: slide('x', '-100%'),
 	top: slide('y', '-100%'),
 	bottom: slide('y', '100%'),
-}
+} as const

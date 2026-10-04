@@ -84,7 +84,7 @@ function GridGroupRowImpl<T>({
 			<TableCell
 				{...stopProps}
 				colSpan={span}
-				className={cn(k.rowGroup.rail.padded, color && k.rowGroup.rail.color[color])}
+				className={cn(k.row.group.rail.padded, color && k.row.group.rail.color[color])}
 			>
 				<GridGroupDisclosure
 					value={value}

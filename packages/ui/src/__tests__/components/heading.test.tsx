@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../components/heading'
-import { headingRamp, headingWeight, scale } from '../../recipes/kata/heading'
+import { k, scale } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
@@ -56,10 +56,7 @@ describe('Heading', () => {
 
 				const heading = getSlot(container, 'heading')
 
-				return [
-					heading.getAttribute('data-density'),
-					heading.classList.contains(headingRamp[level]),
-				]
+				return [heading.getAttribute('data-density'), heading.classList.contains(k.ramp[level])]
 			})
 
 			expect(rendered).toStrictEqual(levels.map(() => [step, true]))
@@ -72,7 +69,7 @@ describe('Heading', () => {
 			// `browser/density-scope.test.tsx` holds the computed size.
 			const heading = getSlot(container, 'heading')
 
-			expect(heading.className.split(' ')).toContain(headingRamp[level])
+			expect(heading.className.split(' ')).toContain(k.ramp[level])
 
 			expect(rungsOf(heading)).toStrictEqual([])
 		})
@@ -84,7 +81,7 @@ describe('Heading', () => {
 				</Heading>,
 			)
 
-			expect(bySlot(container, 'heading')?.className).toContain(headingWeight(level))
+			expect(bySlot(container, 'heading')?.className).toContain(k.weight[level])
 		})
 	})
 

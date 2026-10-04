@@ -6,7 +6,7 @@ import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
  * and {@link DrawerStatic} both spread them, so the static drawer paints the panel that the drawer
  * then mounts on top of it.
  *
- * `data-glass` opens the glass cascade to the panel contents: `hannou.glassItem` keys on
+ * `data-glass` opens the glass cascade to the panel contents: `hannou.tint.glass` keys on
  * `group-data-[glass]/glass`, which needs the named group and the attribute on one element. Rows
  * inside take their hover wash at double strength, because 5% under the translucency of the panel
  * reads as no hover at all.

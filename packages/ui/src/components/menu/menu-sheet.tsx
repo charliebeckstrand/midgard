@@ -92,7 +92,7 @@ export function MenuSheet({ title, description, glass, className, children }: Me
 				</DrawerHeader>
 			)}
 
-			<DrawerBody className={k.sheetBody}>
+			<DrawerBody className={k.sheet.body}>
 				<div
 					ref={panelRef}
 					id={menuId}
@@ -100,7 +100,7 @@ export function MenuSheet({ title, description, glass, className, children }: Me
 					aria-labelledby={heading === undefined ? undefined : titleId}
 					tabIndex={-1}
 					data-slot="menu-sheet"
-					className={cn(k.sheet, className)}
+					className={cn(k.sheet.base, className)}
 					onKeyDown={handleKeyDown}
 				>
 					{children}

@@ -239,7 +239,7 @@ export function RangeSlider({
 			data-slot="slider-range"
 			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
-			className={cn(k.root({ color }), className)}
+			className={cn(k.base({ color }), className)}
 			style={style}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}

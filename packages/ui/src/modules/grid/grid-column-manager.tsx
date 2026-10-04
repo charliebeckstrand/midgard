@@ -197,7 +197,7 @@ function GridColumnPinControl({
 	return (
 		<Menu placement={placement} className={className}>
 			<MenuTrigger>
-				<button type="button" className={cn(k.pinButton)} aria-label={`Pin ${columnLabel(item)}`}>
+				<button type="button" className={cn(k.pin)} aria-label={`Pin ${columnLabel(item)}`}>
 					<Icon icon={side ? <Pin /> : <EllipsisVertical />} />
 				</button>
 			</MenuTrigger>
@@ -520,7 +520,7 @@ export function GridColumnManager({
 
 	return (
 		<ManagerRtlContext value={rtl}>
-			<div ref={rootRef} data-slot="grid-column-manager" className={cn(k.root, className)}>
+			<div ref={rootRef} data-slot="grid-column-manager" className={cn(k.base, className)}>
 				{filterable && (
 					<SearchInput
 						value={query}

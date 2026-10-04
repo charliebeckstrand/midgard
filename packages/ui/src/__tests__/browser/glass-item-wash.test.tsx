@@ -5,7 +5,7 @@ import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import { getSlot, noop, renderUI, screen } from '../helpers'
 
 /**
- * Glass item wash (real paint). `hannou.glassItem` deepens a row's hover fill
+ * Glass item wash (real paint). `hannou.tint.glass` deepens a row's hover fill
  * from `hannou.tint`'s 5% to 10% inside a glass parent. jsdom compiles no
  * Tailwind and paints no `:hover`, so a class-string assertion cannot tell the
  * two washes apart. Only a real browser reads the fill back off the row.
@@ -17,7 +17,7 @@ describe('Glass item wash (real browser)', () => {
 	/** `hannou.tint` — the wash every row takes on a plain surface. */
 	const TINT = 0.05
 
-	/** `hannou.glassItem` — the deeper wash a row takes inside a glass parent. */
+	/** `hannou.tint.glass` — the deeper wash a row takes inside a glass parent. */
 	const GLASS_WASH = 0.1
 
 	/**

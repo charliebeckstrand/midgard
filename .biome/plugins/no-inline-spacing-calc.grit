@@ -1,7 +1,7 @@
 language js
 
 // The ring-compensated formula `calc(--spacing(v)-1px)` lives in the ring
-// utilities of `recipes/kiso/kasane/ring-utilities.ts`. A class reaches it
+// utilities of `core/density/utilities.ts`. A class reaches it
 // through `p-ring-*`, `px-ring-*`, `py-ring-*`, `ps-ring-*`, `pe-ring-*`,
 // `ms-ring-*`, `me-ring-*`, and `rounded-ring-*`, with each variant, and
 // through the stepped forms, such as `density-px-ring-[1,1.5,2]`.

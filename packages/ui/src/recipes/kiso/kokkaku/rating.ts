@@ -18,6 +18,6 @@ const { rounded } = kasane
 
 export const rating = {
 	base: [rounded.sm],
-	star: dan.size.checkBox,
+	star: dan.size.check.box,
 	gap: dan.gap.rating,
 } as const

@@ -111,7 +111,7 @@ export function Avatar({
 	return (
 		<span
 			data-density={size}
-			className={cn(k.withStatus, className)}
+			className={cn(k.status.base, className)}
 			{...props}
 			// The size of an avatar in a SidebarItem selects the anchor, so it comes
 			// after the spread.
@@ -120,7 +120,7 @@ export function Avatar({
 			<span data-slot="avatar" className={cn(k({ variant, color }))}>
 				{content}
 			</span>
-			<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
+			<StatusDot status={status} className={cn(k.status.dot)} />
 			{/* Color alone conveys status; the sr-only span names it for assistive technology. */}
 			<span className="sr-only">{statusLabel ?? capitalizeFirst(status)}</span>
 		</span>

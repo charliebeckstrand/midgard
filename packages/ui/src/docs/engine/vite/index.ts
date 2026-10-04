@@ -1,14 +1,8 @@
-import { fileURLToPath } from 'node:url'
 import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import type { UserConfig } from 'vite'
 import { docsPlugin } from '../plugins'
-
-// Curated `shiki/core` shim (precompiled tsx, typescript, bash grammars,
-// github-dark-default, JS raw engine, in a worker) that replaces the bare
-// `shiki` specifier in the docs build.
-const shikiCore = fileURLToPath(new URL('../shiki.ts', import.meta.url))
 
 export { docsPlugin } from '../plugins'
 export type { DocsPluginOptions } from '../plugins/docs'
@@ -36,9 +30,9 @@ export type DocsConfigOptions = {
 
 /**
  * Build the Vite config for a library's docs site. The shared engine supplies
- * the plugin, React, Tailwind, the curated Shiki-core alias, and the bundle
- * visualizer (under `ANALYZE=1`). The consumer supplies only its `packageName`
- * and, if non-standard, its `root`.
+ * the plugin, React, Tailwind, and the bundle visualizer (under `ANALYZE=1`).
+ * The consumer supplies only its `packageName` and, if non-standard, its
+ * `root`.
  *
  * ```ts
  * // packages/ui/vite.docs.config.ts
@@ -87,10 +81,9 @@ export function defineDocsConfig({
 		// Pre-bundle the heavy component deps up front. Left to lazy discovery,
 		// Vite finds each the first time a demo importing it renders and re-runs
 		// the optimizer, which triggers a full-page reload mid-session — the same
-		// failure the vitest browser config guards against. `shiki` resolves
-		// through the alias below to the curated shim, which imports no package
-		// at runtime. Its worker imports `shiki/core`, the engine, the theme, and
-		// the three grammars, so they are listed here.
+		// failure the vitest browser config guards against. The Shiki worker of
+		// `CodeBlock` imports `shiki/core`, the engine, and the maps of the
+		// grammars and the themes, so they are listed here.
 		optimizeDeps: {
 			include: [
 				'@dnd-kit/core',
@@ -105,10 +98,8 @@ export function defineDocsConfig({
 				'motion/react',
 				'shiki/core',
 				'shiki/engine/javascript',
-				'shiki/themes/github-dark-default.mjs',
-				'@shikijs/langs-precompiled/shellscript',
-				'@shikijs/langs-precompiled/tsx',
-				'@shikijs/langs-precompiled/typescript',
+				'shiki/langs',
+				'shiki/themes',
 				// Reached only through lazy demo chunks, so the scanner misses them and
 				// the first navigation to a map, date, markdown, payment, export, or
 				// shortcut demo triggers an optimizer re-run and the mid-session full
@@ -120,17 +111,6 @@ export function defineDocsConfig({
 				'marked',
 				'tinykeys',
 				'topojson-client',
-			],
-		},
-		resolve: {
-			alias: [
-				// Redirect the bare `shiki` specifier to a curated `shiki/core` build
-				// (three precompiled grammars, one theme, JS raw engine) instead of the
-				// ~50-grammar, ~30-theme web bundle with its 622 kB oniguruma-wasm chunk.
-				// The public CodeBlock component still references 'shiki' — this alias
-				// only affects the docs build. The anchored regex leaves shiki/core,
-				// shiki/engine/*, etc. (which the shim itself imports) untouched.
-				{ find: /^shiki$/, replacement: shikiCore },
 			],
 		},
 		build: {
@@ -170,6 +150,8 @@ export function defineDocsConfig({
 				},
 			},
 		},
+		// The Shiki worker of `CodeBlock` needs the `es` format (see `CodeBlock`).
+		worker: { format: 'es' },
 		// Tailwind runs via `@tailwindcss/vite` above; the docs site never needs
 		// the root `postcss.config.mjs` (which targets Next.js apps). Skip the
 		// search so prod builds don't fail on vendor CSS.

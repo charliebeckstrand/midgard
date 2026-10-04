@@ -3,13 +3,12 @@ import { definePalette, defineRecipe, type VariantProps } from '../../core/recip
 import { hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { extendedPalette } = iro
+const { extended } = iro
 const { cursor, disabled } = hannou
 const { weight } = ji
 const { button } = kokkaku
 const { flex } = narabi
 const { focus } = sen
-const { iconSlotRamp } = shaku
 
 export const k = defineRecipe({
 	base: [
@@ -35,11 +34,11 @@ export const k = defineRecipe({
 		// overrides `py` with the matching control step. A labeled button thus
 		// aligns with the Input and Select chrome of the same size (md → 38px).
 		dan.text.chip,
-		...iconSlotRamp,
+		...shaku.icon.slot.base,
 		dan.gap.button,
-		dan.space.button,
+		dan.space.button.base,
 		dan.radius.button,
-		dan.space.buttonLabelY,
+		dan.space.button.label,
 		// A LoadingSpinner, LoadingDots, or Kbd child sizes itself in a button: its
 		// own recipe selects a parent with `data-variant`, which Button always
 		// writes. See `kata/loading.ts` and `kata/kbd.ts`.
@@ -52,21 +51,17 @@ export const k = defineRecipe({
 		// Icon-only floor: a square pad per step keeps an icon-only bare button
 		// even-sided. `not-data-[has-label]` yields to the base padding once a
 		// label is present.
-		bare: [focus.inset, dan.space.buttonBare],
+		bare: [focus.inset, dan.space.button.bare],
 	},
 	// Opt into the wide palette: Button's `color` axis carries the standard set
 	// plus the extended hues (rose / violet / sky), matching Badge.
 	palette: definePalette(
 		{
-			solid: [extendedPalette.solid.bg, extendedPalette.solid.text, extendedPalette.solid.hover],
-			soft: [extendedPalette.soft.bg, extendedPalette.soft.text, extendedPalette.soft.hover],
-			outline: [
-				extendedPalette.outline.ring,
-				extendedPalette.outline.text,
-				extendedPalette.outline.hover,
-			],
-			plain: [extendedPalette.plain.text, extendedPalette.plain.hover],
-			bare: [extendedPalette.bare.text, extendedPalette.bare.hover],
+			solid: [extended.solid.bg, extended.solid.text, extended.solid.hover],
+			soft: [extended.soft.bg, extended.soft.text, extended.soft.hover],
+			outline: [extended.outline.ring, extended.outline.text, extended.outline.hover],
+			plain: [extended.plain.text, extended.plain.hover],
+			bare: [extended.bare.text, extended.bare.hover],
 		},
 		// Synthetic color entry: inherits parent text color with a hover wash on non-disabled elements.
 		{ inherit: ['text-inherit', 'not-disabled:not-data-disabled:hover:bg-current/15'] },
@@ -79,10 +74,10 @@ export const k = defineRecipe({
 export const scale = defineScale(
 	dan.text.chip,
 	dan.gap.button,
-	dan.space.button,
+	dan.space.button.base,
 	dan.radius.button,
-	dan.size.button,
-	dan.size.buttonWidth,
+	dan.size.button.base,
+	dan.size.button.width,
 )
 
 /** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */

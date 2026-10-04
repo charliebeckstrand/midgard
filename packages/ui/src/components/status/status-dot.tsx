@@ -1,10 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import {
-	pulse as pulseAnimation,
-	type StatusDotVariants,
-	statusColor,
-} from '../../recipes/kata/status'
+import { k, type StatusDotVariants } from '../../recipes/kata/status'
 import { Swatch } from '../swatch'
 
 /** Props for {@link StatusDot}: recipe variants (`variant`, `status`, `size`, `pulse`) plus an optional accessible `label` and `<span>` attributes. */
@@ -48,10 +44,10 @@ export function StatusDot({
 			shape="circle"
 			variant={variant}
 			size={size}
-			color={cn(statusColor[status])}
+			color={cn(k.color[status])}
 			label={label}
 			data-slot="status-dot"
-			className={cn(pulse && pulseAnimation, className)}
+			className={cn(pulse && k.pulse, className)}
 			{...props}
 		/>
 	)

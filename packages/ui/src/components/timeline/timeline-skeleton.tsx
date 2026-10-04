@@ -41,7 +41,7 @@ export function TimelineSkeleton({
 	const itemKeys = rangeKeys(items, 'item')
 
 	return (
-		<ol aria-hidden="true" className={cn(k.root({ orientation }), className)}>
+		<ol aria-hidden="true" className={cn(k.base({ orientation }), className)}>
 			{itemKeys.map((itemKey) => (
 				<li key={itemKey} className={k.item({ orientation })}>
 					<span

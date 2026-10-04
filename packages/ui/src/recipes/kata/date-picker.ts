@@ -1,10 +1,11 @@
 /**
  * Date-picker kata: object-literal surface for the `<DatePicker>` trigger and
- * its popover. A `button` with stepped density and size classes, a stepped `body`, and a
- * truncate-axed `value` sub-recipe drive the control, the popover inset, and the
+ * its popover. A stepped `button`, a stepped `content.body`, and a `value`
+ * sub-recipe with a truncate axis drive the control, the popover inset, and the
  * value text. `surface`, `control` (the input-mode field adjacency), `icon`,
- * `placeholder`, `affix`, and the `content` group are slots. `relative` adds the relative popover's layout-only preset list,
- * custom-range affordance, and trigger chip row.
+ * `placeholder`, `affix`, and the `content` group are slots.
+ * `relative` adds the layout of the relative popover: the preset `list`, the
+ * `custom` range affordance, and the trigger chip row.
  */
 import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, narabi, sen } from '../kiso'
@@ -22,7 +23,7 @@ const { portal, panel } = popover
 const button = defineRecipe({
 	base: [
 		'flex items-center justify-between',
-		...reset,
+		...reset.base,
 		'text-start',
 		'appearance-none',
 		...cursor,
@@ -45,7 +46,7 @@ const value = defineRecipe({
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
 // not in the calendar kata. Each takes the step of the nearest density scope.
-const body = [flex.col, dan.space.box, dan.gap.y]
+const body = [flex.col, dan.space.box.base, dan.gap.y]
 
 export const k = {
 	surface: {
@@ -62,8 +63,8 @@ export const k = {
 	icon: ['flex items-center', 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	affix: {
-		...affix,
 		base: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...text.muted],
+		suffix: affix.suffix,
 	},
 	content: {
 		// `portal` is a single class string — include it, don't spread it (spreading
@@ -84,7 +85,7 @@ export const k = {
 		// the rest, trailed by the custom-range row, fill the second. `min-w` gives
 		// the grid a stable floor independent of label length. Width-scoped here so
 		// it never touches the single/range calendars.
-		root: 'grid grid-flow-col gap-2 min-w-52',
+		list: 'grid grid-flow-col gap-2 min-w-52',
 		// Preset rows read as a left-aligned menu rather than centered chips.
 		preset: 'w-full justify-start',
 		// The custom-range affordance in the second column, trailing the presets.
@@ -93,8 +94,9 @@ export const k = {
 			row: 'w-full justify-between',
 			// Custom mode: the back affordance above the stacked Start/End inputs.
 			panel: 'flex flex-col gap-3',
+			// The back affordance of custom mode, which returns to the preset list.
+			back: 'justify-start gap-1',
 		},
-		back: 'justify-start gap-1',
 		// The trigger chip row wraps the chips (each `shrink-0`, see the view) onto
 		// new lines rather than scrolling or shrinking them; the gap doubles as the
 		// inter-row spacing. The button's `py` is one density step below its `px`

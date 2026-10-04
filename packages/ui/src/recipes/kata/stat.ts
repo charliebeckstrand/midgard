@@ -41,10 +41,10 @@ export const k = defineRecipe(
 )
 
 /** The size scale of {@link StatValue}: the steps of its text. */
-export const valueScale = defineScale(dan.text.h1)
+export const scale = defineScale(dan.text.h1)
 
 /** Recipe variant props for {@link StatValue}: the `size` step that the component writes as a density scope. */
-export type StatValueVariants = { size?: ScaleStep<typeof valueScale> }
+export type StatValueVariants = { size?: ScaleStep<typeof scale> }
 /** Recipe variant props for {@link StatDelta} — its styling axes (`trend`), for consumers composing custom slots. */
 export type StatDeltaVariants = Omit<VariantProps<typeof delta>, 'trend'> & {
 	/**

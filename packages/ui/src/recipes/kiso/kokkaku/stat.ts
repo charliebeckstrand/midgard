@@ -13,8 +13,8 @@
 import { dan } from '../dan'
 
 export const stat = {
-	value: { base: [dan.size.statValue, dan.size.statValueWidth], density: true },
-	label: { base: [dan.size.line, 'w-24'] },
-	description: { base: [dan.size.line, 'w-20'] },
-	delta: { base: [dan.size.line, 'w-12'] },
+	value: { base: [dan.size.stat.value.base, dan.size.stat.value.width], density: true },
+	label: { base: [dan.size.line.base, 'w-24'] },
+	description: { base: [dan.size.line.base, 'w-20'] },
+	delta: { base: [dan.size.line.base, 'w-12'] },
 } as const

@@ -12,4 +12,4 @@ export const resets = {
 		'[&::-webkit-inner-spin-button]:appearance-none',
 		'[&::-webkit-outer-spin-button]:appearance-none',
 	],
-}
+} as const

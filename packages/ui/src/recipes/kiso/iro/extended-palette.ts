@@ -1,15 +1,15 @@
 /**
- * Iro extended palette: the opt-in **wide palette**. Mirrors `iro.palette`'s
- * shape (solid / soft / outline / plain / bare) but keyed by
- * {@link PaletteColor} — every standard color plus the extended set
- * (rose / violet / sky). A kata reading this bundle instead of `iro.palette`
- * offers the broader `color` axis; the standard palette and the components
- * that read it are untouched.
+ * Iro extended palette: the opt-in **wide palette**, read as `iro.extended`. It
+ * has the shape of `iro.palette` (solid / soft / outline / plain / bare), less
+ * the `soft.strong` text. Its keys are each {@link PaletteColor}: every
+ * standard color plus the extended set (rose / violet / sky). A kata reading
+ * this bundle instead of `iro.palette` offers the broader `color` axis; the
+ * standard palette and the components that read it are untouched.
  *
  * The extended hues' foreground roles (`onSurface`, `onTint`) are authored
  * color-major below alongside the standard ramp — same policy, same
  * `contrast.test.ts` guard. The solid / soft / outline / plain / bare fill and
- * border shades are the declared surface tables, keyed by every standard color
+ * ring shades are the declared surface tables, keyed by every standard color
  * plus the extended set. Solid fills carry white text at a shade that clears
  * text AA on the fill.
  *
@@ -94,11 +94,6 @@ const extendedHover = shades<ExtendedColor>({
 })
 
 const extendedOutline = {
-	border: shades<ExtendedColor>({
-		rose: ['border-rose-600', 'dark:border-rose-700'],
-		violet: ['border-violet-600', 'dark:border-violet-700'],
-		sky: ['border-sky-600', 'dark:border-sky-700'],
-	}),
 	ring: shades<ExtendedColor>({
 		rose: ['ring-rose-600', 'dark:ring-rose-700'],
 		violet: ['ring-violet-600', 'dark:ring-violet-700'],
@@ -134,7 +129,6 @@ export const extendedPalette = {
 		hover: wide(soft.hover, extendedSoft.hover),
 	},
 	outline: {
-		border: wide(outline.border, extendedOutline.border),
 		ring: wide(outline.ring, extendedOutline.ring),
 		text: wide(outline.text, onTint),
 		hover: wide(outline.hover, extendedHover),

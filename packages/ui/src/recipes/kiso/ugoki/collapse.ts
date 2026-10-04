@@ -34,4 +34,4 @@ export const collapse = {
 			transition,
 		},
 	},
-}
+} as const

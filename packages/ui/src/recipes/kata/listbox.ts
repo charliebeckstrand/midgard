@@ -11,7 +11,15 @@ const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: [flex.row, 'w-full', 'text-start', ...reset, 'appearance-none', ...cursor, ...density],
+		base: [
+			flex.row,
+			'w-full',
+			'text-start',
+			...reset.base,
+			'appearance-none',
+			...cursor,
+			...density,
+		],
 		slots: {
 			// 320px ≈ 8 rows. The old 240px (the classic Tailwind-example value, never a reasoned one)
 			// forced a scrollbar at seven options — the dashboard picker hit it with screen to spare.

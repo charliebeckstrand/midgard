@@ -68,7 +68,7 @@ export function Group({
 			data-slot="group"
 			density={size}
 			data-orientation={orientation}
-			className={cn(k.frame(orientation), className)}
+			className={cn(k.base(orientation), className)}
 			{...props}
 		>
 			{stamped}

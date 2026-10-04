@@ -128,7 +128,7 @@ export const AREA_SPARE_FRACTION = 0.5
  * `dotHitProps` states what it does with the answer. `map-cluster/crowd.ts`
  * holds the list of claimants; do not restate it here.
  *
- * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
+ * Applied through `kata/map`'s `hit.fine` class rather than the `r` attribute,
  * since only CSS can answer the modality. The attribute carries the coarse
  * radius, so a browser that resolves no `r` in CSS keeps the larger target. This
  * is the class's fallback alone: `dotHitProps` sets each shape's own budget, which
@@ -136,7 +136,7 @@ export const AREA_SPARE_FRACTION = 0.5
  *
  * A literal rather than {@link POINT_RADIUS} itself, though it is that figure by
  * definition. Nothing reads this at runtime, because the number ships inside
- * `hitFine`'s class string, which Tailwind can only scan whole. The constant is
+ * `hit.fine`'s class string, which Tailwind can only scan whole. The constant is
  * therefore that literal's documented name. Binding it to another export makes
  * the two one export under two names, which knip rejects. `map-hit-target` holds the
  * pair equal instead, which is what a tie between two literals costs.

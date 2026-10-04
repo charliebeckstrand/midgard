@@ -170,11 +170,7 @@ export function Textarea({
 	return (
 		<ControlFrame
 			density={size}
-			className={cn(
-				hasActions && k.frame,
-				hasActions && k.stack,
-				k.inputControl({ variant: resolvedVariant }),
-			)}
+			className={cn(hasActions && k.frame, k.surface({ variant: resolvedVariant }))}
 		>
 			{textareaEl}
 			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
