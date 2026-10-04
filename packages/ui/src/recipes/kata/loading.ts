@@ -41,7 +41,7 @@ const dot = defineRecipe({
  * size.
  */
 const spinner = defineRecipe({
-	base: ['inline-block shrink-0 motion-safe:animate-spin', dan.size.icon],
+	base: ['inline-block shrink-0 motion-safe:animate-spin', dan.size.icon.base],
 	color,
 	defaults: { color: 'current' },
 })
@@ -56,23 +56,27 @@ export const k = defineRecipe(
 	{ dot, spinner },
 )
 
-/** The size scale of {@link LoadingDots}: the steps of the dot and the gap. */
-export const dotsScale = defineScale(dan.size.dot, dan.gap.dots)
-
-/** The size scale of {@link LoadingSpinner}: the steps of the icon ramp. */
-export const spinnerScale = defineScale(dan.size.icon)
+/**
+ * The size scales. `dots` is the scale of {@link LoadingDots}: the steps of the
+ * dot and the gap. `spinner` is the scale of {@link LoadingSpinner}: the steps
+ * of the icon ramp.
+ */
+export const scale = {
+	dots: defineScale(dan.size.dot, dan.gap.dots),
+	spinner: defineScale(dan.size.icon.base),
+} as const
 
 /** Recipe variant props for {@link LoadingDots} — its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingDotsVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	/** The color of the dots. `current` takes the color of the text around them. @defaultValue 'current' */
 	color?: VariantProps<typeof k>['color']
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: ScaleStep<typeof dotsScale>
+	size?: ScaleStep<typeof scale.dots>
 }
 /** Recipe variant props for {@link LoadingSpinner} — its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingSpinnerVariants = Omit<VariantProps<typeof spinner>, 'color'> & {
 	/** The color of the spinner. `current` takes the color of the text around it. @defaultValue 'current' */
 	color?: VariantProps<typeof spinner>['color']
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: ScaleStep<typeof spinnerScale>
+	size?: ScaleStep<typeof scale.spinner>
 }

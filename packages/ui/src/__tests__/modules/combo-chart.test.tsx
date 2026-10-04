@@ -133,11 +133,11 @@ describe('ComboChart', () => {
 
 		// Bar wears a rect swatch, area and line the stroke-shaped one. The swatch
 		// is the second span, because the hit-target sibling of the Button leads.
-		expect(items[0]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatch)
+		expect(items[0]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatch.base)
 
-		expect(items[1]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatchLine)
+		expect(items[1]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatch.line)
 
-		expect(items[2]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatchLine)
+		expect(items[2]?.querySelector('span:nth-child(2)')).toHaveClass(dan.size.swatch.line)
 	})
 
 	it('reads an area series where the pointer sits inside its fill', () => {

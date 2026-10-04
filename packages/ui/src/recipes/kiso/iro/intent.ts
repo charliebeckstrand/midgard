@@ -20,4 +20,4 @@ export const intent = {
 	warning: onSurface.amber,
 	error: onSurface.red,
 	muted: onSurface.zinc,
-}
+} as const

@@ -24,4 +24,4 @@ export const size = {
  * step takes the class of its neighbor. `ji-text-ramp.test.ts` pins it to
  * {@link size}.
  */
-export const textRamp = dan.text.body
+export const ramp = dan.text.body

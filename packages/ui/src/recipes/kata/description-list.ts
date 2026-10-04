@@ -10,7 +10,7 @@ const { flex } = narabi
  * The text takes the step of the nearest density scope. At `md` it is
  * `text-sm`, and each outer step is one size of the text scale away.
  */
-const root = defineRecipe({
+const base = defineRecipe({
 	base: dan.text.small,
 	orientation: {
 		horizontal: 'grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]',
@@ -26,9 +26,9 @@ const root = defineRecipe({
  * render in React Server Components. Direct-child selectors keep a nested
  * `<DescriptionList>` inside a `dd` independent.
  *
- * Tailwind scans whole class literals; these rows can't be interpolated
- * from the unprefixed values they mirror (the old per-leaf orientation
- * classes). Keep them in step by hand.
+ * Tailwind scans whole class literals. Each row therefore writes its
+ * `[&>dt]` or `[&>dd]` selector in full, and no row builds its class from a
+ * template.
  *
  * The block padding of each cell takes the step of the nearest density scope.
  * At `md` a horizontal cell has `py-2` from the `sm` breakpoint, and a
@@ -39,21 +39,21 @@ const root = defineRecipe({
 const projection = {
 	horizontal: [
 		'[&>dt]:col-start-1',
-		dan.space.termTop,
+		dan.space.term.top,
 		'[&>dt]:pr-2',
-		dan.space.termBottomRow,
-		dan.space.detailBottom,
-		dan.space.detailTopRow,
+		dan.space.term.row.bottom,
+		dan.space.detail.bottom,
+		dan.space.detail.row.top,
 		// The first row has no row above it, so it drops its top padding, as the
 		// vertical list does. The selectors outrank the rows above at each width.
 		'[&>dt:first-child]:pt-0',
 		'[&>dt:first-child+dd]:pt-0',
 	],
-	vertical: [dan.space.termTopStacked, '[&>dt:first-child]:pt-0', dan.space.detailTopStacked],
+	vertical: [dan.space.term.stacked.top, '[&>dt:first-child]:pt-0', dan.space.detail.stacked.top],
 } as const
 
 export const k = {
-	root,
+	base,
 	projection,
 	term: [text.muted, weight.medium],
 	details: text.default,

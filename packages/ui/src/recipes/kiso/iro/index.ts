@@ -1,19 +1,19 @@
 /**
  * Iro (色): color. The palette matrix, keyed by variant
  * (solid / soft / outline / plain / bare) × color × slot
- * (bg / text / hover / ring / border). Beside it sit the semantic
- * intent-color text bundle, the `marker` shade for chromatic dots / glyphs,
- * and the `onWash` rung for the neutral wash. One file per palette
- * variant; this barrel assembles the named bundle that every kata reads.
+ * (bg / text / hover / ring). Beside it sit the semantic intent-color text
+ * bundle, the `marker` shade for chromatic dots / glyphs, and the `on.wash`
+ * rung for the neutral wash. One file per palette variant; this barrel
+ * assembles the named bundle that every kata reads.
  *
- * `text` is keyed by purpose; `marker` and `onWash` are keyed by the ground
- * they ink, so they sit beside it rather than inside it. `onWash` is then
+ * `text` is keyed by purpose; `marker` and `on.wash` are keyed by the ground
+ * they ink, so they sit beside it rather than inside it. `on.wash` is then
  * keyed by purpose in turn, since what varies on that ground is emphasis.
  *
  * `palette` is the standard five-color set (zinc / red / amber / green /
- * blue). `extendedPalette` is the opt-in wide palette: the same shape keyed
- * by every standard color plus the extended set (rose / violet / sky). A
- * kata reads it in place of `palette` to offer the broader `color` axis.
+ * blue). `extended` is the opt-in wide palette: the same shape keyed by every
+ * standard color plus the extended set (rose / violet / sky). A kata reads it
+ * in place of `palette` to offer the broader `color` axis.
  *
  * Surfaces live in `omote`. Interaction-state text colors live in
  * `hannou.fg`. Slot-specific composites live in their kata.
@@ -30,8 +30,8 @@ import { solid } from './solid'
 
 export const iro = {
 	palette: { solid, soft, outline, plain, bare },
-	extendedPalette,
+	extended: extendedPalette,
 	text: intent,
 	marker,
-	onWash,
+	on: { wash: onWash },
 } as const

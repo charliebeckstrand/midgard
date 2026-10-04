@@ -48,12 +48,12 @@ function GridFillHandleOverlay({ handle }: { handle: GridFillHandleStore }) {
 	if (!host) return null
 
 	return createPortal(
-		<div className={cn(k.nav.fillAnchor)}>
-			<div ref={boxRef} className={cn(k.nav.fillBox)}>
+		<div className={cn(k.nav.fill.anchor)}>
+			<div ref={boxRef} className={cn(k.nav.fill.box)}>
 				<span
 					data-slot="grid-fill-handle"
 					aria-hidden="true"
-					className={cn(k.nav.fillHandle)}
+					className={cn(k.nav.fill.handle)}
 					onMouseDown={(event) => handle.press(event, cell.closest(GRID_ROLE))}
 				/>
 			</div>

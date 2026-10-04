@@ -35,6 +35,7 @@ import { autoUpdate, FloatingPortal, flip, offset, shift, useFloating } from '@f
 import { AnimatePresence, motion } from 'motion/react'
 import { bench, describe } from 'vitest'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
+import { cn } from '../../core'
 import { useScrollOverflow } from '../../hooks'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
@@ -42,7 +43,7 @@ import { k } from '../../recipes/kata/popover'
 import { reactHost, WINDOW } from './harness'
 
 /** The classes `PopoverPanel` resolves for its default surface, hoisted so no rung re-merges them. */
-const PANEL = `${k.panel.base} ${k.panel.surface}`
+const PANEL = cn(k.panel.surface, k.panel.base)
 
 /** One iteration: mount the surface `render` builds, then tear the root down. */
 function mount(render: () => React.ReactNode) {

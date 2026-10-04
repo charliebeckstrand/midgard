@@ -16,8 +16,8 @@ export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 /**
  * Font weight per heading level: bold at the top of the scale, easing to
- * medium. Heading-like elements that don't render `<Heading>` (e.g. the panel
- * title slot) pull their weight via {@link headingWeight}.
+ * medium. A heading-like element that does not render `<Heading>`, such as the
+ * panel title slot, reads its weight from `k.weight`.
  */
 const levelWeight = {
 	1: weight.bold,
@@ -35,7 +35,7 @@ const levelWeight = {
  * Each outer step takes the rung of its neighbor. A heading takes the step of
  * its nearest density scope. `heading-ramp.test.ts` pins the rungs.
  */
-export const headingRamp = {
+const ramp = {
 	1: dan.text.h1,
 	2: dan.text.h2,
 	3: dan.text.h3,
@@ -44,38 +44,24 @@ export const headingRamp = {
 	6: dan.text.small,
 } as const satisfies Record<HeadingLevel, string>
 
-/**
- * The text size of a component title (Card, and the Dialog, Sheet, and Drawer
- * panels): the ramp of level 4. A title takes the step of its nearest density
- * scope.
- */
-export const titleRamp = headingRamp[4]
-
 /** The size scale of {@link Heading}: the steps at which a level ramp renders a value of its own. */
-export const scale = defineScale(
-	headingRamp[1],
-	headingRamp[2],
-	headingRamp[3],
-	headingRamp[4],
-	headingRamp[5],
-	headingRamp[6],
-)
+export const scale = defineScale(ramp[1], ramp[2], ramp[3], ramp[4], ramp[5], ramp[6])
 
 /**
- * Heading font weight for a `level`. Used by heading-like elements that don't
- * render `<Heading>` directly, e.g. the panel title.
+ * The heading recipe. `level` gives the weight only, and `ramp[level]` gives
+ * the size. `ramp` and `weight` are keyed by level, for an element that does
+ * not render `<Heading>`. A component title (Card, and the Dialog, Sheet, and
+ * Drawer panels) takes `ramp[4]`.
  */
-export function headingWeight(level: HeadingLevel): string {
-	return levelWeight[level]
-}
-
-export const k = defineRecipe({
-	base: [...text.default],
-	// `level` drives weight only. The size comes from `headingRamp`.
-	level: levelWeight,
-	defaults: { level: 1 },
-	skeleton: heading,
-})
+export const k = defineRecipe(
+	{
+		base: [...text.default],
+		level: levelWeight,
+		defaults: { level: 1 },
+		skeleton: heading,
+	},
+	{ ramp, weight: levelWeight },
+)
 
 /** Recipe variant props for {@link Heading} — the styling axis its kata exposes (`level`), for consumers composing custom slots. */
 export type HeadingVariants = Omit<VariantProps<typeof k>, 'level'> & {

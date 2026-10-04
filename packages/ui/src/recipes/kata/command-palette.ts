@@ -9,7 +9,7 @@ import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kara, narabi, shaku } from '../kiso'
 import { panel } from '../kiso/panel'
 
-const { onWash, text } = iro
+const { on, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 
@@ -17,7 +17,7 @@ export const k = {
 	// A group after any sibling takes the slot gap of the panel, which is the
 	// space between the search input and the first group. Each heading
 	// therefore has the same space above it.
-	group: ['flex flex-col gap-0.5', panel.layout.gapAbove],
+	group: ['flex flex-col gap-0.5', panel.layout.gap.above],
 	// Inner listbox: collapses when empty. `peer` drives the sibling `empty` slot
 	// below; `kara` adds the virtualized case, which `:empty` alone cannot see.
 	list: ['peer', 'empty:hidden', kara.list],
@@ -35,7 +35,7 @@ export const k = {
 		...hannou.item,
 		...narabi.item,
 		// The chrome of a row is fixed, so its icon is fixed at `md` too.
-		shaku.icon.md,
+		shaku.icon.slot.md,
 		...hannou.active,
 		// Deepen the wash when the active row is also hovered, so the
 		// keyboard-roved item stays distinguishable under the pointer. The
@@ -49,8 +49,8 @@ export const k = {
 	label: 'truncate',
 	// A column that stacks a label over its description.
 	text: narabi.text,
-	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
+	// `on.wash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: [description, size.xs, onWash.muted],
+	description: [description, size.xs, on.wash.muted],
 	shortcut: 'ml-auto',
 } as const

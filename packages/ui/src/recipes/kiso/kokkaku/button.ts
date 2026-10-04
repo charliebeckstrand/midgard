@@ -15,10 +15,10 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 // The height of a button at each step. The calendar skeleton reads it too.
-const height = dan.size.button
+const height = dan.size.button.base
 
 export const button = {
-	base: [rounded.lg, height, dan.size.buttonWidth],
+	base: [rounded.lg, height, dan.size.button.width],
 	height,
 	density: true,
 } as const

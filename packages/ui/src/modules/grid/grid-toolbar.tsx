@@ -149,7 +149,7 @@ export function GridToolbar({
 	if (!showTopRow && !showBatch) return null
 
 	return (
-		<div data-slot="grid-toolbar" className={cn(k.toolbar.root)}>
+		<div data-slot="grid-toolbar" className={cn(k.toolbar.base)}>
 			{showTopRow && (
 				<div className={cn(k.toolbar.bar)}>
 					{filter && <GridFilter filter={filter} />}

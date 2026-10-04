@@ -296,7 +296,7 @@ export function GridGroupManager({
 				onDragEnd={mgr.handleDragEnd}
 				onDragCancel={mgr.handleDragCancel}
 			>
-				<div className={cn(k.manager.root)}>
+				<div className={cn(k.manager.base)}>
 					{ungroupedZone && (
 						<GridGroupManagerZoneView
 							zone={ungroupedZone}
@@ -433,7 +433,7 @@ function GridGroupManagerZoneView({
 			ref={setNodeRef}
 			// A colored group tints its Card outline to match; the ungrouped pool and
 			// colorless groups keep the default neutral outline.
-			className={cn(k.manager.zone.root, zone.group?.color && k.cardOutline[zone.group.color])}
+			className={cn(k.manager.zone.base, zone.group?.color && k.outline[zone.group.color])}
 		>
 			<CardHeader>
 				{zone.group ? (
@@ -583,7 +583,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 		<li
 			ref={setNodeRef}
 			style={style}
-			className={cn(k.manager.row.root)}
+			className={cn(k.manager.row.base)}
 			data-dragging={dataAttr(dragging)}
 		>
 			<GridManagerGrip
@@ -673,7 +673,7 @@ function GridGroupManagerColumnRowOverlay({
 	const label = columnLabel(item)
 
 	return (
-		<div className={cn(k.manager.row.root, k.manager.row.overlay)} data-dragging="">
+		<div className={cn(k.manager.row.base, k.manager.row.overlay)} data-dragging="">
 			{/* The pointer rides the overlay, so its grip shows the held hand. */}
 			<GridManagerGrip />
 

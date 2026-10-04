@@ -19,6 +19,6 @@ export const text = {
 	h1: 'density-text-[2xl,3xl,4xl]',
 	/** The label of a button, a badge, or a query chip, and a Text with a `size`. */
 	chip: 'density-text-[xs,sm,base,lg,lg]',
-	/** The combinator caption between query chips. */
-	chipCaption: 'density-text-[xs,xs,sm,base,base]',
+	/** The caption of the combinator button between query chips. */
+	combinator: 'density-text-[xs,xs,sm,base,base]',
 } as const

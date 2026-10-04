@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect, useLayoutEffect } from 'react'
 import { cn } from '../../core'
-import { headingWeight, titleRamp } from '../../recipes/kata/heading'
+import { k as heading } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
 import { DEFAULT_FOOTER_SCOPE, PanelFooterContext, usePanelFooter } from './panel-footer-context'
 import { usePanelA11y } from './panel-providers'
@@ -65,7 +65,7 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 				data-slot={`${slotPrefix}-title`}
 				// The weight of the level and the title size come from the heading scale.
 				// The size follows the nearest density scope.
-				className={cn(titleClass, headingWeight(level), titleRamp, className)}
+				className={cn(titleClass, heading.weight[level], heading.ramp[4], className)}
 				{...props}
 			/>
 		)

@@ -6,7 +6,7 @@ import { contrastRatio, readableInk, WCAG_NON_TEXT } from '../../utilities/contr
 import { themeColor } from '../helpers/contrast'
 
 /**
- * Drift guard for the chart segment-label ink (`kata/chart` `series[*].onFill`).
+ * Drift guard for the chart segment-label ink (`kata/chart` `series[*].label`).
  *
  * A segment label is a redundant graphical annotation over its slice's own
  * fill, so its ink clears the non-text 3:1 floor (WCAG 1.4.11). The rule is
@@ -48,14 +48,14 @@ describe('chart segment-label ink contrast', () => {
 		describe(`${name} mode`, () => {
 			it.each(HUES)('%s label clears text AA on its fill', (hue) => {
 				const fill = colorOf(tokenAt(k.series[hue].fill, index))
-				const ink = colorOf(tokenAt(k.series[hue].onFill, index))
+				const ink = colorOf(tokenAt(k.series[hue].label, index))
 
 				expect(contrastRatio(ink, fill)).toBeGreaterThanOrEqual(FLOOR)
 			})
 
 			it.each(HUES)('%s takes the white-first ink readableInk derives', (hue) => {
 				const fill = colorOf(tokenAt(k.series[hue].fill, index))
-				const authored = tokenAt(k.series[hue].onFill, index)
+				const authored = tokenAt(k.series[hue].label, index)
 
 				const picked = readableInk(fill, [WHITE, themeColor(DARK_INK)], FLOOR)
 

@@ -1,6 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { basePalette } from '../katakana'
+import { bridge } from '../katakana'
 import { iro, kasane, kokkaku, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -23,13 +23,13 @@ export const k = defineRecipe(
 			rounded.full,
 			// The avatar takes the step of its nearest density scope. An explicit
 			// `size` makes the avatar its own scope.
-			dan.size.avatar,
+			dan.size.avatar.base,
 			// In a SidebarItem, the avatar is one step above the icon, with a negative
 			// margin, so the row keeps the height of a row with an icon. The inner
 			// button of the row is the child of the row that is not an affix slot:
 			// its own `data-slot` changes in the mini rail. Each class selects the
 			// avatar itself, so Chromium tests the rule only against the avatars.
-			dan.size.avatarInSidebarItem,
+			dan.size.avatar.sidebar,
 			sidebarItemMargin,
 		],
 		variant: {
@@ -37,24 +37,18 @@ export const k = defineRecipe(
 			soft: 'border border-transparent',
 			outline: 'border',
 		},
-		palette: definePalette(basePalette(palette)),
+		palette: definePalette(bridge.palette(palette)),
 		defaults: { variant: 'solid', color: 'zinc' },
 		// The skeleton takes the size and the margin of an avatar in a SidebarItem,
 		// so the row keeps its height when the avatar replaces the skeleton.
 		skeleton: {
 			...kokkaku.avatar,
-			base: [...kokkaku.avatar.base, dan.size.avatarInSidebarItem, sidebarItemMargin],
+			base: [...kokkaku.avatar.base, dan.size.avatar.sidebar, sidebarItemMargin],
 		},
 	},
 	{
 		initials: 'select-none fill-current text-[48px] font-medium uppercase',
 		image: 'size-full object-cover',
-		/**
-		 * The wrapper of an avatar with a status. It fits the circle, so a stretching
-		 * flex or grid parent cannot widen it and move the dot off the circle. In a
-		 * SidebarItem, the wrapper is in the flow of the row, so it takes the margin.
-		 */
-		withStatus: ['relative inline-flex size-fit', sidebarItemMargin],
 		/** Avatar-group container classes. */
 		group: {
 			base: flex.row,
@@ -72,13 +66,23 @@ export const k = defineRecipe(
 			 */
 			spacing: 'density-[xs,sm]:-space-x-0.5 density-[md,lg,xl]:-space-x-1',
 		},
-		/** Ring around an avatar's status indicator. */
-		statusRing: 'ring-2 ring-white dark:ring-zinc-900',
+		/** An avatar with a status. */
+		status: {
+			/**
+			 * The wrapper of an avatar with a status. It fits the circle, so a
+			 * stretching flex or grid parent cannot widen it and move the dot off the
+			 * circle. In a SidebarItem, the wrapper is in the flow of the row, so it
+			 * takes the margin.
+			 */
+			base: ['relative inline-flex size-fit', sidebarItemMargin],
+			/** The indicator, on the top-right corner of the avatar, with a ring around it. */
+			dot: ['absolute top-0 right-0', 'ring-2 ring-white dark:ring-zinc-900'],
+		},
 	},
 )
 
 /** The size scale of {@link Avatar} and {@link AvatarGroup}: the steps of the avatar box. */
-export const scale = defineScale(dan.size.avatar)
+export const scale = defineScale(dan.size.avatar.base)
 
 /** Recipe variant props for {@link Avatar}: the `variant` and `color` axes of its kata, and the `size` step that the component writes as a density scope. */
 export type AvatarVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> & {

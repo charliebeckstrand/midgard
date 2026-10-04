@@ -2,11 +2,11 @@
  * Panel bridge: slot bundle shared by `dialog`, `drawer`, and `sheet`. A
  * pure bridge: it receives the `panel` token bundle plus the kata's
  * caller-supplied recipes. It stitches them into the standard slot bundle
- * (title / description / header / body / footer / close), and references kiso
- * in neither value nor type.
+ * (title / description / header / body / footer), and references kiso in
+ * neither value nor type.
  *
- * Each kata's panel has its own variant axes (width + surface + side for
- * sheet, surface for drawer, width + surface for dialog). Unlike
+ * Each kata's panel has its own variant axes (side + width + surface for
+ * sheet, surface + height for drawer, surface + width for dialog). Unlike
  * `control` / `check`, the bridge doesn't own the variants. The kata
  * defines them via its own `defineRecipe` call and hands the result to
  * `panel(t, { … })`, which composes the bundle's `layout` with caller
@@ -29,10 +29,6 @@ type Slot = {
 	extra?: string | string[]
 }
 
-type Base = {
-	base: string | string[]
-}
-
 type PanelInput<P, B = undefined> = {
 	/** Recipe for the panel root element. Defines positioning, size, glass, etc. */
 	panel: P
@@ -48,8 +44,6 @@ type PanelInput<P, B = undefined> = {
 	body?: Slot
 	/** Extra padding / layout for the Footer slot. */
 	footer?: Slot
-	/** Classes for the Close button. */
-	close?: Base
 }
 
 const toArray = (v?: string | string[]): string[] => (v == null ? [] : [v].flat())
@@ -74,7 +68,6 @@ export function panel<P, B = undefined>(
 	header: string[]
 	body: string[]
 	footer: string[]
-	close: string[]
 } {
 	const { layout } = t
 
@@ -89,6 +82,5 @@ export function panel<P, B = undefined>(
 		header: [layout.header, ...toArray(input.header?.extra)],
 		body: [...layout.body, ...toArray(input.body?.extra)],
 		footer: [...layout.footer, ...toArray(input.footer?.extra)],
-		close: toArray(input.close?.base),
 	}
 }

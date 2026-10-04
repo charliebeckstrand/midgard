@@ -52,7 +52,7 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 				type="button"
 				disabled
 				aria-label={label}
-				className={cn(k.rowReorder.handle.disabled)}
+				className={cn(k.row.reorder.handle.disabled)}
 			>
 				<Icon icon={<GripVertical />} />
 			</button>
@@ -69,7 +69,7 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 			type="button"
 			ref={setActivatorNodeRef}
 			data-dragging={dataAttr(dragging)}
-			className={cn(k.rowReorder.handle.root)}
+			className={cn(k.row.reorder.handle.base)}
 			aria-label={label}
 			{...gripAttributes}
 			{...listeners}

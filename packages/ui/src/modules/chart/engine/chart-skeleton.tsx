@@ -1,7 +1,7 @@
 import { Placeholder } from '../../../components/placeholder'
 import { cn } from '../../../core'
 import type { ScaleStep } from '../../../core/density'
-import { k, type skeletonScale } from '../../../recipes/kata/chart'
+import { k, type scale } from '../../../recipes/kata/chart'
 import { parseAspectRatio } from '../../../utilities'
 import type { ChartAspectRatio } from './chart-frame/sizing'
 
@@ -25,7 +25,7 @@ export type ChartSkeletonProps = {
 	 * The density step of the block when `aspectRatio` is `false`. With a
 	 * ratio, the width sets the height, as it does for the chart.
 	 */
-	size?: ScaleStep<typeof skeletonScale>
+	size?: ScaleStep<typeof scale>
 	className?: string
 }
 

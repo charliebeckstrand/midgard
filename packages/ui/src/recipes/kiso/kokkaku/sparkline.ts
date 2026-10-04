@@ -14,7 +14,7 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const box = [dan.size.sparklineWidth, dan.size.sparkline] as const
+const box = [dan.size.sparkline.width, dan.size.sparkline.base] as const
 
 export const sparkline = {
 	base: [rounded.sm, ...box],

@@ -404,7 +404,7 @@ function RangeTrack({
 			aria-valuemax={max}
 			aria-valuenow={probe ?? min}
 			aria-valuetext={valueText}
-			className={cn('relative', horizontal ? 'h-5 w-full' : 'w-5', k.focusRing)}
+			className={cn('relative', horizontal ? 'h-5 w-full' : 'w-5', k.focus)}
 			style={gradient}
 			onPointerMove={onPointerMove}
 			onPointerLeave={onPointerLeave}

@@ -6,10 +6,8 @@
  * boundary.
  */
 
-import type { ClassValue } from 'clsx'
-
 import { defineRecipe } from './recipe'
-import type { Recipe, RecipeConfig, ReservedField } from './types'
+import type { Recipe, RecipeConfig, ReservedField, SlotValue } from './types'
 
 /**
  * Empty: the empty mapped type. `keyof Empty = never`, which `Merge`
@@ -46,7 +44,7 @@ type ApplicatorOverlay = RecipeConfig
  * `Empty` when the overlay declares no slots.
  */
 type SlotsOf<Overlay> = Overlay extends { slots: infer S }
-	? S extends Record<string, ClassValue>
+	? S extends Record<string, SlotValue>
 		? S
 		: Empty
 	: Empty
@@ -89,7 +87,8 @@ type ApplicatorReturn<
  *
  * Merge semantics:
  *   - `base`: standard's then caller's, concatenated.
- *   - `slots`: shallow merge; caller's keys override.
+ *   - `slots`: shallow merge; caller's keys override. A caller's slot group
+ *     replaces the standard group of the same name.
  *   - `defaults`: shallow merge; caller's keys override.
  *   - `palette`: caller's overrides standard's; palettes replace, they
  *     don't merge.

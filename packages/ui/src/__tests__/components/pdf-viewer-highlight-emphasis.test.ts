@@ -16,7 +16,7 @@ const { region } = k.viewport.page.highlights
 
 const resting = cn(region.base, region.fill.amber, region.ring.amber, region.hover)
 
-const selected = cn(region.base, region.activeFill.amber, region.ring.amber, region.active)
+const selected = cn(region.base, region.active.fill.amber, region.ring.amber, region.active.base)
 
 const dimmed = cn(region.base, region.fill.amber, region.ring.amber, region.hover, region.dimmed)
 
@@ -32,7 +32,7 @@ describe('a region at rest', () => {
 	 *
 	 * Between `ring-1` and the selection's `ring-4`, which is the order the three states should
 	 * read in, and a width step rather than the selected wash: a hover that previewed
-	 * `activeFill` would say the region is chosen a moment before it is.
+	 * `active.fill` would say the region is chosen a moment before it is.
 	 */
 	it('thickens its stroke under the pointer', () => {
 		expect(resting).toContain('hover:ring-2')

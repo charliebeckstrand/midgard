@@ -81,7 +81,7 @@ export function JsonTreeBranchHeader({
 				onClick={onToggle}
 				onKeyDown={handleKeyDown}
 			>
-				<span className={cn(k.chevron.icon)} aria-hidden="true">
+				<span className={cn(k.chevron.base)} aria-hidden="true">
 					<Icon
 						icon={<ChevronRight />}
 						size="sm"

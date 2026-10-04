@@ -987,7 +987,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			// picked there, and a dot near the middle of a small region can put it out of reach
 			// altogether. The dot gives back a share of what the region itself holds, the way it
 			// does for a zone — `regionSpare` states why a share and not a figure. Touch keeps the
-			// whole 44px target, since `k.hitFine` narrows at `pointer-fine` only: a region is a
+			// whole 44px target, since `k.hit.fine` narrows at `pointer-fine` only: a region is a
 			// large shape a finger can reach elsewhere, and a coarse pointer cannot aim at an 11px
 			// target (WCAG 2.5.5).
 			//

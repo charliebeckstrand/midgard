@@ -10,24 +10,26 @@ import { findSteps } from '../helpers/class-stops'
  * form to the scale. The `xl` step takes the `lg` size, because the scale has no `xl`.
  */
 const scale = (step: (typeof densitySteps)[number]) =>
-	shaku.iconSize[step === 'xl' ? 'lg' : step].replace('size-', '')
+	shaku.icon.size[step === 'xl' ? 'lg' : step].replace('size-', '')
 
 describe('shaku icon ramps', () => {
-	it('iconRamp holds the iconSize of each step', () => {
-		const steps = findSteps([shaku.iconRamp], 'density-size-')
+	it('icon.base holds the icon size of each step', () => {
+		const steps = findSteps([shaku.icon.base], 'density-size-')
 
 		for (const step of densitySteps) expect(steps[step]).toBe(scale(step))
 	})
 
-	it('iconSlotRamp holds the icon slot size of each step', () => {
-		const steps = findSteps([shaku.iconSlotRamp], '*:data-[slot=icon]:density-size-')
+	it('icon.slot.base holds the icon slot size of each step', () => {
+		const steps = findSteps([shaku.icon.slot.base], '*:data-[slot=icon]:density-size-')
 
 		for (const step of densitySteps) expect(steps[step]).toBe(scale(step))
 
-		expect(shaku.iconSlotRamp).toContain('*:data-[slot=icon]:shrink-0')
+		expect(shaku.icon.slot.base).toContain('*:data-[slot=icon]:shrink-0')
 	})
 
 	it('icon.md holds the icon slot size of md', () => {
-		expect(shaku.icon.md).toBe(`*:data-[slot=icon]:size-${scale('md')} *:data-[slot=icon]:shrink-0`)
+		expect(shaku.icon.slot.md).toBe(
+			`*:data-[slot=icon]:size-${scale('md')} *:data-[slot=icon]:shrink-0`,
+		)
 	})
 })

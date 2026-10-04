@@ -240,7 +240,7 @@ export function cellRovingAttrs<T>(args: {
  * the new-row slot, give `undefined`. @internal
  */
 export function specialCellClass<T>(col: GridColumn<T>): string | undefined {
-	if (col.dragHandle) return k.rowReorder.cell
+	if (col.dragHandle) return k.row.reorder.cell
 
 	if (col.selectable) return k.cell.select
 

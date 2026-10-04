@@ -369,7 +369,7 @@ export function GridCellEditor<T>({
 	)
 
 	return (
-		<span ref={hostRef} className={cn(k.edit.host, error && k.edit.errorRing)}>
+		<span ref={hostRef} className={cn(k.edit.host, error && k.edit.error.ring)}>
 			<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
 				{body}
 			</span>
@@ -381,7 +381,7 @@ export function GridCellEditor<T>({
 			/>
 
 			{error && (
-				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error)}>
+				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error.base)}>
 					{error}
 				</span>
 			)}

@@ -7,7 +7,7 @@ import { ActiveIndicator } from '../../primitives/active-indicator'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
-import { type itemScale, k } from '../../recipes/kata/sidebar'
+import { k, type scale } from '../../recipes/kata/sidebar'
 import { partitionByType } from '../../utilities/flatten-children'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -25,7 +25,7 @@ export type SidebarItemProps = NavItemProps & {
 	 * icon and the slots take the step too. The row has no `xs` or `xl` step,
 	 * because the text, the padding, and the gap stop at `sm` and `lg`.
 	 */
-	size?: ScaleStep<typeof itemScale>
+	size?: ScaleStep<typeof scale>
 }
 
 /**

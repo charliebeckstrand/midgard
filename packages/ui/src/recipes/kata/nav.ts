@@ -6,11 +6,12 @@
  *   inner `button`, which trade off the interaction chrome;
  * - `item` also carries the focus-projection `indicator` and the
  *   `prefix`/`suffix` slot wrappers;
- * - `bar` is the `<NavBar>` landmark frame;
+ * - `bar.base` is the `<NavBar>` landmark frame, and `bar.rail` is the row of
+ *   items inside it;
  * - `skeleton` is the form of the `<NavSkeleton>` rows.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, kokkaku, narabi, omote, sen, shaku, textRamp } from '../kiso'
+import { hannou, ji, kasane, kokkaku, narabi, omote, sen, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
@@ -32,17 +33,17 @@ const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0']
  * is `p-2` with `gap-2` and `text-base`. The skeleton row takes the same box,
  * so the two boxes match.
  */
-const itemBox = [flex.row, 'w-full', dan.space.navItem, dan.gap.item, textRamp, rounded.lg]
+const itemBox = [flex.row, 'w-full', dan.space.nav.item, dan.gap.item, ji.ramp, rounded.lg]
 
 /**
  * Shared item structure minus the interaction surface. The icon takes the
  * step of the nearest density scope. At `md` it is `size-5`.
  */
 const itemShell = [
-	'group relative',
+	'group',
 	...itemBox,
 	...nav.base,
-	...shaku.iconSlotRamp,
+	...shaku.icon.slot.base,
 	...cursor,
 	'text-start',
 ]
@@ -85,15 +86,15 @@ const button = defineRecipe({
 
 /**
  * The {@link NavBar} landmark frame, with an optional border. The row of items
- * scrolls in the `barRail` inside it, because the edge fade of the rail masks
- * the whole box, and the frame keeps its border and fill.
+ * scrolls in the `bar.rail` inside it. The edge fade of the rail masks the
+ * whole box, so the frame keeps its border and fill.
  */
 const bar = defineRecipe({
 	base: ['px-4 py-2.5', rounded.lg, 'border'],
 	variant: {
-		solid: [...border.defaultColor, ...bg.tint],
-		outline: [...border.defaultColor],
-		plain: [...border.transparent],
+		solid: [...border.color.default, ...bg.tint],
+		outline: [...border.color.default],
+		plain: [...border.color.transparent],
 	},
 	defaults: { variant: 'solid' },
 })
@@ -108,10 +109,12 @@ export const k = {
 			horizontal: ['flex-row', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
 		},
 	},
-	/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */
-	bar,
-	/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
-	barRail: [flex.row, 'gap-4', ...rail],
+	bar: {
+		/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */
+		base: bar,
+		/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
+		rail: [flex.row, 'gap-4', ...rail],
+	},
 	item: {
 		/** The `<li>` wrapper; pass `affix` to take over the interaction chrome. */
 		base,
@@ -142,7 +145,7 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link NavBar}: the `variant` style (`solid` | `outline` | `plain`). */
-export type NavBarVariants = Omit<VariantProps<typeof k.bar>, 'variant'> & {
+export type NavBarVariants = Omit<VariantProps<typeof k.bar.base>, 'variant'> & {
 	/** The frame of the bar: a border and a tinted fill, a border alone, or neither. @defaultValue 'solid' */
-	variant?: VariantProps<typeof k.bar>['variant']
+	variant?: VariantProps<typeof k.bar.base>['variant']
 }

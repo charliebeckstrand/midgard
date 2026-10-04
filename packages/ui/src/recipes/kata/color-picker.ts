@@ -13,7 +13,7 @@ const { portal, panel } = popover
 const button = defineRecipe({
 	base: [
 		'flex items-center gap-2',
-		...reset,
+		...reset.base,
 		'text-start',
 		'appearance-none',
 		...cursor,
@@ -27,11 +27,16 @@ const value = defineRecipe({
 	defaults: { truncate: true },
 })
 
-const swatch = [
-	'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
-	rounded.sm,
-	dan.size.checkBox,
-]
+const swatch = {
+	base: [
+		'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
+		rounded.sm,
+		dan.size.check.box,
+	],
+	/** The checkerboard behind the trigger swatch while the color is translucent. */
+	checkerboard:
+		'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:8px_8px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
+}
 
 export const k = {
 	surface: {
@@ -41,11 +46,6 @@ export const k = {
 	button,
 	value,
 	swatch,
-	/** Chequerboard surfaced behind the trigger swatch when alpha is translucent. */
-	checkerboard:
-		'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:8px_8px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
-	icon: ['flex items-center', 'pointer-events-none', text.muted],
-	placeholder: text.muted,
 	content: {
 		portal,
 		motion: panel.motion,

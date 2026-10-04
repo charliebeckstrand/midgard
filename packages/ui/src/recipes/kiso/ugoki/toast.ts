@@ -24,4 +24,4 @@ export const toast = {
 	bottom: slide('100%'),
 	/** Dismissal fade / collapse transition. */
 	dismiss: { duration: tempo },
-}
+} as const

@@ -161,7 +161,7 @@ export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsP
 					// A raw color inks through the `fill` attribute; a slot omits it and
 					// inks through its class.
 					fill: label.color,
-					className: cn(k.markLabel, label.fill),
+					className: cn(k.mark.label, label.fill),
 				}
 
 				return animate ? (

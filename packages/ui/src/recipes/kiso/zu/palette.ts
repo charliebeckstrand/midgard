@@ -32,10 +32,10 @@ import { mode } from '../../../core/recipe'
  * - `fill` for bars, areas, slices, and SVG text.
  * - `text` (a currentColor class) for HTML swatches (legend keys, tooltip rows
  *   — `<Swatch>` fills from it).
- * - `onFill` for label text set inside the mark's own fill, the one place text
+ * - `label` for label text set inside the mark's own fill, the one place text
  *   sits on a series color.
  *
- * `onFill` is white-first. The percent label is a redundant graphical
+ * `label` is white-first. The percent label is a redundant graphical
  * annotation, since the tooltip and hidden data table carry the authoritative
  * value. It therefore clears the non-text 3:1 floor (WCAG 1.4.11) rather than
  * the 4.5:1 text floor. The luminance formula overstates that floor on
@@ -52,55 +52,55 @@ const series = {
 		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
 		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
 		text: mode('text-blue-600', 'dark:text-blue-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	orange: {
 		stroke: mode('stroke-orange-600', 'dark:stroke-orange-600'),
 		fill: mode('fill-orange-600', 'dark:fill-orange-600'),
 		text: mode('text-orange-600', 'dark:text-orange-600'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	violet: {
 		stroke: mode('stroke-violet-600', 'dark:stroke-violet-500'),
 		fill: mode('fill-violet-600', 'dark:fill-violet-500'),
 		text: mode('text-violet-600', 'dark:text-violet-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	green: {
 		stroke: mode('stroke-green-600', 'dark:stroke-green-600'),
 		fill: mode('fill-green-600', 'dark:fill-green-600'),
 		text: mode('text-green-600', 'dark:text-green-600'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	red: {
 		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
 		fill: mode('fill-red-600', 'dark:fill-red-500'),
 		text: mode('text-red-600', 'dark:text-red-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	sky: {
 		stroke: mode('stroke-sky-600', 'dark:stroke-sky-600'),
 		fill: mode('fill-sky-600', 'dark:fill-sky-600'),
 		text: mode('text-sky-600', 'dark:text-sky-600'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	amber: {
 		stroke: mode('stroke-amber-600', 'dark:stroke-amber-600'),
 		fill: mode('fill-amber-600', 'dark:fill-amber-600'),
 		text: mode('text-amber-600', 'dark:text-amber-600'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	rose: {
 		stroke: mode('stroke-rose-600', 'dark:stroke-rose-500'),
 		fill: mode('fill-rose-600', 'dark:fill-rose-500'),
 		text: mode('text-rose-600', 'dark:text-rose-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		label: mode('fill-white', 'dark:fill-white'),
 	},
 	zinc: {
 		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),
 		fill: mode('fill-zinc-600', 'dark:fill-zinc-400'),
 		text: mode('text-zinc-600', 'dark:text-zinc-400'),
-		onFill: mode('fill-white', 'dark:fill-zinc-950'),
+		label: mode('fill-white', 'dark:fill-zinc-950'),
 	},
 }
 

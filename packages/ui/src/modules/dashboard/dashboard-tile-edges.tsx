@@ -85,7 +85,7 @@ export const DashboardTileEdges = memo(function DashboardTileEdges({
 			<DashboardResizeHandle edge="se" {...shared} />
 
 			{resizing && (
-				<div data-slot="dashboard-resize-readout" className={cn(k.readout)}>
+				<div data-slot="dashboard-resize-readout" className={cn(k.resize.readout)}>
 					{cell.w} × {cell.h}
 				</div>
 			)}

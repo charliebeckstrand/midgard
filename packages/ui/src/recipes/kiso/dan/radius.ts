@@ -9,8 +9,8 @@ export const radius = {
 	control: 'density-rounded-[1.5,2,2.5]',
 	/** The radius of a button. */
 	button: 'density-rounded-[1,1.5,2,2.5,2.5]',
-	/** The radius of a query chip. */
-	chipQuery: 'density-rounded-[1,1,1.5,2,2]',
+	/** The radius of the combinator button between query chips. */
+	combinator: 'density-rounded-[1,1,1.5,2,2]',
 	/** The radius of a tooltip. */
 	tooltip: 'density-rounded-[1,2,3]',
 	/** The radius of a card. */

@@ -22,6 +22,7 @@ import type {
 	RecipeConfig,
 	ReservedField,
 	ResolvedConfig,
+	SlotValue,
 	VariantAxis,
 } from './types'
 
@@ -87,7 +88,8 @@ type Expansion = {
  *
  * - `base`, `variants`, `compound`, and `defaults` apply per call through
  *   `clsx` + `tailwind-merge`;
- * - `slots` pre-merge onto the recipe as direct properties;
+ * - `slots` pre-merge onto the recipe as direct properties, and a slot group
+ *   pre-merges each of its entries;
  * - `palette` expands into an implicit `color` axis;
  * - `extras` attach arbitrary kata-shaped siblings.
  *
@@ -146,7 +148,7 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 		return result
 	}
 
-	const slotCache: Record<string, string> = {}
+	const slotCache: Record<string, unknown> = {}
 
 	for (const [slot, value] of Object.entries(resolved.slots)) {
 		// `in` sees the function built-ins (`name`, `length`, `call`, …) through
@@ -156,7 +158,7 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 			throw new Error(`defineRecipe: slot name "${slot}" collides with a recipe property`)
 		}
 
-		slotCache[slot] = twMerge(clsx(value))
+		slotCache[slot] = mergeSlot(value)
 	}
 
 	Object.assign(recipe, slotCache)
@@ -180,6 +182,21 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	// Assert the final shape: slot properties, `.config`, and extras attach
 	// at runtime, invisible to the type system.
 	return recipe as Recipe<C> & X
+}
+
+/**
+ * Merges a slot into its class string. A plain object is a slot group, so each
+ * of its entries merges the same way, and the result keeps the names of the
+ * group. An array is a class list, and clsx flattens it.
+ *
+ * @internal
+ */
+function mergeSlot(value: SlotValue): unknown {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return twMerge(clsx(value))
+	}
+
+	return Object.fromEntries(Object.entries(value).map(([name, entry]) => [name, mergeSlot(entry)]))
 }
 
 /**

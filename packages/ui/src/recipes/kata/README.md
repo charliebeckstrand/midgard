@@ -12,7 +12,7 @@ When a component and primitive share the same UI surface (e.g. `components/popov
 
 ## 2. Shape
 
-Each kata exports its runtime surface as `k`. Some kata also export helpers (`heading.ts`), and `status.ts` exports named values in place of `k`. The shape `k` takes depends on how the kata reaches the recipe layer:
+Each kata exports its runtime surface as `k`, and its `scale` when it has one. The shape `k` takes depends on how the kata reaches the recipe layer:
 
 - **Archetype kata** (`k = bridge.<archetype>(tokens, {...})`) — the kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which builds and returns the `k` surface. The bridge owns the recipe construction; the kata supplies the tokens and per-call overlays.
 - **Recipe-shaped kata** (`k = defineRecipe(...)`) — `k` is a `defineRecipe(...)` callable, used as `k({ variant, size, … })`. Slots and sibling sub-recipes attach as direct properties (`k.title`, `k.thumb`) via the `defineRecipe(config, extras)` form. A density-native kata has no size axis: its stepped classes take the step of the nearest density scope.
@@ -54,6 +54,7 @@ Kata that need only a subset of a semantic bundle reach `kiso/<archetype>` direc
 - **Compose, don't redefine.** A kata that reinvents a recipe already in a katakana bridge or a kiso bundle is a defect — fold it into the existing module.
 - **No sideways imports.** Kata never import values from sibling kata. A type-only import is allowed (§1). Shared concerns promote by role: shared *data* to a kiso semantic bundle, shared *wiring* to a katakana bridge. `import { k as <name> }` in a component is a signal the archetype belongs in a bridge.
 - **Variants earn their axis.** Add a variant axis when ≥2 components or call sites need it. Single-use variants stay inline.
+- **Keys by part.** Name each key of `k` by the rules in [`../README.md`](../README.md#4-key-names): one word for each key, and a part with children is an object whose own classes are `base`.
 - **Header when non-obvious.** Open a kata with a summary doccomment only when its structure isn't self-evident from the body — it serves more than one unit, sources a non-standard token (inline `mode()` colors rather than an `iro` palette), bridges or composes another recipe, or groups slots non-trivially. A canonical recipe-shaped matrix (`variant × color × size`) needs none; the header is the signal that something here is worth reading first.
 
 ---

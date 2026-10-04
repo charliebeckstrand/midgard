@@ -9,7 +9,7 @@ const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: ['block', 'truncate', ...reset, ...density],
+		base: ['block', 'truncate', ...reset.base, ...density],
 		slots: {
 			// Kept in step with the listbox recipe — one dropdown family, one height (see the note
 			// there for why 320px).

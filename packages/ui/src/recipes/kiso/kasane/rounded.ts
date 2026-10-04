@@ -1,7 +1,7 @@
 /**
  * Kasane rounded: named-radius pass-through to Tailwind's named radius
- * scale. Sits beside the numeric `r(v)` helpers in `radius`;
- * `rounded.lg` → `rounded-lg`.
+ * scale; `rounded.lg` → `rounded-lg`. The stepped radius ramps are in
+ * `dan.radius`.
  *
  * Layer: kiso · Concern: named corner radius
  */

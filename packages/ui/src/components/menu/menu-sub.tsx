@@ -219,7 +219,7 @@ function MenuSubSheet({
 				data-disabled={dataAttr(disabled)}
 				data-slot="menu-sub-trigger"
 				data-open={dataAttr(open)}
-				className={cn('group/option', k.item, k.subTrigger, className)}
+				className={cn('group/option', k.item, k.sub.trigger, className)}
 				onClick={handleClick}
 				onKeyDown={handleTriggerKeyDown}
 				onPointerMove={handlePointerMove}
@@ -228,7 +228,7 @@ function MenuSubSheet({
 
 				<MenuLabel>{label}</MenuLabel>
 
-				<Icon icon={<ChevronDown />} className={cn(k.subChevron, open && 'rotate-180')} />
+				<Icon icon={<ChevronDown />} className={cn(k.sub.chevron, open && 'rotate-180')} />
 			</button>
 
 			{open ? (
@@ -236,7 +236,7 @@ function MenuSubSheet({
 					id={groupId}
 					aria-labelledby={triggerId}
 					data-slot="menu-sub-group"
-					className={k.subGroup}
+					className={k.sub.group}
 					onKeyDown={handleGroupKeyDown}
 				>
 					{children}
@@ -477,11 +477,11 @@ function MenuSubFloating({
 				aria-disabled={ariaAttr(disabled)}
 				data-disabled={dataAttr(disabled)}
 				data-slot="menu-sub-trigger"
-				// The open parent row stays washed (`k.subTrigger`) while the pointer
+				// The open parent row stays washed (`k.sub.trigger`) while the pointer
 				// works inside the panel, so the trail back to the menu it came from
 				// reads as live.
 				data-open={dataAttr(open)}
-				className={cn('group/option', k.item, k.subTrigger, className)}
+				className={cn('group/option', k.item, k.sub.trigger, className)}
 				{...getReferenceProps({
 					onPointerMove: handlePointerMove,
 					onBlur: handleBlur,

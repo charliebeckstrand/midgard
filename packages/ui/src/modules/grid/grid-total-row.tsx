@@ -156,15 +156,15 @@ function GroupRevealCell({
 				// The leading cell carries the group rail — in the group's color when set
 				// (layered over the neutral tint), else neutral; a colored group also
 				// washes each cell's fill.
-				rail && k.rowGroup.rail.padded,
-				rail && color && k.rowGroup.rail.color[color],
-				color && k.rowGroup.tint[color],
+				rail && k.row.group.rail.padded,
+				rail && color && k.row.group.rail.color[color],
+				color && k.row.group.tint[color],
 				className,
 			)}
 			style={NO_PADDING}
 		>
-			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
-				<div className={cn(k.rowGroup.reveal.clip)}>
+			<div className={cn(k.row.group.reveal.track)} data-open={dataAttr(open)}>
+				<div className={cn(k.row.group.reveal.clip)}>
 					<div className={cn(pad)}>{children}</div>
 				</div>
 			</div>
@@ -260,7 +260,7 @@ function GridGroupTotalRow<T>({
 
 	const { locale } = useLocale()
 
-	const pad = k.rowGroup.reveal.pad
+	const pad = k.row.group.reveal.pad
 
 	const stopProps = useGridNavStopProps(navKey ?? '')
 

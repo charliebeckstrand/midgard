@@ -1,8 +1,9 @@
 /**
- * Popover bridge: floating-overlay archetype shared by `popover`,
- * `combobox`, `listbox`, and `date-picker`. A pure bridge: it receives the
- * `popover` token bundle and returns the trigger / portal / text / panel
- * bundle the consumers read. It references kiso in neither value nor type.
+ * Popover bridge: floating-overlay archetype of the `popover` kata. Combobox,
+ * listbox, and date-picker read a subset of the `popover` tokens with no
+ * bridge. A pure bridge: it receives the `popover` token bundle and returns the
+ * trigger / portal / text / panel bundle the consumers read. It references kiso
+ * in neither value nor type.
  *
  * Popover has no variant axis: the bundle is class fragments, not a
  * `defineRecipe(...)` callable. The bridge is generic over the bundle and

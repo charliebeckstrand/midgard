@@ -16,10 +16,10 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const width = [dan.size.colorPanelWidth, 'max-w-full'] as const
+const width = [dan.size.colorPanel.width, 'max-w-full'] as const
 
 export const colorPanel = {
-	base: [rounded.lg, dan.size.colorPanelHeight, ...width],
+	base: [rounded.lg, dan.size.colorPanel.height, ...width],
 	width,
 	density: true,
 } as const

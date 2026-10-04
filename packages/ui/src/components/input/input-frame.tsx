@@ -47,10 +47,10 @@ export function InputFrame({
 			density={density}
 			data-group={dataGroup}
 			data-group-orientation={dataGroupOrientation}
-			className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
+			className={cn(k.surface({ variant }), hasAffix && k.frame)}
 		>
 			{hasPrefix && (
-				<span data-slot="prefix" data-density="slot" className={cn(k.affix, k.prefix)}>
+				<span data-slot="prefix" data-density="slot" className={cn(k.affix.base, k.affix.prefix)}>
 					{prefix}
 				</span>
 			)}
@@ -58,7 +58,7 @@ export function InputFrame({
 			{inputEl}
 
 			{hasSuffix && (
-				<span data-slot="suffix" data-density="slot" className={cn(k.affix, k.suffix)}>
+				<span data-slot="suffix" data-density="slot" className={cn(k.affix.base, k.affix.suffix)}>
 					{suffix}
 				</span>
 			)}

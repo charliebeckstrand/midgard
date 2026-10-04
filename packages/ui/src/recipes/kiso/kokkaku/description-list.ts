@@ -12,6 +12,6 @@
 import { dan } from '../dan'
 
 export const descriptionList = {
-	term: `${dan.size.line} w-24 max-w-full`,
-	details: `${dan.size.line} w-48 max-w-full`,
+	term: `${dan.size.line.base} w-24 max-w-full`,
+	details: `${dan.size.line.base} w-48 max-w-full`,
 } as const

@@ -8,6 +8,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { iro } from '../iro'
 import { sen } from '../sen'
 
 const { focus } = sen
@@ -20,7 +21,7 @@ export const nav = {
 	 * children also set it. The headless Button of an item drops the `select-none`
 	 * of the button recipe.
 	 */
-	base: [...mode('text-zinc-950', 'dark:text-white'), 'select-none *:select-none'],
+	base: [...iro.text.default, 'select-none *:select-none'],
 	/** Low-alpha hover wash. */
 	tint: mode('hover:bg-zinc-950/5', 'dark:hover:bg-white/5'),
 	/** Inset keyboard-focus indicator. */

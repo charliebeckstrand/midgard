@@ -21,7 +21,7 @@
 import { cn } from '../../../../core'
 import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
 
-/** The mark classes for one palette slot — `stroke` / `fill` / `text` / `onFill`. @internal */
+/** The mark classes for one palette slot — `stroke` / `fill` / `text` / `label`. @internal */
 export type SlotPaint = (typeof k.series)[ChartColorSlot]
 
 /**

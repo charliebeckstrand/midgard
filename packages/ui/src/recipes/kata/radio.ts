@@ -26,7 +26,7 @@ export const k = bridge.check(
 			'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
 			// The circle takes the step of the nearest density scope.
-			kokkaku.radio.circle,
+			radio.circle,
 		],
 		color,
 		skeleton: radio,
@@ -42,14 +42,14 @@ export const k = bridge.check(
 			base: [
 				'absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none',
 				'[:checked~&]:opacity-100',
-				dan.size.radioDot,
+				dan.size.radio.dot,
 			],
 		}),
 	},
 )
 
 /** The size scale of {@link Radio}: the steps of its circle and dot. */
-export const scale = defineScale(dan.size.checkBox, dan.size.radioDot)
+export const scale = defineScale(dan.size.check.box, dan.size.radio.dot)
 
 /** Recipe variant props for {@link Radio}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
 export type RadioVariants = Omit<VariantProps<typeof k>, 'color'> & {

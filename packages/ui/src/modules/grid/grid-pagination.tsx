@@ -170,7 +170,7 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 	}, [pageIndex])
 
 	return (
-		<div data-slot="grid-pagination" className={cn(k.footer.root)}>
+		<div data-slot="grid-pagination" className={cn(k.footer.base)}>
 			<div className={cn(k.footer.bar)}>
 				<div className={cn(k.footer.controls, !showPicker && k.footer.bare.controls)}>
 					{showPicker && (

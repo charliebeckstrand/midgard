@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 
 import { colors, extendedColors } from '../../core/recipe'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
-import { k as grid } from '../../recipes/kata/grid'
 import { k as list } from '../../recipes/kata/list'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as nav } from '../../recipes/kata/nav'
@@ -84,7 +83,7 @@ describe('iro ramp contrast', () => {
 })
 
 /**
- * The same drift guard for the opt-in extended palette (`iro.extendedPalette`).
+ * The same drift guard for the opt-in extended palette (`iro.extended`).
  * The extended ramp only carries the two foreground roles the wide palette
  * reads — `onSurface` (bare text) and `onTint` (plain / soft / outline text) —
  * so both must clear text AA on their declared surfaces in both modes.
@@ -105,7 +104,7 @@ describe('iro extended palette contrast', () => {
 			const [light, dark] = extendedOnTint[color]
 
 			// The 15% soft-palette wash behind this foreground.
-			const wash = iro.extendedPalette.soft.bg[color].join(' ')
+			const wash = iro.extended.soft.bg[color].join(' ')
 
 			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
@@ -143,7 +142,7 @@ const TINT = byMode(omote.bg.tint)
 /** The composited ground `omote.bg.tint` paints over the page surface, per mode. */
 const WASH = { light: tinted(TINT.light, SURFACE.light), dark: tinted(TINT.dark, SURFACE.dark) }
 
-const HOVER = byMode(hannou.tint)
+const HOVER = byMode(hannou.tint.base)
 
 /**
  * The composited ground the interaction washes paint: `hannou.tint` (hover /
@@ -161,7 +160,7 @@ const HOVER_WASH = {
 }
 
 /** The muted rung every consumer of that wash inks with. */
-const MUTED = byMode(iro.onWash.muted)
+const MUTED = byMode(iro.on.wash.muted)
 
 /**
  * A foreground class carrying a palette color, whatever utility and state
@@ -241,8 +240,6 @@ const TINT_CONSUMERS: readonly {
 			list.description,
 		],
 	},
-	// `batch.bar`, which `batch.count` nests inside.
-	{ file: 'recipes/kata/grid.ts', surfaces: [grid.batch.count] },
 	// The control track, inked by `segment/item.ts`.
 	{ file: 'recipes/kiso/segment/control.ts', surfaces: [segment.item.base] },
 	// The `solid` bar; items ink at `hannou.nav.base`, not at a muted rung.
@@ -276,7 +273,7 @@ const TINT_CONSUMERS: readonly {
  * The tint-wash foreground rule. `omote.bg.tint` is not the page surface: it
  * composites to `#f3f3f3` in light, where the ramp's `onSurface` rungs — tuned
  * for the page — lose AA (zinc 4.34:1, red 4.28:1, green 4.44:1 against a
- * 4.5:1 floor). `iro.onWash.muted` is the rung that clears it, and this
+ * 4.5:1 floor). `iro.on.wash.muted` is the rung that clears it, and this
  * block holds every recipe painting that wash to it, so the next kata that
  * grounds a page-surface ink on the tint fails here rather than in Chromium.
  *

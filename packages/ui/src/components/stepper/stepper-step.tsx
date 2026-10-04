@@ -119,7 +119,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
 		return (
-			<li data-slot="stepper-item" className={k.item({ orientation: layout })}>
+			<li data-slot="stepper-item" className={k.item.base({ orientation: layout })}>
 				<button
 					type="button"
 					id={triggerId}
@@ -134,7 +134,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 					}
 					disabled={isDisabled}
 					onClick={() => onValueChange(value)}
-					className={cn(k.step({ orientation: layout }), k.itemButton, className)}
+					className={cn(k.step({ orientation: layout }), k.item.button, className)}
 				>
 					{inner}
 				</button>

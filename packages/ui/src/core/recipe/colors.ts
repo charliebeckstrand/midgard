@@ -3,7 +3,7 @@
  *
  * `colors` is the **standard** palette every chromatic kata carries by
  * default. `extendedColors` is an **opt-in** set a kata pulls in through
- * `iro.extendedPalette`.
+ * `iro.extended`.
  *
  * The recipe engine derives a palette's `color` axis from the keys of the
  * matrix it's handed (`engine/palette.ts`). A kata that reads the wider bundle
@@ -21,7 +21,7 @@ export type Color = (typeof colors)[number]
 
 /**
  * The extended palette: opt-in chromatic choices a kata surfaces by reading
- * `iro.extendedPalette`. Not part of the {@link Color standard set}; a
+ * `iro.extended`. Not part of the {@link Color standard set}; a
  * component offers these only when its kata declares the wider palette (e.g.
  * Badge).
  */

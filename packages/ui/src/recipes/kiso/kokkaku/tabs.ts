@@ -19,13 +19,13 @@
 
 import { dan } from '../dan'
 
-const line = `${dan.size.row} ${dan.size.tabWidth}`
+const line = `${dan.size.row} ${dan.size.tab.width}`
 
 export const tabs = {
 	tab: {
-		horizontal: [dan.space.tabsSkeletonMarginBottom, line],
+		horizontal: [dan.space.tab.skeleton.bottom, line],
 		vertical: [
-			`${dan.space.tabsSkeletonMarginStart} ${dan.space.tabsSkeletonMarginEnd} ${dan.space.tabsSkeletonMarginY}`,
+			`${dan.space.tab.skeleton.start} ${dan.space.tab.skeleton.end} ${dan.space.tab.skeleton.y}`,
 			line,
 		],
 	},

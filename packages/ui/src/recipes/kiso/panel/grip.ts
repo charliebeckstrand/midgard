@@ -32,7 +32,7 @@ const BAR = ['rounded-full', ...mode('bg-zinc-950/20', 'dark:bg-white/25'), ...F
 
 export const grip = {
 	/** Goes on the grab area, so the bar can read the focus the area holds. */
-	GROUP,
+	base: GROUP,
 	/**
 	 * The bar the reader sees and aims at, keyed by the line the separator draws.
 	 * That is the same word its `aria-orientation` says, and not the axis it

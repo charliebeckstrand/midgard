@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { densitySteps, toInnerStep } from '../../core/density'
-import { size, textRamp } from '../../recipes/kiso/ji/size'
+import { ramp, size } from '../../recipes/kiso/ji/size'
 import { findSteps } from '../helpers/class-stops'
 
 /**
@@ -11,7 +11,7 @@ import { findSteps } from '../helpers/class-stops'
  */
 describe('ji text ramp', () => {
 	it('holds the size class of each step', () => {
-		const steps = findSteps([textRamp], 'density-text-')
+		const steps = findSteps([ramp], 'density-text-')
 
 		for (const step of densitySteps) {
 			expect(`text-${steps[step]}`).toBe(size[toInnerStep(step)])

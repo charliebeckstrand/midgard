@@ -76,7 +76,7 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 				// Roving skips the items of a group without this mark. See `ROVING_ITEM_SELECTOR`.
 				data-open={dataAttr(open)}
 				{...motionProps}
-				className={cn(k.group, indent && k.indent)}
+				className={cn(k.group.base, indent && k.group.indent)}
 			>
 				{stampTreePositions(children)}
 			</motion.div>

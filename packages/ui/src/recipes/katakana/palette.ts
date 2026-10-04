@@ -1,3 +1,9 @@
+/**
+ * Palette bridge: the solid / soft / outline matrix that the chromatic surface
+ * kata share. A pure bridge: it receives an `iro` palette from the calling
+ * kata, and it references kiso in neither value nor type.
+ */
+
 import type { Color } from '../../core/recipe'
 
 /** One palette slot: a class list per color. Generic over the color set. */
@@ -17,15 +23,15 @@ type ChromaticPalette<C extends string = Color> = {
  * variant spread `plain: palette.plain.text` into their own matrix.
  *
  * Generic over the color set: handed the standard `iro.palette` it returns
- * the five-color matrix. Handed `iro.extendedPalette` it carries the extended keys
+ * the five-color matrix. Handed `iro.extended` it carries the extended keys
  * through, which widens the kata's `color` axis (Badge).
  */
-export function basePalette<C extends string = Color>(
-	palette: ChromaticPalette<C>,
+export function palette<C extends string = Color>(
+	t: ChromaticPalette<C>,
 ): Record<'solid' | 'soft' | 'outline', Slot<C>[]> {
 	return {
-		solid: [palette.solid.bg, palette.solid.text],
-		soft: [palette.soft.bg, palette.soft.text],
-		outline: [palette.outline.ring, palette.outline.text],
+		solid: [t.solid.bg, t.solid.text],
+		soft: [t.soft.bg, t.soft.text],
+		outline: [t.outline.ring, t.outline.text],
 	}
 }

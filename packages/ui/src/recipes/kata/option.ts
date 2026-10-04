@@ -1,8 +1,8 @@
 import { mode } from '../../core/recipe'
-import { hannou, iro, kasane, narabi, textRamp } from '../kiso'
+import { hannou, iro, ji, kasane, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { onWash } = iro
+const { on } = iro
 const { rounded } = kasane
 const { flex, description } = narabi
 
@@ -13,8 +13,8 @@ const base = [
 	rounded.lg,
 	...hannou.active,
 	// Gap, padding, and text follow the nearest density scope.
-	`${dan.gap.option} ${dan.space.optionX} ${dan.space.optionY}`,
-	textRamp,
+	`${dan.gap.option} ${dan.space.option.x} ${dan.space.option.y}`,
+	ji.ramp,
 	...mode(
 		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
 		'dark:group-data-editing/combobox:only-of-type:bg-white/5',
@@ -27,13 +27,13 @@ export const k = {
 	label: 'truncate group-data-selected/option:font-bold',
 	// A column that stacks a label over its description.
 	text: narabi.text,
-	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
+	// `on.wash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: [description, onWash.muted],
-	check: mode('text-green-600', 'dark:text-green-500'),
+	description: [description, on.wash.muted],
 	/**
-	 * The size of the selected-state check icon. It is the `sm`, `md`, and `lg`
-	 * steps of `shaku.iconSize`, and each outer step takes the size of its neighbor.
+	 * The selected-state check icon: its color and its size. The size is the
+	 * `sm`, `md`, and `lg` steps of `shaku.icon.size`, and each outer step takes
+	 * the size of its neighbor.
 	 */
-	checkSize: dan.size.checkBox,
+	check: [...mode('text-green-600', 'dark:text-green-500'), dan.size.check.box],
 } as const

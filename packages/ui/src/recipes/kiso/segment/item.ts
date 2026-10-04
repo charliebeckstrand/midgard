@@ -15,7 +15,7 @@ import { narabi } from '../narabi'
 import { sen } from '../sen'
 
 const { cursor, disabled, fg } = hannou
-const { onWash } = iro
+const { on } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -39,14 +39,14 @@ export const item = {
 		// only thing marking it. That reads as a highlight sitting on the strip rather than as a
 		// selected item, and it leaves the distinction resting entirely on a fill (WCAG 1.4.1).
 		//
-		// `onWash.muted`, not `muted`: an item sits on the control's own wash track,
+		// `on.wash.muted`, not `muted`: an item sits on the control's own wash track,
 		// which `muted` is not legal over. See `iro/ramp.ts`.
-		...onWash.muted,
+		...on.wash.muted,
 		...fg.current,
 		focus.indicator,
 		focus.ring,
 		...disabled,
 		...cursor,
-		`${dan.text.small} ${dan.space.segmentItemX} ${dan.space.rowY}`,
+		`${dan.text.small} ${dan.space.segment.item.x} ${dan.space.row.y}`,
 	],
 } as const

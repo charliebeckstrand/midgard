@@ -170,7 +170,7 @@ export function Overlay({
 			data-slot="overlay"
 			{...props}
 			className={cn(
-				k.root,
+				k.base,
 				scoped ? k.scoped : k.frame,
 				!modal && 'pointer-events-none',
 				className,

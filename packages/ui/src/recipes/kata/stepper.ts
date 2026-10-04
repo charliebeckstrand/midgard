@@ -8,7 +8,7 @@ const { rounded } = kasane
 const { flex } = narabi
 const { border } = sen
 
-const root = defineRecipe({
+const base = defineRecipe({
 	base: 'flex w-full',
 	orientation: {
 		horizontal: 'flex-row items-start gap-4 px-4',
@@ -20,7 +20,7 @@ const root = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
-const verticalStep = [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.subtleColor]
+const verticalStep = [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.color.subtle]
 
 // A horizontal step is `w-32` where the row has the space, and shrinks to
 // `min-w-20` where it does not, so that a narrow row does not overlap its steps.
@@ -77,9 +77,6 @@ const item = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
-/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
-const itemButton = 'py-0'
-
 // The negative margins run the rule under the steps on each side, out to their
 // indicators. With the `gap-4` of the row on each side, `min-w-20` keeps a gap of
 // 16px between the boxes of two steps on a narrow row.
@@ -88,7 +85,7 @@ const horizontalRule = [
 	flex.fill,
 	'self-start',
 	'border-t',
-	...border.defaultColor,
+	...border.color.default,
 ]
 
 const separator = defineRecipe({
@@ -102,10 +99,13 @@ const separator = defineRecipe({
 })
 
 export const k = {
-	root,
+	base,
 	step,
-	item,
-	itemButton,
+	item: {
+		base: item,
+		/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
+		button: 'py-0',
+	},
 	title,
 	separator,
 	content: {
@@ -131,7 +131,7 @@ export const k = {
 		// after the neutral hover of `interactive`, and the merge keeps it.
 		completed: [
 			flex.inline,
-			'items-center justify-center',
+			'justify-center',
 			'bg-blue-600 dark:bg-blue-600 text-white',
 			'group-enabled:group-hover:bg-blue-500',
 		],
@@ -142,13 +142,13 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link Stepper} — its styling axes (`orientation`), for consumers composing custom slots. */
-export type StepperVariants = Omit<VariantProps<typeof root>, 'orientation'> & {
+export type StepperVariants = Omit<VariantProps<typeof base>, 'orientation'> & {
 	/**
 	 * The axis of the steps. `responsive` is vertical below the `sm` width and
 	 * horizontal from it.
 	 * @defaultValue 'horizontal'
 	 */
-	orientation?: VariantProps<typeof root>['orientation']
+	orientation?: VariantProps<typeof base>['orientation']
 }
 /** Recipe variant props for {@link StepperStep} — its styling axes (`orientation`), for consumers composing custom slots. */
 export type StepperStepVariants = Omit<VariantProps<typeof step>, 'orientation'> & {

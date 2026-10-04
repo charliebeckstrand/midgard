@@ -328,7 +328,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 					ref={rootRef}
 					// A long press opens the readout, so the whole chart, legend included,
 					// selects no text under a hold, as the chart frame does.
-					className={cn(k.touchReadout, className)}
+					className={cn(k.touch.readout, className)}
 					onRegionContextMenu={onRegionContextMenu}
 				/>
 			</div>

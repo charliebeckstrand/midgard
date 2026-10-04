@@ -49,7 +49,7 @@ export function GridGroupDisclosure({
 			suffix={
 				<Icon
 					icon={expanded ? <ChevronDown /> : <ChevronRight />}
-					className={cn(k.rowGroup.chevron)}
+					className={cn(k.row.group.chevron)}
 				/>
 			}
 		>

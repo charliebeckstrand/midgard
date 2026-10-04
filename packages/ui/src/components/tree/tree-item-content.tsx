@@ -168,12 +168,12 @@ export function TreeItemContent({
 					data-slot="tree-item-check"
 					data-checked={dataAttr(checked !== false)}
 					aria-hidden="true"
-					className={cn(k.check)}
+					className={cn(k.check.base)}
 				>
 					{checked === 'mixed' ? (
-						<Minus className={cn(k.checkMark)} strokeWidth={2} />
+						<Minus className={cn(k.check.mark)} strokeWidth={2} />
 					) : (
-						checked && <Check className={cn(k.checkMark)} strokeWidth={2} />
+						checked && <Check className={cn(k.check.mark)} strokeWidth={2} />
 					)}
 				</span>
 			)}

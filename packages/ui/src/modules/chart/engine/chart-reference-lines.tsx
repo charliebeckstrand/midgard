@@ -226,7 +226,7 @@ function LabeledReferenceRule({
 					y={anchor.y}
 					textAnchor={anchor.textAnchor}
 					dominantBaseline="central"
-					className={cn(k.markLabel, fillClass(paint))}
+					className={cn(k.mark.label, fillClass(paint))}
 					style={color ? { fill: color } : undefined}
 				>
 					{line.label || format(line.value)}

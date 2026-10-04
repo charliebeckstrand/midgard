@@ -2,8 +2,8 @@
  * Markdown kata: per-element prose surface for `<Markdown>`. The renderer walks
  * marked's tokens to a React tree, and pulls each element's classes from the
  * matching slot. Styling therefore rides on the target element, not the wrapper. No
- * variants axis — one slot per prose element: `root`/`inline`, the `heading`
- * level map, block text, lists, table parts, and `img`. Code spans and fenced
+ * variants axis — one slot per prose element: `base` (the block wrapper), the
+ * `heading` level map, block text, lists, table parts, and `img`. Code spans and fenced
  * blocks render through the `Code` / `CodeBlock` components instead of a slot
  * here — see `markdown-renderer.tsx`.
  *
@@ -28,9 +28,7 @@ const headingBase = [weight.semibold, '[&_code]:text-[0.875em]']
 export const k = {
 	// First/last-child margin collapse so the prose sits flush in its container
 	// (API-reference rows, Example previews). No color — inherits the container.
-	root: ['[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
-	// The `inline` prop: no block rhythm, and (like the rest) no color of its own.
-	inline: [],
+	base: ['[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
 
 	heading: {
 		1: [...headingBase, size.xl, 'mt-6 mb-3'],
@@ -57,12 +55,12 @@ export const k = {
 	checkbox: 'mr-2',
 
 	blockquote: ['my-4 border-l-2 border-zinc-300 pl-4 italic dark:border-zinc-700'],
-	hr: ['border-0 border-t', ...sen.border.defaultColor, 'my-6'],
+	hr: ['border-0 border-t', ...sen.border.color.default, 'my-6'],
 
 	// Emphasis rule under the header, default rule under cells.
 	table: 'my-4 w-full text-start',
-	th: [weight.semibold, 'border-b px-3 py-2', ...sen.border.emphasisColor],
-	td: ['border-b px-3 py-2', ...sen.border.defaultColor],
+	th: [weight.semibold, 'border-b px-3 py-2', ...sen.border.color.emphasis],
+	td: ['border-b px-3 py-2', ...sen.border.color.default],
 	// biome-ignore lint/plugin/no-text-left: a table column that `:---` marks is left-aligned by name, and the map renders that name as the author wrote it
 	align: { left: 'text-left', right: 'text-right', center: 'text-center' },
 

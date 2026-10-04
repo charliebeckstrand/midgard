@@ -49,7 +49,7 @@ export function ListSkeleton({
 	const rowKeys = rangeKeys(items, 'row')
 
 	return (
-		<div className={cn(k.root({ variant, orientation }), className)}>
+		<div className={cn(k.base({ variant, orientation }), className)}>
 			{rowKeys.map((rowKey) => (
 				<div key={rowKey} className={k.item({ variant })}>
 					<div className={k.content()}>

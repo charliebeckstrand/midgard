@@ -45,10 +45,10 @@ export function NavBar({
 				<nav
 					data-slot="nav-bar"
 					aria-label={ariaLabel}
-					className={cn(k.bar({ variant }), className)}
+					className={cn(k.bar.base({ variant }), className)}
 					{...props}
 				>
-					<div ref={scrollOverflowRef} data-slot="nav-bar-rail" className={cn(k.barRail)}>
+					<div ref={scrollOverflowRef} data-slot="nav-bar-rail" className={cn(k.bar.rail)}>
 						{children}
 					</div>
 				</nav>

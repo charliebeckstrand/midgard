@@ -25,5 +25,5 @@ const frames = {
  * not overlap.
  */
 export const k = {
-	frame: (orientation: GroupOrientation) => frames[orientation],
+	base: (orientation: GroupOrientation) => frames[orientation],
 }

@@ -20,13 +20,13 @@ export const k = defineRecipe({
 		// not make the button taller. The key text is one step below the label of
 		// the button with no change. Each class selects the key itself, so
 		// Chromium tests the rule only against the keys.
-		dan.space.kbdXInButton,
-		dan.space.kbdYInButton,
+		dan.space.kbd.button.x,
+		dan.space.kbd.button.y,
 	],
 })
 
 /** The size scale of {@link Kbd}: the steps of the key text and padding. */
-export const scale = defineScale(dan.text.small, dan.space.markX, dan.space.markY)
+export const scale = defineScale(...mark.density)
 
 /** Recipe variant props for {@link Kbd}: the `size` step that the component writes as a density scope. */
 export type KbdVariants = { size?: ScaleStep<typeof scale> }

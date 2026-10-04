@@ -450,7 +450,7 @@ export function MapPoints({
 
 	if (slot === undefined || hidden) return null
 
-	const countInk = cn('text-xs font-semibold tabular-nums', ...k.series[slot].onFill)
+	const countInk = cn('text-xs font-semibold tabular-nums', ...k.series[slot].label)
 
 	return (
 		<>

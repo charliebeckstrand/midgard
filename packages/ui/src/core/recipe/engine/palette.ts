@@ -53,7 +53,7 @@ export type PalettePairs = Map<string, Map<string, ClassValue[]>>
  *
  * The color set is derived from the keys of the matrix's own entries, not a
  * fixed list. A kata reading the standard `iro.palette` expands over the five
- * standard colors, while one reading `iro.extendedPalette` also picks up the
+ * standard colors, while one reading `iro.extended` also picks up the
  * extended set. Overlay keys (synthetic values like `inherit`) join the axis
  * with a single class shared across every variant. A color key carrying both
  * a matrix rule and an overlay rule keeps them in that order.

@@ -157,7 +157,7 @@ export function PopoverPanel({
 				ref={panelRef}
 				id={id}
 				data-slot="popover-panel"
-				// Half the marker `hannou.glassItem` keys on; the `group/glass` class
+				// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
 				// below is the other half. See `recipes/kiso/hannou/glass-item.ts`.
 				data-glass={dataAttr(glass)}
 				data-density={density}

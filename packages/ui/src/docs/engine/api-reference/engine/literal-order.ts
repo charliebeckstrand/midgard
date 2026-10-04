@@ -201,7 +201,7 @@ function expressionOrder(node: ts.Expression, part: 'elements' | 'keys', walk: W
 		return valueOrder(node, part, walk)
 	}
 
-	// `basePalette(palette)`: the keys of the type that the function declares
+	// `bridge.palette(palette)`: the keys of the type that the function declares
 	// that it returns.
 	if (part === 'keys' && ts.isCallExpression(node)) {
 		const declaration = walk.checker.getResolvedSignature(node)?.getDeclaration()

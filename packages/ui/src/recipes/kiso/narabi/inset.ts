@@ -13,6 +13,6 @@
 import { dan } from '../dan'
 
 export const inset = {
-	prefix: dan.space.slotStart,
-	suffix: dan.space.slotEnd,
+	prefix: dan.space.slot.prefix,
+	suffix: dan.space.slot.suffix,
 } as const

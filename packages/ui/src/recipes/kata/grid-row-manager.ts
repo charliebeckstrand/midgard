@@ -2,7 +2,7 @@
  * Row-manager kata: layout for the "Manage rows" editor — the vertical stack of
  * group zones and each zone's header (label, count, color menu). The drag grip
  * takes the `kata/grid-group` grip. Color is not here — a zone's tint comes from
- * the shared `kata/grid-group` `cardOutline` (Card outline) — so this carries
+ * the shared `kata/grid-group` `outline` (Card outline) — so this carries
  * only the flex layout.
  */
 import { iro, narabi } from '../kiso'
@@ -12,7 +12,7 @@ const { flex } = narabi
 
 export const k = {
 	// Vertical stack of the group zones.
-	root: [flex.col, 'gap-3'],
+	base: [flex.col, 'gap-3'],
 	// The list of the group zones, with the gap of the stack.
 	list: [flex.col, 'gap-3'],
 	zone: {

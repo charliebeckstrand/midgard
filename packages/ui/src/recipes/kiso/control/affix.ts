@@ -74,19 +74,19 @@ import { dan } from '../dan'
 
 export const affix = {
 	prefix: [
-		dan.space.affixStart,
+		dan.space.affix.prefix,
 		'has-[[data-slot=badge]]:ps-ring-2',
 		'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
-		dan.space.affixBareStart,
+		dan.space.affix.bare.prefix,
 	],
 	suffix: [
-		dan.space.affixEnd,
+		dan.space.affix.suffix,
 		'has-[[data-slot=badge]]:pe-ring-2',
 		'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
-		dan.space.affixBareEnd,
+		dan.space.affix.bare.suffix,
 	],
 	autofill: {
-		prefix: dan.space.autofillStart,
-		suffix: dan.space.autofillEnd,
+		prefix: dan.space.autofill.prefix,
+		suffix: dan.space.autofill.suffix,
 	},
 } as const

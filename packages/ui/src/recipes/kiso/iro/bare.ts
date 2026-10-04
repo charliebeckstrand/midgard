@@ -35,4 +35,4 @@ export const bare = {
 			'dark:not-disabled:not-data-disabled:hover:text-blue-400',
 		],
 	}),
-}
+} as const

@@ -43,8 +43,8 @@ export type TooltipTriggerProps = {
  * fallback nested inside interactive content is invalid markup. The fallback
  * takes no focus, so its tooltip opens on pointer hover only.
  *
- * @remarks The clone also stamps `k.trigger` (`inline-flex`) on the child, ahead
- * of the child's own `className`. A child that needs a different display box
+ * @remarks The clone also stamps `k.trigger.base` (`inline-flex`) on the child,
+ * ahead of the child's own `className`. A child that needs a different display box
  * therefore restates it and wins the merge. A truncating child needs exactly
  * that. An ellipsis paints against a block box, not a flex container. Every
  * truncating trigger in the library therefore carries `block`: `k.cell.truncate`,
@@ -67,7 +67,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	// floating-ui alone.
 	const mergeRefs = useFloatingReference<HTMLElement>(setReference, undefined, childRef)
 
-	const triggerClassName = cn(k.trigger, enabled && k.cursor)
+	const triggerClassName = cn(k.trigger.base, enabled && k.trigger.cursor)
 
 	if (child) {
 		// The clone renders the child's type through JSX, not through `cloneElement`.

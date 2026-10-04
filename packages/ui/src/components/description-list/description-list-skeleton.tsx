@@ -38,7 +38,7 @@ export function DescriptionListSkeleton({
 	// The wrapper hides the list, so assistive technology finds no empty terms.
 	return (
 		<div aria-hidden="true" className={className}>
-			<dl className={cn(k.root({ orientation }), k.projection[orientation])}>
+			<dl className={cn(k.base({ orientation }), k.projection[orientation])}>
 				{rowKeys.map((rowKey) => (
 					<Fragment key={rowKey}>
 						<dt>

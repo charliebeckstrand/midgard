@@ -18,7 +18,7 @@ const item = defineRecipe({
 		// item. The variant is arbitrary because `not-has-[]` wraps its selector in
 		// `:is()`, and `:is()` matches a panel anywhere above the button, not only in the item.
 		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-2',
-		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-blue-500',
+		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-blue-600',
 		'[&:has([data-slot=accordion-trigger]:focus-visible):not(:has([data-slot=accordion-panel]_[data-slot=accordion-trigger]:focus-visible))]:ring-inset',
 	],
 	variant: {

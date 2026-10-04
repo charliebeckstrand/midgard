@@ -59,7 +59,7 @@ function GridManualGroupRowImpl<T>({
 
 	return (
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
-			<TableCell colSpan={span} className={cn(k.rowGroup.rail.padded)}>
+			<TableCell colSpan={span} className={cn(k.row.group.rail.padded)}>
 				<GridGroupDisclosure
 					value={info.value}
 					count={info.count}
@@ -113,7 +113,7 @@ export function GridManualGroupPlaceholderRows<T>({
 			<GridSkeletonCells
 				columns={columns}
 				pinning={pinning}
-				leadingClassName={k.rowGroup.rail.border}
+				leadingClassName={k.row.group.rail.border}
 			/>
 		</TableRow>
 	))

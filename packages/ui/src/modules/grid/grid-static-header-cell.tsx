@@ -86,7 +86,7 @@ function GridDragHandleHeaderCell<T>({
 }) {
 	return (
 		<TableHeader
-			{...pinnedHeaderCellProps({ column, colIndex, stickyHeader, pinning }, k.rowReorder.cell)}
+			{...pinnedHeaderCellProps({ column, colIndex, stickyHeader, pinning }, k.row.reorder.cell)}
 		>
 			<span className="sr-only">Reorder rows</span>
 		</TableHeader>

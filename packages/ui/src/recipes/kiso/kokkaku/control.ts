@@ -21,7 +21,7 @@ export const control = {
 	// 38px · lg 46px, so the placeholder fills the same space as the resolved
 	// control. Each step is a stepped class, so the silhouette takes the step of
 	// its nearest density scope, as the control does.
-	base: [rounded.lg, dan.size.control],
+	base: [rounded.lg, dan.size.control.base],
 	full: 'w-full',
-	group: `flex-1 ${dan.size.controlMinWidth}`,
+	group: `flex-1 ${dan.size.control.min}`,
 } as const
