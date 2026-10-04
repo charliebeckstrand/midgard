@@ -147,7 +147,7 @@ export function defineDocsConfig({
 					// Grouping a tree-shaken package like `lucide-react` would be a
 					// pessimization: a page needing one icon would fetch every icon the
 					// site uses.
-					advancedChunks: {
+					codeSplitting: {
 						groups: [
 							{ name: 'vendor-react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
 							// `motion` is a re-export shim; the runtime it forwards to lives in
