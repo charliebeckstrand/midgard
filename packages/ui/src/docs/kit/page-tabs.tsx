@@ -15,6 +15,15 @@ function slugOf(tab: string): string {
 }
 
 /**
+ * A path with no slash at the end. The prerender asks for each page with a
+ * slash at the end, and a host can add one, so `/grid/sorting/` is the same
+ * page as `/grid/sorting`.
+ */
+function trimSlash(path: string): string {
+	return path.replace(/\/$/, '')
+}
+
+/**
  * The tabs of a page. The first tab is at the path of the page and shows
  * `children`. Each other tab is a route one part down the path, from the
  * folder of its slug, such as `sorting/index.tsx` for `/grid/sorting`. So a
@@ -27,13 +36,13 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 
 	const navigate = useNavigate()
 
-	const page = useResolvedPath('.').pathname
+	const page = trimSlash(useResolvedPath('.').pathname)
 
 	const { pathname } = useLocation()
 
 	const [first = ''] = tabs
 
-	const current = pathname.slice(page.length + 1) || slugOf(first)
+	const current = trimSlash(pathname).slice(page.length + 1) || slugOf(first)
 
 	const [intent, setIntent] = useState<string>()
 

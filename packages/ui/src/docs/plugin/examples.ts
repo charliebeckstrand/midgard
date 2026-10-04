@@ -48,18 +48,21 @@ type Example = {
 
 /**
  * Reads an example module: the name of its default export and, for a
- * playground, the one `{...props}` spread of its props. It throws when the
- * default export is not a named function, and when a playground does not
- * spread its props exactly once.
+ * playground, the one `{...props}` spread of its props. A module with no
+ * default export is not an example, such as the data that examples share. It
+ * throws when the default export is not a named function, and when a
+ * playground does not spread its props exactly once.
  */
-function readExample(parse: Parse, code: string, file: string): Example {
+function readExample(parse: Parse, code: string, file: string): Example | undefined {
 	const program = parse(code, { lang: 'tsx' })
 
 	const exported = program.body.find((node) => node.type === 'ExportDefaultDeclaration')
 
-	const declaration = exported?.declaration
+	if (!exported) return undefined
 
-	if (declaration?.type !== 'FunctionDeclaration' || !declaration.id) {
+	const { declaration } = exported
+
+	if (declaration.type !== 'FunctionDeclaration' || !declaration.id) {
 		throw new Error(`${file}: an example exports a named function as its default export`)
 	}
 
@@ -114,10 +117,20 @@ function titleOf(file: string): string {
 /**
  * Adds the {@link ExampleMeta} of an example module to its default export.
  * The code goes at the end of the module and moves no other code, so the
- * transform keeps the source map as it is.
+ * transform keeps the source map as it is. It gives no code for a module that
+ * is not an example.
  */
-export function attachMeta(parse: Parse, code: string, file: string, pages: string): string {
-	const { name, spread } = readExample(parse, code, file)
+export function attachMeta(
+	parse: Parse,
+	code: string,
+	file: string,
+	pages: string,
+): string | undefined {
+	const example = readExample(parse, code, file)
+
+	if (!example) return undefined
+
+	const { name, spread } = example
 
 	const id = CODE + path.relative(pages, file).slice(0, -'.tsx'.length).split(path.sep).join('/')
 
@@ -139,7 +152,7 @@ export function attachMeta(parse: Parse, code: string, file: string, pages: stri
 export async function loadCode(parse: Parse, file: string): Promise<ExampleCode> {
 	const source = await readFile(file, 'utf8')
 
-	const { spread } = readExample(parse, source, file)
+	const spread = readExample(parse, source, file)?.spread
 
 	const code = spread ? source.slice(0, spread.start) + source.slice(spread.end) : source
 

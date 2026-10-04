@@ -94,7 +94,9 @@ export function reactDocs(): Plugin {
 				id: { include: prefixRegex(`${pages}/`), exclude: /(?<!\.tsx)$|\/index\.tsx$/ },
 			},
 			handler(code, id) {
-				return { code: attachMeta(this.parse.bind(this), code, id, pages), map: null }
+				const meta = attachMeta(this.parse.bind(this), code, id, pages)
+
+				return meta === undefined ? null : { code: meta, map: null }
 			},
 		},
 		hotUpdate({ file, modules }) {
