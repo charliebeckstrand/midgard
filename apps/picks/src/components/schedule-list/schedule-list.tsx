@@ -37,17 +37,25 @@ function ActionButton({
 	label,
 	color,
 	icon,
+	disabled,
 	onClick,
 }: {
 	label: string
 	color: 'zinc' | 'blue' | 'red'
 	icon: ReactElement
+	disabled?: boolean
 	onClick: () => void
 }) {
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<Button color={color} aria-label={label} onClick={onClick}>
+				<Button
+					variant="bare"
+					color={color}
+					aria-label={label}
+					disabled={disabled}
+					onClick={onClick}
+				>
 					<Icon icon={icon} />
 				</Button>
 			</TooltipTrigger>
@@ -62,14 +70,16 @@ type ScheduleListProps = {
 	weeks: Week[]
 	/** The picks of the season that the page read on the server. */
 	picks: SeasonPicks
+	/** The weeks that have kicked off, whose prediction can no longer be deleted. */
+	started: number[]
 }
 
 /**
  * The weeks of the season, each a link to its games. A week with no
  * prediction has an Add button. A week with one has an Edit button and a
- * Delete button. `?predict=w5` opens the form on week 5.
+ * Delete button, which is disabled from the first kickoff of the week. `?predict=w5` opens the form on week 5.
  */
-export function ScheduleList({ season, weeks, picks: initial }: ScheduleListProps) {
+export function ScheduleList({ season, weeks, picks: initial, started }: ScheduleListProps) {
 	const { data: picks } = usePicks(season, initial)
 
 	const savePicks = useSavePicks(season)
@@ -111,6 +121,7 @@ export function ScheduleList({ season, weeks, picks: initial }: ScheduleListProp
 												label="Delete prediction"
 												color="red"
 												icon={<Trash2 />}
+												disabled={started.includes(week.number)}
 												onClick={() => setDeleting(week)}
 											/>
 										</>

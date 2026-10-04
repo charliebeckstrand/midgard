@@ -14,6 +14,7 @@ import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { useWeekGames } from '../../queries/picks-queries'
 import type { Game, Week, WeekPicks } from '../../types'
+import { isLocked } from '../../utilities/locks'
 import { PickField } from './pick-field'
 
 type PickValues = Record<string, string | undefined>
@@ -34,9 +35,9 @@ export type PredictionSheetProps = {
  * as field errors. A prediction picks every game that has not kicked off.
  */
 function missingPicks(games: Game[], values: PickValues): Record<string, string> | null {
-	const missing = games.filter(
-		(game) => game.state === 'scheduled' && values[game.id] === undefined,
-	)
+	const now = Date.now()
+
+	const missing = games.filter((game) => !isLocked(game, now) && values[game.id] === undefined)
 
 	if (missing.length === 0) return null
 

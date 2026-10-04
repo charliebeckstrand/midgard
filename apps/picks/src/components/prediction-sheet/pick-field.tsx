@@ -5,6 +5,7 @@ import { useFormValue } from 'ui/form'
 import { Radio, RadioField, RadioGroup } from 'ui/radio'
 import { Stack } from 'ui/structure/stack'
 import type { Game } from '../../types'
+import { isLocked } from '../../utilities/locks'
 
 /**
  * The pick of one game: a radio for each team, bound to the form field named
@@ -14,7 +15,7 @@ import type { Game } from '../../types'
 export function PickField({ game }: { game: Game }) {
 	const { value, setValue } = useFormValue<string>(game.id, {})
 
-	const locked = game.state !== 'scheduled'
+	const locked = isLocked(game, Date.now())
 
 	return (
 		<Stack gap="xs">

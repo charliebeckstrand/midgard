@@ -37,6 +37,12 @@ is a link. In a week, the outline of a final game is green where the pick was
 right and red where it was wrong. A tie has no winner, so a pick on a tie is
 wrong.
 
+A game locks at its kickoff. The form disables the pick of a locked game, and
+the Delete button of a week is disabled from its first kickoff.
+
 Mimir, in asgard, keeps the picks of each user. The gateway forwards
-`/api/predictions/*` to it. The contract is in asgard's
+`/api/predictions/*` to it. Mimir does not read the schedule, so the writes go
+through `app/api/predictions/[season]/[week]` first. That route keeps the stored
+pick of each locked game and refuses a delete after the first kickoff. After a
+change to the Mimir API, run `pnpm --filter picks openapi`. The contract is in asgard's
 [`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
