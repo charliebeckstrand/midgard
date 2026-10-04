@@ -70,7 +70,11 @@ function readState(status: unknown): GameState | null {
 	}
 }
 
-function readTeam(competitor: Json, final: boolean): Team | null {
+/**
+ * One side of a competition. The feed gives a score of `0` before kickoff, so a
+ * game that has not started has no score.
+ */
+function readTeam(competitor: Json, state: GameState): Team | null {
 	const team = isRecord(competitor.team) ? competitor.team : null
 
 	const id = text(team?.id)
@@ -88,8 +92,8 @@ function readTeam(competitor: Json, final: boolean): Team | null {
 		abbreviation,
 		name,
 		logo: text(team?.logo),
-		score: Number.isFinite(points) ? points : null,
-		winner: final && competitor.winner === true,
+		score: state !== 'scheduled' && Number.isFinite(points) ? points : null,
+		winner: state === 'final' && competitor.winner === true,
 	}
 }
 
@@ -113,7 +117,7 @@ export function readGames(body: unknown): Game[] {
 		const side = (homeAway: string) => {
 			const competitor = competitors.find((entry) => entry.homeAway === homeAway)
 
-			return competitor === undefined ? null : readTeam(competitor, state === 'final')
+			return competitor === undefined ? null : readTeam(competitor, state)
 		}
 
 		const away = side('away')

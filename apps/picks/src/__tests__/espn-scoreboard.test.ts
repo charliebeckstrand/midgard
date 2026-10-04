@@ -87,6 +87,20 @@ describe('readGames', () => {
 		expect(read?.home.winner).toBe(false)
 	})
 
+	it('gives no score before kickoff, where the feed gives 0', () => {
+		const body = { events: [event('pre')] }
+
+		body.events[0]?.competitions[0]?.competitors.forEach((entry) => {
+			entry.score = '0'
+		})
+
+		const [read] = readGames(body)
+
+		expect(read?.state).toBe('scheduled')
+		expect(read?.home.score).toBeNull()
+		expect(read?.away.score).toBeNull()
+	})
+
 	it('skips an event that does not match the shape', () => {
 		expect(readGames({ events: [{ id: '402' }, event('pre')] })).toHaveLength(1)
 	})
