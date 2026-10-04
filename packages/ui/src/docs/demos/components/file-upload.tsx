@@ -50,7 +50,7 @@ function ButtonAcceptExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<PageTabs defaultValue="drop">
 			<Stack gap="lg">

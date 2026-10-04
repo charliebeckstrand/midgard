@@ -7,64 +7,16 @@ import {
 	type ApiExtractorWorker,
 	startApiExtractorWorker,
 } from '../api-reference/engine/extractor-worker'
-import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { isPascalCase } from '../identifiers'
 import { collectHelpers } from './collect-helpers'
 import { importFacts, injectSourceFacts } from './source-facts'
 import { namedImportsOf, parseSource } from './ts-source'
 import { virtualJsonModules } from './virtual-json'
 
-// ---------------------------------------------------------------------------
-// Demo metadata parsed for `virtual:demo-metas`
-// ---------------------------------------------------------------------------
-
-function isMetaKey(key: string): key is keyof DemoMeta {
-	return (META_KEYS as readonly string[]).includes(key)
-}
-
-/**
- * Parse `export const meta = { name?: '...', category?: '...' }` out of a demo source file.
- * Drops unknown keys and non-string-literal values.
- */
-function parseMeta(fileName: string, source: string): DemoMeta {
-	const sf = parseSource(fileName, source)
-
-	for (const stmt of sf.statements) {
-		if (!ts.isVariableStatement(stmt)) continue
-
-		const exported = stmt.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false
-
-		const decl = stmt.declarationList.declarations.find(
-			(d) => ts.isIdentifier(d.name) && d.name.text === 'meta',
-		)
-
-		if (!decl) continue
-
-		if (!exported || !decl.initializer || !ts.isObjectLiteralExpression(decl.initializer)) return {}
-
-		const meta: DemoMeta = {}
-
-		for (const prop of decl.initializer.properties) {
-			if (!ts.isPropertyAssignment(prop)) continue
-
-			const key =
-				ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name) ? prop.name.text : undefined
-
-			if (!key || !isMetaKey(key)) continue
-
-			if (ts.isStringLiteral(prop.initializer)) meta[key] = prop.initializer.text
-		}
-
-		return meta
-	}
-
-	return {}
-}
-
 /**
  * Visit every demo `.tsx` under `demosDir` in a stable, sorted path order. The
- * virtual modules built from the walk (`demo-metas`, `component-modules`) then
- * serialize to identical bytes, whatever the filesystem's `readdir` order. A
+ * virtual module built from the walk (`component-modules`) then serializes to
+ * identical bytes, whatever the filesystem's `readdir` order. A
  * source laptop and CI otherwise produce different chunk content, which defeats
  * long-term caching.
  */
@@ -122,21 +74,6 @@ function parseDemoFiles<T>(
 	for (const [key, entry] of next) cache.set(key, entry)
 
 	return new Map([...next].map(([full, { value }]) => [full, value]))
-}
-
-/** The `virtual:demo-metas` payload: each demo's meta, keyed `./demos/<path>`. */
-function generateDemoMetas(
-	demosDir: string,
-	cache: DemoParseCache<DemoMeta>,
-): Record<string, DemoMeta> {
-	const parsed = parseDemoFiles(demosDir, cache, parseMeta)
-
-	return Object.fromEntries(
-		[...parsed].map(([full, meta]) => [
-			`./demos/${path.relative(demosDir, full).replaceAll(path.sep, '/')}`,
-			meta,
-		]),
-	)
 }
 
 // ---------------------------------------------------------------------------
@@ -483,7 +420,6 @@ const SNIPPET_TABLE = '__docsSnippetDeclarations'
  *  - `virtual:api-reference-manifest`: `{ id → () => import(perComponentModule) }`
  *    over prop data parsed from component sources, one lazily-chunked
  *    `virtual:api-reference/<id>` module per component
- *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
  *  - an `enforce: 'pre'` transform attaching helper `__snippet` and
@@ -495,7 +431,7 @@ const SNIPPET_TABLE = '__docsSnippetDeclarations'
  *
  * `docsPlugin({ vitest: true })` keeps the real component-modules map, the
  * tagging transform, and the demo `__snippet` pre-transform. It stubs the
- * api-reference manifest and demo-metas with empty defaults. The pre-transform
+ * api-reference manifest with an empty default. The pre-transform
  * reads only demo files. A suite that imports no demo pays nothing for it, and
  * the snippet gate (`__tests__/helpers/demo-snippets.tsx`) reads the snippets
  * that the site ships.
@@ -521,8 +457,6 @@ export function docsPlugin({
 	// Per plugin instance, not module-global: the prune is keyed on this
 	// instance's `demosDir`, so a second instance in one process would evict the
 	// first's entries on every regeneration.
-	const demoMetaCache: DemoParseCache<DemoMeta> = new Map()
-
 	const demoExternalsCache: DemoParseCache<ExternalImport[]> = new Map()
 
 	// One long-lived extractor per plugin, in a worker thread: it reuses its
@@ -547,7 +481,7 @@ export function docsPlugin({
 			// a docs build roots at `src/docs` (so `config.root/demos` happens to
 			// match), but a test run roots at the package dir, where only
 			// `srcDir/docs/demos` points at the real demos. One source keeps every
-			// consumer (metas, the name map, the `__snippet` transform) aligned.
+			// consumer (the name map, the `__snippet` transform) aligned.
 			demosDir = path.join(srcDir, 'docs', 'demos')
 		},
 
@@ -587,11 +521,6 @@ export function docsPlugin({
 
 					return true
 				},
-			},
-			{
-				id: 'virtual:demo-metas',
-				generate: () => (vitest ? {} : generateDemoMetas(demosDir, demoMetaCache)),
-				shouldInvalidate: (file) => isDemoFile(file, demosDir),
 			},
 			{
 				id: 'virtual:component-modules',

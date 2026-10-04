@@ -4,9 +4,9 @@ import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

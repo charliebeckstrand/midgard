@@ -4,7 +4,7 @@ import { Field, Label } from '../../../components/fieldset'
 import { Text } from '../../../components/text'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
 function ControlledExample() {
 	const [value, setValue] = useState<number | null>(1234.56)
@@ -20,7 +20,7 @@ function ControlledExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

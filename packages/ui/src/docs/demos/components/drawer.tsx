@@ -66,7 +66,7 @@ function FitExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			{/* With `handle` on a `half` or `full` drawer, drag the grip to resize, or

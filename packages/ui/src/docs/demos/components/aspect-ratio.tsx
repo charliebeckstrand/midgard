@@ -33,7 +33,7 @@ function PresetsExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<PresetsExample />

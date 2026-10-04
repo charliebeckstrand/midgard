@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
+import { describe, expect, it } from 'vitest'
 import type { ComponentApi } from '../../api-reference'
 import { Axes, DemoApiContext } from '../../components/axes'
-import { fireEvent, renderUI, screen, settled } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 const api: ComponentApi[] = [
 	{
@@ -33,7 +32,7 @@ function Probe({
 	)
 }
 
-function renderAxes(value: Promise<ComponentApi[]> | null = settled(api), of = 'Badge') {
+function renderAxes(value: ComponentApi[] | null = api, of = 'Badge') {
 	return renderUI(
 		<DemoApiContext value={value}>
 			<Axes of={of} render={(props, label) => <Probe {...props}>{label}</Probe>} />
@@ -76,7 +75,7 @@ describe('Axes', () => {
 
 	it('prefixes each title with the title of the Axes', () => {
 		renderUI(
-			<DemoApiContext value={settled(api)}>
+			<DemoApiContext value={api}>
 				<Axes
 					of="Badge"
 					title="Badge group"
@@ -92,7 +91,7 @@ describe('Axes', () => {
 
 	it('captions each instance of an axis example, and not the playground', () => {
 		renderUI(
-			<DemoApiContext value={settled(api)}>
+			<DemoApiContext value={api}>
 				<Axes of="Badge" render={(props) => <Probe {...props}>badge</Probe>} />
 			</DemoApiContext>,
 		)
@@ -109,7 +108,7 @@ describe('Axes', () => {
 
 	it('shows no caption with `captions={false}`', () => {
 		renderUI(
-			<DemoApiContext value={settled(api)}>
+			<DemoApiContext value={api}>
 				<Axes
 					of="Badge"
 					captions={false}
@@ -157,80 +156,13 @@ describe('Axes', () => {
 		])
 	})
 
-	it('reads settled API data with no suspend, also in a tab panel', async () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">A</Tab>
-				</TabList>
-				<TabContents>
-					<TabContent value="a">
-						<DemoApiContext value={settled(api)}>
-							<Axes of="Badge" render={(props, label) => <Probe {...props}>{label}</Probe>} />
-						</DemoApiContext>
-					</TabContent>
-				</TabContents>
-			</Tabs>,
-		)
-
-		// React logs the warning of a `use()` in a synchronous `act` from a later task.
-		await new Promise((resolve) => setTimeout(resolve, 0))
-
-		const suspended = error.mock.calls.filter(([message]) => String(message).includes('suspended'))
-
-		expect(suspended).toEqual([])
-
-		expect(probesOf('Variant')).toHaveLength(2)
-
-		error.mockRestore()
-	})
-
-	it('shows only the sizes that render distinctly, in the example and in the picker', async () => {
+	it('shows each value of a type of density steps', () => {
 		const steps: ComponentApi[] = [
 			{ name: 'Bar', props: [{ name: 'size', type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'" }] },
 		]
 
 		renderUI(
-			<DemoApiContext value={settled(steps)}>
-				<Axes
-					of="Bar"
-					render={(props) => (
-						// A stepped class of three values: `xs` renders as `sm`, and `xl` as `lg`.
-						<div
-							data-slot="probe"
-							data-density={(props as { size?: string }).size}
-							className="density-h-[2,3,4]"
-						/>
-					)}
-				/>
-			</DemoApiContext>,
-		)
-
-		const sizes = probesOf('Size').map((probe) => probe.getAttribute('data-density'))
-
-		expect(sizes).toEqual(['sm', 'md', 'lg'])
-
-		fireEvent.click(screen.getByRole('combobox', { name: 'Size' }))
-
-		const options = await screen.findAllByRole('option')
-
-		expect(options.map((option) => option.textContent)).toEqual([
-			'Default',
-			'Small',
-			'Medium',
-			'Large',
-		])
-	})
-
-	it('keeps each size of a component that writes no density scope', () => {
-		const steps: ComponentApi[] = [
-			{ name: 'Bar', props: [{ name: 'size', type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'" }] },
-		]
-
-		renderUI(
-			<DemoApiContext value={settled(steps)}>
+			<DemoApiContext value={steps}>
 				<Axes of="Bar" render={() => <div data-slot="probe" className="h-2" />} />
 			</DemoApiContext>,
 		)
@@ -238,131 +170,28 @@ describe('Axes', () => {
 		expect(probesOf('Size')).toHaveLength(5)
 	})
 
-	it('hides an axis example that the other axes make inert, and shows it again', async () => {
-		// The `outline` variant writes no color, so it makes the color axis inert.
+	it('shows only the given values of an axis, in the example and in the picker', async () => {
 		renderUI(
-			<DemoApiContext value={settled(api)}>
+			<DemoApiContext value={api}>
 				<Axes
 					of="Badge"
-					render={(props, label) => {
-						const { variant, color } = props as { variant?: string; color?: string }
-
-						return (
-							<Probe variant={variant} color={variant === 'outline' ? undefined : color}>
-								{label}
-							</Probe>
-						)
-					}}
+					values={{ color: ['blue'] }}
+					render={(props, label) => <Probe {...props}>{label}</Probe>}
 				/>
 			</DemoApiContext>,
 		)
 
-		expect(probesOf('Color')).toHaveLength(2)
-
-		fireEvent.click(screen.getByRole('combobox', { name: 'Variant' }))
-
-		fireEvent.click(await screen.findByRole('option', { name: /outline/i }))
-
 		expect(screen.queryByRole('heading', { name: 'Color' })).toBeNull()
 
-		// The picker of an inert axis still offers each value.
 		fireEvent.click(screen.getByRole('combobox', { name: 'Color' }))
 
 		expect((await screen.findAllByRole('option')).map((option) => option.textContent)).toEqual([
 			'Default',
-			'Red',
 			'Blue',
 		])
-
-		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
-
-		fireEvent.click(screen.getByRole('combobox', { name: 'Variant' }))
-
-		fireEvent.click(await screen.findByRole('option', { name: /solid/i }))
-
-		expect(probesOf('Color')).toHaveLength(2)
-	})
-
-	it('keeps an axis example whose instances render alike at the defaults', () => {
-		// A prop whose effect shows only in a later state, such as the panel of a closed dialog.
-		renderUI(
-			<DemoApiContext value={settled(api)}>
-				<Axes
-					of="Badge"
-					render={(props, label) => (
-						<Probe variant={(props as { variant?: string }).variant}>{label}</Probe>
-					)}
-				/>
-			</DemoApiContext>,
-		)
-
-		expect(probesOf('Color')).toHaveLength(2)
-	})
-
-	it('hides an axis example that changes only the heading level', () => {
-		const leveled: ComponentApi[] = [
-			{ name: 'Note', props: [{ name: 'level', type: '2 | 3 | 4' }] },
-		]
-
-		renderUI(
-			<DemoApiContext value={settled(leveled)}>
-				<Axes
-					of="Note"
-					render={(props, label) => {
-						const Title = `h${(props as { level?: number }).level ?? 2}` as 'h2'
-
-						return <Title className="text-lg">{label}</Title>
-					}}
-				/>
-			</DemoApiContext>,
-		)
-
-		expect(screen.queryByRole('heading', { name: 'Level' })).toBeNull()
-
-		expect(screen.queryByRole('combobox', { name: 'Level' })).toBeNull()
-	})
-
-	it('hides the example and the picker of an axis that sets only an unstyled ARIA attribute', () => {
-		const grid: ComponentApi[] = [
-			{
-				name: 'Grid',
-				props: [
-					{ name: 'multiselectable', type: 'boolean' },
-					{ name: 'color', type: "'red' | 'blue'" },
-				],
-			},
-		]
-
-		renderUI(
-			<DemoApiContext value={settled(grid)}>
-				<Axes
-					of="Grid"
-					render={(props, label) => {
-						const { multiselectable, color } = props as {
-							multiselectable?: boolean
-							color?: string
-						}
-
-						return (
-							<div role="listbox" aria-multiselectable={multiselectable} data-color={color}>
-								{label}
-							</div>
-						)
-					}}
-				/>
-			</DemoApiContext>,
-		)
-
-		expect(screen.queryByRole('heading', { name: 'Multiselectable' })).toBeNull()
-
-		expect(screen.queryByRole('combobox', { name: 'Multiselectable' })).toBeNull()
-
-		expect(screen.getByRole('heading', { name: 'Color' })).toBeInTheDocument()
-
-		expect(screen.getByRole('combobox', { name: 'Color' })).toBeInTheDocument()
 	})
 
 	it('throws for a name that the barrel does not document', () => {
-		expect(() => renderAxes(settled(api), 'Missing')).toThrow(/no documented component "Missing"/)
+		expect(() => renderAxes(api, 'Missing')).toThrow(/no documented component "Missing"/)
 	})
 })

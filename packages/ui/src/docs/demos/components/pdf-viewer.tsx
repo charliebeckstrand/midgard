@@ -277,7 +277,7 @@ function EmptyExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<DefaultExample />

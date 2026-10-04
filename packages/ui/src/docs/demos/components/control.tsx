@@ -30,7 +30,7 @@ function RequiredExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Alert

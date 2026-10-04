@@ -17,7 +17,7 @@ function ControlledExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [footerDate, setFooterDate] = useState<Date | null>(null)
 	const [range, setRange] = useState<[Date, Date] | null>(null)
 	const [relative, setRelative] = useState<DatePickerRelativeValue[] | null>(null)

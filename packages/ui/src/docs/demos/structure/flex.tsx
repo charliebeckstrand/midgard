@@ -17,7 +17,7 @@ const ITEM = 'flex h-7 items-center rounded-md bg-zinc-950/5 px-2 text-sm dark:b
 
 const ITEMS = ['One', 'Two', 'Three']
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

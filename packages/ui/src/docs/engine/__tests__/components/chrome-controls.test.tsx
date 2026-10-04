@@ -6,12 +6,11 @@ import { RouterLink } from '../../app'
 import { OptionsListbox } from '../../components/options-listbox'
 import { SidebarContent } from '../../components/sidebar'
 import { ValueStepper } from '../../components/value-stepper'
-import { initRegistry } from '../../registry'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('sidebar item', () => {
-	it('links to the path of its demo, and the router follows it in place', async () => {
-		initRegistry({ './demos/components/alpha.tsx': () => Promise.resolve(() => null) })
+	it('links to the path of its page, and the router follows it in place', async () => {
+		const pages = [{ id: 'alpha', path: '/alpha', name: 'Alpha', category: 'components' }]
 
 		function Path() {
 			return <output>{useLocation().pathname}</output>
@@ -22,7 +21,7 @@ describe('sidebar item', () => {
 				path: '/*',
 				Component: () => (
 					<UIProvider link={RouterLink}>
-						<SidebarContent route="" />
+						<SidebarContent pages={pages} current={undefined} />
 						<Path />
 					</UIProvider>
 				),

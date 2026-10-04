@@ -33,7 +33,7 @@ function WithActionsExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

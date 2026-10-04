@@ -102,7 +102,7 @@ function CustomLocaleExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Example title="Recent">

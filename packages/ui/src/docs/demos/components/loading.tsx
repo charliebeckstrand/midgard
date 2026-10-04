@@ -9,7 +9,7 @@ const buttonSizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type ButtonSize = (typeof buttonSizes)[number]
 
-export function Demo() {
+export default function Demo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
 	return (

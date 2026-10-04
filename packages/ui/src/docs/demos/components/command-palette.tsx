@@ -217,7 +217,7 @@ function CustomFooterExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [open, setOpen] = useState(false)
 
 	return (

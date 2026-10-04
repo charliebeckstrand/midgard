@@ -5,7 +5,7 @@ import { Tab, TabContent, TabContents, TabList } from '../../../components/tabs'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example, PageTabs } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<PageTabs defaultValue="button">
 			<Stack gap="lg">
@@ -52,6 +52,8 @@ export function Demo() {
 						<Stack gap="xl">
 							<Axes
 								of="Group"
+								// An input has no `xs` step, so an `xs` group shows it at `sm`.
+								values={{ size: ['sm', 'md', 'lg'] }}
 								render={(props) => (
 									<Group {...props}>
 										<Input placeholder="First" />

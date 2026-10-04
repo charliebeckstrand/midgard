@@ -2,7 +2,7 @@ import { Copy } from 'lucide-react'
 import { CopyButton } from '../../../components/copy-button'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes of="CopyButton" render={(props, label) => <CopyButton {...props} text={label} />} />

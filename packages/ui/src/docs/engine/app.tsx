@@ -1,6 +1,6 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { type ComponentType, Suspense, use, useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useLocation } from 'react-router'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { Button } from '../../components/button'
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
@@ -10,12 +10,10 @@ import type { LinkProps } from '../../primitives/link'
 import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
 import { UIProvider } from '../../providers/ui'
 import { Flex } from '../../structure/flex'
-import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
 import { DebugActions } from './debug/debug-actions'
-import { parseDemoPath } from './demo-id'
-import { DemoPage } from './demo-page'
-import { defaultDemo, demos, retryDemo, type TrackedPromise, tracked } from './registry'
+import { type TrackedPromise, tracked } from './debug/tracked'
+import { type Page, pageAt } from './pages'
 
 // Snippets in the shape of a derived code block. The browser compiles each
 // grammar RegExp when the tokenizer first runs it, and that compile is most of
@@ -74,9 +72,10 @@ function DebugSection() {
 }
 
 // The library's links navigate through the router, so a page switch keeps the
-// app and swaps the route in place.
+// app and swaps the route in place. A link loads the scripts and the data of
+// its page when the reader points at it or focuses it.
 export function RouterLink({ href, ...props }: LinkProps) {
-	return <Link to={href} {...props} />
+	return <Link to={href} prefetch="intent" {...props} />
 }
 
 /**
@@ -84,14 +83,21 @@ export function RouterLink({ href, ...props }: LinkProps) {
  * persisted theme and density preferences. The router keeps the previous page
  * on screen while the next demo's chunk loads.
  */
-export function App() {
-	const { pathname } = useLocation()
+export function App({ pages }: { pages: readonly Page[] }) {
+	const { pathname, hash } = useLocation()
 
-	const id = parseDemoPath(pathname).id || defaultDemo
+	const navigate = useNavigate()
+
+	const current = pageAt(pages, pathname)
 
 	const [locked, setLocked] = useState(true)
 
-	const current = demos.find((d) => d.id === id)
+	// A link from before path routes (`/#stepper`) moves to the path of its page.
+	useEffect(() => {
+		const page = pathname === '/' && pages.find((candidate) => `#${candidate.id}` === hash)
+
+		if (page) navigate(page.path, { replace: true })
+	}, [pathname, hash, pages, navigate])
 
 	const contentRef = useRef<HTMLDivElement>(null)
 
@@ -172,7 +178,7 @@ export function App() {
 							</AppearanceSettings>
 						</>
 					}
-					sidebar={<SidebarContent route={id} />}
+					sidebar={<SidebarContent pages={pages} current={current} />}
 				>
 					{/* A navigation is a transition, so the header and the next page show
 					    together when the chunk of the page is ready. */}
@@ -199,35 +205,5 @@ export function App() {
 				</SidebarLayout>
 			</AppearanceProvider>
 		</UIProvider>
-	)
-}
-
-/** The body of one route: the demo page, or a prompt when the id names no demo. */
-export function DemoRoute({ id }: { id: string }) {
-	const current = demos.find((d) => d.id === id)
-
-	if (!current) {
-		return (
-			<div className="p-6">
-				<Heading>Select a component</Heading>
-			</div>
-		)
-	}
-
-	return (
-		<DemoErrorBoundary
-			key={current.id}
-			fallback={(retry) => (
-				<DemoLoadError
-					onRetry={() => {
-						retryDemo(current.id)
-
-						retry()
-					}}
-				/>
-			)}
-		>
-			<DemoPage demo={current} />
-		</DemoErrorBoundary>
 	)
 }

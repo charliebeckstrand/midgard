@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Tree, TreeItem } from '../../../components/tree'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

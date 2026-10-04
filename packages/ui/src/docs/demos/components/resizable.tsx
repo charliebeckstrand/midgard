@@ -4,7 +4,7 @@ import { Axes, Example } from '../../engine'
 
 const Pane = () => <Card className="h-full" />
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

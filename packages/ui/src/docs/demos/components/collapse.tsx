@@ -50,7 +50,7 @@ function ControlledCollapseExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

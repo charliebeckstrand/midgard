@@ -8,7 +8,7 @@ import { Text } from '../../../components/text'
 import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	const [discardOpen, setDiscardOpen] = useState(false)
 	const [termsConditionsOpen, setTermsConditionsOpen] = useState(false)
 	const [accepted, setAccepted] = useState(false)

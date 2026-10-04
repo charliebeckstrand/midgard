@@ -24,13 +24,13 @@ function ClosableExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes
 				of="Banner"
 				captions={false}
-				omit={['open', 'defaultOpen', 'closable', 'sticky']}
+				omit={['open', 'defaultOpen', 'closable', 'sticky', 'titleLevel']}
 				render={(props, label) => <Banner {...props} title={label} closable={false} />}
 			/>
 

@@ -25,13 +25,13 @@ function ClosableExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes
 				of="Alert"
 				captions={false}
-				omit={['open', 'defaultOpen', 'closable']}
+				omit={['open', 'defaultOpen', 'closable', 'titleLevel']}
 				render={(props, label) => <Alert {...props} title={label} />}
 			/>
 

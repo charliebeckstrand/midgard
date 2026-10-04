@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import type { ComponentApi } from '../../../docs/engine/api-reference'
 import { Axes, DemoApiContext } from '../../../docs/engine/components/axes'
-import { renderUI, settled, waitFor } from '../../helpers'
+import { renderUI, waitFor } from '../../helpers'
 
 const api: ComponentApi[] = [
 	{
@@ -24,7 +24,7 @@ describe('Axes instance width (real browser)', () => {
 	it('keeps a fixed-width instance within a narrow frame', async () => {
 		const { container } = renderUI(
 			<div className="w-80">
-				<DemoApiContext value={settled(api)}>
+				<DemoApiContext value={api}>
 					<Axes
 						of="Badge"
 						render={(props) => (

@@ -11,7 +11,7 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
 function ControlledExample() {
 	const [value, setValue] = useState('')
@@ -59,7 +59,7 @@ function ComposedExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

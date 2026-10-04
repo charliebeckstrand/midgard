@@ -3,7 +3,7 @@ import { Kbd } from '../../../components/kbd'
 import { Flex } from '../../../structure/flex'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes of="Kbd" render={(props) => <Kbd {...props}>⌘K</Kbd>} />

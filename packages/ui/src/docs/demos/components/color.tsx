@@ -46,7 +46,7 @@ function PickerExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			{/* The `format` prop changes the type of the value, so it is not an axis. */}

@@ -11,7 +11,7 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Axes, Example, PageTabs } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<PageTabs defaultValue="fieldset">
 			<Stack gap="lg">

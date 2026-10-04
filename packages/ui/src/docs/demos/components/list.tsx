@@ -100,7 +100,7 @@ function WithDescriptionsExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

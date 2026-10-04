@@ -1,15 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { ComponentApi } from '../api-reference'
-import {
-	type Axis,
-	type AxisValue,
-	axesOf,
-	distinctValues,
-	isStepAxis,
-	literalsOf,
-	rendersAlike,
-} from '../axes'
+import { axesOf, literalsOf } from '../axes'
 
 describe('literalsOf', () => {
 	it('reads string literals in source order', () => {
@@ -101,71 +93,5 @@ describe('axesOf', () => {
 			'open',
 			'side',
 		])
-	})
-})
-
-describe('isStepAxis', () => {
-	it('accepts an axis of density steps, and no other', () => {
-		expect(isStepAxis({ name: 'size', values: ['xs', 'sm', 'md', 'lg', 'xl'] })).toBe(true)
-
-		expect(isStepAxis({ name: 'size', values: ['sm', 'md', 'lg'] })).toBe(true)
-
-		expect(isStepAxis({ name: 'size', values: ['sm', 'md', '2xl'] })).toBe(false)
-
-		expect(isStepAxis({ name: 'loading', values: [false, true] })).toBe(false)
-	})
-})
-
-describe('distinctValues', () => {
-	const steps: Axis = { name: 'size', values: ['xs', 'sm', 'md', 'lg', 'xl'] }
-
-	/** A signature for each value, from a map of value to the form that it renders. */
-	const from = (forms: Record<string, string | null>) => (value: AxisValue) =>
-		forms[String(value)] ?? null
-
-	it('drops each outer step that renders as its inner neighbor', () => {
-		const signatureOf = from({ xs: 'a', sm: 'a', md: 'b', lg: 'c', xl: 'c' })
-
-		expect(distinctValues(steps, signatureOf)).toEqual(['sm', 'md', 'lg'])
-	})
-
-	it('keeps each value that renders distinctly', () => {
-		const signatureOf = from({ xs: 'a', sm: 'b', md: 'c', lg: 'd', xl: 'd' })
-
-		expect(distinctValues(steps, signatureOf)).toEqual(['xs', 'sm', 'md', 'lg'])
-	})
-
-	it('keeps the default of a run', () => {
-		const signatureOf = from({ xs: 'a', sm: 'a', md: 'a', lg: 'b', xl: 'b' })
-
-		expect(distinctValues({ ...steps, default: 'xs' }, signatureOf)).toEqual(['xs', 'lg'])
-
-		expect(distinctValues(steps, signatureOf)).toEqual(['md', 'lg'])
-	})
-
-	it('keeps each value with an unknown signature', () => {
-		expect(distinctValues(steps, () => null)).toEqual(steps.values)
-	})
-
-	it('merges only neighbors', () => {
-		const signatureOf = from({ xs: 'a', sm: 'b', md: 'a', lg: 'b', xl: 'a' })
-
-		expect(distinctValues(steps, signatureOf)).toEqual(steps.values)
-	})
-})
-
-describe('rendersAlike', () => {
-	it('accepts two or more equal signatures', () => {
-		expect(rendersAlike(['a', 'a', 'a'])).toBe(true)
-	})
-
-	it('rejects a difference, an unknown signature, and a single instance', () => {
-		expect(rendersAlike(['a', 'b'])).toBe(false)
-
-		expect(rendersAlike([null, null])).toBe(false)
-
-		expect(rendersAlike(['a', null])).toBe(false)
-
-		expect(rendersAlike(['a'])).toBe(false)
 	})
 })

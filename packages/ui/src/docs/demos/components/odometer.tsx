@@ -38,7 +38,7 @@ function CurrencyExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [value, setValue] = useState(1284)
 
 	return (

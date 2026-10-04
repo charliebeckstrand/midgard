@@ -5,7 +5,7 @@ import { Axes, Example } from '../../engine'
 
 const toppings = ['Cheese', 'Mushrooms', 'Olives']
 
-export function Demo() {
+export default function Demo() {
 	const [selected, setSelected] = useState<readonly string[]>(['Cheese'])
 
 	return (

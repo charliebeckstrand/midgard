@@ -27,7 +27,7 @@ const ProseDemo = () => {
 	return <Markdown>{prose}</Markdown>
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<Example title="Prose">
 			<ProseDemo />

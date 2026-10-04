@@ -26,7 +26,7 @@ function DestructiveHoldButtonExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	const [count, setCount] = useState(0)
 
 	const [status, setStatus] = useState<'idle' | 'holding' | 'canceled' | 'confirmed'>('idle')

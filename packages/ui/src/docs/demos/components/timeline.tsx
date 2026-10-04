@@ -7,7 +7,7 @@ import {
 } from '../../../components/timeline'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

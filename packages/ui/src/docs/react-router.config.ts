@@ -1,22 +1,19 @@
 import { globSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Config } from '@react-router/dev/config'
-import { DEMO_GLOBS } from './app/demo-globs'
-import { demoPath, pageTabPath, pathToId } from './engine/demo-id'
+import { PAGE_GLOBS, pageOf } from './engine/pages'
 import { parsePageTabs } from './engine/plugins/page-tabs'
 import { inlinePageStyles } from './engine/vite/inline-styles'
 
-// Each demo page, and each tab of a page that has `PageTabs`.
-function demoPaths(): string[] {
-	return globSync(DEMO_GLOBS, { cwd: import.meta.dirname }).flatMap((file) => {
-		const id = pathToId(`./${file}`)
+// Each page, and each tab of a page that has `PageTabs`. The default tab is at
+// the path of its page.
+function pagePaths(): string[] {
+	return globSync(PAGE_GLOBS, { cwd: import.meta.dirname }).flatMap((file) => {
+		const page = pageOf(file)
 
 		const tabs = parsePageTabs(file, readFileSync(path.join(import.meta.dirname, file), 'utf8'))
 
-		return [
-			demoPath(id),
-			...(tabs?.others.map((tab) => pageTabPath(id, tab, tabs.defaultValue)) ?? []),
-		]
+		return [page.path, ...(tabs?.others.map((tab) => `${page.path}/${tab}`) ?? [])]
 	})
 }
 
@@ -27,7 +24,7 @@ const config: Config = {
 	appDirectory: 'app',
 	buildDirectory: 'dist',
 	ssr: false,
-	prerender: () => ['/', ...demoPaths()],
+	prerender: () => ['/', ...pagePaths()],
 	buildEnd: ({ reactRouterConfig }) =>
 		inlinePageStyles({
 			clientDir: path.join(reactRouterConfig.buildDirectory, 'client'),

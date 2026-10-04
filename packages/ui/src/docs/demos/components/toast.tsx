@@ -192,7 +192,7 @@ const ACTIONS_CODE = code`
 	})
 `
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<ToastProvider>
 			<Stack gap="xl">

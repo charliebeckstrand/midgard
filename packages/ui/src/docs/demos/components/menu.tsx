@@ -14,7 +14,7 @@ import {
 import { GlassProvider } from '../../../providers/glass'
 import { Axes, Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	const dropdown = (
 		<Menu placement="bottom-start">
 			<MenuTrigger>

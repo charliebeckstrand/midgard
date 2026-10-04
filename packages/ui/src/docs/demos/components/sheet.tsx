@@ -3,7 +3,7 @@ import { Sheet, SheetBody, SheetTitle, SheetTrigger } from '../../../components/
 import { Text } from '../../../components/text'
 import { Axes, Opener } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		// With `handle`, the grip rides the inner edge. Drag it to set the width, or
 		// focus it and use the arrow keys. The panel opens again at the width of its

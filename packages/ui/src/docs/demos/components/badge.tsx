@@ -1,7 +1,7 @@
 import { Badge } from '../../../components/badge'
 import { Axes } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<Axes
 			of="Badge"

@@ -1,7 +1,5 @@
-import { useLocation, useNavigate } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { Tabs, type TabsProps } from '../../../components/tabs'
-import { pageTabPath, parseDemoPath } from '../demo-id'
-import { defaultDemo } from '../registry'
 
 /** Props for {@link PageTabs}: the props of `Tabs`, with the tab at the page's own path as `defaultValue`. */
 export type PageTabsProps = Omit<TabsProps, 'value' | 'defaultValue' | 'onValueChange'> & {
@@ -17,10 +15,16 @@ export type PageTabsProps = Omit<TabsProps, 'value' | 'defaultValue' | 'onValueC
  * constant array of string literals.
  */
 export function PageTabs({ defaultValue, ...props }: PageTabsProps) {
-	// The root path shows the first demo.
-	const { id, tab } = parseDemoPath(useLocation().pathname)
+	const { tab } = useParams()
+
+	const { pathname } = useLocation()
 
 	const navigate = useNavigate()
+
+	// The path of the page, without its tab.
+	const page = tab
+		? pathname.slice(0, pathname.lastIndexOf(`/${tab}`))
+		: pathname.replace(/\/$/, '')
 
 	return (
 		<Tabs
@@ -30,7 +34,9 @@ export function PageTabs({ defaultValue, ...props }: PageTabsProps) {
 				if (next === null) return
 
 				// The page keeps its scroll position when the tab changes.
-				navigate(pageTabPath(id || defaultDemo, next, defaultValue), { preventScrollReset: true })
+				navigate(next === defaultValue ? page || '/' : `${page}/${next}`, {
+					preventScrollReset: true,
+				})
 			}}
 		/>
 	)

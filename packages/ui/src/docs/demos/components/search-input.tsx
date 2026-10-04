@@ -3,7 +3,7 @@ import { Field, Label } from '../../../components/fieldset'
 import { SearchInput } from '../../../components/search-input'
 import { Axes, Example } from '../../engine'
 
-export const meta = { category: 'input' }
+export const handle = { category: 'input' }
 
 const placeholder = 'Search'
 
@@ -23,7 +23,7 @@ function ControlledExample() {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Axes

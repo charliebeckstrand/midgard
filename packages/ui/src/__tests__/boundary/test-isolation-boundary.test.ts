@@ -271,7 +271,6 @@ function declaredAround(node: ts.Node, name: string): boolean {
 const SOURCE_WRITERS: Readonly<Record<string, readonly string[]>> = {
 	'components/pdf-viewer/pdf-viewer-document-cache.ts': ['resetDocumentCache'],
 	'core/announcer.ts': ['__resetAnnouncer'],
-	'docs/engine/registry.ts': ['initRegistry'],
 	'hooks/use-truncation.ts': ['__resetTruncationObserver'],
 }
 

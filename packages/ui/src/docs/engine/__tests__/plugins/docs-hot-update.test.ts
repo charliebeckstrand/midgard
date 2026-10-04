@@ -47,7 +47,7 @@ beforeEach(() => {
 	demo = path.join(srcDir, 'docs', 'demos', 'button.tsx')
 
 	write(
-		`import { Star } from 'lucide-react'\n\nexport const meta = { name: 'Button' }\n`,
+		`import { Star } from 'lucide-react'\n\nexport const handle = { name: 'Button' }\n`,
 		new Date(),
 	)
 })
@@ -69,9 +69,7 @@ function serve(): Hooks {
 
 	main.configResolved({ root: path.join(srcDir, 'docs') })
 
-	for (const id of ['virtual:component-modules', 'virtual:demo-metas']) {
-		main.load(main.resolveId(id) ?? '')
-	}
+	main.load(main.resolveId('virtual:component-modules') ?? '')
 
 	return main
 }
@@ -97,11 +95,11 @@ function hotUpdate(main: Hooks): string[] {
 }
 
 describe('docsPlugin hot update', () => {
-	it('invalidates no virtual module for a demo edit that keeps its imports and meta', () => {
+	it('invalidates no virtual module for a demo edit that keeps its imports', () => {
 		const main = serve()
 
 		write(
-			`import { Star } from 'lucide-react'\n\nexport const meta = { name: 'Button' }\n\nexport function Demo() { return null }\n`,
+			`import { Star } from 'lucide-react'\n\nexport const handle = { name: 'Button' }\n\nexport default function Demo() { return null }\n`,
 			new Date(Date.now() + 60_000),
 		)
 
@@ -112,18 +110,11 @@ describe('docsPlugin hot update', () => {
 		const main = serve()
 
 		write(
-			`import { Heart, Star } from 'lucide-react'\n\nexport const meta = { name: 'Button' }\n`,
+			`import { Heart, Star } from 'lucide-react'\n\nexport const handle = { name: 'Button' }\n`,
 			new Date(Date.now() + 60_000),
 		)
 
 		expect(hotUpdate(main)).toEqual(['\0virtual:component-modules'])
-
-		write(
-			`import { Heart, Star } from 'lucide-react'\n\nexport const meta = { name: 'Buttons' }\n`,
-			new Date(Date.now() + 120_000),
-		)
-
-		expect(hotUpdate(main)).toEqual(['\0virtual:demo-metas'])
 	})
 
 	// The parse of a demo holds while its mtime holds, so an edit that keeps the
@@ -134,7 +125,7 @@ describe('docsPlugin hot update', () => {
 		const { mtime } = fs.statSync(demo)
 
 		write(
-			`import { Heart, Star } from 'lucide-react'\n\nexport const meta = { name: 'Other' }\n`,
+			`import { Heart, Star } from 'lucide-react'\n\nexport const handle = { name: 'Other' }\n`,
 			mtime,
 		)
 

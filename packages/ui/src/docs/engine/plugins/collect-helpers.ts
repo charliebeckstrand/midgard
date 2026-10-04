@@ -10,9 +10,9 @@ import { parseSource, referencedNames } from './ts-source'
  */
 type Helper = HelperSnippet & { code: string }
 
-// The demo page's entry export, loaded via `import.meta.glob(…, { import: 'Demo'
-// })`. It renders as the route body, never inside an `<Example>`, so its
-// `__snippet` is never read — skip it rather than shipping the whole page source.
+// The demo page's entry, its default export, which renders as the route of the
+// page. It never renders inside an `<Example>`, so its `__snippet` is never
+// read — skip it rather than shipping the whole page source.
 const ENTRY_EXPORT = 'Demo'
 
 /**

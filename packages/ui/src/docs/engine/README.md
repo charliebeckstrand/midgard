@@ -91,44 +91,21 @@ from the destructured parameter, then from a `@defaultValue` tag, then from the
 `defaults` of the recipe that the component calls. An axis with no default
 offers an unset option, so the component takes its own fallback.
 
-An axis of density steps shows only the steps that render distinctly. A
-stepped class of three values, such as `density-h-[2,3,4]`, gives `xs` the
-value of `sm` and `xl` the value of `lg`. The type of `size` still admits each
-step, because the step also sets the scope of the children. On the first
-commit, and after a change to another axis, `<Axes>` reads each instance of
-the axis ([`step-signature.ts`](step-signature.ts)). It resolves each class at the step
-of the nearest `data-density` scope, as the rungs of `core/density` do. Then
-it drops each value whose classes and attributes match those of its neighbor.
-The run keeps the value nearest the default, so `xs` and `sm` keep `sm`. The
-picker of the playground offers the same values.
-
-The read takes the DOM and no layout, so a test run gives the same answer as
-the browser. The build also makes the first read of each `<Axes>`, so the HTML of a page
-shows what the page shows after it hydrates. A text difference does not count, because the content can show
-the label. An inline `style` does not count either, because it carries the
-state of the run, such as a fill that springs to its value. The step that an
-instance shows does not count, so a Calendar at
-`xs`, which opens a scope at `sm`, matches the Calendar at `sm`. A value stays
-when no element of its instance opens a density scope, for example a panel in a
-portal.
-
-The other axes can make an axis inert. For example, the `segment` variant of
-`Tabs` is always horizontal, so its `orientation` has no effect. After each
-change to a picker, `<Axes>` reads each other axis
-([`formSignature`](step-signature.ts)). When the instances of an axis differ at
-the defaults and render alike at the current values, the example of that axis
-hides. Its picker keeps each value. An axis whose instances render alike at
-the defaults stays, because its effect shows only in a later state, such as
-the panel of a closed dialog or the clear button of an empty input. An
-example with one value also hides.
+An axis shows each value of the type of its prop, in source order. `<Axes>`
+does not read the DOM, so the HTML of a page is the page after it hydrates,
+and a test run gives the same examples as the browser. The `size` of a
+component admits only the steps that render distinctly (`defineScale`), so its
+axis needs no trim.
 
 An axis that changes only the accessibility tree has nothing to show, such as
-the heading level of a title or an `aria-*` attribute that no class styles,
-such as `multiselectable` of `Calendar`. On the first read, `<Axes>` compares
-the look of its instances ([`lookSignature`](step-signature.ts)): the form
-with each heading level and each unstyled `aria-*` attribute removed. When the
-forms differ and the looks match, the example and the picker of the axis hide.
-The API reference still lists the prop.
+the heading level of a title, or an `aria-*` attribute that no class styles,
+such as `multiselectable` of `Calendar`. Give such a prop in `omit`. The API
+reference still lists the prop.
+
+A value can render as its neighbor in the composition of one demo. For
+example, an input has no `xs` step, so a `Group` of inputs at `xs` shows the
+inputs at `sm`. Give the values to show in `values`, such as
+`values={{ size: ['sm', 'md', 'lg'] }}`.
 
 `valueLabel` writes each value for a reader: `xs` reads `Extra small`, `true`
 reads `On`, and `separated` reads `Separated`. `humanize` writes a prop name as
@@ -147,8 +124,9 @@ an example that repeats an earlier example, and an example of a component
 with a playground whose title is `Default`. The text of an element does not
 count, so an example that differs only in its words fails.
 
-`DemoPage` gives `<Axes>` the API data through `DemoApiContext`. The docs
-plugin serves no API data in a test run. Therefore the page gates
+The layout of the pages ([`page.tsx`](../app/routes/page.tsx)) gives `<Axes>`
+the API data through `DemoApiContext`. The docs plugin serves no API data in a
+test run. Therefore the page gates
 (`__tests__/helpers/demo-api.ts`) extract the barrel of each page that uses
 `<Axes>`, and give the data to the same context.
 
@@ -162,18 +140,27 @@ export default defineDocsConfig({ packageName: 'ui' })
 ```
 
 The site is a React Router app in framework mode, with no server at run time
-(`ssr: false`). [`react-router.config.ts`](../react-router.config.ts) gives a
-path to each demo, and to each tab of a page that has `PageTabs`. The build
-renders each path to its own HTML file, and the browser hydrates it. A link of
-the chrome or of a ui component goes through the router, because the root
-gives `UIProvider` a `link` that renders the `Link` of React Router.
+(`ssr: false`). Each demo file is the route of its page: it exports its page as
+the default export, and [`routes.ts`](../app/routes.ts) gives it a path. The
+build renders each path to its own HTML file, and the browser hydrates it. The
+HTML of a page preloads the chunk of its demo. A link of the chrome or of a ui
+component goes through the router, because the root gives `UIProvider` a
+`link` that renders the `Link` of React Router. The link loads the next page
+when the reader points at it or focuses it.
 
-[`demo-id.ts`](demo-id.ts) gives the path of each page. A component page is at
-its id (`/card`). A page in a namespace folder is in that folder of the path
+[`pages.ts`](pages.ts) gives the path of each page. A component page is at its
+file name (`/card`). A page in another folder is in that folder of the path
 (`/structure/box`). A tab adds one part (`/progress/gauge`), and its value has
-only lowercase letters, digits, and hyphens. A path from before nested paths
+only lowercase letters, digits, and hyphens. A demo can give its page a
+`handle`, the route data of React Router: `name` changes the name in the
+sidebar, and `category` moves the page to another section.
+
+The root `loader` gives the chrome the list of the pages. The `loader` of the
+layout of the pages gives each page the API data of its barrel. The build runs
+both for each page and puts the data in its HTML. A navigation fetches the data
+of the next page from its `.data` file. A path from before nested paths
 (`/structure-box`) has no HTML file, so the host sends the fallback document,
-and the app moves to the current path.
+and [`legacy.tsx`](../app/routes/legacy.tsx) moves to the current path.
 
 Use `react-router build src/docs --config vite.docs.config.ts`, not
 `vite build`. The `vite build` command does not stop after the prerender.
@@ -181,9 +168,6 @@ Use `react-router build src/docs --config vite.docs.config.ts`, not
 The entry of the server ([`entry.server.tsx`](../app/entry.server.tsx))
 renders each page in full, with no streamed Suspense boundaries. Thus the
 first layout has the full height of the page.
-
-A page with `<Axes>` renders two times, so that its HTML starts from the
-first read of each `<Axes>` ([`axes-prerender.tsx`](axes-prerender.tsx)).
 
 After the prerender, [`inline-styles.ts`](vite/inline-styles.ts) puts the
 styles of each page in a `<style>` in its HTML. Tailwind compiles the entry

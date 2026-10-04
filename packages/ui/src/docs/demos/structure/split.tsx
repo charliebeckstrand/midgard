@@ -2,7 +2,7 @@ import { Card } from '../../../components/card'
 import { Split } from '../../../structure/split'
 import { Example } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			<Example title="Equal split">

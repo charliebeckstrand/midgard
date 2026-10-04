@@ -1,7 +1,7 @@
 import { Heading } from '../../../components/heading'
 import { Axes } from '../../engine'
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<Axes
 			of="Heading"

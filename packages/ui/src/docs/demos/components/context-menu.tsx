@@ -25,7 +25,7 @@ function surface(text: string) {
 	)
 }
 
-export function Demo() {
+export default function Demo() {
 	return (
 		<>
 			{/* A short menu shows no effect of `capped`, so the axis is left out. */}
