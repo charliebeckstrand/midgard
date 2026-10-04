@@ -34,9 +34,9 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
 /**
  * The panel of a dropdown menu on a phone: a bottom sheet in place of the
  * popover. It holds the same rows, at the full width of the screen, and grows
- * to them up to the stop of the drawer, where its body scrolls. A press on the
- * backdrop, `Escape`, or a selected row closes it. It has no handle, because
- * the rows set its height.
+ * to them up to the stop of the drawer, where its body scrolls. The Close button
+ * in its footer, a press on the backdrop, `Escape`, or a selected row closes
+ * it. It has no handle, because the rows set its height.
  *
  * @remarks
  * The sheet is a modal dialog, so focus goes into it and the rows rove by real
@@ -83,8 +83,6 @@ export function MenuSheet({ title, description, glass, className, children }: Me
 			glass={glass}
 			initialFocus={panelRef}
 			aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
-			// A pick, the backdrop, and Escape close the menu, so it has no Close row.
-			footer={null}
 		>
 			{heading === undefined ? null : (
 				<DrawerHeader>

@@ -56,8 +56,8 @@ export type MenuContentProps = {
  * on `Escape`. The `title`, else the trigger of a dropdown, names the menu.
  * Takes the `size` of the enclosing {@link Menu} as its density scope.
  * On a phone, a dropdown opens as a bottom sheet instead, with the same rows
- * (see the `sheet` prop of {@link Menu}). A `title` and a `description` show
- * above the rows in each form.
+ * and a Close button below them (see the `sheet` prop of {@link Menu}). A
+ * `title` and a `description` show above the rows in each form.
  *
  * @remarks Items scroll inside a height-capped viewport whose clipped edges
  * fade out while more content lies past them. An overflowing menu therefore

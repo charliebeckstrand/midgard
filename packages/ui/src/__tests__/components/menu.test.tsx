@@ -1433,6 +1433,25 @@ describe('Menu on a phone', () => {
 		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})
 
+	it('closes the sheet with the Close button below the rows', async () => {
+		const { onAction, user } = renderPhoneMenu()
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		// The button is in the sheet, but not in the menu, which holds only rows.
+		expect(screen.getByRole('dialog', { name: 'Add tile' })).toContainElement(close)
+
+		expect(screen.getByRole('menu')).not.toContainElement(close)
+
+		await user.click(close)
+
+		expect(onAction).not.toHaveBeenCalled()
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+	})
+
 	function renderPhoneSubmenu() {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 
