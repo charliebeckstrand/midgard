@@ -12,7 +12,7 @@ When a component and primitive share the same UI surface (e.g. `components/popov
 
 ## 2. Shape
 
-Each kata exports its runtime surface as `k`. Some kata also export helpers (`heading.ts`). The shape `k` takes depends on how the kata reaches the recipe layer:
+Each kata exports its runtime surface as `k`, and its `scale` when it has one. The shape `k` takes depends on how the kata reaches the recipe layer:
 
 - **Archetype kata** (`k = bridge.<archetype>(tokens, {...})`) — the kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which builds and returns the `k` surface. The bridge owns the recipe construction; the kata supplies the tokens and per-call overlays.
 - **Recipe-shaped kata** (`k = defineRecipe(...)`) — `k` is a `defineRecipe(...)` callable, used as `k({ variant, size, … })`. Slots and sibling sub-recipes attach as direct properties (`k.title`, `k.thumb`) via the `defineRecipe(config, extras)` form. A density-native kata has no size axis: its stepped classes take the step of the nearest density scope.

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Card } from '../../components/card'
 import { Dialog, DialogClose, DialogHeader, DialogTitle } from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
-import { headingWeight } from '../../recipes/kata/heading'
+import { k as heading } from '../../recipes/kata/heading'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Dialog', () => {
@@ -44,7 +44,7 @@ describe('Dialog', () => {
 		expect(nested).toHaveAttribute('data-slot', 'dialog-title')
 
 		// The weight follows the level, as on `Heading`.
-		expect(nested).toHaveClass(headingWeight(4))
+		expect(nested).toHaveClass(heading.weight[4])
 	})
 
 	it('does not render when closed', () => {

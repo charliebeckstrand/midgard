@@ -1,6 +1,6 @@
 /**
  * Kokkaku skeleton: heading. `ramp` gives the height of each level in a stepped
- * `density-h` class that tracks the rung of `headingRamp` at each step, so the
+ * `density-h` class that tracks the rung of the heading ramp at each step, so the
  * silhouette matches the real heading at each density. The silhouette takes the
  * step of its nearest scope, as the heading does. Width caps at `sm:max-w-sm`,
  * placing multi-line skeletons below rather than alongside.

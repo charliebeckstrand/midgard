@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { densitySteps } from '../../core/density'
-import { headingRamp, headingWeight, k, titleRamp } from '../../recipes/kata/heading'
+import { k } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { findSteps } from '../helpers/class-stops'
 
@@ -36,7 +36,7 @@ type Level = (typeof levels)[number]
 const { weight } = ji
 
 /** The rung of `level` at each step, from its ramp. */
-const rungsOf = (level: Level) => findSteps([headingRamp[level]], 'density-text-')
+const rungsOf = (level: Level) => findSteps([k.ramp[level]], 'density-text-')
 
 /** The position of `rung` on the scale, or -1 when it is not on the scale. */
 const indexOf = (rung: string) => scale.indexOf(rung as (typeof scale)[number])
@@ -86,17 +86,13 @@ describe('heading ramps', () => {
 			expect(heights[step]).toBe(heightOf[rungs[step] as keyof typeof heightOf])
 		}
 	})
-
-	it('gives a title the ramp of level 4', () => {
-		expect(titleRamp).toBe(headingRamp[4])
-	})
 })
 
-describe('headingWeight', () => {
+describe('k.weight', () => {
 	it('eases from bold at the top of the scale to medium at the bottom', () => {
 		const order: string[] = [weight.bold, weight.semibold, weight.medium]
 
-		const ranks = levels.map((level) => order.indexOf(headingWeight(level)))
+		const ranks = levels.map((level) => order.indexOf(k.weight[level]))
 
 		expect(ranks).not.toContain(-1)
 
@@ -104,6 +100,6 @@ describe('headingWeight', () => {
 	})
 
 	it.each(levels)('is the weight that the recipe gives level %i', (level) => {
-		expect(k({ level })).toContain(headingWeight(level))
+		expect(k({ level })).toContain(k.weight[level])
 	})
 })
