@@ -1,10 +1,10 @@
 import { ChevronLeft } from 'lucide-react'
 import type { ButtonProps } from '../button'
 import { Icon } from '../icon'
-import { PaginationNavButton } from './pagination-utilities'
+import { PaginationNavButton, type PaginationNavProps } from './pagination-utilities'
 
-/** Props for {@link PaginationPrevious}: identical to {@link ButtonProps}. */
-export type PaginationPreviousProps = ButtonProps
+/** Props for {@link PaginationPrevious}: the {@link ButtonProps}, with `plain` as the default `variant`. */
+export type PaginationPreviousProps = PaginationNavProps
 
 const DEFAULT_PREVIOUS_ICON = <Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 

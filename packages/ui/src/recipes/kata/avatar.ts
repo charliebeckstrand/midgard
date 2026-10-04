@@ -63,4 +63,10 @@ export const k = defineRecipe(
 export const scale = defineScale(dan.size.avatar)
 
 /** Recipe variant props for {@link Avatar}: the `variant` and `color` axes of its kata, and the `size` step that the component writes as a density scope. */
-export type AvatarVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }
+export type AvatarVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> & {
+	/** The fill style of the avatar. @defaultValue 'solid' */
+	variant?: VariantProps<typeof k>['variant']
+	/** The palette color of the avatar. @defaultValue 'zinc' */
+	color?: VariantProps<typeof k>['color']
+	size?: ScaleStep<typeof scale>
+}

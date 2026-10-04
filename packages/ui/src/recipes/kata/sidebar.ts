@@ -162,6 +162,12 @@ export const itemScale = defineScale(
 )
 
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
-export type SidebarItemVariants = VariantProps<typeof itemBase> & {
+export type SidebarItemVariants = Omit<VariantProps<typeof itemBase>, 'chrome'> & {
+	/**
+	 * The element that holds the hover tint and the focus ring: the item itself, or
+	 * the row around the item and its affixes.
+	 * @defaultValue 'item'
+	 */
+	chrome?: VariantProps<typeof itemBase>['chrome']
 	size?: ScaleStep<typeof itemScale>
 }

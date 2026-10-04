@@ -19,7 +19,9 @@ import { useCommandPaletteState } from './use-command-palette-state'
 const IGNORE_NOTHING = () => false
 
 /** Props for {@link CommandPalette}; inherits the Dialog `width` variant. */
-export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
+export type CommandPaletteProps = {
+	/** The maximum width of the panel. @defaultValue '2xl' */
+	width?: DialogPanelVariants['width']
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/**

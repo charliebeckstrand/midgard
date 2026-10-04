@@ -87,7 +87,7 @@ export type FileUploadButtonProps = FileUploadSharedProps & {
 	 * density scope. A step makes the button a density scope.
 	 */
 	size?: ScaleStep<typeof buttonScale>
-	/** Button color. */
+	/** The palette color of the button. @defaultValue 'zinc' */
 	color?: ComponentProps<typeof Button>['color']
 	/**
 	 * The trigger's label, and the hidden input's accessible name.

@@ -142,4 +142,7 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link NavBar}: the `variant` style (`solid` | `outline` | `plain`). */
-export type NavBarVariants = VariantProps<typeof k.bar>
+export type NavBarVariants = Omit<VariantProps<typeof k.bar>, 'variant'> & {
+	/** The frame of the bar: a border and a tinted fill, a border alone, or neither. @defaultValue 'solid' */
+	variant?: VariantProps<typeof k.bar>['variant']
+}

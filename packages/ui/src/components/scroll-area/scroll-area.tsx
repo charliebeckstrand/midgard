@@ -13,8 +13,12 @@ import type { ScrollbarMode } from './types'
 import { useScrollAreaScrollbar } from './use-scroll-area-scrollbar'
 
 /** Props for {@link ScrollArea}: wrapper/viewport recipe variants, the `scrollbar` mode, and native `<div>` attributes. */
-export type ScrollAreaProps = ScrollAreaWrapperVariants &
-	ScrollAreaViewportVariants & {
+export type ScrollAreaProps = Omit<ScrollAreaWrapperVariants, 'orientation' | 'bare'> &
+	Omit<ScrollAreaViewportVariants, 'orientation' | 'bare'> & {
+		/** The axis that scrolls. @defaultValue 'vertical' */
+		orientation?: ScrollAreaWrapperVariants['orientation']
+		/** Whether the area drops the border of its frame and the padding of its viewport. @defaultValue false */
+		bare?: ScrollAreaWrapperVariants['bare']
 		/**
 		 * Scrollbar visibility behavior.
 		 * @defaultValue 'auto'

@@ -18,6 +18,12 @@ import { useInputValue } from './use-input-value'
 export type InputProps = GroupStampProps &
 	Omit<InputVariants, 'size' | 'variant'> & {
 		size?: ScaleStep<typeof scale>
+		/**
+		 * The surface of the control: `default` fills it, and `outline` draws a border
+		 * with no fill. When the prop is unset, the input takes the variant of the
+		 * enclosing Control. Without one, it takes the glass surface in a GlassProvider.
+		 * @defaultValue 'default'
+		 */
 		variant?: ControlVariant
 		prefix?: ReactNode
 		suffix?: ReactNode

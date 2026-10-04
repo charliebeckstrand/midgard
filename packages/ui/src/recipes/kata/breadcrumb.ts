@@ -43,6 +43,12 @@ export const k = {
 } as const
 
 /** Recipe variant props for a {@link Breadcrumb} item — its styling axes (`current`), for consumers composing custom slots. */
-export type BreadcrumbItemVariants = VariantProps<typeof item>
+export type BreadcrumbItemVariants = Omit<VariantProps<typeof item>, 'current'> & {
+	/** Whether the item is the current page. @defaultValue false */
+	current?: VariantProps<typeof item>['current']
+}
 /** Recipe variant props for a {@link Breadcrumb} link — its styling axes (`current`), for consumers composing custom slots. */
-export type BreadcrumbLinkVariants = VariantProps<typeof link>
+export type BreadcrumbLinkVariants = Omit<VariantProps<typeof link>, 'current'> & {
+	/** Whether the link goes to the current page. @defaultValue false */
+	current?: VariantProps<typeof link>['current']
+}

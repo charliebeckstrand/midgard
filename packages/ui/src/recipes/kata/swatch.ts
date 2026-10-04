@@ -81,4 +81,10 @@ export const k = defineRecipe({
 export const scale = defineScale(dan.size.swatch, dan.size.swatchLine)
 
 /** Recipe variant props for {@link Swatch}: the `shape` and `variant` axes of its kata, and the `size` step that the component writes as a density scope. */
-export type SwatchVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }
+export type SwatchVariants = Omit<VariantProps<typeof k>, 'shape' | 'variant'> & {
+	/** The shape of the mark: a box, a dot, or a line. @defaultValue 'square' */
+	shape?: VariantProps<typeof k>['shape']
+	/** The fill style of the mark. @defaultValue 'solid' */
+	variant?: VariantProps<typeof k>['variant']
+	size?: ScaleStep<typeof scale>
+}

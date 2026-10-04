@@ -38,4 +38,9 @@ export const k = {
 }
 
 /** Recipe variant props for the {@link Dialog} panel — its styling axes (`surface`, `width`), for consumers composing custom slots. */
-export type DialogPanelVariants = VariantProps<typeof k.panel>
+export type DialogPanelVariants = Omit<VariantProps<typeof k.panel>, 'surface' | 'width'> & {
+	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. @defaultValue 'flat' */
+	surface?: VariantProps<typeof k.panel>['surface']
+	/** The maximum width of the panel. @defaultValue 'lg' */
+	width?: VariantProps<typeof k.panel>['width']
+}
