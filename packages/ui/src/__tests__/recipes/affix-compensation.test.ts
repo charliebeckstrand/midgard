@@ -64,7 +64,7 @@ describe('control affix has-button compensation', () => {
 		it(`${step}: affix.prefix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
 			const actual = findStop(
 				control.affix.prefix,
-				'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-',
+				'has-[:is(button,a)[data-variant]:not([data-variant=bare])]:ps-ring-',
 			)
 
 			expect(actual).toBe(expected)
@@ -73,7 +73,7 @@ describe('control affix has-button compensation', () => {
 		it(`${step}: affix.suffix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
 			const actual = findStop(
 				control.affix.suffix,
-				'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-',
+				'has-[:is(button,a)[data-variant]:not([data-variant=bare])]:pe-ring-',
 			)
 
 			expect(actual).toBe(expected)

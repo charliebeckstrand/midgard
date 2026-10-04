@@ -1,7 +1,6 @@
 'use client'
 
 import type { ComponentProps, ReactNode, Ref } from 'react'
-import { ariaAttr } from '../../core'
 import { Link } from '../link'
 import { loadingProps } from './button-constants'
 
@@ -20,8 +19,8 @@ type ButtonHeadlessProps = {
 /**
  * Unstyled `Button` fallback rendered under the headless provider: a bare
  * `<button>`, or a `<Link>` anchor when `href` is set. Drops recipe classes,
- * motion, and density resolution; applies {@link loadingProps} to a loading
- * anchor so it leaves the tab order.
+ * motion, and density resolution, and renders the content that Button builds.
+ * Applies {@link loadingProps} to a loading button or anchor.
  *
  * @internal
  */
@@ -41,6 +40,7 @@ export function ButtonHeadless({
 				ref={ref as Ref<HTMLAnchorElement>}
 				data-slot={slot}
 				href={href}
+				type={type}
 				className={className}
 				{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
 				{...(loading && loadingProps)}
@@ -50,17 +50,14 @@ export function ButtonHeadless({
 		)
 	}
 
-	const bareButtonProps = props as Omit<ComponentProps<'button'>, 'className'>
-
 	return (
 		<button
 			ref={ref as Ref<HTMLButtonElement>}
 			data-slot={slot}
-			type={type}
 			className={className}
-			{...bareButtonProps}
-			disabled={loading || bareButtonProps.disabled}
-			aria-busy={ariaAttr(loading)}
+			{...props}
+			type={type}
+			{...(loading && loadingProps)}
 		>
 			{children}
 		</button>

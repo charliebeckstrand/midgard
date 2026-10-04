@@ -39,7 +39,12 @@ export type CopyButtonProps = {
 	 * or to fall back to a selectable text field.
 	 */
 	onCopyError?: (error: unknown) => void
-} & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color'>
+	/**
+	 * The accessible name of the button before a copy. After a copy, the name is "Copied".
+	 * @defaultValue 'Copy to clipboard'
+	 */
+	'aria-label'?: string
+} & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color' | 'aria-label'>
 
 /**
  * Clipboard-copy control with the look of ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after `timeout`.

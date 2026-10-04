@@ -1,9 +1,10 @@
 import { defineScale } from '../../core/density'
-import { iro, ji } from '../kiso'
+import { iro, ji, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { text } = iro
 const { size } = ji
+const { flex } = narabi
 
 /**
  * Card kata. Each step is a `density-*` class. Each part takes the step of its
@@ -18,7 +19,7 @@ const { size } = ji
 export const k = {
 	base: [dan.space.box.base, dan.radius.card],
 	header: [text.default, dan.space.box.bottom],
-	footer: ['flex items-center', dan.space.box.top, dan.gap.default],
+	footer: [flex.row, dan.space.box.top, dan.gap.default],
 	description: [size.sm, text.muted],
 } as const
 

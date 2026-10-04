@@ -1,4 +1,4 @@
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
 
 const { nav, cursor } = hannou
@@ -39,8 +39,8 @@ export const k = defineRecipe({
 			// instead, shrinking the overlay down to the button's own `flex-1` box.
 			base: [flex.col, 'min-w-0 flex-1', 'text-start', 'outline-none', 'z-10', ...cursor],
 			// Stretches the select button's hit area over the whole `relative` row via a
-			// pointer-capturing `::after` (the inverse of `layers.overlay`, which adds
-			// `pointer-events-none` to *stop* this). The button only spans `flex-1`, so
+			// pointer-capturing `::after` (the inverse of the overlay in `kasane.layers`,
+			// which adds `pointer-events-none` to *stop* this). The button only spans `flex-1`, so
 			// without this the padding, gap, and actions chrome wouldn't select. Applied
 			// to the `<button>` branch only — a static `<span>` has nothing to trigger.
 			overlay: ['after:absolute after:inset-0'],
@@ -60,6 +60,3 @@ export const k = defineRecipe({
 		],
 	},
 })
-
-/** Recipe variant props for {@link ChatListItem} — the styling axes its kata exposes, for consumers composing custom slots. */
-export type ChatListItemVariants = VariantProps<typeof k>

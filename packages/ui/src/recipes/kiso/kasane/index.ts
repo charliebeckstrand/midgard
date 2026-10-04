@@ -4,8 +4,8 @@
  * outer ring from a spacing stop. A class uses them directly.
  *
  * Two named axes:
- *   - `layers`: the signature inset-fill-plus-rings stack (base /
- *     inset / overlay / hover / focus / validation / disabled / all).
+ *   - `layers`: the signature inset-fill-plus-rings stack, as one list (base
+ *     ring, inset fill, overlay, hover, focus, validation, and disabled).
  *   - `rounded`: pass-through to Tailwind's named radius scale
  *     (none / sm / md / lg / xl / full); `rounded.lg` → `rounded-lg`.
  *

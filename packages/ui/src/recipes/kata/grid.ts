@@ -133,6 +133,44 @@ const rowGroupTint: Record<PaletteColor, string> = {
 	sky: 'bg-sky-500/10',
 }
 
+/**
+ * A utility column that takes the width of its content, with the content in
+ * the center: the selection checkbox, the detail expander, and the row grip.
+ * `w-px` shrinks the column against the auto-width data columns.
+ */
+const fitCell = 'w-px text-center align-middle [line-height:0]'
+
+/**
+ * A reveal wrapper: a one-row CSS grid whose `track` tweens `1fr` (open) and
+ * `0fr` (closed) on `data-open`. The content grows and shrinks to its height
+ * with no JS measurement, which is reliable in a `<table>`, where a JS height
+ * tween on a `<td>` is not. The track honors `prefers-reduced-motion`. The
+ * `clip` sits between the track and the content: `min-h-0` lets the track
+ * shrink past the content, and `overflow-hidden` hides what the collapse clips.
+ */
+const reveal = {
+	track: [
+		'grid',
+		'[grid-template-rows:0fr]',
+		'data-[open]:[grid-template-rows:1fr]',
+		'transition-[grid-template-rows]',
+		'duration-200',
+		'ease-in-out',
+		'motion-reduce:transition-none',
+	],
+	clip: ['overflow-hidden', 'min-h-0'],
+}
+
+/**
+ * An icon button in a column header, for layout only. The Button's `color`
+ * prop gives the active accent. `idle` is the muted tint at rest, which the
+ * button drops while it is active, so the tint does not override that color.
+ */
+const headerButton = {
+	button: ['shrink-0'],
+	idle: [text.muted, fg.hover],
+}
+
 export const k = {
 	// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
 	// stacking context: the frozen header rides `z-20` and the sticky header `z-10`,
@@ -279,20 +317,14 @@ export const k = {
 	},
 	// Group-by icon button in a column header (see `GridGroupByButton`): press to
 	// group the rows by the column, press again to ungroup.
-	group: {
-		// Layout only. The active accent (this column is the group) comes from the
-		// Button's `color` prop; `idle` is the resting muted tint, dropped when
-		// active so it doesn't override that color — mirroring the filter button.
-		button: ['shrink-0'],
-		idle: [text.muted, fg.hover],
-	},
+	group: { ...headerButton },
 	cell: {
 		// Utility columns sized to their content: the selection checkbox, the
 		// row-actions cluster, and the master-detail expander. `w-px` shrinks each
 		// to its content against the auto-width data columns.
-		select: 'w-px text-center align-middle [line-height:0]',
+		select: fitCell,
 		actions: 'w-px whitespace-nowrap',
-		expander: 'w-px text-center align-middle [line-height:0]',
+		expander: fitCell,
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],
@@ -484,23 +516,9 @@ export const k = {
 			// beside the label. A right-to-left grid mirrors it, so a collapsed chevron
 			// points to the inline end. The mirror leaves the down chevron as it is.
 			chevron: ['shrink-0', 'rtl:-scale-x-100'],
-			// The reveal wrapper inside each leaf cell: a one-row CSS grid whose `track`
-			// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
-			// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is not.
+			// The reveal wrapper inside each leaf cell.
 			reveal: {
-				// Transitions the track over 200ms, honoring `prefers-reduced-motion`.
-				track: [
-					'grid',
-					'[grid-template-rows:0fr]',
-					'data-[open]:[grid-template-rows:1fr]',
-					'transition-[grid-template-rows]',
-					'duration-200',
-					'ease-in-out',
-					'motion-reduce:transition-none',
-				],
-				// The clip between the grid track and the content: `min-h-0` lets the track
-				// shrink past the content, `overflow-hidden` hides what the collapse clips.
-				clip: ['overflow-hidden', 'min-h-0'],
+				...reveal,
 				// The cell padding on the reveal wrapper, in the stepped class of the
 				// kata/table cell padding, so an animated leaf cell matches an ordinary one —
 				// and collapses that padding to nothing at height 0.
@@ -510,7 +528,7 @@ export const k = {
 		reorder: {
 			// The row drag-handle cell: a narrow, centered column holding the grip,
 			// sized to content like the selection cell.
-			cell: 'w-px text-center align-middle [line-height:0]',
+			cell: fitCell,
 			// Grip button carrying the row's drag activator. Mirrors the column
 			// reorder handle (`k.reorder.handle`): grab cursor tracking the live drag
 			// (`data-[dragging]`, not `:active`, so a context-menu press doesn't strand
@@ -592,22 +610,9 @@ export const k = {
 			'rtl:-scale-x-100',
 			'rtl:data-[open]:-rotate-90',
 		],
-		// The detail row's `<td>` reveal wrapper: the same one-row CSS grid the
-		// group leaves ride (`1fr` ↔ `0fr` on `data-open`), so a panel grows and
-		// shrinks to its content height over a transition without JS measurement.
-		reveal: {
-			track: [
-				'grid',
-				'[grid-template-rows:0fr]',
-				'data-[open]:[grid-template-rows:1fr]',
-				'transition-[grid-template-rows]',
-				'duration-200',
-				'ease-in-out',
-				'motion-reduce:transition-none',
-			],
-			// The clip between the reveal track and the panel body.
-			clip: ['overflow-hidden', 'min-h-0'],
-		},
+		// The reveal wrapper in the `<td>` of the detail row, as the group leaves
+		// have, so a panel grows and shrinks to its content height.
+		reveal: { ...reveal },
 		// The panel's own inset, set off from the rows with a hairline top rule and
 		// a faint recessed surface so it reads as a nested region, not another row.
 		panel: [
@@ -649,7 +654,8 @@ export const k = {
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
 			`group/grid-resize absolute top-0 end-0 z-10 h-full ${dan.size.resize.handle}`,
-			'flex items-center justify-center',
+			flex.row,
+			'justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
 		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
@@ -676,11 +682,8 @@ export const k = {
 		// In a narrow column the group-by and filter buttons close to the gap, so
 		// the gap also caps their hit areas (`TouchTarget`).
 		slot: [flex.row, 'justify-between', 'gap-1', '[--touch-target-gap-x:--spacing(1)]'],
-		// Filter icon button in a column header: layout only. The active accent comes
-		// from the Button's `color` prop; `idle` is the resting muted tint, dropped
-		// when active so it doesn't override that color.
-		button: ['shrink-0'],
-		idle: [text.muted, fg.hover],
+		// The filter icon button in a column header.
+		...headerButton,
 	},
 	footer: {
 		// Footer below the table. The footer is its own size container, so the
@@ -693,9 +696,9 @@ export const k = {
 		bar: [flex.row, 'gap-3'],
 		// Page-size picker: the start track. It renders even when it is empty,
 		// so the navigation stays centered.
-		controls: [flex.inline, 'flex-1', 'items-center', 'gap-4'],
+		controls: [flex.inline, flex.fill, 'gap-4'],
 		// Page navigation: the centered middle track.
-		nav: ['flex', 'flex-1', 'justify-center'],
+		nav: ['flex', flex.fill, 'justify-center'],
 		// The `<Pagination>` in the track. The footer has its own narrow layout
 		// (`pages`), so the pagination is not a size container here, and the
 		// compact page list of `<Pagination>` stays off. It also takes the width
@@ -706,7 +709,7 @@ export const k = {
 		pages: ['hidden', '@2xl:flex'],
 		// Row-range status ("1–10 of 47"): the end track, aligned to the inline
 		// end.
-		status: [size.md, text.muted, 'flex-1', 'whitespace-nowrap', 'text-end'],
+		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end'],
 		// A footer with no page-size picker, below `@2xl`: the empty start track
 		// goes, so Previous/Next sit at the start and the status at the end. From
 		// `@2xl` the numbered pages stay centered.
@@ -736,11 +739,11 @@ export const k = {
 	// (the selected total swaps in over the row total in place), and any custom
 	// content is pushed to the far edge by `ms-auto` in the trailing cluster.
 	summary: {
-		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
+		bar: [flex.row, 'flex-wrap', 'gap-x-4', 'gap-y-1', size.md, text.muted],
 		// `min-w-0` so the cluster can shrink past its content: a flex item's automatic
 		// minimum is its content width, which pinned this slot to the intrinsic width of
 		// whatever the consumer rendered, overflowing the bar instead of clipping inside it.
-		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ms-auto', 'min-w-0'],
+		trailing: [flex.row, 'flex-wrap', 'gap-x-4', 'gap-y-1', 'ms-auto', 'min-w-0'],
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
@@ -851,13 +854,13 @@ export const k = {
 	// grows to fit the controls.
 	edit: {
 		// Host for a cell's editor; anchors the absolute validation message.
-		host: 'relative flex w-full items-center',
+		host: ['relative', flex.row, 'w-full'],
 		// The slot that holds the editor, beside the settle pair. A column flex
 		// stretches the editor to the width of the slot, also through the
 		// `display: contents` wrapper of a listbox or a date picker. Thus a
 		// consumer's `editCell` control fills the cell with no width of its own.
 		// `min-w-0` lets the slot shrink, so the settle pair stays in the cell.
-		slot: 'flex min-w-0 flex-1 flex-col',
+		slot: [flex.col, 'min-w-0', flex.fill],
 		// The in-cell control fills the cell width.
 		input: 'w-full',
 		// The settle pair a cell-scoped session shows beside its editor. No padding
@@ -876,7 +879,8 @@ export const k = {
 		error: {
 			base: [
 				'absolute top-full start-0 z-20 mt-0.5 max-w-xs',
-				'rounded px-1.5 py-0.5 text-xs whitespace-normal',
+				'rounded px-1.5 py-0.5 whitespace-normal',
+				size.xs,
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),
 			],

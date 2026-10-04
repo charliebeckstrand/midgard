@@ -40,7 +40,7 @@ export const k = {
 	},
 	remove: 'flex-none',
 	value: ['px-3', size.sm, ...text.muted],
-	actions: 'flex items-center gap-2',
+	actions: [flex.row, 'gap-2'],
 	sortable: {
 		// The children of a group while they reorder. The box adds no layout, and
 		// it marks a drag in progress for the separators below.

@@ -33,16 +33,27 @@ describe('Avatar', () => {
 		expect(text).toHaveTextContent('JD')
 	})
 
-	it('renders an image when src is provided', () => {
+	it('paints the image as a background layer, with no <img> to break', () => {
 		const { container } = renderUI(<Avatar src="/avatar.png" alt="User" />)
 
-		const img = container.querySelector('img')
+		// A failed background paints nothing. A failed <img> draws a broken-image icon over the
+		// initials.
+		expect(container.querySelector('img')).toBeNull()
 
-		expect(img).toBeInTheDocument()
-
-		expect(img).toHaveAttribute('src', '/avatar.png')
+		expect(getSlot(container, 'avatar-image').style.backgroundImage).toBe('url("/avatar.png")')
 
 		expect(screen.getByRole('img', { name: 'User' })).toBeInTheDocument()
+	})
+
+	it('escapes each character of src that would end the CSS string', () => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToString(<Avatar src={'/a"b\\c.png'} />)
+
+		// `\22 ` is the quote and `\5c ` is the backslash.
+		expect(getSlot(container, 'avatar-image').getAttribute('style')).toBe(
+			'background-image:url("/a\\22 b\\5c c.png")',
+		)
 	})
 
 	it('wraps the avatar with a status dot when status is provided', () => {
@@ -78,10 +89,6 @@ describe('Avatar', () => {
 		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
 
 		expect(container.querySelector('svg')).not.toHaveAttribute('aria-label')
-
-		// An image with an empty alt that fails to load draws no alt text over the
-		// initials.
-		expect(container.querySelector('img')).toHaveAttribute('alt', '')
 	})
 
 	it('names an avatar with alt but no src and no initials', () => {

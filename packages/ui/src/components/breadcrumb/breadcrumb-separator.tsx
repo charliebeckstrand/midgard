@@ -1,11 +1,17 @@
 import { ChevronRight } from 'lucide-react'
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/breadcrumb'
 import { Icon } from '../icon'
 
 /** Props for {@link BreadcrumbSeparator}; the underlying `<li>` attributes. */
-export type BreadcrumbSeparatorProps = ComponentProps<'li'>
+export type BreadcrumbSeparatorProps = Omit<ComponentProps<'li'>, 'children'> & {
+	/**
+	 * The divider. The default is a chevron that mirrors in a right-to-left document.
+	 * @defaultValue {@link DEFAULT_SEPARATOR}
+	 */
+	children?: ReactNode
+}
 
 const DEFAULT_SEPARATOR = (
 	<Icon icon={<ChevronRight />} aria-hidden="true" className="rtl:-scale-x-100" />

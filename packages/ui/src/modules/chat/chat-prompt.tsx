@@ -68,6 +68,7 @@ export type ChatPromptProps = {
 	 * the textarea defaults to `"Message"` when neither this nor
 	 * `aria-labelledby` is supplied (WCAG 3.3.2 / 4.1.2). Pass `aria-labelledby`
 	 * instead to point at a visible label.
+	 * @defaultValue 'Message'
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string

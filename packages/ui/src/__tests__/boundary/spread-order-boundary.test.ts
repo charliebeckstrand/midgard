@@ -63,7 +63,6 @@ type Waiver = { order?: number; anchor?: number; ref?: number; note: string }
  * count moves in either direction.
  */
 const WAIVERS = new Map<string, Waiver>([
-	['components/badge/badge.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/description.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/field.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/label.tsx', { anchor: 1, note: 'lead S1' }],

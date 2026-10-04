@@ -1,10 +1,12 @@
 import { Search } from 'lucide-react'
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
-import { Button } from '../../components/button'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, type Mock, vi } from 'vitest'
+import { Button, ButtonSkeleton } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/button'
 import { bySlot, densityStepOf, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 import { findSteps } from '../helpers/class-stops'
@@ -76,14 +78,43 @@ describe('Button', () => {
 		expect(button).toBeDisabled()
 	})
 
-	it('disables the button and sets aria-busy when loading', () => {
-		const { container } = renderUI(<Button loading>Save</Button>)
+	/**
+	 * A loading button or link is out of the tab order, and it cancels a click
+	 * before the `onClick` of the consumer runs.
+	 */
+	function expectGated(element: HTMLElement, onClick: Mock) {
+		expect(element).toHaveAttribute('aria-disabled', 'true')
 
-		const button = bySlot(container, 'button')
+		expect(element).toHaveAttribute('aria-busy', 'true')
 
-		expect(button).toBeDisabled()
+		expect(element).toHaveAttribute('tabindex', '-1')
 
-		expect(button).toHaveAttribute('aria-busy', 'true')
+		expect(fireEvent.click(element)).toBe(false)
+
+		expect(onClick).not.toHaveBeenCalled()
+	}
+
+	it('gates a loading button: enabled for its focus, no onClick, no form submission', () => {
+		const onClick = vi.fn()
+
+		const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		const { container } = renderUI(
+			<form onSubmit={onSubmit}>
+				<Button loading onClick={onClick}>
+					Save
+				</Button>
+			</form>,
+		)
+
+		const button = getSlot<HTMLButtonElement>(container, 'button')
+
+		// A disabled button drops the focus that it has, so a loading button stays enabled.
+		expect(button).toBeEnabled()
+
+		expectGated(button, onClick)
+
+		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
 	it('gates a loading link: no navigation, no onClick, out of the tab order', () => {
@@ -97,28 +128,101 @@ describe('Button', () => {
 
 		const link = getSlot<HTMLAnchorElement>(container, 'button')
 
-		expect(link).toHaveAttribute('aria-disabled', 'true')
+		// The canceled click prevents the navigation.
+		expectGated(link, onClick)
 
-		expect(link).toHaveAttribute('aria-busy', 'true')
+		// A middle click opens a link in a new tab unless its own event is canceled.
+		const auxNotCanceled = fireEvent(
+			link,
+			new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 }),
+		)
 
-		// Removed from the tab order, mirroring the disabled <button> branch.
-		expect(link).toHaveAttribute('tabindex', '-1')
-
-		// Activation is canceled: the default navigation is prevented and the
-		// consumer's handler never fires.
-		const notCanceled = fireEvent.click(link)
-
-		expect(notCanceled).toBe(false)
-
-		expect(onClick).not.toHaveBeenCalled()
+		expect(auxNotCanceled).toBe(false)
 	})
 
-	it('renders the motion wrapper around a link button', () => {
-		const { container } = renderUI(<Button href="/spring">Springy</Button>)
+	it('paints the zinc fill for a solid or soft button with the inherit color', () => {
+		// `inherit` is a text color, and a text color cannot fill a button.
+		renderUI(
+			<>
+				<Button variant="solid" color="inherit">
+					Solid
+				</Button>
+				<Button variant="solid">Solid reference</Button>
+				<Button variant="soft" color="inherit">
+					Soft
+				</Button>
+				<Button variant="soft">Soft reference</Button>
+			</>,
+		)
 
-		expect(bySlot(container, 'button')).toBeInTheDocument()
+		for (const name of ['Solid', 'Soft']) {
+			expect(screen.getByRole('button', { name }).className).toBe(
+				screen.getByRole('button', { name: `${name} reference` }).className,
+			)
+		}
+	})
 
-		expect(screen.getByText('Springy').closest('a')).toHaveAttribute('href', '/spring')
+	it('renders a link button as the anchor itself, with no wrapper', () => {
+		const { container } = renderUI(
+			<Button href="/report.pdf" type="application/pdf">
+				Report
+			</Button>,
+		)
+
+		const anchor = getSlot<HTMLAnchorElement>(container, 'button')
+
+		expect(anchor.tagName).toBe('A')
+
+		expect(anchor).toHaveAttribute('href', '/report.pdf')
+
+		expect(anchor).toHaveAttribute('type', 'application/pdf')
+
+		// The anchor is the box that a parent lays out, so `flex-1` and the like reach it.
+		expect(anchor.parentElement).toBe(container)
+	})
+
+	it('shows the spinner in place of the icon of a loading icon-only button', () => {
+		renderUI(
+			<Button aria-label="Search" loading>
+				<Icon icon={<Search />} />
+			</Button>,
+		)
+
+		const button = screen.getByRole('button', { name: 'Search' })
+
+		expect(button.querySelector('[data-slot="loading-spinner"]')).toBeInTheDocument()
+
+		// The icon stays in the tree for assistive technology, but takes no room.
+		expect(button.querySelector('.sr-only [data-slot="icon"]')).toBeInTheDocument()
+	})
+
+	it('keeps the prefix and the suffix under the headless provider', () => {
+		renderUI(
+			<HeadlessProvider>
+				<Button type="button" prefix={<span>Before</span>} suffix={<span>After</span>}>
+					Label
+				</Button>
+			</HeadlessProvider>,
+		)
+
+		expect(screen.getByRole('button')).toHaveTextContent('BeforeLabelAfter')
+	})
+
+	// A button can sit in a line of text, so its skeleton has to be able to as well.
+	it('stands in for a button inside a paragraph, as server markup and inline', () => {
+		const holder = document.createElement('div')
+
+		holder.innerHTML = renderToString(
+			<p>
+				Your session ended. <ButtonSkeleton size="sm" />
+			</p>,
+		)
+
+		const skeleton = getSlot(holder, 'placeholder')
+
+		expect(skeleton.tagName).toBe('SPAN')
+
+		expect(skeleton.parentElement?.tagName).toBe('P')
 	})
 
 	describe('size resolution', () => {
@@ -208,6 +312,17 @@ describe('Button', () => {
 			const { container } = renderUI(
 				<Button>
 					<Icon icon={<Search />} />
+				</Button>,
+			)
+
+			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
+		})
+
+		it('does not count a visually hidden name as a label', () => {
+			const { container } = renderUI(
+				<Button>
+					<Icon icon={<Search />} />
+					<span className="sr-only">Search</span>
 				</Button>,
 			)
 

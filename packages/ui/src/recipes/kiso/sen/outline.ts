@@ -1,7 +1,7 @@
 /**
  * Sen outline: `outline-style` 1 px lines in the three library
- * intensities. Used where a ring would conflict with `kasane.layers.base`
- * (panel chrome).
+ * intensities. Used where a ring would conflict with the base ring of
+ * `kasane.layers` (panel chrome).
  *
  * The line sits on the inner edge of the box, over its background. A
  * translucent tone then adds to the background below it, so the edge shows

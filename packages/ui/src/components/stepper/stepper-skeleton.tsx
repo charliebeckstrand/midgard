@@ -16,6 +16,7 @@ export type StepperSkeletonProps = {
 	 * The orientation of the stepper it stands in for. Omit it to get the
 	 * responsive layout that a stepper with no `orientation` has: vertical below
 	 * `sm`, and horizontal from it.
+	 * @defaultValue 'responsive'
 	 */
 	orientation?: Orientation
 	className?: string

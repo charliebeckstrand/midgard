@@ -23,6 +23,10 @@ export type SearchInputProps = Omit<
 > & {
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
+	/**
+	 * The initial text when uncontrolled.
+	 * @defaultValue ''
+	 */
 	defaultValue?: string
 	/** Fires with the current query text; the value-first counterpart to `onChange`. */
 	onValueChange?: (value: string) => void

@@ -1,8 +1,7 @@
-import { hannou, iro } from '../kiso'
+import { hannou } from '../kiso'
 import { control } from '../kiso/control'
 
 const { cursor } = hannou
-const { text } = iro
 const { surface, affix } = control
 
 export const k = {
@@ -14,9 +13,8 @@ export const k = {
 			// The slot fills the height of the frame, so the whole column of the
 			// affix is a press target with the pointer cursor, and not only the
 			// box of its content.
-			'flex items-center self-stretch min-w-0',
-			'*:data-[slot=icon]:pointer-events-none',
-			...text.muted,
+			...affix.base,
+			'self-stretch',
 			...cursor,
 			// The disabled input/button is a sibling of the affix, not a descendant;
 			// the cursor reacts to the enclosing control frame.

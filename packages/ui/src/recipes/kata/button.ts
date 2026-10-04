@@ -66,6 +66,15 @@ export const k = defineRecipe({
 		// Synthetic color entry: inherits parent text color with a hover wash on non-disabled elements.
 		{ inherit: ['text-inherit', 'not-disabled:not-data-disabled:hover:bg-current/15'] },
 	),
+	// `inherit` is the text color around the button, and a text color cannot fill
+	// a button. A solid or a soft button with `inherit` thus paints the fill of
+	// the default color. A compound rule comes after the palette pair, so its
+	// classes win the merge.
+	compound: (['solid', 'soft'] as const).map((variant) => ({
+		variant,
+		color: 'inherit',
+		class: [extended[variant].bg.zinc, extended[variant].text.zinc, extended[variant].hover.zinc],
+	})),
 	defaults: { variant: 'solid', color: 'zinc' },
 	skeleton: button,
 })
@@ -90,7 +99,9 @@ export type ButtonVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> &
 	variant?: VariantProps<typeof k>['variant']
 	/**
 	 * The palette color of the button. When the prop is unset in a surface that
-	 * sets a color, the button takes that color.
+	 * sets a color, the button takes that color. `inherit` takes the text color
+	 * around the button. A text color cannot fill a button, so a solid or a soft
+	 * button with `inherit` takes the fill of `zinc`.
 	 * @defaultValue 'zinc'
 	 */
 	color?: VariantProps<typeof k>['color']

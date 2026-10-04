@@ -43,7 +43,7 @@ export type ChartLineMarksProps = {
 	plot?: PlotRect
 }
 
-/** The marker dot's classes: series fill, gaining a white surface stroke only where a dot crosses opaque marks. @internal */
+/** The marker dot's classes: series fill, gaining a stroke in the surface color only where a dot crosses opaque marks. @internal */
 function markerClass(paint: ChartPaint, stroke: boolean): string {
 	return cn(fillClass(paint), stroke && k.mark.stroke)
 }

@@ -4,7 +4,7 @@ const { rounded } = kasane
 const { flex } = narabi
 
 export const k = {
-	base: ['relative', flex.row, 'items-center justify-center', rounded.lg],
+	base: ['relative', flex.row, 'justify-center', rounded.lg],
 	// The two icons cross-fade. Each icon takes `icon.base` and the class of its state.
 	icon: {
 		base: 'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale] motion-reduce:transition-none',

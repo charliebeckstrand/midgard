@@ -1,6 +1,7 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, kokkaku, omote, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
+import type { SwatchVariants } from './swatch'
 
 const { marker, text } = iro
 const { weight } = ji
@@ -60,11 +61,7 @@ const timeline = defineRecipe({
 		// content behind it fades, and the list is a tab stop with an inset ring.
 		horizontal: ['flex flex-row', ...rail],
 	},
-	variant: {
-		solid: '',
-		outline: '',
-	},
-	defaults: { orientation: 'vertical', variant: 'solid' },
+	defaults: { orientation: 'vertical' },
 })
 
 /**
@@ -159,9 +156,13 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link Timeline} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
-export type TimelineVariants = Omit<VariantProps<typeof k.base>, 'orientation' | 'variant'> & {
+export type TimelineVariants = Omit<VariantProps<typeof k.base>, 'orientation'> & {
 	/** The axis of the timeline. @defaultValue 'vertical' */
 	orientation?: VariantProps<typeof k.base>['orientation']
-	/** The style of the markers and the connector lines. @defaultValue 'solid' */
-	variant?: VariantProps<typeof k.base>['variant']
+	/**
+	 * The style of the markers and the connector lines: the `solid` or the
+	 * `outline` fill of {@link Swatch}. The root takes no class for it.
+	 * @defaultValue 'solid'
+	 */
+	variant?: Extract<SwatchVariants['variant'], 'solid' | 'outline'>
 }
