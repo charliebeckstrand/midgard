@@ -61,7 +61,7 @@ type SectorSegmentLabelsProps = {
 
 /**
  * The fit-gated labels set inside the slices. Text on a mark's own fill is
- * the one place ink follows the series color. Each hue's `onFill` pick is
+ * the one place ink follows the series color. Each hue's `label` pick is
  * white-first, dropping to near-black only where white can't clear the 3:1
  * graphical floor against that fill (see `kata/chart`). Under `animate` a label
  * fades in as the sweep uncovers its slice. A label dims with its slice under
@@ -86,7 +86,7 @@ export function SectorSegmentLabels({
 					y: slice.centroid.y,
 					textAnchor: 'middle' as const,
 					dominantBaseline: 'central' as const,
-					className: cn('font-semibold text-sm tabular-nums', paints[slice.index]?.onFill),
+					className: cn('font-semibold text-sm tabular-nums', paints[slice.index]?.label),
 				}
 
 				return (

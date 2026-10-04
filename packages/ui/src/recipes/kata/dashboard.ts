@@ -100,7 +100,7 @@ const card = defineRecipe({
  * the floor.
  */
 const header = [
-	`flex min-w-0 items-center gap-2 ${dan.space.boxBottom} [--touch-target-gap-x:0px]`,
+	`flex min-w-0 items-center gap-2 ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
 	'has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	'**:data-[variant=bare]:not-data-[has-label]:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-[has-label]:density-sm:-mx-1',

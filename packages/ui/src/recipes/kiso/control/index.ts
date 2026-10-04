@@ -3,8 +3,9 @@
  *
  * Consumed by input, textarea, select, listbox, combobox, date-picker,
  * color-picker, checkbox, radio, switch, rating, and ControlFrame. Exposes
- * class fragments (frame, surface, reset, input, density, radius, affix,
- * resets, check) that each kata composes into its own recipe.
+ * class fragments (frame, surface, reset, input, density, radius, scale, affix,
+ * check) that each kata composes into its own recipe. `reset.base` strips the
+ * inner element, and `reset.number` hides the spinners of a number input.
  */
 
 import { affix } from './affix'
@@ -19,12 +20,11 @@ import { surface } from './surface'
 export const control = {
 	frame,
 	surface,
-	reset,
+	reset: { base: reset, number: resets.number },
 	input,
 	density,
 	radius,
 	scale,
 	affix,
-	resets,
 	check,
 } as const

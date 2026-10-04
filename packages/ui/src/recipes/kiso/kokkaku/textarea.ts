@@ -12,9 +12,9 @@
  */
 
 import { py, radius } from '../control/density'
-import { textRamp } from '../ji'
+import { ji } from '../ji'
 
 export const textarea = {
-	base: ['w-full', 'box-content', py, radius, textRamp],
+	base: ['w-full', 'box-content', py, radius, ji.ramp],
 	density: true,
 } as const

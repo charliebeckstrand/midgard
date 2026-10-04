@@ -30,4 +30,4 @@ export const solid = {
 		green: 'not-disabled:not-data-disabled:hover:bg-green-800',
 		blue: 'not-disabled:not-data-disabled:hover:bg-blue-700',
 	}),
-}
+} as const

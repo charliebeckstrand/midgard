@@ -8,7 +8,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, kasane, kokkaku, narabi, sen, textRamp, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
@@ -32,7 +32,7 @@ const itemContent = defineRecipe(
 			...cursor,
 			'select-none',
 			...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
-			textRamp,
+			ji.ramp,
 		],
 	},
 	{ current: text.default },
@@ -60,14 +60,14 @@ const check = [
 ]
 
 /** The mark in the check box. It takes the step of the nearest density scope. */
-const mark = ['stroke-white', dan.size.check]
+const mark = ['stroke-white', dan.size.check.mark]
 
 /** The chevron column. Its width is the icon size of the step. */
 const chevron = [
 	'flex-none',
 	flex.row,
 	'justify-center',
-	dan.size.treeIndentWidth,
+	dan.size.tree.indent,
 	css.transform,
 	css.duration,
 ]
@@ -96,7 +96,7 @@ export const k = {
 		 * The start padding of a nested group when `indent` is enabled. It equals
 		 * the chevron width plus the row gap, so each depth adds one step of it.
 		 */
-		indent: dan.space.treeIndent,
+		indent: dan.space.tree.indent,
 	},
 	motion: collapse.fade,
 	skeleton: { ...kokkaku.tree, row },
@@ -104,8 +104,8 @@ export const k = {
 
 /** The size scale of {@link Tree}: the steps of its icon, row, and indent. */
 export const scale = defineScale(
-	dan.size.icon,
+	dan.size.icon.base,
 	dan.size.row,
-	dan.space.treeIndent,
-	dan.size.treeIndentWidth,
+	dan.space.tree.indent,
+	dan.size.tree.indent,
 )

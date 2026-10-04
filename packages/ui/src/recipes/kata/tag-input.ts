@@ -23,7 +23,7 @@ export const k = {
 	// `gap-1` of the row and the `py-ring-1` pad of two chips apart, 10px in all.
 	// Along the row, a one-letter tag still puts the gap, the leading pad, and the
 	// inner gap of its `xs` chip between two buttons, 14px or more.
-	tags: `${dan.space.tagsY} [--touch-target-gap-x:--spacing(3.5)] [--touch-target-gap-y:--spacing(2.5)]`,
+	tags: `${dan.space.tags.y} [--touch-target-gap-x:--spacing(3.5)] [--touch-target-gap-y:--spacing(2.5)]`,
 	// The text input keeps a usable width. When the tag row leaves less, the input
 	// moves to the next row of the wrapping frame, and the add button goes with
 	// it. Without the floor, the input took the last sliver of the tag row and the

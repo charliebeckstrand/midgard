@@ -20,7 +20,7 @@ const base = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
-const verticalStep = [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.subtleColor]
+const verticalStep = [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.color.subtle]
 
 // A horizontal step is `w-32` where the row has the space, and shrinks to
 // `min-w-20` where it does not, so that a narrow row does not overlap its steps.
@@ -85,7 +85,7 @@ const horizontalRule = [
 	flex.fill,
 	'self-start',
 	'border-t',
-	...border.defaultColor,
+	...border.color.default,
 ]
 
 const separator = defineRecipe({

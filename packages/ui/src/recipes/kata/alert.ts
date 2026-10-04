@@ -1,6 +1,6 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { iro, ji, kasane, narabi, textRamp } from '../kiso'
+import { iro, ji, kasane, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { palette } = iro
@@ -8,7 +8,7 @@ const { weight, leading } = ji
 const { rounded } = kasane
 const { flex } = narabi
 
-/** The title size: `text-lg` at `md`, one rung above {@link textRamp} at each step. */
+/** The title size: `text-lg` at `md`, one rung above `ji.ramp` at each step. */
 const titleRamp = dan.text.title
 
 /**
@@ -18,7 +18,7 @@ const titleRamp = dan.text.title
  * the alert is `p-4` with `text-base` and a `text-lg` title.
  */
 export const k = defineRecipe({
-	base: [flex.row, 'w-fit', dan.space.alert, 'gap-2', rounded.lg, textRamp],
+	base: [flex.row, 'w-fit', dan.space.alert, 'gap-2', rounded.lg, ji.ramp],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},

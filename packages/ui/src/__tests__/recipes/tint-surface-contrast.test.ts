@@ -8,7 +8,7 @@ import { themeColor } from '../helpers/contrast'
 /**
  * The hover step of an opaque surface is visible in both modes.
  *
- * `hannou.tintSurface` replaces the card fill with a nearby shade. On light, `zinc-50` on
+ * `hannou.tint.surface` replaces the card fill with a nearby shade. On light, `zinc-50` on
  * white gave about 1.04:1, and a separated List row showed almost no change under the
  * pointer. The dark step, `zinc-800` on `zinc-900`, gives about 1.2:1. This guard sets the
  * floor between the two.
@@ -32,7 +32,7 @@ function hoverToken(mode: 'light' | 'dark'): string {
 
 const color = (token: string) => parseColor(token === 'white' ? token : themeColor(token))
 
-describe('hannou.tintSurface hover contrast', () => {
+describe('hannou.tint.surface hover contrast', () => {
 	for (const mode of ['light', 'dark'] as const) {
 		it(`steps the ${mode} surface by at least ${FLOOR}:1`, () => {
 			const ratio = contrastRatio(color(hoverToken(mode)), color(SURFACE[mode]))

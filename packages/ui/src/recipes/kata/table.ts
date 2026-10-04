@@ -18,7 +18,7 @@ const { size } = ji
 const { rail } = omote
 
 // Cell padding for each step.
-const padding = [dan.space.cellX, dan.space.cellY]
+const padding = [dan.space.cell.x, dan.space.cell.y]
 
 const cell = defineRecipe({
 	base: [text.default, padding],
@@ -74,7 +74,7 @@ export const k = {
 	// columns behind it fades, and the container is a tab stop with an inset ring.
 	scroll: [...rail],
 	base: 'w-full text-start text-base',
-	// Color only. A `border.subtleColor` sat here with no border *width*, so it
+	// Color only. A `border.color.subtle` sat here with no border *width*, so it
 	// painted nothing: the shipped header carries no rule. Restoring one is a
 	// visual change, not a cleanup — it needs a width and a design call.
 	head: [text.muted],
@@ -90,4 +90,4 @@ export const k = {
 }
 
 /** The size scale of {@link Table}: the steps of its cell padding. */
-export const scale = defineScale(dan.space.cellX, dan.space.cellY)
+export const scale = defineScale(dan.space.cell.x, dan.space.cell.y)

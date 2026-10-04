@@ -135,7 +135,7 @@ type MapDotCountProps = {
 	at: MapPoint2D
 	/** How many stops the dot stands for. */
 	count: number
-	/** The label ink — the slot's `onFill`, the one place text sits on a mark's own color. */
+	/** The label ink — the slot's `label`, the one place text sits on a mark's own color. */
 	className: string
 	/** Frame units per device pixel; the count counter-scales by it to hold its size. */
 	scale: number

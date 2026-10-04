@@ -11,7 +11,9 @@ import { bg } from './bg'
 
 const { css } = ugoki
 
-export const skeleton = [bg.skeleton, css.pulse]
-
-/** The same pulse on the same tone, as an SVG fill, for a skeleton drawn as a shape. */
-export const skeletonShape = [bg.skeletonFill, css.pulse]
+export const skeleton = {
+	/** The pulse on the skeleton tone, as a background. */
+	base: [bg.skeleton.base, css.pulse],
+	/** The same pulse on the same tone, as an SVG fill, for a skeleton drawn as a shape. */
+	shape: [bg.skeleton.fill, css.pulse],
+}

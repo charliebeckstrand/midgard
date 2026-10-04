@@ -15,6 +15,6 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const segment = {
-	base: [rounded.lg, dan.size.segment, dan.size.segmentWidth],
+	base: [rounded.lg, dan.size.segment.base, dan.size.segment.width],
 	density: true,
 } as const

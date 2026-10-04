@@ -2,19 +2,8 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const {
-	cursor,
-	disabled,
-	fg,
-	glassItem,
-	glassItemBefore,
-	grab,
-	tint,
-	tintBefore,
-	tintFilled,
-	tintSurface,
-} = hannou
-const { onWash, text } = iro
+const { cursor, disabled, fg, grab, tint } = hannou
+const { on, text } = iro
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -41,9 +30,9 @@ const base = defineRecipe({
 })
 
 // The padding of a row follows the nearest density scope. The card-like
-// variants use the uniform `dan.space.box` padding, and `plain` uses a tighter
-// ratio (`dan.space.listPlainX` and `dan.space.rowY`).
-const pad = dan.space.box
+// variants use the uniform `dan.space.box.base` padding, and `plain` uses a tighter
+// ratio (`dan.space.list.plain.x` and `dan.space.row.y`).
+const pad = dan.space.box.base
 
 // The rounded wash layer of a divided row. The layer takes no pointer, so a
 // press still reaches the row and its slots.
@@ -60,7 +49,7 @@ const item = defineRecipe({
 	variant: {
 		separated: [...bg.surface, border.default, rounded.lg, pad],
 		outline: pad,
-		plain: `${dan.space.listPlainX} ${dan.space.rowY}`,
+		plain: `${dan.space.list.plain.x} ${dan.space.row.y}`,
 		solid: [...bg.tint, border.default, rounded.lg, pad],
 	},
 	active: {
@@ -113,17 +102,22 @@ const item = defineRecipe({
 		//
 		// A row on bare ground takes the standard wash, doubled inside a glass
 		// parent where 5% sits under the panel's own translucency.
-		{ variant: 'plain', interactive: true, rounded: false, class: [tint, glassItem] },
-		{ variant: 'outline', interactive: true, rounded: false, class: [tint, glassItem] },
-		{ variant: 'plain', interactive: true, rounded: true, class: [tintBefore, glassItemBefore] },
-		{ variant: 'outline', interactive: true, rounded: true, class: [tintBefore, glassItemBefore] },
+		{ variant: 'plain', interactive: true, rounded: false, class: [tint.base, tint.glass.base] },
+		{ variant: 'outline', interactive: true, rounded: false, class: [tint.base, tint.glass.base] },
+		{ variant: 'plain', interactive: true, rounded: true, class: [tint.before, tint.glass.before] },
+		{
+			variant: 'outline',
+			interactive: true,
+			rounded: true,
+			class: [tint.before, tint.glass.before],
+		},
 		// A card rests on an opaque surface, and an alpha wash would not darken it
 		// but replace it — the row would go see-through to whatever it covers for
 		// as long as the pointer rests there. It steps shade instead.
-		{ variant: 'separated', interactive: true, class: tintSurface },
+		{ variant: 'separated', interactive: true, class: tint.surface },
 		// A solid row rests on `omote.bg.tint`, which the standard wash matches in
 		// strength — the hover would repaint the rest state. This doubles it.
-		{ variant: 'solid', interactive: true, class: tintFilled },
+		{ variant: 'solid', interactive: true, class: tint.filled },
 	],
 	defaults: {
 		variant: 'separated',
@@ -146,9 +140,9 @@ const content = defineRecipe({
 	// one focus target, reorderable or not.
 	base: [flex.col, 'flex-1 min-w-0 text-start', focus.ring],
 	// One rung across the whole axis, not a `variant` × `interactive` compound:
-	// `onWash.muted` is legal on the page surface and on `solid`'s wash alike.
+	// `on.wash.muted` is legal on the page surface and on `solid`'s wash alike.
 	interactive: {
-		true: [onWash.muted, fg.hover, ...cursor],
+		true: [on.wash.muted, fg.hover, ...cursor],
 		false: '',
 	},
 	// Picked up for a keyboard move. The row's own `lifted` raises and shadows it;
@@ -196,8 +190,8 @@ export const k = {
 	 */
 	content,
 	label: 'min-w-0 truncate',
-	// `onWash.muted`, not `muted`: the `solid` variant grounds a row on the
+	// `on.wash.muted`, not `muted`: the `solid` variant grounds a row on the
 	// wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: ['min-w-0 truncate', size.sm, onWash.muted],
+	description: ['min-w-0 truncate', size.sm, on.wash.muted],
 	skeleton: kokkaku.list,
 } as const

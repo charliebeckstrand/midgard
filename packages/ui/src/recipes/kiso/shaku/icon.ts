@@ -1,9 +1,9 @@
 /**
- * Shaku icon: icon dimension scale. `iconSize` is the scale, and three forms
- * project it. `iconRamp` sizes an icon element by the step of its nearest
- * density scope, and Icon reads it. `iconSlotRamp` sizes the
+ * Shaku icon: icon dimension scale. `icon.size` is the scale, and three forms
+ * project it. `icon.base` sizes an icon element by the step of its nearest
+ * density scope, and Icon reads it. `icon.slot.base` sizes the
  * `data-slot="icon"` children of a parent the same way, and Badge, Button,
- * Nav, and `narabi.item` (Menu and Option) read it. `icon.md` sizes those
+ * Nav, and `narabi.item` (Menu and Option) read it. `icon.slot.md` sizes those
  * children at the fixed `md` step, for CommandPalette, where the chrome is
  * fixed. Tailwind's JIT scans for whole class literals, so no form
  * can be interpolated from another. `shaku-icon-ramp.test.ts` pins each form
@@ -14,27 +14,24 @@
 
 import { dan } from '../dan'
 
-export const iconSize = {
-	xs: 'size-3',
-	sm: 'size-4',
-	md: 'size-5',
-	lg: 'size-6',
-} as const
-
 export const icon = {
-	md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
-}
-
-/**
- * `iconSize` in a stepped `density-size` class: an icon with no
- * `size` takes the step of its nearest density scope. `shaku-icon-ramp.test.ts`
- * pins it to `iconSize`.
- */
-export const iconRamp = dan.size.icon
-
-/**
- * The slot form in a stepped `density-size` class: a density host sizes its
- * `data-slot="icon"` children by the step of its nearest density scope.
- * `shaku-icon-ramp.test.ts` pins it to `iconSize`.
- */
-export const iconSlotRamp = ['*:data-[slot=icon]:shrink-0', dan.size.iconSlot]
+	/** The scale: the size of an icon at each step. */
+	size: {
+		xs: 'size-3',
+		sm: 'size-4',
+		md: 'size-5',
+		lg: 'size-6',
+	},
+	/**
+	 * `size` in a stepped `density-size` class: an icon with no `size` takes the
+	 * step of its nearest density scope.
+	 */
+	base: dan.size.icon.base,
+	/** The forms that size the `data-slot="icon"` children of a host. */
+	slot: {
+		/** The stepped form: the host sizes its icons by the step of its nearest density scope. */
+		base: ['*:data-[slot=icon]:shrink-0', dan.size.icon.slot],
+		/** The fixed form at the `md` step, for a host whose chrome is fixed. */
+		md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
+	},
+} as const

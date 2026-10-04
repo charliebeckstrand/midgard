@@ -123,7 +123,7 @@ export const k = {
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
-			panel.grip.GROUP,
+			panel.grip.base,
 		],
 		side: {
 			// The full-height reach belongs to the two side arms only. In the base, it

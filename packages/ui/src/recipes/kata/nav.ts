@@ -11,7 +11,7 @@
  * - `skeleton` is the form of the `<NavSkeleton>` rows.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, kokkaku, narabi, omote, sen, shaku, textRamp } from '../kiso'
+import { hannou, ji, kasane, kokkaku, narabi, omote, sen, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
@@ -33,13 +33,20 @@ const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0']
  * is `p-2` with `gap-2` and `text-base`. The skeleton row takes the same box,
  * so the two boxes match.
  */
-const itemBox = [flex.row, 'w-full', dan.space.navItem, dan.gap.item, textRamp, rounded.lg]
+const itemBox = [flex.row, 'w-full', dan.space.nav.item, dan.gap.item, ji.ramp, rounded.lg]
 
 /**
  * Shared item structure minus the interaction surface. The icon takes the
  * step of the nearest density scope. At `md` it is `size-5`.
  */
-const itemShell = ['group', ...itemBox, ...nav.base, ...shaku.iconSlotRamp, ...cursor, 'text-start']
+const itemShell = [
+	'group',
+	...itemBox,
+	...nav.base,
+	...shaku.icon.slot.base,
+	...cursor,
+	'text-start',
+]
 
 /**
  * The `<li>` wrapper. Affixless it is a bare list row carrying no chrome. With
@@ -85,9 +92,9 @@ const button = defineRecipe({
 const bar = defineRecipe({
 	base: ['px-4 py-2.5', rounded.lg, 'border'],
 	variant: {
-		solid: [...border.defaultColor, ...bg.tint],
-		outline: [...border.defaultColor],
-		plain: [...border.transparent],
+		solid: [...border.color.default, ...bg.tint],
+		outline: [...border.color.default],
+		plain: [...border.color.transparent],
 	},
 	defaults: { variant: 'solid' },
 })

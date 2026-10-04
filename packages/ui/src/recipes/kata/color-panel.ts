@@ -24,16 +24,20 @@ const handle = [
 	'border-2 border-white shadow-sm ring-1 ring-black/25',
 ] as const
 
-const area = ['relative w-full cursor-crosshair touch-none', ...focus.ring, dan.size.colorArea]
+const area = [
+	'relative w-full cursor-crosshair touch-none',
+	...focus.ring,
+	dan.size.colorPanel.area,
+]
 
 const track = [
 	'relative w-full cursor-pointer touch-none',
 	rounded.full,
 	...focus.outline,
-	dan.size.colorChannel,
+	dan.size.colorPanel.channel,
 ]
 
-const preview = ['relative shrink-0 overflow-hidden', rounded.md, dan.size.colorPreview]
+const preview = ['relative shrink-0 overflow-hidden', rounded.md, dan.size.colorPanel.preview]
 
 export const k = defineRecipe(
 	{
@@ -95,8 +99,8 @@ export const k = defineRecipe(
 
 /** The size scale of {@link ColorPanel}: the steps of its area, channels, preview, and gap. */
 export const scale = defineScale(
-	dan.size.colorArea,
-	dan.size.colorChannel,
-	dan.size.colorPreview,
+	dan.size.colorPanel.area,
+	dan.size.colorPanel.channel,
+	dan.size.colorPanel.preview,
 	dan.gap.loose,
 )

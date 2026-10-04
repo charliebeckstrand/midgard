@@ -15,5 +15,5 @@ import { dan } from '../dan'
 
 export const text = {
 	base: 'h-6 sm:max-w-sm',
-	line: ['sm:max-w-sm', 'density-any:h-6', dan.size.lineText],
+	line: ['sm:max-w-sm', 'density-any:h-6', dan.size.line.text],
 } as const

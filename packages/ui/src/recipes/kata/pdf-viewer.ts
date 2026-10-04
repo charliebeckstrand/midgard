@@ -40,7 +40,7 @@ export const k = {
 			'gap-1',
 			'px-2 py-1.5',
 			'border-b',
-			border.defaultColor,
+			border.color.default,
 			'shrink-0',
 		],
 		section: [flex.row, 'shrink-0', 'gap-1'],
@@ -79,7 +79,7 @@ export const k = {
 		],
 	},
 	sidebar: {
-		base: [flex.col, 'shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-e', border.defaultColor],
+		base: [flex.col, 'shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-e', border.color.default],
 		/**
 		 * The slide, and only for a change the reader made.
 		 *
@@ -137,7 +137,7 @@ export const k = {
 		 */
 		image: ['block w-full h-full object-contain', 'drop-shadow-sm'],
 		fallback: [flex.row, 'justify-center', 'h-full w-full', size.sm, text.muted],
-		placeholder: ['block w-full aspect-[3/4]', skeleton],
+		placeholder: ['block w-full aspect-[3/4]', skeleton.base],
 		label: [
 			size.sm,
 			text.muted,
@@ -166,7 +166,7 @@ export const k = {
 		page: {
 			frame: ['relative shrink-0'],
 			base: [centered, 'shadow-lg', 'bg-white'],
-			placeholder: ['w-full h-full', skeleton],
+			placeholder: ['w-full h-full', skeleton.base],
 			empty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', text.muted],
 			/**
 			 * Hover loupe. The lens is a fixed-size circular window. The stage inside it is a
@@ -189,7 +189,7 @@ export const k = {
 					'rounded-full',
 					'shadow-2xl',
 					'ring-1 ring-inset',
-					border.defaultColor,
+					border.color.default,
 					...mode('bg-white ring-zinc-950/20', 'dark:bg-zinc-950 dark:ring-white/20'),
 				],
 				/** The lens diameter for each step of `magnifier.size`: 144, 192 and 240 pixels. */

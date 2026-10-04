@@ -41,7 +41,7 @@ const dot = defineRecipe({
  * size.
  */
 const spinner = defineRecipe({
-	base: ['inline-block shrink-0 motion-safe:animate-spin', dan.size.icon],
+	base: ['inline-block shrink-0 motion-safe:animate-spin', dan.size.icon.base],
 	color,
 	defaults: { color: 'current' },
 })
@@ -63,7 +63,7 @@ export const k = defineRecipe(
  */
 export const scale = {
 	dots: defineScale(dan.size.dot, dan.gap.dots),
-	spinner: defineScale(dan.size.icon),
+	spinner: defineScale(dan.size.icon.base),
 } as const
 
 /** Recipe variant props for {@link LoadingDots} — its `color` axis and the `size` step, for consumers composing custom slots. */

@@ -17,10 +17,10 @@
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, sen, textRamp } from '../kiso'
+import { hannou, iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { onWash, text } = iro
+const { on, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 const { divider } = sen
@@ -36,8 +36,8 @@ const item = [
 	...hannou.item,
 	...hannou.active,
 	...narabi.item,
-	`${dan.gap.option} ${dan.space.menuItemX} ${dan.space.optionY}`,
-	textRamp,
+	`${dan.gap.option} ${dan.space.menu.item.x} ${dan.space.option.y}`,
+	ji.ramp,
 ]
 
 // The scrollable item region inside the panel.
@@ -64,7 +64,7 @@ const viewport = defineRecipe({
 	// The cap of each density step cuts the last visible row at about its
 	// middle. Thus a clipped row, and not only the edge fade, shows that more
 	// content is below. A panel that is not capped gets no `max-h` class.
-	capped: { true: dan.size.menuMaxHeight, false: '' },
+	capped: { true: dan.size.menu.max, false: '' },
 	defaults: { capped: false },
 })
 
@@ -105,7 +105,7 @@ export const k = {
 		// header does not shrink, so the rows below it scroll when the panel is
 		// capped.
 		base: 'shrink-0 px-3 pb-1 pt-2',
-		title: [textRamp, weight.semibold, text.default],
+		title: [ji.ramp, weight.semibold, text.default],
 		description: [size.xs, text.muted],
 	},
 	section: 'first:pt-0 last:pb-0',
@@ -113,9 +113,9 @@ export const k = {
 	label: 'truncate',
 	// A column that stacks a label over its description.
 	text: narabi.text,
-	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
+	// `on.wash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: [description, onWash.muted, 'group-focus/option:text-white'],
+	description: [description, on.wash.muted, 'group-focus/option:text-white'],
 	shortcut: 'ms-auto',
 	separator: divider.top,
 } as const
@@ -123,7 +123,7 @@ export const k = {
 /** The size scale of {@link Menu}: the steps of its item gap, padding, and height cap. */
 export const scale = defineScale(
 	dan.gap.option,
-	dan.space.menuItemX,
-	dan.space.optionY,
-	dan.size.menuMaxHeight,
+	dan.space.menu.item.x,
+	dan.space.option.y,
+	dan.size.menu.max,
 )

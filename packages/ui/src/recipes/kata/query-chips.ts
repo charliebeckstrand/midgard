@@ -46,13 +46,13 @@ export const k = {
 	// The combinator is one step below the chips. No step is below `xs`, so at
 	// `xs` the combinator takes the `xs` values.
 	combinator: {
-		base: [dan.text.chipCaption, weight.medium, ...text.muted, 'uppercase'],
+		base: [dan.text.combinator, weight.medium, ...text.muted, 'uppercase'],
 		/**
 		 * The pad of the combinator Button: the values of the Button kata, one step
 		 * below the step of the row. The Button has no `size`, so it takes the step
 		 * of the row, and these classes replace its own stepped pad.
 		 */
-		button: [dan.space.chipQuery, dan.space.chipQueryLabelY, dan.radius.chipQuery],
+		button: [dan.space.combinator.base, dan.space.combinator.label, dan.radius.combinator],
 	},
 	bracket: [...text.muted],
 	empty: [...text.muted],

@@ -221,7 +221,7 @@ function AnimatedSparklineMarks({
 					className={fillClass}
 					initial={{ r: 0, opacity: 0 }}
 					animate={{ r: pointRadius, opacity: 1 }}
-					transition={k.motion.popHeld}
+					transition={k.motion.land}
 				/>
 			)}
 		</>

@@ -2,7 +2,7 @@
  * Badge kata: the inline status/label chip. Recipe-shaped — a `variant` ×
  * `color` × `radius` matrix over the signature kasane chrome. The size steps
  * are `density-*` classes in the base, not an axis.
- * Reads `iro.extendedPalette` rather than `iro.palette`, so its `color` axis
+ * Reads `iro.extended` rather than `iro.palette`, so its `color` axis
  * carries the extended hues. The rest of the surface is the shared chromatic
  * palette wired through `bridge.palette`.
  */
@@ -13,12 +13,11 @@ import { bridge } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { extendedPalette } = iro
+const { extended } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
-const { iconSlotRamp } = shaku
 
 export const k = defineRecipe(
 	{
@@ -42,9 +41,9 @@ export const k = defineRecipe(
 			// the badge projects one onto its icon slots.
 			dan.text.chip,
 			dan.gap.badge,
-			iconSlotRamp,
+			shaku.icon.slot.base,
 			'py-ring-1',
-			dan.space.badgeX,
+			dan.space.badge.base,
 		],
 		variant: {
 			outline: 'ring-1 ring-inset',
@@ -53,8 +52,8 @@ export const k = defineRecipe(
 		// Opt into the wide palette: Badge's `color` axis carries the standard set
 		// plus the extended hues (rose / violet / sky).
 		palette: definePalette({
-			...bridge.palette(extendedPalette),
-			plain: extendedPalette.plain.text,
+			...bridge.palette(extended),
+			plain: extended.plain.text,
 		}),
 		// `radius: 'full'` caps swallow horizontal space, so pills read tighter than
 		// the base `px` (tuned for the default `radius: 'md'`) — most visibly at small
@@ -63,7 +62,7 @@ export const k = defineRecipe(
 		// `px` stops jump 0.5 (1.5 → 2 → 2.5), so lifting only the small end would
 		// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
 		// base scale — and the affix `px` lockstep keyed off it — stays put.
-		compound: [{ radius: 'full', class: dan.space.badgePillX }],
+		compound: [{ radius: 'full', class: dan.space.badge.pill }],
 		defaults: { variant: 'soft', color: 'zinc', radius: 'md' },
 		skeleton: badge,
 	},
@@ -80,7 +79,7 @@ export const k = defineRecipe(
 		 * `px`. The button takes the step of the chip, so the pad is a stepped
 		 * class. `removable-chip-pad.test.ts` holds the sum at each step.
 		 */
-		removable: dan.space.badgeRemovableStart,
+		removable: dan.space.badge.removable,
 	},
 )
 
@@ -88,10 +87,10 @@ export const k = defineRecipe(
 export const scale = defineScale(
 	dan.text.chip,
 	dan.gap.badge,
-	dan.space.badgeX,
-	dan.space.badgePillX,
-	dan.size.badge,
-	dan.size.badgeWidth,
+	dan.space.badge.base,
+	dan.space.badge.pill,
+	dan.size.badge.base,
+	dan.size.badge.width,
 )
 
 /** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `radius`) and the `size` step, for consumers composing custom slots. */

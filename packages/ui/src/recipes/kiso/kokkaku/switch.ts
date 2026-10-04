@@ -15,7 +15,7 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const track = [dan.size.row, dan.size.switchWidth] as const
+const track = [dan.size.row, dan.size.switch.width] as const
 
 export const switchRecipe = {
 	base: [rounded.full, ...track],

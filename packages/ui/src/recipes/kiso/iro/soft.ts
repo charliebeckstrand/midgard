@@ -35,4 +35,4 @@ export const soft = {
 		green: 'not-disabled:not-data-disabled:hover:bg-green-500/30',
 		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/30',
 	}),
-}
+} as const

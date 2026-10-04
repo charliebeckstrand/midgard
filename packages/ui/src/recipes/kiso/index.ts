@@ -1,6 +1,6 @@
 export { hannou } from './hannou'
 export { iro } from './iro'
-export { ji, textRamp } from './ji'
+export { ji } from './ji'
 export { kara } from './kara'
 export { kasane } from './kasane'
 export { kokkaku } from './kokkaku'

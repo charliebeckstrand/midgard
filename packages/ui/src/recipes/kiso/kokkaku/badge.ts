@@ -12,7 +12,7 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const badge = {
-	base: [rounded.md, dan.size.badge, dan.size.badgeWidth],
+	base: [rounded.md, dan.size.badge.base, dan.size.badge.width],
 	density: true,
 	// Inline-level, as the `inline-flex` badge is, so the silhouette flows where the badge would.
 	inline: true,

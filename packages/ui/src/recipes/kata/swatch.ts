@@ -50,9 +50,9 @@ export const k = defineRecipe({
 	// grows in width. `md` matches the legend swatches, `sm` the tooltip
 	// swatches, and the full range covers StatusDot's dots.
 	compound: [
-		{ shape: 'square', class: dan.size.swatch },
-		{ shape: 'circle', class: dan.size.swatch },
-		{ shape: 'line', class: ['h-0.5', dan.size.swatchLine] },
+		{ shape: 'square', class: dan.size.swatch.base },
+		{ shape: 'circle', class: dan.size.swatch.base },
+		{ shape: 'line', class: ['h-0.5', dan.size.swatch.line] },
 		// Dashed treatment per shape. A line paints a horizontal `currentColor`
 		// dash run — the reference rule's 3:2 dash:gap halved so the pattern reads
 		// across a swatch-width line. A box or dot has no length to run, so it
@@ -78,7 +78,7 @@ export const k = defineRecipe({
 })
 
 /** The size scale of {@link Swatch}: the steps of its box, dot, and line. */
-export const scale = defineScale(dan.size.swatch, dan.size.swatchLine)
+export const scale = defineScale(dan.size.swatch.base, dan.size.swatch.line)
 
 /** Recipe variant props for {@link Swatch}: the `shape` and `variant` axes of its kata, and the `size` step that the component writes as a density scope. */
 export type SwatchVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }

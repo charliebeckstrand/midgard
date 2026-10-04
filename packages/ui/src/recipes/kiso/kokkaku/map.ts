@@ -14,7 +14,10 @@ const { rounded } = kasane
 
 export const map = {
 	base: ['size-full', rounded.lg],
-	outline: ['block', 'size-full'],
 	aspect: ['w-full', 'h-auto', rounded.lg],
-	outlineAspect: ['block', 'w-full', 'h-auto'],
+	/** The outline shape, in place of the rectangle, in each of the two forms. */
+	outline: {
+		base: ['block', 'size-full'],
+		aspect: ['block', 'w-full', 'h-auto'],
+	},
 } as const

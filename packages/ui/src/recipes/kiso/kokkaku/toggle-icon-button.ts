@@ -15,6 +15,6 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const toggleIconButton = {
-	base: [rounded.lg, dan.size.iconButton],
+	base: [rounded.lg, dan.size.button.icon],
 	density: true,
 } as const

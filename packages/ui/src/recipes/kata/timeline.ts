@@ -1,5 +1,5 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, kokkaku, omote, textRamp, ugoki } from '../kiso'
+import { iro, ji, kokkaku, omote, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { marker, text } = iro
@@ -78,13 +78,13 @@ const item = defineRecipe({
 	orientation: {
 		vertical: [
 			'grid grid-cols-[0.875rem_1fr]',
-			dan.gap.timelineX,
-			`${dan.space.timelineBottom} last:pb-0`,
+			dan.gap.timeline.x,
+			`${dan.space.timeline.bottom} last:pb-0`,
 		],
 		// 6.5px aligns the content with the rail. It matches the marker's `left-[6.5px]`.
 		// The minimum width stops a column at a readable measure; past it, the
 		// row scrolls in the list.
-		horizontal: ['flex flex-col min-w-48 pl-[6.5px] pr-8 last:pr-0', dan.space.timelineTop],
+		horizontal: ['flex flex-col min-w-48 pl-[6.5px] pr-8 last:pr-0', dan.space.timeline.top],
 	},
 	defaults: { orientation: 'vertical' },
 })
@@ -99,7 +99,7 @@ const title = defineRecipe({
 })
 
 const description = defineRecipe({
-	base: [textRamp],
+	base: [ji.ramp],
 	orientation: {
 		vertical: 'col-start-2 row-start-2',
 		horizontal: 'order-2',

@@ -112,4 +112,4 @@ export const k = defineRecipe(
 export type RatingVariants = VariantProps<typeof k>
 
 /** The size scale of {@link Rating}: the steps of its stars and gap. */
-export const scale = defineScale(dan.size.checkBox, dan.gap.rating)
+export const scale = defineScale(dan.size.check.box, dan.gap.rating)

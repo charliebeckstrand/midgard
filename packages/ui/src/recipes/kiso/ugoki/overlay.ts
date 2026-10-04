@@ -11,4 +11,4 @@ export const overlay = {
 	animate: { opacity: 1 },
 	exit: { opacity: 0 },
 	transition: { duration: duration[150] },
-}
+} as const

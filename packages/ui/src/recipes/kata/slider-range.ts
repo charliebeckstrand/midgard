@@ -10,7 +10,15 @@ const { css } = ugoki
 const { color } = slider
 
 const range = defineRecipe({
-	base: ['relative', 'w-full', ...cursor, 'select-none', 'touch-none', disabled, dan.space.sliderY],
+	base: [
+		'relative',
+		'w-full',
+		...cursor,
+		'select-none',
+		'touch-none',
+		disabled,
+		dan.space.slider.y,
+	],
 	color,
 	defaults: { color: 'blue' },
 })
@@ -33,7 +41,7 @@ const thumb = defineRecipe({
 		'hover:scale-110',
 		'active:scale-110',
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
-		dan.size.thumb,
+		dan.size.thumb.base,
 	],
 })
 
@@ -46,10 +54,10 @@ export const k = {
 
 /** The size scale of {@link RangeSlider}: the steps of its padding, track, and thumbs. */
 export const scale = defineScale(
-	dan.space.sliderY,
-	dan.size.sliderTrack,
-	dan.space.sliderTrackY,
-	dan.size.thumb,
+	dan.space.slider.y,
+	dan.size.slider.track,
+	dan.space.slider.track.y,
+	dan.size.thumb.base,
 )
 
 /** Recipe variant props for {@link RangeSlider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */

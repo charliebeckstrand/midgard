@@ -1,5 +1,5 @@
 import { defineScale } from '../../core/density'
-import { iro, ji, narabi, omote, sen, textRamp, ugoki } from '../kiso'
+import { iro, ji, narabi, omote, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { text } = iro
@@ -17,7 +17,7 @@ const content = [
 	text.default,
 	weight.medium,
 	`${dan.space.tooltip} ${dan.radius.tooltip}`,
-	textRamp,
+	ji.ramp,
 ]
 
 export const k = {

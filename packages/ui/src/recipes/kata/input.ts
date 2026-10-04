@@ -1,6 +1,6 @@
 import type { VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { iro, textRamp } from '../kiso'
+import { iro, ji } from '../kiso'
 import { control } from '../kiso/control'
 
 const { text } = iro
@@ -10,13 +10,13 @@ export const k = bridge.control(control, {
 	slots: {
 		/**
 		 * ControlFrame layout when a prefix/suffix affix is present. The frame
-		 * has the step of the control, so `textRamp` gives it the text size of
+		 * has the step of the control, so `ji.ramp` gives it the text size of
 		 * the input. Text in an affix, such as the brand of a CreditCardInput,
 		 * inherits that size. The slot is a scope one step below the control, so
-		 * `textRamp` on the slot gives a smaller size. At `md` the text is
+		 * `ji.ramp` on the slot gives a smaller size. At `md` the text is
 		 * `text-base`.
 		 */
-		frame: ['group/control flex flex-wrap items-center', textRamp],
+		frame: ['group/control flex flex-wrap items-center', ji.ramp],
 		/**
 		 * A prefix or a suffix. It has no gap, so two controls in it touch, such
 		 * as a clear button and the calendar button of a date input. Then each

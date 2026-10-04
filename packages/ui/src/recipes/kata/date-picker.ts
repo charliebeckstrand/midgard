@@ -23,7 +23,7 @@ const { portal, panel } = popover
 const button = defineRecipe({
 	base: [
 		'flex items-center justify-between',
-		...reset,
+		...reset.base,
 		'text-start',
 		'appearance-none',
 		...cursor,
@@ -46,7 +46,7 @@ const value = defineRecipe({
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
 // not in the calendar kata. Each takes the step of the nearest density scope.
-const body = [flex.col, dan.space.box, dan.gap.y]
+const body = [flex.col, dan.space.box.base, dan.gap.y]
 
 export const k = {
 	surface: {

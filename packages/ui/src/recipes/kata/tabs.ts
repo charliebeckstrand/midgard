@@ -8,7 +8,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen, textRamp } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 import { segment } from '../kiso/segment'
 
@@ -39,7 +39,7 @@ const group = defineRecipe({
  * its content, so `border-l` runs the full length of every stacked tab.
  */
 const list = defineRecipe({
-	base: ['flex', ...border.subtleColor],
+	base: ['flex', ...border.color.subtle],
 	orientation: {
 		horizontal: ['border-b', 'w-max', 'min-w-full'],
 		vertical: ['flex-col', 'border-l'],
@@ -93,16 +93,16 @@ const tab = defineRecipe({
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',
 		// Padding and text follow the nearest density scope.
-		textRamp,
+		ji.ramp,
 	],
 	orientation: {
 		horizontal: [
 			'after:inset-x-0 after:-bottom-px after:h-0.5',
-			`${dan.space.tabX} ${dan.space.tabBottom}`,
+			`${dan.space.tab.x} ${dan.space.tab.bottom}`,
 		],
 		vertical: [
 			'after:inset-y-0 after:-left-px after:w-0.5',
-			`${dan.space.pillTabX} ${dan.space.pillTabY}`,
+			`${dan.space.tab.pill.x} ${dan.space.tab.pill.y}`,
 		],
 	},
 	defaults: { orientation: 'horizontal' },
@@ -162,9 +162,9 @@ export const k = {
 /** The size scale of {@link Tabs} and {@link Segment}: the steps of the tab text, padding, and silhouette. */
 export const scale = defineScale(
 	dan.text.body,
-	dan.space.tabX,
-	dan.space.tabBottom,
-	dan.space.pillTabX,
-	dan.space.pillTabY,
-	dan.size.segment,
+	dan.space.tab.x,
+	dan.space.tab.bottom,
+	dan.space.tab.pill.x,
+	dan.space.tab.pill.y,
+	dan.size.segment.base,
 )

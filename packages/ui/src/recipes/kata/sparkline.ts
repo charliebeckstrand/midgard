@@ -52,4 +52,4 @@ export const k = defineRecipe(
 )
 
 /** The size scale of {@link Sparkline}: the steps of its box. */
-export const scale = defineScale(dan.size.sparkline, dan.size.sparklineWidth)
+export const scale = defineScale(dan.size.sparkline.base, dan.size.sparkline.width)

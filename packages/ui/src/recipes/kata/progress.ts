@@ -110,7 +110,7 @@ export const k = defineRecipe(
  * diameter and label text.
  */
 export const scale = {
-	bar: defineScale(dan.size.lineTiny),
+	bar: defineScale(dan.size.line.tiny),
 	gauge: defineScale(dan.size.gauge, dan.text.small),
 } as const
 

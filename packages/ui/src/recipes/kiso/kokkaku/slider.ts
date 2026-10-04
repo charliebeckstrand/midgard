@@ -15,10 +15,10 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-const track = dan.size.sliderTrack
+const track = dan.size.slider.track
 
 export const slider = {
-	base: ['w-full', rounded.full, track, dan.space.sliderTrackY],
+	base: ['w-full', rounded.full, track, dan.space.slider.track.y],
 	track,
 	density: true,
 } as const

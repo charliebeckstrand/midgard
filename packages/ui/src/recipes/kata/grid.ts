@@ -41,7 +41,7 @@ const sortIcon = defineRecipe({
  * values truncate at that line, so the grip meets the value and does not cut
  * through it.
  */
-const resizeMetrics = [dan.space.resizeEnd]
+const resizeMetrics = [dan.space.resize.end]
 
 /**
  * Opaque fill behind every sticky grid surface: the sticky header bar and the
@@ -504,7 +504,7 @@ export const k = {
 				// The cell padding on the reveal wrapper, in the stepped class of the
 				// kata/table cell padding, so an animated leaf cell matches an ordinary one —
 				// and collapses that padding to nothing at height 0.
-				pad: dan.space.cell,
+				pad: dan.space.cell.base,
 			},
 		},
 		reorder: {
@@ -648,7 +648,7 @@ export const k = {
 		// boundary: an outward overhang gets painted over by a neighbor's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			`group/grid-resize absolute top-0 end-0 z-10 h-full ${dan.size.resizeHandle}`,
+			`group/grid-resize absolute top-0 end-0 z-10 h-full ${dan.size.resize.handle}`,
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],

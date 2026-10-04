@@ -39,17 +39,17 @@ const base = defineRecipe({
 const projection = {
 	horizontal: [
 		'[&>dt]:col-start-1',
-		dan.space.termTop,
+		dan.space.term.top,
 		'[&>dt]:pr-2',
-		dan.space.termBottomRow,
-		dan.space.detailBottom,
-		dan.space.detailTopRow,
+		dan.space.term.row.bottom,
+		dan.space.detail.bottom,
+		dan.space.detail.row.top,
 		// The first row has no row above it, so it drops its top padding, as the
 		// vertical list does. The selectors outrank the rows above at each width.
 		'[&>dt:first-child]:pt-0',
 		'[&>dt:first-child+dd]:pt-0',
 	],
-	vertical: [dan.space.termTopStacked, '[&>dt:first-child]:pt-0', dan.space.detailTopStacked],
+	vertical: [dan.space.term.stacked.top, '[&>dt:first-child]:pt-0', dan.space.detail.stacked.top],
 } as const
 
 export const k = {

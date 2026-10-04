@@ -178,9 +178,9 @@ export const k = {
 		aspect: kokkaku.map.aspect,
 		/** The outline skeleton: the placeholder's pulse and tone, as the fill of the projection's outline. */
 		outline: {
-			base: [...kokkaku.map.outline, ...omote.skeletonShape],
+			base: [...kokkaku.map.outline.base, ...omote.skeleton.shape],
 			/** The outline skeleton in an aspect frame: full width, with the height from the ratio. */
-			aspect: [...kokkaku.map.outlineAspect, ...omote.skeletonShape],
+			aspect: [...kokkaku.map.outline.aspect, ...omote.skeleton.shape],
 		},
 	},
 } as const

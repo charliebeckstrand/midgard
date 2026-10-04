@@ -1,6 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kokkaku, narabi, sen, textRamp } from '../kiso'
+import { hannou, ji, kokkaku, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
@@ -39,9 +39,9 @@ const itemBox = [
 	flex.row,
 	'w-full',
 	mini.square,
-	textRamp,
+	ji.ramp,
 	dan.gap.item,
-	dan.space.sidebarItem,
+	dan.space.sidebar.item.base,
 	dan.radius.control,
 ]
 
@@ -54,7 +54,7 @@ const itemBase = defineRecipe({
 		'text-start',
 		// The inner Button has a text label, so its `data-has-label` padding
 		// repeats the row padding. Thus the Button class merges away.
-		dan.space.sidebarItemLabelY,
+		dan.space.sidebar.item.label,
 		// The item wraps its `icon` in Icon, which takes the step of the nearest
 		// scope by itself. A LoadingSpinner takes the icon ramp, so it does the
 		// same. An Avatar child sizes itself in a row: its own recipe selects the
@@ -157,7 +157,7 @@ export const k = {
 export const scale = defineScale(
 	dan.text.body,
 	dan.gap.item,
-	dan.space.sidebarItem,
+	dan.space.sidebar.item.base,
 	dan.radius.control,
 )
 

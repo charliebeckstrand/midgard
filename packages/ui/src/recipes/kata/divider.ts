@@ -12,8 +12,8 @@ export const k = defineRecipe({
 		vertical: 'h-auto self-stretch border-l',
 	},
 	soft: {
-		true: [...border.subtleColor],
-		false: [...border.defaultColor],
+		true: [...border.color.subtle],
+		false: [...border.color.default],
 	},
 	defaults: { orientation: 'horizontal', soft: false },
 })

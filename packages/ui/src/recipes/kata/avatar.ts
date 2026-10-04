@@ -16,13 +16,13 @@ export const k = defineRecipe(
 			rounded.full,
 			// The avatar takes the step of its nearest density scope. An explicit
 			// `size` makes the avatar its own scope.
-			dan.size.avatar,
+			dan.size.avatar.base,
 			// In a SidebarItem, the avatar is one step above the icon, with a negative
 			// margin, so the row keeps the height of a row with an icon. The inner
 			// button of the row is the child of the row that is not an affix slot:
 			// its own `data-slot` changes in the mini rail. Each class selects the
 			// avatar itself, so Chromium tests the rule only against the avatars.
-			dan.size.avatarInSidebarItem,
+			dan.size.avatar.sidebar,
 			'[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5',
 		],
 		variant: {
@@ -65,7 +65,7 @@ export const k = defineRecipe(
 )
 
 /** The size scale of {@link Avatar} and {@link AvatarGroup}: the steps of the avatar box. */
-export const scale = defineScale(dan.size.avatar)
+export const scale = defineScale(dan.size.avatar.base)
 
 /** Recipe variant props for {@link Avatar}: the `variant` and `color` axes of its kata, and the `size` step that the component writes as a density scope. */
 export type AvatarVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }

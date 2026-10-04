@@ -16,7 +16,7 @@
  * date-picker button). For a ControlFrame consumer (input, textarea, select
  * trigger), `kata/control.ts` gives `frameRadius`, which starts with `radius`,
  * to the frame. The gap is half of `py` at each step, rounded to the spacing
- * scale. The text size is `textRamp`, the text ramp of each density-native
+ * scale. The text size is `ji.ramp`, the text ramp of each density-native
  * component.
  *
  * The axis also carries the affix autofill margins (`affix.autofill`, see
@@ -30,29 +30,29 @@
 
 import { defineScale } from '../../../core/density'
 import { dan } from '../dan'
-import { textRamp } from '../ji'
+import { ji } from '../ji'
 import { affix } from './affix'
 
 /** The radius at each step. `kata/control.ts` also gives it to ControlFrame. */
 export const radius = dan.radius.control
 
 /** The vertical padding at each step. The textarea skeleton also reads it. */
-export const py = dan.space.controlY
+export const py = dan.space.control.y
 
 export const density = [
-	dan.space.controlX,
+	dan.space.control.x,
 	py,
 	radius,
 	dan.gap.control,
 	affix.autofill.prefix,
 	affix.autofill.suffix,
-	textRamp,
+	ji.ramp,
 ] as const
 
 /** The size scale of a control: the steps of its padding, radius, gap, and text. */
 export const scale = defineScale(
-	dan.space.controlX,
-	dan.space.controlY,
+	dan.space.control.x,
+	dan.space.control.y,
 	dan.radius.control,
 	dan.gap.control,
 	dan.text.body,

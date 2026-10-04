@@ -8,7 +8,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
 import { ji, kasane, omote, shaku } from '../kiso'
-import { dan } from '../kiso/dan'
 
 const { size } = ji
 const { rounded } = kasane
@@ -54,7 +53,7 @@ export const k = defineRecipe(
 )
 
 /** The size scale of inline {@link Code}: the steps of the mark text and padding. */
-export const scale = defineScale(dan.text.small, dan.space.markX, dan.space.markY)
+export const scale = defineScale(...mark.density)
 
 /** Recipe variant props for inline {@link Code}: the `size` step that the component writes as a density scope. */
 export type CodeVariants = { size?: ScaleStep<typeof scale> }

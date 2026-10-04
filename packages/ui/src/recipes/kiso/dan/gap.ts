@@ -17,8 +17,10 @@ export const gap = {
 	loose: 'density-gap-[2,4,6]',
 	/** The gap of the date picker panes. */
 	datePicker: 'density-gap-[2.25,2.75,3.25]',
-	/** The inline gap of a timeline item. */
-	timelineX: 'density-gap-x-[3,4,5]',
+	timeline: {
+		/** The inline gap of a timeline item. */
+		x: 'density-gap-x-[3,4,5]',
+	},
 	/** The gap of a control. */
 	control: 'density-gap-[0.75,1,1.25]',
 	/** The gap of a button. */

@@ -64,7 +64,7 @@ export const k = defineRecipe({
 		// explicit `size` on the input also sizes the track and the thumb. The
 		// negative margin centers the WebKit thumb on its track: half of the
 		// track height less the thumb height.
-		dan.space.sliderY,
+		dan.space.slider.y,
 		'density-[xs,sm]:[&::-webkit-slider-runnable-track]:h-1',
 		'density-md:[&::-webkit-slider-runnable-track]:h-1.5',
 		'density-[lg,xl]:[&::-webkit-slider-runnable-track]:h-2',
@@ -85,10 +85,10 @@ export const k = defineRecipe({
 
 /** The size scale of {@link Slider}: the steps of its padding, track, and thumb. */
 export const scale = defineScale(
-	dan.space.sliderY,
-	dan.size.sliderTrack,
-	dan.space.sliderTrackY,
-	dan.size.thumb,
+	dan.space.slider.y,
+	dan.size.slider.track,
+	dan.space.slider.track.y,
+	dan.size.thumb.base,
 )
 
 /** Recipe variant props for {@link Slider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */

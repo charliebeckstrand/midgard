@@ -11,4 +11,4 @@ export const tooltip = {
 	animate: { opacity: 1, scale: 1 },
 	exit: { opacity: 0, scale: 0.95 },
 	transition: { duration: duration[100], ease: ease.out },
-}
+} as const

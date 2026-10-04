@@ -7,7 +7,7 @@
  */
 
 import { dan } from '../dan'
-import { textRamp } from '../ji'
+import { ji } from '../ji'
 import { kasane } from '../kasane'
 import { narabi } from '../narabi'
 import { omote } from '../omote'
@@ -27,6 +27,6 @@ export const control = {
 		...bg.tint,
 		rounded.lg,
 		`p-1 ${dan.gap.default}`,
-		textRamp,
+		ji.ramp,
 	],
 } as const

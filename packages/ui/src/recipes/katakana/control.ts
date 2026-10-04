@@ -35,7 +35,7 @@ type Empty = Record<never, never>
 type ControlTokens = {
 	input: ClassValue
 	density: ClassValue
-	resets: { number: ClassValue }
+	reset: { number: ClassValue }
 	surface: { default: ClassValue; glass: ClassValue }
 	check: { base: ClassValue; hidden: ClassValue; disabled: ClassValue }
 }
@@ -51,7 +51,7 @@ function controlStandard(t: ControlTokens) {
 				glass: [],
 			},
 			slots: {
-				number: t.resets.number,
+				number: t.reset.number,
 			},
 			defaults: { variant: 'default' },
 		},

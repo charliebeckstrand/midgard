@@ -46,7 +46,7 @@ const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell} lg:hidden`],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell.base} lg:hidden`],
 })
 
 // From `lg` up, the panel sticks to the top of the page. It is as tall as the
@@ -108,7 +108,7 @@ const content = defineRecipe({
 		'grow',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
-		`${space.shellX} ${space.shellBottom} ${space.shellTopNoHeader}`,
+		`${space.shell.x} ${space.shell.bottom} ${space.shell.top.headless}`,
 	],
 	// From `lg` up only, where the header sticks to the top of the page. Below `lg`,
 	// the navbar is the one sticky bar of the page, and the header scrolls with the
@@ -129,7 +129,7 @@ const content = defineRecipe({
 
 // The padding follows the nearest density scope.
 const header = defineRecipe({
-	base: ['flex items-center shrink-0', `${space.shellTopLarge} ${space.shellBottom}`],
+	base: ['flex items-center shrink-0', `${space.shell.top.lg} ${space.shell.bottom}`],
 })
 
 // The body grows into the free height of the content region, so the footer

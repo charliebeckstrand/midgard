@@ -173,7 +173,7 @@ describe('ListItem', () => {
 
 		const cls = bySlot(container, 'list-item-content')?.className ?? ''
 
-		// `iro.onWash.muted`, not the page-surface `muted` — see `iro/ramp.ts`.
+		// `iro.on.wash.muted`, not the page-surface `muted` — see `iro/ramp.ts`.
 		// `__tests__/recipes/contrast.test.ts` owns the ratio; this owns the step.
 		expect(cls).toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
@@ -359,7 +359,7 @@ describe('ListItem', () => {
 	})
 
 	it('keeps the glass allowance off the variants that carry their own fill', () => {
-		// `glassItem` outranks a plain wash by selector, so a filled row that emitted
+		// `tint.glass` outranks a plain wash by selector, so a filled row that emitted
 		// both would take the ambient 10% — which on a solid dark row is the fill
 		// repainted, and on a card is the surface gone.
 		for (const variant of ['separated', 'solid'] as const) {

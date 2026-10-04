@@ -16,7 +16,7 @@ const { focus } = sen
 
 const base = ['inline-flex flex-col', 'select-none', kokkaku.calendar.width]
 
-const header = [flex.row, 'justify-between', dan.space.calendarHeaderBottom]
+const header = [flex.row, 'justify-between', dan.space.calendar.header.bottom]
 
 const footer = [flex.row, 'justify-center', dan.gap.default]
 
@@ -26,7 +26,7 @@ const footer = [flex.row, 'justify-center', dan.gap.default]
  */
 const cellTargets = '[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]'
 
-const pickerGrid = ['grid grid-cols-3', dan.space.tabX, cellTargets]
+const pickerGrid = ['grid grid-cols-3', dan.space.tab.x, cellTargets]
 
 const weekday = [
 	flex.row,
@@ -68,8 +68,8 @@ export const k = {
 
 /** The size scale of {@link Calendar}: the steps of its width, header margin, gap, and weekday text. */
 export const scale = defineScale(
-	dan.size.calendarWidth,
-	dan.space.calendarHeaderBottom,
+	dan.size.calendar.width,
+	dan.space.calendar.header.bottom,
 	dan.gap.default,
 	dan.text.small,
 )

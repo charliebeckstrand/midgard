@@ -11,7 +11,7 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const avatar = {
-	base: [rounded.full, dan.size.avatar],
+	base: [rounded.full, dan.size.avatar.base],
 	density: true,
 	// Inline-level, as the `inline-grid` avatar is, so the silhouette flows where the avatar would.
 	inline: true,

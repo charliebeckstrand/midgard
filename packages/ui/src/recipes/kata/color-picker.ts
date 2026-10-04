@@ -13,7 +13,7 @@ const { portal, panel } = popover
 const button = defineRecipe({
 	base: [
 		'flex items-center gap-2',
-		...reset,
+		...reset.base,
 		'text-start',
 		'appearance-none',
 		...cursor,
@@ -31,7 +31,7 @@ const swatch = {
 	base: [
 		'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
 		rounded.sm,
-		dan.size.checkBox,
+		dan.size.check.box,
 	],
 	/** The checkerboard behind the trigger swatch while the color is translucent. */
 	checkerboard:
