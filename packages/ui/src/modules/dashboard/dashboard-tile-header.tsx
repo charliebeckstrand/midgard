@@ -37,16 +37,9 @@ function DashboardTileTitle({ id, title, editing }: DashboardTileTitleProps) {
 	return (
 		<Tooltip disabled={!truncated || editing}>
 			<TooltipTrigger>
-				{/* The trigger gives its own slot to a child with no slot, so the title
-				    states its slot. `block` wins over the `inline-flex` of the trigger,
-				    because an ellipsis paints only on a block box. */}
-				<CardTitle
-					ref={ref}
-					id={id}
-					level={level}
-					data-slot="card-title"
-					className="block truncate"
-				>
+				{/* `block` wins over the `inline-flex` of the trigger, because an
+				    ellipsis paints only on a block box. */}
+				<CardTitle ref={ref} id={id} level={level} className="block truncate">
 					{title}
 				</CardTitle>
 			</TooltipTrigger>
