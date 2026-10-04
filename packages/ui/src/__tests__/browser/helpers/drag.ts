@@ -71,10 +71,15 @@ export async function drag(
 ): Promise<HeldDrag> {
 	const pointer = { ...PRIMARY, ...init }
 
+	// A live move can unmount the pressed node, as when a kanban card moves to
+	// another column. The sensor listens on the document, so a later event goes
+	// there once the node is gone. A real pointer reaches the document either way.
+	const targetOf = () => (node.isConnected ? node : node.ownerDocument)
+
 	fireEvent.pointerDown(node, { ...pointer, clientX: from.x, clientY: from.y })
 
 	for (const step of path) {
-		fireEvent.pointerMove(node, { ...pointer, clientX: step.x, clientY: step.y })
+		fireEvent.pointerMove(targetOf(), { ...pointer, clientX: step.x, clientY: step.y })
 
 		await frames()
 	}
@@ -83,7 +88,7 @@ export async function drag(
 
 	return {
 		release: async () => {
-			fireEvent.pointerUp(node, { ...pointer, clientX: end.x, clientY: end.y })
+			fireEvent.pointerUp(targetOf(), { ...pointer, clientX: end.x, clientY: end.y })
 
 			// The wait reads the page rather than holding 50ms of wall clock, so a
 			// green run pays only the poll that finds the listener gone.
