@@ -64,7 +64,11 @@ export const k = defineRecipe(
 				css.duration,
 				'group-aria-expanded/accordion-trigger:rotate-180',
 			],
-			panel: 'overflow-hidden',
+			// The panel adds nothing to the intrinsic width of the accordion. A host that
+			// fits its content thus keeps one width while a section opens and closes, and
+			// the text of an open panel wraps at that width. A block host sets the width
+			// itself, so there nothing changes.
+			panel: ['overflow-hidden', 'contain-inline-size'],
 			body: ['px-4 pb-4 pt-0', size.md, text.muted],
 		},
 		defaults: { variant: 'separated' },
