@@ -50,11 +50,12 @@ const navbar = defineRecipe({
 
 // From `lg` up, the panel sticks to the top of the page. It is as tall as the
 // layout at its minimum (`100cqh`), and it scrolls on its own. A long sidebar
-// thus does not scroll with the page.
+// thus does not scroll with the page. A scroll that reaches the end of the
+// panel stops there and does not move on to the page (`overscroll-contain`).
 const panel = defineRecipe({
 	base: [
 		'shrink-0 min-w-0',
-		'lg:sticky lg:top-0 lg:h-[100cqh]',
+		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
 		'overflow-x-hidden overflow-y-auto',
 		'max-lg:hidden',
 		// A mini sidebar sets the rail width; the panel follows it instead of

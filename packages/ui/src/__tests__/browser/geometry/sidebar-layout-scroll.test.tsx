@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { SidebarLayout, SidebarLayoutHeader } from '../../../layouts'
 import { frames, getSlot, present, renderUI, screen } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
@@ -166,6 +166,26 @@ describe('sidebar layout from lg up (real browser)', () => {
 		await frames()
 
 		expect(panel.scrollTop).toBe(500)
+
+		expect(window.scrollY).toBe(0)
+	})
+
+	it('stops a wheel scroll at the end of the panel, and does not scroll the page', async () => {
+		const { panel } = renderTallLayout(<nav className="h-[2000px]">Links</nav>)
+
+		await frames()
+
+		const end = panel.scrollHeight - panel.clientHeight
+
+		panel.scrollTo(0, end)
+
+		await frames()
+
+		await userEvent.wheel(panel, { delta: { y: 400 } })
+
+		await frames()
+
+		expect(panel.scrollTop).toBeNear(end, HALF_PIXEL)
 
 		expect(window.scrollY).toBe(0)
 	})
