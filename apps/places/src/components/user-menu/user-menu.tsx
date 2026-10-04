@@ -80,8 +80,6 @@ export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
 					</>
 				)}
 
-				<MenuSeparator />
-
 				<MenuItem onAction={signOut}>
 					<Icon icon={<LogOut />} />
 					<MenuLabel>Sign out</MenuLabel>
