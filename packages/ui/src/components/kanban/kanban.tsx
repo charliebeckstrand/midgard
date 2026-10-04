@@ -128,13 +128,14 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	const contextValue = useMemo(
 		() => ({
 			interactive,
-			disabled: !!disabled,
+			// A read-only board has no reorder to disable, so its handles stay hidden.
+			disabled: !!disabled && onReorder !== undefined,
 			liftedStore,
 			overlayMap,
 			onCardKeyDown,
 			onCardBlur,
 		}),
-		[interactive, disabled, liftedStore, overlayMap, onCardKeyDown, onCardBlur],
+		[interactive, disabled, onReorder, liftedStore, overlayMap, onCardKeyDown, onCardBlur],
 	)
 
 	// Column-facing drag state: churns every drag-over move; confined to columns.

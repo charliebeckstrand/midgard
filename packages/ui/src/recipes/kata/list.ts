@@ -179,10 +179,10 @@ export const k = {
 		'flex-none justify-center',
 		'px-3 -mx-3',
 		...grab.default,
-		'data-readonly:cursor-default data-disabled:cursor-not-allowed',
+		'data-disabled:cursor-not-allowed',
 		...mode(
-			'text-zinc-500 not-data-disabled:not-data-readonly:hover:text-zinc-700',
-			'dark:text-zinc-500 dark:not-data-disabled:not-data-readonly:hover:text-zinc-200',
+			'text-zinc-500 not-data-disabled:hover:text-zinc-700',
+			'dark:text-zinc-500 dark:not-data-disabled:hover:text-zinc-200',
 		),
 		...disabled,
 	],

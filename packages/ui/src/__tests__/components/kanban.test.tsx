@@ -331,9 +331,34 @@ describe('KanbanCard', () => {
 		expect(handle).not.toHaveAttribute('aria-labelledby')
 	})
 
-	it('renders the handle with no role on a read-only board', () => {
+	it('renders no handle on a read-only board', () => {
 		const { container } = renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1">
+							<KanbanCardHandle />
+							One
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(bySlot(container, 'kanban-card-handle')).toBeNull()
+
+		expect(screen.queryByRole('button')).toBeNull()
+	})
+
+	it('renders the handle as a disabled picture on a disabled board', () => {
+		const { container } = renderUI(
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				disabled
+				aria-label="Board"
+			>
 				<KanbanColumn value="todo">
 					<KanbanColumnBody>
 						<KanbanCard value="1">
@@ -351,7 +376,7 @@ describe('KanbanCard', () => {
 
 		expect(handle).toHaveAttribute('aria-hidden', 'true')
 
-		expect(handle).toHaveAttribute('data-readonly')
+		expect(handle).toHaveAttribute('data-disabled')
 
 		expect(screen.queryByRole('button')).toBeNull()
 	})

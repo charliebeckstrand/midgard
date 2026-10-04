@@ -50,6 +50,46 @@ describe('List', () => {
 		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
 	})
 
+	it('shows a handle on each row only when the list reorders', () => {
+		const readOnly = renderUI(
+			<List items={items} getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		expect(allBySlot(readOnly.container, 'list-handle')).toHaveLength(0)
+
+		const reorderable = renderUI(
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		expect(allBySlot(reorderable.container, 'list-handle')).toHaveLength(items.length)
+	})
+
+	it('shows a disabled handle in a disabled list, and none in a disabled read-only list', () => {
+		const disabled = renderUI(
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}} disabled>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		const handles = allBySlot(disabled.container, 'list-handle')
+
+		expect(handles).toHaveLength(items.length)
+
+		for (const handle of handles) expect(handle).toHaveAttribute('data-disabled')
+
+		const readOnly = renderUI(
+			<List items={items} getKey={(i) => i.id} disabled>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		expect(allBySlot(readOnly.container, 'list-handle')).toHaveLength(0)
+	})
+
 	it('reflects orientation on data attribute', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id} orientation="horizontal">

@@ -15,7 +15,7 @@ import type { KeyedStore } from '../../utilities'
 export type KanbanContextValue = {
 	/** Whether cards in this board can be dragged or keyboard-reordered. */
 	interactive: boolean
-	/** Whether the board is explicitly disabled (vs. merely non-interactive / read-only). */
+	/** Whether a reorderable board (one with `onReorder`) is disabled. A read-only board is never disabled. */
 	disabled: boolean
 	/**
 	 * Whether each card id is lifted via keyboard. Read one card with

@@ -63,7 +63,7 @@ export const k = {
 			rounded.md,
 			text.muted,
 			...grab.default,
-			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
+			'data-disabled:cursor-not-allowed',
 			focus.ring,
 		],
 		dragging: '',

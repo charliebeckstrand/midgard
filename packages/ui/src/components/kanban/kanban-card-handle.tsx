@@ -30,8 +30,9 @@ export type KanbanCardHandleProps = {
  * Client component. Put one handle in each card. The card itself has no role
  * and no tab stop, so a control or a link inside the card keeps its own role.
  * A card with no handle on an interactive board has no keyboard access, and it
- * warns in development. On a read-only or disabled board, and in the drag
- * overlay, the handle renders as a picture with no role.
+ * warns in development. On a disabled board, and in the drag overlay, the
+ * handle renders as a picture with no role. On a read-only board (no
+ * `onReorder`) it renders nothing, because the cards have no order to change.
  */
 export function KanbanCardHandle({
 	'aria-label': ariaLabel,
@@ -50,6 +51,9 @@ export function KanbanCardHandle({
 
 	const content = children ?? <Icon icon={<GripVertical />} size="sm" />
 
+	// A board that cannot reorder shows no grip. A disabled board keeps a muted one.
+	if (card && !card.interactive && !disabled) return null
+
 	if (!card?.interactive) {
 		return (
 			<span
@@ -58,7 +62,6 @@ export function KanbanCardHandle({
 				// The drag overlay has no card context, and it shows the held hand.
 				data-dragging={dataAttr(!card)}
 				data-disabled={dataAttr(!!card && disabled)}
-				data-readonly={dataAttr(!!card && !disabled)}
 				className={cn(k.card.handle, className)}
 			>
 				{content}
