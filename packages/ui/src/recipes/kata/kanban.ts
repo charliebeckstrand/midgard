@@ -1,7 +1,7 @@
 /**
  * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
  * cards. No variants axis. The `column` group nests `base` / `header` / `title`
- * / `body` / `empty` slots. The `card` group nests `base`, the `handle`, and
+ * / `body` / `empty` slots, and `base` marks the column a card is over. The `card` group nests `base`, the `handle`, and
  * the drag-state classes (`draggable`, `lifted`, `active`). `skeleton` is the
  * form of the lines of the `KanbanCardSkeleton`.
  */
@@ -30,6 +30,13 @@ export const k = {
 			...mode('bg-zinc-50', 'dark:bg-zinc-900/50'),
 			border.default,
 			rounded.lg,
+			// A dragged card over the column itself (`data-over`), as over an empty
+			// column, steps the fill and the border up one rung, so the drop target
+			// shows.
+			...mode(
+				'data-over:bg-zinc-100 data-over:border-zinc-950/20',
+				'dark:data-over:bg-zinc-800/50 dark:data-over:border-white/20',
+			),
 		],
 		header: [flex.row, 'gap-2', size.md, text.default, weight.semibold],
 		title: [flex.fill, 'min-w-0 truncate'],
