@@ -236,6 +236,29 @@ describe('Alert', () => {
 			expect(liveRegion()?.textContent ?? '').toBe('')
 		})
 
+		it('announces an alert that mounts open when the caller asks for it', async () => {
+			renderUI(
+				<Alert severity="success" announceOnMount>
+					Saved
+				</Alert>,
+			)
+
+			await expectAnnouncement('Saved')
+		})
+
+		it('keeps announceOnMount out of a warning alert, which announces on insertion', async () => {
+			renderUI(
+				<Alert severity="warning" announceOnMount>
+					Storage is almost full
+				</Alert>,
+			)
+
+			// Flush the announcer's microtask, then confirm nothing was written.
+			await Promise.resolve()
+
+			expect(liveRegion()?.textContent ?? '').toBe('')
+		})
+
 		it('does not route warning/error through the announcer (role="alert" already announces)', async () => {
 			const { rerender } = renderUI(
 				<Alert severity="error" open={false}>
