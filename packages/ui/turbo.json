@@ -5,6 +5,8 @@
 		"test": {
 			"inputs": [
 				"src/**",
+				"fonts/**",
+				"scripts/fonts.ts",
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",

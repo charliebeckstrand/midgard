@@ -1,14 +1,24 @@
 // @vitest-environment node
 
-import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
-import { FONTS_CSS, fontsCss } from '../../../scripts/fonts'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname } from 'node:path'
+import { fromFile } from '@capsizecss/unpack/fs'
+import { assert, describe, expect, it } from 'vitest'
+import {
+	FONTS_CSS,
+	fontSubsets,
+	fontsCss,
+	SOURCE_FONT,
+	sourceCodePoints,
+	subsetBytes,
+} from '../../../scripts/fonts'
 
-// `src/fonts/fonts.css` gives the font, its fallback faces, and the font
-// stack. `pnpm fonts` writes it from the font file. A change to the font file
-// that does not run the script leaves fallback metrics that no longer agree
-// with the font, and the swap to the font then moves the layout. White space
-// does not count, because Biome formats the file.
+// `pnpm fonts` writes the font files of ui and `src/fonts/fonts.css` from the
+// source font. The font files are subsets of the source font, and the
+// stylesheet gives a face for each subset, the fallback faces, and the font
+// stack. A change to the source font or to the script that does not run the
+// script leaves files that do not agree with the source font. Then the
+// fallback metrics can be wrong, and the swap to the font moves the layout.
 
 /** Returns the text with all white space removed. */
 function compact(text: string) {
@@ -16,7 +26,40 @@ function compact(text: string) {
 }
 
 describe('fonts.css', () => {
-	it('agrees with the font file', async () => {
+	// White space does not count, because Biome formats the file.
+	it('agrees with the source font', async () => {
 		expect(compact(readFileSync(FONTS_CSS, 'utf8'))).toBe(compact(await fontsCss()))
+	})
+})
+
+describe('font files', () => {
+	it('are the subsets that `pnpm fonts` writes', async () => {
+		const subsets = await fontSubsets()
+
+		const files = readdirSync(dirname(FONTS_CSS)).filter((file) => file.endsWith('.woff2'))
+
+		expect(files.toSorted()).toEqual(subsets.map((subset) => subset.file).toSorted())
+
+		for (const subset of subsets) {
+			const bytes = await subsetBytes(subset)
+
+			expect(readFileSync(subset.path).equals(bytes), `${subset.file} is not current`).toBe(true)
+		}
+	})
+
+	it('hold each code point of the source font', async () => {
+		const held = new Set((await fontSubsets()).flatMap((subset) => subset.codePoints))
+
+		expect((await sourceCodePoints()).filter((point) => !held.has(point))).toEqual([])
+	})
+
+	// The fallback faces take their metrics from the source font. The pages
+	// preload the latin subset, so its metrics must be the same.
+	it('give the latin subset the metrics of the source font', async () => {
+		const latin = (await fontSubsets()).find((subset) => subset.name === 'latin')
+
+		assert(latin, 'The source font has no latin subset.')
+
+		expect(await fromFile(latin.path)).toEqual(await fromFile(SOURCE_FONT))
 	})
 })
