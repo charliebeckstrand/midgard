@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { FakeShikiWorker, load } from '../mocks/shiki'
 
 /**
- * `loadShiki` memoizes one dynamic import. Each case therefore needs a module
- * whose memo cell starts empty. The rejection case also needs `import('shiki')`
- * to fail and then to succeed in one test. Both want `vi.resetModules()` and a
- * mock of its own, which the `unit` project bars: one registry serves every
+ * `code-shiki` keeps one worker, the requests in flight, and a memo cell for
+ * each warm-up in module scope. Each case therefore needs a module whose state
+ * starts empty, and a worker port of its own. Both want `vi.resetModules()` and
+ * a mock of its own, which the `unit` project bars: one registry serves every
  * file a worker runs (see `test-isolation-boundary.test.ts`). This suite sits
  * in `boundary/`, which the `integration` project runs on forks, for the reason
  * `map-points-render.test.tsx` states.
@@ -13,78 +14,175 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
  * read the global double and need no registry of their own.
  */
 
-/** Registers the shared double that `setup/module-mocks.ts` installs. */
-function mockShiki() {
-	vi.doMock('shiki', async () => (await import('../mocks/shiki')).default)
-}
+/** The worker port of `CodeBlock`, which each case replaces. */
+const PORT = '../../components/code/code-shiki-port'
 
 /**
- * Makes the next `import('shiki')` reject — the failure that `loadShiki`'s memo
- * must not keep (an offline chunk fetch, a post-deploy 404).
- */
-function failShikiImport() {
-	vi.doMock('shiki', () => {
-		throw new Error('chunk fetch failed')
-	})
-}
-
-/**
- * Returns `loadShiki` from a module whose memo cell is empty.
+ * Returns `code-shiki` from a module whose state is empty, with `open` as its
+ * worker port.
  *
  * @remarks
- * This imports `code-shiki`, never `shiki` — the memo fills on the first
- * `loadShiki()` call. A `vi.doMock('shiki')` therefore has to stand when that
- * call runs, and it belongs after this reset rather than before it.
+ * A registration made before `vi.resetModules()` does not always survive it,
+ * so the port is registered after the reset.
+ *
+ * Each case registers one port, and no hook registers another. Vitest resolves
+ * the pending registrations of a path in parallel at the next import, so the
+ * registration that resolves last wins. A hook that put the shared double back
+ * after each case thus replaced the port of the next case in some runs.
  *
  * Import `code-shiki`, not `code-block`. The reset makes the case import the
  * module again, and the time limit of the case includes that import.
  * `code-block` imports the component graph, and a cold transform cache under
  * the React Compiler made that import take more than 5 seconds. The case then
- * stopped at its time limit, but its body continued and registered the failing
- * double while the next case ran. `code-shiki` has no runtime import.
+ * stopped at its time limit, but its body continued and registered a failing
+ * double while the next case ran. `code-shiki` imports only the port.
  */
-async function coldLoadShiki() {
+async function coldClient(open: () => Worker | null) {
 	vi.resetModules()
 
-	return (await import('../../components/code/code-shiki')).loadShiki
+	vi.doMock(PORT, () => ({ openShikiWorker: open }))
+
+	return import('../../components/code/code-shiki')
+}
+
+/**
+ * A port that gives `workers` in order, and then a new fake for each call. A
+ * `null` stands for an environment with no `Worker`.
+ */
+function portOf(...workers: (FakeShikiWorker | null)[]) {
+	return vi.fn((): Worker | null => {
+		const next = workers.length > 0 ? workers.shift() : new FakeShikiWorker()
+
+		return next ? (next as unknown as Worker) : null
+	})
 }
 
 describe('loadShiki', () => {
-	// A failed run can stop between the two registrations below. Put the shared
-	// double back, so the next case reads the registry the first case reads.
-	afterEach(mockShiki)
+	it('memoizes the warm-up of each pair, so the worker loads it once', async ({ signal }) => {
+		const worker = new FakeShikiWorker()
 
-	it('memoizes a resolved import so the heavy module is fetched once', async () => {
-		const loadShiki = await coldLoadShiki()
+		const post = vi.spyOn(worker, 'postMessage')
+
+		const open = portOf(worker)
+
+		const { loadShiki } = await coldClient(open)
+
+		signal.throwIfAborted()
 
 		const first = loadShiki()
 
-		await expect(first).resolves.toBeDefined()
+		await expect(first).resolves.toBeUndefined()
 
 		expect(loadShiki()).toBe(first)
+
+		expect(loadShiki('ts')).not.toBe(first)
+
+		expect(post.mock.calls.map(([request]) => request)).toEqual([
+			{ id: expect.any(Number), lang: 'tsx', theme: 'github-dark-default' },
+			{ id: expect.any(Number), lang: 'ts', theme: 'github-dark-default' },
+		])
+
+		expect(open).toHaveBeenCalledOnce()
 	})
 
-	it('drops a rejected import from the memo so a later call retries', async ({ signal }) => {
-		const loadShiki = await coldLoadShiki()
+	it('drops a rejected warm-up from the memo so a later call retries', async ({ signal }) => {
+		const { loadShiki } = await coldClient(portOf())
 
 		signal.throwIfAborted()
 
-		// A registration made before `vi.resetModules()` does not always survive
-		// it.
-		failShikiImport()
+		// The worker fails to fetch the grammar chunk once: an offline fetch, or a
+		// 404 after a deploy.
+		load.mockRejectedValueOnce(new Error('chunk fetch failed'))
 
 		const rejected = loadShiki()
 
-		await expect(rejected).rejects.toThrow()
+		await expect(rejected).rejects.toThrow('chunk fetch failed')
 
 		signal.throwIfAborted()
-
-		mockShiki()
 
 		const retry = loadShiki()
 
 		expect(retry).not.toBe(rejected)
 
-		await expect(retry).resolves.toBeDefined()
+		await expect(retry).resolves.toBeUndefined()
+	})
+
+	it('rejects where the environment has no Worker, and retries later', async ({ signal }) => {
+		const { loadShiki } = await coldClient(portOf(null))
+
+		signal.throwIfAborted()
+
+		const rejected = loadShiki()
+
+		await expect(rejected).rejects.toThrow('this environment has none')
+
+		signal.throwIfAborted()
+
+		await expect(loadShiki()).resolves.toBeUndefined()
+	})
+})
+
+describe('highlightCode', () => {
+	it('fails each request in flight when the worker fails, and opens a new worker', async ({
+		signal,
+	}) => {
+		const failing = new FakeShikiWorker()
+
+		// The worker never answers, as a worker whose chunk does not load.
+		vi.spyOn(failing, 'postMessage').mockImplementation(() => {})
+
+		const open = portOf(failing)
+
+		const { highlightCode, loadShiki } = await coldClient(open)
+
+		signal.throwIfAborted()
+
+		// The failing worker answers no request, so this warm-up settles only when
+		// the worker fails.
+		const warmup = loadShiki()
+
+		const inFlight = highlightCode('const a = 1', 'tsx', 'github-dark-default')
+
+		const event = failing.crash('chunk 404')
+
+		// The client handles the error, so the page does not report it again.
+		expect(event.defaultPrevented).toBe(true)
+
+		expect(failing.terminated).toBe(true)
+
+		await expect(inFlight).rejects.toThrow('the Shiki worker failed: chunk 404')
+
+		await expect(warmup).rejects.toThrow('the Shiki worker failed: chunk 404')
+
+		signal.throwIfAborted()
+
+		await expect(highlightCode('const a = 1', 'tsx', 'github-dark-default')).resolves.toContain(
+			'<pre class="shiki"',
+		)
+
+		expect(open).toHaveBeenCalledTimes(2)
+	})
+
+	it('warms the new worker again after the old one fails', async ({ signal }) => {
+		const failing = new FakeShikiWorker()
+
+		const { loadShiki } = await coldClient(portOf(failing))
+
+		signal.throwIfAborted()
+
+		const first = loadShiki()
+
+		await expect(first).resolves.toBeUndefined()
+
+		signal.throwIfAborted()
+
+		failing.crash('worker lost')
+
+		// The new worker holds no grammar, so the call loads again.
+		const again = loadShiki()
+
+		expect(again).not.toBe(first)
+
+		await expect(again).resolves.toBeUndefined()
 	})
 })

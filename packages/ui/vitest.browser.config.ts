@@ -225,7 +225,12 @@ export default defineConfig({
 			'react',
 			'react-dom',
 			'react-dom/client',
-			'shiki',
+			// The Shiki worker of `CodeBlock` imports these. The scan does not follow
+			// a worker, so its imports are listed here.
+			'shiki/core',
+			'shiki/engine/javascript',
+			'shiki/langs',
+			'shiki/themes',
 			'tinykeys',
 			'jest-axe',
 			'@testing-library/react',

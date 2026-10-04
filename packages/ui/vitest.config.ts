@@ -276,7 +276,8 @@ export default defineConfig({
 				// module registry belongs here too: `vi.resetModules()` is barred
 				// in the shared-registry projects, so a case that must re-evaluate
 				// a module to empty its module-scope state
-				// (code-block-load-shiki, for one memo cell) cannot run above. A
+				// (code-block-load-shiki, for the worker and the memo cells of
+				// `code-shiki`) cannot run above. A
 				// suite that sets `process.env.TZ` belongs here too: a worker thread
 				// keeps the zone it started with, and a fork reads the change
 				// (chart-time-zone).

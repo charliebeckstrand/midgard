@@ -10,4 +10,8 @@ export default {
 	root: 'src/docs/fixtures',
 	plugins: [react(), tailwindcss()],
 	build: { target: 'esnext' },
+	// The Shiki worker of `CodeBlock` loads each grammar as a lazy chunk. The
+	// default `iife` format cannot split a worker, so it puts every grammar and
+	// every theme into one worker file.
+	worker: { format: 'es' },
 } satisfies UserConfig

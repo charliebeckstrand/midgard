@@ -135,7 +135,7 @@
 		"marked": "^18.0.5",
 		"motion": "^13.5.0",
 		"pdfjs-dist": "^6.2.108",
-		"shiki": "^3.23.0",
+		"shiki": "^4.5.0",
 		"tailwind-merge": "^3.5.0",
 		"tinykeys": "^4.0.0",
 		"topojson-client": "catalog:"
@@ -154,7 +154,6 @@
 		"@percy/playwright": "^1.1.2",
 		"@react-router/dev": "^8.4.0",
 		"@rolldown/plugin-babel": "^0.2.4",
-		"@shikijs/langs-precompiled": "3.23.0",
 		"@tailwindcss/node": "^4.3.0",
 		"@tailwindcss/vite": "^4.2.1",
 		"@tanstack/react-query": "catalog:",
