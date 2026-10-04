@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
+import { Dialog } from '../../components/dialog'
 import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
@@ -33,6 +34,71 @@ describe('Alert', () => {
 		expect(action).toHaveAttribute('data-variant', 'soft')
 
 		expect(action.className).toBe(screen.getByRole('button', { name: 'Reference' }).className)
+	})
+
+	it('gives a solid or soft button in a solid alert the color of the recipe, not inherit', () => {
+		// `inherit` paints no fill, so a solid or soft action that took it had no fill and looked
+		// plain. A variant with no fill keeps `inherit`, the text color of the solid alert.
+		renderUI(
+			<>
+				<Alert
+					variant="solid"
+					severity="error"
+					title="Title"
+					actions={
+						<>
+							<Button variant="solid">Solid</Button>
+							<Button variant="soft">Soft</Button>
+							<Button variant="outline">Outline</Button>
+						</>
+					}
+				/>
+				<Button variant="solid">Solid reference</Button>
+				<Button variant="soft">Soft reference</Button>
+				<Button variant="outline" color="inherit">
+					Outline reference
+				</Button>
+			</>,
+		)
+
+		for (const name of ['Solid', 'Soft', 'Outline']) {
+			expect(screen.getByRole('button', { name }).className).toBe(
+				screen.getByRole('button', { name: `${name} reference` }).className,
+			)
+		}
+	})
+
+	it('stops its button defaults at a portal that an action opens', () => {
+		renderUI(
+			<>
+				<Alert
+					severity="warning"
+					title="Title"
+					actions={
+						<Dialog open onOpenChange={() => {}}>
+							<Button>Confirm</Button>
+						</Dialog>
+					}
+				/>
+				<Button>Reference</Button>
+			</>,
+		)
+
+		const confirm = screen.getByRole('button', { name: 'Confirm' })
+
+		expect(confirm).toHaveAttribute('data-variant', 'solid')
+
+		expect(confirm.className).toBe(screen.getByRole('button', { name: 'Reference' }).className)
+	})
+
+	it('gives its actions the defaults inside a portal of its own', () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<Alert severity="warning" title="Title" actions={<Button>Action</Button>} />
+			</Dialog>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Action' })).toHaveAttribute('data-variant', 'soft')
 	})
 
 	it('lets an explicit color win over the color of the severity, as an explicit icon does', () => {

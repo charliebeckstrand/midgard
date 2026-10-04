@@ -13,7 +13,7 @@ import { announce, cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
-import { type ButtonDefaults, ButtonDefaultsContext } from '../button/context'
+import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import type { HeadingLevel } from '../heading'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
@@ -70,7 +70,9 @@ export type AlertProps = AlertVariants & {
 	/**
 	 * Controls under the text. A button in them with no `variant` or `color`
 	 * takes the soft variant in the color of the alert, and a solid alert gives
-	 * it the plain variant in the text color.
+	 * it the plain variant in the text color. A solid or a soft button in a solid
+	 * alert takes the color of the recipe, as the text color paints no fill. The
+	 * defaults stop at a portal, such as a dialog that an action opens.
 	 */
 	actions?: ReactNode
 	closable?: boolean
@@ -173,7 +175,7 @@ function AlertContent({
 
 			{actions && (
 				<div className={cn(k.actions, resolvedIcon && 'col-start-2')}>
-					<ButtonDefaultsContext value={actionDefaults}>{actions}</ButtonDefaultsContext>
+					<ButtonDefaultsProvider value={actionDefaults}>{actions}</ButtonDefaultsProvider>
 				</div>
 			)}
 		</div>

@@ -30,7 +30,8 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
  * `loading`. It collapses to a square hit area when
  * icon-only, and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
  * in loading trees. A button with no `variant` or `color` takes the one of the
- * surface around it, such as the soft color of an alert for its actions.
+ * surface around it, such as the soft color of an alert for its actions. The
+ * defaults of a surface stop at a portal, such as a dialog that an action opens.
  *
  * A loading button stays enabled, so it keeps the focus that it has. It is
  * `aria-disabled`, leaves the tab order, and cancels each activation, the
@@ -59,11 +60,7 @@ export function Button({
 }: ButtonProps) {
 	const headless = useHeadless()
 
-	const defaults = useButtonDefaults()
-
-	const variant = variantProp ?? defaults.variant
-
-	const color = colorProp ?? defaults.color
+	const { variant, color } = useButtonDefaults({ variant: variantProp, color: colorProp })
 
 	if (headless) {
 		return (

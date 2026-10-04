@@ -2,11 +2,11 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useEffectEvent, useLayoutEffect, useState } from 'react'
+import { type ReactNode, useEffectEvent, useId, useLayoutEffect, useState } from 'react'
 import { useDensityScope } from '../density'
 import { useDirectionScope } from '../direction'
 import { ReducedMotion } from '../reduced-motion'
-import { type PortalContainer, usePortalContainer } from './context'
+import { type PortalContainer, PortalScopeContext, usePortalContainer } from './context'
 
 /** Props for {@link Portal}. */
 export type PortalProps = {
@@ -50,6 +50,9 @@ export type PortalProps = {
  * follows the root element. A host never makes a box, so it changes no
  * layout or positioning.
  *
+ * Each portal also opens a portal scope (`usePortalScope`). A context that a
+ * surface keeps to itself ends there, such as the button defaults of an alert.
+ *
  * A Suspense boundary or an `<Activity>` above the surface can hide it during its
  * exit. When the boundary reveals it, the exit completes at once, without the
  * animation.
@@ -60,6 +63,8 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 	const density = useDensityScope()
 
 	const dir = useDirectionScope()
+
+	const scope = useId()
 
 	// `mounted` flips on with `open` (adjusted during render) and off once the
 	// exit animation completes, so a closed surface keeps no portal node in the DOM.
@@ -97,9 +102,13 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 				dir={dir ?? undefined}
 				className="contents"
 			>
-				<ReducedMotion>
-					<AnimatePresence onExitComplete={handleExitComplete}>{open && children}</AnimatePresence>
-				</ReducedMotion>
+				<PortalScopeContext value={scope}>
+					<ReducedMotion>
+						<AnimatePresence onExitComplete={handleExitComplete}>
+							{open && children}
+						</AnimatePresence>
+					</ReducedMotion>
+				</PortalScopeContext>
 			</div>
 		</FloatingPortal>
 	)

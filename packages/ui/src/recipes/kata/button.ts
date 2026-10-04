@@ -95,7 +95,8 @@ export type ButtonVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> &
 	variant?: VariantProps<typeof k>['variant']
 	/**
 	 * The palette color of the button. When the prop is unset in a surface that
-	 * sets a color, the button takes that color.
+	 * sets a color, the button takes that color. A solid or a soft button does
+	 * not take `inherit` from a surface, as `inherit` paints no fill.
 	 * @defaultValue 'zinc'
 	 */
 	color?: VariantProps<typeof k>['color']
