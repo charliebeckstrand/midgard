@@ -104,6 +104,26 @@ export const k = {
 } as const
 
 /** Recipe variant props for the {@link ScrollArea} wrapper — its styling axes (`rounded`, `bare`, `orientation`, `extent`), for consumers composing custom slots. */
-export type ScrollAreaWrapperVariants = VariantProps<typeof wrapper>
+export type ScrollAreaWrapperVariants = Omit<
+	VariantProps<typeof wrapper>,
+	'rounded' | 'bare' | 'orientation' | 'extent'
+> & {
+	/** Whether the frame has rounded corners. @defaultValue false */
+	rounded?: VariantProps<typeof wrapper>['rounded']
+	/** Whether the frame drops its border. @defaultValue false */
+	bare?: VariantProps<typeof wrapper>['bare']
+	/** The axis that scrolls. @defaultValue 'vertical' */
+	orientation?: VariantProps<typeof wrapper>['orientation']
+	/** The size of the frame on the axis that scrolls. @defaultValue 'md' */
+	extent?: VariantProps<typeof wrapper>['extent']
+}
 /** Recipe variant props for the {@link ScrollArea} viewport — its styling axes (`orientation`, `bare`), for consumers composing custom slots. */
-export type ScrollAreaViewportVariants = VariantProps<typeof viewport>
+export type ScrollAreaViewportVariants = Omit<
+	VariantProps<typeof viewport>,
+	'orientation' | 'bare'
+> & {
+	/** The axis that scrolls. @defaultValue 'vertical' */
+	orientation?: VariantProps<typeof viewport>['orientation']
+	/** Whether the viewport drops its padding. @defaultValue false */
+	bare?: VariantProps<typeof viewport>['bare']
+}

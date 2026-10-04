@@ -1,5 +1,20 @@
 import type { ComponentProps } from 'react'
+import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { Button, type ButtonProps } from '../button'
+import type { ButtonBaseProps } from '../button/button-utilities'
+
+/**
+ * The props of the Previous and Next controls: {@link ButtonProps}, with
+ * `plain` as the default `variant`. The type omits the `variant` of the Button,
+ * so the docs read one default.
+ *
+ * @internal
+ */
+export type PaginationNavProps = {
+	/** The fill style of the button. @defaultValue 'plain' */
+	variant?: ButtonProps['variant']
+} & Omit<ButtonBaseProps, 'variant'> &
+	PolymorphicProps<'button', 'prefix'>
 
 /**
  * Plain-variant {@link Button} backing the Previous/Next controls.

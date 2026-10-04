@@ -18,7 +18,18 @@ Each kata exports its runtime surface as `k`. Some kata also export helpers (`he
 - **Recipe-shaped kata** (`k = defineRecipe(...)`) — `k` is a `defineRecipe(...)` callable, used as `k({ variant, size, … })`. Slots and sibling sub-recipes attach as direct properties (`k.title`, `k.thumb`) via the `defineRecipe(config, extras)` form. A density-native kata has no size axis: its stepped classes take the step of the nearest density scope.
 - **Object-literal kata** (`k = { … }`) — `k` is a plain object. Used when the component has no top-level variants axis but still needs a curated surface (slot fragments, sub-recipes, motion configs, skeleton data). Recipes for individual slots are inner `defineRecipe(...)` callables: `k.button({ size })`, `k.panel({ surface })`.
 
-Type exports sit alongside, derived from the concrete result — `type FooVariants = VariantProps<typeof k>` (or `VariantProps<typeof k.button>`). Archetype kata derive theirs the same way, since the bridge is generic over the tokens and exposes no standalone variant type — e.g. `export type InputVariants = VariantProps<typeof k>`.
+Type exports sit alongside, derived from the concrete result — `type FooVariants = VariantProps<typeof k>` (or `VariantProps<typeof k.button>`). Archetype kata derive theirs the same way, since the bridge is generic over the tokens and exposes no standalone variant type.
+
+`VariantProps` maps the axes of the recipe, so no declaration holds the TSDoc of an axis. When the recipe or its bridge sets a default for an axis, the type declares that axis again. The new declaration has a description and a `@defaultValue` tag that equals the default. It keeps the type of the recipe:
+
+```ts
+export type InputVariants = Omit<VariantProps<typeof k>, 'variant'> & {
+	/** The surface of the control: `default` fills it, and `outline` draws a border with no fill. @defaultValue 'default' */
+	variant?: VariantProps<typeof k>['variant']
+}
+```
+
+The docs read the tag, so each component that uses the type shows the default. A component that applies a different default omits the axis. Then it declares the axis again with its own tag, as `Badge` does. `recipe-default-boundary.test.ts` compares the tags with `recipe.config.defaults`. It fails when a defaulted axis has no tag, when a tag and its default are different, or when an axis with no default has a tag.
 
 When a component would read kiso tokens directly (`kokkaku.<name>` for skeletons, `ugoki.<thing>` for motion, the popover bundle for popover content), the kata re-exposes them as `k.skeleton`, `k.motion`, `k.content`. The component imports only its kata; the reach into kiso and katakana stops there.
 

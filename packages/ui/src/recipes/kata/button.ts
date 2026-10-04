@@ -86,7 +86,19 @@ export const scale = defineScale(
 )
 
 /** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
-export type ButtonVariants = VariantProps<typeof k> & {
+export type ButtonVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> & {
+	/**
+	 * The fill style of the button. When the prop is unset in a surface that sets
+	 * a variant, such as the actions of an alert, the button takes that variant.
+	 * @defaultValue 'solid'
+	 */
+	variant?: VariantProps<typeof k>['variant']
+	/**
+	 * The palette color of the button. When the prop is unset in a surface that
+	 * sets a color, the button takes that color.
+	 * @defaultValue 'zinc'
+	 */
+	color?: VariantProps<typeof k>['color']
 	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>
 }

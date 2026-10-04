@@ -50,4 +50,8 @@ export const k = bridge.check(
 export const scale = defineScale(dan.size.checkBox, dan.radius.check, dan.size.check)
 
 /** Recipe variant props for {@link Checkbox}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type CheckboxVariants = VariantProps<typeof k> & { size?: ScaleStep<typeof scale> }
+export type CheckboxVariants = Omit<VariantProps<typeof k>, 'color'> & {
+	/** The color of the box when it is checked. @defaultValue 'zinc' */
+	color?: VariantProps<typeof k>['color']
+	size?: ScaleStep<typeof scale>
+}

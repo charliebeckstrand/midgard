@@ -11,7 +11,10 @@ import { useCommandPaletteContext } from './context'
 const alwaysClose = { checkForDefaultPrevented: false }
 
 /** Props for {@link CommandPaletteClose}: the non-anchor {@link ButtonProps} branch minus `href`. */
-export type CommandPaletteCloseProps = Omit<ButtonProps & { href?: never }, 'href'>
+export type CommandPaletteCloseProps = {
+	/** The fill style of the button. @defaultValue 'plain' */
+	variant?: ButtonProps['variant']
+} & Omit<ButtonProps & { href?: never }, 'href' | 'variant'>
 
 /**
  * Button that closes the enclosing {@link CommandPalette}. The palette footer

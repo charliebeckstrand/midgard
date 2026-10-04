@@ -25,6 +25,7 @@ export type RangeSliderProps = {
 	max?: number
 	step?: number
 	size?: RangeSliderVariants['size']
+	/** The color of the filled part of the track. @defaultValue 'blue' */
 	color?: RangeSliderVariants['color']
 	/** Disables both thumbs. Without the prop, the slider takes the disabled state of the enclosing Control. */
 	disabled?: boolean

@@ -37,7 +37,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	 * @defaultValue true
 	 */
 	animate?: boolean
-	/** Recipe color forwarded to the underlying {@link Button}. */
+	/** Recipe color forwarded to the underlying {@link Button}. @defaultValue 'zinc' */
 	color?: ButtonVariants['color']
 	size?: ButtonVariants['size']
 	className?: string

@@ -78,4 +78,7 @@ export const k = defineRecipe({
 })
 
 /** Recipe variant props for {@link Heading} — the styling axis its kata exposes (`level`), for consumers composing custom slots. */
-export type HeadingVariants = VariantProps<typeof k>
+export type HeadingVariants = Omit<VariantProps<typeof k>, 'level'> & {
+	/** The heading level, which sets the font weight. @defaultValue 1 */
+	level?: VariantProps<typeof k>['level']
+}

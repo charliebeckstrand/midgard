@@ -1,39 +1,19 @@
 'use client'
 
-import type { ComponentProps, ReactNode, Ref } from 'react'
+import type { ComponentProps, Ref } from 'react'
 import { Children } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { Density } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useHeadless } from '../../providers/headless/context'
-import { type ButtonVariants, k } from '../../recipes/kata/button'
+import { k } from '../../recipes/kata/button'
 import { Link } from '../link'
 import { LoadingSpinner } from '../loading'
 import { loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
-import { isIconElement } from './button-utilities'
+import { type ButtonBaseProps, isIconElement } from './button-utilities'
 import { useButtonDefaults } from './context'
-
-/**
- * Shared, element-agnostic half of {@link ButtonProps}: the recipe variants plus
- * the behavior flags and adornments common to the button and anchor branches.
- *
- * @internal
- */
-type ButtonBaseProps = ButtonVariants & {
-	/**
-	 * Swap the leading content for a spinner and gate activation.
-	 * @defaultValue false
-	 */
-	loading?: boolean
-	/** Content before the label; hidden while `loading`. */
-	prefix?: ReactNode
-	/** Content after the label. */
-	suffix?: ReactNode
-	'data-slot'?: string
-	className?: string
-}
 
 /**
  * Props for {@link Button}: visual `variant`/`color`/`size`, the

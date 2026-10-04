@@ -116,7 +116,16 @@ export const k = {
 }
 
 /** Recipe variant props for the {@link Drawer} panel — its styling axes (`surface`, `height`), for consumers composing custom slots. */
-export type DrawerPanelVariants = VariantProps<typeof k.panel>
+export type DrawerPanelVariants = Omit<VariantProps<typeof k.panel>, 'surface' | 'height'> & {
+	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. @defaultValue 'flat' */
+	surface?: VariantProps<typeof k.panel>['surface']
+	/**
+	 * How far up the screen the panel reaches. `auto` and `fit` grow with the
+	 * content, and `half` and `full` fix the height.
+	 * @defaultValue 'auto'
+	 */
+	height?: VariantProps<typeof k.panel>['height']
+}
 
 /** The size scale of {@link Drawer}: the steps of the panel title, which the drawer writes as a density scope. */
 export const scale = defineScale(dan.text.title)
