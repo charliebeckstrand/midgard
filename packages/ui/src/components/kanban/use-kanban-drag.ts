@@ -118,8 +118,8 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
  * Pointer drag-and-drop for the {@link Kanban} board via `@dnd-kit`. Tracks the
  * `activeId` and overlay, applies cross-column moves live on drag-over and
  * commits same-column reorders on drag-end, emitting the next columns through
- * `onReorder`. Returns the active id, overlay map, per-column item ids, and
- * the dnd-kit drag handlers.
+ * `onReorder`. Returns the active id, the column that the drop goes to, the
+ * overlay map, the per-column item ids, and the dnd-kit drag handlers.
  *
  * @remarks
  * A cross-column drag reports the move into the new column on drag-over. The
@@ -139,6 +139,9 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	onReorder?: (next: C[]) => void
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
+
+	// The column that holds the card at the drag start.
+	const [originColumnId, setOriginColumnId] = useState<string | null>(null)
 
 	const overlayMap = useRef(new Map<string, ReactNode>())
 
@@ -170,6 +173,12 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	const findColumnByCardId = useCallback((id: string) => cardIndex.get(id), [cardIndex])
 
+	// The live move on drag-over puts the card in the column that the drop goes
+	// to. That column shows the drop, unless the drag started in it.
+	const holderId = activeId === null ? null : (cardIndex.get(activeId)?.id ?? null)
+
+	const dropColumnId = holderId === originColumnId ? null : holderId
+
 	const findColumn = useCallback(
 		(id: string) => {
 			const direct = columns.find((c) => c.id === id)
@@ -193,6 +202,8 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		originColumns.current = null
 
 		setActiveId(cardId)
+
+		setOriginColumnId(findColumnByCardId(cardId)?.id ?? null)
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
@@ -205,6 +216,8 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		setActiveId(null)
+
+		setOriginColumnId(null)
 
 		originColumns.current = null
 
@@ -248,6 +261,8 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	const handleDragCancel = () => {
 		setActiveId(null)
 
+		setOriginColumnId(null)
+
 		const origin = originColumns.current
 
 		originColumns.current = null
@@ -257,6 +272,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	return {
 		activeId,
+		dropColumnId,
 		overlayMap,
 		columnItemIds,
 		handleDragStart,
