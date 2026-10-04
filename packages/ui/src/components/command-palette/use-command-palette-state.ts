@@ -31,8 +31,7 @@ const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
  * It returns the search value plus the refs and `onKeyDown` that drive
  * `aria-activedescendant` highlighting over options while focus stays on the
  * input. Resets the query on close and keeps the highlight on the top result as
- * the filtered set changes. On a device with no hover, a filter change clears
- * the highlight instead. `virtualSourceRef` is the registration point a
+ * the filtered set changes, through `seedVirtualTopMatch`. `virtualSourceRef` is the registration point a
  * `VirtualOptions` (with `getOptionId`) inside `children` publishes into, so the
  * arrow keys reach items outside a windowed list. Navigation is arrow-only —
  * roving `typeahead` stays off, since the search input owns printable keys.
@@ -126,8 +125,7 @@ export function useCommandPaletteState({
 	// option (or are cleared when nothing matches). Skipped on the initial
 	// value; the first arrow key on open picks the first item. Under a
 	// registered `virtualSourceRef`, index math replaces the DOM query (a
-	// windowed-out item isn't in the DOM to find). On a device with no hover,
-	// `seedVirtualTopMatch` clears the highlight.
+	// windowed-out item isn't in the DOM to find).
 	const lastDeferredRef = useRef(deferredQuery)
 
 	useEffect(() => {

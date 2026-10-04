@@ -7,8 +7,8 @@ import {
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	CommandPaletteText,
-} from '../../components/command-palette'
-import { getSlot, noop, renderUI } from '../helpers'
+} from '../../../components/command-palette'
+import { allBySlot, getSlot, noop, present, renderUI } from '../../helpers'
 
 /**
  * Command palette heading space (real layout). Each group heading must have the
@@ -46,11 +46,18 @@ describe('Command palette heading space (real browser)', () => {
 
 		const input = getSlot(document.body, 'command-palette-input')
 
-		const [first, second] = document.querySelectorAll('[data-slot="command-palette-title"]')
+		const titles = allBySlot(document.body, 'command-palette-title')
 
-		const lastRowOfFirstGroup = first?.parentElement?.lastElementChild
+		expect(titles).toHaveLength(2)
 
-		if (!first || !second || !lastRowOfFirstGroup) throw new Error('the palette has no groups')
+		const first = present(titles[0], 'the first heading')
+
+		const second = present(titles[1], 'the second heading')
+
+		const lastRowOfFirstGroup = present(
+			first.parentElement?.lastElementChild,
+			'the last row of the first group',
+		)
 
 		const above = (element: Element, previous: Element) =>
 			element.getBoundingClientRect().top - previous.getBoundingClientRect().bottom

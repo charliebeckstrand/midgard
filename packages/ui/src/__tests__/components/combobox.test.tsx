@@ -6,6 +6,7 @@ import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
 	act,
 	bySlot,
@@ -506,7 +507,7 @@ describe('Combobox active-descendant keyboard model', () => {
 	// A phone has no hover. The reader taps an option there, so a highlight on the
 	// top match looks like an option that they picked.
 	it('leaves the highlight clear when the query changes on a device with no hover', async () => {
-		stubMatchMedia((query) => query === '(hover: none)')
+		stubMatchMedia((query) => query === NO_HOVER_QUERY)
 
 		const user = setupUser()
 

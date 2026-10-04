@@ -27,6 +27,7 @@ import {
 	queryItems,
 	seedVirtualTopMatch,
 	setVirtualActive,
+	setVirtualActiveIndexed,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
@@ -235,6 +236,41 @@ function seedTopMatch(
 	seedVirtualTopMatch(node, OPTION_SELECTOR, source, activeIndexRef, inputRef, {
 		ariaSelected: false,
 	})
+}
+
+/**
+ * Seats the highlight for an arrow-key open. It goes on the current selection,
+ * so the menu opens with the active value. A plain open leaves the highlight
+ * empty, and so does an arrow-key open with nothing selected. Single mode
+ * only — `multiple` carries no single selection.
+ *
+ * A windowed selection cannot be found without the DOM, so a registered
+ * `source` seats the top option instead of guessing. The key is an explicit
+ * move, so this does not go through {@link seedTopMatch}, which clears the
+ * highlight on a device with no hover.
+ *
+ * @internal
+ */
+function seatOnArrowOpen(
+	node: HTMLElement,
+	source: VirtualItemSource | null,
+	multiple: boolean,
+	activeIndexRef: RefObject<number>,
+	inputRef: RefObject<HTMLInputElement | null>,
+): void {
+	if (source) {
+		setVirtualActiveIndexed(node, source, source.count > 0 ? 0 : -1, activeIndexRef, inputRef, {
+			ariaSelected: false,
+		})
+
+		return
+	}
+
+	const items = queryItems(node, OPTION_SELECTOR)
+
+	const selectedIndex = multiple ? -1 : items.findIndex((item) => item.matches('[data-selected]'))
+
+	setVirtualActive(items, selectedIndex, inputRef, { ariaSelected: false })
 }
 
 /**
@@ -484,19 +520,14 @@ export function Combobox<T>({
 
 	// Keeps the virtual highlight anchored to a real option: clears
 	// `aria-activedescendant` while the menu is closed, on each filter change
-	// jumps it to the top match (or clears it when nothing matches, or on a
-	// device with no hover), and on an arrow-key open seats it on the current
-	// single-mode selection. Skips the initial query; the first arrow key then
-	// picks the first option. Passes `ariaSelected: false`; options own their
+	// seeds it through `seedTopMatch`, and on an arrow-key open seats it through
+	// `seatOnArrowOpen`. Skips the initial query; the first arrow key then picks
+	// the first option. Passes `ariaSelected: false`; options own their
 	// selection state.
 	//
 	// Under a registered `virtualSourceRef`, index math replaces the DOM query
 	// (a windowed-out option isn't in the DOM to find), via
-	// `setVirtualActiveIndexed`/`clearVirtualActiveIndexed`. Anchoring to the
-	// *current selection* on an arrow-key open still needs the DOM (there's no
-	// index-space "find the selected row" without scanning rendered rows), which
-	// a windowed selection cannot satisfy; it degrades to the top-match seed
-	// below instead of guessing.
+	// `setVirtualActiveIndexed`/`clearVirtualActiveIndexed`.
 	const lastQueryRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -521,28 +552,16 @@ export function Combobox<T>({
 
 		anchorSelectedOnOpenRef.current = false
 
-		// An arrow-key open seats the highlight on the current selection so the
-		// menu opens with the active value rather than the empty highlight a plain
-		// open leaves; with nothing selected it falls through to that empty
-		// highlight. Single mode only — `multiple` carries no single selection.
-		if (anchorSelected && !source) {
-			const items = queryItems(optionsNode, OPTION_SELECTOR)
-
-			const selectedIndex = multiple
-				? -1
-				: items.findIndex((item) => item.matches('[data-selected]'))
-
-			setVirtualActive(items, selectedIndex, inputRef, { ariaSelected: false })
-
+		if (anchorSelected) {
 			lastQueryRef.current = deferredQuery
+
+			seatOnArrowOpen(optionsNode, source, multiple, activeIndexRef, inputRef)
 
 			return
 		}
 
-		// A virtualized arrow-key open falls through to the top-match seed below
-		// (see the effect's remark above); a plain open re-seeds only once the
-		// query actually changes.
-		if (!anchorSelected && lastQueryRef.current === deferredQuery) return
+		// A plain open re-seeds only once the query actually changes.
+		if (lastQueryRef.current === deferredQuery) return
 
 		lastQueryRef.current = deferredQuery
 
