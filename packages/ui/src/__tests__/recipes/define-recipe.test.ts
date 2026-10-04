@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { definePalette, defineRecipe } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
@@ -158,6 +158,36 @@ describe('defineRecipe', () => {
 		expect(recipe.title).toBe('font-semibold text-lg')
 
 		expect(recipe.body).toBe('text-sm')
+	})
+
+	it('types `skeleton` only on a recipe whose config declares one', () => {
+		// The engine attaches no `skeleton` to a recipe without one, so the type
+		// must not offer `k.skeleton` there.
+		const plain = defineRecipe({ base: 'block' })
+
+		const withSkeleton = defineRecipe({ base: 'block', skeleton: { base: 'h-4' } as const })
+
+		expectTypeOf(plain).not.toHaveProperty('skeleton')
+
+		expectTypeOf(withSkeleton.skeleton).toEqualTypeOf<{ readonly base: 'h-4' }>()
+
+		expect('skeleton' in plain).toBe(false)
+
+		expect(withSkeleton.skeleton).toEqual({ base: 'h-4' })
+	})
+
+	it('rejects a prop that is not an object', () => {
+		// The engine reads each axis as a key of the prop object, so `true` in
+		// place of `{ interactive: true }` would give the defaults.
+		const recipe = defineRecipe({
+			base: 'block',
+			interactive: { true: 'cursor-pointer', false: '' },
+		})
+
+		// @ts-expect-error a bare boolean is not a prop object
+		expect(recipe(true)).toBe('block')
+
+		expect(recipe({ interactive: true })).toBe('block cursor-pointer')
 	})
 
 	it('keeps the default color active when only variant is overridden', () => {
