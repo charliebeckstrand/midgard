@@ -22,13 +22,14 @@ type ColorPanelBaseProps = {
 	/**
 	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
 	 *
-	 * @defaultValue `false`
+	 * @defaultValue false
 	 */
 	alpha?: boolean
 	/**
-	 * Preset swatches, or `false` to hide them.
+	 * Preset swatches, or `false` to hide them. The default is a built-in
+	 * palette.
 	 *
-	 * @defaultValue {@link DEFAULT_SWATCHES} — a built-in palette
+	 * @defaultValue {@link DEFAULT_SWATCHES}
 	 */
 	swatches?: readonly string[] | false
 	/**
@@ -36,6 +37,10 @@ type ColorPanelBaseProps = {
 	 * A step makes the panel a density scope.
 	 */
 	size?: ScaleStep<typeof scale>
+	/**
+	 * Disables the controls of the panel and hides the eyedropper.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	className?: string
 }

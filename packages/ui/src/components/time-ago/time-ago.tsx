@@ -17,7 +17,10 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
 	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
 	 */
 	locale?: string
-	/** Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages. */
+	/**
+	 * Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages.
+	 * @defaultValue 'auto'
+	 */
 	interval?: number | 'auto'
 }
 

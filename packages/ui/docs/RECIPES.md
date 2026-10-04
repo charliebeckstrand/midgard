@@ -65,7 +65,7 @@ Every kata exports exactly one runtime value, `k`, in one of three shapes ([`src
 - **Recipe-shaped** — `k = defineRecipe(…)`, called as `k({ variant, size, … })`; slots and sub-recipes attach as properties (`k.title`, `k.thumb`).
 - **Object-literal** — `k = { … }`, a curated bag of slot fragments, sub-recipes, motion configs, and skeleton data when there's no top-level variants axis.
 
-Variant types derive from the concrete result — `export type FooVariants = VariantProps<typeof k>`. When the recipe sets a default for an axis, the type declares that axis again with a description and a `@defaultValue` tag. The tag equals the default ([kata §2](../src/recipes/kata/README.md#2-shape)), and `recipe-default-boundary.test.ts` gates it.
+Variant types derive from the concrete result — `export type FooVariants = VariantProps<typeof k>`. When the recipe sets a default for an axis, the type declares that axis again with a description and a `@defaultValue` tag. The tag equals the default ([kata §2](../src/recipes/kata/README.md#2-shape)). Each destructured default of a public component, and each recipe default that an unset prop gets, has a tag on the prop too. `default-value-boundary.test.ts` gates both.
 
 ## Recipe engine
 

@@ -32,14 +32,17 @@ export type ChatPromptProps = {
 	/**
 	 * When true, the send button renders as a stop button and invokes `onStop`.
 	 *
-	 * @defaultValue `false`
+	 * @defaultValue false
 	 */
 	streaming?: boolean
-	/** @defaultValue `'Ask anything'` */
+	/** @defaultValue 'Ask anything' */
 	placeholder?: string
-	/** @defaultValue `2` */
+	/** @defaultValue 2 */
 	rows?: number
-	/** Disables send without disabling the textarea (e.g. empty input). */
+	/**
+	 * Disables send without disabling the textarea (e.g. empty input).
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	/**
 	 * Called with the chosen files when the user picks attachments. The

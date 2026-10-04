@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { composeEventHandlers } from '../../core'
 import { Button, type ButtonProps } from '../button'
 import { useCommandPaletteContext } from './context'
@@ -14,7 +15,9 @@ const alwaysClose = { checkForDefaultPrevented: false }
 export type CommandPaletteCloseProps = {
 	/** The fill style of the button. @defaultValue 'plain' */
 	variant?: ButtonProps['variant']
-} & Omit<ButtonProps & { href?: never }, 'href' | 'variant'>
+	/** The label of the button. @defaultValue 'Close' */
+	children?: ReactNode
+} & Omit<ButtonProps & { href?: never }, 'href' | 'variant' | 'children'>
 
 /**
  * Button that closes the enclosing {@link CommandPalette}. The palette footer

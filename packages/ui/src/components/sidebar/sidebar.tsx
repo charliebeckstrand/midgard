@@ -8,13 +8,19 @@ import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
 
 /** Props for {@link Sidebar}: the `mini` rail toggle plus native `<nav>` attributes. */
-export type SidebarProps = ComponentProps<'nav'> & {
+export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
+	/**
+	 * The accessible name of the landmark. Give each navigation landmark its
+	 * own name when a page shows more than one.
+	 * @defaultValue 'Sidebar'
+	 */
+	'aria-label'?: string
 	/**
 	 * Collapse to an icon rail on desktop (`lg+`): labels turn `sr-only`,
 	 * affixes and item actions hide, and items gain a hover tooltip naming the
 	 * label. Below the breakpoint the sidebar keeps its full layout, so the
 	 * mobile drawer is unaffected.
-	 * @defaultValue `false`
+	 * @defaultValue false
 	 */
 	mini?: boolean
 }

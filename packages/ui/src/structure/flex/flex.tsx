@@ -34,11 +34,17 @@ export type FlexProps = {
 	align?: ResponsiveAlign
 	/** Main-axis alignment. Supports responsive breakpoints. */
 	justify?: ResponsiveJustify
-	/** Allow children to wrap onto multiple lines. */
+	/**
+	 * Allow children to wrap onto multiple lines.
+	 * @defaultValue false
+	 */
 	wrap?: boolean
 	/** Fill available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`. */
 	flex?: '1' | 'auto' | false
-	/** Spans full width of parent. */
+	/**
+	 * Spans full width of parent.
+	 * @defaultValue false
+	 */
 	full?: boolean
 	className?: string
 	[key: `data-${string}`]: string | number | boolean | undefined

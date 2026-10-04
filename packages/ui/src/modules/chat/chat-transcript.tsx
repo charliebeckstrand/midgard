@@ -43,7 +43,10 @@ export type ChatTranscriptProps = {
 	 * to its index, which goes stale when messages are inserted above it.
 	 */
 	messages: ChatMessageData[]
-	/** Whether a reply is currently streaming; marks the last message when it is an assistant bubble. */
+	/**
+	 * Whether a reply is currently streaming; marks the last message when it is an assistant bubble.
+	 * @defaultValue false
+	 */
 	streaming?: boolean
 	className?: string
 }

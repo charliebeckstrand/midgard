@@ -13,6 +13,10 @@ export type TableVariants = {
 	 * cells take it.
 	 */
 	size?: ScaleStep<typeof scale>
+	/**
+	 * Runs the table from edge to edge and removes the outer gutter.
+	 * @defaultValue false
+	 */
 	bleed?: boolean
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean

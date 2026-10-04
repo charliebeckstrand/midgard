@@ -61,7 +61,7 @@ export const k = defineRecipe(
 		// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
 		// base scale — and the affix `px` lockstep keyed off it — stays put.
 		compound: [{ radius: 'full', class: dan.space.badgePillX }],
-		defaults: { variant: 'soft', color: 'zinc', radius: 'md' },
+		defaults: { variant: 'solid', color: 'zinc', radius: 'md' },
 		skeleton: badge,
 	},
 	{
@@ -95,7 +95,7 @@ export const scale = defineScale(
 export type BadgeVariants = Omit<VariantProps<typeof k>, 'radius' | 'variant' | 'color'> & {
 	/** The corner radius of the badge. @defaultValue 'md' */
 	radius?: VariantProps<typeof k>['radius']
-	/** The fill style of the badge. @defaultValue 'soft' */
+	/** The fill style of the badge. @defaultValue 'solid' */
 	variant?: VariantProps<typeof k>['variant']
 	/** The palette color of the badge. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']

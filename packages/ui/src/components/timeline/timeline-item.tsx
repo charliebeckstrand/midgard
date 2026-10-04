@@ -13,7 +13,10 @@ import { TimelineMarker } from './timeline-marker'
  * are forwarded to the implicit `<TimelineMarker>` when no explicit one is composed.
  */
 export type TimelineItemProps = {
-	/** Marks this row as the active step; sets `aria-current` and a `data-current` styling hook. */
+	/**
+	 * Marks this row as the active step; sets `aria-current` and a `data-current` styling hook.
+	 * @defaultValue false
+	 */
 	current?: boolean
 	/** Overrides the marker treatment inherited from `<Timeline>` for this row only. */
 	variant?: TimelineVariant
