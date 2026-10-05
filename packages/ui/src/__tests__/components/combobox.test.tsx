@@ -85,6 +85,23 @@ describe('Combobox', () => {
 		expect(input).toHaveAttribute('aria-describedby', 'city-hint')
 	})
 
+	it('names the input from aria-label over aria-labelledby when both are given', () => {
+		const { container } = renderUI(
+			<>
+				<span id="town-label">Town</span>
+				<Combobox aria-label="City" aria-labelledby="town-label">
+					<div>Option</div>
+				</Combobox>
+			</>,
+		)
+
+		const input = bySlot(container, 'combobox-input')
+
+		expect(input).not.toHaveAttribute('aria-labelledby')
+
+		expect(input).toHaveAccessibleName('City')
+	})
+
 	it('names the listbox from aria-labelledby when no aria-label is given', async () => {
 		const user = setupUser()
 

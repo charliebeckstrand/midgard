@@ -383,6 +383,23 @@ export function reanchorOnOptionSwap(
 }
 
 /**
+ * Resolves the `aria-labelledby` of the input and of the listbox. In the
+ * accessible name, `aria-labelledby` wins over `aria-label`. Thus an explicit
+ * `aria-label` removes `aria-labelledby` from the two elements. Without an
+ * `aria-label`, the listbox falls back to the Label of the field. The input
+ * does not, because the `<label>` of the field names it.
+ */
+function resolveLabelledBy(
+	ariaLabel: string | undefined,
+	ariaLabelledby: string | undefined,
+	fieldLabelledBy: string | undefined,
+): { input: string | undefined; listbox: string | undefined } {
+	if (ariaLabel) return { input: undefined, listbox: undefined }
+
+	return { input: ariaLabelledby, listbox: ariaLabelledby ?? fieldLabelledBy }
+}
+
+/**
  * Props for {@link Combobox}, discriminated on `multiple` so `value`,
  * `defaultValue`, and `onValueChange` resolve to single or array shapes.
  *
@@ -736,6 +753,8 @@ export function Combobox<T>({
 	// The field shows how many are picked; this says which, on hover.
 	const inputTitle = resolveInputTitle({ editing, value, displayValue, multiple })
 
+	const labelledBy = resolveLabelledBy(ariaLabel, ariaLabelledby, control?.labelledBy)
+
 	const inputHandlers = useComboboxInput<T>({
 		multiple,
 		clearOnEmpty,
@@ -889,7 +908,7 @@ export function Combobox<T>({
 							type="text"
 							autoComplete={autoComplete}
 							aria-label={ariaLabel}
-							aria-labelledby={ariaLabelledby}
+							aria-labelledby={labelledBy.input}
 							// Passed raw: the `<Input>` beneath runs the same `useControlProps`
 							// merge, so resolving it here would join the field's ids twice.
 							aria-describedby={ariaDescribedBy}
@@ -920,7 +939,7 @@ export function Combobox<T>({
 						ariaLabel={ariaLabel}
 						// Names the listbox from the input's name: an explicit aria-label
 						// wins, else aria-labelledby, else the field's Label (via Control).
-						ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
+						ariaLabelledby={labelledBy.listbox}
 						floatingStyles={floatingStyles}
 						getFloatingProps={getFloatingProps}
 						optionsRef={attachOptions}
