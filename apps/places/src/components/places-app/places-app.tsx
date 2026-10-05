@@ -258,11 +258,9 @@ function DeleteConfirm({
 				: `Delete the visit on ${fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}?`
 
 	const description =
-		deletion === null
-			? undefined
-			: visit !== null && deletesPlace(deletion)
-				? `This is the only visit to "${deletion.place.name}", so the place is deleted too. This cannot be undone.`
-				: 'This cannot be undone.'
+		deletion !== null && visit !== null && deletesPlace(deletion)
+			? `This is the only visit to "${deletion.place.name}", so the place is deleted too.`
+			: undefined
 
 	return (
 		<Confirm
