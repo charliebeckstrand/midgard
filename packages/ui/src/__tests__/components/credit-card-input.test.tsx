@@ -9,7 +9,16 @@ import {
 import { validateCardExpiry } from '../../components/credit-card-input/credit-card-input-utilities'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { allBySlot, bySlot, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	userEvent,
+} from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('CreditCardInput', () => {
@@ -507,6 +516,25 @@ describe('CreditCardInputCvv', () => {
 		expect(input.value).toBe('123')
 
 		expect(verdicts).toEqual([false, false, true])
+	})
+
+	it('reports the verdict of the masked entry when a caller maxLength lets in a long entry', () => {
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(
+			<CreditCardInputCvv brand="visa" maxLength={4} onValidityChange={onValidityChange} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-cvv')
+
+		// The maxLength of the caller replaces the cap of the brand, so the field
+		// takes four digits.
+		fireEvent.change(input, { target: { value: '1234' } })
+
+		// The mask keeps "123", so the verdict is the verdict of "123".
+		expect(input).toHaveValue('123')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({ isValid: true, isPotentiallyValid: true })
 	})
 
 	it('re-measures the entry when a brand change shrinks the length', async () => {
