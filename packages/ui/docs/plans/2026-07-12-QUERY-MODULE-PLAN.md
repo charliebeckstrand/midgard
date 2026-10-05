@@ -139,7 +139,7 @@ The pure suites move with their subjects: `query-builder-utilities.test.ts` spli
 
 ## Docs surface
 
-Per CLAUDE.md §3.5 / CONVENTIONS.md §12: TSDoc travels with every moved symbol in the same change; the barrel's exports don't change, so `MODULES.md` stays as-is; the new `ROADMAP.md` joins the module and this plan doc holds the design record. No `COMPONENTS.md`/`HOOKS.md` entries — modules index separately.
+Per CLAUDE.md §3.4 / CONVENTIONS.md §12: TSDoc travels with every moved symbol in the same change; the barrel's exports don't change, so `MODULES.md` stays as-is; the new `ROADMAP.md` joins the module and this plan doc holds the design record. No `COMPONENTS.md`/`HOOKS.md` entries — modules index separately.
 
 ## Suggested PR slicing
 

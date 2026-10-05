@@ -5,7 +5,7 @@
 > and [`2026-09-28-DENSITY-PRE-PAINT-PLAN.md`](2026-09-28-DENSITY-PRE-PAINT-PLAN.md) carried
 > increment 6, which landed in [#1539](https://github.com/charliebeckstrand/midgard/pull/1539). Of the items out of scope, the ring utilities replaced
 > the literal maps of `kasane` in [#1488](https://github.com/charliebeckstrand/midgard/pull/1488), and the `useDensity` TSDoc went with the hook in
-> [#1486](https://github.com/charliebeckstrand/midgard/pull/1486). The `condensed` projections of the grid stay open.
+> [#1486](https://github.com/charliebeckstrand/midgard/pull/1486). [#1582](https://github.com/charliebeckstrand/midgard/pull/1582) removed the `icon` and `badge` projections of the grid `condensed` preset.
 
 How a component follows ambient density without reading context and without leaving the static tier. Density is a Tailwind variant, the same kind of ambient condition as `dark:` or `md:`. A kata writes each step as a literal class, and the DOM selects the step. The rest of the plan is the order in which components move onto the variants.
 
@@ -38,6 +38,7 @@ Rejected:
 ## Costs accepted
 
 - **Depth cap.** The variants stop at a depth of 6 scopes. Past that, an outer scope can win. The trees in the repository stay under the cap.
+  **Since reversed.** [#1679](https://github.com/charliebeckstrand/midgard/pull/1679) cut the ranked depths to three, and [#1932](https://github.com/charliebeckstrand/midgard/pull/1932) to two (`maxDepth` in `core/density/rungs.ts`).
 - **Layer order.** Tailwind emits the nested layers in the order of first use. The plugin adds the rungs of each variant from depth 1 up, so the order is correct. A `@layer` order statement does not help: Tailwind moves it after the utilities.
 - **Pinning cascades.** `<Card size="sm">` makes its subtree `sm`. That is the intent for sections and static leaves. A host that wants a child one step down (the control affix) must open a scope with the lower step on the slot.
 - **Portals.** A portal breaks the DOM chain, and context does not. A static leaf inside a portaled surface follows the surface's scope only if the surface writes `data-density`.
