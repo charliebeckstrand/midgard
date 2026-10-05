@@ -8,6 +8,7 @@ import {
 	type ReactNode,
 	type RefObject,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 } from 'react'
 import { cn } from '../../core'
@@ -113,6 +114,10 @@ export type OverlayProps = {
  * trap without modality being given up. Fires the overlay signal on open so
  * non-modal floats (tooltips) dismiss.
  *
+ * A closed overlay is `inert` for its exit animation, so it takes no press and
+ * no key. The focus goes to `<body>` when the overlay closes, and a modal
+ * overlay returns it to the trigger at unmount.
+ *
  * The portal carries the density scope and the direction of the place that
  * opened the overlay (see {@link Portal}), so the panel follows that place.
  */
@@ -163,6 +168,37 @@ export function Overlay({
 	useEffect(() => {
 		if (open) notifyOverlaySignal()
 	}, [open])
+
+	const inert = props.inert === true
+
+	// A closed overlay stays on screen for its exit animation, and its subtree
+	// keeps the handlers of the last open render. It must take no input in that
+	// time. If it does, a second press runs an action again, and the backdrop
+	// takes a press that is for the page below. `inert` stops the pointer and
+	// the keyboard. `pointer-events: none` is not sufficient, because a panel
+	// sets `pointer-events-auto` on itself.
+	//
+	// The effect writes to the node, not to a prop. `AnimatePresence` holds the
+	// exiting subtree at the props of its last open render, so a prop keyed on
+	// `open` never gets to it.
+	//
+	// `inert` moves the focus out of the panel, but Chromium does this in a
+	// later task. Until then, a fast second Enter still clicks the focused
+	// button. Thus the effect moves the focus to `<body>` at once. The focus
+	// manager then returns the focus at unmount, as before.
+	useLayoutEffect(() => {
+		const node = containerRef.current
+
+		if (!node) return
+
+		node.toggleAttribute('inert', inert || !open)
+
+		if (open) return
+
+		const active = node.ownerDocument.activeElement
+
+		if (active instanceof HTMLElement && node.contains(active)) active.blur()
+	}, [open, inert])
 
 	const panel = (
 		<div

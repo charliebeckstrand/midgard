@@ -332,4 +332,38 @@ describe('Overlay', () => {
 		// Scoped overlays do not apply the body scroll lock.
 		expect(document.body.style.overflow).toBe('')
 	})
+
+	// Overlay writes `inert` to the root of a closed overlay for the exit. The
+	// mocked `AnimatePresence` removes the node in the commit that closes it, so
+	// the motion project of the browser suite reads that write
+	// (`browser/motion/overlay-exit-inert.test.tsx`). These cases hold the open half.
+	it('leaves the root of an open overlay free to take input', () => {
+		renderUI(
+			<Overlay open onOpenChange={() => {}}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		expect(
+			present(document.querySelector('[data-slot="overlay"]'), 'overlay root'),
+		).not.toHaveAttribute('inert')
+	})
+
+	it('keeps the inert prop of the caller on an open overlay', () => {
+		const overlay = (inert: boolean) => (
+			<Overlay open inert={inert} onOpenChange={() => {}}>
+				<span>content</span>
+			</Overlay>
+		)
+
+		const { rerender } = renderUI(overlay(true))
+
+		const root = present(document.querySelector('[data-slot="overlay"]'), 'overlay root')
+
+		expect(root).toHaveAttribute('inert')
+
+		rerender(overlay(false))
+
+		expect(root).not.toHaveAttribute('inert')
+	})
 })
