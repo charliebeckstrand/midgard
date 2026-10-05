@@ -9,6 +9,7 @@ import { Drawer, DrawerBody, DrawerClose, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -17,7 +18,12 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory, Visit } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
-import { latestVisit } from '../../utilities/places-visits'
+import {
+	latestVisit,
+	PLACE_ORDER_LABEL,
+	type PlaceOrder,
+	sortPlaces,
+} from '../../utilities/places-visits'
 import { CategoryPicker } from '../category-picker'
 import {
 	type PlaceActions,
@@ -232,27 +238,54 @@ type PlaceListProps = {
 	/** The categories that narrow the list; empty is unfiltered. */
 	categories: PlaceCategory[]
 	onCategoriesChange: (categories: PlaceCategory[]) => void
+	/** The order of the list. */
+	order: PlaceOrder
+	onOrderChange: (order: PlaceOrder) => void
 	/** Opens one place of the list, by id. */
 	onOpen: (id: string) => void
 }
 
 /**
- * The body of the drawer over a group: the category picker and the list of the
- * places that it lets through.
+ * The body of the drawer over a group: the category picker, the sort picker, and
+ * the list of the places that the category picker lets through.
  */
-function PlaceList({ shown, spanned, categories, onCategoriesChange, onOpen }: PlaceListProps) {
+function PlaceList({
+	shown,
+	spanned,
+	categories,
+	onCategoriesChange,
+	order,
+	onOrderChange,
+	onOpen,
+}: PlaceListProps) {
 	return (
 		<Stack gap="md">
-			{/* Over the list rather than in the header, because it narrows the
-			    list and not the panel — and only where there is more than one
-			    category to choose between. */}
-			{spanned > 1 ? (
-				<CategoryPicker
-					value={categories}
-					onValueChange={onCategoriesChange}
-					className="w-full sm:w-52"
-				/>
-			) : null}
+			{/* Over the list rather than in the header, because they change the
+			    list and not the panel. The category picker shows only where there
+			    is more than one category to choose between. */}
+			<Flex gap="sm" align="center" wrap>
+				{spanned > 1 ? (
+					<CategoryPicker
+						value={categories}
+						onValueChange={onCategoriesChange}
+						className="w-full sm:w-52"
+					/>
+				) : null}
+
+				<Listbox<PlaceOrder>
+					aria-label="Sort"
+					className="w-full sm:w-44"
+					displayValue={(value) => PLACE_ORDER_LABEL[value]}
+					value={order}
+					onValueChange={(value) => onOrderChange(value ?? 'name')}
+				>
+					{(Object.keys(PLACE_ORDER_LABEL) as PlaceOrder[]).map((value) => (
+						<ListboxOption key={value} value={value}>
+							<ListboxLabel>{PLACE_ORDER_LABEL[value]}</ListboxLabel>
+						</ListboxOption>
+					))}
+				</Listbox>
+			</Flex>
 
 			{shown.length === 0 ? (
 				<Text tone="warning">
@@ -325,6 +358,10 @@ export function PlaceDrawer({
 	// the bar over the map already narrows the map.
 	const [categories, setCategories] = useState<PlaceCategory[]>([])
 
+	// The order of the list. Alphabetical by default, and back to it on a new
+	// pick, the same as the categories.
+	const [order, setOrder] = useState<PlaceOrder>('name')
+
 	// The last group the drawer was given. The panel stays mounted while it closes
 	// so the slide out plays, and a closing panel is handed an empty group — so the
 	// body reads the last non-empty one rather than the current one, or it would
@@ -359,6 +396,8 @@ export function PlaceDrawer({
 		setListing(false)
 
 		setCategories([])
+
+		setOrder('name')
 	}, [groupKey])
 
 	// The region's places, never the merged group alone. The crumb over the list
@@ -375,8 +414,11 @@ export function PlaceDrawer({
 	// last category means to stop filtering, not to empty the panel.
 	const shown = useMemo(
 		() =>
-			categories.length === 0 ? list : list.filter((item) => categories.includes(item.category)),
-		[list, categories],
+			sortPlaces(
+				categories.length === 0 ? list : list.filter((item) => categories.includes(item.category)),
+				order,
+			),
+		[list, categories, order],
 	)
 
 	// How many categories the list spans. A picker over one of them offers the
@@ -492,6 +534,8 @@ export function PlaceDrawer({
 						spanned={spanned}
 						categories={categories}
 						onCategoriesChange={setCategories}
+						order={order}
+						onOrderChange={setOrder}
 						onOpen={(id) => {
 							setOpenedId(id)
 
