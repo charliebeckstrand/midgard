@@ -18,7 +18,7 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { EllipsisVertical, Plus, Trash2 } from 'lucide-react'
-import { memo, type ReactNode, use, useMemo } from 'react'
+import { memo, type ReactNode, use, useId, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Icon } from '../../components/icon'
@@ -237,6 +237,10 @@ export function GridGroupManager({
 
 	const sensors = useSortableSensors({ keyboardCoordinateGetter: groupAwareKeyboardCoordinates })
 
+	// An id from `useId`, so the server and the browser agree on the id of the
+	// drag description. dnd-kit makes it from a shared counter without one.
+	const dndId = useId()
+
 	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
 	// holds the closed hand on the whole page until the drop or the cancel.
 	useDragCursor(mgr.activeId != null)
@@ -287,6 +291,7 @@ export function GridGroupManager({
 	return (
 		<GroupManagerGroupsContext value={groups}>
 			<DndContext
+				id={dndId}
 				accessibility={{ announcements }}
 				sensors={sensors}
 				collisionDetection={groupAwareCollision}
