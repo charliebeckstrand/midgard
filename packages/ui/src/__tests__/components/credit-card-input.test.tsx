@@ -7,9 +7,9 @@ import {
 	CreditCardInputExpiry,
 } from '../../components/credit-card-input'
 import { validateCardExpiry } from '../../components/credit-card-input/credit-card-input-utilities'
-import { Field, Label } from '../../components/fieldset'
+import { Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { bySlot, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
+import { allBySlot, bySlot, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('CreditCardInput', () => {
@@ -367,6 +367,70 @@ describe('CreditCardInputExpiry', () => {
 		expect(message).toBeInTheDocument()
 
 		expect(input.getAttribute('aria-describedby')).toBe(message?.id)
+	})
+
+	it('describes the input by the built-in message outside a Field', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '1330')
+
+		expect(input).toHaveAccessibleDescription('Enter a valid expiration date (MM/YY)')
+	})
+
+	it('keeps a caller aria-describedby ahead of the built-in message', async () => {
+		const { container } = renderUI(
+			<>
+				<p id="expiry-hint">As printed on the card</p>
+
+				<CreditCardInputExpiry aria-describedby="expiry-hint" />
+			</>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '1330')
+
+		expect(input).toHaveAccessibleDescription(
+			'As printed on the card Enter a valid expiration date (MM/YY)',
+		)
+	})
+
+	it('gives the built-in message an id apart from another error Message in the Field', async () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Expiry</Label>
+
+				<CreditCardInputExpiry />
+
+				<Message>Card declined</Message>
+			</Field>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '1330')
+
+		const messages = allBySlot(container, 'message')
+
+		expect(messages).toHaveLength(2)
+
+		const [builtIn, other] = messages
+
+		expect(builtIn?.id).not.toBe(other?.id)
+
+		expect(input).toHaveAccessibleDescription(
+			expect.stringContaining('Enter a valid expiration date (MM/YY)'),
+		)
+
+		expect(input).toHaveAccessibleDescription(expect.stringContaining('Card declined'))
 	})
 
 	it('uses a custom invalid message and clears it once valid', async () => {

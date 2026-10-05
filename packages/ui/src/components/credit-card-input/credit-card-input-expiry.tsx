@@ -1,7 +1,8 @@
 'use client'
 
-import { type ChangeEvent, type ReactNode, useEffect, useEffectEvent, useState } from 'react'
+import { type ChangeEvent, type ReactNode, useEffect, useEffectEvent, useId, useState } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useAriaIds } from '../../hooks'
 import { isDecimalDigit } from '../../utilities/caret'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
@@ -78,9 +79,10 @@ export type CreditCardInputExpiryProps = Omit<
 	onValidityChange?: (validity: CardValidity) => void
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
-	 * `<Message>` wired into the field's `aria-describedby`. Pass `null` (or
-	 * `false`) to suppress it and supply your own. The default message is
-	 * "Enter a valid expiration date (MM/YY)".
+	 * `<Message>` with an id of its own, wired into the `aria-describedby` of the
+	 * input, also outside a Field. Pass `null` (or `false`) to suppress it and
+	 * supply your own. The default message is "Enter a valid expiration date
+	 * (MM/YY)".
 	 *
 	 * @defaultValue {@link DEFAULT_INVALID_MESSAGE}
 	 */
@@ -111,6 +113,7 @@ export function CreditCardInputExpiry({
 	onBlur,
 	ref,
 	'aria-label': ariaLabel,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: CreditCardInputExpiryProps) {
 	const control = useControl()
@@ -176,6 +179,19 @@ export function CreditCardInputExpiry({
 		setTypedInvalid(next.length === EXPIRY_PATTERN.length && !validity.isValid)
 	}
 
+	const showMessage = typedInvalid && Boolean(invalidMessage)
+
+	// The built-in Message takes an id of its own, so it never shares the id of
+	// the error slot of a Field with a different error Message. Inside a
+	// Control, the Message registers this id into the `aria-describedby` of the
+	// field. Outside one, the input references it here.
+	const messageId = useId()
+
+	const describedBy = useAriaIds(
+		ariaDescribedBy,
+		showMessage && control === undefined ? messageId : undefined,
+	)
+
 	return (
 		<>
 			<Input
@@ -193,6 +209,7 @@ export function CreditCardInputExpiry({
 				name={name}
 				value={maskedValue}
 				{...props}
+				aria-describedby={describedBy}
 				// The masking wiring sits after the spread, so a stray `onChange`
 				// does not replace it. The touched mark and the verdict run
 				// whatever the caller does (CONVENTIONS.md §3.9).
@@ -227,7 +244,11 @@ export function CreditCardInputExpiry({
 			{/* Visible feedback gated on the component's own detection, not the
 			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. */}
-			{typedInvalid && invalidMessage ? <Message severity="error">{invalidMessage}</Message> : null}
+			{showMessage ? (
+				<Message severity="error" id={messageId}>
+					{invalidMessage}
+				</Message>
+			) : null}
 		</>
 	)
 }
