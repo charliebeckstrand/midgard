@@ -12,6 +12,7 @@ import { panel } from '../kiso/panel'
 
 const { flex, slide } = narabi
 const { glass, backdrop } = omote
+const { inset } = panel.layout
 
 /**
  * The widest a sheet is drawn at: the screen, less the inset it floats on.
@@ -91,10 +92,12 @@ export const k = {
 			defaults: { side: 'right', width: 'md', surface: 'flat' },
 		}),
 		backdrop: bridge.backdrop(backdrop),
-		title: { extra: 'px-6 pt-6' },
+		// The block insets are the slot gap, so a header and a footer that stay in
+		// place over the scrolling body have the same space on each side.
+		title: { extra: ['px-6', inset.top] },
 		description: { extra: 'px-6' },
-		footer: { extra: 'px-6 pb-6' },
-		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
+		footer: { extra: ['px-6', inset.bottom] },
+		body: { extra: [flex.fill, 'overflow-y-auto px-6', inset.first, inset.last] },
 	}),
 	/**
 	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar
