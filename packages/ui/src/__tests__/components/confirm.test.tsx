@@ -96,14 +96,16 @@ describe('Confirm', () => {
 		expect(screen.getByText('Keep')).toBeInTheDocument()
 	})
 
-	it('calls onConfirm when the confirm button is clicked', () => {
+	it('calls onConfirm with no argument when the confirm button is clicked', () => {
 		const onConfirm = vi.fn()
 
 		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={onConfirm} />)
 
 		fireEvent.click(screen.getByText('Confirm'))
 
-		expect(onConfirm).toHaveBeenCalled()
+		expect(onConfirm).toHaveBeenCalledTimes(1)
+
+		expect(onConfirm).toHaveBeenCalledWith()
 	})
 
 	it('calls onOpenChange(false) when the cancel button is clicked', () => {

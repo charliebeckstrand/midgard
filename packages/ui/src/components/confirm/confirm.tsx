@@ -145,6 +145,10 @@ export function Confirm({
 		close()
 	}, [onCancel, close])
 
+	// The button gives its click event to `onClick`, and `onConfirm` takes no argument.
+	// Call it with none.
+	const handleConfirm = useCallback(() => onConfirm(), [onConfirm])
+
 	return (
 		<Dialog
 			open={open}
@@ -177,7 +181,7 @@ export function Confirm({
 					type="button"
 					color={confirm?.color}
 					disabled={confirm?.disabled}
-					onClick={onConfirm}
+					onClick={handleConfirm}
 				>
 					{confirm?.label ?? 'Confirm'}
 				</Button>
