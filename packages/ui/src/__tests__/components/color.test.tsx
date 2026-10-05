@@ -338,6 +338,21 @@ describe('ColorPanel', () => {
 		}
 	})
 
+	// ColorPanel takes no `name`, so a native form must not submit a checked chip.
+	it('keeps a checked swatch out of the data of a native form', () => {
+		const { container } = renderUI(
+			<form>
+				<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', '#000000']} />
+			</form>,
+		)
+
+		expect(screen.getByRole('radio', { name: '#ffffff' })).toBeChecked()
+
+		const form = present<HTMLFormElement>(container.querySelector('form'), 'the native form')
+
+		expect([...new FormData(form).keys()]).toEqual([])
+	})
+
 	it('gives each chip its own key when the swatches repeat a color', () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 

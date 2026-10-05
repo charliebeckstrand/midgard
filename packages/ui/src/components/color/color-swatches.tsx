@@ -18,7 +18,8 @@ type ColorSwatchesProps = {
  * @remarks
  * Each chip is a label around a native radio, so the browser gives the group
  * one Tab stop and the arrow keys. A custom color checks no chip. When the list
- * repeats a color, only the first chip of that color is checked.
+ * repeats a color, only the first chip of that color is checked. The radios have
+ * no form owner, so an enclosing native form does not submit the checked chip.
  *
  * @internal
  */
@@ -54,6 +55,10 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 				>
 					<input
 						type="radio"
+						// ColorPanel takes no `name`, so a form must not submit these radios.
+						// An empty `form` gives each radio no form owner. The radios stay one
+						// group, because they have the same name and no form owner.
+						form=""
 						name={name}
 						value={swatch}
 						aria-label={swatch}
