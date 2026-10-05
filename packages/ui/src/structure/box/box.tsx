@@ -23,7 +23,10 @@ type BoxBaseProps = {
 	radius?: BoxRadius
 	/** Background surface token. */
 	bg?: BoxBg
-	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
+	/**
+	 * Outline. `true` and `'default'` use the default token. Pass `'subtle'` or
+	 * `'strong'` to pick a different weight.
+	 */
 	outline?: BoxOutline
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope.
