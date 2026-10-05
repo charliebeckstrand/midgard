@@ -27,7 +27,12 @@ export type CopyButtonProps = {
 	 */
 	timeout?: number
 	className?: string
-	/** Fires on every copied-state transition, with the new text. */
+	/**
+	 * Fires on every copied-state transition, with the new text.
+	 *
+	 * The transitions end at unmount. A copy that resolves after the unmount does
+	 * not call it, and the unmount does not call it with `false`.
+	 */
 	onCopiedChange?: (copied: boolean) => void
 	/**
 	 * Fires when the clipboard write rejects, with whatever the platform threw.
@@ -52,7 +57,7 @@ export type CopyButtonProps = {
  * @remarks
  * It is an action, not a toggle, so it sets no `aria-pressed`. Stays enabled
  * and keeps focus through the success window so keyboard focus survives
- * (WCAG 2.4.3); a second copy during the window is ignored. The
+ * (WCAG 2.4.3); a second copy during the write or the window is ignored. The
  * accessible name becomes "Copied" while flipped, otherwise the caller's
  * `aria-label` or "Copy to clipboard". The button has a `data-copied`
  * attribute only while the copied state holds, so a style can select that
@@ -78,7 +83,8 @@ export function CopyButton({
 
 	// The button stays enabled and focused through the success window;
 	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).
-	// Re-copying during the window is a no-op.
+	// Re-copying during the window is a no-op. The hook drops a second copy during
+	// the write, because `copied` turns true only after the write.
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
 			onClick?.(event)

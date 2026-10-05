@@ -1,7 +1,15 @@
 import { act, waitFor } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CopyButton } from '../../components/copy-button'
-import { bySlot, expectAnnouncement, fireEvent, present, renderUI } from '../helpers'
+import {
+	bySlot,
+	deferred,
+	expectAnnouncement,
+	fireEvent,
+	liveRegion,
+	present,
+	renderUI,
+} from '../helpers'
 
 /**
  * Puts `writeText` on `navigator.clipboard` for the current case.
@@ -234,6 +242,91 @@ describe('CopyButton', () => {
 		})
 
 		expect(writeText).toHaveBeenCalledTimes(1)
+	})
+
+	// The copied state turns true only after the write. Thus a second activation
+	// during the write must also be a no-op, or each write announces and notifies.
+	it('writes and notifies once for two activations during one write', async () => {
+		const write = deferred()
+
+		const writeText = vi.fn(() => write.promise)
+
+		const onCopiedChange = vi.fn()
+
+		stubClipboard(writeText)
+
+		const { container } = renderUI(<CopyButton text="hello" onCopiedChange={onCopiedChange} />)
+
+		const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+
+		fireEvent.click(button)
+
+		fireEvent.click(button)
+
+		await act(async () => {
+			write.resolve()
+		})
+
+		expect(button).toHaveAttribute('aria-label', 'Copied')
+
+		expect(writeText).toHaveBeenCalledTimes(1)
+
+		expect(onCopiedChange).toHaveBeenCalledExactlyOnceWith(true)
+	})
+
+	// The transitions end at unmount. A write that resolves after the unmount
+	// does not announce, and does not tell the consumer.
+	it('drops the late announcement and onCopiedChange when it unmounts during the write', async () => {
+		const write = deferred()
+
+		const onCopiedChange = vi.fn()
+
+		stubClipboard(vi.fn(() => write.promise))
+
+		const { container, unmount } = renderUI(
+			<CopyButton text="hello" onCopiedChange={onCopiedChange} />,
+		)
+
+		fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
+
+		unmount()
+
+		await act(async () => {
+			write.resolve()
+		})
+
+		expect(onCopiedChange).not.toHaveBeenCalled()
+
+		// The announcer makes its region at the first announcement.
+		expect(liveRegion()).toBeNull()
+	})
+
+	// No callback runs during the unmount, so the true that the consumer saw
+	// gets no false.
+	it('runs no callback when it unmounts in the copied window', async () => {
+		vi.useFakeTimers()
+
+		const onCopiedChange = vi.fn()
+
+		stubClipboard(vi.fn().mockResolvedValue(undefined))
+
+		const { container, unmount } = renderUI(
+			<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
+		)
+
+		await act(async () => {
+			fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
+		})
+
+		await vi.waitFor(() => expect(onCopiedChange).toHaveBeenCalledWith(true))
+
+		unmount()
+
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		expect(onCopiedChange).toHaveBeenCalledExactlyOnceWith(true)
 	})
 
 	it('invokes a consumer onClick before copying', async () => {
