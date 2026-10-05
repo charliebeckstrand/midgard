@@ -7,4 +7,3 @@ export {
 	themeModes,
 	useAppearance,
 } from './context'
-export { FontScript } from './font-script'

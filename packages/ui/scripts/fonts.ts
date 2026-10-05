@@ -17,9 +17,9 @@
  * ui uses.
  *
  * The script also writes `src/fonts/google-sans-flex-latin.js`, which adds the
- * face of the `latin` subset from its bytes. `FontScript` loads it before the
- * first paint (see {@link fontScript}). The stylesheet has no face for the
- * `latin` subset, so the script is the one source of that face.
+ * face of the `latin` subset from its bytes. `AppearanceProvider` loads it
+ * before the first paint (see {@link fontScript}). The stylesheet has no face
+ * for the `latin` subset, so the script is the one source of that face.
  *
  * Capsize reads the metrics of the font: the ascent, the descent, the line
  * gap, and the average width of the letters by their frequency in text. It
