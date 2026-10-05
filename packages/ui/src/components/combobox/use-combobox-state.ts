@@ -209,6 +209,27 @@ export function useComboboxState<T>({
 		flushFrozenQuery()
 	}, [flushToggle, flushFrozenQuery])
 
+	// The count of the picks that keep the panel open. Each such pick adds one,
+	// and the count at the last text selection lets the effect below act once.
+	const [pickCount, setPickCount] = useState(0)
+
+	const selectedPickRef = useRef(pickCount)
+
+	// A pick that keeps the panel open ends editing. Its commit then writes the
+	// resting display into the input, which for a multiple selection is the
+	// summary of what is picked. A write of a different value moves the caret to
+	// the end and clears the text selection. Thus this layout effect selects the
+	// text after that write, before paint. The next key then replaces the
+	// summary. A selection in the handler comes before the write and clears, so
+	// the next key appends to the summary and searches for "Texas (US)u".
+	useLayoutEffect(() => {
+		if (pickCount === selectedPickRef.current) return
+
+		selectedPickRef.current = pickCount
+
+		inputRef.current?.select()
+	}, [pickCount, inputRef])
+
 	const select = useCallback(
 		(newValue: T) => {
 			if (shouldClose) {
@@ -225,18 +246,11 @@ export function useComboboxState<T>({
 
 			setEditing(false)
 
-			// Focused AND selected. Leaving editing hands the input back to the resting
-			// display, which for a multi selection is the summary of what is picked — so
-			// an unselected caret would make the next keystroke append to that summary
-			// and search for "Texas (US)u". Selecting it means typing replaces it, which
-			// is what a picked-then-keep-typing flow needs and how a plain combobox
-			// behaves. The panel is still open here, so this is mid-selection rather than
-			// the end of one.
-			const input = inputRef.current
+			// The panel stays open, so the input keeps the focus for the next key. The
+			// layout effect above selects the text of the input after this commit.
+			inputRef.current?.focus()
 
-			input?.focus()
-
-			input?.select()
+			setPickCount((count) => count + 1)
 		},
 		[shouldClose, toggle, commit, close, setQuery, inputRef],
 	)

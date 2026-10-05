@@ -1172,6 +1172,43 @@ describe('Combobox listbox selection semantics', () => {
 	})
 })
 
+// A multiple pick ends editing, and the re-render writes the resting display
+// into the input. A write of a different value moves the caret to the end and
+// clears the text selection. The selection must come after that write, or the
+// next key appends to the display and searches for "Texasu".
+describe('Combobox multiple pick', () => {
+	it('selects the resting display that the pick writes, so the next key replaces it', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Combobox<string> multiple displayValue={(v) => v} placeholder="Search">
+				<ComboboxOption value="texas">
+					<ComboboxLabel>Texas</ComboboxLabel>
+				</ComboboxOption>
+				<ComboboxOption value="utah">
+					<ComboboxLabel>Utah</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		const input = screen.getByRole<HTMLInputElement>('combobox')
+
+		await user.click(input)
+
+		await user.click(screen.getByRole('option', { name: 'Texas' }))
+
+		expect(input).toHaveValue('Texas')
+
+		expect(document.activeElement).toBe(input)
+
+		expect([input.selectionStart, input.selectionEnd]).toEqual([0, 'Texas'.length])
+
+		await user.keyboard('u')
+
+		expect(input).toHaveValue('u')
+	})
+})
+
 // The `capitalize` default formats string option labels in JS at render, so
 // the accessible name matches the visual: first word only, rest untouched.
 describe('Combobox capitalize', () => {
