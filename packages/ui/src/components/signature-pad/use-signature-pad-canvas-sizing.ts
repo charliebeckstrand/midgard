@@ -2,6 +2,7 @@
 
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { useResizeObserver } from '../../hooks'
+import { measureContentBox } from '../../utilities'
 import {
 	configureStroke,
 	copyDrawing,
@@ -18,8 +19,8 @@ type CanvasSizingOptions = {
 }
 
 /**
- * Keeps the canvas sized to its container, accounting for devicePixelRatio.
- * Restores the existing drawing after each resize.
+ * Keeps the canvas sized to the content box of its container, accounting for
+ * devicePixelRatio. Restores the existing drawing after each resize.
  *
  * @internal
  * @param options - The `containerRef`/`canvasRef`, the `empty` flag, and the
@@ -67,9 +68,10 @@ export function useSignaturePadCanvasSizing({
 
 		if (!canvas) return
 
-		const { width, height } = container.getBoundingClientRect()
+		// The canvas fills the content box, inside the border and the padding.
+		const { width, height } = measureContentBox(container)
 
-		if (width === 0 || height === 0) return
+		if (width <= 0 || height <= 0) return
 
 		const dpr = window.devicePixelRatio || 1
 

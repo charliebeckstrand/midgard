@@ -91,6 +91,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | Export | Summary |
 |---|---|
 | `measureBox` | An element's border box, not `contentRect`, which excludes its own padding and border. It comes from a `ResizeObserver` entry where the caller has one, and from a measurement where the caller does not. The entry is already measured, where `getBoundingClientRect` forces a layout. |
+| `measureContentBox` | The content box of an element: the client size less the computed padding, rounded to a whole pixel. Use it to size a drawing surface, such as a canvas, that fills a box with a border or padding. The client size ignores CSS transforms. |
 | `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
 
