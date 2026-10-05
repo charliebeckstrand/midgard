@@ -290,7 +290,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 								<Field>
 									<Label>Rating</Label>
 
-									<Rating name="rating" size="lg" />
+									<Rating name="rating" size="lg" step={0.5} />
 								</Field>
 
 								<div className="sm:col-span-2">

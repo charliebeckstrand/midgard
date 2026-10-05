@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-import { Grid, type GridColumn } from 'ui/modules/grid'
+import { Grid, type GridColumn, type GridSortState } from 'ui/modules/grid'
 import { Rating } from 'ui/rating'
 import { Sheet, SheetBody, SheetClose, SheetTitle } from 'ui/sheet'
 import { Flex } from 'ui/structure/flex'
@@ -17,6 +17,47 @@ import { fromDay } from '../../utilities/places-filter'
 import { openingRegion, regionsHolding, stateLabel } from '../../utilities/places-view'
 import { latestVisit } from '../../utilities/places-visits'
 import { type PlaceActions, PlaceMenu, placeMenuItems } from '../place-menu'
+
+/** The orders that the sort picker offers. */
+type PlaceOrder = 'name' | 'visited' | 'rating'
+
+/**
+ * The grid sort of each order. The newest visit and the rating go highest
+ * first, and places that tie stay in alphabetical order.
+ */
+const ORDER_SORT: Record<PlaceOrder, GridSortState[]> = {
+	name: [{ column: 'name', direction: 'asc' }],
+	visited: [
+		{ column: 'visited', direction: 'desc' },
+		{ column: 'name', direction: 'asc' },
+	],
+	rating: [
+		{ column: 'rating', direction: 'desc' },
+		{ column: 'name', direction: 'asc' },
+	],
+}
+
+const ORDER_LABEL: Record<PlaceOrder, string> = {
+	name: 'Alphabetical',
+	visited: 'Visited date',
+	rating: 'Rating',
+}
+
+/**
+ * The order that a grid sort is, or `null` for a sort that a header click made
+ * and the picker does not offer.
+ */
+function orderOf(sort: readonly GridSortState[]): PlaceOrder | null {
+	const [first] = sort
+
+	return (
+		(Object.keys(ORDER_SORT) as PlaceOrder[]).find((order) => {
+			const [lead] = ORDER_SORT[order]
+
+			return lead?.column === first?.column && lead?.direction === first?.direction
+		}) ?? null
+	)
+}
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -91,6 +132,10 @@ export function PlacesIndex({
 	actions,
 }: PlacesIndexProps) {
 	const [picked, setPicked] = useState<string | null>(null)
+
+	// Alphabetical by default. The picker and a header click both write it, and
+	// the picker shows the order that the sort is.
+	const [sort, setSort] = useState<GridSortState[]>(ORDER_SORT.name)
 
 	const regions = useMemo(() => regionsHolding(places, regionByPlace), [places, regionByPlace])
 
@@ -243,31 +288,49 @@ export function PlacesIndex({
 				<Grid<Place>
 					columns={columns}
 					rows={rows}
-					// The second filter, on the grid's own row across from its search: the
-					// two do the same job, where under the panel's title this one read as
-					// being about the panel. Only where there is a choice to make — with
-					// every row in one region it would narrow to what is already shown.
+					// The sort picker and the region filter, on the grid's own row across
+					// from its search: they do the same job, where under the panel's title
+					// they read as being about the panel. The region filter shows only where
+					// there is a choice to make — with every row in one region it would
+					// narrow to what is already shown.
 					//
 					// "All regions" rather than the bar's "All states", because this panel
 					// names the column "Region" and answers in its own vocabulary.
 					toolbar={
-						regions.length > 1 ? (
-							<Listbox<string>
-								aria-label="Region"
-								placeholder="All regions"
-								clearable
-								className="w-52"
-								displayValue={(name) => name}
-								value={picked}
-								onValueChange={setPicked}
+						<Flex gap="sm" align="center" wrap>
+							<Listbox<PlaceOrder>
+								aria-label="Sort"
+								placeholder="Sort"
+								className="w-44"
+								displayValue={(order) => ORDER_LABEL[order]}
+								value={orderOf(sort)}
+								onValueChange={(order) => setSort(ORDER_SORT[order ?? 'name'])}
 							>
-								{regions.map((name) => (
-									<ListboxOption key={name} value={name}>
-										<ListboxLabel>{name}</ListboxLabel>
+								{(Object.keys(ORDER_LABEL) as PlaceOrder[]).map((order) => (
+									<ListboxOption key={order} value={order}>
+										<ListboxLabel>{ORDER_LABEL[order]}</ListboxLabel>
 									</ListboxOption>
 								))}
 							</Listbox>
-						) : null
+
+							{regions.length > 1 ? (
+								<Listbox<string>
+									aria-label="Region"
+									placeholder="All regions"
+									clearable
+									className="w-52"
+									displayValue={(name) => name}
+									value={picked}
+									onValueChange={setPicked}
+								>
+									{regions.map((name) => (
+										<ListboxOption key={name} value={name}>
+											<ListboxLabel>{name}</ListboxLabel>
+										</ListboxOption>
+									))}
+								</Listbox>
+							) : null}
+						</Flex>
 					}
 					// The panel is built around this table, so the table has to be what
 					// states the width rather than what reads it. Both halves of that are
@@ -275,7 +338,7 @@ export function PlacesIndex({
 					width="fit"
 					getKey={(place) => place.id}
 					search={{ placeholder: 'Find a place' }}
-					sort={{ defaultValue: [{ column: 'visited', direction: 'desc' }] }}
+					sort={{ value: sort, onValueChange: setSort }}
 					onRowClick={onOpen}
 					virtualize
 					maxHeight="fill"
