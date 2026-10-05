@@ -566,8 +566,6 @@ export function PlaceDrawer({
 				// is how the reader gets back to it.
 				height="fit"
 				aria-label={title}
-				// The close in the header row closes the drawer, so it has no Close row.
-				footer={null}
 			>
 				{/* The panel has no inset of its own, so the row takes the inset of a drawer title. */}
 				<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
