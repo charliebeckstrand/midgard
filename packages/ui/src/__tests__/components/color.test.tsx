@@ -26,6 +26,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
@@ -531,6 +532,77 @@ describe('ColorPicker', () => {
 		fireEvent.click(button)
 
 		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it.each([
+		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" readOnly />],
+		[
+			'an enclosing Control',
+			<Control key="control" readOnly>
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		],
+	])('keeps a trigger that is read-only from %s in the tab order', async (_, ui) => {
+		const user = setupUser()
+
+		const { container } = renderUI(ui)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		expect(button).not.toBeDisabled()
+
+		// A button does not take aria-readonly, so the trigger is aria-disabled.
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		expect(button).toHaveAttribute('data-readonly')
+
+		await user.tab()
+
+		expect(button).toHaveFocus()
+
+		expect(button).toHaveTextContent('#EF4444')
+	})
+
+	it.each([
+		['a press', (user: ReturnType<typeof setupUser>, button: HTMLElement) => user.click(button)],
+		['Enter', (user: ReturnType<typeof setupUser>) => user.keyboard('{Enter}')],
+		['Space', (user: ReturnType<typeof setupUser>) => user.keyboard(' ')],
+	])('does not open a read-only picker on %s', async (_, activate) => {
+		const user = setupUser()
+
+		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" readOnly />)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		await user.tab()
+
+		expect(button).toHaveFocus()
+
+		await activate(user, button)
+
+		expect(button).toHaveFocus()
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it.each([
+		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" disabled />],
+		[
+			'an enclosing Control',
+			<Control key="control" disabled>
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		],
+		[
+			'its own prop, with readOnly',
+			<ColorPicker key="both" defaultValue="#ef4444" disabled readOnly />,
+		],
+	])('keeps native disabled on a trigger that is disabled from %s', (_, ui) => {
+		const { container } = renderUI(ui)
+
+		expect(getSlot(container, 'color-picker-button')).toBeDisabled()
 	})
 
 	it('puts no aria-required on the trigger, a button that does not take it', () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefCallback } from 'react'
-import { cn, dataAttr, type ValidationAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
@@ -29,7 +29,10 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	 */
 	size?: ScaleStep<typeof scale>
 	disabled?: boolean
-	/** The resolved `readOnly`. It blocks the open, but a panel that is open can still close. */
+	/**
+	 * The resolved `readOnly`. The trigger stays focusable and sets `data-readonly`. While the
+	 * panel is closed, it also sets `aria-disabled`. The open setter of the picker refuses the open.
+	 */
 	readOnly?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
 	validation?: ValidationAttrs
@@ -42,8 +45,10 @@ type ColorPickerTriggerProps = GroupStampProps & {
  *
  * @remarks The trigger is a plain button, and a button does not take
  * `aria-required`. So a required Control puts no required state on it. A
- * button does not take `aria-readonly` either, so a read-only trigger is
- * disabled while the panel is closed.
+ * button does not take `aria-readonly` either. A read-only trigger thus keeps
+ * its tab stop, and it sets `aria-disabled` while the panel is closed. A
+ * keyboard or a screen reader can reach it and read the color. Only `disabled`
+ * sets the native `disabled` attribute.
  * @internal
  */
 export function ColorPickerTrigger({
@@ -93,8 +98,12 @@ export function ColorPickerTrigger({
 						aria-expanded={open}
 						aria-describedby={describedBy}
 						data-slot="color-picker-button"
-						// readOnly blocks the open, but a panel that is open can still close.
-						disabled={disabled || (readOnly && !open)}
+						// Only `disabled` takes the native attribute. A read-only trigger keeps its tab
+						// stop, so a keyboard or a screen reader can reach it and read the color. The open
+						// setter refuses the open, and a panel that is open can still close.
+						aria-disabled={ariaAttr(readOnly && !open)}
+						data-readonly={dataAttr(readOnly)}
+						disabled={disabled}
 						{...validation}
 						onClick={() => onOpenChange(!open)}
 						className={cn(k.button())}
