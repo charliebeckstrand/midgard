@@ -188,6 +188,22 @@ describe('EventLog', () => {
 		expect(new EventLog(store).entries).toEqual([])
 	})
 
+	it('adds no entry while it is paused', () => {
+		const log = new EventLog(createStore())
+
+		log.add(entry(10))
+
+		log.paused = true
+
+		log.add(entry(20))
+
+		log.paused = false
+
+		log.add(entry(30))
+
+		expect(log.entries.map(({ time }) => time)).toEqual([10, 30])
+	})
+
 	it('tells its listeners about each change', () => {
 		const log = new EventLog(createStore())
 
@@ -282,16 +298,16 @@ describe('listen', () => {
 		])
 	})
 
-	it('skips the events in its own button and sheet, and records the others while the sheet is open', () => {
+	it('skips the events in its own button, and records the others', () => {
 		const log = new EventLog(createStore())
 
 		listenTo(log)
 
-		const sheet = document.createElement('div')
+		const button = document.createElement('span')
 
-		sheet.setAttribute(OWN, '')
+		button.setAttribute(OWN, '')
 
-		const own = attach(sheet).appendChild(document.createElement('button'))
+		const own = attach(button).appendChild(document.createElement('button'))
 
 		own.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
