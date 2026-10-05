@@ -2,6 +2,7 @@
 
 import { createContext } from '../../core'
 import type { Hsva } from './types'
+import type { ColorState } from './use-color-state'
 
 export type ColorPanelContextValue = {
 	/** Current color as HSVA; the panel's lossless source of truth. */
@@ -19,3 +20,17 @@ export type ColorPanelContextValue = {
  */
 export const [ColorPanelContext, useColorPanelContext] =
 	createContext<ColorPanelContextValue>('ColorPanel')
+
+/**
+ * Gives the color state of a `<ColorPicker>` to its inline `<ColorPanel>`. The
+ * panel reads and writes this HSVA in place of its own, so the picker and the
+ * panel share one color. Thus a hue that hex drops stays after the panel
+ * unmounts, and only the emission of the picker is rounded. Outside a picker
+ * the value is `null`, and the panel keeps its own state.
+ *
+ * @internal
+ */
+export const [SharedColorContext, useSharedColor] = createContext<ColorState | null>(
+	'SharedColor',
+	{ default: null },
+)

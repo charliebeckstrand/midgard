@@ -14,7 +14,7 @@ import { ColorHexInput } from './color-hex-input'
 import { ColorSlider } from './color-slider'
 import { ColorSwatches } from './color-swatches'
 import { hsvaToCss } from './color-utilities'
-import { ColorPanelContext, type ColorPanelContextValue } from './context'
+import { ColorPanelContext, type ColorPanelContextValue, useSharedColor } from './context'
 import type { ColorValueProps, Hsva } from './types'
 import { useColorState } from './use-color-state'
 
@@ -62,7 +62,7 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
 export function ColorPanel(props: ColorPanelProps) {
 	const { alpha = false, swatches = DEFAULT_SWATCHES, size, disabled = false, className } = props
 
-	const { hsva, setHsva } = useColorState({
+	const own = useColorState({
 		value: props.value,
 		defaultValue: props.defaultValue,
 		format: props.format ?? 'hex',
@@ -71,6 +71,14 @@ export function ColorPanel(props: ColorPanelProps) {
 		// handler widens to both wire shapes.
 		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
 	})
+
+	// In a ColorPicker, the panel reads and writes the HSVA of the picker, and
+	// its own state stays unused. The popover unmounts the panel on close, and
+	// the HSVA of the picker keeps the hue that hex drops. The picker serializes
+	// the color once, at its own edge.
+	const shared = useSharedColor()
+
+	const { hsva, setHsva } = shared ?? own
 
 	const context = useMemo<ColorPanelContextValue>(
 		() => ({ hsva, setHsva, alpha, disabled }),

@@ -1,15 +1,17 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
+import { useMemo } from 'react'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/color-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { ColorPanel, type ColorPanelProps } from './color-panel'
+import { ColorPanel } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
-import { serializeColor, toHsva } from './color-utilities'
+import { SharedColorContext } from './context'
 import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
+import type { ColorState } from './use-color-state'
 
 type ColorPickerBaseProps = GroupStampProps & {
 	/**
@@ -60,11 +62,12 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 
 /**
  * Popover color picker: a Control-integrated swatch trigger that opens a
- * floating {@link ColorPanel}, which it drives as a controlled child. Reflects
- * the current color in the trigger swatch, and speaks a hex string (default) or
- * an HSVA object per `format`. It positions via Floating UI (`placement`). It
- * takes the step of the nearest density scope, and an explicit `size` opens a
- * scope on the trigger and on the panel. Controlled or uncontrolled.
+ * floating {@link ColorPanel}. The trigger swatch and the panel share one HSVA,
+ * which keeps its full precision and its hue after the panel closes. It speaks
+ * a hex string (default) or an HSVA object per `format`. It positions via
+ * Floating UI (`placement`). It takes the step of the nearest density scope,
+ * and an explicit `size` opens a scope on the trigger and on the panel.
+ * Controlled or uncontrolled.
  *
  * @see {@link ColorPanel} for the inline variant.
  */
@@ -96,16 +99,14 @@ export function ColorPicker(props: ColorPickerProps) {
 		disabled,
 	})
 
-	// The picker owns the color and drives the inline panel as a controlled child.
-	// The prop bag rebuilds the format union at runtime and asserts into shape.
-	const panelProps = {
-		format,
-		value: serializeColor(state.hsva, format, alpha),
-		onValueChange: (next: string | Hsva) => state.setHsva(toHsva(next) ?? state.hsva),
-		alpha,
-		swatches,
-		disabled: state.disabled,
-	} as ColorPanelProps
+	// The picker owns the color and gives its HSVA to the inline panel. The panel
+	// reads and writes that HSVA with no wire round trip, so the HSVA keeps its
+	// full precision and the hue that hex drops. The picker serializes the color
+	// once, at its own edge.
+	const color = useMemo<ColorState>(
+		() => ({ hsva: state.hsva, setHsva: state.setHsva }),
+		[state.hsva, state.setHsva],
+	)
 
 	// `display: contents` wrapper: while open, floating-ui's modal focus manager
 	// inserts a hidden return-focus span as the reference's next sibling
@@ -140,7 +141,9 @@ export function ColorPicker(props: ColorPickerProps) {
 				context={state.context}
 				size={size}
 			>
-				<ColorPanel {...panelProps} />
+				<SharedColorContext value={color}>
+					<ColorPanel alpha={alpha} swatches={swatches} disabled={state.disabled} />
+				</SharedColorContext>
 			</ColorPickerContent>
 		</div>
 	)

@@ -11,7 +11,8 @@ import {
 	hsvaToRgba,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import type { Hsva } from '../../components/color/types'
+import { SharedColorContext } from '../../components/color/context'
+import type { ColorFormat, Hsva } from '../../components/color/types'
 import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
@@ -531,6 +532,82 @@ describe('ColorPicker', () => {
 		]) {
 			expect(wrapper).not.toHaveAttribute(attribute)
 		}
+	})
+})
+
+type PickerHarnessProps = {
+	open: boolean
+	initial: string | Hsva
+	format: ColorFormat
+	onValueChange?: (value: string | Hsva) => void
+}
+
+/**
+ * The parts of `ColorPicker` that own the color, with no popover. An owner
+ * adopts each emission, and `useColorState` holds the HSVA of the picker. The
+ * `picker-color` slot shows that HSVA, as the trigger does. The popover mounts
+ * the panel only while `open`. A real open drives floating-ui and the exit of
+ * the Portal, which §10.3 bars.
+ */
+function PickerHarness({ open, initial, format, onValueChange }: PickerHarnessProps) {
+	const [value, setValue] = useState(initial)
+
+	const color = useColorState({
+		value,
+		format,
+		alpha: false,
+		onValueChange: (next) => {
+			onValueChange?.(next)
+
+			setValue(next)
+		},
+	})
+
+	return (
+		<>
+			<span data-slot="picker-color">{hsvaToHex(color.hsva)}</span>
+			<SharedColorContext value={color}>{open && <ColorPanel />}</SharedColorContext>
+		</>
+	)
+}
+
+describe('ColorPanel in a ColorPicker', () => {
+	it('keeps the hue that hex drops after the panel mounts again', () => {
+		const { container, rerender } = renderUI(<PickerHarness open initial="#000000" format="hex" />)
+
+		const hue = () => getSlot<HTMLInputElement>(container, 'color-slider-input')
+
+		fireEvent.change(hue(), { target: { value: '120' } })
+
+		// Black has no hue in hex, so the emission does not change.
+		expect(getSlot(container, 'picker-color')).toHaveTextContent('#000000')
+
+		// A close unmounts the panel, and the next open mounts it again.
+		rerender(<PickerHarness open={false} initial="#000000" format="hex" />)
+
+		rerender(<PickerHarness open initial="#000000" format="hex" />)
+
+		expect(hue()).toHaveValue('120')
+	})
+
+	it('gives the picker the full precision of a panel edit, and rounds only the emission', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<PickerHarness
+				open
+				initial={{ h: 0, s: 0, v: 0, a: 1 }}
+				format="hsva"
+				onValueChange={onValueChange}
+			/>,
+		)
+
+		// `#7f7f7f` is v 49.8. The rounded v 50 paints `#808080`.
+		fireEvent.change(getSlot(container, 'color-hex-input'), { target: { value: '7f7f7f' } })
+
+		expect(getSlot(container, 'picker-color')).toHaveTextContent('#7f7f7f')
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ h: 0, s: 0, v: 50, a: 1 })
 	})
 })
 
