@@ -575,9 +575,8 @@ export function PlaceDrawer({
 				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating — the crumbs cannot shrink below a parent that
-				    will not. `flex-1` is what lets it come back: the trail measures the box
-				    it is given, and a box that shrinks to the trail would narrow with it and
-				    never report the room to expand again. */}
+				    will not. `flex-1` gives the trail the panel's full width, which is the room
+				    its fit measures. */}
 				<Stack gap="sm" className="flex-1 min-w-0">
 					{/* The title is the trail, so it doubles as the way back and the panel
 					    needs no Back button of its own. `DrawerTitle` names the panel; the
