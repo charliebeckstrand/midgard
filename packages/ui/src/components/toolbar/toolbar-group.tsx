@@ -7,6 +7,7 @@ import { useToolbarContext } from './context'
 
 /** Props for {@link ToolbarGroup}. */
 export type ToolbarGroupProps = {
+	/** The accessible name of the group. Name a group when the toolbar has more than one. */
 	'aria-label'?: string
 	className?: string
 	children?: ReactNode

@@ -120,6 +120,31 @@ describe('useChatSend', () => {
 		expect(result.current.messages[0]).toMatchObject({ id: 'server-1', content: 'edited' })
 	})
 
+	it('gives each message an id on an origin with no crypto.randomUUID', async () => {
+		// A plain-HTTP origin, such as a LAN address, is not a secure context, and
+		// `crypto.randomUUID` is not there. `crypto.getRandomValues` is.
+		vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport: streamOf('Hello'),
+				initialMessages: [{ role: 'assistant', content: 'Welcome' }],
+			}),
+		)
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		const ids = result.current.messages.map((message) => message.id)
+
+		expect(ids).toHaveLength(3)
+
+		for (const id of ids) expect(id).toBeTypeOf('string')
+
+		expect(new Set(ids).size).toBe(3)
+	})
+
 	it('appends the user message and streams the assistant reply, keeping the last snapshot', async () => {
 		const onSent = vi.fn()
 

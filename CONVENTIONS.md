@@ -8,6 +8,8 @@
 
 1.2 Reach another workspace only through its public entry, never across package boundaries (§9).
 
+1.3 Each Dockerfile at the repository root pins pnpm to the `packageManager` version of the root `package.json`. It pins `turbo` to the version in `pnpm-lock.yaml`. Renovate does not update the Dockerfiles. `dockerfile-pin-boundary.test.ts` fails when a pin is not equal to the version that the repository uses.
+
 ## 2. Routing
 
 2.1 App Router **only**.
@@ -84,7 +86,7 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 `props-base-boundary.test.ts` and Biome's `noReactForwardRef` gate the rule.
 
-4.4 A variant axis reaches props from the recipe that declares it: `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A `size` that sets the density step takes `DensityStep` from `core/density`, with no alias. A JS reader that clamps to three steps takes `InnerStep`. Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
+4.4 A variant axis reaches props from the recipe that declares it: `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A `size` prop takes `ScaleStep` with the scale that its kata exports (§5.5). Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
 
 4.5 Props live beside the component that takes them. A barrel reaches a type at the module that declares it, never through a component that re-exports it. Every barreled component ships its `<Name>Props`.
 
@@ -92,15 +94,17 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 4.7 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
 
+4.8 Biome's `noExcessiveCognitiveComplexity` is an error in the source of `ui`, `apps`, `auth`, and `shared`. Tests, benchmarks, and the legacy docs app are out of its reach. Split a function that breaks the rule. Do not suppress it.
+
 ## 5. Styling
 
 5.1 Tailwind v4 utilities, composed with `cn()` via `ui/core` (clsx + tailwind-merge).
 
 5.2 Visual variants come from a component's recipe, consumed through its props.
 
-5.3 Spacing, sizing, and color use the named scale and palette tokens, not magic pixel or hex values.
+5.3 Spacing, sizing, and color use the named scale and palette tokens, not magic pixel or hex values. The ring-compensated formula `calc(--spacing(v)-1px)` has one home, the ring utilities in `core/density/utilities.ts`. A class reaches it through `p-ring-*` and its relatives. The [`no-inline-spacing-calc`](.biome/plugins/no-inline-spacing-calc.grit) Biome plugin holds the rule in `ui`.
 
-5.4 An app renders a link with `Link` from `ui/link`, not with `next/link`. `UIProvider` registers `next/link` under it, so client navigation stays. Biome's `noRestrictedImports` holds the rule in `apps`.
+5.4 An app renders a link with `Link` from `ui/link`, not with `next/link`. `UIProvider` registers `next/link` under it, so client navigation stays. Biome's `noRestrictedImports` holds the rule in `apps`. An app renders an image with `next/image`, not with `<img>`. Biome's `noImgElement` holds that rule outside `ui`.
 
 5.5 In `ui`, a ramp is the one place that writes a value for each density step, for example `density-p-[2,3,4]`. A ramp has three or five values, and it lives in `recipes/kiso/dan/`. A kata makes the size scale of its component from its ramps with `defineScale`, and exports it. The component types its `size` prop with `ScaleStep`. A skeleton takes the scale of its component. Thus the prop offers only the steps that render with a look of their own. A JS reader resolves its step with `useStep`, which snaps the step to the scale. Do not pick or clamp a step by hand. `size-scale-boundary.test.ts` holds the ramps and finds a step picked by hand. `browser/geometry/size-steps.test.tsx` renders each step of each `size` axis, and fails when two neighbor steps render the same.
 
@@ -136,7 +140,7 @@ The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runt
 
 9.1 In apps, the `@/*` alias maps to the source root: `src` in `places`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
 
-From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*` (or the `ui/<module>` shorthand), `ui/structure/*`, `ui/primitives/*`, and `ui/providers/*`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
+From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*` (or the `ui/<module>` shorthand), `ui/structure/*`, `ui/primitives/*`, and `ui/providers/*`. A structure unit also has a `ui/<name>` shorthand, such as `ui/stack`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
@@ -186,6 +190,8 @@ A helper that writes shared state counts as a write. That includes a helper in t
 
 A `finally` in the case does not run after a timeout while the body waits. Thus a stub that a `finally` restores stays on the shared window. Restore a stub in `onTestFinished`, which runs after a case that times out.
 
+10.10 Each Biome plugin in `.biome/plugins/` has fixtures in `biome-plugin-boundary.test.ts`. A fixture line that ends in `// flag` must get a diagnostic from its plugin, and each other line must get none. A new plugin adds fixtures that it reports and fixtures that it does not report. The gate proves the pattern of a plugin, not its `includes` in `biome.json`.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the one reader is `env.ts` in the `auth` package (`BIFROST_URL`, `CLIENT_IP_SECRET`). Other code reaches env through them. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
@@ -196,7 +202,7 @@ A `finally` in the case does not run after a timeout while the body waits. Thus 
 
 ## 12. Documentation
 
-12.1 Public-surface symbols carry TSDoc. Each symbol that a barrel re-exports opens with a doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2). That covers a component and its `*Props`, each hook, primitive, and provider, and each `ui/core` export. The first sentence states what the symbol is. Add `@param` and `@returns` where the signature is not self-evident. Add `@defaultValue` on a defaulted optional field, `@remarks` for caveats, and `@see {@link …}` for cross-links.
+12.1 Public-surface symbols carry TSDoc. Each symbol that a barrel re-exports opens with a doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2). That covers a component and its `*Props`, each hook, primitive, and provider, and each `ui/core` export. The first sentence states what the symbol is. Add `@param` and `@returns` where the signature is not self-evident. Add `@defaultValue` on a defaulted optional field, `@remarks` for caveats, and `@see {@link …}` for cross-links. A comment that names a test file, a benchmark file, or a `{@link}` target names something that exists in the package. `comment-reference-boundary.test.ts` holds both references.
 
 Do not restate the type or document a self-evident field. Mark a documented helper that no barrel re-exports with `@internal`; the tag and a barrel entry exclude each other. `tsdoc-coverage-boundary.test.ts` and `internal-barrel-boundary.test.ts` gate the rule. Standard: [TSDoc](https://tsdoc.org).
 

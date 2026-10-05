@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect, useEffectEvent, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useControl } from '../control/context'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -48,7 +48,7 @@ export type CreditCardInputExpiryProps = Omit<
  * `invalidMessage`, when a complete entry can't be valid (a bad month or a past
  * date). It does the same when blur leaves a partial entry behind. A value from
  * outside, such as a form reset, clears that mark. Sets `autoComplete="cc-exp"`
- * and defaults an "Expiration date" aria-label, yielding to a registered Field
+ * and defaults an "Expiration date" aria-label, yielding to a Field
  * `<Label>`.
  *
  * @see {@link CreditCardInput}
@@ -67,7 +67,7 @@ export function CreditCardInputExpiry({
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputExpiryProps) {
-	const control = useControl()
+	const fallbackLabel = useControlFallbackLabel('Expiration date')
 
 	const [typedInvalid, setTypedInvalid] = useState(false)
 
@@ -136,9 +136,9 @@ export function CreditCardInputExpiry({
 				inputMode="numeric"
 				autoComplete="cc-exp"
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-				// defaults an aria-label, yielding to a registered Field <Label>
-				// (aria-labelledby outranks aria-label in the accname computation).
-				aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Expiration date')}
+				// defaults an aria-label, yielding to a Field <Label> from the first
+				// render (useControlFallbackLabel).
+				aria-label={ariaLabel ?? fallbackLabel}
 				placeholder={placeholder ?? EXPIRY_PATTERN}
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}

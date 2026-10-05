@@ -15,9 +15,10 @@ export type PasswordConfirmProps = {
 	children?: ReactNode
 	/**
 	 * Fires on a confirmed match/mismatch transition: `true` once both fields are
-	 * non-empty and equal, `false` once they settle non-empty and unequal.
-	 * Transitions only (no re-fire on repeats), and never while the password has
-	 * a form error.
+	 * non-empty and equal, `false` once they settle non-empty and unequal. It also
+	 * fires `false` when a match ends because a field becomes empty or the
+	 * confirmation becomes partial. Transitions only (no re-fire on repeats), and
+	 * never while the password has a form error.
 	 */
 	onMatchChange?: (matched: boolean) => void
 }

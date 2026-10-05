@@ -8,6 +8,7 @@ import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 
 /** Props for {@link Odometer}: the target `value`, tween `duration`, and a display `format`, plus native `<span>` attributes. */
 export type OdometerProps = {
+	/** The target number. A change tweens the readout from the current figure to this one. */
 	value: number
 	/**
 	 * Tween length in milliseconds.
@@ -16,7 +17,7 @@ export type OdometerProps = {
 	duration?: number
 	/**
 	 * Formats the numeric value for display.
-	 * @defaultValue rounds to an integer and applies the grouping of the `<LocaleProvider>` locale
+	 * @defaultValue Rounds to an integer and applies the grouping of the `<LocaleProvider>` locale.
 	 */
 	format?: (value: number) => string
 	className?: string
@@ -34,8 +35,8 @@ export type OdometerProps = {
  * The root takes no role and is never a live region, and a consumer `role` does
  * not change that. The root has no role, so ARIA does not let it take an
  * `aria-label`: put a label in the text around the readout.
- * Honors reduced motion by snapping (see {@link useOdometerAnimatedValue}).
- * @see {@link useOdometerAnimatedValue}
+ * When the OS asks for reduced motion, or `duration` is `0` or less, the
+ * readout goes to the target with no tween (WCAG 2.3.3).
  */
 export function Odometer({
 	value,

@@ -314,6 +314,7 @@
 			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs-legacy/demos/modules/chat.tsx",
+				"**/src/docs/pages/modules/chat/**",
 				"**/src/__tests__/modules/chat-*",
 				"**/src/__tests__/a11y/cases/specialized.tsx"
 			],

@@ -44,7 +44,7 @@ const TASKS = [
 	{ id: 'ship', label: 'Ship', description: 'Release to production' },
 ]
 
-const LIST_VARIANTS = ['separated', 'outline', 'plain', 'solid'] as const
+const LIST_VARIANTS = ['separated', 'outline', 'plain', 'solid', 'bare'] as const
 
 const JSON_SAMPLE = {
 	id: 42,

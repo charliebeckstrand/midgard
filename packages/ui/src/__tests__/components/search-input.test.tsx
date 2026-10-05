@@ -160,4 +160,13 @@ describe('SearchInput', () => {
 
 		expect(getFieldProbe('q')).toHaveAttribute('data-touched', 'true')
 	})
+
+	it.each([
+		['false', false],
+		['null', null],
+	])('renders no suffix slot when the suffix is %s and the query is empty', (_name, suffix) => {
+		const { container } = renderUI(<SearchInput suffix={suffix} />)
+
+		expect(bySlot(container, 'suffix')).not.toBeInTheDocument()
+	})
 })

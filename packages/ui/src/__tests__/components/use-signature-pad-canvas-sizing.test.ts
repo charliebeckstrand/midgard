@@ -13,6 +13,7 @@ function setup(opts: {
 	canvasNull?: boolean
 	contextNull?: boolean
 	empty?: boolean
+	padding?: number
 }) {
 	const containerSize =
 		opts.containerSize === undefined ? { width: 320, height: 80 } : opts.containerSize
@@ -33,7 +34,16 @@ function setup(opts: {
 	const container = containerSize === null ? null : document.createElement('div')
 
 	if (container && containerSize) {
-		container.getBoundingClientRect = () => DOMRect.fromRect(containerSize)
+		// jsdom has no layout, so the test gives the client size. The client size
+		// is the padding box, inside the border.
+		Object.defineProperty(container, 'clientWidth', { value: containerSize.width })
+		Object.defineProperty(container, 'clientHeight', { value: containerSize.height })
+
+		// A 1px border makes the border box larger than the client size.
+		container.getBoundingClientRect = () =>
+			DOMRect.fromRect({ width: containerSize.width + 2, height: containerSize.height + 2 })
+
+		if (opts.padding) container.style.padding = `${opts.padding}px`
 	}
 
 	const { result, unmount } = renderHook(() => {
@@ -81,6 +91,20 @@ describe('useSignaturePadCanvasSizing', () => {
 		expect(canvas?.style.height).toBe('80px')
 
 		expect(context.scale).toHaveBeenCalledWith(2, 2)
+	})
+
+	it('sizes the canvas to the content box, inside the border and the padding', () => {
+		Object.defineProperty(window, 'devicePixelRatio', { value: 1, configurable: true })
+
+		const { canvas } = setup({ padding: 4 })
+
+		expect(canvas?.width).toBe(312)
+
+		expect(canvas?.height).toBe(72)
+
+		expect(canvas?.style.width).toBe('312px')
+
+		expect(canvas?.style.height).toBe('72px')
 	})
 
 	it('defaults devicePixelRatio to 1 when it is unset', () => {

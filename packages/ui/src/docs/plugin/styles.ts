@@ -3,9 +3,7 @@ import path from 'node:path'
 import { compile, optimize } from '@tailwindcss/node'
 import { Scanner } from '@tailwindcss/oxide'
 import { noop } from '../../utilities/noop.ts'
-
-// A `@font-face` rule of a minified stylesheet. The rule holds no nested block.
-const FONT_FACE = /@font-face\{[^}]*\}/g
+import { builtStylesheet, FONT_FACE } from './stylesheet.ts'
 
 // The characters that React escapes in the HTML that it renders, by reference.
 const REFERENCES: Readonly<Record<string, string>> = {
@@ -46,14 +44,7 @@ export function scanClasses(html: string): string[] {
  * `@font-face` rules come from the built stylesheet.
  */
 export async function inlineCriticalCss(clientDir: string, stylesheet: string): Promise<void> {
-	const [built, ...others] = globSync(`assets/${path.basename(stylesheet, '.css')}-*.css`, {
-		cwd: clientDir,
-	})
-
-	if (!built || others.length > 0) throw new Error(`docs: no single built copy of ${stylesheet}`)
-
-	const fontFaces =
-		readFileSync(path.join(clientDir, built), 'utf8').match(FONT_FACE)?.join('') ?? ''
+	const fontFaces = builtStylesheet(clientDir, stylesheet).match(FONT_FACE)?.join('') ?? ''
 
 	const source = readFileSync(stylesheet, 'utf8')
 

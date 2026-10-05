@@ -30,12 +30,16 @@ function inkBox(canvas: HTMLCanvasElement) {
 		: { left: Math.round(left / scale), right: Math.round((right + 1) / scale) }
 }
 
-/** A data URL of a 300 by 160 image with an opaque bar from x = 20 to x = 280. */
+/**
+ * A data URL of a 298 by 158 image with an opaque bar from x = 20 to x = 280.
+ * The size is the content box of a pad 300px wide: the `h-40` pad less its 1px
+ * border on each side.
+ */
 function barImage() {
 	const source = document.createElement('canvas')
 
-	source.width = 300
-	source.height = 160
+	source.width = 298
+	source.height = 158
 
 	const context = source.getContext('2d')
 
@@ -82,10 +86,78 @@ describe('SignaturePad resize (real browser)', () => {
 
 		await resizeTo(frame, 200)
 
-		expect(inkBox(canvas)).toEqual({ left: 20, right: 200 })
+		expect(inkBox(canvas)).toEqual({ left: 20, right: 198 })
 
 		await resizeTo(frame, 400)
 
 		expect(inkBox(canvas)).toEqual({ left: 20, right: 280 })
+	})
+})
+
+/** The size of the content box of an element, in CSS px. */
+function contentBox(element: HTMLElement) {
+	const style = getComputedStyle(element)
+
+	return {
+		width:
+			element.clientWidth -
+			Number.parseFloat(style.paddingLeft) -
+			Number.parseFloat(style.paddingRight),
+		height:
+			element.clientHeight -
+			Number.parseFloat(style.paddingTop) -
+			Number.parseFloat(style.paddingBottom),
+	}
+}
+
+/**
+ * The canvas size against the box of the pad. The canvas sits in the content
+ * box of the pad, inside its border and its padding.
+ *
+ * Before the fix, the hook sized the canvas to the border box. The canvas was
+ * then 2px too wide and 2px too tall. A pad that takes its width from its
+ * content became wider on each resize.
+ */
+describe('SignaturePad canvas size (real browser)', () => {
+	it('sizes the canvas to the content box of the pad', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 300 }}>
+				<SignaturePad aria-label="Signature" className="p-2" />
+			</div>,
+		)
+
+		const pad = present(bySlot(container, 'signature-pad'), 'pad')
+
+		const canvas = present<HTMLCanvasElement>(bySlot(container, 'signature-pad-canvas'), 'canvas')
+
+		await nextPaint()
+
+		await nextPaint()
+
+		const box = contentBox(pad)
+
+		expect(box).toEqual({ width: 282, height: 142 })
+
+		const { width, height } = canvas.getBoundingClientRect()
+
+		expect({ width, height }).toEqual(box)
+	})
+
+	it('keeps a pad with an intrinsic width at a stable width', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 600 }}>
+				<SignaturePad aria-label="Signature" className="w-max" />
+			</div>,
+		)
+
+		const pad = present(bySlot(container, 'signature-pad'), 'pad')
+
+		await nextPaint()
+
+		const width = pad.getBoundingClientRect().width
+
+		for (let i = 0; i < 5; i++) await nextPaint()
+
+		expect(pad.getBoundingClientRect().width).toBe(width)
 	})
 })

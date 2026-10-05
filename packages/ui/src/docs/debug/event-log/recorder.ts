@@ -2,7 +2,7 @@ import { subscribeOverlaySignal } from 'ui/primitives/overlay'
 import { createEmitter } from '../../../utilities/emitter.ts'
 import { noop } from '../../../utilities/noop.ts'
 
-/** The kinds of an {@link Entry}, in the order of the filter chips of the sheet. */
+/** The kinds of an {@link Entry}, in the order of the options of the type filter of the sheet. */
 export const KINDS = [
 	'load',
 	'paint',

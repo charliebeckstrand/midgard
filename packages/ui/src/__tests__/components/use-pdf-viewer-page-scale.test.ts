@@ -116,3 +116,37 @@ describe('usePdfViewerPageScale fit', () => {
 		expect(result.current.frameWidth).toBe(800)
 	})
 })
+
+describe('usePdfViewerPageScale naturalWidth', () => {
+	it('converts the page points to CSS pixels at 96 px per inch', () => {
+		const result = renderScale({ pointSize: { width: 612, height: 792 } })
+
+		expect(result.current.naturalWidth).toBe(816)
+	})
+
+	it('takes the page height in points when the page is transposed', () => {
+		const result = renderScale({ pointSize: { width: 612, height: 792 }, rotation: 90 })
+
+		expect(result.current.naturalWidth).toBe(1056)
+	})
+
+	it('falls back to the page pixels when the page carries no points', () => {
+		expect(renderScale().current.naturalWidth).toBe(100)
+
+		expect(renderScale({ rotation: 270 }).current.naturalWidth).toBe(200)
+	})
+
+	it('ignores the fit scale and the zoom', () => {
+		const result = renderScale({ zoom: 3, fit: 'width' })
+
+		expect(result.current.naturalWidth).toBe(100)
+	})
+
+	it('falls back to US Letter before the page size is known', () => {
+		expect(renderScale({ pageSize: null }).current.naturalWidth).toBe(816)
+	})
+
+	it('is undefined when the viewer has no content', () => {
+		expect(renderScale({ hasContent: false }).current.naturalWidth).toBeUndefined()
+	})
+})

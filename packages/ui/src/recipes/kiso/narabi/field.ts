@@ -23,6 +23,11 @@ export const field = [
 	'[&>[data-slot=description]+[data-slot]]:mt-1',
 	'[&>[data-slot=control]+[data-slot]]:mt-2',
 	'[&>[data-slot=control-frame]+[data-slot]]:mt-2',
+	// A list of controls, such as a reorderable list of inputs, takes the gap that
+	// a single control takes to the slots under it. The rule names the later
+	// slots with `~`, not `+`, because a reorderable list puts the hidden live
+	// region and instructions of its drag behind the `<ul>`, and they have no slot.
+	'[&>[data-slot=list]~[data-slot]]:mt-2',
 	'[&>[data-slot=field]+[data-slot]]:mt-2',
 	'[&>[data-slot=field]+[role=alert]]:mt-2',
 	// Gap from a control to the message under it, named by the message rather than

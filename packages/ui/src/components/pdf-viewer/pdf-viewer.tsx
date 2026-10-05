@@ -184,6 +184,10 @@ export type PdfViewerProps = {
  * PDF document viewer: renders pages from `pages` or via pdf.js from `src`. Toolbar
  * controls cover zoom, rotation, download, and print, and an optional overlay draws
  * highlighted regions over the page.
+ *
+ * @remarks The viewer fills the width of its host. In a host that sizes to its content (for
+ * example `w-max`), the page area takes the width of the page at 100%: 96 px for each inch of
+ * the page, or US Letter before the page size is known.
  */
 export function PdfViewer({
 	pages,

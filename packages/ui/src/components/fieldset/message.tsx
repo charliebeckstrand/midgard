@@ -15,7 +15,9 @@ export type MessageSeverity = Severity
 export type MessageProps = {
 	/**
 	 * The tone of the message. Only `error` renders the errors of a bound field.
-	 * @defaultValue 'error'
+	 * When you do not set it, an unbound message takes the `severity` of the
+	 * enclosing `<Field>` or `<Control>`. A form-bound message stays `error`.
+	 * @defaultValue the severity of the enclosing control, else 'error'
 	 */
 	severity?: MessageSeverity
 	className?: string
@@ -67,8 +69,11 @@ function resolveMessageElementId(
  * Validation or status feedback for a form control. The `error` severity renders
  * `role="alert"` and registers its id into the field's `aria-describedby`. Bound
  * to a form field by `name`, it auto-renders that field's first error, or every
- * error as a `<ul>` inside a live-region `<div>` with `all`. It suppresses itself when there are none. The `success` severity renders `role="status"` from its children and
- * does not register as a description.
+ * error as a `<ul>` inside a live-region `<div>` with `all`. It suppresses itself
+ * when there are none. The `warning` severity renders `role="status"` from its
+ * children and also registers into `aria-describedby`, because it tells about
+ * the value of the field. The `success` severity renders `role="status"` from
+ * its children and does not register as a description.
  *
  * @remarks A nested `<Message>` is presentational: it does not mark the control
  * invalid. Drive the validation ring (and, for `error`, `aria-invalid`) with
@@ -76,7 +81,7 @@ function resolveMessageElementId(
  * binding. Its type scale takes the step of the nearest density scope.
  */
 export function Message({
-	severity = 'error',
+	severity: severityProp,
 	className,
 	id,
 	name,
@@ -88,34 +93,41 @@ export function Message({
 
 	const field = useFormField(name)
 
+	// An unbound message takes the tone of its Field (FieldProps.severity). A
+	// form-bound message shows the errors of its field, so it stays `error`.
+	const severity = severityProp ?? (field === undefined ? control?.severity : undefined) ?? 'error'
+
 	// When form-bound, only the error severity auto-renders from the field's errors.
 	// Other severities render their children verbatim.
 	const isFormBoundError = severity === 'error' && field !== undefined
 
 	const issues = isFormBoundError ? field.errors : undefined
 
-	// Error messages register; aria-describedby references the id only while
-	// the message renders. Registration precedes the early return; hook order
-	// stays stable. Success messages are not field descriptions and don't register.
+	// An error or warning message describes the field, so it registers;
+	// aria-describedby references the id only while the message renders.
+	// Registration precedes the early return, so the hook order is stable. A
+	// success message is feedback, not a description, so it does not register.
 	const rendersError = shouldRenderError(severity, isFormBoundError, issues, children)
+
+	const describesField = rendersError || severity === 'warning'
+
+	const elementId = resolveMessageElementId(id, severity, control)
 
 	const registerMessage = control?.registerMessage
 
 	useEffect(() => {
-		if (!rendersError) return
+		if (!describesField) return
 
-		// The error severity renders `id ?? control.messageId`; register that id.
-		// An unregistered custom id orphans the field's aria-describedby.
-		return registerMessage?.(id)
-	}, [rendersError, registerMessage, id])
+		// Register the id that the message renders. An unregistered custom id
+		// orphans the aria-describedby of the field.
+		return registerMessage?.(elementId)
+	}, [describesField, registerMessage, elementId])
 
 	// The error severity renders only when it has something to say (form-bound
 	// with issues, or unbound with children); an empty one would leave a stray
 	// `role="alert"`. `rendersError` already encodes that; warning/success always
 	// render their children.
 	if (severity === 'error' && !rendersError) return null
-
-	const elementId = resolveMessageElementId(id, severity, control)
 
 	const classes = cn(k.message({ severity }), className)
 

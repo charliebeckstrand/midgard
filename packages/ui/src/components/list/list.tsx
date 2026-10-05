@@ -18,7 +18,7 @@ import { useListWindow } from './use-list-window'
 type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 	/** Ordered items. */
 	items: T[]
-	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. @defaultValue 'separated' */
+	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards; `bare` spaces rows apart with no chrome, for rows of form controls. @defaultValue 'separated' */
 	variant?: ListVariant
 	/** Layout axis. @defaultValue 'vertical' */
 	orientation?: Orientation
@@ -34,6 +34,27 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 }
 
 /**
+ * The key extractor of {@link List}. Each arm of {@link ListProps} takes this one
+ * declaration, so the API shows one type and one description.
+ */
+type ListKey<T> = {
+	/**
+	 * Stable key extractor. A reorderable list requires it for DnD tracking. A
+	 * read-only list can omit it, and then keys each item by its index.
+	 */
+	getKey?: (item: T) => string
+}
+
+/** The reorder callback of {@link List}. Two arms of {@link ListProps} take this one declaration. */
+type ListReorder<T> = {
+	/**
+	 * Called with the next ordering. Omit it to render a list that does not
+	 * reorder. With `sortable: false`, render a `<ListHandle>` in each item.
+	 */
+	onReorder?: (next: T[]) => void
+}
+
+/**
  * Props for {@link List}: the base list surface plus the reorder surface.
  *
  * @typeParam T - Shape of a single item.
@@ -41,30 +62,22 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
  */
 export type ListProps<T> = BaseListProps<T> &
 	(
-		| {
-				/**
-				 * Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
-				 * @defaultValue true
-				 */
-				sortable?: true
-				/** Stable key extractor; required for DnD tracking. */
-				getKey: (item: T) => string
-				/** Called with the next ordering. Omit to render a non-reorderable list. */
-				onReorder?: (next: T[]) => void
-				virtual?: false
-		  }
-		| {
+		| (Required<ListKey<T>> &
+				ListReorder<T> & {
+					/**
+					 * Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
+					 * @defaultValue true
+					 */
+					sortable?: true
+					virtual?: false
+				})
+		| (Required<ListKey<T>> &
+				Required<ListReorder<T>> & {
+					sortable: false
+					virtual?: false
+				})
+		| (ListKey<T> & {
 				sortable: false
-				/** Stable key extractor; required for DnD tracking. */
-				getKey: (item: T) => string
-				/** Called with the next ordering; the consumer renders its own `<ListHandle>`. */
-				onReorder: (next: T[]) => void
-				virtual?: false
-		  }
-		| {
-				sortable: false
-				/** Stable key extractor. Optional when the list is read-only; falls back to item index. */
-				getKey?: (item: T) => string
 				onReorder?: undefined
 				/**
 				 * Render only the rows in view, plus a few on each side, in the scroll
@@ -73,12 +86,12 @@ export type ListProps<T> = BaseListProps<T> &
 				 * @defaultValue false
 				 */
 				virtual?: boolean
-		  }
+		  })
 	)
 
 /**
  * Renders an ordered `items` source as a `<ul>` through a `children` render
- * function, in one of four `variant`s and either orientation. With `onReorder`
+ * function, in one of five `variant`s and either orientation. With `onReorder`
  * it becomes reorderable over `@dnd-kit`, by pointer drag (with a drag overlay)
  * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}
  * per item unless `sortable: false`. A read-only list (no `onReorder`) shows

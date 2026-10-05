@@ -4,8 +4,8 @@ import type { ComponentProps } from 'react'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
 
-/** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange`). */
-export type NavProps = Omit<ComponentProps<'nav'>, 'onChange'> & {
+/** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange` and `defaultValue`). */
+export type NavProps = Omit<ComponentProps<'nav'>, 'onChange' | 'defaultValue'> & {
 	/** Controlled active value. Pair with `onValueChange`. */
 	value?: string | null
 	/** Initial active value when uncontrolled. */

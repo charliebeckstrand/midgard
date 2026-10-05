@@ -46,7 +46,8 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> &
 		/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
 		align?: 'center' | 'top'
 		/**
-		 * Opt into the glass surface treatment.
+		 * Opt into the glass surface treatment. Omit it to follow the ambient
+		 * `<GlassProvider>`. Set `false` to keep the flat surface inside one.
 		 *
 		 * @remarks Items inside — a command palette's results — take the deeper glass
 		 * wash on hover and focus.

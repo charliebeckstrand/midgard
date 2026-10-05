@@ -43,9 +43,10 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 	 * How the bar answers a width that cannot hold its fields — see
 	 * {@link FiltersLayout}.
 	 *
-	 * A `rail` keeps its fields at the width they were given, so give them one. A
-	 * field left at its `w-full` default would fill the rail, and the reader would
-	 * scroll one field at a time.
+	 * A `rail` keeps each field at the width that it was given and does not
+	 * shrink it, so give each field a width through its `className`. Under a
+	 * `rail`, a field has no `w-full` default. A field with no width takes the
+	 * width of its content.
 	 *
 	 * @defaultValue 'stack'
 	 */

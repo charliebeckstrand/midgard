@@ -148,6 +148,62 @@ describe('Field', () => {
 		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 
+	it.each(['warning', 'success'] as const)(
+		'gives a nested Message the %s tone of the Field',
+		(severity) => {
+			const { container } = renderUI(
+				<Field severity={severity}>
+					<Input />
+					<Message>Check this value</Message>
+				</Field>,
+			)
+
+			const message = bySlot(container, 'message')
+
+			expect(message).toHaveAttribute('data-severity', severity)
+
+			expect(message).toHaveAttribute('role', 'status')
+		},
+	)
+
+	it('keeps an explicit Message severity over the Field severity', () => {
+		const { container } = renderUI(
+			<Field severity="warning">
+				<Input />
+				<Message severity="success">Looks good</Message>
+			</Field>,
+		)
+
+		expect(bySlot(container, 'message')).toHaveAttribute('data-severity', 'success')
+	})
+
+	it('keeps a form-bound Message on the error tone inside a warning Field', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				onSubmit={(_v, helpers: SetErrors) => {
+					helpers.setErrors({ name: 'Required' })
+				}}
+			>
+				<Field severity="warning">
+					<Input name="name" />
+					<Message name="name" />
+				</Field>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await act(async () => {
+			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
+		})
+
+		const message = getSlot(container, 'message')
+
+		expect(message).toHaveAttribute('data-severity', 'error')
+
+		expect(message).toHaveTextContent('Required')
+	})
+
 	it('does not reference a success Message in aria-describedby', () => {
 		const { container } = renderUI(
 			<Field severity="success">
@@ -451,6 +507,32 @@ describe('Field aria-describedby', () => {
 		)
 
 		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
+	})
+
+	it('references a rendered warning Message', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+				<Message severity="warning">Double-check this value</Message>
+			</Field>,
+		)
+
+		const message = getSlot(container, 'message')
+
+		expect(bySlot(container, 'input')).toHaveAttribute('aria-describedby', message.id)
+	})
+
+	it('references a warning Message by its explicit id', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+				<Message id="hint" severity="warning">
+					Double-check this value
+				</Message>
+			</Field>,
+		)
+
+		expect(bySlot(container, 'input')).toHaveAttribute('aria-describedby', 'hint')
 	})
 
 	it('does not reference a success Message (feedback, not a field description)', () => {

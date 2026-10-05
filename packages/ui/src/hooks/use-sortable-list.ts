@@ -14,7 +14,7 @@ import {
 	rectSortingStrategy,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
 import { useDragCursor } from './use-drag-cursor'
 import { useSortableSensors } from './use-sortable-sensors'
@@ -127,8 +127,8 @@ function sameKeys(a: readonly string[], b: readonly string[]): boolean {
  * dndContextProps }`: the keyed id list and sorting `strategy` for
  * `<SortableContext>`, plus `interactive` (false when disabled or read-only).
  * `activeId` is the item being dragged (or `null`), `orientation` is the
- * resolved axis, and `dndContextProps` (sensors, collision detection, drag
- * handlers) spreads onto `<DndContext>`. `layout` is not returned — it only
+ * resolved axis, and `dndContextProps` (an id that the server and the browser
+ * agree on, sensors, collision detection, drag handlers) spreads onto `<DndContext>`. `layout` is not returned — it only
  * picks `strategy`.
  */
 export function useSortableList<T>({
@@ -152,6 +152,11 @@ export function useSortableList<T>({
 	const draggedItemRef = useRef<T | null>(null)
 
 	const sensors = useSortableSensors({ keyboard: keyboardSensor })
+
+	// Without an id, dnd-kit makes the id of the drag description from a counter
+	// that each render in the process shares. The server and the browser then
+	// give different ids, and the handles point at no element.
+	const id = useId()
 
 	// dnd-kit sets no cursor, so each sortable list holds the closed hand here.
 	useDragCursor(activeId !== null)
@@ -244,6 +249,7 @@ export function useSortableList<T>({
 
 	const dndContextProps = useMemo(
 		() => ({
+			id,
 			sensors,
 			collisionDetection: closestCenter,
 			onDragStart: handleDragStart,
@@ -251,7 +257,7 @@ export function useSortableList<T>({
 			onDragCancel: handleDragCancel,
 			accessibility,
 		}),
-		[sensors, handleDragStart, handleDragEnd, handleDragCancel, accessibility],
+		[id, sensors, handleDragStart, handleDragEnd, handleDragCancel, accessibility],
 	)
 
 	return {

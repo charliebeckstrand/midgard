@@ -133,8 +133,8 @@ test run. Therefore the page gates
 ## How ui wires it
 
 ```ts
-// packages/ui/vite.docs.config.ts
-import { defineDocsConfig } from './src/docs/engine/vite'
+// packages/ui/vite.docs-legacy.config.ts
+import { defineDocsConfig } from './src/docs-legacy/engine/vite'
 
 export default defineDocsConfig({ packageName: 'ui' })
 ```
