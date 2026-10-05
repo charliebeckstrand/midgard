@@ -57,5 +57,9 @@ export type TextVariants = Omit<VariantProps<typeof k>, 'tone' | 'color'> & {
 	tone?: VariantProps<typeof k>['tone']
 	/** A literal hue for the text. Set it in place of `tone` for a custom tint. */
 	color?: VariantProps<typeof k>['color']
+	/**
+	 * The density step. Omit it to take the size of the parent. A step makes the
+	 * text a density scope, so its children take the step too.
+	 */
 	size?: ScaleStep<typeof scale>
 }

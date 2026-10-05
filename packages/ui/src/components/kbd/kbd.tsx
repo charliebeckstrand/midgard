@@ -4,6 +4,7 @@ import { type KbdVariants, k } from '../../recipes/kata/kbd'
 
 /** Props for {@link Kbd}: an optional `size` atop native `<kbd>` attributes. */
 export type KbdProps = ComponentProps<'kbd'> & {
+	/** The density step. Omit it to take the step of the nearest density scope. A step makes the key a density scope. */
 	size?: KbdVariants['size']
 }
 

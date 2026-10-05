@@ -34,7 +34,11 @@ export type SparklineProps = AccessibleName & {
 	 * @defaultValue 'line'
 	 */
 	shape?: 'line' | 'bar'
-	/** @defaultValue 'zinc' */
+	/**
+	 * The palette color of the series: the line and its area, or the bars.
+	 *
+	 * @defaultValue 'zinc'
+	 */
 	color?: SparklineColor
 	/**
 	 * The density step of the box. Omit it to take the step of the nearest

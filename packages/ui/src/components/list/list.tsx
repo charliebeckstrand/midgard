@@ -34,6 +34,27 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 }
 
 /**
+ * The key extractor of {@link List}. Each arm of {@link ListProps} takes this one
+ * declaration, so the API shows one type and one description.
+ */
+type ListKey<T> = {
+	/**
+	 * Stable key extractor. A reorderable list requires it for DnD tracking. A
+	 * read-only list can omit it, and then keys each item by its index.
+	 */
+	getKey?: (item: T) => string
+}
+
+/** The reorder callback of {@link List}. Two arms of {@link ListProps} take this one declaration. */
+type ListReorder<T> = {
+	/**
+	 * Called with the next ordering. Omit it to render a list that does not
+	 * reorder. With `sortable: false`, render a `<ListHandle>` in each item.
+	 */
+	onReorder?: (next: T[]) => void
+}
+
+/**
  * Props for {@link List}: the base list surface plus the reorder surface.
  *
  * @typeParam T - Shape of a single item.
@@ -41,30 +62,22 @@ type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
  */
 export type ListProps<T> = BaseListProps<T> &
 	(
-		| {
-				/**
-				 * Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
-				 * @defaultValue true
-				 */
-				sortable?: true
-				/** Stable key extractor; required for DnD tracking. */
-				getKey: (item: T) => string
-				/** Called with the next ordering. Omit to render a non-reorderable list. */
-				onReorder?: (next: T[]) => void
-				virtual?: false
-		  }
-		| {
+		| (Required<ListKey<T>> &
+				ListReorder<T> & {
+					/**
+					 * Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
+					 * @defaultValue true
+					 */
+					sortable?: true
+					virtual?: false
+				})
+		| (Required<ListKey<T>> &
+				Required<ListReorder<T>> & {
+					sortable: false
+					virtual?: false
+				})
+		| (ListKey<T> & {
 				sortable: false
-				/** Stable key extractor; required for DnD tracking. */
-				getKey: (item: T) => string
-				/** Called with the next ordering; the consumer renders its own `<ListHandle>`. */
-				onReorder: (next: T[]) => void
-				virtual?: false
-		  }
-		| {
-				sortable: false
-				/** Stable key extractor. Optional when the list is read-only; falls back to item index. */
-				getKey?: (item: T) => string
 				onReorder?: undefined
 				/**
 				 * Render only the rows in view, plus a few on each side, in the scroll
@@ -73,7 +86,7 @@ export type ListProps<T> = BaseListProps<T> &
 				 * @defaultValue false
 				 */
 				virtual?: boolean
-		  }
+		  })
 	)
 
 /**
