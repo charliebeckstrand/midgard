@@ -633,6 +633,17 @@ describe('CommandPaletteItem', () => {
 		expect(item).toHaveAttribute('role', 'option')
 	})
 
+	it('keeps type="button" when a consumer passes another type', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem type="submit">Item</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		// A submit type would make a press on the row submit an enclosing form.
+		expect(bySlot(document.body, 'command-palette-item')).toHaveAttribute('type', 'button')
+	})
+
 	it('calls onAction and closes the palette on click', async () => {
 		const onOpenChange = vi.fn()
 

@@ -136,7 +136,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	}
 
 	return (
-		<button type="button" {...forwardedProps(props)} {...optionProps}>
+		<button {...forwardedProps(props)} {...optionProps} type="button">
 			{children}
 		</button>
 	)
