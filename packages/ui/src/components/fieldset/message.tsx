@@ -69,8 +69,11 @@ function resolveMessageElementId(
  * Validation or status feedback for a form control. The `error` severity renders
  * `role="alert"` and registers its id into the field's `aria-describedby`. Bound
  * to a form field by `name`, it auto-renders that field's first error, or every
- * error as a `<ul>` inside a live-region `<div>` with `all`. It suppresses itself when there are none. The `success` severity renders `role="status"` from its children and
- * does not register as a description.
+ * error as a `<ul>` inside a live-region `<div>` with `all`. It suppresses itself
+ * when there are none. The `warning` severity renders `role="status"` from its
+ * children and also registers into `aria-describedby`, because it tells about
+ * the value of the field. The `success` severity renders `role="status"` from
+ * its children and does not register as a description.
  *
  * @remarks A nested `<Message>` is presentational: it does not mark the control
  * invalid. Drive the validation ring (and, for `error`, `aria-invalid`) with
@@ -100,28 +103,31 @@ export function Message({
 
 	const issues = isFormBoundError ? field.errors : undefined
 
-	// Error messages register; aria-describedby references the id only while
-	// the message renders. Registration precedes the early return; hook order
-	// stays stable. Success messages are not field descriptions and don't register.
+	// An error or warning message describes the field, so it registers;
+	// aria-describedby references the id only while the message renders.
+	// Registration precedes the early return, so the hook order is stable. A
+	// success message is feedback, not a description, so it does not register.
 	const rendersError = shouldRenderError(severity, isFormBoundError, issues, children)
+
+	const describesField = rendersError || severity === 'warning'
+
+	const elementId = resolveMessageElementId(id, severity, control)
 
 	const registerMessage = control?.registerMessage
 
 	useEffect(() => {
-		if (!rendersError) return
+		if (!describesField) return
 
-		// The error severity renders `id ?? control.messageId`; register that id.
-		// An unregistered custom id orphans the field's aria-describedby.
-		return registerMessage?.(id)
-	}, [rendersError, registerMessage, id])
+		// Register the id that the message renders. An unregistered custom id
+		// orphans the aria-describedby of the field.
+		return registerMessage?.(elementId)
+	}, [describesField, registerMessage, elementId])
 
 	// The error severity renders only when it has something to say (form-bound
 	// with issues, or unbound with children); an empty one would leave a stray
 	// `role="alert"`. `rendersError` already encodes that; warning/success always
 	// render their children.
 	if (severity === 'error' && !rendersError) return null
-
-	const elementId = resolveMessageElementId(id, severity, control)
 
 	const classes = cn(k.message({ severity }), className)
 

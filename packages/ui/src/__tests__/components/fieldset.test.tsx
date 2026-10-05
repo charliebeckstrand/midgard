@@ -509,6 +509,32 @@ describe('Field aria-describedby', () => {
 		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
 	})
 
+	it('references a rendered warning Message', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+				<Message severity="warning">Double-check this value</Message>
+			</Field>,
+		)
+
+		const message = getSlot(container, 'message')
+
+		expect(bySlot(container, 'input')).toHaveAttribute('aria-describedby', message.id)
+	})
+
+	it('references a warning Message by its explicit id', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+				<Message id="hint" severity="warning">
+					Double-check this value
+				</Message>
+			</Field>,
+		)
+
+		expect(bySlot(container, 'input')).toHaveAttribute('aria-describedby', 'hint')
+	})
+
 	it('does not reference a success Message (feedback, not a field description)', () => {
 		const { container } = renderUI(
 			<Field>
