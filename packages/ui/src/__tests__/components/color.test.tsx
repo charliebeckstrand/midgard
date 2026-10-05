@@ -733,4 +733,38 @@ describe('useColorState', () => {
 
 		expect(result.current.hsva).toMatchObject({ h: 120, s: 0, v: 100 })
 	})
+
+	// With `alpha` off, the panel hides the alpha. A held alpha below `1` then
+	// stops the match of an opaque swatch, and no edit shows the cause.
+	it('pins alpha to 1 when it seeds a translucent color with alpha off', () => {
+		const { result } = renderHook(() =>
+			useColorState({ defaultValue: '#ff000080', format: 'hex', alpha: false }),
+		)
+
+		expect(result.current.hsva.a).toBe(1)
+	})
+
+	it('pins alpha to 1 when it adopts a translucent controlled value with alpha off', () => {
+		const { result, rerender } = renderHook(
+			({ value }) => useColorState({ value, format: 'hex', alpha: false }),
+			{ initialProps: { value: '#ff0000' } },
+		)
+
+		rerender({ value: '#00ff0080' })
+
+		expect(result.current.hsva).toMatchObject({ h: 120, a: 1 })
+	})
+
+	it('pins alpha to 1 when alpha switches off', () => {
+		const { result, rerender } = renderHook(
+			({ alpha }) => useColorState({ defaultValue: '#ff000080', format: 'hex', alpha }),
+			{ initialProps: { alpha: true } },
+		)
+
+		expect(result.current.hsva.a).toBeLessThan(1)
+
+		rerender({ alpha: false })
+
+		expect(result.current.hsva.a).toBe(1)
+	})
 })

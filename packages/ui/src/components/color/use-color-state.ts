@@ -25,6 +25,11 @@ function sameHsva(a: Hsva, b: Hsva): boolean {
 	return a.h === b.h && a.s === b.s && a.v === b.v && a.a === b.a
 }
 
+/** The HSVA with its alpha pinned to `1` when `alpha` is off, else the HSVA as it is. @internal */
+function pinAlpha(hsva: Hsva, alpha: boolean): Hsva {
+	return alpha ? hsva : { ...hsva, a: 1 }
+}
+
 /**
  * Controlled/uncontrolled color state. Keeps HSVA internally regardless of
  * the consumer's wire format; hex drops hue at grayscale and black.
@@ -36,13 +41,19 @@ function sameHsva(a: Hsva, b: Hsva): boolean {
  * `setHsva` clamps, pins alpha to `1` when `alpha` is off, and emits the
  * serialized value through `onValueChange`.
  * @remarks
+ * When `alpha` is off, the hook pins alpha to `1` on each color that it
+ * holds: the seed, an adopted `value`, and the held color when `alpha`
+ * switches off. The panel does not show the alpha then, and a translucent
+ * color cannot match an opaque swatch.
+ *
  * A controlled `value` wins (CONVENTIONS §7.2). A `null` value paints
  * {@link DEFAULT_HSVA} and ignores `defaultValue`. Reconciliation runs in a
- * layout effect keyed on `value` and `hsva`, before paint. A `value` that
- * differs from the last emission snaps the HSVA back, so an owner that does
- * not adopt an emission keeps its color. An owner that echoes the emission
- * is skipped, so the HSVA keeps the hue that hex drops. An owner that adopts
- * after a delay sees each change snap back until its value arrives.
+ * layout effect keyed on `value`, `hsva`, and `alpha`, before paint. A
+ * `value` that differs from the last emission snaps the HSVA back, so an
+ * owner that does not adopt an emission keeps its color. An owner that
+ * echoes the emission is skipped, so the HSVA keeps the hue that hex drops.
+ * An owner that adopts after a delay sees each change snap back until its
+ * value arrives.
  * `setHsva` is a stable event. It reads the newest `format`, `alpha`, and
  * `onValueChange` when it runs, and keeps one identity across renders.
  * @internal
@@ -54,12 +65,12 @@ export function useColorState({
 	alpha,
 	onValueChange,
 }: ColorStateOptions): ColorState {
-	const [hsva, setInternal] = useState<Hsva>(
-		() => toHsva(value === undefined ? defaultValue : value) ?? DEFAULT_HSVA,
+	const [hsva, setInternal] = useState<Hsva>(() =>
+		pinAlpha(toHsva(value === undefined ? defaultValue : value) ?? DEFAULT_HSVA, alpha),
 	)
 
 	// The newest HSVA, so that a second `setHsva` in one event resolves its
-	// updater against the first. Only the effect below and `setHsva` write it,
+	// updater against the first. Only the effects below and `setHsva` write it,
 	// and each write goes with the `setInternal` call that makes it the state.
 	const hsvaRef = useRef(hsva)
 
@@ -82,17 +93,31 @@ export function useColorState({
 
 		cacheRef.current = value
 
-		// The HSVA already holds the value, so no write is needed.
-		if (sameHsva(parsed, hsva)) return
+		const adopted = pinAlpha(parsed, alpha)
 
-		hsvaRef.current = parsed
-		setInternal(parsed)
-	}, [value, hsva])
+		// The HSVA already holds the value, so no write is needed.
+		if (sameHsva(adopted, hsva)) return
+
+		hsvaRef.current = adopted
+		setInternal(adopted)
+	}, [value, hsva, alpha])
+
+	// A switch of `alpha` to off pins the alpha of the held color. The effect
+	// above runs first, so this effect reads the color that it adopts.
+	useLayoutEffect(() => {
+		const held = hsvaRef.current
+		const pinned = pinAlpha(held, alpha)
+
+		if (sameHsva(pinned, held)) return
+
+		hsvaRef.current = pinned
+		setInternal(pinned)
+	}, [alpha])
 
 	const setHsva = useStableEvent((next: Hsva | ((prev: Hsva) => Hsva)) => {
 		const prev = hsvaRef.current
 		const resolved = typeof next === 'function' ? next(prev) : next
-		const normalized = clampHsva(alpha ? resolved : { ...resolved, a: 1 })
+		const normalized = clampHsva(pinAlpha(resolved, alpha))
 
 		hsvaRef.current = normalized
 
