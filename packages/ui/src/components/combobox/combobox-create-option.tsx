@@ -80,7 +80,7 @@ export function ComboboxCreateOption({
 
 	const value = query.trim()
 
-	if (!isCreatable(name, taken) || !isCreatable(value, taken)) return null
+	if (!isCreatable(name, taken) || (value !== name && !isCreatable(value, taken))) return null
 
 	return (
 		<ComboboxOption id={id} value={value} className={className}>

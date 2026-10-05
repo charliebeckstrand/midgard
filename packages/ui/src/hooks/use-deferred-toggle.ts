@@ -85,10 +85,7 @@ export function useDeferredToggle<T>({
 		[freeze, toggle],
 	)
 
-	// The menu reads the snapshot only while the panel shows closed. A controlled
-	// owner can keep `open` true after a pick. Then no exit animation runs and no
-	// reopen comes, so nothing releases the snapshot.
-	const selectionValue = snapshot && !open ? snapshot.value : value
+	const selectionValue = snapshot ? snapshot.value : value
 
 	return { toggle, commit, flushPending, selectionValue }
 }

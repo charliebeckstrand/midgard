@@ -81,38 +81,25 @@ export function resolveInputDisplay<T>({
 }
 
 /**
- * Whether `option` is selected in single mode. Enter does not click such an
- * option. A click on the selected option toggles it, and the toggle clears a
- * `nullable` value. Enter chooses, so only a click and the clear button clear.
- * A `multiple` combobox keeps the toggle on Enter.
- *
- * @internal
- */
-function keepsOnEnter(option: Element | null | undefined, multiple: boolean): boolean {
-	return !multiple && option?.hasAttribute('data-selected') === true
-}
-
-/**
  * Enter convenience: when the list has narrowed to a single option, selects it
  * even if nothing is highlighted. The roving hook's activation key, not this
- * function, selects the *active* (highlighted) option. In single mode, the
- * function does not click a sole option that is already selected, because the
- * click clears a `nullable` value. {@link enterKeepsSelection} reports that case.
+ * function, selects the *active* (highlighted) option. The caller runs
+ * {@link enterKeepsSelection} first, so the function does not click a sole
+ * option that Enter keeps.
  *
- * @param multiple - The combobox holds a `multiple` selection, where Enter toggles.
  * @returns `true` when a sole option was found and clicked, else `false`.
  * @internal
  */
-export function selectSoleOption(container: HTMLElement, multiple: boolean): boolean {
+export function selectSoleOption(container: HTMLElement): boolean {
 	const items = container.querySelectorAll<HTMLElement>(OPTION_SELECTOR)
 
-	const only = items.length === 1 ? items[0] : undefined
+	if (items.length === 1) {
+		items[0]?.click()
 
-	if (!only || keepsOnEnter(only, multiple)) return false
+		return true
+	}
 
-	only.click()
-
-	return true
+	return false
 }
 
 /**
@@ -122,20 +109,23 @@ export function selectSoleOption(container: HTMLElement, multiple: boolean): boo
  * highlighted (`data-active`) option.
  *
  * @remarks
- * The roving hook clicks the highlighted option on Enter, and that click clears
- * a `nullable` value. The caller runs this check before it gives Enter to the
- * roving hook, so no Enter path clears.
+ * A click on the selected option toggles it, and the toggle clears a `nullable`
+ * value. Enter chooses, so only a click and the clear button clear. The roving
+ * hook clicks the highlighted option on Enter, so the caller runs this check
+ * before it gives Enter to the roving hook or to {@link selectSoleOption}.
  *
  * @param multiple - The combobox holds a `multiple` selection, where Enter toggles.
  * @internal
  */
 export function enterKeepsSelection(container: HTMLElement, multiple: boolean): boolean {
+	if (multiple) return false
+
 	const items = container.querySelectorAll<HTMLElement>(OPTION_SELECTOR)
 
 	const target =
 		items.length === 1 ? items[0] : container.querySelector(`${OPTION_SELECTOR}[data-active]`)
 
-	return keepsOnEnter(target, multiple)
+	return target?.hasAttribute('data-selected') === true
 }
 
 /**

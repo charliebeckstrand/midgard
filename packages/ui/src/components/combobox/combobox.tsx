@@ -6,7 +6,6 @@ import {
 	type ClipboardEventHandler,
 	type ComponentProps,
 	type KeyboardEvent,
-	type MouseEvent,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -26,6 +25,7 @@ import {
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
+	isVirtualTopMatchSeated,
 	queryItems,
 	seedVirtualTopMatch,
 	setVirtualActive,
@@ -317,24 +317,6 @@ export function seatOnArrowOpen(
 export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
 
 /**
- * The id of the row that {@link seedTopMatch} highlights on a device with
- * hover: the first enabled index of a registered source
- * (`virtualTopMatchIndex`), else the first DOM option. It is undefined when the
- * list holds no enabled row.
- *
- * @internal
- */
-function topMatchId(node: HTMLElement, source: VirtualItemSource | null): string | undefined {
-	if (source) {
-		const index = virtualTopMatchIndex(source)
-
-		return index >= 0 ? source.getKey(index) : undefined
-	}
-
-	return queryItems(node, OPTION_SELECTOR)[0]?.id
-}
-
-/**
  * Re-anchors the highlight when the rows change under an unchanged query, as
  * when async data arrives. `originRef` decides the move:
  *
@@ -363,16 +345,8 @@ export function reanchorOnOptionSwap(
 	const source = virtualSourceRef.current
 
 	if (originRef.current === 'seeded') {
-		const activeId = inputRef.current?.getAttribute('aria-activedescendant') ?? undefined
-
-		if (activeId === topMatchId(node, source)) return
-
-		seedTopMatch(node, source, activeIndexRef, inputRef)
-
-		return
-	}
-
-	if (source) {
+		if (isVirtualTopMatchSeated(node, OPTION_SELECTOR, source, activeIndexRef, inputRef)) return
+	} else if (source) {
 		// The value -1 is no highlight, and not a row that the data dropped.
 		if (activeIndexRef.current < source.count) return
 	} else {
@@ -384,38 +358,6 @@ export function reanchorOnOptionSwap(
 	seedTopMatch(node, source, activeIndexRef, inputRef)
 
 	originRef.current = 'seeded'
-}
-
-/**
- * Resolves the `aria-labelledby` of the input and of the listbox. In the
- * accessible name, `aria-labelledby` wins over `aria-label`. Thus an explicit
- * `aria-label` removes `aria-labelledby` from the two elements. Without an
- * `aria-label`, the listbox falls back to the Label of the field. The input
- * does not, because the `<label>` of the field names it.
- */
-function resolveLabelledBy(
-	ariaLabel: string | undefined,
-	ariaLabelledby: string | undefined,
-	fieldLabelledBy: string | undefined,
-): { input: string | undefined; listbox: string | undefined } {
-	if (ariaLabel) return { input: undefined, listbox: undefined }
-
-	return { input: ariaLabelledby, listbox: ariaLabelledby ?? fieldLabelledBy }
-}
-
-/**
- * Resolves the `autocomplete` attribute of the input. The `autoComplete` prop
- * wins, then the value of the enclosing `<Control>`, then `'off'`. The default
- * is not a parameter default, because a parameter default counts as the prop
- * and hides the value of the Control.
- *
- * @internal
- */
-function resolveAutoComplete(
-	autoComplete: string | undefined,
-	controlAutoComplete: string | undefined,
-): string {
-	return autoComplete ?? controlAutoComplete ?? 'off'
 }
 
 /**
@@ -568,7 +510,8 @@ export function Combobox<T>({
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlProps({ disabled, readOnly, required, invalid: boundInvalid })
+		autoComplete: resolvedAutoComplete,
+	} = useControlProps({ autoComplete, disabled, readOnly, required, invalid: boundInvalid })
 
 	const comboboxId = useId()
 
@@ -667,30 +610,30 @@ export function Combobox<T>({
 	const locked = resolvedReadOnly || resolvedDisabled
 
 	// A disabled ancestor `<fieldset>` disables the input but sets no prop, so
-	// `locked` stays false. The guards also read the native state of the input
-	// when an event occurs. The Form uses that fieldset as its lock while it
-	// submits. A stable event holds the read, because the open guard goes to
+	// `locked` stays false. Thus each guard also reads the native state of the
+	// input when an event occurs. The Form uses that fieldset as its lock while
+	// it submits. A stable event holds the read, because the open guard goes to
 	// `routeFloatingOpenChange` during render, and the compiler skips a component
 	// that gives a plain function a closure that reads a ref.
-	const inputDisabled = useStableEvent(() => inputRef.current?.matches(':disabled') === true)
+	const isLocked = useStableEvent(() => locked || inputRef.current?.matches(':disabled') === true)
 
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
-			if (next && (locked || inputDisabled())) return
+			if (next && isLocked()) return
 
 			setOpen(next)
 		},
-		[locked, inputDisabled, setOpen],
+		[isLocked, setOpen],
 	)
 
 	// Enter on the selected option ends a pick with no change to the value. The
 	// lock blocks it as it blocks the selection, so on a locked combobox Enter
 	// does nothing on any option.
 	const guardedKeep = useCallback(() => {
-		if (locked) return
+		if (isLocked()) return
 
 		keep()
-	}, [locked, keep])
+	}, [isLocked, keep])
 
 	// Set when an arrow-key open must seat the highlight on the current
 	// selection rather than leave it empty; consumed by the highlight-anchoring
@@ -823,8 +766,6 @@ export function Combobox<T>({
 	// The field shows how many are picked; this says which, on hover.
 	const inputTitle = resolveInputTitle({ editing, value, displayValue, multiple })
 
-	const labelledBy = resolveLabelledBy(ariaLabel, ariaLabelledby, control?.labelledBy)
-
 	const inputHandlers = useComboboxInput<T>({
 		multiple,
 		clearOnEmpty,
@@ -846,25 +787,16 @@ export function Combobox<T>({
 		onPaste,
 	})
 
-	const { onMouseDown: onTriggerMouseDown, onFrameMouseDown: onTriggerFrameMouseDown } =
-		useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
-
-	// The open guard lets a close through. Thus a press on the suffix or on the
-	// frame reads the native state of the input itself. Then a press under a
-	// controlled `open` does not close the panel, as with `locked`.
-	const onSuffixMouseDown = useCallback(
-		(event: MouseEvent<HTMLElement>) => {
-			if (!inputDisabled()) onTriggerMouseDown(event)
-		},
-		[inputDisabled, onTriggerMouseDown],
-	)
-
-	const onFrameMouseDown = useCallback(
-		(event: MouseEvent<HTMLElement>) => {
-			if (!inputDisabled()) onTriggerFrameMouseDown(event)
-		},
-		[inputDisabled, onTriggerFrameMouseDown],
-	)
+	// The open guard lets a close through. Thus the trigger reads the lock
+	// itself, so that a press under a controlled `open` does not close a locked
+	// panel.
+	const { onMouseDown: onSuffixMouseDown, onFrameMouseDown } = useComboboxTrigger({
+		open,
+		close,
+		setOpen: setOpenGuarded,
+		inputRef,
+		isLocked,
+	})
 
 	const scrollWithin = useScrollWithin()
 
@@ -914,11 +846,11 @@ export function Combobox<T>({
 	// also blocks the selection: a read-only or disabled combobox never commits.
 	const guardedSelect = useCallback(
 		(next: T) => {
-			if (locked || inputDisabled()) return
+			if (isLocked()) return
 
 			select(next)
 		},
-		[locked, inputDisabled, select],
+		[isLocked, select],
 	)
 
 	// The input display reads the live `value`; the menu reads `selectionValue`,
@@ -958,7 +890,7 @@ export function Combobox<T>({
 							// The rounded corners of the input do not take a press, so the
 							// press falls through to the frame. The frame then toggles the
 							// menu, as the chevron does.
-							onMouseDown: locked ? undefined : onFrameMouseDown,
+							onMouseDown: onFrameMouseDown,
 						}}
 						prefix={prefix}
 						suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
@@ -969,16 +901,22 @@ export function Combobox<T>({
 							// LoadingSpinner) owns its own semantics. Interactive suffix
 							// content (the clear button) stops propagation to opt out.
 							'aria-hidden': suffix || showClear ? undefined : true,
-							onMouseDown: locked ? undefined : onSuffixMouseDown,
+							onMouseDown: onSuffixMouseDown,
 						}}
 					>
 						<ComboboxInput
 							id={id}
 							ref={inputRef}
 							type="text"
-							autoComplete={resolveAutoComplete(autoComplete, control?.autoComplete)}
+							// The prop wins, then the Control, then 'off'. The default is not a
+							// parameter default, because that counts as the prop and hides the
+							// value of the Control.
+							autoComplete={resolvedAutoComplete ?? 'off'}
 							aria-label={ariaLabel}
-							aria-labelledby={labelledBy.input}
+							// In the accessible name, aria-labelledby wins over aria-label, so an
+							// explicit aria-label removes it. The `<label>` of the field names the
+							// input, so the input takes no fallback.
+							aria-labelledby={ariaLabel ? undefined : ariaLabelledby}
 							// Passed raw: the `<Input>` beneath runs the same `useControlProps`
 							// merge, so resolving it here would join the field's ids twice.
 							aria-describedby={ariaDescribedBy}
@@ -1009,7 +947,7 @@ export function Combobox<T>({
 						ariaLabel={ariaLabel}
 						// Names the listbox from the input's name: an explicit aria-label
 						// wins, else aria-labelledby, else the field's Label (via Control).
-						ariaLabelledby={labelledBy.listbox}
+						ariaLabelledby={ariaLabelledby ?? control?.labelledBy}
 						floatingStyles={floatingStyles}
 						getFloatingProps={getFloatingProps}
 						optionsRef={attachOptions}

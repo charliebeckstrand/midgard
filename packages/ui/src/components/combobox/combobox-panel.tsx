@@ -1,8 +1,9 @@
 'use client'
 
-import { type CSSProperties, type MouseEvent, type ReactNode, type Ref, useCallback } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import type { scale } from '../../recipes/kata/combobox'
@@ -83,15 +84,8 @@ export function ComboboxPanel({
 }: ComboboxPanelProps) {
 	// The ref keeps one identity, so the panel attaches and scrolls to the
 	// selection one time for each mount. React calls a new callback ref again at
-	// each commit, and with the compiler off, nothing else keeps its identity.
-	const floatingRef = useCallback(
-		(node: HTMLDivElement | null) => {
-			setFloating(node)
-
-			scrollToSelected(node)
-		},
-		[setFloating, scrollToSelected],
-	)
+	// each commit.
+	const floatingRef = useComposedRef<HTMLDivElement>(setFloating, scrollToSelected)
 
 	// The portal carries the density scope of the combobox. An explicit `size` is
 	// the scope of the `PopoverPanel` inside.

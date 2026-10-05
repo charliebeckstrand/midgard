@@ -132,30 +132,19 @@ function openMenuEnter(
 ): boolean {
 	if (event.key !== 'Enter' || !container) return false
 
-	if (selectSoleOption(container, multiple)) {
+	if (enterKeepsSelection(container, multiple)) {
 		event.preventDefault()
+
+		keep()
 
 		return true
 	}
 
-	if (!enterKeepsSelection(container, multiple)) return false
+	if (!selectSoleOption(container)) return false
 
 	event.preventDefault()
 
-	keep()
-
 	return true
-}
-
-/**
- * Marks an Escape on the open menu as consumed with `preventDefault`. That press
- * closes only the menu, so the escape layer of a surface around the combobox
- * must ignore it. In a browser the layer of the menu can unregister before the
- * document listener runs, so the dismiss stack alone does not stop the press.
- * An Escape on the closed menu stays with the surface around it.
- */
-function consumeMenuEscape(event: KeyboardEvent<HTMLInputElement>, open: boolean): void {
-	if (open) event.preventDefault()
 }
 
 /**
@@ -267,7 +256,12 @@ export function useComboboxInput<T>({
 			if (isReservedTextboxKey(event)) return
 
 			if (event.key === 'Escape') {
-				consumeMenuEscape(event, open)
+				// The press closes only the menu, so the escape layer of a surface
+				// around the combobox must ignore it. In a browser the layer of the
+				// menu can unregister before the document listener runs, so the
+				// dismiss stack alone does not stop the press. An Escape on the
+				// closed menu stays with the surface around it.
+				if (open) event.preventDefault()
 
 				close()
 

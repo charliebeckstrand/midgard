@@ -16,6 +16,10 @@ import { useCallback, useState } from 'react'
  * `useComboboxState` (the query the menu filters on); both freezes ride the
  * same close animation.
  *
+ * `snapshot` is `null` while `open` is `true`. A controlled owner can keep the
+ * panel open after a close or a pick. Then no exit animation runs and no reopen
+ * comes, so nothing releases the snapshot, and the panel paints the live value.
+ *
  * @returns `{ snapshot, freeze, flush }`; `freeze` and `flush` are stable.
  * @internal
  */
@@ -36,5 +40,5 @@ export function useFrozenOnClose<T>(open: boolean | undefined) {
 
 	const flush = useCallback(() => setFrozen(null), [])
 
-	return { snapshot: frozen, freeze, flush }
+	return { snapshot: open ? null : frozen, freeze, flush }
 }
