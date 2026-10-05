@@ -96,11 +96,6 @@ function mountServerMarkup(ui: ReactElement): HTMLElement {
 	return host
 }
 
-/** `[start, end]` as the hook currently has them stamped. */
-function edges(el: HTMLElement): [boolean, boolean] {
-	return [el.hasAttribute('data-overflow-start'), el.hasAttribute('data-overflow-end')]
-}
-
 /** The width of a full edge fade, 1.5rem at the root font size of the suite. */
 const FULL_FADE_PX = 24
 
@@ -155,19 +150,13 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			expect(el.scrollWidth).toBeGreaterThan(el.clientWidth)
 
-			await waitFor(() => expect(edges(el)).toEqual([false, true]))
-
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
 
 			scrollToMiddle(el)
 
-			await waitFor(() => expect(edges(el)).toEqual([true, true]))
-
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: true }))
 
 			scrollToEnd(el)
-
-			await waitFor(() => expect(edges(el)).toEqual([true, false]))
 
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: false }))
 		})
@@ -177,13 +166,9 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			const el = getSlot(container, slot)
 
-			await waitFor(() => expect(edges(el)).toEqual([false, true]))
-
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: false }))
 
 			scrollToEnd(el, true)
-
-			await waitFor(() => expect(edges(el)).toEqual([true, false]))
 
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
 		})
@@ -192,8 +177,6 @@ describe('phone scroll cues (real browser, 375px)', () => {
 			const el = getSlot(mountServerMarkup(<Subject />), slot)
 
 			await nextPaint()
-
-			expect(edges(el)).toEqual([false, false])
 
 			expect(fadedSides(el)).toEqual({ left: false, right: true })
 		})
@@ -221,11 +204,9 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			const el = getSlot(container, slot)
 
-			await waitFor(() => expect(edges(el)).toEqual([false, true]))
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
 
 			screen.getByTestId('toggle').click()
-
-			await waitFor(() => expect(edges(el)).toEqual([false, false]))
 
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: false }))
 		})
@@ -263,7 +244,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			expect(row.hasAttribute('role')).toBe(false)
 
-			expect(edges(row)).toEqual([false, false])
+			expect(getComputedStyle(row).maskImage).toBe('none')
 		})
 	})
 
@@ -301,7 +282,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			expect(root.hasAttribute('tabindex')).toBe(false)
 
-			expect(edges(root)).toEqual([false, false])
+			expect(getComputedStyle(root).maskImage).toBe('none')
 		})
 	})
 })

@@ -1,7 +1,6 @@
 'use client'
 
 import { type RefCallback, useCallback } from 'react'
-import type { ScrollOrientation } from '../types'
 import { observeScrollExtent } from './observe-scroll-extent'
 
 /** Tolerance for fractional scroll offsets on zoomed or high-DPI displays. */
@@ -11,17 +10,17 @@ const EDGE_EPSILON_PX = 1
 const SCROLLABLE = /auto|scroll/
 
 /**
- * Whether the overflow value of `node` on one axis lets the user scroll it. The
+ * Whether the vertical overflow value of `node` lets the user scroll it. The
  * hook asks only when the content extends past an edge, so a box that fits
  * reads no style.
  *
  * @internal
  */
-function scrollsOn(node: HTMLElement, axis: 'overflowX' | 'overflowY'): boolean {
-	return SCROLLABLE.test(getComputedStyle(node)[axis])
+function scrollsVertically(node: HTMLElement): boolean {
+	return SCROLLABLE.test(getComputedStyle(node).overflowY)
 }
 
-/** Options for {@link useScrollOverflow}: the enable gate and the axis to watch. */
+/** Options for {@link useScrollOverflow}: the enable gate. */
 export type ScrollOverflowOptions = {
 	/**
 	 * Whether the hook watches at all. When false the ref still attaches, and
@@ -36,50 +35,35 @@ export type ScrollOverflowOptions = {
 	 * @defaultValue true
 	 */
 	enabled?: boolean
-	/**
-	 * The scroll axis to watch. `vertical` stamps `data-overflow-above` and
-	 * `data-overflow-below`. `horizontal` stamps `data-overflow-start` and
-	 * `data-overflow-end`, which follow the reading direction. `both` stamps
-	 * all four.
-	 *
-	 * @defaultValue 'vertical'
-	 */
-	axis?: ScrollOrientation
 }
 
 /**
- * Stamps scroll-overflow state onto a scroll container. On the vertical axis,
- * the node carries `data-overflow-above` / `data-overflow-below` while content
- * extends past the respective edge. On the horizontal axis, it carries
- * `data-overflow-start` / `data-overflow-end`. The hook drops each attribute
- * when that edge is reached. Style the attributes to build scroll affordances
- * — edge fades, shadows, arrows — in CSS.
+ * Stamps vertical scroll-overflow state onto a scroll container. The node
+ * carries `data-overflow-above` / `data-overflow-below` while content extends
+ * past the respective edge. The hook drops each attribute when that edge is
+ * reached. Style the attributes to build scroll affordances, such as edge
+ * fades, shadows, and arrows, in CSS.
  *
  * @param options - The enable gate, for a container that cannot overflow in
- * one of its states, and the axis to watch.
+ * one of its states.
  * @returns A callback ref to attach to the scroll container.
  *
  * @remarks
  * State updates on scroll, on resize of the node or its direct children, and
- * on child additions or removals. The default axis is vertical, so a caller
- * that sets no `axis` gets no horizontal attribute. The ref cleans up its
- * listeners and attributes on detach (React 19 ref cleanup).
+ * on child additions or removals. The ref cleans up its listeners and
+ * attributes on detach (React 19 ref cleanup).
  *
- * An axis shows overflow only while its overflow value lets the user scroll
- * it. A parent can set a scroll container to `visible` and scroll the content
- * itself, as the Grid does with its Table. The content then extends past the
- * edge of the container, but the container does not scroll, so it carries no
- * attribute on that axis.
+ * The node shows overflow only while its vertical overflow value lets the user
+ * scroll it. A parent can set a scroll container to `visible` and scroll the
+ * content itself. The content then extends past the edge of the container, but
+ * the container does not scroll, so it carries no attribute.
  *
- * The horizontal edges are logical. The `start` edge is the edge where the
- * reading direction starts: the left edge in a left-to-right document, and the
- * right edge in a right-to-left document. A browser reports `scrollLeft` as
- * zero at the start, and as a negative value toward the end of a right-to-left
- * scroller. Thus the hook reads the magnitude of the offset.
+ * The hook watches the vertical axis only. A box that scrolls on the inline
+ * axis takes `omote.rail`, which draws its edge fade in CSS with no script.
  *
- * A flip of `enabled` or of `axis` swaps the ref identity, so React detaches
- * the node and attaches it again. The cleanup clears all the attributes, and
- * the attach that follows re-measures.
+ * A flip of `enabled` swaps the ref identity, so React detaches the node and
+ * attaches it again. The cleanup clears the attributes, and the attach that
+ * follows re-measures.
  *
  * @example
  * ```tsx
@@ -87,53 +71,24 @@ export type ScrollOverflowOptions = {
  *
  * <div ref={scrollOverflowRef} className="overflow-y-auto data-overflow-below:...">
  * ```
- *
- * @example
- * ```tsx
- * const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
- *
- * <div ref={scrollOverflowRef} className="overflow-x-auto data-overflow-end:...">
- * ```
  */
 export function useScrollOverflow(options: ScrollOverflowOptions = {}): RefCallback<HTMLElement> {
-	const { enabled = true, axis = 'vertical' } = options
+	const { enabled = true } = options
 
 	return useCallback(
 		(node: HTMLElement | null) => {
 			if (!node || !enabled) return
 
-			const vertical = axis !== 'horizontal'
-
-			const horizontal = axis !== 'vertical'
-
 			const update = () => {
-				if (vertical) {
-					const above = node.scrollTop > EDGE_EPSILON_PX
+				const above = node.scrollTop > EDGE_EPSILON_PX
 
-					const below = node.scrollTop + node.clientHeight < node.scrollHeight - EDGE_EPSILON_PX
+				const below = node.scrollTop + node.clientHeight < node.scrollHeight - EDGE_EPSILON_PX
 
-					const scrolls = (above || below) && scrollsOn(node, 'overflowY')
+				const scrolls = (above || below) && scrollsVertically(node)
 
-					node.toggleAttribute('data-overflow-above', scrolls && above)
+				node.toggleAttribute('data-overflow-above', scrolls && above)
 
-					node.toggleAttribute('data-overflow-below', scrolls && below)
-				}
-
-				if (horizontal) {
-					// The magnitude serves both directions: a right-to-left scroller
-					// reports a negative offset toward its end.
-					const offset = Math.abs(node.scrollLeft)
-
-					const start = offset > EDGE_EPSILON_PX
-
-					const end = offset + node.clientWidth < node.scrollWidth - EDGE_EPSILON_PX
-
-					const scrolls = (start || end) && scrollsOn(node, 'overflowX')
-
-					node.toggleAttribute('data-overflow-start', scrolls && start)
-
-					node.toggleAttribute('data-overflow-end', scrolls && end)
-				}
+				node.toggleAttribute('data-overflow-below', scrolls && below)
 			}
 
 			update()
@@ -150,12 +105,8 @@ export function useScrollOverflow(options: ScrollOverflowOptions = {}): RefCallb
 				node.removeAttribute('data-overflow-above')
 
 				node.removeAttribute('data-overflow-below')
-
-				node.removeAttribute('data-overflow-start')
-
-				node.removeAttribute('data-overflow-end')
 			}
 		},
-		[enabled, axis],
+		[enabled],
 	)
 }

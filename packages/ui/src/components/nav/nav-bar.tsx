@@ -2,7 +2,6 @@
 
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import { useScrollOverflow } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k, type NavBarVariants } from '../../recipes/kata/nav'
 import { NavBarContext } from './context'
@@ -37,8 +36,6 @@ export function NavBar({
 	children,
 	...props
 }: NavBarProps) {
-	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
-
 	return (
 		<NavBarContext value={true}>
 			<ActiveIndicatorScope>
@@ -48,7 +45,7 @@ export function NavBar({
 					className={cn(k.bar.base({ variant }), className)}
 					{...props}
 				>
-					<div ref={scrollOverflowRef} data-slot="nav-bar-rail" className={cn(k.bar.rail)}>
+					<div data-slot="nav-bar-rail" className={cn(k.bar.rail)}>
 						{children}
 					</div>
 				</nav>
