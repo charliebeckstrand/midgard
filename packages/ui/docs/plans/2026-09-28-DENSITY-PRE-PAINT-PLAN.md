@@ -18,6 +18,8 @@ A cookie read in the root layout makes each route dynamic, so it is out. A prere
 
 ## The contract
 
+> **Since reversed.** The root does not hold `data-density`. [#1689](https://github.com/charliebeckstrand/midgard/pull/1689) wrote the root step as `data-density-root`. Then [#1692](https://github.com/charliebeckstrand/midgard/pull/1692) made `md` the base of each stepped class and marked a root at another step with a class (`rootDensityClasses` in `core/density/steps.ts`). The root mark of the contract and of increment 1 below is that class.
+
 - **The root is the app scope.** `AppearanceScript` writes `data-density` on `<html>` from the stored level before paint. `AppearanceProvider` keeps it in sync on a change, as it does the `dark` class. `AppearanceProvider` no longer renders a `DensityProvider` span. A nested `DensityProvider` still writes its own scope.
 - **Markup does not depend on the ambient step.** A component with no `size` writes the same classes at each density. Stepped utilities (`density-px-[2,3,4]`) and `density-*` variants select the step from the nearest scope. This is the rule of the engine, applied to the client tier too.
 - **An explicit `size` is a scope.** It writes `data-density` on the element of the component and opens the `Density` context, as on Card. It is in the server markup, so it is correct at the first paint.
@@ -62,7 +64,7 @@ A follow-up after this plan: the chart header, legend, and label constants (`CHA
 
 ## Mitigated
 
-- **The depth cap.** The root scope on `<html>` would use one of the 6 ranked depths on each page. The rungs read `:root[data-density]` as depth 0 and count only the scopes under it, so the trees keep all 6 depths.
+- **The depth cap.** The root scope on `<html>` would use one of the 6 ranked depths on each page. The rungs read `:root[data-density]` as depth 0 and count only the scopes under it, so the trees keep all 6 depths. **Since reversed.** [#1679](https://github.com/charliebeckstrand/midgard/pull/1679) cut the ranked depths to three, and [#1932](https://github.com/charliebeckstrand/midgard/pull/1932) to two.
 - **The change to `useDensityNullable`.** It now means "the nearest explicit scope, or `null` at the root". A silent change of meaning is worse than a new name, so it becomes `useDensityScope`, and each caller gets a type error until it is read again. Overlay, FloatingSurface, and `useDensityLevel` call it. The portal roots want the new meaning, and `useDensityLevel` serves Grid, which increment 6 moves. No app calls it.
 - **Pages with no `AppearanceScript`.** The docs site has its own theme script in `src/docs/index.html`. It gains the density line, so the docs follow the stored density at first paint too. Tests and pages with no script have no root scope, and the `md` rung applies, as it does today.
 - **Script failure.** Storage access can throw (blocked cookies, embedded contexts). The script then writes nothing, the `md` rung applies, and `AppearanceProvider` writes the attribute after hydration. That is the behavior of today, not a new failure.
