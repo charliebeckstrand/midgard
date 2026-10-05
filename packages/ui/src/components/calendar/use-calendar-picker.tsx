@@ -17,6 +17,9 @@ import { calendarPickerReducer, initialCalendarPickerState } from './calendar-pi
 import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 
+/** The selected cell of the picker grid: its Tab stop, and the cell that an open focuses. @internal */
+const SELECTED_CELL = '[data-selected]'
+
 /** Options for {@link useCalendarPicker}: the calendar's current `year`/`month`, `today` for the current-marker, locale `monthLabels`, the `onNavigate` commit callback, and the open state. @internal */
 type CalendarPickerOptions = {
 	year: number
@@ -117,7 +120,7 @@ export function useCalendarPicker({
 		headerRef: pickerHeaderRef,
 		gridRef: pickerGridRef,
 		cols: 3,
-		activeSelector: '[data-selected]',
+		activeSelector: SELECTED_CELL,
 		gridMounted,
 		stopPropagation: true,
 	})
@@ -128,7 +131,7 @@ export function useCalendarPicker({
 
 			if (!grid) return
 
-			const selected = grid.querySelector<HTMLElement>('[data-selected]')
+			const selected = grid.querySelector<HTMLElement>(SELECTED_CELL)
 
 			;(selected ?? grid.querySelector<HTMLElement>('button:not(:disabled)'))?.focus()
 		})

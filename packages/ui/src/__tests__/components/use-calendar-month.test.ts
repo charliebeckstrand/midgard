@@ -4,11 +4,11 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { useCalendarMonth } from '../../components/calendar/use-calendar-month'
 
-type MonthSeed = { value?: Date | null; defaultValue?: Date }
+type MonthSeed = { value?: Date | null }
 
 /** Renders whether the hook shows the month, as the text `true` or `false`. */
-function ShownProbe({ value, defaultValue }: MonthSeed) {
-	return String(useCalendarMonth({ value, defaultValue, activeGridDate: null }).shown)
+function ShownProbe({ value }: MonthSeed) {
+	return String(useCalendarMonth({ value, activeGridDate: null }).shown)
 }
 
 /** The server markup of {@link ShownProbe} for one seed. */
@@ -30,21 +30,7 @@ describe('useCalendarMonth: initial viewDate', () => {
 		expect(result.current.month).toBe(4)
 	})
 
-	it('seeds from defaultValue when value is undefined', () => {
-		const { result } = renderHook(() =>
-			useCalendarMonth({
-				value: undefined,
-				defaultValue: new Date(2026, 2, 1),
-				activeGridDate: null,
-			}),
-		)
-
-		expect(result.current.year).toBe(2026)
-
-		expect(result.current.month).toBe(2)
-	})
-
-	it('seeds from today when neither value nor defaultValue is supplied', () => {
+	it('seeds from today when no value is supplied', () => {
 		const today = new Date()
 
 		const { result } = renderHook(() =>
@@ -186,8 +172,7 @@ describe('useCalendarMonth: re-anchoring', () => {
 		const { result, rerender } = renderHook(
 			(props: { activeGridDate: Date | null }) =>
 				useCalendarMonth({
-					value: undefined,
-					defaultValue: new Date(2026, 4, 1),
+					value: new Date(2026, 4, 1),
 					activeGridDate: props.activeGridDate,
 				}),
 			{ initialProps: { activeGridDate: new Date(2026, 4, 31) } },
@@ -224,8 +209,6 @@ describe('useCalendarMonth: shown', () => {
 
 	it('shows a seeded month on the server', () => {
 		expect(shownOnServer({ value: new Date(2026, 4, 15) })).toBe('true')
-
-		expect(shownOnServer({ defaultValue: new Date(2026, 2, 1) })).toBe('true')
 	})
 
 	it('shows a clock-seeded month at once in a render that does not hydrate', () => {

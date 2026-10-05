@@ -19,7 +19,6 @@ import { k, scale } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
-import { useFormField } from '../form/context'
 import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
@@ -180,9 +179,8 @@ export type CalendarProps = {
  * the nearest density scope, and a set `size` makes the calendar that scope.
  * `sm` is the smallest step. At `xs`, set or inherited, the calendar opens a
  * scope at `sm`.
- * Roving focus spans header, grid, and footer
- * zones (tracked via `active`), and month changes are announced to screen
- * readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
+ * When a parent steers `active`, roving focus spans the header, grid, and
+ * footer zones. Month changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
  *
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
@@ -257,22 +255,17 @@ export function Calendar({
 		onValueChange,
 	})
 
-	// The binding cascade of `useFormValue` gives `defaultValue` to an
-	// uncontrolled, unbound calendar only. The seed of the view obeys the same
-	// rule. A controlled or a bound calendar with no value takes the month of the
-	// clock, and that month waits for hydration.
-	const field = useFormField(name)
-
-	const seed = valueProp === undefined && field === undefined ? defaultValue : undefined
-
 	// The day is null until hydration, and it moves at each local midnight.
 	const today = useCalendarToday()
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
+	// The view seeds from the resolved `value`. The binding cascade of
+	// `useFormValue` gives `defaultValue` to an uncontrolled, unbound calendar
+	// only, so a controlled or a bound calendar with no value takes the month of
+	// the clock, and that month waits for hydration.
 	const { viewDate, year, month, shown, prevMonth, nextMonth, navigateTo } = useCalendarMonth({
 		value,
-		defaultValue: seed,
 		activeGridDate,
 		onMonthChange,
 	})

@@ -6,13 +6,14 @@ import { flushSync } from 'react-dom'
 
 import { useA11yRoving } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { queryItems } from '../../hooks/a11y/use-a11y-roving'
 import { wrap } from '../../utilities'
 import { fromCalendarDate, isYearInRange, toCalendarDate } from './calendar-utilities'
 
 /**
  * Selector for focusable day cells. Out-of-range cells render as
- * `<button disabled>`, which can't take focus, so every query scopes to enabled
- * buttons and roving skips disabled cells. `.focus()` on a disabled element is a
+ * `<button disabled>`, which can't take focus, so every roving query scopes to
+ * enabled buttons and roving skips disabled cells. `.focus()` on a disabled element is a
  * no-op that would freeze the active index at the edge of a disabled range
  * (WCAG 2.1.1).
  *
@@ -193,10 +194,8 @@ function preventAndStop(event: KeyboardEvent, stopPropagation: boolean): void {
 	if (stopPropagation) event.stopPropagation()
 }
 
-/** Every day button of a day grid, the disabled days too, in DOM order. @internal */
-function dayButtonsOf(grid: HTMLElement | null): HTMLElement[] {
-	return Array.from(grid?.querySelectorAll<HTMLElement>('button') ?? [])
-}
+/** Every day button of a day grid, the disabled days too. @internal */
+const DAY_BUTTON = 'button'
 
 /** The step of a Page key in a day grid: a month, or a year with Shift. `null` for every other key. @internal */
 function pageStep(event: KeyboardEvent): DateDuration | null {
@@ -239,7 +238,9 @@ function moveDay(
 
 	if (!step) return false
 
-	const focused = dayGrid.days[dayButtonsOf(grid).indexOf(document.activeElement as HTMLElement)]
+	const buttons = queryItems(grid, DAY_BUTTON)
+
+	const focused = dayGrid.days[activeIndexIn(buttons)]
 
 	if (!focused) return false
 
@@ -259,11 +260,15 @@ function moveDay(
 	// The view holds years 1 to 9999 only, so the focus stays at a limit.
 	if (!isYearInRange(date.getFullYear())) return true
 
-	if (!isSameMonth(to, from)) {
-		flushSync(() => dayGrid.navigateTo(date.getFullYear(), date.getMonth()))
+	if (isSameMonth(to, from)) {
+		buttons[to.day - 1]?.focus()
+
+		return true
 	}
 
-	dayButtonsOf(grid)[to.day - 1]?.focus()
+	flushSync(() => dayGrid.navigateTo(date.getFullYear(), date.getMonth()))
+
+	queryItems(grid, DAY_BUTTON)[to.day - 1]?.focus()
 
 	return true
 }
@@ -278,29 +283,24 @@ function moveDay(
  */
 function crossZoneEdge(
 	event: KeyboardEvent,
-	zones: { header: HTMLElement | null; grid: HTMLElement | null; footer: HTMLElement | null },
+	header: HTMLElement | null,
+	grid: HTMLElement | null,
+	footer: HTMLElement | null,
 	cols: number,
-	stopPropagation: boolean,
 ): boolean {
-	if (event.key === 'ArrowUp' && isTopRow(zones.grid, cols)) {
-		preventAndStop(event, stopPropagation)
-
-		middleButton(zones.header)?.focus()
+	if (event.key === 'ArrowUp' && isTopRow(grid, cols)) {
+		middleButton(header)?.focus()
 
 		return true
 	}
 
-	if (event.key !== 'ArrowDown' || !isBottomRow(zones.grid, cols)) return false
+	if (event.key !== 'ArrowDown' || !isBottomRow(grid, cols)) return false
 
-	const target = firstButton(zones.footer)
+	const target = firstButton(footer)
 
-	if (!target) return false
+	target?.focus()
 
-	preventAndStop(event, stopPropagation)
-
-	target.focus()
-
-	return true
+	return target !== null
 }
 
 /** Wraps focus between the footer's own buttons on Left/Right. @internal */
@@ -390,20 +390,13 @@ export function useCalendarFocus({
 		(event: KeyboardEvent) => {
 			// A day grid moves by date, so its arrows never leave the grid. Only a
 			// grid with no date model bridges to the header and the footer.
-			if (dayGrid) {
-				if (moveDay(event, gridRef.current, dayGrid)) {
-					preventAndStop(event, stopPropagation)
+			const handled = dayGrid
+				? moveDay(event, gridRef.current, dayGrid)
+				: crossZoneEdge(event, headerRef.current, gridRef.current, footerRef?.current ?? null, cols)
 
-					return
-				}
-			} else if (
-				crossZoneEdge(
-					event,
-					{ header: headerRef.current, grid: gridRef.current, footer: footerRef?.current ?? null },
-					cols,
-					stopPropagation,
-				)
-			) {
+			if (handled) {
+				preventAndStop(event, stopPropagation)
+
 				return
 			}
 

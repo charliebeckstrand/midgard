@@ -17,10 +17,9 @@ function monthOf(date: Date): Date {
 	return firstOfMonth(date.getFullYear(), date.getMonth())
 }
 
-/** Options for {@link useCalendarMonth}: the resolved `value`, the `defaultValue` seed, and the roving-focus grid date that pulls the view along. The caller gives `defaultValue` only for an uncontrolled, unbound calendar, as the binding cascade does. @internal */
+/** Options for {@link useCalendarMonth}: the resolved `value`, which also seeds the view, and the roving-focus grid date that pulls the view along. @internal */
 type CalendarMonthOptions = {
 	value: Date | null | undefined
-	defaultValue?: Date
 	activeGridDate: Date | null
 	onMonthChange?: (month: Date) => void
 }
@@ -74,7 +73,7 @@ function reanchor(date: Date | null | undefined, viewDate: Date): Date | null {
  * steppers keep their identity, and each step applies to the last one, so two
  * calls in one event move two months. `shown` tells whether the markup can
  * show the month.
- * @remarks A clock-seeded view (no `value` and no `defaultValue`) reads the
+ * @remarks A clock-seeded view (no `value`) reads the
  * clock of the side that renders it. Across a timezone offset at a month
  * boundary, the server and the client can read different months. Thus `shown`
  * is `false` on the server and in the hydration render, and the caller must
@@ -83,25 +82,20 @@ function reanchor(date: Date | null | undefined, viewDate: Date): Date | null {
  * popover that mounts on the client, gets `true` at once. It shows the month in
  * its first commit.
  *
- * A seeded view (a `value` or a `defaultValue`) is `shown` on the server too.
+ * A seeded view (a `value`) is `shown` on the server too.
  * Each side reads the month of the seed in its own zone, so the caller must
  * build the seed from local parts. Then the two sides read the same month.
  */
-export function useCalendarMonth({
-	value,
-	defaultValue,
-	activeGridDate,
-	onMonthChange,
-}: CalendarMonthOptions) {
+export function useCalendarMonth({ value, activeGridDate, onMonthChange }: CalendarMonthOptions) {
 	// The hydration render seeds from the client clock, so the state holds the
 	// month of the client from the start. Only the markup waits for hydration, as
 	// the sibling `today` does. The month in state does not change when the
 	// markup shows it, so nothing reports or announces it.
-	const [viewDate, setViewDate] = useState(() => monthOf(value ?? defaultValue ?? new Date()))
+	const [viewDate, setViewDate] = useState(() => monthOf(value ?? new Date()))
 
 	const hydrated = useHydrated()
 
-	const shown = hydrated || value != null || defaultValue != null
+	const shown = hydrated || value != null
 
 	const year = viewDate.getFullYear()
 

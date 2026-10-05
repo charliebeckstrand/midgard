@@ -7,11 +7,6 @@ import { Icon } from '../icon'
 
 type CalendarToolbarProps = {
 	toolbarRef: RefObject<HTMLDivElement | null>
-	/**
-	 * The row does not use this label. The row has no role, and ARIA does not
-	 * let an element with no role have a name, so the row has no `aria-label`.
-	 */
-	label: string
 	onKeyDown: KeyboardEventHandler<HTMLElement>
 	prevLabel: string
 	nextLabel: string
