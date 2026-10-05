@@ -21,11 +21,9 @@ const DOCS_VIRTUAL_MODULES: ReadonlyMap<string, string> = new Map([
 /**
  * Resolves the virtual modules of the docs engine to empty values.
  *
- * Nothing this suite runs imports them — a crawl of every relative import from
- * `src/__tests__/browser/` reaches 1,492 files and none under `src/docs-legacy/`.
- * Esbuild's dependency scan reaches them anyway: it starts from every test file
- * of the package, the `unit` suites under `src/docs-legacy/engine/__tests__/`
- * included. An unresolvable module stops the scan dead: Vite then reports
+ * The `geometry` suites `example-resize-floor` and `axes-instance-width`
+ * import the legacy docs engine, and the dependency scan follows the engine to
+ * these modules. An unresolvable module stops the scan dead: Vite then reports
  * "Failed to run dependency scan. Skipping dependency pre-bundling" and
  * pre-bundles only the `include` list below, finding every other package one
  * request at a time. Measured cold on a 4-core container: eight packages
@@ -244,6 +242,13 @@ export default defineConfig({
 		],
 	},
 	test: {
+		// The files of the five instances, and each instance sets its own
+		// `include`. Vitest starts the dependency scan of the browser server from
+		// the test files of this level, and the default is each test file of the
+		// package. The node suites then enter the scan too, and a module that the
+		// optimizer cannot bundle for a browser stops the run, such as the native
+		// binding of Tailwind that the tests of the docs build import.
+		include: ['src/__tests__/browser/**/*.test.{ts,tsx}'],
 		globals: true,
 		// The same rule `vitest.config.ts` states: machine speed must change when a
 		// test passes, never whether it passes. Both budgets were Vitest's own

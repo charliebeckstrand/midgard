@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, type MouseEvent, useRef } from 'react'
+import { Fragment, type MouseEvent, type ReactNode, useRef } from 'react'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -9,6 +9,7 @@ import {
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
 import { cn } from 'ui/core'
+import { Flex } from 'ui/structure/flex'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { useTrailFit } from './use-trail-fit'
 
@@ -25,6 +26,11 @@ export type PlaceTrailProps = {
 	steps: readonly PlaceTrailStep[]
 	/** The type scale the trail reads at, which is the caller's — a page title is not a panel's. */
 	className?: string
+	/**
+	 * What shares the trail's line, after the last crumb. It is laid out and
+	 * measured with the trail, so the crumbs give way before it does.
+	 */
+	children?: ReactNode
 }
 
 /** What a crumb shows in place of its label once the row cannot hold it. */
@@ -144,16 +150,20 @@ function TrailCrumb({
  * reads the box this renders, so give it one that holds the row's full width
  * (`flex-1`) rather than one that shrinks to its content: a box that tracks the
  * trail would narrow as the trail collapses, and the crumbs could never come
- * back.
+ * back. Anything that sits on the line after the trail goes in as `children`
+ * for the same reason: put beside the trail instead, it would need a box that
+ * shrinks to the trail.
  */
-export function PlaceTrail({ steps, className }: PlaceTrailProps) {
+export function PlaceTrail({ steps, className, children }: PlaceTrailProps) {
 	const row = useRef<HTMLDivElement>(null)
 
 	const { collapsed, clipped } = useTrailFit(row, steps.map((step) => step.label).join('\n'))
 
 	return (
-		<div ref={row}>
-			<Breadcrumb>
+		<Flex ref={row} gap="md" align="center" className="min-w-0">
+			{/* `min-w-0` is what lets the trail give way to what follows it, rather
+			    than push it out of the row. */}
+			<Breadcrumb className="min-w-0">
 				<BreadcrumbList className={cn('flex-nowrap', className)}>
 					{steps.map((step, at) => {
 						const current = at === steps.length - 1
@@ -181,6 +191,8 @@ export function PlaceTrail({ steps, className }: PlaceTrailProps) {
 					})}
 				</BreadcrumbList>
 			</Breadcrumb>
-		</div>
+
+			{children}
+		</Flex>
 	)
 }

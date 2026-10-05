@@ -73,10 +73,21 @@ export const k = {
 		// handle the stock header would sit a whole step below the grip — which is
 		// what made the first consumer hand-roll its own header row rather than use
 		// this slot.
-		title: { extra: ['px-6 pt-6', 'group-data-handle/drawer:pt-0'] },
+		//
+		// The block insets are the slot gap, so a header and a footer that stay in
+		// place over the scrolling body have the same space on each side.
+		title: { extra: ['px-6', layout.inset.top, 'group-data-handle/drawer:pt-0'] },
 		description: { extra: 'px-6' },
-		footer: { extra: 'px-6 pb-6' },
-		body: { extra: [flex.fill, 'overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'] },
+		footer: { extra: ['px-6', layout.inset.bottom] },
+		body: {
+			extra: [
+				flex.fill,
+				'overflow-y-auto overscroll-y-contain',
+				'px-6',
+				layout.inset.first,
+				layout.inset.last,
+			],
+		},
 	}),
 	/**
 	 * The drag handle: a grab area wide enough to aim at (`base`), and the bar

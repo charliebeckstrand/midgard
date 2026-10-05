@@ -15,14 +15,18 @@ export const k = {
 				layout.base,
 				'relative',
 				'w-full',
-				'p-6',
+				// The block insets are the slot gap, so a header and a footer that stay in
+				// place over the scrolling body have the same space on each side.
+				'px-6',
+				layout.inset.top,
+				layout.inset.bottom,
 				// Each cap is a share of the overlay root. Above `sm`, the root has an
 				// inset of 1rem on each edge, so the full share stops 1rem short of each.
 				'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto',
 				// Below `sm`, the panel sits on the bottom edge. In a page with
 				// `viewport-fit=cover`, this keeps its content clear of the home
-				// indicator. Elsewhere the inset is zero.
-				'max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
+				// indicator.
+				layout.inset.safe,
 				'sm:rounded-2xl sm:max-h-full',
 			],
 			surface: {

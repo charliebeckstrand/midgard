@@ -287,15 +287,15 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 									<Message name="visitedAt" />
 								</Field>
 
-								<Field>
+								<div className="sm:col-span-2">
+									<PlacePhotosField />
+								</div>
+
+								<Field className="sm:col-span-2">
 									<Label>Rating</Label>
 
 									<Rating name="rating" size="lg" step={0.5} />
 								</Field>
-
-								<div className="sm:col-span-2">
-									<PlacePhotosField />
-								</div>
 
 								<Field className="sm:col-span-2">
 									<Label>Your review</Label>
