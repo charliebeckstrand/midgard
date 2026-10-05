@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
-import { MapPlat } from '../../modules/map'
+import states from 'us-atlas/states-10m.json'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { type MapGeography, MapPlat } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import {
 	REGION_FADE,
@@ -24,6 +25,10 @@ import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
 
 describe('MapPlat', () => {
+	it('takes an atlas imported as JSON with no cast', () => {
+		expectTypeOf(states).toExtend<MapGeography>()
+	})
+
 	it('draws one region per feature under a labeled role="img" plot', () => {
 		const { container } = renderUI(categoricalPlat())
 
