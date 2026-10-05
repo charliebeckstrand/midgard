@@ -86,5 +86,9 @@ export type SwatchVariants = Omit<VariantProps<typeof k>, 'shape' | 'variant'> &
 	shape?: VariantProps<typeof k>['shape']
 	/** The fill style of the mark. @defaultValue 'solid' */
 	variant?: VariantProps<typeof k>['variant']
+	/**
+	 * The density step of the mark. Omit it to take the step of the nearest
+	 * density scope. A step makes the mark a density scope.
+	 */
 	size?: ScaleStep<typeof scale>
 }

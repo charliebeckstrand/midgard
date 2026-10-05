@@ -12,7 +12,17 @@ import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
 /** Props for {@link TabContents}; the `tab`-slotted `CurrentContents` surface. */
 export type TabContentsProps = Omit<ComponentProps<typeof CurrentContents>, 'slotPrefix'>
 /** Props for {@link TabContent}; the `tab`-slotted `CurrentContent` surface. */
-export type TabContentProps = Omit<ComponentProps<typeof CurrentContent>, 'slotPrefix'>
+export type TabContentProps = Omit<
+	ComponentProps<typeof CurrentContent>,
+	'slotPrefix' | 'data-slot'
+> & {
+	/**
+	 * Panel slot identifier. Set it to rename the anchor.
+	 *
+	 * @defaultValue 'tab-content'
+	 */
+	'data-slot'?: string
+}
 
 /**
  * Container that swaps `<TabContent>` panels by active value. Its `mount` policy

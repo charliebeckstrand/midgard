@@ -8,15 +8,18 @@ import type { JsonValue } from './types'
  *
  * @see {@link JsonTreeProps.search}
  */
-export type Search = string | { value: string; filter?: boolean }
+export type JsonTreeSearch = string | { value: string; filter?: boolean }
 
 /**
- * Normalizes a {@link Search} into `{ value, filter }`, treating a bare string
+ * Normalizes a {@link JsonTreeSearch} into `{ value, filter }`, treating a bare string
  * (or `null`/`undefined`) as highlight-only.
  *
  * @internal
  */
-export function normalizeSearch(search: Search | undefined): { value: string; filter: boolean } {
+export function normalizeSearch(search: JsonTreeSearch | undefined): {
+	value: string
+	filter: boolean
+} {
 	if (search == null) return { value: '', filter: false }
 
 	if (typeof search === 'string') return { value: search, filter: false }

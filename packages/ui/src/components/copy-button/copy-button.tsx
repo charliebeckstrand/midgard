@@ -20,6 +20,7 @@ export type CopyButtonProps = {
 	 * @defaultValue a Clipboard icon
 	 */
 	icon?: ReactElement
+	/** The density step of the button. Omit it to take the step of the nearest density scope. */
 	size?: ButtonVariants['size']
 	/**
 	 * Milliseconds the copied state holds before reverting to the rest glyph.
@@ -27,7 +28,7 @@ export type CopyButtonProps = {
 	 */
 	timeout?: number
 	className?: string
-	/** Fires on every copied-state transition, with the new text. */
+	/** Fires on each change of the copied state, with the new `copied` value. */
 	onCopiedChange?: (copied: boolean) => void
 	/**
 	 * Fires when the clipboard write rejects, with whatever the platform threw.

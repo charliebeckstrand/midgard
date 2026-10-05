@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
-import { act, bySlot, fireEvent, getSlot, renderUI, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, present, renderUI, withFakeTime } from '../helpers'
 
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
@@ -234,7 +234,23 @@ describe('HoldButton', () => {
 		expect(onHoldStart).not.toHaveBeenCalled()
 	})
 
-	it('keeps type="button" so a caller type cannot submit an enclosing form', () => {
+	it('writes type="button" when the caller gives no type', () => {
+		const { container } = renderUI(<HoldButton>Hold</HoldButton>)
+
+		expect(getSlot(container, 'hold-button')).toHaveAttribute('type', 'button')
+	})
+
+	it('writes the caller type', () => {
+		const { container } = renderUI(
+			<form>
+				<HoldButton type="submit">Delete</HoldButton>
+			</form>,
+		)
+
+		expect(getSlot(container, 'hold-button')).toHaveAttribute('type', 'submit')
+	})
+
+	it('does not submit the form on a quick press', () => {
 		const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
 
 		const { container } = renderUI(
@@ -245,11 +261,9 @@ describe('HoldButton', () => {
 
 		const el = getSlot(container, 'hold-button')
 
-		expect(el).toHaveAttribute('type', 'button')
-
 		// A quick press cancels the hold, but the browser sends a native click
-		// after the pointer pair. A caller `type="submit"` would then submit the
-		// form, and the hold gate would stop nothing.
+		// after the pointer pair. That click must not submit the form, or the
+		// hold gate stops nothing.
 		fireEvent.pointerDown(el)
 
 		fireEvent.pointerUp(el)
@@ -257,6 +271,23 @@ describe('HoldButton', () => {
 		fireEvent.click(el)
 
 		expect(onSubmit).not.toHaveBeenCalled()
+	})
+
+	it('does not reset the form on a quick press', () => {
+		const { container } = renderUI(
+			<form>
+				<input aria-label="Name" defaultValue="a" />
+				<HoldButton type="reset">Clear</HoldButton>
+			</form>,
+		)
+
+		const input = present<HTMLInputElement>(container.querySelector('input'), 'name input')
+
+		input.value = 'b'
+
+		fireEvent.click(getSlot(container, 'hold-button'))
+
+		expect(input.value).toBe('b')
 	})
 
 	describe('hold completion', () => {
@@ -286,6 +317,77 @@ describe('HoldButton', () => {
 			})
 
 			expect(onHoldComplete).toHaveBeenCalledOnce()
+		})
+
+		it('submits the form with the button as the submitter when a submit hold completes', () => {
+			const onHoldComplete = vi.fn()
+
+			const onSubmit = vi.fn((event: FormEvent<HTMLFormElement>) => {
+				event.preventDefault()
+
+				return (event.nativeEvent as SubmitEvent).submitter
+			})
+
+			const { container } = renderUI(
+				<form onSubmit={onSubmit}>
+					<HoldButton type="submit" name="intent" value="delete" onHoldComplete={onHoldComplete}>
+						Delete
+					</HoldButton>
+				</form>,
+			)
+
+			const el = getSlot(container, 'hold-button')
+
+			fireEvent.pointerDown(el)
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+
+			expect(onSubmit).toHaveBeenCalledOnce()
+
+			expect(onSubmit.mock.results[0]?.value).toBe(el)
+		})
+
+		it('resets the form when a reset hold completes', () => {
+			const { container } = renderUI(
+				<form>
+					<input aria-label="Name" defaultValue="a" />
+					<HoldButton type="reset">Clear</HoldButton>
+				</form>,
+			)
+
+			const input = present<HTMLInputElement>(container.querySelector('input'), 'name input')
+
+			input.value = 'b'
+
+			fireEvent.pointerDown(getSlot(container, 'hold-button'))
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(input.value).toBe('a')
+		})
+
+		it('does not submit the form when a button hold completes', () => {
+			const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
+
+			const { container } = renderUI(
+				<form onSubmit={onSubmit}>
+					<HoldButton>Hold</HoldButton>
+				</form>,
+			)
+
+			fireEvent.pointerDown(getSlot(container, 'hold-button'))
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(onSubmit).not.toHaveBeenCalled()
 		})
 
 		it('cancels an in-flight hold when disabled flips true mid-hold', () => {

@@ -70,7 +70,9 @@ export type SidebarLayoutProps = PropsWithChildren<{
  *
  * To show the layout inside another page, put it in a box that has a height and
  * scrolls. Make the box a size container (`@container-size`). The layout then
- * fills the box, and the box scrolls in place of the page.
+ * fills the box, and the box scrolls in place of the page. The switch at `lg`
+ * follows the width of the viewport, not the width of the box. Thus a narrow
+ * box on a wide screen still shows the desktop panel.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The

@@ -95,5 +95,9 @@ export type AvatarVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> &
 	variant?: VariantProps<typeof k>['variant']
 	/** The palette color of the avatar. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']
+	/**
+	 * The density step of the avatar box. Omit it to take the step of the nearest
+	 * density scope. A step makes the avatar a density scope.
+	 */
 	size?: ScaleStep<typeof scale>
 }

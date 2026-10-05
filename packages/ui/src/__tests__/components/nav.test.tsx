@@ -8,6 +8,8 @@ import {
 	type NavContextValue,
 	NavItem,
 	NavList,
+	type NavMenuItemProps,
+	type NavProps,
 	useNavContext,
 } from '../../components/nav'
 import { bySlot, densityStepOf, fireEvent, renderUI, screen } from '../helpers'
@@ -321,5 +323,16 @@ describe('NavContent / NavContents', () => {
 describe('useNavContext', () => {
 	it('returns the exported NavContextValue, or undefined outside a Nav', () => {
 		expectTypeOf(useNavContext).returns.toEqualTypeOf<NavContextValue | undefined>()
+	})
+})
+
+// The native `defaultValue` and `value` of the element are wider than the
+// selection value. Without an Omit, the intersection prints as
+// `string | (readonly string[] & string)`.
+describe('Nav and NavItem selection value types', () => {
+	it('types Nav defaultValue and NavItem value as a plain string', () => {
+		expectTypeOf<NavProps['defaultValue']>().toEqualTypeOf<string | undefined>()
+
+		expectTypeOf<NavMenuItemProps['value']>().toEqualTypeOf<string | undefined>()
 	})
 })

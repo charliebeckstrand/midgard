@@ -25,7 +25,18 @@ export type TimelineMarkerConfig = {
 	lineBefore?: Color
 	/** Connector-line color leading out of the marker. @defaultValue 'zinc' */
 	lineAfter?: Color
-} & ({ status?: StatusDotProps['status']; color?: never } | { color?: Color; status?: never })
+} & (
+	| {
+			/** The status of the dot. The dot is a named StatusDot in the color of the status. */
+			status?: StatusDotProps['status']
+			color?: never
+	  }
+	| {
+			/** The color of a decorative dot with no name. Set it in place of `status`. */
+			color?: Color
+			status?: never
+	  }
+)
 
 /** Props for {@link TimelineMarker}. */
 export type TimelineMarkerProps = TimelineMarkerConfig & {

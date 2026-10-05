@@ -22,8 +22,15 @@ import type { PolymorphicProps } from '../../primitives/polymorphic'
  * @see {@link useNavItem} for the behavior these props drive.
  */
 export type NavItemProps = {
+	/** Icon before the label. It takes the size of the density step of the item. */
 	icon?: ReactElement
+	/**
+	 * Marks the item as current: the item takes `aria-current` and shows the
+	 * active indicator. Omit it to let an item with a `value` read the state from
+	 * the enclosing selection.
+	 */
 	current?: boolean
+	/** Classes for the inner button or link. The wrapper of the row does not take them. */
 	className?: string
 	/**
 	 * Keep an enclosing offcanvas drawer open on click instead of dismissing it.

@@ -4,14 +4,17 @@ import { k, type scale } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../../structure/box'
 
 /** Props for {@link Card}: Box surface props (radius and padding follow the step) plus the `size` step. */
-export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density' | 'bg' | 'outline'> & {
+export type CardProps = BoxProps<
+	'radius' | 'p' | 'px' | 'py' | 'density' | 'bg' | 'outline' | 'data-slot'
+> & {
 	/**
 	 * Background surface token.
 	 * @defaultValue 'none'
 	 */
 	bg?: BoxProps['bg']
 	/**
-	 * Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight.
+	 * Outline. `true` and `'default'` use the default token. Pass `'subtle'` or
+	 * `'strong'` to pick a different weight.
 	 * @defaultValue true
 	 */
 	outline?: BoxProps['outline']
@@ -21,6 +24,12 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density' | 'bg'
 	 * card a density scope, so its children take the step too.
 	 */
 	size?: ScaleStep<typeof scale>
+	/**
+	 * Overrides the `data-slot` attribute.
+	 *
+	 * @defaultValue 'card'
+	 */
+	'data-slot'?: string
 }
 
 /**

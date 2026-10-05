@@ -1,8 +1,10 @@
 /**
  * Shaku scroll-area: dimension scales for `<ScrollArea>`. Keyed by
- * orientation (vertical / horizontal / both) and extent step. `dvh` /
- * `dvw` give the viewport-locked variants. A width step never exceeds the
- * parent: `max-w-full` caps it in a narrower parent.
+ * orientation (vertical / horizontal / both) and extent step. Each step sets
+ * the size of the frame on the axis that scrolls: the height of a vertical
+ * area, and the width of a horizontal area. `dvh` / `dvw` give the
+ * viewport-locked variants, in the unit that each names. A width step never
+ * exceeds the parent: `max-w-full` caps it in a narrower parent.
  *
  * Layer: kiso · Concern: scroll-area dimension
  */
@@ -19,7 +21,7 @@ export const scrollArea = {
 		xl: 'h-96',
 		'2xl': 'h-128',
 		dvh: 'h-[100dvh]',
-		dvw: 'w-[100dvw]',
+		dvw: 'h-[100dvw]',
 	},
 	horizontal: {
 		sm: 'w-48 max-w-full',
@@ -27,8 +29,8 @@ export const scrollArea = {
 		lg: 'w-144 max-w-full',
 		xl: 'w-192 max-w-full',
 		'2xl': 'w-256 max-w-full',
-		dvh: 'h-[100dvh]',
-		dvw: 'w-[100dvw]',
+		dvh: 'w-[100dvh] max-w-full',
+		dvw: 'w-[100dvw] max-w-full',
 	},
 	both: {
 		sm: 'h-24 w-48 max-w-full',
@@ -37,6 +39,6 @@ export const scrollArea = {
 		xl: 'h-96 w-192 max-w-full',
 		'2xl': 'h-128 w-256 max-w-full',
 		dvh: 'h-[100dvh]',
-		dvw: 'w-[100dvw]',
+		dvw: 'w-[100dvw] max-w-full',
 	},
 } satisfies Record<ScrollOrientation, Record<Extent, string>>

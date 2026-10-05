@@ -30,8 +30,11 @@ export type AppearanceProviderProps = {
  * `localStorage`. It toggles the `.dark` class on the root element, and while
  * the theme is `'system'` it follows the OS preference live. It writes the step
  * of the density as a class on the root element (`writeRootDensity`), which
- * makes the root the density scope of the app. At `md` the root has no class. {@link useAppearance} reads the state, and
- * {@link AppearanceSettings} edits it.
+ * makes the root the density scope of the app. At `md` the root has no class.
+ * {@link useAppearance} reads the state, and {@link AppearanceSettings} edits it.
+ *
+ * Render one instance for each app. All instances share the storage keys and
+ * the root element, so a region cannot hold an appearance of its own.
  *
  * The app's stylesheet must key its `dark` variant on the class, for example
  * `@custom-variant dark (&:where(.dark, .dark *))`. On a server-rendered page,

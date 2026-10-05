@@ -13,8 +13,11 @@ import type { QueryField } from '../engine/types'
 
 /** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */
 export type QueryBuilderRuleValueProps = {
+	/** The field of the rule. Its type selects the value input. */
 	field: QueryField
+	/** The current value of the rule. */
 	value: unknown
+	/** Receives the next value of the rule. */
 	onValueChange: (value: unknown) => void
 	/**
 	 * When true, edit a two-bound `[min, max]` tuple (the operator is a range).

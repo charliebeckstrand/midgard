@@ -8,7 +8,9 @@ import type { QueryField, QueryGroup } from './engine/types'
 
 /** Props for {@link QuerySummary}: the query `value` to describe and the `fields` resolving each rule's labels. */
 export type QuerySummaryProps = {
+	/** The query tree to describe. */
 	value: QueryGroup
+	/** The fields that give the label, the operators, and the options of each rule. */
 	fields: QueryField[]
 	className?: string
 }

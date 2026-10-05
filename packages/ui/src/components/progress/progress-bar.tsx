@@ -20,10 +20,19 @@ type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 export type ProgressBarProps = AccessibleName & {
 	/** Current progress; omit (or pass `NaN`) for an indeterminate bar. */
 	value?: number
-	/** @defaultValue 100 */
+	/**
+	 * The value of a full bar. The bar holds `value` between 0 and `max`.
+	 *
+	 * @defaultValue 100
+	 */
 	max?: number
+	/** The density step of the track height. Omit it to take the step of the nearest density scope. */
 	size?: ProgressTrackVariants['size']
-	/** @defaultValue 'zinc' */
+	/**
+	 * The palette color of the fill.
+	 *
+	 * @defaultValue 'zinc'
+	 */
 	color?: ProgressColor
 	className?: string
 }
