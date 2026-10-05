@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
-import { cn } from '../../core'
+import { announce, cn } from '../../core'
 import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { k } from '../../recipes/kata/code'
@@ -38,6 +38,17 @@ function cacheSet(key: string, value: string) {
 	}
 
 	htmlCache.set(key, value)
+}
+
+/**
+ * Announces a refused copy. After a refused write, the CopyButton stays at
+ * rest, and the rest glyph also means "not copied yet". CodeBlock has no prop
+ * for the error, so the block reports the failure itself.
+ *
+ * @internal
+ */
+function announceCopyError() {
+	announce('Copy failed')
 }
 
 /** Props for {@link CodeBlock}. */
@@ -124,6 +135,9 @@ export function primeCodeBlock({
  * `label`. The code is always left to right, also under an RTL ancestor.
  * Markup paints only for the current code. While `code` streams, one
  * tokenization runs at a time and the next one takes the newest code.
+ *
+ * A refused copy leaves the CopyButton at rest. The block then announces
+ * "Copy failed" in the shared live region, where the button announces "Copied".
  */
 export function CodeBlock({
 	code: rawCode,
@@ -238,7 +252,14 @@ export function CodeBlock({
 					</pre>
 				)}
 			</div>
-			{copy && <CopyButton text={code} size="sm" className={cn(k.block.copy)} />}
+			{copy && (
+				<CopyButton
+					text={code}
+					size="sm"
+					className={cn(k.block.copy)}
+					onCopyError={announceCopyError}
+				/>
+			)}
 		</div>
 	)
 }

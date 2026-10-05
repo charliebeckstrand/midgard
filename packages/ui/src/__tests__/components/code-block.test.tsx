@@ -3,7 +3,18 @@ import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CodeBlock, primeCodeBlock } from '../../components/code/code-block'
-import { act, attach, bySlot, renderUI, screen, tick, waitFor } from '../helpers'
+import {
+	act,
+	attach,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	present,
+	renderUI,
+	screen,
+	tick,
+	waitFor,
+} from '../helpers'
 import { highlight } from '../mocks/shiki'
 
 // The worker port of `CodeBlock` is mocked globally in setup/module-mocks.ts,
@@ -11,6 +22,24 @@ import { highlight } from '../mocks/shiki'
 // would bleed across files (see markdown.test.tsx for the failure it caused).
 // The `loadShiki` cases need their own registry, so they sit in
 // boundary/code-block-load-shiki.test.ts, which runs on forks.
+
+/**
+ * Sets `navigator.clipboard` for the current case. `undefined` removes the
+ * Clipboard API, as an insecure origin does.
+ *
+ * @remarks
+ * `onTestFinished` restores the property, also after a case that times out.
+ */
+function stubClipboard(clipboard: { writeText: (value: string) => Promise<void> } | undefined) {
+	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
+
+	Object.defineProperty(window.navigator, 'clipboard', { configurable: true, value: clipboard })
+
+	onTestFinished(() => {
+		if (original) Object.defineProperty(window.navigator, 'clipboard', original)
+		else delete (window.navigator as { clipboard?: unknown }).clipboard
+	})
+}
 
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {
@@ -54,6 +83,24 @@ describe('CodeBlock', () => {
 		const { container } = renderUI(<CodeBlock code="x" copy={false} />)
 
 		expect(screen.queryByLabelText('Copy to clipboard')).not.toBeInTheDocument()
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
+	// A refused copy leaves the button at rest, which looks the same as no copy.
+	// A frame with no clipboard-write permission refuses the write, and an
+	// insecure origin has no Clipboard API.
+	it.each([
+		['refuses the write', { writeText: vi.fn().mockRejectedValue(new Error('denied')) }],
+		['has no Clipboard API', undefined],
+	])('announces a refused copy when the platform %s', async (_, clipboard) => {
+		stubClipboard(clipboard)
+
+		const { container } = renderUI(<CodeBlock code="refused-copy-token" />)
+
+		fireEvent.click(present(bySlot(container, 'copy-button'), 'copy button'))
+
+		await expectAnnouncement('Copy failed')
 
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
