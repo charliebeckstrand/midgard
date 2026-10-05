@@ -270,13 +270,14 @@ function seedTopMatch(
  * only — `multiple` carries no single selection.
  *
  * A windowed selection cannot be found without the DOM, so a registered
- * `source` seats the top option instead of guessing. The key is an explicit
+ * `source` seats the first option that `isDisabled` does not mark
+ * (`virtualTopMatchIndex`) instead of guessing. The key is an explicit
  * move, so this does not go through {@link seedTopMatch}, which clears the
  * highlight on a device with no hover.
  *
  * @internal
  */
-function seatOnArrowOpen(
+export function seatOnArrowOpen(
 	node: HTMLElement,
 	source: VirtualItemSource | null,
 	multiple: boolean,
@@ -284,7 +285,7 @@ function seatOnArrowOpen(
 	inputRef: RefObject<HTMLInputElement | null>,
 ): void {
 	if (source) {
-		setVirtualActiveIndexed(node, source, source.count > 0 ? 0 : -1, activeIndexRef, inputRef, {
+		setVirtualActiveIndexed(node, source, virtualTopMatchIndex(source), activeIndexRef, inputRef, {
 			ariaSelected: false,
 		})
 

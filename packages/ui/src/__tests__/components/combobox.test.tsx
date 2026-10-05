@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
-import { type HighlightOrigin, reanchorOnOptionSwap } from '../../components/combobox/combobox'
+import {
+	type HighlightOrigin,
+	reanchorOnOptionSwap,
+	seatOnArrowOpen,
+} from '../../components/combobox/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Fieldset, Label, Message } from '../../components/fieldset'
@@ -1137,6 +1141,47 @@ describe('reanchorOnOptionSwap', () => {
 		expect(activeIndexRef.current).toBe(1)
 
 		expect(source.scrollToIndex).not.toHaveBeenCalled()
+	})
+})
+
+// The seam of the arrow-key open under a registered source. A plain-object
+// source takes the place of the one that `VirtualOptions` registers, so no
+// virtualizer runs (CONVENTIONS §10.3).
+describe('seatOnArrowOpen', () => {
+	function seat(isDisabled: (index: number) => boolean) {
+		const node = attach(document.createElement('div'))
+
+		const input = attach(document.createElement('input'))
+
+		const source: VirtualItemSource = {
+			count: 3,
+			getKey: (index) => `seat-${index}`,
+			isDisabled,
+			scrollToIndex: vi.fn(),
+		}
+
+		const activeIndexRef = { current: -1 }
+
+		seatOnArrowOpen(node, source, false, activeIndexRef, { current: input })
+
+		return { input, activeIndexRef }
+	}
+
+	// Enter clicks the seated row, and a disabled option drops the click.
+	it('seats the first enabled index of a source', () => {
+		const { input, activeIndexRef } = seat((index) => index === 0)
+
+		expect(activeIndexRef.current).toBe(1)
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'seat-1')
+	})
+
+	it('seats no index when the source holds no enabled index', () => {
+		const { input, activeIndexRef } = seat(() => true)
+
+		expect(activeIndexRef.current).toBe(-1)
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
 	})
 })
 
