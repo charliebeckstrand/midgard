@@ -31,9 +31,13 @@ export type CalendarRangeProps = {
 	max?: Date
 	/** Controlled first range endpoint; the band is painted from here to the effective end. */
 	rangeStart?: Date | null
-	/** Controlled second range endpoint; superseded by `hoverDate` while one is set for the in-progress preview. */
+	/** Controlled second range endpoint; superseded by `hoverDate` while `rangeStart` and a preview are set. */
 	rangeEnd?: Date | null
-	/** Day under the pointer, used as the provisional end of the band before the second click commits `rangeEnd`. */
+	/**
+	 * Day under the pointer, used as the provisional end of the band before the
+	 * second click commits `rangeEnd`. With no `rangeStart`, the calendar ignores
+	 * it: the day is not an endpoint and is not selected.
+	 */
 	hoverDate?: Date | null
 	/** Reports the day entered or left so the parent can drive the `hoverDate` preview. */
 	onHoverDate?: (date: Date | null) => void
@@ -123,7 +127,8 @@ function hoverHandlers(
  * `rangeStart` and the effective end, marks both endpoints selected in a
  * multiselectable listbox, and rounds
  * the leading and trailing edges in either selection order. The effective end
- * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day
+ * is the `hoverDate` preview when it and `rangeStart` are set, else
+ * `rangeEnd`. Hover over a day
  * reports it through `onHoverDate` for live in-progress feedback. Endpoint
  * state is fully controlled by the parent. When the parent moves `rangeStart`
  * (else `rangeEnd`) to another month, the view follows it. Forwards `locale`,
@@ -147,7 +152,9 @@ export function CalendarRange({
 	size,
 	className,
 }: CalendarRangeProps) {
-	const effectiveEnd = hoverDate ?? rangeEnd
+	// A preview needs a start. With no `rangeStart`, the hover marks no day, and a
+	// lone `rangeEnd` stays the end.
+	const effectiveEnd = rangeStart != null ? (hoverDate ?? rangeEnd) : rangeEnd
 
 	const getDayProps = useCallback(
 		(context: CalendarDayContextValue): CalendarDayProps => {
