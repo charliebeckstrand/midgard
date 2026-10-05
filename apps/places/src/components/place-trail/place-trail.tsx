@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, type MouseEvent, type ReactNode, useRef } from 'react'
+import { Fragment, type MouseEvent, type ReactNode, useRef, useSyncExternalStore } from 'react'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -11,7 +11,7 @@ import {
 import { cn } from 'ui/core'
 import { Flex } from 'ui/structure/flex'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-import { useTrailFit } from './use-trail-fit'
+import { fitOf, useTrailFit } from './use-trail-fit'
 
 /** One step of a trail: what it says, and what picking it does. */
 export type PlaceTrailStep = {
@@ -52,6 +52,46 @@ const CRUMB = 'flex min-w-0 max-w-full font-semibold'
  * instead of any crumb giving way.
  */
 const TEXT = 'block min-w-0 truncate'
+
+/** What closes the label of a collapsed crumb, or the mark of a whole one, to nothing. */
+const CLOSED = 'w-0'
+
+/**
+ * The fit of a server-rendered trail, applied before the first paint.
+ *
+ * The server cannot know the room the row gets, so it renders every crumb
+ * whole, and a browser would paint that before React runs. This script sits
+ * just after the row and closes the crumbs that {@link fitOf} says give way:
+ * the same function, from its own source text, so the first paint is the fit
+ * the hook then finds.
+ *
+ * It answers from a `ResizeObserver` rather than at once. A trail inside a
+ * Suspense boundary streams in a hidden segment, where the row has no width,
+ * and React reveals it later; the observer reports the row once it has a box,
+ * after layout and before that paint, in either case.
+ *
+ * The script changes only the classes of the label and the mark, which carry
+ * `suppressHydrationWarning` for that reason. The hook measures on mount as it
+ * does anywhere else and finds the same answer.
+ */
+const SCRIPT = `(function(s){var r=s&&s.previousElementSibling;if(!r||!window.ResizeObserver)return;var o=new ResizeObserver(function(){if(!r.clientWidth)return;o.disconnect();var f=(${fitOf})(r),l=r.querySelectorAll('[data-trail-label]'),m=r.querySelectorAll('[data-trail-mark]'),i;for(i=0;i<f.collapsed;i++){l[i].classList.add('${CLOSED}');m[i].classList.remove('${CLOSED}')}});o.observe(r)})(document.currentScript)`
+
+/** A subscription that never fires: the snapshot changes only at hydration. */
+const subscribeNothing = () => () => {}
+
+/**
+ * Whether this render comes from the server's markup: on the server and in the
+ * hydration render. A trail that mounts on the client, as in a drawer, has no
+ * server paint to settle, and React reports a script it renders there as one
+ * that never runs.
+ */
+function useServerMarkup(): boolean {
+	return useSyncExternalStore(
+		subscribeNothing,
+		() => false,
+		() => true,
+	)
+}
 
 /**
  * One crumb: its label, or the mark that stands for it, with the full text on
@@ -103,7 +143,7 @@ function TrailCrumb({
 			    keeps that reading honest. The label stays in the tree when collapsed, so
 			    the crumb still announces where it goes; the mark is what is drawn, and
 			    says nothing. */}
-			<span data-trail-label className={cn(TEXT, collapsed && 'w-0')}>
+			<span data-trail-label className={cn(TEXT, collapsed && CLOSED)} suppressHydrationWarning>
 				{step.label}
 			</span>
 
@@ -113,7 +153,8 @@ function TrailCrumb({
 			<span
 				data-trail-mark
 				aria-hidden="true"
-				className={cn(TEXT, 'select-none', !collapsed && 'w-0')}
+				className={cn(TEXT, 'select-none', !collapsed && CLOSED)}
+				suppressHydrationWarning
 			>
 				{MARK}
 			</span>
@@ -159,40 +200,46 @@ export function PlaceTrail({ steps, className, children }: PlaceTrailProps) {
 
 	const { collapsed, clipped } = useTrailFit(row, steps.map((step) => step.label).join('\n'))
 
-	return (
-		<Flex ref={row} gap="md" align="center" className="min-w-0">
-			{/* `min-w-0` is what lets the trail give way to what follows it, rather
-			    than push it out of the row. */}
-			<Breadcrumb className="min-w-0">
-				<BreadcrumbList className={cn('flex-nowrap', className)}>
-					{steps.map((step, at) => {
-						const current = at === steps.length - 1
+	const serverMarkup = useServerMarkup()
 
-						return (
-							<Fragment key={step.label}>
-								{/* The separator is a sibling of the items and never a child of one:
+	return (
+		<>
+			<Flex ref={row} gap="md" align="center" className="min-w-0">
+				{/* `min-w-0` is what lets the trail give way to what follows it, rather
+			    than push it out of the row. */}
+				<Breadcrumb className="min-w-0">
+					<BreadcrumbList className={cn('flex-nowrap', className)}>
+						{steps.map((step, at) => {
+							const current = at === steps.length - 1
+
+							return (
+								<Fragment key={step.label}>
+									{/* The separator is a sibling of the items and never a child of one:
 								    both render an `li`, and an `li` inside an `li` is not a list the
 								    parser will build. It never gives way, so a crumb that has gone to
 								    its mark still reads as a step in a trail. */}
-								{at > 0 ? <BreadcrumbSeparator className="shrink-0" /> : null}
+									{at > 0 ? <BreadcrumbSeparator className="shrink-0" /> : null}
 
-								{/* Only the title gives width back under pressure. Every step above
+									{/* Only the title gives width back under pressure. Every step above
 								    it is whole or a mark, so it is one or the other's width exactly. */}
-								<BreadcrumbItem className={current ? 'min-w-0' : 'shrink-0'}>
-									<TrailCrumb
-										step={step}
-										current={current}
-										collapsed={at < collapsed}
-										clipped={current && clipped}
-									/>
-								</BreadcrumbItem>
-							</Fragment>
-						)
-					})}
-				</BreadcrumbList>
-			</Breadcrumb>
+									<BreadcrumbItem className={current ? 'min-w-0' : 'shrink-0'}>
+										<TrailCrumb
+											step={step}
+											current={current}
+											collapsed={at < collapsed}
+											clipped={current && clipped}
+										/>
+									</BreadcrumbItem>
+								</Fragment>
+							)
+						})}
+					</BreadcrumbList>
+				</Breadcrumb>
 
-			{children}
-		</Flex>
+				{children}
+			</Flex>
+
+			{serverMarkup ? <script dangerouslySetInnerHTML={{ __html: SCRIPT }} /> : null}
+		</>
 	)
 }
