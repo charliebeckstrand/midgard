@@ -2,7 +2,6 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { runInNewContext } from 'node:vm'
 import { afterEach, describe, expect, it } from 'vitest'
 import { inlineFont } from '../plugin/font.ts'
 
@@ -41,26 +40,20 @@ function buildClient() {
 	}
 }
 
-/** Runs the script of a page, and returns each face that it adds. */
-function runScript(page: string) {
+/** The face that the script of a page adds: the family, the bytes, and the descriptors. */
+function scriptFace(page: string) {
 	const html = readFileSync(path.join(clientDir, page), 'utf8')
 
 	const code = /<script>(.*)<\/script><\/head>/.exec(html)?.[1] ?? ''
 
-	const added: { family: string; bytes: number[]; descriptors: object }[] = []
+	const [, base64 = '', family = '', descriptors = ''] =
+		/atob\("([^"]*)"\).*new FontFace\(("[^"]*"),b,(\{[^}]*\})\)/.exec(code) ?? []
 
-	runInNewContext(code, {
-		atob,
-		Uint8Array,
-		FontFace: class {
-			constructor(family: string, source: Uint8Array, descriptors: object) {
-				added.push({ family, bytes: Array.from(source), descriptors })
-			}
-		},
-		document: { fonts: { add: () => undefined } },
-	})
-
-	return added
+	return {
+		family: JSON.parse(family),
+		bytes: Array.from(Buffer.from(base64, 'base64')),
+		descriptors: JSON.parse(descriptors),
+	}
 }
 
 afterEach(() => {
@@ -75,13 +68,11 @@ describe('inlineFont', () => {
 
 			inlineFont(clientDir, 'app.css', path.join(clientDir, 'latin.woff2'))
 
-			expect(runScript(page)).toEqual([
-				{
-					family: 'Google Sans Flex',
-					bytes: Array.from(LATIN),
-					descriptors: { weight: '300 900', display: 'block', unicodeRange: 'U+D,U+20-7E' },
-				},
-			])
+			expect(scriptFace(page)).toEqual({
+				family: 'Google Sans Flex',
+				bytes: Array.from(LATIN),
+				descriptors: { weight: '300 900', display: 'block', unicodeRange: 'U+D,U+20-7E' },
+			})
 		},
 	)
 
