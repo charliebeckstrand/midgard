@@ -18,6 +18,7 @@ import {
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
@@ -61,8 +62,18 @@ function useEmptyResults(list: HTMLElement | null, onChange: () => void): boolea
 			return
 		}
 
+		// A write of the same value still costs a render of the palette while a
+		// deferred render is pending, so the probe writes only a change.
+		let last: boolean | undefined
+
 		const measure = () => {
-			setEmpty(list.querySelector(RESULT_SELECTOR) === null)
+			const next = list.querySelector(RESULT_SELECTOR) === null
+
+			if (next === last) return
+
+			last = next
+
+			setEmpty(next)
 		}
 
 		measure()
@@ -173,11 +184,7 @@ export function useCommandPaletteState({
 	// it attaches. The ref serves the key handlers and the seed.
 	const [listNode, setListNode] = useState<HTMLDivElement | null>(null)
 
-	const attachList = useCallback((node: HTMLDivElement | null) => {
-		listRef.current = node
-
-		setListNode(node)
-	}, [])
+	const attachList = useComposedRef(listRef, setListNode)
 
 	// Logical active index for the virtual source; see `Combobox` for why this
 	// can't be read back off the DOM.
@@ -229,11 +236,22 @@ export function useCommandPaletteState({
 		reportActiveFromDom()
 	})
 
+	// The deferred query of the last seed. The seed effect below reads and writes
+	// it.
+	const lastDeferredRef = useRef(deferredQuery)
+
+	// A source that registers in the commit of a filter change runs before the
+	// seed effect of that commit, which seeds the same source. Thus only a
+	// registration under an unchanged query follows the results.
+	const onRegister = useStableEvent((source: VirtualItemSource) => {
+		if (lastDeferredRef.current === deferredQuery) followResults(source)
+	})
+
 	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
 	// via `VirtualItemSourceContext`; null for a non-virtualized palette, which
 	// keeps the DOM-query roving below unchanged. Each registration is a change
-	// of the source, by identity or by count, so it calls `followResults`.
-	const [virtualSourceRef] = useState(() => createSourceRegistry(followResults))
+	// of the source, by identity or by count.
+	const [virtualSourceRef] = useState(() => createSourceRegistry(onRegister))
 
 	// The observer of the listbox sees each change of the rows. That is the
 	// signal for a palette with no registered source.
@@ -294,8 +312,6 @@ export function useCommandPaletteState({
 	// value; the first arrow key on open picks the first item. Under a
 	// registered `virtualSourceRef`, index math replaces the DOM query (a
 	// windowed-out item isn't in the DOM to find).
-	const lastDeferredRef = useRef(deferredQuery)
-
 	useEffect(() => {
 		if (lastDeferredRef.current === deferredQuery) return
 
@@ -332,11 +348,13 @@ export function useCommandPaletteState({
 
 		if (!held) return
 
-		if (open && held.query === query && lagging) return
+		const live = open && held.query === query
+
+		if (live && lagging) return
 
 		heldEnterRef.current = null
 
-		if (open && held.query === query) rovingKeyDown(held.event)
+		if (live) rovingKeyDown(held.event)
 	}, [lagging, open, query, rovingKeyDown])
 
 	// Resets the query when closed, during render rather than in an effect, so
@@ -349,11 +367,11 @@ export function useCommandPaletteState({
 		if (!open) setQuery('')
 	}
 
-	// The closing panel unmounts its options, so nothing is highlighted any more.
-	// Clearing `activeIndexRef` stops a virtualized palette from resuming
-	// navigation at the prior session's index on reopen: the closed dialog
-	// unmounts its options, so there's no DOM `data-active` to read the index back
-	// off of, and a stale ref would make the first arrow land at `index + 1`
+	// The closing panel unmounts its options after its exit animation, so
+	// nothing is highlighted any more. Clearing `activeIndexRef` stops a
+	// virtualized palette from resuming navigation at the prior session's index
+	// on reopen: the closed dialog unmounts its options, so there's no DOM
+	// `data-active` to read the index back off of, and a stale ref would make the first arrow land at `index + 1`
 	// instead of the first item (mirrors Combobox's close reset). The report is a
 	// side effect, so it waits for the commit. `reportActive` dedupes, so a
 	// palette that closed with no highlight is silent.
@@ -377,7 +395,6 @@ export function useCommandPaletteState({
 		setQuery,
 		listboxId,
 		inputRef,
-		listRef,
 		attachList,
 		empty,
 		onKeyDown,

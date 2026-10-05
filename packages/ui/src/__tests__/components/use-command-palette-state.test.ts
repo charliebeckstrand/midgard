@@ -58,7 +58,7 @@ function renderLaggingPalette(slowQuery: string) {
 
 	view.result.current.inputRef.current = input
 
-	act(() => view.result.current.attachList(list))
+	act(() => view.result.current.attachList?.(list))
 
 	const press = (key: string) => act(() => view.result.current.onKeyDown(makeKeyEvent(key)))
 

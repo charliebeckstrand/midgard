@@ -8,7 +8,7 @@ import {
 	wrap,
 } from '../../utilities/keyboard-navigation'
 import { matchesMediaQuery, NO_HOVER_QUERY } from '../../utilities/media-query'
-import { scrollWithin, useScrollWithin } from '../use-scroll-within'
+import { scrollWithin } from '../use-scroll-within'
 import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
@@ -110,9 +110,10 @@ export function setVirtualActive(
  * Clear the virtual-mode active marker: drops the owner's
  * `aria-activedescendant`. The named reset counterpart to {@link setVirtualActive},
  * so callers express intent as `clearVirtualActive(ref)` rather than the cryptic
- * `setVirtualActive([], -1, ref)`. A closing panel unmounts its rows, so the
- * owner-clear is all a caller needs; stripping attributes off still-mounted
- * rows is {@link setVirtualActive}'s job.
+ * `setVirtualActive([], -1, ref)`. It does not touch the rows. A `Portal` keeps
+ * the rows of a closing panel mounted through the exit animation, and they keep
+ * `data-active` until they unmount. To clear them, call {@link setVirtualActive}
+ * with the rows and -1.
  */
 export function clearVirtualActive(activeDescendantRef: RefObject<HTMLElement | null>): void {
 	setVirtualActive([], -1, activeDescendantRef)
@@ -341,6 +342,16 @@ function seedsHighlight(count: number): boolean {
 }
 
 /**
+ * The index that {@link seedVirtualTopMatch} seats under `source`, or -1 when
+ * the seed clears. {@link isVirtualTopMatchSeated} reads the same index.
+ *
+ * @internal
+ */
+function seededSourceIndex(source: VirtualItemSource): number {
+	return seedsHighlight(source.count) ? virtualTopMatchIndex(source) : -1
+}
+
+/**
  * The index that {@link seedVirtualTopMatch} seats under `source` on a device
  * with hover: the first index that `isDisabled` does not mark. It is -1 when
  * `source` holds no enabled item.
@@ -392,7 +403,7 @@ export function seedVirtualTopMatch(
 		setVirtualActiveIndexed(
 			container,
 			source,
-			seedsHighlight(source.count) ? virtualTopMatchIndex(source) : -1,
+			seededSourceIndex(source),
 			activeIndexRef,
 			activeDescendantRef,
 			options,
@@ -430,14 +441,15 @@ export function isVirtualTopMatchSeated(
 	const activeId = activeDescendantRef.current?.getAttribute('aria-activedescendant') ?? undefined
 
 	if (source) {
-		const index = seedsHighlight(source.count) ? virtualTopMatchIndex(source) : -1
+		const index = seededSourceIndex(source)
 
 		return activeIndexRef.current === index && activeId === resolveVirtualItemId(source, index)
 	}
 
-	const items = queryItems(container, itemSelector)
+	// A seed seats the first row, so the check reads that row alone.
+	const first = container?.querySelector<HTMLElement>(itemSelector)
 
-	const top = seedsHighlight(items.length) ? items[0] : undefined
+	const top = first && seedsHighlight(1) ? first : undefined
 
 	if (!top) return activeId === undefined
 
@@ -491,8 +503,6 @@ function resolveRestingStop(
 	return bySelector ?? items[0]
 }
 
-type ScrollWithin = ReturnType<typeof useScrollWithin>
-
 /**
  * Per-keystroke dependencies for the move handlers, resolved once in the
  * callback so each helper keeps a flat signature.
@@ -503,7 +513,6 @@ type RovingKeyContext = {
 	manageTabIndex: boolean
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
-	scrollWithin: ScrollWithin
 	containerEl: HTMLElement | null
 	/** Set (with `activeIndexRef`) when navigating an indexed source instead of `items`. */
 	itemSource: VirtualItemSource | null
@@ -531,7 +540,6 @@ function resolveRovingContext(
 		manageTabIndex: boolean
 		activeDescendantRef: RefObject<HTMLElement | null> | undefined
 		manageAriaSelected: boolean
-		scrollWithin: ScrollWithin
 	},
 ): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
 	const isVirtual = mode === 'virtual'
@@ -560,7 +568,6 @@ function resolveRovingContext(
 			manageTabIndex: config.manageTabIndex,
 			activeDescendantRef: config.activeDescendantRef,
 			manageAriaSelected: config.manageAriaSelected,
-			scrollWithin: config.scrollWithin,
 			containerEl: container,
 			itemSource: indexed,
 			activeIndexRef: config.activeIndexRef,
@@ -673,7 +680,7 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
 
 	const next = ctx.items[index]
 
-	if (next) ctx.scrollWithin(next, { block: 'nearest' })
+	if (next) scrollWithin(next, { block: 'nearest' })
 }
 
 /**
@@ -728,13 +735,12 @@ function processRowContext(
  * browser open a new tab for Ctrl or Cmd. As with `HTMLElement.click()`, the
  * click bubbles and crosses a shadow root, and a handler can cancel it.
  *
- * @remarks The keys come from the fields of the event, never from its target.
- * The command palette holds an Enter and runs it after React dispatches it.
- * The `currentTarget` of that event is then null.
+ * @remarks A caller can pass an event after its dispatch ends, when
+ * `currentTarget` is null. Thus the keys come from the fields of the event.
  * @internal
  */
-function clickWithKeyModifiers(item: HTMLElement, event: KeyboardEvent): void {
-	item.dispatchEvent(
+function clickWithKeyModifiers(item: HTMLElement | null | undefined, event: KeyboardEvent): void {
+	item?.dispatchEvent(
 		new MouseEvent('click', {
 			bubbles: true,
 			cancelable: true,
@@ -777,14 +783,12 @@ function handleActivationKey(
 
 		// A jump landed on a not-yet-mounted row (the move's mount watcher
 		// hasn't caught up yet); nothing to click until it renders.
-		if (node) clickWithKeyModifiers(node, event)
+		clickWithKeyModifiers(node, event)
 
 		return true
 	}
 
-	const item = ctx.items[currentIndex]
-
-	if (item) clickWithKeyModifiers(item, event)
+	clickWithKeyModifiers(ctx.items[currentIndex], event)
 
 	return true
 }
@@ -1075,8 +1079,6 @@ export function useA11yRoving(
 		activeIndexRef,
 	}: RovingOptions,
 ) {
-	const scrollWithin = useScrollWithin()
-
 	// Depend on the selector strings, not the `row` object: callers pass inline
 	// literals whose identity changes per render.
 	const rowSelector = row?.rowSelector
@@ -1174,7 +1176,6 @@ export function useA11yRoving(
 				manageTabIndex,
 				activeDescendantRef,
 				manageAriaSelected,
-				scrollWithin,
 			})
 
 			if (!resolved) return
@@ -1222,7 +1223,6 @@ export function useA11yRoving(
 			activationKey,
 			activeDescendantRef,
 			enabled,
-			scrollWithin,
 			manageAriaSelected,
 			manageTabIndex,
 			rowSelector,

@@ -209,8 +209,9 @@ export function useMenuState({
 	})
 
 	// Clear the trigger's `aria-activedescendant` once closed: the panel (and the
-	// ids it pointed at) unmounts, so the attribute would otherwise dangle, and the
-	// next open must start with no active row (the first arrow picks the first item).
+	// ids it pointed at) unmounts after its exit animation, so the attribute would
+	// otherwise dangle, and the next open must start with no active row (the first
+	// arrow picks the first item).
 	//
 	// A context menu has no trigger. `openAt` lends `triggerRef` the element that
 	// held focus at a keyboard open, and the focus restore of the disclosure reads

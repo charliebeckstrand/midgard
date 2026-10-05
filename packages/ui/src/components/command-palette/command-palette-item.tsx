@@ -113,19 +113,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		// as `MenuItem` does.
 		if (disabled) {
 			return (
-				<span
-					{...inertLinkProps(forwardedProps(props))}
-					id={itemId}
-					role="option"
-					tabIndex={-1}
-					aria-disabled={true}
-					data-slot="command-palette-item"
-					data-disabled={true}
-					className={optionProps.className}
-					onMouseDown={holdFocus}
-				>
-					{children}
-				</span>
+				<span {...inertLinkProps({ ...forwardedProps(props), ...optionProps })}>{children}</span>
 			)
 		}
 
