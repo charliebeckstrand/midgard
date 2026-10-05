@@ -20,7 +20,7 @@ import { QueryBuilderRule } from './query-builder-rule'
 import { QueryBuilderSortable } from './query-builder-sortable'
 import { QueryBuilderSortableItem } from './query-builder-sortable-item'
 
-/** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. */
+/** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. @internal */
 export type QueryBuilderGroupProps = {
 	/** The group node to render, with its child rules and groups. */
 	group: QueryGroup
@@ -186,5 +186,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 /**
  * Renders one query group and its descendants. See {@link QueryBuilderGroupImpl}.
  * Memoized so a single edit re-renders only the touched group, not the whole tree.
+ *
+ * @internal
  */
 export const QueryBuilderGroup = memo(QueryBuilderGroupImpl)

@@ -1,5 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
-import { MapPlat } from '../../modules/map'
+import states from 'us-atlas/states-10m.json'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import {
+	type DataKey,
+	type MapGeography,
+	MapPlat,
+	type MapPlatCategoricalProps,
+	type MapPlatNoDataProps,
+	type MapPlatNumericProps,
+	type MapPlatProps,
+} from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import {
 	REGION_FADE,
@@ -24,6 +33,21 @@ import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
 
 describe('MapPlat', () => {
+	it('takes an atlas imported as JSON with no cast', () => {
+		expectTypeOf(states).toExtend<MapGeography>()
+	})
+
+	it('exports a props type for each form of its region data', () => {
+		type Row = { state: string; zone: string; count: number }
+
+		expectTypeOf<MapPlatCategoricalProps<Row>>().toExtend<MapPlatProps<Row>>()
+		expectTypeOf<MapPlatNumericProps<Row>>().toExtend<MapPlatProps<Row>>()
+		expectTypeOf<MapPlatNoDataProps>().toExtend<MapPlatProps<Row>>()
+		expectTypeOf<MapPlatCategoricalProps<Row>['categoryKey']>().toEqualTypeOf<DataKey<Row>>()
+		expectTypeOf<MapPlatNumericProps<Row>['valueKey']>().toEqualTypeOf<DataKey<Row>>()
+		expectTypeOf<MapPlatNoDataProps['data']>().toEqualTypeOf<undefined>()
+	})
+
 	it('draws one region per feature under a labeled role="img" plot', () => {
 		const { container } = renderUI(categoricalPlat())
 

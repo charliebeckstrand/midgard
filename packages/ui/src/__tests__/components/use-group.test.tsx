@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { useGroup } from '../../components/group'
+import { useGroup } from '../../components/group/use-group'
 import { allBySlot, renderUI } from '../helpers'
 
 describe('useGroup', () => {

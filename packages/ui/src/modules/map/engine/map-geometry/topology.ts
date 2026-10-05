@@ -49,7 +49,7 @@ export function decodedFeatures(decoded: ReturnType<typeof feature>): MapFeature
  * @internal
  */
 export function geographyFeatures(geography: MapGeography, objectName?: string): MapFeature[] {
-	if (geography.type === 'FeatureCollection') return geography.features
+	if ('features' in geography) return geography.features
 
 	const object = topologyObject(geography, objectName)
 

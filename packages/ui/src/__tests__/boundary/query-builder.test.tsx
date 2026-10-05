@@ -1,13 +1,14 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import type { JsonValue } from '../../components/json-tree'
 import {
 	createGroup,
 	createRule,
 	QueryBuilder,
-	QueryBuilderRuleValue,
 	type QueryField,
 	type QueryGroup,
 } from '../../modules/query'
+import { QueryBuilderRuleValue } from '../../modules/query/query-builder'
 import { bySlot, fireEvent, present, renderUI, screen, within } from '../helpers'
 
 // Overrides the shared `motion/react` mock: the pass-through `AnimatePresence`
@@ -517,7 +518,7 @@ describe('QueryBuilderRuleValue', () => {
 		// NumberInput clamps its controlled value on blur, so the harness holds the
 		// tuple the way a builder does.
 		function Harness() {
-			const [value, setValue] = useState<unknown>([30, 40])
+			const [value, setValue] = useState<JsonValue | undefined>([30, 40])
 
 			return (
 				<QueryBuilderRuleValue

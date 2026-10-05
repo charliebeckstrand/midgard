@@ -1,4 +1,5 @@
 import { fc } from '@fast-check/vitest'
+import type { JsonValue } from '../../components/json-tree'
 import { KNOWN_OPERATORS } from '../../modules/query/engine/query-evaluate'
 import type { QueryGroup, QueryNode, QueryRule } from '../../modules/query/engine/types'
 
@@ -7,18 +8,18 @@ import type { QueryGroup, QueryNode, QueryRule } from '../../modules/query/engin
  * a number, a numeric string, a boolean, a blank, and a value of no scalar
  * shape.
  */
-export const queryValue = (): fc.Arbitrary<unknown> =>
+export const queryValue = (): fc.Arbitrary<JsonValue | undefined> =>
 	fc.oneof(
 		fc.string({ maxLength: 4 }),
 		fc.integer({ min: -20, max: 20 }),
 		fc.integer({ min: -20, max: 20 }).map(String),
 		fc.boolean(),
-		fc.constantFrom<unknown>(null, undefined, '', ' ', 'Ab', '2026-01-02', NaN),
+		fc.constantFrom<JsonValue | undefined>(null, undefined, '', ' ', 'Ab', '2026-01-02', NaN),
 		fc.tuple(
-			fc.oneof(fc.integer({ min: -20, max: 20 }), fc.constantFrom<unknown>('', null, 'x')),
-			fc.oneof(fc.integer({ min: -20, max: 20 }), fc.constantFrom<unknown>('', null, 'x')),
+			fc.oneof(fc.integer({ min: -20, max: 20 }), fc.constantFrom<JsonValue>('', null, 'x')),
+			fc.oneof(fc.integer({ min: -20, max: 20 }), fc.constantFrom<JsonValue>('', null, 'x')),
 		),
-		fc.constantFrom<unknown>([], [1], {}, [[1], 5]),
+		fc.constantFrom<JsonValue>([], [1], {}, [[1], 5]),
 	)
 
 const combinator = () => fc.option(fc.constantFrom<'and' | 'or'>('and', 'or'), { nil: undefined })

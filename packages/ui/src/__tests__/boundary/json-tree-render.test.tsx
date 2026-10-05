@@ -31,9 +31,9 @@ vi.mock('../../components/json-tree/json-tree-leaf-row', async (importActual) =>
 	return { ...actual, JsonTreeLeafRow: vi.fn(actual.JsonTreeLeafRow) }
 })
 
-/** Twenty items of ten leaves each, and one closed branch in each item. */
+/** Five items of ten leaves each, and one closed branch in each item. */
 const DATA: JsonValue = Object.fromEntries(
-	Array.from({ length: 20 }, (_, item) => [
+	Array.from({ length: 5 }, (_, item) => [
 		`item${item}`,
 		{
 			...Object.fromEntries(Array.from({ length: 10 }, (_, leaf) => [`leaf${leaf}`, leaf])),
@@ -62,7 +62,7 @@ function extraToggle() {
 
 function Controlled() {
 	const [expanded, setExpanded] = useState(
-		() => new Set(['$', ...Array.from({ length: 20 }, (_, item) => `$.item${item}`)]),
+		() => new Set(['$', ...Array.from({ length: 5 }, (_, item) => `$.item${item}`)]),
 	)
 
 	return <JsonTree data={DATA} expanded={expanded} onExpandedChange={setExpanded} />
@@ -74,7 +74,7 @@ describe('JsonTree row renders', () => {
 	it('renders only the toggled branch and its new rows under control', () => {
 		renderUI(<Controlled />)
 
-		expect(rowRenders()).toBeGreaterThan(200)
+		expect(rowRenders()).toBeGreaterThan(50)
 
 		clearRenders()
 

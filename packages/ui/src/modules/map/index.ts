@@ -26,7 +26,13 @@ export type {
 } from './engine/types'
 export { MapGeofence, type MapGeofenceProps } from './map-geofence'
 export { MapMarker, type MapMarkerProps } from './map-marker'
-export { MapPlat, type MapPlatProps } from './map-plat'
+export {
+	MapPlat,
+	type MapPlatCategoricalProps,
+	type MapPlatNoDataProps,
+	type MapPlatNumericProps,
+	type MapPlatProps,
+} from './map-plat'
 export { MapPoint, type MapPointProps } from './map-point'
 export {
 	type MapPointDatum,

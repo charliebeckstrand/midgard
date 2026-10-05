@@ -4,6 +4,7 @@ import { Trash } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
+import type { JsonValue } from '../../../components/json-tree'
 import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
@@ -16,7 +17,7 @@ import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from '.
 import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
 
-/** Props for {@link QueryBuilderRule}: the rule node to render. */
+/** Props for {@link QueryBuilderRule}: the rule node to render. @internal */
 export type QueryBuilderRuleProps = {
 	/** The rule node to render. */
 	rule: QueryRule
@@ -85,7 +86,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	const onValueChange = useCallback(
-		(v: unknown) => updateRule(rule.id, { value: v }),
+		(v: JsonValue) => updateRule(rule.id, { value: v }),
 		[rule.id, updateRule],
 	)
 
@@ -191,5 +192,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
  * Renders one query rule within a {@link QueryBuilderGroup}: field and operator
  * {@link Select}s plus a type-aware value input and a remove button. A
  * `noValue` operator shows its fixed `valueLabel` as static text instead.
+ *
+ * @internal
  */
 export const QueryBuilderRule = memo(QueryBuilderRuleImpl)
