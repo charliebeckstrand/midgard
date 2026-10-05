@@ -9,6 +9,7 @@ import { Grid, type GridColumn } from 'ui/modules/grid'
 import { Rating } from 'ui/rating'
 import { Sheet, SheetBody, SheetClose, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Flex } from 'ui/structure/flex'
+import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
@@ -163,22 +164,21 @@ export function PlacesIndex({
 			},
 			{
 				id: 'visited',
-				// One word, because the grid keeps a one-word title whole and lets a
-				// longer one truncate when the table fits its content.
-				title: 'Latest',
-				// The newest visit. The stored day sorts and the local rendering shows.
-				// Sorted on the rendered date, 2026-01-05 and 2026-05-01 order by the
-				// reader's own notation rather than by when they went.
-				value: (place) => latestVisit(place).visitedAt,
-				cell: (place) => fromDay(latestVisit(place).visitedAt).toLocaleDateString(),
-			},
-			{
-				id: 'visits',
 				title: 'Visits',
-				// The number of visits. The open place lists each one with its date,
-				// its score, and its review.
-				value: (place) => place.visits.length,
-				cell: (place) => place.visits.length,
+				// Sorted by the newest visit. The stored day sorts and the local
+				// rendering shows. Sorted on the rendered date, 2026-01-05 and
+				// 2026-05-01 order by the reader's own notation rather than by when
+				// they went.
+				value: (place) => latestVisit(place).visitedAt,
+				// Every visit, newest first, one date to a line. The open place lists
+				// each visit with its score and its review.
+				cell: (place) => (
+					<Stack gap="xs">
+						{place.visits.map((visit) => (
+							<span key={visit.id}>{fromDay(visit.visitedAt).toLocaleDateString()}</span>
+						))}
+					</Stack>
+				),
 			},
 			{
 				id: 'rating',
