@@ -16,6 +16,8 @@ type CalendarHeaderProps = {
 	monthLabel: string
 	/** Short month labels for the year/month picker, in the active locale. */
 	monthLabels: string[]
+	/** The resolved BCP 47 tag of the calendar. The picker writes its years in the digits of this locale. */
+	localeTag: string
 	pickerOpen: boolean
 	onPickerOpenChange: (open: boolean) => void
 	onPickerNavigate: (year: number, month: number) => void
@@ -41,6 +43,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 	today,
 	monthLabel,
 	monthLabels,
+	localeTag,
 	pickerOpen,
 	onPickerOpenChange,
 	onPickerNavigate,
@@ -66,6 +69,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 				onNavigate={onPickerNavigate}
 				monthLabel={monthLabel}
 				monthLabels={monthLabels}
+				localeTag={localeTag}
 				open={pickerOpen}
 				onOpenChange={onPickerOpenChange}
 				triggerClassName={cn(activeIndex === 1 && k.day.active)}

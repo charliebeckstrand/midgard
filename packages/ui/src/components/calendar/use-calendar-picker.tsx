@@ -6,10 +6,12 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useMemo,
 	useReducer,
 	useRef,
 	useState,
 } from 'react'
+import { resolveFormat } from '../../utilities'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
@@ -21,6 +23,8 @@ type CalendarPickerOptions = {
 	month: number
 	today: Date | null
 	monthLabels: string[]
+	/** The resolved BCP 47 tag of the calendar. The years use the digits of this locale, as `monthLabels` do. */
+	localeTag: string
 	onNavigate: (year: number, month: number) => void
 	/** The calendar owns the open state, so its `openPicker` handle can open the picker. */
 	open: boolean
@@ -68,6 +72,7 @@ export function useCalendarPicker({
 	month,
 	today,
 	monthLabels,
+	localeTag,
 	onNavigate,
 	open,
 	onOpenChange,
@@ -93,6 +98,17 @@ export function useCalendarPicker({
 	}
 
 	const { view, pickerYear, decadeYear } = state
+
+	// A year has no grouping separator: 2025, not "2,025". It uses the digits of
+	// the locale, as the month labels and the day numbers do.
+	const formatYear = useMemo(
+		() =>
+			resolveFormat(
+				{ type: 'integer' },
+				{ locale: localeTag, numberFormat: { useGrouping: false } },
+			),
+		[localeTag],
+	)
 
 	const pickerHeaderRef = useRef<HTMLDivElement>(null)
 	const pickerGridRef = useRef<HTMLDivElement>(null)
@@ -135,7 +151,7 @@ export function useCalendarPicker({
 			gridLabel: 'Select month',
 			prevLabel: 'Previous year',
 			nextLabel: 'Next year',
-			centerLabel: pickerYear,
+			centerLabel: formatYear(pickerYear),
 			onPrev: () => dispatch({ type: 'stepYear', delta: -1 }),
 			onNext: () => dispatch({ type: 'stepYear', delta: 1 }),
 			onCenter: () => {
@@ -164,11 +180,9 @@ export function useCalendarPicker({
 			prevLabel: 'Previous decade',
 			nextLabel: 'Next decade',
 			// The label names only the years that the calendar can show.
-			centerLabel: (
-				<>
-					{Math.max(decadeStart, MIN_YEAR)}&ndash;{Math.min(decadeStart + 9, MAX_YEAR)}
-				</>
-			),
+			centerLabel: [Math.max(decadeStart, MIN_YEAR), Math.min(decadeStart + 9, MAX_YEAR)]
+				.map(formatYear)
+				.join('–'),
 			onPrev: () => dispatch({ type: 'stepDecade', delta: -10 }),
 			onNext: () => dispatch({ type: 'stepDecade', delta: 10 }),
 			onCenter: () => {
@@ -184,7 +198,7 @@ export function useCalendarPicker({
 
 				return {
 					key: y,
-					label: y,
+					label: formatYear(y),
 					selected: y === pickerYear,
 					current: today != null && y === today.getFullYear(),
 					disabled: !isYearInRange(y),

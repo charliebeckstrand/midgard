@@ -377,7 +377,7 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('dialog', { name: 'Choose month and year' })).toBeInTheDocument()
 	})
 
-	it('names Gregorian months in a locale with another default calendar', async () => {
+	it('names Gregorian months and years in a locale with another default calendar', async () => {
 		const user = setupUser()
 
 		// `fa-IR` defaults to the Persian calendar. Its January is "ژانویه", not
@@ -387,6 +387,9 @@ describe('Calendar month/year picker', () => {
 		await user.click(screen.getByRole('button', { name: 'ژوئن ۲۰۲۵' }))
 
 		expect(screen.getByRole('option', { name: 'ژانویه' })).toBeInTheDocument()
+
+		// The picker year is the Gregorian year, in the digits of the header label.
+		expect(screen.getByRole('button', { name: '۲۰۲۵' })).toBeInTheDocument()
 	})
 
 	it('opens the year picker from the month picker and navigates decades', async () => {

@@ -296,6 +296,7 @@ export function Calendar({
 				today={today}
 				monthLabel={shownLabel}
 				monthLabels={monthLabels}
+				localeTag={localeTag}
 				pickerOpen={pickerOpen}
 				onPickerOpenChange={setPickerOpen}
 				onPickerNavigate={navigateTo}
