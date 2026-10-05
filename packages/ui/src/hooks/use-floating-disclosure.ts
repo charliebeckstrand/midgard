@@ -4,6 +4,7 @@ import type {
 	ElementProps,
 	ExtendedRefs,
 	FloatingRootContext,
+	OpenChangeReason,
 	ReferenceType,
 } from '@floating-ui/react'
 import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useRef } from 'react'
@@ -16,7 +17,11 @@ import {
 
 type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
 
-type FloatingDisclosureGate = (next: boolean, refs: ExtendedRefs<ReferenceType>) => boolean
+type FloatingDisclosureGate = (
+	next: boolean,
+	refs: ExtendedRefs<ReferenceType>,
+	reason?: OpenChangeReason,
+) => boolean
 
 /** Options for {@link useFloatingDisclosure}: the open-state triad it binds. */
 export type FloatingDisclosureOptions = Omit<
@@ -33,7 +38,11 @@ export type FloatingDisclosureOptions = Omit<
 	 * the positioning wrapper with a duplicate.
 	 */
 	role: FloatingDisclosureRole | null
-	/** Vetoes an open-state transition when it returns `false`. */
+	/**
+	 * Vetoes an open-state transition when it returns `false`. A transition that
+	 * an interaction hook of floating-ui requests gives its reason, such as
+	 * `'hover'`. A call to `setOpen` gives no reason.
+	 */
 	gate?: FloatingDisclosureGate
 	/**
 	 * Whether the surface answers the shared dismiss affordances: Escape through
@@ -104,9 +113,12 @@ export function useFloatingDisclosure({
 
 	const refsRef = useRef<ExtendedRefs<ReferenceType> | null>(null)
 
+	// Floating-ui calls it with the event and the reason of the change. The gate
+	// gets the reason.
 	const setOpen = useCallback(
-		(next: boolean) => {
-			if (gateRef.current && refsRef.current && !gateRef.current(next, refsRef.current)) return
+		(next: boolean, _event?: Event, reason?: OpenChangeReason) => {
+			if (gateRef.current && refsRef.current && !gateRef.current(next, refsRef.current, reason))
+				return
 
 			setOpenInner(next)
 		},
