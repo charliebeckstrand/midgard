@@ -11,10 +11,12 @@ export type FormattedInputOptions = {
 	/**
 	 * Predicate identifying characters preserved across `format`. Keeps the
 	 * caret aligned with the typed character when format inserts or removes
-	 * separators.
+	 * separators. It gets the character, its index, and the text. Thus a format
+	 * that keeps a character only at one position, such as a leading sign, can
+	 * count that character only there.
 	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
 	 */
-	meaningful?: (char: string) => boolean
+	meaningful?: (char: string, index: number, text: string) => boolean
 	/**
 	 * What a keystroke at the end of the text does with the caret.
 	 *

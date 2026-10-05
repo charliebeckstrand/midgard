@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { composeEventHandlers } from '../../core'
+import { isAsciiDigit } from '../../utilities/caret'
 import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -80,6 +81,7 @@ export function CreditCardInputCvv({
 		defaultValue,
 		onChange: onValueChange,
 		format: (raw) => formatCvv(raw, maxLength),
+		meaningful: isAsciiDigit,
 		ref,
 	})
 

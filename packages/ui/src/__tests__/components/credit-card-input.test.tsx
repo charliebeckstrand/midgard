@@ -479,6 +479,35 @@ describe('Credit card masking', () => {
 
 		expect(input.value).toBe(expected)
 	})
+
+	// The masks keep only digits. A letter that the mask drops must not move the
+	// caret, so the next digit goes where the letter went.
+	it.each<[string, () => ReactElement, string, number, string]>([
+		['credit-card-input', () => <CreditCardInput />, '42424242', 2, '4234 2424 2'],
+		['credit-card-input-expiry', () => <CreditCardInputExpiry />, '122', 2, '12/32'],
+		['credit-card-input-cvv', () => <CreditCardInputCvv />, '12', 1, '132'],
+	])(
+		'keeps the %s caret in place when the mask drops a letter',
+		async (slot, render, typed, caret, expected) => {
+			const { container } = renderUI(render())
+
+			const input = getSlot<HTMLInputElement>(container, slot)
+
+			const user = setupUser()
+
+			await user.type(input, typed)
+
+			input.setSelectionRange(caret, caret)
+
+			await user.keyboard('x')
+
+			expect(input.selectionStart).toBe(caret)
+
+			await user.keyboard('3')
+
+			expect(input.value).toBe(expected)
+		},
+	)
 })
 
 describe('Credit card trio + Form', () => {

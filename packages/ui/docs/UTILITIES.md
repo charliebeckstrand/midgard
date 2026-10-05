@@ -59,7 +59,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 
 | Export | Summary |
 |---|---|
-| `countMeaningful` | Counts characters in `s[0, end)` matching `keep`; anchors a caret across reformat insert/remove of separators. |
+| `countMeaningful` | Counts characters in `s[0, end)` matching `keep`; anchors a caret across reformat insert/remove of separators. `keep` gets each character, its index, and `s`. |
 | `cursorForCount` | Inverse of `countMeaningful`: string offset past the target-th meaningful char, clamped to bounds. |
 
 ## Dismiss layers

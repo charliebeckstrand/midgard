@@ -6,6 +6,7 @@ import { composeEventHandlers } from '../../core'
 import { useAriaIds } from '../../hooks'
 import { useHeadless } from '../../providers/headless/context'
 import { digitsOnly } from '../../utilities'
+import { isAsciiDigit } from '../../utilities/caret'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -88,6 +89,7 @@ export function CreditCardInput({
 		defaultValue,
 		onChange: onValueChange,
 		format: (raw) => formatCardNumber(raw).formatted,
+		meaningful: isAsciiDigit,
 		ref,
 	})
 

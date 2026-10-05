@@ -129,6 +129,48 @@ describe('CurrencyInput', () => {
 		expect(input.selectionStart).toBe(5)
 	})
 
+	it('keeps the caret in place when the format drops a minus sign after the start', async () => {
+		const { container } = renderUI(<CurrencyInput />)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = setupUser()
+
+		await user.type(input, '123')
+
+		input.setSelectionRange(1, 1)
+
+		await user.keyboard('-')
+
+		// The format keeps only a leading sign, so this sign goes and the caret
+		// stays after the 1.
+		expect(input.value).toBe('123')
+
+		expect(input.selectionStart).toBe(1)
+
+		await user.keyboard('9')
+
+		expect(input.value).toBe('1,923')
+	})
+
+	it('keeps the caret after a minus sign typed at the start', async () => {
+		const { container } = renderUI(<CurrencyInput />)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = setupUser()
+
+		await user.type(input, '123')
+
+		input.setSelectionRange(0, 0)
+
+		await user.keyboard('-')
+
+		expect(input.value).toBe('-123')
+
+		expect(input.selectionStart).toBe(1)
+	})
+
 	it('reformats and emits the parsed number on blur', async () => {
 		const onChange = vi.fn()
 

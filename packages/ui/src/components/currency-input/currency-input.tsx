@@ -149,7 +149,7 @@ export function CurrencyInput({
 	// put the next digit in the integer part (`.5` to `5.`).
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits),
-		meaningful: (c) => isMeaningful(c, decimal),
+		meaningful: (c, index) => isMeaningful(c, index, decimal),
 		atEnd: 'jump',
 		ref,
 	})

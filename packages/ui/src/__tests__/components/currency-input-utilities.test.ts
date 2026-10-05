@@ -19,29 +19,40 @@ describe('escapeRegExp', () => {
 
 describe('isMeaningful', () => {
 	it('treats digits as meaningful', () => {
-		expect(isMeaningful('0', '.')).toBe(true)
+		expect(isMeaningful('0', 0, '.')).toBe(true)
 
-		expect(isMeaningful('9', '.')).toBe(true)
+		expect(isMeaningful('9', 3, '.')).toBe(true)
 	})
 
-	it('treats the minus sign as meaningful', () => {
-		expect(isMeaningful('-', '.')).toBe(true)
+	it('treats a minus sign at index 0 as meaningful', () => {
+		expect(isMeaningful('-', 0, '.')).toBe(true)
 	})
 
-	it('treats the minus sign U+2212 as meaningful, as formatEditing keeps it as "-"', () => {
-		expect(isMeaningful('\u2212', ',')).toBe(true)
+	it('treats the minus sign U+2212 at index 0 as meaningful, as formatEditing keeps it as "-"', () => {
+		expect(isMeaningful('\u2212', 0, ',')).toBe(true)
+	})
+
+	// formatEditing keeps only a leading sign, so a sign after index 0 must not
+	// move the caret.
+	it.each([
+		['-', '.'],
+		['\u2212', ','],
+	])('rejects the minus sign %s after index 0', (sign, decimal) => {
+		expect(isMeaningful(sign, 1, decimal)).toBe(false)
+
+		expect(isMeaningful(sign, 4, decimal)).toBe(false)
 	})
 
 	it('treats the configured decimal separator as meaningful', () => {
-		expect(isMeaningful('.', '.')).toBe(true)
+		expect(isMeaningful('.', 1, '.')).toBe(true)
 
-		expect(isMeaningful(',', ',')).toBe(true)
+		expect(isMeaningful(',', 1, ',')).toBe(true)
 	})
 
 	it('rejects group separators and other characters', () => {
-		expect(isMeaningful(',', '.')).toBe(false)
+		expect(isMeaningful(',', 1, '.')).toBe(false)
 
-		expect(isMeaningful(' ', '.')).toBe(false)
+		expect(isMeaningful(' ', 1, '.')).toBe(false)
 	})
 })
 

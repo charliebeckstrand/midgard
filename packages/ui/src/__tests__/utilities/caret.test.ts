@@ -54,3 +54,41 @@ describe('cursorForCount', () => {
 		expect(cursorForCount(',,,', 1, keep)).toBe(3)
 	})
 })
+
+describe('a position-aware keep', () => {
+	// A format that keeps a sign only at the start: a sign at index 0 counts,
+	// and a sign at a different index does not.
+	const leadingSign = (c: string, index: number) => /\d/.test(c) || (c === '-' && index === 0)
+
+	it.each([
+		[
+			'countMeaningful',
+			(keep: Parameters<typeof countMeaningful>[2]) => countMeaningful('ab', 2, keep),
+		],
+		[
+			'cursorForCount',
+			(keep: Parameters<typeof cursorForCount>[2]) => cursorForCount('ab', 2, keep),
+		],
+	])('%s gives keep each character, its index, and the text', (_name, run) => {
+		const calls: [string, number, string][] = []
+
+		run((char, index, text) => {
+			calls.push([char, index, text])
+
+			return true
+		})
+
+		expect(calls).toEqual([
+			['a', 0, 'ab'],
+			['b', 1, 'ab'],
+		])
+	})
+
+	it('counts a sign at index 0 and not a sign after it', () => {
+		expect(countMeaningful('-1-2', 4, leadingSign)).toBe(3) // -, 1, 2
+	})
+
+	it('puts the caret after a sign at index 0', () => {
+		expect(cursorForCount('-1', 1, leadingSign)).toBe(1)
+	})
+})

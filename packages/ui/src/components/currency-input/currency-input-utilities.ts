@@ -30,8 +30,12 @@ const MINUS_SIGN = '\u2212'
 
 const minusSignRe = /\u2212/g
 
-export function isMeaningful(c: string, decimal: string) {
-	return (c >= '0' && c <= '9') || c === '-' || c === MINUS_SIGN || c === decimal
+// `formatEditing` keeps a sign only at the start, so the caret counts a sign
+// only at index 0.
+export function isMeaningful(c: string, index: number, decimal: string) {
+	if (c === '-' || c === MINUS_SIGN) return index === 0
+
+	return (c >= '0' && c <= '9') || c === decimal
 }
 
 // Collapses every decimal separator after the first, keeping a single split

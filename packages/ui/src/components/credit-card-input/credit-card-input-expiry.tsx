@@ -3,6 +3,7 @@
 import { type ChangeEvent, type ReactNode, useEffect, useEffectEvent, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { digitsOnly } from '../../utilities'
+import { isAsciiDigit } from '../../utilities/caret'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
@@ -128,6 +129,7 @@ export function CreditCardInputExpiry({
 		defaultValue: defaultValue === undefined ? undefined : formatExpiry(defaultValue),
 		onChange: onValueChange,
 		format: maskExpiry,
+		meaningful: isAsciiDigit,
 		ref,
 	})
 

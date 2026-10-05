@@ -116,7 +116,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `FloatingHeightSnap` | A function that lowers the `fitHeight` cap of `useFloatingPanel` to a height that suits the content, such as the middle of a menu row. |
 | `FloatingPanelOptions` / `FloatingPanelResult` | Options and return shape of `useFloatingPanel`. |
 | `FloatingPlacement` | A floating-ui placement, or `<side>-auto`, which aligns the panel to the edge that is nearer to the reference. |
-| `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test, and the ref to compose. |
+| `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test (it gets the character, its index, and the text), and the ref to compose. |
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
 | `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. |
 | `OffcanvasOptions` | Options for `useOffcanvas`. |
