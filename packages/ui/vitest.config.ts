@@ -7,6 +7,7 @@ import {
 	srcRelative,
 	walkSource,
 } from './src/__tests__/helpers/walk-source'
+import { reactDocs } from './src/docs/plugin/index.ts'
 import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
@@ -183,6 +184,12 @@ export default defineConfig({
 			{
 				extends: true as const,
 				// The suite of the docs app, under src/docs/__tests__, runs here too.
+				// The pages import the virtual modules of the docs plugin, so the
+				// smoke test of the pages (`page-smoke.test.tsx`) needs the real
+				// plugin. The plugin transforms only the files of `pages/`, and it
+				// loads a virtual module only when a test imports one. Thus it costs
+				// the other suites almost nothing.
+				plugins: [reactDocs()],
 				test: {
 					name: 'unit',
 					setupFiles,

@@ -78,7 +78,7 @@ export default function Query() {
 				</Button>
 			</Flex>
 			<Dashboard
-				aria-label="Sales dashboard"
+				aria-label="Filtered sales dashboard"
 				editing={editing}
 				onProjectedChange={project}
 				layout={{ defaultValue: layout }}

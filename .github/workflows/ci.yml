@@ -99,11 +99,11 @@ jobs:
       # stops at the lockfile hash.
       #
       # Vitest hashes the text of every file `vitest.config.ts` imports into
-      # each entry's key. An edit to any of them makes every entry miss. The
-      # key was the lockfile alone, and actions/cache does not save on an exact
-      # hit, so the cache froze at the first run after a lockfile change. The
-      # next edit to an imported file made it useless, and each run
-      # transformed the suite cold.
+      # each entry's key, and the config imports the docs plugin. An edit to
+      # any of them makes every entry miss. The key was the lockfile alone,
+      # and actions/cache does not save on an exact hit, so the cache froze at
+      # the first run after a lockfile change. The next edit to an imported
+      # file made it useless, and each run transformed the suite cold.
       # The second hash starts a new cache when those files change, and the
       # SHA makes each run save what it wrote for the next run to restore.
       # Each shard transforms a different half of the suite, so each shard
@@ -111,9 +111,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-
+            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The other packages have few test files, and a shard of them can be
       # empty. The first shard runs them whole.
@@ -204,9 +204,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache-compiler-*
-          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-
+            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
       # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
       # the `^build` of each package without it, and builds for nothing.
       - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
