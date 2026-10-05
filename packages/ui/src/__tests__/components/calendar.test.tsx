@@ -1,4 +1,5 @@
 import { createRef, Profiler } from 'react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle } from '../../components/calendar'
@@ -1027,6 +1028,44 @@ describe('Calendar + Form', () => {
 		)
 
 		expect(selectedDay()?.textContent).toBe('20')
+	})
+
+	// The binding cascade ignores `defaultValue` for a controlled or a bound
+	// calendar. With no value, such a calendar takes the month of the clock.
+	const ignoredSeed = new Date(2020, 0, 15)
+
+	describe.each([
+		['a controlled null value', () => <Calendar value={null} defaultValue={ignoredSeed} />],
+		[
+			'a bound field with no value',
+			() => (
+				<Form defaultValues={{ date: null }}>
+					<Calendar name="date" defaultValue={ignoredSeed} />
+				</Form>
+			),
+		],
+	])('with %s', (_, calendar) => {
+		it('shows the month of the clock, not the month of defaultValue', async () => {
+			await withFakeTime(() => {
+				vi.setSystemTime(new Date(2025, 5, 15, 12))
+
+				renderUI(calendar())
+
+				expect(screen.getByRole('listbox', { name: 'June 2025' })).toBeInTheDocument()
+
+				expect(selectedDay()).toBeUndefined()
+			})
+		})
+
+		it('holds the month back in the server markup', () => {
+			const html = renderToString(calendar())
+
+			expect(html).toContain('aria-label="Previous month"')
+
+			expect(html).not.toContain('2020')
+
+			expect(html).not.toContain('role="option"')
+		})
 	})
 })
 

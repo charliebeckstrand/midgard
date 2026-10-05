@@ -19,6 +19,7 @@ import { k, scale } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
+import { useFormField } from '../form/context'
 import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
@@ -86,7 +87,9 @@ export type CalendarProps = {
 	 */
 	value?: Date | null
 	/**
-	 * The initially selected date of an uncontrolled calendar.
+	 * The initially selected date of an uncontrolled calendar. It also seeds the
+	 * month that the calendar shows first. A controlled or a bound calendar
+	 * ignores it. With no value, such a calendar shows the month of the clock.
 	 *
 	 * @remarks As for `value`, build the date from local parts on a page that
 	 * renders on a server.
@@ -111,8 +114,8 @@ export type CalendarProps = {
 	 * had to reverse-derive the month from `getDayProps` calls. The header arrows, the
 	 * month and year pickers, keyboard roving across a month edge, and a `value`
 	 * that lands elsewhere all report here. Mounting reports nothing. That
-	 * includes the month that a calendar with no `value` and no `defaultValue`
-	 * shows after hydration.
+	 * includes the month that a calendar with no seed date shows after
+	 * hydration.
 	 */
 	onMonthChange?: (month: Date) => void
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
@@ -199,7 +202,8 @@ export type CalendarProps = {
  * or timezone offset. It moves to the new day at local midnight. Use
  * {@link CalendarRange} for two-endpoint selection.
  *
- * With no `value` and no `defaultValue`, the month waits for hydration too.
+ * With no seed date, the month waits for hydration too. The seed is the
+ * selected date, or the `defaultValue` of an uncontrolled, unbound calendar.
  * The server and the hydration render draw the header and the weekday row,
  * with no month label and no days. The month of the client clock follows in
  * the next render, and it reports and announces nothing. A client-only mount,
@@ -253,6 +257,14 @@ export function Calendar({
 		onValueChange,
 	})
 
+	// The binding cascade of `useFormValue` gives `defaultValue` to an
+	// uncontrolled, unbound calendar only. The seed of the view obeys the same
+	// rule. A controlled or a bound calendar with no value takes the month of the
+	// clock, and that month waits for hydration.
+	const field = useFormField(name)
+
+	const seed = valueProp === undefined && field === undefined ? defaultValue : undefined
+
 	// The day is null until hydration, and it moves at each local midnight.
 	const today = useCalendarToday()
 
@@ -260,7 +272,7 @@ export function Calendar({
 
 	const { viewDate, year, month, shown, prevMonth, nextMonth, navigateTo } = useCalendarMonth({
 		value,
-		defaultValue,
+		defaultValue: seed,
 		activeGridDate,
 		onMonthChange,
 	})

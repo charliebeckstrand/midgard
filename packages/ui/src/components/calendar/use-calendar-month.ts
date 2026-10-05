@@ -17,7 +17,7 @@ function monthOf(date: Date): Date {
 	return firstOfMonth(date.getFullYear(), date.getMonth())
 }
 
-/** Options for {@link useCalendarMonth}: the bound `value`, initial `defaultValue` seed, and the roving-focus grid date that pulls the view along. @internal */
+/** Options for {@link useCalendarMonth}: the resolved `value`, the `defaultValue` seed, and the roving-focus grid date that pulls the view along. The caller gives `defaultValue` only for an uncontrolled, unbound calendar, as the binding cascade does. @internal */
 type CalendarMonthOptions = {
 	value: Date | null | undefined
 	defaultValue?: Date
