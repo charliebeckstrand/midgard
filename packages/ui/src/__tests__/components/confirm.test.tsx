@@ -80,6 +80,39 @@ describe('Confirm', () => {
 		)
 	})
 
+	it.each([
+		['an empty string', ''],
+		['null', null],
+		['false', false],
+	])('names the alertdialog with the default title when the title is %s', (_name, title) => {
+		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} title={title} />)
+
+		expect(screen.getByRole('alertdialog')).toHaveAccessibleName('Are you sure?')
+	})
+
+	it.each([
+		['an empty string', ''],
+		['null', null],
+		['false', false],
+	])(
+		'describes the alertdialog by its children when the description is %s',
+		(_name, description) => {
+			renderUI(
+				<Confirm
+					open
+					onOpenChange={() => {}}
+					onConfirm={() => {}}
+					title="Delete item"
+					description={description}
+				>
+					This cannot be undone.
+				</Confirm>,
+			)
+
+			expect(screen.getByRole('alertdialog')).toHaveAccessibleDescription('This cannot be undone.')
+		},
+	)
+
 	it('renders custom button labels', () => {
 		renderUI(
 			<Confirm

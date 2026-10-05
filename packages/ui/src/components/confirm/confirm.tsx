@@ -102,15 +102,27 @@ export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
 	 */
 	onCancel?: () => void
 	/**
-	 * Heading text, rendered as the {@link DialogTitle}.
+	 * Heading text, rendered as the {@link DialogTitle}. It is also the accessible
+	 * name of the alertdialog.
+	 *
+	 * @remarks
+	 * A falsy value, such as `''` or `null`, also falls back to the default, so the
+	 * alertdialog always has a name.
 	 * @defaultValue 'Are you sure?'
 	 */
 	title?: ReactNode
-	/** Supporting copy, rendered as the {@link DialogDescription} and used as the `aria-describedby` target. */
+	/**
+	 * Supporting copy, rendered as the {@link DialogDescription} and used as the
+	 * `aria-describedby` target.
+	 *
+	 * @remarks
+	 * A falsy value, such as `''`, `null`, or `false`, counts as absent. The
+	 * `children` then register as the `aria-describedby` target.
+	 */
 	description?: ReactNode
 	/**
 	 * Message body for the title-plus-children form. Registers as the
-	 * `aria-describedby` target only when `description` is omitted.
+	 * `aria-describedby` target only when `description` is absent.
 	 * @see {@link ConfirmBody}
 	 */
 	children?: ReactNode
@@ -141,7 +153,7 @@ export function Confirm({
 	onOpenChange,
 	onConfirm,
 	onCancel,
-	title = 'Are you sure?',
+	title,
 	description,
 	children,
 	confirm,
@@ -162,6 +174,13 @@ export function Confirm({
 	// Call it with none.
 	const handleConfirm = useCallback(() => onConfirm(), [onConfirm])
 
+	// One presence rule for the header and the body: a falsy value counts as
+	// absent. A falsy title thus falls back to the default, and a falsy
+	// description lets the children register as the message.
+	const heading = title || 'Are you sure?'
+
+	const hasDescription = Boolean(description)
+
 	return (
 		<Dialog
 			open={open}
@@ -171,15 +190,11 @@ export function Confirm({
 			width={width}
 			className={className}
 		>
-			{(title || description) && (
-				<DialogHeader>
-					{title && <DialogTitle>{title}</DialogTitle>}
-					{description && <DialogDescription>{description}</DialogDescription>}
-				</DialogHeader>
-			)}
-			{children !== undefined && (
-				<ConfirmBody describes={description === undefined}>{children}</ConfirmBody>
-			)}
+			<DialogHeader>
+				<DialogTitle>{heading}</DialogTitle>
+				{hasDescription && <DialogDescription>{description}</DialogDescription>}
+			</DialogHeader>
+			{children !== undefined && <ConfirmBody describes={!hasDescription}>{children}</ConfirmBody>}
 			<DialogFooter>
 				<Button
 					type="button"
