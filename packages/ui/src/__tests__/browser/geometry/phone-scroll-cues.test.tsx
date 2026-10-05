@@ -1,11 +1,13 @@
-import { useState } from 'react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { type ReactElement, useState } from 'react'
+import { renderToString } from 'react-dom/server'
+import { beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { page } from 'vitest/browser'
 import { Label } from '../../../components/fieldset'
 import { Filters, FiltersBar, FiltersField, FiltersRow } from '../../../components/filters'
 import { Input } from '../../../components/input'
 import { Timeline, TimelineItem, TimelineTitle } from '../../../components/timeline'
 import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
+import { nextPaint } from '../../helpers/frames'
 
 /**
  * At a phone width, a `rail` Filters row and a horizontal Timeline scroll
@@ -23,8 +25,16 @@ const FIELDS = ['Search', 'Status', 'Owner', 'Region', 'Team']
 const TITLES = ['Project kicked off', 'Design completed', 'Beta released', 'Launched']
 
 /** A `rail` bar whose field count the case toggles between a fit and an overflow. */
-function Rail({ dir, layout = 'rail' }: { dir?: 'rtl'; layout?: 'rail' | 'stack' }) {
-	const [count, setCount] = useState(FIELDS.length)
+function Rail({
+	dir,
+	layout = 'rail',
+	initial = FIELDS.length,
+}: {
+	dir?: 'rtl'
+	layout?: 'rail' | 'stack'
+	initial?: number
+}) {
+	const [count, setCount] = useState(initial)
 
 	return (
 		<div dir={dir}>
@@ -49,8 +59,8 @@ function Rail({ dir, layout = 'rail' }: { dir?: 'rtl'; layout?: 'rail' | 'stack'
 }
 
 /** A horizontal timeline whose item count the case toggles between a fit and an overflow. */
-function Line({ dir }: { dir?: 'rtl' }) {
-	const [count, setCount] = useState(TITLES.length)
+function Line({ dir, initial = TITLES.length }: { dir?: 'rtl'; initial?: number }) {
+	const [count, setCount] = useState(initial)
 
 	return (
 		<div dir={dir}>
@@ -69,28 +79,49 @@ function Line({ dir }: { dir?: 'rtl' }) {
 	)
 }
 
-/** `[start, end]` as the hook currently has them stamped. */
-function edges(el: HTMLElement): [boolean, boolean] {
-	return [el.hasAttribute('data-overflow-start'), el.hasAttribute('data-overflow-end')]
+/**
+ * Puts the server markup of `ui` in the page, with no React root, and returns
+ * its host. The browser paints this markup before the client hydrates it, so
+ * the first frame shows only what the CSS draws.
+ */
+function mountServerMarkup(ui: ReactElement): HTMLElement {
+	const host = document.createElement('div')
+
+	host.innerHTML = renderToString(ui)
+
+	document.body.append(host)
+
+	onTestFinished(() => host.remove())
+
+	return host
 }
 
+/** The width of a full edge fade, 1.5rem at the root font size of the suite. */
+const FULL_FADE_PX = 24
+
+/** The part of the mask width past 100%, in pixels, as `calc(100% ± Npx)` or `100%`. */
+const MASK_WIDTH = /^(?:calc\(100% ([+-]) ([\d.]+)px\)|100%)/
+
 /**
- * The physical sides that the mask fades. The mask holds a width for each
- * logical edge (`core/scroll/fade.ts`), and its direction turns in a
- * right-to-left context. An edge with a width of zero does not fade.
+ * The physical sides that the drawn mask fades. The mask image has a full
+ * fade at each end, and the mask extends past each side by the part of that
+ * fade that does not show (`core/scroll/fade.ts`). Thus a side fades when the
+ * mask extends past it by less than a full fade.
  */
 function fadedSides(el: HTMLElement): { left: boolean; right: boolean } {
 	const style = getComputedStyle(el)
 
 	if (style.maskImage === 'none') return { left: false, right: false }
 
-	const start = Number.parseFloat(style.getPropertyValue('--scroll-fade-start')) > 0
+	const x = Number.parseFloat(style.maskPosition)
 
-	const end = Number.parseFloat(style.getPropertyValue('--scroll-fade-end')) > 0
+	const match = MASK_WIDTH.exec(style.maskSize)
 
-	const rtl = style.getPropertyValue('--scroll-fade-to').trim() === 'left'
+	if (!match) throw new Error(`Unexpected mask size: ${style.maskSize}`)
 
-	return rtl ? { left: end, right: start } : { left: start, right: end }
+	const extra = match[1] ? Number(`${match[1]}${match[2]}`) : 0
+
+	return { left: -x < FULL_FADE_PX, right: x + extra < FULL_FADE_PX }
 }
 
 /** Scrolls `el` to the end of its reading direction. */
@@ -119,19 +150,13 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			expect(el.scrollWidth).toBeGreaterThan(el.clientWidth)
 
-			await waitFor(() => expect(edges(el)).toEqual([false, true]))
-
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
 
 			scrollToMiddle(el)
 
-			await waitFor(() => expect(edges(el)).toEqual([true, true]))
-
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: true }))
 
 			scrollToEnd(el)
-
-			await waitFor(() => expect(edges(el)).toEqual([true, false]))
 
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: false }))
 		})
@@ -141,15 +166,37 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			const el = getSlot(container, slot)
 
-			await waitFor(() => expect(edges(el)).toEqual([false, true]))
-
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: true, right: false }))
 
 			scrollToEnd(el, true)
 
-			await waitFor(() => expect(edges(el)).toEqual([true, false]))
-
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
+		})
+
+		it('fades the end edge in the first paint of the server markup', async () => {
+			const el = getSlot(mountServerMarkup(<Subject />), slot)
+
+			await nextPaint()
+
+			expect(fadedSides(el)).toEqual({ left: false, right: true })
+		})
+
+		it('fades the physical left edge in the first paint of right-to-left server markup', async () => {
+			const el = getSlot(mountServerMarkup(<Subject dir="rtl" />), slot)
+
+			await nextPaint()
+
+			expect(fadedSides(el)).toEqual({ left: true, right: false })
+		})
+
+		it('puts no mask on server markup that fits', async () => {
+			const el = getSlot(mountServerMarkup(<Subject initial={1} />), slot)
+
+			await nextPaint()
+
+			expect(el.scrollWidth).toBe(el.clientWidth)
+
+			expect(getComputedStyle(el).maskImage).toBe('none')
 		})
 
 		it('drops the fade when the content fits', async () => {
@@ -157,11 +204,9 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			const el = getSlot(container, slot)
 
-			await waitFor(() => expect(edges(el)).toEqual([false, true]))
+			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: true }))
 
 			screen.getByTestId('toggle').click()
-
-			await waitFor(() => expect(edges(el)).toEqual([false, false]))
 
 			await waitFor(() => expect(fadedSides(el)).toEqual({ left: false, right: false }))
 		})
@@ -199,7 +244,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			expect(row.hasAttribute('role')).toBe(false)
 
-			expect(edges(row)).toEqual([false, false])
+			expect(getComputedStyle(row).maskImage).toBe('none')
 		})
 	})
 
@@ -237,7 +282,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			expect(root.hasAttribute('tabindex')).toBe(false)
 
-			expect(edges(root)).toEqual([false, false])
+			expect(getComputedStyle(root).maskImage).toBe('none')
 		})
 	})
 })

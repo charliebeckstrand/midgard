@@ -2,7 +2,7 @@
 
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useA11yRoving, useScrollOverflow } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/tabs'
@@ -54,14 +54,6 @@ export function TabList({
 	// The segment variant is a fixed pill control; only the underline list
 	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
 	useTabListScroll(scrollRef, orientation, !isSegment)
-
-	// While a horizontal row overflows, the edge with more tabs behind it fades.
-	const scrollOverflowRef = useScrollOverflow({
-		axis: 'horizontal',
-		enabled: !isSegment && orientation === 'horizontal',
-	})
-
-	const setScroll = useComposedRef(scrollRef, scrollOverflowRef)
 
 	useEffect(() => {
 		const el = ref.current
@@ -118,7 +110,7 @@ export function TabList({
 				list
 			) : (
 				<div
-					ref={setScroll}
+					ref={scrollRef}
 					data-slot="tab-list-scroll"
 					data-scroll-region
 					className={k.scroll({ orientation })}

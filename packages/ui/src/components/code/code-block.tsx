@@ -3,7 +3,7 @@
 import { type ComponentProps, useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { announce, cn } from '../../core'
-import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
+import { useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { type CodeBlockVariants, k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
@@ -318,13 +318,9 @@ export function CodeBlock({
 		run()
 	}, [key, code, lang, theme])
 
-	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
-
 	// The default grammar does not say what the code is, so only a `lang` that
 	// the caller gives names the region.
 	const scrollRegionRef = useScrollRegion({ label: label ?? regionName(langProp) })
-
-	const setContent = useComposedRef<HTMLDivElement>(scrollOverflowRef, scrollRegionRef)
 
 	return (
 		<div
@@ -334,11 +330,11 @@ export function CodeBlock({
 			{...props}
 		>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
-			<div ref={setContent} dir="ltr" className={cn(k.block.content)}>
+			<div ref={scrollRegionRef} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
 					<div
 						// The cache key gives each snippet its own element. A switch between two
-						// cached snippets thus replaces the child, and the scroll hooks measure
+						// cached snippets thus replaces the child, and the scroll region measures
 						// again. An update in place can keep the size of each box, so no resize
 						// reports a new line width.
 						key={key}

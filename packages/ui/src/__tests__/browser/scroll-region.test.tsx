@@ -310,8 +310,6 @@ describe('CodeBlock scroll container', () => {
 
 		await waitFor(() => expect(content().getAttribute('tabindex')).toBe('0'))
 
-		expect(content()).toHaveAttribute('data-overflow-end')
-
 		rerender(block(narrow))
 
 		// The block paints the cached markup, not the plain fallback.
@@ -321,15 +319,11 @@ describe('CodeBlock scroll container', () => {
 
 		expect(content().hasAttribute('role')).toBe(false)
 
-		expect(content().hasAttribute('data-overflow-end')).toBe(false)
-
 		rerender(block(wide))
 
 		await waitFor(() => expect(content().getAttribute('tabindex')).toBe('0'))
 
 		expect(content().getAttribute('role')).toBe('region')
-
-		expect(content()).toHaveAttribute('data-overflow-end')
 	})
 })
 

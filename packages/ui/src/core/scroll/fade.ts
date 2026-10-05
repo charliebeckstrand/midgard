@@ -3,33 +3,55 @@
  * container. `ui/tailwind.css` loads this plugin with `@plugin`.
  *
  * A mask fades the scrolled content itself, so the fade needs no solid color
- * behind the container. One gradient fades both edges. The width of the fade at
- * each edge is a custom property, `--scroll-fade-start` at the start of the
- * reading direction and `--scroll-fade-end` at the end.
+ * behind the container. The width of the fade at each edge is a custom
+ * property, `--scroll-fade-start` at the start of the reading direction and
+ * `--scroll-fade-end` at the end.
  *
- * Where the browser supports scroll-driven animations, the scroll position
- * drives the two widths directly. The fade at an edge grows over the first
- * 1.5rem of scroll away from that edge, and it shrinks over the last 1.5rem of
- * scroll toward it. Thus the fade follows the scroll in each frame, and it is
- * gone when the content reaches the edge. No script runs on scroll. When the
- * content fits, the scroll timeline is inactive, and neither edge fades.
+ * Scroll-driven animations draw the fade, and no script runs. Thus the first
+ * paint, also the paint of the server markup, shows the final fade. The scroll
+ * position drives the two widths in each frame. The fade at an edge grows over
+ * the first 1.5rem of scroll away from that edge. It shrinks over the last
+ * 1.5rem of scroll toward it, and it is gone when the content reaches the
+ * edge.
  *
- * Elsewhere, the widths key off the `data-overflow-start` / `data-overflow-end`
- * attributes that `useScrollOverflow({ axis: 'horizontal' })` stamps. Each
- * edge then shows a full fade or no fade.
+ * A third animation sets the mask image. When the content fits, the scroll
+ * timeline is inactive, so no animation applies and the box has no mask. A
+ * mask makes the browser paint the box apart from the page, so a box that fits,
+ * such as a short table, paints as before.
  *
- * In each browser, the mask applies only while one of the attributes is
- * present. An attribute drops when the content reaches its edge, and the
- * scroll-driven width at that edge is then already zero.
+ * The mask image has a full fade at each end. The mask extends past each side
+ * by the part of that fade that does not show. At a width of zero, the full
+ * fade is outside the box. The edges are logical, and the sides are physical, so
+ * a right-to-left container swaps the two widths.
  *
- * The edges are logical, and a gradient direction is physical, so a
- * right-to-left container turns the gradient.
+ * A browser without scroll-driven animations shows no fade. A fade that comes
+ * from script state arrives after the first paint, so the reader sees it
+ * appear.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
 
 /** The width of the fade at an edge with content behind it. */
 const WIDTH = '1.5rem'
+
+/**
+ * The mask image: one gradient with a full fade at each end. The gradient
+ * holds no `var()`, because a keyframe resolves a `var()` once, and the widths
+ * change in each frame.
+ */
+const MASK = `linear-gradient(to right, transparent, #000 ${WIDTH}, #000 calc(100% - ${WIDTH}), transparent)`
+
+/**
+ * The size and the position of the mask for the fade widths at the left and
+ * the right. The mask extends past each side by the part of the full fade that
+ * does not show.
+ */
+function maskBox(left: string, right: string) {
+	return {
+		'mask-size': `calc(100% + 2 * ${WIDTH} - var(${left}) - var(${right})) 100%`,
+		'mask-position': `calc(var(${left}) - ${WIDTH}) 0`,
+	}
+}
 
 /** The Tailwind `rtl` variant: the element is in a right-to-left context. */
 const RTL = '&:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)'
@@ -63,33 +85,28 @@ export const handler: PluginCreator = ({ addBase, addUtilities }) => {
 			from: { '--scroll-fade-end': WIDTH },
 			to: { '--scroll-fade-end': '0px' },
 		},
+		// The image of the mask is the same at each point of the scroll. The size
+		// and the position of the mask read the two widths.
+		'@keyframes scroll-fade-mask': {
+			'from, to': { 'mask-image': MASK },
+		},
 	})
 
 	addUtilities({
 		'.scroll-fade-inline': {
-			'--scroll-fade-to': 'right',
-			// A mask makes the browser paint the box apart from the page. The box
-			// takes it only while it overflows, so a box that fits, such as a short
-			// table, paints as before.
-			'&:is([data-overflow-start], [data-overflow-end])': {
-				'mask-image':
-					'linear-gradient(to var(--scroll-fade-to), transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent)',
-			},
-			[RTL]: { '--scroll-fade-to': 'left' },
+			'mask-repeat': 'no-repeat',
+			...maskBox('--scroll-fade-start', '--scroll-fade-end'),
+			[RTL]: maskBox('--scroll-fade-end', '--scroll-fade-start'),
 			// Longhands, because Lightning CSS expands the `animation` shorthand
 			// with a duration of `0s`. A scroll timeline needs `auto`, the length of
 			// its range (https://github.com/parcel-bundler/lightningcss/issues/1012).
 			[SCROLL_TIMELINE]: {
-				'animation-name': 'scroll-fade-start, scroll-fade-end',
+				'animation-name': 'scroll-fade-start, scroll-fade-end, scroll-fade-mask',
 				'animation-duration': 'auto',
 				'animation-timing-function': 'linear',
 				'animation-fill-mode': 'both',
 				'animation-timeline': 'scroll(self inline)',
-				'animation-range': `0 ${WIDTH}, calc(100% - ${WIDTH}) 100%`,
-			},
-			'@supports not (animation-timeline: scroll())': {
-				'&[data-overflow-start]': { '--scroll-fade-start': WIDTH },
-				'&[data-overflow-end]': { '--scroll-fade-end': WIDTH },
+				'animation-range': `0 ${WIDTH}, calc(100% - ${WIDTH}) 100%, normal`,
 			},
 		},
 	})
