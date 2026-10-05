@@ -117,12 +117,12 @@ function regionFrameFor(
 
 /**
  * Resolves the geometry the map draws, decoupled from measurement so the
- * neutral geography paints on the first commit. A single canonical fit (fixed
- * frame, no container read) reserves the CSS box through its aspect and paints
- * the geography immediately. The container's measured pixels then drive a refit
- * that reprojects to constant-pixel marks a beat after mount. Sharing the
- * canonical fit's aspect, the refit only sharpens strokes — it never reshapes
- * the geography, so the swap is imperceptible. The canonical stage is memoized
+ neutral geography paints on the first commit. A single canonical fit (fixed
+ * frame, no container read) paints the geography immediately, on the server
+ * too. The SVG scales it to meet the box, and its strokes keep their px width
+ * until the measurement lands. The measured fit is the canonical fit scaled to
+ * meet the box and centered, the same placement the SVG gives it, so the swap
+ * moves no shape and no stroke. The canonical stage is memoized
  * across instances by {@link staticMapGeometry}. A remount of the same atlas (a
  * tab switch, a second plat) reuses it rather than recomputing on mount.
  *

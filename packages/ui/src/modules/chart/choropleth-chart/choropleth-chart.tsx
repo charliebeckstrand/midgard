@@ -286,11 +286,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	const mapProps = {
 		...map,
 		// A choropleth is always a chart tile, so default it to the board's shared
-		// 16/9 ratio (overridable) to match its neighbors, and defer the first paint:
-		// the map then draws once at that measured aspect with its legend resolved,
-		// instead of flashing the map's canonical (auto-aspect, legend-less) fit and
-		// refitting when measured; MapPlat defers its first paint whenever the
-		// aspect is fixed, which this is.
+		// 16/9 ratio (overridable) to match its neighbors.
 		aspectRatio: map.aspectRatio ?? '16/9',
 		...numericRegionData<T>({
 			legend,
