@@ -72,6 +72,18 @@ type ConfirmAction = {
 	color?: NonNullable<ButtonVariants['color']>
 	/** Disables the button. */
 	disabled?: boolean
+	/**
+	 * Puts the confirm button in its `loading` state while the action runs.
+	 *
+	 * @remarks
+	 * Use it in place of `disabled` for an action in progress. A disabled button
+	 * drops the focus that it has. A pending button stays enabled and keeps its
+	 * focus. It is `aria-disabled`, and it cancels each activation, so `onConfirm`
+	 * does not fire. The `cancel` action does not take this field.
+	 * @defaultValue false
+	 * @see {@link Button}
+	 */
+	pending?: boolean
 }
 
 /** Props for {@link Confirm}: open-state control, message content, the two configurable actions, and dialog `width`. */
@@ -105,13 +117,14 @@ export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
 	/** Overrides for the confirm (primary) action. */
 	confirm?: ConfirmAction
 	/** Overrides for the cancel (plain) action. */
-	cancel?: ConfirmAction
+	cancel?: Omit<ConfirmAction, 'pending'>
 	className?: string
 }
 
 /**
  * Confirmation dialog built on {@link Dialog} with `role="alertdialog"`. Pairs a cancel
- * and a confirm action whose labels, colors, and disabled state are configurable.
+ * and a confirm action whose labels, colors, and disabled state are configurable. The
+ * confirm action also takes a pending state, which keeps its focus.
  *
  * @remarks
  * Controlled-only: `open`/`onOpenChange` are required, and `onConfirm` leaves the dialog
@@ -181,6 +194,7 @@ export function Confirm({
 					type="button"
 					color={confirm?.color}
 					disabled={confirm?.disabled}
+					loading={confirm?.pending}
 					onClick={handleConfirm}
 				>
 					{confirm?.label ?? 'Confirm'}

@@ -152,6 +152,31 @@ describe('Confirm', () => {
 		expect(screen.getByText('Confirm').closest('button')).toBeDisabled()
 	})
 
+	it('keeps the focused confirm button enabled while confirm.pending is true, and cancels its click', () => {
+		const onConfirm = vi.fn()
+
+		const { rerender } = renderUI(<Confirm open onOpenChange={() => {}} onConfirm={onConfirm} />)
+
+		const button = screen.getByText('Confirm').closest('button') as HTMLButtonElement
+
+		button.focus()
+
+		rerender(
+			<Confirm open onOpenChange={() => {}} onConfirm={onConfirm} confirm={{ pending: true }} />,
+		)
+
+		// A disabled button drops the focus that it has, so a pending button stays enabled.
+		expect(button).toBeEnabled()
+
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		expect(button).toHaveFocus()
+
+		fireEvent.click(button)
+
+		expect(onConfirm).not.toHaveBeenCalled()
+	})
+
 	it('disables the cancel button when cancel.disabled is true', () => {
 		renderUI(
 			<Confirm open onOpenChange={() => {}} onConfirm={() => {}} cancel={{ disabled: true }} />,
