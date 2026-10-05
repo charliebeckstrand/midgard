@@ -2,3 +2,4 @@
 pnpm-lock.yaml -diff linguist-generated
 *.png binary
 *.pdf binary
+packages/ui/src/fonts/*.js -diff linguist-generated
