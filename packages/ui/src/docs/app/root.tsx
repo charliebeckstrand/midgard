@@ -14,7 +14,6 @@ import { AppearanceProvider, AppearanceScript, AppearanceSettings } from 'ui/pro
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import fontUrl from '../../fonts/google-sans-flex-latin.woff2?url'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import {
@@ -40,10 +39,6 @@ export function Layout({ children }: { children: ReactNode }) {
 				<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
 				<AppearanceScript />
 				<EventLogScript />
-				{/* The latin face of the font of ui, at the URL of its face in the
-				    stylesheet. The `FontPreload` of ui writes a file URL in a Vite
-				    server build, so the docs give the link themselves. */}
-				<link rel="preload" href={fontUrl} as="font" type="font/woff2" crossOrigin="" />
 				<Meta />
 				<Links />
 			</head>
