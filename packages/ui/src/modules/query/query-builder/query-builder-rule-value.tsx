@@ -4,6 +4,7 @@ import { parseDate } from '@internationalized/date'
 import { fromCalendarDate, toCalendarDate } from '../../../components/calendar/calendar-utilities'
 import { DatePicker } from '../../../components/date-picker'
 import { Input } from '../../../components/input'
+import type { JsonValue } from '../../../components/json-tree'
 import { ListboxOption } from '../../../components/listbox'
 import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
@@ -11,14 +12,14 @@ import { cn } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { QueryField } from '../engine/types'
 
-/** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */
+/** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. @internal */
 export type QueryBuilderRuleValueProps = {
 	/** The field of the rule. Its type selects the value input. */
 	field: QueryField
 	/** The current value of the rule. */
-	value: unknown
+	value: JsonValue | undefined
 	/** Receives the next value of the rule. */
-	onValueChange: (value: unknown) => void
+	onValueChange: (value: JsonValue) => void
 	/**
 	 * When true, edit a two-bound `[min, max]` tuple (the operator is a range).
 	 * @defaultValue false
@@ -135,6 +136,8 @@ function RangeValue({
  *   operator is a range. The pair clamps to the field's `span` and to each other
  * - `date`: a {@link DatePicker}, round-tripped as a local-wall-clock ISO date
  * - anything else: a text {@link Input}
+ *
+ * @internal
  */
 export function QueryBuilderRuleValue({
 	field,

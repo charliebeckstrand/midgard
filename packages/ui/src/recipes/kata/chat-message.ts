@@ -34,8 +34,7 @@ const bubble = defineRecipe({
 	//
 	// The pulse rides the content, so the bubble projects it onto the Markdown
 	// child rather than the component applying it — the axis then carries the
-	// whole streaming look, and a caller composing custom slots off
-	// `ChatMessageBubbleVariants` gets all of it. Written out because Tailwind
+	// whole streaming look. Written out because Tailwind
 	// scans source for whole class names and never sees an assembled one; the
 	// gate is `ugoki.css.pulse`'s. For the reduced-motion reader a standing dim
 	// stands in, never both, since the pulse already troughs to that opacity —
@@ -127,14 +126,4 @@ export const k = defineRecipe(
 export type ChatMessageVariants = Omit<VariantProps<typeof k>, 'sender'> & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']
-}
-/** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`sender`, `streaming`), for consumers composing custom slots. */
-export type ChatMessageBubbleVariants = Omit<
-	VariantProps<typeof bubble>,
-	'sender' | 'streaming'
-> & {
-	/** The author of the message, which sets the fill and the corners of the bubble. @defaultValue 'assistant' */
-	sender?: VariantProps<typeof bubble>['sender']
-	/** Whether the reply still streams in. The content of the bubble then pulses. @defaultValue false */
-	streaming?: VariantProps<typeof bubble>['streaming']
 }

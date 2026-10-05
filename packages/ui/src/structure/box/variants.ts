@@ -11,8 +11,11 @@ export type ResponsiveBoxPadding = Responsive<BoxPadding>
 /** Background surface token for {@link Box}. */
 export type BoxBg = keyof typeof k.bg
 
-/** Outline weight for {@link Box}; `true` selects the default token. */
-export type BoxOutline = boolean | keyof typeof k.outline
+/**
+ * Outline weight for {@link Box}: `true` for the default weight, or `'subtle'`
+ * or `'strong'` for a different weight.
+ */
+export type BoxOutline = boolean | keyof typeof k.outline.weight
 
 /** Border-radius token for {@link Box}. */
 export type BoxRadius = keyof typeof k.radius

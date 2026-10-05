@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
+import type { JsonValue } from '../../components/json-tree'
 import { isQueryActive } from '../../modules/query/engine/query-active'
 import {
 	compileQuery,
@@ -278,7 +279,16 @@ const NEEDS_VALUE = OPERATORS.filter((operator) => !VALUELESS.includes(operator)
 
 /** The shapes a cleared input leaves behind, each of which must constrain nothing. */
 const emptyValue = () =>
-	fc.constantFrom<unknown>(null, undefined, '', '   ', '\t', [], ['', ''], [null, undefined])
+	fc.constantFrom<JsonValue | undefined>(
+		null,
+		undefined,
+		'',
+		'   ',
+		'\t',
+		[],
+		['', ''],
+		[null, null],
+	)
 
 /** A cell value of any kind the grid hands the matcher. */
 const fieldValue = () =>
@@ -286,7 +296,7 @@ const fieldValue = () =>
 		fc.string({ maxLength: 6 }),
 		fc.integer({ min: -50, max: 50 }),
 		fc.boolean(),
-		fc.constantFrom<unknown>(null, undefined, ''),
+		fc.constantFrom<JsonValue | undefined>(null, undefined, ''),
 	)
 
 /** A finite number, which is the domain the numeric operators state an order over. */

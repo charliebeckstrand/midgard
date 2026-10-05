@@ -18,9 +18,7 @@ function positionAt(index: number, length: number): GroupPosition {
  * has to forward `data-group` itself. A leaf control rendering `<Placeholder>`
  * in skeleton mode is one such descendant.
  *
- * Use this hook directly when a group component owns additional concerns
- * (keyboard navigation, focus management) and renders its own container.
- * For declarative use, prefer `<Group>`.
+ * @internal
  */
 export function useGroup(children: ReactNode, orientation: GroupOrientation): ReactNode {
 	// Memoized: stable element identity across parent re-renders preserves
