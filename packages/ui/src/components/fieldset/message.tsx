@@ -15,7 +15,9 @@ export type MessageSeverity = Severity
 export type MessageProps = {
 	/**
 	 * The tone of the message. Only `error` renders the errors of a bound field.
-	 * @defaultValue 'error'
+	 * When you do not set it, an unbound message takes the `severity` of the
+	 * enclosing `<Field>` or `<Control>`. A form-bound message stays `error`.
+	 * @defaultValue the severity of the enclosing control, else 'error'
 	 */
 	severity?: MessageSeverity
 	className?: string
@@ -76,7 +78,7 @@ function resolveMessageElementId(
  * binding. Its type scale takes the step of the nearest density scope.
  */
 export function Message({
-	severity = 'error',
+	severity: severityProp,
 	className,
 	id,
 	name,
@@ -87,6 +89,10 @@ export function Message({
 	const control = useControl()
 
 	const field = useFormField(name)
+
+	// An unbound message takes the tone of its Field (FieldProps.severity). A
+	// form-bound message shows the errors of its field, so it stays `error`.
+	const severity = severityProp ?? (field === undefined ? control?.severity : undefined) ?? 'error'
 
 	// When form-bound, only the error severity auto-renders from the field's errors.
 	// Other severities render their children verbatim.
