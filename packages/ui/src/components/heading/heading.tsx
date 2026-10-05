@@ -8,7 +8,12 @@ export type { HeadingLevel }
 
 /** Props for {@link Heading}: `level`, the density `size` step, plus native heading attributes. */
 export type HeadingProps = {
-	/** @defaultValue 1 */
+	/**
+	 * The heading level. It selects the element, `h1` to `h6`, and sets the font
+	 * weight and the natural size at `md`.
+	 *
+	 * @defaultValue 1
+	 */
 	level?: HeadingLevel
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope.

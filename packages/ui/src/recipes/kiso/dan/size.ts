@@ -60,7 +60,7 @@ export const size = {
 		/** The height of a color panel skeleton. */
 		height: 'density-h-[76.5,98,120]',
 	},
-	/** A progress gauge skeleton. */
+	/** The diameter of a progress gauge and of its skeleton. */
 	gauge: 'density-size-[12,16,20]',
 	button: {
 		/** The height of a button. */

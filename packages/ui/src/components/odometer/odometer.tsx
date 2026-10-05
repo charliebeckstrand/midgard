@@ -34,8 +34,8 @@ export type OdometerProps = {
  * The root takes no role and is never a live region, and a consumer `role` does
  * not change that. The root has no role, so ARIA does not let it take an
  * `aria-label`: put a label in the text around the readout.
- * Honors reduced motion by snapping (see {@link useOdometerAnimatedValue}).
- * @see {@link useOdometerAnimatedValue}
+ * When the OS asks for reduced motion, or `duration` is `0` or less, the
+ * readout goes to the target with no tween (WCAG 2.3.3).
  */
 export function Odometer({
 	value,

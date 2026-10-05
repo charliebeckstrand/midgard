@@ -27,7 +27,7 @@ export type CopyButtonProps = {
 	 */
 	timeout?: number
 	className?: string
-	/** Fires on every copied-state transition, with the new text. */
+	/** Fires on each change of the copied state, with the new `copied` value. */
 	onCopiedChange?: (copied: boolean) => void
 	/**
 	 * Fires when the clipboard write rejects, with whatever the platform threw.

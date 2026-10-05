@@ -74,9 +74,9 @@ const OFF_RIGHT = -50
  * Text masked by a gradient whose highlight sweeps across it on a loop.
  *
  * @remarks
- * The sweep is driven by an imperative `animate()` outside any `MotionConfig`.
- * The hook therefore reads the OS preference directly, and renders static text
- * under reduced motion (WCAG 2.3.3).
+ * An imperative `animate()` outside any `MotionConfig` drives the sweep.
+ * ShinyText therefore reads the OS preference through `usePrefersReducedMotion`,
+ * and renders static text under reduced motion (WCAG 2.3.3).
  *
  * The eight tuning props are deliberate. No app consumes this component, and
  * its demo exercises every one of them. A decorative surface earns its knobs,
