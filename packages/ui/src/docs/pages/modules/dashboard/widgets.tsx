@@ -4,15 +4,16 @@ import { useDashboardRows, useDashboardScope } from 'ui/dashboard'
 import { Grid, type GridColumn } from 'ui/grid'
 import { useContentHeightHost } from 'ui/primitives/content-height'
 import { Stat, StatDelta, StatDescription, StatValue } from 'ui/stat'
+import { PointerHint } from '../../../kit/pointer-hint.tsx'
 import { products, type Sale, sales, sumBy } from './data.ts'
 
 /** The hint names the gesture of the pointer that the device has. A tap on a touch screen selects. */
 export function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
 	return (
-		<>
-			<span className="pointer-coarse:hidden">Click</span>
-			<span className="hidden pointer-coarse:inline">Tap</span> a {mark} to filter the other tiles
-		</>
+		<PointerHint
+			mouse={`Click a ${mark} to filter the other tiles`}
+			touch={`Tap a ${mark} to filter the other tiles`}
+		/>
 	)
 }
 

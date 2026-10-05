@@ -1,6 +1,7 @@
 import { ArrowDownUp, Download, EyeOff, Pin } from 'lucide-react'
 import { ContextMenu, type ContextMenuEntry } from 'ui/context-menu'
 import { Text } from 'ui/text'
+import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
 const entries: ContextMenuEntry[] = [
 	{
@@ -39,7 +40,7 @@ export default function Submenus() {
 		<ContextMenu items={entries} aria-label="Column actions">
 			<div className="flex items-center justify-center rounded-lg border border-dashed border-zinc-300 px-10 py-8 dark:border-zinc-700">
 				<Text tone="muted" className="select-none">
-					Right-click the column
+					<PointerHint mouse="Right-click the column" touch="Press and hold the column" />
 				</Text>
 			</div>
 		</ContextMenu>

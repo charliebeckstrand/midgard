@@ -1,6 +1,7 @@
 import { Copy, Download, Maximize2, Pencil, Share2 } from 'lucide-react'
 import { ContextMenu, type ContextMenuItem, type ContextMenuProps } from 'ui/context-menu'
 import { Text } from 'ui/text'
+import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
 // The built-in items of the host, such as a chart or an image viewer.
 const defaults: ContextMenuItem[] = [
@@ -20,7 +21,7 @@ export default function ContextMenuPlayground(props: ContextMenuProps) {
 		<ContextMenu aria-label="Image actions" defaults={defaults} items={items} {...props}>
 			<div className="flex items-center justify-center rounded-lg border border-dashed border-zinc-300 px-10 py-8 dark:border-zinc-700">
 				<Text tone="muted" className="select-none">
-					Right-click here
+					<PointerHint mouse="Right-click here" touch="Press and hold here" />
 				</Text>
 			</div>
 		</ContextMenu>
