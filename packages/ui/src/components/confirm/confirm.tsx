@@ -1,7 +1,9 @@
 'use client'
 
 import { type ReactNode, useCallback, useEffect } from 'react'
+import { cn } from '../../core'
 import { usePanelA11y } from '../../primitives/panel'
+import { k as panel } from '../../recipes/kata/panel'
 import { Button, type ButtonVariants } from '../button'
 import {
 	Dialog,
@@ -13,24 +15,44 @@ import {
 } from '../dialog'
 
 /**
- * Description fallback registering `children` as the alertdialog's
- * `aria-describedby` target when no explicit `description` slot renders.
+ * Scroll region of the `children`. With `describes`, it is also the
+ * alertdialog's `aria-describedby` target.
  *
  * @remarks
  * `role="alertdialog"` requires its message referenced by `aria-describedby`.
- * In the title-plus-children form the children are that message, so this wrapper
- * stamps the panel's `descriptionId` and registers with the a11y context. Skipped
- * when a `description` is supplied, since {@link DialogDescription} already registers.
+ * In the title-plus-children form the children are that message, so the region
+ * stamps the panel's `descriptionId` and registers with the a11y context. When a
+ * `description` is supplied, `describes` is off, since {@link DialogDescription}
+ * already registers.
+ *
+ * From `sm` up, the dialog panel has a height cap and no overflow of its own.
+ * The region is a direct flex child of the panel, so `min-h-0` lets it shrink
+ * to the cap, and it scrolls. The header stays outside the region, as the panel
+ * layout recipe sets, so the header and the actions stay in view.
+ *
+ * The region has two layouts. With `describes`, it is a plain block, so inline
+ * children flow as text. A `DialogBody` child then does not shrink, and the
+ * region scrolls in its place. Without `describes`, the children are slots of
+ * the panel. The region then keeps the slot rhythm of the panel, so a
+ * `DialogBody` child shrinks and scrolls on its own.
  * @see {@link usePanelA11y}
  * @internal
  */
-function ConfirmBody({ children }: { children: ReactNode }) {
+function ConfirmBody({ describes, children }: { describes: boolean; children: ReactNode }) {
 	const { descriptionId, registerDescription } = usePanelA11y()
 
-	useEffect(() => registerDescription?.(), [registerDescription])
+	useEffect(
+		() => (describes ? registerDescription?.() : undefined),
+		[describes, registerDescription],
+	)
 
 	return (
-		<div id={descriptionId} data-slot="confirm-body">
+		<div
+			id={describes ? descriptionId : undefined}
+			data-slot="confirm-body"
+			data-scroll-region
+			className={cn(!describes && panel.base, 'min-h-0 overflow-y-auto')}
+		>
 			{children}
 		</div>
 	)
@@ -97,6 +119,8 @@ export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
  * alone, where `onOpenChange(false)` reports every dismissal. The accessible message comes from either
  * `description` (a registered {@link DialogDescription}) or, in the title-plus-children
  * form, the `children` wrapped in {@link ConfirmBody}; `description` takes precedence.
+ * The children sit in a scroll region between the header and the actions. When they are
+ * long, they scroll, and the header and the actions stay in view.
  * @see {@link Dialog}
  */
 export function Confirm({
@@ -136,8 +160,9 @@ export function Confirm({
 					{description && <DialogDescription>{description}</DialogDescription>}
 				</DialogHeader>
 			)}
-			{children !== undefined &&
-				(description === undefined ? <ConfirmBody>{children}</ConfirmBody> : children)}
+			{children !== undefined && (
+				<ConfirmBody describes={description === undefined}>{children}</ConfirmBody>
+			)}
 			<DialogFooter>
 				<Button
 					type="button"
