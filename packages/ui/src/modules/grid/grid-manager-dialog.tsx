@@ -2,7 +2,7 @@
 
 import { type ReactNode, useRef } from 'react'
 import { Button } from '../../components/button'
-import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
+import { Dialog, DialogBody, DialogFooter, DialogPanel, DialogTitle } from '../../components/dialog'
 
 /** Props for {@link GridManagerDialog}. @internal */
 type GridManagerDialogProps = {
@@ -40,14 +40,16 @@ export function GridManagerDialog({
 	const doneRef = useRef<HTMLButtonElement>(null)
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange} initialFocus={focusDone ? doneRef : undefined}>
-			<DialogTitle>{label}</DialogTitle>
-			<DialogBody>{children}</DialogBody>
-			<DialogFooter>
-				<Button ref={doneRef} type="button" variant="plain" onClick={() => onOpenChange(false)}>
-					Done
-				</Button>
-			</DialogFooter>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogPanel initialFocus={focusDone ? doneRef : undefined}>
+				<DialogTitle>{label}</DialogTitle>
+				<DialogBody>{children}</DialogBody>
+				<DialogFooter>
+					<Button ref={doneRef} type="button" variant="plain" onClick={() => onOpenChange(false)}>
+						Done
+					</Button>
+				</DialogFooter>
+			</DialogPanel>
 		</Dialog>
 	)
 }

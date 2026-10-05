@@ -1,25 +1,23 @@
-import { useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	Drawer,
 	DrawerBody,
 	DrawerDescription,
 	DrawerHeader,
-	type DrawerProps,
+	DrawerPanel,
+	type DrawerPanelProps,
 	DrawerTitle,
 	DrawerTrigger,
 } from 'ui/drawer'
 import { Text } from 'ui/text'
 
-export default function DrawerPlayground(props: DrawerProps) {
-	const [open, setOpen] = useState(false)
-
+export default function DrawerPlayground(props: DrawerPanelProps) {
 	return (
-		<>
-			<DrawerTrigger open={open} onClick={() => setOpen(true)}>
+		<Drawer>
+			<DrawerTrigger>
 				<Button variant="outline">Track order</Button>
 			</DrawerTrigger>
-			<Drawer open={open} onOpenChange={setOpen} {...props}>
+			<DrawerPanel {...props}>
 				<DrawerHeader>
 					<DrawerTitle>Order #1042</DrawerTitle>
 					<DrawerDescription>Arrives Thursday, June 18.</DrawerDescription>
@@ -31,7 +29,7 @@ export default function DrawerPlayground(props: DrawerProps) {
 					</Text>
 				</DrawerBody>
 				{/* With no footer of its own, the drawer shows the standard Close button. */}
-			</Drawer>
-		</>
+			</DrawerPanel>
+		</Drawer>
 	)
 }

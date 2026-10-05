@@ -7,6 +7,7 @@ import {
 	DialogBody,
 	DialogClose,
 	DialogFooter,
+	DialogPanel,
 	DialogTitle,
 } from '../../../components/dialog'
 import {
@@ -46,18 +47,20 @@ export function ChartDataDialog({ open, onOpenChange, readout, title }: ChartDat
 	const closeRef = useRef<HTMLButtonElement>(null)
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange} initialFocus={closeRef}>
-			<DialogTitle>{title ?? 'Chart data'}</DialogTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogPanel initialFocus={closeRef}>
+				<DialogTitle>{title ?? 'Chart data'}</DialogTitle>
 
-			<DialogBody>{open && <ChartDataTable readout={readout} />}</DialogBody>
+				<DialogBody>{open && <ChartDataTable readout={readout} />}</DialogBody>
 
-			<DialogFooter>
-				<DialogClose>
-					<Button type="button" ref={closeRef}>
-						Close
-					</Button>
-				</DialogClose>
-			</DialogFooter>
+				<DialogFooter>
+					<DialogClose>
+						<Button type="button" ref={closeRef}>
+							Close
+						</Button>
+					</DialogClose>
+				</DialogFooter>
+			</DialogPanel>
 		</Dialog>
 	)
 }

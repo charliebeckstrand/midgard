@@ -1,25 +1,23 @@
-import { useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	Dialog,
 	DialogBody,
 	DialogDescription,
 	DialogHeader,
-	type DialogProps,
+	DialogPanel,
+	type DialogPanelProps,
 	DialogTitle,
 	DialogTrigger,
 } from 'ui/dialog'
 import { Text } from 'ui/text'
 
-export default function DialogPlayground(props: DialogProps) {
-	const [open, setOpen] = useState(false)
-
+export default function DialogPlayground(props: DialogPanelProps) {
 	return (
-		<>
-			<DialogTrigger open={open} onClick={() => setOpen(true)}>
+		<Dialog>
+			<DialogTrigger>
 				<Button variant="outline">What's new</Button>
 			</DialogTrigger>
-			<Dialog open={open} onOpenChange={setOpen} {...props}>
+			<DialogPanel {...props}>
 				<DialogHeader>
 					<DialogTitle>What's new in version 2.4</DialogTitle>
 					<DialogDescription>Released on March 3.</DialogDescription>
@@ -31,7 +29,7 @@ export default function DialogPlayground(props: DialogProps) {
 					</Text>
 				</DialogBody>
 				{/* With no footer of its own, the dialog shows the standard Close button. */}
-			</Dialog>
-		</>
+			</DialogPanel>
+		</Dialog>
 	)
 }

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	Dialog,
@@ -7,6 +6,7 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
+	DialogPanel,
 	DialogTitle,
 	DialogTrigger,
 } from 'ui/dialog'
@@ -50,14 +50,12 @@ const sections = [
 ]
 
 export default function LongContent() {
-	const [open, setOpen] = useState(false)
-
 	return (
-		<>
-			<DialogTrigger open={open} onClick={() => setOpen(true)}>
+		<Dialog>
+			<DialogTrigger>
 				<Button variant="outline">Read the terms</Button>
 			</DialogTrigger>
-			<Dialog open={open} onOpenChange={setOpen}>
+			<DialogPanel>
 				<DialogHeader>
 					<DialogTitle>Terms of service</DialogTitle>
 					<DialogDescription>Updated on March 3.</DialogDescription>
@@ -78,9 +76,11 @@ export default function LongContent() {
 							Decline
 						</Button>
 					</DialogClose>
-					<Button onClick={() => setOpen(false)}>Accept</Button>
+					<DialogClose>
+						<Button type="button">Accept</Button>
+					</DialogClose>
 				</DialogFooter>
-			</Dialog>
-		</>
+			</DialogPanel>
+		</Dialog>
 	)
 }

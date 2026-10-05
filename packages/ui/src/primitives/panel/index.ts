@@ -10,6 +10,7 @@ export {
 	type PanelProvidersProps,
 	usePanelA11y,
 } from './panel-providers'
+export { PanelRoot, type PanelRootProps, PanelStateContext, usePanelState } from './panel-root'
 export { PanelTrigger, type PanelTriggerProps } from './panel-trigger'
 export { createPanel } from './slots'
 export type {

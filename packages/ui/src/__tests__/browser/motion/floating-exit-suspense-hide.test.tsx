@@ -2,7 +2,7 @@ import { type ReactNode, Suspense, use, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
-import { Dialog } from '../../../components/dialog'
+import { Dialog, DialogPanel } from '../../../components/dialog'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
 import { renderUI, screen, waitFor } from '../../helpers'
 
@@ -62,16 +62,18 @@ function DialogHarness() {
 
 	return (
 		<Boundary promise={promise}>
-			<Dialog open={open} onOpenChange={setOpen} aria-label="Panel">
-				<Button
-					onClick={() => {
-						setOpen(false)
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogPanel aria-label="Panel">
+					<Button
+						onClick={() => {
+							setOpen(false)
 
-						setPromise(pending())
-					}}
-				>
-					Add
-				</Button>
+							setPromise(pending())
+						}}
+					>
+						Add
+					</Button>
+				</DialogPanel>
 			</Dialog>
 		</Boundary>
 	)

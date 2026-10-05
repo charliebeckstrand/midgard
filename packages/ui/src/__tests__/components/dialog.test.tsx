@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Card } from '../../components/card'
-import { Dialog, DialogClose, DialogHeader, DialogTitle } from '../../components/dialog'
+import {
+	Dialog,
+	DialogClose,
+	DialogHeader,
+	DialogPanel,
+	DialogTitle,
+} from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
 import { k as heading } from '../../recipes/kata/heading'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -9,7 +15,7 @@ describe('Dialog', () => {
 	it('renders children with role="dialog" when open', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				Dialog content
+				<DialogPanel>Dialog content</DialogPanel>
 			</Dialog>,
 		)
 
@@ -25,7 +31,9 @@ describe('Dialog', () => {
 	it('renders the title as an h2, or at the level that it is given', () => {
 		const { unmount } = renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				<DialogTitle>Modal title</DialogTitle>
+				<DialogPanel>
+					<DialogTitle>Modal title</DialogTitle>
+				</DialogPanel>
 			</Dialog>,
 		)
 
@@ -35,7 +43,9 @@ describe('Dialog', () => {
 
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				<DialogTitle level={4}>Nested title</DialogTitle>
+				<DialogPanel>
+					<DialogTitle level={4}>Nested title</DialogTitle>
+				</DialogPanel>
 			</Dialog>,
 		)
 
@@ -50,7 +60,7 @@ describe('Dialog', () => {
 	it('does not render when closed', () => {
 		renderUI(
 			<Dialog open={false} onOpenChange={() => {}}>
-				Hidden content
+				<DialogPanel>Hidden content</DialogPanel>
 			</Dialog>,
 		)
 
@@ -58,7 +68,11 @@ describe('Dialog', () => {
 	})
 
 	it('opens uncontrolled from defaultOpen', () => {
-		renderUI(<Dialog defaultOpen>Auto-open</Dialog>)
+		renderUI(
+			<Dialog defaultOpen>
+				<DialogPanel>Auto-open</DialogPanel>
+			</Dialog>,
+		)
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
@@ -66,7 +80,11 @@ describe('Dialog', () => {
 	})
 
 	it('stays closed when uncontrolled with neither open nor defaultOpen', () => {
-		renderUI(<Dialog>Hidden</Dialog>)
+		renderUI(
+			<Dialog>
+				<DialogPanel>Hidden</DialogPanel>
+			</Dialog>,
+		)
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
@@ -76,9 +94,11 @@ describe('Dialog', () => {
 
 		renderUI(
 			<Dialog defaultOpen onOpenChange={onOpenChange}>
-				<DialogClose>
-					<button type="button">Done</button>
-				</DialogClose>
+				<DialogPanel>
+					<DialogClose>
+						<button type="button">Done</button>
+					</DialogClose>
+				</DialogPanel>
 			</Dialog>,
 		)
 
@@ -95,8 +115,8 @@ describe('Dialog', () => {
 
 	it('renders with placement="top"', () => {
 		renderUI(
-			<Dialog open align="top" onOpenChange={() => {}}>
-				Top-placed
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel align="top">Top-placed</DialogPanel>
 			</Dialog>,
 		)
 
@@ -113,8 +133,8 @@ describe('Dialog', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Dialog open dismissOnBackdrop={false} onOpenChange={onOpenChange}>
-				Locked
+			<Dialog open onOpenChange={onOpenChange}>
+				<DialogPanel dismissOnBackdrop={false}>Locked</DialogPanel>
 			</Dialog>,
 		)
 
@@ -133,8 +153,8 @@ describe('Dialog', () => {
 
 	it('renders with the glass surface', () => {
 		renderUI(
-			<Dialog open glass onOpenChange={() => {}}>
-				Glassy
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel glass>Glassy</DialogPanel>
 			</Dialog>,
 		)
 
@@ -149,8 +169,8 @@ describe('Dialog', () => {
 
 	it('marks the glass panel as the group the item wash keys on', () => {
 		renderUI(
-			<Dialog open glass onOpenChange={() => {}}>
-				Glassy
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel glass>Glassy</DialogPanel>
 			</Dialog>,
 		)
 
@@ -164,7 +184,7 @@ describe('Dialog', () => {
 	it('leaves the group marker off the flat panel', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				Flat
+				<DialogPanel>Flat</DialogPanel>
 			</Dialog>,
 		)
 
@@ -178,9 +198,11 @@ describe('Dialog', () => {
 	it('DialogTitle sizes on the title ramp', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				<DialogHeader>
-					<DialogTitle>Settings</DialogTitle>
-				</DialogHeader>
+				<DialogPanel>
+					<DialogHeader>
+						<DialogTitle>Settings</DialogTitle>
+					</DialogHeader>
+				</DialogPanel>
 			</Dialog>,
 		)
 
@@ -191,9 +213,11 @@ describe('Dialog', () => {
 		renderUI(
 			<DensityProvider density="compact">
 				<Dialog open onOpenChange={() => {}}>
-					<DialogHeader>
-						<DialogTitle>Settings</DialogTitle>
-					</DialogHeader>
+					<DialogPanel>
+						<DialogHeader>
+							<DialogTitle>Settings</DialogTitle>
+						</DialogHeader>
+					</DialogPanel>
 				</Dialog>
 			</DensityProvider>,
 		)
@@ -215,8 +239,10 @@ describe('Dialog click containment', () => {
 		// portal up the component tree, so the card sees it unless the panel stops it.
 		renderUI(
 			<Card onClick={onRowClick}>
-				<Dialog open onOpenChange={() => {}} aria-label="Confirm">
-					<button type="button">Delete</button>
+				<Dialog open onOpenChange={() => {}}>
+					<DialogPanel aria-label="Confirm">
+						<button type="button">Delete</button>
+					</DialogPanel>
 				</Dialog>
 			</Card>,
 		)
@@ -240,8 +266,8 @@ describe('Dialog onOpenComplete', () => {
 		const onOpenComplete = vi.fn()
 
 		renderUI(
-			<Dialog open={false} onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
-				content
+			<Dialog open={false} onOpenChange={() => {}}>
+				<DialogPanel onOpenComplete={onOpenComplete}>content</DialogPanel>
 			</Dialog>,
 		)
 

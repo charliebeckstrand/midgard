@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest'
 import { Button } from '../../components/button'
-import { Dialog, DialogBody } from '../../components/dialog'
+import { Dialog, DialogBody, DialogPanel } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { renderUI, setupUser } from '../helpers'
 import { axe } from '../helpers/axe'
@@ -77,7 +77,9 @@ describe('a11y baseline (axe): overlays teeth check', () => {
 	it('detects an open dialog with no accessible name', async () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				<DialogBody>No title, so no accessible name.</DialogBody>
+				<DialogPanel>
+					<DialogBody>No title, so no accessible name.</DialogBody>
+				</DialogPanel>
 			</Dialog>,
 		)
 

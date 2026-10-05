@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { Sheet, SheetBody, SheetHeader, SheetTitle } from '../../../components/sheet'
+import { Sheet, SheetBody, SheetHeader, SheetPanel, SheetTitle } from '../../../components/sheet'
 import { frames, getSlot, renderUI } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
@@ -27,14 +27,16 @@ describe('cross-docked sheet resize floor (real browser)', () => {
 		['shrinks', STEP],
 	] as const)('%s a short bottom sheet by the drag, and does not jump', async (_, travel) => {
 		renderUI(
-			<Sheet open handle side="bottom" onOpenChange={() => {}} aria-label="Short">
-				<SheetHeader>
-					<SheetTitle>Short</SheetTitle>
-				</SheetHeader>
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel handle side="bottom" aria-label="Short">
+					<SheetHeader>
+						<SheetTitle>Short</SheetTitle>
+					</SheetHeader>
 
-				<SheetBody>
-					<div className="h-16">Body</div>
-				</SheetBody>
+					<SheetBody>
+						<div className="h-16">Body</div>
+					</SheetBody>
+				</SheetPanel>
 			</Sheet>,
 		)
 

@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
-import { Dialog } from '../../components/dialog'
+import { Dialog, DialogPanel } from '../../components/dialog'
 import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
@@ -76,7 +76,9 @@ describe('Alert', () => {
 					title="Title"
 					actions={
 						<Dialog open onOpenChange={() => {}}>
-							<Button>Confirm</Button>
+							<DialogPanel>
+								<Button>Confirm</Button>
+							</DialogPanel>
 						</Dialog>
 					}
 				/>
@@ -94,7 +96,9 @@ describe('Alert', () => {
 	it('gives its actions the defaults inside a portal of its own', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				<Alert severity="warning" title="Title" actions={<Button>Action</Button>} />
+				<DialogPanel>
+					<Alert severity="warning" title="Title" actions={<Button>Action</Button>} />
+				</DialogPanel>
 			</Dialog>,
 		)
 

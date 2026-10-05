@@ -10,6 +10,7 @@ import {
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
+	SheetPanel,
 	SheetTitle,
 	SheetTrigger,
 } from 'ui/sheet'
@@ -20,11 +21,11 @@ export default function WithForm() {
 	const [open, setOpen] = useState(false)
 
 	return (
-		<>
-			<SheetTrigger open={open} onClick={() => setOpen(true)}>
+		<Sheet open={open} onOpenChange={setOpen}>
+			<SheetTrigger>
 				<Button variant="outline">Edit profile</Button>
 			</SheetTrigger>
-			<Sheet open={open} onOpenChange={setOpen}>
+			<SheetPanel>
 				<SheetHeader>
 					<SheetTitle>Edit profile</SheetTitle>
 					<SheetDescription>Other members of your team see these details.</SheetDescription>
@@ -61,7 +62,7 @@ export default function WithForm() {
 						<Button type="submit">Save</Button>
 					</SheetFooter>
 				</Form>
-			</Sheet>
-		</>
+			</SheetPanel>
+		</Sheet>
 	)
 }

@@ -4,26 +4,28 @@ import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yPanel, useMinBreakpoint } from '../../hooks'
-import { useControllableFlag } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Overlay } from '../../primitives/overlay'
-import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
+import {
+	type PanelOverlayProps,
+	PanelProviders,
+	PanelRoot,
+	type PanelRootProps,
+	usePanelState,
+} from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 import { DialogClose, DialogDefaultFooter } from './slots'
 
-/** Props for {@link Dialog}: open-state control, `width` variant, align, dismissal, and accessible naming. */
-export type DialogProps = Omit<DialogPanelVariants, 'surface'> &
+/** Props for {@link Dialog}: the open state, controlled or uncontrolled. */
+export type DialogProps = PanelRootProps
+
+/**
+ * Props for {@link DialogPanel}: the `width` variant, align, dismissal, the
+ * surface, and accessible naming.
+ */
+export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 	PanelOverlayProps & {
-		/** Controlled open state. Pair with `onOpenChange`. */
-		open?: boolean
-		/**
-		 * Initial open state when uncontrolled.
-		 * @defaultValue false
-		 */
-		defaultOpen?: boolean
-		/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
-		onOpenChange?: (open: boolean) => void
 		/**
 		 * Fires once the panel has finished arriving — it is up, at rest, and covering
 		 * whatever it covers.
@@ -40,7 +42,7 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> &
 		 *
 		 * Once per arrival, and never for a close.
 		 *
-		 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
+		 * @see {@link DrawerPanelProps.onOpenComplete} for the same contract on the sibling panel.
 		 */
 		onOpenComplete?: () => void
 		/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
@@ -89,26 +91,49 @@ const alignClasses = {
 } as const
 
 /**
- * Modal surface rendered in an `Overlay` with focus trapping and backdrop dismiss.
- * Drives open state controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`).
- * It animates as a bottom sheet on mobile and a centered (or `top`-aligned) panel on
- * desktop. The surface variant resolves against the enclosing Glass provider. Compose
- * `<DialogTrigger>`, `<DialogClose>`, and the slot family (`<DialogContent>`, `<DialogHeader>`,
- * `<DialogTitle>`, `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within. With no
- * `<DialogFooter>` in its children, the dialog shows a footer with the standard Close button.
+ * Composition root for a modal dialog. It holds the open state, controlled
+ * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives it to
+ * `<DialogTrigger>` and `<DialogPanel>`. It renders no element. A trigger in the
+ * root opens an uncontrolled dialog. Escape, the backdrop, and `<DialogClose>`
+ * close it, and focus then goes back to the trigger.
+ *
+ * @example
+ * ```tsx
+ * <Dialog>
+ *   <DialogTrigger>
+ *     <Button>Open</Button>
+ *   </DialogTrigger>
+ *   <DialogPanel>
+ *     <DialogTitle>Title</DialogTitle>
+ *   </DialogPanel>
+ * </Dialog>
+ * ```
+ *
+ * @see {@link DialogPanel} for the surface and its props.
+ */
+export function Dialog(props: DialogProps) {
+	return <PanelRoot {...props} />
+}
+
+/**
+ * The surface of a {@link Dialog}, rendered in an `Overlay` with focus trapping and
+ * backdrop dismiss. It reads the open state of the enclosing `<Dialog>`. It animates
+ * as a bottom sheet on mobile and a centered (or `top`-aligned) panel on desktop. The
+ * surface variant resolves against the enclosing Glass provider. Compose `<DialogClose>`
+ * and the slot family (`<DialogContent>`, `<DialogHeader>`, `<DialogTitle>`,
+ * `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within. With no
+ * `<DialogFooter>` in its children, the dialog shows a footer with the standard Close
+ * button.
  *
  * @remarks
  * A registered `<DialogTitle>` supplies `aria-labelledby` and takes precedence over the
  * `aria-label` fallback. Set `role='alertdialog'` for prompts that demand a response. The
- * panel and its dismiss affordances share a single open-state setter via `PanelProviders`.
+ * panel, its close parts, and its dismissal share the open-state setter of the root.
  * A click in the panel stops at the panel, so it does not reach a clickable ancestor of the
  * Dialog. With a `container`, the panel stays in the box of that element. The `sm`
  * breakpoint, which selects the layout and the motion, still reads the viewport.
  */
-export function Dialog({
-	open,
-	defaultOpen,
-	onOpenChange,
+export function DialogPanel({
 	onOpenComplete,
 	align = 'center',
 	dismissOnBackdrop,
@@ -124,14 +149,9 @@ export function Dialog({
 	initialFocus,
 	'aria-label': ariaLabel,
 	'data-slot': slot = 'dialog',
-}: DialogProps) {
-	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
-	// The single setter drives the Overlay and the close affordances either way.
-	const [resolvedOpen, setOpen] = useControllableFlag({
-		value: open,
-		defaultValue: defaultOpen,
-		onValueChange: onOpenChange,
-	})
+}: DialogPanelProps) {
+	// The root holds the state. One setter drives the Overlay and the close parts.
+	const { open, setOpen, panelId } = usePanelState()
 
 	const resolvedSurface = useResolvedSurface(glass)
 
@@ -141,7 +161,7 @@ export function Dialog({
 
 	const preset = isDesktop ? k.motion.desktop : k.motion.mobile
 
-	const { onAnimationComplete } = useOpenComplete(resolvedOpen, preset.animate, onOpenComplete)
+	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
 	const { ariaProps, a11y } = useA11yPanel(role, modal)
 
@@ -150,7 +170,7 @@ export function Dialog({
 
 	return (
 		<Overlay
-			open={resolvedOpen}
+			open={open}
 			onOpenChange={setOpen}
 			dismissOnBackdrop={dismissOnBackdrop}
 			modal={modal}
@@ -172,6 +192,7 @@ export function Dialog({
 					onAnimationComplete={onAnimationComplete}
 					{...ariaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
+					id={panelId}
 					data-slot={slot}
 					// React carries a click in the portal up the component tree. Stop it at
 					// the panel, so a clickable ancestor of the Dialog does not see it.

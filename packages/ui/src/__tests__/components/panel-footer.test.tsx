@@ -2,9 +2,21 @@ import type { ComponentType, ReactNode } from 'react'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Dialog, DialogClose, DialogContent, DialogFooter } from '../../components/dialog'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter } from '../../components/drawer'
-import { Sheet, SheetClose, SheetContent, SheetFooter } from '../../components/sheet'
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogPanel,
+} from '../../components/dialog'
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerFooter,
+	DrawerPanel,
+} from '../../components/drawer'
+import { Sheet, SheetClose, SheetContent, SheetFooter, SheetPanel } from '../../components/sheet'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 type PanelRootProps = {
@@ -12,6 +24,24 @@ type PanelRootProps = {
 	onOpenChange: (open: boolean) => void
 	footer?: ReactNode
 	children: ReactNode
+}
+
+/** A root with its panel, as one component, so each case renders each family the same way. */
+function composed(
+	Root: ComponentType<{
+		open: boolean
+		onOpenChange: (open: boolean) => void
+		children: ReactNode
+	}>,
+	Panel: ComponentType<{ footer?: ReactNode; children: ReactNode }>,
+): ComponentType<PanelRootProps> {
+	return function ComposedPanel({ open, onOpenChange, footer, children }: PanelRootProps) {
+		return (
+			<Root open={open} onOpenChange={onOpenChange}>
+				<Panel footer={footer}>{children}</Panel>
+			</Root>
+		)
+	}
 }
 
 type Family = {
@@ -25,21 +55,21 @@ type Family = {
 const FAMILIES: Family[] = [
 	{
 		name: 'dialog',
-		Root: Dialog,
+		Root: composed(Dialog, DialogPanel),
 		Close: DialogClose as Family['Close'],
 		Content: DialogContent,
 		Footer: DialogFooter,
 	},
 	{
 		name: 'drawer',
-		Root: Drawer,
+		Root: composed(Drawer, DrawerPanel),
 		Close: DrawerClose as Family['Close'],
 		Content: DrawerContent,
 		Footer: DrawerFooter,
 	},
 	{
 		name: 'sheet',
-		Root: Sheet,
+		Root: composed(Sheet, SheetPanel),
 		Close: SheetClose as Family['Close'],
 		Content: SheetContent,
 		Footer: SheetFooter,

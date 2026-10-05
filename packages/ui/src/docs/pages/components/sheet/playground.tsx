@@ -1,11 +1,11 @@
-import { useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	Sheet,
 	SheetBody,
 	SheetDescription,
 	SheetHeader,
-	type SheetProps,
+	SheetPanel,
+	type SheetPanelProps,
 	SheetTitle,
 	SheetTrigger,
 } from 'ui/sheet'
@@ -18,15 +18,13 @@ const activity = [
 	'Lisa Wong shared the project with the design team.',
 ]
 
-export default function SheetPlayground(props: SheetProps) {
-	const [open, setOpen] = useState(false)
-
+export default function SheetPlayground(props: SheetPanelProps) {
 	return (
-		<>
-			<SheetTrigger open={open} onClick={() => setOpen(true)}>
+		<Sheet>
+			<SheetTrigger>
 				<Button variant="outline">Show activity</Button>
 			</SheetTrigger>
-			<Sheet open={open} onOpenChange={setOpen} {...props}>
+			<SheetPanel {...props}>
 				<SheetHeader>
 					<SheetTitle>Activity</SheetTitle>
 					<SheetDescription>The last changes in this project.</SheetDescription>
@@ -39,7 +37,7 @@ export default function SheetPlayground(props: SheetProps) {
 					</Stack>
 				</SheetBody>
 				{/* With no footer of its own, the sheet shows the standard Close button. */}
-			</Sheet>
-		</>
+			</SheetPanel>
+		</Sheet>
 	)
 }

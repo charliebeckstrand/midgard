@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { Sheet, SheetBody } from '../../../components/sheet'
+import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { frames, getSlot, present, renderUI } from '../../helpers'
 
@@ -36,10 +36,12 @@ function columnsOf(count: number): GridColumn<Row>[] {
  */
 async function openSheet(columns: GridColumn<Row>[], label: string) {
 	renderUI(
-		<Sheet open onOpenChange={() => {}} width="fit" aria-label={label}>
-			<SheetBody>
-				<Grid<Row> columns={columns} rows={ROWS} getKey={(row) => row.id} width="fit" />
-			</SheetBody>
+		<Sheet open onOpenChange={() => {}}>
+			<SheetPanel width="fit" aria-label={label}>
+				<SheetBody>
+					<Grid<Row> columns={columns} rows={ROWS} getKey={(row) => row.id} width="fit" />
+				</SheetBody>
+			</SheetPanel>
 		</Sheet>,
 	)
 
@@ -102,11 +104,13 @@ describe('cross-docked sheet geometry (real browser)', () => {
 		'spans the screen, with its %s grip on one edge',
 		async (side) => {
 			renderUI(
-				<Sheet open handle side={side} onOpenChange={() => {}} aria-label="Banner">
-					<SheetBody>
-						{/* Content with height, so a cover over the panel is taller than a strip. */}
-						<div className="h-96">Body</div>
-					</SheetBody>
+				<Sheet open onOpenChange={() => {}}>
+					<SheetPanel handle side={side} aria-label="Banner">
+						<SheetBody>
+							{/* Content with height, so a cover over the panel is taller than a strip. */}
+							<div className="h-96">Body</div>
+						</SheetBody>
+					</SheetPanel>
 				</Sheet>,
 			)
 

@@ -7,7 +7,7 @@ import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Grid, type GridColumn } from 'ui/modules/grid'
 import { Rating } from 'ui/rating'
-import { Sheet, SheetBody, SheetClose, SheetTitle } from 'ui/sheet'
+import { Sheet, SheetBody, SheetClose, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
@@ -215,24 +215,25 @@ export function PlacesIndex({
 		// No grip, because there is nothing left for it to say: the panel is already
 		// the width of what it holds, and a drag could only make the table scroll or
 		// pad it with space.
-		<Sheet glass open={open} onOpenChange={onOpenChange} width="fit" aria-label="My places">
-			{/* The title and the close on one line, laid out here rather than through
+		<Sheet open={open} onOpenChange={onOpenChange}>
+			<SheetPanel glass width="fit" aria-label="My places">
+				{/* The title and the close on one line, laid out here rather than through
 			    the header slot: that slot stacks a title over a description, which puts
 			    the close under the title instead of opposite it. The form drawer's
 			    header is built the same way, so the two panels answer the same corner. */}
-			<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-				<SheetTitle className="p-0">My places</SheetTitle>
+				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
+					<SheetTitle className="p-0">My places</SheetTitle>
 
-				<SheetClose>
-					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-				</SheetClose>
-			</Flex>
+					<SheetClose>
+						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+					</SheetClose>
+				</Flex>
 
-			{/* `min-h-0` so the body is the box the grid fills rather than one that
+				{/* `min-h-0` so the body is the box the grid fills rather than one that
 			    grows with its rows; the panel's own height then bounds the table.
 			    The footer under it, with the Close button, holds the bottom inset. */}
-			<SheetBody className="min-h-0">
-				{/* `maxHeight="fill"` rather than a measured one: the grid takes the box it is
+				<SheetBody className="min-h-0">
+					{/* `maxHeight="fill"` rather than a measured one: the grid takes the box it is
 				    given and flexes its scroll region to the remainder, so the rows
 				    scroll under a sticky header without this file having to know the
 				    height of the title row above it or the panel's own insets.
@@ -240,51 +241,52 @@ export function PlacesIndex({
 				    Virtualized for the same reason the map clusters: a reader who has
 				    been somewhere every week for five years has a list this panel must
 				    not render whole. */}
-				<Grid<Place>
-					columns={columns}
-					rows={rows}
-					// The second filter, on the grid's own row across from its search: the
-					// two do the same job, where under the panel's title this one read as
-					// being about the panel. Only where there is a choice to make — with
-					// every row in one region it would narrow to what is already shown.
-					//
-					// "All regions" rather than the bar's "All states", because this panel
-					// names the column "Region" and answers in its own vocabulary.
-					toolbar={
-						regions.length > 1 ? (
-							<Listbox<string>
-								aria-label="Region"
-								placeholder="All regions"
-								clearable
-								className="w-52"
-								displayValue={(name) => name}
-								value={picked}
-								onValueChange={setPicked}
-							>
-								{regions.map((name) => (
-									<ListboxOption key={name} value={name}>
-										<ListboxLabel>{name}</ListboxLabel>
-									</ListboxOption>
-								))}
-							</Listbox>
-						) : null
-					}
-					// The panel is built around this table, so the table has to be what
-					// states the width rather than what reads it. Both halves of that are
-					// on the props themselves.
-					width="fit"
-					getKey={(place) => place.id}
-					search={{ placeholder: 'Find a place' }}
-					sort={{ defaultValue: [{ column: 'visited', direction: 'desc' }] }}
-					onRowClick={onOpen}
-					virtualize
-					maxHeight="fill"
-					header={{ position: 'sticky' }}
-					hover
-					empty={<Text>No places match.</Text>}
-					className="h-full"
-				/>
-			</SheetBody>
+					<Grid<Place>
+						columns={columns}
+						rows={rows}
+						// The second filter, on the grid's own row across from its search: the
+						// two do the same job, where under the panel's title this one read as
+						// being about the panel. Only where there is a choice to make — with
+						// every row in one region it would narrow to what is already shown.
+						//
+						// "All regions" rather than the bar's "All states", because this panel
+						// names the column "Region" and answers in its own vocabulary.
+						toolbar={
+							regions.length > 1 ? (
+								<Listbox<string>
+									aria-label="Region"
+									placeholder="All regions"
+									clearable
+									className="w-52"
+									displayValue={(name) => name}
+									value={picked}
+									onValueChange={setPicked}
+								>
+									{regions.map((name) => (
+										<ListboxOption key={name} value={name}>
+											<ListboxLabel>{name}</ListboxLabel>
+										</ListboxOption>
+									))}
+								</Listbox>
+							) : null
+						}
+						// The panel is built around this table, so the table has to be what
+						// states the width rather than what reads it. Both halves of that are
+						// on the props themselves.
+						width="fit"
+						getKey={(place) => place.id}
+						search={{ placeholder: 'Find a place' }}
+						sort={{ defaultValue: [{ column: 'visited', direction: 'desc' }] }}
+						onRowClick={onOpen}
+						virtualize
+						maxHeight="fill"
+						header={{ position: 'sticky' }}
+						hover
+						empty={<Text>No places match.</Text>}
+						className="h-full"
+					/>
+				</SheetBody>
+			</SheetPanel>
 		</Sheet>
 	)
 }

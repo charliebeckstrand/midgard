@@ -7,6 +7,7 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
+	DialogPanel,
 	DialogTitle,
 } from '../../../components/dialog'
 import {
@@ -15,6 +16,7 @@ import {
 	DrawerDescription,
 	DrawerFooter,
 	DrawerHeader,
+	DrawerPanel,
 	DrawerTitle,
 } from '../../../components/drawer'
 import {
@@ -23,6 +25,7 @@ import {
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
+	SheetPanel,
 	SheetTitle,
 } from '../../../components/sheet'
 import { getSlot, renderUI } from '../../helpers'
@@ -56,19 +59,23 @@ const PANELS: Panel[] = [
 		slot: 'sheet',
 		full: ({ title, description, body, footer }) => (
 			<Sheet open onOpenChange={() => {}}>
-				<SheetHeader>
-					<SheetTitle>{title}</SheetTitle>
-					<SheetDescription>{description}</SheetDescription>
-				</SheetHeader>
-				<SheetBody>{body}</SheetBody>
-				<SheetFooter>
-					<button type="button">{footer}</button>
-				</SheetFooter>
+				<SheetPanel>
+					<SheetHeader>
+						<SheetTitle>{title}</SheetTitle>
+						<SheetDescription>{description}</SheetDescription>
+					</SheetHeader>
+					<SheetBody>{body}</SheetBody>
+					<SheetFooter>
+						<button type="button">{footer}</button>
+					</SheetFooter>
+				</SheetPanel>
 			</Sheet>
 		),
 		bare: (body) => (
-			<Sheet open onOpenChange={() => {}} aria-label="Bare" footer={null}>
-				<SheetBody>{body}</SheetBody>
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel aria-label="Bare" footer={null}>
+					<SheetBody>{body}</SheetBody>
+				</SheetPanel>
 			</Sheet>
 		),
 	},
@@ -77,19 +84,23 @@ const PANELS: Panel[] = [
 		slot: 'dialog',
 		full: ({ title, description, body, footer }) => (
 			<Dialog open onOpenChange={() => {}}>
-				<DialogHeader>
-					<DialogTitle>{title}</DialogTitle>
-					<DialogDescription>{description}</DialogDescription>
-				</DialogHeader>
-				<DialogBody>{body}</DialogBody>
-				<DialogFooter>
-					<button type="button">{footer}</button>
-				</DialogFooter>
+				<DialogPanel>
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription>{description}</DialogDescription>
+					</DialogHeader>
+					<DialogBody>{body}</DialogBody>
+					<DialogFooter>
+						<button type="button">{footer}</button>
+					</DialogFooter>
+				</DialogPanel>
 			</Dialog>
 		),
 		bare: (body) => (
-			<Dialog open onOpenChange={() => {}} aria-label="Bare" footer={null}>
-				<DialogBody>{body}</DialogBody>
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel aria-label="Bare" footer={null}>
+					<DialogBody>{body}</DialogBody>
+				</DialogPanel>
 			</Dialog>
 		),
 	},
@@ -98,19 +109,23 @@ const PANELS: Panel[] = [
 		slot: 'drawer',
 		full: ({ title, description, body, footer }) => (
 			<Drawer open onOpenChange={() => {}}>
-				<DrawerHeader>
-					<DrawerTitle>{title}</DrawerTitle>
-					<DrawerDescription>{description}</DrawerDescription>
-				</DrawerHeader>
-				<DrawerBody>{body}</DrawerBody>
-				<DrawerFooter>
-					<button type="button">{footer}</button>
-				</DrawerFooter>
+				<DrawerPanel>
+					<DrawerHeader>
+						<DrawerTitle>{title}</DrawerTitle>
+						<DrawerDescription>{description}</DrawerDescription>
+					</DrawerHeader>
+					<DrawerBody>{body}</DrawerBody>
+					<DrawerFooter>
+						<button type="button">{footer}</button>
+					</DrawerFooter>
+				</DrawerPanel>
 			</Drawer>
 		),
 		bare: (body) => (
-			<Drawer open onOpenChange={() => {}} aria-label="Bare" footer={null}>
-				<DrawerBody>{body}</DrawerBody>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel aria-label="Bare" footer={null}>
+					<DrawerBody>{body}</DrawerBody>
+				</DrawerPanel>
 			</Drawer>
 		),
 	},
