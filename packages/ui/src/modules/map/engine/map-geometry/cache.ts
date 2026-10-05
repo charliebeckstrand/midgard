@@ -39,6 +39,7 @@
 import type { GeoProjection } from 'd3-geo'
 import { getOrCompute } from '../../../../utilities'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
+import type { MapTransform } from '../map-zoom/transform'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
 import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
 import { emitRegionPaths, type MapProjectedAtlas, probeCanonicalFit } from './projected'
@@ -255,6 +256,7 @@ export function cachedChromePaths(
 	height: number,
 	step: number | null,
 	sphere: boolean,
+	frame: MapTransform | null = null,
 ): MapChromePaths {
 	if (step === null && !sphere) return EMPTY_CHROME
 
@@ -264,7 +266,7 @@ export function cachedChromePaths(
 		return hit.paths
 	}
 
-	const paths = chromePaths(fitted, step)
+	const paths = chromePaths(fitted, step, frame)
 
 	chrome.set(fitted, { width, height, step, paths })
 

@@ -15,7 +15,7 @@ import { projectPoint, unprojectPoint } from './engine/map-geometry/mark'
 import { carriedTransform } from './engine/map-geometry/projected'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
-import type { MapTransform } from './engine/map-zoom/transform'
+import { applyTransform, invertTransform, type MapTransform } from './engine/map-zoom/transform'
 import type {
 	LngLat,
 	MapAspectRatio,
@@ -168,34 +168,36 @@ export function useMapShape({
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	// The measured refit, its region paths, and the projector, resolved as one
-	// unit so a resize reprojects all three together. A passed d3 instance is fit
-	// in place and keeps its reference, so keying the paths or the projector on
-	// that reference alone would freeze them at the first fit — the region layer
-	// and the overlays would disagree with the resized viewBox. Deriving them
-	// inside one memo over the live frame dimensions reprojects on every resize,
-	// and hands the context a fresh `project` identity so overlay marks recompute.
-	// The measured paths themselves come through the cross-instance memo
-	// (`measuredRegionPaths`), so a remount at the same box reuses them instead
-	// of reprojecting the atlas. With nothing to frame the measured fit is
-	// `null`, so the map holds the canonical draw (or the neutral frame) rather
-	// than projecting through an unfitted default.
+	// unit so a resize reprojects all three together. Deriving them inside one
+	// memo over the live frame dimensions reprojects on every resize, and hands
+	// the context a fresh `project` identity so overlay marks recompute. The
+	// projector closes over the measured fit's own values, never over a refit
+	// projection alone: a passed d3 instance keeps its canonical fit, and its
+	// frame transform is what changes (`measuredMapFit`). The measured paths
+	// themselves come through the cross-instance memo (`measuredRegionPaths`), so
+	// a remount at the same box reuses them instead of reprojecting the atlas.
+	// With nothing to frame the measured fit is `null`, so the map holds the
+	// canonical draw (or the neutral frame) rather than projecting through an
+	// unfitted default.
 	const view = useMemo(() => {
-		const { features, canonical } = statics
+		const { canonical } = statics
 
-		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
+		const measured = measuredMapFit(projection, canonical, frameWidth, frameHeight)
 
 		// Draw from the measured fit once it lands, the canonical fit until then, so
 		// the geography never waits on the container being measured.
-		const fitted = measured ?? canonical?.projection ?? null
+		const fitted = measured?.projection ?? canonical?.projection ?? null
+
+		const frame = measured?.frame ?? null
 
 		// The layer draws the canonical paths and carries them onto the measured fit
 		// on one attribute; `null` where they cannot be carried and the paths are
 		// emitted at that fit instead, as they were before.
-		const regionFrame = regionFrameFor(statics, measured)
+		const regionFrame = frame ?? regionFrameFor(statics, measured?.projection ?? null)
 
 		const paths =
 			measured !== null && regionFrame === null
-				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
+				? measuredRegionPaths(statics, measured.projection, frameWidth, frameHeight)
 				: cachedCanonicalPaths(statics)
 
 		return {
@@ -205,8 +207,14 @@ export function useMapShape({
 			paths,
 			regionFrame,
 			fit: fitted,
-			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
-			unproject: (at: MapPoint2D) => unprojectPoint(fitted, at),
+			frame,
+			project: (position: LngLat) => {
+				const at = fitted === null ? null : projectPoint(fitted, position)
+
+				return at === null || frame === null ? at : applyTransform(at, frame)
+			},
+			unproject: (at: MapPoint2D) =>
+				unprojectPoint(fitted, frame === null ? at : invertTransform(at, frame)),
 		}
 	}, [projection, statics, frameWidth, frameHeight])
 
@@ -220,7 +228,14 @@ export function useMapShape({
 		() =>
 			view.fit === null
 				? EMPTY_CHROME
-				: cachedChromePaths(view.fit, view.viewWidth, view.viewHeight, graticule, sphere),
+				: cachedChromePaths(
+						view.fit,
+						view.viewWidth,
+						view.viewHeight,
+						graticule,
+						sphere,
+						view.frame,
+					),
 		[view, graticule, sphere],
 	)
 
