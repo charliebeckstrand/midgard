@@ -311,6 +311,92 @@ describe('CurrencyInput', () => {
 		expect(input.selectionStart).toBe(3)
 	})
 
+	// Only a mark that the user typed can be the decimal. A group mark that the
+	// field wrote stays a group mark after a deletion.
+	it.each([
+		['en-US', 'USD', '1,234', '123.00'],
+		['de-DE', 'EUR', '1.234', '123,00'],
+	])(
+		'keeps a %s group mark that the field wrote as a group after a Backspace',
+		async (locale, currency, grouped, display) => {
+			const onValueChange = vi.fn()
+
+			const { container } = renderUI(
+				<CurrencyInput locale={locale} currency={currency} onValueChange={onValueChange} />,
+			)
+
+			const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+			const user = setupUser()
+
+			await user.type(input, '1234')
+
+			expect(input.value).toBe(grouped)
+
+			await user.keyboard('{Backspace}')
+
+			expect(input.value).toBe('123')
+
+			expect(onValueChange).toHaveBeenLastCalledWith(123)
+
+			await user.tab()
+
+			expect(input.value).toBe(display)
+		},
+	)
+
+	it('keeps a group mark that the field wrote as a group at precision 4', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<CurrencyInput locale="en-US" currency="USD" precision={4} onValueChange={onValueChange} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = setupUser()
+
+		await user.type(input, '1234')
+
+		expect(input.value).toBe('1,234')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(1234)
+
+		await user.keyboard('{Backspace}')
+
+		expect(input.value).toBe('123')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(123)
+	})
+
+	it('reads digits after a Backspace over the typed mark as an integer', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<CurrencyInput locale="en-US" currency="USD" onValueChange={onValueChange} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = setupUser()
+
+		await user.type(input, '1234,')
+
+		expect(input.value).toBe('1,234,')
+
+		await user.keyboard('{Backspace}')
+
+		await user.keyboard('{Backspace}')
+
+		expect(input.value).toBe('123')
+
+		await user.type(input, '56')
+
+		expect(input.value).toBe('12,356')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(12356)
+	})
+
 	it('emits null when cleared', async () => {
 		const onChange = vi.fn()
 

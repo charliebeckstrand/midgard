@@ -49,11 +49,40 @@ function otherMarkOf(decimal: string) {
 const GROUP_FRACTION_LIMIT = 2
 
 // Gives the index of the other mark that the text keeps as its decimal, else
-// -1. The other mark is the decimal only when the text holds no locale
-// decimal, it is the last mark, and 1 to `maxFractionDigits` digits follow it.
-// Else it is a group mark. With no digit after it, the text keeps the mark, so
-// a later digit can decide it. The value is then the same as for a group mark.
+// -1. Only the mark at `typedMark`, which the user typed, can be the decimal.
+// It is the decimal only when the text holds no locale decimal, it is the last
+// mark, and 1 to `maxFractionDigits` digits follow it. Else it is a group
+// mark. With no digit after it, the text keeps the mark, so a later digit can
+// decide it. The value is then the same as for a group mark.
 function otherDecimalIndex(
+	text: string,
+	typedMark: number,
+	group: string | undefined,
+	decimal: string,
+	maxFractionDigits: number,
+) {
+	const other = otherMarkOf(decimal)
+
+	if (other === undefined || typedMark < 0 || maxFractionDigits === 0) return -1
+
+	if (text.includes(decimal) || text.lastIndexOf(other) !== typedMark) return -1
+
+	const tail = text.slice(typedMark + other.length)
+
+	if (group !== undefined && group !== other && tail.includes(group)) return -1
+
+	const limit =
+		group === other ? Math.min(maxFractionDigits, GROUP_FRACTION_LIMIT) : maxFractionDigits
+
+	return tail.replace(/\D/g, '').length <= limit ? typedMark : -1
+}
+
+// Gives the index of the decimal in a text that the field wrote, else -1. In
+// that text, the last other mark is the typed mark when it can be the decimal.
+// The format writes the other mark as a group only before three digits, and
+// `GROUP_FRACTION_LIMIT` then makes a group of it. The display writes the
+// locale decimal, or no decimal at `maxFractionDigits` 0.
+function fieldDecimalIndex(
 	text: string,
 	group: string | undefined,
 	decimal: string,
@@ -61,20 +90,52 @@ function otherDecimalIndex(
 ) {
 	const other = otherMarkOf(decimal)
 
-	if (other === undefined || maxFractionDigits === 0 || text.includes(decimal)) return -1
+	if (other === undefined) return -1
 
-	const index = text.lastIndexOf(other)
+	return otherDecimalIndex(text, text.lastIndexOf(other), group, decimal, maxFractionDigits)
+}
 
-	if (index < 0) return -1
+// Gives the index in `text` of the other mark that the user typed, else -1.
+// `previous` is the text before the edit, which the field wrote. Its typed
+// mark stays typed unless the edit removes it. A mark that the edit
+// inserts is typed, and a paste counts. Thus a group mark that the field wrote
+// does not become typed after a deletion or a regroup.
+function typedMarkAfterEdit(
+	text: string,
+	previous: string,
+	group: string | undefined,
+	decimal: string,
+	maxFractionDigits: number,
+) {
+	const other = otherMarkOf(decimal)
 
-	const tail = text.slice(index + other.length)
+	if (other === undefined) return -1
 
-	if (group !== undefined && group !== other && tail.includes(group)) return -1
+	const shorter = Math.min(text.length, previous.length)
 
-	const limit =
-		group === other ? Math.min(maxFractionDigits, GROUP_FRACTION_LIMIT) : maxFractionDigits
+	let start = 0
 
-	return tail.replace(/\D/g, '').length <= limit ? index : -1
+	while (start < shorter && text[start] === previous[start]) start++
+
+	let end = 0
+
+	while (
+		end < shorter - start &&
+		text[text.length - 1 - end] === previous[previous.length - 1 - end]
+	) {
+		end++
+	}
+
+	const kept = fieldDecimalIndex(previous, group, decimal, maxFractionDigits)
+
+	let typed = -1
+
+	if (kept >= 0 && kept < start) typed = kept
+	else if (kept >= 0 && kept >= previous.length - end) typed = kept + text.length - previous.length
+
+	const inserted = text.slice(start, text.length - end).lastIndexOf(other)
+
+	return inserted < 0 ? typed : Math.max(typed, start + inserted)
 }
 
 // Puts the locale decimal in place of the other mark at `index`, so that the
@@ -84,8 +145,9 @@ function withDecimalAt(text: string, index: number, decimal: string) {
 }
 
 // `formatEditing` keeps a sign only at the start, so the caret counts a sign
-// only at index 0. It keeps the other mark only at the index that
-// `otherDecimalIndex` gives, so the caret counts the other mark only there.
+// only at index 0. It keeps the other mark only where the typed mark is the
+// decimal, so the caret counts the other mark only there. `previous` is the
+// text before the edit.
 export function isMeaningful(
 	c: string,
 	index: number,
@@ -93,12 +155,15 @@ export function isMeaningful(
 	group: string,
 	decimal: string,
 	maxFractionDigits: number,
+	previous: string,
 ) {
 	if (c === '-' || c === MINUS_SIGN) return index === 0
 
 	if ((c >= '0' && c <= '9') || c === decimal) return true
 
-	return index === otherDecimalIndex(text, group, decimal, maxFractionDigits)
+	const typedMark = typedMarkAfterEdit(text, previous, group, decimal, maxFractionDigits)
+
+	return index === otherDecimalIndex(text, typedMark, group, decimal, maxFractionDigits)
 }
 
 // Collapses every decimal separator after the first, keeping a single split
@@ -163,17 +228,24 @@ function groupMarkOf(locale: string | undefined) {
 		.find((part) => part.type === 'group')?.value
 }
 
+// `previous` is the text before the edit, which the field wrote. The format
+// compares `raw` with it to find the other mark that the user typed.
 export function formatEditing(
 	raw: string,
 	locale: string | undefined,
 	decimal: string,
 	maxFractionDigits: number,
+	previous: string,
 ) {
 	// The display can hold the locale minus sign U+2212. It becomes "-" before
 	// the filter, which keeps only the ASCII sign.
 	const signed = raw.replace(minusSignRe, '-')
 
-	const otherIndex = otherDecimalIndex(signed, groupMarkOf(locale), decimal, maxFractionDigits)
+	const group = groupMarkOf(locale)
+
+	const typedMark = typedMarkAfterEdit(raw, previous, group, decimal, maxFractionDigits)
+
+	const otherIndex = otherDecimalIndex(signed, typedMark, group, decimal, maxFractionDigits)
 
 	// The text splits at the other mark when it is the decimal, and the result
 	// keeps the typed mark. A later digit can then make it a group mark.
@@ -199,6 +271,8 @@ export function formatEditing(
 	return result
 }
 
+// Reads a text that `formatEditing` wrote. In that text, the other mark is
+// the decimal only where the user typed it.
 export function parseEditing(
 	text: string,
 	group: string,
@@ -209,7 +283,7 @@ export function parseEditing(
 
 	const marked = withDecimalAt(
 		text,
-		otherDecimalIndex(text, group, decimal, maxFractionDigits),
+		fieldDecimalIndex(text, group, decimal, maxFractionDigits),
 		decimal,
 	)
 

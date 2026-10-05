@@ -97,7 +97,7 @@ describe('useCurrencyInputFormatting', () => {
 		expect(decimal).toBe(',')
 
 		// The display "1.234" and a typed "5" give "1.2345". The "." is a group.
-		const edited = formatEditing('1.2345', 'de-DE', decimal, maxFractionDigits)
+		const edited = formatEditing('1.2345', 'de-DE', decimal, maxFractionDigits, '1.234')
 
 		expect(edited).toBe('12.345')
 
@@ -128,7 +128,13 @@ describe('useCurrencyInputFormatting', () => {
 			expect(result.current.displayFormatter.format(1234.5)).toBe(display)
 
 			// An edit of the display text keeps the separators and the value.
-			const edited = formatEditing(display, locale, decimal, result.current.maxFractionDigits)
+			const edited = formatEditing(
+				display,
+				locale,
+				decimal,
+				result.current.maxFractionDigits,
+				display,
+			)
 
 			expect(edited).toBe(display)
 
@@ -148,7 +154,7 @@ describe('useCurrencyInputFormatting', () => {
 
 		expect(display).toBe('\u22125,00')
 
-		const edited = formatEditing(display, 'sv-SE', decimal, maxFractionDigits)
+		const edited = formatEditing(display, 'sv-SE', decimal, maxFractionDigits, display)
 
 		expect(edited).toBe('-5,00')
 

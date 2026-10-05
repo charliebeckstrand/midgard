@@ -19,17 +19,17 @@ describe('escapeRegExp', () => {
 
 describe('isMeaningful', () => {
 	it('treats digits as meaningful', () => {
-		expect(isMeaningful('0', 0, '0', ',', '.', 2)).toBe(true)
+		expect(isMeaningful('0', 0, '0', ',', '.', 2, '')).toBe(true)
 
-		expect(isMeaningful('9', 3, '1239', ',', '.', 2)).toBe(true)
+		expect(isMeaningful('9', 3, '1239', ',', '.', 2, '')).toBe(true)
 	})
 
 	it('treats a minus sign at index 0 as meaningful', () => {
-		expect(isMeaningful('-', 0, '-1', ',', '.', 2)).toBe(true)
+		expect(isMeaningful('-', 0, '-1', ',', '.', 2, '')).toBe(true)
 	})
 
 	it('treats the minus sign U+2212 at index 0 as meaningful, as formatEditing keeps it as "-"', () => {
-		expect(isMeaningful('\u2212', 0, '\u22121', '.', ',', 2)).toBe(true)
+		expect(isMeaningful('\u2212', 0, '\u22121', '.', ',', 2, '')).toBe(true)
 	})
 
 	// formatEditing keeps only a leading sign, so a sign after index 0 must not
@@ -38,41 +38,44 @@ describe('isMeaningful', () => {
 		['-', ',', '.'],
 		['\u2212', '.', ','],
 	])('rejects the minus sign %s after index 0', (sign, group, decimal) => {
-		expect(isMeaningful(sign, 1, `1${sign}234`, group, decimal, 2)).toBe(false)
+		expect(isMeaningful(sign, 1, `1${sign}234`, group, decimal, 2, '')).toBe(false)
 
-		expect(isMeaningful(sign, 4, `1234${sign}`, group, decimal, 2)).toBe(false)
+		expect(isMeaningful(sign, 4, `1234${sign}`, group, decimal, 2, '')).toBe(false)
 	})
 
 	it('treats the configured decimal separator as meaningful', () => {
-		expect(isMeaningful('.', 1, '1.5', ',', '.', 2)).toBe(true)
+		expect(isMeaningful('.', 1, '1.5', ',', '.', 2, '')).toBe(true)
 
-		expect(isMeaningful(',', 1, '1,5', '.', ',', 2)).toBe(true)
+		expect(isMeaningful(',', 1, '1,5', '.', ',', 2, '')).toBe(true)
 	})
 
 	it('rejects group separators and other characters', () => {
-		expect(isMeaningful(',', 1, '1,234', ',', '.', 2)).toBe(false)
+		expect(isMeaningful(',', 1, '1,234', ',', '.', 2, '')).toBe(false)
 
-		expect(isMeaningful(' ', 1, '1 234', ',', '.', 2)).toBe(false)
+		expect(isMeaningful(' ', 1, '1 234', ',', '.', 2, '')).toBe(false)
 	})
 
 	// formatEditing keeps the other mark only where it is the decimal, or where
-	// a later digit can still decide it. The caret counts it only there.
+	// a later digit can still decide it. The caret counts it only there. The
+	// last column is the text before the edit.
 	it.each([
-		['the other mark before two digits', ',', 2, '12,50', ',', '.', 2],
-		['the de-DE other mark before two digits', '.', 2, '12.50', '.', ',', 2],
-		['a trailing other mark', ',', 2, '12,', ',', '.', 2],
-		['the last other mark after a group mark', ',', 5, '1,234,5', ',', '.', 2],
-	] as const)('counts %s', (_name, char, index, text, group, decimal, max) => {
-		expect(isMeaningful(char, index, text, group, decimal, max)).toBe(true)
+		['the other mark before two digits', ',', 2, '12,50', ',', '.', 2, ''],
+		['the de-DE other mark before two digits', '.', 2, '12.50', '.', ',', 2, ''],
+		['a trailing other mark', ',', 2, '12,', ',', '.', 2, ''],
+		['the last other mark after a group mark', ',', 5, '1,234,5', ',', '.', 2, ''],
+		['a typed mark after a digit typed before it', ',', 3, '132,5', ',', '.', 2, '12,5'],
+	] as const)('counts %s', (_name, char, index, text, group, decimal, max, previous) => {
+		expect(isMeaningful(char, index, text, group, decimal, max, previous)).toBe(true)
 	})
 
 	it.each([
-		['an other mark before the last mark', ',', 1, '1,234,5', ',', '.', 2],
-		['the other mark before three digits', ',', 1, '1,234', ',', '.', 4],
-		['the other mark in a text with a locale decimal', ',', 2, '12,5.', ',', '.', 2],
-		['the other mark at maxFractionDigits 0', ',', 2, '12,5', ',', '.', 0],
-	] as const)('does not count %s', (_name, char, index, text, group, decimal, max) => {
-		expect(isMeaningful(char, index, text, group, decimal, max)).toBe(false)
+		['an other mark before the last mark', ',', 1, '1,234,5', ',', '.', 2, ''],
+		['the other mark before three digits', ',', 1, '1,234', ',', '.', 4, ''],
+		['the other mark in a text with a locale decimal', ',', 2, '12,5.', ',', '.', 2, ''],
+		['the other mark at maxFractionDigits 0', ',', 2, '12,5', ',', '.', 0, ''],
+		['a group mark that a deletion leaves before two digits', ',', 1, '1,23', ',', '.', 2, '1,234'],
+	] as const)('does not count %s', (_name, char, index, text, group, decimal, max, previous) => {
+		expect(isMeaningful(char, index, text, group, decimal, max, previous)).toBe(false)
 	})
 })
 
@@ -94,22 +97,22 @@ describe('formatEditing', () => {
 		['strips leading zeros from the integer part', '00012', 2, '12'],
 		['strips non-meaningful characters', '1a2b3', 2, '123'],
 	] as const)('%s', (_name, input, maxFractionDigits, expected) => {
-		expect(formatEditing(input, 'en-US', '.', maxFractionDigits)).toBe(expected)
+		expect(formatEditing(input, 'en-US', '.', maxFractionDigits, '')).toBe(expected)
 	})
 
 	it('honors a comma decimal separator', () => {
-		expect(formatEditing('1234,5', 'de-DE', ',', 2)).toMatch(/^1.234,5$/)
+		expect(formatEditing('1234,5', 'de-DE', ',', 2, '')).toMatch(/^1.234,5$/)
 	})
 
 	it('maps the minus sign U+2212 to "-"', () => {
 		// ICU data: sv-SE writes U+2212 for minus.
-		expect(formatEditing('\u22121234,5', 'sv-SE', ',', 2)).toBe('-1\u00A0234,5')
+		expect(formatEditing('\u22121234,5', 'sv-SE', ',', 2, '')).toBe('-1\u00A0234,5')
 	})
 
 	// ICU data: the currency style of de-AT writes the group "." and the decimal
 	// style writes U+00A0.
 	it('groups the de-AT integer part with the currency-style group', () => {
-		expect(formatEditing('1234,5', 'de-AT', ',', 2)).toBe('1.234,5')
+		expect(formatEditing('1234,5', 'de-AT', ',', 2, '')).toBe('1.234,5')
 	})
 
 	// ICU data: the fr-CH currency group is not the same in each ICU version
@@ -120,13 +123,13 @@ describe('formatEditing', () => {
 			.formatToParts(1234)
 			.find((part) => part.type === 'group')?.value
 
-		expect(formatEditing('1234.5', 'fr-CH', '.', 2)).toBe(`1${group}234.5`)
+		expect(formatEditing('1234.5', 'fr-CH', '.', 2, '')).toBe(`1${group}234.5`)
 	})
 
 	it('keeps grouped digits ASCII in non-latn-default locales', () => {
 		// ar-EG defaults to Arabic-Indic digits; the editing parser only reads
 		// 0-9, so grouped output must stay latn (digits 0-9, no native separator).
-		const formatted = formatEditing('1234567', 'ar-EG', '.', 2)
+		const formatted = formatEditing('1234567', 'ar-EG', '.', 2, '')
 
 		expect(formatted).toMatch(/^[\d,]+$/)
 
@@ -156,21 +159,82 @@ describe('formatEditing', () => {
 		['reads the other mark as a group with a locale decimal', '12,5.', 'en-US', '.', 2, '125.'],
 		['reads the other mark as a group at maxFractionDigits 0', '12,5', 'en-US', '.', 0, '125'],
 	] as const)('%s', (_name, input, locale, decimal, maxFractionDigits, expected) => {
-		expect(formatEditing(input, locale, decimal, maxFractionDigits)).toBe(expected)
+		expect(formatEditing(input, locale, decimal, maxFractionDigits, '')).toBe(expected)
 	})
 
 	it('lets a later digit make the other mark a group', () => {
-		const first = formatEditing('1,23', 'en-US', '.', 2)
+		const first = formatEditing('1,23', 'en-US', '.', 2, '1,2')
 
 		expect(first).toBe('1,23')
 
 		expect(parseEditing(first, ',', '.', 2)).toBe(1.23)
 
-		const next = formatEditing(`${first}4`, 'en-US', '.', 2)
+		const next = formatEditing(`${first}4`, 'en-US', '.', 2, first)
 
 		expect(next).toBe('1,234')
 
 		expect(parseEditing(next, ',', '.', 2)).toBe(1234)
+	})
+
+	// Only a mark that the user typed can be the decimal. A group mark that the
+	// field wrote stays a group mark after a deletion or a regroup. Each case
+	// gives the text after the edit, the text before it, and the result.
+	it.each([
+		['a deletion after an en-US group mark', '1,23', '1,234', 'en-US', ',', '.', 2, '123', 123],
+		['a deletion after a de-DE group mark', '1.23', '1.234', 'de-DE', '.', ',', 2, '123', 123],
+		[
+			'a digit that the field groups at precision 4',
+			'1234',
+			'123',
+			'en-US',
+			',',
+			'.',
+			4,
+			'1,234',
+			1234,
+		],
+		[
+			'a deletion after a group mark at precision 4',
+			'1,23',
+			'1,234',
+			'en-US',
+			',',
+			'.',
+			4,
+			'123',
+			123,
+		],
+		['a deletion of the typed mark', '1,234', '1,234,', 'en-US', ',', '.', 2, '1,234', 1234],
+		[
+			'a digit after a deleted typed mark',
+			'1,2345',
+			'1,234',
+			'en-US',
+			',',
+			'.',
+			2,
+			'12,345',
+			12345,
+		],
+		[
+			'a typed mark in an empty field, as from a paste',
+			'12,50',
+			'',
+			'en-US',
+			',',
+			'.',
+			2,
+			'12,50',
+			12.5,
+		],
+		['a deletion before the typed mark', '1,5', '12,5', 'en-US', ',', '.', 2, '1,5', 1.5],
+		['a digit before the typed mark', '1234,5', '123,5', 'en-US', ',', '.', 2, '1,234,5', 1234.5],
+	] as const)('reads %s', (_name, raw, previous, locale, group, decimal, max, text, value) => {
+		const formatted = formatEditing(raw, locale, decimal, max, previous)
+
+		expect(formatted).toBe(text)
+
+		expect(parseEditing(formatted, group, decimal, max)).toBe(value)
 	})
 
 	// ICU data: the fr-FR currency group is a space, so a "." is never a group
@@ -180,7 +244,7 @@ describe('formatEditing', () => {
 			.formatToParts(1234)
 			.find((part) => part.type === 'group')?.value
 
-		const formatted = formatEditing('1234.567', 'fr-FR', ',', 3)
+		const formatted = formatEditing('1234.567', 'fr-FR', ',', 3, '')
 
 		expect(formatted).toBe(`1${group}234.567`)
 
