@@ -13,7 +13,7 @@ export default function PasteAndFill() {
 			<EditHelp label="Paste and fill help">
 				<PointerHint
 					mouse="Copy a block of cells from a spreadsheet, or from this grid with Ctrl+C or Cmd+C. Select cells with Shift and the arrow keys, or drag across them. Then press Ctrl+V or Cmd+V. One value fills the whole range. Press Ctrl+D or Cmd+D to fill down, and Ctrl+R or Cmd+R to fill right, or right-click the range. Press Ctrl+Z or Cmd+Z to undo."
-					touch="A range, a paste, and a fill need a keyboard or a mouse, because a drag on a touch screen scrolls the grid."
+					touch="Tap a cell to select it, then tap it again to edit it. A range, a paste, and a fill need a keyboard or a mouse, because a drag on a touch screen scrolls the grid."
 				/>
 			</EditHelp>
 			<Grid
