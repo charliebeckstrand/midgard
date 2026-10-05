@@ -35,9 +35,16 @@ export type ChatPromptProps = {
 	 * @defaultValue false
 	 */
 	streaming?: boolean
-	/** @defaultValue 'Ask anything' */
+	/**
+	 * The hint text that the empty textarea shows. It is not an accessible name.
+	 * @defaultValue 'Ask anything'
+	 */
 	placeholder?: string
-	/** @defaultValue 2 */
+	/**
+	 * The minimum height of the textarea, in lines. The textarea grows with its
+	 * content past this height.
+	 * @defaultValue 2
+	 */
 	rows?: number
 	/**
 	 * Disables send without disabling the textarea (e.g. empty input).
@@ -71,6 +78,7 @@ export type ChatPromptProps = {
 	 * @defaultValue 'Message'
 	 */
 	'aria-label'?: string
+	/** Points at a visible label for the composer, in place of `aria-label`. */
 	'aria-labelledby'?: string
 }
 

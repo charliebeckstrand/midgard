@@ -6,6 +6,7 @@ import type { ChatEmbedRegistry } from './types'
 
 /** Props for {@link ChatEmbedProvider}. */
 export type ChatEmbedProviderProps = ChatEmbedRegistry & {
+	/** The subtree whose transcripts draw an `embed` part with these renderers. */
 	children: ReactNode
 }
 
