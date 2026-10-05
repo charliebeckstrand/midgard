@@ -23,12 +23,16 @@ export type CopyButtonProps = {
 	size?: ButtonVariants['size']
 	/**
 	 * Milliseconds the copied state holds before reverting to the rest glyph.
+	 *
+	 * The state holds for 2^31−1 ms (about 24.8 days) at most. A larger value,
+	 * `Infinity` included, clamps to that limit.
 	 * @defaultValue 2000
 	 */
 	timeout?: number
 	className?: string
 	/**
-	 * Fires on every copied-state transition, with the new text.
+	 * Fires on every copied-state transition, with the new state: `true` after a
+	 * copy, and `false` when the state reverts.
 	 *
 	 * The transitions end at unmount. A copy that resolves after the unmount does
 	 * not call it, and the unmount does not call it with `false`.

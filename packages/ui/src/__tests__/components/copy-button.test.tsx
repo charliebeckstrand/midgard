@@ -214,6 +214,41 @@ describe('CopyButton', () => {
 		expect(onCopiedChange).toHaveBeenCalledTimes(2)
 	})
 
+	// The platform timer holds a 32-bit signed delay. Without the clamp, each of
+	// these values overflows, and the copied state reverts at once.
+	it.each([Infinity, 2 ** 31, 2 ** 32])(
+		'holds the copied state for 2^31-1 ms when timeout is %d',
+		async (timeout) => {
+			vi.useFakeTimers()
+
+			const write = deferred()
+
+			stubClipboard(vi.fn(() => write.promise))
+
+			const { container } = renderUI(<CopyButton text="hello" timeout={timeout} />)
+
+			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+
+			fireEvent.click(button)
+
+			await act(async () => {
+				write.resolve()
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(2 ** 31 - 2)
+			})
+
+			expect(button).toHaveAttribute('aria-label', 'Copied')
+
+			act(() => {
+				vi.advanceTimersByTime(1)
+			})
+
+			expect(button).toHaveAttribute('aria-label', 'Copy to clipboard')
+		},
+	)
+
 	it('stays focusable and focused through the copied window (WCAG 2.4.3)', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 

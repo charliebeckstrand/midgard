@@ -5,10 +5,17 @@ import { announce } from '../../core'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
 
+// The longest delay that the platform timer holds: a 32-bit signed count of
+// milliseconds. The timer wraps a longer delay to 32 bits, and `Infinity`
+// becomes 0. The timer then fires early, often at once.
+const MAX_TIMEOUT = 2 ** 31 - 1
+
 type CopyStateOptions = {
 	text: string
 	/**
 	 * Milliseconds before the "copied" flag resets.
+	 *
+	 * A value above 2^31−1, `Infinity` included, clamps to 2^31−1.
 	 * @defaultValue 2000
 	 */
 	timeout?: number
@@ -98,11 +105,13 @@ export function useCopyButtonState({
 	useEffect(() => {
 		if (!copied) return
 
+		const delay = Math.min(timeout, MAX_TIMEOUT)
+
 		const timer = setTimeout(() => {
 			setCopied(false)
 
 			notifyCopiedChange(false)
-		}, timeout)
+		}, delay)
 
 		return () => clearTimeout(timer)
 	}, [copied, timeout, notifyCopiedChange])
