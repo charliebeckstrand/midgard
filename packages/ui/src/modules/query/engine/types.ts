@@ -1,3 +1,5 @@
+import type { JsonValue } from '../../../components/json-tree'
+
 /** Boolean operator joining sibling nodes in a query group. */
 export type QueryCombinator = 'and' | 'or'
 
@@ -8,7 +10,11 @@ export type QueryRule = {
 	combinator?: QueryCombinator
 	field: string
 	operator: string
-	value: unknown
+	/**
+	 * The operand of the rule: a value that JSON can hold. A range operator takes
+	 * a `[min, max]` pair. An operator with no operand can leave it out.
+	 */
+	value?: JsonValue
 }
 
 /** A node grouping `children` (rules or nested groups) under one `combinator`. */

@@ -4,6 +4,7 @@ import { Trash } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
+import type { JsonValue } from '../../../components/json-tree'
 import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
@@ -85,7 +86,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	const onValueChange = useCallback(
-		(v: unknown) => updateRule(rule.id, { value: v }),
+		(v: JsonValue) => updateRule(rule.id, { value: v }),
 		[rule.id, updateRule],
 	)
 

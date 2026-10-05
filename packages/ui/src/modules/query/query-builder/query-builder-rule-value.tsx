@@ -4,6 +4,7 @@ import { parseDate } from '@internationalized/date'
 import { fromCalendarDate, toCalendarDate } from '../../../components/calendar/calendar-utilities'
 import { DatePicker } from '../../../components/date-picker'
 import { Input } from '../../../components/input'
+import type { JsonValue } from '../../../components/json-tree'
 import { ListboxOption } from '../../../components/listbox'
 import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
@@ -16,9 +17,9 @@ export type QueryBuilderRuleValueProps = {
 	/** The field of the rule. Its type selects the value input. */
 	field: QueryField
 	/** The current value of the rule. */
-	value: unknown
+	value: JsonValue | undefined
 	/** Receives the next value of the rule. */
-	onValueChange: (value: unknown) => void
+	onValueChange: (value: JsonValue) => void
 	/**
 	 * When true, edit a two-bound `[min, max]` tuple (the operator is a range).
 	 * @defaultValue false

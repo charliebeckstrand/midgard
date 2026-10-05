@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { JsonTree, type JsonValue } from 'ui/json-tree'
+import { JsonTree } from 'ui/json-tree'
 import { QueryBuilder, type QueryGroup, QuerySummary } from 'ui/query'
 import { Stack } from 'ui/stack'
 import { fields, seed } from './data.ts'
@@ -13,7 +13,7 @@ export default function Builder() {
 		<Stack gap="md">
 			<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />
 			<QuerySummary value={query} fields={fields} />
-			<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={0} />
+			<JsonTree data={query} defaultExpandDepth={0} />
 		</Stack>
 	)
 }

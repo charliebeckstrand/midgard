@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { JsonTree, type JsonValue } from '../../../components/json-tree'
+import { JsonTree } from '../../../components/json-tree'
 import {
 	QueryBuilder,
 	QueryChips,
@@ -49,7 +49,7 @@ function BuilderExample() {
 				{/* QueryGroup declares `value: unknown` and an optional combinator; this demo
 				    feeds string values with a combinator on every node, leaving the tree
 				    JSON-shaped. */}
-				<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={0} />
+				<JsonTree data={query} defaultExpandDepth={0} />
 			</Stack>
 		</Example>
 	)
