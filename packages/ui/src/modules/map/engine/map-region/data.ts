@@ -78,7 +78,7 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	colorRange: string[]
 	/**
 	 * Bin count for the ramp and its legend.
-	 * @defaultValue one bin per `colorRange` stop
+	 * @defaultValue One bin per `colorRange` stop.
 	 */
 	bins?: number
 	/**
