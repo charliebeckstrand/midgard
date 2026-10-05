@@ -1,10 +1,11 @@
 'use client'
 
-import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
+import { DndContext, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
+import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
 import { ListContext, ListItemContext } from './context'
@@ -270,7 +271,7 @@ export function List<T>({
 					<SortableContext items={itemIds} strategy={strategy}>
 						{ul}
 					</SortableContext>
-					<DragOverlay dropAnimation={null}>
+					<PortalDragOverlay>
 						{activeItem != null ? (
 							// The overlay is a picture of the dragged row. A `<ul>` holds its
 							// `<li>`, and `inert` keeps the picture out of the focus order and
@@ -283,7 +284,7 @@ export function List<T>({
 								</ListItemContext>
 							</ul>
 						) : null}
-					</DragOverlay>
+					</PortalDragOverlay>
 				</DndContext>
 			) : (
 				ul

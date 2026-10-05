@@ -1,6 +1,6 @@
 'use client'
 
-import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
+import { closestCorners, DndContext } from '@dnd-kit/core'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import {
@@ -11,6 +11,7 @@ import {
 	useSortableSensors,
 } from '../../hooks'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
+import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/kanban'
 import type { AccessibleName } from '../../types'
 import { KanbanContext, KanbanDragStateContext } from './context'
@@ -168,7 +169,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 						{children}
 					</section>
 					{interactive ? (
-						<DragOverlay dropAnimation={null}>
+						<PortalDragOverlay>
 							{activeId ? (
 								<div
 									// The clone repeats the content of the card that it follows, and
@@ -186,7 +187,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 									{overlayMap.current.get(activeId)}
 								</div>
 							) : null}
-						</DragOverlay>
+						</PortalDragOverlay>
 					) : null}
 				</DndContext>
 			</KanbanDragStateContext>
