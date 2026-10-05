@@ -2,6 +2,7 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { Sheet } from '../sheet'
 import { PdfViewerContext } from './context'
 import { PdfViewerHighlightsProvider } from './pdf-viewer-highlights-provider'
 import { PdfViewerMagnifierProvider } from './pdf-viewer-magnifier-provider'
@@ -231,39 +232,52 @@ export function PdfViewer({
 		onMagnifierChange,
 	})
 
-	const { setRoot, fit: fitMode, magnifierSettings, activePage, safePage, goToPage } = context
+	const {
+		setRoot,
+		fit: fitMode,
+		magnifierSettings,
+		activePage,
+		safePage,
+		goToPage,
+		thumbsOpen,
+		setThumbsOpen,
+	} = context
 
 	return (
 		<PdfViewerContext value={context}>
-			<section
-				ref={setRoot}
-				data-slot="pdf-viewer"
-				aria-label={ariaLabel}
-				className={cn(k.base, fitMode === 'width' && k.fill, className)}
-			>
-				<PdfViewerToolbar />
-				<div className={cn(k.body)}>
-					<PdfViewerThumbnails />
-					<PdfViewerMagnifierProvider settings={magnifierSettings}>
-						<PdfViewerHighlightsProvider
-							highlights={highlights}
-							highlightUnit={highlightUnit}
-							activeHighlightId={activeHighlightId}
-							onHighlightPress={onHighlightPress}
-							defaultActiveHighlightId={defaultActiveHighlightId}
-							onActiveHighlightChange={onActiveHighlightChange}
-							// What the overlay needs from the document beneath it, handed down rather
-							// than read back out of `PdfViewerContext` — the same way the loupe takes
-							// its settings. The overlay's own state stays inside the provider.
-							activePage={activePage}
-							safePage={safePage}
-							goToPage={goToPage}
-						>
-							<PdfViewerViewport />
-						</PdfViewerHighlightsProvider>
-					</PdfViewerMagnifierProvider>
-				</div>
-			</section>
+			{/* The root of the mobile thumbnail sheet. Its trigger is in the toolbar, and its
+			    panel is in the thumbnails, so the root holds both. It renders no element. */}
+			<Sheet open={thumbsOpen} onOpenChange={setThumbsOpen}>
+				<section
+					ref={setRoot}
+					data-slot="pdf-viewer"
+					aria-label={ariaLabel}
+					className={cn(k.base, fitMode === 'width' && k.fill, className)}
+				>
+					<PdfViewerToolbar />
+					<div className={cn(k.body)}>
+						<PdfViewerThumbnails />
+						<PdfViewerMagnifierProvider settings={magnifierSettings}>
+							<PdfViewerHighlightsProvider
+								highlights={highlights}
+								highlightUnit={highlightUnit}
+								activeHighlightId={activeHighlightId}
+								onHighlightPress={onHighlightPress}
+								defaultActiveHighlightId={defaultActiveHighlightId}
+								onActiveHighlightChange={onActiveHighlightChange}
+								// What the overlay needs from the document beneath it, handed down rather
+								// than read back out of `PdfViewerContext` — the same way the loupe takes
+								// its settings. The overlay's own state stays inside the provider.
+								activePage={activePage}
+								safePage={safePage}
+								goToPage={goToPage}
+							>
+								<PdfViewerViewport />
+							</PdfViewerHighlightsProvider>
+						</PdfViewerMagnifierProvider>
+					</div>
+				</section>
+			</Sheet>
 		</PdfViewerContext>
 	)
 }

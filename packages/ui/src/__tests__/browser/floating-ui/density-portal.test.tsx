@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Combobox, ComboboxOption } from '../../../components/combobox'
-import { Dialog, DialogHeader, DialogTitle } from '../../../components/dialog'
+import { Dialog, DialogHeader, DialogPanel, DialogTitle } from '../../../components/dialog'
 import { Input } from '../../../components/input'
 import { Listbox, ListboxOption } from '../../../components/listbox'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
@@ -32,9 +32,11 @@ describe('density scopes across portals (real browser)', () => {
 	] as const)('a dialog title %s', (_name, density, font) => {
 		const dialog = (
 			<Dialog open onOpenChange={() => {}}>
-				<DialogHeader>
-					<DialogTitle>Settings</DialogTitle>
-				</DialogHeader>
+				<DialogPanel>
+					<DialogHeader>
+						<DialogTitle>Settings</DialogTitle>
+					</DialogHeader>
+				</DialogPanel>
 			</Dialog>
 		)
 

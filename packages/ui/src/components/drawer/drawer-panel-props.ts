@@ -2,7 +2,7 @@ import { cn, dataAttr } from '../../core'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 
 /**
- * The attributes and classes of the drawer panel that its slots and rows style off. {@link Drawer}
+ * The attributes and classes of the drawer panel that its slots and rows style off. {@link DrawerPanel}
  * and {@link DrawerStatic} both spread them, so the static drawer paints the panel that the drawer
  * then mounts on top of it.
  *
@@ -39,7 +39,7 @@ export function drawerPanelProps({
 /**
  * Whether the drawer shows its grip. The grip only resizes, so only a panel with a fixed height
  * (`half` or `full`) shows it. A panel grown to its content (`auto` or `fit`) has no height for the
- * grip to set. {@link Drawer} and {@link DrawerStatic} both read it, so the static drawer paints
+ * grip to set. {@link DrawerPanel} and {@link DrawerStatic} both read it, so the static drawer paints
  * the grip that the drawer then mounts.
  *
  * @internal

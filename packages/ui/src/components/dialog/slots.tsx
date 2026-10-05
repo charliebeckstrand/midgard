@@ -71,9 +71,10 @@ export {
 	/** `<div>` grouping the dialog's title and description. */
 	Header as DialogHeader,
 	/**
-	 * Wraps a single child so clicking it opens the controlled {@link Dialog}; stamps the child
-	 * `aria-haspopup="dialog"` and, when `open` is supplied, `aria-expanded`. Aliases the shared
-	 * `PanelTrigger` primitive.
+	 * Opens the panel of the enclosing {@link Dialog}. A single element child is cloned, and a
+	 * click on it opens the panel. The trigger stamps `aria-haspopup="dialog"`, `aria-expanded`,
+	 * and, while the panel is open, `aria-controls`. It must be inside the `<Dialog>` root.
+	 * Aliases the shared `PanelTrigger` primitive.
 	 */
 	PanelTrigger as DialogTrigger,
 	type PanelTriggerProps as DialogTriggerProps,

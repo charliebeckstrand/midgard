@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Drawer, DrawerBody, DrawerTitle } from '../../../components/drawer'
+import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
 import {
 	Kanban,
 	KanbanCard,
@@ -85,14 +85,16 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 		},
 	])('puts the $name overlay on the dragged item', async ({ sortable, item, handle, overlay }) => {
 		renderUI(
-			<Drawer glass open onOpenChange={() => {}} aria-label="Sortable">
-				<DrawerTitle>Sortable</DrawerTitle>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel glass aria-label="Sortable">
+					<DrawerTitle>Sortable</DrawerTitle>
 
-				<DrawerBody>
-					{spacer}
+					<DrawerBody>
+						{spacer}
 
-					{sortable}
-				</DrawerBody>
+						{sortable}
+					</DrawerBody>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -140,12 +142,14 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 		renderUI(
 			<DensityProvider density="compact">
 				<LocaleProvider dir="rtl">
-					<Drawer glass open onOpenChange={() => {}} aria-label="Sortable">
-						<DrawerTitle>Sortable</DrawerTitle>
+					<Drawer open onOpenChange={() => {}}>
+						<DrawerPanel glass aria-label="Sortable">
+							<DrawerTitle>Sortable</DrawerTitle>
 
-						<DrawerBody>
-							<Rows />
-						</DrawerBody>
+							<DrawerBody>
+								<Rows />
+							</DrawerBody>
+						</DrawerPanel>
 					</Drawer>
 				</LocaleProvider>
 			</DensityProvider>,

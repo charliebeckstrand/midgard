@@ -4,7 +4,14 @@ import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/menu'
-import { Drawer, DrawerBody, DrawerDescription, DrawerHeader, DrawerTitle } from '../drawer'
+import {
+	Drawer,
+	DrawerBody,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerPanel,
+	DrawerTitle,
+} from '../drawer'
 import { useMenuActions, useMenuState } from './context'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
@@ -76,36 +83,38 @@ export function MenuSheet({ title, description, glass, className, children }: Me
 	})
 
 	return (
-		<Drawer
-			open={open}
-			onOpenChange={setOpen}
-			size={size}
-			glass={glass}
-			initialFocus={panelRef}
-			aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
-		>
-			{heading === undefined ? null : (
-				<DrawerHeader>
-					<DrawerTitle id={titleId}>{heading}</DrawerTitle>
+		<Drawer open={open} onOpenChange={setOpen}>
+			<DrawerPanel
+				size={size}
+				glass={glass}
+				initialFocus={panelRef}
+				aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
+			>
+				{heading === undefined ? null : (
+					<DrawerHeader>
+						<DrawerTitle id={titleId}>{heading}</DrawerTitle>
 
-					{description === undefined ? null : <DrawerDescription>{description}</DrawerDescription>}
-				</DrawerHeader>
-			)}
+						{description === undefined ? null : (
+							<DrawerDescription>{description}</DrawerDescription>
+						)}
+					</DrawerHeader>
+				)}
 
-			<DrawerBody className={k.sheet.body}>
-				<div
-					ref={panelRef}
-					id={menuId}
-					role="menu"
-					aria-labelledby={heading === undefined ? undefined : titleId}
-					tabIndex={-1}
-					data-slot="menu-sheet"
-					className={cn(k.sheet.base, className)}
-					onKeyDown={handleKeyDown}
-				>
-					{children}
-				</div>
-			</DrawerBody>
+				<DrawerBody className={k.sheet.body}>
+					<div
+						ref={panelRef}
+						id={menuId}
+						role="menu"
+						aria-labelledby={heading === undefined ? undefined : titleId}
+						tabIndex={-1}
+						data-slot="menu-sheet"
+						className={cn(k.sheet.base, className)}
+						onKeyDown={handleKeyDown}
+					>
+						{children}
+					</div>
+				</DrawerBody>
+			</DrawerPanel>
 		</Drawer>
 	)
 }

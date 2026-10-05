@@ -930,7 +930,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * it wants to be while the grid is asking the box. The pair then settles
 	 * wherever the layout lands, differently on different renders. `fit` is the
 	 * answer that does not depend on the question. Pair it with a container that
-	 * shrink-wraps, such as `<Sheet width="fit">`, and give that container a cap. A
+	 * shrink-wraps, such as `<SheetPanel width="fit">`, and give that container a cap. A
 	 * grid whose columns cannot fit the screen still scrolls sideways, which is the
 	 * honest outcome rather than a defect.
 	 * @defaultValue 'fill'

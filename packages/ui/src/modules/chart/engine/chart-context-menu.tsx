@@ -19,7 +19,7 @@ import {
 	type ContextMenuItem,
 	resolveContextMenuEntries,
 } from '../../../components/context-menu'
-import { Dialog, DialogClose, DialogFooter } from '../../../components/dialog'
+import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { copyText, downloadBlob, downloadCsv } from '../../../utilities/export-output'
 import { ChartDataDialog } from './chart-data-dialog'
@@ -365,53 +365,53 @@ export function ChartContextMenu({
 	const dialog = useMemo(
 		() =>
 			fullscreen ? (
-				<Dialog
-					open={open}
-					onOpenChange={handleFullscreenChange}
-					initialFocus={closeRef}
-					aria-label={title ?? 'Chart'}
-					// Auto-height: the panel hugs the chart, which fills the panel width at
-					// its 16/9 ratio. Capping the width by the viewport height keeps that
-					// ratio from ever running taller than the screen, so on desktop the
-					// panel centers and on mobile the sheet sizes to the chart's own height.
-					className="sm:max-w-[calc((100dvh-9rem)*16/9)]"
-				>
-					<div data-slot="chart-fullscreen">
-						{open && isValidElement(fullscreen) && (
-							<ChartFullscreenContext value={true}>
-								{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
-									width: undefined,
-									height: undefined,
-									// The copy owns its own switchboard state: its legend starts
-									// with nothing hidden and is destroyed on close, so a report
-									// from it describes a set the chart underneath never had. A
-									// consumer persisting one would come back to a chart that
-									// disagrees with what it stored. Action callbacks stay — a
-									// click on a mark in here means what it always meant.
-									...shedReports(fullscreen.props as Record<string, unknown>),
-									// The dialog is auto-height and sized for the default 16/9 ratio,
-									// so a consumer's fill mode (`aspectRatio={false}`) — which fills
-									// its parent's height — has nothing to fill and collapses the plot
-									// to nothing. Drop fill back to the default ratio for the
-									// fullscreen view; an explicit ratio is left as the consumer set it.
-									...((fullscreen.props as { aspectRatio?: unknown }).aspectRatio === false
-										? { aspectRatio: undefined }
-										: {}),
-									className: FULLSCREEN_CHART_CLASS,
-								})}
-							</ChartFullscreenContext>
-						)}
-					</div>
+				<Dialog open={open} onOpenChange={handleFullscreenChange}>
+					<DialogPanel
+						initialFocus={closeRef}
+						aria-label={title ?? 'Chart'}
+						// Auto-height: the panel hugs the chart, which fills the panel width at
+						// its 16/9 ratio. Capping the width by the viewport height keeps that
+						// ratio from ever running taller than the screen, so on desktop the
+						// panel centers and on mobile the sheet sizes to the chart's own height.
+						className="sm:max-w-[calc((100dvh-9rem)*16/9)]"
+					>
+						<div data-slot="chart-fullscreen">
+							{open && isValidElement(fullscreen) && (
+								<ChartFullscreenContext value={true}>
+									{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
+										width: undefined,
+										height: undefined,
+										// The copy owns its own switchboard state: its legend starts
+										// with nothing hidden and is destroyed on close, so a report
+										// from it describes a set the chart underneath never had. A
+										// consumer persisting one would come back to a chart that
+										// disagrees with what it stored. Action callbacks stay — a
+										// click on a mark in here means what it always meant.
+										...shedReports(fullscreen.props as Record<string, unknown>),
+										// The dialog is auto-height and sized for the default 16/9 ratio,
+										// so a consumer's fill mode (`aspectRatio={false}`) — which fills
+										// its parent's height — has nothing to fill and collapses the plot
+										// to nothing. Drop fill back to the default ratio for the
+										// fullscreen view; an explicit ratio is left as the consumer set it.
+										...((fullscreen.props as { aspectRatio?: unknown }).aspectRatio === false
+											? { aspectRatio: undefined }
+											: {}),
+										className: FULLSCREEN_CHART_CLASS,
+									})}
+								</ChartFullscreenContext>
+							)}
+						</div>
 
-					<DialogFooter>
-						{/* Dismisses through the panel's own `close()`, the Dialog's `onOpenChange`,
+						<DialogFooter>
+							{/* Dismisses through the panel's own `close()`, the Dialog's `onOpenChange`,
 						    so the button shares the route Escape and an outside press take. */}
-						<DialogClose>
-							<Button type="button" ref={closeRef}>
-								Close
-							</Button>
-						</DialogClose>
-					</DialogFooter>
+							<DialogClose>
+								<Button type="button" ref={closeRef}>
+									Close
+								</Button>
+							</DialogClose>
+						</DialogFooter>
+					</DialogPanel>
 				</Dialog>
 			) : null,
 		[fullscreen, open, handleFullscreenChange, title],

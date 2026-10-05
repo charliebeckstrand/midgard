@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
-import { Drawer, DrawerBody } from '../../../components/drawer'
+import { Drawer, DrawerBody, DrawerPanel } from '../../../components/drawer'
 import { Chrome } from '../../../primitives/chrome'
 import { Overlay } from '../../../primitives/overlay'
 import { noop, renderUI, screen, waitFor } from '../../helpers'
@@ -117,11 +117,13 @@ describe('a11y focus order (real browser): Chrome', () => {
 	it('honors the region through Drawer, with no prop passed', async () => {
 		renderUI(
 			<Page>
-				<Drawer open onOpenChange={noop} aria-label="Resolve">
-					<DrawerBody>
-						<Button>Panel first</Button>
-						<Button>Panel last</Button>
-					</DrawerBody>
+				<Drawer open onOpenChange={noop}>
+					<DrawerPanel aria-label="Resolve">
+						<DrawerBody>
+							<Button>Panel first</Button>
+							<Button>Panel last</Button>
+						</DrawerBody>
+					</DrawerPanel>
 				</Drawer>
 			</Page>,
 		)

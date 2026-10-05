@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Dialog } from '../../../components/dialog'
+import { Dialog, DialogPanel } from '../../../components/dialog'
 import { attach, getSlot, renderUI, waitFor } from '../../helpers'
 
 /**
@@ -14,8 +14,10 @@ describe('Dialog in a container', () => {
 		host.className = 'relative ms-10 mt-20 h-60 w-72 overflow-hidden'
 
 		renderUI(
-			<Dialog open onOpenChange={() => {}} container={host} aria-label="Scoped">
-				<p>Scoped content</p>
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel container={host} aria-label="Scoped">
+					<p>Scoped content</p>
+				</DialogPanel>
 			</Dialog>,
 		)
 

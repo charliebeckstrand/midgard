@@ -8,7 +8,7 @@ import type { Schema } from 'auth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'
-import { Dialog, DialogBody, DialogHeader, DialogTitle } from 'ui/dialog'
+import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { Field, Fieldset, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
@@ -248,27 +248,27 @@ export function SecondStepDialog() {
 	}, [router])
 
 	return (
-		<Dialog
-			open={pending !== undefined}
-			onOpenChange={(open) => open || pending?.resolve(false)}
-			// The Cancel button of the form closes the dialog, so it has no Close row.
-			footer={null}
-		>
-			<DialogHeader>
-				<DialogTitle>Confirm that it is you</DialogTitle>
-			</DialogHeader>
+		<Dialog open={pending !== undefined} onOpenChange={(open) => open || pending?.resolve(false)}>
+			<DialogPanel
+				// The Cancel button of the form closes the dialog, so it has no Close row.
+				footer={null}
+			>
+				<DialogHeader>
+					<DialogTitle>Confirm that it is you</DialogTitle>
+				</DialogHeader>
 
-			<DialogBody>
-				{pending && (
-					<SecondStep
-						methods={pending.methods}
-						onVerified={() => pending.resolve(true)}
-						onExpired={() => window.location.assign('/login?expired=true')}
-						onCancel={() => pending.resolve(false)}
-						cancelLabel="Cancel"
-					/>
-				)}
-			</DialogBody>
+				<DialogBody>
+					{pending && (
+						<SecondStep
+							methods={pending.methods}
+							onVerified={() => pending.resolve(true)}
+							onExpired={() => window.location.assign('/login?expired=true')}
+							onCancel={() => pending.resolve(false)}
+							cancelLabel="Cancel"
+						/>
+					)}
+				</DialogBody>
+			</DialogPanel>
 		</Dialog>
 	)
 }

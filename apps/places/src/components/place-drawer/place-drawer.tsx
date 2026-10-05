@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Divider } from 'ui/divider'
-import { Drawer, DrawerBody, DrawerClose, DrawerTitle } from 'ui/drawer'
+import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
@@ -549,81 +549,81 @@ export function PlaceDrawer({
 	const title = steps.map((step) => step.label).join(' › ')
 
 	return (
-		<Drawer
-			glass
-			// Grown to what each step holds, because this panel is navigated: the
-			// crumb walks between the region's list and one place, and the two are
-			// not the same size. A fixed height fits one of them — a list of twelve
-			// scrolls inside a box built for one place, and a place sits in a box
-			// built for the list with half of it empty under the review.
-			//
-			// The travel is what makes that work rather than the size: a container
-			// moving because its contents changed reads as the panel collapsing under
-			// the reader's hand, and the same move at the speed of the crumb reads as
-			// the panel following it. A region with places enough covers the map, which
-			// is the honest answer for a step with that much to show — the crumb above
-			// is how the reader gets back to it.
-			height="fit"
-			open={open}
-			onOpenChange={onOpenChange}
-			aria-label={title}
-			// The close in the header row closes the drawer, so it has no Close row.
-			footer={null}
-		>
-			{/* The panel has no inset of its own, so the row takes the inset of a drawer title. */}
-			<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
-				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerPanel
+				glass
+				// Grown to what each step holds, because this panel is navigated: the
+				// crumb walks between the region's list and one place, and the two are
+				// not the same size. A fixed height fits one of them — a list of twelve
+				// scrolls inside a box built for one place, and a place sits in a box
+				// built for the list with half of it empty under the review.
+				//
+				// The travel is what makes that work rather than the size: a container
+				// moving because its contents changed reads as the panel collapsing under
+				// the reader's hand, and the same move at the speed of the crumb reads as
+				// the panel following it. A region with places enough covers the map, which
+				// is the honest answer for a step with that much to show — the crumb above
+				// is how the reader gets back to it.
+				height="fit"
+				aria-label={title}
+				// The close in the header row closes the drawer, so it has no Close row.
+				footer={null}
+			>
+				{/* The panel has no inset of its own, so the row takes the inset of a drawer title. */}
+				<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
+					{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating — the crumbs cannot shrink below a parent that
 				    will not. `flex-1` gives the trail the panel's full width, which is the room
 				    its fit measures. */}
-				<Stack gap="sm" className="flex-1 min-w-0">
-					{/* The title is the trail, so it doubles as the way back and the panel
+					<Stack gap="sm" className="flex-1 min-w-0">
+						{/* The title is the trail, so it doubles as the way back and the panel
 					    needs no Back button of its own. `DrawerTitle` names the panel; the
 					    crumbs are what the reader reads and act on. */}
-					<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
+						<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
 
-					<PlaceTrail className="text-base/7" steps={steps} />
+						<PlaceTrail className="text-base/7" steps={steps} />
 
-					{place ? <PlaceScore place={place} /> : null}
-				</Stack>
+						{place ? <PlaceScore place={place} /> : null}
+					</Stack>
 
-				{/* The menu of the open place sits by the close, where a list row of My
+					{/* The menu of the open place sits by the close, where a list row of My
 				    places has its own. A list row in this panel is a way into a place,
 				    not a place, so the list has no menu. */}
-				<Flex gap="xs" align="center" className="shrink-0">
-					{place ? (
-						<PlaceMenu
-							items={placeMenuItems(place, actions)}
-							aria-label={`Actions for ${place.name}`}
-						/>
-					) : null}
+					<Flex gap="xs" align="center" className="shrink-0">
+						{place ? (
+							<PlaceMenu
+								items={placeMenuItems(place, actions)}
+								aria-label={`Actions for ${place.name}`}
+							/>
+						) : null}
 
-					<DrawerClose>
-						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-					</DrawerClose>
+						<DrawerClose>
+							<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+						</DrawerClose>
+					</Flex>
 				</Flex>
-			</Flex>
 
-			<DrawerBody>
-				{place ? (
-					<PlaceDetails place={place} actions={actions} />
-				) : (
-					<PlaceList
-						shown={shown}
-						spanned={spanned}
-						categories={categories}
-						onCategoriesChange={setCategories}
-						order={order}
-						onOrderChange={setOrder}
-						onOpen={(id) => {
-							setOpenedId(id)
+				<DrawerBody>
+					{place ? (
+						<PlaceDetails place={place} actions={actions} />
+					) : (
+						<PlaceList
+							shown={shown}
+							spanned={spanned}
+							categories={categories}
+							onCategoriesChange={setCategories}
+							order={order}
+							onOrderChange={setOrder}
+							onOpen={(id) => {
+								setOpenedId(id)
 
-							setListing(false)
-						}}
-					/>
-				)}
-			</DrawerBody>
+								setListing(false)
+							}}
+						/>
+					)}
+				</DrawerBody>
+			</DrawerPanel>
 		</Drawer>
 	)
 }

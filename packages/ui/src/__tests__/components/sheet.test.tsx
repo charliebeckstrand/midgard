@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
+import { Sheet, SheetClose, SheetPanel } from '../../components/sheet'
 import { panelAxis } from '../../hooks/use-panel-resize'
 import { k } from '../../recipes/kata/sheet'
 import { shaku } from '../../recipes/kiso'
@@ -13,8 +13,10 @@ describe('Sheet', () => {
 	// measurement, which jsdom has none of; the browser suite asserts that.
 	it('sizes a fitted sheet to its content rather than filling to a step', () => {
 		renderUI(
-			<Sheet open onOpenChange={() => {}} width="fit" aria-label="Index">
-				content
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel width="fit" aria-label="Index">
+					content
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -32,7 +34,7 @@ describe('Sheet', () => {
 	it('renders children with role="dialog" when open', () => {
 		renderUI(
 			<Sheet open onOpenChange={() => {}}>
-				Sheet content
+				<SheetPanel>Sheet content</SheetPanel>
 			</Sheet>,
 		)
 
@@ -47,8 +49,8 @@ describe('Sheet', () => {
 
 	it('omits aria-modal on a non-modal sheet', () => {
 		renderUI(
-			<Sheet open modal={false} onOpenChange={() => {}}>
-				Peek content
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel modal={false}>Peek content</SheetPanel>
 			</Sheet>,
 		)
 
@@ -60,7 +62,7 @@ describe('Sheet', () => {
 	it('does not render when closed', () => {
 		renderUI(
 			<Sheet open={false} onOpenChange={() => {}}>
-				Hidden
+				<SheetPanel>Hidden</SheetPanel>
 			</Sheet>,
 		)
 
@@ -69,8 +71,10 @@ describe('Sheet', () => {
 
 	it('paints a backdrop on a non-modal sheet when backdrop is set', () => {
 		renderUI(
-			<Sheet open modal={false} backdrop onOpenChange={() => {}} aria-label="Peek">
-				Peek content
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel modal={false} backdrop aria-label="Peek">
+					Peek content
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -84,8 +88,10 @@ describe('Sheet', () => {
 
 	it('renders no backdrop on a non-modal sheet by default', () => {
 		renderUI(
-			<Sheet open modal={false} onOpenChange={() => {}} aria-label="Peek">
-				Peek content
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel modal={false} aria-label="Peek">
+					Peek content
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -94,8 +100,10 @@ describe('Sheet', () => {
 
 	it('grays out what shows through the backdrop when desaturate is set', () => {
 		renderUI(
-			<Sheet open desaturate onOpenChange={() => {}} aria-label="Filters">
-				Filter content
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel desaturate aria-label="Filters">
+					Filter content
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -104,48 +112,12 @@ describe('Sheet', () => {
 
 	it('names a title-less sheet via the aria-label escape hatch', () => {
 		renderUI(
-			<Sheet open onOpenChange={() => {}} aria-label="Navigation">
-				content
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel aria-label="Navigation">content</SheetPanel>
 			</Sheet>,
 		)
 
 		expect(screen.getByRole('dialog')).toHaveAccessibleName('Navigation')
-	})
-})
-
-describe('SheetTrigger', () => {
-	it('renders its own button for a non-element child, and opens from it', () => {
-		const onClick = vi.fn()
-
-		renderUI(<SheetTrigger onClick={onClick}>Open</SheetTrigger>)
-
-		const trigger = screen.getByRole('button', { name: 'Open' })
-
-		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
-
-		fireEvent.click(trigger)
-
-		expect(onClick).toHaveBeenCalledOnce()
-	})
-
-	it('invokes onClick and preserves the child onClick when clicked', () => {
-		const childOnClick = vi.fn()
-
-		const onClick = vi.fn()
-
-		renderUI(
-			<SheetTrigger onClick={onClick}>
-				<button type="button" onClick={childOnClick}>
-					Open
-				</button>
-			</SheetTrigger>,
-		)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
-
-		expect(childOnClick).toHaveBeenCalledOnce()
-
-		expect(onClick).toHaveBeenCalledOnce()
 	})
 })
 
@@ -156,12 +128,14 @@ describe('SheetClose', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Sheet open onOpenChange={onOpenChange} footer={null}>
-				<SheetClose>
-					<button type="button" onClick={childOnClick}>
-						Close
-					</button>
-				</SheetClose>
+			<Sheet open onOpenChange={onOpenChange}>
+				<SheetPanel footer={null}>
+					<SheetClose>
+						<button type="button" onClick={childOnClick}>
+							Close
+						</button>
+					</SheetClose>
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -176,8 +150,10 @@ describe('SheetClose', () => {
 	// side-docked panel, so no step can apply here, the default `md` included.
 	it.each(['top', 'bottom'] as const)('keeps a %s sheet full-width at every step', (side) => {
 		renderUI(
-			<Sheet open side={side} onOpenChange={() => {}} aria-label="Banner">
-				content
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel side={side} aria-label="Banner">
+					content
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -199,7 +175,11 @@ describe('SheetClose', () => {
 
 describe('Sheet uncontrolled', () => {
 	it('opens from defaultOpen', () => {
-		renderUI(<Sheet defaultOpen>Sheet body</Sheet>)
+		renderUI(
+			<Sheet defaultOpen>
+				<SheetPanel>Sheet body</SheetPanel>
+			</Sheet>,
+		)
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
@@ -207,7 +187,11 @@ describe('Sheet uncontrolled', () => {
 	})
 
 	it('stays closed with neither open nor defaultOpen', () => {
-		renderUI(<Sheet>Hidden</Sheet>)
+		renderUI(
+			<Sheet>
+				<SheetPanel>Hidden</SheetPanel>
+			</Sheet>,
+		)
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
@@ -217,9 +201,11 @@ describe('Sheet uncontrolled', () => {
 
 		renderUI(
 			<Sheet defaultOpen onOpenChange={onOpenChange}>
-				<SheetClose>
-					<button type="button">Done</button>
-				</SheetClose>
+				<SheetPanel>
+					<SheetClose>
+						<button type="button">Done</button>
+					</SheetClose>
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -245,9 +231,18 @@ describe('Sheet uncontrolled', () => {
  * the one target change the mock will resolve.
  */
 describe('Sheet onOpenComplete', () => {
-	const sheet = (props: { open: boolean; side?: 'right' | 'top'; onOpenComplete: () => void }) => (
-		<Sheet {...props} onOpenChange={() => {}} aria-label="Resolve">
-			content
+	const sheet = ({
+		open,
+		...props
+	}: {
+		open: boolean
+		side?: 'right' | 'top'
+		onOpenComplete: () => void
+	}) => (
+		<Sheet open={open} onOpenChange={() => {}}>
+			<SheetPanel {...props} aria-label="Resolve">
+				content
+			</SheetPanel>
 		</Sheet>
 	)
 
@@ -283,8 +278,10 @@ describe('Sheet handle', () => {
 	/** A sheet with a grab bar, and the bar itself. */
 	function renderHandled(side: 'top' | 'right' | 'bottom' | 'left') {
 		const rendered = renderUI(
-			<Sheet open handle side={side} onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel handle side={side} aria-label="Panel">
+					<p>Body</p>
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -338,8 +335,10 @@ describe('Sheet handle', () => {
 
 	it('renders no handle unless asked, and a window splitter when asked', () => {
 		const { container } = renderUI(
-			<Sheet open onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel aria-label="Panel">
+					<p>Body</p>
+				</SheetPanel>
 			</Sheet>,
 		)
 
