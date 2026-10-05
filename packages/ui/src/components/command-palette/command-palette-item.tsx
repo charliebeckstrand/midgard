@@ -1,7 +1,7 @@
 'use client'
 
 import { type MouseEvent, type ReactNode, useId } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useLink } from '../../primitives/link'
 import { inertLinkProps } from '../../primitives/link/link-inert'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
@@ -34,7 +34,9 @@ export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
  * active-descendant pointing at it. Runs the consumer `onClick` then
  * `onAction`, closing the palette afterward unless `closeOnAction` is false;
  * `disabled` items are inert on every input path. A disabled link renders an
- * inert `<span>` with no `href`. Pass an explicit `id`
+ * inert `<span>` with no `href`. A press on any row keeps focus on the input:
+ * the row cancels the mousedown default after a consumer `onMouseDown` runs.
+ * Pass an explicit `id`
  * inside a `VirtualOptions` with `getOptionId`. It overrides the auto-generated
  * one, which React's `useId` mints per instance and cannot predict ahead of the
  * row mounting.
@@ -55,6 +57,17 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
 	const onClick = (props as { onClick?: (event: MouseEvent<HTMLElement>) => void }).onClick
+
+	const onMouseDown = (props as { onMouseDown?: (event: MouseEvent<HTMLElement>) => void })
+		.onMouseDown
+
+	// The input holds the query and the arrow keys that move the active
+	// descendant, so focus must stay there. A press focuses a `tabIndex={-1}`
+	// row unless the row cancels the mousedown default. The consumer handler
+	// runs first, and the hold also applies to a disabled row.
+	const holdFocus = composeEventHandlers(onMouseDown, (event: MouseEvent<HTMLElement>) =>
+		event.preventDefault(),
+	)
 
 	function handleSelect(event: MouseEvent<HTMLElement>) {
 		// The disabled guard runs before the consumer handler, so disabled
@@ -86,6 +99,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		'aria-disabled': disabled || undefined,
 		className: cn(k.item, className),
 		onClick: handleSelect,
+		onMouseDown: holdFocus,
 	}
 
 	if (props.href !== undefined) {
@@ -103,6 +117,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 					data-slot="command-palette-item"
 					data-disabled={true}
 					className={optionProps.className}
+					onMouseDown={holdFocus}
 				>
 					{children}
 				</span>
@@ -132,13 +147,16 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
  *
  * @internal
  */
-function forwardedProps<T extends CommandPaletteItemBaseProps & { onClick?: unknown }>({
+function forwardedProps<
+	T extends CommandPaletteItemBaseProps & { onClick?: unknown; onMouseDown?: unknown },
+>({
 	disabled: _disabled,
 	className: _className,
 	children: _children,
 	onAction: _onAction,
 	closeOnAction: _closeOnAction,
 	onClick: _onClick,
+	onMouseDown: _onMouseDown,
 	...rest
 }: T) {
 	return rest

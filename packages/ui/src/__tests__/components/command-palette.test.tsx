@@ -609,6 +609,56 @@ describe('CommandPaletteItem', () => {
 
 		expect(item).toHaveAttribute('data-slot', 'command-palette-item')
 	})
+
+	it.each([
+		['a button item', () => <CommandPaletteItem>Run</CommandPaletteItem>],
+		['a link item', () => <CommandPaletteItem href="/somewhere">Run</CommandPaletteItem>],
+		[
+			'a disabled link item',
+			() => (
+				<CommandPaletteItem disabled href="/somewhere">
+					Run
+				</CommandPaletteItem>
+			),
+		],
+	])('keeps focus on the input when %s is pressed', async (_, renderItem) => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				{renderItem()}
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		const item = screen.getByRole('option')
+
+		// The input holds the query and the arrow keys, so a press must not
+		// move focus to the row.
+		expect(fireEvent.mouseDown(item)).toBe(false)
+
+		await setupUser().pointer({ keys: '[MouseLeft>]', target: item })
+
+		expect(document.activeElement).toBe(input)
+	})
+
+	it('runs a consumer onMouseDown before it keeps focus on the input', async () => {
+		// The handler gives the state of the default when it runs.
+		const onMouseDown = vi.fn((event: { defaultPrevented: boolean }) => event.defaultPrevented)
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem onMouseDown={onMouseDown}>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const item = screen.getByRole('option')
+
+		expect(fireEvent.mouseDown(item)).toBe(false)
+
+		expect(onMouseDown).toHaveBeenCalledTimes(1)
+
+		expect(onMouseDown).toHaveReturnedWith(false)
+	})
 })
 
 describe('CommandPaletteLabel, CommandPaletteText, and CommandPaletteDescription', () => {
