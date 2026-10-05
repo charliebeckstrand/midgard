@@ -121,8 +121,9 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	required?: boolean
 	className?: string
 	/**
-	 * The `autocomplete` attribute of the input.
-	 * @defaultValue 'off'
+	 * The `autocomplete` attribute of the input. The prop wins over the
+	 * `autoComplete` of an enclosing `<Control>`.
+	 * @defaultValue the `autoComplete` of the enclosing `<Control>`, else `'off'`
 	 */
 	autoComplete?: ComponentProps<'input'>['autoComplete']
 	/**
@@ -400,6 +401,21 @@ function resolveLabelledBy(
 }
 
 /**
+ * Resolves the `autocomplete` attribute of the input. The `autoComplete` prop
+ * wins, then the value of the enclosing `<Control>`, then `'off'`. The default
+ * is not a parameter default, because a parameter default counts as the prop
+ * and hides the value of the Control.
+ *
+ * @internal
+ */
+function resolveAutoComplete(
+	autoComplete: string | undefined,
+	controlAutoComplete: string | undefined,
+): string {
+	return autoComplete ?? controlAutoComplete ?? 'off'
+}
+
+/**
  * The text of the development warning of {@link warnOnMixedSource}.
  *
  * @internal
@@ -450,10 +466,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 /**
  * Type-ahead select pairing a text input with a floating option panel.
  * Supports single or `multiple` selection, controlled or uncontrolled `value`,
- * and `clearable`/`nullable` affordances. Resolves `disabled`, `readOnly`, and
- * `required` against an enclosing `<Control>`, takes the step of the nearest
- * density scope (an explicit `size` opens a scope on the trigger and the
- * panel), and
+ * and `clearable`/`nullable` affordances. Resolves `autoComplete`, `disabled`,
+ * `readOnly`, and `required` against an enclosing `<Control>`, takes the step
+ * of the nearest density scope (an explicit `size` opens a scope on the
+ * trigger and the panel), and
  * registers with `<Form>` under `name`. Tracks the highlight as a virtual
  * active-descendant (APG editable combobox) with DOM focus held on the input,
  * re-anchoring across filter and async option changes. Filtering is
@@ -506,7 +522,7 @@ export function Combobox<T>({
 	onQueryChange,
 	onPaste,
 	className,
-	autoComplete = 'off',
+	autoComplete,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	'aria-describedby': ariaDescribedBy,
@@ -957,7 +973,7 @@ export function Combobox<T>({
 							id={id}
 							ref={inputRef}
 							type="text"
-							autoComplete={autoComplete}
+							autoComplete={resolveAutoComplete(autoComplete, control?.autoComplete)}
 							aria-label={ariaLabel}
 							aria-labelledby={labelledBy.input}
 							// Passed raw: the `<Input>` beneath runs the same `useControlProps`

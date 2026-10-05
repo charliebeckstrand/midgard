@@ -1503,6 +1503,44 @@ describe('Combobox + Control', () => {
 
 		expect(describedBy).toContain('status-error')
 	})
+
+	// The default 'off' applies only when no prop and no Control value set the
+	// attribute. A parameter default would hide the Control value.
+	it('takes autoComplete from an enclosing Control over the default', () => {
+		const { container } = renderUI(
+			<Control autoComplete="address-level2">
+				<Combobox aria-label="City">
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('autocomplete', 'address-level2')
+	})
+
+	it('takes autoComplete from the prop over an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control autoComplete="address-level2">
+				<Combobox aria-label="City" autoComplete="country-name">
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('autocomplete', 'country-name')
+	})
+
+	it('sets autoComplete to "off" when no prop and no Control value set it', () => {
+		const { container } = renderUI(
+			<Control>
+				<Combobox aria-label="City">
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('autocomplete', 'off')
+	})
 })
 
 describe('Combobox required', () => {
