@@ -19,8 +19,12 @@ export const k = {
 		glass,
 	},
 	outline: {
-		default: outline.default,
-		subtle: outline.subtle,
-		strong: outline.strong,
+		/** The weight that `outline={true}` selects. */
+		base: outline.default,
+		/** The weights that a name selects. */
+		weight: {
+			subtle: outline.subtle,
+			strong: outline.strong,
+		},
 	},
 } as const

@@ -24,8 +24,8 @@ type BoxBaseProps = {
 	/** Background surface token. */
 	bg?: BoxBg
 	/**
-	 * Outline. `true` and `'default'` use the default token. Pass `'subtle'` or
-	 * `'strong'` to pick a different weight.
+	 * Outline. `true` uses the default weight. Pass `'subtle'` or `'strong'` to
+	 * pick a different weight.
 	 */
 	outline?: BoxOutline
 	/**
@@ -66,9 +66,9 @@ export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, O
 function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {
 	if (!outline) return undefined
 
-	if (outline === true) return k.outline.default
+	if (outline === true) return k.outline.base
 
-	return k.outline[outline]
+	return k.outline.weight[outline]
 }
 
 /**
