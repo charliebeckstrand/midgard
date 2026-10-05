@@ -21,7 +21,10 @@ type ComboboxInputParams<T> = {
 	clearOnEmpty: boolean
 	floatingRef: RefObject<HTMLElement | null>
 	optionsRef: RefObject<HTMLDivElement | null>
-	/** Current menu open state; a closed menu has no options for the roving handler to navigate. */
+	/**
+	 * Current menu open state. A closed menu sends no key to the roving handler or to the
+	 * sole-option Enter. Its rows can stay mounted while the panel animates out.
+	 */
 	open: boolean
 	setValue: (value: T | T[] | undefined) => void
 	setEditing: (editing: boolean) => void
@@ -80,6 +83,30 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 }
 
 /**
+ * Handles a key on the closed menu. The panel keeps its rows mounted while it
+ * animates out, and a row can keep `data-active`. No key of a closed menu goes
+ * to the rows, because Enter or the roving handler would pick or move one.
+ *
+ * An arrow key at the text edge opens the menu, as the focus and chevron paths
+ * do (APG editable combobox). The root then seats the highlight on any current
+ * selection, else a second press highlights the first option. `preventDefault`
+ * holds the caret, as roving navigation does. Each other key stays with the
+ * textbox.
+ */
+function closedMenuKeyDown(
+	event: KeyboardEvent<HTMLInputElement>,
+	openByArrowKey: () => void,
+): void {
+	if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+
+	if (!arrowOpensClosedMenu(event)) return
+
+	event.preventDefault()
+
+	openByArrowKey()
+}
+
+/**
  * Marks an Escape on the open menu as consumed with `preventDefault`. That press
  * closes only the menu, so the escape layer of a surface around the combobox
  * must ignore it. In a browser the layer of the menu can unregister before the
@@ -101,10 +128,12 @@ function consumeMenuEscape(event: KeyboardEvent<HTMLInputElement>, open: boolean
  *   panel, else marks touched and closes. `onKeyDown` handles Escape/Enter, and reserves Home/End and
  *   Shift+Arrow for native caret/selection. It opens the closed menu from an
  *   arrow key at the matching text edge: ArrowDown at the end, ArrowUp at the
- *   start. It then delegates to the roving handler. `onScroll` holds an unfocused
+ *   start. It gives no other key of a closed menu to the rows. On an open menu,
+ *   it delegates to the roving handler. `onScroll` holds an unfocused
  *   input at its start, so a truncated value does not scroll sideways.
- * @remarks Enter selects the sole remaining option when the list has narrowed to
- *   one; the roving handler's activation key selects the highlighted option.
+ * @remarks On an open menu, Enter selects the sole remaining option when the list
+ *   has narrowed to one. The activation key of the roving handler selects the
+ *   highlighted option.
  * @internal
  */
 export function useComboboxInput<T>({
@@ -188,6 +217,14 @@ export function useComboboxInput<T>({
 				return
 			}
 
+			// A closed menu gives no key to its rows, which can stay mounted while the
+			// panel animates out. Only an arrow key at the text edge acts: it opens.
+			if (!open) {
+				closedMenuKeyDown(event, openByArrowKey)
+
+				return
+			}
+
 			if (event.key === 'Enter') {
 				const container = optionsRef.current
 
@@ -196,24 +233,6 @@ export function useComboboxInput<T>({
 
 					return
 				}
-			}
-
-			// A closed menu holds no options for the roving handler, so an arrow key
-			// opens it (APG editable combobox), matching the focus and chevron open
-			// paths; arrowOpensClosedMenu gates this on caret position. The root then
-			// seats the highlight on any current selection, else a second press
-			// highlights the first option. preventDefault holds the caret, as roving
-			// navigation does.
-			if (
-				!open &&
-				(event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
-				arrowOpensClosedMenu(event)
-			) {
-				event.preventDefault()
-
-				openByArrowKey()
-
-				return
 			}
 
 			rovingKeyDown(event)

@@ -293,6 +293,41 @@ describe('useComboboxInput onKeyDown', () => {
 		expect(rovingKeyDown).toHaveBeenCalled()
 	})
 
+	// The panel keeps its rows while it animates out after a close, and a row can
+	// keep `data-active`. An Enter on the closed menu must not pick one of them.
+	it.each([
+		['one row', 1],
+		['two rows', 2],
+	])('leaves Enter on the closed menu alone with %s still mounted', (_rows, count) => {
+		const { result, rovingKeyDown, optionsRef } = setup<string>({ open: false })
+
+		const container = document.createElement('div')
+
+		const click = vi.fn()
+
+		for (let index = 0; index < count; index++) {
+			const option = document.createElement('div')
+
+			option.setAttribute('role', 'option')
+
+			option.addEventListener('click', click)
+
+			container.appendChild(option)
+		}
+
+		optionsRef.current = container as HTMLDivElement
+
+		const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+		result.current.onKeyDown(event)
+
+		expect(click).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
+	})
+
 	// An IME takes Enter to confirm a composition and Escape to cancel it, so
 	// neither key reaches the menu while a composition runs.
 	it.each(['Escape', 'Enter', 'ArrowDown'])('leaves %s to the IME during a composition', (key) => {
@@ -336,8 +371,9 @@ describe('useComboboxInput onKeyDown', () => {
 	})
 
 	// Each row presses an arrow on a closed menu with the caret at `start`..`end`
-	// of 'abc'. At the edge the arrow points past, it opens the menu; elsewhere it
-	// is the textbox's own caret move, which roving handles.
+	// of 'abc'. At the edge the arrow points past, it opens the menu. Elsewhere it
+	// is the native caret move of the textbox, and the roving handler does not get
+	// it, because the rows of a closing panel can stay mounted.
 	it.each<[string, 'ArrowDown' | 'ArrowUp', number | null, number | null, boolean]>([
 		['opens on ArrowDown from the text end', 'ArrowDown', 3, 3, true],
 		['moves the caret to the text end on ArrowDown from mid-value', 'ArrowDown', 1, 1, false],
@@ -366,7 +402,7 @@ describe('useComboboxInput onKeyDown', () => {
 
 			expect(event.preventDefault).not.toHaveBeenCalled()
 
-			expect(rovingKeyDown).toHaveBeenCalledWith(event)
+			expect(rovingKeyDown).not.toHaveBeenCalled()
 		}
 	})
 
