@@ -5,6 +5,7 @@ import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import type { PaletteCommand, PaletteSource } from '../../utilities/places-palette'
 import { type PlaceView, UNITED_STATES } from '../../utilities/places-view'
+import { type PlaceActions, placeMenuItems } from '../place-menu'
 
 /** How many of the newest places show for an empty query. */
 const RECENT_PLACES = 5
@@ -28,11 +29,13 @@ function placeDescription(place: Place): string {
  * the source holds them newest first.
  *
  * The row mark is a swatch in the category color, which is the color of the
- * dot on the map.
+ * dot on the map. A right-click or a long press on a row opens the menu of the
+ * place, with the rows that its menu has everywhere else.
  */
 export function placeSource(
 	places: readonly Place[],
 	openPlace: (place: Place) => void,
+	actions: PlaceActions,
 ): PaletteSource {
 	const newest = [...places].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
@@ -59,6 +62,7 @@ export function placeSource(
 					categoryLabel(place.category),
 				].join(' '),
 				run: () => openPlace(place),
+				menu: placeMenuItems(place, actions),
 			}),
 		),
 	}

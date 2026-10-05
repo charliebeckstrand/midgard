@@ -52,6 +52,84 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/api/account': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * Get all of a user's data
+		 * @description Every app's data of the user, for their export.
+		 */
+		get: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description The user's data */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['AccountData']
+					}
+				}
+				/** @description No user */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
+		/**
+		 * Delete all of a user's data
+		 * @description Deletes every app's data of the user, when their account is deleted.
+		 */
+		delete: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Data deleted */
+				204: {
+					headers: {
+						[name: string]: unknown
+					}
+					content?: never
+				}
+				/** @description No user */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 	'/api/places': {
 		parameters: {
 			query?: never
@@ -422,6 +500,194 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/api/predictions/{season}': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * List your picks of a season
+		 * @description Each week with picks, by week number. A week with none is absent.
+		 */
+		get: {
+			parameters: {
+				query?: never
+				header?: never
+				path: {
+					/** @description The year the season starts in */
+					season: number
+				}
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Picks */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['SeasonPicks']
+					}
+				}
+				/** @description Invalid season */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/predictions/{season}/{week}': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		/**
+		 * Replace your picks of a week
+		 * @description The picks app checks which games can still take a pick before it sends them.
+		 */
+		put: {
+			parameters: {
+				query?: never
+				header?: never
+				path: {
+					/** @description The year the season starts in */
+					season: number
+					/** @description The week of the regular season, from 1 */
+					week: number
+				}
+				cookie?: never
+			}
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['SavePicks']
+				}
+			}
+			responses: {
+				/** @description Picks saved */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['WeekPicks']
+					}
+				}
+				/** @description Invalid season, week or picks */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		post?: never
+		/**
+		 * Delete your picks of a week
+		 * @description Sending it twice leaves the same picks.
+		 */
+		delete: {
+			parameters: {
+				query?: never
+				header?: never
+				path: {
+					/** @description The year the season starts in */
+					season: number
+					/** @description The week of the regular season, from 1 */
+					week: number
+				}
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Picks deleted */
+				204: {
+					headers: {
+						[name: string]: unknown
+					}
+					content?: never
+				}
+				/** @description Invalid season or week */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -445,14 +711,74 @@ export interface components {
 				}
 			}
 		}
+		AccountData: {
+			places: components['schemas']['PlaceList']
+			visits: components['schemas']['Visits']
+			/** @description The NFL picks, by season */
+			predictions: {
+				[key: string]: components['schemas']['SeasonPicks']
+			}
+		}
 		PlaceList: components['schemas']['Place'][]
-		Place: components['schemas']['PlaceDraft'] & {
+		Place: {
 			id: string
 			/** @description When the place was added, ISO 8601 */
 			createdAt: string
+			/** @description The business or place name */
+			name: string
+			category: components['schemas']['PlaceCategory']
+			/** @description The address on one line */
+			address: string
+			city?: string
+			/** @description The state the geocoder named, for places the map outline leaves out and for the state filter */
+			state?: string
+			/** @description The country the geocoder named, for the country filter */
+			country?: string
+			latitude: number
+			longitude: number
+			/** Format: uri */
+			url?: string
+			/** @description Newest visit first */
+			visits: components['schemas']['Visit'][]
 		}
 		/** @enum {string} */
 		PlaceCategory: 'food' | 'entertainment' | 'nature' | 'shopping' | 'other'
+		Visit: components['schemas']['VisitDraft'] & {
+			id: string
+		}
+		VisitDraft: {
+			/** @description The id of a stored visit, kept on a write. Mimir gives a new visit its id. */
+			id?: string
+			/**
+			 * @description The day of the visit
+			 * @example 2026-09-27
+			 */
+			visitedAt: string
+			/** @description 0.5 to 5 in half steps, or 0 for none */
+			rating: number
+			review?: string
+			/** @description Pictures of the visit, in the order the user put them */
+			photos: string[]
+		}
+		Visits: {
+			states: string[]
+			countries: string[]
+		}
+		/** @description The picks of each week with any, by week number */
+		SeasonPicks: {
+			[key: string]: components['schemas']['WeekPicks']
+		}
+		/** @description The id of the picked team for each game id */
+		WeekPicks: {
+			[key: string]: string
+		}
+		Error: {
+			error: string
+			message: string
+			statusCode: number
+			/** @description A stable name for the error, when the service gives one */
+			code?: string
+		}
 		PlaceDraft: {
 			/** @description The business or place name */
 			name: string
@@ -466,35 +792,15 @@ export interface components {
 			country?: string
 			latitude: number
 			longitude: number
-			/** @description 1 to 5, or 0 for none */
-			rating: number
-			review?: string
 			/** Format: uri */
 			url?: string
-			/**
-			 * Format: uri
-			 * @description A picture of the place
-			 */
-			photo?: string
-			/**
-			 * @description The day of the visit
-			 * @example 2026-09-27
-			 */
-			visitedAt: string
-		}
-		Error: {
-			error: string
-			message: string
-			statusCode: number
-			/** @description A stable name for the error, when the service gives one */
-			code?: string
-		}
-		Visits: {
-			states: string[]
-			countries: string[]
+			visits: components['schemas']['VisitDraft'][]
 		}
 		SetVisit: {
 			visited: boolean
+		}
+		SavePicks: {
+			picks: components['schemas']['WeekPicks']
 		}
 	}
 	responses: never

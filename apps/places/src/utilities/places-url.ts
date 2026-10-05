@@ -1,4 +1,5 @@
 import type { DatePickerRelativeValue } from 'ui/date-picker'
+import { flags } from '../flags'
 import { isCategory, isDay } from '../schemas/place'
 import { fromDay, type PlaceFilterValue, toDay } from './places-filter'
 import type { PlaceView } from './places-view'
@@ -105,7 +106,8 @@ export function readView(params: URLSearchParams): PlaceView | null {
 export function readFilter(params: URLSearchParams): PlaceFilterValue {
 	const categories = list(params, 'category').filter(isCategory)
 
-	const paint = text(params, 'paint')
+	// Read only while the feature is on, so an old link does not paint the map.
+	const paint = flags.visitedRegions ? text(params, 'paint') : undefined
 
 	const spans = readSpans(params)
 
