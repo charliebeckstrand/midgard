@@ -122,10 +122,8 @@ describe('Toast: useToast behavior', () => {
 
 	it('gives each toast its own id on an origin with no crypto.randomUUID', () => {
 		// A plain-HTTP origin, such as a LAN address, is not a secure context, and
-		// `crypto.randomUUID` is not there.
-		vi.spyOn(crypto, 'randomUUID').mockImplementation(() => {
-			throw new TypeError('crypto.randomUUID is not a function')
-		})
+		// `crypto.randomUUID` is not there. `crypto.getRandomValues` is.
+		vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
 
 		let api: ReturnType<typeof useToast> | null = null
 

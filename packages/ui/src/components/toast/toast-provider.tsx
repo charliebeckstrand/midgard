@@ -1,6 +1,7 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { randomId } from '../../utilities/random-id'
 import {
 	ToastContext,
 	type ToastContextValue,
@@ -44,13 +45,6 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 	// its own write before the next render. `sync` publishes the list to state,
 	// and render reads only that state.
 	const toastsRef = useRef<ToastData[]>([])
-
-	// The ids of the toasts that come with no id: the provider id and a count.
-	// `crypto.randomUUID` is not used, because it is only in a secure context, and
-	// a plain-HTTP origin such as a LAN address is not one.
-	const baseId = useId()
-
-	const idCount = useRef(0)
 
 	const [toasts, setToasts] = useState<ToastData[]>([])
 
@@ -105,9 +99,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const toast = useCallback(
 		(data: ToastInput) => {
-			idCount.current += 1
-
-			const id = data.id ?? `${baseId}-toast-${idCount.current}`
+			const id = data.id ?? randomId()
 
 			toastsRef.current = [
 				...toastsRef.current,
@@ -128,7 +120,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			return id
 		},
-		[maxToasts, duration, arm, dismiss, sync, baseId],
+		[maxToasts, duration, arm, dismiss, sync],
 	)
 
 	const resetToast = useCallback(
