@@ -13,7 +13,8 @@ export type CardProps = BoxProps<
 	 */
 	bg?: BoxProps['bg']
 	/**
-	 * Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight.
+	 * Outline. `true` and `'default'` use the default token. Pass `'subtle'` or
+	 * `'strong'` to pick a different weight.
 	 * @defaultValue true
 	 */
 	outline?: BoxProps['outline']

@@ -107,7 +107,12 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * @defaultValue `String(feature.properties.name ?? feature.id)`
 	 */
 	regionLabel?: (feature: MapFeature) => string
-	/** Frame width in px; omitted, the map measures its container and fills it. */
+	/**
+	 * Frame width in px; omitted, the map measures its container and fills it.
+	 * @remarks Without `width`, the frame needs a parent with a definite width,
+	 * as {@link MapPlat} says. A `left` or `right` legend goes beside the plot
+	 * only at a frame width of 32rem (`@lg`) or more.
+	 */
 	width?: number
 	/** Frame height in px; wins over `aspectRatio` when set. */
 	height?: number

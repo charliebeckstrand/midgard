@@ -44,11 +44,12 @@ export type ComboChartProps<T = never> = AccessibleName &
 		 */
 		interpolation?: LineInterpolation
 		/**
-		 * Draw selective value labels — each line and area series' `endpoints` and /
-		 * or `extremes`, bars excluded — overlaps dropped by priority. With
-		 * `references`, each reference rule's value draws beside it in place of its
-		 * hover tooltip. Off by default; the tooltip and data table carry the full
-		 * readout.
+		 * Draw selective value labels — the `endpoints` and / or `extremes` of the
+		 * line or area series, bars excluded — overlaps dropped by priority. These
+		 * labels show only while the chart shows exactly one line or area series.
+		 * With `references`, each reference rule's value draws beside it in place of
+		 * its hover tooltip. Off by default; the tooltip and data table carry the
+		 * full readout.
 		 */
 		labels?: ChartValueLabelConfig
 	}

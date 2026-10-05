@@ -18,6 +18,7 @@ import { QueryBuilderRuleValue } from './query-builder-rule-value'
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {
+	/** The rule node to render. */
 	rule: QueryRule
 	/**
 	 * Whether this rule shows its remove control. The enclosing group passes
