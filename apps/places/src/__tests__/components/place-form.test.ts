@@ -124,6 +124,12 @@ describe('toPlaceDraft', () => {
 		])
 	})
 
+	it('keeps a half-step rating, and rounds any other fraction to the nearest half', () => {
+		expect(toPlaceDraft(typed({ rating: 3.5 }), sherwood).visits[0]?.rating).toBe(3.5)
+
+		expect(toPlaceDraft(typed({ rating: 3.3 }), sherwood).visits[0]?.rating).toBe(3.5)
+	})
+
 	it('keeps the visits on record through an edit of the place', () => {
 		const base = place('p1')
 

@@ -162,7 +162,7 @@ export function toVisitDraft(values: PlaceValues, id?: string): VisitDraft {
 	return {
 		id,
 		visitedAt: toDay(values.visitedAt ?? new Date()),
-		rating: Math.min(Math.max(Math.round(values.rating), 0), MAX_RATING),
+		rating: Math.min(Math.max(Math.round(values.rating * 2) / 2, 0), MAX_RATING),
 		review: values.review.trim() || undefined,
 		photos: values.photos.map((row) => row.url.trim()).filter((url) => url !== ''),
 	}

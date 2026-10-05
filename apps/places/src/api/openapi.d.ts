@@ -754,7 +754,7 @@ export interface components {
 			 * @example 2026-09-27
 			 */
 			visitedAt: string
-			/** @description 1 to 5, or 0 for none */
+			/** @description 0.5 to 5 in half steps, or 0 for none */
 			rating: number
 			review?: string
 			/** @description Pictures of the visit, in the order the user put them */
