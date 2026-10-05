@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
-import { Drawer, DrawerBody } from '../../../components/drawer'
+import { Drawer, DrawerBody, DrawerPanel } from '../../../components/drawer'
 import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
@@ -29,18 +29,19 @@ function PlaceForm({ onOpenChange }: { onOpenChange: (open: boolean) => void }) 
 
 				setOpen(next)
 			}}
-			aria-label="Place"
 		>
-			<DrawerBody>
-				<Combobox<string> displayValue={(v) => v} placeholder="Search">
-					<ComboboxOption value="apple">
-						<ComboboxLabel>Apple</ComboboxLabel>
-					</ComboboxOption>
-					<ComboboxOption value="apricot">
-						<ComboboxLabel>Apricot</ComboboxLabel>
-					</ComboboxOption>
-				</Combobox>
-			</DrawerBody>
+			<DrawerPanel aria-label="Place">
+				<DrawerBody>
+					<Combobox<string> displayValue={(v) => v} placeholder="Search">
+						<ComboboxOption value="apple">
+							<ComboboxLabel>Apple</ComboboxLabel>
+						</ComboboxOption>
+						<ComboboxOption value="apricot">
+							<ComboboxLabel>Apricot</ComboboxLabel>
+						</ComboboxOption>
+					</Combobox>
+				</DrawerBody>
+			</DrawerPanel>
 		</Drawer>
 	)
 }
