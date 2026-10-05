@@ -3,18 +3,18 @@
 import path from 'node:path'
 import type { ts } from 'ts-morph'
 import { bench, describe } from 'vitest'
-import { openProject } from '../../docs/engine/api-reference/engine/build-api'
-import { extractDefaults } from '../../docs/engine/api-reference/engine/extract-defaults'
-import { extractPassThrough } from '../../docs/engine/api-reference/engine/extract-passthrough'
-import { extractProjectPropNames } from '../../docs/engine/api-reference/engine/extract-project-props'
-import { extractProps } from '../../docs/engine/api-reference/engine/extract-props'
-import { extractReferences } from '../../docs/engine/api-reference/engine/extract-references'
+import { openProject } from '../../docs-legacy/engine/api-reference/engine/build-api'
+import { extractDefaults } from '../../docs-legacy/engine/api-reference/engine/extract-defaults'
+import { extractPassThrough } from '../../docs-legacy/engine/api-reference/engine/extract-passthrough'
+import { extractProjectPropNames } from '../../docs-legacy/engine/api-reference/engine/extract-project-props'
+import { extractProps } from '../../docs-legacy/engine/api-reference/engine/extract-props'
+import { extractReferences } from '../../docs-legacy/engine/api-reference/engine/extract-references'
 import {
 	findComponent,
 	getPropsAnnotation,
 	unwrapFunctionLike,
-} from '../../docs/engine/api-reference/engine/find-components'
-import { formatPropType } from '../../docs/engine/api-reference/engine/format-type'
+} from '../../docs-legacy/engine/api-reference/engine/find-components'
+import { formatPropType } from '../../docs-legacy/engine/api-reference/engine/format-type'
 import { srcDir } from './paths'
 
 // Micro-benchmarks for the per-component extraction seams `buildComponent`

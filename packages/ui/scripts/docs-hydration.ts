@@ -2,36 +2,36 @@
  * Loads some prerendered pages of the docs build in Chromium, and fails when a
  * page reports an error while it hydrates.
  *
- * Run it with `pnpm --filter ui docs:hydration`. Turbo runs `docs:build` first.
+ * Run it with `pnpm --filter ui docs:hydration`, or with
+ * `pnpm --filter ui docs:legacy:hydration` for the legacy app. Turbo runs the
+ * build of the app first.
  *
  * The build renders each page to HTML on the server, and the browser hydrates
  * it. When the client renders different markup, such as from a store that
  * reads browser state with no server snapshot, React reports a recoverable
  * error and renders the page again on the client. No test without a build sees
- * this. The pages below are the home page, a component page, a page with a
- * tab in its path, and a module page.
+ * this. The pages below are the home page, component pages, a page with a tab
+ * in its path, a module page, and, for the new app, a path with no page.
  */
 
 import { chromium } from 'playwright'
-import { serveDocs } from './docs-server'
+import { type DocsApp, docsAppOf, HYDRATED, serveDocs } from './docs-server'
 
-const PAGES = ['/', '/button', '/select', '/stepper', '/progress/gauge', '/modules/grid']
-
-// Hydration gives the heading a React fiber. A prerendered heading has none.
-const HYDRATED = () => {
-	const heading = document.querySelector('h1')
-
-	return heading !== null && Object.keys(heading).some((key) => key.startsWith('__reactFiber'))
+const PAGES: Record<DocsApp, readonly string[]> = {
+	docs: ['/', '/button', '/accordion', '/modules/grid', '/modules/grid/sorting', '/no-such-page'],
+	'docs-legacy': ['/', '/button', '/select', '/stepper', '/progress/gauge', '/modules/grid'],
 }
 
-const { origin, server } = await serveDocs(0)
+const app = docsAppOf(process.argv[2])
+
+const { origin, server } = await serveDocs(app, 0)
 
 const browser = await chromium.launch()
 
 const failures: string[] = []
 
 try {
-	for (const page of PAGES) {
+	for (const page of PAGES[app]) {
 		const tab = await browser.newPage({ viewport: { width: 390, height: 844 } })
 
 		const errors: string[] = []
@@ -65,4 +65,4 @@ if (failures.length > 0) {
 	process.exit(1)
 }
 
-console.log(`${PAGES.length} pages hydrated with no errors.`)
+console.log(`${PAGES[app].length} pages of ${app} hydrated with no errors.`)

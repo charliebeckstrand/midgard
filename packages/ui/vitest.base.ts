@@ -52,5 +52,11 @@ export const cleanup = {
 export const coverageScope = {
 	provider: 'v8' as const,
 	include: ['src/**/*.{ts,tsx}'],
-	exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**', 'src/index.ts'],
+	exclude: [
+		'src/__tests__/**',
+		'src/__benchmarks__/**',
+		'src/docs/**',
+		'src/docs-legacy/**',
+		'src/index.ts',
+	],
 }

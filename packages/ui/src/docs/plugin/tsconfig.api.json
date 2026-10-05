@@ -1,0 +1,9 @@
+{
+	"extends": "../../../tsconfig.json",
+	"compilerOptions": {
+		"types": ["node"],
+		"incremental": false
+	},
+	"include": ["../.."],
+	"exclude": ["../../docs", "../../docs-legacy", "../../**/__tests__", "../../__benchmarks__"]
+}

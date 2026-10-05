@@ -1,8 +1,8 @@
 # Docs benchmarks
 
-Measurement seams for the docs app's two cost centers: the ts-morph API extraction (`src/docs/engine/api-reference`) and the Vite build/dev pipeline.
+Measurement seams for the docs app's two cost centers: the ts-morph API extraction (`src/docs-legacy/engine/api-reference`) and the Vite build/dev pipeline.
 
-Run the timing suites on demand, to measure a change or to drive one. They stay out of CI by decision: every number in them is wall clock. A shared agent moves that further than most real regressions do. [`bundle-budget.ts`](bundle-budget.ts) is the exception, because it asserts size rather than time; CI runs it after `docs:build`. Tests hold the correctness instead — `api-extractor.test.ts` pins the incremental extractor against a fresh pass.
+Run the timing suites on demand, to measure a change or to drive one. They stay out of CI by decision: every number in them is wall clock. A shared agent moves that further than most real regressions do. [`bundle-budget.ts`](bundle-budget.ts) is the exception, because it asserts size rather than time; CI runs it after `docs:legacy:build`. Tests hold the correctness instead — `api-extractor.test.ts` pins the incremental extractor against a fresh pass.
 
 Baselines on a 4-core machine, for 313 components / 1223 props: cold full pass ≈ 4.8s (project construction ≈ 1.9s of it; the pre-#1001 tsconfig shape measures ≈ 5.4-6.9s), disk-cache restore ≈ 32ms, per-barrel incremental edit ≈ 182ms, prod build ≈ 30s wall on a warm cache (the prerender and the inline styles take about 17s of it). Compare these only against each other, and only from the same machine.
 

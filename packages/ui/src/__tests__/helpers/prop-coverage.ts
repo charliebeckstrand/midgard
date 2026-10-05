@@ -1,6 +1,6 @@
 import { ts } from 'ts-morph'
-import type { ComponentApi } from '../../docs/engine/api-reference'
-import { axesOf } from '../../docs/engine/axes'
+import type { ComponentApi } from '../../docs-legacy/engine/api-reference'
+import { axesOf } from '../../docs-legacy/engine/axes'
 
 /** The props of one component that its demo page never sets. */
 export type PropGap = { component: string; props: string[] }

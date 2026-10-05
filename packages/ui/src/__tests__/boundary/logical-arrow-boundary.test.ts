@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
+import {
+	docsSites,
+	srcDir,
+	srcRelative,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
 // Logical-arrow boundary.
 //
@@ -43,17 +49,21 @@ const IMPORTS_RULE = /from '(?:\.\.?\/)+(?:hooks\/)?a11y\/logical-arrow'|from '\
 function arrowFiles(): Map<string, boolean> {
 	const files = new Map<string, boolean>()
 
-	walkSource(srcDir, (path, source) => {
-		if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
+	walkSource(
+		srcDir,
+		(path, source) => {
+			if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
 
-		const rel = srcRelative(path)
+			const rel = srcRelative(path)
 
-		if (rel.startsWith('__tests__/') || rel.startsWith('docs/') || rel === HOME) return
+			if (rel === HOME) return
 
-		// Prose that names the key is not a use of it.
-		if (HORIZONTAL_ARROW.test(stripSourceComments(source)))
-			files.set(rel, IMPORTS_RULE.test(source))
-	})
+			// Prose that names the key is not a use of it.
+			if (HORIZONTAL_ARROW.test(stripSourceComments(source)))
+				files.set(rel, IMPORTS_RULE.test(source))
+		},
+		docsSites,
+	)
 
 	return files
 }
