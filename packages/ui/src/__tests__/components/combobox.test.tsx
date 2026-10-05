@@ -1,6 +1,11 @@
-import { useState } from 'react'
+import { type ReactNode, use, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
+import {
+	Combobox,
+	ComboboxCreateOption,
+	ComboboxLabel,
+	ComboboxOption,
+} from '../../components/combobox'
 import {
 	type HighlightOrigin,
 	reanchorOnOptionSwap,
@@ -12,6 +17,7 @@ import { Description, Field, Fieldset, Label, Message } from '../../components/f
 import { Form } from '../../components/form'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualOptions } from '../../primitives/virtual-options'
+import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
 	act,
@@ -1722,6 +1728,76 @@ describe('Combobox in a disabled fieldset', () => {
 		fireEvent.mouseDown(target(container))
 
 		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+})
+
+// A registered source and an option outside it are not supported together. A
+// plain-object source takes the place of the one that `VirtualOptions`
+// registers, so no virtualizer runs (CONVENTIONS §10.3).
+describe('Combobox with a registered source', () => {
+	/** Registers `source` through the context, as `VirtualOptions` does with `getOptionId`. */
+	function RegisterSource({ source }: { source: VirtualItemSource }) {
+		const registry = use(VirtualItemSourceContext)
+
+		useEffect(() => {
+			if (!registry) return
+
+			registry.current = source
+
+			return () => {
+				registry.current = null
+			}
+		}, [registry, source])
+
+		return null
+	}
+
+	const source: VirtualItemSource = {
+		count: 2,
+		getKey: (index) => `fruit-${index}`,
+		scrollToIndex: () => {},
+	}
+
+	/** An open combobox whose two rows are the items of `source`, then `extra`. */
+	function renderSource(extra?: ReactNode) {
+		return renderUI(
+			<Combobox<string> open aria-label="Fruit">
+				<RegisterSource source={source} />
+				<ComboboxOption id="fruit-0" value="apple">
+					Apple
+				</ComboboxOption>
+				<ComboboxOption id="fruit-1" value="pear">
+					Pear
+				</ComboboxOption>
+				{extra}
+			</Combobox>,
+		)
+	}
+
+	// The arrow keys move through the items by index, so they do not reach a
+	// create row after them.
+	it('warns when a create row mounts outside the items of the source', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const user = setupUser()
+
+		renderSource(<ComboboxCreateOption />)
+
+		await user.type(screen.getByRole('combobox'), 'kiwi')
+
+		await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(3))
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('outside the `items`'))
+	})
+
+	it('does not warn while each option is an item of the source', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderSource()
+
+		expect(screen.getAllByRole('option')).toHaveLength(2)
+
+		expect(warn).not.toHaveBeenCalled()
 	})
 })
 

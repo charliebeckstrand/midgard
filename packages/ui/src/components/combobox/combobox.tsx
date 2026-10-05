@@ -400,6 +400,45 @@ function resolveLabelledBy(
 }
 
 /**
+ * The text of the development warning of {@link warnOnMixedSource}.
+ *
+ * @internal
+ */
+const MIXED_SOURCE_WARNING =
+	'Combobox: an option is outside the `items` of the `VirtualOptions` that registers the keyboard source. Arrow keys and type-ahead move through those items by index, so they do not reach the option. Put each option into the items, a create row too, and give it the `id` that `getOptionId` returns.'
+
+/**
+ * Warns in development when a registered `source` and an option outside its
+ * items are in `node` together. The roving hook moves through the items of a
+ * registered source by index, and does not query the DOM. Thus an arrow key or
+ * type-ahead does not reach an option whose `id` is not a key of the source,
+ * such as a create row after `VirtualOptions`. That mix is not supported.
+ *
+ * It warns one time for each combobox: `warnedRef` holds the flag.
+ *
+ * @internal
+ */
+function warnOnMixedSource(
+	node: HTMLElement,
+	source: VirtualItemSource | null,
+	warnedRef: RefObject<boolean>,
+): void {
+	if (process.env.NODE_ENV === 'production' || warnedRef.current || !source) return
+
+	const options = queryItems(node, OPTION_SELECTOR)
+
+	if (options.length === 0) return
+
+	const keys = new Set(Array.from({ length: source.count }, (_, index) => source.getKey(index)))
+
+	if (options.every((option) => keys.has(option.id))) return
+
+	warnedRef.current = true
+
+	console.warn(MIXED_SOURCE_WARNING)
+}
+
+/**
  * Props for {@link Combobox}, discriminated on `multiple` so `value`,
  * `defaultValue`, and `onValueChange` resolve to single or array shapes.
  *
@@ -423,7 +462,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
  * supporting both synchronous lists and async option sources. Wrap the
  * options in `VirtualOptions` with `getOptionId` for large lists. Arrow and
  * type-ahead then navigate the full option set by index, reaching options
- * outside the rendered window instead of stopping at its edge.
+ * outside the rendered window instead of stopping at its edge. Each option
+ * must then be one of the `items` of `VirtualOptions`. Put a create row into
+ * the items, not after the wrapper. Arrow and type-ahead do not reach an
+ * option outside the items, and a development warning tells you so.
  *
  * @remarks
  * Supply `aria-label` when no `<Field>`/`<Label>` wraps the combobox; the
@@ -537,6 +579,9 @@ export function Combobox<T>({
 
 	// Where the highlight came from. The observer of option swaps below reads it.
 	const highlightOriginRef = useRef<HighlightOrigin>('empty')
+
+	// Set when `warnOnMixedSource` warns, so that it warns one time.
+	const mixedSourceWarnedRef = useRef(false)
 
 	// Editable combobox (APG): DOM focus stays on the input; the highlight is
 	// tracked virtually. Arrow keys move `data-active` and repoint the input's
@@ -658,6 +703,10 @@ export function Combobox<T>({
 	// Under a registered `virtualSourceRef`, index math replaces the DOM query
 	// (a windowed-out option isn't in the DOM to find), via
 	// `setVirtualActiveIndexed`/`clearVirtualActiveIndexed`.
+	//
+	// The effect also gives the open options to `warnOnMixedSource`. It runs
+	// after the effects of `children`, so a `VirtualOptions` that the same
+	// commit changes has registered its new source.
 	const lastQueryRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -679,6 +728,8 @@ export function Combobox<T>({
 		// The panel is open, but its options are not attached yet. Keep the
 		// arrow-key flag until they attach and this effect runs again.
 		if (!optionsNode) return
+
+		warnOnMixedSource(optionsNode, source, mixedSourceWarnedRef)
 
 		const anchorSelected = anchorSelectedOnOpenRef.current
 
