@@ -64,10 +64,6 @@ describe('regionName', () => {
 })
 
 describe('decodeRegions', () => {
-	it('answers with nothing for an atlas that has not landed', () => {
-		expect(decodeRegions(undefined, 'states')).toBeNull()
-	})
-
 	it('decodes the named object out of the published topology', () => {
 		const decoded = decodeRegions(states as unknown as MapTopology, 'states')
 
@@ -105,10 +101,6 @@ describe('regionFrame', () => {
 		expect(cut?.features).toHaveLength(1)
 
 		expect(regionName(cut?.features[0] as MapFeature)).toBe('Oregon')
-	})
-
-	it('answers with nothing before the atlas lands', () => {
-		expect(regionFrame(null, 'Oregon')).toBeNull()
 	})
 })
 

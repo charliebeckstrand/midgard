@@ -35,8 +35,6 @@ const PRELOAD_DWELL_MS = 150
 export type PlacePaletteProps = {
 	/** The groups, in the order that they show. */
 	sources: readonly PaletteSource[]
-	/** Whether the palette can open. Until it can, the button is disabled and the shortcut does nothing. */
-	ready: boolean
 }
 
 /**
@@ -133,7 +131,7 @@ function PaletteGroups({
  * When a row stays active for {@link PRELOAD_DWELL_MS}, the palette calls the
  * `preload` of its command, if it has one.
  */
-export function PlacePalette({ sources, ready }: PlacePaletteProps) {
+export function PlacePalette({ sources }: PlacePaletteProps) {
 	const [open, setOpen] = useState(false)
 
 	const prefix = `${useId()}-command-`
@@ -174,7 +172,7 @@ export function PlacePalette({ sources, ready }: PlacePaletteProps) {
 
 	return (
 		<div className="contents" onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
-			<Button variant="plain" aria-label="Search" disabled={!ready} onClick={() => setOpen(true)}>
+			<Button variant="plain" aria-label="Search" onClick={() => setOpen(true)}>
 				<Icon icon={<Search />} />
 			</Button>
 
@@ -183,7 +181,6 @@ export function PlacePalette({ sources, ready }: PlacePaletteProps) {
 				onOpenChange={setOpen}
 				onActiveChange={activate}
 				placeholder="Search places, countries, and actions"
-				triggerShortcut={ready ? undefined : false}
 			>
 				<PaletteGroups sources={sources} prefix={prefix} close={() => setOpen(false)} />
 			</CommandPalette>
