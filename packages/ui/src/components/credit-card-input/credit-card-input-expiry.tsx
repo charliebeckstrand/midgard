@@ -1,8 +1,16 @@
 'use client'
 
-import { type ChangeEvent, type ReactNode, useEffect, useEffectEvent, useId, useState } from 'react'
+import {
+	type ChangeEvent,
+	type ReactNode,
+	useEffect,
+	useEffectEvent,
+	useId,
+	useRef,
+	useState,
+} from 'react'
 import { composeEventHandlers } from '../../core'
-import { useAriaIds } from '../../hooks'
+import { useAriaIds, useComposedRef } from '../../hooks'
 import { isDecimalDigit } from '../../utilities/caret'
 import { useControl } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
@@ -98,7 +106,7 @@ export type CreditCardInputExpiryProps = Omit<
  * date). It does the same when blur leaves a partial entry behind. A value from
  * outside, such as a form reset, clears that mark. Sets `autoComplete="cc-exp"`
  * and defaults an "Expiration date" aria-label, yielding to a Field
- * `<Label>`.
+ * `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInput}
  */
@@ -119,7 +127,13 @@ export function CreditCardInputExpiry({
 }: CreditCardInputExpiryProps) {
 	const control = useControl()
 
-	const fallbackLabel = useControlFallbackLabel('Expiration date')
+	// The fallback reads the labels of the input after mount, so a native label
+	// outside a Field also turns it off.
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const fallbackLabel = useControlFallbackLabel('Expiration date', inputRef)
+
+	const composedRef = useComposedRef(ref, inputRef)
 
 	const [typedInvalid, setTypedInvalid] = useState(false)
 
@@ -138,7 +152,7 @@ export function CreditCardInputExpiry({
 		onChange: onValueChange,
 		format: maskExpiry,
 		meaningful: isDecimalDigit,
-		ref,
+		ref: composedRef,
 	})
 
 	// Last text this field typed. Tells a value from outside (a form reset, a
@@ -205,7 +219,7 @@ export function CreditCardInputExpiry({
 				autoComplete="cc-exp"
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 				// defaults an aria-label, yielding to a Field <Label> from the first
-				// render (useControlFallbackLabel).
+				// render and to a native label after mount (useControlFallbackLabel).
 				aria-label={ariaLabel ?? fallbackLabel}
 				placeholder={placeholder ?? EXPIRY_PATTERN}
 				invalid={invalid ?? (typedInvalid || undefined)}

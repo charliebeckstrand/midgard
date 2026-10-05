@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	CreditCardInput,
@@ -10,7 +12,9 @@ import { validateCardExpiry } from '../../components/credit-card-input/credit-ca
 import { Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import {
+	act,
 	allBySlot,
+	attach,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -598,6 +602,116 @@ describe('CreditCardInputCvv', () => {
 		await user.type(input, typed)
 
 		expect(input.value).toBe(expected)
+	})
+})
+
+/** The props that a default-name case gives a card field. */
+type NameProps = { id?: string; 'aria-label'?: string }
+
+/** The three card fields, each with its default name. */
+const cardFields: [string, (props: NameProps) => ReactElement, string][] = [
+	['CreditCardInput', (props) => <CreditCardInput {...props} />, 'Card number'],
+	['CreditCardInputExpiry', (props) => <CreditCardInputExpiry {...props} />, 'Expiration date'],
+	['CreditCardInputCvv', (props) => <CreditCardInputCvv {...props} />, 'Security code'],
+]
+
+/** The id that a native label outside a Field points at. */
+const FIELD_ID = 'card-field'
+
+// The three fields share one policy: the default name fills a missing name,
+// and a Field Label, a native label, or an explicit aria-label replaces it.
+describe.each(cardFields)('%s default name', (_name, field, fallback) => {
+	it('has the default name when nothing labels it', () => {
+		renderUI(field({}))
+
+		expect(screen.getByRole('textbox', { name: fallback })).toHaveAttribute('aria-label', fallback)
+	})
+
+	it('takes its name from a Field Label, with no default name', () => {
+		renderUI(
+			<Field>
+				<Label>Payment</Label>
+				{field({})}
+			</Field>,
+		)
+
+		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
+	})
+
+	it('takes its name from a native label outside a Field after mount', () => {
+		renderUI(
+			<>
+				<label htmlFor={FIELD_ID}>Payment</label>
+				{field({ id: FIELD_ID })}
+			</>,
+		)
+
+		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
+	})
+
+	it('hydrates next to a native label with no mismatch, then drops the default name', () => {
+		const element = (
+			<div>
+				<label htmlFor={FIELD_ID}>Payment</label>
+				{field({ id: FIELD_ID })}
+			</div>
+		)
+
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = renderToString(element)
+
+		// The server render cannot read the label, so its markup has the default name.
+		expect(container.querySelector('input')).toHaveAttribute('aria-label', fallback)
+
+		// A text or a node mismatch reaches `onRecoverableError`, and React logs
+		// an attribute mismatch to the console.
+		const onRecoverableError = vi.fn()
+
+		const consoleError = vi.spyOn(console, 'error')
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, element, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
+	})
+
+	it.each<[string, (input: ReactElement) => ReactElement]>([
+		['with no label', (input) => input],
+		[
+			'in a Field with a Label',
+			(input) => (
+				<Field>
+					<Label>Payment</Label>
+					{input}
+				</Field>
+			),
+		],
+		[
+			'next to a native label',
+			(input) => (
+				<>
+					<label htmlFor={FIELD_ID}>Payment</label>
+					{input}
+				</>
+			),
+		],
+	])('lets an explicit aria-label win %s', (_context, wrap) => {
+		renderUI(wrap(field({ id: FIELD_ID, 'aria-label': 'Card details' })))
+
+		expect(screen.getByRole('textbox', { name: 'Card details' })).toHaveAttribute(
+			'aria-label',
+			'Card details',
+		)
 	})
 })
 

@@ -1,12 +1,13 @@
 'use client'
 
 import { CreditCard } from 'lucide-react'
-import { type ReactNode, useId, useMemo } from 'react'
+import { type ReactNode, useId, useMemo, useRef } from 'react'
 import { composeEventHandlers } from '../../core'
-import { useAriaIds } from '../../hooks'
+import { useAriaIds, useComposedRef } from '../../hooks'
 import { useHeadless } from '../../providers/headless/context'
 import { digitsOnly } from '../../utilities'
 import { isDecimalDigit } from '../../utilities/caret'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -54,7 +55,9 @@ export type CreditCardInputProps = Omit<
  * suffix, at the text size of the input. The brand describes the input
  * (`aria-describedby`), so a screen reader reads it with the number. Emits the formatted value, brand, and
  * Luhn + length + pattern validity through `onValueChange`, `onBrandChange`,
- * and `onValidityChange`, and binds to an enclosing Form field by `name`. Sets `autoComplete="cc-number"`.
+ * and `onValidityChange`, and binds to an enclosing Form field by `name`. Sets
+ * `autoComplete="cc-number"` and defaults a "Card number" aria-label, yielding
+ * to a Field `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInputExpiry}
  * @see {@link CreditCardInputCvv}
@@ -71,12 +74,21 @@ export function CreditCardInput({
 	name,
 	onBlur,
 	ref,
+	'aria-label': ariaLabel,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: CreditCardInputProps) {
 	const headless = useHeadless()
 
 	const brandId = useId()
+
+	// The fallback reads the labels of the input after mount, so a native label
+	// outside a Field also turns it off.
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const fallbackLabel = useControlFallbackLabel('Card number', inputRef)
+
+	const composedRef = useComposedRef(ref, inputRef)
 
 	const {
 		ref: maskedRef,
@@ -90,7 +102,7 @@ export function CreditCardInput({
 		onChange: onValueChange,
 		format: (raw) => formatCardNumber(raw).formatted,
 		meaningful: isDecimalDigit,
-		ref,
+		ref: composedRef,
 	})
 
 	// Brand only: `formatCardNumber` would re-run the whole grouping walk to
@@ -111,6 +123,10 @@ export function CreditCardInput({
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-number"
+			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
+			// defaults an aria-label, yielding to a Field <Label> from the first
+			// render and to a native label after mount (useControlFallbackLabel).
+			aria-label={ariaLabel ?? fallbackLabel}
 			placeholder={placeholder ?? '1234 1234 1234 1234'}
 			prefix={prefix ?? <Icon icon={<CreditCard />} />}
 			suffix={suffix ?? (brandShows ? <span id={brandId}>{brand.label}</span> : undefined)}

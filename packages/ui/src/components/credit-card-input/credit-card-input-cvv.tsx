@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { isDecimalDigit } from '../../utilities/caret'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Input, type InputProps } from '../input'
@@ -48,7 +49,7 @@ function resolveCvvLength(brand: CreditCardBrand | undefined): number {
  * a brand is known. When the
  * brand shrinks the length it re-truncates the stored value and re-reports
  * validity. Sets `autoComplete="cc-csc"` and defaults a "Security code"
- * aria-label, yielding to a Field `<Label>`.
+ * aria-label, yielding to a Field `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInput}
  */
@@ -65,7 +66,13 @@ export function CreditCardInputCvv({
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputCvvProps) {
-	const fallbackLabel = useControlFallbackLabel('Security code')
+	// The fallback reads the labels of the input after mount, so a native label
+	// outside a Field also turns it off.
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const fallbackLabel = useControlFallbackLabel('Security code', inputRef)
+
+	const composedRef = useComposedRef(ref, inputRef)
 
 	const maxLength = resolveCvvLength(brand)
 
@@ -82,7 +89,7 @@ export function CreditCardInputCvv({
 		onChange: onValueChange,
 		format: (raw) => formatCvv(raw, maxLength),
 		meaningful: isDecimalDigit,
-		ref,
+		ref: composedRef,
 	})
 
 	// Re-fits the stored value to a new length, and reports validity. An effect
@@ -127,7 +134,7 @@ export function CreditCardInputCvv({
 			autoComplete="cc-csc"
 			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 			// defaults an aria-label, yielding to a Field <Label> from the first
-			// render (useControlFallbackLabel).
+			// render and to a native label after mount (useControlFallbackLabel).
 			aria-label={ariaLabel ?? fallbackLabel}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}

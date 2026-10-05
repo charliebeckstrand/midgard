@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { type RefObject, useEffect, useState } from 'react'
 import { useControl } from './context'
 
 /**
@@ -15,11 +15,23 @@ import { useControl } from './context'
  * effects ran, and then it is on only when no Label registered. Outside a
  * control, the fallback is the name from the first render.
  *
+ * A field that gives `element` also yields to a native label that is not a
+ * field Label, such as a `<label for>` outside a Field. The render cannot see
+ * that label, so the hook reads `element.labels` after each commit. When the
+ * element has a label, the fallback is off. Thus the server markup and the
+ * hydration pass keep the fallback, and the attribute changes after hydration.
+ *
  * @param fallback - The default name.
- * @returns The fallback, or `undefined` when a field Label can name the field.
+ * @param element - Optional ref to the labelable element that takes the name.
+ * Without it, a native label outside a control does not turn off the fallback.
+ * @returns The fallback, or `undefined` when a field Label or, with `element`,
+ * a native label can name the field.
  * @internal Not on the barrel. It backs the fields that default a name.
  */
-export function useControlFallbackLabel(fallback: string | undefined): string | undefined {
+export function useControlFallbackLabel(
+	fallback: string | undefined,
+	element?: RefObject<HTMLInputElement | null>,
+): string | undefined {
 	const control = useControl()
 
 	const inControl = control !== undefined
@@ -28,9 +40,20 @@ export function useControlFallbackLabel(fallback: string | undefined): string | 
 	// commit, together with the registration of a Label.
 	const [settled, setSettled] = useState(false)
 
+	// False in the first render, so the hydration pass matches the server markup.
+	const [nativeLabelled, setNativeLabelled] = useState(false)
+
 	useEffect(() => {
 		if (inControl) setSettled(true)
 	}, [inControl])
+
+	// After each commit, because a render can change the id that a label points
+	// at. An update with the same value does not cause a loop.
+	useEffect(() => {
+		if (element) setNativeLabelled((element.current?.labels?.length ?? 0) > 0)
+	})
+
+	if (nativeLabelled) return undefined
 
 	if (!inControl) return fallback
 
