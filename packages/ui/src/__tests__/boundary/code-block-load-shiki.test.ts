@@ -153,4 +153,47 @@ describe('highlightCode', () => {
 
 		expect(open).toHaveBeenCalledTimes(2)
 	})
+
+	it('fails each request in flight when the worker sends no reply in time, and opens a new worker', async ({
+		signal,
+	}) => {
+		const stuck = new FakeShikiWorker()
+
+		// The worker never answers, as a worker in a tokenization that does not stop.
+		vi.spyOn(stuck, 'postMessage').mockImplementation(() => {})
+
+		const open = portOf(stuck)
+
+		const { highlightCode, loadShiki } = await coldClient(open)
+
+		signal.throwIfAborted()
+
+		vi.useFakeTimers()
+
+		const warmup = expect(loadShiki()).rejects.toThrow('the Shiki worker sent no reply')
+
+		const inFlight = expect(
+			highlightCode('const a = 1', 'tsx', 'github-dark-default'),
+		).rejects.toThrow('the Shiki worker sent no reply')
+
+		// Only the client starts a timer in this case.
+		await vi.runOnlyPendingTimersAsync()
+
+		expect(stuck.terminated).toBe(true)
+
+		await inFlight
+
+		await warmup
+
+		signal.throwIfAborted()
+
+		await expect(highlightCode('const a = 1', 'tsx', 'github-dark-default')).resolves.toContain(
+			'<pre class="shiki"',
+		)
+
+		expect(open).toHaveBeenCalledTimes(2)
+
+		// A reply stops the timer of its request.
+		expect(vi.getTimerCount()).toBe(0)
+	})
 })
