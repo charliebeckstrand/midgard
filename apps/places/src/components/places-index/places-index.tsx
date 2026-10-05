@@ -163,12 +163,22 @@ export function PlacesIndex({
 			},
 			{
 				id: 'visited',
-				title: 'Visited',
+				// One word, because the grid keeps a one-word title whole and lets a
+				// longer one truncate when the table fits its content.
+				title: 'Latest',
 				// The newest visit. The stored day sorts and the local rendering shows.
 				// Sorted on the rendered date, 2026-01-05 and 2026-05-01 order by the
 				// reader's own notation rather than by when they went.
 				value: (place) => latestVisit(place).visitedAt,
 				cell: (place) => fromDay(latestVisit(place).visitedAt).toLocaleDateString(),
+			},
+			{
+				id: 'visits',
+				title: 'Visits',
+				// The number of visits. The open place lists each one with its date,
+				// its score, and its review.
+				value: (place) => place.visits.length,
+				cell: (place) => place.visits.length,
 			},
 			{
 				id: 'rating',
