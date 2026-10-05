@@ -1,8 +1,62 @@
 import { readFileSync, statSync } from 'node:fs'
 import { dirname, join, sep } from 'node:path'
-import ts from '@typescript/typescript6'
-import { describe, expect, it } from 'vitest'
-
+import {
+	type BindingName,
+	type DoStatement,
+	type Expression,
+	type ForInStatement,
+	type ForOfStatement,
+	type ForStatement,
+	type FunctionDeclaration,
+	isArrowFunction,
+	isAsExpression,
+	isAwaitExpression,
+	isBinaryExpression,
+	isBlock,
+	isCallExpression,
+	isCaseClause,
+	isCatchClause,
+	isClassDeclaration,
+	isClassExpression,
+	isDefaultClause,
+	isDeleteExpression,
+	isDoStatement,
+	isElementAccessExpression,
+	isEnumDeclaration,
+	isExportDeclaration,
+	isForInStatement,
+	isForOfStatement,
+	isForStatement,
+	isFunctionDeclaration,
+	isFunctionExpression,
+	isIdentifier,
+	isImportDeclaration,
+	isImportEqualsDeclaration,
+	isModuleBlock,
+	isModuleDeclaration,
+	isNamedExports,
+	isNamedImports,
+	isNamespaceImport,
+	isNonNullExpression,
+	isOmittedExpression,
+	isParenthesizedExpression,
+	isPropertyAccessExpression,
+	isSourceFile as isSourceFileNode,
+	isStringLiteral,
+	isVariableDeclarationList,
+	isVariableStatement,
+	isWhileStatement,
+	type Node,
+	NodeFlags,
+	type SourceFile,
+	type Statement,
+	SyntaxKind,
+	type VariableStatement,
+	type WhileStatement,
+} from 'typescript/unstable/ast'
+import { afterAll, describe, expect, it } from 'vitest'
+import { isFunctionLike } from '../helpers/ts-ast'
+import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
 import {
 	collectPatternViolations,
 	docsTestDirs,
@@ -136,10 +190,10 @@ const PROTOTYPE = /^[\w.]+\.prototype\b/
 const CASE_OR_HOOK = new Set(['it', 'test', 'beforeEach', 'afterEach', 'beforeAll', 'afterAll'])
 
 /** The identifier at the root of a callee: `it` for `it.each(rows)`. */
-function calleeRoot(node: ts.Expression): string | undefined {
-	if (ts.isIdentifier(node)) return node.text
+function calleeRoot(node: Expression): string | undefined {
+	if (isIdentifier(node)) return node.text
 
-	if (ts.isPropertyAccessExpression(node) || ts.isCallExpression(node)) {
+	if (isPropertyAccessExpression(node) || isCallExpression(node)) {
 		return calleeRoot(node.expression)
 	}
 
@@ -147,22 +201,22 @@ function calleeRoot(node: ts.Expression): string | undefined {
 }
 
 /** The expression under its parentheses and casts. */
-function uncast(node: ts.Expression): ts.Expression {
-	return ts.isParenthesizedExpression(node) ||
-		ts.isAsExpression(node) ||
-		ts.isNonNullExpression(node)
+function uncast(node: Expression): Expression {
+	return isParenthesizedExpression(node) || isAsExpression(node) || isNonNullExpression(node)
 		? uncast(node.expression)
 		: node
 }
 
 /** Whether `node` is a loop, whose body runs again after an `await` lower in it. */
-function isLoop(node: ts.Node): node is ts.IterationStatement {
+function isLoop(
+	node: Node,
+): node is DoStatement | ForInStatement | ForOfStatement | ForStatement | WhileStatement {
 	return (
-		ts.isForStatement(node) ||
-		ts.isForOfStatement(node) ||
-		ts.isForInStatement(node) ||
-		ts.isWhileStatement(node) ||
-		ts.isDoStatement(node)
+		isForStatement(node) ||
+		isForOfStatement(node) ||
+		isForInStatement(node) ||
+		isWhileStatement(node) ||
+		isDoStatement(node)
 	)
 }
 
@@ -170,32 +224,35 @@ function isLoop(node: ts.Node): node is ts.IterationStatement {
  * The root of an assignment target, under its casts: `globalThis` for
  * `(globalThis as T).fetch`.
  */
-function targetRoot(node: ts.Expression): ts.Expression {
+function targetRoot(node: Expression): Expression {
 	const bare = uncast(node)
 
-	return ts.isPropertyAccessExpression(bare) || ts.isElementAccessExpression(bare)
+	return isPropertyAccessExpression(bare) || isElementAccessExpression(bare)
 		? targetRoot(bare.expression)
 		: bare
 }
 
 /** Whether `name` is one of the names that a binding or a pattern binds. */
-function bindsName(binding: ts.BindingName, name: string): boolean {
-	return ts.isIdentifier(binding)
+function bindsName(binding: BindingName, name: string): boolean {
+	return isIdentifier(binding)
 		? binding.text === name
 		: binding.elements.some(
-				(element) => !ts.isOmittedExpression(element) && bindsName(element.name, name),
+				(element) =>
+					!isOmittedExpression(element) &&
+					element.name !== undefined &&
+					bindsName(element.name, name),
 			)
 }
 
 /** Whether a statement of a block or of a module declares `name`. */
-function statementDeclares(statement: ts.Statement, name: string): boolean {
-	if (ts.isVariableStatement(statement)) {
+function statementDeclares(statement: Statement, name: string): boolean {
+	if (isVariableStatement(statement)) {
 		return statement.declarationList.declarations.some((declaration) =>
 			bindsName(declaration.name, name),
 		)
 	}
 
-	if (ts.isImportDeclaration(statement)) {
+	if (isImportDeclaration(statement)) {
 		const clause = statement.importClause
 
 		const bindings = clause?.namedBindings
@@ -203,20 +260,20 @@ function statementDeclares(statement: ts.Statement, name: string): boolean {
 		return (
 			clause?.name?.text === name ||
 			(bindings !== undefined &&
-				(ts.isNamespaceImport(bindings)
+				(isNamespaceImport(bindings)
 					? bindings.name.text === name
 					: bindings.elements.some((element) => element.name.text === name)))
 		)
 	}
 
 	return (
-		(ts.isFunctionDeclaration(statement) ||
-			ts.isClassDeclaration(statement) ||
-			ts.isEnumDeclaration(statement) ||
-			ts.isModuleDeclaration(statement) ||
-			ts.isImportEqualsDeclaration(statement)) &&
+		(isFunctionDeclaration(statement) ||
+			isClassDeclaration(statement) ||
+			isEnumDeclaration(statement) ||
+			isModuleDeclaration(statement) ||
+			isImportEqualsDeclaration(statement)) &&
 		statement.name !== undefined &&
-		ts.isIdentifier(statement.name) &&
+		isIdentifier(statement.name) &&
 		statement.name.text === name
 	)
 }
@@ -225,37 +282,38 @@ function statementDeclares(statement: ts.Statement, name: string): boolean {
  * Whether a scope around `node` declares `name`: a block, a module, a
  * function, a loop head, or a `catch`. A `var` in a nested block is not read.
  */
-function declaredAround(node: ts.Node, name: string): boolean {
+function declaredAround(node: Node, name: string): boolean {
 	for (let up = node.parent; up; up = up.parent) {
 		if (
-			ts.isBlock(up) ||
-			ts.isSourceFile(up) ||
-			ts.isModuleBlock(up) ||
-			ts.isCaseOrDefaultClause(up)
+			isBlock(up) ||
+			isSourceFileNode(up) ||
+			isModuleBlock(up) ||
+			isCaseClause(up) ||
+			isDefaultClause(up)
 		) {
 			if (up.statements.some((statement) => statementDeclares(statement, name))) return true
 		}
 
-		if (ts.isFunctionLike(up)) {
+		if (isFunctionLike(up)) {
 			if (up.parameters.some((parameter) => bindsName(parameter.name, name))) return true
 
-			if (ts.isFunctionExpression(up) && up.name?.text === name) return true
+			if (isFunctionExpression(up) && up.name?.text === name) return true
 		}
 
 		if (
-			(ts.isForStatement(up) || ts.isForOfStatement(up) || ts.isForInStatement(up)) &&
+			(isForStatement(up) || isForOfStatement(up) || isForInStatement(up)) &&
 			up.initializer &&
-			ts.isVariableDeclarationList(up.initializer) &&
+			isVariableDeclarationList(up.initializer) &&
 			up.initializer.declarations.some((declaration) => bindsName(declaration.name, name))
 		) {
 			return true
 		}
 
-		if (ts.isCatchClause(up) && up.variableDeclaration) {
+		if (isCatchClause(up) && up.variableDeclaration) {
 			if (bindsName(up.variableDeclaration.name, name)) return true
 		}
 
-		if (ts.isClassExpression(up) && up.name?.text === name) return true
+		if (isClassExpression(up) && up.name?.text === name) return true
 	}
 
 	return false
@@ -304,6 +362,26 @@ function inTestTree(path: string): boolean {
 	return path.includes(`${sep}__tests__${sep}`)
 }
 
+/** The parse of a module, by its path. */
+type Parse = (file: string) => SourceFile
+
+/**
+ * The parse of each module that the scan reads. The files in `files` go into
+ * one project. A module that `files` does not hold goes into a project of its
+ * own.
+ */
+function parser(server: TypeScriptServer, files: readonly string[]): Parse {
+	const sources = server.parse(files)
+
+	return (file) => {
+		const source = sources.get(file) ?? server.parse([file]).get(file)
+
+		if (!source) throw new Error(`the TypeScript server did not parse ${file}`)
+
+		return source
+	}
+}
+
 /** The exported writers of each module that the scan read, by file. */
 const exportedWritersByFile = new Map<string, Set<string>>()
 
@@ -312,7 +390,7 @@ const exportedWritersByFile = new Map<string, Set<string>>()
  * `__tests__` tree is read with the rules of a test file. A module of the
  * source tree gives the names in `SOURCE_WRITERS`.
  */
-function exportedWriters(file: string): Set<string> {
+function exportedWriters(file: string, parse: Parse): Set<string> {
 	if (!inTestTree(file)) {
 		return new Set(SOURCE_WRITERS[srcRelative(file)] ?? [])
 	}
@@ -326,41 +404,39 @@ function exportedWriters(file: string): Set<string> {
 	// An import cycle reads the empty set until this module is complete.
 	exportedWritersByFile.set(file, exported)
 
-	const { source, writers } = scanModule(file, readFileSync(file, 'utf8'))
+	const { source, writers } = scanModule(file, parse)
 
-	const isExported = (node: ts.Node) =>
-		ts.canHaveModifiers(node) &&
-		(ts.getModifiers(node)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ??
-			false)
+	const isExported = (node: FunctionDeclaration | VariableStatement) =>
+		node.modifiers?.some((modifier) => modifier.kind === SyntaxKind.ExportKeyword) ?? false
 
 	for (const statement of source.statements) {
-		if (ts.isFunctionDeclaration(statement) && statement.name && isExported(statement)) {
+		if (isFunctionDeclaration(statement) && statement.name && isExported(statement)) {
 			if (writers.has(statement.name.text)) exported.add(statement.name.text)
 		}
 
-		if (ts.isVariableStatement(statement) && isExported(statement)) {
+		if (isVariableStatement(statement) && isExported(statement)) {
 			for (const { name } of statement.declarationList.declarations) {
-				if (ts.isIdentifier(name) && writers.has(name.text)) exported.add(name.text)
+				if (isIdentifier(name) && writers.has(name.text)) exported.add(name.text)
 			}
 		}
 
-		if (!ts.isExportDeclaration(statement) || statement.isTypeOnly) continue
+		if (!isExportDeclaration(statement) || statement.isTypeOnly) continue
 
 		const specifier = statement.moduleSpecifier
 
 		const target =
-			specifier && ts.isStringLiteral(specifier) ? resolveImport(file, specifier.text) : undefined
+			specifier && isStringLiteral(specifier) ? resolveImport(file, specifier.text) : undefined
 
 		// A re-export from a package, such as `@testing-library/react`.
 		if (specifier && !target) continue
 
-		const from = target ? exportedWriters(target) : writers
+		const from = target ? exportedWriters(target, parse) : writers
 
 		const clause = statement.exportClause
 
 		if (!clause) {
 			for (const name of from) exported.add(name)
-		} else if (ts.isNamedExports(clause)) {
+		} else if (isNamedExports(clause)) {
 			for (const element of clause.elements) {
 				if (from.has((element.propertyName ?? element.name).text)) exported.add(element.name.text)
 			}
@@ -374,26 +450,26 @@ function exportedWriters(file: string): Set<string> {
  * The parts of a module that the scan reads. `writers` holds each function of
  * the module that writes shared state, and each import of a writer.
  */
-function scanModule(file: string, text: string) {
-	const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true)
+function scanModule(file: string, parse: Parse) {
+	const source = parse(file)
 
 	const moduleLets = new Set<string>()
 
-	const functions = new Map<string, ts.Node>()
+	const functions = new Map<string, Node>()
 
 	const writers = new Set<string>()
 
 	for (const statement of source.statements) {
-		const bindings = ts.isImportDeclaration(statement)
+		const bindings = isImportDeclaration(statement)
 			? statement.importClause?.namedBindings
 			: undefined
 
 		if (
-			ts.isImportDeclaration(statement) &&
-			ts.isStringLiteral(statement.moduleSpecifier) &&
-			!statement.importClause?.isTypeOnly &&
+			isImportDeclaration(statement) &&
+			isStringLiteral(statement.moduleSpecifier) &&
+			statement.importClause?.phaseModifier !== SyntaxKind.TypeKeyword &&
 			bindings &&
-			ts.isNamedImports(bindings)
+			isNamedImports(bindings)
 		) {
 			const specifier = statement.moduleSpecifier.text
 
@@ -409,7 +485,7 @@ function scanModule(file: string, text: string) {
 					? resolveImport(file, specifier)
 					: undefined
 
-			const imported = target ? exportedWriters(target) : new Set<string>()
+			const imported = target ? exportedWriters(target, parse) : new Set<string>()
 
 			for (const element of names) {
 				if (imported.has((element.propertyName ?? element.name).text))
@@ -417,22 +493,22 @@ function scanModule(file: string, text: string) {
 			}
 		}
 
-		if (ts.isFunctionDeclaration(statement) && statement.name && statement.body) {
+		if (isFunctionDeclaration(statement) && statement.name && statement.body) {
 			functions.set(statement.name.text, statement.body)
 		}
 
-		if (!ts.isVariableStatement(statement)) continue
+		if (!isVariableStatement(statement)) continue
 
-		const isLet = (statement.declarationList.flags & ts.NodeFlags.Let) !== 0
+		const isLet = (statement.declarationList.flags & NodeFlags.Let) !== 0
 
 		for (const declaration of statement.declarationList.declarations) {
-			if (!ts.isIdentifier(declaration.name)) continue
+			if (!isIdentifier(declaration.name)) continue
 
 			if (isLet) moduleLets.add(declaration.name.text)
 
 			const init = declaration.initializer
 
-			if (init && (ts.isArrowFunction(init) || ts.isFunctionExpression(init))) {
+			if (init && (isArrowFunction(init) || isFunctionExpression(init))) {
 				functions.set(declaration.name.text, init.body)
 			}
 		}
@@ -442,25 +518,25 @@ function scanModule(file: string, text: string) {
 	 * Whether a write to `target` reaches state that every case shares: a
 	 * prototype, or a name that no scope around it declares, such as `URL`.
 	 */
-	function isSharedTarget(target: ts.Expression): boolean {
-		if (PROTOTYPE.test(target.getText(source))) return true
+	function isSharedTarget(target: Expression): boolean {
+		if (PROTOTYPE.test(target.getText())) return true
 
 		const root = targetRoot(target)
 
-		return ts.isIdentifier(root) && !declaredAround(root, root.text)
+		return isIdentifier(root) && !declaredAround(root, root.text)
 	}
 
 	/** The label of a write to shared state, or `undefined` for any other node. */
-	function writeLabel(node: ts.Node): string | undefined {
-		if (ts.isCallExpression(node)) {
-			const callee = node.expression.getText(source)
+	function writeLabel(node: Node): string | undefined {
+		if (isCallExpression(node)) {
+			const callee = node.expression.getText()
 
 			if (SHARED_STATE_CALL.test(callee)) return callee
 
 			const [target] = node.arguments
 
 			if (/^(?:vi|vitest)\.spyOn$/.test(callee) && target && isSharedTarget(target)) {
-				return `${callee}(${target.getText(source)})`
+				return `${callee}(${target.getText()})`
 			}
 
 			if (
@@ -468,37 +544,37 @@ function scanModule(file: string, text: string) {
 				target &&
 				isSharedTarget(target)
 			) {
-				return `${callee}(${target.getText(source)})`
+				return `${callee}(${target.getText()})`
 			}
 
-			if (ts.isIdentifier(node.expression) && writers.has(callee)) return `${callee}()`
+			if (isIdentifier(node.expression) && writers.has(callee)) return `${callee}()`
 		}
 
-		if (ts.isDeleteExpression(node) && isSharedTarget(node.expression)) {
-			return `delete ${node.expression.getText(source)}`
+		if (isDeleteExpression(node) && isSharedTarget(node.expression)) {
+			return `delete ${node.expression.getText()}`
 		}
 
 		if (
-			ts.isBinaryExpression(node) &&
-			node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment &&
-			node.operatorToken.kind <= ts.SyntaxKind.LastAssignment
+			isBinaryExpression(node) &&
+			node.operatorToken.kind >= SyntaxKind.FirstAssignment &&
+			node.operatorToken.kind <= SyntaxKind.LastAssignment
 		) {
 			const root = targetRoot(node.left)
 
-			if (ts.isIdentifier(root) && moduleLets.has(root.text) && root === node.left) {
+			if (isIdentifier(root) && moduleLets.has(root.text) && root === node.left) {
 				return `${root.text} =`
 			}
 
 			if (root !== node.left && isSharedTarget(node.left)) {
-				return `${node.left.getText(source)} =`
+				return `${node.left.getText()} =`
 			}
 		}
 
 		return undefined
 	}
 
-	function containsWrite(node: ts.Node): boolean {
-		return writeLabel(node) !== undefined || (ts.forEachChild(node, containsWrite) ?? false)
+	function containsWrite(node: Node): boolean {
+		return writeLabel(node) !== undefined || (node.forEachChild(containsWrite) ?? false)
 	}
 
 	// A helper can call another helper, so repeat until the set is stable.
@@ -522,34 +598,30 @@ function scanModule(file: string, text: string) {
  * that comes after an `await`, with no `throwIfAborted()` between the latest
  * `await` and the write.
  */
-function unguardedLateWrites(file: string, text: string): string[] {
-	// A write can come late only after an `await`, so a file with none needs no
-	// parse. Most of the test files have none.
-	if (!text.includes('await')) return []
-
-	const { source, writeLabel } = scanModule(file, text)
+function unguardedLateWrites(file: string, parse: Parse): string[] {
+	const { source, writeLabel } = scanModule(file, parse)
 
 	const late: string[] = []
 
-	function scanBody(body: ts.Node) {
+	function scanBody(body: Node) {
 		const awaits: number[] = []
 
 		const guards: number[] = []
 
-		const writes: { at: number; label: string; node: ts.Node }[] = []
+		const writes: { at: number; label: string; node: Node }[] = []
 
-		const visit = (node: ts.Node) => {
-			ts.forEachChild(node, visit)
+		const visit = (node: Node) => {
+			node.forEachChild(visit)
 
-			if (ts.isAwaitExpression(node)) awaits.push(node.getEnd())
+			if (isAwaitExpression(node)) awaits.push(node.getEnd())
 
-			if (ts.isCallExpression(node) && /\.throwIfAborted$/.test(node.expression.getText(source))) {
-				guards.push(node.getStart(source))
+			if (isCallExpression(node) && /\.throwIfAborted$/.test(node.expression.getText())) {
+				guards.push(node.getStart())
 			}
 
 			const label = writeLabel(node)
 
-			if (label) writes.push({ at: node.getStart(source), label, node })
+			if (label) writes.push({ at: node.getStart(), label, node })
 		}
 
 		visit(body)
@@ -560,7 +632,7 @@ function unguardedLateWrites(file: string, text: string): string[] {
 		 * `await` lower in the body comes before the write of the next pass, so
 		 * the pass starts at the head of the loop body.
 		 */
-		function resumedBefore(node: ts.Node, at: number): number {
+		function resumedBefore(node: Node, at: number): number {
 			let resumed = Math.max(-1, ...awaits.filter((end) => end <= at))
 
 			for (let up = node.parent; up && up !== body; up = up.parent) {
@@ -568,7 +640,7 @@ function unguardedLateWrites(file: string, text: string): string[] {
 
 				const loopBody = up.statement
 
-				const start = loopBody.getStart(source)
+				const start = loopBody.getStart()
 
 				if (awaits.some((end) => end > at && end <= loopBody.getEnd())) {
 					resumed = Math.max(resumed, start)
@@ -589,10 +661,10 @@ function unguardedLateWrites(file: string, text: string): string[] {
 		}
 	}
 
-	function visit(node: ts.Node) {
-		if (ts.isCallExpression(node) && CASE_OR_HOOK.has(calleeRoot(node.expression) ?? '')) {
+	function visit(node: Node) {
+		if (isCallExpression(node) && CASE_OR_HOOK.has(calleeRoot(node.expression) ?? '')) {
 			const body = node.arguments.findLast(
-				(arg) => ts.isArrowFunction(arg) || ts.isFunctionExpression(arg),
+				(arg) => isArrowFunction(arg) || isFunctionExpression(arg),
 			)
 
 			if (body) {
@@ -602,7 +674,7 @@ function unguardedLateWrites(file: string, text: string): string[] {
 			}
 		}
 
-		ts.forEachChild(node, visit)
+		node.forEachChild(visit)
 	}
 
 	visit(source)
@@ -611,6 +683,9 @@ function unguardedLateWrites(file: string, text: string): string[] {
 }
 
 describe('test isolation boundary', () => {
+	const server = startTypeScript()
+
+	afterAll(() => server.close())
 	it('no file in a shared-registry project mutates the module registry', () => {
 		const violations = SHARED_REGISTRY_SCANS.flatMap((scan) =>
 			collectPatternViolations({ patterns: FORBIDDEN_PATTERNS, stripComments: true, ...scan }),
@@ -703,13 +778,26 @@ describe('test isolation boundary', () => {
 	})
 
 	it('stops a case at its signal before it writes shared state after an await', () => {
-		const late: string[] = []
+		const tests: string[] = []
+
+		const modules: string[] = []
 
 		for (const dir of [testsDir, ...docsTestDirs]) {
 			walkSource(dir, (file, content) => {
-				if (/\.test\.tsx?$/.test(file)) late.push(...unguardedLateWrites(file, content))
+				// A write can come late only after an `await`, so a test file with none
+				// needs no parse. Most of the test files have none. The other modules
+				// of the trees are the helpers that a test file can import.
+				if (!/\.test\.tsx?$/.test(file)) {
+					if (isSourceFile(file)) modules.push(file)
+				} else if (content.includes('await')) {
+					tests.push(file)
+				}
 			})
 		}
+
+		const parse = parser(server, [...tests, ...modules])
+
+		const late = tests.flatMap((file) => unguardedLateWrites(file, parse))
 
 		expect(
 			late,
