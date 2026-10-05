@@ -24,8 +24,14 @@ const separatorRe = memoRe(escapeRegExp)
 
 const disallowedRe = memoRe((decimal) => `[^\\d\\-${escapeRegExp(decimal)}]`)
 
+// The currency style writes the minus sign U+2212 in some locales (sv-SE,
+// fi-FI, nb-NO). `formatEditing` reads it as "-", so the caret counts it too.
+const MINUS_SIGN = '\u2212'
+
+const minusSignRe = /\u2212/g
+
 export function isMeaningful(c: string, decimal: string) {
-	return (c >= '0' && c <= '9') || c === '-' || c === decimal
+	return (c >= '0' && c <= '9') || c === '-' || c === MINUS_SIGN || c === decimal
 }
 
 // Collapses every decimal separator after the first, keeping a single split
@@ -40,6 +46,33 @@ function collapseExtraDecimals(value: string, decimal: string) {
 	return value.slice(0, split) + value.slice(split).replace(separatorRe(decimal), '')
 }
 
+const groupFormats = new Map<string | undefined, Intl.NumberFormat>()
+
+// The editing text groups with the currency style, as the display and
+// `parseEditing` do (de-AT "." in place of U+00A0). The code XXX means "no
+// currency", so the format writes the currency separators of the locale.
+// `numberingSystem: 'latn'` keeps grouped output in ASCII digits so the
+// editing parser (which only recognizes 0-9) and the caret restore stay
+// aligned in non-latn-default locales (ar-EG, fa-IR, ne-NP, bn-IN).
+function groupFormat(locale: string | undefined) {
+	let format = groupFormats.get(locale)
+
+	if (format === undefined) {
+		format = new Intl.NumberFormat(locale, {
+			style: 'currency',
+			currency: 'XXX',
+			numberingSystem: 'latn',
+			useGrouping: true,
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0,
+		})
+
+		groupFormats.set(locale, format)
+	}
+
+	return format
+}
+
 // Strips redundant leading zeros and applies locale digit grouping. An empty
 // integer part renders as '0' only when a fraction follows, else stays empty.
 // `disallowedRe` leaves only ASCII digits here, so `BigInt` cannot throw. It
@@ -49,14 +82,11 @@ function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string 
 
 	if (trimmed === '') return hasFraction ? '0' : ''
 
-	// `numberingSystem: 'latn'` keeps grouped output in ASCII digits so the
-	// editing parser (which only recognizes 0-9) and the caret restore stay
-	// aligned in non-latn-default locales (ar-EG, fa-IR, ne-NP, bn-IN).
-	return BigInt(trimmed).toLocaleString(locale, {
-		useGrouping: true,
-		maximumFractionDigits: 0,
-		numberingSystem: 'latn',
-	})
+	return groupFormat(locale)
+		.formatToParts(BigInt(trimmed))
+		.filter((part) => part.type === 'integer' || part.type === 'group')
+		.map((part) => part.value)
+		.join('')
 }
 
 export function formatEditing(
@@ -65,7 +95,9 @@ export function formatEditing(
 	decimal: string,
 	maxFractionDigits: number,
 ) {
-	const withoutDisallowed = raw.replace(disallowedRe(decimal), '')
+	// The display can hold the locale minus sign U+2212. It becomes "-" before
+	// the filter, which keeps only the ASCII sign.
+	const withoutDisallowed = raw.replace(minusSignRe, '-').replace(disallowedRe(decimal), '')
 
 	const negative = withoutDisallowed.startsWith('-')
 

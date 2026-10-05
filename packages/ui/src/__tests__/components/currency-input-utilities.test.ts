@@ -28,6 +28,10 @@ describe('isMeaningful', () => {
 		expect(isMeaningful('-', '.')).toBe(true)
 	})
 
+	it('treats the minus sign U+2212 as meaningful, as formatEditing keeps it as "-"', () => {
+		expect(isMeaningful('\u2212', ',')).toBe(true)
+	})
+
 	it('treats the configured decimal separator as meaningful', () => {
 		expect(isMeaningful('.', '.')).toBe(true)
 
@@ -65,6 +69,23 @@ describe('formatEditing', () => {
 	it('honors a comma decimal separator', () => {
 		expect(formatEditing('1234,5', 'de-DE', ',', 2)).toMatch(/^1.234,5$/)
 	})
+
+	it('maps the minus sign U+2212 to "-"', () => {
+		// ICU data: sv-SE writes U+2212 for minus.
+		expect(formatEditing('\u22121234,5', 'sv-SE', ',', 2)).toBe('-1\u00A0234,5')
+	})
+
+	// ICU data: the currency style of de-AT writes the group "." and the decimal
+	// style writes U+00A0. fr-CH writes U+202F in both styles.
+	it.each([
+		['de-AT', '1234,5', ',', '1.234,5'],
+		['fr-CH', '1234.5', '.', '1\u202F234.5'],
+	] as const)(
+		'groups the %s integer part with the currency-style group',
+		(locale, raw, decimal, expected) => {
+			expect(formatEditing(raw, locale, decimal, 2)).toBe(expected)
+		},
+	)
 
 	it('keeps grouped digits ASCII in non-latn-default locales', () => {
 		// ar-EG defaults to Arabic-Indic digits; the editing parser only reads
