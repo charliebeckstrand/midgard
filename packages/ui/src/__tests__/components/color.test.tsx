@@ -609,6 +609,42 @@ describe('ColorPanel in a ColorPicker', () => {
 
 		expect(onValueChange).toHaveBeenLastCalledWith({ h: 0, s: 0, v: 50, a: 1 })
 	})
+
+	// The content wrapper of the picker cancels each mousedown, so a drag on the
+	// area keeps focus in the panel. The eyedropper press must escape that hold.
+	// Focus then leaves an edited field, and its blur commit runs before the pick.
+	// The dialog here is the hold without floating-ui (§10.3). jsdom does not
+	// move focus on a mousedown, so the case asserts the escape, not the focus.
+	it('lets an eyedropper press escape the mousedown hold of the picker', () => {
+		vi.stubGlobal(
+			'EyeDropper',
+			class {
+				open = () => new Promise<never>(() => {})
+			},
+		)
+
+		onTestFinished(() => {
+			vi.unstubAllGlobals()
+		})
+
+		const hold = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		const { container } = renderUI(
+			<div role="dialog" aria-label="Choose color" onMouseDown={hold}>
+				<ColorPanel defaultValue="#3b82f6" />
+			</div>,
+		)
+
+		// The hold catches a press on the area, the drag that it is for.
+		fireEvent.mouseDown(getSlot(container, 'color-area'))
+
+		expect(hold).toHaveBeenCalledTimes(1)
+
+		// `fireEvent` returns `false` when a handler cancels the press.
+		expect(fireEvent.mouseDown(getSlot(container, 'color-eyedropper'))).toBe(true)
+
+		expect(hold).toHaveBeenCalledTimes(1)
+	})
 })
 
 describe('useColorState', () => {

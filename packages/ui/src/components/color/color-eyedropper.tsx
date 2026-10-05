@@ -62,6 +62,12 @@ export function ColorEyedropper({ className }: { className?: string }) {
 			data-slot="color-eyedropper"
 			aria-label="Pick color from screen"
 			onClick={onPick}
+			// The content wrapper of the popover cancels each mousedown, so a drag on
+			// the area or a slider keeps focus (color-picker-content.tsx). Stop the
+			// press here, so that it moves focus off an edited field and the blur
+			// commit of the field runs before the pick. The stop does nothing in the
+			// inline ColorPanel.
+			onMouseDown={(event) => event.stopPropagation()}
 			className={className}
 		>
 			<Icon icon={<Pipette />} />
