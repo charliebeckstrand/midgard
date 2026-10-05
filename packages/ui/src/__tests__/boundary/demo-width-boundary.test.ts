@@ -50,7 +50,10 @@ const WIDTHS: Record<string, readonly string[]> = {
 	'docs/pages/components/scroll-area/horizontal-with-extent.tsx': ['w-max'],
 	'docs/pages/components/scroll-area/playground.tsx': ['w-max'],
 	'docs/pages/components/tabs/overflow.tsx': ['max-w-sm'],
+	'docs/pages/modules/dashboard/build-and-save.tsx': ['w-56', 'w-full'],
+	'docs/pages/modules/dashboard/query.tsx': ['w-full'],
 	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
+	'docs/pages/structure/flex/wrap.tsx': ['w-64'],
 }
 
 // The examples of the docs app, and the demos of the legacy app.

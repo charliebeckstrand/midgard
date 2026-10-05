@@ -1,4 +1,4 @@
-import { globSync } from 'node:fs'
+import { globSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { normalizePath } from 'vite'
 
@@ -23,6 +23,22 @@ type Page = PageLink & {
 // The folder of the components. Its pages have no folder in their path.
 const COMPONENTS = 'components'
 
+// The default export of a page, such as `export default function ButtonPage`.
+const PAGE = /^export default function (\w+)Page\(/m
+
+/**
+ * The name of the page in `file`: the name of its default export, less
+ * `Page`. The name of a folder has no case, so `UIPage` gives `UI` where the
+ * folder `ui` gives only `Ui`.
+ */
+function nameOf(file: string): string {
+	const name = PAGE.exec(readFileSync(file, 'utf8'))?.[1]
+
+	if (!name) throw new Error(`docs: ${file} has no default export \`<Name>Page\``)
+
+	return name
+}
+
 /**
  * Finds the pages in `pages/` of the docs at `docs`. A page is the
  * `index.tsx` of a folder in a section folder, such as
@@ -43,7 +59,7 @@ export function findPages(docs: string): Page[] {
 
 			return {
 				path: category === COMPONENTS ? `/${name}` : `/${folder}`,
-				name: name.replace(/(?:^|-)(\w)/g, (_, letter: string) => letter.toUpperCase()),
+				name: nameOf(path.join(pages, file)),
 				category,
 				folder,
 				tabs: tabs.map((tab) => path.dirname(tab)).toSorted(),
