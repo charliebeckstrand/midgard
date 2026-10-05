@@ -372,6 +372,47 @@ describe('ColorPanel', () => {
 		expect(keyWarnings).toEqual([])
 	})
 
+	// `swatches` takes hex only. A preset that does not parse paints its chip,
+	// but the chip sets no color and is never checked.
+	it('warns in development of a swatch that is not hex, one time for each list', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		onTestFinished(() => warn.mockRestore())
+
+		const { rerender } = renderUI(
+			<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', 'red', '#000']} />,
+		)
+
+		expect(warn).toHaveBeenCalledTimes(1)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('"red"'))
+
+		expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('#ffffff'))
+
+		// A new array that holds the same presets does not warn again.
+		rerender(<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', 'red', '#000']} />)
+
+		expect(warn).toHaveBeenCalledTimes(1)
+	})
+
+	it('warns of nothing when each swatch is hex', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		onTestFinished(() => warn.mockRestore())
+
+		renderUI(<ColorPanel defaultValue="#ffffff" />)
+
+		renderUI(
+			<ColorPanel
+				alpha
+				defaultValue="#ffffff"
+				swatches={['#fff', '#fff8', '#000000', '#00000080']}
+			/>,
+		)
+
+		expect(warn).not.toHaveBeenCalled()
+	})
+
 	it('commits a shorthand hex only on blur, not while the digits are typed', () => {
 		const onValueChange = vi.fn()
 

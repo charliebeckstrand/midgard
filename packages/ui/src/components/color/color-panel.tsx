@@ -26,8 +26,13 @@ type ColorPanelBaseProps = {
 	 */
 	alpha?: boolean
 	/**
-	 * Preset swatches, or `false` to hide them. The default is a built-in
-	 * palette.
+	 * Preset swatches as hex colors, or `false` to hide them. The default is a
+	 * built-in palette.
+	 *
+	 * @remarks
+	 * Each swatch is `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa`. A swatch in another
+	 * CSS color format paints its chip, but the chip sets no color and is never
+	 * checked. In development, the panel warns of each such swatch.
 	 *
 	 * @defaultValue {@link DEFAULT_SWATCHES}
 	 */

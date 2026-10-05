@@ -28,7 +28,9 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 */
 	alpha?: boolean
 	/**
-	 * Preset swatches, or `false` to hide them. Passed through to the inline {@link ColorPanel}.
+	 * Preset swatches as hex colors, or `false` to hide them. Passed through to the
+	 * inline {@link ColorPanel}, which takes `#rgb`, `#rgba`, `#rrggbb`, and
+	 * `#rrggbbaa`, and warns in development of any other swatch.
 	 *
 	 * @defaultValue The {@link ColorPanel} default palette
 	 */
