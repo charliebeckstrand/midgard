@@ -13,6 +13,7 @@ import {
 	geoMercator,
 	geoPath,
 } from 'd3-geo'
+import { REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
 import type { MapFeature, MapProjection } from '../types'
 
 /**
@@ -36,6 +37,13 @@ export const PROBE_SCALE = 150
  * geography's top edge onto y 0. Fits `projection` in place and reports the
  * height the frame comes to. It returns `null` where the bounds collapse on
  * either axis: no geography, or a lone point.
+ *
+ * The height is on the grid of the region paths ({@link REGION_PATH_DIGITS}).
+ * It goes into the markup as the `viewBox` and the `aspect-ratio`, and the
+ * last bits of the bounds are not the same in each JavaScript engine. In
+ * Node 22, the albers-usa states height is 585.000128913205. In Chromium 141,
+ * it is 585.0001289132047. A value on the grid is the same in each engine, as
+ * the paths are, so the server markup hydrates without a mismatch.
  *
  * Held apart from the pass that measures those bounds because two callers
  * measure them two ways and only one rule can place the result. This one runs a
@@ -62,7 +70,7 @@ export function fitWidthFromProbeBounds(
 
 	projection.scale(PROBE_SCALE * k).translate([(width - k * (x1 + x0)) / 2, -k * y0])
 
-	return spanY * k
+	return Math.round(spanY * k * REGION_PATH_ROUNDING) / REGION_PATH_ROUNDING
 }
 
 /**

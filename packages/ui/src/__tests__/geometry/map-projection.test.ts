@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
-import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
+import { ALBERS_USA_ASPECT, REGION_PATH_DIGITS } from '../../modules/map/engine/map-constants'
 import {
 	mapFrameSizing,
 	projectionFallbackAspect,
@@ -275,6 +275,20 @@ describe('canonicalFit · the reserved aspect', () => {
 	it('is null with no features to measure', () => {
 		expect(canonicalFit('mercator', [])).toBeNull()
 	})
+
+	// The server and the browser write the frame into the markup. The last bits
+	// of a projected value are not the same in each JavaScript engine, and a
+	// value on the path grid is.
+	it.each(['mercator', 'equal-earth'] as const)(
+		'puts the %s frame height on the path grid',
+		(spec) => {
+			const height = canonicalFit(spec, FEATURES)?.height
+
+			expect(height).toBeDefined()
+
+			expect(Number(height?.toFixed(REGION_PATH_DIGITS))).toBe(height)
+		},
+	)
 })
 
 describe('projectionFallbackAspect', () => {
