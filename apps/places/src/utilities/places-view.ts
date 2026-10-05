@@ -366,6 +366,23 @@ export function groupTrail(
 }
 
 /**
+ * What a summary dot's own places are called, as the step of the panel's trail
+ * under the region they stand in.
+ *
+ * The city where every place of the group shares one, because that is the name
+ * the reader already has for a cluster of places in one town. A group that spans
+ * cities, or holds a place with no city, gets the count instead: a technical
+ * term such as "cluster" names how the map drew the dots, and not where they are.
+ */
+export function groupName(group: readonly Place[]): string {
+	const cities = new Set(group.map((place) => place.city))
+
+	const [only] = cities
+
+	return cities.size === 1 && only ? only : `${group.length} nearby`
+}
+
+/**
  * The view that certainly shows one place: the state the states atlas puts it
  * in, or the world, which shows every place there is.
  *
