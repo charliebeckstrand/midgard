@@ -62,6 +62,39 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 
+	// TypeScript does not report an unknown `data-*` or `aria-*` attribute, so a
+	// closed surface drops it with no error.
+	it('passes the <div> attributes to its root', async () => {
+		const { container } = renderUI(
+			<CodeBlock
+				code="const attrs = 1"
+				id="attrs-block"
+				data-testid="attrs-block"
+				aria-describedby="attrs-note"
+			/>,
+		)
+
+		const el = bySlot(container, 'code-block')
+
+		expect(el).toHaveAttribute('id', 'attrs-block')
+
+		expect(el).toHaveAttribute('data-testid', 'attrs-block')
+
+		expect(el).toHaveAttribute('aria-describedby', 'attrs-note')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
+	it('lets a wrapper re-anchor it with its own data-slot', async () => {
+		const { container } = renderUI(<CodeBlock code="const anchor = 1" data-slot="snippet" />)
+
+		expect(bySlot(container, 'snippet')?.tagName).toBe('DIV')
+
+		expect(bySlot(container, 'code-block')).toBeNull()
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
 	it('renders a plain-text fallback before shiki has tokenized', async () => {
 		const { container } = renderUI(<CodeBlock code="raw code" />)
 

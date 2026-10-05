@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { type ComponentProps, useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { announce, cn } from '../../core'
 import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
@@ -112,8 +112,12 @@ function announceCopyError() {
 	announce('Copy failed')
 }
 
-/** Props for {@link CodeBlock}. */
-export type CodeBlockProps = {
+/**
+ * Props for {@link CodeBlock}. The root `<div>` also takes the `<div>`
+ * attributes, such as `id`, `data-*`, and `aria-*`. `lang` names the grammar,
+ * so the block does not take the HTML `lang` attribute.
+ */
+export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children' | 'lang'> & {
 	/** Source to highlight; surrounding whitespace is trimmed before tokenizing. */
 	code: string
 	/** Shiki language grammar. @defaultValue 'tsx' */
@@ -215,6 +219,7 @@ export function CodeBlock({
 	copy = true,
 	label,
 	className,
+	...props
 }: CodeBlockProps) {
 	const code = rawCode.trim()
 
@@ -311,7 +316,7 @@ export function CodeBlock({
 	const setContent = useComposedRef<HTMLDivElement>(scrollOverflowRef, scrollRegionRef)
 
 	return (
-		<div data-slot="code-block" className={cn(k.block.base, className)}>
+		<div data-slot="code-block" className={cn(k.block.base, className)} {...props}>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
 			<div ref={setContent} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
