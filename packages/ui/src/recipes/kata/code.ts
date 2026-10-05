@@ -38,15 +38,21 @@ export const k = defineRecipe(
 			//
 			// The canvas is the fixed-dark shiki theme, so the bare button's light-mode
 			// foreground (zinc-500 rest, zinc-950 hover) is too dark to read here; force
-			// its dark-mode values in light mode too. Gate on `aria-[pressed=false]` so
-			// the override paints only the rest (clipboard) state and yields to the
-			// copied state's `color="green"` palette. Unscoped, the unprefixed
-			// `text-zinc-400` clobbers green's light rest shade (dark is spared only
-			// because its green is `dark:`-prefixed, a separate tailwind-merge group).
+			// its dark-mode values in light mode too. Gate on `not-data-copied` so the
+			// override paints only the rest (clipboard) state and yields to the copied
+			// state's `color="green"` palette: CopyButton writes `data-copied` only while
+			// the copied state holds. Unscoped, the unprefixed `text-zinc-400` clobbers
+			// green's light rest shade (dark is spared only because its green is
+			// `dark:`-prefixed, a separate tailwind-merge group).
+			//
+			// The hover rule repeats the `not-disabled:not-data-disabled` gates of the
+			// bare hover. It is then more specific than the bare hover, so it wins over
+			// it. With the copied gate only, the two rules have the same specificity,
+			// and Tailwind writes the bare hover after it.
 			copy: [
 				'-my-0.5',
-				'aria-[pressed=false]:text-zinc-400',
-				'aria-[pressed=false]:hover:not-disabled:text-white',
+				'not-data-copied:text-zinc-400',
+				'not-data-copied:not-disabled:not-data-disabled:hover:text-white',
 			],
 		},
 	},

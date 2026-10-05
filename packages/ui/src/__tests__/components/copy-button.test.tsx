@@ -52,6 +52,35 @@ describe('CopyButton', () => {
 		expect(button).not.toHaveAttribute('aria-pressed')
 	})
 
+	// The code-block kata reads this attribute: its light-mode override paints
+	// only while the attribute is absent, and so yields to the green palette of
+	// the copied state.
+	it('writes data-copied only while the copied state holds', async () => {
+		vi.useFakeTimers()
+
+		stubClipboard(vi.fn().mockResolvedValue(undefined))
+
+		const { container } = renderUI(<CopyButton text="hello" timeout={2000} />)
+
+		const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+
+		expect(button).not.toHaveAttribute('data-copied')
+
+		await act(async () => {
+			fireEvent.click(button)
+		})
+
+		await vi.waitFor(() => expect(button).toHaveAttribute('aria-label', 'Copied'))
+
+		expect(button).toHaveAttribute('data-copied', '')
+
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		expect(button).not.toHaveAttribute('data-copied')
+	})
+
 	it('lets a caller override the idle label', () => {
 		const { container } = renderUI(<CopyButton text="#6366F1" aria-label="Copy hex value" />)
 

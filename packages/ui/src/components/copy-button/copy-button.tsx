@@ -2,7 +2,7 @@
 
 import { Check, Clipboard } from 'lucide-react'
 import { type ComponentProps, type ReactElement, useCallback } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import { Button, type ButtonVariants } from '../button'
 import { ToggleIconButtonIcons } from '../toggle-icon-button/toggle-icon-button-icons'
@@ -54,7 +54,10 @@ export type CopyButtonProps = {
  * and keeps focus through the success window so keyboard focus survives
  * (WCAG 2.4.3); a second copy during the window is ignored. The
  * accessible name becomes "Copied" while flipped, otherwise the caller's
- * `aria-label` or "Copy to clipboard".
+ * `aria-label` or "Copy to clipboard". The button has a `data-copied`
+ * attribute only while the copied state holds, so a style can select that
+ * state (`data-copied:` or `not-data-copied:`). A consumer cannot override the
+ * attribute.
  * @see {@link useCopyButtonState} for the clipboard write and revert timing.
  * @see {@link ToggleIconButton} for the two-state icon control that it looks like.
  */
@@ -95,6 +98,7 @@ export function CopyButton({
 			color={copied ? 'green' : undefined}
 			size={size}
 			data-slot="copy-button"
+			data-copied={dataAttr(copied)}
 			disabled={disabled}
 			onClick={handleClick}
 			// In the copied state, the label is always "Copied"; at rest, the caller's
