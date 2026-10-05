@@ -314,18 +314,33 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 	})
 })
 
-/** The days of June 2025, one button for each day, and the hook with the date model of a day grid. */
-function setupJune(range: { min?: Date; max?: Date } = {}) {
+/**
+ * The days of June 2025, one button for each day, and the hook with the date
+ * model of a day grid. Set `footer` to give the hook a footer of two buttons.
+ */
+function setupJune({
+	footer: withFooter,
+	...range
+}: {
+	min?: Date
+	max?: Date
+	footer?: boolean
+} = {}) {
 	const days = Array.from({ length: 30 }, (_, i) => new Date(2025, 5, i + 1))
 
+	const header = makeContainer(3)
+
 	const grid = makeContainer(days.length)
+
+	const footer = withFooter ? makeContainer(2) : null
 
 	const navigateTo = vi.fn()
 
 	const { result } = renderHook(() =>
 		useCalendarFocus({
-			headerRef: { current: makeContainer(3) },
+			headerRef: { current: header },
 			gridRef: { current: grid },
+			footerRef: footer ? { current: footer } : undefined,
 			dayGrid: { days, navigateTo, ...range },
 		}),
 	)
@@ -334,7 +349,7 @@ function setupJune(range: { min?: Date; max?: Date } = {}) {
 	const focusDay = (n: number) =>
 		(grid.querySelectorAll('button').item(n - 1) as HTMLElement).focus()
 
-	return { grid, navigateTo, focusDay, ...result.current }
+	return { header, grid, footer, navigateTo, focusDay, ...result.current }
 }
 
 // A day grid that no parent steers steps the month at its edges and on the Page
@@ -352,6 +367,38 @@ describe('useCalendarFocus: day grid', () => {
 		expect(navigateTo).toHaveBeenCalledExactlyOnceWith(2025, 6)
 
 		expect(event.preventDefault).toHaveBeenCalled()
+	})
+
+	it('steps to the previous month, not to the header, when ArrowUp leaves the top row', () => {
+		const { header, navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(3)
+
+		const event = makeKeyEvent('ArrowUp')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).toHaveBeenCalledExactlyOnceWith(2025, 4)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(header.contains(document.activeElement)).toBe(false)
+	})
+
+	it('steps to the next month, not to the footer, when ArrowDown leaves the bottom row', () => {
+		const { footer, navigateTo, focusDay, handleGridKeyDown } = setupJune({ footer: true })
+
+		focusDay(28)
+
+		const event = makeKeyEvent('ArrowDown')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).toHaveBeenCalledExactlyOnceWith(2025, 6)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(footer?.contains(document.activeElement)).toBe(false)
 	})
 
 	it('steps a month with PageUp and a year with Shift+PageDown', () => {

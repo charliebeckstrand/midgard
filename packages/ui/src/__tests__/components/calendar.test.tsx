@@ -547,10 +547,10 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(options[options.length - 1])
 	})
 
-	it('moves focus from the top row up into the month header', async () => {
+	it('keeps the header exit of the top row in a calendar that a parent steers', async () => {
 		const user = setupUser()
 
-		renderJune()
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} active={null} />)
 
 		act(() => day('1').focus())
 
@@ -677,6 +677,43 @@ describe('Calendar keyboard month steps', () => {
 		const user = setupUser()
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('28').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Saturday, July 5, 2025')
+	})
+
+	it('steps to the previous month when ArrowUp leaves the top row', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('3').focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(monthLabel()).toHaveAccessibleName('May 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Tuesday, May 27, 2025')
+	})
+
+	it('steps to the next month when ArrowDown leaves the bottom row above a footer', async () => {
+		const footerRef = createRef<HTMLDivElement>()
+
+		const user = setupUser()
+
+		renderUI(
+			<>
+				<Calendar defaultValue={new Date(2025, 5, 15)} footerRef={footerRef} />
+				<div ref={footerRef}>
+					<button type="button">Clear</button>
+				</div>
+			</>,
+		)
 
 		act(() => day('28').focus())
 
@@ -848,6 +885,18 @@ describe('Calendar Tab stops', () => {
 		]
 
 		expect(controls.map((control) => control.tabIndex)).toEqual([0, 0, 0])
+	})
+
+	it('reaches the month header with Shift+Tab from the day listbox', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => screen.getByRole('option', { name: 'Sunday, June 15, 2025' }).focus())
+
+		await user.tab({ shift: true })
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next month' }))
 	})
 })
 

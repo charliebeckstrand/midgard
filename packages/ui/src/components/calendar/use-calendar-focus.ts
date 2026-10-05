@@ -109,8 +109,10 @@ type CalendarFocusOptions = {
 	 * The date model of a day grid that no parent steers, as in the WAI-ARIA APG
 	 * date grid. An arrow that leaves the shown month, and PageUp or PageDown,
 	 * move the view through `navigateTo` and focus the new day. Shift with a Page
-	 * key moves a year. The day stays between `min` and `max`. Leave it unset
-	 * when a parent steers the grid, and for the month and year picker.
+	 * key moves a year. The day stays between `min` and `max`. This step comes
+	 * before the zone bridge, so ArrowUp on the top row and ArrowDown on the
+	 * bottom row step the month too. Leave it unset when a parent steers the
+	 * grid, and for the month and year picker.
 	 */
 	dayGrid?: CalendarDayGrid
 }
@@ -218,7 +220,8 @@ function clampDay(day: CalendarDate, min: Date | undefined, max: Date | undefine
  * there in a synchronous commit first, so that its button is in the DOM.
  *
  * @returns `true` when the key is such a move. An arrow to another day of the
- * shown month returns `false`, because the roving grid does that move.
+ * shown month returns `false`, because the zone bridge or the roving grid does
+ * that move.
  * @internal
  */
 function moveDay(
@@ -283,13 +286,19 @@ function focusAdjacentFooterButton(
 }
 
 /**
- * Wires keyboard navigation across a calendar's header, grid, and footer zones,
- * bridging focus between them at the edges. ArrowDown from the header enters
- * the grid, and ArrowUp/Down at the grid's top/bottom row crosses into
- * header/footer. The grid is one Tab stop with a roving `tabIndex` (see
+ * Wires keyboard navigation across a calendar's header, grid, and footer zones.
+ * ArrowDown from the header enters the grid, and ArrowUp from the footer goes
+ * back to the grid. The grid is one Tab stop with a roving `tabIndex` (see
  * `activeSelector`). The header buttons are plain buttons, and each one is a
- * Tab stop. With `dayGrid`, an arrow that leaves the month and the Page keys
- * step the month. Returns the three zones' `keydown` handlers.
+ * Tab stop. Returns the three zones' `keydown` handlers.
+ *
+ * Without `dayGrid`, ArrowUp on the top row of the grid moves the focus to the
+ * header. ArrowDown on the bottom row moves it to the footer, when there is one.
+ *
+ * With `dayGrid`, an arrow that leaves the month steps the month, and so do the
+ * Page keys. ArrowUp on the top row and ArrowDown on the bottom row step the
+ * month too. Tab and Shift+Tab reach the header and the footer. The zone bridge
+ * stays only for a week step to a disabled day of the shown month.
  *
  * @returns `handleHeaderKeyDown` / `handleGridKeyDown` / `handleFooterKeyDown`.
  * @remarks Set `stopPropagation` to seal a surface nested inside another
@@ -336,6 +345,14 @@ export function useCalendarFocus({
 
 	const handleGridKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			// The month step comes before the zone bridge. Thus an arrow that leaves
+			// the month never moves the focus to the header or the footer.
+			if (dayGrid && moveDay(event, gridRef.current, dayGrid)) {
+				preventAndStop(event, stopPropagation)
+
+				return
+			}
+
 			if (event.key === 'ArrowUp' && isTopRow(gridRef.current, cols)) {
 				preventAndStop(event, stopPropagation)
 
@@ -354,12 +371,6 @@ export function useCalendarFocus({
 
 					return
 				}
-			}
-
-			if (dayGrid && moveDay(event, gridRef.current, dayGrid)) {
-				preventAndStop(event, stopPropagation)
-
-				return
 			}
 
 			gridRoving(event)

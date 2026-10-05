@@ -157,9 +157,11 @@ export type CalendarProps = {
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
  *
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
- * that leaves the month steps the month. PageUp and PageDown step a month, and
- * Shift with a Page key steps a year. Home and End stay at the ends of the
- * month. The focused day stays between `min` and `max`.
+ * that leaves the month steps the month. That includes ArrowUp on the top row
+ * and ArrowDown on the bottom row. PageUp and PageDown step a month, and Shift
+ * with a Page key steps a year. Home and End stay at the ends of the month,
+ * and the focused day stays between `min` and `max`. Tab and Shift+Tab reach
+ * the header and the footer.
  *
  * @remarks
  * Client component (`'use client'`). "Today" waits for hydration, so a
