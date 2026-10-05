@@ -8,7 +8,7 @@ import { Confirm } from 'ui/confirm'
 import { cn } from 'ui/core'
 import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
-import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from 'ui/sheet'
+import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
@@ -275,52 +275,54 @@ export function PredictionSheet({
 	const closeConfirm = () => setPending((held) => (held === null ? null : { ...held, open: false }))
 
 	return (
-		<Sheet glass open={open} onOpenChange={onOpenChange} aria-label={title}>
-			<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-				<SheetTitle className="p-0">
-					{shown === null ? title : `${title}: ${shown.label}`}
-				</SheetTitle>
+		<Sheet open={open} onOpenChange={onOpenChange}>
+			<SheetPanel glass aria-label={title}>
+				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
+					<SheetTitle className="p-0">
+						{shown === null ? title : `${title}: ${shown.label}`}
+					</SheetTitle>
 
-				<SheetClose>
-					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-				</SheetClose>
-			</Flex>
+					<SheetClose>
+						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+					</SheetClose>
+				</Flex>
 
-			{games.data === undefined ? (
-				<SheetBody>
-					{games.error === null ? (
-						<Text tone="muted">Loading the games…</Text>
-					) : (
-						<Alert severity="error">
-							<Text>{games.error.message}</Text>
-						</Alert>
-					)}
-				</SheetBody>
-			) : (
-				<PredictionForm
-					// Keyed on the week and the open state, so each open seeds from the
-					// stored picks and an abandoned entry never comes back.
-					key={`${String(open)}:${shown?.number}`}
-					games={games.data}
-					picks={picks}
-					editing={editing}
-					action={action}
-					failure={failure}
-					onSubmit={submit}
-					onCancel={() => onOpenChange(false)}
+				{games.data === undefined ? (
+					<SheetBody>
+						{games.error === null ? (
+							<Text tone="muted">Loading the games…</Text>
+						) : (
+							<Alert severity="error">
+								<Text>{games.error.message}</Text>
+							</Alert>
+						)}
+					</SheetBody>
+				) : (
+					<PredictionForm
+						// Keyed on the week and the open state, so each open seeds from the
+						// stored picks and an abandoned entry never comes back.
+						key={`${String(open)}:${shown?.number}`}
+						games={games.data}
+						picks={picks}
+						editing={editing}
+						action={action}
+						failure={failure}
+						onSubmit={submit}
+						onCancel={() => onOpenChange(false)}
+					/>
+				)}
+
+				<LinelessConfirm
+					pending={pending}
+					label={action}
+					onCancel={closeConfirm}
+					onConfirm={() => {
+						closeConfirm()
+
+						if (pending !== null) void save(pending.values)
+					}}
 				/>
-			)}
-
-			<LinelessConfirm
-				pending={pending}
-				label={action}
-				onCancel={closeConfirm}
-				onConfirm={() => {
-					closeConfirm()
-
-					if (pending !== null) void save(pending.values)
-				}}
-			/>
+			</SheetPanel>
 		</Sheet>
 	)
 }
