@@ -210,6 +210,77 @@ describe('Rating', () => {
 		expect(group).not.toHaveAttribute('aria-label')
 	})
 
+	describe('half step', () => {
+		it('renders two radios per star, the half score first', () => {
+			const { container } = renderUI(<Rating aria-label="Score" step={0.5} count={2} />)
+
+			expect(stars(container).map((star) => star.value)).toEqual(['0.5', '1', '1.5', '2'])
+
+			expect(allBySlot(container, 'rating-star')).toHaveLength(2)
+		})
+
+		it('names each half through getValueText', () => {
+			const { container } = renderUI(<Rating aria-label="Score" step={0.5} count={1} />)
+
+			expect(stars(container).map((star) => star.getAttribute('aria-label'))).toEqual([
+				'0.5 out of 1 stars',
+				'1 out of 1 stars',
+			])
+		})
+
+		it('commits a half score and draws half of that star', async () => {
+			const user = setupUser()
+
+			const onValueChange = vi.fn()
+
+			const { container } = renderUI(
+				<Rating aria-label="Score" step={0.5} onValueChange={onValueChange} />,
+			)
+
+			await user.click(stars(container)[6] as HTMLInputElement)
+
+			expect(onValueChange).toHaveBeenCalledWith(3.5)
+
+			const fills = allBySlot(container, 'rating-fill')
+
+			expect(fills).toHaveLength(4)
+
+			expect(fills[3]).toHaveStyle({ width: '50%' })
+		})
+
+		it('previews the half under the pointer', async () => {
+			const user = setupUser()
+
+			const { container } = renderUI(<Rating aria-label="Score" step={0.5} />)
+
+			await user.hover(allBySlot(container, 'rating-half')[4] as HTMLElement)
+
+			const fills = allBySlot(container, 'rating-fill')
+
+			expect(fills).toHaveLength(3)
+
+			expect(fills[2]).toHaveStyle({ width: '50%' })
+		})
+
+		it('clears when the current half score is clicked again', async () => {
+			const user = setupUser()
+
+			const onValueChange = vi.fn()
+
+			const { container } = renderUI(
+				<Rating aria-label="Score" step={0.5} defaultValue={2.5} onValueChange={onValueChange} />,
+			)
+
+			expect(stars(container)[4]?.checked).toBe(true)
+
+			await user.click(stars(container)[4] as HTMLInputElement)
+
+			expect(onValueChange).toHaveBeenCalledWith(null)
+
+			expect(onValueChange).toHaveBeenCalledTimes(1)
+		})
+	})
+
 	describe('read-only', () => {
 		it('renders one labeled image and takes no input', () => {
 			const { container } = renderUI(<Rating readOnly value={4} />)
