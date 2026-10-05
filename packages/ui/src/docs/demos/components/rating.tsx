@@ -74,6 +74,10 @@ export default function Demo() {
 
 			<InteractiveExample />
 
+			<Example title="Half steps">
+				<Rating aria-label="Score" step={0.5} defaultValue={3.5} />
+			</Example>
+
 			<Example title="Read-only averages">
 				<LabeledRows>
 					{averages.map(({ place, score }) => (

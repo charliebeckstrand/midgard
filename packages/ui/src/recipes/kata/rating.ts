@@ -59,6 +59,20 @@ const star = defineRecipe({
 })
 
 /**
+ * One half of a star at a half step: the `<label>` over the radio for that
+ * score. The halves sit on the inline axis, so they mirror in a right-to-left
+ * row as the fill does.
+ */
+const half = defineRecipe({
+	base: 'absolute inset-y-0 w-1/2',
+	side: {
+		start: 'start-0',
+		end: 'end-0',
+	},
+	defaults: { side: 'start' },
+})
+
+/**
  * The empty glyph under every star, in the neutral the unfilled part reads as.
  * In an invalid row, the outline of each empty star turns red, as the box of an
  * invalid checkbox does.
@@ -79,6 +93,7 @@ export const k = defineRecipe(
 		/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */
 		group: 'group/rating',
 		star,
+		half,
 		track,
 		/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
 		glyph: kokkaku.rating.star,
@@ -86,10 +101,11 @@ export const k = defineRecipe(
 		 * The window a partly-filled star draws its fill inside. Absolute over the
 		 * track glyph and clipping at its own width, which the component sets from
 		 * the value. The glyph within keeps its full size, so the star is cut and
-		 * never squeezed.
+		 * never squeezed. The window starts at the inline start, so a part star
+		 * fills from the right in a right-to-left row.
 		 */
 		clip: [
-			'absolute inset-y-0 left-0 overflow-hidden pointer-events-none',
+			'absolute inset-y-0 start-0 overflow-hidden pointer-events-none',
 			// For the clearing recede below, which is a hover answer and reads as a
 			// jump without it.
 			css.opacity,
