@@ -13,7 +13,8 @@ import { useColorState } from './use-color-state'
 export type ColorPickerStateOptions = {
 	/** Form field name; binds the color to an enclosing `<Form>`. */
 	name?: string
-	value?: string | Hsva
+	/** The controlled color. `null` keeps the picker controlled with no color (CONVENTIONS §7.3). */
+	value?: string | Hsva | null
 	defaultValue?: string | Hsva
 	format: ColorFormat
 	alpha: boolean

@@ -389,6 +389,20 @@ describe('ColorPanel', () => {
 
 		expect(onValueChange).toHaveBeenLastCalledWith('#aabbccff')
 	})
+
+	// §7.3: `null` keeps the panel controlled with no color. The panel paints
+	// black and ignores `defaultValue`, in each format.
+	it('paints black, not defaultValue, for a null value in each format', () => {
+		const hex = renderUI(<ColorPanel value={null} defaultValue="#3b82f6" />)
+
+		expect(getSlot(hex.container, 'color-hex-input')).toHaveValue('000000')
+
+		const hsva = renderUI(
+			<ColorPanel format="hsva" value={null} defaultValue={{ h: 217, s: 76, v: 96, a: 1 }} />,
+		)
+
+		expect(getSlot(hsva.container, 'color-hex-input')).toHaveValue('000000')
+	})
 })
 
 describe('ColorPicker', () => {
@@ -460,6 +474,34 @@ describe('ColorPicker', () => {
 		expect(button).not.toHaveAttribute('role')
 
 		expect(button).not.toHaveAttribute('aria-required')
+	})
+
+	// §7.3: an owner clears a controlled picker with `null`. The picker stays
+	// controlled, so it paints black and does not go back to `defaultValue`.
+	it('paints black when a controlled value goes to null, in each format', () => {
+		const hex = renderUI(<ColorPicker value="#ef4444" defaultValue="#3b82f6" />)
+
+		const hexButton = getSlot(hex.container, 'color-picker-button')
+
+		expect(hexButton).toHaveTextContent('#EF4444')
+
+		hex.rerender(<ColorPicker value={null} defaultValue="#3b82f6" />)
+
+		expect(hexButton).toHaveTextContent('#000000')
+
+		const blue = { h: 217, s: 76, v: 96, a: 1 }
+
+		const hsva = renderUI(
+			<ColorPicker format="hsva" value={{ h: 0, s: 100, v: 100, a: 1 }} defaultValue={blue} />,
+		)
+
+		const hsvaButton = getSlot(hsva.container, 'color-picker-button')
+
+		expect(hsvaButton).toHaveTextContent('#FF0000')
+
+		hsva.rerender(<ColorPicker format="hsva" value={null} defaultValue={blue} />)
+
+		expect(hsvaButton).toHaveTextContent('#000000')
 	})
 
 	it('paints black, not defaultValue, while the bound field is empty (§7.2)', () => {

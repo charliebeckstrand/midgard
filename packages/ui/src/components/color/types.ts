@@ -20,7 +20,11 @@ type ColorHexValueProps = {
 	 * @defaultValue 'hex'
 	 */
 	format?: 'hex'
-	value?: string
+	/**
+	 * Controlled color. `undefined` leaves the control uncontrolled; `null` keeps
+	 * it controlled with no color, and the control paints black (CONVENTIONS §7.3).
+	 */
+	value?: string | null
 	defaultValue?: string
 	onValueChange?: (value: string) => void
 }
@@ -28,7 +32,11 @@ type ColorHexValueProps = {
 /** HSVA wire contract: the structured object in and out. */
 type ColorHsvaValueProps = {
 	format: 'hsva'
-	value?: Hsva
+	/**
+	 * Controlled color. `undefined` leaves the control uncontrolled; `null` keeps
+	 * it controlled with no color, and the control paints black (CONVENTIONS §7.3).
+	 */
+	value?: Hsva | null
 	defaultValue?: Hsva
 	onValueChange?: (value: Hsva) => void
 }
