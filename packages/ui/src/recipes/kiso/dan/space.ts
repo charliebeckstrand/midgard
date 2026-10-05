@@ -10,8 +10,19 @@ export const space = {
 		base: 'density-p-[2,3,4]',
 		/** The bottom padding of a box header. */
 		bottom: 'density-pb-[2,3,4]',
-		/** The top padding of a box footer. */
-		top: 'density-pt-[2,3,4]',
+	},
+	card: {
+		header: {
+			/** The bottom padding of a card header, when a sibling follows the header. */
+			bottom: 'not-last:density-pb-[2,3,4]',
+		},
+		footer: {
+			/**
+			 * The top padding of a card footer, when a sibling comes before the footer.
+			 * When that sibling is a card header, the header pads the edge.
+			 */
+			top: '[:not([data-slot=card-header])+&]:density-pt-[2,3,4]',
+		},
 	},
 	cell: {
 		/** The padding of a grid cell. It matches `cell.x` and `cell.y`. */

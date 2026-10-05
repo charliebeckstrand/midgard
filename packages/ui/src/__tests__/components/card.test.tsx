@@ -52,7 +52,7 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card')).toHaveClass('density-p-[2,3,4]', 'density-rounded-[sm,md,lg]')
 	})
 
-	it('pads the header and the footer on the edges that they share with the body', () => {
+	it('pads the header and the footer only on an edge that they share with a sibling', () => {
 		const { container } = renderUI(
 			<Card>
 				<CardHeader>header</CardHeader>
@@ -61,9 +61,20 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		expect(bySlot(container, 'card-header')).toHaveClass('density-pb-[2,3,4]')
+		const header = present(bySlot(container, 'card-header'), 'card header')
 
-		expect(bySlot(container, 'card-footer')).toHaveClass('density-pt-[2,3,4]')
+		const footer = present(bySlot(container, 'card-footer'), 'card footer')
+
+		// The header pads its bottom edge when a sibling follows it.
+		expect(header).toHaveClass('not-last:density-pb-[2,3,4]')
+
+		// The footer pads its top edge when a sibling other than a header comes before it.
+		expect(footer).toHaveClass('[:not([data-slot=card-header])+&]:density-pt-[2,3,4]')
+
+		// No pad applies with no condition, so an outer edge keeps the one pad of the frame.
+		expect(header).not.toHaveClass('density-pb-[2,3,4]')
+
+		expect(footer).not.toHaveClass('density-pt-[2,3,4]')
 
 		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp[a-z]?-\d/)
 	})

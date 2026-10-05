@@ -7,8 +7,10 @@ export type CardFooterProps = ComponentProps<'div'>
 
 /**
  * Footer region of a {@link Card}, a flex row for actions or supporting
- * controls. Pads its top edge and spaces its actions by the step of the
- * nearest density scope.
+ * controls. Spaces its actions by the step of the nearest density scope. Pads
+ * its top edge by that step when a sibling other than a {@link CardHeader}
+ * comes before it. A footer with no sibling before it adds no pad, and the
+ * card pads that edge. After a header, the header pads the edge.
  *
  * @remarks
  * Static leaf: renders in React Server Components.

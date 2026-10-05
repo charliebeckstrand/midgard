@@ -32,8 +32,9 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density' | 'bg'
  * client children (Button, Input, …) then take that step.
  *
  * The frame owns the outer padding for every child, bare or structural. A
- * section pads only the inner edge it shares with a sibling (header below,
- * footer above). Padding therefore has a single source on each edge.
+ * section pads only an inner edge that it shares with a sibling (header below,
+ * footer above). With no body, the header owns the edge that it shares with
+ * the footer. Padding therefore has a single source on each edge.
  */
 export function Card({
 	size,
