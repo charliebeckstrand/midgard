@@ -292,10 +292,13 @@ function readBarrel(
 	/**
 	 * The text of a prop type without `undefined`. An alias such as `ReactNode`
 	 * holds `undefined` itself, and the type without it is a new union of each
-	 * member, so the alias prints in its place. A `null` member stays.
+	 * member, so the alias prints in its place. The alias also holds its
+	 * `null`. Another type keeps its `null` member.
 	 */
 	function textOf(type: Type, defined: Type): string {
-		const text = checker.typeToString(type.getAliasSymbol() ? type : defined, undefined, format)
+		if (type.getAliasSymbol()) return checker.typeToString(type, undefined, format)
+
+		const text = checker.typeToString(defined, undefined, format)
 
 		const nullable =
 			type.isUnionType() && type.getTypes().some((member) => member.flags & TypeFlags.Null)
