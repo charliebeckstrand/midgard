@@ -186,6 +186,11 @@ export function PlacesIndex({
 				// The ellipsis says what the column is, so the header names it for a
 				// screen reader alone.
 				title: <span className="sr-only">Actions</span>,
+				// The grid does not size an `actions` column to its content. Without a
+				// `width`, the column takes the default of 150px. This width holds the
+				// ellipsis button (38px at the `md` step) and the cell padding (8px on
+				// each side).
+				width: 54,
 				actions: (place) => (
 					<PlaceMenu
 						items={placeMenuItems(place, actions)}
