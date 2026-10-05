@@ -12,6 +12,7 @@ import {
 	bySlot,
 	fireEvent,
 	getSlot,
+	mockDomGeometry,
 	present,
 	renderUI,
 	screen,
@@ -970,6 +971,42 @@ describe('ComboboxPanel', () => {
 		fireEvent.keyDown(screen.getByRole('listbox'), { key: 'ArrowDown' })
 
 		expect(onClose).not.toHaveBeenCalled()
+	})
+
+	// DOM focus stays on the input (active descendant). A press on the panel chrome
+	// must not move focus into the panel, because the input then gets no keys.
+	it('cancels a press on the panel chrome outside an option row', () => {
+		renderPanel(() => {})
+
+		expect(fireEvent.mouseDown(screen.getByText('No results'))).toBe(false)
+
+		expect(fireEvent.mouseDown(screen.getByRole('listbox'))).toBe(false)
+
+		expect(fireEvent.mouseDown(getSlot(document.body, 'popover-panel'))).toBe(false)
+	})
+
+	it('leaves a press on the panel scrollbar uncanceled', () => {
+		renderPanel(() => {})
+
+		const panel = getSlot(document.body, 'popover-panel')
+
+		// jsdom does no layout, so the panel gets a vertical overflow from stubs.
+		panel.style.overflowY = 'auto'
+
+		mockDomGeometry(panel, {
+			clientWidth: 100,
+			clientHeight: 100,
+			scrollWidth: 100,
+			scrollHeight: 500,
+		})
+
+		const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+		Object.defineProperty(press, 'offsetX', { value: 110 })
+
+		Object.defineProperty(press, 'offsetY', { value: 50 })
+
+		expect(panel.dispatchEvent(press)).toBe(true)
 	})
 
 	// role="listbox" may only own option/group children (aria-required-children,

@@ -1,12 +1,31 @@
 'use client'
 
-import type { CSSProperties, ReactNode, Ref } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import type { scale } from '../../recipes/kata/combobox'
 import { k } from '../../recipes/kata/combobox'
+import { isScrollbarPress } from '../../utilities'
+
+/**
+ * Cancels a press on the panel chrome, so that DOM focus stays on the input.
+ *
+ * @remarks The panel is focusable (`tabIndex={-1}`). Without this, a press
+ * between the rows or on the "No results" message moves focus into the panel,
+ * and the input then gets no keys. An option row cancels its own press. A press
+ * on the scrollbar of the panel keeps its default, so the scroll starts.
+ */
+function keepInputFocus(event: MouseEvent) {
+	if (event.defaultPrevented) return
+
+	const target = event.target
+
+	if (target instanceof HTMLElement && isScrollbarPress(event.nativeEvent, target)) return
+
+	event.preventDefault()
+}
 
 type ComboboxPanelProps = {
 	id: string
@@ -68,7 +87,8 @@ export function ComboboxPanel({
 		// `Portal` mounts the portal only while open, so a closed Combobox keeps no
 		// empty portal node in the document.
 		<Portal open={open} onExitComplete={flushPending}>
-			<div ref={optionsRef}>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: a press guard, not an interactive control. The input keeps focus and the keyboard model. */}
+			<div ref={optionsRef} onMouseDown={keepInputFocus}>
 				<div
 					ref={(node) => {
 						setFloating(node)
