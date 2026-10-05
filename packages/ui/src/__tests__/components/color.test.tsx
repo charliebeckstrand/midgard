@@ -114,6 +114,26 @@ describe('color conversions', () => {
 		expect(equalHsva({ h: 0, s: 100, v: 0, a: 1 }, { h: 0, s: 0, v: 0, a: 1 })).toBe(true)
 	})
 
+	it('matches hue 360 to hue 0, because both render the same color', () => {
+		expect(equalHsva({ h: 360, s: 100, v: 100, a: 1 }, { h: 0, s: 100, v: 100, a: 1 })).toBe(true)
+	})
+
+	it('tells apart two colors that differ by one byte', () => {
+		const hsvaOf = (hex: string) => hexToHsva(hex) as Hsva
+
+		// The two colors of each pair have the same rounded HSVA channels, but different bytes.
+		for (const [a, b] of [
+			['#fefefe', '#ffffff'],
+			['#010101', '#000000'],
+			['#f04444', '#ef4444'],
+			['#ff000081', '#ff000082'],
+		] as const) {
+			expect(equalHsva(hsvaOf(a), hsvaOf(b)), `${a} and ${b}`).toBe(false)
+		}
+
+		expect(equalHsva({ h: 0, s: 100, v: 100, a: 0.5 }, hsvaOf('#ff000080'))).toBe(true)
+	})
+
 	it('builds a css rgba fill, dropping alpha unless requested', () => {
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
 

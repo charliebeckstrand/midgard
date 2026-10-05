@@ -18,9 +18,8 @@ export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 }
 
 /**
- * Clamp and round an HSVA for output / comparison: integers for `h`/`s`/`v`,
- * two decimals for `a`. Full precision stays internal; rounding happens only
- * at these edges.
+ * Clamp and round an HSVA for output: integers for `h`/`s`/`v`, two decimals
+ * for `a`. Full precision stays internal; rounding happens only at this edge.
  *
  * @internal
  */
@@ -34,25 +33,13 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
 }
 
 /**
- * True when two colors render identically: value and alpha must match, then
- * hue and saturation are compared only where they show. Both collapse at zero
- * value (black), and hue additionally at zero saturation (gray).
+ * True when two colors render the same: the RGB bytes and the alpha byte must
+ * match. A hue or a saturation that does not show has no effect, as on a gray
+ * or on black. Hue 360 matches hue 0. A difference of one byte, as in
+ * `#fefefe` and `#ffffff`, makes the colors different.
  */
 export function equalHsva(a: Hsva, b: Hsva): boolean {
-	const ca = roundHsva(a)
-	const cb = roundHsva(b)
-
-	if (ca.v !== cb.v || Math.abs(ca.a - cb.a) >= 0.005) return false
-
-	// Black: neither hue nor saturation is visible.
-	if (ca.v === 0) return true
-
-	if (ca.s !== cb.s) return false
-
-	// Gray: hue is not visible.
-	if (ca.s === 0) return true
-
-	return ca.h === cb.h
+	return hsvaToHex(a, true) === hsvaToHex(b, true)
 }
 
 /** Convert HSVA to RGBA; `r`/`g`/`b` round to integers `0-255`, alpha passes through clamped. */
