@@ -13,6 +13,7 @@ import {
 	type ComboboxProps,
 } from '../combobox'
 import { useControl } from '../control/context'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useFormField } from '../form/context'
 import { Icon } from '../icon'
 import { LoadingSpinner } from '../loading'
@@ -159,6 +160,8 @@ export function AddressInput({
 
 	const control = useControl()
 
+	const fallbackLabel = useControlFallbackLabel(placeholder)
+
 	// Disabled and read-only suppress the clear button; keep the pin rather
 	// than letting the slot fall back to the Combobox chevron. The explicit prop
 	// wins, as it does everywhere in the cascade. With `clearable` off there is
@@ -184,9 +187,9 @@ export function AddressInput({
 			onValueChange={setHeld}
 			className={cn(loading && 'animate-pulse', className)}
 			placeholder={placeholder}
-			// Yields to a wrapping `<Field>`/`<Label>`: an own name shadows it, and a
-			// placeholder is not a programmatic name.
-			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : placeholder)}
+			// Yields to a wrapping `<Field>`/`<Label>` from the first render: an own
+			// name shadows it, and a placeholder is not a programmatic name.
+			aria-label={ariaLabel ?? fallbackLabel}
 			clearOnEmpty
 			clearable={clearable}
 			suffix={suffix}

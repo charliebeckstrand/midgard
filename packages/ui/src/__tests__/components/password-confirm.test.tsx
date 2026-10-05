@@ -148,6 +148,30 @@ describe('PasswordConfirm warning rendering', () => {
 
 		expect(onMatchChange).toHaveBeenCalledWith(expected)
 	})
+
+	it.each([
+		['a partial value', 'ab'],
+		['an empty value', ''],
+	])('calls onMatchChange with false when the confirm field goes back to %s', (_name, confirm) => {
+		const onMatchChange = vi.fn()
+
+		renderUI(
+			<PasswordConfirm onMatchChange={onMatchChange}>
+				<PasswordConfirmNew name="password" />
+				<PasswordConfirmRepeat name="confirm" />
+			</PasswordConfirm>,
+		)
+
+		const inputs = enter('abc', 'abc')
+
+		expect(onMatchChange).toHaveBeenLastCalledWith(true)
+
+		fireEvent.change(inputs.confirm, { target: { value: confirm } })
+
+		expect(onMatchChange).toHaveBeenLastCalledWith(false)
+
+		expect(onMatchChange).toHaveBeenCalledTimes(2)
+	})
 })
 
 describe('PasswordConfirm values', () => {

@@ -146,10 +146,11 @@ export function SearchInput({
 		/>
 	) : undefined
 
-	// The consumer's trailing content joins after the field's own suffix; with
-	// neither present the slot stays empty (no wrapper), as before.
+	// The consumer's trailing content joins after the field's own suffix. With
+	// neither present, the slot stays empty (no wrapper). `false` is not content,
+	// so that `condition && <Action />` gives no slot, as in InputFrame.
 	const suffix =
-		extraSuffix != null ? (
+		extraSuffix != null && extraSuffix !== false ? (
 			<>
 				{ownSuffix}
 				{extraSuffix}

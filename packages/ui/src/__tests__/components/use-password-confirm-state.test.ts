@@ -112,4 +112,53 @@ describe('usePasswordConfirmState', () => {
 
 		expect(onMatchChange).toHaveBeenCalledOnce()
 	})
+	it('fires onMatchChange(false) once when a match goes back to a partial confirm', () => {
+		const onMatchChange = vi.fn()
+
+		const { result } = renderHook(() => usePasswordConfirmState({ onMatchChange }))
+
+		act(() => {
+			result.current.setPassword('hunter2')
+
+			result.current.setLastEdited('confirm')
+
+			result.current.setConfirm('hunter2')
+		})
+
+		act(() => result.current.setConfirm('hunter'))
+
+		expect(onMatchChange).toHaveBeenLastCalledWith(false)
+
+		// The partial confirm becomes a mismatch: `false` holds, so no report.
+		act(() => result.current.setConfirm('hunter3'))
+
+		expect(onMatchChange.mock.calls).toEqual([[true], [false]])
+	})
+
+	it('does not report while disabled, and keeps the last report for re-enable', () => {
+		const onMatchChange = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ disabled }) => usePasswordConfirmState({ disabled, onMatchChange }),
+			{ initialProps: { disabled: false } },
+		)
+
+		act(() => {
+			result.current.setPassword('hunter2')
+
+			result.current.setLastEdited('confirm')
+
+			result.current.setConfirm('hunter2')
+		})
+
+		rerender({ disabled: true })
+
+		act(() => result.current.setConfirm('hunter3'))
+
+		expect(onMatchChange.mock.calls).toEqual([[true]])
+
+		rerender({ disabled: false })
+
+		expect(onMatchChange.mock.calls).toEqual([[true], [false]])
+	})
 })
