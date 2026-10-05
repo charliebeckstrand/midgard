@@ -15,7 +15,8 @@ import type { ToastPosition } from './types'
 /** Props for {@link Toast}. */
 export type ToastProps = {
 	/**
-	 * Viewport corner/edge the toast stack anchors to.
+	 * The viewport corner that the toast stack anchors to. Below the `sm`
+	 * breakpoint, the stack is on the bottom edge.
 	 * @defaultValue 'bottom-right'
 	 */
 	position?: ToastPosition
