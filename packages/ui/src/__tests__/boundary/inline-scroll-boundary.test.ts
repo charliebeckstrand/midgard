@@ -8,9 +8,9 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 // A box that scrolls on the inline axis hides content past its edge. Each such
 // box in `ui` shows the same overflow indicator: the edge with more content
 // behind it fades. The rule has one home, the `rail` in
-// `recipes/kiso/omote/rail.ts`. The rail sets the scroll and the fade, and
-// `useScrollOverflow({ axis: 'horizontal' })` stamps the attributes that the
-// fade reads.
+// `recipes/kiso/omote/rail.ts`. The rail sets the scroll and the fade. The
+// fade is CSS only: scroll-driven animations draw it, so the first paint shows
+// it, and no script stamps the state of an edge.
 //
 // Before, three scrollers wired the fade by hand and nine had none. Three rules
 // keep the one source of truth:
@@ -21,8 +21,9 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 //
 //   2. No file but the home reads `fade.inline`.
 //
-//   3. Each unit that reads the rail calls the hook. A kata reads the rail for
-//      its unit, so the hook call can be in any file of that unit.
+//   3. No file reads or writes `data-overflow-start` or `data-overflow-end`.
+//      A script stamps such an attribute after the first paint, so a style
+//      that keys off it arrives late, and the reader sees it appear.
 
 /** The one file that owns the rule. */
 const HOME = 'recipes/kiso/omote/rail.ts'
@@ -39,18 +40,8 @@ const INLINE_SCROLL = /\boverflow-x-(?:auto|scroll)\b|\boverflowX:\s*['"](?:auto
 /** A read of the edge fade. */
 const READS_FADE = /\bfade\.inline\b|\{[^}]*\binline\b[^}]*\}\s*=\s*fade\b/
 
-/** A read of the rail. */
-const READS_RAIL = /\bomote\.rail\b|\{[^}]*\brail\b[^}]*\}\s*=\s*omote\b/
-
-/** A call of the hook on the inline axis. */
-const CALLS_HOOK = /\buseScrollOverflow\(\s*\{[^}]*\baxis:\s*'horizontal'/
-
-/** The unit directories that a kata named `name` serves. */
-function unitDirs(name: string): string[] {
-	return ['components', 'modules', 'layouts', 'primitives', 'structure'].map(
-		(layer) => `${layer}/${name}/`,
-	)
-}
+/** An inline edge attribute, as an attribute or as a Tailwind variant. */
+const INLINE_EDGE_ATTRIBUTE = /\bdata-overflow-(?:start|end)\b/
 
 /** The key of a file: relative to `src/` in ui, to the workspace root elsewhere. */
 function keyOf(path: string): string {
@@ -89,7 +80,7 @@ describe('inline-scroll boundary', () => {
 
 		expect(
 			violations,
-			`files that scroll on the inline axis outside the rail (spread \`rail\` from \`omote\` in the kata, and call \`useScrollOverflow({ axis: 'horizontal' })\`):\n  ${violations.join('\n  ')}`,
+			`files that scroll on the inline axis outside the rail (spread \`rail\` from \`omote\` in the kata):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -104,26 +95,14 @@ describe('inline-scroll boundary', () => {
 		).toEqual([])
 	})
 
-	it('stamps the overflow attributes for each rail', () => {
+	it('keys no style off a script-stamped inline edge', () => {
 		const violations = [...files]
-			.filter(([key, code]) => key !== HOME && READS_RAIL.test(code))
-			.filter(([key, code]) => {
-				const kata = /^recipes\/kata\/([^/]+)\.ts$/.exec(key)?.[1]
-
-				if (!kata) return !CALLS_HOOK.test(code)
-
-				const dirs = unitDirs(kata)
-
-				return ![...files].some(
-					([unitKey, unitCode]) =>
-						dirs.some((dir) => unitKey.startsWith(dir)) && CALLS_HOOK.test(unitCode),
-				)
-			})
+			.filter(([, code]) => INLINE_EDGE_ATTRIBUTE.test(code))
 			.map(([key]) => key)
 
 		expect(
 			violations,
-			`files that read the rail with no \`useScrollOverflow({ axis: 'horizontal' })\` in the unit, so the fade never shows:\n  ${violations.join('\n  ')}`,
+			`files that read or write \`data-overflow-start\` or \`data-overflow-end\` (the rail draws the edge fade in CSS, with no attribute):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })
