@@ -69,8 +69,8 @@ function fieldsetAncestors(reference: Element): Element[] {
  * {@link Tooltip}, returned as the value shared through context.
  *
  * @remarks `trigger` selects hover or click, and keyboard focus opens with either.
- * A hover trigger opens on a mouse hover and on a touch press, and a second
- * touch press closes it. {@link useTooltipTouch} holds the touch rule.
+ * A hover trigger opens on a mouse hover and on a tap, and a second tap
+ * closes it. {@link useTooltipTouch} holds the touch rule.
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`, re-opening on hover once the
  * disabled state clears. Hands the floating root context out as
@@ -189,8 +189,8 @@ export function useTooltipState({
 	useOpenChange(open, onOpenChange)
 
 	// `mouseOnly` reads the `pointerType` of the event, not a media query. A touch
-	// press gives no hover, so `useTooltipTouch` opens a hover tooltip on a touch
-	// press in its place. The `:focus-visible` gate of `useFocus` stops the focus
+	// press gives no hover, so `useTooltipTouch` opens a hover tooltip on a tap
+	// in its place. The `:focus-visible` gate of `useFocus` stops the focus
 	// that a tap gives a button from opening it.
 	const hover = useHover(context, {
 		enabled: enabled && trigger === 'hover',
@@ -209,6 +209,7 @@ export function useTooltipState({
 
 	const touch = useTooltipTouch(context, {
 		enabled: enabled && trigger === 'hover',
+		dialog,
 		pointerTypeRef,
 	})
 

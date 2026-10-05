@@ -281,4 +281,81 @@ describe('Tooltip trigger (real browser)', () => {
 
 		await waitFor(() => expect(screen.getByText('Filled from the search.')).toBeInTheDocument())
 	})
+
+	it('does not open a hover tooltip on a touch press that the browser takes for a scroll', async () => {
+		const { trigger } = renderHoverTooltip()
+
+		trigger.dispatchEvent(new PointerEvent('pointerover', TOUCH))
+		trigger.dispatchEvent(new PointerEvent('pointerenter', { ...TOUCH, bubbles: false }))
+		trigger.dispatchEvent(new PointerEvent('pointerdown', TOUCH))
+
+		// No flash: the press alone does not open the tooltip.
+		await expectClosed()
+
+		trigger.dispatchEvent(new PointerEvent('pointercancel', TOUCH))
+		trigger.dispatchEvent(new PointerEvent('pointerout', TOUCH))
+		trigger.dispatchEvent(new PointerEvent('pointerleave', { ...TOUCH, bubbles: false }))
+
+		await expectClosed()
+	})
+
+	it('does not open on the lift of a different pointer', async () => {
+		const { trigger } = renderHoverTooltip()
+
+		trigger.dispatchEvent(new PointerEvent('pointerdown', { ...TOUCH, pointerId: 2 }))
+		trigger.dispatchEvent(new PointerEvent('pointercancel', { ...TOUCH, pointerId: 2 }))
+		trigger.dispatchEvent(new PointerEvent('pointerup', { ...TOUCH, pointerId: 3 }))
+
+		await expectClosed()
+	})
+
+	it('does not open on a tap inside a control that opens a popup, and opens on a mouse hover', async () => {
+		const { container } = renderUI(
+			<button type="button" aria-haspopup="listbox" aria-expanded={false}>
+				<Tooltip delay={0}>
+					<TooltipTrigger>Hide password</TooltipTrigger>
+					<TooltipContent>Hide password</TooltipContent>
+				</Tooltip>
+			</button>,
+		)
+
+		const trigger = getSlot(container, 'tooltip-trigger')
+
+		await tap(trigger)
+
+		await frames()
+
+		expect(screen.queryAllByText('Hide password')).toHaveLength(1)
+
+		await userEvent.hover(trigger)
+
+		await waitFor(() => expect(screen.getAllByText('Hide password')).toHaveLength(2))
+	})
+
+	it('opens an interactive tooltip on a tap after its panel became a dialog', async () => {
+		const { container } = renderUI(
+			<Tooltip delay={0} interactive>
+				<TooltipTrigger>
+					<button type="button">Details</button>
+				</TooltipTrigger>
+				<TooltipContent>
+					<button type="button">Learn more</button>
+				</TooltipContent>
+			</Tooltip>,
+		)
+
+		const trigger = getSlot(container, 'tooltip-trigger')
+
+		await tap(trigger)
+
+		await waitFor(() => expect(trigger).toHaveAttribute('aria-haspopup', 'dialog'))
+
+		await tap(trigger, { hovered: true })
+
+		await waitFor(() => expect(screen.queryByText('Learn more')).not.toBeInTheDocument())
+
+		await tap(trigger, { hovered: true })
+
+		await waitFor(() => expect(screen.getByText('Learn more')).toBeInTheDocument())
+	})
 })

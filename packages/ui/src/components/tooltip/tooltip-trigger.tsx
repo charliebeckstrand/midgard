@@ -20,7 +20,7 @@ export type TooltipTriggerProps = {
 	 * The element the tooltip describes. A single valid element receives the
 	 * floating ref and interaction props directly; anything else is wrapped in
 	 * a `<span>`. The `<span>` is not focusable, so a tooltip on a non-element
-	 * child opens on a pointer hover or a touch press only. Give a focusable
+	 * child opens on a pointer hover or a tap only. Give a focusable
 	 * element child for keyboard access.
 	 */
 	children: ReactNode
@@ -45,7 +45,7 @@ export type TooltipTriggerProps = {
  * The child's own ref merges with the floating ref. The non-element fallback
  * renders a plain `<span>`, which is valid in phrasing content. A `<button>`
  * fallback nested inside interactive content is invalid markup. The fallback
- * takes no focus, so its tooltip opens on a pointer hover or a touch press only.
+ * takes no focus, so its tooltip opens on a pointer hover or a tap only.
  *
  * @remarks The clone also stamps `k.trigger.base` (`inline-flex`) on the child,
  * ahead of the child's own `className`. A child that needs a different display box

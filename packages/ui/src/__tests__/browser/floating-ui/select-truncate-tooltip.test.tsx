@@ -4,7 +4,7 @@ import { userEvent } from 'vitest/browser'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { bySlot, present, renderUI, screen } from '../../helpers'
+import { bySlot, frames, present, renderUI, screen } from '../../helpers'
 import { pause } from '../helpers/wall-clock'
 
 const LONG = 'awaiting approval from finance'
@@ -99,6 +99,28 @@ describe.each(cases)('$name truncateTooltip (real browser)', ({ slot, render }) 
 		const tooltip = await screen.findByRole('tooltip')
 
 		expect(tooltip.textContent?.toLowerCase()).toBe(LONG)
+	})
+
+	it('shows no tooltip on a tap, which opens the panel', async () => {
+		const control = mount(LONG, true)
+
+		const target = bySlot(control, 'tooltip-trigger') ?? control
+
+		const touch = { bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true }
+
+		target.dispatchEvent(new PointerEvent('pointerdown', touch))
+		target.dispatchEvent(new PointerEvent('pointerup', touch))
+
+		// No flash: the lift does not open the tooltip before the click opens the panel.
+		await frames()
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
+
+		target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+		await frames()
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
 
 	it('shows no tooltip for a value that fits', async () => {
