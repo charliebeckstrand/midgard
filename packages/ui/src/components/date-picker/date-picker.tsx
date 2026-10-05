@@ -1,9 +1,9 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import { type ReactElement, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import type { FloatingPlacement } from '../../hooks'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
@@ -146,7 +146,12 @@ export type DatePickerBaseProps = GroupStampProps & {
 	min?: Date
 	max?: Date
 	placeholder?: string
-	placement?: Placement
+	/**
+	 * The side and the alignment of the panel. A `<side>-auto` value aligns the panel to the
+	 * edge of the trigger that is nearer to the edge of the viewport.
+	 * @defaultValue 'bottom-start'
+	 */
+	placement?: FloatingPlacement
 	/**
 	 * The density step of the trigger padding, the text, the calendar icon, and
 	 * the panel. Omit it to take the step of the nearest density scope. A step
