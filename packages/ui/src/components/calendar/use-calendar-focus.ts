@@ -18,6 +18,18 @@ import { wrap } from '../../utilities'
 const FOCUSABLE = 'button:not(:disabled)'
 
 /**
+ * Selector for the day that holds the Tab stop of the grid: the selected day,
+ * else today when no enabled day is selected. When neither is an enabled day,
+ * the roving hook puts the stop on the first enabled day. The hook takes the
+ * first day in DOM order that matches, so the `:has()` term keeps the stop off
+ * today when a selected day comes after today.
+ *
+ * @internal
+ */
+const DAY_TAB_STOP =
+	'[aria-selected="true"], :not(:has(> [aria-selected="true"]:not(:disabled))) > [aria-current="date"]'
+
+/**
  * Navigation keys a sealed surface swallows even when no move applies, so a dead
  * key neither scrolls the page nor reaches an outer keyboard model. Also the key
  * set the relative date picker's list-mode roving focus moves on.
@@ -35,12 +47,25 @@ export const NAVIGATION_KEYS = new Set([
 	'PageDown',
 ])
 
-/** Options for {@link useCalendarFocus}: the three zone refs, grid column count, and the seal flag. @internal */
+/** Options for {@link useCalendarFocus}: the three zone refs, grid column count, the Tab stop of the grid, and the seal flag. @internal */
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
 	gridRef: RefObject<HTMLElement | null>
 	footerRef?: RefObject<HTMLElement | null>
 	cols?: number
+	/**
+	 * Selector for the grid item that holds the one Tab stop of the grid until
+	 * the user moves it. The first enabled item holds the stop when no item
+	 * matches. The default is the selected day, else today.
+	 */
+	activeSelector?: string
+	/**
+	 * Set to true when the grid is in the DOM. The roving hook puts the Tab stop
+	 * on the grid in an effect, so a grid that mounts after the hook, such as the
+	 * picker grid in its popover portal, sets this to false until the grid is there.
+	 * @defaultValue true
+	 */
+	gridMounted?: boolean
 	/**
 	 * Seals the surface: every navigation key stops here, handled or not.
 	 * For surfaces nested inside another keyboard model, such as the month/year
@@ -148,10 +173,12 @@ function focusAdjacentFooterButton(
 }
 
 /**
- * Wires roving-tabindex keyboard navigation across a calendar's header, grid,
- * and footer zones, bridging focus between them at the edges. ArrowDown from the
- * header enters the grid, and ArrowUp/Down at the grid's top/bottom row crosses
- * into header/footer. Returns the three zones' `keydown` handlers.
+ * Wires keyboard navigation across a calendar's header, grid, and footer zones,
+ * bridging focus between them at the edges. ArrowDown from the header enters
+ * the grid, and ArrowUp/Down at the grid's top/bottom row crosses into
+ * header/footer. The grid is one Tab stop with a roving `tabIndex` (see
+ * `activeSelector`). The header buttons are plain buttons, and each one is a
+ * Tab stop. Returns the three zones' `keydown` handlers.
  *
  * @returns `handleHeaderKeyDown` / `handleGridKeyDown` / `handleFooterKeyDown`.
  * @remarks Set `stopPropagation` to seal a surface nested inside another
@@ -162,6 +189,8 @@ export function useCalendarFocus({
 	gridRef,
 	footerRef,
 	cols = 7,
+	activeSelector = DAY_TAB_STOP,
+	gridMounted = true,
 	stopPropagation = false,
 }: CalendarFocusOptions) {
 	const headerRoving = useA11yRoving(headerRef, {
@@ -172,6 +201,8 @@ export function useCalendarFocus({
 	const gridRoving = useA11yRoving(gridRef, {
 		itemSelector: FOCUSABLE,
 		cols,
+		manageTabIndex: gridMounted,
+		activeSelector,
 	})
 
 	const handleHeaderKeyDown = useCallback(

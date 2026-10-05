@@ -24,11 +24,11 @@ type CalendarHeaderProps = {
 }
 
 /**
- * `role="toolbar"` row of prev/next month chevrons flanking the month/year
- * picker trigger. `activeIndex` paints the roving-focus highlight on the
- * matching control (0 prev, 1 picker, 2 next). Memoized: a move of the roved
- * day, a new selection, or a range preview does not render the header or its
- * picker again.
+ * Row of prev/next month chevrons flanking the month/year picker trigger. The
+ * three controls are plain buttons, and each one is a Tab stop. `activeIndex`
+ * paints the roving-focus highlight on the matching control (0 prev, 1 picker,
+ * 2 next). Memoized: a move of the roved day, a new selection, or a range
+ * preview does not render the header or its picker again.
  *
  * @internal
  */

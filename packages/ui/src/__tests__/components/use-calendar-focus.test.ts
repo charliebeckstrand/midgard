@@ -313,3 +313,110 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 		expect(event.stopPropagation).toHaveBeenCalled()
 	})
 })
+
+/** The state of one cell in a grid fixture. */
+type CellState = { selected?: boolean; today?: boolean; disabled?: boolean; dataSelected?: boolean }
+
+/** A grid of buttons with the attributes that a calendar cell renders. Each button shows its index. */
+function makeGrid(cells: CellState[]) {
+	const el = document.createElement('div')
+
+	for (const [index, cell] of cells.entries()) {
+		const btn = document.createElement('button')
+
+		btn.textContent = String(index)
+
+		btn.setAttribute('aria-selected', String(cell.selected === true))
+
+		if (cell.today) btn.setAttribute('aria-current', 'date')
+
+		if (cell.dataSelected) btn.setAttribute('data-selected', '')
+
+		btn.disabled = cell.disabled === true
+
+		el.appendChild(btn)
+	}
+
+	return attach(el)
+}
+
+/** The text of each enabled button in `container` that is a Tab stop. */
+function tabStops(container: HTMLElement) {
+	return Array.from(container.querySelectorAll('button'))
+		.filter((btn) => !btn.disabled && btn.tabIndex === 0)
+		.map((btn) => btn.textContent)
+}
+
+/** Mounts the hook on `grid` and a header of three buttons, and returns the header. */
+function mountStops(grid: HTMLElement, options: { activeSelector?: string } = {}) {
+	const header = makeContainer(3)
+
+	const headerRef = { current: header }
+
+	const gridRef = { current: grid }
+
+	renderHook(() => useCalendarFocus({ headerRef, gridRef, ...options }))
+
+	return header
+}
+
+// A keyboard user must cross a calendar with one Tab stop in the grid, not one
+// stop for each day.
+describe('useCalendarFocus: Tab stops', () => {
+	it('holds one Tab stop in the grid, on the selected day before an earlier today', () => {
+		const grid = makeGrid([{}, { today: true }, {}, { selected: true }, {}])
+
+		mountStops(grid)
+
+		expect(tabStops(grid)).toEqual(['3'])
+	})
+
+	it('seats the grid Tab stop on today when no enabled day is selected', () => {
+		const grid = makeGrid([{}, { today: true }, {}, { selected: true, disabled: true }])
+
+		mountStops(grid)
+
+		expect(tabStops(grid)).toEqual(['1'])
+	})
+
+	it('seats the grid Tab stop on the first enabled day when no enabled day is selected or today', () => {
+		const grid = makeGrid([{ disabled: true }, { disabled: true, today: true }, {}, {}])
+
+		mountStops(grid)
+
+		expect(tabStops(grid)).toEqual(['2'])
+	})
+
+	it('seats the grid Tab stop on the item that activeSelector names', () => {
+		const grid = makeGrid([{ today: true }, {}, { dataSelected: true }, {}])
+
+		mountStops(grid, { activeSelector: '[data-selected]' })
+
+		expect(tabStops(grid)).toEqual(['2'])
+	})
+
+	it('seats the grid Tab stop only when gridMounted turns on', () => {
+		const grid = makeGrid([{}, { selected: true }, {}])
+
+		const headerRef = { current: makeContainer(3) }
+
+		const gridRef = { current: grid }
+
+		const { rerender } = renderHook(
+			({ gridMounted }) => useCalendarFocus({ headerRef, gridRef, gridMounted }),
+			{ initialProps: { gridMounted: false } },
+		)
+
+		expect(tabStops(grid)).toEqual(['0', '1', '2'])
+
+		rerender({ gridMounted: true })
+
+		expect(tabStops(grid)).toEqual(['1'])
+	})
+
+	it('keeps each header button as its own Tab stop', () => {
+		const header = mountStops(makeGrid([{}, { selected: true }]))
+
+		expect(tabStops(header)).toEqual(['0', '1', '2'])
+	})
+})

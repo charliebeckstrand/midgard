@@ -611,6 +611,75 @@ describe('Calendar keyboard navigation', () => {
 	})
 })
 
+// The day listbox is one Tab stop. The month header holds plain buttons, and
+// each one is a Tab stop.
+describe('Calendar Tab stops', () => {
+	/** The text of each enabled day that is a Tab stop. */
+	const dayStops = () =>
+		screen
+			.getAllByRole('option')
+			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
+			.map((option) => option.textContent)
+
+	it('holds one Tab stop in the day listbox, on the selected day before an earlier today', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 10, 12))
+
+			renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+			expect(dayStops()).toEqual(['15'])
+		})
+	})
+
+	it('seats the day Tab stop on today when no day is selected', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 20, 12))
+
+			renderUI(<Calendar />)
+
+			expect(dayStops()).toEqual(['20'])
+		})
+	})
+
+	it('seats the day Tab stop on the first enabled day when today is out of range', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 5, 12))
+
+			renderUI(<Calendar min={new Date(2025, 5, 10)} />)
+
+			expect(dayStops()).toEqual(['10'])
+		})
+	})
+
+	it('seats one day Tab stop again after the month changes', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2025, 5, 20, 12))
+
+			renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+			await clock.user.click(screen.getByLabelText('Next month'))
+
+			expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
+
+			expect(dayStops()).toEqual(['1'])
+		})
+	})
+
+	it('keeps the month header controls as plain buttons, each a Tab stop', () => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+
+		const controls = [
+			screen.getByRole('button', { name: 'Previous month' }),
+			screen.getByRole('button', { name: /June 2025/ }),
+			screen.getByRole('button', { name: 'Next month' }),
+		]
+
+		expect(controls.map((control) => control.tabIndex)).toEqual([0, 0, 0])
+	})
+})
+
 describe('Calendar + Form', () => {
 	it('seeds the selected day from Form.defaultValues', () => {
 		renderUI(

@@ -59,8 +59,9 @@ type CalendarPickerResult = {
  * active-view `viewConfig`.
  * @remarks Each open reseeds the view to the current year during render, so the
  * first open frame shows the fresh view. It then focuses the grid (selected cell
- * first) after a frame. The focus model is sealed (`stopPropagation`), so arrows
- * don't leak to the calendar underneath.
+ * first) after a frame. The grid is one Tab stop, on the selected cell. The focus
+ * model is sealed (`stopPropagation`), so arrows don't leak to the calendar
+ * underneath.
  */
 export function useCalendarPicker({
 	year,
@@ -78,10 +79,17 @@ export function useCalendarPicker({
 	// of each open shows a fresh view.
 	const [wasOpen, setWasOpen] = useState(open)
 
+	// The popover mounts the grid in its portal one commit after `open` turns on.
+	// The effects of the open commit run before the grid is in the DOM. The frame
+	// after the open sets `gridMounted`, and each close clears it, so the roving
+	// hook puts the Tab stop on the grid after the grid mounts.
+	const [gridMounted, setGridMounted] = useState(false)
+
 	if (open !== wasOpen) {
 		setWasOpen(open)
 
 		if (open) dispatch({ type: 'open', year })
+		else setGridMounted(false)
 	}
 
 	const { view, pickerYear, decadeYear } = state
@@ -93,6 +101,8 @@ export function useCalendarPicker({
 		headerRef: pickerHeaderRef,
 		gridRef: pickerGridRef,
 		cols: 3,
+		activeSelector: '[data-selected]',
+		gridMounted,
 		stopPropagation: true,
 	})
 
@@ -109,7 +119,13 @@ export function useCalendarPicker({
 	}, [])
 
 	useEffect(() => {
-		if (open) focusPickerGrid()
+		if (!open) return
+
+		focusPickerGrid()
+
+		const frame = requestAnimationFrame(() => setGridMounted(true))
+
+		return () => cancelAnimationFrame(frame)
 	}, [open, focusPickerGrid])
 
 	let viewConfig: CalendarPickerViewConfig

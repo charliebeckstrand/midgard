@@ -1,9 +1,14 @@
 import { act, renderHook } from '@testing-library/react'
+import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
-import type { CalendarPickerGridCell } from '../../components/calendar/calendar-picker-grid'
+import {
+	CalendarPickerGrid,
+	type CalendarPickerGridCell,
+} from '../../components/calendar/calendar-picker-grid'
 import { useCalendarPicker } from '../../components/calendar/use-calendar-picker'
+import { renderUI, screen, waitFor } from '../helpers'
 
-// No case reads a month label; the year grid is the subject.
+// Short labels, M1 to M12. Only the Tab stop cases read a month label.
 const monthLabels = Array.from({ length: 12 }, (_, i) => `M${i + 1}`)
 
 // The shipped picker sits in a floating-ui popover, which CONVENTIONS §10.3
@@ -110,5 +115,56 @@ describe('useCalendarPicker: year limits', () => {
 		act(() => last.result.current.viewConfig.onNext())
 
 		expect(last.result.current.viewConfig.centerLabel).toBe(9999)
+	})
+})
+
+/**
+ * Renders the open picker grid that the hook drives, with no popover around it.
+ * In the shipped picker, the grid mounts in the popover portal a commit after
+ * `open` turns on.
+ */
+function OpenPickerGrid({ year, month }: { year: number; month: number }) {
+	const picker = useCalendarPicker({
+		year,
+		month,
+		today: null,
+		monthLabels,
+		onNavigate: () => {},
+		open: true,
+		onOpenChange: () => {},
+	})
+
+	return createElement(CalendarPickerGrid, {
+		headerRef: picker.pickerHeaderRef,
+		gridRef: picker.pickerGridRef,
+		onHeaderKeyDown: picker.handleHeaderKeyDown,
+		onGridKeyDown: picker.handleGridKeyDown,
+		...picker.viewConfig,
+	})
+}
+
+// The month listbox is one Tab stop. The picker header holds plain buttons, and
+// each one is a Tab stop.
+describe('useCalendarPicker: Tab stops', () => {
+	it('holds one Tab stop in the month listbox, on the selected month', async () => {
+		renderUI(createElement(OpenPickerGrid, { year: 2026, month: 5 }))
+
+		const stops = () => screen.getAllByRole('option').filter((option) => option.tabIndex === 0)
+
+		await waitFor(() =>
+			expect(stops()).toEqual([screen.getByRole('option', { name: 'M6', selected: true })]),
+		)
+	})
+
+	it('keeps the picker header controls as plain buttons, each a Tab stop', () => {
+		renderUI(createElement(OpenPickerGrid, { year: 2026, month: 5 }))
+
+		expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+
+		const controls = ['Previous year', '2026', 'Next year'].map((name) =>
+			screen.getByRole('button', { name }),
+		)
+
+		expect(controls.map((control) => control.tabIndex)).toEqual([0, 0, 0])
 	})
 })
