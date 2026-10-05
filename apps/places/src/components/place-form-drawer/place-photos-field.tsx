@@ -74,17 +74,15 @@ export function PlacePhotosField() {
 				)}
 			</List>
 
-			<div>
-				<Button
-					type="button"
-					variant="plain"
-					prefix={<Icon icon={<Plus />} />}
-					disabled={rows.length >= MAX_PHOTOS}
-					onClick={() => setValue([...rows, photoRow()])}
-				>
-					Add photo
-				</Button>
-			</div>
+			<Button
+				type="button"
+				variant="plain"
+				prefix={<Icon icon={<Plus />} />}
+				disabled={rows.length >= MAX_PHOTOS}
+				onClick={() => setValue([...rows, photoRow()])}
+			>
+				Add photo
+			</Button>
 
 			<Message name="photos" />
 		</Field>
