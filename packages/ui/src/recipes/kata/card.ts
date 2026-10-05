@@ -17,11 +17,18 @@ const { flex } = narabi
  * action-row gap, one step tighter than `ma.gap`, so actions sit close. A
  * nested card with a `size` is its own scope, so its sections do not follow
  * the outer card.
+ *
+ * The card clips its overflow, because media fills the card to its rounded
+ * edge. Thus content that runs past the edge of the card is hidden, and the
+ * user cannot scroll to it. The footer wraps its actions onto a new line when
+ * the row is wider than the card. The gap also spaces the lines. The body
+ * breaks a token that is wider than its line.
  */
 export const k = {
 	base: [dan.space.box.base, dan.radius.card],
 	header: [text.default, dan.space.card.header.bottom],
-	footer: [flex.row, dan.space.card.footer.top, dan.gap.default],
+	body: 'wrap-break-word',
+	footer: [flex.row, 'flex-wrap', dan.space.card.footer.top, dan.gap.default],
 	description: [dan.text.small, text.muted],
 } as const
 
