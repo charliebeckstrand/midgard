@@ -723,7 +723,33 @@ function processRowContext(
 }
 
 /**
- * Virtual mode: the activation key clicks the active item.
+ * Clicks an item with the modifier keys of a key event. A link row then acts
+ * as a click with those keys does. A router link reads the keys, and lets the
+ * browser open a new tab for Ctrl or Cmd. As with `HTMLElement.click()`, the
+ * click bubbles and crosses a shadow root, and a handler can cancel it.
+ *
+ * @remarks The keys come from the fields of the event, never from its target.
+ * The command palette holds an Enter and runs it after React dispatches it.
+ * The `currentTarget` of that event is then null.
+ * @internal
+ */
+function clickWithKeyModifiers(item: HTMLElement, event: KeyboardEvent): void {
+	item.dispatchEvent(
+		new MouseEvent('click', {
+			bubbles: true,
+			cancelable: true,
+			composed: true,
+			altKey: event.altKey,
+			ctrlKey: event.ctrlKey,
+			metaKey: event.metaKey,
+			shiftKey: event.shiftKey,
+		}),
+	)
+}
+
+/**
+ * Virtual mode: the activation key clicks the active item, with the modifier
+ * keys of the key event.
  *
  * @returns True once the key belongs to activation so the caller stops.
  * @internal
@@ -751,12 +777,14 @@ function handleActivationKey(
 
 		// A jump landed on a not-yet-mounted row (the move's mount watcher
 		// hasn't caught up yet); nothing to click until it renders.
-		node?.click()
+		if (node) clickWithKeyModifiers(node, event)
 
 		return true
 	}
 
-	ctx.items[currentIndex]?.click()
+	const item = ctx.items[currentIndex]
+
+	if (item) clickWithKeyModifiers(item, event)
 
 	return true
 }
@@ -939,7 +967,9 @@ export type RovingOptions = NavigationConfig & {
 	 * Virtual mode: key (or keys) that clicks the active item. A menu passes
 	 * `['Enter', ' ']` so Space activates like Enter (APG menu pattern); a text
 	 * input owner keeps the default `'Enter'` so Space still types. Pass `null`
-	 * to disable. @defaultValue 'Enter'
+	 * to disable. The click carries the Ctrl, Cmd, Shift, and Alt keys of the
+	 * press, so Ctrl+Enter or Cmd+Enter on a link row opens a new tab.
+	 * @defaultValue 'Enter'
 	 */
 	activationKey?: string | readonly string[] | null
 	/**

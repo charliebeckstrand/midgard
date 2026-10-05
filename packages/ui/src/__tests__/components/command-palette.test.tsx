@@ -531,6 +531,94 @@ describe('CommandPalette Enter while the deferred query lags', () => {
 	})
 })
 
+// A router link reads the modifier keys of a click. With Ctrl or Cmd held, it
+// lets the browser open the link in a new tab.
+const NO_MODIFIERS = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+
+type LinkClick = typeof NO_MODIFIERS & { preventDefault: () => void }
+
+// Records the click on a link item. It cancels the default, because jsdom does
+// not navigate.
+function recordLinkClick() {
+	return vi.fn((event: LinkClick) => event.preventDefault())
+}
+
+// Link items that filter against the deferred query, as `FilteredItems` does.
+function FilteredLinks({ onClick }: { onClick: (event: LinkClick) => void }) {
+	const { deferredQuery } = useCommandPaletteQuery()
+
+	return FILTER_ITEMS.filter((label) =>
+		label.toLowerCase().includes(deferredQuery.toLowerCase()),
+	).map((label) => (
+		<CommandPaletteItem key={label} href={`/${label.toLowerCase()}`} onClick={onClick}>
+			{label}
+		</CommandPaletteItem>
+	))
+}
+
+describe('CommandPalette Enter on a link item', () => {
+	it.each(['altKey', 'ctrlKey', 'metaKey', 'shiftKey'] as const)(
+		'gives the %s of the Enter to the click on the link',
+		async (modifier) => {
+			const onClick = recordLinkClick()
+
+			renderUI(
+				<CommandPalette open onOpenChange={() => {}}>
+					<CommandPaletteItem href="/somewhere" onClick={onClick}>
+						Go
+					</CommandPaletteItem>
+				</CommandPalette>,
+			)
+
+			await setupUser().keyboard('{ArrowDown}')
+
+			fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter', [modifier]: true })
+
+			expect(onClick).toHaveBeenCalledTimes(1)
+
+			expect(onClick).toHaveBeenCalledWith(
+				expect.objectContaining({ ...NO_MODIFIERS, [modifier]: true }),
+			)
+		},
+	)
+
+	it('gives the modifiers of an Enter that waits for the results to the click', async () => {
+		const gate = deferred()
+
+		const onClick = recordLinkClick()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<DeferredQueryGate query="b" gate={gate.promise} />
+				<FilteredLinks onClick={onClick} />
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().keyboard('{ArrowDown}')
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'b' } })
+		})
+
+		// The palette holds the Enter, and runs it after the results render. The
+		// held event then has no current target, so the click reads the keys
+		// from the fields of the event.
+		fireEvent.keyDown(input, { key: 'Enter', metaKey: true })
+
+		expect(onClick).not.toHaveBeenCalled()
+
+		await act(async () => gate.resolve())
+
+		expect(onClick).toHaveBeenCalledTimes(1)
+
+		expect(onClick).toHaveBeenCalledWith(
+			expect.objectContaining({ ...NO_MODIFIERS, metaKey: true, target: screen.getByText('Beta') }),
+		)
+	})
+})
+
 // Stands in for the wrapper that `VirtualOptions` renders. A real virtualizer
 // is barred here (CONVENTIONS §10.3). The wrapper stamps `data-empty` from its
 // items, and its window can hold no row while items remain.
