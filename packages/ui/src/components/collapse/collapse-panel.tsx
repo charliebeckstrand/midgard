@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { MountHold, useMountHold } from '../../primitives/mount'
@@ -22,7 +21,9 @@ export type CollapsePanelProps = {
  * `open`, the resolved `animate` mode, and the `mount` policy from context. It
  * animates height via `AnimatePresence`. `'fade'` adds opacity, and `'slide'`
  * moves the content down with the panel edge. The `false` mode renders
- * synchronously without motion. Honors reduced-motion.
+ * synchronously without motion. Honors reduced-motion. The panel clips its
+ * content only while its height moves, so at rest an outline, a ring, or a
+ * shadow at the edge of the content shows in full.
  *
  * @remarks
  * Under the default `mount="active"` the panel unmounts while closed, so
@@ -62,12 +63,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	// The panel's identity — element, a11y wiring, classes — is one shape across
 	// every branch below; only how it animates (or whether it does) differs.
 	const panel = (motionProps: object, contentProps?: object) => (
-		<motion.div
-			id={id}
-			data-slot="collapse-panel"
-			{...motionProps}
-			className={cn(k.panel, className)}
-		>
+		<motion.div id={id} data-slot="collapse-panel" {...motionProps} className={className}>
 			{contentProps ? <motion.div {...contentProps}>{children}</motion.div> : children}
 		</motion.div>
 	)
@@ -81,7 +77,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 		return (
 			<MountHold hold={hold} name="collapse-panel">
-				<div id={id} data-slot="collapse-panel" className={cn(k.panel, className)}>
+				<div id={id} data-slot="collapse-panel" className={className}>
 					{children}
 				</div>
 			</MountHold>
