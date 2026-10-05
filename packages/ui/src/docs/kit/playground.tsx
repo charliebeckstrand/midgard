@@ -6,7 +6,7 @@ import { ExampleFrame, metaOf } from './example.tsx'
 import { humanize } from './humanize.ts'
 import { Rail } from './rail.tsx'
 
-type Field = { name: string; values: readonly Literal[]; default?: Literal }
+type Field = { name: string; values: readonly Literal[]; default?: Literal; required?: true }
 
 type Values = { readonly [prop: string]: Literal | undefined }
 
@@ -30,14 +30,29 @@ function labelOf(value: Literal): string {
 
 /** A field for each prop whose type is a union of literals. */
 function fieldsOf(props: readonly PropApi[], omit: readonly string[]): Field[] {
-	return props.flatMap(({ name, values, default: text, deprecated }) => {
+	return props.flatMap(({ name, values, default: text, deprecated, required }) => {
 		if (!values || deprecated !== undefined || omit.includes(name)) return []
 
 		// The tag writes the default as code, such as `'md'` or `true`.
 		const fallback = values.find((value) => text === JSON.stringify(value) || text === `'${value}'`)
 
-		return [{ name, values, ...(fallback !== undefined && { default: fallback }) }]
+		return [
+			{
+				name,
+				values,
+				...(fallback !== undefined && { default: fallback }),
+				...(required && { required }),
+			},
+		]
 	})
+}
+
+/**
+ * The first value of a field: its default, or the first value of a required
+ * prop with no default. Any other field starts unset.
+ */
+function startOf({ default: fallback, values, required }: Field): Literal | undefined {
+	return fallback ?? (required ? values[0] : undefined)
 }
 
 /** A prop as a JSX attribute. */
@@ -77,9 +92,10 @@ function FieldPicker({
 	const label = humanize(field.name)
 
 	// A field with no default can be unset, so the component takes its own
-	// fallback, such as the step of the nearest density scope.
+	// fallback, such as the step of the nearest density scope. A required prop
+	// cannot be unset.
 	const options = [
-		...(field.default === undefined ? [{ key: UNSET, label: 'Default' }] : []),
+		...(field.default === undefined && !field.required ? [{ key: UNSET, label: 'Default' }] : []),
 		...field.values.map((option) => ({ key: JSON.stringify(option), label: labelOf(option) })),
 	]
 
@@ -148,7 +164,7 @@ export function Playground<P extends object>({
 	const fields = fieldsOf(component.props, omit)
 
 	const [values, setValues] = useState<Values>(() =>
-		Object.fromEntries(fields.map((field) => [field.name, field.default])),
+		Object.fromEntries(fields.map((field) => [field.name, startOf(field)])),
 	)
 
 	return (
