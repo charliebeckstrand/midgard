@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { CodeBlock, type CodeBlockProps } from '../../components/code'
+import { CodeBlock, type CodeBlockProps, primeCodeBlock } from '../../components/code'
 import { PdfViewer } from '../../components/pdf-viewer'
 import { ScrollArea } from '../../components/scroll-area'
 import { Table, TableBody, TableCaption, TableCell, TableRow } from '../../components/table'
@@ -284,6 +284,52 @@ describe('CodeBlock scroll container', () => {
 		expect(
 			screen.getAllByRole('region').map((region) => region.getAttribute('aria-label')),
 		).toEqual(['TypeScript code', 'Shell code'])
+	})
+
+	it('measures again when the code switches between two cached snippets', async () => {
+		const wide = 'const swapWide = 1; '.repeat(40)
+
+		const narrow = 'const swapNarrow = 1'
+
+		// Two snippets of one line each, in the shape that the worker gives. The
+		// switch keeps the size of each box, so no resize reports the new width.
+		for (const code of [wide, narrow]) {
+			primeCodeBlock({
+				code,
+				html: `<pre class="shiki" tabindex="-1"><code><span class="line"><span>${code}</span></span></code></pre>`,
+			})
+		}
+
+		const block = (code: string) => (
+			<div style={{ width: 200 }}>
+				<CodeBlock code={code} copy={false} />
+			</div>
+		)
+
+		const { rerender } = renderUI(block(wide))
+
+		await waitFor(() => expect(content().getAttribute('tabindex')).toBe('0'))
+
+		expect(content()).toHaveAttribute('data-overflow-end')
+
+		rerender(block(narrow))
+
+		// The block paints the cached markup, not the plain fallback.
+		expect(content().querySelector('pre.shiki')?.textContent).toBe(narrow)
+
+		await waitFor(() => expect(content().hasAttribute('tabindex')).toBe(false))
+
+		expect(content().hasAttribute('role')).toBe(false)
+
+		expect(content().hasAttribute('data-overflow-end')).toBe(false)
+
+		rerender(block(wide))
+
+		await waitFor(() => expect(content().getAttribute('tabindex')).toBe('0'))
+
+		expect(content().getAttribute('role')).toBe('region')
+
+		expect(content()).toHaveAttribute('data-overflow-end')
 	})
 })
 

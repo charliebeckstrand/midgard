@@ -321,6 +321,11 @@ export function CodeBlock({
 			<div ref={setContent} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
 					<div
+						// The cache key gives each snippet its own element. A switch between two
+						// cached snippets thus replaces the child, and the scroll hooks measure
+						// again. An update in place can keep the size of each box, so no resize
+						// reports a new line width.
+						key={key}
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: the markup is Shiki output or primed markup that the app trusts
 						dangerouslySetInnerHTML={{ __html: html }}
 					/>
