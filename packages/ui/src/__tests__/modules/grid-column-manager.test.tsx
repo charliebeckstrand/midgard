@@ -614,19 +614,19 @@ describe('GridManagerDialog', () => {
 		)
 	}
 
-	it('shows the manager while open and closes via the Done button', async () => {
+	it('shows the manager while open and closes via the Close button', async () => {
 		const user = setupUser()
 
 		renderUI(<Harness />)
 
-		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
 
 		await user.click(screen.getByRole('button', { name: 'Open' }))
 
-		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 
-		await user.click(screen.getByRole('button', { name: 'Done' }))
+		await user.click(screen.getByRole('button', { name: 'Close' }))
 
-		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
 	})
 })

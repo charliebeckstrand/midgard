@@ -5,12 +5,9 @@ import { useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
-import { Button } from '../button'
 import {
 	Dialog,
 	DialogBody,
-	DialogClose,
-	DialogFooter,
 	DialogHeader,
 	DialogPanel,
 	DialogTitle,
@@ -130,13 +127,6 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 						/>
 					</Stack>
 				</DialogBody>
-				<DialogFooter>
-					<DialogClose>
-						<Button type="button" variant="plain">
-							Done
-						</Button>
-					</DialogClose>
-				</DialogFooter>
 			</DialogPanel>
 		</Dialog>
 	)

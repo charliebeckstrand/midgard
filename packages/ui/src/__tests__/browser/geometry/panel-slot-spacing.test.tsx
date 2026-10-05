@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import {
@@ -28,15 +28,16 @@ import {
 	SheetPanel,
 	SheetTitle,
 } from '../../../components/sheet'
+import { DensityProvider } from '../../../providers/density'
 import { getSlot, renderUI } from '../../helpers'
 
 /**
- * The slots of a panel are spaced evenly. The space between the panel edge and
- * the first slot is the space between two slots, and the same is true at the
- * bottom edge. The body is the part that scrolls, so the header and the footer
- * stay in place while it scrolls. The visible space must stay even then too:
- * an inset that is padding inside the scrolling body moves out of view with the
- * content.
+ * The inset of a panel is the same on the four sides. It is larger than the gap
+ * between two slots, and each gap between two slots is the same. The body is
+ * the part that scrolls, so the header and the footer stay in place while it
+ * scrolls. The visible space must stay even then too: an inset that is padding
+ * inside the scrolling body moves out of view with the content. The inset takes
+ * the step of the nearest density scope, and the gap does not.
  */
 
 /** Text that is taller than each panel, so the body scrolls. */
@@ -44,37 +45,37 @@ const LONG = Array.from({ length: 60 }, (_, index) => `Line ${index + 1}`).map((
 	<p key={line}>{line}</p>
 ))
 
-type Parts = { title: string; description: string; body: ReactNode; footer: string }
-
 type Panel = {
 	name: string
 	slot: string
-	full: (parts: Parts) => ReactElement
-	bare: (body: ReactNode) => ReactElement
+	/** The panel with each slot, and a body that scrolls. */
+	full: ReactElement
+	/** The panel with a body that scrolls and no other slot. */
+	bare: ReactElement
 }
 
 const PANELS: Panel[] = [
 	{
 		name: 'Sheet',
 		slot: 'sheet',
-		full: ({ title, description, body, footer }) => (
+		full: (
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel>
 					<SheetHeader>
-						<SheetTitle>{title}</SheetTitle>
-						<SheetDescription>{description}</SheetDescription>
+						<SheetTitle>Settings</SheetTitle>
+						<SheetDescription>Change the settings.</SheetDescription>
 					</SheetHeader>
-					<SheetBody>{body}</SheetBody>
+					<SheetBody>{LONG}</SheetBody>
 					<SheetFooter>
-						<button type="button">{footer}</button>
+						<button type="button">Save</button>
 					</SheetFooter>
 				</SheetPanel>
 			</Sheet>
 		),
-		bare: (body) => (
+		bare: (
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel aria-label="Bare" footer={null}>
-					<SheetBody>{body}</SheetBody>
+					<SheetBody>{LONG}</SheetBody>
 				</SheetPanel>
 			</Sheet>
 		),
@@ -82,24 +83,24 @@ const PANELS: Panel[] = [
 	{
 		name: 'Dialog',
 		slot: 'dialog',
-		full: ({ title, description, body, footer }) => (
+		full: (
 			<Dialog open onOpenChange={() => {}}>
 				<DialogPanel>
 					<DialogHeader>
-						<DialogTitle>{title}</DialogTitle>
-						<DialogDescription>{description}</DialogDescription>
+						<DialogTitle>Settings</DialogTitle>
+						<DialogDescription>Change the settings.</DialogDescription>
 					</DialogHeader>
-					<DialogBody>{body}</DialogBody>
+					<DialogBody>{LONG}</DialogBody>
 					<DialogFooter>
-						<button type="button">{footer}</button>
+						<button type="button">Save</button>
 					</DialogFooter>
 				</DialogPanel>
 			</Dialog>
 		),
-		bare: (body) => (
+		bare: (
 			<Dialog open onOpenChange={() => {}}>
 				<DialogPanel aria-label="Bare" footer={null}>
-					<DialogBody>{body}</DialogBody>
+					<DialogBody>{LONG}</DialogBody>
 				</DialogPanel>
 			</Dialog>
 		),
@@ -107,24 +108,24 @@ const PANELS: Panel[] = [
 	{
 		name: 'Drawer',
 		slot: 'drawer',
-		full: ({ title, description, body, footer }) => (
+		full: (
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel>
 					<DrawerHeader>
-						<DrawerTitle>{title}</DrawerTitle>
-						<DrawerDescription>{description}</DrawerDescription>
+						<DrawerTitle>Settings</DrawerTitle>
+						<DrawerDescription>Change the settings.</DrawerDescription>
 					</DrawerHeader>
-					<DrawerBody>{body}</DrawerBody>
+					<DrawerBody>{LONG}</DrawerBody>
 					<DrawerFooter>
-						<button type="button">{footer}</button>
+						<button type="button">Save</button>
 					</DrawerFooter>
 				</DrawerPanel>
 			</Drawer>
 		),
-		bare: (body) => (
+		bare: (
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel aria-label="Bare" footer={null}>
-					<DrawerBody>{body}</DrawerBody>
+					<DrawerBody>{LONG}</DrawerBody>
 				</DrawerPanel>
 			</Drawer>
 		),
@@ -136,18 +137,27 @@ const VIEWPORTS = [
 	{ name: 'desktop', width: 1280, height: 800 },
 ] as const
 
-/** The top of the content box of `el`: the edge that its text starts at. */
-function contentTop(el: Element) {
+/** The inset at each density, in pixels. The slot gap is 16 at each density. */
+const DENSITIES = [
+	{ density: 'compact', inset: 20 },
+	{ density: 'snug', inset: 24 },
+	{ density: 'loose', inset: 28 },
+] as const
+
+const GAP = 16
+
+/** The content box of `el`: the edges that its text starts and stops at. */
+function contentBox(el: Element) {
+	const box = el.getBoundingClientRect()
 	const style = getComputedStyle(el)
+	const px = (value: string) => Number.parseFloat(value)
 
-	return el.getBoundingClientRect().top + Number.parseFloat(style.paddingTop)
-}
-
-/** The bottom of the content box of `el`. */
-function contentBottom(el: Element) {
-	const style = getComputedStyle(el)
-
-	return el.getBoundingClientRect().bottom - Number.parseFloat(style.paddingBottom)
+	return {
+		top: box.top + px(style.paddingTop),
+		right: box.right - px(style.paddingRight),
+		bottom: box.bottom - px(style.paddingBottom),
+		left: box.left + px(style.paddingLeft),
+	}
 }
 
 /** The top of the visible content of a scrolling `el`: its padding moves out of view with a scroll. */
@@ -193,85 +203,76 @@ function scrollMiddle(el: HTMLElement) {
 describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, height }) => {
 	beforeAll(() => page.viewport(width, height))
 
-	describe.each(PANELS)('$name', ({ slot, full, bare }) => {
-		it('keeps the edge insets equal to the slot gap, before and after a scroll', async () => {
-			renderUI(
-				full({
-					title: 'Settings',
-					description: 'Change the settings.',
-					body: LONG,
-					footer: 'Save',
-				}),
-			)
+	describe.each(DENSITIES)('at the $density density', ({ density, inset }) => {
+		describe.each(PANELS)('$name', ({ slot, full, bare }) => {
+			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
+				renderUI(<DensityProvider density={density}>{full}</DensityProvider>)
 
-			const panel = await settledPanel(slot)
-			const header = getSlot(panel, `${slot}-header`)
-			const body = getSlot(panel, `${slot}-body`)
-			const footer = getSlot(panel, `${slot}-footer`)
+				const panel = await settledPanel(slot)
+				const header = getSlot(panel, `${slot}-header`)
+				const body = getSlot(panel, `${slot}-body`)
+				const footer = getSlot(panel, `${slot}-footer`)
 
-			// The body is the scroller, so the header and the footer stay in place.
-			expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
-			expect(panel.scrollHeight).toBeLessThanOrEqual(panel.clientHeight)
+				// The body is the scroller, so the header and the footer stay in place.
+				expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+				expect(panel.scrollHeight).toBeLessThanOrEqual(panel.clientHeight)
 
-			const measure = () => {
-				const panelBox = panel.getBoundingClientRect()
+				const measure = () => {
+					const panelBox = panel.getBoundingClientRect()
+					const title = contentBox(getSlot(panel, `${slot}-title`))
+					const footerBox = contentBox(footer)
 
-				return {
-					top: contentTop(getSlot(panel, `${slot}-title`)) - panelBox.top,
-					above: visibleTop(body) - contentBottom(header),
-					below: contentTop(footer) - visibleBottom(body),
-					bottom: panelBox.bottom - contentBottom(footer),
+					return {
+						top: title.top - panelBox.top,
+						left: title.left - panelBox.left,
+						right: panelBox.right - footerBox.right,
+						bottom: panelBox.bottom - footerBox.bottom,
+						above: visibleTop(body) - contentBox(header).bottom,
+						below: footerBox.top - visibleBottom(body),
+					}
 				}
-			}
 
-			const rest = measure()
+				const rest = measure()
 
-			expect(rest.above).toBeGreaterThan(0)
-			expect(rest).toEqual({
-				top: rest.above,
-				above: rest.above,
-				below: rest.above,
-				bottom: rest.above,
+				expect(rest).toEqual({
+					top: inset,
+					left: inset,
+					right: inset,
+					bottom: inset,
+					above: GAP,
+					below: GAP,
+				})
+
+				scrollMiddle(body)
+
+				expect(measure()).toEqual(rest)
 			})
 
-			scrollMiddle(body)
+			it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
+				renderUI(<DensityProvider density={density}>{bare}</DensityProvider>)
 
-			expect(measure()).toEqual(rest)
-		})
+				const panel = await settledPanel(slot)
+				const body = getSlot(panel, `${slot}-body`)
 
-		it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
-			const view = renderUI(
-				full({ title: 'Gap', description: 'Gap.', body: <p>Short</p>, footer: 'Close' }),
-			)
+				expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
 
-			const gapPanel = await settledPanel(slot)
-			const gap =
-				getSlot(gapPanel, `${slot}-body`).getBoundingClientRect().top -
-				contentBottom(getSlot(gapPanel, `${slot}-header`))
+				expect(contentBox(body).left - panel.getBoundingClientRect().left).toBe(inset)
 
-			view.unmount()
+				const measure = () => {
+					const panelBox = panel.getBoundingClientRect()
 
-			renderUI(bare(LONG))
-
-			const panel = await settledPanel(slot)
-			const body = getSlot(panel, `${slot}-body`)
-
-			expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
-
-			const measure = () => {
-				const panelBox = panel.getBoundingClientRect()
-
-				return {
-					top: visibleTop(body) - panelBox.top,
-					bottom: panelBox.bottom - visibleBottom(body),
+					return {
+						top: visibleTop(body) - panelBox.top,
+						bottom: panelBox.bottom - visibleBottom(body),
+					}
 				}
-			}
 
-			expect(measure()).toEqual({ top: gap, bottom: gap })
+				expect(measure()).toEqual({ top: inset, bottom: inset })
 
-			scrollMiddle(body)
+				scrollMiddle(body)
 
-			expect(measure()).toEqual({ top: gap, bottom: gap })
+				expect(measure()).toEqual({ top: inset, bottom: inset })
+			})
 		})
 	})
 })

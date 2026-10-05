@@ -29,6 +29,38 @@ export const space = {
 	alert: 'density-p-[3,4,5]',
 	/** The padding of a popover panel. */
 	popover: 'density-p-[3,4,6]',
+	/**
+	 * The inset of a dialog, a drawer, and a sheet: the same length on the four
+	 * sides. `panel.layout.inset` is this set, and its doc gives the rule.
+	 */
+	panel: {
+		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
+		x: 'density-px-[5,6,7]',
+		/** The inset above the first slot, on the panel or on the slot. */
+		top: 'density-pt-[5,6,7]',
+		/** The inset under the last slot, on the panel or on the slot. */
+		bottom: 'density-pb-[5,6,7]',
+		/**
+		 * The inset of a body that is the first slot. It is a margin, because a padding
+		 * in a scrolling body moves out of view with the content.
+		 */
+		first: 'first:density-mt-[5,6,7]',
+		/** The inset of a body that is the last slot, a margin for the reason that `first` gives. */
+		last: 'last:density-mb-[5,6,7]',
+		/**
+		 * The bottom inset of a panel on the bottom edge below `sm`, plus the home
+		 * indicator inset of a page with `viewport-fit=cover`. Elsewhere the inset of
+		 * the home indicator is zero. A `calc` with `env` is not a stop of the
+		 * spacing scale, so each step of `bottom` has its own class. Each length is
+		 * the stop of `bottom` at that step: `1.25rem` is 5, `1.5rem` is 6, and
+		 * `1.75rem` is 7.
+		 */
+		safe: [
+			'max-sm:density-[xs,sm]:pb-[calc(1.25rem+env(safe-area-inset-bottom))]',
+			'max-sm:density-md:pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
+			'max-sm:density-[lg,xl]:pb-[calc(1.75rem+env(safe-area-inset-bottom))]',
+		],
+	},
 	shell: {
 		/** The padding of the sidebar layout regions. */
 		base: 'density-p-[4,6,8]',

@@ -3,14 +3,7 @@
 import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
-import {
-	Dialog,
-	DialogBody,
-	DialogFooter,
-	DialogHeader,
-	DialogPanel,
-	DialogTitle,
-} from '../../components/dialog'
+import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
@@ -115,11 +108,6 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 						{/* The portal target of the listbox panels. See the note above. */}
 						<div ref={setPortalRoot} className="contents" />
 					</DialogBody>
-					<DialogFooter>
-						<Button variant="plain" onClick={() => setOpen(false)}>
-							Done
-						</Button>
-					</DialogFooter>
 				</DialogPanel>
 			</Dialog>
 		</>

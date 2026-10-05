@@ -20,7 +20,7 @@ export function PopoverClose({ children }: PopoverCloseProps) {
 	const { close } = usePopoverContext()
 
 	const child = children ?? (
-		<Button type="button" variant="plain" data-slot="popover-close">
+		<Button type="button" variant="soft" data-slot="popover-close">
 			Close
 		</Button>
 	)

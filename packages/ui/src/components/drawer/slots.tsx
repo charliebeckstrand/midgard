@@ -48,7 +48,7 @@ export function DrawerClose({ children }: DrawerCloseProps) {
 	return (
 		<PanelClose>
 			{children ?? (
-				<Button type="button" variant="plain" data-slot="drawer-close">
+				<Button type="button" variant="soft" data-slot="drawer-close">
 					Close
 				</Button>
 			)}
