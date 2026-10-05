@@ -48,7 +48,7 @@ export { isDataColumn } from './is-data-column'
 export { keyByOccurrence } from './key-by-occurrence'
 export { crossAxisDelta, type NavigationConfig, nextIndexForKey, wrap } from './keyboard-navigation'
 export { createKeyedStore, type KeyedStore } from './keyed-store'
-export { type BorderBox, measureBox } from './measure-box'
+export { type BorderBox, type ContentBox, measureBox, measureContentBox } from './measure-box'
 export {
 	matchesMediaQuery,
 	NO_HOVER_QUERY,
