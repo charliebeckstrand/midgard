@@ -66,8 +66,8 @@ export type CssInJs = { [key: string]: string | CssInJs }
 /**
  * The deepest nesting that the rungs rank. When more scopes nest, an outer
  * scope can win. The output grows with the square of this value. The apps nest
- * one scope deep and the docs site two. The demo smoke test fails when a docs
- * page nests deeper.
+ * one scope deep and the docs site two. The smoke test of the docs pages
+ * (`page-smoke.test.tsx`) fails when a page nests deeper.
  */
 export const maxDepth = 2
 

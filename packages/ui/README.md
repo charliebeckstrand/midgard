@@ -26,7 +26,6 @@ No root barrel; the `exports` map exposes each component path.
 | Docs site (dev) | `pnpm --filter ui dev` |
 | Docs site (build) | `pnpm --filter ui docs:build` |
 | Docs site (serve the build) | `pnpm --filter ui docs:preview` |
-| Legacy docs app (dev / build) | `pnpm --filter ui docs:legacy` / `pnpm --filter ui docs:legacy:build` |
 | Font files from the source font in `fonts/` | `pnpm --filter ui fonts` |
 | Tests | `pnpm --filter ui test` |
 | Tests (scoped) | `pnpm --filter ui test:related` / `pnpm --filter ui test:changed` |
@@ -50,7 +49,6 @@ No root barrel; the `exports` map exposes each component path.
 | `src/layouts/` | Layout primitives. |
 | `src/__tests__/` | Component, primitive, and boundary tests. |
 | `src/docs/` | The docs site: a React Router app that prerenders each page. `pages/` holds the examples, and `plugin/` gives the API data, the page list, and the highlighted code. |
-| `src/docs-legacy/` | The legacy docs app, with its demos and its engine. It is not deployed. The gates in `src/__tests__/docs` read its demos. |
 
 ## 4. Further reading
 

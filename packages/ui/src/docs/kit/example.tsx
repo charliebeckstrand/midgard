@@ -24,15 +24,15 @@ export function metaOf(component: { readonly name: string }): ExampleMeta {
 	return component
 }
 
-// Each example loads its code module once, and each frame of it shares the
-// load. A failed load gives no code, so the block stays empty until the next
+// Each example loads its code once, and each frame of it shares the load. The
+// examples of a folder share one code module. A failed load gives no code, so the block stays empty until the next
 // page load.
 const loads = new WeakMap<ExampleMeta, Promise<ExampleCode | undefined>>()
 
 function loadCode(meta: ExampleMeta): Promise<ExampleCode | undefined> {
 	return getOrCompute(loads, meta, () =>
 		meta.code().then(
-			({ default: code }) => {
+			(code) => {
 				// The markup from the build paints in the first frame of the block.
 				primeCodeBlock({ code: code.code, html: code.html })
 

@@ -94,7 +94,7 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 4.7 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
 
-4.8 Biome's `noExcessiveCognitiveComplexity` is an error in the source of `ui`, `apps`, `auth`, and `shared`. Tests, benchmarks, and the legacy docs app are out of its reach. Split a function that breaks the rule. Do not suppress it.
+4.8 Biome's `noExcessiveCognitiveComplexity` is an error in the source of `ui`, `apps`, `auth`, and `shared`. Tests and benchmarks are out of its reach. Split a function that breaks the rule. Do not suppress it.
 
 ## 5. Styling
 
@@ -153,7 +153,6 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 | App | `apps/<app>/src/__tests__/**/*.test.ts` |
 | `ui` component | `packages/ui/src/__tests__/` |
 | `ui` docs app | `packages/ui/src/docs/__tests__/` |
-| `ui` legacy docs engine | `packages/ui/src/docs-legacy/engine/__tests__/` |
 | `auth`, `shared` | `packages/<package>/src/__tests__/` |
 
 10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.

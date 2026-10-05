@@ -74,8 +74,8 @@ const SKIP = new Set(['node_modules', 'dist'])
  * A local collector rather than `walkSource`, whose `SKIP` set is module-private
  * and whose `skip` parameter only adds to it, so a caller can prune more and
  * never less. Naming the pruned roots instead of walking them does not scale:
- * the tree holds four such trees, because the docs engine keeps its own pair
- * under `docs-legacy/engine/`, and a list of roots goes quietly stale when a fifth
+ * the tree holds three such trees, because the docs app keeps its own
+ * `docs/__tests__/`, and a list of roots goes quietly stale when a fourth
  * appears. A walk blind to any of them reads a file that exists as a dangling
  * citation.
  *
@@ -448,8 +448,7 @@ describe('comment reference boundary', () => {
 
 		// Comments only, read from the parse. `extractComments` gives the reason
 		// that a scan without parser context fails. Reading comments alone keeps
-		// a synthetic path out of the result: the docs engine's api-extractor
-		// suite asserts on the path of a test file that is not supposed to exist.
+		// a path in code out of the result, such as a fixture name in a string.
 		const sources = server.parse(
 			holders.flatMap(({ file, markdown }) => (markdown === undefined ? file : [])),
 		)
