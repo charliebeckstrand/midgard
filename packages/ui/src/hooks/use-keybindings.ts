@@ -17,8 +17,10 @@ export type KeybindingsOptions = {
 	capture?: boolean
 	/**
 	 * Predicate that returns true to skip an event. The tinykeys default skips
-	 * events originating inside form fields and contenteditable elements; pass
-	 * `() => false` to fire regardless of focus (e.g. ⌘K openers).
+	 * events originating inside form fields and contenteditable elements. Pass
+	 * `() => false` to fire regardless of focus, for a key that a form field never
+	 * uses. To extend the default, call `defaultKeybindingsHandlerIgnore` from
+	 * tinykeys in the predicate, as `CommandPalette` does.
 	 */
 	ignore?: KeybindingFilter
 }
