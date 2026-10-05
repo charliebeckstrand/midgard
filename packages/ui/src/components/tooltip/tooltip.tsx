@@ -1,7 +1,7 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import type { ReactNode } from 'react'
+import type { FloatingPlacement } from '../../hooks'
 import { TooltipContext } from './context'
 import { useTooltipState } from './use-tooltip-state'
 
@@ -9,9 +9,11 @@ import { useTooltipState } from './use-tooltip-state'
 export type TooltipProps = {
 	/**
 	 * Preferred side/alignment of the content relative to the trigger; flips on collision.
+	 * A `<side>-auto` value aligns the content to the edge of the trigger that is nearer to
+	 * the edge of the viewport.
 	 * @defaultValue 'top'
 	 */
-	placement?: Placement
+	placement?: FloatingPlacement
 	/**
 	 * What opens the tooltip. Keyboard focus opens it with each value.
 	 *

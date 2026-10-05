@@ -13,7 +13,7 @@ import {
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
-import { bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -862,5 +862,55 @@ describe('CommandPalette onActiveChange', () => {
 		)
 
 		expect(onActiveChange).toHaveBeenLastCalledWith(null)
+	})
+})
+
+describe('CommandPalette uncontrolled mode', () => {
+	const MOD_K = { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true, cancelable: true }
+
+	it('opens from defaultOpen and closes from the Close button', async () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette defaultOpen onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(bySlot(document.body, 'command-palette-input')).toBeInTheDocument()
+
+		await setupUser().click(screen.getByRole('button', { name: 'Close' }))
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+
+		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
+	})
+
+	it('opens from the shortcut with no open prop', () => {
+		renderUI(
+			<CommandPalette>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
+
+		act(() => {
+			window.dispatchEvent(new KeyboardEvent('keydown', MOD_K))
+		})
+
+		expect(bySlot(document.body, 'command-palette-input')).toBeInTheDocument()
+	})
+})
+
+describe('CommandPalette glass', () => {
+	it('gives glass to the Dialog panel', () => {
+		renderUI(
+			<CommandPalette open glass>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(screen.getByRole('dialog')).toHaveAttribute('data-glass', '')
 	})
 })

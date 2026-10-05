@@ -8,11 +8,18 @@ import {
 	type KeybindingsMap,
 } from 'tinykeys'
 import { cn } from '../../core'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
-import { Dialog, DialogBody, DialogFooter, type DialogPanelVariants } from '../dialog'
+import {
+	Dialog,
+	DialogBody,
+	DialogFooter,
+	type DialogPanelVariants,
+	type DialogProps,
+} from '../dialog'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { CommandPaletteClose } from './command-palette-close'
@@ -29,18 +36,19 @@ const IGNORE_TAKEN: KeybindingFilter = (event) => event.defaultPrevented
 const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
 	event.defaultPrevented || defaultKeybindingsHandlerIgnore(event)
 
-/** Props for {@link CommandPalette}; inherits the Dialog `width` variant. */
-export type CommandPaletteProps = {
+/**
+ * Props for {@link CommandPalette}. The open state (`open` or `defaultOpen`) and
+ * `glass` come from {@link DialogProps}.
+ */
+export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen' | 'glass'> & {
 	/** The maximum width of the panel. @defaultValue '2xl' */
 	width?: DialogPanelVariants['width']
-	/** Whether the palette is open. The palette is controlled only, so pair it with `onOpenChange`. */
-	open: boolean
 	/**
 	 * Fires with the open state that the palette asks for: `true` from
 	 * `triggerShortcut` while closed, and `false` from `triggerShortcut`, Escape, a
 	 * backdrop click, the Close button, or a chosen item while open.
 	 */
-	onOpenChange: (open: boolean) => void
+	onOpenChange?: (open: boolean) => void
 	/**
 	 * Fires with the id of the option the keyboard highlight sits on, or `null`
 	 * when nothing is highlighted.
@@ -105,7 +113,9 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 
 /**
  * Searchable command launcher in a modal dialog; items read the query via
- * {@link useCommandPaletteQuery} for client-side filtering.
+ * {@link useCommandPaletteQuery} for client-side filtering. Drives open state
+ * controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), as
+ * {@link Dialog} does. An uncontrolled palette opens from `triggerShortcut` alone.
  *
  * @remarks Focus moves into the search input on open via the Dialog
  * `initialFocus`. Arrow keys drive a virtual roving highlight via
@@ -120,8 +130,10 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * Roving type-ahead stays off: the search input owns every printable key.
  */
 export function CommandPalette({
-	open,
+	open: openProp,
+	defaultOpen,
 	onOpenChange,
+	glass,
 	onActiveChange,
 	placeholder = 'Type a command or search',
 	dismissOnBackdrop = true,
@@ -131,6 +143,14 @@ export function CommandPalette({
 	triggerShortcut = DEFAULT_TRIGGER_SHORTCUT,
 	children,
 }: CommandPaletteProps) {
+	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`,
+	// as in Dialog. The shortcut, the items, and the dialog share this one setter.
+	const [open, setOpen] = useControllableFlag({
+		value: openProp,
+		defaultValue: defaultOpen,
+		onValueChange: onOpenChange,
+	})
+
 	const {
 		query,
 		deferredQuery,
@@ -141,7 +161,7 @@ export function CommandPalette({
 		onKeyDown,
 		context,
 		virtualSourceRef,
-	} = useCommandPaletteState({ open, onOpenChange, onActiveChange })
+	} = useCommandPaletteState({ open, onOpenChange: setOpen, onActiveChange })
 
 	const triggerBindings = useMemo<KeybindingsMap>(() => {
 		if (triggerShortcut === false) return {}
@@ -151,11 +171,11 @@ export function CommandPalette({
 		const toggle = (event: KeyboardEvent) => {
 			event.preventDefault()
 
-			onOpenChange(!open)
+			setOpen(!open)
 		}
 
 		return Object.fromEntries(keys.map((key) => [key, toggle]))
-	}, [triggerShortcut, open, onOpenChange])
+	}, [triggerShortcut, open, setOpen])
 
 	// An open palette listens in the capture phase, so it takes the press before
 	// a closed palette on the page can open over it.
@@ -172,10 +192,11 @@ export function CommandPalette({
 	return (
 		<Dialog
 			open={open}
-			onOpenChange={onOpenChange}
+			onOpenChange={setOpen}
 			align="top"
 			dismissOnBackdrop={dismissOnBackdrop}
 			width={width}
+			glass={glass}
 			className={className}
 			initialFocus={inputRef}
 			// Names the dialog directly; the palette has no visible heading.

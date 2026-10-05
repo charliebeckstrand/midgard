@@ -16,12 +16,7 @@ type PopoverContextValue = {
 	/** Reports the role of the panel. {@link PopoverContent} calls it. */
 	setDialog: (dialog: boolean) => void
 	setOpen: (open: boolean) => void
-	/**
-	 * Published for a dismiss affordance composed inside the panel — the
-	 * conventional `PopoverClose`. No consumer reads it yet, and the context
-	 * itself is unexported, so both fields read as dead; they are the seam that
-	 * affordance would use.
-	 */
+	/** Closes the popover. {@link PopoverClose} calls it. */
 	close: () => void
 	triggerRef: RefObject<HTMLElement | null>
 	setReference: (node: HTMLElement | null) => void
