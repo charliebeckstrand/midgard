@@ -16,7 +16,6 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { capitalizeFirst } from '../../utilities'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
@@ -86,7 +85,7 @@ type ListboxBaseProps = GroupStampProps & {
 	 */
 	truncateTooltip?: boolean
 	/**
-	 * Capitalizes the first letter (first word only) of the selected
+	 * Capitalizes the first letter (first word only) of each selected
 	 * `displayValue` and of each option's string label; custom label nodes
 	 * render as authored. Display-only: the underlying value is untouched.
 	 * @defaultValue true
@@ -331,11 +330,8 @@ export function Listbox<T>({
 		onBlur?.(event)
 	}
 
-	const resolvedLabel = resolveLabel({ value, displayValue, multiple })
-
-	// First-word-capitalize the resolved display string at the source; the
-	// trigger button renders it verbatim (`undefined` skips the placeholder).
-	const label = capitalize && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
+	// The trigger button renders the label verbatim (`undefined` skips the placeholder).
+	const label = resolveLabel({ value, displayValue, multiple, capitalize })
 
 	const hasValue = hasListboxValue(value, multiple)
 
