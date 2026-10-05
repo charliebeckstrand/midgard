@@ -1,6 +1,7 @@
 'use client'
 
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import { randomId } from '../../utilities/random-id'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatPart } from './engine/chat-content/types'
 import { draftContent } from './engine/chat-draft'
@@ -234,7 +235,7 @@ export function useChatSend({
 	onError,
 }: ChatSendOptions): ChatSend {
 	const [messages, setMessages] = useState<ChatMessageData[]>(() =>
-		seedMessages(initialMessages ?? [], () => crypto.randomUUID()),
+		seedMessages(initialMessages ?? [], randomId),
 	)
 
 	useDuplicateSeedIdWarning(initialMessages)
@@ -255,7 +256,7 @@ export function useChatSend({
 			controllerRef.current = controller
 
 			// Minted before the stream, so a failure can name this send's own bubble.
-			const replyId = crypto.randomUUID()
+			const replyId = randomId()
 
 			await streamReply(transport, text, controller.signal, {
 				open: () => setMessages((prev) => openReply(prev, replyId)),
@@ -301,7 +302,7 @@ export function useChatSend({
 			if (!text) return
 
 			// Minted outside the updater, which React can run more than once.
-			const userId = crypto.randomUUID()
+			const userId = randomId()
 
 			setMessages((prev) => appendUserMessage(prev, userId, text))
 

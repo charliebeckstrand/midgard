@@ -87,7 +87,7 @@ export function CommandPaletteHeading({ className, id, ...props }: CommandPalett
 	return (
 		<div
 			id={headingId}
-			data-slot="command-palette-title"
+			data-slot="command-palette-heading"
 			className={cn(k.title, className)}
 			{...props}
 		/>

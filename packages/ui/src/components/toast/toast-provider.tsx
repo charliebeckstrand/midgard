@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { randomId } from '../../utilities/random-id'
 import {
 	ToastContext,
 	type ToastContextValue,
@@ -98,7 +99,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const toast = useCallback(
 		(data: ToastInput) => {
-			const id = data.id ?? crypto.randomUUID()
+			const id = data.id ?? randomId()
 
 			toastsRef.current = [
 				...toastsRef.current,
