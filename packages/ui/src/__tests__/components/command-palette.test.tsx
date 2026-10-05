@@ -11,6 +11,7 @@ import {
 	CommandPaletteLabel,
 	type CommandPaletteProps,
 	CommandPaletteText,
+	useCommandPaletteDeferredQuery,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
@@ -19,6 +20,7 @@ import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
 	act,
 	bySlot,
+	deferred,
 	fireEvent,
 	getSlot,
 	renderUI,
@@ -37,12 +39,22 @@ type FilteredItemsProps = {
 
 // Items that filter against the deferred query via the query context,
 // mirroring real usage.
-function FilteredItems({ labels = FILTER_ITEMS }: FilteredItemsProps) {
+function FilteredItems({
+	labels = FILTER_ITEMS,
+	onAction,
+}: FilteredItemsProps & {
+	/** Runs with the label of the item that the palette runs. */
+	onAction?: (label: string) => void
+}) {
 	const { deferredQuery } = useCommandPaletteQuery()
 
 	return labels
 		.filter((label) => label.toLowerCase().includes(deferredQuery.toLowerCase()))
-		.map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
+		.map((label) => (
+			<CommandPaletteItem key={label} onAction={onAction && (() => onAction(label))}>
+				{label}
+			</CommandPaletteItem>
+		))
 }
 
 function FilteredPalette({
@@ -471,6 +483,51 @@ describe('CommandPalette results that change under an unchanged query', () => {
 		expect(input).toHaveAttribute('aria-activedescendant', 'top')
 
 		expect(scrollToIndex).not.toHaveBeenCalled()
+	})
+})
+
+// Suspends the render that brings the deferred query to `query` until `gate`
+// settles. Thus the deferred query lags the input, as it does while a long list
+// renders.
+function DeferredQueryGate({ query, gate }: { query: string; gate: Promise<void> }) {
+	if (useCommandPaletteDeferredQuery() === query) use(gate)
+
+	return null
+}
+
+describe('CommandPalette Enter while the deferred query lags', () => {
+	it('runs the top result of the typed query once the results render', async () => {
+		const gate = deferred()
+
+		const onAction = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<DeferredQueryGate query="b" gate={gate.promise} />
+				<FilteredItems onAction={onAction} />
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		// The highlight sits on Alpha, which the query "b" filters out.
+		await setupUser().keyboard('{ArrowDown}')
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'b' } })
+		})
+
+		expect(input).toHaveValue('b')
+
+		expect(screen.getAllByRole('option')).toHaveLength(3)
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onAction).not.toHaveBeenCalled()
+
+		await act(async () => gate.resolve())
+
+		expect(onAction.mock.calls).toEqual([['Beta']])
 	})
 })
 

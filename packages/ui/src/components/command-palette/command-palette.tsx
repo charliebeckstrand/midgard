@@ -128,9 +128,10 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * @remarks Focus moves into the search input on open via the Dialog
  * `initialFocus`. Arrow keys drive a virtual roving highlight via
  * `aria-activedescendant` while focus stays on the input. A filter change
- * moves the highlight to the top result, so Enter runs it. On a device with no
- * hover, such as a phone, a filter change clears the highlight, and only an
- * arrow key sets it. The listbox owns only options (`aria-required-children`),
+ * moves the highlight to the top result, so Enter runs it. An Enter that lands
+ * before the deferred results catch up waits for them, and then runs the top
+ * result. On a device with no hover, such as a phone, a filter change clears
+ * the highlight, and only an arrow key sets it. The listbox owns only options (`aria-required-children`),
  * so the no-results message lives in a sibling live `<output>`. The output
  * stays in the accessibility tree, and the palette writes its text when the
  * filtered set empties, so the change of text announces. While no option

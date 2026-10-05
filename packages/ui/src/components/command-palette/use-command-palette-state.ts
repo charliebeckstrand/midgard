@@ -132,6 +132,9 @@ function createSourceRegistry(
  * close that clears it.
  * `empty` is true while the listbox holds no result. It drives the no-results
  * text and `aria-expanded`, and `attachList` attaches the listbox it reads.
+ * An Enter that lands while the deferred query lags the input waits for the
+ * results of the query, and then runs the highlighted row. A new keystroke,
+ * Escape, a close, or a change of the query drops it.
  *
  * @internal
  * @see {@link useA11yRoving}
@@ -148,6 +151,16 @@ export function useCommandPaletteState({
 	const deferredQueryInternal = useDeferredValue(query)
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
+
+	// True while the deferred query lags the input. The listbox then holds the
+	// results of an earlier query, and the highlight sits on one of them.
+	const lagging = query !== deferredQuery
+
+	// An Enter that landed while the deferred query lagged, and the query that it
+	// landed on. It waits for the results of that query.
+	const heldEnterRef = useRef<{ event: KeyboardEvent<HTMLInputElement>; query: string } | null>(
+		null,
+	)
 
 	const listboxId = useId()
 
@@ -243,7 +256,21 @@ export function useCommandPaletteState({
 	// composition takes Enter and the arrows (shared with Combobox).
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
+			// A new keystroke drops a held Enter, and so does Escape.
+			heldEnterRef.current = null
+
 			if (isReservedTextboxKey(event)) return
+
+			// An Enter that lands before the results of the query render would run a
+			// result of an earlier query. The palette takes the key and holds it until
+			// the results catch up.
+			if (event.key === 'Enter' && lagging) {
+				event.preventDefault()
+
+				heldEnterRef.current = { event, query }
+
+				return
+			}
 
 			const before = inputRef.current?.getAttribute('aria-activedescendant')
 
@@ -258,7 +285,7 @@ export function useCommandPaletteState({
 
 			reportActiveFromDom()
 		},
-		[rovingKeyDown, reportActiveFromDom],
+		[lagging, query, rovingKeyDown, reportActiveFromDom],
 	)
 
 	// On each filter change, moves the keyboard highlight to the top result so
@@ -294,6 +321,23 @@ export function useCommandPaletteState({
 
 		reportActiveFromDom()
 	}, [deferredQuery, open, reportActiveFromDom, virtualSourceRef])
+
+	// Runs a held Enter when the deferred query catches up. The seed effect above
+	// runs first in the same commit, so the Enter runs the highlighted row of the
+	// new results. A caught-up list with no result has no highlighted row, so the
+	// Enter runs nothing. A close drops the Enter, and so does a change of the
+	// query that no keystroke made, such as a paste from the mouse.
+	useEffect(() => {
+		const held = heldEnterRef.current
+
+		if (!held) return
+
+		if (open && held.query === query && lagging) return
+
+		heldEnterRef.current = null
+
+		if (open && held.query === query) rovingKeyDown(held.event)
+	}, [lagging, open, query, rovingKeyDown])
 
 	// Resets the query when closed, during render rather than in an effect, so
 	// the closing palette paints no stale filter.
