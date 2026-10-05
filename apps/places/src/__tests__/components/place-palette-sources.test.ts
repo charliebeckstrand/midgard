@@ -1,3 +1,4 @@
+import type { ContextMenuItem } from 'ui/context-menu'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	actionSource,
@@ -7,6 +8,9 @@ import {
 import { matchCommands } from '../../utilities/places-palette'
 import { UNITED_STATES } from '../../utilities/places-view'
 import { place } from '../fixtures'
+
+/** Menu actions that do nothing, for the cases that are not about the menu. */
+const NO_ACTIONS = { onAddVisit: () => {}, onEdit: () => {}, onDelete: () => {} }
 
 describe('placeSource', () => {
 	const places = [
@@ -26,13 +30,13 @@ describe('placeSource', () => {
 	]
 
 	it('holds the places newest first, and shows them for an empty query', () => {
-		const source = placeSource(places, () => {})
+		const source = placeSource(places, () => {}, NO_ACTIONS)
 
 		expect(matchCommands(source, '').map((command) => command.id)).toEqual(['new', 'old'])
 	})
 
 	it('describes a place by its city and its state or country', () => {
-		const [tokyo, falls] = placeSource(places, () => {}).commands
+		const [tokyo, falls] = placeSource(places, () => {}, NO_ACTIONS).commands
 
 		expect(tokyo?.description).toBe('Tokyo, Japan')
 
@@ -42,7 +46,7 @@ describe('placeSource', () => {
 	it('matches the place and category text, and opens the place on a pick', () => {
 		const openPlace = vi.fn()
 
-		const source = placeSource(places, openPlace)
+		const source = placeSource(places, openPlace, NO_ACTIONS)
 
 		expect(matchCommands(source, 'nature').map((command) => command.id)).toEqual(['old'])
 
@@ -51,6 +55,26 @@ describe('placeSource', () => {
 		matchCommands(source, 'ichiran')[0]?.run()
 
 		expect(openPlace).toHaveBeenCalledWith(places[1])
+	})
+
+	it('gives each place the rows of the place menu', () => {
+		const actions = { onAddVisit: vi.fn(), onEdit: vi.fn(), onDelete: vi.fn() }
+
+		const [tokyo] = placeSource(places, () => {}, actions).commands
+
+		const items = (tokyo?.menu ?? []).filter(
+			(entry): entry is ContextMenuItem => 'onAction' in entry,
+		)
+
+		expect(items.map((item) => item.label)).toEqual(['Add visit', 'Edit', 'Delete'])
+
+		for (const item of items) item.onAction?.()
+
+		expect(actions.onAddVisit).toHaveBeenCalledWith(places[1])
+
+		expect(actions.onEdit).toHaveBeenCalledWith(places[1])
+
+		expect(actions.onDelete).toHaveBeenCalledWith(places[1])
 	})
 })
 

@@ -1,12 +1,11 @@
 'use client'
 
-import { CalendarDays, Globe, MapPin, Pencil, Trash, X } from 'lucide-react'
+import { CalendarDays, Globe, MapPin, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
-import { Button } from 'ui/button'
 import { Divider } from 'ui/divider'
-import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
+import { Drawer, DrawerBody, DrawerClose, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
@@ -16,9 +15,17 @@ import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE } from '../../constants'
-import type { Place, PlaceCategory } from '../../types'
+import type { Place, PlaceCategory, Visit } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
+import { latestVisit } from '../../utilities/places-visits'
 import { CategoryPicker } from '../category-picker'
+import {
+	type PlaceActions,
+	PlaceMenu,
+	placeMenuItems,
+	type VisitActions,
+	visitMenuItems,
+} from '../place-menu'
 import { PlaceTrail } from '../place-trail'
 
 /** Props for {@link PlaceDrawer}. */
@@ -48,44 +55,56 @@ export type PlaceDrawerProps = {
 	 * and answers nothing is worse than one that never offered.
 	 */
 	onNavigate: (region: string) => void
-	/** Opens the place for an edit. */
-	onEdit: (place: Place) => void
-	/** Asks for the place to be deleted. The confirmation is the caller's. */
-	onDelete: (place: Place) => void
+	/**
+	 * What the menus of the open place and of its visits do. The panels and the
+	 * confirmations are the caller's.
+	 */
+	actions: PlaceActions & VisitActions
 }
 
 /**
- * The visit date, category, and score — the line under a place's name. It is
+ * The category, the date and the score of the newest visit, and the number of
+ * visits where there is more than one — the line under a place's name. It is
  * spans, because a list row puts it inside a button, and a flex line lays out
  * the same either way.
  */
 function PlaceMeta({ place }: { place: Place }) {
 	const category = CATEGORY_BY_VALUE.get(place.category)
 
+	const latest = latestVisit(place)
+
 	return (
 		<Flex as="span" gap="sm" align="center" wrap>
 			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
 
-			<Text as="span">{fromDay(place.visitedAt).toLocaleDateString()}</Text>
+			<Text as="span">{fromDay(latest.visitedAt).toLocaleDateString()}</Text>
 
-			{place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null}
+			{latest.rating > 0 ? <Rating readOnly value={latest.rating} size="sm" /> : null}
+
+			{place.visits.length > 1 ? (
+				<Text as="span" tone="muted">
+					{place.visits.length} visits
+				</Text>
+			) : null}
 		</Flex>
 	)
 }
 
 /**
- * The category and the score of one open place, under the trail. The visit
- * date is not on this line. The date is a fact about the visit, so it goes
- * with the other facts in the body.
+ * The category and the score of the newest visit of one open place, under the
+ * trail. The visit dates are not on this line. A date is a fact about a visit,
+ * so it goes with the visit in the body.
  */
 function PlaceScore({ place }: { place: Place }) {
 	const category = CATEGORY_BY_VALUE.get(place.category)
+
+	const { rating } = latestVisit(place)
 
 	return (
 		<Flex gap="sm" align="center" wrap>
 			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
 
-			{place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null}
+			{rating > 0 ? <Rating readOnly value={rating} size="sm" /> : null}
 		</Flex>
 	)
 }
@@ -107,42 +126,78 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 }
 
 /**
- * The body of the drawer over one place: its photo, its address, its web
- * address, the visit date, and the review.
+ * One visit to the open place: the date and the score with the menu of the
+ * visit, then the photos and the review.
  */
-function PlaceDetails({ place }: { place: Place }) {
+function PlaceVisit({
+	place,
+	visit,
+	actions,
+}: {
+	place: Place
+	visit: Visit
+	actions: VisitActions
+}) {
+	const day = fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })
+
 	return (
-		<Stack gap="md" className="pb-6">
+		<Stack gap="sm">
+			<Flex justify="between" align="center" gap="sm">
+				<PlaceFact icon={<CalendarDays />}>
+					<Flex gap="sm" align="center" wrap>
+						<Text>Visited {day}</Text>
+
+						{visit.rating > 0 ? <Rating readOnly value={visit.rating} size="sm" /> : null}
+					</Flex>
+				</PlaceFact>
+
+				<PlaceMenu
+					items={visitMenuItems(place, visit, actions)}
+					aria-label={`Actions for the visit on ${day}`}
+				/>
+			</Flex>
+
 			{/* `next/image` with `unoptimized`: the address is the one that the
 			    reader typed, so the host is not known at build time. The optimizer
 			    serves only the hosts that `images.remotePatterns` lists, so the
 			    browser gets the photo from its own address. The name is the alt
 			    text because it is the one thing known about the picture.
 
-			    One square, stated on both axes, so every place reads the same
-			    however its photo was shot. `max-h-48 w-full` clamped the tall
-			    ones only: a panoramic shot scaled to the panel's width came out
-			    under the cap and drew a thin strip, a portrait one filled it, and
-			    the address below them landed somewhere different each time — and
-			    on a wide panel the picture ran the whole width, which is a banner
-			    rather than a thumbnail. A square answers both, and it holds its
-			    size as the panel resizes, where a full-width band grew with it.
-
-			    Stating the size also reserves the space before the picture
-			    arrives; unsized, the `img` laid out at nothing and shoved the
-			    text down on load. `object-cover` fills the box and crops the
-			    overflow, which is what makes one size honest for any aspect. */}
-			{place.photo ? (
-				<Image
-					src={place.photo}
-					alt={place.name}
-					width={128}
-					height={128}
-					unoptimized
-					className="size-32 rounded-lg bg-white/5 object-cover"
-				/>
+			    Squares, stated on both axes, so every photo reads the same however
+			    it was shot, and the row wraps them at any panel width. Stating the
+			    size also reserves the space before the picture arrives; unsized,
+			    the `img` laid out at nothing and shoved the text down on load.
+			    `object-cover` fills the box and crops the overflow, which is what
+			    makes one size honest for any aspect. */}
+			{visit.photos.length > 0 ? (
+				<Flex gap="sm" wrap>
+					{visit.photos.map((photo, at) => (
+						<Image
+							// The address alone is not unique: a reader can add one photo twice.
+							key={`${at}:${photo}`}
+							src={photo}
+							alt={place.name}
+							width={96}
+							height={96}
+							unoptimized
+							className="size-24 rounded-lg bg-white/5 object-cover"
+						/>
+					))}
+				</Flex>
 			) : null}
 
+			{visit.review ? <Text>{visit.review}</Text> : null}
+		</Stack>
+	)
+}
+
+/**
+ * The body of the drawer over one place: its address, its web address, and its
+ * visits, newest first.
+ */
+function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions }) {
+	return (
+		<Stack gap="md" className="pb-6">
 			<Stack gap="sm">
 				<PlaceFact icon={<MapPin />}>
 					<Text>{place.address}</Text>
@@ -155,26 +210,15 @@ function PlaceDetails({ place }: { place: Place }) {
 						</Link>
 					</PlaceFact>
 				) : null}
-
-				<PlaceFact icon={<CalendarDays />}>
-					<Text>
-						Visited{' '}
-						{fromDay(place.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-					</Text>
-				</PlaceFact>
 			</Stack>
 
-			{place.review ? (
-				<>
+			{place.visits.map((visit) => (
+				<Stack key={visit.id} gap="md">
 					<Divider className="my-2" />
 
-					<Stack gap="sm">
-						<Text className="font-medium">Your review</Text>
-
-						<Text>{place.review}</Text>
-					</Stack>
-				</>
-			) : null}
+					<PlaceVisit place={place} visit={visit} actions={actions} />
+				</Stack>
+			))}
 		</Stack>
 	)
 }
@@ -262,8 +306,7 @@ export function PlaceDrawer({
 	regionPlaces,
 	onOpenChange,
 	onNavigate,
-	onEdit,
-	onDelete,
+	actions,
 }: PlaceDrawerProps) {
 	// Which place of a group is open, by id. The pick is held rather than derived,
 	// because a group is a list until the reader picks from it; the id rather than
@@ -423,14 +466,26 @@ export function PlaceDrawer({
 					{place ? <PlaceScore place={place} /> : null}
 				</Stack>
 
-				<DrawerClose>
-					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-				</DrawerClose>
+				{/* The menu of the open place sits by the close, where a list row of My
+				    places has its own. A list row in this panel is a way into a place,
+				    not a place, so the list has no menu. */}
+				<Flex gap="xs" align="center" className="shrink-0">
+					{place ? (
+						<PlaceMenu
+							items={placeMenuItems(place, actions)}
+							aria-label={`Actions for ${place.name}`}
+						/>
+					) : null}
+
+					<DrawerClose>
+						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+					</DrawerClose>
+				</Flex>
 			</Flex>
 
 			<DrawerBody>
 				{place ? (
-					<PlaceDetails place={place} />
+					<PlaceDetails place={place} actions={actions} />
 				) : (
 					<PlaceList
 						shown={shown}
@@ -445,34 +500,6 @@ export function PlaceDrawer({
 					/>
 				)}
 			</DrawerBody>
-
-			{/* Only over a place, because both actions act on one. A list row is a way
-			    into a place, not a place — an Edit over the list would have nothing to
-			    open. They sit where the form drawer's own actions sit, so the panel a
-			    reader edits in and the panel they edit from answer the same corner. */}
-			{place ? (
-				<DrawerFooter>
-					<Flex justify="end" align="center" gap="sm" full>
-						<Button
-							variant="plain"
-							color="blue"
-							prefix={<Icon icon={<Pencil />} />}
-							onClick={() => onEdit(place)}
-						>
-							Edit
-						</Button>
-
-						<Button
-							variant="plain"
-							color="red"
-							prefix={<Icon icon={<Trash />} />}
-							onClick={() => onDelete(place)}
-						>
-							Delete
-						</Button>
-					</Flex>
-				</DrawerFooter>
-			) : null}
 		</Drawer>
 	)
 }

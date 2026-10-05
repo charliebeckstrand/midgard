@@ -15,6 +15,8 @@ import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
 import { openingRegion, regionsHolding, stateLabel } from '../../utilities/places-view'
+import { latestVisit } from '../../utilities/places-visits'
+import { type PlaceActions, PlaceMenu, placeMenuItems } from '../place-menu'
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -58,6 +60,8 @@ export type PlacesIndexProps = {
 	region?: string | null
 	/** Opens one place: the caller selects it and takes the map to it. */
 	onOpen: (place: Place) => void
+	/** What the menu of each row does. */
+	actions: PlaceActions
 }
 
 /**
@@ -84,6 +88,7 @@ export function PlacesIndex({
 	stateByPlace,
 	region,
 	onOpen,
+	actions,
 }: PlacesIndexProps) {
 	const [picked, setPicked] = useState<string | null>(null)
 
@@ -159,21 +164,37 @@ export function PlacesIndex({
 			{
 				id: 'visited',
 				title: 'Visited',
-				// The stored day sorts and the local rendering shows. Sorted on the
-				// rendered date, 2026-01-05 and 2026-05-01 order by the reader's own
-				// notation rather than by when they went.
-				value: (place) => place.visitedAt,
-				cell: (place) => fromDay(place.visitedAt).toLocaleDateString(),
+				// The newest visit. The stored day sorts and the local rendering shows.
+				// Sorted on the rendered date, 2026-01-05 and 2026-05-01 order by the
+				// reader's own notation rather than by when they went.
+				value: (place) => latestVisit(place).visitedAt,
+				cell: (place) => fromDay(latestVisit(place).visitedAt).toLocaleDateString(),
 			},
 			{
 				id: 'rating',
 				title: 'Rating',
-				value: (place) => place.rating,
-				cell: (place) =>
-					place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null,
+				// The score of the newest visit, which is what the place is like now.
+				value: (place) => latestVisit(place).rating,
+				cell: (place) => {
+					const { rating } = latestVisit(place)
+
+					return rating > 0 ? <Rating readOnly value={rating} size="sm" /> : null
+				},
+			},
+			{
+				id: 'actions',
+				// The ellipsis says what the column is, so the header names it for a
+				// screen reader alone.
+				title: <span className="sr-only">Actions</span>,
+				actions: (place) => (
+					<PlaceMenu
+						items={placeMenuItems(place, actions)}
+						aria-label={`Actions for ${place.name}`}
+					/>
+				),
 			},
 		],
-		[regionByPlace, stateByPlace],
+		[regionByPlace, stateByPlace, actions],
 	)
 
 	// Narrowed before the grid sees it, so the grid's own search, sort and count

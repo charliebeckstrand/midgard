@@ -12,6 +12,7 @@ import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import { flags } from '../../flags'
 import {
 	useAddPlace,
 	useAtlas,
@@ -21,8 +22,8 @@ import {
 	useSetVisit,
 	useVisits,
 } from '../../queries/places-queries'
-import type { Place, Visits } from '../../types'
-import { filterPlaces } from '../../utilities/places-filter'
+import type { Place, Visit, Visits } from '../../types'
+import { filterPlaces, fromDay } from '../../utilities/places-filter'
 import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import type { PaletteSource } from '../../utilities/places-palette'
 import {
@@ -47,7 +48,10 @@ import {
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
+import { placeDraft } from '../../utilities/places-visits'
 import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
+import type { PlaceFormTarget } from '../place-form-drawer'
+import type { PlaceActions, VisitActions } from '../place-menu'
 import { actionSource, PlacePalette, placeSource, regionSource } from '../place-palette'
 import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 import { PlacesMap } from '../places-map'
@@ -219,32 +223,44 @@ function VisitedToggle({
 	)
 }
 
+/** What a delete removes: a whole place, or one of its visits. */
+type Deletion = { place: Place; visit: Visit | null }
+
 /**
- * The confirmation before a delete. It is open while `place` is set, and it
- * names the place.
+ * The confirmation before a delete. It is open while `deletion` is set, and it
+ * names the place, or the day of the visit.
  */
 function DeleteConfirm({
-	place,
+	deletion,
 	onClose,
 	onDelete,
 }: {
-	place: Place | null
+	deletion: Deletion | null
 	onClose: () => void
-	onDelete: (place: Place) => void
+	onDelete: (deletion: Deletion) => void
 }) {
+	const visit = deletion?.visit ?? null
+
+	const title =
+		deletion === null
+			? ''
+			: visit === null
+				? `Delete "${deletion.place.name}"?`
+				: `Delete the visit on ${fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}?`
+
 	return (
 		<Confirm
-			open={place !== null}
+			open={deletion !== null}
 			onOpenChange={(next) => {
 				if (!next) onClose()
 			}}
 			onConfirm={() => {
-				if (place !== null) onDelete(place)
+				if (deletion !== null) onDelete(deletion)
 
 				onClose()
 			}}
-			title={place === null ? '' : `Delete "${place.name}"?`}
-			description={place === null ? undefined : 'This cannot be undone.'}
+			title={title}
+			description={deletion === null ? undefined : 'This cannot be undone.'}
 			confirm={{ label: 'Delete', color: 'red' }}
 		/>
 	)
@@ -293,14 +309,14 @@ function useActionCommands({
 	mark,
 	marked,
 	hasPlaces,
-	setAdding,
+	onAdd,
 	setListing,
 	onMark,
 }: {
 	mark: { scope: PlaceAtlas; region: string } | null
 	marked: boolean
 	hasPlaces: boolean
-	setAdding: (adding: boolean) => void
+	onAdd: () => void
 	setListing: (listing: boolean) => void
 	onMark: (mark: { scope: PlaceAtlas; region: string; visited: boolean }) => void
 }) {
@@ -312,7 +328,7 @@ function useActionCommands({
 	return useMemo(
 		() =>
 			actionSource({
-				onAdd: () => setAdding(true),
+				onAdd,
 				onList: hasPlaces ? () => setListing(true) : undefined,
 				mark: markRegion,
 				marked,
@@ -322,7 +338,7 @@ function useActionCommands({
 					}
 				},
 			}),
-		[hasPlaces, markScope, markRegion, marked, setAdding, setListing, onMark],
+		[hasPlaces, markScope, markRegion, marked, onAdd, setListing, onMark],
 	)
 }
 
@@ -530,7 +546,9 @@ export function PlacesApp({
 		openAt,
 	} = usePlaceLocation()
 
-	const [adding, setAdding] = useState(false)
+	// What the form drawer writes, or `null` while it is closed: a new place, an
+	// edit of one, or a visit to one.
+	const [form, setForm] = useState<PlaceFormTarget | null>(null)
 
 	// Whether the index is up. Its own bit rather than a mode of the drawers: it
 	// docks from the side and they dock from the bottom, so a reader can have a
@@ -538,12 +556,24 @@ export function PlacesApp({
 	// other leaves them with.
 	const [listing, setListing] = useState(false)
 
-	// The place the form drawer is editing, and the place the confirmation stands
-	// over. Both are `null` for "no such panel", which is also what opens the form
-	// on a new place.
-	const [editing, setEditing] = useState<Place | null>(null)
+	// What the confirmation stands over, or `null` for no confirmation.
+	const [deleting, setDeleting] = useState<Deletion | null>(null)
 
-	const [deleting, setDeleting] = useState<Place | null>(null)
+	// What the menus of a place and of a visit do, in every spot that shows one.
+	// Held, because the index columns and the palette source are memos keyed on it.
+	const actions = useMemo<PlaceActions & VisitActions>(
+		() => ({
+			onAddVisit: (place) => setForm({ kind: 'visit', place, visit: null }),
+			onEdit: (place) => setForm({ kind: 'place', place }),
+			onDelete: (place) => setDeleting({ place, visit: null }),
+			onEditVisit: (place, visit) => setForm({ kind: 'visit', place, visit }),
+			onDeleteVisit: (place, visit) => setDeleting({ place, visit }),
+		}),
+		[],
+	)
+
+	// Held for the palette's action source, which is a memo keyed on it.
+	const onAdd = useCallback(() => setForm({ kind: 'place', place: null }), [])
 
 	// The states atlas answers the opening question, so it is fetched whatever the
 	// view — and it is the atlas the app opened on before it drew anywhere else.
@@ -599,7 +629,7 @@ export function PlacesApp({
 
 	const panelsLoaded = usePanelPrefetch(settling)
 
-	const formOpen = adding || editing !== null
+	const formOpen = form !== null
 
 	const formRendered = usePanelRendered(formOpen, panelsLoaded)
 
@@ -615,7 +645,10 @@ export function PlacesApp({
 	// be the one region on the map a reader could never mark — they cross into it
 	// and it stops being somewhere they are. Its scope is its own, because that
 	// country is marked among countries while the atlas under it draws states.
-	const mark = viewMark(view)
+	//
+	// `null` while the visited regions feature is off, which takes the toggle and
+	// the Mark visited command away together.
+	const mark = flags.visitedRegions ? viewMark(view) : null
 
 	const marked = mark !== null && visits[mark.scope].includes(mark.region)
 
@@ -792,8 +825,13 @@ export function PlacesApp({
 	// The palette's sources. Each has its own memo, so a change to one does not
 	// build the others again: the regions sort more than 200 names.
 	const placeCommands = useMemo(
-		() => placeSource(places, (place) => openAt(viewForPlace(stateOfPlace, place), [place.id])),
-		[places, openAt, stateOfPlace],
+		() =>
+			placeSource(
+				places,
+				(place) => openAt(viewForPlace(stateOfPlace, place), [place.id]),
+				actions,
+			),
+		[places, openAt, stateOfPlace, actions],
 	)
 
 	// Every region of both atlases, whatever the view draws, so a reader can go to
@@ -815,7 +853,7 @@ export function PlacesApp({
 		mark,
 		marked,
 		hasPlaces: places.length > 0,
-		setAdding,
+		onAdd,
 		setListing,
 		onMark: setVisit.mutate,
 	})
@@ -838,7 +876,7 @@ export function PlacesApp({
 				cut={cut}
 				count={shown.length}
 				hasPlaces={places.length > 0}
-				onAdd={() => setAdding(true)}
+				onAdd={onAdd}
 				onList={() => setListing(true)}
 			/>
 
@@ -920,18 +958,17 @@ export function PlacesApp({
 			    part of the first load. */}
 			{formRendered ? (
 				<PlaceFormDrawer
-					open={formOpen}
+					target={form}
 					onOpenChange={(next) => {
-						setAdding(next)
-
-						if (!next) setEditing(null)
+						if (!next) setForm(null)
 					}}
-					place={editing}
-					onSubmit={(draft) =>
-						editing === null
+					onSubmit={(draft) => {
+						const place = form?.place ?? null
+
+						return place === null
 							? addPlace.mutateAsync(draft)
-							: savePlace.mutateAsync({ id: editing.id, draft })
-					}
+							: savePlace.mutateAsync({ id: place.id, draft })
+					}}
 				/>
 			) : null}
 
@@ -950,6 +987,7 @@ export function PlacesApp({
 					// they already made; clearing the filter widens it back to the bar's.
 					region={cut}
 					stateByPlace={stateByPlace}
+					actions={actions}
 					onOpen={(place) => {
 						// One step, not two: the view and the selection are both the address,
 						// so writing them apart would leave a history entry standing on a map
@@ -968,8 +1006,7 @@ export function PlacesApp({
 					regionPlaces={openedRegionPlaces}
 					onNavigate={onNavigate}
 					onOpenChange={() => setSelected([])}
-					onEdit={setEditing}
-					onDelete={setDeleting}
+					actions={actions}
 				/>
 			) : null}
 
@@ -977,9 +1014,23 @@ export function PlacesApp({
 			    no history — so it is the one that asks first. It names the place, because
 			    a reader who opened a summary has several in front of them. */}
 			<DeleteConfirm
-				place={deleting}
+				deletion={deleting}
 				onClose={() => setDeleting(null)}
-				onDelete={(place) => void deletePlace.mutateAsync(place.id)}
+				onDelete={({ place, visit }) => {
+					if (visit === null) {
+						void deletePlace.mutateAsync(place.id)
+
+						return
+					}
+
+					void savePlace.mutateAsync({
+						id: place.id,
+						draft: {
+							...placeDraft(place),
+							visits: place.visits.filter((held) => held.id !== visit.id),
+						},
+					})
+				}}
 			/>
 		</Flex>
 	)

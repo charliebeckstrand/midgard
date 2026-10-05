@@ -13,6 +13,7 @@ import {
 	CommandPaletteText,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
+import type { ContextMenuEntry } from 'ui/context-menu'
 import { useTimeout } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import {
@@ -20,6 +21,7 @@ import {
 	type PaletteCommand,
 	type PaletteSource,
 } from '../../utilities/places-palette'
+import { PlaceMenu } from '../place-menu'
 
 /**
  * How long, in milliseconds, the highlight must stay on a row before the
@@ -45,8 +47,35 @@ function optionId(prefix: string, source: number, command: number): string {
 	return `${prefix}${source}-${command}`
 }
 
+/**
+ * The rows of a command menu, each of which closes the palette before it acts.
+ * A row opens a panel or a confirmation, which the open palette would cover.
+ */
+function closingEntries(entries: ContextMenuEntry[], close: () => void): ContextMenuEntry[] {
+	return entries.map((entry) =>
+		'onAction' in entry
+			? {
+					...entry,
+					onAction: () => {
+						close()
+
+						entry.onAction?.()
+					},
+				}
+			: entry,
+	)
+}
+
 /** The groups that match the query. Only this part renders again on a keystroke. */
-function PaletteGroups({ sources, prefix }: { sources: readonly PaletteSource[]; prefix: string }) {
+function PaletteGroups({
+	sources,
+	prefix,
+	close,
+}: {
+	sources: readonly PaletteSource[]
+	prefix: string
+	close: () => void
+}) {
 	const query = useCommandPaletteDeferredQuery()
 
 	return sources.map((source, sourceIndex) => {
@@ -58,21 +87,35 @@ function PaletteGroups({ sources, prefix }: { sources: readonly PaletteSource[];
 			<CommandPaletteGroup key={source.heading}>
 				<CommandPaletteHeading>{source.heading}</CommandPaletteHeading>
 
-				{matches.map((command) => (
-					<CommandPaletteItem
-						key={command.id}
-						id={optionId(prefix, sourceIndex, source.commands.indexOf(command))}
-						onAction={command.run}
-					>
-						{command.icon}
-						<CommandPaletteText>
-							<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
-							{command.description === undefined ? null : (
-								<CommandPaletteDescription>{command.description}</CommandPaletteDescription>
-							)}
-						</CommandPaletteText>
-					</CommandPaletteItem>
-				))}
+				{matches.map((command) => {
+					const item = (
+						<CommandPaletteItem
+							key={command.id}
+							id={optionId(prefix, sourceIndex, source.commands.indexOf(command))}
+							onAction={command.run}
+						>
+							{command.icon}
+							<CommandPaletteText>
+								<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
+								{command.description === undefined ? null : (
+									<CommandPaletteDescription>{command.description}</CommandPaletteDescription>
+								)}
+							</CommandPaletteText>
+						</CommandPaletteItem>
+					)
+
+					return command.menu === undefined ? (
+						item
+					) : (
+						<PlaceMenu
+							key={command.id}
+							items={closingEntries(command.menu, close)}
+							aria-label={`Actions for ${command.label}`}
+						>
+							{item}
+						</PlaceMenu>
+					)
+				})}
 			</CommandPaletteGroup>
 		)
 	})
@@ -142,7 +185,7 @@ export function PlacePalette({ sources, ready }: PlacePaletteProps) {
 				placeholder="Search places, countries, and actions"
 				triggerShortcut={ready ? undefined : false}
 			>
-				<PaletteGroups sources={sources} prefix={prefix} />
+				<PaletteGroups sources={sources} prefix={prefix} close={() => setOpen(false)} />
 			</CommandPalette>
 		</div>
 	)
