@@ -1,7 +1,7 @@
 import { transformSync, traverse, types } from '@babel/core'
 import reactCompiler, { type LoggerEvent, OPT_OUT_DIRECTIVES } from 'babel-plugin-react-compiler'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
+import { docsSites, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The React Compiler skip gate. The compiler skips a function that it cannot
 // compile, or that breaks one of its rules. A skipped function runs as plain
@@ -19,9 +19,6 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 /** Each file with skips, and in it each skipped function with its cause. */
 type Skips = Record<string, Record<string, string>>
-
-/** The docs site. An app does not import it. `walkSource` leaves out the tests and the build output. */
-const SKIP = new Set(['docs'])
 
 /** A TypeScript source file, not a declaration file. */
 const SOURCE = /(?<!\.d)\.tsx?$/
@@ -146,7 +143,7 @@ function currentSkips(): Skips {
 
 			if (Object.keys(found).length > 0) skips[srcRelative(file)] = found
 		},
-		SKIP,
+		docsSites,
 	)
 
 	return Object.fromEntries(Object.entries(skips).sort(([a], [b]) => (a < b ? -1 : 1)))

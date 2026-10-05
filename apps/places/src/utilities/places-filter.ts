@@ -85,7 +85,13 @@ export function filterPlaces(places: readonly Place[], filter: PlaceFilterValue)
 	return places.filter((place) => {
 		if (categories !== undefined && !categories.includes(place.category)) return false
 
-		if (visited !== undefined && visited.length > 0 && !withinAny(place.visitedAt, visited)) {
+		// Any visit admits the place: a reader who went in March and in June went in
+		// March, whichever visit is the newest.
+		if (
+			visited !== undefined &&
+			visited.length > 0 &&
+			!place.visits.some((visit) => withinAny(visit.visitedAt, visited))
+		) {
 			return false
 		}
 

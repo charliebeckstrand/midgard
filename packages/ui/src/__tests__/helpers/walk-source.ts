@@ -33,6 +33,22 @@ export function isSourceFile(file: string): boolean {
 	return /\.(?:tsx?|mts|cts)$/.test(file)
 }
 
+/**
+ * The folders of the docs sites in {@link srcDir}. An app does not import a
+ * docs site, so a scan of the shipped tree gives this set as the `skip` of
+ * {@link walkSource}.
+ */
+export const docsSites: ReadonlySet<string> = new Set(['docs', 'docs-legacy'])
+
+/**
+ * The test folders of the docs sites. The `unit` and `pure` projects run them
+ * with `src/__tests__`, so each scan of those projects reads them too.
+ */
+export const docsTestDirs: readonly string[] = [
+	join(srcDir, 'docs', '__tests__'),
+	join(srcDir, 'docs-legacy', 'engine', '__tests__'),
+]
+
 // Entries a scan of the shipped tree must not descend into: test and bench
 // trees, build output, and dot-directories. A caller that scans the test tree
 // hands in its root directly, which no entry filter can prune — see

@@ -12,6 +12,7 @@ import {
 	FiltersSkeleton,
 } from 'ui/filters'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { flags } from '../../flags'
 import type { PlaceCategory } from '../../types'
 import {
 	hasActiveFilter,
@@ -118,27 +119,30 @@ export function PlaceFilters({
 
 					{/* A paint filter, not a place filter: it decides which regions carry the
 					    visited fill and never which dots are drawn. Cleared, no region is
-					    painted and the map reads as one surface with the places on it. */}
-					<FiltersField name="visitedRegions" className="w-52">
-						{({ value: picked, onValueChange: setPicked }) => (
-							<Listbox<PlaceVisitFilter>
-								aria-label="Visited"
-								placeholder="Visited or not"
-								clearable
-								displayValue={(choice) => (choice === 'visited' ? 'Visited' : 'Not visited')}
-								value={(picked as PlaceVisitFilter | undefined) ?? null}
-								onValueChange={(next) => setPicked(next ?? undefined)}
-							>
-								<ListboxOption value="visited">
-									<ListboxLabel>Visited</ListboxLabel>
-								</ListboxOption>
+					    painted and the map reads as one surface with the places on it. It
+					    shows only while the visited regions feature is on. */}
+					{flags.visitedRegions ? (
+						<FiltersField name="visitedRegions" className="w-52">
+							{({ value: picked, onValueChange: setPicked }) => (
+								<Listbox<PlaceVisitFilter>
+									aria-label="Visited"
+									placeholder="Visited or not"
+									clearable
+									displayValue={(choice) => (choice === 'visited' ? 'Visited' : 'Not visited')}
+									value={(picked as PlaceVisitFilter | undefined) ?? null}
+									onValueChange={(next) => setPicked(next ?? undefined)}
+								>
+									<ListboxOption value="visited">
+										<ListboxLabel>Visited</ListboxLabel>
+									</ListboxOption>
 
-								<ListboxOption value="unvisited">
-									<ListboxLabel>Not visited</ListboxLabel>
-								</ListboxOption>
-							</Listbox>
-						)}
-					</FiltersField>
+									<ListboxOption value="unvisited">
+										<ListboxLabel>Not visited</ListboxLabel>
+									</ListboxOption>
+								</Listbox>
+							)}
+						</FiltersField>
+					) : null}
 
 					<FiltersField name="categories" className="w-52">
 						{({ value: categories, onValueChange: setCategories }) => (
@@ -203,5 +207,12 @@ export function PlaceFilters({
  * one control shape for each field, at the same width and inset as the bar.
  */
 export function PlaceFiltersSkeleton() {
-	return <FiltersSkeleton layout="rail" fields={4} fieldClassName="w-52" className="px-6 py-3" />
+	return (
+		<FiltersSkeleton
+			layout="rail"
+			fields={flags.visitedRegions ? 4 : 3}
+			fieldClassName="w-52"
+			className="px-6 py-3"
+		/>
+	)
 }

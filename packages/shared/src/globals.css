@@ -7,6 +7,7 @@
 @source not '../../ui/src/__tests__';
 @source not '../../ui/src/__benchmarks__';
 @source not '../../ui/src/docs';
+@source not '../../ui/src/docs-legacy';
 
 /* The `dark` variant follows the `.dark` class on the root element. `AppearanceProvider` from `ui` sets the class. */
 @custom-variant dark (&:where(.dark, .dark *));

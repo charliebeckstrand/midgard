@@ -10,6 +10,7 @@ import {
 	savePlace,
 	setVisit,
 } from '../api/places-api'
+import { flags } from '../flags'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
 import { decodeRegions } from '../utilities/places-geography'
 import { drawnRegions, type PlaceAtlas } from '../utilities/places-view'
@@ -89,6 +90,8 @@ export function useVisits(initial: Visits) {
 		queryKey: placesKeys.visits,
 		queryFn: ({ signal }) => fetchVisits(signal),
 		initialData: initial,
+		// Nothing reads the set while the visited regions feature is off.
+		enabled: flags.visitedRegions,
 	})
 }
 

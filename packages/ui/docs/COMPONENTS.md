@@ -19,7 +19,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
-> A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover.
+> A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover. A `rating` with `step={0.5}` has two radios for each star. The start half sets the half score, and the halves mirror in a right-to-left row.
 
 ## Form structure
 

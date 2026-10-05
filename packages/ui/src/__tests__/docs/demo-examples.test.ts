@@ -2,8 +2,8 @@
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import type { ComponentApi } from '../../docs/engine/api-reference'
-import { listBarrels } from '../../docs/engine/api-reference/engine/barrels'
+import type { ComponentApi } from '../../docs-legacy/engine/api-reference'
+import { listBarrels } from '../../docs-legacy/engine/api-reference/engine/barrels'
 import { apiRecord } from '../helpers/api-record'
 import { redundantExamples } from '../helpers/demo-examples'
 import { demoSourcesOf } from '../helpers/demo-sources'
@@ -16,7 +16,7 @@ import { demoSourcesOf } from '../helpers/demo-sources'
 
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
-const DEMOS = join(SRC, 'docs', 'demos')
+const DEMOS = join(SRC, 'docs-legacy', 'demos')
 
 describe('demo examples', () => {
 	it('shows in each hand-written example something that the axes do not show', {

@@ -16,6 +16,12 @@ export type Place = Schemas['Place']
 /** A place as it arrives from the form, before Mimir gives it an identity. */
 export type PlaceDraft = Schemas['PlaceDraft']
 
+/** One visit to a place, as Mimir stores it. A place holds its visits newest first. */
+export type Visit = Schemas['Visit']
+
+/** A visit as the form sends it. A new visit has no id, and Mimir gives it one. */
+export type VisitDraft = Schemas['VisitDraft']
+
 /**
  * A hue both palettes carry, so one category color drives the map dot, the
  * filter swatch, and the badge alike.

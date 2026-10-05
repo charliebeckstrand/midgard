@@ -2,6 +2,7 @@ import { requireGateway, requireSession } from 'auth'
 import { Suspense } from 'react'
 import { preload } from 'react-dom'
 import { PlacesApp } from '@/components/places-app'
+import { flags } from '@/flags'
 import { mimir } from '@/server/mimir'
 
 /**
@@ -47,9 +48,13 @@ export default async function Page() {
 
 	const { user } = await requireSession()
 
+	// The visits only while the visited regions feature is on, because nothing
+	// else reads them.
 	const [places = [], visits = { states: [], countries: [] }] = await Promise.all([
 		requireGateway('/api/places', () => mimir.GET('/api/places')),
-		requireGateway('/api/visits', () => mimir.GET('/api/visits')),
+		flags.visitedRegions
+			? requireGateway('/api/visits', () => mimir.GET('/api/visits'))
+			: undefined,
 	])
 
 	return (

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
 	collectPatternViolations,
+	docsTestDirs,
 	isSourceFile,
 	srcDir,
 	srcRelative,
@@ -30,14 +31,14 @@ const testsDir = join(srcDir, '__tests__')
 const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 
 // The `unit` project's whole test tree — not only `*.test.*`, since a mock in a
-// helper reaches the same registry — the docs engine suite it also runs, the
+// helper reaches the same registry — the docs suites it also runs, the
 // `boundary` project's own files, and the browser suite, whose instances
 // share one page each (`isolate: false` in vitest.browser.config.ts). Its
 // per-instance doubles live in a `setup/` directory at either depth, which
 // `skip` prunes by entry name.
 const SHARED_REGISTRY_SCANS = [
 	{ dir: testsDir, skip: SHARED_REGISTRY_SKIP },
-	{ dir: join(srcDir, 'docs', 'engine', '__tests__') },
+	...docsTestDirs.map((dir) => ({ dir })),
 	// The `boundary` and `workspace` projects: each `-boundary` suite.
 	{ dir: join(testsDir, 'boundary'), fileFilter: /-boundary\.test\.ts$/ },
 	{ dir: join(testsDir, 'browser'), skip: new Set(['setup']) },
@@ -704,7 +705,7 @@ describe('test isolation boundary', () => {
 	it('stops a case at its signal before it writes shared state after an await', () => {
 		const late: string[] = []
 
-		for (const dir of [testsDir, join(srcDir, 'docs', 'engine', '__tests__')]) {
+		for (const dir of [testsDir, ...docsTestDirs]) {
 			walkSource(dir, (file, content) => {
 				if (/\.test\.tsx?$/.test(file)) late.push(...unguardedLateWrites(file, content))
 			})

@@ -11,7 +11,7 @@ const COMPONENTS = join(SRC, 'components')
 
 const STRUCTURE = join(SRC, 'structure')
 
-const DEMOS = join(SRC, 'docs', 'demos')
+const DEMOS = join(SRC, 'docs-legacy', 'demos')
 
 // Components intentionally shipped without a dedicated demo. Keep this empty;
 // add an entry with a reason only when a component is deliberately undemoed.
@@ -60,7 +60,7 @@ describe('demo coverage', () => {
 
 		expect(
 			missing,
-			'components without a demo (add one under src/docs/demos/components/, or allowlist)',
+			'components without a demo (add one under src/docs-legacy/demos/components/, or allowlist)',
 		).toEqual([])
 	})
 
@@ -75,7 +75,7 @@ describe('demo coverage', () => {
 
 		expect(
 			missing,
-			'structure units without a demo (add one under src/docs/demos/structure/)',
+			'structure units without a demo (add one under src/docs-legacy/demos/structure/)',
 		).toEqual([])
 	})
 })

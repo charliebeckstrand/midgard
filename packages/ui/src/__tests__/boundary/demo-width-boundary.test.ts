@@ -30,16 +30,26 @@ import {
 //   - The fit of the mini `Sidebar` at `lg`, which is a prop of the demo.
 
 const WIDTHS: Record<string, readonly string[]> = {
-	'docs/demos/components/alert.tsx': ['w-full'],
-	'docs/demos/components/credit-card-input.tsx': ['w-full', 'w-full'],
-	'docs/demos/components/drawer.tsx': ['w-60', 'w-full'],
-	'docs/demos/components/scroll-area.tsx': ['max-w-96', 'max-w-96', 'max-w-96', 'w-max', 'w-max'],
-	'docs/demos/components/sidebar.tsx': ['w-72', 'w-fit'],
-	'docs/demos/modules/dashboard/index.tsx': ['w-56', 'w-full', 'w-full'],
-	'docs/demos/modules/grid/index.tsx': ['w-full'],
-	'docs/demos/structure/flex.tsx': ['w-64', 'w-64'],
-	'docs/demos/structure/stack.tsx': ['w-64'],
+	'docs-legacy/demos/components/alert.tsx': ['w-full'],
+	'docs-legacy/demos/components/credit-card-input.tsx': ['w-full', 'w-full'],
+	'docs-legacy/demos/components/drawer.tsx': ['w-60', 'w-full'],
+	'docs-legacy/demos/components/scroll-area.tsx': [
+		'max-w-96',
+		'max-w-96',
+		'max-w-96',
+		'w-max',
+		'w-max',
+	],
+	'docs-legacy/demos/components/sidebar.tsx': ['w-72', 'w-fit'],
+	'docs-legacy/demos/modules/dashboard/index.tsx': ['w-56', 'w-full', 'w-full'],
+	'docs-legacy/demos/modules/grid/index.tsx': ['w-full'],
+	'docs-legacy/demos/structure/flex.tsx': ['w-64', 'w-64'],
+	'docs-legacy/demos/structure/stack.tsx': ['w-64'],
+	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
 }
+
+// The examples of the docs app, and the demos of the legacy app.
+const DEMOS = ['docs/pages', 'docs-legacy/demos']
 
 // A width utility, with or without a variant, such as `w-48` or `sm:max-w-sm`.
 const WIDTH = /(?<![\w-])(?:min-w|max-w|w)-[\w[\]./()%,-]+/g
@@ -51,18 +61,20 @@ describe('demo width boundary', () => {
 	it('sets no width on the component that an example shows', () => {
 		const found: Record<string, string[]> = {}
 
-		walkSource(join(srcDir, 'docs', 'demos'), (file, content) => {
-			if (!isSourceFile(file)) return
+		for (const dir of DEMOS) {
+			walkSource(join(srcDir, dir), (file, content) => {
+				if (!isSourceFile(file)) return
 
-			const source = stripSourceComments(content)
+				const source = stripSourceComments(content)
 
-			const widths = [
-				...(source.match(WIDTH) ?? []),
-				...(source.match(FULL) ?? []).map(() => 'full'),
-			].sort()
+				const widths = [
+					...(source.match(WIDTH) ?? []),
+					...(source.match(FULL) ?? []).map(() => 'full'),
+				].sort()
 
-			if (widths.length > 0) found[srcRelative(file)] = widths
-		})
+				if (widths.length > 0) found[srcRelative(file)] = widths
+			})
+		}
 
 		expect(found).toEqual(WIDTHS)
 	})

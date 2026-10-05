@@ -1,0 +1,388 @@
+/**
+ * Compares the load of the docs app with the load of the legacy app. The
+ * turbo task `docs:bench` builds the two apps first.
+ *
+ * The script serves each build over HTTP/2 with TLS and brotli, as a CDN
+ * does, with the paths of `docs-server.ts`. Chromium opens `/button` cold at
+ * 390 px, with the CPU four times slower and the network of Lighthouse
+ * "Slow 4G". The runs of the two apps interleave, and the table gives the
+ * median of each value:
+ *
+ * - FCP and LCP, from the paint entries of the page.
+ * - TBT: the time over 50 ms of each long task, from the start of the
+ *   navigation to 3 s after hydration.
+ * - JS and requests: the brotli size of the scripts and the count of the
+ *   requests, the document included, that start before hydration.
+ * - Page switch: from a click on the Accordion link in the navigation to the
+ *   frame that shows the heading of the new page.
+ *
+ * ```sh
+ * pnpm turbo run docs:bench --filter=ui                    # 9 runs of each app
+ * pnpm turbo run docs:bench --filter=ui -- 15 samples.json # 15 runs, and each sample in a file
+ * ```
+ */
+
+import { generateKeyPairSync, sign } from 'node:crypto'
+import { writeFileSync } from 'node:fs'
+import { readFile, stat } from 'node:fs/promises'
+import { createSecureServer, type Http2SecureServer, type SecureServerOptions } from 'node:http2'
+import type { AddressInfo } from 'node:net'
+import path from 'node:path'
+import { promisify } from 'node:util'
+import { brotliCompress, constants } from 'node:zlib'
+import { type Browser, chromium } from 'playwright'
+import { getOrCompute } from '../src/utilities/get-or-compute'
+import { clientDirOf, type DocsApp, fileOf, HYDRATED, TYPES } from './docs-server'
+
+const APPS: readonly DocsApp[] = ['docs-legacy', 'docs']
+
+const brotli = promisify(brotliCompress)
+
+const PAGE = '/button'
+
+/** The budget of the first pull request of the new app, on `/button`. */
+const BUDGET = { fcp: 700, requests: 16 }
+
+/** The "Slow 4G" network of Lighthouse, as the measurements of the plan use it. */
+const SLOW_4G = {
+	offline: false,
+	latency: 150,
+	downloadThroughput: (1.6 * 1024 * 1024) / 8,
+	uploadThroughput: (750 * 1024) / 8,
+}
+
+/** The kinds of file that the server sends with brotli. */
+const COMPRESSED = new Set(['.css', '.html', '.js', '.json', '.svg'])
+
+type Sample = {
+	app: DocsApp
+	fcp: number
+	lcp: number
+	tbt: number
+	js: number
+	requests: number
+	switch: number
+}
+
+type Metric = Exclude<keyof Sample, 'app'>
+
+/** The readings that the page collects for the bench. */
+type Readings = {
+	lcp: number
+	longTasks: [start: number, duration: number][]
+	hydrated?: number
+	switchStart?: number
+	switchEnd?: number
+}
+
+declare global {
+	interface Window {
+		__bench: Readings
+	}
+}
+
+/** A DER element: the tag, the length of the content, and the content. */
+function der(tag: number, ...content: Buffer[]): Buffer {
+	const body = Buffer.concat(content)
+
+	const bytes: number[] = []
+
+	for (let rest = body.length; rest > 0; rest >>= 8) bytes.unshift(rest & 0xff)
+
+	// A length below 128 is one byte. A longer length gives the count of its bytes first.
+	const length = body.length < 0x80 ? [body.length] : [0x80 | bytes.length, ...bytes]
+
+	return Buffer.concat([Buffer.of(tag, ...length), body])
+}
+
+/** A UTC time of X.509, such as `261004120000Z`. */
+function utcTime(date: Date): Buffer {
+	return der(0x17, Buffer.from(`${date.toISOString().slice(2, 19).replace(/[-T:]/g, '')}Z`))
+}
+
+/**
+ * A certificate for `localhost` that signs itself, with an ECDSA P-256 key.
+ * Chromium needs TLS for HTTP/2, and the bench tells it to accept this
+ * certificate.
+ */
+function createCertificate(): SecureServerOptions {
+	const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' })
+
+	// ecdsa-with-SHA256 (1.2.840.10045.4.3.2).
+	const algorithm = der(0x30, der(0x06, Buffer.of(0x2a, 0x86, 0x48, 0xce, 0x3d, 0x04, 0x03, 0x02)))
+
+	// CN=localhost: the common name is 2.5.4.3.
+	const name = der(
+		0x30,
+		der(
+			0x31,
+			der(0x30, der(0x06, Buffer.of(0x55, 0x04, 0x03)), der(0x0c, Buffer.from('localhost'))),
+		),
+	)
+
+	const now = Date.now()
+
+	const certificate = der(
+		0x30,
+		der(0xa0, der(0x02, Buffer.of(2))),
+		der(0x02, Buffer.of(1)),
+		algorithm,
+		name,
+		der(0x30, utcTime(new Date(now - 60_000)), utcTime(new Date(now + 86_400_000))),
+		name,
+		publicKey.export({ type: 'spki', format: 'der' }),
+	)
+
+	const signature = sign('sha256', certificate, privateKey)
+
+	const body = der(0x30, certificate, algorithm, der(0x03, Buffer.of(0), signature))
+
+	const lines = body.toString('base64').match(/.{1,64}/g) ?? []
+
+	return {
+		key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+		cert: ['-----BEGIN CERTIFICATE-----', ...lines, '-----END CERTIFICATE-----', ''].join('\n'),
+	}
+}
+
+/** Serves the build of an app over HTTP/2, and gives its origin. */
+async function serve(
+	app: DocsApp,
+	tls: SecureServerOptions,
+): Promise<{ app: DocsApp; origin: string; server: Http2SecureServer }> {
+	const root = clientDirOf(app)
+
+	await stat(root).catch(() => {
+		throw new Error(`Build the ${app} app first: no build is at ${root}.`)
+	})
+
+	// The server compresses each file once, as a CDN keeps the compressed file.
+	const bodies = new Map<string, Promise<Buffer>>()
+
+	const bodyOf = (file: string, compress: boolean): Promise<Buffer> => {
+		const key = `${compress ? 'br' : 'raw'}:${file}`
+
+		return getOrCompute(bodies, key, () =>
+			readFile(file).then((data) =>
+				compress ? brotli(data, { params: { [constants.BROTLI_PARAM_QUALITY]: 9 } }) : data,
+			),
+		)
+	}
+
+	const server = createSecureServer(tls, async (request, response) => {
+		const { pathname } = new URL(request.url, 'https://localhost')
+
+		const file = await fileOf(root, pathname)
+
+		const extension = path.extname(file)
+
+		const compress =
+			COMPRESSED.has(extension) && String(request.headers['accept-encoding']).includes('br')
+
+		const body = await bodyOf(file, compress)
+
+		// The browser closes the streams of a run that ends.
+		if (response.stream.closed) return
+
+		response
+			.writeHead(200, {
+				'content-type': TYPES[extension] ?? 'application/octet-stream',
+				// The name of each file in `assets/` holds the hash of its content.
+				'cache-control': pathname.startsWith('/assets/')
+					? 'public, max-age=31536000, immutable'
+					: 'no-cache',
+				...(compress ? { 'content-encoding': 'br' } : {}),
+			})
+			.end(body)
+	})
+
+	await new Promise<void>((done) => server.listen(0, 'localhost', done))
+
+	return { app, origin: `https://localhost:${(server.address() as AddressInfo).port}`, server }
+}
+
+// The code below runs in the page, and it is text: the TypeScript runner of
+// the bench wraps each named function in a helper that the page does not have.
+
+/** Runs before the scripts of the page, and collects the readings in `window.__bench`. */
+const OBSERVE = `{
+	const readings = { lcp: 0, longTasks: [] }
+
+	window.__bench = readings
+
+	new PerformanceObserver((list) => {
+		for (const task of list.getEntries()) readings.longTasks.push([task.startTime, task.duration])
+	}).observe({ type: 'longtask', buffered: true })
+
+	new PerformanceObserver((list) => {
+		for (const paint of list.getEntries()) readings.lcp = paint.startTime
+	}).observe({ type: 'largest-contentful-paint', buffered: true })
+
+	const watch = () => {
+		if (${HYDRATED}) readings.hydrated = performance.now()
+		else requestAnimationFrame(watch)
+	}
+
+	requestAnimationFrame(watch)
+}`
+
+/** Marks the next click, and the frame after it that shows the heading of the Accordion page. */
+const WATCH_SWITCH = `{
+	const readings = window.__bench
+
+	const watch = (time) => {
+		if (document.querySelector('h1')?.textContent?.trim() === 'Accordion') readings.switchEnd = time
+		else requestAnimationFrame(watch)
+	}
+
+	document.addEventListener(
+		'click',
+		() => {
+			readings.switchStart = performance.now()
+
+			requestAnimationFrame(watch)
+		},
+		{ capture: true, once: true },
+	)
+}`
+
+/** Reads the load values of the page. */
+function readLoad(): Omit<Sample, 'app' | 'switch'> {
+	const { lcp, longTasks, hydrated = 0 } = window.__bench
+
+	const fcp = performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? 0
+
+	const early = performance
+		.getEntriesByType('resource')
+		.filter((entry) => entry.startTime < hydrated) as PerformanceResourceTiming[]
+
+	const js = early
+		.filter((entry) => new URL(entry.name).pathname.endsWith('.js'))
+		.reduce((sum, entry) => sum + entry.transferSize, 0)
+
+	const tbt = longTasks
+		.filter(([start]) => start < hydrated + 3000)
+		.reduce((sum, [, duration]) => sum + Math.max(0, duration - 50), 0)
+
+	return { fcp, lcp, tbt, js: js / 1024, requests: early.length + 1 }
+}
+
+/** One cold run of an app: the load of the page, and then a page switch. */
+async function run(browser: Browser, app: DocsApp, origin: string): Promise<Sample> {
+	const context = await browser.newContext({
+		viewport: { width: 390, height: 844 },
+		deviceScaleFactor: 3,
+		isMobile: true,
+		hasTouch: true,
+		ignoreHTTPSErrors: true,
+	})
+
+	try {
+		const page = await context.newPage()
+
+		await page.addInitScript(OBSERVE)
+
+		const cdp = await context.newCDPSession(page)
+
+		await cdp.send('Network.enable')
+
+		await cdp.send('Network.emulateNetworkConditions', SLOW_4G)
+
+		await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+
+		await page.goto(`${origin}${PAGE}`)
+
+		await page.waitForFunction(() => window.__bench.hydrated !== undefined, null, {
+			timeout: 60_000,
+		})
+
+		await page.waitForLoadState('networkidle')
+
+		await page.waitForTimeout(3000)
+
+		const load = await page.evaluate(readLoad)
+
+		await page.getByRole('button', { name: 'Open navigation' }).click()
+
+		const link = page.getByRole('link', { name: 'Accordion', exact: true })
+
+		await link.waitFor()
+
+		await page.evaluate(WATCH_SWITCH)
+
+		await link.click()
+
+		await page.waitForFunction(() => window.__bench.switchEnd !== undefined, null, {
+			timeout: 60_000,
+		})
+
+		const { switchStart = 0, switchEnd = 0 } = await page.evaluate(() => window.__bench)
+
+		return { app, ...load, switch: switchEnd - switchStart }
+	} finally {
+		await context.close()
+	}
+}
+
+function median(values: readonly number[]): number {
+	const sorted = values.toSorted((a, b) => a - b)
+
+	const middle = sorted.length >> 1
+
+	return sorted.length % 2
+		? (sorted[middle] ?? 0)
+		: ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2
+}
+
+/** The table of medians, in Markdown. */
+function table(samples: readonly Sample[]): string {
+	const of = (app: DocsApp, metric: Metric) =>
+		median(samples.filter((sample) => sample.app === app).map((sample) => sample[metric]))
+
+	const rows: [label: string, metric: Metric, unit: string, budget: string][] = [
+		['FCP', 'fcp', 'ms', `< ${BUDGET.fcp} ms`],
+		['LCP', 'lcp', 'ms', 'lower than legacy'],
+		['TBT', 'tbt', 'ms', 'lower than legacy'],
+		['JS to hydration (brotli)', 'js', 'KB', 'lower than legacy'],
+		['Requests to hydration', 'requests', '', `< ${BUDGET.requests}`],
+		['Page switch', 'switch', 'ms', 'faster than legacy'],
+	]
+
+	const lines = rows.map(([label, metric, unit, budget]) => {
+		const cells = APPS.map((app) => `${Math.round(of(app, metric))}${unit ? ` ${unit}` : ''}`)
+
+		return `| ${label} | ${cells.join(' | ')} | ${budget} |`
+	})
+
+	return ['| `/button` | Legacy | New | Budget |', '|---|---|---|---|', ...lines].join('\n')
+}
+
+const [runs = '9', out] = process.argv.slice(2)
+
+const tls = createCertificate()
+
+const servers = await Promise.all(APPS.map((app) => serve(app, tls)))
+
+const browser = await chromium.launch()
+
+const samples: Sample[] = []
+
+try {
+	for (let index = 0; index < Number(runs); index++) {
+		for (const { app, origin } of servers) {
+			const sample = await run(browser, app, origin)
+
+			samples.push(sample)
+
+			console.log(JSON.stringify(sample))
+		}
+	}
+} finally {
+	await browser.close()
+
+	for (const { server } of servers) server.close()
+}
+
+console.log(`\n${table(samples)}\n\n${runs} cold runs of each app, medians.`)
+
+if (out) writeFileSync(out, `${JSON.stringify(samples, null, '\t')}\n`)

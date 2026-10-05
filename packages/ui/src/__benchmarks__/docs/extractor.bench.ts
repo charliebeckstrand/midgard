@@ -4,9 +4,9 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { bench, describe } from 'vitest'
-import { createApiExtractor } from '../../docs/engine/api-reference'
-import { aggregateHash } from '../../docs/engine/api-reference/engine/api-extractor'
-import { buildApi } from '../../docs/engine/api-reference/engine/build-api'
+import { createApiExtractor } from '../../docs-legacy/engine/api-reference'
+import { aggregateHash } from '../../docs-legacy/engine/api-reference/engine/api-extractor'
+import { buildApi } from '../../docs-legacy/engine/api-reference/engine/build-api'
 import { srcDir } from './paths'
 
 // The benchmarks run against the package's own source tree, the workload the

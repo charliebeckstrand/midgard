@@ -1,36 +1,18 @@
-import { globSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import { index, layout, type RouteConfig, route } from '@react-router/dev/routes'
-import { byName, PAGE_GLOBS, pageOf } from '../engine/pages'
-import { parsePageTabs } from '../engine/plugins/page-tabs'
+import { index, type RouteConfig, route } from '@react-router/dev/routes'
+import { findPages } from '../plugin/pages.ts'
 
-const docs = path.join(import.meta.dirname, '..')
-
-// Each demo file is the route of its page. A page with `PageTabs` takes its
-// tab as the last part of the path (`/progress/gauge`).
-const pages = globSync(PAGE_GLOBS, { cwd: docs })
-	.map((file) => {
-		const tabs = parsePageTabs(file, readFileSync(path.join(docs, file), 'utf8'))
-
-		return { ...pageOf(file), file: `../${file}`, tabbed: tabs !== null }
-	})
-	.toSorted(byName)
-
-const [first] = pages
-
-if (!first) throw new Error('docs: no demo pages')
-
-// Each page shares one layout, which loads the API data of the page. The
-// root path shows the first page. A path from before the paths of today goes
-// to `legacy.tsx`, outside the layout, because the build renders no file for it.
+// Each page is a route, and each tab of a page is a child route one part down
+// the path. The root path lists the pages, and any other path shows the
+// not-found page.
 export default [
-	layout('routes/page.tsx', [
-		index(first.file, { id: 'index' }),
-		...pages.map((page) =>
-			route(page.tabbed ? `${page.path.slice(1)}/:tab?` : page.path.slice(1), page.file, {
-				id: page.id,
-			}),
+	index('routes/home.tsx'),
+	...findPages(path.join(import.meta.dirname, '..')).map((page) =>
+		route(
+			page.path.slice(1),
+			`../pages/${page.folder}/index.tsx`,
+			page.tabs.map((tab) => route(tab, `../pages/${page.folder}/${tab}/index.tsx`)),
 		),
-	]),
-	route('*', 'routes/legacy.tsx'),
+	),
+	route('*', 'routes/not-found.tsx'),
 ] satisfies RouteConfig

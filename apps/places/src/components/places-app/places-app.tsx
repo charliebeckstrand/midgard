@@ -12,6 +12,7 @@ import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import { flags } from '../../flags'
 import {
 	useAddPlace,
 	useAtlas,
@@ -21,8 +22,8 @@ import {
 	useSetVisit,
 	useVisits,
 } from '../../queries/places-queries'
-import type { Place, Visits } from '../../types'
-import { filterPlaces } from '../../utilities/places-filter'
+import type { Place, Visit, Visits } from '../../types'
+import { filterPlaces, fromDay } from '../../utilities/places-filter'
 import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import type { PaletteSource } from '../../utilities/places-palette'
 import {
@@ -47,7 +48,10 @@ import {
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
+import { placeDraft } from '../../utilities/places-visits'
 import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
+import type { PlaceFormTarget } from '../place-form-drawer'
+import type { PlaceActions, VisitActions } from '../place-menu'
 import { actionSource, PlacePalette, placeSource, regionSource } from '../place-palette'
 import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 import { PlacesMap } from '../places-map'
@@ -96,18 +100,19 @@ const PlaceDrawer = dynamic(() => loadDrawer().then((module) => module.PlaceDraw
 })
 
 /**
- * Whether a panel has opened at least once.
+ * Whether a panel renders: from the load of its code or its first open on,
+ * whichever comes first.
  *
- * A panel that has never opened is not rendered, so its code does not load for
- * it. After the first open it stays rendered, because a closing panel has an exit
- * to play.
+ * Before that, the panel is not rendered, so its code does not load for it.
+ * After that, it stays rendered, because a closing panel has an exit to play.
+ * {@link usePanelPrefetch} tells why a loaded panel renders before it opens.
  */
-function useOpenedOnce(open: boolean): boolean {
+function usePanelRendered(open: boolean, loaded: boolean): boolean {
 	const [opened, setOpened] = useState(open)
 
 	if (open && !opened) setOpened(true)
 
-	return opened || open
+	return opened || open || loaded
 }
 
 /** The empty list a pending places query stands in for, held so its identity is stable. */
@@ -218,32 +223,58 @@ function VisitedToggle({
 	)
 }
 
+/** What a delete removes: a whole place, or one of its visits. */
+type Deletion = { place: Place; visit: Visit | null }
+
 /**
- * The confirmation before a delete. It is open while `place` is set, and it
- * names the place.
+ * Whether a delete removes the whole place. A place keeps at least one visit,
+ * so a delete of its only visit also deletes the place.
+ */
+function deletesPlace({ place, visit }: Deletion): boolean {
+	return visit === null || place.visits.length === 1
+}
+
+/**
+ * The confirmation before a delete. It is open while `deletion` is set, and it
+ * names the place, or the day of the visit. When the visit is the only one, it
+ * also says that the place goes with it.
  */
 function DeleteConfirm({
-	place,
+	deletion,
 	onClose,
 	onDelete,
 }: {
-	place: Place | null
+	deletion: Deletion | null
 	onClose: () => void
-	onDelete: (place: Place) => void
+	onDelete: (deletion: Deletion) => void
 }) {
+	const visit = deletion?.visit ?? null
+
+	const title =
+		deletion === null
+			? ''
+			: visit === null
+				? `Delete "${deletion.place.name}"?`
+				: `Delete the visit on ${fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}?`
+
+	const description =
+		deletion !== null && visit !== null && deletesPlace(deletion)
+			? `This is the only visit to "${deletion.place.name}", so the place is deleted too.`
+			: undefined
+
 	return (
 		<Confirm
-			open={place !== null}
+			open={deletion !== null}
 			onOpenChange={(next) => {
 				if (!next) onClose()
 			}}
 			onConfirm={() => {
-				if (place !== null) onDelete(place)
+				if (deletion !== null) onDelete(deletion)
 
 				onClose()
 			}}
-			title={place === null ? '' : `Delete "${place.name}"?`}
-			description={place === null ? undefined : 'This cannot be undone.'}
+			title={title}
+			description={description}
 			confirm={{ label: 'Delete', color: 'red' }}
 		/>
 	)
@@ -251,20 +282,25 @@ function DeleteConfirm({
 
 /**
  * Fetches the code of the panels when the main thread is idle, after the
- * opening view has settled. The first open of a panel then waits for nothing.
- * The browser runs the code of a chunk when it arrives, so a fetch at the
- * settle ran it while the map drew its first frame.
+ * opening view has settled, and tells when all of it has loaded. The browser
+ * runs the code of a chunk when it arrives, so a fetch at the settle ran it
+ * while the map drew its first frame.
+ *
+ * The app renders each panel closed from that point on. The render that first
+ * shows a lazy panel suspends, also when its code is in the cache, and React
+ * holds the content of a boundary that showed its fallback for 300 ms
+ * (`FALLBACK_THROTTLE_MS`). A panel that suspended on its first open thus came
+ * up about 300 ms after the tap. A closed panel suspends while nothing is on
+ * the screen, and the first open renders it at once.
  */
-function usePanelPrefetch(settling: boolean) {
+function usePanelPrefetch(settling: boolean): boolean {
+	const [loaded, setLoaded] = useState(false)
+
 	useEffect(() => {
 		if (settling) return
 
 		const load = () => {
-			void loadIndex()
-
-			void loadForm()
-
-			void loadDrawer()
+			void Promise.all([loadIndex(), loadForm(), loadDrawer()]).then(() => setLoaded(true))
 		}
 
 		const idle = window.requestIdleCallback?.(load)
@@ -275,6 +311,8 @@ function usePanelPrefetch(settling: boolean) {
 
 		return () => window.clearTimeout(timer)
 	}, [settling])
+
+	return loaded
 }
 
 /**
@@ -285,14 +323,14 @@ function useActionCommands({
 	mark,
 	marked,
 	hasPlaces,
-	setAdding,
+	onAdd,
 	setListing,
 	onMark,
 }: {
 	mark: { scope: PlaceAtlas; region: string } | null
 	marked: boolean
 	hasPlaces: boolean
-	setAdding: (adding: boolean) => void
+	onAdd: () => void
 	setListing: (listing: boolean) => void
 	onMark: (mark: { scope: PlaceAtlas; region: string; visited: boolean }) => void
 }) {
@@ -304,7 +342,7 @@ function useActionCommands({
 	return useMemo(
 		() =>
 			actionSource({
-				onAdd: () => setAdding(true),
+				onAdd,
 				onList: hasPlaces ? () => setListing(true) : undefined,
 				mark: markRegion,
 				marked,
@@ -314,7 +352,7 @@ function useActionCommands({
 					}
 				},
 			}),
-		[hasPlaces, markScope, markRegion, marked, setAdding, setListing, onMark],
+		[hasPlaces, markScope, markRegion, marked, onAdd, setListing, onMark],
 	)
 }
 
@@ -522,7 +560,9 @@ export function PlacesApp({
 		openAt,
 	} = usePlaceLocation()
 
-	const [adding, setAdding] = useState(false)
+	// What the form drawer writes, or `null` while it is closed: a new place, an
+	// edit of one, or a visit to one.
+	const [form, setForm] = useState<PlaceFormTarget | null>(null)
 
 	// Whether the index is up. Its own bit rather than a mode of the drawers: it
 	// docks from the side and they dock from the bottom, so a reader can have a
@@ -530,12 +570,24 @@ export function PlacesApp({
 	// other leaves them with.
 	const [listing, setListing] = useState(false)
 
-	// The place the form drawer is editing, and the place the confirmation stands
-	// over. Both are `null` for "no such panel", which is also what opens the form
-	// on a new place.
-	const [editing, setEditing] = useState<Place | null>(null)
+	// What the confirmation stands over, or `null` for no confirmation.
+	const [deleting, setDeleting] = useState<Deletion | null>(null)
 
-	const [deleting, setDeleting] = useState<Place | null>(null)
+	// What the menus of a place and of a visit do, in every spot that shows one.
+	// Held, because the index columns and the palette source are memos keyed on it.
+	const actions = useMemo<PlaceActions & VisitActions>(
+		() => ({
+			onAddVisit: (place) => setForm({ kind: 'visit', place, visit: null }),
+			onEdit: (place) => setForm({ kind: 'place', place }),
+			onDelete: (place) => setDeleting({ place, visit: null }),
+			onEditVisit: (place, visit) => setForm({ kind: 'visit', place, visit }),
+			onDeleteVisit: (place, visit) => setDeleting({ place, visit }),
+		}),
+		[],
+	)
+
+	// Held for the palette's action source, which is a memo keyed on it.
+	const onAdd = useCallback(() => setForm({ kind: 'place', place: null }), [])
 
 	// The states atlas answers the opening question, so it is fetched whatever the
 	// view — and it is the atlas the app opened on before it drew anywhere else.
@@ -589,13 +641,13 @@ export function PlacesApp({
 	// first frame.
 	const { data: countriesAtlas = null } = useAtlas('countries', atlas === 'countries' || !settling)
 
-	usePanelPrefetch(settling)
+	const panelsLoaded = usePanelPrefetch(settling)
 
-	const formOpen = adding || editing !== null
+	const formOpen = form !== null
 
-	const formRendered = useOpenedOnce(formOpen)
+	const formRendered = usePanelRendered(formOpen, panelsLoaded)
 
-	const indexRendered = useOpenedOnce(listing)
+	const indexRendered = usePanelRendered(listing, panelsLoaded)
 
 	const regions = atlas === 'states' ? statesAtlas : countriesAtlas
 
@@ -607,7 +659,10 @@ export function PlacesApp({
 	// be the one region on the map a reader could never mark — they cross into it
 	// and it stops being somewhere they are. Its scope is its own, because that
 	// country is marked among countries while the atlas under it draws states.
-	const mark = viewMark(view)
+	//
+	// `null` while the visited regions feature is off, which takes the toggle and
+	// the Mark visited command away together.
+	const mark = flags.visitedRegions ? viewMark(view) : null
 
 	const marked = mark !== null && visits[mark.scope].includes(mark.region)
 
@@ -659,7 +714,7 @@ export function PlacesApp({
 		return selectedIds.map((id) => byId.get(id)).filter((place) => place !== undefined)
 	}, [selectedIds, places])
 
-	const drawerRendered = useOpenedOnce(selected.length > 0)
+	const drawerRendered = usePanelRendered(selected.length > 0, panelsLoaded)
 
 	// The countries grouping inverted, held in its own slot for the reason the
 	// grouping is: one settled answer per atlas.
@@ -784,8 +839,13 @@ export function PlacesApp({
 	// The palette's sources. Each has its own memo, so a change to one does not
 	// build the others again: the regions sort more than 200 names.
 	const placeCommands = useMemo(
-		() => placeSource(places, (place) => openAt(viewForPlace(stateOfPlace, place), [place.id])),
-		[places, openAt, stateOfPlace],
+		() =>
+			placeSource(
+				places,
+				(place) => openAt(viewForPlace(stateOfPlace, place), [place.id]),
+				actions,
+			),
+		[places, openAt, stateOfPlace, actions],
 	)
 
 	// Every region of both atlases, whatever the view draws, so a reader can go to
@@ -807,7 +867,7 @@ export function PlacesApp({
 		mark,
 		marked,
 		hasPlaces: places.length > 0,
-		setAdding,
+		onAdd,
 		setListing,
 		onMark: setVisit.mutate,
 	})
@@ -830,7 +890,7 @@ export function PlacesApp({
 				cut={cut}
 				count={shown.length}
 				hasPlaces={places.length > 0}
-				onAdd={() => setAdding(true)}
+				onAdd={onAdd}
 				onList={() => setListing(true)}
 			/>
 
@@ -908,28 +968,28 @@ export function PlacesApp({
 
 			{/* One drawer for both writes, opened on a place to edit it and on nothing
 			    to add one. Two would be the same seven fields twice. It renders from
-			    its first open on, so its code is not part of the first load. */}
+			    the idle load of its code or its first open on, so its code is not
+			    part of the first load. */}
 			{formRendered ? (
 				<PlaceFormDrawer
-					open={formOpen}
+					target={form}
 					onOpenChange={(next) => {
-						setAdding(next)
-
-						if (!next) setEditing(null)
+						if (!next) setForm(null)
 					}}
-					place={editing}
-					onSubmit={(draft) =>
-						editing === null
+					onSubmit={(draft) => {
+						const place = form?.place ?? null
+
+						return place === null
 							? addPlace.mutateAsync(draft)
-							: savePlace.mutateAsync({ id: editing.id, draft })
-					}
+							: savePlace.mutateAsync({ id: place.id, draft })
+					}}
 				/>
 			) : null}
 
 			{/* The other index into the same set: the map answers what is near here,
 			    and this answers where that place was. It reads the filtered list, so
-			    the two never disagree about what is in play. It renders from its first
-			    open on, like the form. */}
+			    the two never disagree about what is in play. It renders from the
+			    same point on as the form. */}
 			{indexRendered ? (
 				<PlacesIndex
 					open={listing}
@@ -941,6 +1001,7 @@ export function PlacesApp({
 					// they already made; clearing the filter widens it back to the bar's.
 					region={cut}
 					stateByPlace={stateByPlace}
+					actions={actions}
 					onOpen={(place) => {
 						// One step, not two: the view and the selection are both the address,
 						// so writing them apart would leave a history entry standing on a map
@@ -959,8 +1020,7 @@ export function PlacesApp({
 					regionPlaces={openedRegionPlaces}
 					onNavigate={onNavigate}
 					onOpenChange={() => setSelected([])}
-					onEdit={setEditing}
-					onDelete={setDeleting}
+					actions={actions}
 				/>
 			) : null}
 
@@ -968,9 +1028,25 @@ export function PlacesApp({
 			    no history — so it is the one that asks first. It names the place, because
 			    a reader who opened a summary has several in front of them. */}
 			<DeleteConfirm
-				place={deleting}
+				deletion={deleting}
 				onClose={() => setDeleting(null)}
-				onDelete={(place) => void deletePlace.mutateAsync(place.id)}
+				onDelete={(deletion) => {
+					const { place, visit } = deletion
+
+					if (visit === null || deletesPlace(deletion)) {
+						void deletePlace.mutateAsync(place.id)
+
+						return
+					}
+
+					void savePlace.mutateAsync({
+						id: place.id,
+						draft: {
+							...placeDraft(place),
+							visits: place.visits.filter((held) => held.id !== visit.id),
+						},
+					})
+				}}
 			/>
 		</Flex>
 	)

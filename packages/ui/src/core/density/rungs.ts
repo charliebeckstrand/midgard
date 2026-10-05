@@ -21,11 +21,22 @@
  * `density-0` first, so it is the first layer in the output. `density-any` is
  * in the same layer with no specificity, so the base wins over it.
  *
+ * A scope element with a step is its own nearest scope, so its rung reads no
+ * depth. It is in the layer of the deepest depth. When the element is not
+ * deeper than `maxDepth`, no rung of a scope above it is in that layer.
+ *
+ * Each rung of a depth names the class once, and the scopes that it reads
+ * are in `:where()`. So each rung of a depth has the specificity of its class
+ * and one attribute, and of two density classes on one element, the later
+ * class wins, as with two plain utilities.
+ *
  * Chromium rejects a rung through its ancestor filter when no ancestor has a
- * name in the rung: a class, or the name of an attribute. A class for each
- * step of the root lets it reject the rung of each other step, and a group of
- * steps names `[data-density]` outside its `:is()`, because the filter reads
- * no name in `:is()`.
+ * name in the rung: a class, or the name of an attribute. The filter reads no
+ * name in `:where()`. So the rung of an element under a scope names
+ * `[data-density]` outside its `:where()`, and the filter rejects it when no
+ * scope is above the element. Each root rung is its own selector with its
+ * class outside `:where()`, so the filter rejects the rung of each step that
+ * the root does not hold.
  *
  * The rungs of one layer match the same element only for the nearest scope.
  * So the rank does not use specificity, and a selector list of one layer keeps
@@ -55,10 +66,10 @@ export type CssInJs = { [key: string]: string | CssInJs }
 /**
  * The deepest nesting that the rungs rank. When more scopes nest, an outer
  * scope can win. The output grows with the square of this value. The apps nest
- * one scope deep and the docs site two, so 3 keeps one depth free. The demo
- * smoke test fails when a docs page nests deeper.
+ * one scope deep and the docs site two. The demo smoke test fails when a docs
+ * page nests deeper.
  */
-export const maxDepth = 3
+export const maxDepth = 2
 
 /** A density scope under the root: an explicit scope or a control slot. */
 const scope = '[data-density]'
@@ -66,15 +77,11 @@ const scope = '[data-density]'
 /** A control slot: a scope one step below the scope above it, and `md` in an `xl` scope. */
 const slot = "[data-density='slot']"
 
-/**
- * Matches an element with one of `steps` on `data-density`. A group names the
- * attribute outside its `:is()`, so the ancestor filter of Chromium can reject
- * it.
- */
+/** Matches an element with one of `steps` on `data-density`. */
 function stepIn(steps: readonly DensityStep[]): string {
 	const each = steps.map((step) => `[data-density='${step}']`)
 
-	return each.length === 1 ? `${each[0]}` : `[data-density]:is(${each.join(', ')})`
+	return each.length === 1 ? `${each[0]}` : `:is(${each.join(', ')})`
 }
 
 /** Returns `true` when the root marks `step` with a class. */
@@ -85,25 +92,20 @@ function isMarked(step: DensityStep): step is MarkedStep {
 /** The selector of the root class for `step`. */
 const rootMark = (step: MarkedStep) => `.${rootDensityClasses[step]}`
 
-/** The root element with no mark: its step is `md`. */
-const unmarked = `:root:not(${Object.values(rootDensityClasses)
-	.map((name) => `.${name}`)
-	.join(', ')})`
-
 /**
- * The rungs of the first depth that read the root element: a slot under a
- * root step whose slots take one of `steps`.
+ * Matches the root element when it holds one of `steps`. The root has no mark
+ * at `md`, so a set with `md` names the marks that the root must not hold.
  */
-function firstDepth(hosts: readonly DensityStep[]): string[] {
-	const selectors: string[] = []
+function rootIn(steps: readonly DensityStep[]): string {
+	if (steps.includes('md')) {
+		const others = densitySteps.filter(isMarked).filter((step) => !steps.includes(step))
 
-	for (const host of hosts) {
-		const root = isMarked(host) ? `:where(${rootMark(host)})` : `:where(${unmarked})`
-
-		selectors.push(`${root} ${slot} &`, `${root} &${slot}`)
+		return others.length > 0 ? `:root:not(${others.map(rootMark).join(', ')})` : ':root'
 	}
 
-	return selectors
+	const marks = steps.filter(isMarked).map(rootMark)
+
+	return marks.length === 1 ? `${marks[0]}` : `:is(${marks.join(', ')})`
 }
 
 /**
@@ -124,33 +126,47 @@ function rootRungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
 }
 
 /**
- * The rungs of a set of steps, keyed by the layer of each depth. Each rung
- * holds `body`: the `@slot` of a variant, or the declarations of a utility.
+ * The host of a slot at `depth` with one of `hosts`: the root at the first
+ * depth, and a scope under `depth - 2` scopes at each other depth.
+ */
+function hostAt(depth: number, hosts: readonly DensityStep[]): string {
+	return depth === 1 ? rootIn(hosts) : `${`${scope} `.repeat(depth - 2)}${stepIn(hosts)}`
+}
+
+/**
+ * The scopes at `depth` that give one of `steps`: a scope with one of `steps`
+ * under `depth - 1` scopes, and a slot under a host of `hosts`.
+ */
+function scopesAt(
+	depth: number,
+	steps: readonly DensityStep[],
+	hosts: readonly DensityStep[],
+): string[] {
+	const scopes = [`${`${scope} `.repeat(depth - 1)}${stepIn(steps)}`]
+
+	return hosts.length > 0 ? [...scopes, `${hostAt(depth, hosts)} ${slot}`] : scopes
+}
+
+/**
+ * The rungs of a set of steps, keyed by layer. Each rung holds `body`: the
+ * `@slot` of a variant, or the declarations of a utility.
+ *
+ * The layer of each depth holds the rung of an element under a scope at that
+ * depth, and the rung of a slot element. The layer of the deepest depth also
+ * holds the rung of a scope element with one of `steps`.
  */
 export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
-	const own = stepIn(steps)
-
 	// The steps whose slots take one of `steps`.
 	const hosts = densitySteps.filter((host) => steps.includes(slotStep(host)))
 
-	const host = hosts.length > 0 ? stepIn(hosts) : null
-
 	const layers: CssInJs = { '@layer density-0': rootRungs(steps, body) }
 
-	const first = firstDepth(hosts)
-
 	for (let depth = 1; depth <= maxDepth; depth++) {
-		const above = `${scope} `.repeat(depth - 1)
+		const selectors = [`${scope}:where(${scopesAt(depth, steps, hosts).join(', ')}) &`]
 
-		const selectors = [`${above}${own} &`, `${above}&${own}`]
+		if (hosts.length > 0) selectors.push(`:where(${hostAt(depth, hosts)}) &${slot}`)
 
-		if (depth === 1) {
-			selectors.push(...first)
-		} else if (host) {
-			const aboveHost = `${scope} `.repeat(depth - 2)
-
-			selectors.push(`${aboveHost}${host} ${slot} &`, `${aboveHost}${host} &${slot}`)
-		}
+		if (depth === maxDepth) selectors.push(`&${stepIn(steps)}`)
 
 		layers[`@layer density-${depth}`] = { [selectors.join(', ')]: body }
 	}
