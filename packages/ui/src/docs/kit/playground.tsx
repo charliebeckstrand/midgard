@@ -1,13 +1,10 @@
-import { type ComponentType, type ReactNode, useState } from 'react'
-import { cn } from 'ui/core'
-import { Flex } from 'ui/flex'
-import { useComposedRef, useScrollOverflow, useScrollRegion } from 'ui/hooks'
+import { type ComponentType, useState } from 'react'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-import { omote } from '../../recipes/kiso/index.ts'
 import type { BarrelApi, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, metaOf } from './example.tsx'
 import { humanize } from './humanize.ts'
+import { Rail } from './rail.tsx'
 
 type Field = { name: string; values: readonly Literal[]; default?: Literal }
 
@@ -66,29 +63,6 @@ function printCode({ code, spread }: ExampleCode, fields: readonly Field[], valu
 	})
 
 	return code.slice(0, spread.index) + attributes.join('') + code.slice(spread.index)
-}
-
-/**
- * The row of fields. It stays on one line and scrolls when the fields do not
- * fit. While it overflows, the edge with more fields behind it fades, and the
- * row is a tab stop.
- */
-function FieldRail({ children }: { children: ReactNode }) {
-	const overflowRef = useScrollOverflow({ axis: 'horizontal' })
-
-	const regionRef = useScrollRegion({ label: 'Props' })
-
-	const ref = useComposedRef<HTMLElement>(overflowRef, regionRef)
-
-	return (
-		<Flex
-			ref={ref ?? undefined}
-			gap="sm"
-			className={cn('max-w-full whitespace-nowrap', omote.rail)}
-		>
-			{children}
-		</Flex>
-	)
 }
 
 function FieldPicker({
@@ -179,7 +153,7 @@ export function Playground<P extends object>({
 			meta={meta}
 			print={(code) => printCode(code, fields, values)}
 			actions={
-				<FieldRail>
+				<Rail label="Props">
 					{fields.map((field) => (
 						<FieldPicker
 							key={field.name}
@@ -188,7 +162,7 @@ export function Playground<P extends object>({
 							onValueChange={(value) => setValues({ ...values, [field.name]: value })}
 						/>
 					))}
-				</FieldRail>
+				</Rail>
 			}
 		>
 			<Instance {...values} />
