@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	detectCardBrand,
 	formatCardNumber,
@@ -300,6 +300,22 @@ describe('validateCardExpiry', () => {
 		expect(validateCardExpiry('12/')).toEqual({
 			isValid: false,
 			isPotentiallyValid: true,
+		})
+	})
+
+	it('gives a final verdict for a full-length entry with the year 20', () => {
+		// In the years 2000 to 2099, card-validator reads the year "20" as the
+		// start of a four-digit year. A full "MM/YY" entry cannot grow, so it
+		// cannot become valid.
+		vi.useFakeTimers({ now: new Date(2026, 9, 5) })
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		expect(validateCardExpiry('12/20')).toEqual({
+			isValid: false,
+			isPotentiallyValid: false,
 		})
 	})
 })

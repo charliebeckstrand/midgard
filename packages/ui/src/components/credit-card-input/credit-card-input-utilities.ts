@@ -187,12 +187,21 @@ export function validateCardCvv(value: string, brand?: CreditCardBrand): CardVal
 	return { isValid, isPotentiallyValid }
 }
 
+/** The length of a full "MM/YY" expiry entry. */
+const EXPIRY_LENGTH = 'MM/YY'.length
+
 /**
  * Validates an "MM/YY" expiry via card-validator's `expirationDate`,
- * enforcing the month range and rejecting past dates.
+ * enforcing the month range and rejecting past dates. A full-length entry
+ * cannot grow, so its verdict is final: `isPotentiallyValid` equals `isValid`.
  */
 export function validateCardExpiry(value: string): CardValidity {
 	const { isValid, isPotentiallyValid } = expirationDate(value)
+
+	// card-validator reads a two-digit year that is the same as the first two
+	// digits of the current year, such as "20", as the start of a four-digit
+	// year. The mask keeps only two year digits, so the entry cannot grow.
+	if (value.length === EXPIRY_LENGTH) return { isValid, isPotentiallyValid: isValid }
 
 	return { isValid, isPotentiallyValid }
 }
