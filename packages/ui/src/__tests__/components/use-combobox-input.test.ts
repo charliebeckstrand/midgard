@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useComboboxInput } from '../../components/combobox/use-combobox-input'
-import { makeChangeEvent, makeFocusEvent, makeKeyEvent, makePointerEvent } from '../helpers'
+import { attach, makeChangeEvent, makeFocusEvent, makeKeyEvent, makePointerEvent } from '../helpers'
 
 /**
  * Build a closed-menu arrow key event whose `currentTarget` reports the input's
@@ -125,27 +125,74 @@ describe('useComboboxInput onChange', () => {
 	})
 })
 
+function focusedInput() {
+	const input = attach(document.createElement('input'))
+
+	input.focus()
+
+	return input
+}
+
 describe('useComboboxInput onFocus', () => {
+	/** A keyboardSettled stub that keeps the callback until the test calls `settle`. */
+	function deferredSettle() {
+		let pending: (() => void) | undefined
+
+		const keyboardSettled = vi.fn((cb: () => void) => {
+			pending = cb
+		})
+
+		return { keyboardSettled, settle: () => pending?.() }
+	}
+
 	it('opens the panel via keyboardSettled', () => {
 		const { result, setOpen } = setup<string>()
 
-		result.current.onFocus()
+		const input = focusedInput()
+
+		result.current.onFocus(makeFocusEvent<HTMLInputElement>({ currentTarget: input }))
 
 		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+
+	it('opens the panel once the keyboard settles while the input keeps focus', () => {
+		const { keyboardSettled, settle } = deferredSettle()
+
+		const { result, setOpen } = setup<string>({ keyboardSettled })
+
+		const input = focusedInput()
+
+		result.current.onFocus(makeFocusEvent<HTMLInputElement>({ currentTarget: input }))
+
+		expect(setOpen).not.toHaveBeenCalled()
+
+		settle()
+
+		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+
+	it('does not open the panel when the input loses focus before the keyboard settles', () => {
+		const { keyboardSettled, settle } = deferredSettle()
+
+		const { result, setOpen } = setup<string>({ keyboardSettled })
+
+		const input = focusedInput()
+
+		result.current.onFocus(makeFocusEvent<HTMLInputElement>({ currentTarget: input }))
+
+		input.blur()
+
+		result.current.onBlur(
+			makeFocusEvent<HTMLInputElement>({ currentTarget: input, relatedTarget: null }),
+		)
+
+		settle()
+
+		expect(setOpen).not.toHaveBeenCalledWith(true)
 	})
 })
 
 describe('useComboboxInput onMouseDown', () => {
-	function focusedInput() {
-		const input = document.createElement('input')
-
-		document.body.appendChild(input)
-
-		input.focus()
-
-		return input
-	}
-
 	it('opens the closed menu on a press into the focused input', () => {
 		const { result, setOpen } = setup<string>({ open: false })
 

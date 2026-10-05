@@ -124,7 +124,8 @@ function consumeMenuEscape(event: KeyboardEvent<HTMLInputElement>, open: boolean
  *   input. `onChange` enters editing mode, updates the query, opens the menu, and
  *   clears the value on empty when `clearOnEmpty`. `onFocus` opens once the
  *   keyboard has settled. `onMouseDown` does the same for a press on the input
- *   when it already has focus. `onBlur` ignores focus moving into the floating
+ *   when it already has focus. The `onFocus` open runs only if the input still
+ *   has focus when the keyboard settles. `onBlur` ignores focus moving into the floating
  *   panel, else marks touched and closes. `onKeyDown` handles Escape/Enter, and reserves Home/End and
  *   Shift+Arrow for native caret/selection. It opens the closed menu from an
  *   arrow key at the matching text edge: ArrowDown at the end, ArrowUp at the
@@ -171,9 +172,20 @@ export function useComboboxInput<T>({
 		[clearOnEmpty, multiple, value, setEditing, setQuery, setOpen, setValue],
 	)
 
-	const onFocus = useCallback(() => {
-		keyboardSettled(() => setOpen(true))
-	}, [setOpen, keyboardSettled])
+	// On a touch device the open waits until the keyboard settles, up to about a second.
+	// A blur in that time does not cancel the wait, so the open runs only if the input
+	// still has focus. Without this check, the late open shows a menu that no later
+	// blur closes.
+	const onFocus = useCallback(
+		(event: FocusEvent<HTMLInputElement>) => {
+			const input = event.currentTarget
+
+			keyboardSettled(() => {
+				if (document.activeElement === input) setOpen(true)
+			})
+		},
+		[setOpen, keyboardSettled],
+	)
 
 	// A press on the input when it already has focus. No focus event fires for it, so
 	// `onFocus` cannot open the menu. That is the state after a pick or an Escape, which
