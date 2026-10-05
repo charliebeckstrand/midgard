@@ -2,7 +2,11 @@
 
 import { Search } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
-import type { KeybindingsMap } from 'tinykeys'
+import {
+	defaultKeybindingsHandlerIgnore,
+	type KeybindingFilter,
+	type KeybindingsMap,
+} from 'tinykeys'
 import { cn } from '../../core'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
@@ -15,14 +19,27 @@ import { CommandPaletteClose } from './command-palette-close'
 import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
-// Stable filter for `useKeybindings`; the shortcut fires even inside form fields.
-const IGNORE_NOTHING = () => false
+// The filters of the shortcut. Each palette skips a press that an earlier handler
+// took, so that one press toggles one palette. A closed palette also skips a
+// press in a form field, as the other keybindings do, so the key stays with the
+// field. An open palette holds the focus, so it takes the press from its own
+// search field and closes.
+const IGNORE_TAKEN: KeybindingFilter = (event) => event.defaultPrevented
+
+const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
+	event.defaultPrevented || defaultKeybindingsHandlerIgnore(event)
 
 /** Props for {@link CommandPalette}; inherits the Dialog `width` variant. */
 export type CommandPaletteProps = {
 	/** The maximum width of the panel. @defaultValue '2xl' */
 	width?: DialogPanelVariants['width']
+	/** Whether the palette is open. The palette is controlled only, so pair it with `onOpenChange`. */
 	open: boolean
+	/**
+	 * Fires with the open state that the palette asks for: `true` from
+	 * `triggerShortcut` while closed, and `false` from `triggerShortcut`, Escape, a
+	 * backdrop click, the Close button, or a chosen item while open.
+	 */
 	onOpenChange: (open: boolean) => void
 	/**
 	 * Fires with the id of the option the keyboard highlight sits on, or `null`
@@ -62,8 +79,11 @@ export type CommandPaletteProps = {
 	 * disable.
 	 *
 	 * @defaultValue '$mod+KeyK'
-	 * @remarks Bound document-wide and fires even while focus is inside a form
-	 * field, so the palette opens regardless of where the user is typing.
+	 * @remarks Bound document-wide. A closed palette does not open from a form
+	 * field or a contenteditable element, so the key stays with what the reader
+	 * types in. An open palette closes from its own search field. One press
+	 * toggles one palette: an open palette takes the press first, and a press
+	 * that an earlier handler took (`preventDefault`) toggles no palette.
 	 */
 	triggerShortcut?: string | string[] | false
 	/**
@@ -137,7 +157,12 @@ export function CommandPalette({
 		return Object.fromEntries(keys.map((key) => [key, toggle]))
 	}, [triggerShortcut, open, onOpenChange])
 
-	useKeybindings(triggerBindings, { ignore: IGNORE_NOTHING })
+	// An open palette listens in the capture phase, so it takes the press before
+	// a closed palette on the page can open over it.
+	useKeybindings(triggerBindings, {
+		ignore: open ? IGNORE_TAKEN : IGNORE_TAKEN_OR_FIELD,
+		capture: open,
+	})
 
 	const queryValue = useQueryValue(query, deferredQuery)
 

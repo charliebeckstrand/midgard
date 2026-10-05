@@ -62,8 +62,12 @@ export const k = {
 				],
 				// Each side keeps its content clear of the screen edge it sits on, in a
 				// page with `viewport-fit=cover`. Elsewhere the inset is zero.
-				top: [slide.top, 'pt-[env(safe-area-inset-top)]'],
-				bottom: [slide.bottom, 'pb-[env(safe-area-inset-bottom)]'],
+				//
+				// A sheet docked across takes the height of its content. `max-h-full`
+				// stops it at the screen, so a tall sheet scrolls its body and does not
+				// run off the far edge.
+				top: [slide.top, 'max-h-full pt-[env(safe-area-inset-top)]'],
+				bottom: [slide.bottom, 'max-h-full pb-[env(safe-area-inset-bottom)]'],
 			},
 			// The named steps are max-widths and nothing more, so they stay the shared
 			// scale. `fit` is a different kind of answer — the panel takes the width of
