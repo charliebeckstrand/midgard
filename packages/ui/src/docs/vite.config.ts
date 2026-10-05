@@ -28,10 +28,14 @@ export default defineConfig({
 		],
 	},
 	build: { target: 'esnext' },
-	// The client build puts React and the router in one chunk, and the shell
-	// with each module that it imports in one more chunk. Thus a page loads a
-	// few large chunks and not many small ones, and it makes fewer requests.
-	// The code of each page stays in the chunks of that page.
+	// The client build puts React and the router in one chunk, the shell with
+	// each module that it imports in one more chunk, and the kit with each
+	// module that it imports in a third. Thus a page loads a few large chunks
+	// and not many small ones, and it makes fewer requests. A lazy module, such
+	// as the sheet of the Event log, then finds the modules that it shares with
+	// the kit in the kit chunk, and the build splits no small chunk from them.
+	// The API entry stays out of the kit chunk, because it loads on demand. The
+	// code of each page stays in the chunks of that page.
 	environments: {
 		client: {
 			build: {
@@ -48,6 +52,11 @@ export default defineConfig({
 									name: 'shell',
 									test: /[\\/]src[\\/]docs[\\/]app[\\/]root\.tsx$/,
 									priority: 1,
+								},
+								{
+									name: 'kit',
+									test: /[\\/]src[\\/]docs[\\/]kit[\\/](?!api-entry)/,
+									priority: 0,
 								},
 							],
 						},
