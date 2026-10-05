@@ -18,7 +18,7 @@ import { useListWindow } from './use-list-window'
 type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 	/** Ordered items. */
 	items: T[]
-	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. @defaultValue 'separated' */
+	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards; `bare` spaces rows apart with no chrome, for rows of form controls. @defaultValue 'separated' */
 	variant?: ListVariant
 	/** Layout axis. @defaultValue 'vertical' */
 	orientation?: Orientation
@@ -78,7 +78,7 @@ export type ListProps<T> = BaseListProps<T> &
 
 /**
  * Renders an ordered `items` source as a `<ul>` through a `children` render
- * function, in one of four `variant`s and either orientation. With `onReorder`
+ * function, in one of five `variant`s and either orientation. With `onReorder`
  * it becomes reorderable over `@dnd-kit`, by pointer drag (with a drag overlay)
  * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}
  * per item unless `sortable: false`. A read-only list (no `onReorder`) shows

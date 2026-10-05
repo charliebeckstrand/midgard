@@ -512,6 +512,24 @@ describe('ListItem', () => {
 
 		expect(bySlot(separated, 'list-item')?.className ?? '').toContain('rounded-lg')
 	})
+
+	it('gives a `bare` row no padding and no divider, and spaces the rows apart', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 2)} variant="bare" getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		const root = bySlot(container, 'list')?.className ?? ''
+
+		const row = bySlot(container, 'list-item')?.className ?? ''
+
+		expect(root).toContain('gap-2')
+
+		expect(root).not.toContain('divide-y')
+
+		expect(row).not.toMatch(/(^|\s)(density-)?p[xy]?-/)
+	})
 })
 
 describe('ListLabel', () => {
