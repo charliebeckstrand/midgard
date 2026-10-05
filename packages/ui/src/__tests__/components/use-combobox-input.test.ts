@@ -234,6 +234,33 @@ describe('useComboboxInput onKeyDown', () => {
 		expect(rovingKeyDown).not.toHaveBeenCalled()
 	})
 
+	// The open menu consumes the press. The escape layer of a surface around the
+	// combobox (a Drawer, a Dialog) then ignores it, also when the layer of the
+	// menu unregisters before the document listener runs.
+	it('consumes the Escape that closes the open menu', () => {
+		const { result, close } = setup<string>()
+
+		const event = makeKeyEvent<HTMLInputElement>('Escape')
+
+		result.current.onKeyDown(event)
+
+		expect(close).toHaveBeenCalled()
+
+		expect(event.preventDefault).toHaveBeenCalled()
+	})
+
+	it('leaves an Escape on the closed menu to the surface around it', () => {
+		const { result, close } = setup<string>({ open: false })
+
+		const event = makeKeyEvent<HTMLInputElement>('Escape')
+
+		result.current.onKeyDown(event)
+
+		expect(close).toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+	})
+
 	it('selects the lone option on Enter when one is present', () => {
 		const { result, optionsRef } = setup<string>()
 

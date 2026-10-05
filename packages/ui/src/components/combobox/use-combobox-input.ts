@@ -80,6 +80,17 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 }
 
 /**
+ * Marks an Escape on the open menu as consumed with `preventDefault`. That press
+ * closes only the menu, so the escape layer of a surface around the combobox
+ * must ignore it. In a browser the layer of the menu can unregister before the
+ * document listener runs, so the dismiss stack alone does not stop the press.
+ * An Escape on the closed menu stays with the surface around it.
+ */
+function consumeMenuEscape(event: KeyboardEvent<HTMLInputElement>, open: boolean): void {
+	if (open) event.preventDefault()
+}
+
+/**
  * Event handlers for the combobox input element.
  *
  * @returns `{ onChange, onFocus, onMouseDown, onBlur, onKeyDown, onPaste, onScroll }` for the
@@ -170,6 +181,8 @@ export function useComboboxInput<T>({
 			if (isReservedTextboxKey(event)) return
 
 			if (event.key === 'Escape') {
+				consumeMenuEscape(event, open)
+
 				close()
 
 				return

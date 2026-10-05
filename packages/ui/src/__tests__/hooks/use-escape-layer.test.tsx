@@ -19,9 +19,9 @@ function Layer({
 	return <>{children}</>
 }
 
-function pressEscape() {
+function pressEscape(init: KeyboardEventInit = {}) {
 	act(() => {
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', ...init }))
 	})
 }
 
@@ -93,5 +93,25 @@ describe('useEscapeLayer', () => {
 		pressEscape()
 
 		expect(onDismiss.mock.calls).toEqual([['parent']])
+	})
+
+	// An IME uses Escape to cancel a composition. The key belongs to the textbox,
+	// so no surface closes on it. The key that starts a composition reports
+	// `keyCode` 229 before `isComposing` becomes true, so both signals count.
+	it.each<[string, KeyboardEventInit]>([
+		['isComposing', { isComposing: true }],
+		['keyCode 229', { keyCode: 229 }],
+	])('ignores an Escape that an IME composes (%s)', (_, init) => {
+		const onDismiss = vi.fn()
+
+		render(<Layer name="dialog" open onDismiss={onDismiss} />)
+
+		pressEscape(init)
+
+		expect(onDismiss).not.toHaveBeenCalled()
+
+		pressEscape()
+
+		expect(onDismiss.mock.calls).toEqual([['dialog']])
 	})
 })
