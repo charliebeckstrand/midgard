@@ -1472,6 +1472,28 @@ describe('Combobox required', () => {
 		expect(input).toHaveAttribute('aria-required', 'true')
 	})
 
+	// A typed query is not a selection. The input must stay natively invalid while it
+	// shows text and nothing is selected.
+	it('fails the native required check with typed text and no selection', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<form>
+				<Combobox required aria-label="City">
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+
+		await user.type(input, 'Ber')
+
+		expect(input.value).toBe('Ber')
+
+		expect(input.checkValidity()).toBe(false)
+	})
+
 	it('resolves required from an enclosing Control', () => {
 		const { container } = renderUI(
 			<Control required>
