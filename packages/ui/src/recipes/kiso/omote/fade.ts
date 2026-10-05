@@ -3,11 +3,10 @@
  * content itself, so the fade needs no solid color behind the container.
  *
  * `inline` fades a horizontal edge that has content behind it. The
- * `scroll-fade-inline` utility (`core/scroll/fade.ts`) holds the mask. Where
- * the browser supports scroll-driven animations, the scroll position sets the
- * width of each edge fade in each frame. Elsewhere, the fade keys off the
- * `data-overflow-start` / `data-overflow-end` attributes that
- * `useScrollOverflow({ axis: 'horizontal' })` stamps.
+ * `scroll-fade-inline` utility (`core/scroll/fade.ts`) holds the mask. The
+ * scroll position sets the width of each edge fade in each frame, through
+ * scroll-driven animations, so the fade needs no script. A browser without
+ * scroll-driven animations shows no fade.
  *
  * Layer: kiso · Concern: scroll edge fade
  */
