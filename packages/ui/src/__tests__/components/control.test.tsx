@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { Description, Label, Message } from '../../components/fieldset'
+import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
@@ -120,6 +120,9 @@ describe('Control + Input', () => {
 	})
 
 	it('explicit id overrides control id', () => {
+		// The id mismatch warns in development. The case below asserts the warning.
+		vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		const { container } = renderUI(
 			<Control id="test">
 				<Input id="custom" />
@@ -217,6 +220,66 @@ describe('Control + Input', () => {
 		const { container } = renderUI(<Input id="standalone" />)
 
 		expect(bySlot(container, 'input')).toHaveAttribute('id', 'standalone')
+	})
+})
+
+describe('Control + explicit control id', () => {
+	// The Label takes its `for` from the wrapper id. An explicit id on the
+	// control that differs leaves the Label with no control, so a development
+	// warning steers the consumer to `htmlFor` on the wrapper.
+	it('warns one time when an explicit id differs from the Field id', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const ui = (
+			<Field>
+				<Label>Email</Label>
+				<Input id="custom" />
+			</Field>
+		)
+
+		const { rerender } = renderUI(ui)
+
+		rerender(ui)
+
+		expect(warn).toHaveBeenCalledTimes(1)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('htmlFor="custom"'))
+	})
+
+	it.each<[string, () => ReactElement]>([
+		[
+			'the explicit id matches the Field htmlFor',
+			() => (
+				<Field htmlFor="custom">
+					<Label>Email</Label>
+					<Input id="custom" />
+				</Field>
+			),
+		],
+		[
+			'the explicit id matches the Control id',
+			() => (
+				<Control id="custom">
+					<Input id="custom" />
+				</Control>
+			),
+		],
+		[
+			'the control takes the Field id',
+			() => (
+				<Field>
+					<Label>Email</Label>
+					<Input />
+				</Field>
+			),
+		],
+		['the control has an explicit id and no wrapper', () => <Input id="standalone" />],
+	])('does not warn when %s', (_name, ui) => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(ui())
+
+		expect(warn).not.toHaveBeenCalled()
 	})
 })
 
