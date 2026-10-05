@@ -4,6 +4,7 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import type { Game, Team } from '../../types'
 import type { Grade } from '../../utilities/grade'
+import { KickoffTime } from '../kickoff-time'
 
 /** The outline of a card for each grade of its pick. A card with no grade keeps the default. */
 const GRADE_OUTLINE = {
@@ -11,12 +12,8 @@ const GRADE_OUTLINE = {
 	wrong: 'outline-2 outline-red-500',
 } as const
 
-/** The kickoff of a game that has not started, in the time zone of the reader. */
-const kickoffFormat = new Intl.DateTimeFormat('en-US', {
-	weekday: 'short',
-	hour: 'numeric',
-	minute: '2-digit',
-})
+/** The muted style of the status line of a card. */
+const STATUS_CLASS = 'text-sm text-zinc-500 dark:text-zinc-400'
 
 /**
  * One side of a game: the logo on the left, the name, and the score on the
@@ -66,9 +63,7 @@ export function GameCard({ game, grade }: { game: Game; grade: Grade }) {
 				<TeamRow team={game.home} final={final} />
 
 				{game.state === 'scheduled' ? (
-					<time dateTime={game.kickoff} className="text-sm text-zinc-500 dark:text-zinc-400">
-						{kickoffFormat.format(new Date(game.kickoff))}
-					</time>
+					<KickoffTime kickoff={game.kickoff} className={STATUS_CLASS} />
 				) : null}
 			</Stack>
 		</Card>

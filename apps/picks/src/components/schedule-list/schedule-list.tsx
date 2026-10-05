@@ -12,10 +12,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { useDeletePicks, usePicks, useSavePicks } from '../../queries/picks-queries'
 import type { SeasonPicks, Week } from '../../types'
 import { PREDICT_PARAM, predictValue, readPredictValue } from '../../utilities/predict-param'
+import { LEAGUE_ZONE, useLocalTime } from '../../utilities/use-local-time'
 import { PredictionSheet } from '../prediction-sheet'
 
 /** The days of a week, such as `Sep 9 – 15`, in the time zone of the reader. */
 const rangeFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
+
+/** The days of a week in the zone of the league, for the server and the hydration render. */
+const leagueRangeFormat = new Intl.DateTimeFormat('en-US', {
+	month: 'short',
+	day: 'numeric',
+	timeZone: LEAGUE_ZONE,
+})
 
 /**
  * Writes the week of the prediction form into the address, or takes it out.
@@ -92,6 +100,8 @@ export function ScheduleList({ season, weeks, picks: initial, started }: Schedul
 
 	const [deleting, setDeleting] = useState<Week | null>(null)
 
+	const range = useLocalTime() ? rangeFormat : leagueRangeFormat
+
 	return (
 		<>
 			<List
@@ -139,7 +149,7 @@ export function ScheduleList({ season, weeks, picks: initial, started }: Schedul
 							<ListLabel>{week.label}</ListLabel>
 
 							<ListDescription>
-								{rangeFormat.formatRange(new Date(week.start), new Date(week.end))}
+								{range.formatRange(new Date(week.start), new Date(week.end))}
 							</ListDescription>
 						</ListItem>
 					)
