@@ -28,7 +28,7 @@ export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'
 	 * needs the panel at its settled height. Never fires for a close, and never for a
 	 * panel that mounts already open.
 	 *
-	 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
+	 * @see {@link DrawerPanelProps.onOpenComplete} for the panel family's form of this callback.
 	 */
 	onOpenComplete?: () => void
 	/**

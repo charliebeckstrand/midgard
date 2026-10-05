@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Button } from 'ui/button'
-import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
-import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from 'ui/drawer'
+import { Dialog, DialogBody, DialogFooter, DialogPanel, DialogTitle } from 'ui/dialog'
+import { Drawer, DrawerBody, DrawerFooter, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { GlassProvider } from 'ui/providers/glass'
-import { Sheet, SheetBody, SheetFooter, SheetTitle } from 'ui/sheet'
+import { Sheet, SheetBody, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 
 function GlassDialog() {
@@ -15,15 +15,17 @@ function GlassDialog() {
 				Dialog
 			</Button>
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogTitle>Glass dialog</DialogTitle>
-				<DialogBody>
-					<Text>This dialog inherits glass mode from the GlassProvider wrapper.</Text>
-				</DialogBody>
-				<DialogFooter>
-					<Button variant="plain" onClick={() => setOpen(false)}>
-						Close
-					</Button>
-				</DialogFooter>
+				<DialogPanel>
+					<DialogTitle>Glass dialog</DialogTitle>
+					<DialogBody>
+						<Text>This dialog inherits glass mode from the GlassProvider wrapper.</Text>
+					</DialogBody>
+					<DialogFooter>
+						<Button variant="plain" onClick={() => setOpen(false)}>
+							Close
+						</Button>
+					</DialogFooter>
+				</DialogPanel>
 			</Dialog>
 		</>
 	)
@@ -38,13 +40,15 @@ function GlassDrawer() {
 				Drawer
 			</Button>
 			<Drawer open={open} onOpenChange={setOpen}>
-				<DrawerTitle>Glass drawer</DrawerTitle>
-				<DrawerBody>
-					<Text>Inherits glass mode from context.</Text>
-				</DrawerBody>
-				<DrawerFooter>
-					<Button onClick={() => setOpen(false)}>Close</Button>
-				</DrawerFooter>
+				<DrawerPanel>
+					<DrawerTitle>Glass drawer</DrawerTitle>
+					<DrawerBody>
+						<Text>Inherits glass mode from context.</Text>
+					</DrawerBody>
+					<DrawerFooter>
+						<Button onClick={() => setOpen(false)}>Close</Button>
+					</DrawerFooter>
+				</DrawerPanel>
 			</Drawer>
 		</>
 	)
@@ -58,14 +62,16 @@ function GlassSheet() {
 			<Button variant="outline" onClick={() => setOpen(true)}>
 				Sheet
 			</Button>
-			<Sheet side="left" open={open} onOpenChange={setOpen}>
-				<SheetTitle>Glass sheet</SheetTitle>
-				<SheetBody>
-					<Text>Inherits glass mode from context.</Text>
-				</SheetBody>
-				<SheetFooter>
-					<Button onClick={() => setOpen(false)}>Close</Button>
-				</SheetFooter>
+			<Sheet open={open} onOpenChange={setOpen}>
+				<SheetPanel side="left">
+					<SheetTitle>Glass sheet</SheetTitle>
+					<SheetBody>
+						<Text>Inherits glass mode from context.</Text>
+					</SheetBody>
+					<SheetFooter>
+						<Button onClick={() => setOpen(false)}>Close</Button>
+					</SheetFooter>
+				</SheetPanel>
 			</Sheet>
 		</>
 	)

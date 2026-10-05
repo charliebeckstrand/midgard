@@ -1,6 +1,6 @@
 import { type ComponentProps, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Dialog } from '../../components/dialog'
+import { Dialog, DialogPanel } from '../../components/dialog'
 import { type PortalContainer, usePortalContainer } from '../../primitives/portal'
 import { UIProvider } from '../../providers/ui'
 import { attach, renderUI, screen } from '../helpers'
@@ -40,7 +40,7 @@ describe('UIProvider portalContainer', () => {
 		renderUI(
 			<UIProvider portalContainer={target}>
 				<Dialog open onOpenChange={() => {}}>
-					Portaled dialog
+					<DialogPanel>Portaled dialog</DialogPanel>
 				</Dialog>
 			</UIProvider>,
 		)

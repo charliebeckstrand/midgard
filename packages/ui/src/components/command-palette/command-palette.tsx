@@ -17,6 +17,8 @@ import {
 	Dialog,
 	DialogBody,
 	DialogFooter,
+	DialogPanel,
+	type DialogPanelProps,
 	type DialogPanelVariants,
 	type DialogProps,
 } from '../dialog'
@@ -37,77 +39,78 @@ const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
 	event.defaultPrevented || defaultKeybindingsHandlerIgnore(event)
 
 /**
- * Props for {@link CommandPalette}. The open state (`open` or `defaultOpen`) and
- * `glass` come from {@link DialogProps}.
+ * Props for {@link CommandPalette}. The open state (`open` or `defaultOpen`) comes
+ * from {@link DialogProps}, and `glass` comes from {@link DialogPanelProps}.
  */
-export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen' | 'glass'> & {
-	/** The maximum width of the panel. @defaultValue '2xl' */
-	width?: DialogPanelVariants['width']
-	/**
-	 * Fires with the open state that the palette asks for: `true` from
-	 * `triggerShortcut` while closed, and `false` from `triggerShortcut`, Escape, a
-	 * backdrop click, the Close button, or a chosen item while open.
-	 */
-	onOpenChange?: (open: boolean) => void
-	/**
-	 * Fires with the id of the option the keyboard highlight sits on, or `null`
-	 * when nothing is highlighted.
-	 *
-	 * Focus stays in the search field and the highlight moves by
-	 * `aria-activedescendant`, so the only readout was that attribute. Use it to
-	 * preview the highlighted command beside the palette, or to prefetch what it
-	 * will need. An arrow key, a filter change that reseats the highlight on the
-	 * top result, and the close that clears it all report. On a device with no
-	 * hover, a filter change clears the highlight and reports `null`. The id is
-	 * the one the option renders with — `getOptionId` mints it for a windowed list.
-	 */
-	onActiveChange?: (optionId: string | null) => void
-	/**
-	 * Search-input placeholder text; also names the combobox input and the
-	 * listbox via `aria-label`, since the palette has no visible heading.
-	 *
-	 * @defaultValue 'Type a command or search'
-	 */
-	placeholder?: string
-	/** Close the palette when the backdrop is clicked. @defaultValue true */
-	dismissOnBackdrop?: boolean
-	/**
-	 * Content of the footer row under the results. Set it to replace the
-	 * default Close button with your own actions. Put a
-	 * {@link CommandPaletteClose} in it to keep the close action. Set `null` to
-	 * remove the footer row.
-	 *
-	 * @defaultValue `<CommandPaletteClose />`
-	 */
-	footer?: ReactNode
-	className?: string
-	/**
-	 * Global shortcut that toggles the palette; tinykeys syntax, e.g.
-	 * `'$mod+KeyK'` (⌘K / Ctrl+K). Array for multiple bindings, `false` to
-	 * disable.
-	 *
-	 * @defaultValue '$mod+KeyK'
-	 * @remarks Bound document-wide. A closed palette does not open from a form
-	 * field or a contenteditable element, so the key stays with what the reader
-	 * types in. An open palette closes from its own search field. One press
-	 * toggles one palette: an open palette takes the press first, and a press
-	 * that an earlier handler took (`preventDefault`) toggles no palette.
-	 */
-	triggerShortcut?: string | string[] | false
-	/**
-	 * Items to render in the palette. Read the deferred query with
-	 * {@link useCommandPaletteDeferredQuery}, and filter against it to keep
-	 * typing responsive. {@link useCommandPaletteQuery} also gives the live
-	 * query, but its consumer renders again for each keystroke. Wrap the filtered items in `VirtualOptions` with
-	 * `getOptionId` for large lists: arrow then navigates the full set by
-	 * index, reaching items outside the rendered window. Unlike
-	 * `Combobox`/`Listbox`, whose panel already carries a fixed max-height,
-	 * `DialogBody` sizes to its content. Give `VirtualOptions` a wrapper with
-	 * an explicit, definite height (not just `max-height`) and `overflow-y:
-	 * auto`, e.g. `<div style={{ height: 320, overflow: 'auto' }}>`.
-	 */
-	children: ReactNode
-}
+export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
+	Pick<DialogPanelProps, 'glass'> & {
+		/** The maximum width of the panel. @defaultValue '2xl' */
+		width?: DialogPanelVariants['width']
+		/**
+		 * Fires with the open state that the palette asks for: `true` from
+		 * `triggerShortcut` while closed, and `false` from `triggerShortcut`, Escape, a
+		 * backdrop click, the Close button, or a chosen item while open.
+		 */
+		onOpenChange?: (open: boolean) => void
+		/**
+		 * Fires with the id of the option the keyboard highlight sits on, or `null`
+		 * when nothing is highlighted.
+		 *
+		 * Focus stays in the search field and the highlight moves by
+		 * `aria-activedescendant`, so the only readout was that attribute. Use it to
+		 * preview the highlighted command beside the palette, or to prefetch what it
+		 * will need. An arrow key, a filter change that reseats the highlight on the
+		 * top result, and the close that clears it all report. On a device with no
+		 * hover, a filter change clears the highlight and reports `null`. The id is
+		 * the one the option renders with — `getOptionId` mints it for a windowed list.
+		 */
+		onActiveChange?: (optionId: string | null) => void
+		/**
+		 * Search-input placeholder text; also names the combobox input and the
+		 * listbox via `aria-label`, since the palette has no visible heading.
+		 *
+		 * @defaultValue 'Type a command or search'
+		 */
+		placeholder?: string
+		/** Close the palette when the backdrop is clicked. @defaultValue true */
+		dismissOnBackdrop?: boolean
+		/**
+		 * Content of the footer row under the results. Set it to replace the
+		 * default Close button with your own actions. Put a
+		 * {@link CommandPaletteClose} in it to keep the close action. Set `null` to
+		 * remove the footer row.
+		 *
+		 * @defaultValue `<CommandPaletteClose />`
+		 */
+		footer?: ReactNode
+		className?: string
+		/**
+		 * Global shortcut that toggles the palette; tinykeys syntax, e.g.
+		 * `'$mod+KeyK'` (⌘K / Ctrl+K). Array for multiple bindings, `false` to
+		 * disable.
+		 *
+		 * @defaultValue '$mod+KeyK'
+		 * @remarks Bound document-wide. A closed palette does not open from a form
+		 * field or a contenteditable element, so the key stays with what the reader
+		 * types in. An open palette closes from its own search field. One press
+		 * toggles one palette: an open palette takes the press first, and a press
+		 * that an earlier handler took (`preventDefault`) toggles no palette.
+		 */
+		triggerShortcut?: string | string[] | false
+		/**
+		 * Items to render in the palette. Read the deferred query with
+		 * {@link useCommandPaletteDeferredQuery}, and filter against it to keep
+		 * typing responsive. {@link useCommandPaletteQuery} also gives the live
+		 * query, but its consumer renders again for each keystroke. Wrap the filtered items in `VirtualOptions` with
+		 * `getOptionId` for large lists: arrow then navigates the full set by
+		 * index, reaching items outside the rendered window. Unlike
+		 * `Combobox`/`Listbox`, whose panel already carries a fixed max-height,
+		 * `DialogBody` sizes to its content. Give `VirtualOptions` a wrapper with
+		 * an explicit, definite height (not just `max-height`) and `overflow-y:
+		 * auto`, e.g. `<div style={{ height: 320, overflow: 'auto' }}>`.
+		 */
+		children: ReactNode
+	}
 
 const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 
@@ -190,67 +193,67 @@ export function CommandPalette({
 	const footerContent = footer === undefined ? <CommandPaletteClose /> : footer
 
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={setOpen}
-			align="top"
-			dismissOnBackdrop={dismissOnBackdrop}
-			width={width}
-			glass={glass}
-			className={className}
-			initialFocus={inputRef}
-			// Names the dialog directly; the palette has no visible heading.
-			aria-label="Command palette"
-			// The palette renders its own footer from `footer`, inside the query
-			// context, so the dialog adds none.
-			footer={null}
-		>
-			<CommandPaletteContext value={context}>
-				<QueryContext value={queryValue}>
-					{/* A filtering consumer reads the deferred query alone, so a keystroke
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogPanel
+				align="top"
+				dismissOnBackdrop={dismissOnBackdrop}
+				width={width}
+				glass={glass}
+				className={className}
+				initialFocus={inputRef}
+				// Names the dialog directly; the palette has no visible heading.
+				aria-label="Command palette"
+				// The palette renders its own footer from `footer`, inside the query
+				// context, so the dialog adds none.
+				footer={null}
+			>
+				<CommandPaletteContext value={context}>
+					<QueryContext value={queryValue}>
+						{/* A filtering consumer reads the deferred query alone, so a keystroke
 					    renders it one time and not also on the pass of the live query. */}
-					<DeferredQueryContext value={deferredQuery}>
-						<Input
-							ref={inputRef}
-							prefix={<Icon icon={<Search />} />}
-							role="combobox"
-							aria-label={placeholder}
-							aria-expanded={open}
-							aria-haspopup="listbox"
-							aria-controls={listboxId}
-							aria-autocomplete="list"
-							data-slot="command-palette-input"
-							placeholder={placeholder}
-							value={query}
-							onChange={(event) => setQuery(event.target.value)}
-							onKeyDown={onKeyDown}
-						/>
-						<DialogBody>
-							<div
-								ref={listRef}
-								id={listboxId}
-								role="listbox"
+						<DeferredQueryContext value={deferredQuery}>
+							<Input
+								ref={inputRef}
+								prefix={<Icon icon={<Search />} />}
+								role="combobox"
 								aria-label={placeholder}
-								data-slot="command-palette-list"
-								className={cn(k.list)}
-							>
-								<VirtualItemSourceContext value={virtualSourceRef}>
-									{children}
-								</VirtualItemSourceContext>
-							</div>
-							{/* The listbox owns only options (`aria-required-children`). The
+								aria-expanded={open}
+								aria-haspopup="listbox"
+								aria-controls={listboxId}
+								aria-autocomplete="list"
+								data-slot="command-palette-input"
+								placeholder={placeholder}
+								value={query}
+								onChange={(event) => setQuery(event.target.value)}
+								onKeyDown={onKeyDown}
+							/>
+							<DialogBody>
+								<div
+									ref={listRef}
+									id={listboxId}
+									role="listbox"
+									aria-label={placeholder}
+									data-slot="command-palette-list"
+									className={cn(k.list)}
+								>
+									<VirtualItemSourceContext value={virtualSourceRef}>
+										{children}
+									</VirtualItemSourceContext>
+								</div>
+								{/* The listbox owns only options (`aria-required-children`). The
 					    no-results status is a sibling `<output>` that announces when the
 					    listbox filters down to empty. */}
-							<output data-slot="command-palette-no-results" className={cn(k.empty)}>
-								No results
-							</output>
-						</DialogBody>
-						{footerContent === null || footerContent === false ? null : (
-							<DialogFooter data-slot="command-palette-footer">{footerContent}</DialogFooter>
-						)}
-					</DeferredQueryContext>
-				</QueryContext>
-			</CommandPaletteContext>
+								<output data-slot="command-palette-no-results" className={cn(k.empty)}>
+									No results
+								</output>
+							</DialogBody>
+							{footerContent === null || footerContent === false ? null : (
+								<DialogFooter data-slot="command-palette-footer">{footerContent}</DialogFooter>
+							)}
+						</DeferredQueryContext>
+					</QueryContext>
+				</CommandPaletteContext>
+			</DialogPanel>
 		</Dialog>
 	)
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Drawer, DrawerBody } from '../../../components/drawer'
+import { Drawer, DrawerBody, DrawerPanel } from '../../../components/drawer'
 import {
 	frames,
 	getSlot,
@@ -32,10 +32,12 @@ function FitProbe({ short, tall }: { short: number; tall: number }) {
 				swap
 			</button>
 
-			<Drawer open height="fit" onOpenChange={() => {}} aria-label="Probe">
-				<DrawerBody>
-					<div style={{ height: grown ? tall : short }} />
-				</DrawerBody>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel height="fit" aria-label="Probe">
+					<DrawerBody>
+						<div style={{ height: grown ? tall : short }} />
+					</DrawerBody>
+				</DrawerPanel>
 			</Drawer>
 		</>
 	)
@@ -82,10 +84,12 @@ describe('fit drawer height (real browser)', () => {
 
 	it('stops at the screen and squares its corners when the content asks for more', async () => {
 		renderUI(
-			<Drawer open height="fit" onOpenChange={() => {}} aria-label="Tall">
-				<DrawerBody>
-					<div style={{ height: window.innerHeight + 400 }} />
-				</DrawerBody>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel height="fit" aria-label="Tall">
+					<DrawerBody>
+						<div style={{ height: window.innerHeight + 400 }} />
+					</DrawerBody>
+				</DrawerPanel>
 			</Drawer>,
 		)
 

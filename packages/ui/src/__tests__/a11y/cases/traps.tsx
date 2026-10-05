@@ -6,9 +6,9 @@ import {
 	CommandPaletteLabel,
 } from '../../../components/command-palette'
 import { Confirm } from '../../../components/confirm'
-import { Dialog, DialogBody, DialogTitle } from '../../../components/dialog'
-import { Drawer, DrawerBody, DrawerTitle } from '../../../components/drawer'
-import { Sheet, SheetBody, SheetTitle } from '../../../components/sheet'
+import { Dialog, DialogBody, DialogPanel, DialogTitle } from '../../../components/dialog'
+import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
+import { Sheet, SheetBody, SheetPanel, SheetTitle } from '../../../components/sheet'
 import { noop, screen } from '../../helpers'
 import { Disclosure } from './harness'
 import type { TrapCase } from './types'
@@ -33,11 +33,13 @@ export const traps: readonly TrapCase[] = [
 				label="Open dialog"
 				render={(open, onOpenChange) => (
 					<Dialog open={open} onOpenChange={onOpenChange}>
-						<DialogTitle>Edit profile</DialogTitle>
-						<DialogBody>
-							<Button>First</Button>
-							<Button>Last</Button>
-						</DialogBody>
+						<DialogPanel>
+							<DialogTitle>Edit profile</DialogTitle>
+							<DialogBody>
+								<Button>First</Button>
+								<Button>Last</Button>
+							</DialogBody>
+						</DialogPanel>
 					</Dialog>
 				)}
 			/>
@@ -53,11 +55,13 @@ export const traps: readonly TrapCase[] = [
 				label="Open drawer"
 				render={(open, onOpenChange) => (
 					<Drawer open={open} onOpenChange={onOpenChange}>
-						<DrawerTitle>Drawer</DrawerTitle>
-						<DrawerBody>
-							<Button>First</Button>
-							<Button>Last</Button>
-						</DrawerBody>
+						<DrawerPanel>
+							<DrawerTitle>Drawer</DrawerTitle>
+							<DrawerBody>
+								<Button>First</Button>
+								<Button>Last</Button>
+							</DrawerBody>
+						</DrawerPanel>
 					</Drawer>
 				)}
 			/>
@@ -73,11 +77,13 @@ export const traps: readonly TrapCase[] = [
 				label="Open sheet"
 				render={(open, onOpenChange) => (
 					<Sheet open={open} onOpenChange={onOpenChange}>
-						<SheetTitle>Right Sheet</SheetTitle>
-						<SheetBody>
-							<Button>First</Button>
-							<Button>Last</Button>
-						</SheetBody>
+						<SheetPanel>
+							<SheetTitle>Right Sheet</SheetTitle>
+							<SheetBody>
+								<Button>First</Button>
+								<Button>Last</Button>
+							</SheetBody>
+						</SheetPanel>
 					</Sheet>
 				)}
 			/>

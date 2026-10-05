@@ -1,23 +1,31 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useId } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
-import { useControllableFlag } from '../../hooks/use-controllable'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { Overlay } from '../../primitives/overlay'
-import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
+import {
+	type PanelOverlayProps,
+	PanelProviders,
+	PanelRoot,
+	type PanelRootProps,
+	usePanelState,
+} from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 import { SheetClose, SheetDefaultFooter } from './slots'
 
-/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
-export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> &
+/** Props for {@link Sheet}: the open state, controlled or uncontrolled. */
+export type SheetProps = PanelRootProps
+
+/** Props for {@link SheetPanel}: portal `container`, focus, modality, and panel `side`/`width` variants. */
+export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> &
 	PanelOverlayProps & {
 		/**
 		 * The edge the panel is docked to and slides in from.
@@ -56,13 +64,6 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 		 * @defaultValue 'md'
 		 */
 		width?: SheetPanelVariants['width']
-		/** Controlled open state. Pair with `onOpenChange`. */
-		open?: boolean
-		/**
-		 * Initial open state when uncontrolled.
-		 * @defaultValue false
-		 */
-		defaultOpen?: boolean
 		/**
 		 * Give the panel a drag handle. The reader can then resize it past the `width`
 		 * scale.
@@ -76,8 +77,6 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 		 * @defaultValue false
 		 */
 		handle?: boolean
-		/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
-		onOpenChange?: (open: boolean) => void
 		/**
 		 * Fires once the panel has finished arriving — it is in from its edge, at rest, and
 		 * covering whatever it covers.
@@ -94,7 +93,7 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 		 *
 		 * Once per arrival, and never for a close.
 		 *
-		 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
+		 * @see {@link DrawerPanelProps.onOpenComplete} for the same contract on the sibling panel.
 		 */
 		onOpenComplete?: () => void
 		/**
@@ -135,14 +134,39 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
 	}
 
 /**
- * Edge-anchored overlay panel sliding in from `side` (default `'right'`),
- * controlled via `open`/`onOpenChange` or uncontrolled via `defaultOpen`.
- * Portals to `document.body` by default, or scopes to a `container` with
- * absolute positioning and no scroll lock. Resolves the surface variant against
- * the enclosing Glass provider. Compose `<SheetTrigger>`, `<SheetClose>`, and
- * the slot family (`<SheetHeader>`, `<SheetTitle>`, `<SheetDescription>`,
- * `<SheetBody>`, `<SheetFooter>`) within. With no `<SheetFooter>` in its
- * children, the sheet shows a footer with the standard Close button.
+ * Composition root for a sheet. It holds the open state, controlled
+ * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives it to
+ * `<SheetTrigger>` and `<SheetPanel>`. It renders no element. A trigger in the
+ * root opens an uncontrolled sheet. Escape, the backdrop, and `<SheetClose>`
+ * close it, and focus then goes back to the trigger.
+ *
+ * @example
+ * ```tsx
+ * <Sheet>
+ *   <SheetTrigger>
+ *     <Button>Open</Button>
+ *   </SheetTrigger>
+ *   <SheetPanel>
+ *     <SheetTitle>Title</SheetTitle>
+ *   </SheetPanel>
+ * </Sheet>
+ * ```
+ *
+ * @see {@link SheetPanel} for the surface and its props.
+ */
+export function Sheet(props: SheetProps) {
+	return <PanelRoot {...props} />
+}
+
+/**
+ * The edge-anchored surface of a {@link Sheet}, sliding in from `side` (default
+ * `'right'`). It reads the open state of the enclosing `<Sheet>`. Portals to
+ * `document.body` by default, or scopes to a `container` with absolute
+ * positioning and no scroll lock. Resolves the surface variant against the
+ * enclosing Glass provider. Compose `<SheetClose>` and the slot family
+ * (`<SheetHeader>`, `<SheetTitle>`, `<SheetDescription>`, `<SheetBody>`,
+ * `<SheetFooter>`) within. With no `<SheetFooter>` in its children, the sheet
+ * shows a footer with the standard Close button.
  *
  * @remarks
  * A registered `<SheetTitle>` supplies `aria-labelledby` and takes precedence
@@ -152,13 +176,10 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> 
  * the panel captures them. The panel stops click propagation to keep the
  * portal's synthetic clicks off the consumer ancestors it renders under. The
  * backdrop is a sibling, so a panel click never reaches its dismiss handler
- * anyway. The panel shares a single open-state setter with its dismiss
- * affordances via `PanelProviders`.
+ * anyway. The panel, its close parts, and its dismissal share the open-state
+ * setter of the root.
  */
-export function Sheet({
-	open,
-	defaultOpen,
-	onOpenChange,
+export function SheetPanel({
 	onOpenComplete,
 	side = 'right',
 	width,
@@ -174,13 +195,9 @@ export function Sheet({
 	modal,
 	backdrop,
 	'aria-label': ariaLabel,
-}: SheetProps) {
-	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
-	const [resolvedOpen, setOpen] = useControllableFlag({
-		value: open,
-		defaultValue: defaultOpen,
-		onValueChange: onOpenChange,
-	})
+}: SheetPanelProps) {
+	// The root holds the state. One setter drives the Overlay and the close parts.
+	const { open, setOpen, panelId } = usePanelState()
 
 	const resolvedSurface = useResolvedSurface(glass)
 
@@ -191,12 +208,9 @@ export function Sheet({
 
 	const preset = k.motion[edge]
 
-	const { onAnimationComplete } = useOpenComplete(resolvedOpen, preset.animate, onOpenComplete)
+	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
-
-	// The handle names the panel in `aria-controls`.
-	const panelId = useId()
 
 	// The dimension this side is docked across, which is the one the gesture moves
 	// and the one the cap is measured on.
@@ -207,14 +221,14 @@ export function Sheet({
 	// to hold one.
 	const resize = usePanelResize({
 		side: edge,
-		open: resolvedOpen,
+		open,
 		floorOf: (panel, size) => sheetFloor(panel, size, axis),
 		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, axis),
 	})
 
 	return (
 		<Overlay
-			open={resolvedOpen}
+			open={open}
 			onOpenChange={setOpen}
 			container={container}
 			initialFocus={initialFocus}
@@ -274,9 +288,9 @@ export function Sheet({
 	)
 }
 
-/** The physical edge of a {@link SheetProps.side}: `start` and `end` resolve against `rtl`. */
+/** The physical edge of a {@link SheetPanelProps.side}: `start` and `end` resolve against `rtl`. */
 function physicalSide(
-	side: NonNullable<SheetProps['side']>,
+	side: NonNullable<SheetPanelProps['side']>,
 	rtl: boolean,
 ): NonNullable<SheetPanelVariants['side']> {
 	if (side === 'start') return rtl ? 'right' : 'left'

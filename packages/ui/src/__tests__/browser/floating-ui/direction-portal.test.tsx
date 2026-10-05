@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Combobox, ComboboxOption } from '../../../components/combobox'
-import { Dialog, DialogTitle } from '../../../components/dialog'
+import { Dialog, DialogPanel, DialogTitle } from '../../../components/dialog'
 import { Listbox, ListboxOption } from '../../../components/listbox'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
 import { LocaleProvider } from '../../../providers/locale'
@@ -25,7 +25,9 @@ describe('direction scopes across portals (real browser)', () => {
 		renderUI(
 			<LocaleProvider dir={dir}>
 				<Dialog open onOpenChange={() => {}}>
-					<DialogTitle>Settings</DialogTitle>
+					<DialogPanel>
+						<DialogTitle>Settings</DialogTitle>
+					</DialogPanel>
 				</Dialog>
 			</LocaleProvider>,
 		)

@@ -41,7 +41,7 @@ export const SIZE_AXES = {
 	CurrencyInput: ['sm', 'md', 'lg'],
 	DateInput: ['sm', 'md', 'lg'],
 	DatePicker: ['sm', 'md', 'lg'],
-	Drawer: ['sm', 'md', 'lg'],
+	DrawerPanel: ['sm', 'md', 'lg'],
 	DrawerStatic: ['sm', 'md', 'lg'],
 	FileUploadButton: ['xs', 'sm', 'md', 'lg'],
 	FileUploadInput: ['sm', 'md', 'lg'],

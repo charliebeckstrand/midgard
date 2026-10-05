@@ -7,11 +7,7 @@ import StaticDrawer from './static-drawer.tsx'
 export default function DrawerPage() {
 	return (
 		<>
-			<Playground
-				of={DrawerPlayground}
-				api={api}
-				omit={['open', 'defaultOpen', 'animateOnMount']}
-			/>
+			<Playground of={DrawerPlayground} api={api} omit={['animateOnMount']} />
 			<Example of={FitContent} />
 			<Example of={StaticDrawer} />
 			<ApiTable api={api} />

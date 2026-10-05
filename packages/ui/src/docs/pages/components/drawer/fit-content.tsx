@@ -5,6 +5,7 @@ import {
 	DrawerBody,
 	DrawerClose,
 	DrawerFooter,
+	DrawerPanel,
 	DrawerTitle,
 	DrawerTrigger,
 } from 'ui/drawer'
@@ -47,23 +48,17 @@ const topics: Topic[] = [
 ]
 
 export default function FitContent() {
-	const [open, setOpen] = useState(false)
-
 	const [topic, setTopic] = useState<Topic | null>(null)
 
 	return (
-		<>
-			<DrawerTrigger
-				open={open}
-				onClick={() => {
-					setTopic(null)
-					setOpen(true)
-				}}
-			>
-				<Button variant="outline">Help</Button>
+		<Drawer>
+			<DrawerTrigger>
+				<Button variant="outline" onClick={() => setTopic(null)}>
+					Help
+				</Button>
 			</DrawerTrigger>
 			{/* Open a question and go back. The drawer moves between the two heights. */}
-			<Drawer height="fit" open={open} onOpenChange={setOpen}>
+			<DrawerPanel height="fit">
 				<DrawerTitle>{topic ? topic.question : 'Help'}</DrawerTitle>
 				<DrawerBody>
 					{topic ? (
@@ -86,7 +81,7 @@ export default function FitContent() {
 					)}
 					<DrawerClose />
 				</DrawerFooter>
-			</Drawer>
-		</>
+			</DrawerPanel>
+		</Drawer>
 	)
 }

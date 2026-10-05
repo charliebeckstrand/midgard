@@ -8,6 +8,7 @@ import {
 	DialogBody,
 	DialogFooter,
 	DialogHeader,
+	DialogPanel,
 	DialogTitle,
 } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
@@ -86,38 +87,40 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 			<Button variant="bare" aria-label="Settings" onClick={() => setOpen(true)}>
 				<Icon icon={<Settings2 />} />
 			</Button>
-			<Dialog open={open} width="sm" onOpenChange={setOpen}>
-				<DialogHeader>
-					<DialogTitle>Settings</DialogTitle>
-				</DialogHeader>
-				<DialogBody>
-					<Stack gap="lg">
-						{portalRoot && (
-							<UIProvider portalContainer={portalRoot}>
-								<Field>
-									<Label>Appearance</Label>
-									<ChoiceListbox options={themeModes} value={theme} onValueChange={setTheme} />
-								</Field>
-								<Field>
-									<Label>Density</Label>
-									<ChoiceListbox
-										options={densityLevels}
-										value={density}
-										onValueChange={setDensity}
-									/>
-								</Field>
-								{children}
-							</UIProvider>
-						)}
-					</Stack>
-					{/* The portal target of the listbox panels. See the note above. */}
-					<div ref={setPortalRoot} className="contents" />
-				</DialogBody>
-				<DialogFooter>
-					<Button variant="plain" onClick={() => setOpen(false)}>
-						Done
-					</Button>
-				</DialogFooter>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogPanel width="sm">
+					<DialogHeader>
+						<DialogTitle>Settings</DialogTitle>
+					</DialogHeader>
+					<DialogBody>
+						<Stack gap="lg">
+							{portalRoot && (
+								<UIProvider portalContainer={portalRoot}>
+									<Field>
+										<Label>Appearance</Label>
+										<ChoiceListbox options={themeModes} value={theme} onValueChange={setTheme} />
+									</Field>
+									<Field>
+										<Label>Density</Label>
+										<ChoiceListbox
+											options={densityLevels}
+											value={density}
+											onValueChange={setDensity}
+										/>
+									</Field>
+									{children}
+								</UIProvider>
+							)}
+						</Stack>
+						{/* The portal target of the listbox panels. See the note above. */}
+						<div ref={setPortalRoot} className="contents" />
+					</DialogBody>
+					<DialogFooter>
+						<Button variant="plain" onClick={() => setOpen(false)}>
+							Done
+						</Button>
+					</DialogFooter>
+				</DialogPanel>
 			</Dialog>
 		</>
 	)

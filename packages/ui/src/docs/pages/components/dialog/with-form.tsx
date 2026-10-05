@@ -7,6 +7,7 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
+	DialogPanel,
 	DialogTitle,
 	DialogTrigger,
 } from 'ui/dialog'
@@ -20,11 +21,11 @@ export default function WithForm() {
 	const [open, setOpen] = useState(false)
 
 	return (
-		<>
-			<DialogTrigger open={open} onClick={() => setOpen(true)}>
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger>
 				<Button color="green">Create project</Button>
 			</DialogTrigger>
-			<Dialog open={open} onOpenChange={setOpen}>
+			<DialogPanel>
 				<DialogHeader>
 					<DialogTitle>Create project</DialogTitle>
 					<DialogDescription>Enter the details for your new project.</DialogDescription>
@@ -61,7 +62,7 @@ export default function WithForm() {
 						</Button>
 					</DialogFooter>
 				</Form>
-			</Dialog>
-		</>
+			</DialogPanel>
+		</Dialog>
 	)
 }

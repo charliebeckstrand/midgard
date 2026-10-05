@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { Sheet, SheetBody, SheetHeader, SheetTitle } from '../../../components/sheet'
+import { Sheet, SheetBody, SheetHeader, SheetPanel, SheetTitle } from '../../../components/sheet'
 import { frames, getSlot, renderUI } from '../../helpers'
 
 /**
@@ -21,11 +21,13 @@ describe('top and bottom sheet height (real browser)', () => {
 	for (const side of ['top', 'bottom'] as const) {
 		it(`keeps a tall ${side} sheet in the screen, and scrolls its body`, async () => {
 			renderUI(
-				<Sheet open onOpenChange={() => {}} side={side}>
-					<SheetHeader>
-						<SheetTitle>Log</SheetTitle>
-					</SheetHeader>
-					<SheetBody>{LONG}</SheetBody>
+				<Sheet open onOpenChange={() => {}}>
+					<SheetPanel side={side}>
+						<SheetHeader>
+							<SheetTitle>Log</SheetTitle>
+						</SheetHeader>
+						<SheetBody>{LONG}</SheetBody>
+					</SheetPanel>
 				</Sheet>,
 			)
 

@@ -1,6 +1,6 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { Drawer, DrawerBody, DrawerStatic, DrawerTitle } from '../../components/drawer'
+import { Drawer, DrawerBody, DrawerPanel, DrawerStatic, DrawerTitle } from '../../components/drawer'
 import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
 
 /** The class list of `el`, order-free — the two trees build theirs through different calls. */
@@ -33,15 +33,10 @@ describe('DrawerStatic', () => {
 	 */
 	it('carries the same root, backdrop, and panel classes as an open drawer', () => {
 		const { unmount } = renderUI(
-			<Drawer
-				open
-				glass
-				desaturate
-				animateOnMount={false}
-				onOpenChange={() => {}}
-				className="h-40 ring-inset"
-			>
-				<DrawerTitle>Resolve</DrawerTitle>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel glass desaturate animateOnMount={false} className="h-40 ring-inset">
+					<DrawerTitle>Resolve</DrawerTitle>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -67,8 +62,10 @@ describe('DrawerStatic', () => {
 	// A drawer with a handle lands on a static copy with the same grip and the same inset.
 	it('paints the grip of a drawer with a handle', () => {
 		const { unmount } = renderUI(
-			<Drawer open handle height="half" animateOnMount={false} onOpenChange={() => {}}>
-				<DrawerTitle>Resolve</DrawerTitle>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel handle height="half" animateOnMount={false}>
+					<DrawerTitle>Resolve</DrawerTitle>
+				</DrawerPanel>
 			</Drawer>,
 		)
 

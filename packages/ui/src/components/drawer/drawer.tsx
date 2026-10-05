@@ -1,19 +1,24 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useEffect, useId } from 'react'
+import { type ReactNode, type RefObject, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
-import { useControllableFlag } from '../../hooks/use-controllable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
-import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
+import {
+	type PanelOverlayProps,
+	PanelProviders,
+	PanelRoot,
+	type PanelRootProps,
+	usePanelState,
+} from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
@@ -21,18 +26,12 @@ import { DrawerHandle } from './drawer-handle'
 import { drawerPanelProps, drawerShowsGrip } from './drawer-panel-props'
 import { DrawerClose, DrawerDefaultFooter } from './slots'
 
-/** Props for {@link Drawer}: open-state control, panel `height`, density `size` scope, and accessible naming. */
-export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
+/** Props for {@link Drawer}: the open state, controlled or uncontrolled. */
+export type DrawerProps = PanelRootProps
+
+/** Props for {@link DrawerPanel}: panel `height`, density `size` scope, dismissal, and accessible naming. */
+export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 	PanelOverlayProps & {
-		/** Controlled open state. Pair with `onOpenChange`. */
-		open?: boolean
-		/**
-		 * Initial open state when uncontrolled.
-		 * @defaultValue false
-		 */
-		defaultOpen?: boolean
-		/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
-		onOpenChange?: (open: boolean) => void
 		/**
 		 * Fires once the panel has finished arriving — it is docked, at rest, and covering
 		 * whatever it covers.
@@ -170,10 +169,35 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 	}
 
 /**
- * Bottom-sheet overlay rendered in an `Overlay` with focus trapping and backdrop dismiss.
+ * Composition root for a drawer. It holds the open state, controlled
+ * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives it to
+ * `<DrawerTrigger>` and `<DrawerPanel>`. It renders no element. A trigger in the
+ * root opens an uncontrolled drawer. Escape, the backdrop, and `<DrawerClose>`
+ * close it, and focus then goes back to the trigger.
+ *
+ * @example
+ * ```tsx
+ * <Drawer>
+ *   <DrawerTrigger>
+ *     <Button>Open</Button>
+ *   </DrawerTrigger>
+ *   <DrawerPanel>
+ *     <DrawerTitle>Title</DrawerTitle>
+ *   </DrawerPanel>
+ * </Drawer>
+ * ```
+ *
+ * @see {@link DrawerPanel} for the surface and its props.
+ */
+export function Drawer(props: DrawerProps) {
+	return <PanelRoot {...props} />
+}
+
+/**
+ * The bottom-sheet surface of a {@link Drawer}, rendered in an `Overlay` with focus
+ * trapping and backdrop dismiss. It reads the open state of the enclosing `<Drawer>`.
  * Docks full-width to the bottom edge with a rounded top, and slides up via the shared
- * bottom motion preset. Open state is controlled (`open`/`onOpenChange`) or uncontrolled
- * (`defaultOpen`).
+ * bottom motion preset.
  *
  * `height` sets how much of the screen it docks over:
  *
@@ -182,8 +206,8 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * - Fixed at half or the whole of it.
  *
  * Resolves the surface variant against the enclosing Glass provider. An explicit `size`
- * opens a density scope on the panel, so descendants scale in step. Compose `<DrawerTrigger>`,
- * `<DrawerClose>`, and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
+ * opens a density scope on the panel, so descendants scale in step. Compose `<DrawerClose>`
+ * and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
  * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within. With no `<DrawerFooter>` in
  * its children, the drawer shows a footer with the standard Close button.
  *
@@ -191,13 +215,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * A registered `<DrawerTitle>` supplies `aria-labelledby` and takes precedence over the
  * `aria-label` fallback. The panel stops click propagation to keep the portal's synthetic
  * clicks off the consumer ancestors it renders under. The backdrop is a sibling, so a panel
- * click never reaches its dismiss handler anyway. The panel also shares a single open-state
- * setter with its dismiss affordances, via `PanelProviders`.
+ * click never reaches its dismiss handler anyway. The panel, its close parts, and its
+ * dismissal share the open-state setter of the root.
  */
-export function Drawer({
-	open,
-	defaultOpen,
-	onOpenChange,
+export function DrawerPanel({
 	onOpenComplete,
 	size,
 	height,
@@ -214,31 +235,23 @@ export function Drawer({
 	backdrop,
 	container,
 	'aria-label': ariaLabel,
-}: DrawerProps) {
-	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
-	const [resolvedOpen, setOpen] = useControllableFlag({
-		value: open,
-		defaultValue: defaultOpen,
-		onValueChange: onOpenChange,
-	})
+}: DrawerPanelProps) {
+	// The root holds the state. One setter drives the Overlay and the close parts.
+	const { open, setOpen, panelId } = usePanelState()
 
 	const resolvedSurface = useResolvedSurface(glass)
 
 	// The panel unmounts while closed (`Portal`), so the flag has to be scoped to
 	// this component's own mount or a minimize/maximize cycle would land in place.
-	const animateEnter = useEnterAnimation(resolvedOpen, animateOnMount)
+	const animateEnter = useEnterAnimation(open, animateOnMount)
 
-	const { report, onAnimationComplete } = useOpenComplete(
-		resolvedOpen,
-		k.motion.animate,
-		onOpenComplete,
-	)
+	const { report, onAnimationComplete } = useOpenComplete(open, k.motion.animate, onOpenComplete)
 
 	// A panel that arrives in place plays no enter, so there is no landing to report from —
 	// it is already up, and says so from here instead.
 	useEffect(() => {
-		if (resolvedOpen && !animateEnter) report()
-	}, [resolvedOpen, animateEnter, report])
+		if (open && !animateEnter) report()
+	}, [open, animateEnter, report])
 
 	const grip = drawerShowsGrip(handle, height)
 
@@ -247,7 +260,7 @@ export function Drawer({
 	// here — there is nothing for a consumer to hold.
 	const resize = usePanelResize({
 		side: 'bottom',
-		open: resolvedOpen,
+		open,
 		floorOf: drawerFloor,
 		ceilingOf: drawerCeiling,
 	})
@@ -269,12 +282,9 @@ export function Drawer({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
-	// The handle names the panel in `aria-controls`.
-	const panelId = useId()
-
 	return (
 		<Overlay
-			open={resolvedOpen}
+			open={open}
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
 			dismissOnBackdrop={dismissOnBackdrop}

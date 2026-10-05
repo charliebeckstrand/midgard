@@ -70,7 +70,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * section that mounts already open. A `type='single'` swap therefore reports only
 		 * the section that opened, not the one it replaced.
 		 *
-		 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
+		 * @see {@link DrawerPanelProps.onOpenComplete} for the panel family's form of this callback.
 		 */
 		onOpenComplete?: (value: string) => void
 		className?: string

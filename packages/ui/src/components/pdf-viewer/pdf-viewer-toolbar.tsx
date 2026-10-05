@@ -42,8 +42,6 @@ export function PdfViewerToolbar() {
 		isDesktop,
 		sidebarOpen,
 		setSidebarOpen,
-		thumbsOpen,
-		setThumbsOpen,
 		hasHighlights,
 		highlightsVisible,
 		setHighlightsVisible,
@@ -83,9 +81,9 @@ export function PdfViewerToolbar() {
 						{/* A dialog opener, unlike the desktop toggle above it. The modal Sheet covers this
 						    button while open and carries its own close, so the button has one action and
 						    one name. `SheetTrigger` stamps `aria-haspopup` and the `aria-expanded` that
-						    reports the Sheet. */}
+						    reports the Sheet. The `Sheet` root in `PdfViewer` holds the state. */}
 						{!isDesktop && (
-							<SheetTrigger open={thumbsOpen} onClick={() => setThumbsOpen(true)}>
+							<SheetTrigger>
 								<PdfViewerToolbarButton
 									label="Show thumbnails"
 									icon={<PanelLeft />}

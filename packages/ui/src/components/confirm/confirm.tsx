@@ -8,7 +8,8 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	type DialogProps,
+	DialogPanel,
+	type DialogPanelProps,
 	DialogTitle,
 } from '../dialog'
 
@@ -54,10 +55,10 @@ type ConfirmAction = {
 
 /**
  * Props for {@link Confirm}: open-state control, message content, the two configurable
- * actions, and the {@link Dialog} props that pass through.
+ * actions, and the {@link DialogPanel} props that pass through.
  */
 export type ConfirmProps = Pick<
-	DialogProps,
+	DialogPanelProps,
 	'width' | 'align' | 'glass' | 'initialFocus' | 'container' | 'dismissOnBackdrop'
 > & {
 	open: boolean
@@ -133,46 +134,46 @@ export function Confirm({
 	}, [onCancel, close])
 
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={onOpenChange}
-			data-slot="confirm"
-			role="alertdialog"
-			width={width}
-			align={align}
-			glass={glass}
-			initialFocus={initialFocus}
-			container={container}
-			dismissOnBackdrop={dismissOnBackdrop}
-			className={className}
-		>
-			{(title || description) && (
-				<DialogHeader>
-					{title && <DialogTitle>{title}</DialogTitle>}
-					{description && <DialogDescription>{description}</DialogDescription>}
-				</DialogHeader>
-			)}
-			{children !== undefined &&
-				(description === undefined ? <ConfirmBody>{children}</ConfirmBody> : children)}
-			<DialogFooter>
-				<Button
-					type="button"
-					variant="plain"
-					color={cancel?.color}
-					disabled={cancel?.disabled}
-					onClick={handleCancel}
-				>
-					{cancel?.label ?? 'Cancel'}
-				</Button>
-				<Button
-					type="button"
-					color={confirm?.color}
-					disabled={confirm?.disabled}
-					onClick={onConfirm}
-				>
-					{confirm?.label ?? 'Confirm'}
-				</Button>
-			</DialogFooter>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogPanel
+				data-slot="confirm"
+				role="alertdialog"
+				width={width}
+				align={align}
+				glass={glass}
+				initialFocus={initialFocus}
+				container={container}
+				dismissOnBackdrop={dismissOnBackdrop}
+				className={className}
+			>
+				{(title || description) && (
+					<DialogHeader>
+						{title && <DialogTitle>{title}</DialogTitle>}
+						{description && <DialogDescription>{description}</DialogDescription>}
+					</DialogHeader>
+				)}
+				{children !== undefined &&
+					(description === undefined ? <ConfirmBody>{children}</ConfirmBody> : children)}
+				<DialogFooter>
+					<Button
+						type="button"
+						variant="plain"
+						color={cancel?.color}
+						disabled={cancel?.disabled}
+						onClick={handleCancel}
+					>
+						{cancel?.label ?? 'Cancel'}
+					</Button>
+					<Button
+						type="button"
+						color={confirm?.color}
+						disabled={confirm?.disabled}
+						onClick={onConfirm}
+					>
+						{confirm?.label ?? 'Confirm'}
+					</Button>
+				</DialogFooter>
+			</DialogPanel>
 		</Dialog>
 	)
 }
