@@ -1,9 +1,8 @@
 import { defineScale } from '../../core/density'
-import { iro, ji, narabi } from '../kiso'
+import { iro, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { text } = iro
-const { size } = ji
 const { flex } = narabi
 
 /**
@@ -20,7 +19,7 @@ export const k = {
 	base: [dan.space.box.base, dan.radius.card],
 	header: [text.default, dan.space.box.bottom],
 	footer: [flex.row, dan.space.box.top, dan.gap.default],
-	description: [size.sm, text.muted],
+	description: [dan.text.small, text.muted],
 } as const
 
 /** The size scale of {@link Card}: the steps of its padding, gap, and radius ramps. */

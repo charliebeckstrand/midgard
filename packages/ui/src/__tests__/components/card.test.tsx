@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
-import { Card, CardBody, CardFooter, CardHeader, CardTitle } from '../../components/card'
+import {
+	Card,
+	CardBody,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '../../components/card'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, densityStepOf, present, renderUI } from '../helpers'
 
@@ -100,6 +107,25 @@ describe('Card size system', () => {
 		)
 
 		expect(densityStepOf(present(bySlot(container, 'card-title'), 'card title'))).toBe('sm')
+	})
+
+	it('CardDescription follows the Card scope on the small text ramp', () => {
+		const { container } = renderUI(
+			<Card size="lg">
+				<CardHeader>
+					<CardDescription>Description</CardDescription>
+				</CardHeader>
+			</Card>,
+		)
+
+		const description = present(bySlot(container, 'card-description'), 'card description')
+
+		// The ramp replaces a fixed size, so the scope selects the size. The md step is text-sm.
+		expect(description).toHaveClass('density-text-[xs,sm,base]')
+
+		expect(description).not.toHaveClass('text-sm')
+
+		expect(description.closest('[data-density]')).toHaveAttribute('data-density', 'lg')
 	})
 
 	it('CardTitle weight is derived from its heading level', () => {
