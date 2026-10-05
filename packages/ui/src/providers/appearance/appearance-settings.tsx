@@ -116,7 +116,7 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 						<div ref={setPortalRoot} className="contents" />
 					</DialogBody>
 					<DialogFooter>
-						<Button variant="plain" onClick={() => setOpen(false)}>
+						<Button variant="soft" onClick={() => setOpen(false)}>
 							Done
 						</Button>
 					</DialogFooter>

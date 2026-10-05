@@ -43,12 +43,16 @@ export type DrawerCloseProps = Partial<PanelCloseProps>
  * Close button, which is also the default footer of the drawer. With one child,
  * a click on the child closes the drawer, and the child's own `onClick` runs
  * first.
+ *
+ * @remarks The standard Close button is `soft`, so its edge shows. The inset of
+ * the panel stops at that edge. A `plain` button hides its padding, which then
+ * adds to the inset under the footer.
  */
 export function DrawerClose({ children }: DrawerCloseProps) {
 	return (
 		<PanelClose>
 			{children ?? (
-				<Button type="button" variant="plain" data-slot="drawer-close">
+				<Button type="button" variant="soft" data-slot="drawer-close">
 					Close
 				</Button>
 			)}

@@ -45,7 +45,7 @@ export function GridManagerDialog({
 				<DialogTitle>{label}</DialogTitle>
 				<DialogBody>{children}</DialogBody>
 				<DialogFooter>
-					<Button ref={doneRef} type="button" variant="plain" onClick={() => onOpenChange(false)}>
+					<Button ref={doneRef} type="button" variant="soft" onClick={() => onOpenChange(false)}>
 						Done
 					</Button>
 				</DialogFooter>
