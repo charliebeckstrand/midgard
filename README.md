@@ -57,7 +57,6 @@ Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs C
 |---|---|---|
 | `admin.ivoryimage.dev` | `apps/admin` | [`Dockerfile`](Dockerfile), with `APP=admin` |
 | `places.ivoryimage.dev` | `apps/places` | [`Dockerfile`](Dockerfile), with `APP=places` |
-| `picks.ivoryimage.dev` | `apps/picks` | [`Dockerfile`](Dockerfile), with `APP=picks` |
 | `docs.ivoryimage.dev` | The docs site of `ui`, a static site | [`Dockerfile.docs`](Dockerfile.docs) |
 
 The Next apps build with `output: 'standalone'`. To build one image locally:

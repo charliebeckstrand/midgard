@@ -1,7 +1,7 @@
 # App Platform spec for midgard: one app that serves the admin app, the places
-# app, the picks app, and the docs site of `ui`, each on its own subdomain. The
-# deploy workflow applies it on each push to main, and the first run creates the
-# app. The three Next apps build from the Dockerfile at the repository root, which gets each
+# app, and the docs site of `ui`, each on its own subdomain. The deploy workflow
+# applies it on each push to main, and the first run creates the app. The two
+# Next apps build from the Dockerfile at the repository root, which gets each
 # build-time variable below as a build argument. The docs site builds from
 # Dockerfile.docs.
 name: midgard
@@ -17,9 +17,6 @@ domains:
     type: PRIMARY
     zone: ivoryimage.dev
   - domain: places.ivoryimage.dev
-    type: ALIAS
-    zone: ivoryimage.dev
-  - domain: picks.ivoryimage.dev
     type: ALIAS
     zone: ivoryimage.dev
   - domain: docs.ivoryimage.dev
@@ -42,13 +39,6 @@ ingress:
       match:
         authority:
           exact: places.ivoryimage.dev
-        path:
-          prefix: /
-    - component:
-        name: picks
-      match:
-        authority:
-          exact: picks.ivoryimage.dev
         path:
           prefix: /
     - component:
@@ -135,46 +125,6 @@ services:
       - key: APP
         scope: BUILD_TIME
         value: places
-      # The same reason as for admin.
-      - key: BIFROST_URL
-        scope: RUN_AND_BUILD_TIME
-        value: https://auth.ivoryimage.dev
-      # The same reason as for admin.
-      - key: CLIENT_IP_SECRET
-        scope: RUN_TIME
-        type: SECRET
-        value: ${CLIENT_IP_SECRET}
-
-  - name: picks
-    github:
-      repo: charliebeckstrand/midgard
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: Dockerfile
-    http_port: 3000
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-0.5gb
-    # The same reason as for admin.
-    alerts:
-      - rule: RESTART_COUNT
-        operator: GREATER_THAN
-        value: 2
-        window: FIVE_MINUTES
-      - rule: MEM_UTILIZATION
-        operator: GREATER_THAN
-        value: 80
-        window: TEN_MINUTES
-      - rule: CPU_UTILIZATION
-        operator: GREATER_THAN
-        value: 80
-        window: TEN_MINUTES
-    # The same reason as for admin.
-    health_check:
-      http_path: /
-    envs:
-      - key: APP
-        scope: BUILD_TIME
-        value: picks
       # The same reason as for admin.
       - key: BIFROST_URL
         scope: RUN_AND_BUILD_TIME

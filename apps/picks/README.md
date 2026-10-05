@@ -8,6 +8,11 @@ pnpm --filter picks dev
 
 The app runs on port 3002.
 
+The app does not deploy yet. [`.do/app.yaml`](../../.do/app.yaml) has no
+`picks` component, so a push to `main` does not build it. To deploy it, add a
+`picks` service, the `picks.ivoryimage.dev` domain, and its ingress rule, as
+for `places`.
+
 ```bash
 pnpm --filter picks test
 ```
