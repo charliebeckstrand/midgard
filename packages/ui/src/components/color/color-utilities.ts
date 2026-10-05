@@ -18,8 +18,9 @@ export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 }
 
 /**
- * Clamp and round an HSVA for output: integers for `h`/`s`/`v`, two decimals
- * for `a`. Full precision stays internal; rounding happens only at this edge.
+ * Clamp and round an HSVA for output and for comparison: integers for
+ * `h`/`s`/`v`, two decimals for `a`. Full precision stays internal; rounding
+ * happens only at these edges.
  *
  * @internal
  */
@@ -180,7 +181,12 @@ export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean):
 	return hsvaToHex(hsva, alpha)
 }
 
-/** Echo detection for controlled values: a string compares case-insensitively, an object by render-equality. */
+/**
+ * Echo detection for controlled values. A string compares case-insensitively.
+ * An object compares by its rounded channels, with the hue taken modulo 360:
+ * hue 360 matches hue 0. A change in a channel that does not show, as the hue
+ * of a gray, makes the values different.
+ */
 export function sameColorValue(
 	a: string | Hsva | null | undefined,
 	b: string | Hsva | null | undefined,
@@ -189,7 +195,12 @@ export function sameColorValue(
 
 	if (typeof a === 'string' && typeof b === 'string') return a.toLowerCase() === b.toLowerCase()
 
-	if (typeof a !== 'string' && typeof b !== 'string') return equalHsva(a, b)
+	if (typeof a !== 'string' && typeof b !== 'string') {
+		const ra = roundHsva(a)
+		const rb = roundHsva(b)
+
+		return ra.h % 360 === rb.h % 360 && ra.s === rb.s && ra.v === rb.v && ra.a === rb.a
+	}
 
 	return false
 }

@@ -791,6 +791,40 @@ describe('useColorState', () => {
 		expect(result.current.hsva).toMatchObject({ h: 120, s: 0, v: 100 })
 	})
 
+	// On a gray, the hue does not show, but it is a channel of the hsva value.
+	// The owner sets it, so it is not an echo, and the next edit keeps it.
+	it('adopts a controlled hsva value that changes only a hue that does not show (§7.2)', () => {
+		const onValueChange = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ value }) => useColorState({ value, format: 'hsva', alpha: false, onValueChange }),
+			{ initialProps: { value: { h: 0, s: 0, v: 50, a: 1 } } },
+		)
+
+		rerender({ value: { h: 210, s: 0, v: 50, a: 1 } })
+
+		expect(result.current.hsva.h).toBe(210)
+
+		act(() => result.current.setHsva((prev) => ({ ...prev, s: 80 })))
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ h: 210, s: 80, v: 50, a: 1 })
+	})
+
+	it('keeps hue 360 when an adopting owner wraps the hsva emission to hue 0', () => {
+		const { result } = renderHook(() => {
+			const [value, setValue] = useState<string | Hsva>({ h: 120, s: 100, v: 100, a: 1 })
+
+			const wrap = (next: string | Hsva) =>
+				setValue(typeof next === 'string' ? next : { ...next, h: next.h % 360 })
+
+			return useColorState({ value, format: 'hsva', alpha: false, onValueChange: wrap })
+		})
+
+		act(() => result.current.setHsva({ h: 360, s: 100, v: 100, a: 1 }))
+
+		expect(result.current.hsva.h).toBe(360)
+	})
+
 	// With `alpha` off, the panel hides the alpha. A held alpha below `1` then
 	// stops the match of an opaque swatch, and no edit shows the cause.
 	it('pins alpha to 1 when it seeds a translucent color with alpha off', () => {
