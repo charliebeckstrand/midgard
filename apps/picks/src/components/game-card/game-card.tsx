@@ -1,29 +1,24 @@
+import type { ReactNode } from 'react'
+import { Badge } from 'ui/badge'
 import { Card } from 'ui/card'
 import { cn } from 'ui/core'
+import { StatusDot } from 'ui/status'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import type { Game, Team } from '../../types'
-import type { Grade } from '../../utilities/grade'
+import type { Game, Pick, Team } from '../../types'
+import { gradePick, pickPoints, scoredLine } from '../../utilities/grade'
+import { isOff } from '../../utilities/locks'
 import { KickoffTime } from '../kickoff-time'
+import { PickLine } from '../pick-line'
+import { PickMark } from '../pick-mark'
 
-/** The outline of a card for each grade of its pick. A card with no grade keeps the default. */
-const GRADE_OUTLINE = {
-	right: 'outline-2 outline-green-500',
-	wrong: 'outline-2 outline-red-500',
-} as const
-
-/** The status line of a game that is off. */
-const OFF_LABEL = { postponed: 'Postponed', canceled: 'Canceled' } as const
-
-/** The muted style of the status line of a card. */
-const STATUS_CLASS = 'text-sm text-zinc-500 dark:text-zinc-400'
+const MUTED = 'text-zinc-500 dark:text-zinc-400'
 
 /**
- * One side of a game: the logo on the left, the name, and the score on the
- * right. In a final game the score of the winner is bold and the score of the
- * loser is muted.
+ * One side of a game: the logo, the name, and the score. In a final game the
+ * score of the winner is bold and the score of the loser is muted.
  */
-function TeamRow({ team, final }: { team: Team; final: boolean }) {
+function TeamRow({ team, final, mark }: { team: Team; final: boolean; mark: ReactNode }) {
 	const lost = final && !team.winner
 
 	return (
@@ -34,46 +29,122 @@ function TeamRow({ team, final }: { team: Team; final: boolean }) {
 				<img src={team.logo} alt="" className="size-8 shrink-0" />
 			)}
 
-			<span className={cn('min-w-0 flex-1 truncate', lost && 'text-zinc-500 dark:text-zinc-400')}>
-				{team.name}
-			</span>
+			<Flex align="center" gap="sm" className="min-w-0 flex-1">
+				<span className={cn('truncate', lost && MUTED)}>{team.name}</span>
 
-			<span
-				className={cn(
-					'tabular-nums',
-					final && team.winner && 'font-bold',
-					lost && 'text-zinc-500 dark:text-zinc-400',
-				)}
-			>
+				{mark}
+			</Flex>
+
+			<span className={cn('tabular-nums', final && team.winner && 'font-bold', lost && MUTED)}>
 				{team.score ?? ''}
 			</span>
 		</Flex>
 	)
 }
 
+/** The solid badge of a game that is off. */
+const OFF_BADGES = {
+	postponed: { label: 'Postponed', color: 'zinc' },
+	canceled: { label: 'Canceled', color: 'red' },
+} as const
+
 /**
- * One game of a week: the away team over the home team. The outline is green
- * where the pick was right and red where it was wrong. A game to come shows its
- * kickoff, and a postponed or a canceled game says so.
+ * The status of a game: its kickoff, its clock with a live mark, `Final`, or
+ * a solid badge that says why it is off: `Postponed`, or `Canceled` in red.
  */
-export function GameCard({ game, grade }: { game: Game; grade: Grade }) {
+export function GameStatus({ game }: { game: Game }) {
+	if (game.state === 'scheduled') {
+		return <KickoffTime kickoff={game.kickoff} className="block truncate" />
+	}
+
+	if (game.state === 'live') {
+		return (
+			<Flex align="center" gap="sm" className="min-w-0 text-green-600 dark:text-green-500">
+				<StatusDot status="active" pulse label="Live" />
+				<span className="truncate font-medium">{game.detail ?? 'Live'}</span>
+			</Flex>
+		)
+	}
+
+	if (isOff(game)) {
+		const badge = OFF_BADGES[game.state]
+
+		return (
+			<Badge variant="solid" color={badge.color}>
+				{badge.label}
+			</Badge>
+		)
+	}
+
+	return <span className="block truncate">{game.detail ?? 'Final'}</span>
+}
+
+/**
+ * One game of a week: the away team over the home team, then a footer with the
+ * pick and its line and the status of the game. Without a pick, the card has
+ * no footer, and the status is at the end beside the teams. A mark beside the
+ * picked team shows whether it won, and its tooltip gives the points.
+ */
+export function GameCard({ game, pick }: { game: Game; pick: Pick | undefined }) {
 	const final = game.state === 'final'
 
+	const picked = [game.away, game.home].find((team) => team.id === pick?.team)
+
+	const line = pick === undefined ? null : scoredLine(game, pick)
+
+	const mark = (
+		<PickMark grade={gradePick(game, pick)} points={line === null ? null : pickPoints(line)} />
+	)
+
+	const teams = (
+		<Stack gap="sm" className="min-w-0 flex-1">
+			<TeamRow team={game.away} final={final} mark={picked === game.away ? mark : null} />
+
+			<TeamRow team={game.home} final={final} mark={picked === game.home ? mark : null} />
+		</Stack>
+	)
+
+	const status = (
+		<span className={cn('min-w-0 text-end text-sm', MUTED)}>
+			<GameStatus game={game} />
+		</span>
+	)
+
+	if (picked === undefined || pick === undefined) {
+		return (
+			<Card>
+				{/* A wide gap keeps the status apart from the scores beside it. */}
+				<Flex align="center" gap="xl">
+					{teams}
+					{status}
+				</Flex>
+			</Card>
+		)
+	}
+
 	return (
-		<Card className={cn(grade === null ? undefined : GRADE_OUTLINE[grade])}>
-			<Stack gap="sm">
-				<TeamRow team={game.away} final={final} />
+		<Card>
+			<Stack gap="md">
+				{teams}
 
-				<TeamRow team={game.home} final={final} />
+				<Flex
+					justify="between"
+					align="center"
+					gap="md"
+					className="border-t border-zinc-950/5 pt-3 text-sm dark:border-white/10"
+				>
+					<span className="flex shrink-0 items-center gap-2 whitespace-nowrap tabular-nums">
+						<PickLine game={game} pick={pick} team={picked.abbreviation} />
+					</span>
 
-				{game.state === 'scheduled' ? (
-					<KickoffTime kickoff={game.kickoff} className={STATUS_CLASS} />
-				) : null}
-
-				{game.state === 'postponed' || game.state === 'canceled' ? (
-					<span className={STATUS_CLASS}>{OFF_LABEL[game.state]}</span>
-				) : null}
+					{status}
+				</Flex>
 			</Stack>
 		</Card>
 	)
+}
+
+/** The grid of the game cards of a week: one column on a phone, up to three on a wide screen. */
+export function GameGrid({ children }: { children: ReactNode }) {
+	return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
 }

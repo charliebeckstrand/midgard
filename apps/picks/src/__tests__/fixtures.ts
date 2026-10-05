@@ -19,6 +19,8 @@ export function game(overrides: Partial<Game> = {}): Game {
 		id: '401',
 		kickoff: '2026-09-10T00:20Z',
 		state: 'scheduled',
+		detail: null,
+		spread: null,
 		away: team({ id: '2', abbreviation: 'BUF', name: 'Buffalo Bills' }),
 		home: team(),
 		...overrides,

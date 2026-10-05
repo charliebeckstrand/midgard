@@ -1,1 +1,1 @@
-export { ScheduleList } from './schedule-list'
+export { type ClosingWeek, ScheduleList } from './schedule-list'

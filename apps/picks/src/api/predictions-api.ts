@@ -1,4 +1,4 @@
-import type { SeasonPicks, WeekPicks } from '../types'
+import type { SeasonPicks, TeamPicks, WeekPicks } from '../types'
 
 /**
  * The calls of the browser to the picks of the user. Mimir, in asgard, keeps
@@ -27,8 +27,8 @@ export function listPicks(season: number): Promise<SeasonPicks> {
 	return send(`/api/predictions/${season}`)
 }
 
-/** Writes the picks of one week, and answers with what was stored. */
-export function savePicks(season: number, week: number, picks: WeekPicks): Promise<WeekPicks> {
+/** Writes the picks of one week, and answers with what was stored, each pick with its line. */
+export function savePicks(season: number, week: number, picks: TeamPicks): Promise<WeekPicks> {
 	return send(`/api/predictions/${season}/${week}`, {
 		method: 'PUT',
 		body: JSON.stringify({ picks }),

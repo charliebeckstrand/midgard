@@ -2,11 +2,16 @@ import { requireGateway, requireSession } from 'auth'
 import { Suspense } from 'react'
 import { Container } from 'ui/structure/container'
 import { PicksHeader } from '@/components/picks-header'
-import { ScheduleList } from '@/components/schedule-list'
+import { type ClosingWeek, ScheduleList } from '@/components/schedule-list'
+import { TallyTotal } from '@/components/tally-total'
 import { mimir } from '@/server/mimir'
 import { getSchedule, getWeekGames } from '@/server/scoreboard'
-import type { Schedule } from '@/types'
-import { kickedOff } from '@/utilities/locks'
+import type { Schedule, SeasonPicks } from '@/types'
+import { addTally, EMPTY_TALLY, type Tally, tallyWeek } from '@/utilities/grade'
+import { kickedOff, weekClosed } from '@/utilities/locks'
+
+/** How long before its first kickoff the next week reads as closing soon: a day. */
+const CLOSING_SOON = 24 * 60 * 60 * 1000
 
 /**
  * The page reads the session and the picks of the user before it renders, so
@@ -35,6 +40,63 @@ async function startedWeeks(schedule: Schedule, now: number): Promise<number[]> 
 	return started
 }
 
+/** The week in play or next up, and whether it takes no more picks. */
+async function currentWeek(
+	schedule: Schedule,
+	now: number,
+): Promise<{ week: number; closed: boolean } | null> {
+	const week = schedule.weeks.find((entry) => Date.parse(entry.end) >= now)
+
+	if (week === undefined) return null
+
+	const games = await getWeekGames(schedule.season, week.number)
+
+	return { week: week.number, closed: weekClosed(games, now) }
+}
+
+/**
+ * The next week to kick off, with its first kickoff, when that kickoff is
+ * within {@link CLOSING_SOON}. The picks of the week start to lock then.
+ */
+async function closingWeek(
+	schedule: Schedule,
+	started: number[],
+	now: number,
+): Promise<ClosingWeek | null> {
+	const week = schedule.weeks.find((entry) => !started.includes(entry.number))
+
+	if (week === undefined) return null
+
+	const [first] = (await getWeekGames(schedule.season, week.number))
+		.map((game) => game.kickoff)
+		.sort((a, b) => Date.parse(a) - Date.parse(b))
+
+	if (first === undefined || Date.parse(first) - now > CLOSING_SOON) return null
+
+	return { week: week.number, kickoff: first }
+}
+
+/** The tally of each started week that has a prediction, by week number. */
+async function weekTallies(
+	season: number,
+	picks: SeasonPicks,
+	started: number[],
+): Promise<Record<number, Tally>> {
+	const entries = await Promise.all(
+		started.flatMap((week) => {
+			const weekPicks = picks[week]
+
+			if (weekPicks === undefined) return []
+
+			return [
+				getWeekGames(season, week).then((games) => [week, tallyWeek(games, weekPicks)] as const),
+			]
+		}),
+	)
+
+	return Object.fromEntries(entries)
+}
+
 /**
  * The schedule: the weeks of the regular season, each with the buttons of its
  * prediction.
@@ -52,7 +114,26 @@ export default async function Page() {
 			mimir.GET('/api/predictions/{season}', { params: { path: { season: schedule.season } } }),
 		)) ?? {}
 
-	const started = await startedWeeks(schedule, Date.now())
+	const now = Date.now()
+
+	const [started, current] = await Promise.all([
+		startedWeeks(schedule, now),
+		currentWeek(schedule, now),
+	])
+
+	const [tallies, closing] = await Promise.all([
+		weekTallies(schedule.season, picks, started),
+		closingWeek(schedule, started, now),
+	])
+
+	// A week is closed once it ends, or once every game of the current week is locked.
+	const closed = schedule.weeks
+		.filter(
+			(week) => Date.parse(week.end) < now || (current?.week === week.number && current.closed),
+		)
+		.map((week) => week.number)
+
+	const season = Object.values(tallies).reduce(addTally, EMPTY_TALLY)
 
 	return (
 		<>
@@ -61,10 +142,15 @@ export default async function Page() {
 			<Container size="full" className="p-6">
 				<Suspense>
 					<ScheduleList
+						header={<TallyTotal tally={season} />}
 						season={schedule.season}
 						weeks={schedule.weeks}
 						picks={picks}
 						started={started}
+						closed={closed}
+						current={current?.week ?? null}
+						closing={closing}
+						tallies={tallies}
 					/>
 				</Suspense>
 			</Container>

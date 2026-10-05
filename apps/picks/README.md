@@ -31,18 +31,28 @@ prediction form reads the games of its week through
 ## The picks
 
 A prediction is a pick of the winner of each game of one week. The schedule
-shows an Add button for a week with no prediction, and an Edit and a Delete
-button for a week with one. `?predict=w5` opens the form on week 5, so the form
-is a link. In a week, the outline of a final game is green where the pick was
-right and red where it was wrong. A tie has no winner, so a pick on a tie is
-wrong.
+shows an Add button for a week that takes picks and has no prediction, and an
+Edit button for a week with one. The Delete button shows until the first
+kickoff of the week. `?predict=w5` opens the form on week 5, so the form is a
+link.
 
-A game locks at its kickoff. The form disables the pick of a locked game, and
-the Delete button of a week is disabled from its first kickoff.
+A right pick of a favorite or of a pick'em is worth 1 point. A right pick of an
+underdog is worth 1 more point for each 3 points, or part of 3, that the
+underdog gets, so a 7-point underdog is worth 4 points. The app saves the line
+of each pick with the pick, so a later move of the line does not change the
+points. A pick saved before the line posted scores on the closing line. A tie
+scores no points, and a postponed or a canceled game is not graded.
+
+A mark after the picked team on each card shows the result: a grey check before
+the game is over and for a tie, a green check for a right pick, and a red X for
+a wrong pick. The tooltip of the mark gives the points.
+
+A game locks at its kickoff. The form disables the pick of a locked game.
 
 Mimir, in asgard, keeps the picks of each user. The gateway forwards
 `/api/predictions/*` to it. Mimir does not read the schedule, so the writes go
 through `app/api/predictions/[season]/[week]` first. That route keeps the stored
-pick of each locked game and refuses a delete after the first kickoff. After a
-change to the Mimir API, run `pnpm --filter picks openapi`. The contract is in asgard's
+pick of each locked game, sets the line of each new pick, and refuses a delete
+after the first kickoff. After a change to the Mimir API, run
+`pnpm --filter picks openapi`. The contract is in asgard's
 [`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).

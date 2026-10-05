@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isLocked, kickedOff, mergePicks } from '../utilities/locks'
+import { isLocked, kickedOff, mergePicks, weekClosed } from '../utilities/locks'
 import { game, team } from './fixtures'
 
 const KICKOFF = Date.parse('2026-09-10T00:20Z')
@@ -32,19 +32,55 @@ describe('kickedOff', () => {
 	})
 })
 
+describe('weekClosed', () => {
+	it('holds once every game of the week is locked', () => {
+		expect(weekClosed([open, later], after)).toBe(false)
+
+		expect(weekClosed([open, later], Date.parse(later.kickoff))).toBe(true)
+	})
+})
+
 describe('mergePicks', () => {
 	const home = open.home.id
 
 	const away = open.away.id
 
 	it('keeps the stored pick of a locked game and takes the submitted pick of an open one', () => {
-		const result = mergePicks([open, later], { g1: home }, { g1: away, g2: later.away.id }, after)
+		const stored = { g1: { team: home, line: 0 } }
 
-		expect(result).toEqual({ picks: { g1: home, g2: later.away.id } })
+		const result = mergePicks([open, later], stored, { g1: away, g2: later.away.id }, after)
+
+		expect(result).toEqual({
+			picks: { g1: { team: home, line: 0 }, g2: { team: later.away.id, line: null } },
+		})
+	})
+
+	it('keeps the saved line of an open pick whose team did not change', () => {
+		const moved = game({ id: 'g1', spread: { favorite: home, points: 3 } })
+
+		const stored = { g1: { team: away, line: 7 } }
+
+		expect(mergePicks([moved], stored, { g1: away }, before)).toEqual({
+			picks: { g1: { team: away, line: 7 } },
+		})
+	})
+
+	it('saves a pick without a line while the line is pending', () => {
+		expect(mergePicks([open], {}, { g1: away }, before)).toEqual({
+			picks: { g1: { team: away, line: null } },
+		})
+	})
+
+	it('saves the line of the picked team now', () => {
+		const lined = game({ id: 'g1', spread: { favorite: home, points: 3.5 } })
+
+		expect(mergePicks([lined], {}, { g1: away }, before)).toEqual({
+			picks: { g1: { team: away, line: 3.5 } },
+		})
 	})
 
 	it('drops the pick of an open game the submission leaves out', () => {
-		expect(mergePicks([open], { g1: home }, {}, before)).toEqual({ picks: {} })
+		expect(mergePicks([open], { g1: { team: home, line: 0 } }, {}, before)).toEqual({ picks: {} })
 	})
 
 	it('refuses a game that is not in the week', () => {

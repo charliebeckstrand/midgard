@@ -1,18 +1,24 @@
 'use client'
 
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { CircleAlert, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { type ReactElement, useState } from 'react'
+import { type ReactElement, type ReactNode, useState } from 'react'
+import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
+import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { Confirm } from 'ui/confirm'
+import { cn } from 'ui/core'
+import { Label } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Flex } from 'ui/structure/flex'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { useDeletePicks, usePicks, useSavePicks } from '../../queries/picks-queries'
 import type { SeasonPicks, Week } from '../../types'
+import { formatRecord, recordColor, type Tally } from '../../utilities/grade'
 import { PREDICT_PARAM, predictValue, readPredictValue } from '../../utilities/predict-param'
 import { LEAGUE_ZONE, useLocalTime } from '../../utilities/use-local-time'
+import { KickoffTime } from '../kickoff-time'
 import { PredictionSheet } from '../prediction-sheet'
 
 /** The days of a week, such as `Sep 9 – 15`, in the time zone of the reader. */
@@ -45,30 +51,93 @@ function ActionButton({
 	label,
 	color,
 	icon,
-	disabled,
 	onClick,
 }: {
 	label: string
 	color: 'zinc' | 'blue' | 'red'
 	icon: ReactElement
-	disabled?: boolean
 	onClick: () => void
 }) {
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<Button
-					variant="bare"
-					color={color}
-					aria-label={label}
-					disabled={disabled}
-					onClick={onClick}
-				>
+				<Button variant="bare" color={color} aria-label={label} onClick={onClick}>
 					<Icon icon={icon} />
 				</Button>
 			</TooltipTrigger>
 
 			<TooltipContent>{label}</TooltipContent>
+		</Tooltip>
+	)
+}
+
+/**
+ * The buttons of a week, each only where it can act. A week that takes picks
+ * has Add, or Edit once it has a prediction. A prediction deletes only before
+ * the first kickoff of its week. A week that takes no more picks and has no
+ * prediction shows a "No picks" badge.
+ */
+function WeekActions({
+	predicted,
+	started,
+	closed,
+	onPredict,
+	onDelete,
+}: {
+	predicted: boolean
+	started: boolean
+	closed: boolean
+	onPredict: () => void
+	onDelete: () => void
+}) {
+	if (closed) {
+		// A badge, as the record of a week is, so the row keeps the height of the others.
+		return predicted ? null : (
+			<Badge variant="soft" color="zinc">
+				No picks
+			</Badge>
+		)
+	}
+
+	if (!predicted) {
+		return <ActionButton label="Add prediction" color="zinc" icon={<Plus />} onClick={onPredict} />
+	}
+
+	return (
+		<>
+			<ActionButton label="Edit prediction" color="blue" icon={<Pencil />} onClick={onPredict} />
+
+			{started ? null : (
+				<ActionButton label="Delete prediction" color="red" icon={<Trash2 />} onClick={onDelete} />
+			)}
+		</>
+	)
+}
+
+/** The next week to kick off, when its first kickoff is close. */
+export type ClosingWeek = {
+	week: number
+	/** The first kickoff of the week, when its first pick locks. */
+	kickoff: string
+}
+
+/**
+ * The amber mark of a week whose first pick locks soon. It has the box of an
+ * {@link ActionButton}, so it keeps the spacing of the buttons beside it. A
+ * tooltip gives the time of the lock.
+ */
+function ClosingSoon({ kickoff }: { kickoff: string }) {
+	return (
+		<Tooltip>
+			<TooltipTrigger>
+				<Button variant="bare" color="zinc" aria-label="Pick locks soon">
+					<Icon icon={<CircleAlert />} className="text-amber-500 dark:text-amber-400" />
+				</Button>
+			</TooltipTrigger>
+
+			<TooltipContent>
+				Pick locks <KickoffTime kickoff={kickoff} />
+			</TooltipContent>
 		</Tooltip>
 	)
 }
@@ -80,14 +149,38 @@ type ScheduleListProps = {
 	picks: SeasonPicks
 	/** The weeks that have kicked off, whose prediction can no longer be deleted. */
 	started: number[]
+	/** The weeks whose every game is locked, which take no more picks. */
+	closed: number[]
+	/** The record of each started week that has a prediction. */
+	tallies: Record<number, Tally>
+	/** The number of the week in play or next up, or `null` after the season. */
+	current: number | null
+	/** The next week to kick off, when it locks soon, or `null`. */
+	closing: ClosingWeek | null
+	/** The line above the weeks, such as the record of the season. */
+	header?: ReactNode
 }
 
 /**
- * The weeks of the season, each a link to its games. A week with no
- * prediction has an Add button. A week with one has an Edit button and a
- * Delete button, which is disabled from the first kickoff of the week. `?predict=w5` opens the form on week 5.
+ * The weeks of the season, each a link to its games, with the record of each
+ * started week and the buttons of {@link WeekActions}. The current week reads
+ * "Current week". The next week to kick off shows {@link ClosingSoon} when its
+ * first pick locks soon. The dates of the weeks show only when the "Show
+ * dates" checkbox beside the `header` is on. On a phone, the checkbox goes
+ * under the `header`.
+ * `?predict=w5` opens the form on week 5.
  */
-export function ScheduleList({ season, weeks, picks: initial, started }: ScheduleListProps) {
+export function ScheduleList({
+	season,
+	weeks,
+	picks: initial,
+	started,
+	closed,
+	tallies,
+	current,
+	closing,
+	header,
+}: ScheduleListProps) {
 	const { data: picks } = usePicks(season, initial)
 
 	const savePicks = useSavePicks(season)
@@ -100,10 +193,21 @@ export function ScheduleList({ season, weeks, picks: initial, started }: Schedul
 
 	const [deleting, setDeleting] = useState<Week | null>(null)
 
+	const [showDates, setShowDates] = useState(false)
+
 	const range = useLocalTime() ? rangeFormat : leagueRangeFormat
 
 	return (
 		<>
+			<div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				{header}
+
+				<CheckboxField className="sm:ms-auto">
+					<Checkbox checked={showDates} onChange={(event) => setShowDates(event.target.checked)} />
+					<Label>Show dates</Label>
+				</CheckboxField>
+			</div>
+
 			<List
 				items={weeks}
 				getKey={(week) => String(week.number)}
@@ -113,44 +217,57 @@ export function ScheduleList({ season, weeks, picks: initial, started }: Schedul
 				{(week) => {
 					const predicted = picks[week.number] !== undefined
 
+					const tally = tallies[week.number]
+
+					const isClosed = closed.includes(week.number)
+
 					return (
 						<ListItem
 							href={`/week/${week.number}`}
+							// A predicted week rests on a step more solid than an open one.
+							className={predicted ? 'bg-zinc-50 dark:bg-zinc-800/50' : undefined}
 							suffix={
-								<Flex gap="sm">
-									{predicted ? (
-										<>
-											<ActionButton
-												label="Edit prediction"
-												color="blue"
-												icon={<Pencil />}
-												onClick={() => writePredict(week.number)}
-											/>
+								<Flex gap="sm" align="center">
+									{/* Outside the link of the row, so a hover reaches its tooltip. */}
+									{closing?.week === week.number ? <ClosingSoon kickoff={closing.kickoff} /> : null}
 
-											<ActionButton
-												label="Delete prediction"
-												color="red"
-												icon={<Trash2 />}
-												disabled={started.includes(week.number)}
-												onClick={() => setDeleting(week)}
-											/>
-										</>
-									) : (
-										<ActionButton
-											label="Add prediction"
-											color="zinc"
-											icon={<Plus />}
-											onClick={() => writePredict(week.number)}
-										/>
+									{tally === undefined ? null : (
+										<Badge
+											variant="solid"
+											color={recordColor(tally)}
+											// The space before the buttons, where the week still has them.
+											className={cn('tabular-nums', !isClosed && 'me-2')}
+										>
+											{formatRecord(tally)}
+										</Badge>
 									)}
+
+									<WeekActions
+										predicted={predicted}
+										started={started.includes(week.number)}
+										closed={isClosed}
+										onPredict={() => writePredict(week.number)}
+										onDelete={() => setDeleting(week)}
+									/>
 								</Flex>
 							}
 						>
-							<ListLabel>{week.label}</ListLabel>
+							<ListLabel className="flex items-center gap-2">
+								{week.label}
+								{/* The smallest step fits the line of the name, so the row keeps its height. */}
+								{current === week.number ? (
+									<Badge variant="soft" color="blue" size="xs">
+										Current week
+									</Badge>
+								) : null}
+							</ListLabel>
 
-							<ListDescription>
-								{range.formatRange(new Date(week.start), new Date(week.end))}
-							</ListDescription>
+							{showDates ? (
+								// One gap on every row keeps the dates clear of the badge of the current week.
+								<ListDescription className="mt-1 text-zinc-500 dark:text-zinc-400">
+									{range.formatRange(new Date(week.start), new Date(week.end))}
+								</ListDescription>
+							) : null}
 						</ListItem>
 					)
 				}}

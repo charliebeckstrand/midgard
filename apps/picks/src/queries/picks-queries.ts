@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { deletePicks, listPicks, savePicks } from '../api/predictions-api'
-import type { Game, SeasonPicks, WeekPicks } from '../types'
+import type { Game, SeasonPicks, TeamPicks } from '../types'
 
 /** The query keys, in one place, so a reader and a writer name the same entry. */
 export const picksKeys = {
@@ -45,7 +45,7 @@ export function useSavePicks(season: number) {
 	const client = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ week, picks }: { week: number; picks: WeekPicks }) =>
+		mutationFn: ({ week, picks }: { week: number; picks: TeamPicks }) =>
 			savePicks(season, week, picks),
 		onSuccess: (stored, { week }) => {
 			client.setQueryData<SeasonPicks>(picksKeys.picks(season), (held) => ({

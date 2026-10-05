@@ -1,4 +1,4 @@
-import type { Game, GameState, Schedule, Team, Week } from '../types'
+import type { Game, GameState, Schedule, Spread, Team, Week } from '../types'
 
 /**
  * The reader of the public scoreboard of ESPN. The feed has no contract, so
@@ -61,13 +61,17 @@ const OFF: Record<string, GameState> = {
 	STATUS_CANCELED: 'canceled',
 }
 
-/**
- * The state of a competition. The feed gives a postponed or a canceled game
- * the state of a game that is over, so the status name comes first.
- */
-function readState(status: unknown): GameState | null {
-	const type = isRecord(status) && isRecord(status.type) ? status.type : null
+/** The type of a status, which names the state and gives the status line. */
+function statusType(status: unknown): Json | null {
+	return isRecord(status) && isRecord(status.type) ? status.type : null
+}
 
+/**
+ * The state of a competition from its status type. The feed gives a postponed
+ * or a canceled game the state of a game that is over, so the status name
+ * comes first.
+ */
+function readState(type: Json | null): GameState | null {
 	const off = typeof type?.name === 'string' ? OFF[type.name] : undefined
 
 	if (off !== undefined) return off
@@ -111,6 +115,26 @@ function readTeam(competitor: Json, state: GameState): Team | null {
 	}
 }
 
+/**
+ * The line of a competition. The feed marks the favorite on the odds of each
+ * side, and gives the spread as a signed number.
+ */
+function readSpread(competition: Json, away: Team, home: Team): Spread | null {
+	const odds = records(competition.odds)[0]
+
+	const points = Number(odds?.spread)
+
+	if (odds === undefined || !Number.isFinite(points)) return null
+
+	const homeFavored = isRecord(odds.homeTeamOdds) && odds.homeTeamOdds.favorite === true
+
+	const awayFavored = isRecord(odds.awayTeamOdds) && odds.awayTeamOdds.favorite === true
+
+	if (homeFavored === awayFavored && points !== 0) return null
+
+	return { favorite: awayFavored ? away.id : home.id, points: Math.abs(points) }
+}
+
 /** The games of a scoreboard response, in the order of the feed. */
 export function readGames(body: unknown): Game[] {
 	if (!isRecord(body)) return []
@@ -122,7 +146,9 @@ export function readGames(body: unknown): Game[] {
 
 		const kickoff = text(event.date)
 
-		const state = readState(competition?.status ?? event.status)
+		const type = statusType(competition?.status ?? event.status)
+
+		const state = readState(type)
 
 		if (competition === undefined || id === null || kickoff === null || state === null) return []
 
@@ -140,6 +166,16 @@ export function readGames(body: unknown): Game[] {
 
 		if (away === null || home === null) return []
 
-		return [{ id, kickoff, state, away, home }]
+		return [
+			{
+				id,
+				kickoff,
+				state,
+				detail: text(type?.shortDetail),
+				spread: readSpread(competition, away, home),
+				away,
+				home,
+			},
+		]
 	})
 }

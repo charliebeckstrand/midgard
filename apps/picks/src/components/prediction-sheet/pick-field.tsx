@@ -1,46 +1,82 @@
 'use client'
 
-import { Label, Message } from 'ui/fieldset'
+import { Button } from 'ui/button'
+import { cn } from 'ui/core'
+import { Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
-import { Radio, RadioField, RadioGroup } from 'ui/radio'
-import { Stack } from 'ui/structure/stack'
 import type { Game } from '../../types'
-import { isLocked } from '../../utilities/locks'
+import { formatLine, pickLine } from '../../utilities/grade'
+import { isLocked, isOff } from '../../utilities/locks'
+import { GameStatus } from '../game-card'
+import { LinePending, PendingDot } from '../pick-line'
 
 /**
- * The pick of one game: a radio for each team, bound to the form field named
- * by the id of the game. A game that has kicked off is locked, so its radios
- * are disabled and keep the pick that was stored.
+ * The pick of one game, as a row of the grid of the prediction form. Each
+ * side is a button with its logo and its line, and the pressed side is the
+ * pick. A game that has kicked off is locked. A game without a line takes a
+ * pick all the same. Each side then shows {@link PendingDot} in the place of
+ * the line, and a tooltip on hover says so. A postponed or a canceled game is
+ * locked, and a badge after its sides says so.
  */
 export function PickField({ game }: { game: Game }) {
-	const { value, setValue } = useFormValue<string>(game.id, {})
+	const { value, setValue, invalid } = useFormValue<string>(game.id, {})
 
 	const locked = isLocked(game, Date.now())
 
 	return (
-		<Stack gap="xs">
-			<RadioGroup aria-label={`${game.away.name} at ${game.home.name}`} className="gap-2">
-				{[game.away, game.home].map((team) => (
-					<RadioField key={team.id}>
-						<Radio
-							name={game.id}
-							value={team.id}
-							checked={value === team.id}
+		// The sides take the first column of the grid, and the badge takes the second.
+		<div className="col-span-full grid grid-cols-subgrid items-center">
+			<fieldset className="grid grid-cols-2 gap-1">
+				<legend className="sr-only">
+					{game.away.name} at {game.home.name}
+				</legend>
+
+				{[game.away, game.home].map((team) => {
+					const picked = value === team.id
+
+					const line = pickLine(game, team.id)
+
+					const side = (
+						<Button
+							key={team.id}
+							type="button"
+							variant={picked ? 'soft' : 'plain'}
+							color={picked ? 'blue' : 'zinc'}
+							aria-pressed={picked}
 							disabled={locked}
-							onChange={() => setValue(team.id)}
-						/>
-
-						<Label className="flex items-center gap-2">
-							{team.logo === null ? null : (
-								<img src={team.logo} alt="" className="size-6 shrink-0" />
+							onClick={() => setValue(team.id)}
+							className={cn(
+								'w-full justify-start',
+								invalid && 'ring-1 ring-red-500 ring-inset dark:ring-red-400',
 							)}
-							{team.name}
-						</Label>
-					</RadioField>
-				))}
-			</RadioGroup>
+						>
+							{team.logo === null ? null : (
+								<img src={team.logo} alt="" className="size-5 shrink-0" />
+							)}
+							<span className={cn('font-medium', !picked && 'text-zinc-700 dark:text-zinc-300')}>
+								{team.abbreviation}
+							</span>
+							{line === null ? (
+								<PendingDot className="ms-auto" />
+							) : (
+								<span className="ms-auto tabular-nums text-zinc-500 dark:text-zinc-400">
+									{formatLine(line)}
+								</span>
+							)}
+						</Button>
+					)
 
-			<Message name={game.id} />
-		</Stack>
+					return line === null ? <LinePending key={team.id}>{side}</LinePending> : side
+				})}
+			</fieldset>
+
+			{isOff(game) ? (
+				<span className="flex justify-self-end">
+					<GameStatus game={game} />
+				</span>
+			) : null}
+
+			<Message name={game.id} className="sr-only" />
+		</div>
 	)
 }

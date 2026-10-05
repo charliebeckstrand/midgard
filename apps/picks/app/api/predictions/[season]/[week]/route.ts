@@ -1,6 +1,6 @@
 import { mimir } from '@/server/mimir'
 import { getWeekGames } from '@/server/scoreboard'
-import type { WeekPicks } from '@/types'
+import type { TeamPicks } from '@/types'
 import { kickedOff, mergePicks } from '@/utilities/locks'
 
 /**
@@ -31,8 +31,8 @@ function refuse(status: number, message: string) {
 	return Response.json({ message }, { status })
 }
 
-/** Whether a body is a map of string ids to string ids. */
-function isPicks(value: unknown): value is WeekPicks {
+/** Whether a body maps each game id to the id of a team. The app sets the line. */
+function isPicks(value: unknown): value is TeamPicks {
 	return (
 		typeof value === 'object' &&
 		value !== null &&

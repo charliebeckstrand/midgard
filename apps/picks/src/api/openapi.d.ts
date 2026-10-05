@@ -720,13 +720,68 @@ export interface components {
 			}
 		}
 		PlaceList: components['schemas']['Place'][]
-		Place: components['schemas']['PlaceDraft'] & {
+		Place: {
 			id: string
 			/** @description When the place was added, ISO 8601 */
 			createdAt: string
+			/** @description The business or place name */
+			name: string
+			category: components['schemas']['PlaceCategory']
+			/** @description The address on one line */
+			address: string
+			city?: string
+			/** @description The state the geocoder named, for places the map outline leaves out and for the state filter */
+			state?: string
+			/** @description The country the geocoder named, for the country filter */
+			country?: string
+			latitude: number
+			longitude: number
+			/** Format: uri */
+			url?: string
+			/** @description Newest visit first */
+			visits: components['schemas']['Visit'][]
 		}
 		/** @enum {string} */
 		PlaceCategory: 'food' | 'entertainment' | 'nature' | 'shopping' | 'other'
+		Visit: components['schemas']['VisitDraft'] & {
+			id: string
+		}
+		VisitDraft: {
+			/** @description The id of a stored visit, kept on a write. Mimir gives a new visit its id. */
+			id?: string
+			/**
+			 * @description The day of the visit
+			 * @example 2026-09-27
+			 */
+			visitedAt: string
+			/** @description 0.5 to 5 in half steps, or 0 for none */
+			rating: number
+			review?: string
+			/** @description Pictures of the visit, in the order the user put them */
+			photos: string[]
+		}
+		Visits: {
+			states: string[]
+			countries: string[]
+		}
+		/** @description The picks of each week with any, by week number */
+		SeasonPicks: {
+			[key: string]: components['schemas']['WeekPicks']
+		}
+		/** @description The pick of each game id: the picked team and its line when it was saved */
+		WeekPicks: {
+			[key: string]: {
+				team: string
+				line: number | null
+			}
+		}
+		Error: {
+			error: string
+			message: string
+			statusCode: number
+			/** @description A stable name for the error, when the service gives one */
+			code?: string
+		}
 		PlaceDraft: {
 			/** @description The business or place name */
 			name: string
@@ -740,40 +795,9 @@ export interface components {
 			country?: string
 			latitude: number
 			longitude: number
-			/** @description 1 to 5, or 0 for none */
-			rating: number
-			review?: string
 			/** Format: uri */
 			url?: string
-			/**
-			 * Format: uri
-			 * @description A picture of the place
-			 */
-			photo?: string
-			/**
-			 * @description The day of the visit
-			 * @example 2026-09-27
-			 */
-			visitedAt: string
-		}
-		Visits: {
-			states: string[]
-			countries: string[]
-		}
-		/** @description The picks of each week with any, by week number */
-		SeasonPicks: {
-			[key: string]: components['schemas']['WeekPicks']
-		}
-		/** @description The id of the picked team for each game id */
-		WeekPicks: {
-			[key: string]: string
-		}
-		Error: {
-			error: string
-			message: string
-			statusCode: number
-			/** @description A stable name for the error, when the service gives one */
-			code?: string
+			visits: components['schemas']['VisitDraft'][]
 		}
 		SetVisit: {
 			visited: boolean
