@@ -12,6 +12,9 @@ const GRADE_OUTLINE = {
 	wrong: 'outline-2 outline-red-500',
 } as const
 
+/** The status line of a game that is off. */
+const OFF_LABEL = { postponed: 'Postponed', canceled: 'Canceled' } as const
+
 /** The muted style of the status line of a card. */
 const STATUS_CLASS = 'text-sm text-zinc-500 dark:text-zinc-400'
 
@@ -50,7 +53,8 @@ function TeamRow({ team, final }: { team: Team; final: boolean }) {
 
 /**
  * One game of a week: the away team over the home team. The outline is green
- * where the pick was right and red where it was wrong.
+ * where the pick was right and red where it was wrong. A game to come shows its
+ * kickoff, and a postponed or a canceled game says so.
  */
 export function GameCard({ game, grade }: { game: Game; grade: Grade }) {
 	const final = game.state === 'final'
@@ -64,6 +68,10 @@ export function GameCard({ game, grade }: { game: Game; grade: Grade }) {
 
 				{game.state === 'scheduled' ? (
 					<KickoffTime kickoff={game.kickoff} className={STATUS_CLASS} />
+				) : null}
+
+				{game.state === 'postponed' || game.state === 'canceled' ? (
+					<span className={STATUS_CLASS}>{OFF_LABEL[game.state]}</span>
 				) : null}
 			</Stack>
 		</Card>

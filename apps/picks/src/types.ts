@@ -7,14 +7,14 @@ export type Team = {
 	name: string
 	/** The URL of the logo, or `null` when the feed gives none. */
 	logo: string | null
-	/** The points, or `null` before kickoff. */
+	/** The points, or `null` before kickoff and in a game that is off. */
 	score: number | null
 	/** Whether the team won. Only a final game has a winner. */
 	winner: boolean
 }
 
-/** Where a game is: not started, in play, or over. */
-export type GameState = 'scheduled' | 'live' | 'final'
+/** Where a game is: not started, in play, over, or off. */
+export type GameState = 'scheduled' | 'live' | 'final' | 'postponed' | 'canceled'
 
 /** One game of a week. */
 export type Game = {

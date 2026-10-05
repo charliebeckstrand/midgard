@@ -55,8 +55,22 @@ export function readSchedule(body: unknown): Schedule | null {
 	return { season, weeks }
 }
 
+/** The status names of the feed for a game that is off, by state. */
+const OFF: Record<string, GameState> = {
+	STATUS_POSTPONED: 'postponed',
+	STATUS_CANCELED: 'canceled',
+}
+
+/**
+ * The state of a competition. The feed gives a postponed or a canceled game
+ * the state of a game that is over, so the status name comes first.
+ */
 function readState(status: unknown): GameState | null {
 	const type = isRecord(status) && isRecord(status.type) ? status.type : null
+
+	const off = typeof type?.name === 'string' ? OFF[type.name] : undefined
+
+	if (off !== undefined) return off
 
 	switch (type?.state) {
 		case 'pre':
@@ -71,8 +85,8 @@ function readState(status: unknown): GameState | null {
 }
 
 /**
- * One side of a competition. The feed gives a score of `0` before kickoff, so a
- * game that has not started has no score.
+ * One side of a competition. The feed gives a score of `0` before kickoff, so
+ * only a game in play or over has a score.
  */
 function readTeam(competitor: Json, state: GameState): Team | null {
 	const team = isRecord(competitor.team) ? competitor.team : null
@@ -92,7 +106,7 @@ function readTeam(competitor: Json, state: GameState): Team | null {
 		abbreviation,
 		name,
 		logo: text(team?.logo),
-		score: state !== 'scheduled' && Number.isFinite(points) ? points : null,
+		score: (state === 'live' || state === 'final') && Number.isFinite(points) ? points : null,
 		winner: state === 'final' && competitor.winner === true,
 	}
 }

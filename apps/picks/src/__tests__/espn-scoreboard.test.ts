@@ -16,13 +16,13 @@ function competitor(
 	}
 }
 
-function event(state: string, winner?: 'home' | 'away') {
+function event(state: string, winner?: 'home' | 'away', name?: string) {
 	return {
 		id: '401',
 		date: '2026-09-10T00:20Z',
 		competitions: [
 			{
-				status: { type: { state } },
+				status: { type: { state, name } },
 				competitors: [
 					competitor('home', '12', 'KC', '24', winner === 'home'),
 					competitor('away', '2', 'BUF', '17', winner === 'away'),
@@ -99,6 +99,19 @@ describe('readGames', () => {
 		expect(read?.state).toBe('scheduled')
 		expect(read?.home.score).toBeNull()
 		expect(read?.away.score).toBeNull()
+	})
+
+	it('reads a postponed or a canceled game, which the feed gives as over, without a score', () => {
+		const states = ['STATUS_POSTPONED', 'STATUS_CANCELED'].map((name) => {
+			const [read] = readGames({ events: [event('post', 'home', name)] })
+
+			return [read?.state, read?.home.score, read?.home.winner]
+		})
+
+		expect(states).toEqual([
+			['postponed', null, false],
+			['canceled', null, false],
+		])
 	})
 
 	it('skips an event that does not match the shape', () => {
