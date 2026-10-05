@@ -171,18 +171,6 @@ export function CurrencyInput({
 				// Enter that confirms an input-method candidate must not blur the field.
 				if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
 			})}
-			onChange={(event) => {
-				const formatted = reformat(event)
-
-				setEditingText(formatted)
-
-				const parsed = parseEditing(formatted, group, decimal)
-
-				// Guard like the blur path: a keystroke that changes the text but
-				// not the number — a trailing separator, a digit past `precision` —
-				// must not re-emit the value it already holds.
-				if (parsed !== num) setNum(parsed)
-			}}
 			// The commit and the touched mark run whatever the caller does
 			// (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(
@@ -201,6 +189,20 @@ export function CurrencyInput({
 				{ checkForDefaultPrevented: false },
 			)}
 			{...props}
+			// The formatting wiring sits after the spread, so a stray `onChange`
+			// does not replace it (CONVENTIONS.md §3.9).
+			onChange={(event) => {
+				const formatted = reformat(event)
+
+				setEditingText(formatted)
+
+				const parsed = parseEditing(formatted, group, decimal)
+
+				// Guard like the blur path: a keystroke that changes the text but
+				// not the number — a trailing separator, a digit past `precision` —
+				// must not re-emit the value it already holds.
+				if (parsed !== num) setNum(parsed)
+			}}
 		/>
 	)
 }

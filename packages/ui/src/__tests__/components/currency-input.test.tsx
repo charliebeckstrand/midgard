@@ -311,6 +311,25 @@ describe('CurrencyInput', () => {
 		expect(onBlur).toHaveBeenCalled()
 	})
 
+	it('keeps the formatting under a stray onChange', async () => {
+		// A stray `onChange` that a cast lets past the props type. The formatting
+		// `onChange` sits after the spread, so the stray one does not replace it
+		// (CONVENTIONS.md §3.9).
+		const stray = { onChange: vi.fn() } as object
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<CurrencyInput {...stray} onValueChange={onValueChange} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		await setupUser().type(input, '1234')
+
+		expect(input.value).toBe('1,234')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(1234)
+	})
+
 	it('shows a value from outside while the field has focus', async () => {
 		const onValueChange = vi.fn()
 
