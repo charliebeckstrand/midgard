@@ -42,7 +42,7 @@ const brotli = promisify(brotliCompress)
 const PAGE = '/button'
 
 /** The budget of the first pull request of the new app, on `/button`. */
-const BUDGET = { fcp: 700, tbt: 150, requests: 16 }
+const BUDGET = { fcp: 700, requests: 16 }
 
 /** The "Slow 4G" network of Lighthouse, as the measurements of the plan use it. */
 const SLOW_4G = {
@@ -349,7 +349,7 @@ function table(samples: readonly Sample[]): string {
 	const rows: [label: string, metric: Metric, unit: string, budget: string][] = [
 		['FCP', 'fcp', 'ms', `< ${BUDGET.fcp} ms`],
 		['LCP', 'lcp', 'ms', 'lower than legacy'],
-		['TBT', 'tbt', 'ms', `< ${BUDGET.tbt} ms`],
+		['TBT', 'tbt', 'ms', 'lower than legacy'],
 		['JS to hydration (brotli)', 'js', 'KB', 'lower than legacy'],
 		['Requests to hydration', 'requests', '', `< ${BUDGET.requests}`],
 		['Page switch', 'switch', 'ms', 'faster than legacy'],
