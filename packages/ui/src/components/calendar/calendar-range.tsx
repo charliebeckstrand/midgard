@@ -62,16 +62,16 @@ function computeRangeDayFlags(
 	date: Date,
 	rangeStart: Date | null | undefined,
 	effectiveEnd: Date | null | undefined,
-): { isEdge: boolean; isInnerRange: boolean; isLeftEdge: boolean; isRightEdge: boolean } {
+): { isEdge: boolean; isInnerRange: boolean; isStartEdge: boolean; isEndEdge: boolean } {
 	const isEdge =
 		(rangeStart != null && isSameDay(date, rangeStart)) ||
 		(effectiveEnd != null && isSameDay(date, effectiveEnd))
 
 	if (rangeStart == null || effectiveEnd == null) {
-		return { isEdge, isInnerRange: false, isLeftEdge: false, isRightEdge: false }
+		return { isEdge, isInnerRange: false, isStartEdge: false, isEndEdge: false }
 	}
 
-	// The earlier endpoint is the left edge, in either selection order.
+	// The earlier endpoint is the start edge, in either selection order.
 	const [first, last] = isBeforeDay(effectiveEnd, rangeStart)
 		? [effectiveEnd, rangeStart]
 		: [rangeStart, effectiveEnd]
@@ -82,8 +82,8 @@ function computeRangeDayFlags(
 	return {
 		isEdge,
 		isInnerRange: isBetween(date, first, last),
-		isLeftEdge: spans && isSameDay(date, first),
-		isRightEdge: spans && isSameDay(date, last),
+		isStartEdge: spans && isSameDay(date, first),
+		isEndEdge: spans && isSameDay(date, last),
 	}
 }
 
@@ -153,7 +153,7 @@ export function CalendarRange({
 		(context: CalendarDayContextValue): CalendarDayProps => {
 			const { date } = context
 
-			const { isEdge, isInnerRange, isLeftEdge, isRightEdge } = computeRangeDayFlags(
+			const { isEdge, isInnerRange, isStartEdge, isEndEdge } = computeRangeDayFlags(
 				date,
 				rangeStart,
 				effectiveEnd,
@@ -165,8 +165,8 @@ export function CalendarRange({
 				color: isInnerRange ? 'blue' : undefined,
 				className: cn(
 					isInnerRange && 'rounded-none',
-					isLeftEdge && k.day.range.left,
-					isRightEdge && k.day.range.right,
+					isStartEdge && k.day.range.start,
+					isEndEdge && k.day.range.end,
 				),
 				...hoverHandlers(onHoverDate, date),
 			}

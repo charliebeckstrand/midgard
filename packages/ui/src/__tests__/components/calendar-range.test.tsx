@@ -50,9 +50,9 @@ describe('CalendarRange', () => {
 		// The later day first, as a reader who picks the end before the start.
 		renderUI(<CalendarRange rangeStart={d(2024, 3, 10)} rangeEnd={d(2024, 3, 5)} />)
 
-		expect(findDay(5)?.className).toContain('rounded-r-none')
+		expect(findDay(5)?.className).toContain('rounded-e-none')
 
-		expect(findDay(10)?.className).toContain('rounded-l-none')
+		expect(findDay(10)?.className).toContain('rounded-s-none')
 
 		expect(findDay(7)?.className).toContain('rounded-none')
 	})
@@ -62,7 +62,7 @@ describe('CalendarRange', () => {
 
 		expect(findDay(5)).toHaveAttribute('aria-selected', 'true')
 
-		expect(findDay(5)?.className).not.toMatch(/rounded-[lr]-none/)
+		expect(findDay(5)?.className).not.toMatch(/rounded-[se]-none/)
 	})
 
 	it('calls onHoverDate on mouse enter and leave of a day cell', () => {
