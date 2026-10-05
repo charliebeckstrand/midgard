@@ -8,7 +8,7 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	type DialogPanelVariants,
+	type DialogProps,
 	DialogTitle,
 } from '../dialog'
 
@@ -52,8 +52,14 @@ type ConfirmAction = {
 	disabled?: boolean
 }
 
-/** Props for {@link Confirm}: open-state control, message content, the two configurable actions, and dialog `width`. */
-export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
+/**
+ * Props for {@link Confirm}: open-state control, message content, the two configurable
+ * actions, and the {@link Dialog} props that pass through.
+ */
+export type ConfirmProps = Pick<
+	DialogProps,
+	'width' | 'align' | 'glass' | 'initialFocus' | 'container' | 'dismissOnBackdrop'
+> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/** Fires when the confirm action is pressed; does not close the dialog (drive `open` from your handler). */
@@ -110,6 +116,11 @@ export function Confirm({
 	confirm,
 	cancel,
 	width,
+	align,
+	glass,
+	initialFocus,
+	container,
+	dismissOnBackdrop,
 	className,
 }: ConfirmProps) {
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
@@ -128,6 +139,11 @@ export function Confirm({
 			data-slot="confirm"
 			role="alertdialog"
 			width={width}
+			align={align}
+			glass={glass}
+			initialFocus={initialFocus}
+			container={container}
+			dismissOnBackdrop={dismissOnBackdrop}
 			className={className}
 		>
 			{(title || description) && (
