@@ -167,6 +167,84 @@ describe('CreditCardInputExpiry', () => {
 		expect(input.value).toBe('1')
 	})
 
+	it('pads a one-digit month that a typed slash follows and keeps the caret after it', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		await setupUser().type(input, '4/27')
+
+		expect(input.value).toBe('04/27')
+
+		expect(input.selectionStart).toBe(5)
+	})
+
+	it('pads a one-digit month in a pasted expiry and puts the caret at the end', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.click(input)
+
+		await user.paste('1/27')
+
+		expect(input.value).toBe('01/27')
+
+		expect(input.selectionStart).toBe(5)
+	})
+
+	it('deletes the month digit before the caret on backspace, with no pad', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '12')
+
+		input.setSelectionRange(2, 2)
+
+		await user.keyboard('{Backspace}')
+
+		expect(input.value).toBe('1')
+
+		expect(input.selectionStart).toBe(1)
+
+		await user.keyboard('{Backspace}')
+
+		expect(input.value).toBe('')
+	})
+
+	it.each<
+		[string, (user: ReturnType<typeof setupUser>, input: HTMLInputElement) => Promise<unknown>]
+	>([
+		['a forward delete', (user) => user.keyboard('{Delete}')],
+		[
+			'a cut',
+			(user, input) => {
+				input.setSelectionRange(2, 3)
+
+				return user.cut()
+			},
+		],
+	])('keeps the month digits when %s removes the slash', async (_name, remove) => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '12')
+
+		input.setSelectionRange(2, 2)
+
+		await remove(user, input)
+
+		expect(input.value).toBe('12/')
+	})
+
 	it('reports expiry validity to onValidityChange', async () => {
 		const onValidityChange = vi.fn()
 

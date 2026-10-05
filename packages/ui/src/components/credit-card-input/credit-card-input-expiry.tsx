@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, useEffect, useEffectEvent, useState } from 'react'
+import { type ChangeEvent, type ReactNode, useEffect, useEffectEvent, useState } from 'react'
 import { composeEventHandlers } from '../../core'
+import { digitsOnly } from '../../utilities'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
@@ -13,6 +14,48 @@ const EXPIRY_PATTERN = 'MM/YY'
 
 /** The default `invalidMessage`. A module constant, because the compiler cannot compile a template literal default. */
 const DEFAULT_INVALID_MESSAGE = `Enter a valid expiration date (${EXPIRY_PATTERN})`
+
+/**
+ * Masks the digits of a change into "MM/YY" with no pad of a one-digit month.
+ * The text has no separator, so {@link formatExpiry} adds no zero.
+ */
+const maskExpiry = (raw: string) => formatExpiry(digitsOnly(raw))
+
+/**
+ * Gives the text of an expiry change that the mask alone gets wrong, from the
+ * kind of edit. Gives `undefined` for all other changes.
+ *
+ * The mask adds a deleted trailing "/" again. Thus a backward delete of the
+ * "/" deletes the digit before it too, and a forward delete or a cut of it
+ * changes nothing.
+ *
+ * The pad of a one-digit month adds a digit that the caret restore does not
+ * count. Thus only an insertion at the end of the text gets the pad. The value
+ * swap then puts the caret at the end. A deletion never gets the pad.
+ */
+function resolveExpiryEdit(event: ChangeEvent<HTMLInputElement>, held: string): string | undefined {
+	const raw = event.target.value
+
+	const { nativeEvent } = event
+
+	// A synthetic change event has no `inputType`. It counts as an insertion.
+	const inputType =
+		'inputType' in nativeEvent && typeof nativeEvent.inputType === 'string'
+			? nativeEvent.inputType
+			: ''
+
+	if (inputType.endsWith('Backward') && held.endsWith('/') && raw === held.slice(0, -1)) {
+		return raw.slice(0, -1)
+	}
+
+	const inserted = inputType === '' || inputType.startsWith('insert')
+
+	const atEnd = (event.target.selectionStart ?? raw.length) >= raw.length
+
+	const padded = formatExpiry(raw)
+
+	return inserted && atEnd && padded !== maskExpiry(raw) ? padded : undefined
+}
 
 /** Props for {@link CreditCardInputExpiry}; extends Input minus the masked value and change slots. */
 export type CreditCardInputExpiryProps = Omit<
@@ -79,10 +122,12 @@ export function CreditCardInputExpiry({
 		onBlur: onMaskedBlur,
 	} = useMaskInput({
 		name,
-		value,
-		defaultValue,
+		// The mask adds no pad. A value from outside gets the pad here, and a
+		// change gets it from `resolveExpiryEdit`.
+		value: typeof value === 'string' ? formatExpiry(value) : value,
+		defaultValue: defaultValue === undefined ? undefined : formatExpiry(defaultValue),
 		onChange: onValueChange,
-		format: formatExpiry,
+		format: maskExpiry,
 		ref,
 	})
 
@@ -159,13 +204,9 @@ export function CreditCardInputExpiry({
 					{ checkForDefaultPrevented: false },
 				)}
 				onChange={(event) => {
-					const raw = event.target.value
+					const next = resolveExpiryEdit(event, maskedValue)
 
-					// The formatter re-appends a deleted trailing "/" and traps the
-					// caret; backspace over it deletes the preceding digit instead.
-					if (maskedValue.endsWith('/') && raw === maskedValue.slice(0, -1)) {
-						const next = raw.slice(0, -1)
-
+					if (next !== undefined) {
 						setMaskedValue(next)
 
 						report(next)
@@ -175,7 +216,7 @@ export function CreditCardInputExpiry({
 
 					onMaskedChange(event)
 
-					report(formatExpiry(raw))
+					report(maskExpiry(event.target.value))
 				}}
 			/>
 
