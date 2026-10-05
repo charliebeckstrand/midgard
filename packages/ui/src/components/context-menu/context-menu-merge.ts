@@ -1,20 +1,35 @@
 import type { ContextMenuConfig, ContextMenuEntry, ContextMenuItem } from './types'
 
 /**
- * Joins non-empty groups of entries with a separator between each, dropping
- * empty groups so no menu ever opens on a leading, trailing, or doubled rule.
+ * Joins groups of entries with a separator between each pair. It removes the
+ * separators at the start and the end of each group, and then skips each empty
+ * group. Thus no menu opens on a leading, trailing, or doubled rule at a group
+ * edge. A separator between two entries of one group stays.
  * The building block a host uses to set its own default groups apart — a
  * column's sort actions from the table-wide tools below them.
  *
- * @param groups - Entry groups in render order; empties are skipped.
+ * @param groups - Entry groups in render order. A group that holds only
+ * separators counts as empty.
  * @returns The groups concatenated, one separator between each surviving pair.
  */
 export function mergeContextMenuItems(groups: ContextMenuEntry[][]): ContextMenuEntry[] {
-	const kept = groups.filter((group) => group.length > 0)
+	const kept = groups.map(trimSeparators).filter((group) => group.length > 0)
 
 	return kept.flatMap((group, index) =>
 		index === 0 ? group : [{ key: `context-menu-group-${index}`, separator: true }, ...group],
 	)
+}
+
+/**
+ * The group without the separators at its start and its end. A group that
+ * holds only separators becomes empty.
+ */
+function trimSeparators(group: ContextMenuEntry[]): ContextMenuEntry[] {
+	const isRow = (entry: ContextMenuEntry) => !('separator' in entry)
+
+	const start = group.findIndex(isRow)
+
+	return start === -1 ? [] : group.slice(start, group.findLastIndex(isRow) + 1)
 }
 
 /**

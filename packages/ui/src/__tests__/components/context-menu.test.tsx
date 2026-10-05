@@ -79,6 +79,42 @@ describe('mergeContextMenuItems', () => {
 	it('is empty for all-empty groups, so the host leaves the native menu alone', () => {
 		expect(mergeContextMenuItems([[], []])).toEqual([])
 	})
+
+	/** Each entry as its key, or `|` for a separator, so the case reads where each rule falls. */
+	const shape = (entries: ContextMenuEntry[]) =>
+		entries.map((entry) => ('separator' in entry ? '|' : entry.key))
+
+	it('drops a group that holds only separators, so no rule doubles', () => {
+		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
+		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
+
+		const merged = mergeContextMenuItems([[alpha], [{ key: 'rule', separator: true }], [bravo]])
+
+		expect(shape(merged)).toEqual(['a', '|', 'b'])
+	})
+
+	it('drops the separators at the edges of each group, so no rule leads, trails, or doubles', () => {
+		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
+		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
+
+		const merged = mergeContextMenuItems([
+			[{ separator: true }, alpha, { separator: true }],
+			[{ separator: true }, bravo, { separator: true }],
+		])
+
+		expect(shape(merged)).toEqual(['a', '|', 'b'])
+	})
+
+	it('keeps a separator between two items of one group', () => {
+		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
+		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
+
+		expect(shape(mergeContextMenuItems([[alpha, { separator: true }, bravo]]))).toEqual([
+			'a',
+			'|',
+			'b',
+		])
+	})
 })
 
 describe('ContextMenu', () => {
