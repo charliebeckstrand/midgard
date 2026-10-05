@@ -1,15 +1,23 @@
 import { type LngLat, MapMarker, MapPlat } from 'ui/map'
-import { states } from '../data.ts'
+import { miles, states } from '../data.ts'
+import { ikeaDestinations, ikeaHub, useRoute } from '../routes.ts'
 
-// A distribution network that is not real, from one hub in Kansas City.
-const hub: LngLat = [-94.58, 39.1]
+// A marker whose line follows the roads. It mounts when the road is in.
+function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end: LngLat }) {
+	const route = useRoute(start, end)
 
-const destinations: { abbreviation: string; at: LngLat }[] = [
-	{ abbreviation: 'LA', at: [-118.24, 34.05] },
-	{ abbreviation: 'SEA', at: [-122.33, 47.61] },
-	{ abbreviation: 'NYC', at: [-74.0, 40.71] },
-	{ abbreviation: 'ATL', at: [-84.39, 33.75] },
-]
+	if (route === null) return null
+
+	return (
+		<MapMarker
+			label={label}
+			start={start}
+			end={end}
+			path={route.path}
+			detail={miles(route.distanceMeters)}
+		/>
+	)
+}
 
 export default function IkeaDistributionNetwork() {
 	return (
@@ -20,11 +28,11 @@ export default function IkeaDistributionNetwork() {
 			animate
 			legend="right"
 		>
-			{destinations.map((destination) => (
-				<MapMarker
+			{ikeaDestinations.map((destination) => (
+				<RoutedMarker
 					key={destination.abbreviation}
 					label={`KC → ${destination.abbreviation}`}
-					start={hub}
+					start={ikeaHub}
 					end={destination.at}
 				/>
 			))}

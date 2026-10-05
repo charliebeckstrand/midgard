@@ -13,6 +13,11 @@ export const states = feature(
 	'states',
 ) as unknown as MapFeatureCollection
 
+/** A distance in whole miles, such as `1,642 mi`. */
+export function miles(meters: number): string {
+	return `${Math.round(meters / 1609.344).toLocaleString('en-US')} mi`
+}
+
 /** The name of a state. The timezone rows use it as the identity of a region. */
 export function stateName(state: MapFeature): string {
 	return String(state.properties?.name)
