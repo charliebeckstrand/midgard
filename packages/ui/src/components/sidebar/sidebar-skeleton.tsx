@@ -17,6 +17,7 @@ export type SidebarSkeletonProps = {
 	 * the silhouette a density scope.
 	 */
 	size?: SidebarItemProps['size']
+	/** Classes for the root of the silhouette, the stack of rows. */
 	className?: string
 }
 

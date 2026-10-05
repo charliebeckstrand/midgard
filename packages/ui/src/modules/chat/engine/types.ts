@@ -21,7 +21,7 @@ export type ChatMessageData = {
 	 */
 	id?: string
 	/** Who spoke. `system` is a status line rather than an utterance. */
-	role: 'user' | 'assistant' | 'system'
+	sender: 'user' | 'assistant' | 'system'
 	/**
 	 * What the message holds: prose, or the blocks it is built from. A `string`
 	 * keeps working and normalizes to one text part, so a caller that holds a

@@ -23,7 +23,10 @@ type BoxBaseProps = {
 	radius?: BoxRadius
 	/** Background surface token. */
 	bg?: BoxBg
-	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
+	/**
+	 * Outline. `true` uses the default weight. Pass `'subtle'` or `'strong'` to
+	 * pick a different weight.
+	 */
 	outline?: BoxOutline
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope.
@@ -63,9 +66,9 @@ export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, O
 function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {
 	if (!outline) return undefined
 
-	if (outline === true) return k.outline.default
+	if (outline === true) return k.outline.base
 
-	return k.outline[outline]
+	return k.outline.weight[outline]
 }
 
 /**

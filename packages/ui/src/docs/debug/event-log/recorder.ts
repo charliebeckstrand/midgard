@@ -2,7 +2,7 @@ import { subscribeOverlaySignal } from 'ui/primitives/overlay'
 import { createEmitter } from '../../../utilities/emitter.ts'
 import { noop } from '../../../utilities/noop.ts'
 
-/** The kinds of an {@link Entry}, in the order of the filter chips of the sheet. */
+/** The kinds of an {@link Entry}, in the order of the options of the type filter of the sheet. */
 export const KINDS = [
 	'load',
 	'paint',
@@ -41,7 +41,7 @@ const ENTRIES = 'docs:event-log:entries'
 /** The `sessionStorage` key of the "Preserve log" flag. */
 const PRESERVE = 'docs:event-log:preserve'
 
-/** The attribute of the button and the sheet of the log. The log skips the events in them. */
+/** The attribute of the button of the log. The log skips the events in it. */
 export const OWN = 'data-event-log'
 
 /**
@@ -51,6 +51,9 @@ export const OWN = 'data-event-log'
  */
 export class EventLog {
 	entries: readonly Entry[] = []
+
+	/** Whether the log skips each new entry. The sheet pauses the log while the sheet is on screen. */
+	paused = false
 
 	private readonly changes = createEmitter()
 
@@ -98,6 +101,8 @@ export class EventLog {
 	 * The separator of the page load is at time 0, so no entry goes before it.
 	 */
 	add(entry: Entry): void {
+		if (this.paused) return
+
 		this.insert(this.entries.findLastIndex(({ time }) => time <= entry.time) + 1, entry)
 	}
 
@@ -201,7 +206,7 @@ export function record(kind: Kind, text: string): void {
 	log?.add(entryOf(kind, text))
 }
 
-/** Whether an event target is in the button or the sheet of the log. */
+/** Whether an event target is in the button of the log. */
 function isOwn(target: unknown): boolean {
 	return target instanceof Element && target.closest(`[${OWN}]`) !== null
 }

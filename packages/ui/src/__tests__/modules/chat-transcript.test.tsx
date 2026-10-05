@@ -13,12 +13,12 @@ import {
 } from '../helpers'
 
 const messages: ChatMessageData[] = [
-	{ id: '1', role: 'user', content: 'Hi there' },
-	{ id: '2', role: 'assistant', content: 'Hello!' },
+	{ id: '1', sender: 'user', content: 'Hi there' },
+	{ id: '2', sender: 'assistant', content: 'Hello!' },
 ]
 
 describe('ChatTranscript', () => {
-	it('renders each message, passing its role straight to the bubble', () => {
+	it('renders each message, passing its sender straight to the bubble', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} />)
 
 		expect(screen.getByText('Hi there')).toBeInTheDocument()
@@ -27,9 +27,9 @@ describe('ChatTranscript', () => {
 
 		const bubbles = allBySlot(container, 'chat-message')
 
-		expect(present(bubbles[0], 'user bubble')).toHaveAttribute('data-role', 'user')
+		expect(present(bubbles[0], 'user bubble')).toHaveAttribute('data-sender', 'user')
 
-		expect(present(bubbles[1], 'assistant bubble')).toHaveAttribute('data-role', 'assistant')
+		expect(present(bubbles[1], 'assistant bubble')).toHaveAttribute('data-sender', 'assistant')
 	})
 
 	it('renders nothing in the list when there are no messages', () => {
@@ -68,16 +68,16 @@ describe('ChatTranscript', () => {
 
 	describe('the reply a reader cannot see', () => {
 		/** A transcript holding the reader's own message, with no reply to it yet. */
-		const sent: ChatMessageData[] = [{ id: '1', role: 'user', content: 'Hi there' }]
+		const sent: ChatMessageData[] = [{ id: '1', sender: 'user', content: 'Hi there' }]
 
 		/** That transcript mid-reply, at whatever the bubble holds so far. */
 		const arriving = (content: string) => (
-			<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} streaming />
+			<ChatTranscript messages={[...sent, { id: '2', sender: 'assistant', content }]} streaming />
 		)
 
 		/** The same transcript once the reply settled. */
 		const settled = (content: string) => (
-			<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} />
+			<ChatTranscript messages={[...sent, { id: '2', sender: 'assistant', content }]} />
 		)
 
 		it('is a log whose own aria-live is off, so the announcer is the only channel', () => {

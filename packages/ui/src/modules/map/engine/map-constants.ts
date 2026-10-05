@@ -28,6 +28,12 @@ export const REGION_SELECTED_STROKE_WIDTH = 2.5
 export const REGION_PATH_DIGITS = 1
 
 /**
+ * The rounding factor {@link REGION_PATH_DIGITS} names, as `geoPath` applies
+ * it. A value on this grid is the same in each JavaScript engine. @internal
+ */
+export const REGION_PATH_ROUNDING = 10 ** REGION_PATH_DIGITS
+
+/**
  * The clear space, in device pixels, a selected overlay's halo shows around the
  * mark it marks. Measured edge to edge like {@link POINT_CLUSTER_GAP}, so one
  * number holds across every mark the halo sits behind. A dot's halo takes the

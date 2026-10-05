@@ -1,7 +1,7 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import type { ReactNode } from 'react'
+import type { FloatingPlacement } from '../../hooks'
 import { TooltipContext } from './context'
 import { useTooltipState } from './use-tooltip-state'
 
@@ -9,23 +9,31 @@ import { useTooltipState } from './use-tooltip-state'
 export type TooltipProps = {
 	/**
 	 * Preferred side/alignment of the content relative to the trigger; flips on collision.
+	 * A `<side>-auto` value aligns the content to the edge of the trigger that is nearer to
+	 * the edge of the viewport.
 	 * @defaultValue 'top'
 	 */
-	placement?: Placement
+	placement?: FloatingPlacement
 	/**
 	 * What opens the tooltip. Keyboard focus opens it with each value.
 	 *
-	 * - `'hover'`: a mouse or pen hover. A touch press does not open it, because a
-	 *   tap gives no hover.
-	 * - `'click'`: a press from any pointer, touch included. Use it for a tooltip
-	 *   that a reader on a touch screen must reach, such as an info button.
+	 * - `'hover'`: a mouse or pen hover, or a tap. A tap gives no hover, so the
+	 *   lift of a tap on the trigger opens the tooltip, and a second tap closes
+	 *   it. A tap outside, Escape, or a scroll also closes it. A touch that the
+	 *   browser takes for a scroll does not open it. A tap does not open it when
+	 *   the trigger is, or sits inside, a control with `aria-haspopup` or
+	 *   `aria-expanded`, because that tap opens the popup of the control.
+	 * - `'click'`: a click from any pointer, touch included. A mouse hover does
+	 *   not open it. Use it when the tooltip must not appear on a mouse hover,
+	 *   such as an info button that a reader opens on purpose.
 	 *
 	 * @defaultValue 'hover'
 	 * @remarks {@link TooltipProps.open} is the manual trigger.
 	 */
 	trigger?: 'hover' | 'click'
 	/**
-	 * Hover open delay in milliseconds (close delay is fixed at 100ms).
+	 * Hover open delay in milliseconds (close delay is fixed at 100ms). A tap
+	 * opens the tooltip with no delay.
 	 * @defaultValue 250
 	 */
 	delay?: number
@@ -62,8 +70,9 @@ export type TooltipProps = {
 	open?: boolean
 	/**
 	 * Fires when the tooltip opens or closes, whatever drove it: the hover delay, focus,
-	 * or a click on a `trigger="click"` tooltip. `open`, `disabled` going true, the trigger
-	 * becoming `:disabled`, and the shared overlay-close signal also report here.
+	 * a tap, or a click on a `trigger="click"` tooltip. `open`, `disabled` going
+	 * true, the trigger becoming `:disabled`, and the shared overlay-close signal also
+	 * report here.
 	 *
 	 * Observation only. The tooltip owns its open state, and {@link TooltipProps.open}
 	 * only holds it open. Hover cannot be driven from outside, so `open` does not pair
@@ -79,7 +88,8 @@ export type TooltipProps = {
  * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
  *
  * @remarks Opens on hover or on click, as `trigger` selects, and on keyboard
- * focus. A hover tooltip does not open on a touch press. Stays
+ * focus. A hover tooltip opens on a tap, because a tap gives no hover. The tap
+ * does not stop the click action of the trigger. Stays
  * suppressed while the trigger is `:disabled` (own attribute, ancestor
  * `<fieldset disabled>`, or a disabled descendant) and dismisses on the shared
  * overlay-close signal. The panel takes `role="tooltip"`, and `<TooltipTrigger>`

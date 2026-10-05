@@ -3,6 +3,7 @@ import { Flex } from 'ui/flex'
 import { Grid, type GridCellRef, type GridEditableConfig } from 'ui/grid'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Text } from 'ui/text'
+import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, type Person, personColumns } from './people.tsx'
 
 type CommitOn = NonNullable<GridEditableConfig['commitOn']>
@@ -54,12 +55,10 @@ export default function CellScopeAndSpreadsheetKeys() {
 					{describeCell(editingCell, people)}
 				</Text>
 				<EditHelp label="Editing help">
-					Double-click a cell, press Enter or F2 on the cursor's cell, or start typing to edit that
-					cell alone. Enter saves and moves down a row. Tab and Shift+Tab save and move along the
-					row. F2 saves and stays, and Escape discards. Role and Active keep Enter for their own
-					listbox menus, so Tab is their keyboard save. The segment sets what else saves the cell:
-					Leave cell also saves when you click or tab away from the cell, and Leave grid also saves
-					when focus leaves the grid.
+					<PointerHint
+						mouse="Double-click a cell, press Enter or F2 on the cursor's cell, or start typing to edit that cell alone. Enter saves and moves down a row. Tab and Shift+Tab save and move along the row. F2 saves and stays, and Escape discards. Role and Active keep Enter for their own listbox menus, so Tab is their keyboard save. The segment sets what else saves the cell: Leave cell also saves when you click or tab away from the cell, and Leave grid also saves when focus leaves the grid."
+						touch="Tap a cell to select it, then tap it again to edit that cell alone. Return on the keyboard saves and moves down a row. The segment sets what else saves the cell: Leave cell also saves when you leave the cell, and Leave grid also saves when focus leaves the grid."
+					/>
 				</EditHelp>
 			</Flex>
 			<Grid

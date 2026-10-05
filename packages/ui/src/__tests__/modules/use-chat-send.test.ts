@@ -32,8 +32,8 @@ describe('useChatSend', () => {
 			useChatSend({
 				transport: streamOf('ok'),
 				initialMessages: [
-					{ id: 'server-1', role: 'user', content: 'seed' },
-					{ id: 'server-2', role: 'assistant', content: 'reply' },
+					{ id: 'server-1', sender: 'user', content: 'seed' },
+					{ id: 'server-2', sender: 'assistant', content: 'reply' },
 				],
 			}),
 		)
@@ -46,8 +46,8 @@ describe('useChatSend', () => {
 			useChatSend({
 				transport: streamOf('ok'),
 				initialMessages: [
-					{ id: 'server-1', role: 'user', content: 'seed' },
-					{ role: 'assistant', content: 'reply' },
+					{ id: 'server-1', sender: 'user', content: 'seed' },
+					{ sender: 'assistant', content: 'reply' },
 				],
 			}),
 		)
@@ -64,8 +64,8 @@ describe('useChatSend', () => {
 			useChatSend({
 				transport: streamOf('ok'),
 				initialMessages: [
-					{ id: 'server-1', role: 'user', content: 'hi' },
-					{ id: 'server-1', role: 'assistant', content: 'hello' },
+					{ id: 'server-1', sender: 'user', content: 'hi' },
+					{ id: 'server-1', sender: 'assistant', content: 'hello' },
 				],
 			}),
 		)
@@ -89,8 +89,8 @@ describe('useChatSend', () => {
 			useChatSend({
 				transport: streamOf('ok'),
 				initialMessages: [
-					{ id: 'server-1', role: 'user', content: 'hi' },
-					{ role: 'assistant', content: 'hello' },
+					{ id: 'server-1', sender: 'user', content: 'hi' },
+					{ sender: 'assistant', content: 'hello' },
 				],
 			}),
 		)
@@ -108,7 +108,7 @@ describe('useChatSend', () => {
 		const { result } = renderHook(() =>
 			useChatSend({
 				transport,
-				initialMessages: [{ id: 'server-1', role: 'user', content: 'seed' }],
+				initialMessages: [{ id: 'server-1', sender: 'user', content: 'seed' }],
 			}),
 		)
 
@@ -118,6 +118,31 @@ describe('useChatSend', () => {
 
 		expect(transport).toHaveBeenCalledWith('edited', expect.anything())
 		expect(result.current.messages[0]).toMatchObject({ id: 'server-1', content: 'edited' })
+	})
+
+	it('gives each message an id on an origin with no crypto.randomUUID', async () => {
+		// A plain-HTTP origin, such as a LAN address, is not a secure context, and
+		// `crypto.randomUUID` is not there. `crypto.getRandomValues` is.
+		vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport: streamOf('Hello'),
+				initialMessages: [{ sender: 'assistant', content: 'Welcome' }],
+			}),
+		)
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		const ids = result.current.messages.map((message) => message.id)
+
+		expect(ids).toHaveLength(3)
+
+		for (const id of ids) expect(id).toBeTypeOf('string')
+
+		expect(new Set(ids).size).toBe(3)
 	})
 
 	it('appends the user message and streams the assistant reply, keeping the last snapshot', async () => {
@@ -133,9 +158,9 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages).toHaveLength(2)
 
-		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'hi' })
+		expect(result.current.messages[0]).toMatchObject({ sender: 'user', content: 'hi' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'Hello' })
+		expect(result.current.messages[1]).toMatchObject({ sender: 'assistant', content: 'Hello' })
 
 		expect(result.current.streaming).toBe(false)
 
@@ -172,7 +197,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages).toHaveLength(1)
 
-		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'hi' })
+		expect(result.current.messages[0]).toMatchObject({ sender: 'user', content: 'hi' })
 
 		expect(result.current.streaming).toBe(false)
 	})
@@ -199,9 +224,12 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages).toHaveLength(2)
 
-		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'hi' })
+		expect(result.current.messages[0]).toMatchObject({ sender: 'user', content: 'hi' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'second reply' })
+		expect(result.current.messages[1]).toMatchObject({
+			sender: 'assistant',
+			content: 'second reply',
+		})
 	})
 
 	it('retry resends after a failed send, with no prior assistant reply to drop', async () => {
@@ -230,7 +258,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages).toHaveLength(2)
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'recovered' })
+		expect(result.current.messages[1]).toMatchObject({ sender: 'assistant', content: 'recovered' })
 	})
 
 	it('retry no-ops with no user message in the transcript', async () => {
@@ -269,9 +297,12 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages).toHaveLength(2)
 
-		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'edited message' })
+		expect(result.current.messages[0]).toMatchObject({ sender: 'user', content: 'edited message' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'second reply' })
+		expect(result.current.messages[1]).toMatchObject({
+			sender: 'assistant',
+			content: 'second reply',
+		})
 	})
 
 	it('edit no-ops for an unknown id, a non-user message, or empty content', async () => {
@@ -281,8 +312,8 @@ describe('useChatSend', () => {
 			useChatSend({
 				transport,
 				initialMessages: [
-					{ role: 'user', content: 'hi' },
-					{ role: 'assistant', content: 'hello' },
+					{ sender: 'user', content: 'hi' },
+					{ sender: 'assistant', content: 'hello' },
 				],
 			}),
 		)
@@ -365,7 +396,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'reply' })
+		expect(result.current.messages[1]).toMatchObject({ sender: 'assistant', content: 'reply' })
 	})
 
 	it('stop aborts the in-flight send, keeping the last snapshot and skipping onError/onSent', async () => {
@@ -548,7 +579,7 @@ describe('useChatSend', () => {
 		})
 
 		expect(result.current.messages.at(-1)).toMatchObject({
-			role: 'assistant',
+			sender: 'assistant',
 			content: 'second reply',
 		})
 
@@ -567,7 +598,7 @@ describe('useChatSend over a stream of parts', () => {
 		})
 
 		expect(result.current.messages.at(-1)).toMatchObject({
-			role: 'assistant',
+			sender: 'assistant',
 			content: [chart],
 		})
 	})
@@ -632,7 +663,7 @@ describe('useChatSend over a stream of parts', () => {
 
 		expect(result.current.messages).toHaveLength(1)
 
-		expect(result.current.messages[0]).toMatchObject({ role: 'user' })
+		expect(result.current.messages[0]).toMatchObject({ sender: 'user' })
 	})
 
 	it('keeps a reply that arrived as a block when the send then fails', async () => {
@@ -652,7 +683,7 @@ describe('useChatSend over a stream of parts', () => {
 		})
 
 		expect(result.current.messages.at(-1)).toMatchObject({
-			role: 'assistant',
+			sender: 'assistant',
 			content: [chart],
 		})
 	})

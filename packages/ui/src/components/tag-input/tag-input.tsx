@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/tag-input'
 import { Flex } from '../../structure/flex'
 import { keyByOccurrence } from '../../utilities'
 import { Button } from '../button'
-import { useControl } from '../control/context'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -129,13 +129,13 @@ export function TagInput({
 
 	const setRefs = useComposedRef(inputRef, ref)
 
-	const control = useControl()
-
 	// The Control cascade: an explicit `disabled` wins over the enclosing
 	// Control. A disabled or read-only field keeps its tags and adds none.
 	const ambient = useControlProps({ disabled })
 
 	const locked = ambient.disabled === true || ambient.readOnly === true
+
+	const fallbackLabel = useControlFallbackLabel(placeholder ?? 'Add tags')
 
 	const { tags, atMax, addTags, removeTag, setTouched, invalid } = useTagInput({
 		name,
@@ -295,7 +295,7 @@ export function TagInput({
 			// Yields to a wrapping `<Field>`/`<Label>`: an own name shadows it, and a
 			// placeholder is not a programmatic name. Names the field only when
 			// nothing else does.
-			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : (placeholder ?? 'Add tags'))}
+			aria-label={ariaLabel ?? fallbackLabel}
 			value={inputValue}
 			onChange={(event) => {
 				setInputValue(event.target.value)

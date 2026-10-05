@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { DatePicker } from 'ui/date-picker'
-import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
+import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
@@ -141,190 +141,190 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 	const visitFields = seed.kind === 'visit' || seed.place === null
 
 	return (
-		<Drawer
-			glass
-			// Grown to the form, and stopping at the screen rather than short of it —
-			// the second case `DrawerProps.height` describes, measured here: at a 700px
-			// window `auto` held the panel at 595 while the fields came to 709, leaving
-			// the review below the fold.
-			//
-			// The travel matters to a form for its own reason. A validation message
-			// appearing under a field changes the panel's height, and a panel that
-			// jumped would move the fields under the reader's cursor at the moment they
-			// are being told to fix one.
-			height="fit"
-			open={open}
-			onOpenChange={onOpenChange}
-			aria-label={title}
-		>
-			<Flex justify="between" align="center" className="px-6 pt-6">
-				{/* A visit names its place under the title, because the form shows no
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerPanel
+				glass
+				// Grown to the form, and stopping at the screen rather than short of it —
+				// the second case `DrawerProps.height` describes, measured here: at a 700px
+				// window `auto` held the panel at 595 while the fields came to 709, leaving
+				// the review below the fold.
+				//
+				// The travel matters to a form for its own reason. A validation message
+				// appearing under a field changes the panel's height, and a panel that
+				// jumped would move the fields under the reader's cursor at the moment they
+				// are being told to fix one.
+				height="fit"
+				aria-label={title}
+			>
+				<Flex justify="between" align="center" className="px-6 pt-6">
+					{/* A visit names its place under the title, because the form shows no
 				    field of the place. */}
-				<div className="min-w-0">
-					<DrawerTitle className="p-0">{title}</DrawerTitle>
+					<div className="min-w-0">
+						<DrawerTitle className="p-0">{title}</DrawerTitle>
 
-					{seed.kind === 'visit' ? (
-						<Text tone="muted" className="truncate">
-							{seed.place.name}
-						</Text>
-					) : null}
-				</div>
+						{seed.kind === 'visit' ? (
+							<Text tone="muted" className="truncate">
+								{seed.place.name}
+							</Text>
+						) : null}
+					</div>
 
-				<DrawerClose>
-					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-				</DrawerClose>
-			</Flex>
+					<DrawerClose>
+						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+					</DrawerClose>
+				</Flex>
 
-			<Form<PlaceValues>
-				// The drawer unmounts its children while closed, so the form re-seeds
-				// from `defaultValues` on each open and an abandoned entry never comes
-				// back. Keyed on the open state as well, which covers the one case the
-				// unmount misses: a reopen while the close is still animating out. The
-				// edited place is in the key too, so opening a second one re-seeds
-				// instead of keeping the first one's entry.
-				key={`${String(open)}:${targetKey(seed)}`}
-				defaultValues={targetValues(seed)}
-				validate={placeValidators}
-				onSubmit={async (values): Promise<SubmitResult<PlaceValues> | undefined> => {
-					setFailure(null)
+				<Form<PlaceValues>
+					// The drawer unmounts its children while closed, so the form re-seeds
+					// from `defaultValues` on each open and an abandoned entry never comes
+					// back. Keyed on the open state as well, which covers the one case the
+					// unmount misses: a reopen while the close is still animating out. The
+					// edited place is in the key too, so opening a second one re-seeds
+					// instead of keeping the first one's entry.
+					key={`${String(open)}:${targetKey(seed)}`}
+					defaultValues={targetValues(seed)}
+					validate={placeValidators}
+					onSubmit={async (values): Promise<SubmitResult<PlaceValues> | undefined> => {
+						setFailure(null)
 
-					try {
-						if (seed.kind === 'visit') {
-							await onSubmit(toVisitPlaceDraft(values, seed.place, seed.visit))
-						} else {
-							const located = await locatePlace(
-								values,
-								placeGeocoder,
-								AbortSignal.timeout(LOCATE_TIMEOUT_MS),
-							)
+						try {
+							if (seed.kind === 'visit') {
+								await onSubmit(toVisitPlaceDraft(values, seed.place, seed.visit))
+							} else {
+								const located = await locatePlace(
+									values,
+									placeGeocoder,
+									AbortSignal.timeout(LOCATE_TIMEOUT_MS),
+								)
 
-							if (located === null) {
-								return {
-									fieldErrors: {
-										address: 'That address was not found. Check it, or search for the place.',
-									},
+								if (located === null) {
+									return {
+										fieldErrors: {
+											address: 'That address was not found. Check it, or search for the place.',
+										},
+									}
 								}
-							}
 
-							await onSubmit(toPlaceDraft(values, located, seed.place))
+								await onSubmit(toPlaceDraft(values, located, seed.place))
+							}
+						} catch (error) {
+							setFailure(failureMessage(error))
+
+							return undefined
 						}
-					} catch (error) {
-						setFailure(failureMessage(error))
+
+						onOpenChange(false)
 
 						return undefined
-					}
-
-					onOpenChange(false)
-
-					return undefined
-				}}
-			>
-				<DrawerBody>
-					{/* Two columns from `sm`, which is what keeps the form short enough for
+					}}
+				>
+					<DrawerBody>
+						{/* Two columns from `sm`, which is what keeps the form short enough for
 					    the panel to hold all of it: stacked, these fields run past any
 					    screen and the reader scrolls to reach the button they are aiming
 					    for. The search leads across both, because it is the field that
 					    fills the others. */}
-					<div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 pb-6 sm:grid-cols-2">
-						{placeFields ? (
-							<>
-								<div className="sm:col-span-2">
-									<PlaceSearchField />
-								</div>
+						<div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 pb-6 sm:grid-cols-2">
+							{placeFields ? (
+								<>
+									<div className="sm:col-span-2">
+										<PlaceSearchField />
+									</div>
 
-								<Field>
-									<Label>Name</Label>
+									<Field>
+										<Label>Name</Label>
 
-									<Input name="name" placeholder="What is it called?" />
+										<Input name="name" placeholder="What is it called?" />
 
-									<Message name="name" />
-								</Field>
+										<Message name="name" />
+									</Field>
 
-								<Field>
-									<Label>Category</Label>
+									<Field>
+										<Label>Category</Label>
 
-									{/* Clearable, because a reader who picked the wrong one otherwise has
+										{/* Clearable, because a reader who picked the wrong one otherwise has
 									    no way back to having picked nothing. Category is required, so
 									    clearing surfaces the field's own message on submit rather than
 									    writing a place without one. */}
-									<Listbox<PlaceCategory>
-										name="category"
-										placeholder="Pick a category"
-										clearable
-										displayValue={categoryLabel}
-									>
-										{CATEGORIES.map((category) => (
-											<ListboxOption key={category.value} value={category.value}>
-												<ListboxLabel>{category.label}</ListboxLabel>
-											</ListboxOption>
-										))}
-									</Listbox>
+										<Listbox<PlaceCategory>
+											name="category"
+											placeholder="Pick a category"
+											clearable
+											displayValue={categoryLabel}
+										>
+											{CATEGORIES.map((category) => (
+												<ListboxOption key={category.value} value={category.value}>
+													<ListboxLabel>{category.label}</ListboxLabel>
+												</ListboxOption>
+											))}
+										</Listbox>
 
-									<Message name="category" />
-								</Field>
+										<Message name="category" />
+									</Field>
 
-								<div className="sm:col-span-2">
-									<PlaceAddressField />
-								</div>
+									<div className="sm:col-span-2">
+										<PlaceAddressField />
+									</div>
 
-								<Field className="sm:col-span-2">
-									<Label>Website</Label>
+									<Field className="sm:col-span-2">
+										<Label>Website</Label>
 
-									<Input name="url" type="url" placeholder="https://" />
+										<Input name="url" type="url" placeholder="https://" />
 
-									<Message name="url" />
-								</Field>
-							</>
-						) : null}
+										<Message name="url" />
+									</Field>
+								</>
+							) : null}
 
-						{visitFields ? (
-							<>
-								<Field>
-									<Label>Visited</Label>
+							{visitFields ? (
+								<>
+									<Field>
+										<Label>Visited</Label>
 
-									<DatePicker name="visitedAt" />
+										<DatePicker name="visitedAt" />
 
-									<Message name="visitedAt" />
-								</Field>
+										<Message name="visitedAt" />
+									</Field>
 
-								<Field>
-									<Label>Rating</Label>
+									<div className="sm:col-span-2">
+										<PlacePhotosField />
+									</div>
 
-									<Rating name="rating" size="lg" step={0.5} />
-								</Field>
+									<Field className="sm:col-span-2">
+										<Label>Rating</Label>
 
-								<div className="sm:col-span-2">
-									<PlacePhotosField />
-								</div>
+										<Rating name="rating" size="lg" step={0.5} />
+									</Field>
 
-								<Field className="sm:col-span-2">
-									<Label>Your review</Label>
+									<Field className="sm:col-span-2">
+										<Label>Your review</Label>
 
-									<Textarea name="review" rows={3} autoResize placeholder="How was it?" />
-								</Field>
-							</>
-						) : null}
+										<Textarea name="review" rows={3} autoResize placeholder="How was it?" />
+									</Field>
+								</>
+							) : null}
 
-						{failure === null ? null : (
-							<Alert severity="error" className="sm:col-span-2">
-								<Text>{failure}</Text>
-							</Alert>
-						)}
-					</div>
-				</DrawerBody>
+							{failure === null ? null : (
+								<Alert severity="error" className="sm:col-span-2">
+									<Text>{failure}</Text>
+								</Alert>
+							)}
+						</div>
+					</DrawerBody>
 
-				<DrawerFooter>
-					<Flex gap="sm" justify="end" full>
-						<Button variant="plain" type="button" onClick={() => onOpenChange(false)}>
-							Cancel
-						</Button>
+					<DrawerFooter>
+						<Flex gap="sm" justify="end" full>
+							<Button variant="plain" type="button" onClick={() => onOpenChange(false)}>
+								Cancel
+							</Button>
 
-						<Button type="submit" color={editing ? 'blue' : undefined}>
-							{submit}
-						</Button>
-					</Flex>
-				</DrawerFooter>
-			</Form>
+							<Button type="submit" color={editing ? 'blue' : undefined}>
+								{submit}
+							</Button>
+						</Flex>
+					</DrawerFooter>
+				</Form>
+			</DrawerPanel>
 		</Drawer>
 	)
 }

@@ -2,9 +2,10 @@ import type { DensityStep } from '../../core/density'
 
 // The `size` axes of the documented components: each component whose `size`
 // prop takes density steps, with the steps that the prop offers.
-// `docs/size-axes.test.ts` holds this list equal to the API that the docs site
-// builds, so a new axis or a changed axis must come here. The distinct-steps
-// gate (`browser/geometry/size-steps.test.tsx`) renders each step of each axis.
+// `src/docs/__tests__/size-axes.test.ts` holds this list equal to the API data
+// of the docs plugin, so a new axis or a changed axis must come here. The
+// distinct-steps gate (`browser/geometry/size-steps.test.tsx`) renders each
+// step of each axis.
 
 /** The steps that the `size` prop of each documented component offers. */
 export const SIZE_AXES = {
@@ -41,7 +42,7 @@ export const SIZE_AXES = {
 	CurrencyInput: ['sm', 'md', 'lg'],
 	DateInput: ['sm', 'md', 'lg'],
 	DatePicker: ['sm', 'md', 'lg'],
-	Drawer: ['sm', 'md', 'lg'],
+	DrawerPanel: ['sm', 'md', 'lg'],
 	DrawerStatic: ['sm', 'md', 'lg'],
 	FileUploadButton: ['xs', 'sm', 'md', 'lg'],
 	FileUploadInput: ['sm', 'md', 'lg'],

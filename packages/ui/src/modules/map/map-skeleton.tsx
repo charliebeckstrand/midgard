@@ -12,8 +12,8 @@ export type MapSkeletonProps = {
 	 * The reserved frame's `width / height` — a number or `"4/3"` string,
 	 * matching the {@link MapPlat} the skeleton stands in for; `false` fills
 	 * the container instead of reserving.
-	 * @defaultValue what `projection` reserves, else the plat's own `'auto'`
-	 * fallback ratio (16 / 9)
+	 * @defaultValue What `projection` reserves, else the plat's own `'auto'`
+	 * fallback ratio (16 / 9).
 	 */
 	aspectRatio?: Exclude<MapAspectRatio, 'auto'>
 	/**
@@ -48,7 +48,7 @@ export type MapSkeletonProps = {
 	 * A projection with no outline, such as a passed d3 instance, draws the
 	 * rectangle.
 	 * @defaultValue `true` for `'albers-usa'`, whose subject is fixed; `false`
-	 * for the world projections
+	 * for the world projections.
 	 */
 	outline?: boolean
 	className?: string

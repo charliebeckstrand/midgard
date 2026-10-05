@@ -19,7 +19,7 @@ const bubble = defineRecipe({
 		'rounded-2xl',
 		'whitespace-pre-wrap break-words',
 	],
-	role: {
+	sender: {
 		user: ['bg-blue-600 text-white', 'rounded-br-md'],
 		assistant: [
 			...mode('bg-zinc-200 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
@@ -34,8 +34,7 @@ const bubble = defineRecipe({
 	//
 	// The pulse rides the content, so the bubble projects it onto the Markdown
 	// child rather than the component applying it — the axis then carries the
-	// whole streaming look, and a caller composing custom slots off
-	// `ChatMessageBubbleVariants` gets all of it. Written out because Tailwind
+	// whole streaming look. Written out because Tailwind
 	// scans source for whole class names and never sees an assembled one; the
 	// gate is `ugoki.css.pulse`'s. For the reduced-motion reader a standing dim
 	// stands in, never both, since the pulse already troughs to that opacity —
@@ -48,7 +47,7 @@ const bubble = defineRecipe({
 		],
 		false: '',
 	},
-	defaults: { role: 'assistant', streaming: false },
+	defaults: { sender: 'assistant', streaming: false },
 })
 
 /**
@@ -89,7 +88,7 @@ const tool = {
 export const k = defineRecipe(
 	{
 		base: flex.col,
-		role: {
+		sender: {
 			user: 'items-end',
 			assistant: 'items-start',
 			system: 'items-center',
@@ -118,20 +117,13 @@ export const k = defineRecipe(
 				fallback: [size.md, 'italic'],
 			},
 		},
-		defaults: { role: 'assistant' },
+		defaults: { sender: 'assistant' },
 	},
 	{ bubble, tool },
 )
 
-/** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`role`), for consumers composing custom slots. */
-export type ChatMessageVariants = Omit<VariantProps<typeof k>, 'role'> & {
+/** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`sender`), for consumers composing custom slots. */
+export type ChatMessageVariants = Omit<VariantProps<typeof k>, 'sender'> & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
-	role?: VariantProps<typeof k>['role']
-}
-/** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`role`, `streaming`), for consumers composing custom slots. */
-export type ChatMessageBubbleVariants = Omit<VariantProps<typeof bubble>, 'role' | 'streaming'> & {
-	/** The author of the message, which sets the fill and the corners of the bubble. @defaultValue 'assistant' */
-	role?: VariantProps<typeof bubble>['role']
-	/** Whether the reply still streams in. The content of the bubble then pulses. @defaultValue false */
-	streaming?: VariantProps<typeof bubble>['streaming']
+	sender?: VariantProps<typeof k>['sender']
 }

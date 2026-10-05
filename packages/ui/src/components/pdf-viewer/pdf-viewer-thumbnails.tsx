@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/pdf-viewer'
 import { Flex } from '../../structure/flex'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { Sheet, SheetBody, SheetTitle } from '../sheet'
+import { SheetBody, SheetPanel, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
 import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
 
@@ -38,7 +38,6 @@ export function PdfViewerThumbnails() {
 		isDesktop,
 		sidebarOpen,
 		sidebarAnimates,
-		thumbsOpen,
 		setThumbsOpen,
 		root,
 		showThumbnails,
@@ -123,10 +122,8 @@ export function PdfViewerThumbnails() {
 			)}
 
 			{!isDesktop && (
-				<Sheet
+				<SheetPanel
 					side="start"
-					open={thumbsOpen}
-					onOpenChange={setThumbsOpen}
 					container={root}
 					// The close button beside the title closes the sheet, so it has no Close row.
 					footer={null}
@@ -158,7 +155,7 @@ export function PdfViewerThumbnails() {
 							layout="grid"
 						/>
 					</SheetBody>
-				</Sheet>
+				</SheetPanel>
 			)}
 		</>
 	)

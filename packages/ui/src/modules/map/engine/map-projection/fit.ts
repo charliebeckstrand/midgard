@@ -8,8 +8,9 @@
 
 import type { GeoProjection } from 'd3-geo'
 import { MAP_CANONICAL_WIDTH } from '../map-constants'
+import type { MapTransform } from '../map-zoom/transform'
 import type { MapFeature, MapNamedProjection, MapProjection } from '../types'
-import { collection, fitMapProjection, fitProjectionWidth, resolveMapProjection } from './resolve'
+import { collection, fitProjectionWidth, resolveMapProjection } from './resolve'
 
 /**
  * A projection fit to the canonical {@link MAP_CANONICAL_WIDTH}-wide frame,
@@ -54,18 +55,35 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
 }
 
 /**
+ * The transform that puts the canonical frame in a `width` × `height` box: the
+ * scale that meets the box, and the offset that centers the remainder. This is
+ * the SVG default, `preserveAspectRatio="xMidYMid meet"`, so the canonical
+ * frame that the server draws and the measured frame put the geography in the
+ * same place.
+ *
+ * @internal
+ */
+export function canonicalFrame(
+	canonical: MapCanonicalFit,
+	width: number,
+	height: number,
+): MapTransform {
+	const k = Math.min(width / canonical.width, height / canonical.height)
+
+	return { x: (width - canonical.width * k) / 2, y: (height - canonical.height * k) / 2, k }
+}
+
+/**
  * The measured-frame fit derived from a {@link canonicalFit} by arithmetic
  * alone. The named projections' output is linear in `scale` and `translate`.
  * The composite `albers-usa` derives its inset offsets and clips from them
- * proportionally. Scaling the canonical parameters by the frame factor, and
- * centering the remainder, therefore frames the geography the way `fitSize`
+ * proportionally. Scaling the canonical parameters by the {@link canonicalFrame}
+ * therefore frames the geography the way `fitSize`
  * would. It takes no bounds pass that re-projects every coordinate, the bulk of
  * a refit's cost on every resize. It lands within `fitSize`'s
  * adaptive-resampling margin, sub-percent, from the resampling each pass runs at
  * its own scale. Under the canonical aspect it is a pure zoom of the canonical
- * paint, so a refit never reshapes the geography. Only the named
- * projections qualify: a passed d3 instance is stateful, so its canonical fit
- * is never cached to derive from.
+ * paint, so a refit never reshapes the geography.
  *
  * @internal
  */
@@ -75,39 +93,51 @@ export function scaleCanonicalFit(
 	width: number,
 	height: number,
 ): GeoProjection {
-	const factor = Math.min(width / canonical.width, height / canonical.height)
+	const { x, y, k } = canonicalFrame(canonical, width, height)
 
 	const [tx, ty] = canonical.projection.translate()
 
 	return resolveMapProjection(spec)
-		.scale(canonical.projection.scale() * factor)
-		.translate([
-			tx * factor + (width - canonical.width * factor) / 2,
-			ty * factor + (height - canonical.height * factor) / 2,
-		])
+		.scale(canonical.projection.scale() * k)
+		.translate([tx * k + x, ty * k + y])
+}
+
+/**
+ * A measured fit: the projection, and the transform that carries its output
+ * onto the measured frame. The transform is `null` where the projection draws
+ * in the measured frame itself.
+ *
+ * @internal
+ */
+export type MapMeasuredFit = {
+	projection: GeoProjection
+	frame: MapTransform | null
 }
 
 /**
  * The measured-frame fit, or `null` when there is nothing to frame. That is no
  * geography, geometry whose bounds collapse (a lone point), or an unmeasured
- * frame. The canonical fit is already `null` for the first two. Gating on the canonical fit
- * keeps a degenerate atlas from reaching {@link fitMapProjection}, whose
- * `fitSize` would return an infinite-scale projection that emits `NaN`
- * coordinates. A named projection derives the fit from the cached canonical one
- * by arithmetic ({@link scaleCanonicalFit}); a passed instance fits directly.
+ * frame. The canonical fit is already `null` for the first two.
+ *
+ * A named projection derives a new projection from the canonical one
+ * ({@link scaleCanonicalFit}). A passed d3 instance belongs to the consumer, and
+ * the module cannot make a copy of it. Thus it keeps its canonical fit, and the
+ * {@link canonicalFrame} carries its output onto the measured frame. A refit in
+ * place would give the canonical fit and the measured fit one identity. Then a
+ * memo that keys on the projection, as the React Compiler does, keeps the
+ * values of the first fit.
  *
  * @internal
  */
 export function measuredMapFit(
 	projection: MapProjection,
-	features: MapFeature[],
 	canonical: MapCanonicalFit | null,
 	width: number,
 	height: number,
-): GeoProjection | null {
+): MapMeasuredFit | null {
 	if (canonical === null || width <= 0 || height <= 0) return null
 
 	return typeof projection === 'string'
-		? scaleCanonicalFit(projection, canonical, width, height)
-		: fitMapProjection(projection, features, width, height)
+		? { projection: scaleCanonicalFit(projection, canonical, width, height), frame: null }
+		: { projection: canonical.projection, frame: canonicalFrame(canonical, width, height) }
 }

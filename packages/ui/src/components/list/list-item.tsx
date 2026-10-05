@@ -56,7 +56,7 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 * Without `as`, a row with `onClick` renders a `<button>`, so the keyboard
 	 * can reach and activate it. Its children must then be phrasing content.
 	 *
-	 * @defaultValue `'button'` with `onClick`, else `'div'`
+	 * @defaultValue A `'button'` with `onClick`, or a `'div'` without it.
 	 */
 	as?: Fallback
 	// The content area is the link switch: with `href` set it renders the

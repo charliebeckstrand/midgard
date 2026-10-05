@@ -7,4 +7,3 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @source '../../';
-@source not '../../docs-legacy';

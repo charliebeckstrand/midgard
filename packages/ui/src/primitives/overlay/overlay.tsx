@@ -112,7 +112,8 @@ export type OverlayProps = {
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
  * `backdrop` is set). Any `Chrome` region stays reachable through the
  * trap without modality being given up. Fires the overlay signal on open so
- * non-modal floats (tooltips) dismiss.
+ * non-modal floats (tooltips) dismiss. A click on the backdrop stops at the
+ * backdrop, so the React ancestors of the overlay do not receive it.
  *
  * A closed overlay is `inert` for its exit animation, so it takes no press and
  * no key. The focus goes to `<body>` when the overlay closes, and a modal
@@ -223,7 +224,15 @@ export function Overlay({
 							? (backdropClassName ?? cn('absolute inset-0', k.backdrop.base))
 							: 'absolute inset-0'
 					}
-					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
+					// React carries a click in the portal up the component tree, and each
+					// panel stops its own clicks. The backdrop stops its clicks too. If it
+					// did not, the press that dismisses a menu sheet would also click the
+					// grid row that holds the menu.
+					onClick={(event) => {
+						event.stopPropagation()
+
+						if (dismissOnBackdrop) onOpenChange(false)
+					}}
 					aria-hidden="true"
 				/>
 			)}

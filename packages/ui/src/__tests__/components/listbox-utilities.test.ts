@@ -39,6 +39,17 @@ describe('resolveLabel', () => {
 		).toBe('A, B, C')
 	})
 
+	it('capitalizes each selected value in multi mode with capitalize', () => {
+		expect(
+			resolveLabel({
+				value: ['route', 'load'],
+				displayValue: (v) => v,
+				multiple: true,
+				capitalize: true,
+			}),
+		).toBe('Route, Load')
+	})
+
 	it('summarizes the selection count when more than 3 are selected', () => {
 		expect(
 			resolveLabel({

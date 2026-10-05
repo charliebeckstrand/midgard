@@ -1,6 +1,7 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Confirm } from '../../components/confirm'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { attach, bySlot, fireEvent, getSlot, renderUI, screen, waitFor } from '../helpers'
 
 describe('Confirm', () => {
 	it('renders an alertdialog with the default title and Confirm and Cancel buttons', () => {
@@ -216,5 +217,53 @@ describe('Confirm', () => {
 		)
 
 		expect(screen.getByText('Cancel').closest('button')).toBeDisabled()
+	})
+})
+
+describe('Confirm Dialog props', () => {
+	it('passes align to the Dialog', () => {
+		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} align="top" />)
+
+		const wrapper = bySlot(document.body, 'confirm')?.parentElement
+
+		expect(wrapper?.className).toContain('sm:items-start')
+	})
+
+	it('passes glass to the Dialog', () => {
+		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} glass />)
+
+		expect(bySlot(document.body, 'confirm')).toHaveAttribute('data-glass', '')
+	})
+
+	it('passes dismissOnBackdrop to the Dialog', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Confirm open onOpenChange={onOpenChange} onConfirm={() => {}} dismissOnBackdrop={false} />,
+		)
+
+		fireEvent.click(getSlot(document.body, 'overlay-backdrop'))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('passes container to the Dialog', () => {
+		const container = attach(document.createElement('div'))
+
+		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} container={container} />)
+
+		expect(container).toContainElement(bySlot(document.body, 'confirm'))
+	})
+
+	it('passes initialFocus to the Dialog', async () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(
+			<Confirm open onOpenChange={() => {}} onConfirm={() => {}} initialFocus={ref}>
+				<input ref={ref} aria-label="Reason" />
+			</Confirm>,
+		)
+
+		await waitFor(() => expect(document.activeElement).toBe(ref.current))
 	})
 })

@@ -205,7 +205,7 @@ export function zipArea(
 ): MapZipArea {
 	if (geography == null) return NO_AREA
 
-	return geography.type === 'FeatureCollection'
+	return 'features' in geography
 		? gatherFeatures(geography.features, matches, zipId)
 		: dissolveTopology(geography, objectName, matches, zipId)
 }

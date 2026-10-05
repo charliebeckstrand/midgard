@@ -36,13 +36,13 @@ export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscri
 	return (
 		<div aria-hidden="true" className={cn(k.skeleton.root, className)}>
 			{messageKeys.map((messageKey, index) => {
-				const role = index % 2 === 0 ? 'user' : 'assistant'
+				const sender = index % 2 === 0 ? 'user' : 'assistant'
 
 				return (
 					<div key={messageKey} className={index > 0 ? cn(k.row) : undefined}>
-						<div className={cn(kMessage({ role }))}>
-							<div className={cn(k.skeleton.bubble, k.skeleton.tail[role])}>
-								{k.skeleton.lines[role].map((width) => (
+						<div className={cn(kMessage({ sender }))}>
+							<div className={cn(k.skeleton.bubble, k.skeleton.tail[sender])}>
+								{k.skeleton.lines[sender].map((width) => (
 									<Placeholder key={width} className={cn(k.skeleton.line, width)} />
 								))}
 							</div>

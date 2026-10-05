@@ -7,4 +7,3 @@ export {
 	themeModes,
 	useAppearance,
 } from './context'
-export { FontPreload } from './font-preload'

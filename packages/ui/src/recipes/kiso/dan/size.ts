@@ -63,7 +63,7 @@ export const size = {
 		 */
 		fields: 'density-h-[22.25,27.75,33.75]',
 	},
-	/** A progress gauge skeleton. */
+	/** The diameter of a progress gauge and of its skeleton. */
 	gauge: 'density-size-[12,16,20]',
 	button: {
 		/** The height of a button. */

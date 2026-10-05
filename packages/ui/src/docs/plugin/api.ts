@@ -292,10 +292,13 @@ function readBarrel(
 	/**
 	 * The text of a prop type without `undefined`. An alias such as `ReactNode`
 	 * holds `undefined` itself, and the type without it is a new union of each
-	 * member, so the alias prints in its place. A `null` member stays.
+	 * member, so the alias prints in its place. The alias also holds its
+	 * `null`. Another type keeps its `null` member.
 	 */
 	function textOf(type: Type, defined: Type): string {
-		const text = checker.typeToString(type.getAliasSymbol() ? type : defined, undefined, format)
+		if (type.getAliasSymbol()) return checker.typeToString(type, undefined, format)
+
+		const text = checker.typeToString(defined, undefined, format)
 
 		const nullable =
 			type.isUnionType() && type.getTypes().some((member) => member.flags & TypeFlags.Null)
@@ -305,10 +308,17 @@ function readBarrel(
 
 	/**
 	 * The members of a union of literals, in order. A union that a package
-	 * names, such as the 300 languages of Shiki, keeps its name.
+	 * names, such as the 300 languages of Shiki, keeps its name. A generic
+	 * alias, such as `NonNullable<…>`, makes a union but gives it no name.
 	 */
 	function valuesOf(type: Type): Literal[] | undefined {
-		if (!type.isUnionType() || type.getAliasSymbol()?.declarations.some(isPackage)) return undefined
+		if (!type.isUnionType()) return undefined
+
+		const named =
+			type.getAliasSymbol()?.declarations.some(isPackage) &&
+			type.getAliasTypeArguments().length === 0
+
+		if (named) return undefined
 
 		const values: Literal[] = []
 

@@ -11,5 +11,6 @@ export type BreadcrumbItemProps = ComponentProps<'li'>
  * Static leaf: renders in React Server Components.
  */
 export function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps) {
-	return <li data-slot="breadcrumb-item" className={cn(k.item(), className)} {...props} />
+	// `data-slot` after the spread: the fit of a collapsing trail selects on it.
+	return <li className={cn(k.item(), className)} {...props} data-slot="breadcrumb-item" />
 }

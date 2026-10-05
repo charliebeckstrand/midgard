@@ -17,7 +17,7 @@ export type FieldProps = {
 	className?: string
 	disabled?: boolean
 	htmlFor?: string
-	/** Validation / status severity broadcast to the nested control (driving its ring and, for `error`, `aria-invalid`) and used as the tone of a nested `<Message>`. */
+	/** Validation / status severity broadcast to the nested control (driving its ring and, for `error`, `aria-invalid`) and used as the tone of a nested `<Message>` that sets no `severity` and has no form binding. */
 	severity?: ControlSeverity
 } & Omit<ComponentProps<'div'>, 'className'>
 

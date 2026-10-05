@@ -3,7 +3,7 @@
 import { SlidersHorizontal } from 'lucide-react'
 import type { PropsWithChildren, ReactNode } from 'react'
 import { Button } from '../components/button'
-import { Drawer, DrawerBody, DrawerTitle, DrawerTrigger } from '../components/drawer'
+import { Drawer, DrawerBody, DrawerPanel, DrawerTitle, DrawerTrigger } from '../components/drawer'
 import { Icon } from '../components/icon'
 import { useOffcanvas } from '../hooks/use-offcanvas'
 import { Box } from '../structure/box'
@@ -65,14 +65,14 @@ export function DashboardLayout({ filters, onOpenChange, children }: DashboardLa
 				gap="md"
 			>
 				{filters && (
-					<>
+					<Drawer open={open} onOpenChange={setOpen}>
 						{/* One filter landmark at each width: the filters from `lg` up, and the
 						    trigger of the drawer below `lg`. The trigger is then in a landmark. */}
 						<aside aria-label="Filters" data-slot="filters" className="shrink-0">
 							<Stack className="max-lg:hidden">{filters}</Stack>
 
 							<Box className="lg:hidden">
-								<DrawerTrigger open={open} onClick={() => setOpen(true)}>
+								<DrawerTrigger>
 									<Button type="button" variant="outline">
 										<Icon icon={<SlidersHorizontal />} />
 										Filters
@@ -82,13 +82,13 @@ export function DashboardLayout({ filters, onOpenChange, children }: DashboardLa
 						</aside>
 
 						{/* Filter drawer on mobile */}
-						<Drawer open={open} onOpenChange={setOpen}>
+						<DrawerPanel>
 							<DrawerTitle>Filters</DrawerTitle>
 							<DrawerBody>
 								<Stack>{filters}</Stack>
 							</DrawerBody>
-						</Drawer>
-					</>
+						</DrawerPanel>
+					</Drawer>
 				)}
 
 				<main data-slot="main" className="min-w-0 flex-1">

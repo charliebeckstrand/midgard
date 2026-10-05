@@ -31,7 +31,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `form` · `fieldset` · `control`
 
-> `Form` turns off native validation (`noValidate`), so its validators run on each submit and every field shows its own message. Give each native constraint, such as `type="url"` or `required`, a validator, or pass `noValidate={false}`. `fieldset` provides the `Field` / `Label` / `Description` / `Message` / `Legend` family. `Field` takes `severity` (`error` / `warning` / `success`) and broadcasts it to the nested control. Nest a `<Message>` to render the feedback; bind it to a form field through its own `name`. `control` provides `Control`, the context that broadcasts the same field state to one control-aware descendant. Nest one `Control` for each field to group fields. A press on a `Label` keeps the focus on a control that has it. The `click` focuses a control that does not have it, as on a native label.
+> `Form` turns off native validation (`noValidate`), so its validators run on each submit and every field shows its own message. Give each native constraint, such as `type="url"` or `required`, a validator, or pass `noValidate={false}`. `fieldset` provides the `Field` / `Label` / `Description` / `Message` / `Legend` family. `Field` takes `severity` (`error` / `warning` / `success`) and broadcasts it to the nested control. Nest a `<Message>` to render the feedback; bind it to a form field through its own `name`. An unbound `Message` with no `severity` takes the tone of its `Field`. An `error` or `warning` `Message` joins the `aria-describedby` of the control, and a `success` `Message` does not. `control` provides `Control`, the context that broadcasts the same field state to one control-aware descendant. Nest one `Control` for each field to group fields. A press on a `Label` keeps the focus on a control that has it. The `click` focuses a control that does not have it, as on a native label.
 
 ## Buttons & actions
 
@@ -41,6 +41,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `nav` · `sidebar` · `breadcrumb` · `menu` · `context-menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
 
+> A `breadcrumb` trail wraps by default. With `collapse`, it stays on one line. The crumbs give way from the left, and each one becomes a `…` mark that the reader can still pick. The current page clips last. The fit is measured. A server-rendered trail carries a pre-paint step that measures the row before the first paint, so the first paint holds the fit. Give the `Breadcrumb` the full width of its line. Put an action that shares the line in the `<nav>`, after the list.
+
 ## Overlays
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
@@ -48,6 +50,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 > An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Tab goes from the trigger into the panel controls and then on to the element after the trigger. Focus does not stay in the panel, and the page stays visible to assistive tech. Other tooltips are `role="tooltip"` and describe the trigger.
 
 > `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers at the app root. `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. Put one viewport anywhere in the provider.
+
+> `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`. The root (`Dialog`, `Drawer`, `Sheet`) holds the open state, controlled or uncontrolled, and renders no element. The trigger part (`DialogTrigger`, `DrawerTrigger`, `SheetTrigger`) opens the panel. The panel part (`DialogPanel`, `DrawerPanel`, `SheetPanel`) is the surface, and takes the props that style it or place it.
 
 > `drawer` also exports `DrawerStatic`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
 
@@ -59,7 +63,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the keyboard stop of the card and takes the keyboard lift, and a pointer drags the card from any part of it. A read-only board, with no `onReorder`, shows no handle.
 
-> A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one.
+> A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one. The `bare` variant has no row padding and no dividers. It is for rows of form controls, such as a reorderable list of inputs in a `Field`.
 
 > `code` exports `CodeBlock`, which highlights with Shiki in a module worker. The page loads no grammar and no regex engine. `loadShiki` starts the worker and loads a grammar before the first block needs it. `primeCodeBlock` stores markup that was highlighted elsewhere, and a block then paints it on its first render. A Vite app must set `worker.format` to `'es'`, or Vite puts each grammar into the worker file. A block announces a refused copy as "Copy failed", in the live region where its CopyButton announces "Copied". A block that overflows is a region. With no `label`, its name comes from `lang`, such as "TypeScript code", else it is "Code".
 

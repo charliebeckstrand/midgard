@@ -3,7 +3,7 @@
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { composeEventHandlers } from '../../core'
 import { isDecimalDigit } from '../../utilities/caret'
-import { useControl } from '../control/context'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
@@ -48,7 +48,7 @@ function resolveCvvLength(brand: CreditCardBrand | undefined): number {
  * a brand is known. When the
  * brand shrinks the length it re-truncates the stored value and re-reports
  * validity. Sets `autoComplete="cc-csc"` and defaults a "Security code"
- * aria-label, yielding to a registered Field `<Label>`.
+ * aria-label, yielding to a Field `<Label>`.
  *
  * @see {@link CreditCardInput}
  */
@@ -65,7 +65,7 @@ export function CreditCardInputCvv({
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputCvvProps) {
-	const control = useControl()
+	const fallbackLabel = useControlFallbackLabel('Security code')
 
 	const maxLength = resolveCvvLength(brand)
 
@@ -126,8 +126,9 @@ export function CreditCardInputCvv({
 			inputMode="numeric"
 			autoComplete="cc-csc"
 			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-			// defaults an aria-label, yielding to a registered Field <Label>.
-			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Security code')}
+			// defaults an aria-label, yielding to a Field <Label> from the first
+			// render (useControlFallbackLabel).
+			aria-label={ariaLabel ?? fallbackLabel}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			name={name}

@@ -120,6 +120,37 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.getByText('Saved')).toBeInTheDocument()
 	})
 
+	it('gives each toast its own id on an origin with no crypto.randomUUID', () => {
+		// A plain-HTTP origin, such as a LAN address, is not a secure context, and
+		// `crypto.randomUUID` is not there. `crypto.getRandomValues` is.
+		vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
+
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const ids: (string | undefined)[] = []
+
+		act(() => {
+			ids.push(api?.toast({ title: 'First' }))
+
+			ids.push(api?.toast({ title: 'Second' }))
+		})
+
+		expect(ids).not.toContain(undefined)
+
+		expect(new Set(ids).size).toBe(2)
+
+		expect(screen.getByText('First')).toBeInTheDocument()
+
+		expect(screen.getByText('Second')).toBeInTheDocument()
+	})
+
 	it('routes severity to a polite or assertive live role', () => {
 		let api: ReturnType<typeof useToast> | null = null
 

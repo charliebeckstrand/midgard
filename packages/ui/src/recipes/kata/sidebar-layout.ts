@@ -7,7 +7,7 @@ import { narabi, omote, sen, sou } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { flex } = narabi
-const { space } = dan
+const { gap, space } = dan
 
 // The layout is in the flow, and the page scrolls at each width. A mobile
 // browser moves the scroll offset of the page when its toolbar changes size,
@@ -47,6 +47,12 @@ const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm
 // density scope.
 const navbar = defineRecipe({
 	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', `${space.shell.base} lg:hidden`],
+})
+
+// The actions of the layout, in the navbar below `lg` and in the header from
+// `lg` up. The gap between the actions follows the nearest density scope.
+const actions = defineRecipe({
+	base: ['flex items-center shrink-0', gap.default],
 })
 
 // From `lg` up, the panel sticks to the top of the page. It is as tall as the
@@ -144,6 +150,7 @@ export const k = {
 	base: layout,
 	navbar,
 	panel,
+	actions,
 	// The parts of the floating sidebar: the `peek` hot zone at the start edge,
 	// the `sheet`, its `body`, and the `buffer` at the far edge of the sheet.
 	floating: {

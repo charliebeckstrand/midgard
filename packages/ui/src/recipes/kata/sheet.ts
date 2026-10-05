@@ -12,6 +12,7 @@ import { panel } from '../kiso/panel'
 
 const { flex, slide } = narabi
 const { glass, backdrop } = omote
+const { inset } = panel.layout
 
 /**
  * The widest a sheet is drawn at: the screen, less the inset it floats on.
@@ -61,8 +62,12 @@ export const k = {
 				],
 				// Each side keeps its content clear of the screen edge it sits on, in a
 				// page with `viewport-fit=cover`. Elsewhere the inset is zero.
-				top: [slide.top, 'pt-[env(safe-area-inset-top)]'],
-				bottom: [slide.bottom, 'pb-[env(safe-area-inset-bottom)]'],
+				//
+				// A sheet docked across takes the height of its content. `max-h-full`
+				// stops it at the screen, so a tall sheet scrolls its body and does not
+				// run off the far edge.
+				top: [slide.top, 'max-h-full pt-[env(safe-area-inset-top)]'],
+				bottom: [slide.bottom, 'max-h-full pb-[env(safe-area-inset-bottom)]'],
 			},
 			// The named steps are max-widths and nothing more, so they stay the shared
 			// scale. `fit` is a different kind of answer — the panel takes the width of
@@ -91,10 +96,12 @@ export const k = {
 			defaults: { side: 'right', width: 'md', surface: 'flat' },
 		}),
 		backdrop: bridge.backdrop(backdrop),
-		title: { extra: 'px-6 pt-6' },
+		// The block insets are the slot gap, so a header and a footer that stay in
+		// place over the scrolling body have the same space on each side.
+		title: { extra: ['px-6', inset.top] },
 		description: { extra: 'px-6' },
-		footer: { extra: 'px-6 pb-6' },
-		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
+		footer: { extra: ['px-6', inset.bottom] },
+		body: { extra: [flex.fill, 'overflow-y-auto px-6', inset.first, inset.last] },
 	}),
 	/**
 	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar

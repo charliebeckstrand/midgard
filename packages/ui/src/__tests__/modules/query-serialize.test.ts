@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import type { JsonValue } from '../../components/json-tree'
 import {
 	createGroup,
 	createRule,
@@ -25,7 +26,12 @@ const ageField: QueryField = { name: 'age', label: 'Age', type: 'number' }
 
 const fields = [nameField, ageField]
 
-const rule = (field: string, operator: string, value?: unknown, combinator?: QueryCombinator) => ({
+const rule = (
+	field: string,
+	operator: string,
+	value?: JsonValue,
+	combinator?: QueryCombinator,
+) => ({
 	...createRule(undefined, combinator),
 	field,
 	operator,
@@ -76,6 +82,10 @@ describe('isQueryNode', () => {
 })
 
 describe('serializeQuery', () => {
+	it('types a query tree as a JSON value', () => {
+		expectTypeOf<QueryGroup>().toExtend<JsonValue>()
+	})
+
 	it('writes compact positional arrays with no ids', () => {
 		const query = createGroup('and', [
 			rule('name', 'contains', 'ad'),

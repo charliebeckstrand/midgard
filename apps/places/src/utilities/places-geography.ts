@@ -190,12 +190,7 @@ export function regionName(shape: MapFeature): string {
  * Decoded here rather than handed to the map whole, because the drill reads one
  * region out of the set and a topology has no single region to read.
  */
-export function decodeRegions(
-	topology: MapTopology | undefined,
-	key: string,
-): MapFeatureCollection | null {
-	if (topology === undefined) return null
-
+export function decodeRegions(topology: MapTopology, key: string): MapFeatureCollection | null {
 	const object = topology.objects[key] ?? Object.values(topology.objects)[0]
 
 	if (object === undefined) return null
@@ -237,10 +232,10 @@ export function centeredProjection(geography: MapFeatureCollection | null): GeoP
  * resolve its region belongs.
  */
 export function regionFrame(
-	regions: MapFeatureCollection | null,
+	regions: MapFeatureCollection,
 	name: string | null,
-): MapFeatureCollection | null {
-	if (regions === null || name === null) return regions
+): MapFeatureCollection {
+	if (name === null) return regions
 
 	const held = regions.features.find((region) => regionName(region) === name)
 

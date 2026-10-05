@@ -1,7 +1,7 @@
 'use client'
 
-import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
-import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { closestCorners, DndContext } from '@dnd-kit/core'
+import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import {
 	useComposedRef,
@@ -11,6 +11,7 @@ import {
 	useSortableSensors,
 } from '../../hooks'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
+import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/kanban'
 import type { AccessibleName } from '../../types'
 import { KanbanContext, KanbanDragStateContext } from './context'
@@ -34,7 +35,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 		/** Called with the next columns whenever ordering changes. Omit for read-only. */
 		onReorder?: (next: C[]) => void
 		/**
-		 * Disable all drag / keyboard reorder interaction.
+		 * Disable all drag / keyboard reorder interaction. It has an effect only
+		 * when `onReorder` is set. A board with no `onReorder` is read-only.
 		 * @defaultValue false
 		 */
 		disabled?: boolean
@@ -45,8 +47,10 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 /**
  * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
  * by pointer drag (with a drag overlay) or keyboard lift, and emits the next
- * `columns` array through `onReorder`. The board is read-only when `onReorder`
- * is omitted or `disabled` is set. Shares drag/keyboard state
+ * `columns` array through `onReorder`. With no `onReorder`, the board is
+ * read-only: each card takes `data-readonly`, and the handles render nothing.
+ * With `onReorder` and `disabled`, the board is disabled: each card takes
+ * `data-disabled`, and each handle shows a muted grip. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
  * Compose the column header/body slots within. A pointer drags a card from any
  * part of it, and the keyboard lifts a card from its {@link KanbanCardHandle}.
@@ -80,6 +84,11 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	const interactive = !disabled && !!onReorder
 
 	const sensors = useSortableSensors({ keyboard: false })
+
+	// Without an id, dnd-kit makes the id of the drag description from a counter
+	// that each render in the process shares, so the server markup and the
+	// browser do not agree on it.
+	const dndId = useId()
 
 	const {
 		activeId,
@@ -152,6 +161,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		<KanbanContext value={contextValue}>
 			<KanbanDragStateContext value={dragStateValue}>
 				<DndContext
+					id={dndId}
 					sensors={sensors}
 					collisionDetection={closestCorners}
 					onDragStart={interactive ? handleDragStart : undefined}
@@ -168,7 +178,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 						{children}
 					</section>
 					{interactive ? (
-						<DragOverlay dropAnimation={null}>
+						<PortalDragOverlay>
 							{activeId ? (
 								<div
 									// The clone repeats the content of the card that it follows, and
@@ -186,7 +196,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 									{overlayMap.current.get(activeId)}
 								</div>
 							) : null}
-						</DragOverlay>
+						</PortalDragOverlay>
 					) : null}
 				</DndContext>
 			</KanbanDragStateContext>

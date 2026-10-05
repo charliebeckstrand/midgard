@@ -48,7 +48,7 @@
 
 import type { GeoContext, GeoProjection } from 'd3-geo'
 import { geoPath } from 'd3-geo'
-import { MAP_CANONICAL_WIDTH, REGION_PATH_DIGITS } from '../map-constants'
+import { MAP_CANONICAL_WIDTH, REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
 import type { MapCanonicalFit } from '../map-projection/fit'
 import {
 	fitWidthFromProbeBounds,
@@ -326,9 +326,6 @@ export function projectAtlas(
  */
 const PROBE_REFINEMENT = 4
 
-/** The rounding factor {@link REGION_PATH_DIGITS} names, as `geoPath` applies it. */
-const ROUNDING = 10 ** REGION_PATH_DIGITS
-
 /** The buffer's own bounds, as `x0`, `y0`, `x1`, `y1`. Empty bounds collapse to infinities. */
 function bufferBounds(points: Float64Array): [number, number, number, number] {
 	let x0 = Number.POSITIVE_INFINITY
@@ -429,15 +426,16 @@ export function probeCanonicalFit(
  * halves it. That is 22.4 ms to 12.6 ms on counties, and 4.4 ms to 2.2 ms on 49
  * states.
  *
- * Byte for byte `${Math.round(v * ROUNDING) / ROUNDING}`, which is what
- * `geoPath.digits` writes. A multiple of the factor loses its fraction. The sign
+ * Byte for byte
+ * `${Math.round(v * REGION_PATH_ROUNDING) / REGION_PATH_ROUNDING}`, which is
+ * what `geoPath.digits` writes. A multiple of the factor loses its fraction. The sign
  * is placed by hand, because `Math.trunc` drops it on the tenths of a value
  * between −1 and 0. Only the one-decimal case is worth the arithmetic. Any
  * other setting of {@link REGION_PATH_DIGITS} therefore falls back to the
  * division — a comparison against a constant, which folds.
  */
 function coordinate(rounded: number): string {
-	if (REGION_PATH_DIGITS !== 1) return `${rounded / ROUNDING}`
+	if (REGION_PATH_DIGITS !== 1) return `${rounded / REGION_PATH_ROUNDING}`
 
 	if (rounded % 10 === 0) return `${rounded / 10}`
 
@@ -582,9 +580,11 @@ export function emitRegionPaths(
 			const end = ringStart[ring + 1] as number
 
 			for (let point = from; point < end; point++) {
-				const x = Math.round(((points[point * 2] as number) * factor + dx) * ROUNDING)
+				const x = Math.round(((points[point * 2] as number) * factor + dx) * REGION_PATH_ROUNDING)
 
-				const y = Math.round(((points[point * 2 + 1] as number) * factor + dy) * ROUNDING)
+				const y = Math.round(
+					((points[point * 2 + 1] as number) * factor + dy) * REGION_PATH_ROUNDING,
+				)
 
 				d += `${point === from ? 'M' : 'L'}${coordinate(x)},${coordinate(y)}`
 			}

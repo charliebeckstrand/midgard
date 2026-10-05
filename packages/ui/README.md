@@ -25,6 +25,8 @@ No root barrel; the `exports` map exposes each component path.
 | Build `dist` (tsup; no app reads it) | `pnpm --filter ui build:dist` |
 | Docs site (dev) | `pnpm --filter ui dev` |
 | Docs site (build) | `pnpm --filter ui docs:build` |
+| Docs site (serve the build) | `pnpm --filter ui docs:preview` |
+| Font files from the source font in `fonts/` | `pnpm --filter ui fonts` |
 | Tests | `pnpm --filter ui test` |
 | Tests (scoped) | `pnpm --filter ui test:related` / `pnpm --filter ui test:changed` |
 | Tests of geometry, in Node and in Chromium | `pnpm --filter ui test:geometry` |
@@ -46,7 +48,7 @@ No root barrel; the `exports` map exposes each component path.
 | `src/recipes/` | Layered variant system. |
 | `src/layouts/` | Layout primitives. |
 | `src/__tests__/` | Component, primitive, and boundary tests. |
-| `src/docs/` | The docs-site entry — demos, host, and Vite config wiring the shared [`docs`](../docs) engine to ui's source. |
+| `src/docs/` | The docs site: a React Router app that prerenders each page. `pages/` holds the examples, and `plugin/` gives the API data, the page list, and the highlighted code. |
 
 ## 4. Further reading
 

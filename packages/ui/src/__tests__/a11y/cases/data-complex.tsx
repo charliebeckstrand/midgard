@@ -136,7 +136,12 @@ export const dataComplexCases: readonly Case[] = [
 		),
 		skeleton: [
 			{
-				element: <KanbanCardSkeleton />,
+				// The skeleton is an `<li>`, so a list holds it, as the body of a column does.
+				element: (
+					<ul>
+						<KanbanCardSkeleton />
+					</ul>
+				),
 				absentSlot: 'kanban-card',
 				placeholders: 2,
 			},

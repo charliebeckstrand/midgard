@@ -12,10 +12,10 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../components/button'
-import { Drawer } from '../../components/drawer/drawer'
+import { Drawer, DrawerPanel } from '../../components/drawer/drawer'
 import { DrawerTrigger } from '../../components/drawer/slots'
 import { Icon } from '../../components/icon'
-import { Sheet } from '../../components/sheet/sheet'
+import { Sheet, SheetPanel } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
@@ -32,6 +32,10 @@ const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 export type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
+	/**
+	 * The actions in the navbar below `lg` and in the header from `lg` up. A gap
+	 * that follows the nearest density scope separates them.
+	 */
 	actions?: ReactNode
 	/** From `lg` up, keeps the header at the top of the content region. @defaultValue false */
 	stickyHeader?: boolean
@@ -70,7 +74,9 @@ export type SidebarLayoutProps = PropsWithChildren<{
  *
  * To show the layout inside another page, put it in a box that has a height and
  * scrolls. Make the box a size container (`@container-size`). The layout then
- * fills the box, and the box scrolls in place of the page.
+ * fills the box, and the box scrolls in place of the page. The switch at `lg`
+ * follows the width of the viewport, not the width of the box. Thus a narrow
+ * box on a wide screen still shows the desktop panel.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The
@@ -141,27 +147,27 @@ export function SidebarLayout({
 			    peek doesn't steal focus or lock body scroll, but `backdrop` still
 			    blurs and dims the page behind it. */}
 			{floating && (
-				<Sheet
-					side="start"
-					width="fit"
-					open={floatingOpen}
-					onOpenChange={setFloatingOpen}
-					modal={false}
-					backdrop
-					// The peek closes when the pointer leaves, so it has no Close row.
-					footer={null}
-					className={cn(
-						k.floating.sheet(),
-						rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none',
-					)}
-				>
-					<div
-						className={k.floating.body()}
-						onPointerEnter={() => setFloatingOpen(true)}
-						onPointerLeave={() => setFloatingOpen(false)}
+				<Sheet open={floatingOpen} onOpenChange={setFloatingOpen}>
+					<SheetPanel
+						side="start"
+						width="fit"
+						modal={false}
+						backdrop
+						// The peek closes when the pointer leaves, so it has no Close row.
+						footer={null}
+						className={cn(
+							k.floating.sheet(),
+							rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none',
+						)}
 					>
-						{sidebar}
-					</div>
+						<div
+							className={k.floating.body()}
+							onPointerEnter={() => setFloatingOpen(true)}
+							onPointerLeave={() => setFloatingOpen(false)}
+						>
+							{sidebar}
+						</div>
+					</SheetPanel>
 				</Sheet>
 			)}
 
@@ -179,33 +185,35 @@ export function SidebarLayout({
 					document.body,
 				)}
 
-			{/* Sidebar on mobile */}
-			{/* A nav item and the close of `SidebarHeader` close the navigation, so it has no Close row. */}
-			<Drawer open={open} onOpenChange={setOpen} footer={null}>
-				<OffcanvasContext value={offcanvasValue}>
-					<div ref={scrollToCurrent} className="contents">
-						{sidebar}
-					</div>
-				</OffcanvasContext>
-			</Drawer>
+			{/* Sidebar on mobile. The root holds the drawer and its trigger in the navbar. */}
+			<Drawer open={open} onOpenChange={setOpen}>
+				{/* A nav item and the close of `SidebarHeader` close the navigation, so it has no Close row. */}
+				<DrawerPanel footer={null}>
+					<OffcanvasContext value={offcanvasValue}>
+						<div ref={scrollToCurrent} className="contents">
+							{sidebar}
+						</div>
+					</OffcanvasContext>
+				</DrawerPanel>
 
-			{/* Navbar on mobile. A named section, so the menu button, the navbar, and the
-			    actions are in a landmark below `lg`. The section is the sticky bar, as a
-			    sticky child sticks only inside the box of its parent. */}
-			<section aria-label="Navigation bar" className={k.navbar()}>
-				<Flex align="center">
-					<DrawerTrigger open={open} onClick={() => setOpen(true)}>
-						<Button
-							type="button"
-							variant="bare"
-							aria-label="Open navigation"
-							prefix={<Icon icon={<Menu />} />}
-						/>
-					</DrawerTrigger>
-					{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-					{actions && <div className="flex items-center shrink-0 ms-auto">{actions}</div>}
-				</Flex>
-			</section>
+				{/* Navbar on mobile. A named section, so the menu button, the navbar, and the
+				    actions are in a landmark below `lg`. The section is the sticky bar, as a
+				    sticky child sticks only inside the box of its parent. */}
+				<section aria-label="Navigation bar" className={k.navbar()}>
+					<Flex align="center">
+						<DrawerTrigger>
+							<Button
+								type="button"
+								variant="bare"
+								aria-label="Open navigation"
+								prefix={<Icon icon={<Menu />} />}
+							/>
+						</DrawerTrigger>
+						{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
+						{actions && <div className={cn(k.actions(), 'ms-auto')}>{actions}</div>}
+					</Flex>
+				</section>
+			</Drawer>
 
 			{/* Content */}
 			<SidebarLayoutContext value={layoutValue}>
@@ -233,7 +241,7 @@ export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutH
 	return (
 		<header ref={ref} data-slot="header" className={cn(k.header(), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
+			{actions && <div className={cn(k.actions(), 'max-lg:hidden')}>{actions}</div>}
 		</header>
 	)
 }

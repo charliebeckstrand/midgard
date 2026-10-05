@@ -1,3 +1,4 @@
+import type { JsonValue } from '../../../components/json-tree'
 import { getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryNode, QueryRule } from './types'
 
@@ -42,7 +43,7 @@ export function createGroup(
 	return { id: nextId(), type: 'group', combinator, children }
 }
 
-function defaultValueFor(field?: QueryField): unknown {
+function defaultValueFor(field?: QueryField): JsonValue {
 	if (!field) return ''
 
 	if (field.type === 'boolean') return null

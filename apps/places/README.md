@@ -12,10 +12,9 @@ The app runs on port 3001.
 pnpm --filter places test
 ```
 
-The route handlers under `app/api` serve the atlases. `withAuth` sends each
-other `/auth/*` and `/api/*` path to the gateway at `BIFROST_URL` (see
-[`.env.example`](.env.example)), which forwards the places and the visits to
-Mimir.
+`withAuth` sends each `/auth/*` and `/api/*` path to the gateway at
+`BIFROST_URL` (see [`.env.example`](.env.example)), which forwards the places and
+the visits to Mimir.
 
 The suite covers what the app holds that is pure: the field readers of the form
 and the address, the geometry that decides which region holds a place, the
@@ -43,7 +42,7 @@ under no country, which is the same answer the map gives for a place at sea.
 The app opens on the smallest geography that holds every place. A collection the
 states atlas accounts for whole opens inside the United States; one it cannot
 opens on the world. The question is asked of the geometry, never of a country
-name, and the countries atlas is fetched only once a view draws it.
+name.
 
 ## The address
 
@@ -87,15 +86,17 @@ from the browser and `src/server/mimir.ts` from the page, both typed from
 The two scopes are kept apart because the names collide: Georgia is a state of
 the United States and Georgia is a country.
 
-The geometry comes from `us-atlas` and `world-atlas`, served by
-`app/api/atlas/states` and `app/api/atlas/countries`. The routes keep both
-atlases out of the JavaScript bundle and let the browser cache them.
+The geometry comes from `us-atlas` and `world-atlas`, which
+`src/utilities/places-atlas.ts` imports into the code of the app. The browser
+caches them with the rest of the code.
 
 ## The first load
 
-The map draws nothing until the states atlas lands, so the page starts that
-download in the head of the document. Without the hint, the fetch started only
-after hydration.
+The first paint is the settled page. The atlases are in the code and the page
+reads the places and the visits on the server, so the first render has the
+opening view, the grouping, and the map in the frame that the address states.
+A fetch of the atlas after hydration showed the United States first, and then
+faded to the state that the address named.
 
 The index and the form drawer load after the map. The index carries the data
 grid, and the form carries the address search and the date picker. The app

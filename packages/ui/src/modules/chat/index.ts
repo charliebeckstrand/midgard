@@ -1,7 +1,4 @@
-export type {
-	ChatMessageBubbleVariants,
-	ChatMessageVariants,
-} from '../../recipes/kata/chat-message'
+export type { ChatMessageVariants } from '../../recipes/kata/chat-message'
 export { ChatEmbedProvider, type ChatEmbedProviderProps } from './chat-embed-provider'
 export { ChatList, type ChatListProps } from './chat-list'
 export { ChatListItem, type ChatListItemProps } from './chat-list-item'
@@ -12,7 +9,6 @@ export {
 	ChatTranscriptSkeleton,
 	type ChatTranscriptSkeletonProps,
 } from './chat-transcript-skeleton'
-export { useInChatList } from './context'
 export { chatContentText } from './engine/chat-content/text'
 export type {
 	ChatEmbedPart,

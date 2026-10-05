@@ -1,7 +1,28 @@
-import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import ts from '@typescript/typescript6'
-import { describe, expect, it } from 'vitest'
+import {
+	type CallExpression,
+	type Expression,
+	type FunctionDeclaration,
+	type Identifier,
+	isArrayLiteralExpression,
+	isBindingElement,
+	isCallExpression,
+	isElementAccessExpression,
+	isFunctionDeclaration,
+	isIdentifier,
+	isObjectLiteralExpression,
+	isParameterDeclaration,
+	isPropertyAccessExpression,
+	isPropertyAssignment,
+	isShorthandPropertyAssignment,
+	isVariableDeclaration,
+	type Node,
+	type SourceFile,
+} from 'typescript/unstable/ast'
+import type { Checker, Project, Symbol as TsSymbol } from 'typescript/unstable/sync'
+import { afterAll, describe, expect, it } from 'vitest'
+import { isFunctionLike } from '../helpers/ts-ast'
+import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
 import { srcDir } from '../helpers/walk-source'
 
 // Engine-handle boundary (CONVENTIONS.md §10.7). The grid boundary holds two
@@ -104,8 +125,8 @@ const DEPENDENCY_HOOKS = new Set([
 ])
 
 /** The name of the function that a call calls, when the callee is a plain name. */
-function calleeName(call: ts.CallExpression): string | undefined {
-	return ts.isIdentifier(call.expression) ? call.expression.text : undefined
+function calleeName(call: CallExpression): string | undefined {
+	return isIdentifier(call.expression) ? call.expression.text : undefined
 }
 
 /**
@@ -113,13 +134,13 @@ function calleeName(call: ts.CallExpression): string | undefined {
  * to `fn`. The first function that the code stores, or that it hands to a
  * deferring call, makes the node deferred.
  */
-function isDeferred(node: ts.Node, fn: ts.Node): boolean {
+function isDeferred(node: Node, fn: Node): boolean {
 	for (let current = node.parent; current && current !== fn; current = current.parent) {
-		if (!ts.isFunctionLike(current)) continue
+		if (!isFunctionLike(current)) continue
 
 		const parent = current.parent
 
-		if (ts.isCallExpression(parent) && parent.arguments.includes(current as ts.Expression)) {
+		if (isCallExpression(parent) && parent.arguments.includes(current as Expression)) {
 			if (DEFERRING_CALLS.has(calleeName(parent) ?? '')) return true
 
 			// A function handed to any other call runs at once, in the render.
@@ -133,12 +154,12 @@ function isDeferred(node: ts.Node, fn: ts.Node): boolean {
 }
 
 /** The function declaration named `name` in a source file. */
-function findFunction(source: ts.SourceFile, name: string): ts.FunctionDeclaration | undefined {
-	let found: ts.FunctionDeclaration | undefined
+function findFunction(source: SourceFile, name: string): FunctionDeclaration | undefined {
+	let found: FunctionDeclaration | undefined
 
-	const visit = (node: ts.Node): void => {
-		if (ts.isFunctionDeclaration(node) && node.name?.text === name) found = node
-		else ts.forEachChild(node, visit)
+	const visit = (node: Node): void => {
+		if (isFunctionDeclaration(node) && node.name?.text === name) found = node
+		else node.forEachChild(visit)
 	}
 
 	visit(source)
@@ -148,24 +169,25 @@ function findFunction(source: ts.SourceFile, name: string): ts.FunctionDeclarati
 
 /** The symbol of the binding named `name` that `fn` declares in its own scope. */
 function bindingSymbol(
-	checker: ts.TypeChecker,
-	fn: ts.FunctionDeclaration,
+	checker: Checker,
+	fn: FunctionDeclaration,
 	name: string,
-): ts.Symbol | undefined {
-	let symbol: ts.Symbol | undefined
+): TsSymbol | undefined {
+	let symbol: TsSymbol | undefined
 
-	const visit = (node: ts.Node): void => {
-		if (node !== fn && ts.isFunctionLike(node)) return
+	const visit = (node: Node): void => {
+		if (node !== fn && isFunctionLike(node)) return
 
 		if (
-			(ts.isParameter(node) || ts.isVariableDeclaration(node) || ts.isBindingElement(node)) &&
-			ts.isIdentifier(node.name) &&
+			(isParameterDeclaration(node) || isVariableDeclaration(node) || isBindingElement(node)) &&
+			node.name !== undefined &&
+			isIdentifier(node.name) &&
 			node.name.text === name
 		) {
 			symbol = checker.getSymbolAtLocation(node.name)
 		}
 
-		ts.forEachChild(node, visit)
+		node.forEachChild(visit)
 	}
 
 	visit(fn)
@@ -174,11 +196,11 @@ function bindingSymbol(
 }
 
 /** Whether `node` is the name of a declaration, not a read of the binding. */
-function isDeclarationName(node: ts.Identifier): boolean {
+function isDeclarationName(node: Identifier): boolean {
 	const parent = node.parent
 
 	return (
-		(ts.isParameter(parent) || ts.isVariableDeclaration(parent) || ts.isBindingElement(parent)) &&
+		(isParameterDeclaration(parent) || isVariableDeclaration(parent) || isBindingElement(parent)) &&
 		parent.name === node
 	)
 }
@@ -193,16 +215,12 @@ type Scan = { violations: Violation[]; reached: Set<string> }
  * Follows the handle from the origin through each receiver, and lists each
  * use that the rule does not allow.
  *
- * @param program - A program over the files of the receivers.
+ * @param project - A project over the files of the receivers.
  * @param receivers - The receivers, the origin first.
- * @param path - Maps a receiver file to the path of its source in `program`.
+ * @param path - Maps a receiver file to the path of its source in `project`.
  */
-function scanHandle(
-	program: ts.Program,
-	receivers: Receiver[],
-	path: (file: string) => string,
-): Scan {
-	const checker = program.getTypeChecker()
+function scanHandle(project: Project, receivers: Receiver[], path: (file: string) => string): Scan {
+	const { program, checker } = project
 
 	const byName = new Map(receivers.map((receiver) => [receiver.fn, receiver]))
 
@@ -215,7 +233,7 @@ function scanHandle(
 
 		const fn = source && findFunction(source, receiver.fn)
 
-		const report = (node: ts.Node, reason: string) => {
+		const report = (node: Node, reason: string) => {
 			const at = node.getSourceFile()
 
 			violations.push({
@@ -242,7 +260,7 @@ function scanHandle(
 		}
 
 		/** Checks a flow of the handle into a call to another function. */
-		const checkCall = (call: ts.CallExpression, use: ts.Node, property?: string) => {
+		const checkCall = (call: CallExpression, use: Node, property?: string) => {
 			const target = byName.get(calleeName(call) ?? '')
 
 			if (!target) {
@@ -264,24 +282,26 @@ function scanHandle(
 			}
 		}
 
-		const visit = (node: ts.Node): void => {
-			ts.forEachChild(node, visit)
+		const visit = (node: Node): void => {
+			node.forEachChild(visit)
 
-			if (!ts.isIdentifier(node) || node.text !== receiver.binding || isDeclarationName(node)) {
+			if (!isIdentifier(node) || node.text !== receiver.binding || isDeclarationName(node)) {
 				return
 			}
 
 			const parent = node.parent
 
-			const symbol = ts.isShorthandPropertyAssignment(parent)
+			const symbol = isShorthandPropertyAssignment(parent)
 				? checker.getShorthandAssignmentValueSymbol(parent)
 				: checker.getSymbolAtLocation(node)
 
-			if (symbol !== handle) return
+			// A symbol of the API is a handle, and its id names the symbol of the
+			// checker.
+			if (symbol?.id !== handle.id) return
 
 			// A member read: `engine.getColumn(…)`.
 			if (
-				(ts.isPropertyAccessExpression(parent) || ts.isElementAccessExpression(parent)) &&
+				(isPropertyAccessExpression(parent) || isElementAccessExpression(parent)) &&
 				parent.expression === node
 			) {
 				if (receiver.kind === 'render' && !isDeferred(node, fn)) {
@@ -293,8 +313,8 @@ function scanHandle(
 
 			// A dependency list of a hook.
 			if (
-				ts.isArrayLiteralExpression(parent) &&
-				ts.isCallExpression(parent.parent) &&
+				isArrayLiteralExpression(parent) &&
+				isCallExpression(parent.parent) &&
 				DEPENDENCY_HOOKS.has(calleeName(parent.parent) ?? '') &&
 				parent.parent.arguments[1] === parent
 			) {
@@ -302,14 +322,14 @@ function scanHandle(
 			}
 
 			// An argument: `columnResizeActions(table, floors)`.
-			if (ts.isCallExpression(parent) && parent.arguments.includes(node)) {
+			if (isCallExpression(parent) && parent.arguments.includes(node)) {
 				const target = byName.get(calleeName(parent) ?? '')
 
 				const index = parent.arguments.indexOf(node)
 
 				const param = target && findFunction(source, target.fn)?.parameters[index]
 
-				if (target && param && ts.isIdentifier(param.name) && param.name.text !== target.binding) {
+				if (target && param && isIdentifier(param.name) && param.name.text !== target.binding) {
 					report(node, `the handle goes into \`${param.name.text}\`, not \`${target.binding}\``)
 
 					return
@@ -321,9 +341,9 @@ function scanHandle(
 			}
 
 			// A property of an argument: `useResizeView({ table: engine })`.
-			const property = ts.isShorthandPropertyAssignment(parent)
+			const property = isShorthandPropertyAssignment(parent)
 				? parent
-				: ts.isPropertyAssignment(parent) && parent.initializer === node
+				: isPropertyAssignment(parent) && parent.initializer === node
 					? parent
 					: undefined
 
@@ -332,8 +352,8 @@ function scanHandle(
 			if (
 				property &&
 				literal &&
-				ts.isObjectLiteralExpression(literal) &&
-				ts.isCallExpression(literal.parent) &&
+				isObjectLiteralExpression(literal) &&
+				isCallExpression(literal.parent) &&
 				literal.parent.arguments.includes(literal)
 			) {
 				checkCall(literal.parent, node, property.name.getText())
@@ -350,44 +370,26 @@ function scanHandle(
 	return { violations, reached }
 }
 
-/** A program over the files of the receivers, with no library and no import resolution. */
-function sourceProgram(files: Map<string, string>): ts.Program {
-	const options: ts.CompilerOptions = {
-		target: ts.ScriptTarget.ESNext,
-		module: ts.ModuleKind.ESNext,
-		jsx: ts.JsxEmit.Preserve,
+/**
+ * A project over `files`, the files of the receivers, with no library and no
+ * import resolution.
+ */
+function sourceProject(server: TypeScriptServer, files: readonly string[]): Project {
+	return server.open(files, {
+		target: 'esnext',
+		module: 'esnext',
+		jsx: 'preserve',
 		noLib: true,
 		noResolve: true,
-	}
-
-	const host = ts.createCompilerHost(options)
-
-	host.getSourceFile = (fileName, languageVersion) => {
-		const text = files.get(fileName)
-
-		return text === undefined
-			? undefined
-			: ts.createSourceFile(fileName, text, languageVersion, true)
-	}
-
-	host.fileExists = (fileName) => files.has(fileName)
-
-	host.readFile = (fileName) => files.get(fileName)
-
-	return ts.createProgram([...files.keys()], options, host)
+		types: [],
+	})
 }
 
 /** The scan of the real grid source. */
-function scanSource(): Scan {
-	const files = new Map(
-		[...new Set(RECEIVERS.map((receiver) => receiver.file))].map((file) => {
-			const path = join(srcDir, file)
+function scanSource(server: TypeScriptServer): Scan {
+	const files = [...new Set(RECEIVERS.map((receiver) => join(srcDir, receiver.file)))]
 
-			return [path, readFileSync(path, 'utf8')] as const
-		}),
-	)
-
-	return scanHandle(sourceProgram(files), RECEIVERS, (file) => join(srcDir, file))
+	return scanHandle(sourceProject(server, files), RECEIVERS, (file) => join(srcDir, file))
 }
 
 /** One line for each violation, for a readable failure. */
@@ -396,7 +398,13 @@ function lines(violations: Violation[]): string[] {
 }
 
 describe('engine-handle boundary', () => {
-	const scan = scanSource()
+	// The TypeScript server holds the program of each scan, and stops after the
+	// last case.
+	const server = startTypeScript()
+
+	afterAll(() => server.close())
+
+	const scan = scanSource(server)
 
 	it('reads the engine handle only when an action or an effect runs', () => {
 		expect(lines(scan.violations)).toEqual([])
@@ -437,11 +445,9 @@ describe('engine-handle boundary', () => {
 			{ file, fn: 'useView', binding: 'table', kind: 'render' },
 		]
 
-		const { violations } = scanHandle(
-			sourceProgram(new Map([[file, source]])),
-			receivers,
-			(name) => name,
-		)
+		const fixture = server.write(file, source)
+
+		const { violations } = scanHandle(sourceProject(server, [fixture]), receivers, () => fixture)
 
 		expect(violations.map((v) => `${v.fn}: ${v.reason}`)).toEqual([
 			'useGrid: the render reads the handle',

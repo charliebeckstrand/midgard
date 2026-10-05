@@ -1,7 +1,7 @@
 import { Activity, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Dialog } from '../../../components/dialog'
+import { Dialog, DialogPanel } from '../../../components/dialog'
 import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
@@ -27,8 +27,10 @@ import { renderUI, screen, waitFor } from '../../helpers'
 function Harness({ hidden }: { hidden: boolean }) {
 	return (
 		<Activity mode={hidden ? 'hidden' : 'visible'}>
-			<Dialog open onOpenChange={() => {}} aria-label="Panel">
-				<Counter />
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel aria-label="Panel">
+					<Counter />
+				</DialogPanel>
 			</Dialog>
 		</Activity>
 	)

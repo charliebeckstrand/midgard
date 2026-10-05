@@ -8,6 +8,7 @@ import {
 	DialogContent,
 	DialogFooter,
 	DialogHeader,
+	DialogPanel,
 	DialogTitle,
 } from 'ui/dialog'
 import { Field, Label } from 'ui/fieldset'
@@ -105,55 +106,64 @@ export default function BulkEdit() {
 				}}
 			/>
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogHeader>
-					<DialogTitle>Edit selected ({selection.size})</DialogTitle>
-				</DialogHeader>
-				{selection.size > 1 && (
-					<Alert severity="info" closable>
-						Enter a value to apply it across all selected rows; leave blank to keep current values.
-					</Alert>
-				)}
-				<Form
-					defaultValues={defaults}
-					onSubmit={(values) => {
-						const patch: Rates = {}
+				<DialogPanel>
+					<DialogHeader>
+						<DialogTitle>Edit selected ({selection.size})</DialogTitle>
+					</DialogHeader>
+					{selection.size > 1 && (
+						<Alert severity="info" closable>
+							Enter a value to apply it across all selected rows; leave blank to keep current
+							values.
+						</Alert>
+					)}
+					<Form
+						defaultValues={defaults}
+						onSubmit={(values) => {
+							const patch: Rates = {}
 
-						if (typeof values.perMile === 'number') patch.perMile = values.perMile
+							if (typeof values.perMile === 'number') patch.perMile = values.perMile
 
-						if (typeof values.minCharge === 'number') patch.minCharge = values.minCharge
+							if (typeof values.minCharge === 'number') patch.minCharge = values.minCharge
 
-						if (typeof values.fuelPct === 'number') patch.fuelPct = values.fuelPct
+							if (typeof values.fuelPct === 'number') patch.fuelPct = values.fuelPct
 
-						apply(patch)
-					}}
-				>
-					<DialogContent>
-						<DialogBody>
-							<Stack gap="lg">
-								<Field>
-									<Label>Per-mile</Label>
-									<FormCurrencyInput name="perMile" placeholder="No change" />
-								</Field>
-								<Field>
-									<Label>Min charge</Label>
-									<FormCurrencyInput name="minCharge" placeholder="No change" />
-								</Field>
-								<Field>
-									<Label>Fuel %</Label>
-									<NumberInput name="fuelPct" step={1} min={0} max={100} placeholder="No change" />
-								</Field>
-							</Stack>
-						</DialogBody>
-						<DialogFooter>
-							<Button type="button" variant="plain" onClick={() => setOpen(false)}>
-								Cancel
-							</Button>
-							<Button type="submit" color="blue">
-								Apply
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Form>
+							apply(patch)
+						}}
+					>
+						<DialogContent>
+							<DialogBody>
+								<Stack gap="lg">
+									<Field>
+										<Label>Per-mile</Label>
+										<FormCurrencyInput name="perMile" placeholder="No change" />
+									</Field>
+									<Field>
+										<Label>Min charge</Label>
+										<FormCurrencyInput name="minCharge" placeholder="No change" />
+									</Field>
+									<Field>
+										<Label>Fuel %</Label>
+										<NumberInput
+											name="fuelPct"
+											step={1}
+											min={0}
+											max={100}
+											placeholder="No change"
+										/>
+									</Field>
+								</Stack>
+							</DialogBody>
+							<DialogFooter>
+								<Button type="button" variant="plain" onClick={() => setOpen(false)}>
+									Cancel
+								</Button>
+								<Button type="submit" color="blue">
+									Apply
+								</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Form>
+				</DialogPanel>
 			</Dialog>
 		</>
 	)

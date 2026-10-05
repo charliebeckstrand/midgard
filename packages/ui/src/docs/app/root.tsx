@@ -14,7 +14,6 @@ import { AppearanceProvider, AppearanceScript, AppearanceSettings } from 'ui/pro
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import fontUrl from '../../fonts/google-sans-flex-latin.woff2?url'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import {
@@ -23,6 +22,7 @@ import {
 	EventLogSwitch,
 	recordRoute,
 } from '../debug/event-log/index.tsx'
+import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { DocsSidebar } from './sidebar.tsx'
 
@@ -31,6 +31,10 @@ import { DocsSidebar } from './sidebar.tsx'
 // main column, and the current item is in view at the first paint.
 const FIRST_PAINT = 'first-paint'
 
+// The document of each page. It holds `AppearanceProvider`, so each
+// prerendered file has the script of the latin face before its content. The
+// fallback for a path with no page renders no route, so a provider in a route
+// would leave that file with no latin face.
 export function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" className="antialiased" suppressHydrationWarning>
@@ -40,15 +44,11 @@ export function Layout({ children }: { children: ReactNode }) {
 				<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
 				<AppearanceScript />
 				<EventLogScript />
-				{/* The latin face of the font of ui, at the URL of its face in the
-				    stylesheet. The `FontPreload` of ui writes a file URL in a Vite
-				    server build, so the docs give the link themselves. */}
-				<link rel="preload" href={fontUrl} as="font" type="font/woff2" crossOrigin="" />
 				<Meta />
 				<Links />
 			</head>
 			<body className="bg-white text-zinc-950 lg:bg-zinc-100 dark:bg-zinc-950 dark:text-white">
-				{children}
+				<AppearanceProvider>{children}</AppearanceProvider>
 				<ScrollRestoration />
 				<CurrentScrollScript id={FIRST_PAINT} />
 				<Scripts />
@@ -77,18 +77,8 @@ function Stylesheet() {
 
 // Shiki loads its grammar and theme in idle time, so the first "Show code"
 // of a playground does not wait for them.
-function useShikiWarmup() {
-	useEffect(() => {
-		const idle = window.requestIdleCallback ?? ((callback: () => void) => setTimeout(callback, 1))
-
-		const cancel = window.cancelIdleCallback ?? clearTimeout
-
-		const handle = idle(() => {
-			loadShiki().catch(noop)
-		})
-
-		return () => cancel(handle)
-	}, [])
+function warmShiki() {
+	loadShiki().catch(noop)
 }
 
 // The actions of the header. They take no props, so the shell gives the same
@@ -114,37 +104,35 @@ export default function App() {
 
 	useEffect(() => recordRoute(pathname), [pathname])
 
-	useShikiWarmup()
+	useIdle(warmShiki)
 
 	return (
 		<UIProvider link={RouterLink}>
-			<AppearanceProvider>
-				<title>{page ? `${page.name} · Docs` : 'Docs'}</title>
-				<Stylesheet />
-				<SidebarLayout
-					stickyHeader
-					floating={!locked}
-					actions={ACTIONS}
-					sidebar={<DocsSidebar pages={pages} current={page?.path} />}
-				>
-					<SidebarLayoutHeader>
-						<Flex align="center" gap="md">
-							<Button
-								variant="bare"
-								className="max-lg:hidden"
-								aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
-								onClick={() => setLocked(!locked)}
-							>
-								<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
-							</Button>
-							<Heading>{title}</Heading>
-						</Flex>
-					</SidebarLayoutHeader>
-					<Stack gap="xl">
-						<Outlet />
-					</Stack>
-				</SidebarLayout>
-			</AppearanceProvider>
+			<title>{page ? `${page.name} · Docs` : 'Docs'}</title>
+			<Stylesheet />
+			<SidebarLayout
+				stickyHeader
+				floating={!locked}
+				actions={ACTIONS}
+				sidebar={<DocsSidebar pages={pages} current={page?.path} />}
+			>
+				<SidebarLayoutHeader>
+					<Flex align="center" gap="md">
+						<Button
+							variant="bare"
+							className="max-lg:hidden"
+							aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
+							onClick={() => setLocked(!locked)}
+						>
+							<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
+						</Button>
+						<Heading>{title}</Heading>
+					</Flex>
+				</SidebarLayoutHeader>
+				<Stack gap="xl">
+					<Outlet />
+				</Stack>
+			</SidebarLayout>
 		</UIProvider>
 	)
 }

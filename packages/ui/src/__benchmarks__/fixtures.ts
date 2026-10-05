@@ -424,7 +424,7 @@ export function makeTranscript(count: number, seed = 7): ChatMessageData[] {
 
 		out[i] = {
 			id: `m-${i}`,
-			role: reader ? 'user' : 'assistant',
+			sender: reader ? 'user' : 'assistant',
 			content: pool[Math.floor(rand() * pool.length)] ?? '',
 		}
 	}

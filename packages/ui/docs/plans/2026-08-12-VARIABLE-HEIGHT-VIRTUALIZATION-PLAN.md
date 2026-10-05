@@ -46,7 +46,7 @@ Holding the rows the way `Mount` does is not the answer, and the bench says why.
 
 **The recommendation is to move the memory above the window and narrow the contract in the doc.** A set of part ids that have been reached, owned by `ChatEmbedProvider` rather than by the row, survives the row's unmount, so a returning embed draws immediately instead of re-deferring. What it cannot restore is the renderer's own internal state, so under a window `lazy` means "no second deferral", not "held". `always` must be documented as unreachable under a window, and the transcript should say so rather than accept a policy it silently downgrades.
 
-This is the call worth pressure-testing before it is written; it is a `/council` question under [`CLAUDE.md`](../../../../CLAUDE.md) §3.2, not a `/debate` one, because the competing costs are not two sides of one axis.
+This is the call worth pressure-testing before it is written, because the competing costs are not two sides of one axis.
 
 **Decided (2026-09-23).** The user took the recommendation above without a council. A set of reached part ids, owned by `ChatEmbedProvider`, survives the row's unmount, so a returning embed draws at once and does not defer a second time. Under a window, `lazy` means "no second deferral", not "held". The transcript documents that `always` cannot be honoured under a window.
 

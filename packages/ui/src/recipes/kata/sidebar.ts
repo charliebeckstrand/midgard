@@ -1,5 +1,5 @@
-import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineScale } from '../../core/density'
+import { defineRecipe } from '../../core/recipe'
 import { hannou, ji, kokkaku, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -160,14 +160,3 @@ export const scale = defineScale(
 	dan.space.sidebar.item.base,
 	dan.radius.control,
 )
-
-/** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
-export type SidebarItemVariants = Omit<VariantProps<typeof itemBase>, 'chrome'> & {
-	/**
-	 * The element that holds the hover tint and the focus ring: the item itself, or
-	 * the row around the item and its affixes.
-	 * @defaultValue 'item'
-	 */
-	chrome?: VariantProps<typeof itemBase>['chrome']
-	size?: ScaleStep<typeof scale>
-}

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
-import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
+import { ALBERS_USA_ASPECT, REGION_PATH_DIGITS } from '../../modules/map/engine/map-constants'
 import {
 	mapFrameSizing,
 	projectionFallbackAspect,
@@ -17,6 +17,7 @@ import {
 	resolveMapProjection,
 } from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
+import { FLOAT } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
@@ -30,12 +31,6 @@ const HALF_FRAME_UNIT = 0.5
  * fits can differ by one percent of scale.
  */
 const RESAMPLE_SCALE_RATIO = 0.01
-
-/**
- * The fit margin and the resampling move the scale ratio of the two frames less
- * than this bound from four.
- */
-const REFIT_RATIO_TOLERANCE = 0.5
 
 const FEATURES = FIXTURE_GEOJSON.features
 
@@ -186,20 +181,22 @@ describe('measuredMapFit', () => {
 
 		if (canonical === null) throw new Error('nothing to fit')
 
-		const fit = measuredMapFit('mercator', FEATURES, canonical, 300, 100)
+		const fit = measuredMapFit('mercator', canonical, 300, 100)
 
 		if (fit === null) throw new Error('expected a fit')
 
 		const direct = fitMapProjection('mercator', FEATURES, 300, 100)
 
-		expect(fit.scale() / direct.scale()).toBeNear(1, RESAMPLE_SCALE_RATIO)
+		expect(fit.frame).toBeNull()
+
+		expect(fit.projection.scale() / direct.scale()).toBeNear(1, RESAMPLE_SCALE_RATIO)
 	})
 
 	it('is null when there is nothing to frame', () => {
 		// Empty geography leaves the canonical fit null; a lone-point atlas whose
 		// bounds collapse does too. Either way there is no measured fit to derive,
 		// so overlays never project through an unfitted default.
-		expect(measuredMapFit('mercator', [], null, 300, 100)).toBeNull()
+		expect(measuredMapFit('mercator', null, 300, 100)).toBeNull()
 	})
 
 	it('is null before the frame is measured', () => {
@@ -207,31 +204,61 @@ describe('measuredMapFit', () => {
 
 		if (canonical === null) throw new Error('nothing to fit')
 
-		expect(measuredMapFit('mercator', FEATURES, canonical, 0, 100)).toBeNull()
+		expect(measuredMapFit('mercator', canonical, 0, 100)).toBeNull()
 
-		expect(measuredMapFit('mercator', FEATURES, canonical, 300, 0)).toBeNull()
+		expect(measuredMapFit('mercator', canonical, 300, 0)).toBeNull()
 	})
 
-	it('refits a passed instance to each frame, so a resize reprojects', () => {
+	it('keeps the canonical fit of a passed instance, and frames it per box', () => {
 		const instance = geoMercator()
 
 		const canonical = canonicalFit(instance, FEATURES)
 
 		if (canonical === null) throw new Error('nothing to fit')
 
-		const small = measuredMapFit(instance, FEATURES, canonical, 150, 50)
+		const scale = instance.scale()
 
-		if (small === null) throw new Error('expected a fit')
+		const translate = instance.translate()
 
-		const smallScale = small.scale()
+		const small = measuredMapFit(instance, canonical, 150, 50)
 
-		const large = measuredMapFit(instance, FEATURES, canonical, 600, 200)
+		const large = measuredMapFit(instance, canonical, 600, 200)
 
-		if (large === null) throw new Error('expected a fit')
+		if (small?.frame == null || large?.frame == null) throw new Error('expected a framed fit')
 
-		// The 4×-wider frame fits the same geography at ~4× the scale — the instance
-		// is refit in place rather than frozen at the first frame's fit.
-		expect(large.scale() / smallScale).toBeNear(4, REFIT_RATIO_TOLERANCE)
+		// The instance belongs to the consumer, and a refit in place would give both
+		// fits one identity. Each box takes its own frame over the canonical fit.
+		expect(instance.scale()).toBe(scale)
+
+		expect(instance.translate()).toEqual(translate)
+
+		expect(small.projection).toBe(canonical.projection)
+
+		expect(large.frame.k / small.frame.k).toBeNear(4, FLOAT)
+	})
+
+	it('puts a passed instance where a named projection puts the same geography', () => {
+		const named = canonicalFit('mercator', FEATURES)
+
+		const passed = canonicalFit(geoMercator(), FEATURES)
+
+		if (named === null || passed === null) throw new Error('nothing to fit')
+
+		const a = measuredMapFit('mercator', named, 300, 160)
+
+		const b = measuredMapFit(passed.projection, passed, 300, 160)
+
+		if (a === null || b?.frame == null) throw new Error('expected a fit')
+
+		const at: [number, number] = [10, 5]
+
+		const [ax, ay] = a.projection(at) ?? [Number.NaN, Number.NaN]
+
+		const [bx, by] = b.projection(at) ?? [Number.NaN, Number.NaN]
+
+		expect(bx * b.frame.k + b.frame.x).toBeNear(ax, FLOAT)
+
+		expect(by * b.frame.k + b.frame.y).toBeNear(ay, FLOAT)
 	})
 })
 
@@ -248,6 +275,20 @@ describe('canonicalFit · the reserved aspect', () => {
 	it('is null with no features to measure', () => {
 		expect(canonicalFit('mercator', [])).toBeNull()
 	})
+
+	// The server and the browser write the frame into the markup. The last bits
+	// of a projected value are not the same in each JavaScript engine, and a
+	// value on the path grid is.
+	it.each(['mercator', 'equal-earth'] as const)(
+		'puts the %s frame height on the path grid',
+		(spec) => {
+			const height = canonicalFit(spec, FEATURES)?.height
+
+			expect(height).toBeDefined()
+
+			expect(Number(height?.toFixed(REGION_PATH_DIGITS))).toBe(height)
+		},
+	)
 })
 
 describe('projectionFallbackAspect', () => {

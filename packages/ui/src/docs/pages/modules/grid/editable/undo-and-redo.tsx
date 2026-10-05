@@ -4,6 +4,7 @@ import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Grid, type GridHandle, type GridHistoryState } from 'ui/grid'
 import { Icon } from 'ui/icon'
+import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, personColumns } from './people.tsx'
 
 export default function UndoAndRedo() {
@@ -29,9 +30,10 @@ export default function UndoAndRedo() {
 					</Button>
 				</Flex>
 				<EditHelp label="Undo help">
-					Edit a cell and save it. Then, with focus on the grid, press Ctrl+Z or Cmd+Z to undo the
-					save, and Ctrl+Shift+Z, Cmd+Shift+Z, or Ctrl+Y to redo it. In an open editor, the keys
-					undo your typing instead.
+					<PointerHint
+						mouse="Edit a cell and save it. Then, with focus on the grid, press Ctrl+Z or Cmd+Z to undo the save, and Ctrl+Shift+Z, Cmd+Shift+Z, or Ctrl+Y to redo it. In an open editor, the keys undo your typing instead."
+						touch="Tap a cell to select it, then tap it again to edit it. Return on the keyboard saves the cell. Undo and Redo then step through the saves."
+					/>
 				</EditHelp>
 			</Flex>
 			<Grid

@@ -14,8 +14,11 @@ import { useQueryBuilderTree } from './use-query-builder-tree'
 export type QueryBuilderProps = {
 	/** Fields available to rules, each with a type and operator set. */
 	fields: QueryField[]
+	/** The query tree, controlled. Pair it with `onValueChange`. */
 	value?: QueryGroup
+	/** The initial query tree, uncontrolled. Omitted, the tree starts as an empty `and` group. */
 	defaultValue?: QueryGroup
+	/** Receives the next query tree after each edit. */
 	onValueChange?: (value: QueryGroup) => void
 	/** Disables every control in the tree. @defaultValue false */
 	disabled?: boolean

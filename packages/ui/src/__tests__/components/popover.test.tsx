@@ -1,8 +1,8 @@
 import { createRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { bySlot, densityStepOf, present, renderUI, setupUser } from '../helpers'
+import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '../../components/popover'
+import { bySlot, densityStepOf, present, renderUI, screen, setupUser } from '../helpers'
 
 describe('Popover', () => {
 	it('renders a default button when PopoverTrigger has non-element children', () => {
@@ -228,5 +228,82 @@ describe('Popover non-modal semantics', () => {
 		await user.tab()
 
 		expect(content()).not.toContainElement(document.activeElement as HTMLElement)
+	})
+})
+
+describe('PopoverClose', () => {
+	const content = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
+
+	it('renders the standard Close button, which closes an uncontrolled popover', async () => {
+		const user = setupUser()
+
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Popover defaultOpen onOpenChange={onOpenChange}>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverContent aria-label="Details">
+					<PopoverClose />
+				</PopoverContent>
+			</Popover>,
+		)
+
+		const close = present(bySlot(document.body, 'popover-close'), 'close')
+
+		expect(close).toHaveTextContent('Close')
+
+		await user.click(close)
+
+		expect(content()).toBeNull()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('closes on a click on its child, after the own onClick of the child', async () => {
+		const user = setupUser()
+
+		const calls: string[] = []
+
+		const onOpenChange = vi.fn(() => calls.push('close'))
+
+		renderUI(
+			<Popover defaultOpen onOpenChange={onOpenChange}>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverContent aria-label="Details">
+					<PopoverClose>
+						<Button onClick={() => calls.push('child')}>Done</Button>
+					</PopoverClose>
+				</PopoverContent>
+			</Popover>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Done' }))
+
+		expect(content()).toBeNull()
+
+		expect(calls).toEqual(['child', 'close'])
+	})
+
+	it('returns focus to the trigger', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Popover defaultOpen>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverContent aria-label="Details">
+					<PopoverClose />
+				</PopoverContent>
+			</Popover>,
+		)
+
+		await user.click(present(bySlot(document.body, 'popover-close'), 'close'))
+
+		expect(document.activeElement).toBe(bySlot(document.body, 'popover-trigger'))
 	})
 })

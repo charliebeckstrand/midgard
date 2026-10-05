@@ -1,15 +1,12 @@
-import { type ComponentType, type ReactNode, useState } from 'react'
-import { cn } from 'ui/core'
-import { Flex } from 'ui/flex'
-import { useComposedRef, useScrollOverflow, useScrollRegion } from 'ui/hooks'
+import { type ComponentType, useState } from 'react'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-import { omote } from '../../recipes/kiso/index.ts'
 import type { BarrelApi, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, metaOf } from './example.tsx'
 import { humanize } from './humanize.ts'
+import { Rail } from './rail.tsx'
 
-type Field = { name: string; values: readonly Literal[]; default?: Literal }
+type Field = { name: string; values: readonly Literal[]; default?: Literal; required?: true }
 
 type Values = { readonly [prop: string]: Literal | undefined }
 
@@ -33,14 +30,29 @@ function labelOf(value: Literal): string {
 
 /** A field for each prop whose type is a union of literals. */
 function fieldsOf(props: readonly PropApi[], omit: readonly string[]): Field[] {
-	return props.flatMap(({ name, values, default: text, deprecated }) => {
+	return props.flatMap(({ name, values, default: text, deprecated, required }) => {
 		if (!values || deprecated !== undefined || omit.includes(name)) return []
 
 		// The tag writes the default as code, such as `'md'` or `true`.
 		const fallback = values.find((value) => text === JSON.stringify(value) || text === `'${value}'`)
 
-		return [{ name, values, ...(fallback !== undefined && { default: fallback }) }]
+		return [
+			{
+				name,
+				values,
+				...(fallback !== undefined && { default: fallback }),
+				...(required && { required }),
+			},
+		]
 	})
+}
+
+/**
+ * The first value of a field: its default, or the first value of a required
+ * prop with no default. Any other field starts unset.
+ */
+function startOf({ default: fallback, values, required }: Field): Literal | undefined {
+	return fallback ?? (required ? values[0] : undefined)
 }
 
 /** A prop as a JSX attribute. */
@@ -68,29 +80,6 @@ function printCode({ code, spread }: ExampleCode, fields: readonly Field[], valu
 	return code.slice(0, spread.index) + attributes.join('') + code.slice(spread.index)
 }
 
-/**
- * The row of fields. It stays on one line and scrolls when the fields do not
- * fit. While it overflows, the edge with more fields behind it fades, and the
- * row is a tab stop.
- */
-function FieldRail({ children }: { children: ReactNode }) {
-	const overflowRef = useScrollOverflow({ axis: 'horizontal' })
-
-	const regionRef = useScrollRegion({ label: 'Props' })
-
-	const ref = useComposedRef<HTMLElement>(overflowRef, regionRef)
-
-	return (
-		<Flex
-			ref={ref ?? undefined}
-			gap="sm"
-			className={cn('max-w-full whitespace-nowrap', omote.rail)}
-		>
-			{children}
-		</Flex>
-	)
-}
-
 function FieldPicker({
 	field,
 	value,
@@ -103,9 +92,10 @@ function FieldPicker({
 	const label = humanize(field.name)
 
 	// A field with no default can be unset, so the component takes its own
-	// fallback, such as the step of the nearest density scope.
+	// fallback, such as the step of the nearest density scope. A required prop
+	// cannot be unset.
 	const options = [
-		...(field.default === undefined ? [{ key: UNSET, label: 'Default' }] : []),
+		...(field.default === undefined && !field.required ? [{ key: UNSET, label: 'Default' }] : []),
 		...field.values.map((option) => ({ key: JSON.stringify(option), label: labelOf(option) })),
 	]
 
@@ -145,6 +135,7 @@ export function Playground<P extends object>({
 	of,
 	api,
 	omit = [],
+	surface,
 }: {
 	/**
 	 * The default export of the playground module. It types its props as the
@@ -155,6 +146,8 @@ export function Playground<P extends object>({
 	api: BarrelApi
 	/** The props that get no field. */
 	omit?: readonly (keyof P & string)[]
+	/** Makes the instance box fill the frame, for a surface of a page. */
+	surface?: boolean
 }) {
 	const meta = metaOf(of)
 
@@ -171,15 +164,16 @@ export function Playground<P extends object>({
 	const fields = fieldsOf(component.props, omit)
 
 	const [values, setValues] = useState<Values>(() =>
-		Object.fromEntries(fields.map((field) => [field.name, field.default])),
+		Object.fromEntries(fields.map((field) => [field.name, startOf(field)])),
 	)
 
 	return (
 		<ExampleFrame
 			meta={meta}
 			print={(code) => printCode(code, fields, values)}
+			surface={surface}
 			actions={
-				<FieldRail>
+				<Rail label="Props">
 					{fields.map((field) => (
 						<FieldPicker
 							key={field.name}
@@ -188,7 +182,7 @@ export function Playground<P extends object>({
 							onValueChange={(value) => setValues({ ...values, [field.name]: value })}
 						/>
 					))}
-				</FieldRail>
+				</Rail>
 			}
 		>
 			<Instance {...values} />

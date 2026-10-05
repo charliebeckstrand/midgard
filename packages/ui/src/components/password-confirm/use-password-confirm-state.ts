@@ -33,10 +33,10 @@ type PasswordConfirmStateResult = {
  * @remarks
  * `onMatchChange(matched)` fires from an effect on transitions only, so a
  * match→match repeat won't re-fire. It is read through a ref, so a changed
- * callback identity doesn't retrigger. `disabled` suppresses both the `'match'`
- * and `'mismatch'` transitions, not mismatch alone. A match fired while disabled
- * therefore can't pin the transition tracker and swallow the real match after
- * re-enable.
+ * callback identity doesn't retrigger. When a match ends because a field
+ * becomes empty or the confirmation becomes partial, it fires `false`, so no
+ * stale `true` stays. `disabled` suppresses each report, not mismatch alone,
+ * and keeps the last reported value.
  * @internal
  */
 export function usePasswordConfirmState({
@@ -53,11 +53,9 @@ export function usePasswordConfirmState({
 
 	const reportMatch = useEffectEvent((matched: boolean) => onMatchChange?.(matched))
 
-	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
+	// The last value given to `onMatchChange`, or `null` before the first report.
+	const lastReported = useRef<boolean | null>(null)
 
-	// `disabled` suppresses match firing too, not mismatch alone (which `status`
-	// already gates to idle). A match fired while disabled pins prevMatchState
-	// to 'match', swallowing the legitimate match after re-enable.
 	const matchState =
 		status === 'warning'
 			? 'mismatch'
@@ -66,15 +64,23 @@ export function usePasswordConfirmState({
 				: null
 
 	useEffect(() => {
-		if (matchState === prevMatchState.current) return
+		// `disabled` suppresses each report, and the tracker keeps its value. A
+		// match while disabled thus cannot swallow the real match after re-enable.
+		if (disabled) return
 
-		prevMatchState.current = matchState
+		// A mismatch reports `false`. The indeterminate `null` state (a field
+		// cleared, or a partial confirmation) reports `false` only when it ends a
+		// match, so that the consumer does not keep a stale `true`.
+		if (matchState === null && lastReported.current !== true) return
 
-		// Fire only on a definite match/mismatch transition; a return to the
-		// indeterminate `null` state (a field cleared) reports neither.
-		if (matchState === 'match') reportMatch(true)
-		else if (matchState === 'mismatch') reportMatch(false)
-	}, [matchState])
+		const matched = matchState === 'match'
+
+		if (matched === lastReported.current) return
+
+		lastReported.current = matched
+
+		reportMatch(matched)
+	}, [matchState, disabled])
 
 	return { password, confirm, status, setPassword, setConfirm, setLastEdited }
 }

@@ -9,12 +9,40 @@ const { flex } = narabi
 const { focus } = sen
 
 // The trail wraps, so a long one stays inside a narrow screen (WCAG 1.4.10).
+// A collapsing trail (`data-collapse` on the `<nav>`) stays on one line
+// instead, and only the current page can be narrower than its text.
 const list = defineRecipe({
-	base: [flex.row, 'flex-wrap', 'gap-2', 'break-words', size.md],
+	base: [
+		flex.row,
+		'flex-wrap',
+		'gap-2',
+		'break-words',
+		size.md,
+		'in-data-collapse:min-w-0 in-data-collapse:flex-nowrap',
+	],
 })
 
 const item = defineRecipe({
-	base: [flex.inline, 'gap-2'],
+	base: [
+		flex.inline,
+		'gap-2',
+		'in-data-collapse:shrink-0 in-data-collapse:last:min-w-0 in-data-collapse:last:shrink',
+	],
+})
+
+// In a collapsing trail, the crumb is a row of its label and its `…` mark, and
+// one of the two is closed to nothing. Both stay laid out, so the fit reads a
+// closed label's full width. The mark is closed until the fit's rule opens it.
+const crumb = defineRecipe({
+	base: 'in-data-collapse:flex in-data-collapse:min-w-0 in-data-collapse:max-w-full',
+})
+
+const label = defineRecipe({
+	base: 'in-data-collapse:block in-data-collapse:min-w-0 in-data-collapse:truncate',
+})
+
+const mark = defineRecipe({
+	base: "hidden after:content-['…'] in-data-collapse:block in-data-collapse:min-w-0 in-data-collapse:max-w-0 in-data-collapse:truncate",
 })
 
 const link = defineRecipe({
@@ -33,13 +61,16 @@ const link = defineRecipe({
 })
 
 const separator = defineRecipe({
-	base: [...text.muted, '[&>svg]:size-3.5'],
+	base: [...text.muted, '[&>svg]:size-3.5', 'in-data-collapse:shrink-0'],
 })
 
 export const k = {
 	list,
 	item,
 	link,
+	crumb,
+	label,
+	mark,
 	separator,
 	skeleton: kokkaku.breadcrumb,
 } as const

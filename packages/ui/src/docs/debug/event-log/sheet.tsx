@@ -1,9 +1,12 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { Label } from 'ui/fieldset'
-import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from 'ui/sheet'
-import { toggleItem } from '../../../utilities/toggle-item.ts'
+import { Flex } from 'ui/flex'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
+import { Text } from 'ui/text'
+import { useCopyButtonState } from '../../../components/copy-button/use-copy-button-state.ts'
 import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
 /** One line of text: the time, the scroll position, the kind, and the text. */
@@ -12,9 +15,11 @@ function line({ time, kind, text, y }: Entry): string {
 }
 
 /**
- * The viewer of the Event log: the lines, newest first, a filter chip for each
- * kind, Copy (oldest first, as text), Clear, and "Preserve log". The log
- * records while the sheet is open, and skips the events in the sheet.
+ * The viewer of the Event log: a type filter and "Preserve log", the lines,
+ * newest first, Copy (oldest first, as text), and Clear. With no selected
+ * type, the sheet shows each type. With no lines, it says that the log is
+ * empty, or that the filter hides each entry. The log records nothing while
+ * the sheet is on screen.
  */
 export function EventLogSheet({
 	open,
@@ -29,49 +34,42 @@ export function EventLogSheet({
 
 	const preserve = useSyncExternalStore(log.subscribe, () => log.preserve)
 
-	const [hidden, setHidden] = useState<ReadonlySet<Kind>>(new Set())
+	const [kinds, setKinds] = useState<Kind[]>([])
 
-	const shown = entries.filter((entry) => !hidden.has(entry.kind))
+	const lines = entries
+		.filter((entry) => kinds.length === 0 || kinds.includes(entry.kind))
+		.map(line)
+
+	const { copied, copy } = useCopyButtonState({ text: lines.join('\n') })
+
+	// A layout effect runs before the effect of the overlay that reports the
+	// open, so the log does not record the open of this sheet.
+	useLayoutEffect(() => {
+		log.paused = open
+	}, [log, open])
 
 	return (
 		// The sheet takes the height of the log, up to the height of the screen.
-		<Sheet side="bottom" open={open} onOpenChange={onOpenChange} className="max-h-full">
-			{/* The log skips the events in this element (`OWN`). It takes no box. */}
-			<div data-event-log="" className="contents">
+		<Sheet open={open} onOpenChange={onOpenChange}>
+			<SheetPanel side="bottom" className="max-h-full">
 				<SheetTitle>Event log</SheetTitle>
 				<SheetBody className="min-h-0 flex-1 space-y-3 overflow-auto">
-					<div className="flex flex-wrap gap-1.5">
-						{KINDS.map((kind) => (
-							<Button
-								key={kind}
-								size="xs"
-								variant={hidden.has(kind) ? 'outline' : 'soft'}
-								aria-pressed={!hidden.has(kind)}
-								onClick={() => setHidden(toggleItem(hidden, kind))}
-							>
-								{kind}
-							</Button>
-						))}
-					</div>
-					<pre className="m-0 whitespace-pre-wrap font-mono text-xs">
-						{shown.toReversed().map(line).join('\n')}
-					</pre>
-				</SheetBody>
-				<SheetFooter className="flex-wrap justify-between">
-					<div className="flex items-center gap-2">
-						{/* A plain button. With `CopyButton` here, the build splits it from the
-						    code block of each page, and each page loads two more chunks. */}
-						<Button
-							size="sm"
-							variant="soft"
-							onClick={() => void navigator.clipboard.writeText(shown.map(line).join('\n'))}
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<Listbox<Kind>
+							multiple
+							aria-label="Types"
+							placeholder="All types"
+							value={kinds}
+							onValueChange={setKinds}
+							displayValue={(kind) => kind}
 						>
-							Copy
-						</Button>
-						<Button size="sm" variant="soft" onClick={() => log.clear()}>
-							Clear
-						</Button>
-						<CheckboxField>
+							{KINDS.map((kind) => (
+								<ListboxOption key={kind} value={kind}>
+									<ListboxLabel>{kind}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+						<CheckboxField className="shrink-0">
 							<Checkbox
 								checked={preserve}
 								onChange={(event) => {
@@ -81,13 +79,29 @@ export function EventLogSheet({
 							<Label>Preserve log</Label>
 						</CheckboxField>
 					</div>
-					<SheetClose>
-						<Button size="sm" variant="plain">
-							Close
+					{lines.length > 0 ? (
+						<pre className="m-0 whitespace-pre-wrap font-mono text-xs">
+							{lines.toReversed().join('\n')}
+						</pre>
+					) : (
+						<Text tone="muted">
+							{entries.length > 0 ? 'No events match your filters' : 'No events'}
+						</Text>
+					)}
+				</SheetBody>
+				<SheetFooter className="justify-between">
+					<Flex gap="sm">
+						{/* The copied state of `CopyButton`, on a button with a text label. */}
+						<Button variant="soft" color={copied ? 'green' : undefined} onClick={() => void copy()}>
+							{copied ? 'Copied' : 'Copy'}
 						</Button>
-					</SheetClose>
+						<Button variant="soft" onClick={() => log.clear()}>
+							Clear
+						</Button>
+					</Flex>
+					<SheetClose />
 				</SheetFooter>
-			</div>
+			</SheetPanel>
 		</Sheet>
 	)
 }

@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
@@ -34,11 +35,14 @@ export function applyChanges<T extends { id: number }>(rows: T[], changes: GridC
 	})
 }
 
-/** A button with a tooltip that tells how to edit the grid. */
-export function EditHelp({ label, children }: { label: string; children: string }) {
+/**
+ * A button with a tooltip that tells how to edit the grid. A press opens the
+ * tooltip, so that a reader on a touch screen can open it too.
+ */
+export function EditHelp({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		<Flex justify="end">
-			<Tooltip placement="left">
+			<Tooltip placement="left" trigger="click">
 				<TooltipTrigger>
 					<Button variant="bare" aria-label={label}>
 						<Icon icon={<Info />} />

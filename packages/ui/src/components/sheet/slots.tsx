@@ -84,9 +84,10 @@ export {
 	/** `<div>` grouping the sheet's title and description. */
 	Header as SheetHeader,
 	/**
-	 * Wraps a single child so clicking it opens the controlled {@link Sheet}; stamps the child
-	 * `aria-haspopup="dialog"` and, when `open` is supplied, `aria-expanded`. Aliases the shared
-	 * `PanelTrigger` primitive.
+	 * Opens the panel of the enclosing {@link Sheet}. A single element child is cloned, and a
+	 * click on it opens the panel. The trigger stamps `aria-haspopup="dialog"`, `aria-expanded`,
+	 * and, while the panel is open, `aria-controls`. It must be inside the `<Sheet>` root.
+	 * Aliases the shared `PanelTrigger` primitive.
 	 */
 	PanelTrigger as SheetTrigger,
 	type PanelTriggerProps as SheetTriggerProps,

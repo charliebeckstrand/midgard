@@ -7,8 +7,8 @@ import {
 	CommandPaletteLabel,
 } from '../../../components/command-palette'
 import { Confirm } from '../../../components/confirm'
-import { Dialog, DialogBody, DialogTitle } from '../../../components/dialog'
-import { Drawer, DrawerBody, DrawerTitle } from '../../../components/drawer'
+import { Dialog, DialogBody, DialogPanel, DialogTitle } from '../../../components/dialog'
+import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
 import {
 	Menu,
 	MenuContent,
@@ -18,7 +18,7 @@ import {
 	MenuTrigger,
 } from '../../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
-import { Sheet, SheetBody, SheetTitle } from '../../../components/sheet'
+import { Sheet, SheetBody, SheetPanel, SheetTitle } from '../../../components/sheet'
 import { Toast, ToastProvider, useToast } from '../../../components/toast'
 import { noop } from '../../helpers'
 import type { Case } from './types'
@@ -50,8 +50,10 @@ export const overlays: readonly Case[] = [
 		name: 'dialog',
 		element: (
 			<Dialog key="d" open onOpenChange={noop}>
-				<DialogTitle>Create project</DialogTitle>
-				<DialogBody>Enter the details for your new project.</DialogBody>
+				<DialogPanel>
+					<DialogTitle>Create project</DialogTitle>
+					<DialogBody>Enter the details for your new project.</DialogBody>
+				</DialogPanel>
 			</Dialog>
 		),
 	},
@@ -60,15 +62,19 @@ export const overlays: readonly Case[] = [
 		name: 'drawer',
 		element: (
 			<Drawer key="dr" open onOpenChange={noop}>
-				<DrawerTitle>Drawer</DrawerTitle>
-				<DrawerBody>Slides up from the bottom.</DrawerBody>
+				<DrawerPanel>
+					<DrawerTitle>Drawer</DrawerTitle>
+					<DrawerBody>Slides up from the bottom.</DrawerBody>
+				</DrawerPanel>
 			</Drawer>
 		),
 		density: [
 			{
 				render: (size) => (
-					<Drawer open onOpenChange={noop} size={size}>
-						<DrawerTitle>Drawer</DrawerTitle>
+					<Drawer open onOpenChange={noop}>
+						<DrawerPanel size={size}>
+							<DrawerTitle>Drawer</DrawerTitle>
+						</DrawerPanel>
 					</Drawer>
 				),
 				slot: 'drawer',
@@ -80,8 +86,10 @@ export const overlays: readonly Case[] = [
 		name: 'sheet',
 		element: (
 			<Sheet key="sh" open onOpenChange={noop}>
-				<SheetTitle>Right Sheet</SheetTitle>
-				<SheetBody>Slides in from the right.</SheetBody>
+				<SheetPanel>
+					<SheetTitle>Right Sheet</SheetTitle>
+					<SheetBody>Slides in from the right.</SheetBody>
+				</SheetPanel>
 			</Sheet>
 		),
 	},

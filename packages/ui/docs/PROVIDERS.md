@@ -26,12 +26,11 @@ Holds the persisted theme and density of an app, and gives the settings button t
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage` and toggles the root `.dark` class. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. |
+| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage` and toggles the root `.dark` class. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. It renders the script that adds the latin subset of the font of ui before its children, so latin text never paints without the font. The other font faces come from `ui/tailwind.css`, which has no latin face. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
 | `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
 | `AppearanceScript` | Inline head script that applies the stored theme and density to the root element before the first paint. It has no `'use client'`, so a server layout can render it. |
-| `FontPreload` | Head element that starts the download of the latin subset of the font of ui with the document. The browser downloads another subset only when a page has text in it. The font faces and their fallbacks come from `ui/tailwind.css`. It reads no context, so a server layout can render it. |
 | `useAppearance` | Reads the theme, the density, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
@@ -57,9 +56,8 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 |---|---|
 | `GlassProvider` | Sets the ambient glass flag for the subtree, switching every glass-aware descendant to its glass variant. It has no `'use client'`, so an RSC tree can host it; a client leaf writes the context. |
 | `GlassProviderProps` *(type)* | Props for `GlassProvider`. |
-| `GlassContext` | Ambient glass-mode context (default `false`); read via `useGlass()` at the leaf. |
 | `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`. |
-| `useResolvedSurface` | Resolves a chrome panel's `surface` variant, falling back to `'glass'` when the prop or ambient flag is set. |
+| `useResolvedSurface` | Resolves a chrome panel's `surface` variant. A set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. |
 
 ## `ui/providers/headless`
 
@@ -69,7 +67,6 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 |---|---|
 | `HeadlessProvider` | Escape-hatch provider that strips chrome from headless-aware descendants so they render the bare semantic element. |
 | `HeadlessProviderProps` *(type)* | Props for `HeadlessProvider`. |
-| `HeadlessContext` | Ambient headless-mode context (default `false`); read via `useHeadless()` at the leaf. |
 | `useHeadless` | Reads the ambient headless flag; `false` outside a `<HeadlessProvider>`. |
 
 ## `ui/providers/locale`

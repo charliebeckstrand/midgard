@@ -21,7 +21,7 @@ describe('ChatMessage', () => {
 
 		const el = bySlot(container, 'chat-message')
 
-		expect(el).toHaveAttribute('data-role', 'assistant')
+		expect(el).toHaveAttribute('data-sender', 'assistant')
 
 		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
 
@@ -32,12 +32,12 @@ describe('ChatMessage', () => {
 		)
 	})
 
-	it('reflects the role prop on data-role', () => {
-		const { container } = renderUI(<ChatMessage role="user">content</ChatMessage>)
+	it('reflects the sender prop on data-sender', () => {
+		const { container } = renderUI(<ChatMessage sender="user">content</ChatMessage>)
 
 		const el = bySlot(container, 'chat-message')
 
-		expect(el).toHaveAttribute('data-role', 'user')
+		expect(el).toHaveAttribute('data-sender', 'user')
 	})
 
 	it('renders the timestamp slot when provided', () => {
@@ -86,8 +86,8 @@ describe('ChatMessage', () => {
 
 	it.each(['user', 'assistant', 'system'] as const)(
 		'injects no color override onto Markdown for the %s bubble — the prose inherits the bubble foreground',
-		(role) => {
-			const { container } = renderUI(<ChatMessage role={role}>content</ChatMessage>)
+		(sender) => {
+			const { container } = renderUI(<ChatMessage sender={sender}>content</ChatMessage>)
 
 			// Markdown is color-agnostic and the bubble sets its own foreground, so
 			// ChatMessage must not pour any `text-*` color (nor a per-element

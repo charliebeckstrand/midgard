@@ -5,6 +5,7 @@ import { type CodeVariants, k } from '../../recipes/kata/code'
 
 /** Props for {@link Code}. */
 export type CodeProps = ComponentProps<'code'> & {
+	/** The density step. Omit it to take the step of the nearest density scope. A step makes the mark a density scope. */
 	size?: CodeVariants['size']
 }
 

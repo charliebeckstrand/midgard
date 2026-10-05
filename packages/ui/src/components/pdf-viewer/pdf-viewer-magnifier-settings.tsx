@@ -1,7 +1,7 @@
 'use client'
 
 import { ScanSearch } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
@@ -9,8 +9,10 @@ import { Button } from '../button'
 import {
 	Dialog,
 	DialogBody,
+	DialogClose,
 	DialogFooter,
 	DialogHeader,
+	DialogPanel,
 	DialogTitle,
 	DialogTrigger,
 } from '../dialog'
@@ -38,11 +40,11 @@ type PdfViewerMagnifierSettingsProps = {
  * and its dwell.
  *
  * @remarks The button and the dialog are one control, so they live in one file. The open
- * state is chrome nothing outside the viewer drives, so it stays here rather than in
- * `PdfViewerContext`. There every region on the page would re-render for it.
- * `DialogTrigger` stamps the `aria-haspopup` and `aria-expanded` that report it. The ARIA
- * belongs to the panel, so it is written by the panel's own trigger rather than by hand
- * here.
+ * state is chrome nothing outside the viewer drives, so the uncontrolled `Dialog` root holds
+ * it rather than `PdfViewerContext`. There every region on the page would re-render for it.
+ * `DialogTrigger` stamps the `aria-haspopup`, `aria-expanded`, and `aria-controls` that
+ * report it. The ARIA belongs to the panel, so it is written by the panel's own trigger
+ * rather than by hand here.
  *
  * **Every control is a native input, and that is deliberate.** A modal `Dialog` runs
  * floating-ui's `markOthers`, which `aria-hidden`s every sibling of the body. A `Listbox`
@@ -63,8 +65,6 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 		setMagnifierChoice,
 	} = usePdfViewerContext()
 
-	const [open, setOpen] = useState(false)
-
 	// Scopes the radio `name`s, which is what groups a set of radios natively. Two viewers on
 	// one page would otherwise share three groups, and each would steer the other's lens.
 	const scope = useId()
@@ -74,8 +74,8 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 	if (!choice) return null
 
 	return (
-		<>
-			<DialogTrigger open={open} onClick={() => setOpen(true)}>
+		<Dialog>
+			<DialogTrigger>
 				<PdfViewerToolbarButton
 					label="Magnifier settings"
 					icon={<ScanSearch />}
@@ -87,12 +87,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 				/>
 			</DialogTrigger>
 
-			<Dialog
-				open={open}
-				onOpenChange={setOpen}
-				width="sm"
-				data-slot="pdf-viewer-magnifier-settings"
-			>
+			<DialogPanel width="sm" data-slot="pdf-viewer-magnifier-settings">
 				<DialogHeader>
 					<DialogTitle>Magnifier</DialogTitle>
 				</DialogHeader>
@@ -136,12 +131,14 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 					</Stack>
 				</DialogBody>
 				<DialogFooter>
-					<Button type="button" variant="plain" onClick={() => setOpen(false)}>
-						Done
-					</Button>
+					<DialogClose>
+						<Button type="button" variant="plain">
+							Done
+						</Button>
+					</DialogClose>
 				</DialogFooter>
-			</Dialog>
-		</>
+			</DialogPanel>
+		</Dialog>
 	)
 }
 

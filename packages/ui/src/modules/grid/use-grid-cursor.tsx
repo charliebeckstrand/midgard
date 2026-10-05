@@ -61,6 +61,7 @@ import {
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
+import { useGridTouchEntry } from './use-grid-touch-entry'
 
 /** Whether a press carries no modifier and no input method. @internal */
 function isPlainKey(press: GridKeyPress): boolean {
@@ -284,8 +285,9 @@ export function useGridCursor<T>({
 
 	const cursorEnabled = navigable || editingEnabled
 
-	// Grid-owned edit sessions: the grid begins one on a cell double-click or the
-	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
+	// Grid-owned edit sessions: the grid begins one on a cell double-click, a tap
+	// on the active cell, or the cursor's Enter. The default 'manual' mode leaves
+	// entry to the consumer.
 	const managed = editingEnabled && editable.session === 'managed'
 
 	// The new-row slot is a row of the cursor's order, first or last. The cursor
@@ -556,6 +558,14 @@ export function useGridCursor<T>({
 		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
 	}, [managed, enterEditAtCell])
 
+	// The touch entry. A touch screen sends no double-click, so a tap on the
+	// cell that holds the cursor opens it (see `useGridTouchEntry`). It opens
+	// through `enterEditAt`, as Enter does, so the same gates apply.
+	const touchEntry = useGridTouchEntry(
+		(coord) => nav.active?.row === coord.row && nav.active.col === coord.col,
+		(coord) => enterEditAt(coord.row, coord.col),
+	)
+
 	// Cursor augmentation, editing-aware (which mounts the editors) for an
 	// editable grid.
 	const cursorColumns = useGridCursorColumns<T>({
@@ -567,6 +577,7 @@ export function useGridCursor<T>({
 		rowKeysRef,
 		cellId: nav.cellId,
 		seat: nav.seat,
+		touch: managed ? touchEntry : undefined,
 	})
 
 	const { session, pasteCells } = editing

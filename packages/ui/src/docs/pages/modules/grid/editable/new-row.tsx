@@ -5,6 +5,7 @@ import { Flex } from 'ui/flex'
 import { Grid, type GridCellRefusal, type GridEditableConfig } from 'ui/grid'
 import { Icon } from 'ui/icon'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
+import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, personColumns } from './people.tsx'
 
 const positions = ['top', 'bottom'] as const
@@ -109,9 +110,10 @@ export default function NewRow() {
 					</Segment>
 				</Flex>
 				<EditHelp label="New row help">
-					The blank row adds a person. Fill its cells, then press Enter or the Add control at the
-					end of the row. Escape clears the row. A name is required. The second segment sets the Add
-					control: the button of the grid, a custom one, or none, so that only Enter adds the row.
+					<PointerHint
+						mouse="The blank row adds a person. Fill its cells, then press Enter or the Add control at the end of the row. Escape clears the row. A name is required. The second segment sets the Add control: the button of the grid, a custom one, or none, so that only Enter adds the row."
+						touch="The blank row adds a person. Fill its cells, then tap the Add control at the end of the row or the Return key. A name is required. The second segment sets the Add control: the button of the grid, a custom one, or none, so that only the Return key adds the row."
+					/>
 				</EditHelp>
 			</Flex>
 			<Grid

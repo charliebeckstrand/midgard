@@ -4,16 +4,17 @@ import { type ReactNode, useMemo } from 'react'
 import { Menu, MenuContent } from '../menu'
 import { ContextMenuList } from './context-menu-list'
 import { resolveContextMenuEntries } from './context-menu-merge'
-import type { ContextMenuConfig, ContextMenuItem } from './types'
+import type { ContextMenuConfig, ContextMenuEntry } from './types'
 
 /** Props for {@link ContextMenu}. */
 export type ContextMenuProps = ContextMenuConfig & {
 	/**
-	 * The host's built-in items, shown unless `defaultItems` is off. A consumer
+	 * The host's built-in entries, shown unless `defaultItems` is off. An entry is
+	 * an item, a separator, or a submenu ({@link ContextMenuEntry}). A consumer
 	 * embedding a bare menu leaves this empty and supplies `items`.
 	 * @defaultValue []
 	 */
-	defaults?: ContextMenuItem[]
+	defaults?: ContextMenuEntry[]
 	/**
 	 * Suppress the menu, leaving the browser's native menu on a right-click.
 	 * @defaultValue false
@@ -41,7 +42,8 @@ export type ContextMenuProps = ContextMenuConfig & {
  * both show. With nothing to show — no defaults kept and no custom items, or
  * `disabled` — it opens no menu, so the native menu still opens. The wrapper
  * stays in both states, so the content keeps its state when the menu turns on
- * or off.
+ * or off. Both lists take each {@link ContextMenuEntry} kind: an item, a
+ * separator, or a submenu that opens a nested menu.
  *
  * @remarks Anchors at the cursor and tracks the right-clicked element on scroll,
  * the shared `Menu` right-click behavior. The menu is a floating overlay that

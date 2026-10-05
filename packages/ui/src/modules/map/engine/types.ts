@@ -94,7 +94,11 @@ export type MapFeatureCollection = {
  * key).
  */
 export type MapTopology = {
-	type: 'Topology'
+	/**
+	 * `'Topology'`. The type is `string`, because an atlas imported as JSON
+	 * gets `type: string`, and it must assign with no cast.
+	 */
+	type: string
 	objects: Record<string, object>
 	arcs: unknown[]
 }

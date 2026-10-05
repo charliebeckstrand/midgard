@@ -12,11 +12,13 @@ const config: Config = {
 	// Each path with no params. The not-found route has none of its own: the
 	// host gives the SPA fallback document for any other path.
 	prerender: ({ getStaticPaths }) => getStaticPaths(),
-	buildEnd: ({ reactRouterConfig }) =>
-		inlineCriticalCss(
-			path.join(reactRouterConfig.buildDirectory, 'client'),
-			path.join(import.meta.dirname, 'app', 'app.css'),
-		),
+	buildEnd: async ({ reactRouterConfig }) => {
+		const clientDir = path.join(reactRouterConfig.buildDirectory, 'client')
+
+		const stylesheet = path.join(import.meta.dirname, 'app', 'app.css')
+
+		await inlineCriticalCss(clientDir, stylesheet)
+	},
 }
 
 export default config

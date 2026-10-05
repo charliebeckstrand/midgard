@@ -10,7 +10,7 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // One statement per source module, too: a module split across a value clause
 // and a type clause reads as two dependencies.
 
-// Shipped-source directories. Tests, benchmarks, and the docs engine are
+// Shipped-source directories. Tests, benchmarks, and the docs app are
 // excluded.
 const SCAN_DIRS = [
 	'components',

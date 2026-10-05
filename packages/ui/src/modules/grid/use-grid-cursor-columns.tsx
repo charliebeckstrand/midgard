@@ -16,6 +16,7 @@ import { GridEditingCell } from './grid-editing-cell'
 import { GridNavCell, seatingCellProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
+import type { GridTouchEntry } from './use-grid-touch-entry'
 
 /**
  * Projects the data columns of a grid with a cursor into cursor columns. Each
@@ -50,6 +51,7 @@ export function useGridCursorColumns<T>({
 	rowKeysRef,
 	cellId,
 	seat,
+	touch,
 }: {
 	/** Whether the grid carries a cursor. */
 	enabled: boolean
@@ -65,6 +67,11 @@ export function useGridCursorColumns<T>({
 	cellId: (row: number, col: number) => string
 	/** Seats the cursor on a pressed cell (see `useGridNavigation`). */
 	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
+	/**
+	 * Opens the active cell on a tap, under a grid-owned session (see
+	 * {@link useGridTouchEntry}). Only an editable cell gets it.
+	 */
+	touch: GridTouchEntry | undefined
 }): GridColumn<T>[] {
 	return useMemo(() => {
 		if (!enabled) return columns
@@ -104,7 +111,16 @@ export function useGridCursorColumns<T>({
 					)
 
 			const cellPropsAt = (row: T, rowIdx: number): ComponentProps<'td'> =>
-				seatingCellProps({ col, row, rowIdx, colIndexMapRef, cellId, seat, extra })
+				seatingCellProps({
+					col,
+					row,
+					rowIdx,
+					colIndexMapRef,
+					cellId,
+					seat,
+					extra,
+					touch: editable ? touch : undefined,
+				})
 
 			return {
 				...col,
@@ -115,5 +131,5 @@ export function useGridCursorColumns<T>({
 				cell: (row: T) => cellAt(row, indexOf(row)),
 			}
 		})
-	}, [enabled, editing, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, seat])
+	}, [enabled, editing, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, seat, touch])
 }

@@ -1,5 +1,15 @@
 import { join } from 'node:path'
-import ts from '@typescript/typescript6'
+import {
+	type CommentKind,
+	createScanner,
+	getLeadingCommentRanges,
+	getTrailingCommentRanges,
+	isToken,
+	type Node,
+	type SourceFile,
+	SyntaxKind,
+} from 'typescript/unstable/ast'
+import type { TypeScriptServer } from './ts-server'
 import { srcDir, srcRelative, walkSource } from './walk-source'
 
 /**
@@ -16,7 +26,7 @@ import { srcDir, srcRelative, walkSource } from './walk-source'
 export type Comment = { text: string; line: number; block: boolean }
 
 /**
- * Every comment in the source text of `file`, block and line alike.
+ * Every comment in a source file, block and line alike.
  *
  * @remarks
  * The ranges come from the TypeScript parse. A character reader has no parser
@@ -29,18 +39,13 @@ export type Comment = { text: string; line: number; block: boolean }
  * token opens with its own leading trivia, which the comment-range reads take.
  * The rest of a token is literal text, and JSX text holds no comment at all.
  *
- * @param file - The path of the source. Its extension selects the TSX grammar.
+ * @param parsed - The parse of the source by the TypeScript server. The
+ * extension of its file name selected the TSX grammar.
  */
-export function extractComments(file: string, source: string): Comment[] {
-	const parsed = ts.createSourceFile(
-		file,
-		source,
-		ts.ScriptTarget.ESNext,
-		false,
-		file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-	)
+export function extractComments(parsed: SourceFile): Comment[] {
+	const source = parsed.text
 
-	const scanner = ts.createScanner(ts.ScriptTarget.ESNext, false)
+	const scanner = createScanner(false)
 
 	const found: Comment[] = []
 
@@ -48,12 +53,12 @@ export function extractComments(file: string, source: string): Comment[] {
 	// comment.
 	const seen = new Set<number>()
 
-	const take = (pos: number, end: number, kind: ts.CommentKind) => {
+	const take = (pos: number, end: number, kind: CommentKind) => {
 		if (seen.has(pos)) return
 
 		seen.add(pos)
 
-		const block = kind === ts.SyntaxKind.MultiLineCommentTrivia
+		const block = kind === SyntaxKind.MultiLineCommentTrivia
 
 		found.push({
 			text: source.slice(pos + 2, block ? end - 2 : end),
@@ -67,27 +72,23 @@ export function extractComments(file: string, source: string): Comment[] {
 
 		scanner.setText(source, start, end - start)
 
-		for (
-			let token = scanner.scan();
-			token !== ts.SyntaxKind.EndOfFileToken;
-			token = scanner.scan()
-		) {
+		for (let token = scanner.scan(); token !== SyntaxKind.EndOfFile; token = scanner.scan()) {
 			if (
-				token === ts.SyntaxKind.SingleLineCommentTrivia ||
-				token === ts.SyntaxKind.MultiLineCommentTrivia
+				token === SyntaxKind.SingleLineCommentTrivia ||
+				token === SyntaxKind.MultiLineCommentTrivia
 			) {
 				take(scanner.getTokenStart(), scanner.getTokenEnd(), token)
 			}
 		}
 	}
 
-	const visit = (node: ts.Node) => {
-		if (ts.isToken(node)) {
-			if (node.kind === ts.SyntaxKind.JsxText) return
+	const visit = (node: Node) => {
+		if (isToken(node)) {
+			if (node.kind === SyntaxKind.JsxText) return
 
 			for (const range of [
-				...(ts.getTrailingCommentRanges(source, node.pos) ?? []),
-				...(ts.getLeadingCommentRanges(source, node.pos) ?? []),
+				...(getTrailingCommentRanges(source, node.pos) ?? []),
+				...(getLeadingCommentRanges(source, node.pos) ?? []),
 			]) {
 				take(range.pos, range.end, range.kind)
 			}
@@ -97,7 +98,7 @@ export function extractComments(file: string, source: string): Comment[] {
 
 		let pos = node.pos
 
-		ts.forEachChild(node, (child) => {
+		node.forEachChild((child) => {
 			scanGap(pos, child.pos)
 
 			visit(child)
@@ -264,11 +265,11 @@ const BRITISH = new RegExp(`\\b(?:re|un|pre|de)?(?:${BRITISH_STEMS.join('|')})\\
 /** One rule break, located well enough to fix without a second scan. */
 export type Break = { file: string; line: number; rule: 3 | 6 | 10; text: string }
 
-/** Every rule break in one source text, reported against `file`. */
-export function fileBreaks(file: string, source: string): Break[] {
+/** Every rule break in one parsed source, reported against `file`. */
+export function fileBreaks(file: string, source: SourceFile): Break[] {
 	const breaks: Break[] = []
 
-	for (const comment of extractComments(file, source)) {
+	for (const comment of extractComments(source)) {
 		for (const unit of proseUnits(comment)) {
 			for (const sentence of sentences(unit)) {
 				if (wordCount(sentence) > wordLimit(sentence)) {
@@ -297,18 +298,24 @@ const SKIP_ENTRIES = new Set(['demos'])
 
 const SOURCE_FILE = /\.tsx?$/
 
-/** Every rule break in the shipped tree, in file order. */
-export function scanPackage(): Break[] {
-	const breaks: Break[] = []
+/**
+ * Every rule break in the shipped tree, in file order.
+ *
+ * @param server - The TypeScript server that parses the tree, in one project.
+ */
+export function scanPackage(server: TypeScriptServer): Break[] {
+	const files: string[] = []
 
 	walkSource(
 		srcDir,
-		(file, content) => {
-			if (!SOURCE_FILE.test(file)) return
-
-			breaks.push(...fileBreaks(srcRelative(file), content))
+		(file) => {
+			if (SOURCE_FILE.test(file)) files.push(file)
 		},
 		SKIP_ENTRIES,
+	)
+
+	const breaks = [...server.parse(files)].flatMap(([file, source]) =>
+		fileBreaks(srcRelative(file), source),
 	)
 
 	return breaks.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)

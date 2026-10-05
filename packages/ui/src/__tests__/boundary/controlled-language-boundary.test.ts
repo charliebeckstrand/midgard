@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import {
 	advise,
 	extractComments,
@@ -12,6 +12,7 @@ import {
 	rootDir,
 	scanPackage,
 } from '../helpers/controlled-language'
+import { startTypeScript } from '../helpers/ts-server'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
 // every authored statement. This test reads the breaks of the rules that a
@@ -39,8 +40,14 @@ import {
 // suffix heuristic mistaking "is that" and "is honest" for participles. Rule 4
 // stays a review concern.
 
+// The TypeScript server parses each source that this file reads, and stops
+// after the last case.
+const server = startTypeScript()
+
+afterAll(() => server.close())
+
 describe('controlled-language boundary', () => {
-	const breaks = scanPackage()
+	const breaks = scanPackage(server)
 
 	it('no comment uses a banned modal (STE.md rule 10)', () => {
 		const violations = breaks
@@ -110,7 +117,7 @@ describe('controlled-language boundary', () => {
 // a comment no check reads.
 describe('comment reader', () => {
 	const texts = (file: string, source: string) =>
-		extractComments(file, source).map((comment) => comment.text.trim())
+		extractComments(server.parseText(file, source)).map((comment) => comment.text.trim())
 
 	it('reads a comment after a regex literal that holds a quote', () => {
 		expect(texts('probe.ts', "const quote = /name: '/\n// after\n")).toEqual(['after'])
@@ -140,7 +147,7 @@ describe('comment reader', () => {
 // own spelling.
 describe('spelling reader', () => {
 	const flagged = (source: string) =>
-		fileBreaks('probe.ts', source)
+		fileBreaks('probe.ts', server.parseText('probe.ts', source))
 			.filter((item) => item.rule === 3)
 			.map((item) => item.text)
 

@@ -26,7 +26,7 @@ export type QueryBuilderStateValue = {
 /** Tree-edit actions provided to rule/group consumers; referentially stable across edits. Aliases the headless {@link QueryTreeActions}. @internal */
 export type QueryBuilderActions = QueryTreeActions
 
-/** Combined shape for consumers that need state + actions + the current tree. */
+/** Combined shape for consumers that need state + actions + the current tree. @internal */
 export type QueryBuilderContextValue = QueryBuilderStateValue &
 	QueryBuilderActions & { root: QueryGroup }
 
@@ -90,6 +90,8 @@ export function QueryBuilderProvider({
  * Re-renders on every edit; the tree changes each time. Prefer
  * `useQueryBuilderActions` or `useQueryBuilderState` when you don't need the
  * tree itself.
+ *
+ * @internal
  */
 export function useQueryBuilderContext(): QueryBuilderContextValue {
 	const state = useQueryBuilderState()

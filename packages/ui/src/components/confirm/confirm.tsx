@@ -10,7 +10,8 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	type DialogPanelVariants,
+	DialogPanel,
+	type DialogPanelProps,
 	DialogTitle,
 } from '../dialog'
 
@@ -86,8 +87,14 @@ type ConfirmAction = {
 	pending?: boolean
 }
 
-/** Props for {@link Confirm}: open-state control, message content, the two configurable actions, and dialog `width`. */
-export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
+/**
+ * Props for {@link Confirm}: open-state control, message content, the two configurable
+ * actions, and the {@link DialogPanel} props that pass through.
+ */
+export type ConfirmProps = Pick<
+	DialogPanelProps,
+	'width' | 'align' | 'glass' | 'initialFocus' | 'container' | 'dismissOnBackdrop'
+> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/** Fires when the confirm action is pressed; does not close the dialog (drive `open` from your handler). */
@@ -159,6 +166,11 @@ export function Confirm({
 	confirm,
 	cancel,
 	width,
+	align,
+	glass,
+	initialFocus,
+	container,
+	dismissOnBackdrop,
 	className,
 }: ConfirmProps) {
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
@@ -182,39 +194,46 @@ export function Confirm({
 	const hasDescription = Boolean(description)
 
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={onOpenChange}
-			data-slot="confirm"
-			role="alertdialog"
-			width={width}
-			className={className}
-		>
-			<DialogHeader>
-				<DialogTitle>{heading}</DialogTitle>
-				{hasDescription && <DialogDescription>{description}</DialogDescription>}
-			</DialogHeader>
-			{children !== undefined && <ConfirmBody describes={!hasDescription}>{children}</ConfirmBody>}
-			<DialogFooter>
-				<Button
-					type="button"
-					variant="plain"
-					color={cancel?.color}
-					disabled={cancel?.disabled}
-					onClick={handleCancel}
-				>
-					{cancel?.label ?? 'Cancel'}
-				</Button>
-				<Button
-					type="button"
-					color={confirm?.color}
-					disabled={confirm?.disabled}
-					loading={confirm?.pending}
-					onClick={handleConfirm}
-				>
-					{confirm?.label ?? 'Confirm'}
-				</Button>
-			</DialogFooter>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogPanel
+				data-slot="confirm"
+				role="alertdialog"
+				width={width}
+				align={align}
+				glass={glass}
+				initialFocus={initialFocus}
+				container={container}
+				dismissOnBackdrop={dismissOnBackdrop}
+				className={className}
+			>
+				<DialogHeader>
+					<DialogTitle>{heading}</DialogTitle>
+					{hasDescription && <DialogDescription>{description}</DialogDescription>}
+				</DialogHeader>
+				{children !== undefined && (
+					<ConfirmBody describes={!hasDescription}>{children}</ConfirmBody>
+				)}
+				<DialogFooter>
+					<Button
+						type="button"
+						variant="plain"
+						color={cancel?.color}
+						disabled={cancel?.disabled}
+						onClick={handleCancel}
+					>
+						{cancel?.label ?? 'Cancel'}
+					</Button>
+					<Button
+						type="button"
+						color={confirm?.color}
+						disabled={confirm?.disabled}
+						loading={confirm?.pending}
+						onClick={handleConfirm}
+					>
+						{confirm?.label ?? 'Confirm'}
+					</Button>
+				</DialogFooter>
+			</DialogPanel>
 		</Dialog>
 	)
 }

@@ -3,14 +3,7 @@
 import dynamic from 'next/dynamic'
 import { ControlSkeleton } from 'ui/control'
 import type { DatePickerRelativeValue } from 'ui/date-picker'
-import {
-	Filters,
-	FiltersBar,
-	FiltersClear,
-	FiltersField,
-	FiltersRow,
-	FiltersSkeleton,
-} from 'ui/filters'
+import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow } from 'ui/filters'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { flags } from '../../flags'
 import type { PlaceCategory } from '../../types'
@@ -25,9 +18,8 @@ import { CategoryPicker } from '../category-picker'
  * The date picker of the Visited field. It carries the calendar and the relative
  * presets, which a reader opens after the map, if at all, so the page does not
  * wait for its code. The form drawer uses the same picker, so the two share one
- * chunk. The bar stays under the skeleton of {@link PlaceFiltersSkeleton} until
- * the view settles, and the picker normally loads before that. The `loading`
- * control holds the width and height of the field if it does not.
+ * chunk. The `loading` control holds the width and height of the field until the
+ * code of the picker loads.
  */
 const DatePicker = dynamic(() => import('ui/date-picker').then((module) => module.DatePicker), {
 	loading: () => <ControlSkeleton />,
@@ -63,9 +55,8 @@ export type PlaceFiltersProps = {
  * Every filter goes through `FiltersField`'s render function rather than its
  * element form. The element form binds `value={fieldValue ?? null}`, and neither
  * a multi-select Listbox nor the relative DatePicker takes a `null` — each holds
- * an array. The render function hands the slot and its setter over untouched;
- * the casts are the `unknown` its props carry, which no form of this component
- * avoids.
+ * an array. The render function hands the slot and its setter over untouched.
+ * Each field names the type of its slot, so the render function needs no cast.
  */
 export function PlaceFilters({
 	value,
@@ -122,14 +113,14 @@ export function PlaceFilters({
 					    painted and the map reads as one surface with the places on it. It
 					    shows only while the visited regions feature is on. */}
 					{flags.visitedRegions ? (
-						<FiltersField name="visitedRegions" className="w-52">
+						<FiltersField<PlaceVisitFilter> name="visitedRegions" className="w-52">
 							{({ value: picked, onValueChange: setPicked }) => (
 								<Listbox<PlaceVisitFilter>
 									aria-label="Visited"
 									placeholder="Visited or not"
 									clearable
 									displayValue={(choice) => (choice === 'visited' ? 'Visited' : 'Not visited')}
-									value={(picked as PlaceVisitFilter | undefined) ?? null}
+									value={picked ?? null}
 									onValueChange={(next) => setPicked(next ?? undefined)}
 								>
 									<ListboxOption value="visited">
@@ -144,10 +135,10 @@ export function PlaceFilters({
 						</FiltersField>
 					) : null}
 
-					<FiltersField name="categories" className="w-52">
+					<FiltersField<PlaceCategory[]> name="categories" className="w-52">
 						{({ value: categories, onValueChange: setCategories }) => (
 							<CategoryPicker
-								value={(categories as PlaceCategory[] | undefined) ?? []}
+								value={categories ?? []}
 								// An absent field is what `Filters` reads as unset, and an empty
 								// pick means the reader stopped filtering — so the two meet here.
 								onValueChange={(next) => setCategories(next.length === 0 ? undefined : next)}
@@ -155,7 +146,7 @@ export function PlaceFilters({
 						)}
 					</FiltersField>
 
-					<FiltersField name="visited" className="w-52">
+					<FiltersField<DatePickerRelativeValue[]> name="visited" className="w-52">
 						{({ value: visited, onValueChange: setVisited }) => (
 							<DatePicker
 								// Text, not chips: the chip row wraps, so a filter bar reflows a
@@ -169,7 +160,7 @@ export function PlaceFilters({
 								footer={{ clear: false }}
 								aria-label="Visited when"
 								placeholder="Any time"
-								value={(visited as DatePickerRelativeValue[] | undefined) ?? null}
+								value={visited ?? null}
 								// Annotated: an object `relative` leaves the props union
 								// unnarrowed, so the handler takes no contextual type.
 								onValueChange={(next: DatePickerRelativeValue[] | null) =>
@@ -199,20 +190,5 @@ export function PlaceFilters({
 				)}
 			</FiltersBar>
 		</Filters>
-	)
-}
-
-/**
- * The placeholder for {@link PlaceFilters} while the places and the atlas load:
- * one control shape for each field, at the same width and inset as the bar.
- */
-export function PlaceFiltersSkeleton() {
-	return (
-		<FiltersSkeleton
-			layout="rail"
-			fields={flags.visitedRegions ? 4 : 3}
-			fieldClassName="w-52"
-			className="px-6 py-3"
-		/>
 	)
 }

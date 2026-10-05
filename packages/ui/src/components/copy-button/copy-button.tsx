@@ -20,6 +20,7 @@ export type CopyButtonProps = {
 	 * @defaultValue a Clipboard icon
 	 */
 	icon?: ReactElement
+	/** The density step of the button. Omit it to take the step of the nearest density scope. */
 	size?: ButtonVariants['size']
 	/**
 	 * Milliseconds the copied state holds before reverting to the rest glyph.

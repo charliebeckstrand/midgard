@@ -9,6 +9,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
 import { clearNativeInput, isComposing } from '../../utilities'
 import { useControl } from '../control/context'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
 import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
@@ -103,8 +104,9 @@ export type DateInputProps = Omit<
  * field by `name` (the stored value is the `Date`).
  *
  * @remarks
- * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` is
- * registered; `placeholder` is not a programmatic name (WCAG 3.3.2 / 4.1.2).
+ * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` names
+ * it, from the first render on; `placeholder` is not a programmatic name
+ * (WCAG 3.3.2 / 4.1.2).
  * Enter blurs the input, committing or renormalizing the current entry.
  * A reset of the bound Form drops the typed text and its verdict, also when
  * the value stays the same. A controlled value that is set again to the same
@@ -137,6 +139,8 @@ export function DateInput({
 	...props
 }: DateInputProps) {
 	const control = useControl()
+
+	const fallbackLabel = useControlFallbackLabel('Date')
 
 	const ambient = useLocale()
 
@@ -278,9 +282,9 @@ export function DateInput({
 				type="text"
 				inputMode="numeric"
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-				// defaults an aria-label, yielding to a registered Field <Label>
-				// (aria-labelledby outranks aria-label in the accname computation).
-				aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Date')}
+				// defaults an aria-label, yielding to a Field <Label> from the first
+				// render (useControlFallbackLabel).
+				aria-label={ariaLabel ?? fallbackLabel}
 				placeholder={placeholder ?? format}
 				autoComplete="off"
 				disabled={disabled}

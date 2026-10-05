@@ -11,8 +11,8 @@ import { JsonTreeNode } from './json-tree-node'
 import {
 	buildSearchIndex,
 	collectMatchPaths,
+	type JsonTreeSearch,
 	normalizeSearch,
-	type Search,
 } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
@@ -20,7 +20,7 @@ import { toggleExpandedSet, unionExpandedSet } from './use-json-tree-expansion'
 import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
-type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
+export type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
 
 /** Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize` windowing. */
 export type JsonTreeProps = {
@@ -50,7 +50,7 @@ export type JsonTreeProps = {
 	 * the branches that hold a match to `expanded`. It does this one time for
 	 * each new term or `data` value, so a seeded branch stays collapsible.
 	 */
-	search?: Search
+	search?: JsonTreeSearch
 	/**
 	 * Enables row virtualization with `{ maxHeight }` (the cap on the scroll
 	 * container) plus optional `estimateSize` / `overscan`. Flattens the visible
@@ -68,7 +68,7 @@ export type JsonTreeProps = {
 	/**
 	 * Accessible name for the tree.
 	 *
-	 * @defaultValue `rootKey`, else `'JSON'`
+	 * @defaultValue The `rootKey`, or `'JSON'` with no `rootKey`.
 	 */
 	'aria-label'?: string
 	/** Id of a visible element that names the tree. It replaces the default `aria-label`. */

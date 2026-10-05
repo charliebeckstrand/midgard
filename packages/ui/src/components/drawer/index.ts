@@ -1,5 +1,5 @@
 export type { DrawerPanelVariants } from '../../recipes/kata/drawer'
-export { Drawer, type DrawerProps } from './drawer'
+export { Drawer, DrawerPanel, type DrawerPanelProps, type DrawerProps } from './drawer'
 export { DrawerStatic, type DrawerStaticProps } from './drawer-static'
 export {
 	DrawerBody,

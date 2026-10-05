@@ -1,8 +1,7 @@
 /**
- * Serves a docs build the way App Platform serves it, for `docs:preview`,
- * `docs:hydration`, and their `docs:legacy:` forms. The first argument names
- * the app: `docs` or `docs-legacy`. `docs:bench` serves the builds with the
- * same paths, over HTTP/2.
+ * Serves the docs build the way App Platform serves it, for `docs:preview` and
+ * `docs:hydration`. `docs:bench` serves the build with the same paths, over
+ * HTTP/2.
  *
  * A path gets the file at that path, or `index.html` in the directory at that
  * path. Thus `/stepper` gets `stepper/index.html` with no redirect. Any other
@@ -11,8 +10,7 @@
  * `/stepper`.
  *
  * ```sh
- * pnpm --filter ui docs:preview          # http://localhost:3456
- * pnpm --filter ui docs:legacy:preview   # the legacy app, at the same port
+ * pnpm --filter ui docs:preview   # http://localhost:3456
  * ```
  */
 
@@ -22,20 +20,8 @@ import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/** A docs app of ui, by its folder under `src`. */
-export type DocsApp = 'docs' | 'docs-legacy'
-
-/** Returns the app that a command-line argument names. */
-export function docsAppOf(argument: string | undefined): DocsApp {
-	if (argument === 'docs' || argument === 'docs-legacy') return argument
-
-	throw new Error(`Name the docs app, docs or docs-legacy. The argument was ${argument}.`)
-}
-
-/** Returns the client directory of the build of an app. */
-export function clientDirOf(app: DocsApp): string {
-	return path.resolve(import.meta.dirname, '..', 'src', app, 'dist', 'client')
-}
+/** The client directory of the docs build. */
+export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', 'src', 'docs', 'dist', 'client')
 
 /**
  * A browser expression that is `true` when the page hydrated, for
@@ -72,15 +58,10 @@ export async function fileOf(root: string, pathname: string): Promise<string> {
 	return path.join(root, '__spa-fallback.html')
 }
 
-/** Start the server of an app, and give its origin, such as `http://localhost:3456`. */
-export async function serveDocs(
-	app: DocsApp,
-	port: number,
-): Promise<{ origin: string; server: Server }> {
-	const root = clientDirOf(app)
-
+/** Start the server of the docs build, and give its origin, such as `http://localhost:3456`. */
+export async function serveDocs(port: number): Promise<{ origin: string; server: Server }> {
 	const server = createServer(async (request, response) => {
-		const file = await fileOf(root, new URL(request.url ?? '/', 'http://localhost').pathname)
+		const file = await fileOf(CLIENT_DIR, new URL(request.url ?? '/', 'http://localhost').pathname)
 
 		const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
 
@@ -94,9 +75,7 @@ export async function serveDocs(
 
 // Run as a script, not as an import of `docs:hydration`.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	const app = docsAppOf(process.argv[2])
+	const { origin } = await serveDocs(3456)
 
-	const { origin } = await serveDocs(app, 3456)
-
-	console.log(`The ${app} build is at ${origin}`)
+	console.log(`The docs build is at ${origin}`)
 }
