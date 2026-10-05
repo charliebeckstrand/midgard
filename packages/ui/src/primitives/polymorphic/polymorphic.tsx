@@ -21,8 +21,14 @@ import type { PolymorphicRenderProps } from './types'
 
 /** Props for `Polymorphic`; the fallback arm excludes `href`. */
 export type PolymorphicProps<Fallback extends ElementType, Omitted extends PropertyKey = never> =
-	| ({ href?: never } & Omit<ComponentProps<Fallback>, 'className' | Omitted>)
-	| ({ href: string } & Omit<LinkProps, 'className' | Omitted>)
+	| ({
+			/** The link target. With it, the element is the registered link. Without it, the element is the fallback. */
+			href?: never
+	  } & Omit<ComponentProps<Fallback>, 'className' | Omitted>)
+	| ({
+			/** The link target. With it, the element is the registered link. Without it, the element is the fallback. */
+			href: string
+	  } & Omit<LinkProps, 'className' | Omitted>)
 
 /**
  * Renders the registered link component when `href` is present, the `as` element

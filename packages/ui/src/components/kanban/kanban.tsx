@@ -35,7 +35,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 		/** Called with the next columns whenever ordering changes. Omit for read-only. */
 		onReorder?: (next: C[]) => void
 		/**
-		 * Disable all drag / keyboard reorder interaction.
+		 * Disable all drag / keyboard reorder interaction. It has an effect only
+		 * when `onReorder` is set. A board with no `onReorder` is read-only.
 		 * @defaultValue false
 		 */
 		disabled?: boolean
@@ -46,8 +47,10 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 /**
  * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
  * by pointer drag (with a drag overlay) or keyboard lift, and emits the next
- * `columns` array through `onReorder`. The board is read-only when `onReorder`
- * is omitted or `disabled` is set. Shares drag/keyboard state
+ * `columns` array through `onReorder`. With no `onReorder`, the board is
+ * read-only: each card takes `data-readonly`, and the handles render nothing.
+ * With `onReorder` and `disabled`, the board is disabled: each card takes
+ * `data-disabled`, and each handle shows a muted grip. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
  * Compose the column header/body slots within. A pointer drags a card from any
  * part of it, and the keyboard lifts a card from its {@link KanbanCardHandle}.

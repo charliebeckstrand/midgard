@@ -77,8 +77,8 @@ export function Sidebar({
 	})
 
 	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,
-	// and the same breakpoint resolves the state handed to the render prop and
-	// to items (which mount their label tooltips off it).
+	// and the same breakpoint resolves the state that `useSidebarMini` gives to
+	// the content and to the items (which mount their label tooltips from it).
 	const desktop = useMinBreakpoint('lg')
 
 	const resolvedMini = mini && desktop

@@ -11,8 +11,12 @@ import { CollapseContext } from './context'
 
 /** Props for {@link Collapse}. */
 export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'> & {
-	/** @defaultValue false */
+	/**
+	 * The initial open state, for an uncontrolled panel.
+	 * @defaultValue false
+	 */
 	defaultOpen?: boolean
+	/** The open state, for a controlled panel. Pair it with `onOpenChange`. */
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	/**
