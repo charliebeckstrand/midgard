@@ -172,6 +172,63 @@ describe('ContextMenu', () => {
 	})
 })
 
+describe('ContextMenu focus restore', () => {
+	/** A context menu over a focused field, so each case knows where focus started. */
+	const renderFocusedField = () => {
+		renderUI(
+			<ContextMenu defaults={defaults}>
+				<input aria-label="Field" />
+			</ContextMenu>,
+		)
+
+		const field = screen.getByRole('textbox', { name: 'Field' })
+
+		act(() => field.focus())
+
+		return field
+	}
+
+	/** Closes the open menu with Escape from its panel, which holds focus. */
+	const closeWithEscape = () => {
+		const menu = screen.getByRole('menu')
+
+		expect(menu).toContainElement(document.activeElement as HTMLElement)
+
+		fireEvent.keyDown(menu, { key: 'Escape' })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	}
+
+	it.each([
+		['the ContextMenu key', { key: 'ContextMenu' }],
+		['Shift+F10', { key: 'F10', shiftKey: true }],
+	])('returns focus to the field after a menu that %s opened closes', (_, key) => {
+		const field = renderFocusedField()
+
+		// The browser fires the contextmenu event on the focused element after the key.
+		fireEvent.keyDown(field, key)
+
+		fireEvent.contextMenu(field)
+
+		closeWithEscape()
+
+		expect(field).toHaveFocus()
+	})
+
+	it('leaves focus alone after a menu that the pointer opened closes', () => {
+		const field = renderFocusedField()
+
+		// A press comes before each pointer contextmenu event.
+		fireEvent.pointerDown(field, { button: 2 })
+
+		fireEvent.contextMenu(field)
+
+		closeWithEscape()
+
+		expect(field).not.toHaveFocus()
+	})
+})
+
 describe('ContextMenuList submenus', () => {
 	/** A right-click surface rendering `entries` through the shared list renderer. */
 	const Harness = ({ entries }: { entries: ContextMenuEntry[] }) => (

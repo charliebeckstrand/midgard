@@ -1,7 +1,15 @@
 'use client'
 
 import { useClick, useInteractions } from '@floating-ui/react'
-import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
+import {
+	type KeyboardEvent,
+	type MouseEvent,
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+} from 'react'
 import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingDisclosure, useMediaQuery } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
@@ -76,13 +84,25 @@ function cursorAnchor(element: Element | null, clientX: number, clientY: number)
 }
 
 /**
+ * Whether a keydown is the keyboard request for a context menu: the ContextMenu
+ * key, or Shift+F10. The browser then fires `contextmenu` at the focused element.
+ *
+ * @internal
+ */
+function isContextMenuKey(event: KeyboardEvent): boolean {
+	return event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)
+}
+
+/**
  * Disclosure, positioning, and density state for {@link Menu}, split into a
- * `state`/`actions` pair plus the right-click `handleContextMenu` and an
- * `isDropdown` flag. Drives all three menu modes. A `placement` gives the
- * dropdown. A `defaultOpen` with no `placement` gives the static inline menu.
- * Neither one gives the right-click context menu, a position-only
- * {@link cursorAnchor} that opens at the cursor yet tracks the right-clicked
- * element on scroll.
+ * `state`/`actions` pair plus the handlers of the context surface and an
+ * `isContextMenu` flag. The right-click `handleContextMenu` opens the menu. The
+ * `handleContextKeyDown` and `handleContextPointerDown` captures tell a keyboard
+ * open from a pointer open, and only a keyboard open restores focus on close.
+ * Drives all three menu modes. A `placement` gives the dropdown. A
+ * `defaultOpen` with no `placement` gives the static inline menu. Neither one
+ * gives the right-click context menu, a position-only {@link cursorAnchor}
+ * that opens at the cursor yet tracks the right-clicked element on scroll.
  *
  * @internal
  * @see {@link useFloatingDisclosure}
@@ -171,9 +191,17 @@ export function useMenuState({
 	// Clear the trigger's `aria-activedescendant` once closed: the panel (and the
 	// ids it pointed at) unmounts, so the attribute would otherwise dangle, and the
 	// next open must start with no active row (the first arrow picks the first item).
+	//
+	// A context menu has no trigger. `openAt` lends `triggerRef` the element that
+	// held focus at a keyboard open, and the focus restore of the disclosure reads
+	// it in an earlier effect. Release it here, and do not touch its own
+	// `aria-activedescendant`: the grid keeps its cursor in that attribute.
 	useEffect(() => {
-		if (!open) clearVirtualActive(triggerRef)
-	}, [open, triggerRef])
+		if (open) return
+
+		if (isContextMenu) triggerRef.current = null
+		else clearVirtualActive(triggerRef)
+	}, [open, isContextMenu, triggerRef])
 
 	// Toggling the menu is floating-ui's, not the trigger's: `useClick` supplies
 	// the keyboard activation a cloned non-button child never gets from the
@@ -183,19 +211,31 @@ export function useMenuState({
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
 
+	// The element that held focus at the last context-menu key on the surface. A
+	// keyboard open restores focus to it on close, as the grid does. A pointer
+	// open restores nothing, so focus stays where the user put it.
+	const keyboardOpener = useRef<HTMLElement | null>(null)
+
 	// Anchor the menu at a point while tracking `element` as it (or a scroll
 	// container) scrolls — but as the *position* reference only, never floating-ui's
 	// `reference`. Registering the element as the reference (`setReference`, the
 	// `useClientPoint` route) would exempt it from outside-press dismissal, so a
 	// left-click on the very element the menu was opened from could not close it; a
 	// position-only anchor keeps it a normal outside-press target.
+	//
+	// Each open also sets the focus restore target. A context menu has no trigger,
+	// so `triggerRef` holds the keyboard opener, or null after a pointer open.
 	const openAt = useCallback(
 		(element: Element | null, clientX: number, clientY: number) => {
 			refs.setPositionReference(cursorAnchor(element, clientX, clientY))
 
+			if (isContextMenu) triggerRef.current = keyboardOpener.current
+
+			keyboardOpener.current = null
+
 			setOpen(true)
 		},
-		[setOpen, refs],
+		[setOpen, refs, isContextMenu, triggerRef],
 	)
 
 	const handleContextMenu = useCallback(
@@ -219,6 +259,20 @@ export function useMenuState({
 		},
 		[openAt, refs],
 	)
+
+	// The surface takes the keydown in the capture phase, so a handler below it
+	// cannot stop the key first. A context-menu key records the focused element
+	// for `openAt`, and every other key clears the record.
+	const handleContextKeyDown = useCallback((event: KeyboardEvent) => {
+		keyboardOpener.current =
+			isContextMenuKey(event) && event.target instanceof HTMLElement ? event.target : null
+	}, [])
+
+	// A pointer press comes before each pointer `contextmenu` event. It clears the
+	// record of a key that opened no menu, so the pointer open does not restore.
+	const handleContextPointerDown = useCallback(() => {
+		keyboardOpener.current = null
+	}, [])
 
 	const state = useMemo(
 		() => ({
@@ -259,5 +313,12 @@ export function useMenuState({
 		],
 	)
 
-	return { state, actions, handleContextMenu, isContextMenu }
+	return {
+		state,
+		actions,
+		handleContextMenu,
+		handleContextKeyDown,
+		handleContextPointerDown,
+		isContextMenu,
+	}
 }

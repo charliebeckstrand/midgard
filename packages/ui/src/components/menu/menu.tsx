@@ -77,6 +77,9 @@ export type MenuProps = {
  * inline menu when `defaultOpen` is set. A context menu also opens on a touch
  * long press, because iOS Safari fires no `contextmenu` event for one. A long
  * press on a chart does nothing, and a long press on a map opens its readout.
+ * A context menu that a key opens (the ContextMenu key or Shift+F10) returns
+ * focus to the element that held it when the menu closes. A context menu that
+ * the pointer opens leaves focus where it falls.
  *
  * @remarks
  * The mode comes from prop presence by design. The three modes take one prop
@@ -99,7 +102,14 @@ export function Menu({
 	className,
 	children,
 }: MenuProps) {
-	const { state, actions, handleContextMenu, isContextMenu } = useMenuState({
+	const {
+		state,
+		actions,
+		handleContextMenu,
+		handleContextKeyDown,
+		handleContextPointerDown,
+		isContextMenu,
+	} = useMenuState({
 		open,
 		defaultOpen,
 		onOpenChange,
@@ -136,7 +146,14 @@ export function Menu({
 							// No role: the wrapper holds arbitrary page content and implements no
 							// keyboard model of its own. Stamping role="application" here would
 							// suppress AT browse-mode for everything inside it, so it is omitted.
-							{...(isContextMenu && { ...touchContextMenu, onContextMenu: handleContextMenu })}
+							// The key and press captures only record how the next open starts, so
+							// the menu knows whether to restore focus when it closes.
+							{...(isContextMenu && {
+								...touchContextMenu,
+								onContextMenu: handleContextMenu,
+								onKeyDownCapture: handleContextKeyDown,
+								onPointerDownCapture: handleContextPointerDown,
+							})}
 						>
 							{children}
 						</Root>
