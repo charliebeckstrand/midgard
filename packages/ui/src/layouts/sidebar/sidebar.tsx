@@ -32,6 +32,10 @@ const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 export type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
+	/**
+	 * The actions in the navbar below `lg` and in the header from `lg` up. A gap
+	 * that follows the nearest density scope separates them.
+	 */
 	actions?: ReactNode
 	/** From `lg` up, keeps the header at the top of the content region. @defaultValue false */
 	stickyHeader?: boolean
@@ -70,7 +74,9 @@ export type SidebarLayoutProps = PropsWithChildren<{
  *
  * To show the layout inside another page, put it in a box that has a height and
  * scrolls. Make the box a size container (`@container-size`). The layout then
- * fills the box, and the box scrolls in place of the page.
+ * fills the box, and the box scrolls in place of the page. The switch at `lg`
+ * follows the width of the viewport, not the width of the box. Thus a narrow
+ * box on a wide screen still shows the desktop panel.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The
@@ -203,7 +209,7 @@ export function SidebarLayout({
 						/>
 					</DrawerTrigger>
 					{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-					{actions && <div className="flex items-center shrink-0 ms-auto">{actions}</div>}
+					{actions && <div className={cn(k.actions(), 'ms-auto')}>{actions}</div>}
 				</Flex>
 			</section>
 
@@ -233,7 +239,7 @@ export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutH
 	return (
 		<header ref={ref} data-slot="header" className={cn(k.header(), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
+			{actions && <div className={cn(k.actions(), 'max-lg:hidden')}>{actions}</div>}
 		</header>
 	)
 }

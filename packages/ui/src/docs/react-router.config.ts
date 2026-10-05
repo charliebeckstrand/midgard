@@ -24,8 +24,7 @@ const config: Config = {
 
 		inlineFont(
 			clientDir,
-			stylesheet,
-			path.join(import.meta.dirname, '..', 'fonts', 'google-sans-flex-latin.woff2'),
+			path.join(import.meta.dirname, '..', 'fonts', 'google-sans-flex-latin.js'),
 		)
 	},
 }

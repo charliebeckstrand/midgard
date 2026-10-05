@@ -225,7 +225,7 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * summarizing hundreds wants the count. Each entry is that stop's own `label`,
 	 * or its position in the set where it has none. That is the same fallback a
 	 * lone dot's tooltip takes, so a stop reads identically merged or not.
-	 * @defaultValue the count alone
+	 * @defaultValue The count alone.
 	 */
 	clusterDetail?: (count: number, span: number, labels: string[]) => string
 	/**

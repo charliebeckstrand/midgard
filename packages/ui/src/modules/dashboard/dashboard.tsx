@@ -234,7 +234,10 @@ export type DashboardProps = AccessibleName & {
 	gap?: number
 	/**
 	 * Heading level of each tile title. The dashboard shows no heading of its own,
-	 * so set it one level below the heading above the dashboard on the page.
+	 * so set it one level below the heading above the dashboard on the page. The
+	 * level also sets the weight of the title. Level 1 is bold, levels 2 and 3 are
+	 * semibold, and levels 4 to 6 are medium. The size of the title stays the same
+	 * at each level.
 	 * @defaultValue 3
 	 */
 	titleLevel?: HeadingLevel
@@ -307,6 +310,11 @@ export type DashboardProps = AccessibleName & {
  * cannot switch the board on each frame. A wider scrollbar, such as a styled
  * `::-webkit-scrollbar`, can switch it. Give such a scroll box
  * `scrollbar-gutter: stable`.
+ *
+ * @remarks The board is a query container at the full width of its parent, so
+ * its content gives it no width. Give it a parent with a definite width. In a
+ * parent that sizes to its content, the board gets only the width that the
+ * other content of that parent gives.
  *
  * @example
  * ```tsx

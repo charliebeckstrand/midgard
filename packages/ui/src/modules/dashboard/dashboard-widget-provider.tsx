@@ -6,6 +6,7 @@ import type { DashboardWidgetRegistry } from './types'
 
 /** Props for {@link DashboardWidgetProvider}. */
 export type DashboardWidgetProviderProps = DashboardWidgetRegistry & {
+	/** The subtree whose spec tiles draw with these widget kinds. */
 	children: ReactNode
 }
 

@@ -16,14 +16,15 @@ export type KanbanCardSkeletonProps = {
  * @remarks Static leaf: renders in React Server Components. The card takes the
  * classes of the real card, so it has the padding, gap, and chrome of the real
  * card. A real card holds free content, so the two lines are a default form.
- * The card is `aria-hidden`.
+ * The card is an `aria-hidden` `<li>`, as a read-only card is, because the body
+ * of a column with cards is a `<ul>`.
  * @see {@link KanbanCard}
  */
 export function KanbanCardSkeleton({ className }: KanbanCardSkeletonProps) {
 	return (
-		<div aria-hidden="true" className={cn(k.card.base, className)}>
+		<li aria-hidden="true" className={cn(k.card.base, className)}>
 			<Placeholder className={k.skeleton.line} />
 			<Placeholder className={k.skeleton.meta} />
-		</div>
+		</li>
 	)
 }

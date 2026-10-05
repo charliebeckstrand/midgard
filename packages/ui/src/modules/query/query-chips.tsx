@@ -33,8 +33,11 @@ import { useQueryTree } from './use-query-tree'
 export type QueryChipsProps = {
 	/** Fields that resolve each rule's labels, operators, and options. */
 	fields: QueryField[]
+	/** The query tree, controlled. Pair it with `onValueChange`. */
 	value?: QueryGroup
+	/** The initial query tree, uncontrolled. Omitted, the tree starts as an empty `and` group. */
 	defaultValue?: QueryGroup
+	/** Receives the next query tree after each remove or combinator switch. */
 	onValueChange?: (value: QueryGroup) => void
 	/**
 	 * Renders the chips with no controls: no remove button, and each combinator

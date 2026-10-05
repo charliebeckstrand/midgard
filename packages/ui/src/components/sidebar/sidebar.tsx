@@ -3,6 +3,7 @@
 import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yRoving, useComposedRef, useMinBreakpoint } from '../../hooks'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
@@ -41,7 +42,9 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
  *
  * Content that has to differ between the full sidebar and the mini rail reads
  * the resolved state with {@link useSidebarMini}, from a component inside the
- * sidebar. The root took a render prop for that once, and it was the library's
+ * sidebar. The state is full on the server and in the hydration render,
+ * because the server knows no width. The CSS draws the rail at `lg` in the
+ * first paint, and the state follows after hydration. The root took a render prop for that once, and it was the library's
  * one root render prop. The context it already broadcasts does the same work
  * without one.
  */
@@ -77,11 +80,16 @@ export function Sidebar({
 	})
 
 	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,
-	// and the same breakpoint resolves the state handed to the render prop and
-	// to items (which mount their label tooltips off it).
+	// and the same breakpoint resolves the state that `useSidebarMini` gives to
+	// the content and to the items (which mount their label tooltips from it).
+	// The server knows no width, so the server and the hydration render resolve
+	// to the full state. The CSS draws the rail at `lg` for the first paint, and
+	// the context follows after hydration.
 	const desktop = useMinBreakpoint('lg')
 
-	const resolvedMini = mini && desktop
+	const hydrated = useHydrated()
+
+	const resolvedMini = mini && desktop && hydrated
 
 	return (
 		<ActiveIndicatorScope>

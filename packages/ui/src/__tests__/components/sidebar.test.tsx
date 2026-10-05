@@ -1,5 +1,7 @@
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	Sidebar,
@@ -13,6 +15,8 @@ import {
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import {
+	act,
+	attach,
 	bySlot,
 	densityStepOf,
 	fireEvent,
@@ -371,6 +375,65 @@ describe('Sidebar mini', () => {
 
 		expect(screen.getByTestId('branch')).toHaveTextContent('full')
 	})
+
+	// The server knows no width. The recipe draws the rail at `lg` from
+	// `data-mini` in CSS, so the server markup holds the full state, which is
+	// correct below `lg` and which the CSS collapses at `lg` and up.
+	const miniSidebar = (
+		<Sidebar mini>
+			<Branch />
+			<SidebarList>
+				<SidebarItem icon={<svg />}>
+					<SidebarLabel>Home</SidebarLabel>
+				</SidebarItem>
+			</SidebarList>
+		</Sidebar>
+	)
+
+	it('prerenders the full state with data-mini, so CSS alone draws the rail at lg', () => {
+		const html = renderToString(miniSidebar)
+
+		expect(html).toContain('data-mini=""')
+
+		expect(html).toContain('<span data-testid="branch">full</span>')
+
+		// The rail button of an item takes this class only in the resolved mini state.
+		expect(html).not.toContain('*:cursor-pointer')
+	})
+
+	it.each([
+		['a desktop', 'rail', true],
+		['a phone', 'full', false],
+	])(
+		'hydrates on %s viewport with no mismatch, then shows the %s form',
+		(_name, branch, desktop) => {
+			const html = renderToString(miniSidebar)
+
+			stubMatchMedia(() => desktop)
+
+			const container = attach(document.createElement('div'))
+
+			container.innerHTML = html
+
+			const onRecoverableError = vi.fn()
+
+			const consoleError = vi.spyOn(console, 'error')
+
+			let root: Root | undefined
+
+			act(() => {
+				root = hydrateRoot(container, miniSidebar, { onRecoverableError })
+			})
+
+			onTestFinished(() => act(() => root?.unmount()))
+
+			expect(onRecoverableError).not.toHaveBeenCalled()
+
+			expect(consoleError).not.toHaveBeenCalled()
+
+			expect(screen.getByTestId('branch')).toHaveTextContent(branch)
+		},
+	)
 })
 
 describe('SidebarHeader', () => {

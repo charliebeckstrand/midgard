@@ -48,7 +48,11 @@ type DensitySkeletonRecipe = BaseSkeletonRecipe & {
  */
 export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
 	? { className?: string }
-	: { size?: S; className?: string }
+	: {
+			/** The size of the component that the silhouette stands in for. */
+			size?: S
+			className?: string
+		}
 
 /**
  * Props of a {@link createSkeleton} component built from a sized recipe: the

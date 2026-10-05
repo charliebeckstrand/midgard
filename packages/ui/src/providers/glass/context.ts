@@ -3,9 +3,10 @@
 import { createContext } from '../../core'
 
 /**
- * Ambient flag: true inside `<GlassProvider>`. Form fields and Button switch to the
- * glass variant when no explicit variant is set. Surface chrome (Popover,
- * Dialog, etc.) takes a `glass` prop, and consumers pass `useGlass()` through.
+ * Ambient flag: true inside `<GlassProvider>`. Form fields switch to the glass
+ * variant when no explicit variant is set. Dialog, Drawer, Sheet, Popover,
+ * Menu, and Tooltip read the flag themselves through {@link useResolvedSurface},
+ * and their `glass` prop overrides it. Button does not read the flag.
  * Read at the leaf; does not compose into size resolution.
  */
 export const [GlassContext, useGlass] = createContext<boolean>('Glass', { default: false })

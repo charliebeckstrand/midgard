@@ -15,9 +15,15 @@ export type ResizablePanelProps = {
 	 * @defaultValue 50
 	 */
 	defaultSize?: number
-	/** @defaultValue 0 */
+	/**
+	 * The smallest size of the panel, as a percentage of the group.
+	 * @defaultValue 0
+	 */
 	minSize?: number
-	/** @defaultValue 100 */
+	/**
+	 * The largest size of the panel, as a percentage of the group.
+	 * @defaultValue 100
+	 */
 	maxSize?: number
 	className?: string
 	children?: ReactNode

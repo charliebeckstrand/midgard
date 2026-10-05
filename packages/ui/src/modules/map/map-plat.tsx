@@ -660,6 +660,14 @@ const NO_CENTROIDS: (LngLat | null)[] = []
  * (or any provider) and fetch street-following paths through
  * {@link fetchOsrmRoute} / {@link fetchValhallaRoute} — the plat itself
  * never calls the network.
+ *
+ * Without `width`, the frame is a query container at the full width of its
+ * parent, so its content gives it no width. Give it a parent with a definite
+ * width. In a parent that sizes to its content, the map gets only the width
+ * that the other content of that parent gives. The frame is never narrower than
+ * 12rem (`min-w-48`). A `left` or `right` legend goes beside the plot only at a frame
+ * width of 32rem (`@lg`) or more. Below that width, the legend stacks under
+ * the plot.
  */
 export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const {

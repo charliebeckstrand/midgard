@@ -17,15 +17,19 @@ export type UIProviderProps = {
 	/**
 	 * Framework-specific link component (e.g. `next/link`'s default export);
 	 * every `<Link>` and every link-emitting primitive routes through it. Omit
-	 * to keep the plain `<a>` fallback.
+	 * it to keep the binding of the outer provider, or the plain `<a>` fallback
+	 * outside each provider. Pass `'a'` to restore the fallback in a nested
+	 * provider.
 	 */
 	link?: LinkComponent
 	/**
 	 * DOM node every library portal (dialogs, drawers, sheets, tooltips,
 	 * popovers, menus, dropdown panels, toasts) teleports into. Set this to
 	 * scope portals to a shadow root, an iframe body, or a dedicated portal root.
-	 * A per-call `container` prop still wins; omit to leave each portal its own
-	 * `document.body` fallback.
+	 * A per-call `container` prop still wins. Omit it to keep the container of
+	 * the outer provider, or each portal's own `document.body` fallback outside
+	 * each provider. A nested provider cannot restore that fallback, so pass
+	 * `document.body` to portal into the body under an outer container.
 	 */
 	portalContainer?: PortalContainer
 	children: ReactNode
