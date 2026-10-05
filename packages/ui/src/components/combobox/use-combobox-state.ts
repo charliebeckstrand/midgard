@@ -44,7 +44,8 @@ type ComboboxStateParams<T> = {
  *   `menuQuery`/`menuDeferredQuery` are the query the *menu content* reads,
  *   frozen at their close-time snapshot until `flushPending` runs. The filter
  *   therefore holds steady through the exit animation, instead of snapping back
- *   to the full list. That holds a deeply scrolled virtual window too.
+ *   to the full list. That holds a deeply scrolled virtual window too. While
+ *   `open` is `true`, the menu reads the live query and the live selection.
  * @remarks `closeOnSelect` defaults to `true` for single, `false` for multiple.
  *   `setOpen` and `setQuery` report to `onOpenChange` and `onQueryChange` only
  *   a value that is new to the consumer.
@@ -211,6 +212,11 @@ export function useComboboxState<T>({
 		flushFrozenQuery()
 	}, [flushToggle, flushFrozenQuery])
 
+	// The menu reads the query snapshot only while the panel shows closed. A
+	// controlled owner can keep `open` true after close(). Then no exit animation
+	// runs and no reopen comes, so nothing releases the snapshot.
+	const menuQuerySnapshot = open ? null : frozenQuery
+
 	// The count of the picks that keep the panel open. Each such pick adds one,
 	// and the count at the last text selection lets the effect below act once.
 	const [pickCount, setPickCount] = useState(0)
@@ -272,8 +278,8 @@ export function useComboboxState<T>({
 		// The query the menu content reads: frozen at its close-time snapshot
 		// until flushPending, so the filtered set (and any deeply scrolled virtual
 		// window) holds steady through the exit animation instead of re-expanding.
-		menuQuery: frozenQuery ? frozenQuery.value.query : query,
-		menuDeferredQuery: frozenQuery ? frozenQuery.value.deferredQuery : deferredQuery,
+		menuQuery: menuQuerySnapshot ? menuQuerySnapshot.value.query : query,
+		menuDeferredQuery: menuQuerySnapshot ? menuQuerySnapshot.value.deferredQuery : deferredQuery,
 		setQuery,
 		open,
 		setOpen,

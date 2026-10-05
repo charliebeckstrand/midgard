@@ -349,6 +349,48 @@ describe('useComboboxState', () => {
 		expect(result.current.menuDeferredQuery).toBe('partial')
 	})
 
+	// A controlled owner can keep `open` true after close(). Then no exit
+	// animation runs and no reopen comes, so nothing releases a snapshot. The
+	// menu reads the live query and the live selection while the panel shows open.
+	it('reads the live menu query after close() while a controlled open stays true', () => {
+		const { result } = setup<string>({ open: true })
+
+		act(() => {
+			result.current.close()
+		})
+
+		act(() => {
+			result.current.setQuery('te')
+		})
+
+		expect(result.current.menuQuery).toBe('te')
+
+		expect(result.current.menuDeferredQuery).toBe('te')
+	})
+
+	it('reads the live selection after a pick while a controlled open stays true', () => {
+		const { result, rerender } = renderHook(
+			({ value }: { value: string | undefined }) =>
+				useComboboxState<string>({
+					multiple: false,
+					nullable: false,
+					value,
+					open: true,
+					setValue: vi.fn(),
+					inputRef: { current: null },
+				}),
+			{ initialProps: { value: 'a' as string | undefined } },
+		)
+
+		act(() => {
+			result.current.select('b')
+		})
+
+		rerender({ value: 'b' })
+
+		expect(result.current.selectionValue).toBe('b')
+	})
+
 	it('refocuses the input and clears the query in multi-select mode', () => {
 		const { result, focus } = setup<string>({ multiple: true })
 
