@@ -59,7 +59,7 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 | `GlassProviderProps` *(type)* | Props for `GlassProvider`. |
 | `GlassContext` | Ambient glass-mode context (default `false`); read via `useGlass()` at the leaf. |
 | `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`. |
-| `useResolvedSurface` | Resolves a chrome panel's `surface` variant, falling back to `'glass'` when the prop or ambient flag is set. |
+| `useResolvedSurface` | Resolves a chrome panel's `surface` variant. A set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. |
 
 ## `ui/providers/headless`
 

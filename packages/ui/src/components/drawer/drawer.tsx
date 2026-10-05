@@ -117,7 +117,11 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * @defaultValue false
 		 */
 		handle?: boolean
-		/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
+		/**
+		 * Opt the panel and backdrop into the translucent glass surface. Omit it to
+		 * follow the ambient `<GlassProvider>`. Set `false` to keep the flat surface
+		 * inside one.
+		 */
 		glass?: boolean
 		/**
 		 * Drain the color from whatever shows through the backdrop. Both scrims are
