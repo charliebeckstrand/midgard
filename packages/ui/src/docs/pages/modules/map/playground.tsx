@@ -1,10 +1,7 @@
-import { MapPlat, type MapPlatProps } from 'ui/map'
+import { MapPlat, type MapPlatCategoricalProps } from 'ui/map'
 import { type StateZone, stateName, states, timezones, zoneCategories } from './data.ts'
 
-// The props of a map that colors each region by a category.
-type CategoryMapProps = Extract<MapPlatProps<StateZone>, { categoryKey: string }>
-
-export default function MapPlayground(props: CategoryMapProps) {
+export default function MapPlayground(props: MapPlatCategoricalProps<StateZone>) {
 	return (
 		<MapPlat
 			{...props}
