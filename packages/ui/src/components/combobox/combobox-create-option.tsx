@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { ComboboxOption } from './combobox-option'
-import { useComboboxDeferredQuery } from './use-combobox-query'
+import { useComboboxQuery } from './use-combobox-query'
 
 /** Props for {@link ComboboxCreateOption}. */
 export type ComboboxCreateOptionProps = {
@@ -22,6 +22,13 @@ export type ComboboxCreateOptionProps = {
 	 */
 	children?: (name: string) => ReactNode
 	className?: string
+	/**
+	 * Explicit id, which replaces the id that the row makes. Set it when the row
+	 * is one of the `items` of a `VirtualOptions` with `getOptionId`. Give it the
+	 * id that `getOptionId` returns for that item. The host points
+	 * `aria-activedescendant` at that id before the row mounts.
+	 */
+	id?: string
 }
 
 /**
@@ -31,8 +38,10 @@ export type ComboboxCreateOptionProps = {
  * ComboboxCreateOptionProps.taken}.
  *
  * Place it after the filtered options in `children`, which is where a reader
- * looks for it. The matches answer the query first, and creating is what is
- * left when none of them do:
+ * looks for it. With `VirtualOptions`, put it into the `items`, after the
+ * matches, and give it the `id` that `getOptionId` returns for its item. The
+ * matches answer the query first, and creating is what is left when none of
+ * them do:
  *
  * ```tsx
  * <Combobox value={name} onValueChange={setName} displayValue={(v: string) => v}>
@@ -52,24 +61,44 @@ export type ComboboxCreateOptionProps = {
  * combobox is one over strings. A combobox over objects needs its own create row
  * that mints the object.
  *
- * Reads `deferredQuery`, the same text the panel's own filtering and highlight
- * anchoring key on. The row therefore appears in the frame the matches update
- * in, and the highlight lands on it rather than trailing a frame behind.
+ * The label reads `deferredQuery`, the same text the panel's own filtering and
+ * highlight anchoring key on. The row therefore appears in the frame the
+ * matches update in, and the highlight lands on it rather than trailing a frame
+ * behind. The value is the live `query`, so a commit before the deferred query
+ * catches up gets the full typed name. The label can trail the value by one
+ * render. The row renders only when both texts name something to create.
  */
-export function ComboboxCreateOption({ taken, children, className }: ComboboxCreateOptionProps) {
-	const deferredQuery = useComboboxDeferredQuery()
+export function ComboboxCreateOption({
+	taken,
+	children,
+	className,
+	id,
+}: ComboboxCreateOptionProps) {
+	const { query, deferredQuery } = useComboboxQuery()
 
 	const name = deferredQuery.trim()
 
-	if (!name) return null
+	const value = query.trim()
 
-	const folded = name.toLowerCase()
-
-	if (taken?.some((label) => label.trim().toLowerCase() === folded)) return null
+	if (!isCreatable(name, taken) || !isCreatable(value, taken)) return null
 
 	return (
-		<ComboboxOption value={name} className={className}>
+		<ComboboxOption id={id} value={value} className={className}>
 			{children ? children(name) : `Create “${name}”`}
 		</ComboboxOption>
 	)
+}
+
+/**
+ * Tells whether `name`, a trimmed query, names something to create. A blank
+ * name does not, and a name that one of `taken` holds does not.
+ *
+ * @internal
+ */
+function isCreatable(name: string, taken: string[] | undefined): boolean {
+	if (!name) return false
+
+	const folded = name.toLowerCase()
+
+	return !taken?.some((label) => label.trim().toLowerCase() === folded)
 }
