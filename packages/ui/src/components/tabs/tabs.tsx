@@ -9,8 +9,8 @@ import { k, type scale } from '../../recipes/kata/tabs'
 import { Box } from '../../structure/box'
 import { TabsContext, type TabsOrientation, type TabsVariant } from './context'
 
-/** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope. */
-export type TabsProps = ComponentProps<'div'> & {
+/** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope, plus native `<div>` attributes (less `defaultValue`). */
+export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
 	value?: string | null
 	defaultValue?: string
 	onValueChange?: (value: string | null) => void
