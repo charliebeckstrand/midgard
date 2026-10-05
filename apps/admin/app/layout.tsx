@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { AppearanceScript, FontPreload } from 'ui/providers/appearance'
+import { AppearanceScript, FontScript } from 'ui/providers/appearance'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		<html lang="en" suppressHydrationWarning>
 			<head>
 				<AppearanceScript />
-				<FontPreload />
+				<FontScript />
 			</head>
 			<body className="flex justify-center bg-white dark:bg-zinc-900 antialiased">
 				<Providers>{children}</Providers>

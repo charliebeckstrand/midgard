@@ -31,7 +31,7 @@ Holds the persisted theme and density of an app, and gives the settings button t
 | `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
 | `AppearanceScript` | Inline head script that applies the stored theme and density to the root element before the first paint. It has no `'use client'`, so a server layout can render it. |
-| `FontPreload` | Head element that starts the download of the latin subset of the font of ui with the document. The browser downloads another subset only when a page has text in it. The font faces and their fallbacks come from `ui/tailwind.css`. It reads no context, so a server layout can render it. |
+| `FontScript` | Head script that adds the latin subset of the font of ui before the first paint, so latin text never paints without the font. It is not `async`, and the browser keeps it in its cache. The browser downloads another subset only when a page has text in it. The font faces and their fallbacks come from `ui/tailwind.css`. It reads no context, so a server layout can render it. |
 | `useAppearance` | Reads the theme, the density, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |

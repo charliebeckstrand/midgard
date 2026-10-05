@@ -12,9 +12,13 @@
  * The source font is outside `src`, so no app ships it. The script divides it
  * into subsets by script, as Google Fonts does. Each subset is a face of the
  * same family with a `unicode-range`. The browser thus downloads only the
- * subsets that the text of a page uses, and the pages preload only `latin`.
- * Each subset keeps the weights from 300 to 900, the optical sizes from 10 to
- * 18, and only the layout features that ui uses.
+ * subsets that the text of a page uses. Each subset keeps the weights from 300
+ * to 900, the optical sizes from 10 to 18, and only the layout features that
+ * ui uses.
+ *
+ * The script also writes `src/fonts/google-sans-flex-latin.js`, which adds the
+ * face of the `latin` subset from its bytes. `FontScript` loads it before the
+ * first paint (see {@link fontScript}).
  *
  * Capsize reads the metrics of the font: the ascent, the descent, the line
  * gap, and the average width of the letters by their frequency in text. It
@@ -24,8 +28,8 @@
  * Arial is on Apple and Windows devices, and Roboto is on Android devices.
  *
  * The font faces use `font-display: block`. Text does not paint until the
- * font loads, for a maximum of 3 seconds. The pages preload the `latin`
- * subset, so the wait is usually short. Safari does not apply the ascent,
+ * font loads, for a maximum of 3 seconds. The `latin` subset is ready before
+ * the first paint, so latin text does not wait. Safari does not apply the ascent,
  * descent, and line gap overrides, and it applies only `size-adjust`. With
  * `swap`, an iPhone thus paints text in Arial for a short time before the font
  * loads.
@@ -51,6 +55,12 @@ const FONT_DIR = new URL('../src/fonts/', import.meta.url)
 
 /** The path of the stylesheet that {@link fontsCss} gives. */
 export const FONTS_CSS = fileURLToPath(new URL('fonts.css', FONT_DIR))
+
+/** The subset that {@link fontScript} adds before the first paint. */
+const FIRST_SUBSET = 'latin'
+
+/** The path of the script that {@link fontScript} gives. */
+export const FONT_SCRIPT = fileURLToPath(new URL(`${FONT_NAME}-${FIRST_SUBSET}.js`, FONT_DIR))
 
 /** The weights that ui and the apps use, from `font-light` to `font-black`. */
 const WEIGHT = { min: 300, max: 900 }
@@ -232,10 +242,51 @@ export async function fontsCss(): Promise<string> {
 	].join('\n')
 }
 
+/**
+ * Returns the text of the script that adds the face of the `latin` subset,
+ * with the descriptors of its face in the stylesheet.
+ *
+ * The faces use `font-display: block`, so text does not paint until its
+ * subset loads. A page can paint before the font file loads, and that paint
+ * then shows the layout with no text. The script holds the bytes of the
+ * subset. A `FontFace` made from bytes is ready when the constructor returns,
+ * so the face is ready before the next layout. The browser uses a face from a
+ * script before a face of a stylesheet with the same descriptors, so it does
+ * not download the font file of the subset.
+ */
+export async function fontScript(): Promise<string> {
+	const subset = (await fontSubsets()).find(({ name }) => name === FIRST_SUBSET)
+
+	if (!subset) throw new Error(`The source font has no ${FIRST_SUBSET} subset.`)
+
+	const descriptors = {
+		weight: `${WEIGHT.min} ${WEIGHT.max}`,
+		display: 'block',
+		unicodeRange: unicodeRange(subset.codePoints),
+	}
+
+	const { familyName } = await fromFile(SOURCE_FONT)
+
+	const base64 = (await readFile(subset.path)).toString('base64')
+
+	return [
+		'/* Do not edit. `pnpm fonts` (`scripts/fonts.ts`) writes this file from the source font. */',
+		'(() => {',
+		`\tconst text = atob('${base64}')`,
+		'\tconst bytes = new Uint8Array(text.length)',
+		'\tfor (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index)',
+		`\tdocument.fonts.add(new FontFace('${familyName}', bytes, ${JSON.stringify(descriptors)}))`,
+		'})()',
+		'',
+	].join('\n')
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	for (const subset of await fontSubsets()) await writeFile(subset.path, await subsetBytes(subset))
 
 	await writeFile(FONTS_CSS, await fontsCss())
+
+	await writeFile(FONT_SCRIPT, await fontScript())
 
 	execFileSync('biome', ['format', '--write', FONTS_CSS], { stdio: 'inherit' })
 }
