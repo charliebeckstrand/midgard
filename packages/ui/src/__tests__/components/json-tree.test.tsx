@@ -1,12 +1,16 @@
 import { type ReactElement, useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
-import { JsonTree } from '../../components/json-tree'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { JsonTree, type JsonTreeProps, type JsonTreeVirtualize } from '../../components/json-tree'
 import { flatTreeMoveTarget } from '../../components/json-tree/json-tree-keyboard'
 import { JsonTreeNodeRow } from '../../components/json-tree/json-tree-node-row'
 import { flattenTree } from '../../components/json-tree/json-tree-utilities'
 import { bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
 describe('JsonTree', () => {
+	it('exports the type of its virtualize prop', () => {
+		expectTypeOf<JsonTreeProps['virtualize']>().toEqualTypeOf<JsonTreeVirtualize | undefined>()
+	})
+
 	it('renders with data-slot="json-tree" and role="tree"', () => {
 		const { container } = renderUI(<JsonTree data={{}} />)
 

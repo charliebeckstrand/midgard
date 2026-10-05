@@ -20,7 +20,7 @@ import { toggleExpandedSet, unionExpandedSet } from './use-json-tree-expansion'
 import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
-type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
+export type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
 
 /** Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize` windowing. */
 export type JsonTreeProps = {
