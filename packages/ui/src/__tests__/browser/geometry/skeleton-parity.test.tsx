@@ -803,6 +803,26 @@ describe('skeleton parity (real browser)', () => {
 		)
 	})
 
+	// The calendar has no xs step, so in an xs scope it opens an sm scope. The skeleton with no
+	// size takes the xs scope, so each of its rows must give the sm height at xs.
+	it('CalendarSkeleton with no size has the box of a calendar in an xs scope', () => {
+		const { container } = renderUI(
+			<Box density="xs">
+				<Calendar defaultValue={new Date(2026, 4, 15)} />
+			</Box>,
+		)
+
+		expect(
+			placeholder(
+				renderUI(
+					<Box density="xs">
+						<CalendarSkeleton />
+					</Box>,
+				).container,
+			),
+		).toStrictEqual(box(container.querySelector('[data-slot="calendar"]'), 'calendar'))
+	})
+
 	// A transcript has no fixed height, so this compares one bubble of each side. The real
 	// bubble holds as many lines as the skeleton bubble of its side: one for the user, and two for
 	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges.

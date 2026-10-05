@@ -79,7 +79,12 @@ export const size = {
 		width: 'density-w-[10,12,14,16,16]',
 	},
 	control: {
-		/** The height of a control skeleton. */
+		/**
+		 * The height of a control skeleton, and of the header row and each day row
+		 * of a calendar skeleton. The values are the button heights at `sm`, `md`,
+		 * and `lg`. The ramp has three values, so `xs` takes the `sm` value, as the
+		 * calendar does.
+		 */
 		base: 'density-h-[7.5,9.5,11.5]',
 		/** The minimum width of a control skeleton. */
 		min: 'density-min-w-[16,24,32]',
