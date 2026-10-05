@@ -1,7 +1,7 @@
 import { act, waitFor } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CopyButton } from '../../components/copy-button'
-import { expectAnnouncement, fireEvent, present, renderUI } from '../helpers'
+import { bySlot, expectAnnouncement, fireEvent, present, renderUI } from '../helpers'
 
 /**
  * Puts `writeText` on `navigator.clipboard` for the current case.
@@ -79,6 +79,16 @@ describe('CopyButton', () => {
 		})
 
 		expect(button).not.toHaveAttribute('data-copied')
+	})
+
+	// The library does not select this anchor, so CONVENTIONS.md §3.9 keeps it
+	// open: a wrapper can re-anchor the CopyButton that it renders.
+	it('lets a wrapper re-anchor it with its own data-slot', () => {
+		const { container } = renderUI(<CopyButton text="hello" data-slot="hex-copy" />)
+
+		expect(bySlot(container, 'hex-copy')?.tagName).toBe('BUTTON')
+
+		expect(bySlot(container, 'copy-button')).toBeNull()
 	})
 
 	it('lets a caller override the idle label', () => {

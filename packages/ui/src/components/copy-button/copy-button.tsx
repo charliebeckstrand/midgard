@@ -92,12 +92,12 @@ export function CopyButton({
 
 	return (
 		<Button
+			data-slot="copy-button"
 			{...props}
 			type="button"
 			variant="bare"
 			color={copied ? 'green' : undefined}
 			size={size}
-			data-slot="copy-button"
 			data-copied={dataAttr(copied)}
 			disabled={disabled}
 			onClick={handleClick}
