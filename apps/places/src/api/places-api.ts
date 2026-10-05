@@ -1,14 +1,12 @@
 import createClient from 'openapi-fetch'
 import { unwrap } from 'shared/auth'
-import type { MapTopology } from 'ui/modules/map'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
 import type { paths } from './openapi'
 
 /**
  * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3.
  * Nothing else in the app fetches. The places and the visits go through the
- * gateway to Mimir, in asgard, whose spec types {@link mimir}. The atlases are
- * route handlers of this app.
+ * gateway to Mimir, in asgard, whose spec types {@link mimir}.
  */
 
 /**
@@ -64,21 +62,4 @@ export function setVisit(scope: VisitScope, region: string, visited: boolean): P
 			body: { visited },
 		}),
 	)
-}
-
-/**
- * One atlas the map draws, as a TopoJSON topology.
- *
- * The scope names the route as well as the grain, so the two atlases are one
- * call rather than one function each — and the same word names the topology
- * object to decode out of what comes back.
- */
-export async function fetchAtlas(scope: VisitScope, signal?: AbortSignal): Promise<MapTopology> {
-	const response = await fetch(`/api/atlas/${scope}`, { signal })
-
-	if (response.status === 401) window.location.assign('/login')
-
-	if (!response.ok) throw new Error(`Request failed: ${response.status}`)
-
-	return (await response.json()) as MapTopology
 }
