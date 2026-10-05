@@ -412,7 +412,7 @@ function PlacesHeader({
 				    `min-w-0` on the wrapper is what lets the trail give way at all: without
 				    it this flex child holds its full width and pushes the controls beside it
 				    off the row instead of truncating. `flex-1` gives the trail the row's full
-				    width, which is the width its collapse rule reads.
+				    width, which is the room its fit measures.
 
 				    The toggle goes inside the trail, because it acts on the region the last
 				    crumb names — not on the app, which is what the cluster on the far side

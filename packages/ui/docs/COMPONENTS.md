@@ -35,6 +35,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `nav` · `sidebar` · `breadcrumb` · `menu` · `context-menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
 
+> A `breadcrumb` trail wraps by default. With `collapse`, it stays on one line. The crumbs give way from the left, and each one becomes a `…` mark that the reader can still pick. The current page clips last. The fit is measured. A server-rendered trail carries a pre-paint step that measures the row before the first paint, so the first paint holds the fit. Give the `Breadcrumb` the full width of its line. Put an action that shares the line in the `<nav>`, after the list.
+
 ## Overlays
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
