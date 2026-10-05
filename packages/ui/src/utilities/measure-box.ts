@@ -25,3 +25,39 @@ export function measureBox(target: Element, borderBox?: ResizeObserverSize): Bor
 
 	return { inline: rect.width, block: rect.height }
 }
+
+/** An element's content box, in CSS px. */
+export type ContentBox = {
+	width: number
+	height: number
+}
+
+/**
+ * An element's content box: the box that its children lay out in. Use it to
+ * size a child that fills the element, for example a canvas.
+ *
+ * Content box, not border box: a child that takes the border box of its parent
+ * is too large by the border and the padding. In a parent that takes its size
+ * from its content, each resize then makes the parent larger.
+ *
+ * The client size is the padding box less a scrollbar. The function subtracts
+ * the computed padding from it. The client size ignores CSS transforms, so a
+ * scaled ancestor does not change the result. The browser rounds the client
+ * size to a whole pixel.
+ *
+ * @param target The element to measure.
+ */
+export function measureContentBox(target: Element): ContentBox {
+	const style = getComputedStyle(target)
+
+	return {
+		width:
+			target.clientWidth -
+			(Number.parseFloat(style.paddingLeft) || 0) -
+			(Number.parseFloat(style.paddingRight) || 0),
+		height:
+			target.clientHeight -
+			(Number.parseFloat(style.paddingTop) || 0) -
+			(Number.parseFloat(style.paddingBottom) || 0),
+	}
+}

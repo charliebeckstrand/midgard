@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { measureContentBox } from '../../utilities'
 
 type ViewportSize = { width: number; height: number }
 
@@ -27,13 +28,7 @@ export function usePdfViewerViewportSize(
 
 		if (!el) return
 
-		const styles = window.getComputedStyle(el)
-
-		const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
-		const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
-
-		const width = el.clientWidth - padX
-		const height = el.clientHeight - padY
+		const { width, height } = measureContentBox(el)
 
 		// Keep the prior object when the content box is unchanged: a ResizeObserver
 		// callback on an unrelated reflow would otherwise re-render the viewer and
