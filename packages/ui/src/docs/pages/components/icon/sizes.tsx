@@ -8,7 +8,7 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 export default function Sizes() {
 	return (
-		<Flex gap="lg">
+		<Flex gap="lg" wrap>
 			{sizes.map((size) => (
 				<Stack key={size} gap="sm" align="center">
 					<Icon icon={<Plus />} size={size} />
