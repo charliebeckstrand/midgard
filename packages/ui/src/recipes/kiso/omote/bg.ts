@@ -27,6 +27,11 @@ export const bg = {
 		/** The same tone as an SVG fill, for a skeleton drawn as a shape. */
 		fill: mode('fill-zinc-200', 'dark:fill-zinc-700'),
 	},
-	/** Code-block canvas: matches the shiki `github-dark` theme; fixed across color modes. */
-	code: 'bg-[#0d1117]',
+	/**
+	 * The code-block canvas. It is the background of the Shiki theme of the block,
+	 * which the block writes to `--code-canvas`. With no value there, it is
+	 * `#0d1117`, the background of the default theme `github-dark-default`. It
+	 * does not change with the color mode.
+	 */
+	code: 'bg-[var(--code-canvas,#0d1117)]',
 } as const

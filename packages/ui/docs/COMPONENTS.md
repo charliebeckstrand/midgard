@@ -71,6 +71,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The padding, the gap, and the code text of a `CodeBlock` take the step of the nearest density scope. An explicit `size` opens a scope on the block, with the steps of the inline `Code` `size`. At `md` the block is `p-4` with `text-sm` code, and its CopyButton keeps the `sm` size at each step.
 
+> The frame of a `CodeBlock` paints the background of its `theme`, as Shiki writes it on the `<pre>`. Before the markup arrives, the frame paints the background of the default theme. The CopyButton of the block takes colors that read on the background in each color mode.
+
 ## Layout & surfaces
 
 `group` · `card` · `divider` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`

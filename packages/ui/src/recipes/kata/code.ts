@@ -58,23 +58,42 @@ export const k = defineRecipe(
 				// is vertically centered. The close button of an alert uses the same
 				// line box.
 				line: [flex.row, 'h-lh', text],
-				// The canvas is the fixed-dark shiki theme, so the bare button's light-mode
-				// foreground (zinc-500 rest, zinc-950 hover) is too dark to read here; force
-				// its dark-mode values in light mode too. Gate on `not-data-copied` so the
-				// override paints only the rest (clipboard) state and yields to the copied
-				// state's `color="green"` palette: CopyButton writes `data-copied` only while
-				// the copied state holds. Unscoped, the unprefixed `text-zinc-400` clobbers
-				// green's light rest shade (dark is spared only because its green is
-				// `dark:`-prefixed, a separate tailwind-merge group).
-				//
-				// The hover rule repeats the `not-disabled:not-data-disabled` gates of the
-				// bare hover. It is then more specific than the bare hover, so it wins over
-				// it. With the copied gate only, the two rules have the same specificity,
-				// and Tailwind writes the bare hover after it.
-				button: [
-					'not-data-copied:text-zinc-400',
-					'not-data-copied:not-disabled:not-data-disabled:hover:text-white',
-				],
+				// The colors of the button, for the canvas of the theme. The block picks
+				// `dark` or `light` from the background of its theme. The canvas does not
+				// change with the color mode, but the bare button takes the colors of the
+				// color mode.
+				button: {
+					// On a dark canvas, such as that of the default theme, the bare
+					// button's light-mode foreground (zinc-500 rest, zinc-950 hover) is too
+					// dark to read; force its dark-mode values in light mode too. Gate on
+					// `not-data-copied` so the override paints only the rest (clipboard)
+					// state and yields to the copied state's `color="green"` palette:
+					// CopyButton writes `data-copied` only while the copied state holds.
+					// Unscoped, the unprefixed `text-zinc-400` clobbers green's light rest
+					// shade (dark is spared only because its green is `dark:`-prefixed, a
+					// separate tailwind-merge group).
+					//
+					// The hover rule repeats the `not-disabled:not-data-disabled` gates of the
+					// bare hover. It is then more specific than the bare hover, so it wins over
+					// it. With the copied gate only, the two rules have the same specificity,
+					// and Tailwind writes the bare hover after it.
+					dark: [
+						'not-data-copied:text-zinc-400',
+						'not-data-copied:not-disabled:not-data-disabled:hover:text-white',
+					],
+					// On a light canvas, the dark-mode colors are too light to read. They
+					// are zinc-400 and white at rest, and green-500 and green-400 in the
+					// copied state. Thus the light-mode colors paint in dark mode too, in
+					// each state. The `not-data-copied` and `data-copied` gates keep the two
+					// states apart, as the `dark` colors do. Each rule is more specific than
+					// the bare rule of its state, so it wins over that rule.
+					light: [
+						'dark:not-data-copied:text-zinc-500',
+						'dark:not-data-copied:not-disabled:not-data-disabled:hover:text-zinc-950',
+						'dark:data-copied:text-green-700',
+						'dark:data-copied:not-disabled:not-data-disabled:hover:text-green-800',
+					],
+				},
 			},
 		},
 	},

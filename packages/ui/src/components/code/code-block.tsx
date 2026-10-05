@@ -1,11 +1,12 @@
 'use client'
 
-import { type ComponentProps, useEffect, useRef, useState } from 'react'
+import { type ComponentProps, type CSSProperties, useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { announce, cn } from '../../core'
 import { useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { type CodeBlockVariants, k } from '../../recipes/kata/code'
+import { contrastRatio } from '../../utilities'
 import { CopyButton } from '../copy-button'
 import { DEFAULT_LANG, DEFAULT_THEME, highlightCode } from './code-shiki'
 
@@ -113,6 +114,41 @@ function announceCopyError() {
 }
 
 /**
+ * The canvas of a Shiki theme: the background color of its markup, and whether
+ * that color is dark.
+ */
+type Canvas = { color: string; dark: boolean }
+
+/**
+ * Reads the canvas of Shiki markup. Shiki writes the background of the theme
+ * as the `background-color` in the style of the `<pre>`. The canvas is dark
+ * when white text contrasts with it more than black text does. For each
+ * bundled theme, this gives the type that Shiki gives the theme.
+ *
+ * @returns The canvas, or `null` when the `<pre>` has no background color or a
+ *   color that does not parse.
+ * @internal
+ */
+function canvasOf(html: string): Canvas | null {
+	const tag = /<pre\b[^>]*>/i.exec(html)?.[0]
+
+	const style = tag === undefined ? undefined : /\sstyle="([^"]*)"/i.exec(tag)?.[1]
+
+	const color =
+		style === undefined
+			? undefined
+			: /(?:^|;)\s*background-color\s*:([^;]+)/i.exec(style)?.[1]?.trim()
+
+	if (color === undefined) return null
+
+	try {
+		return { color, dark: contrastRatio(color, 'white') >= contrastRatio(color, 'black') }
+	} catch {
+		return null
+	}
+}
+
+/**
  * Props for {@link CodeBlock}. The root `<div>` also takes the `<div>`
  * attributes, such as `id`, `data-*`, and `aria-*`. `lang` names the grammar,
  * so the block does not take the HTML `lang` attribute.
@@ -122,7 +158,12 @@ export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children
 	code: string
 	/** Shiki language grammar. @defaultValue 'tsx' */
 	lang?: BundledLanguage
-	/** Shiki color theme. @defaultValue 'github-dark-default' */
+	/**
+	 * Shiki color theme. The frame of the block paints the background of the
+	 * theme, and the CopyButton takes colors that read on it.
+	 *
+	 * @defaultValue 'github-dark-default'
+	 */
 	theme?: BundledTheme
 	/** Renders a CopyButton overlay. @defaultValue true */
 	copy?: boolean
@@ -163,6 +204,10 @@ export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children
  * Shiki version of `ui`. With no `tokenizeTimeLimit`, a slow line can stop
  * after 500 ms, and the rest of the line then has no highlight.
  * Another engine or a transformer can give other markup.
+ *
+ * The frame of the block paints the `background-color` in the style of the
+ * `<pre>`, as Shiki writes it. When the `<pre>` has no such color, the frame
+ * paints the background of the default theme.
  *
  * The block sets the markup with `dangerouslySetInnerHTML`. Prime only markup
  * that you trust.
@@ -219,6 +264,13 @@ export function primeCodeBlock({
  * A refused copy leaves the CopyButton at rest. The block then announces
  * "Copy failed" in the shared live region, where the button announces "Copied".
  *
+ * The frame paints the background of the theme, as Shiki writes it on the
+ * `<pre>`, so the block has one tone with each theme. Before the markup
+ * arrives, the frame paints the background of the default theme, and so do the
+ * server output and the hydration render. The CopyButton takes colors that
+ * read on the background in each color mode. A dark theme gets light colors,
+ * and a light theme gets dark colors.
+ *
  * At `md` the block is `p-4` with `text-sm` code. The CopyButton keeps the
  * `sm` size at each step, and it centers on the first code line.
  */
@@ -230,6 +282,7 @@ export function CodeBlock({
 	size,
 	label,
 	className,
+	style,
 	...props
 }: CodeBlockProps) {
 	const code = rawCode.trim()
@@ -322,12 +375,21 @@ export function CodeBlock({
 	// the caller gives names the region.
 	const scrollRegionRef = useScrollRegion({ label: label ?? regionName(langProp) })
 
+	// The frame paints the background that the markup gives, so the frame and the
+	// `<pre>` have one tone. With no markup, the canvas of the recipe paints the
+	// background of the default theme. The copy button takes the colors of the
+	// canvas, not the colors of the color mode.
+	const canvas = html === null ? null : canvasOf(html)
+
 	return (
 		<div
 			data-slot="code-block"
 			data-density={size}
 			className={cn(k.block.base, className)}
 			{...props}
+			// The style of the caller spreads first, and the canvas of the theme comes
+			// after it. `omote.bg.code` reads `--code-canvas`.
+			style={canvas ? ({ ...style, '--code-canvas': canvas.color } as CSSProperties) : style}
 		>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
 			<div ref={scrollRegionRef} dir="ltr" className={cn(k.block.content)}>
@@ -352,7 +414,9 @@ export function CodeBlock({
 					<CopyButton
 						text={code}
 						size="sm"
-						className={cn(k.block.copy.button)}
+						className={cn(
+							canvas?.dark === false ? k.block.copy.button.light : k.block.copy.button.dark,
+						)}
 						onCopyError={announceCopyError}
 					/>
 				</div>

@@ -88,6 +88,29 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 
+	// The frame takes the background of the theme in its style, so the block
+	// merges that style with the style of the caller.
+	it('keeps the style of the caller when the theme paints the frame', () => {
+		primeCodeBlock({
+			code: 'style-token',
+			theme: 'github-light-default',
+			html: '<pre class="shiki" style="background-color:#ffffff;color:#1f2328" data-primed=""><code>style-token</code></pre>',
+		})
+
+		const { container } = renderUI(
+			<CodeBlock
+				code="style-token"
+				theme="github-light-default"
+				copy={false}
+				style={{ maxWidth: 320 }}
+			/>,
+		)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(getSlot(container, 'code-block').style.maxWidth).toBe('320px')
+	})
+
 	it('lets a wrapper re-anchor it with its own data-slot', async () => {
 		const { container } = renderUI(<CodeBlock code="const anchor = 1" data-slot="snippet" />)
 
