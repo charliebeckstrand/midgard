@@ -279,7 +279,7 @@ describe('StepperPanel', () => {
 		expect(screen.getByText('Panel Content')).toBeInTheDocument()
 	})
 
-	it('keeps its derived ids when a consumer supplies competing ones', () => {
+	it('keeps its derived id when a consumer supplies a competing one', () => {
 		const { container } = renderUI(
 			<Stepper value={1}>
 				<StepperStep value={1}>
@@ -295,16 +295,12 @@ describe('StepperPanel', () => {
 
 		const panel = bySlot(container, 'stepper-panel')
 
-		// The StepperStep derives the same pair from the shared baseId, so the
-		// panel keeps them. Assert they are present, not merely that `mine` lost:
+		// The StepperStep derives the same id from the shared baseId, so the
+		// panel keeps it. Assert it is present, not merely that `mine` lost:
 		// a bare `not.toHaveAttribute` also passes when the attribute is gone.
 		expect(panel?.id).toBeTruthy()
 
 		expect(panel?.id).not.toBe('mine')
-
-		expect(panel?.getAttribute('aria-labelledby')).toBeTruthy()
-
-		expect(panel?.getAttribute('aria-labelledby')).not.toBe('theirs')
 	})
 
 	it('returns null when value does not match the current step', () => {
@@ -323,7 +319,7 @@ describe('StepperPanel', () => {
 	})
 
 	it('associates the current step with its panel', () => {
-		renderUI(
+		const { container } = renderUI(
 			<Stepper value={1} onValueChange={() => {}}>
 				<StepperStep value={1}>
 					<StepperTitle>Step 1</StepperTitle>
@@ -336,11 +332,26 @@ describe('StepperPanel', () => {
 
 		const step = screen.getByRole('button')
 
-		const panel = screen.getByRole('region')
+		const panel = bySlot(container, 'stepper-panel')
 
-		expect(step.getAttribute('aria-controls')).toBe(panel.id)
+		expect(step.getAttribute('aria-controls')).toBe(panel?.id)
+	})
 
-		expect(panel.getAttribute('aria-labelledby')).toBe(step.id)
+	it('adds no region landmark, as a CollapsePanel adds none', () => {
+		renderUI(
+			<Stepper value={1} onValueChange={() => {}}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperPanels>
+					<StepperPanel value={1}>Panel Content</StepperPanel>
+				</StepperPanels>
+			</Stepper>,
+		)
+
+		expect(screen.queryByRole('region')).not.toBeInTheDocument()
+
+		expect(screen.getByText('Panel Content')).not.toHaveAttribute('aria-labelledby')
 	})
 })
 
