@@ -1,12 +1,11 @@
 /**
- * Compares the load of the docs app with the load of the legacy app. The
- * turbo task `docs:bench` builds the two apps first.
+ * Measures the load of the docs app. The turbo task `docs:bench` builds the
+ * app first.
  *
- * The script serves each build over HTTP/2 with TLS and brotli, as a CDN
- * does, with the paths of `docs-server.ts`. Chromium opens `/button` cold at
- * 390 px, with the CPU four times slower and the network of Lighthouse
- * "Slow 4G". The runs of the two apps interleave, and the table gives the
- * median of each value:
+ * The script serves the build over HTTP/2 with TLS and brotli, as a CDN does,
+ * with the paths of `docs-server.ts`. Chromium opens `/button` cold at 390 px,
+ * with the CPU four times slower and the network of Lighthouse "Slow 4G". The
+ * table gives the median of each value:
  *
  * - FCP and LCP, from the paint entries of the page.
  * - TBT: the time over 50 ms of each long task, from the start of the
@@ -17,7 +16,7 @@
  *   frame that shows the heading of the new page.
  *
  * ```sh
- * pnpm turbo run docs:bench --filter=ui                    # 9 runs of each app
+ * pnpm turbo run docs:bench --filter=ui                    # 9 runs
  * pnpm turbo run docs:bench --filter=ui -- 15 samples.json # 15 runs, and each sample in a file
  * ```
  */
@@ -32,15 +31,13 @@ import { promisify } from 'node:util'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, chromium } from 'playwright'
 import { getOrCompute } from '../src/utilities/get-or-compute'
-import { clientDirOf, type DocsApp, fileOf, HYDRATED, TYPES } from './docs-server'
-
-const APPS: readonly DocsApp[] = ['docs-legacy', 'docs']
+import { CLIENT_DIR, fileOf, HYDRATED, TYPES } from './docs-server'
 
 const brotli = promisify(brotliCompress)
 
 const PAGE = '/button'
 
-/** The budget of the first pull request of the new app, on `/button`. */
+/** The budget of the docs app on `/button`, from its first pull request. */
 const BUDGET = { fcp: 700, requests: 16 }
 
 /** The "Slow 4G" network of Lighthouse, as the measurements of the plan use it. */
@@ -55,7 +52,6 @@ const SLOW_4G = {
 const COMPRESSED = new Set(['.css', '.html', '.js', '.json', '.svg'])
 
 type Sample = {
-	app: DocsApp
 	fcp: number
 	lcp: number
 	tbt: number
@@ -64,7 +60,7 @@ type Sample = {
 	switch: number
 }
 
-type Metric = Exclude<keyof Sample, 'app'>
+type Metric = keyof Sample
 
 /** The readings that the page collects for the bench. */
 type Readings = {
@@ -145,15 +141,12 @@ function createCertificate(): SecureServerOptions {
 	}
 }
 
-/** Serves the build of an app over HTTP/2, and gives its origin. */
+/** Serves the docs build over HTTP/2, and gives its origin. */
 async function serve(
-	app: DocsApp,
 	tls: SecureServerOptions,
-): Promise<{ app: DocsApp; origin: string; server: Http2SecureServer }> {
-	const root = clientDirOf(app)
-
-	await stat(root).catch(() => {
-		throw new Error(`Build the ${app} app first: no build is at ${root}.`)
+): Promise<{ origin: string; server: Http2SecureServer }> {
+	await stat(CLIENT_DIR).catch(() => {
+		throw new Error(`Build the docs app first: no build is at ${CLIENT_DIR}.`)
 	})
 
 	// The server compresses each file once, as a CDN keeps the compressed file.
@@ -172,7 +165,7 @@ async function serve(
 	const server = createSecureServer(tls, async (request, response) => {
 		const { pathname } = new URL(request.url, 'https://localhost')
 
-		const file = await fileOf(root, pathname)
+		const file = await fileOf(CLIENT_DIR, pathname)
 
 		const extension = path.extname(file)
 
@@ -198,7 +191,7 @@ async function serve(
 
 	await new Promise<void>((done) => server.listen(0, 'localhost', done))
 
-	return { app, origin: `https://localhost:${(server.address() as AddressInfo).port}`, server }
+	return { origin: `https://localhost:${(server.address() as AddressInfo).port}`, server }
 }
 
 // The code below runs in the page, and it is text: the TypeScript runner of
@@ -247,7 +240,7 @@ const WATCH_SWITCH = `{
 }`
 
 /** Reads the load values of the page. */
-function readLoad(): Omit<Sample, 'app' | 'switch'> {
+function readLoad(): Omit<Sample, 'switch'> {
 	const { lcp, longTasks, hydrated = 0 } = window.__bench
 
 	const fcp = performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? 0
@@ -267,8 +260,8 @@ function readLoad(): Omit<Sample, 'app' | 'switch'> {
 	return { fcp, lcp, tbt, js: js / 1024, requests: early.length + 1 }
 }
 
-/** One cold run of an app: the load of the page, and then a page switch. */
-async function run(browser: Browser, app: DocsApp, origin: string): Promise<Sample> {
+/** One cold run: the load of the page, and then a page switch. */
+async function run(browser: Browser, origin: string): Promise<Sample> {
 	const context = await browser.newContext({
 		viewport: { width: 390, height: 844 },
 		deviceScaleFactor: 3,
@@ -318,7 +311,7 @@ async function run(browser: Browser, app: DocsApp, origin: string): Promise<Samp
 
 		const { switchStart = 0, switchEnd = 0 } = await page.evaluate(() => window.__bench)
 
-		return { app, ...load, switch: switchEnd - switchStart }
+		return { ...load, switch: switchEnd - switchStart }
 	} finally {
 		await context.close()
 	}
@@ -336,32 +329,29 @@ function median(values: readonly number[]): number {
 
 /** The table of medians, in Markdown. */
 function table(samples: readonly Sample[]): string {
-	const of = (app: DocsApp, metric: Metric) =>
-		median(samples.filter((sample) => sample.app === app).map((sample) => sample[metric]))
-
 	const rows: [label: string, metric: Metric, unit: string, budget: string][] = [
 		['FCP', 'fcp', 'ms', `< ${BUDGET.fcp} ms`],
-		['LCP', 'lcp', 'ms', 'lower than legacy'],
-		['TBT', 'tbt', 'ms', 'lower than legacy'],
-		['JS to hydration (brotli)', 'js', 'KB', 'lower than legacy'],
+		['LCP', 'lcp', 'ms', ''],
+		['TBT', 'tbt', 'ms', ''],
+		['JS to hydration (brotli)', 'js', 'KB', ''],
 		['Requests to hydration', 'requests', '', `< ${BUDGET.requests}`],
-		['Page switch', 'switch', 'ms', 'faster than legacy'],
+		['Page switch', 'switch', 'ms', ''],
 	]
 
 	const lines = rows.map(([label, metric, unit, budget]) => {
-		const cells = APPS.map((app) => `${Math.round(of(app, metric))}${unit ? ` ${unit}` : ''}`)
+		const value = Math.round(median(samples.map((sample) => sample[metric])))
 
-		return `| ${label} | ${cells.join(' | ')} | ${budget} |`
+		return `| ${label} | ${value}${unit ? ` ${unit}` : ''} | ${budget} |`
 	})
 
-	return ['| `/button` | Legacy | New | Budget |', '|---|---|---|---|', ...lines].join('\n')
+	return ['| `/button` | Median | Budget |', '|---|---|---|', ...lines].join('\n')
 }
 
 const [runs = '9', out] = process.argv.slice(2)
 
 const tls = createCertificate()
 
-const servers = await Promise.all(APPS.map((app) => serve(app, tls)))
+const { origin, server } = await serve(tls)
 
 const browser = await chromium.launch()
 
@@ -369,20 +359,18 @@ const samples: Sample[] = []
 
 try {
 	for (let index = 0; index < Number(runs); index++) {
-		for (const { app, origin } of servers) {
-			const sample = await run(browser, app, origin)
+		const sample = await run(browser, origin)
 
-			samples.push(sample)
+		samples.push(sample)
 
-			console.log(JSON.stringify(sample))
-		}
+		console.log(JSON.stringify(sample))
 	}
 } finally {
 	await browser.close()
 
-	for (const { server } of servers) server.close()
+	server.close()
 }
 
-console.log(`\n${table(samples)}\n\n${runs} cold runs of each app, medians.`)
+console.log(`\n${table(samples)}\n\n${runs} cold runs, medians.`)
 
 if (out) writeFileSync(out, `${JSON.stringify(samples, null, '\t')}\n`)

@@ -1,11 +1,11 @@
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { type ESTree, normalizePath, Visitor } from 'vite'
 import { DEFAULT_LANG, DEFAULT_THEME } from '../../components/code/code-shiki.ts'
 import { highlightShiki } from '../../components/code/code-shiki-highlighter.ts'
 import { humanize } from '../kit/humanize.ts'
 
-/** The code module of an example: the source of its file, and the markup that `CodeBlock` paints. */
+/** The code of an example: the source of its file, and the markup that `CodeBlock` paints. */
 export type ExampleCode = {
 	code: string
 	/** The markup of `code` for `primeCodeBlock`, with the language and the theme of `CodeBlock`. */
@@ -23,20 +23,32 @@ export type ExampleMeta = {
 	title: string
 	/** For a playground, the name of the component that takes the props. */
 	component?: string
-	/** Loads the code module of the example. */
-	code: () => Promise<{ default: ExampleCode }>
+	/** Loads the code of the example, from the code module of its folder. */
+	code: () => Promise<ExampleCode>
 }
 
 /** Parses TSX, as the `parse` of a plugin context does. */
 type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
 
-/** The public id of the code module of an example. */
+/**
+ * The public id of the code module of a folder in `pages`. The module holds
+ * the code of each example in the folder, so a page or a tab loads one code
+ * module for all of its examples.
+ */
 export const CODE = 'virtual:docs/code/'
 
-/** The public id of the code module of the example at `file` in `pages`. */
+/** The public id of the code module of the folder of the example at `file` in `pages`. */
 export function codeIdOf(pages: string, file: string): string {
-	return CODE + normalizePath(path.relative(pages, file)).slice(0, -'.tsx'.length)
+	return CODE + normalizePath(path.relative(pages, path.dirname(file)))
 }
+
+/** The key of the example at `file` in the code module of its folder: the name of the file. */
+function codeKeyOf(file: string): string {
+	return path.basename(file, '.tsx')
+}
+
+/** An example module in `pages/`: a TSX file that is not the index of a page or a tab. */
+export const EXAMPLE = /(?<!\/index)\.tsx$/
 
 // The file name of the playground of a page.
 const PLAYGROUND = 'playground'
@@ -130,22 +142,27 @@ export function attachMeta(
 	const meta = [
 		`title: ${JSON.stringify(humanize(path.basename(file, '.tsx')))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
-		`code: () => import(${JSON.stringify(codeIdOf(pages, file))})`,
+		`code: () => import(${JSON.stringify(codeIdOf(pages, file))}).then((module) => module.default[${JSON.stringify(codeKeyOf(file))}])`,
 	]
 
 	return `${code}\nObject.assign(${name}, { ${meta.join(', ')} })\n`
 }
 
 /**
- * Loads the code module of the example at `file`. The source of a playground
- * has no `{...props}` spread, and `spread` gives the place of it. The markup
- * is the highlight of the code with no props, so a playground at its
- * defaults shows its code highlighted at once too.
+ * Reads the code of the example at `file`. The source of a playground has no
+ * `{...props}` spread, and `spread` gives the place of it. The markup is the
+ * highlight of the code with no props, so a playground at its defaults shows
+ * its code highlighted at once too. It gives nothing for a module that is not
+ * an example.
  */
-export async function loadCode(parse: Parse, file: string): Promise<ExampleCode> {
+async function readCode(parse: Parse, file: string): Promise<ExampleCode | undefined> {
 	const source = await readFile(file, 'utf8')
 
-	const spread = readExample(parse, source, file)?.spread
+	const example = readExample(parse, source, file)
+
+	if (!example) return undefined
+
+	const { spread } = example
 
 	const code = spread ? source.slice(0, spread.start) + source.slice(spread.end) : source
 
@@ -156,4 +173,29 @@ export async function loadCode(parse: Parse, file: string): Promise<ExampleCode>
 		html,
 		...(spread && { spread: { index: spread.start, separator: spread.separator } }),
 	}
+}
+
+/** The {@link EXAMPLE} modules of `folder`. */
+export async function exampleFiles(folder: string): Promise<string[]> {
+	const entries = await readdir(folder, { withFileTypes: true })
+
+	return entries
+		.filter((entry) => entry.isFile())
+		.map((entry) => path.join(folder, entry.name))
+		.filter((file) => EXAMPLE.test(file))
+		.toSorted()
+}
+
+/** Loads the code module of a folder: the code of each example in `files`, by {@link codeKeyOf}. */
+export async function loadCodes(
+	parse: Parse,
+	files: readonly string[],
+): Promise<Record<string, ExampleCode>> {
+	const codes = await Promise.all(
+		files.map(async (file) => [file, await readCode(parse, file)] as const),
+	)
+
+	return Object.fromEntries(
+		codes.flatMap(([file, code]) => (code ? [[codeKeyOf(file), code]] : [])),
+	)
 }

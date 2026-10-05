@@ -99,11 +99,11 @@ jobs:
       # stops at the lockfile hash.
       #
       # Vitest hashes the text of every file `vitest.config.ts` imports into
-      # each entry's key, and the config imports the docs engine plugins. An
-      # edit to any of them makes every entry miss. The key was the lockfile
-      # alone, and actions/cache does not save on an exact hit, so the cache
-      # froze at the first run after a lockfile change. The next edit to the
-      # docs engine made it useless, and each run transformed the suite cold.
+      # each entry's key, and the config imports the docs plugin. An edit to
+      # any of them makes every entry miss. The key was the lockfile alone,
+      # and actions/cache does not save on an exact hit, so the cache froze at
+      # the first run after a lockfile change. The next edit to an imported
+      # file made it useless, and each run transformed the suite cold.
       # The second hash starts a new cache when those files change, and the
       # SHA makes each run save what it wrote for the next run to restore.
       # Each shard transforms a different half of the suite, so each shard
@@ -111,18 +111,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs-legacy/engine/**/*.ts', '!packages/ui/src/docs-legacy/engine/**/__tests__/**') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs-legacy/engine/**/*.ts', '!packages/ui/src/docs-legacy/engine/**/__tests__/**') }}-
-      # The disk cache of the docs API extractor, for the docs tests that read
-      # the API record (`src/__tests__/helpers/api-record.ts`). See the same
-      # step in `browser`.
-      - uses: actions/cache@v6
-        with:
-          path: packages/ui/node_modules/.cache/docs-api-reference
-          key: ${{ runner.os }}-docs-api-test-${{ matrix.shard }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-docs-api-test-${{ matrix.shard }}-
+            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The other packages have few test files, and a shard of them can be
       # empty. The first shard runs them whole.
@@ -172,26 +163,12 @@ jobs:
       # library, Chromium does not launch, and the error names the library.
       # Put `--with-deps` back then.
       - run: pnpm --filter ui exec playwright install chromium
-      # The disk cache of the API extractor of the legacy docs app. A cold
-      # extraction took about 9s of its build, and a read of the cache took
-      # under 1s. The cache stores the hash of each input file and a
-      # fingerprint of the extractor, the tsconfig chain, and the lockfile, and
-      # it is not used when one of them changed. A prefix restore is therefore
-      # safe. The SHA makes each run save what it wrote for the next run to
-      # restore.
-      - uses: actions/cache@v6
-        with:
-          path: packages/ui/node_modules/.cache/docs-api-reference
-          key: ${{ runner.os }}-docs-api-browser-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-docs-api-browser-
       # Filtered to `ui`, as in `compiler`. `docs:hydration` loads prerendered
-      # pages of the docs app in the same Chromium, and `docs:legacy:hydration`
-      # loads pages of the legacy app. `bundle:budget` measures the legacy build
-      # (see bundle-budget.ts for what it asserts and why). The tasks depend on
-      # `docs:build` and `docs:legacy:build`, so this job builds each app one
-      # time. Before, `gate` also built the docs for the budget.
-      - run: pnpm turbo run test:browser docs:hydration docs:legacy:hydration bundle:budget --filter=ui --summarize
+      # pages of the docs app in the same Chromium. `bundle:budget` measures
+      # the docs build (see bundle-budget.ts for what it asserts and why). The
+      # two tasks depend on `docs:build`, so this job builds the app one time.
+      # Before, `gate` also built the docs for the budget.
+      - run: pnpm turbo run test:browser docs:hydration bundle:budget --filter=ui --summarize
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
@@ -227,9 +204,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache-compiler-*
-          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs-legacy/engine/**/*.ts', '!packages/ui/src/docs-legacy/engine/**/__tests__/**') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs-legacy/engine/**/*.ts', '!packages/ui/src/docs-legacy/engine/**/__tests__/**') }}-
+            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
       # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
       # the `^build` of each package without it, and builds for nothing.
       - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2

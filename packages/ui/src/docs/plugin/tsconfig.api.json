@@ -5,5 +5,5 @@
 		"incremental": false
 	},
 	"include": ["../.."],
-	"exclude": ["../../docs", "../../docs-legacy", "../../**/__tests__", "../../__benchmarks__"]
+	"exclude": ["../../docs", "../../**/__tests__", "../../__benchmarks__"]
 }

@@ -7,9 +7,8 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 // built on one of them silently rejects a ref the component would forward.
 // `SlotProps` was an exact alias of `ComponentProps` and is gone with them.
 
-// Shipped-source directories. Tests, benchmarks, and the docs engine are
-// excluded; the docs engine names the old bases to extract pass-through from
-// third-party code.
+// Shipped-source directories. Tests, benchmarks, and the docs app are
+// excluded.
 const SCAN_DIRS = [
 	'components',
 	'core',
