@@ -86,7 +86,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useFormattedInput` | Caret-preserving reformat engine for formatted inputs; core under `useMaskInput` / `CurrencyInput`. |
-| `usePendingCaret` | Caret-preserving plumbing: queues a caret restore against the formatted value while the input holds focus. |
+| `usePendingCaret` | Caret-preserving plumbing: queues a caret restore against the formatted value while the input holds focus and its type has a text selection. |
 
 ## Exported types
 

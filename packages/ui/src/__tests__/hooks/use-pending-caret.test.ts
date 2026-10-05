@@ -3,8 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { usePendingCaret } from '../../hooks/use-pending-caret'
 import { attach } from '../helpers'
 
-function setup() {
+function setup(type = 'text') {
 	const input = attach(document.createElement('input'))
+
+	input.type = type
 
 	input.value = 'hello world'
 
@@ -80,5 +82,19 @@ describe('usePendingCaret', () => {
 		await flushMicrotasks()
 
 		expect(input.selectionStart).toBe(11)
+	})
+
+	// A `number` input has no text selection, so `setSelectionRange` throws
+	// InvalidStateError on it. A spread can set that type on a mask field.
+	it('skips restoration when the input type has no text selection', () => {
+		const { input, result, rerender } = setup('number')
+
+		act(() => {
+			result.current.setCaret(3)
+		})
+
+		expect(() => rerender()).not.toThrow()
+
+		expect(input.selectionStart).toBeNull()
 	})
 })
