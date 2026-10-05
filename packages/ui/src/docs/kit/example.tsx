@@ -1,4 +1,4 @@
-import { type ComponentType, type ReactNode, useState } from 'react'
+import { type ComponentType, type ReactNode, useCallback, useState } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn } from 'ui/core'
@@ -7,6 +7,7 @@ import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
+import { useIdle } from './idle.ts'
 
 function isExample(component: object): component is ExampleMeta {
 	return 'title' in component && 'code' in component
@@ -94,10 +95,11 @@ export function ExampleFrame({
 }) {
 	const [open, setOpen] = useState(false)
 
-	// The code module loads when the reader points at "Show code" or focuses it.
-	const prepare = () => {
-		loadCode(meta)
-	}
+	// The code module loads in idle time, so "Show code" opens at once. It loads
+	// before that when the reader points at "Show code" or focuses it.
+	const prepare = useCallback(() => loadCode(meta), [meta])
+
+	useIdle(prepare)
 
 	// The block opens when its code is loaded, so it opens at its full height
 	// with the code in it. A block that suspends opens empty, and React then

@@ -3,9 +3,11 @@ import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/a
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
 import type { BarrelApi, ComponentApi } from '../plugin/api.ts'
+import { useIdle } from './idle.ts'
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
-// of its own, so the page does not load it until the reader opens an entry.
+// of its own, so it does not delay the first paint. It loads in idle time
+// after the mount, or before that when the reader points at the list.
 let entry: Promise<void> | undefined
 
 // The entry component, when its chunk is loaded.
@@ -21,13 +23,15 @@ function loadEntry(): Promise<void> {
 
 /**
  * The API reference of a barrel: one entry for each component, in the name
- * order of the API data. The entry loads when the reader points at the list
- * or focuses it.
+ * order of the API data. The entry loads in idle time after the mount, or
+ * when the reader points at the list or focuses it.
  */
 export function ApiTable({ api }: { api: BarrelApi }) {
 	const components = Object.values(api)
 
 	const [open, setOpen] = useState<string[]>([])
+
+	useIdle(loadEntry)
 
 	// An entry opens when its chunk is loaded, so it opens at its full height
 	// with its props in it. An entry that suspends opens empty, and React then
