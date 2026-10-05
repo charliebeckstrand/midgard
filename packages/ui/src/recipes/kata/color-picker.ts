@@ -25,11 +25,13 @@ const button = defineRecipe({
 const value = ['block', 'truncate']
 
 const swatch = {
-	base: [
-		'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
-		rounded.sm,
-		dan.size.check.box,
-	],
+	base: ['relative shrink-0 overflow-hidden', rounded.sm, dan.size.check.box],
+	/**
+	 * The color of the trigger swatch, with the inset ring. An inset shadow paints above the
+	 * background of its own element, but below the children of that element. The ring is on the
+	 * color for this reason, so a white or a black color keeps an edge.
+	 */
+	fill: 'block size-full rounded-[inherit] ring-1 ring-inset ring-black/10 dark:ring-white/15',
 	/** The checkerboard behind the trigger swatch while the color is translucent. */
 	checkerboard: [omote.checkerboard, '[background-size:8px_8px]'],
 }

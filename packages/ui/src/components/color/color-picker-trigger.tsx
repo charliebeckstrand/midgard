@@ -97,7 +97,7 @@ export function ColorPickerTrigger({
 							data-slot="color-picker-swatch"
 							className={cn(k.swatch.base, alpha && k.swatch.checkerboard)}
 						>
-							<span className="block size-full" style={{ backgroundColor: swatchColor }} />
+							<span className={cn(k.swatch.fill)} style={{ backgroundColor: swatchColor }} />
 						</span>
 						<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>{label}</span>
 					</Button>
