@@ -32,7 +32,7 @@ export default function UndoAndRedo() {
 				<EditHelp label="Undo help">
 					<PointerHint
 						mouse="Edit a cell and save it. Then, with focus on the grid, press Ctrl+Z or Cmd+Z to undo the save, and Ctrl+Shift+Z, Cmd+Shift+Z, or Ctrl+Y to redo it. In an open editor, the keys undo your typing instead."
-						touch="Undo and Redo step through the saves. A cell opens on a double-click or a key, so make a save with a mouse or a keyboard."
+						touch="Tap a cell to select it, then tap it again to edit it. Return on the keyboard saves the cell. Undo and Redo then step through the saves."
 					/>
 				</EditHelp>
 			</Flex>

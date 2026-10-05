@@ -3,6 +3,7 @@
 import {
 	type ComponentProps,
 	type MouseEvent,
+	type PointerEvent,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -16,6 +17,7 @@ import { fromInteractiveContent } from './engine/grid-row/cell'
 import { clearStickyChrome, obscuringInsets, setScrollMargin } from './engine/grid-sticky-insets'
 import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
+import type { GridTouchEntry } from './use-grid-touch-entry'
 
 /**
  * Active-cell flag for one navigable cell. Subscribes to the cursor store, and
@@ -143,6 +145,8 @@ export function GridNavCell({
  * attributes the caller layers on (the editable projection adds `aria-readonly`).
  * A column's own `onMouseDown` runs first, and its `preventDefault()` does not
  * stop the seat, because the cursor is a roving model (CONVENTIONS.md §3.9).
+ * With `touch`, the cell also gives its press, lift, and touch end to the
+ * touch entry of the editing layer (see {@link touchEntryProps}).
  *
  * @internal
  */
@@ -156,8 +160,10 @@ export function seatingCellProps<T>(args: {
 	/** Seats the cursor on a pressed cell (see `useGridNavigation`). */
 	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
 	extra?: ComponentProps<'td'>
+	/** The touch entry of an editable cell under a grid-owned session, else `undefined`. */
+	touch?: GridTouchEntry | undefined
 }): ComponentProps<'td'> {
-	const { col, row, rowIdx, colIndexMapRef, cellId, seat, extra } = args
+	const { col, row, rowIdx, colIndexMapRef, cellId, seat, extra, touch } = args
 
 	const colIdx = colIndexMapRef.current.get(col.id) ?? -1
 
@@ -184,6 +190,46 @@ export function seatingCellProps<T>(args: {
 			},
 			{ checkForDefaultPrevented: false },
 		),
+		...(touch ? touchEntryProps(touch, { row: rowIdx, col: colIdx }, prev) : undefined),
+	}
+}
+
+/**
+ * The touch handlers of one editable cell, merged over the handlers of the
+ * column's `cellProps`. The column's handler runs first. Its `preventDefault()`
+ * on the press or the lift stops the open, because a tap that opens a cell is
+ * side behavior. A move, a cancel, and a touch end keep the state of the
+ * gesture true, so they run whatever the column does (CONVENTIONS.md §3.9).
+ *
+ * A press on focusable content in the cell, such as an open editor, or in a
+ * portal that the cell renders, gives no cell. Such a press opens nothing.
+ *
+ * @internal
+ */
+function touchEntryProps(
+	touch: GridTouchEntry,
+	coord: Coord,
+	prev: ComponentProps<'td'> | undefined,
+): ComponentProps<'td'> {
+	return {
+		onPointerDown: composeEventHandlers(
+			prev?.onPointerDown,
+			(event: PointerEvent<HTMLTableCellElement>) => {
+				const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
+
+				touch.onPointerDown(inCell && !fromInteractiveContent(event.target) ? coord : null, event)
+			},
+		),
+		onPointerMove: composeEventHandlers(prev?.onPointerMove, touch.onPointerMove, {
+			checkForDefaultPrevented: false,
+		}),
+		onPointerUp: composeEventHandlers(prev?.onPointerUp, touch.onPointerUp),
+		onPointerCancel: composeEventHandlers(prev?.onPointerCancel, touch.onPointerCancel, {
+			checkForDefaultPrevented: false,
+		}),
+		onTouchEnd: composeEventHandlers(prev?.onTouchEnd, touch.onTouchEnd, {
+			checkForDefaultPrevented: false,
+		}),
 	}
 }
 
