@@ -1,4 +1,4 @@
-import { type ComponentType, type ReactNode, Suspense, use, useState } from 'react'
+import { type ComponentType, type ReactNode, useState } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn } from 'ui/core'
@@ -27,24 +27,30 @@ export function metaOf(component: { readonly name: string }): ExampleMeta {
 // Each example loads its code once, and each frame of it shares the load. The
 // examples of a folder share one code module. A failed load gives no code, so the block stays empty until the next
 // page load.
-const loads = new WeakMap<ExampleMeta, Promise<ExampleCode | undefined>>()
+const loads = new WeakMap<ExampleMeta, Promise<void>>()
 
-function loadCode(meta: ExampleMeta): Promise<ExampleCode | undefined> {
+// The code of each example whose load ended. A frame reads it in the render,
+// so an open block paints its code in the frame that opens it.
+const codes = new WeakMap<ExampleMeta, ExampleCode | undefined>()
+
+function loadCode(meta: ExampleMeta): Promise<void> {
 	return getOrCompute(loads, meta, () =>
 		meta.code().then(
 			(code) => {
 				// The markup from the build paints in the first frame of the block.
 				primeCodeBlock({ code: code.code, html: code.html })
 
-				return code
+				codes.set(meta, code)
 			},
-			() => undefined,
+			() => {
+				codes.set(meta, undefined)
+			},
 		),
 	)
 }
 
 function Code({ meta, print }: { meta: ExampleMeta; print?: (code: ExampleCode) => string }) {
-	const code = use(loadCode(meta))
+	const code = codes.get(meta)
 
 	if (!code) return null
 
@@ -93,6 +99,14 @@ export function ExampleFrame({
 		loadCode(meta)
 	}
 
+	// The block opens when its code is loaded, so it opens at its full height
+	// with the code in it. A block that suspends opens empty, and React then
+	// holds the code back for at least 300 ms.
+	const toggle = (next: boolean) => {
+		if (codes.has(meta)) setOpen(next)
+		else loadCode(meta).then(() => setOpen(next))
+	}
+
 	return (
 		<Stack gap="sm" data-slot="example">
 			<Flex
@@ -118,7 +132,7 @@ export function ExampleFrame({
 						{children}
 					</div>
 				</div>
-				<Collapse animate="slide" open={open} onOpenChange={setOpen}>
+				<Collapse animate="slide" open={open} onOpenChange={toggle}>
 					<div className="border-t border-zinc-200 dark:border-zinc-800">
 						<CollapseTrigger
 							className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2"
@@ -130,9 +144,7 @@ export function ExampleFrame({
 						</CollapseTrigger>
 					</div>
 					<CollapsePanel>
-						<Suspense fallback={null}>
-							<Code meta={meta} print={print} />
-						</Suspense>
+						<Code meta={meta} print={print} />
 					</CollapsePanel>
 				</Collapse>
 			</div>
