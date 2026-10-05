@@ -625,8 +625,8 @@ describe('test isolation boundary', () => {
 	// The scans above enumerate the projects that share a registry. That set
 	// lives in vitest.config.ts and can change with no signal here, which would
 	// leave this gate guarding a registry it no longer covers. Read the config as
-	// text rather than import it: it pulls in the docs plugin, and with it
-	// ts-morph, which this node project exists to avoid.
+	// text rather than import it: an import runs the config, and its walk of the
+	// test tree, in a test worker.
 	it('covers every project that shares a module registry', () => {
 		const config = readFileSync(join(srcDir, '..', 'vitest.config.ts'), 'utf8')
 

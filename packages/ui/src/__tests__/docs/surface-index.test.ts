@@ -2,8 +2,8 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
-import { parseReExports } from '../../docs-legacy/engine/plugins'
 
 // This file lives at packages/ui/src/__tests__/docs/; climb to the package root.
 const UI_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
@@ -25,13 +25,26 @@ function documentedTokens(mdFile: string): Set<string> {
 	)
 }
 
-/** PascalCase / camelCase value exports a barrel re-exports (types excluded). */
+/**
+ * The names of the values that a barrel re-exports, such as `Button` from
+ * `export { Button, type ButtonProps } from './button'`. A type-only statement
+ * or specifier is not a value. The barrel names each re-export (CONVENTIONS
+ * §4.6), so a parse of the syntax finds each one.
+ */
 function barrelValueExports(relPath: string): string[] {
 	const file = join(SRC, relPath)
 
-	return parseReExports(readFileSync(file, 'utf-8'), file)
-		.filter((re) => !re.isType)
-		.map((re) => re.exportedName)
+	const source = ts.createSourceFile(file, readFileSync(file, 'utf-8'), ts.ScriptTarget.Latest)
+
+	return source.statements.flatMap((statement) => {
+		if (!ts.isExportDeclaration(statement) || statement.isTypeOnly) return []
+
+		const clause = statement.exportClause
+
+		if (!statement.moduleSpecifier || !clause || !ts.isNamedExports(clause)) return []
+
+		return clause.elements.filter((element) => !element.isTypeOnly).map(({ name }) => name.text)
+	})
 }
 
 function subdirectories(relPath: string): string[] {

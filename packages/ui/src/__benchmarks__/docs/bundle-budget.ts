@@ -1,9 +1,8 @@
 /**
- * Size budget for the bundle of the legacy docs app, run in CI after
- * `docs:legacy:build`.
+ * Size budget for the bundle of the docs app, run in CI after `docs:build`.
  *
  * Nothing else in the gate notices a bundle regression: a stray eager import
- * that pulls a lazy demo's dependency into the entry chunk type-checks, lints,
+ * that pulls a lazy page's dependency into the entry chunk type-checks, lints,
  * and tests clean. This asserts the two numbers such a regression moves — total
  * gzip, and the chunks each page loads before it hydrates — and fails with the
  * delta when either passes its ceiling.

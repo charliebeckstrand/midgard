@@ -1,8 +1,0 @@
-/* ui's docs entry stylesheet. The engine sheet gives Tailwind and the docs
-   chrome's own rules. ui's sheet gives the fonts and the tokens. The source
-   line makes Tailwind generate the classes of ui's components, of the demos,
-   and of the engine. */
-@import './engine/app.css';
-@import '../../tailwind.css';
-
-@source '../';

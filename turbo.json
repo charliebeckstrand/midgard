@@ -33,7 +33,6 @@
 			"dependsOn": ["^build"],
 			"inputs": [
 				"src/**",
-				"!src/docs-legacy/**",
 				"!src/**/__tests__/**",
 				"!src/__benchmarks__/**",
 				"tsconfig.json",
@@ -41,30 +40,16 @@
 			],
 			"outputs": ["src/docs/dist/**"]
 		},
-		"docs:legacy:build": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**",
-				"vite.docs-legacy.config.ts",
-				"tsconfig.json",
-				"$TURBO_ROOT$/tsconfig.base.json"
-			],
-			"outputs": ["src/docs-legacy/dist/**"]
-		},
 		"bundle:budget": {
-			"dependsOn": ["docs:legacy:build"],
-			"inputs": ["src/docs-legacy/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
+			"dependsOn": ["docs:build"],
+			"inputs": ["src/docs/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
 		},
 		"docs:hydration": {
 			"dependsOn": ["docs:build"],
 			"inputs": ["src/docs/dist/**", "scripts/docs-server.ts", "scripts/docs-hydration.ts"]
 		},
-		"docs:legacy:hydration": {
-			"dependsOn": ["docs:legacy:build"],
-			"inputs": ["src/docs-legacy/dist/**", "scripts/docs-server.ts", "scripts/docs-hydration.ts"]
-		},
 		"docs:bench": {
-			"dependsOn": ["docs:build", "docs:legacy:build"],
+			"dependsOn": ["docs:build"],
 			"cache": false
 		},
 		"lint": {
