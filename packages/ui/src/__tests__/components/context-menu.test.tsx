@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	ContextMenu,
 	type ContextMenuEntry,
 	type ContextMenuItem,
 	ContextMenuList,
+	type ContextMenuProps,
 	mergeContextMenuItems,
 	resolveContextMenuEntries,
 } from '../../components/context-menu'
@@ -169,6 +171,98 @@ describe('ContextMenu', () => {
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+})
+
+describe('ContextMenu across a toggle', () => {
+	const surface = <div data-testid="surface">Right-click</div>
+
+	/** A child with its own state, so a remount shows as a reset count. */
+	function Counter() {
+		const [count, setCount] = useState(0)
+
+		return (
+			<button type="button" onClick={() => setCount((value) => value + 1)}>
+				{`Count ${count}`}
+			</button>
+		)
+	}
+
+	/** The two ways the menu turns off: `disabled`, or no entries to show. */
+	const toggles: [string, Partial<ContextMenuProps>][] = [
+		['disabled turns on', { disabled: true }],
+		['the entries cross zero', { defaults: [] }],
+	]
+
+	it.each(toggles)('keeps the content and its state when %s', (_, off) => {
+		const { rerender } = renderUI(
+			<ContextMenu defaults={defaults}>
+				<Counter />
+			</ContextMenu>,
+		)
+
+		const counter = screen.getByRole('button')
+
+		fireEvent.click(counter)
+
+		rerender(
+			<ContextMenu defaults={defaults} {...off}>
+				<Counter />
+			</ContextMenu>,
+		)
+
+		expect(screen.getByRole('button')).toBe(counter)
+
+		expect(counter).toHaveTextContent('Count 1')
+
+		// The menu is off, so the browser's native menu opens.
+		expect(fireEvent.contextMenu(counter)).toBe(true)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		rerender(
+			<ContextMenu defaults={defaults}>
+				<Counter />
+			</ContextMenu>,
+		)
+
+		expect(screen.getByRole('button')).toBe(counter)
+
+		expect(counter).toHaveTextContent('Count 1')
+
+		fireEvent.contextMenu(counter)
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+	})
+
+	it.each(toggles)('closes the open menu when %s, and does not open it again', (_, off) => {
+		const { rerender } = renderUI(<ContextMenu defaults={defaults}>{surface}</ContextMenu>)
+
+		fireEvent.contextMenu(screen.getByTestId('surface'))
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+
+		rerender(
+			<ContextMenu defaults={defaults} {...off}>
+				{surface}
+			</ContextMenu>,
+		)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		rerender(<ContextMenu defaults={defaults}>{surface}</ContextMenu>)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it.each(toggles)('keeps the className on the wrapper when %s', (_, off) => {
+		renderUI(
+			<ContextMenu defaults={defaults} className="surface-tone" {...off}>
+				{surface}
+			</ContextMenu>,
+		)
+
+		expect(screen.getByTestId('surface').parentElement).toHaveClass('surface-tone')
 	})
 })
 

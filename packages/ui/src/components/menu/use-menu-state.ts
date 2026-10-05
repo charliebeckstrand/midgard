@@ -9,6 +9,7 @@ import {
 	useId,
 	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingDisclosure, useMediaQuery } from '../../hooks'
@@ -44,6 +45,7 @@ type MenuStateOptions = {
 	placement?: FloatingPlacement
 	size?: ScaleStep<typeof scale>
 	sheet?: boolean
+	disabled?: boolean
 }
 
 /**
@@ -96,7 +98,7 @@ function isContextMenuKey(event: KeyboardEvent): boolean {
 /**
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the handlers of the context surface and an
- * `isContextMenu` flag. The right-click `handleContextMenu` opens the menu. The
+ * `isContextSurface` flag. The right-click `handleContextMenu` opens the menu. The
  * `handleContextKeyDown` and `handleContextPointerDown` captures tell a keyboard
  * open from a pointer open, and only a keyboard open restores focus on close.
  * Drives all three menu modes. A `placement` gives the dropdown. A
@@ -114,6 +116,7 @@ export function useMenuState({
 	placement,
 	size,
 	sheet = true,
+	disabled = false,
 }: MenuStateOptions) {
 	const isDropdown = placement !== undefined
 
@@ -127,6 +130,11 @@ export function useMenuState({
 	// also `!isDropdown`, but suppressing its native context menu (via
 	// `handleContextMenu`'s preventDefault) buys nothing — its panel is already open.
 	const isContextMenu = !isDropdown && !isStatic
+
+	// A disabled context menu keeps its wrapper, so the content under it keeps its
+	// state. It wires no surface and does not open, so the native menu of the
+	// browser opens. A dropdown and a static menu ignore the flag.
+	const suppressed = isContextMenu && disabled
 
 	// The trigger (`aria-haspopup="menu"`) and the panel (`role="menu"`) carry
 	// their own roles; `role: null` suppresses floating-ui's `useRole`, which
@@ -151,7 +159,19 @@ export function useMenuState({
 			// a slot on the shared Escape stack, report a close that changes nothing,
 			// and swallow the press meant for an enclosing Dialog.
 			dismissable: !isStatic,
+			gate: (next) => !next || !suppressed,
 		})
+
+	// Adjusted during render, as a tooltip does: a context menu that turns off
+	// while open closes in the same render. Thus it does not open again when it
+	// turns back on.
+	const [wasSuppressed, setWasSuppressed] = useState(suppressed)
+
+	if (wasSuppressed !== suppressed) {
+		setWasSuppressed(suppressed)
+
+		if (suppressed && open) setOpen(false)
+	}
 
 	// Tab off the trigger closes the menu (focus stays on the trigger while it is
 	// open). Routing through `context.onOpenChange` with `'focus-out'` records the
@@ -319,6 +339,6 @@ export function useMenuState({
 		handleContextMenu,
 		handleContextKeyDown,
 		handleContextPointerDown,
-		isContextMenu,
+		isContextSurface: isContextMenu && !suppressed,
 	}
 }

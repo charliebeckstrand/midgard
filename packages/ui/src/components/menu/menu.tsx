@@ -66,6 +66,15 @@ export type MenuProps = {
 	 * @defaultValue true
 	 */
 	sheet?: boolean
+	/**
+	 * Turn off a context menu, but keep its wrapper. The content under the
+	 * wrapper keeps its state, and a right-click or a long press opens the native
+	 * menu of the browser. A menu that is open closes. `ContextMenu` sets it. A
+	 * dropdown and a static menu ignore it.
+	 * @defaultValue false
+	 * @internal
+	 */
+	disabled?: boolean
 	className?: string
 	children: ReactNode
 }
@@ -99,6 +108,7 @@ export function Menu({
 	size,
 	capped = false,
 	sheet = true,
+	disabled = false,
 	className,
 	children,
 }: MenuProps) {
@@ -108,7 +118,7 @@ export function Menu({
 		handleContextMenu,
 		handleContextKeyDown,
 		handleContextPointerDown,
-		isContextMenu,
+		isContextSurface,
 	} = useMenuState({
 		open,
 		defaultOpen,
@@ -116,6 +126,7 @@ export function Menu({
 		placement,
 		size,
 		sheet,
+		disabled,
 	})
 
 	const touchContextMenu = useMenuTouchHold()
@@ -142,13 +153,17 @@ export function Menu({
 							// grid container the caller placed the menu in, breaking alignment.
 							// A context surface turns off the iOS callout, because a long press
 							// there opens the menu. The property inherits through `contents`.
-							className={cn('contents', isContextMenu && '[-webkit-touch-callout:none]', className)}
+							className={cn(
+								'contents',
+								isContextSurface && '[-webkit-touch-callout:none]',
+								className,
+							)}
 							// No role: the wrapper holds arbitrary page content and implements no
 							// keyboard model of its own. Stamping role="application" here would
 							// suppress AT browse-mode for everything inside it, so it is omitted.
 							// The key and press captures only record how the next open starts, so
 							// the menu knows whether to restore focus when it closes.
-							{...(isContextMenu && {
+							{...(isContextSurface && {
 								...touchContextMenu,
 								onContextMenu: handleContextMenu,
 								onKeyDownCapture: handleContextKeyDown,

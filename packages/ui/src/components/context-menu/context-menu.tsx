@@ -24,6 +24,11 @@ export type ContextMenuProps = ContextMenuConfig & {
 	 * give it a name such as "Row actions".
 	 */
 	'aria-label'?: string
+	/**
+	 * Classes for the wrapper. The wrapper has `display: contents` and no box, so
+	 * only an inherited property, such as `color`, reaches the content. The
+	 * wrapper keeps the classes when the menu turns off.
+	 */
 	className?: string
 	/** The content a right-click within opens the menu over. */
 	children: ReactNode
@@ -34,7 +39,9 @@ export type ContextMenuProps = ContextMenuConfig & {
  * merged with a caller's custom {@link ContextMenuConfig}. The custom items sit
  * before or after the defaults per `insert`, with a separator between when
  * both show. With nothing to show — no defaults kept and no custom items, or
- * `disabled` — it renders the content untouched, so the native menu still opens.
+ * `disabled` — it opens no menu, so the native menu still opens. The wrapper
+ * stays in both states, so the content keeps its state when the menu turns on
+ * or off.
  *
  * @remarks Anchors at the cursor and tracks the right-clicked element on scroll,
  * the shared `Menu` right-click behavior. The menu is a floating overlay that
@@ -57,10 +64,12 @@ export function ContextMenu({
 		[items, defaultItems, insert, defaults],
 	)
 
-	if (disabled || entries.length === 0) return <>{children}</>
+	// The menu turns off inside the wrapper. A bare return would change the
+	// parent of the content, and React would then mount the content again.
+	const off = disabled || entries.length === 0
 
 	return (
-		<Menu className={className} capped={capped}>
+		<Menu className={className} capped={capped} disabled={off}>
 			{children}
 
 			<MenuContent aria-label={ariaLabel}>
