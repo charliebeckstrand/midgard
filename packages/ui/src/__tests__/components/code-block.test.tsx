@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { Profiler, type ReactElement, useLayoutEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -185,6 +185,79 @@ describe('CodeBlock', () => {
 		})
 
 		const { container } = renderUI(<CodeBlock code="primed-token" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
+	it('commits a block that hits the cache once, with no second render', () => {
+		primeCodeBlock({
+			code: 'one-commit-token',
+			html: '<pre class="shiki" data-primed=""><code>one-commit-token</code></pre>',
+		})
+
+		const onRender = vi.fn()
+
+		const { container } = renderUI(
+			<Profiler id="code-block" onRender={onRender}>
+				<CodeBlock code="one-commit-token" copy={false} />
+			</Profiler>,
+		)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		// The effect finds the entry that the block holds, so it starts no render.
+		expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual(['mount'])
+	})
+
+	it('keeps the cached markup of a block after the cache evicts it', () => {
+		const calls = highlight.mock.calls.length
+
+		primeCodeBlock({
+			code: 'evicted-token',
+			html: '<pre class="shiki" data-primed=""><code>evicted-token</code></pre>',
+		})
+
+		const { container, rerender } = renderUI(<CodeBlock code="evicted-token" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		// The cache holds 200 entries. That many new snippets evict each older entry.
+		for (let i = 0; i < 200; i++) {
+			primeCodeBlock({ code: `evict-filler-${i}`, html: '<pre></pre>' })
+		}
+
+		// The code does not change, so the effect of the block does not run again.
+		rerender(<CodeBlock code="evicted-token" copy={false} className="again" />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
+	it('paints markup that the cache gets after the render and before the effect', () => {
+		const calls = highlight.mock.calls.length
+
+		// A layout effect runs in the commit, before each passive effect. The block
+		// thus renders with no entry and finds the entry in its effect.
+		function PrimeInCommit() {
+			useLayoutEffect(() => {
+				primeCodeBlock({
+					code: 'late-token',
+					html: '<pre class="shiki" data-primed=""><code>late-token</code></pre>',
+				})
+			}, [])
+
+			return null
+		}
+
+		const { container } = renderUI(
+			<>
+				<CodeBlock code="late-token" copy={false} />
+				<PrimeInCommit />
+			</>,
+		)
 
 		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
 

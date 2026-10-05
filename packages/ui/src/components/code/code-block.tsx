@@ -136,15 +136,23 @@ export function CodeBlock({
 
 	const key = cacheKey(code, lang, theme)
 
-	// The newest markup that this block tokenized, with the key it answers. A
-	// result for other code never paints: the fallback shows until the current
-	// code has its own markup.
-	const [result, setResult] = useState<{ key: string; html: string } | null>(null)
-
 	// The server has no worker and no cache, so it renders the fallback. The
 	// hydration render must render the same, also when the client cache holds
 	// the snippet.
 	const hydrated = useHydrated()
+
+	// The newest markup that this block tokenized or read from the cache, with
+	// the key it answers. A result for other code never paints: the fallback
+	// shows until the current code has its own markup. A mount after hydration
+	// starts from the cached entry, so the effect finds it and does not render
+	// the block again. The hydration render does not read the cache.
+	const [result, setResult] = useState<{ key: string; html: string } | null>(() => {
+		if (!hydrated) return null
+
+		const cached = htmlCache.get(key)
+
+		return cached === undefined ? null : { key, html: cached }
+	})
 
 	// After hydration, a cached snippet paints on the render that asks for it.
 	let html: string | null = null
@@ -162,19 +170,24 @@ export function CodeBlock({
 	useEffect(() => {
 		latest.current = { key, code, lang, theme }
 
-		if (running.current || htmlCache.has(key)) return
+		if (running.current) return
 
 		const run = () => {
 			const job = latest.current
 
 			const cached = htmlCache.get(job.key)
 
-			// Another block can cache the newest code while this pass runs. No render
-			// reads that entry, so paint it here.
+			// The result keeps a cached entry, so the block paints it also after the
+			// cache evicts it. An entry can also come after the render: from
+			// primeCodeBlock, or from another block while this pass runs. No render
+			// reads that entry, so paint it here. When the result holds the entry
+			// already, the update keeps the same object, and React does not render.
 			if (cached !== undefined) {
 				running.current = false
 
-				setResult({ key: job.key, html: cached })
+				setResult((prev) =>
+					prev?.key === job.key && prev.html === cached ? prev : { key: job.key, html: cached },
+				)
 
 				return
 			}
