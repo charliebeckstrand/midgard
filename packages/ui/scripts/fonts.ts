@@ -18,7 +18,8 @@
  *
  * The script also writes `src/fonts/google-sans-flex-latin.js`, which adds the
  * face of the `latin` subset from its bytes. `FontScript` loads it before the
- * first paint (see {@link fontScript}).
+ * first paint (see {@link fontScript}). The stylesheet has no face for the
+ * `latin` subset, so the script is the one source of that face.
  *
  * Capsize reads the metrics of the font: the ascent, the descent, the line
  * gap, and the average width of the letters by their frequency in text. It
@@ -156,8 +157,8 @@ function unicodeRange(codePoints: readonly number[]) {
 }
 
 /**
- * Returns the subsets of the source font, in the order of the faces in the
- * stylesheet. Each code point of the source font is in one subset or more.
+ * Returns the subsets of the source font. The faces in the stylesheet keep
+ * this order. Each code point of the source font is in one subset or more.
  */
 export async function fontSubsets(): Promise<FontSubset[]> {
 	const codePoints = await sourceCodePoints()
@@ -213,7 +214,10 @@ export async function fontsCss(): Promise<string> {
 		fontFaceFormat: 'styleObject',
 	})
 
-	const faces = (await fontSubsets()).map((subset) =>
+	// The script of the latin face is the one source of that face.
+	const subsets = (await fontSubsets()).filter(({ name }) => name !== FIRST_SUBSET)
+
+	const faces = subsets.map((subset) =>
 		block('@font-face', {
 			'font-family': `'${metrics.familyName}'`,
 			'font-weight': `${WEIGHT.min} ${WEIGHT.max}`,
@@ -243,16 +247,19 @@ export async function fontsCss(): Promise<string> {
 }
 
 /**
- * Returns the text of the script that adds the face of the `latin` subset,
- * with the descriptors of its face in the stylesheet.
+ * Returns the text of the script that adds the face of the `latin` subset. The
+ * face has the weights and the `font-display` of the faces in the stylesheet.
  *
  * The faces use `font-display: block`, so text does not paint until its
  * subset loads. A page can paint before the font file loads, and that paint
  * then shows the layout with no text. The script holds the bytes of the
  * subset. A `FontFace` made from bytes is ready when the constructor returns,
- * so the face is ready before the next layout. The browser uses a face from a
- * script before a face of a stylesheet with the same descriptors, so it does
- * not download the font file of the subset.
+ * so the face is ready before the next layout.
+ *
+ * The stylesheet has no face for the `latin` subset. WebKit, the engine of
+ * each browser on an iPhone, uses a face of a stylesheet before a face from a
+ * script with the same descriptors. It then downloads the file of the face of
+ * the stylesheet, and it does not paint the text until that file loads.
  */
 export async function fontScript(): Promise<string> {
 	const subset = (await fontSubsets()).find(({ name }) => name === FIRST_SUBSET)

@@ -8,7 +8,8 @@ const FONT_SCRIPT_URL = new URL('../../fonts/google-sans-flex-latin.js', import.
  * the document `<head>` of a server-rendered app.
  *
  * @remarks
- * The font faces come from `ui/tailwind.css`, and they use
+ * The other font faces come from `ui/tailwind.css`, which has no latin face.
+ * Without this script, latin text paints in a fallback face. The faces use
  * `font-display: block`. Text does not paint until its subset loads. A page
  * that paints before the font file loads thus shows its layout with no text.
  *
@@ -17,9 +18,7 @@ const FONT_SCRIPT_URL = new URL('../../fonts/google-sans-flex-latin.js', import.
  * until the script runs. Thus each paint of latin text uses the font. On a
  * slow first load, the page stays empty until the script loads. The browser
  * keeps the script in its cache, so a later load does not download it again.
- * The browser uses the face of the script before the latin face of the
- * stylesheet, so it does not download the latin font file. It downloads
- * another subset only when a page has text in it.
+ * The browser downloads another subset only when a page has text in it.
  *
  * It reads no context, so a server layout can render it.
  */

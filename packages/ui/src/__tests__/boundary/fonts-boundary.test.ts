@@ -17,12 +17,12 @@ import {
 
 // `pnpm fonts` writes the font files of ui, `src/fonts/fonts.css`, and the
 // script of the latin face from the source font. The font files are subsets
-// of the source font, and the stylesheet gives a face for each subset, the
-// fallback faces, and the font stack. A change to the source font or to the
-// script that does not run the script leaves files that do not agree with the
-// source font. Then the fallback metrics can be wrong, the swap to the font
-// moves the layout, or the latin face of the script is not the latin face of
-// the stylesheet.
+// of the source font. The stylesheet gives a face for each subset except
+// latin, the fallback faces, and the font stack. The script gives the latin
+// face. A change to the source font or to the script that does not run the
+// script leaves files that do not agree with the source font. Then the
+// fallback metrics can be wrong, the swap to the font moves the layout, or
+// the latin face does not have the bytes of the latin subset.
 
 /** Returns the text with all white space removed. */
 function compact(text: string) {
@@ -37,7 +37,7 @@ describe('fonts.css', () => {
 })
 
 describe('the script of the latin face', () => {
-	it('agrees with the latin subset and its face in the stylesheet', async () => {
+	it('agrees with the latin subset', async () => {
 		expect(readFileSync(FONT_SCRIPT, 'utf8')).toBe(await fontScript())
 	})
 })
