@@ -29,23 +29,23 @@ const conversations = [
 const transcript: ChatMessageData[] = [
 	{
 		id: '1',
-		role: 'user',
+		sender: 'user',
 		content: 'Can you help me plan the project kickoff meeting?',
 		timestamp: '11:10 AM',
 	},
 	{
 		id: '2',
-		role: 'assistant',
+		sender: 'assistant',
 		content: "Of course! Who's attending, and what outcome do you need from it?",
 	},
 	{
 		id: '3',
-		role: 'user',
+		sender: 'user',
 		content: 'Engineering, product, and design — to align on the Q2 roadmap.',
 	},
 	{
 		id: '4',
-		role: 'assistant',
+		sender: 'assistant',
 		content: 'Looking forward to it!',
 		timestamp: '11:12 AM',
 	},
@@ -67,10 +67,10 @@ const embedRenderers = {
 } satisfies Record<string, ChatEmbedRenderer>
 
 const embedded: ChatMessageData[] = [
-	{ id: '1', role: 'user', content: 'How are late stops trending this week?' },
+	{ id: '1', sender: 'user', content: 'How are late stops trending this week?' },
 	{
 		id: '2',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{ kind: 'text', id: 't1', text: 'Late stops rose from **4** to **14** across the week.' },
 			{ kind: 'embed', id: 'e1', name: 'stops-trend', data: [4, 6, 5, 9, 12, 11, 14] },
@@ -80,10 +80,10 @@ const embedded: ChatMessageData[] = [
 ]
 
 const steps: ChatMessageData[] = [
-	{ id: '1', role: 'user', content: 'Which shipments are late on the north routes?' },
+	{ id: '1', sender: 'user', content: 'Which shipments are late on the north routes?' },
 	{
 		id: '2',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{
 				kind: 'tool',
@@ -104,7 +104,7 @@ const steps: ChatMessageData[] = [
 const stepStates: ChatMessageData[] = [
 	{
 		id: '1',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{ kind: 'tool', id: 's1', name: 'Load atlas', status: 'done', summary: '3,108 counties' },
 			{ kind: 'tool', id: 's2', name: 'Score routes', status: 'running' },
@@ -122,7 +122,7 @@ const stepStates: ChatMessageData[] = [
 const unregistered: ChatMessageData[] = [
 	{
 		id: '1',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{ kind: 'text', id: 't1', text: 'Here are those twelve stops on the map.' },
 			{ kind: 'embed', id: 'e1', name: 'stops-map', data: null },
@@ -212,24 +212,24 @@ export default function Demo() {
 							of="ChatMessage"
 							captions={false}
 							render={(props, label) => (
-								<ChatMessage role="assistant" {...props}>
+								<ChatMessage sender="assistant" {...props}>
 									{label}
 								</ChatMessage>
 							)}
 						/>
 
 						<Example title="Timestamped">
-							<ChatMessage role="assistant" timestamp="11:10 AM">
+							<ChatMessage sender="assistant" timestamp="11:10 AM">
 								Heading out now, ETA 3pm.
 							</ChatMessage>
-							<ChatMessage role="user" timestamp="11:12 AM">
+							<ChatMessage sender="user" timestamp="11:12 AM">
 								Got it — door code is 4421.
 							</ChatMessage>
 						</Example>
 
 						<Example title="With actions">
 							<ChatMessage
-								role="assistant"
+								sender="assistant"
 								actions={
 									<>
 										<CopyButton size="sm" text="Heading out now, ETA 3pm." />

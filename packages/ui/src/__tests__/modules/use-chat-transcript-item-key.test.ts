@@ -4,14 +4,14 @@ import type { ChatMessageData } from '../../modules/chat'
 import { useChatTranscriptItemKey } from '../../modules/chat/use-chat-transcript-item-key'
 
 const history: ChatMessageData[] = [
-	{ id: 'a', role: 'user', content: 'Where are the late stops?' },
-	{ id: 'b', role: 'assistant', content: 'On the north route.' },
-	{ id: 'c', role: 'user', content: 'Since when?' },
+	{ id: 'a', sender: 'user', content: 'Where are the late stops?' },
+	{ id: 'b', sender: 'assistant', content: 'On the north route.' },
+	{ id: 'c', sender: 'user', content: 'Since when?' },
 ]
 
 const withReply = (content: string, id = 'reply'): ChatMessageData[] => [
 	...history,
-	{ id, role: 'assistant', content },
+	{ id, sender: 'assistant', content },
 ]
 
 function mount(messages: ChatMessageData[]) {
@@ -77,7 +77,7 @@ describe('useChatTranscriptItemKey', () => {
 	})
 
 	it('falls back to the index for a message with no id', () => {
-		const { result } = mount([{ role: 'user', content: 'No id' }])
+		const { result } = mount([{ sender: 'user', content: 'No id' }])
 
 		expect(result.current(0)).toBe(0)
 	})

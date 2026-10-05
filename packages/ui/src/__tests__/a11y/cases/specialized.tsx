@@ -19,14 +19,14 @@ const pdfPages: PdfViewerPage[] = [
 ]
 
 const transcript: ChatMessageData[] = [
-	{ id: 'u1', role: 'user', content: 'How are late stops trending?' },
-	{ id: 'a1', role: 'assistant', content: 'Late stops rose from **4** to **14**.' },
+	{ id: 'u1', sender: 'user', content: 'How are late stops trending?' },
+	{ id: 'a1', sender: 'assistant', content: 'Late stops rose from **4** to **14**.' },
 ]
 
 /** A history long enough that the window holds a slice of it, not all of it. */
 const longTranscript: ChatMessageData[] = Array.from({ length: 60 }, (_, index) => ({
 	id: `h${index}`,
-	role: index % 2 === 0 ? ('user' as const) : ('assistant' as const),
+	sender: index % 2 === 0 ? ('user' as const) : ('assistant' as const),
 	content: `Stop ${index} is late by ${index % 7} minutes.`,
 }))
 
@@ -37,7 +37,7 @@ const longTranscript: ChatMessageData[] = Array.from({ length: 60 }, (_, index) 
 const toolSteps: ChatMessageData[] = [
 	{
 		id: 'a1',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{
 				kind: 'tool',
@@ -57,7 +57,7 @@ const toolSteps: ChatMessageData[] = [
 const unclaimedEmbed: ChatMessageData[] = [
 	{
 		id: 'a1',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{ kind: 'text', id: 't1', text: 'Here are those stops on the map.' },
 			{ kind: 'embed', id: 'e1', name: 'stops-map', data: null },
@@ -70,7 +70,7 @@ export const specializedCases: readonly Case[] = [
 	{
 		name: 'chat message',
 		element: (
-			<ChatMessage key="cm" role="assistant" timestamp="11:10 AM">
+			<ChatMessage key="cm" sender="assistant" timestamp="11:10 AM">
 				How can I help you today?
 			</ChatMessage>
 		),

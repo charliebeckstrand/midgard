@@ -55,7 +55,7 @@ export type ChatTranscriptProps = {
  * Renders a chat transcript as a window over its messages, pinned to the newest.
  *
  * @remarks
- * Each message's `role` reaches {@link ChatMessage} unchanged, because the data
+ * Each message's `sender` reaches {@link ChatMessage} unchanged, because the data
  * and the component spell the speaker axis the same way. When `streaming`, only
  * the last message pulses, and only when it is an assistant bubble.
  *
@@ -161,7 +161,7 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 
 		while (start > 0 && getItemKey(start - 1) !== before.key) start--
 
-		if (!messages.slice(start).some((message) => message.role === 'user')) return
+		if (!messages.slice(start).some((message) => message.sender === 'user')) return
 
 		// Smooth, so a reader already at the end glides with the virtualizer's own
 		// follow and does not jump.
@@ -208,8 +208,8 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 							>
 								<ChatRowContext value={key}>
 									<ChatMessage
-										role={message.role}
-										streaming={streaming && message.role === 'assistant' && index === count - 1}
+										sender={message.sender}
+										streaming={streaming && message.sender === 'assistant' && index === count - 1}
 										timestamp={message.timestamp}
 									>
 										{message.content}

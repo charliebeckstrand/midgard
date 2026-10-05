@@ -4,7 +4,7 @@ import { renderers } from './renderers.tsx'
 const messages: ChatMessageData[] = [
 	{
 		id: '1',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{ kind: 'text', id: 't1', text: 'Here are those twelve stops on the map.' },
 			{ kind: 'embed', id: 'e1', name: 'stops-map', data: null },
