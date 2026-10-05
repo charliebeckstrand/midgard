@@ -22,6 +22,7 @@ import {
 	EventLogSwitch,
 	recordRoute,
 } from '../debug/event-log/index.tsx'
+import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { DocsSidebar } from './sidebar.tsx'
 
@@ -76,18 +77,8 @@ function Stylesheet() {
 
 // Shiki loads its grammar and theme in idle time, so the first "Show code"
 // of a playground does not wait for them.
-function useShikiWarmup() {
-	useEffect(() => {
-		const idle = window.requestIdleCallback ?? ((callback: () => void) => setTimeout(callback, 1))
-
-		const cancel = window.cancelIdleCallback ?? clearTimeout
-
-		const handle = idle(() => {
-			loadShiki().catch(noop)
-		})
-
-		return () => cancel(handle)
-	}, [])
+function warmShiki() {
+	loadShiki().catch(noop)
 }
 
 // The actions of the header. They take no props, so the shell gives the same
@@ -113,7 +104,7 @@ export default function App() {
 
 	useEffect(() => recordRoute(pathname), [pathname])
 
-	useShikiWarmup()
+	useIdle(warmShiki)
 
 	return (
 		<UIProvider link={RouterLink}>
