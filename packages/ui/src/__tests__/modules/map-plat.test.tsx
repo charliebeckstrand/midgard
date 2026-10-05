@@ -69,24 +69,31 @@ describe('MapPlat', () => {
 		expect(allRegions(container)).toHaveLength(3)
 	})
 
-	it('holds the paint until measured under a fixed aspect, the reserve still owning the box', () => {
-		// A fixed aspect inverts the default above: an unmeasured frame (jsdom never
-		// measures) mounts no SVG — the geography waits to paint once at the
-		// measured aspect instead of flashing the canonical fit and refitting —
-		// while the plot region still stands and reserves the space.
+	it('paints the canonical frame before it is measured under a fixed aspect', () => {
+		// jsdom never measures, so this is the frame that the server draws. The
+		// canonical frame scales to meet the box, and its strokes keep their width
+		// in px until the measured frame replaces it.
 		const { container } = renderUI(
 			<MapPlat aria-label="Tile" geography={FIXTURE_GEOJSON} aspectRatio="16/9" />,
 		)
 
-		expect(container.querySelector('svg')).toBeNull()
+		const svg = container.querySelector('svg')
 
-		expect(bySlot(container, 'map-plot')).toBeInTheDocument()
+		expect(svg?.getAttribute('viewBox')).toMatch(/^0 0 1000 /)
+
+		expect(svg).toHaveClass('[&_*]:[vector-effect:non-scaling-stroke]')
+
+		expect(allRegions(container)).toHaveLength(3)
 	})
 
 	it('paints immediately under a fixed aspect when an explicit width fixes the frame', () => {
-		// An explicit width is already "measured" (the SSR / test path), so there is
-		// nothing to defer for: the map draws on the first commit as usual.
+		// An explicit width is already "measured" (the SSR / test path), so the map
+		// draws the measured frame on the first commit, with strokes in frame units.
 		const { container } = renderUI(categoricalPlat({ aspectRatio: '16/9' }))
+
+		expect(container.querySelector('svg')).not.toHaveClass(
+			'[&_*]:[vector-effect:non-scaling-stroke]',
+		)
 
 		expect(allRegions(container)).toHaveLength(3)
 	})

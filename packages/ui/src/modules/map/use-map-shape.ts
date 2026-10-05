@@ -45,6 +45,8 @@ export type MapFrameShape = {
 	viewWidth: number
 	/** The active viewBox height, paired with {@link viewWidth}. */
 	viewHeight: number
+	/** Whether the frame is measured. Until then the canonical frame scales to meet the box. */
+	measured: boolean
 	/**
 	 * Region path ds, index-aligned with the features; empty until fitted. Stated
 	 * in the frame {@link regionFrame} names: the canonical one where a transform
@@ -93,7 +95,6 @@ export type MapFrameShapeOptions = {
 	width: number | undefined
 	height: number | undefined
 	aspectRatio: MapAspectRatio
-	deferPaint: boolean
 	/** The graticule's degree step, `null` where it is off. */
 	graticule: number | null
 	/** Whether the sphere outline draws; the frame path resolves for either part. */
@@ -138,7 +139,6 @@ export function useMapShape({
 	width,
 	height,
 	aspectRatio,
-	deferPaint,
 	graticule,
 	sphere,
 }: MapFrameShapeOptions): MapFrameShape {
@@ -184,23 +184,6 @@ export function useMapShape({
 
 		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
 
-		// Deferred paint: hold the frame empty (the reserve still owns the box) until
-		// the measurement lands, so the geography paints once at the measured aspect
-		// with the legend already resolved rather than flashing the canonical fit and
-		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile — so this
-		// branch draws no region, and calls for no path.
-		if (!measured && deferPaint) {
-			return {
-				viewWidth: 0,
-				viewHeight: 0,
-				paths: [],
-				regionFrame: null,
-				fit: null,
-				project: () => null,
-				unproject: () => null,
-			}
-		}
-
 		// Draw from the measured fit once it lands, the canonical fit until then, so
 		// the geography never waits on the container being measured.
 		const fitted = measured ?? canonical?.projection ?? null
@@ -218,13 +201,14 @@ export function useMapShape({
 		return {
 			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
 			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
+			measured: measured !== null,
 			paths,
 			regionFrame,
 			fit: fitted,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 			unproject: (at: MapPoint2D) => unprojectPoint(fitted, at),
 		}
-	}, [projection, statics, frameWidth, frameHeight, deferPaint])
+	}, [projection, statics, frameWidth, frameHeight])
 
 	// The chrome, resolved beside the geography rather than inside it: it reads
 	// the same fit, but a chrome toggle must not rebuild the view — that would
@@ -240,7 +224,7 @@ export function useMapShape({
 		[view, graticule, sphere],
 	)
 
-	const { viewWidth, viewHeight, paths, regionFrame, project, unproject } = view
+	const { viewWidth, viewHeight, measured, paths, regionFrame, project, unproject } = view
 
 	return {
 		ref,
@@ -249,6 +233,7 @@ export function useMapShape({
 		fill: sizing.mode === 'fill',
 		viewWidth,
 		viewHeight,
+		measured,
 		paths,
 		regionFrame,
 		chrome,
