@@ -2,8 +2,9 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import ts from '@typescript/typescript6'
-import { describe, expect, it } from 'vitest'
+import { isExportDeclaration, isNamedExports } from 'typescript/unstable/ast'
+import { afterAll, describe, expect, it } from 'vitest'
+import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
 
 // This file lives at packages/ui/src/__tests__/docs/; climb to the package root.
 const UI_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
@@ -31,17 +32,17 @@ function documentedTokens(mdFile: string): Set<string> {
  * or specifier is not a value. The barrel names each re-export (CONVENTIONS
  * §4.6), so a parse of the syntax finds each one.
  */
-function barrelValueExports(relPath: string): string[] {
+function barrelValueExports(server: TypeScriptServer, relPath: string): string[] {
 	const file = join(SRC, relPath)
 
-	const source = ts.createSourceFile(file, readFileSync(file, 'utf-8'), ts.ScriptTarget.Latest)
+	const source = server.parse([file]).get(file)
 
-	return source.statements.flatMap((statement) => {
-		if (!ts.isExportDeclaration(statement) || statement.isTypeOnly) return []
+	return (source?.statements ?? []).flatMap((statement) => {
+		if (!isExportDeclaration(statement) || statement.isTypeOnly) return []
 
 		const clause = statement.exportClause
 
-		if (!statement.moduleSpecifier || !clause || !ts.isNamedExports(clause)) return []
+		if (!statement.moduleSpecifier || !clause || !isNamedExports(clause)) return []
 
 		return clause.elements.filter((element) => !element.isTypeOnly).map(({ name }) => name.text)
 	})
@@ -61,13 +62,17 @@ function subdirectories(relPath: string): string[] {
  * checked per directory, matching the convention's granularity.
  */
 describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
+	const server = startTypeScript()
+
+	afterAll(() => server.close())
+
 	it.each([
 		['CORE.md', 'core/index.ts'],
 		['HOOKS.md', 'hooks/index.ts'],
 		['UTILITIES.md', 'utilities/index.ts'],
 		['LAYOUTS.md', 'layouts/index.ts'],
 	])('%s documents every value export of %s', (mdFile, barrel) => {
-		const exports = barrelValueExports(barrel)
+		const exports = barrelValueExports(server, barrel)
 
 		// Guard against a vacuous pass if the barrel ever fails to parse.
 		expect(exports.length, `no value exports parsed from ${barrel}`).toBeGreaterThan(0)
