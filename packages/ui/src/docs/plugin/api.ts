@@ -308,10 +308,17 @@ function readBarrel(
 
 	/**
 	 * The members of a union of literals, in order. A union that a package
-	 * names, such as the 300 languages of Shiki, keeps its name.
+	 * names, such as the 300 languages of Shiki, keeps its name. A generic
+	 * alias, such as `NonNullable<…>`, makes a union but gives it no name.
 	 */
 	function valuesOf(type: Type): Literal[] | undefined {
-		if (!type.isUnionType() || type.getAliasSymbol()?.declarations.some(isPackage)) return undefined
+		if (!type.isUnionType()) return undefined
+
+		const named =
+			type.getAliasSymbol()?.declarations.some(isPackage) &&
+			type.getAliasTypeArguments().length === 0
+
+		if (named) return undefined
 
 		const values: Literal[] = []
 
