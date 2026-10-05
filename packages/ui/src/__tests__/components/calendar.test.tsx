@@ -4,7 +4,16 @@ import { describe, expect, it, vi } from 'vitest'
 import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { Form } from '../../components/form'
 import { Box } from '../../structure/box'
-import { act, bySlot, liveRegion, renderUI, screen, setupUser, withFakeTime } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	liveRegion,
+	renderUI,
+	screen,
+	setupUser,
+	withFakeTime,
+} from '../helpers'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -611,6 +620,165 @@ describe('Calendar keyboard navigation', () => {
 		await user.keyboard('{ArrowUp}')
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+	})
+})
+
+// A calendar that no parent steers carries the date grid of the WAI-ARIA APG.
+// An arrow that leaves the month steps the month, PageUp and PageDown step a
+// month, and Shift with a Page key steps a year. June 2025 starts on a Sunday
+// and has 30 days.
+describe('Calendar keyboard month steps', () => {
+	const day = (n: string) =>
+		screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
+
+	/** The header control that shows the month and opens the picker. */
+	const monthLabel = () => screen.getByRole('button', { name: /^\w+ \d{4}$/ })
+
+	/** The text of each enabled day that is a Tab stop. */
+	const dayStops = () =>
+		screen
+			.getAllByRole('option')
+			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
+			.map((option) => option.textContent)
+
+	it('steps to the next month when ArrowRight leaves the last day', async () => {
+		const onMonthChange = vi.fn()
+
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} onMonthChange={onMonthChange} />)
+
+		act(() => day('30').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Tuesday, July 1, 2025')
+
+		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 6, 1))
+	})
+
+	it('steps to the previous month when ArrowLeft leaves the first day', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('1').focus())
+
+		await user.keyboard('{ArrowLeft}')
+
+		expect(monthLabel()).toHaveAccessibleName('May 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Saturday, May 31, 2025')
+	})
+
+	it('steps to the next month when ArrowDown leaves the last row', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('28').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Saturday, July 5, 2025')
+	})
+
+	it('steps a month with PageDown and PageUp, and a year with Shift', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('15').focus())
+
+		await user.keyboard('{PageDown}')
+
+		expect(document.activeElement).toHaveAccessibleName('Tuesday, July 15, 2025')
+
+		await user.keyboard('{PageUp}')
+
+		expect(document.activeElement).toHaveAccessibleName('Sunday, June 15, 2025')
+
+		await user.keyboard('{Shift>}{PageDown}{/Shift}')
+
+		expect(document.activeElement).toHaveAccessibleName('Monday, June 15, 2026')
+
+		await user.keyboard('{Shift>}{PageUp}{/Shift}')
+
+		expect(document.activeElement).toHaveAccessibleName('Sunday, June 15, 2025')
+	})
+
+	it('keeps a Page step inside a shorter month', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 0, 31)} />)
+
+		act(() => day('31').focus())
+
+		await user.keyboard('{PageDown}')
+
+		expect(document.activeElement).toHaveAccessibleName('Friday, February 28, 2025')
+	})
+
+	it.each(['PageUp', 'PageDown'])('prevents the page scroll of %s', (key) => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('15').focus())
+
+		expect(fireEvent.keyDown(day('15'), { key })).toBe(false)
+	})
+
+	it('keeps the focused day inside min and max', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Calendar
+				defaultValue={new Date(2025, 5, 15)}
+				min={new Date(2025, 5, 10)}
+				max={new Date(2025, 5, 30)}
+			/>,
+		)
+
+		act(() => day('30').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(monthLabel()).toHaveAccessibleName('June 2025')
+
+		expect(document.activeElement).toBe(day('30'))
+
+		await user.keyboard('{PageUp}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it('holds one Tab stop, on the focused day, after a month step', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('30').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(dayStops()).toEqual(['1'])
+
+		expect(document.activeElement).toBe(day('1'))
+	})
+
+	it('leaves the Page keys to a parent that steers active', () => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} active={null} />)
+
+		act(() => day('15').focus())
+
+		expect(fireEvent.keyDown(day('15'), { key: 'PageDown' })).toBe(true)
+
+		expect(monthLabel()).toHaveAccessibleName('June 2025')
 	})
 })
 

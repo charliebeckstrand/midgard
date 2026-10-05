@@ -1,10 +1,13 @@
 'use client'
 
+import { type CalendarDate, type DateDuration, isSameMonth } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 
 import { useA11yRoving } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
+import { fromCalendarDate, isYearInRange, toCalendarDate } from './calendar-utilities'
 
 /**
  * Selector for focusable day cells. Out-of-range cells render as
@@ -47,7 +50,36 @@ export const NAVIGATION_KEYS = new Set([
 	'PageDown',
 ])
 
-/** Options for {@link useCalendarFocus}: the three zone refs, grid column count, the Tab stop of the grid, and the seal flag. @internal */
+/**
+ * The step of each arrow key in a day grid: one day across, or one week down
+ * or up. The keys are logical, so `ArrowRight` is the next day in a
+ * right-to-left layout too.
+ *
+ * @internal
+ */
+const ARROW_STEPS = new Map<string, DateDuration>([
+	['ArrowRight', { days: 1 }],
+	['ArrowLeft', { days: -1 }],
+	['ArrowDown', { weeks: 1 }],
+	['ArrowUp', { weeks: -1 }],
+])
+
+/**
+ * The date model of a day grid that no parent steers. It holds the shown days,
+ * the range that the reader can pick, and the view stepper.
+ *
+ * @internal
+ */
+type CalendarDayGrid = {
+	/** The days of the shown month, in order. The grid holds one button for each day. */
+	days: Date[]
+	min?: Date
+	max?: Date
+	/** Moves the view to `month` (0-based) of `year`. */
+	navigateTo: (year: number, month: number) => void
+}
+
+/** Options for {@link useCalendarFocus}: the three zone refs, grid column count, the grid Tab stop, the seal flag, and the day grid model. @internal */
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
 	gridRef: RefObject<HTMLElement | null>
@@ -73,6 +105,14 @@ type CalendarFocusOptions = {
 	 * drive the outer model underneath the open surface.
 	 */
 	stopPropagation?: boolean
+	/**
+	 * The date model of a day grid that no parent steers, as in the WAI-ARIA APG
+	 * date grid. An arrow that leaves the shown month, and PageUp or PageDown,
+	 * move the view through `navigateTo` and focus the new day. Shift with a Page
+	 * key moves a year. The day stays between `min` and `max`. Leave it unset
+	 * when a parent steers the grid, and for the month and year picker.
+	 */
+	dayGrid?: CalendarDayGrid
 }
 
 /** Focusable buttons within `container`, in DOM order. @internal */
@@ -148,6 +188,76 @@ function preventAndStop(event: KeyboardEvent, stopPropagation: boolean): void {
 	if (stopPropagation) event.stopPropagation()
 }
 
+/** Every day button of a day grid, the disabled days too, in DOM order. @internal */
+function dayButtonsOf(grid: HTMLElement | null): HTMLElement[] {
+	return Array.from(grid?.querySelectorAll<HTMLElement>('button') ?? [])
+}
+
+/** The step of a Page key in a day grid: a month, or a year with Shift. `null` for every other key. @internal */
+function pageStep(event: KeyboardEvent): DateDuration | null {
+	const direction = event.key === 'PageDown' ? 1 : event.key === 'PageUp' ? -1 : 0
+
+	if (direction === 0) return null
+
+	return event.shiftKey ? { years: direction } : { months: direction }
+}
+
+/** `day` held between the days of `min` and `max`. @internal */
+function clampDay(day: CalendarDate, min: Date | undefined, max: Date | undefined): CalendarDate {
+	if (min && day.compare(toCalendarDate(min)) < 0) return toCalendarDate(min)
+
+	if (max && day.compare(toCalendarDate(max)) > 0) return toCalendarDate(max)
+
+	return day
+}
+
+/**
+ * Moves the focus of a day grid by the date model of the key. An arrow to a
+ * day in another month, and each Page key, move the focus to that day, held
+ * between `min` and `max`. When the day is in another month, the view moves
+ * there in a synchronous commit first, so that its button is in the DOM.
+ *
+ * @returns `true` when the key is such a move. An arrow to another day of the
+ * shown month returns `false`, because the roving grid does that move.
+ * @internal
+ */
+function moveDay(
+	event: KeyboardEvent,
+	grid: HTMLElement | null,
+	dayGrid: CalendarDayGrid,
+): boolean {
+	const page = pageStep(event)
+
+	const step = page ?? ARROW_STEPS.get(logicalArrowKey(event.key, grid))
+
+	if (!step) return false
+
+	const focused = dayGrid.days[dayButtonsOf(grid).indexOf(document.activeElement as HTMLElement)]
+
+	if (!focused) return false
+
+	const from = toCalendarDate(focused)
+
+	const moved = from.add(step)
+
+	if (!page && isSameMonth(moved, from)) return false
+
+	const to = clampDay(moved, dayGrid.min, dayGrid.max)
+
+	const date = fromCalendarDate(to)
+
+	// The view holds years 1 to 9999 only, so the focus stays at a limit.
+	if (!isYearInRange(date.getFullYear())) return true
+
+	if (!isSameMonth(to, from)) {
+		flushSync(() => dayGrid.navigateTo(date.getFullYear(), date.getMonth()))
+	}
+
+	dayButtonsOf(grid)[to.day - 1]?.focus()
+
+	return true
+}
+
 /** Wraps focus between the footer's own buttons on Left/Right. @internal */
 function focusAdjacentFooterButton(
 	event: KeyboardEvent,
@@ -178,7 +288,8 @@ function focusAdjacentFooterButton(
  * the grid, and ArrowUp/Down at the grid's top/bottom row crosses into
  * header/footer. The grid is one Tab stop with a roving `tabIndex` (see
  * `activeSelector`). The header buttons are plain buttons, and each one is a
- * Tab stop. Returns the three zones' `keydown` handlers.
+ * Tab stop. With `dayGrid`, an arrow that leaves the month and the Page keys
+ * step the month. Returns the three zones' `keydown` handlers.
  *
  * @returns `handleHeaderKeyDown` / `handleGridKeyDown` / `handleFooterKeyDown`.
  * @remarks Set `stopPropagation` to seal a surface nested inside another
@@ -192,6 +303,7 @@ export function useCalendarFocus({
 	activeSelector = DAY_TAB_STOP,
 	gridMounted = true,
 	stopPropagation = false,
+	dayGrid,
 }: CalendarFocusOptions) {
 	const headerRoving = useA11yRoving(headerRef, {
 		itemSelector: FOCUSABLE,
@@ -244,11 +356,17 @@ export function useCalendarFocus({
 				}
 			}
 
+			if (dayGrid && moveDay(event, gridRef.current, dayGrid)) {
+				preventAndStop(event, stopPropagation)
+
+				return
+			}
+
 			gridRoving(event)
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation],
+		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation, dayGrid],
 	)
 
 	const handleFooterKeyDown = useCallback(

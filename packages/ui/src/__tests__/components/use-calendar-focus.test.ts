@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useCalendarFocus } from '../../components/calendar/use-calendar-focus'
 import { attach, makeKeyEvent, present } from '../helpers'
 
@@ -311,6 +311,97 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 		handleGridKeyDown(event)
 
 		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+})
+
+/** The days of June 2025, one button for each day, and the hook with the date model of a day grid. */
+function setupJune(range: { min?: Date; max?: Date } = {}) {
+	const days = Array.from({ length: 30 }, (_, i) => new Date(2025, 5, i + 1))
+
+	const grid = makeContainer(days.length)
+
+	const navigateTo = vi.fn()
+
+	const { result } = renderHook(() =>
+		useCalendarFocus({
+			headerRef: { current: makeContainer(3) },
+			gridRef: { current: grid },
+			dayGrid: { days, navigateTo, ...range },
+		}),
+	)
+
+	/** Focuses the button of day `n` of June. */
+	const focusDay = (n: number) =>
+		(grid.querySelectorAll('button').item(n - 1) as HTMLElement).focus()
+
+	return { grid, navigateTo, focusDay, ...result.current }
+}
+
+// A day grid that no parent steers steps the month at its edges and on the Page
+// keys, as the WAI-ARIA APG date grid does.
+describe('useCalendarFocus: day grid', () => {
+	it('steps to the next month when ArrowRight leaves the last day', () => {
+		const { navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(30)
+
+		const event = makeKeyEvent('ArrowRight')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).toHaveBeenCalledExactlyOnceWith(2025, 6)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+	})
+
+	it('steps a month with PageUp and a year with Shift+PageDown', () => {
+		const { navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(15)
+
+		const page = makeKeyEvent('PageUp')
+
+		handleGridKeyDown(page)
+
+		expect(navigateTo).toHaveBeenLastCalledWith(2025, 4)
+
+		expect(page.preventDefault).toHaveBeenCalled()
+
+		focusDay(15)
+
+		handleGridKeyDown(makeKeyEvent('PageDown', { shiftKey: true }))
+
+		expect(navigateTo).toHaveBeenLastCalledWith(2026, 5)
+	})
+
+	it('leaves an arrow inside the month to the roving grid', () => {
+		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(10)
+
+		handleGridKeyDown(makeKeyEvent('ArrowRight'))
+
+		expect(navigateTo).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(grid.querySelectorAll('button').item(10))
+	})
+
+	it('keeps the day at max, and the page still, when an arrow leaves the range', () => {
+		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune({
+			max: new Date(2025, 5, 30),
+		})
+
+		focusDay(30)
+
+		const event = makeKeyEvent('ArrowRight')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(grid.querySelectorAll('button').item(29))
 	})
 })
 

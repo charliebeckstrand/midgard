@@ -79,7 +79,12 @@ export type CalendarProps = {
 	onValueChange?: (value: Date | null) => void
 	min?: Date
 	max?: Date
-	/** Externally-driven roving-focus cell, letting a parent (e.g. DatePicker) steer focus across the header, grid, and footer zones. */
+	/**
+	 * Externally-driven roving-focus cell, letting a parent (e.g. DatePicker)
+	 * steer focus across the header, grid, and footer zones. A parent that steers
+	 * owns the month steps and the Page keys, and passes `null` while no cell is
+	 * active. Leave it unset, and the day grid steps the month itself.
+	 */
 	active?: CalendarActive | null
 	/**
 	 * Fires with the first of the month the grid renders, whenever that month
@@ -150,6 +155,11 @@ export type CalendarProps = {
  * zones (tracked via `active`), and month changes are announced to screen
  * readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
+ *
+ * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
+ * that leaves the month steps the month. PageUp and PageDown step a month, and
+ * Shift with a Page key steps a year. Home and End stay at the ends of the
+ * month. The focused day stays between `min` and `max`.
  *
  * @remarks
  * Client component (`'use client'`). "Today" waits for hydration, so a
@@ -237,10 +247,20 @@ export function Calendar({
 	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)
 
+	// A calendar that no parent steers carries the date model of its day grid. A
+	// parent that steers `active` owns the month steps and the Page keys.
+	const steered = active !== undefined
+
+	const dayGrid = useMemo(
+		() => (steered ? undefined : { days, min, max, navigateTo }),
+		[steered, days, min, max, navigateTo],
+	)
+
 	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarFocus({
 		headerRef,
 		gridRef,
 		footerRef,
+		dayGrid,
 	})
 
 	useImperativeHandle(
