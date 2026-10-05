@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
+import { type HighlightOrigin, reanchorOnOptionSwap } from '../../components/combobox/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
+import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
 	act,
+	attach,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -489,6 +492,76 @@ describe('Combobox active-descendant keyboard model', () => {
 		})
 	})
 
+	// Async rows, such as address suggestions, arrive after the query changed. The
+	// seed of the filter change found no row, so the first row that mounts takes it.
+	// Enter then picks that row and does not submit the form.
+	it('highlights the top match when rows arrive after a filter change that found none', async () => {
+		const user = setupUser()
+
+		const { rerender } = renderUI(
+			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+				{null}
+			</Combobox>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		await user.type(input, 'ap')
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		rerender(
+			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+				<ComboboxOption value="apple">
+					<ComboboxLabel>Apple</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		const apple = screen.getByRole('option', { name: 'Apple' })
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', apple.id))
+
+		expect(apple).toHaveAttribute('data-active')
+	})
+
+	// A seeded highlight follows the top match, but an arrow key makes the
+	// highlight the user's. A new top match then does not take it.
+	it('keeps a highlight that an arrow key moved when a new top match mounts', async () => {
+		const user = setupUser()
+
+		const fruits = (labels: string[]) => (
+			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+				{labels.map((label) => (
+					<ComboboxOption key={label} value={label}>
+						<ComboboxLabel>{label}</ComboboxLabel>
+					</ComboboxOption>
+				))}
+			</Combobox>
+		)
+
+		const { rerender } = renderUI(fruits(['Apple', 'Apricot']))
+
+		const input = screen.getByRole('combobox')
+
+		await user.type(input, 'ap')
+
+		await user.keyboard('{ArrowDown}')
+
+		const apricot = screen.getByRole('option', { name: 'Apricot' })
+
+		expect(input).toHaveAttribute('aria-activedescendant', apricot.id)
+
+		rerender(fruits(['Ape', 'Apple', 'Apricot']))
+
+		// The observer runs in a microtask after the commit.
+		await act(async () => {})
+
+		expect(input).toHaveAttribute('aria-activedescendant', apricot.id)
+
+		expect(apricot).toHaveAttribute('data-active')
+	})
+
 	it('moves the highlight to the top match when the query changes', async () => {
 		const user = setupUser()
 
@@ -867,6 +940,186 @@ describe('Combobox active-descendant keyboard model', () => {
 		await user.tab()
 
 		expect(getFieldProbe('fruit')).toHaveAttribute('data-touched', 'true')
+	})
+})
+
+// The seam of the observer that re-anchors the highlight. A plain-object source
+// takes the place of the one that `VirtualOptions` registers, so no virtualizer
+// runs (CONVENTIONS §10.3).
+describe('reanchorOnOptionSwap', () => {
+	let lists = 0
+
+	/** An attached list of option rows and its input, as the panel and the trigger hold them. */
+	function makeList(labels: string[]) {
+		const scope = `reanchor-${lists++}`
+
+		const node = attach(document.createElement('div'))
+
+		const rows = labels.map((label) => {
+			const row = document.createElement('div')
+
+			row.setAttribute('role', 'option')
+
+			row.id = `${scope}-${label}`
+
+			node.append(row)
+
+			return row
+		})
+
+		const input = attach(document.createElement('input'))
+
+		return { node, rows, input }
+	}
+
+	function makeSource(count: number): VirtualItemSource {
+		return { count, getKey: (index) => `opt-${index}`, scrollToIndex: vi.fn() }
+	}
+
+	/** Puts the highlight on `row`, as a seed or an arrow key does. */
+	function highlight(input: HTMLInputElement, row: HTMLElement) {
+		row.setAttribute('data-active', '')
+
+		input.setAttribute('aria-activedescendant', row.id)
+	}
+
+	function reanchor(
+		node: HTMLElement,
+		input: HTMLInputElement,
+		options: { origin: HighlightOrigin; source?: VirtualItemSource; activeIndex?: number },
+	) {
+		const activeIndexRef = { current: options.activeIndex ?? -1 }
+
+		const originRef = { current: options.origin }
+
+		reanchorOnOptionSwap(
+			node,
+			{ current: options.source ?? null },
+			activeIndexRef,
+			{ current: input },
+			originRef,
+		)
+
+		return { activeIndexRef, originRef }
+	}
+
+	// A plain open leaves the highlight empty. A scroll changes the rows of the
+	// window, and that must not seed row 0, scroll back to it, and arm Enter.
+	it('keeps an empty highlight empty when the window of a source changes', () => {
+		const { node, input } = makeList([])
+
+		const source = makeSource(50)
+
+		const { activeIndexRef } = reanchor(node, input, { origin: 'empty', source })
+
+		expect(activeIndexRef.current).toBe(-1)
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		expect(source.scrollToIndex).not.toHaveBeenCalled()
+	})
+
+	it('seeds the top match when rows mount after a filter change that seeded nothing', () => {
+		const { node, rows, input } = makeList(['apple', 'apricot'])
+
+		reanchor(node, input, { origin: 'seeded' })
+
+		expect(input).toHaveAttribute('aria-activedescendant', rows[0]?.id)
+
+		expect(rows[0]).toHaveAttribute('data-active')
+	})
+
+	it('seeds the top match of a source after a filter change that seeded nothing', () => {
+		const { node, input } = makeList([])
+
+		const { activeIndexRef } = reanchor(node, input, { origin: 'seeded', source: makeSource(50) })
+
+		expect(activeIndexRef.current).toBe(0)
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'opt-0')
+	})
+
+	// The create row goes after the matches, so a match that mounts is the new top.
+	it('moves a seeded highlight to a new top match that mounts above it', () => {
+		const { node, rows, input } = makeList(['apple', 'create'])
+
+		const [apple, create] = rows
+
+		highlight(input, create as HTMLElement)
+
+		reanchor(node, input, { origin: 'seeded' })
+
+		expect(input).toHaveAttribute('aria-activedescendant', apple?.id)
+
+		expect(apple).toHaveAttribute('data-active')
+
+		expect(create).not.toHaveAttribute('data-active')
+	})
+
+	// A result set with no match empties the list. The next result set must get
+	// the top match again.
+	it('seeds the next rows after the swap that dropped the row of the highlight', () => {
+		const { node, rows, input } = makeList(['old'])
+
+		highlight(input, rows[0] as HTMLElement)
+
+		rows[0]?.remove()
+
+		const { originRef } = reanchor(node, input, { origin: 'moved' })
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		expect(originRef.current).toBe('seeded')
+
+		const next = document.createElement('div')
+
+		next.setAttribute('role', 'option')
+
+		next.id = `${rows[0]?.id}-next`
+
+		node.append(next)
+
+		reanchorOnOptionSwap(node, { current: null }, { current: -1 }, { current: input }, originRef)
+
+		expect(input).toHaveAttribute('aria-activedescendant', next.id)
+	})
+
+	it('keeps a highlight that the user moved while its row stays', () => {
+		const { node, rows, input } = makeList(['apple', 'apricot'])
+
+		highlight(input, rows[1] as HTMLElement)
+
+		const { originRef } = reanchor(node, input, { origin: 'moved' })
+
+		expect(input).toHaveAttribute('aria-activedescendant', rows[1]?.id)
+
+		expect(rows[0]).not.toHaveAttribute('data-active')
+
+		expect(originRef.current).toBe('moved')
+	})
+
+	it('keeps a highlight that the user moved inside the count of a source', () => {
+		const { node, input } = makeList([])
+
+		const source = makeSource(50)
+
+		const { activeIndexRef } = reanchor(node, input, { origin: 'moved', source, activeIndex: 3 })
+
+		expect(activeIndexRef.current).toBe(3)
+
+		expect(source.scrollToIndex).not.toHaveBeenCalled()
+	})
+
+	it('leaves a seeded highlight clear on a device with no hover', () => {
+		stubMatchMedia((query) => query === NO_HOVER_QUERY)
+
+		const { node, rows, input } = makeList(['apple'])
+
+		reanchor(node, input, { origin: 'seeded' })
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		expect(rows[0]).not.toHaveAttribute('data-active')
 	})
 })
 

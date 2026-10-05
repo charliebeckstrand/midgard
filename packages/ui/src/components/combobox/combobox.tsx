@@ -5,6 +5,7 @@ import { ChevronsUpDown } from 'lucide-react'
 import {
 	type ClipboardEventHandler,
 	type ComponentProps,
+	type KeyboardEvent,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -293,37 +294,81 @@ function seatOnArrowOpen(
 }
 
 /**
- * Re-anchors the highlight when an option swap (async data, unrelated to the
- * query) drops the active one. Under a registered `virtualSourceRef`, a
- * missing DOM row is the normal windowed-out state. `setVirtualActiveIndexed`
- * already watches for it to mount. This therefore only re-anchors when
- * `activeIndexRef` is out of bounds for the source's live `count`. That is the
- * unambiguous signal that the underlying data (not just the window) dropped
- * it. Without a registered source, DOM absence is checked directly.
+ * The origin of the highlight, which {@link reanchorOnOptionSwap} reads when the
+ * rows change:
+ *
+ * - `'empty'`: the highlight is empty by design, as after a plain open.
+ * - `'seeded'`: a filter change put the highlight on the top match, or found no
+ *   row for it.
+ * - `'moved'`: a key set the highlight, with an arrow key or an arrow-key open.
  *
  * @internal
  */
-function reanchorOnOptionSwap(
+export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
+
+/**
+ * The id of the row that {@link seedTopMatch} highlights on a device with
+ * hover: index 0 of a registered source, else the first DOM option. It is
+ * undefined when the list holds no row.
+ *
+ * @internal
+ */
+function topMatchId(node: HTMLElement, source: VirtualItemSource | null): string | undefined {
+	if (source) return source.count > 0 ? source.getKey(0) : undefined
+
+	return queryItems(node, OPTION_SELECTOR)[0]?.id
+}
+
+/**
+ * Re-anchors the highlight when the rows change under an unchanged query, as
+ * when async data arrives. `originRef` decides the move:
+ *
+ * - An empty highlight stays empty. A change to the window of a source does
+ *   not seed row 0 after a plain open.
+ * - A seeded highlight follows the top match. The first row that mounts after
+ *   a filter change that found no row takes it. A new top match that mounts
+ *   above it also takes it.
+ * - A moved highlight stays while its row exists. Without a source, the row
+ *   exists while it is in the DOM. Under a registered `virtualSourceRef`, a row
+ *   out of the window is not in the DOM, and `setVirtualActiveIndexed` watches
+ *   for it to mount. There the row exists while `activeIndexRef` is below the
+ *   live `count` of the source. When the row goes, the top match takes a seed.
+ *
+ * @internal
+ */
+export function reanchorOnOptionSwap(
 	node: HTMLElement,
 	virtualSourceRef: RefObject<VirtualItemSource | null>,
 	activeIndexRef: RefObject<number>,
 	inputRef: RefObject<HTMLInputElement | null>,
+	originRef: RefObject<HighlightOrigin>,
 ): void {
+	if (originRef.current === 'empty') return
+
 	const source = virtualSourceRef.current
 
-	if (source) {
-		if (activeIndexRef.current >= 0 && activeIndexRef.current < source.count) return
+	if (originRef.current === 'seeded') {
+		const activeId = inputRef.current?.getAttribute('aria-activedescendant') ?? undefined
+
+		if (activeId === topMatchId(node, source)) return
 
 		seedTopMatch(node, source, activeIndexRef, inputRef)
 
 		return
 	}
 
-	const activeId = inputRef.current?.getAttribute('aria-activedescendant')
+	if (source) {
+		// The value -1 is no highlight, and not a row that the data dropped.
+		if (activeIndexRef.current < source.count) return
+	} else {
+		const activeId = inputRef.current?.getAttribute('aria-activedescendant')
 
-	if (!activeId || document.getElementById(activeId)) return
+		if (!activeId || document.getElementById(activeId)) return
+	}
 
-	seedTopMatch(node, null, activeIndexRef, inputRef)
+	seedTopMatch(node, source, activeIndexRef, inputRef)
+
+	originRef.current = 'seeded'
 }
 
 /**
@@ -462,6 +507,9 @@ export function Combobox<T>({
 	// row has no DOM `data-active` marker to read it back off of.
 	const activeIndexRef = useRef(-1)
 
+	// Where the highlight came from. The observer of option swaps below reads it.
+	const highlightOriginRef = useRef<HighlightOrigin>('empty')
+
 	// Editable combobox (APG): DOM focus stays on the input; the highlight is
 	// tracked virtually. Arrow keys move `data-active` and repoint the input's
 	// `aria-activedescendant`. `aria-selected` is owned by each option (the
@@ -474,6 +522,22 @@ export function Combobox<T>({
 		itemSource: virtualSourceRef,
 		activeIndexRef,
 	})
+
+	// A key that moves the highlight makes it the user's, so a new top match does
+	// not take it. A move writes `aria-activedescendant` before the handler
+	// returns, also for a row of a source that is not mounted yet.
+	const rovingKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			const before = inputRef.current?.getAttribute('aria-activedescendant')
+
+			handleKeyDown(event)
+
+			if (inputRef.current?.getAttribute('aria-activedescendant') !== before) {
+				highlightOriginRef.current = 'moved'
+			}
+		},
+		[handleKeyDown],
+	)
 
 	const keyboardSettled = useKeyboardSettled()
 
@@ -542,7 +606,8 @@ export function Combobox<T>({
 	// seeds it through `seedTopMatch`, and on an arrow-key open seats it through
 	// `seatOnArrowOpen`. Skips the initial query; the first arrow key then picks
 	// the first option. Passes `ariaSelected: false`; options own their
-	// selection state.
+	// selection state. Each path records the origin of the highlight in
+	// `highlightOriginRef`.
 	//
 	// Under a registered `virtualSourceRef`, index math replaces the DOM query
 	// (a windowed-out option isn't in the DOM to find), via
@@ -560,6 +625,8 @@ export function Combobox<T>({
 
 			anchorSelectedOnOpenRef.current = false
 
+			highlightOriginRef.current = 'empty'
+
 			return
 		}
 
@@ -576,6 +643,8 @@ export function Combobox<T>({
 
 			seatOnArrowOpen(optionsNode, source, multiple, activeIndexRef, inputRef)
 
+			highlightOriginRef.current = 'moved'
+
 			return
 		}
 
@@ -585,6 +654,8 @@ export function Combobox<T>({
 		lastQueryRef.current = deferredQuery
 
 		seedTopMatch(optionsNode, source, activeIndexRef, inputRef)
+
+		highlightOriginRef.current = 'seeded'
 	}, [open, optionsNode, deferredQuery, multiple])
 
 	// Async option swaps for an unchanged query (e.g. address suggestions
@@ -594,11 +665,9 @@ export function Combobox<T>({
 	// re-rendering on its own async state), where no render of this component
 	// observes it; a MutationObserver on the options wrapper does.
 	//
-	// Under a registered `virtualSourceRef`, a missing DOM row is the normal
-	// windowed-out state — `setVirtualActiveIndexed` already watches for it to
-	// mount — so this only re-anchors when `activeIndexRef` is actually out of
-	// bounds for the source's live `count`, the unambiguous signal that the
-	// underlying data (not just the window) dropped it.
+	// The origin of the highlight decides the move (see `reanchorOnOptionSwap`).
+	// An empty highlight stays empty, a seeded one follows the top match, and a
+	// moved one stays while its row exists.
 	useEffect(() => {
 		if (!open) return
 
@@ -607,7 +676,7 @@ export function Combobox<T>({
 		if (!node) return
 
 		const observer = new MutationObserver(() =>
-			reanchorOnOptionSwap(node, virtualSourceRef, activeIndexRef, inputRef),
+			reanchorOnOptionSwap(node, virtualSourceRef, activeIndexRef, inputRef, highlightOriginRef),
 		)
 
 		observer.observe(node, { childList: true, subtree: true })
@@ -652,7 +721,7 @@ export function Combobox<T>({
 		close,
 		onTouched: setTouched,
 		keyboardSettled,
-		rovingKeyDown: handleKeyDown,
+		rovingKeyDown,
 		onPaste,
 	})
 
