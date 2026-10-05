@@ -36,6 +36,7 @@ import { Select, SelectDescription, SelectLabel, SelectOption, SelectText } from
 import { Spacer } from 'ui/spacer'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { PointerHint } from '../../../kit/pointer-hint.tsx'
 import {
 	Kpi,
 	type KpiProps,
@@ -341,7 +342,12 @@ export default function BuildAndSave() {
 				severity="info"
 				closable
 				className="w-full"
-				description="Pick a template, then add tiles, drag them into place, and resize them. The board remembers your layout, even after a reload."
+				description={
+					<PointerHint
+						mouse="Pick a template, then add tiles, drag them into place, and resize them. The board remembers your layout, even after a reload."
+						touch="Pick a template, then add tiles, drag them into place by their grips, and resize them by their edges. The board remembers your layout, even after a reload."
+					/>
+				}
 			/>
 			<DashboardWidgetProvider widgets={widgets}>
 				<Dashboard

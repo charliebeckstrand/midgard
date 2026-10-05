@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Text } from 'ui/text'
+import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
 type Outcome = 'None' | 'Confirmed' | 'Canceled' | 'Dismissed'
 
@@ -33,7 +34,12 @@ export default function CancelOrDismiss() {
 					setOpen(false)
 				}}
 				title="Archive project?"
-				description="Press Escape or the backdrop to dismiss the dialog without an answer."
+				description={
+					<PointerHint
+						mouse="Press Escape or the backdrop to dismiss the dialog without an answer."
+						touch="Tap the backdrop to dismiss the dialog without an answer."
+					/>
+				}
 				confirm={{ label: 'Archive' }}
 			/>
 			<Text>Outcome: {outcome}</Text>

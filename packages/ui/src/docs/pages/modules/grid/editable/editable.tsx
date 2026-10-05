@@ -4,6 +4,7 @@ import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Grid, type GridColumn } from 'ui/grid'
 import { Icon } from 'ui/icon'
+import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, type Person, personColumns } from './people.tsx'
 
 export default function Editable() {
@@ -58,9 +59,10 @@ export default function Editable() {
 	return (
 		<>
 			<EditHelp label="Editing help">
-				Double-click a cell, press F2, start typing, or click the pencil to edit its row: every cell
-				becomes an editor at once. Tab moves between them. Enter saves the row's changes together
-				and moves down a row, as the check saves them in place. Escape discards them.
+				<PointerHint
+					mouse="Double-click a cell, press F2, start typing, or click the pencil to edit its row: every cell becomes an editor at once. Tab moves between them. Enter saves the row's changes together and moves down a row, as the check saves them in place. Escape discards them."
+					touch="Tap the pencil to edit its row: every cell becomes an editor at once. The check saves the row's changes, and the cross discards them."
+				/>
 			</EditHelp>
 			<Grid
 				columns={columns}
