@@ -1,12 +1,12 @@
 import { Badge } from 'ui/badge'
 import { cn } from 'ui/core'
 import { Heading } from 'ui/heading'
-import { Markdown } from 'ui/markdown'
+import { Markdown, primeMarkdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { k } from '../../recipes/kata/json-tree.ts'
-import type { ComponentApi, PropApi } from '../plugin/api.ts'
+import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
 
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
@@ -144,4 +144,15 @@ export function ApiEntry({ component }: { component: ComponentApi }) {
 			<ElementsNote elements={component.elements ?? []} />
 		</div>
 	)
+}
+
+/** Lexes each description of `api`, so an entry renders its Markdown with no lex. */
+export function primeApi(api: BarrelApi): void {
+	for (const component of Object.values(api)) {
+		if (component.description) primeMarkdown(component.description)
+
+		for (const prop of [...component.props, ...component.events]) {
+			if (prop.description) primeMarkdown(prop.description)
+		}
+	}
 }
