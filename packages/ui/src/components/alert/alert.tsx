@@ -65,6 +65,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	severity?: AlertSeverity
 	/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
 	icon?: ReactElement
+	/** The heading of the alert, in the larger, semibold text. A severity icon shows only with a title. */
 	title?: ReactNode
 	/**
 	 * Heading level of the `title`. Set it when the alert heads a part of the page,
@@ -72,6 +73,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	 * render the title in a `<div>`. The look does not change with the level.
 	 */
 	titleLevel?: HeadingLevel
+	/** The text under the title, in a tight line height. */
 	description?: ReactNode
 	/**
 	 * Controls under the text. A button in them with no `variant` or `color`
@@ -114,6 +116,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> & {
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 	className?: string
+	/** The body of the alert, under the description. The alert wraps it in an `AlertBody`. */
 	children?: ReactNode
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string

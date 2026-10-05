@@ -17,11 +17,23 @@ type ProgressColor = keyof typeof k.color
  */
 export type ProgressGaugeProps = AccessibleName &
 	ProgressGaugeVariants & {
-		/** @defaultValue 0 */
+		/**
+		 * The current progress. The gauge holds it between 0 and `max`, and reads `NaN` as 0.
+		 *
+		 * @defaultValue 0
+		 */
 		value?: number
-		/** @defaultValue 100 */
+		/**
+		 * The value of a full ring.
+		 *
+		 * @defaultValue 100
+		 */
 		max?: number
-		/** @defaultValue 'zinc' */
+		/**
+		 * The palette color of the arc.
+		 *
+		 * @defaultValue 'zinc'
+		 */
 		color?: ProgressColor
 		/** Center readout; pass `true` to render the rounded percentage, or a node for custom content. */
 		centerLabel?: ReactNode | boolean

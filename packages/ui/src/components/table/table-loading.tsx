@@ -6,6 +6,7 @@ import { TableRow } from './table-row'
 
 /** Props for {@link TableLoading}: the `columns` count per row, and the number of placeholder `rows`. */
 export type TableLoadingProps = {
+	/** The number of columns in the table. Each placeholder row has one skeleton cell for each column. */
 	columns: number
 	/**
 	 * The number of placeholder rows.

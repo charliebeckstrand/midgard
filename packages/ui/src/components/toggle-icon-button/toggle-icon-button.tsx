@@ -39,6 +39,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	animate?: boolean
 	/** Recipe color forwarded to the underlying {@link Button}. @defaultValue 'zinc' */
 	color?: ButtonVariants['color']
+	/** The density step of the button. Omit it to take the step of the nearest density scope. */
 	size?: ButtonVariants['size']
 	className?: string
 } & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'>

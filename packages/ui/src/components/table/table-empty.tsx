@@ -8,6 +8,7 @@ import { TableRow } from './table-row'
 
 /** Props for {@link TableEmpty}: the `columns` count to span, and optional placeholder `children`. */
 export type TableEmptyProps = {
+	/** The number of columns in the table. The cell of the empty row spans all of them. */
 	columns: number
 	/**
 	 * The content of the empty row.

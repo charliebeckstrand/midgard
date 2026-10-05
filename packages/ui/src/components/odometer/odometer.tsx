@@ -8,6 +8,7 @@ import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 
 /** Props for {@link Odometer}: the target `value`, tween `duration`, and a display `format`, plus native `<span>` attributes. */
 export type OdometerProps = {
+	/** The target number. A change tweens the readout from the current figure to this one. */
 	value: number
 	/**
 	 * Tween length in milliseconds.
