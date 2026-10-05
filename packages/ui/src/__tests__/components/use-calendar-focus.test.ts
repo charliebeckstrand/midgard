@@ -316,7 +316,8 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 
 /**
  * The days of June 2025, one button for each day, and the hook with the date
- * model of a day grid. Set `footer` to give the hook a footer of two buttons.
+ * model of a day grid. The buttons of the days outside `min` and `max` are
+ * disabled, as in Calendar. Set `footer` to give the hook a footer of two buttons.
  */
 function setupJune({
 	footer: withFooter,
@@ -331,6 +332,13 @@ function setupJune({
 	const header = makeContainer(3)
 
 	const grid = makeContainer(days.length)
+
+	for (const [index, button] of grid.querySelectorAll('button').entries()) {
+		const day = days[index] as Date
+
+		button.disabled =
+			(range.min !== undefined && day < range.min) || (range.max !== undefined && day > range.max)
+	}
 
 	const footer = withFooter ? makeContainer(2) : null
 
@@ -419,6 +427,35 @@ describe('useCalendarFocus: day grid', () => {
 		handleGridKeyDown(makeKeyEvent('PageDown', { shiftKey: true }))
 
 		expect(navigateTo).toHaveBeenLastCalledWith(2026, 5)
+	})
+
+	// A day of the shown month outside min and max is disabled. An arrow toward it
+	// keeps the focus where it is, and does not wrap or leave the grid.
+	it.each<[string, string, { min?: Date; max?: Date; footer?: boolean }, number]>([
+		['ArrowLeft from the min day', 'ArrowLeft', { min: new Date(2025, 5, 10) }, 10],
+		['ArrowRight from the max day', 'ArrowRight', { max: new Date(2025, 5, 20) }, 20],
+		['ArrowUp below days before min', 'ArrowUp', { min: new Date(2025, 5, 10) }, 12],
+		['ArrowDown above days after max', 'ArrowDown', { max: new Date(2025, 5, 20) }, 18],
+		[
+			'ArrowDown above days after max, with a footer',
+			'ArrowDown',
+			{ max: new Date(2025, 5, 20), footer: true },
+			18,
+		],
+	])('keeps the focus, and consumes the key, on %s', (_name, key, options, day) => {
+		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune(options)
+
+		focusDay(day)
+
+		const event = makeKeyEvent(key)
+
+		handleGridKeyDown(event)
+
+		expect(document.activeElement).toBe(grid.querySelectorAll('button').item(day - 1))
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(navigateTo).not.toHaveBeenCalled()
 	})
 
 	it('leaves an arrow inside the month to the roving grid', () => {

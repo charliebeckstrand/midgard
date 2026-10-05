@@ -101,7 +101,12 @@ export type CalendarProps = {
 	onMonthChange?: (month: Date) => void
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
-	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
+	/**
+	 * Element that holds the footer controls of the calendar, in a zone that the
+	 * parent owns. When a parent steers `active`, ArrowDown on the bottom row of
+	 * the day grid moves the focus into the footer. In a calendar that no parent
+	 * steers, the day grid reaches the footer by Tab, not by an arrow.
+	 */
 	footerRef?: RefObject<HTMLElement | null>
 	/**
 	 * Id for the day `role="listbox"`, so a parent that keeps DOM focus on its
@@ -159,9 +164,12 @@ export type CalendarProps = {
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
  * that leaves the month steps the month. That includes ArrowUp on the top row
  * and ArrowDown on the bottom row. PageUp and PageDown step a month, and Shift
- * with a Page key steps a year. Home and End stay at the ends of the month,
- * and the focused day stays between `min` and `max`. Tab and Shift+Tab reach
- * the header and the footer.
+ * with a Page key steps a year. Home and End stay at the ends of the month.
+ *
+ * The focused day stays between `min` and `max`. An arrow to a disabled day of
+ * the shown month keeps the focus where it is. Thus the arrows never leave the
+ * day grid, and they never wrap. Tab and Shift+Tab reach the header and the
+ * footer.
  *
  * @remarks
  * Client component (`'use client'`). "Today" waits for hydration, so a

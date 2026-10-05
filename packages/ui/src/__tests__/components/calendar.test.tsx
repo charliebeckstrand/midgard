@@ -591,11 +591,33 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	// Disabled (out-of-range) days render as `<button disabled>` and can't take
-	// focus. Roving skips them; arrow navigation must not trap at range edges (WCAG 2.1.1).
+	// focus. In a calendar that no parent steers, an arrow toward a disabled day
+	// of the month keeps the focus where it is. The arrow does not wrap, and it
+	// does not move the focus out of the grid. Tab and Shift+Tab still do.
 	function renderMinTenth() {
 		// June 2025 begins on a Sunday; `min` on the 10th disables June 1-9, so the
 		// grid's first focusable day is the 10th.
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} min={new Date(2025, 5, 10)} />)
+	}
+
+	/** June 2025 with `max` on the 20th, so June 21-30 are disabled. Set `footer` to add a footer after the calendar. */
+	function renderMaxTwentieth({ footer = false } = {}) {
+		const footerRef = createRef<HTMLDivElement>()
+
+		renderUI(
+			<>
+				<Calendar
+					defaultValue={new Date(2025, 5, 15)}
+					max={new Date(2025, 5, 20)}
+					footerRef={footer ? footerRef : undefined}
+				/>
+				{footer && (
+					<div ref={footerRef}>
+						<button type="button">Clear</button>
+					</div>
+				)}
+			</>,
+		)
 	}
 
 	it('enters the grid on the first enabled day when leading days are disabled', async () => {
@@ -610,7 +632,7 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(day('10'))
 	})
 
-	it('moves up to the header from the first enabled row instead of stalling on a disabled week', async () => {
+	it('keeps focus on the first enabled day on ArrowUp toward a disabled week, and leaves the header to Shift+Tab', async () => {
 		const user = setupUser()
 
 		renderMinTenth()
@@ -619,7 +641,50 @@ describe('Calendar keyboard navigation', () => {
 
 		await user.keyboard('{ArrowUp}')
 
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+		expect(document.activeElement).toBe(day('10'))
+
+		await user.tab({ shift: true })
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next month' }))
+	})
+
+	it('keeps focus on the min day when ArrowLeft meets a disabled day', async () => {
+		const user = setupUser()
+
+		renderMinTenth()
+
+		act(() => day('10').focus())
+
+		await user.keyboard('{ArrowLeft}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it('keeps focus on the max day when ArrowRight meets a disabled day', async () => {
+		const user = setupUser()
+
+		renderMaxTwentieth()
+
+		act(() => day('20').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(document.activeElement).toBe(day('20'))
+	})
+
+	it.each([
+		['without a footer', false],
+		['with a footer', true],
+	])('keeps focus when ArrowDown meets a disabled day after max, %s', async (_name, footer) => {
+		const user = setupUser()
+
+		renderMaxTwentieth({ footer })
+
+		act(() => day('18').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(document.activeElement).toBe(day('18'))
 	})
 })
 
