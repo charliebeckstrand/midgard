@@ -87,12 +87,22 @@ export function formatCardNumber(raw: string): {
 const ONE_DIGIT_MONTH = /^\D*([1-9])(?=\D)/
 
 /**
+ * A two-digit month, a separator, and a four-digit year, as in "12/2027". The
+ * groups hold the month with the separator, and the last two year digits.
+ */
+const FOUR_DIGIT_YEAR = /^(\D*\d{2}\D+)\d{2}(\d{2})\D*$/
+
+/**
  * Strips a raw string to at most four digits and masks them into "MM/YY",
  * inserting the slash after the month. A one-digit month that a typed
- * separator follows gets a leading zero, so `4/27` masks to `04/27`.
+ * separator follows gets a leading zero, so `4/27` masks to `04/27`. A
+ * four-digit year that a separator follows keeps its last two digits, so
+ * `12/2027` masks to `12/27`.
  */
 export function formatExpiry(raw: string): string {
-	const d = digitsOnly(raw.replace(ONE_DIGIT_MONTH, '0$1')).slice(0, 4)
+	const text = raw.replace(ONE_DIGIT_MONTH, '0$1').replace(FOUR_DIGIT_YEAR, '$1$2')
+
+	const d = digitsOnly(text).slice(0, 4)
 
 	if (d.length < 2) return d
 

@@ -120,6 +120,18 @@ describe('formatExpiry', () => {
 
 		expect(formatExpiry('12/')).toBe('12/')
 	})
+
+	it('keeps the last two digits of a four-digit year that a separator follows', () => {
+		expect(formatExpiry('12/2027')).toBe('12/27')
+
+		expect(formatExpiry('12 - 2027')).toBe('12/27')
+
+		expect(formatExpiry('4/2027')).toBe('04/27')
+	})
+
+	it('does not cut a four-digit year with no separator before it', () => {
+		expect(formatExpiry('122027')).toBe('12/20')
+	})
 })
 
 describe('formatCvv', () => {
