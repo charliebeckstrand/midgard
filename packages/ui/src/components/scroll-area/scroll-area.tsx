@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useComposedRef, useScrollOverflow } from '../../hooks'
+import { useComposedRef } from '../../hooks'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import {
 	k,
@@ -74,14 +74,8 @@ export function ScrollArea({
 			? {}
 			: { 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledby }
 
-	// A horizontal viewport fades the edge with more content behind it.
-	const scrollOverflowRef = useScrollOverflow({
-		axis: 'horizontal',
-		enabled: orientation === 'horizontal',
-	})
-
 	// A consumer ref joins the viewport ref instead of replacing it (CONVENTIONS.md §3.9).
-	const composedViewportRef = useComposedRef(viewportRef, scrollOverflowRef, scrollRegionRef, ref)
+	const composedViewportRef = useComposedRef(viewportRef, scrollRegionRef, ref)
 
 	const showScrollbar = scrollbar !== 'hidden'
 
