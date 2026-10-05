@@ -4,6 +4,7 @@ import { Checkbox } from '../../components/checkbox'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
+import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import type { DensityStep } from '../../core/density'
@@ -388,6 +389,55 @@ describe('Control nesting', () => {
 		await user.click(input)
 
 		expect(input.checked).toBe(false)
+	})
+
+	// ARIA defines aria-readonly on a radiogroup, not on a radio. The group
+	// carries it, and the radio only blocks the check.
+	it('parent readOnly reaches a nested radio', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Control id="child">
+					<Radio name="plan" />
+				</Control>
+			</Control>,
+		)
+
+		const input = present<HTMLInputElement>(bySlot(container, 'radio'), 'radio')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+
+		expect(input).not.toHaveAttribute('aria-readonly')
+	})
+
+	it('parent readOnly reaches a RadioGroup and the radios in it', async () => {
+		const user = setupUser()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<RadioGroup aria-label="Plan">
+					<RadioField>
+						<Radio name="plan" value="starter" onChange={onChange} />
+						<Label>Starter</Label>
+					</RadioField>
+				</RadioGroup>
+			</Control>,
+		)
+
+		expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-readonly', 'true')
+
+		const input = present<HTMLInputElement>(bySlot(container, 'radio'), 'radio')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 
 	it('parent readOnly propagates to child Control input', () => {

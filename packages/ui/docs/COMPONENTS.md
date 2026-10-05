@@ -25,6 +25,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `readOnly` `checkbox` or `switch` keeps its state. A click or a Space press does not change it, and `onChange` does not fire. It keeps the focus, submits its value, and sets `aria-readonly`. It takes `readOnly` from its own prop or from an enclosing `Control`. Its `className`, `style`, and `hidden` go to the visible box.
 
+> A `readOnly` `RadioGroup` keeps its selection. A click, a Space press, or an arrow key does not check a `radio`, and `onChange` does not fire. The arrow keys still move the focus, and the checked `radio` submits its value. The group sets `aria-readonly`, and a `radio` does not, because ARIA defines the attribute on the group. The group takes `readOnly` from its own prop or from an enclosing `Control`. A `radio` takes it from its own prop, from its `Control`, or from its group.
+
 ## Form structure
 
 `form` · `fieldset` · `control`
