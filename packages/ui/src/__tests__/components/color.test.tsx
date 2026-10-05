@@ -214,6 +214,21 @@ describe('ColorPanel', () => {
 		for (const label of others) expect(label.id).not.toBe(fieldLabel?.id)
 	})
 
+	it('keeps the hex field left to right under a right-to-left ancestor', () => {
+		const { container } = renderUI(
+			<div dir="rtl">
+				<ColorPanel defaultValue="#ff0000" />
+			</div>,
+		)
+
+		const frame = present(
+			getSlot(container, 'color-hex-input').closest('[data-slot="control-frame"]'),
+			'the frame of the hex field',
+		)
+
+		expect(frame.closest('[dir]')).toHaveAttribute('dir', 'ltr')
+	})
+
 	it('renders the area, a hue slider, hex input, and swatches', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
@@ -638,6 +653,18 @@ describe('ColorPicker', () => {
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
+	})
+
+	it('keeps the hex label of the trigger left to right under a right-to-left ancestor', () => {
+		const { container } = renderUI(
+			<div dir="rtl">
+				<ColorPicker defaultValue="#ff0000" />
+			</div>,
+		)
+
+		const label = inside(getSlot(container, 'color-picker-button')).getByText('#FF0000')
+
+		expect(label.closest('[dir]')).toHaveAttribute('dir', 'ltr')
 	})
 
 	it('reports both ends of the panel open state, whatever drove them', () => {

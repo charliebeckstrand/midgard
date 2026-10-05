@@ -105,7 +105,11 @@ export function ColorPickerTrigger({
 						>
 							<span className={cn(k.swatch.fill)} style={{ backgroundColor: swatchColor }} />
 						</span>
-						<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>{label}</span>
+						<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>
+							{/* A hex code reads left to right in each direction, so the '#' stays at the left. The
+							    outer span keeps the inherited direction, so the code stays next to the swatch. */}
+							<span dir="ltr">{label}</span>
+						</span>
 					</Button>
 				</HeadlessProvider>
 			</ControlFrame>
