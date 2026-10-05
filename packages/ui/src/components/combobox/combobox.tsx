@@ -180,6 +180,9 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * `displayValue` and of each option's string label; custom label nodes
 	 * render as authored. One flag sets both surfaces. Display-only: the
 	 * underlying query and value are untouched.
+	 *
+	 * The input applies it to each resolved display string, so the `summarize`
+	 * output of a multiple selection is capitalized too.
 	 * @defaultValue true
 	 */
 	capitalize?: boolean
