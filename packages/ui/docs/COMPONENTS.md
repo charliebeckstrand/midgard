@@ -53,7 +53,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the keyboard stop of the card and takes the keyboard lift, and a pointer drags the card from any part of it. A read-only board, with no `onReorder`, shows no handle.
 
-> A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one.
+> A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one. The `bare` variant has no row padding and no dividers. It is for rows of form controls, such as a reorderable list of inputs in a `Field`.
 
 > `code` exports `CodeBlock`, which highlights with Shiki in a module worker. The page loads no grammar and no regex engine. `loadShiki` starts the worker and loads a grammar before the first block needs it. `primeCodeBlock` stores markup that was highlighted elsewhere, and a block then paints it on its first render. A Vite app must set `worker.format` to `'es'`, or Vite puts each grammar into the worker file.
 

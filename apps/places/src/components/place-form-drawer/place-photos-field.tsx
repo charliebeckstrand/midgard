@@ -1,13 +1,13 @@
 'use client'
 
 import { Plus, X } from 'lucide-react'
+import { useId } from 'react'
 import { Button } from 'ui/button'
-import { Fieldset, Legend, Message } from 'ui/fieldset'
+import { Field, Label, Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
 import { List, ListItem } from 'ui/list'
-import { Stack } from 'ui/structure/stack'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { isWebAddress } from '../../schemas/place'
 import { MAX_PHOTOS, type PhotoRow, photoRow } from './place-form'
@@ -19,9 +19,17 @@ import { MAX_PHOTOS, type PhotoRow, photoRow } from './place-form'
  * empty row, as the single field did before. With more than one row, each row
  * has a remove button and a drag handle. The list shows the handle only while
  * it holds more than one row, because one row has no order to change.
+ *
+ * The field is a `Field` with a `Label`, as the other fields of the form are, so
+ * the label sits as close to its rows as a label sits to its input. The label
+ * names the list, as the label of a Rating names its row of stars. Each input
+ * has an id of its own, because the inputs of a field take the id of the field
+ * by default.
  */
 export function PlacePhotosField() {
 	const { value: rows = [], setValue, invalid } = useFormValue<PhotoRow[]>('photos', {})
+
+	const id = useId()
 
 	const several = rows.length > 1
 
@@ -29,56 +37,56 @@ export function PlacePhotosField() {
 		setValue(rows.map((row) => (row.key === key ? { ...row, url } : row)))
 
 	return (
-		<Fieldset>
-			<Legend>Photos</Legend>
+		<Field htmlFor={`${id}list`}>
+			<Label id={`${id}label`}>Photos</Label>
 
-			<Stack gap="sm" className="mt-2">
-				<List
-					items={rows}
-					getKey={(row) => row.key}
-					onReorder={setValue}
-					variant="plain"
-					aria-label="Photos"
-				>
-					{(row) => (
-						<ListItem
-							suffix={
-								several ? (
-									<ToggleIconButton
-										icon={<Icon icon={<X />} />}
-										aria-label={`Remove photo ${rows.indexOf(row) + 1}`}
-										onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
-									/>
-								) : null
-							}
-						>
-							<Input
-								type="url"
-								placeholder="https://"
-								aria-label={`Photo ${rows.indexOf(row) + 1}`}
-								value={row.url}
-								// Only the row that is wrong, once the field has an error to show.
-								invalid={invalid && row.url.trim() !== '' && !isWebAddress(row.url.trim())}
-								onChange={(event) => write(row.key, event.target.value)}
-							/>
-						</ListItem>
-					)}
-				</List>
-
-				<div>
-					<Button
-						type="button"
-						variant="plain"
-						prefix={<Icon icon={<Plus />} />}
-						disabled={rows.length >= MAX_PHOTOS}
-						onClick={() => setValue([...rows, photoRow()])}
+			<List
+				id={`${id}list`}
+				items={rows}
+				getKey={(row) => row.key}
+				onReorder={setValue}
+				variant="bare"
+				aria-labelledby={`${id}label`}
+			>
+				{(row) => (
+					<ListItem
+						suffix={
+							several ? (
+								<ToggleIconButton
+									icon={<Icon icon={<X />} />}
+									aria-label={`Remove photo ${rows.indexOf(row) + 1}`}
+									onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
+								/>
+							) : null
+						}
 					>
-						Add photo
-					</Button>
-				</div>
-			</Stack>
+						<Input
+							id={`${id}${row.key}`}
+							type="url"
+							placeholder="https://"
+							aria-label={`Photo ${rows.indexOf(row) + 1}`}
+							value={row.url}
+							// Only the row that is wrong, once the field has an error to show.
+							invalid={invalid && row.url.trim() !== '' && !isWebAddress(row.url.trim())}
+							onChange={(event) => write(row.key, event.target.value)}
+						/>
+					</ListItem>
+				)}
+			</List>
+
+			<div>
+				<Button
+					type="button"
+					variant="plain"
+					prefix={<Icon icon={<Plus />} />}
+					disabled={rows.length >= MAX_PHOTOS}
+					onClick={() => setValue([...rows, photoRow()])}
+				>
+					Add photo
+				</Button>
+			</div>
 
 			<Message name="photos" />
-		</Fieldset>
+		</Field>
 	)
 }
