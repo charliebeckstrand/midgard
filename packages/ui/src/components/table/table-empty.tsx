@@ -11,7 +11,7 @@ export type TableEmptyProps = {
 	columns: number
 	/**
 	 * The content of the empty row.
-	 * @defaultValue a soft, block {@link Alert} titled `'No items'`
+	 * @defaultValue A soft {@link Alert} at full width, with the title "No items".
 	 */
 	children?: ReactNode
 }

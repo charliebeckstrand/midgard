@@ -14,7 +14,7 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
 	 * Locale for the default formatter. Resolution order: explicit prop, then
 	 * enclosing `LocaleProvider`, then the runtime default.
 	 *
-	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
+	 * @defaultValue The locale of the enclosing `LocaleProvider`, or the runtime default without one.
 	 */
 	locale?: string
 	/**

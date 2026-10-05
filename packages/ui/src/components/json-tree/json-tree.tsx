@@ -68,7 +68,7 @@ export type JsonTreeProps = {
 	/**
 	 * Accessible name for the tree.
 	 *
-	 * @defaultValue `rootKey`, else `'JSON'`
+	 * @defaultValue The `rootKey`, or `'JSON'` with no `rootKey`.
 	 */
 	'aria-label'?: string
 	/** Id of a visible element that names the tree. It replaces the default `aria-label`. */

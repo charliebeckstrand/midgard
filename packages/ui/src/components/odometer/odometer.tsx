@@ -16,7 +16,7 @@ export type OdometerProps = {
 	duration?: number
 	/**
 	 * Formats the numeric value for display.
-	 * @defaultValue rounds to an integer and applies the grouping of the `<LocaleProvider>` locale
+	 * @defaultValue Rounds to an integer and applies the grouping of the `<LocaleProvider>` locale.
 	 */
 	format?: (value: number) => string
 	className?: string
