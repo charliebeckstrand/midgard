@@ -169,7 +169,13 @@ export type CardValidity = {
 	isPotentiallyValid: boolean
 }
 
-/** Validates a card number via card-validator (brand pattern, length, and Luhn checksum). */
+/**
+ * Validates a card number via card-validator (brand pattern, length, and Luhn checksum).
+ *
+ * @remarks A UnionPay number skips the Luhn checksum, as in the default of
+ * card-validator, because some real UnionPay numbers do not pass it. Thus a
+ * UnionPay number with a typo can be valid here.
+ */
 export function validateCardNumber(value: string): CardValidity {
 	const { isValid, isPotentiallyValid } = number(digitsOnly(value))
 
