@@ -17,6 +17,18 @@ export type CurrencyInputProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
 > & {
+	/**
+	 * The value of a controlled field.
+	 *
+	 * @remarks
+	 * While the field has focus, it shows the typed text. When `value` changes to
+	 * a number that the text does not hold, the field shows `value`. A parent
+	 * that keeps the same `value` after an edit does not replace the text,
+	 * because the field sees no change. The field then shows the typed text until
+	 * it loses focus, and after that it shows `value`. For example, a parent that
+	 * holds the value at 100 or less shows "1,000" while the user types 1000. The
+	 * field shows "100.00" after blur.
+	 */
 	value?: number | null
 	defaultValue?: number
 	onValueChange?: (value: number | null) => void
