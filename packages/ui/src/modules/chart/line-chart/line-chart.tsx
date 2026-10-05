@@ -34,8 +34,9 @@ export type LineChartProps<T = never> = CartesianChartProps<T> & {
 	 */
 	interpolation?: LineInterpolation
 	/**
-	 * Draw selective value labels: each series' `endpoints` and / or `extremes`,
-	 * placed clear of the marks with overlaps dropped by priority. With
+	 * Draw selective value labels: the `endpoints` and / or `extremes` of the
+	 * series, placed clear of the marks with overlaps dropped by priority. These
+	 * labels show only while the chart shows exactly one series. With
 	 * `references`, each reference rule's value draws beside it in place of its
 	 * hover tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
