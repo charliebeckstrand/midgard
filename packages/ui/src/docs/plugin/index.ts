@@ -3,7 +3,15 @@ import { prefixRegex } from '@rolldown/pluginutils'
 import type { EnvironmentModuleGraph, EnvironmentModuleNode, Plugin } from 'vite'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiExtractor } from './api.ts'
-import { attachMeta, CODE, codeIdOf, type ExampleCode, loadCode } from './examples.ts'
+import {
+	attachMeta,
+	CODE,
+	codeIdOf,
+	EXAMPLE,
+	type ExampleCode,
+	exampleFiles,
+	loadCodes,
+} from './examples.ts'
 import { findPages, type PageLink } from './pages.ts'
 
 const VIRTUAL = 'virtual:docs/'
@@ -14,9 +22,6 @@ const PAGES = `${VIRTUAL}pages`
 
 // A source file of `ui`: TypeScript, outside the docs and the tests.
 const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
-
-// An example module in `pages/`: a TSX file that is not the index of a page or a tab.
-const EXAMPLE = /(?<!\/index)\.tsx$/
 
 /** The resolved id of a virtual module. */
 function virtualId(name: string): string {
@@ -37,7 +42,7 @@ function data(value: unknown): string {
  *
  * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiExtractor}).
  * - `virtual:docs/pages`: the link of each page ({@link findPages}).
- * - `virtual:docs/code/<example>`: the code of an example, highlighted ({@link loadCode}).
+ * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
  *
  * It adds the title and the code module to the default export of each
  * example in `pages/` ({@link attachMeta}). In dev, an edit to a source file
@@ -56,9 +61,9 @@ export function reactDocs(): Plugin {
 	// the same barrels, so the TypeScript server runs once for both.
 	const barrels = new Map<string, Promise<BarrelApi>>()
 
-	// The code of each example, by file. The client build and the server build
-	// import the same examples, so each highlight runs once for both.
-	const codes = new Map<string, Promise<ExampleCode>>()
+	// The code of the examples of each folder. The client build and the server
+	// build import the same examples, so each highlight runs once for both.
+	const codes = new Map<string, Promise<Record<string, ExampleCode>>>()
 
 	return {
 		name: 'vite-plugin-react-docs',
@@ -84,11 +89,15 @@ export function reactDocs(): Plugin {
 				}
 
 				if (name.startsWith(CODE)) {
-					const file = path.join(pages, `${name.slice(CODE.length)}.tsx`)
+					const folder = path.join(pages, name.slice(CODE.length))
 
-					this.addWatchFile(file)
+					const files = await exampleFiles(folder)
 
-					return data(await getOrCompute(codes, file, () => loadCode(this.parse.bind(this), file)))
+					for (const file of files) this.addWatchFile(file)
+
+					return data(
+						await getOrCompute(codes, folder, () => loadCodes(this.parse.bind(this), files)),
+					)
 				}
 
 				return null
@@ -110,7 +119,7 @@ export function reactDocs(): Plugin {
 			let stale: EnvironmentModuleNode[] = []
 
 			if (file.startsWith(pages)) {
-				codes.delete(file)
+				codes.delete(path.dirname(file))
 
 				stale = staleExample(graph, pages, file, modules)
 			} else if (SOURCE.test(file) && !file.startsWith(docs)) {
@@ -135,7 +144,7 @@ export function reactDocs(): Plugin {
 
 /**
  * The modules that an edit to a file in `pages/` makes stale. For an example,
- * that is its code module and each page that imports it: the kit reads the
+ * that is the code module of its folder and each page that imports it: the kit reads the
  * code module from the example that the page gives it, so the page takes the
  * new example module too.
  */

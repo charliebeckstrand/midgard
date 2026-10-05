@@ -50,9 +50,17 @@ import { type BundleReport, readBundle } from './bundle-report'
  * and the `CodeBlock` of an app already had the full set. The eager sum did not
  * move: 257.4 kB on main and after. The total ceiling is 3800 kB, with the same
  * headroom of about 220 kB.
+ *
+ * On 2026-10-05 the legacy app went, and the budget measures the new app. Its
+ * total was 4094 kB. "Show code" gave each example a lazy chunk with its code and
+ * its highlight (415 kB more), and the API tables moved into `assets/` (140 kB
+ * more; the legacy app kept them in `.data` files, which the budget did not
+ * count). One code module for each folder of pages brings the total to 3903 kB.
+ * The eager sum is 235.6 kB, against 257.4 kB for the legacy app. The total
+ * ceiling is 4100 kB, with a headroom of about 200 kB.
  */
 const BUDGETS = [
-	{ label: 'total gzip', budgetKb: 3800, of: (report: BundleReport) => report.totalGzip },
+	{ label: 'total gzip', budgetKb: 4100, of: (report: BundleReport) => report.totalGzip },
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
 ] as const
 
