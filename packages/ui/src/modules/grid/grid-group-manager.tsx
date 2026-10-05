@@ -6,7 +6,6 @@ import {
 	closestCenter,
 	closestCorners,
 	DndContext,
-	DragOverlay,
 	type DroppableContainer,
 	type KeyboardCoordinateGetter,
 	MeasuringStrategy,
@@ -29,6 +28,7 @@ import { cn, createContext, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { useDragCursor, useSortableItem, useSortableSensors } from '../../hooks'
 import { useStableValue } from '../../hooks/use-stable-value'
+import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/grid-group'
 import { columnLabel } from './engine/grid-column/label'
 import { sameElements } from './engine/grid-table/equality'
@@ -333,14 +333,14 @@ export function GridGroupManager({
 				{/* The dragged row's stand-in: a full, inert clone of the grip, disabled
 				    checkbox, and label. The source row can therefore hide while dragging,
 				    without the checkbox appearing to vanish. Mounted always; child gated on drag. */}
-				<DragOverlay dropAnimation={null}>
+				<PortalDragOverlay>
 					{activeItem ? (
 						<GridGroupManagerColumnRowOverlay
 							item={activeItem}
 							checked={!hidden.has(activeItem.id)}
 						/>
 					) : null}
-				</DragOverlay>
+				</PortalDragOverlay>
 			</DndContext>
 		</GroupManagerGroupsContext>
 	)
@@ -656,7 +656,7 @@ function GridGroupManagerMoveItems({ columnId, zoneId, assign }: GridGroupManage
 }
 
 /**
- * Presentational clone of a column row for the {@link DragOverlay}: the grip, a
+ * Presentational clone of a column row for the {@link PortalDragOverlay}: the grip, a
  * disabled visibility checkbox, and the label. It carries no sortable refs, no
  * move menu, and no handlers. It stands in for the source row (which hides while dragging) so
  * the dragged item, checkbox and all, tracks the pointer without vanishing.
