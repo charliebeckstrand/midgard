@@ -411,13 +411,12 @@ function PlacesHeader({
 
 				    `min-w-0` on the wrapper is what lets the trail give way at all: without
 				    it this flex child holds its full width and pushes the controls beside it
-				    off the row instead of truncating. `flex-1` is what lets it come back: the
-				    trail measures the box it is given, and a box that shrinks to the trail
-				    would narrow with it and never report the room to expand again.
+				    off the row instead of truncating. `flex-1` gives the trail the row's full
+				    width, which is the width its collapse rule reads.
 
 				    The toggle goes inside the trail, because it acts on the region the last
 				    crumb names — not on the app, which is what the cluster on the far side
-				    holds. Inside, it is measured with the crumbs, so they give way and the
+				    holds. Inside, it shares the trail's row, so the crumbs give way and the
 				    button never does. */}
 			<div className="flex-1 min-w-0">
 				<PlaceTrail className="text-xl/8" steps={steps}>

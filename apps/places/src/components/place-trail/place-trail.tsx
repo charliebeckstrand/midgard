@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, type MouseEvent, type ReactNode, useRef, useSyncExternalStore } from 'react'
+import { Fragment, type MouseEvent, type ReactNode } from 'react'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -11,7 +11,6 @@ import {
 import { cn } from 'ui/core'
 import { Flex } from 'ui/structure/flex'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-import { fitOf, useTrailFit } from './use-trail-fit'
 
 /** One step of a trail: what it says, and what picking it does. */
 export type PlaceTrailStep = {
@@ -26,107 +25,33 @@ export type PlaceTrailProps = {
 	steps: readonly PlaceTrailStep[]
 	/** The type scale the trail reads at, which is the caller's — a page title is not a panel's. */
 	className?: string
-	/**
-	 * What shares the trail's line, after the last crumb. It is laid out and
-	 * measured with the trail, so the crumbs give way before it does.
-	 */
+	/** What shares the trail's line, after the last crumb. The crumbs give way before it does. */
 	children?: ReactNode
 }
 
-/** What a crumb shows in place of its label once the row cannot hold it. */
+/** What a step above the title shows in place of its label once the row is narrow. */
 const MARK = '…'
 
 /**
- * The crumb's own box: a row of label and mark, one of which is closed to
- * nothing. `font-semibold` is held here so it beats the current crumb's
- * `font-normal`.
- */
-const CRUMB = 'flex min-w-0 max-w-full font-semibold'
-
-/**
- * Either text of a crumb. Both are laid out in every state and closed with
- * `w-0` rather than dropped, which is what lets the fit read a collapsed
- * label's full width and a shown label's mark. `min-w-0` is what lets a flex
- * child narrower than its text exist at all: the default `auto` minimum would
- * hold every crumb at its full width, so the row would grow past the frame
- * instead of any crumb giving way.
- */
-const TEXT = 'block min-w-0 truncate'
-
-/** What closes the label of a collapsed crumb, or the mark of a whole one, to nothing. */
-const CLOSED = 'w-0'
-
-/**
- * The fit of a server-rendered trail, applied before the first paint.
+ * One crumb. The title keeps its label and clips at the row's end. A step above
+ * it shows its label, or, below the row's width rule, the mark that stands for
+ * it.
  *
- * The server cannot know the room the row gets, so it renders every crumb
- * whole, and a browser would paint that before React runs. This script sits
- * just after the row and closes the crumbs that {@link fitOf} says give way:
- * the same function, from its own source text, so the first paint is the fit
- * the hook then finds.
- *
- * It answers from a `ResizeObserver` rather than at once. A trail inside a
- * Suspense boundary streams in a hidden segment, where the row has no width,
- * and React reveals it later; the observer reports the row once it has a box,
- * after layout and before that paint, in either case.
- *
- * The script changes only the classes of the label and the mark, which carry
- * `suppressHydrationWarning` for that reason. The hook measures on mount as it
- * does anywhere else and finds the same answer.
+ * A collapsed label goes to `sr-only` rather than away, so the crumb still
+ * announces where it goes; the mark is what is drawn, and says nothing. The
+ * tooltip hangs on the mark alone, so it opens only where the mark is drawn: a
+ * crumb the reader can already read would say the same thing twice.
  */
-const SCRIPT = `(function(s){var r=s&&s.previousElementSibling;if(!r||!window.ResizeObserver)return;var o=new ResizeObserver(function(){if(!r.clientWidth)return;o.disconnect();var f=(${fitOf})(r),l=r.querySelectorAll('[data-trail-label]'),m=r.querySelectorAll('[data-trail-mark]'),i;for(i=0;i<f.collapsed;i++){l[i].classList.add('${CLOSED}');m[i].classList.remove('${CLOSED}')}});o.observe(r)})(document.currentScript)`
-
-/** A subscription that never fires: the snapshot changes only at hydration. */
-const subscribeNothing = () => () => {}
-
-/**
- * Whether this render comes from the server's markup: on the server and in the
- * hydration render. A trail that mounts on the client, as in a drawer, has no
- * server paint to settle, and React reports a script it renders there as one
- * that never runs.
- */
-function useServerMarkup(): boolean {
-	return useSyncExternalStore(
-		subscribeNothing,
-		() => false,
-		() => true,
-	)
-}
-
-/**
- * One crumb: its label, or the mark that stands for it, with the full text on
- * hover whenever the reader cannot see all of it.
- *
- * The reveal is mounted only where there is something to reveal, rather than
- * mounted everywhere and disabled: a tooltip that cannot open still carries the
- * floating machinery that would place it, on a trail that re-renders with the
- * map under it. A crumb the reader can already read says the same thing twice
- * anyway.
- */
-function TrailCrumb({
-	step,
-	current,
-	collapsed,
-	clipped,
-}: {
-	step: PlaceTrailStep
-	current: boolean
-	collapsed: boolean
-	/** Whether the row cut the label short — only the current crumb ever is. */
-	clipped: boolean
-}) {
+function TrailCrumb({ step, current }: { step: PlaceTrailStep; current: boolean }) {
 	const picks = step.onPick !== undefined
 
-	// The one rule the tooltip and the cursor share: the reader cannot read this.
-	const hidden = collapsed || clipped
-
-	const crumb = (
+	return (
 		<BreadcrumbLink
 			current={current}
 			href={picks ? '#' : undefined}
-			// A crumb that goes somewhere keeps its pointer; one that only holds text
-			// the reader cannot fully see says so instead.
-			className={cn(CRUMB, !picks && hidden && 'cursor-help')}
+			// `font-semibold` is held here so it beats the current crumb's
+			// `font-normal`, and the trail reads as one title.
+			className={cn('font-semibold', current && 'block min-w-0 truncate')}
 			onClick={
 				picks
 					? (event: MouseEvent) => {
@@ -137,38 +62,26 @@ function TrailCrumb({
 					: undefined
 			}
 		>
-			{/* The clipping rides inner spans rather than the crumb itself: the crumb is
-			    polymorphic — an anchor with a destination, a span without — and the fit
-			    wants one element to read either way. They carry no padding, which is what
-			    keeps that reading honest. The label stays in the tree when collapsed, so
-			    the crumb still announces where it goes; the mark is what is drawn, and
-			    says nothing. */}
-			<span data-trail-label className={cn(TEXT, collapsed && CLOSED)} suppressHydrationWarning>
-				{step.label}
-			</span>
+			{current ? (
+				step.label
+			) : (
+				<>
+					<span className="@max-lg:sr-only">{step.label}</span>
 
-			{/* `select-none` because the mark is laid out in both states: closed to
-			    nothing it draws no pixels, but a reader who selects the trail and copies
-			    it would otherwise take an ellipsis per crumb with them. */}
-			<span
-				data-trail-mark
-				aria-hidden="true"
-				className={cn(TEXT, 'select-none', !collapsed && CLOSED)}
-				suppressHydrationWarning
-			>
-				{MARK}
-			</span>
+					<Tooltip>
+						<TooltipTrigger>
+							{/* `select-none` so a reader who selects the trail and copies it
+							    takes the labels with them, not an ellipsis per crumb. */}
+							<span aria-hidden="true" className="hidden select-none @max-lg:inline">
+								{MARK}
+							</span>
+						</TooltipTrigger>
+
+						<TooltipContent>{step.label}</TooltipContent>
+					</Tooltip>
+				</>
+			)}
 		</BreadcrumbLink>
-	)
-
-	if (!hidden) return crumb
-
-	return (
-		<Tooltip>
-			<TooltipTrigger>{crumb}</TooltipTrigger>
-
-			<TooltipContent>{step.label}</TooltipContent>
-		</Tooltip>
 	)
 }
 
@@ -180,66 +93,48 @@ function TrailCrumb({
  * thing it describes to say where the reader is, and moving every control beside
  * it in the process.
  *
- * Which crumb gives way is the point. The last step is where the reader is, so it
- * holds its full text as long as the row can hold it; the steps above it are
- * context, and the further out a step is the sooner it goes. A step that goes
- * gives way whole, to a mark: half a proper noun costs the room of a word and
- * carries none of it, where a mark is a step the reader knows is there and can
- * still pick. Only once every step above it has gone does the title itself clip.
+ * The last step is where the reader is, so it keeps its text and clips only at
+ * the row's end. The steps above it are context: once the row is narrower than
+ * `32rem`, each gives way whole to a mark, which the reader knows is a step and
+ * can still pick. Half a proper noun costs the room of a word and carries none
+ * of it.
  *
- * How many go is measured, not styled — see {@link useTrailFit}. The measure
- * reads the box this renders, so give it one that holds the row's full width
- * (`flex-1`) rather than one that shrinks to its content: a box that tracks the
- * trail would narrow as the trail collapses, and the crumbs could never come
- * back. Anything that sits on the line after the trail goes in as `children`
- * for the same reason: put beside the trail instead, it would need a box that
- * shrinks to the trail.
+ * The rule is a container query on the trail's own row rather than a measure,
+ * so the server's markup is already the settled trail and nothing corrects it
+ * after the first paint. Give the trail a box that holds the row's full width
+ * (`flex-1`), because the query reads that box. Anything that sits on the line
+ * after the trail goes in as `children`, inside the same row.
  */
 export function PlaceTrail({ steps, className, children }: PlaceTrailProps) {
-	const row = useRef<HTMLDivElement>(null)
-
-	const { collapsed, clipped } = useTrailFit(row, steps.map((step) => step.label).join('\n'))
-
-	const serverMarkup = useServerMarkup()
-
 	return (
-		<>
-			<Flex ref={row} gap="md" align="center" className="min-w-0">
-				{/* `min-w-0` is what lets the trail give way to what follows it, rather
+		<Flex gap="md" align="center" className="@container min-w-0">
+			{/* `min-w-0` is what lets the trail give way to what follows it, rather
 			    than push it out of the row. */}
-				<Breadcrumb className="min-w-0">
-					<BreadcrumbList className={cn('flex-nowrap', className)}>
-						{steps.map((step, at) => {
-							const current = at === steps.length - 1
+			<Breadcrumb className="min-w-0">
+				<BreadcrumbList className={cn('flex-nowrap', className)}>
+					{steps.map((step, at) => {
+						const current = at === steps.length - 1
 
-							return (
-								<Fragment key={step.label}>
-									{/* The separator is a sibling of the items and never a child of one:
+						return (
+							<Fragment key={step.label}>
+								{/* The separator is a sibling of the items and never a child of one:
 								    both render an `li`, and an `li` inside an `li` is not a list the
 								    parser will build. It never gives way, so a crumb that has gone to
 								    its mark still reads as a step in a trail. */}
-									{at > 0 ? <BreadcrumbSeparator className="shrink-0" /> : null}
+								{at > 0 ? <BreadcrumbSeparator className="shrink-0" /> : null}
 
-									{/* Only the title gives width back under pressure. Every step above
-								    it is whole or a mark, so it is one or the other's width exactly. */}
-									<BreadcrumbItem className={current ? 'min-w-0' : 'shrink-0'}>
-										<TrailCrumb
-											step={step}
-											current={current}
-											collapsed={at < collapsed}
-											clipped={current && clipped}
-										/>
-									</BreadcrumbItem>
-								</Fragment>
-							)
-						})}
-					</BreadcrumbList>
-				</Breadcrumb>
+								{/* Only the title gives width back under pressure. `min-w-0` is
+								    what lets it be narrower than its text at all. */}
+								<BreadcrumbItem className={current ? 'min-w-0' : 'shrink-0'}>
+									<TrailCrumb step={step} current={current} />
+								</BreadcrumbItem>
+							</Fragment>
+						)
+					})}
+				</BreadcrumbList>
+			</Breadcrumb>
 
-				{children}
-			</Flex>
-
-			{serverMarkup ? <script dangerouslySetInnerHTML={{ __html: SCRIPT }} /> : null}
-		</>
+			{children}
+		</Flex>
 	)
 }
