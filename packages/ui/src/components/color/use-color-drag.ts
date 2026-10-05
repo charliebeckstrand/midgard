@@ -30,7 +30,9 @@ export type ColorDragHandlers = {
  * @remarks
  * `onPointerDown` calls `preventDefault` and focuses `ref` synchronously, so the
  * primary-button press doubles as the keyboard-focus path (WAI-ARIA slider). It
- * fires `onPosition` immediately on press, before any move. Tracking persists
+ * fires `onPosition` immediately on press, before any move. `preventScroll` stops
+ * a scroll into view. A scroll moves the rect of `ref` below the pointer, so the
+ * press position is off by the scroll distance. Tracking persists
  * past the element's bounds via pointer capture; `lostpointercapture` is the
  * authoritative reset, covering normal release, browser-claimed gestures
  * (`pointercancel`), and node removal mid-drag. Non-primary buttons are ignored.
@@ -66,7 +68,7 @@ export function useColorDrag(
 
 			event.preventDefault()
 
-			ref.current?.focus()
+			ref.current?.focus({ preventScroll: true })
 			event.currentTarget.setPointerCapture(event.pointerId)
 
 			dragging.current = true

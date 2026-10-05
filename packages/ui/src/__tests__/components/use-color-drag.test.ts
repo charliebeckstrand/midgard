@@ -52,6 +52,27 @@ describe('useColorDrag', () => {
 		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
 	})
 
+	// A focus that scrolls the node into view moves its rect below the pointer.
+	// The press must report the point below the pointer, so the focus must not scroll.
+	it('focuses without a scroll, so the press reports the point below the pointer', () => {
+		const { api, node, onPosition } = setup()
+
+		let top = 0
+
+		node.getBoundingClientRect = () => DOMRect.fromRect({ y: top, width: 200, height: 100 })
+
+		// As in a browser, a focus without `preventScroll` scrolls the page by 40 px.
+		node.focus = vi.fn((options?: FocusOptions) => {
+			if (!options?.preventScroll) top -= 40
+		})
+
+		api.onPointerDown(makeEvent(node, { clientX: 100, clientY: 50 }))
+
+		expect(node.focus).toHaveBeenCalled()
+
+		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
+	})
+
 	it('ignores moves before a press and tracks them after', () => {
 		const { api, node, onPosition } = setup()
 
