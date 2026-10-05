@@ -80,11 +80,11 @@ export function Sidebar({
 	})
 
 	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,
-	// and the same breakpoint resolves the state handed to the items (which mount
-	// their label tooltips off it) and to `useSidebarMini`. The server knows no
-	// width, so the server and the hydration render resolve to the full state.
-	// The CSS draws the rail at `lg` for the first paint, and the context
-	// follows after hydration.
+	// and the same breakpoint resolves the state that `useSidebarMini` gives to
+	// the content and to the items (which mount their label tooltips from it).
+	// The server knows no width, so the server and the hydration render resolve
+	// to the full state. The CSS draws the rail at `lg` for the first paint, and
+	// the context follows after hydration.
 	const desktop = useMinBreakpoint('lg')
 
 	const hydrated = useHydrated()

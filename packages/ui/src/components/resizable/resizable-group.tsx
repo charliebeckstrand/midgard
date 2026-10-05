@@ -19,7 +19,11 @@ import { useResizablePanel } from './use-resizable-panel'
 
 /** Props for {@link ResizableGroup}: layout `orientation`, a size-change callback, and the drag bracket. */
 export type ResizableGroupProps = {
-	/** @defaultValue 'horizontal' */
+	/**
+	 * The layout axis: `horizontal` puts the panels in a row, and `vertical` puts
+	 * them in a column.
+	 * @defaultValue 'horizontal'
+	 */
 	orientation?: ResizableOrientation
 	/** Fires with the panels' sizes (percentages summing to 100) after each resize. */
 	onSizesChange?: (sizes: number[]) => void

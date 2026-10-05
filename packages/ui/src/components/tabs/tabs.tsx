@@ -11,10 +11,19 @@ import { TabsContext, type TabsOrientation, type TabsVariant } from './context'
 
 /** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope, plus native `<div>` attributes (less `defaultValue`). */
 export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
+	/**
+	 * The `value` of the current tab, for a controlled group. Set `null` to keep
+	 * the group controlled with no tab current.
+	 */
 	value?: string | null
+	/** The `value` of the initial current tab, for an uncontrolled group. */
 	defaultValue?: string
+	/** Fires with the `value` of the tab that the user selects. */
 	onValueChange?: (value: string | null) => void
-	/** @defaultValue 'tab' */
+	/**
+	 * The look of the group: underlined `tab` triggers or a segmented control.
+	 * @defaultValue 'tab'
+	 */
 	variant?: TabsVariant
 	/**
 	 * Tab-list flow axis; the `segment` variant forces `horizontal`.
