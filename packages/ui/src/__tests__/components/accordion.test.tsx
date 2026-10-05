@@ -1,5 +1,7 @@
-import { createRef, useEffect } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { createRef, type ReactElement, useEffect } from 'react'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Accordion,
 	AccordionItem,
@@ -9,7 +11,54 @@ import {
 	useAccordionItem,
 } from '../../components/accordion'
 import type { Mount } from '../../primitives/mount'
-import { act, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import {
+	act,
+	allBySlot,
+	attach,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
+
+/** Renders `element` to server markup, and parses the markup into a node off the page. */
+function serverMarkup(element: ReactElement) {
+	const markup = document.createElement('div')
+
+	markup.innerHTML = renderToString(element)
+
+	return markup
+}
+
+/**
+ * Hydrates the server markup of `element` in a node on the body.
+ *
+ * @returns Two spies. A node or a text mismatch reaches `onRecoverableError`,
+ * and React logs an attribute mismatch to `consoleError`.
+ */
+function hydrate(element: ReactElement) {
+	const container = attach(document.createElement('div'))
+
+	container.innerHTML = renderToString(element)
+
+	const onRecoverableError = vi.fn()
+
+	const consoleError = vi.spyOn(console, 'error')
+
+	onTestFinished(() => consoleError.mockRestore())
+
+	let root: Root | undefined
+
+	act(() => {
+		root = hydrateRoot(container, element, { onRecoverableError })
+	})
+
+	onTestFinished(() => act(() => root?.unmount()))
+
+	return { onRecoverableError, consoleError }
+}
 
 describe('AccordionTrigger', () => {
 	it('fires a consumer onClick alongside the toggle', () => {
@@ -648,9 +697,9 @@ describe('Accordion keyboard navigation', () => {
 })
 
 describe('Accordion mount policy', () => {
-	function Panels({ mount }: { mount?: Mount }) {
+	function Panels({ mount, defaultValue }: { mount?: Mount; defaultValue?: string }) {
 		return (
-			<Accordion type="single" collapsible mount={mount}>
+			<Accordion type="single" collapsible mount={mount} defaultValue={defaultValue}>
 				<AccordionItem value="a">
 					<AccordionTrigger>First</AccordionTrigger>
 					<AccordionPanel>
@@ -712,6 +761,38 @@ describe('Accordion mount policy', () => {
 		renderUI(<Panels mount="always" />)
 
 		// Every panel is present, so each closed header can point at its panel.
+		const controls = screen.getByRole('button', { name: 'Second' }).getAttribute('aria-controls')
+
+		expect(controls).toBeTruthy()
+
+		expect(document.getElementById(controls as string)).toContainElement(
+			screen.getByText('Second body'),
+		)
+	})
+
+	// The server renders nothing for a hidden Activity, so a closed panel is not
+	// in the server markup. Only the open header can point at its panel there.
+	it('mount="always" keeps aria-controls out of the server markup of a closed header', () => {
+		const markup = serverMarkup(<Panels mount="always" defaultValue="a" />)
+
+		const headers = allBySlot(markup, 'accordion-trigger')
+
+		expect(headers).toHaveLength(2)
+
+		expect(allBySlot(markup, 'accordion-panel')).toHaveLength(1)
+
+		expect(headers[0]).toHaveAttribute('aria-controls', getSlot(markup, 'accordion-panel').id)
+
+		expect(headers[1]).not.toHaveAttribute('aria-controls')
+	})
+
+	it('mount="always" hydrates with no mismatch, then references each closed panel', () => {
+		const { onRecoverableError, consoleError } = hydrate(<Panels mount="always" />)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
+
 		const controls = screen.getByRole('button', { name: 'Second' }).getAttribute('aria-controls')
 
 		expect(controls).toBeTruthy()
