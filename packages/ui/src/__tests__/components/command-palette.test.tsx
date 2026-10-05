@@ -695,9 +695,15 @@ describe('CommandPaletteLabel, CommandPaletteText, and CommandPaletteDescription
 
 describe('CommandPalette triggerShortcut', () => {
 	// tinykeys resolves `$mod` to ctrlKey on non-Mac platforms; jsdom is non-Mac.
-	function pressModK() {
-		window.dispatchEvent(
-			new KeyboardEvent('keydown', { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true }),
+	function pressModK(init: KeyboardEventInit = {}, target: EventTarget = window) {
+		target.dispatchEvent(
+			new KeyboardEvent('keydown', {
+				key: 'k',
+				code: 'KeyK',
+				ctrlKey: true,
+				bubbles: true,
+				...init,
+			}),
 		)
 	}
 
@@ -727,6 +733,55 @@ describe('CommandPalette triggerShortcut', () => {
 		pressModK()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('ignores the OS auto-repeat of a held shortcut', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={false} onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK({ repeat: true })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('leaves the shortcut to the IME while a composition is active', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={false} onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK({ isComposing: true })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('fires the shortcut while focus is inside a form field', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<>
+				<input aria-label="Notes" />
+				<CommandPalette open={false} onOpenChange={onOpenChange}>
+					<div>Items</div>
+				</CommandPalette>
+			</>,
+		)
+
+		const field = screen.getByRole('textbox', { name: 'Notes' })
+
+		field.focus()
+
+		pressModK({}, field)
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
 	})
 
 	it('does not bind a shortcut when triggerShortcut is false', () => {

@@ -2,7 +2,7 @@
 
 import { Search } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
-import type { KeybindingsMap } from 'tinykeys'
+import type { KeybindingFilter, KeybindingsMap } from 'tinykeys'
 import { cn } from '../../core'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
@@ -15,8 +15,11 @@ import { CommandPaletteClose } from './command-palette-close'
 import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
-// Stable filter for `useKeybindings`; the shortcut fires even inside form fields.
-const IGNORE_NOTHING = () => false
+// Stable filter for `useKeybindings`: the shortcut fires even inside form fields.
+// The filter keeps the two other guards of the tinykeys default. It skips the OS
+// auto-repeat of a held chord, so a held key toggles the palette one time. It
+// also skips a keydown during an IME composition.
+const IGNORE_REPEAT_AND_COMPOSITION: KeybindingFilter = (event) => event.repeat || event.isComposing
 
 /** Props for {@link CommandPalette}; inherits the Dialog `width` variant. */
 export type CommandPaletteProps = {
@@ -63,7 +66,9 @@ export type CommandPaletteProps = {
 	 *
 	 * @defaultValue '$mod+KeyK'
 	 * @remarks Bound document-wide and fires even while focus is inside a form
-	 * field, so the palette opens regardless of where the user is typing.
+	 * field, so the palette opens regardless of where the user is typing. The OS
+	 * auto-repeat of a held shortcut and a keydown during an IME composition do
+	 * not toggle the palette.
 	 */
 	triggerShortcut?: string | string[] | false
 	/**
@@ -140,7 +145,7 @@ export function CommandPalette({
 		return Object.fromEntries(keys.map((key) => [key, toggle]))
 	}, [triggerShortcut, open, onOpenChange])
 
-	useKeybindings(triggerBindings, { ignore: IGNORE_NOTHING })
+	useKeybindings(triggerBindings, { ignore: IGNORE_REPEAT_AND_COMPOSITION })
 
 	const queryValue = useQueryValue(query, deferredQuery)
 
