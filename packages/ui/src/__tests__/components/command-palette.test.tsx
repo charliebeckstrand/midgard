@@ -304,7 +304,7 @@ describe('CommandPaletteGroup', () => {
 			</CommandPaletteGroup>,
 		)
 
-		const title = bySlot(container, 'command-palette-title')
+		const title = bySlot(container, 'command-palette-heading')
 
 		expect(title).toHaveTextContent('Actions')
 
@@ -322,7 +322,7 @@ describe('CommandPaletteGroup', () => {
 			</CommandPaletteGroup>,
 		)
 
-		expect(bySlot(container, 'command-palette-title')).not.toBeInTheDocument()
+		expect(bySlot(container, 'command-palette-heading')).not.toBeInTheDocument()
 
 		expect(bySlot(container, 'command-palette-group')).not.toHaveAttribute('aria-labelledby')
 	})
