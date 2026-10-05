@@ -41,6 +41,67 @@ function cacheSet(key: string, value: string) {
 }
 
 /**
+ * The display name of each language that names a code region, keyed by each
+ * Shiki id and alias of the language. The names are the Shiki display names.
+ * It is a `Map`, so a fence name such as `constructor` finds no name.
+ */
+const languageNames: ReadonlyMap<string, string> = new Map(
+	(
+		[
+			['TSX', ['tsx']],
+			['TypeScript', ['typescript', 'ts', 'cts', 'mts']],
+			['JSX', ['jsx']],
+			['JavaScript', ['javascript', 'js', 'cjs', 'mjs']],
+			['JSON', ['json']],
+			['JSON with Comments', ['jsonc']],
+			['JSON5', ['json5']],
+			['HTML', ['html']],
+			['CSS', ['css']],
+			['SCSS', ['scss']],
+			['Less', ['less']],
+			['Markdown', ['markdown', 'md']],
+			['MDX', ['mdx']],
+			['Shell', ['shellscript', 'bash', 'sh', 'shell', 'zsh']],
+			['PowerShell', ['powershell', 'ps', 'ps1', 'pwsh']],
+			['Python', ['python', 'py']],
+			['Ruby', ['ruby', 'rb']],
+			['Go', ['go']],
+			['Rust', ['rust', 'rs']],
+			['Java', ['java']],
+			['Kotlin', ['kotlin', 'kt', 'kts']],
+			['Swift', ['swift']],
+			['C', ['c']],
+			['C++', ['cpp', 'c++']],
+			['C#', ['csharp', 'c#', 'cs']],
+			['PHP', ['php']],
+			['SQL', ['sql']],
+			['GraphQL', ['graphql', 'gql']],
+			['YAML', ['yaml', 'yml']],
+			['TOML', ['toml']],
+			['XML', ['xml']],
+			['Dockerfile', ['docker', 'dockerfile']],
+			['Diff', ['diff']],
+			['Vue', ['vue']],
+			['Svelte', ['svelte']],
+		] satisfies [string, BundledLanguage[]][]
+	).flatMap(([name, ids]) => ids.map((id) => [id, name] as const)),
+)
+
+/**
+ * The default name of the code region: the display name of `lang` and "code",
+ * such as "TypeScript code". With no `lang`, or a `lang` with no display name
+ * here (`text`, for example), the name is "Code". Thus blocks of two languages
+ * on one page are two regions with two names.
+ *
+ * @internal
+ */
+function regionName(lang: string | undefined): string {
+	const name = lang === undefined ? undefined : languageNames.get(lang)
+
+	return name === undefined ? 'Code' : `${name} code`
+}
+
+/**
  * Announces a refused copy. After a refused write, the CopyButton stays at
  * rest, and the rest glyph also means "not copied yet". CodeBlock has no prop
  * for the error, so the block reports the failure itself.
@@ -65,7 +126,13 @@ export type CodeBlockProps = {
 	 * Accessible name of the scroll container. While a line overflows it, the
 	 * container is a region with this name.
 	 *
-	 * @defaultValue 'Code'
+	 * With no `label`, the name comes from the `lang` that you give: the display
+	 * name of the language and "code", such as "TypeScript code" for `ts`. With
+	 * no `lang`, or a `lang` that the block has no display name for, such as
+	 * `text`, the name is "Code". Two blocks of one language thus have one name.
+	 * Give each one a `label` when both can overflow on one page.
+	 *
+	 * @defaultValue the language of `lang` and "code", such as `'TypeScript code'`, else `'Code'`
 	 */
 	label?: string
 	className?: string
@@ -132,7 +199,9 @@ export function primeCodeBlock({
  * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`), so a block
  * that fits adds no tab stop. The scroll container is a tab stop only while a
  * line overflows it ({@link useScrollRegion}), and it is then a region named by
- * `label`. The code is always left to right, also under an RTL ancestor.
+ * `label`. With no `label`, the name comes from `lang`, such as "TypeScript
+ * code", else it is "Code". The code is always left to right, also under an RTL
+ * ancestor.
  * Markup paints only for the current code. While `code` streams, one
  * tokenization runs at a time and the next one takes the newest code.
  *
@@ -141,13 +210,15 @@ export function primeCodeBlock({
  */
 export function CodeBlock({
 	code: rawCode,
-	lang = DEFAULT_LANG,
+	lang: langProp,
 	theme = DEFAULT_THEME,
 	copy = true,
-	label = 'Code',
+	label,
 	className,
 }: CodeBlockProps) {
 	const code = rawCode.trim()
+
+	const lang = langProp ?? DEFAULT_LANG
 
 	const key = cacheKey(code, lang, theme)
 
@@ -233,7 +304,9 @@ export function CodeBlock({
 
 	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal' })
 
-	const scrollRegionRef = useScrollRegion({ label })
+	// The default grammar does not say what the code is, so only a `lang` that
+	// the caller gives names the region.
+	const scrollRegionRef = useScrollRegion({ label: label ?? regionName(langProp) })
 
 	const setContent = useComposedRef<HTMLDivElement>(scrollOverflowRef, scrollRegionRef)
 

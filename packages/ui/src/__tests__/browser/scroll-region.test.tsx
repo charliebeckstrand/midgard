@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { CodeBlock } from '../../components/code'
+import { CodeBlock, type CodeBlockProps } from '../../components/code'
 import { PdfViewer } from '../../components/pdf-viewer'
 import { ScrollArea } from '../../components/scroll-area'
 import { Table, TableBody, TableCaption, TableCell, TableRow } from '../../components/table'
@@ -248,13 +248,17 @@ describe('CodeBlock scroll container', () => {
 		return present(block.firstElementChild as HTMLElement | null, 'the code scroll container')
 	}
 
-	it.each([
-		['the default name', undefined, 'Code'],
-		['its label', 'Install command', 'Install command'],
-	])('is a region with %s while a line overflows', async (_name, label, name) => {
+	it.each<[string, CodeBlockProps['lang'], string | undefined, string]>([
+		['the default name', undefined, undefined, 'Code'],
+		['the name of its language', 'typescript', undefined, 'TypeScript code'],
+		['the name of a language alias', 'bash', undefined, 'Shell code'],
+		// Markdown gives `text`, a Shiki special language, to a fence with no language.
+		['the default name for plain text', 'text' as CodeBlockProps['lang'], undefined, 'Code'],
+		['its label', 'typescript', 'Install command', 'Install command'],
+	])('is a region with %s while a line overflows', async (_name, lang, label, name) => {
 		renderUI(
 			<div style={{ width: 200 }}>
-				<CodeBlock code={'const value = 1; '.repeat(40)} copy={false} label={label} />
+				<CodeBlock code={'const value = 1; '.repeat(40)} lang={lang} copy={false} label={label} />
 			</div>,
 		)
 
@@ -263,6 +267,23 @@ describe('CodeBlock scroll container', () => {
 		expect(content().getAttribute('role')).toBe('region')
 
 		expect(content().getAttribute('aria-label')).toBe(name)
+	})
+
+	it('gives blocks of two languages two region names', async () => {
+		const line = 'const value = 1; '.repeat(40)
+
+		renderUI(
+			<div style={{ width: 200 }}>
+				<CodeBlock code={line} lang="typescript" copy={false} />
+				<CodeBlock code={line} lang="bash" copy={false} />
+			</div>,
+		)
+
+		await waitFor(() => expect(screen.getAllByRole('region')).toHaveLength(2))
+
+		expect(
+			screen.getAllByRole('region').map((region) => region.getAttribute('aria-label')),
+		).toEqual(['TypeScript code', 'Shell code'])
 	})
 })
 
