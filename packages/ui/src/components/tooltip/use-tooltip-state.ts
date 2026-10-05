@@ -2,7 +2,6 @@
 
 import {
 	type ElementProps,
-	type Placement,
 	safePolygon,
 	useClick,
 	useFocus,
@@ -18,13 +17,13 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-import { useFloatingDisclosure } from '../../hooks'
+import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { TooltipProps } from './tooltip'
 
 type TooltipStateOptions = {
-	placement?: Placement
+	placement?: FloatingPlacement
 	trigger?: TooltipProps['trigger']
 	delay?: number
 	interactive?: boolean
