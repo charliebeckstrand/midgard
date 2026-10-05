@@ -1,6 +1,6 @@
 import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import type { LngLat } from 'ui/map'
-import { stateName, states } from '../data.ts'
+import { miles, stateName, states } from '../data.ts'
 
 /**
  * The delivery stops of one day, in four rounds. Each round has a group of
@@ -61,11 +61,6 @@ export const stopStates: (string | null)[] = deliveryStops.map(
 		bounds.find((state) => withinBox(state.box, stop.at) && geoContains(state.shape, stop.at))
 			?.name ?? null,
 )
-
-/** A distance in whole miles. */
-function miles(meters: number): string {
-	return `${Math.round(meters / 1609.344).toLocaleString('en-US')} mi`
-}
 
 /** The readout of a summary: the number of stops in it, and the distance across them. */
 export function roundSummary(count: number, span: number): string {

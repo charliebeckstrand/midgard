@@ -1,22 +1,15 @@
 import { type LngLat, MapPlat, MapRoute } from 'ui/map'
-import { states } from '../data.ts'
+import { miles, states } from '../data.ts'
+import { corridors, useRoute } from '../routes.ts'
 
-const corridors: { abbreviation: string; stops: LngLat[] }[] = [
-	{
-		abbreviation: 'SF→NY',
-		stops: [
-			[-122.42, 37.77],
-			[-74.0, 40.71],
-		],
-	},
-	{
-		abbreviation: 'LA→JAX',
-		stops: [
-			[-118.24, 34.05],
-			[-81.66, 30.33],
-		],
-	},
-]
+// A route that follows the roads. It mounts when the road is in.
+function RoutedLine({ label, start, end }: { label: string; start: LngLat; end: LngLat }) {
+	const route = useRoute(start, end)
+
+	if (route === null) return null
+
+	return <MapRoute label={label} path={route.path} detail={miles(route.distanceMeters)} />
+}
 
 export default function LongHaulCorridors() {
 	return (
@@ -28,10 +21,11 @@ export default function LongHaulCorridors() {
 			legend="right"
 		>
 			{corridors.map((corridor) => (
-				<MapRoute
+				<RoutedLine
 					key={corridor.abbreviation}
 					label={corridor.abbreviation}
-					stops={corridor.stops}
+					start={corridor.start}
+					end={corridor.end}
 				/>
 			))}
 		</MapPlat>
