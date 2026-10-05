@@ -2,7 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { composeEventHandlers } from '../../core'
-import { isAsciiDigit } from '../../utilities/caret'
+import { isDecimalDigit } from '../../utilities/caret'
 import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -81,7 +81,7 @@ export function CreditCardInputCvv({
 		defaultValue,
 		onChange: onValueChange,
 		format: (raw) => formatCvv(raw, maxLength),
-		meaningful: isAsciiDigit,
+		meaningful: isDecimalDigit,
 		ref,
 	})
 
@@ -137,7 +137,9 @@ export function CreditCardInputCvv({
 			onChange={(event) => {
 				onMaskedChange(event)
 
-				onValidityChange?.(validateCardCvv(event.target.value, brand))
+				// The verdict reads the masked text that the field shows, not the raw
+				// text, which can hold digits that the mask changes to ASCII.
+				onValidityChange?.(validateCardCvv(formatCvv(event.target.value, maxLength), brand))
 			}}
 		/>
 	)

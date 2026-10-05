@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { countMeaningful, cursorForCount } from '../../utilities/caret'
+import { countMeaningful, cursorForCount, isDecimalDigit } from '../../utilities/caret'
 
 // Stand-in for a formatted-input predicate: digits, minus, and the decimal
 // separator count; grouping separators don't.
@@ -90,5 +90,32 @@ describe('a position-aware keep', () => {
 
 	it('puts the caret after a sign at index 0', () => {
 		expect(cursorForCount('-1', 1, leadingSign)).toBe(1)
+	})
+})
+
+describe('isDecimalDigit', () => {
+	it.each([
+		['an ASCII digit', '7'],
+		['an Arabic-Indic digit', '٧'],
+		['a Devanagari digit', '७'],
+		['a fullwidth digit', '７'],
+	])('counts %s', (_name, char) => {
+		expect(isDecimalDigit(char)).toBe(true)
+	})
+
+	it.each([
+		['a letter', 'x'],
+		['a separator', '/'],
+		['a space', ' '],
+		['a numeral that is not a decimal digit', 'Ⅶ'],
+	])('does not count %s', (_name, char) => {
+		expect(isDecimalDigit(char)).toBe(false)
+	})
+
+	it('puts the caret after a digit that the mask changes to ASCII', () => {
+		// A card mask changes "٤١٢٣٤" to "4123 4", and adds a space.
+		const count = countMeaningful('٤١٢٣٤', 5, isDecimalDigit)
+
+		expect(cursorForCount('4123 4', count, isDecimalDigit)).toBe(6)
 	})
 })

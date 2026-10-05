@@ -45,11 +45,16 @@ export function cursorForCount(
 }
 
 /**
- * A `keep` predicate for a mask that keeps only ASCII digits. A letter that
- * the mask removes then does not move the caret.
+ * A `keep` predicate for a mask that keeps only digits. It counts a decimal
+ * digit in the Basic Multilingual Plane, because the card masks change such a
+ * digit to its ASCII digit. A letter that the mask removes then does not move
+ * the caret.
  *
+ * @remarks The predicate gets one UTF-16 code unit, so a surrogate never
+ * matches. Thus it counts only digits in the Basic Multilingual Plane. The
+ * card masks remove a digit outside that plane, such as a mathematical digit.
  * @internal
  */
-export function isAsciiDigit(char: string) {
-	return char >= '0' && char <= '9'
+export function isDecimalDigit(char: string) {
+	return /\p{Nd}/u.test(char)
 }

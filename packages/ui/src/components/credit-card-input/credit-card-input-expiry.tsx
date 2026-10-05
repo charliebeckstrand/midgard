@@ -2,8 +2,7 @@
 
 import { type ChangeEvent, type ReactNode, useEffect, useEffectEvent, useState } from 'react'
 import { composeEventHandlers } from '../../core'
-import { digitsOnly } from '../../utilities'
-import { isAsciiDigit } from '../../utilities/caret'
+import { isDecimalDigit } from '../../utilities/caret'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
@@ -18,9 +17,12 @@ const DEFAULT_INVALID_MESSAGE = `Enter a valid expiration date (${EXPIRY_PATTERN
 
 /**
  * Masks the digits of a change into "MM/YY" with no pad of a one-digit month.
- * The text has no separator, so {@link formatExpiry} adds no zero.
+ * The text has no separator, so {@link formatExpiry} adds no zero. The strip
+ * keeps the decimal digits in the Basic Multilingual Plane, and
+ * {@link formatExpiry} changes them to ASCII digits. It removes a digit outside
+ * that plane, as {@link formatExpiry} does.
  */
-const maskExpiry = (raw: string) => formatExpiry(digitsOnly(raw))
+const maskExpiry = (raw: string) => formatExpiry(raw.replace(/\P{Nd}|[\u{10000}-\u{10ffff}]/gu, ''))
 
 /**
  * Gives the text of an expiry change that the mask alone gets wrong, from the
@@ -129,7 +131,7 @@ export function CreditCardInputExpiry({
 		defaultValue: defaultValue === undefined ? undefined : formatExpiry(defaultValue),
 		onChange: onValueChange,
 		format: maskExpiry,
-		meaningful: isAsciiDigit,
+		meaningful: isDecimalDigit,
 		ref,
 	})
 

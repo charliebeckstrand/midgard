@@ -428,6 +428,23 @@ describe('CreditCardInputCvv', () => {
 		expect(verdicts).toEqual([false, false, true])
 	})
 
+	it('reports the verdict of the masked entry for Arabic-Indic digits', async () => {
+		const verdicts: boolean[] = []
+
+		const { container } = renderUI(
+			<CreditCardInputCvv brand="visa" onValidityChange={(v) => verdicts.push(v.isValid)} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-cvv')
+
+		await setupUser().type(input, '١٢٣')
+
+		// The field shows "123", so the verdict is the verdict of "123".
+		expect(input.value).toBe('123')
+
+		expect(verdicts).toEqual([false, false, true])
+	})
+
 	it('re-measures the entry when a brand change shrinks the length', async () => {
 		const { container, rerender } = renderUI(<CreditCardInputCvv brand="amex" />)
 
@@ -508,6 +525,45 @@ describe('Credit card masking', () => {
 			expect(input.value).toBe(expected)
 		},
 	)
+
+	// The masks change a digit of a different script to its ASCII digit. The
+	// caret stays after each typed digit, so the digits keep the typed order.
+	it.each<[string, () => ReactElement, string, string]>([
+		['credit-card-input', () => <CreditCardInput />, '٤١٢٣', '4123'],
+		['credit-card-input-cvv', () => <CreditCardInputCvv />, '١٢٣', '123'],
+		['credit-card-input-expiry', () => <CreditCardInputExpiry />, '١٢٢٧', '12/27'],
+	])(
+		'keeps the typed order of Arabic-Indic digits in the %s',
+		async (slot, render, typed, expected) => {
+			const { container } = renderUI(render())
+
+			const input = getSlot<HTMLInputElement>(container, slot)
+
+			await setupUser().type(input, typed)
+
+			expect(input.value).toBe(expected)
+		},
+	)
+
+	// An expiry digit before the end goes through the mask, not the pad of a
+	// one-digit month. The mask keeps the digit, and the caret stays after it.
+	it('keeps an Arabic-Indic digit typed before the expiry year', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '١٢٧')
+
+		input.setSelectionRange(3, 3)
+
+		await user.keyboard('٢')
+
+		expect(input.value).toBe('12/27')
+
+		expect(input.selectionStart).toBe(4)
+	})
 })
 
 describe('Credit card trio + Form', () => {
