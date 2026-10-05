@@ -7,6 +7,30 @@ import { noop } from '../../utilities/noop.ts'
 // A `@font-face` rule of a minified stylesheet. The rule holds no nested block.
 const FONT_FACE = /@font-face\{[^}]*\}/g
 
+// The characters that React escapes in the HTML that it renders, by reference.
+const REFERENCES: Readonly<Record<string, string>> = {
+	'&amp;': '&',
+	'&lt;': '<',
+	'&gt;': '>',
+	'&quot;': '"',
+	'&#x27;': "'",
+}
+
+const REFERENCE = /&(?:amp|lt|gt|quot|#x27);/g
+
+/**
+ * Returns the class candidates in the HTML of a page. React writes `&`, `<`,
+ * `>`, `"`, and `'` in an attribute as a character reference, and the scanner
+ * reads the reference as text. The scanner thus reads the HTML with each
+ * reference changed back to its character. Otherwise it does not find a class
+ * such as `[:root[data-debug]_&]:contents` or `has-[>:disabled]:opacity-50`.
+ */
+export function scanClasses(html: string): string[] {
+	const text = html.replace(REFERENCE, (reference) => REFERENCES[reference] ?? reference)
+
+	return new Scanner({}).scanFiles([{ content: text, extension: 'html' }])
+}
+
 /**
  * Writes the critical CSS of each prerendered page into the head of its HTML.
  *
@@ -40,7 +64,7 @@ export async function inlineCriticalCss(clientDir: string, stylesheet: string): 
 
 		const html = readFileSync(file, 'utf8')
 
-		const classes = new Scanner({}).scanFiles([{ content: html, extension: 'html' }])
+		const classes = scanClasses(html)
 
 		// A compiler keeps each class that it builds, so each page gets its own.
 		const compiler = await compile(source, { base, onDependency: noop })
