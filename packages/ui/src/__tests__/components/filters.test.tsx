@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
 import { Label } from '../../components/fieldset'
@@ -7,6 +7,7 @@ import {
 	FiltersBar,
 	FiltersClear,
 	FiltersField,
+	type FiltersFieldRenderProps,
 	FiltersPrefix,
 	FiltersRow,
 	FiltersSuffix,
@@ -230,11 +231,11 @@ describe('FiltersField', () => {
 
 		const { container } = renderUI(
 			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
-				<FiltersField name="name">
+				<FiltersField<string> name="name">
 					{({ value, onValueChange: fieldOnValueChange }) => (
 						<input
 							data-slot="raw-input"
-							value={(value as string) ?? ''}
+							value={value ?? ''}
 							onChange={(event) => fieldOnValueChange(event.target.value)}
 						/>
 					)}
@@ -664,5 +665,31 @@ describe('Filters context', () => {
 		rerender(<Filters aria-label="Open orders">{children}</Filters>)
 
 		expect(renders).toHaveBeenCalledOnce()
+	})
+})
+
+describe('FiltersField value types', () => {
+	it('types the render-prop value and setter from the type argument', () => {
+		expectTypeOf<FiltersFieldRenderProps<number>['value']>().toEqualTypeOf<number | undefined>()
+
+		expectTypeOf<FiltersFieldRenderProps<number>['onValueChange']>()
+			.parameter(0)
+			.toEqualTypeOf<number | undefined>()
+	})
+
+	it('infers the value type from an annotated render function', () => {
+		renderUI(
+			<Filters aria-label="Filters" defaultValue={{ tags: ['north', 'south'] }}>
+				<FiltersField name="tags">
+					{({ value }: FiltersFieldRenderProps<string[]>) => value?.join(', ')}
+				</FiltersField>
+			</Filters>,
+		)
+
+		expect(screen.getByText('north, south')).toBeInTheDocument()
+	})
+
+	it('keeps the value unknown when the call site names no type', () => {
+		expectTypeOf<FiltersFieldRenderProps['value']>().toEqualTypeOf<unknown>()
 	})
 })

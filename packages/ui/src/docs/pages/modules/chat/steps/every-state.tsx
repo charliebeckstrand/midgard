@@ -3,7 +3,7 @@ import { type ChatMessageData, ChatTranscript } from 'ui/chat'
 const messages: ChatMessageData[] = [
 	{
 		id: '1',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{ kind: 'tool', id: 's1', name: 'Load atlas', status: 'done', summary: '3,108 counties' },
 			{ kind: 'tool', id: 's2', name: 'Score routes', status: 'running' },

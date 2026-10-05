@@ -17,7 +17,7 @@ import type { ChatMessageData } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
 function lastUserIndex(messages: ChatMessageData[]): number {
-	return messages.findLastIndex((message) => message.role === 'user')
+	return messages.findLastIndex((message) => message.sender === 'user')
 }
 
 /**
@@ -31,7 +31,7 @@ export function appendUserMessage(
 	id: string,
 	content: string,
 ): ChatMessageData[] {
-	return [...messages, { id, role: 'user', content }]
+	return [...messages, { id, sender: 'user', content }]
 }
 
 /**
@@ -41,7 +41,7 @@ export function appendUserMessage(
  * @internal
  */
 export function openReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
-	return [...messages, { id, role: 'assistant', content: '' }]
+	return [...messages, { id, sender: 'assistant', content: '' }]
 }
 
 /**
@@ -183,7 +183,7 @@ export function duplicateMessageIds(messages: ChatMessageData[]): string[] {
  * @internal
  */
 export function lastUserMessage(messages: ChatMessageData[]): ChatMessageData | undefined {
-	return messages.findLast((message) => message.role === 'user')
+	return messages.findLast((message) => message.sender === 'user')
 }
 
 /**
@@ -206,7 +206,7 @@ export function truncateToLastUserMessage(messages: ChatMessageData[]): ChatMess
  * @internal
  */
 export function userMessage(messages: ChatMessageData[], id: string): ChatMessageData | undefined {
-	return messages.find((message) => message.id === id && message.role === 'user')
+	return messages.find((message) => message.id === id && message.sender === 'user')
 }
 
 /**

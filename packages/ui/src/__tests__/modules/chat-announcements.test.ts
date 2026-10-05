@@ -16,11 +16,11 @@ function embed(id: string, name = 'stops-trend'): ChatEmbedPart {
 	return { kind: 'embed', id, name, data: null }
 }
 
-const user = (content: string): ChatMessageData => ({ id: 'u1', role: 'user', content })
+const user = (content: string): ChatMessageData => ({ id: 'u1', sender: 'user', content })
 
 const assistant = (content: string | ChatPart[]): ChatMessageData => ({
 	id: 'a1',
-	role: 'assistant',
+	sender: 'assistant',
 	content,
 })
 

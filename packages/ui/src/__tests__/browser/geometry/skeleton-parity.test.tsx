@@ -811,11 +811,11 @@ describe('skeleton parity (real browser)', () => {
 		['assistant', 1, 'left', 'Here are the stops.\nTwo of them run late.'],
 	] as const)(
 		'ChatTranscriptSkeleton has the %s bubble of a transcript',
-		(role, index, edge, text) => {
+		(sender, index, edge, text) => {
 			const real = present(
 				renderUI(
 					<div className="w-120">
-						<ChatMessage role={role}>{text}</ChatMessage>
+						<ChatMessage sender={sender}>{text}</ChatMessage>
 					</div>,
 				).container.querySelector('[data-slot="chat-message-bubble"]'),
 				'bubble',

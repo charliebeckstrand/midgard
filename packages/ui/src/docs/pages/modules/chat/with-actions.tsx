@@ -7,7 +7,7 @@ import { Icon } from 'ui/icon'
 export default function WithActions() {
 	return (
 		<ChatMessage
-			role="assistant"
+			sender="assistant"
 			actions={
 				<>
 					<CopyButton size="sm" text="Heading out now, ETA 3pm." />

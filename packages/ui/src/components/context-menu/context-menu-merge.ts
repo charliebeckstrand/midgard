@@ -1,4 +1,4 @@
-import type { ContextMenuConfig, ContextMenuEntry, ContextMenuItem } from './types'
+import type { ContextMenuConfig, ContextMenuEntry } from './types'
 
 /**
  * Joins non-empty groups of entries with a separator between each, dropping
@@ -25,22 +25,26 @@ export function mergeContextMenuItems(groups: ContextMenuEntry[][]): ContextMenu
  * the result is empty and the host leaves the native menu alone.
  *
  * @param config - The caller's configuration, or `undefined` for all defaults.
- * @param defaults - The host's built-in items.
+ * @param defaults - The host's built-in entries: items, separators, and submenus.
  * @returns The final entries to render, in order.
  */
 export function resolveContextMenuEntries(
 	config: ContextMenuConfig | undefined,
-	defaults: ContextMenuItem[],
+	defaults: ContextMenuEntry[],
 ): ContextMenuEntry[] {
 	const custom = config?.items ?? []
 
 	const shownDefaults = (config?.defaultItems ?? true) ? defaults : []
 
-	// Latent, unreachable today: the separator keys this mints can collide with a
-	// host that pre-built `defaults` through the public `mergeContextMenuItems`
-	// and fed the result back in, producing duplicate React keys. No in-repo
-	// consumer composes them that way.
-	return mergeContextMenuItems(
-		(config?.insert ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom],
-	)
+	const [first, second] =
+		(config?.insert ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom]
+
+	if (first.length === 0) return second
+
+	if (second.length === 0) return first
+
+	// The separator has a key of its own. A host can build its `defaults` through
+	// `mergeContextMenuItems`, and a key from that function here would give two
+	// rows the same React key.
+	return [...first, { key: 'context-menu-insert', separator: true }, ...second]
 }

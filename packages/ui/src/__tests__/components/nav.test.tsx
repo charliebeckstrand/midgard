@@ -318,6 +318,38 @@ describe('NavContent / NavContents', () => {
 
 		expect(screen.getByText('Home panel')).toBeInTheDocument()
 	})
+
+	it('renders the panels after the <nav> landmark, not inside it', () => {
+		renderUI(
+			<Nav aria-label="Settings" defaultValue="account">
+				<NavList>
+					<NavItem value="account">Account</NavItem>
+					<NavItem value="billing">Billing</NavItem>
+				</NavList>
+				<NavContents>
+					<NavContent value="account">Account panel</NavContent>
+					<NavContent value="billing">Billing panel</NavContent>
+				</NavContents>
+			</Nav>,
+		)
+
+		const landmark = screen.getByRole('navigation', { name: 'Settings' })
+
+		expect(landmark).toContainElement(screen.getByRole('button', { name: 'Account' }))
+
+		const panel = screen.getByText('Account panel')
+
+		expect(landmark).not.toContainElement(panel)
+
+		expect(landmark.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+		// The panels still read the selection of the Nav.
+		fireEvent.click(screen.getByRole('button', { name: 'Billing' }))
+
+		expect(screen.getByText('Billing panel')).toBeInTheDocument()
+
+		expect(screen.queryByText('Account panel')).not.toBeInTheDocument()
+	})
 })
 
 describe('useNavContext', () => {

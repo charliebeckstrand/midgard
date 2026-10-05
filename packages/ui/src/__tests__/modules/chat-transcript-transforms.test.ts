@@ -16,11 +16,11 @@ import {
 } from '../../modules/chat/engine/chat-transcript'
 import type { ChatMessageData } from '../../modules/chat/engine/types'
 
-const user = (id: string, content: string): ChatMessageData => ({ id, role: 'user', content })
+const user = (id: string, content: string): ChatMessageData => ({ id, sender: 'user', content })
 
 const assistant = (id: string, content: string): ChatMessageData => ({
 	id,
-	role: 'assistant',
+	sender: 'assistant',
 	content,
 })
 
@@ -94,7 +94,7 @@ describe('applyReplyChunk', () => {
 		expect(applyReplyChunk(messages, 'r2', [chart])).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'first'),
-			{ id: 'r2', role: 'assistant', content: [chart] },
+			{ id: 'r2', sender: 'assistant', content: [chart] },
 		])
 	})
 })
@@ -109,7 +109,7 @@ describe('failReplyTools', () => {
 
 	const replyHolding = (...parts: ChatPart[]): ChatMessageData[] => [
 		user('u1', 'hi'),
-		{ id: 'r1', role: 'assistant', content: parts },
+		{ id: 'r1', sender: 'assistant', content: parts },
 	]
 
 	it('marks a step still running as failed', () => {
@@ -160,8 +160,8 @@ describe('failReplyTools', () => {
 
 	it('leaves a running step in another reply alone', () => {
 		const messages: ChatMessageData[] = [
-			{ id: 'r0', role: 'assistant', content: [step('running')] },
-			{ id: 'r1', role: 'assistant', content: [step('running', 't2')] },
+			{ id: 'r0', sender: 'assistant', content: [step('running')] },
+			{ id: 'r1', sender: 'assistant', content: [step('running', 't2')] },
 		]
 
 		expect(failReplyTools(messages, 'r1')[0]?.content).toEqual([step('running')])
@@ -285,12 +285,12 @@ describe('truncateToEditedMessage', () => {
 
 	it('keeps the message’s other fields', () => {
 		const messages: ChatMessageData[] = [
-			{ id: 'u1', role: 'user', content: 'hi', timestamp: '2026-08-08T00:00:00Z' },
+			{ id: 'u1', sender: 'user', content: 'hi', timestamp: '2026-08-08T00:00:00Z' },
 			assistant('r1', 'first'),
 		]
 
 		expect(truncateToEditedMessage(messages, 'u1', 'edited')).toEqual([
-			{ id: 'u1', role: 'user', content: 'edited', timestamp: '2026-08-08T00:00:00Z' },
+			{ id: 'u1', sender: 'user', content: 'edited', timestamp: '2026-08-08T00:00:00Z' },
 		])
 	})
 
@@ -335,7 +335,7 @@ describe('seedMessages', () => {
 	it('assigns an id only to the message that carries none', () => {
 		const messages: ChatMessageData[] = [
 			user('server-1', 'hi'),
-			{ role: 'assistant', content: 'hello' },
+			{ sender: 'assistant', content: 'hello' },
 		]
 
 		expect(seedMessages(messages, mintIds()).map((message) => message.id)).toEqual([
@@ -346,8 +346,8 @@ describe('seedMessages', () => {
 
 	it('mints once per message that carries none, so two never share an id', () => {
 		const messages: ChatMessageData[] = [
-			{ role: 'user', content: 'hi' },
-			{ role: 'assistant', content: 'hello' },
+			{ sender: 'user', content: 'hi' },
+			{ sender: 'assistant', content: 'hello' },
 		]
 
 		expect(seedMessages(messages, mintIds()).map((message) => message.id)).toEqual([
@@ -357,13 +357,13 @@ describe('seedMessages', () => {
 	})
 
 	it('reads an empty id as no id, the rule duplicateMessageIds reads', () => {
-		const messages: ChatMessageData[] = [{ id: '', role: 'user', content: 'hi' }]
+		const messages: ChatMessageData[] = [{ id: '', sender: 'user', content: 'hi' }]
 
 		expect(seedMessages(messages, mintIds())[0]?.id).toBe('minted-1')
 	})
 
 	it('leaves the transcript it read intact', () => {
-		const messages: ChatMessageData[] = [{ role: 'user', content: 'hi' }]
+		const messages: ChatMessageData[] = [{ sender: 'user', content: 'hi' }]
 
 		expect(seedMessages(messages, mintIds())).not.toBe(messages)
 
@@ -399,8 +399,8 @@ describe('duplicateMessageIds', () => {
 
 	it('skips a message with no id, because the shell assigns it one', () => {
 		const messages: ChatMessageData[] = [
-			{ role: 'user', content: 'hi' },
-			{ role: 'assistant', content: 'first' },
+			{ sender: 'user', content: 'hi' },
+			{ sender: 'assistant', content: 'first' },
 		]
 
 		expect(duplicateMessageIds(messages)).toEqual([])
@@ -408,8 +408,8 @@ describe('duplicateMessageIds', () => {
 
 	it('reads an empty id as no id, matching the rule the seeding reads', () => {
 		const messages: ChatMessageData[] = [
-			{ id: '', role: 'user', content: 'hi' },
-			{ id: '', role: 'assistant', content: 'first' },
+			{ id: '', sender: 'user', content: 'hi' },
+			{ id: '', sender: 'assistant', content: 'first' },
 		]
 
 		expect(duplicateMessageIds(messages)).toEqual([])
