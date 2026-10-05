@@ -1,6 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useComboboxState } from '../../components/combobox/use-combobox-state'
+import {
+	routeFloatingOpenChange,
+	useComboboxState,
+} from '../../components/combobox/use-combobox-state'
 
 function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> = {}) {
 	const setValue = vi.fn()
@@ -176,6 +179,31 @@ describe('useComboboxState', () => {
 		expect(result.current.menuDeferredQuery).toBe('')
 	})
 
+	it('keeps the close-time menu query when a second close() follows during the exit', () => {
+		const { result } = setup<string>()
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.setQuery('partial')
+		})
+
+		// An outside press closes the panel, then the input blur calls close() again.
+		act(() => {
+			result.current.close()
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		expect(result.current.menuQuery).toBe('partial')
+
+		expect(result.current.menuDeferredQuery).toBe('partial')
+	})
+
 	it('refocuses the input and clears the query in multi-select mode', () => {
 		const { result, focus } = setup<string>({ multiple: true })
 
@@ -243,5 +271,50 @@ describe('useComboboxState', () => {
 		})
 
 		expect(result.current.open).toBe(true)
+	})
+})
+
+// CONVENTIONS.md §10.3 bars a drive of the outside press of floating-ui. The
+// adapter is the seam: a pure callback over the close() and setOpen of the hook.
+describe('routeFloatingOpenChange', () => {
+	it('closes through close() on a dismissal, so the query and editing reset', () => {
+		const { result } = setup<string>()
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.setEditing(true)
+		})
+
+		act(() => {
+			result.current.setQuery('partial')
+		})
+
+		act(() => {
+			routeFloatingOpenChange(result.current.setOpen, result.current.close)(false)
+		})
+
+		expect(result.current.open).toBe(false)
+
+		expect(result.current.query).toBe('')
+
+		expect(result.current.editing).toBe(false)
+
+		// close() freezes the filter, so the menu holds it through the exit.
+		expect(result.current.menuQuery).toBe('partial')
+	})
+
+	it('gives an open to the guarded setter, so the lock holds', () => {
+		const setOpen = vi.fn()
+
+		const close = vi.fn()
+
+		routeFloatingOpenChange(setOpen, close)(true)
+
+		expect(setOpen).toHaveBeenCalledWith(true)
+
+		expect(close).not.toHaveBeenCalled()
 	})
 })

@@ -101,14 +101,25 @@ export function useComboboxState<T>({
 
 	const deferredQueryRef = useRef(deferredQuery)
 
+	// The open state, in a ref for the same reason. Only the close of an open
+	// panel starts an exit animation, so only that close takes a snapshot.
+	const openRef = useRef(open)
+
 	useEffect(() => {
 		queryRef.current = query
 
 		deferredQueryRef.current = deferredQuery
+
+		openRef.current = open
 	})
 
 	const close = useCallback(() => {
-		freezeQuery({ query: queryRef.current, deferredQuery: deferredQueryRef.current })
+		// An outside press closes the panel, and then the input blur calls close()
+		// again. The query is empty by then, so a second snapshot would expand the
+		// list under the exit animation.
+		if (openRef.current) {
+			freezeQuery({ query: queryRef.current, deferredQuery: deferredQueryRef.current })
+		}
 
 		setOpen(false)
 
@@ -189,5 +200,27 @@ export function useComboboxState<T>({
 		select,
 		flushPending,
 		selectionValue,
+	}
+}
+
+/**
+ * Builds the open-state callback that the combobox root gives to
+ * `useFloatingUI`. The floating-ui hooks report each dismissal there: an
+ * outside press or an Escape.
+ *
+ * @param setOpen - The guarded setter of the root. An open goes through it, so
+ *   a read-only or a disabled combobox stays closed.
+ * @param close - The `close` of {@link useComboboxState}. A close goes through
+ *   it, so the query and the editing flag reset, as on a blur.
+ * @returns The `onOpenChange` callback for `useFloatingUI`.
+ * @internal
+ */
+export function routeFloatingOpenChange(
+	setOpen: (open: boolean) => void,
+	close: () => void,
+): (open: boolean) => void {
+	return (open) => {
+		if (open) setOpen(true)
+		else close()
 	}
 }

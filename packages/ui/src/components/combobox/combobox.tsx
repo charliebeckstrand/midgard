@@ -49,7 +49,7 @@ import { ComboboxPanel } from './combobox-panel'
 import { resolveInputDisplay, resolveInputTitle } from './combobox-utilities'
 import { ComboboxContext } from './context'
 import { useComboboxInput } from './use-combobox-input'
-import { useComboboxState } from './use-combobox-state'
+import { routeFloatingOpenChange, useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
 
 type ComboboxBaseProps<T> = GroupStampProps & {
@@ -687,7 +687,8 @@ export function Combobox<T>({
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
-		onOpenChange: setOpenGuarded,
+		// An outside press or an Escape closes through close(), as a blur does.
+		onOpenChange: routeFloatingOpenChange(setOpenGuarded, close),
 		matchReferenceWidth: true,
 		// The input and panel carry their own roles + popup wiring; `role: null`
 		// suppresses floating-ui's wrapper roles.
