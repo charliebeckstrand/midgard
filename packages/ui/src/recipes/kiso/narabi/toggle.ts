@@ -12,7 +12,10 @@
  */
 
 export const toggle = [
-	'group/field grid grid-cols-[1.125rem_1fr]',
+	// The first column takes the width of the control, so the gap to the label is
+	// the same at each step of the box. A fixed column does not fit a box that
+	// steps with the density scope.
+	'group/field grid grid-cols-[auto_1fr]',
 	'gap-x-3',
 	// When the page is zoomed in, iOS holds each tap for a possible double tap
 	// and shows the tap highlight while it waits. A second tap on a near row in
