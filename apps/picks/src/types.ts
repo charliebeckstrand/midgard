@@ -1,3 +1,5 @@
+import type { components } from './api/openapi'
+
 /** One side of a game. */
 export type Team = {
 	id: string
@@ -59,26 +61,28 @@ export type Schedule = {
 	weeks: Week[]
 }
 
-/** One pick: the team picked to win, and its line when the pick was saved. */
-export type Pick = {
-	team: string
-	/**
-	 * The line of the team as a signed number, such as `-3.5` for a favorite or
-	 * `7` for an underdog. It sets the points of the pick, so a later move of the
-	 * line does not change them. `null` for a pick saved before the line posted:
-	 * the closing line scores it.
-	 */
-	line: number | null
-}
+/**
+ * The picks of one week, by game id, as Mimir stores them. `pnpm --filter
+ * picks openapi` generates the shape from its spec, so the app and the
+ * service cannot disagree about a pick.
+ */
+export type WeekPicks = components['schemas']['WeekPicks']
 
-/** The picks of one week, by game id. */
-export type WeekPicks = Record<string, Pick>
+/**
+ * One pick: the team picked to win, and its line when the pick was saved.
+ *
+ * `line` is the line of the team as a signed number, such as `-3.5` for a
+ * favorite or `7` for an underdog. It sets the points of the pick, so a later
+ * move of the line does not change them. It is `null` for a pick saved before
+ * the line posted: the closing line scores it.
+ */
+export type Pick = WeekPicks[string]
+
+/** The picks of one season, by week number. A week with no picks is absent. */
+export type SeasonPicks = components['schemas']['SeasonPicks']
 
 /**
  * The id of the picked team of each game, by game id: what the form sends. The
  * app sets the line of each pick when it stores the picks.
  */
 export type TeamPicks = Record<string, string>
-
-/** The picks of one season, by week number. A week with no picks is absent. */
-export type SeasonPicks = Record<string, WeekPicks>

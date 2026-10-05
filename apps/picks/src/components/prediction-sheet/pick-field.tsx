@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { Button } from 'ui/button'
 import { cn } from 'ui/core'
 import { Message } from 'ui/fieldset'
@@ -51,7 +52,14 @@ export function PickField({ game }: { game: Game }) {
 							)}
 						>
 							{team.logo === null ? null : (
-								<img src={team.logo} alt="" className="size-5 shrink-0" />
+								<Image
+									src={team.logo}
+									alt=""
+									width={20}
+									height={20}
+									unoptimized
+									className="size-5 shrink-0"
+								/>
 							)}
 							<span className={cn('font-medium', !picked && 'text-zinc-700 dark:text-zinc-300')}>
 								{team.abbreviation}

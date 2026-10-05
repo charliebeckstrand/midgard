@@ -7,6 +7,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
+import { Link } from 'ui/link'
 import { Placeholder } from 'ui/placeholder'
 import { Flex } from 'ui/structure/flex'
 import { UserMenu } from '../user-menu'
@@ -45,7 +46,9 @@ export function PicksHeader({ user, week }: PicksHeaderProps) {
 						{week === undefined ? (
 							<BreadcrumbLink current>Schedule</BreadcrumbLink>
 						) : (
-							<BreadcrumbLink href="/">Schedule</BreadcrumbLink>
+							<BreadcrumbLink href="/" render={<Link href="" />}>
+								Schedule
+							</BreadcrumbLink>
 						)}
 					</BreadcrumbItem>
 
@@ -75,7 +78,9 @@ export function WeekHeaderSkeleton() {
 			trail={
 				<>
 					<BreadcrumbItem>
-						<BreadcrumbLink href="/">Schedule</BreadcrumbLink>
+						<BreadcrumbLink href="/" render={<Link href="" />}>
+							Schedule
+						</BreadcrumbLink>
 					</BreadcrumbItem>
 
 					<BreadcrumbSeparator />

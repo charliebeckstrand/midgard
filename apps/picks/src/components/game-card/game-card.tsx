@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { ReactNode } from 'react'
 import { Badge } from 'ui/badge'
 import { Card } from 'ui/card'
@@ -26,7 +27,14 @@ function TeamRow({ team, final, mark }: { team: Team; final: boolean; mark: Reac
 			{team.logo === null ? (
 				<span aria-hidden="true" className="size-8 shrink-0" />
 			) : (
-				<img src={team.logo} alt="" className="size-8 shrink-0" />
+				<Image
+					src={team.logo}
+					alt=""
+					width={32}
+					height={32}
+					unoptimized
+					className="size-8 shrink-0"
+				/>
 			)}
 
 			<Flex align="center" gap="sm" className="min-w-0 flex-1">
@@ -35,7 +43,7 @@ function TeamRow({ team, final, mark }: { team: Team; final: boolean; mark: Reac
 				{mark}
 			</Flex>
 
-			<span className={cn('tabular-nums', final && team.winner && 'font-bold', lost && MUTED)}>
+			<span className={cn('tabular-nums', team.winner && 'font-bold', lost && MUTED)}>
 				{team.score ?? ''}
 			</span>
 		</Flex>

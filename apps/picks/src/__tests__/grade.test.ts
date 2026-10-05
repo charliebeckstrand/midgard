@@ -97,23 +97,7 @@ describe('tallyWeek', () => {
 			possible: 4,
 		})
 	})
-})
 
-describe('scoredLine', () => {
-	it('takes the saved line of a pick', () => {
-		expect(scoredLine(final, { team: '2', line: 9 })).toBe(9)
-	})
-
-	it('takes the line of the game for a pick saved before the line posted', () => {
-		expect(scoredLine(final, { team: '2', line: null })).toBe(7)
-	})
-
-	it('is null while no line is known', () => {
-		expect(scoredLine(game(), { team: '2', line: null })).toBeNull()
-	})
-})
-
-describe('tallyWeek without a line', () => {
 	it('scores a pick saved before the line posted on the closing line', () => {
 		expect(tallyWeek([final], { g1: { team: '12', line: null } })).toMatchObject({
 			right: 1,
@@ -128,5 +112,19 @@ describe('tallyWeek without a line', () => {
 			points: 1,
 			possible: 1,
 		})
+	})
+})
+
+describe('scoredLine', () => {
+	it('takes the saved line of a pick', () => {
+		expect(scoredLine(final, { team: '2', line: 9 })).toBe(9)
+	})
+
+	it('takes the line of the game for a pick saved before the line posted', () => {
+		expect(scoredLine(final, { team: '2', line: null })).toBe(7)
+	})
+
+	it('is null while no line is known', () => {
+		expect(scoredLine(game(), { team: '2', line: null })).toBeNull()
 	})
 })

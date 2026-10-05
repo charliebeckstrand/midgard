@@ -1,6 +1,6 @@
 import { cacheLife } from 'next/cache'
 import type { Game, Schedule } from '../types'
-import { readGames, readSchedule } from './espn-scoreboard'
+import { REGULAR_SEASON, readGames, readSchedule } from './espn-scoreboard'
 
 /** The scoreboard of the NFL in the public API of ESPN. It needs no key. */
 const SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard'
@@ -42,7 +42,7 @@ export async function getWeekGames(season: number, week: number): Promise<Game[]
 	'use cache'
 
 	const games = readGames(
-		await scoreboard({ dates: String(season), seasontype: '2', week: String(week) }),
+		await scoreboard({ dates: String(season), seasontype: REGULAR_SEASON, week: String(week) }),
 	)
 
 	if (games.some((game) => game.state === 'live')) cacheLife('minutes')

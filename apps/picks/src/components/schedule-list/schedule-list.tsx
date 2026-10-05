@@ -21,15 +21,14 @@ import { LEAGUE_ZONE, useLocalTime } from '../../utilities/use-local-time'
 import { KickoffTime } from '../kickoff-time'
 import { PredictionSheet } from '../prediction-sheet'
 
+/** The parts of a day in the range of a week. */
+const DAY: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
+
 /** The days of a week, such as `Sep 9 – 15`, in the time zone of the reader. */
-const rangeFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
+const rangeFormat = new Intl.DateTimeFormat('en-US', DAY)
 
 /** The days of a week in the zone of the league, for the server and the hydration render. */
-const leagueRangeFormat = new Intl.DateTimeFormat('en-US', {
-	month: 'short',
-	day: 'numeric',
-	timeZone: LEAGUE_ZONE,
-})
+const leagueRangeFormat = new Intl.DateTimeFormat('en-US', { ...DAY, timeZone: LEAGUE_ZONE })
 
 /**
  * Writes the week of the prediction form into the address, or takes it out.
@@ -46,17 +45,19 @@ function writePredict(week: number | null) {
 	window.history.replaceState(null, '', url)
 }
 
-/** An icon button with its label in a tooltip. */
+/** An icon button with a tooltip, which is its `label` when it has no `tip`. */
 function ActionButton({
 	label,
+	tip = label,
 	color,
 	icon,
 	onClick,
 }: {
 	label: string
+	tip?: ReactNode
 	color: 'zinc' | 'blue' | 'red'
 	icon: ReactElement
-	onClick: () => void
+	onClick?: () => void
 }) {
 	return (
 		<Tooltip>
@@ -66,7 +67,7 @@ function ActionButton({
 				</Button>
 			</TooltipTrigger>
 
-			<TooltipContent>{label}</TooltipContent>
+			<TooltipContent>{tip}</TooltipContent>
 		</Tooltip>
 	)
 }
@@ -121,27 +122,6 @@ export type ClosingWeek = {
 	kickoff: string
 }
 
-/**
- * The amber mark of a week whose first pick locks soon. It has the box of an
- * {@link ActionButton}, so it keeps the spacing of the buttons beside it. A
- * tooltip gives the time of the lock.
- */
-function ClosingSoon({ kickoff }: { kickoff: string }) {
-	return (
-		<Tooltip>
-			<TooltipTrigger>
-				<Button variant="bare" color="zinc" aria-label="Pick locks soon">
-					<Icon icon={<CircleAlert />} className="text-amber-500 dark:text-amber-400" />
-				</Button>
-			</TooltipTrigger>
-
-			<TooltipContent>
-				Pick locks <KickoffTime kickoff={kickoff} />
-			</TooltipContent>
-		</Tooltip>
-	)
-}
-
 type ScheduleListProps = {
 	season: number
 	weeks: Week[]
@@ -164,10 +144,10 @@ type ScheduleListProps = {
 /**
  * The weeks of the season, each a link to its games, with the record of each
  * started week and the buttons of {@link WeekActions}. The current week reads
- * "Current week". The next week to kick off shows {@link ClosingSoon} when its
- * first pick locks soon. The dates of the weeks show only when the "Show
- * dates" checkbox beside the `header` is on. On a phone, the checkbox goes
- * under the `header`.
+ * "Current week". The next week to kick off shows an amber mark when its first
+ * pick locks soon, with the time of the lock in its tooltip. The dates of the
+ * weeks show only when the "Show dates" checkbox beside the `header` is on. On
+ * a phone, the checkbox goes under the `header`.
  * `?predict=w5` opens the form on week 5.
  */
 export function ScheduleList({
@@ -191,7 +171,11 @@ export function ScheduleList({
 
 	const predictingWeek = weeks.find((week) => week.number === predicting) ?? null
 
-	const [deleting, setDeleting] = useState<Week | null>(null)
+	// The week of the delete confirm. A close clears `open` and keeps the week,
+	// so the words stay the same while the dialog closes.
+	const [deleting, setDeleting] = useState<{ week: Week; open: boolean } | null>(null)
+
+	const closeDelete = () => setDeleting((held) => (held === null ? null : { ...held, open: false }))
 
 	const [showDates, setShowDates] = useState(false)
 
@@ -229,7 +213,18 @@ export function ScheduleList({
 							suffix={
 								<Flex gap="sm" align="center">
 									{/* Outside the link of the row, so a hover reaches its tooltip. */}
-									{closing?.week === week.number ? <ClosingSoon kickoff={closing.kickoff} /> : null}
+									{closing?.week === week.number ? (
+										<ActionButton
+											label="Pick locks soon"
+											tip={
+												<>
+													Pick locks <KickoffTime kickoff={closing.kickoff} />
+												</>
+											}
+											color="zinc"
+											icon={<CircleAlert className="text-amber-500 dark:text-amber-400" />}
+										/>
+									) : null}
 
 									{tally === undefined ? null : (
 										<Badge
@@ -247,7 +242,7 @@ export function ScheduleList({
 										started={started.includes(week.number)}
 										closed={isClosed}
 										onPredict={() => writePredict(week.number)}
-										onDelete={() => setDeleting(week)}
+										onDelete={() => setDeleting({ week, open: true })}
 									/>
 								</Flex>
 							}
@@ -276,7 +271,7 @@ export function ScheduleList({
 			<PredictionSheet
 				season={season}
 				week={predictingWeek}
-				picks={predictingWeek === null ? undefined : picks[predictingWeek.number]}
+				picks={picks}
 				onOpenChange={(open) => {
 					if (!open) writePredict(null)
 				}}
@@ -285,17 +280,17 @@ export function ScheduleList({
 
 			{/* A delete cannot be undone, so it asks first, and names the week. */}
 			<Confirm
-				open={deleting !== null}
+				open={deleting?.open ?? false}
 				onOpenChange={(next) => {
-					if (!next) setDeleting(null)
+					if (!next) closeDelete()
 				}}
 				onConfirm={() => {
-					if (deleting !== null) void deletePicks.mutateAsync(deleting.number)
+					if (deleting !== null) deletePicks.mutate(deleting.week.number)
 
-					setDeleting(null)
+					closeDelete()
 				}}
-				title={deleting === null ? '' : `Delete the prediction for ${deleting.label}?`}
-				description={deleting === null ? undefined : 'This cannot be undone.'}
+				title={deleting === null ? '' : `Delete the prediction for ${deleting.week.label}?`}
+				description="This cannot be undone."
 				confirm={{ label: 'Delete', color: 'red' }}
 			/>
 		</>

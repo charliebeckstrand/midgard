@@ -1,4 +1,4 @@
-import { requireGateway, requireSession } from 'auth'
+import { requireSession } from 'auth'
 import { notFound } from 'next/navigation'
 import { Container } from 'ui/structure/container'
 import { Text } from 'ui/text'
@@ -6,7 +6,7 @@ import { GameCard, GameGrid } from '@/components/game-card'
 import { LiveRefresh } from '@/components/live-refresh'
 import { PicksHeader } from '@/components/picks-header'
 import { TallyTotal } from '@/components/tally-total'
-import { mimir } from '@/server/mimir'
+import { getSeasonPicks } from '@/server/mimir'
 import { getSchedule, getWeekGames } from '@/server/scoreboard'
 import { tallyWeek } from '@/utilities/grade'
 import { weekClosed } from '@/utilities/locks'
@@ -30,14 +30,11 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 
 	const [games, picks] = await Promise.all([
 		getWeekGames(schedule.season, week.number),
-		requireGateway('/api/predictions', () =>
-			mimir.GET('/api/predictions/{season}', { params: { path: { season: schedule.season } } }),
-		),
+		getSeasonPicks(schedule.season),
 	])
 
-	const weekPicks = picks?.[week.number] ?? {}
+	const weekPicks = picks[week.number] ?? {}
 
-	// A week that takes no more picks and has none says so.
 	const skipped = Object.keys(weekPicks).length === 0 && weekClosed(games, Date.now())
 
 	return (

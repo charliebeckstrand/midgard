@@ -1,5 +1,7 @@
+import { isRecord } from '@/server/espn-scoreboard'
 import { mimir } from '@/server/mimir'
 import { getWeekGames } from '@/server/scoreboard'
+import { readWeekPath, type WeekPathContext } from '@/server/week-path'
 import type { TeamPicks } from '@/types'
 import { kickedOff, mergePicks } from '@/utilities/locks'
 
@@ -12,37 +14,17 @@ import { kickedOff, mergePicks } from '@/utilities/locks'
  * to the gateway.
  */
 
-type Params = { params: Promise<{ season: string; week: string }> }
-
-/** The season and the week of the path, or `null` for a path that names no week. */
-async function readParams({ params }: Params): Promise<{ season: number; week: number } | null> {
-	const { season, week } = await params
-
-	const year = Number(season)
-
-	const number = Number(week)
-
-	return Number.isInteger(year) && Number.isInteger(number) && number >= 1
-		? { season: year, week: number }
-		: null
-}
-
 function refuse(status: number, message: string) {
 	return Response.json({ message }, { status })
 }
 
 /** Whether a body maps each game id to the id of a team. The app sets the line. */
 function isPicks(value: unknown): value is TeamPicks {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		!Array.isArray(value) &&
-		Object.values(value).every((entry) => typeof entry === 'string')
-	)
+	return isRecord(value) && Object.values(value).every((entry) => typeof entry === 'string')
 }
 
-export async function PUT(request: Request, context: Params) {
-	const path = await readParams(context)
+export async function PUT(request: Request, context: WeekPathContext) {
+	const path = await readWeekPath(context)
 
 	if (path === null) return refuse(404, 'Unknown week')
 
@@ -69,8 +51,8 @@ export async function PUT(request: Request, context: Params) {
 	return Response.json(data ?? error, { status: response.status })
 }
 
-export async function DELETE(_request: Request, context: Params) {
-	const path = await readParams(context)
+export async function DELETE(_request: Request, context: WeekPathContext) {
+	const path = await readWeekPath(context)
 
 	if (path === null) return refuse(404, 'Unknown week')
 

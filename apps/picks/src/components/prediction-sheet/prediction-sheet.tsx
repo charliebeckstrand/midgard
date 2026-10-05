@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
@@ -14,7 +14,7 @@ import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { useWeekGames } from '../../queries/picks-queries'
-import type { Game, TeamPicks, Week, WeekPicks } from '../../types'
+import type { Game, SeasonPicks, TeamPicks, Week, WeekPicks } from '../../types'
 import { isLocked, isOff } from '../../utilities/locks'
 import { PickField } from './pick-field'
 
@@ -22,24 +22,22 @@ import { PickField } from './pick-field'
 type PickValues = Record<string, string | undefined>
 
 /** Props for {@link PredictionSheet}. */
-export type PredictionSheetProps = {
+type PredictionSheetProps = {
 	season: number
 	/** The week the sheet is open on, or `null` while it is closed. */
 	week: Week | null
-	/** The stored picks of the week, or `undefined` for a week with no prediction. */
-	picks: WeekPicks | undefined
+	/** The stored picks of the season, by week number. */
+	picks: SeasonPicks
 	onOpenChange: (open: boolean) => void
 	onSubmit: (week: number, picks: TeamPicks) => Promise<unknown>
 }
 
 /**
- * The games of `games` that have no pick in `values` but can still take one,
- * as field errors. A prediction picks every game that has not kicked off.
+ * The games of `open` that have no pick in `values`, as field errors. `open`
+ * holds the games that have not kicked off, and a prediction picks each one.
  */
-function missingPicks(games: Game[], values: PickValues): Record<string, string> | null {
-	const now = Date.now()
-
-	const missing = games.filter((game) => !isLocked(game, now) && values[game.id] === undefined)
+function missingPicks(open: Game[], values: PickValues): Record<string, string> | null {
+	const missing = open.filter((game) => values[game.id] === undefined)
 
 	if (missing.length === 0) return null
 
@@ -54,21 +52,14 @@ function toPicks(values: PickValues): TeamPicks {
 }
 
 /**
- * The number of new or changed picks in `values` on open games that have no
- * line yet. Their points are not known until the closing line.
+ * The number of new or changed picks in `values` on the games of `open` that
+ * have no line yet. Their points are not known until the closing line.
  */
-function linelessPicks(games: Game[], values: PickValues, stored: WeekPicks | undefined): number {
-	const now = Date.now()
-
-	return games.filter((game) => {
+function linelessPicks(open: Game[], values: PickValues, stored: WeekPicks | undefined): number {
+	return open.filter((game) => {
 		const team = values[game.id]
 
-		return (
-			game.spread === null &&
-			!isLocked(game, now) &&
-			team !== undefined &&
-			stored?.[game.id]?.team !== team
-		)
+		return game.spread === null && team !== undefined && stored?.[game.id]?.team !== team
 	}).length
 }
 
@@ -207,36 +198,44 @@ export function PredictionSheet({
 }: PredictionSheetProps) {
 	const open = week !== null
 
-	// The week the sheet last opened on. A close clears the week of the caller,
-	// and the sheet stays mounted while it slides out, so it reads this one.
-	const [held, setHeld] = useState(week)
-
 	const [failure, setFailure] = useState<string | null>(null)
 
 	const [pending, setPending] = useState<PendingSave | null>(null)
 
-	useEffect(() => {
-		if (week === null) return
+	// The week the sheet last opened on, and whether it had a prediction then. A
+	// close clears the week of the caller, and the sheet stays mounted while it
+	// slides out, so it reads these. A save adds the prediction before the close,
+	// so the words stay those of the open.
+	const [held, setHeld] = useState<{ week: Week; editing: boolean } | null>(null)
 
-		setHeld(week)
+	const [last, setLast] = useState<Week | null>(null)
 
-		setFailure(null)
+	if (week !== last) {
+		setLast(week)
 
-		setPending(null)
-	}, [week])
+		if (week !== null) {
+			setHeld({ week, editing: picks[week.number] !== undefined })
 
-	const shown = week ?? held
+			setFailure(null)
 
-	const editing = picks !== undefined
+			setPending(null)
+		}
+	}
+
+	const shown = held?.week ?? null
+
+	const stored = shown === null ? undefined : picks[shown.number]
+
+	const editing = held?.editing ?? false
 
 	const title = `${editing ? 'Edit' : 'Add'} prediction`
 
 	const action = editing ? 'Save changes' : 'Add prediction'
 
-	const games = useWeekGames(season, shown?.number ?? null)
+	const games = useWeekGames(season, shown?.number ?? null, open)
 
 	const save = async (values: PickValues) => {
-		if (shown === null || games.data === undefined) return
+		if (shown === null) return
 
 		setFailure(null)
 
@@ -254,7 +253,11 @@ export function PredictionSheet({
 	const submit = async (values: PickValues): Promise<SubmitResult<PickValues> | undefined> => {
 		if (games.data === undefined) return undefined
 
-		const fieldErrors = missingPicks(games.data, values)
+		const now = Date.now()
+
+		const openGames = games.data.filter((game) => !isLocked(game, now))
+
+		const fieldErrors = missingPicks(openGames, values)
 
 		if (fieldErrors !== null) {
 			setFailure('Pick a side in every game that has not kicked off.')
@@ -264,7 +267,7 @@ export function PredictionSheet({
 
 		setFailure(null)
 
-		const count = linelessPicks(games.data, values, picks)
+		const count = linelessPicks(openGames, values, stored)
 
 		if (count > 0) setPending({ values, count, open: true })
 		else await save(values)
@@ -272,7 +275,8 @@ export function PredictionSheet({
 		return undefined
 	}
 
-	const closeConfirm = () => setPending((held) => (held === null ? null : { ...held, open: false }))
+	const closeConfirm = () =>
+		setPending((current) => (current === null ? null : { ...current, open: false }))
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -303,7 +307,7 @@ export function PredictionSheet({
 						// stored picks and an abandoned entry never comes back.
 						key={`${String(open)}:${shown?.number}`}
 						games={games.data}
-						picks={picks}
+						picks={stored}
 						editing={editing}
 						action={action}
 						failure={failure}

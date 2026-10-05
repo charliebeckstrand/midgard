@@ -1,10 +1,10 @@
-import { requireGateway, requireSession } from 'auth'
+import { requireSession } from 'auth'
 import { Suspense } from 'react'
 import { Container } from 'ui/structure/container'
 import { PicksHeader } from '@/components/picks-header'
 import { type ClosingWeek, ScheduleList } from '@/components/schedule-list'
 import { TallyTotal } from '@/components/tally-total'
-import { mimir } from '@/server/mimir'
+import { getSeasonPicks } from '@/server/mimir'
 import { getSchedule, getWeekGames } from '@/server/scoreboard'
 import type { Schedule, SeasonPicks } from '@/types'
 import { addTally, EMPTY_TALLY, type Tally, tallyWeek } from '@/utilities/grade'
@@ -20,38 +20,31 @@ const CLOSING_SOON = 24 * 60 * 60 * 1000
 export const instant = false
 
 /**
- * The weeks that have kicked off. The dates of a week answer for every week
- * but the current one, so only the games of that week are read.
+ * The weeks that have kicked off, the weeks that take no more picks, and the
+ * week in play or next up. The dates of a week answer for every week but the
+ * current one, so only the games of that week are read.
  */
-async function startedWeeks(schedule: Schedule, now: number): Promise<number[]> {
-	const started: number[] = []
-
-	for (const week of schedule.weeks) {
-		if (Date.parse(week.start) > now) continue
-
-		if (
-			Date.parse(week.end) < now ||
-			kickedOff(await getWeekGames(schedule.season, week.number), now)
-		) {
-			started.push(week.number)
-		}
-	}
-
-	return started
-}
-
-/** The week in play or next up, and whether it takes no more picks. */
-async function currentWeek(
+async function seasonState(
 	schedule: Schedule,
 	now: number,
-): Promise<{ week: number; closed: boolean } | null> {
-	const week = schedule.weeks.find((entry) => Date.parse(entry.end) >= now)
+): Promise<{ started: number[]; closed: number[]; current: number | null }> {
+	const ended = schedule.weeks
+		.filter((week) => Date.parse(week.end) < now)
+		.map((week) => week.number)
 
-	if (week === undefined) return null
+	const current = schedule.weeks.find((week) => Date.parse(week.end) >= now)
 
-	const games = await getWeekGames(schedule.season, week.number)
+	if (current === undefined) return { started: ended, closed: ended, current: null }
 
-	return { week: week.number, closed: weekClosed(games, now) }
+	const games = await getWeekGames(schedule.season, current.number)
+
+	const started = Date.parse(current.start) <= now && kickedOff(games, now)
+
+	return {
+		started: started ? [...ended, current.number] : ended,
+		closed: weekClosed(games, now) ? [...ended, current.number] : ended,
+		current: current.number,
+	}
 }
 
 /**
@@ -109,29 +102,16 @@ export default async function Page() {
 
 	const schedule = await getSchedule()
 
-	const picks =
-		(await requireGateway('/api/predictions', () =>
-			mimir.GET('/api/predictions/{season}', { params: { path: { season: schedule.season } } }),
-		)) ?? {}
+	const picks = await getSeasonPicks(schedule.season)
 
 	const now = Date.now()
 
-	const [started, current] = await Promise.all([
-		startedWeeks(schedule, now),
-		currentWeek(schedule, now),
-	])
+	const { started, closed, current } = await seasonState(schedule, now)
 
 	const [tallies, closing] = await Promise.all([
 		weekTallies(schedule.season, picks, started),
 		closingWeek(schedule, started, now),
 	])
-
-	// A week is closed once it ends, or once every game of the current week is locked.
-	const closed = schedule.weeks
-		.filter(
-			(week) => Date.parse(week.end) < now || (current?.week === week.number && current.closed),
-		)
-		.map((week) => week.number)
 
 	const season = Object.values(tallies).reduce(addTally, EMPTY_TALLY)
 
@@ -148,7 +128,7 @@ export default async function Page() {
 						picks={picks}
 						started={started}
 						closed={closed}
-						current={current?.week ?? null}
+						current={current}
 						closing={closing}
 						tallies={tallies}
 					/>

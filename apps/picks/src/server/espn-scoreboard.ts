@@ -7,11 +7,12 @@ import type { Game, GameState, Schedule, Spread, Team, Week } from '../types'
  */
 
 /** The value of the season type of the regular season in the feed. */
-const REGULAR_SEASON = '2'
+export const REGULAR_SEASON = '2'
 
 type Json = Record<string, unknown>
 
-function isRecord(value: unknown): value is Json {
+/** Whether `value` is an object of the feed: not `null` and not an array. */
+export function isRecord(value: unknown): value is Json {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 

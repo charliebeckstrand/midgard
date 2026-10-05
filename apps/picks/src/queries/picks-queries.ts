@@ -24,9 +24,9 @@ export function usePicks(season: number, initial: SeasonPicks) {
 
 /**
  * The games of one week, from the route handler that reads the scoreboard. The
- * form asks for them only while it is open.
+ * form asks for them only while it is `active`, and keeps them while it closes.
  */
-export function useWeekGames(season: number, week: number | null) {
+export function useWeekGames(season: number, week: number | null, active: boolean) {
 	return useQuery({
 		queryKey: picksKeys.games(season, week ?? 0),
 		queryFn: async ({ signal }): Promise<Game[]> => {
@@ -36,7 +36,7 @@ export function useWeekGames(season: number, week: number | null) {
 
 			return response.json()
 		},
-		enabled: week !== null,
+		enabled: active && week !== null,
 	})
 }
 
