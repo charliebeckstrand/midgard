@@ -1,4 +1,3 @@
-export type { TabsOrientation, TabsVariant } from './context'
 export { Tab, type TabProps } from './tab'
 export {
 	TabContent,

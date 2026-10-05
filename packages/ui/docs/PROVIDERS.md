@@ -57,7 +57,6 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 |---|---|
 | `GlassProvider` | Sets the ambient glass flag for the subtree, switching every glass-aware descendant to its glass variant. It has no `'use client'`, so an RSC tree can host it; a client leaf writes the context. |
 | `GlassProviderProps` *(type)* | Props for `GlassProvider`. |
-| `GlassContext` | Ambient glass-mode context (default `false`); read via `useGlass()` at the leaf. |
 | `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`. |
 | `useResolvedSurface` | Resolves a chrome panel's `surface` variant. A set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. |
 
@@ -69,7 +68,6 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 |---|---|
 | `HeadlessProvider` | Escape-hatch provider that strips chrome from headless-aware descendants so they render the bare semantic element. |
 | `HeadlessProviderProps` *(type)* | Props for `HeadlessProvider`. |
-| `HeadlessContext` | Ambient headless-mode context (default `false`); read via `useHeadless()` at the leaf. |
 | `useHeadless` | Reads the ambient headless flag; `false` outside a `<HeadlessProvider>`. |
 
 ## `ui/providers/locale`

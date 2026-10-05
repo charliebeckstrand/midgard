@@ -5,7 +5,7 @@
 import '@testing-library/jest-dom/vitest'
 import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
-import { GlassContext } from '../../../providers/glass'
+import { GlassContext } from '../../../providers/glass/context'
 
 export { fireEvent, screen } from '@testing-library/react'
 export { settled } from '../../../__tests__/helpers/settled'

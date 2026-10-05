@@ -4,10 +4,10 @@ import {
 	createGroup,
 	createRule,
 	QueryBuilder,
-	QueryBuilderRuleValue,
 	type QueryField,
 	type QueryGroup,
 } from '../../modules/query'
+import { QueryBuilderRuleValue } from '../../modules/query/query-builder'
 import { bySlot, fireEvent, present, renderUI, screen, within } from '../helpers'
 
 // Overrides the shared `motion/react` mock: the pass-through `AnimatePresence`

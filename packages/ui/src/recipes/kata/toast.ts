@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { sou, ugoki } from '../kiso'
 
 const { spring, toast } = ugoki
@@ -35,10 +35,4 @@ export const k = {
 	spring: spring.reflow,
 	/** Inter-toast gap (px), animated to 0 on dismiss; neighbors slide in. */
 	gap: 8,
-}
-
-/** Recipe variant props for the {@link Toast} viewport — its styling axes (`position`), for consumers composing custom slots. */
-export type ToastViewportVariants = Omit<VariantProps<typeof viewport>, 'position'> & {
-	/** The corner of the screen that holds the stack of toasts. @defaultValue 'bottom-right' */
-	position?: VariantProps<typeof viewport>['position']
 }

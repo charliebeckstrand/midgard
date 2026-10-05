@@ -11,7 +11,7 @@ import { cn } from '../../../core'
 import { Flex } from '../../../structure/flex'
 import type { QueryField } from '../engine/types'
 
-/** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */
+/** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. @internal */
 export type QueryBuilderRuleValueProps = {
 	/** The field of the rule. Its type selects the value input. */
 	field: QueryField
@@ -135,6 +135,8 @@ function RangeValue({
  *   operator is a range. The pair clamps to the field's `span` and to each other
  * - `date`: a {@link DatePicker}, round-tripped as a local-wall-clock ISO date
  * - anything else: a text {@link Input}
+ *
+ * @internal
  */
 export function QueryBuilderRuleValue({
 	field,

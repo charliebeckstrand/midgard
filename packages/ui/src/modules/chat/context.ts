@@ -7,6 +7,8 @@ import type { ChatEmbedRegistry } from './types'
  * True when a {@link ChatListItem} renders inside a {@link ChatList}. The list
  * owns the roving-tabindex keyboard model; an item reads this to take
  * `role="listitem"` (paired with the list's `role="list"`) when nested.
+ *
+ * @internal
  */
 export const [ChatListContext, useInChatList] = createContext<boolean>('ChatList', {
 	default: false,

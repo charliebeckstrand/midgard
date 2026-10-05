@@ -3,9 +3,9 @@
 import { createContext } from '../../core'
 import type { Orientation } from '../../types'
 
-/** Visual treatment of a tab group: underlined `tab` triggers or a segmented control. */
+/** Visual treatment of a tab group: underlined `tab` triggers or a segmented control. @internal */
 export type TabsVariant = 'tab' | 'segment'
-/** Tab-list flow axis; the `segment` variant is always horizontal. */
+/** Tab-list flow axis; the `segment` variant is always horizontal. @internal */
 export type TabsOrientation = Orientation
 
 type TabsContextValue = {
