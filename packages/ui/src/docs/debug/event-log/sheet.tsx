@@ -3,11 +3,10 @@ import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { Label } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 import { useCopyButtonState } from '../../../components/copy-button/use-copy-button-state.ts'
-import { toggleItem } from '../../../utilities/toggle-item.ts'
-import { Rail } from '../../kit/rail.tsx'
 import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
 /** One line of text: the time, the scroll position, the kind, and the text. */
@@ -16,10 +15,11 @@ function line({ time, kind, text, y }: Entry): string {
 }
 
 /**
- * The viewer of the Event log: a filter button for each kind and "Preserve
- * log", the lines, newest first, Copy (oldest first, as text), and Clear.
- * With no lines, it says that the log is empty, or that the filters hide each
- * entry. The log records nothing while the sheet is on screen.
+ * The viewer of the Event log: a type filter and "Preserve log", the lines,
+ * newest first, Copy (oldest first, as text), and Clear. With no selected
+ * type, the sheet shows each type. With no lines, it says that the log is
+ * empty, or that the filter hides each entry. The log records nothing while
+ * the sheet is on screen.
  */
 export function EventLogSheet({
 	open,
@@ -34,9 +34,11 @@ export function EventLogSheet({
 
 	const preserve = useSyncExternalStore(log.subscribe, () => log.preserve)
 
-	const [hidden, setHidden] = useState<ReadonlySet<Kind>>(new Set())
+	const [kinds, setKinds] = useState<Kind[]>([])
 
-	const lines = entries.filter((entry) => !hidden.has(entry.kind)).map(line)
+	const lines = entries
+		.filter((entry) => kinds.length === 0 || kinds.includes(entry.kind))
+		.map(line)
 
 	const { copied, copy } = useCopyButtonState({ text: lines.join('\n') })
 
@@ -52,19 +54,20 @@ export function EventLogSheet({
 			<SheetTitle>Event log</SheetTitle>
 			<SheetBody className="min-h-0 flex-1 space-y-3 overflow-auto">
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-					<Rail label="Kinds">
+					<Listbox<Kind>
+						multiple
+						aria-label="Types"
+						placeholder="All types"
+						value={kinds}
+						onValueChange={setKinds}
+						displayValue={(kind) => kind}
+					>
 						{KINDS.map((kind) => (
-							<Button
-								key={kind}
-								size="sm"
-								variant={hidden.has(kind) ? 'outline' : 'solid'}
-								aria-pressed={!hidden.has(kind)}
-								onClick={() => setHidden(toggleItem(hidden, kind))}
-							>
-								{kind}
-							</Button>
+							<ListboxOption key={kind} value={kind}>
+								<ListboxLabel>{kind}</ListboxLabel>
+							</ListboxOption>
 						))}
-					</Rail>
+					</Listbox>
 					<CheckboxField className="shrink-0">
 						<Checkbox
 							checked={preserve}
