@@ -12,16 +12,16 @@ type GridManagerDialogProps = {
 	/** The manager the dialog hosts — the column editor or the row-group editor. */
 	children: ReactNode
 	/**
-	 * Whether focus opens on Done. A dialog that opens from a menu item names
+	 * Whether focus opens on Close. A dialog that opens from a menu item names
 	 * its target, because the item that held focus is gone by then. Otherwise
 	 * the dialog takes its first control.
 	 */
-	focusDone?: boolean
+	focusClose?: boolean
 }
 
 /**
  * Controlled {@link Dialog} shell shared by the grid's manager surfaces: a title,
- * the manager itself, and a Done button that closes. Each call site owns when it
+ * the manager itself, and a Close button. Each call site owns when it
  * mounts.
  *
  * The shell takes its manager as `children` rather than forwarding each
@@ -35,18 +35,18 @@ export function GridManagerDialog({
 	onOpenChange,
 	label,
 	children,
-	focusDone = false,
+	focusClose = false,
 }: GridManagerDialogProps) {
-	const doneRef = useRef<HTMLButtonElement>(null)
+	const closeRef = useRef<HTMLButtonElement>(null)
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogPanel initialFocus={focusDone ? doneRef : undefined}>
+			<DialogPanel initialFocus={focusClose ? closeRef : undefined}>
 				<DialogTitle>{label}</DialogTitle>
 				<DialogBody>{children}</DialogBody>
 				<DialogFooter>
-					<Button ref={doneRef} type="button" variant="soft" onClick={() => onOpenChange(false)}>
-						Done
+					<Button ref={closeRef} type="button" variant="soft" onClick={() => onOpenChange(false)}>
+						Close
 					</Button>
 				</DialogFooter>
 			</DialogPanel>

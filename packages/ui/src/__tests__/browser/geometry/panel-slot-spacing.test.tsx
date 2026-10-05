@@ -31,12 +31,11 @@ import {
 import { getSlot, renderUI } from '../../helpers'
 
 /**
- * The slots of a panel are spaced evenly. The space between the panel edge and
- * the first slot is the space between two slots, and the same is true at the
- * bottom edge. The body is the part that scrolls, so the header and the footer
- * stay in place while it scrolls. The visible space must stay even then too:
- * an inset that is padding inside the scrolling body moves out of view with the
- * content.
+ * The inset of a panel is the same on the four sides. It is larger than the gap
+ * between two slots, and each gap between two slots is the same. The body is
+ * the part that scrolls, so the header and the footer stay in place while it
+ * scrolls. The visible space must stay even then too: an inset that is padding
+ * inside the scrolling body moves out of view with the content.
  */
 
 /** Text that is taller than each panel, so the body scrolls. */
@@ -150,6 +149,20 @@ function contentBottom(el: Element) {
 	return el.getBoundingClientRect().bottom - Number.parseFloat(style.paddingBottom)
 }
 
+/** The left of the content box of `el`. */
+function contentLeft(el: Element) {
+	const style = getComputedStyle(el)
+
+	return el.getBoundingClientRect().left + Number.parseFloat(style.paddingLeft)
+}
+
+/** The right of the content box of `el`. */
+function contentRight(el: Element) {
+	const style = getComputedStyle(el)
+
+	return el.getBoundingClientRect().right - Number.parseFloat(style.paddingRight)
+}
+
 /** The top of the visible content of a scrolling `el`: its padding moves out of view with a scroll. */
 function visibleTop(el: HTMLElement) {
 	const padding = Number.parseFloat(getComputedStyle(el).paddingTop)
@@ -194,7 +207,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 	beforeAll(() => page.viewport(width, height))
 
 	describe.each(PANELS)('$name', ({ slot, full, bare }) => {
-		it('keeps the edge insets equal to the slot gap, before and after a scroll', async () => {
+		it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
 			renderUI(
 				full({
 					title: 'Settings',
@@ -215,23 +228,29 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 
 			const measure = () => {
 				const panelBox = panel.getBoundingClientRect()
+				const title = getSlot(panel, `${slot}-title`)
 
 				return {
-					top: contentTop(getSlot(panel, `${slot}-title`)) - panelBox.top,
+					top: contentTop(title) - panelBox.top,
+					left: contentLeft(title) - panelBox.left,
+					right: panelBox.right - contentRight(footer),
+					bottom: panelBox.bottom - contentBottom(footer),
 					above: visibleTop(body) - contentBottom(header),
 					below: contentTop(footer) - visibleBottom(body),
-					bottom: panelBox.bottom - contentBottom(footer),
 				}
 			}
 
 			const rest = measure()
 
 			expect(rest.above).toBeGreaterThan(0)
+			expect(rest.left).toBeGreaterThan(rest.above)
 			expect(rest).toEqual({
-				top: rest.above,
+				top: rest.left,
+				left: rest.left,
+				right: rest.left,
+				bottom: rest.left,
 				above: rest.above,
 				below: rest.above,
-				bottom: rest.above,
 			})
 
 			scrollMiddle(body)
@@ -240,23 +259,16 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 		})
 
 		it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
-			const view = renderUI(
-				full({ title: 'Gap', description: 'Gap.', body: <p>Short</p>, footer: 'Close' }),
-			)
-
-			const gapPanel = await settledPanel(slot)
-			const gap =
-				getSlot(gapPanel, `${slot}-body`).getBoundingClientRect().top -
-				contentBottom(getSlot(gapPanel, `${slot}-header`))
-
-			view.unmount()
-
 			renderUI(bare(LONG))
 
 			const panel = await settledPanel(slot)
 			const body = getSlot(panel, `${slot}-body`)
 
 			expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+
+			const inset = contentLeft(body) - panel.getBoundingClientRect().left
+
+			expect(inset).toBeGreaterThan(0)
 
 			const measure = () => {
 				const panelBox = panel.getBoundingClientRect()
@@ -267,11 +279,11 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 				}
 			}
 
-			expect(measure()).toEqual({ top: gap, bottom: gap })
+			expect(measure()).toEqual({ top: inset, bottom: inset })
 
 			scrollMiddle(body)
 
-			expect(measure()).toEqual({ top: gap, bottom: gap })
+			expect(measure()).toEqual({ top: inset, bottom: inset })
 		})
 	})
 })

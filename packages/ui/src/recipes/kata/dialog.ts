@@ -15,9 +15,8 @@ export const k = {
 				layout.base,
 				'relative',
 				'w-full',
-				// The block insets are the slot gap, so a header and a footer that stay in
-				// place over the scrolling body have the same space on each side.
-				'px-6',
+				// The insets are even on the four sides. See `layout.inset`.
+				layout.inset.inline,
 				layout.inset.top,
 				layout.inset.bottom,
 				// Each cap is a share of the overlay root. Above `sm`, the root has an

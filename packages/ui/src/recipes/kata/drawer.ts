@@ -74,16 +74,15 @@ export const k = {
 		// what made the first consumer hand-roll its own header row rather than use
 		// this slot.
 		//
-		// The block insets are the slot gap, so a header and a footer that stay in
-		// place over the scrolling body have the same space on each side.
-		title: { extra: ['px-6', layout.inset.top, 'group-data-handle/drawer:pt-0'] },
-		description: { extra: 'px-6' },
-		footer: { extra: ['px-6', layout.inset.bottom] },
+		// The insets are even on the four sides. See `layout.inset`.
+		title: { extra: [layout.inset.inline, layout.inset.top, 'group-data-handle/drawer:pt-0'] },
+		description: { extra: layout.inset.inline },
+		footer: { extra: [layout.inset.inline, layout.inset.bottom] },
 		body: {
 			extra: [
 				flex.fill,
 				'overflow-y-auto overscroll-y-contain',
-				'px-6',
+				layout.inset.inline,
 				layout.inset.first,
 				layout.inset.last,
 			],

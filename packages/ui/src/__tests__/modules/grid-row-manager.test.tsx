@@ -96,7 +96,7 @@ describe('Grid row manager', () => {
 		expect(shown).toEqual(['row 3', 'row 4', 'row 2', 'row 1'])
 	})
 
-	it('opens Manage rows with focus in the dialog, and hands it back to the group on Done', async () => {
+	it('opens Manage rows with focus in the dialog, and hands it back to the group on Close', async () => {
 		const user = setupUser()
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
@@ -109,7 +109,7 @@ describe('Grid row manager', () => {
 
 		expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement)
 
-		await user.click(screen.getByRole('button', { name: 'Done' }))
+		await user.click(screen.getByRole('button', { name: 'Close' }))
 
 		await waitFor(() => expect(toggle).toHaveFocus())
 	})
