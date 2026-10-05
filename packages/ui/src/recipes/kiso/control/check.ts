@@ -39,18 +39,25 @@ const validation = [
  * Custom check surface (the visible box / circle). The resting border is the
  * only mark of an unchecked control, so it keeps a 3:1 contrast against the
  * page in each mode (WCAG 1.4.11).
+ *
+ * The neutral hover border skips a checked control and an indeterminate
+ * checkbox. It has a higher specificity than the checked border of the kata, so
+ * it would otherwise replace the accent border on hover. The kata gives a
+ * checked control its own hover. The indeterminate guard names the checkbox,
+ * because a radio matches `:indeterminate` when no radio of its group is
+ * checked.
  */
 const surface = [
 	...mode(
 		[
 			'bg-white',
 			'border border-zinc-950/50',
-			'not-has-[:disabled]:hover:border-zinc-950/70 not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
+			'not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:hover:border-zinc-950/70 not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
 		],
 		[
 			'dark:bg-white/5',
 			'dark:border-white/35',
-			'dark:not-has-[:disabled]:hover:border-white/50 dark:not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-white/50',
+			'dark:not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:hover:border-white/50 dark:not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:group-has-[[data-slot=label]:hover]/field:border-white/50',
 		],
 	),
 	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
