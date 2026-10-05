@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	countryOf,
 	drillInto,
+	groupName,
 	groupTrail,
 	initialView,
 	knownCountry,
@@ -381,5 +382,24 @@ describe('viewKey', () => {
 		const keys = [WORLD, UNITED_STATES_VIEW, OREGON, FRANCE].map(viewKey)
 
 		expect(new Set(keys).size).toBe(keys.length)
+	})
+})
+
+describe('groupName', () => {
+	it('names the group by the city that every place shares', () => {
+		const portland = { city: 'Portland' }
+
+		expect(groupName([place('a', portland), place('b', portland)])).toBe('Portland')
+	})
+
+	it('counts the group where the places span cities', () => {
+		expect(groupName([place('a', { city: 'Portland' }), place('b', { city: 'Beaverton' })])).toBe(
+			'2 nearby',
+		)
+	})
+
+	// A place with no city is not proof that the group shares one.
+	it('counts the group where a place has no city', () => {
+		expect(groupName([place('a', { city: 'Portland' }), place('b')])).toBe('2 nearby')
 	})
 })
