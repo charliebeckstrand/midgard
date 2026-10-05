@@ -1,21 +1,25 @@
-import { type ComponentType, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
-import type { BarrelApi, ComponentApi } from '../plugin/api.ts'
+import type { BarrelApi } from '../plugin/api.ts'
 import { useIdle } from './idle.ts'
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time
 // after the mount, or before that when the reader points at the list.
-let entry: Promise<void> | undefined
+type EntryModule = typeof import('./api-entry.tsx')
+
+let entry: Promise<EntryModule> | undefined
 
 // The entry component, when its chunk is loaded.
-let ApiEntry: ComponentType<{ component: ComponentApi }> | undefined
+let ApiEntry: EntryModule['ApiEntry'] | undefined
 
-function loadEntry(): Promise<void> {
+function loadEntry(): Promise<EntryModule> {
 	entry ??= import('./api-entry.tsx').then((module) => {
 		ApiEntry = module.ApiEntry
+
+		return module
 	})
 
 	return entry
@@ -31,7 +35,11 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	const [open, setOpen] = useState<string[]>([])
 
-	useIdle(loadEntry)
+	// In idle time, the entry also lexes the Markdown of the API data, so the
+	// first entry that opens does not lex.
+	const prepare = useCallback(() => loadEntry().then((module) => module.primeApi(api)), [api])
+
+	useIdle(prepare)
 
 	// An entry opens when its chunk is loaded, so it opens at its full height
 	// with its props in it. An entry that suspends opens empty, and React then

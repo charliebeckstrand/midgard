@@ -69,6 +69,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `heading` · `text` · `shiny-text` · `icon` · `markdown`
 
+> `markdown` exports `Markdown`, which lexes its source with `marked`, and `MarkdownInline`. The first lex on a page is slow, because the regular expressions of `marked` compile then. `primeMarkdown` lexes a source before a block renders it, such as in idle time, and the block then renders from the stored tokens.
+
 ## Feedback
 
 `loading` · `progress`

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { Markdown, MarkdownInline } from '../../components/markdown'
+import { Lexer } from 'marked'
+import { describe, expect, it, vi } from 'vitest'
+import { Markdown, MarkdownInline, primeMarkdown } from '../../components/markdown'
 import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts (its markup carries
@@ -249,5 +250,23 @@ describe('Markdown', () => {
 		await waitFor(() =>
 			expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'text'),
 		)
+	})
+})
+
+describe('primeMarkdown', () => {
+	it('lexes a source once, and a block with that source renders with no lex', () => {
+		const lex = vi.spyOn(Lexer.prototype, 'lex')
+
+		primeMarkdown('A *primed* source.')
+
+		expect(lex).toHaveBeenCalledTimes(1)
+
+		const { container } = renderUI(<Markdown>{'A *primed* source.'}</Markdown>)
+
+		expect(container.querySelector('em')?.textContent).toBe('primed')
+
+		expect(lex).toHaveBeenCalledTimes(1)
+
+		lex.mockRestore()
 	})
 })

@@ -1,4 +1,4 @@
-import { Marked } from 'marked'
+import { Marked, type Token } from 'marked'
 import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
@@ -8,6 +8,49 @@ import { type MarkdownHeadingOffset, MarkdownRenderer } from './markdown-rendere
 // `marked` singleton a consuming app can also configure. GFM is on (tables,
 // task lists, strikethrough, autolinks).
 const md = new Marked({ gfm: true })
+
+const MAX_CACHE_SIZE = 200
+
+/**
+ * The tokens of each block source that a {@link Markdown} lexed or that
+ * {@link primeMarkdown} stored. Process-wide, so it serves each block with the
+ * same source. The first lex of a page is slow, because the regular
+ * expressions of `marked` compile then. Insertion-ordered: when the cache is
+ * full, the oldest entry goes.
+ */
+const tokenCache = new Map<string, Token[]>()
+
+/** The block tokens of `source`, from the cache or from a new lex. */
+function lex(source: string): Token[] {
+	const cached = tokenCache.get(source)
+
+	if (cached) return cached
+
+	const tokens = md.lexer(source)
+
+	if (tokenCache.size >= MAX_CACHE_SIZE) {
+		tokenCache.delete(tokenCache.keys().next().value as string)
+	}
+
+	tokenCache.set(source, tokens)
+
+	return tokens
+}
+
+/**
+ * Lexes a Markdown source before a {@link Markdown} renders it, such as in
+ * idle time. The block with the same source then renders from the stored
+ * tokens, and its render does not lex.
+ *
+ * @param source - The source, as the `children` of the block give it.
+ * @remarks
+ * The cache holds 200 sources and drops the oldest first, so prime the
+ * sources of one page, not the sources of a whole site. {@link MarkdownInline}
+ * does not read the cache.
+ */
+export function primeMarkdown(source: string): void {
+	lex(source)
+}
 
 /** Props for {@link Markdown}: the Markdown source string to render as prose, and the heading offset. */
 export type MarkdownProps = {
@@ -59,6 +102,9 @@ export type MarkdownProps = {
  * parent re-renders for unrelated reasons. One example is a list of chat bubbles
  * re-rendering on every streamed chunk of the *last* message. Every earlier,
  * settled bubble's `children` stays the same string.
+ *
+ * A source that a block lexed before, or that {@link primeMarkdown} stored,
+ * renders from a process-wide token cache and does not lex again.
  */
 export const Markdown = memo(function Markdown({
 	children,
@@ -67,7 +113,7 @@ export const Markdown = memo(function Markdown({
 }: MarkdownProps) {
 	return (
 		<div data-slot="markdown" className={cn(k.base, className)}>
-			<MarkdownRenderer tokens={md.lexer(children)} headingOffset={headingOffset} />
+			<MarkdownRenderer tokens={lex(children)} headingOffset={headingOffset} />
 		</div>
 	)
 })
