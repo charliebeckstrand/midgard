@@ -1,7 +1,6 @@
 /**
- * Compares the load of the docs app with the load of the legacy app, for
- * `pnpm --filter ui docs:bench`. Build the two apps first, with `docs:build`
- * and `docs:legacy:build`.
+ * Compares the load of the docs app with the load of the legacy app. The
+ * turbo task `docs:bench` builds the two apps first.
  *
  * The script serves each build over HTTP/2 with TLS and brotli, as a CDN
  * does, with the paths of `docs-server.ts`. Chromium opens `/button` cold at
@@ -18,8 +17,8 @@
  *   frame that shows the heading of the new page.
  *
  * ```sh
- * pnpm --filter ui docs:bench                 # 9 runs of each app
- * pnpm --filter ui docs:bench 15 samples.json # 15 runs, and each sample in a file
+ * pnpm turbo run docs:bench --filter=ui                    # 9 runs of each app
+ * pnpm turbo run docs:bench --filter=ui -- 15 samples.json # 15 runs, and each sample in a file
  * ```
  */
 
@@ -33,7 +32,7 @@ import { promisify } from 'node:util'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, chromium } from 'playwright'
 import { getOrCompute } from '../src/utilities/get-or-compute'
-import { clientDirOf, type DocsApp, fileOf, TYPES } from './docs-server'
+import { clientDirOf, type DocsApp, fileOf, HYDRATED, TYPES } from './docs-server'
 
 const APPS: readonly DocsApp[] = ['docs-legacy', 'docs']
 
@@ -219,15 +218,9 @@ const OBSERVE = `{
 		for (const paint of list.getEntries()) readings.lcp = paint.startTime
 	}).observe({ type: 'largest-contentful-paint', buffered: true })
 
-	// Hydration gives the heading a React fiber. A prerendered heading has none.
 	const watch = () => {
-		const heading = document.querySelector('h1')
-
-		if (heading && Object.keys(heading).some((key) => key.startsWith('__reactFiber'))) {
-			readings.hydrated = performance.now()
-		} else {
-			requestAnimationFrame(watch)
-		}
+		if (${HYDRATED}) readings.hydrated = performance.now()
+		else requestAnimationFrame(watch)
 	}
 
 	requestAnimationFrame(watch)

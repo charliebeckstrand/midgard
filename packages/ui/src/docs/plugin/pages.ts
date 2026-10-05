@@ -1,5 +1,6 @@
 import { globSync } from 'node:fs'
 import path from 'node:path'
+import { normalizePath } from 'vite'
 
 /** A page of the docs, as the sidebar and the header show it. */
 export type PageLink = {
@@ -14,7 +15,7 @@ export type PageLink = {
 }
 
 /** A page of the docs, as the routes read it. */
-export type Page = PageLink & {
+type Page = PageLink & {
 	/** The folder of the page, relative to `pages/`, such as `modules/grid`. */
 	folder: string
 }
@@ -34,7 +35,7 @@ export function findPages(docs: string): Page[] {
 
 	return globSync('*/*/index.tsx', { cwd: pages })
 		.map((file) => {
-			const folder = path.dirname(file).split(path.sep).join('/')
+			const folder = normalizePath(path.dirname(file))
 
 			const [category = '', name = ''] = folder.split('/')
 

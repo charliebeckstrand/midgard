@@ -3,7 +3,7 @@ import { prefixRegex } from '@rolldown/pluginutils'
 import type { EnvironmentModuleGraph, EnvironmentModuleNode, Plugin } from 'vite'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiExtractor } from './api.ts'
-import { attachMeta, CODE, type ExampleCode, loadCode } from './examples.ts'
+import { attachMeta, CODE, codeIdOf, type ExampleCode, loadCode } from './examples.ts'
 import { findPages, type PageLink } from './pages.ts'
 
 const VIRTUAL = 'virtual:docs/'
@@ -147,9 +147,7 @@ function staleExample(
 ): EnvironmentModuleNode[] {
 	if (!EXAMPLE.test(file)) return []
 
-	const code = graph.getModuleById(
-		virtualId(`${CODE}${path.relative(pages, file).slice(0, -'.tsx'.length)}`),
-	)
+	const code = graph.getModuleById(virtualId(codeIdOf(pages, file)))
 
 	return [...(code ? [code] : []), ...modules.flatMap((module) => [...module.importers])]
 }

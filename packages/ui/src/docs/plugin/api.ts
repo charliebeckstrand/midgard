@@ -50,7 +50,7 @@ export type ComponentApi = {
 export type BarrelApi = { readonly [component: string]: ComponentApi }
 
 /** A change to a source file, as the `hotUpdate` hook of Vite gives it. */
-export type SourceChange = { file: string; type: 'create' | 'update' | 'delete' }
+type SourceChange = { file: string; type: 'create' | 'update' | 'delete' }
 
 /** The extractor of the plugin. The TypeScript server starts on the first `extract`. */
 type ApiExtractor = {
@@ -98,10 +98,11 @@ type Ts = typeof import('typescript/unstable/sync')
 
 /**
  * Creates the extractor for the `ui` package at `root`. It reads the barrel
- * `src/<barrel>/index.ts` through the project of `root/tsconfig.json`.
+ * `src/<barrel>/index.ts` through the project of `tsconfig.api.json`, which
+ * is the source of `ui` with no tests and no benchmarks.
  */
 export function createApiExtractor(root: string): ApiExtractor {
-	const config = path.join(root, 'tsconfig.json')
+	const config = path.join(import.meta.dirname, 'tsconfig.api.json')
 
 	let server: Promise<{ ts: Ts; api: InstanceType<Ts['API']> }> | undefined
 
@@ -109,6 +110,9 @@ export function createApiExtractor(root: string): ApiExtractor {
 
 	// The files that changed after the snapshot.
 	let changes: Record<(typeof CHANGES)[keyof typeof CHANGES], string[]> | undefined
+
+	// The tags of the DOM do not change, so each barrel reads the same map.
+	const elementTags = new Map<string, string>()
 
 	return {
 		async extract(barrel) {
@@ -140,6 +144,7 @@ export function createApiExtractor(root: string): ApiExtractor {
 				project.program,
 				project.checker,
 				path.join(root, 'src', barrel, 'index.ts'),
+				elementTags,
 			)
 		},
 		refresh({ file, type }) {
@@ -164,8 +169,18 @@ export function createApiExtractor(root: string): ApiExtractor {
 	}
 }
 
-/** Reads the components, the props, and the events of the barrel at `file`. */
-function readBarrel(ts: Ts, program: Program, checker: Checker, file: string): BarrelApi {
+/**
+ * Reads the components, the props, and the events of the barrel at `file`.
+ * The first call fills `elementTags`, the first tag of each element
+ * interface, and each later call reads it.
+ */
+function readBarrel(
+	ts: Ts,
+	program: Program,
+	checker: Checker,
+	file: string,
+	elementTags: Map<string, string>,
+): BarrelApi {
 	const { NodeBuilderFlags, SignatureKind, SymbolFlags, TypeFlags } = ts
 
 	// Each literal in single quotes, as the source writes it, and no `...` in a long type.
@@ -180,16 +195,12 @@ function readBarrel(ts: Ts, program: Program, checker: Checker, file: string): B
 
 	if (!module) throw new Error(`docs: no barrel at ${file}`)
 
-	let elementTags: Map<string, string> | undefined
-
 	/**
 	 * The first tag of each element interface, from `HTMLElementTagNameMap`,
 	 * such as `a` for `HTMLAnchorElement`.
 	 */
 	function tagsOf(): Map<string, string> {
-		if (elementTags) return elementTags
-
-		elementTags = new Map()
+		if (elementTags.size > 0) return elementTags
 
 		const map = checker.resolveName('HTMLElementTagNameMap', SymbolFlags.Interface, source)
 

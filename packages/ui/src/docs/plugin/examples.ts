@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import { type ESTree, Visitor } from 'vite'
+import { type ESTree, normalizePath, Visitor } from 'vite'
 import { DEFAULT_LANG, DEFAULT_THEME } from '../../components/code/code-shiki.ts'
 import { highlightShiki } from '../../components/code/code-shiki-highlighter.ts'
-import { capitalizeFirst } from '../../utilities/capitalize-first.ts'
+import { humanize } from '../kit/humanize.ts'
 
 /** The code module of an example: the source of its file, and the markup that `CodeBlock` paints. */
 export type ExampleCode = {
@@ -28,10 +28,15 @@ export type ExampleMeta = {
 }
 
 /** Parses TSX, as the `parse` of a plugin context does. */
-export type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
+type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
 
 /** The public id of the code module of an example. */
 export const CODE = 'virtual:docs/code/'
+
+/** The public id of the code module of the example at `file` in `pages`. */
+export function codeIdOf(pages: string, file: string): string {
+	return CODE + normalizePath(path.relative(pages, file)).slice(0, -'.tsx'.length)
+}
 
 // The file name of the playground of a page.
 const PLAYGROUND = 'playground'
@@ -104,11 +109,6 @@ function readExample(parse: Parse, code: string, file: string): Example | undefi
 	return { name, spread }
 }
 
-/** The title of an example from its file: `with-icon.tsx` gives `With icon`. */
-function titleOf(file: string): string {
-	return capitalizeFirst(path.basename(file, '.tsx').replaceAll('-', ' '))
-}
-
 /**
  * Adds the {@link ExampleMeta} of an example module to its default export.
  * The code goes at the end of the module and moves no other code, so the
@@ -127,12 +127,10 @@ export function attachMeta(
 
 	const { name, spread } = example
 
-	const id = CODE + path.relative(pages, file).slice(0, -'.tsx'.length).split(path.sep).join('/')
-
 	const meta = [
-		`title: ${JSON.stringify(titleOf(file))}`,
+		`title: ${JSON.stringify(humanize(path.basename(file, '.tsx')))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
-		`code: () => import(${JSON.stringify(id)})`,
+		`code: () => import(${JSON.stringify(codeIdOf(pages, file))})`,
 	]
 
 	return `${code}\nObject.assign(${name}, { ${meta.join(', ')} })\n`

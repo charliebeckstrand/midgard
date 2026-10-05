@@ -24,7 +24,7 @@ const EventLogSheet = lazy(() =>
 )
 
 /** Whether the tool is on. The head script sets the attribute before the first paint. */
-export function isEventLogOn(): boolean {
+function isEventLogOn(): boolean {
 	return document.documentElement.hasAttribute(ATTRIBUTE)
 }
 

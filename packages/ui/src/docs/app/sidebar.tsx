@@ -52,8 +52,10 @@ const PageItem = memo(function PageItem({ page, current }: { page: PageLink; cur
 /**
  * The sidebar of the docs: the search, the sort order, and the pages of each
  * section. A pick in the search goes to its page, as a click on its item does.
+ * The shell renders again on each change of the router state, and the props
+ * change only on a navigation, so the sidebar memoizes.
  */
-export function DocsSidebar({
+export const DocsSidebar = memo(function DocsSidebar({
 	pages,
 	current,
 }: {
@@ -123,4 +125,4 @@ export function DocsSidebar({
 			</SidebarBody>
 		</Sidebar>
 	)
-}
+})

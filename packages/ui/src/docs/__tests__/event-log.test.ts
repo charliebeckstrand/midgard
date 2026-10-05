@@ -1,5 +1,6 @@
 import { notifyOverlaySignal } from 'ui/primitives/overlay'
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { attach } from '../../__tests__/helpers/attach.ts'
 import {
 	begin,
 	CAPACITY,
@@ -45,15 +46,6 @@ function entry(time: number, kind: Entry['kind'] = 'input'): Entry {
 /** The texts of the entries of a log, oldest first. */
 function texts(log: EventLog): string[] {
 	return log.entries.map((line) => line.text)
-}
-
-/** A button in the page, which the test removes when it ends. */
-function addButton(parent: Element = document.body): HTMLButtonElement {
-	const button = parent.appendChild(document.createElement('button'))
-
-	onTestFinished(() => button.remove())
-
-	return button
 }
 
 /** Starts the listeners of a log, which the test stops when it ends. */
@@ -273,7 +265,7 @@ describe('listen', () => {
 
 		listenTo(log)
 
-		const button = addButton()
+		const button = attach(document.createElement('button'))
 
 		button.addEventListener('click', (event) => event.preventDefault())
 
@@ -299,13 +291,15 @@ describe('listen', () => {
 
 		sheet.setAttribute(OWN, '')
 
-		const own = addButton(addButton().appendChild(sheet))
+		const own = attach(sheet).appendChild(document.createElement('button'))
 
 		own.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
 		expect(log.entries).toEqual([])
 
-		addButton().dispatchEvent(new MouseEvent('click', { bubbles: true }))
+		attach(document.createElement('button')).dispatchEvent(
+			new MouseEvent('click', { bubbles: true }),
+		)
 
 		expect(texts(log)).toEqual(['click button synthetic'])
 	})
@@ -349,7 +343,7 @@ describe('listen', () => {
 
 		const stop = listen(log)
 
-		addButton().focus()
+		attach(document.createElement('button')).focus()
 
 		stop()
 

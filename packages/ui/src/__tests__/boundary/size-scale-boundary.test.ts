@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { valuesByStep } from '../../core/density/steps'
 import {
+	docsSites,
 	isSourceFile,
 	srcDir,
 	srcRelative,
@@ -28,14 +29,17 @@ import {
 /** The code of each source file of the package, with the comments removed. */
 const sources: { file: string; code: string }[] = []
 
-walkSource(srcDir, (file, content) => {
-	const path = srcRelative(file)
+walkSource(
+	srcDir,
+	(file, content) => {
+		const path = srcRelative(file)
 
-	if (!isSourceFile(file) || /^docs(?:-legacy)?\//.test(path) || path.startsWith('core/density/'))
-		return
+		if (!isSourceFile(file) || path.startsWith('core/density/')) return
 
-	sources.push({ file: path, code: stripSourceComments(content) })
-})
+		sources.push({ file: path, code: stripSourceComments(content) })
+	},
+	docsSites,
+)
 
 /** The count of the matches of `pattern` in each file, for the files with a match. */
 function countsOf(pattern: RegExp, files = sources): Record<string, number> {

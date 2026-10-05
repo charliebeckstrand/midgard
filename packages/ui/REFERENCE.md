@@ -17,7 +17,7 @@
 | Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
 | Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, color contrast, caret, dismiss-layers, keyboard navigation). |
 
-Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm --filter ui dev`) renders them beside live demos through the [docs engine](src/docs/engine). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
+Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm --filter ui dev`) renders them beside live examples through the [docs plugin](src/docs/plugin). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
 
 ## 2. Server and client boundaries
 
@@ -79,8 +79,9 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo a
 |---|---|
 | Components | `packages/ui/src/components/<name>/*` |
 | Modules | `packages/ui/src/modules/<name>/*` |
-| Component demos | `packages/ui/src/docs/demos/*` |
-| Docs rendering engine | [`src/docs/engine`](src/docs/engine) |
+| Component examples | `packages/ui/src/docs/pages/*` |
+| Docs plugin | [`src/docs/plugin`](src/docs/plugin) |
+| Legacy docs app (not deployed) | [`src/docs-legacy`](src/docs-legacy) |
 | Recipe system | [`src/recipes/README.md`](src/recipes/README.md) |
 | Curated surface docs | [`docs/`](docs) |
 | Point-in-time audits | [`docs/audits/`](docs/audits) |

@@ -31,7 +31,14 @@
 		},
 		"docs:build": {
 			"dependsOn": ["^build"],
-			"inputs": ["src/**", "tsconfig.json", "$TURBO_ROOT$/tsconfig.base.json"],
+			"inputs": [
+				"src/**",
+				"!src/docs-legacy/**",
+				"!src/**/__tests__/**",
+				"!src/__benchmarks__/**",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json"
+			],
 			"outputs": ["src/docs/dist/**"]
 		},
 		"docs:legacy:build": {
@@ -50,11 +57,11 @@
 		},
 		"docs:hydration": {
 			"dependsOn": ["docs:build"],
-			"inputs": ["src/docs/dist/**", "scripts/docs-*.ts"]
+			"inputs": ["src/docs/dist/**", "scripts/docs-server.ts", "scripts/docs-hydration.ts"]
 		},
 		"docs:legacy:hydration": {
 			"dependsOn": ["docs:legacy:build"],
-			"inputs": ["src/docs-legacy/dist/**", "scripts/docs-*.ts"]
+			"inputs": ["src/docs-legacy/dist/**", "scripts/docs-server.ts", "scripts/docs-hydration.ts"]
 		},
 		"docs:bench": {
 			"dependsOn": ["docs:build", "docs:legacy:build"],

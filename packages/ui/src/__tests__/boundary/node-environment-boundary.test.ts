@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
 	docblockEnvironment,
+	docsTestDirs,
 	srcDir,
 	stripSourceComments,
 	walkSource,
@@ -24,10 +25,9 @@ const testsDir = join(srcDir, '__tests__')
 // projects.
 const SCAN_SKIP = new Set(['browser', 'boundary', 'compiler'])
 
-const SCANS = [
+const SCANS: { dir: string; skip?: ReadonlySet<string> }[] = [
 	{ dir: testsDir, skip: SCAN_SKIP },
-	{ dir: join(srcDir, 'docs', '__tests__') },
-	{ dir: join(srcDir, 'docs-legacy', 'engine', '__tests__') },
+	...docsTestDirs.map((dir) => ({ dir })),
 ]
 
 const TEST_FILE = /\.test\.tsx?$/

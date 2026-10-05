@@ -1,5 +1,6 @@
 import { subscribeOverlaySignal } from 'ui/primitives/overlay'
 import { createEmitter } from '../../../utilities/emitter.ts'
+import { noop } from '../../../utilities/noop.ts'
 
 /** The kinds of an {@link Entry}, in the order of the filter chips of the sheet. */
 export const KINDS = [
@@ -148,7 +149,7 @@ function sessionStore(): Store {
 	try {
 		return sessionStorage
 	} catch {
-		return { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+		return { getItem: () => null, setItem: noop, removeItem: noop }
 	}
 }
 

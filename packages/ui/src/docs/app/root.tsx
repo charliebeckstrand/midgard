@@ -10,15 +10,20 @@ import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutHeader } from 'ui/layouts'
 import { CurrentScrollScript } from 'ui/primitives/current'
 import type { LinkProps } from 'ui/primitives/link'
-import { AppearanceProvider, AppearanceScript } from 'ui/providers/appearance'
+import { AppearanceProvider, AppearanceScript, AppearanceSettings } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import fontUrl from '../../fonts/google-sans-flex-latin.woff2?url'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
-import { EventLogButton, EventLogScript, recordRoute } from '../debug/event-log/index.tsx'
+import { noop } from '../../utilities/noop.ts'
+import {
+	EventLogButton,
+	EventLogScript,
+	EventLogSwitch,
+	recordRoute,
+} from '../debug/event-log/index.tsx'
 import appCss from './app.css?url'
-import { Settings } from './settings.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 
 // The id of the last script that runs before the first paint. The page paints
@@ -79,12 +84,23 @@ function useShikiWarmup() {
 		const cancel = window.cancelIdleCallback ?? clearTimeout
 
 		const handle = idle(() => {
-			loadShiki().catch(() => {})
+			loadShiki().catch(noop)
 		})
 
 		return () => cancel(handle)
 	}, [])
 }
+
+// The actions of the header. They take no props, so the shell gives the same
+// element at each render, and React does not render them again.
+const ACTIONS = (
+	<>
+		<EventLogButton />
+		<AppearanceSettings>
+			<EventLogSwitch />
+		</AppearanceSettings>
+	</>
+)
 
 /** The shell of the docs: the sidebar, the header with the name of the page, and the page. */
 export default function App() {
@@ -108,12 +124,7 @@ export default function App() {
 				<SidebarLayout
 					stickyHeader
 					floating={!locked}
-					actions={
-						<>
-							<EventLogButton />
-							<Settings />
-						</>
-					}
+					actions={ACTIONS}
 					sidebar={<DocsSidebar pages={pages} current={page?.path} />}
 				>
 					<SidebarLayoutHeader>

@@ -1,7 +1,12 @@
 import { join, relative } from 'node:path'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { docblockEnvironment, walkSource } from './src/__tests__/helpers/walk-source'
+import {
+	docblockEnvironment,
+	docsTestDirs,
+	srcRelative,
+	walkSource,
+} from './src/__tests__/helpers/walk-source'
 import { docsPlugin } from './src/docs-legacy/engine/plugins'
 import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 
@@ -17,9 +22,9 @@ import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 function nodeEnvironmentFiles(): string[] {
 	const files: string[] = []
 
-	for (const dir of ['src/__tests__', 'src/docs/__tests__', 'src/docs-legacy/engine/__tests__']) {
+	for (const dir of [join(import.meta.dirname, 'src/__tests__'), ...docsTestDirs]) {
 		walkSource(
-			join(import.meta.dirname, dir),
+			dir,
 			(file, content) => {
 				if (/\.test\.tsx?$/.test(file) && docblockEnvironment(content) === 'node') {
 					files.push(relative(import.meta.dirname, file))
@@ -202,8 +207,7 @@ export default defineConfig({
 					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',
-						'src/docs/__tests__/**/*.test.{ts,tsx}',
-						'src/docs-legacy/engine/__tests__/**/*.test.{ts,tsx}',
+						...docsTestDirs.map((dir) => `src/${srcRelative(dir)}/**/*.test.{ts,tsx}`),
 					],
 					// The browser suite (vitest.browser.config.ts) verifies behavior
 					// jsdom can't — layout/color geometry and, in its floating-ui

@@ -15,7 +15,7 @@
  */
 
 import { chromium } from 'playwright'
-import { type DocsApp, docsAppOf, serveDocs } from './docs-server'
+import { type DocsApp, docsAppOf, HYDRATED, serveDocs } from './docs-server'
 
 const PAGES: Record<DocsApp, readonly string[]> = {
 	docs: ['/', '/button', '/accordion', '/modules/grid', '/modules/grid/sorting', '/no-such-page'],
@@ -23,13 +23,6 @@ const PAGES: Record<DocsApp, readonly string[]> = {
 }
 
 const app = docsAppOf(process.argv[2])
-
-// Hydration gives the heading a React fiber. A prerendered heading has none.
-const HYDRATED = () => {
-	const heading = document.querySelector('h1')
-
-	return heading !== null && Object.keys(heading).some((key) => key.startsWith('__reactFiber'))
-}
 
 const { origin, server } = await serveDocs(app, 0)
 

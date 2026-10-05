@@ -37,6 +37,13 @@ export function clientDirOf(app: DocsApp): string {
 	return path.resolve(import.meta.dirname, '..', 'src', app, 'dist', 'client')
 }
 
+/**
+ * A browser expression that is `true` when the page hydrated, for
+ * `docs:hydration` and `docs:bench`. Hydration gives the heading a React
+ * fiber. A prerendered heading has none.
+ */
+export const HYDRATED = `Object.keys(document.querySelector('h1') ?? {}).some((key) => key.startsWith('__reactFiber'))`
+
 /** The content type of each kind of file in a build. */
 export const TYPES: Record<string, string> = {
 	'.css': 'text/css',

@@ -2,6 +2,7 @@ import { globSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { compile, optimize } from '@tailwindcss/node'
 import { Scanner } from '@tailwindcss/oxide'
+import { noop } from '../../utilities/noop.ts'
 
 // A `@font-face` rule of a minified stylesheet. The rule holds no nested block.
 const FONT_FACE = /@font-face\{[^}]*\}/g
@@ -42,7 +43,7 @@ export async function inlineCriticalCss(clientDir: string, stylesheet: string): 
 		const classes = new Scanner({}).scanFiles([{ content: html, extension: 'html' }])
 
 		// A compiler keeps each class that it builds, so each page gets its own.
-		const compiler = await compile(source, { base, onDependency: () => {} })
+		const compiler = await compile(source, { base, onDependency: noop })
 
 		const css =
 			fontFaces + optimize(compiler.build(classes), { minify: true }).code.replace(FONT_FACE, '')

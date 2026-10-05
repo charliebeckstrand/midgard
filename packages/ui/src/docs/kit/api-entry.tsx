@@ -5,6 +5,7 @@ import { Markdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import { k } from '../../recipes/kata/json-tree.ts'
 import type { ComponentApi, PropApi } from '../plugin/api.ts'
 
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
@@ -16,13 +17,13 @@ const OPTION = cn(
 
 const TYPE = cn(CHIP, 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300')
 
-// The color of a default by the kind of its literal, as the JSON tree of `ui`
-// colors a value.
-const KINDS: readonly [RegExp, string][] = [
-	[/^['"`]/, 'text-emerald-700 dark:text-emerald-400'],
-	[/^-?\d/, 'text-amber-700 dark:text-amber-400'],
-	[/^(?:true|false)$/, 'text-violet-600 dark:text-violet-400'],
-	[/^(?:null|undefined)$/, 'text-mist-600 dark:text-mist-400'],
+// The color of a default by the kind of its literal: the colors of the JSON
+// tree of `ui`, and two more for an array and an object.
+const KINDS: readonly [RegExp, string | readonly string[]][] = [
+	[/^['"`]/, k.color.string],
+	[/^-?\d/, k.color.number],
+	[/^(?:true|false)$/, k.color.boolean],
+	[/^(?:null|undefined)$/, k.color.null],
 	[/^\[/, 'text-sky-600 dark:text-sky-400'],
 	[/^\{/, 'text-rose-600 dark:text-rose-400'],
 ]
