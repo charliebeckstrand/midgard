@@ -296,6 +296,9 @@ export function PlacesMap({
 				// The same regions that a click drills into. Inside a drill the layer
 				// answers nothing, so nothing preloads there either.
 				onRegionPreload={cut === null ? onPreload : undefined}
+				// The dots pop in when they arrive. Each view is a map of its own, so
+				// a drill plays the entry again for the places it shows.
+				animate
 			>
 				<MapPoints
 					id={MARK_ID}
