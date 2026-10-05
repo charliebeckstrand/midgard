@@ -43,6 +43,30 @@ describe('DensityProvider element', () => {
 		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'sm')
 	})
 
+	it('opens no scope with no density, so the region keeps the outer step', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<DensityProvider>content</DensityProvider>
+			</DensityProvider>,
+		)
+
+		const [outer, inner] = container.querySelectorAll('[data-slot="density"]')
+
+		expect(outer).toHaveAttribute('data-density', 'sm')
+
+		expect(inner).not.toHaveAttribute('data-density')
+
+		const { result } = renderHook(() => useDensityStep(), {
+			wrapper: ({ children }) => (
+				<DensityProvider density="compact">
+					<DensityProvider>{children}</DensityProvider>
+				</DensityProvider>
+			),
+		})
+
+		expect(result.current).toBe('sm')
+	})
+
 	it('renders the wrapper as display: contents', () => {
 		const { container } = renderUI(<DensityProvider density="snug">content</DensityProvider>)
 

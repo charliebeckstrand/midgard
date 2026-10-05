@@ -20,6 +20,7 @@ const base = defineRecipe({
 		outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
 		plain: divider.between,
 		solid: ['gap-2'],
+		bare: ['gap-2'],
 	},
 	// A horizontal row wraps onto the next line when its items do not fit, so it
 	// stays inside a narrow parent.
@@ -32,7 +33,8 @@ const base = defineRecipe({
 
 // The padding of a row follows the nearest density scope. The card-like
 // variants use the uniform `dan.space.box.base` padding, and `plain` uses a tighter
-// ratio (`dan.space.list.plain.x` and `dan.space.row.y`).
+// ratio (`dan.space.list.plain.x` and `dan.space.row.y`). A `bare` row has no
+// padding, because its content is a control with a frame of its own.
 const pad = dan.space.box.base
 
 // The rounded wash layer of a divided row. The layer takes no pointer, so a
@@ -52,6 +54,7 @@ const item = defineRecipe({
 		outline: pad,
 		plain: `${dan.space.list.plain.x} ${dan.space.row.y}`,
 		solid: [...bg.tint, border.default, rounded.lg, pad],
+		bare: '',
 	},
 	active: {
 		true: ['z-10 relative', ...bg.surface, rounded.md],

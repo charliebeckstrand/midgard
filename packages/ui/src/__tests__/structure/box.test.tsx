@@ -1,7 +1,7 @@
 import { createRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { DensityProvider } from '../../providers/density'
-import { Box } from '../../structure/box'
+import { Box, type BoxOutline } from '../../structure/box'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('Box', () => {
@@ -33,6 +33,10 @@ describe('Box', () => {
 		const { container } = renderUI(<Box outline>content</Box>)
 
 		expect(bySlot(container, 'box')).toHaveClass('outline-zinc-950/10')
+	})
+
+	it('takes `true` for the default outline, with no second name for it', () => {
+		expectTypeOf<BoxOutline>().toEqualTypeOf<boolean | 'subtle' | 'strong'>()
 	})
 
 	it('applies an explicit outline weight', () => {

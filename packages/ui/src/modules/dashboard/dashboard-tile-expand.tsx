@@ -10,6 +10,7 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
+	DialogPanel,
 	DialogTitle,
 	DialogTrigger,
 } from '../../components/dialog'
@@ -98,16 +99,15 @@ export function DashboardTileExpand({
 		}
 	}, [shell])
 
-	return (
-		<>
-			<DialogTrigger
-				open={open}
-				onClick={() => {
-					setSeen(true)
+	const handleOpenChange = (next: boolean) => {
+		if (next) setSeen(true)
 
-					setOpen(true)
-				}}
-			>
+		setOpen(next)
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={handleOpenChange}>
+			<DialogTrigger>
 				<Button
 					type="button"
 					variant="bare"
@@ -119,12 +119,7 @@ export function DashboardTileExpand({
 			</DialogTrigger>
 
 			{seen && (
-				<Dialog
-					open={open}
-					onOpenChange={setOpen}
-					width="5xl"
-					{...(title === undefined ? { 'aria-label': label } : {})}
-				>
+				<DialogPanel width="5xl" {...(title === undefined ? { 'aria-label': label } : {})}>
 					{(title !== undefined || description !== undefined) && (
 						<DialogHeader>
 							{title !== undefined && <DialogTitle>{title}</DialogTitle>}
@@ -166,8 +161,8 @@ export function DashboardTileExpand({
 							<Button type="button">Close</Button>
 						</DialogClose>
 					</DialogFooter>
-				</Dialog>
+				</DialogPanel>
 			)}
-		</>
+		</Dialog>
 	)
 }

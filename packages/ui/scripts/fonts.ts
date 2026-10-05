@@ -12,9 +12,14 @@
  * The source font is outside `src`, so no app ships it. The script divides it
  * into subsets by script, as Google Fonts does. Each subset is a face of the
  * same family with a `unicode-range`. The browser thus downloads only the
- * subsets that the text of a page uses, and the pages preload only `latin`.
- * Each subset keeps the weights from 300 to 900, the optical sizes from 10 to
- * 18, and only the layout features that ui uses.
+ * subsets that the text of a page uses. Each subset keeps the weights from 300
+ * to 900, the optical sizes from 10 to 18, and only the layout features that
+ * ui uses.
+ *
+ * The script also writes `src/fonts/google-sans-flex-latin.js`, which adds the
+ * face of the `latin` subset from its bytes. `AppearanceProvider` loads it
+ * before the first paint (see {@link fontScript}). The stylesheet has no face
+ * for the `latin` subset, so the script is the one source of that face.
  *
  * Capsize reads the metrics of the font: the ascent, the descent, the line
  * gap, and the average width of the letters by their frequency in text. It
@@ -24,8 +29,8 @@
  * Arial is on Apple and Windows devices, and Roboto is on Android devices.
  *
  * The font faces use `font-display: block`. Text does not paint until the
- * font loads, for a maximum of 3 seconds. The pages preload the `latin`
- * subset, so the wait is usually short. Safari does not apply the ascent,
+ * font loads, for a maximum of 3 seconds. The `latin` subset is ready before
+ * the first paint, so latin text does not wait. Safari does not apply the ascent,
  * descent, and line gap overrides, and it applies only `size-adjust`. With
  * `swap`, an iPhone thus paints text in Arial for a short time before the font
  * loads.
@@ -51,6 +56,12 @@ const FONT_DIR = new URL('../src/fonts/', import.meta.url)
 
 /** The path of the stylesheet that {@link fontsCss} gives. */
 export const FONTS_CSS = fileURLToPath(new URL('fonts.css', FONT_DIR))
+
+/** The subset that {@link fontScript} adds before the first paint. */
+const FIRST_SUBSET = 'latin'
+
+/** The path of the script that {@link fontScript} gives. */
+export const FONT_SCRIPT = fileURLToPath(new URL(`${FONT_NAME}-${FIRST_SUBSET}.js`, FONT_DIR))
 
 /** The weights that ui and the apps use, from `font-light` to `font-black`. */
 const WEIGHT = { min: 300, max: 900 }
@@ -146,8 +157,8 @@ function unicodeRange(codePoints: readonly number[]) {
 }
 
 /**
- * Returns the subsets of the source font, in the order of the faces in the
- * stylesheet. Each code point of the source font is in one subset or more.
+ * Returns the subsets of the source font. The faces in the stylesheet keep
+ * this order. Each code point of the source font is in one subset or more.
  */
 export async function fontSubsets(): Promise<FontSubset[]> {
 	const codePoints = await sourceCodePoints()
@@ -203,7 +214,10 @@ export async function fontsCss(): Promise<string> {
 		fontFaceFormat: 'styleObject',
 	})
 
-	const faces = (await fontSubsets()).map((subset) =>
+	// The script of the latin face is the one source of that face.
+	const subsets = (await fontSubsets()).filter(({ name }) => name !== FIRST_SUBSET)
+
+	const faces = subsets.map((subset) =>
 		block('@font-face', {
 			'font-family': `'${metrics.familyName}'`,
 			'font-weight': `${WEIGHT.min} ${WEIGHT.max}`,
@@ -232,10 +246,54 @@ export async function fontsCss(): Promise<string> {
 	].join('\n')
 }
 
+/**
+ * Returns the text of the script that adds the face of the `latin` subset. The
+ * face has the weights and the `font-display` of the faces in the stylesheet.
+ *
+ * The faces use `font-display: block`, so text does not paint until its
+ * subset loads. A page can paint before the font file loads, and that paint
+ * then shows the layout with no text. The script holds the bytes of the
+ * subset. A `FontFace` made from bytes is ready when the constructor returns,
+ * so the face is ready before the next layout.
+ *
+ * The stylesheet has no face for the `latin` subset. WebKit, the engine of
+ * each browser on an iPhone, uses a face of a stylesheet before a face from a
+ * script with the same descriptors. It then downloads the file of the face of
+ * the stylesheet, and it does not paint the text until that file loads.
+ */
+export async function fontScript(): Promise<string> {
+	const subset = (await fontSubsets()).find(({ name }) => name === FIRST_SUBSET)
+
+	if (!subset) throw new Error(`The source font has no ${FIRST_SUBSET} subset.`)
+
+	const descriptors = {
+		weight: `${WEIGHT.min} ${WEIGHT.max}`,
+		display: 'block',
+		unicodeRange: unicodeRange(subset.codePoints),
+	}
+
+	const { familyName } = await fromFile(SOURCE_FONT)
+
+	const base64 = (await readFile(subset.path)).toString('base64')
+
+	return [
+		'/* Do not edit. `pnpm fonts` (`scripts/fonts.ts`) writes this file from the source font. */',
+		'(() => {',
+		`\tconst text = atob('${base64}')`,
+		'\tconst bytes = new Uint8Array(text.length)',
+		'\tfor (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index)',
+		`\tdocument.fonts.add(new FontFace('${familyName}', bytes, ${JSON.stringify(descriptors)}))`,
+		'})()',
+		'',
+	].join('\n')
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	for (const subset of await fontSubsets()) await writeFile(subset.path, await subsetBytes(subset))
 
 	await writeFile(FONTS_CSS, await fontsCss())
+
+	await writeFile(FONT_SCRIPT, await fontScript())
 
 	execFileSync('biome', ['format', '--write', FONTS_CSS], { stdio: 'inherit' })
 }

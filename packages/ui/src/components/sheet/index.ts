@@ -1,5 +1,5 @@
 export type { SheetPanelVariants } from '../../recipes/kata/sheet'
-export { Sheet, type SheetProps } from './sheet'
+export { Sheet, SheetPanel, type SheetPanelProps, type SheetProps } from './sheet'
 export {
 	SheetBody,
 	type SheetBodyProps,

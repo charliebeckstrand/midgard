@@ -51,6 +51,7 @@ export type PivotTableProps<T> = {
 	hover?: boolean
 	/** Run the table edge-to-edge, dropping the outer gutter. @defaultValue false */
 	bleed?: boolean
+	/** Classes for the `<table>` element. */
 	className?: string
 	/** Accessible name for the table: a caption-equivalent for a dense pivot. Optional; a native `<table>` is valid unnamed. */
 	'aria-label'?: string

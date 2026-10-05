@@ -4,15 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	createPlace,
 	deletePlace,
-	fetchAtlas,
 	fetchPlaces,
 	fetchVisits,
 	savePlace,
 	setVisit,
 } from '../api/places-api'
+import { flags } from '../flags'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
-import { decodeRegions } from '../utilities/places-geography'
-import { drawnRegions, type PlaceAtlas } from '../utilities/places-view'
 
 /**
  * The query keys, in one place. Both a reader and a writer name the places
@@ -21,7 +19,6 @@ import { drawnRegions, type PlaceAtlas } from '../utilities/places-view'
  */
 export const placesKeys = {
 	all: ['places'] as const,
-	atlas: (atlas: PlaceAtlas) => ['atlas', atlas] as const,
 	visits: ['visits'] as const,
 }
 
@@ -42,37 +39,6 @@ export function usePlaces(initial: Place[]) {
 }
 
 /**
- * The regions the map draws, per atlas; `undefined` while they load, which the
- * map takes as "reserve the frame and draw nothing yet".
- *
- * Decoded inside the query rather than at the call site. The cache holds this
- * entry for the tab's life, and nothing reads the topology once the features are
- * out of it — cached whole, the raw atlas would be pinned for the session beside
- * what it decodes to. It also takes the decode off the render path.
- *
- * Both atlases are published data that never changes, so neither restales and no
- * refetch ever asks for one twice. Keyed by atlas, so the two are held apart.
- *
- * The atlas names the route and the topology object alike, so one query serves
- * both grains with no branch of its own.
- *
- * `enabled` holds the second atlas back until the caller asks for it. The app
- * asks once the opening view has settled, so the 108 kB of the world do not
- * compete with the first frame. Once fetched it is held for the tab's life, so a
- * reader who goes out to the world and back in fetches it once.
- */
-export function useAtlas(atlas: PlaceAtlas, enabled = true) {
-	return useQuery({
-		queryKey: placesKeys.atlas(atlas),
-		queryFn: async ({ signal }) =>
-			drawnRegions(decodeRegions(await fetchAtlas(atlas, signal), atlas)),
-		enabled,
-		staleTime: Number.POSITIVE_INFINITY,
-		gcTime: Number.POSITIVE_INFINITY,
-	})
-}
-
-/**
  * Every visited region, in both scopes.
  *
  * Its own query rather than a field on the places: a region is visited whether
@@ -89,6 +55,8 @@ export function useVisits(initial: Visits) {
 		queryKey: placesKeys.visits,
 		queryFn: ({ signal }) => fetchVisits(signal),
 		initialData: initial,
+		// Nothing reads the set while the visited regions feature is off.
+		enabled: flags.visitedRegions,
 	})
 }
 

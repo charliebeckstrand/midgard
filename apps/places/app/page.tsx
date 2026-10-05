@@ -1,7 +1,7 @@
 import { requireGateway, requireSession } from 'auth'
 import { Suspense } from 'react'
-import { preload } from 'react-dom'
 import { PlacesApp } from '@/components/places-app'
+import { flags } from '@/flags'
 import { mimir } from '@/server/mimir'
 
 /**
@@ -33,23 +33,20 @@ export const instant = false
  *
  * The boundary is what `useSearchParams` asks of a page that prerenders: the
  * address is not known while the shell is built, so the tree that reads it waits
- * for the browser. The fallback is nothing, because there is nothing to hold the
- * reader's place with — the map and the filter bar draw their own skeletons the
- * moment they mount, and a second skeleton above this line would only be a shape
- * that swaps for another.
+ * for the browser. The fallback is nothing. The app has the places, the visits,
+ * and the atlases on its first render, so it draws no skeleton of its own, and a
+ * skeleton above this line would only be a shape that swaps for the page.
  */
 export default async function Page() {
-	// The app draws nothing until the states atlas lands, and its own fetch starts
-	// only after hydration. The hint in the head starts the download with the page,
-	// and the fetch of the app then reads the response the browser already has.
-	// `anonymous` is the mode of a same-origin `fetch`, so the two requests match.
-	preload('/api/atlas/states', { as: 'fetch', crossOrigin: 'anonymous' })
-
 	const { user } = await requireSession()
 
+	// The visits only while the visited regions feature is on, because nothing
+	// else reads them.
 	const [places = [], visits = { states: [], countries: [] }] = await Promise.all([
 		requireGateway('/api/places', () => mimir.GET('/api/places')),
-		requireGateway('/api/visits', () => mimir.GET('/api/visits')),
+		flags.visitedRegions
+			? requireGateway('/api/visits', () => mimir.GET('/api/visits'))
+			: undefined,
 	])
 
 	return (

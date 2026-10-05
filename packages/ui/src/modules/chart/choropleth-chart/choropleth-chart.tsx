@@ -107,7 +107,12 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * @defaultValue `String(feature.properties.name ?? feature.id)`
 	 */
 	regionLabel?: (feature: MapFeature) => string
-	/** Frame width in px; omitted, the map measures its container and fills it. */
+	/**
+	 * Frame width in px; omitted, the map measures its container and fills it.
+	 * @remarks Without `width`, the frame needs a parent with a definite width,
+	 * as {@link MapPlat} says. A `left` or `right` legend goes beside the plot
+	 * only at a frame width of 32rem (`@lg`) or more.
+	 */
 	width?: number
 	/** Frame height in px; wins over `aspectRatio` when set. */
 	height?: number
@@ -281,11 +286,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	const mapProps = {
 		...map,
 		// A choropleth is always a chart tile, so default it to the board's shared
-		// 16/9 ratio (overridable) to match its neighbors, and defer the first paint:
-		// the map then draws once at that measured aspect with its legend resolved,
-		// instead of flashing the map's canonical (auto-aspect, legend-less) fit and
-		// refitting when measured; MapPlat defers its first paint whenever the
-		// aspect is fixed, which this is.
+		// 16/9 ratio (overridable) to match its neighbors.
 		aspectRatio: map.aspectRatio ?? '16/9',
 		...numericRegionData<T>({
 			legend,

@@ -24,7 +24,7 @@ export type ControlContextValue = {
 	/** Validation / status severity from `<Control severity>` / `<Field severity>`; control-aware fields map it to the matching `data-*` validation ring (and `error` additionally to `aria-invalid`). */
 	severity?: ControlSeverity
 	variant?: ControlVariant
-	/** Composed `aria-describedby` for fields: registered Description / error Message ids, or undefined when none are rendered. */
+	/** Composed `aria-describedby` for fields: registered Description / error or warning Message ids, or undefined when none are rendered. */
 	describedBy?: string
 	/** Composed `aria-labelledby`: the Label's id once it registers. Lets a portaled popup (a listbox) name itself from the field's Label. */
 	labelledBy?: string
@@ -34,7 +34,7 @@ export type ControlContextValue = {
 	descriptionId?: string
 	/** Id the error Message slot renders with. */
 	messageId?: string
-	/** Slot registration: Label / Description / error Message call these on mount, passing the id they render; `labelledBy` / `describedBy` only reference ids of rendered slots. */
+	/** Slot registration: Label / Description / error or warning Message call these on mount, passing the id they render; `labelledBy` / `describedBy` only reference ids of rendered slots. */
 	registerLabel?: (renderedId?: string) => () => void
 	registerDescription?: (renderedId?: string) => () => void
 	registerMessage?: (renderedId?: string) => () => void

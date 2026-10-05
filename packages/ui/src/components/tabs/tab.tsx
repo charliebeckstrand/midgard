@@ -13,7 +13,9 @@ import { useTabsContext } from './context'
 
 /** Props for {@link Tab}. Selects via `value` (uncontrolled, against the Tabs root) or `current` (controlled); forwards the remaining `<button>` surface. */
 export type TabProps = {
+	/** The key of the tab. The tab is current when it matches the `value` of the {@link Tabs} root, and a click selects it. */
 	value?: string
+	/** Marks the tab as current and overrides the match against the root `value`. */
 	current?: boolean
 	/**
 	 * Links this tab to a panel the consumer renders itself, via `aria-controls`

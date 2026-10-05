@@ -646,8 +646,8 @@ describe('MapPlat two-finger gestures', () => {
  * events that a browser sends for that capture.
  */
 describe('MapPlat touch over the marks', () => {
-	/** Raises the readout on the first region, as a finger that lands on it does. */
-	function raiseReadout(container: HTMLElement, pointerId: number) {
+	/** Lands a finger on the first region. A touch reads nothing, so no readout rises. */
+	function landFinger(container: HTMLElement, pointerId: number) {
 		const region = present<SVGPathElement>(firstRegion(container), 'region path')
 
 		const at = { pointerId, pointerType: 'touch', clientX: 40, clientY: 20 }
@@ -656,9 +656,14 @@ describe('MapPlat touch over the marks', () => {
 
 		fireEvent.pointerDown(region, at)
 
-		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		return region
+	}
+
+	/** Points a mouse at the region. The readout rises unless a pinch holds it. */
+	function pointMouse(region: SVGPathElement) {
+		fireEvent.pointerEnter(region, { pointerId: 9, pointerType: 'mouse', clientX: 40, clientY: 20 })
 	}
 
 	it('keeps a touch pan when the plot takes the finger from the region under it', () => {
@@ -666,7 +671,7 @@ describe('MapPlat touch over the marks', () => {
 
 		fireEvent.keyDown(plot, { key: '+' })
 
-		const region = raiseReadout(container, 1)
+		const region = landFinger(container, 1)
 
 		fireEvent.pointerMove(region, { pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 10 })
 
@@ -681,10 +686,10 @@ describe('MapPlat touch over the marks', () => {
 		expect(transformOf(container)).not.toBe(before)
 	})
 
-	it('holds the readout through a pinch on a map that claims touch', () => {
+	it('reads nothing from a pinch, then lets a mouse read, on a map that claims touch', () => {
 		const { container, plot } = renderZoomable(DIRECT)
 
-		const region = raiseReadout(container, 1)
+		const region = landFinger(container, 1)
 
 		fireEvent.pointerDown(plot, { pointerId: 2, pointerType: 'touch', clientX: 80, clientY: 20 })
 
@@ -698,16 +703,16 @@ describe('MapPlat touch over the marks', () => {
 
 		for (const pointerId of [1, 2]) fireEvent.pointerUp(plot, { pointerId, pointerType: 'touch' })
 
-		// The pinch has settled, so a finger that lands on the region reads it again.
-		fireEvent.pointerEnter(region, { pointerId: 3, pointerType: 'touch', clientX: 40, clientY: 20 })
+		// The pinch has settled, so a mouse on the region reads it again.
+		pointMouse(region)
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 	})
 
-	it('holds the readout through a pinch on a default map', () => {
+	it('reads nothing from a pinch, then lets a mouse read, on a default map', () => {
 		const { container, svg } = renderZoomable()
 
-		const region = raiseReadout(container, 1)
+		const region = landFinger(container, 1)
 
 		touch(svg, 'touchStart', [{ id: 1, x: 40, y: 20 }])
 
@@ -724,7 +729,7 @@ describe('MapPlat touch over the marks', () => {
 
 		touch(svg, 'touchEnd', [])
 
-		fireEvent.pointerEnter(region, { pointerId: 3, pointerType: 'touch', clientX: 40, clientY: 20 })
+		pointMouse(region)
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 	})

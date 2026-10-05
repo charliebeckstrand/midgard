@@ -2,8 +2,35 @@ import type { AddressProvider, AddressSuggestion } from 'ui/address-input'
 import type { FormProps } from 'ui/form'
 import { MAX_RATING } from '../../constants'
 import { isWebAddress } from '../../schemas/place'
-import type { Place, PlaceCategory, PlaceDraft } from '../../types'
+import type { Place, PlaceCategory, PlaceDraft, Visit, VisitDraft } from '../../types'
 import { fromDay, toDay } from '../../utilities/places-filter'
+import { placeDraft } from '../../utilities/places-visits'
+
+/**
+ * What the form writes: a place, new (`place: null`) or on record, or a visit
+ * to a place on record, new (`visit: null`) or stored.
+ *
+ * A new place carries its first visit, so the form shows the fields of both. An
+ * edit of a place shows only the fields of the place, and a visit only its own.
+ */
+export type PlaceFormTarget =
+	| { kind: 'place'; place: Place | null }
+	| { kind: 'visit'; place: Place; visit: Visit | null }
+
+/**
+ * One row of the photo field. The key is the identity of the row while the
+ * reader sorts the rows and types into them, because two rows can hold the same
+ * address, and an empty one has none.
+ */
+export type PhotoRow = { key: string; url: string }
+
+/** The most photos one visit holds, the same limit that Mimir sets. */
+export const MAX_PHOTOS = 12
+
+/** A photo row with a key of its own. */
+export function photoRow(url = ''): PhotoRow {
+	return { key: crypto.randomUUID(), url }
+}
 
 /**
  * What the place form holds while it is being filled, which is not what the store
@@ -27,10 +54,11 @@ export type PlaceValues = {
 	/** The address on one line. A pick in the search fills it, and the reader can type it. */
 	address: string
 	category?: PlaceCategory
-	rating: number
-	visitedAt?: Date
 	url: string
-	photo: string
+	visitedAt?: Date
+	rating: number
+	/** The photos of the visit, in their order. The field always holds one row at least. */
+	photos: PhotoRow[]
 	review: string
 }
 
@@ -70,8 +98,11 @@ export const placeValidators: NonNullable<FormProps<PlaceValues>['validate']> = 
 		value === undefined || Number.isNaN(value.getTime()) ? required('Visited') : undefined,
 	url: (value) =>
 		value.trim() === '' || isWebAddress(value.trim()) ? undefined : 'That is not a web address.',
-	photo: (value) =>
-		value.trim() === '' || isWebAddress(value.trim()) ? undefined : 'That is not a web address.',
+	photos: (rows) => {
+		const at = rows.findIndex((row) => row.url.trim() !== '' && !isWebAddress(row.url.trim()))
+
+		return at === -1 ? undefined : `Photo ${at + 1} is not a web address.`
+	},
 }
 
 /**
@@ -119,6 +150,25 @@ export async function locatePlace(
 }
 
 /**
+ * Turns the visit fields of the form into the visit the store takes. The empty
+ * photo rows are left out, because the field keeps one row when there is no
+ * photo.
+ *
+ * @param values - The filled form values.
+ * @param id - The id of the stored visit that the values edit, or `undefined`
+ * for a new visit.
+ */
+export function toVisitDraft(values: PlaceValues, id?: string): VisitDraft {
+	return {
+		id,
+		visitedAt: toDay(values.visitedAt ?? new Date()),
+		rating: Math.min(Math.max(Math.round(values.rating * 2) / 2, 0), MAX_RATING),
+		review: values.review.trim() || undefined,
+		photos: values.photos.map((row) => row.url.trim()).filter((url) => url !== ''),
+	}
+}
+
+/**
  * Turns filled form values into the record the store takes.
  *
  * Every field it reads is one a validator proved, so each absent case falls back
@@ -132,7 +182,8 @@ export async function locatePlace(
  * `base` is the record an edit started from. The store holds only three parts
  * of the address, so a place dressed back up as a match by {@link toFormValues}
  * carries those three and nothing else. While the match is still that one, the
- * record answers for its own parts.
+ * record answers for its own parts. An edit keeps the visits of the record, and
+ * a new place takes the visit fields as its first visit.
  */
 export function toPlaceDraft(
 	values: PlaceValues,
@@ -153,11 +204,58 @@ export function toPlaceDraft(
 		country: kept?.country ?? place?.address?.country,
 		latitude: place?.latitude ?? 0,
 		longitude: place?.longitude ?? 0,
-		rating: Math.min(Math.max(Math.round(values.rating), 0), MAX_RATING),
-		review: values.review.trim() || undefined,
 		url: values.url.trim() || undefined,
-		photo: values.photo.trim() || undefined,
-		visitedAt: toDay(values.visitedAt ?? new Date()),
+		visits: base === null ? [toVisitDraft(values)] : base.visits,
+	}
+}
+
+/**
+ * The place with the visit of the form written into it: a new visit added to
+ * its visits, or a stored one replaced. The rest of the place stays as it is.
+ */
+export function toVisitPlaceDraft(
+	values: PlaceValues,
+	place: Place,
+	visit: Visit | null,
+): PlaceDraft {
+	return {
+		...placeDraft(place),
+		visits:
+			visit === null
+				? [...place.visits, toVisitDraft(values)]
+				: place.visits.map((held) =>
+						held.id === visit.id ? toVisitDraft(values, visit.id) : held,
+					),
+	}
+}
+
+/**
+ * The visit fields of the form, seeded from a stored visit, or empty for a new
+ * one. A new visit is usually recorded just after it, so today is the useful
+ * default and the field stays editable.
+ */
+export function toVisitValues(
+	visit: Visit | null,
+): Pick<PlaceValues, 'visitedAt' | 'rating' | 'photos' | 'review'> {
+	const photos = visit?.photos ?? []
+
+	return {
+		visitedAt: visit === null ? new Date() : fromDay(visit.visitedAt),
+		rating: visit?.rating ?? 0,
+		photos: photos.length === 0 ? [photoRow()] : photos.map((url) => photoRow(url)),
+		review: visit?.review ?? '',
+	}
+}
+
+/** The fields of an empty form, which add a place. */
+export function emptyValues(): PlaceValues {
+	return {
+		place: undefined,
+		name: '',
+		address: '',
+		category: undefined,
+		url: '',
+		...toVisitValues(null),
 	}
 }
 
@@ -169,8 +267,10 @@ export function toPlaceDraft(
  * on record, the validator sees the coordinates it needs, and searching again
  * replaces the lot. Without it, a save would find the position from the stored
  * address again, and could move a place that is already in the correct position.
+ *
+ * `visit` seeds the visit fields: a stored visit, or `null` for empty ones.
  */
-export function toFormValues(place: Place): PlaceValues {
+export function toFormValues(place: Place, visit: Visit | null = null): PlaceValues {
 	return {
 		place: {
 			id: place.id,
@@ -187,10 +287,14 @@ export function toFormValues(place: Place): PlaceValues {
 		name: place.name,
 		address: place.address,
 		category: place.category,
-		rating: place.rating,
-		visitedAt: fromDay(place.visitedAt),
 		url: place.url ?? '',
-		photo: place.photo ?? '',
-		review: place.review ?? '',
+		...toVisitValues(visit),
 	}
+}
+
+/** The fields that the form opens with for a target. */
+export function targetValues(target: PlaceFormTarget): PlaceValues {
+	if (target.kind === 'visit') return toFormValues(target.place, target.visit)
+
+	return target.place === null ? emptyValues() : toFormValues(target.place)
 }

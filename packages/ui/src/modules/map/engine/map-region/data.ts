@@ -58,7 +58,7 @@ type MapNumericAbsent = {
 }
 
 /** Regions colored by a categorical field, its slot colors resolved in a fixed order. @internal */
-type MapCategoricalData<T> = MapRegionRows<T> &
+export type MapCategoricalData<T> = MapRegionRows<T> &
 	MapNumericAbsent &
 	MapSwitchboardLegend & {
 		/** The field holding the row's category value. */
@@ -71,14 +71,14 @@ type MapCategoricalData<T> = MapRegionRows<T> &
 	}
 
 /** Regions shaded along a sequential ramp by a numeric field — a choropleth. @internal */
-type MapNumericData<T> = MapRegionRows<T> & {
+export type MapNumericData<T> = MapRegionRows<T> & {
 	/** The field holding the row's numeric value; shades regions along the color range. */
 	valueKey: DataKey<T>
 	/** Ordered CSS color stops the bins sample, low → high — the data-driven scale. */
 	colorRange: string[]
 	/**
 	 * Bin count for the ramp and its legend.
-	 * @defaultValue one bin per `colorRange` stop
+	 * @defaultValue One bin per `colorRange` stop.
 	 */
 	bins?: number
 	/**
@@ -125,7 +125,7 @@ type MapNumericData<T> = MapRegionRows<T> & {
 }
 
 /** A data-less map: it draws its geography in the neutral fill as a backdrop for overlays. @internal */
-type MapNoData = MapNumericAbsent &
+export type MapNoData = MapNumericAbsent &
 	MapSwitchboardLegend & {
 		data?: undefined
 		regionKey?: undefined

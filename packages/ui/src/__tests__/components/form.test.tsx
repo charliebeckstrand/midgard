@@ -10,6 +10,7 @@ import {
 	useFormStatus,
 	useFormText,
 } from '../../components/form'
+import { Input } from '../../components/input'
 import {
 	bySlot,
 	deferred,
@@ -227,6 +228,29 @@ describe('Form', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
 
 		expect(validator).toHaveBeenCalled()
+	})
+
+	it('does not mark an untouched field invalid when another field changes with validateOn="change"', () => {
+		const required = (value: unknown) => (value ? undefined : 'required')
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ a: '', b: '' }}
+				validate={{ a: required, b: required }}
+				validateOn="change"
+			>
+				<Input name="a" />
+				<Input name="b" />
+			</Form>,
+		)
+
+		const [a, b] = container.querySelectorAll('input')
+
+		fireEvent.change(a as HTMLInputElement, { target: { value: 'x' } })
+
+		expect(a).not.toHaveAttribute('aria-invalid')
+
+		expect(b).not.toHaveAttribute('aria-invalid')
 	})
 
 	it('exposes helpers to onSubmit and allows setting external errors', async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Drawer } from '../../components/drawer'
-import { Sheet } from '../../components/sheet'
+import { Drawer, DrawerPanel } from '../../components/drawer'
+import { Sheet, SheetPanel } from '../../components/sheet'
 import { frames, renderUI, screen } from '../helpers'
 
 /**
@@ -14,16 +14,20 @@ describe('a non-modal panel', () => {
 		[
 			'Drawer',
 			(children: string) => (
-				<Drawer open onOpenChange={() => {}} modal={false} aria-label="Panel">
-					<button type="button">{children}</button>
+				<Drawer open onOpenChange={() => {}}>
+					<DrawerPanel modal={false} aria-label="Panel">
+						<button type="button">{children}</button>
+					</DrawerPanel>
 				</Drawer>
 			),
 		],
 		[
 			'Sheet',
 			(children: string) => (
-				<Sheet open onOpenChange={() => {}} modal={false} aria-label="Panel">
-					<button type="button">{children}</button>
+				<Sheet open onOpenChange={() => {}}>
+					<SheetPanel modal={false} aria-label="Panel">
+						<button type="button">{children}</button>
+					</SheetPanel>
 				</Sheet>
 			),
 		],

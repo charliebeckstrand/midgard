@@ -13,7 +13,7 @@ import {
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
-import { bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -304,7 +304,7 @@ describe('CommandPaletteGroup', () => {
 			</CommandPaletteGroup>,
 		)
 
-		const title = bySlot(container, 'command-palette-title')
+		const title = bySlot(container, 'command-palette-heading')
 
 		expect(title).toHaveTextContent('Actions')
 
@@ -322,7 +322,7 @@ describe('CommandPaletteGroup', () => {
 			</CommandPaletteGroup>,
 		)
 
-		expect(bySlot(container, 'command-palette-title')).not.toBeInTheDocument()
+		expect(bySlot(container, 'command-palette-heading')).not.toBeInTheDocument()
 
 		expect(bySlot(container, 'command-palette-group')).not.toHaveAttribute('aria-labelledby')
 	})
@@ -563,10 +563,11 @@ describe('CommandPaletteLabel, CommandPaletteText, and CommandPaletteDescription
 
 describe('CommandPalette triggerShortcut', () => {
 	// tinykeys resolves `$mod` to ctrlKey on non-Mac platforms; jsdom is non-Mac.
+	// A browser keydown is cancelable, so a handler can mark it as taken.
+	const MOD_K = { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true, cancelable: true }
+
 	function pressModK() {
-		window.dispatchEvent(
-			new KeyboardEvent('keydown', { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true }),
-		)
+		window.dispatchEvent(new KeyboardEvent('keydown', MOD_K))
 	}
 
 	it('opens the palette when the default $mod+KeyK fires while closed', () => {
@@ -595,6 +596,83 @@ describe('CommandPalette triggerShortcut', () => {
 		pressModK()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('does not open from a form field outside the palette', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<>
+				<input aria-label="Notes" />
+				<CommandPalette open={false} onOpenChange={onOpenChange}>
+					<div>Items</div>
+				</CommandPalette>
+			</>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('textbox', { name: 'Notes' }), MOD_K)
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('closes the palette from its own search field', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('combobox'), MOD_K)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('toggles one palette for each press when two are mounted', () => {
+		const first = vi.fn()
+
+		const second = vi.fn()
+
+		renderUI(
+			<>
+				<CommandPalette open={false} onOpenChange={first}>
+					<div>First</div>
+				</CommandPalette>
+				<CommandPalette open={false} onOpenChange={second}>
+					<div>Second</div>
+				</CommandPalette>
+			</>,
+		)
+
+		pressModK()
+
+		expect(first.mock.calls.length + second.mock.calls.length).toBe(1)
+	})
+
+	it('closes the open palette, and opens no other, when two are mounted', () => {
+		const closed = vi.fn()
+
+		const open = vi.fn()
+
+		renderUI(
+			<>
+				<CommandPalette open={false} onOpenChange={closed}>
+					<div>Closed</div>
+				</CommandPalette>
+				<CommandPalette open onOpenChange={open}>
+					<div>Open</div>
+				</CommandPalette>
+			</>,
+		)
+
+		// A press on the Close button of the open palette: focus can rest there,
+		// and it is not a form field, so the closed palette would also take it.
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Close' }), MOD_K)
+
+		expect(open).toHaveBeenCalledWith(false)
+
+		expect(closed).not.toHaveBeenCalled()
 	})
 
 	it('does not bind a shortcut when triggerShortcut is false', () => {
@@ -784,5 +862,55 @@ describe('CommandPalette onActiveChange', () => {
 		)
 
 		expect(onActiveChange).toHaveBeenLastCalledWith(null)
+	})
+})
+
+describe('CommandPalette uncontrolled mode', () => {
+	const MOD_K = { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true, cancelable: true }
+
+	it('opens from defaultOpen and closes from the Close button', async () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette defaultOpen onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(bySlot(document.body, 'command-palette-input')).toBeInTheDocument()
+
+		await setupUser().click(screen.getByRole('button', { name: 'Close' }))
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+
+		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
+	})
+
+	it('opens from the shortcut with no open prop', () => {
+		renderUI(
+			<CommandPalette>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
+
+		act(() => {
+			window.dispatchEvent(new KeyboardEvent('keydown', MOD_K))
+		})
+
+		expect(bySlot(document.body, 'command-palette-input')).toBeInTheDocument()
+	})
+})
+
+describe('CommandPalette glass', () => {
+	it('gives glass to the Dialog panel', () => {
+		renderUI(
+			<CommandPalette open glass>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		expect(screen.getByRole('dialog')).toHaveAttribute('data-glass', '')
 	})
 })

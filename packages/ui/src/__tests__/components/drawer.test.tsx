@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
+import { Drawer, DrawerClose, DrawerPanel } from '../../components/drawer'
 import {
 	bySlot,
 	densityStepOf,
@@ -17,7 +17,7 @@ describe('Drawer', () => {
 	it('renders children with role="dialog" when open', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}}>
-				Drawer content
+				<DrawerPanel>Drawer content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -33,7 +33,7 @@ describe('Drawer', () => {
 	it('does not render when closed', () => {
 		renderUI(
 			<Drawer open={false} onOpenChange={() => {}}>
-				Hidden
+				<DrawerPanel>Hidden</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -42,8 +42,8 @@ describe('Drawer', () => {
 
 	it('names a title-less drawer via the aria-label escape hatch', () => {
 		renderUI(
-			<Drawer open onOpenChange={() => {}} aria-label="Filters">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel aria-label="Filters">content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -52,8 +52,10 @@ describe('Drawer', () => {
 
 	it('grays out what shows through the backdrop when desaturate is set', () => {
 		renderUI(
-			<Drawer open desaturate onOpenChange={() => {}} aria-label="Resolve">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel desaturate aria-label="Resolve">
+					content
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -62,8 +64,8 @@ describe('Drawer', () => {
 
 	it('leaves the backdrop in color by default', () => {
 		renderUI(
-			<Drawer open onOpenChange={() => {}} aria-label="Resolve">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel aria-label="Resolve">content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -74,9 +76,11 @@ describe('Drawer', () => {
 		const ref = createRef<HTMLInputElement>()
 
 		renderUI(
-			<Drawer open onOpenChange={() => {}} initialFocus={ref}>
-				<button type="button">First tabbable</button>
-				<input ref={ref} aria-label="Composer" />
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel initialFocus={ref}>
+					<button type="button">First tabbable</button>
+					<input ref={ref} aria-label="Composer" />
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -91,8 +95,8 @@ describe('Drawer enter animation', () => {
 
 	it('slides the panel up from the bottom edge on mount', () => {
 		renderUI(
-			<Drawer open onOpenChange={() => {}} aria-label="Resolve">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel aria-label="Resolve">content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -101,8 +105,10 @@ describe('Drawer enter animation', () => {
 
 	it('mounts an arriving drawer already in place when animateOnMount is false', () => {
 		renderUI(
-			<Drawer open animateOnMount={false} onOpenChange={() => {}} aria-label="Resolve">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel animateOnMount={false} aria-label="Resolve">
+					content
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -111,8 +117,10 @@ describe('Drawer enter animation', () => {
 
 	it('slides on a reopen even while animateOnMount stays false', () => {
 		const drawer = (open: boolean) => (
-			<Drawer open={open} animateOnMount={false} onOpenChange={() => {}} aria-label="Resolve">
-				content
+			<Drawer open={open} onOpenChange={() => {}}>
+				<DrawerPanel animateOnMount={false} aria-label="Resolve">
+					content
+				</DrawerPanel>
 			</Drawer>
 		)
 
@@ -138,13 +146,18 @@ describe('Drawer enter animation', () => {
  * resolves anywhere in the library's coverage.
  */
 describe('Drawer onOpenComplete', () => {
-	const drawer = (props: {
+	const drawer = ({
+		open,
+		...props
+	}: {
 		open: boolean
 		animateOnMount?: boolean
 		onOpenComplete: () => void
 	}) => (
-		<Drawer {...props} onOpenChange={() => {}} aria-label="Resolve">
-			content
+		<Drawer open={open} onOpenChange={() => {}}>
+			<DrawerPanel {...props} aria-label="Resolve">
+				content
+			</DrawerPanel>
 		</Drawer>
 	)
 
@@ -181,71 +194,17 @@ describe('Drawer onOpenComplete', () => {
 	})
 })
 
-describe('DrawerTrigger', () => {
-	it('invokes the provided onClick when the child is clicked', () => {
-		const onClick = vi.fn()
-
-		renderUI(
-			<DrawerTrigger onClick={onClick}>
-				<button type="button">Open</button>
-			</DrawerTrigger>,
-		)
-
-		fireEvent.click(screen.getByText('Open'))
-
-		expect(onClick).toHaveBeenCalled()
-	})
-
-	it('calls the child existing onClick as well', () => {
-		const childClick = vi.fn()
-
-		renderUI(
-			<DrawerTrigger>
-				<button type="button" onClick={childClick}>
-					Open
-				</button>
-			</DrawerTrigger>,
-		)
-
-		fireEvent.click(screen.getByText('Open'))
-
-		expect(childClick).toHaveBeenCalled()
-	})
-
-	it('marks the trigger as a dialog disclosure', () => {
-		renderUI(
-			<DrawerTrigger open={false}>
-				<button type="button">Open</button>
-			</DrawerTrigger>,
-		)
-
-		const trigger = screen.getByText('Open')
-
-		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
-
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
-	})
-
-	it('reflects the open state via aria-expanded', () => {
-		renderUI(
-			<DrawerTrigger open>
-				<button type="button">Open</button>
-			</DrawerTrigger>,
-		)
-
-		expect(screen.getByText('Open')).toHaveAttribute('aria-expanded', 'true')
-	})
-})
-
 describe('DrawerClose', () => {
 	it('closes the drawer when the child is clicked', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Drawer open onOpenChange={onOpenChange} footer={null}>
-				<DrawerClose>
-					<button type="button">Close</button>
-				</DrawerClose>
+			<Drawer open onOpenChange={onOpenChange}>
+				<DrawerPanel footer={null}>
+					<DrawerClose>
+						<button type="button">Close</button>
+					</DrawerClose>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -258,12 +217,14 @@ describe('DrawerClose', () => {
 		const childClick = vi.fn()
 
 		renderUI(
-			<Drawer open onOpenChange={() => {}} footer={null}>
-				<DrawerClose>
-					<button type="button" onClick={childClick}>
-						Close
-					</button>
-				</DrawerClose>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel footer={null}>
+					<DrawerClose>
+						<button type="button" onClick={childClick}>
+							Close
+						</button>
+					</DrawerClose>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -283,7 +244,7 @@ describe('Drawer height and size', () => {
 	it('defaults to height="auto", capping rather than fixing the panel height', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}}>
-				content
+				<DrawerPanel>content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -294,8 +255,8 @@ describe('Drawer height and size', () => {
 
 	it('fixes the panel height at half the screen', () => {
 		renderUI(
-			<Drawer open onOpenChange={() => {}} height="half">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel height="half">content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -306,8 +267,8 @@ describe('Drawer height and size', () => {
 
 	it('squares the top corners at full height, which meets the screen edge', () => {
 		renderUI(
-			<Drawer open onOpenChange={() => {}} height="full">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel height="full">content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -323,8 +284,8 @@ describe('Drawer height and size', () => {
 	// browser suite (`drawer-fit-travel`) is where the travel itself is asserted.
 	it('caps a fitted panel at the screen, and measures nothing until laid out', () => {
 		renderUI(
-			<Drawer open onOpenChange={() => {}} height="fit">
-				content
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel height="fit">content</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -346,8 +307,10 @@ describe('Drawer height and size', () => {
 
 	it('gives descendant Buttons the Drawer size', () => {
 		renderUI(
-			<Drawer open onOpenChange={() => {}} size="lg">
-				<Button>Save</Button>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel size="lg">
+					<Button>Save</Button>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -357,7 +320,11 @@ describe('Drawer height and size', () => {
 
 describe('Drawer uncontrolled', () => {
 	it('opens from defaultOpen', () => {
-		renderUI(<Drawer defaultOpen>Drawer body</Drawer>)
+		renderUI(
+			<Drawer defaultOpen>
+				<DrawerPanel>Drawer body</DrawerPanel>
+			</Drawer>,
+		)
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
@@ -365,7 +332,11 @@ describe('Drawer uncontrolled', () => {
 	})
 
 	it('stays closed with neither open nor defaultOpen', () => {
-		renderUI(<Drawer>Hidden</Drawer>)
+		renderUI(
+			<Drawer>
+				<DrawerPanel>Hidden</DrawerPanel>
+			</Drawer>,
+		)
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
@@ -375,9 +346,11 @@ describe('Drawer uncontrolled', () => {
 
 		renderUI(
 			<Drawer defaultOpen onOpenChange={onOpenChange}>
-				<DrawerClose>
-					<button type="button">Done</button>
-				</DrawerClose>
+				<DrawerPanel>
+					<DrawerClose>
+						<button type="button">Done</button>
+					</DrawerClose>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -395,8 +368,10 @@ describe('Drawer drag handle', () => {
 	/** A drawer with a grab bar, and the bar itself. */
 	function renderHandled(props?: { onOpenChange?: (open: boolean) => void; open?: boolean }) {
 		const rendered = renderUI(
-			<Drawer open handle height="half" onOpenChange={() => {}} aria-label="Panel" {...props}>
-				<p>Body</p>
+			<Drawer open onOpenChange={() => {}} {...props}>
+				<DrawerPanel handle height="half" aria-label="Panel">
+					<p>Body</p>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -409,8 +384,10 @@ describe('Drawer drag handle', () => {
 
 	it('renders no handle unless asked, and a window splitter when asked', () => {
 		const { container: plain } = renderUI(
-			<Drawer open onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel aria-label="Panel">
+					<p>Body</p>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -441,8 +418,10 @@ describe('Drawer drag handle', () => {
 		'shows no grip on a drawer grown to its content (%s)',
 		(height) => {
 			const { container } = renderUI(
-				<Drawer open handle height={height} onOpenChange={() => {}} aria-label="Panel">
-					<p>Body</p>
+				<Drawer open onOpenChange={() => {}}>
+					<DrawerPanel handle height={height} aria-label="Panel">
+						<p>Body</p>
+					</DrawerPanel>
 				</Drawer>,
 			)
 
@@ -517,14 +496,18 @@ describe('Drawer drag handle', () => {
 		await user.keyboard('{ArrowUp}')
 
 		rerender(
-			<Drawer open={false} handle height="half" onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
+			<Drawer open={false} onOpenChange={() => {}}>
+				<DrawerPanel handle height="half" aria-label="Panel">
+					<p>Body</p>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
 		rerender(
-			<Drawer open handle height="half" onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel handle height="half" aria-label="Panel">
+					<p>Body</p>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -542,8 +525,10 @@ describe('Drawer drag handle', () => {
 
 		// Escape or the owner closes the panel while the finger is still down.
 		rerender(
-			<Drawer open={false} handle height="half" onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
+			<Drawer open={false} onOpenChange={() => {}}>
+				<DrawerPanel handle height="half" aria-label="Panel">
+					<p>Body</p>
+				</DrawerPanel>
 			</Drawer>,
 		)
 
@@ -551,8 +536,10 @@ describe('Drawer drag handle', () => {
 		fireEvent.pointerUp(window, { pointerType: 'touch', clientY: 300 })
 
 		rerender(
-			<Drawer open handle height="half" onOpenChange={() => {}} aria-label="Panel">
-				<p>Body</p>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel handle height="half" aria-label="Panel">
+					<p>Body</p>
+				</DrawerPanel>
 			</Drawer>,
 		)
 

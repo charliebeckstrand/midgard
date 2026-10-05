@@ -1,6 +1,7 @@
 /**
  * Serves the docs build the way App Platform serves it, for `docs:preview` and
- * `docs:hydration`.
+ * `docs:hydration`. `docs:bench` serves the build with the same paths, over
+ * HTTP/2.
  *
  * A path gets the file at that path, or `index.html` in the directory at that
  * path. Thus `/stepper` gets `stepper/index.html` with no redirect. Any other
@@ -20,9 +21,17 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** The client directory of the docs build. */
-const root = path.resolve(import.meta.dirname, '..', 'src', 'docs', 'dist', 'client')
+export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', 'src', 'docs', 'dist', 'client')
 
-const TYPES: Record<string, string> = {
+/**
+ * A browser expression that is `true` when the page hydrated, for
+ * `docs:hydration` and `docs:bench`. Hydration gives the heading a React
+ * fiber. A prerendered heading has none.
+ */
+export const HYDRATED = `Object.keys(document.querySelector('h1') ?? {}).some((key) => key.startsWith('__reactFiber'))`
+
+/** The content type of each kind of file in a build. */
+export const TYPES: Record<string, string> = {
 	'.css': 'text/css',
 	'.html': 'text/html; charset=utf-8',
 	'.js': 'text/javascript',
@@ -36,7 +45,7 @@ async function isFile(file: string): Promise<boolean> {
 }
 
 /** The file that a path of the site gets. */
-async function resolve(pathname: string): Promise<string> {
+export async function fileOf(root: string, pathname: string): Promise<string> {
 	const file = path.join(root, decodeURIComponent(pathname))
 
 	// A path that goes out of the build gets the fallback page.
@@ -49,10 +58,10 @@ async function resolve(pathname: string): Promise<string> {
 	return path.join(root, '__spa-fallback.html')
 }
 
-/** Start the server, and give its origin, such as `http://localhost:3456`. */
+/** Start the server of the docs build, and give its origin, such as `http://localhost:3456`. */
 export async function serveDocs(port: number): Promise<{ origin: string; server: Server }> {
 	const server = createServer(async (request, response) => {
-		const file = await resolve(new URL(request.url ?? '/', 'http://localhost').pathname)
+		const file = await fileOf(CLIENT_DIR, new URL(request.url ?? '/', 'http://localhost').pathname)
 
 		const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
 

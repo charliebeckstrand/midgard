@@ -6,24 +6,29 @@ import dynamic from 'next/dynamic'
 import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Confirm } from 'ui/confirm'
-import { ReadyReveal } from 'ui/primitives/ready-reveal'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import { flags } from '../../flags'
 import {
 	useAddPlace,
-	useAtlas,
 	useDeletePlace,
 	usePlaces,
 	useSavePlace,
 	useSetVisit,
 	useVisits,
 } from '../../queries/places-queries'
-import type { Place, Visits } from '../../types'
-import { filterPlaces } from '../../utilities/places-filter'
-import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
+import type { Place, Visit, Visits } from '../../types'
+import { ATLASES } from '../../utilities/places-atlas'
+import { filterPlaces, fromDay } from '../../utilities/places-filter'
+import {
+	type BoundedRegion,
+	boundRegions,
+	groupPlacesByRegion,
+	regionName,
+} from '../../utilities/places-geography'
 import type { PaletteSource } from '../../utilities/places-palette'
 import {
 	COUNTRY_SNAP_KM,
@@ -38,7 +43,6 @@ import {
 	regionOf,
 	regionsHolding,
 	stateOf,
-	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
 	viewForPlace,
@@ -47,7 +51,10 @@ import {
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
-import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
+import { placeDraft } from '../../utilities/places-visits'
+import { PlaceFilters } from '../place-filters'
+import type { PlaceFormTarget } from '../place-form-drawer'
+import type { PlaceActions, VisitActions } from '../place-menu'
 import { actionSource, PlacePalette, placeSource, regionSource } from '../place-palette'
 import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 import { PlacesMap } from '../places-map'
@@ -96,18 +103,29 @@ const PlaceDrawer = dynamic(() => loadDrawer().then((module) => module.PlaceDraw
 })
 
 /**
- * Whether a panel has opened at least once.
+ * Whether a panel renders: from the load of its code or its first open on,
+ * whichever comes first.
  *
- * A panel that has never opened is not rendered, so its code does not load for
- * it. After the first open it stays rendered, because a closing panel has an exit
- * to play.
+ * Before that, the panel is not rendered, so its code does not load for it.
+ * After that, it stays rendered, because a closing panel has an exit to play.
+ * {@link usePanelPrefetch} tells why a loaded panel renders before it opens.
  */
-function useOpenedOnce(open: boolean): boolean {
+function usePanelRendered(open: boolean, loaded: boolean): boolean {
 	const [opened, setOpened] = useState(open)
 
 	if (open && !opened) setOpened(true)
 
-	return opened || open
+	return opened || open || loaded
+}
+
+/**
+ * Each region beside its bounding box, per atlas. Measured once for the module,
+ * because an atlas never changes: adding a place does not re-measure 56 states,
+ * and crossing out to the world does not re-measure 177 countries.
+ */
+const BOUNDED: Record<PlaceAtlas, BoundedRegion[]> = {
+	states: boundRegions(ATLASES.states),
+	countries: boundRegions(ATLASES.countries),
 }
 
 /** The empty list a pending places query stands in for, held so its identity is stable. */
@@ -218,53 +236,81 @@ function VisitedToggle({
 	)
 }
 
+/** What a delete removes: a whole place, or one of its visits. */
+type Deletion = { place: Place; visit: Visit | null }
+
 /**
- * The confirmation before a delete. It is open while `place` is set, and it
- * names the place.
+ * Whether a delete removes the whole place. A place keeps at least one visit,
+ * so a delete of its only visit also deletes the place.
+ */
+function deletesPlace({ place, visit }: Deletion): boolean {
+	return visit === null || place.visits.length === 1
+}
+
+/**
+ * The confirmation before a delete. It is open while `deletion` is set, and it
+ * names the place, or the day of the visit. When the visit is the only one, it
+ * also says that the place goes with it.
  */
 function DeleteConfirm({
-	place,
+	deletion,
 	onClose,
 	onDelete,
 }: {
-	place: Place | null
+	deletion: Deletion | null
 	onClose: () => void
-	onDelete: (place: Place) => void
+	onDelete: (deletion: Deletion) => void
 }) {
+	const visit = deletion?.visit ?? null
+
+	const title =
+		deletion === null
+			? ''
+			: visit === null
+				? `Delete "${deletion.place.name}"?`
+				: `Delete the visit on ${fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}?`
+
+	const description =
+		deletion !== null && visit !== null && deletesPlace(deletion)
+			? `This is the only visit to "${deletion.place.name}", so the place is deleted too.`
+			: undefined
+
 	return (
 		<Confirm
-			open={place !== null}
+			open={deletion !== null}
 			onOpenChange={(next) => {
 				if (!next) onClose()
 			}}
 			onConfirm={() => {
-				if (place !== null) onDelete(place)
+				if (deletion !== null) onDelete(deletion)
 
 				onClose()
 			}}
-			title={place === null ? '' : `Delete "${place.name}"?`}
-			description={place === null ? undefined : 'This cannot be undone.'}
+			title={title}
+			description={description}
 			confirm={{ label: 'Delete', color: 'red' }}
 		/>
 	)
 }
 
 /**
- * Fetches the code of the panels when the main thread is idle, after the
- * opening view has settled. The first open of a panel then waits for nothing.
- * The browser runs the code of a chunk when it arrives, so a fetch at the
- * settle ran it while the map drew its first frame.
+ * Fetches the code of the panels when the main thread is idle after the mount,
+ * and tells when all of it has loaded. The browser runs the code of a chunk when
+ * it arrives, so a fetch at the mount ran it while the page hydrated.
+ *
+ * The app renders each panel closed from that point on. The render that first
+ * shows a lazy panel suspends, also when its code is in the cache, and React
+ * holds the content of a boundary that showed its fallback for 300 ms
+ * (`FALLBACK_THROTTLE_MS`). A panel that suspended on its first open thus came
+ * up about 300 ms after the tap. A closed panel suspends while nothing is on
+ * the screen, and the first open renders it at once.
  */
-function usePanelPrefetch(settling: boolean) {
+function usePanelPrefetch(): boolean {
+	const [loaded, setLoaded] = useState(false)
+
 	useEffect(() => {
-		if (settling) return
-
 		const load = () => {
-			void loadIndex()
-
-			void loadForm()
-
-			void loadDrawer()
+			void Promise.all([loadIndex(), loadForm(), loadDrawer()]).then(() => setLoaded(true))
 		}
 
 		const idle = window.requestIdleCallback?.(load)
@@ -274,7 +320,9 @@ function usePanelPrefetch(settling: boolean) {
 		const timer = window.setTimeout(load, IDLE_FALLBACK_MS)
 
 		return () => window.clearTimeout(timer)
-	}, [settling])
+	}, [])
+
+	return loaded
 }
 
 /**
@@ -285,14 +333,14 @@ function useActionCommands({
 	mark,
 	marked,
 	hasPlaces,
-	setAdding,
+	onAdd,
 	setListing,
 	onMark,
 }: {
 	mark: { scope: PlaceAtlas; region: string } | null
 	marked: boolean
 	hasPlaces: boolean
-	setAdding: (adding: boolean) => void
+	onAdd: () => void
 	setListing: (listing: boolean) => void
 	onMark: (mark: { scope: PlaceAtlas; region: string; visited: boolean }) => void
 }) {
@@ -304,7 +352,7 @@ function useActionCommands({
 	return useMemo(
 		() =>
 			actionSource({
-				onAdd: () => setAdding(true),
+				onAdd,
 				onList: hasPlaces ? () => setListing(true) : undefined,
 				mark: markRegion,
 				marked,
@@ -314,7 +362,7 @@ function useActionCommands({
 					}
 				},
 			}),
-		[hasPlaces, markScope, markRegion, marked, setAdding, setListing, onMark],
+		[hasPlaces, markScope, markRegion, marked, onAdd, setListing, onMark],
 	)
 }
 
@@ -329,8 +377,6 @@ type PlacesHeaderProps = {
 	marked: boolean
 	onMarkedChange: (mark: { scope: PlaceAtlas; region: string; visited: boolean }) => void
 	paletteSources: PaletteSource[]
-	/** Whether the opening view has settled, so the palette can open a region. */
-	ready: boolean
 	/** The one region that the view is cut to, or `null`. */
 	cut: string | null
 	/** The number of places that the bar admits in the cut. */
@@ -352,7 +398,6 @@ function PlacesHeader({
 	marked,
 	onMarkedChange,
 	paletteSources,
-	ready,
 	cut,
 	count,
 	hasPlaces,
@@ -373,19 +418,16 @@ function PlacesHeader({
 
 				    `min-w-0` on the wrapper is what lets the trail give way at all: without
 				    it this flex child holds its full width and pushes the controls beside it
-				    off the row instead of truncating. `flex-1` is what lets it come back: the
-				    trail measures the box it is given, and a box that shrinks to the trail
-				    would narrow with it and never report the room to expand again. */}
-			{/* The trail and the toggle together, because the toggle acts on the
-				    region the last crumb names — not on the app, which is what the
-				    cluster on the far side holds. `min-w-0` stays on the trail alone, so
-				    the crumbs give way and the button never does. */}
-			<Flex gap="md" align="center" className="flex-1 min-w-0">
-				<div className="min-w-0">
-					<PlaceTrail className="text-xl/8" steps={steps} />
-				</div>
+				    off the row instead of truncating. `flex-1` gives the trail the row's full
+				    width, which is the room its fit measures.
 
-				{/* The visited toggle. It is a button rather than a checkbox, because
+				    The toggle goes inside the trail, because it acts on the region the last
+				    crumb names — not on the app, which is what the cluster on the far side
+				    holds. Inside, it shares the trail's row, so the crumbs give way and the
+				    button never does. */}
+			<div className="flex-1 min-w-0">
+				<PlaceTrail className="text-xl/8" steps={steps}>
+					{/* The visited toggle. It is a button rather than a checkbox, because
 					    the reader does not check a place as visited — they mark it as such.
 					    The button's own state is the visited state, so the reader sees what
 					    they are about to do and the action is a single click rather than a
@@ -397,19 +439,18 @@ function PlacesHeader({
 					    for, and a touch screen has no hover to show it. The tooltip names
 					    the region, because the view does not always say it: over the United
 					    States the map draws states, and the toggle marks the country. */}
-				{mark === null ? null : (
-					<VisitedToggle
-						region={mark.region}
-						marked={marked}
-						onMarkedChange={(visited) => onMarkedChange({ ...mark, visited })}
-					/>
-				)}
-			</Flex>
+					{mark === null ? null : (
+						<VisitedToggle
+							region={mark.region}
+							marked={marked}
+							onMarkedChange={(visited) => onMarkedChange({ ...mark, visited })}
+						/>
+					)}
+				</PlaceTrail>
+			</div>
 
 			<Flex gap="sm" align="center" className="shrink-0">
-				{/* Ready with the map, as the map's own drill is: a pick before the view
-					    settles would open a region onto a skeleton. */}
-				<PlacePalette sources={paletteSources} ready={ready} />
+				<PlacePalette sources={paletteSources} />
 
 				<AppearanceSettings />
 
@@ -522,7 +563,9 @@ export function PlacesApp({
 		openAt,
 	} = usePlaceLocation()
 
-	const [adding, setAdding] = useState(false)
+	// What the form drawer writes, or `null` while it is closed: a new place, an
+	// edit of one, or a visit to one.
+	const [form, setForm] = useState<PlaceFormTarget | null>(null)
 
 	// Whether the index is up. Its own bit rather than a mode of the drawers: it
 	// docks from the side and they dock from the bottom, so a reader can have a
@@ -530,33 +573,31 @@ export function PlacesApp({
 	// other leaves them with.
 	const [listing, setListing] = useState(false)
 
-	// The place the form drawer is editing, and the place the confirmation stands
-	// over. Both are `null` for "no such panel", which is also what opens the form
-	// on a new place.
-	const [editing, setEditing] = useState<Place | null>(null)
+	// What the confirmation stands over, or `null` for no confirmation.
+	const [deleting, setDeleting] = useState<Deletion | null>(null)
 
-	const [deleting, setDeleting] = useState<Place | null>(null)
+	// What the menus of a place and of a visit do, in every spot that shows one.
+	// Held, because the index columns and the palette source are memos keyed on it.
+	const actions = useMemo<PlaceActions & VisitActions>(
+		() => ({
+			onAddVisit: (place) => setForm({ kind: 'visit', place, visit: null }),
+			onEdit: (place) => setForm({ kind: 'place', place }),
+			onDelete: (place) => setDeleting({ place, visit: null }),
+			onEditVisit: (place, visit) => setForm({ kind: 'visit', place, visit }),
+			onDeleteVisit: (place, visit) => setDeleting({ place, visit }),
+		}),
+		[],
+	)
 
-	// The states atlas answers the opening question, so it is fetched whatever the
-	// view — and it is the atlas the app opened on before it drew anywhere else.
-	const { data: statesAtlas = null } = useAtlas('states')
-
-	// Nothing settles the view until the atlas has landed. The places are already
-	// in the cache from the server, so the opening rule reads the whole answer.
-	const settling = statesAtlas === null
-
-	// Each region beside its bounding box, one memo per atlas. Keyed on its own
-	// atlas alone — which never changes for the tab's life — so adding a place does
-	// not re-measure 56 states, and crossing back out to the world does not
-	// re-measure 177 countries from a topology the cache never dropped.
-	const boundedStates = useMemo(() => boundRegions(statesAtlas), [statesAtlas])
+	// Held for the palette's action source, which is a memo keyed on it.
+	const onAdd = useCallback(() => setForm({ kind: 'place', place: null }), [])
 
 	// Which state holds each place. It answers the opening question — a collection
 	// the states atlas accounts for whole is a collection inside the United States
 	// — and it is the grouping the app uses whenever the view draws states.
 	const placesByState = useMemo(
-		() => groupPlacesByRegion(boundedStates, places, stateOf),
-		[boundedStates, places],
+		() => groupPlacesByRegion(BOUNDED.states, places, stateOf),
+		[places],
 	)
 
 	// That grouping inverted, which four readers want: the countries grouping
@@ -566,38 +607,33 @@ export function PlacesApp({
 	const stateOfPlace = useMemo(() => regionOf(placesByState), [placesByState])
 
 	// The view: the address's, or the smallest geography this app draws that holds
-	// every place until the address states one.
-	const opening = settling ? UNITED_STATES_VIEW : initialView(stateOfPlace, places)
+	// every place until the address states one. The atlases are in the code and the
+	// places come from the server, so the opening rule reads the whole answer on
+	// the first render.
+	const opening = initialView(stateOfPlace, places)
 
 	const view = stated ?? opening
 
-	// The opening view, written down as soon as it is settled. Until it is, "the
-	// world" and "nothing stated yet" are the same empty address, and a reader who
-	// walked out to the world would be sent back by their own reload. It carries no
-	// history entry, so the Back button still leaves the app rather than stepping
-	// through a view the reader never chose.
+	// The opening view, written down on the mount. Until it is, "the world" and
+	// "nothing stated yet" are the same empty address, and a reader who walked out
+	// to the world would be sent back by their own reload. It carries no history
+	// entry, so the Back button still leaves the app rather than stepping through a
+	// view the reader never chose.
 	useEffect(() => {
-		if (stated === null && !settling) settleView(opening)
-	}, [stated, settling, opening, settleView])
+		if (stated === null) settleView(opening)
+	}, [stated, opening, settleView])
 
 	const atlas = viewAtlas(view)
 
-	// Fetched as soon as a view draws it, and otherwise once the opening view has
-	// settled. The world then waits in the cache behind the United States, so a
-	// step back out to it draws at once instead of on a skeleton. It waits for the
-	// settle so that it never competes with the states atlas and the places for the
-	// first frame.
-	const { data: countriesAtlas = null } = useAtlas('countries', atlas === 'countries' || !settling)
+	const panelsLoaded = usePanelPrefetch()
 
-	usePanelPrefetch(settling)
+	const formOpen = form !== null
 
-	const formOpen = adding || editing !== null
+	const formRendered = usePanelRendered(formOpen, panelsLoaded)
 
-	const formRendered = useOpenedOnce(formOpen)
+	const indexRendered = usePanelRendered(listing, panelsLoaded)
 
-	const indexRendered = useOpenedOnce(listing)
-
-	const regions = atlas === 'states' ? statesAtlas : countriesAtlas
+	const regions = ATLASES[atlas]
 
 	// The one region the view is cut to, which the picker and the crumbs share.
 	const cut = viewRegion(view)
@@ -607,7 +643,10 @@ export function PlacesApp({
 	// be the one region on the map a reader could never mark — they cross into it
 	// and it stops being somewhere they are. Its scope is its own, because that
 	// country is marked among countries while the atlas under it draws states.
-	const mark = viewMark(view)
+	//
+	// `null` while the visited regions feature is off, which takes the toggle and
+	// the Mark visited command away together.
+	const mark = flags.visitedRegions ? viewMark(view) : null
 
 	const marked = mark !== null && visits[mark.scope].includes(mark.region)
 
@@ -616,16 +655,11 @@ export function PlacesApp({
 	// Georgia is a state and Georgia is a country.
 	const visited = useMemo(() => new Set(visits[atlas]), [visits, atlas])
 
-	// The countries' own boxes, keyed on their own atlas for the same reason the
-	// states' are: shared with the states in one slot, every crossing back out to
-	// the world re-measured all 177 of them from a topology the cache still held.
-	const boundedCountries = useMemo(() => boundRegions(countriesAtlas), [countriesAtlas])
-
 	// Every region the drawn atlas holds, for the picker inside the United States.
 	// Read off the geography rather than the places, so a state holding nothing is
 	// still somewhere the reader can go.
 	const regionNames = useMemo(
-		() => (regions?.features ?? []).map(regionName).sort((a, b) => a.localeCompare(b)),
+		() => regions.features.map(regionName).sort((a, b) => a.localeCompare(b)),
 		[regions],
 	)
 
@@ -644,11 +678,11 @@ export function PlacesApp({
 	// why the coarse world outline defers to the finer atlas, and what it saves.
 	const placesByCountry = useMemo(
 		() =>
-			groupPlacesByRegion(boundedCountries, places, countryOf, {
+			groupPlacesByRegion(BOUNDED.countries, places, countryOf, {
 				known: knownCountry(stateOfPlace),
 				snapKm: COUNTRY_SNAP_KM,
 			}),
-		[boundedCountries, places, stateOfPlace],
+		[places, stateOfPlace],
 	)
 
 	const selected = useMemo(() => {
@@ -659,7 +693,7 @@ export function PlacesApp({
 		return selectedIds.map((id) => byId.get(id)).filter((place) => place !== undefined)
 	}, [selectedIds, places])
 
-	const drawerRendered = useOpenedOnce(selected.length > 0)
+	const drawerRendered = usePanelRendered(selected.length > 0, panelsLoaded)
 
 	// The countries grouping inverted, held in its own slot for the reason the
 	// grouping is: one settled answer per atlas.
@@ -755,12 +789,12 @@ export function PlacesApp({
 			preloaded === null
 				? null
 				: mapForView(preloaded, {
-						atlases: { states: statesAtlas, countries: countriesAtlas },
+						atlases: ATLASES,
 						groupings: { states: placesByState, countries: placesByCountry },
 						filtered,
 						visits,
 					}),
-		[preloaded, statesAtlas, countriesAtlas, filtered, placesByState, placesByCountry, visits],
+		[preloaded, filtered, placesByState, placesByCountry, visits],
 	)
 
 	// Held, because the drawer keys its own trail on this: a fresh arrow each
@@ -784,8 +818,13 @@ export function PlacesApp({
 	// The palette's sources. Each has its own memo, so a change to one does not
 	// build the others again: the regions sort more than 200 names.
 	const placeCommands = useMemo(
-		() => placeSource(places, (place) => openAt(viewForPlace(stateOfPlace, place), [place.id])),
-		[places, openAt, stateOfPlace],
+		() =>
+			placeSource(
+				places,
+				(place) => openAt(viewForPlace(stateOfPlace, place), [place.id]),
+				actions,
+			),
+		[places, openAt, stateOfPlace, actions],
 	)
 
 	// Every region of both atlases, whatever the view draws, so a reader can go to
@@ -793,21 +832,21 @@ export function PlacesApp({
 	const regionCommands = useMemo(
 		() =>
 			regionSource({
-				countries: (countriesAtlas?.features ?? []).map(regionName),
-				states: (statesAtlas?.features ?? []).map(regionName),
+				countries: ATLASES.countries.features.map(regionName),
+				states: ATLASES.states.features.map(regionName),
 				countryPlaces: placesByCountry,
 				statePlaces: placesByState,
 				goTo: setView,
 				preload: preloadView,
 			}),
-		[countriesAtlas, statesAtlas, placesByCountry, placesByState, setView, preloadView],
+		[placesByCountry, placesByState, setView, preloadView],
 	)
 
 	const actionCommands = useActionCommands({
 		mark,
 		marked,
 		hasPlaces: places.length > 0,
-		setAdding,
+		onAdd,
 		setListing,
 		onMark: setVisit.mutate,
 	})
@@ -826,11 +865,10 @@ export function PlacesApp({
 				marked={marked}
 				onMarkedChange={(next) => setVisit.mutate(next)}
 				paletteSources={paletteSources}
-				ready={!settling}
 				cut={cut}
 				count={shown.length}
 				hasPlaces={places.length > 0}
-				onAdd={() => setAdding(true)}
+				onAdd={onAdd}
 				onList={() => setListing(true)}
 			/>
 
@@ -842,28 +880,14 @@ export function PlacesApp({
 				// padded band sits inside the scroll container and a wheel anywhere over
 				// it scrolls — the strip above and below the controls included.
 				<div className="shrink-0 border-b border-zinc-950/10 dark:border-white/10">
-					{/* A skeleton stands in for the bar until the view settles: the region
-					    picker lists the atlas, and the other fields filter the places. The
-					    bar stays mounted under the skeleton and sizes the band, so the
-					    reveal moves nothing.
-
-					    `min-w-0` goes on each layer. Without it, the grid column of the
-					    reveal takes the full width of the rail, and the rail cannot
-					    scroll. */}
-					<ReadyReveal
-						ready={!settling}
-						placeholder={<PlaceFiltersSkeleton />}
-						className="*:min-w-0"
-					>
-						<PlaceFilters
-							value={filter}
-							onValueChange={setFilter}
-							regionNames={pickedRegions}
-							regionLabel={REGION_LABEL[atlas]}
-							drilled={cut}
-							onDrill={(region) => setView(drillOrUp(view, region))}
-						/>
-					</ReadyReveal>
+					<PlaceFilters
+						value={filter}
+						onValueChange={setFilter}
+						regionNames={pickedRegions}
+						regionLabel={REGION_LABEL[atlas]}
+						drilled={cut}
+						onDrill={(region) => setView(drillOrUp(view, region))}
+					/>
 				</div>
 			) : null}
 
@@ -874,9 +898,7 @@ export function PlacesApp({
 				    starts none of its effects until it shows. */}
 				<Activity key={here}>
 					<PlacesMap
-						// Held back until the view settles. Otherwise the map draws the United
-						// States first and then jumps to the frame that the places ask for.
-						regions={settling ? null : regions}
+						regions={regions}
 						places={shown}
 						view={view}
 						visited={visited}
@@ -908,28 +930,28 @@ export function PlacesApp({
 
 			{/* One drawer for both writes, opened on a place to edit it and on nothing
 			    to add one. Two would be the same seven fields twice. It renders from
-			    its first open on, so its code is not part of the first load. */}
+			    the idle load of its code or its first open on, so its code is not
+			    part of the first load. */}
 			{formRendered ? (
 				<PlaceFormDrawer
-					open={formOpen}
+					target={form}
 					onOpenChange={(next) => {
-						setAdding(next)
-
-						if (!next) setEditing(null)
+						if (!next) setForm(null)
 					}}
-					place={editing}
-					onSubmit={(draft) =>
-						editing === null
+					onSubmit={(draft) => {
+						const place = form?.place ?? null
+
+						return place === null
 							? addPlace.mutateAsync(draft)
-							: savePlace.mutateAsync({ id: editing.id, draft })
-					}
+							: savePlace.mutateAsync({ id: place.id, draft })
+					}}
 				/>
 			) : null}
 
 			{/* The other index into the same set: the map answers what is near here,
 			    and this answers where that place was. It reads the filtered list, so
-			    the two never disagree about what is in play. It renders from its first
-			    open on, like the form. */}
+			    the two never disagree about what is in play. It renders from the
+			    same point on as the form. */}
 			{indexRendered ? (
 				<PlacesIndex
 					open={listing}
@@ -941,6 +963,7 @@ export function PlacesApp({
 					// they already made; clearing the filter widens it back to the bar's.
 					region={cut}
 					stateByPlace={stateByPlace}
+					actions={actions}
 					onOpen={(place) => {
 						// One step, not two: the view and the selection are both the address,
 						// so writing them apart would leave a history entry standing on a map
@@ -959,8 +982,7 @@ export function PlacesApp({
 					regionPlaces={openedRegionPlaces}
 					onNavigate={onNavigate}
 					onOpenChange={() => setSelected([])}
-					onEdit={setEditing}
-					onDelete={setDeleting}
+					actions={actions}
 				/>
 			) : null}
 
@@ -968,9 +990,25 @@ export function PlacesApp({
 			    no history — so it is the one that asks first. It names the place, because
 			    a reader who opened a summary has several in front of them. */}
 			<DeleteConfirm
-				place={deleting}
+				deletion={deleting}
 				onClose={() => setDeleting(null)}
-				onDelete={(place) => void deletePlace.mutateAsync(place.id)}
+				onDelete={(deletion) => {
+					const { place, visit } = deletion
+
+					if (visit === null || deletesPlace(deletion)) {
+						void deletePlace.mutateAsync(place.id)
+
+						return
+					}
+
+					void savePlace.mutateAsync({
+						id: place.id,
+						draft: {
+							...placeDraft(place),
+							visits: place.visits.filter((held) => held.id !== visit.id),
+						},
+					})
+				}}
 			/>
 		</Flex>
 	)

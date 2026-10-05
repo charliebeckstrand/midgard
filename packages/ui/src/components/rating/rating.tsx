@@ -1,7 +1,7 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { type MouseEvent, type PointerEvent, useState } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -58,6 +58,15 @@ export type RatingProps = RatingVariants & {
 	 */
 	count?: number
 	/**
+	 * The smallest change a reader can set. At `0.5`, each star has two halves:
+	 * the start half sets the half score, and the end half sets the whole star.
+	 * The arrow keys move one half at a time. The halves follow the reading
+	 * direction, so they mirror in a right-to-left row. The display form draws
+	 * any fraction and does not read this prop.
+	 * @defaultValue 1
+	 */
+	step?: 1 | 0.5
+	/**
 	 * Binds the value to the enclosing Form field of this name (CONVENTIONS §7.2).
 	 * It is not the native grouping name. The stars group under an id of their
 	 * own, so two ratings bound to different fields never merge into one native
@@ -78,7 +87,7 @@ export type RatingProps = RatingVariants & {
 	 * `aria-invalid` is not a supported attribute of `role="img"`.
 	 *
 	 * It also renders a fraction: a whole star for each point, a part star for the
-	 * remainder. Only the display form does — a reader picks whole stars.
+	 * remainder. A reader sets only the scores that {@link step} allows.
 	 */
 	readOnly?: boolean
 	disabled?: boolean
@@ -151,13 +160,14 @@ export type RatingProps = RatingVariants & {
  * The display form draws a fractional score — an average of reviews is not a
  * whole number — by clipping a filled star over an empty one. It draws a whole
  * or an empty star as one glyph, so only the part star stacks two. The
- * interactive form sets whole stars only.
+ * interactive form sets a whole star, or a half star at a `step` of `0.5`.
  */
 export function Rating({
 	value,
 	defaultValue,
 	onValueChange,
 	count = 5,
+	step = 1,
 	name,
 	size,
 	readOnly,
@@ -209,7 +219,8 @@ export function Rating({
 	// and nothing else, so the gate sits here rather than on each reader below.
 	const preview = live ? previewed : null
 
-	// Stars count from one, so a preview is never `0` and the coalesce is exact.
+	// The lowest score is one step, so a preview is never `0` and the coalesce is
+	// exact.
 	const shown = preview ?? current
 
 	// Whether the pointer rests on the star a click would clear. Every other star
@@ -330,14 +341,44 @@ export function Rating({
 	}
 
 	// A click on the current score clears it. Canceling the activation is what
-	// keeps the two halves from fighting: the radio restores its own checkedness,
-	// and the `change` that would set this same star again never fires.
-	function handleClick(event: MouseEvent<HTMLInputElement>, star: number) {
-		if (!clearable || current !== star) return
+	// keeps the clear and the change from fighting: the radio restores its own checkedness,
+	// and the `change` that would set this same score again never fires.
+	function handleClick(event: MouseEvent<HTMLInputElement>, score: number) {
+		if (!clearable || current !== score) return
 
 		event.preventDefault()
 
 		commit(null)
+	}
+
+	/**
+	 * The label for one score, over the native radio that sets it. A whole step
+	 * makes it the star's box, and a half step makes it one half of the box.
+	 */
+	function choice(score: number, label: { slot: string; className: string }, children?: ReactNode) {
+		return (
+			<label
+				key={score}
+				data-slot={label.slot}
+				data-value={score}
+				className={label.className}
+				onPointerEnter={(event) => handlePointerEnter(event, score)}
+			>
+				<input
+					type="radio"
+					data-slot="rating-input"
+					name={scope.id}
+					value={score}
+					checked={current === score}
+					aria-label={getValueText(score, count)}
+					className={cn(k.input)}
+					onChange={() => commit(score)}
+					onClick={(event) => handleClick(event, score)}
+				/>
+
+				{children}
+			</label>
+		)
 	}
 
 	// A `<fieldset>` would impose form-field semantics and a min-content box on
@@ -359,28 +400,25 @@ export function Rating({
 			{stars.map((key, index) => {
 				const star = index + 1
 
-				return (
-					<label
-						key={key}
-						data-slot="rating-star"
-						data-value={star}
-						className={k.star({ interactive: true })}
-						onPointerEnter={(event) => handlePointerEnter(event, star)}
-					>
-						<input
-							type="radio"
-							data-slot="rating-input"
-							name={scope.id}
-							value={star}
-							checked={current === star}
-							aria-label={getValueText(star, count)}
-							className={cn(k.input)}
-							onChange={() => commit(star)}
-							onClick={(event) => handleClick(event, star)}
-						/>
+				// A half step splits the star into two labels, one radio each. The
+				// start half comes first, so the native arrow keys walk the halves in
+				// order.
+				if (step === 0.5) {
+					return (
+						<span key={key} data-slot="rating-star" className={k.star({ interactive: true })}>
+							{choice(star - 0.5, { slot: 'rating-half', className: k.half({ side: 'start' }) })}
 
-						{glyphs(star)}
-					</label>
+							{choice(star, { slot: 'rating-half', className: k.half({ side: 'end' }) })}
+
+							{glyphs(star)}
+						</span>
+					)
+				}
+
+				return choice(
+					star,
+					{ slot: 'rating-star', className: k.star({ interactive: true }) },
+					glyphs(star),
 				)
 			})}
 		</span>

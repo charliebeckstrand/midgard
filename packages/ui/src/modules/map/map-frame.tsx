@@ -1,10 +1,11 @@
 'use client'
 
-import type { ReactNode, Ref, RefObject } from 'react'
-import { cn } from '../../core'
+import type { MouseEvent, ReactNode, Ref, RefObject } from 'react'
+import { cn, composeEventHandlers } from '../../core'
 import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { noop } from '../../utilities'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { useMapZoomView } from './context'
@@ -13,6 +14,7 @@ import { MapHoverProvider } from './map-hover-provider'
 import { MapZoomProvider } from './map-zoom-provider'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
 import type { MapFrameShape } from './use-map-shape'
+import { useMapTouchTap } from './use-map-touch-tap'
 import type { MapZoomOptions } from './use-map-zoom'
 
 /** Props for {@link MapFrame}: the assembled parts laid out around the plot. @internal */
@@ -166,26 +168,45 @@ export function MapPlotRegion({
 
 	const keyboard = useMapKeyboard({ ...options, zoom: zoom?.cursor ?? null })
 
+	// A touch reads nothing and one tap picks nothing. A double tap picks the mark
+	// under it, through the keyboard's own pick. See `useMapTouchTap`.
+	const touch = useMapTouchTap(options.activate)
+
+	const surface = zoom?.surface
+
+	// The tap runs first and the zoom surface after it, on the same events. A
+	// touch click never reaches a region or a mark: the double tap already picked.
+	const press = {
+		onPointerDown: composeEventHandlers(touch.onPointerDown, surface?.onPointerDown ?? noop),
+		onPointerMove: composeEventHandlers(touch.onPointerMove, surface?.onPointerMove ?? noop),
+		onPointerUp: composeEventHandlers(touch.onPointerUp, surface?.onPointerUp ?? noop),
+		onPointerCancel: composeEventHandlers(touch.onPointerCancel, surface?.onPointerCancel ?? noop),
+		onTouchEnd: touch.onTouchEnd,
+		onClickCapture: composeEventHandlers<MouseEvent<HTMLElement>>((event) => {
+			if (touch.fromTouch()) event.stopPropagation()
+		}, surface?.onClickCapture ?? noop),
+	}
+
 	return (
 		<div
 			ref={shapeRef}
 			data-slot="map-plot"
-			// A touch hold here reads a region. It does not open a context menu.
+			// A touch hold here does not open a context menu.
 			data-touch-readout=""
 			role="img"
 			{...name}
 			{...keyboard}
-			{...zoom?.surface}
+			{...surface}
+			{...press}
 			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
 			// `fill` map instead grows into the height its region already holds — a
 			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real
 			// height rather than the zero its own reserve would feed back.
 			className={cn(
 				'relative',
-				// A touch reader holds a finger on a region to read its tooltip. Without
-				// these, that long press also starts a text selection that spreads across
+				// Without these, a long press starts a text selection that spreads across
 				// the whole map and the text around it, and iOS shows its callout menu.
-				// The tooltip and the tap to pick do not use selection, so nothing is lost.
+				// The double tap to pick does not use selection, so nothing is lost.
 				chart.touch.readout,
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.

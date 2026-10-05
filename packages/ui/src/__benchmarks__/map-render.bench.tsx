@@ -78,9 +78,9 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 
 	bench('cold: decode + canonical fit + paths (every mount, uncached)', () => {
 		// The paths are a call of their own, so the bar has to make it or it
-		// measures two thirds of what it names — the decode and the fit, which is
-		// where a `deferPaint` mount genuinely stops. Uncached by construction: the
-		// geometry is a fresh object each iteration, so it misses the paths memo.
+		// measures two thirds of what it names — the decode and the fit. Uncached
+		// by construction: the geometry is a fresh object each iteration, so it
+		// misses the paths memo.
 		const paths = cachedCanonicalPaths(
 			computeStaticMapGeometry(statesTopo, undefined, 'albers-usa'),
 		)

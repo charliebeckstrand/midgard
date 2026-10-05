@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, memo, useCallback, useMemo } from 'react'
+import { Fragment, memo, startTransition, useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { getOrCompute, rangeKeys } from '../../utilities'
@@ -14,7 +14,7 @@ import {
 	type MapPointCluster,
 } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
-import { pointPop } from './engine/map-motion'
+import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
 import type { LngLat } from './engine/types'
@@ -99,6 +99,31 @@ const MapPointsDots = memo(function MapPointsDots({
 	unitsPerPixel,
 	hit,
 }: MapPointsDotsProps) {
+	// Whether the mount reveal still runs. The pop and its stagger belong to the
+	// reveal alone. A zoom that splits a summary adds dots at the end of the set,
+	// and under the reveal's timing each one waited out the stagger of its index
+	// before it popped. After the reveal, a dot that a regroup adds draws at once,
+	// as a dot that a regroup resizes already does (`MapDot`). The clock runs from
+	// the first commit that draws a dot, since a set can mount empty and fill
+	// later. A one-way flag: a hidden mark unmounts this layer, so a toggle that
+	// shows the mark again reveals it again.
+	const [revealing, setRevealing] = useState(animate)
+
+	const drawn = groups.length > 0
+
+	useEffect(() => {
+		if (!animate || !drawn) return
+
+		const timer = setTimeout(
+			() => startTransition(() => setRevealing(false)),
+			POINT_REVEAL_SETTLE * 1000,
+		)
+
+		return () => clearTimeout(timer)
+	}, [animate, drawn])
+
+	const pops = animate && revealing
+
 	return (
 		<>
 			{groups.map((group, index) => {
@@ -128,7 +153,7 @@ const MapPointsDots = memo(function MapPointsDots({
 							// `?? ''` for the indexed read alone: `paints` is built from the same
 							// `groups` this maps, so every rendered index has one.
 							className={paints[index] ?? ''}
-							animate={animate}
+							animate={pops}
 							transition={pop}
 						/>
 
@@ -138,7 +163,7 @@ const MapPointsDots = memo(function MapPointsDots({
 								count={count}
 								className={countInk}
 								scale={unitsPerPixel}
-								animate={animate}
+								animate={pops}
 								transition={pop}
 							/>
 						)}
@@ -225,7 +250,7 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * summarizing hundreds wants the count. Each entry is that stop's own `label`,
 	 * or its position in the set where it has none. That is the same fallback a
 	 * lone dot's tooltip takes, so a stop reads identically merged or not.
-	 * @defaultValue the count alone
+	 * @defaultValue The count alone.
 	 */
 	clusterDetail?: (count: number, span: number, labels: string[]) => string
 	/**
@@ -279,6 +304,8 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * keep their readouts. The US composite drops points outside its insets. The
  * index a click reports therefore always names the caller's own point. Under the
  * plat's `animate` the dots pop in staggered, so the set reveals in sequence.
+ * After the reveal, a dot that a regroup adds, such as one that a zoom splits
+ * from a summary, draws at once.
  */
 export function MapPoints({
 	points,

@@ -1,6 +1,23 @@
-import ts from '@typescript/typescript6'
-import { describe, expect, it } from 'vitest'
-import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
+import {
+	type Expression,
+	isAsExpression,
+	isIdentifier,
+	isJsxOpeningElement,
+	isJsxSelfClosingElement,
+	isJsxSpreadAttribute,
+	isNonNullExpression,
+	isObjectBindingPattern,
+	isParenthesizedExpression,
+	isSatisfiesExpression,
+	isStringLiteral,
+	type Node,
+	type ParameterDeclaration,
+	type SourceFile,
+} from 'typescript/unstable/ast'
+import { afterAll, describe, expect, it } from 'vitest'
+import { isFunctionLike } from '../helpers/ts-ast'
+import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
+import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Spread-order boundary. CONVENTIONS.md §3.9 decides what a consumer may
 // override by where an attribute sits relative to `{...props}`. The rule has
@@ -32,11 +49,11 @@ const CONSUMER_SPREAD = /^(?:props|rest)$/
  * The expression under its parentheses and casts. A cast changes the type of a
  * spread, not the keys it carries, so `{...(props as T)}` is a consumer spread.
  */
-function uncast(node: ts.Expression): ts.Expression {
-	return ts.isParenthesizedExpression(node) ||
-		ts.isAsExpression(node) ||
-		ts.isSatisfiesExpression(node) ||
-		ts.isNonNullExpression(node)
+function uncast(node: Expression): Expression {
+	return isParenthesizedExpression(node) ||
+		isAsExpression(node) ||
+		isSatisfiesExpression(node) ||
+		isNonNullExpression(node)
 		? uncast(node.expression)
 		: node
 }
@@ -96,34 +113,35 @@ type Violation = { file: string; rule: (typeof RULES)[number]; text: string }
  * The attributes written before the consumer spread, for every JSX element in
  * one file that takes one. An element with no consumer spread is skipped,
  * because §3.9 speaks only about the two sides of that spread.
+ *
+ * @param file - The path that a site reports.
+ * @param parsed - The parse of the file, in the TSX grammar.
  */
-function sitesIn(file: string, source: string): Site[] {
-	const parsed = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, false, ts.ScriptKind.TSX)
-
+function sitesIn(file: string, parsed: SourceFile): Site[] {
 	const sites: Site[] = []
 
 	// A JSX name can be an identifier or a namespaced name, so read it from the
 	// source. `getStart` skips the leading trivia that `pos` includes: without
 	// it, an attribute below a comment reads as the comment plus its own name.
-	const text = (node: ts.Node) => source.slice(node.getStart(parsed), node.end)
+	const text = (node: Node) => parsed.text.slice(node.getStart(), node.end)
 
 	// How many enclosing functions destructure `ref` from their first parameter.
 	let refTakers = 0
 
-	const visit = (node: ts.Node): void => {
-		const takesRef = ts.isFunctionLike(node) && destructuresRef(node.parameters[0])
+	const visit = (node: Node): void => {
+		const takesRef = isFunctionLike(node) && destructuresRef(node.parameters[0])
 
 		if (takesRef) refTakers += 1
 
-		if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+		if (isJsxOpeningElement(node) || isJsxSelfClosingElement(node)) {
 			const before: Attribute[] = []
 
 			for (const property of node.attributes.properties) {
-				if (!ts.isJsxSpreadAttribute(property)) {
+				if (!isJsxSpreadAttribute(property)) {
 					before.push({
 						name: text(property.name),
 						value:
-							property.initializer && ts.isStringLiteral(property.initializer)
+							property.initializer && isStringLiteral(property.initializer)
 								? property.initializer.text
 								: undefined,
 					})
@@ -135,7 +153,7 @@ function sitesIn(file: string, source: string): Site[] {
 				if (CONSUMER_SPREAD.test(text(uncast(property.expression)))) {
 					sites.push({
 						file,
-						line: parsed.getLineAndCharacterOfPosition(node.tagName.getStart(parsed)).line + 1,
+						line: parsed.getLineAndCharacterOfPosition(node.tagName.getStart()).line + 1,
 						tag: text(node.tagName),
 						before,
 						refTaken: refTakers > 0,
@@ -146,7 +164,7 @@ function sitesIn(file: string, source: string): Site[] {
 			}
 		}
 
-		ts.forEachChild(node, visit)
+		node.forEachChild(visit)
 
 		if (takesRef) refTakers -= 1
 	}
@@ -157,21 +175,24 @@ function sitesIn(file: string, source: string): Site[] {
 }
 
 /** Whether a parameter is an object pattern that binds `ref`, under its own name or an alias. */
-function destructuresRef(parameter: ts.ParameterDeclaration | undefined): boolean {
-	if (!parameter || !ts.isObjectBindingPattern(parameter.name)) return false
+function destructuresRef(parameter: ParameterDeclaration | undefined): boolean {
+	if (!parameter || !isObjectBindingPattern(parameter.name)) return false
 
 	return parameter.name.elements.some((element) => {
 		const key = element.propertyName ?? element.name
 
-		return ts.isIdentifier(key) && key.text === 'ref'
+		return key !== undefined && isIdentifier(key) && key.text === 'ref'
 	})
 }
 
-/** One walk: the pre-spread sites to judge, and the anchors the library reads. */
-function scan(): { sites: Site[]; anchors: Set<string> } {
-	const sites: Site[] = []
-
+/**
+ * One walk: the pre-spread sites to judge, and the anchors the library reads.
+ * The server parses the files of the sites in one project.
+ */
+function scan(server: TypeScriptServer): { sites: Site[]; anchors: Set<string> } {
 	const anchors = new Set<string>()
+
+	const files: string[] = []
 
 	walkSource(
 		srcDir,
@@ -185,10 +206,14 @@ function scan(): { sites: Site[]; anchors: Set<string> } {
 			const file = srcRelative(path)
 
 			if (path.endsWith('.tsx') && SCAN_ROOTS.some((root) => file.startsWith(`${root}/`))) {
-				sites.push(...sitesIn(file, source))
+				files.push(path)
 			}
 		},
-		new Set(['docs']),
+		docsSites,
+	)
+
+	const sites = [...server.parse(files)].flatMap(([path, parsed]) =>
+		sitesIn(srcRelative(path), parsed),
 	)
 
 	return { sites, anchors }
@@ -218,7 +243,16 @@ const waived = (violation: Violation) => Boolean(WAIVERS.get(violation.file)?.[v
 const lines = (violations: Violation[]) => violations.map((v) => v.text).join('\n  ')
 
 describe('spread order boundary', () => {
-	const { sites, anchors } = scan()
+	// The TypeScript server parses each source that this file reads, and stops
+	// after the last case.
+	const server = startTypeScript()
+
+	afterAll(() => server.close())
+
+	const { sites, anchors } = scan(server)
+
+	/** The sites of a fixture `source` under the file name `file`. */
+	const fixture = (file: string, source: string) => sitesIn(file, server.parseText(file, source))
 
 	const ordered = collect(sites, 'order', (site, attribute) =>
 		LOAD_BEARING.test(attribute.name) || (attribute.name === 'type' && BUTTON_HOST.test(site.tag))
@@ -264,12 +298,12 @@ describe('spread order boundary', () => {
 	})
 
 	it('reads a ref taken out of the props, under an alias too', () => {
-		const [taken] = sitesIn(
+		const [taken] = fixture(
 			'taken.tsx',
 			`function A({ ref: outer, ...props }) { return <div ref={inner} {...props} /> }`,
 		)
 
-		const [open] = sitesIn(
+		const [open] = fixture(
 			'open.tsx',
 			`function B(props) { return <div ref={inner} {...props} /> }`,
 		)
@@ -280,7 +314,7 @@ describe('spread order boundary', () => {
 	})
 
 	it('reads a consumer spread behind a cast', () => {
-		const [site] = sitesIn('cast.tsx', `export const a = <div role="row" {...(props as object)} />`)
+		const [site] = fixture('cast.tsx', `export const a = <div role="row" {...(props as object)} />`)
 
 		expect(site?.before).toEqual([{ name: 'role', value: 'row' }])
 	})

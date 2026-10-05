@@ -33,7 +33,8 @@
 			"dependsOn": ["^build"],
 			"inputs": [
 				"src/**",
-				"vite.docs.config.ts",
+				"!src/**/__tests__/**",
+				"!src/__benchmarks__/**",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			],
@@ -45,7 +46,11 @@
 		},
 		"docs:hydration": {
 			"dependsOn": ["docs:build"],
-			"inputs": ["src/docs/dist/**", "scripts/docs-*.ts"]
+			"inputs": ["src/docs/dist/**", "scripts/docs-server.ts", "scripts/docs-hydration.ts"]
+		},
+		"docs:bench": {
+			"dependsOn": ["docs:build"],
+			"cache": false
 		},
 		"lint": {
 			"inputs": [

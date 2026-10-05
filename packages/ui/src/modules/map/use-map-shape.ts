@@ -15,7 +15,7 @@ import { projectPoint, unprojectPoint } from './engine/map-geometry/mark'
 import { carriedTransform } from './engine/map-geometry/projected'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
-import type { MapTransform } from './engine/map-zoom/transform'
+import { applyTransform, invertTransform, type MapTransform } from './engine/map-zoom/transform'
 import type {
 	LngLat,
 	MapAspectRatio,
@@ -45,6 +45,8 @@ export type MapFrameShape = {
 	viewWidth: number
 	/** The active viewBox height, paired with {@link viewWidth}. */
 	viewHeight: number
+	/** Whether the frame is measured. Until then the canonical frame scales to meet the box. */
+	measured: boolean
 	/**
 	 * Region path ds, index-aligned with the features; empty until fitted. Stated
 	 * in the frame {@link regionFrame} names: the canonical one where a transform
@@ -93,7 +95,6 @@ export type MapFrameShapeOptions = {
 	width: number | undefined
 	height: number | undefined
 	aspectRatio: MapAspectRatio
-	deferPaint: boolean
 	/** The graticule's degree step, `null` where it is off. */
 	graticule: number | null
 	/** Whether the sphere outline draws; the frame path resolves for either part. */
@@ -116,12 +117,12 @@ function regionFrameFor(
 
 /**
  * Resolves the geometry the map draws, decoupled from measurement so the
- * neutral geography paints on the first commit. A single canonical fit (fixed
- * frame, no container read) reserves the CSS box through its aspect and paints
- * the geography immediately. The container's measured pixels then drive a refit
- * that reprojects to constant-pixel marks a beat after mount. Sharing the
- * canonical fit's aspect, the refit only sharpens strokes — it never reshapes
- * the geography, so the swap is imperceptible. The canonical stage is memoized
+ neutral geography paints on the first commit. A single canonical fit (fixed
+ * frame, no container read) paints the geography immediately, on the server
+ * too. The SVG scales it to meet the box, and its strokes keep their px width
+ * until the measurement lands. The measured fit is the canonical fit scaled to
+ * meet the box and centered, the same placement the SVG gives it, so the swap
+ * moves no shape and no stroke. The canonical stage is memoized
  * across instances by {@link staticMapGeometry}. A remount of the same atlas (a
  * tab switch, a second plat) reuses it rather than recomputing on mount.
  *
@@ -138,7 +139,6 @@ export function useMapShape({
 	width,
 	height,
 	aspectRatio,
-	deferPaint,
 	graticule,
 	sphere,
 }: MapFrameShapeOptions): MapFrameShape {
@@ -168,63 +168,55 @@ export function useMapShape({
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	// The measured refit, its region paths, and the projector, resolved as one
-	// unit so a resize reprojects all three together. A passed d3 instance is fit
-	// in place and keeps its reference, so keying the paths or the projector on
-	// that reference alone would freeze them at the first fit — the region layer
-	// and the overlays would disagree with the resized viewBox. Deriving them
-	// inside one memo over the live frame dimensions reprojects on every resize,
-	// and hands the context a fresh `project` identity so overlay marks recompute.
-	// The measured paths themselves come through the cross-instance memo
-	// (`measuredRegionPaths`), so a remount at the same box reuses them instead
-	// of reprojecting the atlas. With nothing to frame the measured fit is
-	// `null`, so the map holds the canonical draw (or the neutral frame) rather
-	// than projecting through an unfitted default.
+	// unit so a resize reprojects all three together. Deriving them inside one
+	// memo over the live frame dimensions reprojects on every resize, and hands
+	// the context a fresh `project` identity so overlay marks recompute. The
+	// projector closes over the measured fit's own values, never over a refit
+	// projection alone: a passed d3 instance keeps its canonical fit, and its
+	// frame transform is what changes (`measuredMapFit`). The measured paths
+	// themselves come through the cross-instance memo (`measuredRegionPaths`), so
+	// a remount at the same box reuses them instead of reprojecting the atlas.
+	// With nothing to frame the measured fit is `null`, so the map holds the
+	// canonical draw (or the neutral frame) rather than projecting through an
+	// unfitted default.
 	const view = useMemo(() => {
-		const { features, canonical } = statics
+		const { canonical } = statics
 
-		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
-
-		// Deferred paint: hold the frame empty (the reserve still owns the box) until
-		// the measurement lands, so the geography paints once at the measured aspect
-		// with the legend already resolved rather than flashing the canonical fit and
-		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile — so this
-		// branch draws no region, and calls for no path.
-		if (!measured && deferPaint) {
-			return {
-				viewWidth: 0,
-				viewHeight: 0,
-				paths: [],
-				regionFrame: null,
-				fit: null,
-				project: () => null,
-				unproject: () => null,
-			}
-		}
+		const measured = measuredMapFit(projection, canonical, frameWidth, frameHeight)
 
 		// Draw from the measured fit once it lands, the canonical fit until then, so
 		// the geography never waits on the container being measured.
-		const fitted = measured ?? canonical?.projection ?? null
+		const fitted = measured?.projection ?? canonical?.projection ?? null
+
+		const frame = measured?.frame ?? null
 
 		// The layer draws the canonical paths and carries them onto the measured fit
 		// on one attribute; `null` where they cannot be carried and the paths are
 		// emitted at that fit instead, as they were before.
-		const regionFrame = regionFrameFor(statics, measured)
+		const regionFrame = frame ?? regionFrameFor(statics, measured?.projection ?? null)
 
 		const paths =
 			measured !== null && regionFrame === null
-				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
+				? measuredRegionPaths(statics, measured.projection, frameWidth, frameHeight)
 				: cachedCanonicalPaths(statics)
 
 		return {
 			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
 			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
+			measured: measured !== null,
 			paths,
 			regionFrame,
 			fit: fitted,
-			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
-			unproject: (at: MapPoint2D) => unprojectPoint(fitted, at),
+			frame,
+			project: (position: LngLat) => {
+				const at = fitted === null ? null : projectPoint(fitted, position)
+
+				return at === null || frame === null ? at : applyTransform(at, frame)
+			},
+			unproject: (at: MapPoint2D) =>
+				unprojectPoint(fitted, frame === null ? at : invertTransform(at, frame)),
 		}
-	}, [projection, statics, frameWidth, frameHeight, deferPaint])
+	}, [projection, statics, frameWidth, frameHeight])
 
 	// The chrome, resolved beside the geography rather than inside it: it reads
 	// the same fit, but a chrome toggle must not rebuild the view — that would
@@ -236,11 +228,18 @@ export function useMapShape({
 		() =>
 			view.fit === null
 				? EMPTY_CHROME
-				: cachedChromePaths(view.fit, view.viewWidth, view.viewHeight, graticule, sphere),
+				: cachedChromePaths(
+						view.fit,
+						view.viewWidth,
+						view.viewHeight,
+						graticule,
+						sphere,
+						view.frame,
+					),
 		[view, graticule, sphere],
 	)
 
-	const { viewWidth, viewHeight, paths, regionFrame, project, unproject } = view
+	const { viewWidth, viewHeight, measured, paths, regionFrame, project, unproject } = view
 
 	return {
 		ref,
@@ -249,6 +248,7 @@ export function useMapShape({
 		fill: sizing.mode === 'fill',
 		viewWidth,
 		viewHeight,
+		measured,
 		paths,
 		regionFrame,
 		chrome,

@@ -9,12 +9,20 @@
  * region paths, because the pass re-runs per fit.
  */
 
-import { type GeoGeometryObjects, type GeoProjection, geoGraticule, geoPath } from 'd3-geo'
+import {
+	type GeoGeometryObjects,
+	type GeoProjection,
+	type GeoStreamWrapper,
+	geoGraticule,
+	geoPath,
+	geoTransform,
+} from 'd3-geo'
 import {
 	GRATICULE_MIN_STEP_DEGREES,
 	GRATICULE_STEP_DEGREES,
 	REGION_PATH_DIGITS,
 } from '../map-constants'
+import type { MapTransform } from '../map-zoom/transform'
 
 /**
  * The chrome paths under one fit, `null` where a part is off or the projection
@@ -46,6 +54,17 @@ export const EMPTY_CHROME: MapChromePaths = { graticule: null, frame: null }
 const SPHERE: GeoGeometryObjects = { type: 'Sphere' }
 
 /** A drawn `d`, or `null` where the projection drew none of the shape. */
+/** The projection, with its output carried through `frame`. */
+function framed(projection: GeoProjection, { x, y, k }: MapTransform): GeoStreamWrapper {
+	const carry = geoTransform({
+		point(px, py) {
+			this.stream.point(px * k + x, py * k + y)
+		},
+	})
+
+	return { stream: (sink) => projection.stream(carry.stream(sink)) }
+}
+
 function drawn(d: string | null): string | null {
 	return d || null
 }
@@ -75,10 +94,20 @@ function drawn(d: string | null): string | null {
  * draws in the same frame units, where a second decimal serializes detail no
  * display resolves.
  *
+ * `frame` is the transform of a measured fit that keeps the canonical
+ * projection (`measuredMapFit`). The path then streams the projected points
+ * through it.
+ *
  * @internal
  */
-export function chromePaths(projection: GeoProjection, step: number | null): MapChromePaths {
-	const path = geoPath(projection).digits(REGION_PATH_DIGITS)
+export function chromePaths(
+	projection: GeoProjection,
+	step: number | null,
+	frame: MapTransform | null = null,
+): MapChromePaths {
+	const path = geoPath(frame === null ? projection : framed(projection, frame)).digits(
+		REGION_PATH_DIGITS,
+	)
 
 	return {
 		graticule: step === null ? null : drawn(path(geoGraticule().step([step, step])())),

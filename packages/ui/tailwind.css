@@ -1,10 +1,11 @@
 /*
  * The Tailwind extensions of ui: the font of ui and its font stack
- * (`src/fonts/fonts.css`), the `density-*` variants, the stepped and ring
- * utilities (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline`
- * edge fade, and one base style, `touch-action: manipulation` on the root
- * element. Import this file in each Tailwind entry that scans ui. Each plugin
- * explains its classes or its style.
+ * (`src/fonts/fonts.css`, with no latin face: `AppearanceProvider` adds it),
+ * the `density-*` variants, the stepped and ring utilities
+ * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
+ * and one base style, `touch-action: manipulation` on the root element. Import
+ * this file in each Tailwind entry that scans ui. Each plugin explains its
+ * classes or its style.
  */
 @import './src/fonts/fonts.css';
 

@@ -13,6 +13,7 @@ import {
 } from '../../modules/map/engine/map-geometry/chrome'
 import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
 import { subpathCount } from '../helpers/geometry/svg-path'
+import { HALF_PIXEL } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
@@ -51,6 +52,22 @@ describe('graticuleStep', () => {
 })
 
 describe('chromePaths', () => {
+	it('carries the paths through a frame transform', () => {
+		// The measured fit of a passed instance keeps the canonical projection and
+		// frames its output. The path streams the projected points through it.
+		const plain = chromePaths(FITTED, null).frame
+
+		const framed = chromePaths(FITTED, null, { x: 10, y: 20, k: 2 }).frame
+
+		const [x = 0, y = 0] = (plain?.match(/-?[\d.]+/g) ?? []).map(Number)
+
+		const [fx = 0, fy = 0] = (framed?.match(/-?[\d.]+/g) ?? []).map(Number)
+
+		expect(fx).toBeNear(x * 2 + 10, HALF_PIXEL)
+
+		expect(fy).toBeNear(y * 2 + 20, HALF_PIXEL)
+	})
+
 	it('draws the meridians and parallels as one multi-line path', () => {
 		expect(subpathCount(chromePaths(FITTED, GRATICULE_STEP_DEGREES).graticule)).toBeGreaterThan(1)
 	})

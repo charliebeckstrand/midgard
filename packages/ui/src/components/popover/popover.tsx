@@ -1,16 +1,20 @@
 'use client'
 
-import { type Placement, useClick, useInteractions } from '@floating-ui/react'
+import { useClick, useInteractions } from '@floating-ui/react'
 import { type ReactNode, useEffect, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { useFloatingDisclosure } from '../../hooks'
+import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import { PopoverContext, PopoverPositionContext } from './context'
 
 /** Props for {@link Popover}: floating `placement` and controlled or uncontrolled `open` state. */
 export type PopoverProps = {
-	/** @defaultValue 'bottom' */
-	placement?: Placement
+	/**
+	 * The side and the alignment of the panel. A `<side>-auto` value aligns the panel to the
+	 * edge of the trigger that is nearer to the edge of the viewport.
+	 * @defaultValue 'bottom'
+	 */
+	placement?: FloatingPlacement
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
 	/**

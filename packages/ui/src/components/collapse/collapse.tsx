@@ -11,8 +11,12 @@ import { CollapseContext } from './context'
 
 /** Props for {@link Collapse}. */
 export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'> & {
-	/** @defaultValue false */
+	/**
+	 * The initial open state, for an uncontrolled panel.
+	 * @defaultValue false
+	 */
 	defaultOpen?: boolean
+	/** The open state, for a controlled panel. Pair it with `onOpenChange`. */
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	/**
@@ -24,7 +28,7 @@ export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'
 	 * needs the panel at its settled height. Never fires for a close, and never for a
 	 * panel that mounts already open.
 	 *
-	 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
+	 * @see {@link DrawerPanelProps.onOpenComplete} for the panel family's form of this callback.
 	 */
 	onOpenComplete?: () => void
 	/**

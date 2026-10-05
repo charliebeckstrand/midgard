@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
+import { useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/filters'
 import { Flex } from '../../structure/flex'
 import { useFiltersAxis, useFiltersName } from './context'
@@ -44,7 +44,7 @@ const DEFAULT_REGION_LABEL = 'Filters'
  * than scroll.
  *
  * While a `rail` row overflows, the edge with more fields behind it fades
- * ({@link useScrollOverflow}). The row is then also a tab stop and a region
+ * (`omote.rail`). The row is then also a tab stop and a region
  * ({@link useScrollRegion}), with the name of the bar, so a keyboard user can
  * scroll it. When the fields fit, the row carries none of these.
  */
@@ -53,17 +53,13 @@ export function FiltersRow({ equal, className, children }: FiltersRowProps) {
 
 	const name = useFiltersName()
 
-	const scrollOverflowRef = useScrollOverflow({ axis: 'horizontal', enabled: rail })
-
 	const scrollRegionRef = useScrollRegion(
 		name.label || name.labelledBy ? name : { label: DEFAULT_REGION_LABEL },
 	)
 
-	const setRow = useComposedRef<HTMLElement>(scrollOverflowRef, rail ? scrollRegionRef : undefined)
-
 	return (
 		<Flex
-			ref={setRow ?? undefined}
+			ref={rail ? scrollRegionRef : undefined}
 			data-slot="filters-row"
 			direction={direction}
 			gap="sm"

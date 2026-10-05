@@ -1,7 +1,23 @@
-import { readdirSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import ts from '@typescript/typescript6'
-import { describe, expect, it } from 'vitest'
+import {
+	getLeadingCommentRanges,
+	isBindingElement,
+	isExportSpecifier,
+	isNamedExports,
+	isVariableDeclaration,
+	isVariableDeclarationList,
+	type Node,
+} from 'typescript/unstable/ast'
+import {
+	type Checker,
+	type Project,
+	SymbolFlags,
+	type Symbol as TsSymbol,
+} from 'typescript/unstable/sync'
+import { afterAll, describe, expect, it } from 'vitest'
+import { docComments } from '../helpers/ts-ast'
+import { startTypeScript } from '../helpers/ts-server'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // CONVENTIONS.md §12.1 requires a doccomment on every symbol a barrel
@@ -24,7 +40,7 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //
 // Building that program makes this the slowest test in its project by a wide
 // margin — ~1.4s against a 72ms median — so it reads no more than it resolves
-// (see `packageHost`), and the project's own `testTimeout` in `vitest.config.ts`
+// (see `withheld`), and the project's own `testTimeout` in `vitest.config.ts`
 // is sized for it. It stays in the boundary project because it pins a
 // convention, not a behavior.
 
@@ -63,39 +79,43 @@ function barrelFiles(): string[] {
 		}
 	}
 
-	return files.filter((file) => ts.sys.fileExists(file))
+	return files.filter((file) => existsSync(file))
 }
 
 /**
- * Compiler options the program builds under; shared with {@link packageHost}.
+ * Compiler options the program builds under, as a tsconfig file writes them.
  *
  * @remarks `noLib` drops the standard library, which is 93 files and 3MB of the
  * text the program would otherwise parse — the single largest share, and read by
- * nothing here (see {@link packageHost}). It is stated rather than left to the
+ * nothing here (see {@link withheld}). It is stated rather than left to the
  * path rule below, which would catch `lib.*.d.ts` only for as long as the
  * `typescript` package keeps resolving under a `node_modules` segment.
  */
-const PROGRAM_OPTIONS: ts.CompilerOptions = {
-	target: ts.ScriptTarget.ESNext,
-	module: ts.ModuleKind.ESNext,
-	moduleResolution: ts.ModuleResolutionKind.Bundler,
-	jsx: ts.JsxEmit.Preserve,
+const PROGRAM_OPTIONS = {
+	target: 'esnext',
+	module: 'esnext',
+	moduleResolution: 'bundler',
+	jsx: 'preserve',
 	skipLibCheck: true,
 	noLib: true,
 }
 
 /**
- * A compiler host that resolves every import but parses only the sources this
- * test can read a doccomment out of, handing back an empty file for the rest.
+ * Whether the TypeScript server reads `file` as empty text. The program
+ * resolves every import, but the server parses only the sources that this test
+ * can read a doccomment from. The resolution of an import needs the
+ * `package.json` of a dependency, so the server reads it. The server reads
+ * each other file of a dependency as empty text.
  *
- * @remarks The barrels reach the whole dependency graph, and parsing it is where
- * the run goes — 70% of it, against 2% for the walk. Withholding the text of
- * every dependency, on top of the library `PROGRAM_OPTIONS` drops, takes the
- * program from 1,642 files and 11.2MB to 1,232 and 3.7MB, and the build behind
- * this test from ~2.1s to ~1.2s.
+ * @remarks The barrels reach the whole dependency graph. The server withholds
+ * the text of each dependency, and `PROGRAM_OPTIONS` drops the library. The
+ * program then has 1,602 files and 6.3MB of text, in place of 2,031 files and
+ * 11.3MB. The server parses in parallel, so the program builds in
+ * approximately 1.0s, in place of 1.2s. The walk takes approximately 0.7s,
+ * because each hop of an alias chain is a call to the server.
  *
  * None of it is read. The walk reports only on declarations this package wrote,
- * and across all 1,236 barrel exports no hop of any alias chain lands in a
+ * and across all 1,532 barrel exports no hop of any alias chain lands in a
  * dependency — verified by diffing the per-export verdicts against the full
  * program. Resolution itself is untouched, so a re-export *through* a dependency
  * still resolves; only the file's text is withheld. Were the package to start
@@ -107,36 +127,27 @@ const PROGRAM_OPTIONS: ts.CompilerOptions = {
  * type in this program resolves. Only declaration nodes and comment trivia are
  * valid to read from it, which is all {@link hasDoc} asks for.
  */
-function packageHost(): ts.CompilerHost {
-	const host = ts.createCompilerHost(PROGRAM_OPTIONS)
-
-	const read = host.getSourceFile.bind(host)
-
-	// One call per path — the program dedupes before reaching the host — so the
-	// empty files are built on demand and never cached.
-	host.getSourceFile = (fileName, languageVersion, onError, shouldCreate) =>
-		fileName.includes('/node_modules/')
-			? ts.createSourceFile(fileName, '', languageVersion)
-			: read(fileName, languageVersion, onError, shouldCreate)
-
-	return host
+function withheld(file: string): boolean {
+	return file.includes('/node_modules/') && !file.endsWith('/package.json')
 }
 
 /**
  * Every hop of a symbol's re-export chain, nearest first. A doccomment on any
  * hop reaches the consumer, so all of them are read before a gap is reported.
  */
-function aliasChain(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol[] {
+function aliasChain(checker: Checker, symbol: TsSymbol): TsSymbol[] {
 	const chain = [symbol]
 
 	let cursor = symbol
 
 	// Bounded: a re-export chain deeper than this is a structural problem the
 	// filename and barrel boundary tests already catch.
-	for (let hop = 0; hop < 12 && cursor.flags & ts.SymbolFlags.Alias; hop++) {
+	for (let hop = 0; hop < 12 && cursor.flags & SymbolFlags.Alias; hop++) {
 		const next = checker.getImmediateAliasedSymbol(cursor)
 
-		if (!next || chain.includes(next)) break
+		// A symbol of the API is a handle, and its id names the symbol of the
+		// checker.
+		if (!next || chain.some((symbol) => symbol.id === next.id)) break
 
 		chain.push(next)
 
@@ -147,29 +158,35 @@ function aliasChain(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol[] {
 }
 
 /** True when `node`'s leading trivia opens with a doccomment. */
-function leadingDoc(node: ts.Node): boolean {
-	const source = node.getSourceFile().getFullText()
+function leadingDoc(node: Node): boolean {
+	const source = node.getSourceFile().text
 
-	const ranges = ts.getLeadingCommentRanges(source, node.getFullStart()) ?? []
+	const ranges = getLeadingCommentRanges(source, node.getFullStart()) ?? []
 
 	return ranges.some((range) => source.slice(range.pos, range.end).startsWith('/**'))
 }
 
 /** True when any hop of `chain` carries a `/** … *\/` doccomment. */
-function hasDoc(chain: readonly ts.Symbol[]): boolean {
+function hasDoc(project: Project, chain: readonly TsSymbol[]): boolean {
 	for (const hop of chain) {
-		for (const declaration of hop.getDeclarations() ?? []) {
+		for (const handle of hop.declarations) {
+			const declaration = handle.resolve(project)
+
+			// A declaration that the project cannot give has no doccomment to read,
+			// so the export stays a gap.
+			if (!declaration) continue
+
 			// A variable declaration and a destructured binding both carry their
 			// doccomment on the enclosing statement, not on the declaration.
-			let node: ts.Node = declaration
+			let node: Node = declaration
 
-			while (node && ts.isBindingElement(node)) node = node.parent
+			while (isBindingElement(node)) node = node.parent
 
-			if (ts.isVariableDeclaration(node) || ts.isVariableDeclarationList(node)) {
-				node = ts.isVariableDeclaration(node) ? node.parent.parent : node.parent
+			if (isVariableDeclaration(node) || isVariableDeclarationList(node)) {
+				node = isVariableDeclaration(node) ? node.parent.parent : node.parent
 			}
 
-			if (ts.getJSDocCommentsAndTags(node).some((doc) => ts.isJSDoc(doc))) return true
+			if (docComments(node).length > 0) return true
 
 			// An export specifier's doccomment is leading trivia, which the JSDoc
 			// parser does not attach to the specifier node.
@@ -179,10 +196,14 @@ function hasDoc(chain: readonly ts.Symbol[]): boolean {
 			// than inside the braces — `/** … */ export { useFormActions }`. Only a
 			// single-specifier clause qualifies: a doc above a multi-name clause
 			// documents none of them in particular.
-			if (ts.isExportSpecifier(node)) {
+			if (isExportSpecifier(node)) {
 				const clause = node.parent
 
-				if (clause.elements.length === 1 && leadingDoc(clause.parent)) return true
+				// The parent of a specifier is always its clause. The type of
+				// TypeScript 7 gives the parent only as a node.
+				if (isNamedExports(clause) && clause.elements.length === 1 && leadingDoc(clause.parent)) {
+					return true
+				}
 			}
 		}
 	}
@@ -191,12 +212,16 @@ function hasDoc(chain: readonly ts.Symbol[]): boolean {
 }
 
 describe('TSDoc coverage boundary', () => {
+	const server = startTypeScript(withheld)
+
+	afterAll(() => server.close())
+
 	it('every barrel-exported symbol carries a doccomment', () => {
 		const barrels = barrelFiles()
 
-		const program = ts.createProgram(barrels, PROGRAM_OPTIONS, packageHost())
+		const project = server.open(barrels, PROGRAM_OPTIONS)
 
-		const checker = program.getTypeChecker()
+		const { program, checker } = project
 
 		const violations: string[] = []
 
@@ -214,9 +239,9 @@ describe('TSDoc coverage boundary', () => {
 			if (!moduleSymbol) continue
 
 			for (const exported of checker.getExportsOfModule(moduleSymbol)) {
-				if (hasDoc(aliasChain(checker, exported))) continue
+				if (hasDoc(project, aliasChain(checker, exported))) continue
 
-				violations.push(`${srcRelative(barrel)} → ${exported.getName()}`)
+				violations.push(`${srcRelative(barrel)} → ${exported.name}`)
 			}
 		}
 

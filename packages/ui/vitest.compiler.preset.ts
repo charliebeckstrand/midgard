@@ -8,10 +8,9 @@ const HARNESS = {
 }
 
 /**
- * The docs site. An app does not import it, and the skip gate leaves it out
- * for the same reason. The site builds with the plain React plugin. Its
- * `docs:pre` transform also reads the authored TSX of each demo, so a compiler
- * pass before it removes the helper snippets.
+ * The docs site, `src/docs`. An app does not import it, and the skip gate
+ * leaves it out for the same reason. The site builds with the plain React
+ * plugin.
  */
 const DOCS = /[\\/]src[\\/]docs[\\/]/
 

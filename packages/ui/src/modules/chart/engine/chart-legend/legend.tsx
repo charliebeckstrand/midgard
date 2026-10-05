@@ -244,7 +244,10 @@ function ChartLegendOverflowSwitch({
 			className="w-full min-w-0 justify-start"
 			aria-pressed={!off}
 			onClick={() => onToggle(item.index)}
-			onPointerEnter={() => onEmphasis(item.index)}
+			// A tap is not a point, as on `LegendSwitch`.
+			onPointerEnter={(event) => {
+				if (event.pointerType !== 'touch') onEmphasis(item.index)
+			}}
 			onPointerLeave={() => onEmphasis(null)}
 		>
 			<ChartLegendSwatch item={item} off={off} texture={texture} />
@@ -311,7 +314,10 @@ function ChartLegendReferenceSwitch({
 				? {}
 				: {
 						onClick: () => onToggle(reference.index),
-						onPointerEnter: () => emphasis.point(reference.index),
+						// A tap is not a point, as on `LegendSwitch`.
+						onPointerEnter: (event) => {
+							if (event.pointerType !== 'touch') emphasis.point(reference.index)
+						},
 						onPointerLeave: () => emphasis.point(null),
 						onFocus: emphasis.sync,
 						onBlur: emphasis.sync,

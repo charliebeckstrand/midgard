@@ -6,7 +6,7 @@ export type Touched = Record<string, boolean>
 type Validator<T, K extends keyof T> = (value: T[K], values: T) => string | string[] | undefined
 /** Optional {@link Validator} per field of `T`; the map {@link Form} consumes via its `validate` prop. Build one from a schema with {@link zodResolver}. */
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
-/** When the reducer runs validators: on a field's first blur (`'touched'`), on every keystroke (`'change'`), or only on submit (`'submit'`). */
+/** When the reducer runs validators: on a field's first blur (`'touched'`), on each change of a field (`'change'`), or only on submit (`'submit'`). A change validates that field and the fields that are touched or have a result already, so that a cross-field rule (a confirmation) stays current. It does not validate a field that the user has not used. */
 export type ValidateOn = 'touched' | 'change' | 'submit'
 
 /**
@@ -174,28 +174,72 @@ function touchField<T extends Record<string, unknown>>(
 	}
 }
 
+/**
+ * The fields that a change of `name` validates in the `'change'` mode: that
+ * field, and each field that is touched or has a result in `errors` already. A
+ * validator gets all the values, so a change can make the result of a
+ * validated field stale (a confirmation that compares to a password). A field
+ * that the user has not used gets no result.
+ *
+ * @internal
+ */
+function changeValidationFields<T>(
+	validate: Validators<T>,
+	name: string,
+	state: FormState<T>,
+): string[] {
+	return Object.keys(validate).filter(
+		(key) => key === name || state.touched[key] === true || Object.hasOwn(state.errors, key),
+	)
+}
+
+/**
+ * Applies the `set-value` action: writes the value, then validates per
+ * `validateOn`. The `'change'` mode validates the fields that
+ * {@link changeValidationFields} gives.
+ *
+ * @internal
+ */
+function setFieldValue<T extends Record<string, unknown>>(
+	state: FormState<T>,
+	action: Extract<FormAction<T>, { type: 'set-value' }>,
+): FormState<T> {
+	const nextValues = { ...state.values, [action.name]: action.value } as T
+
+	if (action.validateOn === 'submit') {
+		return { ...state, values: nextValues }
+	}
+
+	// The `fields` argument forces the run, so pass it in the `'change'` mode
+	// only. The `'touched'` mode validates the touched fields.
+	const fields =
+		action.validateOn === 'change' && action.validate
+			? changeValidationFields(action.validate, action.name, state)
+			: undefined
+
+	const newErrors = runValidators(
+		action.validate,
+		nextValues,
+		state.touched,
+		action.validateOn,
+		fields,
+	)
+
+	return {
+		...state,
+		values: nextValues,
+		errors: Object.keys(newErrors).length > 0 ? { ...state.errors, ...newErrors } : state.errors,
+	}
+}
+
 /** Reducer for {@link Form} state: applies value/touched/error/sync/reset/submit actions, re-validating per `validateOn`. @internal */
 export function formReducer<T extends Record<string, unknown>>(
 	state: FormState<T>,
 	action: FormAction<T>,
 ): FormState<T> {
 	switch (action.type) {
-		case 'set-value': {
-			const nextValues = { ...state.values, [action.name]: action.value } as T
-
-			if (action.validateOn === 'submit') {
-				return { ...state, values: nextValues }
-			}
-
-			const newErrors = runValidators(action.validate, nextValues, state.touched, action.validateOn)
-
-			return {
-				...state,
-				values: nextValues,
-				errors:
-					Object.keys(newErrors).length > 0 ? { ...state.errors, ...newErrors } : state.errors,
-			}
-		}
+		case 'set-value':
+			return setFieldValue(state, action)
 		case 'set-touched':
 			return touchField(state, action)
 		case 'set-errors-external': {

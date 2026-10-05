@@ -8,7 +8,7 @@ import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
 /**
- * The visually hidden author label per role. Bubble side and color alone
+ * The visually hidden author label per sender. Bubble side and color alone
  * convey the speaker visually; this names it for assistive technology. System
  * messages are status lines, not an utterance, so they get a plain "System".
  *
@@ -18,7 +18,7 @@ const AUTHOR = {
 	user: 'You said',
 	assistant: 'Assistant said',
 	system: 'System',
-} satisfies Record<ChatMessageData['role'], string>
+} satisfies Record<ChatMessageData['sender'], string>
 
 /**
  * One block of a message. The switch holds every kind, so a kind added later
@@ -63,7 +63,7 @@ export type ChatMessageProps = ChatMessageVariants & {
 }
 
 /**
- * Conversational message bubble sided and colored by `role`: `user`,
+ * Conversational message bubble sided and colored by `sender`: `user`,
  * `assistant`, or `system`, defaulting to `assistant`. It takes an optional
  * `timestamp`, `actions` rail, and a `streaming` pulse over its content.
  *
@@ -98,20 +98,24 @@ export type ChatMessageProps = ChatMessageVariants & {
  * `children` actually changes from chunk to chunk.
  */
 export const ChatMessage = memo(function ChatMessage({
-	role,
+	sender,
 	timestamp,
 	streaming,
 	actions,
 	className,
 	children,
 }: ChatMessageProps) {
-	const resolvedRole = role ?? 'assistant'
+	const resolvedSender = sender ?? 'assistant'
 
-	const author = AUTHOR[resolvedRole]
+	const author = AUTHOR[resolvedSender]
 
 	return (
-		<div data-slot="chat-message" data-role={resolvedRole} className={cn(k({ role }), className)}>
-			<div data-slot="chat-message-bubble" className={cn(k.bubble({ role, streaming }))}>
+		<div
+			data-slot="chat-message"
+			data-sender={resolvedSender}
+			className={cn(k({ sender }), className)}
+		>
+			<div data-slot="chat-message-bubble" className={cn(k.bubble({ sender, streaming }))}>
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>

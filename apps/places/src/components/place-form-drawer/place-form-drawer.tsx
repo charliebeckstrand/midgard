@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { DatePicker } from 'ui/date-picker'
-import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
+import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
@@ -17,16 +17,19 @@ import { Text } from 'ui/text'
 import { Textarea } from 'ui/textarea'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORIES, categoryLabel } from '../../constants'
-import type { Place, PlaceCategory, PlaceDraft } from '../../types'
+import type { PlaceCategory, PlaceDraft } from '../../types'
 import { PlaceAddressField } from './place-address-field'
 import {
 	locatePlace,
+	type PlaceFormTarget,
 	type PlaceValues,
 	placeValidators,
-	toFormValues,
+	targetValues,
 	toPlaceDraft,
+	toVisitPlaceDraft,
 } from './place-form'
 import { placeGeocoder } from './place-geocoder'
+import { PlacePhotosField } from './place-photos-field'
 import { PlaceSearchField } from './place-search-field'
 
 /**
@@ -38,19 +41,41 @@ const LOCATE_TIMEOUT_MS = 10_000
 
 /** Props for {@link PlaceFormDrawer}. */
 export type PlaceFormDrawerProps = {
-	open: boolean
+	/**
+	 * What the drawer writes, or `null` to close it. It seeds the fields, picks
+	 * which fields show, and names the panel.
+	 */
+	target: PlaceFormTarget | null
 	onOpenChange: (open: boolean) => void
 	/**
-	 * The place to edit, or `null` to add one. It seeds the fields and names the
-	 * panel; nothing else changes, because an edit writes the record a create
-	 * writes.
-	 */
-	place?: Place | null
-	/**
-	 * Writes the place. A rejection leaves the drawer open with the entry intact,
-	 * and the drawer shows the message of the error.
+	 * Writes the place, with the visit of the form in it where the target is a
+	 * visit. A rejection leaves the drawer open with the entry intact, and the
+	 * drawer shows the message of the error.
 	 */
 	onSubmit: (draft: PlaceDraft) => Promise<unknown>
+}
+
+/**
+ * What the panel calls itself and what its submit button says for a target, and
+ * whether the target changes a record on file.
+ */
+function targetWords(target: PlaceFormTarget): { title: string; submit: string; editing: boolean } {
+	if (target.kind === 'visit') {
+		return target.visit === null
+			? { title: 'Add visit', submit: 'Add visit', editing: false }
+			: { title: 'Edit visit', submit: 'Save visit', editing: true }
+	}
+
+	return target.place === null
+		? { title: 'Add place', submit: 'Add place', editing: false }
+		: { title: 'Edit place', submit: 'Save changes', editing: true }
+}
+
+/** A key that changes with the record that a target writes. */
+function targetKey(target: PlaceFormTarget): string {
+	return target.kind === 'visit'
+		? `visit:${target.place.id}:${target.visit?.id ?? 'new'}`
+		: `place:${target.place?.id ?? 'new'}`
 }
 
 /**
@@ -66,31 +91,16 @@ function failureMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error)
 }
 
-/** A fresh form. */
-function emptyValues(): PlaceValues {
-	return {
-		place: undefined,
-		name: '',
-		address: '',
-		category: undefined,
-		rating: 0,
-		// A place is usually added just after the visit, so today is the useful
-		// default and the field stays editable.
-		visitedAt: new Date(),
-		url: '',
-		photo: '',
-		review: '',
-	}
-}
-
 /**
  * The half-height glass drawer that writes a place — a new one, or an edit of one
- * on record.
+ * on record — or one visit to a place on record.
  *
- * One form for both, because a create and an edit produce the same record: only
- * what the fields start as and what the panel calls itself differ. A second form
- * for the edit would repeat the same seven fields and the same validators, and
- * the two would have to be kept in step by hand.
+ * One form for all of them, because each produces the same record: only what
+ * the fields start as, which fields show, and what the panel calls itself
+ * differ. A new place shows the fields of the place and of its first visit, an
+ * edit of a place the fields of the place, and a visit the fields of the visit.
+ * A second form would repeat the same fields and the same validators, and the
+ * two would have to be kept in step by hand.
  *
  * The search field resolves a business name to its address and position, so a
  * place reaches the map without the reader ever typing coordinates — see
@@ -98,17 +108,14 @@ function emptyValues(): PlaceValues {
  * search does not find, the reader types the address, and a submit finds the
  * position from it ({@link PlaceAddressField}).
  */
-export function PlaceFormDrawer({
-	open,
-	onOpenChange,
-	place = null,
-	onSubmit,
-}: PlaceFormDrawerProps) {
-	// The place the panel last opened on. A close clears the caller's, and the
+export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDrawerProps) {
+	const open = target !== null
+
+	// The target the panel last opened on. A close clears the caller's, and the
 	// panel stays mounted while it slides out — reading the caller's directly, an
 	// edit would empty its own fields halfway through its exit. Only an open
 	// writes to it, so the next open still seeds from what it was handed.
-	const [held, setHeld] = useState(place)
+	const [held, setHeld] = useState(target)
 
 	// Why the last write failed. The route refuses a write for reasons that no
 	// field shows, such as an email that is not verified or a full list. Without
@@ -116,186 +123,208 @@ export function PlaceFormDrawer({
 	const [failure, setFailure] = useState<string | null>(null)
 
 	useEffect(() => {
-		if (!open) return
+		if (target === null) return
 
-		setHeld(place)
+		setHeld(target)
 
 		setFailure(null)
-	}, [open, place])
+	}, [target])
 
-	const seed = open ? place : held
+	const seed = target ?? held ?? { kind: 'place', place: null }
 
-	const editing = seed !== null
+	const { title, submit, editing } = targetWords(seed)
 
-	const title = editing ? 'Edit place' : 'Add place'
+	// A new place takes its first visit with it. An edit of a place leaves its
+	// visits to their own menu, and a visit has no fields of the place.
+	const placeFields = seed.kind === 'place'
+
+	const visitFields = seed.kind === 'visit' || seed.place === null
 
 	return (
-		<Drawer
-			glass
-			// Grown to the form, and stopping at the screen rather than short of it —
-			// the second case `DrawerProps.height` describes, measured here: at a 700px
-			// window `auto` held the panel at 595 while the fields came to 709, leaving
-			// the review below the fold.
-			//
-			// The travel matters to a form for its own reason. A validation message
-			// appearing under a field changes the panel's height, and a panel that
-			// jumped would move the fields under the reader's cursor at the moment they
-			// are being told to fix one.
-			height="fit"
-			open={open}
-			onOpenChange={onOpenChange}
-			aria-label={title}
-		>
-			<Flex justify="between" align="center" className="px-6 pt-6">
-				<DrawerTitle className="p-0">{title}</DrawerTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerPanel
+				glass
+				// Grown to the form, and stopping at the screen rather than short of it —
+				// the second case `DrawerProps.height` describes, measured here: at a 700px
+				// window `auto` held the panel at 595 while the fields came to 709, leaving
+				// the review below the fold.
+				//
+				// The travel matters to a form for its own reason. A validation message
+				// appearing under a field changes the panel's height, and a panel that
+				// jumped would move the fields under the reader's cursor at the moment they
+				// are being told to fix one.
+				height="fit"
+				aria-label={title}
+			>
+				<Flex justify="between" align="center" className="px-6 pt-6">
+					{/* A visit names its place under the title, because the form shows no
+				    field of the place. */}
+					<div className="min-w-0">
+						<DrawerTitle className="p-0">{title}</DrawerTitle>
 
-				<DrawerClose>
-					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
-				</DrawerClose>
-			</Flex>
+						{seed.kind === 'visit' ? (
+							<Text tone="muted" className="truncate">
+								{seed.place.name}
+							</Text>
+						) : null}
+					</div>
 
-			<Form<PlaceValues>
-				// The drawer unmounts its children while closed, so the form re-seeds
-				// from `defaultValues` on each open and an abandoned entry never comes
-				// back. Keyed on the open state as well, which covers the one case the
-				// unmount misses: a reopen while the close is still animating out. The
-				// edited place is in the key too, so opening a second one re-seeds
-				// instead of keeping the first one's entry.
-				key={`${String(open)}:${seed?.id ?? 'new'}`}
-				defaultValues={seed === null ? emptyValues() : toFormValues(seed)}
-				validate={placeValidators}
-				onSubmit={async (values): Promise<SubmitResult<PlaceValues> | undefined> => {
-					setFailure(null)
+					<DrawerClose>
+						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+					</DrawerClose>
+				</Flex>
 
-					try {
-						const located = await locatePlace(
-							values,
-							placeGeocoder,
-							AbortSignal.timeout(LOCATE_TIMEOUT_MS),
-						)
+				<Form<PlaceValues>
+					// The drawer unmounts its children while closed, so the form re-seeds
+					// from `defaultValues` on each open and an abandoned entry never comes
+					// back. Keyed on the open state as well, which covers the one case the
+					// unmount misses: a reopen while the close is still animating out. The
+					// edited place is in the key too, so opening a second one re-seeds
+					// instead of keeping the first one's entry.
+					key={`${String(open)}:${targetKey(seed)}`}
+					defaultValues={targetValues(seed)}
+					validate={placeValidators}
+					onSubmit={async (values): Promise<SubmitResult<PlaceValues> | undefined> => {
+						setFailure(null)
 
-						if (located === null) {
-							return {
-								fieldErrors: {
-									address: 'That address was not found. Check it, or search for the place.',
-								},
+						try {
+							if (seed.kind === 'visit') {
+								await onSubmit(toVisitPlaceDraft(values, seed.place, seed.visit))
+							} else {
+								const located = await locatePlace(
+									values,
+									placeGeocoder,
+									AbortSignal.timeout(LOCATE_TIMEOUT_MS),
+								)
+
+								if (located === null) {
+									return {
+										fieldErrors: {
+											address: 'That address was not found. Check it, or search for the place.',
+										},
+									}
+								}
+
+								await onSubmit(toPlaceDraft(values, located, seed.place))
 							}
+						} catch (error) {
+							setFailure(failureMessage(error))
+
+							return undefined
 						}
 
-						await onSubmit(toPlaceDraft(values, located, seed))
-					} catch (error) {
-						setFailure(failureMessage(error))
+						onOpenChange(false)
 
 						return undefined
-					}
-
-					onOpenChange(false)
-
-					return undefined
-				}}
-			>
-				<DrawerBody>
-					{/* Two columns from `sm`, which is what keeps the form short enough for
+					}}
+				>
+					<DrawerBody>
+						{/* Two columns from `sm`, which is what keeps the form short enough for
 					    the panel to hold all of it: stacked, these fields run past any
 					    screen and the reader scrolls to reach the button they are aiming
 					    for. The search leads across both, because it is the field that
 					    fills the others. */}
-					<div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 pb-6 sm:grid-cols-2">
-						<div className="sm:col-span-2">
-							<PlaceSearchField />
+						<div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 pb-6 sm:grid-cols-2">
+							{placeFields ? (
+								<>
+									<div className="sm:col-span-2">
+										<PlaceSearchField />
+									</div>
+
+									<Field>
+										<Label>Name</Label>
+
+										<Input name="name" placeholder="What is it called?" />
+
+										<Message name="name" />
+									</Field>
+
+									<Field>
+										<Label>Category</Label>
+
+										{/* Clearable, because a reader who picked the wrong one otherwise has
+									    no way back to having picked nothing. Category is required, so
+									    clearing surfaces the field's own message on submit rather than
+									    writing a place without one. */}
+										<Listbox<PlaceCategory>
+											name="category"
+											placeholder="Pick a category"
+											clearable
+											displayValue={categoryLabel}
+										>
+											{CATEGORIES.map((category) => (
+												<ListboxOption key={category.value} value={category.value}>
+													<ListboxLabel>{category.label}</ListboxLabel>
+												</ListboxOption>
+											))}
+										</Listbox>
+
+										<Message name="category" />
+									</Field>
+
+									<div className="sm:col-span-2">
+										<PlaceAddressField />
+									</div>
+
+									<Field className="sm:col-span-2">
+										<Label>Website</Label>
+
+										<Input name="url" type="url" placeholder="https://" />
+
+										<Message name="url" />
+									</Field>
+								</>
+							) : null}
+
+							{visitFields ? (
+								<>
+									<Field>
+										<Label>Visited</Label>
+
+										<DatePicker name="visitedAt" />
+
+										<Message name="visitedAt" />
+									</Field>
+
+									<div className="sm:col-span-2">
+										<PlacePhotosField />
+									</div>
+
+									<Field className="sm:col-span-2">
+										<Label>Rating</Label>
+
+										<Rating name="rating" size="lg" step={0.5} />
+									</Field>
+
+									<Field className="sm:col-span-2">
+										<Label>Your review</Label>
+
+										<Textarea name="review" rows={3} autoResize placeholder="How was it?" />
+									</Field>
+								</>
+							) : null}
+
+							{failure === null ? null : (
+								<Alert severity="error" className="sm:col-span-2">
+									<Text>{failure}</Text>
+								</Alert>
+							)}
 						</div>
+					</DrawerBody>
 
-						<Field>
-							<Label>Name</Label>
+					<DrawerFooter>
+						<Flex gap="sm" justify="end" full>
+							<Button variant="plain" type="button" onClick={() => onOpenChange(false)}>
+								Cancel
+							</Button>
 
-							<Input name="name" placeholder="What is it called?" />
-
-							<Message name="name" />
-						</Field>
-
-						<Field>
-							<Label>Category</Label>
-
-							{/* Clearable, because a reader who picked the wrong one otherwise has
-							    no way back to having picked nothing. Category is required, so
-							    clearing surfaces the field's own message on submit rather than
-							    writing a place without one. */}
-							<Listbox<PlaceCategory>
-								name="category"
-								placeholder="Pick a category"
-								clearable
-								displayValue={categoryLabel}
-							>
-								{CATEGORIES.map((category) => (
-									<ListboxOption key={category.value} value={category.value}>
-										<ListboxLabel>{category.label}</ListboxLabel>
-									</ListboxOption>
-								))}
-							</Listbox>
-
-							<Message name="category" />
-						</Field>
-
-						<div className="sm:col-span-2">
-							<PlaceAddressField />
-						</div>
-
-						<Field>
-							<Label>Visited</Label>
-
-							<DatePicker name="visitedAt" />
-
-							<Message name="visitedAt" />
-						</Field>
-
-						<Field>
-							<Label>Website</Label>
-
-							<Input name="url" type="url" placeholder="https://" />
-
-							<Message name="url" />
-						</Field>
-
-						<Field className="sm:col-span-2">
-							<Label>Photo</Label>
-
-							<Input name="photo" type="url" placeholder="https://" />
-
-							<Message name="photo" />
-						</Field>
-
-						<Field className="sm:col-span-2">
-							<Label>Rating</Label>
-
-							<Rating name="rating" size="lg" />
-						</Field>
-
-						<Field className="sm:col-span-2">
-							<Label>Your review</Label>
-
-							<Textarea name="review" rows={3} autoResize placeholder="How was it?" />
-						</Field>
-
-						{failure === null ? null : (
-							<Alert severity="error" className="sm:col-span-2">
-								<Text>{failure}</Text>
-							</Alert>
-						)}
-					</div>
-				</DrawerBody>
-
-				<DrawerFooter>
-					<Flex gap="sm" justify="end" full>
-						<Button variant="plain" type="button" onClick={() => onOpenChange(false)}>
-							Cancel
-						</Button>
-
-						<Button type="submit" color={editing ? 'blue' : undefined}>
-							{editing ? 'Save changes' : 'Add place'}
-						</Button>
-					</Flex>
-				</DrawerFooter>
-			</Form>
+							<Button type="submit" color={editing ? 'blue' : undefined}>
+								{submit}
+							</Button>
+						</Flex>
+					</DrawerFooter>
+				</Form>
+			</DrawerPanel>
 		</Drawer>
 	)
 }

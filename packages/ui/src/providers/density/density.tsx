@@ -4,7 +4,11 @@ import { type DensityLevel, levelToStep } from './context'
 
 /** Props for {@link DensityProvider}: the friendly `density` level to broadcast, and `children`. */
 export type DensityProviderProps = {
-	density: DensityLevel
+	/**
+	 * The density level of the region. Omit it to open no scope: the region
+	 * then keeps the step of its nearest density scope.
+	 */
+	density?: DensityLevel
 	children: ReactNode
 }
 
@@ -26,7 +30,7 @@ export type DensityProviderProps = {
  * provider. Use one for a region that differs from the app.
  */
 export function DensityProvider({ density, children }: DensityProviderProps) {
-	const step = levelToStep[density]
+	const step = density && levelToStep[density]
 
 	return (
 		<PolymorphicStatic as="span" data-slot="density" density={step} className="contents">

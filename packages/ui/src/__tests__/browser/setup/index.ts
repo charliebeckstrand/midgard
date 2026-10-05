@@ -7,6 +7,7 @@ import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
 import '../../setup/geometry'
 import { pageState } from './forensics'
+import '../../../fonts/google-sans-flex-latin.js'
 import './tailwind.css'
 
 /**
@@ -39,11 +40,12 @@ declare module 'vitest/browser' {
 
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
-// `tailwind.css` gives the font of ui (`src/fonts/fonts.css`). The browser
-// loads a font face only when text first needs it, and then it swaps the font
-// in. A case that reads a text box at that moment reads the fallback face, and
-// a later case reads the font. Each file thus loads the font before its first
-// case, so each case measures the same face.
+// `tailwind.css` gives the font of ui (`src/fonts/fonts.css`), and the script
+// of `pnpm fonts` adds its latin face. The browser loads a font face only when
+// text first needs it, and then it swaps the font in. A case that reads a text
+// box at that moment reads the fallback face, and a later case reads the font.
+// Each file thus loads the font before its first case, so each case measures
+// the same face.
 beforeAll(async () => {
 	await document.fonts.load('1em "Google Sans Flex"')
 })

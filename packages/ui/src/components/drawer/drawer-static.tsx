@@ -9,28 +9,28 @@ import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/draw
 import { k as overlay } from '../../recipes/kata/overlay'
 import { drawerPanelProps, drawerShowsGrip } from './drawer-panel-props'
 
-/** Props for {@link DrawerStatic}: the {@link Drawer} styling props it has to match, and the content it paints. */
+/** Props for {@link DrawerStatic}: the {@link DrawerPanel} styling props it has to match, and the content it paints. */
 export type DrawerStaticProps = {
 	/**
-	 * The density step of the painted content, as on {@link Drawer}. Omit it to take the step of
+	 * The density step of the painted content, as on {@link DrawerPanel}. Omit it to take the step of
 	 * the nearest density scope, which the static drawer sits inside.
 	 */
 	size?: ScaleStep<typeof scale>
-	/** As on {@link Drawer}: how much of the screen the panel docks over. @defaultValue 'auto' */
+	/** As on {@link DrawerPanel}: how much of the screen the panel docks over. @defaultValue 'auto' */
 	height?: DrawerPanelVariants['height']
 	/**
-	 * As on {@link Drawer}: the grip on the top edge of the panel, painted here and never
+	 * As on {@link DrawerPanel}: the grip on the top edge of the panel, painted here and never
 	 * interactive. Pass the same value as the drawer, so its inset matches. Only a `half` or
 	 * `full` panel shows it, as on the drawer.
 	 *
 	 * @defaultValue false
 	 */
 	handle?: boolean
-	/** As on {@link Drawer}: the translucent glass panel and backdrop. */
+	/** As on {@link DrawerPanel}: the translucent glass panel and backdrop. */
 	glass?: boolean
-	/** As on {@link Drawer}: drain the color from what shows through the backdrop. @defaultValue false */
+	/** As on {@link DrawerPanel}: drain the color from what shows through the backdrop. @defaultValue false */
 	desaturate?: boolean
-	/** Classes for the panel, as {@link Drawer}'s `className` — pass the same ones. */
+	/** Classes for the panel, as {@link DrawerPanel}'s `className` — pass the same ones. */
 	className?: string
 	/**
 	 * Classes for the root, which covers the viewport. For hiding the whole static drawer where the
@@ -49,13 +49,13 @@ export type DrawerStaticProps = {
  * output. A page that loads with the drawer already open, a deep link or a reload, therefore
  * paints the page under it first, then covers it once the client mounts the drawer. Render this
  * in its place until the drawer reports it has arrived (its `onOpenComplete`), and the first
- * paint shows the drawer rather than the page. Mount the drawer with `animateOnMount={false}`,
- * so it arrives on top of this in place instead of sliding up over it.
+ * paint shows the drawer rather than the page. Mount the `DrawerPanel` with
+ * `animateOnMount={false}`, so it arrives on top of this in place instead of sliding up over it.
  *
  * @remarks
  * Built from the same recipe classes as the overlay root and backdrop, and from the same panel
  * attributes and classes (`drawerPanelProps`), and resolving `glass` through the same hook, so it
- * stays in step with {@link Drawer} by construction. Pass
+ * stays in step with {@link DrawerPanel} by construction. Pass
  * the drawer's `className`, and the same slot components (`DrawerTitle`, `DrawerBody`, …) for
  * content: they read only defaulted context, so they render here unchanged.
  *

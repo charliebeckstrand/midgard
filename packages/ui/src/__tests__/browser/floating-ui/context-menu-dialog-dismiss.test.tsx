@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ContextMenu } from '../../../components/context-menu'
-import { Dialog } from '../../../components/dialog'
+import { Dialog, DialogPanel } from '../../../components/dialog'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
 /**
@@ -17,13 +17,15 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 describe('context menu dismiss inside a dialog (real browser)', () => {
 	it('closes on an outside press within the enclosing dialog', async () => {
 		renderUI(
-			<Dialog open aria-label="Report">
-				<ContextMenu defaults={[{ key: 'copy', label: 'Copy', onAction: () => {} }]}>
-					<div data-testid="surface" style={{ width: 200, height: 200 }}>
-						Right-click me
-					</div>
-				</ContextMenu>
-				<button type="button">Elsewhere</button>
+			<Dialog open>
+				<DialogPanel aria-label="Report">
+					<ContextMenu defaults={[{ key: 'copy', label: 'Copy', onAction: () => {} }]}>
+						<div data-testid="surface" style={{ width: 200, height: 200 }}>
+							Right-click me
+						</div>
+					</ContextMenu>
+					<button type="button">Elsewhere</button>
+				</DialogPanel>
 			</Dialog>,
 		)
 

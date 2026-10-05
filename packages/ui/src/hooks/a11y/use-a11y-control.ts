@@ -22,7 +22,7 @@ export type A11yControl = {
 	/** Id the error Message slot renders with. */
 	messageId: string
 	/**
-	 * Slot registration: Label / Description / error Message call these on
+	 * Slot registration: Label / Description / error or warning Message call these on
 	 * mount, passing the id they render; the composed `aria-*` references only
 	 * rendered ids.
 	 */

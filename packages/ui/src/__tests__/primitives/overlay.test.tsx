@@ -1,5 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Card } from '../../components/card'
 import { Overlay } from '../../primitives/overlay'
 import { attach, fireEvent, present, renderUI, screen } from '../helpers'
 
@@ -77,6 +78,33 @@ describe('Overlay', () => {
 		fireEvent.click(backdrop)
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	// React carries a click in the portal up the component tree. A press on the
+	// backdrop dismisses the overlay and does nothing more, so an ancestor must not see it.
+	it('keeps a backdrop click from the click handler of a consumer ancestor', () => {
+		const onOpenChange = vi.fn()
+
+		const onAncestorClick = vi.fn()
+
+		renderUI(
+			<Card onClick={onAncestorClick}>
+				<Overlay open onOpenChange={onOpenChange}>
+					<span>content</span>
+				</Overlay>
+			</Card>,
+		)
+
+		fireEvent.click(
+			present(
+				document.querySelector('[data-slot="overlay-backdrop"]'),
+				'[data-slot="overlay-backdrop"]',
+			),
+		)
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false)
+
+		expect(onAncestorClick).not.toHaveBeenCalled()
 	})
 
 	it('does not close on backdrop click when dismissOnBackdrop=false', () => {

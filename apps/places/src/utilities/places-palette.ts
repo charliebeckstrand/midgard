@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import type { ContextMenuEntry } from 'ui/context-menu'
 
 /** One row of the palette: what it shows, and what a pick does. */
 export type PaletteCommand = {
@@ -14,6 +15,8 @@ export type PaletteCommand = {
 	run: () => void
 	/** Starts the work that a pick needs. The palette calls it when the highlight stays on the row. */
 	preload?: () => void
+	/** The rows of the menu that a right-click or a long press on the row opens. */
+	menu?: ContextMenuEntry[]
 }
 
 /** One group of the palette: a heading, and the commands under it in their default order. */

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { type ScrollOverflowOptions, useScrollOverflow } from '../../hooks/use-scroll-overflow'
+import { useScrollOverflow } from '../../hooks/use-scroll-overflow'
 import { frames, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
@@ -192,107 +192,41 @@ describe('useScrollOverflow against a real scroller', () => {
 	})
 })
 
-/** A fixed-width scroller, 600 wide in a 200 viewport, on the axis the case sets. */
-function WideProbe({
-	axis,
-	dir,
-	overflow = 'auto',
-}: {
-	axis?: ScrollOverflowOptions['axis']
-	dir?: 'rtl'
-	overflow?: 'auto' | 'visible'
-}) {
-	const attach = useScrollOverflow({ axis })
+/** A scroller 600 wide and 400 tall in a 200 by 200 box. */
+function WideProbe({ overflow = 'auto' }: { overflow?: 'auto' | 'visible' }) {
+	const attach = useScrollOverflow()
 
 	return (
-		<div dir={dir}>
-			<div ref={attach} data-testid="scroller" style={{ width: 200, height: 200, overflow }}>
-				<div style={{ width: 600, height: 400 }} />
-			</div>
+		<div ref={attach} data-testid="scroller" style={{ width: 200, height: 200, overflow }}>
+			<div style={{ width: 600, height: 400 }} />
 		</div>
 	)
 }
 
-/** `[start, end]` as the hook currently has them stamped. */
-function inlineEdges(): [boolean, boolean] {
-	const el = scroller()
-
-	return [el.hasAttribute('data-overflow-start'), el.hasAttribute('data-overflow-end')]
-}
-
-describe('useScrollOverflow on the horizontal axis against a real scroller', () => {
-	it('stamps no horizontal edge on the default vertical axis', async () => {
+describe('useScrollOverflow on a box that also overflows sideways', () => {
+	it('stamps no inline edge', async () => {
 		renderUI(<WideProbe />)
 
 		// The vertical edge arrives, so the hook measured the box. The box also
-		// overflows sideways, and the default axis must not report it.
+		// overflows sideways, and the hook must not report it. The rail draws the
+		// inline fade in CSS.
 		await waitFor(() => expect(edges()).toEqual([false, true]))
 
-		expect(inlineEdges()).toEqual([false, false])
-	})
-
-	it('flips the start and end edges as the box scrolls left to right', async () => {
-		renderUI(<WideProbe axis="horizontal" />)
-
 		const el = scroller()
 
-		await waitFor(() => expect(inlineEdges()).toEqual([false, true]))
-
-		// The horizontal axis alone: the box overflows downward too.
-		expect(edges()).toEqual([false, false])
-
-		el.scrollLeft = 200
-
-		await waitFor(() => expect(inlineEdges()).toEqual([true, true]))
-
-		// The end: 400 of travel in a 600 box with a 200 viewport.
-		el.scrollLeft = 400
-
-		await waitFor(() => expect(inlineEdges()).toEqual([true, false]))
-	})
-
-	it('reads the logical edges in a right-to-left scroller', async () => {
-		renderUI(<WideProbe axis="horizontal" dir="rtl" />)
-
-		const el = scroller()
-
-		await waitFor(() => expect(inlineEdges()).toEqual([false, true]))
-
-		// A right-to-left scroller starts at zero and travels negative.
-		el.scrollLeft = -400
-
-		await waitFor(() => expect(inlineEdges()).toEqual([true, false]))
+		expect([el.hasAttribute('data-overflow-start'), el.hasAttribute('data-overflow-end')]).toEqual([
+			false,
+			false,
+		])
 	})
 
 	it('stamps no edge on a box that does not scroll', async () => {
 		// The content extends past the edges, but a parent scrolls it, as the Grid
 		// does with its Table. The box itself does not scroll.
-		renderUI(<WideProbe axis="both" overflow="visible" />)
+		renderUI(<WideProbe overflow="visible" />)
 
 		await frames()
 
-		expect([...edges(), ...inlineEdges()]).toEqual([false, false, false, false])
-	})
-
-	it('stamps all four edges on both axes, and clears them on detach', async () => {
-		const { unmount } = renderUI(<WideProbe axis="both" />)
-
-		const el = scroller()
-
-		await waitFor(() => expect([...edges(), ...inlineEdges()]).toEqual([false, true, false, true]))
-
-		el.scrollTop = 200
-
-		el.scrollLeft = 400
-
-		await waitFor(() => expect([...edges(), ...inlineEdges()]).toEqual([true, false, true, false]))
-
-		unmount()
-
-		const stamped = ['above', 'below', 'start', 'end'].filter((edge) =>
-			el.hasAttribute(`data-overflow-${edge}`),
-		)
-
-		expect(stamped).toEqual([])
+		expect(edges()).toEqual([false, false])
 	})
 })

@@ -7,7 +7,7 @@ import {
 	type PlaceFilterValue,
 	toDay,
 } from '../../utilities/places-filter'
-import { place } from '../fixtures'
+import { place, placeOn } from '../fixtures'
 
 /** A committed span, in the shape the relative DatePicker writes. */
 function span(from: string, to: string) {
@@ -52,9 +52,9 @@ describe('hasActiveFilter', () => {
 
 describe('filterPlaces', () => {
 	const PLACES: Place[] = [
-		place('food', { category: 'food', country: 'United States', visitedAt: '2026-08-15' }),
-		place('nature', { category: 'nature', country: 'France', visitedAt: '2026-01-02' }),
-		place('nowhere', { category: 'other', country: undefined, visitedAt: '2025-06-30' }),
+		placeOn('food', '2026-08-15', { category: 'food', country: 'United States' }),
+		placeOn('nature', '2026-01-02', { category: 'nature', country: 'France' }),
+		placeOn('nowhere', '2025-06-30', { category: 'other', country: undefined }),
 	]
 
 	function ids(filter: PlaceFilterValue): string[] {
@@ -94,6 +94,19 @@ describe('filterPlaces', () => {
 		expect(
 			ids({ visited: [span('2025-06-01', '2025-06-30'), span('2026-08-01', '2026-08-31')] }),
 		).toEqual(['food', 'nowhere'])
+	})
+
+	it('admits a place where any of its visits falls inside a span', () => {
+		const twice = place('twice', {
+			visits: [
+				{ id: 'b', visitedAt: '2026-08-15', rating: 4, photos: [] },
+				{ id: 'a', visitedAt: '2025-03-01', rating: 2, photos: [] },
+			],
+		})
+
+		expect(
+			filterPlaces([twice], { visited: [span('2025-03-01', '2025-03-31')] }).map((held) => held.id),
+		).toEqual(['twice'])
 	})
 
 	// The picker writes an empty array as it clears, which must not empty the map.

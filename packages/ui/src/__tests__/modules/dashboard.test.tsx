@@ -15,7 +15,7 @@ import {
 import { createPortal } from 'react-dom'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
-import { Dialog } from '../../components/dialog'
+import { Dialog, DialogPanel } from '../../components/dialog'
 import {
 	Dashboard,
 	type DashboardHandle,
@@ -367,8 +367,10 @@ describe('Dashboard', () => {
 		const onDragEnd = vi.fn()
 
 		renderUI(
-			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
-				<Board editing onDragEnd={onDragEnd} />
+			<Dialog open onOpenChange={onOpenChange}>
+				<DialogPanel aria-label="Edit the board">
+					<Board editing onDragEnd={onDragEnd} />
+				</DialogPanel>
 			</Dialog>,
 		)
 
@@ -1586,8 +1588,10 @@ describe('Dashboard gesture owner', () => {
 		const onDragEnd = vi.fn()
 
 		const inDialog = (editing: boolean) => (
-			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
-				<Board editing={editing} onDragEnd={onDragEnd} />
+			<Dialog open onOpenChange={onOpenChange}>
+				<DialogPanel aria-label="Edit the board">
+					<Board editing={editing} onDragEnd={onDragEnd} />
+				</DialogPanel>
 			</Dialog>
 		)
 
@@ -1618,8 +1622,10 @@ describe('Dashboard gesture owner', () => {
 		const onDragEnd = vi.fn()
 
 		const inDialog = (withC: boolean) => (
-			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
-				<Held value={LAYOUT} withC={withC} onLayout={onLayout} onDragEnd={onDragEnd} />
+			<Dialog open onOpenChange={onOpenChange}>
+				<DialogPanel aria-label="Edit the board">
+					<Held value={LAYOUT} withC={withC} onLayout={onLayout} onDragEnd={onDragEnd} />
+				</DialogPanel>
 			</Dialog>
 		)
 

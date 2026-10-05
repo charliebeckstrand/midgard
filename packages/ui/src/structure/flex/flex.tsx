@@ -39,7 +39,10 @@ export type FlexProps = {
 	 * @defaultValue false
 	 */
 	wrap?: boolean
-	/** Fill available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`. */
+	/**
+	 * Fill available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`.
+	 * @defaultValue false
+	 */
 	flex?: '1' | 'auto' | false
 	/**
 	 * Spans full width of parent.

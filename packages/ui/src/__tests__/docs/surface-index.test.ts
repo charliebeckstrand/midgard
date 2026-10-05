@@ -2,8 +2,9 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
-import { parseReExports } from '../../docs/engine/plugins'
+import { isExportDeclaration, isNamedExports } from 'typescript/unstable/ast'
+import { afterAll, describe, expect, it } from 'vitest'
+import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
 
 // This file lives at packages/ui/src/__tests__/docs/; climb to the package root.
 const UI_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
@@ -25,13 +26,26 @@ function documentedTokens(mdFile: string): Set<string> {
 	)
 }
 
-/** PascalCase / camelCase value exports a barrel re-exports (types excluded). */
-function barrelValueExports(relPath: string): string[] {
+/**
+ * The names of the values that a barrel re-exports, such as `Button` from
+ * `export { Button, type ButtonProps } from './button'`. A type-only statement
+ * or specifier is not a value. The barrel names each re-export (CONVENTIONS
+ * §4.6), so a parse of the syntax finds each one.
+ */
+function barrelValueExports(server: TypeScriptServer, relPath: string): string[] {
 	const file = join(SRC, relPath)
 
-	return parseReExports(readFileSync(file, 'utf-8'), file)
-		.filter((re) => !re.isType)
-		.map((re) => re.exportedName)
+	const source = server.parse([file]).get(file)
+
+	return (source?.statements ?? []).flatMap((statement) => {
+		if (!isExportDeclaration(statement) || statement.isTypeOnly) return []
+
+		const clause = statement.exportClause
+
+		if (!statement.moduleSpecifier || !clause || !isNamedExports(clause)) return []
+
+		return clause.elements.filter((element) => !element.isTypeOnly).map(({ name }) => name.text)
+	})
 }
 
 function subdirectories(relPath: string): string[] {
@@ -48,13 +62,17 @@ function subdirectories(relPath: string): string[] {
  * checked per directory, matching the convention's granularity.
  */
 describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
+	const server = startTypeScript()
+
+	afterAll(() => server.close())
+
 	it.each([
 		['CORE.md', 'core/index.ts'],
 		['HOOKS.md', 'hooks/index.ts'],
 		['UTILITIES.md', 'utilities/index.ts'],
 		['LAYOUTS.md', 'layouts/index.ts'],
 	])('%s documents every value export of %s', (mdFile, barrel) => {
-		const exports = barrelValueExports(barrel)
+		const exports = barrelValueExports(server, barrel)
 
 		// Guard against a vacuous pass if the barrel ever fails to parse.
 		expect(exports.length, `no value exports parsed from ${barrel}`).toBeGreaterThan(0)

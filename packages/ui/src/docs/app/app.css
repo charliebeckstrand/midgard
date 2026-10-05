@@ -1,0 +1,64 @@
+/* The one stylesheet of the docs: Tailwind, the font and the tokens of ui,
+   and the classes of the source of ui and of the docs. The tests and the
+   benchmarks are not sources. */
+@import 'tailwindcss' source(none);
+@import '../../../tailwind.css';
+
+@source '../../';
+@source not '../../__tests__';
+@source not '../../__benchmarks__';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* An element whose children are all phrasing content, the content that HTML
+   lets sit in a line of text, such as a button, a badge, or an icon. The
+   instance box of an example (`kit/example.tsx`) shows such children in a
+   row, and stacks any other children. */
+@custom-variant phrasing (
+	&:not(
+		:has(
+			> :not(
+					a,
+					abbr,
+					audio,
+					b,
+					bdi,
+					bdo,
+					button,
+					canvas,
+					cite,
+					code,
+					data,
+					del,
+					dfn,
+					em,
+					i,
+					img,
+					input,
+					ins,
+					kbd,
+					label,
+					mark,
+					meter,
+					output,
+					picture,
+					progress,
+					q,
+					s,
+					samp,
+					select,
+					small,
+					span,
+					strong,
+					sub,
+					sup,
+					svg,
+					textarea,
+					time,
+					u,
+					var,
+					video
+				)
+		)
+	)
+);

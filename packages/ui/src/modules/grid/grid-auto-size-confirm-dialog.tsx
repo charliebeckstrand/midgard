@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '../../components/button'
-import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
+import { Dialog, DialogBody, DialogFooter, DialogPanel, DialogTitle } from '../../components/dialog'
 import { Text } from '../../components/text'
 
 /**
@@ -52,30 +52,32 @@ export function GridAutoSizeConfirmDialog({
 	const copy = COPY[action]
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange} width="md">
-			<DialogTitle>{copy.title}</DialogTitle>
-			<DialogBody>
-				<Text>
-					{copy.body} Your other layout preferences — order, visibility, and pinned columns — stay
-					just as they are.
-				</Text>
-			</DialogBody>
-			<DialogFooter>
-				<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-					Keep my widths
-				</Button>
-				<Button
-					type="button"
-					color="blue"
-					onClick={() => {
-						onOpenChange(false)
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogPanel width="md">
+				<DialogTitle>{copy.title}</DialogTitle>
+				<DialogBody>
+					<Text>
+						{copy.body} Your other layout preferences — order, visibility, and pinned columns — stay
+						just as they are.
+					</Text>
+				</DialogBody>
+				<DialogFooter>
+					<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+						Keep my widths
+					</Button>
+					<Button
+						type="button"
+						color="blue"
+						onClick={() => {
+							onOpenChange(false)
 
-						onConfirm(action)
-					}}
-				>
-					{copy.confirm}
-				</Button>
-			</DialogFooter>
+							onConfirm(action)
+						}}
+					>
+						{copy.confirm}
+					</Button>
+				</DialogFooter>
+			</DialogPanel>
 		</Dialog>
 	)
 }

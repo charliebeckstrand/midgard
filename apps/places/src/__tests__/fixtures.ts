@@ -17,11 +17,18 @@ export function place(id: string, fields: Partial<Place> = {}): Place {
 		address: '325 SW Bay Blvd, Newport, Oregon',
 		latitude: 44.63,
 		longitude: -124.05,
-		rating: 4,
-		visitedAt: '2026-08-15',
+		visits: [{ id: `${id}-visit`, visitedAt: '2026-08-15', rating: 4, photos: [] }],
 		createdAt: '2026-08-15T18:00:00.000Z',
 		...fields,
 	}
+}
+
+/** The same, with one visit on `visitedAt`. */
+export function placeOn(id: string, visitedAt: string, fields: Partial<Place> = {}): Place {
+	return place(id, {
+		visits: [{ id: `${id}-visit`, visitedAt, rating: 4, photos: [] }],
+		...fields,
+	})
 }
 
 /** The same, placed at a position — which is what the geometry cases vary. */

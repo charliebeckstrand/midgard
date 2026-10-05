@@ -26,7 +26,13 @@ import {
 import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
 import { DatePicker } from '../../../components/date-picker'
-import { Drawer, DrawerBody, DrawerStatic, DrawerTitle } from '../../../components/drawer'
+import {
+	Drawer,
+	DrawerBody,
+	DrawerPanel,
+	DrawerStatic,
+	DrawerTitle,
+} from '../../../components/drawer'
 import { FileUploadButton, FileUploadInput } from '../../../components/file-upload'
 import { Group } from '../../../components/group'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
@@ -204,10 +210,12 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	DatePicker: (size) => (
 		<DatePicker size={size as never} aria-label="Date" defaultValue={new Date(2026, 0, 1)} />
 	),
-	Drawer: (size) => (
-		<Drawer size={size} open onOpenChange={() => {}}>
-			<DrawerTitle>Title</DrawerTitle>
-			<DrawerBody>Body</DrawerBody>
+	DrawerPanel: (size) => (
+		<Drawer open onOpenChange={() => {}}>
+			<DrawerPanel size={size}>
+				<DrawerTitle>Title</DrawerTitle>
+				<DrawerBody>Body</DrawerBody>
+			</DrawerPanel>
 		</Drawer>
 	),
 	DrawerStatic: (size) => (

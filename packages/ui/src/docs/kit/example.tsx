@@ -1,0 +1,179 @@
+import { type ComponentType, type ReactNode, useCallback, useState } from 'react'
+import { CodeBlock, primeCodeBlock } from 'ui/code'
+import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
+import { cn } from 'ui/core'
+import { Flex } from 'ui/flex'
+import { Heading } from 'ui/heading'
+import { Stack } from 'ui/stack'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
+import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
+import { useIdle } from './idle.ts'
+
+function isExample(component: object): component is ExampleMeta {
+	return 'title' in component && 'code' in component
+}
+
+/**
+ * The {@link ExampleMeta} that the plugin adds to the default export of an
+ * example module. It throws for any other component.
+ */
+export function metaOf(component: { readonly name: string }): ExampleMeta {
+	if (!isExample(component)) {
+		throw new Error(`docs: ${component.name} is not the default export of an example in pages/`)
+	}
+
+	return component
+}
+
+// Each example loads its code once, and each frame of it shares the load. The
+// examples of a folder share one code module. A failed load gives no code, so the block stays empty until the next
+// page load.
+const loads = new WeakMap<ExampleMeta, Promise<void>>()
+
+// The code of each example whose load ended. A frame reads it in the render,
+// so an open block paints its code in the frame that opens it.
+const codes = new WeakMap<ExampleMeta, ExampleCode | undefined>()
+
+function loadCode(meta: ExampleMeta): Promise<void> {
+	return getOrCompute(loads, meta, () =>
+		meta.code().then(
+			(code) => {
+				// The markup from the build paints in the first frame of the block.
+				primeCodeBlock({ code: code.code, html: code.html })
+
+				codes.set(meta, code)
+			},
+			() => {
+				codes.set(meta, undefined)
+			},
+		),
+	)
+}
+
+function Code({ meta, print }: { meta: ExampleMeta; print?: (code: ExampleCode) => string }) {
+	const code = codes.get(meta)
+
+	if (!code) return null
+
+	return (
+		<CodeBlock
+			code={print ? print(code) : code.code}
+			className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
+		/>
+	)
+}
+
+/**
+ * The frame of an example: the title, the instance, and "Show code".
+ *
+ * The instance box is as wide as the instance, and at least 24rem, as a form
+ * column on a page. When each child of the box is phrasing content, such as a
+ * button or a badge, the children make a row that wraps. Otherwise they stack.
+ * The frame resizes on its right edge, so a reader can see how the instance
+ * responds to a narrow column.
+ *
+ * A surface of a page, such as a chart, a map, or a document viewer, takes the
+ * width of its container and has no width of its own. In a box that is as
+ * wide as its content, it gets only the 24rem minimum. With `surface`, the
+ * box fills the frame.
+ */
+export function ExampleFrame({
+	meta,
+	actions,
+	print,
+	surface = false,
+	children,
+}: {
+	meta: ExampleMeta
+	/** The controls at the end of the title row, such as the fields of a playground. */
+	actions?: ReactNode
+	/** Writes the code of the block. The block shows the code of the file when it is not given. */
+	print?: (code: ExampleCode) => string
+	/** Makes the instance box fill the frame, for a surface of a page. */
+	surface?: boolean
+	children: ReactNode
+}) {
+	const [open, setOpen] = useState(false)
+
+	// The code module loads in idle time, so "Show code" opens at once. It loads
+	// before that when the reader points at "Show code" or focuses it.
+	const prepare = useCallback(() => loadCode(meta), [meta])
+
+	useIdle(prepare)
+
+	// The block opens when its code is loaded, so it opens at its full height
+	// with the code in it. A block that suspends opens empty, and React then
+	// holds the code back for at least 300 ms.
+	const toggle = (next: boolean) => {
+		if (codes.has(meta)) setOpen(next)
+		else loadCode(meta).then(() => setOpen(next))
+	}
+
+	return (
+		<Stack gap="sm" data-slot="example">
+			<Flex
+				gap="md"
+				direction={{ initial: 'col', sm: 'row' }}
+				align={{ initial: 'start', sm: 'center' }}
+				justify={{ initial: 'start', sm: 'between' }}
+			>
+				<Heading level={3}>{meta.title}</Heading>
+				{actions}
+			</Flex>
+			<div className="min-w-40 max-w-full resize-x overflow-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+				<div className="p-4">
+					<div
+						data-slot="example-instance"
+						className={cn(
+							'space-y-4',
+							surface
+								? 'w-full'
+								: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex phrasing:flex-wrap phrasing:items-center phrasing:gap-4 phrasing:space-y-0',
+						)}
+					>
+						{children}
+					</div>
+				</div>
+				<Collapse animate="slide" open={open} onOpenChange={toggle}>
+					<div className="border-t border-zinc-200 dark:border-zinc-800">
+						<CollapseTrigger
+							className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2"
+							onPointerEnter={prepare}
+							onPointerDown={prepare}
+							onFocus={prepare}
+						>
+							{open ? 'Hide code' : 'Show code'}
+						</CollapseTrigger>
+					</div>
+					<CollapsePanel>
+						<Code meta={meta} print={print} />
+					</CollapsePanel>
+				</Collapse>
+			</div>
+		</Stack>
+	)
+}
+
+/**
+ * One static example: the default export of an example module, as it is.
+ * "Show code" shows the file of the module.
+ *
+ * @example
+ * import WithIcon from './with-icon.tsx'
+ *
+ * <Example of={WithIcon} />
+ */
+export function Example({
+	of: Of,
+	surface,
+}: {
+	of: ComponentType
+	/** Makes the instance box fill the frame, for a surface of a page. */
+	surface?: boolean
+}) {
+	return (
+		<ExampleFrame meta={metaOf(Of)} surface={surface}>
+			<Of />
+		</ExampleFrame>
+	)
+}

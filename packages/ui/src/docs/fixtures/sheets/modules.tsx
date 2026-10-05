@@ -99,13 +99,13 @@ const getPersonKey = (row: Person) => row.id
 const TRANSCRIPT: ChatMessageData[] = [
 	{
 		id: '1',
-		role: 'user',
+		sender: 'user',
 		content: 'Which shipments are late on the north routes?',
 		timestamp: '11:10 AM',
 	},
 	{
 		id: '2',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{
 				kind: 'tool',
@@ -118,13 +118,13 @@ const TRANSCRIPT: ChatMessageData[] = [
 		],
 		timestamp: '11:11 AM',
 	},
-	{ id: '3', role: 'user', content: 'Thanks, send the list to dispatch.' },
+	{ id: '3', sender: 'user', content: 'Thanks, send the list to dispatch.' },
 ]
 
 const STEP_STATES: ChatMessageData[] = [
 	{
 		id: '1',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{ kind: 'tool', id: 's1', name: 'Load atlas', status: 'done', summary: '3,108 counties' },
 			{

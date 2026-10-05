@@ -972,4 +972,23 @@ describe('KanbanCardSkeleton', () => {
 
 		expect(allBySlot(container, 'placeholder')).toHaveLength(2)
 	})
+
+	it('renders a list item, so it is a valid child of the list of a real column', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo" aria-label="Todo">
+					<KanbanColumnBody>
+						<KanbanCardSkeleton />
+						<KanbanCardSkeleton />
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const body = getSlot(container, 'kanban-column-body')
+
+		expect(body.tagName).toBe('UL')
+
+		expect([...body.children].map((child) => child.tagName)).toEqual(['LI', 'LI'])
+	})
 })

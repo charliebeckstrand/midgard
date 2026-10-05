@@ -25,10 +25,14 @@ type ChromaticPalette<C extends string = Color> = {
  * Generic over the color set: handed the standard `iro.palette` it returns
  * the five-color matrix. Handed `iro.extended` it carries the extended keys
  * through, which widens the kata's `color` axis (Badge).
+ *
+ * The lists are readonly, so `definePalette` infers the color set from them.
+ * A mutable list also matches the single-record form of an entry, and the
+ * color axis of the kata then widens to `string`.
  */
 export function palette<C extends string = Color>(
 	t: ChromaticPalette<C>,
-): Record<'solid' | 'soft' | 'outline', Slot<C>[]> {
+): Record<'solid' | 'soft' | 'outline', readonly Slot<C>[]> {
 	return {
 		solid: [t.solid.bg, t.solid.text],
 		soft: [t.soft.bg, t.soft.text],

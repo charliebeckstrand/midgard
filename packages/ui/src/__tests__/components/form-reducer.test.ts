@@ -164,7 +164,7 @@ describe('formReducer', () => {
 			expect(next.touched).toBe(prior.touched)
 		})
 
-		it('merges new errors when validateOn is "change"', () => {
+		it('validates only the changed field when validateOn is "change"', () => {
 			const next = formReducer(initialState(), {
 				type: 'set-value',
 				name: 'name',
@@ -173,7 +173,51 @@ describe('formReducer', () => {
 				validateOn: 'change',
 			})
 
+			// toStrictEqual also fails on an undefined `age` key, so the untouched field did not validate.
+			expect(next.errors).toStrictEqual({ name: ['required'] })
+		})
+
+		it.each<[string, Pick<FormState<Values>, 'errors' | 'touched'>]>([
+			['is touched', { errors: {}, touched: { age: true } }],
+			['has a result already', { errors: { age: undefined }, touched: {} }],
+		])('also validates another field that %s when validateOn is "change"', (_name, prior) => {
+			const next = formReducer(
+				{ ...initialState(), ...prior },
+				{
+					type: 'set-value',
+					name: 'name',
+					value: '',
+					validate: validators,
+					validateOn: 'change',
+				},
+			)
+
 			expect(next.errors).toEqual({ name: ['required'], age: ['too young'] })
+		})
+
+		it('updates a cross-field result when the other field changes', () => {
+			type Passwords = { password: string; confirm: string }
+
+			const match: Validators<Passwords> = {
+				confirm: (value, values) => (value === values.password ? undefined : 'mismatch'),
+			}
+
+			const prior: FormState<Passwords> = {
+				values: { password: 'abc', confirm: 'abd' },
+				defaults: { password: '', confirm: '' },
+				errors: { confirm: ['mismatch'] },
+				touched: { password: true },
+			}
+
+			const next = formReducer(prior, {
+				type: 'set-value',
+				name: 'password',
+				value: 'abd',
+				validate: match,
+				validateOn: 'change',
+			})
+
+			expect(next.errors).toEqual({ confirm: undefined })
 		})
 
 		it('keeps the same errors reference when no validator produces a new error', () => {

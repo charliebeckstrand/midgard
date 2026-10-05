@@ -75,8 +75,11 @@ export type ContextMenuInsert = 'before' | 'after'
  * @see {@link resolveContextMenuEntries}
  */
 export type ContextMenuConfig = {
-	/** Custom entries to add to the menu, rendered in array order. */
-	items?: ContextMenuItem[]
+	/**
+	 * Custom entries to add to the menu, rendered in array order. An entry is an
+	 * item, a separator, or a submenu ({@link ContextMenuEntry}).
+	 */
+	items?: ContextMenuEntry[]
 	/**
 	 * Keep the host's built-in items. Turn off to show only the custom `items`.
 	 * @defaultValue true

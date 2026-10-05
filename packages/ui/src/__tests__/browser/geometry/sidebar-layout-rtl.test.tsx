@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { Sheet, SheetBody } from '../../../components/sheet'
+import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
 import { cn } from '../../../core'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import { k as pdf } from '../../../recipes/kata/pdf-viewer'
@@ -41,8 +41,10 @@ describe('sidebar layout in RTL (real browser)', () => {
 		document.documentElement.dir = dir
 
 		renderUI(
-			<Sheet open onOpenChange={() => {}} side="start" aria-label="Start">
-				<SheetBody>Start</SheetBody>
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel side="start" aria-label="Start">
+					<SheetBody>Start</SheetBody>
+				</SheetPanel>
 			</Sheet>,
 		)
 
@@ -60,8 +62,10 @@ describe('sidebar layout in RTL (real browser)', () => {
 		document.documentElement.dir = dir
 
 		renderUI(
-			<Sheet open onOpenChange={() => {}} side="end" aria-label="End">
-				<SheetBody>End</SheetBody>
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel side="end" aria-label="End">
+					<SheetBody>End</SheetBody>
+				</SheetPanel>
 			</Sheet>,
 		)
 

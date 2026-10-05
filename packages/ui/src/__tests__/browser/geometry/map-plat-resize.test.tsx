@@ -7,11 +7,11 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../../helpers/map-geography'
 import { plotViewBox } from '../helpers/plot-view-box'
 
 /**
- * A passed d3 projection instance is fit in place, so it keeps its reference
- * across resizes. The plat resolves the measured fit, its region paths, and the
- * projector as one unit over the live frame dimensions, so a resize reprojects
- * all three rather than freezing the geometry at the first fit while the viewBox
- * moves on — the regression these lock.
+ * A passed d3 projection instance belongs to the consumer, so the plat keeps its
+ * canonical fit and carries the canonical paths onto each box by the region
+ * group's transform. A resize must move that transform with the viewBox, rather
+ * than freeze the geometry at the first fit while the viewBox moves on. That is
+ * the regression these lock.
  *
  * It rides the real browser because the subject is a measurement. Under jsdom
  * the same cases stubbed `ResizeObserver`, wrote `clientWidth` onto the plot by
@@ -26,8 +26,13 @@ function firstRegionPath(container: HTMLElement): string | null {
 	return firstRegion(container)?.getAttribute('d') ?? null
 }
 
+/** The region group's transform, or `null` where the group carries none. */
+function regionTransform(container: HTMLElement): string | null {
+	return getSlot(container, 'map-regions').getAttribute('transform')
+}
+
 describe('MapPlat resize with a passed projection instance (real browser)', () => {
-	it('reprojects region geometry on every resize, not just the first', async () => {
+	it('carries the region geometry onto every resize, not just the first', async () => {
 		const { container } = renderUI(
 			<div style={{ width: 300 }}>
 				<MapPlat
@@ -57,6 +62,10 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 
 		const firstWidth = plotViewBox(container, 'map-plot').width
 
+		const firstTransform = regionTransform(container)
+
+		expect(firstTransform).toBeTruthy()
+
 		frame.style.width = '600px'
 
 		await waitFor(() =>
@@ -65,12 +74,11 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 
 		expect(plotViewBox(container, 'map-plot').width).toBeNear(plot.clientWidth, HALF_PIXEL)
 
-		// A named projection carries its paths onto a refit by one group transform
-		// and leaves every `d` alone. This is the other branch: `fitSize` refits a
-		// passed instance in place, so the canonical basis those paths were drawn at
-		// is gone by the time a transform could be derived, and the layer is given
-		// paths at the measured fit instead — which must actually move.
-		expect(firstRegionPath(container)).not.toBe(atFirst)
+		// The paths stay the canonical ones, and the group transform moves them onto
+		// the new box, as it does for a named projection.
+		expect(firstRegionPath(container)).toBe(atFirst)
+
+		expect(regionTransform(container)).not.toBe(firstTransform)
 	})
 })
 

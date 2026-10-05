@@ -8,10 +8,10 @@ export type GlassProviderProps = {
 
 /**
  * Sets the ambient glass flag for the wrapped subtree, switching every
- * glass-aware descendant to its glass variant. Form fields and Button adopt
- * the glass variant when no explicit variant is set; surface chrome (Popover,
- * Dialog, etc.) reads the flag through `useGlass()`. Renders a `display:
- * contents` span.
+ * glass-aware descendant to its glass variant. Form fields adopt the glass
+ * variant when no explicit variant is set. Dialog, Drawer, Sheet, Popover,
+ * Menu, and Tooltip read the flag themselves through `useResolvedSurface`.
+ * Button does not read the flag. Renders a `display: contents` span.
  *
  * @remarks The file has no `'use client'`, so an RSC tree can host the
  * provider. A client leaf writes the context.

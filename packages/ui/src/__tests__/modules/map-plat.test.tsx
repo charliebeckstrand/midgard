@@ -1,5 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
-import { MapPlat } from '../../modules/map'
+import states from 'us-atlas/states-10m.json'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import {
+	type DataKey,
+	type MapGeography,
+	MapPlat,
+	type MapPlatCategoricalProps,
+	type MapPlatNoDataProps,
+	type MapPlatNumericProps,
+	type MapPlatProps,
+} from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import {
 	REGION_FADE,
@@ -24,6 +33,21 @@ import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
 
 describe('MapPlat', () => {
+	it('takes an atlas imported as JSON with no cast', () => {
+		expectTypeOf(states).toExtend<MapGeography>()
+	})
+
+	it('exports a props type for each form of its region data', () => {
+		type Row = { state: string; zone: string; count: number }
+
+		expectTypeOf<MapPlatCategoricalProps<Row>>().toExtend<MapPlatProps<Row>>()
+		expectTypeOf<MapPlatNumericProps<Row>>().toExtend<MapPlatProps<Row>>()
+		expectTypeOf<MapPlatNoDataProps>().toExtend<MapPlatProps<Row>>()
+		expectTypeOf<MapPlatCategoricalProps<Row>['categoryKey']>().toEqualTypeOf<DataKey<Row>>()
+		expectTypeOf<MapPlatNumericProps<Row>['valueKey']>().toEqualTypeOf<DataKey<Row>>()
+		expectTypeOf<MapPlatNoDataProps['data']>().toEqualTypeOf<undefined>()
+	})
+
 	it('draws one region per feature under a labeled role="img" plot', () => {
 		const { container } = renderUI(categoricalPlat())
 
@@ -69,24 +93,31 @@ describe('MapPlat', () => {
 		expect(allRegions(container)).toHaveLength(3)
 	})
 
-	it('holds the paint until measured under a fixed aspect, the reserve still owning the box', () => {
-		// A fixed aspect inverts the default above: an unmeasured frame (jsdom never
-		// measures) mounts no SVG — the geography waits to paint once at the
-		// measured aspect instead of flashing the canonical fit and refitting —
-		// while the plot region still stands and reserves the space.
+	it('paints the canonical frame before it is measured under a fixed aspect', () => {
+		// jsdom never measures, so this is the frame that the server draws. The
+		// canonical frame scales to meet the box, and its strokes keep their width
+		// in px until the measured frame replaces it.
 		const { container } = renderUI(
 			<MapPlat aria-label="Tile" geography={FIXTURE_GEOJSON} aspectRatio="16/9" />,
 		)
 
-		expect(container.querySelector('svg')).toBeNull()
+		const svg = container.querySelector('svg')
 
-		expect(bySlot(container, 'map-plot')).toBeInTheDocument()
+		expect(svg?.getAttribute('viewBox')).toMatch(/^0 0 1000 /)
+
+		expect(svg).toHaveClass('[&_*]:[vector-effect:non-scaling-stroke]')
+
+		expect(allRegions(container)).toHaveLength(3)
 	})
 
 	it('paints immediately under a fixed aspect when an explicit width fixes the frame', () => {
-		// An explicit width is already "measured" (the SSR / test path), so there is
-		// nothing to defer for: the map draws on the first commit as usual.
+		// An explicit width is already "measured" (the SSR / test path), so the map
+		// draws the measured frame on the first commit, with strokes in frame units.
 		const { container } = renderUI(categoricalPlat({ aspectRatio: '16/9' }))
+
+		expect(container.querySelector('svg')).not.toHaveClass(
+			'[&_*]:[vector-effect:non-scaling-stroke]',
+		)
 
 		expect(allRegions(container)).toHaveLength(3)
 	})

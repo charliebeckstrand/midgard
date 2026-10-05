@@ -1,8 +1,13 @@
 import { join, relative } from 'node:path'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { docblockEnvironment, walkSource } from './src/__tests__/helpers/walk-source'
-import { docsPlugin } from './src/docs/engine/plugins'
+import {
+	docblockEnvironment,
+	docsTestDirs,
+	srcRelative,
+	walkSource,
+} from './src/__tests__/helpers/walk-source'
+import { reactDocs } from './src/docs/plugin/index.ts'
 import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
@@ -17,9 +22,9 @@ import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 function nodeEnvironmentFiles(): string[] {
 	const files: string[] = []
 
-	for (const dir of ['src/__tests__', 'src/docs/engine/__tests__']) {
+	for (const dir of [join(import.meta.dirname, 'src/__tests__'), ...docsTestDirs]) {
 		walkSource(
-			join(import.meta.dirname, dir),
+			dir,
 			(file, content) => {
 				if (/\.test\.tsx?$/.test(file) && docblockEnvironment(content) === 'node') {
 					files.push(relative(import.meta.dirname, file))
@@ -72,11 +77,11 @@ const nodeScan = {
 
 // Vitest keeps no module on disk that calls `import.meta.glob(`, because the
 // result depends on the files that the glob matches. The check reads that
-// exact text, so a typed call such as `import.meta.glob<ComponentType>(` passes
-// it, and the cache keeps the old expansion. After a rename of a docs demo, the
-// cached `demo-pages.tsx` then imports a file that is gone. CI restores the
-// cache, so the failure also occurs there. This generator keeps each glob call
-// out of the cache, typed or not.
+// exact text, so a typed call such as `import.meta.glob<Record<string, unknown>>(`
+// passes it, and the cache keeps the old expansion. After a rename of a kata
+// file, the cached `default-value-boundary.test.ts` then imports a file that is
+// gone. CI restores the cache, so the failure also occurs there. This generator
+// keeps each glob call out of the cache, typed or not.
 const typedGlob = /import\.meta\.glob\s*</
 
 function skipGlobCache({ sourceCode }: { sourceCode: string }): false | undefined {
@@ -178,11 +183,13 @@ export default defineConfig({
 		projects: [
 			{
 				extends: true as const,
-				// The docs engine, pointed at ui, backs the `docs/*` integration
-				// tests under src/__tests__/docs/ (the real component-modules map +
-				// barrel tagging) and runs its own suite under
-				// src/docs/engine/__tests__.
-				plugins: [docsPlugin({ vitest: true })],
+				// The suite of the docs app, under src/docs/__tests__, runs here too.
+				// The pages import the virtual modules of the docs plugin, so the
+				// smoke test of the pages (`page-smoke.test.tsx`) needs the real
+				// plugin. The plugin transforms only the files of `pages/`, and it
+				// loads a virtual module only when a test imports one. Thus it costs
+				// the other suites almost nothing.
+				plugins: [reactDocs()],
 				test: {
 					name: 'unit',
 					setupFiles,
@@ -201,7 +208,7 @@ export default defineConfig({
 					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',
-						'src/docs/engine/__tests__/**/*.test.{ts,tsx}',
+						...docsTestDirs.map((dir) => `src/${srcRelative(dir)}/**/*.test.{ts,tsx}`),
 					],
 					// The browser suite (vitest.browser.config.ts) verifies behavior
 					// jsdom can't — layout/color geometry and, in its floating-ui
@@ -230,9 +237,7 @@ export default defineConfig({
 				// project gives to `expect`. A file here cannot reach the
 				// shared jsdom window by accident, and
 				// `node-environment-boundary.test.ts` keeps the docblock and the
-				// file's DOM use in step both ways. The docs engine's pure suites
-				// live here too, so the project carries the same plugin as `unit`.
-				plugins: [docsPlugin({ vitest: true })],
+				// file's DOM use in step both ways.
 				test: {
 					name: 'pure',
 					environment: 'node',

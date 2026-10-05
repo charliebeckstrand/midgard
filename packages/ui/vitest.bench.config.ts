@@ -10,14 +10,8 @@ export default defineConfig({
 		setupFiles: ['./src/__benchmarks__/setup.ts'],
 		benchmark: {
 			// The browser-mode suite (vitest.bench.browser.config.ts) needs real
-			// layout and scroll geometry, so it can't run under jsdom. The docs
-			// ts-morph suite (vitest.bench.docs.config.ts) pays multi-second
-			// project setups per iteration and runs on its own command.
-			exclude: [
-				'**/node_modules/**',
-				'src/__benchmarks__/browser/**',
-				'src/__benchmarks__/docs/**',
-			],
+			// layout and scroll geometry, so it can't run under jsdom.
+			exclude: ['**/node_modules/**', 'src/__benchmarks__/browser/**'],
 		},
 	},
 })

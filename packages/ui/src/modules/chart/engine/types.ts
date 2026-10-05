@@ -200,6 +200,12 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/**
 	 * Frame width in px. Omitted, the chart measures its container and fills
 	 * it; pass a width for a fixed frame (and for deterministic SSR output).
+	 * @remarks Without `width`, the frame is a query container at the full width
+	 * of its parent, so its content gives it no width. Give it a parent with a
+	 * definite width. In a parent that sizes to its content, the chart gets only
+	 * the width that the other content of that parent gives. A categorical
+	 * `legend` at `left` or `right` goes beside the plot only at a frame width of
+	 * 24rem (`@sm`) or more. Below that width, the legend stacks under the plot.
 	 */
 	width?: number
 	/** Frame height in px; wins over `aspectRatio` when set (a free-form fixed height). */

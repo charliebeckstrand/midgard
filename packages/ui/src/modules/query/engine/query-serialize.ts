@@ -1,3 +1,4 @@
+import type { JsonValue } from '../../../components/json-tree'
 import { imposesConstraint, isBlank } from './query-evaluate'
 import { createGroup, createRule, MAX_DEPTH } from './query-node'
 import { getOperators } from './query-operators'
@@ -119,12 +120,12 @@ function readCombinator(value: unknown, path: string, context: ParseContext): Qu
 }
 
 /** Whether a compact item has the shape of a group. @internal */
-function isCompactGroup(item: unknown[]): boolean {
+function isCompactGroup(item: JsonValue[]): item is [JsonValue, JsonValue[]] {
 	return item.length === 2 && Array.isArray(item[1])
 }
 
 /** Whether a compact item has the shape of a rule. @internal */
-function isCompactRule(item: unknown[]): boolean {
+function isCompactRule(item: JsonValue[]): boolean {
 	return (
 		(item.length === 3 || item.length === 4) &&
 		typeof item[1] === 'string' &&
@@ -134,7 +135,7 @@ function isCompactRule(item: unknown[]): boolean {
 
 /** Reads the children of a group, and drops each child that it cannot read. @internal */
 function readChildren(
-	items: unknown[],
+	items: JsonValue[],
 	path: string,
 	depth: number,
 	context: ParseContext,
@@ -151,7 +152,7 @@ function readChildren(
 }
 
 /** Reads a rule, and drops it when `fields` does not offer its field or operator. @internal */
-function readRule(item: unknown[], path: string, context: ParseContext): QueryRule | undefined {
+function readRule(item: JsonValue[], path: string, context: ParseContext): QueryRule | undefined {
 	const [, field, operator] = item as [unknown, string, string]
 
 	const { fields } = context
@@ -190,7 +191,7 @@ function readRule(item: unknown[], path: string, context: ParseContext): QueryRu
 
 /** Reads one compact node, or reports why it drops it. @internal */
 function readNode(
-	item: unknown,
+	item: JsonValue,
 	path: string,
 	depth: number,
 	context: ParseContext,
@@ -251,7 +252,7 @@ export function parseQuery(
 
 	if (text == null || text === '') return { value: undefined, issues }
 
-	let input: unknown
+	let input: JsonValue
 
 	try {
 		input = JSON.parse(text)

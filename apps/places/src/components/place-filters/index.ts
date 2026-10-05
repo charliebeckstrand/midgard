@@ -1,5 +1,1 @@
-export {
-	PlaceFilters,
-	type PlaceFiltersProps,
-	PlaceFiltersSkeleton,
-} from './place-filters'
+export { PlaceFilters, type PlaceFiltersProps } from './place-filters'

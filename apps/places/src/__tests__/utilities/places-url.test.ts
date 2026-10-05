@@ -1,4 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+// The paint filter is behind a flag. These cases read it with the flag on, and
+// one case turns the flag off.
+const flags = vi.hoisted(() => ({ visitedRegions: true }))
+
+vi.mock('../../flags', () => ({ flags }))
+
 import { fromDay } from '../../utilities/places-filter'
 import { type PlaceLocation, readLocation, writeLocation } from '../../utilities/places-url'
 import { UNITED_STATES, WORLD } from '../../utilities/places-view'
@@ -55,6 +62,16 @@ describe('readLocation', () => {
 		expect(read('paint=unvisited').filter.visitedRegions).toBe('unvisited')
 
 		expect(read('paint=maybe').filter.visitedRegions).toBeUndefined()
+	})
+
+	it('drops the paint filter while the feature is off', () => {
+		flags.visitedRegions = false
+
+		try {
+			expect(read('paint=visited').filter.visitedRegions).toBeUndefined()
+		} finally {
+			flags.visitedRegions = true
+		}
 	})
 
 	it('reads the committed spans as local days', () => {

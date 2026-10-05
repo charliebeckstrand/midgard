@@ -46,7 +46,7 @@ describe('Command palette heading space (real browser)', () => {
 
 		const input = getSlot(document.body, 'command-palette-input')
 
-		const titles = allBySlot(document.body, 'command-palette-title')
+		const titles = allBySlot(document.body, 'command-palette-heading')
 
 		expect(titles).toHaveLength(2)
 
