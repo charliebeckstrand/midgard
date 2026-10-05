@@ -430,18 +430,11 @@ describe('useCalendarFocus: day grid', () => {
 	})
 
 	// A day of the shown month outside min and max is disabled. An arrow toward it
-	// keeps the focus where it is, and does not wrap or leave the grid.
-	it.each<[string, string, { min?: Date; max?: Date; footer?: boolean }, number]>([
+	// goes to its day held between min and max, and the focus stays when that is
+	// the focused day. The arrow does not wrap or leave the grid.
+	it.each<[string, string, { min?: Date; max?: Date }, number]>([
 		['ArrowLeft from the min day', 'ArrowLeft', { min: new Date(2025, 5, 10) }, 10],
 		['ArrowRight from the max day', 'ArrowRight', { max: new Date(2025, 5, 20) }, 20],
-		['ArrowUp below days before min', 'ArrowUp', { min: new Date(2025, 5, 10) }, 12],
-		['ArrowDown above days after max', 'ArrowDown', { max: new Date(2025, 5, 20) }, 18],
-		[
-			'ArrowDown above days after max, with a footer',
-			'ArrowDown',
-			{ max: new Date(2025, 5, 20), footer: true },
-			18,
-		],
 	])('keeps the focus, and consumes the key, on %s', (_name, key, options, day) => {
 		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune(options)
 
@@ -457,6 +450,36 @@ describe('useCalendarFocus: day grid', () => {
 
 		expect(navigateTo).not.toHaveBeenCalled()
 	})
+
+	it.each<[string, string, { min?: Date; max?: Date; footer?: boolean }, number, number]>([
+		['ArrowUp from June 12 to min', 'ArrowUp', { min: new Date(2025, 5, 10) }, 12, 10],
+		['ArrowDown from June 18 to max', 'ArrowDown', { max: new Date(2025, 5, 20) }, 18, 20],
+		['ArrowDown past the month end to max', 'ArrowDown', { max: new Date(2025, 5, 28) }, 25, 28],
+		[
+			'ArrowDown from June 18 to max, with a footer',
+			'ArrowDown',
+			{ max: new Date(2025, 5, 20), footer: true },
+			18,
+			20,
+		],
+	])(
+		'holds the target in the range, and consumes the key, on %s',
+		(_name, key, options, from, to) => {
+			const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune(options)
+
+			focusDay(from)
+
+			const event = makeKeyEvent(key)
+
+			handleGridKeyDown(event)
+
+			expect(document.activeElement).toBe(grid.querySelectorAll('button').item(to - 1))
+
+			expect(event.preventDefault).toHaveBeenCalled()
+
+			expect(navigateTo).not.toHaveBeenCalled()
+		},
+	)
 
 	it('leaves an arrow inside the month to the roving grid', () => {
 		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune()

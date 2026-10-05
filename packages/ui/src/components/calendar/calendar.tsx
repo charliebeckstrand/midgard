@@ -164,12 +164,13 @@ export type CalendarProps = {
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
  * that leaves the month steps the month. That includes ArrowUp on the top row
  * and ArrowDown on the bottom row. PageUp and PageDown step a month, and Shift
- * with a Page key steps a year. Home and End stay at the ends of the month.
+ * with a Page key steps a year. Home and End go to the first and the last
+ * enabled day of the shown month.
  *
- * The focused day stays between `min` and `max`. An arrow to a disabled day of
- * the shown month keeps the focus where it is. Thus the arrows never leave the
- * day grid, and they never wrap. Tab and Shift+Tab reach the header and the
- * footer.
+ * The focused day stays between `min` and `max`. An arrow or a Page key toward
+ * a disabled day moves the focus to the nearest enabled day. When that is the
+ * focused day, the focus stays. Thus the arrows never leave the day grid, and
+ * they never wrap. Tab and Shift+Tab reach the header and the footer.
  *
  * @remarks
  * Client component (`'use client'`). "Today" waits for hydration, so a

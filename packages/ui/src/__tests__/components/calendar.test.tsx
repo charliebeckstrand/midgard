@@ -592,8 +592,9 @@ describe('Calendar keyboard navigation', () => {
 
 	// Disabled (out-of-range) days render as `<button disabled>` and can't take
 	// focus. In a calendar that no parent steers, an arrow toward a disabled day
-	// of the month keeps the focus where it is. The arrow does not wrap, and it
-	// does not move the focus out of the grid. Tab and Shift+Tab still do.
+	// moves the focus to the nearest enabled day, and the focus stays when that is
+	// the focused day. The arrow does not wrap, and it does not move the focus out
+	// of the grid. Tab and Shift+Tab still do.
 	function renderMinTenth() {
 		// June 2025 begins on a Sunday; `min` on the 10th disables June 1-9, so the
 		// grid's first focusable day is the 10th.
@@ -672,20 +673,35 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(day('20'))
 	})
 
+	it('moves to the min day when ArrowUp meets a disabled day before min', async () => {
+		const user = setupUser()
+
+		renderMinTenth()
+
+		act(() => day('12').focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
 	it.each([
 		['without a footer', false],
 		['with a footer', true],
-	])('keeps focus when ArrowDown meets a disabled day after max, %s', async (_name, footer) => {
-		const user = setupUser()
+	])(
+		'moves to the max day when ArrowDown meets a disabled day after max, %s',
+		async (_name, footer) => {
+			const user = setupUser()
 
-		renderMaxTwentieth({ footer })
+			renderMaxTwentieth({ footer })
 
-		act(() => day('18').focus())
+			act(() => day('18').focus())
 
-		await user.keyboard('{ArrowDown}')
+			await user.keyboard('{ArrowDown}')
 
-		expect(document.activeElement).toBe(day('18'))
-	})
+			expect(document.activeElement).toBe(day('20'))
+		},
+	)
 })
 
 // A calendar that no parent steers carries the date grid of the WAI-ARIA APG.
