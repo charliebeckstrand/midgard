@@ -1,8 +1,9 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { Info, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
+import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Grid, type GridColumn } from 'ui/modules/grid'
@@ -12,6 +13,7 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
+import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
@@ -163,21 +165,38 @@ export function PlacesIndex({
 				cell: (place) => place.city ?? '',
 			},
 			{
-				id: 'visited',
+				id: 'visits',
 				title: 'Visits',
-				// Sorted by the newest visit. The stored day sorts and the local
-				// rendering shows. Sorted on the rendered date, 2026-01-05 and
-				// 2026-05-01 order by the reader's own notation rather than by when
-				// they went.
-				value: (place) => latestVisit(place).visitedAt,
-				// Every visit, newest first, one date to a line. The open place lists
-				// each visit with its score and its review.
+				// The number of visits, and a button whose tooltip lists the date of
+				// each one, newest first. The tooltip opens on a hover, and on a tap
+				// on touch. The grid leaves a click on the button to the button, so it
+				// does not open the place.
+				value: (place) => place.visits.length,
 				cell: (place) => (
-					<Stack gap="xs">
-						{place.visits.map((visit) => (
-							<span key={visit.id}>{fromDay(visit.visitedAt).toLocaleDateString()}</span>
-						))}
-					</Stack>
+					<Flex gap="xs" align="center">
+						<span>{place.visits.length}</span>
+
+						<Tooltip>
+							<TooltipTrigger>
+								<Button
+									type="button"
+									variant="bare"
+									size="sm"
+									aria-label={`Visit dates for ${place.name}`}
+								>
+									<Icon icon={<Info />} />
+								</Button>
+							</TooltipTrigger>
+
+							<TooltipContent>
+								<Stack gap="xs">
+									{place.visits.map((visit) => (
+										<span key={visit.id}>{fromDay(visit.visitedAt).toLocaleDateString()}</span>
+									))}
+								</Stack>
+							</TooltipContent>
+						</Tooltip>
+					</Flex>
 				),
 			},
 			{
@@ -291,7 +310,7 @@ export function PlacesIndex({
 						width="fit"
 						getKey={(place) => place.id}
 						search={{ placeholder: 'Find a place' }}
-						sort={{ defaultValue: [{ column: 'visited', direction: 'desc' }] }}
+						sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
 						onRowClick={onOpen}
 						virtualize
 						maxHeight="fill"
