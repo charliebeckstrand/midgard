@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useControllableFlag, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -21,23 +21,25 @@ export type ColorPickerStateOptions = {
 	onOpenChange?: (open: boolean) => void
 	placement: Placement
 	disabled?: boolean
+	readOnly?: boolean
 }
 
 /**
  * Wires the popover trigger: owns the color shared by the swatch and the
- * inline panel. It resolves id / disabled / invalid from an enclosing Control,
- * and drives the floating dialog's open state.
+ * inline panel. It resolves id / disabled / readOnly / invalid from an enclosing
+ * Control, and drives the floating dialog's open state.
  *
  * @returns The color state (`hsva`, `setHsva`), the open state (`open`,
  * `onOpenChange`), and the Control-derived field metadata (`triggerId`,
- * `describedBy`, `disabled`, `validation`). It also returns the
+ * `describedBy`, `disabled`, `readOnly`, `validation`). It also returns the
  * Floating UI plumbing (`setReference`, `setFloating`, `floatingStyles`,
  * `getReferenceProps`, `getFloatingProps`, `context`).
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (CONVENTIONS §7.2); the field's
  * own errors reach `validation` beside the Control severity, as
- * `useControlProps` resolves them. An explicit `disabled` wins over the
- * enclosing Control's. `setReference` captures the trigger node for
+ * `useControlProps` resolves them. An explicit `disabled` or `readOnly` wins
+ * over the enclosing Control's. A close of the panel marks the bound field
+ * touched. `setReference` captures the trigger node for
  * `useFloatingUI`'s `returnFocusTo` alongside Floating UI's own reference
  * setter.
  * @internal
@@ -52,6 +54,7 @@ export function useColorPickerState({
 	onOpenChange,
 	placement,
 	disabled,
+	readOnly,
 }: ColorPickerStateOptions) {
 	// The §7.2 binding sits above the color state rather than inside it: a bound
 	// field is the value channel, and `useColorState` keeps the HSVA the swatch
@@ -67,7 +70,7 @@ export function useColorPickerState({
 
 	// The Control cascade: an explicit prop wins over the enclosing Control, and
 	// the field error merges with an ambient error severity.
-	const controlProps = useControlProps({ disabled, invalid: bound.invalid })
+	const controlProps = useControlProps({ disabled, readOnly, invalid: bound.invalid })
 
 	const scope = useIdScope({ id: controlProps.id })
 
@@ -91,9 +94,21 @@ export function useColorPickerState({
 		onValueChange: onOpenChange,
 	})
 
+	const { setTouched } = bound
+
 	// Narrowed on the way out: the controllable setter also takes `null` and a functional
 	// updater, and neither belongs in the boolean `onOpenChange` this hook publishes.
-	const setOpen: (next: boolean) => void = setOpenValue
+	// Each set is a real transition, so a `false` is a close. A close (the trigger, an
+	// outside press, or Escape) is the "blur" of the field. It marks the field touched,
+	// so that the rules of `validateOn="touched"` run.
+	const setOpen = useCallback(
+		(next: boolean) => {
+			setOpenValue(next)
+
+			if (!next) setTouched()
+		},
+		[setOpenValue, setTouched],
+	)
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
@@ -120,6 +135,7 @@ export function useColorPickerState({
 		triggerId: scope.id,
 		describedBy: controlProps['aria-describedby'],
 		disabled: controlProps.disabled === true,
+		readOnly: controlProps.readOnly === true,
 		validation: controlProps.validation,
 		hsva,
 		setHsva,

@@ -54,6 +54,13 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 */
 	size?: ScaleStep<typeof scale>
 	disabled?: boolean
+	/**
+	 * Blocks the open of the panel, so the color cannot change. An explicit value
+	 * wins over the `readOnly` of an enclosing Control. While the panel is closed,
+	 * the trigger is disabled, because a button does not take `aria-readonly`. A
+	 * panel that is open when `readOnly` turns on can still close.
+	 */
+	readOnly?: boolean
 	className?: string
 }
 
@@ -79,6 +86,7 @@ export function ColorPicker(props: ColorPickerProps) {
 		placement = 'bottom-start',
 		size,
 		disabled,
+		readOnly,
 		className,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
@@ -97,6 +105,7 @@ export function ColorPicker(props: ColorPickerProps) {
 		onOpenChange,
 		placement,
 		disabled,
+		readOnly,
 	})
 
 	// The picker owns the color and gives its HSVA to the inline panel. The panel
@@ -128,6 +137,7 @@ export function ColorPicker(props: ColorPickerProps) {
 				alpha={alpha}
 				size={size}
 				disabled={state.disabled}
+				readOnly={state.readOnly}
 				validation={state.validation}
 				className={className}
 				data-group={dataGroup}

@@ -21,6 +21,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover. A `rating` with `step={0.5}` has two radios for each star. The start half sets the half score, and the halves mirror in a right-to-left row.
 
+> A `readOnly` `ColorPicker` does not open its panel. It takes `readOnly` from its own prop or from an enclosing `Control`. Its trigger is a button, and a button does not take `aria-readonly`, so the trigger is disabled while the panel is closed.
+
 ## Form structure
 
 `form` · `fieldset` · `control`

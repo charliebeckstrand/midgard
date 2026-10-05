@@ -29,6 +29,8 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	 */
 	size?: ScaleStep<typeof scale>
 	disabled?: boolean
+	/** The resolved `readOnly`. It blocks the open, but a panel that is open can still close. */
+	readOnly?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
 	validation?: ValidationAttrs
 	className?: string
@@ -39,7 +41,9 @@ type ColorPickerTriggerProps = GroupStampProps & {
  * opening the picker dialog.
  *
  * @remarks The trigger is a plain button, and a button does not take
- * `aria-required`. So a required Control puts no required state on it.
+ * `aria-required`. So a required Control puts no required state on it. A
+ * button does not take `aria-readonly` either, so a read-only trigger is
+ * disabled while the panel is closed.
  * @internal
  */
 export function ColorPickerTrigger({
@@ -53,6 +57,7 @@ export function ColorPickerTrigger({
 	alpha,
 	size,
 	disabled = false,
+	readOnly = false,
 	validation,
 	className,
 	'data-group': dataGroup,
@@ -88,7 +93,8 @@ export function ColorPickerTrigger({
 						aria-expanded={open}
 						aria-describedby={describedBy}
 						data-slot="color-picker-button"
-						disabled={disabled}
+						// readOnly blocks the open, but a panel that is open can still close.
+						disabled={disabled || (readOnly && !open)}
 						{...validation}
 						onClick={() => onOpenChange(!open)}
 						className={cn(k.button())}

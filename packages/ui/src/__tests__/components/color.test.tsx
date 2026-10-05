@@ -27,6 +27,7 @@ import {
 	renderUI,
 	screen,
 } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -411,6 +412,42 @@ describe('ColorPicker', () => {
 		expect(bySlot(container, 'color-picker-button')).toBeEnabled()
 	})
 
+	it.each([
+		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" readOnly />],
+		[
+			'an enclosing Control',
+			<Control key="control" readOnly>
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		],
+	])('does not open the panel while read-only from %s', (_, ui) => {
+		const { container } = renderUI(ui)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('lets a panel that is open when readOnly turns on close from the trigger', () => {
+		const { container, rerender } = renderUI(<ColorPicker defaultValue="#ef4444" />)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+
+		rerender(<ColorPicker defaultValue="#ef4444" readOnly />)
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
+
 	it('puts no aria-required on the trigger, a button that does not take it', () => {
 		const { container } = renderUI(
 			<Control required>
@@ -466,6 +503,29 @@ describe('ColorPicker', () => {
 		act(() => actions?.reset({}))
 
 		expect(button).toHaveTextContent('#000000')
+	})
+
+	it('marks the bound field touched when its panel closes, so a touched rule runs', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{}} validate={{ color: (v) => (v ? undefined : 'Pick a color') }}>
+				<ColorPicker name="color" />
+				<FieldProbe name="color" />
+			</Form>,
+		)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		// The trigger's own toggle drives both ends. Per §10.3 the floating-ui
+		// dismiss paths stay undriven; they close through the same setter.
+		fireEvent.click(button)
+
+		expect(getFieldProbe('color')).toHaveAttribute('data-touched', 'false')
+
+		fireEvent.click(button)
+
+		expect(getFieldProbe('color')).toHaveAttribute('data-touched', 'true')
+
+		expect(button).toHaveAttribute('aria-invalid', 'true')
 	})
 
 	it('renders a dialog trigger with a color swatch', () => {
