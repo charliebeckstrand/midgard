@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, Globe, MapPin, X } from 'lucide-react'
+import { CalendarDays, Globe, MapPin, Tag, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
@@ -98,25 +98,6 @@ function PlaceMeta({ place }: { place: Place }) {
 }
 
 /**
- * The category and the score of the newest visit of one open place, under the
- * trail. The visit dates are not on this line. A date is a fact about a visit,
- * so it goes with the visit in the body.
- */
-function PlaceScore({ place }: { place: Place }) {
-	const category = CATEGORY_BY_VALUE.get(place.category)
-
-	const { rating } = latestVisit(place)
-
-	return (
-		<Flex gap="sm" align="center" wrap>
-			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
-
-			{rating > 0 ? <Rating readOnly value={rating} size="sm" /> : null}
-		</Flex>
-	)
-}
-
-/**
  * One fact about a place, with an icon that names the fact. The icon box is one
  * line high, so the icon stays on the first line when the text wraps.
  */
@@ -199,13 +180,27 @@ function PlaceVisit({
 }
 
 /**
- * The body of the drawer over one place: its address, its web address, and its
- * visits, newest first.
+ * The body of the drawer over one place: its category, its address, its web
+ * address, and its visits, newest first. A score is a fact about a visit, so
+ * each visit shows its own, and the place shows none.
  */
 function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions }) {
+	const category = CATEGORY_BY_VALUE.get(place.category)
+
 	return (
 		<Stack gap="md" className="pb-6">
 			<Stack gap="sm">
+				{category ? (
+					<PlaceFact icon={<Tag />}>
+						{/* The badge is taller than a line. It is centered on one line, so
+						    its middle meets the middle of the icon, and the row is one line
+						    high, the same as the rows under it. */}
+						<div className="flex h-lh items-center">
+							<Badge color={category.color}>{category.label}</Badge>
+						</div>
+					</PlaceFact>
+				) : null}
+
 				<PlaceFact icon={<MapPin />}>
 					<Text>{place.address}</Text>
 				</PlaceFact>
@@ -581,8 +576,6 @@ export function PlaceDrawer({
 						<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
 
 						<PlaceTrail className="text-base/7" steps={steps} />
-
-						{place ? <PlaceScore place={place} /> : null}
 					</Stack>
 
 					{/* The menu of the open place sits by the close, where a list row of My
