@@ -16,10 +16,9 @@ export const k = {
 		size.md,
 		text.muted,
 		fg.hover,
-		...mode(
-			'group-data-[open]/collapse:text-zinc-950',
-			'dark:group-data-[open]/collapse:text-white',
-		),
+		// The open color reads the `aria-expanded` of the trigger itself. Thus an open
+		// outer Collapse does not give its color to the trigger of a nested Collapse.
+		...mode('aria-expanded:text-zinc-950', 'dark:aria-expanded:text-white'),
 		focus.ring,
 		...disabled,
 		...cursor,
