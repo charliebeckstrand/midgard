@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { AppearanceScript, FontPreload } from 'ui/providers/appearance'
+import { AppearanceScript, FontScript } from 'ui/providers/appearance'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		<html lang="en" className="h-full" suppressHydrationWarning>
 			<head>
 				<AppearanceScript />
-				<FontPreload />
+				<FontScript />
 			</head>
 			{/* The map fills the screen, so the page never scrolls: the body is the
 			    frame every panel docks against. */}
