@@ -211,6 +211,106 @@ describe('CurrencyInput', () => {
 		expect(input.value).toBe('0.5')
 	})
 
+	// A decimal keypad follows the region of the device, so it can offer only
+	// the other mark. That mark is the decimal when one or two digits follow it,
+	// and the display after blur writes the locale decimal.
+	it.each([
+		['en-US', 'USD', '12,50', '12.50'],
+		['de-DE', 'EUR', '12.50', '12,50'],
+	])(
+		'reads the other mark as the decimal in a %s field',
+		async (locale, currency, typed, display) => {
+			const onValueChange = vi.fn()
+
+			const { container } = renderUI(
+				<CurrencyInput locale={locale} currency={currency} onValueChange={onValueChange} />,
+			)
+
+			const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+			const user = setupUser()
+
+			await user.type(input, typed)
+
+			expect(input.value).toBe(typed)
+
+			expect(onValueChange).toHaveBeenLastCalledWith(12.5)
+
+			await user.tab()
+
+			expect(input.value).toBe(display)
+		},
+	)
+
+	it.each([
+		['en-US', 'USD', '1,234', '1,234.00'],
+		['de-DE', 'EUR', '1.234', '1.234,00'],
+	])(
+		'reads a typed group mark as a group in a %s field',
+		async (locale, currency, typed, display) => {
+			const onValueChange = vi.fn()
+
+			const { container } = renderUI(
+				<CurrencyInput locale={locale} currency={currency} onValueChange={onValueChange} />,
+			)
+
+			const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+			const user = setupUser()
+
+			await user.type(input, typed)
+
+			expect(onValueChange).toHaveBeenLastCalledWith(1234)
+
+			await user.tab()
+
+			expect(input.value).toBe(display)
+		},
+	)
+
+	// The text keeps the typed mark, so a later digit can make it a group mark.
+	it('lets a later digit make the other mark a group', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<CurrencyInput locale="en-US" currency="USD" onValueChange={onValueChange} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = setupUser()
+
+		await user.type(input, '1,23')
+
+		expect(input.value).toBe('1,23')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(1.23)
+
+		await user.type(input, '4')
+
+		expect(input.value).toBe('1,234')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(1234)
+	})
+
+	it('keeps the caret after the other mark that acts as the decimal', async () => {
+		const { container } = renderUI(<CurrencyInput locale="en-US" currency="USD" />)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = setupUser()
+
+		await user.type(input, '12,05')
+
+		input.setSelectionRange(4, 4)
+
+		await user.keyboard('{Backspace}')
+
+		expect(input.value).toBe('12,5')
+
+		expect(input.selectionStart).toBe(3)
+	})
+
 	it('emits null when cleared', async () => {
 		const onChange = vi.fn()
 

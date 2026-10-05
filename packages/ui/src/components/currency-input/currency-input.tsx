@@ -103,6 +103,20 @@ function useSymbolAffix({
  * decimal separators are pinned to the resolved locale via Intl and digits to
  * ASCII (`numberingSystem: 'latn'`), so native-digit locales are normalized.
  * See {@link useCurrencyInputFormatting} for the Intl caveats.
+ *
+ * A decimal keypad follows the region of the device, so it can offer only the
+ * other mark, such as "," in an en-US field. The field reads the other mark as
+ * the decimal only when all of these conditions are true:
+ *
+ * - The text has no locale decimal.
+ * - The other mark is the last mark.
+ * - One or more digits follow it, and not more than the fraction digits of the
+ *   currency or `precision`.
+ * - When the other mark is also the locale group, two digits or fewer follow it.
+ *
+ * Else it is a group mark, so "1,234" in an en-US field gives 1234. The text
+ * keeps the typed mark, so a later digit can change it to a group mark. After
+ * blur, the display writes the locale decimal.
  * @see {@link Input}
  * @see {@link NumberInput}
  * @see {@link useCurrencyInputFormatting}
@@ -155,7 +169,10 @@ export function CurrencyInput({
 	if (heldNum !== num) {
 		setHeldNum(num)
 
-		if (editingText !== null && parseEditing(editingText, group, decimal) !== (num ?? undefined)) {
+		if (
+			editingText !== null &&
+			parseEditing(editingText, group, decimal, maxFractionDigits) !== (num ?? undefined)
+		) {
 			setEditingText(null)
 		}
 	}
@@ -168,7 +185,7 @@ export function CurrencyInput({
 	// put the next digit in the integer part (`.5` to `5.`).
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits),
-		meaningful: (c, index) => isMeaningful(c, index, decimal),
+		meaningful: (c, index, text) => isMeaningful(c, index, text, group, decimal, maxFractionDigits),
 		atEnd: 'jump',
 		ref,
 	})
@@ -196,7 +213,7 @@ export function CurrencyInput({
 				onBlur,
 				() => {
 					if (editingText !== null) {
-						const parsed = parseEditing(editingText, group, decimal)
+						const parsed = parseEditing(editingText, group, decimal, maxFractionDigits)
 
 						if (parsed !== num) setNum(parsed)
 
@@ -215,7 +232,7 @@ export function CurrencyInput({
 
 				setEditingText(formatted)
 
-				const parsed = parseEditing(formatted, group, decimal)
+				const parsed = parseEditing(formatted, group, decimal, maxFractionDigits)
 
 				// Guard like the blur path: a keystroke that changes the text but
 				// not the number — a trailing separator, a digit past `precision` —

@@ -19,40 +19,60 @@ describe('escapeRegExp', () => {
 
 describe('isMeaningful', () => {
 	it('treats digits as meaningful', () => {
-		expect(isMeaningful('0', 0, '.')).toBe(true)
+		expect(isMeaningful('0', 0, '0', ',', '.', 2)).toBe(true)
 
-		expect(isMeaningful('9', 3, '.')).toBe(true)
+		expect(isMeaningful('9', 3, '1239', ',', '.', 2)).toBe(true)
 	})
 
 	it('treats a minus sign at index 0 as meaningful', () => {
-		expect(isMeaningful('-', 0, '.')).toBe(true)
+		expect(isMeaningful('-', 0, '-1', ',', '.', 2)).toBe(true)
 	})
 
 	it('treats the minus sign U+2212 at index 0 as meaningful, as formatEditing keeps it as "-"', () => {
-		expect(isMeaningful('\u2212', 0, ',')).toBe(true)
+		expect(isMeaningful('\u2212', 0, '\u22121', '.', ',', 2)).toBe(true)
 	})
 
 	// formatEditing keeps only a leading sign, so a sign after index 0 must not
 	// move the caret.
 	it.each([
-		['-', '.'],
-		['\u2212', ','],
-	])('rejects the minus sign %s after index 0', (sign, decimal) => {
-		expect(isMeaningful(sign, 1, decimal)).toBe(false)
+		['-', ',', '.'],
+		['\u2212', '.', ','],
+	])('rejects the minus sign %s after index 0', (sign, group, decimal) => {
+		expect(isMeaningful(sign, 1, `1${sign}234`, group, decimal, 2)).toBe(false)
 
-		expect(isMeaningful(sign, 4, decimal)).toBe(false)
+		expect(isMeaningful(sign, 4, `1234${sign}`, group, decimal, 2)).toBe(false)
 	})
 
 	it('treats the configured decimal separator as meaningful', () => {
-		expect(isMeaningful('.', 1, '.')).toBe(true)
+		expect(isMeaningful('.', 1, '1.5', ',', '.', 2)).toBe(true)
 
-		expect(isMeaningful(',', 1, ',')).toBe(true)
+		expect(isMeaningful(',', 1, '1,5', '.', ',', 2)).toBe(true)
 	})
 
 	it('rejects group separators and other characters', () => {
-		expect(isMeaningful(',', 1, '.')).toBe(false)
+		expect(isMeaningful(',', 1, '1,234', ',', '.', 2)).toBe(false)
 
-		expect(isMeaningful(' ', 1, '.')).toBe(false)
+		expect(isMeaningful(' ', 1, '1 234', ',', '.', 2)).toBe(false)
+	})
+
+	// formatEditing keeps the other mark only where it is the decimal, or where
+	// a later digit can still decide it. The caret counts it only there.
+	it.each([
+		['the other mark before two digits', ',', 2, '12,50', ',', '.', 2],
+		['the de-DE other mark before two digits', '.', 2, '12.50', '.', ',', 2],
+		['a trailing other mark', ',', 2, '12,', ',', '.', 2],
+		['the last other mark after a group mark', ',', 5, '1,234,5', ',', '.', 2],
+	] as const)('counts %s', (_name, char, index, text, group, decimal, max) => {
+		expect(isMeaningful(char, index, text, group, decimal, max)).toBe(true)
+	})
+
+	it.each([
+		['an other mark before the last mark', ',', 1, '1,234,5', ',', '.', 2],
+		['the other mark before three digits', ',', 1, '1,234', ',', '.', 4],
+		['the other mark in a text with a locale decimal', ',', 2, '12,5.', ',', '.', 2],
+		['the other mark at maxFractionDigits 0', ',', 2, '12,5', ',', '.', 0],
+	] as const)('does not count %s', (_name, char, index, text, group, decimal, max) => {
+		expect(isMeaningful(char, index, text, group, decimal, max)).toBe(false)
 	})
 })
 
@@ -110,29 +130,84 @@ describe('formatEditing', () => {
 
 		expect(formatted).toMatch(/^[\d,]+$/)
 
-		expect(parseEditing(formatted, ',', '.')).toBe(1234567)
+		expect(parseEditing(formatted, ',', '.', 2)).toBe(1234567)
+	})
+
+	// A decimal keypad follows the region of the device, so it can offer only
+	// the other mark. The other mark is the decimal only when the text holds no
+	// locale decimal, it is the last mark, and 1 to maxFractionDigits digits
+	// follow it. Else it is a group mark. The text keeps the typed mark.
+	it.each([
+		['keeps the en-US other mark before two digits', '12,50', 'en-US', '.', 2, '12,50'],
+		['keeps the de-DE other mark before two digits', '12.50', 'de-DE', ',', 2, '12.50'],
+		['keeps a trailing other mark for a later digit', '12,', 'en-US', '.', 2, '12,'],
+		['keeps a leading other mark as "0,"', ',5', 'en-US', '.', 2, '0,5'],
+		['groups the integer part before the other mark', '1234,5', 'en-US', '.', 2, '1,234,5'],
+		['reads the other mark before three digits as a group', '1,234', 'en-US', '.', 2, '1,234'],
+		[
+			'reads the de-DE other mark before three digits as a group',
+			'1.234',
+			'de-DE',
+			',',
+			2,
+			'1.234',
+		],
+		['reads the other mark before four digits as a group', '1,2345', 'en-US', '.', 4, '12,345'],
+		['reads the other mark as a group with a locale decimal', '12,5.', 'en-US', '.', 2, '125.'],
+		['reads the other mark as a group at maxFractionDigits 0', '12,5', 'en-US', '.', 0, '125'],
+	] as const)('%s', (_name, input, locale, decimal, maxFractionDigits, expected) => {
+		expect(formatEditing(input, locale, decimal, maxFractionDigits)).toBe(expected)
+	})
+
+	it('lets a later digit make the other mark a group', () => {
+		const first = formatEditing('1,23', 'en-US', '.', 2)
+
+		expect(first).toBe('1,23')
+
+		expect(parseEditing(first, ',', '.', 2)).toBe(1.23)
+
+		const next = formatEditing(`${first}4`, 'en-US', '.', 2)
+
+		expect(next).toBe('1,234')
+
+		expect(parseEditing(next, ',', '.', 2)).toBe(1234)
+	})
+
+	// ICU data: the fr-FR currency group is a space, so a "." is never a group
+	// that the format writes. The case reads the group from the running ICU.
+	it('keeps the fr-FR other mark before three digits at maxFractionDigits 3', () => {
+		const group = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
+			.formatToParts(1234)
+			.find((part) => part.type === 'group')?.value
+
+		const formatted = formatEditing('1234.567', 'fr-FR', ',', 3)
+
+		expect(formatted).toBe(`1${group}234.567`)
+
+		expect(parseEditing(formatted, group ?? '', ',', 3)).toBe(1234.567)
 	})
 })
 
 describe('parseEditing', () => {
 	it('parses a formatted number back into a JS number', () => {
-		expect(parseEditing('1,234.56', ',', '.')).toBe(1234.56)
+		expect(parseEditing('1,234.56', ',', '.', 2)).toBe(1234.56)
 	})
 
 	it('parses a negative number', () => {
-		expect(parseEditing('-12.5', ',', '.')).toBe(-12.5)
+		expect(parseEditing('-12.5', ',', '.', 2)).toBe(-12.5)
 	})
 
 	it.each([
 		['an empty string', ''],
 		['a lone minus sign', '-'],
 		['a lone decimal separator', '.'],
+		['a lone other mark', ','],
 	])('returns undefined for %s', (_name, input) => {
-		expect(parseEditing(input, ',', '.')).toBeUndefined()
+		expect(parseEditing(input, ',', '.', 2)).toBeUndefined()
 	})
 
 	it('handles a comma decimal separator', () => {
-		expect(parseEditing('1.234,5', '.', ',')).toBe(1234.5)
+		expect(parseEditing('1.234,5', '.', ',', 2)).toBe(1234.5)
 	})
 
 	// `toBe` compares with `Object.is`, which does not make -0 equal to 0. Intl
@@ -142,6 +217,27 @@ describe('parseEditing', () => {
 		['a negative zero with a fraction', '-0.00'],
 		['a negative zero with no integer digit', '-.0'],
 	])('returns 0, not -0, for %s', (_name, input) => {
-		expect(parseEditing(input, ',', '.')).toBe(0)
+		expect(parseEditing(input, ',', '.', 2)).toBe(0)
+	})
+
+	// The other mark is the decimal only when the text holds no locale decimal,
+	// it is the last mark, and 1 to maxFractionDigits digits follow it. Else it
+	// is a group mark.
+	it.each([
+		['the en-US other mark before two digits', '12,50', ',', '.', 2, 12.5],
+		['the de-DE other mark before two digits', '12.50', '.', ',', 2, 12.5],
+		['a negative amount with the other mark', '-12,5', ',', '.', 2, -12.5],
+		['the last other mark after a group mark', '1,234,5', ',', '.', 2, 1234.5],
+		['a trailing other mark', '12,', ',', '.', 2, 12],
+		['the en-US other mark before three digits', '1,234', ',', '.', 2, 1234],
+		['the de-DE other mark before three digits', '1.234', '.', ',', 2, 1234],
+		['the other mark in a text with a locale decimal', '1,23.4', ',', '.', 2, 123.4],
+		['the other mark at maxFractionDigits 0', '12,5', ',', '.', 0, 125],
+		// The format writes the en-US group "," before three digits, and a typed
+		// digit at the end then gives four.
+		['the group mark before three digits at maxFractionDigits 4', '1,234', ',', '.', 4, 1234],
+		['the group mark before four digits at maxFractionDigits 4', '1,2345', ',', '.', 4, 12345],
+	] as const)('reads %s', (_name, input, group, decimal, maxFractionDigits, expected) => {
+		expect(parseEditing(input, group, decimal, maxFractionDigits)).toBe(expected)
 	})
 })

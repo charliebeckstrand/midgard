@@ -30,12 +30,75 @@ const MINUS_SIGN = '\u2212'
 
 const minusSignRe = /\u2212/g
 
+// A decimal keypad follows the region of the device, not the locale of the
+// field. Thus it can offer only the other mark: "," in an en-US field, or "."
+// in a de-DE field.
+function otherMarkOf(decimal: string) {
+	if (decimal === '.') return ','
+
+	if (decimal === ',') return '.'
+
+	return undefined
+}
+
+// The format writes the last group mark of each locale before three digits,
+// and a digit typed at the end then gives four. When the other mark is also
+// the locale group, three digits or more after it can come from the format.
+// Thus that mark is a group mark before three digits or more, at any
+// `maxFractionDigits`.
+const GROUP_FRACTION_LIMIT = 2
+
+// Gives the index of the other mark that the text keeps as its decimal, else
+// -1. The other mark is the decimal only when the text holds no locale
+// decimal, it is the last mark, and 1 to `maxFractionDigits` digits follow it.
+// Else it is a group mark. With no digit after it, the text keeps the mark, so
+// a later digit can decide it. The value is then the same as for a group mark.
+function otherDecimalIndex(
+	text: string,
+	group: string | undefined,
+	decimal: string,
+	maxFractionDigits: number,
+) {
+	const other = otherMarkOf(decimal)
+
+	if (other === undefined || maxFractionDigits === 0 || text.includes(decimal)) return -1
+
+	const index = text.lastIndexOf(other)
+
+	if (index < 0) return -1
+
+	const tail = text.slice(index + other.length)
+
+	if (group !== undefined && group !== other && tail.includes(group)) return -1
+
+	const limit =
+		group === other ? Math.min(maxFractionDigits, GROUP_FRACTION_LIMIT) : maxFractionDigits
+
+	return tail.replace(/\D/g, '').length <= limit ? index : -1
+}
+
+// Puts the locale decimal in place of the other mark at `index`, so that the
+// text splits at the locale decimal.
+function withDecimalAt(text: string, index: number, decimal: string) {
+	return index < 0 ? text : text.slice(0, index) + decimal + text.slice(index + 1)
+}
+
 // `formatEditing` keeps a sign only at the start, so the caret counts a sign
-// only at index 0.
-export function isMeaningful(c: string, index: number, decimal: string) {
+// only at index 0. It keeps the other mark only at the index that
+// `otherDecimalIndex` gives, so the caret counts the other mark only there.
+export function isMeaningful(
+	c: string,
+	index: number,
+	text: string,
+	group: string,
+	decimal: string,
+	maxFractionDigits: number,
+) {
 	if (c === '-' || c === MINUS_SIGN) return index === 0
 
-	return (c >= '0' && c <= '9') || c === decimal
+	if ((c >= '0' && c <= '9') || c === decimal) return true
+
+	return index === otherDecimalIndex(text, group, decimal, maxFractionDigits)
 }
 
 // Collapses every decimal separator after the first, keeping a single split
@@ -93,6 +156,13 @@ function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string 
 		.join('')
 }
 
+// The group mark that `groupIntegerPart` writes for the locale.
+function groupMarkOf(locale: string | undefined) {
+	return groupFormat(locale)
+		.formatToParts(1000n)
+		.find((part) => part.type === 'group')?.value
+}
+
 export function formatEditing(
 	raw: string,
 	locale: string | undefined,
@@ -101,7 +171,18 @@ export function formatEditing(
 ) {
 	// The display can hold the locale minus sign U+2212. It becomes "-" before
 	// the filter, which keeps only the ASCII sign.
-	const withoutDisallowed = raw.replace(minusSignRe, '-').replace(disallowedRe(decimal), '')
+	const signed = raw.replace(minusSignRe, '-')
+
+	const otherIndex = otherDecimalIndex(signed, groupMarkOf(locale), decimal, maxFractionDigits)
+
+	// The text splits at the other mark when it is the decimal, and the result
+	// keeps the typed mark. A later digit can then make it a group mark.
+	const mark = otherIndex < 0 ? decimal : signed.charAt(otherIndex)
+
+	const withoutDisallowed = withDecimalAt(signed, otherIndex, decimal).replace(
+		disallowedRe(decimal),
+		'',
+	)
 
 	const negative = withoutDisallowed.startsWith('-')
 
@@ -112,16 +193,32 @@ export function formatEditing(
 	let result = (negative ? '-' : '') + groupIntegerPart(intPart, fracPart !== undefined, locale)
 
 	if (fracPart !== undefined && maxFractionDigits > 0) {
-		result += decimal + fracPart.slice(0, maxFractionDigits)
+		result += mark + fracPart.slice(0, maxFractionDigits)
 	}
 
 	return result
 }
 
-export function parseEditing(text: string, group: string, decimal: string) {
-	const groupRe = separatorRe(group)
+export function parseEditing(
+	text: string,
+	group: string,
+	decimal: string,
+	maxFractionDigits: number,
+) {
+	const other = otherMarkOf(decimal)
 
-	const normalized = text.replace(groupRe, '').replace(decimal, '.')
+	const marked = withDecimalAt(
+		text,
+		otherDecimalIndex(text, group, decimal, maxFractionDigits),
+		decimal,
+	)
+
+	let withoutGroups = marked.replace(separatorRe(group), '')
+
+	// Each other mark that is not the decimal is a group mark.
+	if (other !== undefined) withoutGroups = withoutGroups.replace(separatorRe(other), '')
+
+	const normalized = withoutGroups.replace(decimal, '.')
 
 	if (normalized === '' || normalized === '-' || normalized === '.' || normalized === '-.') {
 		return undefined

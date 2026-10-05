@@ -77,7 +77,9 @@ describe('useCurrencyInputFormatting', () => {
 			useCurrencyInputFormatting({ locale: 'de-DE', currency: 'EUR' }),
 		)
 
-		expect(parseEditing('1.234,56', result.current.group, result.current.decimal)).toBe(1234.56)
+		const { group, decimal, maxFractionDigits } = result.current
+
+		expect(parseEditing('1.234,56', group, decimal, maxFractionDigits)).toBe(1234.56)
 	})
 
 	// ICU data: de-DE writes the group "." and the decimal ",". A format with
@@ -99,7 +101,7 @@ describe('useCurrencyInputFormatting', () => {
 
 		expect(edited).toBe('12.345')
 
-		expect(parseEditing(edited, group, decimal)).toBe(12345)
+		expect(parseEditing(edited, group, decimal, maxFractionDigits)).toBe(12345)
 	})
 
 	// ICU data: fr-CH writes the currency decimal "." and the plain decimal ",".
@@ -130,7 +132,7 @@ describe('useCurrencyInputFormatting', () => {
 
 			expect(edited).toBe(display)
 
-			expect(parseEditing(edited, group, decimal)).toBe(1234.5)
+			expect(parseEditing(edited, group, decimal, result.current.maxFractionDigits)).toBe(1234.5)
 		},
 	)
 
@@ -150,6 +152,6 @@ describe('useCurrencyInputFormatting', () => {
 
 		expect(edited).toBe('-5,00')
 
-		expect(parseEditing(edited, group, decimal)).toBe(-5)
+		expect(parseEditing(edited, group, decimal, maxFractionDigits)).toBe(-5)
 	})
 })
