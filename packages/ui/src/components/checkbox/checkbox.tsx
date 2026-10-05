@@ -2,7 +2,7 @@
 
 import { Check, Minus } from 'lucide-react'
 import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
-import { cn, dataAttr } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
@@ -16,8 +16,15 @@ export type CheckboxProps = CheckboxVariants & {
 	 * @defaultValue false
 	 */
 	indeterminate?: boolean
+	/**
+	 * Keeps the state of the box. A click or a Space press does not change it,
+	 * and `onChange` does not fire. The box keeps the focus, submits its value,
+	 * and sets `aria-readonly`. When omitted, it takes the value of an enclosing
+	 * `<Control>` or `<Field>`.
+	 */
+	readOnly?: boolean
 	className?: string
-} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
+} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size' | 'readOnly'>
 
 /**
  * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
@@ -25,15 +32,19 @@ export type CheckboxProps = CheckboxVariants & {
  * nearest density scope, and an explicit `size` opens a scope on the label. An explicit
  * `checked` prop wins over the bound field; `onChange` fires in either mode.
  * `defaultChecked` reaches the element only while the checkbox is uncontrolled,
- * so a bound checkbox ignores it (§7.2).
+ * so a bound checkbox ignores it (§7.2). `className`, `style`, and `hidden` go
+ * to the visible box, and the other native attributes go to the input.
  */
 export function Checkbox({
 	className,
+	style,
+	hidden,
 	color,
 	size,
 	indeterminate,
 	id,
 	disabled,
+	readOnly,
 	required,
 	ref,
 	name,
@@ -53,12 +64,14 @@ export function Checkbox({
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
+		readOnly: resolvedReadOnly,
 		validation,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlProps({
 		id,
 		disabled,
 		required,
+		readOnly,
 		'aria-describedby': ariaDescribedBy,
 		invalid,
 	})
@@ -75,16 +88,31 @@ export function Checkbox({
 	}, [indeterminate])
 
 	// An activation clears the property. The prop does not change, so the effect
-	// does not run again. The wrapper writes the property, then calls the resolved
-	// handler. It attaches only while the prop is true, so React keeps its warning
-	// for a `checked` input with no `onChange` in the other case.
-	const handleChange: ChangeEventHandler<HTMLInputElement> | undefined = indeterminate
-		? (event) => {
-				event.currentTarget.indeterminate = !!indeterminate
+	// does not run again. The wrapper writes the property back, then calls the
+	// resolved handler. It attaches only while the prop is true or the box is
+	// read-only. React then keeps its warning for a `checked` input with no
+	// `onChange` in the other cases.
+	//
+	// A read-only box undoes the toggle and does not call the resolved handler.
+	// The write goes through the setter, so the change tracker of React keeps the
+	// correct value. A canceled click does not do this. React reads the toggle
+	// before the browser restores the value, and then it misses the next change.
+	const handleChange: ChangeEventHandler<HTMLInputElement> | undefined =
+		indeterminate || resolvedReadOnly
+			? (event) => {
+					const input = event.currentTarget
 
-				resolvedOnChange?.(event)
-			}
-		: resolvedOnChange
+					input.indeterminate = !!indeterminate
+
+					if (resolvedReadOnly) {
+						input.checked = !input.checked
+
+						return
+					}
+
+					resolvedOnChange?.(event)
+				}
+			: resolvedOnChange
 
 	const Mark = indeterminate ? Minus : Check
 
@@ -93,12 +121,14 @@ export function Checkbox({
 			data-slot="control"
 			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
+			hidden={hidden}
+			style={style}
 			className={cn(k({ color }), className)}
 		>
 			<input
 				// Consumer props spread first; the resolved §7.2 binding, the
-				// validation attributes, data-slot, and the state that the kata
-				// reads take precedence.
+				// read-only state, the validation attributes, data-slot, and the
+				// state that the kata reads take precedence.
 				{...props}
 				type="checkbox"
 				data-slot="checkbox"
@@ -111,6 +141,7 @@ export function Checkbox({
 				checked={resolvedChecked}
 				defaultChecked={resolvedChecked === undefined ? defaultChecked : undefined}
 				onChange={handleChange}
+				aria-readonly={ariaAttr(resolvedReadOnly)}
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
 				className={k.input()}

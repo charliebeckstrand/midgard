@@ -23,6 +23,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `readOnly` `ColorPicker` does not open its panel. It takes `readOnly` from its own prop or from an enclosing `Control`. Its trigger is a button, and a button does not take `aria-readonly`, so the trigger is disabled while the panel is closed.
 
+> A `readOnly` `checkbox` or `switch` keeps its state. A click or a Space press does not change it, and `onChange` does not fire. It keeps the focus, submits its value, and sets `aria-readonly`. It takes `readOnly` from its own prop or from an enclosing `Control`. Its `className`, `style`, and `hidden` go to the visible box.
+
 ## Form structure
 
 `form` · `fieldset` · `control`

@@ -1,12 +1,13 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Checkbox } from '../../components/checkbox'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import type { DensityStep } from '../../core/density'
-import { allBySlot, bySlot, densityStepOf, present, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, densityStepOf, present, renderUI, screen, setupUser } from '../helpers'
 
 describe('Control', () => {
 	it('sets data-disabled when disabled', () => {
@@ -364,6 +365,29 @@ describe('Control nesting', () => {
 		const { container } = renderUI(ui())
 
 		expect(bySlot(container, 'input')).toBeDisabled()
+	})
+
+	// The checkbox and the switch read `readOnly` as a block on the toggle, not
+	// as the native attribute, which has no effect on a checkbox.
+	it.each<[string, () => ReactElement]>([
+		['checkbox', () => <Checkbox />],
+		['switch', () => <Switch />],
+	])('parent readOnly reaches a nested %s', async (slot, ui) => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Control id="child">{ui()}</Control>
+			</Control>,
+		)
+
+		const input = present<HTMLInputElement>(bySlot(container, slot), slot)
+
+		expect(input).toHaveAttribute('aria-readonly', 'true')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
 	})
 
 	it('parent readOnly propagates to child Control input', () => {

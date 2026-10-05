@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { Switch, SwitchField } from '../../components/switch'
-import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { bySlot, fireEvent, getSlot, present, renderUI, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Switch', () => {
@@ -96,6 +96,108 @@ describe('Switch in a Form', () => {
 		expect(getFieldProbe('dark').textContent).toBe('false')
 
 		expect(onChange).toHaveBeenCalled()
+	})
+})
+
+describe('Switch readOnly', () => {
+	it('keeps its state on a click, a click on the track, and a Space press', async () => {
+		const user = setupUser()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<Switch readOnly onChange={onChange} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'switch')
+
+		expect(input).toHaveAttribute('aria-readonly', 'true')
+
+		await user.click(input)
+
+		await user.click(getSlot(container, 'control'))
+
+		await user.keyboard(' ')
+
+		expect(input.checked).toBe(false)
+
+		expect(input).toHaveAttribute('aria-checked', 'false')
+
+		expect(onChange).not.toHaveBeenCalled()
+
+		// Read-only is not disabled: the switch keeps the focus.
+		expect(input).toHaveFocus()
+	})
+
+	it('submits its value', () => {
+		const { container } = renderUI(
+			<form>
+				<Switch name="dark" readOnly defaultChecked />
+			</form>,
+		)
+
+		const form = present<HTMLFormElement>(container.querySelector('form'), 'form')
+
+		expect(new FormData(form).get('dark')).toBe('on')
+	})
+
+	it('keeps a bound field unchanged', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ dark: false }}>
+				<Switch name="dark" readOnly />
+				<FieldProbe name="dark" />
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'switch')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+
+		expect(getFieldProbe('dark').textContent).toBe('false')
+	})
+
+	it('toggles and fires onChange again when readOnly turns off', async () => {
+		const user = setupUser()
+
+		const onChange = vi.fn()
+
+		const { container, rerender } = renderUI(<Switch readOnly onChange={onChange} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'switch')
+
+		await user.click(input)
+
+		rerender(<Switch onChange={onChange} />)
+
+		expect(input).not.toHaveAttribute('aria-readonly')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(true)
+
+		expect(input).toHaveAttribute('aria-checked', 'true')
+
+		expect(onChange).toHaveBeenCalledOnce()
+	})
+})
+
+describe('Switch presentational props', () => {
+	it('sends style and hidden to the visible track', () => {
+		const { container } = renderUI(<Switch hidden style={{ marginTop: '4px' }} />)
+
+		const track = getSlot(container, 'control')
+
+		const input = getSlot(container, 'switch')
+
+		expect(track).toHaveAttribute('hidden')
+
+		expect(track).toHaveStyle({ marginTop: '4px' })
+
+		expect(input).not.toHaveAttribute('hidden')
+
+		expect(input).not.toHaveAttribute('style')
 	})
 })
 
