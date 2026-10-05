@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Confirm } from '../../components/confirm'
-import { attach, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { attach, bySlot, fireEvent, getSlot, renderUI, screen, waitFor } from '../helpers'
 
 describe('Confirm', () => {
 	it('renders an alertdialog with the default title and Confirm and Cancel buttons', () => {
@@ -182,7 +182,7 @@ describe('Confirm Dialog props', () => {
 			<Confirm open onOpenChange={onOpenChange} onConfirm={() => {}} dismissOnBackdrop={false} />,
 		)
 
-		fireEvent.click(bySlot(document.body, 'overlay-backdrop') as HTMLElement)
+		fireEvent.click(getSlot(document.body, 'overlay-backdrop'))
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})

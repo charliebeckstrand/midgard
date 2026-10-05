@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { bySlot, densityStepOf, present, renderUI, setupUser } from '../helpers'
+import { bySlot, densityStepOf, present, renderUI, screen, setupUser } from '../helpers'
 
 describe('Popover', () => {
 	it('renders a default button when PopoverTrigger has non-element children', () => {
@@ -281,9 +281,7 @@ describe('PopoverClose', () => {
 			</Popover>,
 		)
 
-		await user.click(
-			document.querySelector<HTMLElement>('[data-slot="popover-content"] button') as HTMLElement,
-		)
+		await user.click(screen.getByRole('button', { name: 'Done' }))
 
 		expect(content()).toBeNull()
 
