@@ -17,17 +17,19 @@ export type TooltipProps = {
 	/**
 	 * What opens the tooltip. Keyboard focus opens it with each value.
 	 *
-	 * - `'hover'`: a mouse or pen hover. A touch press does not open it, because a
-	 *   tap gives no hover.
-	 * - `'click'`: a press from any pointer, touch included. Use it for a tooltip
-	 *   that a reader on a touch screen must reach, such as an info button.
+	 * - `'hover'`: a mouse or pen hover, or a touch press. A tap gives no hover, so
+	 *   a touch press on the trigger opens the tooltip, and a second touch press
+	 *   closes it. A touch press outside, Escape, or a scroll also closes it.
+	 * - `'click'`: a click from any pointer, touch included. Use it for a tooltip
+	 *   that a mouse reader opens with a click, such as an info button.
 	 *
 	 * @defaultValue 'hover'
 	 * @remarks {@link TooltipProps.open} is the manual trigger.
 	 */
 	trigger?: 'hover' | 'click'
 	/**
-	 * Hover open delay in milliseconds (close delay is fixed at 100ms).
+	 * Hover open delay in milliseconds (close delay is fixed at 100ms). A touch
+	 * press opens the tooltip with no delay.
 	 * @defaultValue 250
 	 */
 	delay?: number
@@ -64,8 +66,9 @@ export type TooltipProps = {
 	open?: boolean
 	/**
 	 * Fires when the tooltip opens or closes, whatever drove it: the hover delay, focus,
-	 * or a click on a `trigger="click"` tooltip. `open`, `disabled` going true, the trigger
-	 * becoming `:disabled`, and the shared overlay-close signal also report here.
+	 * a touch press, or a click on a `trigger="click"` tooltip. `open`, `disabled` going
+	 * true, the trigger becoming `:disabled`, and the shared overlay-close signal also
+	 * report here.
 	 *
 	 * Observation only. The tooltip owns its open state, and {@link TooltipProps.open}
 	 * only holds it open. Hover cannot be driven from outside, so `open` does not pair
@@ -81,7 +84,8 @@ export type TooltipProps = {
  * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
  *
  * @remarks Opens on hover or on click, as `trigger` selects, and on keyboard
- * focus. A hover tooltip does not open on a touch press. Stays
+ * focus. A hover tooltip opens on a touch press, because a tap gives no hover.
+ * The press does not stop the click action of the trigger. Stays
  * suppressed while the trigger is `:disabled` (own attribute, ancestor
  * `<fieldset disabled>`, or a disabled descendant) and dismisses on the shared
  * overlay-close signal. The panel takes `role="tooltip"`, and `<TooltipTrigger>`

@@ -21,6 +21,7 @@ import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { TooltipProps } from './tooltip'
+import { useTooltipTouch } from './use-tooltip-touch'
 
 type TooltipStateOptions = {
 	placement?: FloatingPlacement
@@ -68,8 +69,8 @@ function fieldsetAncestors(reference: Element): Element[] {
  * {@link Tooltip}, returned as the value shared through context.
  *
  * @remarks `trigger` selects hover or click, and keyboard focus opens with either.
- * A hover trigger reads the `pointerType` of the event and ignores a touch. A tap
- * therefore does not open it, also on a device that can hover.
+ * A hover trigger opens on a mouse hover and on a touch press, and a second
+ * touch press closes it. {@link useTooltipTouch} holds the touch rule.
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`, re-opening on hover once the
  * disabled state clears. Hands the floating root context out as
@@ -98,13 +99,20 @@ export function useTooltipState({
 
 	const dialog = interactive && tabbable
 
+	// The `pointerType` of the last pointer on the trigger. `useTooltipTouch`
+	// writes it, and the gate refuses a hover open after a touch.
+	const pointerTypeRef = useRef('')
+
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: dialog ? 'dialog' : 'tooltip',
 		placement,
 		offset: 8,
 		open: enabled && held ? true : undefined,
-		gate: (next, gateRefs) =>
-			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
+		gate: (next, gateRefs, reason) =>
+			!next ||
+			(enabled &&
+				!isReferenceDisabled(gateRefs.reference.current) &&
+				!(reason === 'hover' && pointerTypeRef.current === 'touch')),
 	})
 
 	// Adjusted during render: a tooltip that turns off while open closes in the
@@ -181,9 +189,9 @@ export function useTooltipState({
 	useOpenChange(open, onOpenChange)
 
 	// `mouseOnly` reads the `pointerType` of the event, not a media query. A touch
-	// press gives no hover, so a tap does not open a hover tooltip, also on a
-	// device that has a mouse and a touch screen. The `:focus-visible` gate of
-	// `useFocus` stops the focus that a tap gives a button from opening it.
+	// press gives no hover, so `useTooltipTouch` opens a hover tooltip on a touch
+	// press in its place. The `:focus-visible` gate of `useFocus` stops the focus
+	// that a tap gives a button from opening it.
 	const hover = useHover(context, {
 		enabled: enabled && trigger === 'hover',
 		mouseOnly: true,
@@ -198,6 +206,11 @@ export function useTooltipState({
 	})
 
 	const click = useClick(context, { enabled: enabled && trigger === 'click' })
+
+	const touch = useTooltipTouch(context, {
+		enabled: enabled && trigger === 'hover',
+		pointerTypeRef,
+	})
 
 	const focus = useFocus(context, { enabled })
 
@@ -216,6 +229,7 @@ export function useTooltipState({
 	const { getReferenceProps, getFloatingProps } = useInteractions([
 		hover,
 		click,
+		...touch,
 		focus,
 		dismiss,
 		role,
