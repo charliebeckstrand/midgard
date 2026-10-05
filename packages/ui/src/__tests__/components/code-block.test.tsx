@@ -236,6 +236,51 @@ describe('CodeBlock', () => {
 		expect(highlight.mock.calls.length).toBe(calls)
 	})
 
+	it('evicts no entry when a write replaces a cached snippet', () => {
+		const calls = highlight.mock.calls.length
+
+		// 200 new snippets fill the cache, and `rewrite-0` is its oldest entry.
+		for (let i = 0; i < 200; i++) {
+			primeCodeBlock({
+				code: `rewrite-${i}`,
+				html: `<pre class="shiki" data-primed=""><code>rewrite-${i}</code></pre>`,
+			})
+		}
+
+		// The key is in the cache, so the write adds no entry.
+		primeCodeBlock({ code: 'rewrite-199', html: '<pre></pre>' })
+
+		const { container } = renderUI(<CodeBlock code="rewrite-0" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
+	it('keeps the place of a cached snippet that a write replaces', () => {
+		const calls = highlight.mock.calls.length
+
+		// 200 new snippets fill the cache, and `order-0` is its oldest entry.
+		for (let i = 0; i < 200; i++) {
+			primeCodeBlock({
+				code: `order-${i}`,
+				html: `<pre class="shiki" data-primed=""><code>order-${i}</code></pre>`,
+			})
+		}
+
+		// `order-0` stays the oldest entry, so the next new snippet evicts it, and
+		// `order-1` stays.
+		primeCodeBlock({ code: 'order-0', html: '<pre></pre>' })
+
+		primeCodeBlock({ code: 'order-new', html: '<pre></pre>' })
+
+		const { container } = renderUI(<CodeBlock code="order-1" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
 	it('paints markup that the cache gets after the render and before the effect', () => {
 		const calls = highlight.mock.calls.length
 

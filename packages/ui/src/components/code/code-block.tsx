@@ -25,12 +25,13 @@ const cacheKey = (code: string, lang: string, theme: string) => `${theme}\u0000$
 /**
  * Stores one tokenized snippet, evicting the oldest insertion once the cache is
  * full. Insertion-ordered, not recency-ordered: a hit doesn't move its entry, so
- * a snippet re-read past 200 distinct others is re-tokenized.
+ * a snippet re-read past 200 distinct others is re-tokenized. A write to a key
+ * that the cache holds replaces the markup in its place and evicts no entry.
  *
  * @internal
  */
 function cacheSet(key: string, value: string) {
-	if (htmlCache.size >= MAX_CACHE_SIZE) {
+	if (!htmlCache.has(key) && htmlCache.size >= MAX_CACHE_SIZE) {
 		const first = htmlCache.keys().next().value as string
 
 		htmlCache.delete(first)
