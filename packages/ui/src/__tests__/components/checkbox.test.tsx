@@ -1,4 +1,5 @@
-import { createRef } from 'react'
+import { createRef, type ReactElement } from 'react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
@@ -72,6 +73,26 @@ describe('Checkbox', () => {
 		fireEvent.click(input)
 
 		expect(input.indeterminate).toBe(true)
+	})
+})
+
+describe('Checkbox server render', () => {
+	// A server render runs no layout effect, so the `indeterminate` property
+	// stays false until hydration. The markup must carry the state itself.
+	function serverInput(element: ReactElement) {
+		const host = document.createElement('div')
+
+		host.innerHTML = renderToString(element)
+
+		return getSlot<HTMLInputElement>(host, 'checkbox')
+	}
+
+	it('writes the indeterminate state into the server HTML', () => {
+		expect(serverInput(<Checkbox indeterminate />)).toHaveAttribute('data-indeterminate')
+	})
+
+	it('writes no indeterminate state when the prop is false', () => {
+		expect(serverInput(<Checkbox />)).not.toHaveAttribute('data-indeterminate')
 	})
 })
 

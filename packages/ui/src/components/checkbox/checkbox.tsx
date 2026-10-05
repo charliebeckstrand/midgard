@@ -11,7 +11,8 @@ import { useFormToggle } from '../form/use-form-toggle'
 /** Props for {@link Checkbox}. */
 export type CheckboxProps = CheckboxVariants & {
 	/**
-	 * Renders the partial tri-state: a minus glyph and `indeterminate` DOM property regardless of `checked`.
+	 * Renders the partial tri-state, regardless of `checked`: a minus glyph, a
+	 * `data-indeterminate` attribute on the input, and the `indeterminate` DOM property.
 	 * @defaultValue false
 	 */
 	indeterminate?: boolean
@@ -67,6 +68,8 @@ export function Checkbox({
 	const setRef = useComposedRef(internalRef, ref)
 
 	// `indeterminate` is a DOM property with no attribute; sync it before paint.
+	// A server render runs no effect, so the input also carries
+	// `data-indeterminate`. The kata keys the fill and the mark on that attribute.
 	useLayoutEffect(() => {
 		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
 	}, [indeterminate])
@@ -94,10 +97,12 @@ export function Checkbox({
 		>
 			<input
 				// Consumer props spread first; the resolved §7.2 binding, the
-				// validation attributes, and data-slot below take precedence.
+				// validation attributes, data-slot, and the state that the kata
+				// reads take precedence.
 				{...props}
 				type="checkbox"
 				data-slot="checkbox"
+				data-indeterminate={dataAttr(indeterminate)}
 				ref={setRef}
 				id={resolvedId}
 				name={name}
