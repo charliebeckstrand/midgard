@@ -119,6 +119,7 @@ export function Playground<P extends object>({
 	of,
 	api,
 	omit = [],
+	surface,
 }: {
 	/**
 	 * The default export of the playground module. It types its props as the
@@ -129,6 +130,8 @@ export function Playground<P extends object>({
 	api: BarrelApi
 	/** The props that get no field. */
 	omit?: readonly (keyof P & string)[]
+	/** Makes the instance box fill the frame, for a surface of a page. */
+	surface?: boolean
 }) {
 	const meta = metaOf(of)
 
@@ -152,6 +155,7 @@ export function Playground<P extends object>({
 		<ExampleFrame
 			meta={meta}
 			print={(code) => printCode(code, fields, values)}
+			surface={surface}
 			actions={
 				<Rail label="Props">
 					{fields.map((field) => (

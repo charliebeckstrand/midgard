@@ -1,6 +1,7 @@
 import { type ComponentType, type ReactNode, Suspense, use, useState } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
+import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
@@ -63,11 +64,17 @@ function Code({ meta, print }: { meta: ExampleMeta; print?: (code: ExampleCode) 
  * button or a badge, the children make a row that wraps. Otherwise they stack.
  * The frame resizes on its right edge, so a reader can see how the instance
  * responds to a narrow column.
+ *
+ * A surface of a page, such as a chart, a map, or a document viewer, takes the
+ * width of its container and has no width of its own. In a box that is as
+ * wide as its content, it gets only the 24rem minimum. With `surface`, the
+ * box fills the frame.
  */
 export function ExampleFrame({
 	meta,
 	actions,
 	print,
+	surface = false,
 	children,
 }: {
 	meta: ExampleMeta
@@ -75,6 +82,8 @@ export function ExampleFrame({
 	actions?: ReactNode
 	/** Writes the code of the block. The block shows the code of the file when it is not given. */
 	print?: (code: ExampleCode) => string
+	/** Makes the instance box fill the frame, for a surface of a page. */
+	surface?: boolean
 	children: ReactNode
 }) {
 	const [open, setOpen] = useState(false)
@@ -99,7 +108,12 @@ export function ExampleFrame({
 				<div className="p-4">
 					<div
 						data-slot="example-instance"
-						className="w-max min-w-[min(24rem,100%)] max-w-full space-y-4 phrasing:flex phrasing:flex-wrap phrasing:items-center phrasing:gap-4 phrasing:space-y-0"
+						className={cn(
+							'space-y-4',
+							surface
+								? 'w-full'
+								: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex phrasing:flex-wrap phrasing:items-center phrasing:gap-4 phrasing:space-y-0',
+						)}
 					>
 						{children}
 					</div>
@@ -135,9 +149,16 @@ export function ExampleFrame({
  *
  * <Example of={WithIcon} />
  */
-export function Example({ of: Of }: { of: ComponentType }) {
+export function Example({
+	of: Of,
+	surface,
+}: {
+	of: ComponentType
+	/** Makes the instance box fill the frame, for a surface of a page. */
+	surface?: boolean
+}) {
 	return (
-		<ExampleFrame meta={metaOf(Of)}>
+		<ExampleFrame meta={metaOf(Of)} surface={surface}>
 			<Of />
 		</ExampleFrame>
 	)
