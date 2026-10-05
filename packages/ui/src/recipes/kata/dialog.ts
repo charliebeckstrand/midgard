@@ -25,7 +25,7 @@ export const k = {
 				// Below `sm`, the panel sits on the bottom edge. In a page with
 				// `viewport-fit=cover`, this keeps its content clear of the home
 				// indicator.
-				layout.inset.safe,
+				...layout.inset.safe,
 				'sm:rounded-2xl sm:max-h-full',
 			],
 			surface: {

@@ -6,17 +6,20 @@
  * wrappers like Form/Fieldset, keeping the flex-shrink chain to the
  * body's overflow intact. `header` is the optional tight-gap wrapper for
  * title + description; everything else stands on its own at 4.
- * The inset at each edge (`inset`) is 6 on the four sides. The panel thus has
- * one even frame, and the slots inside it are closer to each other.
+ * The inset at each edge (`inset`) is the same on the four sides, and it takes
+ * the step of the nearest density scope: 5, 6, or 7. The panel thus has one
+ * even frame, and the slots inside it are closer to each other.
  *
  * Layer: kiso · Archetype: panel · Concern: layout
  */
 
+import { dan } from '../dan'
 import { iro } from '../iro'
 import { ji } from '../ji'
 
 const { text } = iro
 const { size, leading } = ji
+const { panel } = dan.space
 
 export const layout = {
 	base: 'flex flex-col gap-4',
@@ -42,34 +45,37 @@ export const layout = {
 	/**
 	 * The inset of a panel: the space between an edge and the slot next to it. It
 	 * is the same on the four sides, so the panel has one even frame. It is larger
-	 * than the gap of `base`, so the slots read as one group in the frame.
+	 * than the gap of `base` at each step, so the slots read as one group in the
+	 * frame. It takes the step of the nearest density scope, as the content of the
+	 * panel does.
 	 *
 	 * The inset stops at the box of the content at the edge. A button at the edge
 	 * of a footer must show its box, or its padding adds to the inset. Thus the
 	 * standard close button of a panel is `soft`, not `plain`.
 	 *
-	 * The values of each side are here together, because they must agree.
+	 * The ramps of each side are together in `dan.space.panel`, because they must
+	 * agree.
 	 */
 	inset: {
 		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
-		inline: 'px-6',
+		inline: panel.x,
 		/** The inset above the first slot, on the panel or on the slot. */
-		top: 'pt-6',
+		top: panel.top,
 		/** The inset under the last slot, on the panel or on the slot. */
-		bottom: 'pb-6',
+		bottom: panel.bottom,
 		/**
 		 * The inset of a body that is the first slot. It is a margin, because a padding
 		 * in a scrolling body moves out of view with the content.
 		 */
-		first: 'first:mt-6',
+		first: panel.first,
 		/** The inset of a body that is the last slot, a margin for the reason that `first` gives. */
-		last: 'last:mb-6',
+		last: panel.last,
 		/**
 		 * The bottom inset of a panel on the bottom edge below `sm`, plus the home
 		 * indicator inset of a page with `viewport-fit=cover`. Elsewhere the inset of
-		 * the home indicator is zero. The `1.5rem` is the length of `pb-6`.
+		 * the home indicator is zero.
 		 */
-		safe: 'max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
+		safe: panel.safe,
 	},
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',

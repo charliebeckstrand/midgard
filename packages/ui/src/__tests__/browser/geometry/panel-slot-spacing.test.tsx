@@ -28,6 +28,7 @@ import {
 	SheetPanel,
 	SheetTitle,
 } from '../../../components/sheet'
+import { DensityProvider } from '../../../providers/density'
 import { getSlot, renderUI } from '../../helpers'
 
 /**
@@ -35,7 +36,8 @@ import { getSlot, renderUI } from '../../helpers'
  * between two slots, and each gap between two slots is the same. The body is
  * the part that scrolls, so the header and the footer stay in place while it
  * scrolls. The visible space must stay even then too: an inset that is padding
- * inside the scrolling body moves out of view with the content.
+ * inside the scrolling body moves out of view with the content. The inset takes
+ * the step of the nearest density scope, and the gap does not.
  */
 
 /** Text that is taller than each panel, so the body scrolls. */
@@ -135,6 +137,15 @@ const VIEWPORTS = [
 	{ name: 'desktop', width: 1280, height: 800 },
 ] as const
 
+/** The inset at each density, in pixels. The slot gap is 16 at each density. */
+const DENSITIES = [
+	{ density: 'compact', inset: 20 },
+	{ density: 'snug', inset: 24 },
+	{ density: 'loose', inset: 28 },
+] as const
+
+const GAP = 16
+
 /** The top of the content box of `el`: the edge that its text starts at. */
 function contentTop(el: Element) {
 	const style = getComputedStyle(el)
@@ -206,84 +217,84 @@ function scrollMiddle(el: HTMLElement) {
 describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, height }) => {
 	beforeAll(() => page.viewport(width, height))
 
-	describe.each(PANELS)('$name', ({ slot, full, bare }) => {
-		it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
-			renderUI(
-				full({
-					title: 'Settings',
-					description: 'Change the settings.',
-					body: LONG,
-					footer: 'Save',
-				}),
-			)
+	describe.each(DENSITIES)('at the $density density', ({ density, inset }) => {
+		describe.each(PANELS)('$name', ({ slot, full, bare }) => {
+			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
+				renderUI(
+					<DensityProvider density={density}>
+						{full({
+							title: 'Settings',
+							description: 'Change the settings.',
+							body: LONG,
+							footer: 'Save',
+						})}
+					</DensityProvider>,
+				)
 
-			const panel = await settledPanel(slot)
-			const header = getSlot(panel, `${slot}-header`)
-			const body = getSlot(panel, `${slot}-body`)
-			const footer = getSlot(panel, `${slot}-footer`)
+				const panel = await settledPanel(slot)
+				const header = getSlot(panel, `${slot}-header`)
+				const body = getSlot(panel, `${slot}-body`)
+				const footer = getSlot(panel, `${slot}-footer`)
 
-			// The body is the scroller, so the header and the footer stay in place.
-			expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
-			expect(panel.scrollHeight).toBeLessThanOrEqual(panel.clientHeight)
+				// The body is the scroller, so the header and the footer stay in place.
+				expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+				expect(panel.scrollHeight).toBeLessThanOrEqual(panel.clientHeight)
 
-			const measure = () => {
-				const panelBox = panel.getBoundingClientRect()
-				const title = getSlot(panel, `${slot}-title`)
+				const measure = () => {
+					const panelBox = panel.getBoundingClientRect()
+					const title = getSlot(panel, `${slot}-title`)
 
-				return {
-					top: contentTop(title) - panelBox.top,
-					left: contentLeft(title) - panelBox.left,
-					right: panelBox.right - contentRight(footer),
-					bottom: panelBox.bottom - contentBottom(footer),
-					above: visibleTop(body) - contentBottom(header),
-					below: contentTop(footer) - visibleBottom(body),
+					return {
+						top: contentTop(title) - panelBox.top,
+						left: contentLeft(title) - panelBox.left,
+						right: panelBox.right - contentRight(footer),
+						bottom: panelBox.bottom - contentBottom(footer),
+						above: visibleTop(body) - contentBottom(header),
+						below: contentTop(footer) - visibleBottom(body),
+					}
 				}
-			}
 
-			const rest = measure()
+				const rest = measure()
 
-			expect(rest.above).toBeGreaterThan(0)
-			expect(rest.left).toBeGreaterThan(rest.above)
-			expect(rest).toEqual({
-				top: rest.left,
-				left: rest.left,
-				right: rest.left,
-				bottom: rest.left,
-				above: rest.above,
-				below: rest.above,
+				expect(rest).toEqual({
+					top: inset,
+					left: inset,
+					right: inset,
+					bottom: inset,
+					above: GAP,
+					below: GAP,
+				})
+
+				scrollMiddle(body)
+
+				expect(measure()).toEqual(rest)
 			})
 
-			scrollMiddle(body)
+			it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
+				renderUI(<DensityProvider density={density}>{bare(LONG)}</DensityProvider>)
 
-			expect(measure()).toEqual(rest)
-		})
+				const panel = await settledPanel(slot)
+				const body = getSlot(panel, `${slot}-body`)
 
-		it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
-			renderUI(bare(LONG))
+				expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
 
-			const panel = await settledPanel(slot)
-			const body = getSlot(panel, `${slot}-body`)
+				expect(contentLeft(body) - panel.getBoundingClientRect().left).toBe(inset)
 
-			expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+				const measure = () => {
+					const panelBox = panel.getBoundingClientRect()
 
-			const inset = contentLeft(body) - panel.getBoundingClientRect().left
-
-			expect(inset).toBeGreaterThan(0)
-
-			const measure = () => {
-				const panelBox = panel.getBoundingClientRect()
-
-				return {
-					top: visibleTop(body) - panelBox.top,
-					bottom: panelBox.bottom - visibleBottom(body),
+					return {
+						top: visibleTop(body) - panelBox.top,
+						bottom: panelBox.bottom - visibleBottom(body),
+					}
 				}
-			}
 
-			expect(measure()).toEqual({ top: inset, bottom: inset })
+				expect(measure()).toEqual({ top: inset, bottom: inset })
 
-			scrollMiddle(body)
+				scrollMiddle(body)
 
-			expect(measure()).toEqual({ top: inset, bottom: inset })
+				expect(measure()).toEqual({ top: inset, bottom: inset })
+			})
 		})
 	})
 })

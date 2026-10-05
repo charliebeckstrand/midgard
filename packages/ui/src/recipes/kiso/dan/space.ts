@@ -29,6 +29,33 @@ export const space = {
 	alert: 'density-p-[3,4,5]',
 	/** The padding of a popover panel. */
 	popover: 'density-p-[3,4,6]',
+	/**
+	 * The inset of a dialog, a drawer, and a sheet: the same length on the four
+	 * sides. `panel.layout.inset` gives the rule.
+	 */
+	panel: {
+		/** The inset at the left edge and at the right edge. */
+		x: 'density-px-[5,6,7]',
+		/** The inset above the first slot. */
+		top: 'density-pt-[5,6,7]',
+		/** The inset under the last slot. */
+		bottom: 'density-pb-[5,6,7]',
+		/** The inset above a body that is the first slot, as a margin. */
+		first: 'first:density-mt-[5,6,7]',
+		/** The inset under a body that is the last slot, as a margin. */
+		last: 'last:density-mb-[5,6,7]',
+		/**
+		 * The bottom inset below `sm`, plus the inset of the home indicator. A `calc`
+		 * with `env` is not a stop of the spacing scale, so each step has its own
+		 * class. Each length is the step of `bottom`: `1.25rem` is 5, `1.5rem` is 6,
+		 * and `1.75rem` is 7.
+		 */
+		safe: [
+			'max-sm:density-[xs,sm]:pb-[calc(1.25rem+env(safe-area-inset-bottom))]',
+			'max-sm:density-md:pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
+			'max-sm:density-[lg,xl]:pb-[calc(1.75rem+env(safe-area-inset-bottom))]',
+		],
+	},
 	shell: {
 		/** The padding of the sidebar layout regions. */
 		base: 'density-p-[4,6,8]',
