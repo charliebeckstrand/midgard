@@ -89,9 +89,14 @@ export function CreditCardInputCvv({
 	// event reads the newest value, setter, and callback, so the effect below
 	// depends only on the brand-derived length and the brand.
 	const refit = useEffectEvent((length: number, nextBrand: CreditCardBrand | undefined) => {
-		const truncated = formatCvv(maskedValue, length)
+		// The mask formats a controlled value on read, so `maskedValue` already
+		// fits the new length. Compare the cap with the value that the parent
+		// holds, so that `onValueChange` tells the parent about the truncation.
+		const held = typeof value === 'string' ? value : maskedValue
 
-		if (truncated !== maskedValue) setMaskedValue(truncated)
+		const truncated = formatCvv(held, length)
+
+		if (truncated !== held) setMaskedValue(truncated)
 
 		onValidityChange?.(validateCardCvv(truncated, nextBrand))
 	})

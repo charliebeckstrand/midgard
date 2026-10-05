@@ -552,6 +552,38 @@ describe('CreditCardInputCvv', () => {
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 	})
 
+	it('reports the truncation to a controlled parent when a brand change shrinks the length', () => {
+		const onValueChange = vi.fn()
+
+		const onValidityChange = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<CreditCardInputCvv
+				brand="amex"
+				value="1234"
+				onValueChange={onValueChange}
+				onValidityChange={onValidityChange}
+			/>,
+		)
+
+		rerender(
+			<CreditCardInputCvv
+				brand="visa"
+				value="1234"
+				onValueChange={onValueChange}
+				onValidityChange={onValidityChange}
+			/>,
+		)
+
+		// The parent holds "1234" and Visa caps at three. The field shows "123",
+		// so the parent gets "123" and the verdict is the verdict of "123".
+		expect(getSlot(container, 'credit-card-input-cvv')).toHaveValue('123')
+
+		expect(onValueChange).toHaveBeenCalledExactlyOnceWith('123')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({ isValid: true, isPotentiallyValid: true })
+	})
+
 	it.each<[string, 'visa' | 'amex', string, string]>([
 		['caps input at 3 digits for non-Amex brands', 'visa', '12345', '123'],
 		['allows 4 digits for Amex', 'amex', '12345', '1234'],
