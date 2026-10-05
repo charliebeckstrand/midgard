@@ -1,6 +1,14 @@
 'use client'
 
-import { type RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import {
+	type RefObject,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
@@ -36,6 +44,8 @@ type ComboboxStateParams<T> = {
  *   therefore holds steady through the exit animation, instead of snapping back
  *   to the full list. That holds a deeply scrolled virtual window too.
  * @remarks `closeOnSelect` defaults to `true` for single, `false` for multiple.
+ *   `setOpen` and `setQuery` report to `onOpenChange` and `onQueryChange` only
+ *   a value that is new to the consumer.
  * @internal
  */
 export function useComboboxState<T>({
@@ -56,9 +66,45 @@ export function useComboboxState<T>({
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
 
+	// The open state that the consumer knows. The setters repeat a value: each
+	// keystroke opens the panel, and an outside press and then the input blur
+	// both close it. A report goes out only for a value that is new to the
+	// consumer. Such a value differs from the last report or from the open state
+	// on screen. A report also moves the shown state, so two calls in one batch
+	// report once.
+	//
+	// Each check covers one controlled consumer. The check of the shown state
+	// covers a consumer that closes the panel itself: an open must reach it after
+	// an earlier open report. The check of the last report covers AddressInput.
+	// It derives `open` and keeps the panel closed until results arrive, so a
+	// close must reach it while the panel shows closed.
+	//
+	// The report is a stable event, which throws during render. The combobox
+	// calls its open setter only from events and effects.
+	const reportedOpenRef = useRef(openProp ?? false)
+
+	const shownOpenRef = useRef(openProp ?? false)
+
+	const reportOpen = useStableEvent((next: boolean) => {
+		if (next === reportedOpenRef.current && next === shownOpenRef.current) return
+
+		reportedOpenRef.current = next
+
+		shownOpenRef.current = next
+
+		onOpenChange?.(next)
+	})
+
 	const [open, setOpen] = useControllableFlag({
 		value: openProp,
-		onValueChange: onOpenChange,
+		onValueChange: reportOpen,
+	})
+
+	// The layout effect syncs the shown state before paint, so an event after a
+	// commit reads the open state of that commit. It runs on each commit, because
+	// a controlled owner that refuses a change keeps its `open`.
+	useLayoutEffect(() => {
+		shownOpenRef.current = open
 	})
 
 	const [editing, setEditing] = useState(false)
@@ -70,7 +116,19 @@ export function useComboboxState<T>({
 	// typing path the refs below (and the deferred query) exist to keep cheap.
 	// `useControllable` keeps its own `onValueChange` in a ref instead, because
 	// its setter can run during render.
-	const reportQuery = useStableEvent((next: string) => onQueryChange?.(next))
+	//
+	// The query is internal state, and only `setQuery` writes it. Thus the last
+	// report is the query that the consumer knows. A call with that query does
+	// not report: close() and a multi pick clear a query that is already empty.
+	const reportedQueryRef = useRef(query)
+
+	const reportQuery = useStableEvent((next: string) => {
+		if (next === reportedQueryRef.current) return
+
+		reportedQueryRef.current = next
+
+		onQueryChange?.(next)
+	})
 
 	const setQuery = useCallback(
 		(next: string) => {

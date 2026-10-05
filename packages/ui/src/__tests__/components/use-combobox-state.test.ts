@@ -81,6 +81,151 @@ describe('useComboboxState', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
+	it('reports an open once when each keystroke calls setOpen(true) again', () => {
+		const onOpenChange = vi.fn()
+
+		const { result } = setup<string>({ onOpenChange })
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		expect(onOpenChange.mock.calls).toEqual([[true]])
+	})
+
+	it('reports a close once when an outside press and then the blur call close()', () => {
+		const onOpenChange = vi.fn()
+
+		const { result } = setup<string>({ onOpenChange })
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		expect(onOpenChange.mock.calls).toEqual([[true], [false]])
+	})
+
+	it('reports a close once when two calls of close() run in one batch', () => {
+		const onOpenChange = vi.fn()
+
+		const { result } = setup<string>({ onOpenChange })
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.close()
+
+			result.current.close()
+		})
+
+		expect(onOpenChange.mock.calls).toEqual([[true], [false]])
+	})
+
+	it('reports a close to a consumer that keeps the panel closed after it asked for an open', () => {
+		const onOpenChange = vi.fn()
+
+		// AddressInput passes `open={ready && menuRequested}`, so the panel stays
+		// closed until results arrive. The consumer still holds the open it asked
+		// for, and only the close report clears it.
+		const { result } = setup<string>({ open: false, onOpenChange })
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		expect(onOpenChange.mock.calls).toEqual([[true], [false]])
+	})
+
+	it('reports an open again after the consumer closes a controlled panel itself', () => {
+		const onOpenChange = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ open }: { open: boolean }) =>
+				useComboboxState<string>({
+					multiple: false,
+					nullable: false,
+					value: undefined,
+					open,
+					onOpenChange,
+					setValue: vi.fn(),
+					inputRef: { current: null },
+				}),
+			{ initialProps: { open: false } },
+		)
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		rerender({ open: true })
+
+		rerender({ open: false })
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		expect(onOpenChange.mock.calls).toEqual([[true], [true]])
+	})
+
+	it('reports a query only when it changes, so close() on an empty query reports nothing', () => {
+		const onQueryChange = vi.fn()
+
+		const { result } = setup<string>({ onQueryChange })
+
+		act(() => {
+			result.current.close()
+		})
+
+		act(() => {
+			result.current.setQuery('tex')
+		})
+
+		act(() => {
+			result.current.setQuery('tex')
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		expect(onQueryChange.mock.calls).toEqual([['tex'], ['']])
+	})
+
+	it('reports no query when a multi-select pick clears a query that is already empty', () => {
+		const onQueryChange = vi.fn()
+
+		const { result } = setup<string>({ multiple: true, onQueryChange })
+
+		act(() => {
+			result.current.select('x')
+		})
+
+		expect(onQueryChange).not.toHaveBeenCalled()
+	})
+
 	it('resets editing and query when close() is called', () => {
 		const { result } = setup<string>()
 
