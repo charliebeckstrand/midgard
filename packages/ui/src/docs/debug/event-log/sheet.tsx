@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
 import { Label } from 'ui/fieldset'
@@ -16,11 +16,10 @@ function line({ time, kind, text, y }: Entry): string {
 }
 
 /**
- * The viewer of the Event log: "Preserve log" beside the title, a filter
- * button for each kind, the lines, newest first, Copy (oldest first, as text),
- * and Clear. With no lines, it says that the log is empty, or that the
- * filters hide each entry. The log records while the sheet is open, and skips
- * the events in the sheet.
+ * The viewer of the Event log: a filter button for each kind and "Preserve
+ * log", the lines, newest first, Copy (oldest first, as text), and Clear.
+ * With no lines, it says that the log is empty, or that the filters hide each
+ * entry. The log records nothing while the sheet is on screen.
  */
 export function EventLogSheet({
 	open,
@@ -41,29 +40,23 @@ export function EventLogSheet({
 
 	const { copied, copy } = useCopyButtonState({ text: lines.join('\n') })
 
+	// A layout effect runs before the effect of the overlay that reports the
+	// open, so the log does not record the open of this sheet.
+	useLayoutEffect(() => {
+		log.paused = open
+	}, [log, open])
+
 	return (
 		// The sheet takes the height of the log, up to the height of the screen.
 		<Sheet side="bottom" open={open} onOpenChange={onOpenChange} className="max-h-full">
-			{/* The log skips the events in this element (`OWN`). It takes no box. */}
-			<div data-event-log="" className="contents">
-				{/* The title and "Preserve log" share a row, so the title takes no padding of its own. */}
-				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-					<SheetTitle className="p-0">Event log</SheetTitle>
-					<CheckboxField>
-						<Checkbox
-							checked={preserve}
-							onChange={(event) => {
-								log.preserve = event.target.checked
-							}}
-						/>
-						<Label>Preserve log</Label>
-					</CheckboxField>
-				</Flex>
-				<SheetBody className="min-h-0 flex-1 space-y-3 overflow-auto">
+			<SheetTitle>Event log</SheetTitle>
+			<SheetBody className="min-h-0 flex-1 space-y-3 overflow-auto">
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<Rail label="Kinds">
 						{KINDS.map((kind) => (
 							<Button
 								key={kind}
+								size="sm"
 								variant={hidden.has(kind) ? 'outline' : 'solid'}
 								aria-pressed={!hidden.has(kind)}
 								onClick={() => setHidden(toggleItem(hidden, kind))}
@@ -72,29 +65,38 @@ export function EventLogSheet({
 							</Button>
 						))}
 					</Rail>
-					{lines.length > 0 ? (
-						<pre className="m-0 whitespace-pre-wrap font-mono text-xs">
-							{lines.toReversed().join('\n')}
-						</pre>
-					) : (
-						<Text tone="muted">
-							{entries.length > 0 ? 'No events match your filters' : 'No events'}
-						</Text>
-					)}
-				</SheetBody>
-				<SheetFooter className="justify-between">
-					<Flex gap="sm">
-						{/* The copied state of `CopyButton`, on a button with a text label. */}
-						<Button variant="soft" color={copied ? 'green' : undefined} onClick={() => void copy()}>
-							{copied ? 'Copied' : 'Copy'}
-						</Button>
-						<Button variant="soft" onClick={() => log.clear()}>
-							Clear
-						</Button>
-					</Flex>
-					<SheetClose />
-				</SheetFooter>
-			</div>
+					<CheckboxField className="shrink-0">
+						<Checkbox
+							checked={preserve}
+							onChange={(event) => {
+								log.preserve = event.target.checked
+							}}
+						/>
+						<Label>Preserve log</Label>
+					</CheckboxField>
+				</div>
+				{lines.length > 0 ? (
+					<pre className="m-0 whitespace-pre-wrap font-mono text-xs">
+						{lines.toReversed().join('\n')}
+					</pre>
+				) : (
+					<Text tone="muted">
+						{entries.length > 0 ? 'No events match your filters' : 'No events'}
+					</Text>
+				)}
+			</SheetBody>
+			<SheetFooter className="justify-between">
+				<Flex gap="sm">
+					{/* The copied state of `CopyButton`, on a button with a text label. */}
+					<Button variant="soft" color={copied ? 'green' : undefined} onClick={() => void copy()}>
+						{copied ? 'Copied' : 'Copy'}
+					</Button>
+					<Button variant="soft" onClick={() => log.clear()}>
+						Clear
+					</Button>
+				</Flex>
+				<SheetClose />
+			</SheetFooter>
 		</Sheet>
 	)
 }
