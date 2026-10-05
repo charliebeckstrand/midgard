@@ -14,6 +14,7 @@ import {
 	THEME_KEY,
 } from './appearance-storage'
 import { AppearanceContext, type ThemeMode, themeModes } from './context'
+import { FontScript } from './font-script'
 import { useAppearanceChoice } from './use-appearance-choice'
 
 const THEME_VALUES = themeModes.map((option) => option.value)
@@ -40,6 +41,10 @@ export type AppearanceProviderProps = {
  * `@custom-variant dark (&:where(.dark, .dark *))`. On a server-rendered page,
  * render {@link AppearanceScript} in the document head, so the stored theme and
  * density apply before the first paint.
+ *
+ * It renders the script of the latin face of the font before its children
+ * ({@link FontScript}), so latin text paints in the font from the first paint.
+ * Render it above all text of the page, as the root layout of an app does.
  *
  * @remarks The server render and the hydration render use the defaults
  * (`'system'` and `'snug'`) for the values of the context. The root element
@@ -105,5 +110,10 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 		[theme, density, setTheme, setDensity],
 	)
 
-	return <AppearanceContext value={value}>{children}</AppearanceContext>
+	return (
+		<AppearanceContext value={value}>
+			<FontScript />
+			{children}
+		</AppearanceContext>
+	)
 }

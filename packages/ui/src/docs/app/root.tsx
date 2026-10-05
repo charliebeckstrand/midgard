@@ -30,6 +30,10 @@ import { DocsSidebar } from './sidebar.tsx'
 // main column, and the current item is in view at the first paint.
 const FIRST_PAINT = 'first-paint'
 
+// The document of each page. It holds `AppearanceProvider`, so each
+// prerendered file has the script of the latin face before its content. The
+// fallback for a path with no page renders no route, so a provider in a route
+// would leave that file with no latin face.
 export function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" className="antialiased" suppressHydrationWarning>
@@ -43,7 +47,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				<Links />
 			</head>
 			<body className="bg-white text-zinc-950 lg:bg-zinc-100 dark:bg-zinc-950 dark:text-white">
-				{children}
+				<AppearanceProvider>{children}</AppearanceProvider>
 				<ScrollRestoration />
 				<CurrentScrollScript id={FIRST_PAINT} />
 				<Scripts />
@@ -113,33 +117,31 @@ export default function App() {
 
 	return (
 		<UIProvider link={RouterLink}>
-			<AppearanceProvider>
-				<title>{page ? `${page.name} · Docs` : 'Docs'}</title>
-				<Stylesheet />
-				<SidebarLayout
-					stickyHeader
-					floating={!locked}
-					actions={ACTIONS}
-					sidebar={<DocsSidebar pages={pages} current={page?.path} />}
-				>
-					<SidebarLayoutHeader>
-						<Flex align="center" gap="md">
-							<Button
-								variant="bare"
-								className="max-lg:hidden"
-								aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
-								onClick={() => setLocked(!locked)}
-							>
-								<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
-							</Button>
-							<Heading>{title}</Heading>
-						</Flex>
-					</SidebarLayoutHeader>
-					<Stack gap="xl">
-						<Outlet />
-					</Stack>
-				</SidebarLayout>
-			</AppearanceProvider>
+			<title>{page ? `${page.name} · Docs` : 'Docs'}</title>
+			<Stylesheet />
+			<SidebarLayout
+				stickyHeader
+				floating={!locked}
+				actions={ACTIONS}
+				sidebar={<DocsSidebar pages={pages} current={page?.path} />}
+			>
+				<SidebarLayoutHeader>
+					<Flex align="center" gap="md">
+						<Button
+							variant="bare"
+							className="max-lg:hidden"
+							aria-label={locked ? 'Float sidebar' : 'Lock sidebar'}
+							onClick={() => setLocked(!locked)}
+						>
+							<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
+						</Button>
+						<Heading>{title}</Heading>
+					</Flex>
+				</SidebarLayoutHeader>
+				<Stack gap="xl">
+					<Outlet />
+				</Stack>
+			</SidebarLayout>
 		</UIProvider>
 	)
 }
