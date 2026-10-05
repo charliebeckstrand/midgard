@@ -27,6 +27,8 @@ import {
 //   - The `Block` example of `Alert`, which shows the `w-full` override.
 //   - The cap of a `ScrollArea`, which makes its content overflow, and the
 //     `w-max` content that overflows.
+//   - The cap of the `Overflow` example of `Tabs`, which makes the tab list
+//     overflow at each width of the frame.
 //   - The fit of the mini `Sidebar` at `lg`, which is a prop of the demo.
 
 const WIDTHS: Record<string, readonly string[]> = {
@@ -45,6 +47,9 @@ const WIDTHS: Record<string, readonly string[]> = {
 	'docs-legacy/demos/modules/grid/index.tsx': ['w-full'],
 	'docs-legacy/demos/structure/flex.tsx': ['w-64', 'w-64'],
 	'docs-legacy/demos/structure/stack.tsx': ['w-64'],
+	'docs/pages/components/scroll-area/horizontal-with-extent.tsx': ['w-max'],
+	'docs/pages/components/scroll-area/playground.tsx': ['w-max'],
+	'docs/pages/components/tabs/overflow.tsx': ['max-w-sm'],
 	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
 }
 
