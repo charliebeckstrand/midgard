@@ -21,7 +21,7 @@ import {
 	MapPointedMarkContext,
 	type MapPointedStore,
 } from './context'
-import { markAnchorAt, regionIndexAt } from './engine/map-hover/anchor'
+import { targetAt } from './engine/map-hover/anchor'
 import { type MapHoverTarget, sameMark, sameTarget } from './engine/map-hover/target'
 import { useMapRegionPreload } from './use-map-region-preload'
 
@@ -169,28 +169,10 @@ export function MapHoverProvider({
 				return
 			}
 
-			const point = { x: clientX, y: clientY }
-
-			const region = regionIndexAt(under)
-
-			if (region !== null) {
-				set({ kind: 'region', index: region }, point)
-
-				return
-			}
-
-			// Resolved through the shared anchor reader, so a plural mark re-settles
-			// on the dot the pointer is actually over rather than on the mark's first.
-			const mark = markAnchorAt(under)
-
-			if (mark !== null) {
-				set({ kind: 'entry', ...mark }, point)
-
-				return
-			}
+			const target = targetAt(under)
 
 			// Over the plat but between marks — the ocean — reads nothing.
-			set(null, null)
+			set(target, target === null ? null : { x: clientX, y: clientY })
 		},
 		[plotRef, set],
 	)

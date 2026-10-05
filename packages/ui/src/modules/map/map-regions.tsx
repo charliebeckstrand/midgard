@@ -238,6 +238,9 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	// closures, and the memoized Region's props hold their identity.
 	const track = useCallback(
 		(event: PointerEvent<SVGPathElement>) => {
+			// A touch reads nothing from the map. See `useMapTouchTap`.
+			if (event.pointerType === 'touch') return
+
 			set(
 				{ kind: 'region', index: Number(event.currentTarget.getAttribute('data-region-index')) },
 				{ x: event.clientX, y: event.clientY },

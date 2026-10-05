@@ -8,6 +8,8 @@
  * return data, so they are testable against a bare DOM.
  */
 
+import type { MapHoverTarget } from './target'
+
 /**
  * The region index under a DOM node, resolved from the `data-region-index`
  * anchor the region paths carry. This is the one place that reads that anchor.
@@ -52,6 +54,23 @@ export function markAnchorAt(
 	if (id === null) return null
 
 	return { id, stop: wholeNumber(anchor?.getAttribute('data-entry-stop') ?? null) ?? 0 }
+}
+
+/**
+ * The mark under a DOM node: a region, else an overlay mark, else `null`. The
+ * hover provider's scroll-settle resolve and the touch double tap both read the
+ * target here, so the two can't disagree about what is under a point.
+ *
+ * @internal
+ */
+export function targetAt(node: EventTarget | Element | null): MapHoverTarget | null {
+	const region = regionIndexAt(node)
+
+	if (region !== null) return { kind: 'region', index: region }
+
+	const mark = markAnchorAt(node)
+
+	return mark === null ? null : { kind: 'entry', ...mark }
 }
 
 /** A DOM anchor's value as a whole number, or `null` where it is missing or malformed. */
