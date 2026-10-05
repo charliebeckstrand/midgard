@@ -180,8 +180,8 @@ function PlaceVisit({
 }
 
 /**
- * The body of the drawer over one place: its category, its address, its web
- * address, and its visits, newest first. A score is a fact about a visit, so
+ * The body of the drawer over one place: its address, its web address, its
+ * category, and its visits, newest first. A score is a fact about a visit, so
  * each visit shows its own, and the place shows none.
  */
 function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions }) {
@@ -190,17 +190,6 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 	return (
 		<Stack gap="md" className="pb-6">
 			<Stack gap="sm">
-				{category ? (
-					<PlaceFact icon={<Tag />}>
-						{/* The badge is taller than a line. It is centered on one line, so
-						    its middle meets the middle of the icon, and the row is one line
-						    high, the same as the rows under it. */}
-						<div className="flex h-lh items-center">
-							<Badge color={category.color}>{category.label}</Badge>
-						</div>
-					</PlaceFact>
-				) : null}
-
 				<PlaceFact icon={<MapPin />}>
 					<Text>{place.address}</Text>
 				</PlaceFact>
@@ -210,6 +199,17 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 						<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
 							{place.url}
 						</Link>
+					</PlaceFact>
+				) : null}
+
+				{category ? (
+					<PlaceFact icon={<Tag />}>
+						{/* The badge is taller than a line. It is centered on one line, so
+						    its middle meets the middle of the icon, and the row is one line
+						    high, the same as the rows over it. */}
+						<div className="flex h-lh items-center">
+							<Badge color={category.color}>{category.label}</Badge>
+						</div>
 					</PlaceFact>
 				) : null}
 			</Stack>
