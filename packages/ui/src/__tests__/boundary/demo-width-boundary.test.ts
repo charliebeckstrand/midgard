@@ -46,6 +46,7 @@ const WIDTHS: Record<string, readonly string[]> = {
 	'docs-legacy/demos/structure/flex.tsx': ['w-64', 'w-64'],
 	'docs-legacy/demos/structure/stack.tsx': ['w-64'],
 	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
+	'docs/pages/structure/flex/wrap.tsx': ['w-64'],
 }
 
 // The examples of the docs app, and the demos of the legacy app.
