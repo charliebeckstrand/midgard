@@ -118,4 +118,14 @@ describe('parseEditing', () => {
 	it('handles a comma decimal separator', () => {
 		expect(parseEditing('1.234,5', '.', ',')).toBe(1234.5)
 	})
+
+	// `toBe` compares with `Object.is`, which does not make -0 equal to 0. Intl
+	// writes the sign of -0, and the display then shows "-0.00".
+	it.each([
+		['a negative zero', '-0'],
+		['a negative zero with a fraction', '-0.00'],
+		['a negative zero with no integer digit', '-.0'],
+	])('returns 0, not -0, for %s', (_name, input) => {
+		expect(parseEditing(input, ',', '.')).toBe(0)
+	})
 })

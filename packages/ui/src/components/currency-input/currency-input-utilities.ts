@@ -125,5 +125,9 @@ export function parseEditing(text: string, group: string, decimal: string) {
 
 	const n = Number(normalized)
 
-	return Number.isNaN(n) ? undefined : n
+	if (Number.isNaN(n)) return undefined
+
+	// "-0" gives -0, and Intl writes its sign ("-0.00"). Zero has no sign, so
+	// the value is 0.
+	return n === 0 ? 0 : n
 }
