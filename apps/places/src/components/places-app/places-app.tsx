@@ -413,17 +413,15 @@ function PlacesHeader({
 				    it this flex child holds its full width and pushes the controls beside it
 				    off the row instead of truncating. `flex-1` is what lets it come back: the
 				    trail measures the box it is given, and a box that shrinks to the trail
-				    would narrow with it and never report the room to expand again. */}
-			{/* The trail and the toggle together, because the toggle acts on the
-				    region the last crumb names — not on the app, which is what the
-				    cluster on the far side holds. `min-w-0` stays on the trail alone, so
-				    the crumbs give way and the button never does. */}
-			<Flex gap="md" align="center" className="flex-1 min-w-0">
-				<div className="min-w-0">
-					<PlaceTrail className="text-xl/8" steps={steps} />
-				</div>
+				    would narrow with it and never report the room to expand again.
 
-				{/* The visited toggle. It is a button rather than a checkbox, because
+				    The toggle goes inside the trail, because it acts on the region the last
+				    crumb names — not on the app, which is what the cluster on the far side
+				    holds. Inside, it is measured with the crumbs, so they give way and the
+				    button never does. */}
+			<div className="flex-1 min-w-0">
+				<PlaceTrail className="text-xl/8" steps={steps}>
+					{/* The visited toggle. It is a button rather than a checkbox, because
 					    the reader does not check a place as visited — they mark it as such.
 					    The button's own state is the visited state, so the reader sees what
 					    they are about to do and the action is a single click rather than a
@@ -435,14 +433,15 @@ function PlacesHeader({
 					    for, and a touch screen has no hover to show it. The tooltip names
 					    the region, because the view does not always say it: over the United
 					    States the map draws states, and the toggle marks the country. */}
-				{mark === null ? null : (
-					<VisitedToggle
-						region={mark.region}
-						marked={marked}
-						onMarkedChange={(visited) => onMarkedChange({ ...mark, visited })}
-					/>
-				)}
-			</Flex>
+					{mark === null ? null : (
+						<VisitedToggle
+							region={mark.region}
+							marked={marked}
+							onMarkedChange={(visited) => onMarkedChange({ ...mark, visited })}
+						/>
+					)}
+				</PlaceTrail>
+			</div>
 
 			<Flex gap="sm" align="center" className="shrink-0">
 				{/* Ready with the map, as the map's own drill is: a pick before the view

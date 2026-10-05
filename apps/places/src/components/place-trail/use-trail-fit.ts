@@ -74,9 +74,12 @@ function fitOf(row: HTMLElement): TrailFit {
 
 	const room = row.clientWidth
 
-	// What the trail would take with every label whole and no mark shown: what it
-	// takes now, plus the width each label is short of its text, less the marks.
-	let need = last.item.getBoundingClientRect().right - row.getBoundingClientRect().left
+	// What the row would take with every label whole and no mark shown: what it
+	// takes now, to the end of what follows the trail, plus the width each label
+	// is short of its text, less the marks.
+	const end = row.lastElementChild ?? last.item
+
+	let need = end.getBoundingClientRect().right - row.getBoundingClientRect().left
 
 	for (const { label, mark } of crumbs) {
 		need += label.scrollWidth - label.clientWidth - mark.clientWidth
