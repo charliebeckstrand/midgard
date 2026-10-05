@@ -227,8 +227,17 @@ function VisitedToggle({
 type Deletion = { place: Place; visit: Visit | null }
 
 /**
+ * Whether a delete removes the whole place. A place keeps at least one visit,
+ * so a delete of its only visit also deletes the place.
+ */
+function deletesPlace({ place, visit }: Deletion): boolean {
+	return visit === null || place.visits.length === 1
+}
+
+/**
  * The confirmation before a delete. It is open while `deletion` is set, and it
- * names the place, or the day of the visit.
+ * names the place, or the day of the visit. When the visit is the only one, it
+ * also says that the place goes with it.
  */
 function DeleteConfirm({
 	deletion,
@@ -248,6 +257,13 @@ function DeleteConfirm({
 				? `Delete "${deletion.place.name}"?`
 				: `Delete the visit on ${fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}?`
 
+	const description =
+		deletion === null
+			? undefined
+			: visit !== null && deletesPlace(deletion)
+				? `This is the only visit to "${deletion.place.name}", so the place is deleted too. This cannot be undone.`
+				: 'This cannot be undone.'
+
 	return (
 		<Confirm
 			open={deletion !== null}
@@ -260,7 +276,7 @@ function DeleteConfirm({
 				onClose()
 			}}
 			title={title}
-			description={deletion === null ? undefined : 'This cannot be undone.'}
+			description={description}
 			confirm={{ label: 'Delete', color: 'red' }}
 		/>
 	)
@@ -1016,8 +1032,10 @@ export function PlacesApp({
 			<DeleteConfirm
 				deletion={deleting}
 				onClose={() => setDeleting(null)}
-				onDelete={({ place, visit }) => {
-					if (visit === null) {
+				onDelete={(deletion) => {
+					const { place, visit } = deletion
+
+					if (visit === null || deletesPlace(deletion)) {
 						void deletePlace.mutateAsync(place.id)
 
 						return

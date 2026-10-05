@@ -66,7 +66,7 @@ describe('placeSource', () => {
 			(entry): entry is ContextMenuItem => 'onAction' in entry,
 		)
 
-		expect(items.map((item) => item.label)).toEqual(['Add visit', 'Edit', 'Delete'])
+		expect(items.map((item) => item.label)).toEqual(['Add visit', 'Edit place', 'Delete place'])
 
 		for (const item of items) item.onAction?.()
 

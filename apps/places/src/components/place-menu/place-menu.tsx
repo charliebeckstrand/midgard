@@ -21,7 +21,7 @@ export type VisitActions = {
 	onDeleteVisit: (place: Place, visit: Visit) => void
 }
 
-/** The rows of the menu of a place: Add visit, Edit, and Delete. */
+/** The rows of the menu of a place: Add visit, Edit place, and Delete place. */
 export function placeMenuItems(place: Place, actions: PlaceActions): ContextMenuEntry[] {
 	return [
 		{
@@ -30,16 +30,20 @@ export function placeMenuItems(place: Place, actions: PlaceActions): ContextMenu
 			icon: <CalendarPlus />,
 			onAction: () => actions.onAddVisit(place),
 		},
-		{ key: 'edit', label: 'Edit', icon: <Pencil />, onAction: () => actions.onEdit(place) },
-		{ key: 'separator', separator: true },
-		{ key: 'delete', label: 'Delete', icon: <Trash />, onAction: () => actions.onDelete(place) },
+		{ key: 'edit', label: 'Edit place', icon: <Pencil />, onAction: () => actions.onEdit(place) },
+		{
+			key: 'delete',
+			label: 'Delete place',
+			icon: <Trash />,
+			onAction: () => actions.onDelete(place),
+		},
 	]
 }
 
 /**
- * The rows of the menu of one visit. Delete shows only where the place has
- * another visit, because a place keeps at least one: the place menu deletes
- * the place.
+ * The rows of the menu of one visit: Edit visit and Delete visit. A place keeps
+ * at least one visit, so the confirmation of a delete of the only visit says
+ * that the place goes too.
  */
 export function visitMenuItems(
 	place: Place,
@@ -53,16 +57,12 @@ export function visitMenuItems(
 			icon: <Pencil />,
 			onAction: () => actions.onEditVisit(place, visit),
 		},
-		...(place.visits.length > 1
-			? [
-					{
-						key: 'delete',
-						label: 'Delete visit',
-						icon: <Trash />,
-						onAction: () => actions.onDeleteVisit(place, visit),
-					},
-				]
-			: []),
+		{
+			key: 'delete',
+			label: 'Delete visit',
+			icon: <Trash />,
+			onAction: () => actions.onDeleteVisit(place, visit),
+		},
 	]
 }
 
