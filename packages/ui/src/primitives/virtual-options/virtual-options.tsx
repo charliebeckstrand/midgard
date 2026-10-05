@@ -88,12 +88,15 @@ export type VirtualOptionsProps<T> = {
 const OVERSCAN = 10
 
 /**
- * Virtualized list for option lists inside a `PopoverPanel` (Combobox, Listbox).
+ * Virtualized list for option lists inside a `PopoverPanel` (Combobox, Listbox)
+ * or a `CommandPalette`.
  *
  * Finds its scroll container by walking up to the nearest ancestor with a
- * scrollable `overflow-y`. That is `PopoverPanel`'s own `overflow-y-auto` +
- * `max-h-*` styling, which every select-like panel already carries, not the
- * plain `role="listbox"` element `PopoverPanel` wraps. Renders only rows in the
+ * scrollable `overflow-y`. In a select-like panel, that is `PopoverPanel`'s own
+ * `overflow-y-auto` + `max-h-*` styling, not the plain `role="listbox"` element
+ * `PopoverPanel` wraps. A `CommandPalette` has no such panel, so the caller
+ * gives `VirtualOptions` a wrapper with a definite height and `overflow-y:
+ * auto`, as the `children` TSDoc of the palette tells. Renders only rows in the
  * viewport plus overscan; the rest are represented by top/bottom spacer divs.
  * Passes `aria-setsize` / `aria-posinset` to `children` so a screen reader
  * still reports the true "n of m" position for a windowed-out row.

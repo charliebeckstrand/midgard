@@ -28,7 +28,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `link` | Link context exposing the framework link component an app registers (e.g. `next/link`), or the `'a'` fallback. | `LinkContext`, `useLink`, `LinkComponent`, `LinkContextValue` |
 | `option` | Selectable list-item primitive for select-like widgets. It has an option row, a label, a description, and a text slot that stacks the label over the description. A factory binds them to the selection hook of a host. The hook throws a named error outside its host. | `Option`, `OptionLabel`, `OptionText`, `OptionDescription`, `createSelectOption`, `OptionSelectionContext` |
 | `select-trigger` | Presentational trigger chrome for the select family (Listbox, Combobox); wraps `ControlFrame`, and each affix slot is a scope one step below the trigger. | `SelectTrigger`, `SelectTriggerProps` |
-| `virtual-options` | Windowed option list (TanStack virtualizer) for `PopoverPanel` listboxes. It renders viewport and overscan rows with top/bottom spacers and `aria-setsize`/`aria-posinset`. An optional item source reaches options outside the window for the keyboard. | `VirtualOptions`, `VirtualOptionMeta` |
+| `virtual-options` | Windowed option list (TanStack virtualizer) for `PopoverPanel` listboxes and the `CommandPalette` list. It renders viewport and overscan rows with top/bottom spacers and `aria-setsize`/`aria-posinset`. An optional item source reaches options outside the window for the keyboard. | `VirtualOptions`, `VirtualOptionMeta` |
 
 ## Styling & state context cascades
 
