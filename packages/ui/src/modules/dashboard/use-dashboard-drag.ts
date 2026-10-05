@@ -7,7 +7,7 @@ import type {
 	DragStartEvent,
 	KeyboardCoordinateGetter,
 } from '@dnd-kit/core'
-import { type RefObject, useCallback, useMemo, useRef } from 'react'
+import { type RefObject, useCallback, useId, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
@@ -290,6 +290,10 @@ export function useDashboardDrag({
 
 	const sensors = useSortableSensors({ keyboardCoordinateGetter: coordinateGetter })
 
+	// An id from `useId`, so the server and the browser agree on the id of the
+	// drag description. dnd-kit makes it from a shared counter without one.
+	const id = useId()
+
 	// The live region of dnd-kit writes a text only when it changes, so a repeated
 	// sentence is not spoken again.
 	const announcements = useMemo<Announcements>(() => {
@@ -351,6 +355,7 @@ export function useDashboardDrag({
 
 	const context = useMemo<DndContextProps>(
 		() => ({
+			id,
 			sensors,
 			accessibility: { announcements },
 			onDragStart: handleDragStart,
@@ -358,7 +363,7 @@ export function useDashboardDrag({
 			onDragEnd: handleDragEnd,
 			onDragCancel: handleDragCancel,
 		}),
-		[sensors, announcements, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel],
+		[id, sensors, announcements, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel],
 	)
 
 	return { context, cancelDrag }

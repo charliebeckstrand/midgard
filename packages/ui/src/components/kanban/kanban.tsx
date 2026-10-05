@@ -1,7 +1,7 @@
 'use client'
 
 import { closestCorners, DndContext } from '@dnd-kit/core'
-import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import {
 	useComposedRef,
@@ -82,6 +82,11 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 
 	const sensors = useSortableSensors({ keyboard: false })
 
+	// Without an id, dnd-kit makes the id of the drag description from a counter
+	// that each render in the process shares, so the server markup and the
+	// browser do not agree on it.
+	const dndId = useId()
+
 	const {
 		activeId,
 		dropColumnId,
@@ -153,6 +158,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		<KanbanContext value={contextValue}>
 			<KanbanDragStateContext value={dragStateValue}>
 				<DndContext
+					id={dndId}
 					sensors={sensors}
 					collisionDetection={closestCorners}
 					onDragStart={interactive ? handleDragStart : undefined}

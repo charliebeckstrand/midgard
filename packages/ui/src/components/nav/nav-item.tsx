@@ -11,10 +11,20 @@ import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from './use-nav-item'
 
 /**
+ * Removes `K` from each arm of the union `T`. A plain `Omit` on a union keeps
+ * only the keys that each arm has.
+ *
+ * @internal
+ */
+type OmitEach<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
+
+/**
  * Props for {@link NavItem}: the canonical {@link NavItemProps} plus `value` to
  * bind the item to the surrounding {@link Nav}'s selection state.
  */
-export type NavMenuItemProps = NavItemProps & { value?: string }
+// The native `value` of the `<button>` is wider than the selection value, so
+// each arm drops it before the selection `value` joins.
+export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & { value?: string }
 
 /**
  * Navigation link/button within a {@link NavList}. Renders a polymorphic

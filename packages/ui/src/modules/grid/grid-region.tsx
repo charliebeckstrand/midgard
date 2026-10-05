@@ -2,7 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import type { ComponentProps, ReactNode, RefObject } from 'react'
+import { type ComponentProps, type ReactNode, type RefObject, useId } from 'react'
 import { TableScrollsContext } from '../../components/table/context'
 import { cn, createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
@@ -163,6 +163,10 @@ function GridReorderRegion({
 	activeReorderId,
 	children,
 }: GridReorderRegionProps) {
+	// One id for both modes. The id of each mode's props would change the id of
+	// the drag description each time the mode changes.
+	const dndId = useId()
+
 	if (!configured) return children
 
 	const mode = rowReorderActive ? 'row' : canReorder ? 'column' : null
@@ -172,6 +176,7 @@ function GridReorderRegion({
 	return (
 		<DndContext
 			{...contextProps}
+			id={dndId}
 			sensors={contextProps.sensors}
 			modifiers={mode === 'row' ? ROW_REORDER_MODIFIERS : REORDER_MODIFIERS}
 			autoScroll={mode === 'row' ? ROW_REORDER_AUTO_SCROLL : REORDER_AUTO_SCROLL}

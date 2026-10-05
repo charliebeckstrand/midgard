@@ -13,11 +13,15 @@ export type StepperPanelProps = {
 
 /**
  * Content region for a single step, shown while its `value` matches the
- * stepper's current value. Emits a `<section>` whose disclosure ids match the
- * corresponding {@link StepperStep} for `aria-controls` wiring. Place inside
+ * stepper's current value. Emits a `<div>` whose id matches the
+ * `aria-controls` of the corresponding {@link StepperStep}. Place inside
  * {@link StepperPanels}.
  *
  * @remarks
+ * The panel takes no role and no name, as a `CollapsePanel` does. A named
+ * `<section>` is a region landmark, so each step would add one landmark to the
+ * page.
+ *
  * The stepper's `mount` policy decides what happens off the current step. Under
  * the default `active` the panel renders nothing, so leaving the step discards
  * its state. Under `lazy` or `always` it is held in `<Activity mode="hidden">`
@@ -30,7 +34,10 @@ export function StepperPanel({ value, className, children, ...props }: StepperPa
 	const { value: currentValue, baseId, mount } = useStepper()
 
 	// Derives the same ids as the matching StepperStep via the shared baseId + value.
-	const { panelProps } = useA11yDisclosure({ id: baseId, key: value })
+	// The panel takes only the id that the step's `aria-controls` points to.
+	const {
+		panelProps: { id },
+	} = useA11yDisclosure({ id: baseId, key: value })
 
 	const hold = useMountHold(value === currentValue, mount)
 
@@ -38,10 +45,10 @@ export function StepperPanel({ value, className, children, ...props }: StepperPa
 
 	return (
 		<MountHold hold={hold} name="stepper-panel">
-			{/* Consumer props spread first; the matching StepperStep points at these ids. */}
-			<section data-slot="stepper-panel" className={className} {...props} {...panelProps}>
+			{/* Consumer props spread first; the matching StepperStep points at this id. */}
+			<div data-slot="stepper-panel" className={className} {...props} id={id}>
 				{children}
-			</section>
+			</div>
 		</MountHold>
 	)
 }
