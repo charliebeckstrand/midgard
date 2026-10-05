@@ -96,18 +96,19 @@ const PlaceDrawer = dynamic(() => loadDrawer().then((module) => module.PlaceDraw
 })
 
 /**
- * Whether a panel has opened at least once.
+ * Whether a panel renders: from the load of its code or its first open on,
+ * whichever comes first.
  *
- * A panel that has never opened is not rendered, so its code does not load for
- * it. After the first open it stays rendered, because a closing panel has an exit
- * to play.
+ * Before that, the panel is not rendered, so its code does not load for it.
+ * After that, it stays rendered, because a closing panel has an exit to play.
+ * {@link usePanelPrefetch} tells why a loaded panel renders before it opens.
  */
-function useOpenedOnce(open: boolean): boolean {
+function usePanelRendered(open: boolean, loaded: boolean): boolean {
 	const [opened, setOpened] = useState(open)
 
 	if (open && !opened) setOpened(true)
 
-	return opened || open
+	return opened || open || loaded
 }
 
 /** The empty list a pending places query stands in for, held so its identity is stable. */
@@ -251,20 +252,25 @@ function DeleteConfirm({
 
 /**
  * Fetches the code of the panels when the main thread is idle, after the
- * opening view has settled. The first open of a panel then waits for nothing.
- * The browser runs the code of a chunk when it arrives, so a fetch at the
- * settle ran it while the map drew its first frame.
+ * opening view has settled, and tells when all of it has loaded. The browser
+ * runs the code of a chunk when it arrives, so a fetch at the settle ran it
+ * while the map drew its first frame.
+ *
+ * The app renders each panel closed from that point on. The render that first
+ * shows a lazy panel suspends, also when its code is in the cache, and React
+ * holds the content of a boundary that showed its fallback for 300 ms
+ * (`FALLBACK_THROTTLE_MS`). A panel that suspended on its first open thus came
+ * up about 300 ms after the tap. A closed panel suspends while nothing is on
+ * the screen, and the first open renders it at once.
  */
-function usePanelPrefetch(settling: boolean) {
+function usePanelPrefetch(settling: boolean): boolean {
+	const [loaded, setLoaded] = useState(false)
+
 	useEffect(() => {
 		if (settling) return
 
 		const load = () => {
-			void loadIndex()
-
-			void loadForm()
-
-			void loadDrawer()
+			void Promise.all([loadIndex(), loadForm(), loadDrawer()]).then(() => setLoaded(true))
 		}
 
 		const idle = window.requestIdleCallback?.(load)
@@ -275,6 +281,8 @@ function usePanelPrefetch(settling: boolean) {
 
 		return () => window.clearTimeout(timer)
 	}, [settling])
+
+	return loaded
 }
 
 /**
@@ -589,13 +597,13 @@ export function PlacesApp({
 	// first frame.
 	const { data: countriesAtlas = null } = useAtlas('countries', atlas === 'countries' || !settling)
 
-	usePanelPrefetch(settling)
+	const panelsLoaded = usePanelPrefetch(settling)
 
 	const formOpen = adding || editing !== null
 
-	const formRendered = useOpenedOnce(formOpen)
+	const formRendered = usePanelRendered(formOpen, panelsLoaded)
 
-	const indexRendered = useOpenedOnce(listing)
+	const indexRendered = usePanelRendered(listing, panelsLoaded)
 
 	const regions = atlas === 'states' ? statesAtlas : countriesAtlas
 
@@ -659,7 +667,7 @@ export function PlacesApp({
 		return selectedIds.map((id) => byId.get(id)).filter((place) => place !== undefined)
 	}, [selectedIds, places])
 
-	const drawerRendered = useOpenedOnce(selected.length > 0)
+	const drawerRendered = usePanelRendered(selected.length > 0, panelsLoaded)
 
 	// The countries grouping inverted, held in its own slot for the reason the
 	// grouping is: one settled answer per atlas.
@@ -908,7 +916,8 @@ export function PlacesApp({
 
 			{/* One drawer for both writes, opened on a place to edit it and on nothing
 			    to add one. Two would be the same seven fields twice. It renders from
-			    its first open on, so its code is not part of the first load. */}
+			    the idle load of its code or its first open on, so its code is not
+			    part of the first load. */}
 			{formRendered ? (
 				<PlaceFormDrawer
 					open={formOpen}
@@ -928,8 +937,8 @@ export function PlacesApp({
 
 			{/* The other index into the same set: the map answers what is near here,
 			    and this answers where that place was. It reads the filtered list, so
-			    the two never disagree about what is in play. It renders from its first
-			    open on, like the form. */}
+			    the two never disagree about what is in play. It renders from the
+			    same point on as the form. */}
 			{indexRendered ? (
 				<PlacesIndex
 					open={listing}
