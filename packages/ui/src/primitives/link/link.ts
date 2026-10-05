@@ -5,6 +5,7 @@ import { createContext } from '../../core'
 
 /** Props passed to the registered link component: a required `href` plus the standard anchor attributes. */
 export type LinkProps = {
+	/** The URL of the link. */
 	href: string
 } & Omit<ComponentProps<'a'>, 'href'>
 

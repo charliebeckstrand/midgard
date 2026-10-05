@@ -14,7 +14,7 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
 	 * Locale for the default formatter. Resolution order: explicit prop, then
 	 * enclosing `LocaleProvider`, then the runtime default.
 	 *
-	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
+	 * @defaultValue The locale of the enclosing `LocaleProvider`, or the runtime default without one.
 	 */
 	locale?: string
 	/**
@@ -27,14 +27,22 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
 /**
  * Self-refreshing relative timestamp rendered in a `<time>` element. Formats via
  * `Intl.RelativeTimeFormat`, and falls back to a plain `<span>` for invalid
- * dates. It steps its refresh `interval` coarser as the value ages. To reveal the absolute
- * time on hover, wrap it in a `<Tooltip>` with a `<TooltipContent>` of your own.
+ * dates. It steps its refresh `interval` coarser as the value ages.
+ *
+ * To show the absolute time in a tooltip, put TimeAgo in a `<TooltipTrigger>`
+ * and give it `tabIndex={0}`. The `<time>` element takes no focus of its own, so
+ * without `tabIndex` the tooltip opens on pointer hover only.
  *
  * @remarks
  * Client-only clock. The first render on both server and client emits an empty
  * `<time>`, with no relative text. The text then appears after mount, and
- * refreshes on the resolved interval. This keeps hydration deterministic and the markup
- * timezone-stable; lay out for the eventual text to avoid a shift on hydrate.
+ * refreshes on the resolved interval. Lay out for the eventual text to avoid a
+ * shift on hydrate.
+ *
+ * Hydration is deterministic only when `date` is the same value on the server
+ * and on the client, because `dateTime` comes from `date`. A `date` that render
+ * reads from `Date.now()` gives a hydration mismatch. Read the current time in
+ * an effect, or pass a fixed timestamp.
  */
 export function TimeAgo({
 	date,

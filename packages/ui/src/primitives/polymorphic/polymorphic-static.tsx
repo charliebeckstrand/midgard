@@ -24,7 +24,12 @@ export type PolymorphicStaticProps<
 	Omitted extends PropertyKey = never,
 > =
 	| ({ href?: never; render?: never } & Omit<ComponentProps<Fallback>, 'className' | Omitted>)
-	| ({ href: string; render?: ReactElement<LinkProps> } & Omit<LinkProps, 'className' | Omitted>)
+	| ({
+			/** The URL of the link. With `href`, the element is the `render` link, or a plain `<a>` without one. */
+			href: string
+			/** The router link to render for `href`, such as `<Link />` from `next/link`. It takes the resolved props of the link. */
+			render?: ReactElement<LinkProps>
+	  } & Omit<LinkProps, 'className' | 'href' | Omitted>)
 
 /**
  * Renders an `href`-driven element switch. With `href`, it clones `render` (the

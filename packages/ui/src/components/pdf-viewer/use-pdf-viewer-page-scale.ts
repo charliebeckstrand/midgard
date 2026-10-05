@@ -11,6 +11,8 @@ type Size = { width: number; height: number }
 type PageScaleOptions = {
 	viewportSize: Size | null
 	pageSize: Size | null
+	/** The page size in points (1/72 in), when the page carries it. Sets {@link PageScaleResult.naturalWidth}. */
+	pointSize?: Size | null
 	/** Raw rotation in degrees for the active page; can be ≥ 360. Transposition is derived from it. */
 	rotation: number
 	zoom: number
@@ -34,6 +36,20 @@ export type PageScaleResult = {
 	 * overflow vertically.
 	 */
 	aspectRatio: string | undefined
+	/**
+	 * The CSS width of the visible page at 100%, before the fit scale and the zoom. It is the
+	 * viewport width when the host sizes to its content.
+	 *
+	 * @remarks The fitted frame takes its width from the measured viewport. Thus the frame cannot
+	 * give the viewport a width: in a box that sizes to its content (for example `w-max`), the
+	 * viewport keeps the width that it had before the page loaded. This width stops that loop.
+	 * A flexible viewport in a box with a width of its own ignores it.
+	 *
+	 * The width comes from the page points at 96 px per inch, then from the page pixels.
+	 * `816` (8.5 in, US Letter) is the pre-load fallback. Undefined when the viewer
+	 * reserves no space.
+	 */
+	naturalWidth: number | undefined
 	/**
 	 * CSS `transform` centering a page-sized box in the frame and applying the rotation.
 	 *
@@ -69,6 +85,36 @@ function resolvePageAspectRatio(
 	return isTransposed
 		? `${pageSize.height} / ${pageSize.width}`
 		: `${pageSize.width} / ${pageSize.height}`
+}
+
+/** CSS pixels for each PDF point: 96 px and 72 pt to the inch. */
+const PX_PER_POINT = 96 / 72
+
+/** The pre-load fallback width: US Letter, 8.5 in at 96 px per inch. */
+const LETTER_WIDTH = 816
+
+/**
+ * CSS width of the visible page at 100%. See {@link PageScaleResult.naturalWidth}.
+ *
+ * @internal
+ */
+function resolveNaturalWidth(
+	hasContent: boolean,
+	pageSize: Size | null,
+	pointSize: Size | null,
+	isTransposed: boolean,
+): number | undefined {
+	if (!hasContent) return undefined
+
+	if (pointSize && pointSize.width > 0 && pointSize.height > 0) {
+		return (isTransposed ? pointSize.height : pointSize.width) * PX_PER_POINT
+	}
+
+	if (pageSize && pageSize.width > 0 && pageSize.height > 0) {
+		return isTransposed ? pageSize.height : pageSize.width
+	}
+
+	return LETTER_WIDTH
 }
 
 /**
@@ -110,7 +156,7 @@ function resolveFitScale(
  * @internal
  */
 export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult {
-	const { viewportSize, pageSize, rotation, zoom, hasContent, fit } = input
+	const { viewportSize, pageSize, pointSize = null, rotation, zoom, hasContent, fit } = input
 
 	return useMemo(() => {
 		const isTransposed = isRotationTransposed(rotation)
@@ -125,8 +171,18 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 
 		const aspectRatio = resolvePageAspectRatio(hasContent, pageSize, isTransposed, fit)
 
+		const naturalWidth = resolveNaturalWidth(hasContent, pageSize, pointSize, isTransposed)
+
 		const transform = `translate(-50%, -50%) rotate(${rotation}deg)`
 
-		return { imageWidth, imageHeight, frameWidth, frameHeight, aspectRatio, transform }
-	}, [viewportSize, pageSize, rotation, zoom, hasContent, fit])
+		return {
+			imageWidth,
+			imageHeight,
+			frameWidth,
+			frameHeight,
+			aspectRatio,
+			naturalWidth,
+			transform,
+		}
+	}, [viewportSize, pageSize, pointSize, rotation, zoom, hasContent, fit])
 }

@@ -58,9 +58,11 @@ export const scale = defineScale(...mark.density)
 /** Recipe variant props for inline {@link Code}: the `size` step that the component writes as a density scope. */
 export type CodeVariants = { size?: ScaleStep<typeof scale> }
 /**
- * Recipe variant props for {@link CodeBlock}. The block chrome carries no
- * variants of its own: it shares the inline `Code` `size` axis. This is
- * therefore an alias of {@link CodeVariants}, kept as a distinct name for the
- * public `CodeBlock` surface.
+ * Recipe variant props for {@link CodeBlock}. It is an alias of
+ * {@link CodeVariants}, the `size` step of inline `Code`.
+ *
+ * @remarks
+ * CodeBlock does not read this type. `CodeBlockProps` has no `size`, and the
+ * chrome of the block has a fixed padding and a fixed `text-sm`.
  */
 export type CodeBlockVariants = CodeVariants

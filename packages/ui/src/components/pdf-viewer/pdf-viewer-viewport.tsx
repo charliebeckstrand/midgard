@@ -43,7 +43,8 @@ export function PdfViewerViewport() {
 
 	const { setReference, referenceProps } = usePdfViewerMagnifierContext()
 
-	const { aspectRatio, frameWidth, frameHeight, imageWidth, imageHeight, transform } = scale
+	const { aspectRatio, naturalWidth, frameWidth, frameHeight, imageWidth, imageHeight, transform } =
+		scale
 
 	const pageStatus = useA11yLiveRegion({ srOnly: true })
 
@@ -59,7 +60,9 @@ export function PdfViewerViewport() {
 			ref={composedViewportRef}
 			data-slot="pdf-viewer-viewport"
 			className={cn(k.viewport.base, fit === 'width' && k.viewport.scrolls)}
-			style={{ aspectRatio }}
+			// The flex basis sets the width in a box with a width of its own. `naturalWidth` is the
+			// width in a box that sizes to its content, where the fitted page cannot give one.
+			style={{ aspectRatio, width: naturalWidth }}
 		>
 			{/* Live region announces "Page X of Y" on page navigation. */}
 			{total > 0 && (

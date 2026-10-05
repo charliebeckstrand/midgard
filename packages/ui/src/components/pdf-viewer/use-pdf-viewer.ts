@@ -543,9 +543,21 @@ export function usePdfViewer({
 	// pre-load fallback. Unset when there is no content to display.
 	const hasContent = !!src || total > 0
 
+	// Primitive dependencies: the cache republishes the slot of a page as it renders, so the
+	// slot identity changes while its points stay the same.
+	const pointWidth = activePage?.pointWidth
+
+	const pointHeight = activePage?.pointHeight
+
+	const pointSize = useMemo(
+		() => (pointWidth && pointHeight ? { width: pointWidth, height: pointHeight } : null),
+		[pointWidth, pointHeight],
+	)
+
 	const scale = usePdfViewerPageScale({
 		viewportSize,
 		pageSize,
+		pointSize,
 		rotation,
 		zoom: zoomValue,
 		hasContent,
