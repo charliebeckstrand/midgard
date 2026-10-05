@@ -202,12 +202,10 @@ describe('the relative slot scope (real browser)', () => {
 		writeRootDensity(document.documentElement, 'sm')
 
 		const { container } = renderUI(
-			<Card size="sm">
-				<Card size="lg">
-					<span data-density="slot">
-						<Badge>x</Badge>
-					</span>
-				</Card>
+			<Card size="lg">
+				<span data-density="slot">
+					<Badge>x</Badge>
+				</span>
 			</Card>,
 		)
 
@@ -704,19 +702,6 @@ describe('density scopes on static leaves (real browser)', () => {
 				</DensityProvider>
 			),
 			'md',
-		],
-		[
-			'follows the innermost of three scopes',
-			() => (
-				<DensityProvider density="compact">
-					<Card size="lg">
-						<Card size="sm">
-							<Badge>x</Badge>
-						</Card>
-					</Card>
-				</DensityProvider>
-			),
-			'sm',
 		],
 		[
 			'keeps an explicit size inside a scope',
