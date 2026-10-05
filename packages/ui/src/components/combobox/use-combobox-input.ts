@@ -13,7 +13,7 @@ import {
 	useCallback,
 } from 'react'
 import { isComposing } from '../../utilities'
-import { selectSoleOption } from './combobox-utilities'
+import { enterKeepsSelection, selectSoleOption } from './combobox-utilities'
 
 type ComboboxInputParams<T> = {
 	value: T | T[] | undefined
@@ -33,6 +33,12 @@ type ComboboxInputParams<T> = {
 	/** Opens the closed menu from an arrow key; the root seats the highlight on any selection. */
 	openByArrowKey: () => void
 	close: () => void
+	/**
+	 * Ends a pick with no change to the value, as `select` ends one: it closes the
+	 * menu, or with `closeOnSelect` off it resets the query and keeps the menu open.
+	 * Enter on an option that is already selected calls it in single mode.
+	 */
+	keep: () => void
 	/** Fires when focus leaves the combobox entirely; binds Form touched state. */
 	onTouched?: () => void
 	keyboardSettled: (cb: () => void) => void
@@ -107,6 +113,39 @@ function closedMenuKeyDown(
 }
 
 /**
+ * Handles an Enter on the open menu before the roving handler gets it. The
+ * Enter selects the sole option of a list that has narrowed to one. Enter
+ * chooses, and in single mode a choice of the selected option keeps it. The
+ * roving handler would click that option, and the click clears a `nullable`
+ * value. Thus the Enter clicks nothing and calls `keep`, which ends the pick as
+ * `closeOnSelect` sets.
+ *
+ * @returns `true` when the function used the key, else `false`.
+ */
+function openMenuEnter(
+	event: KeyboardEvent<HTMLInputElement>,
+	container: HTMLElement | null,
+	multiple: boolean,
+	keep: () => void,
+): boolean {
+	if (event.key !== 'Enter' || !container) return false
+
+	if (selectSoleOption(container, multiple)) {
+		event.preventDefault()
+
+		return true
+	}
+
+	if (!enterKeepsSelection(container, multiple)) return false
+
+	event.preventDefault()
+
+	keep()
+
+	return true
+}
+
+/**
  * Marks an Escape on the open menu as consumed with `preventDefault`. That press
  * closes only the menu, so the escape layer of a surface around the combobox
  * must ignore it. In a browser the layer of the menu can unregister before the
@@ -134,7 +173,9 @@ function consumeMenuEscape(event: KeyboardEvent<HTMLInputElement>, open: boolean
  *   input at its start, so a truncated value does not scroll sideways.
  * @remarks On an open menu, Enter selects the sole remaining option when the list
  *   has narrowed to one. The activation key of the roving handler selects the
- *   highlighted option.
+ *   highlighted option. In single mode, Enter on an option that is already
+ *   selected clicks nothing. It calls `keep`, which keeps the value and ends
+ *   the pick as `closeOnSelect` sets, so no Enter clears a `nullable` value.
  * @internal
  */
 export function useComboboxInput<T>({
@@ -150,6 +191,7 @@ export function useComboboxInput<T>({
 	setOpen,
 	openByArrowKey,
 	close,
+	keep,
 	onTouched,
 	keyboardSettled,
 	rovingKeyDown,
@@ -237,19 +279,11 @@ export function useComboboxInput<T>({
 				return
 			}
 
-			if (event.key === 'Enter') {
-				const container = optionsRef.current
-
-				if (container && selectSoleOption(container)) {
-					event.preventDefault()
-
-					return
-				}
-			}
+			if (openMenuEnter(event, optionsRef.current, multiple, keep)) return
 
 			rovingKeyDown(event)
 		},
-		[close, open, openByArrowKey, optionsRef, rovingKeyDown],
+		[close, keep, multiple, open, openByArrowKey, optionsRef, rovingKeyDown],
 	)
 
 	/*

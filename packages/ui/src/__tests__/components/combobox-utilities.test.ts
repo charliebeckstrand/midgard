@@ -227,9 +227,35 @@ describe('selectSoleOption', () => {
 
 		container.appendChild(option)
 
-		expect(selectSoleOption(container)).toBe(true)
+		expect(selectSoleOption(container, false)).toBe(true)
 
 		expect(clicked).toHaveBeenCalled()
+	})
+
+	// A click on the selected option toggles it, and the toggle clears a `nullable`
+	// value. Enter chooses, so in single mode it does not click that option. A
+	// `multiple` combobox keeps the toggle.
+	it.each([
+		['does not click the sole option in single mode', false, false],
+		['clicks the sole option in multiple mode', true, true],
+	])('%s when that option is already selected', (_name, multiple, clicks) => {
+		const container = document.createElement('div')
+
+		const option = document.createElement('div')
+
+		option.setAttribute('role', 'option')
+
+		option.setAttribute('data-selected', '')
+
+		const clicked = vi.fn()
+
+		option.addEventListener('click', clicked)
+
+		container.appendChild(option)
+
+		expect(selectSoleOption(container, multiple)).toBe(clicks)
+
+		expect(clicked).toHaveBeenCalledTimes(clicks ? 1 : 0)
 	})
 
 	it('returns false when there is more than one option', () => {
@@ -247,13 +273,13 @@ describe('selectSoleOption', () => {
 
 		container.appendChild(b)
 
-		expect(selectSoleOption(container)).toBe(false)
+		expect(selectSoleOption(container, false)).toBe(false)
 	})
 
 	it('returns false when there are no options', () => {
 		const container = document.createElement('div')
 
-		expect(selectSoleOption(container)).toBe(false)
+		expect(selectSoleOption(container, false)).toBe(false)
 	})
 })
 

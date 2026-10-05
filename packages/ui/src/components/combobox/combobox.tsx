@@ -559,6 +559,7 @@ export function Combobox<T>({
 		setEditing,
 		close,
 		select,
+		keep,
 		flushPending,
 		selectionValue,
 	} = useComboboxState<T>({
@@ -587,6 +588,15 @@ export function Combobox<T>({
 		},
 		[locked, setOpen],
 	)
+
+	// Enter on the selected option ends a pick with no change to the value. The
+	// lock blocks it as it blocks the selection, so on a locked combobox Enter
+	// does nothing on any option.
+	const guardedKeep = useCallback(() => {
+		if (locked) return
+
+		keep()
+	}, [locked, keep])
 
 	// Set when an arrow-key open must seat the highlight on the current
 	// selection rather than leave it empty; consumed by the highlight-anchoring
@@ -726,6 +736,7 @@ export function Combobox<T>({
 		setOpen: setOpenGuarded,
 		openByArrowKey,
 		close,
+		keep: guardedKeep,
 		onTouched: setTouched,
 		keyboardSettled,
 		rovingKeyDown,

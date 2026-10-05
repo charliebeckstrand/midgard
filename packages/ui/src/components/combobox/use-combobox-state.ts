@@ -32,13 +32,15 @@ type ComboboxStateParams<T> = {
  * Query, open, editing, and selection state for the combobox root.
  *
  * @returns `{ query, deferredQuery, setQuery, open, setOpen, editing,
- *   setEditing, close, select, flushPending, selectionValue }`. `query` tracks
- *   every keystroke; `deferredQuery` lags for filtering but snaps to empty
+ *   setEditing, close, select, keep, flushPending, selectionValue }`. `query`
+ *   tracks every keystroke; `deferredQuery` lags for filtering but snaps to empty
  *   immediately so clearing the filter is instant. `open` is controllable via
  *   the `open` prop. `select` commits or toggles the value, then closes or resets
  *   the query and refocuses the input depending on `closeOnSelect` (defaults to
- *   single-selection). `selectionValue`/`flushPending` come from the deferred
- *   toggle so the menu reads a value frozen until the panel finishes closing.
+ *   single-selection). `keep` ends a pick in the same way, with no change to the
+ *   value, for an Enter on the selected option. `selectionValue`/`flushPending`
+ *   come from the deferred toggle so the menu reads a value frozen until the
+ *   panel finishes closing.
  *   `menuQuery`/`menuDeferredQuery` are the query the *menu content* reads,
  *   frozen at their close-time snapshot until `flushPending` runs. The filter
  *   therefore holds steady through the exit animation, instead of snapping back
@@ -230,29 +232,38 @@ export function useComboboxState<T>({
 		inputRef.current?.select()
 	}, [pickCount, inputRef])
 
+	// The end of a pick, with no change to the value. A pick that closes calls
+	// close(). Otherwise the panel stays open and the query and editing reset.
+	// Enter on the selected option calls this alone: it chooses the value that the
+	// combobox holds, and a toggle would clear a `nullable` value.
+	const keep = useCallback(() => {
+		if (shouldClose) {
+			close()
+
+			return
+		}
+
+		setQuery('')
+
+		setEditing(false)
+
+		// The panel stays open, so the input keeps the focus for the next key. The
+		// layout effect above selects the text of the input after this commit.
+		inputRef.current?.focus()
+
+		setPickCount((count) => count + 1)
+	}, [shouldClose, close, setQuery, inputRef])
+
 	const select = useCallback(
 		(newValue: T) => {
-			if (shouldClose) {
-				commit(newValue)
+			// A pick that closes freezes the selection that the menu shows, for the
+			// exit animation. A pick that keeps the panel open updates it live.
+			if (shouldClose) commit(newValue)
+			else toggle(newValue)
 
-				close()
-
-				return
-			}
-
-			toggle(newValue)
-
-			setQuery('')
-
-			setEditing(false)
-
-			// The panel stays open, so the input keeps the focus for the next key. The
-			// layout effect above selects the text of the input after this commit.
-			inputRef.current?.focus()
-
-			setPickCount((count) => count + 1)
+			keep()
 		},
-		[shouldClose, toggle, commit, close, setQuery, inputRef],
+		[shouldClose, toggle, commit, keep],
 	)
 
 	return {
@@ -270,6 +281,7 @@ export function useComboboxState<T>({
 		setEditing,
 		close,
 		select,
+		keep,
 		flushPending,
 		selectionValue,
 	}

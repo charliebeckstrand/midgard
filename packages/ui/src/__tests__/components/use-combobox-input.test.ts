@@ -33,6 +33,8 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 
 	const close = vi.fn()
 
+	const keep = vi.fn()
+
 	const rovingKeyDown = vi.fn()
 
 	const keyboardSettled = vi.fn((cb: () => void) => cb())
@@ -55,6 +57,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 			setOpen,
 			openByArrowKey,
 			close,
+			keep,
 			keyboardSettled,
 			rovingKeyDown,
 			...overrides,
@@ -69,6 +72,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 		setOpen,
 		openByArrowKey,
 		close,
+		keep,
 		rovingKeyDown,
 		floatingRef,
 		optionsRef,
@@ -338,6 +342,111 @@ describe('useComboboxInput onKeyDown', () => {
 		result.current.onKeyDown(event)
 
 		expect(rovingKeyDown).toHaveBeenCalled()
+	})
+
+	describe('Enter on an option that is already selected', () => {
+		type Row = { selected?: boolean; active?: boolean }
+
+		/** An options container with one option for each row, and a spy on a click of any option. */
+		function optionRows(rows: Row[]) {
+			const container = document.createElement('div')
+
+			const click = vi.fn()
+
+			for (const { selected, active } of rows) {
+				const option = document.createElement('div')
+
+				option.setAttribute('role', 'option')
+
+				if (selected) option.setAttribute('data-selected', '')
+
+				if (active) option.setAttribute('data-active', '')
+
+				option.addEventListener('click', click)
+
+				container.appendChild(option)
+			}
+
+			return { container: container as HTMLDivElement, click }
+		}
+
+		// A click on the selected option toggles it, and the toggle clears a
+		// `nullable` value. Enter chooses, so in single mode no Enter path clicks
+		// that option: not the sole-option Enter, and not the roving activation.
+		// The Enter keeps the value and ends as a pick ends, through `keep`.
+		it.each<[string, Row[]]>([
+			['the sole option', [{ selected: true }]],
+			['the highlighted option', [{}, { selected: true, active: true }]],
+		])('keeps %s selected in single mode and ends the pick', (_name, rows) => {
+			const { result, close, keep, rovingKeyDown, optionsRef } = setup<string>({ value: 'x' })
+
+			const { container, click } = optionRows(rows)
+
+			optionsRef.current = container
+
+			const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+			result.current.onKeyDown(event)
+
+			expect(click).not.toHaveBeenCalled()
+
+			expect(rovingKeyDown).not.toHaveBeenCalled()
+
+			expect(event.preventDefault).toHaveBeenCalled()
+
+			expect(keep).toHaveBeenCalledTimes(1)
+
+			expect(close).not.toHaveBeenCalled()
+		})
+
+		// A `multiple` combobox keeps the toggle, so Enter removes the option from
+		// the selection and the menu stays open.
+		it('clicks the sole option in multiple mode', () => {
+			const { result, keep, optionsRef } = setup<string>({ multiple: true, value: ['x'] })
+
+			const { container, click } = optionRows([{ selected: true }])
+
+			optionsRef.current = container
+
+			result.current.onKeyDown(makeKeyEvent<HTMLInputElement>('Enter'))
+
+			expect(click).toHaveBeenCalledTimes(1)
+
+			expect(keep).not.toHaveBeenCalled()
+		})
+
+		it('forwards Enter on the highlighted option to roving navigation in multiple mode', () => {
+			const { result, keep, rovingKeyDown, optionsRef } = setup<string>({
+				multiple: true,
+				value: ['x'],
+			})
+
+			optionsRef.current = optionRows([{}, { selected: true, active: true }]).container
+
+			const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+			result.current.onKeyDown(event)
+
+			expect(rovingKeyDown).toHaveBeenCalledWith(event)
+
+			expect(keep).not.toHaveBeenCalled()
+		})
+
+		// The check reads the highlighted option, so a selection elsewhere in the
+		// list does not stop the roving activation.
+		it('forwards Enter to roving navigation when the highlighted option is not the selected one', () => {
+			const { result, keep, rovingKeyDown, optionsRef } = setup<string>({ value: 'x' })
+
+			optionsRef.current = optionRows([{ selected: true }, { active: true }]).container
+
+			const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+			result.current.onKeyDown(event)
+
+			expect(rovingKeyDown).toHaveBeenCalledWith(event)
+
+			expect(keep).not.toHaveBeenCalled()
+		})
 	})
 
 	// The panel keeps its rows while it animates out after a close, and a row can

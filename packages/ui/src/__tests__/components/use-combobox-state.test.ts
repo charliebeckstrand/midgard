@@ -417,6 +417,40 @@ describe('useComboboxState', () => {
 
 		expect(result.current.open).toBe(true)
 	})
+
+	// Enter on the selected option is a choice of the value that the combobox
+	// holds. It ends as a pick ends, but with no toggle, so a `nullable` value
+	// stays.
+	it.each([
+		['closes the panel when closeOnSelect is true', true],
+		['keeps the panel open and clears the query when closeOnSelect is false', false],
+	])('keep() %s, and leaves the value', (_name, closeOnSelect) => {
+		const { result, setValue } = setup<string>({ nullable: true, value: 'x', closeOnSelect })
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.setEditing(true)
+		})
+
+		act(() => {
+			result.current.setQuery('x')
+		})
+
+		act(() => {
+			result.current.keep()
+		})
+
+		expect(result.current.open).toBe(!closeOnSelect)
+
+		expect(result.current.query).toBe('')
+
+		expect(result.current.editing).toBe(false)
+
+		expect(setValue).not.toHaveBeenCalled()
+	})
 })
 
 // CONVENTIONS.md §10.3 bars a drive of the outside press of floating-ui. The
