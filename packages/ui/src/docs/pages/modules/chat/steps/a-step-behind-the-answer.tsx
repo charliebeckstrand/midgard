@@ -1,10 +1,10 @@
 import { type ChatMessageData, ChatTranscript } from 'ui/chat'
 
 const messages: ChatMessageData[] = [
-	{ id: '1', role: 'user', content: 'Which shipments are late on the north routes?' },
+	{ id: '1', sender: 'user', content: 'Which shipments are late on the north routes?' },
 	{
 		id: '2',
-		role: 'assistant',
+		sender: 'assistant',
 		content: [
 			{
 				kind: 'tool',

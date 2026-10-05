@@ -23,13 +23,13 @@ import { getSlot, renderUI } from '../helpers'
  */
 
 const short: ChatMessageData[] = [
-	{ id: '1', role: 'user', content: 'How are late stops trending?' },
-	{ id: '2', role: 'assistant', content: 'They rose from 4 to 14.' },
+	{ id: '1', sender: 'user', content: 'How are late stops trending?' },
+	{ id: '2', sender: 'assistant', content: 'They rose from 4 to 14.' },
 ]
 
 const long: ChatMessageData[] = Array.from({ length: 40 }, (_, index) => ({
 	id: `m-${index}`,
-	role: index % 2 === 0 ? ('user' as const) : ('assistant' as const),
+	sender: index % 2 === 0 ? ('user' as const) : ('assistant' as const),
 	content: `Message ${index}, long enough to wrap and push the transcript past its own box.`,
 }))
 

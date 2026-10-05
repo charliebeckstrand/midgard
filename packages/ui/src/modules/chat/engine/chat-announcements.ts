@@ -77,5 +77,5 @@ export function describeTranscript(messages: ChatMessageData[], streaming = fals
 
 	const last = messages.at(-1)
 
-	return last?.role === 'assistant' ? describeReply(last.content) : ''
+	return last?.sender === 'assistant' ? describeReply(last.content) : ''
 }

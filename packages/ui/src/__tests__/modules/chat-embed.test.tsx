@@ -150,7 +150,7 @@ describe('ChatEmbedProvider', () => {
 		renderUI(
 			<ChatEmbedProvider renderers={renderers}>
 				<ChatTranscript
-					messages={[{ id: 'm1', role: 'assistant', content: [embed('e1', 'stops-map')] }]}
+					messages={[{ id: 'm1', sender: 'assistant', content: [embed('e1', 'stops-map')] }]}
 				/>
 			</ChatEmbedProvider>,
 		)

@@ -103,18 +103,27 @@ function chainCallbacks<A extends unknown[]>(
 	}
 }
 
-/** Slot value and setter passed to a {@link FiltersField} render-prop child. */
-export type FiltersFieldRenderProps = {
-	value: unknown
-	onValueChange: (value: unknown) => void
+/**
+ * Slot value and setter passed to a {@link FiltersField} render-prop child.
+ *
+ * @typeParam V - The type of the slot value. The slot is `undefined` while it
+ * is not set, and `onValueChange(undefined)` clears it.
+ */
+export type FiltersFieldRenderProps<V = unknown> = {
+	value: V | undefined
+	onValueChange: (value: V | undefined) => void
 }
 
-/** Props for {@link FiltersField}. */
-export type FiltersFieldProps = {
+/**
+ * Props for {@link FiltersField}.
+ *
+ * @typeParam V - The type of the slot value that the render function receives.
+ */
+export type FiltersFieldProps<V = unknown> = {
 	/** Key this field owns within the {@link Filters} value record. */
 	name: string
 	/** A control element, or a render function receiving {@link FiltersFieldRenderProps}. */
-	children: ReactNode | ((field: FiltersFieldRenderProps) => ReactNode)
+	children: ReactNode | ((field: FiltersFieldRenderProps<V>) => ReactNode)
 	className?: string
 }
 
@@ -145,8 +154,14 @@ export type FiltersFieldProps = {
  * empty, which a multi-select or a range control refuses. The two forms are
  * deliberate: the element form keeps the common call site terse, and the render
  * function covers everything identity cannot reach.
+ *
+ * The field is generic over the slot value. Give the type at the call site,
+ * as in `<FiltersField<number> name="minPrice">`, or annotate the parameter of
+ * the render function. The render function then reads a typed `value` and needs
+ * no cast. The field does not check the slot value at runtime, so the type is
+ * a statement of the caller about its own record.
  */
-export function FiltersField({ name, children, className }: FiltersFieldProps) {
+export function FiltersField<V = unknown>({ name, children, className }: FiltersFieldProps<V>) {
 	const { value: filterValue, setValue, layout } = useFilters()
 
 	// A stacked field fills its column; a rail's field keeps whatever width it was
@@ -174,8 +189,9 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	}, [name, setValue])
 
 	if (typeof children === 'function') {
-		const renderProps: FiltersFieldRenderProps = {
-			value: fieldValue,
+		const renderProps: FiltersFieldRenderProps<V> = {
+			// The record holds `unknown`. The caller names the type of its own slot.
+			value: fieldValue as V | undefined,
 			onValueChange: handleChange,
 		}
 

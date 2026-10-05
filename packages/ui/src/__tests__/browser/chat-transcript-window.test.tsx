@@ -23,7 +23,7 @@ const filler = (index: number) =>
 const history = (count: number): ChatMessageData[] =>
 	Array.from({ length: count }, (_, index) => ({
 		id: `m-${index}`,
-		role: index % 2 === 0 ? ('user' as const) : ('assistant' as const),
+		sender: index % 2 === 0 ? ('user' as const) : ('assistant' as const),
 		content: `Message ${index}. ${filler(index)}`,
 	}))
 
@@ -132,7 +132,7 @@ describe('the transcript window', () => {
 
 		const withReply = (content: string): ChatMessageData[] => [
 			...messages,
-			{ id: 'reply', role: 'assistant', content },
+			{ id: 'reply', sender: 'assistant', content },
 		]
 
 		const { container, rerender } = renderUI(<Frame messages={withReply('Late')} streaming />)
@@ -174,7 +174,7 @@ describe('the transcript window', () => {
 		// Five rows, each far taller than the estimate, so the target moves as they measure.
 		const appended: ChatMessageData[] = Array.from({ length: 5 }, (_, i) => ({
 			id: `new-${i}`,
-			role: 'assistant' as const,
+			sender: 'assistant' as const,
 			content: `New ${i}. ${filler(4).repeat(3)}`,
 		}))
 
@@ -225,7 +225,7 @@ describe('the transcript window', () => {
 		const reading = transcript.scrollTop
 
 		rerender(
-			<Frame messages={[...messages, { id: 'late', role: 'assistant', content: 'Late.' }]} />,
+			<Frame messages={[...messages, { id: 'late', sender: 'assistant', content: 'Late.' }]} />,
 		)
 
 		await frames()
@@ -248,7 +248,7 @@ describe('the transcript window', () => {
 
 		expect(distanceFromEnd(transcript)).toBeGreaterThan(HEIGHT)
 
-		rerender(<Frame messages={[...messages, { id: 'sent', role: 'user', content: 'Sent.' }]} />)
+		rerender(<Frame messages={[...messages, { id: 'sent', sender: 'user', content: 'Sent.' }]} />)
 
 		await waitFor(() => {
 			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
@@ -280,8 +280,8 @@ describe('the transcript window', () => {
 			<Frame
 				messages={[
 					...messages,
-					{ id: 'sent', role: 'user', content: 'Sent.' },
-					{ id: 'reply', role: 'assistant', content: 'Reply.' },
+					{ id: 'sent', sender: 'user', content: 'Sent.' },
+					{ id: 'reply', sender: 'assistant', content: 'Reply.' },
 				]}
 			/>,
 		)
@@ -321,7 +321,7 @@ describe('the transcript window', () => {
 			<Frame
 				messages={[
 					...messages,
-					{ id: 'sent', role: 'user', content: `Sent. ${filler(4).repeat(3)}` },
+					{ id: 'sent', sender: 'user', content: `Sent. ${filler(4).repeat(3)}` },
 				]}
 			/>,
 		)
@@ -349,7 +349,7 @@ describe('an embed under the window', () => {
 
 		messages[1] = {
 			id: 'm-1',
-			role: 'assistant',
+			sender: 'assistant',
 			content: [
 				{ kind: 'text', id: 't', text: 'Here is the trend.' },
 				{ kind: 'embed', id: 'e', name: 'view', data: null, height: 120 },

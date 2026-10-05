@@ -88,7 +88,7 @@ describe(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)`, () 
 		// the same transcript length the mount scenario measured.
 		const withReply = (content: string): ChatMessageData[] => [
 			...messages,
-			{ id: 'reply', role: 'assistant', content },
+			{ id: 'reply', sender: 'assistant', content },
 		]
 
 		rerenderBench(
@@ -146,7 +146,7 @@ const embedRenderers = { trend: chart }
 /** The same transcript with a view on every assistant reply. */
 function withEmbeds(messages: ChatMessageData[]): ChatMessageData[] {
 	return messages.map((message, index) =>
-		message.role === 'assistant'
+		message.sender === 'assistant'
 			? {
 					...message,
 					content: [

@@ -33,27 +33,22 @@ export default function RenderProps() {
 						<Label>Search</Label>
 						<Input placeholder="Search" />
 					</FiltersField>
-					<FiltersField name="minPrice">
+					<FiltersField<number | null> name="minPrice">
 						{({ value, onValueChange }) => (
 							<>
 								<Label>Min price</Label>
-								<NumberInput
-									placeholder="0"
-									min={0}
-									value={value as number | null}
-									onValueChange={onValueChange}
-								/>
+								<NumberInput placeholder="0" min={0} value={value} onValueChange={onValueChange} />
 							</>
 						)}
 					</FiltersField>
-					<FiltersField name="maxPrice">
+					<FiltersField<number | null> name="maxPrice">
 						{({ value, onValueChange }) => (
 							<>
 								<Label>Max price</Label>
 								<NumberInput
 									placeholder="1000"
 									min={0}
-									value={value as number | null}
+									value={value}
 									onValueChange={onValueChange}
 								/>
 							</>

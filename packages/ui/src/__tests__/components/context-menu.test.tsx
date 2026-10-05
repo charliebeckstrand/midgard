@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import {
 	ContextMenu,
 	type ContextMenuEntry,
 	type ContextMenuItem,
 	ContextMenuList,
+	type ContextMenuProps,
 	mergeContextMenuItems,
 	resolveContextMenuEntries,
 } from '../../components/context-menu'
@@ -52,6 +53,22 @@ describe('resolveContextMenuEntries', () => {
 		expect(entries[0]).toBe(items[0])
 		expect(entries[1]).toMatchObject({ separator: true })
 		expect(entries[2]).toBe(defaults[0])
+	})
+
+	it('keys its own separator apart from the separators in merged defaults', () => {
+		const merged = mergeContextMenuItems([
+			[defaults[0] as ContextMenuItem],
+			[defaults[1] as ContextMenuItem],
+		])
+
+		const entries = resolveContextMenuEntries(
+			{ items: [{ key: 'c', label: 'Custom', onAction: noop }] },
+			merged,
+		)
+
+		const keys = entries.map((entry) => entry.key)
+
+		expect(new Set(keys).size).toBe(keys.length)
 	})
 
 	it('inserts no separator when only one group is present', () => {
@@ -149,6 +166,40 @@ describe('ContextMenu', () => {
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 
 		expect(menuItemLabels()).toEqual(['Custom'])
+	})
+
+	it('takes separators and submenus in its defaults and its custom items', () => {
+		expectTypeOf<ContextMenuProps['defaults']>().toEqualTypeOf<ContextMenuEntry[] | undefined>()
+
+		expectTypeOf<ContextMenuProps['items']>().toEqualTypeOf<ContextMenuEntry[] | undefined>()
+
+		renderUI(
+			<ContextMenu
+				defaults={[
+					{ key: 'a', label: 'Alpha', onAction: noop },
+					{ key: 'rule', separator: true },
+					{ key: 'b', label: 'Bravo', onAction: noop },
+				]}
+				items={[
+					{
+						key: 'sort',
+						label: 'Sort',
+						items: [{ key: 'asc', label: 'Ascending', onAction: noop }],
+					},
+				]}
+			>
+				{surface}
+			</ContextMenu>,
+		)
+
+		fireEvent.contextMenu(screen.getByTestId('surface'))
+
+		expect(menuItemLabels()).toEqual(['Alpha', 'Bravo', 'Sort'])
+
+		// One rule inside the defaults, and one between the defaults and the custom block.
+		expect(document.body.querySelectorAll('[data-slot="menu-separator"]')).toHaveLength(2)
+
+		expect(screen.getByRole('menuitem', { name: 'Sort' })).toHaveAttribute('aria-haspopup', 'menu')
 	})
 
 	it('leaves the native menu (opens nothing) when there is nothing to show', () => {

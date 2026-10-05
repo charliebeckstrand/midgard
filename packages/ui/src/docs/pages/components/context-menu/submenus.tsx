@@ -1,6 +1,5 @@
 import { ArrowDownUp, Download, EyeOff, Pin } from 'lucide-react'
-import { type ContextMenuEntry, ContextMenuList } from 'ui/context-menu'
-import { Menu, MenuContent } from 'ui/menu'
+import { ContextMenu, type ContextMenuEntry } from 'ui/context-menu'
 import { Text } from 'ui/text'
 
 const entries: ContextMenuEntry[] = [
@@ -35,19 +34,14 @@ const entries: ContextMenuEntry[] = [
 	},
 ]
 
-// The `items` of a ContextMenu take no submenus. A Menu with no `placement` and a
-// ContextMenuList render the full set of entries.
 export default function Submenus() {
 	return (
-		<Menu>
+		<ContextMenu items={entries} aria-label="Column actions">
 			<div className="flex items-center justify-center rounded-lg border border-dashed border-zinc-300 px-10 py-8 dark:border-zinc-700">
 				<Text tone="muted" className="select-none">
 					Right-click the column
 				</Text>
 			</div>
-			<MenuContent aria-label="Column actions">
-				<ContextMenuList entries={entries} />
-			</MenuContent>
-		</Menu>
+		</ContextMenu>
 	)
 }
