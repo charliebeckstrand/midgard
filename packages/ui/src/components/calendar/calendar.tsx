@@ -74,7 +74,23 @@ export type CalendarDayProps = {
 export type CalendarProps = {
 	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` must seed `Date | null`. */
 	name?: string
+	/**
+	 * The selected date of a controlled calendar. `null` selects no day.
+	 *
+	 * @remarks The calendar reads the day of the date in the time zone of the
+	 * side that renders it. The server markup shows the month of the date. On a
+	 * page that renders on a server, build the date from local parts
+	 * (`new Date(year, monthIndex, day)`), so the two sides read the same day.
+	 * An ISO date such as `new Date('2025-07-01')` is midnight in UTC, which is
+	 * the day before in a zone west of UTC.
+	 */
 	value?: Date | null
+	/**
+	 * The initially selected date of an uncontrolled calendar.
+	 *
+	 * @remarks As for `value`, build the date from local parts on a page that
+	 * renders on a server.
+	 */
 	defaultValue?: Date
 	onValueChange?: (value: Date | null) => void
 	min?: Date
@@ -135,6 +151,11 @@ export type CalendarProps = {
 	 * order: explicit prop, then enclosing `LocaleProvider`, then the runtime
 	 * default.
 	 *
+	 * The runtime default is the default of the side that renders. The server
+	 * and the browser can have different defaults, and the server markup holds
+	 * the weekday row. On a page that renders on a server, set `locale` or an
+	 * enclosing `LocaleProvider`, so the two sides agree.
+	 *
 	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
 	 */
 	locale?: string
@@ -183,6 +204,10 @@ export type CalendarProps = {
  * with no month label and no days. The month of the client clock follows in
  * the next render, and it reports and announces nothing. A client-only mount,
  * such as a DatePicker popover, shows the month in its first render.
+ *
+ * The locale and a seeded month do not wait for hydration. On a page that
+ * renders on a server, set `locale` or a `LocaleProvider`, and build the seed
+ * from local parts. Then the two sides agree. See `locale` and `value`.
  */
 export function Calendar({
 	name,

@@ -34,7 +34,14 @@ export type CurrencyInputProps = Omit<
 	onValueChange?: (value: number | null) => void
 	/** ISO 4217 currency code. Falls back to `<LocaleProvider currency>`, then `USD`. */
 	currency?: string
-	/** BCP 47 locale tag. Falls back to `<LocaleProvider locale>`, then the runtime default. */
+	/**
+	 * BCP 47 locale tag. Falls back to `<LocaleProvider locale>`, then the runtime default.
+	 *
+	 * @remarks The runtime default is the default of the side that renders. It
+	 * sets the symbol, the slot of the symbol, and the separators. The server and
+	 * the browser can have different defaults. On a page that renders on a
+	 * server, set `locale` or a `<LocaleProvider>`, so the two sides agree.
+	 */
 	locale?: string
 	/** Override the number of fraction digits. When omitted, uses the currency's standard fraction digits. */
 	precision?: number

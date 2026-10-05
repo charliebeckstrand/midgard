@@ -36,6 +36,11 @@ export type LocaleProviderProps = LocaleConfig & {
  * config alone. So a nested `<LocaleProvider currency="EUR">` keeps the outer
  * `locale` and `dateFormat` for its subtree rather than clearing them.
  *
+ * On a page that renders on a server, set `locale` here or on each component.
+ * With no locale, a component reads the runtime default of the side that
+ * renders. The server and the browser can have different defaults, and the
+ * hydration render then does not match the server markup.
+ *
  * Set the direction of a region through `dir` here, not through a raw `dir`
  * attribute. A raw attribute is a DOM setting only, and a portaled surface
  * goes out of its subtree. A `dir` on the root element needs neither, because

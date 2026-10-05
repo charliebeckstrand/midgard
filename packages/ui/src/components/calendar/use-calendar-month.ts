@@ -82,6 +82,10 @@ function reanchor(date: Date | null | undefined, viewDate: Date): Date | null {
  * the month of the client clock. A render that does not hydrate, such as a
  * popover that mounts on the client, gets `true` at once. It shows the month in
  * its first commit.
+ *
+ * A seeded view (a `value` or a `defaultValue`) is `shown` on the server too.
+ * Each side reads the month of the seed in its own zone, so the caller must
+ * build the seed from local parts. Then the two sides read the same month.
  */
 export function useCalendarMonth({
 	value,

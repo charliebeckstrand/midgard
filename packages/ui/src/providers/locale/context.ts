@@ -14,7 +14,10 @@ import { createContext } from '../../core'
  * second locale.
  */
 export type LocaleConfig = {
-	/** BCP 47 locale tag (e.g. `'en-US'`, `'fr-FR'`). */
+	/**
+	 * BCP 47 locale tag (e.g. `'en-US'`, `'fr-FR'`). On a page that renders on a
+	 * server, set it, so the server markup and the client use the same locale.
+	 */
 	locale?: string
 	/** ISO 4217 currency code (e.g. `'USD'`, `'EUR'`). */
 	currency?: string
@@ -24,7 +27,14 @@ export type LocaleConfig = {
 	dateFormat?: Intl.DateTimeFormatOptions
 }
 
-/** Reads the ambient {@link LocaleConfig} from the nearest `<LocaleProvider>`; returns `{}` outside one. */
+/**
+ * Reads the ambient {@link LocaleConfig} from the nearest `<LocaleProvider>`; returns `{}` outside one.
+ *
+ * @remarks Outside a provider, a component with no `locale` prop takes the
+ * runtime default of the side that renders. On a page that renders on a
+ * server, the two sides can then disagree. Such a page sets a provider
+ * `locale` or a component `locale`.
+ */
 export const [LocaleContext, useLocale] = createContext<LocaleConfig>('Locale', {
 	default: {},
 })
