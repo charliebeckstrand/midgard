@@ -111,7 +111,8 @@ export type OverlayProps = {
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
  * `backdrop` is set). Any `Chrome` region stays reachable through the
  * trap without modality being given up. Fires the overlay signal on open so
- * non-modal floats (tooltips) dismiss.
+ * non-modal floats (tooltips) dismiss. A click on the backdrop stops at the
+ * backdrop, so the React ancestors of the overlay do not receive it.
  *
  * The portal carries the density scope and the direction of the place that
  * opened the overlay (see {@link Portal}), so the panel follows that place.
@@ -187,7 +188,15 @@ export function Overlay({
 							? (backdropClassName ?? cn('absolute inset-0', k.backdrop.base))
 							: 'absolute inset-0'
 					}
-					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
+					// React carries a click in the portal up the component tree, and each
+					// panel stops its own clicks. The backdrop stops its clicks too. If it
+					// did not, the press that dismisses a menu sheet would also click the
+					// grid row that holds the menu.
+					onClick={(event) => {
+						event.stopPropagation()
+
+						if (dismissOnBackdrop) onOpenChange(false)
+					}}
 					aria-hidden="true"
 				/>
 			)}

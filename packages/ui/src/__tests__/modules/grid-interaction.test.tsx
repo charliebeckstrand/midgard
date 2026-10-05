@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
+import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { renderUI, screen, setupUser, withFakeTime } from '../helpers'
+import { getSlot, renderUI, screen, setupUser, stubMatchMedia, withFakeTime } from '../helpers'
 
 describe('Grid row click', () => {
 	type Row = { id: number; name: string }
@@ -41,6 +42,44 @@ describe('Grid row click', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={onRowClick} />)
 
 		await user.click(screen.getByRole('button', { name: 'Edit Bob' }))
+
+		expect(onRowClick).not.toHaveBeenCalled()
+	})
+
+	// On a phone, the menu of a row opens as a bottom sheet in a portal. React
+	// carries a click on its backdrop up the component tree to the row.
+	it('ignores a press on the backdrop of a menu sheet in an actions cell', async () => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		const user = setupUser()
+
+		const onRowClick = vi.fn()
+
+		const menuColumns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{
+				id: 'actions',
+				actions: (row) => (
+					<Menu placement="bottom-end">
+						<MenuTrigger>
+							<Button aria-label={`Actions for ${row.name}`} />
+						</MenuTrigger>
+
+						<MenuContent>
+							<MenuItem>Edit</MenuItem>
+						</MenuContent>
+					</Menu>
+				),
+			},
+		]
+
+		renderUI(<Grid columns={menuColumns} rows={rows} getKey={getKey} onRowClick={onRowClick} />)
+
+		await user.click(screen.getByRole('button', { name: 'Actions for Bob' }))
+
+		await user.click(getSlot(document.body, 'overlay-backdrop'))
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
 		expect(onRowClick).not.toHaveBeenCalled()
 	})
