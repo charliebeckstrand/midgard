@@ -1,7 +1,7 @@
 /**
  * Command-palette kata: object-literal surface for `<CommandPalette>`'s grouped
  * result listbox. Static slots only, no variants axis: `group` / `list` (the
- * listbox, hidden when empty), and the peer-driven `empty` status. `title` is
+ * listbox, hidden when empty), and the `empty` status. `title` is
  * the group heading. Each result row adds `item`, `label`, `text`, `description`,
  * and `shortcut`.
  */
@@ -18,12 +18,14 @@ export const k = {
 	// space between the search input and the first group. Each heading
 	// therefore has the same space above it.
 	group: ['flex flex-col gap-0.5', panel.layout.gap.above],
-	// Inner listbox: collapses when empty. `peer` drives the sibling `empty` slot
-	// below; `kara` adds the virtualized case, which `:empty` alone cannot see.
-	list: ['peer', 'empty:hidden', kara.list],
-	// Sibling no-results status: a persistent `<output>` (role=status) shown
-	// when the listbox peer holds no options, announcing zero-result queries.
-	empty: ['hidden', 'peer-empty:block', kara.message, 'p-2', size.sm, text.muted],
+	// Inner listbox: collapses when empty. `kara` adds the virtualized case,
+	// which `:empty` alone cannot see.
+	list: ['empty:hidden', kara.list],
+	// Sibling no-results status: a persistent `<output>` (role=status). It never
+	// hides, because a live region speaks only while it is in the accessibility
+	// tree. The palette writes its text on zero results. The padding applies only
+	// while the block holds the text, so the empty region takes no space.
+	empty: ['block', 'not-empty:p-2', size.sm, text.muted],
 	title: ['p-2', size.xs, text.muted, weight.medium],
 	item: [
 		'group/option',

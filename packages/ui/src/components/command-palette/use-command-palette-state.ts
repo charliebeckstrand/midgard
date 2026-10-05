@@ -6,6 +6,7 @@ import {
 	useDeferredValue,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -26,6 +27,57 @@ type CommandPaletteStateOptions = {
 
 const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
 
+// A result in the listbox: a rendered option, or a `VirtualOptions` wrapper that
+// holds items. The wrapper stamps `data-empty` from the length of its items,
+// which is also the `count` of the source it registers. The probe reads the
+// stamp and not the source: the source registers in an effect, which can run
+// after the observer reports the mutation.
+const RESULT_SELECTOR = '[role="option"], [data-slot="virtual-options"]:not([data-empty])'
+
+/**
+ * Whether the listbox holds no result, measured again as its subtree changes.
+ * A consumer that filters on its own state changes the options with no render
+ * of the palette, so a `MutationObserver` watches the listbox. It also watches
+ * `data-empty`, which a `VirtualOptions` wrapper toggles with no change to its
+ * rows when its window holds none.
+ *
+ * @param list - The listbox, held as state, because it mounts with the portal
+ * of the dialog a commit after the open.
+ * @returns `false` while no listbox is attached.
+ */
+function useEmptyResults(list: HTMLElement | null): boolean {
+	const [empty, setEmpty] = useState(false)
+
+	// A layout effect, so that the first measure lands before the paint and the
+	// no-results text does not flash.
+	useLayoutEffect(() => {
+		if (!list) {
+			setEmpty(false)
+
+			return
+		}
+
+		const measure = () => {
+			setEmpty(list.querySelector(RESULT_SELECTOR) === null)
+		}
+
+		measure()
+
+		const observer = new MutationObserver(measure)
+
+		observer.observe(list, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: ['data-empty'],
+		})
+
+		return () => observer.disconnect()
+	}, [list])
+
+	return empty
+}
+
 /**
  * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}.
  * It returns the search value plus the refs and `onKeyDown` that drive
@@ -37,6 +89,8 @@ const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
  * roving `typeahead` stays off, since the search input owns printable keys.
  * `onActiveChange` reports the highlighted option's id after each route that
  * moves it: an arrow key, a filter change, and the close that clears it.
+ * `empty` is true while the listbox holds no result. It drives the no-results
+ * text and `aria-expanded`, and `attachList` attaches the listbox it reads.
  *
  * @internal
  * @see {@link useA11yRoving}
@@ -59,6 +113,19 @@ export function useCommandPaletteState({
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const listRef = useRef<HTMLDivElement>(null)
+
+	// The listbox mounts with the portal of the dialog, after the open commits.
+	// The emptiness probe keys on this state, so that it reads the listbox when
+	// it attaches. The ref serves the key handlers and the seed.
+	const [listNode, setListNode] = useState<HTMLDivElement | null>(null)
+
+	const attachList = useCallback((node: HTMLDivElement | null) => {
+		listRef.current = node
+
+		setListNode(node)
+	}, [])
+
+	const empty = useEmptyResults(listNode)
 
 	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
 	// via `VirtualItemSourceContext`; null for a non-virtualized palette, which
@@ -189,6 +256,8 @@ export function useCommandPaletteState({
 		listboxId,
 		inputRef,
 		listRef,
+		attachList,
+		empty,
 		onKeyDown,
 		close,
 		context,

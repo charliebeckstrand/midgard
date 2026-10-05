@@ -93,8 +93,10 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * moves the highlight to the top result, so Enter runs it. On a device with no
  * hover, such as a phone, a filter change clears the highlight, and only an
  * arrow key sets it. The listbox owns only options (`aria-required-children`),
- * so the no-results message lives in a sibling live `<output>` that announces
- * when the filtered set empties. A
+ * so the no-results message lives in a sibling live `<output>`. The output
+ * stays in the accessibility tree, and the palette writes its text when the
+ * filtered set empties, so the change of text announces. While no option
+ * matches, the input reports `aria-expanded="false"`. A
  * `VirtualOptions` inside `children` registers its windowed item source
  * automatically, so the highlight reaches items outside the rendered window.
  * Roving type-ahead stays off: the search input owns every printable key.
@@ -117,7 +119,8 @@ export function CommandPalette({
 		setQuery,
 		listboxId,
 		inputRef,
-		listRef,
+		attachList,
+		empty,
 		onKeyDown,
 		context,
 		virtualSourceRef,
@@ -169,7 +172,9 @@ export function CommandPalette({
 							prefix={<Icon icon={<Search />} />}
 							role="combobox"
 							aria-label={placeholder}
-							aria-expanded={open}
+							// The listbox collapses on zero results, so the combobox reports it
+							// collapsed then (APG).
+							aria-expanded={open && !empty}
 							aria-haspopup="listbox"
 							aria-controls={listboxId}
 							aria-autocomplete="list"
@@ -181,7 +186,7 @@ export function CommandPalette({
 						/>
 						<DialogBody>
 							<div
-								ref={listRef}
+								ref={attachList}
 								id={listboxId}
 								role="listbox"
 								aria-label={placeholder}
@@ -192,11 +197,12 @@ export function CommandPalette({
 									{children}
 								</VirtualItemSourceContext>
 							</div>
-							{/* The listbox owns only options (`aria-required-children`). The
-					    no-results status is a sibling `<output>` that announces when the
-					    listbox filters down to empty. */}
+							{/* The listbox owns only options (`aria-required-children`), so the
+							    no-results status is a sibling `<output>`. It stays in the
+							    accessibility tree, and it holds text only on zero results: a live
+							    region speaks only a change of text. */}
 							<output data-slot="command-palette-no-results" className={cn(k.empty)}>
-								No results
+								{empty ? 'No results' : null}
 							</output>
 						</DialogBody>
 						{footerContent === null || footerContent === false ? null : (

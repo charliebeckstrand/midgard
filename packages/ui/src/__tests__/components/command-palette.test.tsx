@@ -13,7 +13,16 @@ import {
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
-import { bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	stubMatchMedia,
+	waitFor,
+} from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -275,23 +284,96 @@ describe('CommandPalette active descendant', () => {
 
 		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
+})
 
-	it('exposes a persistent no-results status region as a listbox sibling', () => {
+// Stands in for the wrapper that `VirtualOptions` renders. A real virtualizer
+// is barred here (CONVENTIONS §10.3). The wrapper stamps `data-empty` from its
+// items, and its window can hold no row while items remain.
+function VirtualWrapperStandIn({ empty }: { empty: boolean }) {
+	return <div role="presentation" data-slot="virtual-options" data-empty={empty ? '' : undefined} />
+}
+
+describe('CommandPalette no results', () => {
+	// A live region speaks only a change of text, and only while it is in the
+	// accessibility tree. The palette measures the options after the commit (a
+	// MutationObserver), so the assertions poll.
+	it('writes the no-results text into a status region that stays exposed', async () => {
 		renderUI(<FilteredPalette />)
 
-		const status = bySlot(document.body, 'command-palette-no-results')
+		const status = getSlot(document.body, 'command-palette-no-results')
 
-		// `<output>` is implicitly role="status" (a polite live region); stays
-		// mounted regardless of results, and a CSS peer-empty toggle reveals it
-		// when the listbox filters to empty. Sits outside the listbox
-		// (aria-required-children owns only options).
-		expect(status?.tagName).toBe('OUTPUT')
+		// `<output>` is role="status", a polite live region. It sits outside the
+		// listbox, which owns only options (aria-required-children).
+		expect(status.tagName).toBe('OUTPUT')
+
+		expect(bySlot(document.body, 'command-palette-list')).not.toContainElement(status)
+
+		// jsdom loads no stylesheet, so the class list stands in for the display.
+		expect(status).not.toHaveClass('hidden')
+
+		expect(status.textContent).toBe('')
+
+		const user = setupUser()
+
+		await user.type(screen.getByRole('combobox'), 'zzz')
+
+		await waitFor(() => expect(status).toHaveTextContent('No results'))
+
+		// The same node, so the region was in the tree before its text changed.
+		expect(bySlot(document.body, 'command-palette-no-results')).toBe(status)
+
+		expect(status).not.toHaveClass('hidden')
+
+		await user.clear(screen.getByRole('combobox'))
+
+		await waitFor(() => expect(status.textContent).toBe(''))
+	})
+
+	it('reports the combobox collapsed while the filter matches nothing', async () => {
+		renderUI(<FilteredPalette />)
+
+		const input = screen.getByRole('combobox')
+
+		expect(input).toHaveAttribute('aria-expanded', 'true')
+
+		const user = setupUser()
+
+		await user.type(input, 'zzz')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
+
+		await user.clear(input)
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'))
+	})
+
+	it('reads emptiness from a virtual list, not from its rendered rows', async () => {
+		const { rerender } = renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<VirtualWrapperStandIn empty={false} />
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		const status = getSlot(document.body, 'command-palette-no-results')
+
+		// No row is rendered, but the list holds items outside its window.
+		expect(screen.queryAllByRole('option')).toHaveLength(0)
+
+		expect(input).toHaveAttribute('aria-expanded', 'true')
+
+		expect(status.textContent).toBe('')
+
+		rerender(
+			<CommandPalette open onOpenChange={() => {}}>
+				<VirtualWrapperStandIn empty />
+			</CommandPalette>,
+		)
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
 
 		expect(status).toHaveTextContent('No results')
-
-		expect(bySlot(document.body, 'command-palette-list')).not.toContainElement(
-			status as HTMLElement,
-		)
 	})
 })
 
