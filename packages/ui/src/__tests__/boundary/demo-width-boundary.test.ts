@@ -45,6 +45,8 @@ const WIDTHS: Record<string, readonly string[]> = {
 	'docs-legacy/demos/modules/grid/index.tsx': ['w-full'],
 	'docs-legacy/demos/structure/flex.tsx': ['w-64', 'w-64'],
 	'docs-legacy/demos/structure/stack.tsx': ['w-64'],
+	'docs/pages/modules/dashboard/build-and-save.tsx': ['w-56', 'w-full'],
+	'docs/pages/modules/dashboard/query.tsx': ['w-full'],
 	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
 }
 
