@@ -95,8 +95,14 @@ function resolveScrollOffset(
 	}
 }
 
-/** Scrolls `node` into view within its nearest overflowing ancestor per `block`/`inline`, leaving outer scrollers untouched. @internal */
-function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
+/**
+ * Scrolls `node` into view within its nearest overflowing ancestor per `block`/`inline`,
+ * leaving outer scrollers untouched. The function that {@link useScrollWithin} gives, for a
+ * caller that is not a component or a hook.
+ *
+ * @internal
+ */
+export function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
 	if (!node) return
 
 	const { behavior = 'auto', block = 'nearest', inline } = options

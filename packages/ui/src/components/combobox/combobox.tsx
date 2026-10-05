@@ -30,6 +30,7 @@ import {
 	setVirtualActive,
 	setVirtualActiveIndexed,
 	type VirtualItemSource,
+	virtualTopMatchIndex,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
@@ -308,13 +309,18 @@ export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
 
 /**
  * The id of the row that {@link seedTopMatch} highlights on a device with
- * hover: index 0 of a registered source, else the first DOM option. It is
- * undefined when the list holds no row.
+ * hover: the first enabled index of a registered source
+ * (`virtualTopMatchIndex`), else the first DOM option. It is undefined when the
+ * list holds no enabled row.
  *
  * @internal
  */
 function topMatchId(node: HTMLElement, source: VirtualItemSource | null): string | undefined {
-	if (source) return source.count > 0 ? source.getKey(0) : undefined
+	if (source) {
+		const index = virtualTopMatchIndex(source)
+
+		return index >= 0 ? source.getKey(index) : undefined
+	}
 
 	return queryItems(node, OPTION_SELECTOR)[0]?.id
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties, MouseEvent, ReactNode, Ref } from 'react'
+import { type CSSProperties, type MouseEvent, type ReactNode, type Ref, useCallback } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { PopoverPanel } from '../../primitives/popover'
@@ -81,6 +81,18 @@ export function ComboboxPanel({
 	onClose,
 	children,
 }: ComboboxPanelProps) {
+	// The ref keeps one identity, so the panel attaches and scrolls to the
+	// selection one time for each mount. React calls a new callback ref again at
+	// each commit, and with the compiler off, nothing else keeps its identity.
+	const floatingRef = useCallback(
+		(node: HTMLDivElement | null) => {
+			setFloating(node)
+
+			scrollToSelected(node)
+		},
+		[setFloating, scrollToSelected],
+	)
+
 	// The portal carries the density scope of the combobox. An explicit `size` is
 	// the scope of the `PopoverPanel` inside.
 	return (
@@ -90,11 +102,7 @@ export function ComboboxPanel({
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: a press guard, not an interactive control. The input keeps focus and the keyboard model. */}
 			<div ref={optionsRef} onMouseDown={keepInputFocus}>
 				<div
-					ref={(node) => {
-						setFloating(node)
-
-						scrollToSelected(node)
-					}}
+					ref={floatingRef}
 					data-editing={dataAttr(editing)}
 					style={floatingStyles}
 					className={cn('group/combobox', k.portal)}

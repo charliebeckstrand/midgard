@@ -1121,6 +1121,23 @@ describe('reanchorOnOptionSwap', () => {
 
 		expect(rows[0]).not.toHaveAttribute('data-active')
 	})
+
+	// The seed passes over a disabled top row. When the window changes, the
+	// highlight on the next row is still the top match, so the list does not
+	// scroll back to it.
+	it('keeps a seeded highlight on the first enabled index of a source', () => {
+		const { node, input } = makeList([])
+
+		const source: VirtualItemSource = { ...makeSource(50), isDisabled: (index) => index === 0 }
+
+		input.setAttribute('aria-activedescendant', 'opt-1')
+
+		const { activeIndexRef } = reanchor(node, input, { origin: 'seeded', source, activeIndex: 1 })
+
+		expect(activeIndexRef.current).toBe(1)
+
+		expect(source.scrollToIndex).not.toHaveBeenCalled()
+	})
 })
 
 // aria-selected stays the stored value; a multi-select listbox must declare
@@ -1205,6 +1222,47 @@ describe('ComboboxPanel', () => {
 			</ComboboxPanel>,
 		)
 	}
+
+	// With the compiler off, a new callback ref on each render detaches and
+	// attaches again at each commit. Each keystroke then scrolls the selected row
+	// back into view.
+	it('attaches the floating node and scrolls to the selection once for each mount', () => {
+		const setFloating = vi.fn()
+
+		const scrollToSelected = vi.fn()
+
+		const panel = (editing: boolean) => (
+			<ComboboxPanel
+				id="cb"
+				open
+				editing={editing}
+				multiple={false}
+				glass={false}
+				size="md"
+				floatingStyles={{}}
+				getFloatingProps={() => ({})}
+				optionsRef={null}
+				setFloating={setFloating}
+				scrollToSelected={scrollToSelected}
+				flushPending={() => {}}
+				onClose={() => {}}
+			>
+				<div>panel child</div>
+			</ComboboxPanel>
+		)
+
+		const { rerender } = renderUI(panel(false))
+
+		rerender(panel(true))
+
+		rerender(panel(false))
+
+		expect(scrollToSelected).toHaveBeenCalledTimes(1)
+
+		expect(scrollToSelected).toHaveBeenCalledWith(expect.any(HTMLDivElement))
+
+		expect(setFloating).toHaveBeenCalledTimes(1)
+	})
 
 	it('closes on Escape', () => {
 		const onClose = vi.fn()

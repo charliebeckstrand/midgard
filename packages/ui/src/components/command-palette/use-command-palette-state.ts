@@ -2,6 +2,7 @@
 
 import {
 	type KeyboardEvent,
+	type RefObject,
 	useCallback,
 	useDeferredValue,
 	useEffect,
@@ -12,6 +13,7 @@ import {
 	useState,
 } from 'react'
 import {
+	isVirtualTopMatchSeated,
 	seedVirtualTopMatch,
 	useA11yRoving,
 	type VirtualItemSource,
@@ -43,9 +45,11 @@ const RESULT_SELECTOR = '[role="option"], [data-slot="virtual-options"]:not([dat
  *
  * @param list - The listbox, held as state, because it mounts with the portal
  * of the dialog a commit after the open.
+ * @param onChange - Runs after each measure that a change of the subtree
+ * causes. The palette seeds the highlight again from it.
  * @returns `false` while no listbox is attached.
  */
-function useEmptyResults(list: HTMLElement | null): boolean {
+function useEmptyResults(list: HTMLElement | null, onChange: () => void): boolean {
 	const [empty, setEmpty] = useState(false)
 
 	// A layout effect, so that the first measure lands before the paint and the
@@ -63,7 +67,11 @@ function useEmptyResults(list: HTMLElement | null): boolean {
 
 		measure()
 
-		const observer = new MutationObserver(measure)
+		const observer = new MutationObserver(() => {
+			measure()
+
+			onChange()
+		})
 
 		observer.observe(list, {
 			childList: true,
@@ -73,9 +81,37 @@ function useEmptyResults(list: HTMLElement | null): boolean {
 		})
 
 		return () => observer.disconnect()
-	}, [list])
+	}, [list, onChange])
 
 	return empty
+}
+
+/**
+ * The ref that a `VirtualOptions` inside the palette registers its item source
+ * into. Each write of a source calls `onRegister` with it.
+ *
+ * @remarks A registration is the signal that the source changed by identity or
+ * by count. The primitive registers in an effect, which can run after the
+ * observer of the listbox reports the new rows. The observer can thus read the
+ * prior source, and the registration cannot. The cleanup of a registration
+ * writes `null` before the next source registers, and that write calls nothing.
+ * @internal
+ */
+function createSourceRegistry(
+	onRegister: (source: VirtualItemSource) => void,
+): RefObject<VirtualItemSource | null> {
+	let current: VirtualItemSource | null = null
+
+	return {
+		get current() {
+			return current
+		},
+		set current(next) {
+			current = next
+
+			if (next) onRegister(next)
+		},
+	}
 }
 
 /**
@@ -83,12 +119,17 @@ function useEmptyResults(list: HTMLElement | null): boolean {
  * It returns the search value plus the refs and `onKeyDown` that drive
  * `aria-activedescendant` highlighting over options while focus stays on the
  * input. Resets the query on close and keeps the highlight on the top result as
- * the filtered set changes, through `seedVirtualTopMatch`. `virtualSourceRef` is the registration point a
+ * the filtered set changes, through `seedVirtualTopMatch`. A seeded highlight
+ * also follows a change of the results under an unchanged query: the observer
+ * of the listbox and the registration of a source tell of it. A highlight that
+ * is empty by design on open, or that an arrow key moved, stays where it is.
+ * `virtualSourceRef` is the registration point a
  * `VirtualOptions` (with `getOptionId`) inside `children` publishes into, so the
  * arrow keys reach items outside a windowed list. Navigation is arrow-only —
  * roving `typeahead` stays off, since the search input owns printable keys.
  * `onActiveChange` reports the highlighted option's id after each route that
- * moves it: an arrow key, a filter change, and the close that clears it.
+ * moves it: an arrow key, a filter change, a change of the results, and the
+ * close that clears it.
  * `empty` is true while the listbox holds no result. It drives the no-results
  * text and `aria-expanded`, and `attachList` attaches the listbox it reads.
  *
@@ -125,13 +166,6 @@ export function useCommandPaletteState({
 		setListNode(node)
 	}, [])
 
-	const empty = useEmptyResults(listNode)
-
-	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
-	// via `VirtualItemSourceContext`; null for a non-virtualized palette, which
-	// keeps the DOM-query roving below unchanged.
-	const virtualSourceRef = useRef<VirtualItemSource | null>(null)
-
 	// Logical active index for the virtual source; see `Combobox` for why this
 	// can't be read back off the DOM.
 	const activeIndexRef = useRef(-1)
@@ -161,6 +195,39 @@ export function useCommandPaletteState({
 		reportActive(inputRef.current?.getAttribute('aria-activedescendant') ?? null)
 	})
 
+	// True while the highlight is where the last filter change seeded it. It is
+	// false on open, where the highlight is empty by design, and after a key
+	// moves the highlight. The close sets it to false for the next open.
+	const seededRef = useRef(false)
+
+	// Seeds the top result again when the results change under an unchanged
+	// query, as when data arrives after a filter ran. Only a seeded highlight
+	// follows the results. A change that keeps the top result does not seed,
+	// so the list does not scroll back to it.
+	const followResults = useStableEvent((source: VirtualItemSource | null) => {
+		if (!open || !seededRef.current) return
+
+		const list = listRef.current
+
+		if (isVirtualTopMatchSeated(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)) return
+
+		seedVirtualTopMatch(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)
+
+		reportActiveFromDom()
+	})
+
+	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
+	// via `VirtualItemSourceContext`; null for a non-virtualized palette, which
+	// keeps the DOM-query roving below unchanged. Each registration is a change
+	// of the source, by identity or by count, so it calls `followResults`.
+	const [virtualSourceRef] = useState(() => createSourceRegistry(followResults))
+
+	// The observer of the listbox sees each change of the rows. That is the
+	// signal for a palette with no registered source.
+	const onListChange = useStableEvent(() => followResults(virtualSourceRef.current))
+
+	const empty = useEmptyResults(listNode, onListChange)
+
 	const rovingKeyDown = useA11yRoving(listRef, {
 		mode: 'virtual',
 		itemSelector: ITEM_SELECTOR,
@@ -178,10 +245,17 @@ export function useCommandPaletteState({
 		(event: KeyboardEvent<HTMLInputElement>) => {
 			if (isReservedTextboxKey(event)) return
 
+			const before = inputRef.current?.getAttribute('aria-activedescendant')
+
 			rovingKeyDown(event)
 
 			// The roving handler writes the attribute synchronously, so the read is
-			// of the highlight this keypress just moved.
+			// of the highlight this keypress just moved. A key that moves the
+			// highlight makes it the reader's, so a change of the results leaves it.
+			if (inputRef.current?.getAttribute('aria-activedescendant') !== before) {
+				seededRef.current = false
+			}
+
 			reportActiveFromDom()
 		},
 		[rovingKeyDown, reportActiveFromDom],
@@ -216,8 +290,10 @@ export function useCommandPaletteState({
 			inputRef,
 		)
 
+		seededRef.current = true
+
 		reportActiveFromDom()
-	}, [deferredQuery, open, reportActiveFromDom])
+	}, [deferredQuery, open, reportActiveFromDom, virtualSourceRef])
 
 	// Resets the query when closed, during render rather than in an effect, so
 	// the closing palette paints no stale filter.
@@ -241,6 +317,8 @@ export function useCommandPaletteState({
 		if (open) return
 
 		activeIndexRef.current = -1
+
+		seededRef.current = false
 
 		reportActive(null)
 	}, [open, reportActive])

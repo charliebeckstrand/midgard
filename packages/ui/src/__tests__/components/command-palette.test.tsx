@@ -1,3 +1,4 @@
+import { use, useEffect, useMemo } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -12,8 +13,11 @@ import {
 	CommandPaletteText,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
+import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
+import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
+	act,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -26,20 +30,28 @@ import {
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
-// Items that filter against the deferred query via the query context,
-// mirroring real usage.
-function FilteredItems() {
-	const { deferredQuery } = useCommandPaletteQuery()
-
-	return FILTER_ITEMS.filter((label) =>
-		label.toLowerCase().includes(deferredQuery.toLowerCase()),
-	).map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
+type FilteredItemsProps = {
+	/** The items before the filter. A rerender with new items changes the results under an unchanged query. */
+	labels?: string[]
 }
 
-function FilteredPalette({ onActiveChange }: Pick<CommandPaletteProps, 'onActiveChange'>) {
+// Items that filter against the deferred query via the query context,
+// mirroring real usage.
+function FilteredItems({ labels = FILTER_ITEMS }: FilteredItemsProps) {
+	const { deferredQuery } = useCommandPaletteQuery()
+
+	return labels
+		.filter((label) => label.toLowerCase().includes(deferredQuery.toLowerCase()))
+		.map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
+}
+
+function FilteredPalette({
+	labels,
+	onActiveChange,
+}: FilteredItemsProps & Pick<CommandPaletteProps, 'onActiveChange'>) {
 	return (
 		<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
-			<FilteredItems />
+			<FilteredItems labels={labels} />
 		</CommandPalette>
 	)
 }
@@ -283,6 +295,182 @@ describe('CommandPalette active descendant', () => {
 		await user.keyboard('{ArrowDown}')
 
 		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+	})
+})
+
+// Stands in for a `VirtualOptions` with `getOptionId`. It registers a source as
+// the primitive does, and it renders each row. A real virtualizer is barred
+// here (CONVENTIONS §10.3).
+function SourceStandIn({ ids, scrollToIndex }: { ids: string[]; scrollToIndex?: () => void }) {
+	const registry = use(VirtualItemSourceContext)
+
+	const source = useMemo<VirtualItemSource>(
+		() => ({
+			count: ids.length,
+			getKey: (index) => ids[index] ?? '',
+			scrollToIndex: scrollToIndex ?? (() => {}),
+		}),
+		[ids, scrollToIndex],
+	)
+
+	useEffect(() => {
+		if (!registry) return
+
+		registry.current = source
+
+		return () => {
+			registry.current = null
+		}
+	}, [registry, source])
+
+	return ids.map((id) => (
+		<CommandPaletteItem key={id} id={id}>
+			{id}
+		</CommandPaletteItem>
+	))
+}
+
+describe('CommandPalette results that change under an unchanged query', () => {
+	// The places palette: a filter runs before the countries load, so it seeds
+	// nothing. Then the countries arrive with no change to the query.
+	it('seeds the top result when results arrive after a filter that matched nothing', async () => {
+		const onActiveChange = vi.fn()
+
+		const { rerender } = renderUI(<FilteredPalette labels={[]} onActiveChange={onActiveChange} />)
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().type(input, 'fr')
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		rerender(<FilteredPalette labels={['France', 'Freetown']} onActiveChange={onActiveChange} />)
+
+		const [top] = screen.getAllByRole('option')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', top?.id))
+
+		expect(top).toHaveAttribute('data-active')
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(top?.id)
+	})
+
+	it('moves a seeded highlight to a new top result', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={['Beta']} />)
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().type(input, 'a')
+
+		expect(input).toHaveAttribute('aria-activedescendant', screen.getByRole('option').id)
+
+		rerender(<FilteredPalette labels={['Alpha', 'Beta']} />)
+
+		const [alpha, beta] = screen.getAllByRole('option')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', alpha?.id))
+
+		expect(alpha).toHaveAttribute('data-active')
+
+		expect(beta).not.toHaveAttribute('data-active')
+	})
+
+	// On open the highlight is empty by design, and the first arrow key picks
+	// the first result.
+	it('keeps the highlight empty when results arrive before a filter', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={[]} />)
+
+		const input = screen.getByRole('combobox')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
+
+		rerender(<FilteredPalette labels={['Alpha']} />)
+
+		// The emptiness probe reads the same mutation, so this waits for the
+		// observer of the listbox.
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'))
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		expect(screen.getByRole('option')).not.toHaveAttribute('data-active')
+	})
+
+	it('keeps a highlight that an arrow key moved', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={['Beta', 'Gamma']} />)
+
+		const input = screen.getByRole('combobox')
+
+		const user = setupUser()
+
+		await user.type(input, 'a')
+
+		await user.keyboard('{ArrowDown}')
+
+		const gamma = screen.getByRole('option', { name: 'Gamma' })
+
+		expect(input).toHaveAttribute('aria-activedescendant', gamma.id)
+
+		rerender(<FilteredPalette labels={['Alpha', 'Beta', 'Gamma']} />)
+
+		// Lets the observer of the listbox report the mutation.
+		await act(async () => {})
+
+		expect(input).toHaveAttribute('aria-activedescendant', gamma.id)
+
+		expect(screen.getByRole('option', { name: 'Alpha' })).not.toHaveAttribute('data-active')
+	})
+
+	it('seeds the top result again when a registered source changes', async () => {
+		const palette = (ids: string[]) => (
+			<CommandPalette open onOpenChange={() => {}}>
+				<SourceStandIn ids={ids} />
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette(['old-0', 'old-1']))
+
+		const input = screen.getByRole('combobox')
+
+		// The stand-in does not filter, so any query seeds its top row.
+		await setupUser().type(input, 'x')
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'old-0')
+
+		rerender(palette(['new-0', 'new-1']))
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', 'new-0'))
+
+		expect(document.getElementById('new-0')).toHaveAttribute('data-active')
+	})
+
+	// A change that keeps the top result keeps the highlight, so the list does
+	// not scroll back to it.
+	it('leaves a seeded highlight that a source change keeps on the top result', async () => {
+		const scrollToIndex = vi.fn()
+
+		const palette = (ids: string[]) => (
+			<CommandPalette open onOpenChange={() => {}}>
+				<SourceStandIn ids={ids} scrollToIndex={scrollToIndex} />
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette(['top', 'next']))
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().type(input, 'x')
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'top')
+
+		scrollToIndex.mockClear()
+
+		rerender(palette(['top', 'next', 'last']))
+
+		await act(async () => {})
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'top')
+
+		expect(scrollToIndex).not.toHaveBeenCalled()
 	})
 })
 

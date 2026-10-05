@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
+	isVirtualTopMatchSeated,
 	queryItems,
 	seedVirtualTopMatch,
 	setVirtualActive,
@@ -13,7 +14,7 @@ import {
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
-import { attach, makeKeyEvent, stubMatchMedia } from '../helpers'
+import { attach, makeKeyEvent, mockDomGeometry, stubMatchMedia } from '../helpers'
 
 describe('queryItems', () => {
 	it('returns empty array for null container', () => {
@@ -1131,6 +1132,174 @@ describe('seedVirtualTopMatch', () => {
 		expect(container.querySelector('[data-active]')).toBeNull()
 
 		if (source) expect(activeIndexRef.current).toBe(-1)
+	})
+
+	// The DOM branch gets this from its selector, which leaves out a disabled
+	// row. A source has no DOM to filter, so the seed asks `isDisabled`.
+	it('seeds the first index of a source that isDisabled does not mark', () => {
+		const { container, owner } = mountOptions()
+
+		const activeIndexRef = { current: -1 }
+
+		const disabledTop: VirtualItemSource = {
+			...source,
+			isDisabled: (index) => index === 0,
+			scrollToIndex: vi.fn(),
+		}
+
+		seedVirtualTopMatch(container, '[role="option"]', disabledTop, activeIndexRef, {
+			current: owner,
+		})
+
+		expect(activeIndexRef.current).toBe(1)
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-1')
+
+		expect(container.querySelector('#opt-0')?.hasAttribute('data-active')).toBe(false)
+
+		expect(disabledTop.scrollToIndex).toHaveBeenCalledWith(1, { align: 'auto' })
+	})
+
+	it('clears the highlight when isDisabled marks each index of a source', () => {
+		const { container, owner } = mountOptions()
+
+		owner.setAttribute('aria-activedescendant', 'opt-1')
+
+		const activeIndexRef = { current: 1 }
+
+		seedVirtualTopMatch(
+			container,
+			'[role="option"]',
+			{ ...source, isDisabled: () => true },
+			activeIndexRef,
+			{ current: owner },
+		)
+
+		expect(activeIndexRef.current).toBe(-1)
+
+		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+	})
+
+	// The indexed branch scrolls through `scrollToIndex`. Without a scroll on the
+	// DOM branch, Enter can run a row that is out of view.
+	it('scrolls the seated row into view through the DOM branch', () => {
+		const { container, owner } = mountOptions()
+
+		// jsdom does no layout. The stubs scroll the list 200px down, so the top
+		// row sits above the visible area.
+		container.style.overflowY = 'auto'
+
+		mockDomGeometry(container, { clientHeight: 100, scrollHeight: 500, scrollTop: 200 })
+
+		container.scrollTo = vi.fn()
+
+		const box = (y: number, height: number) => () =>
+			DOMRect.fromRect({ x: 0, y, width: 100, height })
+
+		container.getBoundingClientRect = box(0, 100)
+
+		const top = container.querySelector<HTMLElement>('#opt-0')
+
+		if (top) top.getBoundingClientRect = box(-200, 20)
+
+		seedVirtualTopMatch(container, '[role="option"]', null, { current: -1 }, { current: owner })
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-0')
+
+		expect(container.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+	})
+})
+
+describe('isVirtualTopMatchSeated', () => {
+	function mountOptions(ids: string[]) {
+		const container = document.createElement('div')
+
+		for (const id of ids) {
+			const row = document.createElement('div')
+
+			row.id = id
+
+			row.setAttribute('role', 'option')
+
+			container.appendChild(row)
+		}
+
+		attach(container)
+
+		const owner = attach(document.createElement('input'))
+
+		return { container, owner }
+	}
+
+	const makeSource = (keys: string[]): VirtualItemSource => ({
+		count: keys.length,
+		getKey: (index) => keys[index] ?? '',
+		scrollToIndex: vi.fn(),
+	})
+
+	it.each([
+		{ branch: 'DOM', source: null },
+		{ branch: 'indexed source', source: makeSource(['opt-0', 'opt-1']) },
+	])('holds after a seed through the $branch branch', ({ source }) => {
+		const { container, owner } = mountOptions(['opt-0', 'opt-1'])
+
+		const activeIndexRef = { current: -1 }
+
+		const ownerRef = { current: owner }
+
+		seedVirtualTopMatch(container, '[role="option"]', source, activeIndexRef, ownerRef)
+
+		expect(
+			isVirtualTopMatchSeated(container, '[role="option"]', source, activeIndexRef, ownerRef),
+		).toBe(true)
+	})
+
+	it('fails when a source puts a new item at the top', () => {
+		const { container, owner } = mountOptions([])
+
+		const activeIndexRef = { current: -1 }
+
+		const ownerRef = { current: owner }
+
+		seedVirtualTopMatch(container, '', makeSource(['old', 'next']), activeIndexRef, ownerRef)
+
+		const next = makeSource(['new', 'old', 'next'])
+
+		expect(isVirtualTopMatchSeated(container, '', next, activeIndexRef, ownerRef)).toBe(false)
+	})
+
+	// A consumer that keys a row again mounts a new node with the same id. The
+	// new node has no `data-active`, so Enter would find no active row.
+	it('fails when the top DOM row carries the id but not the marker', () => {
+		const { container, owner } = mountOptions(['opt-0'])
+
+		owner.setAttribute('aria-activedescendant', 'opt-0')
+
+		expect(
+			isVirtualTopMatchSeated(
+				container,
+				'[role="option"]',
+				null,
+				{ current: -1 },
+				{ current: owner },
+			),
+		).toBe(false)
+	})
+
+	it('holds for a clear highlight on a device with no hover', () => {
+		stubMatchMedia((query) => query === NO_HOVER_QUERY)
+
+		const { container, owner } = mountOptions(['opt-0'])
+
+		expect(
+			isVirtualTopMatchSeated(
+				container,
+				'[role="option"]',
+				null,
+				{ current: -1 },
+				{ current: owner },
+			),
+		).toBe(true)
 	})
 })
 

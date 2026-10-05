@@ -8,7 +8,7 @@ import {
 	wrap,
 } from '../../utilities/keyboard-navigation'
 import { matchesMediaQuery, NO_HOVER_QUERY } from '../../utilities/media-query'
-import { useScrollWithin } from '../use-scroll-within'
+import { scrollWithin, useScrollWithin } from '../use-scroll-within'
 import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
@@ -328,13 +328,50 @@ export function clearVirtualActiveIndexed(
 }
 
 /**
+ * Whether a seed puts the highlight on a list of `count` items. An empty list
+ * gets no highlight. A device with no hover gets none either, as
+ * {@link seedVirtualTopMatch} tells.
+ *
+ * @internal
+ */
+function seedsHighlight(count: number): boolean {
+	// The count test comes first: an empty list clears on every device, so it
+	// needs no media query.
+	return count > 0 && !matchesMediaQuery(NO_HOVER_QUERY)
+}
+
+/**
+ * The index that {@link seedVirtualTopMatch} seats under `source` on a device
+ * with hover: the first index that `isDisabled` does not mark. It is -1 when
+ * `source` holds no enabled item.
+ *
+ * @internal
+ */
+export function virtualTopMatchIndex(source: VirtualItemSource): number {
+	for (let index = 0; index < source.count; index++) {
+		if (!source.isDisabled?.(index)) return index
+	}
+
+	return -1
+}
+
+/**
  * Seeds the virtual highlight to the top match, or clears it when there is
- * none. That is index 0 of `source` when a `VirtualOptions` has registered
- * one, else the first DOM `itemSelector` match. The owner-side move `Combobox`
- * and `CommandPalette` make when the result set changes under the reader, so
- * `data-active` / `aria-activedescendant` always point at a live option. Kept
- * here so the source-vs-DOM branch stays in one place as more owners adopt an
- * indexed source.
+ * none. Under a source that a `VirtualOptions` has registered, the top match is
+ * the first index that `isDisabled` does not mark
+ * ({@link virtualTopMatchIndex}). Else it is the first DOM `itemSelector`
+ * match, and the selector of each owner leaves out a disabled row. The
+ * owner-side move `Combobox` and `CommandPalette` make when the result set
+ * changes under the reader, so `data-active` / `aria-activedescendant` always
+ * point at a live option. Kept here so the source-vs-DOM branch stays in one
+ * place as more owners adopt an indexed source.
+ *
+ * The seated row scrolls into view, so Enter does not run a row that the
+ * reader cannot see. The indexed path scrolls through `scrollToIndex`, and the
+ * DOM path through {@link scrollWithin}. An owner that seeds again when the
+ * results change under an unchanged query reads
+ * {@link isVirtualTopMatchSeated} first. Thus a change that keeps the top match
+ * does not scroll the list back to it.
  *
  * On a device with no hover ({@link NO_HOVER_QUERY}), it clears the highlight.
  * The reader taps a row there, so a seeded row looks like a row that they
@@ -351,15 +388,11 @@ export function seedVirtualTopMatch(
 	activeDescendantRef: RefObject<HTMLElement | null>,
 	options?: { ariaSelected?: boolean },
 ): void {
-	// The count test comes first: an empty list clears on every device, so it
-	// needs no media query.
-	const seed = (count: number) => count > 0 && !matchesMediaQuery(NO_HOVER_QUERY)
-
 	if (source) {
 		setVirtualActiveIndexed(
 			container,
 			source,
-			seed(source.count) ? 0 : -1,
+			seedsHighlight(source.count) ? virtualTopMatchIndex(source) : -1,
 			activeIndexRef,
 			activeDescendantRef,
 			options,
@@ -370,7 +403,45 @@ export function seedVirtualTopMatch(
 
 	const items = queryItems(container, itemSelector)
 
-	setVirtualActive(items, seed(items.length) ? 0 : -1, activeDescendantRef, options)
+	const index = seedsHighlight(items.length) ? 0 : -1
+
+	setVirtualActive(items, index, activeDescendantRef, options)
+
+	const seated = items[index]
+
+	if (seated) scrollWithin(seated, { block: 'nearest' })
+}
+
+/**
+ * Whether the highlight sits where {@link seedVirtualTopMatch} puts it, so that
+ * a seed does not move it. Under a `source`, that is the index and the id of
+ * the top match. Else it is the first DOM match, which must also carry
+ * `data-active`: a row that mounts again with the same id has no marker.
+ *
+ * @internal
+ */
+export function isVirtualTopMatchSeated(
+	container: HTMLElement | null,
+	itemSelector: string,
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null>,
+): boolean {
+	const activeId = activeDescendantRef.current?.getAttribute('aria-activedescendant') ?? undefined
+
+	if (source) {
+		const index = seedsHighlight(source.count) ? virtualTopMatchIndex(source) : -1
+
+		return activeIndexRef.current === index && activeId === resolveVirtualItemId(source, index)
+	}
+
+	const items = queryItems(container, itemSelector)
+
+	const top = seedsHighlight(items.length) ? items[0] : undefined
+
+	if (!top) return activeId === undefined
+
+	return activeId === top.id && top.dataset.active !== undefined
 }
 
 /**
