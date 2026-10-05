@@ -6,6 +6,7 @@ import {
 	type ClipboardEventHandler,
 	type ComponentProps,
 	type KeyboardEvent,
+	type MouseEvent,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -33,6 +34,7 @@ import {
 	virtualTopMatchIndex,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -207,6 +209,8 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * replaced is then dropped and editing ends, the same way selecting an option does. The field
 	 * is therefore not left holding a query the handler has already turned into a selection. A
 	 * paste left alone is ordinary typing and lands at the caret.
+	 *
+	 * It does not run while the combobox is read-only or disabled, because the lock blocks each commit.
 	 */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
@@ -580,13 +584,21 @@ export function Combobox<T>({
 	// its value still submits, and its native readOnly also stops typing.
 	const locked = resolvedReadOnly || resolvedDisabled
 
+	// A disabled ancestor `<fieldset>` disables the input but sets no prop, so
+	// `locked` stays false. The guards also read the native state of the input
+	// when an event occurs. The Form uses that fieldset as its lock while it
+	// submits. A stable event holds the read, because the open guard goes to
+	// `routeFloatingOpenChange` during render, and the compiler skips a component
+	// that gives a plain function a closure that reads a ref.
+	const inputDisabled = useStableEvent(() => inputRef.current?.matches(':disabled') === true)
+
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
-			if (locked && next) return
+			if (next && (locked || inputDisabled())) return
 
 			setOpen(next)
 		},
-		[locked, setOpen],
+		[locked, inputDisabled, setOpen],
 	)
 
 	// Enter on the selected option ends a pick with no change to the value. The
@@ -730,6 +742,7 @@ export function Combobox<T>({
 		floatingRef: refs.floating,
 		optionsRef,
 		open,
+		locked,
 		setValue,
 		setEditing,
 		setQuery,
@@ -743,7 +756,25 @@ export function Combobox<T>({
 		onPaste,
 	})
 
-	const triggerHandlers = useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
+	const { onMouseDown: onTriggerMouseDown, onFrameMouseDown: onTriggerFrameMouseDown } =
+		useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
+
+	// The open guard lets a close through. Thus a press on the suffix or on the
+	// frame reads the native state of the input itself. Then a press under a
+	// controlled `open` does not close the panel, as with `locked`.
+	const onSuffixMouseDown = useCallback(
+		(event: MouseEvent<HTMLElement>) => {
+			if (!inputDisabled()) onTriggerMouseDown(event)
+		},
+		[inputDisabled, onTriggerMouseDown],
+	)
+
+	const onFrameMouseDown = useCallback(
+		(event: MouseEvent<HTMLElement>) => {
+			if (!inputDisabled()) onTriggerFrameMouseDown(event)
+		},
+		[inputDisabled, onTriggerFrameMouseDown],
+	)
 
 	const scrollWithin = useScrollWithin()
 
@@ -793,11 +824,11 @@ export function Combobox<T>({
 	// also blocks the selection: a read-only or disabled combobox never commits.
 	const guardedSelect = useCallback(
 		(next: T) => {
-			if (locked) return
+			if (locked || inputDisabled()) return
 
 			select(next)
 		},
-		[locked, select],
+		[locked, inputDisabled, select],
 	)
 
 	// The input display reads the live `value`; the menu reads `selectionValue`,
@@ -837,7 +868,7 @@ export function Combobox<T>({
 							// The rounded corners of the input do not take a press, so the
 							// press falls through to the frame. The frame then toggles the
 							// menu, as the chevron does.
-							onMouseDown: locked ? undefined : triggerHandlers.onFrameMouseDown,
+							onMouseDown: locked ? undefined : onFrameMouseDown,
 						}}
 						prefix={prefix}
 						suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
@@ -848,7 +879,7 @@ export function Combobox<T>({
 							// LoadingSpinner) owns its own semantics. Interactive suffix
 							// content (the clear button) stops propagation to opt out.
 							'aria-hidden': suffix || showClear ? undefined : true,
-							onMouseDown: locked ? undefined : triggerHandlers.onMouseDown,
+							onMouseDown: locked ? undefined : onSuffixMouseDown,
 						}}
 					>
 						<ComboboxInput

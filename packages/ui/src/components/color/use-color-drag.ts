@@ -17,6 +17,31 @@ export type ColorDragHandlers = {
 }
 
 /**
+ * Whether a disabled ancestor `<fieldset>` disables `element`, by the rule that
+ * disables a native control. A control in the first `<legend>` of the fieldset
+ * stays enabled.
+ *
+ * @remarks
+ * A `<div>` does not match `:disabled`, so a track or the area reads its
+ * fieldsets when an event occurs. The check keeps no state, so the tab stop
+ * does not change.
+ * @internal
+ */
+export function inDisabledFieldset(element: Element): boolean {
+	for (
+		let fieldset = element.closest('fieldset');
+		fieldset;
+		fieldset = fieldset.parentElement?.closest('fieldset') ?? null
+	) {
+		if (fieldset.disabled && !fieldset.querySelector(':scope > legend')?.contains(element)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+/**
  * Translates pointer drags over `ref` into normalized `0-1` positions.
  * Captures the pointer on press; drags that leave the element keep tracking.
  * Press also focuses the element, handing off to keyboard control.
@@ -24,7 +49,8 @@ export type ColorDragHandlers = {
  *
  * @param ref - The tracked element; its bounding rect normalizes pointer coordinates.
  * @param onPosition - Receives the clamped `0-1` position on press and on each tracked move.
- * @param disabled - When set, press is ignored and no drag begins.
+ * @param disabled - When set, press is ignored and no drag begins. A disabled
+ *   ancestor `<fieldset>` has the same effect (see {@link inDisabledFieldset}).
  * @param cursor - The cursor of the track at rest, which the page holds while the press holds.
  * @returns The {@link ColorDragHandlers} bag to spread onto `ref`'s element.
  * @remarks
@@ -64,7 +90,7 @@ export function useColorDrag(
 
 	const onPointerDown = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
-			if (disabled || event.button !== 0) return
+			if (disabled || event.button !== 0 || inDisabledFieldset(event.currentTarget)) return
 
 			event.preventDefault()
 

@@ -103,6 +103,48 @@ describe('useColorDrag', () => {
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 
+	// A disabled `<fieldset>` disables only its native controls. The node is a
+	// `<div>`, so the hook reads the fieldset itself when the press occurs.
+	it('is a no-op under a disabled ancestor fieldset', () => {
+		const { api, node, onPosition } = setup()
+
+		const fieldset = document.createElement('fieldset')
+
+		fieldset.disabled = true
+
+		fieldset.append(node)
+
+		const event = makeEvent(node, { clientX: 100, clientY: 50 })
+
+		api.onPointerDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(node.setPointerCapture).not.toHaveBeenCalled()
+
+		expect(onPosition).not.toHaveBeenCalled()
+	})
+
+	// The first legend of a disabled fieldset stays enabled, as with a native
+	// control in it.
+	it('drags in the first legend of a disabled fieldset', () => {
+		const { api, node, onPosition } = setup()
+
+		const fieldset = document.createElement('fieldset')
+
+		const legend = document.createElement('legend')
+
+		fieldset.disabled = true
+
+		legend.append(node)
+
+		fieldset.append(legend)
+
+		api.onPointerDown(makeEvent(node, { clientX: 100, clientY: 50 }))
+
+		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
+	})
+
 	it('ignores non-primary buttons', () => {
 		const { api, node, onPosition } = setup()
 

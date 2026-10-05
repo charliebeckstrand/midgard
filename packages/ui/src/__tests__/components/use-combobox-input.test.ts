@@ -658,6 +658,22 @@ describe('useComboboxInput onKeyDown', () => {
 			expect(setEditing).not.toHaveBeenCalled()
 		})
 
+		// A read-only input still takes a paste event, and the handler would commit
+		// the pasted values.
+		it('skips the handler while the combobox is locked', () => {
+			const onPaste = vi.fn()
+
+			const { result, setQuery, setEditing } = setup<string>({ onPaste, locked: true })
+
+			result.current.onPaste(paste(true))
+
+			expect(onPaste).not.toHaveBeenCalled()
+
+			expect(setQuery).not.toHaveBeenCalled()
+
+			expect(setEditing).not.toHaveBeenCalled()
+		})
+
 		it('is inert with no handler, so an ordinary combobox pastes as it always did', () => {
 			const { result, setQuery, setEditing } = setup<string>()
 

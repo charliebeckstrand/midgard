@@ -26,6 +26,8 @@ type ComboboxInputParams<T> = {
 	 * sole-option Enter. Its rows can stay mounted while the panel animates out.
 	 */
 	open: boolean
+	/** True while the combobox is read-only or disabled. A paste then skips the consumer's handler. */
+	locked?: boolean
 	setValue: (value: T | T[] | undefined) => void
 	setEditing: (editing: boolean) => void
 	setQuery: (query: string) => void
@@ -185,6 +187,7 @@ export function useComboboxInput<T>({
 	floatingRef,
 	optionsRef,
 	open,
+	locked,
 	setValue,
 	setEditing,
 	setQuery,
@@ -296,9 +299,14 @@ export function useComboboxInput<T>({
 	 * consumer had already consumed. Any placeholder standing in for that display stayed suppressed too.
 	 *
 	 * A paste the handler leaves alone is ordinary typing and falls through to `onChange`.
+	 *
+	 * A read-only input still takes a paste event, so a locked combobox skips the handler. Otherwise
+	 * the handler commits the pasted values, which the lock forbids.
 	 */
 	const onPasteHandler = useCallback(
 		(event: ClipboardEvent<HTMLInputElement>) => {
+			if (locked) return
+
 			onPaste?.(event)
 
 			if (!event.defaultPrevented) return
@@ -307,7 +315,7 @@ export function useComboboxInput<T>({
 
 			setEditing(false)
 		},
-		[onPaste, setQuery, setEditing],
+		[locked, onPaste, setQuery, setEditing],
 	)
 
 	/*

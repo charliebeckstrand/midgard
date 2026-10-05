@@ -5,7 +5,7 @@ import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
 import { useColorPanelContext } from './context'
-import { type DragPosition, useColorDrag } from './use-color-drag'
+import { type DragPosition, inDisabledFieldset, useColorDrag } from './use-color-drag'
 
 /**
  * The 2D saturation × brightness field. X maps to saturation, Y (inverted) to
@@ -32,7 +32,7 @@ export function ColorArea() {
 	const drag = useColorDrag(ref, onPosition, disabled, 'crosshair')
 
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (disabled) return
+		if (disabled || inDisabledFieldset(event.currentTarget)) return
 
 		const step = event.shiftKey ? 10 : 1
 

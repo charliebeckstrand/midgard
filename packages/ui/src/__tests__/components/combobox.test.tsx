@@ -4,7 +4,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { type HighlightOrigin, reanchorOnOptionSwap } from '../../components/combobox/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
-import { Description, Field, Label, Message } from '../../components/fieldset'
+import { Description, Field, Fieldset, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualOptions } from '../../primitives/virtual-options'
@@ -1600,6 +1600,66 @@ describe('Combobox readOnly', () => {
 			expect.objectContaining({ city: 'paris' }),
 			expect.anything(),
 		)
+	})
+})
+
+// A disabled `<fieldset>` disables the input natively and sets no prop. The
+// Form uses it as its lock while it submits.
+describe('Combobox in a disabled fieldset', () => {
+	const chevron = (container: HTMLElement) =>
+		present(getSlot(container, 'suffix').querySelector('[data-slot="icon"]'), '[data-slot="icon"]')
+
+	it('does not open the menu on a press on the chevron', () => {
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<Combobox aria-label="City">
+					<ComboboxOption value="paris">Paris</ComboboxOption>
+				</Combobox>
+			</Fieldset>,
+		)
+
+		fireEvent.mouseDown(chevron(container))
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	// The panel is in a portal outside the fieldset, so the option click
+	// reaches its handler.
+	it('does not commit an option under a controlled open', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Fieldset disabled>
+				<Combobox open aria-label="City" onValueChange={onValueChange}>
+					<ComboboxOption value="paris">Paris</ComboboxOption>
+				</Combobox>
+			</Fieldset>,
+		)
+
+		fireEvent.click(screen.getByRole('option', { name: 'Paris' }))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	// The open guard lets a close through, so only the press handlers keep a
+	// press from closing the panel.
+	it.each([
+		['chevron', chevron],
+		['frame', (container: HTMLElement) => getSlot(container, 'control-frame')],
+	])('ignores a press on the %s under a controlled open', (_, target) => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<Combobox open aria-label="City" onOpenChange={onOpenChange}>
+					<ComboboxOption value="paris">Paris</ComboboxOption>
+				</Combobox>
+			</Fieldset>,
+		)
+
+		fireEvent.mouseDown(target(container))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
 	})
 })
 
