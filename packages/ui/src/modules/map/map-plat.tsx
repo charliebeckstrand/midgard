@@ -145,7 +145,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * keyboard navigation, which the readout is the whole output of. Each arrow
 		 * key that moves the cursor onto a stop speaks the readout of that stop
 		 * through a polite live region, because the tooltip is `aria-hidden`. A
-		 * pointer hover speaks nothing. Turned off, the plot region takes no tab
+		 * pointer hover speaks nothing. A touch shows no readout. Turned off, the plot region takes no tab
 		 * stop and stays a plain `role="img"` leaf, and the data table carries the
 		 * values alone.
 		 * @defaultValue true
@@ -295,6 +295,9 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * handler. The plot region is one tab stop, and Enter or Space picks the
 		 * region its arrow cursor sits on. A pick therefore carries the same identity
 		 * whichever input made it.
+		 *
+		 * A touch picks with a double tap. One tap picks nothing and shows no
+		 * tooltip, because a touch reads nothing from the map.
 		 */
 		onRegionClick?: ChartItemClick
 		/**

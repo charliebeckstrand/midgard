@@ -88,7 +88,8 @@ export type MapOverlayProps = {
 	 *
 	 * Set, the mark carries a pointer cursor. The keyboard reaches it through the
 	 * plot region's own cursor. That cursor visits every overlay alongside the
-	 * regions, and activates the one it sits on with Enter or Space.
+	 * regions, and activates the one it sits on with Enter or Space. A touch
+	 * picks the mark with a double tap, and one tap picks nothing.
 	 *
 	 * A singular mark holds one stop, so it is called with a trailing `0` its type
 	 * omits — the plural {@link MapPoints} passes the dot's index there. A handler
@@ -444,6 +445,9 @@ export function useMapOverlay({
 
 	const track = useCallback(
 		(event: PointerEvent<SVGElement>) => {
+			// A touch reads nothing from the map. See `useMapTouchTap`.
+			if (event.pointerType === 'touch') return
+
 			set({ kind: 'entry', id, stop: stopFrom(event) }, { x: event.clientX, y: event.clientY })
 		},
 		[set, id],
