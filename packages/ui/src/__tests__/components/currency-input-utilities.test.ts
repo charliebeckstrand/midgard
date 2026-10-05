@@ -87,16 +87,21 @@ describe('formatEditing', () => {
 	})
 
 	// ICU data: the currency style of de-AT writes the group "." and the decimal
-	// style writes U+00A0. fr-CH writes U+202F in both styles.
-	it.each([
-		['de-AT', '1234,5', ',', '1.234,5'],
-		['fr-CH', '1234.5', '.', '1\u202F234.5'],
-	] as const)(
-		'groups the %s integer part with the currency-style group',
-		(locale, raw, decimal, expected) => {
-			expect(formatEditing(raw, locale, decimal, 2)).toBe(expected)
-		},
-	)
+	// style writes U+00A0.
+	it('groups the de-AT integer part with the currency-style group', () => {
+		expect(formatEditing('1234,5', 'de-AT', ',', 2)).toBe('1.234,5')
+	})
+
+	// ICU data: the fr-CH currency group is not the same in each ICU version
+	// (U+202F in ICU 77, "'" in a later version). Thus the case reads the group
+	// from the currency style of the ICU that runs the test.
+	it('groups the fr-CH integer part with the currency-style group', () => {
+		const group = new Intl.NumberFormat('fr-CH', { style: 'currency', currency: 'CHF' })
+			.formatToParts(1234)
+			.find((part) => part.type === 'group')?.value
+
+		expect(formatEditing('1234.5', 'fr-CH', '.', 2)).toBe(`1${group}234.5`)
+	})
 
 	it('keeps grouped digits ASCII in non-latn-default locales', () => {
 		// ar-EG defaults to Arabic-Indic digits; the editing parser only reads

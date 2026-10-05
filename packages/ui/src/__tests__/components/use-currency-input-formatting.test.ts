@@ -103,9 +103,16 @@ describe('useCurrencyInputFormatting', () => {
 	})
 
 	// ICU data: fr-CH writes the currency decimal "." and the plain decimal ",".
-	// de-AT writes the currency group "." and the plain group U+00A0.
+	// The fr-CH currency group is not the same in each ICU version (U+202F in
+	// ICU 77, "'" in a later version), so the row reads it from the ICU that runs
+	// the test. de-AT writes the currency group "." and the plain group U+00A0.
+	const frChGroup =
+		new Intl.NumberFormat('fr-CH', { style: 'currency', currency: 'CHF' })
+			.formatToParts(1234)
+			.find((part) => part.type === 'group')?.value ?? ''
+
 	it.each([
-		['fr-CH', 'CHF', '\u202F', '.', '1\u202F234.50'],
+		['fr-CH', 'CHF', frChGroup, '.', `1${frChGroup}234.50`],
 		['de-AT', 'EUR', '.', ',', '1.234,50'],
 	] as const)(
 		'takes the %s separators from the currency style for display, editing, and parsing',
