@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, type Ref, useCallback, useDeferredValue, useMemo, useRef } from 'react'
+import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
@@ -77,9 +78,10 @@ export type MapPlatProps<T = never> = AccessibleName &
 		/** Which topology object to draw; defaults to the topology's first key. */
 		geographyObject?: string
 		/**
-		 * How the globe projects onto the frame; refit to the geography on every
-		 * resize. Pass `'albers-usa'` for US state maps — it places Alaska and
-		 * Hawaii as insets.
+		 * How the globe projects onto the frame. Pass `'albers-usa'` for US state
+		 * maps — it places Alaska and Hawaii as insets. A passed d3 instance is fit
+		 * to the geography one time; a resize scales that fit and does not refit
+		 * the instance.
 		 * @defaultValue 'mercator'
 		 */
 		projection?: MapProjection
@@ -105,7 +107,9 @@ export type MapPlatProps<T = never> = AccessibleName &
 		/**
 		 * Height as a ratio of the width. `'auto'` takes the fitted geography's own
 		 * projected proportions. A number or `"4/3"` string fixes one, and `false`
-		 * fills the container's height.
+		 * fills the container's height. Before the box is measured, as on the
+		 * server, the map draws its canonical fit scaled to meet the box, in the
+		 * place where the measured fit draws it.
 		 * @defaultValue 'auto'
 		 */
 		aspectRatio?: MapAspectRatio
@@ -726,9 +730,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		// A fixed aspect is the documented trigger: the frame must measure before the
-		// first paint, or the map flashes its canonical fit and refits.
-		deferPaint: aspectRatio !== 'auto',
 		graticule: graticuleStep(graticule),
 		sphere,
 	})
@@ -1168,7 +1169,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// half alone would leave it unreachable.
 	//
 	// The drawn-frame test is what keeps a map with nothing to navigate — no
-	// geography yet, or a `deferPaint` frame still holding — from offering a stop
+	// geography yet — from offering a stop
 	// that answers no key. It reads the frame rather than the stops themselves,
 	// so the gate stays O(1) and the centroids stay unresolved.
 	const pickable = regions.click !== undefined || entries.some((entry) => entry.activate)
@@ -1234,7 +1235,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		<svg
 			ref={svgRef}
 			aria-hidden="true"
-			className="absolute inset-0 block size-full"
+			className={cn(
+				'absolute inset-0 block size-full',
+				// Until the frame is measured, the canonical frame scales to meet the box.
+				// A stroke then keeps its width in px, as the measured frame draws it.
+				!shape.measured && '[&_*]:[vector-effect:non-scaling-stroke]',
+			)}
 			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 		>
 			<MapPlatContext value={plat}>

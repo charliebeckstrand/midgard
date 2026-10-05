@@ -6,21 +6,16 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
 
 /**
- * A fixed-aspect map must build no region path before its container is measured.
- * It holds an empty frame until the measurement lands and then draws from the
- * measured fit alone, so a canonical pass builds paths nothing ever renders. It
- * is not a corner of the API either: `ChoroplethChart` fixes the aspect on every
- * chart it draws.
+ * Every map builds the canonical region paths one time before its container is
+ * measured, whatever its sizing. The server cannot measure a box, so the
+ * canonical frame is the frame that it draws. After the measurement, the region
+ * layer carries the same paths onto the measured fit on one transform, so the
+ * named projections never emit a second set.
  *
- * What that saves is now the emit rather than the walk. The walk draws the
- * geography into the buffer the canonical fit is measured from, so every map
- * pays exactly one whatever it draws — which is the other half of this gate,
- * because a second would mean the fold had come apart and the fit was measuring
- * its own bounds again. The emit is what `cachedCanonicalPaths` holds off: the
- * paths are memoized beside the geometry entry rather than on it, so a caller
- * that does not want them simply does not call, and there is no field for a
- * spread or a key walk to force. `regionPaths` is the fallback the built-in
- * projections never take, so it stays at zero on both.
+ * Every map also walks its geography one time, because the canonical fit is
+ * measured from that walk. A second walk would mean the fold had come apart and
+ * the fit was measuring its own bounds again. `regionPaths` is the fallback the
+ * built-in projections never take, so it stays at zero.
  *
  * The mount benchmarks cannot guard this: they warm the cross-instance caches in
  * uncounted iterations, so the pass is already paid by the time they time
@@ -49,8 +44,8 @@ vi.mock('../../modules/map/engine/map-geometry/region', async (importActual) => 
 
 /**
  * Deliberately without a `width`: an explicit one measures the frame on the
- * first commit, which is the state after the deferral rather than the one under
- * test. A fresh atlas per call, because the static geometry is memoized on the
+ * first commit, which is the state after the measurement rather than the one
+ * under test. A fresh atlas per call, because the static geometry is memoized on the
  * atlas object and a shared fixture would hand the second case the first's
  * entry — paths and all.
  */
@@ -62,7 +57,7 @@ function plat(extra?: Parameters<typeof categoricalPlat>[0]) {
 	})
 }
 
-describe('map canonical path deferral', () => {
+describe('map canonical paths', () => {
 	beforeEach(() => {
 		vi.mocked(probeCanonicalFit).mockClear()
 
@@ -71,20 +66,12 @@ describe('map canonical path deferral', () => {
 		vi.mocked(regionPaths).mockClear()
 	})
 
-	it('builds no region path on a deferred map that has not been measured', () => {
-		renderUI(plat({ aspectRatio: '16/9' }))
-
-		expect(emitRegionPaths).not.toHaveBeenCalled()
-
-		expect(regionPaths).not.toHaveBeenCalled()
-	})
-
-	it('still builds the canonical paths for a map that paints before it is measured', () => {
-		// The other half of the same branch, and the reason the pass exists: a
-		// plain map draws the canonical fit on its first commit rather than waiting
-		// for the container. Without this the deferral above would read as a win
-		// that had simply broken the mount paint.
-		renderUI(plat())
+	it.each([
+		['the auto aspect', undefined],
+		['a fixed aspect', '16/9'],
+		['the fill frame', false],
+	] as const)('builds the canonical paths one time under %s', (_, aspectRatio) => {
+		renderUI(plat(aspectRatio === undefined ? undefined : { aspectRatio }))
 
 		expect(emitRegionPaths).toHaveBeenCalledTimes(1)
 
@@ -93,7 +80,7 @@ describe('map canonical path deferral', () => {
 		expect(regionPaths).not.toHaveBeenCalled()
 	})
 
-	it('walks the geography once whether or not the map paints', () => {
+	it('walks the geography once whatever the sizing', () => {
 		// The fold's own invariant: the fit is measured from the buffer, so the
 		// walk that fills it is the only one either mode runs. A second would mean
 		// the fit had gone back to measuring its own bounds.

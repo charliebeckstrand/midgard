@@ -45,6 +45,11 @@ export function applyTransform(at: MapPoint2D, transform: MapTransform): MapPoin
 	return { x: at.x * transform.k + transform.x, y: at.y * transform.k + transform.y }
 }
 
+/** The frame point that the transform draws at `at`; the inverse of {@link applyTransform}. @internal */
+export function invertTransform(at: MapPoint2D, transform: MapTransform): MapPoint2D {
+	return { x: (at.x - transform.x) / transform.k, y: (at.y - transform.y) / transform.k }
+}
+
 /** Whether two transforms sit at the same place, so a redundant commit can bail. @internal */
 export function sameTransform(a: MapTransform, b: MapTransform): boolean {
 	return a === b || (a.x === b.x && a.y === b.y && a.k === b.k)
