@@ -2,7 +2,14 @@
 
 import { type ReactNode, useRef } from 'react'
 import { Button } from '../../components/button'
-import { Dialog, DialogBody, DialogFooter, DialogPanel, DialogTitle } from '../../components/dialog'
+import {
+	Dialog,
+	DialogBody,
+	DialogClose,
+	DialogFooter,
+	DialogPanel,
+	DialogTitle,
+} from '../../components/dialog'
 
 /** Props for {@link GridManagerDialog}. @internal */
 type GridManagerDialogProps = {
@@ -45,9 +52,11 @@ export function GridManagerDialog({
 				<DialogTitle>{label}</DialogTitle>
 				<DialogBody>{children}</DialogBody>
 				<DialogFooter>
-					<Button ref={closeRef} type="button" variant="soft" onClick={() => onOpenChange(false)}>
-						Close
-					</Button>
+					<DialogClose>
+						<Button ref={closeRef} type="button" variant="soft">
+							Close
+						</Button>
+					</DialogClose>
 				</DialogFooter>
 			</DialogPanel>
 		</Dialog>

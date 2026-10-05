@@ -15,7 +15,7 @@ import { findSteps } from '../helpers/class-stops'
 // changes, the case fails and names the step.
 
 describe('Menu sheet gutter', () => {
-	const inset = findSteps([panel.layout.inset.inline], 'density-px-')
+	const inset = findSteps([panel.layout.inset.x], 'density-px-')
 
 	const row = findSteps([dan.space.menu.item.x], 'density-px-')
 

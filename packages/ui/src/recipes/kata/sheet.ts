@@ -96,11 +96,10 @@ export const k = {
 			defaults: { side: 'right', width: 'md', surface: 'flat' },
 		}),
 		backdrop: bridge.backdrop(backdrop),
-		// The insets are even on the four sides. See `layout.inset`.
-		title: { extra: [inset.inline, inset.top] },
-		description: { extra: inset.inline },
-		footer: { extra: [inset.inline, inset.bottom] },
-		body: { extra: [flex.fill, 'overflow-y-auto', inset.inline, inset.first, inset.last] },
+		title: { extra: [inset.x, inset.top] },
+		description: { extra: inset.x },
+		footer: { extra: [inset.x, inset.bottom] },
+		body: { extra: [flex.fill, 'overflow-y-auto', inset.x, inset.first, inset.last] },
 	}),
 	/**
 	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar

@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import {
@@ -45,37 +45,37 @@ const LONG = Array.from({ length: 60 }, (_, index) => `Line ${index + 1}`).map((
 	<p key={line}>{line}</p>
 ))
 
-type Parts = { title: string; description: string; body: ReactNode; footer: string }
-
 type Panel = {
 	name: string
 	slot: string
-	full: (parts: Parts) => ReactElement
-	bare: (body: ReactNode) => ReactElement
+	/** The panel with each slot, and a body that scrolls. */
+	full: ReactElement
+	/** The panel with a body that scrolls and no other slot. */
+	bare: ReactElement
 }
 
 const PANELS: Panel[] = [
 	{
 		name: 'Sheet',
 		slot: 'sheet',
-		full: ({ title, description, body, footer }) => (
+		full: (
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel>
 					<SheetHeader>
-						<SheetTitle>{title}</SheetTitle>
-						<SheetDescription>{description}</SheetDescription>
+						<SheetTitle>Settings</SheetTitle>
+						<SheetDescription>Change the settings.</SheetDescription>
 					</SheetHeader>
-					<SheetBody>{body}</SheetBody>
+					<SheetBody>{LONG}</SheetBody>
 					<SheetFooter>
-						<button type="button">{footer}</button>
+						<button type="button">Save</button>
 					</SheetFooter>
 				</SheetPanel>
 			</Sheet>
 		),
-		bare: (body) => (
+		bare: (
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel aria-label="Bare" footer={null}>
-					<SheetBody>{body}</SheetBody>
+					<SheetBody>{LONG}</SheetBody>
 				</SheetPanel>
 			</Sheet>
 		),
@@ -83,24 +83,24 @@ const PANELS: Panel[] = [
 	{
 		name: 'Dialog',
 		slot: 'dialog',
-		full: ({ title, description, body, footer }) => (
+		full: (
 			<Dialog open onOpenChange={() => {}}>
 				<DialogPanel>
 					<DialogHeader>
-						<DialogTitle>{title}</DialogTitle>
-						<DialogDescription>{description}</DialogDescription>
+						<DialogTitle>Settings</DialogTitle>
+						<DialogDescription>Change the settings.</DialogDescription>
 					</DialogHeader>
-					<DialogBody>{body}</DialogBody>
+					<DialogBody>{LONG}</DialogBody>
 					<DialogFooter>
-						<button type="button">{footer}</button>
+						<button type="button">Save</button>
 					</DialogFooter>
 				</DialogPanel>
 			</Dialog>
 		),
-		bare: (body) => (
+		bare: (
 			<Dialog open onOpenChange={() => {}}>
 				<DialogPanel aria-label="Bare" footer={null}>
-					<DialogBody>{body}</DialogBody>
+					<DialogBody>{LONG}</DialogBody>
 				</DialogPanel>
 			</Dialog>
 		),
@@ -108,24 +108,24 @@ const PANELS: Panel[] = [
 	{
 		name: 'Drawer',
 		slot: 'drawer',
-		full: ({ title, description, body, footer }) => (
+		full: (
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel>
 					<DrawerHeader>
-						<DrawerTitle>{title}</DrawerTitle>
-						<DrawerDescription>{description}</DrawerDescription>
+						<DrawerTitle>Settings</DrawerTitle>
+						<DrawerDescription>Change the settings.</DrawerDescription>
 					</DrawerHeader>
-					<DrawerBody>{body}</DrawerBody>
+					<DrawerBody>{LONG}</DrawerBody>
 					<DrawerFooter>
-						<button type="button">{footer}</button>
+						<button type="button">Save</button>
 					</DrawerFooter>
 				</DrawerPanel>
 			</Drawer>
 		),
-		bare: (body) => (
+		bare: (
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel aria-label="Bare" footer={null}>
-					<DrawerBody>{body}</DrawerBody>
+					<DrawerBody>{LONG}</DrawerBody>
 				</DrawerPanel>
 			</Drawer>
 		),
@@ -146,32 +146,18 @@ const DENSITIES = [
 
 const GAP = 16
 
-/** The top of the content box of `el`: the edge that its text starts at. */
-function contentTop(el: Element) {
+/** The content box of `el`: the edges that its text starts and stops at. */
+function contentBox(el: Element) {
+	const box = el.getBoundingClientRect()
 	const style = getComputedStyle(el)
+	const px = (value: string) => Number.parseFloat(value)
 
-	return el.getBoundingClientRect().top + Number.parseFloat(style.paddingTop)
-}
-
-/** The bottom of the content box of `el`. */
-function contentBottom(el: Element) {
-	const style = getComputedStyle(el)
-
-	return el.getBoundingClientRect().bottom - Number.parseFloat(style.paddingBottom)
-}
-
-/** The left of the content box of `el`. */
-function contentLeft(el: Element) {
-	const style = getComputedStyle(el)
-
-	return el.getBoundingClientRect().left + Number.parseFloat(style.paddingLeft)
-}
-
-/** The right of the content box of `el`. */
-function contentRight(el: Element) {
-	const style = getComputedStyle(el)
-
-	return el.getBoundingClientRect().right - Number.parseFloat(style.paddingRight)
+	return {
+		top: box.top + px(style.paddingTop),
+		right: box.right - px(style.paddingRight),
+		bottom: box.bottom - px(style.paddingBottom),
+		left: box.left + px(style.paddingLeft),
+	}
 }
 
 /** The top of the visible content of a scrolling `el`: its padding moves out of view with a scroll. */
@@ -220,16 +206,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 	describe.each(DENSITIES)('at the $density density', ({ density, inset }) => {
 		describe.each(PANELS)('$name', ({ slot, full, bare }) => {
 			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
-				renderUI(
-					<DensityProvider density={density}>
-						{full({
-							title: 'Settings',
-							description: 'Change the settings.',
-							body: LONG,
-							footer: 'Save',
-						})}
-					</DensityProvider>,
-				)
+				renderUI(<DensityProvider density={density}>{full}</DensityProvider>)
 
 				const panel = await settledPanel(slot)
 				const header = getSlot(panel, `${slot}-header`)
@@ -242,15 +219,16 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 
 				const measure = () => {
 					const panelBox = panel.getBoundingClientRect()
-					const title = getSlot(panel, `${slot}-title`)
+					const title = contentBox(getSlot(panel, `${slot}-title`))
+					const footerBox = contentBox(footer)
 
 					return {
-						top: contentTop(title) - panelBox.top,
-						left: contentLeft(title) - panelBox.left,
-						right: panelBox.right - contentRight(footer),
-						bottom: panelBox.bottom - contentBottom(footer),
-						above: visibleTop(body) - contentBottom(header),
-						below: contentTop(footer) - visibleBottom(body),
+						top: title.top - panelBox.top,
+						left: title.left - panelBox.left,
+						right: panelBox.right - footerBox.right,
+						bottom: panelBox.bottom - footerBox.bottom,
+						above: visibleTop(body) - contentBox(header).bottom,
+						below: footerBox.top - visibleBottom(body),
 					}
 				}
 
@@ -271,14 +249,14 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 			})
 
 			it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
-				renderUI(<DensityProvider density={density}>{bare(LONG)}</DensityProvider>)
+				renderUI(<DensityProvider density={density}>{bare}</DensityProvider>)
 
 				const panel = await settledPanel(slot)
 				const body = getSlot(panel, `${slot}-body`)
 
 				expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
 
-				expect(contentLeft(body) - panel.getBoundingClientRect().left).toBe(inset)
+				expect(contentBox(body).left - panel.getBoundingClientRect().left).toBe(inset)
 
 				const measure = () => {
 					const panelBox = panel.getBoundingClientRect()

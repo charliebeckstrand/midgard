@@ -15,8 +15,7 @@ export const k = {
 				layout.base,
 				'relative',
 				'w-full',
-				// The insets are even on the four sides. See `layout.inset`.
-				layout.inset.inline,
+				layout.inset.x,
 				layout.inset.top,
 				layout.inset.bottom,
 				// Each cap is a share of the overlay root. Above `sm`, the root has an

@@ -36,10 +36,6 @@ export type DialogCloseProps = Partial<PanelCloseProps>
  * Close button, which is also the default footer of the dialog. With one child,
  * a click on the child closes the dialog, and the child's own `onClick` runs
  * first.
- *
- * @remarks The standard Close button is `soft`, so its edge shows. The inset of
- * the panel stops at that edge. A `plain` button hides its padding, which then
- * adds to the inset under the footer.
  */
 export function DialogClose({ children }: DialogCloseProps) {
 	return (

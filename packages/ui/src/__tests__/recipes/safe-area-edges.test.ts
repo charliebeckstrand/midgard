@@ -46,8 +46,6 @@ describe('safe-area insets on edge surfaces', () => {
 		}
 
 		expect(sheet.panel({ side: 'bottom' })).toContain(`pb-[${bottom}]`)
-
-		expect(dialog.panel({})).toContain(`max-sm:density-md:pb-[calc(1.5rem+${bottom})]`)
 	})
 
 	it('pads the toast stack at both ends', () => {

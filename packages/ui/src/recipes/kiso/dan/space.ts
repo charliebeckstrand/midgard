@@ -31,24 +31,29 @@ export const space = {
 	popover: 'density-p-[3,4,6]',
 	/**
 	 * The inset of a dialog, a drawer, and a sheet: the same length on the four
-	 * sides. `panel.layout.inset` gives the rule.
+	 * sides. `panel.layout.inset` is this set, and its doc gives the rule.
 	 */
 	panel: {
-		/** The inset at the left edge and at the right edge. */
+		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
 		x: 'density-px-[5,6,7]',
-		/** The inset above the first slot. */
+		/** The inset above the first slot, on the panel or on the slot. */
 		top: 'density-pt-[5,6,7]',
-		/** The inset under the last slot. */
+		/** The inset under the last slot, on the panel or on the slot. */
 		bottom: 'density-pb-[5,6,7]',
-		/** The inset above a body that is the first slot, as a margin. */
+		/**
+		 * The inset of a body that is the first slot. It is a margin, because a padding
+		 * in a scrolling body moves out of view with the content.
+		 */
 		first: 'first:density-mt-[5,6,7]',
-		/** The inset under a body that is the last slot, as a margin. */
+		/** The inset of a body that is the last slot, a margin for the reason that `first` gives. */
 		last: 'last:density-mb-[5,6,7]',
 		/**
-		 * The bottom inset below `sm`, plus the inset of the home indicator. A `calc`
-		 * with `env` is not a stop of the spacing scale, so each step has its own
-		 * class. Each length is the step of `bottom`: `1.25rem` is 5, `1.5rem` is 6,
-		 * and `1.75rem` is 7.
+		 * The bottom inset of a panel on the bottom edge below `sm`, plus the home
+		 * indicator inset of a page with `viewport-fit=cover`. Elsewhere the inset of
+		 * the home indicator is zero. A `calc` with `env` is not a stop of the
+		 * spacing scale, so each step of `bottom` has its own class. Each length is
+		 * the stop of `bottom` at that step: `1.25rem` is 5, `1.5rem` is 6, and
+		 * `1.75rem` is 7.
 		 */
 		safe: [
 			'max-sm:density-[xs,sm]:pb-[calc(1.25rem+env(safe-area-inset-bottom))]',

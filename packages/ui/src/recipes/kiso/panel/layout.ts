@@ -6,9 +6,8 @@
  * wrappers like Form/Fieldset, keeping the flex-shrink chain to the
  * body's overflow intact. `header` is the optional tight-gap wrapper for
  * title + description; everything else stands on its own at 4.
- * The inset at each edge (`inset`) is the same on the four sides, and it takes
- * the step of the nearest density scope: 5, 6, or 7. The panel thus has one
- * even frame, and the slots inside it are closer to each other.
+ * The inset at each edge (`inset`) is the same on the four sides, and it
+ * follows density.
  *
  * Layer: kiso · Archetype: panel · Concern: layout
  */
@@ -19,7 +18,6 @@ import { ji } from '../ji'
 
 const { text } = iro
 const { size, leading } = ji
-const { panel } = dan.space
 
 export const layout = {
 	base: 'flex flex-col gap-4',
@@ -47,36 +45,13 @@ export const layout = {
 	 * is the same on the four sides, so the panel has one even frame. It is larger
 	 * than the gap of `base` at each step, so the slots read as one group in the
 	 * frame. It takes the step of the nearest density scope, as the content of the
-	 * panel does.
+	 * panel does. The ramps are in `dan.space.panel`.
 	 *
 	 * The inset stops at the box of the content at the edge. A button at the edge
 	 * of a footer must show its box, or its padding adds to the inset. Thus the
 	 * standard close button of a panel is `soft`, not `plain`.
-	 *
-	 * The ramps of each side are together in `dan.space.panel`, because they must
-	 * agree.
 	 */
-	inset: {
-		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
-		inline: panel.x,
-		/** The inset above the first slot, on the panel or on the slot. */
-		top: panel.top,
-		/** The inset under the last slot, on the panel or on the slot. */
-		bottom: panel.bottom,
-		/**
-		 * The inset of a body that is the first slot. It is a margin, because a padding
-		 * in a scrolling body moves out of view with the content.
-		 */
-		first: panel.first,
-		/** The inset of a body that is the last slot, a margin for the reason that `first` gives. */
-		last: panel.last,
-		/**
-		 * The bottom inset of a panel on the bottom edge below `sm`, plus the home
-		 * indicator inset of a page with `viewport-fit=cover`. Elsewhere the inset of
-		 * the home indicator is zero.
-		 */
-		safe: panel.safe,
-	},
+	inset: dan.space.panel,
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',
 	/** Color and leading only; weight and font size are derived from the heading scale by the Title component. */

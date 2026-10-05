@@ -15,10 +15,6 @@ export type PopoverCloseProps = {
  * Close button. With one child, a click on the child closes the popover, and the
  * child's own `onClick` runs first. Focus goes back to the trigger, as after a
  * close by Escape.
- *
- * @remarks The standard Close button is `soft`, so its edge shows. The padding of
- * the popover stops at that edge. A `plain` button hides its own padding, which
- * then adds to the padding of the popover.
  */
 export function PopoverClose({ children }: PopoverCloseProps) {
 	const { close } = usePopoverContext()

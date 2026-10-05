@@ -73,16 +73,14 @@ export const k = {
 		// handle the stock header would sit a whole step below the grip — which is
 		// what made the first consumer hand-roll its own header row rather than use
 		// this slot.
-		//
-		// The insets are even on the four sides. See `layout.inset`.
-		title: { extra: [layout.inset.inline, layout.inset.top, 'group-data-handle/drawer:pt-0'] },
-		description: { extra: layout.inset.inline },
-		footer: { extra: [layout.inset.inline, layout.inset.bottom] },
+		title: { extra: [layout.inset.x, layout.inset.top, 'group-data-handle/drawer:pt-0'] },
+		description: { extra: layout.inset.x },
+		footer: { extra: [layout.inset.x, layout.inset.bottom] },
 		body: {
 			extra: [
 				flex.fill,
 				'overflow-y-auto overscroll-y-contain',
-				layout.inset.inline,
+				layout.inset.x,
 				layout.inset.first,
 				layout.inset.last,
 			],
