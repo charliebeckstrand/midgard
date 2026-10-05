@@ -36,7 +36,7 @@ export const space = {
 		/** The padding of a nav item. */
 		item: 'density-p-[1.5,2,2.5]',
 	},
-	/** The padding of an alert. */
+	/** The padding of an alert and a code block. */
 	alert: 'density-p-[3,4,5]',
 	/** The padding of a popover panel. */
 	popover: 'density-p-[3,4,6]',

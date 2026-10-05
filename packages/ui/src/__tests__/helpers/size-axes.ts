@@ -25,6 +25,7 @@ export const SIZE_AXES = {
 	Checkbox: ['sm', 'md', 'lg'],
 	CheckboxSkeleton: ['sm', 'md', 'lg'],
 	Code: ['sm', 'md', 'lg'],
+	CodeBlock: ['sm', 'md', 'lg'],
 	ColorPanel: ['sm', 'md', 'lg'],
 	ColorPanelSkeleton: ['sm', 'md', 'lg'],
 	ColorPicker: ['sm', 'md', 'lg'],

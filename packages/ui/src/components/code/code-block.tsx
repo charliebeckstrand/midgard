@@ -5,7 +5,7 @@ import type { BundledLanguage, BundledTheme } from 'shiki'
 import { announce, cn } from '../../core'
 import { useComposedRef, useScrollOverflow, useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { k } from '../../recipes/kata/code'
+import { type CodeBlockVariants, k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
 import { DEFAULT_LANG, DEFAULT_THEME, highlightCode } from './code-shiki'
 
@@ -127,6 +127,12 @@ export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children
 	/** Renders a CopyButton overlay. @defaultValue true */
 	copy?: boolean
 	/**
+	 * The density step of the block. A `size` opens a density scope on the
+	 * block, so the padding, the gap, and the code text take that step. With no
+	 * `size`, the block takes the step of the nearest density scope.
+	 */
+	size?: CodeBlockVariants['size']
+	/**
 	 * Accessible name of the scroll container. While a line overflows it, the
 	 * container is a region with this name.
 	 *
@@ -181,7 +187,8 @@ export function primeCodeBlock({
  * Syntax-highlighted code block. Highlights `code` for the given `lang` and
  * `theme` with Shiki in a module worker, and renders an unstyled `<pre>`
  * fallback until the markup arrives. An optional CopyButton overlays the
- * snippet.
+ * snippet. The padding, the gap, and the code text take the step of the
+ * nearest density scope. An explicit `size` opens a scope on the block.
  *
  * @remarks
  * Client-only (`'use client'`). The worker loads Shiki, each grammar, and each
@@ -211,12 +218,16 @@ export function primeCodeBlock({
  *
  * A refused copy leaves the CopyButton at rest. The block then announces
  * "Copy failed" in the shared live region, where the button announces "Copied".
+ *
+ * At `md` the block is `p-4` with `text-sm` code. The CopyButton keeps the
+ * `sm` size at each step, and it centers on the first code line.
  */
 export function CodeBlock({
 	code: rawCode,
 	lang: langProp,
 	theme = DEFAULT_THEME,
 	copy = true,
+	size,
 	label,
 	className,
 	...props
@@ -316,7 +327,12 @@ export function CodeBlock({
 	const setContent = useComposedRef<HTMLDivElement>(scrollOverflowRef, scrollRegionRef)
 
 	return (
-		<div data-slot="code-block" className={cn(k.block.base, className)} {...props}>
+		<div
+			data-slot="code-block"
+			data-density={size}
+			className={cn(k.block.base, className)}
+			{...props}
+		>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
 			<div ref={setContent} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
@@ -336,12 +352,14 @@ export function CodeBlock({
 				)}
 			</div>
 			{copy && (
-				<CopyButton
-					text={code}
-					size="sm"
-					className={cn(k.block.copy)}
-					onCopyError={announceCopyError}
-				/>
+				<div className={cn(k.block.copy.line)}>
+					<CopyButton
+						text={code}
+						size="sm"
+						className={cn(k.block.copy.button)}
+						onCopyError={announceCopyError}
+					/>
+				</div>
 			)}
 		</div>
 	)

@@ -65,6 +65,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The root `<div>` of a `CodeBlock` takes the `<div>` attributes, such as `id`, `data-*`, and `aria-*`. The `lang` prop names the grammar, so the block does not take the HTML `lang` attribute.
 
+> The padding, the gap, and the code text of a `CodeBlock` take the step of the nearest density scope. An explicit `size` opens a scope on the block, with the steps of the inline `Code` `size`. At `md` the block is `p-4` with `text-sm` code, and its CopyButton keeps the `sm` size at each step.
+
 ## Layout & surfaces
 
 `group` · `card` · `divider` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`

@@ -2,13 +2,16 @@ import { Profiler, type ReactElement, useLayoutEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import type { CodeBlockVariants } from '../../components/code'
 import { CodeBlock, primeCodeBlock } from '../../components/code/code-block'
 import {
 	act,
 	attach,
 	bySlot,
+	densityStepOf,
 	expectAnnouncement,
 	fireEvent,
+	getSlot,
 	present,
 	renderUI,
 	screen,
@@ -403,6 +406,35 @@ describe('CodeBlock', () => {
 		expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'tsx')
 
 		expect(container.querySelector('[data-primed]')).toBeNull()
+	})
+})
+
+// CodeBlockVariants gives the `size` axis of inline Code. A JSX spread gets no
+// excess-property check, so a spread of the variants compiles on the block also
+// when the block has no `size`. The step must then open a density scope.
+describe('CodeBlock size', () => {
+	it('opens a scope for the size of its variants', async () => {
+		const variants: CodeBlockVariants = { size: 'lg' }
+
+		const { container } = renderUI(<CodeBlock code="const step = 1" {...variants} />)
+
+		const block = getSlot(container, 'code-block')
+
+		expect(block).toHaveAttribute('data-density', 'lg')
+
+		expect(block).not.toHaveAttribute('size')
+
+		expect(densityStepOf(present(block.firstElementChild, 'scroll container'))).toBe('lg')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
+	it('opens no scope with no size, so it takes the step of the nearest scope', async () => {
+		const { container } = renderUI(<CodeBlock code="const scope = 1" />)
+
+		expect(getSlot(container, 'code-block')).not.toHaveAttribute('data-density')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 })
 
