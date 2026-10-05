@@ -154,7 +154,12 @@ export function LegendSwitch({
 			className={cn('max-w-full', className)}
 			aria-pressed={!off}
 			onClick={onToggle}
-			onPointerEnter={() => onPoint(true)}
+			// A touch is a tap that toggles the entry, not a point. A tap fires
+			// `pointerenter` before its click, and the emphasis dimmed every other
+			// mark until the click landed.
+			onPointerEnter={(event) => {
+				if (event.pointerType !== 'touch') onPoint(true)
+			}}
 			onPointerLeave={() => onPoint(false)}
 			onFocus={onFocusChange}
 			onBlur={onFocusChange}
