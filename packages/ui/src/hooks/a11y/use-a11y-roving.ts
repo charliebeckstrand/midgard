@@ -457,6 +457,27 @@ export function isVirtualTopMatchSeated(
 }
 
 /**
+ * Whether the row of a moved highlight is gone, so that a seed must take the
+ * highlight. Under a `source`, the row exists while the active index is below
+ * the live `count`: a row out of the window is not in the DOM. Else it exists
+ * while the element that `aria-activedescendant` names is in the document. No
+ * highlight is not a row that went.
+ *
+ * @internal
+ */
+export function isVirtualActiveRowGone(
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null>,
+): boolean {
+	if (source) return activeIndexRef.current >= source.count
+
+	const activeId = activeDescendantRef.current?.getAttribute('aria-activedescendant')
+
+	return !!activeId && document.getElementById(activeId) === null
+}
+
+/**
  * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
  * other item `-1`. Writes only on divergence; a MutationObserver watches
  * `tabindex` and fires on every edit. Pass `undefined` to demote all.

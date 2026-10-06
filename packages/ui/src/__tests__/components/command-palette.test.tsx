@@ -432,6 +432,59 @@ describe('CommandPalette results that change under an unchanged query', () => {
 		expect(screen.getByRole('option', { name: 'Alpha' })).not.toHaveAttribute('data-active')
 	})
 
+	// A moved highlight belongs to the reader only while its row exists. When the
+	// row goes, the top result takes the highlight, as in Combobox.
+	it('seeds the top result when the row of a moved highlight goes', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={['Beta', 'Gamma']} />)
+
+		const input = screen.getByRole('combobox')
+
+		const user = setupUser()
+
+		await user.type(input, 'a')
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute(
+			'aria-activedescendant',
+			screen.getByRole('option', { name: 'Gamma' }).id,
+		)
+
+		rerender(<FilteredPalette labels={['Beta']} />)
+
+		const beta = screen.getByRole('option', { name: 'Beta' })
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', beta.id))
+
+		expect(beta).toHaveAttribute('data-active')
+	})
+
+	it('seeds the top result when a registered source drops the row of a moved highlight', async () => {
+		const palette = (ids: string[]) => (
+			<CommandPalette open onOpenChange={() => {}}>
+				<SourceStandIn ids={ids} />
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette(['a-0', 'a-1', 'a-2']))
+
+		const input = screen.getByRole('combobox')
+
+		const user = setupUser()
+
+		await user.type(input, 'x')
+
+		await user.keyboard('{ArrowDown}{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'a-2')
+
+		rerender(palette(['a-0']))
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', 'a-0'))
+
+		expect(document.getElementById('a-0')).toHaveAttribute('data-active')
+	})
+
 	it('seeds the top result again when a registered source changes', async () => {
 		const palette = (ids: string[]) => (
 			<CommandPalette open onOpenChange={() => {}}>

@@ -25,6 +25,7 @@ import {
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
+	isVirtualActiveRowGone,
 	isVirtualTopMatchSeated,
 	queryItems,
 	seedVirtualTopMatch,
@@ -347,13 +348,8 @@ export function reanchorOnOptionSwap(
 
 	if (originRef.current === 'seeded') {
 		if (isVirtualTopMatchSeated(node, OPTION_SELECTOR, source, activeIndexRef, inputRef)) return
-	} else if (source) {
-		// The value -1 is no highlight, and not a row that the data dropped.
-		if (activeIndexRef.current < source.count) return
-	} else {
-		const activeId = inputRef.current?.getAttribute('aria-activedescendant')
-
-		if (!activeId || document.getElementById(activeId)) return
+	} else if (!isVirtualActiveRowGone(source, activeIndexRef, inputRef)) {
+		return
 	}
 
 	seedTopMatch(node, source, activeIndexRef, inputRef)

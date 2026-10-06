@@ -13,6 +13,7 @@ import {
 	useState,
 } from 'react'
 import {
+	isVirtualActiveRowGone,
 	isVirtualTopMatchSeated,
 	seedVirtualTopMatch,
 	useA11yRoving,
@@ -133,7 +134,8 @@ function createSourceRegistry(
  * the filtered set changes, through `seedVirtualTopMatch`. A seeded highlight
  * also follows a change of the results under an unchanged query: the observer
  * of the listbox and the registration of a source tell of it. A highlight that
- * is empty by design on open, or that an arrow key moved, stays where it is.
+ * is empty by design on open stays empty. A highlight that an arrow key moved
+ * stays while its row exists, and the top result takes it when the row goes.
  * `virtualSourceRef` is the registration point a
  * `VirtualOptions` (with `getOptionId`) inside `children` publishes into, so the
  * arrow keys reach items outside a windowed list. Navigation is arrow-only —
@@ -221,17 +223,24 @@ export function useCommandPaletteState({
 	const seededRef = useRef(false)
 
 	// Seeds the top result again when the results change under an unchanged
-	// query, as when data arrives after a filter ran. Only a seeded highlight
-	// follows the results. A change that keeps the top result does not seed,
-	// so the list does not scroll back to it.
+	// query, as when data arrives after a filter ran. A seeded highlight follows
+	// the results. A change that keeps the top result does not seed, so the list
+	// does not scroll back to it. A highlight that a key moved stays while its
+	// row exists, and the top result takes it when the row goes, as in Combobox.
 	const followResults = useStableEvent((source: VirtualItemSource | null) => {
-		if (!open || !seededRef.current) return
+		if (!open) return
 
 		const list = listRef.current
 
-		if (isVirtualTopMatchSeated(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)) return
+		if (seededRef.current) {
+			if (isVirtualTopMatchSeated(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)) return
+		} else if (!isVirtualActiveRowGone(source, activeIndexRef, inputRef)) {
+			return
+		}
 
 		seedVirtualTopMatch(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)
+
+		seededRef.current = true
 
 		reportActiveFromDom()
 	})
