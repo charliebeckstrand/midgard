@@ -201,4 +201,8 @@ Merge order S1 → S5. S1 and S5 both edit `engine/dashboard-layout.ts`, so S5 f
 - **Verifier (B02 overturn):** a headerless tile also has no widget header-actions slot; deliberate (`dashboard-tile.tsx:191-192`), a neighbor of B02-C05.
 - **Verifier (B02 overturn):** the stock `sortableKeyboardCoordinates` in `hooks/use-sortable-sensors.ts` may carry the same unclamped accumulation as B02-C03 for other dnd-kit consumers; a cross-component probe.
 - **Verifier (merge):** `modules/grid/grid-column-header.tsx:43` cites the same macOS Ctrl-click shape; under Q4 (b), a third caller of a shared predicate.
+- **Resolver (S1):** `usableDemands` still accepts finite spans of 0 or below (`defaultSize.w: 0`, `minSize.w: -3`); `resolveCell` raises `w` and `h` to 1, but the resize path is not traced for them.
+- **Resolver (S4):** jsdom defaults `isPrimary` to `false`, so a test that presses a splitter without `isPrimary: true` now starts no resize. S4 fixed the one press in `dashboard.test.tsx` that did this.
+- **Resolvers (S2, S4):** `src/docs/__tests__/page-smoke-grid.test.tsx` failed once in a loaded run without `LANG=en-US` and passed alone and with it; outside this area.
+- **Simplify (held for the reader):** the guard of S4 copies the predicate of `PrimaryPointerSensor` (`hooks/use-sortable-sensors.ts:36`); one shared `isPrimaryPress` would end the copy, but Q4 chose the inline guard. The `ctrlKey` test also refuses a Ctrl+primary press on Windows and Linux, as `PrimaryPointerSensor` already does for a drag; a macOS-only test would need a platform check.
 - **Caller:** no sweep reached `hooks/use-floating-ui.ts` (owned by another session) or the batch-2 leads in `hooks/use-panel-resize.ts` and `hooks/use-panel-fit.ts`.
