@@ -74,3 +74,23 @@ export function holdTextSelection({
 
 	owned = true
 }
+
+/**
+ * Test-only: ends every hold at once, so the next test starts with no touch held and with the
+ * root class it had before the first hold.
+ */
+export function __resetTextSelectionHold(): void {
+	held.clear()
+
+	clearTimeout(release)
+
+	release = undefined
+
+	window.removeEventListener('pointerup', end, true)
+
+	window.removeEventListener('pointercancel', end, true)
+
+	if (owned) document.documentElement.classList.remove(HOLD)
+
+	owned = false
+}

@@ -14,7 +14,6 @@ import { AppearanceProvider, AppearanceScript, AppearanceSettings } from 'ui/pro
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
-import { Text } from 'ui/text'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import {
@@ -25,6 +24,7 @@ import {
 } from '../debug/event-log/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
+import { PageError } from './page-error.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 
 // The id of the last script that runs before the first paint. The page paints
@@ -146,17 +146,10 @@ export default function App() {
 	)
 }
 
-/** Shows in place of a page that fails to render, so one page does not take down the site. */
+/**
+ * Shows in place of the shell when the shell fails to render. An error in a
+ * page stays in the error boundary of the pages (`routes/page.tsx`).
+ */
 export function ErrorBoundary() {
-	return (
-		<Stack gap="md" className="p-6">
-			<Heading>Could not load this page</Heading>
-			<Text tone="muted">Reload the page to try again.</Text>
-			<div>
-				<Button variant="outline" onClick={() => location.reload()}>
-					Reload
-				</Button>
-			</div>
-		</Stack>
-	)
+	return <PageError />
 }

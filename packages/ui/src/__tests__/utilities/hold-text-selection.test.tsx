@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { animate } from 'motion'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import {
@@ -137,6 +138,16 @@ describe('holdTextSelection', () => {
 	})
 
 	it('holds for a touch on a hold button', () => {
+		// `animate` is the shared module spy (setup/module-mocks.ts). The press
+		// starts the fill, and a real Motion animation under fake timers waits on
+		// a fake frame. The frame loop then stays stuck for the next files of the
+		// worker, because the suites run with `isolate: false`.
+		vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
+
+		onTestFinished(() => {
+			vi.mocked(animate).mockRestore()
+		})
+
 		renderUI(<HoldButton>Delete</HoldButton>)
 
 		fireEvent.pointerDown(screen.getByRole('button'), {
