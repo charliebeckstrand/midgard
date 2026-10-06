@@ -130,6 +130,24 @@ const matchReferenceWidthMiddleware = size({
 })
 
 /**
+ * Sets the max-width of the floating element to the width that is available to
+ * it, less an 8px margin to each viewport edge. On a top or a bottom side,
+ * `shift` moves the panel along the edge, so the available width is the
+ * viewport width. On a left or a right side, it is the space on that side. It
+ * goes after `shift`. Then a panel that is wider than the viewport stays inside
+ * the margin that `shift` keeps. The panel must let its content shrink with the
+ * wrapper.
+ *
+ * @internal
+ */
+export const fitWidthMiddleware = size({
+	padding: 8,
+	apply({ availableWidth, elements }) {
+		elements.floating.style.maxWidth = `${Math.max(0, availableWidth)}px`
+	},
+})
+
+/**
  * Lowers the height that is available to a floating panel to a height that
  * suits its content. It gets the available height and the floating element,
  * and returns the max-height to write. A larger value has no effect. A menu
@@ -161,8 +179,8 @@ export function fitHeightMiddleware(snap?: FloatingHeightSnap): Middleware {
 }
 
 /**
- * Default middleware chain: offset / flip / shift, plus the size middlewares
- * that the options request.
+ * Default middleware chain: offset / flip / shift, the width cap, plus the
+ * size middlewares that the options request.
  *
  * A panel on the left or the right side can fit on neither side, for example
  * a wide panel on a phone. Then `flip` also tries the bottom and the top
@@ -184,6 +202,7 @@ function buildMiddleware(
 		offset(offsetPx),
 		flip(horizontal ? { fallbackAxisSideDirection: 'end' } : undefined),
 		shift({ padding: 8 }),
+		fitWidthMiddleware,
 		...(matchReferenceWidth ? [matchReferenceWidthMiddleware] : []),
 		...(fitHeight
 			? [fitHeightMiddleware(typeof fitHeight === 'function' ? fitHeight : undefined)]
@@ -266,8 +285,9 @@ export type FloatingPanelOptions = {
  * Base hook for floating panels: wires `useFloating` with `autoUpdate` and a
  * standardized middleware chain (offset/flip/shift, optional size). A panel on
  * the left or the right side that fits on neither side moves to the bottom or
- * the top side. A panel whose reference is out of view, for example scrolled
- * out of a scroll container, is hidden until the reference comes back.
+ * the top side. A panel that is wider than the viewport caps its width 8px
+ * inside each edge. A panel whose reference is out of view, for example
+ * scrolled out of a scroll container, is hidden until the reference comes back.
  *
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common

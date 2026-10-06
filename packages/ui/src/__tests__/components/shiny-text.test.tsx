@@ -2,6 +2,7 @@ import { animate } from 'motion'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
 import { bySlot, getSlot, renderUI, setupUser, stubMatchMedia } from '../helpers'
+import { installControlledObserver } from '../helpers/controlled-intersection'
 
 // `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts,
 // which is also why this file drives that mock with spies rather than declaring
@@ -110,6 +111,28 @@ describe('ShinyText', () => {
 		// WCAG 2.3.3: the OS preference parks the sweep before it ever starts —
 		// the text must remain, but no animation is allowed to run.
 		expect(animate).not.toHaveBeenCalled()
+	})
+
+	it('stops the sweep off screen and starts it again in view', () => {
+		const observer = installControlledObserver()
+
+		renderUI(<ShinyText>Shine</ShinyText>)
+
+		expect(animate).not.toHaveBeenCalled()
+
+		observer.report(true)
+
+		expect(animate).toHaveBeenCalledTimes(1)
+
+		const controls = vi.mocked(animate).mock.results[0]?.value as { stop: () => void }
+
+		observer.report(false)
+
+		expect(controls.stop).toHaveBeenCalled()
+
+		observer.report(true)
+
+		expect(animate).toHaveBeenCalledTimes(2)
 	})
 
 	it('renders static text and starts no sweep when disabled', () => {

@@ -51,9 +51,9 @@ export const k = {
 		 * surface card sets. Without a card, it takes the page ground, as the grid host does.
 		 * A white ring in dark mode showed as a halo on each dot.
 		 */
-		stroke: mode('stroke-[var(--surface-fill,var(--color-white))]', [
-			'dark:stroke-[var(--surface-fill,var(--color-zinc-950))]',
-			'dark:lg:stroke-[var(--surface-fill,var(--color-zinc-900))]',
+		stroke: mode('stroke-(--surface-fill,var(--color-white))', [
+			'dark:stroke-(--surface-fill,var(--color-zinc-950))',
+			'dark:lg:stroke-(--surface-fill,var(--color-zinc-900))',
 		]),
 	},
 	/**

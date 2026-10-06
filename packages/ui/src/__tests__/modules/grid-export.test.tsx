@@ -380,7 +380,7 @@ describe('Grid export', () => {
 		expect(download.click).toHaveBeenCalledTimes(1)
 	})
 
-	it('loads the Excel serializer on the first Excel export, then downloads the workbook', async () => {
+	it('loads the Excel serializer, then downloads the workbook', async () => {
 		const download = captureDownload()
 
 		renderUI(<Grid exportable={['excel']} columns={columns} rows={rows} getKey={getKey} />)

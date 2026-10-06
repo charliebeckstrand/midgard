@@ -135,17 +135,17 @@ export const k = {
 		vertical: [
 			'col-start-1 row-start-1 self-center justify-self-center',
 			'before:bottom-full before:left-1/2 before:-translate-x-1/2',
-			'before:h-[100vh] before:w-0.5',
+			'before:h-screen before:w-0.5',
 			'after:top-full after:left-1/2 after:-translate-x-1/2',
-			'after:h-[100vh] after:w-0.5',
+			'after:h-screen after:w-0.5',
 		],
 		horizontal: [
 			// left-[6.5px] centers the rail on the marker.
 			'absolute top-0 left-[6.5px]',
 			'before:right-full before:top-1/2 before:-translate-y-1/2',
-			'before:h-0.5 before:w-[100vw]',
+			'before:h-0.5 before:w-screen',
 			'after:left-full after:top-1/2 after:-translate-y-1/2',
-			'after:h-0.5 after:w-[100vw]',
+			'after:h-0.5 after:w-screen',
 		],
 		palette,
 	},

@@ -92,22 +92,22 @@ export const space = {
 		/** The padding of the combinator button between query chips, inside its ring. */
 		base: 'density-p-ring-[1.5,1.5,2,2.5,2.5]',
 		/** The block padding of the combinator button with a label. */
-		label: 'data-[has-label]:density-py-ring-[1,1,1.5,2,2]',
+		label: 'data-has-label:density-py-ring-[1,1,1.5,2,2]',
 	},
 	button: {
 		/** The padding of a button, inside its ring. */
 		base: 'density-p-ring-[1.5,2,2.5,3,3]',
 		/** The block padding of a button with a label. */
-		label: 'data-[has-label]:density-py-ring-[1,1.5,2,2.5,2.5]',
+		label: 'data-has-label:density-py-ring-[1,1.5,2,2.5,2.5]',
 		/** The padding of a bare icon button. */
-		bare: 'not-data-[has-label]:density-p-[0.75,1,1.25,1.5,1.5]',
+		bare: 'not-data-has-label:density-p-[0.75,1,1.25,1.5,1.5]',
 	},
 	sidebar: {
 		item: {
 			/** The padding of a sidebar item, inside its ring. */
 			base: 'density-p-ring-[1.5,2,2.5]',
 			/** The block padding of the button of a sidebar item, equal to the row padding. */
-			label: 'data-[has-label]:density-py-ring-[1.5,2,2.5]',
+			label: 'data-has-label:density-py-ring-[1.5,2,2.5]',
 		},
 	},
 	badge: {
@@ -116,7 +116,7 @@ export const space = {
 		/** The inline padding of a pill badge, inside its ring. */
 		pill: 'density-px-ring-[1.5,2,2.5,3,3]',
 		/** The start padding of a removable badge. */
-		removable: 'data-[has-suffix]:density-ps-ring-[2.25,3,3.75,4.5,4.5]',
+		removable: 'data-has-suffix:density-ps-ring-[2.25,3,3.75,4.5,4.5]',
 	},
 	control: {
 		/** The inline padding of a control, inside its ring. */

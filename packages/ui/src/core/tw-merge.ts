@@ -67,12 +67,6 @@ function steppedConflicts(
 		add(plain, [stepped])
 	}
 
-	// `tailwind-merge` puts only `pr` and `pl` in `px`. The logical sides are part
-	// of `padding-inline` too.
-	add('density-px', ['ps', 'pe', 'density-ps', 'density-pe'])
-
-	add('px', ['density-ps', 'density-pe'])
-
 	// `density-text` writes `line-height: var(--tw-leading, …)`, so an earlier
 	// `leading-*` still sets the line height, as a title's `leading-none` does.
 	// The two classes compose, so the stepped class keeps it.
@@ -83,11 +77,9 @@ function steppedConflicts(
 }
 
 /**
- * `tailwind-merge` extended with the project's named spacing scale
- * (`xs / sm / md / lg / xl`) and the density utilities of
+ * `tailwind-merge` extended with the density utilities of
  * `core/density/utility-table.ts`: the stepped utilities and the ring
- * utilities. Utilities like `p-md` collapse when a later class overrides them.
- * A later class replaces an earlier class of each property that it covers,
+ * utilities. A later class replaces an earlier class of each property that it covers,
  * whether each class is stepped, plain, or a ring form. Shared by `cn` and the
  * recipe engine.
  *
@@ -96,12 +88,7 @@ function steppedConflicts(
  */
 export const twMerge = extendTailwindMerge<SteppedGroup>(
 	{
-		extend: {
-			theme: {
-				spacing: ['xs', 'sm', 'md', 'lg', 'xl'],
-			},
-			classGroups,
-		},
+		extend: { classGroups },
 	},
 	(config) => {
 		const groups: Record<string, readonly string[] | undefined> = config.conflictingClassGroups

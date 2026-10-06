@@ -172,7 +172,7 @@ export default defineConfig({
 			// import discovers it lazily and reloads the page mid-run.
 			'@floating-ui/react/utils',
 			'@internationalized/date',
-			'@tanstack/react-virtual',
+			'@tanstack/virtual-core',
 			'card-validator',
 			'lucide-react',
 			'motion',

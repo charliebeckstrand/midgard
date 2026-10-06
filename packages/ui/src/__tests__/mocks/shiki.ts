@@ -37,6 +37,12 @@ export const highlight = vi.fn(
 		`<pre class="shiki" data-lang="${lang}" tabindex="-1"><code>${escapeHtml(code)}</code></pre>`,
 )
 
+/**
+ * The background color and the type of the theme in each highlight of the fake
+ * worker: those of the default theme, which Shiki gives in `getTheme`.
+ */
+export const DEFAULT_CANVAS = { bg: '#0d1117', type: 'dark' } as const
+
 /** The load of a grammar and a theme in the fake worker, for a request with no code. */
 export const load = vi.fn(async (_lang: string, _theme: string) => {})
 
@@ -52,7 +58,9 @@ export class FakeShikiWorker {
 		const work =
 			code === undefined
 				? load(lang, theme).then((): ShikiReply => ({ id }))
-				: highlight(code, lang, theme).then((html): ShikiReply => ({ id, html }))
+				: highlight(code, lang, theme).then(
+						(html): ShikiReply => ({ id, highlight: { html, ...DEFAULT_CANVAS } }),
+					)
 
 		work.then(
 			(reply) => this.reply(reply),

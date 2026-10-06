@@ -24,7 +24,7 @@ export const k = bridge.check(
 			rounded.full,
 			'[--check-border:transparent]',
 			'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
-			'not-has-[:disabled]:has-checked:hover:opacity-90',
+			'not-has-disabled:has-checked:hover:opacity-90',
 			// The circle takes the step of the nearest density scope.
 			radio.circle,
 		],

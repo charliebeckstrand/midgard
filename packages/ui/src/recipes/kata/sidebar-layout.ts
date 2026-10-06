@@ -67,7 +67,7 @@ const panel = defineRecipe({
 		'max-lg:hidden',
 		// A mini sidebar sets the rail width; the panel follows it instead of
 		// holding the size step open.
-		'has-data-[mini]:w-fit',
+		'has-data-mini:w-fit',
 		sidebarWidth,
 	],
 })
