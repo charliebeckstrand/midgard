@@ -2,8 +2,8 @@ import { subscribeOverlaySignal } from 'ui/primitives/overlay'
 import { createEmitter } from '../../../utilities/emitter.ts'
 import { noop } from '../../../utilities/noop.ts'
 
-/** The kinds of an {@link Entry}, in the order of the options of the type filter of the sheet. */
-export const KINDS = [
+/** The kinds of an {@link Entry}. */
+const KINDS = [
 	'load',
 	'paint',
 	'route',
@@ -16,7 +16,7 @@ export const KINDS = [
 	'hmr',
 ] as const
 
-/** The kind of an {@link Entry}, which the sheet filters by. */
+/** The kind of an {@link Entry}. */
 export type Kind = (typeof KINDS)[number]
 
 /** One line of the log. */

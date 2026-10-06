@@ -9,7 +9,12 @@ import { Calendar, CalendarRange, CalendarSkeleton } from '../../../components/c
 import { Card, CardTitle } from '../../../components/card'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { Code, CodeBlock } from '../../../components/code'
-import { ColorPanel, ColorPanelSkeleton, ColorPicker } from '../../../components/color'
+import {
+	ColorPanel,
+	ColorPanelSkeleton,
+	ColorPicker,
+	ColorPickerSkeleton,
+} from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import {
 	CommandPalette,
@@ -176,6 +181,7 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	ColorPicker: (size) => (
 		<ColorPicker size={size as never} aria-label="Color" defaultValue="#3b82f6" />
 	),
+	ColorPickerSkeleton: (size) => <ColorPickerSkeleton size={size as never} />,
 	Combobox: (size) => (
 		<Combobox size={size as never} aria-label="Stage" displayValue={(v: string) => v}>
 			{options(ComboboxOption as never, ComboboxLabel as never)}

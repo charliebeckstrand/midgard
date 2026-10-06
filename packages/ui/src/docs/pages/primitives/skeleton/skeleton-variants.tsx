@@ -8,7 +8,7 @@ import { CalendarSkeleton } from 'ui/calendar'
 import { ChartSkeleton } from 'ui/chart'
 import { ChatTranscriptSkeleton } from 'ui/chat'
 import { CheckboxSkeleton } from 'ui/checkbox'
-import { ColorPanelSkeleton } from 'ui/color'
+import { ColorPanelSkeleton, ColorPickerSkeleton } from 'ui/color'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { ControlSkeleton } from 'ui/control'
 import { DescriptionListSkeleton } from 'ui/description-list'
@@ -55,6 +55,7 @@ const variants = [
 	{ name: 'Chat transcript', skeleton: <ChatTranscriptSkeleton /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
+	{ name: 'Color picker', skeleton: <ColorPickerSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
 	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
 	{ name: 'Filters', skeleton: <FiltersSkeleton /> },

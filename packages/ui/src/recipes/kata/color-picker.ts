@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, kasane, omote } from '../kiso'
+import { hannou, iro, kasane, kokkaku, omote } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
@@ -36,7 +36,14 @@ const swatch = {
 	checkerboard: [omote.checkerboard, '[background-size:8px_8px]'],
 }
 
+/**
+ * The box of the trigger. It is as wide as the swatch and the color value,
+ * not as wide as its parent, and it does not get wider than its parent.
+ */
+const root = ['w-fit', 'max-w-full']
+
 export const k = {
+	root,
 	surface: {
 		default: surface.default,
 		glass: [],
@@ -44,6 +51,7 @@ export const k = {
 	button,
 	value,
 	swatch,
+	skeleton: kokkaku.colorPicker,
 	content: {
 		portal,
 		motion: panel.motion,
