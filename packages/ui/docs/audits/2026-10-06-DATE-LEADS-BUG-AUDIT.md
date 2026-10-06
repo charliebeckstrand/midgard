@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-06 (date-entry leads)
 
-This audit judges the eleven leads that the batch 1 bug audit of the D components (DateInput and DatePicker, #2014) surfaced and did not judge. One scope, 11 files, 3,125 lines, 11 claims. Five findings stay open (four confirmed, one narrowed); six claims are ruled out.
+This audit judges the eleven leads that the batch 1 bug audit of the D components (DateInput and DatePicker, #2014) surfaced and did not judge. One scope, 11 files, 3,125 lines, 12 claims (11 leads and one claim that the `simplify` review raised). Six findings stay open (four confirmed, two narrowed); six claims are ruled out.
 
 ## Scope
 
@@ -23,10 +23,12 @@ The caller turned each lead into a claim record and stripped the evidence block 
 | Frame | 11 leads | 11 claims, 1 scope |
 | Blind verify | 11 stripped claims | 4 CONFIRMED, 1 NARROWED, 6 REFUTED |
 | Overturn | sheet + evidence | 11 UPHELD; S1 corrected; C04 guard amended |
+| Settle | Q1–Q4 | S1–S3 re-derived; Q5 raised |
+| Blind verify | C12 (from the `simplify` review) | 1 NARROWED |
 
 ## Findings
 
-By severity: medium 2 (C06, C09), low 3 (C01, C03, C07). By reach: shipped 4, docs-only 1 (C07).
+By severity: medium 2 (C06, C09), low 4 (C01, C03, C07, C12). By reach: shipped 5, docs-only 1 (C07).
 
 Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 
