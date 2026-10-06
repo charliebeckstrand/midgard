@@ -19,14 +19,18 @@ function setup(provider: { portalContainer?: HTMLElement } = {}) {
 		</UIProvider>,
 	)
 
-	const ask = (options: Parameters<ConfirmFunction>[0] = {}) => {
+	// The provider loads the dialog on the first question, so the question waits
+	// for the dialog. The answer is in an object, so the await does not take it.
+	const ask = async (options: Parameters<ConfirmFunction>[0] = {}) => {
 		let answer: Promise<boolean> = Promise.resolve(false)
 
 		act(() => {
 			answer = (held.confirm as ConfirmFunction)(options)
 		})
 
-		return answer
+		await screen.findByRole('alertdialog')
+
+		return { answer }
 	}
 
 	return { ...result, held, ask }
@@ -43,10 +47,10 @@ describe('useConfirm', () => {
 		expect(() => renderUI(<Probe />)).toThrow('useConfirm must be used within a UIProvider')
 	})
 
-	it('shows the question in the alertdialog of the provider', () => {
+	it('shows the question in the alertdialog of the provider', async () => {
 		const { ask } = setup()
 
-		void ask({
+		await ask({
 			title: 'Delete the file?',
 			description: 'You cannot undo this.',
 			confirm: { label: 'Delete', color: 'red' },
@@ -67,7 +71,7 @@ describe('useConfirm', () => {
 	it('resolves true when the user confirms', async () => {
 		const { ask } = setup()
 
-		const answer = ask({ confirm: { label: 'Delete' } })
+		const { answer } = await ask({ confirm: { label: 'Delete' } })
 
 		fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
 
@@ -77,7 +81,7 @@ describe('useConfirm', () => {
 	it('resolves false when the user cancels', async () => {
 		const { ask } = setup()
 
-		const answer = ask()
+		const { answer } = await ask()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
@@ -87,7 +91,7 @@ describe('useConfirm', () => {
 	it('resolves false when the user dismisses the dialog with Escape', async () => {
 		const { ask } = setup()
 
-		const answer = ask()
+		const { answer } = await ask()
 
 		fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape' })
 
@@ -97,9 +101,9 @@ describe('useConfirm', () => {
 	it('resolves an open question false when a new question replaces it', async () => {
 		const { ask } = setup()
 
-		const first = ask({ title: 'First?' })
+		const { answer: first } = await ask({ title: 'First?' })
 
-		const second = ask({ title: 'Second?' })
+		const { answer: second } = await ask({ title: 'Second?' })
 
 		await expect(first).resolves.toBe(false)
 
@@ -113,14 +117,14 @@ describe('useConfirm', () => {
 	it('resolves an open question false when the provider unmounts', async () => {
 		const { ask, unmount } = setup()
 
-		const answer = ask()
+		const { answer } = await ask()
 
 		unmount()
 
 		await expect(answer).resolves.toBe(false)
 	})
 
-	it('keeps the function identity across renders and questions', () => {
+	it('keeps the function identity across renders and questions', async () => {
 		const seen = new Set<ConfirmFunction>()
 
 		function Probe({ label }: { label: string }) {
@@ -147,6 +151,8 @@ describe('useConfirm', () => {
 			void confirm?.({})
 		})
 
+		await screen.findByRole('alertdialog')
+
 		expect(seen.size).toBe(1)
 	})
 
@@ -159,7 +165,7 @@ describe('useConfirm', () => {
 			finish = resolve
 		})
 
-		const answer = ask({ confirm: { label: 'Delete' }, action: () => work })
+		const { answer } = await ask({ confirm: { label: 'Delete' }, action: () => work })
 
 		const button = screen.getByRole('button', { name: 'Delete' })
 
@@ -188,7 +194,7 @@ describe('useConfirm', () => {
 
 		const failure = new Error('Network down')
 
-		const answer = ask({
+		const { answer } = await ask({
 			action: () => Promise.reject(failure),
 		})
 
@@ -203,12 +209,12 @@ describe('useConfirm', () => {
 		await expect(caught).resolves.toBe(failure)
 	})
 
-	it('portals the dialog into the container of the provider', () => {
+	it('portals the dialog into the container of the provider', async () => {
 		const target = attach(document.createElement('div'))
 
 		const { ask } = setup({ portalContainer: target })
 
-		void ask()
+		await ask()
 
 		expect(target).toContainElement(screen.getByRole('alertdialog'))
 	})

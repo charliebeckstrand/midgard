@@ -3,6 +3,9 @@ import { Toast, ToastProvider, useToast } from '../../components/toast'
 import { UIProvider } from '../../providers/ui'
 import { act, attach, renderUI, screen, waitFor } from '../helpers'
 
+// The provider loads its viewport on the first toast, so each check of the
+// viewport waits for it.
+
 const viewports = () => document.querySelectorAll('[data-slot="toast-viewport"]')
 
 /** Renders a probe that gives back the `toast` function of the nearest queue. */
@@ -13,7 +16,7 @@ function Probe({ held }: { held: { toast?: ReturnType<typeof useToast>['toast'] 
 }
 
 describe('UIProvider toast', () => {
-	it('gives useToast a queue and a viewport with no setup', () => {
+	it('gives useToast a queue and a viewport with no setup', async () => {
 		const held: { toast?: ReturnType<typeof useToast>['toast'] } = {}
 
 		renderUI(
@@ -26,21 +29,39 @@ describe('UIProvider toast', () => {
 			held.toast?.({ title: 'Saved', severity: 'success' })
 		})
 
-		expect(viewports()).toHaveLength(1)
+		expect(await screen.findByText('Saved')).toBeInTheDocument()
 
-		expect(screen.getByText('Saved')).toBeInTheDocument()
+		expect(viewports()).toHaveLength(1)
 	})
 
-	it('portals the viewport into the container of the provider', () => {
+	it('portals the viewport into the container of the provider', async () => {
 		const target = attach(document.createElement('div'))
+
+		const held: { toast?: ReturnType<typeof useToast>['toast'] } = {}
 
 		renderUI(
 			<UIProvider portalContainer={target}>
+				<Probe held={held} />
+			</UIProvider>,
+		)
+
+		act(() => {
+			held.toast?.({ title: 'Saved' })
+		})
+
+		await waitFor(() => expect(target.querySelector('[data-slot="toast-viewport"]')).not.toBeNull())
+	})
+
+	it('loads no viewport before the first toast', async () => {
+		renderUI(
+			<UIProvider>
 				<span />
 			</UIProvider>,
 		)
 
-		expect(target.querySelector('[data-slot="toast-viewport"]')).not.toBeNull()
+		await act(async () => {})
+
+		expect(viewports()).toHaveLength(0)
 	})
 
 	it('applies the maxToasts of its toast prop', async () => {
@@ -63,7 +84,7 @@ describe('UIProvider toast', () => {
 		expect(viewports()[0]).toHaveTextContent('Second')
 	})
 
-	it('mounts one queue and one viewport, at the outermost provider', () => {
+	it('mounts one queue and one viewport, at the outermost provider', async () => {
 		const held: { toast?: ReturnType<typeof useToast>['toast'] } = {}
 
 		renderUI(
@@ -78,12 +99,12 @@ describe('UIProvider toast', () => {
 			held.toast?.({ title: 'Nested' })
 		})
 
-		expect(viewports()).toHaveLength(1)
+		expect(await screen.findByText('Nested')).toBeInTheDocument()
 
-		expect(screen.getByText('Nested')).toBeInTheDocument()
+		expect(viewports()).toHaveLength(1)
 	})
 
-	it('lets a ToastProvider in the subtree keep a queue of its own', () => {
+	it('lets a ToastProvider in the subtree keep a queue of its own', async () => {
 		const held: { toast?: ReturnType<typeof useToast>['toast'] } = {}
 
 		renderUI(
@@ -99,11 +120,11 @@ describe('UIProvider toast', () => {
 			held.toast?.({ title: 'Local' })
 		})
 
-		expect(viewports()).toHaveLength(2)
+		await act(async () => {})
 
-		// The local viewport is a child, so it comes before the viewport of the provider.
+		// The queue of the provider gets no toast, so it loads no viewport.
+		expect(viewports()).toHaveLength(1)
+
 		expect(viewports()[0]).toHaveTextContent('Local')
-
-		expect(viewports()[1]).not.toHaveTextContent('Local')
 	})
 })
