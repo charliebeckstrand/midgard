@@ -15,7 +15,7 @@ export default function Loading() {
 			<WeekHeaderSkeleton />
 
 			{/* A screen reader does not read the skeletons, so the region tells it that the week loads. */}
-			<Container size="full" padding="lg" className="p-6" aria-busy="true">
+			<Container size="full" padding="lg" className="py-6" aria-busy="true">
 				<GameGrid>
 					{Array.from({ length: CARDS }, (_, index) => (
 						<GameCardSkeleton key={index} />

@@ -1,5 +1,5 @@
-// Max-width and horizontal padding apply from `lg` up; below that the
-// container is full-bleed.
+// The max width applies from `lg` up; below that the container is
+// full-bleed. The horizontal padding applies at every width.
 export const k = {
 	size: {
 		sm: 'lg:max-w-4xl',
@@ -9,9 +9,9 @@ export const k = {
 		full: 'lg:max-w-full',
 	},
 	padding: {
-		0: 'lg:px-0',
-		sm: 'lg:px-2',
-		md: 'lg:px-4',
-		lg: 'lg:px-6',
+		0: 'px-0',
+		sm: 'px-2',
+		md: 'px-4',
+		lg: 'px-6',
 	},
 } as const
