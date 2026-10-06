@@ -1,6 +1,7 @@
 import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
+import { onCaughtError } from '../debug/event-log/caught-errors.ts'
 import { startEventLog } from '../debug/event-log/index.tsx'
 
 // A deploy replaces the hashed file names under an open tab, so the load of a
@@ -18,5 +19,7 @@ startTransition(() => {
 		<StrictMode>
 			<HydratedRouter />
 		</StrictMode>,
+		// An error that an error boundary catches reaches the Event log only through this option.
+		{ onCaughtError },
 	)
 })
