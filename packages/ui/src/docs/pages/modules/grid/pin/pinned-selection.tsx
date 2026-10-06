@@ -1,6 +1,11 @@
 import { useState } from 'react'
-import { Grid } from 'ui/grid'
-import { employeeColumns, employees } from '../data.tsx'
+import { Grid, type GridColumn } from 'ui/grid'
+import { type Employee, employeeColumns, employees } from '../data.tsx'
+
+const selectColumns: GridColumn<Employee>[] = [
+	{ id: 'select', selectable: true },
+	...employeeColumns,
+]
 
 export default function PinnedSelection() {
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
@@ -11,7 +16,7 @@ export default function PinnedSelection() {
 			resizable
 			header={{ position: 'sticky' }}
 			maxHeight="320px"
-			columns={[{ id: 'select', selectable: true }, ...employeeColumns]}
+			columns={selectColumns}
 			rows={employees}
 			getKey={(row) => row.id}
 			selection={{ value: selection, onValueChange: (next) => setSelection(next ?? new Set()) }}

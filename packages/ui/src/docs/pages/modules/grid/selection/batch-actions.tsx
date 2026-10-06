@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Button } from 'ui/button'
-import { Grid } from 'ui/grid'
+import { Grid, type GridColumn } from 'ui/grid'
 import { HoldButton } from 'ui/hold-button'
-import { columns, people } from '../data.tsx'
+import { columns, type Person, people } from '../data.tsx'
+
+const selectColumns: GridColumn<Person>[] = [{ id: 'select', selectable: true }, ...columns]
 
 export default function BatchActions() {
 	const [rows, setRows] = useState(people)
@@ -15,7 +17,7 @@ export default function BatchActions() {
 				</Button>
 			)}
 			<Grid
-				columns={[{ id: 'select', selectable: true }, ...columns]}
+				columns={selectColumns}
 				rows={rows}
 				getKey={(row) => row.id}
 				selection={{

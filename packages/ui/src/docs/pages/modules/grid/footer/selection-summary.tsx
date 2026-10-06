@@ -1,6 +1,11 @@
 import { useState } from 'react'
-import { Grid } from 'ui/grid'
-import { people, searchableColumns } from '../data.tsx'
+import { Grid, type GridColumn } from 'ui/grid'
+import { type Person, people, searchableColumns } from '../data.tsx'
+
+const selectColumns: GridColumn<Person>[] = [
+	{ id: 'select', selectable: true },
+	...searchableColumns,
+]
 
 export default function SelectionSummary() {
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
@@ -11,7 +16,7 @@ export default function SelectionSummary() {
 	// the selected rows.
 	return (
 		<Grid
-			columns={[{ id: 'select', selectable: true }, ...searchableColumns]}
+			columns={selectColumns}
 			rows={people}
 			getKey={(row) => row.id}
 			search={{ value: search, onValueChange: setSearch }}
