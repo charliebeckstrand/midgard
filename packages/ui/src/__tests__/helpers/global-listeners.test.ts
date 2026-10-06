@@ -34,4 +34,28 @@ describe('the global listener record', () => {
 
 		expect(onWindow('pointercancel')).toEqual([])
 	})
+
+	it('records a once listener until its event fires', () => {
+		const listener = () => {}
+
+		window.addEventListener('pagehide', listener, { once: true })
+
+		expect(onWindow('pagehide')).toHaveLength(1)
+
+		window.dispatchEvent(new Event('pagehide'))
+
+		expect(onWindow('pagehide')).toEqual([])
+	})
+
+	it('drops a once listener that a test removes before its event', () => {
+		const listener = () => {}
+
+		document.addEventListener('focusin', listener, { once: true })
+
+		expect([...liveGlobalListeners()].filter((entry) => entry.type === 'focusin')).toHaveLength(1)
+
+		document.removeEventListener('focusin', listener)
+
+		expect([...liveGlobalListeners()].filter((entry) => entry.type === 'focusin')).toEqual([])
+	})
 })

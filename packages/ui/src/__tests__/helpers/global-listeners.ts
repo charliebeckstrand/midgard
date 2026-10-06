@@ -51,12 +51,23 @@ const REGISTRY = Symbol.for('ui.test.global-listeners')
 
 const PATCHED = Symbol.for('ui.test.global-listeners.patched')
 
+const RELEASES = Symbol.for('ui.test.global-listeners.releases')
+
 function registry(): Registry {
 	const host = globalThis as { [REGISTRY]?: Registry }
 
 	host[REGISTRY] ??= new Map()
 
 	return host[REGISTRY]
+}
+
+/** The watcher of each `once` listener in the record, which ends when the record drops it. */
+function releases(): WeakMap<GlobalListener, AbortController> {
+	const host = globalThis as { [RELEASES]?: WeakMap<GlobalListener, AbortController> }
+
+	host[RELEASES] ??= new WeakMap()
+
+	return host[RELEASES]
 }
 
 function targetName(target: EventTarget): GlobalListener['target'] | null {
@@ -110,6 +121,10 @@ function forget(listener: unknown, key: string): void {
 
 	if (!byKey) return
 
+	const entry = byKey.get(key)
+
+	if (entry) releases().get(entry)?.abort()
+
 	byKey.delete(key)
 
 	if (byKey.size === 0) registry().delete(listener)
@@ -147,7 +162,7 @@ function wrap(
 
 		const settings = typeof options === 'object' ? options : undefined
 
-		if (settings?.once || settings?.signal?.aborted) return
+		if (settings?.signal?.aborted) return
 
 		const capture = captureOf(options)
 
@@ -162,11 +177,29 @@ function wrap(
 
 		if (from === null) return
 
-		byKey.set(key, { target, type, capture, origin: from })
+		const entry: GlobalListener = { target, type, capture, origin: from }
+
+		byKey.set(key, entry)
 
 		registry().set(listener, byKey)
 
 		settings?.signal?.addEventListener('abort', () => forget(listener, key), { once: true })
+
+		// A `once` listener removes itself on its event, and the wrapper does not
+		// see that. A second `once` listener on the same event drops it from the
+		// record then. The record ends that watcher when it drops the listener in
+		// another way.
+		if (settings?.once) {
+			const watcher = new AbortController()
+
+			releases().set(entry, watcher)
+
+			add.call(this, type, () => forget(listener, key), {
+				capture,
+				once: true,
+				signal: watcher.signal,
+			})
+		}
 	}
 
 	host.removeEventListener = function removeEventListener(
@@ -188,8 +221,9 @@ function wrap(
  *
  * It wraps `addEventListener` and `removeEventListener` on
  * `EventTarget.prototype`, and it does that once per page however often the
- * setup runs. A `once` listener stays out of the record, because it removes
- * itself on the event it waits for and the wrapper never sees that.
+ * setup runs. A `once` listener is in the record until its event fires. A
+ * `once` listener that waits for an event that never comes still outlives its
+ * case.
  *
  * The jsdom environment needs a second wrap. Vitest copies the members of the
  * jsdom window onto the global object, and it binds each method to that window

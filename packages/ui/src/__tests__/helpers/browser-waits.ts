@@ -9,6 +9,7 @@ import {
 	isArrowFunction,
 	isBinaryExpression,
 	isCallExpression,
+	isConditionalExpression,
 	isFunctionDeclaration,
 	isFunctionExpression,
 	isIdentifier,
@@ -110,6 +111,18 @@ function evaluate(
 		return ms === undefined ? undefined : ms * factor
 	}
 
+	// A deadline that picks a number by a condition, such as `CI ? 4000 : 1000`,
+	// can be the larger number. The value is that number.
+	if (isConditionalExpression(node)) {
+		const whenTrue = evaluate(node.whenTrue, factor, consts, scaled)
+
+		const whenFalse = evaluate(node.whenFalse, factor, consts, scaled)
+
+		if (whenTrue === undefined || whenFalse === undefined) return undefined
+
+		return Math.max(whenTrue, whenFalse)
+	}
+
 	if (isBinaryExpression(node)) {
 		const left = evaluate(node.left, factor, consts, scaled)
 
@@ -143,6 +156,27 @@ function calleeName(call: CallExpression): string | undefined {
 	}
 
 	return isIdentifier(callee) ? callee.text : undefined
+}
+
+/**
+ * The last name of the function that a call calls: `setTimeout` for
+ * `setTimeout(…)` and for `window.setTimeout(…)`, and `waitFor` for
+ * `vi.waitFor(…)`.
+ */
+function calledName(call: CallExpression): string | undefined {
+	const callee = call.expression
+
+	if (isPropertyAccessExpression(callee)) return callee.name.text
+
+	return isIdentifier(callee) ? callee.text : undefined
+}
+
+/** The waits of Vitest that take their deadline as a number in the second argument. */
+const VI_WAITS = new Set(['waitFor', 'waitUntil'])
+
+/** Whether a call is `vi.waitFor(…)` or `vi.waitUntil(…)`. */
+function isViWait(call: CallExpression): boolean {
+	return calleeName(call) === 'vi' && VI_WAITS.has(calledName(call) ?? '')
 }
 
 /** Whether `node` is a function expression or an arrow function. */
@@ -197,7 +231,7 @@ function isHold(node: Node): boolean {
 	let found = false
 
 	const visit = (child: Node): void => {
-		if (isCallExpression(child) && calleeName(child) === 'setTimeout') {
+		if (isCallExpression(child) && calledName(child) === 'setTimeout') {
 			const callback = child.arguments[0]
 
 			if (callback && isIdentifier(callback) && callback.text === resolve) found = true
@@ -355,6 +389,16 @@ export function findingsIn(file: string, parsed: SourceFile): Finding[] {
 			const deadline = node.arguments[1]
 
 			if (deadline && isLiteralMs(deadline, consts)) {
+				findings.push({ rule: 'literal', text: `${at(node)} ${source(node)}` })
+			}
+		}
+
+		// `vi.waitFor(f, 3000)` gives its deadline as a number. The options form,
+		// `{ timeout: 3000 }`, is a property, and the check above finds it.
+		if (isCallExpression(node) && isViWait(node)) {
+			const deadline = node.arguments[1]
+
+			if (deadline && !isObjectLiteralExpression(deadline) && isLiteralMs(deadline, consts)) {
 				findings.push({ rule: 'literal', text: `${at(node)} ${source(node)}` })
 			}
 		}
