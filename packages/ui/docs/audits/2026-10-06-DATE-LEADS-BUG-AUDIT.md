@@ -167,6 +167,20 @@ Axes: yes, it agrees with `focusPickerGrid` (`use-calendar-picker.tsx:128-134`);
 
 Raised by the settle pass. `getEntryDate` returns `null` when the shown month has no enabled day (`calendar.tsx:63`). The view seeds from `monthOf(value ?? new Date())` unclamped (`use-calendar-month.ts:82`), so a shipped shape reaches it: the relative End field passes `min={state.custom.start ?? props.min}` (`date-picker-relative.tsx:189-193`). Axes: fall back to `getInitialActiveDate()`, so the view re-anchors to the clamped anchor as today; or do nothing, as header Down and footer Up do (C08). Only the `null` term of S2 and one test change.
 
+**Answer:** "Fall back to anchor". Enter at `getInitialActiveDate()`, and the view re-anchors there.
+
+### Q6 — what happens to `CalendarHandle.footerKeyDown` once a steered Calendar ignores its footer keys?
+
+Raised by the S1 resolver. After S1 the member does nothing whenever the parent steers, and only steered parents call it (`use-date-picker-state.ts:305`, `use-date-picker-range-state.ts:286`). Axes: keep it, fix its TSDoc, and stop the internal pickers from calling it; remove it (a breaking change); or exempt it from `steered`, which conflicts with Q2.
+
+**Answer:** "Keep, fix its TSDoc". S2 stops the internal calls and states in the TSDoc that the member does nothing while the parent steers.
+
+### Q7 — may a calendar-button close move focus to the input?
+
+Raised by the S3 resolver (Surfaced 1 and 7). After S3 the close from the calendar button carries no reason, so the restore moves focus from the button to the input. Axes: keep it and pin it with a test; or pass a reason so focus stays on the button.
+
+**Answer:** "Keep, pin with a test". S2 adds the test.
+
 ## Ruled out
 
 - **C02** (Calendar's backward edge at year 1): `use-calendar-focus.ts:313-314` "A step back before year 1 stays at the limit too." / `if (!isYearInRange(date.getFullYear())) return true`. The library flips the era before it clamps (`@internationalized/date` `GregorianCalendar.ts:144-148`, `manipulation.ts:70-72`), so the step gives year 0 and the guard holds.
