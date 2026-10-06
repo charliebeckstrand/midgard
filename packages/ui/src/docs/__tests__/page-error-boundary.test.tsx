@@ -66,7 +66,7 @@ describe('docs page error boundary', () => {
 			</AppearanceProvider>,
 		)
 
-		expect(screen.getByText('Could not load this page')).toBeTruthy()
+		expect(screen.getByRole('heading', { name: 'Could not load this page', level: 2 })).toBeTruthy()
 
 		expect(screen.getAllByRole('navigation').length).toBeGreaterThan(0)
 

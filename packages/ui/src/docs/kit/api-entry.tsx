@@ -98,7 +98,7 @@ function PropSection({ title, props }: { title: string; props: readonly PropApi[
 
 	return (
 		<div className="space-y-4">
-			<Heading level={3}>{title}</Heading>
+			<Heading level={4}>{title}</Heading>
 			<div className="divide-y divide-zinc-200 dark:divide-zinc-800">
 				{props.map((prop) => (
 					<PropRow key={prop.name} prop={prop} />

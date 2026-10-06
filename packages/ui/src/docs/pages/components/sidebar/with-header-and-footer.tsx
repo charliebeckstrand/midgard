@@ -25,7 +25,7 @@ export default function WithHeaderAndFooter() {
 		<div className="h-108 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
 			<Sidebar aria-label="Sidebar with header and footer">
 				<SidebarHeader>
-					<Heading level={4}>Acme Inc.</Heading>
+					<Heading level={3}>Acme Inc.</Heading>
 				</SidebarHeader>
 				<SidebarBody>
 					<SidebarList aria-label="Main">

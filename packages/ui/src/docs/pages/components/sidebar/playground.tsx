@@ -23,7 +23,7 @@ const items = [
 function Brand() {
 	const mini = useSidebarMini()
 
-	if (!mini) return <Heading level={4}>Acme Inc.</Heading>
+	if (!mini) return <Heading level={3}>Acme Inc.</Heading>
 
 	return (
 		<Flex flex="1" justify="center">

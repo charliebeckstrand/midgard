@@ -3,6 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { configureAxe } from 'jest-axe'
 import { type ComponentType, useEffect } from 'react'
 import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router'
+import { Heading } from 'ui/heading'
 import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
@@ -29,8 +30,10 @@ import { restoreRootAfterCase } from './restore-root.ts'
 //
 // The rules (`AXE_RULES`) are the structural ones that a page breaks most.
 // They find a button with no name, and a role that lacks its required
-// children. They also find two landmarks with the same name, and a form
-// control with no label. jsdom has no layout, so the rules of geometry stay
+// children. They also find two landmarks with the same name, a form control
+// with no label, and a heading that skips a level. The test renders the `h1`
+// of the page, as the header of the shell does, so the headings of the page
+// start under it. jsdom has no layout, so the rules of geometry stay
 // with the browser suite.
 //
 // The pages import the virtual modules of the docs plugin, so the `unit`
@@ -86,7 +89,13 @@ export const smokeParts: Readonly<Record<string, readonly Page[]>> = {
 }
 
 /** The rules that the smoke test asks axe to run. The head of this file tells why. */
-const AXE_RULES = ['button-name', 'aria-required-children', 'landmark-unique', 'label']
+const AXE_RULES = [
+	'button-name',
+	'aria-required-children',
+	'landmark-unique',
+	'label',
+	'heading-order',
+]
 
 // No rule of `AXE_RULES` reads the stylesheets or the media of the page, so
 // axe does not load them before it runs. That makes each run about three
@@ -224,7 +233,8 @@ function load(folder: string): Promise<ComponentType> {
 /**
  * Renders a page at its path, with a child route for each tab, as the routes
  * of the docs app give it. The providers are the providers of the shell of the
- * docs app. It then opens each tab. In each state, it reads the depth of the
+ * docs app, and the `h1` of the page is the heading of the header of the
+ * shell. It then opens each tab. In each state, it reads the depth of the
  * density scopes and runs axe.
  */
 async function walk(page: Page): Promise<Walk> {
@@ -244,6 +254,7 @@ async function walk(page: Page): Promise<Walk> {
 			<UIProvider link={RouterLink}>
 				<AppearanceProvider>
 					<VisitedPaths visited={visited} />
+					<Heading>{page.name}</Heading>
 					<Routes>
 						<Route path={page.path} element={<Page />}>
 							{tabs.map(([tab, Tab]) => (

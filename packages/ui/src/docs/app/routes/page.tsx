@@ -12,5 +12,5 @@ export default function Page() {
  * clears the error.
  */
 export function ErrorBoundary() {
-	return <PageError />
+	return <PageError level={2} />
 }
