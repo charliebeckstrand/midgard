@@ -2,8 +2,8 @@
  * Status kata: the semantic surface for `<StatusDot>`, now a thin skin over
  * `<Swatch shape="circle">`. Maps each `status` to its `iro.marker` currentColor
  * shade (the graphical-mark ramp, ≥3:1 on the page surface) and carries the
- * `pulse` animation. The dot geometry and the `solid` / `outline` / `dashed`
- * fill come from Swatch.
+ * `pulse` animation. The dot geometry and the `solid` / `outline` fill come
+ * from Swatch.
  */
 import { iro, ugoki } from '../kiso'
 import type { SwatchVariants } from './swatch'
@@ -24,13 +24,13 @@ export const k = {
 	pulse: css.pulse,
 } as const
 
-/** Recipe variant props for {@link StatusDot} — the semantic `status`, the `solid` / `outline` / `dashed` fill, Swatch's `size`, and `pulse`. */
+/** Recipe variant props for {@link StatusDot} — the semantic `status`, the `solid` / `outline` fill, Swatch's `size`, and `pulse`. */
 export type StatusDotVariants = {
 	/**
 	 * The fill treatment, forwarded to Swatch.
 	 * @defaultValue 'solid'
 	 */
-	variant?: Exclude<SwatchVariants['variant'], 'soft'>
+	variant?: Exclude<SwatchVariants['variant'], 'soft' | 'dashed'>
 	/**
 	 * The semantic status; sets the dot's color.
 	 * @defaultValue 'inactive'

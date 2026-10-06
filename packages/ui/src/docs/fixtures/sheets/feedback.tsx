@@ -21,7 +21,7 @@ const BADGE_COLORS = ['zinc', 'red', 'amber', 'green', 'blue', 'rose', 'violet',
 
 const STATUSES = ['inactive', 'active', 'info', 'warning', 'error'] as const
 
-const STATUS_VARIANTS = ['solid', 'outline', 'dashed'] as const
+const STATUS_VARIANTS = ['solid', 'outline'] as const
 
 const LOADING_COLORS = ['current', 'zinc', 'red', 'amber', 'green', 'blue'] as const
 

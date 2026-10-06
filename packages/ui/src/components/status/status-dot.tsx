@@ -17,8 +17,8 @@ export type StatusDotProps = StatusDotVariants & {
 } & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
 /**
- * Colored status indicator dot: a `currentColor`-filled (`solid`),
- * `currentColor`-bordered (`outline`), or dashed (`dashed`) circle whose hue encodes `status`
+ * Colored status indicator dot: a `currentColor`-filled (`solid`) or
+ * `currentColor`-bordered (`outline`) circle whose hue encodes `status`
  * (inactive/active/info/warning/error), optionally `pulse`-animated. A thin
  * skin over {@link Swatch} (`shape="circle"`); a static leaf with no client
  * hooks, so it renders in React Server Components.
