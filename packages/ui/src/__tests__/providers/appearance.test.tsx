@@ -13,7 +13,17 @@ import {
 	AppearanceSettings,
 	useAppearance,
 } from '../../providers/appearance'
-import { act, bySlot, renderUI, screen, stubMatchMedia, userEvent, waitFor } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	present,
+	renderUI,
+	screen,
+	stubMatchMedia,
+	userEvent,
+	waitFor,
+} from '../helpers'
 
 function Probe() {
 	const { theme, density, motion, setTheme, setDensity, setMotion } = useAppearance()
@@ -310,7 +320,14 @@ describe('AppearanceSettings', () => {
 
 		expect(dialog).toHaveTextContent('Locked')
 
-		expect(dialog.querySelector('kbd')).toHaveTextContent('Ctrl+B')
+		// The key sits before the chevron, and a mousedown on either keeps the focus.
+		const suffix = present(dialog.querySelector('kbd')?.parentElement, 'sidebar suffix')
+
+		expect(suffix.firstElementChild).toHaveTextContent('Ctrl+B')
+
+		expect(suffix.lastElementChild?.tagName.toLowerCase()).toBe('svg')
+
+		expect(fireEvent.mouseDown(suffix)).toBe(false)
 
 		await userEvent.click(screen.getByRole('combobox', { name: 'Sidebar' }))
 

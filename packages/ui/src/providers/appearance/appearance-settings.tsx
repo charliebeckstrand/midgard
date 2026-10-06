@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings2 } from 'lucide-react'
+import { ChevronsUpDown, Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from '../../components/dialog'
@@ -9,6 +9,7 @@ import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { useInSidebarLayout } from '../../layouts/sidebar/sidebar'
+import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
 import { densityLevels } from '../density/context'
 import { UIProvider } from '../ui'
@@ -58,6 +59,19 @@ function ChoiceListbox<T extends string>({
 // renders only in the client, so the label never renders on the server.
 function sidebarShortcut() {
 	return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? '⌘B' : 'Ctrl+B'
+}
+
+// The suffix of the sidebar picker: the key of the shortcut, then the chevron
+// of the listbox. A custom suffix replaces the chevron, so the suffix holds
+// both. Its content is not interactive, so a mousedown on it keeps the focus on
+// the trigger, as a mousedown on the default chevron does.
+function SidebarSuffix() {
+	return (
+		<Flex align="center" gap="sm" onMouseDown={(event) => event.preventDefault()}>
+			<Kbd>{sidebarShortcut()}</Kbd>
+			<Icon icon={<ChevronsUpDown />} />
+		</Flex>
+	)
 }
 
 /** Props for {@link AppearanceSettings}: more fields for the dialog. */
@@ -136,7 +150,7 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 												options={sidebarModes}
 												value={sidebar}
 												onValueChange={setSidebar}
-												suffix={<Kbd>{sidebarShortcut()}</Kbd>}
+												suffix={<SidebarSuffix />}
 											/>
 										</Field>
 									)}
