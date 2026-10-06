@@ -4,9 +4,9 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } from '../helpers'
 
 /**
- * The windowed grid body and the native scroll anchoring of the browser. A
- * grouped or master-detail window sets `overflow-anchor: none` on the grid
- * scroller. The start anchor of the window is then the only correction, and it
+ * The windowed grid body and the native scroll anchoring of the browser. The
+ * grid scroller of a grouped or master-detail window has
+ * `overflow-anchor: none`. The start anchor of the window is then the only correction, and it
  * holds the first row in view when an item above it changes. Each case holds a
  * row in view to a drift of one pixel.
  *
@@ -14,7 +14,7 @@ import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } 
  * `<colgroup>`, which the native anchor skips. So in both modes, Chromium
  * selects a node in the body.
  * The native anchor can keep a stale correction after a clamp at the scroll
- * end, so the window turns it off.
+ * end, so the scroller of the window turns it off.
  */
 describe('grid virtualized body under native scroll anchoring (real browser)', () => {
 	async function settle(count = 3) {

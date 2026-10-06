@@ -1,5 +1,7 @@
 import {
+	type ColumnDef,
 	columnFacetingFeature,
+	columnGroupingFeature,
 	constructTable,
 	createFacetedRowModel,
 	createFacetedUniqueValues,
@@ -12,6 +14,9 @@ import {
 	type PaginationState,
 	type Row,
 	type RowData,
+	rowSortingFeature,
+	type SortFn,
+	type SortingState,
 	type Table,
 	tableFeatures,
 } from '@tanstack/react-table'
@@ -24,22 +29,30 @@ import type {
 } from '../../modules/grid'
 import type { GridGroup, GridLeaf } from '../../modules/grid/engine/grid-group/tree'
 import { isManualPagination } from '../../modules/grid/engine/grid-pagination-utilities'
+import {
+	compareSortKeys,
+	type SortKey,
+	toSortKey,
+} from '../../modules/grid/engine/grid-sort/utilities'
 import { type EngineData, gridFeatures } from '../../modules/grid/engine/grid-table/features'
 import {
 	filterOptions,
 	paginationOptions,
 	toColumnDef,
-	toSortingState,
 } from '../../modules/grid/engine/grid-table/options'
+import { getOrCompute, isDataColumn } from '../../utilities'
 
 /**
  * The features of the reference table: the features of the grid, with the
- * stock row models of TanStack Table added. The grid builds no row model, so
- * the parity tests compare its rows with the rows of these models.
+ * sorting and grouping features and the stock row models of TanStack Table
+ * added. The grid builds no row model, and it sorts and groups with its own
+ * state, so the parity tests compare its rows with the rows of these models.
  */
 const referenceFeatures = tableFeatures({
 	...gridFeatures,
 	columnFacetingFeature,
+	columnGroupingFeature,
+	rowSortingFeature,
 	filteredRowModel: createFilteredRowModel(),
 	facetedRowModel: createFacetedRowModel(),
 	facetedUniqueValues: createFacetedUniqueValues(),
@@ -59,6 +72,75 @@ export type ReferenceTable<T> = Table<ReferenceFeatures, EngineData<T>>
 
 /** A row of a {@link ReferenceTable}. */
 export type ReferenceRow<T> = Row<ReferenceFeatures, EngineData<T>>
+
+/** Adapts the ordered sort list of the grid to the sorting state of the engine, in priority order. */
+function toSortingState(sort: GridSortState[]): SortingState {
+	return sort.map((entry) => ({ id: String(entry.column), desc: entry.direction === 'desc' }))
+}
+
+/**
+ * The {@link SortKey} of each row, cached for each column on the row. A sort
+ * compares a row O(log N) times, and the cache decodes each value once for
+ * each sort. A `WeakMap` holds no row alive.
+ */
+const sortKeyCache = new WeakMap<Row<ReferenceFeatures, RowData>, Map<string, SortKey>>()
+
+/** The {@link SortKey} of `row` for `columnId`, decoded on first use. */
+function rowSortKey(row: Row<ReferenceFeatures, RowData>, columnId: string): SortKey {
+	const perColumn = getOrCompute(sortKeyCache, row, () => new Map<string, SortKey>())
+
+	return getOrCompute(perColumn, columnId, () => toSortKey(row.getValue(columnId)))
+}
+
+/**
+ * The smart sort of a data column: it orders rows by the {@link SortKey} of
+ * their accessor value, as the grid does.
+ *
+ * @remarks
+ * The engine negates the result of a comparator for a `desc` column. The
+ * comparator reads the live direction and inverts the result for an empty
+ * value, so empty values go last in the two directions.
+ */
+const smartSortFn: SortFn<ReferenceFeatures, RowData> = (rowA, rowB, columnId) => {
+	const a = rowSortKey(rowA, columnId)
+
+	const b = rowSortKey(rowB, columnId)
+
+	const result = compareSortKeys(a, b)
+
+	if (!a.empty && !b.empty) return result
+
+	const descending = rowA.table.atoms.sorting
+		.get()
+		.some((entry) => entry.id === columnId && entry.desc)
+
+	return descending ? -result : result
+}
+
+/**
+ * The column definition of the reference table: the definition that the grid
+ * gives the engine, with the sort and group options of the column added.
+ */
+function referenceColumnDef<T>(col: GridColumn<T>): ColumnDef<ReferenceFeatures, EngineData<T>> {
+	const { sortFn } = col
+
+	const engineSortFn: SortFn<ReferenceFeatures, EngineData<T>> | undefined = !isDataColumn(col)
+		? undefined
+		: sortFn
+			? (rowA, rowB) => sortFn(rowA.original, rowB.original)
+			: (smartSortFn as SortFn<ReferenceFeatures, EngineData<T>>)
+
+	return {
+		...(toColumnDef(col) as ColumnDef<ReferenceFeatures, EngineData<T>>),
+		enableSorting: Boolean(col.sortable),
+		// Only a data column groups.
+		enableGrouping: isDataColumn(col),
+		// The engine sorts a literal `undefined` itself, before the sort function,
+		// and its desc negation then puts it first. With this option off, the sort
+		// function orders it, as the grid does.
+		...(engineSortFn ? { sortFn: engineSortFn, sortUndefined: false as const } : {}),
+	}
+}
 
 /** The global filter of a search that only marks its matches: it keeps every row. */
 const passThrough: FilterFn<ReferenceFeatures, RowData> = () => true
@@ -100,7 +182,7 @@ export function engineTable<T>(
 	return constructTable<ReferenceFeatures, EngineData<T>>({
 		features: referenceFeatures,
 		data: rows as EngineData<T>[],
-		columns: columns.map((col) => toColumnDef(col)) as never,
+		columns: columns.map((col) => referenceColumnDef(col)),
 		getRowId: (row, index) => String(getKey(row, index)),
 		autoResetPageIndex: false,
 		state: {

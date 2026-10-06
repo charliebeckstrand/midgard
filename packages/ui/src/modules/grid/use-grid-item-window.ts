@@ -141,10 +141,11 @@ export function gridWindowView(
  * An insert or a removal above the first row in view does not move that row.
  * The start anchor of `useVirtualWindow` holds it still.
  *
- * While the window is mounted, the scroller has `overflow-anchor: none`, so
- * the start anchor is the only correction. The native scroll anchoring of the
- * browser can keep a stale correction after a clamp at the scroll end. A panel
- * that opens there then moves the rows in view by its height.
+ * The scroller of a windowed master-detail or grouped body has
+ * `overflow-anchor: none` (see `k.sticky.windowed`), so the start anchor is
+ * the only correction. The native scroll anchoring of the browser can keep a
+ * stale correction after a clamp at the scroll end. A panel that opens there
+ * then moves the rows in view by its height.
  *
  * @internal
  */
@@ -160,25 +161,6 @@ export function useGridItemWindow<I extends WindowItem>(
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
 	const offsets = useGridWindowOffsets(bodyRef, scrollRef, stickyHeader)
-
-	// The start anchor holds the rows in view, so the native anchor of the
-	// scroller stands down while this window is mounted. A clamp at the scroll
-	// end does not clear the native anchor. It then keeps a correction that the
-	// end blocks, and the next item that grows releases it.
-	useLayoutEffect(() => {
-		const scroller =
-			scrollRef.current ?? bodyRef.current?.closest<HTMLElement>('[data-slot="grid-scroll"]')
-
-		if (!scroller) return
-
-		const previous = scroller.style.getPropertyValue('overflow-anchor')
-
-		scroller.style.setProperty('overflow-anchor', 'none')
-
-		return () => {
-			scroller.style.setProperty('overflow-anchor', previous)
-		}
-	}, [scrollRef])
 
 	// Each new item list gives a new key getter and a new estimate. The
 	// virtualizer then rebuilds the row positions, which a new list needs.
