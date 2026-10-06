@@ -4,6 +4,8 @@ import { CalendarDays, Globe, MapPin, Tag, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
+import { Button } from 'ui/button'
+import { useCopyButtonState } from 'ui/copy-button'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
@@ -114,6 +116,30 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 }
 
 /**
+ * The address of a place on one line, cut with an ellipsis, and a button that
+ * copies the full address. The button is taller than a line. It is centered on
+ * one line, as the category badge is, so the row is one line high.
+ */
+function PlaceAddress({ address }: { address: string }) {
+	const { copied, copy } = useCopyButtonState({ text: address })
+
+	return (
+		<Flex gap="sm" align="center" className="h-lh">
+			<Text className="min-w-0 truncate">{address}</Text>
+
+			<Button
+				variant="soft"
+				size="sm"
+				color={copied ? 'green' : undefined}
+				onClick={() => void copy()}
+			>
+				{copied ? 'Copied' : 'Copy'}
+			</Button>
+		</Flex>
+	)
+}
+
+/**
  * One visit to the open place: the date and the score with the menu of the
  * visit, then the photos and the review.
  */
@@ -191,7 +217,7 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 		<Stack gap="md" className="pb-6">
 			<Stack gap="sm">
 				<PlaceFact icon={<MapPin />}>
-					<Text className="truncate">{place.address}</Text>
+					<PlaceAddress address={place.address} />
 				</PlaceFact>
 
 				{place.url ? (

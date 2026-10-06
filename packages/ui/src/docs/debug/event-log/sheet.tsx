@@ -1,12 +1,12 @@
 import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
+import { useCopyButtonState } from 'ui/copy-button'
 import { Label } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
-import { useCopyButtonState } from '../../../components/copy-button/use-copy-button-state.ts'
 import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
 /** One line of text: the time, the scroll position, the kind, and the text. */
