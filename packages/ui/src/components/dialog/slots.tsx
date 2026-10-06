@@ -41,7 +41,7 @@ export function DialogClose({ children }: DialogCloseProps) {
 	return (
 		<PanelClose>
 			{children ?? (
-				<Button type="button" variant="plain" data-slot="dialog-close">
+				<Button type="button" variant="soft" data-slot="dialog-close">
 					Close
 				</Button>
 			)}

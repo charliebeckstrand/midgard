@@ -54,7 +54,7 @@ export function SheetClose({ children }: SheetCloseProps) {
 	return (
 		<PanelClose>
 			{children ?? (
-				<Button type="button" variant="plain" data-slot="sheet-close">
+				<Button type="button" variant="soft" data-slot="sheet-close">
 					Close
 				</Button>
 			)}

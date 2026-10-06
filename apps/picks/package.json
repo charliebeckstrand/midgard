@@ -1,0 +1,42 @@
+{
+	"name": "picks",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "next dev --port 3002 --turbopack",
+		"build": "next build",
+		"start": "next start --port 3002",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"check-types": "tsc --noEmit",
+		"openapi": "openapi-typescript https://raw.githubusercontent.com/charliebeckstrand/asgard/main/services/mimir/openapi.json -o src/api/openapi.d.ts && biome format --write src/api/openapi.d.ts",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:related": "vitest related --run",
+		"test:changed": "base=$(git merge-base HEAD origin/main) && vitest run --passWithNoTests --changed=\"$base\""
+	},
+	"dependencies": {
+		"@tanstack/react-query": "catalog:",
+		"auth": "workspace:*",
+		"lucide-react": "catalog:",
+		"next": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"shared": "workspace:*",
+		"ui": "workspace:*"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "catalog:",
+		"@tailwindcss/postcss": "catalog:",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"babel-plugin-react-compiler": "catalog:",
+		"openapi-typescript": "^7.13.0",
+		"tailwindcss": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

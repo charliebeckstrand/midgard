@@ -381,7 +381,7 @@ describe('Grid context menus', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Manage columns' }))
 
-		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 	})
 
 	it('omits "Manage columns" when the column manager is off', () => {

@@ -206,7 +206,7 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 			onOpenChange={region.setOpen}
 			label="Manage rows"
 			// The group-header menu opens it, and its item is gone by then.
-			focusDone
+			focusClose
 		>
 			<GridRowManager
 				groups={region.managerGroups}

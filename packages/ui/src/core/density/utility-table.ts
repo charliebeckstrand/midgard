@@ -52,6 +52,7 @@ export const utilityTable = {
 	ms: { properties: ['margin-inline-start'], value: 'spacing', ring: true },
 	me: { properties: ['margin-inline-end'], value: 'spacing', ring: true },
 	my: { properties: ['margin-block'], value: 'spacing' },
+	mt: { properties: ['margin-top'], value: 'spacing' },
 	mb: { properties: ['margin-bottom'], value: 'spacing' },
 	gap: { properties: ['gap'], value: 'spacing' },
 	'gap-x': { properties: ['column-gap'], value: 'spacing' },

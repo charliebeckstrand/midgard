@@ -13,7 +13,7 @@ const alwaysClose = { checkForDefaultPrevented: false }
 
 /** Props for {@link CommandPaletteClose}: the non-anchor {@link ButtonProps} branch minus `href`. */
 export type CommandPaletteCloseProps = {
-	/** The fill style of the button. @defaultValue 'plain' */
+	/** The fill style of the button. @defaultValue 'soft' */
 	variant?: ButtonProps['variant']
 	/** The label of the button. @defaultValue 'Close' */
 	children?: ReactNode
@@ -24,11 +24,11 @@ export type CommandPaletteCloseProps = {
  * shows it when `footer` is not set. Put it in a custom `footer` to keep the
  * close action next to your own actions.
  *
- * @remarks The label is "Close" and the variant is `plain` when you do not set
+ * @remarks The label is "Close" and the variant is `soft` when you do not set
  * them. The caller `onClick` runs first, then the palette closes.
  */
 export function CommandPaletteClose({
-	variant = 'plain',
+	variant = 'soft',
 	children = 'Close',
 	onClick,
 	...props

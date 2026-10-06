@@ -96,12 +96,10 @@ export const k = {
 			defaults: { side: 'right', width: 'md', surface: 'flat' },
 		}),
 		backdrop: bridge.backdrop(backdrop),
-		// The block insets are the slot gap, so a header and a footer that stay in
-		// place over the scrolling body have the same space on each side.
-		title: { extra: ['px-6', inset.top] },
-		description: { extra: 'px-6' },
-		footer: { extra: ['px-6', inset.bottom] },
-		body: { extra: [flex.fill, 'overflow-y-auto px-6', inset.first, inset.last] },
+		title: { extra: [inset.x, inset.top] },
+		description: { extra: inset.x },
+		footer: { extra: [inset.x, inset.bottom] },
+		body: { extra: [flex.fill, 'overflow-y-auto', inset.x, inset.first, inset.last] },
 	}),
 	/**
 	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar

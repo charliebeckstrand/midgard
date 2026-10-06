@@ -5,6 +5,8 @@ import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
+import { useIsRtl } from '../../hooks/use-is-rtl.ts'
+import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 import { useIdle } from './idle.ts'
@@ -63,14 +65,25 @@ function Code({ meta, print }: { meta: ExampleMeta; print?: (code: ExampleCode) 
 	)
 }
 
+// The frame stops at its CSS minimum width.
+function frameFloor(frame: HTMLElement): number {
+	return Number.parseFloat(getComputedStyle(frame).minWidth)
+}
+
+// The frame stops at the width of its column.
+function frameCeiling(frame: HTMLElement): number {
+	return frame.parentElement?.clientWidth ?? frame.clientWidth
+}
+
 /**
  * The frame of an example: the title, the instance, and "Show code".
  *
  * The instance box is as wide as the instance, and at least 24rem, as a form
  * column on a page. When each child of the box is phrasing content, such as a
  * button or a badge, the children make a row that wraps. Otherwise they stack.
- * The frame resizes on its right edge, so a reader can see how the instance
- * responds to a narrow column.
+ * A drag on the end border of the frame resizes the frame, so a reader can see
+ * how the instance responds to a narrow column. The drag area is 24px wide and
+ * sits across the border, so a finger can find it.
  *
  * A surface of a page, such as a chart, a map, or a document viewer, takes the
  * width of its container and has no width of its own. In a box that is as
@@ -85,7 +98,7 @@ export function ExampleFrame({
 	children,
 }: {
 	meta: ExampleMeta
-	/** The controls at the end of the title row, such as the fields of a playground. */
+	/** The controls on a line under the title, such as the fields of a playground. */
 	actions?: ReactNode
 	/** Writes the code of the block. The block shows the code of the file when it is not given. */
 	print?: (code: ExampleCode) => string
@@ -101,6 +114,17 @@ export function ExampleFrame({
 
 	useIdle(prepare)
 
+	// The frame stays at its start edge, and the drag moves its end edge.
+	const rtl = useIsRtl()
+
+	const resize = usePanelResize({
+		side: rtl ? 'right' : 'left',
+		open: true,
+		floorOf: frameFloor,
+		ceilingOf: frameCeiling,
+		cursor: 'ew-resize',
+	})
+
 	// The block opens when its code is loaded, so it opens at its full height
 	// with the code in it. A block that suspends opens empty, and React then
 	// holds the code back for at least 300 ms.
@@ -111,44 +135,53 @@ export function ExampleFrame({
 
 	return (
 		<Stack gap="sm" data-slot="example">
-			<Flex
-				gap="md"
-				direction={{ initial: 'col', sm: 'row' }}
-				align={{ initial: 'start', sm: 'center' }}
-				justify={{ initial: 'start', sm: 'between' }}
-			>
+			<Flex gap="md" direction="col" align="start">
 				<Heading level={3}>{meta.title}</Heading>
 				{actions}
 			</Flex>
-			<div className="min-w-40 max-w-full resize-x overflow-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-				<div className="p-4">
-					<div
-						data-slot="example-instance"
-						className={cn(
-							'space-y-4',
-							surface
-								? 'w-full'
-								: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex phrasing:flex-wrap phrasing:items-center phrasing:gap-4 phrasing:space-y-0',
-						)}
-					>
-						{children}
-					</div>
-				</div>
-				<Collapse animate="slide" open={open} onOpenChange={toggle}>
-					<div className="border-t border-zinc-200 dark:border-zinc-800">
-						<CollapseTrigger
-							className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2"
-							onPointerEnter={prepare}
-							onPointerDown={prepare}
-							onFocus={prepare}
+			<div
+				ref={resize.ref}
+				style={resize.size === null ? undefined : { width: resize.size }}
+				className="relative min-w-40 max-w-full"
+			>
+				{/* The drag area comes before the box, so the box can show the border as active. */}
+				<div
+					aria-hidden
+					data-slot="example-resize"
+					onPointerDown={resize.handleProps.onPointerDown}
+					data-dragging={resize.handleProps['data-dragging']}
+					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-none select-none"
+				/>
+				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-[dragging]:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-[dragging]:border-zinc-600">
+					<div className="p-4">
+						<div
+							data-slot="example-instance"
+							className={cn(
+								'space-y-4',
+								surface
+									? 'w-full'
+									: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex phrasing:flex-wrap phrasing:items-center phrasing:gap-4 phrasing:space-y-0',
+							)}
 						>
-							{open ? 'Hide code' : 'Show code'}
-						</CollapseTrigger>
+							{children}
+						</div>
 					</div>
-					<CollapsePanel>
-						<Code meta={meta} print={print} />
-					</CollapsePanel>
-				</Collapse>
+					<Collapse animate="slide" open={open} onOpenChange={toggle}>
+						<div className="border-t border-zinc-200 dark:border-zinc-800">
+							<CollapseTrigger
+								className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2"
+								onPointerEnter={prepare}
+								onPointerDown={prepare}
+								onFocus={prepare}
+							>
+								{open ? 'Hide code' : 'Show code'}
+							</CollapseTrigger>
+						</div>
+						<CollapsePanel>
+							<Code meta={meta} print={print} />
+						</CollapsePanel>
+					</Collapse>
+				</div>
 			</div>
 		</Stack>
 	)

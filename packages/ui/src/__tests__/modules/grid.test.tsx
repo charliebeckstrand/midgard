@@ -642,7 +642,7 @@ describe('Grid', () => {
 
 			// Neither surface offers the manager, so the `open` binding is the only
 			// way in — the dialog has to mount for it, or the binding is inert.
-			expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 		})
 
 		it('honors a custom label on the toolbar button', () => {

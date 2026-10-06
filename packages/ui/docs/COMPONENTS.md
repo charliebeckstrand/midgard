@@ -37,6 +37,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `button` · `copy-button` · `hold-button` · `toggle-icon-button`
 
+> `CopyButton` is an icon button. For a copy control with a text label, use `useCopyButtonState` from `copy-button`. It gives `copied` and `copy`, with the same clipboard write, announcement, and revert timing as `CopyButton`.
+
 ## Navigation
 
 `nav` · `sidebar` · `breadcrumb` · `menu` · `context-menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
@@ -80,6 +82,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 ## Typography
 
 `heading` · `text` · `shiny-text` · `icon` · `markdown`
+
+> `markdown` exports `Markdown`, which lexes its source with `marked`, and `MarkdownInline`. The first lex on a page is slow, because the regular expressions of `marked` compile then. `primeMarkdown` lexes a source before a block renders it, such as in idle time, and the block then renders from the stored tokens.
 
 ## Feedback
 

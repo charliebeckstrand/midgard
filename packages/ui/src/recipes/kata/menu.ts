@@ -84,8 +84,10 @@ export const k = {
 		// drawer is the surface, so the rows get no panel chrome of their own.
 		base: 'space-y-0.5 pb-2 outline-hidden',
 		// The drawer body of the sheet. The rows carry their own inset, so the body
-		// keeps a gutter that lines the row text up with the heading.
-		body: 'px-3',
+		// keeps a gutter that lines the row text up with the heading. The gutter is
+		// the panel inset less the inline padding of a row, which at each step is the
+		// padding of a row again. `menu-sheet-gutter.test.ts` holds it.
+		body: dan.space.menu.item.x,
 	},
 	sub: {
 		// A `MenuSub` parent keeps its wash while the panel is open (`data-open`),
