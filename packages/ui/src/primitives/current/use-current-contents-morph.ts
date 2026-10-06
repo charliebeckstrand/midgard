@@ -65,8 +65,8 @@ function classifyEntries(
  * inline height, handing the box back to `auto` and layout.
  *
  * Reduced motion opts the whole observer out. The container just reflows to
- * each panel switch, while the fade still plays (`MotionConfig` keeps it
- * under reduced motion).
+ * each panel switch, and the panels swap in place with their fade (the `still`
+ * slide of the current kata).
  *
  * @internal
  */

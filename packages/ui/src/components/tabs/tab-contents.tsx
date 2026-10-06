@@ -34,9 +34,9 @@ export type TabContentProps = Omit<
  * @remarks
  * `mount` defaults to `"active"`: only the active panel is mounted, so
  * switching unmounts the outgoing panel and resets its state. Under `fade` the
- * unmount waits for the panel's exit. The outgoing panel goes at once, and the
- * incoming panel fades in. `fade` (default `true`) animates the container
- * height across the swap either way.
+ * unmount waits for the panel's exit. The two panels slide side by side, toward
+ * the side of the incoming tab, and fade across the slide. `fade` (default
+ * `true`) animates the container height across the swap either way.
  * Set `mount` to hold inactive panels: `mount="lazy"` defers never-visited
  * panels, and `mount="always"` keeps them all mounted. Held panels rest in
  * `<Activity mode="hidden">` (state preserved, effects paused); under `fade`

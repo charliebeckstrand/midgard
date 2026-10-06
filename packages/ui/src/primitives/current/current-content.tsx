@@ -3,11 +3,13 @@
 import { motion } from 'motion/react'
 import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { dataAttr } from '../../core'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
 import { MountHold, useMountHold } from '../mount'
 import {
 	CurrentPanelActiveContext,
 	useCurrent,
+	useCurrentDirection,
 	useCurrentFade,
 	useCurrentMount,
 	useCurrentPanelActive,
@@ -68,23 +70,23 @@ function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
 }
 
 /**
- * Entrance latch for a fading panel. An entering panel holds its fade until its
- * first frame has painted. Motion takes the start time of a fade from the task
- * that creates it. A fade created in the commit of the switch thus counts the
- * render of the panel as fade time. The first frame then shows the fade
- * partway, and on iOS Safari the composited fade fell out of step with Motion
- * and showed a second transition.
+ * Entrance latch for a fading panel. An entering panel holds its slide until its
+ * first frame has painted. Motion takes the start time of an animation from the
+ * task that creates it. An animation created in the commit of the switch thus
+ * counts the render of the panel as animation time. The first frame then shows
+ * the slide partway. On iOS Safari a composited fade also fell out of step with
+ * Motion and showed a second transition.
  *
  * The flip of `current` is read in render (React's adjust-state-during-render
- * form). A panel that stops being current before its fade starts calls
+ * form). A panel that stops being current before its slide starts calls
  * `release` in that pass.
  *
  * @param current - Whether the panel is current.
  * @param initiallyReady - Whether the panel starts ready. A panel in the first
- * render of the container starts ready, so nothing fades on load.
- * @param release - Releases a panel that stops being current before its fade
+ * render of the container starts ready, so nothing moves on load.
+ * @param release - Releases a panel that stops being current before its slide
  * starts.
- * @returns Whether the fade of the panel can start.
+ * @returns Whether the slide of the panel can start.
  */
 function useEntranceLatch(current: boolean, initiallyReady: boolean, release: () => void): boolean {
 	const [ready, setReady] = useState(initiallyReady)
@@ -139,20 +141,23 @@ function matchesCurrent(
 /**
  * Per-panel wrapper that renders when its `value` matches the surrounding
  * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy. A
- * fading container animates opacity in place. A non-fading one holds inactive
+ * fading container slides the panels and fades them. A non-fading one holds inactive
  * panels via `<Activity mode="hidden">` (state preserved, effects paused),
  * lazily mounts them on first activation, or unmounts them. The resolved
  * `mount` decides.
  *
- * Under a fading container the outgoing panel goes at once, and the incoming
- * panel fades in from the first frame. The lifecycle edges ride that switch:
+ * Under a fading container the two panels slide side by side, in the direction
+ * that `CurrentContents` reads from their document order. The outgoing panel
+ * slides out to one side, and the incoming panel slides in from the other side.
+ * Each panel fades across its slide. The panels never overlap, and the box never
+ * shows empty. The lifecycle edges ride that switch:
  *
- * - a panel mounting after the container settles enters from transparent, and
- *   its fade starts on the frame after its first paint
- * - an `active`-mounted outgoing panel holds its unmount until the fade-out
+ * - a panel mounting after the container settles enters from its transparent
+ *   waiting place, and its slide starts on the frame after its first paint
+ * - an `active`-mounted outgoing panel holds its unmount until its slide
  *   completes
  * - a held (`always`/`lazy`) panel rests in `<Activity mode="hidden">` between
- *   switches, live only while a fade is in flight or it is the current panel
+ *   switches, live only while a slide is in flight or it is the current panel
  */
 export function CurrentContent({
 	slotPrefix,
@@ -175,6 +180,12 @@ export function CurrentContent({
 	const mount = useCurrentMount()
 
 	const settled = useCurrentSettled()
+
+	const direction = useCurrentDirection()
+
+	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
+	// panel reads the setting itself (WCAG 2.3.3).
+	const reducedMotion = usePrefersReducedMotion()
 
 	const inheritedActive = useCurrentPanelActive()
 
@@ -225,14 +236,16 @@ export function CurrentContent({
 			{...props}
 			data-slot={slot}
 			data-current={dataAttr(current)}
-			animate={{ opacity: current && ready ? 1 : 0 }}
-			// A panel mounting after the container settles enters from
-			// transparent; panels in the container's first render skip the
-			// entrance so nothing fades on load.
-			initial={settled?.current ? { opacity: 0 } : false}
-			// The outgoing panel goes at once, so the two panels never show at
-			// the same time, and the box never shows empty.
-			transition={current ? k.enter : k.exit}
+			// The incoming panel waits beside the box until its first frame has
+			// painted, then slides in. The outgoing panel slides out to the other
+			// side.
+			animate={current ? (ready ? k.shown : k.away(direction)) : k.away(-direction)}
+			// A panel mounting after the container settles enters from its
+			// waiting place; panels in the container's first render skip the
+			// entrance so nothing moves on load.
+			initial={settled?.current ? k.away(direction) : false}
+			// The move to the waiting place is not shown, so it is instant.
+			transition={current && !ready ? k.instant : reducedMotion ? k.still : k.slide}
 			// Entrance completions arrive while still current and pass through; a
 			// landed fade-out releases the exit hold (`active`, unmounting) or
 			// rests the held panel (`always`/`lazy`, into a hidden Activity).

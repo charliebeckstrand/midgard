@@ -1,14 +1,18 @@
 'use client'
 
-import { type ComponentProps, useEffect, useRef } from 'react'
+import { type ComponentProps, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ReducedMotion } from '../reduced-motion'
 import {
+	type CurrentDirection,
+	CurrentDirectionContext,
 	CurrentFadeContext,
 	type CurrentMount,
 	CurrentMountContext,
 	CurrentSettledContext,
+	useCurrent,
 } from './current'
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
@@ -17,7 +21,7 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-contents"`; pairs with `CurrentContent` siblings. */
 	slotPrefix: string
 	/**
-	 * Animate height between active panels.
+	 * Slide between active panels, and animate the height between them.
 	 *
 	 * @defaultValue true
 	 */
@@ -33,13 +37,13 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
 	 * `<Activity mode="hidden">`. They are kept in the DOM with state preserved,
 	 * but their effects are torn down and re-rendering is deferred until shown.
 	 * Under `fade` the Activity hold applies only at rest, because its
-	 * `display: none` can't animate. A held panel wakes for the fade, and
-	 * drops back into the hidden Activity once its fade-out lands.
+	 * `display: none` can't animate. A held panel wakes for the slide, and
+	 * drops back into the hidden Activity once its slide-out lands.
 	 *
-	 * Under `fade`, mount and unmount ride the fade rather than defeating
+	 * Under `fade`, mount and unmount ride the slide rather than defeating
 	 * it. A panel mounting after the container's initial render enters from
 	 * transparent. A `lazy` first visit or a fresh `active` mount is such a panel.
-	 * An `active` outgoing panel stays mounted until its fade-out completes, then
+	 * An `active` outgoing panel stays mounted until its slide-out completes, then
 	 * unmounts.
 	 *
 	 * @defaultValue 'active'
@@ -53,7 +57,9 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
  * rests at `height: auto` and animates height only across discrete changes. A
  * panel switch, or content growing in place, is such a change. It then hands the
  * height back to layout, so a window resize reflows the box without re-rendering
- * anything. It also signals its `CurrentContent` children to fade in place. When
+ * anything. It also signals its `CurrentContent` children to slide and fade. It
+ * reads the direction of each switch from the document order of the two panels,
+ * and broadcasts it. When
  * `fade` is false, renders a plain wrapper. Either way it broadcasts the
  * resolved {@link CurrentMount} policy, so `CurrentContent` knows whether to
  * keep, lazily mount, or unmount unmatched children. A fading container also
@@ -86,6 +92,42 @@ export function CurrentContents({
 		settledRef.current = true
 	}, [])
 
+	const value = useCurrent()?.value
+
+	const [direction, setDirection] = useState<CurrentDirection>(1)
+
+	// The panel shown after the last switch. It is the outgoing panel of the next
+	// switch.
+	const shownRef = useRef<Element | null>(null)
+
+	// The switch direction comes from the document order of the two panels. The
+	// incoming panel can mount in this commit, so the order is read after the
+	// commit and before the paint. The outgoing panel stays in the DOM for its
+	// slide. A changed direction renders again before the paint, so the panels
+	// start their slides from the correct side.
+	useLayoutEffect(() => {
+		const element = containerRef.current
+
+		if (!element || !fade || value === undefined) return
+
+		const shown = element.querySelectorAll(':scope > [data-current]')
+
+		const incoming = shown.length === 1 ? (shown[0] ?? null) : null
+
+		const outgoing = shownRef.current
+
+		shownRef.current = incoming
+
+		if (!incoming || !outgoing?.isConnected || incoming === outgoing) return
+
+		const follows = Boolean(
+			outgoing.compareDocumentPosition(incoming) & Node.DOCUMENT_POSITION_FOLLOWING,
+		)
+
+		// In a right-to-left layout the following panel lies to the left.
+		setDirection(follows === isRtl(element) ? -1 : 1)
+	}, [fade, value])
+
 	if (!fade) {
 		return (
 			// Re-scope the fade signal off, so panels of a non-fading container
@@ -104,19 +146,21 @@ export function CurrentContents({
 		<CurrentFadeContext value>
 			<CurrentMountContext value={mount}>
 				<CurrentSettledContext value={settledRef}>
-					<ReducedMotion>
-						{/* A plain div. The morph hook pins and tweens the inline height
+					<CurrentDirectionContext value={direction}>
+						<ReducedMotion>
+							{/* A plain div. The morph hook pins and tweens the inline height
 						    itself, outside React. No render can therefore stamp the resting
 						    `auto` back over an in-flight morph. */}
-						<div
-							ref={setContainer}
-							data-slot={`${slotPrefix}-contents`}
-							className={cn('relative overflow-hidden', className)}
-							{...props}
-						>
-							{children}
-						</div>
-					</ReducedMotion>
+							<div
+								ref={setContainer}
+								data-slot={`${slotPrefix}-contents`}
+								className={cn('relative overflow-hidden', className)}
+								{...props}
+							>
+								{children}
+							</div>
+						</ReducedMotion>
+					</CurrentDirectionContext>
 				</CurrentSettledContext>
 			</CurrentMountContext>
 		</CurrentFadeContext>

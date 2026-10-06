@@ -165,6 +165,26 @@ export const [CurrentSettledContext, useCurrentSettled] = createContext<
 >('CurrentSettled', { default: undefined })
 
 /**
+ * The side a switch travels to: `1` when the incoming panel comes after the
+ * outgoing panel in the reading order, and `-1` when it comes before it.
+ *
+ * @internal
+ */
+export type CurrentDirection = 1 | -1
+
+/**
+ * The direction of the last panel switch, broadcast by a fading
+ * `CurrentContents`. The incoming panel slides in from that side, and the
+ * outgoing panel slides out to the other side. `1` outside a fading container.
+ *
+ * @internal
+ */
+export const [CurrentDirectionContext, useCurrentDirection] = createContext<CurrentDirection>(
+	'CurrentDirection',
+	{ default: 1 },
+)
+
+/**
  * Whether the nearest enclosing {@link CurrentContent} is the active panel,
  * folded across nesting. A panel is active only when it matches its context and
  * every ancestor panel does too. Descendants read this to know they are on the
