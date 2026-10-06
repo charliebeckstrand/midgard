@@ -43,7 +43,8 @@ const header = defineRecipe({
  * out-cascades the non-interactive 2.5% `striped` wash on the hovered row.
  *
  * Tailwind scans whole class literals. These rows can't be interpolated
- * from the unprefixed values they mirror (`sen.border.subtle`),
+ * from the unprefixed values they mirror (`sen.border.subtle`, with its
+ * `contrast-more` step),
  * or from each other (the `odd`/`even` `striped` parity below). Keep them in
  * step by hand.
  */
@@ -52,6 +53,8 @@ const projection = {
 		'[&>*>tr>:is(td,th)]:border',
 		'[&>*>tr>:is(td,th)]:border-zinc-950/5',
 		'dark:[&>*>tr>:is(td,th)]:border-white/5',
+		'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+		'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
 	],
 	striped: {
 		odd: [
