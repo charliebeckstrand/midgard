@@ -191,7 +191,7 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 		<Stack gap="md" className="pb-6">
 			<Stack gap="sm">
 				<PlaceFact icon={<MapPin />}>
-					<Text>{place.address}</Text>
+					<Text className="truncate">{place.address}</Text>
 				</PlaceFact>
 
 				{place.url ? (
