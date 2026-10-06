@@ -147,9 +147,7 @@ export function DatePickerContent({
 		// in `input` mode. A grid move can re-anchor the month and
 		// unmount the focused day button, which drops focus to <body>.
 		if (ARROW_KEYS.has(event.key) && event.target !== event.currentTarget) {
-			const seed = focusRef.current ?? event.currentTarget
-
-			seed.focus()
+			;(focusRef.current ?? event.currentTarget).focus()
 		}
 
 		onKeyDown(event)

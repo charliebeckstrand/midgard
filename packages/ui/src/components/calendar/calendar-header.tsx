@@ -29,8 +29,9 @@ type CalendarHeaderProps = {
  * Row of prev/next month chevrons flanking the month/year picker trigger. The
  * three controls are plain buttons, and each one is a Tab stop. `activeIndex`
  * paints the roving-focus highlight on the matching control (0 prev, 1 picker,
- * 2 next). Memoized: a move of the roved day, a new selection, or a range
- * preview does not render the header or its picker again.
+ * 2 next), and writes that index to its `data-index`. Memoized: a move of the
+ * roved day, a new selection, or a range preview does not render the header or
+ * its picker again.
  *
  * @internal
  */
@@ -61,6 +62,8 @@ export const CalendarHeader = memo(function CalendarHeader({
 			onNext={onNextMonth}
 			prevClassName={cn(activeIndex === 0 && k.day.active)}
 			nextClassName={cn(activeIndex === 2 && k.day.active)}
+			prevIndex={0}
+			nextIndex={2}
 		>
 			<CalendarPicker
 				year={year}
@@ -73,6 +76,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 				open={pickerOpen}
 				onOpenChange={onPickerOpenChange}
 				triggerClassName={cn(activeIndex === 1 && k.day.active)}
+				triggerIndex={1}
 			/>
 		</CalendarToolbar>
 	)

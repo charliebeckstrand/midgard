@@ -56,6 +56,7 @@ export function DatePickerFooter({
 							onClick={onClear}
 							aria-label="Clear selection"
 							className={cn(isActive && k.day.active)}
+							data-index={index}
 						>
 							Clear
 						</Button>
@@ -70,6 +71,7 @@ export function DatePickerFooter({
 						color="blue"
 						onClick={onToday}
 						className={cn(isActive && k.day.active)}
+						data-index={index}
 					>
 						Today
 					</Button>

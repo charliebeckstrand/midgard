@@ -362,8 +362,8 @@ const TOOLBAR_SELECTOR = '[data-slot="calendar-header"], [data-slot="calendar-fo
 /**
  * The zone of a toolbar button that has DOM focus. The user can Tab to a
  * header or footer button, and the dialog then gets the key from that button.
- * The button then acts as its zone of the model, at its index among the
- * buttons of its toolbar.
+ * The button then acts as its zone of the model, at the index in its
+ * `data-index` attribute.
  *
  * @returns The zone, or `null` when the key comes from the element that holds
  * the handler, or from an element outside the two toolbars.
@@ -376,17 +376,36 @@ function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null 
 
 	const toolbar = target.closest<HTMLElement>(TOOLBAR_SELECTOR)
 
-	const button = target.closest('button')
+	const control = target.closest<HTMLElement>('[data-index]')
 
-	if (!toolbar || !button || !toolbar.contains(button)) return null
+	if (!toolbar || !control || !toolbar.contains(control)) return null
 
-	const index = Array.from(toolbar.querySelectorAll('button')).indexOf(button)
-
-	if (index < 0) return null
+	const index = Number(control.dataset.index)
 
 	if (toolbar.dataset.slot === 'calendar-footer') return { zone: 'footer', index }
 
-	return index <= 2 ? { zone: 'header', index: index as 0 | 1 | 2 } : null
+	return { zone: 'header', index: index as 0 | 1 | 2 }
+}
+
+/**
+ * Whether `mapped` gives a toolbar control that is not `active`.
+ *
+ * @returns `false` when `mapped` is `null` or has the zone and the index of
+ * `active`.
+ * @internal
+ */
+function isNewControl(
+	active: CalendarActive | null,
+	mapped: CalendarActive | null,
+): mapped is CalendarActive {
+	if (mapped === null) return false
+
+	return !(
+		active?.zone === mapped.zone &&
+		'index' in active &&
+		'index' in mapped &&
+		active.index === mapped.index
+	)
 }
 
 /**
@@ -438,10 +457,11 @@ export function useDatePickerKeyboard({
 
 			if (handleOpenGlobalKey(event, ctx)) return
 
-			// A toolbar button with DOM focus sets the zone of the model.
+			// A toolbar button with DOM focus sets the zone of the model. Only a
+			// different zone or index sets it again.
 			const mapped = zoneOfTarget(event)
 
-			if (mapped) setActive(mapped)
+			if (isNewControl(active, mapped)) setActive(mapped)
 
 			const current = mapped ?? active
 

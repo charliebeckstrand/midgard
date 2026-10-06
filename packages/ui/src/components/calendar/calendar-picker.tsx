@@ -17,6 +17,8 @@ type CalendarPickerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerClassName?: string
+	/** The `data-index` of the trigger, for the header zone of a date picker. */
+	triggerIndex?: number
 }
 
 /**
@@ -38,6 +40,7 @@ export function CalendarPicker({
 	open,
 	onOpenChange,
 	triggerClassName,
+	triggerIndex,
 }: CalendarPickerProps) {
 	const { pickerHeaderRef, pickerGridRef, handleHeaderKeyDown, handleGridKeyDown, viewConfig } =
 		useCalendarPicker({
@@ -54,7 +57,12 @@ export function CalendarPicker({
 	return (
 		<Popover placement="bottom" open={open} onOpenChange={onOpenChange}>
 			<PopoverTrigger>
-				<Button type="button" variant="plain" className={triggerClassName}>
+				<Button
+					type="button"
+					variant="plain"
+					className={triggerClassName}
+					data-index={triggerIndex}
+				>
 					{monthLabel}
 				</Button>
 			</PopoverTrigger>

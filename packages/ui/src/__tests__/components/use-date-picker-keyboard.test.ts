@@ -476,7 +476,8 @@ describe('useDatePickerKeyboard: null active edge cases', () => {
 	})
 })
 
-// A dialog with the header and the footer toolbars of the picker. Each button is a Tab stop.
+// A dialog with the header and the footer toolbars of the picker. Each button is a Tab stop
+// and has its index in `data-index`.
 function renderToolbars() {
 	const dialog = document.createElement('div')
 
@@ -486,7 +487,11 @@ function renderToolbars() {
 		row.dataset.slot = slot
 
 		for (let index = 0; index < count; index++) {
-			row.append(document.createElement('button'))
+			const button = document.createElement('button')
+
+			button.dataset.index = String(index)
+
+			row.append(button)
 		}
 
 		dialog.append(row)
@@ -541,6 +546,18 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'header', index: 2 })
+	})
+
+	it('does not set the zone again for the active header button', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 1 } })
+
+		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledTimes(1)
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
 	})
 
 	it.each<[string, number, string, number]>([
