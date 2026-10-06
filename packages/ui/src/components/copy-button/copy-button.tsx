@@ -88,17 +88,14 @@ export function CopyButton({
 
 	// The button stays enabled and focused through the success window;
 	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).
-	// Re-copying during the window is a no-op. The hook drops a second copy during
-	// the write, because `copied` turns true only after the write.
+	// The hook drops a copy during the write and in the window.
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
 			onClick?.(event)
 
-			if (copied) return
-
 			void copy()
 		},
-		[onClick, copy, copied],
+		[onClick, copy],
 	)
 
 	return (

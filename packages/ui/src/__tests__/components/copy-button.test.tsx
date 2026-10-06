@@ -1,6 +1,6 @@
-import { act, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import { CopyButton } from '../../components/copy-button'
+import { CopyButton, useCopyButtonState } from '../../components/copy-button'
 import {
 	bySlot,
 	deferred,
@@ -392,5 +392,50 @@ describe('CopyButton', () => {
 		fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
 
 		await expectAnnouncement('Copied')
+	})
+})
+
+describe('useCopyButtonState', () => {
+	// A control other than CopyButton calls `copy` on each click. The copied state
+	// is one window: a second call in it does not write, announce, or tell the
+	// consumer that the state turned true again.
+	it('drops a copy in the copied window, and copies again after the revert', async () => {
+		vi.useFakeTimers()
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		const writeText = vi.fn().mockResolvedValue(undefined)
+
+		const onCopiedChange = vi.fn()
+
+		stubClipboard(writeText)
+
+		const { result } = renderHook(() =>
+			useCopyButtonState({ text: 'hello', timeout: 1000, onCopiedChange }),
+		)
+
+		await act(() => result.current.copy())
+
+		expect(result.current.copied).toBe(true)
+
+		await act(() => result.current.copy())
+
+		expect(writeText).toHaveBeenCalledTimes(1)
+
+		expect(onCopiedChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(result.current.copied).toBe(false)
+
+		await act(() => result.current.copy())
+
+		expect(writeText).toHaveBeenCalledTimes(2)
+
+		expect(onCopiedChange.mock.calls).toEqual([[true], [false], [true]])
 	})
 })
