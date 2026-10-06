@@ -29,9 +29,12 @@ export type GlobalListener = {
 /**
  * Library wiring that attaches once per page by design and never detaches.
  * React marks each root container it listens on, and user-event marks each
- * document it prepares, so neither attaches twice or cleans up.
+ * document it prepares, so neither attaches twice or cleans up. Motion builds
+ * one root projection node for the page when the first layout element mounts.
+ * That node puts a `resize` listener on `window` and stays for the life of the
+ * page. Only that node passes `attachResizeListener`.
  */
-const ONCE_PER_PAGE = ['listenToAllSupportedEvents', 'prepareDocument']
+const ONCE_PER_PAGE = ['listenToAllSupportedEvents', 'prepareDocument', 'attachResizeListener']
 
 /** How many frames of the adding stack a report carries. */
 const ORIGIN_FRAMES = 3
@@ -112,29 +115,33 @@ function forget(listener: unknown, key: string): void {
 	if (byKey.size === 0) registry().delete(listener)
 }
 
+/** The `addEventListener` and `removeEventListener` pair of one host. */
+type ListenerMethods = Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
+	[PATCHED]?: true
+}
+
 /**
- * Starts the record. Call it from a setup file, before any case runs.
+ * Wraps the listener methods of one host so the registry records each call.
  *
- * It wraps `addEventListener` and `removeEventListener` on
- * `EventTarget.prototype`, and it does that once per page however often the
- * setup runs. A `once` listener stays out of the record, because it removes
- * itself on the event it waits for and the wrapper never sees that.
+ * @param host - The object that owns the two methods.
+ * @param nameOf - The global target a call reaches, from the call's `this`.
  */
-export function watchGlobalListeners(): void {
-	const proto = EventTarget.prototype as EventTarget & { [PATCHED]?: true }
+function wrap(
+	host: ListenerMethods,
+	nameOf: (self: EventTarget) => GlobalListener['target'] | null,
+): void {
+	if (host[PATCHED]) return
 
-	if (proto[PATCHED]) return
+	host[PATCHED] = true
 
-	proto[PATCHED] = true
+	const add = host.addEventListener
 
-	const add = proto.addEventListener
+	const remove = host.removeEventListener
 
-	const remove = proto.removeEventListener
-
-	proto.addEventListener = function addEventListener(this: EventTarget, type, listener, options) {
+	host.addEventListener = function addEventListener(this: EventTarget, type, listener, options) {
 		add.call(this, type, listener, options)
 
-		const target = listener ? targetName(this) : null
+		const target = listener ? nameOf(this) : null
 
 		if (!target) return
 
@@ -162,7 +169,7 @@ export function watchGlobalListeners(): void {
 		settings?.signal?.addEventListener('abort', () => forget(listener, key), { once: true })
 	}
 
-	proto.removeEventListener = function removeEventListener(
+	host.removeEventListener = function removeEventListener(
 		this: EventTarget,
 		type,
 		listener,
@@ -170,9 +177,33 @@ export function watchGlobalListeners(): void {
 	) {
 		remove.call(this, type, listener, options)
 
-		const target = listener ? targetName(this) : null
+		const target = listener ? nameOf(this) : null
 
 		if (target) forget(listener, `${target}|${type}|${captureOf(options)}`)
+	}
+}
+
+/**
+ * Starts the record. Call it from a setup file, before any case runs.
+ *
+ * It wraps `addEventListener` and `removeEventListener` on
+ * `EventTarget.prototype`, and it does that once per page however often the
+ * setup runs. A `once` listener stays out of the record, because it removes
+ * itself on the event it waits for and the wrapper never sees that.
+ *
+ * The jsdom environment needs a second wrap. Vitest copies the members of the
+ * jsdom window onto the global object, and it binds each method to that window
+ * when the environment starts. So `window.addEventListener` is an own copy that
+ * holds the original method, and the prototype wrap never sees a call to it.
+ * The setup wraps that copy too. A call to it reaches `window` whatever its
+ * `this` is, because a bare `addEventListener(…)` has no `this`. In a browser,
+ * `window` has no own copy, and the prototype wrap covers it.
+ */
+export function watchGlobalListeners(): void {
+	wrap(EventTarget.prototype, targetName)
+
+	if (typeof window !== 'undefined' && Object.hasOwn(window, 'addEventListener')) {
+		wrap(window, () => 'window')
 	}
 }
 
