@@ -98,6 +98,7 @@ import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI } from '../../helpers'
 import { SIZE_AXES, type SizedComponent } from '../../helpers/size-axes'
 import { settledValue } from '../helpers/sample'
+import { budget } from '../helpers/wall-clock'
 
 /**
  * The distinct-steps gate. Each step that a `size` prop offers must render
@@ -465,7 +466,7 @@ async function settledReading(node: ReactNode): Promise<string> {
 describe('distinct size steps (real browser)', () => {
 	it.each(Object.keys(SIZE_AXES) as SizedComponent[])(
 		'renders each size step of %s with a look of its own',
-		{ timeout: 30_000 },
+		{ timeout: budget(30_000) },
 		async (name) => {
 			const steps: readonly DensityStep[] = SIZE_AXES[name]
 
