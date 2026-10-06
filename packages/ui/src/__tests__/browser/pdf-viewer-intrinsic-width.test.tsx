@@ -53,16 +53,14 @@ function fitGap(container: HTMLElement, frame: HTMLElement) {
  * content, the page thus cannot give the viewport a width. Before the fix, the viewer kept the
  * width of its toolbar from before the load, and the page showed small. The viewport now takes
  * the width of the page at 100%, and a box with a width of its own still sets the width.
+ *
+ * The wait for the page raster can pass the suite `testTimeout` on CI, so each case of the block
+ * has a timeout above it. An exhausted wait then fails with the last error of the callback.
  */
-describe('pdf viewer intrinsic width (real browser)', () => {
+describe('pdf viewer intrinsic width (real browser)', { timeout: budget(15_000) }, () => {
 	afterEach(() => resetDocumentCache())
 
-	// The wait for the page raster can pass the suite `testTimeout` on CI, so the
-	// case sets a timeout above it. An exhausted wait then fails with the last
-	// error of the callback.
-	it('shows the page at its natural width in a box that sizes to its content', {
-		timeout: budget(15_000),
-	}, async () => {
+	it('shows the page at its natural width in a box that sizes to its content', async () => {
 		const src = servePdf(makeInvoicePdf(1))
 
 		const { container } = renderUI(
