@@ -2,7 +2,7 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { clampDate, startOfMonth } from './date-picker-utilities'
+import { clampDate, viewEntryDate } from './date-picker-utilities'
 
 /** A footer action button in the date picker. */
 export type FooterButton = 'clear' | 'today'
@@ -67,34 +67,34 @@ type HeaderActive = Extract<CalendarActive, { zone: 'header' }>
 /** Active state narrowed to the footer zone. @internal */
 type FooterActive = Extract<CalendarActive, { zone: 'footer' }>
 
-/** Whether `date` is in the month of `month`. @internal */
-function isInMonth(date: Date, month: Date): boolean {
-	return date.getFullYear() === month.getFullYear() && date.getMonth() === month.getMonth()
-}
-
 /**
- * The day where the highlight enters the grid of the shown `month`: the
- * `selected` day when it is in that month, else today when it is there, else
- * the 1st. `min` and `max` bound it.
+ * The two seeds of the grid highlight, from the day that the picker holds.
+ * `getInitialActiveDate` starts the arrows on `anchor`, else on today.
+ * `getViewEntryDate` starts the header and footer keys in the month that the
+ * calendar shows, which header paging can move away from `anchor`. With no
+ * calendar, it starts where the arrows start. `min` and `max` bound both.
  *
+ * @param anchor - The selected day: the value, or the start of a range in progress.
  * @internal
  */
-export function viewEntryDate(
-	month: Date,
-	selected: Date | null | undefined,
-	min?: Date,
-	max?: Date,
-): Date {
-	const today = new Date()
+export function useDatePickerGridEntry(
+	anchor: Date | null | undefined,
+	min: Date | undefined,
+	max: Date | undefined,
+	calendarRef: RefObject<CalendarHandle | null>,
+) {
+	const getInitialActiveDate = useCallback(
+		() => clampDate(anchor ?? new Date(), min, max),
+		[anchor, min, max],
+	)
 
-	const day =
-		selected && isInMonth(selected, month)
-			? selected
-			: isInMonth(today, month)
-				? today
-				: startOfMonth(month)
+	const getViewEntryDate = useCallback(() => {
+		const month = calendarRef.current?.getViewMonth()
 
-	return clampDate(day, min, max)
+		return month ? viewEntryDate(month, anchor, min, max) : getInitialActiveDate()
+	}, [calendarRef, anchor, min, max, getInitialActiveDate])
+
+	return { getInitialActiveDate, getViewEntryDate }
 }
 
 /** True for any of the four arrow keys. @internal */

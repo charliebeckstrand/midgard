@@ -105,3 +105,33 @@ export function startOfYear(date: Date): Date {
 export function endOfYear(date: Date): Date {
 	return fromCalendarDate(toCalendarDate(date).set({ month: 12, day: 31 }))
 }
+
+/** Whether `date` is in the month of `month`. @internal */
+function isInMonth(date: Date, month: Date): boolean {
+	return date.getFullYear() === month.getFullYear() && date.getMonth() === month.getMonth()
+}
+
+/**
+ * The day where the highlight enters the grid of the shown `month`: the
+ * `selected` day when it is in that month, else today when it is there, else
+ * the 1st. `min` and `max` bound it.
+ *
+ * @internal
+ */
+export function viewEntryDate(
+	month: Date,
+	selected: Date | null | undefined,
+	min?: Date,
+	max?: Date,
+): Date {
+	const today = new Date()
+
+	const day =
+		selected && isInMonth(selected, month)
+			? selected
+			: isInMonth(today, month)
+				? today
+				: startOfMonth(month)
+
+	return clampDate(day, min, max)
+}
