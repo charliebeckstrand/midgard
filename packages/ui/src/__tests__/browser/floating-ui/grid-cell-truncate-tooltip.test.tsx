@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
+import { settledRect } from '../helpers/sample'
 import { textOverflow } from '../helpers/text-overflow'
 import { pause } from '../helpers/wall-clock'
 
@@ -210,7 +211,8 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await screen.findByText(`${huge} 0`)
 
-		await pause(200)
+		// Wait until the column width settles.
+		await settledRect(present(container.querySelector('th[data-grid-col="name"]'), 'name header'))
 
 		const spans = container.querySelectorAll<HTMLElement>('td[data-grid-col="name"] span.truncate')
 
@@ -369,7 +371,8 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await screen.findByText('Wade Cooper')
 
-		await pause(100)
+		// Wait until the column width settles.
+		await settledRect(present(container.querySelector('th[data-grid-col="name"]'), 'name header'))
 
 		const spans = container.querySelectorAll<HTMLElement>('td[data-grid-col="name"] span.truncate')
 

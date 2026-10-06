@@ -3,7 +3,7 @@ import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
-import { pause } from '../helpers/wall-clock'
+import { settledRect } from '../helpers/sample'
 
 // The handle and the header cell can differ by a hairline cell border, up to this much.
 const HANDLE_HEIGHT_SLACK = 2
@@ -151,7 +151,7 @@ describe('grid column resizing (real browser)', () => {
 			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(0),
 		)
 
-		await pause(50)
+		await settledRect(nameHeader(container))
 
 		// The autosizer sized the columns, but that fit is not a user preference.
 		expect(onValueChange).not.toHaveBeenCalled()
