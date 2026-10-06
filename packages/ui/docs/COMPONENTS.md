@@ -61,7 +61,9 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 ## Data display
 
-`table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `description-list` · `timeline` · `stat` · `sparkline` · `odometer` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
+`table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `description-list` · `timeline` · `stat` · `sparkline` · `odometer` · `date-time` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
+
+> `date-time` shows an absolute date or time in a `<time>` element, in the locale of the nearest `LocaleProvider`. The server render and the hydration render use the `timeZone` of the provider, and a format with a time adds the name of the zone. The render after hydration uses the zone of the reader. A `timeZone` in `format` fixes the zone for all renders, as a calendar day needs. A server component can render it.
 
 > A `TreeItem` row is one control, so its `prefix` and `suffix` hold no control. For a checkbox tree, give each item `checked` (or `defaultChecked`) and `onCheckedChange`. The row carries `aria-checked` and draws the box, Space toggles the check, and Enter toggles a branch. The caller computes the `'mixed'` state of a branch.
 

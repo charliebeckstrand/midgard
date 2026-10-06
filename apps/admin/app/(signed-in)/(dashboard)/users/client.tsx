@@ -7,6 +7,7 @@ import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Card } from 'ui/card'
 import { Confirm } from 'ui/confirm'
+import { DateTime } from 'ui/date-time'
 import { Link } from 'ui/link'
 import { Grid, type GridColumn } from 'ui/modules/grid'
 import { Stack } from 'ui/structure/stack'
@@ -15,8 +16,6 @@ import { useSetUserActive, useUsers } from './users-queries'
 type UsersClientProps = {
 	users: User[]
 }
-
-const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium' }
 
 const roleName = (user: User) => (user.roles.includes('admin') ? 'Admin' : 'User')
 
@@ -53,7 +52,7 @@ function usersColumns(action: (user: User) => ReactNode): GridColumn<User>[] {
 			id: 'created',
 			title: 'Created',
 			value: (user) => user.created_at,
-			cell: (user) => new Date(user.created_at).toLocaleDateString(undefined, dateFormat),
+			cell: (user) => <DateTime value={user.created_at} format={{ dateStyle: 'medium' }} />,
 		},
 		{
 			id: 'actions',

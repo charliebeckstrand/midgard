@@ -11,14 +11,13 @@ import {
 	BreadcrumbSkeleton,
 } from 'ui/breadcrumb'
 import { Card, CardHeader, CardTitle } from 'ui/card'
+import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { HeadingSkeleton } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
 import { TextSkeleton } from 'ui/text'
 import { ActivityTable } from '@/components/activity-table'
 import { PageHeader } from '@/components/page-header'
-
-const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 type Params = Promise<{ userId: string }>
 
@@ -105,11 +104,11 @@ async function UserDetails({ params }: { params: Params }) {
 					</DescriptionDetails>
 					<DescriptionTerm>Created</DescriptionTerm>
 					<DescriptionDetails>
-						{new Date(user.created_at).toLocaleString(undefined, dateFormat)}
+						<DateTime value={user.created_at} />
 					</DescriptionDetails>
 					<DescriptionTerm>Updated</DescriptionTerm>
 					<DescriptionDetails>
-						{new Date(user.updated_at).toLocaleString(undefined, dateFormat)}
+						<DateTime value={user.updated_at} />
 					</DescriptionDetails>
 				</DescriptionList>
 			</Section>

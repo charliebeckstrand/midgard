@@ -7,6 +7,7 @@ import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Confirm } from 'ui/confirm'
 import { AppearanceSettings } from 'ui/providers/appearance'
+import { useDateFormat } from 'ui/providers/locale'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
@@ -22,7 +23,7 @@ import {
 } from '../../queries/places-queries'
 import type { Place, Visit, Visits } from '../../types'
 import { ATLASES } from '../../utilities/places-atlas'
-import { filterPlaces, fromDay } from '../../utilities/places-filter'
+import { DAY_FORMAT, filterPlaces } from '../../utilities/places-filter'
 import {
 	type BoundedRegion,
 	boundRegions,
@@ -263,12 +264,14 @@ function DeleteConfirm({
 }) {
 	const visit = deletion?.visit ?? null
 
+	const day = useDateFormat(DAY_FORMAT)
+
 	const title =
 		deletion === null
 			? ''
 			: visit === null
 				? `Delete "${deletion.place.name}"?`
-				: `Delete the visit on ${fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}?`
+				: `Delete the visit on ${day.format(new Date(visit.visitedAt))}?`
 
 	const description =
 		deletion !== null && visit !== null && deletesPlace(deletion)
