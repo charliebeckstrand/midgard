@@ -2,7 +2,10 @@
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { type ReactNode, type RefObject, useCallback, useMemo, useRef, useState } from 'react'
+import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
+import { useStableEvent } from '../../hooks/use-stable-event'
+import { kanbanAnnouncements, kanbanNames } from './kanban-announcements'
 import type { KanbanColumnBase } from './types'
 
 /**
@@ -119,7 +122,8 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
  * `activeId` and overlay, applies cross-column moves live on drag-over and
  * commits same-column reorders on drag-end, emitting the next columns through
  * `onReorder`. Returns the active id, the column that the drop goes to, the
- * overlay map, the per-column item ids, and the dnd-kit drag handlers.
+ * overlay map, the per-column item ids, the dnd-kit drag handlers, and the
+ * dnd-kit `accessibility` of the board.
  *
  * @remarks
  * A cross-column drag reports the move into the new column on drag-over. The
@@ -133,10 +137,13 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
 	onReorder,
+	containerRef,
 }: {
 	columns: C[]
 	getKey: (item: T) => string
 	onReorder?: (next: C[]) => void
+	/** Board root. The announcements read the names of the cards and the columns in it. */
+	containerRef: RefObject<HTMLElement | null>
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -270,6 +277,27 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		if (origin) onReorder?.(origin)
 	}
 
+	// Read at drag time, so the announcements keep one identity. dnd-kit reads
+	// each announcement before the board renders the move of that step.
+	const readColumns = useStableEvent(() => columns)
+
+	const readStartColumns = useStableEvent(() => startColumns.current)
+
+	const readKey = useStableEvent(getKey)
+
+	const accessibility = useMemo(
+		() => ({
+			announcements: kanbanAnnouncements(
+				readColumns,
+				readStartColumns,
+				readKey,
+				kanbanNames(containerRef),
+			),
+			screenReaderInstructions: LIFT_INSTRUCTIONS,
+		}),
+		[readColumns, readStartColumns, readKey, containerRef],
+	)
+
 	return {
 		activeId,
 		dropColumnId,
@@ -279,5 +307,6 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		handleDragOver,
 		handleDragEnd,
 		handleDragCancel,
+		accessibility,
 	}
 }

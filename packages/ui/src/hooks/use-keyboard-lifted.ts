@@ -4,6 +4,18 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { announce } from '../core'
 
 /**
+ * The dnd-kit `screenReaderInstructions` of a surface with the lift model of
+ * {@link useKeyboardLifted}. The surface turns off the dnd-kit keyboard sensor,
+ * so the default text of dnd-kit gives keys that do not apply.
+ *
+ * @internal
+ */
+export const LIFT_INSTRUCTIONS = {
+	draggable:
+		'To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it.',
+}
+
+/**
  * Lifted-item state for keyboard reordering. Space toggles an item's "lifted"
  * id; blur drops it. `refocus` restores focus on the frame after a reorder
  * re-renders the DOM; blurs it causes keep the lifted state.

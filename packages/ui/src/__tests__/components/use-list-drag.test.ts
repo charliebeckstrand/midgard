@@ -1,7 +1,10 @@
-import type { DragStartEvent } from '@dnd-kit/core'
+import type { Active, DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useListDrag } from '../../components/list/use-list-drag'
+
+/** No root element: these tests read no names. */
+const containerRef = { current: null }
 
 type Item = { id: string; label: string }
 
@@ -24,7 +27,7 @@ describe('useListDrag', () => {
 		const getKey = vi.fn((item: Item) => item.id)
 
 		const { result } = renderHook(() =>
-			useListDrag<Item>({ items, getKey, orientation: 'vertical' }),
+			useListDrag<Item>({ containerRef, items, getKey, orientation: 'vertical' }),
 		)
 
 		expect(result.current.effectiveGetKey).toBe(getKey)
@@ -33,7 +36,9 @@ describe('useListDrag', () => {
 	})
 
 	it('falls back to indexed keys when no getKey is provided', () => {
-		const { result } = renderHook(() => useListDrag<Item>({ items, orientation: 'vertical' }))
+		const { result } = renderHook(() =>
+			useListDrag<Item>({ containerRef, items, orientation: 'vertical' }),
+		)
 
 		expect(items.map(result.current.effectiveGetKey)).toEqual(['0', '1', '2'])
 	})
@@ -42,7 +47,7 @@ describe('useListDrag', () => {
 		const labels = ['draft', 'draft', 'sent']
 
 		const { result } = renderHook(() =>
-			useListDrag<string>({ items: labels, orientation: 'vertical' }),
+			useListDrag<string>({ containerRef, items: labels, orientation: 'vertical' }),
 		)
 
 		expect(labels.map(result.current.effectiveGetKey)).toEqual(['0', '1', '2'])
@@ -51,7 +56,9 @@ describe('useListDrag', () => {
 	})
 
 	it('reports no active item when none is being dragged', () => {
-		const { result } = renderHook(() => useListDrag<Item>({ items, orientation: 'horizontal' }))
+		const { result } = renderHook(() =>
+			useListDrag<Item>({ containerRef, items, orientation: 'horizontal' }),
+		)
 
 		expect(result.current.activeId).toBeNull()
 
@@ -61,7 +68,9 @@ describe('useListDrag', () => {
 	})
 
 	it('exposes the dnd context props for the drag wrapper', () => {
-		const { result } = renderHook(() => useListDrag<Item>({ items, orientation: 'vertical' }))
+		const { result } = renderHook(() =>
+			useListDrag<Item>({ containerRef, items, orientation: 'vertical' }),
+		)
 
 		expect(result.current.dndContextProps).toBeDefined()
 
@@ -70,7 +79,7 @@ describe('useListDrag', () => {
 
 	it('reports interactive=false when disabled', () => {
 		const { result } = renderHook(() =>
-			useListDrag<Item>({ items, orientation: 'vertical', disabled: true }),
+			useListDrag<Item>({ containerRef, items, orientation: 'vertical', disabled: true }),
 		)
 
 		expect(result.current.interactive).toBe(false)
@@ -79,6 +88,7 @@ describe('useListDrag', () => {
 	it('resolves activeItem and activeIndex from the items list on drag start', () => {
 		const { result } = renderHook(() =>
 			useListDrag<Item>({
+				containerRef,
 				items,
 				getKey: (i) => i.id,
 				onReorder: () => {},
@@ -100,6 +110,7 @@ describe('useListDrag', () => {
 	it('reports activeItem=null when the active id does not match any item', () => {
 		const { result } = renderHook(() =>
 			useListDrag<Item>({
+				containerRef,
 				items,
 				getKey: (i) => i.id,
 				onReorder: () => {},
@@ -116,5 +127,31 @@ describe('useListDrag', () => {
 		expect(result.current.activeItem).toBeNull()
 
 		expect(result.current.activeIndex).toBe(-1)
+	})
+})
+
+describe('useListDrag announcements', () => {
+	it('names the item from the list in the DOM', () => {
+		const list = document.createElement('ul')
+
+		list.innerHTML = items
+			.map((item) => `<li data-slot="list-item" data-item-id="${item.id}">${item.label}</li>`)
+			.join('')
+
+		const { result } = renderHook(() =>
+			useListDrag<Item>({
+				containerRef: { current: list },
+				items,
+				getKey: (item) => item.id,
+				onReorder: () => {},
+				orientation: 'vertical',
+			}),
+		)
+
+		const announcements = result.current.dndContextProps.accessibility.announcements
+
+		expect(announcements?.onDragStart({ active: { id: 'b' } as Active })).toBe(
+			'Picked up B, position 2 of 3.',
+		)
 	})
 })

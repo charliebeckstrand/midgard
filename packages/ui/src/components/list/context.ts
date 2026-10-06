@@ -1,7 +1,6 @@
 'use client'
 
-import type { DraggableAttributes } from '@dnd-kit/core'
-import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
+import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
@@ -66,7 +65,7 @@ export type ListItemContextValue = {
 	/** a11y attributes for the drag handle. */
 	attributes: DraggableAttributes
 	/** Drag handle listeners; applied to `<ListHandle>`. */
-	listeners: SyntheticListenerMap | undefined
+	listeners: DraggableSyntheticListeners
 	/** Transform + transition + opacity style for the `<li>`. */
 	style: CSSProperties
 	/** Whether this item is currently being dragged. */

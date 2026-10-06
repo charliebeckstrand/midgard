@@ -2,23 +2,17 @@
 
 import { arrayMove } from '@dnd-kit/sortable'
 import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
-import { accessibleName, announce, querySlot } from '../../core'
+import { announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import {
+	cardName,
+	columnName,
+	currentSlot,
+	describeCard,
+	kanbanNames,
+} from './kanban-announcements'
 import type { KanbanColumnBase } from './types'
-
-/**
- * Accessible name of a card, for announcements. The `<li>` of an interactive
- * card carries the name, so the name comes from the list item.
- *
- * @internal
- */
-const cardName = (container: ParentNode | null, cardId: string) =>
-	accessibleName(querySlot(container, 'kanban-card', 'card-id', cardId)?.closest('li') ?? null)
-
-/** Accessible name of a column, for announcements. @internal */
-const columnName = (container: ParentNode | null, columnId: string) =>
-	accessibleName(querySlot(container, 'kanban-column', 'column-id', columnId))
 
 /** Keys that move focus or the lifted card between cards. @internal */
 type NeighborKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Home' | 'End'
@@ -189,17 +183,9 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	// The card's name, its 1-based position, and its column, for announcements.
 	const describe = useCallback(
 		(cardId: string) => {
-			const name = cardName(containerRef.current, cardId)
-
-			const col = findColumnByCardId(cardId)
-
-			const index = col ? col.items.findIndex((i) => getKey(i) === cardId) : -1
-
-			if (!col || index === -1) return name
-
-			return `${name}, position ${index + 1} of ${col.items.length} in ${columnName(containerRef.current, col.id)}`
+			return describeCard(kanbanNames(containerRef), cardId, currentSlot(columns, getKey, cardId))
 		},
-		[findColumnByCardId, getKey, containerRef],
+		[columns, getKey, containerRef],
 	)
 
 	const focusNeighbor = useCallback(
