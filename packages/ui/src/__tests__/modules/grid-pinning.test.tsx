@@ -235,9 +235,9 @@ describe('Grid column pinning', () => {
 		const body = dataCell(container, 'name')
 
 		expect(body).toHaveClass(
-			'bg-[var(--surface-fill,var(--color-white))]',
-			'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
-			'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+			'bg-(--surface-fill,var(--color-white))',
+			'dark:bg-(--surface-fill,var(--color-zinc-950))',
+			'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
 		)
 	})
 
@@ -256,9 +256,9 @@ describe('Grid column pinning', () => {
 		const head = headCell(container, 'name')
 
 		expect(head).toHaveClass(
-			'bg-[var(--surface-fill,var(--color-white))]',
-			'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
-			'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+			'bg-(--surface-fill,var(--color-white))',
+			'dark:bg-(--surface-fill,var(--color-zinc-950))',
+			'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
 		)
 	})
 

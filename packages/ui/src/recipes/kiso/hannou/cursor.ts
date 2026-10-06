@@ -16,7 +16,7 @@ export const cursor = [
 	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed has-[:disabled,[data-disabled]]:cursor-not-allowed',
 ]
 
-const grabCursor = ['cursor-grab', 'data-[dragging]:cursor-grabbing']
+const grabCursor = ['cursor-grab', 'data-dragging:cursor-grabbing']
 
 /**
  * What a surface the reader drags looks and behaves like.
