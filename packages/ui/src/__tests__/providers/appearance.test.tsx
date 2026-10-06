@@ -1,29 +1,45 @@
 import { cleanup } from '@testing-library/react'
+import { MotionConfigContext } from 'motion/react'
+import { use } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
 	AppearanceProvider,
 	AppearanceScript,
 	AppearanceSettings,
 	useAppearance,
 } from '../../providers/appearance'
-import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, renderUI, screen, stubMatchMedia, userEvent, waitFor } from '../helpers'
 
 function Probe() {
-	const { theme, density, setTheme, setDensity } = useAppearance()
+	const { theme, density, motion, setTheme, setDensity, setMotion } = useAppearance()
 
 	return (
 		<>
-			<output data-testid="state">{`${theme} ${density}`}</output>
+			<output data-testid="state">{`${theme} ${density} ${motion}`}</output>
 			<button type="button" onClick={() => setTheme('dark')}>
 				Dark
 			</button>
 			<button type="button" onClick={() => setDensity('compact')}>
 				Compact
 			</button>
+			<button type="button" onClick={() => setMotion('reduced')}>
+				Reduced
+			</button>
 		</>
 	)
+}
+
+// Shows the JS readers of reduced motion: the hook, and the Motion config.
+function MotionProbe() {
+	const reduced = usePrefersReducedMotion()
+
+	const config = use(MotionConfigContext)
+
+	return <output data-testid="motion">{`${reduced} ${config.reducedMotion}`}</output>
 }
 
 // A mounted density reader re-renders when the root step changes, outside
@@ -33,20 +49,20 @@ afterEach(() => {
 
 	localStorage.clear()
 
-	document.documentElement.classList.remove('dark')
+	document.documentElement.classList.remove('dark', 'reduced-motion')
 
 	writeRootDensity(document.documentElement, 'md')
 })
 
 describe('AppearanceProvider', () => {
-	it('defaults to the system theme and the snug density', () => {
+	it('defaults to the system theme, the snug density, and the system motion', () => {
 		renderUI(
 			<AppearanceProvider>
 				<Probe />
 			</AppearanceProvider>,
 		)
 
-		expect(screen.getByTestId('state')).toHaveTextContent('system snug')
+		expect(screen.getByTestId('state')).toHaveTextContent('system snug system')
 	})
 
 	it('reads the stored choices and ignores an unknown value', () => {
@@ -60,7 +76,7 @@ describe('AppearanceProvider', () => {
 			</AppearanceProvider>,
 		)
 
-		expect(screen.getByTestId('state')).toHaveTextContent('dark snug')
+		expect(screen.getByTestId('state')).toHaveTextContent('dark snug system')
 
 		expect(document.documentElement).toHaveClass('dark')
 	})
@@ -76,13 +92,17 @@ describe('AppearanceProvider', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Compact' }))
 
-		expect(screen.getByTestId('state')).toHaveTextContent('dark compact')
+		await userEvent.click(screen.getByRole('button', { name: 'Reduced' }))
 
-		expect(document.documentElement).toHaveClass('dark')
+		expect(screen.getByTestId('state')).toHaveTextContent('dark compact reduced')
+
+		expect(document.documentElement).toHaveClass('dark', 'reduced-motion')
 
 		expect(localStorage.getItem('theme')).toBe('dark')
 
 		expect(localStorage.getItem('density')).toBe('compact')
+
+		expect(localStorage.getItem('motion')).toBe('reduced')
 
 		expect(readRootDensity(document.documentElement)).toBe('sm')
 	})
@@ -132,9 +152,44 @@ describe('AppearanceProvider', () => {
 			window.dispatchEvent(new StorageEvent('storage', { key: 'theme' }))
 		})
 
-		expect(screen.getByTestId('state')).toHaveTextContent('light snug')
+		expect(screen.getByTestId('state')).toHaveTextContent('light snug system')
 
 		expect(document.documentElement).not.toHaveClass('dark')
+	})
+
+	it('marks the root and reduces motion for the JS readers under the reduced motion', () => {
+		localStorage.setItem('motion', 'reduced')
+
+		// The platform asks for no reduction, so only the setting can reduce.
+		stubMatchMedia(() => false)
+
+		renderUI(
+			<AppearanceProvider>
+				<ReducedMotion>
+					<MotionProbe />
+				</ReducedMotion>
+			</AppearanceProvider>,
+		)
+
+		expect(document.documentElement).toHaveClass('reduced-motion')
+
+		expect(screen.getByTestId('motion')).toHaveTextContent('true always')
+	})
+
+	it('leaves the platform to decide under the system motion', () => {
+		stubMatchMedia(() => false)
+
+		renderUI(
+			<AppearanceProvider>
+				<ReducedMotion>
+					<MotionProbe />
+				</ReducedMotion>
+			</AppearanceProvider>,
+		)
+
+		expect(document.documentElement).not.toHaveClass('reduced-motion')
+
+		expect(screen.getByTestId('motion')).toHaveTextContent('false user')
 	})
 
 	it('throws when useAppearance has no provider', () => {
@@ -170,6 +225,21 @@ describe('AppearanceSettings', () => {
 
 		expect(dialog).toHaveTextContent('Snug')
 		expect(dialog).not.toHaveTextContent('(md)')
+	})
+
+	it('shows the motion picker at the system motion', async () => {
+		renderUI(
+			<AppearanceProvider>
+				<AppearanceSettings />
+			</AppearanceProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+		const dialog = screen.getByRole('dialog', { name: 'Settings' })
+
+		expect(dialog).toHaveTextContent('Motion')
+		expect(dialog).toHaveTextContent('System')
 	})
 })
 
@@ -207,5 +277,19 @@ describe('AppearanceScript', () => {
 		runScript()
 
 		expect(document.documentElement).toHaveClass('dark')
+	})
+
+	it('marks the root for the stored reduced motion only', () => {
+		localStorage.setItem('motion', 'system')
+
+		runScript()
+
+		expect(document.documentElement).not.toHaveClass('reduced-motion')
+
+		localStorage.setItem('motion', 'reduced')
+
+		runScript()
+
+		expect(document.documentElement).toHaveClass('reduced-motion')
 	})
 })

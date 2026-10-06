@@ -1,6 +1,6 @@
 import { createEmitter } from '../../utilities'
 import type { DensityLevel } from '../density/context'
-import type { ThemeMode } from './context'
+import type { MotionMode, ThemeMode } from './context'
 
 /**
  * `localStorage` key of the theme preference. {@link AppearanceScript} reads
@@ -18,6 +18,13 @@ export const THEME_KEY = 'theme'
 export const DENSITY_KEY = 'density'
 
 /**
+ * `localStorage` key of the motion preference.
+ *
+ * @internal
+ */
+export const MOTION_KEY = 'motion'
+
+/**
  * The theme with no stored choice: follow the OS.
  *
  * @internal
@@ -30,6 +37,13 @@ export const THEME_DEFAULT: ThemeMode = 'system'
  * @internal
  */
 export const DENSITY_DEFAULT: DensityLevel = 'snug'
+
+/**
+ * The motion with no stored choice: follow the platform.
+ *
+ * @internal
+ */
+export const MOTION_DEFAULT: MotionMode = 'system'
 
 /**
  * Media query that is true when the OS prefers a dark color scheme.

@@ -22,19 +22,21 @@ The single integration point an app mounts once at its root.
 
 ## `ui/providers/appearance`
 
-Holds the persisted theme and density of an app, and gives the settings button that edits them. An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
+Holds the persisted theme, density, and motion of an app, and gives the settings button that edits them. An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage` and toggles the root `.dark` class. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. It renders the script that adds the latin subset of the font of ui before its children, so latin text never paints without the font. The other font faces come from `ui/tailwind.css`, which has no latin face. |
+| `AppearanceProvider` | App-root owner of the theme, density, and motion preferences. It keeps them in `localStorage` and toggles the root `.dark` class. While the motion is `reduced`, the root has the `reduced-motion` class. The `motion-reduce` and `motion-safe` variants of `ui/tailwind.css` read the class, and `usePrefersReducedMotion` and `ReducedMotion` read the choice. It writes the step of the density as a class on the root element, the density scope of the app. At `md`, the default, the root has no density class. It renders the script that adds the latin subset of the font of ui before its children, so latin text never paints without the font. The other font faces come from `ui/tailwind.css`, which has no latin face. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
+| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance, density, and motion pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
-| `AppearanceScript` | Inline head script that applies the stored theme and density to the root element before the first paint. It has no `'use client'`, so a server layout can render it. |
-| `useAppearance` | Reads the theme, the density, and their setters from the nearest `AppearanceProvider`; throws outside one. |
+| `AppearanceScript` | Inline head script that applies the stored theme, density, and motion to the root element before the first paint. It has no `'use client'`, so a server layout can render it. |
+| `useAppearance` | Reads the theme, the density, the motion, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
 | `themeModes` | Selectable theme modes with display labels, for theme pickers. |
+| `MotionMode` *(type)* | Motion preference: `system` follows the platform `prefers-reduced-motion` setting, and `reduced` reduces motion on each platform. |
+| `motionModes` | Selectable motion modes with display labels, for motion pickers. |
 
 ## `ui/providers/density`
 
