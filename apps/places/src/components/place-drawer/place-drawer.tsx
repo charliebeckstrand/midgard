@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { CopyButton } from 'ui/copy-button'
-import { cn } from 'ui/core'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
@@ -98,13 +97,6 @@ function PlaceMeta({ place }: { place: Place }) {
 	)
 }
 
-/**
- * The height of one line of a fact at each density: the height of a badge, the
- * tallest thing a fact holds. Each fact takes it, so the icons are evenly
- * spaced, whatever the fact holds.
- */
-const FACT_HEIGHT = 'density-sm:min-h-6.5 density-md:min-h-7.5 density-lg:min-h-8.5'
-
 /** The badge of a category, or nothing for a category that the app does not know. */
 function PlaceCategoryBadge({ category }: { category: PlaceCategory }) {
 	const meta = CATEGORY_BY_VALUE.get(category)
@@ -113,18 +105,19 @@ function PlaceCategoryBadge({ category }: { category: PlaceCategory }) {
 }
 
 /**
- * One fact about a place, with an icon that names the fact. Each fact is at
- * least {@link FACT_HEIGHT} high, and the icon box is that high, so the icon
- * stays on the first line when the text wraps.
+ * One fact about a place, with an icon that names the fact. The icon box is one
+ * line high, so the icon stays on the first line when the text wraps. The fact
+ * is centered on that line, so the middle of a fact that is not text, such as
+ * a score, meets the middle of the icon.
  */
 function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode }) {
 	return (
 		<Flex gap="sm" align="start" className="min-w-0">
-			<Text as="span" tone="muted" className={cn('flex shrink-0 items-center', FACT_HEIGHT)}>
+			<Text as="span" tone="muted" className="flex h-lh shrink-0 items-center">
 				<Icon icon={icon} />
 			</Text>
 
-			<div className={cn('min-w-0 content-center wrap-break-word', FACT_HEIGHT)}>{children}</div>
+			<div className="flex min-h-lh min-w-0 items-center wrap-break-word *:min-w-0">{children}</div>
 		</Flex>
 	)
 }
@@ -146,7 +139,7 @@ function PlaceAddress({ address }: { address: string }) {
 				<Text className="truncate">{address}</Text>
 			</PlaceFact>
 
-			<CopyButton text={address} icon={<Copy />} aria-label="Copy address" className="-my-1" />
+			<CopyButton text={address} icon={<Copy />} aria-label="Copy address" className="-my-1.5" />
 		</Flex>
 	)
 }
@@ -230,8 +223,8 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 	const category = CATEGORY_BY_VALUE.get(place.category)
 
 	return (
-		// `pt-1` is the negative margin of the copy button in the first row.
-		<Stack gap="md" className="pt-1 pb-6">
+		// `pt-1.5` is the negative margin of the copy button in the first row.
+		<Stack gap="md" className="pt-1.5 pb-6">
 			<Stack gap="md">
 				<PlaceAddress address={place.address} />
 
@@ -245,7 +238,9 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 
 				{category ? (
 					<PlaceFact icon={<Tag />}>
-						<Badge color={category.color}>{category.label}</Badge>
+						<Badge color={category.color} size="xs">
+							{category.label}
+						</Badge>
 					</PlaceFact>
 				) : null}
 			</Stack>
