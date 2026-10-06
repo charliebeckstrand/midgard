@@ -12,6 +12,6 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const stepper = {
-	indicator: [rounded.full, 'size-3.5 shrink-0'],
+	indicator: [rounded.full, 'size-4.5 shrink-0'],
 	title: 'h-3.5 w-20',
 } as const

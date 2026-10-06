@@ -81,7 +81,7 @@ const item = defineRecipe({
 // indicators. With the `gap-4` of the row on each side, `min-w-20` keeps a gap of
 // 16px between the boxes of two steps on a narrow row.
 const horizontalRule = [
-	'-mx-12 mt-2 min-w-20',
+	'-mx-12 mt-2.25 min-w-20',
 	flex.fill,
 	'self-start',
 	'border-t',
@@ -117,7 +117,7 @@ export const k = {
 	indicator: {
 		base: [
 			'relative',
-			'size-3.5 shrink-0',
+			'size-4.5 shrink-0',
 			rounded.full,
 			...mode('bg-zinc-400', 'dark:bg-zinc-600'),
 		],
@@ -126,14 +126,14 @@ export const k = {
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
 		active: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
-		// A completed step fills in the hue of the current step and carries a
-		// checkmark, so it does not read as an upcoming step. The hover step comes
-		// after the neutral hover of `interactive`, and the merge keeps it.
+		// A completed step fills green and carries a checkmark, so it does not read
+		// as the current step or an upcoming step. The hover step comes after the
+		// neutral hover of `interactive`, and the merge keeps it.
 		completed: [
 			flex.inline,
 			'justify-center',
-			'bg-blue-600 dark:bg-blue-600 text-white',
-			'group-enabled:group-hover:bg-blue-500',
+			'bg-green-600 dark:bg-green-600 text-white',
+			'group-enabled:group-hover:bg-green-500',
 		],
 		check: 'size-2.5 stroke-[3.5]',
 	},
