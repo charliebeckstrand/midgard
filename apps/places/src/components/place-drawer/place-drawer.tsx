@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { CopyButton } from 'ui/copy-button'
+import { cn } from 'ui/core'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
@@ -103,17 +104,25 @@ function PlaceMeta({ place }: { place: Place }) {
 }
 
 /**
- * One fact about a place, with an icon that names the fact. The icon box is one
- * line high, so the icon stays on the first line when the text wraps.
+ * The height of one line of a fact at each density: the height of a badge, the
+ * tallest thing a fact holds. Each fact takes it, so the icons are evenly
+ * spaced, whatever the fact holds.
+ */
+const FACT_HEIGHT = 'density-sm:min-h-6.5 density-md:min-h-7.5 density-lg:min-h-8.5'
+
+/**
+ * One fact about a place, with an icon that names the fact. Each fact is at
+ * least {@link FACT_HEIGHT} high, and the icon box is that high, so the icon
+ * stays on the first line when the text wraps.
  */
 function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode }) {
 	return (
 		<Flex gap="sm" align="start" className="min-w-0">
-			<Text as="span" tone="muted" className="flex h-lh shrink-0 items-center">
+			<Text as="span" tone="muted" className={cn('flex shrink-0 items-center', FACT_HEIGHT)}>
 				<Icon icon={icon} />
 			</Text>
 
-			<div className="min-w-0 wrap-break-word">{children}</div>
+			<div className={cn('min-w-0 content-center wrap-break-word', FACT_HEIGHT)}>{children}</div>
 		</Flex>
 	)
 }
@@ -122,11 +131,11 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
  * The address of a place on one line, cut with an ellipsis, and a button that
  * copies the full address. The button is taller than a line, so it sits by the
  * fact and not in it, as the menu of a visit does. A negative block margin
- * cancels the padding of the button, so the row is one line high, the same as
- * the rows under it, at each density. The button then goes out of its row by
- * at most the margin. The row is the first row of the drawer body, a box that
- * scrolls and clips what goes out, so {@link PlaceDetails} has a top padding of
- * the same size.
+ * cancels the padding of the button, so the button does not make the row
+ * higher than the rows under it, at each density. The button then goes out of
+ * its row by at most the margin. The row is the first row of the drawer body, a
+ * box that scrolls and clips what goes out, so {@link PlaceDetails} has a top
+ * padding of the same size.
  */
 function PlaceAddress({ address }: { address: string }) {
 	return (
@@ -230,12 +239,7 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 
 				{category ? (
 					<PlaceFact icon={<Tag />}>
-						{/* The badge is taller than a line. It is centered on one line, so
-						    its middle meets the middle of the icon, and the row is one line
-						    high, the same as the rows over it. */}
-						<div className="flex h-lh items-center">
-							<Badge color={category.color}>{category.label}</Badge>
-						</div>
+						<Badge color={category.color}>{category.label}</Badge>
 					</PlaceFact>
 				) : null}
 			</Stack>
