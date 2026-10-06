@@ -3,7 +3,7 @@ import { userEvent } from 'vitest/browser'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import type { Mount } from '../../../primitives/mount'
 import { present, renderUI, screen, waitFor } from '../../helpers'
-import { sampleUntil } from '../helpers/sample'
+import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
 
 /**
@@ -23,14 +23,14 @@ const overflow = () => getComputedStyle(panel()).overflow
 type Sample = { height: number; overflow: string }
 
 /**
- * Reads the panel on each frame until `done` is true. A frame where the panel is
- * not on the page, or where the hold hides it, gives no sample. It throws when
- * `done` is still false at the deadline.
+ * Reads the panel on each frame, after Motion writes its styles, until `done` is
+ * true. A frame where the panel is not on the page, or where the hold hides it,
+ * gives no sample. It throws when `done` is still false at the deadline.
  */
 async function watch(done: () => boolean): Promise<Sample[]> {
 	const samples: Sample[] = []
 
-	await sampleUntil(
+	await sampleMotionFrames(
 		() => {
 			if (done()) return true
 

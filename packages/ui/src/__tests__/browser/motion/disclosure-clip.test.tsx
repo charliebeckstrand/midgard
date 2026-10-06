@@ -10,7 +10,7 @@ import {
 import { JsonTree } from '../../../components/json-tree'
 import { Tree, TreeItem } from '../../../components/tree'
 import { present, renderUI, screen } from '../../helpers'
-import { sampleUntil } from '../helpers/sample'
+import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
 
 /**
@@ -25,14 +25,14 @@ import { budget } from '../helpers/wall-clock'
 type Sample = { height: number; overflow: string }
 
 /**
- * Reads `node` on each frame until its overflow is visible, which is when the open lands. A frame
- * where the node is not on the page gives no sample. It throws when the open does not land before
+ * Reads `node` on each frame, after Motion writes its styles, until its overflow is visible, which
+ * is when the open lands. A frame where the node is not on the page gives no sample. It throws when the open does not land before
  * `deadline` milliseconds pass.
  */
 async function sampleUntilLanded(node: () => Element | null, deadline: number): Promise<Sample[]> {
 	const samples: Sample[] = []
 
-	await sampleUntil(
+	await sampleMotionFrames(
 		() => {
 			const element = node()
 
