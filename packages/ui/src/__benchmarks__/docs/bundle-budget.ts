@@ -58,9 +58,16 @@ import { type BundleReport, readBundle } from './bundle-report'
  * count). One code module for each folder of pages brings the total to 3903 kB.
  * The eager sum is 235.6 kB, against 257.4 kB for the legacy app. The total
  * ceiling is 4100 kB, with a headroom of about 200 kB.
+ *
+ * On 2026-10-06 the PDF viewer started to give pdf.js the files that it loads at
+ * run time: the two wasm decoders for scanned images, two standard fonts, and the
+ * 168 packed CMaps. The total went from 3923 kB to 5018 kB, and the CMaps are
+ * 963 kB of the 1095 kB. A document loads a file only when it needs one, so a page
+ * loads none of them before it hydrates, and the eager sum stays at 237.7 kB. The
+ * total ceiling is 5200 kB, with a headroom of about 180 kB.
  */
 const BUDGETS = [
-	{ label: 'total gzip', budgetKb: 4100, of: (report: BundleReport) => report.totalGzip },
+	{ label: 'total gzip', budgetKb: 5200, of: (report: BundleReport) => report.totalGzip },
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
 ] as const
 

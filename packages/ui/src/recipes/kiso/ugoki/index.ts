@@ -15,6 +15,7 @@ import { panel } from './panel'
 import { popover } from './popover'
 import { reveal } from './reveal'
 import { spring } from './spring'
+import { still } from './still'
 import { toast } from './toast'
 import { tooltip } from './tooltip'
 
@@ -31,4 +32,5 @@ export const ugoki = {
 	tooltip,
 	collapse,
 	panel,
+	still,
 } as const

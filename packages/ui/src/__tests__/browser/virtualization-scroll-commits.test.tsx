@@ -15,8 +15,14 @@ import { pause } from './helpers/wall-clock'
  * event too.
  */
 describe('useVirtualWindow commits around a scroll (real browser)', () => {
-	/** Longer than the 150 ms after which the virtualizer clears `isScrolling`. */
-	const SCROLL_END = 400
+	/**
+	 * Longer than the 150 ms after which the virtualizer clears `isScrolling`.
+	 * The virtualizer arms its timer while the `scroll` event dispatches, and
+	 * {@link scrollRest} arms the hold after that event. A timer with a later
+	 * deadline runs later, on each machine, and `pause` then adds two frames for
+	 * the commit. So the margin above 150 ms needs no room for load.
+	 */
+	const SCROLL_END = 200
 
 	/**
 	 * Runs `move`, which scrolls `el`, and holds for {@link SCROLL_END} from the

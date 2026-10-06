@@ -10,6 +10,7 @@ import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { Density } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import {
@@ -245,7 +246,11 @@ export function DrawerPanel({
 	// this component's own mount or a minimize/maximize cycle would land in place.
 	const animateEnter = useEnterAnimation(open, animateOnMount)
 
-	const { report, onAnimationComplete } = useOpenComplete(open, k.motion.animate, onOpenComplete)
+	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
+	// panel reads the setting itself (WCAG 2.3.3).
+	const preset = usePrefersReducedMotion() ? k.still : k.motion
+
+	const { report, onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
 	// A panel that arrives in place plays no enter, so there is no landing to report from —
 	// it is already up, and says so from here instead.
@@ -295,9 +300,9 @@ export function DrawerPanel({
 			backdropClassName={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
-				{...k.motion}
+				{...preset}
 				// After the preset spread, so it overrides the preset's own `initial`.
-				initial={animateEnter ? k.motion.initial : false}
+				initial={animateEnter ? preset.initial : false}
 				onAnimationComplete={onAnimationComplete}
 				ref={panelRef}
 				{...ariaProps}

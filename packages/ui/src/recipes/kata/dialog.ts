@@ -20,7 +20,7 @@ export const k = {
 				layout.inset.bottom,
 				// Each cap is a share of the overlay root. Above `sm`, the root has an
 				// inset of 1rem on each edge, so the full share stops 1rem short of each.
-				'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto',
+				'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85%] max-sm:overflow-y-auto max-sm:overscroll-contain',
 				// Below `sm`, the panel sits on the bottom edge. In a page with
 				// `viewport-fit=cover`, this keeps its content clear of the home
 				// indicator.
@@ -37,6 +37,11 @@ export const k = {
 		backdrop: bridge.backdrop(backdrop),
 	}),
 	motion: { desktop: popover, mobile: ugoki.panel.bottom },
+	/**
+	 * The motion under reduced motion: the phone panel shows with no slide. The
+	 * desktop fade moves no box, so it stays as it is.
+	 */
+	still: { desktop: popover, mobile: ugoki.still(ugoki.panel.bottom) },
 }
 
 /** Recipe variant props for the {@link Dialog} panel — its styling axes (`surface`, `width`), for consumers composing custom slots. */

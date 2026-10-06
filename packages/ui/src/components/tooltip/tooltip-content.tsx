@@ -6,6 +6,7 @@ import { type ReactNode, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yHasTabbable } from '../../hooks'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type scale } from '../../recipes/kata/tooltip'
@@ -96,6 +97,10 @@ export function TooltipContent({
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
+	// The scale moves `transform`, which `MotionConfig` does not hold still, so the
+	// panel reads the setting itself (WCAG 2.3.3).
+	const preset = usePrefersReducedMotion() ? k.still : k.motion
+
 	// State, not a ref: the panel mounts a commit after the portal node exists,
 	// and the probe has to run against the node React attaches.
 	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
@@ -128,7 +133,7 @@ export function TooltipContent({
 			density={size}
 		>
 			<motion.div
-				{...k.motion}
+				{...preset}
 				ref={setPanel}
 				className={cn(k.content.base, k.content.surface[glass ? 'glass' : 'default'], className)}
 			>

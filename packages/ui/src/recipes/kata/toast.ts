@@ -31,6 +31,8 @@ export const k = {
 	],
 	card: 'w-80 max-sm:w-full',
 	motion: toast,
+	/** The motion under reduced motion: the toast shows with no slide. */
+	still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },
 	/** Neighbor re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
 	spring: spring.reflow,
 	/** Inter-toast gap (px), animated to 0 on dismiss; neighbors slide in. */

@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { announce, cn } from '../../core'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
 import type { ToastData, ToastSeverity } from './types'
@@ -79,7 +80,11 @@ export function ToastAlert({
 }: ToastAlertProps) {
 	const positionTop = edge === 'top'
 
-	const motionConfig = positionTop ? k.motion.top : k.motion.bottom
+	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
+	// toast reads the setting itself (WCAG 2.3.3).
+	const presets = usePrefersReducedMotion() ? k.still : k.motion
+
+	const motionConfig = positionTop ? presets.top : presets.bottom
 
 	const { variant, color } = severityAlertMap[t.severity ?? 'info']
 

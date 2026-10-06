@@ -57,12 +57,7 @@ function fitGap(container: HTMLElement, frame: HTMLElement) {
 describe('pdf viewer intrinsic width (real browser)', () => {
 	afterEach(() => resetDocumentCache())
 
-	// The wait for the page raster can pass the suite `testTimeout` on CI, so the
-	// case sets a timeout above it. An exhausted wait then fails with the last
-	// error of the callback.
-	it('shows the page at its natural width in a box that sizes to its content', {
-		timeout: budget(15_000),
-	}, async () => {
+	it('shows the page at its natural width in a box that sizes to its content', async () => {
 		const src = servePdf(makeInvoicePdf(1))
 
 		const { container } = renderUI(

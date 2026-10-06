@@ -1,0 +1,64 @@
+name: Browser stress
+
+# The ui browser suite under CPU load, with fixed shuffle seeds, each week and
+# on demand. The rule of the suite is that machine speed changes when a test
+# passes, never whether it passes. A wait on a fixed time breaks the rule only
+# when the machine is slow, so a pull request run on an idle runner can miss
+# it. This run makes the machine slow on purpose, so such a flake fails here
+# first. A red run gives its seed: replay it with
+# `VITEST_SEED=<seed> CI=1 pnpm -F ui test:browser`.
+#
+# Each job takes about five minutes of one runner, so a scheduled run costs
+# about 15 runner minutes each week. No pull request or push starts it. Start
+# other runs from the Actions tab, or with `gh workflow run browser-stress.yml`.
+on:
+  # Each Tuesday at 05:43 UTC.
+  schedule:
+    - cron: '43 5 * * 2'
+  workflow_dispatch:
+    inputs:
+      seeds:
+        description: The shuffle seeds to run, as a JSON array, for example [1, 2, 3].
+        required: false
+        default: '[1, 2, 3]'
+
+permissions:
+  contents: read
+
+jobs:
+  stress:
+    name: stress (seed ${{ matrix.seed }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      # Let each seed finish, so that one run shows each failure.
+      fail-fast: false
+      matrix:
+        seed: ${{ fromJSON(github.event.inputs.seeds || '[1, 2, 3]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      # The cache and the install of Chromium that the `browser` job of ci.yml
+      # uses, for the same reasons.
+      - id: playwright
+        working-directory: packages/ui
+        run: |
+          echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+      - run: pnpm --filter ui exec playwright install chromium
+      # One busy loop for each core, at the priority of the suite, so that the
+      # suite gets about half of each core. A loop at a lower priority yields to
+      # the suite and slows it by almost nothing. The loops run in the steps
+      # after this one, and stop with the job.
+      - name: Load each core
+        run: |
+          for _ in $(seq "$(nproc)"); do sh -c 'while :; do :; done' & done
+      # Not through turbo: a cache hit would skip the run that this workflow
+      # exists for.
+      - run: pnpm --filter ui test:browser
+        env:
+          CI: 1
+          VITEST_SEED: ${{ matrix.seed }}
