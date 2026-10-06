@@ -192,7 +192,7 @@ describe('cn', () => {
 
 			expect(cn('density-px-[2,3,4]', 'p-4')).toBe('p-4')
 
-			expect(cn('density-left-[1,2,3]', 'inset-x-2')).toBe('inset-x-2')
+			expect(cn('density-inset-s-[1,2,3]', 'inset-x-2')).toBe('inset-x-2')
 		})
 
 		it('replaces an earlier logical side with a later class of its axis', () => {

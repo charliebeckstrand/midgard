@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
+import { Switch } from '../../components/switch'
 import { cn } from '../../core/cn'
 import { k as avatar } from '../../recipes/kata/avatar'
 import { k as chat } from '../../recipes/kata/chat-message'
@@ -96,5 +97,18 @@ describe('logical sides under dir=rtl', () => {
 		// whole pixel, and the origin keeps the fraction.
 		const origin = Number.parseFloat(getComputedStyle(fill).transformOrigin)
 		expect(origin).toBeCloseTo(fill.offsetWidth, 0)
+	})
+
+	it('checked switch thumb moves toward the inline end (left)', () => {
+		const left = (checked: boolean) => {
+			const { container } = renderUI(
+				<div dir="rtl">
+					<Switch aria-label="On" checked={checked} onChange={() => {}} />
+				</div>,
+			)
+			const thumb = present(container.querySelector('[data-slot=switch-thumb]'), 'thumb')
+			return thumb.getBoundingClientRect().left
+		}
+		expect(left(true)).toBeLessThan(left(false))
 	})
 })
