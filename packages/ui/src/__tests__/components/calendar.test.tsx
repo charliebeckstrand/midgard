@@ -597,10 +597,10 @@ describe('Calendar keyboard navigation', () => {
 	// moves the focus to the nearest enabled day, and the focus stays when that is
 	// the focused day. The arrow does not wrap, and it does not move the focus out
 	// of the grid. Tab and Shift+Tab still do.
-	function renderMinTenth() {
+	function renderMinTenth(defaultValue = new Date(2025, 5, 15)) {
 		// June 2025 begins on a Sunday; `min` on the 10th disables June 1-9, so the
 		// grid's first focusable day is the 10th.
-		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} min={new Date(2025, 5, 10)} />)
+		renderUI(<Calendar defaultValue={defaultValue} min={new Date(2025, 5, 10)} />)
 	}
 
 	/** June 2025 with `max` on the 20th, so June 21-30 are disabled. Set `footer` to add a footer after the calendar. */
@@ -628,7 +628,7 @@ describe('Calendar keyboard navigation', () => {
 
 		// The selected day, June 5, is before `min` and so disabled. No enabled
 		// day holds the Tab stop, and the entry falls back to the first enabled day.
-		renderUI(<Calendar defaultValue={new Date(2025, 5, 5)} min={new Date(2025, 5, 10)} />)
+		renderMinTenth(new Date(2025, 5, 5))
 
 		act(() => screen.getByLabelText('Previous month').focus())
 

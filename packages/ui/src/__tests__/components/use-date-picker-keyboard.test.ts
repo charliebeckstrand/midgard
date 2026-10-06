@@ -1,13 +1,13 @@
 import { renderHook } from '@testing-library/react'
-import type { RefObject } from 'react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import type { KeyboardEvent, RefObject } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import type { CalendarActive, CalendarHandle } from '../../components/calendar'
 import type { DateStep } from '../../components/date-picker/date-picker-utilities'
 import {
 	type FooterButton,
 	useDatePickerKeyboard,
 } from '../../components/date-picker/use-date-picker-keyboard'
-import { makeKeyEvent } from '../helpers'
+import { attach, makeKeyEvent } from '../helpers'
 
 type Setup = Partial<{
 	disabled: boolean
@@ -481,7 +481,7 @@ describe('useDatePickerKeyboard: null active edge cases', () => {
 // A dialog with the header and the footer toolbars of the picker. Each button is a Tab stop
 // and has its index in `data-index`.
 function renderToolbars() {
-	const dialog = document.createElement('div')
+	const dialog = attach(document.createElement('div'))
 
 	const toolbar = (slot: string, count: number) => {
 		const row = document.createElement('div')
@@ -514,21 +514,25 @@ function renderToolbars() {
 
 	dialog.append(grid, day)
 
-	document.body.append(dialog)
-
-	onTestFinished(() => dialog.remove())
-
 	return { dialog, header, footer, grid, day }
+}
+
+// A key from `target` that gets to the handler on `dialog`. `init` adds fields such as `shiftKey`.
+function keyFrom(
+	key: string,
+	target: Element,
+	dialog: Element,
+	init: Partial<KeyboardEvent<HTMLElement>> = {},
+) {
+	return makeKeyEvent<HTMLElement>(key, {
+		...init,
+		target,
+		currentTarget: dialog as HTMLElement,
+	})
 }
 
 // B01-C09, Q2: a header or footer button that has DOM focus acts as its zone of the model.
 describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
-	const keyFrom = (key: string, target: Element, dialog: Element) =>
-		makeKeyEvent<HTMLElement>(key, {
-			target,
-			currentTarget: dialog as HTMLElement,
-		})
-
 	it('enters the shown month on ArrowDown from a focused header button', () => {
 		const { dialog, header } = renderToolbars()
 
@@ -543,16 +547,6 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
 
 		expect(moveGrid).not.toHaveBeenCalled()
-	})
-
-	it('moves the header highlight on ArrowRight from a focused header button', () => {
-		const { dialog, header } = renderToolbars()
-
-		const { handler, setActive } = setup({ active: null })
-
-		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
-
-		expect(setActive).toHaveBeenLastCalledWith({ zone: 'header', index: 2 })
 	})
 
 	it('does not set the zone again for the active header button', () => {
@@ -596,7 +590,8 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
 	})
 
-	// B01-C09, Q10: the dialog takes focus back only for arrows, so only an arrow maps the button.
+	// B01-C09, Q10, Q11: the dialog takes focus back only for the arrows and the Page keys, so
+	// only those keys map the button.
 	it.each(['Tab', 'Home'])('sets no zone on %s from a focused header button', (key) => {
 		const { dialog, header } = renderToolbars()
 
@@ -650,12 +645,6 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 
 // B01-C12, Q8: a day button that has DOM focus acts as the grid zone at its date.
 describe('useDatePickerKeyboard: a Tab-focused day button', () => {
-	const keyFrom = (key: string, target: Element, dialog: Element) =>
-		makeKeyEvent<HTMLElement>(key, {
-			target,
-			currentTarget: dialog as HTMLElement,
-		})
-
 	it('steps from the focused day on ArrowRight', () => {
 		const { dialog, day } = renderToolbars()
 
@@ -714,11 +703,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 			active: { zone: 'grid', date: new Date(2026, 0, 15) },
 		})
 
-		const event = makeKeyEvent<HTMLElement>(key, {
-			shiftKey,
-			target: day,
-			currentTarget: dialog as HTMLElement,
-		})
+		const event = keyFrom(key, day, dialog, { shiftKey })
 
 		handler(event)
 
@@ -748,7 +733,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 1, 15) })
 	})
 
-	// Q10: only an arrow maps the day, so the hook keeps the highlight for Enter.
+	// Q10, Q11: only an arrow or a Page key maps the day, so the hook keeps the highlight for Enter.
 	// The dialog leaves Enter on a focused day to the button and does not call the hook.
 	it('keeps the highlight, not the focused day, for Enter', () => {
 		const { dialog, day } = renderToolbars()

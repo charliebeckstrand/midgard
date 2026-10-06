@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { CalendarHandle } from '../../components/calendar'
 import { useDatePickerRangeState } from '../../components/date-picker/use-date-picker-range-state'
-import { makeKeyEvent } from '../helpers'
+import { attach, makeKeyEvent } from '../helpers'
 
 const Jan1 = new Date(2025, 0, 1)
 
@@ -36,20 +36,16 @@ function yearOneJanuary(date: number): Date {
 	return value
 }
 
-// An arrow key from a focused day button of the grid. The button has its date in
-// `data-date`, and the key gets to the handler on the dialog.
+// An arrow key or a Page key from a focused day button of the grid. The button has
+// its date in `data-date`, and the key gets to the handler on the dialog.
 function keyFromDay(key: string, date: string) {
-	const dialog = document.createElement('div')
+	const dialog = attach(document.createElement('div'))
 
 	const day = document.createElement('button')
 
 	day.dataset.date = date
 
 	dialog.append(day)
-
-	document.body.append(dialog)
-
-	onTestFinished(() => dialog.remove())
 
 	return makeKeyEvent<HTMLElement>(key, { target: day, currentTarget: dialog })
 }
@@ -450,34 +446,23 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
 		})
 
-		// B01-C06: the first arrow with no highlight enters the shown month.
-		it('enters the grid on the first arrow on the entry day of the Calendar', () => {
+		// B01-C06: the first arrow with no highlight enters the shown month. Q5: with no
+		// enabled day in the shown month, the arrow enters on the range start.
+		it.each<[string, Date | null, Date]>([
+			['the entry day of the Calendar', Mar5, Mar5],
+			['the range start when the Calendar gives no entry day', null, Jan10],
+		])('enters the grid on the first arrow on %s', (_name, entry, expected) => {
 			const { result } = renderHook(() =>
 				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
 			)
 
 			act(() => result.current.onOpenChange(true))
 
-			result.current.calendar.calendarRef.current = entering(Mar5)
+			result.current.calendar.calendarRef.current = entering(entry)
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
-		})
-
-		// Q5: with no enabled day in the shown month, the arrow enters on the range start.
-		it('enters the grid on the first arrow on the range start when the Calendar gives no entry day', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
-
-			result.current.calendar.calendarRef.current = entering(null)
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: expected })
 		})
 
 		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
