@@ -25,7 +25,9 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * leaked stylesheet changes the computed layout of every later file and leaves
  * the body clean by every other measure here.
  * `body.style` covers `use-scroll-lock`, which sets `overflow` and a
- * compensating `paddingRight` under a reference count. The marked head style
+ * compensating `paddingRight` under a reference count. The root class covers
+ * `holdTextSelection`, which keeps `select-none` on `<html>` while a touch is
+ * held and for a delay after it ends. The marked head style
  * covers `use-drag-cursor`, which appends one under a list of holds of its own.
  * Both unbalance exactly when a holder unmounts wrongly, which is the failure
  * this guard exists for, and neither is a body child.
@@ -60,6 +62,8 @@ let bodyStyle = ''
 let bodyClass = ''
 
 let rootStyle = ''
+
+let rootClass = ''
 
 let swallowed = false
 
@@ -114,6 +118,8 @@ function absorbResidue(): void {
 
 	rootStyle = document.documentElement.style.cssText
 
+	rootClass = document.documentElement.className
+
 	swallowed = swallowsClicks()
 
 	listeners = liveGlobalListeners()
@@ -137,6 +143,10 @@ function collect(): string[] {
 
 	if (document.documentElement.style.cssText !== rootStyle) {
 		leaks.push(`root style: "${document.documentElement.style.cssText}" (was "${rootStyle}")`)
+	}
+
+	if (document.documentElement.className !== rootClass) {
+		leaks.push(`root class: "${document.documentElement.className}" (was "${rootClass}")`)
 	}
 
 	if (document.head.querySelector(DRAG_CURSOR)) leaks.push('a drag-cursor style, left in head')
