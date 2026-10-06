@@ -5,12 +5,13 @@ import {
 	type PropsWithChildren,
 	type ReactNode,
 	type Ref,
+	use,
 	useCallback,
-	useEffect,
 	useMemo,
 	useState,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { defaultKeybindingsHandlerIgnore, type KeybindingFilter } from 'tinykeys'
 import { Button } from '../../components/button'
 import { Drawer, DrawerPanel } from '../../components/drawer/drawer'
 import { DrawerTrigger } from '../../components/drawer/slots'
@@ -19,14 +20,43 @@ import { Sheet, SheetPanel } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
+import { useKeybindings } from '../../hooks/use-keybindings'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
+import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
 
-const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
-	actions?: ReactNode
-}>('SidebarLayout', { default: {} })
+const [SidebarLayoutContext] = createContext<{ actions?: ReactNode } | null>('SidebarLayout', {
+	default: null,
+})
+
+/**
+ * Tells whether the caller renders inside a {@link SidebarLayout}.
+ * `AppearanceSettings` shows its Sidebar picker only there.
+ *
+ * @internal
+ */
+export function useInSidebarLayout() {
+	return use(SidebarLayoutContext) !== null
+}
+
+// The filter of the shortcut. It skips a press that an earlier handler took, so
+// that one press toggles the setting one time when a page nests a layout. The
+// tinykeys default also skips the OS auto-repeat of a held chord, so a held key
+// toggles the setting one time. It also skips a keydown during an IME
+// composition and a press in a form field.
+const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
+	event.defaultPrevented || defaultKeybindingsHandlerIgnore(event)
+
+// Writes the other sidebar mode. The handler reads the stored choice, not a
+// rendered value, so a press always toggles the current mode.
+function toggleSidebar(event: KeyboardEvent) {
+	event.preventDefault()
+
+	writeChoice(SIDEBAR.key, readChoice(SIDEBAR) === 'offcanvas' ? 'locked' : 'offcanvas')
+}
 
 /** Props for {@link SidebarLayout}: the sidebar content and the slots beside it. */
 export type SidebarLayoutProps = PropsWithChildren<{
@@ -40,18 +70,12 @@ export type SidebarLayoutProps = PropsWithChildren<{
 	/** From `lg` up, keeps the header at the top of the content region. @defaultValue false */
 	stickyHeader?: boolean
 	/**
-	 * From `lg` up, shows the sidebar as a sheet that opens when the pointer comes
-	 * near the start edge, in place of the inline panel.
-	 * @defaultValue false
-	 */
-	floating?: boolean
-	/**
 	 * Fires when the mobile navigation drawer opens or closes, whatever drove it. The
 	 * drivers are the navbar button, a dismissal, a descendant calling `close`, or the
 	 * viewport widening to the `lg` breakpoint.
 	 *
 	 * Observation only, and the mobile drawer alone. The desktop sidebar is inline, and
-	 * the `floating` variant's hover peek is a pointer affordance rather than a
+	 * the hover peek of the offcanvas sidebar is a pointer affordance rather than a
 	 * disclosure, so neither reports here.
 	 */
 	onOpenChange?: (open: boolean) => void
@@ -59,9 +83,16 @@ export type SidebarLayoutProps = PropsWithChildren<{
 
 /**
  * App shell with a persistent sidebar: an inline desktop panel (or a
- * hover-revealed floating {@link Sheet} when `floating`), and a mobile
- * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
+ * hover-revealed floating {@link Sheet} when the sidebar is offcanvas), and a
+ * mobile {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
+ *
+ * The Sidebar setting of `AppearanceProvider` selects the desktop sidebar:
+ * `'locked'` shows the inline panel, and `'offcanvas'` shows the floating sheet.
+ * The selection is a class on the root element, which `AppearanceScript` writes
+ * before the first paint, so the first paint shows the correct sidebar. ⌘B
+ * (Ctrl+B on other platforms) toggles the setting. A held chord toggles it one
+ * time, and a press in a form field does not toggle it.
  *
  * @remarks The page scrolls at each width, so the scroll restoration of a router
  * resets and restores the position of the page. Below `lg`, the navbar is the one
@@ -92,7 +123,6 @@ export function SidebarLayout({
 	sidebar,
 	actions,
 	stickyHeader,
-	floating,
 	onOpenChange,
 	children,
 }: SidebarLayoutProps) {
@@ -100,10 +130,19 @@ export function SidebarLayout({
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
-	// Resets the floating sheet to closed when `floating` flips off.
-	useEffect(() => {
-		if (!floating) setFloatingOpen(false)
-	}, [floating])
+	const [sidebarMode] = useAppearanceChoice(SIDEBAR)
+
+	const [renderedMode, setRenderedMode] = useState(sidebarMode)
+
+	// Resets the floating sheet to closed when the sidebar mode changes. The
+	// sheet opens only from the hot zone, which shows only while offcanvas.
+	if (renderedMode !== sidebarMode) {
+		setRenderedMode(sidebarMode)
+
+		setFloatingOpen(false)
+	}
+
+	useKeybindings({ '$mod+KeyB': toggleSidebar }, { ignore: IGNORE_TAKEN_OR_FIELD })
 
 	const scrollWithin = useScrollWithin()
 
@@ -130,23 +169,21 @@ export function SidebarLayout({
 	const layoutValue = useMemo(() => ({ actions }), [actions])
 
 	return (
-		<div className={k.base()}>
-			{/* Hot zone to peek the floating sidebar */}
-			{floating && (
+		<SidebarLayoutContext value={layoutValue}>
+			<div className={k.base()}>
+				{/* Hot zone to peek the floating sidebar. It shows only while offcanvas. */}
 				<div
 					aria-hidden
 					className={k.floating.peek()}
 					onPointerEnter={() => setFloatingOpen(true)}
 				/>
-			)}
 
-			{/* Sidebar on desktop: inline when locked */}
-			{!floating && <div className={k.panel()}>{sidebar}</div>}
+				{/* Sidebar on desktop: inline when locked. It hides while offcanvas. */}
+				<div className={k.panel()}>{sidebar}</div>
 
-			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
-			    peek doesn't steal focus or lock body scroll, but `backdrop` still
-			    blurs and dims the page behind it. */}
-			{floating && (
+				{/* Sidebar on desktop: sheet when offcanvas. Non-modal so the hover-revealed
+				    peek doesn't steal focus or lock body scroll, but `backdrop` still
+				    blurs and dims the page behind it. */}
 				<Sheet open={floatingOpen} onOpenChange={setFloatingOpen}>
 					<SheetPanel
 						side="start"
@@ -169,59 +206,56 @@ export function SidebarLayout({
 						</div>
 					</SheetPanel>
 				</Sheet>
-			)}
 
-			{/* Buffer beside the floating sidebar; keeps it open while the pointer lingers within 40px */}
-			{floating &&
-				floatingOpen &&
-				typeof document !== 'undefined' &&
-				createPortal(
-					<div
-						aria-hidden
-						className={k.floating.buffer()}
-						onPointerEnter={() => setFloatingOpen(true)}
-						onPointerLeave={() => setFloatingOpen(false)}
-					/>,
-					document.body,
-				)}
+				{/* Buffer beside the floating sidebar; keeps it open while the pointer lingers within 40px */}
+				{floatingOpen &&
+					typeof document !== 'undefined' &&
+					createPortal(
+						<div
+							aria-hidden
+							className={k.floating.buffer()}
+							onPointerEnter={() => setFloatingOpen(true)}
+							onPointerLeave={() => setFloatingOpen(false)}
+						/>,
+						document.body,
+					)}
 
-			{/* Sidebar on mobile. The root holds the drawer and its trigger in the navbar. */}
-			<Drawer open={open} onOpenChange={setOpen}>
-				{/* A nav item and the close of `SidebarHeader` close the navigation, so it has no Close row. */}
-				<DrawerPanel footer={null}>
-					<OffcanvasContext value={offcanvasValue}>
-						<div ref={scrollToCurrent} className="contents">
-							{sidebar}
-						</div>
-					</OffcanvasContext>
-				</DrawerPanel>
+				{/* Sidebar on mobile. The root holds the drawer and its trigger in the navbar. */}
+				<Drawer open={open} onOpenChange={setOpen}>
+					{/* A nav item and the close of `SidebarHeader` close the navigation, so it has no Close row. */}
+					<DrawerPanel footer={null}>
+						<OffcanvasContext value={offcanvasValue}>
+							<div ref={scrollToCurrent} className="contents">
+								{sidebar}
+							</div>
+						</OffcanvasContext>
+					</DrawerPanel>
 
-				{/* Navbar on mobile. A named section, so the menu button, the navbar, and the
-				    actions are in a landmark below `lg`. The section is the sticky bar, as a
-				    sticky child sticks only inside the box of its parent. */}
-				<section aria-label="Navigation bar" className={k.navbar()}>
-					<Flex align="center">
-						<DrawerTrigger>
-							<Button
-								type="button"
-								variant="bare"
-								aria-label="Open navigation"
-								prefix={<Icon icon={<Menu />} />}
-							/>
-						</DrawerTrigger>
-						{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-						{actions && <div className={cn(k.actions(), 'ms-auto')}>{actions}</div>}
-					</Flex>
-				</section>
-			</Drawer>
+					{/* Navbar on mobile. A named section, so the menu button, the navbar, and the
+					    actions are in a landmark below `lg`. The section is the sticky bar, as a
+					    sticky child sticks only inside the box of its parent. */}
+					<section aria-label="Navigation bar" className={k.navbar()}>
+						<Flex align="center">
+							<DrawerTrigger>
+								<Button
+									type="button"
+									variant="bare"
+									aria-label="Open navigation"
+									prefix={<Icon icon={<Menu />} />}
+								/>
+							</DrawerTrigger>
+							{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
+							{actions && <div className={cn(k.actions(), 'ms-auto')}>{actions}</div>}
+						</Flex>
+					</section>
+				</Drawer>
 
-			{/* Content */}
-			<SidebarLayoutContext value={layoutValue}>
-				<div className={k.content.wrapper({ floating })}>
+				{/* Content */}
+				<div className={k.content.wrapper()}>
 					<div className={k.content.base({ stickyHeader })}>{children}</div>
 				</div>
-			</SidebarLayoutContext>
-		</div>
+			</div>
+		</SidebarLayoutContext>
 	)
 }
 
@@ -236,7 +270,7 @@ export type SidebarLayoutHeaderProps = PropsWithChildren<{
  * layout's `actions` alongside its children on desktop.
  */
 export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutHeaderProps) {
-	const { actions } = useSidebarLayoutContext()
+	const actions = use(SidebarLayoutContext)?.actions
 
 	return (
 		<header ref={ref} data-slot="header" className={cn(k.header(), className)}>

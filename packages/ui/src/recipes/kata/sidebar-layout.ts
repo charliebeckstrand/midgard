@@ -64,7 +64,8 @@ const panel = defineRecipe({
 		'shrink-0 min-w-0',
 		'lg:sticky lg:top-0 lg:h-[100cqh] lg:overscroll-contain',
 		'overflow-x-hidden overflow-y-auto',
-		'max-lg:hidden',
+		// The panel hides while the sidebar is offcanvas.
+		'max-lg:hidden sidebar-offcanvas:hidden',
 		// A mini sidebar sets the rail width; the panel follows it instead of
 		// holding the size step open.
 		'has-data-mini:w-fit',
@@ -72,8 +73,9 @@ const panel = defineRecipe({
 	],
 })
 
+// The hot zone shows from `lg` up while the sidebar is offcanvas.
 const floatingHotZone = defineRecipe({
-	base: ['absolute inset-y-0 start-0 z-30 w-2 max-lg:hidden'],
+	base: ['absolute inset-y-0 start-0 z-30 w-2', 'hidden lg:sidebar-offcanvas:block'],
 })
 
 // The floating sidebar is a Sheet of `fit` width, and its body takes the width
@@ -98,13 +100,10 @@ const floatingBuffer = defineRecipe({
 // The content flows in the page. Do not give the content or this wrapper an
 // overflow. That box then becomes the scroller of the sticky header, and the
 // header does not stick to the top of the page.
+// While the sidebar is offcanvas, no panel is at the start edge, so the
+// content takes a start gap too.
 const contentWrapper = defineRecipe({
-	base: [flex.col, 'flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2'],
-	floating: {
-		true: 'lg:ps-2',
-		false: '',
-	},
-	defaults: { floating: false },
+	base: [flex.col, 'flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2', 'lg:sidebar-offcanvas:ps-2'],
 })
 
 const content = defineRecipe({

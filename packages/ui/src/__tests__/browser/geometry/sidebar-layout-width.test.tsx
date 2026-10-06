@@ -1,6 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { densitySteps, writeRootDensity } from '../../../core/density'
+import { rootOffcanvasSidebarClass } from '../../../core/sidebar/root'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import { frames, getSlot, present, renderUI } from '../../helpers'
 import { settledRect } from '../helpers/sample'
@@ -21,6 +22,8 @@ describe('sidebar layout width (real browser)', () => {
 
 	afterEach(() => {
 		writeRootDensity(document.documentElement, 'md')
+
+		document.documentElement.classList.remove(rootOffcanvasSidebarClass)
 	})
 
 	it.each(densitySteps)('gives the floating sidebar the width of the rail at %s', async (step) => {
@@ -34,14 +37,21 @@ describe('sidebar layout width (real browser)', () => {
 
 		await frames()
 
-		const rail = present(inline.container.firstElementChild?.firstElementChild, 'rail')
+		const rail = present(
+			inline.container.firstElementChild?.querySelector<HTMLElement>(
+				':scope > :not([aria-hidden])',
+			),
+			'rail',
+		)
 
 		const railWidth = rail.getBoundingClientRect().width
 
 		inline.unmount()
 
+		document.documentElement.classList.add(rootOffcanvasSidebarClass)
+
 		const floating = renderUI(
-			<SidebarLayout floating sidebar={<nav>Links</nav>}>
+			<SidebarLayout sidebar={<nav>Links</nav>}>
 				<SidebarLayoutBody>Content</SidebarLayoutBody>
 			</SidebarLayout>,
 		)

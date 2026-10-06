@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
+import { rootOffcanvasSidebarClass } from '../../../core/sidebar/root'
 import { SidebarLayout, SidebarLayoutHeader } from '../../../layouts'
 import { frames, getSlot, present, renderUI, screen } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
@@ -68,6 +69,8 @@ function clippingAncestors(node: HTMLElement): string[] {
 
 afterEach(() => {
 	window.scrollTo(0, 0)
+
+	document.documentElement.classList.remove(rootOffcanvasSidebarClass)
 })
 
 describe('sidebar layout below lg (real browser)', () => {
@@ -223,8 +226,10 @@ describe('sidebar layout from lg up (real browser)', () => {
 	})
 
 	it('keeps the hover strip of the floating sidebar on the start edge after a scroll', async () => {
+		document.documentElement.classList.add(rootOffcanvasSidebarClass)
+
 		const { container } = renderUI(
-			<SidebarLayout floating sidebar={<nav>Links</nav>}>
+			<SidebarLayout sidebar={<nav>Links</nav>}>
 				<div className="h-[3000px]">Content</div>
 			</SidebarLayout>,
 		)

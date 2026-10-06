@@ -2,6 +2,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
 import { cn } from '../../../core'
+import { rootOffcanvasSidebarClass } from '../../../core/sidebar/root'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import { k as pdf } from '../../../recipes/kata/pdf-viewer'
 import { frames, getSlot, present, renderUI } from '../../helpers'
@@ -35,6 +36,8 @@ describe('sidebar layout in RTL (real browser)', () => {
 
 	afterEach(() => {
 		document.documentElement.removeAttribute('dir')
+
+		document.documentElement.classList.remove(rootOffcanvasSidebarClass)
 	})
 
 	it.each(DIRECTIONS)('docks a start sheet on the start edge (%s)', async (dir) => {
@@ -77,8 +80,10 @@ describe('sidebar layout in RTL (real browser)', () => {
 	it.each(DIRECTIONS)('opens the floating sidebar from the start edge (%s)', async (dir) => {
 		document.documentElement.dir = dir
 
+		document.documentElement.classList.add(rootOffcanvasSidebarClass)
+
 		const { container } = renderUI(
-			<SidebarLayout floating sidebar={<nav>Links</nav>}>
+			<SidebarLayout sidebar={<nav>Links</nav>}>
 				<SidebarLayoutBody>Content</SidebarLayoutBody>
 			</SidebarLayout>,
 		)
