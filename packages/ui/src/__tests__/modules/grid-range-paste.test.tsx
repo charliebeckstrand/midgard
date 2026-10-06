@@ -6,7 +6,15 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 } from '../../modules/grid'
-import { act, expectAnnouncement, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import {
+	act,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	gridCells,
+	renderUI,
+	screen,
+} from '../helpers'
 
 type Row = { id: number; name: string; count: number; active: boolean; code: string }
 
@@ -82,7 +90,7 @@ function renderPasteGrid(
 	const grid = screen.getByRole('grid')
 
 	const cell = (row: number, col: number) =>
-		screen.getAllByRole('gridcell')[row * (props.columns ?? columns).length + col] as HTMLElement
+		gridCells()[row * (props.columns ?? columns).length + col] as HTMLElement
 
 	/** The text of each data cell, row by row. */
 	const texts = () =>

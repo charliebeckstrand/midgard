@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
+import { expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; role: string; note: string }
 
@@ -20,18 +20,16 @@ const getKey = (row: Row) => row.id
 
 /** The data cell at a row and a column, in row-major order. */
 function cell(row: number, col: number): HTMLElement {
-	return screen.getAllByRole('gridcell')[row * columns.length + col] as HTMLElement
+	return gridCells()[row * columns.length + col] as HTMLElement
 }
 
 /** The `[row, col]` of each cell that carries `data-in-range`. */
 function inRange(): [number, number][] {
-	return screen
-		.getAllByRole('gridcell')
-		.flatMap((node, index) =>
-			node.hasAttribute('data-in-range')
-				? [[Math.floor(index / columns.length), index % columns.length] as [number, number]]
-				: [],
-		)
+	return gridCells().flatMap((node, index) =>
+		node.hasAttribute('data-in-range')
+			? [[Math.floor(index / columns.length), index % columns.length] as [number, number]]
+			: [],
+	)
 }
 
 /**

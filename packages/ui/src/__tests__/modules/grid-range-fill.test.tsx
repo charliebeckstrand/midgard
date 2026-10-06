@@ -6,7 +6,7 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 } from '../../modules/grid'
-import { expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
+import { expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; count: number; code: string }
 
@@ -69,8 +69,7 @@ function renderFillGrid(props: { editable?: Partial<GridEditableConfig> } = {}) 
 
 	const grid = screen.getByRole('grid')
 
-	const cell = (row: number, col: number) =>
-		screen.getAllByRole('gridcell')[row * columns.length + col] as HTMLElement
+	const cell = (row: number, col: number) => gridCells()[row * columns.length + col] as HTMLElement
 
 	/** The text of each data cell, row by row. */
 	const texts = () => rows.map((_, row) => columns.map((_, col) => cell(row, col).textContent))
