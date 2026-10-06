@@ -130,7 +130,7 @@
 		"d3-geo": "catalog:",
 		"fflate": "^0.8.3",
 		"lucide-react": "catalog:",
-		"marked": "^18.0.5",
+		"marked": "^18.1.0",
 		"motion": "^14.0.0",
 		"pdfjs-dist": "^6.4.299",
 		"shiki": "^4.5.0",

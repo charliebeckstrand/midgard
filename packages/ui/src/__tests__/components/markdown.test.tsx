@@ -212,6 +212,14 @@ describe('Markdown', () => {
 		expect(bySlot(container, 'markdown')?.textContent).toBe('a\uFFFDb &Aacute; &amp')
 	})
 
+	it('decodes each entity reference once', () => {
+		const { container } = renderUI(<Markdown>{'- [x] &#38;amp; &#38;#169;'}</Markdown>)
+
+		expect(bySlot(container, 'markdown')?.textContent).toBe('&amp; &#169;')
+
+		expect(screen.getByRole('checkbox', { name: '&amp; &#169;' })).toBeChecked()
+	})
+
 	it('renders a decoded tag as text, never as markup', () => {
 		const { container } = renderUI(<Markdown>{'&lt;script&gt;alert(1)&lt;/script&gt;'}</Markdown>)
 

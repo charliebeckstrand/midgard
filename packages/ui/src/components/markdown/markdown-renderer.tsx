@@ -64,9 +64,11 @@ function safeUrl(url: string, allowData = false): string | undefined {
  * is built only from elements this renderer controls, so source markup never
  * reaches the DOM.
  *
- * marked keeps entity references such as `&amp;` as source text. The renderer
- * decodes them in text, image `alt`, and titles, as CommonMark specifies, with
- * the subset of names that {@link decodeEntities} knows. The
+ * marked decodes only the numeric references in a text token, and keeps the
+ * other entity references as source text. The renderer decodes text from the
+ * source of the token, so that each reference is decoded one time. It decodes
+ * text, image `alt`, and titles, as CommonMark specifies, with the subset of
+ * names that {@link decodeEntities} knows. The
  * decoded text goes into React text nodes and attributes, so a decoded `<`
  * shows as a character and is never markup. Code spans and code blocks keep
  * their references literal.
@@ -128,7 +130,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			return token.tokens ? (
 				<Fragment key={index}>{renderChildren(token.tokens, offset)}</Fragment>
 			) : (
-				decodeEntities(token.text)
+				decodeEntities(token.raw)
 			)
 		case 'strong':
 			return (
@@ -285,7 +287,7 @@ function plainText(tokens: Token[]): string {
 				default:
 					if ('tokens' in token && token.tokens) return plainText(token.tokens)
 
-					return token.type === 'text' ? decodeEntities(token.text) : ''
+					return token.type === 'text' ? decodeEntities(token.raw) : ''
 			}
 		})
 		.join('')
