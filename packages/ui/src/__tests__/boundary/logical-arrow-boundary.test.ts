@@ -25,8 +25,6 @@ const HOME = 'hooks/a11y/logical-arrow.ts'
 const PHYSICAL: Record<string, string> = {
 	'utilities/keyboard-navigation.ts':
 		'index math only; useA11yRoving hands it the key after the rule has run',
-	'components/date-picker/date-picker-content.tsx':
-		'lists the navigation keys to take focus back; interprets none',
 	'components/color/color-slider.tsx': 'the track is placed with `left: %` and does not mirror',
 	'components/color/color-area.tsx': 'the saturation axis is physical and does not mirror',
 	'hooks/use-panel-resize.ts': 'the panel docks to a physical side',
