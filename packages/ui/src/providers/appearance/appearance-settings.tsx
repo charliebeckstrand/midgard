@@ -10,7 +10,7 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../structure/stack'
 import { densityLevels } from '../density/context'
 import { UIProvider } from '../ui'
-import { themeModes, useAppearance } from './context'
+import { motionModes, themeModes, useAppearance } from './context'
 
 type ChoiceListboxProps<T extends string> = {
 	options: readonly { label: string; value: T }[]
@@ -47,15 +47,15 @@ function ChoiceListbox<T extends string>({ options, value, onValueChange }: Choi
 export type AppearanceSettingsProps = {
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
-	 * the density picker, in the same stack. Their floating panels portal into
+	 * the motion picker, in the same stack. Their floating panels portal into
 	 * the dialog, as the panels of the pickers do.
 	 */
 	children?: ReactNode
 }
 
 /**
- * Settings icon button that opens a dialog with the appearance and density
- * pickers of the nearest {@link AppearanceProvider}. A selection applies
+ * Settings icon button that opens a dialog with the appearance, density, and
+ * motion pickers of the nearest {@link AppearanceProvider}. A selection applies
  * immediately and persists. Put it in the header or the navbar of the app.
  *
  * The listbox panels portal into a node inside the dialog (through the
@@ -69,7 +69,7 @@ export type AppearanceSettingsProps = {
  * target on the first mount.
  */
 export function AppearanceSettings({ children }: AppearanceSettingsProps) {
-	const { theme, density, setTheme, setDensity } = useAppearance()
+	const { theme, density, motion, setTheme, setDensity, setMotion } = useAppearance()
 
 	const [open, setOpen] = useState(false)
 
@@ -100,6 +100,10 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 											value={density}
 											onValueChange={setDensity}
 										/>
+									</Field>
+									<Field>
+										<Label>Motion</Label>
+										<ChoiceListbox options={motionModes} value={motion} onValueChange={setMotion} />
 									</Field>
 									{children}
 								</UIProvider>
