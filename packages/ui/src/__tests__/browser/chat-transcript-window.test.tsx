@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { ChatEmbedRenderer, ChatMessageData } from '../../modules/chat'
 import { ChatEmbedProvider, ChatTranscript } from '../../modules/chat'
-import { frames, hasIntermediate, renderUI, waitFor } from '../helpers'
+import { frames, renderUI, waitFor } from '../helpers'
+import { hasIntermediate } from './helpers/sample'
 
 /**
  * The transcript's window, in a real browser.
