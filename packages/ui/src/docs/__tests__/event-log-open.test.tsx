@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { Profiler } from 'react'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { componentEvent } from '../debug/event-log/component-events.ts'
 import { __resetEventLogSheet, EventLogButton } from '../debug/event-log/index.tsx'
 import { halt, record } from '../debug/event-log/recorder.ts'
 import { EventLogSheet } from '../debug/event-log/sheet.tsx'
@@ -94,6 +95,8 @@ describe('EventLogSheet', () => {
 			record('error', 'boom', { stack: ['at f (a.js:1:2)'] })
 
 			record('route', '/plain')
+
+			componentEvent('component', 'Tabs', 'onValueChange', (_value: string) => {})('Payment')
 		})
 
 		rerender(<EventLogSheet open onOpenChange={() => {}} />)
@@ -130,5 +133,8 @@ describe('EventLogSheet', () => {
 		])
 
 		expect(lines[at + 6]).toMatch(/\/plain$/)
+
+		// A component line shows the component in the kind column, and the prop and the arguments as its text.
+		expect(lines[at + 7]).toMatch(/ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
 	})
 })

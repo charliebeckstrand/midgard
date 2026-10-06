@@ -389,17 +389,17 @@ describe('listen', () => {
 
 		const stop = listen(log)
 
-		componentEvent('component', 'Tab onPreload', vi.fn<(value: string) => void>())('Activity')
+		componentEvent('component', 'Tab', 'onPreload', vi.fn<(value: string) => void>())('Activity')
 
-		componentEvent('module', 'Grid onSortChange', vi.fn<(value: string) => void>())('name')
+		componentEvent('module', 'Grid', 'onSortChange', vi.fn<(value: string) => void>())('name')
 
 		stop()
 
-		componentEvent('component', 'Tab onPreload', vi.fn<(value: string) => void>())('Billing')
+		componentEvent('component', 'Tab', 'onPreload', vi.fn<(value: string) => void>())('Billing')
 
-		expect(log.entries.map(({ kind, text, detail }) => [kind, text, detail])).toEqual([
-			['component', 'Tab onPreload("Activity")', ['Activity']],
-			['module', 'Grid onSortChange("name")', ['name']],
+		expect(log.entries.map(({ kind, name, text, detail }) => [kind, name, text, detail])).toEqual([
+			['component', 'Tab', 'onPreload("Activity")', ['Activity']],
+			['module', 'Grid', 'onSortChange("name")', ['name']],
 		])
 	})
 

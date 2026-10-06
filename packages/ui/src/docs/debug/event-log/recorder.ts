@@ -31,6 +31,8 @@ export type Entry = {
 	text: string
 	/** The scroll position of the page. */
 	y: number
+	/** The name that the kind column shows in place of the kind: the component of a `component` or `module` entry. */
+	name?: string
 	/**
 	 * The data of the entry that the line does not hold in full, such as the
 	 * arguments of a callback, a stack, or the fields of a reading. The sheet
@@ -435,7 +437,11 @@ export function listen(target: EventLog): () => void {
 
 	on(window, 'pagehide', () => target.save())
 
-	cleanups.push(listenComponentEvents(note))
+	cleanups.push(
+		listenComponentEvents((source, name, text, detail) =>
+			target.add({ ...entryOf(source, text, detail), name }),
+		),
+	)
 
 	cleanups.push(subscribeOverlaySignal(() => note('overlay', 'overlay opens', viewport())))
 

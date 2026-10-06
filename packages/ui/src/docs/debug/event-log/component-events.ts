@@ -12,8 +12,11 @@ type Callback = (...args: unknown[]) => unknown
 /** Where a component comes from: a module of `ui`, such as `Grid`, or any other component, such as `Tabs`. */
 export type Source = 'component' | 'module'
 
-/** Receives the source, the text, and the arguments of each component event. A call with no arguments has no `detail`. */
-type Listener = (source: Source, text: string, detail?: JsonValue) => void
+/**
+ * Receives the source, the name of the component, the text, and the arguments
+ * of each component event. A call with no arguments has no `detail`.
+ */
+type Listener = (source: Source, name: string, text: string, detail?: JsonValue) => void
 
 let listener: Listener | undefined
 
@@ -26,37 +29,39 @@ export function listenComponentEvents(next: Listener): () => void {
 	}
 }
 
-// The wrapper of each callback, by the source and the label of the call. A callback that
+// The wrapper of each callback, by the component and the prop. A callback that
 // keeps its identity keeps the identity of its wrapper, so the memos and the
 // effects that read it do not run again.
 const wrappers = new WeakMap<Callback, Map<string, Callback>>()
 
 /**
  * The callback that a page gives to a component, wrapped while the log
- * listens, so that each call writes a line, such as
- * `Tabs onValueChange("Payment")`. The line cuts a long argument, and the
+ * listens, so that each call writes a line of the component, such as `Tabs`
+ * with the text `onValueChange("Payment")`. The line cuts a long argument, and the
  * detail of the line holds the arguments in full. A value that is not a
  * function goes through with no change.
  *
  * @param source - Where the component comes from.
- * @param label - The component and the prop, such as `Tabs onValueChange`.
+ * @param name - The component, such as `Tabs` or `Chat.Prompt`.
+ * @param prop - The prop, such as `onValueChange`.
  * @param callback - The value of the prop.
  */
-export function componentEvent<T>(source: Source, label: string, callback: T): T {
+export function componentEvent<T>(source: Source, name: string, prop: string, callback: T): T {
 	if (!listener || typeof callback !== 'function') return callback
 
 	const original = callback as Callback
 
 	return getOrCompute(
 		getOrCompute(wrappers, original, () => new Map()),
-		label,
+		`${name} ${prop}`,
 		() =>
 			function (this: unknown, ...args: unknown[]) {
 				const texts = args.map(serialize)
 
 				listener?.(
 					source,
-					`${label}(${texts.map(cut).join(', ')})`,
+					name,
+					`${prop}(${texts.map(cut).join(', ')})`,
 					args.length > 0 ? texts.map(parse) : undefined,
 				)
 

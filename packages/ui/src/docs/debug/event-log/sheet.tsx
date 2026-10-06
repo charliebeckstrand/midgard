@@ -17,20 +17,30 @@ import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
 import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
-/** The width of the kind column: the longest kind. */
+/** The shortest width of the kind column: the longest kind. */
 const KIND_WIDTH = Math.max(...KINDS.map((kind) => kind.length))
 
-/** The columns before the text of a line: the time, the scroll position, and the kind. */
-function columns({ time, kind, y }: Entry): string {
-	return `${String(time).padStart(6)} y${String(y).padEnd(5)} ${kind.padEnd(KIND_WIDTH)} `
+/** What the kind column shows: the name of a component line, else the kind. */
+function nameOf(entry: Entry): string {
+	return entry.name ?? entry.kind
+}
+
+/** The width of the kind column: the longest kind, or the longest name in the log. */
+function kindWidth(entries: readonly Entry[]): number {
+	return entries.reduce((width, entry) => Math.max(width, nameOf(entry).length), KIND_WIDTH)
+}
+
+/** The columns before the text of a line: the time, the scroll position, and the kind or the name. */
+function columns(entry: Entry, width: number): string {
+	return `${String(entry.time).padStart(6)} y${String(entry.y).padEnd(5)} ${nameOf(entry).padEnd(width)} `
 }
 
 /**
  * One entry as text: the columns, then the text. A detail follows as indented
  * JSON, each line under the start of the text.
  */
-function line(entry: Entry): string {
-	const head = columns(entry)
+function line(entry: Entry, width: number): string {
+	const head = columns(entry, width)
 
 	if (entry.detail === undefined) return head + entry.text
 
@@ -69,10 +79,13 @@ const COLOR: Partial<Record<Kind, string>> = {
  */
 function EventLine({
 	entry,
+	width,
 	open,
 	onOpenChange,
 }: {
 	entry: Entry
+	/** The width of the kind column. */
+	width: number
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
@@ -83,7 +96,7 @@ function EventLine({
 		// line keeps the slot of the toggle, so the texts start in one column. The
 		// slot is one line high, so the toggle sits on the first line.
 		<span className={cn('flex font-mono text-xs', COLOR[entry.kind])}>
-			<span className="shrink-0 whitespace-pre">{columns(entry)}</span>
+			<span className="shrink-0 whitespace-pre">{columns(entry, width)}</span>
 			<span className="flex size-4 shrink-0">
 				{detail !== undefined && (
 					<CollapseTrigger aria-label="Details" className="aria-expanded:*:rotate-90">
@@ -134,7 +147,11 @@ export function EventLogSheet({
 
 	const preserve = useSyncExternalStore(subscribe, () => log.preserve)
 
-	const { copied, copy } = useCopyButtonState({ text: entries.map(line).join('\n') })
+	const width = kindWidth(entries)
+
+	const { copied, copy } = useCopyButtonState({
+		text: entries.map((entry) => line(entry, width)).join('\n'),
+	})
 
 	// The keys of the lines with an open detail. The list renders only the lines
 	// in view, so the sheet keeps the open state of a line out of view.
@@ -196,6 +213,7 @@ export function EventLogSheet({
 							{(entry) => (
 								<EventLine
 									entry={entry}
+									width={width}
 									open={openKeys.has(keyOf(entry))}
 									onOpenChange={(next) => setOpen(keyOf(entry), next)}
 								/>
