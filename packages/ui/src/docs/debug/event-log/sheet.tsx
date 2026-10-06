@@ -83,7 +83,7 @@ export function EventLogSheet({
 						<Button variant="soft" color={copied ? 'green' : 'blue'} onClick={() => void copy()}>
 							{copied ? 'Copied' : 'Copy'}
 						</Button>
-						<Button variant="soft" color="red" onClick={() => log.clear()}>
+						<Button variant="soft" color="amber" onClick={() => log.clear()}>
 							Clear
 						</Button>
 					</Flex>
