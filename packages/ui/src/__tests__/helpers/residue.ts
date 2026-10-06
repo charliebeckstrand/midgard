@@ -56,6 +56,15 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
 /** The drag cursor's marker; `use-drag-cursor` stamps it on its style. */
 const DRAG_CURSOR = '[data-drag-cursor]'
 
+/**
+ * A link that only tells the browser to fetch or connect early, such as the
+ * preload of `preload()` from `react-dom` in the PDF viewer. React adds one
+ * such link for each URL and keeps it for the life of the page. It changes no
+ * style and no layout, so a later case does not read it.
+ */
+const RESOURCE_HINT =
+	'link:is([rel~=preload i], [rel~=modulepreload i], [rel~=prefetch i], [rel~=preconnect i], [rel~=dns-prefetch i])'
+
 let children = new WeakSet<Element>()
 
 let headChildren = new WeakSet<Element>()
@@ -178,7 +187,7 @@ function collect(): string[] {
 	if (document.head.querySelector(DRAG_CURSOR)) leaks.push('a drag-cursor style, left in head')
 
 	for (const node of document.head.children) {
-		if (!headChildren.has(node) && !node.matches(DRAG_CURSOR)) {
+		if (!headChildren.has(node) && !node.matches(`${DRAG_CURSOR}, ${RESOURCE_HINT}`)) {
 			leaks.push(`${describeNode(node)}, left in head`)
 		}
 	}
