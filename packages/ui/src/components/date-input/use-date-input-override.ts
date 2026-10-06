@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { isSameInstant } from '../calendar/calendar-utilities'
 import { useDateInputResets } from './context'
 import { isSameDay } from './date-input-utilities'
 
@@ -24,13 +25,6 @@ type DateInputKnown = {
 	resets: number
 	/** The value that the field committed after the last change that it saw. */
 	commit: { date: Date | undefined } | undefined
-}
-
-/** Whether two values are the same instant, or both empty. @internal */
-function sameInstant(a: Date | undefined, b: Date | undefined): boolean {
-	if (a === undefined || b === undefined) return a === b
-
-	return a.getTime() === b.getTime()
 }
 
 /**
@@ -65,13 +59,13 @@ export function useDateInputOverride({
 		setKnown((current) => ({ ...current, commit: { date: committed } }))
 	}
 
-	if (sameInstant(known.date, date) && known.resets === resets) return recordCommit
+	if (!isSameInstant(known.date, date) || known.resets !== resets) {
+		setKnown({ date, resets, commit: undefined })
 
-	setKnown({ date, resets, commit: undefined })
+		const echo = known.commit !== undefined && isSameDay(date, known.commit.date)
 
-	const echo = known.commit !== undefined && isSameDay(date, known.commit.date)
-
-	if (editing && (known.resets !== resets || !echo)) onOverride()
+		if (editing && (known.resets !== resets || !echo)) onOverride()
+	}
 
 	return recordCommit
 }
