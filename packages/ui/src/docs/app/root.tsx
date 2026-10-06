@@ -1,7 +1,16 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
-import { Link, Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation } from 'react-router'
+import {
+	Link,
+	Links,
+	Meta,
+	Outlet,
+	Scripts,
+	ScrollRestoration,
+	useLocation,
+	useMatches,
+} from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
 import { Flex } from 'ui/flex'
@@ -107,17 +116,24 @@ export default function App() {
 
 	const [locked, setLocked] = useState(true)
 
-	const page = pages.find((link) => pathname === link.path || pathname.startsWith(`${link.path}/`))
+	const matches = useMatches()
 
-	const title = page?.name ?? (pathname === '/' ? 'Docs' : 'Not found')
+	// The page of the matched route. A path that only starts with the path of a
+	// page, such as `/button/foo`, matches the not-found route, so it has no page.
+	const page = pages.find((link) => matches.some((match) => match.id === link.path))
+
+	// The root path lists the pages, and has no title of its own.
+	const title = page?.name ?? (pathname === '/' ? undefined : 'Not found')
 
 	useEffect(() => recordRoute(pathname), [pathname])
 
 	useIdle(warmShiki)
 
 	return (
-		<UIProvider link={RouterLink} pathname={pathname}>
-			<title>{page ? `${page.name} · Docs` : 'Docs'}</title>
+		// The links match the path of the page, so the item of a page is current
+		// on each tab of the page, and no item is current on the not-found page.
+		<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
+			<title>{title ? `${title} · Docs` : 'Docs'}</title>
 			<Stylesheet />
 			<SidebarLayout
 				stickyHeader
@@ -135,7 +151,7 @@ export default function App() {
 						>
 							<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
 						</Button>
-						<Heading>{title}</Heading>
+						<Heading>{title ?? 'Docs'}</Heading>
 					</Flex>
 				</SidebarLayoutHeader>
 				<Stack gap="xl">
