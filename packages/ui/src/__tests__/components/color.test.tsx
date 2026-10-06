@@ -2,6 +2,7 @@ import { act, within as inside, renderHook } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
+import { ColorPanelView } from '../../components/color/color-panel'
 import {
 	equalHsva,
 	hexToHsva,
@@ -11,7 +12,6 @@ import {
 	hsvaToRgba,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import { SharedColorContext } from '../../components/color/context'
 import type { ColorFormat, Hsva } from '../../components/color/types'
 import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
@@ -823,7 +823,7 @@ function PickerHarness({ open, initial, format, onValueChange }: PickerHarnessPr
 	return (
 		<>
 			<span data-slot="picker-color">{hsvaToHex(color.hsva)}</span>
-			<SharedColorContext value={color}>{open && <ColorPanel />}</SharedColorContext>
+			{open && <ColorPanelView hsva={color.hsva} setHsva={color.setHsva} />}
 		</>
 	)
 }

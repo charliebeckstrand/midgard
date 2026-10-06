@@ -170,13 +170,14 @@ export function toHsva(value: string | Hsva | undefined | null): Hsva | null {
 	return typeof value === 'string' ? hexToHsva(value) : clampHsva(value)
 }
 
+/** The HSVA with its alpha pinned to `1` when `alpha` is off, else the HSVA as it is. @internal */
+export function pinAlpha(hsva: Hsva, alpha: boolean): Hsva {
+	return alpha ? hsva : { ...hsva, a: 1 }
+}
+
 /** Project the internal HSVA back onto the consumer's wire format. */
 export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean): string | Hsva {
-	if (format === 'hsva') {
-		const rounded = roundHsva(hsva)
-
-		return alpha ? rounded : { ...rounded, a: 1 }
-	}
+	if (format === 'hsva') return pinAlpha(roundHsva(hsva), alpha)
 
 	return hsvaToHex(hsva, alpha)
 }

@@ -32,7 +32,7 @@ export function ColorArea() {
 	const drag = useColorDrag(ref, onPosition, disabled, 'crosshair')
 
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (disabled || inDisabledFieldset(event.currentTarget)) return
+		if (disabled) return
 
 		const step = event.shiftKey ? 10 : 1
 
@@ -69,6 +69,9 @@ export function ColorArea() {
 			default:
 				return
 		}
+
+		// The fieldset walk runs only for a key that the area takes.
+		if (inDisabledFieldset(event.currentTarget)) return
 
 		event.preventDefault()
 

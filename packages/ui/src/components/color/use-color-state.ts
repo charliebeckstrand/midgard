@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { DEFAULT_HSVA } from './color-constants'
-import { clampHsva, sameColorValue, serializeColor, toHsva } from './color-utilities'
+import { clampHsva, pinAlpha, sameColorValue, serializeColor, toHsva } from './color-utilities'
 import type { ColorFormat, Hsva } from './types'
 
 export type ColorStateOptions = {
@@ -23,11 +23,6 @@ export type ColorState = {
 /** Whether two HSVA values are the same in each channel. @internal */
 function sameHsva(a: Hsva, b: Hsva): boolean {
 	return a.h === b.h && a.s === b.s && a.v === b.v && a.a === b.a
-}
-
-/** The HSVA with its alpha pinned to `1` when `alpha` is off, else the HSVA as it is. @internal */
-function pinAlpha(hsva: Hsva, alpha: boolean): Hsva {
-	return alpha ? hsva : { ...hsva, a: 1 }
 }
 
 /**
@@ -81,38 +76,30 @@ export function useColorState({
 	// Keyed on `hsva` too: an owner that does not adopt an emission keeps the
 	// same `value`, and the check must still run to snap the HSVA back (§7.2).
 	useLayoutEffect(() => {
-		if (value === undefined) return
+		let next = hsva
 
-		// Skip echoes of the last adopted or emitted value.
-		if (sameColorValue(value, cacheRef.current)) return
+		// Skip echoes of the last adopted or emitted value. A controlled empty
+		// value has no color of its own, so it paints black.
+		if (value !== undefined && !sameColorValue(value, cacheRef.current)) {
+			const parsed = value === null ? DEFAULT_HSVA : toHsva(value)
 
-		// A controlled empty value has no color of its own, so it paints black.
-		const parsed = value === null ? DEFAULT_HSVA : toHsva(value)
+			if (parsed) {
+				cacheRef.current = value
 
-		if (!parsed) return
+				next = parsed
+			}
+		}
 
-		cacheRef.current = value
+		// Each held color is already pinned, so this pin changes the color only
+		// when `alpha` switches off.
+		next = pinAlpha(next, alpha)
 
-		const adopted = pinAlpha(parsed, alpha)
+		// The HSVA already holds the color, so no write is needed.
+		if (sameHsva(next, hsva)) return
 
-		// The HSVA already holds the value, so no write is needed.
-		if (sameHsva(adopted, hsva)) return
-
-		hsvaRef.current = adopted
-		setInternal(adopted)
+		hsvaRef.current = next
+		setInternal(next)
 	}, [value, hsva, alpha])
-
-	// A switch of `alpha` to off pins the alpha of the held color. The effect
-	// above runs first, so this effect reads the color that it adopts.
-	useLayoutEffect(() => {
-		const held = hsvaRef.current
-		const pinned = pinAlpha(held, alpha)
-
-		if (sameHsva(pinned, held)) return
-
-		hsvaRef.current = pinned
-		setInternal(pinned)
-	}, [alpha])
 
 	const setHsva = useStableEvent((next: Hsva | ((prev: Hsva) => Hsva)) => {
 		const prev = hsvaRef.current

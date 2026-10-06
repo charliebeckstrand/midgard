@@ -14,9 +14,9 @@ import { ColorHexInput } from './color-hex-input'
 import { ColorSlider } from './color-slider'
 import { ColorSwatches } from './color-swatches'
 import { hsvaToCss } from './color-utilities'
-import { ColorPanelContext, type ColorPanelContextValue, useSharedColor } from './context'
+import { ColorPanelContext, type ColorPanelContextValue } from './context'
 import type { ColorValueProps, Hsva } from './types'
-import { useColorState } from './use-color-state'
+import { type ColorState, useColorState } from './use-color-state'
 
 type ColorPanelBaseProps = {
 	/**
@@ -65,9 +65,9 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
  * @see {@link ColorPicker} for the popover variant.
  */
 export function ColorPanel(props: ColorPanelProps) {
-	const { alpha = false, swatches = DEFAULT_SWATCHES, size, disabled = false, className } = props
+	const { alpha = false, swatches, size, disabled, className } = props
 
-	const own = useColorState({
+	const { hsva, setHsva } = useColorState({
 		value: props.value,
 		defaultValue: props.defaultValue,
 		format: props.format ?? 'hex',
@@ -77,14 +77,36 @@ export function ColorPanel(props: ColorPanelProps) {
 		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
 	})
 
-	// In a ColorPicker, the panel reads and writes the HSVA of the picker, and
-	// its own state stays unused. The popover unmounts the panel on close, and
-	// the HSVA of the picker keeps the hue that hex drops. The picker serializes
-	// the color once, at its own edge.
-	const shared = useSharedColor()
+	return (
+		<ColorPanelView
+			hsva={hsva}
+			setHsva={setHsva}
+			alpha={alpha}
+			swatches={swatches}
+			size={size}
+			disabled={disabled}
+			className={className}
+		/>
+	)
+}
 
-	const { hsva, setHsva } = shared ?? own
-
+/**
+ * The body of a {@link ColorPanel}, over a color state that the caller owns. A
+ * `ColorPicker` gives it the HSVA of the picker, so the picker and the panel
+ * share one color. Thus a hue that hex drops stays after the popover unmounts
+ * the panel, and the picker serializes the color one time, at its own edge.
+ *
+ * @internal
+ */
+export function ColorPanelView({
+	hsva,
+	setHsva,
+	alpha = false,
+	swatches = DEFAULT_SWATCHES,
+	size,
+	disabled = false,
+	className,
+}: ColorPanelBaseProps & ColorState) {
 	const context = useMemo<ColorPanelContextValue>(
 		() => ({ hsva, setHsva, alpha, disabled }),
 		[hsva, setHsva, alpha, disabled],

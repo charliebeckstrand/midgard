@@ -98,9 +98,6 @@ export function ColorPickerTrigger({
 						aria-expanded={open}
 						aria-describedby={describedBy}
 						data-slot="color-picker-button"
-						// Only `disabled` takes the native attribute. A read-only trigger keeps its tab
-						// stop, so a keyboard or a screen reader can reach it and read the color. The open
-						// setter refuses the open, and a panel that is open can still close.
 						aria-disabled={ariaAttr(readOnly && !open)}
 						data-readonly={dataAttr(readOnly)}
 						disabled={disabled}

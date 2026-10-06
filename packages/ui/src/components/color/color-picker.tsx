@@ -1,17 +1,14 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useMemo } from 'react'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/color-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { ColorPanel } from './color-panel'
+import { type ColorPanel, ColorPanelView } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
-import { SharedColorContext } from './context'
 import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
-import type { ColorState } from './use-color-state'
 
 type ColorPickerBaseProps = GroupStampProps & {
 	/**
@@ -112,15 +109,6 @@ export function ColorPicker(props: ColorPickerProps) {
 		readOnly,
 	})
 
-	// The picker owns the color and gives its HSVA to the inline panel. The panel
-	// reads and writes that HSVA with no wire round trip, so the HSVA keeps its
-	// full precision and the hue that hex drops. The picker serializes the color
-	// once, at its own edge.
-	const color = useMemo<ColorState>(
-		() => ({ hsva: state.hsva, setHsva: state.setHsva }),
-		[state.hsva, state.setHsva],
-	)
-
 	// `display: contents` wrapper: while open, floating-ui's modal focus manager
 	// inserts a hidden return-focus span as the reference's next sibling
 	// (`domReference.insertAdjacentElement('afterend', …)`). Scoping it under this
@@ -155,9 +143,15 @@ export function ColorPicker(props: ColorPickerProps) {
 				context={state.context}
 				size={size}
 			>
-				<SharedColorContext value={color}>
-					<ColorPanel alpha={alpha} swatches={swatches} disabled={state.disabled} />
-				</SharedColorContext>
+				{/* The picker owns the color, and the panel reads and writes its HSVA
+				    with no wire round trip. */}
+				<ColorPanelView
+					hsva={state.hsva}
+					setHsva={state.setHsva}
+					alpha={alpha}
+					swatches={swatches}
+					disabled={state.disabled}
+				/>
 			</ColorPickerContent>
 		</div>
 	)
