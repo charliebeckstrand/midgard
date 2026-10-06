@@ -1,3 +1,4 @@
+import type { MotionValue } from 'motion/react'
 import {
 	type ComponentType,
 	createContext,
@@ -8,6 +9,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
+import { vi } from 'vitest'
 import { noop } from '../helpers/noop'
 
 /**
@@ -130,7 +132,36 @@ const handler: ProxyHandler<object> = {
 					onAnimationComplete?.(props.animate)
 				})
 
-				return createElement(tag, { ref, ...stripMotionProps(props) })
+				const children = props.children
+
+				const textRef = useRef<Element | null>(null)
+
+				// A motion value child is text that Motion writes to the element, not a
+				// React child. Render its value now, and write each change as the real
+				// component does.
+				useEffect(() => {
+					if (!isMotionValue(children)) return
+
+					return children.on('change', (latest) => {
+						if (textRef.current) textRef.current.textContent = String(latest)
+					})
+				}, [children])
+
+				if (!isMotionValue(children)) return createElement(tag, { ref, ...stripMotionProps(props) })
+
+				return createElement(
+					tag,
+					{
+						...stripMotionProps(props),
+						ref: (node: Element | null) => {
+							textRef.current = node
+
+							if (typeof ref === 'function') ref(node)
+							else if (ref) ref.current = node
+						},
+					},
+					String(children.get()),
+				)
 			})
 
 			component.displayName = `motion.${tag}`
@@ -140,6 +171,10 @@ const handler: ProxyHandler<object> = {
 
 		return component
 	},
+}
+
+function isMotionValue(value: unknown): value is MotionValue {
+	return typeof value === 'object' && value !== null && 'getVelocity' in value
 }
 
 const motion = new Proxy({}, handler)
@@ -175,29 +210,13 @@ function useAnimate(): [{ current: null }, (...args: unknown[]) => void] {
 	return [{ current: null }, noop]
 }
 
-function useMotionValue<T>(initial: T) {
-	let value = initial
-	return {
-		get: () => value,
-		set: (next: T) => {
-			value = next
-		},
-		on: () => () => {},
-	}
-}
-
-// Derives a static motion value from a source: `.get()` applies the transform
-// to the source's current value. No reactivity is needed in jsdom, where the
-// animation runtime is stubbed and nothing reads per-frame updates.
-function useTransform<I, O>(source: { get: () => I } | (() => O), transform?: (value: I) => O) {
-	const read = () =>
-		typeof source === 'function' ? source() : transform ? transform(source.get()) : source.get()
-	return {
-		get: read,
-		set: () => {},
-		on: () => () => {},
-	}
-}
+// The real motion values, so a value an animation drives reaches what reads it,
+// as the Odometer readout does. They need no animation runtime: a `set` notifies
+// the subscribers at once, and a `useTransform` output follows on the next frame.
+// The real `useInView` watches through the `IntersectionObserver` that the jsdom
+// setup or a suite installs.
+const { useInView, useMotionValue, useTransform } =
+	await vi.importActual<typeof import('motion/react')>('motion/react')
 
 // Reads the reduced-motion preference from `window.matchMedia`, mirroring the
 // real hook. Defaults to `false` via the jsdom matchMedia stub; a test forces
@@ -217,6 +236,7 @@ export default {
 	MotionConfig,
 	MotionConfigContext,
 	useAnimate,
+	useInView,
 	useMotionValue,
 	useReducedMotion,
 	useTransform,
