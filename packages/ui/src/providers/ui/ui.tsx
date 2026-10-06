@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, use, useMemo } from 'react'
+import { ConfirmHost } from '../../components/confirm/use-confirm'
 // LinkContext / PortalContext / PathnameContext live in the primitives layer:
 // the `polymorphic` primitive consumes `useLink`; the `overlay` /
 // `floating-surface` primitives consume `usePortalContainer`; the nav items
@@ -53,12 +54,14 @@ export type UIProviderProps = {
 /**
  * Single app-root integration point for the library's framework bindings.
  * Registers the link component, the default portal container, and the current
- * path.
+ * path. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in.
  *
  * Each binding is independent and optional: the provider broadcasts a binding
  * only when its prop is provided. A nested `<UIProvider>` overrides one
  * binding (e.g. scopes `portalContainer` to a dialog subtree) without
- * disturbing the outer provider's others.
+ * disturbing the outer provider's others. Each provider mounts its own
+ * confirm dialog, so a question asked under a nested provider portals into
+ * the container of that provider.
  */
 export function UIProvider({ link, portalContainer, pathname, children }: UIProviderProps) {
 	const outerLink = useLink()
@@ -83,7 +86,7 @@ export function UIProvider({ link, portalContainer, pathname, children }: UIProv
 		<PortalContext value={portalContainer ?? outerPortal}>
 			<LinkContext value={linkValue}>
 				<PathnameContext value={pathname === undefined ? outerPathname : pathnameStore}>
-					{children}
+					<ConfirmHost>{children}</ConfirmHost>
 				</PathnameContext>
 			</LinkContext>
 		</PortalContext>

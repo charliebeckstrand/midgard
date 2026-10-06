@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 import { useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { cn } from 'ui/core'
 import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
@@ -63,7 +63,7 @@ function linelessPicks(open: Game[], values: PickValues, stored: WeekPicks | und
 	}).length
 }
 
-/** The words of {@link LinelessConfirm} for `count` picks. */
+/** The words of the question of a save with `count` new picks on games that have no line yet. */
 function linelessCopy(count: number): { title: string; body: string } {
 	if (count === 1) {
 		return {
@@ -76,43 +76,6 @@ function linelessCopy(count: number): { title: string; body: string } {
 		title: 'Lines still pending',
 		body: `The sportsbooks haven't posted lines for ${count} of your picks, so their points can't be estimated yet. Each will be scored on its closing line once the game is settled.`,
 	}
-}
-
-/**
- * A save that waits on {@link LinelessConfirm}: its values, and the number of
- * its new picks on games that have no line yet. A cancel or a confirm clears
- * `open` and keeps the count, so the words stay the same while the dialog
- * closes.
- */
-type PendingSave = { values: PickValues; count: number; open: boolean }
-
-/** The confirmation of a save with new picks on games that have no line yet. */
-function LinelessConfirm({
-	pending,
-	label,
-	onCancel,
-	onConfirm,
-}: {
-	pending: PendingSave | null
-	label: string
-	onCancel: () => void
-	onConfirm: () => void
-}) {
-	const copy = linelessCopy(pending?.count ?? 0)
-
-	return (
-		<Confirm
-			open={pending?.open ?? false}
-			onOpenChange={(next) => {
-				if (!next) onCancel()
-			}}
-			onConfirm={onConfirm}
-			title={copy.title}
-			description={copy.body}
-			confirm={{ label }}
-			cancel={{ label: 'Keep editing' }}
-		/>
-	)
 }
 
 /**
@@ -200,7 +163,7 @@ export function PredictionSheet({
 
 	const [failure, setFailure] = useState<string | null>(null)
 
-	const [pending, setPending] = useState<PendingSave | null>(null)
+	const confirm = useConfirm()
 
 	// The week the sheet last opened on, and whether it had a prediction then. A
 	// close clears the week of the caller, and the sheet stays mounted while it
@@ -217,8 +180,6 @@ export function PredictionSheet({
 			setHeld({ week, editing: picks[week.number] !== undefined })
 
 			setFailure(null)
-
-			setPending(null)
 		}
 	}
 
@@ -269,14 +230,25 @@ export function PredictionSheet({
 
 		const count = linelessPicks(openGames, values, stored)
 
-		if (count > 0) setPending({ values, count, open: true })
-		else await save(values)
+		if (count === 0) {
+			await save(values)
+
+			return undefined
+		}
+
+		const copy = linelessCopy(count)
+
+		void confirm({
+			title: copy.title,
+			description: copy.body,
+			confirm: { label: action },
+			cancel: { label: 'Keep editing' },
+		}).then((confirmed) => {
+			if (confirmed) void save(values)
+		})
 
 		return undefined
 	}
-
-	const closeConfirm = () =>
-		setPending((current) => (current === null ? null : { ...current, open: false }))
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -315,17 +287,6 @@ export function PredictionSheet({
 						onCancel={() => onOpenChange(false)}
 					/>
 				)}
-
-				<LinelessConfirm
-					pending={pending}
-					label={action}
-					onCancel={closeConfirm}
-					onConfirm={() => {
-						closeConfirm()
-
-						if (pending !== null) void save(pending.values)
-					}}
-				/>
 			</SheetPanel>
 		</Sheet>
 	)

@@ -7,7 +7,7 @@ import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from 'ui/card'
 import { Code } from 'ui/code'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { CopyButton } from 'ui/copy-button'
 import { Divider } from 'ui/divider'
 import { Field, Label, Message } from 'ui/fieldset'
@@ -61,17 +61,17 @@ type CodeValues = { code: string }
  */
 export function TwoStep({ factors, admin, children }: TwoStepProps) {
 	const start = useStartTotpSetup()
-	const confirm = useConfirmTotp()
+	const confirmTotp = useConfirmTotp()
 	const removeApp = useRemoveTotp()
 	const makeCodes = useGenerateRecoveryCodes()
 	const [setup, setSetup] = useState<TotpSetup | null>(null)
 	const [codes, setCodes] = useState<string[] | null>(null)
-	const [removing, setRemoving] = useState(false)
+	const confirm = useConfirm()
 
-	const error = start.error ?? confirm.error ?? removeApp.error ?? makeCodes.error
+	const error = start.error ?? confirmTotp.error ?? removeApp.error ?? makeCodes.error
 
 	const handleConfirm: FormSubmitHandler<CodeValues> = async ({ code }) => {
-		await confirm.mutateAsync(code.replace(/\s/g, ''))
+		await confirmTotp.mutateAsync(code.replace(/\s/g, ''))
 
 		setSetup(null)
 	}
@@ -109,7 +109,15 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 								variant="outline"
 								color="red"
 								disabled={removeApp.isPending}
-								onClick={() => setRemoving(true)}
+								onClick={async () => {
+									const confirmed = await confirm({
+										title: 'Remove the authenticator app?',
+										description: 'Its codes stop working when you remove it.',
+										confirm: { label: 'Remove', color: 'red' },
+									})
+
+									if (confirmed) removeApp.mutate()
+								}}
 							>
 								Remove
 							</Button>
@@ -146,7 +154,7 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 								<Message name="code" />
 							</Field>
 							<Flex gap="sm" wrap>
-								<Button type="submit" color="blue" disabled={confirm.isPending}>
+								<Button type="submit" color="blue" disabled={confirmTotp.isPending}>
 									Turn on
 								</Button>
 								<Button variant="plain" onClick={() => setSetup(null)}>
@@ -189,19 +197,6 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 					</>
 				)}
 			</Stack>
-
-			<Confirm
-				open={removing}
-				onOpenChange={setRemoving}
-				onConfirm={() => {
-					removeApp.mutate()
-
-					setRemoving(false)
-				}}
-				title="Remove the authenticator app?"
-				description="Its codes stop working when you remove it."
-				confirm={{ label: 'Remove', color: 'red' }}
-			/>
 		</Card>
 	)
 }

@@ -53,6 +53,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > An `interactive` `tooltip` with a tabbable control in its content is a non-modal `role="dialog"`. The trigger names it and carries `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`. Tab goes from the trigger into the panel controls and then on to the element after the trigger. Focus does not stay in the panel, and the page stays visible to assistive tech. Other tooltips are `role="tooltip"` and describe the trigger.
 
+> `confirm` exports `Confirm` and `useConfirm`. `Confirm` is the controlled alertdialog. `useConfirm()` gives a function that asks a question in the one `Confirm` that `UIProvider` mounts. The function returns a promise that resolves `true` on a confirm and `false` on a cancel or a dismissal. An optional `action` keeps the dialog open, with the confirm button pending, until the work is done. Use `Confirm` for a message with custom children.
+
 > `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers at the app root. `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. Put one viewport anywhere in the provider.
 
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`. The root (`Dialog`, `Drawer`, `Sheet`) holds the open state, controlled or uncontrolled, and renders no element. The trigger part (`DialogTrigger`, `DrawerTrigger`, `SheetTrigger`) opens the panel. The panel part (`DialogPanel`, `DrawerPanel`, `SheetPanel`) is the surface, and takes the props that style it or place it.
