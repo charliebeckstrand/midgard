@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Component, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ApiTable } from '../kit/api-table.tsx'
@@ -69,9 +69,14 @@ describe('ExampleFrame', () => {
 
 	// A stale tab after a deploy: the chunk is gone, and only a reload gets it.
 	it('gives a failed code load to the error boundary when the reader opens "Show code"', async () => {
+		let reject: (error: Error) => void = () => {}
+
 		const meta: ExampleMeta = {
 			title: 'Basic',
-			code: () => Promise.reject(new Error('Failed to fetch dynamically imported module')),
+			code: () =>
+				new Promise((_, fail) => {
+					reject = fail
+				}),
 		}
 
 		render(
@@ -90,7 +95,11 @@ describe('ExampleFrame', () => {
 		// A load in the background that fails does nothing.
 		fireEvent.pointerEnter(trigger)
 
-		await Promise.resolve()
+		// The load fails inside `act`, so React renders each update of the failure
+		// before the check.
+		await act(async () => {
+			reject(new Error('Failed to fetch dynamically imported module'))
+		})
 
 		expect(screen.queryByText('Failed')).toBeNull()
 

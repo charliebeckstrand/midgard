@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { useScrollOverflow } from '../../hooks/use-scroll-overflow'
-import { frames, present, renderUI, screen, waitFor } from '../helpers'
+import { attach, frames, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * {@link useScrollOverflow} stamps `data-overflow-above` / `data-overflow-below`
@@ -174,7 +174,7 @@ describe('useScrollOverflow against a real scroller', () => {
 		// reports `scrollTop`, `clientHeight` and `scrollHeight` as zero, so a
 		// listener left behind would compute both edges false and the assertion
 		// below would hold whether or not one survived the cleanup.
-		document.body.append(el)
+		attach(el)
 
 		el.scrollTop = 100
 
@@ -185,8 +185,6 @@ describe('useScrollOverflow against a real scroller', () => {
 		expect(el.hasAttribute('data-overflow-above')).toBe(false)
 
 		expect(el.hasAttribute('data-overflow-below')).toBe(false)
-
-		el.remove()
 
 		expect(container.isConnected).toBe(true)
 	})

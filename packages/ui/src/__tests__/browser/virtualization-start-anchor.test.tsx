@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { act, frames, present, renderUI, waitFor } from '../helpers'
 import { settledValue } from './helpers/sample'
@@ -203,11 +203,14 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 
 		signal.throwIfAborted()
 
-		vi.spyOn(window, 'setTimeout').mockImplementation(((
-			callback: () => void,
-			delay?: number,
-			...rest: unknown[]
-		) => {
+		const held = vi.spyOn(window, 'setTimeout')
+
+		// The spy holds each 150 ms timer of the page. `restoreMocks` acts only
+		// before the next case, so the spy would hold the timers of this teardown
+		// too.
+		onTestFinished(() => held.mockRestore())
+
+		held.mockImplementation(((callback: () => void, delay?: number, ...rest: unknown[]) => {
 			if (delay !== 150) return timeout(callback, delay, ...rest)
 
 			scrollEnd = callback

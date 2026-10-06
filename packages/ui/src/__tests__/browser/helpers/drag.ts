@@ -1,4 +1,4 @@
-import { expect } from 'vitest'
+import { expect, onTestFinished } from 'vitest'
 import { fireEvent, frames, waitFor } from '../../helpers'
 import { swallowsClicks } from '../../helpers/residue'
 
@@ -45,7 +45,9 @@ const PRIMARY: PointerEventInit = { isPrimary: true, button: 0 }
  * the wait hands the next file a page that drops every click.
  *
  * The residue guard fails a case that leaves the drag down, so a missed release
- * names its own case rather than the case after it.
+ * names its own case rather than the case after it. The helper also releases
+ * the press when the case ends, so a case that fails or times out before its
+ * own release does not hand the press to the next case.
  *
  * @param node - The node the press lands on, and the target of every later event.
  * @param from - Where the press lands.
@@ -86,13 +88,23 @@ export async function drag(
 
 	const end = path.at(-1) ?? from
 
-	return {
-		release: async () => {
-			fireEvent.pointerUp(targetOf(), { ...pointer, clientX: end.x, clientY: end.y })
+	let released = false
 
-			// The wait reads the page rather than holding 50ms of wall clock, so a
-			// green run pays only the poll that finds the listener gone.
-			await waitFor(() => expect(swallowsClicks()).toBe(false))
-		},
+	const release = async () => {
+		if (released) return
+
+		released = true
+
+		fireEvent.pointerUp(targetOf(), { ...pointer, clientX: end.x, clientY: end.y })
+
+		// The wait reads the page rather than holding 50ms of wall clock, so a
+		// green run pays only the poll that finds the listener gone.
+		await waitFor(() => expect(swallowsClicks()).toBe(false))
 	}
+
+	// A case that fails or times out before its own release still lets go here.
+	// The second call does nothing.
+	onTestFinished(release)
+
+	return { release }
 }

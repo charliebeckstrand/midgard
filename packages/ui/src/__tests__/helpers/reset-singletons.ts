@@ -19,7 +19,7 @@ import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
  * needs a measurement before it gains a seam. A proposed seam for the
  * media-query registries turned out to guard nothing: a registry drops itself
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.
- * The three below are the ones with a mechanism rather than a suspicion. The
+ * The four below are the ones with a mechanism rather than a suspicion. The
  * counter in `use-scroll-lock` and the holds in `use-drag-cursor` balance on unmount,
  * the `document-listener` registries drop themselves like the media-query ones,
  * and the time-ago ticker's `visibilityBound` flag and the PDF viewer's
@@ -37,6 +37,24 @@ export function installSingletonResets(): void {
 	// held set. The next file then starts inside that hold, and its own release
 	// never comes. An `afterEach`, for the same reason as the announcer.
 	afterEach(__resetTextSelectionHold)
+
+	// The PDF document cache holds each document that a case loads. A reset in
+	// the body of a case does not empty it: the unmount in `cleanup` withdraws the
+	// rail of the viewer, and that withdrawal adds an empty entry for the source
+	// again. The next file then reads that entry as its own. An `afterEach`, so
+	// that the reset runs after `cleanup`.
+	//
+	// The hook imports the cache when it runs. A static import here loads the
+	// cache, and the `utilities` barrel that it imports, before the test file. A
+	// `vi.mock` of a module in that graph then cannot replace it, as in
+	// `runtime-hydration.test.tsx`.
+	afterEach(async () => {
+		const { resetDocumentCache } = await import(
+			'../../components/pdf-viewer/pdf-viewer-document-cache'
+		)
+
+		resetDocumentCache()
+	})
 
 	// The shared ResizeObserver is built from whichever global existed at first
 	// use, and several jsdom files stub that global. Vitest restores a stubbed

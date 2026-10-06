@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
@@ -231,6 +231,13 @@ describe('grid column resizing (real browser)', () => {
 
 		// Hold the drag open — mousedown plus a move, but no mouseup yet.
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
+
+		// A failed read below skips the release, and the resize listeners then stay
+		// on the document. This one runs either way, and a second release does
+		// nothing.
+		onTestFinished(() => {
+			fireEvent.mouseUp(document, { clientX: startX + 40, clientY: y })
+		})
 
 		fireEvent.mouseMove(document, { clientX: startX + 40, clientY: y })
 

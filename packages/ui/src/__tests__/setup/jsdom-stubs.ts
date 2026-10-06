@@ -111,8 +111,10 @@ for (const kind of ['localStorage', 'sessionStorage'] as const) {
 	}
 }
 
+// A plain function, not `vi.fn()`, for the reason that the pointer-capture
+// block below gives.
 if (typeof Element.prototype.scrollIntoView !== 'function') {
-	Element.prototype.scrollIntoView = vi.fn()
+	Element.prototype.scrollIntoView = () => {}
 }
 
 // jsdom implements no pointer capture, so a drag handler that captures its
@@ -197,14 +199,50 @@ if (contentWindowDescriptor?.get) {
 }
 
 // jsdom implements neither URL.createObjectURL nor URL.revokeObjectURL; the
-// blob-download paths (CSV/HTML export, PDF viewer) call them. Stub as no-ops so
-// the properties exist and tests can wrap them with vi.spyOn (auto-restored by
-// restoreMocks) — never a raw reassignment, which would leak across the
-// worker's shared window.
+// blob-download paths (CSV/HTML export, PDF viewer) call them. Stub them as
+// plain functions, so that the properties exist and a test can wrap them with
+// `vi.spyOn`. `restoreMocks` then restores the spy. On a member that is already
+// a mock, `vi.spyOn` returns that mock, and nothing restores the value that a
+// case gives it. Never assign the members in a test, because the assignment
+// stays on the shared window of the worker.
 if (typeof URL.createObjectURL !== 'function') {
-	URL.createObjectURL = vi.fn(() => 'blob:stub')
+	URL.createObjectURL = () => 'blob:stub'
 }
 
 if (typeof URL.revokeObjectURL !== 'function') {
-	URL.revokeObjectURL = vi.fn()
+	URL.revokeObjectURL = () => {}
+}
+
+// jsdom runs each frame callback from one `setInterval`. It starts the interval
+// when the count of pending callbacks goes up from zero, and it stops the
+// interval when the count goes back to zero. It reads the global `setInterval`
+// when it starts the interval. A fake clock replaces that global, but not
+// `window.requestAnimationFrame`. Thus a frame that code requests through the
+// window under a fake clock starts the interval on the fake clock. Motion and
+// virtual-core request their frames through the window. `useRealTimers` then
+// removes the interval, but the count stays above zero, so jsdom never starts a
+// new interval. No frame runs again on the shared window, and each later file
+// that waits for a frame times out.
+//
+// Two callbacks that each request the next frame keep the count above zero.
+// The interval that starts here, on the real clock, then stays for the life of
+// the window. One callback cannot do this: jsdom removes a callback before it
+// runs it, so the count goes to zero between the two steps. The callbacks use
+// the native function, so a spy or a stub on the window does not stop them.
+const framesKept = Symbol.for('midgard.framesKept')
+
+const host = window as Window & { [framesKept]?: true }
+
+if (!host[framesKept]) {
+	host[framesKept] = true
+
+	const request = window.requestAnimationFrame
+
+	const keep = () => {
+		request(keep)
+	}
+
+	request(keep)
+
+	request(keep)
 }

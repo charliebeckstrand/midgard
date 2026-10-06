@@ -3,7 +3,7 @@ import type { MotionValue } from 'motion/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Odometer } from '../../components/odometer'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, renderUI, waitFor, withFakeTime } from '../helpers'
+import { bySlot, renderUI, waitFor } from '../helpers'
 
 describe('Odometer', () => {
 	afterEach(() => {
@@ -46,9 +46,7 @@ describe('Odometer', () => {
 
 	it('animates toward the new value', async () => {
 		// Stub the single `animate` call to land the motion value on its target
-		// synchronously and return controls with a no-op `stop`;
-		// `mockImplementationOnce` keeps the call-through default for the unmount
-		// case below.
+		// synchronously and return controls with a no-op `stop`.
 		vi.mocked(animate).mockImplementationOnce(((value: MotionValue<number>, to: number) => {
 			value.set(to)
 
@@ -95,21 +93,21 @@ describe('Odometer', () => {
 		expect(bySlot(container, 'odometer-value')).toHaveTextContent(/^0$/)
 	})
 
-	it('cancels the running animation when unmounted', async () => {
-		await withFakeTime(async (clock) => {
-			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+	it('cancels the running animation when unmounted', () => {
+		// A tween that runs on after the unmount writes to its motion value with no
+		// React render, so nothing logs. The stop call is what the case can see.
+		const stop = vi.fn()
 
-			const { rerender, unmount } = renderUI(<Odometer value={0} duration={80} />)
+		vi.mocked(animate).mockImplementationOnce((() => ({ stop })) as unknown as typeof animate)
 
-			rerender(<Odometer value={1000} duration={80} />)
+		const { rerender, unmount } = renderUI(<Odometer value={0} duration={80} />)
 
-			unmount()
+		rerender(<Odometer value={1000} duration={80} />)
 
-			// Drive the clock past the tween's 80ms duration; a leaked frame
-			// callback would fire here and hit the spy.
-			await clock.advance(120)
+		expect(stop).not.toHaveBeenCalled()
 
-			expect(errorSpy).not.toHaveBeenCalled()
-		})
+		unmount()
+
+		expect(stop).toHaveBeenCalledOnce()
 	})
 })

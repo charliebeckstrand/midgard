@@ -175,6 +175,9 @@ describe('Confirm', () => {
 
 		fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape' })
 
+		// The dismissal must happen, or the case passes on a key that did nothing.
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+
 		expect(onCancel).not.toHaveBeenCalled()
 	})
 

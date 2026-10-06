@@ -74,7 +74,9 @@ describe('SignaturePad', () => {
 
 		expect(canvas).toHaveClass('cursor-default')
 
-		expect(canvas).not.toHaveClass('cursor-not-allowed', 'cursor-crosshair')
+		expect(canvas).not.toHaveClass('cursor-not-allowed')
+
+		expect(canvas).not.toHaveClass('cursor-crosshair')
 	})
 
 	it('keeps the not-allowed cursor when disabled and readOnly', () => {

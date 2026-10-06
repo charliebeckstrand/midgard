@@ -27,6 +27,7 @@ import {
 	setupUser,
 	stubMatchMedia,
 	userEvent,
+	waitFor,
 } from '../helpers'
 
 describe.each([
@@ -1439,7 +1440,7 @@ describe('Menu on a phone', () => {
 
 		expect(onAction).toHaveBeenCalledTimes(1)
 
-		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})
 
 	it('closes the sheet with the Close button below the rows', async () => {
@@ -1458,7 +1459,7 @@ describe('Menu on a phone', () => {
 
 		expect(onAction).not.toHaveBeenCalled()
 
-		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})
 
 	function renderPhoneSubmenu() {
@@ -1515,7 +1516,7 @@ describe('Menu on a phone', () => {
 
 		expect(onAction).toHaveBeenCalledTimes(1)
 
-		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})
 
 	it('hides the rows of a submenu on a second tap and on the arrow back', async () => {

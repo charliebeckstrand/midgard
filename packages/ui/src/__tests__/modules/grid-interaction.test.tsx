@@ -3,7 +3,15 @@ import { Button } from '../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { getSlot, renderUI, screen, setupUser, stubMatchMedia, withFakeTime } from '../helpers'
+import {
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	stubMatchMedia,
+	waitFor,
+	withFakeTime,
+} from '../helpers'
 
 describe('Grid row click', () => {
 	type Row = { id: number; name: string }
@@ -79,7 +87,7 @@ describe('Grid row click', () => {
 
 		await user.click(getSlot(document.body, 'overlay-backdrop'))
 
-		await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
 		expect(onRowClick).not.toHaveBeenCalled()
 	})

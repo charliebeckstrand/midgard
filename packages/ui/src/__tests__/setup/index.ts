@@ -49,4 +49,10 @@ afterEach(() => {
 	vi.useRealTimers()
 
 	cleanup()
+
+	// `userEvent.setup()` puts a clipboard stub on the navigator. user-event
+	// registers the hooks that reset and remove the stub when its module loads,
+	// thus only in the first file of a worker. Without this removal, the stub and
+	// the text that a case copies stay for each later case and file.
+	Reflect.deleteProperty(navigator, 'clipboard')
 })

@@ -143,6 +143,10 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
+		// The announcer writes the region in a microtask. Flush it, so that an
+		// announcement on mount shows here.
+		await Promise.resolve()
+
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')
 

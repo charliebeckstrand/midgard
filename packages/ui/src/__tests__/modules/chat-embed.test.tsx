@@ -199,7 +199,9 @@ describe('ChatMessage over parts', () => {
 			'[&>[data-slot=markdown]]:motion-safe:animate-pulse',
 		)
 
-		expect(bySlot(container, 'chat-embed')).not.toHaveClass('animate-pulse')
+		// The pulse comes only with a variant prefix, so the check reads the class
+		// text and not the class tokens.
+		expect(bySlot(container, 'chat-embed')?.className).not.toMatch(/animate-pulse/)
 	})
 
 	it('keys a block by the part’s id, so a merge by id holds the DOM node', () => {

@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
-import { cn, cnMemoNodes } from '../../core/cn'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { __resetCnMemo, cn, cnMemoNodes } from '../../core/cn'
 import { utilityTable } from '../../core/density/utility-table'
 
 describe('cn', () => {
@@ -47,6 +47,10 @@ describe('cn', () => {
 	// them. Each asserts the memoized answer against the same call made cold, so
 	// a regression shows as a wrong string rather than a slow one.
 	describe('memoized on its arguments', () => {
+		// One case fills the memo to its cap, and the worker shares the memo across
+		// files. A full memo records nothing, so each case starts with an empty memo.
+		beforeEach(__resetCnMemo)
+
 		it('repeats an answer for the same arguments', () => {
 			expect(cn('px-4', 'px-2')).toBe(cn('px-4', 'px-2'))
 		})

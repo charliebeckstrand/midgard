@@ -162,26 +162,25 @@ describe('a collapsing breadcrumb (real browser)', () => {
 
 		const box = present(container.querySelector<HTMLElement>('[data-testid=box]'), 'box')
 
-		const resize = async (width: number) => {
+		// The width reaches the trail through a resize observer, and React renders
+		// the collapse in a task after that frame. No count of frames waits for
+		// that task, so each read polls.
+		const resize = (width: number) => {
 			box.style.width = `${width}px`
-
-			await frames()
 		}
 
-		await frames()
+		await expect.poll(() => drawn(container)).toEqual(CRUMBS)
 
-		expect(drawn(container)).toEqual(CRUMBS)
+		resize(340)
 
-		await resize(340)
+		await expect.poll(() => drawn(container)).toEqual(['…', 'United States of America', 'Oregon'])
 
-		expect(drawn(container)).toEqual(['…', 'United States of America', 'Oregon'])
+		resize(160)
 
-		await resize(160)
+		await expect.poll(() => drawn(container)).toEqual(['…', '…', 'Oregon'])
 
-		expect(drawn(container)).toEqual(['…', '…', 'Oregon'])
+		resize(800)
 
-		await resize(800)
-
-		expect(drawn(container)).toEqual(CRUMBS)
+		await expect.poll(() => drawn(container)).toEqual(CRUMBS)
 	})
 })

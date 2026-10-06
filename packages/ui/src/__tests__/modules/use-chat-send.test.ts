@@ -772,7 +772,8 @@ describe('useChatSend settling a running step', () => {
 			sending = result.current.send('which are late?')
 		})
 
-		await waitFor(() => expect(result.current.streaming).toBe(true))
+		// `streaming` turns on before the first chunk lands, so wait for the step.
+		await waitFor(() => expect(lastContent(result)).toEqual([running]))
 
 		act(() => {
 			result.current.stop()

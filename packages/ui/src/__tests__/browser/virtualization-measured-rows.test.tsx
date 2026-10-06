@@ -4,6 +4,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { JsonTree } from '../../components/json-tree'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { present, renderUI, screen, waitFor } from '../helpers'
+import { settledValue } from './helpers/sample'
 
 /**
  * Measured rows of `VirtualOptions` and the windowed `JsonTree` (real browser).
@@ -120,10 +121,14 @@ describe('JsonTree measures each row', () => {
 
 		tree.scrollTop = 2000
 
-		// The rows of the new window measure, and the window settles.
-		await frames()
-
-		await frames()
+		// The rows of the new window measure, and the window settles. Each measure
+		// can move the offset, so the wait reads the page, not a count of frames.
+		await settledValue(
+			() =>
+				`${tree.scrollTop}:${rows()
+					.map((r) => r.dataset.index)
+					.join()}`,
+		)
 
 		const row = present(
 			rows().find((r) => inView(r, tree)),

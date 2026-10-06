@@ -7,6 +7,7 @@ import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { CI } from '../../../vitest.base.ts'
 import { maxDepth } from '../../core/density/rungs.ts'
 import { readRootDensity, writeRootDensity } from '../../core/density/steps.ts'
 
@@ -318,8 +319,8 @@ export function describePageSmoke(part: readonly DocsPage[]): void {
 			'%s renders each tab with no console output and no rule violation',
 			// The grid page is the slowest. It has 20 tabs, its examples show more
 			// tabs, and axe runs in each state. The case takes about 15s on four
-			// cores.
-			{ timeout: 60_000 },
+			// cores. The limit scales on CI by the factor of the suite `testTimeout`.
+			{ timeout: CI ? 180_000 : 60_000 },
 			async (_path, page) => {
 				const { logged, violations, scopes, visited } = await walk(page)
 

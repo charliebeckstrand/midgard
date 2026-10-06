@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
@@ -341,13 +341,17 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
 
+		// The release ends the drag even when the wait below fails. Its document
+		// listeners otherwise stay, and later cases move the mouse into the drag.
+		onTestFinished(() => {
+			fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
+		})
+
 		fireEvent.mouseMove(document, { clientX: x - 30, clientY: y })
 
 		// The in-flight resize holds the overflow tooltip closed, though the cell is
 		// still clipped and still hovered.
 		await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
-
-		fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
 	})
 
 	it('clips rows of differing length uniformly at a narrow width', async () => {

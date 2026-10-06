@@ -28,13 +28,20 @@ type MemoNode = { value?: string; next?: Map<string, MemoNode> }
  */
 const MEMO_CAP = 4_096
 
-const root: MemoNode = {}
+let root: MemoNode = {}
 
 let nodes = 0
 
 /** Nodes the memo currently holds — the measure {@link MEMO_CAP} bounds. @internal */
 export function cnMemoNodes(): number {
 	return nodes
+}
+
+/** Test-only: empties the memo, so the next call records from no nodes. @internal */
+export function __resetCnMemo(): void {
+	root = {}
+
+	nodes = 0
 }
 
 /**
