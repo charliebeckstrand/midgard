@@ -808,9 +808,9 @@ describe('useCalendarFocus: grid entry', () => {
 	})
 })
 
-// A parent that steers the calendar owns the keys of the header and the footer.
-// The handlers then move no focus and call no preventDefault, so the key
-// reaches the handler of the parent.
+// A parent that steers the calendar owns the keys of the header, the grid, and
+// the footer. The handlers then move no focus and call no preventDefault, so
+// the key reaches the handler of the parent.
 describe('useCalendarFocus: steered', () => {
 	it.each(['ArrowDown', 'ArrowLeft', 'ArrowRight'])('leaves header %s to the parent', (key) => {
 		const grid = makeGrid([{}, { selected: true }, {}])
@@ -846,5 +846,39 @@ describe('useCalendarFocus: steered', () => {
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
 		expect(document.activeElement).toBe(focused)
+	})
+
+	it.each([
+		['ArrowRight', 3],
+		['ArrowUp', 3],
+		['ArrowDown', 10],
+		['ArrowLeft', 10],
+	])('leaves grid %s from the day at index %i to the parent', (key, index) => {
+		const grid = makeGrid(Array.from({ length: 14 }, () => ({})))
+
+		const { handleGridKeyDown } = mountZones(grid, { steered: true })
+
+		const focused = present<HTMLButtonElement>(
+			grid.querySelectorAll('button').item(index),
+			'button',
+		)
+
+		focused.focus()
+
+		const event = makeKeyEvent(key)
+
+		handleGridKeyDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(focused)
+	})
+
+	it('seats the grid Tab stop when steered', () => {
+		const grid = makeGrid([{}, { selected: true }, {}])
+
+		mountZones(grid, { steered: true })
+
+		expect(tabStops(grid)).toEqual(['1'])
 	})
 })

@@ -32,6 +32,24 @@ function firstDay(): Date {
 	return value
 }
 
+// An arrow key from a focused day button of the grid. The button has its date in
+// `data-date`, and the key gets to the handler on the dialog.
+function keyFromDay(key: string, date: string) {
+	const dialog = document.createElement('div')
+
+	const day = document.createElement('button')
+
+	day.dataset.date = date
+
+	dialog.append(day)
+
+	document.body.append(dialog)
+
+	onTestFinished(() => dialog.remove())
+
+	return makeKeyEvent<HTMLElement>(key, { target: day, currentTarget: dialog })
+}
+
 describe('useDatePickerState', () => {
 	describe('initial state', () => {
 		it('starts closed with empty displayValue when no value is provided', () => {
@@ -260,6 +278,37 @@ describe('useDatePickerState', () => {
 			})
 
 			expect(result.current.calendar.active?.zone).toBe('grid')
+		})
+
+		// B01-C12, Q8: the step starts on the focused day, not on the highlight.
+		it('steps from a focused day button on an arrow', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan15 })
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('ArrowRight', '2025-01-20')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 21) })
+		})
+
+		it('holds the step from a focused day button inside max', () => {
+			const max = new Date(2025, 0, 20)
+
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan1, max }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan1 })
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('ArrowDown', '2025-01-18')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: max })
 		})
 	})
 

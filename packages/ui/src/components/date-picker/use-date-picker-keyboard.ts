@@ -1,7 +1,9 @@
+import { parseDate } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
+import { fromCalendarDate, isSameDay } from '../calendar/calendar-utilities'
 import { clampDate } from './date-picker-utilities'
 
 /** A footer action button in the date picker. */
@@ -26,7 +28,11 @@ type DatePickerKeyDownParams = {
 	setActive: (next: CalendarActive | null) => void
 	openCalendar: () => void
 	closeCalendar: () => void
-	moveGridDate: (delta: number) => Date
+	/**
+	 * The day `delta` days from `from`, else from the grid highlight, else from
+	 * `getInitialActiveDate`, held between `min` and `max`.
+	 */
+	moveGridDate: (delta: number, from?: Date) => Date
 	moveGridMonths: (delta: number) => Date
 	getInitialActiveDate: () => Date
 	/**
@@ -51,7 +57,7 @@ type DatePickerKeyDownParams = {
 type DatePickerKeyContext = {
 	setActive: (next: CalendarActive | null) => void
 	closeCalendar: () => void
-	moveGridDate: (delta: number) => Date
+	moveGridDate: (delta: number, from?: Date) => Date
 	moveGridMonths: (delta: number) => Date
 	getInitialActiveDate: () => Date
 	getViewEntryDate: () => Date | null
@@ -230,7 +236,13 @@ const GRID_DELTAS: Record<string, number> = {
 	ArrowDown: 7,
 }
 
-/** Grid-zone keys: arrows move the highlight by day/week, Enter/Space selects. @internal */
+/**
+ * Grid-zone keys: arrows move the highlight by day/week from `active.date`,
+ * Enter/Space selects. `active` can be a focused day button that the model
+ * does not show yet, so the step starts on its date.
+ *
+ * @internal
+ */
 function handleGridKey(
 	event: KeyboardEvent<HTMLElement>,
 	key: string,
@@ -242,7 +254,7 @@ function handleGridKey(
 	if (delta !== undefined) {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(delta) })
+		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(delta, active.date) })
 
 		return
 	}
@@ -360,14 +372,29 @@ function handleFooterKey(
 const TOOLBAR_SELECTOR = '[data-slot="calendar-header"], [data-slot="calendar-footer"]'
 
 /**
- * The zone of a toolbar button that has DOM focus. The user can Tab to a
- * header or footer button, and the dialog then gets the key from that button.
- * On an arrow key, the button then acts as its zone of the model, at the index
- * in its `data-index` attribute. The dialog takes focus back only for these
- * keys, so other keys, such as Tab, do not move the highlight.
+ * The grid zone of a day button, at the ISO date in its `data-date` attribute.
+ *
+ * @returns The zone, or `null` when `target` is not in a day button.
+ * @internal
+ */
+function dayOfTarget(target: Element): CalendarActive | null {
+	const date = target.closest<HTMLElement>('[data-date]')?.dataset.date
+
+	return date ? { zone: 'grid', date: fromCalendarDate(parseDate(date)) } : null
+}
+
+/**
+ * The zone of a toolbar button or a day button that has DOM focus. The user
+ * can Tab to a header or footer button, or to the Tab stop of the day grid, and
+ * the dialog then gets the key from that button. On an arrow key, the button
+ * then acts as its zone of the model. A toolbar button gives the index in its
+ * `data-index` attribute, and a day button gives its date. The dialog takes
+ * focus back only for these keys, so other keys, such as Tab, do not move the
+ * highlight.
  *
  * @returns The zone, or `null` when the key is not an arrow, or comes from the
- * element that holds the handler, or from an element outside the two toolbars.
+ * element that holds the handler, or from an element outside the two toolbars
+ * and the day buttons.
  * @internal
  */
 function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null {
@@ -379,9 +406,11 @@ function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null 
 
 	const toolbar = target.closest<HTMLElement>(TOOLBAR_SELECTOR)
 
+	if (!toolbar) return dayOfTarget(target)
+
 	const control = target.closest<HTMLElement>('[data-index]')
 
-	if (!toolbar || !control || !toolbar.contains(control)) return null
+	if (!control || !toolbar.contains(control)) return null
 
 	const index = Number(control.dataset.index)
 
@@ -390,11 +419,18 @@ function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null 
 	return { zone: 'header', index: index as 0 | 1 | 2 }
 }
 
+/** Whether `a` and `b` have the same zone, and the same index or the same day. @internal */
+function isSameControl(a: CalendarActive, b: CalendarActive): boolean {
+	if (a.zone === 'grid') return b.zone === 'grid' && isSameDay(a.date, b.date)
+
+	return a.zone === b.zone && 'index' in b && a.index === b.index
+}
+
 /**
- * Whether `mapped` gives a toolbar control that is not `active`.
+ * Whether `mapped` gives a toolbar control or a day that is not `active`.
  *
- * @returns `false` when `mapped` is `null` or has the zone and the index of
- * `active`.
+ * @returns `false` when `mapped` is `null`, or has the zone of `active` and
+ * its index or its day.
  * @internal
  */
 function isNewControl(
@@ -403,12 +439,7 @@ function isNewControl(
 ): mapped is CalendarActive {
 	if (mapped === null) return false
 
-	return !(
-		active?.zone === mapped.zone &&
-		'index' in active &&
-		'index' in mapped &&
-		active.index === mapped.index
-	)
+	return active === null || !isSameControl(active, mapped)
 }
 
 /**
@@ -460,8 +491,8 @@ export function useDatePickerKeyboard({
 
 			if (handleOpenGlobalKey(event, ctx)) return
 
-			// On an arrow, a toolbar button with DOM focus sets the zone of the
-			// model. Only a different zone or index sets it again.
+			// On an arrow, a toolbar button or a day button with DOM focus sets the
+			// zone of the model. Only a different zone, index, or day sets it again.
 			const mapped = zoneOfTarget(event)
 
 			if (isNewControl(active, mapped)) setActive(mapped)

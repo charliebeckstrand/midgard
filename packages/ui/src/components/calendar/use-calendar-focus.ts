@@ -141,9 +141,9 @@ type CalendarFocusOptions = {
 	stopPropagation?: boolean
 	/**
 	 * Set to true when a parent steers the calendar, as the date picker does.
-	 * The header and footer handlers then leave every key to the parent. They
-	 * move no focus and call no `preventDefault`, so the key gets to the
-	 * keyboard model of the parent.
+	 * The header, grid, and footer handlers then leave every key to the parent.
+	 * They move no focus and call no `preventDefault`, so the key gets to the
+	 * keyboard model of the parent. The grid keeps its one Tab stop.
 	 * @defaultValue false
 	 */
 	steered?: boolean
@@ -426,8 +426,8 @@ function focusAdjacentFooterButton(
  * first item, and both keys move the focus there. Before roving manages the
  * stop, the keys move the focus to the item that `activeSelector` names. When
  * no item matches, ArrowDown moves the focus to the first item and ArrowUp to
- * the last item. With `steered`, the header and footer handlers leave every
- * key to the parent.
+ * the last item. With `steered`, the header, grid, and footer handlers
+ * leave every key to the parent.
  *
  * Without `dayGrid`, ArrowUp on the top row of the grid moves the focus to the
  * header. ArrowDown on the bottom row moves it to the footer, when there is one.
@@ -486,6 +486,8 @@ export function useCalendarFocus({
 
 	const handleGridKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			if (steered) return
+
 			// A day grid moves by date, so its arrows never leave the grid. Only a
 			// grid with no date model bridges to the header and the footer.
 			const handled = dayGrid
@@ -502,7 +504,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation, dayGrid],
+		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation, steered, dayGrid],
 	)
 
 	const handleFooterKeyDown = useCallback(

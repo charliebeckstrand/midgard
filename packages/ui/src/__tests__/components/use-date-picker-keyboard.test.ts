@@ -24,7 +24,11 @@ function setup(overrides: Setup = {}) {
 
 	const closeCalendar = vi.fn()
 
-	const moveGridDate = vi.fn((delta: number) => new Date(2026, 0, 15 + delta))
+	// Each step starts on `from`, else on the 15th, as the state steps from the highlight.
+	const moveGridDate = vi.fn(
+		(delta: number, from?: Date) =>
+			new Date(2026, from?.getMonth() ?? 0, (from?.getDate() ?? 15) + delta),
+	)
 
 	const moveGridMonths = vi.fn((delta: number) => new Date(2026, 0 + delta, 15))
 
@@ -244,7 +248,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 
 		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(moveGridDate).toHaveBeenCalledWith(delta)
+		expect(moveGridDate).toHaveBeenCalledWith(delta, gridActive.date)
 
 		expect(setActive).toHaveBeenCalled()
 	})
@@ -505,13 +509,18 @@ function renderToolbars() {
 
 	const grid = document.createElement('button')
 
-	dialog.append(grid)
+	// A day button of the calendar grid. It has its date in `data-date`.
+	const day = document.createElement('button')
+
+	day.dataset.date = '2026-01-20'
+
+	dialog.append(grid, day)
 
 	document.body.append(dialog)
 
 	onTestFinished(() => dialog.remove())
 
-	return { dialog, header, footer, grid }
+	return { dialog, header, footer, grid, day }
 }
 
 // B01-C09, Q2: a header or footer button that has DOM focus acts as its zone of the model.
@@ -621,7 +630,7 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 
 		handler(keyFrom('ArrowDown', dialog, dialog))
 
-		expect(moveGridDate).toHaveBeenCalledWith(7)
+		expect(moveGridDate).toHaveBeenCalledWith(7, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(1)
 	})
@@ -635,8 +644,79 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 
 		handler(keyFrom('ArrowDown', grid, dialog))
 
-		expect(moveGridDate).toHaveBeenCalledWith(7)
+		expect(moveGridDate).toHaveBeenCalledWith(7, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(1)
+	})
+})
+
+// B01-C12, Q8: a day button that has DOM focus acts as the grid zone at its date.
+describe('useDatePickerKeyboard: a Tab-focused day button', () => {
+	const keyFrom = (key: string, target: Element, dialog: Element) =>
+		makeKeyEvent<HTMLElement>(key, {
+			target,
+			currentTarget: dialog as HTMLElement,
+		})
+
+	it('steps from the focused day on ArrowRight', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, moveGridDate } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		const event = keyFrom('ArrowRight', day, dialog)
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 20) })
+
+		expect(moveGridDate).toHaveBeenCalledWith(1, new Date(2026, 0, 20))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 0, 21) })
+	})
+
+	it('steps from the focused day, not the entry day, with no highlight', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, moveGridDate } = setup({ active: null })
+
+		handler(keyFrom('ArrowUp', day, dialog))
+
+		expect(moveGridDate).toHaveBeenCalledWith(-7, new Date(2026, 0, 20))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 0, 13) })
+	})
+
+	it('does not set the zone again for the highlighted day', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 20) },
+		})
+
+		handler(keyFrom('ArrowLeft', day, dialog))
+
+		expect(setActive).toHaveBeenCalledTimes(1)
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 19) })
+	})
+
+	// Q10: only an arrow maps the day, so the hook keeps the highlight for Enter.
+	// The dialog leaves Enter on a focused day to the button and does not call the hook.
+	it('keeps the highlight, not the focused day, for Enter', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, handleSelect } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('Enter', day, dialog))
+
+		expect(setActive).not.toHaveBeenCalled()
+
+		expect(handleSelect).toHaveBeenCalledWith(new Date(2026, 0, 15))
 	})
 })

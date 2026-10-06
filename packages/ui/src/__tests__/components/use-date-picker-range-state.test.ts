@@ -36,6 +36,24 @@ function yearOneJanuary(date: number): Date {
 	return value
 }
 
+// An arrow key from a focused day button of the grid. The button has its date in
+// `data-date`, and the key gets to the handler on the dialog.
+function keyFromDay(key: string, date: string) {
+	const dialog = document.createElement('div')
+
+	const day = document.createElement('button')
+
+	day.dataset.date = date
+
+	dialog.append(day)
+
+	document.body.append(dialog)
+
+	onTestFinished(() => dialog.remove())
+
+	return makeKeyEvent<HTMLElement>(key, { target: day, currentTarget: dialog })
+}
+
 describe('useDatePickerRangeState', () => {
 	describe('initial state', () => {
 		it('starts closed with empty displayValue when no value is provided', () => {
@@ -570,6 +588,23 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 11) })
 
 			expect(result.current.calendar.hoverDate).toBeNull()
+		})
+
+		// B01-C12, Q8: the step starts on the focused day, and the hover preview follows it.
+		it('steps the cursor and the hover from a focused day button', () => {
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.calendar.onValueChange(Jan10))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('ArrowRight', '2025-01-20')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 21) })
+
+			expect(result.current.calendar.hoverDate).toEqual(new Date(2025, 0, 21))
 		})
 
 		it('activates the clear footer button via Shift+ArrowDown then Enter', () => {

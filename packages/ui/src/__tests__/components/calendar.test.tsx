@@ -548,7 +548,8 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(options[options.length - 1])
 	})
 
-	it('keeps the header exit of the top row in a calendar that a parent steers', async () => {
+	// B01-C12, Q8: a parent that steers the calendar owns the keys of the grid.
+	it('leaves ArrowUp on the top row to a parent that steers the calendar', async () => {
 		const user = setupUser()
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} active={null} />)
@@ -557,7 +558,7 @@ describe('Calendar keyboard navigation', () => {
 
 		await user.keyboard('{ArrowUp}')
 
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+		expect(document.activeElement).toBe(day('1'))
 	})
 
 	it('moves focus from the header down into the day grid on the selected day', async () => {

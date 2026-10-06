@@ -118,10 +118,12 @@ export type CalendarProps = {
 	min?: Date
 	max?: Date
 	/**
-	 * Externally-driven roving-focus cell, letting a parent (e.g. DatePicker)
-	 * steer focus across the header, grid, and footer zones. A parent that steers
-	 * owns the month steps and the Page keys, and passes `null` while no cell is
-	 * active. Leave it unset, and the day grid steps the month itself.
+	 * The cell that a parent, such as DatePicker, highlights. A parent that sets
+	 * it steers the calendar and owns the keys of the header, the grid, and the
+	 * footer. The calendar then moves no focus for these keys and calls no
+	 * `preventDefault`. The parent also owns the month steps and the Page keys,
+	 * and passes `null` while no cell is active. Leave it unset, and the calendar
+	 * moves the focus itself, and the day grid steps the month.
 	 */
 	active?: CalendarActive | null
 	/**
@@ -141,9 +143,8 @@ export type CalendarProps = {
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	/**
 	 * Element that holds the footer controls of the calendar, in a zone that the
-	 * parent owns. When a parent steers `active`, ArrowDown on the bottom row of
-	 * the day grid moves the focus into the footer. In a calendar that no parent
-	 * steers, the day grid reaches the footer by Tab, not by an arrow.
+	 * parent owns. The day grid reaches the footer by Tab, not by an arrow. When
+	 * a parent steers `active`, the parent owns the arrow keys of the footer too.
 	 */
 	footerRef?: RefObject<HTMLElement | null>
 	/**
@@ -199,8 +200,9 @@ export type CalendarProps = {
  * the nearest density scope, and a set `size` makes the calendar that scope.
  * `sm` is the smallest step. At `xs`, set or inherited, the calendar opens a
  * scope at `sm`.
- * When a parent steers `active`, roving focus spans the header, grid, and
- * footer zones, and the parent owns the keys of the header and the footer. Month changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
+ * When a parent steers `active`, the parent owns the keys of the header, the
+ * grid, and the footer, and the calendar moves no focus for them. Tab still
+ * reaches each header button and the one Tab stop of the grid. Month changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
  *
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow

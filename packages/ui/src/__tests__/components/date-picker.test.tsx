@@ -774,15 +774,17 @@ describe('DatePicker keyboard', () => {
 		await user.keyboard('{ArrowDown}') // open
 
 		// The modal trap lets Tab reach day cells; seat DOM focus on one.
-		const day30 = findDay(30)
+		const day3 = findDay(3)
 
-		act(() => day30?.focus())
+		act(() => day3?.focus())
 
-		// Materialize on the 15th, then the 8th, the 1st, and May 25th; the last
-		// move re-anchors the view to May and unmounts every June day button.
-		await user.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}{ArrowUp}')
+		// B01-C12, Q8: the arrow steps from the focused 3rd to May 27th. The move
+		// re-anchors the view to May and unmounts every June day button.
+		await user.keyboard('{ArrowUp}')
 
 		expect(findDay(31)).toBeInTheDocument() // May has 31 days; the view moved
+
+		expect(findDay(27)).toHaveClass('outline-2')
 
 		expect(screen.getByRole('dialog', { name: 'Choose date' })).toHaveFocus()
 	})
@@ -1369,6 +1371,52 @@ describe('DatePicker input', () => {
 
 		expect(document.getElementById(input.getAttribute('aria-activedescendant') as string)).toBe(
 			findDay(1),
+		)
+	})
+
+	// B01-C12, Q8: a Tab-focused day acts as the grid zone of the model at its date.
+	it('steps from a focused day on ArrowRight and returns focus to the input', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		const day = findDay(20)
+
+		act(() => day?.focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(input).toHaveFocus()
+
+		expect(document.getElementById(input.getAttribute('aria-activedescendant') as string)).toBe(
+			findDay(21),
+		)
+	})
+
+	// B01-C12, Q8: ArrowUp on the top row steps a week back from the focused day.
+	it('steps a week back from a focused day on the top row', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		act(() => findDay(2)?.focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(input).toHaveFocus()
+
+		expect(screen.getByRole('button', { name: /May 2025/ })).toBeInTheDocument()
+
+		expect(document.getElementById(input.getAttribute('aria-activedescendant') as string)).toBe(
+			findDay(26),
 		)
 	})
 
