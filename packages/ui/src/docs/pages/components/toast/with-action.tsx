@@ -1,7 +1,7 @@
 import { Button } from 'ui/button'
-import { Toast, ToastProvider, useToast } from 'ui/toast'
+import { useToast } from 'ui/toast'
 
-function DeleteMessage() {
+export default function WithAction() {
 	const { toast, dismiss } = useToast()
 
 	function deleteMessage() {
@@ -23,13 +23,4 @@ function DeleteMessage() {
 	}
 
 	return <Button onClick={deleteMessage}>Delete message</Button>
-}
-
-export default function WithAction() {
-	return (
-		<ToastProvider>
-			<DeleteMessage />
-			<Toast />
-		</ToastProvider>
-	)
 }

@@ -30,10 +30,14 @@ export type ToastProviderProps = {
 }
 
 /**
- * App-root toast state. Manages the toast queue, timers, and pause/resume
+ * Toast state. Manages the toast queue, timers, and pause/resume
  * behavior, and exposes `useToast()` to any descendant. Render a `<Toast>`
  * viewport (from `ui/toast`) anywhere inside the provider to display the
  * queued toasts.
+ *
+ * `UIProvider` already mounts one, with its viewport, for the whole app. Use
+ * this provider for a queue of its own, such as one with a different
+ * `maxToasts` in one part of the page.
  *
  * @remarks
  * Each toast counts down its own `duration`, and leaves with `'timeout'` when its own time is

@@ -2,6 +2,8 @@
 
 import { type ReactNode, use, useMemo } from 'react'
 import { ConfirmHost } from '../../components/confirm/use-confirm'
+import type { ToastProps, ToastProviderProps } from '../../components/toast'
+import { ToastHost } from '../../components/toast/toast-host'
 // LinkContext / PortalContext / PathnameContext live in the primitives layer:
 // the `polymorphic` primitive consumes `useLink`; the `overlay` /
 // `floating-surface` primitives consume `usePortalContainer`; the nav items
@@ -15,7 +17,7 @@ import {
 } from '../../primitives/link'
 import { type PortalContainer, PortalContext, usePortalContext } from '../../primitives/portal'
 
-/** Props for {@link UIProvider}: the optional framework `link` component, default `portalContainer`, and current `pathname`, plus `children`. */
+/** Props for {@link UIProvider}: the optional framework `link` component, default `portalContainer`, current `pathname`, and `toast` setup, plus `children`. */
 export type UIProviderProps = {
 	/**
 	 * Framework-specific link component (e.g. `next/link`'s default export);
@@ -48,13 +50,25 @@ export type UIProviderProps = {
 	 * renders at request time, not in the provider at the root of the app.
 	 */
 	pathname?: string
+	/**
+	 * The setup of the toasts that `useToast` from `ui/toast` shows: the
+	 * `position` of the viewport, the default `duration` of a toast in
+	 * milliseconds, and the `maxToasts` cap.
+	 *
+	 * @remarks
+	 * Only the outermost provider mounts the toast queue and its viewport, so
+	 * a nested provider ignores this prop.
+	 * @defaultValue `{ position: 'bottom-right', duration: 5000, maxToasts: 5 }`
+	 */
+	toast?: Pick<ToastProviderProps, 'duration' | 'maxToasts'> & Pick<ToastProps, 'position'>
 	children: ReactNode
 }
 
 /**
  * Single app-root integration point for the library's framework bindings.
  * Registers the link component, the default portal container, and the current
- * path. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in.
+ * path. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in,
+ * and the toast queue and viewport that `useToast` from `ui/toast` uses.
  *
  * Each binding is independent and optional: the provider broadcasts a binding
  * only when its prop is provided. A nested `<UIProvider>` overrides one
@@ -63,7 +77,7 @@ export type UIProviderProps = {
  * confirm dialog, so a question asked under a nested provider portals into
  * the container of that provider.
  */
-export function UIProvider({ link, portalContainer, pathname, children }: UIProviderProps) {
+export function UIProvider({ link, portalContainer, pathname, toast, children }: UIProviderProps) {
 	const outerLink = useLink()
 
 	const outerPortal = usePortalContext()
@@ -86,7 +100,9 @@ export function UIProvider({ link, portalContainer, pathname, children }: UIProv
 		<PortalContext value={portalContainer ?? outerPortal}>
 			<LinkContext value={linkValue}>
 				<PathnameContext value={pathname === undefined ? outerPathname : pathnameStore}>
-					<ConfirmHost>{children}</ConfirmHost>
+					<ToastHost options={toast}>
+						<ConfirmHost>{children}</ConfirmHost>
+					</ToastHost>
 				</PathnameContext>
 			</LinkContext>
 		</PortalContext>

@@ -55,7 +55,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `confirm` exports `Confirm` and `useConfirm`. `Confirm` is the controlled alertdialog. `useConfirm()` gives a function that asks a question in the one `Confirm` that `UIProvider` mounts. The function returns a promise that resolves `true` on a confirm and `false` on a cancel or a dismissal. An optional `action` keeps the dialog open, with the confirm button pending, until the work is done. Use `Confirm` for a message with custom children.
 
-> `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers at the app root. `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. Put one viewport anywhere in the provider.
+> `toast` holds the full toast unit. `ToastProvider` keeps the queue and the timers. `useToast()` adds and removes toasts, and the `Toast` viewport shows the queue in a portal. `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup; its `toast` prop sets the `position`, `duration`, and `maxToasts`. Use `ToastProvider` and `Toast` for a queue of their own in one part of the page.
 
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`. The root (`Dialog`, `Drawer`, `Sheet`) holds the open state, controlled or uncontrolled, and renders no element. The trigger part (`DialogTrigger`, `DrawerTrigger`, `SheetTrigger`) opens the panel. The panel part (`DialogPanel`, `DrawerPanel`, `SheetPanel`) is the surface, and takes the props that style it or place it.
 

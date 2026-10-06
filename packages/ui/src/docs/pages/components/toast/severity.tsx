@@ -1,7 +1,7 @@
 import { Button } from 'ui/button'
-import { Toast, ToastProvider, useToast } from 'ui/toast'
+import { useToast } from 'ui/toast'
 
-function SeverityButtons() {
+export default function Severity() {
 	const { toast } = useToast()
 
 	return (
@@ -58,14 +58,5 @@ function SeverityButtons() {
 				Error
 			</Button>
 		</>
-	)
-}
-
-export default function Severity() {
-	return (
-		<ToastProvider>
-			<SeverityButtons />
-			<Toast />
-		</ToastProvider>
 	)
 }
