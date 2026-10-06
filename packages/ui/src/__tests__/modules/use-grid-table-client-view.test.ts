@@ -1,6 +1,6 @@
 import { fc, test } from '@fast-check/vitest'
 import { renderHook } from '@testing-library/react'
-import { describe, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type {
 	GridColumn,
 	GridColumnFilterState,
@@ -154,8 +154,9 @@ describe('useGridTable client view', () => {
 })
 
 describe('engine sort of an undefined cell', () => {
-	test.prop([fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
-		'puts a literal undefined last in both directions, as the grid does',
+	// Two directions are the whole input space, so each runs once, not 100 times.
+	it.each<'asc' | 'desc'>(['asc', 'desc'])(
+		'puts a literal undefined last when it sorts %s, as the grid does',
 		(direction) => {
 			const rows: Row[] = [
 				{ id: 0, name: undefined, amount: 1 },
