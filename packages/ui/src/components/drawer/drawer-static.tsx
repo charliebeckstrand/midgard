@@ -3,11 +3,19 @@
 import type { ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { PanelCloseContext } from '../../primitives/panel'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { k as overlay } from '../../recipes/kata/overlay'
 import { drawerPanelProps, drawerShowsGrip } from './drawer-panel-props'
+import { DrawerClose, DrawerDefaultFooter } from './slots'
+
+/**
+ * The close context of the static copy. The panel is `inert`, so no press reaches a close control,
+ * and the `close` does nothing. It lets a `DrawerClose` render here as it does in the drawer.
+ */
+const STATIC_CLOSE = { close: () => {} }
 
 /** Props for {@link DrawerStatic}: the {@link DrawerPanel} styling props it has to match, and the content it paints. */
 export type DrawerStaticProps = {
@@ -16,7 +24,15 @@ export type DrawerStaticProps = {
 	 * the nearest density scope, which the static drawer sits inside.
 	 */
 	size?: ScaleStep<typeof scale>
-	/** As on {@link DrawerPanel}: how much of the screen the panel docks over. @defaultValue 'auto' */
+	/**
+	 * As on {@link DrawerPanel}: how much of the screen the panel docks over.
+	 *
+	 * A `fit` copy keeps its rounded top corners, also when its content fills the screen. The
+	 * drawer squares them only when it measures its content, after the swap, because a server
+	 * paint cannot measure.
+	 *
+	 * @defaultValue 'auto'
+	 */
 	height?: DrawerPanelVariants['height']
 	/**
 	 * As on {@link DrawerPanel}: the grip on the top edge of the panel, painted here and never
@@ -30,6 +46,30 @@ export type DrawerStaticProps = {
 	glass?: boolean
 	/** As on {@link DrawerPanel}: drain the color from what shows through the backdrop. @defaultValue false */
 	desaturate?: boolean
+	/**
+	 * As on {@link DrawerPanel}: a modal drawer dims the page. Pass the same value as the drawer.
+	 * The flag changes paint only. The root and the backdrop take pointer presses either way.
+	 *
+	 * @defaultValue true
+	 */
+	modal?: boolean
+	/**
+	 * As on {@link DrawerPanel}: paint the backdrop, independently of `modal`. With `false`, the
+	 * backdrop stays in place to take a press, but has no paint.
+	 *
+	 * @defaultValue modal
+	 */
+	backdrop?: boolean
+	/**
+	 * As on {@link DrawerPanel}: the content of the footer row that the panel shows after its
+	 * children. Set `null` to show no footer row.
+	 *
+	 * The static copy cannot see a `DrawerFooter` in its children, because the footer registers
+	 * only on the client. When the children hold a `DrawerFooter`, pass `footer={null}`.
+	 *
+	 * @defaultValue `<DrawerClose />`, the standard Close button
+	 */
+	footer?: ReactNode
 	/** Classes for the panel, as {@link DrawerPanel}'s `className` — pass the same ones. */
 	className?: string
 	/**
@@ -76,6 +116,9 @@ export function DrawerStatic({
 	handle,
 	glass,
 	desaturate,
+	modal = true,
+	backdrop = modal,
+	footer,
 	className,
 	rootClassName,
 	children,
@@ -89,7 +132,12 @@ export function DrawerStatic({
 	// hooks are the drawer's, because its slots and rows style off those.
 	return (
 		<div data-slot="drawer-static" className={cn(overlay.base, overlay.frame, rootClassName)}>
-			<div className={k.backdrop({ surface: resolvedSurface, desaturate })} aria-hidden="true" />
+			<div
+				className={
+					backdrop ? k.backdrop({ surface: resolvedSurface, desaturate }) : 'absolute inset-0'
+				}
+				aria-hidden="true"
+			/>
 			<PolymorphicStatic
 				as="div"
 				data-slot="drawer-static-panel"
@@ -103,7 +151,12 @@ export function DrawerStatic({
 						<div className={cn(k.handle.bar)} />
 					</div>
 				) : null}
-				{children}
+				<PanelCloseContext value={STATIC_CLOSE}>
+					{children}
+					<DrawerDefaultFooter>
+						{footer === undefined ? <DrawerClose /> : footer}
+					</DrawerDefaultFooter>
+				</PanelCloseContext>
 			</PolymorphicStatic>
 		</div>
 	)

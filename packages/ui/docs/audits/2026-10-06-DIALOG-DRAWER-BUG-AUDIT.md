@@ -36,13 +36,13 @@ Status: `◯ OPEN` — open; `◐ FIXED` — fixed on the batch branch; `✅ RES
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 |---|---|---|---|---|---|---|---|
-| B01-C01 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | CONFIRMED | low | none | G1 | ◯ OPEN |
-| B01-C02 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | NARROWED | low | none | G1 | ◯ OPEN |
-| B01-C03 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | CONFIRMED | low | none | G1 | ◯ OPEN |
+| B01-C01 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | CONFIRMED | low | none | G1 | ◐ FIXED |
+| B01-C02 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | NARROWED | low | none | G1 | ◐ FIXED |
+| B01-C03 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | CONFIRMED | low | none | G1 | ◐ FIXED |
 | B01-C04 | `components/drawer/drawer.tsx` | `DrawerPanel` (`onOpenComplete` report) | NARROWED | low | none | — | ◐ FIXED |
 | B01-C05 | `components/drawer/drawer.tsx` | `DrawerPanel` (`usePanelFit` `dragged` wiring) | CONFIRMED | low | shipped | — | ◯ OPEN |
 | B01-C07 | `components/drawer/slots.tsx` | `DrawerContent` | CONFIRMED | low | none | — | ◯ OPEN |
-| B01-C11 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | CONFIRMED | medium | none | G1 | ◯ OPEN |
+| B01-C11 | `components/drawer/drawer-static.tsx` | `DrawerStatic` | CONFIRMED | medium | none | G1 | ◐ FIXED |
 
 ## Mechanisms
 
