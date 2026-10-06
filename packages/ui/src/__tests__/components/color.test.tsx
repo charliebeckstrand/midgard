@@ -1,5 +1,7 @@
 import { act, within as inside, renderHook } from '@testing-library/react'
-import { useState } from 'react'
+import { Profiler, useState } from 'react'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import { ColorPanelView } from '../../components/color/color-panel'
@@ -19,6 +21,7 @@ import { Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormActions } from '../../components/form'
 import {
 	allBySlot,
+	attach,
 	bySlot,
 	fireEvent,
 	getAllSlots,
@@ -460,6 +463,73 @@ describe('ColorPanel', () => {
 		fireEvent.blur(hex)
 
 		expect(onValueChange).toHaveBeenLastCalledWith('#aabbccff')
+	})
+
+	describe('eyedropper', () => {
+		/** Stubs a platform `EyeDropper` whose picker never settles. */
+		function stubEyeDropper() {
+			vi.stubGlobal(
+				'EyeDropper',
+				class {
+					open = () => new Promise<never>(() => {})
+				},
+			)
+
+			onTestFinished(() => {
+				vi.unstubAllGlobals()
+			})
+		}
+
+		// A render that does not hydrate draws the button in its first commit,
+		// and starts no second render.
+		it('draws the eyedropper in the first commit of a client render', () => {
+			stubEyeDropper()
+
+			const commits: boolean[] = []
+
+			renderUI(
+				<Profiler
+					id="panel"
+					onRender={() => {
+						commits.push(!!document.querySelector('[data-slot="color-eyedropper"]'))
+					}}
+				>
+					<ColorPanel defaultValue="#3b82f6" />
+				</Profiler>,
+			)
+
+			expect(commits).toEqual([true])
+		})
+
+		// The server cannot read the API, so the hydration render agrees with the
+		// server output, and the render after it adds the button.
+		it('hydrates the server output, and adds the eyedropper after', () => {
+			const element = <ColorPanel defaultValue="#3b82f6" />
+
+			const markup = renderToString(element)
+
+			expect(markup).not.toContain('color-eyedropper')
+
+			stubEyeDropper()
+
+			const container = attach(document.createElement('div'))
+
+			container.innerHTML = markup
+
+			const onRecoverableError = vi.fn()
+
+			let root: Root | undefined
+
+			act(() => {
+				root = hydrateRoot(container, element, { onRecoverableError })
+			})
+
+			onTestFinished(() => act(() => root?.unmount()))
+
+			expect(onRecoverableError).not.toHaveBeenCalled()
+
+			expect(getSlot(container, 'color-eyedropper')).toBeInTheDocument()
+		})
 	})
 
 	// §7.3: `null` keeps the panel controlled with no color. The panel paints
