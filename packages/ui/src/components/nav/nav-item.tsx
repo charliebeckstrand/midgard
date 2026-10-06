@@ -30,7 +30,8 @@ export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & { value?: strin
  * Navigation link/button within a {@link NavList}. Renders a polymorphic
  * {@link Button} as an `<li>`, marking itself `aria-current` and mounting
  * the scope's active indicator when current. Current resolves from `current`,
- * else from the `value` selection binding. Hosts `prefix`/`suffix` affix slots outside the
+ * else from the `value` selection binding, else from an `href` that matches the
+ * `pathname` of `UIProvider` (see `match`). Hosts `prefix`/`suffix` affix slots outside the
  * inner button and closes an enclosing offcanvas on click unless `preventClose`.
  *
  * The height, the text, and the icon take the step of the nearest density
@@ -50,6 +51,7 @@ export function NavItem({
 	icon,
 	value,
 	current,
+	match,
 	className,
 	children,
 	preventClose,
@@ -63,7 +65,7 @@ export function NavItem({
 		current: isCurrent,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
-	} = useNavItem({ current, value, preventClose, onClick })
+	} = useNavItem({ current, value, href: props.href, match, preventClose, onClick })
 
 	// Affixes render as siblings of the inner button, not nested inside it; a
 	// slot can host its own interactive element. With an affix present the row

@@ -1,9 +1,11 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
-// LinkContext / PortalContext live in the primitives layer: the `polymorphic`
-// primitive consumes `useLink`; the `overlay` / `floating-surface` primitives
-// consume `usePortalContainer`. This provider fans out to both.
+import { type ReactNode, use, useMemo } from 'react'
+// LinkContext / PortalContext / PathnameContext live in the primitives layer:
+// the `polymorphic` primitive consumes `useLink`; the `overlay` /
+// `floating-surface` primitives consume `usePortalContainer`; the nav items
+// consume `usePathMatch`. This provider fans out to all three.
+import { PathnameContext, usePathnameStore } from '../../primitives/current/current-pathname'
 import {
 	type LinkComponent,
 	LinkContext,
@@ -12,7 +14,7 @@ import {
 } from '../../primitives/link'
 import { type PortalContainer, PortalContext, usePortalContext } from '../../primitives/portal'
 
-/** Props for {@link UIProvider}: the optional framework `link` component and default `portalContainer`, plus `children`. */
+/** Props for {@link UIProvider}: the optional framework `link` component, default `portalContainer`, and current `pathname`, plus `children`. */
 export type UIProviderProps = {
 	/**
 	 * Framework-specific link component (e.g. `next/link`'s default export);
@@ -32,34 +34,58 @@ export type UIProviderProps = {
 	 * `document.body` to portal into the body under an outer container.
 	 */
 	portalContainer?: PortalContainer
+	/**
+	 * The path of the current page, such as `usePathname()` from
+	 * `next/navigation` or `useLocation().pathname` from React Router. A
+	 * `SidebarItem` or a `NavItem` with an `href` that matches it is current.
+	 * Omit it to keep the path of the outer provider.
+	 *
+	 * @remarks
+	 * Under Next.js Cache Components, `usePathname()` stops the prerender of a
+	 * route that has params not known at build time. Read it in a nested
+	 * provider around the navigation, in a part of the page that already
+	 * renders at request time, not in the provider at the root of the app.
+	 */
+	pathname?: string
 	children: ReactNode
 }
 
 /**
  * Single app-root integration point for the library's framework bindings.
- * Registers the link component and the default portal container.
+ * Registers the link component, the default portal container, and the current
+ * path.
  *
  * Each binding is independent and optional: the provider broadcasts a binding
  * only when its prop is provided. A nested `<UIProvider>` overrides one
  * binding (e.g. scopes `portalContainer` to a dialog subtree) without
  * disturbing the outer provider's others.
  */
-export function UIProvider({ link, portalContainer, children }: UIProviderProps) {
+export function UIProvider({ link, portalContainer, pathname, children }: UIProviderProps) {
 	const outerLink = useLink()
 
 	const outerPortal = usePortalContext()
+
+	const outerPathname = use(PathnameContext)
+
+	// The store keeps its identity, so a navigation renders only the items whose
+	// match changes, not each consumer of the context.
+	const pathnameStore = usePathnameStore(pathname)
 
 	const linkValue = useMemo<LinkContextValue>(
 		() => (link === undefined ? outerLink : { component: link }),
 		[link, outerLink],
 	)
 
-	// Both providers render each time, and an omitted binding passes the outer
+	// Each provider renders each time, and an omitted binding passes the outer
 	// value through. A provider that comes and goes with its prop changes the
 	// element type at the root, and React then mounts the full subtree again.
 	return (
 		<PortalContext value={portalContainer ?? outerPortal}>
-			<LinkContext value={linkValue}>{children}</LinkContext>
+			<LinkContext value={linkValue}>
+				<PathnameContext value={pathname === undefined ? outerPathname : pathnameStore}>
+					{children}
+				</PathnameContext>
+			</LinkContext>
 		</PortalContext>
 	)
 }

@@ -20,6 +20,7 @@ import { Link } from 'ui/link'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { NavBar } from 'ui/nav'
 import { AppearanceSettings } from 'ui/providers/appearance'
+import { UIProvider } from 'ui/providers/ui'
 import {
 	Sidebar,
 	SidebarBody,
@@ -64,63 +65,69 @@ export function SignedInClient({ user, admin, children }: SignedInClientProps) {
  * appearance settings.
  *
  * @internal
- * @remarks Highlights the active item from the current pathname.
+ * @remarks Gives the current pathname to `UIProvider`, so each item with an
+ * `href` marks itself current. The account item is a menu trigger, not a link,
+ * so it sets `current` itself. The chrome renders at request time, after the
+ * session, so `usePathname` here does not stop the prerender of a route with
+ * params.
  */
 function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 	const pathname = usePathname()
 
 	return (
-		<SidebarLayout
-			navbar={
-				<NavBar variant="plain" className="px-0 py-0">
-					<Link href="/" className="flex items-center gap-2">
-						<Brand />
-					</Link>
-				</NavBar>
-			}
-			sidebar={
-				<Sidebar>
-					<SidebarHeader>
-						<SidebarItem href="/" current={pathname === '/'}>
-							<Image src="/gradient.png" alt="" width={24} height={24} />
-							<SidebarLabel>
-								<Text className="font-black text-lg">Admin</Text>
-							</SidebarLabel>
-						</SidebarItem>
-					</SidebarHeader>
-					<SidebarBody>
-						<SidebarSection>
-							<SidebarItem href="/users" current={pathname.startsWith('/users')}>
-								<UsersIcon />
-								<SidebarLabel>Users</SidebarLabel>
+		<UIProvider pathname={pathname}>
+			<SidebarLayout
+				navbar={
+					<NavBar variant="plain" className="px-0 py-0">
+						<Link href="/" className="flex items-center gap-2">
+							<Brand />
+						</Link>
+					</NavBar>
+				}
+				sidebar={
+					<Sidebar>
+						<SidebarHeader>
+							<SidebarItem href="/">
+								<Image src="/gradient.png" alt="" width={24} height={24} />
+								<SidebarLabel>
+									<Text className="font-black text-lg">Admin</Text>
+								</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href="/security" current={pathname.startsWith('/security')}>
-								<ShieldExclamationIcon />
-								<SidebarLabel>Security</SidebarLabel>
-							</SidebarItem>
-						</SidebarSection>
-					</SidebarBody>
-					<SidebarFooter>
-						{/* The settings button sits beside the account menu, so it shows in
+						</SidebarHeader>
+						<SidebarBody>
+							<SidebarSection>
+								<SidebarItem href="/users" match="prefix">
+									<UsersIcon />
+									<SidebarLabel>Users</SidebarLabel>
+								</SidebarItem>
+								<SidebarItem href="/security" match="prefix">
+									<ShieldExclamationIcon />
+									<SidebarLabel>Security</SidebarLabel>
+								</SidebarItem>
+							</SidebarSection>
+						</SidebarBody>
+						<SidebarFooter>
+							{/* The settings button sits beside the account menu, so it shows in
 						    the desktop sidebar and in the mobile drawer. */}
-						<Flex align="center" gap="sm">
-							<div className="min-w-0 flex-1">
-								<UserMenu admin placement="top-start">
-									<SidebarItem current={pathname.startsWith('/account')}>
-										<UserAvatar user={user} />
-										<SidebarLabel>{user.email}</SidebarLabel>
-										<ChevronUpDownIcon />
-									</SidebarItem>
-								</UserMenu>
-							</div>
-							<AppearanceSettings />
-						</Flex>
-					</SidebarFooter>
-				</Sidebar>
-			}
-		>
-			{children}
-		</SidebarLayout>
+							<Flex align="center" gap="sm">
+								<div className="min-w-0 flex-1">
+									<UserMenu admin placement="top-start">
+										<SidebarItem current={pathname.startsWith('/account')}>
+											<UserAvatar user={user} />
+											<SidebarLabel>{user.email}</SidebarLabel>
+											<ChevronUpDownIcon />
+										</SidebarItem>
+									</UserMenu>
+								</div>
+								<AppearanceSettings />
+							</Flex>
+						</SidebarFooter>
+					</Sidebar>
+				}
+			>
+				{children}
+			</SidebarLayout>
+		</UIProvider>
 	)
 }
 
