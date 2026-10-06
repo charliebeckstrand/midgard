@@ -1,8 +1,7 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import { useCallback, useRef } from 'react'
-import { useControllableFlag, useFloatingUI } from '../../hooks'
+import { type FloatingPlacement, useControllableFlag, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControlProps } from '../control/use-control-props'
@@ -20,7 +19,7 @@ export type ColorPickerStateOptions = {
 	alpha: boolean
 	onValueChange?: (value: string | Hsva) => void
 	onOpenChange?: (open: boolean) => void
-	placement: Placement
+	placement: FloatingPlacement
 	disabled?: boolean
 	readOnly?: boolean
 }

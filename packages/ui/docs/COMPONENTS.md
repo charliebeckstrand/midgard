@@ -21,6 +21,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover. A `rating` with `step={0.5}` has two radios for each star. The start half sets the half score, and the halves mirror in a right-to-left row.
 
+> The floating pickers `Listbox`, `Combobox`, `DatePicker`, and `ColorPicker` take a `FloatingPlacement` ([`HOOKS.md`](HOOKS.md)). A `<side>-auto` value, such as `'bottom-auto'`, aligns the panel to the edge of the trigger that is nearer to the edge of the viewport. An explicit placement keeps its alignment.
+
 > A `readOnly` `ColorPicker` does not open its panel. It takes `readOnly` from its own prop or from an enclosing `Control`. Its trigger stays focusable and keeps its tab stop, so a keyboard or a screen reader can read the color. The trigger is a button, and a button does not take `aria-readonly`, so it sets `aria-disabled` while the panel is closed. Only `disabled` sets the native `disabled` attribute.
 
 > A `readOnly` `checkbox` or `switch` keeps its state. A click or a Space press does not change it, and `onChange` does not fire. It keeps the focus, submits its value, and sets `aria-readonly`. It takes `readOnly` from its own prop or from an enclosing `Control`. Its `className`, `style`, and `hidden` go to the visible box.
