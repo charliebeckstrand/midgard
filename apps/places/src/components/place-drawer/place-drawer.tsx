@@ -74,28 +74,27 @@ export type PlaceDrawerProps = {
 }
 
 /**
- * The date and the score of the newest visit, and the number of visits where
- * there is more than one — the line under a place's name. It is spans, because
- * a list row puts it inside a button, and a flex line lays out the same either
- * way.
+ * The lines under a place's name: the score of the newest visit, then the date
+ * of that visit, or the number of visits where there is more than one. They are
+ * spans, because a list row puts them inside a button.
  */
 function PlaceMeta({ place }: { place: Place }) {
 	const latest = latestVisit(place)
 
 	return (
-		<Flex as="span" gap="sm" align="center" wrap>
-			<Text as="span">
-				<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
-			</Text>
-
+		<>
 			{latest.rating > 0 ? <Rating readOnly value={latest.rating} size="sm" /> : null}
 
 			{place.visits.length > 1 ? (
 				<Text as="span" tone="muted">
 					{place.visits.length} visits
 				</Text>
-			) : null}
-		</Flex>
+			) : (
+				<Text as="span">
+					<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
+				</Text>
+			)}
+		</>
 	)
 }
 
