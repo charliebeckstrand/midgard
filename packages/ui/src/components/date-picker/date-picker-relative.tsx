@@ -69,7 +69,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 		) : undefined
 
 	return (
-		<>
+		<DateInputResetContext value={resets}>
 			<DatePickerTrigger
 				open={state.open}
 				onOpenChange={state.onOpenChange}
@@ -148,63 +148,61 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						</Button>
 					</div>
 				) : (
-					<DateInputResetContext value={resets}>
-						<div className={cn(k.relative.custom.panel)}>
-							<Button
-								type="button"
-								variant="bare"
-								className={cn(k.relative.custom.back)}
-								onClick={state.backToList}
-							>
-								<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
-								Back to presets
-							</Button>
-							{/* Each field is a single-date picker in `input` mode: a typed
-						    DateInput whose suffix button opens a calendar. The popover
-						    preventDefaults mousedown to hold DOM focus on the dialog for
-						    the calendar variants' virtual model. Stop mousedown here, so a
-						    click focuses the input. `clearable` is off so the suffix —
-						    and thus the field width — stays fixed as a date is entered.
-						    Each field takes the root `footer`, so a footer button that
-						    the author removes does not show in the field calendars. */}
-							<Field onMouseDown={(event) => event.stopPropagation()}>
-								<Label>Start</Label>
-								<DatePicker
-									input
-									clearable={false}
-									value={state.custom.start ?? undefined}
-									onValueChange={state.custom.onStartChange}
-									readOnly={state.readOnly}
-									onMonthChange={props.onMonthChange}
-									min={props.min}
-									max={state.custom.end ?? props.max}
-									size={size}
-									footer={props.footer}
-								/>
-							</Field>
-							<Field onMouseDown={(event) => event.stopPropagation()}>
-								<Label>End</Label>
-								<DatePicker
-									input
-									clearable={false}
-									value={state.custom.end ?? undefined}
-									onValueChange={state.custom.onEndChange}
-									readOnly={state.readOnly}
-									onMonthChange={props.onMonthChange}
-									min={state.custom.start ?? props.min}
-									max={props.max}
-									size={size}
-									footer={props.footer}
-								/>
-							</Field>
-						</div>
-					</DateInputResetContext>
+					<div className={cn(k.relative.custom.panel)}>
+						<Button
+							type="button"
+							variant="bare"
+							className={cn(k.relative.custom.back)}
+							onClick={state.backToList}
+						>
+							<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
+							Back to presets
+						</Button>
+						{/* Each field is a single-date picker in `input` mode: a typed
+					    DateInput whose suffix button opens a calendar. The popover
+					    preventDefaults mousedown to hold DOM focus on the dialog for
+					    the calendar variants' virtual model. Stop mousedown here, so a
+					    click focuses the input. `clearable` is off so the suffix —
+					    and thus the field width — stays fixed as a date is entered.
+					    Each field takes the root `footer`, so a footer button that
+					    the author removes does not show in the field calendars. */}
+						<Field onMouseDown={(event) => event.stopPropagation()}>
+							<Label>Start</Label>
+							<DatePicker
+								input
+								clearable={false}
+								value={state.custom.start ?? undefined}
+								onValueChange={state.custom.onStartChange}
+								readOnly={state.readOnly}
+								onMonthChange={props.onMonthChange}
+								min={props.min}
+								max={state.custom.end ?? props.max}
+								size={size}
+								footer={props.footer}
+							/>
+						</Field>
+						<Field onMouseDown={(event) => event.stopPropagation()}>
+							<Label>End</Label>
+							<DatePicker
+								input
+								clearable={false}
+								value={state.custom.end ?? undefined}
+								onValueChange={state.custom.onEndChange}
+								readOnly={state.readOnly}
+								onMonthChange={props.onMonthChange}
+								min={state.custom.start ?? props.min}
+								max={props.max}
+								size={size}
+								footer={props.footer}
+							/>
+						</Field>
+					</div>
 				)}
 				{/* One footer for both modes. Its Clear shows on a committed span in
 				    list mode and on a settled Start+End in custom mode (gated in the
 				    state hook). It clears the whole selection either way. */}
 				<DatePickerFooter {...state.footer} />
 			</DatePickerContent>
-		</>
+		</DateInputResetContext>
 	)
 }
