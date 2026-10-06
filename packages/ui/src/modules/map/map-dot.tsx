@@ -1,8 +1,8 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { motion, useMotionValue, useTransform } from 'motion/react'
 import type { CSSProperties } from 'react'
-import { memo, useState } from 'react'
+import { memo } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/map'
@@ -87,9 +87,9 @@ type MapDotProps = {
  * rather than a transform scale. A dot revealed mid-gesture therefore still
  * lands on the size the view calls for. After the pop, a new width (a zoom, a
  * regroup) applies at once. The pop's tween and its stagger delay do not run
- * again. The stroke width is no transform, so the reduced-motion config of
- * motion does not skip it. Under reduced motion the dot mounts at its size, and
- * a new width applies at once.
+ * again, and the end of the pop renders nothing. The stroke width is no
+ * transform, so the reduced-motion config of motion does not skip it. Under
+ * reduced motion the dot mounts at its size.
  *
  * @internal
  */
@@ -115,32 +115,27 @@ export function MapDot({
 
 	const still = usePrefersReducedMotion()
 
-	// Whether the pop has run. Each width after it is a new view, not a reveal.
-	const [popped, setPopped] = useState(false)
+	// The share of the pop that has run, which is also the dot's opacity. The
+	// drawn width follows it, so a new width lands at once after the pop and
+	// mid-pop the dot grows toward the new width. Nothing renders at the pop's end.
+	const shown = useMotionValue(still ? 1 : 0)
+
+	const drawn = useTransform(shown, (share) => share * width)
 
 	if (!animate) return <path {...shared} />
 
 	return (
 		<motion.path
 			{...shared}
-			initial={still ? false : DOT_HIDDEN}
-			animate={{ opacity: 1, strokeWidth: width }}
-			transition={popped || still ? SETTLED : transition}
-			onAnimationComplete={popped ? undefined : () => setPopped(true)}
+			style={{ opacity: shown, strokeWidth: drawn }}
+			animate={{ opacity: 1 }}
+			transition={still ? INSTANT : transition}
 		/>
 	)
 }
 
-/** The dot before its pop. @internal */
-const DOT_HIDDEN = { opacity: 0, strokeWidth: 0 } as const
-
-/**
- * The transition of a dot after its pop, and under reduced motion: a new width
- * applies at once.
- *
- * @internal
- */
-const SETTLED = { duration: 0 } as const
+/** The pop under reduced motion: the dot completes at once. @internal */
+const INSTANT = { duration: 0 } as const
 
 /** Props for {@link MapDotCount}. @internal */
 type MapDotCountProps = {

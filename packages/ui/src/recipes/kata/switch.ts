@@ -112,7 +112,7 @@ export const k = defineRecipe(
 				rounded.full,
 				'pointer-events-none',
 				'motion-safe:transition-[left] duration-200 ease-in-out',
-				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(--switch-shadow) [:checked~&]:ring-(--switch-ring)',
+				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(color:--switch-shadow) [:checked~&]:ring-(--switch-ring)',
 				dan.size.thumb.base,
 				dan.size.thumb.on,
 			],

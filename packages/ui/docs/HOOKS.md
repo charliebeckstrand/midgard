@@ -76,7 +76,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. `layout: 'grid'` sorts a wrapping grid rather than one track. |
-| `useSortableItem` | Wraps dnd-kit `useSortable` with standard transform/transition/drag-opacity style composition. Under reduced motion the style has no transition. |
+| `useSortableItem` | Wraps dnd-kit `useSortable` with standard translate/transition/drag-opacity style composition (no scale). Under reduced motion the style has no transition. |
 | `useSortableGridKeyboard` | Keyboard reordering for a wrapping grid: Space lifts, Left/Right step one, Up/Down step a row, Enter/Escape drops, each move announced. |
 | `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. A keyboard move scrolls smoothly, and at once under reduced motion. |
 | `useDragCursor` | Holds a drag cursor (`grabbing` by default, or a resize cursor) on the whole page while active, over elements that set their own cursor. Every drag in the library goes through it, and `drag-cursor-boundary.test.ts` keeps it that way. `useSortableList` calls it for each sortable list. |
@@ -118,7 +118,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `FloatingPlacement` | A floating-ui placement, or `<side>-auto`, which aligns the panel to the edge that is nearer to the reference. |
 | `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test (it gets the character, its index, and the text), and the ref to compose. |
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
-| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. |
+| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. To fire in form fields, `ignore: (e) => e.repeat \|\| e.isComposing` keeps the repeat and composition guards. |
 | `OffcanvasOptions` | Options for `useOffcanvas`. |
 | `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |

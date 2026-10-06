@@ -110,7 +110,9 @@ export type DateInputProps = Omit<
  * Enter blurs the input, committing or renormalizing the current entry.
  * A reset of the bound Form drops the typed text and its verdict, also when
  * the value stays the same. A controlled value that is set again to the same
- * value does not: remount the field with a new `key` to drop the typed text.
+ * instant does not, also as a new `Date`: remount the field with a new `key` to
+ * drop the typed text. A controlled value that moves only the time of day
+ * drops the typed text.
  *
  * @see {@link maskDateText} for the masking rules.
  * @see {@link parseDateText} for the parse/validation contract.
@@ -175,22 +177,17 @@ export function DateInput({
 		return parsed && isDayInRange(parsed, min, max) ? parsed : undefined
 	}
 
-	// Last value this input committed. Tells an external value change (a form
-	// reset, a calendar pick) apart from the echo of its own commit. The commit
-	// sets it in the same batch as the value, so the render that sees the value
-	// also sees it.
-	const [emitted, setEmitted] = useState<Date | undefined>(undefined)
-
 	// A count of the typed verdicts that an external change cleared. The change
 	// clears the verdict during render, where a report must not run. The effect
 	// below carries the report, so the reported verdict cannot drift from the one
 	// the field renders.
 	const [clearedVerdicts, setClearedVerdicts] = useState(0)
 
-	// An external change or a form reset overrides any in-progress text.
-	useDateInputOverride({
+	// An external change or a form reset overrides any in-progress text. The
+	// hook keeps the last own commit, so it can tell an external change (a form
+	// reset, a calendar pick) apart from the echo of that commit.
+	const recordCommit = useDateInputOverride({
 		date,
-		emitted,
 		name,
 		editing: editingText !== null,
 		onOverride: () => {
@@ -266,7 +263,7 @@ export function DateInput({
 		// Re-stating the held day is not a change; the value keeps its identity
 		// (and any time of day it carries).
 		if (!isSameDay(parsed, date)) {
-			setEmitted(parsed)
+			recordCommit(parsed)
 
 			setDate(parsed)
 		}

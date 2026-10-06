@@ -16,11 +16,19 @@ export type KeybindingsOptions = {
 	 */
 	capture?: boolean
 	/**
-	 * Predicate that returns true to skip an event. The tinykeys default skips
-	 * events originating inside form fields and contenteditable elements. Pass
-	 * `() => false` to fire regardless of focus, for a key that a form field never
-	 * uses. To extend the default, call `defaultKeybindingsHandlerIgnore` from
-	 * tinykeys in the predicate, as `CommandPalette` does.
+	 * Predicate that returns true to skip an event. It replaces the tinykeys
+	 * default, which skips auto-repeat events, events during IME composition, and
+	 * events from form fields and contenteditable elements. To fire regardless of
+	 * focus, for a key that a form field never uses, pass
+	 * `(e) => e.repeat || e.isComposing`. This keeps the repeat and composition
+	 * guards. Do not pass `() => false`: a held key then fires on each auto-repeat.
+	 * To extend the default, call `defaultKeybindingsHandlerIgnore` from tinykeys
+	 * in the predicate, as `CommandPalette` does.
+	 *
+	 * @example
+	 * ```ts
+	 * useKeybindings({ Escape: close }, { ignore: (e) => e.repeat || e.isComposing })
+	 * ```
 	 */
 	ignore?: KeybindingFilter
 }
