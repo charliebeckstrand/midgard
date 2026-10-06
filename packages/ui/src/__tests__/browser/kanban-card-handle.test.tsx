@@ -14,7 +14,7 @@ import { drag } from './helpers/drag'
 /**
  * The handle of a kanban card is the keyboard stop of the card. The card has no
  * role, so a control inside it keeps its own role. The keyboard lifts and moves
- * the card from the handle, and a pointer still drags the card from any part of
+ * the card from the handle, and a mouse still drags the card from any part of
  * it.
  *
  * Rides the real browser for real focus, the accessible name that the browser

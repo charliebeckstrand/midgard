@@ -10,10 +10,8 @@ import type {
 	PaginationState,
 	Row,
 	RowData,
-	SortFn,
-	SortingState,
 } from '@tanstack/react-table'
-import { getOrCompute, isDataColumn } from '../../../../utilities'
+import { isDataColumn } from '../../../../utilities'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridColumn, GridPagination } from '../../types'
@@ -24,8 +22,6 @@ import {
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
-import type { GridSortState } from '../grid-sort/state'
-import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
 import type {
 	EngineColumn,
 	EngineColumnDef,
@@ -34,14 +30,6 @@ import type {
 	GridFeatures,
 } from './features'
 import { parsePxWidth } from './resize-view'
-
-/** Adapts the grid's ordered {@link GridSortState} list to a TanStack `SortingState`, priority order preserved. @internal */
-export function toSortingState(sort: GridSortState[] | undefined): SortingState {
-	return (sort ?? []).map((entry) => ({
-		id: String(entry.column),
-		desc: entry.direction === 'desc',
-	}))
-}
 
 /**
  * Column filter: evaluates the column's query tree against the row, reading the
@@ -59,113 +47,29 @@ const queryFilterFn: FilterFn<GridFeatures, RowData> = (
 queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
 
 /**
- * Each row's decorated {@link SortKey}, cached per column on the row. A sort
- * compares a row O(log N) times; without this the smart comparator would reparse
- * the value (the currency / percent / accounting regexes) on every comparison.
- * Keyed by the engine `Row` and resolved through the engine's own cached
- * `getValue`. A value is therefore decoded once per sort. A `WeakMap` holds no
- * row alive.
- *
- * The grid builds no engine row model, so the grid never calls this comparator.
- * Only a stock engine with a sorted row model calls it: the reference table of
- * the parity tests. The grid sorts through `cachedSortOrder`.
- *
- * @internal
- */
-const sortKeyCache = new WeakMap<Row<GridFeatures, RowData>, Map<string, SortKey>>()
-
-/** This row's {@link SortKey} for `columnId`, decoded once on first use and reused across the sort's comparisons. @internal */
-function rowSortKey(row: Row<GridFeatures, RowData>, columnId: string): SortKey {
-	const perColumn = getOrCompute(sortKeyCache, row, () => new Map<string, SortKey>())
-
-	return getOrCompute(perColumn, columnId, () => toSortKey(row.getValue(columnId)))
-}
-
-/**
- * Builds the default column sort: it orders rows by the smart {@link SortKey} of
- * their accessor value. Numbers, money, percentages, dates, and the like
- * therefore sort correctly out of the box rather than lexically. Each value is
- * decorated once per sort (see {@link rowSortKey}). Row-shape-agnostic; cast to
- * a column's row type.
- *
- * Direction-aware so empties sink to the end under both directions. The engine
- * negates a comparator's result for a `desc` column, and its `sortUndefined`
- * escape fires only for a literal `undefined`. A fixed empties-last sign would
- * therefore flip to empties-first on `desc`. Reading the live direction through
- * `isDescending`, the empty partition is pre-inverted so the engine's negation
- * lands empties last either way; the non-empty comparison negates normally.
- *
- * @param isDescending - Whether `columnId` currently sorts descending, read live
- *   at compare time so column defs needn't rebuild when the sort direction flips.
- * @internal
- */
-function makeSmartSortingFn(
-	isDescending: (row: Row<GridFeatures, RowData>, columnId: string) => boolean,
-): SortFn<GridFeatures, RowData> {
-	return (rowA, rowB, columnId) => {
-		const a = rowSortKey(rowA, columnId)
-
-		const b = rowSortKey(rowB, columnId)
-
-		const result = compareSortKeys(a, b)
-
-		// Empties order the same regardless of direction; pre-invert so the engine's
-		// desc negation lands them last either way.
-		if (a.empty || b.empty) return isDescending(rowA, columnId) ? -result : result
-
-		return result
-	}
-}
-
-/**
- * Whether a column sorts descending in the engine that holds `row`. Each engine
- * row holds its table, and the table reads the sort state of the render in
- * progress.
- *
- * @internal
- */
-function sortsDescending(row: Row<GridFeatures, RowData>, columnId: string): boolean {
-	return row.table.atoms.sorting.get().some((entry) => entry.id === columnId && entry.desc)
-}
-
-/** The smart sort of each data column, with the direction read from the engine. @internal */
-const smartSortFn = makeSmartSortingFn(sortsDescending)
-
-/**
  * Resolves a column's engine behaviors from its declaration:
  *
- * - The sort/filter value `accessorFn` (an explicit `value`, else the row field
- *   named by a data column's id, so columns sort client-side out of the box).
- * - The engine `sortFn` (a column's manual `sortFn`, else the smart default; data
- *   columns only).
+ * - The filter value `accessorFn` (an explicit `value`, else the row field
+ *   named by a data column's id).
  * - The query `filterFn` (a filterable column with a value).
  *
- * Each is `undefined` when
- * the column opts out, so {@link toColumnDef} spreads only what applies. The
- * comparator and filter are row-shape agnostic, cast to the column's row type.
+ * Each is `undefined` when the column opts out, so {@link toColumnDef} spreads
+ * only what applies. The filter is row-shape agnostic, cast to the column's row
+ * type.
  *
  * @internal
  */
-function deriveColumnBehavior<T>(
-	col: GridColumn<T>,
-	smartSortingFn: SortFn<GridFeatures, RowData>,
-) {
-	const { value, sortFn } = col
+function deriveColumnBehavior<T>(col: GridColumn<T>) {
+	const { value } = col
 
 	// Data columns read through the shared accessor (value or id field); a
 	// non-data column has no default accessor, only its explicit `value`.
 	const accessorFn = isDataColumn(col) ? columnAccessor(col) : value
 
-	const engineSortFn: SortFn<GridFeatures, EngineData<T>> | undefined = !isDataColumn(col)
-		? undefined
-		: sortFn
-			? (rowA, rowB) => sortFn(rowA.original, rowB.original)
-			: (smartSortingFn as SortFn<GridFeatures, EngineData<T>>)
-
 	const filterFn: FilterFn<GridFeatures, EngineData<T>> | undefined =
 		col.filterable && value ? (queryFilterFn as FilterFn<GridFeatures, EngineData<T>>) : undefined
 
-	return { accessorFn, engineSortFn, filterFn }
+	return { accessorFn, filterFn }
 }
 
 /**
@@ -222,7 +126,7 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 	// content via `w-px`.)
 	const size = parsePxWidth(col.width) ?? affordanceColumnSize(col)
 
-	const { accessorFn, engineSortFn, filterFn } = deriveColumnBehavior(col, smartSortFn)
+	const { accessorFn, filterFn } = deriveColumnBehavior(col)
 
 	return {
 		id: String(col.id),
@@ -231,16 +135,8 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 		enableColumnFilter: Boolean(col.filterable && col.value),
 		// Quick search stays scoped to columns that declare `value`.
 		enableGlobalFilter: Boolean(col.value),
-		enableSorting: Boolean(col.sortable),
-		// Only data columns group (they carry the accessor grouping keys on); the
-		// non-data columns (selection, actions, drag handle, expander) can't be a `groupBy` target.
-		enableGrouping: isDataColumn(col),
-		// The accessor feeds sort/filter without changing how the cell renders.
+		// The accessor feeds the filters without changing how the cell renders.
 		...(accessorFn ? { accessorFn } : {}),
-		// The engine sorts a literal `undefined` itself, before the sort function,
-		// and its desc negation then puts it first. With this off, the sort
-		// function orders it, as the off-engine sort does.
-		...(engineSortFn ? { sortFn: engineSortFn, sortUndefined: false as const } : {}),
 		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
 		...floorOf(col, size),

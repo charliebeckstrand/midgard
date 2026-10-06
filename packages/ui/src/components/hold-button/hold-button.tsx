@@ -1,9 +1,11 @@
 'use client'
 
+import { motion } from 'motion/react'
 import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
@@ -157,6 +159,9 @@ export function HoldButton({
 			data-slot={slot}
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
 			onPointerDown={composeEventHandlers(onPointerDown, (event) => {
+				// A held touch selects no text on the page.
+				holdTextSelection(event)
+
 				if (event.button === 0) start()
 			})}
 			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}
@@ -167,11 +172,14 @@ export function HoldButton({
 			onBlur={composeEventHandlers(onBlur, handleBlur, alwaysEnd)}
 			onClick={handleClick}
 		>
-			<span
+			{/* A Motion element holds its rest scale as a transform string. For a plain span,
+			Motion reads the computed matrix. A matrix of scale 0 does not interpolate, so
+			the first hold would jump to full. */}
+			<motion.span
 				ref={fillRef}
 				aria-hidden="true"
-				style={{ transform: 'scaleX(0)' }}
-				className="pointer-events-none absolute inset-0 origin-left bg-current/20"
+				initial={{ transform: 'scaleX(0)' }}
+				className="pointer-events-none absolute inset-0 origin-left rtl:origin-right bg-current/20"
 			/>
 			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>
 		</Button>

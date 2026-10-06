@@ -61,8 +61,10 @@ export type JsonTreeProps = {
 	 * @remarks
 	 * `maxHeight` alone is enough. The tree sizes itself from its content, up to
 	 * the cap, and then scrolls. A fixed height from `className` also works, under
-	 * the same cap. `estimateSize` must match the rendered row height, because the
-	 * spacers and the first window use it.
+	 * the same cap. Each rendered row measures its real height, and a long value
+	 * that wraps makes a taller row. `estimateSize` is only the first guess for a
+	 * row that has not rendered yet. A guess near the usual row height keeps the
+	 * scrollbar steady.
 	 */
 	virtualize?: JsonTreeVirtualize
 	/**

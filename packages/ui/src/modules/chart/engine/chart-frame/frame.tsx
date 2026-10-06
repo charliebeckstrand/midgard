@@ -15,6 +15,7 @@ import { announce, cn } from '../../../../core'
 import { type FrameReserve, useComposedRef } from '../../../../hooks'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
+import { holdTextSelection } from '../../../../utilities/hold-text-selection'
 import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
@@ -605,6 +606,8 @@ export function ChartFrame({
 			// Capture phase, so the snapshot lands before the menu's own handler opens it — the menu then
 			// renders from a target that stays put however the pointer travels while it is open.
 			onContextMenuCapture={() => setMenuIndex(menuTarget(hoverStore.get(), snap != null))}
+			// A held touch selects no text on the page, a chart with no context menu included.
+			onPointerDown={holdTextSelection}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,
 				// not the viewport — a chart in a narrow column stacks its legend even on

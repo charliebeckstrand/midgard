@@ -3,23 +3,11 @@ import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
 import { startEventLog } from '../debug/event-log/index.tsx'
 
-// The `sessionStorage` key of the page that reloaded for a stale chunk.
-const RELOADED = 'docs:reloaded'
-
-// A chunk fails to load when a deploy replaces the hashed file names under an
-// open tab. One reload gets the new names. A page that fails again after its
-// reload, or a device that is offline, does not reload again.
-window.addEventListener('vite:preloadError', () => {
-	try {
-		if (!navigator.onLine || sessionStorage.getItem(RELOADED) === location.href) return
-
-		sessionStorage.setItem(RELOADED, location.href)
-	} catch {
-		return
-	}
-
-	location.reload()
-})
+// A deploy replaces the hashed file names under an open tab, so the load of a
+// chunk can fail. React Router reloads the page when a navigation cannot load
+// its route, and the reload gets the new names. A load that fails in the
+// background, such as a prefetch or a load in idle time, does not reload the
+// page, as the reload closes what the reader has open.
 
 // While the Event log is on, it records from before hydration.
 await startEventLog()

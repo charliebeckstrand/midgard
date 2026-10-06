@@ -61,5 +61,14 @@ minimumReleaseAgeExclude:
 # state on the way back. The patch re-attaches the existing node instead of rebuilding it.
 # Covered by `overlay-activity-hold.test.tsx`, which fails without it. Mirrored in tms-ui; keep
 # the two copies identical. Remove once upstream is Activity-safe.
+#
+# React Router reloads the page when a route module fails to import, so a tab that a deploy
+# left on deleted chunks picks up the new build. It also did this for a prefetch: `prefetch="intent"`
+# starts on `touchstart`, so a scroll that started on a link reloaded the page, and an open menu
+# closed. The patch makes a failed prefetch give no links. A failed navigation still reloads, but
+# it loads the page of the navigation: React Router reloaded the current page, so a pick in the
+# menu of a stale tab stayed on the page it left.
+# Remove once upstream stops reloading on a prefetch.
 patchedDependencies:
   '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
+  react-router@8.4.0: patches/react-router@8.4.0.patch

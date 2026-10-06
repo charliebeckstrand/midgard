@@ -972,6 +972,117 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 	})
 })
 
+describe('useA11yRoving: itemSource in focus mode', () => {
+	// A focus-roving panel (Listbox) over a window of a much larger list.
+	function mountRow(container: HTMLElement, id: string) {
+		const row = document.createElement('div')
+
+		row.id = id
+
+		row.tabIndex = -1
+
+		row.setAttribute('role', 'option')
+
+		row.textContent = id
+
+		container.appendChild(row)
+
+		return row
+	}
+
+	function setup(container: HTMLElement, source: VirtualItemSource, typeahead = false) {
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			const sourceRef = useRef(source)
+
+			return useA11yRoving(ref, {
+				itemSelector: '[role="option"]',
+				focusOnEmpty: true,
+				itemSource: sourceRef,
+				typeahead,
+			})
+		})
+
+		return result
+	}
+
+	function makeSource(count: number): VirtualItemSource {
+		return {
+			count,
+			getKey: (index) => `opt-${index}`,
+			getTextValue: (index) => `item-${index}`,
+			scrollToIndex: vi.fn(),
+		}
+	}
+
+	it('End focuses the last row once it mounts', async () => {
+		const container = attach(document.createElement('div'))
+
+		mountRow(container, 'opt-0').focus()
+
+		mountRow(container, 'opt-1')
+
+		const source = makeSource(5_000)
+
+		setup(container, source).current(makeKeyEvent('End'))
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(4_999, { align: 'auto' })
+
+		const last = mountRow(container, 'opt-4999')
+
+		await waitFor(() => expect(document.activeElement).toBe(last))
+	})
+
+	it('reads the current index from the focused row', () => {
+		const container = attach(document.createElement('div'))
+
+		mountRow(container, 'opt-41').focus()
+
+		const next = mountRow(container, 'opt-42')
+
+		const source = makeSource(5_000)
+
+		setup(container, source).current(makeKeyEvent('ArrowDown'))
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(42, { align: 'auto' })
+
+		expect(document.activeElement).toBe(next)
+	})
+
+	it('type-ahead matches an index outside the window', () => {
+		const container = attach(document.createElement('div'))
+
+		mountRow(container, 'opt-0').focus()
+
+		const source = makeSource(5_000)
+
+		const handler = setup(container, source, true).current
+
+		for (const key of 'item-499') handler(makeKeyEvent(key))
+
+		expect(source.scrollToIndex).toHaveBeenLastCalledWith(499, { align: 'auto' })
+	})
+
+	it('a later move disconnects the watcher of an earlier one', async () => {
+		const container = attach(document.createElement('div'))
+
+		mountRow(container, 'opt-0').focus()
+
+		const handler = setup(container, makeSource(5_000)).current
+
+		handler(makeKeyEvent('End'))
+
+		handler(makeKeyEvent('Home'))
+
+		mountRow(container, 'opt-4999')
+
+		await Promise.resolve()
+
+		expect(document.activeElement?.id).toBe('opt-0')
+	})
+})
+
 describe('setVirtualActiveIndexed', () => {
 	it('records the index, scrolls it into view, and applies the highlight when the row is mounted', () => {
 		const container = document.createElement('div')

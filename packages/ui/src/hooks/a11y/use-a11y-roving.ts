@@ -13,7 +13,7 @@ import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
 /**
- * Pluggable index-based item source for virtual (windowed) roving. It lets
+ * Pluggable index-based item source for windowed roving. It lets
  * {@link useA11yRoving} navigate a list by index instead of querying the DOM.
  * Arrow / type-ahead therefore reach items outside a virtualized window.
  * Home/End do likewise, for a container that routes them to roving rather than
@@ -122,6 +122,23 @@ export function clearVirtualActive(activeDescendantRef: RefObject<HTMLElement | 
 /** The id `source` mints for `index`, or undefined out of range. @internal */
 function resolveVirtualItemId(source: VirtualItemSource, index: number): string | undefined {
 	return index >= 0 && index < source.count ? source.getKey(index) : undefined
+}
+
+/**
+ * The index whose id `source` mints as `id`, or -1 when none does. Focus mode
+ * reads its current index this way: the focused row is the active row, and
+ * it carries no index of its own.
+ *
+ * @internal
+ */
+function resolveVirtualItemIndex(source: VirtualItemSource, id: string | undefined): number {
+	if (!id) return -1
+
+	for (let index = 0; index < source.count; index++) {
+		if (source.getKey(index) === id) return index
+	}
+
+	return -1
 }
 
 /**
@@ -326,6 +343,48 @@ export function clearVirtualActiveIndexed(
 	activeDescendantRef?: RefObject<HTMLElement | null>,
 ): void {
 	setVirtualActiveIndexed(container, null, -1, activeIndexRef, activeDescendantRef)
+}
+
+/**
+ * Focus-mode counterpart to {@link setVirtualActiveIndexed}. It scrolls the
+ * item at `index` into the window and moves real focus to its row: at once
+ * when the row is mounted, else when it mounts. A later move disconnects the
+ * watcher of an earlier one, so a superseded target never takes focus.
+ *
+ * @internal
+ */
+function focusVirtualIndexed(
+	container: HTMLElement | null,
+	source: VirtualItemSource,
+	index: number,
+): void {
+	if (container) pendingMountWatchers.get(container)?.disconnect()
+
+	source.scrollToIndex(index, { align: 'auto' })
+
+	const id = resolveVirtualItemId(source, index)
+
+	if (!id || !container) return
+
+	const focusRow = (): boolean => {
+		const row = document.getElementById(id)
+
+		if (!row || !container.contains(row)) return false
+
+		row.focus()
+
+		return true
+	}
+
+	if (focusRow()) return
+
+	const observer = new MutationObserver(() => {
+		if (focusRow()) observer.disconnect()
+	})
+
+	pendingMountWatchers.set(container, observer)
+
+	observer.observe(container, { childList: true, subtree: true })
 }
 
 /**
@@ -548,7 +607,7 @@ type RovingKeyContext = {
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
 	containerEl: HTMLElement | null
-	/** Set (with `activeIndexRef`) when navigating an indexed source instead of `items`. */
+	/** Set when navigating an indexed source instead of `items`. Virtual mode also sets `activeIndexRef`. */
 	itemSource: VirtualItemSource | null
 	activeIndexRef: RefObject<number> | undefined
 }
@@ -557,10 +616,10 @@ type RovingKeyContext = {
  * Resolves the per-keystroke {@link RovingKeyContext} plus the current active
  * element and index. It is null when there's nothing to navigate: `items` is
  * empty in DOM mode, `itemSource.count` is 0 in indexed mode. Indexed mode
- * (a virtual `itemSource` paired with `activeIndexRef`) reads the current
- * index off `activeIndexRef`, instead of a DOM scan. It is clamped to the
- * source's live `count`, since a filter can shrink it between keystrokes. A
- * DOM scan cannot see an active row that is not mounted.
+ * (an `itemSource`, paired with `activeIndexRef` in virtual mode) reads the
+ * current index off the source, instead of a DOM scan
+ * ({@link resolveIndexedCurrentIndex}). A DOM scan cannot see an active row
+ * that is not mounted.
  *
  * @internal
  */
@@ -578,10 +637,12 @@ function resolveRovingContext(
 ): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
 	const isVirtual = mode === 'virtual'
 
-	// Indexed mode is virtual-only, and none of its keydown paths read `items`;
-	// skip the DOM query rather than run it (plus the array allocation) on
-	// every keystroke — including arrow-key auto-repeat — for a dead value.
-	const indexed = isVirtual && config.itemSource && config.activeIndexRef ? config.itemSource : null
+	// None of the keydown paths of indexed mode read `items`; skip the DOM query
+	// rather than run it (plus the array allocation) on every keystroke —
+	// including arrow-key auto-repeat — for a dead value. Virtual mode also needs
+	// `activeIndexRef`, which holds its logical index.
+	const indexed =
+		config.itemSource && (!isVirtual || config.activeIndexRef) ? config.itemSource : null
 
 	const items = indexed ? [] : queryItems(container, itemSelector)
 
@@ -592,7 +653,7 @@ function resolveRovingContext(
 	const active = document.activeElement as HTMLElement | null
 
 	const currentIndex = indexed
-		? Math.min(config.activeIndexRef?.current ?? -1, indexed.count - 1)
+		? resolveIndexedCurrentIndex(indexed, isVirtual, active, config.activeIndexRef)
 		: resolveDomCurrentIndex(items, isVirtual, active)
 
 	return {
@@ -609,6 +670,24 @@ function resolveRovingContext(
 		active,
 		currentIndex,
 	}
+}
+
+/**
+ * The indexed-mode current index. Virtual mode reads `activeIndexRef`, clamped
+ * to the live `count`, since a filter can shrink it between keystrokes. Focus
+ * mode reads the index of the focused row.
+ *
+ * @internal
+ */
+function resolveIndexedCurrentIndex(
+	source: VirtualItemSource,
+	isVirtual: boolean,
+	active: HTMLElement | null,
+	activeIndexRef: RefObject<number> | undefined,
+): number {
+	return isVirtual
+		? Math.min(activeIndexRef?.current ?? -1, source.count - 1)
+		: resolveVirtualItemIndex(source, active?.id)
 }
 
 /** The DOM-mode current index: the `data-active` item in virtual mode, the focused item otherwise. @internal */
@@ -674,13 +753,20 @@ type RowContextOptions = {
 }
 
 /**
- * Moves to `items[index]`: real focus in focus mode, the virtual marker in
- * virtual mode. A `scrollWithin` rides the DOM-backed path there, where the
- * indexed path leaves scrolling to the virtualizer.
+ * Moves to `items[index]`, or to the item at `index` of an indexed source:
+ * real focus in focus mode, the virtual marker in virtual mode. A
+ * `scrollWithin` rides the DOM-backed virtual path, where the indexed paths
+ * leave scrolling to the virtualizer.
  *
  * @internal
  */
 function moveTo(index: number, ctx: RovingKeyContext): void {
+	if (!ctx.isVirtual && ctx.itemSource) {
+		focusVirtualIndexed(ctx.containerEl, ctx.itemSource, index)
+
+		return
+	}
+
 	if (!ctx.isVirtual) {
 		const next = ctx.items[index]
 
@@ -1047,15 +1133,16 @@ export type RovingOptions = NavigationConfig & {
 	 */
 	row?: RovingRowConfig
 	/**
-	 * Virtual mode: pluggable index-based item source for a windowed list,
-	 * where options outside the rendered window never mount in the DOM (see
-	 * `VirtualOptions`). When both this and `activeIndexRef` are set, arrow /
-	 * Home / End / type-ahead navigate `itemSource.current` by index, instead of
-	 * querying `itemSelector`. They call `scrollToIndex` to mount the target row,
-	 * and apply the highlight once it renders. `setVirtualActiveIndexed` watches
-	 * for the mount, since the row doesn't render synchronously. Leave
-	 * unset for the default DOM-query source — every existing consumer,
-	 * unchanged.
+	 * Pluggable index-based item source for a windowed list, where options
+	 * outside the rendered window never mount in the DOM (see `VirtualOptions`).
+	 * While `itemSource.current` is set, arrow / Home / End / type-ahead navigate
+	 * it by index, instead of querying `itemSelector`. Virtual mode also needs
+	 * `activeIndexRef`. A move calls `scrollToIndex` to mount the target row,
+	 * then applies the highlight (virtual mode) or focuses the row (focus mode)
+	 * once it renders. The hook watches for the mount, since the row doesn't
+	 * render synchronously. Focus mode reads the current index from the id of
+	 * the focused row. Leave unset, or leave `.current` null, for the default
+	 * DOM-query source.
 	 */
 	itemSource?: RefObject<VirtualItemSource | null>
 	/**

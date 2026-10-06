@@ -192,7 +192,7 @@ describe('cn', () => {
 
 			expect(cn('density-px-[2,3,4]', 'p-4')).toBe('p-4')
 
-			expect(cn('density-left-[1,2,3]', 'inset-x-2')).toBe('inset-x-2')
+			expect(cn('density-inset-s-[1,2,3]', 'inset-x-2')).toBe('inset-x-2')
 		})
 
 		it('replaces an earlier logical side with a later class of its axis', () => {
@@ -228,6 +228,20 @@ describe('cn', () => {
 			expect(cn(plain, stepped)).toBe(stepped)
 
 			expect(cn(stepped, plain)).toBe(plain)
+		})
+	})
+
+	describe('the spellings that ui uses', () => {
+		// An arbitrary property such as `[touch-action:pan-x_pan-y]` is not in the
+		// class group of its utility, so a later utility does not replace it. ui
+		// uses the utility spelling, and a consumer class can override it.
+		it.each([
+			['wrap-break-word', 'wrap-anywhere'],
+			['touch-pan-x touch-pan-y', 'touch-none'],
+			['fill-(--chart-fill)!', 'fill-red-500!'],
+			['leading-0', 'leading-5'],
+		])('replaces %s with a later %s', (ui, consumer) => {
+			expect(cn(ui, consumer)).toBe(consumer)
 		})
 	})
 })

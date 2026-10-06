@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useChatScroll } from '../../modules/chat/use-chat-scroll'
-import { renderUI } from '../helpers'
+import { renderUI, stubMatchMedia } from '../helpers'
 
 /**
  * The hook writes to the container it is given, so the container is what a test
@@ -101,6 +101,30 @@ describe('useChatScroll', () => {
 		act(() => frame?.(0))
 
 		expect(scrollToCalls).toEqual([{ top: CONTENT_HEIGHT, behavior: 'smooth' }])
+
+		raf.mockRestore()
+	})
+
+	it('jumps instead of gliding when the reader asks for reduced motion', () => {
+		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+
+		let frame: FrameRequestCallback | null = null
+
+		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
+			frame = fn
+
+			return 1
+		})
+
+		const { rerender } = renderUI(<Harness dependency="a" />)
+
+		rerender(<Harness dependency="b" />)
+
+		act(() => frame?.(0))
+
+		expect(scrollToCalls).toEqual([])
+
+		expect(scrollTops).toEqual([CONTENT_HEIGHT, CONTENT_HEIGHT])
 
 		raf.mockRestore()
 	})

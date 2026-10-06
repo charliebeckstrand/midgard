@@ -110,7 +110,7 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 				<Icon icon={icon} />
 			</Text>
 
-			<div className="min-w-0 break-words">{children}</div>
+			<div className="min-w-0 wrap-break-word">{children}</div>
 		</Flex>
 	)
 }

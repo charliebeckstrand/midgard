@@ -19,7 +19,7 @@ const { focus } = sen
 const { text } = iro
 const { affix, reset, density, surface } = control
 const { field, flex } = narabi
-const { portal, panel } = popover
+const { portal, panel, fit } = popover
 
 const button = defineRecipe({
 	base: [
@@ -48,7 +48,8 @@ const value = defineRecipe({
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
 // not in the calendar kata. Each takes the step of the nearest density scope.
-const body = [flex.col, dan.space.box.base, dan.gap.y]
+// The body scrolls when the floating layer caps the height of the panel.
+const body = [flex.col, dan.space.box.base, dan.gap.y, fit.scroll]
 
 /**
  * The box of the trigger. It is as wide as the date and the calendar icon. It
@@ -80,8 +81,9 @@ export const k = {
 		// `portal` is a single class string — include it, don't spread it (spreading
 		// a string scatters it into junk chars, dropping the z-index and letting the
 		// calendar fall behind a modal overlay's backdrop).
-		portal: [focus.ring, portal],
+		portal: [focus.ring, portal, fit.wrapper],
 		motion: panel.motion,
+		column: fit.column,
 		text: text.default,
 		glass: panel.glass,
 		body,

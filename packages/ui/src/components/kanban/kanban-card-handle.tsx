@@ -24,8 +24,9 @@ export type KanbanCardHandleProps = {
 /**
  * Drag handle of a {@link KanbanCard}: the keyboard stop of the card. On an
  * interactive board it is a `<button>` that takes the dnd-kit activator, the
- * drag instructions, and the keyboard lift. A pointer drags the card from the
- * handle or from any other part of the card.
+ * drag instructions, and the keyboard lift. A mouse drags the card from the
+ * handle or from any other part of the card. On a touch screen the handle is
+ * the drag surface, and the rest of the card scrolls.
  *
  * @remarks
  * Client component. Put one handle in each card. The card itself has no role

@@ -1,0 +1,86 @@
+diff --git a/dist/development/lib/dom/ssr/links.js b/dist/development/lib/dom/ssr/links.js
+index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc56826b0fa 100644
+--- a/dist/development/lib/dom/ssr/links.js
++++ b/dist/development/lib/dom/ssr/links.js
+@@ -81,8 +81,8 @@ async function getKeyedPrefetchLinks(matches, manifest, routeModules) {
+ 	return dedupeLinkDescriptors((await Promise.all(matches.map(async (match) => {
+ 		let route = manifest.routes[match.route.id];
+ 		if (route) {
+-			let mod = await loadRouteModule(route, routeModules);
+-			return mod.links ? mod.links() : [];
++			let mod = await loadRouteModule(route, routeModules, false).catch(() => null);
++			return mod?.links ? mod.links() : [];
+ 		}
+ 		return [];
+ 	}))).flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map((link) => link.rel === "stylesheet" ? {
+diff --git a/dist/development/lib/dom/ssr/routeModules.js b/dist/development/lib/dom/ssr/routeModules.js
+index 6bb91e0b419c7c2346769438940e665d0094b812..734b4758820cd87aa84d2451dd96037fb1273f01 100644
+--- a/dist/development/lib/dom/ssr/routeModules.js
++++ b/dist/development/lib/dom/ssr/routeModules.js
+@@ -9,7 +9,7 @@
+  * @license MIT
+  */
+ //#region lib/dom/ssr/routeModules.ts
+-async function loadRouteModule(route, routeModulesCache) {
++async function loadRouteModule(route, routeModulesCache, reload = true) {
+ 	if (route.id in routeModulesCache) return routeModulesCache[route.id];
+ 	try {
+ 		let routeModule = await import(
+@@ -20,10 +20,13 @@ async function loadRouteModule(route, routeModulesCache) {
+ 		routeModulesCache[route.id] = routeModule;
+ 		return routeModule;
+ 	} catch (error) {
++		if (!reload) throw error;
+ 		console.error(`Error loading route module \`${route.module}\`, reloading page...`);
+ 		console.error(error);
+ 		if (window.__reactRouterContext && window.__reactRouterContext.isSpaMode && import.meta.hot) throw error;
+-		window.location.reload();
++		let next = window.__reactRouterDataRouter?.state.navigation.location;
++		if (next) window.location.assign(window.__reactRouterDataRouter.createHref(next));
++		else window.location.reload();
+ 		return new Promise(() => {});
+ 	}
+ }
+diff --git a/dist/production/lib/dom/ssr/links.js b/dist/production/lib/dom/ssr/links.js
+index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc56826b0fa 100644
+--- a/dist/production/lib/dom/ssr/links.js
++++ b/dist/production/lib/dom/ssr/links.js
+@@ -81,8 +81,8 @@ async function getKeyedPrefetchLinks(matches, manifest, routeModules) {
+ 	return dedupeLinkDescriptors((await Promise.all(matches.map(async (match) => {
+ 		let route = manifest.routes[match.route.id];
+ 		if (route) {
+-			let mod = await loadRouteModule(route, routeModules);
+-			return mod.links ? mod.links() : [];
++			let mod = await loadRouteModule(route, routeModules, false).catch(() => null);
++			return mod?.links ? mod.links() : [];
+ 		}
+ 		return [];
+ 	}))).flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map((link) => link.rel === "stylesheet" ? {
+diff --git a/dist/production/lib/dom/ssr/routeModules.js b/dist/production/lib/dom/ssr/routeModules.js
+index 6bb91e0b419c7c2346769438940e665d0094b812..734b4758820cd87aa84d2451dd96037fb1273f01 100644
+--- a/dist/production/lib/dom/ssr/routeModules.js
++++ b/dist/production/lib/dom/ssr/routeModules.js
+@@ -9,7 +9,7 @@
+  * @license MIT
+  */
+ //#region lib/dom/ssr/routeModules.ts
+-async function loadRouteModule(route, routeModulesCache) {
++async function loadRouteModule(route, routeModulesCache, reload = true) {
+ 	if (route.id in routeModulesCache) return routeModulesCache[route.id];
+ 	try {
+ 		let routeModule = await import(
+@@ -20,10 +20,13 @@ async function loadRouteModule(route, routeModulesCache) {
+ 		routeModulesCache[route.id] = routeModule;
+ 		return routeModule;
+ 	} catch (error) {
++		if (!reload) throw error;
+ 		console.error(`Error loading route module \`${route.module}\`, reloading page...`);
+ 		console.error(error);
+ 		if (window.__reactRouterContext && window.__reactRouterContext.isSpaMode && import.meta.hot) throw error;
+-		window.location.reload();
++		let next = window.__reactRouterDataRouter?.state.navigation.location;
++		if (next) window.location.assign(window.__reactRouterDataRouter.createHref(next));
++		else window.location.reload();
+ 		return new Promise(() => {});
+ 	}
+ }

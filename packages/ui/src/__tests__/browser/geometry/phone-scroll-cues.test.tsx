@@ -8,6 +8,7 @@ import { Input } from '../../../components/input'
 import { Timeline, TimelineItem, TimelineTitle } from '../../../components/timeline'
 import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * At a phone width, a `rail` Filters row and a horizontal Timeline scroll
@@ -231,6 +232,27 @@ describe('phone scroll cues (real browser, 375px)', () => {
 			expect(row.hasAttribute('aria-label')).toBe(false)
 
 			expect(screen.queryByRole('region')).toBeNull()
+		})
+
+		it('scrolls a field that the fade covers clear of the fade on focus', async () => {
+			const { container } = renderUI(<Rail />)
+
+			const row = getSlot(container, 'filters-row')
+
+			await waitFor(() => expect(fadedSides(row)).toEqual({ left: false, right: true }))
+
+			const input = screen.getByPlaceholderText('Status')
+
+			input.focus()
+
+			await frames()
+
+			expect(row.scrollLeft).toBeGreaterThan(0)
+
+			expect(row.getBoundingClientRect().right - input.getBoundingClientRect().right).toBeNear(
+				FULL_FADE_PX,
+				HALF_PIXEL,
+			)
 		})
 
 		it('adds nothing to a stack row', async () => {

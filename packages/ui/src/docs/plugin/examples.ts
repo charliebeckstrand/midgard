@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { type ESTree, normalizePath, Visitor } from 'vite'
-import { DEFAULT_LANG, DEFAULT_THEME } from '../../components/code/code-shiki.ts'
+import { DEFAULT_LANG, DEFAULT_THEME, trimBlankLines } from '../../components/code/code-shiki.ts'
 import {
 	highlightShiki,
 	type ShikiHighlight,
@@ -172,7 +172,7 @@ async function readCode(parse: Parse, file: string): Promise<ExampleCode | undef
 
 	const code = spread ? source.slice(0, spread.start) + source.slice(spread.end) : source
 
-	const highlight = await highlightShiki(code.trim(), DEFAULT_LANG, DEFAULT_THEME)
+	const highlight = await highlightShiki(trimBlankLines(code), DEFAULT_LANG, DEFAULT_THEME)
 
 	return {
 		code,

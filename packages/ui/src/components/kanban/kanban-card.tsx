@@ -32,10 +32,11 @@ export type KanbanCardProps = {
  * Client component. The card is a list item of the `<ul>` of its column body.
  * A read-only or disabled card is the `<li>` itself. An interactive card is a
  * `<div>` inside its `<li>`, with no role and no tab stop. A control or a link
- * inside the card thus keeps its own role. A pointer drags the card from any
- * part of it. The keyboard reaches the card through its
- * {@link KanbanCardHandle}, which takes the drag instructions and the keyboard
- * lift. An interactive card with no handle warns in development. Set
+ * inside the card thus keeps its own role. A mouse drags the card from any
+ * part of it. A finger on the card scrolls, and a finger on the
+ * {@link KanbanCardHandle} drags. The keyboard reaches the card through its
+ * handle, which takes the drag instructions and the keyboard lift. An
+ * interactive card with no handle warns in development. Set
  * `aria-label` only when the content yields no usable name. Memoized: the card
  * reads only the card-facing {@link KanbanContext}, so a pointer drag doesn't
  * re-render the whole board.
@@ -90,7 +91,7 @@ function KanbanCardImpl({
 		if (!interactive || handleCount.current > 0) return
 
 		console.warn(
-			`Kanban: <KanbanCard value="${cardId}"> holds no <KanbanCardHandle>. A pointer drags the card, and the keyboard cannot reach it.`,
+			`Kanban: <KanbanCard value="${cardId}"> holds no <KanbanCardHandle>. A mouse drags the card, but a finger and the keyboard cannot.`,
 		)
 	}, [interactive, cardId])
 

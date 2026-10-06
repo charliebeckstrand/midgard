@@ -1,4 +1,5 @@
-import type { Active, DragStartEvent } from '@dnd-kit/core'
+import { type Active, closestCenter, type DragStartEvent } from '@dnd-kit/core'
+import { horizontalListSortingStrategy, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useListDrag } from '../../components/list/use-list-drag'
@@ -72,9 +73,26 @@ describe('useListDrag', () => {
 			useListDrag<Item>({ containerRef, items, orientation: 'vertical' }),
 		)
 
-		expect(result.current.dndContextProps).toBeDefined()
+		const { dndContextProps } = result.current
 
-		expect(result.current.strategy).toBeDefined()
+		expect(dndContextProps.collisionDetection).toBe(closestCenter)
+
+		expect(dndContextProps.sensors?.length).toBeGreaterThan(0)
+
+		expect(dndContextProps.onDragStart).toBeTypeOf('function')
+
+		expect(dndContextProps.onDragEnd).toBeTypeOf('function')
+
+		expect(dndContextProps.onDragCancel).toBeTypeOf('function')
+	})
+
+	it.each([
+		['vertical', verticalListSortingStrategy],
+		['horizontal', horizontalListSortingStrategy],
+	] as const)('sorts a %s list with the strategy of its axis', (orientation, strategy) => {
+		const { result } = renderHook(() => useListDrag<Item>({ containerRef, items, orientation }))
+
+		expect(result.current.strategy).toBe(strategy)
 	})
 
 	it('reports interactive=false when disabled', () => {

@@ -62,7 +62,9 @@ export type VirtualOptionsProps<T> = {
 	/** Items to render. The current filtered/sorted set, in order. */
 	items: T[]
 	/**
-	 * Row height in pixels. Assumes uniform heights.
+	 * The first guess at the height of a row, in pixels. Each rendered row
+	 * measures its real height, so the guess only places the rows that have not
+	 * rendered yet. A guess near the real height keeps the scrollbar steady.
 	 *
 	 * @defaultValue 36
 	 */
@@ -70,9 +72,11 @@ export type VirtualOptionsProps<T> = {
 	/**
 	 * Stable id for the option at `index`, matching the `id` the rendered
 	 * option carries. Registers a keyboard-navigable item source with the
-	 * nearest roving owner (`Combobox`, `CommandPalette`). Arrow / type-ahead
-	 * therefore reach options outside the rendered window, instead of stopping at
-	 * its edge. Omit to keep the prior DOM-only-roving behavior.
+	 * nearest roving owner (`Listbox`, `Combobox`, `CommandPalette`). Arrow /
+	 * type-ahead therefore reach options outside the rendered window, instead of
+	 * stopping at its edge. The id is also the key of the measured height of the
+	 * row, so a height stays with its option when the list filters. Omit to keep
+	 * the prior DOM-only-roving behavior. The index is then the key.
 	 */
 	getOptionId?: (item: T, index: number) => string
 	/** Whether the option at `index` is disabled; a registered item source skips it during navigation. */
@@ -84,7 +88,7 @@ export type VirtualOptionsProps<T> = {
 }
 
 // Rows rendered outside the viewport on each side. Fixed for option lists,
-// whose row heights are uniform and small.
+// whose rows are small.
 const OVERSCAN = 10
 
 /**
@@ -98,16 +102,18 @@ const OVERSCAN = 10
  * gives `VirtualOptions` a wrapper with a definite height and `overflow-y:
  * auto`, as the `children` TSDoc of the palette tells. Renders only rows in the
  * viewport plus overscan; the rest are represented by top/bottom spacer divs.
+ * Each rendered row sits in a presentational wrapper that measures its real
+ * height. A row height changes with the density and with a description line,
+ * so the window and `scrollToIndex` follow the rows and not `estimateSize`.
  * Passes `aria-setsize` / `aria-posinset` to `children` so a screen reader
  * still reports the true "n of m" position for a windowed-out row.
  *
  * With `getOptionId`, registers a keyboard-navigable item source with the
- * nearest roving owner (`Combobox`, `CommandPalette`). Arrow / type-ahead then
- * navigate by index and scroll the target into the window, reaching options
- * outside it. Without it, keyboard navigation stays DOM-only, capped at the
+ * nearest roving owner (`Listbox`, `Combobox`, `CommandPalette`). Arrow /
+ * type-ahead then navigate by index and scroll the target into the window,
+ * reaching options outside it. Without it, keyboard navigation stays DOM-only, capped at the
  * rendered window (the pre-existing behavior).
  *
- * @remarks Assumes uniform item heights.
  * @typeParam T - Item type passed to `children`.
  */
 export function VirtualOptions<T>({
@@ -138,11 +144,17 @@ export function VirtualOptions<T>({
 		return scrollElementRef.current
 	}, [])
 
-	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex } = useVirtualWindow({
+	const getItemKey = useCallback(
+		(index: number) => (getOptionId ? getOptionId(items[index] as T, index) : index),
+		[items, getOptionId],
+	)
+
+	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex, measureRef } = useVirtualWindow({
 		count: items.length,
 		getScrollElement,
 		estimateSize,
 		overscan: OVERSCAN,
+		getItemKey,
 	})
 
 	const source = useMemo<VirtualItemSource | null>(() => {
@@ -186,14 +198,20 @@ export function VirtualOptions<T>({
 			{topSpacer > 0 && (
 				<div role="presentation" data-slot="virtual-options-spacer" style={{ height: topSpacer }} />
 			)}
-			{virtualItems.map((virtualItem) => {
-				const item = items[virtualItem.index] as T
-
-				return children(item, virtualItem.index, {
-					'aria-setsize': items.length,
-					'aria-posinset': virtualItem.index + 1,
-				})
-			})}
+			{virtualItems.map((virtualItem) => (
+				<div
+					key={virtualItem.key}
+					ref={measureRef}
+					role="presentation"
+					data-slot="virtual-options-row"
+					data-index={virtualItem.index}
+				>
+					{children(items[virtualItem.index] as T, virtualItem.index, {
+						'aria-setsize': items.length,
+						'aria-posinset': virtualItem.index + 1,
+					})}
+				</div>
+			))}
 			{bottomSpacer > 0 && (
 				<div
 					role="presentation"

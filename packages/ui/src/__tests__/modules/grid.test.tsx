@@ -883,17 +883,6 @@ describe('Grid', () => {
 			).toThrow(/requires `maxHeight`/)
 		})
 
-		it('renders only a subset of rows when virtualized', () => {
-			const { container } = renderUI(
-				<Grid columns={columns} rows={manyRows} getKey={getKey} virtualize maxHeight="300px" />,
-			)
-
-			// jsdom reports zero viewport size; react-virtual renders roughly `overscan` rows.
-			const rendered = container.querySelectorAll('tbody tr:not([data-slot="grid-spacer"])')
-
-			expect(rendered.length).toBeLessThan(manyRows.length)
-		})
-
 		/** jsdom lays out nothing, so no row measures, and the window never mounts. */
 		it('holds the skeleton until a row measures', () => {
 			const { container } = renderUI(

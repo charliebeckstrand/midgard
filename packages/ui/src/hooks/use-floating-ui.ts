@@ -122,31 +122,6 @@ const autoAlignMiddleware: Middleware = {
  */
 const hideMiddleware = hide({ strategy: 'referenceHidden' })
 
-/** Sizes the floating element's min-width to the reference width. @internal */
-const matchReferenceWidthMiddleware = size({
-	apply({ rects, elements }) {
-		elements.floating.style.minWidth = `${rects.reference.width}px`
-	},
-})
-
-/**
- * Sets the max-width of the floating element to the width that is available to
- * it, less an 8px margin to each viewport edge. On a top or a bottom side,
- * `shift` moves the panel along the edge, so the available width is the
- * viewport width. On a left or a right side, it is the space on that side. It
- * goes after `shift`. Then a panel that is wider than the viewport stays inside
- * the margin that `shift` keeps. The panel must let its content shrink with the
- * wrapper.
- *
- * @internal
- */
-export const fitWidthMiddleware = size({
-	padding: 8,
-	apply({ availableWidth, elements }) {
-		elements.floating.style.maxWidth = `${Math.max(0, availableWidth)}px`
-	},
-})
-
 /**
  * Lowers the height that is available to a floating panel to a height that
  * suits its content. It gets the available height and the floating element,
@@ -155,32 +130,69 @@ export const fitWidthMiddleware = size({
  */
 export type FloatingHeightSnap = (availableHeight: number, floating: HTMLElement) => number
 
+/** Options for {@link fitMiddleware}. @internal */
+type FitOptions = {
+	/** Set the min-width of the floating element to the reference width. */
+	matchReferenceWidth?: boolean
+	/** Cap the max-height of the floating element, and lower the cap with a snap function. */
+	fitHeight?: boolean | FloatingHeightSnap
+}
+
 /**
- * Sets the max-height of the floating element to the height that is available
- * on its side of the reference, less an 8px margin to the viewport edge. It
- * goes after `flip`. When the panel fits on no side, `flip` selects the side
- * with the most space, and this middleware shrinks the panel into that space.
- * The panel must let its scroll region shrink with the wrapper, as `Menu` does.
- * A `snap` function can lower the height, for example to a row boundary.
+ * Fits the floating element to the space that is available to it, with one
+ * `size` middleware. Each `size` middleware measures the overflow again, and a
+ * change of the panel size starts the chain again, so the chain holds one.
+ *
+ * The max-width is the available width, less an 8px margin to each viewport
+ * edge. On a top or a bottom side, `shift` moves the panel along the edge, so
+ * the available width is the viewport width. On a left or a right side, it is
+ * the space on that side. The panel must let its content shrink with the
+ * wrapper.
+ *
+ * With `matchReferenceWidth`, the min-width is the reference width.
+ *
+ * With `fitHeight`, the max-height is the height that is available on the side
+ * of the reference, less an 8px margin to the viewport edge. When the panel
+ * fits on no side, `flip` selects the side with the most space, and the panel
+ * shrinks into that space. The panel must let its scroll region shrink with the
+ * wrapper, as `Menu` does. A {@link FloatingHeightSnap} function can lower the
+ * height, for example to a row boundary. The snap function reads the panel
+ * after the width is set.
+ *
+ * It goes after `flip` and `shift`. Then a panel that is larger than the
+ * viewport stays inside the margin that `shift` keeps.
  *
  * @internal
  */
-export function fitHeightMiddleware(snap?: FloatingHeightSnap): Middleware {
+export function fitMiddleware({
+	matchReferenceWidth = false,
+	fitHeight = false,
+}: FitOptions = {}): Middleware {
+	const snap = typeof fitHeight === 'function' ? fitHeight : undefined
+
 	return size({
 		padding: 8,
-		apply({ availableHeight, elements }) {
+		apply({ availableWidth, availableHeight, rects, elements }) {
+			const { style } = elements.floating
+
+			style.maxWidth = `${Math.max(0, availableWidth)}px`
+
+			if (matchReferenceWidth) style.minWidth = `${rects.reference.width}px`
+
+			if (!fitHeight) return
+
 			const available = Math.max(0, availableHeight)
 
 			const height = snap ? Math.min(available, snap(available, elements.floating)) : available
 
-			elements.floating.style.maxHeight = `${Math.max(0, height)}px`
+			style.maxHeight = `${Math.max(0, height)}px`
 		},
 	})
 }
 
 /**
- * Default middleware chain: offset / flip / shift, the width cap, plus the
- * size middlewares that the options request.
+ * Default middleware chain: offset / flip / shift, then the fit middleware,
+ * which caps the width and adds the sizes that the options request.
  *
  * A panel on the left or the right side can fit on neither side, for example
  * a wide panel on a phone. Then `flip` also tries the bottom and the top
@@ -202,11 +214,7 @@ function buildMiddleware(
 		offset(offsetPx),
 		flip(horizontal ? { fallbackAxisSideDirection: 'end' } : undefined),
 		shift({ padding: 8 }),
-		fitWidthMiddleware,
-		...(matchReferenceWidth ? [matchReferenceWidthMiddleware] : []),
-		...(fitHeight
-			? [fitHeightMiddleware(typeof fitHeight === 'function' ? fitHeight : undefined)]
-			: []),
+		fitMiddleware({ matchReferenceWidth, fitHeight }),
 	]
 }
 
@@ -227,13 +235,13 @@ export type FloatingPanelOptions = {
 	onOpenChange?: (open: boolean, event?: Event, reason?: OpenChangeReason) => void
 	/** Offset (px) between reference and floating element. @defaultValue 4 */
 	offset?: number
-	/** When true, adds a size middleware that sets the floating element's min-width to the reference width. @defaultValue false */
+	/** When true, sets the floating element's min-width to the reference width. @defaultValue false */
 	matchReferenceWidth?: boolean
 	/**
-	 * When true, adds a size middleware that caps the max-height of the floating
-	 * element to the space on its side of the reference. Then a panel that is
-	 * taller than the viewport stays on screen, and its content must scroll. The
-	 * cap is on the positioned wrapper, so the panel inside must shrink with it.
+	 * When true, caps the max-height of the floating element to the space on its
+	 * side of the reference. Then a panel that is taller than the viewport stays
+	 * on screen, and its content must scroll. The cap is on the positioned
+	 * wrapper, so the panel inside must shrink with it.
 	 * A {@link FloatingHeightSnap} function turns the cap on and can lower it.
 	 * @defaultValue false
 	 */

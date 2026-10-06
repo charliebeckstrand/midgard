@@ -21,7 +21,12 @@ export type PdfViewerPage = {
 	src: string
 	/** Optional smaller image for the thumbnail sidebar. Falls back to `src`. */
 	thumbnail?: string
-	/** Optional accessible label for the page. Falls back to `Page N`. */
+	/**
+	 * Optional accessible label for the page. Falls back to `Page N`.
+	 *
+	 * @remarks A viewer with a `src` sets it from the page label that the document prints, such
+	 * as `Page iv`.
+	 */
 	label?: string
 	/** Intrinsic width in pixels. Sizes the viewport before the image loads. */
 	width?: number

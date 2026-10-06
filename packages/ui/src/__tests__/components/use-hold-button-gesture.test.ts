@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { animate } from 'motion'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -13,7 +14,7 @@ function renderGesture(initial: HoldGestureOptions) {
 
 			const fill = document.createElement('span')
 
-			// Attach the ref to a real element so setFill's style writes succeed.
+			// Attach the ref to a real element, which setFill animates.
 			useEffect(() => {
 				gesture.fillRef.current = fill
 
@@ -29,11 +30,20 @@ function renderGesture(initial: HoldGestureOptions) {
 }
 
 describe('useHoldButtonGesture', () => {
+	// `animate` is the shared module spy (setup/module-mocks.ts). The stub runs no
+	// animation. A real Motion animation under fake timers waits on a fake frame,
+	// and the frame loop of Motion then stays stuck for the next files of the
+	// worker, because the suites run with `isolate: false`.
 	beforeEach(() => {
 		vi.useFakeTimers()
+
+		vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
 	})
 
 	afterEach(() => {
+		// Restore the call-through default of animate.
+		vi.mocked(animate).mockRestore()
+
 		vi.useRealTimers()
 	})
 
@@ -184,26 +194,30 @@ describe('useHoldButtonGesture', () => {
 		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
-	it('writes a scaleX(1) transition onto the fill ref when starting', () => {
+	it('animates the fill to scaleX(1) at a constant rate over the duration when starting', () => {
 		const { result } = renderGesture({ duration: 500, disabled: false })
 
 		act(() => result.current.start())
 
-		expect(result.current.fill.style.transform).toBe('scaleX(1)')
-
-		expect(result.current.fill.style.transition).toBe('transform 500ms linear')
+		expect(animate).toHaveBeenLastCalledWith(
+			result.current.fill,
+			{ transform: 'scaleX(1)' },
+			{ duration: 0.5, ease: 'linear' },
+		)
 	})
 
-	it('writes a scaleX(0) reset when canceling mid-hold', () => {
+	it('animates the fill back to scaleX(0) in 150 ms when canceling mid-hold', () => {
 		const { result } = renderGesture({ duration: 500, disabled: false })
 
 		act(() => result.current.start())
 
 		act(() => result.current.cancel())
 
-		expect(result.current.fill.style.transform).toBe('scaleX(0)')
-
-		expect(result.current.fill.style.transition).toMatch(/transform 150ms linear/)
+		expect(animate).toHaveBeenLastCalledWith(
+			result.current.fill,
+			{ transform: 'scaleX(0)' },
+			{ duration: 0.15, ease: 'linear' },
+		)
 	})
 
 	it('allows a new hold to start after the previous one completed', () => {

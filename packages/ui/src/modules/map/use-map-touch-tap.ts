@@ -2,6 +2,7 @@
 
 import { type PointerEvent, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { type ChartTouchTap, useChartTouchTap } from '../chart/engine/use-chart-touch-tap'
 import { targetAt } from './engine/map-hover/anchor'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -97,6 +98,9 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Char
 			plot.current = event.currentTarget
 
 			if (event.pointerType === 'touch') {
+				// A long press opens the readout, so a held touch selects no text on the page.
+				holdTextSelection(event)
+
 				contacts.current.add(event.pointerId)
 
 				if (contacts.current.size > 1) pinched.current = true

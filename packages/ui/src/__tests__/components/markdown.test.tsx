@@ -270,3 +270,20 @@ describe('primeMarkdown', () => {
 		lex.mockRestore()
 	})
 })
+
+describe('Markdown code fence', () => {
+	it('keeps the indentation of the first line of a fenced block', async () => {
+		const md = ['```yaml', '  name: midgard', '  private: true', '```'].join('\n')
+
+		const { container } = renderUI(<Markdown>{md}</Markdown>)
+
+		const text = () => container.querySelector('pre')?.textContent ?? ''
+
+		// The first line keeps its two spaces, as the second line does.
+		expect(text()).toMatch(/^ {2}name: midgard\n {2}private: true/)
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+
+		expect(text()).toMatch(/^ {2}name: midgard\n {2}private: true/)
+	})
+})

@@ -5,7 +5,7 @@ import { popover } from '../kiso/popover'
 
 const { text } = iro
 const { reset, density } = control
-const { portal } = popover
+const { portal, fit } = popover
 
 export const k = defineRecipe(
 	{
@@ -13,7 +13,7 @@ export const k = defineRecipe(
 		slots: {
 			// Kept in step with the listbox recipe — one dropdown family, one height (see the note
 			// there for why 320px).
-			options: 'max-h-80',
+			options: ['max-h-80', fit.scroll],
 			// Inner listbox: spaces its options and collapses when empty. `peer`
 			// drives the sibling `empty` slot below; `kara` adds the virtualized
 			// case, which `:empty` alone cannot see.
@@ -23,7 +23,7 @@ export const k = defineRecipe(
 		},
 	},
 	{
-		portal,
+		portal: [portal, fit.wrapper],
 	},
 )
 

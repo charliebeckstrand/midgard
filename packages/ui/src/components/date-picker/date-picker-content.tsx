@@ -178,7 +178,7 @@ export function DatePickerContent({
 			<motion.div
 				{...k.content.motion}
 				data-slot="datepicker-content"
-				className={cn('z-50', k.content.text, glass && k.content.glass)}
+				className={cn('z-50', k.content.column, k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>
 				<Box

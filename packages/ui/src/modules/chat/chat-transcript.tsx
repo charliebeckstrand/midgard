@@ -2,7 +2,7 @@
 
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useA11yAnnouncements, useVirtualWindow } from '../../hooks'
+import { useA11yAnnouncements, usePrefersReducedMotion, useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
@@ -118,6 +118,9 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 
 	const getScrollElement = useCallback(() => containerRef.current, [])
 
+	// The follow glides, and jumps when the reader asks for reduced motion.
+	const follow: ScrollBehavior = usePrefersReducedMotion() ? 'auto' : 'smooth'
+
 	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex, measureRef } = useVirtualWindow({
 		count,
 		getScrollElement,
@@ -125,7 +128,7 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 		overscan: OVERSCAN,
 		getItemKey,
 		anchorTo: 'end',
-		followOnAppend: 'smooth',
+		followOnAppend: follow,
 	})
 
 	// The end anchor has no mount arm, so the first window that holds rows jumps
@@ -163,9 +166,9 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 
 		if (!messages.slice(start).some((message) => message.sender === 'user')) return
 
-		// Smooth, so a reader already at the end glides with the virtualizer's own
-		// follow and does not jump.
-		scrollToIndex(count - 1, { align: 'end', behavior: 'smooth' })
+		// The behavior of the virtualizer's own follow, so a reader already at the
+		// end glides with it and does not jump.
+		scrollToIndex(count - 1, { align: 'end', behavior: follow })
 	})
 
 	useA11yAnnouncements(describeTranscript(messages, streaming))

@@ -54,10 +54,10 @@ export type PopoverContentProps = {
 }
 
 /**
- * The floating surface. Non-modal by default: renders through
- * `FloatingSurface` (not a focus manager). Tab moves through the panel and
- * out into the page, an outside press dismisses it, and focus returns to
- * the trigger on close. `autoFocus` moves initial focus into the panel on
+ * The floating surface. Non-modal by default: a non-modal focus manager puts
+ * the panel in the tab order right after the trigger. Tab goes from the
+ * trigger into the panel and from the panel on into the page, an outside
+ * press dismisses it, and focus returns to the trigger on close. `autoFocus` moves initial focus into the panel on
  * open; `modal` traps focus inside it. Use `Dialog` for page-level modal
  * content.
  */
@@ -100,7 +100,12 @@ export function PopoverContent({
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
-			trapFocusContext={modal ? floatingContext : undefined}
+			// Mounted for every panel, so `modal` changes only the trap. A non-modal
+			// manager makes the portal draw its tab-order guards: Tab goes from the
+			// trigger into the panel and from the panel on to the next element after
+			// the trigger.
+			trapFocusContext={floatingContext}
+			trapFocusProps={{ modal }}
 		>
 			<motion.div
 				{...k.panel.motion}

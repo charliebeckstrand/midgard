@@ -81,7 +81,7 @@ export function RangeArrow({
 				aria-hidden="true"
 				viewBox="0 0 10 6"
 				className={cn(
-					'absolute bottom-full mb-1 h-1.5 w-2.5 -translate-x-1/2 transition-[left] duration-150 ease-out',
+					'absolute bottom-full mb-1 h-1.5 w-2.5 -translate-x-1/2 motion-safe:transition-[left] duration-150 ease-out',
 					k.arrow,
 				)}
 				style={{ left: `${probePercent(value, domain, orientation)}%` }}
@@ -98,7 +98,7 @@ export function RangeArrow({
 			aria-hidden="true"
 			viewBox="0 0 6 10"
 			className={cn(
-				'absolute right-full mr-1 h-2.5 w-1.5 -translate-y-1/2 transition-[top] duration-150 ease-out',
+				'absolute right-full mr-1 h-2.5 w-1.5 -translate-y-1/2 motion-safe:transition-[top] duration-150 ease-out',
 				k.arrow,
 			)}
 			style={{ top: `${probePercent(value, domain, orientation)}%` }}

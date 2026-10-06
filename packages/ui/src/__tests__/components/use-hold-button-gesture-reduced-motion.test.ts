@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { animate } from 'motion'
 import { useEffect } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
@@ -40,7 +41,11 @@ describe('useHoldButtonGesture under prefers-reduced-motion', () => {
 
 		act(() => result.current.start())
 
-		expect(result.current.fill.style.transition).toBe('transform 500ms linear')
+		expect(animate).toHaveBeenLastCalledWith(
+			result.current.fill,
+			{ transform: 'scaleX(1)' },
+			{ duration: 0.5, ease: 'linear' },
+		)
 	})
 
 	it('collapses the decorative reset to an instant', () => {
@@ -50,6 +55,10 @@ describe('useHoldButtonGesture under prefers-reduced-motion', () => {
 
 		act(() => result.current.cancel())
 
-		expect(result.current.fill.style.transition).toBe('transform 0ms linear')
+		expect(animate).toHaveBeenLastCalledWith(
+			result.current.fill,
+			{ transform: 'scaleX(0)' },
+			{ duration: 0 },
+		)
 	})
 })

@@ -22,6 +22,11 @@ import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
 const TREE_ITEM_SELECTOR = '[role="treeitem"]'
 
+/** The stable key of a flat row. A branch has an open row and a close row on one path. */
+function rowKey(node: FlatNode): string {
+	return `${node.type}:${node.path}`
+}
+
 /** The mounted treeitem of the row at flat `index`, or null when windowing keeps the row out of the DOM. */
 function rowAt(container: HTMLElement, index: number): HTMLElement | null {
 	return container.querySelector<HTMLElement>(`[data-index="${index}"] ${TREE_ITEM_SELECTOR}`)
@@ -181,11 +186,19 @@ export function JsonTreeVirtualized({
 	const estimateSize = virtualize.estimateSize ?? DEFAULT_ROW_HEIGHT
 	const overscan = virtualize.overscan ?? DEFAULT_OVERSCAN
 
-	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex } = useVirtualWindow({
+	// A long value wraps, so each row measures its real height. The key holds a
+	// measured height to its node when rows above it open or close.
+	const getItemKey = useCallback(
+		(index: number) => rowKey(flatNodes[index] as FlatNode),
+		[flatNodes],
+	)
+
+	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex, measureRef } = useVirtualWindow({
 		count: flatNodes.length,
 		getScrollElement: () => ref.current,
 		estimateSize,
 		overscan,
+		getItemKey,
 	})
 
 	// The Tab stop rides the first focusable rendered row; windowing can
@@ -278,7 +291,8 @@ export function JsonTreeVirtualized({
 
 				return (
 					<JsonTreeNodeRow
-						key={`${node.type}:${node.path}`}
+						key={virtualItem.key}
+						ref={measureRef}
 						node={node}
 						index={virtualItem.index}
 						onToggle={handleToggle}

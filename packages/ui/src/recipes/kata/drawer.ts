@@ -87,6 +87,13 @@ export const k = {
 		},
 	}),
 	/**
+	 * The optional wrapper around the body and the footer. The bridge has no slot
+	 * for it, so the drawer states it here. `half` and `full` fix the height of the
+	 * panel. The wrapper fills that height, so the body can grow and the footer
+	 * stays at the foot of the panel.
+	 */
+	content: [panel.layout.content, flex.fill],
+	/**
 	 * The drag handle: a grab area wide enough to aim at (`base`), and the bar
 	 * inside it the reader actually sees (`bar`).
 	 *

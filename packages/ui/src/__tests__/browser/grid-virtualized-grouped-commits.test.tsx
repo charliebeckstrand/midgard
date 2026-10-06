@@ -16,9 +16,13 @@ import { budget } from './helpers/wall-clock'
  * nested commit. An expand then commits once more as a nested commit: each
  * entering row opens its track in it, and the motion state drops the entering
  * rows. The two updates batch into one commit. A later commit before the frame
- * is a no-op render of the virtualizer after the rows measure. The test holds
- * such a commit to a quarter of the commit that applies the toggle, so that
- * one more render of the body fails.
+ * is a no-op render of the virtualizer after the rows measure, and it renders
+ * no row.
+ *
+ * Each leaf row that renders calls the `cell` of the `name` column once, so the
+ * test counts those calls in each commit. A count of rows does not change with
+ * the machine. A commit time does: one stall in a commit failed a cap of a
+ * quarter of the commit that applies the toggle.
  */
 describe('grid virtualized grouped body commits (real browser)', () => {
 	type Person = { id: number; name: string; team: string }
@@ -29,21 +33,35 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 		team: `Team ${String(Math.floor(i / 100)).padStart(2, '0')}`,
 	}))
 
-	const columns: GridColumn<Person>[] = [
-		{ id: 'name', title: 'Name', cell: (r) => r.name, value: (r) => r.name },
-		{ id: 'team', title: 'Team', cell: (r) => r.team, value: (r) => r.team },
-	]
-
 	it('applies a toggle in view in one nested commit before the next frame', async () => {
-		const commits: { phase: string; duration: number }[] = []
+		const commits: { phase: string; rows: number }[] = []
 
 		let count = false
+
+		/** The leaf rows that rendered since the last commit. */
+		let rendered = 0
+
+		const columns: GridColumn<Person>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				cell: (r) => {
+					rendered++
+
+					return r.name
+				},
+				value: (r) => r.name,
+			},
+			{ id: 'team', title: 'Team', cell: (r) => r.team, value: (r) => r.team },
+		]
 
 		const view = renderUI(
 			<Profiler
 				id="grid"
-				onRender={(_id, phase, duration) => {
-					if (count) commits.push({ phase, duration })
+				onRender={(_id, phase) => {
+					if (count) commits.push({ phase, rows: rendered })
+
+					rendered = 0
 				}}
 			>
 				<div style={{ width: 600 }}>
@@ -83,7 +101,8 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 
 		/**
 		 * Holds the commits of one toggle to the toggle, the commit that applies
-		 * it, the nested commit of an expand, and no-op renders.
+		 * it, the nested commit of an expand, and no-op renders that render no
+		 * row.
 		 */
 		const expectCommits = (toggled: typeof commits, expand: boolean) => {
 			const [first, applied, ...later] = toggled
@@ -92,14 +111,15 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 
 			expect(applied?.phase).toBe('nested-update')
 
-			if (expand) expect(later.shift()?.phase).toBe('nested-update')
+			// The commit that applies the toggle renders rows, so the count is live.
+			expect(applied?.rows).toBeGreaterThan(0)
 
-			const budget = (applied?.duration ?? 0) / 4
+			if (expand) expect(later.shift()?.phase).toBe('nested-update')
 
 			for (const commit of later) {
 				expect(commit.phase).toBe('update')
 
-				expect(commit.duration).toBeLessThan(budget)
+				expect(commit.rows).toBe(0)
 			}
 		}
 

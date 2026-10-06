@@ -50,6 +50,21 @@ beforeAll(async () => {
 	await document.fonts.load('1em "Google Sans Flex"')
 })
 
+// `@testing-library/user-event` puts a clipboard stub on `navigator`, and its
+// `afterAll` removes the stub at the end of the first file that loads it. To
+// remove the stub, it restores the own `clipboard` property that it found. In a
+// browser, `clipboard` is a getter on `Navigator.prototype` and not an own
+// property, so user-event writes an own `clipboard` property of `undefined`.
+// Under `isolate: false` that property stays on the page. Each later file then
+// reads `navigator.clipboard` as `undefined` until a user-event call adds a new
+// stub. CI put `color-picker-press-focus` in that gap on #2023 and #2033.
+//
+// Each file starts with the browser's own clipboard. The next user-event call
+// adds its stub again.
+beforeAll(() => {
+	Reflect.deleteProperty(navigator, 'clipboard')
+})
+
 installResidueGuard()
 
 // Registered before the `afterEach` below, whose `cleanup` then runs first.
