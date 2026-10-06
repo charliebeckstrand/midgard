@@ -1,22 +1,32 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 
 // Reference count shared by nested overlays.
 let scrollLockCount = 0
 
 let scrollLockPreviousOverflow = ''
 
-let scrollLockPreviousPaddingRight = ''
+let scrollLockPaddingSide: 'paddingLeft' | 'paddingRight' = 'paddingRight'
+
+let scrollLockPreviousPadding = ''
 
 /** Takes a lock: on the first holder hides body overflow and compensates the scrollbar gap, saving the prior inline styles to restore. @internal */
 function acquireScrollLock() {
 	if (scrollLockCount === 0) {
 		const { body, documentElement } = document
 
+		// A scrollbar on the left (RTL in WebKit and Gecko) moves the root box
+		// right by its width. The sum is zero when the scrollbar is on the right,
+		// also when the page is scrolled horizontally.
+		const scrollbarLeft =
+			Math.round(documentElement.getBoundingClientRect().left) + documentElement.scrollLeft !== 0
+
+		scrollLockPaddingSide = scrollbarLeft ? 'paddingLeft' : 'paddingRight'
+
 		scrollLockPreviousOverflow = body.style.overflow
 
-		scrollLockPreviousPaddingRight = body.style.paddingRight
+		scrollLockPreviousPadding = body.style[scrollLockPaddingSide]
 
 		// Pads the body by the scrollbar's width before hiding overflow,
 		// replacing the space the scrollbar occupied. Applies only when a
@@ -28,9 +38,9 @@ function acquireScrollLock() {
 		body.style.overflow = 'hidden'
 
 		if (hasScrollbar && scrollbarWidth > 0) {
-			const current = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0
+			const current = Number.parseFloat(window.getComputedStyle(body)[scrollLockPaddingSide]) || 0
 
-			body.style.paddingRight = `${current + scrollbarWidth}px`
+			body.style[scrollLockPaddingSide] = `${current + scrollbarWidth}px`
 		}
 	}
 
@@ -44,7 +54,7 @@ function releaseScrollLock() {
 	if (scrollLockCount === 0) {
 		document.body.style.overflow = scrollLockPreviousOverflow
 
-		document.body.style.paddingRight = scrollLockPreviousPaddingRight
+		document.body.style[scrollLockPaddingSide] = scrollLockPreviousPadding
 	}
 }
 
@@ -52,12 +62,14 @@ function releaseScrollLock() {
  * Locks `document.body` overflow while `active` is true. Nested locks are
  * reference-counted: the body unlocks only when the last holder releases.
  *
- * @remarks Compensates the removed scrollbar's width with body padding so the
- * page doesn't shift on lock. The lock is acquired in an effect and released on
- * cleanup or when `active` goes false; no-ops during SSR.
+ * @remarks Compensates the removed scrollbar's width with body padding on the
+ * side of the scrollbar, so the page does not move on lock. The lock is taken
+ * in a layout effect, before the browser paints the commit that opens the
+ * overlay, and released on cleanup or when `active` goes false. It does
+ * nothing during SSR.
  */
 export function useScrollLock(active: boolean): void {
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!active) return
 
 		acquireScrollLock()
