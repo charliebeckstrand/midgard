@@ -194,7 +194,11 @@ describe('useConfirm', () => {
 
 		const caught = answer.catch((error: unknown) => error)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
+
+			await caught
+		})
 
 		await expect(caught).resolves.toBe(failure)
 	})
