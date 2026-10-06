@@ -340,10 +340,12 @@ describe('usePdfViewerDocument · preload', () => {
 		expect(link).toHaveAttribute('crossorigin', '')
 	})
 
-	it('does not preload a resident document', async () => {
+	it('does not preload a resident document', async ({ signal }) => {
 		ensureDocumentLoad('/resident.pdf', () => Promise.resolve())
 
 		await tick()
+
+		signal.throwIfAborted()
 
 		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
 
