@@ -277,17 +277,17 @@ export type SmartSortField<T> = {
 
 /**
  * Orders `rows` by an ordered {@link SmartSortField} list, off the engine. It
- * matches {@link makeSmartSortingFn} exactly, so the parity tests hold it equal
- * to the `getSortedRowModel` of a stock engine. The grid runs the two halves
- * itself, {@link cachedSortOrder} and {@link materializeSort}, so that a
- * re-sort by a signature already seen reuses the order. This call composes
- * them for the tests and the benchmarks.
+ * matches the smart sort of the reference table in the test helpers exactly,
+ * so the parity tests hold it equal to the `getSortedRowModel` of a stock
+ * engine. The grid runs the two halves itself, {@link cachedSortOrder} and
+ * {@link materializeSort}, so that a re-sort by a signature already seen
+ * reuses the order. This call composes them for the tests and the benchmarks.
  *
  * A decorate-sort-undecorate. Each smart field's {@link SortKey} is computed
  * once per row (the costly `parseNumeric` and type checks). The sort then
  * compares pre-decoded keys with no reparsing. That is the per-comparison work
- * the engine's cached comparator also avoids, here without a `WeakMap`/`Map`
- * lookup apiece. Empties sink last under both directions; a `desc` field
+ * the cached comparator of the reference table also avoids, here without a
+ * `WeakMap`/`Map` lookup apiece. Empties sink last under both directions; a `desc` field
  * negates only the non-empty comparison (the engine's negation-plus-pre-invert,
  * folded into one sign here). Fields are consulted in priority order, and equal
  * rows fall back to their original index. The sort is therefore stable, the

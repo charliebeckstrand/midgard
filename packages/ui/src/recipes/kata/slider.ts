@@ -1,11 +1,12 @@
 import type { ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kokkaku } from '../kiso'
+import { hannou, kokkaku, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
 const { color } = slider
+const { forced } = sen
 
 export const k = defineRecipe({
 	base: [
@@ -17,6 +18,9 @@ export const k = defineRecipe({
 		...cursor,
 		'outline-none',
 		...disabled,
+		// Forced colors remove the background of the track and the thumb, so the
+		// slider shows the native range, which paints in system colors.
+		forced.control,
 
 		// --slider-value is set inline (0-100%); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',
@@ -29,7 +33,7 @@ export const k = defineRecipe({
 		'[&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-zinc-950/20',
 		'dark:[&::-webkit-slider-thumb]:ring-white/20',
 		'[&::-webkit-slider-thumb]:shadow-sm',
-		'[&::-webkit-slider-thumb]:transition-transform',
+		'motion-safe:[&::-webkit-slider-thumb]:transition-transform',
 		'hover:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		'active:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		// An invalid slider rings its thumb in red, as an invalid checkbox rings its box.
@@ -49,7 +53,7 @@ export const k = defineRecipe({
 		'[&::-moz-range-thumb]:ring-1 [&::-moz-range-thumb]:ring-zinc-950/20',
 		'dark:[&::-moz-range-thumb]:ring-white/20',
 		'[&::-moz-range-thumb]:shadow-sm',
-		'[&::-moz-range-thumb]:transition-transform',
+		'motion-safe:[&::-moz-range-thumb]:transition-transform',
 		'hover:not-disabled:[&::-moz-range-thumb]:scale-110',
 		'active:not-disabled:[&::-moz-range-thumb]:scale-110',
 		'data-invalid:[&::-moz-range-thumb]:ring-2',

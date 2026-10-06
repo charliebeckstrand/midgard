@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { type MouseEvent, type PointerEvent, useId, useRef } from 'react'
 import { cn } from '../../../core'
 import { useHoverAcrossScroll } from '../../../hooks'
+import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
@@ -254,6 +255,10 @@ export function SectorChartMarks({
 
 	const sweepId = useId()
 
+	// The sweep (`pathLength`) is no transform, so the reduced-motion config of
+	// motion does not skip it. Under reduced motion the mask mounts whole.
+	const still = usePrefersReducedMotion()
+
 	const click = trigger === 'click'
 
 	const clickable = click || onIndexClick !== undefined
@@ -330,7 +335,7 @@ export function SectorChartMarks({
 							fill="none"
 							stroke="#fff"
 							strokeWidth={radius + 4}
-							initial={{ pathLength: 0 }}
+							initial={still ? false : { pathLength: 0 }}
 							animate={{ pathLength: 1 }}
 							// The sweep runs backwards on a data change — the disc un-wipes to
 							// nothing before the new pie sweeps in.

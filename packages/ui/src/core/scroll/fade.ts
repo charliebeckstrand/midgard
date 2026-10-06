@@ -24,9 +24,13 @@
  * fade is outside the box. The edges are logical, and the sides are physical, so
  * a right-to-left container swaps the two widths.
  *
- * A browser without scroll-driven animations shows no fade. A fade that comes
- * from script state arrives after the first paint, so the reader sees it
- * appear.
+ * The scroll padding at each inline edge is the width of the fade. Thus an
+ * item that the browser scrolls into view, such as a focused item, stops clear
+ * of the fade.
+ *
+ * A browser without scroll-driven animations shows no fade and no scroll
+ * padding. A fade that comes from script state arrives after the first paint,
+ * so the reader sees it appear.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
@@ -107,6 +111,9 @@ export const handler: PluginCreator = ({ addBase, addUtilities }) => {
 				'animation-fill-mode': 'both',
 				'animation-timeline': 'scroll(self inline)',
 				'animation-range': `0 ${WIDTH}, calc(100% - ${WIDTH}) 100%, normal`,
+				// A focused item that the browser scrolls into view stops clear of
+				// the fade at each edge.
+				'scroll-padding-inline': WIDTH,
 			},
 		},
 	})

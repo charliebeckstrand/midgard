@@ -80,8 +80,8 @@ export const k = defineRecipe(
 			 * takes the margin.
 			 */
 			base: ['relative inline-flex size-fit', sidebarItemMargin],
-			/** The indicator, on the top-right corner of the avatar, with a ring around it. */
-			dot: ['absolute top-0 right-0', 'ring-2 ring-white dark:ring-zinc-900'],
+			/** The indicator, on the top inline-end corner of the avatar, with a ring around it. */
+			dot: ['absolute top-0 inset-e-0', 'ring-2 ring-white dark:ring-zinc-900'],
 		},
 	},
 )

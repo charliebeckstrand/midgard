@@ -13,6 +13,14 @@ export const DEFAULT_LANG = 'tsx' satisfies BundledLanguage
 /** The theme of a `CodeBlock` that gives no `theme`. */
 export const DEFAULT_THEME = 'github-dark-default' satisfies BundledTheme
 
+/**
+ * Removes the blank lines before `code` and the whitespace after it, as a
+ * `CodeBlock` does before it tokenizes. The first line keeps its indentation.
+ *
+ * @internal
+ */
+export const trimBlankLines = (code: string) => code.replace(/^(?:[ \t]*\r?\n)+/, '').trimEnd()
+
 type Pending = {
 	resolve: (highlight: ShikiHighlight | undefined) => void
 	reject: (reason: unknown) => void

@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
+import { DateInputResetContext, useDateInputResets } from '../date-input/context'
 import { Field, Label } from '../fieldset'
 import { Icon } from '../icon'
 // Sibling variant reused for the custom range's Start/End fields; safe despite the
@@ -41,6 +42,10 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 
 	const state = useDatePickerRelativeState(props)
 
+	// The custom Start and End pickers get no `name`, so the relative picker
+	// passes the reset count of its Form down to their typed fields.
+	const resets = useDateInputResets(props.name)
+
 	// Row count that splits the presets plus the trailing custom row into two
 	// balanced, column-major columns (see the `relative.list` recipe): the leading
 	// half fills the first column, the rest the second.
@@ -64,7 +69,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 		) : undefined
 
 	return (
-		<>
+		<DateInputResetContext value={resets}>
 			<DatePickerTrigger
 				open={state.open}
 				onOpenChange={state.onOpenChange}
@@ -198,6 +203,6 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				    state hook). It clears the whole selection either way. */}
 				<DatePickerFooter {...state.footer} />
 			</DatePickerContent>
-		</>
+		</DateInputResetContext>
 	)
 }

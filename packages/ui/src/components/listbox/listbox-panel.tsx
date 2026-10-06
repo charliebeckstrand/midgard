@@ -97,7 +97,7 @@ export function ListboxPanel({
 							node
 					}}
 					style={floatingStyles}
-					className={k.portal}
+					className={cn(k.portal)}
 					tabIndex={-1}
 					{...getFloatingProps({ onKeyDown: onTabOut })}
 				>

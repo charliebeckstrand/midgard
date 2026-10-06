@@ -67,15 +67,21 @@ export function ColorPickerContent({
 			role="dialog"
 			aria-modal="true"
 			aria-label="Choose color"
-			className={k.content.portal}
+			className={cn(k.content.portal)}
 			tabIndex={-1}
 		>
 			<motion.div
 				{...k.content.motion}
 				data-slot="color-picker-content"
-				className={cn('z-50', k.content.text, glass && k.content.glass)}
+				className={cn('z-50', k.content.column, k.content.text, glass && k.content.glass)}
 			>
-				<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg" p="md">
+				<Box
+					bg={glass ? 'none' : 'popover'}
+					outline={glass || undefined}
+					radius="lg"
+					p="md"
+					className={cn(k.content.scroll)}
+				>
 					{children}
 				</Box>
 			</motion.div>

@@ -9,6 +9,7 @@ import { k } from '../../recipes/kata/date-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
 import { DateInput, type DateInputFormat } from '../date-input'
+import { DateInputResetContext, useDateInputResets } from '../date-input/context'
 import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
@@ -323,6 +324,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	// the user can type and the keydown stream roves the grid.
 	const inputRef = useRef<HTMLInputElement>(null)
 
+	// The DateInput gets no `name`, so the picker passes the reset count of its
+	// Form down. A reset then drops the typed text, also when the value stays.
+	const resets = useDateInputResets(props.name)
+
 	const { onDialogKeyDown, onReferenceKeyDown } = useDatePickerInputTab({
 		open: open,
 		triggerRef: triggerRef,
@@ -374,7 +379,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	if (input) {
 		return (
-			<>
+			<DateInputResetContext value={resets}>
 				<div
 					data-slot="control"
 					ref={setReference}
@@ -416,7 +421,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					/>
 				</div>
 				{content}
-			</>
+			</DateInputResetContext>
 		)
 	}
 

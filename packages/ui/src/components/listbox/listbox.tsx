@@ -272,6 +272,9 @@ export function Listbox<T>({
 		open,
 		onOpenChange: setOpenGuarded,
 		matchReferenceWidth: true,
+		// A panel taller than the space on its side of the trigger shrinks into that
+		// space and scrolls, as a menu does.
+		fitHeight: true,
 		returnFocusTo: triggerRef,
 		// The trigger button (`role="combobox"`) and the panel (`role="listbox"`)
 		// carry their own roles + popup wiring. Setting `role: null` prevents

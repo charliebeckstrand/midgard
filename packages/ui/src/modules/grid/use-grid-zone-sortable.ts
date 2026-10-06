@@ -1,8 +1,8 @@
 'use client'
 
-import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
+import { useMotionSafeSortable } from '../../hooks/use-motion-safe-sortable'
 
 /**
  * Registers a manager group zone as an in-place sortable item, so whole groups
@@ -22,7 +22,7 @@ export function useGridZoneSortable(id: string) {
 		transform,
 		transition,
 		isDragging,
-	} = useSortable({ id })
+	} = useMotionSafeSortable({ id })
 
 	const style: CSSProperties = {
 		transform: CSS.Transform.toString(transform),

@@ -8,7 +8,7 @@
 
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { text } = iro
@@ -16,6 +16,7 @@ const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { ease, spring } = ugoki
+const { forced } = sen
 
 /**
  * Per-color bg / stroke classes shared between bar and gauge. The bar's `fill`
@@ -46,7 +47,7 @@ const color = {
 }
 
 const fill = defineRecipe({
-	base: ['h-full', rounded.full],
+	base: ['h-full', rounded.full, forced.mark],
 	color: {
 		zinc: color.zinc.bg,
 		red: color.red.bg,
@@ -62,7 +63,7 @@ const gauge = defineRecipe({
 })
 
 const label = defineRecipe({
-	base: ['absolute', weight.semibold, ...text.default, dan.text.small],
+	base: ['absolute', weight.semibold, ...text.default, dan.text.small, 'tabular-nums'],
 })
 
 export const k = defineRecipe(
@@ -71,6 +72,7 @@ export const k = defineRecipe(
 			'overflow-hidden',
 			rounded.full,
 			...mode('bg-zinc-200', 'dark:bg-zinc-800'),
+			forced.outline,
 			kokkaku.progress.bar.height,
 		],
 		skeleton: kokkaku.progress,

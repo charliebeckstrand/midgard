@@ -58,9 +58,12 @@ export const k = {
 			...disabled,
 			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
-		draggable: [...grab.default],
-		// The keyboard stop of an interactive card. The card is the pointer
-		// surface, so the handle shows the same hand.
+		// The cursors alone: the card keeps touch scrolling, and the handle is the
+		// drag surface on a touch screen.
+		draggable: [...grab.cursor],
+		// The keyboard stop of an interactive card, and the touch drag surface. A
+		// mouse drags the card from any part of it, so the handle shows the same
+		// hand.
 		handle: [
 			flex.row,
 			'size-6 shrink-0 justify-center',

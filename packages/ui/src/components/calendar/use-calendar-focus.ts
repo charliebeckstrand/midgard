@@ -8,7 +8,13 @@ import { useA11yRoving } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { queryItems } from '../../hooks/a11y/use-a11y-roving'
 import { wrap } from '../../utilities'
-import { fromCalendarDate, isYearInRange, MAX_YEAR, toCalendarDate } from './calendar-utilities'
+import {
+	fromCalendarDate,
+	isSameDay,
+	isYearInRange,
+	MAX_YEAR,
+	toCalendarDate,
+} from './calendar-utilities'
 
 /**
  * Selector for focusable day cells. Out-of-range cells render as
@@ -26,12 +32,39 @@ const FOCUSABLE = 'button:not(:disabled)'
  * else today when no enabled day is selected. When neither is an enabled day,
  * the roving hook puts the stop on the first enabled day. The hook takes the
  * first day in DOM order that matches, so the `:has()` term keeps the stop off
- * today when a selected day comes after today.
+ * today when a selected day comes after today. {@link dayTabStop} states the
+ * same rule from the date model. When you change one, change the other.
  *
  * @internal
  */
 const DAY_TAB_STOP =
 	'[aria-selected="true"], :not(:has(> [aria-selected="true"]:not(:disabled))) > [aria-current="date"]'
+
+/**
+ * The day that holds the Tab stop of the grid, from the date model. It states
+ * the rule of {@link DAY_TAB_STOP} and the roving hook again, without the DOM.
+ * The day is the first selected day that is enabled, else today when it is
+ * enabled and in `days`, else the first enabled day. When `isSelected` marks
+ * more than one day, as for a range, the first selected day in `days` is the
+ * earlier one.
+ *
+ * @param days - The days of the shown month, in order.
+ * @param today - Today, or `null` before hydration.
+ * @returns The day from `days`, or `null` when `days` holds no enabled day.
+ * @internal
+ */
+export function dayTabStop(
+	days: readonly Date[],
+	today: Date | null,
+	isDisabled: (date: Date) => boolean,
+	isSelected: (date: Date) => boolean,
+): Date | null {
+	const enabled = days.filter((date) => !isDisabled(date))
+
+	const todayCell = today ? enabled.find((date) => isSameDay(date, today)) : undefined
+
+	return enabled.find(isSelected) ?? todayCell ?? enabled[0] ?? null
+}
 
 /**
  * Navigation keys a sealed surface swallows even when no move applies, so a dead

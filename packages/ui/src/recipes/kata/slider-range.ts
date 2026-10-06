@@ -1,6 +1,6 @@
 import type { ScaleStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, kokkaku, ugoki } from '../kiso'
+import { hannou, kasane, kokkaku, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 import { slider } from '../kiso/slider'
 
@@ -8,6 +8,7 @@ const { cursor, disabled } = hannou
 const { rounded } = kasane
 const { css } = ugoki
 const { color } = slider
+const { forced } = sen
 
 const range = defineRecipe({
 	base: [
@@ -24,7 +25,13 @@ const range = defineRecipe({
 })
 
 const track = defineRecipe({
-	base: ['absolute left-0 right-0', rounded.full, 'bg-(--slider-track)', kokkaku.slider.track],
+	base: [
+		'absolute left-0 right-0',
+		rounded.full,
+		'bg-(--slider-track)',
+		forced.outline,
+		kokkaku.slider.track,
+	],
 })
 
 const thumb = defineRecipe({
@@ -37,6 +44,7 @@ const thumb = defineRecipe({
 		'bg-white',
 		...mode('ring-1 ring-zinc-950/20', 'dark:ring-white/20'),
 		'shadow-sm',
+		forced.mark,
 		css.transform,
 		'hover:scale-110',
 		'active:scale-110',
@@ -48,7 +56,7 @@ const thumb = defineRecipe({
 export const k = {
 	base: range,
 	track,
-	fill: ['absolute', rounded.full, 'bg-(--slider-fill)'],
+	fill: ['absolute', rounded.full, 'bg-(--slider-fill)', forced.mark],
 	thumb,
 } as const
 

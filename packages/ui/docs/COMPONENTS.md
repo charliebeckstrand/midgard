@@ -63,13 +63,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `TreeItem` row is one control, so its `prefix` and `suffix` hold no control. For a checkbox tree, give each item `checked` (or `defaultChecked`) and `onCheckedChange`. The row carries `aria-checked` and draws the box, Space toggles the check, and Enter toggles a branch. The caller computes the `'mixed'` state of a branch.
 
-> `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the keyboard stop of the card and takes the keyboard lift, and a pointer drags the card from any part of it. A read-only board, with no `onReorder`, shows no handle.
+> `kanban` composes a `KanbanColumn` of a `KanbanColumnHeader` and a `KanbanColumnBody` of `KanbanCard`s. Put a `KanbanCardHandle` in each card. The handle is the keyboard stop of the card and takes the keyboard lift. A mouse drags the card from any part of it. On a touch screen the handle drags, and the rest of the card scrolls. A read-only board, with no `onReorder`, shows no handle.
 
 > A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one. The `bare` variant has no row padding and no dividers. It is for rows of form controls, such as a reorderable list of inputs in a `Field`.
 
 > `code` exports `CodeBlock`, which highlights with Shiki in a module worker. The page loads no grammar and no regex engine. `loadShiki` starts the worker and loads a grammar before the first block needs it. `primeCodeBlock` stores markup that was highlighted elsewhere, and a block then paints it on its first render. It also takes the `bg` and the `type` that Shiki's `getTheme` gives for the theme. A Vite app must set `worker.format` to `'es'`, or Vite puts each grammar into the worker file. A block announces a refused copy as "Copy failed", in the live region where its CopyButton announces "Copied". A block that overflows is a region. With no `label`, its name comes from `lang`, such as "TypeScript code", else it is "Code".
 
-> The root `<div>` of a `CodeBlock` takes the `<div>` attributes, such as `id`, `data-*`, and `aria-*`. The `lang` prop names the grammar, so the block does not take the HTML `lang` attribute.
+> The root `<div>` of a `CodeBlock` takes the `<div>` attributes, such as `id`, `data-*`, and `aria-*`. The `lang` prop names the grammar, so the block does not take the HTML `lang` attribute. The block removes the blank lines before `code` and the whitespace after it. The first line keeps its indentation.
 
 > The padding, the gap, and the code text of a `CodeBlock` take the step of the nearest density scope. An explicit `size` opens a scope on the block, with the steps of the ramps of the block. At `md` the block is `p-4` with `text-sm` code, and its CopyButton keeps the `sm` size at each step.
 
