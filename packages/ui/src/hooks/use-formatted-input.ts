@@ -13,7 +13,9 @@ export type FormattedInputOptions = {
 	 * caret aligned with the typed character when format inserts or removes
 	 * separators. It gets the character, its index, and the text. Thus a format
 	 * that keeps a character only at one position, such as a leading sign, can
-	 * count that character only there.
+	 * count that character only there. The hook calls it on the raw text to
+	 * count, and then on the formatted text to put the caret, so a test of a
+	 * position must hold for both texts.
 	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
 	 */
 	meaningful?: (char: string, index: number, text: string) => boolean

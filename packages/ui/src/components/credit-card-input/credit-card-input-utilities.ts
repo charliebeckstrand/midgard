@@ -1,5 +1,6 @@
 import cardValidator from 'card-validator'
 import { digitsOnly } from '../../utilities'
+import { isDecimalDigit } from '../../utilities/caret'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
 const { cvv, expirationDate } = cardValidator
@@ -42,9 +43,6 @@ const brands: ReadonlyArray<{
 	{ type: 'unionpay', brand: 'unionpay', label: 'UnionPay' },
 ]
 
-/** A decimal digit of any script. */
-const DECIMAL_DIGIT = /\p{Nd}/u
-
 /** The last code point of the Basic Multilingual Plane. */
 const BMP_END = 0xffff
 
@@ -60,20 +58,33 @@ const BMP_END = 0xffff
  *
  * Unicode puts the digits 0 to 9 of each set in ten consecutive code points.
  * Thus the value of a digit is its distance from the start of its run of
- * digits. The modulo 10 covers a run that holds more than one set.
+ * digits. Each run in the plane holds one set. The modulo 10 is only a guard
+ * for a later Unicode version.
  */
 function toAsciiDigits(text: string): string {
 	return text.replace(/\p{Nd}/gu, (digit) => {
 		const code = digit.codePointAt(0) ?? 0
 
-		if (code > BMP_END) return digit
+		// An ASCII digit is the only decimal digit at or below "9".
+		if (code <= 0x39 || code > BMP_END) return digit
 
 		let start = code
 
-		while (start > 0 && DECIMAL_DIGIT.test(String.fromCodePoint(start - 1))) start--
+		while (start > 0 && isDecimalDigit(String.fromCodePoint(start - 1))) start--
 
 		return String((code - start) % 10)
 	})
+}
+
+/**
+ * The ASCII digits of a raw string, for the card masks. A decimal digit in the
+ * Basic Multilingual Plane, such as `٤`, becomes its ASCII digit. A digit
+ * outside that plane is removed.
+ *
+ * @internal
+ */
+export function cardDigits(raw: string): string {
+	return digitsOnly(toAsciiDigits(raw))
 }
 
 /** Resolves a digit string to its {@link CreditCardBrandInfo}, or `undefined` when no supported brand matches. */
@@ -107,7 +118,7 @@ export function formatCardNumber(raw: string): {
 	digits: string
 	brand: CreditCardBrandInfo | undefined
 } {
-	const allDigits = digitsOnly(toAsciiDigits(raw))
+	const allDigits = cardDigits(raw)
 
 	const brand = detectCardBrand(allDigits)
 
@@ -160,7 +171,7 @@ export function formatExpiry(raw: string): string {
  * digit outside that plane is removed.
  */
 export function formatCvv(raw: string, maxLength: number): string {
-	return digitsOnly(toAsciiDigits(raw)).slice(0, maxLength)
+	return cardDigits(raw).slice(0, maxLength)
 }
 
 /** Validity verdict for a card field: `isValid` is the final pass, `isPotentiallyValid` allows in-progress input. */
@@ -193,8 +204,8 @@ export function validateCardCvv(value: string, brand?: CreditCardBrand): CardVal
 	return { isValid, isPotentiallyValid }
 }
 
-/** The length of a full "MM/YY" expiry entry. */
-const EXPIRY_LENGTH = 'MM/YY'.length
+/** The "MM/YY" expiry pattern; a value of its length is a complete entry. @internal */
+export const EXPIRY_PATTERN = 'MM/YY'
 
 /**
  * Validates an "MM/YY" expiry via card-validator's `expirationDate`,
@@ -207,7 +218,8 @@ export function validateCardExpiry(value: string): CardValidity {
 	// card-validator reads a two-digit year that is the same as the first two
 	// digits of the current year, such as "20", as the start of a four-digit
 	// year. The mask keeps only two year digits, so the entry cannot grow.
-	if (value.length === EXPIRY_LENGTH) return { isValid, isPotentiallyValid: isValid }
-
-	return { isValid, isPotentiallyValid }
+	return {
+		isValid,
+		isPotentiallyValid: value.length === EXPIRY_PATTERN.length ? isValid : isPotentiallyValid,
+	}
 }

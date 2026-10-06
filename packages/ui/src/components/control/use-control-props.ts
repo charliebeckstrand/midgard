@@ -109,7 +109,7 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 	useDevWarning(strayId, strayId ? strayIdWarning(explicitId, wrapperId) : '')
 
 	return {
-		id: input.id ?? control?.id,
+		id: explicitId ?? wrapperId,
 		autoComplete: input.autoComplete ?? control?.autoComplete,
 		disabled: input.disabled ?? control?.disabled,
 		required: input.required ?? control?.required,

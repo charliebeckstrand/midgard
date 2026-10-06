@@ -1,3 +1,5 @@
+import { getOrCompute } from '../../utilities'
+
 export function escapeRegExp(s: string) {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -95,12 +97,12 @@ function fieldDecimalIndex(
 	return otherDecimalIndex(text, text.lastIndexOf(other), group, decimal, maxFractionDigits)
 }
 
-// Gives the index in `text` of the other mark that the user typed, else -1.
-// `previous` is the text before the edit, which the field wrote. Its typed
-// mark stays typed unless the edit removes it. A mark that the edit
-// inserts is typed, and a paste counts. Thus a group mark that the field wrote
-// does not become typed after a deletion or a regroup.
-function typedMarkAfterEdit(
+// Gives the index in `text` of the other mark that the user typed when it is
+// the decimal, else -1. `previous` is the text before the edit, which the field
+// wrote. Its typed mark stays typed unless the edit removes it. A mark that the
+// edit inserts is typed, and a paste counts. Thus a group mark that the field
+// wrote does not become typed after a deletion or a regroup.
+function decimalIndexAfterEdit(
 	text: string,
 	previous: string,
 	group: string | undefined,
@@ -135,7 +137,9 @@ function typedMarkAfterEdit(
 
 	const inserted = text.slice(start, text.length - end).lastIndexOf(other)
 
-	return inserted < 0 ? typed : Math.max(typed, start + inserted)
+	const typedMark = inserted < 0 ? typed : Math.max(typed, start + inserted)
+
+	return otherDecimalIndex(text, typedMark, group, decimal, maxFractionDigits)
 }
 
 // Puts the locale decimal in place of the other mark at `index`, so that the
@@ -161,9 +165,7 @@ export function isMeaningful(
 
 	if ((c >= '0' && c <= '9') || c === decimal) return true
 
-	const typedMark = typedMarkAfterEdit(text, previous, group, decimal, maxFractionDigits)
-
-	return index === otherDecimalIndex(text, typedMark, group, decimal, maxFractionDigits)
+	return index === decimalIndexAfterEdit(text, previous, group, decimal, maxFractionDigits)
 }
 
 // Collapses every decimal separator after the first, keeping a single split
@@ -178,19 +180,21 @@ function collapseExtraDecimals(value: string, decimal: string) {
 	return value.slice(0, split) + value.slice(split).replace(separatorRe(decimal), '')
 }
 
-const groupFormats = new Map<string | undefined, Intl.NumberFormat>()
+const groupings = new Map<
+	string | undefined,
+	{ format: Intl.NumberFormat; group: string | undefined }
+>()
 
 // The editing text groups with the currency style, as the display and
 // `parseEditing` do (de-AT "." in place of U+00A0). The code XXX means "no
 // currency", so the format writes the currency separators of the locale.
 // `numberingSystem: 'latn'` keeps grouped output in ASCII digits so the
 // editing parser (which only recognizes 0-9) and the caret restore stay
-// aligned in non-latn-default locales (ar-EG, fa-IR, ne-NP, bn-IN).
-function groupFormat(locale: string | undefined) {
-	let format = groupFormats.get(locale)
-
-	if (format === undefined) {
-		format = new Intl.NumberFormat(locale, {
+// aligned in non-latn-default locales (ar-EG, fa-IR, ne-NP, bn-IN). `group` is
+// the group mark that the format writes.
+function grouping(locale: string | undefined) {
+	return getOrCompute(groupings, locale, () => {
+		const format = new Intl.NumberFormat(locale, {
 			style: 'currency',
 			currency: 'XXX',
 			numberingSystem: 'latn',
@@ -199,10 +203,11 @@ function groupFormat(locale: string | undefined) {
 			maximumFractionDigits: 0,
 		})
 
-		groupFormats.set(locale, format)
-	}
-
-	return format
+		return {
+			format,
+			group: format.formatToParts(1000n).find((part) => part.type === 'group')?.value,
+		}
+	})
 }
 
 // Strips redundant leading zeros and applies locale digit grouping. An empty
@@ -214,18 +219,11 @@ function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string 
 
 	if (trimmed === '') return hasFraction ? '0' : ''
 
-	return groupFormat(locale)
-		.formatToParts(BigInt(trimmed))
+	return grouping(locale)
+		.format.formatToParts(BigInt(trimmed))
 		.filter((part) => part.type === 'integer' || part.type === 'group')
 		.map((part) => part.value)
 		.join('')
-}
-
-// The group mark that `groupIntegerPart` writes for the locale.
-function groupMarkOf(locale: string | undefined) {
-	return groupFormat(locale)
-		.formatToParts(1000n)
-		.find((part) => part.type === 'group')?.value
 }
 
 // `previous` is the text before the edit, which the field wrote. The format
@@ -241,11 +239,14 @@ export function formatEditing(
 	// the filter, which keeps only the ASCII sign.
 	const signed = raw.replace(minusSignRe, '-')
 
-	const group = groupMarkOf(locale)
-
-	const typedMark = typedMarkAfterEdit(raw, previous, group, decimal, maxFractionDigits)
-
-	const otherIndex = otherDecimalIndex(signed, typedMark, group, decimal, maxFractionDigits)
+	// The minus sign and "-" have the same length, so the index holds in `signed`.
+	const otherIndex = decimalIndexAfterEdit(
+		raw,
+		previous,
+		grouping(locale).group,
+		decimal,
+		maxFractionDigits,
+	)
 
 	// The text splits at the other mark when it is the decimal, and the result
 	// keeps the typed mark. A later digit can then make it a group mark.

@@ -48,9 +48,13 @@ export function useControlFallbackLabel(
 	}, [inControl])
 
 	// After each commit, because a render can change the id that a label points
-	// at. An update with the same value does not cause a loop.
+	// at. The effect writes only a change, so it schedules no idle render.
 	useEffect(() => {
-		if (element) setNativeLabelled((element.current?.labels?.length ?? 0) > 0)
+		if (!element) return
+
+		const next = (element.current?.labels?.length ?? 0) > 0
+
+		if (next !== nativeLabelled) setNativeLabelled(next)
 	})
 
 	if (nativeLabelled) return undefined

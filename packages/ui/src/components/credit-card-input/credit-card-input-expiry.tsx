@@ -17,22 +17,22 @@ import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
-import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
-
-/** The "MM/YY" expiry pattern; a value of its length is a complete entry. */
-const EXPIRY_PATTERN = 'MM/YY'
+import {
+	type CardValidity,
+	cardDigits,
+	EXPIRY_PATTERN,
+	formatExpiry,
+	validateCardExpiry,
+} from './credit-card-input-utilities'
 
 /** The default `invalidMessage`. A module constant, because the compiler cannot compile a template literal default. */
 const DEFAULT_INVALID_MESSAGE = `Enter a valid expiration date (${EXPIRY_PATTERN})`
 
 /**
  * Masks the digits of a change into "MM/YY" with no pad of a one-digit month.
- * The text has no separator, so {@link formatExpiry} adds no zero. The strip
- * keeps the decimal digits in the Basic Multilingual Plane, and
- * {@link formatExpiry} changes them to ASCII digits. It removes a digit outside
- * that plane, as {@link formatExpiry} does.
+ * The text has no separator, so {@link formatExpiry} adds no zero.
  */
-const maskExpiry = (raw: string) => formatExpiry(raw.replace(/\P{Nd}|[\u{10000}-\u{10ffff}]/gu, ''))
+const maskExpiry = (raw: string) => formatExpiry(cardDigits(raw))
 
 /**
  * Gives the text of an expiry change that the mask alone gets wrong, from the
@@ -61,13 +61,13 @@ function resolveExpiryEdit(event: ChangeEvent<HTMLInputElement>, held: string): 
 		return raw.slice(0, -1)
 	}
 
-	const inserted = inputType === '' || inputType.startsWith('insert')
+	if (inputType !== '' && !inputType.startsWith('insert')) return undefined
 
-	const atEnd = (event.target.selectionStart ?? raw.length) >= raw.length
+	if ((event.target.selectionStart ?? raw.length) < raw.length) return undefined
 
 	const padded = formatExpiry(raw)
 
-	return inserted && atEnd && padded !== maskExpiry(raw) ? padded : undefined
+	return padded === maskExpiry(raw) ? undefined : padded
 }
 
 /** Props for {@link CreditCardInputExpiry}; extends Input minus the masked value and change slots. */
@@ -127,8 +127,8 @@ export function CreditCardInputExpiry({
 }: CreditCardInputExpiryProps) {
 	const control = useControl()
 
-	// The fallback reads the labels of the input after mount, so a native label
-	// outside a Field also turns it off.
+	// The fallback reads the labels of the input after each commit, so a native
+	// label outside a Field also turns it off.
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const fallbackLabel = useControlFallbackLabel('Expiration date', inputRef)
@@ -219,7 +219,8 @@ export function CreditCardInputExpiry({
 				autoComplete="cc-exp"
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 				// defaults an aria-label, yielding to a Field <Label> from the first
-				// render and to a native label after mount (useControlFallbackLabel).
+				// render and to a native label after each commit
+				// (useControlFallbackLabel).
 				aria-label={ariaLabel ?? fallbackLabel}
 				placeholder={placeholder ?? EXPIRY_PATTERN}
 				invalid={invalid ?? (typedInvalid || undefined)}

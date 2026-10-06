@@ -161,6 +161,8 @@ export function CurrencyInput({
 			precision,
 		})
 
+	const parse = (editing: string) => parseEditing(editing, group, decimal, maxFractionDigits)
+
 	const [editingText, setEditingText] = useState<string | null>(null)
 
 	// A new value that the buffer does not hold came from outside (a controlled
@@ -172,10 +174,7 @@ export function CurrencyInput({
 	if (heldNum !== num) {
 		setHeldNum(num)
 
-		if (
-			editingText !== null &&
-			parseEditing(editingText, group, decimal, maxFractionDigits) !== (num ?? undefined)
-		) {
+		if (editingText !== null && parse(editingText) !== (num ?? undefined)) {
 			setEditingText(null)
 		}
 	}
@@ -219,7 +218,7 @@ export function CurrencyInput({
 				onBlur,
 				() => {
 					if (editingText !== null) {
-						const parsed = parseEditing(editingText, group, decimal, maxFractionDigits)
+						const parsed = parse(editingText)
 
 						if (parsed !== num) setNum(parsed)
 
@@ -238,7 +237,7 @@ export function CurrencyInput({
 
 				setEditingText(formatted)
 
-				const parsed = parseEditing(formatted, group, decimal, maxFractionDigits)
+				const parsed = parse(formatted)
 
 				// Guard like the blur path: a keystroke that changes the text but
 				// not the number — a trailing separator, a digit past `precision` —

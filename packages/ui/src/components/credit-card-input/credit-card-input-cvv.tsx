@@ -66,8 +66,8 @@ export function CreditCardInputCvv({
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputCvvProps) {
-	// The fallback reads the labels of the input after mount, so a native label
-	// outside a Field also turns it off.
+	// The fallback reads the labels of the input after each commit, so a native
+	// label outside a Field also turns it off.
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const fallbackLabel = useControlFallbackLabel('Security code', inputRef)
@@ -134,7 +134,8 @@ export function CreditCardInputCvv({
 			autoComplete="cc-csc"
 			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 			// defaults an aria-label, yielding to a Field <Label> from the first
-			// render and to a native label after mount (useControlFallbackLabel).
+			// render and to a native label after each commit
+			// (useControlFallbackLabel).
 			aria-label={ariaLabel ?? fallbackLabel}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
