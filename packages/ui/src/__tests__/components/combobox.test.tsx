@@ -250,7 +250,9 @@ describe('Combobox', () => {
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 
 		// The disabled input is a sibling, so the cursor flips via the frame group.
-		expect(suffix?.className).toContain('group-has-[:disabled]/control:cursor-not-allowed')
+		expect(suffix?.className).toContain(
+			'group-has-[:disabled,[data-disabled]]/control:cursor-not-allowed',
+		)
 
 		const frame = bySlot(container, 'control-frame')
 
