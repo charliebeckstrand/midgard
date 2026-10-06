@@ -1,7 +1,7 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import type { ScaleStep } from '../../core/density'
+import type { FloatingPlacement } from '../../hooks'
 import type { scale } from '../../recipes/kata/color-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { type ColorPanel, ColorPanelView } from './color-panel'
@@ -33,11 +33,12 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 */
 	swatches?: readonly string[] | false
 	/**
-	 * Floating placement of the panel relative to the trigger.
-	 *
+	 * The side and the alignment of the panel. A `<side>-auto` value, such as
+	 * `'bottom-auto'`, aligns the panel to the edge of the trigger that is nearer
+	 * to the edge of the viewport.
 	 * @defaultValue 'bottom-start'
 	 */
-	placement?: Placement
+	placement?: FloatingPlacement
 	/**
 	 * Fires when the floating panel opens or closes, whatever drove it: the trigger, an
 	 * outside press, or `Escape`.

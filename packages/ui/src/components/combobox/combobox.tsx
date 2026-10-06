@@ -1,6 +1,5 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown } from 'lucide-react'
 import {
 	type ClipboardEventHandler,
@@ -17,6 +16,7 @@ import {
 } from 'react'
 import type { ScaleStep } from '../../core/density'
 import {
+	type FloatingPlacement,
 	useA11yRoving,
 	useFloatingUI,
 	useScrollWithin,
@@ -101,10 +101,12 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 */
 	summarize?: (selected: T[]) => string
 	/**
-	 * The side of the input that the panel opens on, and its alignment.
+	 * The side and the alignment of the panel. A `<side>-auto` value, such as
+	 * `'bottom-auto'`, aligns the panel to the edge of the trigger that is nearer
+	 * to the edge of the viewport.
 	 * @defaultValue 'bottom-start'
 	 */
-	placement?: Placement
+	placement?: FloatingPlacement
 	prefix?: ReactNode
 	suffix?: ReactNode
 	size?: ScaleStep<typeof scale>
