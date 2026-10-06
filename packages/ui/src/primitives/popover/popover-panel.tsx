@@ -10,16 +10,19 @@ import {
 } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { useA11yRoving, useScrollWithin } from '../../hooks'
+import { useA11yRoving, useScrollWithin, type VirtualItemSource } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
 import { Density } from '../density'
 import { ReducedMotion } from '../reduced-motion'
+import { VirtualItemSourceContext } from '../virtual-options/context'
 
 /**
  * Animated listbox-style panel for floating dropdowns (Select, Combobox,
  * Menu). Wires up roving keyboard navigation, optional type-ahead and Tab
  * containment, and autofocus on open. Autofocus lands on the selected item, or
- * on the panel itself when nothing is selected.
+ * on the panel itself when nothing is selected. A `VirtualOptions` with
+ * `getOptionId` inside registers its item source here, so the keys reach
+ * options outside the rendered window.
  *
  * @remarks Defaults to `role="listbox"`; override `role` for menus and the
  * like. `role="none"` renders no role attribute. `aria-multiselectable` is honored
@@ -123,12 +126,17 @@ export function PopoverPanel({
 }) {
 	const panelRef = useRef<HTMLDivElement>(null)
 
+	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`;
+	// null otherwise, which keeps the DOM-query roving.
+	const virtualSourceRef = useRef<VirtualItemSource | null>(null)
+
 	const handleKeyDown = useA11yRoving(panelRef, {
 		itemSelector,
 		focusOnEmpty: true,
 		typeahead,
 		trapTab,
 		manageTabIndex,
+		itemSource: virtualSourceRef,
 	})
 
 	const scrollWithin = useScrollWithin()
@@ -181,7 +189,9 @@ export function PopoverPanel({
 					className,
 				)}
 			>
-				<Density step={density}>{children}</Density>
+				<Density step={density}>
+					<VirtualItemSourceContext value={virtualSourceRef}>{children}</VirtualItemSourceContext>
+				</Density>
 			</motion.div>
 		</ReducedMotion>
 	)
