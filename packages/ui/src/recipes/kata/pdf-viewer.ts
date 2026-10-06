@@ -14,7 +14,7 @@ const { cursor } = hannou
 const { palette, text } = iro
 const { size, weight } = ji
 const { flex } = narabi
-const { bg, skeleton } = omote
+const { bg, rail, skeleton } = omote
 const { border, focus } = sen
 
 // The page image and every layer drawn over it must sit in the same place, so the centering
@@ -33,16 +33,14 @@ export const k = {
 	fill: 'h-full min-h-0',
 	body: ['flex flex-1 min-h-0'],
 	toolbar: {
-		// The sections wrap onto a second row when the bar is narrow, so every
-		// control stays in view. A scrolled bar hid the end controls with no cue.
-		base: [
-			'flex flex-wrap items-center justify-between',
-			'gap-1',
-			'px-2 py-1.5',
-			'border-b',
-			border.color.default,
-			'shrink-0',
-		],
+		// The frame holds the border. The rail masks its whole box, so a border
+		// on the rail fades at each edge.
+		frame: ['border-b', border.color.default, 'shrink-0'],
+		// The bar keeps one row at each width. When it is narrow, it scrolls on
+		// the inline axis, and the edge with more controls behind it fades. The
+		// padding is inside the scroll container, so the wheel scrolls the bar at
+		// each point of its height.
+		base: ['flex flex-nowrap items-center justify-between', 'gap-1', 'px-2 py-1.5', ...rail],
 		section: [flex.row, 'shrink-0', 'gap-1'],
 		total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	},

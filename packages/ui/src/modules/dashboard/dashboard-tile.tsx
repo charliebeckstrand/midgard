@@ -9,7 +9,12 @@ import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { DashboardTileCard } from './dashboard-tile-card'
 import { DashboardTileEdges } from './dashboard-tile-edges'
-import { type DashboardTileSize, gridArea, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import {
+	type DashboardTileSize,
+	gridArea,
+	ROW_SUBDIVISION,
+	usableRatio,
+} from './engine/dashboard-layout'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardFlip } from './use-dashboard-flip'
 import { useDashboardStore } from './use-dashboard-store'
@@ -342,7 +347,7 @@ export function DashboardTile(props: DashboardTileProps) {
 					id={id}
 					cell={cell}
 					label={label}
-					freeHeight={ratio === undefined}
+					freeHeight={usableRatio(ratio) === undefined}
 					resizing={resizing}
 				/>
 			)}

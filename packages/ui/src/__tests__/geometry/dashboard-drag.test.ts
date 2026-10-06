@@ -53,6 +53,19 @@ describe('dragPreview', () => {
 		expect(dragPreview(board, 'a', 3, 0, 24)).toBeNull()
 	})
 
+	it('reorders with the equal-span peer at a half-coverage tie, in each array order', () => {
+		// At x = 12 the target covers half of b and half of c. Only b has the span of a.
+		const a = cell('a', 0, 0, 8, 8)
+
+		const b = cell('b', 8, 0, 8, 8)
+
+		const c = cell('c', 16, 0, 8, 12)
+
+		expect(dragPreview([a, c, b], 'a', 12, 0, 24)).toMatchObject({ kind: 'shift', partner: 'b' })
+
+		expect(dragPreview([a, b, c], 'a', 12, 0, 24)).toMatchObject({ kind: 'shift', partner: 'b' })
+	})
+
 	it('snaps past an unequal partner to the nearest free origin', () => {
 		// The target covers c, which is wider, so no reorder. Row 20 under c is free,
 		// and from row 12 it is nearer than the start cell.

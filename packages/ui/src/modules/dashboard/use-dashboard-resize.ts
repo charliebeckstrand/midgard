@@ -112,7 +112,9 @@ export function useDashboardResize({
 
 	const beginResize = useCallback(
 		(id: string, edge: DashboardResizeEdge, event: ReactPointerEvent<HTMLElement>) => {
-			if (event.button !== 0) return
+			// A macOS Ctrl-click is the secondary click, and it opens a context menu. The
+			// press that it starts can lose its release, so only a primary press starts a resize.
+			if (!event.isPrimary || event.button !== 0 || event.ctrlKey) return
 
 			const canvas = canvasRef.current
 

@@ -74,7 +74,13 @@ function area(container: HTMLElement): string {
 
 /** Presses the east splitter and moves it 100 px to the right, two columns at a 50 px pitch. */
 function pressAndMove(east: HTMLElement): void {
-	fireEvent.pointerDown(east, { pointerId: 1, button: 0, clientX: 400, clientY: 0 })
+	fireEvent.pointerDown(east, {
+		pointerId: 1,
+		isPrimary: true,
+		button: 0,
+		clientX: 400,
+		clientY: 0,
+	})
 
 	fireEvent.pointerMove(east, { pointerId: 1, clientX: 500, clientY: 0 })
 }
@@ -384,6 +390,37 @@ describe('Dashboard pointer resize', () => {
 		fireEvent.pointerUp(east, { pointerId: 1 })
 
 		expect(east.hasPointerCapture(1)).toBe(false)
+
+		expect(area(container)).toBe('1 / 1 / span 10 / span 8')
+
+		expect(spies.onResizeStart).not.toHaveBeenCalled()
+
+		expect(spies.onResizeEnd).not.toHaveBeenCalled()
+
+		expect(spies.onLayout).not.toHaveBeenCalled()
+	})
+
+	// On macOS a Ctrl-click is the secondary click: it sends button 0 with ctrlKey and opens
+	// a context menu. A second pointer is not the primary pointer. Neither press starts a resize.
+	it.each([
+		['a macOS Ctrl-click', { isPrimary: true, ctrlKey: true }],
+		['a pointer that is not primary', { isPrimary: false }],
+	])('starts nothing on %s', (_name, press) => {
+		const spies = makeSpies()
+
+		const { container } = renderUI(<Board spies={spies} />)
+
+		const east = eastSplitter()
+
+		fireEvent.pointerDown(east, { pointerId: 1, button: 0, clientX: 400, clientY: 0, ...press })
+
+		expect(east.hasPointerCapture(1)).toBe(false)
+
+		expect(container.querySelector('[data-resizing]')).toBeNull()
+
+		fireEvent.pointerMove(east, { pointerId: 1, clientX: 500, clientY: 0 })
+
+		fireEvent.pointerUp(east, { pointerId: 1 })
 
 		expect(area(container)).toBe('1 / 1 / span 10 / span 8')
 

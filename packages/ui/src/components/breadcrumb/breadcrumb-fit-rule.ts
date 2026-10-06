@@ -87,13 +87,16 @@ export function breadcrumbFit(nav: HTMLElement): number {
  *
  * @param id - The value of the trail's `data-collapse` attribute.
  * @param collapsed - The number of leading crumbs that show their mark.
+ * @param when - A selector that must match an ancestor of the trail for the
+ * rule to apply, with a space after it. The pre-paint step writes one rule for
+ * each answer, and each rule applies only while the answer is its own.
  * @returns The rule, or an empty string when no crumb gives way.
  * @internal
  */
-export function breadcrumbFitRule(id: string, collapsed: number): string {
+export function breadcrumbFitRule(id: string, collapsed: number, when = ''): string {
 	if (collapsed < 1) return ''
 
-	const crumbs = `[data-collapse="${id}"] [data-slot=breadcrumb-item]:nth-child(-n+${collapsed} of [data-slot=breadcrumb-item])`
+	const crumbs = `${when}[data-collapse="${id}"] [data-slot=breadcrumb-item]:nth-child(-n+${collapsed} of [data-slot=breadcrumb-item])`
 
 	return `${crumbs} [data-slot=breadcrumb-label]{max-width:0}${crumbs} [data-slot=breadcrumb-mark]{max-width:none}`
 }

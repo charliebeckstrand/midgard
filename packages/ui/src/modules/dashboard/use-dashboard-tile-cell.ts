@@ -5,19 +5,11 @@ import { useDashboardStoreContext, useDashboardTileRank } from './context'
 import {
 	type DashboardCell,
 	type DashboardTileDemands,
-	type DashboardTileSize,
 	resolveCell,
+	spanLimit,
 } from './engine/dashboard-layout'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
-
-/** A span limit from its two axes, or `undefined` when neither axis is set. */
-function bound(
-	w: number | undefined,
-	h: number | undefined,
-): Partial<DashboardTileSize> | undefined {
-	return w === undefined && h === undefined ? undefined : { w, h }
-}
 
 /**
  * The geometry of a cell as one string, or `''` for no cell. A selector compares
@@ -99,8 +91,8 @@ export function useDashboardTileCell(
 			minWidth,
 			label,
 			defaultSize: defaultW === undefined ? undefined : { w: defaultW, h: defaultH },
-			minSize: bound(minW, minH),
-			maxSize: bound(maxW, maxH),
+			minSize: spanLimit(minW, minH),
+			maxSize: spanLimit(maxW, maxH),
 			rank: [slot, group, index],
 		})
 	}, [

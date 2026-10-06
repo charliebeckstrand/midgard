@@ -14,7 +14,7 @@ index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc5
  		return [];
  	}))).flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map((link) => link.rel === "stylesheet" ? {
 diff --git a/dist/development/lib/dom/ssr/routeModules.js b/dist/development/lib/dom/ssr/routeModules.js
-index 6bb91e0b419c7c2346769438940e665d0094b812..734b4758820cd87aa84d2451dd96037fb1273f01 100644
+index 6bb91e0b419c7c2346769438940e665d0094b812..7bcb990532ed186ad9410b28047f97b78c4a18ce 100644
 --- a/dist/development/lib/dom/ssr/routeModules.js
 +++ b/dist/development/lib/dom/ssr/routeModules.js
 @@ -9,7 +9,7 @@
@@ -41,6 +41,28 @@ index 6bb91e0b419c7c2346769438940e665d0094b812..734b4758820cd87aa84d2451dd96037f
  		return new Promise(() => {});
  	}
  }
+diff --git a/dist/development/lib/dom/ssr/routes.js b/dist/development/lib/dom/ssr/routes.js
+index 5407c9bdb0d97660e9df6435f504f85b803aa209..6ccf42b7238c91fa1ea694b72a5ff0e2e6f10085 100644
+--- a/dist/development/lib/dom/ssr/routes.js
++++ b/dist/development/lib/dom/ssr/routes.js
+@@ -275,7 +275,17 @@ function wrapShouldRevalidateForHdr(routeId, routeShouldRevalidate, needsRevalid
+ 		return routeShouldRevalidate ? routeShouldRevalidate(arg) : arg.defaultShouldRevalidate;
+ 	};
+ }
++function preloadRouteImports(route) {
++	for (let href of route.imports ?? []) {
++		if (document.querySelector(`link[rel="modulepreload"][href="${href}"]`)) continue;
++		let link = document.createElement("link");
++		link.rel = "modulepreload";
++		link.href = href;
++		document.head.appendChild(link);
++	}
++}
+ async function loadRouteModuleWithBlockingLinks(route, routeModules) {
++	preloadRouteImports(route);
+ 	let routeModulePromise = loadRouteModule(route, routeModules);
+ 	let prefetchRouteCssPromise = prefetchRouteCss(route);
+ 	let routeModule = await routeModulePromise;
 diff --git a/dist/production/lib/dom/ssr/links.js b/dist/production/lib/dom/ssr/links.js
 index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc56826b0fa 100644
 --- a/dist/production/lib/dom/ssr/links.js
@@ -57,7 +79,7 @@ index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc5
  		return [];
  	}))).flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map((link) => link.rel === "stylesheet" ? {
 diff --git a/dist/production/lib/dom/ssr/routeModules.js b/dist/production/lib/dom/ssr/routeModules.js
-index 6bb91e0b419c7c2346769438940e665d0094b812..734b4758820cd87aa84d2451dd96037fb1273f01 100644
+index 6bb91e0b419c7c2346769438940e665d0094b812..7bcb990532ed186ad9410b28047f97b78c4a18ce 100644
 --- a/dist/production/lib/dom/ssr/routeModules.js
 +++ b/dist/production/lib/dom/ssr/routeModules.js
 @@ -9,7 +9,7 @@
@@ -84,3 +106,25 @@ index 6bb91e0b419c7c2346769438940e665d0094b812..734b4758820cd87aa84d2451dd96037f
  		return new Promise(() => {});
  	}
  }
+diff --git a/dist/production/lib/dom/ssr/routes.js b/dist/production/lib/dom/ssr/routes.js
+index 5407c9bdb0d97660e9df6435f504f85b803aa209..6ccf42b7238c91fa1ea694b72a5ff0e2e6f10085 100644
+--- a/dist/production/lib/dom/ssr/routes.js
++++ b/dist/production/lib/dom/ssr/routes.js
+@@ -275,7 +275,17 @@ function wrapShouldRevalidateForHdr(routeId, routeShouldRevalidate, needsRevalid
+ 		return routeShouldRevalidate ? routeShouldRevalidate(arg) : arg.defaultShouldRevalidate;
+ 	};
+ }
++function preloadRouteImports(route) {
++	for (let href of route.imports ?? []) {
++		if (document.querySelector(`link[rel="modulepreload"][href="${href}"]`)) continue;
++		let link = document.createElement("link");
++		link.rel = "modulepreload";
++		link.href = href;
++		document.head.appendChild(link);
++	}
++}
+ async function loadRouteModuleWithBlockingLinks(route, routeModules) {
++	preloadRouteImports(route);
+ 	let routeModulePromise = loadRouteModule(route, routeModules);
+ 	let prefetchRouteCssPromise = prefetchRouteCss(route);
+ 	let routeModule = await routeModulePromise;
