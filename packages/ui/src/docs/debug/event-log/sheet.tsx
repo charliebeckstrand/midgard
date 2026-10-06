@@ -14,9 +14,14 @@ import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 /** The width of the kind column: the longest kind. */
 const KIND_WIDTH = Math.max(...KINDS.map((kind) => kind.length))
 
-/** One line of text: the time, the scroll position, the kind, and the text. */
-function line({ time, kind, text, y }: Entry): string {
-	return `${String(time).padStart(6)} y${String(y).padEnd(5)} ${kind.padEnd(KIND_WIDTH)} ${text}`
+/** The columns before the text of a line: the time, the scroll position, and the kind. */
+function columns({ time, kind, y }: Entry): string {
+	return `${String(time).padStart(6)} y${String(y).padEnd(5)} ${kind.padEnd(KIND_WIDTH)} `
+}
+
+/** One line of text: the columns, then the text. */
+function line(entry: Entry): string {
+	return columns(entry) + entry.text
 }
 
 // The key of each line. An entry is an object that the log keeps until it
@@ -31,8 +36,8 @@ function keyOf(entry: Entry): number {
 
 /** The color of the kinds that stand apart from the DOM events: the callbacks of the components and of the modules. */
 const COLOR: Partial<Record<Kind, string>> = {
-	component: 'text-violet-600 dark:text-violet-400',
-	module: 'text-rose-600 dark:text-rose-400',
+	component: 'text-sky-600 dark:text-sky-400',
+	module: 'text-violet-600 dark:text-violet-400',
 }
 
 /**
@@ -92,8 +97,10 @@ export function EventLogSheet({
 					{lines.length > 0 ? (
 						<pre className="m-0 whitespace-pre-wrap font-mono text-xs">
 							{entries.toReversed().map((entry) => (
-								<span key={keyOf(entry)} className={cn('block', COLOR[entry.kind])}>
-									{line(entry)}
+								// A long text wraps in its own column, under the start of the text.
+								<span key={keyOf(entry)} className={cn('flex', COLOR[entry.kind])}>
+									<span className="shrink-0 whitespace-pre">{columns(entry)}</span>
+									<span className="min-w-0 wrap-break-word">{entry.text}</span>
 								</span>
 							))}
 						</pre>
