@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { cdp, page } from 'vitest/browser'
 import { ProgressBar } from '../../components/progress'
 import { Segment, SegmentItem } from '../../components/segment'
@@ -116,6 +116,13 @@ describe('controls show their state under forced colors (real browser)', () => {
 	})
 
 	it('control: without forced colors, each pair paints differently', async () => {
+		// Registered before the change, so that a failed read below still hands
+		// the later cases forced colors.
+		onTestFinished(async () => {
+			await cdp().send('Emulation.setEmulatedMedia', {
+				features: [{ name: 'forced-colors', value: 'active' }],
+			})
+		})
 		await cdp().send('Emulation.setEmulatedMedia', {
 			features: [{ name: 'forced-colors', value: '' }],
 		})
@@ -127,9 +134,6 @@ describe('controls show their state under forced colors (real browser)', () => {
 			await pixels(<Slider aria-label="Volume" value={10} />),
 			await pixels(<Slider aria-label="Volume" value={90} />),
 		]
-		await cdp().send('Emulation.setEmulatedMedia', {
-			features: [{ name: 'forced-colors', value: 'active' }],
-		})
 		expect(bar[1]).not.toBe(bar[0])
 		expect(slider[1]).not.toBe(slider[0])
 	})

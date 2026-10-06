@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import type { ChatEmbedRenderer, ChatMessageData } from '../../modules/chat'
 import { ChatEmbedProvider, ChatTranscript } from '../../modules/chat'
 import { frames, renderUI, waitFor } from '../helpers'
-import { hasIntermediate } from './helpers/sample'
+import { hasIntermediate, settledValue } from './helpers/sample'
 
 /**
  * The transcript's window, in a real browser.
@@ -123,9 +123,7 @@ describe('the transcript window', () => {
 		expect(rowsOf(container).length).toBeLessThan(40)
 
 		// The pin holds once the rows in view have measured, not only at the first write.
-		await frames()
-
-		expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
 	})
 
 	it('keeps the end in view while a streamed chunk grows the last row', async () => {
@@ -191,6 +189,12 @@ describe('the transcript window', () => {
 
 		requestAnimationFrame(sample)
 
+		// A failed wait below skips the stop, and the loop then runs on into the
+		// next cases of the page.
+		onTestFinished(() => {
+			sampling = false
+		})
+
 		rerender(<Frame messages={[...messages, ...appended]} />)
 
 		await waitFor(() => {
@@ -207,9 +211,7 @@ describe('the transcript window', () => {
 		expect(hasIntermediate(offsets, start, end)).toBe(true)
 
 		// It stays landed once every new row has measured.
-		await frames()
-
-		expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
 	})
 
 	it('leaves a reader who scrolled up where they are when a row arrives', async () => {
@@ -223,17 +225,17 @@ describe('the transcript window', () => {
 
 		await scrollTo(transcript, transcript.scrollTop - 1_000)
 
-		const reading = transcript.scrollTop
+		// The rows above the jump measure over the next frames, and each measure
+		// can move the offset. Read it once they stop.
+		const reading = await settledValue(() => transcript.scrollTop, { frames: 3 })
 
 		rerender(
 			<Frame messages={[...messages, { id: 'late', sender: 'assistant', content: 'Late.' }]} />,
 		)
 
-		await frames()
+		const after = await settledValue(() => transcript.scrollTop, { frames: 3 })
 
-		await frames()
-
-		expect(Math.abs(transcript.scrollTop - reading)).toBeLessThanOrEqual(1)
+		expect(Math.abs(after - reading)).toBeLessThanOrEqual(1)
 	})
 
 	it('takes a reader who scrolled up to the end when their own message arrives', async () => {
@@ -258,9 +260,7 @@ describe('the transcript window', () => {
 		})
 
 		// It stays landed once the new row has measured.
-		await frames()
-
-		expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
 	})
 
 	it('takes the reader to the end when their message and its reply arrive in one commit', async () => {
@@ -316,6 +316,12 @@ describe('the transcript window', () => {
 		}
 
 		requestAnimationFrame(sample)
+
+		// A failed wait below skips the stop, and the loop then runs on into the
+		// next cases of the page.
+		onTestFinished(() => {
+			sampling = false
+		})
 
 		// Tall enough that a smooth travel takes more than one frame.
 		rerender(

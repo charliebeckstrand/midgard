@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, beforeAll, beforeEach, expect, inject } from 'vitest'
+import { afterEach, beforeAll, beforeEach, expect, inject, vi } from 'vitest'
 import { commands } from 'vitest/browser'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
@@ -59,9 +59,10 @@ beforeAll(async () => {
 // reads `navigator.clipboard` as `undefined` until a user-event call adds a new
 // stub. CI put `color-picker-press-focus` in that gap on #2023 and #2033.
 //
-// Each file starts with the browser's own clipboard. The next user-event call
+// Each case starts with the browser's own clipboard, so the text that a case
+// copies into a stub does not reach the next case. The next user-event call
 // adds its stub again.
-beforeAll(() => {
+beforeEach(() => {
 	Reflect.deleteProperty(navigator, 'clipboard')
 })
 
@@ -82,6 +83,10 @@ afterEach((ctx) => {
 	// nothing. A dump built for every test would force a layout flush on the
 	// largest tree in the suite, 583 times, and discard all but one.
 	if (ctx.task.result?.state === 'fail') console.error(`page state at failure:\n  ${pageState()}`)
+
+	// A fake clock that a case installs stays on the shared page when the case
+	// times out, as in the jsdom setup. No file installs one today.
+	vi.useRealTimers()
 
 	cleanup()
 })

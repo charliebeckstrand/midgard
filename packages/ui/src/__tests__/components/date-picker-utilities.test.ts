@@ -25,12 +25,14 @@ function day(year: number, month: number, date: number): Date {
 }
 
 describe('formatDate', () => {
-	it('returns a localized date string', () => {
-		const result = formatDate(new Date(2024, 0, 15))
+	it('returns the date in the short numeric form of the locale', () => {
+		expect(formatDate(new Date(2024, 0, 15), 'en-US')).toBe('1/15/2024')
+	})
 
-		expect(result).toBeTypeOf('string')
-
-		expect(result.length).toBeGreaterThan(0)
+	// The trigger reads the Gregorian year of the grid, not the default calendar
+	// of the locale.
+	it('formats in the Gregorian calendar for a locale with another default', () => {
+		expect(formatDate(new Date(2024, 0, 15), 'th-TH')).toContain('2024')
 	})
 })
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } from '../helpers'
+import { settledValue } from './helpers/sample'
 
 /**
  * The windowed grid body and the native scroll anchoring of the browser. The
@@ -19,6 +20,22 @@ import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } 
 describe('grid virtualized body under native scroll anchoring (real browser)', () => {
 	async function settle(count = 3) {
 		for (let i = 0; i < count; i++) await frames()
+	}
+
+	/**
+	 * Waits until the offset of `scroll` and its rendered rows stay the same. The
+	 * rows of a new window measure over more than one frame, and each measure can
+	 * move the offset, so no fixed count of frames is enough.
+	 */
+	function settledWindow(scroll: HTMLElement, body: HTMLElement) {
+		return settledValue(() => {
+			const rows = Array.from(
+				body.querySelectorAll<HTMLElement>(':scope > tr[data-grid-row]'),
+				(row) => row.dataset.gridRow,
+			)
+
+			return `${scroll.scrollTop}:${rows.join()}`
+		})
 	}
 
 	describe('grouped body', () => {
@@ -77,7 +94,7 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 					await settle(1)
 				}
 
-				await settle(4)
+				await settledWindow(scroll, body)
 
 				const edge = present(
 					scroll.querySelector('thead th'),
@@ -198,7 +215,7 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 
 				scroll.scrollTop = 2000
 
-				await settle(4)
+				await settledWindow(scroll, body)
 
 				const top = scroll.getBoundingClientRect().top
 

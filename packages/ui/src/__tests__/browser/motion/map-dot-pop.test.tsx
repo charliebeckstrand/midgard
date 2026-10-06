@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { MapDot } from '../../../modules/map/map-dot'
 import { renderUI, waitFor } from '../../helpers'
 import { frames } from '../../helpers/frames'
+import { sampleMotionFrames } from '../helpers/motion-frame'
 
 /** A short pop. */
 const POP = { duration: 0.05 }
@@ -92,8 +93,14 @@ describe('MapDot pop (real Motion)', () => {
 
 		rerender(svg(2))
 
-		await frames()
-
-		expect(painted(shape).width).toBe(16)
+		// The first frame of Motion after the change. A pop that runs again starts
+		// below the new width there. After a fixed count of frames, a slow machine
+		// can let the 50 ms pop land and hide it.
+		expect(
+			await sampleMotionFrames(
+				() => painted(shape).width,
+				() => true,
+			),
+		).toBe(16)
 	})
 })

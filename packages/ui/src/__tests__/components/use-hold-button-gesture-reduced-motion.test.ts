@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { animate } from 'motion'
 import { useEffect } from 'react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	type HoldGestureOptions,
 	useHoldButtonGesture,
@@ -34,6 +34,16 @@ describe('useHoldButtonGesture under prefers-reduced-motion', () => {
 	// not a per-file `vi.mock('motion/react')` (see setup/module-mocks.ts).
 	beforeEach(() => {
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+
+		// The stub runs no animation, as in `use-hold-button-gesture.test.ts`. The
+		// default calls through to Motion, and its tween then runs on into the next
+		// files of the worker.
+		vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
+	})
+
+	afterEach(() => {
+		// Restore the call-through default of animate.
+		vi.mocked(animate).mockRestore()
 	})
 
 	it('still animates the progress fill over the full duration (essential feedback)', () => {

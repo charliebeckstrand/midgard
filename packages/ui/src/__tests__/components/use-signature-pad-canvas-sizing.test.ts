@@ -65,20 +65,13 @@ function setup(opts: {
 	return { result, unmount, canvas, context }
 }
 
-const originalDevicePixelRatio = window.devicePixelRatio
-
 afterEach(() => {
 	vi.restoreAllMocks()
-
-	Object.defineProperty(window, 'devicePixelRatio', {
-		value: originalDevicePixelRatio,
-		configurable: true,
-	})
 })
 
 describe('useSignaturePadCanvasSizing', () => {
 	it('sizes the canvas using devicePixelRatio when a container is present', () => {
-		Object.defineProperty(window, 'devicePixelRatio', { value: 2, configurable: true })
+		vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(2)
 
 		const { canvas, context } = setup({})
 
@@ -94,7 +87,7 @@ describe('useSignaturePadCanvasSizing', () => {
 	})
 
 	it('sizes the canvas to the content box, inside the border and the padding', () => {
-		Object.defineProperty(window, 'devicePixelRatio', { value: 1, configurable: true })
+		vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(1)
 
 		const { canvas } = setup({ padding: 4 })
 
@@ -108,7 +101,7 @@ describe('useSignaturePadCanvasSizing', () => {
 	})
 
 	it('defaults devicePixelRatio to 1 when it is unset', () => {
-		Object.defineProperty(window, 'devicePixelRatio', { value: 0, configurable: true })
+		vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(0)
 
 		const { canvas } = setup({})
 

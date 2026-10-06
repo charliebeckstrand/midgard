@@ -235,6 +235,14 @@ describe('useDatePickerState', () => {
 
 	describe('initial active date', () => {
 		it('clamps the initial date to min when no value is set', () => {
+			// Today must fall before `min`. On the real clock, today can fall after
+			// `max`, and then the cursor clamps to `max` and the case passes on it.
+			vi.useFakeTimers({ now: new Date(2025, 0, 1, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
 			const { result } = renderHook(() =>
 				useDatePickerState({ min: Jan15, max: new Date(2025, 11, 31) }),
 			)
@@ -252,9 +260,7 @@ describe('useDatePickerState', () => {
 
 			const active = result.current.calendar.active
 
-			if (active?.zone !== 'grid') throw new Error('expected grid active zone')
-
-			expect(active.date.getTime()).toBeGreaterThanOrEqual(Jan15.getTime())
+			expect(active).toEqual({ zone: 'grid', date: Jan15 })
 		})
 
 		// B02-C06: a past `min` bounds the cursor. It is not the start point.

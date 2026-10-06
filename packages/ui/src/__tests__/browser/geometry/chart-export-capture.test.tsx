@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { type ChartCapture, prepareChartCapture } from '../../../modules/chart/engine/chart-export'
@@ -297,37 +297,36 @@ describe('chart image resources (real browser)', () => {
 
 		document.head.append(sheet)
 
-		try {
-			const { container } = renderUI(
-				<div style={{ width: 480 }}>
-					<BarChart
-						aria-label="Totals"
-						data={[
-							{ month: 'Jan', total: 3 },
-							{ month: 'Feb', total: 5 },
-						]}
-						series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
-						texture
-						animate={false}
-					/>
-				</div>,
-			)
+		// `onTestFinished` runs after a case that times out, and a `finally` does
+		// not. The sheet otherwise stays on the page and hides the resources of
+		// each later capture.
+		onTestFinished(() => sheet.remove())
 
-			await waitFor(() =>
-				expect(container.querySelector('[data-slot="chart-plot"] svg')).not.toBeNull(),
-			)
+		const { container } = renderUI(
+			<div style={{ width: 480 }}>
+				<BarChart
+					aria-label="Totals"
+					data={[
+						{ month: 'Jan', total: 3 },
+						{ month: 'Feb', total: 5 },
+					]}
+					series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
+					texture
+					animate={false}
+				/>
+			</div>,
+		)
 
-			const root = getSlot(container, 'chart')
+		await waitFor(() =>
+			expect(container.querySelector('[data-slot="chart-plot"] svg')).not.toBeNull(),
+		)
 
-			expect(root.querySelectorAll('pattern').length).toBeGreaterThan(0)
+		const root = getSlot(container, 'chart')
 
-			const { clone } = prepareChartCapture(root, true)
+		expect(root.querySelectorAll('pattern').length).toBeGreaterThan(0)
 
-			expect(clone.querySelectorAll('pattern')).toHaveLength(
-				root.querySelectorAll('pattern').length,
-			)
-		} finally {
-			sheet.remove()
-		}
+		const { clone } = prepareChartCapture(root, true)
+
+		expect(clone.querySelectorAll('pattern')).toHaveLength(root.querySelectorAll('pattern').length)
 	})
 })
