@@ -6,7 +6,7 @@ import { localeDateInputFormat } from '../../components/date-input/date-input-ut
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, noop, renderUI, screen, setupUser } from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
 // while the input holds in-progress text.
@@ -586,6 +586,109 @@ describe('DateInput', () => {
 		expect(onChange.mock.calls.length).toBe(calls)
 
 		expect(input).not.toHaveAttribute('aria-invalid')
+	})
+
+	// B01-C01: the field must compare a value from outside with the value that it
+	// saw last. An outside value makes its last own commit old.
+	it('lets a value from outside override an edit, also when it returns to the last own commit', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		let setValue: (value: Date | null) => void = noop
+
+		function Harness() {
+			const [value, set] = useState<Date | null>(null)
+
+			setValue = set
+
+			return (
+				<DateInput
+					aria-label="Due"
+					value={value}
+					onValueChange={(next) => {
+						set(next)
+
+						onValueChange(next)
+					}}
+				/>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const input = screen.getByLabelText('Due')
+
+		await user.type(input, '01052026')
+
+		await user.tab()
+
+		act(() => setValue(new Date(2026, 0, 10)))
+
+		expect(input).toHaveValue('01/10/2026')
+
+		// The mask drops the extra digit, so the edit re-states the held day.
+		await user.type(input, '1')
+
+		expect(input).toHaveValue('01/10/2026')
+
+		act(() => setValue(new Date(2026, 0, 5)))
+
+		expect(input).toHaveValue('01/05/2026')
+
+		onValueChange.mockClear()
+
+		await user.tab()
+
+		expect(input).toHaveValue('01/05/2026')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	// B01-C03: a parent that renders again passes a new `Date` of the same instant.
+	it('keeps a partial entry when the parent passes the same instant again', async () => {
+		const user = setupUser()
+
+		const ms = new Date(2026, 5, 15).getTime()
+
+		const { rerender } = renderUI(
+			<DateInput aria-label="Due" value={new Date(ms)} onValueChange={noop} />,
+		)
+
+		const input = screen.getByLabelText('Due')
+
+		await user.clear(input)
+
+		await user.type(input, '011')
+
+		expect(input).toHaveValue('01/1')
+
+		rerender(<DateInput aria-label="Due" value={new Date(ms)} onValueChange={noop} />)
+
+		expect(input).toHaveValue('01/1')
+	})
+
+	// Q2: the key is the instant, so a move of the time of day is a change.
+	it('drops a partial entry when the parent moves only the time of day', async () => {
+		const user = setupUser()
+
+		const ms = new Date(2026, 5, 15, 9).getTime()
+
+		const { rerender } = renderUI(
+			<DateInput aria-label="Due" value={new Date(ms)} onValueChange={noop} />,
+		)
+
+		const input = screen.getByLabelText('Due')
+
+		await user.clear(input)
+
+		await user.type(input, '011')
+
+		rerender(
+			<DateInput aria-label="Due" value={new Date(ms + 60 * 60 * 1000)} onValueChange={noop} />,
+		)
+
+		expect(input).toHaveValue('06/15/2026')
 	})
 
 	it('binds to a Form field by name, storing the Date', async () => {
