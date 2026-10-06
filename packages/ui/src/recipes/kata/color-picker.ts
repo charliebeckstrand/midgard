@@ -34,7 +34,14 @@ const swatch = {
 	checkerboard: [omote.checkerboard, '[background-size:8px_8px]'],
 }
 
+/**
+ * The box of the trigger. It is as wide as the swatch and the color value,
+ * not as wide as its parent, and it does not get wider than its parent.
+ */
+const root = ['w-fit', 'max-w-full']
+
 export const k = {
+	root,
 	surface: {
 		default: surface.default,
 		glass: [],
