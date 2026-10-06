@@ -139,3 +139,48 @@ describe('EventLogSheet', () => {
 		expect(lines[at + 7]).toMatch(/ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
 	})
 })
+
+describe('EventLogSheet type filter', () => {
+	it('shows each type with no selected type, and only the selected types after a selection', () => {
+		const { rerender } = render(<EventLogSheet open={false} onOpenChange={() => {}} />)
+
+		act(() => {
+			record('route', '/filtered')
+
+			record('error', 'filtered error')
+		})
+
+		rerender(<EventLogSheet open onOpenChange={() => {}} />)
+
+		const types = screen.getByRole('combobox', { name: 'Types' })
+
+		expect(types.textContent).toContain('All types')
+
+		expect(screen.getByText('/filtered')).toBeDefined()
+
+		expect(screen.getByText('filtered error')).toBeDefined()
+
+		fireEvent.click(types)
+
+		fireEvent.click(screen.getByRole('option', { name: 'route' }))
+
+		expect(screen.getByText('/filtered')).toBeDefined()
+
+		expect(screen.queryByText('filtered error')).toBeNull()
+
+		fireEvent.click(screen.getByRole('option', { name: 'hmr' }))
+
+		fireEvent.click(screen.getByRole('option', { name: 'route' }))
+
+		expect(screen.queryByText('/filtered')).toBeNull()
+
+		expect(screen.getByText('No events of the selected types')).toBeDefined()
+
+		// With no selected type, the sheet shows each type again.
+		fireEvent.click(screen.getByRole('option', { name: 'hmr' }))
+
+		expect(screen.getByText('/filtered')).toBeDefined()
+
+		expect(screen.getByText('filtered error')).toBeDefined()
+	})
+})
