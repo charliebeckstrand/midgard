@@ -81,6 +81,9 @@ function frameCeiling(frame: HTMLElement): number {
  * The instance box is as wide as the instance, and at least 24rem, as a form
  * column on a page. When each child of the box is phrasing content, such as a
  * button or a badge, the children make a row that wraps. Otherwise they stack.
+ * The box is a flex box, and its gap spaces the children. A margin does not
+ * cross a wrapper that has `display: contents`, such as the wrapper of a menu,
+ * but the gap does.
  * A drag on the end border of the frame resizes the frame, so a reader can see
  * how the instance responds to a narrow column. The drag area is 24px wide and
  * sits across the border, so a finger can find it.
@@ -157,10 +160,10 @@ export function ExampleFrame({
 						<div
 							data-slot="example-instance"
 							className={cn(
-								'space-y-4',
+								'flex flex-col gap-4',
 								surface
 									? 'w-full'
-									: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex phrasing:flex-wrap phrasing:items-center phrasing:gap-4 phrasing:space-y-0',
+									: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center',
 							)}
 						>
 							{children}
