@@ -2,6 +2,7 @@ export type { JsonValueType } from '../../recipes/kata/json-tree'
 export { JsonTree, type JsonTreeProps, type JsonTreeVirtualize } from './json-tree'
 export {
 	collectPaths as collectJsonTreePaths,
+	type JsonTreeCollapsible,
 	type JsonTreeSearch,
 } from './json-tree-utilities'
 export type { JsonValue } from './types'

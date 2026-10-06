@@ -135,7 +135,7 @@ function EventLine({
 				<Collapse open={open} onOpenChange={onOpenChange}>
 					{text}
 					<CollapsePanel>
-						<JsonTree data={detail} defaultExpandDepth={2} aria-label="Details" />
+						<JsonTree data={detail} collapsible={false} aria-label="Details" />
 					</CollapsePanel>
 				</Collapse>
 			)}

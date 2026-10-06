@@ -15,6 +15,7 @@ import {
 	filterEntries,
 	getEntries,
 	isBranch,
+	isCollapsibleDepth,
 	joinPath,
 	matchesSearch,
 } from './json-tree-utilities'
@@ -27,13 +28,14 @@ type JsonNodeProps = {
 }
 
 /**
- * Resolves a branch's open state by precedence. A filtered-out empty branch
- * stays closed. Then comes the user's explicit toggle, then the search
+ * Resolves a branch's open state by precedence. A branch that does not
+ * collapse stays open. Then a filtered-out empty branch stays closed. Then comes the user's explicit toggle, then the search
  * auto-open, then the depth default. Controlled trees defer entirely to the expanded set.
  *
  * @internal
  */
 function resolveNodeOpen(opts: {
+	collapsible: boolean
 	controlled: boolean
 	expandedHas: boolean
 	search: string | undefined
@@ -44,6 +46,8 @@ function resolveNodeOpen(opts: {
 	depth: number
 	defaultExpandDepth: number
 }): boolean {
+	if (!opts.collapsible) return true
+
 	if (opts.controlled) return opts.expandedHas
 
 	if (opts.search && opts.filter && opts.empty) return false
@@ -69,6 +73,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 	const {
 		depth,
 		defaultExpandDepth,
+		collapsible: treeCollapsible,
 		search,
 		filter,
 		searchIndex,
@@ -109,7 +114,10 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 
 	const empty = visibleEntries.length === 0
 
+	const collapsible = isCollapsibleDepth(treeCollapsible, depth)
+
 	const open = resolveNodeOpen({
+		collapsible,
 		controlled,
 		expandedHas,
 		search,
@@ -125,6 +133,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		() => ({
 			depth: depth + 1,
 			defaultExpandDepth,
+			collapsible: treeCollapsible,
 			search,
 			filter,
 			searchIndex,
@@ -137,6 +146,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		[
 			depth,
 			defaultExpandDepth,
+			treeCollapsible,
 			search,
 			filter,
 			searchIndex,
@@ -184,6 +194,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 				count={count}
 				highlighted={highlighted}
 				groupId={groupId}
+				collapsible={collapsible}
 				onToggle={toggle}
 			/>
 			<ReducedMotion>

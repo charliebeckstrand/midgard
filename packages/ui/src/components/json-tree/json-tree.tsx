@@ -11,6 +11,7 @@ import { JsonTreeNode } from './json-tree-node'
 import {
 	buildSearchIndex,
 	collectMatchPaths,
+	type JsonTreeCollapsible,
 	type JsonTreeSearch,
 	normalizeSearch,
 } from './json-tree-utilities'
@@ -33,6 +34,20 @@ export type JsonTreeProps = {
 	 * @defaultValue 1
 	 */
 	defaultExpandDepth?: number
+	/**
+	 * Which branches the reader can open and close: `true` for each branch,
+	 * `false` for none, `'root'` for the root only, and `'children'` for each
+	 * branch under the root.
+	 *
+	 * @remarks
+	 * A branch that does not collapse stays open, whatever `defaultExpandDepth`,
+	 * `expanded`, or `search` gives. Its row has no chevron, and the reader
+	 * cannot toggle it. Use `false` when a surrounding control, such as a
+	 * `Collapse`, already shows and hides the tree.
+	 *
+	 * @defaultValue true
+	 */
+	collapsible?: JsonTreeCollapsible
 	/**
 	 * Controlled set of expanded node paths. When provided, the tree becomes
 	 * controlled and `onExpandedChange` fires on toggle. A `search` term adds
@@ -86,7 +101,7 @@ function expansionReader(expanded: ReadonlySet<string> | undefined): (path: stri
 /**
  * Collapsible `role="tree"` view for an arbitrary {@link JsonValue}. Expands to
  * `defaultExpandDepth` by default, or runs controlled via `expanded` /
- * `onExpandedChange`; `search` highlights and auto-expands matching nodes (and
+ * `onExpandedChange`; `collapsible` keeps some or all branches open; `search` highlights and auto-expands matching nodes (and
  * hides non-matches in filter mode). Roving-focus keyboard navigation moves
  * between tree items. `ArrowRight` opens a closed branch or moves to the first
  * child of an open one. `ArrowLeft` closes an open branch or moves to the
@@ -103,6 +118,7 @@ export function JsonTree({
 	data,
 	rootKey,
 	defaultExpandDepth = 1,
+	collapsible = true,
 	expanded,
 	onExpandedChange,
 	search,
@@ -220,6 +236,7 @@ export function JsonTree({
 		() => ({
 			depth: 0,
 			defaultExpandDepth,
+			collapsible,
 			search: searchValue,
 			filter,
 			searchIndex,
@@ -229,7 +246,16 @@ export function JsonTree({
 			toggleExpanded,
 			userOpen,
 		}),
-		[defaultExpandDepth, searchValue, filter, searchIndex, controlled, expansion, toggleExpanded],
+		[
+			defaultExpandDepth,
+			collapsible,
+			searchValue,
+			filter,
+			searchIndex,
+			controlled,
+			expansion,
+			toggleExpanded,
+		],
 	)
 
 	if (windowed) {
@@ -239,6 +265,7 @@ export function JsonTree({
 				data={data}
 				rootKey={rootKey}
 				defaultExpandDepth={defaultExpandDepth}
+				collapsible={collapsible}
 				expandedProp={expanded}
 				onExpandedChange={onExpandedChange}
 				searchValue={searchValue}

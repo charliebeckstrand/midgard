@@ -27,6 +27,23 @@ export function normalizeSearch(search: JsonTreeSearch | undefined): {
 	return { value: search.value, filter: search.filter ?? false }
 }
 
+/**
+ * Which branches of a {@link JsonTree} the reader can open and close: `true`
+ * for each branch, `false` for none, `'root'` for the root branch only, and
+ * `'children'` for each branch under the root. A branch that the reader cannot
+ * close stays open.
+ *
+ * @see {@link JsonTreeProps.collapsible}
+ */
+export type JsonTreeCollapsible = boolean | 'root' | 'children'
+
+/** Whether the branch at `depth` opens and closes. The root has depth 0. @internal */
+export function isCollapsibleDepth(collapsible: JsonTreeCollapsible, depth: number): boolean {
+	if (typeof collapsible === 'boolean') return collapsible
+
+	return collapsible === 'root' ? depth === 0 : depth > 0
+}
+
 /** Narrows a {@link JsonValue} to a branch (array or object); `null` is a leaf. @internal */
 export function isBranch(value: JsonValue) {
 	return typeof value === 'object' && value !== null

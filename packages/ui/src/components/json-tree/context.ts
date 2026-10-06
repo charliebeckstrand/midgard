@@ -3,11 +3,13 @@
 import type { RefObject } from 'react'
 import { createContext } from '../../core'
 import type { KeyedStore } from '../../utilities'
-import type { SearchIndex } from './json-tree-utilities'
+import type { JsonTreeCollapsible, SearchIndex } from './json-tree-utilities'
 
 type JsonTreeContextValue = {
 	depth: number
 	defaultExpandDepth: number
+	/** Which branches open and close. Each node resolves it for its own depth. */
+	collapsible: JsonTreeCollapsible
 	search: string
 	filter: boolean
 	searchIndex: SearchIndex

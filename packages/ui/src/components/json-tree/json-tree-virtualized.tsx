@@ -16,7 +16,13 @@ import { nextIndexForKey } from '../../utilities'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
 import { flatTreeMoveTarget, treeMoveForKey } from './json-tree-keyboard'
 import { JsonTreeNodeRow } from './json-tree-node-row'
-import { type FlatNode, flattenTree, type SearchIndex } from './json-tree-utilities'
+import {
+	type FlatNode,
+	flattenTree,
+	isCollapsibleDepth,
+	type JsonTreeCollapsible,
+	type SearchIndex,
+} from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
@@ -126,6 +132,7 @@ type JsonTreeVirtualizedProps = {
 	data: JsonValue
 	rootKey: string | undefined
 	defaultExpandDepth: number
+	collapsible: JsonTreeCollapsible
 	expandedProp: Set<string> | undefined
 	onExpandedChange: ((expanded: Set<string>) => void) | undefined
 	searchValue: string
@@ -146,6 +153,7 @@ export function JsonTreeVirtualized({
 	data,
 	rootKey,
 	defaultExpandDepth,
+	collapsible,
 	expandedProp,
 	onExpandedChange,
 	searchValue,
@@ -168,9 +176,23 @@ export function JsonTreeVirtualized({
 		autoOpen: matchPaths,
 	})
 
+	// A branch that does not collapse stays open.
+	const isOpenOrFixed = useCallback(
+		(path: string, depth: number) => !isCollapsibleDepth(collapsible, depth) || isOpen(path, depth),
+		[collapsible, isOpen],
+	)
+
 	const flatNodes = useMemo(
-		() => flattenTree({ data, rootKey, isOpen, search: searchValue, filter, searchIndex }),
-		[data, rootKey, isOpen, searchValue, filter, searchIndex],
+		() =>
+			flattenTree({
+				data,
+				rootKey,
+				isOpen: isOpenOrFixed,
+				search: searchValue,
+				filter,
+				searchIndex,
+			}),
+		[data, rootKey, isOpenOrFixed, searchValue, filter, searchIndex],
 	)
 
 	// A row reports only its path. The flat walk already resolved its open state.
@@ -295,6 +317,7 @@ export function JsonTreeVirtualized({
 						ref={measureRef}
 						node={node}
 						index={virtualItem.index}
+						collapsible={collapsible}
 						onToggle={handleToggle}
 						tabbable={virtualItem.index === firstFocusable}
 					/>
