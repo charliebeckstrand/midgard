@@ -13,14 +13,7 @@
  * the tick math is unit-testable in isolation.
  */
 
-import {
-	type CalendarDateTime,
-	DateFormatter,
-	fromDateToLocal,
-	getLocalTimeZone,
-	startOfWeek,
-	toCalendarDateTime,
-} from '@internationalized/date'
+import { CalendarDateTime, DateFormatter, startOfWeek } from '@internationalized/date'
 import { resolveLocale } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { GUTTER_GAP, TICK_CHAR_WIDTH } from './chart-constants'
@@ -232,6 +225,46 @@ const INTERVALS: readonly TimeInterval[] = [
 	{ approx: 100 * YEAR, floor: floorYears(100), next: (d) => d.add({ years: 100 }) },
 ]
 
+/**
+ * The wall-clock datetime of an instant in the runtime zone, which the local
+ * getters of `Date` read. `parseInstant` and the tick labels use the same zone.
+ * The zone of `@internationalized/date` can differ: an app can set it with
+ * `setLocalTimeZone`, and the library keeps the zone of its first read.
+ *
+ * @internal
+ */
+function wallClock(time: number): CalendarDateTime {
+	const date = new Date(time)
+
+	return new CalendarDateTime(
+		date.getFullYear(),
+		date.getMonth() + 1,
+		date.getDate(),
+		date.getHours(),
+		date.getMinutes(),
+		date.getSeconds(),
+		date.getMilliseconds(),
+	)
+}
+
+/**
+ * Inverse of {@link wallClock}: the instant of a wall-clock datetime in the
+ * runtime zone. A wall time in a daylight-saving gap resolves forward past the
+ * gap. `setFullYear` sets the day, because the `Date(year, month, day)`
+ * constructor reads years 0–99 as 1900–1999.
+ *
+ * @internal
+ */
+function localDate(at: CalendarDateTime): Date {
+	const date = new Date(0)
+
+	date.setFullYear(at.era === 'BC' ? 1 - at.year : at.year, at.month - 1, at.day)
+
+	date.setHours(at.hour, at.minute, at.second, at.millisecond)
+
+	return date
+}
+
 /** Formats one tick from its local wall-clock boundary and its instant. @internal */
 type TickLabel = (at: CalendarDateTime, date: Date) => string
 
@@ -413,12 +446,12 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	const place = positioner(anchors, band)
 
 	// The first row as a local wall-clock datetime, so the floor reads calendar days.
-	let cursor = interval.floor(toCalendarDateTime(fromDateToLocal(new Date(first.time))), locale)
+	let cursor = interval.floor(wallClock(first.time), locale)
 
 	let lastTime = Number.NEGATIVE_INFINITY
 
 	for (let guard = 0; guard < MAX_TICKS; guard++) {
-		const date = cursor.toDate(getLocalTimeZone())
+		const date = localDate(cursor)
 
 		const time = date.getTime()
 

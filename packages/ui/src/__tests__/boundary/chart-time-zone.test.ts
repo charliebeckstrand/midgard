@@ -1,8 +1,10 @@
 import { describe, expect, it, onTestFinished } from 'vitest'
+import { bandScale } from '../../modules/chart/engine/chart-scale'
 import {
 	dateCategoryFormat,
 	parseInstant,
 	timeCategory,
+	timeTicks,
 } from '../../modules/chart/engine/chart-time'
 
 /**
@@ -53,5 +55,31 @@ describe('chart-time partial ISO dates west of UTC', () => {
 		inNewYork()
 
 		expect(timeCategory('en-US')('2026-01')).toBe('Jan 1, 2026')
+	})
+})
+
+describe('chart-time ticks over the spring daylight-saving gap', () => {
+	it('keeps one tick for each distinct instant', () => {
+		inNewYork()
+
+		// 2026-03-08 02:00 does not exist in New York.
+		const start = new Date(2026, 2, 8, 0, 0).getTime()
+
+		const times = Array.from({ length: 7 }, (_, index) => start + index * 3_600_000)
+
+		const ticks =
+			timeTicks({
+				times,
+				band: bandScale({ count: 7, range: [0, 800] }),
+				tickTarget: 10,
+				axisLength: 800,
+				locale: 'en-US',
+			}) ?? []
+
+		const keys = ticks.map((tick) => tick.key)
+
+		expect(keys.length).toBeGreaterThan(1)
+
+		expect(new Set(keys).size).toBe(keys.length)
 	})
 })
