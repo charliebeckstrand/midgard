@@ -742,6 +742,9 @@ export function Combobox<T>({
 		// An outside press or an Escape closes through close(), as a blur does.
 		onOpenChange: routeFloatingOpenChange(setOpenGuarded, close),
 		matchReferenceWidth: true,
+		// A panel taller than the space on its side of the trigger shrinks into that
+		// space and scrolls, as a menu does.
+		fitHeight: true,
 		// The input and panel carry their own roles + popup wiring; `role: null`
 		// suppresses floating-ui's wrapper roles.
 		role: null,

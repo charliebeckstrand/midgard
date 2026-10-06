@@ -20,11 +20,13 @@ import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
+import { popover } from '../kiso/popover'
 
 const { on, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 const { divider } = sen
+const { fit } = popover
 
 const item = [
 	// `hannou.active` layers the `data-active` wash beside `hannou.item`'s
@@ -47,7 +49,7 @@ const viewport = defineRecipe({
 		'space-y-0.5',
 		// `min-h-0` lets the viewport shrink when the floating layer caps the
 		// height of a panel to the space on its side of the trigger.
-		'min-h-0 overflow-y-auto overscroll-contain',
+		fit.scroll,
 		// The panel surface is translucent glass, so an overlay gradient has no
 		// solid color to fade into; a mask fades the scrolled content itself.
 		// The fade extents default to zero and open per edge while
@@ -74,11 +76,11 @@ export const k = {
 	// The positioned wrapper of a floating panel. The floating layer writes its
 	// max-height when the panel is taller than the space on its side of the
 	// trigger. The column lets the panel shrink into that cap.
-	surface: 'flex flex-col',
+	surface: fit.wrapper,
 	// A floating panel. `relative` puts the panel back in flow (the popover base
 	// is `absolute`), so the wrapper shrink-wraps to it. The column and `min-h-0`
 	// pass the cap of the wrapper on to the viewport, which scrolls.
-	floating: 'relative flex min-h-0 flex-col',
+	floating: ['relative', fit.column],
 	sheet: {
 		// The rows of a dropdown that opens as a bottom sheet on a phone. The
 		// drawer is the surface, so the rows get no panel chrome of their own.
