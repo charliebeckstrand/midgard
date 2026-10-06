@@ -62,15 +62,16 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 	const settleRef = useRef<Settle | null>(null)
 
-	// Gives the open promise its answer one time, and closes the dialog.
-	const settle = useCallback((answer: (settle: Settle) => void) => {
+	// Closes the dialog, and gives back the callbacks of the open promise one
+	// time, so the caller answers it.
+	const settle = useCallback((): Settle | null => {
 		const current = settleRef.current
 
 		settleRef.current = null
 
-		if (current) answer(current)
-
 		setQuestion((held) => held && { ...held, open: false, pending: false })
+
+		return current
 	}, [])
 
 	const ask = useCallback<ConfirmFunction>(
@@ -91,32 +92,40 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 	const onOpenChange = useCallback(
 		(open: boolean) => {
-			if (!open && !pending) settle(({ resolve }) => resolve(false))
+			if (!open && !pending) settle()?.resolve(false)
 		},
 		[pending, settle],
 	)
 
-	const onConfirm = useCallback(async () => {
+	const onConfirm = useCallback(() => {
 		const action = question?.options.action
 
 		if (!action) {
-			settle(({ resolve }) => resolve(true))
+			settle()?.resolve(true)
 
 			return
 		}
 
 		const current = settleRef.current
 
+		// Answers the question only while it is still open. A new question
+		// replaces it while the work runs, and answers it.
+		const isCurrent = () => settleRef.current === current
+
 		setQuestion((held) => held && { ...held, pending: true })
 
-		try {
-			await action()
-
-			// A new question replaced this one while the work ran, and answered it.
-			if (settleRef.current === current) settle(({ resolve }) => resolve(true))
-		} catch (error) {
-			if (settleRef.current === current) settle(({ reject }) => reject(error))
-		}
+		// A chain, not `try`, so a throw in the work also rejects, and the
+		// compiler can compile the conditions.
+		Promise.resolve()
+			.then(action)
+			.then(
+				() => {
+					if (isCurrent()) settle()?.resolve(true)
+				},
+				(error: unknown) => {
+					if (isCurrent()) settle()?.reject(error)
+				},
+			)
 	}, [question, settle])
 
 	const options = question?.options
