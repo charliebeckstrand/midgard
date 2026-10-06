@@ -3,32 +3,13 @@ import { act, render, screen } from '@testing-library/react'
 import { createMemoryRouter, Outlet, type RouteObject, RouterProvider } from 'react-router'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { describe, expect, it, onTestFinished } from 'vitest'
-import { readRootDensity, writeRootDensity } from '../../core/density/steps.ts'
 import App from '../app/root.tsx'
 import routes from '../app/routes.ts'
+import { restoreRootAfterCase } from './restore-root.ts'
 
 // The shell takes the page from the matched route, not from the start of the
 // path. A path in a different case, or a path under a page with no route,
 // shows the not-found page, and the header, the title, and the sidebar agree.
-
-/**
- * Puts back the theme class and the density step that `AppearanceProvider`
- * writes to the root element. The window is shared across the files of a
- * worker.
- */
-function restoreRootAfterCase(): void {
-	const root = document.documentElement
-
-	const density = readRootDensity(root)
-
-	const dark = root.classList.contains('dark')
-
-	onTestFinished(() => {
-		writeRootDensity(root, density)
-
-		root.classList.toggle('dark', dark)
-	})
-}
 
 /** The route config with a stub for each module. The not-found route shows a marker, and each other route shows its children. */
 function stubsOf(entries: readonly RouteConfigEntry[]): RouteObject[] {

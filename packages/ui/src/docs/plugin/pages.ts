@@ -15,8 +15,8 @@ export type PageLink = {
 	tabs: string[]
 }
 
-/** A page of the docs, as the routes read it. */
-type Page = PageLink & {
+/** A page of the docs, as the routes and the page smoke test read it. */
+export type Page = PageLink & {
 	/** The folder of the page, relative to `pages/`, such as `modules/grid`. */
 	folder: string
 }

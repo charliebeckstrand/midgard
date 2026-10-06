@@ -44,9 +44,20 @@ async function isFile(file: string): Promise<boolean> {
 	return (await stat(file).catch(() => null))?.isFile() ?? false
 }
 
-/** The file that a path of the site gets. */
-export async function fileOf(root: string, pathname: string): Promise<string> {
-	const file = path.join(root, decodeURIComponent(pathname))
+/**
+ * The file that a path of the site gets, or `undefined` for a path that does
+ * not decode, such as `/%E0%A4%A`. The server answers such a path with 400.
+ */
+export async function fileOf(root: string, pathname: string): Promise<string | undefined> {
+	let decoded: string
+
+	try {
+		decoded = decodeURIComponent(pathname)
+	} catch {
+		return undefined
+	}
+
+	const file = path.join(root, decoded)
 
 	// A path that goes out of the build gets the fallback page.
 	if (file.startsWith(root)) {
@@ -62,6 +73,12 @@ export async function fileOf(root: string, pathname: string): Promise<string> {
 export async function serveDocs(port: number): Promise<{ origin: string; server: Server }> {
 	const server = createServer(async (request, response) => {
 		const file = await fileOf(CLIENT_DIR, new URL(request.url ?? '/', 'http://localhost').pathname)
+
+		if (file === undefined) {
+			response.writeHead(400).end()
+
+			return
+		}
 
 		const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
 

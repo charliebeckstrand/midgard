@@ -3,7 +3,20 @@ import path from 'node:path'
 import { compile, optimize } from '@tailwindcss/node'
 import { Scanner } from '@tailwindcss/oxide'
 import { noop } from '../../utilities/noop.ts'
-import { builtStylesheet, FONT_FACE } from './stylesheet.ts'
+
+// A `@font-face` rule of a minified stylesheet. The rule holds no nested block.
+const FONT_FACE = /@font-face\{[^}]*\}/g
+
+// The text of the built copy of `stylesheet` in `clientDir`.
+function builtStylesheet(clientDir: string, stylesheet: string): string {
+	const [built, ...others] = globSync(`assets/${path.basename(stylesheet, '.css')}-*.css`, {
+		cwd: clientDir,
+	})
+
+	if (!built || others.length > 0) throw new Error(`docs: no single built copy of ${stylesheet}`)
+
+	return readFileSync(path.join(clientDir, built), 'utf8')
+}
 
 // The characters that React escapes in the HTML that it renders, by reference.
 const REFERENCES: Readonly<Record<string, string>> = {

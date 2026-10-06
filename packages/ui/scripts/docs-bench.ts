@@ -167,6 +167,12 @@ async function serve(
 
 		const file = await fileOf(CLIENT_DIR, pathname)
 
+		if (file === undefined) {
+			response.writeHead(400).end()
+
+			return
+		}
+
 		const extension = path.extname(file)
 
 		const compress =

@@ -112,7 +112,7 @@ try {
 			viewport: { width: WIDTHS[WIDTHS.length - 1] ?? 1280, height: 900 },
 		})
 
-		// The pre-paint script of the sheets reads the stored level, as the docs
+		// `AppearanceProvider` of the sheets reads the stored level, as the docs
 		// site does for a reader who picked it.
 		await context.addInitScript(([key, value]) => localStorage.setItem(key, value), [
 			DENSITY.key,

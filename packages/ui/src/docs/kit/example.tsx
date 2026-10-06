@@ -1,4 +1,4 @@
-import { type ComponentType, type ReactNode, useCallback, useState } from 'react'
+import { type ComponentType, type ReactNode, useCallback } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn } from 'ui/core'
@@ -8,10 +8,8 @@ import { Stack } from 'ui/stack'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { noop } from '../../utilities/noop.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
-import { useFail } from './fail.ts'
-import { useIdle } from './idle.ts'
+import { useLoadThenOpen } from './load-then-open.ts'
 
 function isExample(component: object): component is ExampleMeta {
 	return 'title' in component && 'code' in component
@@ -107,14 +105,15 @@ export function ExampleFrame({
 	surface?: boolean
 	children: ReactNode
 }) {
-	const [open, setOpen] = useState(false)
-
 	// The code module loads in idle time, so "Show code" opens at once. It loads
-	// before that when the reader points at "Show code" or focuses it. A load in
-	// the background that fails does nothing. "Show code" shows the failure.
-	const prepare = useCallback(() => loadCode(meta).catch(noop), [meta])
+	// before that when the reader points at "Show code" or focuses it.
+	const load = useCallback(() => loadCode(meta), [meta])
 
-	useIdle(prepare)
+	const { open, change, warm } = useLoadThenOpen({
+		initial: false,
+		load,
+		loaded: () => codes.has(meta),
+	})
 
 	// The frame stays at its start edge, and the drag moves its end edge.
 	const rtl = useIsRtl()
@@ -126,17 +125,6 @@ export function ExampleFrame({
 		ceilingOf: frameCeiling,
 		cursor: 'ew-resize',
 	})
-
-	// The block opens when its code is loaded, so it opens at its full height
-	// with the code in it. A block that suspends opens empty, and React then
-	// holds the code back for at least 300 ms. When the load fails, the error
-	// boundary shows the failure.
-	const fail = useFail()
-
-	const toggle = (next: boolean) => {
-		if (codes.has(meta)) setOpen(next)
-		else loadCode(meta).then(() => setOpen(next), fail)
-	}
 
 	return (
 		<Stack gap="sm" data-slot="example">
@@ -171,13 +159,13 @@ export function ExampleFrame({
 							{children}
 						</div>
 					</div>
-					<Collapse animate="slide" open={open} onOpenChange={toggle}>
+					<Collapse animate="slide" open={open} onOpenChange={(next) => change(() => next)}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
 							<CollapseTrigger
 								className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2"
-								onPointerEnter={prepare}
-								onPointerDown={prepare}
-								onFocus={prepare}
+								onPointerEnter={warm}
+								onPointerDown={warm}
+								onFocus={warm}
 							>
 								{open ? 'Hide code' : 'Show code'}
 							</CollapseTrigger>

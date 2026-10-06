@@ -1,11 +1,9 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
-import { noop } from '../../utilities/noop.ts'
 import type { BarrelApi } from '../plugin/api.ts'
-import { useFail } from './fail.ts'
-import { useIdle } from './idle.ts'
+import { useLoadThenOpen } from './load-then-open.ts'
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time
@@ -36,33 +34,34 @@ function loadEntry(): Promise<EntryModule> {
 export function ApiTable({ api }: { api: BarrelApi }) {
 	const components = Object.values(api)
 
-	const [open, setOpen] = useState<string[]>([])
-
 	// In idle time, the entry also lexes the Markdown of the API data in short
-	// slices, so the first entry that opens does not lex. A load in the
-	// background that fails does nothing. The open of an entry shows the failure.
-	const prepare = useCallback(
-		(signal: AbortSignal) =>
-			loadEntry()
-				.then((module) => module.primeApi(api, signal))
-				.catch(noop),
+	// slices, so the first entry that opens does not lex.
+	const primeEntry = useCallback(
+		(module: EntryModule, signal: AbortSignal) => module.primeApi(api, signal),
 		[api],
 	)
 
-	const warm = () => loadEntry().catch(noop)
+	const { open, change, warm } = useLoadThenOpen<string[], EntryModule>({
+		initial: [],
+		load: loadEntry,
+		loaded: () => ApiEntry !== undefined,
+		prime: primeEntry,
+	})
 
-	useIdle(prepare)
+	// The accordion gives the next value from the value that it shows. Before
+	// the chunk loads, two clicks start from the same value, so each change
+	// applies only the entries that it opened or closed.
+	const toggle = (next: string[]) =>
+		change((current) => {
+			const opened = next.filter((name) => !open.includes(name))
 
-	const fail = useFail()
+			const closed = open.filter((name) => !next.includes(name))
 
-	// An entry opens when its chunk is loaded, so it opens at its full height
-	// with its props in it. An entry that suspends opens empty, and React then
-	// holds the props back for at least 300 ms. When the load fails, the error
-	// boundary shows the failure.
-	const change = (next: string[]) => {
-		if (ApiEntry) setOpen(next)
-		else loadEntry().then(() => setOpen(next), fail)
-	}
+			return [
+				...current.filter((name) => !closed.includes(name)),
+				...opened.filter((name) => !current.includes(name)),
+			]
+		})
 
 	if (components.length === 0) return null
 
@@ -72,7 +71,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 			<Accordion
 				type="multiple"
 				value={open}
-				onValueChange={change}
+				onValueChange={toggle}
 				onPointerEnter={warm}
 				onPointerDown={warm}
 				onFocus={warm}

@@ -1,4 +1,4 @@
-import pages from 'virtual:docs/pages'
+import { join } from 'node:path'
 import { act, fireEvent, render } from '@testing-library/react'
 import { configureAxe } from 'jest-axe'
 import { type ComponentType, useEffect } from 'react'
@@ -9,7 +9,8 @@ import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
 import { maxDepth } from '../../core/density/rungs.ts'
-import { readRootDensity, writeRootDensity } from '../../core/density/steps.ts'
+import { findPages, type Page } from '../plugin/pages.ts'
+import { restoreRootAfterCase } from './restore-root.ts'
 
 // The smoke test of each page of the docs. Several test files run it, and each
 // file gives it one part of the pages (`smokeParts`). A file runs on one
@@ -52,19 +53,8 @@ export function moduleOf(folder: string): string {
 	return `../pages/${folder}/index.tsx`
 }
 
-/** A page of the docs: its path, its folder in `pages/`, and the folder of each tab. */
-export type DocsPage = { path: string; folder: string; tabs: readonly string[] }
-
-/**
- * Each page of the docs, in the order of the sidebar. The last part of the
- * path of a page is the name of its folder. A component page has no section in
- * its path, so the section comes from its category.
- */
-export const docsPages: readonly DocsPage[] = pages.map(({ path, category, tabs }) => ({
-	path,
-	folder: `${category}/${path.split('/').at(-1)}`,
-	tabs,
-}))
+/** Each page of the docs, in the order of the sidebar. */
+export const docsPages: readonly Page[] = findPages(join(import.meta.dirname, '..'))
 
 /** The pages of `modules/`. */
 const modulePages = docsPages.filter(({ folder }) => folder.startsWith('modules/'))
@@ -84,7 +74,7 @@ const OTHER_PARTS = 4
  * outside `modules/` go into {@link OTHER_PARTS} parts in turn. The grid page
  * takes about 12s alone, so it has a part of its own.
  */
-export const smokeParts: Readonly<Record<string, readonly DocsPage[]>> = {
+export const smokeParts: Readonly<Record<string, readonly Page[]>> = {
 	...Object.fromEntries(
 		Array.from({ length: OTHER_PARTS }, (_, part) => [
 			part === 0 ? 'page-smoke' : `page-smoke-${part + 1}`,
@@ -179,26 +169,6 @@ function captureConsole(): string[] {
 	return logged
 }
 
-/**
- * Puts back the theme class and the density step that `AppearanceProvider`
- * writes to the root element and does not remove on unmount. The window is
- * shared across the files of a worker, so a step left on the root would reach
- * a later file that reads it.
- */
-function restoreRootAfterCase(): void {
-	const root = document.documentElement
-
-	const density = readRootDensity(root)
-
-	const dark = root.classList.contains('dark')
-
-	onTestFinished(() => {
-		writeRootDensity(root, density)
-
-		root.classList.toggle('dark', dark)
-	})
-}
-
 /** The name of a scope in a chain: its tag, its step, and its `data-slot`. */
 function scopeName(element: Element): string {
 	const slot = element.getAttribute('data-slot')
@@ -257,7 +227,7 @@ function load(folder: string): Promise<ComponentType> {
  * docs app. It then opens each tab. In each state, it reads the depth of the
  * density scopes and runs axe.
  */
-async function walk(page: DocsPage): Promise<Walk> {
+async function walk(page: Page): Promise<Walk> {
 	restoreRootAfterCase()
 
 	const logged = captureConsole()
@@ -313,7 +283,7 @@ async function walk(page: DocsPage): Promise<Walk> {
 }
 
 /** Registers a smoke case for each page of `part`. */
-export function describePageSmoke(part: readonly DocsPage[]): void {
+export function describePageSmoke(part: readonly Page[]): void {
 	describe('page smoke', () => {
 		it.each(part.map((page) => [page.path, page] as const))(
 			'%s renders each tab with no console output and no rule violation',

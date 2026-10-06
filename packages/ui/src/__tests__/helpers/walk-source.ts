@@ -44,7 +44,7 @@ export const docsSites: ReadonlySet<string> = new Set(['docs'])
  * The test folder of the docs site. The `unit` and `pure` projects run it with
  * `src/__tests__`, so each scan of those projects reads it too.
  */
-export const docsTestDirs: readonly string[] = [join(srcDir, 'docs', '__tests__')]
+export const docsTestDir: string = join(srcDir, 'docs', '__tests__')
 
 // Entries a scan of the shipped tree must not descend into: test and bench
 // trees, build output, and dot-directories. A caller that scans the test tree
