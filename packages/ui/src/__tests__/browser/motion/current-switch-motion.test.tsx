@@ -4,8 +4,8 @@ import { renderUI, waitFor } from '../../helpers'
 
 /**
  * Real-Motion check of a tab switch under a fading container. The other suites
- * mock `motion/react`, and the mock moves nothing. This case reads the two
- * panels on each frame of a switch.
+ * mock `motion/react`, and the mock moves nothing. These cases read the two
+ * panels on each frame of a switch, under `fade` and under `slide`.
  */
 describe('CurrentContents switch (real Motion)', () => {
 	const panelOf = (testId: string) =>
@@ -13,14 +13,14 @@ describe('CurrentContents switch (real Motion)', () => {
 
 	const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
-	function renderTabs() {
+	function renderTabs(animate: 'fade' | 'slide') {
 		renderUI(
 			<Tabs defaultValue="a">
 				<TabList aria-label="Sections">
 					<Tab value="a">A</Tab>
 					<Tab value="b">B</Tab>
 				</TabList>
-				<TabContents>
+				<TabContents animate={animate}>
 					<TabContent value="a">
 						<div data-testid="a">A</div>
 					</TabContent>
@@ -69,8 +69,42 @@ describe('CurrentContents switch (real Motion)', () => {
 		return frames
 	}
 
+	it('fades the outgoing panel out, then the incoming panel in, with no double image', async () => {
+		renderTabs('fade')
+
+		await waitFor(() => expect(panelOf('a')).not.toBeNull())
+
+		const outgoing: number[] = []
+
+		const tab = document.querySelectorAll<HTMLElement>('[role="tab"]')[1]
+
+		if (!tab) throw new Error('tab 1 did not render')
+
+		const doubled: number[][] = []
+
+		tab.click()
+
+		while (panelOf('a') || Number(getComputedStyle(panelOf('b') as Element).opacity) < 1) {
+			await frame()
+
+			const opacities = [panelOf('a'), panelOf('b')].map((panel) =>
+				panel ? Number(getComputedStyle(panel).opacity) : 0,
+			)
+
+			outgoing.push(opacities[0] ?? 0)
+
+			if (opacities.every((opacity) => opacity > 0.25)) doubled.push(opacities)
+		}
+
+		// Before, the outgoing panel went at once, with no fade-out.
+		expect(outgoing.some((opacity) => opacity > 0 && opacity < 1)).toBe(true)
+
+		// The incoming panel fades in only as the outgoing panel nears transparent.
+		expect(doubled).toEqual([])
+	})
+
 	it('slides the two panels side by side and never shows an empty box', async () => {
-		renderTabs()
+		renderTabs('slide')
 
 		await waitFor(() => expect(panelOf('a')).not.toBeNull())
 
@@ -94,7 +128,7 @@ describe('CurrentContents switch (real Motion)', () => {
 	})
 
 	it('slides back from the leading side', async () => {
-		renderTabs()
+		renderTabs('slide')
 
 		await waitFor(() => expect(panelOf('a')).not.toBeNull())
 

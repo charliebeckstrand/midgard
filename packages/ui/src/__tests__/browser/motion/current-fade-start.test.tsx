@@ -14,11 +14,11 @@ function SlowPanel() {
 }
 
 /**
- * Real-Motion check of the start of the panel slide. The other suites mock
+ * Real-Motion check of the start of the panel entrance. The other suites mock
  * `motion/react`, and the mock starts no animation.
  */
-describe('CurrentContents slide start (real Motion)', () => {
-	it('starts the slide only after the first frame of the incoming panel', async () => {
+describe('CurrentContents entrance start (real Motion)', () => {
+	it('starts the entrance only after the first frame of the incoming panel', async () => {
 		renderUI(
 			<Tabs defaultValue="a">
 				<TabList aria-label="Sections">
@@ -46,7 +46,7 @@ describe('CurrentContents slide start (real Motion)', () => {
 
 		// Before the fix, Motion created the animation in the task of the switch,
 		// and timed it from that task. The render of the panel then counted as
-		// animation time, so the first frame showed the slide partway.
+		// animation time, so the first frame showed the entrance partway.
 		const fadesAtFirstFrame = await new Promise<number | undefined>((resolve) =>
 			requestAnimationFrame(() => resolve(panel()?.getAnimations().length)),
 		)

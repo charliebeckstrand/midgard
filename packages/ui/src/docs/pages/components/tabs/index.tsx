@@ -1,5 +1,6 @@
 import api from 'virtual:docs/api/components/tabs'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import Animation from './animation.tsx'
 import Controlled from './controlled.tsx'
 import DisabledTab from './disabled-tab.tsx'
 import KeepPanelState from './keep-panel-state.tsx'
@@ -13,6 +14,7 @@ export default function TabsPage() {
 	return (
 		<>
 			<Playground of={TabsPlayground} api={api} />
+			<Example of={Animation} />
 			<Example of={Stretch} />
 			<Example of={DisabledTab} />
 			<Example of={Controlled} />

@@ -25,7 +25,7 @@ function GrowProbe() {
 
 	const [tall, setTall] = useState(false)
 
-	useCurrentContentsMorph(ref, true)
+	useCurrentContentsMorph(ref, 'fade')
 
 	return (
 		<div style={{ width: 300 }}>
@@ -134,7 +134,7 @@ describe('current-panel morph, width-coupled resizes (real browser)', () => {
 			<div data-testid="host" style={{ width: 600 }}>
 				<Profiler id="host" onRender={onCommit}>
 					<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-						<CurrentContents slotPrefix="test" fade mount="always">
+						<CurrentContents slotPrefix="test" animate="fade" mount="always">
 							<CurrentContent slotPrefix="test" value="a">
 								<p style={{ margin: 0 }}>{PROSE}</p>
 							</CurrentContent>

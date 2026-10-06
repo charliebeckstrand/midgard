@@ -44,7 +44,7 @@ describe('CurrentContents / CurrentContent', () => {
 	it('CurrentContents renders with its data-slot', () => {
 		const { container } = renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade={false}>
+				<CurrentContents slotPrefix="test" animate={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						Content A
 					</CurrentContent>
@@ -58,7 +58,7 @@ describe('CurrentContents / CurrentContent', () => {
 	it('CurrentContent renders matching value', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade={false}>
+				<CurrentContents slotPrefix="test" animate={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						Content A
 					</CurrentContent>
@@ -77,7 +77,7 @@ describe('CurrentContents / CurrentContent', () => {
 	it('CurrentContent renders all when no value set', () => {
 		renderUI(
 			<CurrentContext value={{ value: undefined, onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade={false}>
+				<CurrentContents slotPrefix="test" animate={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						A
 					</CurrentContent>
@@ -99,7 +99,7 @@ describe('CurrentContents / CurrentContent', () => {
 
 			return (
 				<CurrentContext value={context}>
-					<CurrentContents slotPrefix="test" fade={false} mount="active">
+					<CurrentContents slotPrefix="test" animate={false} mount="active">
 						<CurrentContent slotPrefix="test" value="a">
 							A
 						</CurrentContent>
@@ -122,7 +122,7 @@ describe('CurrentContents / CurrentContent', () => {
 	it('forwards id / role / aria-* in fade mode', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade>
+				<CurrentContents slotPrefix="test" animate="fade">
 					<CurrentContent
 						slotPrefix="test"
 						value="a"
@@ -143,28 +143,31 @@ describe('CurrentContents / CurrentContent', () => {
 		expect(panel).toHaveAttribute('aria-labelledby', 'tab-a')
 	})
 
-	it.each([true, false])('takes a caller data-slot rename with fade=%s', (fade) => {
-		const { container } = renderUI(
-			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade={fade}>
-					<CurrentContent slotPrefix="test" value="a" data-slot="my-panel">
-						Content A
-					</CurrentContent>
-				</CurrentContents>
-			</CurrentContext>,
-		)
+	it.each(['fade', 'slide', false] as const)(
+		'takes a caller data-slot rename with animate=%s',
+		(animate) => {
+			const { container } = renderUI(
+				<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
+					<CurrentContents slotPrefix="test" animate={animate}>
+						<CurrentContent slotPrefix="test" value="a" data-slot="my-panel">
+							Content A
+						</CurrentContent>
+					</CurrentContents>
+				</CurrentContext>,
+			)
 
-		// The anchor a test author queries by must not change with the container's
-		// fade flag: the caller's rename wins in both branches.
-		expect(bySlot(container, 'my-panel')).toBeInTheDocument()
+			// The anchor a test author queries by must not change with the container's
+			// fade flag: the caller's rename wins in both branches.
+			expect(bySlot(container, 'my-panel')).toBeInTheDocument()
 
-		expect(bySlot(container, 'test-content')).toBeNull()
-	})
+			expect(bySlot(container, 'test-content')).toBeNull()
+		},
+	)
 
 	it('preserves caller style under the positioning keys in fade mode', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade mount="always">
+				<CurrentContents slotPrefix="test" animate="fade" mount="always">
 					<CurrentContent slotPrefix="test" value="a" style={{ minHeight: 120 }}>
 						Content A
 					</CurrentContent>
@@ -199,13 +202,13 @@ describe('CurrentContent mount policy', () => {
 
 	function Panels({
 		mount,
-		fade = false,
+		animate = false,
 		initial = 'a',
 		onSetup,
 		onCleanup,
 	}: {
 		mount?: CurrentMount
-		fade?: boolean
+		animate?: 'fade' | 'slide' | false
 		initial?: string
 		onSetup?: () => void
 		onCleanup?: () => void
@@ -221,7 +224,7 @@ describe('CurrentContent mount policy', () => {
 					go-b
 				</button>
 				<CurrentContext value={{ value: value ?? undefined, onValueChange: setValue }}>
-					<CurrentContents slotPrefix="test" fade={fade} mount={mount}>
+					<CurrentContents slotPrefix="test" animate={animate} mount={mount}>
 						<CurrentContent slotPrefix="test" value="a">
 							Content A
 						</CurrentContent>
@@ -243,7 +246,7 @@ describe('CurrentContent mount policy', () => {
 		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
 	})
 
-	it('mount="always" with fade=false holds inactive panels mounted but hidden via Activity', () => {
+	it('mount="always" with animate=false holds inactive panels mounted but hidden via Activity', () => {
 		renderUI(<Panels mount="always" initial="a" />)
 
 		expect(screen.getByText('Content A')).toBeVisible()
@@ -269,7 +272,7 @@ describe('CurrentContent mount policy', () => {
 		expect((screen.getByTestId('b-input') as HTMLInputElement).value).toBe('kept')
 	})
 
-	it('mount="always" fade=false tears down a hidden panel’s effects, then remounts them', async () => {
+	it('mount="always" animate=false tears down a hidden panel’s effects, then remounts them', async () => {
 		const user = setupUser()
 
 		const onSetup = vi.fn()
@@ -295,118 +298,120 @@ describe('CurrentContent mount policy', () => {
 		expect(onSetup).toHaveBeenCalledTimes(2)
 	})
 
-	it('mount="active" with fade mounts only the active panel up front', () => {
-		renderUI(<Panels mount="active" fade />)
+	describe.each(['fade', 'slide'] as const)('animate=%s', (animate) => {
+		it('mount="active" with an animation mounts only the active panel up front', () => {
+			renderUI(<Panels mount="active" animate={animate} />)
 
-		expect(screen.getByText('Content A')).toBeInTheDocument()
+			expect(screen.getByText('Content A')).toBeInTheDocument()
 
-		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
-	})
-
-	it('mount="active" with fade unmounts the outgoing panel once its fade-out completes', async () => {
-		const user = setupUser()
-
-		const onCleanup = vi.fn()
-
-		renderUI(<Panels mount="active" fade initial="b" onCleanup={onCleanup} />)
-
-		expect(screen.getByTestId('b-input')).toBeInTheDocument()
-
-		await user.click(screen.getByText('go-a'))
-
-		// The motion mock completes the retargeted opacity animation on the next
-		// commit, which releases the exit hold: the outgoing panel is unmounted
-		// and its state torn down, per `active` semantics.
-		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
-
-		expect(onCleanup).toHaveBeenCalledTimes(1)
-
-		expect(screen.getByText('Content A')).toBeInTheDocument()
-	})
-
-	it('mount="lazy" with fade holds a visited panel through the cross-fade', async () => {
-		const user = setupUser()
-
-		renderUI(<Panels mount="lazy" fade />)
-
-		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
-
-		await user.click(screen.getByText('go-b'))
-
-		expect(screen.getByText('Content B')).toBeInTheDocument()
-
-		await user.click(screen.getByText('go-a'))
-
-		// Visited panels stay mounted as fade-mode hidden panels; only `active`
-		// unmounts after its fade-out.
-		expect(screen.getByText('Content B')).toHaveStyle({ position: 'absolute' })
-	})
-
-	// A panel that stops being current before its first frame never started its
-	// fade, so no fade-out lands to release it.
-	it('mount="always" with fade rests a panel left before its fade starts', () => {
-		renderUI(<Panels mount="always" fade />)
-
-		act(() => {
-			screen.getByText('go-b').click()
+			expect(screen.queryByText('Content B')).not.toBeInTheDocument()
 		})
 
-		act(() => {
-			screen.getByText('go-a').click()
+		it('mount="active" with an animation unmounts the outgoing panel once its exit completes', async () => {
+			const user = setupUser()
+
+			const onCleanup = vi.fn()
+
+			renderUI(<Panels mount="active" animate={animate} initial="b" onCleanup={onCleanup} />)
+
+			expect(screen.getByTestId('b-input')).toBeInTheDocument()
+
+			await user.click(screen.getByText('go-a'))
+
+			// The motion mock completes the retargeted opacity animation on the next
+			// commit, which releases the exit hold: the outgoing panel is unmounted
+			// and its state torn down, per `active` semantics.
+			expect(screen.queryByText('Content B')).not.toBeInTheDocument()
+
+			expect(onCleanup).toHaveBeenCalledTimes(1)
+
+			expect(screen.getByText('Content A')).toBeInTheDocument()
 		})
 
-		expect(screen.getByText('Content B')).not.toBeVisible()
-	})
+		it('mount="lazy" with an animation holds a visited panel through the animation', async () => {
+			const user = setupUser()
 
-	// The frame that readies the fade and the switch away can land in one render.
-	// Then the fade target stays at 0, and no fade-out lands to release the panel.
-	it('mount="always" with fade rests a panel left in the render that readies its fade', () => {
-		renderUI(<Panels mount="always" fade />)
+			renderUI(<Panels mount="lazy" animate={animate} />)
 
-		const frames: FrameRequestCallback[] = []
+			expect(screen.queryByText('Content B')).not.toBeInTheDocument()
 
-		const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
-			frames.push(callback)
+			await user.click(screen.getByText('go-b'))
 
-			return frames.length
+			expect(screen.getByText('Content B')).toBeInTheDocument()
+
+			await user.click(screen.getByText('go-a'))
+
+			// Visited panels stay mounted as fade-mode hidden panels; only `active`
+			// unmounts after its fade-out.
+			expect(screen.getByText('Content B')).toHaveStyle({ position: 'absolute' })
 		})
 
-		act(() => {
-			screen.getByText('go-b').click()
+		// A panel that stops being current before its first frame never started its
+		// fade, so no fade-out lands to release it.
+		it('mount="always" with an animation rests a panel left before its entrance starts', () => {
+			renderUI(<Panels mount="always" animate={animate} />)
+
+			act(() => {
+				screen.getByText('go-b').click()
+			})
+
+			act(() => {
+				screen.getByText('go-a').click()
+			})
+
+			expect(screen.getByText('Content B')).not.toBeVisible()
 		})
 
-		act(() => {
-			for (const frame of frames.splice(0)) frame(performance.now())
+		// The frame that readies the fade and the switch away can land in one render.
+		// Then the fade target stays at 0, and no fade-out lands to release the panel.
+		it('mount="always" with an animation rests a panel left in the render that readies its entrance', () => {
+			renderUI(<Panels mount="always" animate={animate} />)
 
-			screen.getByText('go-a').click()
+			const frames: FrameRequestCallback[] = []
+
+			const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+				frames.push(callback)
+
+				return frames.length
+			})
+
+			act(() => {
+				screen.getByText('go-b').click()
+			})
+
+			act(() => {
+				for (const frame of frames.splice(0)) frame(performance.now())
+
+				screen.getByText('go-a').click()
+			})
+
+			raf.mockRestore()
+
+			expect(screen.getByText('Content B')).not.toBeVisible()
 		})
 
-		raf.mockRestore()
+		it('mount="active" with an animation unmounts a panel left before its entrance starts', () => {
+			renderUI(<Panels mount="active" animate={animate} />)
 
-		expect(screen.getByText('Content B')).not.toBeVisible()
-	})
+			act(() => {
+				screen.getByText('go-b').click()
+			})
 
-	it('mount="active" with fade unmounts a panel left before its fade starts', () => {
-		renderUI(<Panels mount="active" fade />)
+			act(() => {
+				screen.getByText('go-a').click()
+			})
 
-		act(() => {
-			screen.getByText('go-b').click()
+			expect(screen.queryByText('Content B')).not.toBeInTheDocument()
 		})
-
-		act(() => {
-			screen.getByText('go-a').click()
-		})
-
-		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
 	})
 
 	it('a non-fading container nested in a fading one keeps its plain rendering', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="outer" fade>
+				<CurrentContents slotPrefix="outer" animate="fade">
 					<CurrentContent slotPrefix="outer" value="a">
 						<CurrentContext value={{ value: 'x', onValueChange: undefined }}>
-							<CurrentContents slotPrefix="inner" fade={false} mount="always">
+							<CurrentContents slotPrefix="inner" animate={false} mount="always">
 								<CurrentContent slotPrefix="inner" value="y">
 									Inner Y
 								</CurrentContent>
@@ -460,7 +465,7 @@ describe('useCurrentPanelActive', () => {
 	it('is true on the active panel and false on a mounted inactive one', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade mount="always">
+				<CurrentContents slotPrefix="test" animate="fade" mount="always">
 					<CurrentContent slotPrefix="test" value="a">
 						<ActiveProbe id="a" />
 					</CurrentContent>
@@ -479,10 +484,10 @@ describe('useCurrentPanelActive', () => {
 	it('folds across nesting: an active panel inside an inactive one reads false', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'outer-b', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="outer" fade mount="always">
+				<CurrentContents slotPrefix="outer" animate="fade" mount="always">
 					<CurrentContent slotPrefix="outer" value="outer-a">
 						<CurrentContext value={{ value: 'inner-a', onValueChange: undefined }}>
-							<CurrentContents slotPrefix="inner" fade mount="always">
+							<CurrentContents slotPrefix="inner" animate="fade" mount="always">
 								<CurrentContent slotPrefix="inner" value="inner-a">
 									<ActiveProbe id="nested" />
 								</CurrentContent>

@@ -77,7 +77,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 				))}
 			</TabList>
 			{intent && intent !== slugOf(first) && <PrefetchPageLinks page={`${page}/${intent}`} />}
-			<TabContents fade={false}>
+			<TabContents animate={false}>
 				<TabContent value={current}>
 					<Stack gap="xl">{outlet ?? children}</Stack>
 				</TabContent>

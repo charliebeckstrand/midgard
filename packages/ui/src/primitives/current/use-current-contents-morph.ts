@@ -6,6 +6,7 @@ import { travelHeight } from '../../hooks/travel-height'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
 import { type BorderBox, measureBox } from '../../utilities'
+import type { CurrentAnimation } from './current'
 
 /** The tallest tracked panel — the container's morph target. */
 function tallest(boxes: Map<Element, BorderBox>): number {
@@ -51,7 +52,7 @@ function classifyEntries(
 }
 
 /**
- * Discrete height morphs for a fading current-panel container. At rest the
+ * Discrete height morphs for an animating current-panel container. At rest the
  * container holds `height: auto`. A window drag couples every panel height
  * change to a width change. Such a drag reflows through CSS, with no observer
  * state and no re-render at all. Only a discrete height change morphs: the
@@ -65,12 +66,18 @@ function classifyEntries(
  * inline height, handing the box back to `auto` and layout.
  *
  * Reduced motion opts the whole observer out. The container just reflows to
- * each panel switch, and the panels swap in place with their fade (the `still`
- * slide of the current kata).
+ * each panel switch, and the panels swap in place with their fade (the `fade`
+ * fades, and the `still` copy of the `slide`).
+ *
+ * The tween takes the height transition of the animation: the fade tween, or
+ * the spring of the slide.
  *
  * @internal
  */
-export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enabled: boolean) {
+export function useCurrentContentsMorph(
+	ref: RefObject<HTMLElement | null>,
+	animation: CurrentAnimation,
+) {
 	// Imperative `animate()` runs outside any MotionConfig; read the OS
 	// preference directly and leave the height to layout under reduced motion.
 	const reducedMotion = usePrefersReducedMotion()
@@ -78,7 +85,9 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 	useEffect(() => {
 		const element = ref.current
 
-		if (!element || !enabled || reducedMotion) return
+		if (!element || animation === false || reducedMotion) return
+
+		const transition = k[animation].height
 
 		// Track every `data-current` child's box; the container morphs to the
 		// tallest. When the context value is undefined, all panels are
@@ -127,7 +136,7 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 
 			tween?.stop()
 
-			tween = travelHeight(element, from, to, k.transition, () => {
+			tween = travelHeight(element, from, to, transition, () => {
 				tween = null
 			})
 		}
@@ -204,5 +213,5 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 
 			currentObserver.disconnect()
 		}
-	}, [ref, enabled, reducedMotion])
+	}, [ref, animation, reducedMotion])
 }

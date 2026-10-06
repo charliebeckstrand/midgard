@@ -40,7 +40,7 @@ describe('CurrentContents morph pin arithmetic', () => {
 	function mount(value: string, ref?: Ref<HTMLDivElement>) {
 		return renderUI(
 			<CurrentContext value={{ value, onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade mount="always" ref={ref}>
+				<CurrentContents slotPrefix="test" animate="fade" mount="always" ref={ref}>
 					<CurrentContent slotPrefix="test" value="a">
 						Panel A
 					</CurrentContent>

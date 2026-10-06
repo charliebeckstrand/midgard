@@ -140,23 +140,33 @@ export function useCurrentItem(value: string | undefined): {
 }
 
 /**
- * Signals to `CurrentContent` that its `CurrentContents` parent is animating
- * height, so the panel fades in place instead of unmounting. `false` outside a
- * fading container.
+ * How a `CurrentContents` animates a panel switch: `fade` fades the outgoing
+ * panel out and the incoming panel in, `slide` slides the two panels side by
+ * side, and `false` swaps them with no animation.
  *
  * @internal
  */
-export const [CurrentFadeContext, useCurrentFade] = createContext<boolean>('CurrentFade', {
-	default: false,
-})
+export type CurrentAnimation = 'fade' | 'slide' | false
 
 /**
- * Post-mount latch broadcast by a fading `CurrentContents`: a ref that flips
+ * Signals to `CurrentContent` how its `CurrentContents` parent animates a
+ * switch. An animating panel stays mounted through its exit instead of
+ * unmounting at once. `false` outside an animating container.
+ *
+ * @internal
+ */
+export const [CurrentAnimationContext, useCurrentAnimation] = createContext<CurrentAnimation>(
+	'CurrentAnimation',
+	{ default: false },
+)
+
+/**
+ * Post-mount latch broadcast by an animating `CurrentContents`: a ref that flips
  * true once the container commits its initial render. A panel mounting later
  * reads it to enter from transparent, such as a `lazy` first visit or a fresh
  * `active` mount. Panels present in the container's first render skip the
  * entrance, so nothing fades on load. A ref rather than state so the flip
- * re-renders nothing. `undefined` outside a fading container.
+ * re-renders nothing. `undefined` outside an animating container.
  *
  * @internal
  */
@@ -173,9 +183,10 @@ export const [CurrentSettledContext, useCurrentSettled] = createContext<
 export type CurrentDirection = 1 | -1
 
 /**
- * The direction of the last panel switch, broadcast by a fading
+ * The direction of the last panel switch, broadcast by an animating
  * `CurrentContents`. The incoming panel slides in from that side, and the
- * outgoing panel slides out to the other side. `1` outside a fading container.
+ * outgoing panel slides out to the other side. `1` outside an animating
+ * container.
  *
  * @internal
  */
@@ -188,7 +199,7 @@ export const [CurrentDirectionContext, useCurrentDirection] = createContext<Curr
  * Whether the nearest enclosing {@link CurrentContent} is the active panel,
  * folded across nesting. A panel is active only when it matches its context and
  * every ancestor panel does too. Descendants read this to know they are on the
- * visible view, rather than a fade-mode panel kept mounted but hidden. That is
+ * visible view, rather than a panel that an animating container keeps mounted but hidden. That is
  * useful for deferring work, pausing animation, or scoping registrations to the
  * panel in view. Defaults to `true` outside any panel, so ungrouped content always
  * counts as active.
@@ -207,7 +218,7 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
  * - `lazy` — a panel is absent until it first becomes active, then held like
  *   `always`; defers the mount cost of never-visited panels.
  * - `active` — only the active panel is mounted; switching unmounts the outgoing
- *   panel and resets its state — under a fading container, once its fade-out
+ *   panel and resets its state — under an animating container, once its exit
  *   completes.
  */
 export type CurrentMount = Mount
