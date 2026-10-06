@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useComboboxInput } from '../../components/combobox/use-combobox-input'
-import { makeChangeEvent, makeFocusEvent, makeKeyEvent, makePointerEvent } from '../helpers'
+import { attach, makeChangeEvent, makeFocusEvent, makeKeyEvent, makePointerEvent } from '../helpers'
 
 /**
  * Build a closed-menu arrow key event whose `currentTarget` reports the input's
@@ -33,6 +33,8 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 
 	const close = vi.fn()
 
+	const keep = vi.fn()
+
 	const rovingKeyDown = vi.fn()
 
 	const keyboardSettled = vi.fn((cb: () => void) => cb())
@@ -55,6 +57,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 			setOpen,
 			openByArrowKey,
 			close,
+			keep,
 			keyboardSettled,
 			rovingKeyDown,
 			...overrides,
@@ -69,6 +72,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 		setOpen,
 		openByArrowKey,
 		close,
+		keep,
 		rovingKeyDown,
 		floatingRef,
 		optionsRef,
@@ -125,27 +129,74 @@ describe('useComboboxInput onChange', () => {
 	})
 })
 
+function focusedInput() {
+	const input = attach(document.createElement('input'))
+
+	input.focus()
+
+	return input
+}
+
 describe('useComboboxInput onFocus', () => {
+	/** A keyboardSettled stub that keeps the callback until the test calls `settle`. */
+	function deferredSettle() {
+		let pending: (() => void) | undefined
+
+		const keyboardSettled = vi.fn((cb: () => void) => {
+			pending = cb
+		})
+
+		return { keyboardSettled, settle: () => pending?.() }
+	}
+
 	it('opens the panel via keyboardSettled', () => {
 		const { result, setOpen } = setup<string>()
 
-		result.current.onFocus()
+		const input = focusedInput()
+
+		result.current.onFocus(makeFocusEvent<HTMLInputElement>({ currentTarget: input }))
 
 		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+
+	it('opens the panel once the keyboard settles while the input keeps focus', () => {
+		const { keyboardSettled, settle } = deferredSettle()
+
+		const { result, setOpen } = setup<string>({ keyboardSettled })
+
+		const input = focusedInput()
+
+		result.current.onFocus(makeFocusEvent<HTMLInputElement>({ currentTarget: input }))
+
+		expect(setOpen).not.toHaveBeenCalled()
+
+		settle()
+
+		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+
+	it('does not open the panel when the input loses focus before the keyboard settles', () => {
+		const { keyboardSettled, settle } = deferredSettle()
+
+		const { result, setOpen } = setup<string>({ keyboardSettled })
+
+		const input = focusedInput()
+
+		result.current.onFocus(makeFocusEvent<HTMLInputElement>({ currentTarget: input }))
+
+		input.blur()
+
+		result.current.onBlur(
+			makeFocusEvent<HTMLInputElement>({ currentTarget: input, relatedTarget: null }),
+		)
+
+		settle()
+
+		expect(setOpen).not.toHaveBeenCalledWith(true)
 	})
 })
 
 describe('useComboboxInput onMouseDown', () => {
-	function focusedInput() {
-		const input = document.createElement('input')
-
-		document.body.appendChild(input)
-
-		input.focus()
-
-		return input
-	}
-
 	it('opens the closed menu on a press into the focused input', () => {
 		const { result, setOpen } = setup<string>({ open: false })
 
@@ -234,6 +285,33 @@ describe('useComboboxInput onKeyDown', () => {
 		expect(rovingKeyDown).not.toHaveBeenCalled()
 	})
 
+	// The open menu consumes the press. The escape layer of a surface around the
+	// combobox (a Drawer, a Dialog) then ignores it, also when the layer of the
+	// menu unregisters before the document listener runs.
+	it('consumes the Escape that closes the open menu', () => {
+		const { result, close } = setup<string>()
+
+		const event = makeKeyEvent<HTMLInputElement>('Escape')
+
+		result.current.onKeyDown(event)
+
+		expect(close).toHaveBeenCalled()
+
+		expect(event.preventDefault).toHaveBeenCalled()
+	})
+
+	it('leaves an Escape on the closed menu to the surface around it', () => {
+		const { result, close } = setup<string>({ open: false })
+
+		const event = makeKeyEvent<HTMLInputElement>('Escape')
+
+		result.current.onKeyDown(event)
+
+		expect(close).toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+	})
+
 	it('selects the lone option on Enter when one is present', () => {
 		const { result, optionsRef } = setup<string>()
 
@@ -264,6 +342,146 @@ describe('useComboboxInput onKeyDown', () => {
 		result.current.onKeyDown(event)
 
 		expect(rovingKeyDown).toHaveBeenCalled()
+	})
+
+	describe('Enter on an option that is already selected', () => {
+		type Row = { selected?: boolean; active?: boolean }
+
+		/** An options container with one option for each row, and a spy on a click of any option. */
+		function optionRows(rows: Row[]) {
+			const container = document.createElement('div')
+
+			const click = vi.fn()
+
+			for (const { selected, active } of rows) {
+				const option = document.createElement('div')
+
+				option.setAttribute('role', 'option')
+
+				if (selected) option.setAttribute('data-selected', '')
+
+				if (active) option.setAttribute('data-active', '')
+
+				option.addEventListener('click', click)
+
+				container.appendChild(option)
+			}
+
+			return { container: container as HTMLDivElement, click }
+		}
+
+		// A click on the selected option toggles it, and the toggle clears a
+		// `nullable` value. Enter chooses, so in single mode no Enter path clicks
+		// that option: not the sole-option Enter, and not the roving activation.
+		// The Enter keeps the value and ends as a pick ends, through `keep`.
+		it.each<[string, Row[]]>([
+			['the sole option', [{ selected: true }]],
+			['the highlighted option', [{}, { selected: true, active: true }]],
+		])('keeps %s selected in single mode and ends the pick', (_name, rows) => {
+			const { result, close, keep, rovingKeyDown, optionsRef } = setup<string>({ value: 'x' })
+
+			const { container, click } = optionRows(rows)
+
+			optionsRef.current = container
+
+			const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+			result.current.onKeyDown(event)
+
+			expect(click).not.toHaveBeenCalled()
+
+			expect(rovingKeyDown).not.toHaveBeenCalled()
+
+			expect(event.preventDefault).toHaveBeenCalled()
+
+			expect(keep).toHaveBeenCalledTimes(1)
+
+			expect(close).not.toHaveBeenCalled()
+		})
+
+		// A `multiple` combobox keeps the toggle, so Enter removes the option from
+		// the selection and the menu stays open.
+		it('clicks the sole option in multiple mode', () => {
+			const { result, keep, optionsRef } = setup<string>({ multiple: true, value: ['x'] })
+
+			const { container, click } = optionRows([{ selected: true }])
+
+			optionsRef.current = container
+
+			result.current.onKeyDown(makeKeyEvent<HTMLInputElement>('Enter'))
+
+			expect(click).toHaveBeenCalledTimes(1)
+
+			expect(keep).not.toHaveBeenCalled()
+		})
+
+		it('forwards Enter on the highlighted option to roving navigation in multiple mode', () => {
+			const { result, keep, rovingKeyDown, optionsRef } = setup<string>({
+				multiple: true,
+				value: ['x'],
+			})
+
+			optionsRef.current = optionRows([{}, { selected: true, active: true }]).container
+
+			const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+			result.current.onKeyDown(event)
+
+			expect(rovingKeyDown).toHaveBeenCalledWith(event)
+
+			expect(keep).not.toHaveBeenCalled()
+		})
+
+		// The check reads the highlighted option, so a selection elsewhere in the
+		// list does not stop the roving activation.
+		it('forwards Enter to roving navigation when the highlighted option is not the selected one', () => {
+			const { result, keep, rovingKeyDown, optionsRef } = setup<string>({ value: 'x' })
+
+			optionsRef.current = optionRows([{ selected: true }, { active: true }]).container
+
+			const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+			result.current.onKeyDown(event)
+
+			expect(rovingKeyDown).toHaveBeenCalledWith(event)
+
+			expect(keep).not.toHaveBeenCalled()
+		})
+	})
+
+	// The panel keeps its rows while it animates out after a close, and a row can
+	// keep `data-active`. An Enter on the closed menu must not pick one of them.
+	it.each([
+		['one row', 1],
+		['two rows', 2],
+	])('leaves Enter on the closed menu alone with %s still mounted', (_rows, count) => {
+		const { result, rovingKeyDown, optionsRef } = setup<string>({ open: false })
+
+		const container = document.createElement('div')
+
+		const click = vi.fn()
+
+		for (let index = 0; index < count; index++) {
+			const option = document.createElement('div')
+
+			option.setAttribute('role', 'option')
+
+			option.addEventListener('click', click)
+
+			container.appendChild(option)
+		}
+
+		optionsRef.current = container as HTMLDivElement
+
+		const event = makeKeyEvent<HTMLInputElement>('Enter')
+
+		result.current.onKeyDown(event)
+
+		expect(click).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
 	})
 
 	// An IME takes Enter to confirm a composition and Escape to cancel it, so
@@ -309,8 +527,9 @@ describe('useComboboxInput onKeyDown', () => {
 	})
 
 	// Each row presses an arrow on a closed menu with the caret at `start`..`end`
-	// of 'abc'. At the edge the arrow points past, it opens the menu; elsewhere it
-	// is the textbox's own caret move, which roving handles.
+	// of 'abc'. At the edge the arrow points past, it opens the menu. Elsewhere it
+	// is the native caret move of the textbox, and the roving handler does not get
+	// it, because the rows of a closing panel can stay mounted.
 	it.each<[string, 'ArrowDown' | 'ArrowUp', number | null, number | null, boolean]>([
 		['opens on ArrowDown from the text end', 'ArrowDown', 3, 3, true],
 		['moves the caret to the text end on ArrowDown from mid-value', 'ArrowDown', 1, 1, false],
@@ -339,7 +558,7 @@ describe('useComboboxInput onKeyDown', () => {
 
 			expect(event.preventDefault).not.toHaveBeenCalled()
 
-			expect(rovingKeyDown).toHaveBeenCalledWith(event)
+			expect(rovingKeyDown).not.toHaveBeenCalled()
 		}
 	})
 
@@ -434,6 +653,22 @@ describe('useComboboxInput onKeyDown', () => {
 
 			// A paste with no delimiter is one value dropped into a draft mid-edit; clearing there would
 			// eat the very keystrokes it was pasted into.
+			expect(setQuery).not.toHaveBeenCalled()
+
+			expect(setEditing).not.toHaveBeenCalled()
+		})
+
+		// A read-only input still takes a paste event, and the handler would commit
+		// the pasted values.
+		it('skips the handler while the combobox is locked', () => {
+			const onPaste = vi.fn()
+
+			const { result, setQuery, setEditing } = setup<string>({ onPaste, locked: true })
+
+			result.current.onPaste(paste(true))
+
+			expect(onPaste).not.toHaveBeenCalled()
+
 			expect(setQuery).not.toHaveBeenCalled()
 
 			expect(setEditing).not.toHaveBeenCalled()

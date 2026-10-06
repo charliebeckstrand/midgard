@@ -1,18 +1,74 @@
 'use client'
 
-import { type ReactNode, useEffect, useEffectEvent, useState } from 'react'
+import {
+	type ChangeEvent,
+	type ReactNode,
+	useEffect,
+	useEffectEvent,
+	useId,
+	useRef,
+	useState,
+} from 'react'
 import { composeEventHandlers } from '../../core'
+import { useAriaIds, useComposedRef } from '../../hooks'
+import { isDecimalDigit } from '../../utilities/caret'
+import { useControl } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
-import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
-
-/** The "MM/YY" expiry pattern; a value of its length is a complete entry. */
-const EXPIRY_PATTERN = 'MM/YY'
+import {
+	type CardValidity,
+	cardDigits,
+	EXPIRY_PATTERN,
+	formatExpiry,
+	validateCardExpiry,
+} from './credit-card-input-utilities'
 
 /** The default `invalidMessage`. A module constant, because the compiler cannot compile a template literal default. */
 const DEFAULT_INVALID_MESSAGE = `Enter a valid expiration date (${EXPIRY_PATTERN})`
+
+/**
+ * Masks the digits of a change into "MM/YY" with no pad of a one-digit month.
+ * The text has no separator, so {@link formatExpiry} adds no zero.
+ */
+const maskExpiry = (raw: string) => formatExpiry(cardDigits(raw))
+
+/**
+ * Gives the text of an expiry change that the mask alone gets wrong, from the
+ * kind of edit. Gives `undefined` for all other changes.
+ *
+ * The mask adds a deleted trailing "/" again. Thus a backward delete of the
+ * "/" deletes the digit before it too, and a forward delete or a cut of it
+ * changes nothing.
+ *
+ * The pad of a one-digit month adds a digit that the caret restore does not
+ * count. Thus only an insertion at the end of the text gets the pad. The value
+ * swap then puts the caret at the end. A deletion never gets the pad.
+ */
+function resolveExpiryEdit(event: ChangeEvent<HTMLInputElement>, held: string): string | undefined {
+	const raw = event.target.value
+
+	const { nativeEvent } = event
+
+	// A synthetic change event has no `inputType`. It counts as an insertion.
+	const inputType =
+		'inputType' in nativeEvent && typeof nativeEvent.inputType === 'string'
+			? nativeEvent.inputType
+			: ''
+
+	if (inputType.endsWith('Backward') && held.endsWith('/') && raw === held.slice(0, -1)) {
+		return raw.slice(0, -1)
+	}
+
+	if (inputType !== '' && !inputType.startsWith('insert')) return undefined
+
+	if ((event.target.selectionStart ?? raw.length) < raw.length) return undefined
+
+	const padded = formatExpiry(raw)
+
+	return padded === maskExpiry(raw) ? undefined : padded
+}
 
 /** Props for {@link CreditCardInputExpiry}; extends Input minus the masked value and change slots. */
 export type CreditCardInputExpiryProps = Omit<
@@ -32,9 +88,10 @@ export type CreditCardInputExpiryProps = Omit<
 	onValidityChange?: (validity: CardValidity) => void
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
-	 * `<Message>` wired into the field's `aria-describedby`. Pass `null` (or
-	 * `false`) to suppress it and supply your own. The default message is
-	 * "Enter a valid expiration date (MM/YY)".
+	 * `<Message>` with an id of its own, wired into the `aria-describedby` of the
+	 * input, also outside a Field. Pass `null` (or `false`) to suppress it and
+	 * supply your own. The default message is "Enter a valid expiration date
+	 * (MM/YY)".
 	 *
 	 * @defaultValue {@link DEFAULT_INVALID_MESSAGE}
 	 */
@@ -49,7 +106,7 @@ export type CreditCardInputExpiryProps = Omit<
  * date). It does the same when blur leaves a partial entry behind. A value from
  * outside, such as a form reset, clears that mark. Sets `autoComplete="cc-exp"`
  * and defaults an "Expiration date" aria-label, yielding to a Field
- * `<Label>`.
+ * `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInput}
  */
@@ -65,9 +122,18 @@ export function CreditCardInputExpiry({
 	onBlur,
 	ref,
 	'aria-label': ariaLabel,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: CreditCardInputExpiryProps) {
-	const fallbackLabel = useControlFallbackLabel('Expiration date')
+	const control = useControl()
+
+	// The fallback reads the labels of the input after each commit, so a native
+	// label outside a Field also turns it off.
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const fallbackLabel = useControlFallbackLabel('Expiration date', inputRef)
+
+	const composedRef = useComposedRef(ref, inputRef)
 
 	const [typedInvalid, setTypedInvalid] = useState(false)
 
@@ -79,11 +145,14 @@ export function CreditCardInputExpiry({
 		onBlur: onMaskedBlur,
 	} = useMaskInput({
 		name,
-		value,
-		defaultValue,
+		// The mask adds no pad. A value from outside gets the pad here, and a
+		// change gets it from `resolveExpiryEdit`.
+		value: typeof value === 'string' ? formatExpiry(value) : value,
+		defaultValue: defaultValue === undefined ? undefined : formatExpiry(defaultValue),
 		onChange: onValueChange,
-		format: formatExpiry,
-		ref,
+		format: maskExpiry,
+		meaningful: isDecimalDigit,
+		ref: composedRef,
 	})
 
 	// Last text this field typed. Tells a value from outside (a form reset, a
@@ -127,6 +196,19 @@ export function CreditCardInputExpiry({
 		setTypedInvalid(next.length === EXPIRY_PATTERN.length && !validity.isValid)
 	}
 
+	const showMessage = typedInvalid && Boolean(invalidMessage)
+
+	// The built-in Message takes an id of its own, so it never shares the id of
+	// the error slot of a Field with a different error Message. Inside a
+	// Control, the Message registers this id into the `aria-describedby` of the
+	// field. Outside one, the input references it here.
+	const messageId = useId()
+
+	const describedBy = useAriaIds(
+		ariaDescribedBy,
+		showMessage && control === undefined ? messageId : undefined,
+	)
+
 	return (
 		<>
 			<Input
@@ -137,13 +219,15 @@ export function CreditCardInputExpiry({
 				autoComplete="cc-exp"
 				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 				// defaults an aria-label, yielding to a Field <Label> from the first
-				// render (useControlFallbackLabel).
+				// render and to a native label after each commit
+				// (useControlFallbackLabel).
 				aria-label={ariaLabel ?? fallbackLabel}
 				placeholder={placeholder ?? EXPIRY_PATTERN}
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}
 				value={maskedValue}
 				{...props}
+				aria-describedby={describedBy}
 				// The masking wiring sits after the spread, so a stray `onChange`
 				// does not replace it. The touched mark and the verdict run
 				// whatever the caller does (CONVENTIONS.md §3.9).
@@ -159,13 +243,9 @@ export function CreditCardInputExpiry({
 					{ checkForDefaultPrevented: false },
 				)}
 				onChange={(event) => {
-					const raw = event.target.value
+					const next = resolveExpiryEdit(event, maskedValue)
 
-					// The formatter re-appends a deleted trailing "/" and traps the
-					// caret; backspace over it deletes the preceding digit instead.
-					if (maskedValue.endsWith('/') && raw === maskedValue.slice(0, -1)) {
-						const next = raw.slice(0, -1)
-
+					if (next !== undefined) {
 						setMaskedValue(next)
 
 						report(next)
@@ -175,14 +255,18 @@ export function CreditCardInputExpiry({
 
 					onMaskedChange(event)
 
-					report(formatExpiry(raw))
+					report(maskExpiry(event.target.value))
 				}}
 			/>
 
 			{/* Visible feedback gated on the component's own detection, not the
 			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. */}
-			{typedInvalid && invalidMessage ? <Message severity="error">{invalidMessage}</Message> : null}
+			{showMessage ? (
+				<Message severity="error" id={messageId}>
+					{invalidMessage}
+				</Message>
+			) : null}
 		</>
 	)
 }

@@ -74,12 +74,35 @@ export type CalendarDayProps = {
 export type CalendarProps = {
 	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` must seed `Date | null`. */
 	name?: string
+	/**
+	 * The selected date of a controlled calendar. `null` selects no day.
+	 *
+	 * @remarks The calendar reads the day of the date in the time zone of the
+	 * side that renders it. The server markup shows the month of the date. On a
+	 * page that renders on a server, build the date from local parts
+	 * (`new Date(year, monthIndex, day)`), so the two sides read the same day.
+	 * An ISO date such as `new Date('2025-07-01')` is midnight in UTC, which is
+	 * the day before in a zone west of UTC.
+	 */
 	value?: Date | null
+	/**
+	 * The initially selected date of an uncontrolled calendar. It also seeds the
+	 * month that the calendar shows first. A controlled or a bound calendar
+	 * ignores it. With no value, such a calendar shows the month of the clock.
+	 *
+	 * @remarks As for `value`, build the date from local parts on a page that
+	 * renders on a server.
+	 */
 	defaultValue?: Date
 	onValueChange?: (value: Date | null) => void
 	min?: Date
 	max?: Date
-	/** Externally-driven roving-focus cell, letting a parent (e.g. DatePicker) steer focus across the header, grid, and footer zones. */
+	/**
+	 * Externally-driven roving-focus cell, letting a parent (e.g. DatePicker)
+	 * steer focus across the header, grid, and footer zones. A parent that steers
+	 * owns the month steps and the Page keys, and passes `null` while no cell is
+	 * active. Leave it unset, and the day grid steps the month itself.
+	 */
 	active?: CalendarActive | null
 	/**
 	 * Fires with the first of the month the grid renders, whenever that month
@@ -90,13 +113,18 @@ export type CalendarProps = {
 	 * had to reverse-derive the month from `getDayProps` calls. The header arrows, the
 	 * month and year pickers, keyboard roving across a month edge, and a `value`
 	 * that lands elsewhere all report here. Mounting reports nothing. That
-	 * includes the month that a calendar with no `value` and no `defaultValue`
-	 * shows after hydration.
+	 * includes the month that a calendar with no seed date shows after
+	 * hydration.
 	 */
 	onMonthChange?: (month: Date) => void
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
-	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
+	/**
+	 * Element that holds the footer controls of the calendar, in a zone that the
+	 * parent owns. When a parent steers `active`, ArrowDown on the bottom row of
+	 * the day grid moves the focus into the footer. In a calendar that no parent
+	 * steers, the day grid reaches the footer by Tab, not by an arrow.
+	 */
 	footerRef?: RefObject<HTMLElement | null>
 	/**
 	 * Id for the day `role="listbox"`, so a parent that keeps DOM focus on its
@@ -125,6 +153,11 @@ export type CalendarProps = {
 	 * order: explicit prop, then enclosing `LocaleProvider`, then the runtime
 	 * default.
 	 *
+	 * The runtime default is the default of the side that renders. The server
+	 * and the browser can have different defaults, and the server markup holds
+	 * the weekday row. On a page that renders on a server, set `locale` or an
+	 * enclosing `LocaleProvider`, so the two sides agree.
+	 *
 	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
 	 */
 	locale?: string
@@ -146,10 +179,20 @@ export type CalendarProps = {
  * the nearest density scope, and a set `size` makes the calendar that scope.
  * `sm` is the smallest step. At `xs`, set or inherited, the calendar opens a
  * scope at `sm`.
- * Roving focus spans header, grid, and footer
- * zones (tracked via `active`), and month changes are announced to screen
- * readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
+ * When a parent steers `active`, roving focus spans the header, grid, and
+ * footer zones. Month changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
+ *
+ * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
+ * that leaves the month steps the month. That includes ArrowUp on the top row
+ * and ArrowDown on the bottom row. PageUp and PageDown step a month, and Shift
+ * with a Page key steps a year. Home and End go to the first and the last
+ * enabled day of the shown month.
+ *
+ * The focused day stays between `min` and `max`. An arrow or a Page key toward
+ * a disabled day moves the focus to the nearest enabled day. When that is the
+ * focused day, the focus stays. Thus the arrows never leave the day grid, and
+ * they never wrap. Tab and Shift+Tab reach the header and the footer.
  *
  * @remarks
  * Client component (`'use client'`). "Today" waits for hydration, so a
@@ -157,11 +200,16 @@ export type CalendarProps = {
  * or timezone offset. It moves to the new day at local midnight. Use
  * {@link CalendarRange} for two-endpoint selection.
  *
- * With no `value` and no `defaultValue`, the month waits for hydration too.
+ * With no seed date, the month waits for hydration too. The seed is the
+ * selected date, or the `defaultValue` of an uncontrolled, unbound calendar.
  * The server and the hydration render draw the header and the weekday row,
  * with no month label and no days. The month of the client clock follows in
  * the next render, and it reports and announces nothing. A client-only mount,
  * such as a DatePicker popover, shows the month in its first render.
+ *
+ * The locale and a seeded month do not wait for hydration. On a page that
+ * renders on a server, set `locale` or a `LocaleProvider`, and build the seed
+ * from local parts. Then the two sides agree. See `locale` and `value`.
  */
 export function Calendar({
 	name,
@@ -212,9 +260,12 @@ export function Calendar({
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
+	// The view seeds from the resolved `value`. The binding cascade of
+	// `useFormValue` gives `defaultValue` to an uncontrolled, unbound calendar
+	// only, so a controlled or a bound calendar with no value takes the month of
+	// the clock, and that month waits for hydration.
 	const { viewDate, year, month, shown, prevMonth, nextMonth, navigateTo } = useCalendarMonth({
 		value,
-		defaultValue,
 		activeGridDate,
 		onMonthChange,
 	})
@@ -237,10 +288,20 @@ export function Calendar({
 	const headerRef = useRef<HTMLDivElement>(null)
 	const gridRef = useRef<HTMLDivElement>(null)
 
+	// A calendar that no parent steers carries the date model of its day grid. A
+	// parent that steers `active` owns the month steps and the Page keys.
+	const steered = active !== undefined
+
+	const dayGrid = useMemo(
+		() => (steered ? undefined : { days, min, max, navigateTo }),
+		[steered, days, min, max, navigateTo],
+	)
+
 	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarFocus({
 		headerRef,
 		gridRef,
 		footerRef,
+		dayGrid,
 	})
 
 	useImperativeHandle(
@@ -296,6 +357,7 @@ export function Calendar({
 				today={today}
 				monthLabel={shownLabel}
 				monthLabels={monthLabels}
+				localeTag={localeTag}
 				pickerOpen={pickerOpen}
 				onPickerOpenChange={setPickerOpen}
 				onPickerNavigate={navigateTo}

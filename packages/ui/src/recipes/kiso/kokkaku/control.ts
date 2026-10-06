@@ -8,6 +8,12 @@
  * placeholders, with a size-aware minimum width. Override via `className`
  * (e.g. `w-44 flex-none`) to pin a fixed slot.
  *
+ * Only a horizontal group shares its length between the members. In a
+ * vertical group, the member does not grow. It keeps the control height, and
+ * the group stretches it to the group width. In a column of auto height,
+ * `flex-1` gives the empty placeholder a basis of zero, and thus a height of
+ * zero.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: control
  */
 
@@ -23,5 +29,5 @@ export const control = {
 	// its nearest density scope, as the control does.
 	base: [rounded.lg, dan.size.control.base],
 	full: 'w-full',
-	group: `flex-1 ${dan.size.control.min}`,
+	group: `flex-1 data-[group-orientation=vertical]:flex-none ${dan.size.control.min}`,
 } as const

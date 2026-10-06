@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import {
 	ContextMenu,
@@ -71,6 +72,31 @@ describe('resolveContextMenuEntries', () => {
 		expect(new Set(keys).size).toBe(keys.length)
 	})
 
+	// A rule at the edge of a group would lead, trail, or double at the join.
+	it.each([
+		['after', ['a', 'b', '|', 'c']],
+		['before', ['c', '|', 'a', 'b']],
+	] as const)('drops the separators at the edges of each group (insert %s)', (insert, expected) => {
+		const items: ContextMenuEntry[] = [
+			{ key: 'lead', separator: true },
+			{ key: 'c', label: 'Custom', onAction: noop },
+			{ key: 'trail', separator: true },
+		]
+
+		const entries = resolveContextMenuEntries({ items, insert }, [
+			...defaults,
+			{ key: 'end', separator: true },
+		])
+
+		expect(entries.map((entry) => ('separator' in entry ? '|' : entry.key))).toEqual(expected)
+	})
+
+	it('treats a group of separators only as empty', () => {
+		expect(
+			resolveContextMenuEntries({ items: [{ key: 'rule', separator: true }] }, defaults),
+		).toEqual(defaults)
+	})
+
 	it('inserts no separator when only one group is present', () => {
 		expect(resolveContextMenuEntries({ items: [] }, defaults)).toEqual(defaults)
 
@@ -93,6 +119,42 @@ describe('mergeContextMenuItems', () => {
 
 	it('is empty for all-empty groups, so the host leaves the native menu alone', () => {
 		expect(mergeContextMenuItems([[], []])).toEqual([])
+	})
+
+	/** Each entry as its key, or `|` for a separator, so the case reads where each rule falls. */
+	const shape = (entries: ContextMenuEntry[]) =>
+		entries.map((entry) => ('separator' in entry ? '|' : entry.key))
+
+	it('drops a group that holds only separators, so no rule doubles', () => {
+		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
+		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
+
+		const merged = mergeContextMenuItems([[alpha], [{ key: 'rule', separator: true }], [bravo]])
+
+		expect(shape(merged)).toEqual(['a', '|', 'b'])
+	})
+
+	it('drops the separators at the edges of each group, so no rule leads, trails, or doubles', () => {
+		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
+		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
+
+		const merged = mergeContextMenuItems([
+			[{ separator: true }, alpha, { separator: true }],
+			[{ separator: true }, bravo, { separator: true }],
+		])
+
+		expect(shape(merged)).toEqual(['a', '|', 'b'])
+	})
+
+	it('keeps a separator between two items of one group', () => {
+		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
+		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
+
+		expect(shape(mergeContextMenuItems([[alpha, { separator: true }, bravo]]))).toEqual([
+			'a',
+			'|',
+			'b',
+		])
 	})
 })
 
@@ -220,6 +282,155 @@ describe('ContextMenu', () => {
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+})
+
+describe('ContextMenu across a toggle', () => {
+	const surface = <div data-testid="surface">Right-click</div>
+
+	/** A child with its own state, so a remount shows as a reset count. */
+	function Counter() {
+		const [count, setCount] = useState(0)
+
+		return (
+			<button type="button" onClick={() => setCount((value) => value + 1)}>
+				{`Count ${count}`}
+			</button>
+		)
+	}
+
+	/** The two ways the menu turns off: `disabled`, or no entries to show. */
+	const toggles: [string, Partial<ContextMenuProps>][] = [
+		['disabled turns on', { disabled: true }],
+		['the entries cross zero', { defaults: [] }],
+	]
+
+	it.each(toggles)('keeps the content and its state when %s', (_, off) => {
+		const { rerender } = renderUI(
+			<ContextMenu defaults={defaults}>
+				<Counter />
+			</ContextMenu>,
+		)
+
+		const counter = screen.getByRole('button')
+
+		fireEvent.click(counter)
+
+		rerender(
+			<ContextMenu defaults={defaults} {...off}>
+				<Counter />
+			</ContextMenu>,
+		)
+
+		expect(screen.getByRole('button')).toBe(counter)
+
+		expect(counter).toHaveTextContent('Count 1')
+
+		// The menu is off, so the browser's native menu opens.
+		expect(fireEvent.contextMenu(counter)).toBe(true)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		rerender(
+			<ContextMenu defaults={defaults}>
+				<Counter />
+			</ContextMenu>,
+		)
+
+		expect(screen.getByRole('button')).toBe(counter)
+
+		expect(counter).toHaveTextContent('Count 1')
+
+		fireEvent.contextMenu(counter)
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+	})
+
+	it.each(toggles)('closes the open menu when %s, and does not open it again', (_, off) => {
+		const { rerender } = renderUI(<ContextMenu defaults={defaults}>{surface}</ContextMenu>)
+
+		fireEvent.contextMenu(screen.getByTestId('surface'))
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+
+		rerender(
+			<ContextMenu defaults={defaults} {...off}>
+				{surface}
+			</ContextMenu>,
+		)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		rerender(<ContextMenu defaults={defaults}>{surface}</ContextMenu>)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it.each(toggles)('keeps the className on the wrapper when %s', (_, off) => {
+		renderUI(
+			<ContextMenu defaults={defaults} className="surface-tone" {...off}>
+				{surface}
+			</ContextMenu>,
+		)
+
+		expect(screen.getByTestId('surface').parentElement).toHaveClass('surface-tone')
+	})
+})
+
+describe('ContextMenu focus restore', () => {
+	/** A context menu over a focused field, so each case knows where focus started. */
+	const renderFocusedField = () => {
+		renderUI(
+			<ContextMenu defaults={defaults}>
+				<input aria-label="Field" />
+			</ContextMenu>,
+		)
+
+		const field = screen.getByRole('textbox', { name: 'Field' })
+
+		act(() => field.focus())
+
+		return field
+	}
+
+	/** Closes the open menu with Escape from its panel, which holds focus. */
+	const closeWithEscape = () => {
+		const menu = screen.getByRole('menu')
+
+		expect(menu).toContainElement(document.activeElement as HTMLElement)
+
+		fireEvent.keyDown(menu, { key: 'Escape' })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	}
+
+	it.each([
+		['the ContextMenu key', { key: 'ContextMenu' }],
+		['Shift+F10', { key: 'F10', shiftKey: true }],
+	])('returns focus to the field after a menu that %s opened closes', (_, key) => {
+		const field = renderFocusedField()
+
+		// The browser fires the contextmenu event on the focused element after the key.
+		fireEvent.keyDown(field, key)
+
+		fireEvent.contextMenu(field)
+
+		closeWithEscape()
+
+		expect(field).toHaveFocus()
+	})
+
+	it('leaves focus alone after a menu that the pointer opened closes', () => {
+		const field = renderFocusedField()
+
+		// A press comes before each pointer contextmenu event.
+		fireEvent.pointerDown(field, { button: 2 })
+
+		fireEvent.contextMenu(field)
+
+		closeWithEscape()
+
+		expect(field).not.toHaveFocus()
 	})
 })
 

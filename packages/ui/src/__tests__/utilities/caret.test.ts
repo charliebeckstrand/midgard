@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { countMeaningful, cursorForCount } from '../../utilities/caret'
+import { countMeaningful, cursorForCount, isDecimalDigit } from '../../utilities/caret'
 
 // Stand-in for a formatted-input predicate: digits, minus, and the decimal
 // separator count; grouping separators don't.
@@ -52,5 +52,70 @@ describe('cursorForCount', () => {
 
 	it('returns the string length when no character is meaningful', () => {
 		expect(cursorForCount(',,,', 1, keep)).toBe(3)
+	})
+})
+
+describe('a position-aware keep', () => {
+	// A format that keeps a sign only at the start: a sign at index 0 counts,
+	// and a sign at a different index does not.
+	const leadingSign = (c: string, index: number) => /\d/.test(c) || (c === '-' && index === 0)
+
+	it.each([
+		[
+			'countMeaningful',
+			(keep: Parameters<typeof countMeaningful>[2]) => countMeaningful('ab', 2, keep),
+		],
+		[
+			'cursorForCount',
+			(keep: Parameters<typeof cursorForCount>[2]) => cursorForCount('ab', 2, keep),
+		],
+	])('%s gives keep each character, its index, and the text', (_name, run) => {
+		const calls: [string, number, string][] = []
+
+		run((char, index, text) => {
+			calls.push([char, index, text])
+
+			return true
+		})
+
+		expect(calls).toEqual([
+			['a', 0, 'ab'],
+			['b', 1, 'ab'],
+		])
+	})
+
+	it('counts a sign at index 0 and not a sign after it', () => {
+		expect(countMeaningful('-1-2', 4, leadingSign)).toBe(3) // -, 1, 2
+	})
+
+	it('puts the caret after a sign at index 0', () => {
+		expect(cursorForCount('-1', 1, leadingSign)).toBe(1)
+	})
+})
+
+describe('isDecimalDigit', () => {
+	it.each([
+		['an ASCII digit', '7'],
+		['an Arabic-Indic digit', '٧'],
+		['a Devanagari digit', '७'],
+		['a fullwidth digit', '７'],
+	])('counts %s', (_name, char) => {
+		expect(isDecimalDigit(char)).toBe(true)
+	})
+
+	it.each([
+		['a letter', 'x'],
+		['a separator', '/'],
+		['a space', ' '],
+		['a numeral that is not a decimal digit', 'Ⅶ'],
+	])('does not count %s', (_name, char) => {
+		expect(isDecimalDigit(char)).toBe(false)
+	})
+
+	it('puts the caret after a digit that the mask changes to ASCII', () => {
+		// A card mask changes "٤١٢٣٤" to "4123 4", and adds a space.
+		const count = countMeaningful('٤١٢٣٤', 5, isDecimalDigit)
+
+		expect(cursorForCount('4123 4', count, isDecimalDigit)).toBe(6)
 	})
 })

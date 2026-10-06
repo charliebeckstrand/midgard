@@ -1,12 +1,14 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { Checkbox } from '../../components/checkbox'
 import { Control } from '../../components/control'
-import { Description, Label, Message } from '../../components/fieldset'
+import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
+import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import type { DensityStep } from '../../core/density'
-import { allBySlot, bySlot, densityStepOf, present, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, densityStepOf, present, renderUI, screen, setupUser } from '../helpers'
 
 describe('Control', () => {
 	it('sets data-disabled when disabled', () => {
@@ -120,6 +122,9 @@ describe('Control + Input', () => {
 	})
 
 	it('explicit id overrides control id', () => {
+		// The id mismatch warns in development. The case below asserts the warning.
+		vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		const { container } = renderUI(
 			<Control id="test">
 				<Input id="custom" />
@@ -220,6 +225,66 @@ describe('Control + Input', () => {
 	})
 })
 
+describe('Control + explicit control id', () => {
+	// The Label takes its `for` from the wrapper id. An explicit id on the
+	// control that differs leaves the Label with no control, so a development
+	// warning steers the consumer to `htmlFor` on the wrapper.
+	it('warns one time when an explicit id differs from the Field id', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const ui = (
+			<Field>
+				<Label>Email</Label>
+				<Input id="custom" />
+			</Field>
+		)
+
+		const { rerender } = renderUI(ui)
+
+		rerender(ui)
+
+		expect(warn).toHaveBeenCalledTimes(1)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('htmlFor="custom"'))
+	})
+
+	it.each<[string, () => ReactElement]>([
+		[
+			'the explicit id matches the Field htmlFor',
+			() => (
+				<Field htmlFor="custom">
+					<Label>Email</Label>
+					<Input id="custom" />
+				</Field>
+			),
+		],
+		[
+			'the explicit id matches the Control id',
+			() => (
+				<Control id="custom">
+					<Input id="custom" />
+				</Control>
+			),
+		],
+		[
+			'the control takes the Field id',
+			() => (
+				<Field>
+					<Label>Email</Label>
+					<Input />
+				</Field>
+			),
+		],
+		['the control has an explicit id and no wrapper', () => <Input id="standalone" />],
+	])('does not warn when %s', (_name, ui) => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(ui())
+
+		expect(warn).not.toHaveBeenCalled()
+	})
+})
+
 describe('Control + Textarea', () => {
 	it('inherits id from control', () => {
 		const { container } = renderUI(
@@ -301,6 +366,78 @@ describe('Control nesting', () => {
 		const { container } = renderUI(ui())
 
 		expect(bySlot(container, 'input')).toBeDisabled()
+	})
+
+	// The checkbox and the switch read `readOnly` as a block on the toggle, not
+	// as the native attribute, which has no effect on a checkbox.
+	it.each<[string, () => ReactElement]>([
+		['checkbox', () => <Checkbox />],
+		['switch', () => <Switch />],
+	])('parent readOnly reaches a nested %s', async (slot, ui) => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Control id="child">{ui()}</Control>
+			</Control>,
+		)
+
+		const input = present<HTMLInputElement>(bySlot(container, slot), slot)
+
+		expect(input).toHaveAttribute('aria-readonly', 'true')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+	})
+
+	// ARIA defines aria-readonly on a radiogroup, not on a radio. The group
+	// carries it, and the radio only blocks the check.
+	it('parent readOnly reaches a nested radio', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<Control id="child">
+					<Radio name="plan" />
+				</Control>
+			</Control>,
+		)
+
+		const input = present<HTMLInputElement>(bySlot(container, 'radio'), 'radio')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+
+		expect(input).not.toHaveAttribute('aria-readonly')
+	})
+
+	it('parent readOnly reaches a RadioGroup and the radios in it', async () => {
+		const user = setupUser()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Control readOnly>
+				<RadioGroup aria-label="Plan">
+					<RadioField>
+						<Radio name="plan" value="starter" onChange={onChange} />
+						<Label>Starter</Label>
+					</RadioField>
+				</RadioGroup>
+			</Control>,
+		)
+
+		expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-readonly', 'true')
+
+		const input = present<HTMLInputElement>(bySlot(container, 'radio'), 'radio')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 
 	it('parent readOnly propagates to child Control input', () => {

@@ -1,14 +1,22 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { announce } from '../../core'
+import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
+
+// The longest delay that the platform timer holds: a 32-bit signed count of
+// milliseconds. The timer wraps a longer delay to 32 bits, and `Infinity`
+// becomes 0. The timer then fires early, often at once.
+const MAX_TIMEOUT = 2 ** 31 - 1
 
 type CopyStateOptions = {
 	/** Text written to the clipboard by `copy`. */
 	text: string
 	/**
 	 * Milliseconds before the "copied" flag resets.
+	 *
+	 * A value above 2^31−1, `Infinity` included, clamps to 2^31−1.
 	 * @defaultValue 2000
 	 */
 	timeout?: number
@@ -41,6 +49,13 @@ type CopyStateResult = {
  * already-focused control. Both callbacks are raised through effect events, so
  * swapping one neither restarts the revert timer nor leaves a copy mid-flight
  * calling the previous one.
+ *
+ * A call to `copy` while a write is in flight, or while the copied state
+ * holds, does nothing. Thus the window announces and reports `true` one time,
+ * and a control with a text label acts as `CopyButton` does. The transitions end
+ * at unmount. A write that resolves after the unmount does not raise the flag,
+ * announce, or call `onCopiedChange`. No callback runs at unmount, so a `true`
+ * that the consumer saw gets no `false`.
  * @example
  * ```tsx
  * const { copied, copy } = useCopyButtonState({ text })
@@ -66,9 +81,26 @@ export function useCopyButtonState({
 		onCopyError?.(error)
 	})
 
+	// Whether the component is mounted. A write that resolves after the unmount
+	// changes nothing and announces nothing.
+	const mountedRef = useMountedRef()
+
+	// Whether a write is in flight or the copied state holds. The copied state
+	// turns true only after the write, so it cannot stop a second call during the
+	// write. A ref, because two clicks can come before the next render. A failed
+	// write clears the flag, and the revert of the copied state clears it after a
+	// success. The React Compiler does not compile a `finally` clause.
+	const busyRef = useRef(false)
+
 	const copy = useCallback(async () => {
+		if (busyRef.current) return
+
+		busyRef.current = true
+
 		try {
 			await navigator.clipboard.writeText(text)
+
+			if (!mountedRef.current) return
 
 			setCopied(true)
 
@@ -77,20 +109,26 @@ export function useCopyButtonState({
 
 			notifyCopiedChange(true)
 		} catch (error) {
+			busyRef.current = false
+
 			// Clipboard write failed (denied permission, insecure context, or missing API);
 			// `copied` stays false and the rejection goes to the caller instead of nowhere.
 			notifyCopyError(error)
 		}
-	}, [text, notifyCopiedChange, notifyCopyError])
+	}, [text, notifyCopiedChange, notifyCopyError, mountedRef])
 
 	useEffect(() => {
 		if (!copied) return
 
+		const delay = Math.min(timeout, MAX_TIMEOUT)
+
 		const timer = setTimeout(() => {
+			busyRef.current = false
+
 			setCopied(false)
 
 			notifyCopiedChange(false)
-		}, timeout)
+		}, delay)
 
 		return () => clearTimeout(timer)
 	}, [copied, timeout, notifyCopiedChange])

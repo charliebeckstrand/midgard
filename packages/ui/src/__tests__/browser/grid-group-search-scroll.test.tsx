@@ -11,6 +11,7 @@ import {
 	waitFor,
 	windowBody,
 } from '../helpers'
+import { settledValue } from './helpers/sample'
 
 /**
  * The virtualized grouped body when a quick search narrows the rows and then
@@ -123,17 +124,7 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 
 		// The rows around the new offset measure over a few frames. Wait until
 		// the offset and the first row in view hold still.
-		let last = ''
-
-		for (let i = 0; i < 60; i++) {
-			await frames()
-
-			const now = `${scroll.scrollTop}:${firstInView().textContent}`
-
-			if (now === last) break
-
-			last = now
-		}
+		await settledValue(() => `${scroll.scrollTop}:${firstInView().textContent}`)
 
 		const anchor = firstInView()
 

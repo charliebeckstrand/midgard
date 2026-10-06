@@ -6,14 +6,19 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useMemo,
 	useReducer,
 	useRef,
 	useState,
 } from 'react'
+import { resolveFormat } from '../../utilities'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
+
+/** The selected cell of the picker grid: its Tab stop, and the cell that an open focuses. @internal */
+const SELECTED_CELL = '[data-selected]'
 
 /** Options for {@link useCalendarPicker}: the calendar's current `year`/`month`, `today` for the current-marker, locale `monthLabels`, the `onNavigate` commit callback, and the open state. @internal */
 type CalendarPickerOptions = {
@@ -21,6 +26,8 @@ type CalendarPickerOptions = {
 	month: number
 	today: Date | null
 	monthLabels: string[]
+	/** The resolved BCP 47 tag of the calendar. The years use the digits of this locale, as `monthLabels` do. */
+	localeTag: string
 	onNavigate: (year: number, month: number) => void
 	/** The calendar owns the open state, so its `openPicker` handle can open the picker. */
 	open: boolean
@@ -59,14 +66,16 @@ type CalendarPickerResult = {
  * active-view `viewConfig`.
  * @remarks Each open reseeds the view to the current year during render, so the
  * first open frame shows the fresh view. It then focuses the grid (selected cell
- * first) after a frame. The focus model is sealed (`stopPropagation`), so arrows
- * don't leak to the calendar underneath.
+ * first) after a frame. The grid is one Tab stop, on the selected cell. The focus
+ * model is sealed (`stopPropagation`), so arrows don't leak to the calendar
+ * underneath.
  */
 export function useCalendarPicker({
 	year,
 	month,
 	today,
 	monthLabels,
+	localeTag,
 	onNavigate,
 	open,
 	onOpenChange,
@@ -78,13 +87,31 @@ export function useCalendarPicker({
 	// of each open shows a fresh view.
 	const [wasOpen, setWasOpen] = useState(open)
 
+	// The popover mounts the grid in its portal one commit after `open` turns on.
+	// The effects of the open commit run before the grid is in the DOM. The frame
+	// after the open sets `gridMounted`, and each close clears it, so the roving
+	// hook puts the Tab stop on the grid after the grid mounts.
+	const [gridMounted, setGridMounted] = useState(false)
+
 	if (open !== wasOpen) {
 		setWasOpen(open)
 
 		if (open) dispatch({ type: 'open', year })
+		else setGridMounted(false)
 	}
 
 	const { view, pickerYear, decadeYear } = state
+
+	// A year has no grouping separator: 2025, not "2,025". It uses the digits of
+	// the locale, as the month labels and the day numbers do.
+	const formatYear = useMemo(
+		() =>
+			resolveFormat(
+				{ type: 'integer' },
+				{ locale: localeTag, numberFormat: { useGrouping: false } },
+			),
+		[localeTag],
+	)
 
 	const pickerHeaderRef = useRef<HTMLDivElement>(null)
 	const pickerGridRef = useRef<HTMLDivElement>(null)
@@ -93,6 +120,8 @@ export function useCalendarPicker({
 		headerRef: pickerHeaderRef,
 		gridRef: pickerGridRef,
 		cols: 3,
+		activeSelector: SELECTED_CELL,
+		gridMounted,
 		stopPropagation: true,
 	})
 
@@ -102,14 +131,20 @@ export function useCalendarPicker({
 
 			if (!grid) return
 
-			const selected = grid.querySelector<HTMLElement>('[data-selected]')
+			const selected = grid.querySelector<HTMLElement>(SELECTED_CELL)
 
 			;(selected ?? grid.querySelector<HTMLElement>('button:not(:disabled)'))?.focus()
 		})
 	}, [])
 
 	useEffect(() => {
-		if (open) focusPickerGrid()
+		if (!open) return
+
+		focusPickerGrid()
+
+		const frame = requestAnimationFrame(() => setGridMounted(true))
+
+		return () => cancelAnimationFrame(frame)
 	}, [open, focusPickerGrid])
 
 	let viewConfig: CalendarPickerViewConfig
@@ -119,7 +154,7 @@ export function useCalendarPicker({
 			gridLabel: 'Select month',
 			prevLabel: 'Previous year',
 			nextLabel: 'Next year',
-			centerLabel: pickerYear,
+			centerLabel: formatYear(pickerYear),
 			onPrev: () => dispatch({ type: 'stepYear', delta: -1 }),
 			onNext: () => dispatch({ type: 'stepYear', delta: 1 }),
 			onCenter: () => {
@@ -148,11 +183,9 @@ export function useCalendarPicker({
 			prevLabel: 'Previous decade',
 			nextLabel: 'Next decade',
 			// The label names only the years that the calendar can show.
-			centerLabel: (
-				<>
-					{Math.max(decadeStart, MIN_YEAR)}&ndash;{Math.min(decadeStart + 9, MAX_YEAR)}
-				</>
-			),
+			centerLabel: [Math.max(decadeStart, MIN_YEAR), Math.min(decadeStart + 9, MAX_YEAR)]
+				.map(formatYear)
+				.join('–'),
 			onPrev: () => dispatch({ type: 'stepDecade', delta: -10 }),
 			onNext: () => dispatch({ type: 'stepDecade', delta: 10 }),
 			onCenter: () => {
@@ -168,7 +201,7 @@ export function useCalendarPicker({
 
 				return {
 					key: y,
-					label: y,
+					label: formatYear(y),
 					selected: y === pickerYear,
 					current: today != null && y === today.getFullYear(),
 					disabled: !isYearInRange(y),

@@ -1,7 +1,7 @@
 'use client'
 
 import { type ChangeEvent, type ComponentProps, useEffect, useRef } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn } from '../../core'
 import { useComposedRef, useControllableFlag } from '../../hooks'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
@@ -15,7 +15,14 @@ export type SwitchProps = SwitchVariants & {
 	 * @defaultValue false
 	 */
 	defaultChecked?: boolean
-} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size' | 'defaultChecked'>
+	/**
+	 * Keeps the state of the switch. A click or a Space press does not change it,
+	 * and `onChange` does not fire. The switch keeps the focus, submits its value,
+	 * and sets `aria-readonly`. When omitted, it takes the value of an enclosing
+	 * `<Control>` or `<Field>`.
+	 */
+	readOnly?: boolean
+} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size' | 'defaultChecked' | 'readOnly'>
 
 /**
  * Toggle control backed by a native `role="switch"` checkbox; controlled via
@@ -23,14 +30,18 @@ export type SwitchProps = SwitchVariants & {
  * sync. Integrates with enclosing `<Form>` and `<Control>` for binding and
  * validation. The track takes the step of the nearest density scope, and an
  * explicit `size` opens a scope on the label. An explicit `checked` prop wins over the bound field, and
- * `onChange` fires in either mode.
+ * `onChange` fires in either mode. `className`, `style`, and `hidden` go to the
+ * visible track, and the other native attributes go to the input.
  */
 export function Switch({
 	className,
+	style,
+	hidden,
 	color,
 	size,
 	id,
 	disabled,
+	readOnly,
 	required,
 	name,
 	checked,
@@ -62,12 +73,6 @@ export function Switch({
 
 	const setRef = useComposedRef(inputRef, ref)
 
-	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-		setOn(event.target.checked)
-
-		resolvedOnChange?.(event)
-	}
-
 	// A native form reset reverts the uncontrolled input without firing onChange;
 	// mirror the reverted value into the owned aria state on the next frame.
 	useEffect(() => {
@@ -98,27 +103,46 @@ export function Switch({
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
+		readOnly: resolvedReadOnly,
 		validation,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlProps({
 		id,
 		disabled,
 		required,
+		readOnly,
 		'aria-describedby': ariaDescribedBy,
 		invalid,
 	})
+
+	// A read-only switch undoes the toggle and does not call the resolved handler.
+	// The write goes through the setter, so the change tracker of React keeps the
+	// correct value, as on Checkbox.
+	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+		if (resolvedReadOnly) {
+			event.currentTarget.checked = !event.currentTarget.checked
+
+			return
+		}
+
+		setOn(event.target.checked)
+
+		resolvedOnChange?.(event)
+	}
 
 	return (
 		<label
 			data-slot="control"
 			data-density={size}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
+			hidden={hidden}
+			style={style}
 			className={cn(k({ color }), className)}
 		>
 			<input
 				// Consumer props spread first; the switch role, the synced
-				// aria-checked, the controlled wiring, and data-slot below take
-				// precedence.
+				// aria-checked, the read-only state, the controlled wiring, and
+				// data-slot below take precedence.
 				{...props}
 				type="checkbox"
 				role="switch"
@@ -130,6 +154,7 @@ export function Switch({
 				required={resolvedRequired}
 				{...(isControlled ? { checked: on } : { defaultChecked: defaultChecked ?? false })}
 				aria-checked={on}
+				aria-readonly={ariaAttr(resolvedReadOnly)}
 				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}
 				{...validation}

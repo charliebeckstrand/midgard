@@ -4,7 +4,7 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
-import { mountsEveryPanel } from '../../primitives/mount'
+import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/accordion'
 import { AccordionItemContext, useAccordion } from './context'
 
@@ -50,18 +50,20 @@ export function AccordionItem({
 	// A generated scope per item namespaces the trigger/panel ids.
 	const disclosure = useA11yDisclosure({ expanded: open })
 
+	const everyPanel = useMountsEveryPanel(mount)
+
 	// The wiring is whole here, so a custom header from `useAccordionItem` gets it
 	// too. A reference needs its target id in the DOM: an open panel is there, and
-	// a closed panel only under `mount="always"`. An open section that a toggle
-	// cannot close is `aria-disabled`, per the WAI-ARIA accordion pattern.
+	// a closed panel only under `mount="always"` after hydration, because the
+	// server markup does not hold it. An open section that a toggle cannot close
+	// is `aria-disabled`, per the WAI-ARIA accordion pattern.
 	const triggerProps = useMemo(
 		() => ({
 			...disclosure.triggerProps,
-			'aria-controls':
-				open || mountsEveryPanel(mount) ? disclosure.triggerProps['aria-controls'] : undefined,
+			'aria-controls': open || everyPanel ? disclosure.triggerProps['aria-controls'] : undefined,
 			'aria-disabled': ariaAttr(open && !collapsible),
 		}),
-		[disclosure.triggerProps, open, mount, collapsible],
+		[disclosure.triggerProps, open, everyPanel, collapsible],
 	)
 
 	const { panelProps } = disclosure

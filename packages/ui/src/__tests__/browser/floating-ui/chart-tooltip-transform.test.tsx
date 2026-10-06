@@ -4,7 +4,7 @@ import { page } from 'vitest/browser'
 import { HeatmapChart, LineChart, PieChart } from '../../../modules/chart'
 import { bySlot, fireEvent, getSlot, present, renderUI, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
-import { pause } from '../helpers/wall-clock'
+import { settledRect } from '../helpers/sample'
 
 /**
  * A chart readout inside a scaled or zoomed ancestor, against the real floating
@@ -41,9 +41,7 @@ async function pointAt(target: Element, at: { x: number; y: number }) {
 
 	const panel = await waitFor(() => present(bySlot(document.body, 'tooltip-content'), 'tooltip'))
 
-	await pause(50)
-
-	return panel.getBoundingClientRect()
+	return (await settledRect(panel)).getBoundingClientRect()
 }
 
 /** Asserts that the panel sits centered above `at`, the gap clear of it. */

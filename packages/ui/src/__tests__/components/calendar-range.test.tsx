@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { CalendarRange } from '../../components/calendar/calendar-range'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, withFakeTime } from '../helpers'
 
 function d(year: number, month: number, day: number) {
 	return new Date(year, month - 1, day)
@@ -50,9 +50,9 @@ describe('CalendarRange', () => {
 		// The later day first, as a reader who picks the end before the start.
 		renderUI(<CalendarRange rangeStart={d(2024, 3, 10)} rangeEnd={d(2024, 3, 5)} />)
 
-		expect(findDay(5)?.className).toContain('rounded-r-none')
+		expect(findDay(5)?.className).toContain('rounded-e-none')
 
-		expect(findDay(10)?.className).toContain('rounded-l-none')
+		expect(findDay(10)?.className).toContain('rounded-s-none')
 
 		expect(findDay(7)?.className).toContain('rounded-none')
 	})
@@ -62,7 +62,7 @@ describe('CalendarRange', () => {
 
 		expect(findDay(5)).toHaveAttribute('aria-selected', 'true')
 
-		expect(findDay(5)?.className).not.toMatch(/rounded-[lr]-none/)
+		expect(findDay(5)?.className).not.toMatch(/rounded-[se]-none/)
 	})
 
 	it('calls onHoverDate on mouse enter and leave of a day cell', () => {
@@ -97,6 +97,25 @@ describe('CalendarRange', () => {
 		expect(findDay(7)?.className).toContain('rounded-none')
 
 		expect(findDay(12)).toHaveAttribute('aria-selected', 'false')
+	})
+
+	it('ignores a hover preview with no rangeStart', async () => {
+		await withFakeTime(() => {
+			// With no endpoint, the grid opens on the month of the clock.
+			vi.setSystemTime(new Date(2024, 2, 1, 12))
+
+			renderUI(<CalendarRange hoverDate={d(2024, 3, 8)} />)
+
+			expect(findDay(8)).toHaveAttribute('aria-selected', 'false')
+		})
+	})
+
+	it('keeps a lone rangeEnd as the endpoint under a hover preview with no rangeStart', () => {
+		renderUI(<CalendarRange rangeEnd={d(2024, 3, 10)} hoverDate={d(2024, 3, 8)} />)
+
+		expect(findDay(10)).toHaveAttribute('aria-selected', 'true')
+
+		expect(findDay(8)).toHaveAttribute('aria-selected', 'false')
 	})
 
 	it('uses rangeStart as the default month when no end is provided', () => {

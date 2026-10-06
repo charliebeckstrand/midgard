@@ -22,10 +22,12 @@ import { Calendar, CalendarSkeleton } from '../../../components/calendar'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import {
 	ColorPanel,
+	type ColorPanelProps,
 	ColorPanelSkeleton,
 	ColorPicker,
 	ColorPickerSkeleton,
 } from '../../../components/color'
+import { DEFAULT_SWATCHES } from '../../../components/color/color-constants'
 import { ControlSkeleton } from '../../../components/control'
 import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
 import {
@@ -248,18 +250,27 @@ describe('skeleton parity (real browser)', () => {
 		).toStrictEqual(real)
 	})
 
-	it.each(['sm', 'md', 'lg'] as const)('ColorPanelSkeleton has the box of a %s panel', (size) => {
-		const real = box(
-			renderUI(<ColorPanel size={size} defaultValue="#3b82f6" />).container.firstElementChild,
-			'color panel',
-		)
+	// Each panel sets the axes that move the silhouette: the alpha slider, and the rows of the
+	// swatch grid or no grid.
+	const panels: [string, Pick<ColorPanelProps, 'alpha' | 'swatches'>][] = [
+		['a default panel', {}],
+		['an alpha panel', { alpha: true }],
+		['a panel with no swatches', { swatches: false }],
+		['a panel with one swatch row', { swatches: DEFAULT_SWATCHES.slice(0, 10) }],
+	]
 
-		const skeleton = placeholder(renderUI(<ColorPanelSkeleton size={size} />).container)
+	describe.each(panels)('ColorPanelSkeleton of %s', (_, props) => {
+		it.each(['sm', 'md', 'lg'] as const)('has the box of the panel at %s', (size) => {
+			const real = box(
+				renderUI(<ColorPanel {...props} size={size} defaultValue="#3b82f6" />).container
+					.firstElementChild,
+				'color panel',
+			)
 
-		expect(skeleton.width).toBe(real.width)
-
-		// The panel height has a fraction of a pixel from its text lines.
-		expect(skeleton.height).toBeNear(real.height, PIXEL)
+			expect(
+				placeholder(renderUI(<ColorPanelSkeleton {...props} size={size} />).container),
+			).toStrictEqual(real)
+		})
 	})
 
 	it.each([
@@ -875,6 +886,26 @@ describe('skeleton parity (real browser)', () => {
 		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
 			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
 		)
+	})
+
+	// The calendar has no xs step, so in an xs scope it opens an sm scope. The skeleton with no
+	// size takes the xs scope, so each of its rows must give the sm height at xs.
+	it('CalendarSkeleton with no size has the box of a calendar in an xs scope', () => {
+		const { container } = renderUI(
+			<Box density="xs">
+				<Calendar defaultValue={new Date(2026, 4, 15)} />
+			</Box>,
+		)
+
+		expect(
+			placeholder(
+				renderUI(
+					<Box density="xs">
+						<CalendarSkeleton />
+					</Box>,
+				).container,
+			),
+		).toStrictEqual(box(container.querySelector('[data-slot="calendar"]'), 'calendar'))
 	})
 
 	// A transcript has no fixed height, so this compares one bubble of each side. The real

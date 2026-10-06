@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	CreditCardInput,
@@ -7,9 +9,20 @@ import {
 	CreditCardInputExpiry,
 } from '../../components/credit-card-input'
 import { validateCardExpiry } from '../../components/credit-card-input/credit-card-input-utilities'
-import { Field, Label } from '../../components/fieldset'
+import { Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { bySlot, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
+import {
+	act,
+	allBySlot,
+	attach,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	userEvent,
+} from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('CreditCardInput', () => {
@@ -167,6 +180,84 @@ describe('CreditCardInputExpiry', () => {
 		expect(input.value).toBe('1')
 	})
 
+	it('pads a one-digit month that a typed slash follows and keeps the caret after it', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		await setupUser().type(input, '4/27')
+
+		expect(input.value).toBe('04/27')
+
+		expect(input.selectionStart).toBe(5)
+	})
+
+	it('pads a one-digit month in a pasted expiry and puts the caret at the end', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.click(input)
+
+		await user.paste('1/27')
+
+		expect(input.value).toBe('01/27')
+
+		expect(input.selectionStart).toBe(5)
+	})
+
+	it('deletes the month digit before the caret on backspace, with no pad', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '12')
+
+		input.setSelectionRange(2, 2)
+
+		await user.keyboard('{Backspace}')
+
+		expect(input.value).toBe('1')
+
+		expect(input.selectionStart).toBe(1)
+
+		await user.keyboard('{Backspace}')
+
+		expect(input.value).toBe('')
+	})
+
+	it.each<
+		[string, (user: ReturnType<typeof setupUser>, input: HTMLInputElement) => Promise<unknown>]
+	>([
+		['a forward delete', (user) => user.keyboard('{Delete}')],
+		[
+			'a cut',
+			(user, input) => {
+				input.setSelectionRange(2, 3)
+
+				return user.cut()
+			},
+		],
+	])('keeps the month digits when %s removes the slash', async (_name, remove) => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '12')
+
+		input.setSelectionRange(2, 2)
+
+		await remove(user, input)
+
+		expect(input.value).toBe('12/')
+	})
+
 	it('reports expiry validity to onValidityChange', async () => {
 		const onValidityChange = vi.fn()
 
@@ -291,6 +382,70 @@ describe('CreditCardInputExpiry', () => {
 		expect(input.getAttribute('aria-describedby')).toBe(message?.id)
 	})
 
+	it('describes the input by the built-in message outside a Field', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '1330')
+
+		expect(input).toHaveAccessibleDescription('Enter a valid expiration date (MM/YY)')
+	})
+
+	it('keeps a caller aria-describedby ahead of the built-in message', async () => {
+		const { container } = renderUI(
+			<>
+				<p id="expiry-hint">As printed on the card</p>
+
+				<CreditCardInputExpiry aria-describedby="expiry-hint" />
+			</>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '1330')
+
+		expect(input).toHaveAccessibleDescription(
+			'As printed on the card Enter a valid expiration date (MM/YY)',
+		)
+	})
+
+	it('gives the built-in message an id apart from another error Message in the Field', async () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Expiry</Label>
+
+				<CreditCardInputExpiry />
+
+				<Message>Card declined</Message>
+			</Field>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '1330')
+
+		const messages = allBySlot(container, 'message')
+
+		expect(messages).toHaveLength(2)
+
+		const [builtIn, other] = messages
+
+		expect(builtIn?.id).not.toBe(other?.id)
+
+		expect(input).toHaveAccessibleDescription(
+			expect.stringContaining('Enter a valid expiration date (MM/YY)'),
+		)
+
+		expect(input).toHaveAccessibleDescription(expect.stringContaining('Card declined'))
+	})
+
 	it('uses a custom invalid message and clears it once valid', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry invalidMessage="Bad expiry" />)
 
@@ -350,6 +505,42 @@ describe('CreditCardInputCvv', () => {
 		expect(verdicts).toEqual([false, false, true])
 	})
 
+	it('reports the verdict of the masked entry for Arabic-Indic digits', async () => {
+		const verdicts: boolean[] = []
+
+		const { container } = renderUI(
+			<CreditCardInputCvv brand="visa" onValidityChange={(v) => verdicts.push(v.isValid)} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-cvv')
+
+		await setupUser().type(input, '١٢٣')
+
+		// The field shows "123", so the verdict is the verdict of "123".
+		expect(input.value).toBe('123')
+
+		expect(verdicts).toEqual([false, false, true])
+	})
+
+	it('reports the verdict of the masked entry when a caller maxLength lets in a long entry', () => {
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(
+			<CreditCardInputCvv brand="visa" maxLength={4} onValidityChange={onValidityChange} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-cvv')
+
+		// The maxLength of the caller replaces the cap of the brand, so the field
+		// takes four digits.
+		fireEvent.change(input, { target: { value: '1234' } })
+
+		// The mask keeps "123", so the verdict is the verdict of "123".
+		expect(input).toHaveValue('123')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({ isValid: true, isPotentiallyValid: true })
+	})
+
 	it('re-measures the entry when a brand change shrinks the length', async () => {
 		const { container, rerender } = renderUI(<CreditCardInputCvv brand="amex" />)
 
@@ -363,6 +554,38 @@ describe('CreditCardInputCvv', () => {
 		expect(input).toHaveValue('123')
 
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
+	})
+
+	it('reports the truncation to a controlled parent when a brand change shrinks the length', () => {
+		const onValueChange = vi.fn()
+
+		const onValidityChange = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<CreditCardInputCvv
+				brand="amex"
+				value="1234"
+				onValueChange={onValueChange}
+				onValidityChange={onValidityChange}
+			/>,
+		)
+
+		rerender(
+			<CreditCardInputCvv
+				brand="visa"
+				value="1234"
+				onValueChange={onValueChange}
+				onValidityChange={onValidityChange}
+			/>,
+		)
+
+		// The parent holds "1234" and Visa caps at three. The field shows "123",
+		// so the parent gets "123" and the verdict is the verdict of "123".
+		expect(getSlot(container, 'credit-card-input-cvv')).toHaveValue('123')
+
+		expect(onValueChange).toHaveBeenCalledExactlyOnceWith('123')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({ isValid: true, isPotentiallyValid: true })
 	})
 
 	it.each<[string, 'visa' | 'amex', string, string]>([
@@ -379,6 +602,116 @@ describe('CreditCardInputCvv', () => {
 		await user.type(input, typed)
 
 		expect(input.value).toBe(expected)
+	})
+})
+
+/** The props that a default-name case gives a card field. */
+type NameProps = { id?: string; 'aria-label'?: string }
+
+/** The three card fields, each with its default name. */
+const cardFields: [string, (props: NameProps) => ReactElement, string][] = [
+	['CreditCardInput', (props) => <CreditCardInput {...props} />, 'Card number'],
+	['CreditCardInputExpiry', (props) => <CreditCardInputExpiry {...props} />, 'Expiration date'],
+	['CreditCardInputCvv', (props) => <CreditCardInputCvv {...props} />, 'Security code'],
+]
+
+/** The id that a native label outside a Field points at. */
+const FIELD_ID = 'card-field'
+
+// The three fields share one policy: the default name fills a missing name,
+// and a Field Label, a native label, or an explicit aria-label replaces it.
+describe.each(cardFields)('%s default name', (_name, field, fallback) => {
+	it('has the default name when nothing labels it', () => {
+		renderUI(field({}))
+
+		expect(screen.getByRole('textbox', { name: fallback })).toHaveAttribute('aria-label', fallback)
+	})
+
+	it('takes its name from a Field Label, with no default name', () => {
+		renderUI(
+			<Field>
+				<Label>Payment</Label>
+				{field({})}
+			</Field>,
+		)
+
+		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
+	})
+
+	it('takes its name from a native label outside a Field after mount', () => {
+		renderUI(
+			<>
+				<label htmlFor={FIELD_ID}>Payment</label>
+				{field({ id: FIELD_ID })}
+			</>,
+		)
+
+		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
+	})
+
+	it('hydrates next to a native label with no mismatch, then drops the default name', () => {
+		const element = (
+			<div>
+				<label htmlFor={FIELD_ID}>Payment</label>
+				{field({ id: FIELD_ID })}
+			</div>
+		)
+
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = renderToString(element)
+
+		// The server render cannot read the label, so its markup has the default name.
+		expect(container.querySelector('input')).toHaveAttribute('aria-label', fallback)
+
+		// A text or a node mismatch reaches `onRecoverableError`, and React logs
+		// an attribute mismatch to the console.
+		const onRecoverableError = vi.fn()
+
+		const consoleError = vi.spyOn(console, 'error')
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, element, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
+	})
+
+	it.each<[string, (input: ReactElement) => ReactElement]>([
+		['with no label', (input) => input],
+		[
+			'in a Field with a Label',
+			(input) => (
+				<Field>
+					<Label>Payment</Label>
+					{input}
+				</Field>
+			),
+		],
+		[
+			'next to a native label',
+			(input) => (
+				<>
+					<label htmlFor={FIELD_ID}>Payment</label>
+					{input}
+				</>
+			),
+		],
+	])('lets an explicit aria-label win %s', (_context, wrap) => {
+		renderUI(wrap(field({ id: FIELD_ID, 'aria-label': 'Card details' })))
+
+		expect(screen.getByRole('textbox', { name: 'Card details' })).toHaveAttribute(
+			'aria-label',
+			'Card details',
+		)
 	})
 })
 
@@ -400,6 +733,74 @@ describe('Credit card masking', () => {
 		await setupUser().type(input, typed)
 
 		expect(input.value).toBe(expected)
+	})
+
+	// The masks keep only digits. A letter that the mask drops must not move the
+	// caret, so the next digit goes where the letter went.
+	it.each<[string, () => ReactElement, string, number, string]>([
+		['credit-card-input', () => <CreditCardInput />, '42424242', 2, '4234 2424 2'],
+		['credit-card-input-expiry', () => <CreditCardInputExpiry />, '122', 2, '12/32'],
+		['credit-card-input-cvv', () => <CreditCardInputCvv />, '12', 1, '132'],
+	])(
+		'keeps the %s caret in place when the mask drops a letter',
+		async (slot, render, typed, caret, expected) => {
+			const { container } = renderUI(render())
+
+			const input = getSlot<HTMLInputElement>(container, slot)
+
+			const user = setupUser()
+
+			await user.type(input, typed)
+
+			input.setSelectionRange(caret, caret)
+
+			await user.keyboard('x')
+
+			expect(input.selectionStart).toBe(caret)
+
+			await user.keyboard('3')
+
+			expect(input.value).toBe(expected)
+		},
+	)
+
+	// The masks change a digit of a different script to its ASCII digit. The
+	// caret stays after each typed digit, so the digits keep the typed order.
+	it.each<[string, () => ReactElement, string, string]>([
+		['credit-card-input', () => <CreditCardInput />, '٤١٢٣', '4123'],
+		['credit-card-input-cvv', () => <CreditCardInputCvv />, '١٢٣', '123'],
+		['credit-card-input-expiry', () => <CreditCardInputExpiry />, '١٢٢٧', '12/27'],
+	])(
+		'keeps the typed order of Arabic-Indic digits in the %s',
+		async (slot, render, typed, expected) => {
+			const { container } = renderUI(render())
+
+			const input = getSlot<HTMLInputElement>(container, slot)
+
+			await setupUser().type(input, typed)
+
+			expect(input.value).toBe(expected)
+		},
+	)
+
+	// An expiry digit before the end goes through the mask, not the pad of a
+	// one-digit month. The mask keeps the digit, and the caret stays after it.
+	it('keeps an Arabic-Indic digit typed before the expiry year', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
+
+		const user = setupUser()
+
+		await user.type(input, '١٢٧')
+
+		input.setSelectionRange(3, 3)
+
+		await user.keyboard('٢')
+
+		expect(input.value).toBe('12/27')
+
+		expect(input.selectionStart).toBe(4)
 	})
 })
 

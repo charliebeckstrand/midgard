@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { mountsEveryPanel } from '../../primitives/mount'
+import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
@@ -13,13 +13,15 @@ export type CollapseTriggerProps = ComponentProps<'button'>
  * Button that toggles the enclosing {@link Collapse} for the compound API.
  * Spreads consumer props first, then overlays the context-driven toggle and
  * a11y wiring (`aria-expanded`, plus `aria-controls` while open, or always
- * under `mount="always"`), preserving any supplied `onClick`.
+ * under `mount="always"` after hydration), preserving any supplied `onClick`.
  *
  * @remarks The `data-slot` anchor stays renameable, because no library selector
  * reads it ([CONVENTIONS.md](CONVENTIONS.md) §3.9).
  */
 export function CollapseTrigger({ className, children, onClick, ...props }: CollapseTriggerProps) {
 	const { open, toggle, mount, triggerProps } = useCollapseContext()
+
+	const everyPanel = useMountsEveryPanel(mount)
 
 	return (
 		<button
@@ -31,8 +33,9 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 			type="button"
 			{...triggerProps}
 			// The reference needs its target id in the DOM. An open panel is
-			// present, and a closed panel is present only under `mount="always"`.
-			aria-controls={open || mountsEveryPanel(mount) ? triggerProps['aria-controls'] : undefined}
+			// present. A closed panel is present only under `mount="always"`, and
+			// only after hydration, because the server markup does not hold it.
+			aria-controls={open || everyPanel ? triggerProps['aria-controls'] : undefined}
 			// The toggle is the activation the trigger exists to perform, so a
 			// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 			onClick={composeEventHandlers(onClick, toggle, { checkForDefaultPrevented: false })}

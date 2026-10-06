@@ -81,6 +81,39 @@ describe('Confirm', () => {
 		)
 	})
 
+	it.each([
+		['an empty string', ''],
+		['null', null],
+		['false', false],
+	])('names the alertdialog with the default title when the title is %s', (_name, title) => {
+		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} title={title} />)
+
+		expect(screen.getByRole('alertdialog')).toHaveAccessibleName('Are you sure?')
+	})
+
+	it.each([
+		['an empty string', ''],
+		['null', null],
+		['false', false],
+	])(
+		'describes the alertdialog by its children when the description is %s',
+		(_name, description) => {
+			renderUI(
+				<Confirm
+					open
+					onOpenChange={() => {}}
+					onConfirm={() => {}}
+					title="Delete item"
+					description={description}
+				>
+					This cannot be undone.
+				</Confirm>,
+			)
+
+			expect(screen.getByRole('alertdialog')).toHaveAccessibleDescription('This cannot be undone.')
+		},
+	)
+
 	it('renders custom button labels', () => {
 		renderUI(
 			<Confirm
@@ -97,14 +130,16 @@ describe('Confirm', () => {
 		expect(screen.getByText('Keep')).toBeInTheDocument()
 	})
 
-	it('calls onConfirm when the confirm button is clicked', () => {
+	it('calls onConfirm with no argument when the confirm button is clicked', () => {
 		const onConfirm = vi.fn()
 
 		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={onConfirm} />)
 
 		fireEvent.click(screen.getByText('Confirm'))
 
-		expect(onConfirm).toHaveBeenCalled()
+		expect(onConfirm).toHaveBeenCalledTimes(1)
+
+		expect(onConfirm).toHaveBeenCalledWith()
 	})
 
 	it('calls onOpenChange(false) when the cancel button is clicked', () => {
@@ -149,6 +184,31 @@ describe('Confirm', () => {
 		)
 
 		expect(screen.getByText('Confirm').closest('button')).toBeDisabled()
+	})
+
+	it('keeps the focused confirm button enabled while confirm.pending is true, and cancels its click', () => {
+		const onConfirm = vi.fn()
+
+		const { rerender } = renderUI(<Confirm open onOpenChange={() => {}} onConfirm={onConfirm} />)
+
+		const button = screen.getByText('Confirm').closest('button') as HTMLButtonElement
+
+		button.focus()
+
+		rerender(
+			<Confirm open onOpenChange={() => {}} onConfirm={onConfirm} confirm={{ pending: true }} />,
+		)
+
+		// A disabled button drops the focus that it has, so a pending button stays enabled.
+		expect(button).toBeEnabled()
+
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		expect(button).toHaveFocus()
+
+		fireEvent.click(button)
+
+		expect(onConfirm).not.toHaveBeenCalled()
 	})
 
 	it('disables the cancel button when cancel.disabled is true', () => {

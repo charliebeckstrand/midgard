@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { CalendarDate } from '@internationalized/date'
-import { describe, expect, it } from 'vitest'
+import { CalendarDate, resetLocalTimeZone, setLocalTimeZone } from '@internationalized/date'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import {
 	firstOfMonth,
 	fromCalendarDate,
@@ -86,6 +86,26 @@ describe('fromCalendarDate', () => {
 		const original = new CalendarDate(1, 1, 1)
 
 		expect(toCalendarDate(fromCalendarDate(original)).compare(original)).toBe(0)
+	})
+})
+
+// The local getters of `Date` read the runtime zone. An app can give
+// `@internationalized/date` another zone with `setLocalTimeZone`, and the
+// calendar must not follow it. The suite runs in UTC, and Tokyo is east of
+// UTC, so midnight in Tokyo is the day before here.
+describe('fromCalendarDate when an app sets the library zone', () => {
+	it('builds local midnight in the runtime zone', () => {
+		setLocalTimeZone('Asia/Tokyo')
+
+		onTestFinished(() => {
+			resetLocalTimeZone()
+		})
+
+		const date = fromCalendarDate(new CalendarDate(2024, 6, 15))
+
+		expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2024, 5, 15])
+
+		expect([date.getHours(), date.getMinutes()]).toEqual([0, 0])
 	})
 })
 

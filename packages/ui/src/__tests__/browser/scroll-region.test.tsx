@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { CodeBlock } from '../../components/code'
+import { CodeBlock, type CodeBlockProps, primeCodeBlock } from '../../components/code'
 import { PdfViewer } from '../../components/pdf-viewer'
 import { ScrollArea } from '../../components/scroll-area'
 import { Table, TableBody, TableCaption, TableCell, TableRow } from '../../components/table'
@@ -248,13 +248,17 @@ describe('CodeBlock scroll container', () => {
 		return present(block.firstElementChild as HTMLElement | null, 'the code scroll container')
 	}
 
-	it.each([
-		['the default name', undefined, 'Code'],
-		['its label', 'Install command', 'Install command'],
-	])('is a region with %s while a line overflows', async (_name, label, name) => {
+	it.each<[string, CodeBlockProps['lang'], string | undefined, string]>([
+		['the default name', undefined, undefined, 'Code'],
+		['the name of its language', 'typescript', undefined, 'TypeScript code'],
+		['the name of a language alias', 'bash', undefined, 'Shell code'],
+		// Markdown gives `text`, a Shiki special language, to a fence with no language.
+		['the default name for plain text', 'text' as CodeBlockProps['lang'], undefined, 'Code'],
+		['its label', 'typescript', 'Install command', 'Install command'],
+	])('is a region with %s while a line overflows', async (_name, lang, label, name) => {
 		renderUI(
 			<div style={{ width: 200 }}>
-				<CodeBlock code={'const value = 1; '.repeat(40)} copy={false} label={label} />
+				<CodeBlock code={'const value = 1; '.repeat(40)} lang={lang} copy={false} label={label} />
 			</div>,
 		)
 
@@ -263,6 +267,63 @@ describe('CodeBlock scroll container', () => {
 		expect(content().getAttribute('role')).toBe('region')
 
 		expect(content().getAttribute('aria-label')).toBe(name)
+	})
+
+	it('gives blocks of two languages two region names', async () => {
+		const line = 'const value = 1; '.repeat(40)
+
+		renderUI(
+			<div style={{ width: 200 }}>
+				<CodeBlock code={line} lang="typescript" copy={false} />
+				<CodeBlock code={line} lang="bash" copy={false} />
+			</div>,
+		)
+
+		await waitFor(() => expect(screen.getAllByRole('region')).toHaveLength(2))
+
+		expect(
+			screen.getAllByRole('region').map((region) => region.getAttribute('aria-label')),
+		).toEqual(['TypeScript code', 'Shell code'])
+	})
+
+	it('measures again when the code switches between two cached snippets', async () => {
+		const wide = 'const swapWide = 1; '.repeat(40)
+
+		const narrow = 'const swapNarrow = 1'
+
+		// Two snippets of one line each, in the shape that the worker gives. The
+		// switch keeps the size of each box, so no resize reports the new width.
+		for (const code of [wide, narrow]) {
+			primeCodeBlock({
+				code,
+				html: `<pre class="shiki" tabindex="-1"><code><span class="line"><span>${code}</span></span></code></pre>`,
+			})
+		}
+
+		const block = (code: string) => (
+			<div style={{ width: 200 }}>
+				<CodeBlock code={code} copy={false} />
+			</div>
+		)
+
+		const { rerender } = renderUI(block(wide))
+
+		await waitFor(() => expect(content().getAttribute('tabindex')).toBe('0'))
+
+		rerender(block(narrow))
+
+		// The block paints the cached markup, not the plain fallback.
+		expect(content().querySelector('pre.shiki')?.textContent).toBe(narrow)
+
+		await waitFor(() => expect(content().hasAttribute('tabindex')).toBe(false))
+
+		expect(content().hasAttribute('role')).toBe(false)
+
+		rerender(block(wide))
+
+		await waitFor(() => expect(content().getAttribute('tabindex')).toBe('0'))
+
+		expect(content().getAttribute('role')).toBe('region')
 	})
 })
 

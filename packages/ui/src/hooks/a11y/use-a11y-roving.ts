@@ -8,7 +8,7 @@ import {
 	wrap,
 } from '../../utilities/keyboard-navigation'
 import { matchesMediaQuery, NO_HOVER_QUERY } from '../../utilities/media-query'
-import { useScrollWithin } from '../use-scroll-within'
+import { scrollWithin } from '../use-scroll-within'
 import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
@@ -110,9 +110,10 @@ export function setVirtualActive(
  * Clear the virtual-mode active marker: drops the owner's
  * `aria-activedescendant`. The named reset counterpart to {@link setVirtualActive},
  * so callers express intent as `clearVirtualActive(ref)` rather than the cryptic
- * `setVirtualActive([], -1, ref)`. A closing panel unmounts its rows, so the
- * owner-clear is all a caller needs; stripping attributes off still-mounted
- * rows is {@link setVirtualActive}'s job.
+ * `setVirtualActive([], -1, ref)`. It does not touch the rows. A `Portal` keeps
+ * the rows of a closing panel mounted through the exit animation, and they keep
+ * `data-active` until they unmount. To clear them, call {@link setVirtualActive}
+ * with the rows and -1.
  */
 export function clearVirtualActive(activeDescendantRef: RefObject<HTMLElement | null>): void {
 	setVirtualActive([], -1, activeDescendantRef)
@@ -328,13 +329,60 @@ export function clearVirtualActiveIndexed(
 }
 
 /**
+ * Whether a seed puts the highlight on a list of `count` items. An empty list
+ * gets no highlight. A device with no hover gets none either, as
+ * {@link seedVirtualTopMatch} tells.
+ *
+ * @internal
+ */
+function seedsHighlight(count: number): boolean {
+	// The count test comes first: an empty list clears on every device, so it
+	// needs no media query.
+	return count > 0 && !matchesMediaQuery(NO_HOVER_QUERY)
+}
+
+/**
+ * The index that {@link seedVirtualTopMatch} seats under `source`, or -1 when
+ * the seed clears. {@link isVirtualTopMatchSeated} reads the same index.
+ *
+ * @internal
+ */
+function seededSourceIndex(source: VirtualItemSource): number {
+	return seedsHighlight(source.count) ? virtualTopMatchIndex(source) : -1
+}
+
+/**
+ * The index that {@link seedVirtualTopMatch} seats under `source` on a device
+ * with hover: the first index that `isDisabled` does not mark. It is -1 when
+ * `source` holds no enabled item.
+ *
+ * @internal
+ */
+export function virtualTopMatchIndex(source: VirtualItemSource): number {
+	for (let index = 0; index < source.count; index++) {
+		if (!source.isDisabled?.(index)) return index
+	}
+
+	return -1
+}
+
+/**
  * Seeds the virtual highlight to the top match, or clears it when there is
- * none. That is index 0 of `source` when a `VirtualOptions` has registered
- * one, else the first DOM `itemSelector` match. The owner-side move `Combobox`
- * and `CommandPalette` make when the result set changes under the reader, so
- * `data-active` / `aria-activedescendant` always point at a live option. Kept
- * here so the source-vs-DOM branch stays in one place as more owners adopt an
- * indexed source.
+ * none. Under a source that a `VirtualOptions` has registered, the top match is
+ * the first index that `isDisabled` does not mark
+ * ({@link virtualTopMatchIndex}). Else it is the first DOM `itemSelector`
+ * match, and the selector of each owner leaves out a disabled row. The
+ * owner-side move `Combobox` and `CommandPalette` make when the result set
+ * changes under the reader, so `data-active` / `aria-activedescendant` always
+ * point at a live option. Kept here so the source-vs-DOM branch stays in one
+ * place as more owners adopt an indexed source.
+ *
+ * The seated row scrolls into view, so Enter does not run a row that the
+ * reader cannot see. The indexed path scrolls through `scrollToIndex`, and the
+ * DOM path through {@link scrollWithin}. An owner that seeds again when the
+ * results change under an unchanged query reads
+ * {@link isVirtualTopMatchSeated} first. Thus a change that keeps the top match
+ * does not scroll the list back to it.
  *
  * On a device with no hover ({@link NO_HOVER_QUERY}), it clears the highlight.
  * The reader taps a row there, so a seeded row looks like a row that they
@@ -351,15 +399,11 @@ export function seedVirtualTopMatch(
 	activeDescendantRef: RefObject<HTMLElement | null>,
 	options?: { ariaSelected?: boolean },
 ): void {
-	// The count test comes first: an empty list clears on every device, so it
-	// needs no media query.
-	const seed = (count: number) => count > 0 && !matchesMediaQuery(NO_HOVER_QUERY)
-
 	if (source) {
 		setVirtualActiveIndexed(
 			container,
 			source,
-			seed(source.count) ? 0 : -1,
+			seededSourceIndex(source),
 			activeIndexRef,
 			activeDescendantRef,
 			options,
@@ -370,7 +414,67 @@ export function seedVirtualTopMatch(
 
 	const items = queryItems(container, itemSelector)
 
-	setVirtualActive(items, seed(items.length) ? 0 : -1, activeDescendantRef, options)
+	const index = seedsHighlight(items.length) ? 0 : -1
+
+	setVirtualActive(items, index, activeDescendantRef, options)
+
+	const seated = items[index]
+
+	if (seated) scrollWithin(seated, { block: 'nearest' })
+}
+
+/**
+ * Whether the highlight sits where {@link seedVirtualTopMatch} puts it, so that
+ * a seed does not move it. Under a `source`, that is the index and the id of
+ * the top match. Else it is the first DOM match, which must also carry
+ * `data-active`: a row that mounts again with the same id has no marker.
+ *
+ * @internal
+ */
+export function isVirtualTopMatchSeated(
+	container: HTMLElement | null,
+	itemSelector: string,
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null>,
+): boolean {
+	const activeId = activeDescendantRef.current?.getAttribute('aria-activedescendant') ?? undefined
+
+	if (source) {
+		const index = seededSourceIndex(source)
+
+		return activeIndexRef.current === index && activeId === resolveVirtualItemId(source, index)
+	}
+
+	// A seed seats the first row, so the check reads that row alone.
+	const first = container?.querySelector<HTMLElement>(itemSelector)
+
+	const top = first && seedsHighlight(1) ? first : undefined
+
+	if (!top) return activeId === undefined
+
+	return activeId === top.id && top.dataset.active !== undefined
+}
+
+/**
+ * Whether the row of a moved highlight is gone, so that a seed must take the
+ * highlight. Under a `source`, the row exists while the active index is below
+ * the live `count`: a row out of the window is not in the DOM. Else it exists
+ * while the element that `aria-activedescendant` names is in the document. No
+ * highlight is not a row that went.
+ *
+ * @internal
+ */
+export function isVirtualActiveRowGone(
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null>,
+): boolean {
+	if (source) return activeIndexRef.current >= source.count
+
+	const activeId = activeDescendantRef.current?.getAttribute('aria-activedescendant')
+
+	return !!activeId && document.getElementById(activeId) === null
 }
 
 /**
@@ -420,8 +524,6 @@ function resolveRestingStop(
 	return bySelector ?? items[0]
 }
 
-type ScrollWithin = ReturnType<typeof useScrollWithin>
-
 /**
  * Per-keystroke dependencies for the move handlers, resolved once in the
  * callback so each helper keeps a flat signature.
@@ -432,7 +534,6 @@ type RovingKeyContext = {
 	manageTabIndex: boolean
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
-	scrollWithin: ScrollWithin
 	containerEl: HTMLElement | null
 	/** Set (with `activeIndexRef`) when navigating an indexed source instead of `items`. */
 	itemSource: VirtualItemSource | null
@@ -460,7 +561,6 @@ function resolveRovingContext(
 		manageTabIndex: boolean
 		activeDescendantRef: RefObject<HTMLElement | null> | undefined
 		manageAriaSelected: boolean
-		scrollWithin: ScrollWithin
 	},
 ): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
 	const isVirtual = mode === 'virtual'
@@ -489,7 +589,6 @@ function resolveRovingContext(
 			manageTabIndex: config.manageTabIndex,
 			activeDescendantRef: config.activeDescendantRef,
 			manageAriaSelected: config.manageAriaSelected,
-			scrollWithin: config.scrollWithin,
 			containerEl: container,
 			itemSource: indexed,
 			activeIndexRef: config.activeIndexRef,
@@ -602,7 +701,7 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
 
 	const next = ctx.items[index]
 
-	if (next) ctx.scrollWithin(next, { block: 'nearest' })
+	if (next) scrollWithin(next, { block: 'nearest' })
 }
 
 /**
@@ -652,7 +751,32 @@ function processRowContext(
 }
 
 /**
- * Virtual mode: the activation key clicks the active item.
+ * Clicks an item with the modifier keys of a key event. A link row then acts
+ * as a click with those keys does. A router link reads the keys, and lets the
+ * browser open a new tab for Ctrl or Cmd. As with `HTMLElement.click()`, the
+ * click bubbles and crosses a shadow root, and a handler can cancel it.
+ *
+ * @remarks A caller can pass an event after its dispatch ends, when
+ * `currentTarget` is null. Thus the keys come from the fields of the event.
+ * @internal
+ */
+function clickWithKeyModifiers(item: HTMLElement | null | undefined, event: KeyboardEvent): void {
+	item?.dispatchEvent(
+		new MouseEvent('click', {
+			bubbles: true,
+			cancelable: true,
+			composed: true,
+			altKey: event.altKey,
+			ctrlKey: event.ctrlKey,
+			metaKey: event.metaKey,
+			shiftKey: event.shiftKey,
+		}),
+	)
+}
+
+/**
+ * Virtual mode: the activation key clicks the active item, with the modifier
+ * keys of the key event.
  *
  * @returns True once the key belongs to activation so the caller stops.
  * @internal
@@ -680,12 +804,12 @@ function handleActivationKey(
 
 		// A jump landed on a not-yet-mounted row (the move's mount watcher
 		// hasn't caught up yet); nothing to click until it renders.
-		node?.click()
+		clickWithKeyModifiers(node, event)
 
 		return true
 	}
 
-	ctx.items[currentIndex]?.click()
+	clickWithKeyModifiers(ctx.items[currentIndex], event)
 
 	return true
 }
@@ -868,7 +992,9 @@ export type RovingOptions = NavigationConfig & {
 	 * Virtual mode: key (or keys) that clicks the active item. A menu passes
 	 * `['Enter', ' ']` so Space activates like Enter (APG menu pattern); a text
 	 * input owner keeps the default `'Enter'` so Space still types. Pass `null`
-	 * to disable. @defaultValue 'Enter'
+	 * to disable. The click carries the Ctrl, Cmd, Shift, and Alt keys of the
+	 * press, so Ctrl+Enter or Cmd+Enter on a link row opens a new tab.
+	 * @defaultValue 'Enter'
 	 */
 	activationKey?: string | readonly string[] | null
 	/**
@@ -974,8 +1100,6 @@ export function useA11yRoving(
 		activeIndexRef,
 	}: RovingOptions,
 ) {
-	const scrollWithin = useScrollWithin()
-
 	// Depend on the selector strings, not the `row` object: callers pass inline
 	// literals whose identity changes per render.
 	const rowSelector = row?.rowSelector
@@ -1073,7 +1197,6 @@ export function useA11yRoving(
 				manageTabIndex,
 				activeDescendantRef,
 				manageAriaSelected,
-				scrollWithin,
 			})
 
 			if (!resolved) return
@@ -1121,7 +1244,6 @@ export function useA11yRoving(
 			activationKey,
 			activeDescendantRef,
 			enabled,
-			scrollWithin,
 			manageAriaSelected,
 			manageTabIndex,
 			rowSelector,

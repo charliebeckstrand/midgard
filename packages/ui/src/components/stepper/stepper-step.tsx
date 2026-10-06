@@ -3,7 +3,7 @@
 import { Children, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { mountsEveryPanel } from '../../primitives/mount'
+import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { hasChildOfType, partitionByType } from '../../utilities/flatten-children'
 import { type StepperLayout, StepperStepContext, type StepState, useStepper } from './context'
@@ -98,6 +98,8 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 	// Shares baseId + value with StepperPanel; the two derive matching ids.
 	const { triggerId, panelId } = useA11yDisclosure({ id: baseId, key: value })
 
+	const everyPanel = useMountsEveryPanel(mount)
+
 	const classes = cn(k.step({ orientation: layout }), className)
 
 	// A layout that can be vertical splits into [indicator, content-column] for
@@ -128,10 +130,9 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 					aria-current={state === 'current' ? 'step' : undefined}
 					// aria-controls needs the panel id to actually be in the DOM: guaranteed
 					// for the current step, and for every step under a policy that mounts
-					// them all.
-					aria-controls={
-						hasPanels && (state === 'current' || mountsEveryPanel(mount)) ? panelId : undefined
-					}
+					// them all, after hydration. The server markup holds the current panel
+					// only.
+					aria-controls={hasPanels && (state === 'current' || everyPanel) ? panelId : undefined}
 					disabled={isDisabled}
 					onClick={() => onValueChange(value)}
 					className={cn(k.step({ orientation: layout }), k.item.button, className)}

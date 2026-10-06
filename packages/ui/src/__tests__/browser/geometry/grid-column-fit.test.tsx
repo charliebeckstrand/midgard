@@ -7,6 +7,7 @@ import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frame, frames, present, renderUI, waitFor } from '../../helpers'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
+import { sampleUntil } from '../helpers/sample'
 
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
@@ -449,13 +450,27 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 			present(container.querySelector('th[data-grid-col="loadId"]'), 'th[data-grid-col="loadId"]')
 
 		// Sample every frame across the skeleton → rows transition, keeping the width
-		// each frame that had rendered rows in it.
+		// each frame that had rendered rows in it. The rows arrive on a timer, so the
+		// sampler waits for them, and then samples 30 frames more.
 		const widths = new Set<number>()
 
-		for (let sample = 0; sample < 40; sample++) {
+		const sample = () => {
+			if (leafOf(container)) widths.add(Math.round(header().getBoundingClientRect().width))
+		}
+
+		await sampleUntil(
+			() => {
+				sample()
+
+				return leafOf(container)
+			},
+			(leaf) => leaf !== null,
+		)
+
+		for (let count = 0; count < 30; count++) {
 			await frame()
 
-			if (leafOf(container)) widths.add(Math.round(header().getBoundingClientRect().width))
+			sample()
 		}
 
 		expect(leafOf(container)).not.toBeNull()

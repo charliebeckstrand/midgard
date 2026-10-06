@@ -52,6 +52,27 @@ describe('useColorDrag', () => {
 		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
 	})
 
+	// A focus that scrolls the node into view moves its rect below the pointer.
+	// The press must report the point below the pointer, so the focus must not scroll.
+	it('focuses without a scroll, so the press reports the point below the pointer', () => {
+		const { api, node, onPosition } = setup()
+
+		let top = 0
+
+		node.getBoundingClientRect = () => DOMRect.fromRect({ y: top, width: 200, height: 100 })
+
+		// As in a browser, a focus without `preventScroll` scrolls the page by 40 px.
+		node.focus = vi.fn((options?: FocusOptions) => {
+			if (!options?.preventScroll) top -= 40
+		})
+
+		api.onPointerDown(makeEvent(node, { clientX: 100, clientY: 50 }))
+
+		expect(node.focus).toHaveBeenCalled()
+
+		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
+	})
+
 	it('ignores moves before a press and tracks them after', () => {
 		const { api, node, onPosition } = setup()
 
@@ -80,6 +101,48 @@ describe('useColorDrag', () => {
 		expect(node.setPointerCapture).not.toHaveBeenCalled()
 
 		expect(onPosition).not.toHaveBeenCalled()
+	})
+
+	// A disabled `<fieldset>` disables only its native controls. The node is a
+	// `<div>`, so the hook reads the fieldset itself when the press occurs.
+	it('is a no-op under a disabled ancestor fieldset', () => {
+		const { api, node, onPosition } = setup()
+
+		const fieldset = document.createElement('fieldset')
+
+		fieldset.disabled = true
+
+		fieldset.append(node)
+
+		const event = makeEvent(node, { clientX: 100, clientY: 50 })
+
+		api.onPointerDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(node.setPointerCapture).not.toHaveBeenCalled()
+
+		expect(onPosition).not.toHaveBeenCalled()
+	})
+
+	// The first legend of a disabled fieldset stays enabled, as with a native
+	// control in it.
+	it('drags in the first legend of a disabled fieldset', () => {
+		const { api, node, onPosition } = setup()
+
+		const fieldset = document.createElement('fieldset')
+
+		const legend = document.createElement('legend')
+
+		fieldset.disabled = true
+
+		legend.append(node)
+
+		fieldset.append(legend)
+
+		api.onPointerDown(makeEvent(node, { clientX: 100, clientY: 50 }))
+
+		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
 	})
 
 	it('ignores non-primary buttons', () => {

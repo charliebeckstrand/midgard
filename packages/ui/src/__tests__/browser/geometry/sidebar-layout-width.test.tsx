@@ -2,8 +2,8 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { densitySteps, writeRootDensity } from '../../../core/density'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
-import { frames, present, renderUI } from '../../helpers'
-import { settledSheet } from '../helpers/settled-sheet'
+import { frames, getSlot, present, renderUI } from '../../helpers'
+import { settledRect } from '../helpers/sample'
 
 /**
  * The floating sidebar is as wide as the inline rail at each density step.
@@ -55,7 +55,7 @@ describe('sidebar layout width (real browser)', () => {
 
 		await userEvent.hover(strip)
 
-		const sheet = await settledSheet()
+		const sheet = await settledRect(getSlot(document.body, 'sheet'))
 
 		expect(sheet.getBoundingClientRect().width).toBe(railWidth)
 

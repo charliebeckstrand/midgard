@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { act, frames, getSlot, renderUI, waitFor, windowBody } from '../helpers'
+import { once } from './helpers/signals'
 import { pause } from './helpers/wall-clock'
 
 /**
@@ -16,6 +17,21 @@ import { pause } from './helpers/wall-clock'
 describe('useVirtualWindow commits around a scroll (real browser)', () => {
 	/** Longer than the 150 ms after which the virtualizer clears `isScrolling`. */
 	const SCROLL_END = 400
+
+	/**
+	 * Runs `move`, which scrolls `el`, and holds for {@link SCROLL_END} from the
+	 * `scroll` event. A hold that starts before the event can end before the
+	 * virtualizer clears `isScrolling`.
+	 */
+	async function scrollRest(el: HTMLElement, move: () => void) {
+		const scrolled = once(el, 'scroll')
+
+		move()
+
+		await scrolled
+
+		await pause(SCROLL_END)
+	}
 
 	it('commits nothing for a scroll step that keeps the rendered rows', async () => {
 		type Row = { id: number; name: string }
@@ -71,14 +87,14 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 		}
 
 		// Find an offset where a step of one pixel changes no visible row.
-		scroll.scrollTop = 2000
-
-		await pause(SCROLL_END)
+		await scrollRest(scroll, () => {
+			scroll.scrollTop = 2000
+		})
 
 		while (!clearOfEdges()) {
-			scroll.scrollTop += 3
-
-			await pause(SCROLL_END)
+			await scrollRest(scroll, () => {
+				scroll.scrollTop += 3
+			})
 		}
 
 		for (let step = 0; step < 3; step++) {
@@ -86,9 +102,9 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 
 			commits = 0
 
-			scroll.scrollTop += 1
-
-			await pause(SCROLL_END)
+			await scrollRest(scroll, () => {
+				scroll.scrollTop += 1
+			})
 
 			expect(rendered()).toBe(before)
 
@@ -157,12 +173,15 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 
 		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
 
-		scroller.scrollTop = 2000
-
-		await pause(SCROLL_END)
+		await scrollRest(scroller, () => {
+			scroller.scrollTop = 2000
+		})
 
 		for (let run = 0; run < 2; run++) {
 			const before = scroller.scrollTop
+
+			// The anchor write sends a `scroll` event, which can come after the frames below.
+			const scrolled = once(scroller, 'scroll')
 
 			act(() => handle.prepend([1000 + run * 3, 1001 + run * 3, 1002 + run * 3]))
 
@@ -172,6 +191,8 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 			expect(scroller.scrollTop).toBeGreaterThan(before)
 
 			commits = 0
+
+			await scrolled
 
 			await pause(SCROLL_END)
 

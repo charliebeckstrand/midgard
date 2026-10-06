@@ -1,10 +1,20 @@
 import { createRef, Profiler } from 'react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { Form } from '../../components/form'
 import { Box } from '../../structure/box'
-import { act, bySlot, liveRegion, renderUI, screen, setupUser, withFakeTime } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	liveRegion,
+	renderUI,
+	screen,
+	setupUser,
+	withFakeTime,
+} from '../helpers'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -377,7 +387,7 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('dialog', { name: 'Choose month and year' })).toBeInTheDocument()
 	})
 
-	it('names Gregorian months in a locale with another default calendar', async () => {
+	it('names Gregorian months and years in a locale with another default calendar', async () => {
 		const user = setupUser()
 
 		// `fa-IR` defaults to the Persian calendar. Its January is "ژانویه", not
@@ -387,6 +397,9 @@ describe('Calendar month/year picker', () => {
 		await user.click(screen.getByRole('button', { name: 'ژوئن ۲۰۲۵' }))
 
 		expect(screen.getByRole('option', { name: 'ژانویه' })).toBeInTheDocument()
+
+		// The picker year is the Gregorian year, in the digits of the header label.
+		expect(screen.getByRole('button', { name: '۲۰۲۵' })).toBeInTheDocument()
 	})
 
 	it('opens the year picker from the month picker and navigates decades', async () => {
@@ -535,10 +548,10 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(options[options.length - 1])
 	})
 
-	it('moves focus from the top row up into the month header', async () => {
+	it('keeps the header exit of the top row in a calendar that a parent steers', async () => {
 		const user = setupUser()
 
-		renderJune()
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} active={null} />)
 
 		act(() => day('1').focus())
 
@@ -579,11 +592,34 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	// Disabled (out-of-range) days render as `<button disabled>` and can't take
-	// focus. Roving skips them; arrow navigation must not trap at range edges (WCAG 2.1.1).
+	// focus. In a calendar that no parent steers, an arrow toward a disabled day
+	// moves the focus to the nearest enabled day, and the focus stays when that is
+	// the focused day. The arrow does not wrap, and it does not move the focus out
+	// of the grid. Tab and Shift+Tab still do.
 	function renderMinTenth() {
 		// June 2025 begins on a Sunday; `min` on the 10th disables June 1-9, so the
 		// grid's first focusable day is the 10th.
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} min={new Date(2025, 5, 10)} />)
+	}
+
+	/** June 2025 with `max` on the 20th, so June 21-30 are disabled. Set `footer` to add a footer after the calendar. */
+	function renderMaxTwentieth({ footer = false } = {}) {
+		const footerRef = createRef<HTMLDivElement>()
+
+		renderUI(
+			<>
+				<Calendar
+					defaultValue={new Date(2025, 5, 15)}
+					max={new Date(2025, 5, 20)}
+					footerRef={footer ? footerRef : undefined}
+				/>
+				{footer && (
+					<div ref={footerRef}>
+						<button type="button">Clear</button>
+					</div>
+				)}
+			</>,
+		)
 	}
 
 	it('enters the grid on the first enabled day when leading days are disabled', async () => {
@@ -598,7 +634,7 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(day('10'))
 	})
 
-	it('moves up to the header from the first enabled row instead of stalling on a disabled week', async () => {
+	it('keeps focus on the first enabled day on ArrowUp toward a disabled week, and leaves the header to Shift+Tab', async () => {
 		const user = setupUser()
 
 		renderMinTenth()
@@ -607,7 +643,342 @@ describe('Calendar keyboard navigation', () => {
 
 		await user.keyboard('{ArrowUp}')
 
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+		expect(document.activeElement).toBe(day('10'))
+
+		await user.tab({ shift: true })
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next month' }))
+	})
+
+	it('keeps focus on the min day when ArrowLeft meets a disabled day', async () => {
+		const user = setupUser()
+
+		renderMinTenth()
+
+		act(() => day('10').focus())
+
+		await user.keyboard('{ArrowLeft}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it('keeps focus on the max day when ArrowRight meets a disabled day', async () => {
+		const user = setupUser()
+
+		renderMaxTwentieth()
+
+		act(() => day('20').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(document.activeElement).toBe(day('20'))
+	})
+
+	it('moves to the min day when ArrowUp meets a disabled day before min', async () => {
+		const user = setupUser()
+
+		renderMinTenth()
+
+		act(() => day('12').focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it.each([
+		['without a footer', false],
+		['with a footer', true],
+	])(
+		'moves to the max day when ArrowDown meets a disabled day after max, %s',
+		async (_name, footer) => {
+			const user = setupUser()
+
+			renderMaxTwentieth({ footer })
+
+			act(() => day('18').focus())
+
+			await user.keyboard('{ArrowDown}')
+
+			expect(document.activeElement).toBe(day('20'))
+		},
+	)
+})
+
+// A calendar that no parent steers carries the date grid of the WAI-ARIA APG.
+// An arrow that leaves the month steps the month, PageUp and PageDown step a
+// month, and Shift with a Page key steps a year. June 2025 starts on a Sunday
+// and has 30 days.
+describe('Calendar keyboard month steps', () => {
+	const day = (n: string) =>
+		screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
+
+	/** The header control that shows the month and opens the picker. */
+	const monthLabel = () => screen.getByRole('button', { name: /^\w+ \d{4}$/ })
+
+	/** The text of each enabled day that is a Tab stop. */
+	const dayStops = () =>
+		screen
+			.getAllByRole('option')
+			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
+			.map((option) => option.textContent)
+
+	it('steps to the next month when ArrowRight leaves the last day', async () => {
+		const onMonthChange = vi.fn()
+
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} onMonthChange={onMonthChange} />)
+
+		act(() => day('30').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Tuesday, July 1, 2025')
+
+		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 6, 1))
+	})
+
+	it('steps to the previous month when ArrowLeft leaves the first day', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('1').focus())
+
+		await user.keyboard('{ArrowLeft}')
+
+		expect(monthLabel()).toHaveAccessibleName('May 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Saturday, May 31, 2025')
+	})
+
+	it('steps to the next month when ArrowDown leaves the last row', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('28').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Saturday, July 5, 2025')
+	})
+
+	it('steps to the previous month when ArrowUp leaves the top row', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('3').focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(monthLabel()).toHaveAccessibleName('May 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Tuesday, May 27, 2025')
+	})
+
+	it('steps to the next month when ArrowDown leaves the bottom row above a footer', async () => {
+		const footerRef = createRef<HTMLDivElement>()
+
+		const user = setupUser()
+
+		renderUI(
+			<>
+				<Calendar defaultValue={new Date(2025, 5, 15)} footerRef={footerRef} />
+				<div ref={footerRef}>
+					<button type="button">Clear</button>
+				</div>
+			</>,
+		)
+
+		act(() => day('28').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(document.activeElement).toHaveAccessibleName('Saturday, July 5, 2025')
+	})
+
+	it('steps a month with PageDown and PageUp, and a year with Shift', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('15').focus())
+
+		await user.keyboard('{PageDown}')
+
+		expect(document.activeElement).toHaveAccessibleName('Tuesday, July 15, 2025')
+
+		await user.keyboard('{PageUp}')
+
+		expect(document.activeElement).toHaveAccessibleName('Sunday, June 15, 2025')
+
+		await user.keyboard('{Shift>}{PageDown}{/Shift}')
+
+		expect(document.activeElement).toHaveAccessibleName('Monday, June 15, 2026')
+
+		await user.keyboard('{Shift>}{PageUp}{/Shift}')
+
+		expect(document.activeElement).toHaveAccessibleName('Sunday, June 15, 2025')
+	})
+
+	it('keeps a Page step inside a shorter month', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 0, 31)} />)
+
+		act(() => day('31').focus())
+
+		await user.keyboard('{PageDown}')
+
+		expect(document.activeElement).toHaveAccessibleName('Friday, February 28, 2025')
+	})
+
+	it.each(['PageUp', 'PageDown'])('prevents the page scroll of %s', (key) => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('15').focus())
+
+		expect(fireEvent.keyDown(day('15'), { key })).toBe(false)
+	})
+
+	it('keeps the focused day inside min and max', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Calendar
+				defaultValue={new Date(2025, 5, 15)}
+				min={new Date(2025, 5, 10)}
+				max={new Date(2025, 5, 30)}
+			/>,
+		)
+
+		act(() => day('30').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(monthLabel()).toHaveAccessibleName('June 2025')
+
+		expect(document.activeElement).toBe(day('30'))
+
+		await user.keyboard('{PageUp}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it('holds one Tab stop, on the focused day, after a month step', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => day('30').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(monthLabel()).toHaveAccessibleName('July 2025')
+
+		expect(dayStops()).toEqual(['1'])
+
+		expect(document.activeElement).toBe(day('1'))
+	})
+
+	it('leaves the Page keys to a parent that steers active', () => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} active={null} />)
+
+		act(() => day('15').focus())
+
+		expect(fireEvent.keyDown(day('15'), { key: 'PageDown' })).toBe(true)
+
+		expect(monthLabel()).toHaveAccessibleName('June 2025')
+	})
+})
+
+// The day listbox is one Tab stop. The month header holds plain buttons, and
+// each one is a Tab stop.
+describe('Calendar Tab stops', () => {
+	/** The text of each enabled day that is a Tab stop. */
+	const dayStops = () =>
+		screen
+			.getAllByRole('option')
+			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
+			.map((option) => option.textContent)
+
+	it('holds one Tab stop in the day listbox, on the selected day before an earlier today', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 10, 12))
+
+			renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+			expect(dayStops()).toEqual(['15'])
+		})
+	})
+
+	it('seats the day Tab stop on today when no day is selected', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 20, 12))
+
+			renderUI(<Calendar />)
+
+			expect(dayStops()).toEqual(['20'])
+		})
+	})
+
+	it('seats the day Tab stop on the first enabled day when today is out of range', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 5, 12))
+
+			renderUI(<Calendar min={new Date(2025, 5, 10)} />)
+
+			expect(dayStops()).toEqual(['10'])
+		})
+	})
+
+	it('seats one day Tab stop again after the month changes', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2025, 5, 20, 12))
+
+			renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+			await clock.user.click(screen.getByLabelText('Next month'))
+
+			expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
+
+			expect(dayStops()).toEqual(['1'])
+		})
+	})
+
+	it('keeps the month header controls as plain buttons, each a Tab stop', () => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+
+		const controls = [
+			screen.getByRole('button', { name: 'Previous month' }),
+			screen.getByRole('button', { name: /June 2025/ }),
+			screen.getByRole('button', { name: 'Next month' }),
+		]
+
+		expect(controls.map((control) => control.tabIndex)).toEqual([0, 0, 0])
+	})
+
+	it('reaches the month header with Shift+Tab from the day listbox', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => screen.getByRole('option', { name: 'Sunday, June 15, 2025' }).focus())
+
+		await user.tab({ shift: true })
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next month' }))
 	})
 })
 
@@ -657,6 +1028,44 @@ describe('Calendar + Form', () => {
 		)
 
 		expect(selectedDay()?.textContent).toBe('20')
+	})
+
+	// The binding cascade ignores `defaultValue` for a controlled or a bound
+	// calendar. With no value, such a calendar takes the month of the clock.
+	const ignoredSeed = new Date(2020, 0, 15)
+
+	describe.each([
+		['a controlled null value', () => <Calendar value={null} defaultValue={ignoredSeed} />],
+		[
+			'a bound field with no value',
+			() => (
+				<Form defaultValues={{ date: null }}>
+					<Calendar name="date" defaultValue={ignoredSeed} />
+				</Form>
+			),
+		],
+	])('with %s', (_, calendar) => {
+		it('shows the month of the clock, not the month of defaultValue', async () => {
+			await withFakeTime(() => {
+				vi.setSystemTime(new Date(2025, 5, 15, 12))
+
+				renderUI(calendar())
+
+				expect(screen.getByRole('listbox', { name: 'June 2025' })).toBeInTheDocument()
+
+				expect(selectedDay()).toBeUndefined()
+			})
+		})
+
+		it('holds the month back in the server markup', () => {
+			const html = renderToString(calendar())
+
+			expect(html).toContain('aria-label="Previous month"')
+
+			expect(html).not.toContain('2020')
+
+			expect(html).not.toContain('role="option"')
+		})
 	})
 })
 

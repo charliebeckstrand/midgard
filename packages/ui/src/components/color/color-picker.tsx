@@ -4,10 +4,9 @@ import type { Placement } from '@floating-ui/react'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/color-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { ColorPanel, type ColorPanelProps } from './color-panel'
+import { type ColorPanel, ColorPanelView } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
-import { serializeColor, toHsva } from './color-utilities'
 import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
 
@@ -26,7 +25,9 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 */
 	alpha?: boolean
 	/**
-	 * Preset swatches, or `false` to hide them. Passed through to the inline {@link ColorPanel}.
+	 * Preset swatches as hex colors, or `false` to hide them. Passed through to the
+	 * inline {@link ColorPanel}, which takes `#rgb`, `#rgba`, `#rrggbb`, and
+	 * `#rrggbbaa`, and warns in development of any other swatch.
 	 *
 	 * @defaultValue The {@link ColorPanel} default palette
 	 */
@@ -52,6 +53,15 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 */
 	size?: ScaleStep<typeof scale>
 	disabled?: boolean
+	/**
+	 * Blocks the open of the panel, so the color cannot change. An explicit value
+	 * wins over the `readOnly` of an enclosing Control. The trigger stays
+	 * focusable and keeps its tab stop, so a keyboard or a screen reader can read
+	 * the color. A press, Enter, or Space does not open the panel. A button does
+	 * not take `aria-readonly`, so the trigger sets `aria-disabled` while the panel
+	 * is closed. A panel that is open when `readOnly` turns on can still close.
+	 */
+	readOnly?: boolean
 	className?: string
 }
 
@@ -60,11 +70,12 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 
 /**
  * Popover color picker: a Control-integrated swatch trigger that opens a
- * floating {@link ColorPanel}, which it drives as a controlled child. Reflects
- * the current color in the trigger swatch, and speaks a hex string (default) or
- * an HSVA object per `format`. It positions via Floating UI (`placement`). It
- * takes the step of the nearest density scope, and an explicit `size` opens a
- * scope on the trigger and on the panel. Controlled or uncontrolled.
+ * floating {@link ColorPanel}. The trigger swatch and the panel share one HSVA,
+ * which keeps its full precision and its hue after the panel closes. It speaks
+ * a hex string (default) or an HSVA object per `format`. It positions via
+ * Floating UI (`placement`). It takes the step of the nearest density scope,
+ * and an explicit `size` opens a scope on the trigger and on the panel.
+ * Controlled or uncontrolled.
  *
  * The trigger is as wide as its swatch and its color value. It does not fill
  * its parent, and it does not get wider than its parent. Pass a `className`
@@ -80,6 +91,7 @@ export function ColorPicker(props: ColorPickerProps) {
 		placement = 'bottom-start',
 		size,
 		disabled,
+		readOnly,
 		className,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
@@ -98,18 +110,8 @@ export function ColorPicker(props: ColorPickerProps) {
 		onOpenChange,
 		placement,
 		disabled,
+		readOnly,
 	})
-
-	// The picker owns the color and drives the inline panel as a controlled child.
-	// The prop bag rebuilds the format union at runtime and asserts into shape.
-	const panelProps = {
-		format,
-		value: serializeColor(state.hsva, format, alpha),
-		onValueChange: (next: string | Hsva) => state.setHsva(toHsva(next) ?? state.hsva),
-		alpha,
-		swatches,
-		disabled: state.disabled,
-	} as ColorPanelProps
 
 	// `display: contents` wrapper: while open, floating-ui's modal focus manager
 	// inserts a hidden return-focus span as the reference's next sibling
@@ -131,6 +133,7 @@ export function ColorPicker(props: ColorPickerProps) {
 				alpha={alpha}
 				size={size}
 				disabled={state.disabled}
+				readOnly={state.readOnly}
 				validation={state.validation}
 				className={className}
 				data-group={dataGroup}
@@ -144,7 +147,15 @@ export function ColorPicker(props: ColorPickerProps) {
 				context={state.context}
 				size={size}
 			>
-				<ColorPanel {...panelProps} />
+				{/* The picker owns the color, and the panel reads and writes its HSVA
+				    with no wire round trip. */}
+				<ColorPanelView
+					hsva={state.hsva}
+					setHsva={state.setHsva}
+					alpha={alpha}
+					swatches={swatches}
+					disabled={state.disabled}
+				/>
 			</ColorPickerContent>
 		</div>
 	)

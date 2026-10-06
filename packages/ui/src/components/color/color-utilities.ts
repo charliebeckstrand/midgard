@@ -18,9 +18,9 @@ export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 }
 
 /**
- * Clamp and round an HSVA for output / comparison: integers for `h`/`s`/`v`,
- * two decimals for `a`. Full precision stays internal; rounding happens only
- * at these edges.
+ * Clamp and round an HSVA for output and for comparison: integers for
+ * `h`/`s`/`v`, two decimals for `a`. Full precision stays internal; rounding
+ * happens only at these edges.
  *
  * @internal
  */
@@ -34,25 +34,13 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
 }
 
 /**
- * True when two colors render identically: value and alpha must match, then
- * hue and saturation are compared only where they show. Both collapse at zero
- * value (black), and hue additionally at zero saturation (gray).
+ * True when two colors render the same: the RGB bytes and the alpha byte must
+ * match. A hue or a saturation that does not show has no effect, as on a gray
+ * or on black. Hue 360 matches hue 0. A difference of one byte, as in
+ * `#fefefe` and `#ffffff`, makes the colors different.
  */
 export function equalHsva(a: Hsva, b: Hsva): boolean {
-	const ca = roundHsva(a)
-	const cb = roundHsva(b)
-
-	if (ca.v !== cb.v || Math.abs(ca.a - cb.a) >= 0.005) return false
-
-	// Black: neither hue nor saturation is visible.
-	if (ca.v === 0) return true
-
-	if (ca.s !== cb.s) return false
-
-	// Gray: hue is not visible.
-	if (ca.s === 0) return true
-
-	return ca.h === cb.h
+	return hsvaToHex(a, true) === hsvaToHex(b, true)
 }
 
 /** Convert HSVA to RGBA; `r`/`g`/`b` round to integers `0-255`, alpha passes through clamped. */
@@ -182,18 +170,24 @@ export function toHsva(value: string | Hsva | undefined | null): Hsva | null {
 	return typeof value === 'string' ? hexToHsva(value) : clampHsva(value)
 }
 
+/** The HSVA with its alpha pinned to `1` when `alpha` is off, else the HSVA as it is. @internal */
+export function pinAlpha(hsva: Hsva, alpha: boolean): Hsva {
+	return alpha ? hsva : { ...hsva, a: 1 }
+}
+
 /** Project the internal HSVA back onto the consumer's wire format. */
 export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean): string | Hsva {
-	if (format === 'hsva') {
-		const rounded = roundHsva(hsva)
-
-		return alpha ? rounded : { ...rounded, a: 1 }
-	}
+	if (format === 'hsva') return pinAlpha(roundHsva(hsva), alpha)
 
 	return hsvaToHex(hsva, alpha)
 }
 
-/** Echo detection for controlled values: a string compares case-insensitively, an object by render-equality. */
+/**
+ * Echo detection for controlled values. A string compares case-insensitively.
+ * An object compares by its rounded channels, with the hue taken modulo 360:
+ * hue 360 matches hue 0. A change in a channel that does not show, as the hue
+ * of a gray, makes the values different.
+ */
 export function sameColorValue(
 	a: string | Hsva | null | undefined,
 	b: string | Hsva | null | undefined,
@@ -202,7 +196,12 @@ export function sameColorValue(
 
 	if (typeof a === 'string' && typeof b === 'string') return a.toLowerCase() === b.toLowerCase()
 
-	if (typeof a !== 'string' && typeof b !== 'string') return equalHsva(a, b)
+	if (typeof a !== 'string' && typeof b !== 'string') {
+		const ra = roundHsva(a)
+		const rb = roundHsva(b)
+
+		return ra.h % 360 === rb.h % 360 && ra.s === rb.s && ra.v === rb.v && ra.a === rb.a
+	}
 
 	return false
 }

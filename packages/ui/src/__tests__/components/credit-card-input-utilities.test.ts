@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	detectCardBrand,
 	formatCardNumber,
@@ -9,6 +9,21 @@ import {
 	validateCardExpiry,
 	validateCardNumber,
 } from '../../components/credit-card-input/credit-card-input-utilities'
+
+// The decimal digits of other scripts, each by the code point of its zero.
+const scripts: [string, number][] = [
+	['Arabic-Indic', 0x0660],
+	['Devanagari', 0x0966],
+	['Bengali', 0x09e6],
+	['fullwidth', 0xff10],
+]
+
+/** The mathematical monospace digit one, a digit outside the Basic Multilingual Plane. */
+const ASTRAL_ONE = '\u{1d7f7}'
+
+/** Writes the ASCII digits of `text` in the script whose zero is `zero`. */
+const inScript = (text: string, zero: number) =>
+	text.replace(/[0-9]/g, (digit) => String.fromCodePoint(zero + Number(digit)))
 
 describe('detectCardBrand', () => {
 	it.each([
@@ -68,6 +83,16 @@ describe('formatCardNumber', () => {
 	it('returns an empty formatted string for empty input', () => {
 		expect(formatCardNumber('')).toEqual({ formatted: '', digits: '', brand: undefined })
 	})
+
+	it.each(scripts)('changes %s digits to ASCII digits', (_name, zero) => {
+		const { formatted, digits, brand } = formatCardNumber(inScript('4111 1111 1111 1111', zero))
+
+		expect(formatted).toBe('4111 1111 1111 1111')
+
+		expect(digits).toBe('4111111111111111')
+
+		expect(brand?.brand).toBe('visa')
+	})
 })
 
 describe('formatExpiry', () => {
@@ -120,6 +145,29 @@ describe('formatExpiry', () => {
 
 		expect(formatExpiry('12/')).toBe('12/')
 	})
+
+	it('keeps the last two digits of a four-digit year that a separator follows', () => {
+		expect(formatExpiry('12/2027')).toBe('12/27')
+
+		expect(formatExpiry('12 - 2027')).toBe('12/27')
+
+		expect(formatExpiry('4/2027')).toBe('04/27')
+	})
+
+	it('does not cut a four-digit year with no separator before it', () => {
+		expect(formatExpiry('122027')).toBe('12/20')
+	})
+
+	it.each(scripts)(
+		'changes %s digits to ASCII digits before the pad and the cut',
+		(_name, zero) => {
+			expect(formatExpiry(inScript('1227', zero))).toBe('12/27')
+
+			expect(formatExpiry(inScript('4/27', zero))).toBe('04/27')
+
+			expect(formatExpiry(inScript('12/2027', zero))).toBe('12/27')
+		},
+	)
 })
 
 describe('formatCvv', () => {
@@ -133,6 +181,22 @@ describe('formatCvv', () => {
 
 	it('returns an empty string when no digits are present', () => {
 		expect(formatCvv('abc', 3)).toBe('')
+	})
+
+	it.each(scripts)('changes %s digits to ASCII digits', (_name, zero) => {
+		expect(formatCvv(inScript('1234', zero), 3)).toBe('123')
+	})
+})
+
+describe('a digit outside the Basic Multilingual Plane', () => {
+	// The caret of a card mask cannot count such a digit. When a formatter
+	// keeps one, the next typed digit goes in front of it.
+	it('is removed by each card formatter', () => {
+		expect(formatCardNumber(`41${ASTRAL_ONE}`).formatted).toBe('41')
+
+		expect(formatCvv(`12${ASTRAL_ONE}`, 3)).toBe('12')
+
+		expect(formatExpiry(`12${ASTRAL_ONE}`)).toBe('12/')
 	})
 })
 
@@ -236,6 +300,22 @@ describe('validateCardExpiry', () => {
 		expect(validateCardExpiry('12/')).toEqual({
 			isValid: false,
 			isPotentiallyValid: true,
+		})
+	})
+
+	it('gives a final verdict for a full-length entry with the year 20', () => {
+		// In the years 2000 to 2099, card-validator reads the year "20" as the
+		// start of a four-digit year. A full "MM/YY" entry cannot grow, so it
+		// cannot become valid.
+		vi.useFakeTimers({ now: new Date(2026, 9, 5) })
+
+		onTestFinished(() => {
+			vi.useRealTimers()
+		})
+
+		expect(validateCardExpiry('12/20')).toEqual({
+			isValid: false,
+			isPotentiallyValid: false,
 		})
 	})
 })

@@ -16,6 +16,8 @@ type CalendarHeaderProps = {
 	monthLabel: string
 	/** Short month labels for the year/month picker, in the active locale. */
 	monthLabels: string[]
+	/** The resolved BCP 47 tag of the calendar. The picker writes its years in the digits of this locale. */
+	localeTag: string
 	pickerOpen: boolean
 	onPickerOpenChange: (open: boolean) => void
 	onPickerNavigate: (year: number, month: number) => void
@@ -24,11 +26,11 @@ type CalendarHeaderProps = {
 }
 
 /**
- * `role="toolbar"` row of prev/next month chevrons flanking the month/year
- * picker trigger. `activeIndex` paints the roving-focus highlight on the
- * matching control (0 prev, 1 picker, 2 next). Memoized: a move of the roved
- * day, a new selection, or a range preview does not render the header or its
- * picker again.
+ * Row of prev/next month chevrons flanking the month/year picker trigger. The
+ * three controls are plain buttons, and each one is a Tab stop. `activeIndex`
+ * paints the roving-focus highlight on the matching control (0 prev, 1 picker,
+ * 2 next). Memoized: a move of the roved day, a new selection, or a range
+ * preview does not render the header or its picker again.
  *
  * @internal
  */
@@ -41,6 +43,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 	today,
 	monthLabel,
 	monthLabels,
+	localeTag,
 	pickerOpen,
 	onPickerOpenChange,
 	onPickerNavigate,
@@ -50,7 +53,6 @@ export const CalendarHeader = memo(function CalendarHeader({
 	return (
 		<CalendarToolbar
 			toolbarRef={headerRef}
-			label="Month navigation"
 			onKeyDown={onHeaderKeyDown}
 			prevLabel="Previous month"
 			nextLabel="Next month"
@@ -66,6 +68,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 				onNavigate={onPickerNavigate}
 				monthLabel={monthLabel}
 				monthLabels={monthLabels}
+				localeTag={localeTag}
 				open={pickerOpen}
 				onOpenChange={onPickerOpenChange}
 				triggerClassName={cn(activeIndex === 1 && k.day.active)}
