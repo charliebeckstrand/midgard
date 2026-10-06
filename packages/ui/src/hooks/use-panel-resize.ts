@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { dataAttr } from '../core'
 import { clamp, pct } from '../utilities'
-import { useDragCursor } from './use-drag-cursor'
+import { type DragCursor, useDragCursor } from './use-drag-cursor'
 
 /** How far one arrow press moves the edge, as a share of the screen. */
 const STEP = 0.1
@@ -181,6 +181,12 @@ export type PanelResizeOptions = {
 	 * ceiling of the whole screen would push its far edge off the other side.
 	 */
 	ceilingOf: PanelCeiling
+	/**
+	 * The cursor that the page holds while a pointer drags. The default is
+	 * `grabbing`, the closed hand of a grab bar. A handle with a resize cursor at
+	 * rest holds that cursor instead.
+	 */
+	cursor?: DragCursor
 }
 
 /**
@@ -218,6 +224,7 @@ export function usePanelResize({
 	open,
 	floorOf,
 	ceilingOf,
+	cursor = 'grabbing',
 }: PanelResizeOptions): PanelResize {
 	const { axis, sign } = SIDES[side]
 
@@ -247,8 +254,8 @@ export function usePanelResize({
 	const [resizing, setResizing] = useState(false)
 
 	// The gesture listens on the window and captures nothing, so the element under
-	// the pointer would set the cursor. The rule holds the closed hand instead.
-	useDragCursor(resizing)
+	// the pointer would set the cursor. The rule holds the drag cursor instead.
+	useDragCursor(resizing, cursor)
 
 	// The share of the screen the panel covers. Measured rather than derived: at
 	// rest the size is whatever the panel's variant works out to on this screen,
