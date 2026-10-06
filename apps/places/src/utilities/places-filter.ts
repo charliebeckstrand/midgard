@@ -49,7 +49,14 @@ export function toDay(date: Date): string {
 	return `${year}-${month}-${day}`
 }
 
-/** Reads a stored `YYYY-MM-DD` day back as a local midnight, for display. */
+/**
+ * The format of a stored day, such as `Oct 4, 2026`. A `YYYY-MM-DD` string
+ * parses as a UTC midnight, so the format reads it in UTC. The day is then
+ * the same in each zone and in each render.
+ */
+export const DAY_FORMAT: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeZone: 'UTC' }
+
+/** Reads a stored `YYYY-MM-DD` day back as a local midnight. */
 export function fromDay(day: string): Date {
 	const [year, month, date] = day.split('-').map(Number)
 

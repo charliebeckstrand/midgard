@@ -22,7 +22,7 @@ export type LocaleProviderProps = LocaleConfig & {
 
 /**
  * Broadcasts `Intl` formatting defaults (locale tag, currency, number and date
- * options) to format-aware components. Explicit props on individual components
+ * options, time zone) to format-aware components. Explicit props on individual components
  * still win. The default number formats of charts, maps, PivotTable, grid
  * aggregates, and Odometer take its `locale`.
  *
@@ -51,6 +51,7 @@ export function LocaleProvider({
 	currency,
 	numberFormat,
 	dateFormat,
+	timeZone,
 	dir,
 	children,
 }: LocaleProviderProps) {
@@ -59,6 +60,7 @@ export function LocaleProvider({
 		currency: outerCurrency,
 		numberFormat: outerNumberFormat,
 		dateFormat: outerDateFormat,
+		timeZone: outerTimeZone,
 	} = useLocale()
 
 	const value = useMemo<LocaleConfig>(
@@ -67,16 +69,19 @@ export function LocaleProvider({
 			currency: currency ?? outerCurrency,
 			numberFormat: numberFormat ?? outerNumberFormat,
 			dateFormat: dateFormat ?? outerDateFormat,
+			timeZone: timeZone ?? outerTimeZone,
 		}),
 		[
 			locale,
 			currency,
 			numberFormat,
 			dateFormat,
+			timeZone,
 			outerLocale,
 			outerCurrency,
 			outerNumberFormat,
 			outerDateFormat,
+			outerTimeZone,
 		],
 	)
 

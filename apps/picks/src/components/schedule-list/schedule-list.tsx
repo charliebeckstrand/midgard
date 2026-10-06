@@ -11,24 +11,18 @@ import { cn } from 'ui/core'
 import { Label } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
+import { useDateFormat } from 'ui/providers/locale'
 import { Flex } from 'ui/structure/flex'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { useDeletePicks, usePicks, useSavePicks } from '../../queries/picks-queries'
 import type { SeasonPicks, Week } from '../../types'
 import { formatRecord, recordColor, type Tally } from '../../utilities/grade'
 import { PREDICT_PARAM, predictValue, readPredictValue } from '../../utilities/predict-param'
-import { LEAGUE_ZONE, useLocalTime } from '../../utilities/use-local-time'
 import { KickoffTime } from '../kickoff-time'
 import { PredictionSheet } from '../prediction-sheet'
 
-/** The parts of a day in the range of a week. */
+/** The days of a week, such as `Sep 9 – 15`. */
 const DAY: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
-
-/** The days of a week, such as `Sep 9 – 15`, in the time zone of the reader. */
-const rangeFormat = new Intl.DateTimeFormat('en-US', DAY)
-
-/** The days of a week in the zone of the league, for the server and the hydration render. */
-const leagueRangeFormat = new Intl.DateTimeFormat('en-US', { ...DAY, timeZone: LEAGUE_ZONE })
 
 /**
  * Writes the week of the prediction form into the address, or takes it out.
@@ -179,7 +173,7 @@ export function ScheduleList({
 
 	const [showDates, setShowDates] = useState(false)
 
-	const range = useLocalTime() ? rangeFormat : leagueRangeFormat
+	const range = useDateFormat(DAY)
 
 	return (
 		<>

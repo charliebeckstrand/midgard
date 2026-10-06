@@ -7,6 +7,7 @@ import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Card, CardHeader, CardTitle } from 'ui/card'
 import { Confirm } from 'ui/confirm'
+import { DateTime } from 'ui/date-time'
 import { Icon } from 'ui/icon'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Stack } from 'ui/structure/stack'
@@ -37,8 +38,6 @@ type AccountClientProps = {
 	/** The `?error=` code that a connect came back with, if any. */
 	connectError?: string
 }
-
-const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 /**
  * Account page: the email notice, the passkeys, authenticator app, recovery
@@ -137,7 +136,7 @@ export function AccountClient({
 								>
 									<ListLabel>Passkey {index + 1}</ListLabel>
 									<ListDescription>
-										Added {new Date(passkey.created_at).toLocaleString(undefined, dateFormat)}
+										Added <DateTime value={passkey.created_at} />
 									</ListDescription>
 								</ListItem>
 							)}

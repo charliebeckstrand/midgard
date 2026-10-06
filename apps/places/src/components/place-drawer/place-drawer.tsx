@@ -6,12 +6,14 @@ import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { useCopyButtonState } from 'ui/copy-button'
+import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { List, ListItem } from 'ui/list'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { useDateFormat } from 'ui/providers/locale'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -19,7 +21,7 @@ import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory, Visit } from '../../types'
-import { fromDay } from '../../utilities/places-filter'
+import { DAY_FORMAT } from '../../utilities/places-filter'
 import { groupName } from '../../utilities/places-view'
 import {
 	latestVisit,
@@ -86,7 +88,9 @@ function PlaceMeta({ place }: { place: Place }) {
 		<Flex as="span" gap="sm" align="center" wrap>
 			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
 
-			<Text as="span">{fromDay(latest.visitedAt).toLocaleDateString()}</Text>
+			<Text as="span">
+				<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
+			</Text>
 
 			{latest.rating > 0 ? <Rating readOnly value={latest.rating} size="sm" /> : null}
 
@@ -156,7 +160,7 @@ function PlaceVisit({
 	visit: Visit
 	actions: VisitActions
 }) {
-	const day = fromDay(visit.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })
+	const day = useDateFormat(DAY_FORMAT).format(new Date(visit.visitedAt))
 
 	return (
 		<Stack gap="sm">

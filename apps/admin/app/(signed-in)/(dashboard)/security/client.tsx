@@ -5,6 +5,7 @@ import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
+import { DateTime } from 'ui/date-time'
 import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
@@ -17,8 +18,6 @@ type SecurityClientProps = {
 	bans: Ban[]
 }
 
-const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
-
 const threatLabels: Record<string, string> = {
 	brute_force: 'Repeated failed sign-ins',
 	credential_stuffing: 'Failed sign-ins to many accounts',
@@ -27,10 +26,6 @@ const threatLabels: Record<string, string> = {
 }
 
 const severityColors = { low: 'zinc', medium: 'amber', high: 'red' } as const
-
-function formatDate(value: string): string {
-	return new Date(value).toLocaleString(undefined, dateFormat)
-}
 
 /**
  * The threats that Vidar found and the bans in force, with an action that
@@ -78,7 +73,9 @@ export function SecurityClient({
 								<TableRow key={ban.id}>
 									<TableCell className="font-mono">{ban.ip}</TableCell>
 									<TableCell>{ban.reason}</TableCell>
-									<TableCell>{ban.expires_at ? formatDate(ban.expires_at) : 'Permanent'}</TableCell>
+									<TableCell>
+										{ban.expires_at ? <DateTime value={ban.expires_at} /> : 'Permanent'}
+									</TableCell>
 									<TableCell className="text-end">
 										<Button
 											variant="outline"
@@ -130,7 +127,9 @@ export function SecurityClient({
 											{threat.resolved ? 'Resolved' : 'Open'}
 										</Badge>
 									</TableCell>
-									<TableCell>{formatDate(threat.created_at)}</TableCell>
+									<TableCell>
+										<DateTime value={threat.created_at} />
+									</TableCell>
 									<TableCell className="text-end">
 										<Button
 											variant="outline"

@@ -11,6 +11,7 @@ function LocaleProbe() {
 			<span data-testid="currency">{config.currency ?? ''}</span>
 			<span data-testid="numberFormat">{config.numberFormat?.style ?? ''}</span>
 			<span data-testid="dateFormat">{config.dateFormat?.dateStyle ?? ''}</span>
+			<span data-testid="timeZone">{config.timeZone ?? ''}</span>
 		</>
 	)
 }
@@ -39,7 +40,7 @@ describe('LocaleProvider', () => {
 
 	it('folds a nested provider over the enclosing config rather than replacing it', () => {
 		renderUI(
-			<LocaleProvider locale="fr-FR" dateFormat={{ dateStyle: 'long' }}>
+			<LocaleProvider locale="fr-FR" dateFormat={{ dateStyle: 'long' }} timeZone="Asia/Tokyo">
 				<LocaleProvider currency="EUR">
 					<LocaleProbe />
 				</LocaleProvider>
@@ -51,6 +52,8 @@ describe('LocaleProvider', () => {
 		expect(screen.getByTestId('locale')).toHaveTextContent('fr-FR')
 
 		expect(screen.getByTestId('dateFormat')).toHaveTextContent('long')
+
+		expect(screen.getByTestId('timeZone')).toHaveTextContent('Asia/Tokyo')
 	})
 
 	it('falls back to an empty config when no provider wraps the consumer', () => {

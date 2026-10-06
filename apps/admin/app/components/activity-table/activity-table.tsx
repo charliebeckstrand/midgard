@@ -1,4 +1,5 @@
 import type { Schema } from 'auth'
+import { DateTime } from 'ui/date-time'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 
@@ -10,8 +11,6 @@ export type ActivityTableProps = {
 	/** The events, newest first. */
 	activity: Activity[]
 }
-
-const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 const methodNames: Record<string, string> = {
 	password: 'a password',
@@ -81,7 +80,7 @@ export function ActivityTable({ activity }: ActivityTableProps) {
 						<TableCell>{describe(event)}</TableCell>
 						<TableCell>{event.ip ?? ''}</TableCell>
 						<TableCell>
-							{new Date(event.created_at).toLocaleString(undefined, dateFormat)}
+							<DateTime value={event.created_at} />
 						</TableCell>
 					</TableRow>
 				))}

@@ -25,6 +25,15 @@ export type LocaleConfig = {
 	numberFormat?: Intl.NumberFormatOptions
 	/** Default options for `Intl.DateTimeFormat`-based components. */
 	dateFormat?: Intl.DateTimeFormatOptions
+	/**
+	 * IANA time zone (e.g. `'UTC'`, `'America/New_York'`) of the server render
+	 * and the hydration render of a date. The server does not know the zone of
+	 * the reader, so both renders use this zone. The render after hydration uses
+	 * the zone of the reader. `useDateFormat` and `DateTime` read it.
+	 *
+	 * @defaultValue `'UTC'` in `useDateFormat`
+	 */
+	timeZone?: string
 }
 
 /**
