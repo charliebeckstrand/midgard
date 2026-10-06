@@ -4,11 +4,13 @@ import { Nav, NavItem, NavList } from '../../components/nav'
 import { useNavItem } from '../../components/nav/use-nav-item'
 import { TabList, Tabs } from '../../components/tabs'
 import { Tab } from '../../components/tabs/tab'
+import { UIProvider } from '../../providers/ui'
 import { act, fireEvent, renderUI, screen } from '../helpers'
 
 /**
- * A change of the current value renders only the tab or the nav item that
- * stops being current and the one that becomes current.
+ * A change of the current value, or of the `pathname` of `UIProvider`, renders
+ * only the tab or the nav item that stops being current and the one that
+ * becomes current.
  *
  * The current value was in the `Current` context, and each tab and nav item
  * read it to find its own `current`. A change therefore rendered each item.
@@ -114,5 +116,38 @@ describe('current item renders', () => {
 		expect(click('button', 'item-5', navItemRenders)).toBe(2)
 
 		expect(screen.getByRole('button', { name: 'item-5' })).toHaveAttribute('aria-current', 'true')
+	})
+
+	it('renders only the two nav items that a change of the pathname changes', () => {
+		function Links({ pathname }: { pathname: string }) {
+			// Memoized, as a consumer that holds its item elements does.
+			const children = useMemo(
+				() =>
+					VALUES.map((value) => (
+						<NavItem key={value} href={`/${value}`}>
+							{value}
+						</NavItem>
+					)),
+				[],
+			)
+
+			return (
+				<UIProvider pathname={pathname}>
+					<Nav>
+						<NavList>{children}</NavList>
+					</Nav>
+				</UIProvider>
+			)
+		}
+
+		const { rerender } = renderUI(<Links pathname="/item-0" />)
+
+		vi.mocked(useNavItem).mockClear()
+
+		rerender(<Links pathname="/item-5" />)
+
+		expect(navItemRenders()).toBe(2)
+
+		expect(screen.getByRole('link', { name: 'item-5' })).toHaveAttribute('aria-current', 'page')
 	})
 })

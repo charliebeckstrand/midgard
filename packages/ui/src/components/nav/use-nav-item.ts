@@ -11,6 +11,7 @@ import {
 import { useScrollWithin } from '../../hooks'
 import { useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
+import { type PathMatch, usePathMatch } from '../../primitives/current/current-pathname'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 
@@ -27,9 +28,16 @@ export type NavItemProps = {
 	/**
 	 * Marks the item as current: the item takes `aria-current` and shows the
 	 * active indicator. Omit it to let an item with a `value` read the state from
-	 * the enclosing selection.
+	 * the enclosing selection, or an item with an `href` read it from the
+	 * `pathname` of `UIProvider`.
 	 */
 	current?: boolean
+	/**
+	 * How the `href` matches the `pathname` of `UIProvider`: `exact`, or `prefix`
+	 * to stay current on each path under the `href`, as a section root does.
+	 * @defaultValue 'exact'
+	 */
+	match?: PathMatch
 	/** Classes for the inner button or link. The wrapper of the row does not take them. */
 	className?: string
 	/**
@@ -53,13 +61,17 @@ type NavItemOptions = {
 	current?: boolean
 	/** Binds to the surrounding selection context; when set, click reports it and `current` resolves against it. */
 	value?: string
+	/** The link of the item. Without `current` or `value`, `current` resolves against the `pathname` of `UIProvider`. */
+	href?: string
+	match?: PathMatch
 	preventClose?: boolean
 	onClick?: NavItemProps['onClick']
 }
 
 /**
  * Shared behavior for nav-item components. Resolves the current state from an
- * explicit `current` prop, or from the selection binding via `value`. It also
+ * explicit `current` prop, from the selection binding via `value`, or from the
+ * path binding via `href`. It also
  * scrolls the active item into view. It composes the click handler from the user `onClick`, the selection change, and
  * the offcanvas close.
  *
@@ -69,7 +81,7 @@ type NavItemOptions = {
  * @returns The scroll-target `ref`, resolved `current`, the active
  * indicator handle, and the composed `handleClick`.
  */
-export function useNavItem({ current, value, preventClose, onClick }: NavItemOptions) {
+export function useNavItem({ current, value, href, match, preventClose, onClick }: NavItemOptions) {
 	const ref = useRef<HTMLSpanElement>(null)
 
 	const indicator = useActiveIndicator()
@@ -77,9 +89,12 @@ export function useNavItem({ current, value, preventClose, onClick }: NavItemOpt
 	// The item reads its own value, so a change renders only the item that stops
 	// being current and the item that becomes current.
 	const item = useCurrentItem(value)
+	// The item reads its own `href`, so a navigation renders only the items whose
+	// match changes.
+	const onPath = usePathMatch(href, match)
 	const scrollWithin = useScrollWithin()
 
-	const isCurrent = current ?? item.current
+	const isCurrent = current ?? (value === undefined ? onPath : item.current)
 
 	// Scroll once per becoming-current edge, tracked in a ref. The effect also
 	// re-fires without an edge: StrictMode's dev double-invoke replays layout

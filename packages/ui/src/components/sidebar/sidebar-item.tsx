@@ -60,7 +60,9 @@ function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
 /**
  * Navigation row inside a `Sidebar`, rendering as a `Button` (or `Link` when
  * `href` is set) marked `aria-current` while `current`: `"page"` on a link, and
- * `"true"` on a button, which switches a view in the page. Wraps in an
+ * `"true"` on a button, which switches a view in the page. Without `current`, a
+ * link is current when its `href` matches the `pathname` of `UIProvider` (see
+ * `match`). Wraps in an
  * `<li>` inside a `SidebarList`, else a `<div>`. A `prefix`/`suffix` affix
  * flips the row to a flex layout. Its slots join the cross-axis roving model,
  * and sit inside the shared hover tint and focus ring. A `SidebarItemActions`
@@ -74,6 +76,7 @@ function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
 export function SidebarItem({
 	icon,
 	current,
+	match,
 	size,
 	className,
 	children,
@@ -88,7 +91,7 @@ export function SidebarItem({
 		current: isCurrent,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
-	} = useNavItem({ current, preventClose, onClick })
+	} = useNavItem({ current, href: props.href, match, preventClose, onClick })
 
 	// Inside a SidebarList the wrapper is an <li>; standalone it is a <div>. The
 	// wrapper holds the affix slots, which can hold flow content.

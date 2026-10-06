@@ -14,8 +14,9 @@ The single integration point an app mounts once at its root.
 
 | Export | Summary |
 |---|---|
-| `UIProvider` | App-root integration point registering the framework link component and default portal container. |
+| `UIProvider` | App-root integration point registering the framework link component, the default portal container, and the current `pathname`. A `SidebarItem` or a `NavItem` with an `href` that matches the `pathname` is current. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
+| `PathMatch` *(type)* | How an item `href` matches the `pathname`: `exact`, or `prefix` to also match each path under the `href`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |
 | `PortalContainer` *(type)* | DOM node to teleport portaled UI into, or `null` to defer to each portal's own fallback. |

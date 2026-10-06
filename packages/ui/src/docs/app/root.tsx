@@ -114,14 +114,14 @@ export default function App() {
 	useIdle(warmShiki)
 
 	return (
-		<UIProvider link={RouterLink}>
+		<UIProvider link={RouterLink} pathname={pathname}>
 			<title>{page ? `${page.name} · Docs` : 'Docs'}</title>
 			<Stylesheet />
 			<SidebarLayout
 				stickyHeader
 				floating={!locked}
 				actions={ACTIONS}
-				sidebar={<DocsSidebar pages={pages} current={page?.path} />}
+				sidebar={<DocsSidebar pages={pages} />}
 			>
 				<SidebarLayoutHeader>
 					<Flex align="center" gap="md">

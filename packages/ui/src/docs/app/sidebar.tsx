@@ -40,10 +40,12 @@ function SearchResults({ pages }: { pages: readonly PageLink[] }) {
 		))
 }
 
-// A navigation changes `current` for two items only, so each item memoizes.
-const PageItem = memo(function PageItem({ page, current }: { page: PageLink; current: boolean }) {
+// An item is current on its page and on each tab of the page, which is a path
+// under the page. The item reads the path from `UIProvider`, so a navigation
+// renders only the two items whose match changes.
+const PageItem = memo(function PageItem({ page }: { page: PageLink }) {
 	return (
-		<SidebarItem href={page.path} current={current}>
+		<SidebarItem href={page.path} match="prefix">
 			<SidebarLabel>{page.name}</SidebarLabel>
 		</SidebarItem>
 	)
@@ -53,15 +55,9 @@ const PageItem = memo(function PageItem({ page, current }: { page: PageLink; cur
  * The sidebar of the docs: the search, the sort order, and the pages of each
  * section. A pick in the search goes to its page, as a click on its item does.
  * The shell renders again on each change of the router state, and the props
- * change only on a navigation, so the sidebar memoizes.
+ * do not change, so the sidebar memoizes.
  */
-export const DocsSidebar = memo(function DocsSidebar({
-	pages,
-	current,
-}: {
-	pages: readonly PageLink[]
-	current: string | undefined
-}) {
+export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonly PageLink[] }) {
 	const id = useId()
 
 	const offcanvas = use(OffcanvasContext)
@@ -117,7 +113,7 @@ export const DocsSidebar = memo(function DocsSidebar({
 						</Text>
 						<SidebarList aria-label={section}>
 							{(descending ? links.toReversed() : links).map((page) => (
-								<PageItem key={page.path} page={page} current={page.path === current} />
+								<PageItem key={page.path} page={page} />
 							))}
 						</SidebarList>
 					</SidebarSection>
