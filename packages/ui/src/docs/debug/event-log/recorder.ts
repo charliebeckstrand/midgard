@@ -1,9 +1,10 @@
 import { subscribeOverlaySignal } from 'ui/primitives/overlay'
 import { createEmitter } from '../../../utilities/emitter.ts'
 import { noop } from '../../../utilities/noop.ts'
+import { listenComponentEvents } from './component-events.ts'
 
 /** The kinds of an {@link Entry}. */
-const KINDS = [
+export const KINDS = [
 	'load',
 	'paint',
 	'route',
@@ -11,6 +12,7 @@ const KINDS = [
 	'scroll',
 	'viewport',
 	'call',
+	'component',
 	'overlay',
 	'error',
 	'hmr',
@@ -381,6 +383,8 @@ export function listen(target: EventLog): () => void {
 	)
 
 	on(window, 'pagehide', () => target.save())
+
+	cleanups.push(listenComponentEvents((text) => note('component', text)))
 
 	cleanups.push(subscribeOverlaySignal(() => note('overlay', `overlay opens ${viewport()}`)))
 
