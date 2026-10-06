@@ -49,12 +49,9 @@ const header = defineRecipe({
  */
 const projection = {
 	outline: [
-		'[&>*>tr>td]:border',
-		'[&>*>tr>td]:border-zinc-950/5',
-		'dark:[&>*>tr>td]:border-white/5',
-		'[&>*>tr>th]:border',
-		'[&>*>tr>th]:border-zinc-950/5',
-		'dark:[&>*>tr>th]:border-white/5',
+		'[&>*>tr>:is(td,th)]:border',
+		'[&>*>tr>:is(td,th)]:border-zinc-950/5',
+		'dark:[&>*>tr>:is(td,th)]:border-white/5',
 	],
 	striped: {
 		odd: [

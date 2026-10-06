@@ -14,17 +14,17 @@ const { divider } = sen
  */
 const mini = {
 	/** Collapses the nav to its intrinsic icon-rail width. */
-	rail: 'lg:data-[mini]:w-fit',
+	rail: 'lg:data-mini:w-fit',
 	/** Removes a slot from the rail entirely (affixes, item actions, header content). */
-	hidden: 'lg:group-data-[mini]/sidebar:hidden',
+	hidden: 'lg:group-data-mini/sidebar:hidden',
 	/** Visually removes the label from the rail but keeps it in the accessible name. */
-	srOnly: 'lg:group-data-[mini]/sidebar:sr-only',
+	srOnly: 'lg:group-data-mini/sidebar:sr-only',
 	/**
 	 * Squares the item to the rail width with the icon centered. The width of
 	 * the widest icon sets the rail, so height-from-width keeps every item the
 	 * same square even when glyph aspect ratios differ (FontAwesome).
 	 */
-	square: 'lg:group-data-[mini]/sidebar:aspect-square lg:group-data-[mini]/sidebar:justify-center',
+	square: 'lg:group-data-mini/sidebar:aspect-square lg:group-data-mini/sidebar:justify-center',
 } as const
 
 /**

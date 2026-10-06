@@ -151,8 +151,8 @@ const fitCell = 'w-px text-center align-middle [line-height:0]'
 const reveal = {
 	track: [
 		'grid',
-		'[grid-template-rows:0fr]',
-		'data-[open]:[grid-template-rows:1fr]',
+		'grid-rows-[0fr]',
+		'data-open:grid-rows-[1fr]',
 		'transition-[grid-template-rows]',
 		'duration-200',
 		'ease-in-out',
@@ -194,7 +194,7 @@ export const k = {
 		// `scrollbar-gutter: stable` reserves the scrollbar's track up front, so the
 		// bar appearing on the first overflow (an infinite-scroll viewport-fill, a
 		// grown row set) doesn't shrink the content width and reflow every column.
-		wrapper: 'overflow-auto [scrollbar-gutter:stable]',
+		wrapper: 'overflow-auto scrollbar-gutter-stable',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. The fill matches the surface under the grid (see `hostSurface`): a
 		// card or dialog that holds the grid, else the content host.
@@ -283,14 +283,10 @@ export const k = {
 		// tint is an all-sides `border-color`; only the sided widths below render it,
 		// so the top/inline-start rules inherit the same color without repeating it.
 		cell: [
-			'[&>*>tr>td]:border-e',
-			'[&>*>tr>td]:border-b',
-			'[&>*>tr>th]:border-e',
-			'[&>*>tr>th]:border-b',
-			'[&>*>tr>td]:border-zinc-950/5',
-			'dark:[&>*>tr>td]:border-white/5',
-			'[&>*>tr>th]:border-zinc-950/5',
-			'dark:[&>*>tr>th]:border-white/5',
+			'[&>*>tr>:is(td,th)]:border-e',
+			'[&>*>tr>:is(td,th)]:border-b',
+			'[&>*>tr>:is(td,th)]:border-zinc-950/5',
+			'dark:[&>*>tr>:is(td,th)]:border-white/5',
 		],
 		// Top outer edge: the first header row, riding the sticky header.
 		top: ['[&>thead>tr:first-child>th]:border-t'],
@@ -396,7 +392,7 @@ export const k = {
 		// `min-w-0` lets the button shrink within the header slot so its title can
 		// truncate; the title carries the ellipsis while the sort arrow holds its size.
 		// The trailing pair holds the title at the muted shade on hover while a column
-		// drag lifts and mutes this header (an ancestor carrying `data-dragging`) —
+		// drag lifts and mutes this header (an ancestor carrying `data-[dragging]`) —
 		// otherwise `fg.hover` would brighten the held column's own title under the
 		// dragging pointer, fighting the dim cue. The `hover:not-disabled` modifiers
 		// mirror `fg.hover`, and the `[data-dragging]` ancestor adds the specificity
@@ -606,9 +602,9 @@ export const k = {
 			'transition-transform',
 			'duration-200',
 			'motion-reduce:transition-none',
-			'data-[open]:rotate-90',
+			'data-open:rotate-90',
 			'rtl:-scale-x-100',
-			'rtl:data-[open]:-rotate-90',
+			'rtl:data-open:-rotate-90',
 		],
 		// The reveal wrapper in the `<td>` of the detail row, as the group leaves
 		// have, so a panel grows and shrinks to its content height.
@@ -674,7 +670,7 @@ export const k = {
 				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',
 			),
 			'group-focus-visible/grid-resize:bg-blue-500 dark:group-focus-visible/grid-resize:bg-blue-500',
-			'group-data-[resizing]/grid-resize:bg-blue-500 dark:group-data-[resizing]/grid-resize:bg-blue-500',
+			'group-data-resizing/grid-resize:bg-blue-500 dark:group-data-resizing/grid-resize:bg-blue-500',
 		],
 	},
 	filter: {
@@ -728,11 +724,10 @@ export const k = {
 	condensed: {
 		// Step header + body cell text below the table's `text-base` base. The
 		// selector targets the cell element, so a consumer cell that sets its own
-		// size still overrides it. Tailwind scans whole literals, so each class is
-		// written out.
+		// size still overrides it.
 		// An icon or a badge in a cell takes the `sm` step of the table scope, and
 		// one with an explicit `size` keeps that size.
-		font: ['[&>*>tr>td]:text-sm', '[&>*>tr>th]:text-sm'],
+		font: ['[&>*>tr>:is(td,th)]:text-sm'],
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
 	// status bar. Wraps on narrow viewports; the leading slot holds a single count
@@ -813,9 +808,9 @@ export const k = {
 		// <td>. Inset so the scroll container can't clip it; accent blue, matching
 		// the editable grid's active cell.
 		cell: [
-			'data-[active]:ring-2',
-			'data-[active]:ring-inset',
-			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
+			'data-active:ring-2',
+			'data-active:ring-inset',
+			...mode('data-active:ring-blue-600', 'dark:data-active:ring-blue-500'),
 			// A cell of the cursor's range (`range`) takes a tint and a hairline
 			// outline. The outline, not the tint, holds the 3:1 contrast of the state
 			// (WCAG 1.4.11). It is an outline, so it does not stack with the ring.

@@ -17,8 +17,7 @@ const label = defineRecipe({
 	base: [
 		'flex w-fit select-none',
 		...cursor,
-		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
-		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',
+		'[:is([data-slot=field],[data-slot=control])[data-disabled]_&]:cursor-not-allowed',
 		text.default,
 		ji.ramp,
 		...disabled,

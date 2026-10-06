@@ -21,17 +21,14 @@ export const field = [
 	'[&>[data-slot=flex]>[data-slot=label]]:font-medium',
 	'[&>[data-slot=flex]:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:mb-1',
 	'[&>[data-slot=description]+[data-slot]]:mt-1',
-	'[&>[data-slot=control]+[data-slot]]:mt-2',
-	'[&>[data-slot=control-frame]+[data-slot]]:mt-2',
+	'[&>:is([data-slot=control],[data-slot=control-frame],[data-slot=field])+[data-slot]]:mt-2',
 	// A list of controls, such as a reorderable list of inputs, takes the gap that
 	// a single control takes to the slots under it. The rule names the later
 	// slots with `~`, not `+`, because a reorderable list puts the hidden live
 	// region and instructions of its drag behind the `<ul>`, and they have no slot.
 	'[&>[data-slot=list]~[data-slot]]:mt-2',
-	'[&>[data-slot=field]+[data-slot]]:mt-2',
-	'[&>[data-slot=field]+[role=alert]]:mt-2',
-	// Gap from a control to the message under it, named by the message rather than
-	// by what precedes it. The rules above name the control, which only reaches the
+	// Gap from a control to the message or the alert under it, named by the message
+	// or the alert rather than by what precedes it. The rules above name the control, which only reaches the
 	// controls that render their frame as a direct child of the Field: a control
 	// that wraps its own frame (Listbox, DatePicker, Combobox) put a wrapper
 	// between the two, and a wrapper that renames its `data-slot` (AddressInput
@@ -40,8 +37,8 @@ export const field = [
 	//
 	// The label and description arms are excluded because each owns its own gap
 	// above: a message directly under a label is the field's only content, and one
-	// under a description takes the tighter `mt-1` the rule above gives it. Both
-	// compound selectors outrank that rule, so the exclusions are what keep it.
-	'[&>:not([data-slot=label]):not([data-slot=description])+[data-slot=message]]:mt-2',
-	'[&>:not([data-slot=label]):not([data-slot=description])+[role=alert]]:mt-2',
+	// under a description takes the tighter `mt-1` the rule above gives it. The
+	// compound selector outranks that rule, so the exclusions are what keep it.
+	// This rule also gives the gap to an alert under a field.
+	'[&>:not([data-slot=label]):not([data-slot=description])+:is([data-slot=message],[role=alert])]:mt-2',
 ]

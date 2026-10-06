@@ -40,13 +40,9 @@ describe('Grid outline', () => {
 		const table = screen.getByRole('table')
 
 		// Interior gridlines + the inline-end/bottom outer edges, on every cell.
-		expect(table).toHaveClass('[&>*>tr>td]:border-e')
+		expect(table).toHaveClass('[&>*>tr>:is(td,th)]:border-e')
 
-		expect(table).toHaveClass('[&>*>tr>td]:border-b')
-
-		expect(table).toHaveClass('[&>*>tr>th]:border-e')
-
-		expect(table).toHaveClass('[&>*>tr>th]:border-b')
+		expect(table).toHaveClass('[&>*>tr>:is(td,th)]:border-b')
 
 		// Top edge on the first header row (rides the sticky header); inline-start edge
 		// on each row's first cell (rides a frozen leading column). Together they close
@@ -61,8 +57,8 @@ describe('Grid outline', () => {
 		renderUI(<Grid outline columns={columns} rows={rows} getKey={getKey} />)
 
 		// The grid owns its outline; the base `<Table outline>` all-sides border
-		// projection (`[&>*>tr>td]:border`) would double the separate-mode rules.
-		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>td]:border')
+		// projection (`[&>*>tr>:is(td,th)]:border`) would double the separate-mode rules.
+		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>:is(td,th)]:border')
 	})
 
 	it('omits the outline borders on a plain grid', () => {
@@ -72,7 +68,7 @@ describe('Grid outline', () => {
 
 		expect(table).not.toHaveClass('border-separate')
 
-		expect(table).not.toHaveClass('[&>*>tr>td]:border-e')
+		expect(table).not.toHaveClass('[&>*>tr>:is(td,th)]:border-e')
 	})
 
 	// Outlined + bare `striped` reads as `'odd'`, not `<Table>`'s even default. An

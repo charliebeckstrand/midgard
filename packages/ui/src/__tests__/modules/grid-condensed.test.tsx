@@ -42,15 +42,13 @@ describe('Grid condensed', () => {
 
 		const table = screen.getByRole('table')
 
-		expect(table).toHaveClass('[&>*>tr>td]:text-sm')
-
-		expect(table).toHaveClass('[&>*>tr>th]:text-sm')
+		expect(table).toHaveClass('[&>*>tr>:is(td,th)]:text-sm')
 	})
 
 	it('omits the projections on a plain grid', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>td]:text-sm')
+		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>:is(td,th)]:text-sm')
 	})
 
 	it('gives cell content with no size the compact step of the table scope', () => {

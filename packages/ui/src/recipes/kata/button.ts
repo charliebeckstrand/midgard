@@ -49,7 +49,7 @@ export const k = defineRecipe({
 		outline: ['ring-1 ring-inset', focus.inset],
 		plain: focus.inset,
 		// Icon-only floor: a square pad per step keeps an icon-only bare button
-		// even-sided. `not-data-[has-label]` yields to the base padding once a
+		// even-sided. `not-data-has-label` yields to the base padding once a
 		// label is present.
 		bare: [focus.inset, dan.space.button.bare],
 	},
