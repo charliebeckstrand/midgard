@@ -231,6 +231,10 @@ export default defineConfig({
 		// It governs no real-time hold: a budget costs nothing on a green run,
 		// where a hold spends its full value every time.
 		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, budgetFactor: CI ? 2 : 1 },
+		// The budget of `expect.poll`, by the same rule. Vitest gives each poll a
+		// default of 1s on every machine, and no option above scales it. It is the
+		// budget of `asyncUtilTimeout`, so a poll and a `waitFor` fail at one time.
+		expect: { poll: { timeout: CI ? 4_000 : 1_000 } },
 		// The cleanup of `vitest.base.ts`, for the shared registry that `isolate`
 		// declares below.
 		...cleanup,

@@ -4,9 +4,9 @@ import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
 import { cn } from '../../../core'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import { k as pdf } from '../../../recipes/kata/pdf-viewer'
-import { frames, present, renderUI } from '../../helpers'
+import { frames, getSlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { settledSheet } from '../helpers/settled-sheet'
+import { settledRect } from '../helpers/sample'
 
 /**
  * The sidebar sits on the start edge in both directions.
@@ -48,7 +48,7 @@ describe('sidebar layout in RTL (real browser)', () => {
 			</Sheet>,
 		)
 
-		const panel = await settledSheet()
+		const panel = await settledRect(getSlot(document.body, 'sheet'))
 
 		const rect = panel.getBoundingClientRect()
 
@@ -69,7 +69,7 @@ describe('sidebar layout in RTL (real browser)', () => {
 			</Sheet>,
 		)
 
-		const rect = (await settledSheet()).getBoundingClientRect()
+		const rect = (await settledRect(getSlot(document.body, 'sheet'))).getBoundingClientRect()
 
 		expect(fromStart(rect, dir) + rect.width).toBeNear(window.innerWidth - 16, HALF_PIXEL)
 	})
@@ -96,7 +96,7 @@ describe('sidebar layout in RTL (real browser)', () => {
 
 		await userEvent.hover(strip)
 
-		const rect = (await settledSheet()).getBoundingClientRect()
+		const rect = (await settledRect(getSlot(document.body, 'sheet'))).getBoundingClientRect()
 
 		// Flush to the start edge, not floated in from it.
 		expect(fromStart(rect, dir)).toBeNear(0, HALF_PIXEL)

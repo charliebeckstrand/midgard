@@ -30,6 +30,7 @@ import {
 } from '../../../components/sheet'
 import { DensityProvider } from '../../../providers/density'
 import { getSlot, renderUI } from '../../helpers'
+import { settledRect } from '../helpers/sample'
 
 /**
  * The inset of a panel is the same on the four sides. It is larger than the gap
@@ -176,25 +177,6 @@ function visibleBottom(el: HTMLElement) {
 	return el.getBoundingClientRect().bottom - Math.max(0, padding - hidden)
 }
 
-/** Waits until the panel has stopped moving after its entry motion, and returns it. */
-async function settledPanel(slot: string): Promise<HTMLElement> {
-	const panel = getSlot(document.body, slot)
-
-	let last = ''
-
-	await expect
-		.poll(() => {
-			const { top, left, bottom, right } = panel.getBoundingClientRect()
-			const now = `${top},${left},${bottom},${right}`
-			const still = now === last
-			last = now
-			return still
-		})
-		.toBe(true)
-
-	return panel
-}
-
 /** Scrolls `el` to the middle of its range, so a padding inside it is out of view. */
 function scrollMiddle(el: HTMLElement) {
 	el.scrollTop = (el.scrollHeight - el.clientHeight) / 2
@@ -208,7 +190,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
 				renderUI(<DensityProvider density={density}>{full}</DensityProvider>)
 
-				const panel = await settledPanel(slot)
+				const panel = await settledRect(getSlot(document.body, slot))
 				const header = getSlot(panel, `${slot}-header`)
 				const body = getSlot(panel, `${slot}-body`)
 				const footer = getSlot(panel, `${slot}-footer`)
@@ -251,7 +233,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 			it('keeps the edge insets of a body with no header or footer while it scrolls', async () => {
 				renderUI(<DensityProvider density={density}>{bare}</DensityProvider>)
 
-				const panel = await settledPanel(slot)
+				const panel = await settledRect(getSlot(document.body, slot))
 				const body = getSlot(panel, `${slot}-body`)
 
 				expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)

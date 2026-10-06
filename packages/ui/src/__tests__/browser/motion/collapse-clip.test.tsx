@@ -3,6 +3,8 @@ import { userEvent } from 'vitest/browser'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import type { Mount } from '../../../primitives/mount'
 import { present, renderUI, screen, waitFor } from '../../helpers'
+import { sampleUntil } from '../helpers/sample'
+import { budget } from '../helpers/wall-clock'
 
 /**
  * A Collapse panel clips its content only while its height moves. At rest, the
@@ -22,18 +24,15 @@ type Sample = { height: number; overflow: string }
 
 /**
  * Reads the panel on each frame until `done` is true. A frame where the panel is
- * not on the page, or where the hold hides it, gives no sample.
+ * not on the page, or where the hold hides it, gives no sample. It throws when
+ * `done` is still false at the deadline.
  */
-function watch(done: () => boolean): Promise<Sample[]> {
+async function watch(done: () => boolean): Promise<Sample[]> {
 	const samples: Sample[] = []
 
-	return new Promise((resolve) => {
-		const tick = () => {
-			if (done()) {
-				resolve(samples)
-
-				return
-			}
+	await sampleUntil(
+		() => {
+			if (done()) return true
 
 			const node = document.querySelector(PANEL)
 
@@ -43,11 +42,13 @@ function watch(done: () => boolean): Promise<Sample[]> {
 				samples.push({ height: node.getBoundingClientRect().height, overflow: style.overflow })
 			}
 
-			requestAnimationFrame(tick)
-		}
+			return false
+		},
+		(finished) => finished,
+		{ deadline: budget(5000) },
+	)
 
-		requestAnimationFrame(tick)
-	})
+	return samples
 }
 
 /** The samples where the height of the panel is not at its open height. */

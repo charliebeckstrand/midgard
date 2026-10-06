@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ProgressGauge } from '../../../components/progress'
 import { bySlot, renderUI, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
+import { budget } from '../helpers/wall-clock'
 
 function fillOf(container: HTMLElement) {
 	const ring = bySlot(container, 'progress-gauge')?.querySelectorAll('circle')[1]
@@ -43,7 +44,7 @@ describe('ProgressGauge at 0% (real Motion)', () => {
 		rerender(<ProgressGauge aria-label="Upload" value={0} />)
 
 		await waitFor(() => expect(getComputedStyle(fillOf(container)).opacity).toBe('0'), {
-			timeout: 3000,
+			timeout: budget(3000),
 		})
 	})
 })

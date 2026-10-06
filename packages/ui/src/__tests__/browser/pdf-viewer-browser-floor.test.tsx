@@ -3,6 +3,7 @@ import { makeInvoicePdf, servePdf } from '../../__benchmarks__/browser/pdf-fixtu
 import { PdfViewer } from '../../components/pdf-viewer'
 import { resetDocumentCache } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { bySlot, renderUI, waitFor } from '../helpers'
+import { budget } from './helpers/wall-clock'
 
 /**
  * The viewer renders a real PDF in a browser below the newest built-ins.
@@ -17,7 +18,10 @@ import { bySlot, renderUI, waitFor } from '../helpers'
 describe('pdf viewer below the newest browsers (real browser)', () => {
 	afterEach(() => resetDocumentCache())
 
-	it('renders the first page of a real document', async () => {
+	// The wait for the page raster can pass the suite `testTimeout` on CI, so the
+	// case sets a timeout above it. An exhausted wait then fails with the last
+	// error of the callback.
+	it('renders the first page of a real document', { timeout: budget(15_000) }, async () => {
 		const src = servePdf(makeInvoicePdf(2))
 
 		const { container } = renderUI(
@@ -38,7 +42,7 @@ describe('pdf viewer below the newest browsers (real browser)', () => {
 
 				return found
 			},
-			{ timeout: 10_000 },
+			{ timeout: budget(10_000) },
 		)
 
 		expect(image).toHaveAttribute('aria-label', 'Page 1')
