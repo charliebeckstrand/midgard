@@ -42,7 +42,7 @@ Status: `◯ OPEN` → `◐ FIXED` (on a branch) → `✅ RESOLVED ([#NNN](…))
 | B01-C02 | `engine/dashboard-layout.ts` | `usableDemands` | CONFIRMED | medium | none | independent | ◐ FIXED |
 | B01-C01 | `engine/dashboard-drag.ts` | `dragPreview` (`dominantPeer`, `reorderPreview`) | CONFIRMED | low | shipped | independent | ◐ FIXED |
 | B02-C03 | `use-dashboard-drag.ts` | `coordinateGetter` | CONFIRMED | low | shipped | independent | ◐ FIXED |
-| B02-C07 | `use-dashboard-resize.ts` | `beginResize` | NARROWED | low | shipped | independent | ◯ OPEN |
+| B02-C07 | `use-dashboard-resize.ts` | `beginResize` | NARROWED | low | shipped | independent | ◐ FIXED |
 | B02-C04 | `dashboard-tile.tsx` | `DashboardTile` (`freeHeight`) | CONFIRMED | low | none | independent | ◯ OPEN |
 
 ## Mechanisms
@@ -139,7 +139,7 @@ Merge order S1 → S5. S1 and S5 both edit `engine/dashboard-layout.ts`, so S5 f
 
 - **Change:** replace `use-dashboard-resize.ts:115` `if (event.button !== 0) return` with `if (!event.isPrimary || event.button !== 0 || event.ctrlKey) return`, inline.
 - **Rows closed:** B02-C07.
-- **Files:** `packages/ui/src/modules/dashboard/use-dashboard-resize.ts`; `packages/ui/src/__tests__/modules/dashboard-resize-pointer.test.tsx`.
+- **Files:** `packages/ui/src/modules/dashboard/use-dashboard-resize.ts`; `packages/ui/src/__tests__/modules/dashboard-resize-pointer.test.tsx`; `packages/ui/src/__tests__/modules/dashboard.test.tsx`.
 - **Order:** fourth.
 - **Depends on:** none.
 - **Gate:** settled (Q4; Q5 no longer gates).

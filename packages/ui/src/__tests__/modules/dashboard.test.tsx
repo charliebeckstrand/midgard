@@ -1670,7 +1670,7 @@ describe('Dashboard gesture owner', () => {
 
 		if (east === undefined) throw new Error('Orders has no east splitter.')
 
-		fireEvent.pointerDown(east, { pointerId: 1, button: 0, clientX: 400, clientY: 0 })
+		fireEvent.pointerDown(east, { ...PRIMARY, pointerId: 1, clientX: 400, clientY: 0 })
 
 		fireEvent.pointerMove(east, { pointerId: 1, clientX: 500, clientY: 0 })
 
