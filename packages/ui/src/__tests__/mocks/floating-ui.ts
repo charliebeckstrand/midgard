@@ -118,6 +118,7 @@ const floatingUIMock = {
 	// measure and nowhere to place against.
 	autoPlacement: () => ({}),
 	flip: () => ({}),
+	hide: () => ({}),
 	offset: () => ({}),
 	shift: () => ({}),
 	size: () => ({}),
