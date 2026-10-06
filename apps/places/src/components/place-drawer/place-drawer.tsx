@@ -105,7 +105,7 @@ function PlaceMeta({ place }: { place: Place }) {
  */
 function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode }) {
 	return (
-		<Flex gap="sm" align="start">
+		<Flex gap="sm" align="start" className="min-w-0">
 			<Text as="span" tone="muted" className="flex h-lh shrink-0 items-center">
 				<Icon icon={icon} />
 			</Text>
@@ -117,15 +117,19 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 
 /**
  * The address of a place on one line, cut with an ellipsis, and a button that
- * copies the full address. The button is taller than a line. It is centered on
- * one line, as the category badge is, so the row is one line high.
+ * copies the full address. The button is taller than a line, so it sits by the
+ * fact and not in it, as the menu of a visit does. The row takes the height of
+ * the button, and nothing goes out of the row: the first row of the drawer body
+ * is at the top edge of a box that scrolls, and that box clips what goes out.
  */
 function PlaceAddress({ address }: { address: string }) {
 	const { copied, copy } = useCopyButtonState({ text: address })
 
 	return (
-		<Flex gap="sm" align="center" className="h-lh">
-			<Text className="min-w-0 truncate">{address}</Text>
+		<Flex justify="between" align="center" gap="sm">
+			<PlaceFact icon={<MapPin />}>
+				<Text className="truncate">{address}</Text>
+			</PlaceFact>
 
 			<Button
 				variant="soft"
@@ -216,9 +220,7 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 	return (
 		<Stack gap="md" className="pb-6">
 			<Stack gap="sm">
-				<PlaceFact icon={<MapPin />}>
-					<PlaceAddress address={place.address} />
-				</PlaceFact>
+				<PlaceAddress address={place.address} />
 
 				{place.url ? (
 					<PlaceFact icon={<Globe />}>
