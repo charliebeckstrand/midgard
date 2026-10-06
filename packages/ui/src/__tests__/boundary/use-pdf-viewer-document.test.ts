@@ -1,4 +1,6 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
+import { createElement } from 'react'
+import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getDocumentMock = vi.fn()
@@ -42,11 +44,12 @@ afterEach(() => {
 	vi.restoreAllMocks()
 
 	globalThis.fetch = originalFetch
+
+	for (const link of document.head.querySelectorAll('link[rel="preload"]')) link.remove()
 })
 
-// The async paths (fetch-error, fetch-throw, successful pdfjs render) are omitted
-// pending a rewrite that doesn't depend on the real async lifecycle.
-// Synchronous paths below remain covered.
+// The fetch-error, fetch-throw and render paths are omitted pending a rewrite that doesn't
+// depend on the real async lifecycle. The open is covered below, against a pdf.js stand-in.
 
 describe('usePdfViewerDocument', () => {
 	it('returns the empty initial state, with no pending load, when no src is provided', () => {
@@ -239,5 +242,113 @@ describe('usePdfViewerDocument · parked and restored', () => {
 		// The cleanup used to revoke every blob URL it had created, which is what made the
 		// maximize rebuild the scan. Eviction is the only thing that frees them now.
 		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalledWith('blob:page-1')
+	})
+})
+
+/**
+ * A pdf.js document stand-in with `numPages` pages of 612 by 792 points and the given labels.
+ *
+ * Only the members that the open reads: the pages, their sizes, and the labels.
+ */
+function fakeDocument(numPages: number, labels: string[] | null) {
+	const page = {
+		getViewport: ({ scale }: { scale: number }) => ({ width: 612 * scale, height: 792 * scale }),
+	}
+
+	const doc = {
+		numPages,
+		getPage: () => Promise.resolve(page),
+		getPageLabels: () => Promise.resolve(labels),
+		loadingTask: { destroy: () => Promise.resolve() },
+	}
+
+	return { promise: Promise.resolve(doc) }
+}
+
+/**
+ * Mounts the hook on `src`, and gives the page labels once the document opens with `count` pages.
+ *
+ * Waits for the open itself, not for a fixed number of ticks: the load passes a dynamic import,
+ * a fetch and the pdf.js promises before it publishes the slots.
+ */
+async function openLabels(src: string, count: number) {
+	globalThis.fetch = vi.fn().mockResolvedValue(new Response(new Uint8Array([37, 80, 68, 70])))
+
+	const { result } = renderHook(() => usePdfViewerDocument(src))
+
+	await waitFor(() => expect(result.current.pages).toHaveLength(count))
+
+	return result.current.pages.map((page) => page.label)
+}
+
+describe('usePdfViewerDocument · page labels', () => {
+	it("labels each page with the document's own page label", async () => {
+		getDocumentMock.mockReturnValue(fakeDocument(3, ['iv', 'v', 'A-1']))
+
+		expect(await openLabels('/labelled.pdf', 3)).toEqual(['Page iv', 'Page v', 'Page A-1'])
+	})
+
+	it('labels each page with its number when the document has no page labels', async () => {
+		getDocumentMock.mockReturnValue(fakeDocument(2, null))
+
+		expect(await openLabels('/plain.pdf', 2)).toEqual(['Page 1', 'Page 2'])
+	})
+
+	// A label range with no style and no prefix gives an empty label (ISO 32000-1, 12.4.2).
+	it('labels a page with its number when its page label is empty', async () => {
+		getDocumentMock.mockReturnValue(fakeDocument(2, ['', 'ii']))
+
+		expect(await openLabels('/partly-labelled.pdf', 2)).toEqual(['Page 1', 'Page ii'])
+	})
+})
+
+/*
+ * The hook fetches the document with `fetch(src)`: CORS mode, with credentials only on the same
+ * origin. A preload matches that request only with `crossorigin="anonymous"`. Without it, the
+ * browser fetches the document twice.
+ */
+describe('usePdfViewerDocument · preload', () => {
+	it('preloads a cold src in the server render', () => {
+		function Viewer() {
+			usePdfViewerDocument('/cold.pdf')
+
+			return null
+		}
+
+		const html = renderToString(createElement(Viewer))
+
+		expect(html).toContain('rel="preload"')
+
+		expect(html).toContain('href="/cold.pdf"')
+
+		expect(html).toContain('as="fetch"')
+
+		// React writes `anonymous` as the empty value, which the HTML standard reads as `anonymous`.
+		expect(html).toContain('crossorigin=""')
+	})
+
+	// React preloads an href once for each document, so this src is used by no other case.
+	it('preloads a cold src on its first client render', () => {
+		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+
+		renderHook(() => usePdfViewerDocument('/first-render.pdf'))
+
+		const link = document.head.querySelector('link[rel="preload"][href="/first-render.pdf"]')
+
+		expect(link).toHaveAttribute('as', 'fetch')
+
+		expect(link).toHaveAttribute('crossorigin', '')
+	})
+
+	it('does not preload a resident document', async () => {
+		ensureDocumentLoad('/resident.pdf', () => Promise.resolve())
+
+		await tick()
+
+		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+
+		renderHook(() => usePdfViewerDocument('/resident.pdf'))
+
+		expect(document.head.querySelector('link[href="/resident.pdf"]')).toBeNull()
 	})
 })

@@ -2,6 +2,7 @@
 
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { preload } from 'react-dom'
 import { clamp } from '../../utilities'
 import { PdfBinaryData } from './pdf-viewer-binary-data'
 import {
@@ -173,6 +174,9 @@ function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): P
  * @remarks A parse, not a render: 50 pages take about 6 ms (the PDF viewer bench). Each slot
  * carries the size of its page at `scale` and in points. The viewport, the page count and the
  * highlight geometry are therefore whole when the document opens.
+ *
+ * Each slot also carries the page label that the document prints, such as "Page iv" for a
+ * preface. A document with no page labels, or a page whose label is empty, gets its page number.
  * @internal
  */
 async function openSlots(
@@ -184,6 +188,8 @@ async function openSlots(
 
 	const slots: PdfViewerPage[] = []
 
+	const labels = await doc.getPageLabels()
+
 	for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
 		const page = await doc.getPage(pageNum)
 
@@ -194,7 +200,7 @@ async function openSlots(
 		slots.push({
 			id: pageNum,
 			src: '',
-			label: `Page ${pageNum}`,
+			label: `Page ${labels?.[pageNum - 1] || pageNum}`,
 			width: viewport.width,
 			height: viewport.height,
 			pointWidth: viewport.width / scale,
@@ -282,6 +288,9 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
  * the panel's children unmount. Before the cache, a reopen rebuilt the whole scan from its
  * skeleton.
  *
+ * A `src` with no load yet is preloaded in the render, so the server render puts the download
+ * in the head. A resident document is not preloaded again.
+ *
  * Read through `useSyncExternalStore` rather than mirrored into state. A cache hit is
  * therefore visible *during the first render*, and paints no intervening skeleton frame.
  * Unmounting drops this viewer's subscription, which is also what makes the document
@@ -306,7 +315,14 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 
 	const current = useSyncExternalStore(subscribe, snapshot, serverSnapshot)
 
-	return { ...current, pending: !!src && current === EMPTY_DOCUMENT_SNAPSHOT }
+	const pending = !!src && current === EMPTY_DOCUMENT_SNAPSHOT
+
+	// A render, not the effect, starts the download. The server render puts the preload in the
+	// head, so the document downloads while the page hydrates. `fetch(src)` is a CORS request,
+	// and a preload matches it only with `crossOrigin: 'anonymous'`.
+	if (pending) preload(src, { as: 'fetch', crossOrigin: 'anonymous' })
+
+	return { ...current, pending }
 }
 
 /**
