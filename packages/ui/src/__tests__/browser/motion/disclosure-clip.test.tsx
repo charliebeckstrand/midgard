@@ -10,6 +10,8 @@ import {
 import { JsonTree } from '../../../components/json-tree'
 import { Tree, TreeItem } from '../../../components/tree'
 import { present, renderUI, screen } from '../../helpers'
+import { sampleUntil } from '../helpers/sample'
+import { budget } from '../helpers/wall-clock'
 
 /**
  * The panel of an Accordion item and the group of a Tree or a JsonTree branch clip their content
@@ -23,41 +25,30 @@ import { present, renderUI, screen } from '../../helpers'
 type Sample = { height: number; overflow: string }
 
 /**
- * Reads `node` on each frame until its overflow is visible, which is when the open lands, or until
- * `deadline` milliseconds pass. A frame where the node is not on the page gives no sample.
+ * Reads `node` on each frame until its overflow is visible, which is when the open lands. A frame
+ * where the node is not on the page gives no sample. It throws when the open does not land before
+ * `deadline` milliseconds pass.
  */
-function sampleUntilLanded(node: () => Element | null, deadline: number): Promise<Sample[]> {
+async function sampleUntilLanded(node: () => Element | null, deadline: number): Promise<Sample[]> {
 	const samples: Sample[] = []
 
-	const end = performance.now() + deadline
-
-	return new Promise((resolve) => {
-		const tick = () => {
+	await sampleUntil(
+		() => {
 			const element = node()
 
-			if (element) {
-				const overflow = getComputedStyle(element).overflow
+			if (!element) return null
 
-				samples.push({ height: element.getBoundingClientRect().height, overflow })
+			const overflow = getComputedStyle(element).overflow
 
-				if (overflow === 'visible') {
-					resolve(samples)
+			samples.push({ height: element.getBoundingClientRect().height, overflow })
 
-					return
-				}
-			}
+			return overflow
+		},
+		(overflow) => overflow === 'visible',
+		{ deadline },
+	)
 
-			if (performance.now() > end) {
-				resolve(samples)
-
-				return
-			}
-
-			requestAnimationFrame(tick)
-		}
-
-		requestAnimationFrame(tick)
-	})
+	return samples
 }
 
 /** The first element of `selector` that was not in the document before the open. */
@@ -118,7 +109,7 @@ describe('the clip of a disclosure panel (real Motion)', () => {
 
 			const controls = newElement(selector)
 
-			const sampling = sampleUntilLanded(controls, 5000)
+			const sampling = sampleUntilLanded(controls, budget(5000))
 
 			if (button.getAttribute('role') === 'treeitem') {
 				button.focus()

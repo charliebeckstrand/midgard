@@ -3,6 +3,7 @@ import { makeInvoicePdf, servePdf } from '../../__benchmarks__/browser/pdf-fixtu
 import { PdfViewer } from '../../components/pdf-viewer'
 import { resetDocumentCache } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { bySlot, getSlot, renderUI, waitFor } from '../helpers'
+import { budget } from './helpers/wall-clock'
 
 /** US Letter, 8.5 in at 96 px per inch: the width of the fixture page at 100%. */
 const LETTER_WIDTH = 816
@@ -19,7 +20,7 @@ async function pageFrame(container: HTMLElement) {
 
 			return image?.parentElement as HTMLElement
 		},
-		{ timeout: 10_000 },
+		{ timeout: budget(10_000) },
 	)
 }
 
@@ -56,7 +57,12 @@ function fitGap(container: HTMLElement, frame: HTMLElement) {
 describe('pdf viewer intrinsic width (real browser)', () => {
 	afterEach(() => resetDocumentCache())
 
-	it('shows the page at its natural width in a box that sizes to its content', async () => {
+	// The wait for the page raster can pass the suite `testTimeout` on CI, so the
+	// case sets a timeout above it. An exhausted wait then fails with the last
+	// error of the callback.
+	it('shows the page at its natural width in a box that sizes to its content', {
+		timeout: budget(15_000),
+	}, async () => {
 		const src = servePdf(makeInvoicePdf(1))
 
 		const { container } = renderUI(

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { useGridTruncation } from '../../modules/grid/use-grid-truncation'
-import { act, renderUI, waitFor } from '../helpers'
-import { pause } from './helpers/wall-clock'
+import { act, frames, renderUI, waitFor } from '../helpers'
 
 /**
  * Resize-settle reconciliation for the grid's overflow detector. A column
@@ -84,7 +83,8 @@ describe('useGridTruncation resize-settle reconciliation (real browser)', () => 
 			// rAF measure can catch it.
 			leaf.style.letterSpacing = '-20px'
 
-			await pause(80)
+			// The deferred measure runs in the next frame, before the second of these.
+			await frames()
 		})
 
 		expect(flag()).toBe('fits')

@@ -5,6 +5,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/com
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { bySlot, frames, present, renderUI, screen } from '../../helpers'
+import { once } from '../helpers/signals'
 import { pause } from '../helpers/wall-clock'
 
 const LONG = 'awaiting approval from finance'
@@ -167,7 +168,12 @@ describe('Combobox resting value (real browser)', () => {
 
 		input.focus()
 
+		const scrolled = once(input, 'scroll')
+
 		input.scrollLeft = 60
+
+		// A reset answers the scroll, so the hold starts at the scroll.
+		await scrolled
 
 		await pause(100)
 

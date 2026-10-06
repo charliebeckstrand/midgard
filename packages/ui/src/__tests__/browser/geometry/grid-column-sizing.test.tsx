@@ -6,9 +6,9 @@ import {
 	type GridColumnSizingState,
 	type GridProps,
 } from '../../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
-import { pause } from '../helpers/wall-clock'
+import { settledValue } from '../helpers/sample'
 
 /**
  * The column-width rules against a real layout engine. Each case pins one rule
@@ -107,9 +107,10 @@ describe('grid column sizing rules (real browser)', () => {
 
 		resizeFrame(800)
 
-		await pause(50)
+		// The resize reaches the sizer through a `ResizeObserver`, after a frame.
+		await frames()
 
-		expect(widths(container)).toEqual(held)
+		expect(await settledValue(() => widths(container).join())).toBe(held.join())
 	})
 
 	it('holds every column after "Auto-size this column", through a container resize', async () => {
@@ -128,9 +129,10 @@ describe('grid column sizing rules (real browser)', () => {
 
 		resizeFrame(800)
 
-		await pause(50)
+		// The resize reaches the sizer through a `ResizeObserver`, after a frame.
+		await frames()
 
-		expect(widths(container)).toEqual(held)
+		expect(await settledValue(() => widths(container).join())).toBe(held.join())
 	})
 
 	it('gives each column the width "Auto-size this column" gives it', async () => {
@@ -146,10 +148,11 @@ describe('grid column sizing rules (real browser)', () => {
 
 		const each = await mount()
 
-		for (const id of ['a', 'b', 'c']) {
+		// The action is async, so each column must reach its width before the next action.
+		for (const [index, id] of ['a', 'b', 'c'].entries()) {
 			menuAction(each.container, id, 'Auto-size this column')
 
-			await pause(20)
+			await waitFor(() => expect(width(each.container, id)).toBe(fitted[index]))
 		}
 
 		expect(widths(each.container)).toEqual(fitted)
@@ -272,7 +275,7 @@ describe('grid column sizing rules (real browser)', () => {
 
 		drag(container, 'A', 0)
 
-		await pause(20)
+		await frames()
 
 		resizeFrame(800)
 
