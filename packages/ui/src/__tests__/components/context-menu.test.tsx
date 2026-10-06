@@ -72,6 +72,31 @@ describe('resolveContextMenuEntries', () => {
 		expect(new Set(keys).size).toBe(keys.length)
 	})
 
+	// A rule at the edge of a group would lead, trail, or double at the join.
+	it.each([
+		['after', ['a', 'b', '|', 'c']],
+		['before', ['c', '|', 'a', 'b']],
+	] as const)('drops the separators at the edges of each group (insert %s)', (insert, expected) => {
+		const items: ContextMenuEntry[] = [
+			{ key: 'lead', separator: true },
+			{ key: 'c', label: 'Custom', onAction: noop },
+			{ key: 'trail', separator: true },
+		]
+
+		const entries = resolveContextMenuEntries({ items, insert }, [
+			...defaults,
+			{ key: 'end', separator: true },
+		])
+
+		expect(entries.map((entry) => ('separator' in entry ? '|' : entry.key))).toEqual(expected)
+	})
+
+	it('treats a group of separators only as empty', () => {
+		expect(
+			resolveContextMenuEntries({ items: [{ key: 'rule', separator: true }] }, defaults),
+		).toEqual(defaults)
+	})
+
 	it('inserts no separator when only one group is present', () => {
 		expect(resolveContextMenuEntries({ items: [] }, defaults)).toEqual(defaults)
 
