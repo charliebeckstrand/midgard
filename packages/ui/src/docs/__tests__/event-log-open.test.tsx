@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Profiler } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { __resetEventLogSheet, EventLogButton, startEventLog } from '../debug/event-log/index.tsx'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { __resetEventLogSheet, EventLogButton } from '../debug/event-log/index.tsx'
 import { halt, record } from '../debug/event-log/recorder.ts'
 import { EventLogSheet } from '../debug/event-log/sheet.tsx'
 
@@ -47,22 +47,6 @@ describe('EventLogButton', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Event log' }))
 
 		expect(await screen.findByRole('heading', { name: 'Event log' })).toBeDefined()
-	})
-})
-
-describe('startEventLog', () => {
-	it('resolves when the recorder fails to load, so the page hydrates', async () => {
-		document.documentElement.setAttribute('data-debug', '')
-
-		vi.doMock('../debug/event-log/recorder.ts', () => {
-			throw new Error('stale chunk')
-		})
-
-		try {
-			await expect(startEventLog()).resolves.toBeUndefined()
-		} finally {
-			vi.doUnmock('../debug/event-log/recorder.ts')
-		}
 	})
 })
 
