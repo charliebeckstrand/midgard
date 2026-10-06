@@ -29,9 +29,12 @@ export type GlobalListener = {
 /**
  * Library wiring that attaches once per page by design and never detaches.
  * React marks each root container it listens on, and user-event marks each
- * document it prepares, so neither attaches twice or cleans up.
+ * document it prepares, so neither attaches twice or cleans up. Motion builds
+ * one root projection node for the page when the first layout element mounts.
+ * That node puts a `resize` listener on `window` and stays for the life of the
+ * page. Only that node passes `attachResizeListener`.
  */
-const ONCE_PER_PAGE = ['listenToAllSupportedEvents', 'prepareDocument']
+const ONCE_PER_PAGE = ['listenToAllSupportedEvents', 'prepareDocument', 'attachResizeListener']
 
 /** How many frames of the adding stack a report carries. */
 const ORIGIN_FRAMES = 3
