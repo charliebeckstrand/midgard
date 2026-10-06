@@ -129,10 +129,14 @@ describe('useScrollLock', () => {
 		vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1024)
 		vi.spyOn(html, 'getBoundingClientRect').mockReturnValue(new DOMRect(15, 0, 1009, 800))
 
+		const dir = html.getAttribute('dir')
+
 		html.dir = 'rtl'
 
+		// Restore the attribute itself. An empty `dir` still matches `[dir]`.
 		onTestFinished(() => {
-			html.dir = ''
+			if (dir === null) html.removeAttribute('dir')
+			else html.setAttribute('dir', dir)
 
 			vi.restoreAllMocks()
 		})
