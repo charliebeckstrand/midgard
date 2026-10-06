@@ -10,6 +10,7 @@ import {
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { type PointerEvent as ReactPointerEvent, useMemo } from 'react'
+import { isPrimaryPress } from '../utilities/primary-press'
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /**
@@ -33,7 +34,7 @@ class PrimaryPointerSensor extends PointerSensor {
 				{ nativeEvent: event }: ReactPointerEvent,
 				{ onActivation }: PointerSensorOptions,
 			) => {
-				if (!event.isPrimary || event.button !== 0 || event.ctrlKey) return false
+				if (!isPrimaryPress(event)) return false
 
 				onActivation?.({ event })
 
