@@ -17,9 +17,8 @@ export type ContainerProps = {
 	 */
 	size?: ContainerSize
 	/**
-	 * Horizontal padding. Applies only from `lg` up. Below that, the container
-	 * has no padding of its own. The prop takes one token, not a breakpoint
-	 * object. Pass `0` to remove the padding.
+	 * Horizontal padding. Applies at every width. The prop takes one token, not
+	 * a breakpoint object. Pass `0` to remove the padding.
 	 *
 	 * @defaultValue 'md'
 	 */
@@ -27,7 +26,10 @@ export type ContainerProps = {
 	className?: string
 } & Omit<ComponentProps<'div'>, 'className'>
 
-/** Centered max-width page wrapper with horizontal `padding` from `lg` up. */
+/**
+ * Centered page wrapper that fills the height of its parent. It has a maximum
+ * width from `lg` up and horizontal `padding` at every width.
+ */
 export function Container({
 	size = 'md',
 	padding = 'md',

@@ -119,7 +119,7 @@ export default async function Page() {
 		<>
 			<PicksHeader user={user} />
 
-			<Container size="full" padding="lg" className="p-6">
+			<Container size="full" padding="lg" className="py-6">
 				<Suspense>
 					<ScheduleList
 						header={<TallyTotal tally={season} />}

@@ -43,7 +43,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 
 			<LiveRefresh live={games.some((game) => game.state === 'live')} />
 
-			<Container size="full" padding="lg" className="p-6">
+			<Container size="full" padding="lg" className="py-6">
 				{games.length === 0 ? (
 					<Text tone="muted">No games this week.</Text>
 				) : (

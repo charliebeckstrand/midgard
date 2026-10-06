@@ -136,7 +136,7 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 		<StackedLayout className="min-h-dvh w-full">
 			<StackedLayoutHeader className="border-b border-zinc-950/5 dark:border-white/5">
 				<Container size="md" padding="md">
-					<Flex align="center" gap="sm" className="px-4 py-2.5 lg:px-0">
+					<Flex align="center" gap="sm" className="py-2.5">
 						<Link href="/account" className="flex items-center gap-2">
 							<Brand />
 						</Link>
@@ -151,7 +151,7 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 				</Container>
 			</StackedLayoutHeader>
 			<StackedLayoutBody>
-				<Container size="md" padding="md" className="px-4 pb-8 lg:pb-12">
+				<Container size="md" padding="md" className="pb-8 lg:pb-12">
 					{children}
 				</Container>
 			</StackedLayoutBody>
