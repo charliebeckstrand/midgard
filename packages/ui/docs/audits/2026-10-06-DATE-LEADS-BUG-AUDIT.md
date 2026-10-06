@@ -39,7 +39,7 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 | C01 | `use-floating-ui.ts` | `returnFocusTo` restore | CONFIRMED | low | shipped | — | ◐ FIXED |
 | C03 | `date-picker-calendar-button.tsx` | `DatePickerCalendarButton` | NARROWED | low | shipped | — | ◐ FIXED |
 | C07 | `use-calendar-focus.ts` | `handleHeaderKeyDown` / `handleFooterKeyDown` | CONFIRMED | low | docs-only | G1 | ◐ FIXED |
-| C12 | `use-calendar-focus.ts` | `handleGridKeyDown` (steered) | NARROWED | low | shipped | G1 | ◐ FIXED |
+| C12 | `use-calendar-focus.ts` | `handleGridKeyDown` (steered) | NARROWED | low | shipped | G1 | ◯ OPEN |
 
 ## Mechanisms
 
@@ -182,6 +182,16 @@ Raised by the caller from the `simplify` review; judged by a blind verify pass. 
 - **Gate:** none (Q8 settled).
 - **Test seam:** `renderHook(useCalendarFocus({ steered: true, … }))`, a focused day, ArrowRight: no `preventDefault`, focus unchanged. Integration: input-mode picker, `act(() => day.focus())`, ArrowRight, the highlight is the next day and focus is on the input.
 
+### S8 — Page keys from a focused control follow the same rule
+
+- **Change:** `moveGridMonths` takes an optional start date, as `moveGridDate` does after S7. The zone mapping runs for the Page keys too (the set that `date-picker-content.tsx` reclaims focus for), so PageUp and PageDown from a Tab-focused day step from that day (Q11). Fix the TSDoc that says the dialog reclaims only arrows.
+- **Rows closed:** C12.
+- **Files:** `components/date-picker/use-date-picker-keyboard.ts`, `components/date-picker/use-date-picker-state.ts`, `components/date-picker/use-date-picker-range-state.ts`, `__tests__/components/use-date-picker-keyboard.test.ts`, `__tests__/components/use-date-picker-state.test.ts`, `__tests__/components/use-date-picker-range-state.test.ts`, `__tests__/components/date-picker.test.tsx`.
+- **Order:** after S7.
+- **Depends on:** S7.
+- **Gate:** none (Q11 settled).
+- **Test seam:** the keyboard hook with a focused day and PageDown; the state hooks with a start date.
+
 ## Open questions
 
 ### Q1 — where does the first arrow with no highlight enter?
@@ -243,6 +253,12 @@ Raised by the `simplify` review. After a rove off the selected day, Tab enters o
 Raised by the `simplify` review. The dialog reclaims focus only for arrows, but S2 maps every key, so Tab from a header button may paint the highlight on the button it leaves. Axes: arrows only; or every key.
 
 **Answer:** "Arrows only".
+
+### Q11 — do the Page keys from a Tab-focused day step from that day?
+
+Raised by the second `simplify` pass. After S7, arrows from a focused day step from it, but PageUp and PageDown still step from the model's highlight or the anchor, and the dialog reclaims focus for them too. Axes: step from the focused day; or leave the Page keys for a later audit beside Surfaced 2.
+
+**Answer:** "Yes, from the focused day".
 
 ## Ruled out
 
