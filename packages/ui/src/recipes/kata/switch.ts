@@ -81,11 +81,11 @@ export const k = defineRecipe(
 				'not-has-[:disabled,:checked]:hover:bg-zinc-300 not-has-[:disabled,:checked]:group-has-[[data-slot=label]:hover]/field:bg-zinc-300',
 				'dark:not-has-[:disabled,:checked]:hover:bg-white/15 dark:not-has-[:disabled,:checked]:group-has-[[data-slot=label]:hover]/field:bg-white/15',
 			),
-			'not-has-[:disabled]:has-checked:hover:opacity-90 not-has-[:disabled]:has-checked:group-has-[[data-slot=label]:hover]/field:opacity-90',
+			'not-has-disabled:has-checked:hover:opacity-90 not-has-disabled:has-checked:group-has-[[data-slot=label]:hover]/field:opacity-90',
 			// Validation ring overrides the resting / checked track ring when the
 			// input carries a data-* severity attribute.
 			...check.validation,
-			'has-[:disabled]:opacity-50',
+			'has-disabled:opacity-50',
 			// The track takes the step of the nearest density scope.
 			...kokkaku.switch.track,
 		],

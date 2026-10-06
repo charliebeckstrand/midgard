@@ -96,15 +96,15 @@ describe('cn', () => {
 		it('keys an array of strings as its items, as the merge flattens it', () => {
 			// A recipe keeps many class lists as arrays of strings. The memo walks
 			// each item, so a repeat call records nothing new.
-			const list = ['gap-md', ['p-4', false], 'p-2']
+			const list = ['gap-4', ['p-4', false], 'p-2']
 
-			expect(cn('flex', list)).toBe('flex gap-md p-2')
+			expect(cn('flex', list)).toBe('flex gap-4 p-2')
 
 			const before = cnMemoNodes()
 
-			expect(cn('flex', list)).toBe('flex gap-md p-2')
+			expect(cn('flex', list)).toBe('flex gap-4 p-2')
 
-			expect(cn('flex', ['gap-md', 'p-4', false, 'p-2'])).toBe('flex gap-md p-2')
+			expect(cn('flex', ['gap-4', 'p-4', false, 'p-2'])).toBe('flex gap-4 p-2')
 
 			expect(cnMemoNodes()).toBe(before)
 		})
@@ -193,6 +193,20 @@ describe('cn', () => {
 			expect(cn('density-px-[2,3,4]', 'p-4')).toBe('p-4')
 
 			expect(cn('density-left-[1,2,3]', 'inset-x-2')).toBe('inset-x-2')
+		})
+
+		it('replaces an earlier logical side with a later class of its axis', () => {
+			expect(cn('pe-2', 'px-4')).toBe('px-4')
+
+			expect(cn('ms-2', 'mx-auto')).toBe('mx-auto')
+
+			expect(cn('density-pe-[1,2,3]', 'px-4')).toBe('px-4')
+
+			expect(cn('pe-2', 'density-px-[2,3,4]')).toBe('density-px-[2,3,4]')
+		})
+
+		it('keeps a spacing class beside a named size, which emits no CSS', () => {
+			expect(cn('p-2', 'p-md')).toBe('p-2 p-md')
 		})
 
 		it('keeps an earlier leading class, which the stepped text class reads', () => {

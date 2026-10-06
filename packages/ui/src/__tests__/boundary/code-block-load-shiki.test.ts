@@ -147,8 +147,10 @@ describe('highlightCode', () => {
 
 		signal.throwIfAborted()
 
-		await expect(highlightCode('const a = 1', 'tsx', 'github-dark-default')).resolves.toContain(
-			'<pre class="shiki"',
+		await expect(highlightCode('const a = 1', 'tsx', 'github-dark-default')).resolves.toMatchObject(
+			{
+				html: expect.stringContaining('<pre class="shiki"'),
+			},
 		)
 
 		expect(open).toHaveBeenCalledTimes(2)
@@ -187,8 +189,10 @@ describe('highlightCode', () => {
 
 		signal.throwIfAborted()
 
-		await expect(highlightCode('const a = 1', 'tsx', 'github-dark-default')).resolves.toContain(
-			'<pre class="shiki"',
+		await expect(highlightCode('const a = 1', 'tsx', 'github-dark-default')).resolves.toMatchObject(
+			{
+				html: expect.stringContaining('<pre class="shiki"'),
+			},
 		)
 
 		expect(open).toHaveBeenCalledTimes(2)

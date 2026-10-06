@@ -18,8 +18,8 @@ import { mode } from '../../../core/recipe'
 
 export const active = [
 	...mode(
-		'data-active:bg-zinc-950/5 group-data-[glass]/glass:data-active:bg-zinc-950/10',
-		'dark:data-active:bg-white/5 dark:group-data-[glass]/glass:data-active:bg-white/10',
+		'data-active:bg-zinc-950/5 group-data-glass/glass:data-active:bg-zinc-950/10',
+		'dark:data-active:bg-white/5 dark:group-data-glass/glass:data-active:bg-white/10',
 	),
 	'forced-colors:data-active:bg-[Highlight]! forced-colors:data-active:text-[HighlightText]!',
 ]

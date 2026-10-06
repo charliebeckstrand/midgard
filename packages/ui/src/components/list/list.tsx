@@ -135,6 +135,8 @@ export function List<T>({
 	'aria-label': ariaLabel,
 	...props
 }: ListProps<T>) {
+	const containerRef = useRef<HTMLUListElement>(null)
+
 	const {
 		effectiveGetKey,
 		itemIds,
@@ -143,9 +145,7 @@ export function List<T>({
 		activeItem,
 		activeIndex,
 		dndContextProps,
-	} = useListDrag({ items, getKey, onReorder, orientation, disabled })
-
-	const containerRef = useRef<HTMLUListElement>(null)
+	} = useListDrag({ items, getKey, onReorder, orientation, disabled, containerRef })
 
 	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useListKeyboard({
 		items,

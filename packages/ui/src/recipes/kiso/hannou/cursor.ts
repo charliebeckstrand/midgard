@@ -3,8 +3,9 @@
  * variants override `cursor-pointer` on the element or its descendants;
  * parent overrides like `has-disabled:**:cursor-not-allowed` apply for
  * sibling-label patterns. Each rule reads both spellings of disabled: the
- * native `:disabled` and `data-disabled`. A descendant attribute takes its own
- * brackets inside `has-[…]`, as `has-[[data-disabled]]`. The bare
+ * native `:disabled` and `data-disabled`. One `has-[…]` holds the two in a
+ * selector list. A descendant attribute takes its own brackets inside
+ * `has-[…]`, as `has-[:disabled,[data-disabled]]`. The bare
  * `has-[data-disabled]` selects an element named `data-disabled`.
  *
  * Layer: kiso · Concern: pointer feedback
@@ -12,7 +13,7 @@
 
 export const cursor = [
 	'cursor-pointer',
-	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed has-[:disabled]:cursor-not-allowed has-[[data-disabled]]:cursor-not-allowed',
+	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed has-[:disabled,[data-disabled]]:cursor-not-allowed',
 ]
 
 const grabCursor = ['cursor-grab', 'data-[dragging]:cursor-grabbing']

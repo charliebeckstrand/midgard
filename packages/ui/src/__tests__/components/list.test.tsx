@@ -1,11 +1,13 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel, type ListProps } from '../../components/list'
+import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import { DensityProvider } from '../../providers/density'
 import {
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	getSlot,
 	present,
 	renderUI,
 	screen,
@@ -339,7 +341,7 @@ describe('ListItem', () => {
 			expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/5')
 
 			expect(cls).toContain(
-				'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10',
+				'dark:group-data-glass/glass:not-disabled:not-data-disabled:hover:bg-white/10',
 			)
 		}
 	})
@@ -361,7 +363,7 @@ describe('ListItem', () => {
 			expect(cls).toContain('not-disabled:not-data-disabled:hover:before:bg-zinc-950/5')
 
 			expect(cls).toContain(
-				'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:before:bg-white/10',
+				'dark:group-data-glass/glass:not-disabled:not-data-disabled:hover:before:bg-white/10',
 			)
 
 			expect(cls).not.toContain('hover:bg-')
@@ -399,7 +401,7 @@ describe('ListItem', () => {
 		// both would take the ambient 10% — which on a solid dark row is the fill
 		// repainted, and on a card is the surface gone.
 		for (const variant of ['separated', 'solid'] as const) {
-			expect(washOf(variant)).not.toContain('group-data-[glass]/glass')
+			expect(washOf(variant)).not.toContain('group-data-glass/glass')
 		}
 	})
 
@@ -596,6 +598,16 @@ describe('List keyboard reordering', () => {
 			</List>,
 		)
 	}
+
+	it('describes the lift keys of the list, not the keys of dnd-kit', () => {
+		const { container } = renderList()
+
+		const row = getSlot(container, 'list-item')
+
+		const instructions = document.getElementById(row.getAttribute('aria-describedby') ?? '')
+
+		expect(instructions).toHaveTextContent(LIFT_INSTRUCTIONS.draggable)
+	})
 
 	it('gives an activatable row one Tab stop, on the content rather than the row', () => {
 		const { container } = renderUI(

@@ -110,9 +110,8 @@ function walk(node: MemoNode, inputs: readonly ClassValue[]): MemoNode | null {
 
 /**
  * Class composer for the package: `clsx` for conditional input plus
- * `tailwind-merge` extended with the project's named spacing scale
- * (`xs / sm / md / lg / xl`). Utilities like `p-md` collapse when a later
- * class overrides them.
+ * `tailwind-merge` extended with the density utilities (`core/tw-merge.ts`).
+ * A later class replaces an earlier class of each property that it covers.
  *
  * @remarks
  * Memoized on its arguments, which is what makes it cheap enough to call once

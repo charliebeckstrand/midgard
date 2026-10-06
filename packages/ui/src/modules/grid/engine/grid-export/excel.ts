@@ -1,4 +1,4 @@
-import { strToU8, zipSync } from 'fflate'
+import { strToU8, Zip, ZipDeflate } from 'fflate'
 import { downloadBlob } from '../../../../utilities/export-output'
 import type { GridColumn } from '../../types'
 import { cellText, escapeXml, exportFields } from './accessor'
@@ -98,6 +98,102 @@ function encodeForbidden(text: string): string {
 
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 
+const WORKBOOK = `${XML_DECLARATION}<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>`
+
+const WORKBOOK_RELS = `${XML_DECLARATION}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`
+
+const ROOT_RELS = `${XML_DECLARATION}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`
+
+const CONTENT_TYPES = `${XML_DECLARATION}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`
+
+/** The parts of a workbook that do not change with the data, by path in the zip. */
+const FIXED_PARTS: [string, string][] = [
+	['[Content_Types].xml', CONTENT_TYPES],
+	['_rels/.rels', ROOT_RELS],
+	['xl/workbook.xml', WORKBOOK],
+	['xl/_rels/workbook.xml.rels', WORKBOOK_RELS],
+]
+
+/**
+ * The length of worksheet XML, in UTF-16 code units, that the writer
+ * compresses in one step. In Chromium, one step of this length takes less
+ * than the 50 ms of a long task, so a caller that yields between steps keeps
+ * the page responsive.
+ */
+const STEP_LENGTH = 1 << 19
+
+/**
+ * Writes a workbook in steps. The worksheet XML is compressed as it is made,
+ * one {@link STEP_LENGTH} at a time, and the generator yields after each step.
+ * It returns the zipped workbook bytes.
+ */
+function* writeXlsx<T>(
+	columns: GridColumn<T>[],
+	rows: readonly T[],
+): Generator<undefined, Uint8Array, undefined> {
+	const fields = exportFields(columns)
+
+	const chunks: Uint8Array[] = []
+
+	const zip = new Zip((error, chunk) => {
+		if (error) throw error
+
+		chunks.push(chunk)
+	})
+
+	for (const [path, xml] of FIXED_PARTS) {
+		const part = new ZipDeflate(path)
+
+		zip.add(part)
+
+		part.push(strToU8(xml), true)
+	}
+
+	const sheet = new ZipDeflate('xl/worksheets/sheet1.xml')
+
+	zip.add(sheet)
+
+	const headerCells = fields
+		.map((field, column) => sheetCell(`${columnLetter(column)}1`, field.label))
+		.join('')
+
+	let xml = `${XML_DECLARATION}<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1">${headerCells}</row>`
+
+	for (const [index, row] of rows.entries()) {
+		const reference = index + 2
+
+		const cells = fields
+			.map((field, column) => sheetCell(`${columnLetter(column)}${reference}`, field.accessor(row)))
+			.join('')
+
+		xml += `<row r="${reference}">${cells}</row>`
+
+		if (xml.length < STEP_LENGTH) continue
+
+		sheet.push(strToU8(xml))
+
+		xml = ''
+
+		yield
+	}
+
+	sheet.push(strToU8(`${xml}</sheetData></worksheet>`), true)
+
+	zip.end()
+
+	const workbook = new Uint8Array(chunks.reduce((length, chunk) => length + chunk.length, 0))
+
+	let offset = 0
+
+	for (const chunk of chunks) {
+		workbook.set(chunk, offset)
+
+		offset += chunk.length
+	}
+
+	return workbook
+}
+
 /**
  * Serializes rows to a real `.xlsx` workbook, a zip of minimal OOXML parts.
  * One worksheet holds a header row of column labels and one row per datum.
@@ -115,43 +211,53 @@ const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
  * @typeParam T - Shape of a single row.
  */
 export function rowsToXlsx<T>(columns: GridColumn<T>[], rows: readonly T[]): Uint8Array {
-	const fields = exportFields(columns)
+	const writer = writeXlsx(columns, rows)
 
-	const headerCells = fields
-		.map((field, column) => sheetCell(`${columnLetter(column)}1`, field.label))
-		.join('')
+	for (;;) {
+		const step = writer.next()
 
-	const sheetRows = [
-		`<row r="1">${headerCells}</row>`,
-		...rows.map((row, index) => {
-			const reference = index + 2
+		if (step.done) return step.value
+	}
+}
 
-			const cells = fields
-				.map((field, column) =>
-					sheetCell(`${columnLetter(column)}${reference}`, field.accessor(row)),
-				)
-				.join('')
+/**
+ * The workbook of {@link rowsToXlsx}, written over many tasks. Between two
+ * steps of the writer, it gives the main thread back to the browser, so a
+ * large grid does not freeze the page while it compresses. It does not use a
+ * worker, because a strict `worker-src` policy can block one.
+ *
+ * @internal
+ */
+export async function rowsToXlsxInSteps<T>(
+	columns: GridColumn<T>[],
+	rows: readonly T[],
+): Promise<Uint8Array> {
+	const writer = writeXlsx(columns, rows)
 
-			return `<row r="${reference}">${cells}</row>`
-		}),
-	]
+	for (;;) {
+		const step = writer.next()
 
-	const sheet = `${XML_DECLARATION}<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows.join('')}</sheetData></worksheet>`
+		if (step.done) return step.value
 
-	const workbook = `${XML_DECLARATION}<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>`
+		await nextTask()
+	}
+}
 
-	const workbookRels = `${XML_DECLARATION}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`
+/**
+ * Resolves in a new task. A message to a channel does this without the 4 ms
+ * delay that the browser adds to a nested `setTimeout`.
+ */
+function nextTask(): Promise<void> {
+	return new Promise((resolve) => {
+		const channel = new MessageChannel()
 
-	const rootRels = `${XML_DECLARATION}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`
+		channel.port1.onmessage = () => {
+			channel.port1.close()
 
-	const contentTypes = `${XML_DECLARATION}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`
+			resolve()
+		}
 
-	return zipSync({
-		'[Content_Types].xml': strToU8(contentTypes),
-		'_rels/.rels': strToU8(rootRels),
-		'xl/workbook.xml': strToU8(workbook),
-		'xl/_rels/workbook.xml.rels': strToU8(workbookRels),
-		'xl/worksheets/sheet1.xml': strToU8(sheet),
+		channel.port2.postMessage(null)
 	})
 }
 

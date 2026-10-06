@@ -17,7 +17,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
-import { fitHeightMiddleware } from '../../hooks/use-floating-ui'
+import { fitHeightMiddleware, fitWidthMiddleware } from '../../hooks/use-floating-ui'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
@@ -56,7 +56,8 @@ const OPEN_KEYS = ['Enter', ' ']
  * of being clipped. Restricted to the horizontal sides, because a submenu above
  * or below its parent would cover the menu it came from. Top-aligned with the row it
  * hangs off, with `shift` nudging it back into view when it runs past the
- * bottom. A panel taller than the viewport shrinks to fit it, and scrolls.
+ * bottom. A panel wider than its side caps its width to that side. A panel
+ * taller than the viewport shrinks to fit it, and scrolls.
  *
  * @internal
  */
@@ -64,6 +65,7 @@ const SUBMENU_MIDDLEWARE: Middleware[] = [
 	offset(4),
 	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
 	shift({ padding: 8 }),
+	fitWidthMiddleware,
 	fitHeightMiddleware(snapMenuHeight),
 ]
 

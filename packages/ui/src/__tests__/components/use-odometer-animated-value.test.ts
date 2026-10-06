@@ -8,7 +8,7 @@ describe('useOdometerAnimatedValue', () => {
 	it('returns the initial value on first render', () => {
 		const { result } = renderHook(() => useOdometerAnimatedValue({ value: 42 }))
 
-		expect(result.current).toBe(42)
+		expect(result.current.get()).toBe(42)
 	})
 
 	it('snaps to the new value when duration is 0', () => {
@@ -19,7 +19,7 @@ describe('useOdometerAnimatedValue', () => {
 
 		rerender({ value: 99 })
 
-		expect(result.current).toBe(99)
+		expect(result.current.get()).toBe(99)
 	})
 
 	it('keeps the prior display value when the target is unchanged', () => {
@@ -29,6 +29,6 @@ describe('useOdometerAnimatedValue', () => {
 
 		rerender({ value: 7 })
 
-		expect(result.current).toBe(7)
+		expect(result.current.get()).toBe(7)
 	})
 })
