@@ -1,7 +1,21 @@
+import { animate } from 'motion'
 import type { FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
 import { act, bySlot, fireEvent, getSlot, present, renderUI, withFakeTime } from '../helpers'
+
+// `animate` is the shared module spy (setup/module-mocks.ts). The stub runs no
+// animation. A real Motion animation under fake timers waits on a fake frame,
+// and the frame loop of Motion then stays stuck for the next files of the
+// worker, because the suites run with `isolate: false`.
+beforeEach(() => {
+	vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
+})
+
+afterEach(() => {
+	// Restore the call-through default of animate.
+	vi.mocked(animate).mockRestore()
+})
 
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
