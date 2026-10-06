@@ -108,6 +108,14 @@ describe('browser wait boundary', () => {
 
 		expect(fixture(`it('a', async () => {}, 20_000)`)).toEqual(['literal'])
 
+		expect(fixture(`vi.waitFor(() => {}, 3000)`)).toEqual(['literal'])
+
+		expect(fixture(`vi.waitUntil(() => true, { timeout: 3000 })`)).toEqual(['literal'])
+
+		expect(fixture(`waitFor(() => {}, { timeout: CI ? 4000 : 1000 })`)).toEqual(['literal'])
+
+		expect(fixture(`vi.waitFor(() => {}, budget(3000))`)).toEqual([])
+
 		expect(fixture(`waitFor(() => {}, { timeout: budget(2000) })`)).toEqual([])
 
 		expect(fixture(`waitFor(() => {}, { timeout: inject('asyncUtilTimeout') })`)).toEqual([])
@@ -119,6 +127,10 @@ describe('browser wait boundary', () => {
 		expect(fixture(`await new Promise((done) => { setTimeout(() => done(), 100) })`)).toEqual([
 			'hold',
 		])
+
+		expect(fixture(`await new Promise((r) => window.setTimeout(r, 100))`)).toEqual(['hold'])
+
+		expect(fixture(`await new Promise((r) => globalThis.setTimeout(r, 100))`)).toEqual(['hold'])
 
 		expect(
 			fixture(`await new Promise((r) => setTimeout(r, 100))`, WALL_CLOCK),
@@ -153,6 +165,13 @@ describe('browser wait boundary', () => {
 		expect(
 			fixture(
 				`function load() { return waitFor(f, { timeout: budget(${over}) }) }\nit('a', async () => { await load() })`,
+			),
+		).toEqual(['overrun', 'overrun'])
+
+		// A wait that picks its budget by a condition counts at the larger budget.
+		expect(
+			fixture(
+				`it('a', async () => { await waitFor(f, { timeout: CI ? budget(${over}) : budget(1) }) })`,
 			),
 		).toEqual(['overrun', 'overrun'])
 

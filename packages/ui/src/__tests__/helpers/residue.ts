@@ -21,9 +21,10 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * What it watches is every surface a shipped module is known to write outside
  * a React tree, the document click gate {@link swallowsClicks} reads, and the
  * listeners on the global targets. Appended body children cover portals and
- * injected regions. A `<style>`, `<link>`, or `<script>` counts as well: a
- * leaked stylesheet changes the computed layout of every later file and leaves
- * the body clean by every other measure here.
+ * injected regions. A `<style>`, `<link>`, or `<script>` counts as well, in
+ * the body or in the head: a leaked stylesheet changes the computed layout of
+ * every later file and leaves the body clean by every other measure here. The
+ * attributes of `<html>` count too, such as `dir`, `lang`, and `data-*`.
  * `body.style` covers `use-scroll-lock`, which sets `overflow` and a
  * compensating `paddingRight` under a reference count. The root class covers
  * `holdTextSelection`, which keeps `select-none` on `<html>` while a touch is
@@ -55,7 +56,20 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
 /** The drag cursor's marker; `use-drag-cursor` stamps it on its style. */
 const DRAG_CURSOR = '[data-drag-cursor]'
 
+/**
+ * A link that only tells the browser to fetch or connect early, such as the
+ * preload of `preload()` from `react-dom` in the PDF viewer. React adds one
+ * such link for each URL and keeps it for the life of the page. It changes no
+ * style and no layout, so a later case does not read it.
+ */
+const RESOURCE_HINT =
+	'link:is([rel~=preload i], [rel~=modulepreload i], [rel~=prefetch i], [rel~=preconnect i], [rel~=dns-prefetch i])'
+
 let children = new WeakSet<Element>()
+
+let headChildren = new WeakSet<Element>()
+
+let rootAttributes = ''
 
 let bodyStyle = ''
 
@@ -106,6 +120,21 @@ export function swallowsClicks(): boolean {
 	}
 }
 
+/**
+ * The attributes of `<html>` other than `class` and `style`, which the guard
+ * reads on their own, as one sorted string. A `dir`, a `lang`, or a `data-*`
+ * flag that a case leaves there changes each later case: the direction of each
+ * layout, the locale of each format, or a mode that a style reads.
+ */
+function otherRootAttributes(): string {
+	return document.documentElement
+		.getAttributeNames()
+		.filter((name) => name !== 'class' && name !== 'style')
+		.sort()
+		.map((name) => `${name}=${document.documentElement.getAttribute(name)}`)
+		.join(' ')
+}
+
 /** Records the page state this test inherits. */
 function absorbResidue(): void {
 	children = new WeakSet<Element>()
@@ -119,6 +148,12 @@ function absorbResidue(): void {
 	rootStyle = document.documentElement.style.cssText
 
 	rootClass = document.documentElement.className
+
+	headChildren = new WeakSet<Element>()
+
+	for (const node of document.head.children) headChildren.add(node)
+
+	rootAttributes = otherRootAttributes()
 
 	swallowed = swallowsClicks()
 
@@ -150,6 +185,18 @@ function collect(): string[] {
 	}
 
 	if (document.head.querySelector(DRAG_CURSOR)) leaks.push('a drag-cursor style, left in head')
+
+	for (const node of document.head.children) {
+		if (!headChildren.has(node) && !node.matches(`${DRAG_CURSOR}, ${RESOURCE_HINT}`)) {
+			leaks.push(`${describeNode(node)}, left in head`)
+		}
+	}
+
+	const attributes = otherRootAttributes()
+
+	if (attributes !== rootAttributes) {
+		leaks.push(`root attributes: "${attributes}" (was "${rootAttributes}")`)
+	}
 
 	if (!swallowed && swallowsClicks()) {
 		leaks.push('an open pointer drag: its capture listener drops every click the page takes next')
