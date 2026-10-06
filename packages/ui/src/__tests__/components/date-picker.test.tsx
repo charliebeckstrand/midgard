@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
+import { DatePickerCalendarButton } from '../../components/date-picker/date-picker-calendar-button'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { Field } from '../../components/fieldset'
 import { Form } from '../../components/form'
@@ -996,6 +997,34 @@ describe('DatePicker input', () => {
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
 		expect(calendar).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	// B01-C03: a blur from the calendar button would refuse a partial entry.
+	it('prevents the mousedown default on the calendar button', () => {
+		renderUI(<DatePickerCalendarButton open={false} onActivate={() => {}} />)
+
+		// fireEvent returns false when a handler calls preventDefault.
+		expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Open calendar' }))).toBe(false)
+	})
+
+	it('keeps focus on a partial entry when the calendar button opens the calendar', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.type(input, '12/3')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+
+		expect(input).toHaveFocus()
+
+		expect(input.value).toBe('12/3')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 
 	it('writes a picked date back into the input', async () => {
