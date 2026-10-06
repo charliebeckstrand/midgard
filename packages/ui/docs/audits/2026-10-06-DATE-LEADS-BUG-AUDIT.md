@@ -33,10 +33,11 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | C06 | `use-date-picker-keyboard.ts` | `getInitialActiveDate` | CONFIRMED | medium | shipped | G1 | ◐ FIXED |
-| C09 | `date-picker-content.tsx` | dialog focus reclaim | CONFIRMED | medium | shipped | G1 | ◐ FIXED |
+| C09 | `date-picker-content.tsx` | dialog focus reclaim | CONFIRMED | medium | shipped | G1 | ◯ OPEN |
 | C01 | `use-floating-ui.ts` | `returnFocusTo` restore | CONFIRMED | low | shipped | — | ◐ FIXED |
 | C03 | `date-picker-calendar-button.tsx` | `DatePickerCalendarButton` | NARROWED | low | shipped | — | ◐ FIXED |
-| C07 | `use-calendar-focus.ts` | `handleHeaderKeyDown` / `handleFooterKeyDown` | CONFIRMED | low | docs-only | G1 | ◐ FIXED |
+| C07 | `use-calendar-focus.ts` | `handleHeaderKeyDown` / `handleFooterKeyDown` | CONFIRMED | low | docs-only | G1 | ◯ OPEN |
+| C12 | `use-calendar-focus.ts` | `handleGridKeyDown` (steered) | NARROWED | low | shipped | G1 | ◯ OPEN |
 
 ## Mechanisms
 
@@ -90,9 +91,21 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 - **Severity:** low.
 - **Prior art:** none.
 
+### C12 — an arrow from a Tab-focused day in a steered grid
+
+- **File:** `packages/ui/src/components/calendar/use-calendar-focus.ts`
+- **Mechanism:** steered turns off only the day-grid model (`calendar.tsx:318-320` `() => (steered ? undefined : { days, min, max, navigateTo }),`); the header and footer handlers bail (`use-calendar-focus.ts:454` `if (steered) return`), but `handleGridKeyDown` has no guard: `:475-477` `const handled = dayGrid ? moveDay(...) : crossZoneEdge(event, headerRef.current, gridRef.current, footerRef?.current ?? null, cols)`, `:479-480` `if (handled) { preventAndStop(event, stopPropagation)`, `:485` `gridRoving(event)`. The grid keeps a roving Tab stop (`calendar.tsx:323-329` passes no `gridMounted`; default `use-calendar-focus.ts:435` `gridMounted = true,`), so Tab inside the modal trap reaches a day. In input mode `compose-event-handlers.ts:41` `if (!checkForDefaultPrevented || !event.defaultPrevented) ours(event)` then skips the model, and the reclaim moves focus to the input: the arrow is lost.
+- **Trigger:** an input-mode DatePicker is open; Tab through the header to the day Tab stop; press an arrow (or ArrowUp on the top row, ArrowDown on the bottom row).
+- **Documented intent:** `date-picker-content.tsx:144-145` "Navigation keys belong to the virtual model even when the user has Tabbed onto a control inside."
+- **Reach:** shipped, the input-mode sites of C01. Button mode is not reached: the model steps once from its own state (`date-picker.test.tsx:781`).
+- **Severity:** low. One lost key per Tab into the grid.
+- **Prior art:** C09(a) and S1 cover the same seam for the header and footer only.
+
+Raised by the caller from the `simplify` review; judged by a blind verify pass. Dropped parts: "the highlight moves twice" (the DOM move and the reclaim are one dispatch, and the visible highlight is the model's `active`); the mouse-press trigger (`date-picker-content.tsx:184` `onMouseDown={(event) => event.preventDefault()}`); Page keys (roving does not handle them).
+
 ## Root-cause groups
 
-- **G1 — keyboard grid entry (C06, C07, C09).** The day grid has three entry rules: the Calendar's header and footer handlers take the first or last button and fire even when a parent steers; the picker's no-highlight arrows take the anchor; only the picker's header and footer zones take `getEntryDate`.
+- **G1 — keyboard grid entry (C06, C07, C09, C12).** The day grid has three entry rules: the Calendar's header and footer handlers take the first or last button and fire even when a parent steers; the picker's no-highlight arrows take the anchor; only the picker's header and footer zones take `getEntryDate`.
 - **Independent:** C01, C03.
 
 ## Recommended resolution
@@ -137,6 +150,36 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 - **Gate:** none.
 - **Test seam:** render the button alone; assert `fireEvent.mouseDown(button)` returns `false`.
 
+### S5 — the entry key follows the grid's roving stop
+
+- **Change:** in `use-calendar-focus.ts`, unsteered header ArrowDown and footer ArrowUp enter on the grid's `tabIndex=0` item while roving manages the Tab stop, else on the `activeSelector` match, else on the first or last item. Tab and the arrow then enter on the same day after a rove (Q9). The month picker keeps its Q4 result.
+- **Rows closed:** C07.
+- **Files:** `components/calendar/use-calendar-focus.ts`, `__tests__/components/use-calendar-focus.test.ts`, `__tests__/components/calendar.test.tsx`.
+- **Order:** after S1–S4 and the `refactor(ui)` commits.
+- **Depends on:** S1.
+- **Gate:** none (Q9 settled).
+- **Test seam:** `renderHook(useCalendarFocus)` with a roved `tabIndex=0` day that differs from the selected day.
+
+### S6 — map only the keys that the dialog hands over
+
+- **Change:** in `use-date-picker-keyboard.ts`, run `zoneOfTarget` only for arrow keys, the set that `date-picker-content.tsx` reclaims for (Q10).
+- **Rows closed:** C09.
+- **Files:** `components/date-picker/use-date-picker-keyboard.ts`, `__tests__/components/use-date-picker-keyboard.test.ts`.
+- **Order:** after S5.
+- **Depends on:** S2.
+- **Gate:** none (Q10 settled).
+- **Test seam:** Tab from a focused header button sets no zone.
+
+### S7 — a focused day in a steered grid hands its keys to the model
+
+- **Change:** `handleGridKeyDown` returns at once when steered (no focus move, no `preventDefault`), as S1 does for the header and footer. The picker maps a focused day button to `{ zone: 'grid', date }` before the model runs, as Q2 does for toolbar buttons, so an arrow steps from the focused day (Q8). Extend the `steered` TSDoc to name the grid handler. The test `date-picker.test.tsx:781` ("Materialize on the 15th…") changes its expectation.
+- **Rows closed:** C12.
+- **Files:** `components/calendar/use-calendar-focus.ts`, `components/date-picker/use-date-picker-keyboard.ts`, the day cell if it needs a date attribute (`components/calendar/calendar-day-cell.tsx`), `__tests__/components/use-calendar-focus.test.ts`, `__tests__/components/use-date-picker-keyboard.test.ts`, `__tests__/components/date-picker.test.tsx`.
+- **Order:** after S6.
+- **Depends on:** S1, S2.
+- **Gate:** none (Q8 settled).
+- **Test seam:** `renderHook(useCalendarFocus({ steered: true, … }))`, a focused day, ArrowRight: no `preventDefault`, focus unchanged. Integration: input-mode picker, `act(() => day.focus())`, ArrowRight, the highlight is the next day and focus is on the input.
+
 ## Open questions
 
 ### Q1 — where does the first arrow with no highlight enter?
@@ -180,6 +223,24 @@ Raised by the S1 resolver. After S1 the member does nothing whenever the parent 
 Raised by the S3 resolver (Surfaced 1 and 7). After S3 the close from the calendar button carries no reason, so the restore moves focus from the button to the input. Axes: keep it and pin it with a test; or pass a reason so focus stays on the button.
 
 **Answer:** "Keep, pin with a test". S2 adds the test.
+
+### Q8 — what does a Tab-focused day in a steered grid do?
+
+Raised by the C12 verify pass. Axes: map the focused day to the grid zone at its date; leave keys to the parent only (the model ignores the focused day, Home and End go dead); or take the steered grid out of the Tab order.
+
+**Answer:** "Map day to zone". One rule for all three zones.
+
+### Q9 — does header ArrowDown follow the roving stop or the `activeSelector` match?
+
+Raised by the `simplify` review. After a rove off the selected day, Tab enters on the roved day and S1's ArrowDown on the selected day. Axes: follow the roving stop; or keep `activeSelector` and fix the TSDoc.
+
+**Answer:** "Follow the rove stop".
+
+### Q10 — does the zone mapping run for every key or only for arrows?
+
+Raised by the `simplify` review. The dialog reclaims focus only for arrows, but S2 maps every key, so Tab from a header button may paint the highlight on the button it leaves. Axes: arrows only; or every key.
+
+**Answer:** "Arrows only".
 
 ## Ruled out
 
