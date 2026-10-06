@@ -20,7 +20,12 @@ import {
 import { Button, ButtonSkeleton } from '../../../components/button'
 import { Calendar, CalendarSkeleton } from '../../../components/calendar'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
-import { ColorPanel, ColorPanelSkeleton } from '../../../components/color'
+import {
+	ColorPanel,
+	ColorPanelSkeleton,
+	ColorPicker,
+	ColorPickerSkeleton,
+} from '../../../components/color'
 import { ControlSkeleton } from '../../../components/control'
 import {
 	DescriptionDetails,
@@ -253,6 +258,35 @@ describe('skeleton parity (real browser)', () => {
 		expect(skeleton.width).toBe(real.width)
 
 		// The panel height has a fraction of a pixel from its text lines.
+		expect(skeleton.height).toBeNear(real.height, PIXEL)
+	})
+
+	it.each([
+		['sm', false],
+		['md', false],
+		['lg', false],
+		['sm', true],
+		['md', true],
+		['lg', true],
+	] as const)('ColorPickerSkeleton has the box of a %s picker, alpha %s', (size, alpha) => {
+		const real = box(
+			renderUI(
+				<ColorPicker
+					aria-label="Color"
+					size={size}
+					alpha={alpha}
+					defaultValue={alpha ? '#3b82f680' : '#3b82f6'}
+				/>,
+			).container.querySelector('[data-slot="control-frame"]'),
+			'color picker',
+		)
+
+		const skeleton = placeholder(
+			renderUI(<ColorPickerSkeleton size={size} alpha={alpha} />).container,
+		)
+
+		expect(skeleton.width).toBeNear(real.width, PIXEL)
+
 		expect(skeleton.height).toBeNear(real.height, PIXEL)
 	})
 
