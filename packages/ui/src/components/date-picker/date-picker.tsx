@@ -159,9 +159,8 @@ export type DatePickerBaseProps = GroupStampProps & {
 	 */
 	size?: ScaleStep<typeof scale>
 	/**
-	 * Truncates the displayed date label when it overflows the trigger.
-	 * Set `false` to let the trigger grow to fit its content. An example is inside
-	 * a `<Group>`, or another content-sized parent that collapses the label.
+	 * Truncates the date label when the parent is narrower than the trigger
+	 * content. Set `false` to show the full label in that case.
 	 *
 	 * @defaultValue true
 	 */
@@ -224,6 +223,11 @@ export type DatePickerProps = DatePickerBaseProps &
  * typed DateInput replaces the trigger and the calendar opens from its suffix
  * button. A `clearable` clear button replaces the calendar icon once a value is
  * set, mirroring Listbox/Combobox, which default it off as well.
+ *
+ * The trigger is as wide as its value and its calendar icon. It does not fill
+ * its parent, and it does not get wider than its parent. Pass a `className`
+ * such as `w-full` to make it fill the parent. With `input`, the DateInput
+ * fills its parent, as an Input does.
  *
  * @remarks
  * In the calendar variants, keyboard navigation runs on a virtual highlight

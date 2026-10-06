@@ -5,10 +5,11 @@
  * value text. `surface`, `control` (the input-mode field adjacency), `icon`,
  * `placeholder`, `affix`, and the `content` group are slots.
  * `relative` adds the layout of the relative popover: the preset `list`, the
- * `custom` range affordance, and the trigger chip row.
+ * `custom` range affordance, and the trigger chip row. `root` sizes the box of
+ * the trigger to its content, and `skeleton` is the form of DatePickerSkeleton.
  */
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, narabi, sen } from '../kiso'
+import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
@@ -49,7 +50,14 @@ const value = defineRecipe({
 // not in the calendar kata. Each takes the step of the nearest density scope.
 const body = [flex.col, dan.space.box.base, dan.gap.y]
 
+/**
+ * The box of the trigger. It is as wide as the date and the calendar icon. It
+ * does not fill its parent, and it does not get wider than its parent.
+ */
+const root = ['w-fit', 'max-w-full']
+
 export const k = {
+	root,
 	surface: {
 		default: surface.default,
 		glass: [],
@@ -63,6 +71,7 @@ export const k = {
 	control: field,
 	icon: [flex.row, 'pointer-events-none', text.muted],
 	placeholder: text.muted,
+	skeleton: kokkaku.datePicker,
 	affix: {
 		base: affix.base,
 		suffix: affix.suffix,

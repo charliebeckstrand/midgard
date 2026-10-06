@@ -30,7 +30,7 @@ import {
 } from '../../../components/credit-card-input'
 import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
-import { DatePicker } from '../../../components/date-picker'
+import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
 import {
 	Drawer,
 	DrawerBody,
@@ -216,6 +216,7 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	DatePicker: (size) => (
 		<DatePicker size={size as never} aria-label="Date" defaultValue={new Date(2026, 0, 1)} />
 	),
+	DatePickerSkeleton: (size) => <DatePickerSkeleton size={size as never} />,
 	DrawerPanel: (size) => (
 		<Drawer open onOpenChange={() => {}}>
 			<DrawerPanel size={size}>

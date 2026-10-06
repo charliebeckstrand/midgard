@@ -5,15 +5,11 @@ import { dan } from '../kiso/dan'
 
 const { mark } = shaku
 
-// `w-fit` holds the key at its glyph width. A flex or grid parent stretches its
-// items across the cross axis by default, which widens the bare `inline-flex`
-// box to the full container.
-//
-// The key takes the step of its nearest density scope, and an explicit `size`
-// makes the key its own scope.
+// The mark holds the key at its glyph width. The key takes the step of its
+// nearest density scope, and an explicit `size` makes the key its own scope.
 export const k = defineRecipe({
 	base: [
-		'inline-flex w-fit items-center justify-center',
+		'inline-flex items-center justify-center',
 		...mark.base,
 		...mark.density,
 		// In a Button (`data-variant`), the key has less padding, so the key does
