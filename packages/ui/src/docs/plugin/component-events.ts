@@ -60,8 +60,8 @@ export function componentEvents(): Plugin {
 
 /**
  * The code with each `on…` prop of a component element wrapped in a call of
- * `componentEvent`, with the source and the label: `<Tabs onValueChange={f}>`
- * gives `<Tabs onValueChange={__componentEvent("component", "Tabs onValueChange", f)}>`.
+ * `componentEvent`, with the source, the tag, and the prop: `<Tabs onValueChange={f}>`
+ * gives `<Tabs onValueChange={__componentEvent("component", "Tabs", "onValueChange", f)}>`.
  * The source is `module` when `fromModules` holds the first name of the tag. A
  * host element, such as `<div>`, stays as it is, because the input listeners
  * of the log record the DOM events. It gives nothing for code with no such prop.
@@ -83,7 +83,7 @@ export function labelCallbacks(
 
 			if (!component) return
 
-			const tag = code.slice(name.start, name.end)
+			const tag = JSON.stringify(code.slice(name.start, name.end))
 
 			const source = JSON.stringify(fromModules.has(rootOf(name)) ? 'module' : 'component')
 
@@ -99,9 +99,12 @@ export function labelCallbacks(
 
 				const { start, end } = attribute.value.expression
 
-				const label = JSON.stringify(`${tag} ${attribute.name.name}`)
+				const prop = JSON.stringify(attribute.name.name)
 
-				inserts.push({ at: start, text: `${WRAP}(${source}, ${label}, ` }, { at: end, text: ')' })
+				inserts.push(
+					{ at: start, text: `${WRAP}(${source}, ${tag}, ${prop}, ` },
+					{ at: end, text: ')' },
+				)
 			}
 		},
 	}).visit(program)

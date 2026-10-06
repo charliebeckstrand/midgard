@@ -1,6 +1,7 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { Profiler } from 'react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { componentEvent } from '../debug/event-log/component-events.ts'
 import { __resetEventLogSheet, EventLogButton } from '../debug/event-log/index.tsx'
 import { halt, record } from '../debug/event-log/recorder.ts'
 import { EventLogSheet } from '../debug/event-log/sheet.tsx'
@@ -71,5 +72,69 @@ describe('EventLogSheet', () => {
 		rerender(sheet(true))
 
 		expect(screen.getByText('/closed')).toBeDefined()
+	})
+
+	it('opens the detail of a line in a tree, and copies the detail as JSON under its line', async () => {
+		const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
+
+		const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
+
+		Object.defineProperty(window.navigator, 'clipboard', {
+			configurable: true,
+			value: { writeText },
+		})
+
+		onTestFinished(() => {
+			if (original) Object.defineProperty(window.navigator, 'clipboard', original)
+			else delete (window.navigator as { clipboard?: unknown }).clipboard
+		})
+
+		const { rerender } = render(<EventLogSheet open={false} onOpenChange={() => {}} />)
+
+		act(() => {
+			record('error', 'boom', { stack: ['at f (a.js:1:2)'] })
+
+			record('route', '/plain')
+
+			componentEvent('component', 'Tabs', 'onValueChange', (_value: string) => {})('Payment')
+		})
+
+		rerender(<EventLogSheet open onOpenChange={() => {}} />)
+
+		// Only the line with a detail has a toggle.
+		const error = within(screen.getByText('boom').closest('li') ?? document.body)
+
+		const plain = within(screen.getByText('/plain').closest('li') ?? document.body)
+
+		expect(plain.queryByRole('button', { name: 'Details' })).toBeNull()
+
+		fireEvent.click(error.getByRole('button', { name: 'Details' }))
+
+		expect(error.getByRole('tree', { name: 'Details' })).toBeDefined()
+
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
+		})
+
+		const text = writeText.mock.calls[0]?.[0] ?? ''
+
+		const lines = text.split('\n')
+
+		const at = lines.findIndex((line) => line.endsWith('boom'))
+
+		const indent = ' '.repeat(lines[at]?.indexOf('boom') ?? 0)
+
+		expect(lines.slice(at + 1, at + 6)).toEqual([
+			`${indent}{`,
+			`${indent}  "stack": [`,
+			`${indent}    "at f (a.js:1:2)"`,
+			`${indent}  ]`,
+			`${indent}}`,
+		])
+
+		expect(lines[at + 6]).toMatch(/\/plain$/)
+
+		// A component line shows the component in the kind column, and the prop and the arguments as its text.
+		expect(lines[at + 7]).toMatch(/ y\d+\s+Tabs\s+onValueChange\("Payment"\)$/)
 	})
 })

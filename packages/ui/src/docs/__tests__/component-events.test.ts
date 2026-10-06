@@ -18,7 +18,9 @@ const spy = () => vi.fn<(...args: unknown[]) => unknown>()
 function collect(): string[] {
 	const texts: string[] = []
 
-	onTestFinished(listenComponentEvents((source, text) => texts.push(`${source} ${text}`)))
+	onTestFinished(
+		listenComponentEvents((source, name, text) => texts.push(`${source} ${name} ${text}`)),
+	)
 
 	return texts
 }
@@ -26,17 +28,17 @@ function collect(): string[] {
 describe('labelCallbacks', () => {
 	it('wraps each callback prop of a component with its source, and the tag and the prop as the label', () => {
 		expect(label('const a = <Tabs value={v} onValueChange={(value) => set(value)} />')).toBe(
-			'const a = <Tabs value={v} onValueChange={__componentEvent("component", "Tabs onValueChange", (value) => set(value))} />',
+			'const a = <Tabs value={v} onValueChange={__componentEvent("component", "Tabs", "onValueChange", (value) => set(value))} />',
 		)
 
 		expect(label('const a = <Chat.Prompt onSubmit={send} />', ['Chat'])).toBe(
-			'const a = <Chat.Prompt onSubmit={__componentEvent("module", "Chat.Prompt onSubmit", send)} />',
+			'const a = <Chat.Prompt onSubmit={__componentEvent("module", "Chat.Prompt", "onSubmit", send)} />',
 		)
 	})
 
 	it('wraps a component inside the callback of another component', () => {
 		expect(label('<A onRender={() => <B onPick={pick} />} />')).toBe(
-			'<A onRender={__componentEvent("component", "A onRender", () => <B onPick={__componentEvent("component", "B onPick", pick)} />)} />',
+			'<A onRender={__componentEvent("component", "A", "onRender", () => <B onPick={__componentEvent("component", "B", "onPick", pick)} />)} />',
 		)
 	})
 
@@ -49,7 +51,7 @@ describe('componentEvent', () => {
 	it('gives the callback with no change while no listener is set', () => {
 		const callback = spy()
 
-		expect(componentEvent('component', 'Tabs onValueChange', callback)).toBe(callback)
+		expect(componentEvent('component', 'Tabs', 'onValueChange', callback)).toBe(callback)
 	})
 
 	it('writes each call with its arguments, and calls the callback', () => {
@@ -57,7 +59,7 @@ describe('componentEvent', () => {
 
 		const callback = spy().mockReturnValue('kept')
 
-		const wrapped = componentEvent('component', 'Tabs onValueChange', callback)
+		const wrapped = componentEvent('component', 'Tabs', 'onValueChange', callback)
 
 		expect(wrapped('Payment', { index: 1 })).toBe('kept')
 
@@ -69,11 +71,12 @@ describe('componentEvent', () => {
 	it('writes an event as its type', () => {
 		const texts = collect()
 
-		componentEvent('component', 'Button onClick', spy())(new Event('click'))
+		componentEvent('component', 'Button', 'onClick', spy())(new Event('click'))
 
 		componentEvent(
 			'component',
-			'Button onClick',
+			'Button',
+			'onClick',
 			spy(),
 		)({ nativeEvent: new Event('click'), type: 'click' })
 
@@ -86,7 +89,7 @@ describe('componentEvent', () => {
 	it('writes a set as an array and a map as its entries', () => {
 		const texts = collect()
 
-		componentEvent('module', 'Grid onValueChange', spy())(new Set([1, 2]), new Map([['a', 1]]))
+		componentEvent('module', 'Grid', 'onValueChange', spy())(new Set([1, 2]), new Map([['a', 1]]))
 
 		expect(texts).toEqual(['module Grid onValueChange([1,2], [["a",1]])'])
 	})
@@ -94,11 +97,30 @@ describe('componentEvent', () => {
 	it('cuts a long argument', () => {
 		const texts = collect()
 
-		componentEvent('component', 'Input onChange', spy())('x'.repeat(ARGUMENT_LENGTH * 2), 'short')
+		componentEvent(
+			'component',
+			'Input',
+			'onChange',
+			spy(),
+		)('x'.repeat(ARGUMENT_LENGTH * 2), 'short')
 
 		expect(texts).toEqual([
 			`component Input onChange(${JSON.stringify('x'.repeat(ARGUMENT_LENGTH * 2)).slice(0, ARGUMENT_LENGTH)}…, "short")`,
 		])
+	})
+
+	it('gives the full arguments as the detail, and no detail for a call with none', () => {
+		const details: unknown[] = []
+
+		onTestFinished(listenComponentEvents((_source, _name, _text, detail) => details.push(detail)))
+
+		const long = 'x'.repeat(ARGUMENT_LENGTH * 2)
+
+		componentEvent('component', 'Input', 'onChange', spy())(long, new Event('input'), undefined)
+
+		componentEvent('component', 'Dialog', 'onClose', spy())()
+
+		expect(details).toEqual([[long, '<input>', 'undefined'], undefined])
 	})
 
 	it('keeps the identity of the wrapper while the callback keeps its own', () => {
@@ -106,8 +128,8 @@ describe('componentEvent', () => {
 
 		const callback = spy()
 
-		expect(componentEvent('component', 'Tab onPreload', callback)).toBe(
-			componentEvent('component', 'Tab onPreload', callback),
+		expect(componentEvent('component', 'Tab', 'onPreload', callback)).toBe(
+			componentEvent('component', 'Tab', 'onPreload', callback),
 		)
 	})
 })
