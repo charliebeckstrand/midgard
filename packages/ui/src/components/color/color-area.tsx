@@ -92,6 +92,7 @@ export function ColorArea() {
 			aria-disabled={ariaAttr(disabled)}
 			className={cn(k.area.base, disabled && 'pointer-events-none opacity-50')}
 			style={{ backgroundColor: `hsl(${hsva.h} 100% 50%)` }}
+			onMouseDown={drag.onMouseDown}
 			onPointerDown={drag.onPointerDown}
 			onPointerMove={drag.onPointerMove}
 			onPointerUp={drag.onPointerUp}

@@ -1,6 +1,12 @@
 'use client'
 
-import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
+import {
+	type MouseEvent as ReactMouseEvent,
+	type PointerEvent as ReactPointerEvent,
+	type RefObject,
+	useCallback,
+	useRef,
+} from 'react'
 import { type DragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { clamp } from '../../utilities'
 
@@ -9,6 +15,12 @@ export type DragPosition = { x: number; y: number }
 
 /** Pointer-event bindings for a draggable track; spread onto the tracked element. */
 export type ColorDragHandlers = {
+	/**
+	 * Cancels the mousedown of a press, so the press does not move the focus that
+	 * the drag gives. Only a drag surface holds the press. Each other part of a
+	 * panel takes the focus of a press, as a native control does.
+	 */
+	onMouseDown: (event: ReactMouseEvent<HTMLElement>) => void
 	onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void
@@ -39,6 +51,11 @@ export function inDisabledFieldset(element: Element): boolean {
 	}
 
 	return false
+}
+
+/** The `onMouseDown` of {@link ColorDragHandlers}. @internal */
+function holdPress(event: ReactMouseEvent<HTMLElement>): void {
+	event.preventDefault()
 }
 
 /**
@@ -138,6 +155,7 @@ export function useColorDrag(
 	}, [cursorHold])
 
 	return {
+		onMouseDown: holdPress,
 		onPointerDown,
 		onPointerMove,
 		onPointerUp: endDrag,

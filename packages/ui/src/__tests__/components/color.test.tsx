@@ -867,12 +867,12 @@ describe('ColorPanel in a ColorPicker', () => {
 		expect(onValueChange).toHaveBeenLastCalledWith({ h: 0, s: 0, v: 50, a: 1 })
 	})
 
-	// The content wrapper of the picker cancels each mousedown, so a drag on the
-	// area keeps focus in the panel. The eyedropper press must escape that hold.
-	// Focus then leaves an edited field, and its blur commit runs before the pick.
-	// The dialog here is the hold without floating-ui (§10.3). jsdom does not
-	// move focus on a mousedown, so the case asserts the escape, not the focus.
-	it('lets an eyedropper press escape the mousedown hold of the picker', () => {
+	// A drag surface cancels the mousedown of its press, so the press keeps the
+	// focus that the drag gives. Each other part takes the focus of a press, so
+	// an edited field blurs and commits first. `fireEvent` returns `false` when a
+	// handler cancels the press. jsdom does not move focus on a mousedown, so the
+	// browser file `color-picker-press-focus` asserts the focus.
+	it('holds the press of a drag surface only', () => {
 		vi.stubGlobal(
 			'EyeDropper',
 			class {
@@ -884,23 +884,22 @@ describe('ColorPanel in a ColorPicker', () => {
 			vi.unstubAllGlobals()
 		})
 
-		const hold = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
-		const { container } = renderUI(
-			<div role="dialog" aria-label="Choose color" onMouseDown={hold}>
-				<ColorPanel defaultValue="#3b82f6" />
-			</div>,
-		)
+		expect(fireEvent.mouseDown(getSlot(container, 'color-area'))).toBe(false)
 
-		// The hold catches a press on the area, the drag that it is for.
-		fireEvent.mouseDown(getSlot(container, 'color-area'))
+		expect(fireEvent.mouseDown(getSlot(container, 'color-slider'))).toBe(false)
 
-		expect(hold).toHaveBeenCalledTimes(1)
-
-		// `fireEvent` returns `false` when a handler cancels the press.
-		expect(fireEvent.mouseDown(getSlot(container, 'color-eyedropper'))).toBe(true)
-
-		expect(hold).toHaveBeenCalledTimes(1)
+		for (const slot of [
+			'color-eyedropper',
+			'color-hex-input',
+			'copy-button',
+			'color-channel-input',
+			'color-swatch',
+			'color-panel',
+		]) {
+			expect(fireEvent.mouseDown(getSlot(container, slot)), slot).toBe(true)
+		}
 	})
 })
 

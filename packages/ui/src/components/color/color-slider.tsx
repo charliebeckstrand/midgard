@@ -94,6 +94,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 	const opaque = hsvaToHex({ ...hsva, a: 1 })
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: a press guard for the drag. The range input inside holds the focus, the keys, and the slider semantics.
 		<div
 			data-slot="color-slider"
 			data-channel={channel}
@@ -102,6 +103,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 				isHue ? k.hue : k.checkerboard,
 				disabled && 'pointer-events-none opacity-50',
 			)}
+			onMouseDown={drag.onMouseDown}
 			onPointerDown={drag.onPointerDown}
 			onPointerMove={drag.onPointerMove}
 			onPointerUp={drag.onPointerUp}
