@@ -94,6 +94,29 @@ describe('the border of a check control under the pointer (real browser)', () =>
 		})
 
 		/**
+		 * The server HTML carries `data-indeterminate`, and only a client effect sets the
+		 * `indeterminate` property. The guard must read the attribute, so the box keeps its border
+		 * before the effect runs. The case clears the property to stand for that markup.
+		 */
+		it('an indeterminate Checkbox with no indeterminate property keeps its border on a hover', async () => {
+			if (dark) document.documentElement.classList.add('dark')
+
+			const { container } = renderUI(fields['an indeterminate Checkbox']())
+
+			const input = present(container.querySelector<HTMLInputElement>('input'), 'input')
+
+			input.indeterminate = false
+
+			const box = present(bySlot(container, 'control'), 'check box')
+
+			const before = getComputedStyle(box).borderTopColor
+
+			await userEvent.hover(box)
+
+			expect(getComputedStyle(box).borderTopColor).toBe(before)
+		})
+
+		/**
 		 * The neutral hover still exists. A guard that removed it everywhere would pass the cases
 		 * above. The Radio case also stops a guard on each `:indeterminate` input, which would remove
 		 * the hover from a radio group with no selection.

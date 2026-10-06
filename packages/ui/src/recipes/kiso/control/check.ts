@@ -43,8 +43,10 @@ const validation = [
  * The neutral hover border skips a checked control and an indeterminate
  * checkbox. It has a higher specificity than the checked border of the kata, so
  * it would otherwise replace the accent border on hover. The kata gives a
- * checked control its own hover. The indeterminate guard names the checkbox,
- * because a radio matches `:indeterminate` when no radio of its group is
+ * checked control its own hover. The indeterminate guard reads
+ * `data-indeterminate`, as the kata does. Only a client effect sets the DOM
+ * property, so the server HTML has only the attribute. A radio has no such
+ * attribute, though it matches `:indeterminate` when no radio of its group is
  * checked.
  */
 const surface = [
@@ -52,12 +54,12 @@ const surface = [
 		[
 			'bg-white',
 			'border border-zinc-950/50',
-			'not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:hover:border-zinc-950/70 not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
+			'not-has-[:disabled]:not-has-checked:not-has-[[data-indeterminate]]:hover:border-zinc-950/70 not-has-[:disabled]:not-has-checked:not-has-[[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
 		],
 		[
 			'dark:bg-white/5',
 			'dark:border-white/35',
-			'dark:not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:hover:border-white/50 dark:not-has-[:disabled]:not-has-checked:not-has-[[type=checkbox]:indeterminate]:group-has-[[data-slot=label]:hover]/field:border-white/50',
+			'dark:not-has-[:disabled]:not-has-checked:not-has-[[data-indeterminate]]:hover:border-white/50 dark:not-has-[:disabled]:not-has-checked:not-has-[[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-white/50',
 		],
 	),
 	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
