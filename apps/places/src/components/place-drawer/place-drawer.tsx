@@ -238,9 +238,12 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 
 				{category ? (
 					<PlaceFact icon={<Tag />}>
-						<Badge color={category.color} size="xs">
-							{category.label}
-						</Badge>
+						{/* The badge is taller than a line. Its box is one line high, so the
+						    row is one line high, the same as the rows over it, and the badge
+						    goes out of the row above and below. */}
+						<div className="flex h-lh items-center">
+							<Badge color={category.color}>{category.label}</Badge>
+						</div>
 					</PlaceFact>
 				) : null}
 			</Stack>
