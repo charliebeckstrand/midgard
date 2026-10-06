@@ -268,6 +268,47 @@ describe('createDashboardStore', () => {
 		}
 	})
 
+	it('reads a span axis that is not a finite number as absent', () => {
+		for (const bad of [Number.NaN, Number.POSITIVE_INFINITY]) {
+			const store = createDashboardStore(initial())
+
+			// Tile d has no saved entry, so its spans place it.
+			store.register('d', {
+				defaultSize: { w: bad, h: bad },
+				minSize: { w: bad },
+				maxSize: { h: bad },
+			})
+
+			const demands = store.getState().demands.get('d')
+
+			expect(demands?.defaultSize).toEqual({ w: 8 })
+
+			expect(demands?.minSize).toBeUndefined()
+
+			expect(demands?.maxSize).toBeUndefined()
+
+			expect(store.getView().canonical.find((cell) => cell.id === 'd')).toMatchObject({ w: 8 })
+
+			expect(store.getView().canonical.every(finite)).toBe(true)
+		}
+	})
+
+	it('keeps the demands object of a registration with only usable values', () => {
+		const store = createDashboardStore(initial())
+
+		const demands = {
+			ratio: 16 / 9,
+			minWidth: 0,
+			defaultSize: { w: 6, h: 4 },
+			minSize: { w: 2 },
+			maxSize: { h: 20 },
+		}
+
+		store.register('d', demands)
+
+		expect(store.getState().demands.get('d')).toBe(demands)
+	})
+
 	it('reads the first entry of a repeated id before a tile registers, as the board resolves it', () => {
 		// No tile registers on the server, so the entries and the order paint the server markup.
 		const store = createDashboardStore(

@@ -173,5 +173,23 @@ describe('useDashboardDrag', () => {
 
 			expect(step(getter, 'ArrowUp')).toEqual({ x: 0, y: -50 / ROW_SUBDIVISION })
 		})
+
+		it('steps back from the edge of the travel range after an overshoot', () => {
+			const { context } = renderDrag(makeStore())
+
+			context.onDragStart?.(start('alpha'))
+
+			// Alpha travels 16 columns, which is 800 px. The delta goes four columns past that edge.
+			context.onDragMove?.(move('alpha', 1000))
+
+			const getter = coordinateGetterOf(context)
+
+			const next = getter(new KeyboardEvent('keydown', { code: 'ArrowLeft' }), {
+				currentCoordinates: { x: 1000, y: 0 },
+			} as unknown as Parameters<KeyboardCoordinateGetter>[1])
+
+			// The first return press moves one column inside the edge.
+			expect(next).toEqual({ x: 750, y: 0 })
+		})
 	})
 })
