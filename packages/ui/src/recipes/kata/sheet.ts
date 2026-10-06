@@ -46,7 +46,7 @@ export const k = {
 			base: [
 				...panel.surface.chrome.flat(),
 				panel.layout.base,
-				'absolute overflow-y-auto',
+				'absolute overflow-y-auto overscroll-contain',
 				'sm:rounded-xl',
 			],
 			side: {
@@ -99,7 +99,9 @@ export const k = {
 		title: { extra: [inset.x, inset.top] },
 		description: { extra: inset.x },
 		footer: { extra: [inset.x, inset.bottom] },
-		body: { extra: [flex.fill, 'overflow-y-auto', inset.x, inset.first, inset.last] },
+		body: {
+			extra: [flex.fill, 'overflow-y-auto overscroll-contain', inset.x, inset.first, inset.last],
+		},
 	}),
 	/**
 	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar

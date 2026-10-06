@@ -59,6 +59,6 @@ export const layout = {
 	description: [...text.muted, size.md, leading.tight],
 	/** Optional wrapper around body + footer; a Form or similar can wrap both while preserving the panel's slot rhythm. */
 	content: 'flex flex-col min-h-0 space-y-4',
-	body: [...text.muted, 'min-h-0 overflow-y-auto'],
+	body: [...text.muted, 'min-h-0 overflow-y-auto overscroll-contain'],
 	footer: ['flex items-center justify-end gap-2'],
 } as const

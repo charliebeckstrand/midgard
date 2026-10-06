@@ -116,7 +116,15 @@ const itemSuffix = [...affix, inset.suffix]
 const stackTargets = '[--touch-target-gap-y:--spacing(0.5)]'
 
 export const k = {
-	base: ['group/sidebar', mini.rail, 'overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
+	base: [
+		'group/sidebar',
+		mini.rail,
+		'overflow-y-auto overscroll-contain',
+		flex.col,
+		'gap-y-4',
+		'h-full',
+		'p-6',
+	],
 	item: {
 		base: itemBase,
 		/** Wrapper-row surface for affixed items; pairs with `base({ chrome: 'row' })`. */
@@ -142,7 +150,7 @@ export const k = {
 	list: [flex.col, 'gap-0.5', stackTargets],
 	label: ['truncate', mini.srOnly],
 	header: [flex.row, 'gap-3'],
-	body: ['overflow-y-auto', flex.col, flex.fill, 'gap-4'],
+	body: ['overflow-y-auto overscroll-contain', flex.col, flex.fill, 'gap-4'],
 	divider: divider.top,
 	footer: ['sticky bottom-0', flex.col, 'gap-0.5', stackTargets, 'mt-auto'],
 	// A sidebar item has the form of a nav item. The mini rail removes the label
