@@ -1,7 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { useHydrated } from '../../hooks/use-hydrated'
+import { useCallback, useState, useSyncExternalStore } from 'react'
 
 /**
  * Mount policy for a panel that spends part of its life inactive. Examples are
@@ -61,6 +60,14 @@ export function mountsEveryPanel(mount: Mount): boolean {
 	return mount === 'always'
 }
 
+/** A subscription that never fires, because the snapshot changes only at hydration. */
+const subscribeNothing = () => () => {}
+
+/** The snapshots of {@link useMountsEveryPanel}. Module constants, so React reads no new getter. */
+const yes = () => true
+
+const no = () => false
+
 /**
  * Whether every panel is in the DOM that this render writes: the
  * {@link mountsEveryPanel} answer, after hydration. It is `false` on the server
@@ -80,9 +87,9 @@ export function mountsEveryPanel(mount: Mount): boolean {
  * not render.
  */
 export function useMountsEveryPanel(mount: Mount): boolean {
-	const hydrated = useHydrated()
-
-	return hydrated && mountsEveryPanel(mount)
+	// The server and the hydration render read `no`. Only `always` has a client
+	// snapshot that differs, so only `always` renders again after hydration.
+	return useSyncExternalStore(subscribeNothing, mountsEveryPanel(mount) ? yes : no, no)
 }
 
 /**
