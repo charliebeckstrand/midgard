@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart'
 import { bySlot, fireEvent, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { settledRect } from '../helpers/sample'
 import { once } from '../helpers/signals'
 import { pause } from '../helpers/wall-clock'
 
@@ -38,9 +39,10 @@ describe('chart pinned readout (real browser)', () => {
 
 		fireEvent.click(hit, { clientX: box.left + box.width / 4, clientY: box.top + box.height / 2 })
 
-		const tip = await waitFor(() => present(bySlot(document.body, 'tooltip-content'), 'tooltip'))
-
-		await pause(50)
+		// Wait until floating-ui places the readout.
+		const tip = await settledRect(
+			await waitFor(() => present(bySlot(document.body, 'tooltip-content'), 'tooltip')),
+		)
 
 		const offset = () => tip.getBoundingClientRect().top - hit.getBoundingClientRect().top
 

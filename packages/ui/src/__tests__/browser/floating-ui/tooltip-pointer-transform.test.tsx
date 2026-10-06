@@ -4,7 +4,7 @@ import { page } from 'vitest/browser'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { bySlot, present, renderUI, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
-import { pause } from '../helpers/wall-clock'
+import { settledRect } from '../helpers/sample'
 
 /**
  * The frames that the readout must hold its anchor under. Each one except
@@ -55,9 +55,7 @@ function Frame({ frame, relative }: { frame: CSSProperties; relative: boolean })
 async function openPanel() {
 	const panel = await waitFor(() => present(bySlot(document.body, 'tooltip-content'), 'tooltip'))
 
-	await pause(50)
-
-	return panel
+	return settledRect(panel)
 }
 
 /**
