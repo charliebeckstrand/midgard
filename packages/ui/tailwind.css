@@ -3,13 +3,14 @@
  * (`src/fonts/fonts.css`, with no latin face: `AppearanceProvider` adds it),
  * the `density-*` variants, the stepped and ring utilities
  * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
- * and one base style, `touch-action: manipulation` on the root element. Import
- * this file in each Tailwind entry that scans ui. Each plugin explains its
- * classes or its style.
+ * and two base styles on the root element: `touch-action: manipulation`, and
+ * the `color-scheme` that follows the `dark` class. Import this file in each
+ * Tailwind entry that scans ui. Each plugin explains its classes or its style.
  */
 @import './src/fonts/fonts.css';
 
 @plugin './src/core/density/variants.ts';
 @plugin './src/core/density/utilities.ts';
 @plugin './src/core/touch/base.ts';
+@plugin './src/core/scheme/base.ts';
 @plugin './src/core/scroll/fade.ts';

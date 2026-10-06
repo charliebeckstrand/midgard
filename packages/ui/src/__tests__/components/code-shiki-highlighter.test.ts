@@ -23,18 +23,24 @@ export function Counter({ start = 0 }: { start?: number }) {
 describe('highlightShiki', () => {
 	// The second case loads a grammar by its alias, and a theme other than the default.
 	it.each([
-		['tsx', 'github-dark-default'],
-		['ts', 'github-light-default'],
+		['tsx', 'github-dark-default', '#0d1117', 'dark'],
+		['ts', 'github-light-default', '#ffffff', 'light'],
 	])(
 		'gives the markup of codeToHtml for %s in %s, with the options that primeCodeBlock asks for',
-		async (lang, theme) => {
-			const html = await highlightShiki(SAMPLE, lang, theme)
+		async (lang, theme, bg, type) => {
+			const highlight = await highlightShiki(SAMPLE, lang, theme)
 
-			expect(html).toBe(
+			expect(highlight.html).toBe(
 				await codeToHtml(SAMPLE, { lang, theme, tabindex: -1, tokenizeTimeLimit: 0 }),
 			)
 
-			expect(html).toContain('tabindex="-1"')
+			expect(highlight.html).toContain('tabindex="-1"')
+
+			// The background and the type come from the theme in Shiki, and the
+			// markup paints the same background.
+			expect(highlight).toMatchObject({ bg, type })
+
+			expect(highlight.html).toContain(`background-color:${bg}`)
 		},
 	)
 
@@ -55,11 +61,11 @@ describe('highlightShiki', () => {
 			return now
 		})
 
-		expect(await highlightShiki(code, 'tsx', 'github-dark-default')).toBe(whole)
+		expect(await highlightShiki(code, 'tsx', 'github-dark-default')).toEqual(whole)
 	})
 
 	it('highlights plain text with no grammar', async () => {
-		const html = await highlightShiki('a < b', 'text', 'github-dark-default')
+		const { html } = await highlightShiki('a < b', 'text', 'github-dark-default')
 
 		expect(html).toContain('<pre class="shiki github-dark-default"')
 

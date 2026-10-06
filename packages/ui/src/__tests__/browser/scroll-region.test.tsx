@@ -297,6 +297,8 @@ describe('CodeBlock scroll container', () => {
 			primeCodeBlock({
 				code,
 				html: `<pre class="shiki" tabindex="-1"><code><span class="line"><span>${code}</span></span></code></pre>`,
+				bg: '#0d1117',
+				type: 'dark',
 			})
 		}
 

@@ -43,7 +43,11 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		if (!header) throw new Error('no Name header')
 
-		fireEvent.contextMenu(header)
+		// A right-click lands inside the header. A menu anchored at a point outside
+		// the scroll area of the grid is hidden.
+		const press = centerOf(header)
+
+		fireEvent.contextMenu(header, { clientX: press.x, clientY: press.y })
 
 		await waitFor(() => expect(item('Sort')).toBeInTheDocument())
 

@@ -26,6 +26,7 @@
 				"src/core/density/variants.ts",
 				"src/core/density/utilities.ts",
 				"src/core/touch/base.ts",
+				"src/core/scheme/base.ts",
 				"src/core/scroll/fade.ts"
 			]
 		}

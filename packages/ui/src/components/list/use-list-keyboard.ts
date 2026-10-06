@@ -6,7 +6,8 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useKeyboardReorder } from '../../hooks/use-keyboard-reorder'
 import type { Orientation } from '../../types'
 
-const itemName = (container: ParentNode | null, id: string) =>
+/** Accessible name of a list item, for announcements. @internal */
+export const listItemName = (container: ParentNode | null, id: string) =>
 	accessibleName(querySlot(container, 'list-item', 'item-id', id))
 
 type Options<T> = {
@@ -70,7 +71,7 @@ export function useListKeyboard<T>({
 		getKey,
 		onReorder,
 		focusItem,
-		itemName: (id) => itemName(containerRef.current, id),
+		itemName: (id) => listItemName(containerRef.current, id),
 		stepFor: (key) => listStep(key, orientation, containerRef.current),
 	})
 }

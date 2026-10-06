@@ -18,17 +18,28 @@ export function formatDate(
 	locale?: string,
 	options?: Intl.DateTimeFormatOptions,
 ): string {
-	return new DateFormatter(resolveLocale(locale), { ...options, calendar: 'gregory' }).format(date)
+	return dateFormatter(locale, options).format(date)
 }
 
-/** Trigger label for a range, both endpoints in `locale`. @internal */
+/**
+ * Trigger label for a range, in the range form of `locale`. The locale sets the
+ * separator and drops the fields that both endpoints share, as in "Jan 1 – 10,
+ * 2024". A range of one day gives the label of that one date.
+ *
+ * @internal
+ */
 export function formatRange(
 	start: Date,
 	end: Date,
 	locale?: string,
 	options?: Intl.DateTimeFormatOptions,
 ): string {
-	return `${formatDate(start, locale, options)} – ${formatDate(end, locale, options)}`
+	return dateFormatter(locale, options).formatRange(start, end)
+}
+
+/** Gregorian formatter for `locale`, shared by the single and range labels. */
+function dateFormatter(locale?: string, options?: Intl.DateTimeFormatOptions): DateFormatter {
+	return new DateFormatter(resolveLocale(locale), { ...options, calendar: 'gregory' })
 }
 
 /** Local midnight for a date, dropping the time of day. @internal */

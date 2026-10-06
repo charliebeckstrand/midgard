@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { cellText } from '../../modules/grid/engine/grid-export/accessor'
 import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
-import { downloadExcel, rowsToXlsx } from '../../modules/grid/engine/grid-export/excel'
+import {
+	downloadExcel,
+	rowsToXlsx,
+	rowsToXlsxInSteps,
+} from '../../modules/grid/engine/grid-export/excel'
 import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
 import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
 import { captureAppended } from '../helpers/capture-appended'
@@ -125,6 +129,43 @@ describe('rowsToXlsx', () => {
 		const sheet = sheetXml(rowsToXlsx(itemColumns, [{ id: 1, count: 42 }]))
 
 		expect(sheet).toContain('<c r="A2"><v>42</v></c>')
+	})
+})
+
+describe('rowsToXlsxInSteps', () => {
+	// Enough rows that the worksheet XML spans more than one step of the writer.
+	const many: Row[] = Array.from({ length: 30_000 }, (_, id) => ({
+		id,
+		name: `Name ${id}`,
+		role: `Role ${id}`,
+	}))
+
+	it('gives the main thread back between steps', async () => {
+		const post = vi.spyOn(MessagePort.prototype, 'postMessage')
+
+		await rowsToXlsxInSteps(columns, many)
+
+		expect(post).toHaveBeenCalled()
+
+		post.mockRestore()
+	})
+
+	it('writes the same worksheet as rowsToXlsx', async () => {
+		expect(sheetXml(await rowsToXlsxInSteps(columns, many))).toBe(
+			sheetXml(rowsToXlsx(columns, many)),
+		)
+	})
+
+	it('writes every row, in order', async () => {
+		const sheet = sheetXml(await rowsToXlsxInSteps(columns, many))
+
+		expect(sheet.match(/<row /g)).toHaveLength(many.length + 1)
+
+		expect(sheet).toContain(
+			'<row r="30001"><c r="A30001" t="inlineStr"><is><t xml:space="preserve">Name 29999</t>',
+		)
+
+		expect(sheet.endsWith('</row></sheetData></worksheet>')).toBe(true)
 	})
 })
 

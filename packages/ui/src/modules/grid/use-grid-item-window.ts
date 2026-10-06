@@ -1,6 +1,6 @@
 'use client'
 
-import type { VirtualItem } from '@tanstack/react-virtual'
+import type { VirtualItem } from '@tanstack/virtual-core'
 import {
 	type RefObject,
 	type TransitionEvent,

@@ -57,7 +57,7 @@ export const k = {
 		'gap-1',
 		text.muted,
 		fg.hover,
-		...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
+		...mode('data-open:text-zinc-950', 'dark:data-open:text-white'),
 		rounded.lg,
 	],
 	content: [flex.inline, 'min-w-0', 'gap-1'],

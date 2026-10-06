@@ -18,7 +18,7 @@ import {
 	tick,
 	waitFor,
 } from '../helpers'
-import { highlight } from '../mocks/shiki'
+import { DEFAULT_CANVAS, highlight } from '../mocks/shiki'
 
 // The worker port of `CodeBlock` is mocked globally in setup/module-mocks.ts,
 // and `highlight` is the tokenization of its fake worker. A per-file mock here
@@ -95,6 +95,8 @@ describe('CodeBlock', () => {
 			code: 'style-token',
 			theme: 'github-light-default',
 			html: '<pre class="shiki" style="background-color:#ffffff;color:#1f2328" data-primed=""><code>style-token</code></pre>',
+			bg: '#ffffff',
+			type: 'light',
 		})
 
 		const { container } = renderUI(
@@ -108,7 +110,11 @@ describe('CodeBlock', () => {
 
 		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
 
-		expect(getSlot(container, 'code-block').style.maxWidth).toBe('320px')
+		const block = getSlot(container, 'code-block')
+
+		expect(block.style.maxWidth).toBe('320px')
+
+		expect(block.style.getPropertyValue('--code-canvas')).toBe('#ffffff')
 	})
 
 	it('lets a wrapper re-anchor it with its own data-slot', async () => {
@@ -288,6 +294,7 @@ describe('CodeBlock', () => {
 		primeCodeBlock({
 			code: '  primed-token  ',
 			html: '<pre class="shiki" data-primed=""><code>primed-token</code></pre>',
+			...DEFAULT_CANVAS,
 		})
 
 		const { container } = renderUI(<CodeBlock code="primed-token" copy={false} />)
@@ -301,6 +308,7 @@ describe('CodeBlock', () => {
 		primeCodeBlock({
 			code: 'one-commit-token',
 			html: '<pre class="shiki" data-primed=""><code>one-commit-token</code></pre>',
+			...DEFAULT_CANVAS,
 		})
 
 		const onRender = vi.fn()
@@ -323,6 +331,7 @@ describe('CodeBlock', () => {
 		primeCodeBlock({
 			code: 'evicted-token',
 			html: '<pre class="shiki" data-primed=""><code>evicted-token</code></pre>',
+			...DEFAULT_CANVAS,
 		})
 
 		const { container, rerender } = renderUI(<CodeBlock code="evicted-token" copy={false} />)
@@ -331,7 +340,7 @@ describe('CodeBlock', () => {
 
 		// The cache holds 200 entries. That many new snippets evict each older entry.
 		for (let i = 0; i < 200; i++) {
-			primeCodeBlock({ code: `evict-filler-${i}`, html: '<pre></pre>' })
+			primeCodeBlock({ code: `evict-filler-${i}`, html: '<pre></pre>', ...DEFAULT_CANVAS })
 		}
 
 		// The code does not change, so the effect of the block does not run again.
@@ -350,11 +359,12 @@ describe('CodeBlock', () => {
 			primeCodeBlock({
 				code: `rewrite-${i}`,
 				html: `<pre class="shiki" data-primed=""><code>rewrite-${i}</code></pre>`,
+				...DEFAULT_CANVAS,
 			})
 		}
 
 		// The key is in the cache, so the write adds no entry.
-		primeCodeBlock({ code: 'rewrite-199', html: '<pre></pre>' })
+		primeCodeBlock({ code: 'rewrite-199', html: '<pre></pre>', ...DEFAULT_CANVAS })
 
 		const { container } = renderUI(<CodeBlock code="rewrite-0" copy={false} />)
 
@@ -371,14 +381,15 @@ describe('CodeBlock', () => {
 			primeCodeBlock({
 				code: `order-${i}`,
 				html: `<pre class="shiki" data-primed=""><code>order-${i}</code></pre>`,
+				...DEFAULT_CANVAS,
 			})
 		}
 
 		// `order-0` stays the oldest entry, so the next new snippet evicts it, and
 		// `order-1` stays.
-		primeCodeBlock({ code: 'order-0', html: '<pre></pre>' })
+		primeCodeBlock({ code: 'order-0', html: '<pre></pre>', ...DEFAULT_CANVAS })
 
-		primeCodeBlock({ code: 'order-new', html: '<pre></pre>' })
+		primeCodeBlock({ code: 'order-new', html: '<pre></pre>', ...DEFAULT_CANVAS })
 
 		const { container } = renderUI(<CodeBlock code="order-1" copy={false} />)
 
@@ -397,6 +408,7 @@ describe('CodeBlock', () => {
 				primeCodeBlock({
 					code: 'late-token',
 					html: '<pre class="shiki" data-primed=""><code>late-token</code></pre>',
+					...DEFAULT_CANVAS,
 				})
 			}, [])
 
@@ -420,6 +432,7 @@ describe('CodeBlock', () => {
 			code: 'primed-lang-token',
 			lang: 'ts',
 			html: '<pre class="shiki" data-primed=""><code>primed-lang-token</code></pre>',
+			...DEFAULT_CANVAS,
 		})
 
 		const { container } = renderUI(<CodeBlock code="primed-lang-token" copy={false} />)
@@ -485,6 +498,7 @@ describe('CodeBlock hydration', () => {
 		primeCodeBlock({
 			code: 'server-token',
 			html: '<pre class="shiki"><code>server-token</code></pre>',
+			...DEFAULT_CANVAS,
 		})
 
 		const markup = renderToString(<CodeBlock code="server-token" copy={false} />)
@@ -504,6 +518,7 @@ describe('CodeBlock hydration', () => {
 		primeCodeBlock({
 			code: 'hydrate-token',
 			html: '<pre class="shiki" data-primed=""><code>hydrate-token</code></pre>',
+			...DEFAULT_CANVAS,
 		})
 
 		const { container, onRecoverableError } = hydrate(markup, element)

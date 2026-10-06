@@ -35,10 +35,24 @@ describe('formatDate', () => {
 })
 
 describe('formatRange', () => {
-	it('joins start and end with an en dash', () => {
-		const result = formatRange(new Date(2024, 0, 1), new Date(2024, 0, 10))
+	// ICU can put thin spaces around the dash, so the check reads any space as one.
+	const range = (start: Date, end: Date, locale: string) =>
+		formatRange(start, end, locale, { dateStyle: 'medium' }).replace(/\s/g, ' ')
 
-		expect(result).toContain(' – ')
+	it('gives the shared month and year once, in the range form of the locale', () => {
+		expect(range(new Date(2024, 0, 1), new Date(2024, 0, 10), 'en-US')).toBe('Jan 1 – 10, 2024')
+
+		expect(range(new Date(2024, 0, 1), new Date(2024, 0, 10), 'de-DE')).toBe('01.–10.01.2024')
+	})
+
+	it('gives both full dates when the year changes', () => {
+		expect(range(new Date(2024, 11, 30), new Date(2025, 0, 2), 'en-US')).toBe(
+			'Dec 30, 2024 – Jan 2, 2025',
+		)
+	})
+
+	it('gives one date for a range of one day', () => {
+		expect(range(new Date(2024, 0, 1), new Date(2024, 0, 1), 'en-US')).toBe('Jan 1, 2024')
 	})
 })
 

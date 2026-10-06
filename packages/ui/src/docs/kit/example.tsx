@@ -41,7 +41,7 @@ function loadCode(meta: ExampleMeta): Promise<void> {
 		meta.code().then(
 			(code) => {
 				// The markup from the build paints in the first frame of the block.
-				primeCodeBlock({ code: code.code, html: code.html })
+				primeCodeBlock({ code: code.code, ...code.highlight })
 
 				codes.set(meta, code)
 			},
@@ -152,7 +152,7 @@ export function ExampleFrame({
 					data-dragging={resize.handleProps['data-dragging']}
 					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-none select-none"
 				/>
-				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-[dragging]:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-[dragging]:border-zinc-600">
+				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-dragging:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-dragging:border-zinc-600">
 					<div className="p-4">
 						<div
 							data-slot="example-instance"

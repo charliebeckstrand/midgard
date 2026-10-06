@@ -56,9 +56,9 @@ const resizeMetrics = [dan.space.resize.end]
  * behind its sticky headers. That is the flush page background below `lg`, and
  * the card surface at `lg`.
  */
-const hostSurface = mode('bg-[var(--surface-fill,var(--color-white))]', [
-	'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
-	'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+const hostSurface = mode('bg-(--surface-fill,var(--color-white))', [
+	'dark:bg-(--surface-fill,var(--color-zinc-950))',
+	'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
 ])
 
 /**
@@ -70,9 +70,9 @@ const hostSurface = mode('bg-[var(--surface-fill,var(--color-white))]', [
  * slice of the table rather than a shade-off box. It is gated on the
  * `data-[dragging]` state the dragged column's cells carry.
  */
-const draggingSurface = mode('data-[dragging]:bg-[var(--surface-fill,var(--color-white))]', [
-	'dark:data-[dragging]:bg-[var(--surface-fill,var(--color-zinc-950))]',
-	'dark:lg:data-[dragging]:bg-[var(--surface-fill,var(--color-zinc-900))]',
+const draggingSurface = mode('data-dragging:bg-(--surface-fill,var(--color-white))', [
+	'dark:data-dragging:bg-(--surface-fill,var(--color-zinc-950))',
+	'dark:lg:data-dragging:bg-(--surface-fill,var(--color-zinc-900))',
 ])
 
 /**
@@ -423,8 +423,8 @@ export const k = {
 		// already are; `shift` promotes the rest for the duration of the drag — and
 		// the shadow reads the lifted column as picked up off the table.
 		cell: [
-			'data-[dragging]:z-20',
-			'data-[dragging]:shadow-lg',
+			'data-dragging:z-20',
+			'data-dragging:shadow-lg',
 			// The held column dims its text to the muted foreground — header and body
 			// alike, since this class is shared — so the dragged column reads as
 			// lifted/in transit and a Space/Enter keyboard lift, which moves nothing
@@ -433,13 +433,13 @@ export const k = {
 			// visible shift is the bright body (`text.default`) dimming to meet it.
 			// `data-[dragging]` out-specifies the cell's resting color, so the
 			// override lands without `!`.
-			'data-[dragging]:text-zinc-500',
-			'dark:data-[dragging]:text-zinc-400',
+			'data-dragging:text-zinc-500',
+			'dark:data-dragging:text-zinc-400',
 			...draggingSurface,
 		],
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
-		shift: 'data-[dragging]:relative',
+		shift: 'data-dragging:relative',
 		// Whole-header drag handle (`reorder.handle: false`): the header cell itself
 		// carries the grab cursor — grabbing while lifted (`data-[dragging]`, the same
 		// live-drag flag the grip uses, not `:active`, so a context-menu press doesn't
@@ -554,9 +554,9 @@ export const k = {
 			// `data-[dragging]` the row carries; the fill matches the surface under the
 			// grid (see `hostSurface`/`draggingSurface`).
 			dragging: [
-				'data-[dragging]:relative',
-				'data-[dragging]:z-10',
-				'data-[dragging]:shadow-lg',
+				'data-dragging:relative',
+				'data-dragging:z-10',
+				'data-dragging:shadow-lg',
 				...draggingSurface,
 			],
 		},
@@ -814,11 +814,11 @@ export const k = {
 			// A cell of the cursor's range (`range`) takes a tint and a hairline
 			// outline. The outline, not the tint, holds the 3:1 contrast of the state
 			// (WCAG 1.4.11). It is an outline, so it does not stack with the ring.
-			'data-[in-range]:outline-1',
-			'data-[in-range]:-outline-offset-1',
+			'data-in-range:outline-1',
+			'data-in-range:-outline-offset-1',
 			...mode(
-				'data-[in-range]:bg-blue-50 data-[in-range]:outline-blue-600',
-				'dark:data-[in-range]:bg-blue-950 dark:data-[in-range]:outline-blue-500',
+				'data-in-range:bg-blue-50 data-in-range:outline-blue-600',
+				'dark:data-in-range:bg-blue-950 dark:data-in-range:outline-blue-500',
 			),
 		],
 		// These keys style the fill handle overlay on the active cell.
@@ -830,7 +830,7 @@ export const k = {
 			// The box of the overlay, which the grid places on the active cell. It
 			// lets the pointer through to the cell. A pinned cell sits over the
 			// scrolled cells, and the box sits over the pinned cell.
-			box: 'pointer-events-none absolute top-0 left-0 z-0 data-[pinned]:z-[1]',
+			box: 'pointer-events-none absolute top-0 left-0 z-0 data-pinned:z-[1]',
 			// The fill handle on the bottom end corner of the active cell (`range` in
 			// a managed editable grid). A drag from it fills. The square sits inside
 			// the corner, so the scroll region does not clip it at the last row or

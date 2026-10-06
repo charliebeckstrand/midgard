@@ -75,7 +75,7 @@ export const k = defineRecipe(
 		/** Full hue wheel laid left to right for the hue track. */
 		hue: 'bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
 		/** Alpha / preview chequerboard surfaced behind translucent color. */
-		checkerboard: [omote.checkerboard, '[background-size:12px_12px]'],
+		checkerboard: [omote.checkerboard, 'bg-size-[12px_12px]'],
 		/** Full-width stack for the hue (and optional alpha) tracks. */
 		sliders: 'flex flex-col gap-2',
 		/** Label-above-input column for one channel input. */
