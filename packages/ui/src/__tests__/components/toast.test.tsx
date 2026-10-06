@@ -582,11 +582,11 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: `Slide-${position}` })
 		})
 
-		const animated = screen.getByText(`Slide-${position}`).closest('[data-initial-y]')
+		const animated = screen.getByText(`Slide-${position}`).closest('[data-initial-transform]')
 
 		expect(animated).not.toBeNull()
 
-		expect(animated).toHaveAttribute('data-initial-y', expectedY)
+		expect(animated).toHaveAttribute('data-initial-transform', `translateY(${expectedY})`)
 	})
 
 	it.each(['top-left', 'top-right'] as const)(
@@ -610,11 +610,11 @@ describe('Toast: useToast behavior', () => {
 			})
 
 			const animated = present(
-				screen.getByText(`Narrow-${position}`).closest('[data-initial-y]'),
+				screen.getByText(`Narrow-${position}`).closest('[data-initial-transform]'),
 				'the animated toast',
 			)
 
-			expect(animated).toHaveAttribute('data-initial-y', '100%')
+			expect(animated).toHaveAttribute('data-initial-transform', 'translateY(100%)')
 
 			const item = present(animated.parentElement, 'the toast item')
 

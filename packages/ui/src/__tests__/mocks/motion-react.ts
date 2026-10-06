@@ -53,16 +53,18 @@ function stripMotionProps(props: Record<string, unknown>) {
 	// when the prop is present, and nothing asserts its absence.
 	if (props.layout !== undefined) clean['data-layout'] = String(props.layout)
 
-	// Surfaces the enter offset as `data-initial-x` / `data-initial-y`, making the
-	// position → slide-direction mapping observable (e.g. ToastAlert's vertical
-	// slide, the chart reference rules' value-axis rise). Harmless elsewhere: each
-	// is emitted only when that axis's `initial` offset is present, and nothing
-	// asserts its absence.
-	const initial = props.initial as { x?: unknown; y?: unknown } | undefined
+	// Surfaces the enter offset as `data-initial-x` / `data-initial-y`, and a whole
+	// enter transform as `data-initial-transform`, making the position →
+	// slide-direction mapping observable (e.g. the vertical slide of ToastAlert and
+	// Drawer, the chart reference rules' value-axis rise). Harmless elsewhere: each
+	// is emitted only when that `initial` value is present.
+	const initial = props.initial as { x?: unknown; y?: unknown; transform?: unknown } | undefined
 
 	if (initial?.x !== undefined) clean['data-initial-x'] = String(initial.x)
 
 	if (initial?.y !== undefined) clean['data-initial-y'] = String(initial.y)
+
+	if (initial?.transform !== undefined) clean['data-initial-transform'] = String(initial.transform)
 
 	return clean
 }

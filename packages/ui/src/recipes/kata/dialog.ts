@@ -37,6 +37,11 @@ export const k = {
 		backdrop: bridge.backdrop(backdrop),
 	}),
 	motion: { desktop: popover, mobile: ugoki.panel.bottom },
+	/**
+	 * The motion under reduced motion: the phone panel shows with no slide. The
+	 * desktop fade moves no box, so it stays as it is.
+	 */
+	still: { desktop: popover, mobile: ugoki.still(ugoki.panel.bottom) },
 }
 
 /** Recipe variant props for the {@link Dialog} panel — its styling axes (`surface`, `width`), for consumers composing custom slots. */

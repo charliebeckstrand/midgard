@@ -115,6 +115,8 @@ export const k = {
 		bar: grip.bar.horizontal,
 	},
 	motion: ugoki.panel.bottom,
+	/** The motion under reduced motion: the panel shows with no slide. */
+	still: ugoki.still(ugoki.panel.bottom),
 	/**
 	 * The travel a `fit` panel makes between two content heights, for
 	 * {@link usePanelFit}. Named here rather than in the hook, because the tempo a

@@ -5,6 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yPanel, useMinBreakpoint } from '../../hooks'
 import { useOpenComplete } from '../../hooks/use-open-complete'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { Overlay } from '../../primitives/overlay'
 import {
 	type PanelOverlayProps,
@@ -159,7 +160,11 @@ export function DialogPanel({
 
 	const isDesktop = useMinBreakpoint('sm')
 
-	const preset = isDesktop ? k.motion.desktop : k.motion.mobile
+	// The phone slide moves `transform`, which `MotionConfig` does not hold still,
+	// so the panel reads the setting itself (WCAG 2.3.3).
+	const presets = usePrefersReducedMotion() ? k.still : k.motion
+
+	const preset = isDesktop ? presets.desktop : presets.mobile
 
 	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 

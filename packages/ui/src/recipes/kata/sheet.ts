@@ -142,6 +142,13 @@ export const k = {
 		bar: panel.grip.bar,
 	},
 	motion: ugoki.panel,
+	/** The motion under reduced motion: the panel shows with no slide. */
+	still: {
+		right: ugoki.still(ugoki.panel.right),
+		left: ugoki.still(ugoki.panel.left),
+		top: ugoki.still(ugoki.panel.top),
+		bottom: ugoki.still(ugoki.panel.bottom),
+	},
 }
 
 /** Recipe variant props for the {@link Sheet} panel — its styling axes (`side`, `width`, `surface`), for consumers composing custom slots. */
