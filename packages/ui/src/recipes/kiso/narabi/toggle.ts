@@ -32,6 +32,6 @@ export const toggle = [
 	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
 	// Every slot but the description turns not-allowed when disabled; the
 	// description is non-interactive, so it keeps the text cursor.
-	'has-disabled:**:data-[slot]:not-data-[slot=description]:cursor-not-allowed',
+	'has-disabled:**:data-slot:not-data-[slot=description]:cursor-not-allowed',
 	'has-disabled:*:data-[slot=description]:cursor-text',
 ]

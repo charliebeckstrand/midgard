@@ -339,7 +339,7 @@ describe('ListItem', () => {
 			expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/5')
 
 			expect(cls).toContain(
-				'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10',
+				'dark:group-data-glass/glass:not-disabled:not-data-disabled:hover:bg-white/10',
 			)
 		}
 	})
@@ -361,7 +361,7 @@ describe('ListItem', () => {
 			expect(cls).toContain('not-disabled:not-data-disabled:hover:before:bg-zinc-950/5')
 
 			expect(cls).toContain(
-				'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:before:bg-white/10',
+				'dark:group-data-glass/glass:not-disabled:not-data-disabled:hover:before:bg-white/10',
 			)
 
 			expect(cls).not.toContain('hover:bg-')
@@ -399,7 +399,7 @@ describe('ListItem', () => {
 		// both would take the ambient 10% — which on a solid dark row is the fill
 		// repainted, and on a card is the surface gone.
 		for (const variant of ['separated', 'solid'] as const) {
-			expect(washOf(variant)).not.toContain('group-data-[glass]/glass')
+			expect(washOf(variant)).not.toContain('group-data-glass/glass')
 		}
 	})
 

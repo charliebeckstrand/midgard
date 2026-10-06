@@ -7,7 +7,7 @@ import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
  * then mounts on top of it.
  *
  * `data-glass` opens the glass cascade to the panel contents: `hannou.tint.glass` keys on
- * `group-data-[glass]/glass`, which needs the named group and the attribute on one element. Rows
+ * `group-data-glass/glass`, which needs the named group and the attribute on one element. Rows
  * inside take their hover wash at double strength, because 5% under the translucency of the panel
  * reads as no hover at all.
  *

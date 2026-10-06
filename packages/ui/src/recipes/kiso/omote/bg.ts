@@ -33,5 +33,5 @@ export const bg = {
 	 * `#0d1117`, the background of the default theme `github-dark-default`. It
 	 * does not change with the color mode.
 	 */
-	code: 'bg-[var(--code-canvas,#0d1117)]',
+	code: 'bg-(--code-canvas,#0d1117)',
 } as const

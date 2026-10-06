@@ -43,7 +43,7 @@ const wrapper = defineRecipe({
 })
 
 const viewport = defineRecipe({
-	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
+	base: ['scrollbar-none', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
 		vertical: 'h-full overflow-x-hidden overflow-y-auto',
 		horizontal: ['w-full overflow-y-hidden', ...rail],

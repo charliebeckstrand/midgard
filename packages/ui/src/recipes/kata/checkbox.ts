@@ -17,13 +17,12 @@ export const k = bridge.check(
 	{
 		base: [
 			'[--check-border:transparent]',
-			'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
-			// The indeterminate rules read `data-indeterminate`, not `:indeterminate`.
+			// One selector list holds the checked and the indeterminate state. The
+			// indeterminate arm reads `data-indeterminate`, not `:indeterminate`.
 			// Only a client effect sets the DOM property, so the server HTML has only
 			// the attribute.
-			'has-[[data-indeterminate]]:bg-(--check-bg) has-[[data-indeterminate]]:border-(--check-border)',
-			'not-has-[:disabled]:has-checked:hover:opacity-90',
-			'not-has-[:disabled]:has-[[data-indeterminate]]:hover:opacity-90',
+			'has-[:checked,[data-indeterminate]]:bg-(--check-bg) has-[:checked,[data-indeterminate]]:border-(--check-border)',
+			'not-has-disabled:has-[:checked,[data-indeterminate]]:hover:opacity-90',
 			// The box takes the step of the nearest density scope.
 			checkbox.box,
 			dan.radius.check,
@@ -41,7 +40,7 @@ export const k = bridge.check(
 		mark: defineRecipe({
 			base: [
 				'pointer-events-none absolute stroke-(--check-mark) opacity-0',
-				'[:checked~&]:opacity-100 [[data-indeterminate]~&]:opacity-100',
+				'[:is(:checked,[data-indeterminate])~&]:opacity-100',
 				dan.size.check.mark,
 			],
 		}),
