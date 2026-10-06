@@ -337,10 +337,11 @@ export function usePanelResize({
 		if (at !== null) draw(at, coordinateOf(event))
 	}
 
-	function release(event: globalThis.PointerEvent) {
+	/** Ends the gesture in flight, and gives what it grabbed. Gives `null` when no gesture is in flight. */
+	function finish(): Grab | null {
 		const at = grab.current
 
-		if (at === null) return
+		if (at === null) return null
 
 		grab.current = null
 
@@ -350,7 +351,21 @@ export function usePanelResize({
 
 		setResizing(false)
 
-		commit(draw(at, coordinateOf(event)), at.viewport)
+		return at
+	}
+
+	function release(event: globalThis.PointerEvent) {
+		const at = finish()
+
+		if (at !== null) commit(draw(at, coordinateOf(event)), at.viewport)
+	}
+
+	// A canceled pointer does not tell where it stopped: Chromium gives 0, 0. The
+	// panel goes back to the size that it had at the press.
+	function cancel() {
+		const at = finish()
+
+		if (at !== null) commit(resize(at, at.size), at.viewport)
 	}
 
 	function onPointerDown(event: ReactPointerEvent<HTMLElement>) {
@@ -403,9 +418,11 @@ export function usePanelResize({
 
 		window.addEventListener('pointerup', release, { signal })
 
-		// A canceled pointer — an OS gesture, a pen leaving range — never fires
-		// `pointerup`, and without this the panel would follow a pointer that is gone.
-		window.addEventListener('pointercancel', release, { signal })
+		// A canceled pointer never fires `pointerup`, and without this the panel
+		// would follow a pointer that is gone. The browser cancels the pointer when
+		// it takes the touch for a scroll, which a bar with `touch-action: pan-y`
+		// lets it do. An OS gesture or a pen that leaves its range also cancels it.
+		window.addEventListener('pointercancel', cancel, { signal })
 
 		stop.current = controller
 	}
