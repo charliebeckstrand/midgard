@@ -512,6 +512,62 @@ describe('useCalendarFocus: day grid', () => {
 	})
 })
 
+// The view holds years 1 to 9999. A `CalendarDate` clamps a sum past the last
+// day to that day, so a step past it looks like a step inside December 9999.
+describe('useCalendarFocus: day grid at the last day of year 9999', () => {
+	function setupDecember9999() {
+		const days = Array.from({ length: 31 }, (_, i) => new Date(9999, 11, i + 1))
+
+		const grid = makeContainer(days.length)
+
+		const navigateTo = vi.fn()
+
+		const { result } = renderHook(() =>
+			useCalendarFocus({
+				headerRef: { current: makeContainer(3) },
+				gridRef: { current: grid },
+				dayGrid: { days, navigateTo },
+			}),
+		)
+
+		const dayButton = (n: number) => grid.querySelectorAll('button').item(n - 1) as HTMLElement
+
+		return { navigateTo, dayButton, ...result.current }
+	}
+
+	it.each<[string, number, string, { shiftKey?: boolean }]>([
+		['ArrowDown from December 28', 28, 'ArrowDown', {}],
+		['ArrowDown from December 25', 25, 'ArrowDown', {}],
+		['ArrowRight from December 31', 31, 'ArrowRight', {}],
+		['PageDown', 15, 'PageDown', {}],
+		['Shift+PageDown', 15, 'PageDown', { shiftKey: true }],
+	])('keeps the focus, and consumes the key, on %s', (_name, day, key, modifiers) => {
+		const { navigateTo, dayButton, handleGridKeyDown } = setupDecember9999()
+
+		dayButton(day).focus()
+
+		const event = makeKeyEvent(key, modifiers)
+
+		handleGridKeyDown(event)
+
+		expect(document.activeElement).toBe(dayButton(day))
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(navigateTo).not.toHaveBeenCalled()
+	})
+
+	it('moves to December 31 with ArrowDown from December 24', () => {
+		const { dayButton, handleGridKeyDown } = setupDecember9999()
+
+		dayButton(24).focus()
+
+		handleGridKeyDown(makeKeyEvent('ArrowDown'))
+
+		expect(document.activeElement).toBe(dayButton(31))
+	})
+})
+
 /** The state of one cell in a grid fixture. */
 type CellState = { selected?: boolean; today?: boolean; disabled?: boolean; dataSelected?: boolean }
 

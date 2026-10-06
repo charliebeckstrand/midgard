@@ -1,6 +1,6 @@
 'use client'
 
-import { type CalendarDate, type DateDuration, isSameMonth } from '@internationalized/date'
+import { CalendarDate, type DateDuration, isSameMonth } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 
@@ -8,7 +8,7 @@ import { useA11yRoving } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { queryItems } from '../../hooks/a11y/use-a11y-roving'
 import { wrap } from '../../utilities'
-import { fromCalendarDate, isYearInRange, toCalendarDate } from './calendar-utilities'
+import { fromCalendarDate, isYearInRange, MAX_YEAR, toCalendarDate } from './calendar-utilities'
 
 /**
  * Selector for focusable day cells. Out-of-range cells render as
@@ -206,6 +206,22 @@ function pageStep(event: KeyboardEvent): DateDuration | null {
 	return event.shiftKey ? { years: direction } : { months: direction }
 }
 
+/** The last day that the view can show. @internal */
+const LAST_DAY = new CalendarDate(MAX_YEAR, 12, 31)
+
+/**
+ * Whether `step` from `from` passes the last day that the view can show. A
+ * `CalendarDate` clamps such a sum to the last day, so the sum alone looks like
+ * a move inside December of the last year. A step back from the last day gives
+ * the last start that the step can leave. A step back never passes the last
+ * day, and the check of the year range stops it at year 1.
+ *
+ * @internal
+ */
+function passesLastDay(from: CalendarDate, step: DateDuration): boolean {
+	return from.compare(LAST_DAY.subtract(step)) > 0
+}
+
 /** `day` held between the days of `min` and `max`. @internal */
 function clampDay(day: CalendarDate, min: Date | undefined, max: Date | undefined): CalendarDate {
 	if (min && day.compare(toCalendarDate(min)) < 0) return toCalendarDate(min)
@@ -246,6 +262,10 @@ function moveDay(
 
 	const from = toCalendarDate(focused)
 
+	// The view holds years 1 to 9999 only, so the focus stays at a limit. A step
+	// past the last day is caught here, because the sum below clamps to it.
+	if (passesLastDay(from, step)) return true
+
 	const moved = from.add(step)
 
 	const to = clampDay(moved, dayGrid.min, dayGrid.max)
@@ -257,7 +277,7 @@ function moveDay(
 
 	const date = fromCalendarDate(to)
 
-	// The view holds years 1 to 9999 only, so the focus stays at a limit.
+	// A step back before year 1 stays at the limit too.
 	if (!isYearInRange(date.getFullYear())) return true
 
 	if (isSameMonth(to, from)) {
