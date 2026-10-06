@@ -84,7 +84,7 @@ export function Button({
 	}
 
 	// Non-icon children count as a text label; labeled buttons use control height
-	// (see `data-[has-label]` in the button recipe), icon-only buttons stay square.
+	// (see `data-has-label` in the button recipe), icon-only buttons stay square.
 	// A visually hidden child, such as an `sr-only` name, takes no room, so it is
 	// not a label.
 	const hasLabel = Children.toArray(children).some(

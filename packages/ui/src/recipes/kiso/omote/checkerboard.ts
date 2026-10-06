@@ -10,6 +10,6 @@
 import { mode } from '../../../core/recipe'
 
 export const checkerboard = mode(
-	'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)]',
-	'dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
+	'bg-[repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)]',
+	'dark:bg-[repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
 )
