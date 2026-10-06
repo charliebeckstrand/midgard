@@ -30,9 +30,10 @@ const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
  * class strings; Tailwind's scanner extracts them statically.
  */
 const validation = [
-	'has-[[data-invalid]]:ring-2 has-[[data-invalid]]:ring-red-600',
-	'has-[[data-warning]]:ring-2 has-[[data-warning]]:ring-amber-500',
-	'has-[[data-valid]]:ring-2 has-[[data-valid]]:ring-green-600',
+	'has-[[data-invalid],[data-warning],[data-valid]]:ring-2',
+	'has-[[data-invalid]]:ring-red-600',
+	'has-[[data-warning]]:ring-amber-500',
+	'has-[[data-valid]]:ring-green-600',
 ]
 
 /**

@@ -38,12 +38,13 @@ const overlay = [
 
 /**
  * Outer ring color on hover: one shade darker / lighter than resting. It skips a
- * validation state, like `focus`. The dark class comes later in the CSS, so it
- * would otherwise replace the validation ring on hover in dark mode.
+ * disabled control and a validation state, like `focus`. The dark class comes
+ * later in the CSS, so it would otherwise replace the validation ring on hover
+ * in dark mode. One `not-has-[…]` holds the selector list.
  */
 const hover = mode(
-	'not-has-[>:disabled]:not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:hover:ring-zinc-400',
-	'not-has-[>:disabled]:not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:dark:hover:ring-zinc-600',
+	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:hover:ring-zinc-400',
+	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:dark:hover:ring-zinc-600',
 )
 
 /** `::after` 2 px focus ring: blue when no validation state is active. */
@@ -54,42 +55,25 @@ const focus = [
 	'data-open:z-10',
 	'focus-within:after:ring-2',
 	'data-open:after:ring-2',
-	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:focus-within:after:ring-blue-600',
-	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:data-open:after:ring-blue-600',
+	'not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-600',
+	'not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-600',
 ]
 
-// Per-state validation rings on the outer ring + `::after`. The three blocks
-// share the same six-selector shape; the selectors stay literal since
-// Tailwind's source scanner can't see template-constructed classes.
-const valid = [
-	'has-[[data-valid]]:ring-green-600',
-	'has-[[data-valid]]:hover:ring-green-600',
-	'has-[[data-valid]]:focus-within:after:ring-green-600',
-	'has-[[data-valid]]:not-focus-within:after:ring-1',
-	'has-[[data-valid]]:not-focus-within:after:ring-green-600',
-	'has-[[data-valid]]:data-open:after:ring-green-600',
+/**
+ * Validation ring on the outer ring + `::after`: red / amber / green per data-*
+ * attribute. Each state sets each property once. The hover class skips a
+ * validation state, so the outer ring keeps its color on hover. The `::after`
+ * ring has one color in each interaction state. Its width is 1 px at rest for
+ * each state, and the focus and open classes make it 2 px. The selectors stay
+ * literal, because Tailwind's source scanner can't see template-constructed
+ * classes.
+ */
+const validation = [
+	'has-[[data-invalid],[data-valid],[data-warning]]:not-focus-within:after:ring-1',
+	'has-[[data-valid]]:ring-green-600 has-[[data-valid]]:after:ring-green-600',
+	'has-[[data-warning]]:ring-amber-500 has-[[data-warning]]:after:ring-amber-500',
+	'has-[[data-invalid]]:ring-red-600 has-[[data-invalid]]:after:ring-red-600',
 ]
-
-const warning = [
-	'has-[[data-warning]]:ring-amber-500',
-	'has-[[data-warning]]:hover:ring-amber-500',
-	'has-[[data-warning]]:focus-within:after:ring-amber-500',
-	'has-[[data-warning]]:not-focus-within:after:ring-1',
-	'has-[[data-warning]]:not-focus-within:after:ring-amber-500',
-	'has-[[data-warning]]:data-open:after:ring-amber-500',
-]
-
-const invalid = [
-	'has-[[data-invalid]]:ring-red-600',
-	'has-[[data-invalid]]:hover:ring-red-600',
-	'has-[[data-invalid]]:focus-within:after:ring-red-600',
-	'has-[[data-invalid]]:not-focus-within:after:ring-1',
-	'has-[[data-invalid]]:not-focus-within:after:ring-red-600',
-	'has-[[data-invalid]]:data-open:after:ring-red-600',
-]
-
-/** Validation ring on the outer ring + `::after`: red / amber / green per data-* attribute. */
-const validation = [...valid, ...warning, ...invalid]
 
 /** Disabled state: dims and locks pointer when the wrapped element is :disabled. */
 const disabled = [
