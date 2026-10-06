@@ -194,9 +194,20 @@ function nearer(a: FitCandidate, b: FitCandidate): boolean {
 	return a.y === b.y ? a.x < b.x : a.y < b.y
 }
 
-/** The peer that covers the most of `target`, or `undefined` when no peer touches it. */
+/** Whether `peer` can reorder with `origin`: it is not static, and it has the span of `origin`. */
+function reorderable(peer: DashboardCell, origin: DashboardCell): boolean {
+	return !peer.static && peer.w === origin.w && peer.h === origin.h
+}
+
+/**
+ * The peer that covers the most of `target`, or `undefined` when no peer touches it.
+ * At equal coverage, a peer that can reorder with `origin` wins over a peer that
+ * cannot. Such a peer ties the maximum only at exactly half coverage, so the
+ * reorder at half coverage does not depend on the array order.
+ */
 function dominantPeer(
 	snapshot: readonly DashboardCell[],
+	origin: DashboardCell,
 	target: DashboardCell,
 ): DashboardCell | undefined {
 	let dominant: DashboardCell | undefined
@@ -208,7 +219,14 @@ function dominantPeer(
 
 		const area = overlapArea(peer, target)
 
-		if (area > most) {
+		const wins =
+			area > most ||
+			(area === most &&
+				dominant !== undefined &&
+				reorderable(peer, origin) &&
+				!reorderable(dominant, origin))
+
+		if (wins) {
 			dominant = peer
 
 			most = area
@@ -262,7 +280,7 @@ function reorderPreview(
 	origin: DashboardCell,
 	target: DashboardCell,
 ): DashboardDragPreview | null {
-	const partner = dominantPeer(snapshot, target)
+	const partner = dominantPeer(snapshot, origin, target)
 
 	if (partner === undefined || partner.static) return null
 
