@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import {
-	Tooltip,
-	TooltipContent,
-	type TooltipProps,
-	TooltipTrigger,
-} from '../../../components/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
@@ -15,9 +10,8 @@ import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
  *
  * A tap gives the pointer events of a touch, then the compatibility mouse
  * events and a click. iOS Safari sends them in this order. The compatibility
- * events move the emulated hover to the tapped element. A hover tooltip opens
- * on the touch press and ignores the compatibility events. A click tooltip
- * opens on the click.
+ * events move the emulated hover to the tapped element. A hover tooltip ignores
+ * the tap and the compatibility events. A click tooltip opens on the click.
  */
 
 const TOUCH = { bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true }
@@ -67,10 +61,10 @@ async function tap(
 }
 
 /** Renders a hover tooltip with no open delay, and gives its trigger. @internal */
-function renderHoverTooltip(onClick?: () => void, trigger?: TooltipProps['trigger']) {
+function renderHoverTooltip(onClick?: () => void) {
 	const { container } = renderUI(
 		<>
-			<Tooltip delay={0} trigger={trigger}>
+			<Tooltip delay={0}>
 				<TooltipTrigger>
 					<button type="button" onClick={onClick}>
 						Toggle
@@ -98,73 +92,20 @@ async function expectClosed() {
 }
 
 describe('Tooltip trigger (real browser)', () => {
-	it('opens a hover tooltip on a tap', async () => {
-		const { trigger } = renderHoverTooltip()
-
-		await tap(trigger)
-
-		await expectOpen()
-	})
-
-	it('keeps the click action of the trigger when a tap opens the tooltip', async () => {
+	it('does not open a hover tooltip on a tap, and keeps the click action of the trigger', async () => {
 		const onClick = vi.fn()
 
 		const { trigger } = renderHoverTooltip(onClick)
 
 		await tap(trigger)
 
-		await expectOpen()
-
-		expect(onClick).toHaveBeenCalledTimes(1)
-	})
-
-	it('closes a tapped tooltip on a second tap, and the mouse events of the tap do not open it again', async () => {
-		const { trigger } = renderHoverTooltip()
-
-		await tap(trigger)
-
-		await expectOpen()
+		await expectClosed()
 
 		await tap(trigger, { hovered: true })
 
 		await expectClosed()
 
-		await expectClosed()
-	})
-
-	it('closes a tapped tooltip on a tap outside', async () => {
-		const { trigger, outside } = renderHoverTooltip()
-
-		await tap(trigger)
-
-		await expectOpen()
-
-		await tap(outside, { from: trigger })
-
-		await expectClosed()
-	})
-
-	it('closes a tapped tooltip on a scroll of an ancestor', async () => {
-		const { container } = renderUI(
-			<div data-slot="scroller" style={{ maxHeight: 120, overflow: 'auto' }}>
-				<div style={{ paddingTop: 60, height: 480 }}>
-					<Tooltip delay={0}>
-						<TooltipTrigger>
-							<button type="button">Toggle</button>
-						</TooltipTrigger>
-						<TooltipContent>Hide password</TooltipContent>
-					</Tooltip>
-				</div>
-			</div>,
-		)
-
-		await tap(getSlot(container, 'tooltip-trigger'))
-
-		await expectOpen()
-
-		getSlot(container, 'scroller').scrollTop = 40
-
-		await expectClosed()
+		expect(onClick).toHaveBeenCalledTimes(2)
 	})
 
 	it('keeps a hovered tooltip open on a scroll of an ancestor', async () => {
@@ -192,18 +133,6 @@ describe('Tooltip trigger (real browser)', () => {
 		expect(screen.getByText('Hide password')).toBeInTheDocument()
 	})
 
-	it('closes a tapped tooltip on Escape', async () => {
-		const { trigger } = renderHoverTooltip()
-
-		await tap(trigger)
-
-		await expectOpen()
-
-		await userEvent.keyboard('{Escape}')
-
-		await expectClosed()
-	})
-
 	it('opens a hover tooltip on a mouse hover', async () => {
 		const { trigger } = renderHoverTooltip()
 
@@ -212,40 +141,14 @@ describe('Tooltip trigger (real browser)', () => {
 		await expectOpen()
 	})
 
-	it('opens a hover tooltip on a mouse hover after a tap closed it', async () => {
+	it('opens a hover tooltip on a mouse hover after a tap', async () => {
 		const { trigger, outside } = renderHoverTooltip()
 
 		await tap(trigger)
 
-		await expectOpen()
-
 		await tap(outside, { from: trigger })
 
 		await expectClosed()
-
-		await userEvent.hover(trigger)
-
-		await expectOpen()
-	})
-
-	it('does not open a hover-only tooltip on a tap, and keeps the click action', async () => {
-		const onClick = vi.fn()
-
-		const { trigger } = renderHoverTooltip(onClick, 'hover-only')
-
-		await tap(trigger)
-
-		await expectClosed()
-
-		await tap(trigger, { hovered: true })
-
-		await expectClosed()
-
-		expect(onClick).toHaveBeenCalledTimes(2)
-	})
-
-	it('opens a hover-only tooltip on a mouse hover', async () => {
-		const { trigger } = renderHoverTooltip(undefined, 'hover-only')
 
 		await userEvent.hover(trigger)
 
@@ -311,59 +214,9 @@ describe('Tooltip trigger (real browser)', () => {
 		await waitFor(() => expect(screen.getByText('Filled from the search.')).toBeInTheDocument())
 	})
 
-	it('does not open a hover tooltip on a touch press that the browser takes for a scroll', async () => {
-		const { trigger } = renderHoverTooltip()
-
-		trigger.dispatchEvent(new PointerEvent('pointerover', TOUCH))
-		trigger.dispatchEvent(new PointerEvent('pointerenter', { ...TOUCH, bubbles: false }))
-		trigger.dispatchEvent(new PointerEvent('pointerdown', TOUCH))
-
-		// No flash: the press alone does not open the tooltip.
-		await expectClosed()
-
-		trigger.dispatchEvent(new PointerEvent('pointercancel', TOUCH))
-		trigger.dispatchEvent(new PointerEvent('pointerout', TOUCH))
-		trigger.dispatchEvent(new PointerEvent('pointerleave', { ...TOUCH, bubbles: false }))
-
-		await expectClosed()
-	})
-
-	it('does not open on the lift of a different pointer', async () => {
-		const { trigger } = renderHoverTooltip()
-
-		trigger.dispatchEvent(new PointerEvent('pointerdown', { ...TOUCH, pointerId: 2 }))
-		trigger.dispatchEvent(new PointerEvent('pointercancel', { ...TOUCH, pointerId: 2 }))
-		trigger.dispatchEvent(new PointerEvent('pointerup', { ...TOUCH, pointerId: 3 }))
-
-		await expectClosed()
-	})
-
-	it('does not open on a tap inside a control that opens a popup, and opens on a mouse hover', async () => {
+	it('opens an interactive click tooltip on a tap after its panel became a dialog', async () => {
 		const { container } = renderUI(
-			<button type="button" aria-haspopup="listbox" aria-expanded={false}>
-				<Tooltip delay={0}>
-					<TooltipTrigger>Hide password</TooltipTrigger>
-					<TooltipContent>Hide password</TooltipContent>
-				</Tooltip>
-			</button>,
-		)
-
-		const trigger = getSlot(container, 'tooltip-trigger')
-
-		await tap(trigger)
-
-		await frames()
-
-		expect(screen.queryAllByText('Hide password')).toHaveLength(1)
-
-		await userEvent.hover(trigger)
-
-		await waitFor(() => expect(screen.getAllByText('Hide password')).toHaveLength(2))
-	})
-
-	it('opens an interactive tooltip on a tap after its panel became a dialog', async () => {
-		const { container } = renderUI(
-			<Tooltip delay={0} interactive>
+			<Tooltip trigger="click" interactive>
 				<TooltipTrigger>
 					<button type="button">Details</button>
 				</TooltipTrigger>
