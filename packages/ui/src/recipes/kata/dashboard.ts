@@ -105,8 +105,7 @@ const header = [
 	'**:data-[variant=bare]:not-data-[has-label]:density-xs:-mx-0.75',
 	'**:data-[variant=bare]:not-data-[has-label]:density-sm:-mx-1',
 	'**:data-[variant=bare]:not-data-[has-label]:density-md:-mx-1.25',
-	'**:data-[variant=bare]:not-data-[has-label]:density-lg:-mx-1.5',
-	'**:data-[variant=bare]:not-data-[has-label]:density-xl:-mx-1.5',
+	'**:data-[variant=bare]:not-data-[has-label]:density-[lg,xl]:-mx-1.5',
 ].join(' ')
 
 /**
