@@ -1038,6 +1038,31 @@ describe('CommandPaletteItem', () => {
 		expect(document.activeElement).toBe(input)
 	})
 
+	// The chrome of the list holds no option, so a press there must not take the
+	// focus from the input either.
+	it.each([
+		['a group heading', () => screen.getByText('Recent')],
+		['the gap between the rows', () => screen.getByRole('group')],
+		['the no-results status', () => getSlot(document.body, 'command-palette-no-results')],
+	])('keeps focus on the input when %s is pressed', async (_, target) => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteGroup>
+					<CommandPaletteHeading>Recent</CommandPaletteHeading>
+					<CommandPaletteItem>Run</CommandPaletteItem>
+				</CommandPaletteGroup>
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		expect(fireEvent.mouseDown(target())).toBe(false)
+
+		await setupUser().pointer({ keys: '[MouseLeft>]', target: target() })
+
+		expect(document.activeElement).toBe(input)
+	})
+
 	it('runs a consumer onMouseDown before it keeps focus on the input', async () => {
 		// The handler gives the state of the default when it runs.
 		const onMouseDown = vi.fn((event: { defaultPrevented: boolean }) => event.defaultPrevented)

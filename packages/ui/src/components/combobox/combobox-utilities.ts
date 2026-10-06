@@ -1,3 +1,5 @@
+import type { MouseEvent } from 'react'
+import { isScrollbarPress } from '../../utilities'
 import { OPTION_SELECTOR } from './combobox-constants'
 
 /**
@@ -159,4 +161,25 @@ export function resolveInputTitle<T>({
 	const selected = selectedValues(value)
 
 	return selected.length > 1 ? selected.map(displayValue).join(', ') : undefined
+}
+
+/**
+ * Cancels a press on the chrome of a list that an input drives, so that DOM
+ * focus stays on the input. Combobox and CommandPalette hold the highlight in
+ * `aria-activedescendant`, so the input must keep the keys.
+ *
+ * @remarks Without this, a press between the rows, on a heading, or on the "No
+ * results" message moves focus to a focusable ancestor, and the input then gets
+ * no keys. A row cancels its own press. A press on a scrollbar keeps its
+ * default, so the scroll starts.
+ * @internal
+ */
+export function keepInputFocus(event: MouseEvent) {
+	if (event.defaultPrevented) return
+
+	const target = event.target
+
+	if (target instanceof HTMLElement && isScrollbarPress(event.nativeEvent, target)) return
+
+	event.preventDefault()
 }

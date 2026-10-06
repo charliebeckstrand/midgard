@@ -13,6 +13,7 @@ import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
+import { keepInputFocus } from '../combobox/combobox-utilities'
 import {
 	Dialog,
 	DialogBody,
@@ -238,7 +239,9 @@ export function CommandPalette({
 								onChange={(event) => setQuery(event.target.value)}
 								onKeyDown={onKeyDown}
 							/>
-							<DialogBody>
+							{/* A press on the chrome of the list, such as a heading or the gap
+							    between the rows, keeps the focus on the input, as a row does. */}
+							<DialogBody onMouseDown={keepInputFocus}>
 								<div
 									ref={attachList}
 									id={listboxId}
