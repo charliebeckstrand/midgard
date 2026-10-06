@@ -31,18 +31,18 @@ const group = defineRecipe({
 })
 
 /**
- * Underline list drawing the baseline rail (`border-b` / `border-l`) the tabs
+ * Underline list drawing the baseline rail (`border-b` / `border-s`) the tabs
  * sit on. Horizontal sizes to `max-content` (never below `100%`), so the rail
  * spans the full scroll width. A block-level flex box otherwise fills only the
  * viewport, which clips the rail there and strands overflowed tabs above bare
  * space. Vertical needs no counterpart — an auto-height column already grows to
- * its content, so `border-l` runs the full length of every stacked tab.
+ * its content, so `border-s` runs the full length of every stacked tab.
  */
 const list = defineRecipe({
 	base: ['flex', ...border.color.subtle],
 	orientation: {
 		horizontal: ['border-b', 'w-max', 'min-w-full'],
-		vertical: ['flex-col', 'border-l'],
+		vertical: ['flex-col', 'border-s'],
 	},
 	defaults: { orientation: 'horizontal' },
 })
@@ -101,7 +101,7 @@ const tab = defineRecipe({
 			`${dan.space.tab.x} ${dan.space.tab.bottom}`,
 		],
 		vertical: [
-			'after:inset-y-0 after:-left-px after:w-0.5',
+			'after:inset-y-0 after:-inset-s-px after:w-0.5',
 			`${dan.space.tab.pill.x} ${dan.space.tab.pill.y}`,
 		],
 	},
@@ -112,7 +112,7 @@ const indicator = defineRecipe({
 	base: [rounded.full, ...mode('bg-zinc-950', 'dark:bg-white'), forced.mark],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
-		vertical: 'inset-y-0 -left-px right-auto w-0.5',
+		vertical: 'inset-y-0 -inset-s-px inset-e-auto w-0.5',
 	},
 	defaults: { orientation: 'horizontal' },
 })

@@ -48,13 +48,13 @@ export const k = {
 	link: [weight.medium, 'underline underline-offset-2'],
 
 	// A list item tightens any nested list and drops its marker for a task item.
-	ul: 'my-3 list-disc pl-5',
-	ol: 'my-3 list-decimal pl-5',
+	ul: 'my-3 list-disc ps-5',
+	ol: 'my-3 list-decimal ps-5',
 	li: 'my-1 [&>:is(ul,ol)]:my-1',
 	task: 'list-none',
-	checkbox: 'mr-2',
+	checkbox: 'me-2',
 
-	blockquote: ['my-4 border-l-2 border-zinc-300 pl-4 italic dark:border-zinc-700'],
+	blockquote: ['my-4 border-s-2 border-zinc-300 ps-4 italic dark:border-zinc-700'],
 	hr: ['border-0 border-t', ...sen.border.color.default, 'my-6'],
 
 	// Emphasis rule under the header, default rule under cells.

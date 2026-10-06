@@ -12,10 +12,10 @@ const base = defineRecipe({
 	base: 'flex w-full',
 	orientation: {
 		horizontal: 'flex-row items-start gap-4 px-4',
-		vertical: 'flex-col items-start gap-4 pr-4 py-4',
+		vertical: 'flex-col items-start gap-4 pe-4 py-4',
 		// Vertical below `sm`, horizontal from it. CSS picks the layout, so the first
 		// paint is already correct on a narrow viewport.
-		responsive: 'flex-col items-start gap-4 pr-4 py-4 sm:flex-row sm:pl-4 sm:py-0',
+		responsive: 'flex-col items-start gap-4 pe-4 py-4 sm:flex-row sm:ps-4 sm:py-0',
 	},
 	defaults: { orientation: 'horizontal' },
 })

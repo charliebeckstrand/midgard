@@ -23,10 +23,10 @@ const bubble = defineRecipe({
 		'whitespace-pre-wrap wrap-anywhere',
 	],
 	sender: {
-		user: ['bg-blue-600 text-white', 'rounded-br-md'],
+		user: ['bg-blue-600 text-white', 'rounded-ee-md'],
 		assistant: [
 			...mode('bg-zinc-200 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
-			'rounded-bl-md',
+			'rounded-es-md',
 		],
 		system: [...text.muted, 'bg-transparent px-0'],
 	},

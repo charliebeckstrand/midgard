@@ -33,14 +33,14 @@ const base = defineRecipe({
  * The block padding of each cell takes the step of the nearest density scope.
  * At `md` a horizontal cell has `py-2` from the `sm` breakpoint, and a
  * vertical term has `pt-4` above it. Each stepped class writes one side, so
- * the narrow and the wide rows set no property twice. The `pr-2` gutter of a
- * term keeps one size, because no stepped utility writes `padding-right`.
+ * the narrow and the wide rows set no property twice. The `pe-2` gutter of a
+ * term keeps one size, because no stepped utility writes `padding-inline-end`.
  */
 const projection = {
 	horizontal: [
 		'[&>dt]:col-start-1',
 		dan.space.term.top,
-		'[&>dt]:pr-2',
+		'[&>dt]:pe-2',
 		dan.space.term.row.bottom,
 		dan.space.detail.bottom,
 		dan.space.detail.row.top,
