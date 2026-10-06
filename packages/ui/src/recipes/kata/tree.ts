@@ -31,7 +31,7 @@ const itemContent = defineRecipe(
 			focus.inset,
 			...cursor,
 			'select-none',
-			...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
+			...mode('data-open:text-zinc-950', 'dark:data-open:text-white'),
 			ji.ramp,
 		],
 	},
@@ -54,9 +54,9 @@ const check = [
 		['bg-white', 'border border-zinc-950/50', 'group-hover/tree-item:border-zinc-950/70'],
 		['dark:bg-white/5', 'dark:border-white/35', 'dark:group-hover/tree-item:border-white/50'],
 	),
-	'data-[checked]:bg-zinc-600 data-[checked]:border-zinc-700/90',
-	'dark:data-[checked]:bg-zinc-600 dark:data-[checked]:border-zinc-700/90',
-	'data-[checked]:group-hover/tree-item:opacity-90',
+	'data-checked:bg-zinc-600 data-checked:border-zinc-700/90',
+	'dark:data-checked:bg-zinc-600 dark:data-checked:border-zinc-700/90',
+	'data-checked:group-hover/tree-item:opacity-90',
 ]
 
 /** The mark in the check box. It takes the step of the nearest density scope. */

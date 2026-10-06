@@ -449,9 +449,9 @@ describe('Grid', () => {
 			const header = container.querySelector<HTMLElement>('thead th')
 
 			expect(header).toHaveClass(
-				'bg-[var(--surface-fill,var(--color-white))]',
-				'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
-				'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+				'bg-(--surface-fill,var(--color-white))',
+				'dark:bg-(--surface-fill,var(--color-zinc-950))',
+				'dark:lg:bg-(--surface-fill,var(--color-zinc-900))',
 			)
 		})
 	})
@@ -865,7 +865,7 @@ describe('Grid', () => {
 
 			const handle = screen.getByRole('button', { name: 'Reorder Name' })
 
-			expect(handle.className).toContain('data-[dragging]:cursor-grabbing')
+			expect(handle.className).toContain('data-dragging:cursor-grabbing')
 
 			expect(handle.className).not.toContain('active:cursor-grabbing')
 		})

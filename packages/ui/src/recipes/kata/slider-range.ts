@@ -24,7 +24,7 @@ const range = defineRecipe({
 })
 
 const track = defineRecipe({
-	base: ['absolute left-0 right-0', rounded.full, 'bg-[var(--slider-track)]', kokkaku.slider.track],
+	base: ['absolute left-0 right-0', rounded.full, 'bg-(--slider-track)', kokkaku.slider.track],
 })
 
 const thumb = defineRecipe({
@@ -48,7 +48,7 @@ const thumb = defineRecipe({
 export const k = {
 	base: range,
 	track,
-	fill: ['absolute', rounded.full, 'bg-[var(--slider-fill)]'],
+	fill: ['absolute', rounded.full, 'bg-(--slider-fill)'],
 	thumb,
 } as const
 

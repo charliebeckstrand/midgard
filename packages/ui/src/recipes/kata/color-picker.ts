@@ -33,7 +33,7 @@ const swatch = {
 	 */
 	fill: 'block size-full rounded-[inherit] ring-1 ring-inset ring-black/10 dark:ring-white/15',
 	/** The checkerboard behind the trigger swatch while the color is translucent. */
-	checkerboard: [omote.checkerboard, '[background-size:8px_8px]'],
+	checkerboard: [omote.checkerboard, 'bg-size-[8px_8px]'],
 }
 
 /**
