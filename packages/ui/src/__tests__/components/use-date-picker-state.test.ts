@@ -75,6 +75,36 @@ describe('useDatePickerState', () => {
 
 			expect(result.current.calendar.active).toBeNull()
 		})
+
+		// C01: in input mode the close returns focus to the input, not to the first
+		// button in the wrapper.
+		it('returns focus to the input on close in input mode', () => {
+			const { result } = renderHook(() => useDatePickerState({ input: true }))
+
+			const wrapper = document.createElement('div')
+
+			const button = document.createElement('button')
+
+			const input = document.createElement('input')
+
+			wrapper.append(button, input)
+
+			document.body.append(wrapper)
+
+			onTestFinished(() => wrapper.remove())
+
+			act(() => {
+				result.current.setReference(wrapper)
+
+				result.current.inputRef.current = input
+			})
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onOpenChange(false))
+
+			expect(input).toHaveFocus()
+		})
 	})
 
 	describe('selection in uncontrolled mode', () => {

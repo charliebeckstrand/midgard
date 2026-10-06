@@ -11,6 +11,12 @@ type DatePickerFloatingOptions = {
 	/** The side-effect handler of the variant: its open and close paths. */
 	onOpenChange: (open: boolean) => void
 	triggerRef: RefObject<HTMLElement | null>
+	/**
+	 * The element that gets focus when the dialog closes. Default: `triggerRef`.
+	 * The `input` mode sets the input, because the first button in the wrapper is
+	 * not the field.
+	 */
+	returnFocusTo?: RefObject<HTMLElement | null>
 }
 
 /**
@@ -31,6 +37,7 @@ export function useDatePickerFloating({
 	open,
 	onOpenChange: handleOpenChange,
 	triggerRef,
+	returnFocusTo,
 }: DatePickerFloatingOptions) {
 	const floating = useFloatingUI({
 		placement,
@@ -38,7 +45,7 @@ export function useDatePickerFloating({
 		onOpenChange: handleOpenChange,
 		offset: 8,
 		role: null,
-		returnFocusTo: triggerRef,
+		returnFocusTo: returnFocusTo ?? triggerRef,
 	})
 
 	const { context, refs } = floating
@@ -60,9 +67,10 @@ export function useDatePickerFloating({
 		[engineOpenChange],
 	)
 
-	// Captures the trigger for `returnFocusTo`, because `FloatingFocusManager` runs
-	// with `returnFocus={false}`. The shared hook never gives `setReference` a
-	// `null` during deletion effects (see {@link useFloatingReference}).
+	// Captures the trigger in `triggerRef`. The trigger is the default
+	// `returnFocusTo`, because `FloatingFocusManager` runs with
+	// `returnFocus={false}`. The shared hook never gives `setReference` a `null`
+	// during deletion effects (see {@link useFloatingReference}).
 	const setReference = useFloatingReference<HTMLElement>(refs.setReference, triggerRef, undefined)
 
 	return { ...floating, onOpenChange, setReference, dialogId }

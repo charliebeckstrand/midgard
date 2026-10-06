@@ -34,7 +34,7 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | C06 | `use-date-picker-keyboard.ts` | `getInitialActiveDate` | CONFIRMED | medium | shipped | G1 | ◯ OPEN |
 | C09 | `date-picker-content.tsx` | dialog focus reclaim | CONFIRMED | medium | shipped | G1 | ◯ OPEN |
-| C01 | `use-floating-ui.ts` | `returnFocusTo` restore | CONFIRMED | low | shipped | — | ◯ OPEN |
+| C01 | `use-floating-ui.ts` | `returnFocusTo` restore | CONFIRMED | low | shipped | — | ◐ FIXED |
 | C03 | `date-picker-calendar-button.tsx` | `DatePickerCalendarButton` | NARROWED | low | shipped | — | ◯ OPEN |
 | C07 | `use-calendar-focus.ts` | `handleHeaderKeyDown` / `handleFooterKeyDown` | CONFIRMED | low | docs-only | G1 | ◐ FIXED |
 

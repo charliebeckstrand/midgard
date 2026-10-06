@@ -88,6 +88,10 @@ export function useDatePickerState({
 		readOnly: resolvedReadOnly,
 	})
 
+	// The native input of the DateInput in `input` mode. The dialog opens with
+	// focus on it, and a close returns focus to it.
+	const inputRef = useRef<HTMLInputElement>(null)
+
 	const [active, setActive] = useState<CalendarActive | null>(null)
 
 	const calendarRef = useRef<CalendarHandle>(null)
@@ -220,7 +224,13 @@ export function useDatePickerState({
 		onOpenChange,
 		setReference,
 		dialogId,
-	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
+	} = useDatePickerFloating({
+		placement,
+		open,
+		onOpenChange: handleOpenChange,
+		triggerRef,
+		returnFocusTo: input ? inputRef : undefined,
+	})
 
 	// Captures the dialog for `useDatePickerInputTab`'s reference-side handler.
 	const floatingRef = useRef<HTMLElement | null>(null)
@@ -283,6 +293,7 @@ export function useDatePickerState({
 		setReference,
 		setFloating,
 		triggerRef,
+		inputRef,
 		floatingRef,
 		floatingStyles,
 		getReferenceProps,

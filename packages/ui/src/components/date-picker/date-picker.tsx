@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, useRef } from 'react'
+import type { ReactElement } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
@@ -290,6 +290,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const {
 		triggerRef,
+		inputRef,
 		floatingRef,
 		open,
 		onTriggerKeyDown,
@@ -319,10 +320,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		calendar: { calendarRef, footerRef, ...calendar },
 		footer,
 	} = useDatePickerState(props)
-
-	// The DateInput's native input; `input` mode seeds dialog-open focus here so
-	// the user can type and the keydown stream roves the grid.
-	const inputRef = useRef<HTMLInputElement>(null)
 
 	// The DateInput gets no `name`, so the picker passes the reset count of its
 	// Form down. A reset then drops the typed text, also when the value stays.

@@ -1272,6 +1272,29 @@ describe('DatePicker input', () => {
 		expect(input).toHaveFocus()
 	})
 
+	// C01: the return target is the input, not the first button in the wrapper.
+	it('returns focus to the input when Escape closes from a footer button', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		input.focus()
+
+		await user.keyboard('{Shift>}{Tab}{/Shift}')
+
+		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
+
+		await user.keyboard('{Escape}')
+
+		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
+
+		expect(input).toHaveFocus()
+	})
+
 	it('keeps focus and text in the input when Escape closes mid-edit', async () => {
 		const user = setupUser()
 
