@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { act, frames, present, renderUI, waitFor } from '../helpers'
+import { settledValue } from './helpers/sample'
 
 /**
  * The start anchor of the measured path, in a real browser. The anchor moves
@@ -106,13 +107,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 	async function scrollAndSettle(scroller: HTMLElement, top: number) {
 		scroller.scrollTop = top
 
-		let last = -1
-
-		while (last !== scroller.scrollTop) {
-			last = scroller.scrollTop
-
-			await frames()
-		}
+		await settledValue(() => scroller.scrollTop)
 	}
 
 	it('holds the first row in view still when rows are inserted above it, and then stops', async () => {
