@@ -52,7 +52,7 @@ export type HeatmapChartSeries<T> = {
 	colorName?: string
 	/**
 	 * Bin count for the scale and its legend.
-	 * @defaultValue one bin per `colorRange` stop
+	 * @defaultValue one bin per `colorRange` stop.
 	 */
 	bins?: number
 	/**

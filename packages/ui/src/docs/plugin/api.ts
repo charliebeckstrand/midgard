@@ -1,5 +1,13 @@
 import path from 'node:path'
-import type { Checker, Program, Symbol as TsSymbol, Type } from 'typescript/unstable/sync'
+import type { __String, Node, TypeReferenceNode } from 'typescript/unstable/ast'
+import type {
+	Checker,
+	NodeHandle,
+	Program,
+	Signature,
+	Symbol as TsSymbol,
+	Type,
+} from 'typescript/unstable/sync'
 import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
 
 // The API data of the docs comes from the TypeScript 7 API, which is
@@ -42,7 +50,10 @@ export type ComponentApi = {
 	props: PropApi[]
 	/** The props whose name is `on` and an uppercase letter, such as `onChange`, in name order. */
 	events: PropApi[]
-	/** The tags whose HTML attributes the component also takes. An empty tag stands for any element. */
+	/**
+	 * The tags whose HTML attributes the component also takes, in name order.
+	 * An empty tag stands for any element.
+	 */
 	elements?: string[]
 }
 
@@ -75,7 +86,7 @@ function compareLiterals(a: Literal, b: Literal): number {
 	if (typeof a === 'string' && typeof b === 'string') {
 		return isDensityStep(a) && isDensityStep(b)
 			? densitySteps.indexOf(a) - densitySteps.indexOf(b)
-			: a.localeCompare(b)
+			: a.localeCompare(b, LOCALE)
 	}
 
 	return Number(a) - Number(b)
@@ -87,7 +98,17 @@ function rankOf(value: Literal): number {
 	return typeof value === 'number' ? 2 : 3
 }
 
+// One locale for each sort, so that the order does not change with the locale of the build machine.
+export const LOCALE = 'en'
+
 const EVENT = /^on[A-Z]/
+
+// The types of React whose argument names the element of the HTML attributes that a props type takes.
+const ELEMENT_PROPS = new Set([
+	'ComponentProps',
+	'ComponentPropsWithRef',
+	'ComponentPropsWithoutRef',
+])
 
 // An inline link of TSDoc: `{@link target}` or `{@link target | label}`.
 const LINK = /\{@link\s+([^\s|}]+)\s*\|?\s*([^}]*)\}/g
@@ -95,6 +116,8 @@ const LINK = /\{@link\s+([^\s|}]+)\s*\|?\s*([^}]*)\}/g
 const CHANGES = { create: 'created', update: 'changed', delete: 'deleted' } as const
 
 type Ts = typeof import('typescript/unstable/sync')
+
+type Ast = typeof import('typescript/unstable/ast')
 
 /**
  * Creates the extractor for the `ui` package at `root`. It reads the barrel
@@ -104,24 +127,21 @@ type Ts = typeof import('typescript/unstable/sync')
 export function createApiExtractor(root: string): ApiExtractor {
 	const config = path.join(import.meta.dirname, 'tsconfig.api.json')
 
-	let server: Promise<{ ts: Ts; api: InstanceType<Ts['API']> }> | undefined
+	let server: Promise<{ ts: Ts; ast: Ast; api: InstanceType<Ts['API']> }> | undefined
 
 	let snapshot: ReturnType<InstanceType<Ts['API']>['updateSnapshot']> | undefined
 
 	// The files that changed after the snapshot.
 	let changes: Record<(typeof CHANGES)[keyof typeof CHANGES], string[]> | undefined
 
-	// The tags of the DOM do not change, so each barrel reads the same map.
-	const elementTags = new Map<string, string>()
-
 	return {
 		async extract(barrel) {
-			server ??= import('typescript/unstable/sync').then((ts) => ({
-				ts,
-				api: new ts.API({ cwd: root }),
-			}))
+			server ??= Promise.all([
+				import('typescript/unstable/sync'),
+				import('typescript/unstable/ast'),
+			]).then(([ts, ast]) => ({ ts, ast, api: new ts.API({ cwd: root }) }))
 
-			const { ts, api } = await server
+			const { ts, ast, api } = await server
 
 			if (!snapshot || changes) {
 				const previous = snapshot
@@ -141,10 +161,10 @@ export function createApiExtractor(root: string): ApiExtractor {
 
 			return readBarrel(
 				ts,
+				ast,
 				project.program,
 				project.checker,
 				path.join(root, 'src', barrel, 'index.ts'),
-				elementTags,
 			)
 		},
 		refresh({ file, type }) {
@@ -169,18 +189,8 @@ export function createApiExtractor(root: string): ApiExtractor {
 	}
 }
 
-/**
- * Reads the components, the props, and the events of the barrel at `file`.
- * The first call fills `elementTags`, the first tag of each element
- * interface, and each later call reads it.
- */
-function readBarrel(
-	ts: Ts,
-	program: Program,
-	checker: Checker,
-	file: string,
-	elementTags: Map<string, string>,
-): BarrelApi {
+/** Reads the components, the props, and the events of the barrel at `file`. */
+function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: string): BarrelApi {
 	const { NodeBuilderFlags, SignatureKind, SymbolFlags, TypeFlags } = ts
 
 	// Each literal in single quotes, as the source writes it, and no `...` in a long type.
@@ -195,24 +205,6 @@ function readBarrel(
 
 	if (!module) throw new Error(`docs: no barrel at ${file}`)
 
-	/**
-	 * The first tag of each element interface, from `HTMLElementTagNameMap`,
-	 * such as `a` for `HTMLAnchorElement`.
-	 */
-	function tagsOf(): Map<string, string> {
-		if (elementTags.size > 0) return elementTags
-
-		const map = checker.resolveName('HTMLElementTagNameMap', SymbolFlags.Interface, source)
-
-		for (const [tag, member] of map?.getMembers() ?? []) {
-			const name = checker.getTypeOfSymbol(member)?.getSymbol()?.name
-
-			if (name && !elementTags.has(name)) elementTags.set(name, String(tag))
-		}
-
-		return elementTags
-	}
-
 	/** The component of an export: a PascalCase value that takes props, or nothing. */
 	function component(exported: TsSymbol): ComponentApi | undefined {
 		if (!/^[A-Z]/.test(exported.name)) return undefined
@@ -226,21 +218,17 @@ function readBarrel(
 
 		if (!signature) return undefined
 
-		const props = checker.getParameterType(signature, 0)
-
-		const members = props ? checker.getPropertiesOfType(props) : []
+		const members = membersOf(checker.getParameterType(signature, 0))
 
 		// A prop that `ui` declares, also when a package declares it too, such as
 		// the `color` of a button and of an HTML element.
-		const own = members.filter((member) => !member.declarations.every(isPackage))
+		const own = [...members].filter(([member]) => !member.declarations.every(isPackage))
 
 		const description = checker.getDocumentationCommentOfSymbol(symbol)
 
-		const event = members.find((member) => EVENT.test(member.name) && !own.includes(member))
+		const elements = elementsOf(symbol, signature, [...members.keys()])
 
-		const elements = elementsOf(event)
-
-		const apis = own.flatMap((member) => prop(member) ?? []).toSorted(byName)
+		const apis = own.flatMap(([member, required]) => prop(member, required) ?? []).toSorted(byName)
 
 		return {
 			name: exported.name,
@@ -251,7 +239,40 @@ function readBarrel(
 		}
 	}
 
-	function prop(symbol: TsSymbol): PropApi | undefined {
+	/**
+	 * Each prop of a props type, and whether it is required. A union gives the
+	 * props that each arm has, and the alternatives: the props that only some
+	 * arms have, such as the `aria-label` and the `aria-labelledby` of
+	 * `AccessibleName`. A required alternative stays required when each arm
+	 * requires one of the alternatives, as each arm of `AccessibleName`
+	 * requires its label.
+	 */
+	function membersOf(props: Type | undefined): Map<TsSymbol, boolean> {
+		const common = props ? checker.getPropertiesOfType(props) : []
+
+		const names = new Set(common.map((member) => member.name))
+
+		const choices = (props?.isUnionType() ? props.getTypes() : []).map((arm) =>
+			checker.getPropertiesOfType(arm).filter((member) => !names.has(member.name)),
+		)
+
+		const alternatives = new Map(choices.flat().map((member) => [member.name, member]))
+
+		const chosen = choices.every((members) => members.some(isRequired))
+
+		return new Map([
+			...common.map((member) => [member, isRequired(member)] as const),
+			...[...alternatives.values()].map(
+				(member) => [member, chosen && isRequired(member)] as const,
+			),
+		])
+	}
+
+	function isRequired(symbol: TsSymbol): boolean {
+		return !(symbol.flags & SymbolFlags.Optional)
+	}
+
+	function prop(symbol: TsSymbol, required: boolean): PropApi | undefined {
 		const type = checker.getTypeOfSymbol(symbol)
 
 		const defined = type && checker.getNonNullableType(type)
@@ -282,7 +303,7 @@ function readBarrel(
 		return {
 			name: symbol.name,
 			...(values ? { values } : { type: textOf(type, defined) }),
-			...(!(symbol.flags & SymbolFlags.Optional) && { required: true }),
+			...(required && { required: true }),
 			...(fallback && !sentence && { default: fallback }),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
@@ -331,21 +352,26 @@ function readBarrel(
 		return values.toSorted(compareLiterals)
 	}
 
-	/**
-	 * The tags of the elements in the type of an inherited event prop, such as
-	 * `MouseEventHandler<HTMLButtonElement>`. `HTMLElement` stands for any
-	 * element, and gives an empty tag.
-	 */
-	function elementsOf(event: TsSymbol | undefined): string[] {
-		const type = event && checker.getTypeOfSymbol(event)
+	/** The tags whose HTML attributes a component takes ({@link readComponent}). */
+	function elementsOf(component: TsSymbol, signature: Signature, members: TsSymbol[]): string[] {
+		// The elements of the inherited events, such as `HTMLButtonElement`.
+		const elements = new Set(
+			members
+				.filter((member) => EVENT.test(member.name) && member.declarations.every(isPackage))
+				.flatMap((member) => {
+					const type = checker.getTypeOfSymbol(member)
 
-		const text = type ? checker.typeToString(type, undefined, format) : ''
+					const text = type ? checker.typeToString(type, undefined, format) : ''
 
-		const names = new Set(Array.from(text.matchAll(/\bHTML\w*Element\b/g), ([name]) => name))
+					return Array.from(text.matchAll(/\bHTML\w*Element\b/g), ([name]) => name)
+				}),
+		)
 
-		return [...names]
-			.flatMap((name) => (name === 'HTMLElement' ? '' : (tagsOf().get(name) ?? [])))
-			.toSorted()
+		const walk: Walk = { ts, ast, checker, elements, tags: new Set(), bindings: new Map() }
+
+		readComponent(walk, component, signature)
+
+		return [...walk.tags].toSorted()
 	}
 
 	const components = checker
@@ -356,12 +382,208 @@ function readBarrel(
 	return Object.fromEntries(components.map((entry) => [entry.name, entry]))
 }
 
+/** The state of one walk of {@link readComponent}. */
+type Walk = {
+	ts: Ts
+	ast: Ast
+	checker: Checker
+	/** The elements of the inherited events of the props. */
+	elements: Set<string>
+	/** The tags that the walk finds. */
+	tags: Set<string>
+	/**
+	 * The type of each type parameter, by the id of its symbol, as the node of
+	 * a type argument or as the type that a call infers.
+	 */
+	bindings: Map<number, Node | Type>
+	/** The props of the tags of React, such as `DetailedHTMLProps<…, HTMLTableDataCellElement>` for `td`. */
+	intrinsic?: Type
+}
+
+/**
+ * Finds the tags whose HTML attributes a component takes: the tag of each
+ * `ComponentProps<'tag'>` that its props type is made of, and an empty tag
+ * for `HTMLAttributes`, which is the attributes of any element. The walk goes
+ * through the unions, the intersections, and the type arguments, such as the
+ * `Omit` of `Omit<ComponentProps<'h3'>, 'className'>`; through each alias that
+ * `ui` declares, with its type parameters bound to the type arguments; and
+ * through `ComponentProps<typeof Button>`. A component that a call makes,
+ * such as `createSlot('thead', …)`, binds the type parameters of the call to
+ * the types of their arguments. A type in a different place, such as the
+ * `ComponentProps<'th'>['scope']` of one prop, does not count.
+ *
+ * A tag counts only when an inherited event of the props has its element in
+ * its type, such as the `HTMLButtonElement` of `onFocus`. An `Omit` or a
+ * `Pick` can remove the attributes of a tag that the source names, such as
+ * the link of `Omit<ButtonProps & { href?: never }, 'href'>`.
+ */
+function readComponent(walk: Walk, symbol: TsSymbol, signature: Signature): void {
+	bindCall(walk, symbol)
+
+	const node = sourceOf(signature.declaration)
+
+	const [parameter] = node && walk.ast.isFunctionLikeDeclaration(node) ? node.parameters : []
+
+	readType(walk, parameter?.type)
+}
+
+/** Binds the type parameters of the call that makes `symbol`, such as the `T` of `createSlot`. */
+function bindCall(walk: Walk, symbol: TsSymbol): void {
+	const { ast, checker } = walk
+
+	const variable = symbol.valueDeclaration?.resolve()
+
+	const call = variable && ast.isVariableDeclaration(variable) ? variable.initializer : undefined
+
+	const resolved = call && ast.isCallExpression(call) && checker.getResolvedSignature(call)
+
+	const callee = resolved ? sourceOf(resolved.getTarget()?.declaration) : undefined
+
+	if (!resolved || !callee || !ast.isFunctionLikeDeclaration(callee)) return
+
+	const types = checker.getTypeOfSymbol(resolved.getParameters())
+
+	callee.parameters.forEach((parameter, index) => {
+		const bound = typeParameterOf(walk, parameter.type)
+
+		const type = types[index]
+
+		if (bound && type) walk.bindings.set(bound.id, type)
+	})
+}
+
+function readType(walk: Walk, node: Node | undefined): void {
+	const { ast } = walk
+
+	if (!node) return
+
+	const parts = ast.isParenthesizedTypeNode(node)
+		? [node.type]
+		: ast.isUnionTypeNode(node) || ast.isIntersectionTypeNode(node)
+			? node.types
+			: []
+
+	for (const part of parts) readType(walk, part)
+
+	if (ast.isTypeReferenceNode(node)) readReference(walk, node)
+}
+
+function readReference(walk: Walk, node: TypeReferenceNode): void {
+	const symbol = symbolAt(walk, node.typeName)
+
+	if (!symbol) return
+
+	// The name of a type of a package, such as `ComponentProps` or `Omit`.
+	const name = symbol.declarations.every(isPackage) ? symbol.name : undefined
+
+	if (name && ELEMENT_PROPS.has(name)) {
+		readComponentProps(walk, symbol, node.typeArguments?.[0])
+	} else if (name === 'HTMLAttributes') {
+		if (walk.elements.has('HTMLElement')) walk.tags.add('')
+	} else {
+		for (const argument of node.typeArguments ?? []) readType(walk, argument)
+
+		for (const declaration of symbol.declarations) {
+			readAlias(walk, sourceOf(declaration), node.typeArguments ?? [])
+		}
+	}
+}
+
+/** Reads the argument of `ComponentProps<…>`, with the tags of React from the namespace of `symbol`. */
+function readComponentProps(walk: Walk, symbol: TsSymbol, argument: Node | undefined): void {
+	const jsx = symbol
+		.getParent()
+		?.getExports()
+		.get('JSX' as __String)
+
+	const map = jsx?.getExports().get('IntrinsicElements' as __String)
+
+	walk.intrinsic ??= map && walk.checker.getDeclaredTypeOfSymbol(map)
+
+	readElement(walk, argument)
+}
+
+/** Reads the type of an alias that `ui` declares, with its type parameters bound to `args`. */
+function readAlias(walk: Walk, alias: Node | undefined, args: readonly Node[]): void {
+	if (!alias || !walk.ast.isTypeAliasDeclaration(alias)) return
+
+	alias.typeParameters?.forEach((parameter, index) => {
+		const bound = walk.checker.getSymbolAtLocation(parameter.name)
+
+		const type = args[index] ?? parameter.defaultType
+
+		if (bound && type) walk.bindings.set(bound.id, type)
+	})
+
+	readType(walk, alias.type)
+}
+
+/** Reads the tag of the argument of `ComponentProps<…>`, through the bindings. */
+function readElement(walk: Walk, argument: Node | Type | undefined): void {
+	const { ast, checker } = walk
+
+	if (!argument) return
+
+	if (!('kind' in argument)) {
+		if (argument.isStringLiteralType()) addTag(walk, String(argument.value))
+
+		return
+	}
+
+	if (ast.isLiteralTypeNode(argument) && ast.isStringLiteral(argument.literal)) {
+		addTag(walk, argument.literal.text)
+	}
+
+	const parameter = typeParameterOf(walk, argument)
+
+	if (parameter) readElement(walk, walk.bindings.get(parameter.id))
+
+	const value = ast.isTypeQueryNode(argument) ? symbolAt(walk, argument.exprName) : undefined
+
+	const type = value && checker.getTypeOfSymbol(value)
+
+	const [signature] = type ? checker.getSignaturesOfType(type, walk.ts.SignatureKind.Call) : []
+
+	if (value && signature) readComponent(walk, value, signature)
+}
+
+/** Adds a tag whose element an inherited event has. */
+function addTag(walk: Walk, tag: string): void {
+	const props = walk.intrinsic && walk.checker.getPropertyOfType(walk.intrinsic, tag)
+
+	const type = props && walk.checker.getTypeOfSymbol(props)
+
+	const element = type?.getAliasTypeArguments()[1]?.getSymbol()?.name
+
+	if (element && walk.elements.has(element)) walk.tags.add(tag)
+}
+
+/** The type parameter that a type names, such as the `T` of `ComponentProps<T>`. */
+function typeParameterOf(walk: Walk, node: Node | undefined): TsSymbol | undefined {
+	const symbol =
+		node && walk.ast.isTypeReferenceNode(node) ? symbolAt(walk, node.typeName) : undefined
+
+	return symbol && symbol.flags & walk.ts.SymbolFlags.TypeParameter ? symbol : undefined
+}
+
+/** The symbol that a name refers to, through each import. */
+function symbolAt({ ts, checker }: Walk, name: Node): TsSymbol | undefined {
+	const symbol = checker.getSymbolAtLocation(name)
+
+	return symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+}
+
+/** The node of a declaration in `ui`. A declaration in a package gives none. */
+function sourceOf(declaration: NodeHandle | undefined): Node | undefined {
+	return declaration && !isPackage(declaration) ? declaration.resolve() : undefined
+}
+
 /**
  * The order of the components and of the props. The plugin sorts them, so
  * the page does not sort them as it renders.
  */
 function byName(a: { name: string }, b: { name: string }): number {
-	return a.name.localeCompare(b.name)
+	return a.name.localeCompare(b.name, LOCALE)
 }
 
 /** Whether a declaration is in a package, such as a DOM attribute from `@types/react`. */

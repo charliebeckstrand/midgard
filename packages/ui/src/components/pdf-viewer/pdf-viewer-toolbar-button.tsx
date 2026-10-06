@@ -15,7 +15,7 @@ type PdfViewerToolbarButtonProps = {
 	/**
 	 * Tooltip text where it carries more than the label — the zoom controls name
 	 * the level they step to.
-	 * @defaultValue the `label`
+	 * @defaultValue the `label`.
 	 */
 	tooltip?: string
 	/**

@@ -68,7 +68,7 @@ export type DrawerStaticProps = {
 	 * The static copy cannot see a `DrawerFooter` in its children, because the footer registers
 	 * only on the client. When the children hold a `DrawerFooter`, pass `footer={null}`.
 	 *
-	 * @defaultValue `<DrawerClose />`, the standard Close button
+	 * @defaultValue `<DrawerClose />`, the standard Close button.
 	 */
 	footer?: ReactNode
 	/** Classes for the panel, as {@link DrawerPanel}'s `className` — pass the same ones. */

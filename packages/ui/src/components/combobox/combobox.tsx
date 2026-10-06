@@ -127,7 +127,7 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	/**
 	 * The `autocomplete` attribute of the input. The prop wins over the
 	 * `autoComplete` of an enclosing `<Control>`.
-	 * @defaultValue the `autoComplete` of the enclosing `<Control>`, else `'off'`
+	 * @defaultValue the `autoComplete` of the enclosing `<Control>`, else `'off'`.
 	 */
 	autoComplete?: ComponentProps<'input'>['autoComplete']
 	/**
@@ -144,7 +144,7 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	/**
 	 * Closes the menu on select.
 	 *
-	 * @defaultValue `true` for single selection, `false` for `multiple`
+	 * @defaultValue `true` for single selection, `false` for `multiple`.
 	 */
 	closeOnSelect?: boolean
 	/**

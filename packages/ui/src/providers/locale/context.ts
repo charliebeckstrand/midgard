@@ -31,7 +31,7 @@ export type LocaleConfig = {
 	 * the reader, so both renders use this zone. The render after hydration uses
 	 * the zone of the reader. `useDateFormat` and `DateTime` read it.
 	 *
-	 * @defaultValue `'UTC'` in `useDateFormat`
+	 * @defaultValue `'UTC'` in `useDateFormat`.
 	 */
 	timeZone?: string
 }

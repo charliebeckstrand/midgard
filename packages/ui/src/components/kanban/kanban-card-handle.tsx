@@ -16,7 +16,7 @@ export type KanbanCardHandleProps = {
 	 * @defaultValue 'Drag'
 	 */
 	'aria-label'?: string
-	/** Content of the handle. @defaultValue a grip icon */
+	/** Content of the handle. @defaultValue a grip icon. */
 	children?: ReactNode
 	className?: string
 }

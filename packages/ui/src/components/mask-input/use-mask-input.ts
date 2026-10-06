@@ -20,7 +20,7 @@ type MaskedInputOptions = {
 	 * Predicate identifying characters preserved across `format`. Keeps the
 	 * caret aligned with the typed character when `format` inserts or removes
 	 * separators.
-	 * @defaultValue ASCII alphanumerics and `+`
+	 * @defaultValue ASCII alphanumerics and `+`.
 	 */
 	meaningful?: (char: string) => boolean
 }

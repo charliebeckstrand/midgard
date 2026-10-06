@@ -15,7 +15,7 @@ export type PortalContainer = HTMLElement | null
  * components consume `usePortalContainer` here without depending on it.
  *
  * @defaultValue `null` outside any provider, leaving each portal to fall back to
- * its own default
+ * its own default.
  */
 export const [PortalContext, usePortalContext] = createContext<PortalContainer>('Portal', {
 	default: null,

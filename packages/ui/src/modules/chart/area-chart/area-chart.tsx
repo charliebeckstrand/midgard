@@ -31,7 +31,7 @@ export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	 * drops the snap so the rule and tooltip track the pointer along the curve
 	 * between points. Pass `true`, a {@link Crosshair} object, or `false` to
 	 * override the default.
-	 * @defaultValue a snapping y-rule, unsnapped when `interpolation` is `'smooth'`
+	 * @defaultValue a snapping y-rule, unsnapped when `interpolation` is `'smooth'`.
 	 */
 	crosshair?: boolean | Crosshair
 	/**

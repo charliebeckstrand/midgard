@@ -66,7 +66,7 @@ function ConfirmBody({ describes, children }: { describes: boolean; children: Re
 type ConfirmAction = {
 	/**
 	 * Button text.
-	 * @defaultValue 'Confirm' for the confirm action, 'Cancel' for the cancel action
+	 * @defaultValue 'Confirm' for the confirm action, 'Cancel' for the cancel action.
 	 */
 	label?: string
 	/** Button color, forwarded to {@link Button}. */

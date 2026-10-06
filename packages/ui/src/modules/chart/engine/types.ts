@@ -44,7 +44,7 @@ export type ChartSeries<T> = {
 	yKey: DataKey<T>
 	/**
 	 * Legend and tooltip name.
-	 * @defaultValue the `yKey` field name
+	 * @defaultValue the `yKey` field name.
 	 */
 	yName?: string
 	/**
@@ -124,7 +124,7 @@ export type ScatterChartSeries<T> = Pick<ChartSeries<T>, 'yKey' | 'yName' | 'col
 	sizeKey?: DataKey<T>
 	/**
 	 * Tooltip and data-table name for the size measure.
-	 * @defaultValue the `sizeKey` field name
+	 * @defaultValue the `sizeKey` field name.
 	 */
 	sizeName?: string
 	/**

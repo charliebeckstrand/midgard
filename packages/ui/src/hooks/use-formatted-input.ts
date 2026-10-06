@@ -16,7 +16,7 @@ export type FormattedInputOptions = {
 	 * count that character only there. The hook calls it on the raw text to
 	 * count, and then on the formatted text to put the caret, so a test of a
 	 * position must hold for both texts.
-	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
+	 * @defaultValue a predicate matching ASCII alphanumerics and `+`.
 	 */
 	meaningful?: (char: string, index: number, text: string) => boolean
 	/**

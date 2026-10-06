@@ -17,7 +17,7 @@ export type CopyButtonProps = {
 	text: string
 	/**
 	 * Rest-state glyph.
-	 * @defaultValue a Clipboard icon
+	 * @defaultValue a Clipboard icon.
 	 */
 	icon?: ReactElement
 	/** The density step of the button. Omit it to take the step of the nearest density scope. */

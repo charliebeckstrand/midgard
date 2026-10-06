@@ -63,7 +63,7 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 * is in its children. A `DialogFooter` child replaces it. Set `null` to show
 		 * no footer row.
 		 *
-		 * @defaultValue `<DialogClose />`, the standard Close button
+		 * @defaultValue `<DialogClose />`, the standard Close button.
 		 */
 		footer?: ReactNode
 		/**
@@ -74,7 +74,7 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		role?: 'dialog' | 'alertdialog'
 		/**
 		 * Element to receive initial focus when the dialog opens.
-		 * @defaultValue the first tabbable child
+		 * @defaultValue the first tabbable child.
 		 */
 		initialFocus?: RefObject<HTMLElement | null>
 		/**

@@ -70,7 +70,7 @@ export type ToastData = {
 export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed'> & {
 	/**
 	 * The time in milliseconds that the toast stays before it leaves with `timeout`.
-	 * @defaultValue the `duration` of the `ToastProvider`, 5000 when it sets none
+	 * @defaultValue the `duration` of the `ToastProvider`, 5000 when it sets none.
 	 */
 	duration?: number
 	/**

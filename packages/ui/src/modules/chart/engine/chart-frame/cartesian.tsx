@@ -75,7 +75,7 @@ export type ChartCartesianFrameProps = AccessibleName &
 		markAt: ChartMarkAt
 		/**
 		 * The crosshair to draw when the `crosshair` prop is unset.
-		 * @defaultValue no crosshair
+		 * @defaultValue no crosshair.
 		 */
 		defaultCrosshair?: Crosshair
 		/**
@@ -87,7 +87,7 @@ export type ChartCartesianFrameProps = AccessibleName &
 		/**
 		 * The stops that the crosshair and the tooltip snap to, and that isolate a
 		 * mark off the marks.
-		 * @defaultValue the chart's own snap points and series
+		 * @defaultValue the chart's own snap points and series.
 		 */
 		snapStops?: CartesianStops
 		/**

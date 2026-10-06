@@ -119,12 +119,12 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 * is in its children. A `SheetFooter` child replaces it. Set `null` to show
 		 * no footer row.
 		 *
-		 * @defaultValue `<SheetClose />`, the standard Close button
+		 * @defaultValue `<SheetClose />`, the standard Close button.
 		 */
 		footer?: ReactNode
 		/**
 		 * Element to receive initial focus when the sheet opens.
-		 * @defaultValue the first tabbable child
+		 * @defaultValue the first tabbable child.
 		 */
 		initialFocus?: RefObject<HTMLElement | null>
 		/**

@@ -57,7 +57,7 @@ export type PanelOverlayProps = {
 	 * Element to portal into. The panel is then scoped to that element
 	 * (`absolute` positioning, no body scroll lock), which has to establish a
 	 * positioning context.
-	 * @defaultValue `document.body`, with full-viewport `fixed` positioning
+	 * @defaultValue `document.body`, with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
 }

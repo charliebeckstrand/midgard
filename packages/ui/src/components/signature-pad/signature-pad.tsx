@@ -46,7 +46,7 @@ export type SignaturePadProps = {
 	 * Stroke color, as any CSS color the canvas context accepts.
 	 *
 	 * @defaultValue the pad's own computed `color`, a dark ink on the pad's
-	 * white surface in both the light and the dark theme
+	 * white surface in both the light and the dark theme.
 	 */
 	strokeColor?: string
 	/**
