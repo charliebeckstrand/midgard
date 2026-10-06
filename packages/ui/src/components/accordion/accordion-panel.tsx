@@ -30,6 +30,9 @@ export type AccordionPanelProps = {
  * a section opens. The panel text wraps at that width. Content that cannot wrap,
  * such as a wide table, needs a width on the accordion.
  *
+ * The panel clips its content only while its height moves. At rest, a focus
+ * ring or a shadow at the edge of the content shows in full.
+ *
  * Under the accordion's default `mount="active"` the panel is mounted only while
  * open, so reopening resets its state. `always` and `lazy` instead hold it in
  * `<Activity mode="hidden">`, with state preserved and effects torn down. There

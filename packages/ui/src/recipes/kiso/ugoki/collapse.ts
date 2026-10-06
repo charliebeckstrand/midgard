@@ -1,8 +1,7 @@
 /**
  * Ugoki collapse: height reveal for disclosure panels. `fade` crossfades
- * opacity alongside the height change, for a panel that clips its own content.
- * `clipped` holds `fade` and `slide`, in which the content moves down with the
- * panel edge, with a clip that applies only while the height moves.
+ * opacity alongside the height change. In `slide`, the content moves down with
+ * the panel edge. Each variant clips the panel only while the height moves.
  *
  * Layer: kiso · Concern: collapse motion
  */
@@ -58,12 +57,9 @@ function clip<P extends { initial: object; animate: object; exit: object }>(pres
 	} as const
 }
 
-export const collapse = {
-	fade,
-	/**
-	 * `fade` and `slide` for a panel with no clip of its own. The panel clips its
-	 * content only while its height moves. Each target is a module constant, so
-	 * a comparison by identity holds.
-	 */
-	clipped: { fade: clip(fade), slide: clip(slide) },
-} as const
+/**
+ * The variants for a panel with no clip of its own. The panel clips its content
+ * only while its height moves. Each target is a module constant, so a
+ * comparison by identity holds.
+ */
+export const collapse = { fade: clip(fade), slide: clip(slide) } as const

@@ -25,5 +25,5 @@ export const k = {
 	],
 	// The panel has no clip of its own. Its motion clips it only while its height
 	// moves, and `animate={false}` has no motion, so it has no clip.
-	motion: collapse.clipped,
+	motion: collapse,
 } as const

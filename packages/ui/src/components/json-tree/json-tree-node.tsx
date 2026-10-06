@@ -193,8 +193,9 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 							id={groupId}
 							role="group"
 							data-slot="json-group"
+							// No clip of its own: the motion clips the group only while its height
+							// moves.
 							{...k.motion}
-							className={k.group}
 						>
 							{/* The children are one depth in, and the close bracket aligns with the header. */}
 							<div className={cn(k.indent)}>
