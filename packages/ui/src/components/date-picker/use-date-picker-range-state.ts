@@ -9,7 +9,7 @@ import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { clampDate, formatRange, stepDate } from './date-picker-utilities'
+import { clampDate, type DateStep, formatRange, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { useDatePickerFloating } from './use-date-picker-floating'
 import {
@@ -111,21 +111,11 @@ export function useDatePickerRangeState({
 	)
 
 	// A step of days or months starts on `from`, the day that the key handler
-	// gives, and stays between `min` and `max`.
-	const moveGridDate = useCallback(
-		(delta: number, from: Date) => {
-			const next = clampDate(stepDate(from, { days: delta }), min, max)
-
-			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
-
-			return next
-		},
-		[min, max, rangeStart],
-	)
-
-	const moveGridMonths = useCallback(
-		(delta: number, from: Date) => {
-			const next = clampDate(stepDate(from, { months: delta }), min, max)
+	// gives, and stays between `min` and `max`. While a range is in progress, the
+	// new day also previews the end of the range.
+	const moveGrid = useCallback(
+		(step: DateStep, from: Date) => {
+			const next = clampDate(stepDate(from, step), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
@@ -231,8 +221,7 @@ export function useDatePickerRangeState({
 		setActive,
 		openCalendar,
 		closeCalendar,
-		moveGridDate,
-		moveGridMonths,
+		moveGrid,
 		getInitialActiveDate,
 		getViewEntryDate,
 		handleSelect,

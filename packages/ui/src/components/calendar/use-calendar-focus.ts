@@ -172,11 +172,6 @@ function activeIndexIn(buttons: HTMLElement[]): number {
 	return buttons.indexOf(document.activeElement as HTMLElement)
 }
 
-/** First focusable button within `container`. @internal */
-function firstButton(container: HTMLElement | null): HTMLElement | null {
-	return container?.querySelector<HTMLElement>(FOCUSABLE) ?? null
-}
-
 /** Middle focusable button within `container`, used to seat focus on a calendar header. @internal */
 function middleButton(container: HTMLElement | null): HTMLElement | null {
 	const buttons = buttonsOf(container)
@@ -184,17 +179,12 @@ function middleButton(container: HTMLElement | null): HTMLElement | null {
 	return buttons[Math.floor(buttons.length / 2)] ?? null
 }
 
-/** Last focusable button within `container`. @internal */
-function lastButton(container: HTMLElement | null): HTMLElement | null {
-	return buttonsOf(container).at(-1) ?? null
-}
-
 /**
  * The focusable button of `grid` where the focus enters, as Tab enters. While
  * roving manages the Tab stop (`managed`), this is the button with
  * `tabIndex=0`: the roved button, else the button that roving seated. Else it
- * is the button that `activeSelector` names. When no button matches,
- * `fallback` gives the button.
+ * is the button that `activeSelector` names. When no button matches, the
+ * `fallback` edge gives the first or the last button.
  *
  * @internal
  */
@@ -202,14 +192,15 @@ function entryButton(
 	grid: HTMLElement | null,
 	activeSelector: string,
 	managed: boolean,
-	fallback: (container: HTMLElement | null) => HTMLElement | null,
+	fallback: 'first' | 'last',
 ): HTMLElement | null {
 	const buttons = buttonsOf(grid)
 
 	return (
 		(managed ? rovedStop(buttons) : undefined) ??
 		buttons.find((button) => button.matches(activeSelector)) ??
-		fallback(grid)
+		(fallback === 'first' ? buttons[0] : buttons.at(-1)) ??
+		null
 	)
 }
 
@@ -391,6 +382,21 @@ function focusAdjacentFooterButton(
 	next.focus()
 }
 
+/** Does nothing. A steered zone leaves each key to the parent. @internal */
+function ignoreKey(): void {}
+
+/**
+ * The handlers of a steered calendar. They move no focus and call no
+ * `preventDefault`, so each key gets to the keyboard model of the parent.
+ *
+ * @internal
+ */
+const STEERED_HANDLERS = Object.freeze({
+	handleHeaderKeyDown: ignoreKey,
+	handleGridKeyDown: ignoreKey,
+	handleFooterKeyDown: ignoreKey,
+})
+
 /**
  * Wires keyboard navigation across a calendar's header, grid, and footer zones.
  * The grid is one Tab stop with a roving `tabIndex` (see `activeSelector`).
@@ -398,15 +404,9 @@ function focusAdjacentFooterButton(
  * the three zones' `keydown` handlers.
  *
  * ArrowDown from the header and ArrowUp from the footer move the focus to the
- * grid item that holds the Tab stop, so they enter on the same item as Tab.
- * While roving manages the Tab stop (`gridMounted`), that is the item with
- * `tabIndex=0`. After a rove, this is the roved item, not the
- * `activeSelector` match. When no item matches, roving seats the stop on the
- * first item, and both keys move the focus there. Before roving manages the
- * stop, the keys move the focus to the item that `activeSelector` names. When
- * no item matches, ArrowDown moves the focus to the first item and ArrowUp to
- * the last item. With `steered`, the header, grid, and footer handlers
- * leave every key to the parent.
+ * grid item that holds the Tab stop, so they enter on the same item as Tab
+ * ({@link entryButton} gives the rule). With `steered`, the hook returns
+ * handlers that leave every key to the parent.
  *
  * Without `dayGrid`, ArrowUp on the top row of the grid moves the focus to the
  * header. No arrow moves the focus from the grid to the footer.
@@ -446,12 +446,10 @@ export function useCalendarFocus({
 
 	const handleHeaderKeyDown = useCallback(
 		(event: KeyboardEvent) => {
-			if (steered) return
-
 			if (event.key === 'ArrowDown') {
 				preventAndStop(event, stopPropagation)
 
-				entryButton(gridRef.current, activeSelector, gridMounted, firstButton)?.focus()
+				entryButton(gridRef.current, activeSelector, gridMounted, 'first')?.focus()
 
 				return
 			}
@@ -460,13 +458,11 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRoving, stopPropagation, steered, activeSelector, gridMounted],
+		[gridRef, headerRoving, stopPropagation, activeSelector, gridMounted],
 	)
 
 	const handleGridKeyDown = useCallback(
 		(event: KeyboardEvent) => {
-			if (steered) return
-
 			// A day grid moves by date, so its arrows never leave the grid. Only a
 			// grid with no date model bridges to the header.
 			const handled = dayGrid
@@ -483,17 +479,15 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRef, cols, gridRoving, stopPropagation, steered, dayGrid],
+		[gridRef, headerRef, cols, gridRoving, stopPropagation, dayGrid],
 	)
 
 	const handleFooterKeyDown = useCallback(
 		(event: KeyboardEvent) => {
-			if (steered) return
-
 			if (event.key === 'ArrowUp') {
 				preventAndStop(event, stopPropagation)
 
-				entryButton(gridRef.current, activeSelector, gridMounted, lastButton)?.focus()
+				entryButton(gridRef.current, activeSelector, gridMounted, 'last')?.focus()
 
 				return
 			}
@@ -504,8 +498,10 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, footerRef, stopPropagation, steered, activeSelector, gridMounted],
+		[gridRef, footerRef, stopPropagation, activeSelector, gridMounted],
 	)
 
-	return { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown }
+	return steered
+		? STEERED_HANDLERS
+		: { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown }
 }

@@ -29,9 +29,10 @@ type CalendarHeaderProps = {
  * Row of prev/next month chevrons flanking the month/year picker trigger. The
  * three controls are plain buttons, and each one is a Tab stop. `activeIndex`
  * paints the roving-focus highlight on the matching control (0 prev, 1 picker,
- * 2 next), and writes that index to its `data-index`. Memoized: a move of the
- * roved day, a new selection, or a range preview does not render the header or
- * its picker again.
+ * 2 next). Each control writes its fixed position to its `data-index`, also
+ * when it has no highlight. Memoized: a move of the roved day, a new
+ * selection, or a range preview does not render the header or its picker
+ * again.
  *
  * @internal
  */

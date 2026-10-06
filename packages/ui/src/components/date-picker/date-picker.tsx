@@ -291,6 +291,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	const {
 		triggerRef,
 		inputRef,
+		focusHomeRef,
 		floatingRef,
 		open,
 		onTriggerKeyDown,
@@ -351,7 +352,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			// container) so the user can type and the same keydown stream roves the
 			// grid via the input's `aria-activedescendant`. The button-trigger variant
 			// keeps the container-focus virtual-highlight default.
-			initialFocusRef={input ? inputRef : undefined}
+			initialFocusRef={focusHomeRef}
 			// The reference group stays editable (and Tab-reachable via
 			// useDatePickerInputTab) while open, so it must stay out of the modal
 			// trap's aria-hidden marking. Non-input mode keeps the standard

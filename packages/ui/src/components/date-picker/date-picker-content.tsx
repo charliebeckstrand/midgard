@@ -16,7 +16,7 @@ import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
-import { NAVIGATION_KEYS } from './use-date-picker-keyboard'
+import { RECLAIM_KEYS } from './use-date-picker-keyboard'
 
 /** Props for {@link DatePickerContent}. @internal */
 type DatePickerContentProps = {
@@ -137,8 +137,10 @@ export function DatePickerContent({
 		// the seed of the open focus first: the dialog, or the input
 		// in `input` mode. A grid move can re-anchor the month and
 		// unmount the focused day button, which drops focus to <body>.
-		if (NAVIGATION_KEYS.has(event.key) && event.target !== event.currentTarget) {
-			;(focusRef.current ?? event.currentTarget).focus()
+		if (RECLAIM_KEYS.has(event.key) && event.target !== event.currentTarget) {
+			const seed = focusRef.current ?? event.currentTarget
+
+			seed.focus()
 		}
 
 		onKeyDown(event)

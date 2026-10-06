@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { RefObject } from 'react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { CalendarActive, CalendarHandle } from '../../components/calendar'
+import type { DateStep } from '../../components/date-picker/date-picker-utilities'
 import {
 	type FooterButton,
 	useDatePickerKeyboard,
@@ -25,12 +26,10 @@ function setup(overrides: Setup = {}) {
 	const closeCalendar = vi.fn()
 
 	// Each step and each page start on `from`.
-	const moveGridDate = vi.fn(
-		(delta: number, from: Date) => new Date(2026, from.getMonth(), from.getDate() + delta),
-	)
-
-	const moveGridMonths = vi.fn(
-		(delta: number, from: Date) => new Date(2026, from.getMonth() + delta, from.getDate()),
+	const moveGrid = vi.fn((step: DateStep, from: Date) =>
+		'days' in step
+			? new Date(2026, from.getMonth(), from.getDate() + step.days)
+			: new Date(2026, from.getMonth() + step.months, from.getDate()),
 	)
 
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
@@ -62,8 +61,7 @@ function setup(overrides: Setup = {}) {
 			setActive,
 			openCalendar,
 			closeCalendar,
-			moveGridDate,
-			moveGridMonths,
+			moveGrid,
 			getInitialActiveDate,
 			getViewEntryDate,
 			handleSelect,
@@ -78,8 +76,7 @@ function setup(overrides: Setup = {}) {
 		setActive,
 		openCalendar,
 		closeCalendar,
-		moveGridDate,
-		moveGridMonths,
+		moveGrid,
 		getInitialActiveDate,
 		getViewEntryDate,
 		handleSelect,
@@ -208,33 +205,33 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	const gridActive: CalendarActive = { zone: 'grid', date: new Date(2026, 0, 15) }
 
 	it('moves a month on PageUp/PageDown and a year with Shift (APG date grid)', () => {
-		const { handler, moveGridMonths, setActive } = setup({ active: gridActive })
+		const { handler, moveGrid, setActive } = setup({ active: gridActive })
 
 		handler(makeKeyEvent<HTMLElement>('PageUp'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(-1, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ months: -1 }, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageDown'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(1, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ months: 1 }, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageUp', { shiftKey: true }))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(-12, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ months: -12 }, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageDown', { shiftKey: true }))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(12, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ months: 12 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(4)
 	})
 
 	it('materializes the grid highlight when Page keys arrive with no active zone', () => {
-		const { handler, moveGridMonths, setActive } = setup({ active: null })
+		const { handler, moveGrid, setActive } = setup({ active: null })
 
 		handler(makeKeyEvent<HTMLElement>('PageDown'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(1, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ months: 1 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: expect.any(Date) })
 	})
@@ -245,11 +242,11 @@ describe('useDatePickerKeyboard: grid zone', () => {
 		['moves grid date backward one week on ArrowUp', 'ArrowUp', -7],
 		['moves grid date forward one week on ArrowDown', 'ArrowDown', 7],
 	])('%s', (_name, key, delta) => {
-		const { handler, moveGridDate, setActive } = setup({ active: gridActive })
+		const { handler, moveGrid, setActive } = setup({ active: gridActive })
 
 		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(moveGridDate).toHaveBeenCalledWith(delta, gridActive.date)
+		expect(moveGrid).toHaveBeenCalledWith({ days: delta }, gridActive.date)
 
 		expect(setActive).toHaveBeenCalled()
 	})
@@ -535,7 +532,7 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 	it('enters the shown month on ArrowDown from a focused header button', () => {
 		const { dialog, header } = renderToolbars()
 
-		const { handler, setActive, moveGridDate } = setup({
+		const { handler, setActive, moveGrid } = setup({
 			active: { zone: 'grid', date: new Date(2026, 0, 15) },
 		})
 
@@ -545,7 +542,7 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
 
-		expect(moveGridDate).not.toHaveBeenCalled()
+		expect(moveGrid).not.toHaveBeenCalled()
 	})
 
 	it('moves the header highlight on ArrowRight from a focused header button', () => {
@@ -625,13 +622,13 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 	it('keeps the model zone for a key on the dialog itself', () => {
 		const { dialog } = renderToolbars()
 
-		const { handler, setActive, moveGridDate } = setup({
+		const { handler, setActive, moveGrid } = setup({
 			active: { zone: 'grid', date: new Date(2026, 0, 15) },
 		})
 
 		handler(keyFrom('ArrowDown', dialog, dialog))
 
-		expect(moveGridDate).toHaveBeenCalledWith(7, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ days: 7 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(1)
 	})
@@ -639,13 +636,13 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 	it('keeps the model zone for a key from a focused control outside the toolbars', () => {
 		const { dialog, grid } = renderToolbars()
 
-		const { handler, setActive, moveGridDate } = setup({
+		const { handler, setActive, moveGrid } = setup({
 			active: { zone: 'grid', date: new Date(2026, 0, 15) },
 		})
 
 		handler(keyFrom('ArrowDown', grid, dialog))
 
-		expect(moveGridDate).toHaveBeenCalledWith(7, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ days: 7 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(1)
 	})
@@ -662,7 +659,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 	it('steps from the focused day on ArrowRight', () => {
 		const { dialog, day } = renderToolbars()
 
-		const { handler, setActive, moveGridDate } = setup({
+		const { handler, setActive, moveGrid } = setup({
 			active: { zone: 'grid', date: new Date(2026, 0, 15) },
 		})
 
@@ -674,7 +671,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 20) })
 
-		expect(moveGridDate).toHaveBeenCalledWith(1, new Date(2026, 0, 20))
+		expect(moveGrid).toHaveBeenCalledWith({ days: 1 }, new Date(2026, 0, 20))
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 0, 21) })
 	})
@@ -682,11 +679,11 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 	it('steps from the focused day, not the entry day, with no highlight', () => {
 		const { dialog, day } = renderToolbars()
 
-		const { handler, setActive, moveGridDate } = setup({ active: null })
+		const { handler, setActive, moveGrid } = setup({ active: null })
 
 		handler(keyFrom('ArrowUp', day, dialog))
 
-		expect(moveGridDate).toHaveBeenCalledWith(-7, new Date(2026, 0, 20))
+		expect(moveGrid).toHaveBeenCalledWith({ days: -7 }, new Date(2026, 0, 20))
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 0, 13) })
 	})
@@ -713,7 +710,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 	])('steps from the focused day on %s (Shift: %s)', (key, shiftKey, delta, expected) => {
 		const { dialog, day } = renderToolbars()
 
-		const { handler, setActive, moveGridMonths } = setup({
+		const { handler, setActive, moveGrid } = setup({
 			active: { zone: 'grid', date: new Date(2026, 0, 15) },
 		})
 
@@ -729,7 +726,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 20) })
 
-		expect(moveGridMonths).toHaveBeenCalledWith(delta, new Date(2026, 0, 20))
+		expect(moveGrid).toHaveBeenCalledWith({ months: delta }, new Date(2026, 0, 20))
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: expected })
 	})
@@ -738,7 +735,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 	it('steps from the anchor on PageDown from a focused header button', () => {
 		const { dialog, header } = renderToolbars()
 
-		const { handler, setActive, moveGridMonths } = setup({
+		const { handler, setActive, moveGrid } = setup({
 			active: { zone: 'grid', date: new Date(2026, 0, 20) },
 		})
 
@@ -746,7 +743,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
 
-		expect(moveGridMonths).toHaveBeenCalledWith(1, new Date(2026, 0, 15))
+		expect(moveGrid).toHaveBeenCalledWith({ months: 1 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 1, 15) })
 	})

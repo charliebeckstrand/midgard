@@ -8,7 +8,7 @@ import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
-import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
+import { clampDate, type DateStep, formatDate, startOfDay, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { useDatePickerFloating } from './use-date-picker-floating'
 import {
@@ -89,8 +89,11 @@ export function useDatePickerState({
 	})
 
 	// The native input of the DateInput in `input` mode. The dialog opens with
-	// focus on it, and a close returns focus to it.
+	// focus on it, and a close returns focus to it. Without `input`, the focus
+	// home is unset, and the dialog and the trigger keep their defaults.
 	const inputRef = useRef<HTMLInputElement>(null)
+
+	const focusHomeRef = input ? inputRef : undefined
 
 	const [active, setActive] = useState<CalendarActive | null>(null)
 
@@ -106,13 +109,8 @@ export function useDatePickerState({
 
 	// A step of days or months starts on `from`, the day that the key handler
 	// gives, and stays between `min` and `max`.
-	const moveGridDate = useCallback(
-		(delta: number, from: Date) => clampDate(stepDate(from, { days: delta }), min, max),
-		[min, max],
-	)
-
-	const moveGridMonths = useCallback(
-		(delta: number, from: Date) => clampDate(stepDate(from, { months: delta }), min, max),
+	const moveGrid = useCallback(
+		(step: DateStep, from: Date) => clampDate(stepDate(from, step), min, max),
 		[min, max],
 	)
 
@@ -221,7 +219,7 @@ export function useDatePickerState({
 		open,
 		onOpenChange: handleOpenChange,
 		triggerRef,
-		returnFocusTo: input ? inputRef : undefined,
+		returnFocusTo: focusHomeRef,
 	})
 
 	// Captures the dialog for `useDatePickerInputTab`'s reference-side handler.
@@ -244,8 +242,7 @@ export function useDatePickerState({
 		setActive,
 		openCalendar,
 		closeCalendar,
-		moveGridDate,
-		moveGridMonths,
+		moveGrid,
 		getInitialActiveDate,
 		getViewEntryDate,
 		handleSelect,
@@ -286,6 +283,7 @@ export function useDatePickerState({
 		setFloating,
 		triggerRef,
 		inputRef,
+		focusHomeRef,
 		floatingRef,
 		floatingStyles,
 		getReferenceProps,

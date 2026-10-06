@@ -62,6 +62,9 @@ export function addMonths(date: Date, amount: number): Date {
 	return fromCalendarDate(toCalendarDate(date).add({ months: amount }))
 }
 
+/** A step of days or of months. @internal */
+export type DateStep = { days: number } | { months: number }
+
 /**
  * Date moved by `step` days or months, as {@link addDays} and {@link addMonths}
  * move it. A step that leaves years 1 to 9999 gives `date` itself, so a move at
@@ -70,7 +73,7 @@ export function addMonths(date: Date, amount: number): Date {
  *
  * @internal
  */
-export function stepDate(date: Date, step: { days: number } | { months: number }): Date {
+export function stepDate(date: Date, step: DateStep): Date {
 	if ('days' in step) {
 		// A native `Date` holds every year, so it shows the target year before the
 		// library clamps it.
