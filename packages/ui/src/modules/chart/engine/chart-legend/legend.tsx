@@ -778,7 +778,7 @@ export function ChartLegend({
 							data-slot="chart-legend-overflow"
 							// The popover is outside the legend, so it caps the hit areas of
 							// its entries at its own gap (`TouchTarget`).
-							className="flex max-h-64 max-w-xs flex-col items-stretch gap-0.5 overflow-y-auto [--touch-target-gap-y:--spacing(0.5)]"
+							className="flex max-h-64 max-w-xs flex-col items-stretch gap-0.5 overflow-y-auto overscroll-contain [--touch-target-gap-y:--spacing(0.5)]"
 						>
 							{overflowItems.map((item) => (
 								<ChartLegendOverflowSwitch
