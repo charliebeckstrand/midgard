@@ -1,6 +1,10 @@
 'use client'
 
-import { type FloatingContext, FloatingFocusManager, useFloating } from '@floating-ui/react'
+import {
+	FloatingFocusManager,
+	type FloatingRootContext,
+	useFloatingRootContext,
+} from '@floating-ui/react'
 import { motion } from 'motion/react'
 import {
 	type ComponentProps,
@@ -10,6 +14,7 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useRef,
+	useState,
 } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
@@ -137,7 +142,16 @@ export function Overlay({
 	ref,
 	...props
 }: OverlayProps) {
-	const { refs, context } = useFloating({ open, onOpenChange })
+	// The overlay places itself with CSS, so it takes the root context, which
+	// has the open state and the elements that the focus manager reads, and no
+	// position engine.
+	const [floating, setFloating] = useState<HTMLElement | null>(null)
+
+	const context = useFloatingRootContext({
+		open,
+		onOpenChange,
+		elements: { reference: null, floating },
+	})
 
 	const animateEnter = useEnterAnimation(open, animateOnMount)
 
@@ -148,7 +162,7 @@ export function Overlay({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef, ref)
+	const setPanel = useComposedRef<HTMLDivElement>(setFloating, containerRef, ref)
 
 	useDismissable({
 		open,
@@ -264,7 +278,7 @@ function OverlayFocus({
 	children,
 }: {
 	modal: boolean
-	context: FloatingContext
+	context: FloatingRootContext
 	initialFocus: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
 }) {

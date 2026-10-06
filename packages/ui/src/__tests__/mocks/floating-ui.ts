@@ -87,6 +87,8 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  * Provides minimal behavior for tests:
  *   - `useFloating` exposes `open` and `onOpenChange` on `context` so consumers
  *     of `useClick`/`useFocus` can wire open-on-interaction.
+ *   - `useFloatingRootContext` returns the same `context` shape, for a surface
+ *     that composes the interactions without a position engine (`Overlay`).
  *   - `useClick` / `useFocus` return reference handlers that *open* the panel
  *     (open-only, not toggle): `userEvent.click` fires focus then click, and a
  *     toggling click would immediately re-close what focus opened. Dismissal flows
@@ -154,6 +156,11 @@ const floatingUIMock = {
 			: { reference: { onFocus: () => context?.onOpenChange?.(true) } },
 	useHover: (): MockInteraction => ({}),
 	useMergeRefs,
+	useFloatingRootContext: (opts: MockContext): MockContext => ({
+		open: opts?.open,
+		onOpenChange: opts?.onOpenChange,
+		elements: { reference: null, floating: null },
+	}),
 	useFloating: (opts: MockContext) => ({
 		refs: {
 			setReference: noop,
