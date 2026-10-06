@@ -15,7 +15,8 @@ import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
-import { type Entry, KINDS, type Kind, start } from './recorder.ts'
+import { type Entry, KINDS, type Kind } from './log.ts'
+import { start } from './recorder.ts'
 
 /** The shortest width of the kind column: the longest kind. */
 const KIND_WIDTH = Math.max(...KINDS.map((kind) => kind.length))

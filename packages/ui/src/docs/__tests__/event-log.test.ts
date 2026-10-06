@@ -1,16 +1,10 @@
 import { notifyOverlaySignal } from 'ui/primitives/overlay'
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { attach } from '../../__tests__/helpers/attach.ts'
+import { onCaughtError } from '../debug/event-log/caught-errors.ts'
 import { componentEvent } from '../debug/event-log/component-events.ts'
-import {
-	begin,
-	CAPACITY,
-	type Entry,
-	EventLog,
-	listen,
-	OWN,
-	type Store,
-} from '../debug/event-log/recorder.ts'
+import { CAPACITY, type Entry, EventLog, OWN, type Store } from '../debug/event-log/log.ts'
+import { begin, listen } from '../debug/event-log/recorder.ts'
 
 /** A `sessionStorage` in memory. A new log on the same store is a reload of the tab. */
 function createStore(): Store {
@@ -225,6 +219,40 @@ describe('EventLog', () => {
 		expect(listener).toHaveBeenCalledTimes(3)
 	})
 
+	it('keeps the newest entries that fit when the storage is full', () => {
+		const store = createStore()
+
+		const log = new EventLog(store)
+
+		log.preserve = true
+
+		for (let time = 0; time < 8; time++) log.add(entry(time))
+
+		log.save()
+
+		// The storage now holds at most three entries.
+		const limit = JSON.stringify(log.entries.slice(-3)).length
+
+		const full: Store = {
+			...store,
+			setItem: (key, value) => {
+				if (value.length > limit) throw new DOMException('full', 'QuotaExceededError')
+
+				store.setItem(key, value)
+			},
+		}
+
+		const kept = new EventLog(full)
+
+		kept.entries = log.entries
+
+		kept.add(entry(8))
+
+		kept.save()
+
+		expect(new EventLog(store).entries).toEqual([entry(7), entry(8)])
+	})
+
 	it('lives for the page when the storage throws', () => {
 		const log = new EventLog(blocked)
 
@@ -327,6 +355,37 @@ describe('listen', () => {
 		expect(texts(log)).toEqual(['click button synthetic'])
 	})
 
+	it('records a key with its modifiers, and the key in the detail', () => {
+		const log = new EventLog(createStore())
+
+		listenTo(log)
+
+		const button = attach(document.createElement('button'))
+
+		button.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', shiftKey: true, bubbles: true }),
+		)
+
+		button.dispatchEvent(
+			new KeyboardEvent('keydown', {
+				key: 'Shift',
+				code: 'ShiftLeft',
+				shiftKey: true,
+				bubbles: true,
+			}),
+		)
+
+		button.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true }))
+
+		expect(texts(log)).toEqual([
+			'keydown Shift+Tab button synthetic',
+			'keydown Shift button synthetic',
+			'keydown Space button synthetic',
+		])
+
+		expect(log.entries[0]?.detail).toEqual({ key: 'Tab', code: 'Tab', repeat: false })
+	})
+
 	it('records the start and the end of a scroll', () => {
 		vi.useFakeTimers()
 
@@ -366,6 +425,144 @@ describe('listen', () => {
 		expect(log.entries[1]?.detail).toBeUndefined()
 
 		expect(log.entries[2]?.detail).toMatchObject({ window: window.innerHeight })
+	})
+
+	it('records an error that an error boundary catches, with its first component frame', () => {
+		const log = new EventLog(createStore())
+
+		listenTo(log)
+
+		const console = vi.spyOn(globalThis.console, 'error').mockImplementation(() => {})
+
+		onTestFinished(() => console.mockRestore())
+
+		const error = new Error('boom')
+
+		onCaughtError(error, {
+			componentStack: '\n    at Page (page.tsx:3:9)\n    at Layout (root.tsx:8:2)',
+		})
+
+		expect(log.entries.map(({ kind, text }) => `${kind} ${text}`)).toEqual([
+			'error caught boom at Page (page.tsx:3:9)',
+		])
+
+		expect(log.entries[0]?.detail).toEqual({
+			stack: expect.arrayContaining(['Error: boom']),
+			componentStack: ['at Page (page.tsx:3:9)', 'at Layout (root.tsx:8:2)'],
+		})
+
+		// The error goes to the console, as the default of React does.
+		expect(console).toHaveBeenCalledWith(error)
+	})
+
+	it('records the page lifecycle, and a restore from the back-forward cache as a new page load', () => {
+		const log = new EventLog(createStore())
+
+		listenTo(log)
+
+		document.dispatchEvent(new Event('visibilitychange'))
+
+		window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }))
+
+		window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
+
+		window.dispatchEvent(new PageTransitionEvent('pageshow'))
+
+		expect(log.entries.every(({ kind }) => kind === 'load')).toBe(true)
+
+		expect(texts(log)).toEqual([
+			`visibility ${document.visibilityState}`,
+			'pagehide persisted',
+			`──── back-forward cache ${location.pathname}`,
+			expect.stringMatching(/^restore \w+ kept y \S+$/),
+			'pageshow',
+		])
+
+		expect(log.entries[3]?.detail).toMatchObject({ window: window.innerHeight })
+	})
+
+	it('records the scripts and links that load, at their start times, with their timings', () => {
+		type Callback = (list: { getEntries: () => PerformanceEntry[] }) => void
+
+		// The callbacks of the observers of `resource` entries.
+		const observers: Callback[] = []
+
+		vi.stubGlobal(
+			'PerformanceObserver',
+			Object.assign(
+				class {
+					private readonly callback: Callback
+
+					constructor(callback: Callback) {
+						this.callback = callback
+					}
+
+					observe({ type }: { type: string }) {
+						if (type === 'resource') observers.push(this.callback)
+					}
+
+					disconnect() {}
+				},
+				{ supportedEntryTypes: ['paint', 'resource'] },
+			),
+		)
+
+		onTestFinished(() => {
+			vi.unstubAllGlobals()
+		})
+
+		const log = new EventLog(createStore())
+
+		listenTo(log)
+
+		const resource = (fields: Partial<PerformanceResourceTiming>) =>
+			({ toJSON: () => ({ duration: 12.4 }), ...fields }) as PerformanceResourceTiming
+
+		const timings = [
+			resource({
+				name: 'https://docs.test/assets/page-a1.js',
+				initiatorType: 'script',
+				startTime: 30,
+				duration: 12.4,
+				transferSize: 900,
+				decodedBodySize: 2000,
+				responseStatus: 200,
+			}),
+			resource({
+				name: 'https://docs.test/assets/kit-b2.js',
+				initiatorType: 'link',
+				startTime: 20,
+				duration: 3,
+				transferSize: 0,
+				decodedBodySize: 2000,
+				responseStatus: 200,
+			}),
+			resource({
+				name: 'https://docs.test/assets/gone-c3.js',
+				initiatorType: 'script',
+				startTime: 40,
+				duration: 5,
+				transferSize: 300,
+				decodedBodySize: 0,
+				responseStatus: 404,
+			}),
+			resource({
+				name: 'https://docs.test/logo.png',
+				initiatorType: 'img',
+				startTime: 10,
+				duration: 1,
+			}),
+		]
+
+		for (const observer of observers) observer({ getEntries: () => timings })
+
+		expect(log.entries.map(({ kind, time, text }) => `${kind} ${time} ${text}`)).toEqual([
+			'network 20 kit-b2.js 3 ms cache',
+			'network 30 page-a1.js 12 ms',
+			'network 40 gone-c3.js 5 ms failed 404',
+		])
+
+		expect(log.entries[1]?.detail).toEqual({ duration: 12 })
 	})
 
 	it('records a resource that fails to load with its element and its URL', () => {
@@ -426,7 +623,7 @@ describe('listen', () => {
 		expect(HTMLElement.prototype.focus).toBe(native)
 	})
 
-	it('saves the entries on pagehide while "Preserve log" is on', () => {
+	it('saves the entries on pagehide while "Preserve log" is on, with the pagehide line', () => {
 		const store = createStore()
 
 		const log = new EventLog(store)
@@ -439,6 +636,6 @@ describe('listen', () => {
 
 		window.dispatchEvent(new Event('pagehide'))
 
-		expect(new EventLog(store).entries).toEqual([entry(10)])
+		expect(texts(new EventLog(store))).toEqual(['input at 10', 'pagehide'])
 	})
 })
