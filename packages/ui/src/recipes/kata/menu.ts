@@ -50,11 +50,10 @@ const viewport = defineRecipe({
 		'min-h-0 overflow-y-auto overscroll-contain',
 		// The panel surface is translucent glass, so an overlay gradient has no
 		// solid color to fade into; a mask fades the scrolled content itself.
-		// The fade extents default to zero and open per edge while
-		// `useScrollOverflow` stamps the matching overflow attribute.
-		'mask-[linear-gradient(to_bottom,transparent,black_var(--menu-fade-above,0px),black_calc(100%-var(--menu-fade-below,0px)),transparent)]',
-		'data-overflow-above:[--menu-fade-above:1.5rem]',
-		'data-overflow-below:[--menu-fade-below:1.5rem]',
+		// Each edge fades over 1.5rem only while `useScrollOverflow` stamps the
+		// matching overflow attribute. When no edge overflows, no mask applies.
+		'data-overflow-above:mask-t-from-[calc(100%-1.5rem)]',
+		'data-overflow-below:mask-b-from-[calc(100%-1.5rem)]',
 	],
 	// Off by default: a menu is normally a short, fixed item set, where a cap
 	// clips the last row and reads as truncation rather than as more content

@@ -9,6 +9,7 @@ import {
 	ensureDocumentLoad,
 	focusPage,
 	getDocumentSnapshot,
+	MAX_RASTER_PIXELS,
 	type PdfDocumentSnapshot,
 	type PdfLoadReport,
 	type PdfPageRaster,
@@ -121,7 +122,10 @@ const THUMBNAIL_WIDTH = 192
  * that fails. The rest of the document still renders. A full raster is an `ImageBitmap`, which
  * costs no encode. A thumbnail is a PNG blob URL: it is small, and the rail shows it in an
  * `<img>`.
- * @remarks The canvas lives for one render. Its backing store is freed when the render ends,
+ * @remarks A full raster holds no more than {@link MAX_RASTER_PIXELS}. A larger page renders
+ * smaller than its slot, and the browser scales it up.
+ *
+ * The canvas lives for one render. Its backing store is freed when the render ends,
  * and the page frees its operator list. So a document keeps no canvas and no operator list
  * between renders, only the images that the cache holds.
  * @internal
@@ -132,7 +136,10 @@ function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): P
 	const density = clamp(window.devicePixelRatio || 1, 1, 2)
 
 	const viewport = page.getViewport({
-		scale: raster === 'full' ? scale : Math.min(scale, (THUMBNAIL_WIDTH * density) / points.width),
+		scale:
+			raster === 'full'
+				? Math.min(scale, Math.sqrt(MAX_RASTER_PIXELS / (points.width * points.height)))
+				: Math.min(scale, (THUMBNAIL_WIDTH * density) / points.width),
 	})
 
 	const canvas = document.createElement('canvas')

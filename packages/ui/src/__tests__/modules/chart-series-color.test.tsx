@@ -108,7 +108,7 @@ describe('series color', () => {
 		// And with no tile the bar fills flat with its raw color, not a `var(--chart-fill)` tile.
 		expect(bar?.getAttribute('fill')).toBe(HEX)
 
-		expect(bar?.getAttribute('class') ?? '').not.toContain('[fill:var(--chart-fill)]')
+		expect(bar?.getAttribute('class') ?? '').not.toContain('fill-(--chart-fill)')
 	})
 
 	it('inks the legend swatch inline for a raw series and through the class for a slot', () => {

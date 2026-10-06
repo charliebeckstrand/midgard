@@ -89,6 +89,13 @@ export function isSameDay(a: Date, b: Date): boolean {
 	return dayNumber(a) === dayNumber(b)
 }
 
+/** Whether two values hold the same instant, or are both empty. @internal */
+export function isSameInstant(a: Date | null | undefined, b: Date | null | undefined): boolean {
+	if (a == null || b == null) return a == null && b == null
+
+	return a.getTime() === b.getTime()
+}
+
 /** True when `a`'s calendar day strictly precedes `b`'s. @internal */
 export function isBeforeDay(a: Date, b: Date): boolean {
 	return dayNumber(a) < dayNumber(b)

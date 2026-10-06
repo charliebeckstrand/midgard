@@ -230,4 +230,18 @@ describe('cn', () => {
 			expect(cn(stepped, plain)).toBe(plain)
 		})
 	})
+
+	describe('the spellings that ui uses', () => {
+		// An arbitrary property such as `[touch-action:pan-x_pan-y]` is not in the
+		// class group of its utility, so a later utility does not replace it. ui
+		// uses the utility spelling, and a consumer class can override it.
+		it.each([
+			['wrap-break-word', 'wrap-anywhere'],
+			['touch-pan-x touch-pan-y', 'touch-none'],
+			['fill-(--chart-fill)!', 'fill-red-500!'],
+			['leading-0', 'leading-5'],
+		])('replaces %s with a later %s', (ui, consumer) => {
+			expect(cn(ui, consumer)).toBe(consumer)
+		})
+	})
 })

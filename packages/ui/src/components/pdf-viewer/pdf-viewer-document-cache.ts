@@ -38,15 +38,16 @@ const MAX_RASTERS = 8
 const BITMAP_BUDGET = 48 * 1024 * 1024
 
 /**
- * The most pixels that a sharp raster of one page holds.
+ * The most pixels that the full raster of one page holds, at the base scale or a sharp scale.
  *
  * @remarks 8 MiP is 32 MiB as a bitmap, two thirds of {@link BITMAP_BUDGET}. A US-Letter page
  * at this size is about 2,480 by 3,220 pixels, which covers a zoom of 2 on a 2x screen. Above
  * that the page stays at this size and the browser scales it up. A canvas also has a limit on
- * its area: Safari on iOS refuses a canvas of more than 16 MiP.
+ * its area: Safari on iOS draws nothing on a canvas of more than 16 MiP. An A0 page at the base
+ * scale of a 2x screen is 32 MiP, so the base raster obeys this limit too.
  * @internal
  */
-const MAX_SHARP_PIXELS = 8 * 1024 * 1024
+export const MAX_RASTER_PIXELS = 8 * 1024 * 1024
 
 /**
  * The step of the sharp scale.
@@ -562,7 +563,7 @@ function shownPages(held: Held): number[] {
  * slot is large enough.
  *
  * @remarks The widest viewer on the page decides. The factor goes up to the next
- * {@link SHARP_STEP}, and down to the factor that {@link MAX_SHARP_PIXELS} permits.
+ * {@link SHARP_STEP}, and down to the factor that {@link MAX_RASTER_PIXELS} permits.
  * @internal
  */
 function sharpFactor(held: Held, index: number): number {
@@ -580,7 +581,7 @@ function sharpFactor(held: Held, index: number): number {
 
 	const needed = Math.ceil((width / page.width) * SHARP_STEP) / SHARP_STEP
 
-	const limit = Math.sqrt(MAX_SHARP_PIXELS / (page.width * page.height))
+	const limit = Math.sqrt(MAX_RASTER_PIXELS / (page.width * page.height))
 
 	return Math.max(1, Math.min(needed, limit))
 }
