@@ -126,7 +126,7 @@ export type DashboardCell = {
  * `ratio`, or `undefined` when it is not a finite number above 0. The tile is then
  * free-form. A ratio of 0 would give an infinite height, and NaN a NaN height.
  */
-function usableRatio(ratio: number | undefined): number | undefined {
+export function usableRatio(ratio: number | undefined): number | undefined {
 	return ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? ratio : undefined
 }
 
