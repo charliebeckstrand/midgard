@@ -1,7 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import { subscribeNothing } from '../utilities/noop'
+import { noopSubscribe } from '../utilities/noop'
 
 /** The snapshot on the client. */
 const onClient = () => true
@@ -24,5 +24,5 @@ const onServer = () => false
  * @internal
  */
 export function useHydrated(): boolean {
-	return useSyncExternalStore(subscribeNothing, onClient, onServer)
+	return useSyncExternalStore(noopSubscribe, onClient, onServer)
 }

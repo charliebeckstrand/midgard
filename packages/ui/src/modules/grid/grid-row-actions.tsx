@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react'
-import { noop, subscribeNothing } from '../../utilities'
+import { noop, noopSubscribe } from '../../utilities'
 import { useGridEditingSessionOrNull } from './grid-editing-context'
 import type { GridRowActionsContext } from './grid-editing-types'
 
@@ -32,11 +32,7 @@ export function GridRowActions<T>({
 	// The row's own flag, so a row that opens or closes renders its own slot.
 	const readEditing = useCallback(() => store?.rows().has(rowKey) ?? false, [store, rowKey])
 
-	const editing = useSyncExternalStore(
-		store?.subscribe ?? subscribeNothing,
-		readEditing,
-		readEditing,
-	)
+	const editing = useSyncExternalStore(store?.subscribe ?? noopSubscribe, readEditing, readEditing)
 
 	const context: GridRowActionsContext = session
 		? {

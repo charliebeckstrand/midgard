@@ -1,6 +1,6 @@
 import { createEmitter } from '../../utilities'
 import { type DensityLevel, densityLevels } from '../density/context'
-import { type MotionMode, motionModes, type ThemeMode, themeModes } from './context'
+import { type MotionMode, motionModes, type ThemeMode, themeModes } from './modes'
 
 /**
  * One stored appearance choice: its `localStorage` key, the values it can

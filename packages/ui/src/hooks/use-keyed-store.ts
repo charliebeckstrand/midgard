@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { createKeyedStore, type KeyedStore, subscribeNothing } from '../utilities'
+import { createKeyedStore, type KeyedStore, noopSubscribe } from '../utilities'
 
 /**
  * A {@link KeyedStore} that follows a snapshot of the render.
@@ -62,7 +62,7 @@ export function useKeyedValue<K, V>(
 ): V {
 	const subscribe = useCallback(
 		(listener: () => void) =>
-			store && key !== undefined ? store.subscribe(key, listener) : subscribeNothing(),
+			store && key !== undefined ? store.subscribe(key, listener) : noopSubscribe(),
 		[store, key],
 	)
 

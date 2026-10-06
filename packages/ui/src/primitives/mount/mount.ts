@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useState, useSyncExternalStore } from 'react'
-import { subscribeNothing } from '../../utilities/noop'
+import { noopSubscribe } from '../../utilities/noop'
 
 /**
  * Mount policy for a panel that spends part of its life inactive. Examples are
@@ -87,7 +87,7 @@ const no = () => false
 export function useMountsEveryPanel(mount: Mount): boolean {
 	// The server and the hydration render read `no`. Only `always` has a client
 	// snapshot that differs, so only `always` renders again after hydration.
-	return useSyncExternalStore(subscribeNothing, mountsEveryPanel(mount) ? yes : no, no)
+	return useSyncExternalStore(noopSubscribe, mountsEveryPanel(mount) ? yes : no, no)
 }
 
 /**

@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
-import { subscribeNothing } from '../../utilities'
+import { noopSubscribe } from '../../utilities'
 
 /**
  * The element in the header row of a box, such as a dashboard tile, where a
@@ -74,5 +74,5 @@ const none = () => null
 export function useHeaderActionsHost(): HTMLElement | null {
 	const host = useHeaderActionsContext()
 
-	return useSyncExternalStore(host?.subscribe ?? subscribeNothing, host?.get ?? none, none)
+	return useSyncExternalStore(host?.subscribe ?? noopSubscribe, host?.get ?? none, none)
 }

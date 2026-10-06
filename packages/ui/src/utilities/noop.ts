@@ -5,4 +5,4 @@ export const noop: () => void = () => {}
  * A `useSyncExternalStore` subscription that never fires. It serves a read with
  * no store, and a snapshot that changes only at hydration.
  */
-export const subscribeNothing = (): (() => void) => noop
+export const noopSubscribe = (): (() => void) => noop

@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
-import { subscribeNothing } from '../../utilities'
+import { noopSubscribe } from '../../utilities'
 
 /** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */
 export type FormStateValue = {
@@ -112,7 +112,7 @@ export function useFormState(): FormStateValue | undefined {
 	const store = useFormStoreContext()
 
 	return useSyncExternalStore(
-		store?.subscribe ?? subscribeNothing,
+		store?.subscribe ?? noopSubscribe,
 		() => store?.getState(),
 		() => store?.getServerState(),
 	)
@@ -195,7 +195,7 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 	)
 
 	const slice = useSyncExternalStore(
-		store?.subscribe ?? subscribeNothing,
+		store?.subscribe ?? noopSubscribe,
 		() => select(store?.getState()),
 		() => select(store?.getServerState()),
 	)
@@ -273,7 +273,7 @@ export function useFormStatus(): FormStatus | undefined {
 	}, [])
 
 	const slice = useSyncExternalStore(
-		store?.subscribe ?? subscribeNothing,
+		store?.subscribe ?? noopSubscribe,
 		() => select(store?.getState()),
 		() => select(store?.getServerState()),
 	)

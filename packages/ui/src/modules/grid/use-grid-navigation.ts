@@ -15,7 +15,7 @@ import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { clamp, createEmitter, FOCUSABLE_SELECTOR, subscribeNothing } from '../../utilities'
+import { clamp, createEmitter, FOCUSABLE_SELECTOR, noopSubscribe } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
@@ -133,7 +133,7 @@ export type GridNavStore = {
 /** Inert store for a non-navigable grid, so the hook can return a stable shape unconditionally. @internal */
 const INERT_STORE: GridNavStore = {
 	enabled: false,
-	subscribe: subscribeNothing,
+	subscribe: noopSubscribe,
 	isActive: () => false,
 	isInRange: () => false,
 	fillHandle: null,

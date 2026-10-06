@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
-import { subscribeNothing } from '../../utilities'
+import { noopSubscribe } from '../../utilities'
 import type { GridSettleStore } from './engine/grid-sizing/settle'
 import type { GridSortState } from './engine/grid-sort/state'
 
@@ -85,7 +85,7 @@ export function useGridResizing(): boolean {
 	const settle = useGridSettle()
 
 	return useSyncExternalStore(
-		settle?.subscribeResizing ?? subscribeNothing,
+		settle?.subscribeResizing ?? noopSubscribe,
 		settle?.resizing ?? notResizing,
 		notResizing,
 	)
