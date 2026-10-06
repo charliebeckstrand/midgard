@@ -717,7 +717,7 @@ export const k = {
 		pages: ['hidden', '@2xl:flex'],
 		// Row-range status ("1–10 of 47"): the end track, aligned to the inline
 		// end.
-		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end'],
+		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end', 'tabular-nums'],
 		// A footer with no page-size picker, below `@2xl`: the empty start track
 		// goes, so Previous/Next sit at the start and the status at the end. From
 		// `@2xl` the numbered pages stay centered.

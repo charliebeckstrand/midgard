@@ -159,7 +159,7 @@ export function NumberInput({
 			min={min}
 			max={max}
 			step={step}
-			className={cn(k.number, className)}
+			className={cn(k.number, 'tabular-nums', className)}
 			suffix={
 				// Keep focus on the input when a stepper is pressed. The buttons are
 				// tabIndex -1 and mutate silently, so a focus shift would blur the

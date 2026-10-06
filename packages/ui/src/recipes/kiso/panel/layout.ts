@@ -54,8 +54,8 @@ export const layout = {
 	inset: dan.space.panel,
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',
-	/** Color and leading only; weight and font size are derived from the heading scale by the Title component. */
-	title: [...text.default, leading.none],
+	/** Color, leading, and the balanced wrap of a heading (`kata/heading.ts`) only; weight and font size are derived from the heading scale by the Title component. */
+	title: [...text.default, leading.none, '[text-wrap-style:balance]'],
 	description: [...text.muted, size.md, leading.tight],
 	/** Optional wrapper around body + footer; a Form or similar can wrap both while preserving the panel's slot rhythm. */
 	content: 'flex flex-col min-h-0 space-y-4',
