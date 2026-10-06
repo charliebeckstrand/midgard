@@ -287,6 +287,8 @@ export const k = {
 			'[&>*>tr>:is(td,th)]:border-b',
 			'[&>*>tr>:is(td,th)]:border-zinc-950/5',
 			'dark:[&>*>tr>:is(td,th)]:border-white/5',
+			'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+			'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
 		],
 		// Top outer edge: the first header row, riding the sticky header.
 		top: ['[&>thead>tr:first-child>th]:border-t'],
@@ -614,7 +616,10 @@ export const k = {
 		panel: [
 			'p-3',
 			'border-t-2',
-			...mode('border-zinc-950/5 bg-zinc-50', 'dark:border-white/10 dark:bg-white/[0.02]'),
+			...mode(
+				['border-zinc-950/5 bg-zinc-50', 'contrast-more:border-zinc-950/50'],
+				['dark:border-white/10 dark:bg-white/[0.02]', 'dark:contrast-more:border-white/50'],
+			),
 		],
 	},
 	resize: {
