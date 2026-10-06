@@ -33,6 +33,7 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 	header: k.header,
 	body: k.body,
 	footer: k.footer,
+	content: k.content,
 })
 
 /** Props for {@link DrawerClose}: one clickable child, or none for the standard Close button. */
@@ -59,7 +60,10 @@ export function DrawerClose({ children }: DrawerCloseProps) {
 export {
 	/** `<div>` scroll region for the drawer's main content; fills remaining height and scrolls on overflow. */
 	Body as DrawerBody,
-	/** `<div>` wrapper for arbitrary drawer content outside the header/body/footer rhythm. */
+	/**
+	 * `<div>` wrapper that fills the remaining height of the drawer. It can hold the body
+	 * and the footer, for example in a form, and the footer stays at the foot of the panel.
+	 */
 	Content as DrawerContent,
 	/**
 	 * The footer that {@link Drawer} renders after its children while no `DrawerFooter` is
