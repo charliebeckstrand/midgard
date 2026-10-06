@@ -47,14 +47,14 @@ export function EventLogSheet({
 		// The sheet takes the height of the log, up to the height of the screen.
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel side="bottom" className="max-h-full">
-				{/* The title row holds "Preserve log". It is one row from `sm`, and a
-				    column below it. The row takes the inset of the title, as the slot
-				    does. */}
+				{/* The title row holds "Preserve log". The checkbox wraps under the
+				    title only when the row has no room for both. The row takes the
+				    inset of the title, as the slot does. */}
 				<Flex
-					direction={{ initial: 'col', sm: 'row' }}
-					align={{ initial: 'start', sm: 'center' }}
+					wrap
+					align="center"
 					justify="between"
-					gap="sm"
+					gap="md"
 					className={cn(dan.space.panel.x, dan.space.panel.top)}
 				>
 					<SheetTitle className="p-0">Event log</SheetTitle>

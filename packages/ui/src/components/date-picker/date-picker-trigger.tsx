@@ -134,7 +134,7 @@ export function DatePickerTrigger({
 			data-slot="control"
 			density={size}
 			ref={setReference}
-			className={cn(className)}
+			className={cn(k.root, className)}
 			{...getReferenceProps()}
 		>
 			<ControlFrame

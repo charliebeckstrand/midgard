@@ -6,7 +6,7 @@ import {
 	ComboboxOption,
 	useComboboxQuery,
 } from '../../../components/combobox'
-import { DatePicker } from '../../../components/date-picker'
+import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
@@ -148,6 +148,7 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('button', { name: 'Today' })
 		},
+		skeleton: [{ element: <DatePickerSkeleton range />, absentSlot: 'datepicker-button' }],
 	},
 	{
 		// Magnifier settings: in `mode: 'config'` the viewer's toolbar carries a button

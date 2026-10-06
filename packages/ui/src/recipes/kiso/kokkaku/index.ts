@@ -22,6 +22,7 @@ import { checkbox } from './checkbox'
 import { colorPanel } from './color-panel'
 import { colorPicker } from './color-picker'
 import { control } from './control'
+import { datePicker } from './date-picker'
 import { descriptionList } from './description-list'
 import { heading } from './heading'
 import { kanban } from './kanban'
@@ -58,6 +59,7 @@ export const kokkaku = {
 	colorPanel,
 	colorPicker,
 	control,
+	datePicker,
 	descriptionList,
 	heading,
 	kanban,
