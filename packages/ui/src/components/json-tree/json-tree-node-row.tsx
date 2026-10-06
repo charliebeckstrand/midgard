@@ -6,7 +6,7 @@ import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
 import { INDENT_REM } from './json-tree-constants'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
-import type { FlatNode } from './json-tree-utilities'
+import { type FlatNode, isCollapsibleDepth, type JsonTreeCollapsible } from './json-tree-utilities'
 
 type JsonNodeRowProps = {
 	/** Measures the row root. The window reads the real height of each row. */
@@ -14,6 +14,12 @@ type JsonNodeRowProps = {
 	node: FlatNode
 	/** The row's position in the flat node list. The tree reads it to move focus to a row outside the window. */
 	index: number
+	/**
+	 * Which branches of the tree open and close.
+	 *
+	 * @defaultValue true
+	 */
+	collapsible?: JsonTreeCollapsible
 	onToggle: (path: string) => void
 	/** Carries the tree's single Tab stop. Windowing decides per render which mounted row holds it. */
 	tabbable?: boolean
@@ -32,20 +38,33 @@ type JsonNodeRowProps = {
  *
  * @internal
  */
-export function JsonTreeNodeRow({ ref, node, index, onToggle, tabbable }: JsonNodeRowProps) {
+export function JsonTreeNodeRow({
+	ref,
+	node,
+	index,
+	collapsible = true,
+	onToggle,
+	tabbable,
+}: JsonNodeRowProps) {
 	return (
 		<div
 			ref={ref}
 			data-index={index}
 			style={{ paddingInlineStart: `${node.depth * INDENT_REM}rem` }}
 		>
-			<JsonTreeNodeRowContent node={node} onToggle={onToggle} tabbable={tabbable} />
+			<JsonTreeNodeRowContent
+				node={node}
+				collapsible={collapsible}
+				onToggle={onToggle}
+				tabbable={tabbable}
+			/>
 		</div>
 	)
 }
 
 function JsonTreeNodeRowContent({
 	node,
+	collapsible = true,
 	onToggle,
 	tabbable,
 }: Omit<JsonNodeRowProps, 'ref' | 'index'>) {
@@ -81,6 +100,7 @@ function JsonTreeNodeRowContent({
 				tabbable={tabbable}
 				setSize={node.setSize}
 				posInSet={node.posInSet}
+				collapsible={isCollapsibleDepth(collapsible, node.depth)}
 				onToggle={() => onToggle(node.path)}
 			/>
 		</div>

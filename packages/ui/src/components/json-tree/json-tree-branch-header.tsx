@@ -17,6 +17,14 @@ type JsonTreeBranchHeaderProps = {
 	tabbable?: boolean
 	/** The id of the child group, which the open row owns. The virtualized variant has no group and omits it. */
 	groupId?: string
+	/**
+	 * Whether the row opens and closes its branch. A row that does not is a
+	 * plain treeitem: it has no chevron and no `aria-expanded`, and the branch
+	 * stays open.
+	 *
+	 * @defaultValue true
+	 */
+	collapsible?: boolean
 	onToggle: () => void
 } & Partial<FlatSetPosition>
 
@@ -26,7 +34,8 @@ type JsonTreeBranchHeaderProps = {
  * summary. Shared by the recursive {@link JsonTreeNode} and the virtualized
  * {@link JsonTreeNodeRow}. The row takes its name from its own content through
  * `aria-labelledby`. In the recursive variant, the child group is a sibling of
- * the row, so the open row owns it through `aria-owns`.
+ * the row, so the open row owns it through `aria-owns`. A row that is not
+ * `collapsible` shows the key and the open bracket without a toggle.
  *
  * @internal
  */
@@ -41,6 +50,7 @@ export function JsonTreeBranchHeader({
 	setSize,
 	posInSet,
 	groupId,
+	collapsible = true,
 	onToggle,
 }: JsonTreeBranchHeaderProps) {
 	const contentId = useId()
@@ -60,21 +70,58 @@ export function JsonTreeBranchHeader({
 		onToggle()
 	}
 
+	const content = (
+		<span id={contentId} className={cn(k.content, highlighted && k.highlight)}>
+			<NodeKey keyName={keyName} />
+			<span className={cn(k.punctuation)}>{openBracket}</span>
+			{!open && (
+				<>
+					{count > 0 && <span className={cn(k.summary)}>{summary}</span>}
+					<span className={cn(k.punctuation)}>{closeBracket}</span>
+				</>
+			)}
+		</span>
+	)
+
+	// The group is a sibling of the row, so the row owns it. The group is in the
+	// DOM while the row is open, so the reference never dangles.
+	const owns = groupId && open ? groupId : undefined
+
+	const tabIndex = (tabbable ?? depth === 0) ? 0 : -1
+
+	if (!collapsible) {
+		return (
+			<div className={cn(k.row)}>
+				<div
+					role="treeitem"
+					aria-owns={owns}
+					aria-labelledby={contentId}
+					aria-level={depth + 1}
+					aria-setsize={setSize}
+					aria-posinset={posInSet}
+					tabIndex={tabIndex}
+					className={cn(k.leaf)}
+				>
+					<span className={k.chevron.spacer} aria-hidden="true" />
+					{content}
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div className={cn(k.row)}>
 			<button
 				type="button"
 				role="treeitem"
 				aria-expanded={open}
-				// The group is a sibling of the row, so the row owns it. The group is in the
-				// DOM while the row is open, so the reference never dangles.
-				aria-owns={groupId && open ? groupId : undefined}
+				aria-owns={owns}
 				// The content of the row names it, so the text of the owned group stays out.
 				aria-labelledby={contentId}
 				aria-level={depth + 1}
 				aria-setsize={setSize}
 				aria-posinset={posInSet}
-				tabIndex={(tabbable ?? depth === 0) ? 0 : -1}
+				tabIndex={tabIndex}
 				data-slot="json-node-toggle"
 				data-open={dataAttr(open)}
 				className={cn(k.toggle)}
@@ -88,16 +135,7 @@ export function JsonTreeBranchHeader({
 						className={cn('rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
 					/>
 				</span>
-				<span id={contentId} className={cn(k.content, highlighted && k.highlight)}>
-					<NodeKey keyName={keyName} />
-					<span className={cn(k.punctuation)}>{openBracket}</span>
-					{!open && (
-						<>
-							{count > 0 && <span className={cn(k.summary)}>{summary}</span>}
-							<span className={cn(k.punctuation)}>{closeBracket}</span>
-						</>
-					)}
-				</span>
+				{content}
 			</button>
 		</div>
 	)

@@ -156,3 +156,39 @@ describe('JsonTree under virtualize: the scroller', () => {
 		expect(tree.scrollTop + tree.clientHeight).toBeCloseTo(tree.scrollHeight, 0)
 	})
 })
+
+describe('JsonTree under virtualize: collapsible', () => {
+	it('keeps a fixed branch open, and ArrowLeft moves from it to its parent', async () => {
+		renderUI(
+			<JsonTree
+				data={{ outer: { inner: 1 } }}
+				collapsible="root"
+				defaultExpandDepth={0}
+				virtualize={{ maxHeight: '240px' }}
+			/>,
+		)
+
+		const tree = present(screen.getByRole('tree'), 'the tree')
+
+		const root = present(screen.getByRole('treeitem', { expanded: false }), 'the root row')
+
+		await userEvent.click(root)
+
+		await waitFor(() =>
+			expect(rows(tree).some((row) => /"inner"/.test(row.textContent ?? ''))).toBe(true),
+		)
+
+		const outer = present(
+			rows(tree).find((row) => /"outer"/.test(row.textContent ?? '')),
+			'the outer row',
+		)
+
+		expect(outer).not.toHaveAttribute('aria-expanded')
+
+		outer.focus()
+
+		await userEvent.keyboard('{ArrowLeft}')
+
+		await waitFor(() => expect(document.activeElement).toBe(rows(tree)[0]))
+	})
+})

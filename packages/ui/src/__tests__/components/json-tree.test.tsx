@@ -826,13 +826,13 @@ describe('JsonTree tree semantics', () => {
 		['virtualized', { maxHeight: '200px' }],
 	])('names the %s tree', (_name, virtualize) => {
 		it('with "JSON" when it has no name and no root key', () => {
-			renderUI(<JsonTree data={{ a: 1 }} virtualize={virtualize} />)
+			renderUI(<JsonTree data={{ a: 1 }} />)
 
 			expect(screen.getByRole('tree', { name: 'JSON' })).toBeInTheDocument()
 		})
 
 		it('with the root key when it has no name', () => {
-			renderUI(<JsonTree data={{ a: 1 }} rootKey="payload" virtualize={virtualize} />)
+			renderUI(<JsonTree data={{ a: 1 }} rootKey="payload" />)
 
 			expect(screen.getByRole('tree', { name: 'payload' })).toBeInTheDocument()
 		})
@@ -854,7 +854,7 @@ describe('JsonTree tree semantics', () => {
 			renderUI(
 				<>
 					<h2 id="json-tree-name">Request body</h2>
-					<JsonTree data={{ a: 1 }} aria-labelledby="json-tree-name" virtualize={virtualize} />
+					<JsonTree data={{ a: 1 }} aria-labelledby="json-tree-name" />
 				</>,
 			)
 
@@ -1078,5 +1078,109 @@ describe('flatTreeMoveTarget', () => {
 		expect(['$', '$.a', '$.c', '$.d'].map((path) => indexOf('branch-open', path))).not.toContain(-1)
 
 		expect(indexOf('leaf', '$.a.b')).not.toBe(-1)
+	})
+})
+
+// jsdom's zero-size viewport renders no windowed rows, so the browser suite
+// covers the virtualized variant.
+describe('JsonTree collapsible', () => {
+	const data = { outer: { inner: 1 } }
+
+	it('keeps each branch open without a toggle when false', () => {
+		const { container } = renderUI(
+			<JsonTree data={data} collapsible={false} defaultExpandDepth={0} />,
+		)
+
+		expect(screen.getByText('"inner"')).toBeInTheDocument()
+
+		expect(container.querySelector('[data-slot="json-node-toggle"]')).toBeNull()
+
+		expect(container.querySelector('[aria-expanded]')).toBeNull()
+	})
+
+	it('keeps the root open and toggles the children when "children"', () => {
+		const { container } = renderUI(
+			<JsonTree data={data} collapsible="children" defaultExpandDepth={0} />,
+		)
+
+		const toggles = container.querySelectorAll('[data-slot="json-node-toggle"]')
+
+		expect(toggles).toHaveLength(1)
+
+		expect(toggles[0]).toHaveTextContent('"outer"')
+
+		expect(screen.queryByText('"inner"')).toBeNull()
+
+		fireEvent.click(toggles[0] as HTMLElement)
+
+		expect(screen.getByText('"inner"')).toBeInTheDocument()
+	})
+
+	it('toggles the root and keeps the children open when "root"', () => {
+		const { container } = renderUI(
+			<JsonTree data={data} collapsible="root" defaultExpandDepth={1} />,
+		)
+
+		const toggles = container.querySelectorAll('[data-slot="json-node-toggle"]')
+
+		expect(toggles).toHaveLength(1)
+
+		expect(toggles[0]).toHaveAttribute('aria-level', '1')
+
+		expect(screen.getByText('"inner"')).toBeInTheDocument()
+
+		fireEvent.click(toggles[0] as HTMLElement)
+
+		expect(screen.queryByText('"outer"')).toBeNull()
+	})
+
+	it('keeps a fixed branch open over a controlled expanded set', () => {
+		renderUI(
+			<JsonTree data={data} collapsible={false} expanded={new Set()} onExpandedChange={() => {}} />,
+		)
+
+		expect(screen.getByText('"inner"')).toBeInTheDocument()
+	})
+
+	it('moves ArrowLeft from a fixed branch to its parent', () => {
+		const { container } = renderUI(<JsonTree data={data} collapsible={false} />)
+
+		const items = container.querySelectorAll<HTMLElement>('[role="treeitem"]')
+
+		const child = items[1] as HTMLElement
+
+		child.focus()
+
+		fireEvent.keyDown(child, { key: 'ArrowLeft' })
+
+		expect(items[0]).toHaveFocus()
+	})
+})
+
+describe('JsonTreeNodeRow collapsible', () => {
+	it('renders a fixed branch row without a toggle', () => {
+		const { container } = renderUI(
+			<JsonTreeNodeRow
+				index={0}
+				collapsible="root"
+				node={{
+					type: 'branch-open',
+					path: '$.a',
+					keyName: 'a',
+					value: { b: 1 },
+					depth: 1,
+					open: true,
+					count: 1,
+					setSize: 1,
+					posInSet: 1,
+					highlighted: false,
+				}}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(container.querySelector('[data-slot="json-node-toggle"]')).toBeNull()
+
+		expect(container.querySelector('[role="treeitem"]')).not.toHaveAttribute('aria-expanded')
 	})
 })
