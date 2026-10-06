@@ -143,17 +143,25 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 
 Axes: the value's day (`use-date-picker-keyboard.ts:71-73`, its test) or the shown month's entry day (`calendar.tsx:59-61`). Value's day: C06 is ruled out as deliberate, and S2 shrinks to the Tab-focused case. Shown month: the internal TSDoc and the test change; no public export changes.
 
+**Answer:** "Shown month". Enter on Calendar's `getEntryDate` for the shown month.
+
 ### Q2 — does a Tab-focused header or footer button act as the model's header or footer zone?
 
 Axes: yes, the dialog maps the target to a zone before the model runs; or no, an arrow from a focused control always starts the grid at the entry day.
+
+**Answer:** "Yes, map to zone". The dialog maps the focused button to the header or footer zone before the model runs.
 
 ### Q3 — fix the focus return in the shared hook or in DatePicker?
 
 Axes: shared, the `returnFocusTo` TSDoc of an exported type changes and every wrapper-reference consumer changes (none holds a text input today); local, an internal option on `useDatePickerFloating`, no public change.
 
+**Answer:** "Local in DatePicker". An internal return target on `useDatePickerFloating`; the shared hook and its test stay.
+
 ### Q4 — may S1 move the month picker's header ArrowDown to the selected month?
 
 Axes: yes, it agrees with `focusPickerGrid` (`use-calendar-picker.tsx:128-134`); or no, S1 keeps the month picker on the first cell.
+
+**Answer:** "Yes". One rule for both grids.
 
 ## Ruled out
 
