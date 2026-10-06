@@ -397,21 +397,6 @@ describe('useDatePickerState', () => {
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan15 })
 		})
 
-		// Q6: the steered Calendar ignores its footer keys, so the picker does not send them.
-		it('does not send a footer key to the Calendar', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
-
-			const calendar = entering(Mar10)
-
-			result.current.calendar.calendarRef.current = calendar
-
-			act(() => result.current.footer.onKeyDown(makeKeyEvent<HTMLDivElement>('ArrowLeft')))
-
-			expect(calendar.footerKeyDown).not.toHaveBeenCalled()
-		})
-
 		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
 			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 

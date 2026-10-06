@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef } from 'react'
+import { useCallback, useMemo, useReducer, useRef } from 'react'
 
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
@@ -282,9 +282,6 @@ export function useDatePickerRangeState({
 			footerButtons,
 			onClear: handleClear,
 			footerRef,
-			// The dialog routes the footer keys to the model, and the steered
-			// Calendar ignores them.
-			onKeyDown: (_event: KeyboardEvent<HTMLDivElement>) => {},
 		},
 	}
 }

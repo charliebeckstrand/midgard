@@ -1,6 +1,6 @@
 'use client'
 
-import type { KeyboardEvent, RefObject } from 'react'
+import type { RefObject } from 'react'
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
@@ -17,7 +17,6 @@ type DatePickerFooterProps = {
 	footerButtons: FooterButton[]
 	onClear: () => void
 	onToday?: () => void
-	onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
 }
 
 /**
@@ -33,7 +32,6 @@ export function DatePickerFooter({
 	onClear,
 	onToday,
 	footerRef,
-	onKeyDown,
 }: DatePickerFooterProps) {
 	if (footerButtons.length === 0) return null
 
@@ -43,7 +41,6 @@ export function DatePickerFooter({
 			role="toolbar"
 			aria-label="Date picker actions"
 			data-slot="calendar-footer"
-			onKeyDown={onKeyDown}
 			className={cn(k.footer)}
 		>
 			{footerButtons.map((kind, index) => {
