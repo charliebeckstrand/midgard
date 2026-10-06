@@ -97,6 +97,7 @@ import { ChartSkeleton } from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI } from '../../helpers'
 import { SIZE_AXES, type SizedComponent } from '../../helpers/size-axes'
+import { settledValue } from '../helpers/sample'
 
 /**
  * The distinct-steps gate. Each step that a `size` prop offers must render
@@ -445,30 +446,19 @@ function reading(): string {
 	}).join('\n')
 }
 
-const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
-
 /**
- * Renders one step, and reads the page when two frames in a row give the same
- * reading. A chart measures its box, and an overlay opens, over a few frames.
+ * Renders one step, and reads the page when the reading stays the same for two
+ * frames. A chart measures its box, and an overlay opens, over a few frames.
+ * The read throws when the reading does not settle before the deadline.
  */
 async function settledReading(node: ReactNode): Promise<string> {
 	renderUI(<div className="w-[40rem]">{node}</div>)
 
-	let previous = ''
-
-	for (let attempt = 0; attempt < 30; attempt++) {
-		await frame()
-
-		const current = reading()
-
-		if (current === previous) break
-
-		previous = current
+	try {
+		return await settledValue(reading)
+	} finally {
+		cleanup()
 	}
-
-	cleanup()
-
-	return previous
 }
 
 describe('distinct size steps (real browser)', () => {
