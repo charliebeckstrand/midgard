@@ -498,6 +498,19 @@ function pinRowActions(container: HTMLElement, actionSelector: string): void {
 }
 
 /**
+ * The item that holds the focus-mode Tab stop, when exactly one item has
+ * `tabIndex=0`. With `manageTabIndex`, this is the item where the user roved,
+ * else the item that the hook seated.
+ *
+ * @internal
+ */
+export function rovedStop(items: HTMLElement[]): HTMLElement | undefined {
+	const tabbable = items.filter((it) => it.tabIndex === 0)
+
+	return tabbable.length === 1 ? tabbable[0] : undefined
+}
+
+/**
  * Resolves which item holds the focus-mode resting stop:
  *
  * - The focused item if any.
@@ -515,9 +528,9 @@ function resolveRestingStop(
 
 	if (focused) return focused
 
-	const tabbable = items.filter((it) => it.tabIndex === 0)
+	const roved = rovedStop(items)
 
-	if (tabbable.length === 1) return tabbable[0]
+	if (roved) return roved
 
 	const bySelector = activeSelector ? items.find((it) => it.matches(activeSelector)) : undefined
 

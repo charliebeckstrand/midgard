@@ -971,6 +971,26 @@ describe('Calendar Tab stops', () => {
 		expect(controls.map((control) => control.tabIndex)).toEqual([0, 0, 0])
 	})
 
+	it('enters on the roved day with header ArrowDown, as Tab does', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => screen.getByRole('option', { name: 'Sunday, June 15, 2025' }).focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		const roved = screen.getByRole('option', { name: 'Monday, June 16, 2025' })
+
+		expect(dayStops()).toEqual(['16'])
+
+		await user.tab({ shift: true })
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(document.activeElement).toBe(roved)
+	})
+
 	it('reaches the month header with Shift+Tab from the day listbox', async () => {
 		const user = setupUser()
 

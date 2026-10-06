@@ -27,6 +27,7 @@ function setup(
 		headerButtons?: number
 		gridButtons?: number
 		footerButtons?: number
+		gridMounted?: boolean
 	} = {},
 ) {
 	const header = makeContainer(options.headerButtons ?? 3)
@@ -42,6 +43,7 @@ function setup(
 			footerRef: footer ? { current: footer } : undefined,
 			cols: options.cols ?? 7,
 			stopPropagation: options.stopPropagation ?? false,
+			gridMounted: options.gridMounted,
 		}),
 	)
 
@@ -133,8 +135,8 @@ describe('useCalendarFocus: grid', () => {
 })
 
 describe('useCalendarFocus: footer', () => {
-	it('ArrowUp moves focus back to the last grid button', () => {
-		const { grid, footer, handleFooterKeyDown } = setup({ footer: true })
+	it('ArrowUp moves focus back to the last grid button when roving does not manage the Tab stop', () => {
+		const { grid, footer, handleFooterKeyDown } = setup({ footer: true, gridMounted: false })
 
 		const footerFirst = present<HTMLButtonElement>(footer?.querySelector('button'), 'button')
 
@@ -700,7 +702,8 @@ function mountZones(
 }
 
 // The header ArrowDown and the footer ArrowUp enter the grid on its Tab stop,
-// as Tab does. The first and the last button are the fallbacks when no item
+// as Tab does. After a rove, that is the roved item. The first and the last
+// button are the fallbacks when roving does not manage the stop and no item
 // matches (see the header and footer cases above).
 describe('useCalendarFocus: grid entry', () => {
 	it('focuses the selected day on header ArrowDown', () => {
@@ -757,6 +760,51 @@ describe('useCalendarFocus: grid entry', () => {
 		handleHeaderKeyDown(makeKeyEvent('ArrowDown'))
 
 		expect(document.activeElement?.textContent).toBe('2')
+	})
+
+	it('focuses the roved day, not the selected day, on header ArrowDown', () => {
+		const grid = makeGrid([{}, {}, {}, { selected: true }, {}])
+
+		const { header, handleHeaderKeyDown } = mountZones(grid)
+
+		// The focus moves the Tab stop to day 1, as a rove does.
+		present<HTMLButtonElement>(grid.querySelectorAll('button').item(1), 'button').focus()
+
+		expect(tabStops(grid)).toEqual(['1'])
+
+		present<HTMLButtonElement>(header.querySelector('button'), 'button').focus()
+
+		handleHeaderKeyDown(makeKeyEvent('ArrowDown'))
+
+		expect(document.activeElement?.textContent).toBe('1')
+	})
+
+	it('focuses the Tab stop on footer ArrowUp when no item matches and roving manages the stop', () => {
+		const grid = makeGrid([{}, {}, {}])
+
+		const { footer, handleFooterKeyDown } = mountZones(grid)
+
+		expect(tabStops(grid)).toEqual(['0'])
+
+		present<HTMLButtonElement>(footer.querySelector('button'), 'button').focus()
+
+		handleFooterKeyDown(makeKeyEvent('ArrowUp'))
+
+		expect(document.activeElement?.textContent).toBe('0')
+	})
+
+	it('focuses the roved day, not the selected day, on footer ArrowUp', () => {
+		const grid = makeGrid([{}, {}, {}, { selected: true }, {}])
+
+		const { footer, handleFooterKeyDown } = mountZones(grid)
+
+		present<HTMLButtonElement>(grid.querySelectorAll('button').item(1), 'button').focus()
+
+		present<HTMLButtonElement>(footer.querySelector('button'), 'button').focus()
+
+		handleFooterKeyDown(makeKeyEvent('ArrowUp'))
+
+		expect(document.activeElement?.textContent).toBe('1')
 	})
 })
 

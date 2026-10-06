@@ -6,7 +6,7 @@ import { flushSync } from 'react-dom'
 
 import { useA11yRoving } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { queryItems } from '../../hooks/a11y/use-a11y-roving'
+import { queryItems, rovedStop } from '../../hooks/a11y/use-a11y-roving'
 import { wrap } from '../../utilities'
 import {
 	fromCalendarDate,
@@ -190,17 +190,27 @@ function lastButton(container: HTMLElement | null): HTMLElement | null {
 }
 
 /**
- * The focusable button of `grid` that holds the Tab stop, as `activeSelector`
- * names it. When no button matches, `fallback` gives the button.
+ * The focusable button of `grid` where the focus enters, as Tab enters. While
+ * roving manages the Tab stop (`managed`), this is the button with
+ * `tabIndex=0`: the roved button, else the button that roving seated. Else it
+ * is the button that `activeSelector` names. When no button matches,
+ * `fallback` gives the button.
  *
  * @internal
  */
 function entryButton(
 	grid: HTMLElement | null,
 	activeSelector: string,
+	managed: boolean,
 	fallback: (container: HTMLElement | null) => HTMLElement | null,
 ): HTMLElement | null {
-	return buttonsOf(grid).find((button) => button.matches(activeSelector)) ?? fallback(grid)
+	const buttons = buttonsOf(grid)
+
+	return (
+		(managed ? rovedStop(buttons) : undefined) ??
+		buttons.find((button) => button.matches(activeSelector)) ??
+		fallback(grid)
+	)
 }
 
 /** True when the active button sits in the grid's first row. @internal */
@@ -409,9 +419,15 @@ function focusAdjacentFooterButton(
  * the three zones' `keydown` handlers.
  *
  * ArrowDown from the header and ArrowUp from the footer move the focus to the
- * grid item that holds the Tab stop. When no item matches `activeSelector`,
- * ArrowDown moves it to the first item and ArrowUp to the last item. With
- * `steered`, the header and footer handlers leave every key to the parent.
+ * grid item that holds the Tab stop, so they enter on the same item as Tab.
+ * While roving manages the Tab stop (`gridMounted`), that is the item with
+ * `tabIndex=0`. After a rove, this is the roved item, not the
+ * `activeSelector` match. When no item matches, roving seats the stop on the
+ * first item, and both keys move the focus there. Before roving manages the
+ * stop, the keys move the focus to the item that `activeSelector` names. When
+ * no item matches, ArrowDown moves the focus to the first item and ArrowUp to
+ * the last item. With `steered`, the header and footer handlers leave every
+ * key to the parent.
  *
  * Without `dayGrid`, ArrowUp on the top row of the grid moves the focus to the
  * header. ArrowDown on the bottom row moves it to the footer, when there is one.
@@ -456,7 +472,7 @@ export function useCalendarFocus({
 			if (event.key === 'ArrowDown') {
 				preventAndStop(event, stopPropagation)
 
-				entryButton(gridRef.current, activeSelector, firstButton)?.focus()
+				entryButton(gridRef.current, activeSelector, gridMounted, firstButton)?.focus()
 
 				return
 			}
@@ -465,7 +481,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRoving, stopPropagation, steered, activeSelector],
+		[gridRef, headerRoving, stopPropagation, steered, activeSelector, gridMounted],
 	)
 
 	const handleGridKeyDown = useCallback(
@@ -496,7 +512,7 @@ export function useCalendarFocus({
 			if (event.key === 'ArrowUp') {
 				preventAndStop(event, stopPropagation)
 
-				entryButton(gridRef.current, activeSelector, lastButton)?.focus()
+				entryButton(gridRef.current, activeSelector, gridMounted, lastButton)?.focus()
 
 				return
 			}
@@ -507,7 +523,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, footerRef, stopPropagation, steered, activeSelector],
+		[gridRef, footerRef, stopPropagation, steered, activeSelector, gridMounted],
 	)
 
 	return { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown }
