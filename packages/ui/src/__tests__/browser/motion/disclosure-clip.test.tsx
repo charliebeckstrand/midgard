@@ -22,27 +22,35 @@ import { present, renderUI, screen } from '../../helpers'
 /** The height and the overflow of the panel on one frame. */
 type Sample = { height: number; overflow: string }
 
-/** Reads `node` on each frame for `ms` milliseconds. */
-function sampleFor(node: () => Element | null, ms: number): Promise<Sample[]> {
+/**
+ * Reads `node` on each frame until its overflow is visible, which is when the open lands, or until
+ * `deadline` milliseconds pass. A frame where the node is not on the page gives no sample.
+ */
+function sampleUntilLanded(node: () => Element | null, deadline: number): Promise<Sample[]> {
 	const samples: Sample[] = []
 
-	const end = performance.now() + ms
+	const end = performance.now() + deadline
 
 	return new Promise((resolve) => {
 		const tick = () => {
+			const element = node()
+
+			if (element) {
+				const overflow = getComputedStyle(element).overflow
+
+				samples.push({ height: element.getBoundingClientRect().height, overflow })
+
+				if (overflow === 'visible') {
+					resolve(samples)
+
+					return
+				}
+			}
+
 			if (performance.now() > end) {
 				resolve(samples)
 
 				return
-			}
-
-			const element = node()
-
-			if (element) {
-				samples.push({
-					height: element.getBoundingClientRect().height,
-					overflow: getComputedStyle(element).overflow,
-				})
 			}
 
 			requestAnimationFrame(tick)
@@ -110,7 +118,7 @@ describe('the clip of a disclosure panel (real Motion)', () => {
 
 			const controls = newElement(selector)
 
-			const sampling = sampleFor(controls, 600)
+			const sampling = sampleUntilLanded(controls, 5000)
 
 			if (button.getAttribute('role') === 'treeitem') {
 				button.focus()
