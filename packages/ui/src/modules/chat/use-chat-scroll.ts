@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useLayoutEffect, useRef } from 'react'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReportedChange } from '../../hooks/use-reported-change'
 
 /**
@@ -29,7 +30,7 @@ function toBottom(element: HTMLElement, behavior: ScrollBehavior) {
  * so the transcript never flashes its top. That includes a remount a parent
  * triggers with a new `key`, when it switches to a different chat. After that,
  * whenever `dependency` changes, it smooth-scrolls to the bottom on the next
- * animation frame. The scroll waits until the appended content has laid out, so
+ * animation frame. When the reader asks for reduced motion, it jumps instead. The scroll waits until the appended content has laid out, so
  * streamed chunks stay in view. Pass the message list, or its length, as the
  * dependency. `scrollToBottom` is
  * exposed for imperative scrolls (e.g. after an attachment renders).
@@ -55,13 +56,15 @@ function toBottom(element: HTMLElement, behavior: ScrollBehavior) {
 export function useChatScroll<T>(dependency?: T) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
+	const behavior: ScrollBehavior = usePrefersReducedMotion() ? 'auto' : 'smooth'
+
 	const scrollToBottom = useCallback(() => {
 		// Deferred a frame so the appended content has laid out and `scrollHeight`
 		// reads its new value.
 		requestAnimationFrame(() => {
-			if (containerRef.current) toBottom(containerRef.current, 'smooth')
+			if (containerRef.current) toBottom(containerRef.current, behavior)
 		})
-	}, [])
+	}, [behavior])
 
 	// Runs before paint so the initial position is the bottom, not a glide toward it.
 	useLayoutEffect(() => {

@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
+import { stubMatchMedia } from '../helpers'
 
 describe('useSortableSensors', () => {
 	it('returns a non-empty sensors array by default', () => {
@@ -28,6 +29,20 @@ describe('useSortableSensors', () => {
 		const keyboardSensor = result.current.at(-1)
 
 		expect(keyboardSensor?.options).toMatchObject({ coordinateGetter: keyboardCoordinateGetter })
+	})
+
+	it('scrolls a keyboard move into view smoothly by default', () => {
+		const { result } = renderHook(() => useSortableSensors())
+
+		expect(result.current.at(-1)?.options).toMatchObject({ scrollBehavior: 'smooth' })
+	})
+
+	it('scrolls a keyboard move into view at once under reduced motion', () => {
+		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+
+		const { result } = renderHook(() => useSortableSensors())
+
+		expect(result.current.at(-1)?.options).toMatchObject({ scrollBehavior: 'auto' })
 	})
 
 	it('keeps the sensors array stable across renders with the keyboard sensor on', () => {

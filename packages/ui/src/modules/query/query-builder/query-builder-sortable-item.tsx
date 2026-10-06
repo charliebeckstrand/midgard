@@ -1,11 +1,11 @@
 'use client'
 
-import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Icon } from '../../../components/icon'
 import { cn, dataAttr } from '../../../core'
+import { useMotionSafeSortable } from '../../../hooks/use-motion-safe-sortable'
 import { k } from '../../../recipes/kata/query-builder'
 
 /** Props for {@link QueryBuilderSortableItem}. @internal */
@@ -43,7 +43,7 @@ export function QueryBuilderSortableItem({
 		transform,
 		transition,
 		isDragging,
-	} = useSortable({ id, disabled: disabled || !handle })
+	} = useMotionSafeSortable({ id, disabled: disabled || !handle })
 
 	// The grip is a native `<button>`, so the `role="button"` of dnd-kit is redundant.
 	const { role: _role, ...gripAttributes } = attributes

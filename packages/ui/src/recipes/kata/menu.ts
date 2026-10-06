@@ -97,7 +97,7 @@ export const k = {
 		trigger: mode('data-open:bg-zinc-950/5', 'dark:data-open:bg-white/5'),
 		// The chevron of a `MenuSub` row in the bottom sheet, which turns over
 		// while the rows of the submenu show below the row.
-		chevron: 'ms-auto transition-transform',
+		chevron: 'ms-auto motion-safe:transition-transform',
 		// The rows of a `MenuSub` in the bottom sheet, below their parent row. The
 		// indent shows that they belong to it.
 		group: 'min-w-0 space-y-0.5 ps-4',

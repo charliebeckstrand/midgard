@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type scale } from '../../recipes/kata/sparkline'
 import type { AccessibleName } from '../../types'
@@ -161,7 +162,10 @@ function SparklineMarks({
 /**
  * The Framer Motion marks: the same shapes, revealed on mount. Rendered only
  * under `animate` and always wrapped in {@link ReducedMotion}, so a
- * reduced-motion preference settles them at their final state. @internal
+ * reduced-motion preference settles the bars at their final state. The draw
+ * (`pathLength`) and the pop (`r`) are no transform, so that config does not
+ * skip them. Under reduced motion the line and the end point mount at rest.
+ * @internal
  */
 function AnimatedSparklineMarks({
 	shape,
@@ -174,6 +178,8 @@ function AnimatedSparklineMarks({
 	strokeClass,
 	fillClass,
 }: SparklineMarksProps) {
+	const still = usePrefersReducedMotion()
+
 	if (shape === 'bar') {
 		// `bar.index` paces the stagger too, so a bar rises on its own slot's beat.
 		return geometry.bars.map((bar) => (
@@ -213,7 +219,7 @@ function AnimatedSparklineMarks({
 				strokeLinecap="round"
 				strokeLinejoin="round"
 				className={strokeClass}
-				initial={{ pathLength: 0 }}
+				initial={still ? false : { pathLength: 0 }}
 				animate={{ pathLength: 1 }}
 				transition={k.motion.draw}
 			/>
@@ -223,7 +229,7 @@ function AnimatedSparklineMarks({
 					cx={geometry.last.x}
 					cy={geometry.last.y}
 					className={fillClass}
-					initial={{ r: 0, opacity: 0 }}
+					initial={still ? false : { r: 0, opacity: 0 }}
 					animate={{ r: pointRadius, opacity: 1 }}
 					transition={k.motion.land}
 				/>

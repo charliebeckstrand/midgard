@@ -1,11 +1,11 @@
 'use client'
 
-import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { motion } from 'motion/react'
 import { Fragment, memo, type ReactElement } from 'react'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import { useMotionSafeSortable } from '../../hooks/use-motion-safe-sortable'
 import { k } from '../../recipes/kata/grid'
 import type { GridDetailExpansion } from './engine/grid-group/resolve'
 import { detailOpen } from './engine/grid-items/items'
@@ -514,7 +514,7 @@ function GridReorderableRowImpl<T>(props: GridRowProps<T>) {
 		transform,
 		transition,
 		isDragging,
-	} = useSortable({ id: String(props.rowKey) })
+	} = useMotionSafeSortable({ id: String(props.rowKey) })
 
 	const sortable: GridRowSortable = {
 		setNodeRef,

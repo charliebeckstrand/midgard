@@ -89,7 +89,7 @@ export const k = {
 		 * than as the viewer's own furniture. It is furniture, so it is simply there. A press on
 		 * the toolbar's toggle is a change the reader made, and that one travels.
 		 */
-		travel: 'transition-[margin] duration-150 ease-in-out',
+		travel: 'motion-safe:transition-[margin] duration-150 ease-in-out',
 		// The margin on the start side, so the rail leaves toward its own edge in
 		// either direction.
 		closed: '-ms-56',

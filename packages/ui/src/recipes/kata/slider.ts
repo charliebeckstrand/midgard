@@ -33,7 +33,7 @@ export const k = defineRecipe({
 		'[&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-zinc-950/20',
 		'dark:[&::-webkit-slider-thumb]:ring-white/20',
 		'[&::-webkit-slider-thumb]:shadow-sm',
-		'[&::-webkit-slider-thumb]:transition-transform',
+		'motion-safe:[&::-webkit-slider-thumb]:transition-transform',
 		'hover:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		'active:not-disabled:[&::-webkit-slider-thumb]:scale-110',
 		// An invalid slider rings its thumb in red, as an invalid checkbox rings its box.
@@ -53,7 +53,7 @@ export const k = defineRecipe({
 		'[&::-moz-range-thumb]:ring-1 [&::-moz-range-thumb]:ring-zinc-950/20',
 		'dark:[&::-moz-range-thumb]:ring-white/20',
 		'[&::-moz-range-thumb]:shadow-sm',
-		'[&::-moz-range-thumb]:transition-transform',
+		'motion-safe:[&::-moz-range-thumb]:transition-transform',
 		'hover:not-disabled:[&::-moz-range-thumb]:scale-110',
 		'active:not-disabled:[&::-moz-range-thumb]:scale-110',
 		'data-invalid:[&::-moz-range-thumb]:ring-2',

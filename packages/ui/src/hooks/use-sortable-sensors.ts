@@ -10,6 +10,7 @@ import {
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { type PointerEvent as ReactPointerEvent, useMemo } from 'react'
+import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /**
  * Pointer sensor that activates a drag only on a genuine primary press.
@@ -70,13 +71,15 @@ export type SortableSensorsOptions = {
  * Standard sensor configuration for dnd-kit powered sortable UIs.
  * Pairs a low-threshold {@link PrimaryPointerSensor} (which ignores
  * context-menu presses, including the macOS Ctrl-click) with a keyboard sensor
- * using `sortableKeyboardCoordinates` for arrow-key reordering.
+ * using `sortableKeyboardCoordinates` for arrow-key reordering. A keyboard
+ * move scrolls the item into view smoothly, and at once when the reader asks
+ * for reduced motion.
  *
  * @returns dnd-kit's `SensorDescriptor[]` to pass to `<DndContext sensors>`;
  * the keyboard sensor is omitted when `keyboard` is false.
  *
- * @remarks The array keeps its identity across renders until `keyboard` or
- * `keyboardCoordinateGetter` changes.
+ * @remarks The array keeps its identity across renders until `keyboard`,
+ * `keyboardCoordinateGetter`, or the reduced-motion preference changes.
  */
 export function useSortableSensors({
 	keyboard = true,
@@ -84,10 +87,12 @@ export function useSortableSensors({
 }: SortableSensorsOptions = {}) {
 	const pointer = useSensor(PrimaryPointerSensor, POINTER_ACTIVATION)
 
+	const scrollBehavior: ScrollBehavior = usePrefersReducedMotion() ? 'auto' : 'smooth'
+
 	// Memoized for the same reason as `POINTER_ACTIVATION`: a fresh literal misses the `useSensor` memo.
 	const keyboardOptions = useMemo(
-		() => ({ coordinateGetter: keyboardCoordinateGetter }),
-		[keyboardCoordinateGetter],
+		() => ({ coordinateGetter: keyboardCoordinateGetter, scrollBehavior }),
+		[keyboardCoordinateGetter, scrollBehavior],
 	)
 
 	const keyboardSensor = useSensor(KeyboardSensor, keyboardOptions)
