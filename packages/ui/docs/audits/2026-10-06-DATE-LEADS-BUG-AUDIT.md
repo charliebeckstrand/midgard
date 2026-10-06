@@ -99,33 +99,33 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 
 ### S1 — one entry rule in the Calendar's header and footer handlers
 
-- **Change:** add an explicit steered signal to `useCalendarFocus` (for example a `steered` option that `calendar.tsx` passes from `active !== undefined`). When steered, header ArrowDown and footer ArrowUp do nothing and do not call `preventDefault`. When not steered, focus the item that matches `activeSelector`, else the first item (ArrowDown) or the last item (ArrowUp). `dayGrid === undefined` is not the signal: the month/year picker passes no `dayGrid` and is not steered (`use-calendar-picker.tsx:119-126`).
-- **Rows closed:** C07, C09(a).
-- **Files:** `components/calendar/use-calendar-focus.ts`, `components/calendar/calendar.tsx`, `__tests__/components/use-calendar-focus.test.ts`; re-check `components/calendar/use-calendar-picker.tsx`.
+- **Change:** add `steered?: boolean` to `CalendarFocusOptions` in `use-calendar-focus.ts`; `calendar.tsx` passes its `const steered = active !== undefined` into `useCalendarFocus`. The month/year picker (`use-calendar-picker.tsx:119-126`) passes nothing and stays unsteered. When steered, the header and footer handlers leave every key to the parent: no focus move and no `preventDefault`. This covers ArrowDown and ArrowUp, and also Left and Right, which today go through `headerRoving` and `focusAdjacentFooterButton` → `preventAndStop` (`use-calendar-focus.ts:378`, `:435`) and so block the composed input-mode handler the same way (caller's extension of C09(a), per Q2). When not steered, header ArrowDown focuses `buttonsOf(gridRef.current).find((b) => b.matches(activeSelector)) ?? firstButton(gridRef.current)`; footer ArrowUp does the same with `lastButton`. Under Q4 the month picker's header ArrowDown then lands on the selected month (`SELECTED_CELL`, `use-calendar-picker.tsx:21`). Update the internal TSDoc of `useCalendarFocus` and the Calendar TSDoc that a standalone header ArrowDown now enters on the Tab-stop day (CLAUDE.md §3.4).
+- **Rows closed:** C07; part of C09(a) (C09 closes with S2).
+- **Files:** `components/calendar/use-calendar-focus.ts`, `components/calendar/calendar.tsx`, `__tests__/components/use-calendar-focus.test.ts`, `__tests__/components/use-calendar-picker.test.ts`, `__tests__/components/calendar.test.tsx`.
 - **Order:** first.
 - **Depends on:** none.
-- **Gate:** Q4 (the month picker's header ArrowDown moves to the selected month).
-- **Test seam:** `renderHook(useCalendarFocus)` with DOM refs and a synthetic keydown; assert the focused button, and `defaultPrevented` false when steered.
+- **Gate:** none (Q4 settled).
+- **Test seam:** `renderHook(useCalendarFocus)` with attached DOM refs. Steered: header ArrowDown/Left/Right and footer ArrowUp/Left/Right leave `preventDefault` uncalled and focus unchanged. Unsteered: header ArrowDown and footer ArrowUp focus the `aria-selected` button; `:52` and `:136` stay as the no-match fallbacks. Picker: focus "Previous year" in `OpenPickerGrid`, ArrowDown focuses the selected month. Calendar: standalone with a value mid-month, Next month + ArrowDown focuses the selected day.
 
 ### S2 — the picker enters the grid in the shown month
 
-- **Change:** route the no-highlight arrow entry, and an arrow from a DOM-focused header or footer control, to `getViewEntryDate`.
-- **Rows closed:** C06, C09(b).
-- **Files:** `components/date-picker/use-date-picker-keyboard.ts`, possibly `components/date-picker/date-picker-content.tsx`, `__tests__/components/use-date-picker-keyboard.test.ts`; re-check `components/date-picker/use-date-picker-range-state.ts`.
+- **Change:** in `use-date-picker-keyboard.ts`, the `handleNoActiveKey` arrow branch (`:200-206`) enters on `ctx.getViewEntryDate()`, with the Q5 answer for `null`. Enter/Space with no highlight keeps `getInitialActiveDate()` (`:219`, pinned by `use-date-picker-state.test.ts:281-303`); Page keys keep their anchor seed (Surfaced 2). Under Q2, add `zoneOfTarget(event)` in the keyboard hook: when `event.target` is not `event.currentTarget` and sits in `[data-slot="calendar-header"]` or `[data-slot="calendar-footer"]`, it gives `{ zone, index }` by the target's index among that toolbar's buttons. Call it after `handleOpenGlobalKey` and before the `active === null` branch, `setActive(mapped)`, and dispatch on `mapped ?? active`. `CalendarToolbar` (internal) takes an optional slot and `CalendarHeader` passes `"calendar-header"`. In `date-picker-content.tsx`, the arrow reclaim focuses `focusRef.current ?? event.currentTarget` (`:121` `const focusRef = initialFocusRef ?? dialogRef`), so input mode returns focus to the input. Rewrite the internal TSDoc of the seeds (`:32-37`, `:71-78`, `:184-194`). Range shares the hook and its `getViewEntryDate` and needs no edit; relative runs its custom fields through `use-date-picker-state.ts` and needs no edit.
+- **Rows closed:** C06, C09.
+- **Files:** `components/date-picker/use-date-picker-keyboard.ts`, `components/date-picker/date-picker-content.tsx`, `components/calendar/calendar-toolbar.tsx`, `components/calendar/calendar-header.tsx`, `__tests__/components/use-date-picker-keyboard.test.ts`, `__tests__/components/use-date-picker-state.test.ts`, `__tests__/components/use-date-picker-range-state.test.ts`, `__tests__/components/date-picker.test.tsx`.
 - **Order:** after S1.
-- **Depends on:** S1.
-- **Gate:** Q1, Q2.
-- **Test seam:** `use-date-picker-keyboard.test.ts` injects `getViewEntryDate` and `entryDate` (`:16`, `:279-289`).
+- **Depends on:** S1 (input mode reaches the model from a header button only once S1 stops the `preventDefault`).
+- **Gate:** Q5.
+- **Test seam:** `use-date-picker-keyboard.test.ts` (rewrite `:163-173`; add the `null` case and the mapping cases with an attached dialog that holds the two slots); the `entering(...)` helper of the state and range tests; one input-mode integration case in `date-picker.test.tsx` (Tab to Next month, ArrowDown, highlight in the shown month, focus on the input).
 
 ### S3 — the focus return lands on the input
 
-- **Change:** in input mode, return focus to the editable input.
+- **Change:** add `returnFocusTo?: RefObject<HTMLElement | null>` to `DatePickerFloatingOptions` and pass `returnFocusTo: returnFocusTo ?? triggerRef` (`use-date-picker-floating.ts:41`). `use-date-picker-state.ts` owns `inputRef`, passes `returnFocusTo: input ? inputRef : undefined`, and returns it; `date-picker.tsx` drops its local ref and uses the returned one (`:325`, `:357`, `:390`). `useFloatingUI` already focuses a ref with no descendants as itself (`use-floating-ui.ts:389-390`), Escape while typing still skips (focus is inside), and the outside-press and focus-out reasons still skip (`:383`). No public export changes; the shared hook and its test stay.
 - **Rows closed:** C01.
-- **Files:** shared option, `hooks/use-floating-ui.ts` and `__tests__/hooks/use-floating-ui.test.ts`; local option, `components/date-picker/use-date-picker-floating.ts` and `components/date-picker/date-picker.tsx`.
+- **Files:** `components/date-picker/use-date-picker-floating.ts`, `components/date-picker/use-date-picker-state.ts`, `components/date-picker/date-picker.tsx`, `__tests__/components/use-date-picker-state.test.ts`, `__tests__/components/date-picker.test.tsx`.
 - **Order:** independent.
 - **Depends on:** none.
-- **Gate:** Q3.
-- **Test seam:** none synchronous unless the target choice becomes a pure function (`restoreTarget(trigger)`); otherwise a browser test.
+- **Gate:** none (Q3 settled).
+- **Test seam:** `renderHook(useDatePickerState({ input: true }))` with an input on `inputRef` inside a wrapper on `triggerRef` that holds a button; open, then `onOpenChange(false)`; the input has focus. Integration: Tab to Today, Escape, the input has focus.
 
 ### S4 — the calendar button keeps focus on the input
 
@@ -163,6 +163,10 @@ Axes: yes, it agrees with `focusPickerGrid` (`use-calendar-picker.tsx:128-134`);
 
 **Answer:** "Yes". One rule for both grids.
 
+### Q5 — what does a no-highlight arrow do when the shown month has no enabled day?
+
+Raised by the settle pass. `getEntryDate` returns `null` when the shown month has no enabled day (`calendar.tsx:63`). The view seeds from `monthOf(value ?? new Date())` unclamped (`use-calendar-month.ts:82`), so a shipped shape reaches it: the relative End field passes `min={state.custom.start ?? props.min}` (`date-picker-relative.tsx:189-193`). Axes: fall back to `getInitialActiveDate()`, so the view re-anchors to the clamped anchor as today; or do nothing, as header Down and footer Up do (C08). Only the `null` term of S2 and one test change.
+
 ## Ruled out
 
 - **C02** (Calendar's backward edge at year 1): `use-calendar-focus.ts:313-314` "A step back before year 1 stays at the limit too." / `if (!isYearInRange(date.getFullYear())) return true`. The library flips the era before it clamps (`@internationalized/date` `GregorianCalendar.ts:144-148`, `manipulation.ts:70-72`), so the step gives year 0 and the guard holds.
@@ -181,3 +185,4 @@ Axes: yes, it agrees with `focusPickerGrid` (`use-calendar-picker.tsx:128-134`);
 4. A `useFloatingDisclosure` consumer whose trigger wraps a text input would hit the C01 selector. Not probed. Verifier.
 5. CalendarRange marks the hover-preview day selected, so it may carry `aria-selected` during hover. Verifier.
 6. Empty-commit echo: `commit` records `undefined` for a partial entry (`date-input.tsx:265-266`) and `isSameDay(undefined, undefined)` is true (`date-input-utilities.ts:321-323`). A controlled parent that ignores `undefined`, then clears from outside, leaves the partial text. No shipped root builds it. Overturn pass.
+7. After S3, a close from the calendar button carries no reason, so the restore moves focus from the button to the input. This changes item 1. Settle pass.
