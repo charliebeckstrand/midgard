@@ -52,10 +52,14 @@ export const scale = defineScale(ramp[1], ramp[2], ramp[3], ramp[4], ramp[5], ra
  * the size. `ramp` and `weight` are keyed by level, for an element that does
  * not render `<Heading>`. A component title (Card, and the Dialog, Sheet, and
  * Drawer panels) takes `ramp[4]`.
+ *
+ * A heading balances the length of its lines. The recipe sets only
+ * `text-wrap-style`, because `text-balance` sets the `text-wrap` shorthand, and
+ * that shorthand also cancels the `nowrap` of a `truncate` class.
  */
 export const k = defineRecipe(
 	{
-		base: [...text.default],
+		base: [...text.default, '[text-wrap-style:balance]'],
 		level: levelWeight,
 		defaults: { level: 1 },
 		skeleton: heading,

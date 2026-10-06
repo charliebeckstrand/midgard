@@ -62,7 +62,7 @@ const gauge = defineRecipe({
 })
 
 const label = defineRecipe({
-	base: ['absolute', weight.semibold, ...text.default, dan.text.small],
+	base: ['absolute', weight.semibold, ...text.default, dan.text.small, 'tabular-nums'],
 })
 
 export const k = defineRecipe(
