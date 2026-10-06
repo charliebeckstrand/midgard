@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Grid } from 'ui/grid'
-import { columns, people } from '../data.tsx'
+import { Grid, type GridColumn } from 'ui/grid'
+import { columns, type Person, people } from '../data.tsx'
+
+const dragColumns: GridColumn<Person>[] = [{ id: 'drag', dragHandle: true }, ...columns]
 
 export default function RowReorder() {
 	const [rows, setRows] = useState(people)
@@ -9,7 +11,7 @@ export default function RowReorder() {
 	// new order.
 	return (
 		<Grid
-			columns={[{ id: 'drag', dragHandle: true }, ...columns]}
+			columns={dragColumns}
 			rows={rows}
 			getKey={(row) => row.id}
 			rowLabel={(row) => row.name}

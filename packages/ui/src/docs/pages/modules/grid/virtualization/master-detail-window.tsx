@@ -1,13 +1,15 @@
-import { Grid } from 'ui/grid'
+import { Grid, type GridColumn } from 'ui/grid'
 import { Text } from 'ui/text'
-import { columns, manyPeople } from '../data.tsx'
+import { columns, manyPeople, type Person } from '../data.tsx'
+
+const expandColumns: GridColumn<Person>[] = [{ id: 'expand', expander: true }, ...columns]
 
 export default function MasterDetailWindow() {
 	// The window holds each row and each open detail. A closed detail does not
 	// render, so it keeps no state.
 	return (
 		<Grid
-			columns={[{ id: 'expand', expander: true }, ...columns]}
+			columns={expandColumns}
 			rows={manyPeople}
 			getKey={(row) => row.id}
 			rowLabel={(row) => row.name}
