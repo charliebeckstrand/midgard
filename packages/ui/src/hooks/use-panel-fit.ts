@@ -1,7 +1,7 @@
 'use client'
 
 import type { AnimationPlaybackControls, ValueAnimationTransition } from 'motion'
-import { type RefCallback, useCallback, useEffect, useState } from 'react'
+import { type RefCallback, useCallback, useEffect, useRef, useState } from 'react'
 import { type BorderBox, measureBox } from '../utilities'
 import { travelHeight } from './travel-height'
 import { dockExtent, type PanelCeiling } from './use-panel-resize'
@@ -90,16 +90,31 @@ export function usePanelFit({
 	// arrives rather than travels.
 	const reduced = usePrefersReducedMotion()
 
+	// Whether the last run on this panel found a drag that held the height.
+	const held = useRef(false)
+
 	useEffect(() => {
+		if (panel === null) return
+
 		// A drag owns the height while it holds one, and the render that starts the
 		// gesture has already written it by the time this runs.
-		if (panel === null || dragged) return
+		if (dragged) {
+			held.current = true
+
+			return
+		}
+
+		// The drag lets go only when the panel closes. The inline height is then the
+		// drag's, and the panel slides out at that size, so this run keeps it.
+		const released = held.current
+
+		held.current = false
 
 		// An inline height on a panel no drag holds is a pin this hook left behind,
 		// from a travel something interrupted — the variant changing under the
 		// panel, or the reader's motion preference. Clearing it hands the box back
 		// to layout, which is where every measurement below starts.
-		panel.style.removeProperty('height')
+		if (!released) panel.style.removeProperty('height')
 
 		if (!enabled) return
 
