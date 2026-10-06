@@ -85,7 +85,7 @@ export function ExampleFrame({
 	children,
 }: {
 	meta: ExampleMeta
-	/** The controls at the end of the title row, such as the fields of a playground. */
+	/** The controls on a line under the title, such as the fields of a playground. */
 	actions?: ReactNode
 	/** Writes the code of the block. The block shows the code of the file when it is not given. */
 	print?: (code: ExampleCode) => string
@@ -111,12 +111,7 @@ export function ExampleFrame({
 
 	return (
 		<Stack gap="sm" data-slot="example">
-			<Flex
-				gap="md"
-				direction={{ initial: 'col', sm: 'row' }}
-				align={{ initial: 'start', sm: 'center' }}
-				justify={{ initial: 'start', sm: 'between' }}
-			>
+			<Flex gap="md" direction="col" align="start">
 				<Heading level={3}>{meta.title}</Heading>
 				{actions}
 			</Flex>
