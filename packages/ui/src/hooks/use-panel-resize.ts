@@ -148,6 +148,8 @@ export type PanelResize = {
 	size: number | null
 	/** Goes on the panel. The gesture writes to whatever it catches. */
 	ref: (node: HTMLDivElement | null) => void
+	/** The panel node that `ref` holds, or `null` before the portal mounts it. */
+	panel: HTMLDivElement | null
 }
 
 /** What {@link usePanelResize} needs. @internal */
@@ -444,5 +446,6 @@ export function usePanelResize({
 		resizing,
 		size,
 		ref,
+		panel,
 	}
 }

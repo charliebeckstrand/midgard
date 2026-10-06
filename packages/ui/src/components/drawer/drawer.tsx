@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useEffect, useState } from 'react'
+import { type ReactNode, type RefObject, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
@@ -252,18 +252,6 @@ export function DrawerPanel({
 
 	const { report, onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
-	// The panel node, as state rather than a ref, so that its arrival is something an
-	// effect can wait for. The portal mounts the panel on a later commit than the one
-	// that opens the drawer.
-	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
-
-	// A panel that arrives in place plays no enter, so there is no landing to report from.
-	// It reports once its node is in the DOM, so that a consumer that measures the panel
-	// finds it.
-	useEffect(() => {
-		if (open && !animateEnter && panel !== null) report()
-	}, [open, animateEnter, panel, report])
-
 	const grip = drawerShowsGrip(handle, height)
 
 	// The gesture is held here, by the component that owns the panel it writes to.
@@ -276,6 +264,16 @@ export function DrawerPanel({
 		ceilingOf: drawerCeiling,
 	})
 
+	// A panel that arrives in place plays no enter, so there is no landing to report from.
+	// It reports once its node is in the DOM, so that a consumer that measures the panel
+	// finds it. The portal mounts the panel on a later commit than the one that opens the
+	// drawer, and the gesture holds the node as state, so the effect can wait for it.
+	const panel = resize.panel
+
+	useEffect(() => {
+		if (open && !animateEnter && panel !== null) report()
+	}, [open, animateEnter, panel, report])
+
 	// The other half of the panel's height, and the one the panel itself decides:
 	// a `fit` panel grows and shrinks into whatever it is handed. It stands down
 	// for a drag, so the two never write the same property at once, and it stamps
@@ -287,10 +285,9 @@ export function DrawerPanel({
 		transition: k.fit,
 	})
 
-	// One node, three readers of it. The gesture writes the height the reader sets
-	// and the fit writes the height the content asks for; both need the element. The
-	// arrival report waits for it.
-	const panelRef = useComposedRef(resize.ref, fitRef, setPanel)
+	// One node, two readers of it. The gesture writes the height the reader sets
+	// and the fit writes the height the content asks for; both need the element.
+	const panelRef = useComposedRef(resize.ref, fitRef)
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 

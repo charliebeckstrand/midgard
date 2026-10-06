@@ -8,6 +8,7 @@ import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { k as overlay } from '../../recipes/kata/overlay'
+import { noop } from '../../utilities'
 import { drawerPanelProps, drawerShowsGrip } from './drawer-panel-props'
 import { DrawerClose, DrawerDefaultFooter } from './slots'
 
@@ -15,7 +16,7 @@ import { DrawerClose, DrawerDefaultFooter } from './slots'
  * The close context of the static copy. The panel is `inert`, so no press reaches a close control,
  * and the `close` does nothing. It lets a `DrawerClose` render here as it does in the drawer.
  */
-const STATIC_CLOSE = { close: () => {} }
+const STATIC_CLOSE = { close: noop }
 
 /** Props for {@link DrawerStatic}: the {@link DrawerPanel} styling props it has to match, and the content it paints. */
 export type DrawerStaticProps = {
@@ -97,7 +98,8 @@ export type DrawerStaticProps = {
  * attributes and classes (`drawerPanelProps`), and resolving `glass` through the same hook, so it
  * stays in step with {@link DrawerPanel} by construction. Pass
  * the drawer's `className`, and the same slot components (`DrawerTitle`, `DrawerBody`, …) for
- * content: they read only defaulted context, so they render here unchanged.
+ * content: they read only defaulted context, or the close context that this copy supplies, so
+ * they render here unchanged.
  *
  * It is a picture, not a dialog. No portal, no motion, no focus trap, and no dialog role. The
  * content is `inert`, so nothing in it is focusable or announced, and the drawer's own title and
