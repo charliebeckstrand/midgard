@@ -146,10 +146,11 @@ describe('grid column sizing rules (real browser)', () => {
 
 		const each = await mount()
 
-		for (const id of ['a', 'b', 'c']) {
+		// The action is async, so each column must reach its width before the next action.
+		for (const [index, id] of ['a', 'b', 'c'].entries()) {
 			menuAction(each.container, id, 'Auto-size this column')
 
-			await pause(20)
+			await waitFor(() => expect(width(each.container, id)).toBe(fitted[index]))
 		}
 
 		expect(widths(each.container)).toEqual(fitted)
