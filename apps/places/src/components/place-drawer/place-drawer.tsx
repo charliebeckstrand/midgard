@@ -4,8 +4,7 @@ import { CalendarDays, Globe, MapPin, Tag, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
-import { Button } from 'ui/button'
-import { useCopyButtonState } from 'ui/copy-button'
+import { CopyButton } from 'ui/copy-button'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
@@ -105,16 +104,17 @@ function PlaceMeta({ place }: { place: Place }) {
 
 /**
  * One fact about a place, with an icon that names the fact. The icon box is one
- * line high, so the icon stays on the first line when the text wraps.
+ * line high, so the icon stays on the first line when the text wraps. A fact
+ * with no text is the icon alone, for a row that puts its value at the end.
  */
-function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode }) {
+function PlaceFact({ icon, children }: { icon: ReactElement; children?: ReactNode }) {
 	return (
 		<Flex gap="sm" align="start" className="min-w-0">
 			<Text as="span" tone="muted" className="flex h-lh shrink-0 items-center">
 				<Icon icon={icon} />
 			</Text>
 
-			<div className="min-w-0 wrap-break-word">{children}</div>
+			{children ? <div className="min-w-0 wrap-break-word">{children}</div> : null}
 		</Flex>
 	)
 }
@@ -122,27 +122,21 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 /**
  * The address of a place on one line, cut with an ellipsis, and a button that
  * copies the full address. The button is taller than a line, so it sits by the
- * fact and not in it, as the menu of a visit does. The row takes the height of
- * the button, and nothing goes out of the row: the first row of the drawer body
- * is at the top edge of a box that scrolls, and that box clips what goes out.
+ * fact and not in it, as the menu of a visit does. A negative block margin
+ * cancels the padding of the button, so the row is one line high, the same as
+ * the rows under it, at each density. The button then goes out of its row by
+ * at most the margin. The row is the first row of the drawer body, a box that
+ * scrolls and clips what goes out, so {@link PlaceDetails} has a top padding of
+ * the same size.
  */
 function PlaceAddress({ address }: { address: string }) {
-	const { copied, copy } = useCopyButtonState({ text: address })
-
 	return (
 		<Flex justify="between" align="center" gap="sm">
 			<PlaceFact icon={<MapPin />}>
 				<Text className="truncate">{address}</Text>
 			</PlaceFact>
 
-			<Button
-				variant="soft"
-				size="sm"
-				color={copied ? 'green' : undefined}
-				onClick={() => void copy()}
-			>
-				{copied ? 'Copied' : 'Copy'}
-			</Button>
+			<CopyButton text={address} aria-label="Copy address" className="-my-1" />
 		</Flex>
 	)
 }
@@ -222,8 +216,9 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 	const category = CATEGORY_BY_VALUE.get(place.category)
 
 	return (
-		<Stack gap="md" className="pb-6">
-			<Stack gap="sm">
+		// `pt-1` is the negative margin of the copy button in the first row.
+		<Stack gap="md" className="pt-1 pb-6">
+			<Stack gap="md">
 				<PlaceAddress address={place.address} />
 
 				{place.url ? (
@@ -235,14 +230,16 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 				) : null}
 
 				{category ? (
-					<PlaceFact icon={<Tag />}>
+					<Flex justify="between" align="center" gap="sm">
+						<PlaceFact icon={<Tag />} />
+
 						{/* The badge is taller than a line. It is centered on one line, so
 						    its middle meets the middle of the icon, and the row is one line
 						    high, the same as the rows over it. */}
 						<div className="flex h-lh items-center">
 							<Badge color={category.color}>{category.label}</Badge>
 						</div>
-					</PlaceFact>
+					</Flex>
 				) : null}
 			</Stack>
 
