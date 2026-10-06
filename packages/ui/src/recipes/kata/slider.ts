@@ -1,11 +1,12 @@
 import type { ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kokkaku } from '../kiso'
+import { hannou, kokkaku, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
 const { color } = slider
+const { forced } = sen
 
 export const k = defineRecipe({
 	base: [
@@ -17,6 +18,9 @@ export const k = defineRecipe({
 		...cursor,
 		'outline-none',
 		...disabled,
+		// Forced colors remove the background of the track and the thumb, so the
+		// slider shows the native range, which paints in system colors.
+		forced.control,
 
 		// --slider-value is set inline (0-100%); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',

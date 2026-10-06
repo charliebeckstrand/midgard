@@ -18,7 +18,7 @@ const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { rail } = omote
-const { border, focus } = sen
+const { border, focus, forced } = sen
 
 /** Tab-group root: stacks the list and panels, swapping axis with orientation. */
 const group = defineRecipe({
@@ -109,7 +109,7 @@ const tab = defineRecipe({
 })
 
 const indicator = defineRecipe({
-	base: [rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
+	base: [rounded.full, ...mode('bg-zinc-950', 'dark:bg-white'), forced.mark],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
 		vertical: 'inset-y-0 -left-px right-auto w-0.5',
