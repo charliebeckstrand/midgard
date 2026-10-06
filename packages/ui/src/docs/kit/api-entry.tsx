@@ -5,8 +5,10 @@ import { Markdown, primeMarkdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
 import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
+import { runInSlices } from './idle.ts'
 
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
@@ -146,13 +148,29 @@ export function ApiEntry({ component }: { component: ComponentApi }) {
 	)
 }
 
-/** Lexes each description of `api`, so an entry renders its Markdown with no lex. */
-export function primeApi(api: BarrelApi): void {
-	for (const component of Object.values(api)) {
-		if (component.description) primeMarkdown(component.description)
+/**
+ * Lexes the descriptions of `api` in idle time, in the order of the accordion,
+ * so an entry renders its Markdown with no lex. The work stops when the token
+ * cache is full, so it does not drop a source that it stored before.
+ */
+export function primeApi(api: BarrelApi, signal: AbortSignal): void {
+	const sources = new Set<string>()
 
-		for (const prop of [...component.props, ...component.events]) {
-			if (prop.description) primeMarkdown(prop.description)
+	for (const component of Object.values(api)) {
+		for (const { description } of [component, ...component.props, ...component.events]) {
+			if (description) sources.add(description)
 		}
 	}
+
+	const next = [...sources].slice(0, MARKDOWN_CACHE_SIZE).values()
+
+	runInSlices(() => {
+		const source = next.next()
+
+		if (source.done) return false
+
+		primeMarkdown(source.value)
+
+		return true
+	}, signal)
 }
