@@ -8,7 +8,9 @@ import { Stack } from 'ui/stack'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
+import { noop } from '../../utilities/noop.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
+import { useFail } from './fail.ts'
 import { useIdle } from './idle.ts'
 
 function isExample(component: object): component is ExampleMeta {
@@ -28,27 +30,22 @@ export function metaOf(component: { readonly name: string }): ExampleMeta {
 }
 
 // Each example loads its code once, and each frame of it shares the load. The
-// examples of a folder share one code module. A failed load gives no code, so the block stays empty until the next
-// page load.
+// examples of a folder share one code module. A load that fails keeps its
+// failure, as the browser does.
 const loads = new WeakMap<ExampleMeta, Promise<void>>()
 
-// The code of each example whose load ended. A frame reads it in the render,
-// so an open block paints its code in the frame that opens it.
-const codes = new WeakMap<ExampleMeta, ExampleCode | undefined>()
+// The code of each example whose load succeeded. A frame reads it in the
+// render, so an open block paints its code in the frame that opens it.
+const codes = new WeakMap<ExampleMeta, ExampleCode>()
 
 function loadCode(meta: ExampleMeta): Promise<void> {
 	return getOrCompute(loads, meta, () =>
-		meta.code().then(
-			(code) => {
-				// The markup from the build paints in the first frame of the block.
-				primeCodeBlock({ code: code.code, ...code.highlight })
+		meta.code().then((code) => {
+			// The markup from the build paints in the first frame of the block.
+			primeCodeBlock({ code: code.code, ...code.highlight })
 
-				codes.set(meta, code)
-			},
-			() => {
-				codes.set(meta, undefined)
-			},
-		),
+			codes.set(meta, code)
+		}),
 	)
 }
 
@@ -113,8 +110,9 @@ export function ExampleFrame({
 	const [open, setOpen] = useState(false)
 
 	// The code module loads in idle time, so "Show code" opens at once. It loads
-	// before that when the reader points at "Show code" or focuses it.
-	const prepare = useCallback(() => loadCode(meta), [meta])
+	// before that when the reader points at "Show code" or focuses it. A load in
+	// the background that fails does nothing. "Show code" shows the failure.
+	const prepare = useCallback(() => loadCode(meta).catch(noop), [meta])
 
 	useIdle(prepare)
 
@@ -131,10 +129,13 @@ export function ExampleFrame({
 
 	// The block opens when its code is loaded, so it opens at its full height
 	// with the code in it. A block that suspends opens empty, and React then
-	// holds the code back for at least 300 ms.
+	// holds the code back for at least 300 ms. When the load fails, the error
+	// boundary shows the failure.
+	const fail = useFail()
+
 	const toggle = (next: boolean) => {
 		if (codes.has(meta)) setOpen(next)
-		else loadCode(meta).then(() => setOpen(next))
+		else loadCode(meta).then(() => setOpen(next), fail)
 	}
 
 	return (
