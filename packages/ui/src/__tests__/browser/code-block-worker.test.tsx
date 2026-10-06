@@ -9,11 +9,7 @@ import { budget } from './helpers/wall-clock'
  * chunk of the grammar, and the lazy chunk of the theme.
  */
 describe('CodeBlock in a module worker', () => {
-	// The wait below can pass the suite `testTimeout` on CI, so the case sets a
-	// timeout above it. An exhausted wait then fails with the last error of the callback.
-	it('shows the plain block, and then the markup of the worker', {
-		timeout: budget(15_000),
-	}, async () => {
+	it('shows the plain block, and then the markup of the worker', async () => {
 		const code = 'const answer: number = 42'
 
 		const { container } = renderUI(<CodeBlock code={code} copy={false} />)

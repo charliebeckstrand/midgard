@@ -18,10 +18,7 @@ import { budget } from './helpers/wall-clock'
 describe('pdf viewer below the newest browsers (real browser)', () => {
 	afterEach(() => resetDocumentCache())
 
-	// The wait for the page raster can pass the suite `testTimeout` on CI, so the
-	// case sets a timeout above it. An exhausted wait then fails with the last
-	// error of the callback.
-	it('renders the first page of a real document', { timeout: budget(15_000) }, async () => {
+	it('renders the first page of a real document', async () => {
 		const src = servePdf(makeInvoicePdf(2))
 
 		const { container } = renderUI(

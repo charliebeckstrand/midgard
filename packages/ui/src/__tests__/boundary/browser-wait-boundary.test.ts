@@ -135,10 +135,8 @@ describe('browser wait boundary', () => {
 	})
 
 	it('finds a budget() wait that can pass the time limit of its case', () => {
-		const [, local = 1] = FACTORS
-
-		// Above the suite limit on each machine.
-		const over = Math.ceil(TEST_TIMEOUT / local)
+		// At the suite limit on each machine, because the limit scales as the wait does.
+		const over = TEST_TIMEOUT
 
 		expect(
 			fixture(`it('a', async () => { await waitFor(f, { timeout: budget(${over}) }) })`),

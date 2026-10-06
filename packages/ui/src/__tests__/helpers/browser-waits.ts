@@ -41,11 +41,13 @@ function configNumber(pattern: RegExp): number[] {
 	return match.slice(1).map((text) => Number(text.replaceAll('_', '')))
 }
 
-/** The suite time limit of a case, which does not scale. */
-export const [TEST_TIMEOUT = Number.NaN] = configNumber(/^\t\ttestTimeout: ([\d_]+),$/m)
+/** The suite time limit of a case on a dev machine. It scales by the factor of `budget()`. */
+export const [TEST_TIMEOUT = Number.NaN] = configNumber(
+	/^\t\ttestTimeout: ([\d_]+) \* BUDGET_FACTOR,$/m,
+)
 
 /** The factors of `budget()`: the one on CI, and the one on a dev machine. */
-export const FACTORS = configNumber(/budgetFactor: CI \? (\d+) : (\d+)/)
+export const FACTORS = configNumber(/^const BUDGET_FACTOR = CI \? (\d+) : (\d+)$/m)
 
 /** The file that holds `pause()`, the one sanctioned hold. */
 export const WALL_CLOCK = '__tests__/browser/helpers/wall-clock.ts'
@@ -397,7 +399,7 @@ export function findingsIn(file: string, parsed: SourceFile): Finding[] {
 				const limit =
 					timeoutOption(node, factor, consts) ??
 					blockTimeouts.findLast((timeouts) => timeouts[index] !== undefined)?.[index] ??
-					TEST_TIMEOUT
+					TEST_TIMEOUT * factor
 
 				for (const call of budgets) {
 					const wait = evaluate(call, factor, consts)
