@@ -17,7 +17,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
-import { fitHeightMiddleware, fitWidthMiddleware } from '../../hooks/use-floating-ui'
+import { fitMiddleware } from '../../hooks/use-floating-ui'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
@@ -65,8 +65,7 @@ const SUBMENU_MIDDLEWARE: Middleware[] = [
 	offset(4),
 	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
 	shift({ padding: 8 }),
-	fitWidthMiddleware,
-	fitHeightMiddleware(snapMenuHeight),
+	fitMiddleware({ fitHeight: snapMenuHeight }),
 ]
 
 /** Props for {@link MenuSub}. */
