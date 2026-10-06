@@ -185,7 +185,7 @@ export function AddressInput({
 			defaultValue={defaultValue}
 			displayValue={(s) => s.label}
 			onValueChange={setHeld}
-			className={cn(loading && 'animate-pulse', className)}
+			className={cn(loading && 'motion-safe:animate-pulse', className)}
 			placeholder={placeholder}
 			// Yields to a wrapping `<Field>`/`<Label>` from the first render: an own
 			// name shadows it, and a placeholder is not a programmatic name.

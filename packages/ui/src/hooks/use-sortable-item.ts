@@ -1,8 +1,8 @@
 'use client'
 
-import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { type CSSProperties, useMemo } from 'react'
+import { useMotionSafeSortable } from './use-motion-safe-sortable'
 
 /** Options for {@link useSortableItem}: the item's id and whether it takes a drag. */
 export type SortableItemOptions = {
@@ -16,7 +16,9 @@ export type SortableItemOptions = {
  * Wraps dnd-kit's `useSortable` with the standard style composition used by
  * sortable components in this package. That composition is transform via
  * `CSS.Transform.toString`, the hook's transition value, and a hidden opacity
- * while dragging (the `<DragOverlay>` owns the dragged visual).
+ * while dragging (the `<DragOverlay>` owns the dragged visual). When the reader
+ * asks for reduced motion, the style has no transition, so a displaced item
+ * moves to its new slot at once.
  *
  * @returns `{ setNodeRef, setActivatorNodeRef, attributes, listeners, style,
  * dragging }`: dnd-kit's node and activator refs, the spreadable `attributes`
@@ -33,7 +35,7 @@ export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
 		transform,
 		transition,
 		isDragging: dragging,
-	} = useSortable({ id, disabled })
+	} = useMotionSafeSortable({ id, disabled })
 
 	// dnd-kit renders each sortable item again when the item under the pointer
 	// changes. The style keeps its identity while its values hold, so a memoized

@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MapDot } from '../../modules/map/map-dot'
-import { act, renderUI } from '../helpers'
+import { act, renderUI, stubMatchMedia } from '../helpers'
 
 /**
  * A dot's pop runs once. After it, a new width (a zoom, a regroup) applies at
- * once, and the pop's tween and stagger delay do not run again.
+ * once, and the pop's tween and stagger delay do not run again. Under reduced
+ * motion the pop does not run: the stroke width is no transform, so the
+ * reduced-motion config of motion does not skip it.
  *
  * The suite reads the props that the dot gives `motion.path`, so it mocks
  * `motion/react`, and sits in `boundary/`.
@@ -58,6 +60,21 @@ describe('MapDot pop', () => {
 		const complete = paths.at(-1)?.onAnimationComplete as () => void
 
 		act(() => complete())
+
+		rerender(dot(2))
+
+		expect(paths.at(-1)).toMatchObject({
+			animate: { strokeWidth: 16 },
+			transition: { duration: 0 },
+		})
+	})
+
+	it('mounts at its size and applies a new width at once under reduced motion', () => {
+		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+
+		const { rerender } = renderUI(dot(1))
+
+		expect(paths.at(-1)).toMatchObject({ initial: false, transition: { duration: 0 } })
 
 		rerender(dot(2))
 

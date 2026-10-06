@@ -2,6 +2,7 @@
 
 import type { Transition } from 'motion/react'
 import { motion, useMotionValue, useTransform } from 'motion/react'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import type { MapOverlayHit } from './use-map-overlay'
 
@@ -73,6 +74,10 @@ type MapLineProps = {
  * pin, and the dot at the far end showed the destination before the line got to
  * it. The opacity therefore follows the drawn share, and not a timer beside it.
  *
+ * The draw is no transform, so the reduced-motion config of motion does not
+ * skip it. Under reduced motion the line mounts whole, and a draw in flight
+ * completes at once.
+ *
  * @internal
  */
 export function MapLine({
@@ -94,8 +99,10 @@ export function MapLine({
 		className,
 	}
 
+	const still = usePrefersReducedMotion()
+
 	// The drawn share, and whether it paints. The two change on the same frame.
-	const drawn = useMotionValue(0)
+	const drawn = useMotionValue(still ? 1 : 0)
 
 	const opacity = useTransform(drawn, (share) => (share > 0 ? 1 : 0))
 
@@ -106,7 +113,7 @@ export function MapLine({
 			{...shape}
 			style={{ pathLength: drawn, opacity }}
 			animate={{ pathLength: 1 }}
-			transition={transition}
+			transition={still ? INSTANT : transition}
 		/>
 	)
 }
@@ -147,3 +154,6 @@ export function lineHitProps({ slot, d, scale, hit, face = false }: MapLineHitSp
 		...hit,
 	}
 }
+
+/** The draw under reduced motion: the line completes at once. @internal */
+const INSTANT = { duration: 0 } as const

@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Sparkline } from '../../components/sparkline'
 import { LineChart } from '../../modules/chart/line-chart'
+import { PieChart } from '../../modules/chart/pie-chart'
+import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { renderUI, stubMatchMedia } from '../helpers'
 
 /**
- * A reduced-motion reader gets the line marks at rest on mount.
+ * A reduced-motion reader gets the line, scatter, pie and sparkline marks at
+ * rest on mount.
  *
  * The reduced-motion config of motion skips a transform, but the line draw
  * (`pathLength`) and the point pop (`r`) are no transform. The marks therefore
@@ -90,5 +94,69 @@ describe('animated line marks under reduced motion', () => {
 		expect(initials.get('chart-point')?.at(-1)).toEqual({ r: 0, opacity: 0 })
 
 		expect(initials.get('chart-line')?.at(-1)).toEqual({ pathLength: 0 })
+	})
+})
+
+const POINTS = [
+	{ a: 1, b: 10 },
+	{ a: 2, b: 30 },
+	{ a: 3, b: 20 },
+]
+
+const SLICES = [
+	{ source: 'Direct', visits: 40 },
+	{ source: 'Search', visits: 25 },
+]
+
+/** The `r` and `pathLength` keys of every `initial` the marks took. */
+function revealKeys() {
+	return [...initials.values()]
+		.flat()
+		.flatMap((initial) =>
+			initial && typeof initial === 'object'
+				? Object.keys(initial).filter((key) => key === 'r' || key === 'pathLength')
+				: [],
+		)
+}
+
+describe('other animated marks under reduced motion', () => {
+	it.each([
+		[
+			'scatter',
+			() => (
+				<ScatterChart
+					aria-label="Scatter"
+					data={POINTS}
+					series={[{ xKey: 'a', yKey: 'b', yName: 'B' }]}
+					width={400}
+					animate
+				/>
+			),
+		],
+		[
+			'pie sweep',
+			() => (
+				<PieChart
+					aria-label="Pie"
+					data={SLICES}
+					series={[{ xKey: 'source', yKey: 'visits' }]}
+					width={300}
+					height={200}
+					animate
+				/>
+			),
+		],
+		['sparkline', () => <Sparkline data={[1, 4, 2, 8, 5]} aria-label="Trend" animate endPoint />],
+	])('mounts the %s at rest', (_name, chart) => {
+		initials.clear()
+
+		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+
+		renderUI(chart())
+
+		// The count is live, so the check below can fail.
+		expect(initials.size).toBeGreaterThan(0)
+
+		expect(revealKeys()).toEqual([])
 	})
 })

@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import type { CSSProperties } from 'react'
 import { memo, useState } from 'react'
 import { cn } from '../../core'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/map'
 import { groundPoints, type MapGround } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS } from './engine/map-constants'
@@ -86,7 +87,9 @@ type MapDotProps = {
  * rather than a transform scale. A dot revealed mid-gesture therefore still
  * lands on the size the view calls for. After the pop, a new width (a zoom, a
  * regroup) applies at once. The pop's tween and its stagger delay do not run
- * again.
+ * again. The stroke width is no transform, so the reduced-motion config of
+ * motion does not skip it. Under reduced motion the dot mounts at its size, and
+ * a new width applies at once.
  *
  * @internal
  */
@@ -110,6 +113,8 @@ export function MapDot({
 		className,
 	}
 
+	const still = usePrefersReducedMotion()
+
 	// Whether the pop has run. Each width after it is a new view, not a reveal.
 	const [popped, setPopped] = useState(false)
 
@@ -118,15 +123,23 @@ export function MapDot({
 	return (
 		<motion.path
 			{...shared}
-			initial={{ opacity: 0, strokeWidth: 0 }}
+			initial={still ? false : DOT_HIDDEN}
 			animate={{ opacity: 1, strokeWidth: width }}
-			transition={popped ? SETTLED : transition}
+			transition={popped || still ? SETTLED : transition}
 			onAnimationComplete={popped ? undefined : () => setPopped(true)}
 		/>
 	)
 }
 
-/** The transition of a dot after its pop: a new width applies at once. @internal */
+/** The dot before its pop. @internal */
+const DOT_HIDDEN = { opacity: 0, strokeWidth: 0 } as const
+
+/**
+ * The transition of a dot after its pop, and under reduced motion: a new width
+ * applies at once.
+ *
+ * @internal
+ */
 const SETTLED = { duration: 0 } as const
 
 /** Props for {@link MapDotCount}. @internal */
