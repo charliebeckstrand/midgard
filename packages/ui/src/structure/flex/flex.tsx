@@ -50,7 +50,6 @@ export type FlexProps = {
 	 */
 	full?: boolean
 	className?: string
-	[key: `data-${string}`]: string | number | boolean | undefined
 } & Omit<ComponentProps<'div'>, 'className'>
 
 /**
