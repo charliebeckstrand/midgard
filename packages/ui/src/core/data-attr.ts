@@ -3,7 +3,7 @@
  * string when set, `undefined` otherwise. JSX renders the attribute as a bare
  * presence marker (`data-current=""`) when set, and omits it for `undefined`.
  * Call sites therefore stay unconditional, and presence-based CSS
- * (`data-[current]:…`) matches.
+ * (`data-current:…`) matches.
  *
  * @remarks
  * The single-attribute sibling of {@link invalidAttrs} (`data-invalid`); use

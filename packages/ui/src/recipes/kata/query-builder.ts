@@ -49,9 +49,9 @@ export const k = {
 		// it passes do not show through it.
 		base: [
 			'flex items-start gap-1.5',
-			'data-[dragging]:relative data-[dragging]:z-10',
-			'data-[dragging]:rounded-lg data-[dragging]:shadow-lg',
-			...mode('data-[dragging]:bg-white', 'dark:data-[dragging]:bg-zinc-900'),
+			'data-dragging:relative data-dragging:z-10',
+			'data-dragging:rounded-lg data-dragging:shadow-lg',
+			...mode('data-dragging:bg-white', 'dark:data-dragging:bg-zinc-900'),
 		],
 		// The grip centers on the first control line of a rule: the rule's border
 		// and `p-2.5`, then half a control. Beside a group, it sits at the same

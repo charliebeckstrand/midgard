@@ -24,8 +24,8 @@ export const k = {
 		...cursor,
 		...mode('hover:not-disabled:border-zinc-400', 'dark:hover:not-disabled:border-zinc-500'),
 		...mode(
-			'data-[drag-over]:border-blue-500 data-[drag-over]:bg-blue-50/50',
-			'dark:data-[drag-over]:border-blue-400 dark:data-[drag-over]:bg-blue-950/20',
+			'data-drag-over:border-blue-500 data-drag-over:bg-blue-50/50',
+			'dark:data-drag-over:border-blue-400 dark:data-drag-over:bg-blue-950/20',
 		),
 		...disabled,
 	],

@@ -63,7 +63,7 @@ describe('grab-cursor boundary', () => {
 		for (const bundle of [hannou.grab.default, hannou.grab.cursor]) {
 			const classes = bundle.join(' ').split(/\s+/)
 
-			expect(classes).toContain('data-[dragging]:cursor-grabbing')
+			expect(classes).toContain('data-dragging:cursor-grabbing')
 
 			expect(classes.filter((name) => name.startsWith('active:'))).toEqual([])
 		}
