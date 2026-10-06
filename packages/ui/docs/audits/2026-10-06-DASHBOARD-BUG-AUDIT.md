@@ -39,11 +39,11 @@ Status: `◯ OPEN` → `◐ FIXED` (on a branch) → `✅ RESOLVED ([#NNN](…))
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 |---|---|---|---|---|---|---|---|
-| B01-C02 | `engine/dashboard-layout.ts` | `usableDemands` | CONFIRMED | medium | none | independent | ◐ FIXED |
-| B01-C01 | `engine/dashboard-drag.ts` | `dragPreview` (`dominantPeer`, `reorderPreview`) | CONFIRMED | low | shipped | independent | ◐ FIXED |
-| B02-C03 | `use-dashboard-drag.ts` | `coordinateGetter` | CONFIRMED | low | shipped | independent | ◐ FIXED |
-| B02-C07 | `use-dashboard-resize.ts` | `beginResize` | NARROWED | low | shipped | independent | ◐ FIXED |
-| B02-C04 | `dashboard-tile.tsx` | `DashboardTile` (`freeHeight`) | CONFIRMED | low | none | independent | ◐ FIXED |
+| B01-C02 | `engine/dashboard-layout.ts` | `usableDemands` | CONFIRMED | medium | none | independent | ✅ RESOLVED ([#2067](https://github.com/charliebeckstrand/midgard/pull/2067)) |
+| B01-C01 | `engine/dashboard-drag.ts` | `dragPreview` (`dominantPeer`, `reorderPreview`) | CONFIRMED | low | shipped | independent | ✅ RESOLVED ([#2067](https://github.com/charliebeckstrand/midgard/pull/2067)) |
+| B02-C03 | `use-dashboard-drag.ts` | `coordinateGetter` | CONFIRMED | low | shipped | independent | ✅ RESOLVED ([#2067](https://github.com/charliebeckstrand/midgard/pull/2067)) |
+| B02-C07 | `use-dashboard-resize.ts` | `beginResize` | NARROWED | low | shipped | independent | ✅ RESOLVED ([#2067](https://github.com/charliebeckstrand/midgard/pull/2067)) |
+| B02-C04 | `dashboard-tile.tsx` | `DashboardTile` (`freeHeight`) | CONFIRMED | low | none | independent | ✅ RESOLVED ([#2067](https://github.com/charliebeckstrand/midgard/pull/2067)) |
 
 ## Mechanisms
 
