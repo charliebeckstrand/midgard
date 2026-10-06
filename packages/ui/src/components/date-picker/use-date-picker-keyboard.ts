@@ -33,7 +33,11 @@ type DatePickerKeyDownParams = {
 	 * `getInitialActiveDate`, held between `min` and `max`.
 	 */
 	moveGridDate: (delta: number, from?: Date) => Date
-	moveGridMonths: (delta: number) => Date
+	/**
+	 * The day `delta` months from `from`, else from the grid highlight, else from
+	 * `getInitialActiveDate`, held between `min` and `max`.
+	 */
+	moveGridMonths: (delta: number, from?: Date) => Date
 	getInitialActiveDate: () => Date
 	/**
 	 * The day where an arrow key moves the highlight into the grid: from the
@@ -58,7 +62,7 @@ type DatePickerKeyContext = {
 	setActive: (next: CalendarActive | null) => void
 	closeCalendar: () => void
 	moveGridDate: (delta: number, from?: Date) => Date
-	moveGridMonths: (delta: number) => Date
+	moveGridMonths: (delta: number, from?: Date) => Date
 	getInitialActiveDate: () => Date
 	getViewEntryDate: () => Date | null
 	handleSelect: (date: Date) => void
@@ -106,6 +110,22 @@ export function useDatePickerGridEntry(
 	return { getInitialActiveDate, getViewEntryDate }
 }
 
+/**
+ * The keys that move the model: the four arrows and the Page keys. The dialog
+ * takes focus back from a focused control for these keys, and a focused
+ * toolbar button or day button then acts as its zone of the model.
+ *
+ * @internal
+ */
+export const NAVIGATION_KEYS: ReadonlySet<string> = new Set([
+	'ArrowUp',
+	'ArrowDown',
+	'ArrowLeft',
+	'ArrowRight',
+	'PageUp',
+	'PageDown',
+])
+
 /** True for any of the four arrow keys. @internal */
 function isArrowKey(key: string): boolean {
 	return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown'
@@ -134,8 +154,8 @@ function handleClosedKey(
 }
 
 /**
- * Handles keys that apply in any zone while the calendar is open (Escape,
- * Shift+Arrow jumps, PageUp/PageDown month/year paging).
+ * Handles keys that apply in any zone while the calendar is open: Escape and
+ * the Shift+Arrow jumps.
  *
  * @returns `true` once a key is consumed so the caller can skip zone dispatch.
  * @internal
@@ -169,22 +189,37 @@ function handleOpenGlobalKey(
 		return true
 	}
 
-	// APG date-grid: PageUp/PageDown move a month, Shift+Page a year. The
-	// highlight materializes on the moved date when none exists yet, and the
-	// calendar view re-anchors to follow it.
-	if (event.key === 'PageUp' || event.key === 'PageDown') {
-		event.preventDefault()
-
-		const direction = event.key === 'PageUp' ? -1 : 1
-
-		const next = ctx.moveGridMonths(event.shiftKey ? direction * 12 : direction)
-
-		ctx.setActive({ zone: 'grid', date: next })
-
-		return true
-	}
-
 	return false
+}
+
+/**
+ * APG date grid: PageUp and PageDown move a month, and Shift with a Page key
+ * moves a year. The move starts on the day of a grid `current`. From the header
+ * zone, the footer zone, or no highlight, the move starts on the anchor. The
+ * highlight goes on the day that the move gives, and the view moves to it.
+ *
+ * @param current - The zone of the model, or the zone of the focused control.
+ * @returns `true` when the key is a Page key.
+ * @internal
+ */
+function handlePageKey(
+	event: KeyboardEvent<HTMLElement>,
+	current: CalendarActive | null,
+	ctx: DatePickerKeyContext,
+): boolean {
+	if (event.key !== 'PageUp' && event.key !== 'PageDown') return false
+
+	event.preventDefault()
+
+	const direction = event.key === 'PageUp' ? -1 : 1
+
+	const from = current?.zone === 'grid' ? current.date : ctx.getInitialActiveDate()
+
+	const next = ctx.moveGridMonths(event.shiftKey ? direction * 12 : direction, from)
+
+	ctx.setActive({ zone: 'grid', date: next })
+
+	return true
 }
 
 /**
@@ -386,21 +421,21 @@ function dayOfTarget(target: Element): CalendarActive | null {
 /**
  * The zone of a toolbar button or a day button that has DOM focus. The user
  * can Tab to a header or footer button, or to the Tab stop of the day grid, and
- * the dialog then gets the key from that button. On an arrow key, the button
- * then acts as its zone of the model. A toolbar button gives the index in its
- * `data-index` attribute, and a day button gives its date. The dialog takes
- * focus back only for these keys, so other keys, such as Tab, do not move the
- * highlight.
+ * the dialog then gets the key from that button. On an arrow key or a Page key
+ * ({@link NAVIGATION_KEYS}), the button then acts as its zone of the model. A
+ * toolbar button gives the index in its `data-index` attribute, and a day
+ * button gives its date. The dialog takes focus back only for these keys, so
+ * other keys, such as Tab, Home, and End, do not move the highlight.
  *
- * @returns The zone, or `null` when the key is not an arrow, or comes from the
- * element that holds the handler, or from an element outside the two toolbars
- * and the day buttons.
+ * @returns The zone, or `null` when the key is not in {@link NAVIGATION_KEYS},
+ * or comes from the element that holds the handler, or from an element outside
+ * the two toolbars and the day buttons.
  * @internal
  */
 function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null {
 	const { target, currentTarget } = event
 
-	if (!isArrowKey(event.key) || !(target instanceof Element) || target === currentTarget) {
+	if (!NAVIGATION_KEYS.has(event.key) || !(target instanceof Element) || target === currentTarget) {
 		return null
 	}
 
@@ -440,6 +475,36 @@ function isNewControl(
 	if (mapped === null) return false
 
 	return active === null || !isSameControl(active, mapped)
+}
+
+/**
+ * Sends a key to the handler of the `current` zone: the grid, the header, or
+ * the footer.
+ *
+ * @internal
+ */
+function handleZoneKey(
+	event: KeyboardEvent<HTMLElement>,
+	current: CalendarActive,
+	ctx: DatePickerKeyContext,
+) {
+	// The day grid and the header and footer rows follow the reading order,
+	// so the arrows swap in RTL.
+	const key = logicalArrowKey(event.key, event.currentTarget)
+
+	if (current.zone === 'grid') {
+		handleGridKey(event, key, current, ctx)
+
+		return
+	}
+
+	if (current.zone === 'header') {
+		handleHeaderKey(event, key, current, ctx)
+
+		return
+	}
+
+	handleFooterKey(event, key, current, ctx)
 }
 
 /**
@@ -491,13 +556,16 @@ export function useDatePickerKeyboard({
 
 			if (handleOpenGlobalKey(event, ctx)) return
 
-			// On an arrow, a toolbar button or a day button with DOM focus sets the
-			// zone of the model. Only a different zone, index, or day sets it again.
+			// On an arrow or a Page key, a toolbar button or a day button with DOM
+			// focus sets the zone of the model. Only a different zone, index, or day
+			// sets it again.
 			const mapped = zoneOfTarget(event)
 
 			if (isNewControl(active, mapped)) setActive(mapped)
 
 			const current = mapped ?? active
+
+			if (handlePageKey(event, current, ctx)) return
 
 			if (current === null) {
 				handleNoActiveKey(event, ctx, input)
@@ -505,23 +573,7 @@ export function useDatePickerKeyboard({
 				return
 			}
 
-			// The day grid and the header and footer rows follow the reading order,
-			// so the arrows swap in RTL.
-			const key = logicalArrowKey(event.key, event.currentTarget)
-
-			if (current.zone === 'grid') {
-				handleGridKey(event, key, current, ctx)
-
-				return
-			}
-
-			if (current.zone === 'header') {
-				handleHeaderKey(event, key, current, ctx)
-
-				return
-			}
-
-			handleFooterKey(event, key, current, ctx)
+			handleZoneKey(event, current, ctx)
 		},
 		[
 			disabled,

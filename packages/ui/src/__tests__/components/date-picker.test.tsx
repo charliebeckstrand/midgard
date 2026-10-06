@@ -1397,6 +1397,31 @@ describe('DatePicker input', () => {
 		)
 	})
 
+	// B01-C12, Q11: a Page key from a focused day steps a month from that day.
+	it('pages a month from a focused day and returns focus to the input', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		await user.click(screen.getByRole('button', { name: 'Next month' })) // show July
+
+		act(() => findDay(20)?.focus())
+
+		await user.keyboard('{PageDown}')
+
+		expect(input).toHaveFocus()
+
+		expect(screen.getByRole('button', { name: /August 2025/ })).toBeInTheDocument()
+
+		expect(document.getElementById(input.getAttribute('aria-activedescendant') as string)).toBe(
+			findDay(20),
+		)
+	})
+
 	// B01-C12, Q8: ArrowUp on the top row steps a week back from the focused day.
 	it('steps a week back from a focused day on the top row', async () => {
 		const user = setupUser()

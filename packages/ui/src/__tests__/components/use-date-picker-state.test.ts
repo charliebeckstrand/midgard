@@ -295,6 +295,19 @@ describe('useDatePickerState', () => {
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 21) })
 		})
 
+		// B01-C12, Q11: a Page key from a focused day steps a month from that day.
+		it('steps a month from a focused day button on PageDown', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('PageDown', '2025-01-20')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 1, 20) })
+		})
+
 		it('holds the step from a focused day button inside max', () => {
 			const max = new Date(2025, 0, 20)
 

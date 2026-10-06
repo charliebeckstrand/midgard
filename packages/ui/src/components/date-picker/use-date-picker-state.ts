@@ -106,9 +106,10 @@ export function useDatePickerState({
 		calendarRef,
 	)
 
-	// A step starts on `from` when the key gives the day, as a focused day button
-	// does. The highlight that `setActive` sets for that day lands only on the
-	// next render. Else the step starts on the highlight, else on the seed.
+	// A step of days or months starts on `from` when the key gives the day, as a
+	// focused day button does. The highlight that `setActive` sets for that day
+	// lands only on the next render. Else the step starts on the highlight, else
+	// on the seed.
 	const moveGridDate = useCallback(
 		(delta: number, from?: Date) => {
 			const base = from ?? (active?.zone === 'grid' ? active.date : getInitialActiveDate())
@@ -119,8 +120,8 @@ export function useDatePickerState({
 	)
 
 	const moveGridMonths = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
+		(delta: number, from?: Date) => {
+			const base = from ?? (active?.zone === 'grid' ? active.date : getInitialActiveDate())
 
 			return clampDate(stepDate(base, { months: delta }), min, max)
 		},

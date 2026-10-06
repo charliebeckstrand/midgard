@@ -607,6 +607,23 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.calendar.hoverDate).toEqual(new Date(2025, 0, 21))
 		})
 
+		// B01-C12, Q11: a Page key from a focused day steps a month from that day.
+		it('pages the cursor and the hover from a focused day button', () => {
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.calendar.onValueChange(Jan10))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('PageDown', '2025-01-20')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 1, 20) })
+
+			expect(result.current.calendar.hoverDate).toEqual(new Date(2025, 1, 20))
+		})
+
 		it('activates the clear footer button via Shift+ArrowDown then Enter', () => {
 			const onChange = vi.fn()
 

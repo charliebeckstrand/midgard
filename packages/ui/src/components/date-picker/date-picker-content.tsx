@@ -16,16 +16,7 @@ import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
-
-// Keys the virtual model navigates with; see the dialog's onKeyDown below.
-const ARROW_KEYS = new Set([
-	'ArrowUp',
-	'ArrowDown',
-	'ArrowLeft',
-	'ArrowRight',
-	'PageUp',
-	'PageDown',
-])
+import { NAVIGATION_KEYS } from './use-date-picker-keyboard'
 
 /** Props for {@link DatePickerContent}. @internal */
 type DatePickerContentProps = {
@@ -146,7 +137,7 @@ export function DatePickerContent({
 		// the seed of the open focus first: the dialog, or the input
 		// in `input` mode. A grid move can re-anchor the month and
 		// unmount the focused day button, which drops focus to <body>.
-		if (ARROW_KEYS.has(event.key) && event.target !== event.currentTarget) {
+		if (NAVIGATION_KEYS.has(event.key) && event.target !== event.currentTarget) {
 			;(focusRef.current ?? event.currentTarget).focus()
 		}
 

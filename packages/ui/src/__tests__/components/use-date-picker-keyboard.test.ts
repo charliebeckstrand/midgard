@@ -30,7 +30,11 @@ function setup(overrides: Setup = {}) {
 			new Date(2026, from?.getMonth() ?? 0, (from?.getDate() ?? 15) + delta),
 	)
 
-	const moveGridMonths = vi.fn((delta: number) => new Date(2026, 0 + delta, 15))
+	// Each page starts on `from`, else on the 15th of January.
+	const moveGridMonths = vi.fn(
+		(delta: number, from?: Date) =>
+			new Date(2026, (from?.getMonth() ?? 0) + delta, from?.getDate() ?? 15),
+	)
 
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
 
@@ -211,19 +215,19 @@ describe('useDatePickerKeyboard: grid zone', () => {
 
 		handler(makeKeyEvent<HTMLElement>('PageUp'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(-1)
+		expect(moveGridMonths).toHaveBeenCalledWith(-1, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageDown'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(1)
+		expect(moveGridMonths).toHaveBeenCalledWith(1, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageUp', { shiftKey: true }))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(-12)
+		expect(moveGridMonths).toHaveBeenCalledWith(-12, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageDown', { shiftKey: true }))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(12)
+		expect(moveGridMonths).toHaveBeenCalledWith(12, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(4)
 	})
@@ -233,7 +237,7 @@ describe('useDatePickerKeyboard: grid zone', () => {
 
 		handler(makeKeyEvent<HTMLElement>('PageDown'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(1)
+		expect(moveGridMonths).toHaveBeenCalledWith(1, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: expect.any(Date) })
 	})
@@ -702,6 +706,52 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 		expect(setActive).toHaveBeenCalledTimes(1)
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 19) })
+	})
+
+	// B01-C12, Q11: the dialog takes focus back for the Page keys too, so they map the day.
+	it.each<[string, boolean, number, Date]>([
+		['PageDown', false, 1, new Date(2026, 1, 20)],
+		['PageUp', false, -1, new Date(2025, 11, 20)],
+		['PageDown', true, 12, new Date(2027, 0, 20)],
+	])('steps from the focused day on %s (Shift: %s)', (key, shiftKey, delta, expected) => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, moveGridMonths } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		const event = makeKeyEvent<HTMLElement>(key, {
+			shiftKey,
+			target: day,
+			currentTarget: dialog as HTMLElement,
+		})
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 20) })
+
+		expect(moveGridMonths).toHaveBeenCalledWith(delta, new Date(2026, 0, 20))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: expected })
+	})
+
+	// Q11: a focused header button acts as the header zone, so a Page key steps from the anchor.
+	it('steps from the anchor on PageDown from a focused header button', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive, moveGridMonths } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 20) },
+		})
+
+		handler(keyFrom('PageDown', header[2] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
+
+		expect(moveGridMonths).toHaveBeenCalledWith(1, new Date(2026, 0, 15))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 1, 15) })
 	})
 
 	// Q10: only an arrow maps the day, so the hook keeps the highlight for Enter.
