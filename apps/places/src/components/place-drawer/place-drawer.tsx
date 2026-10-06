@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, Copy, Globe, MapPin, Tag, X } from 'lucide-react'
+import { CalendarDays, Copy, Globe, Heart, MapPin, Tag, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
@@ -152,8 +152,8 @@ function PlaceAddress({ address }: { address: string }) {
 }
 
 /**
- * One visit to the open place: the date and the score with the menu of the
- * visit, then the photos and the review.
+ * One visit to the open place: the date with the menu of the visit, the score
+ * under the date, then the photos and the review.
  */
 function PlaceVisit({
 	place,
@@ -168,20 +168,24 @@ function PlaceVisit({
 
 	return (
 		<Stack gap="sm">
-			<Flex justify="between" align="center" gap="sm">
-				<PlaceFact icon={<CalendarDays />}>
-					<Flex gap="sm" align="center" wrap>
+			<Stack gap="md">
+				<Flex justify="between" align="center" gap="sm">
+					<PlaceFact icon={<CalendarDays />}>
 						<Text>Visited {day}</Text>
+					</PlaceFact>
 
-						{visit.rating > 0 ? <Rating readOnly value={visit.rating} size="sm" /> : null}
-					</Flex>
-				</PlaceFact>
+					<PlaceMenu
+						items={visitMenuItems(place, visit, actions)}
+						aria-label={`Actions for the visit on ${day}`}
+					/>
+				</Flex>
 
-				<PlaceMenu
-					items={visitMenuItems(place, visit, actions)}
-					aria-label={`Actions for the visit on ${day}`}
-				/>
-			</Flex>
+				{visit.rating > 0 ? (
+					<PlaceFact icon={<Heart />}>
+						<Rating readOnly value={visit.rating} size="sm" />
+					</PlaceFact>
+				) : null}
+			</Stack>
 
 			{/* `next/image` with `unoptimized`: the address is the one that the
 			    reader typed, so the host is not known at build time. The optimizer
