@@ -23,6 +23,9 @@ export type TooltipProps = {
 	 *   browser takes for a scroll does not open it. A tap does not open it when
 	 *   the trigger is, or sits inside, a control with `aria-haspopup` or
 	 *   `aria-expanded`, because that tap opens the popup of the control.
+	 * - `'hover-only'`: a mouse or pen hover. A tap does not open it. Use it when
+	 *   the trigger is a control that a tap operates, and the tooltip only names
+	 *   that control, such as the show/hide button of a password field.
 	 * - `'click'`: a click from any pointer, touch included. A mouse hover does
 	 *   not open it. Use it when the tooltip must not appear on a mouse hover,
 	 *   such as an info button that a reader opens on purpose.
@@ -30,7 +33,7 @@ export type TooltipProps = {
 	 * @defaultValue 'hover'
 	 * @remarks {@link TooltipProps.open} is the manual trigger.
 	 */
-	trigger?: 'hover' | 'click'
+	trigger?: 'hover' | 'hover-only' | 'click'
 	/**
 	 * Hover open delay in milliseconds (close delay is fixed at 100ms). A tap
 	 * opens the tooltip with no delay.
@@ -89,7 +92,8 @@ export type TooltipProps = {
  *
  * @remarks Opens on hover or on click, as `trigger` selects, and on keyboard
  * focus. A hover tooltip opens on a tap, because a tap gives no hover. The tap
- * does not stop the click action of the trigger. Stays
+ * does not stop the click action of the trigger. A hover-only tooltip does not
+ * open on a tap. Stays
  * suppressed while the trigger is `:disabled` (own attribute, ancestor
  * `<fieldset disabled>`, or a disabled descendant) and dismisses on the shared
  * overlay-close signal. The panel takes `role="tooltip"`, and `<TooltipTrigger>`

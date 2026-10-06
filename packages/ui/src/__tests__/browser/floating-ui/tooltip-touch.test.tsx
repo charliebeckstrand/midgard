@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import {
+	Tooltip,
+	TooltipContent,
+	type TooltipProps,
+	TooltipTrigger,
+} from '../../../components/tooltip'
 import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
@@ -62,10 +67,10 @@ async function tap(
 }
 
 /** Renders a hover tooltip with no open delay, and gives its trigger. @internal */
-function renderHoverTooltip(onClick?: () => void) {
+function renderHoverTooltip(onClick?: () => void, trigger?: TooltipProps['trigger']) {
 	const { container } = renderUI(
 		<>
-			<Tooltip delay={0}>
+			<Tooltip delay={0} trigger={trigger}>
 				<TooltipTrigger>
 					<button type="button" onClick={onClick}>
 						Toggle
@@ -217,6 +222,30 @@ describe('Tooltip trigger (real browser)', () => {
 		await tap(outside, { from: trigger })
 
 		await expectClosed()
+
+		await userEvent.hover(trigger)
+
+		await expectOpen()
+	})
+
+	it('does not open a hover-only tooltip on a tap, and keeps the click action', async () => {
+		const onClick = vi.fn()
+
+		const { trigger } = renderHoverTooltip(onClick, 'hover-only')
+
+		await tap(trigger)
+
+		await expectClosed()
+
+		await tap(trigger, { hovered: true })
+
+		await expectClosed()
+
+		expect(onClick).toHaveBeenCalledTimes(2)
+	})
+
+	it('opens a hover-only tooltip on a mouse hover', async () => {
+		const { trigger } = renderHoverTooltip(undefined, 'hover-only')
 
 		await userEvent.hover(trigger)
 

@@ -13,6 +13,12 @@ type TooltipTouchOptions = {
 	/** Whether the touch rule applies. It applies to a hover tooltip that is on. */
 	enabled: boolean
 	/**
+	 * Whether a tap opens the tooltip. When `false`, the rule only writes the
+	 * pointer type, so the gate still refuses the hover open that the
+	 * compatibility mouse events of a tap give.
+	 */
+	tap: boolean
+	/**
 	 * Whether the panel is a dialog. The trigger then carries the popup
 	 * attributes of this tooltip, and the popup test starts at its parent.
 	 */
@@ -74,7 +80,7 @@ function insidePopupControl(trigger: Element, dialog: boolean): boolean {
  */
 export function useTooltipTouch(
 	context: FloatingRootContext,
-	{ enabled, dialog, pointerTypeRef }: TooltipTouchOptions,
+	{ enabled, tap, dialog, pointerTypeRef }: TooltipTouchOptions,
 ): ElementProps[] {
 	const { open, onOpenChange } = context
 
@@ -114,7 +120,7 @@ export function useTooltipTouch(
 
 					armedRef.current = null
 
-					if (event.pointerType !== 'touch' || !event.isPrimary) return
+					if (!tap || event.pointerType !== 'touch' || !event.isPrimary) return
 
 					if (!open && insidePopupControl(event.currentTarget, dialog)) return
 
@@ -132,7 +138,7 @@ export function useTooltipTouch(
 				onPointerCancel: disarm,
 			},
 		}
-	}, [enabled, dialog, open, onOpenChange, pointerTypeRef])
+	}, [enabled, tap, dialog, open, onOpenChange, pointerTypeRef])
 
 	return [press, scroll]
 }

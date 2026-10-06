@@ -40,14 +40,16 @@ type ToggleProps = {
  * Keeps a fixed `aria-label` (the show label) and signals state via
  * `aria-pressed`, per the APG toggle-button pattern. Screen readers don't
  * reliably announce a name swap on the same control. The visible tooltip text
- * still swaps between show/hide.
+ * still swaps between show/hide. The tooltip opens on a hover and on keyboard
+ * focus, not on a tap: a tap flips the visibility, and the icon shows the
+ * result.
  * @internal
  */
 function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }: ToggleProps) {
 	const text = visible ? hideLabel : showLabel
 
 	return (
-		<Tooltip>
+		<Tooltip trigger="hover-only">
 			<TooltipTrigger>
 				{/* Fixed accessible name + aria-pressed (the APG toggle pattern):
 				    screen readers do not reliably announce a name swap on the same

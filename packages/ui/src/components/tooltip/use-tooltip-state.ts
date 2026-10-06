@@ -68,9 +68,9 @@ function fieldsetAncestors(reference: Element): Element[] {
  * Floating, hover/focus/click interaction, and disabled-suppression state for
  * {@link Tooltip}, returned as the value shared through context.
  *
- * @remarks `trigger` selects hover or click, and keyboard focus opens with either.
- * A hover trigger opens on a mouse hover and on a tap, and a second tap
- * closes it. {@link useTooltipTouch} holds the touch rule.
+ * @remarks `trigger` selects hover, hover only, or click, and keyboard focus
+ * opens with each. A hover trigger opens on a mouse hover and on a tap, and a
+ * second tap closes it. A hover-only trigger does not open on a tap. {@link useTooltipTouch} holds the touch rule.
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`, re-opening on hover once the
  * disabled state clears. Hands the floating root context out as
@@ -193,7 +193,7 @@ export function useTooltipState({
 	// in its place. The `:focus-visible` gate of `useFocus` stops the focus
 	// that a tap gives a button from opening it.
 	const hover = useHover(context, {
-		enabled: enabled && trigger === 'hover',
+		enabled: enabled && trigger !== 'click',
 		mouseOnly: true,
 		delay: { open: delay, close: 100 },
 		// A bare `safePolygon()` takes floating-ui's defaults, and `requireIntent`
@@ -208,7 +208,8 @@ export function useTooltipState({
 	const click = useClick(context, { enabled: enabled && trigger === 'click' })
 
 	const touch = useTooltipTouch(context, {
-		enabled: enabled && trigger === 'hover',
+		enabled: enabled && trigger !== 'click',
+		tap: trigger === 'hover',
 		dialog,
 		pointerTypeRef,
 	})
