@@ -282,9 +282,7 @@ function reorderPreview(
 ): DashboardDragPreview | null {
 	const partner = dominantPeer(snapshot, origin, target)
 
-	if (partner === undefined || partner.static) return null
-
-	if (partner.w !== origin.w || partner.h !== origin.h) return null
+	if (partner === undefined || !reorderable(partner, origin)) return null
 
 	if (overlapArea(partner, target) * 2 < origin.w * origin.h) return null
 

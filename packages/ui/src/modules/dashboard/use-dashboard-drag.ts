@@ -287,7 +287,7 @@ export function useDashboardDrag({
 
 			const pitch = gesture?.pitch ?? 0
 
-			if (gesture == null || pitch <= 0) return undefined
+			if (gesture === null || pitch <= 0) return undefined
 
 			const step = { x: 0, y: 0 }
 

@@ -127,12 +127,22 @@ export type DashboardCell = {
  * free-form. A ratio of 0 would give an infinite height, and NaN a NaN height.
  */
 export function usableRatio(ratio: number | undefined): number | undefined {
-	return ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? ratio : undefined
+	const finite = finiteOrAbsent(ratio)
+
+	return finite !== undefined && finite > 0 ? finite : undefined
 }
 
 /** `value`, or `undefined` when it is not a finite number. */
 function finiteOrAbsent(value: number | undefined): number | undefined {
 	return value !== undefined && Number.isFinite(value) ? value : undefined
+}
+
+/** A span limit from its two axes, or `undefined` when neither axis is set. */
+export function spanLimit(
+	w: number | undefined,
+	h: number | undefined,
+): Partial<DashboardTileSize> | undefined {
+	return w === undefined && h === undefined ? undefined : { w, h }
 }
 
 /**
@@ -166,9 +176,7 @@ function usableLimit(
 
 	const h = finiteOrAbsent(limit.h)
 
-	if (w === limit.w && h === limit.h) return limit
-
-	return w === undefined && h === undefined ? undefined : { w, h }
+	return w === limit.w && h === limit.h ? limit : spanLimit(w, h)
 }
 
 /**
@@ -187,9 +195,9 @@ function usableLimit(
 export function usableDemands(demands: DashboardTileDemands): DashboardTileDemands {
 	const ratio = usableRatio(demands.ratio)
 
-	const width = demands.minWidth
+	const width = finiteOrAbsent(demands.minWidth)
 
-	const minWidth = width !== undefined && Number.isFinite(width) && width >= 0 ? width : undefined
+	const minWidth = width !== undefined && width >= 0 ? width : undefined
 
 	const defaultSize = usableSize(demands.defaultSize)
 
@@ -199,7 +207,7 @@ export function usableDemands(demands: DashboardTileDemands): DashboardTileDeman
 
 	if (
 		ratio === demands.ratio &&
-		minWidth === width &&
+		minWidth === demands.minWidth &&
 		defaultSize === demands.defaultSize &&
 		minSize === demands.minSize &&
 		maxSize === demands.maxSize
