@@ -1,11 +1,10 @@
 'use client'
 
-import { CalendarDays, Globe, MapPin, Tag, X } from 'lucide-react'
+import { CalendarDays, Copy, Globe, Heart, MapPin, Tag, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
-import { Button } from 'ui/button'
-import { useCopyButtonState } from 'ui/copy-button'
+import { CopyButton } from 'ui/copy-button'
 import { DateTime } from 'ui/date-time'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
@@ -74,38 +73,42 @@ export type PlaceDrawerProps = {
 }
 
 /**
- * The category, the date and the score of the newest visit, and the number of
- * visits where there is more than one — the line under a place's name. It is
- * spans, because a list row puts it inside a button, and a flex line lays out
- * the same either way.
+ * The lines under a place's name: the score of the newest visit, then the date
+ * of that visit, or the number of visits where there is more than one. They are
+ * spans, because a list row puts them inside a button.
  */
 function PlaceMeta({ place }: { place: Place }) {
-	const category = CATEGORY_BY_VALUE.get(place.category)
-
 	const latest = latestVisit(place)
 
 	return (
-		<Flex as="span" gap="sm" align="center" wrap>
-			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
-
-			<Text as="span">
-				<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
-			</Text>
-
+		<>
 			{latest.rating > 0 ? <Rating readOnly value={latest.rating} size="sm" /> : null}
 
 			{place.visits.length > 1 ? (
 				<Text as="span" tone="muted">
 					{place.visits.length} visits
 				</Text>
-			) : null}
-		</Flex>
+			) : (
+				<Text as="span" tone="muted">
+					<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
+				</Text>
+			)}
+		</>
 	)
+}
+
+/** The badge of a category, or nothing for a category that the app does not know. */
+function PlaceCategoryBadge({ category }: { category: PlaceCategory }) {
+	const meta = CATEGORY_BY_VALUE.get(category)
+
+	return meta ? <Badge color={meta.color}>{meta.label}</Badge> : null
 }
 
 /**
  * One fact about a place, with an icon that names the fact. The icon box is one
- * line high, so the icon stays on the first line when the text wraps.
+ * line high, so the icon stays on the first line when the text wraps. The fact
+ * is centered on that line, so the middle of a fact that is not text, such as
+ * a score, meets the middle of the icon.
  */
 function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode }) {
 	return (
@@ -114,7 +117,7 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 				<Icon icon={icon} />
 			</Text>
 
-			<div className="min-w-0 wrap-break-word">{children}</div>
+			<div className="flex min-h-lh min-w-0 items-center wrap-break-word *:min-w-0">{children}</div>
 		</Flex>
 	)
 }
@@ -122,34 +125,27 @@ function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode
 /**
  * The address of a place on one line, cut with an ellipsis, and a button that
  * copies the full address. The button is taller than a line, so it sits by the
- * fact and not in it, as the menu of a visit does. The row takes the height of
- * the button, and nothing goes out of the row: the first row of the drawer body
- * is at the top edge of a box that scrolls, and that box clips what goes out.
+ * fact and not in it, as the menu of a visit does. The row is one line high,
+ * the same as the rows under it, so the button goes out of the row above and
+ * below: by up to 6px, at the loose density. The row is the first row of the
+ * drawer body, a box that scrolls and clips what goes out, so
+ * {@link PlaceDetails} has a top padding of that size.
  */
 function PlaceAddress({ address }: { address: string }) {
-	const { copied, copy } = useCopyButtonState({ text: address })
-
 	return (
-		<Flex justify="between" align="center" gap="sm">
+		<Flex justify="between" align="center" gap="sm" className="h-lh">
 			<PlaceFact icon={<MapPin />}>
 				<Text className="truncate">{address}</Text>
 			</PlaceFact>
 
-			<Button
-				variant="soft"
-				size="sm"
-				color={copied ? 'green' : undefined}
-				onClick={() => void copy()}
-			>
-				{copied ? 'Copied' : 'Copy'}
-			</Button>
+			<CopyButton text={address} icon={<Copy />} aria-label="Copy address" />
 		</Flex>
 	)
 }
 
 /**
- * One visit to the open place: the date and the score with the menu of the
- * visit, then the photos and the review.
+ * One visit to the open place: the date with the menu of the visit, the score
+ * under the date, then the photos and the review.
  */
 function PlaceVisit({
 	place,
@@ -163,14 +159,12 @@ function PlaceVisit({
 	const day = useDateFormat(DAY_FORMAT).format(new Date(visit.visitedAt))
 
 	return (
-		<Stack gap="sm">
-			<Flex justify="between" align="center" gap="sm">
+		<Stack gap="md">
+			{/* One line high, as the address row is: the menu is taller than the
+			    line, and goes out of the row above and below. */}
+			<Flex justify="between" align="center" gap="sm" className="h-lh">
 				<PlaceFact icon={<CalendarDays />}>
-					<Flex gap="sm" align="center" wrap>
-						<Text>Visited {day}</Text>
-
-						{visit.rating > 0 ? <Rating readOnly value={visit.rating} size="sm" /> : null}
-					</Flex>
+					<Text>{day}</Text>
 				</PlaceFact>
 
 				<PlaceMenu
@@ -178,6 +172,12 @@ function PlaceVisit({
 					aria-label={`Actions for the visit on ${day}`}
 				/>
 			</Flex>
+
+			{visit.rating > 0 ? (
+				<PlaceFact icon={<Heart />}>
+					<Rating readOnly value={visit.rating} size="sm" />
+				</PlaceFact>
+			) : null}
 
 			{/* `next/image` with `unoptimized`: the address is the one that the
 			    reader typed, so the host is not known at build time. The optimizer
@@ -222,8 +222,9 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 	const category = CATEGORY_BY_VALUE.get(place.category)
 
 	return (
-		<Stack gap="md" className="pb-6">
-			<Stack gap="sm">
+		// `pt-1.5` holds the top of the copy button in the first row.
+		<Stack gap="md" className="pt-1.5 pb-6">
+			<Stack gap="md">
 				<PlaceAddress address={place.address} />
 
 				{place.url ? (
@@ -236,9 +237,9 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 
 				{category ? (
 					<PlaceFact icon={<Tag />}>
-						{/* The badge is taller than a line. It is centered on one line, so
-						    its middle meets the middle of the icon, and the row is one line
-						    high, the same as the rows over it. */}
+						{/* The badge is taller than a line. Its box is one line high, so the
+						    row is one line high, the same as the rows over it, and the badge
+						    goes out of the row above and below. */}
 						<div className="flex h-lh items-center">
 							<Badge color={category.color}>{category.label}</Badge>
 						</div>
@@ -406,13 +407,19 @@ function PlaceList({
 						// the map rather than turning see-through to it. The content area
 						// is a button, so Tab reaches each row and Enter or Space opens it.
 						<ListItem as="button" type="button" onClick={() => onOpen(item.id)}>
-							<Stack as="span" gap="sm" className="text-left">
-								<Text as="span" className="font-medium">
-									{item.name}
-								</Text>
+							{/* The category sits at the end of the row, in the middle of the
+							    name and the line under it. */}
+							<Flex as="span" justify="between" align="center" gap="sm">
+								<Stack as="span" gap="sm" className="min-w-0 text-left">
+									<Text as="span" className="font-medium">
+										{item.name}
+									</Text>
 
-								<PlaceMeta place={item} />
-							</Stack>
+									<PlaceMeta place={item} />
+								</Stack>
+
+								<PlaceCategoryBadge category={item.category} />
+							</Flex>
 						</ListItem>
 					)}
 				</List>
