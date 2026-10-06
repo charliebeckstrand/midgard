@@ -6,6 +6,7 @@ import {
 	type ExtendedRefs,
 	type FloatingRootContext,
 	flip,
+	hide,
 	type Middleware,
 	type OpenChangeReason,
 	offset,
@@ -110,6 +111,16 @@ const autoAlignMiddleware: Middleware = {
 		return next === placement ? { data } : { data, reset: { placement: next } }
 	},
 }
+
+/**
+ * Marks the panel when its reference is out of view: scrolled out of a scroll
+ * container, or clipped by one. It goes last, so it reads the final position.
+ * {@link useFloatingPanel} reads `referenceHidden` and hides the panel, which
+ * comes back when the reference does. The panel stays open and keeps its state.
+ *
+ * @internal
+ */
+const hideMiddleware = hide({ strategy: 'referenceHidden' })
 
 /** Sizes the floating element's min-width to the reference width. @internal */
 const matchReferenceWidthMiddleware = size({
@@ -227,7 +238,7 @@ export type FloatingPanelOptions = {
 	 * @defaultValue false
 	 */
 	fitHeight?: boolean | FloatingHeightSnap
-	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. `matchReferenceWidth` and `fitHeight` then do nothing. */
+	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. `matchReferenceWidth` and `fitHeight` then do nothing. The panel still hides while its reference is out of view. */
 	middleware?: Middleware[]
 	/**
 	 * Reposition strategy while mounted. `'auto'` wires `autoUpdate`
@@ -275,7 +286,8 @@ export type FloatingPanelOptions = {
  * standardized middleware chain (offset/flip/shift, optional size). A panel on
  * the left or the right side that fits on neither side moves to the bottom or
  * the top side. A panel that is wider than the viewport caps its width 8px
- * inside each edge.
+ * inside each edge. A panel whose reference is out of view, for example
+ * scrolled out of a scroll container, is hidden until the reference comes back.
  *
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common
@@ -303,12 +315,14 @@ export function useFloatingPanel({
 	const horizontal = placement.startsWith('left') || placement.startsWith('right')
 
 	// An `auto` placement starts at the start alignment. The alignment middleware
-	// goes first, so `flip` and `shift` act on the alignment that it selects.
+	// goes first, so `flip` and `shift` act on the alignment that it selects. The
+	// hide middleware goes last, after a caller chain too, so every panel hides
+	// while its reference is out of view.
 	const resolvedMiddleware = useMemo(() => {
 		const chain =
 			middleware ?? buildMiddleware(offsetPx, matchReferenceWidth, fitHeight, horizontal)
 
-		return side ? [autoAlignMiddleware, ...chain] : chain
+		return [...(side ? [autoAlignMiddleware] : []), ...chain, hideMiddleware]
 	}, [middleware, offsetPx, matchReferenceWidth, fitHeight, horizontal, side])
 
 	// Reason of the pending close request; the focus-return effect reads it.
@@ -328,7 +342,12 @@ export function useFloatingPanel({
 		onOpenChange?.(nextOpen, event, reason)
 	}
 
-	const { refs, floatingStyles, context } = useFloating({
+	const {
+		refs,
+		floatingStyles: positionStyles,
+		context,
+		middlewareData,
+	} = useFloating({
 		placement: side ? `${side}-start` : (placement as Placement),
 		open,
 		onOpenChange: handleOpenChange,
@@ -342,6 +361,15 @@ export function useFloatingPanel({
 		whileElementsMounted: track === 'point' ? undefined : autoUpdate,
 		middleware: resolvedMiddleware,
 	})
+
+	const referenceHidden = middlewareData.hide?.referenceHidden ?? false
+
+	// A new object only when the hidden state is on, so the styles keep the
+	// identity of floating-ui while the reference is in view.
+	const floatingStyles = useMemo<CSSProperties>(
+		() => (referenceHidden ? { ...positionStyles, visibility: 'hidden' } : positionStyles),
+		[positionStyles, referenceHidden],
+	)
 
 	const prevOpenRef = useRef(open)
 

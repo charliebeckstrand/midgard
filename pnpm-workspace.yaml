@@ -62,4 +62,4 @@ minimumReleaseAgeExclude:
 # Covered by `overlay-activity-hold.test.tsx`, which fails without it. Mirrored in tms-ui; keep
 # the two copies identical. Remove once upstream is Activity-safe.
 patchedDependencies:
-  '@floating-ui/react@0.27.19': patches/@floating-ui__react@0.27.19.patch
+  '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch

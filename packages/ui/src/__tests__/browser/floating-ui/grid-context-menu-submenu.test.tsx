@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { centerOf } from '../../helpers/geometry/box'
 
 /**
  * Keyboard control of the grid context menu's submenus against the real
@@ -46,7 +47,11 @@ describe('grid context menu submenus (real browser)', () => {
 
 		if (!header) throw new Error('no Name header')
 
-		fireEvent.contextMenu(header)
+		// A right-click lands inside the header. A menu anchored at a point outside
+		// the scroll area of the grid is hidden.
+		const press = centerOf(header)
+
+		fireEvent.contextMenu(header, { clientX: press.x, clientY: press.y })
 
 		await waitFor(() => expect(item('Sort')).toBeInTheDocument())
 
