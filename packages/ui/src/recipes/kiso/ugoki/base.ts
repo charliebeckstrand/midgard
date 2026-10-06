@@ -25,8 +25,12 @@ export const duration = {
 	800: 0.8,
 } as const
 
-/** The easing vocabulary: Framer's three named curves. */
+/**
+ * The easing vocabulary: Framer's three named curves, and `linear` for a value
+ * that must move at a constant rate, such as a fill that shows time.
+ */
 export const ease = {
+	linear: 'linear',
 	in: 'easeIn',
 	out: 'easeOut',
 	inOut: 'easeInOut',

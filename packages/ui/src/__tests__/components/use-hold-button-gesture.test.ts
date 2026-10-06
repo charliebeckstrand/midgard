@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { animate } from 'motion'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -13,7 +14,7 @@ function renderGesture(initial: HoldGestureOptions) {
 
 			const fill = document.createElement('span')
 
-			// Attach the ref to a real element so setFill's style writes succeed.
+			// Attach the ref to a real element, which setFill animates.
 			useEffect(() => {
 				gesture.fillRef.current = fill
 
@@ -184,26 +185,30 @@ describe('useHoldButtonGesture', () => {
 		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
-	it('writes a scaleX(1) transition onto the fill ref when starting', () => {
+	it('animates the fill to scaleX(1) at a constant rate over the duration when starting', () => {
 		const { result } = renderGesture({ duration: 500, disabled: false })
 
 		act(() => result.current.start())
 
-		expect(result.current.fill.style.transform).toBe('scaleX(1)')
-
-		expect(result.current.fill.style.transition).toBe('transform 500ms linear')
+		expect(animate).toHaveBeenLastCalledWith(
+			result.current.fill,
+			{ transform: 'scaleX(1)' },
+			{ duration: 0.5, ease: 'linear' },
+		)
 	})
 
-	it('writes a scaleX(0) reset when canceling mid-hold', () => {
+	it('animates the fill back to scaleX(0) in 150 ms when canceling mid-hold', () => {
 		const { result } = renderGesture({ duration: 500, disabled: false })
 
 		act(() => result.current.start())
 
 		act(() => result.current.cancel())
 
-		expect(result.current.fill.style.transform).toBe('scaleX(0)')
-
-		expect(result.current.fill.style.transition).toMatch(/transform 150ms linear/)
+		expect(animate).toHaveBeenLastCalledWith(
+			result.current.fill,
+			{ transform: 'scaleX(0)' },
+			{ duration: 0.15, ease: 'linear' },
+		)
 	})
 
 	it('allows a new hold to start after the previous one completed', () => {

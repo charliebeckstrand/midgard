@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'motion/react'
 import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
@@ -167,10 +168,13 @@ export function HoldButton({
 			onBlur={composeEventHandlers(onBlur, handleBlur, alwaysEnd)}
 			onClick={handleClick}
 		>
-			<span
+			{/* A Motion element holds its rest scale as a transform string. For a plain span,
+			Motion reads the computed matrix. A matrix of scale 0 does not interpolate, so
+			the first hold would jump to full. */}
+			<motion.span
 				ref={fillRef}
 				aria-hidden="true"
-				style={{ transform: 'scaleX(0)' }}
+				initial={{ transform: 'scaleX(0)' }}
 				className="pointer-events-none absolute inset-0 origin-left bg-current/20"
 			/>
 			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>

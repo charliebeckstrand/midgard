@@ -1,22 +1,11 @@
 'use client'
 
+import { type AnimationPlaybackControls, animate } from 'motion'
 import { type RefObject, useLayoutEffect, useRef } from 'react'
-import { matchesMediaQuery, REDUCED_MOTION_QUERY } from '../../utilities'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { k } from '../../recipes/kata/dashboard'
 import type { DashboardOffset } from './engine/dashboard-drag'
 import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
-
-/** The duration of a tile glide, in ms. */
-const GLIDE_DURATION = 200
-
-/** The easing of a tile glide: a fast start that settles softly. */
-const GLIDE_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
-
-/**
- * The z-index of a tile while it glides. It is over the chrome of the later
- * tiles at 10, and under the lifted tile at 30. A dropped tile has lost its
- * raise, so without it the later tiles paint over the glide.
- */
-const GLIDE_LAYER = 20
 
 /** Options for {@link useDashboardFlip}. @internal */
 export type DashboardFlipOptions = {
@@ -74,35 +63,55 @@ function glideFrom(
 	return x === 0 && y === 0 ? null : { x, y }
 }
 
-/** Ends each glide that runs on the tile. A host with no Web Animations API runs none. */
-function endGlides(element: HTMLElement): void {
-	for (const animation of element.getAnimations?.() ?? []) animation.cancel()
+/** The glide that runs on a tile, else `null`. */
+type Running = RefObject<AnimationPlaybackControls | null>
+
+/**
+ * Ends the glide that runs on the tile. The cancel commits no frame of the glide,
+ * so the transform of a carry that started in the same commit stays.
+ */
+function endGlide(element: HTMLElement, running: Running): void {
+	running.current?.cancel()
+
+	running.current = null
+
+	delete element.dataset.gliding
 }
 
 /** Plays one glide from `offset` to rest, from the painted position of any glide that runs. */
-function glide(element: HTMLElement, offset: DashboardOffset): void {
-	if (typeof element.animate !== 'function' || matchesMediaQuery(REDUCED_MOTION_QUERY)) return
+function glide(element: HTMLElement, offset: DashboardOffset, running: Running): void {
+	const painted = paintedOffset(element)
 
-	const running = paintedOffset(element)
+	endGlide(element, running)
 
-	endGlides(element)
+	element.dataset.gliding = ''
 
-	element.animate(
-		[
-			{
-				transform: `translate(${offset.x + running.x}px, ${offset.y + running.y}px)`,
-				zIndex: GLIDE_LAYER,
-			},
-			{ transform: 'translate(0px, 0px)', zIndex: GLIDE_LAYER },
-		],
-		{ duration: GLIDE_DURATION, easing: GLIDE_EASING },
+	// The tile rests at `transform: none`. A transform of zero still makes the tile
+	// a containing block and a stacking context.
+	const controls = animate(
+		element,
+		{
+			transform: [
+				`translate(${offset.x + painted.x}px, ${offset.y + painted.y}px)`,
+				'translate(0px, 0px)',
+			],
+			transitionEnd: { transform: 'none' },
+		},
+		k.motion.glide,
 	)
+
+	running.current = controls
+
+	// A glide that ends early never finishes, and the next glide or the pickup owns the tile.
+	controls.finished.then(() => {
+		if (running.current === controls) endGlide(element, running)
+	})
 }
 
 /**
  * Glides a tile from where it was painted to its new cell. CSS cannot animate a
  * change of grid position, so the tile plays the inverse offset as one transform
- * through the Web Animations API.
+ * through Motion, on the `glide` tween of ugoki.
  *
  * The offset comes from grid units and from the pitch that the tile measures on
  * itself now. A stored pixel position is never read, so a resize of the container
@@ -125,6 +134,10 @@ export function useDashboardFlip(
 ): void {
 	const last = useRef<Painted | null>(null)
 
+	const running = useRef<AnimationPlaybackControls | null>(null)
+
+	const reduceMotion = usePrefersReducedMotion()
+
 	useLayoutEffect(() => {
 		const element = ref.current
 
@@ -137,13 +150,13 @@ export function useDashboardFlip(
 		// A carried tile follows the pointer, and it glides only once the pointer lets
 		// go. A glide overrides the transform of the carry, so a pickup ends it.
 		if (carried !== null) {
-			if (previous.carried === null) endGlides(element)
+			if (previous.carried === null) endGlide(element, running)
 
 			return
 		}
 
-		const offset = glideFrom(previous, cell, snap, element)
+		const offset = reduceMotion ? null : glideFrom(previous, cell, snap, element)
 
-		if (offset !== null) glide(element, offset)
-	}, [ref, cell, carried, snap])
+		if (offset !== null) glide(element, offset, running)
+	}, [ref, cell, carried, snap, reduceMotion])
 }

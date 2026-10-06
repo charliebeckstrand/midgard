@@ -1,8 +1,9 @@
 'use client'
 
+import { animate, type ValueAnimationTransition } from 'motion'
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { RESET_DURATION } from './hold-button-constants'
+import { k } from '../../recipes/kata/hold-button'
 
 /**
  * Options for {@link useHoldButtonGesture}.
@@ -18,7 +19,7 @@ export type HoldGestureOptions = {
 
 /**
  * Press-and-hold gesture engine behind {@link HoldButton}: runs the completion
- * timer, drives the imperative fill animation, and guards against focus loss.
+ * timer, drives the fill animation through Motion, and guards against focus loss.
  *
  * @returns `{ fillRef, start, cancel }` — `fillRef` attaches to the fill overlay
  * span the hook scales directly; `start` begins a hold; `cancel` aborts one in
@@ -50,16 +51,16 @@ export function useHoldButtonGesture({
 	// decorative and collapses to an instant under prefers-reduced-motion.
 	const reduceMotion = usePrefersReducedMotion()
 
-	const resetDuration = reduceMotion ? 0 : RESET_DURATION
+	const reset = reduceMotion ? { duration: 0 } : k.motion.reset
 
-	const setFill = (target: number, ms: number) => {
+	// A new animation of the fill takes over from the one that runs, from the
+	// scale that the fill paints now.
+	const setFill = (target: number, transition: ValueAnimationTransition) => {
 		const fill = fillRef.current
 
 		if (!fill) return
 
-		fill.style.transition = `transform ${ms}ms linear`
-
-		fill.style.transform = `scaleX(${target})`
+		animate(fill, { transform: `scaleX(${target})` }, transition)
 	}
 
 	const clearTimer = () => {
@@ -103,7 +104,7 @@ export function useHoldButtonGesture({
 
 		holdingRef.current = true
 
-		setFill(1, duration)
+		setFill(1, { ...k.motion.hold, duration: duration / 1000 })
 
 		clearTimer()
 
@@ -116,7 +117,7 @@ export function useHoldButtonGesture({
 
 			detachGuards()
 
-			setFill(0, resetDuration)
+			setFill(0, reset)
 
 			onHoldComplete?.()
 		}, duration)
@@ -133,7 +134,7 @@ export function useHoldButtonGesture({
 
 		detachGuards()
 
-		setFill(0, resetDuration)
+		setFill(0, reset)
 
 		onHoldCancel?.()
 	}
