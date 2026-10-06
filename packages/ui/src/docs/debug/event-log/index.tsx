@@ -29,6 +29,11 @@ const loadSheet = () =>
 		sheet = module
 	})
 
+/** Test-only: drops the loaded sheet module, so the next open loads it again. @internal */
+export function __resetEventLogSheet(): void {
+	sheet = undefined
+}
+
 /** Whether the tool is on. The head script sets the attribute before the first paint. */
 function isEventLogOn(): boolean {
 	return document.documentElement.hasAttribute(ATTRIBUTE)

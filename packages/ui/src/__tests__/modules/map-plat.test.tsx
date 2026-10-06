@@ -285,7 +285,9 @@ describe('MapPlat', () => {
 
 			expect(stack).toHaveClass('flex-col', row)
 
-			expect(stack).not.toHaveClass('flex-row', 'flex-row-reverse')
+			expect(stack).not.toHaveClass('flex-row')
+
+			expect(stack).not.toHaveClass('flex-row-reverse')
 
 			// The legend follows the plot in the DOM, so the column puts it under the map.
 			expect(stack?.lastElementChild).toBe(bySlot(container, 'map-legend-box'))

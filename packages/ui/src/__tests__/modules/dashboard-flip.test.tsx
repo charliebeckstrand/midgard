@@ -153,6 +153,9 @@ describe('the glide of a dashboard tile', () => {
 
 		await carryRevenue('ArrowRight')
 
+		// Traffic takes the cell that Revenue left, so the move happened.
+		expect(traffic.shell.style.gridArea).toBe('1 / 1 / span 10 / span 8')
+
 		expect(traffic.glides).toEqual([])
 	})
 

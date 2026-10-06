@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
 
@@ -209,9 +209,9 @@ describe('Grid range', () => {
 
 		selection?.selectAllChildren(cell(1, 0))
 
-		expect(copy()).toBeUndefined()
+		onTestFinished(() => selection?.removeAllRanges())
 
-		selection?.removeAllRanges()
+		expect(copy()).toBeUndefined()
 	})
 
 	it('leaves a copy to the browser while the grid does not have focus', () => {

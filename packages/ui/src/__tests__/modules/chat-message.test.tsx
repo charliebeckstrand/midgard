@@ -25,11 +25,13 @@ describe('ChatMessage', () => {
 
 		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass(
-			'cursor-progress',
-			PULSE,
-			PULSE_REDUCED,
-		)
+		const bubble = bySlot(container, 'chat-message-bubble')
+
+		expect(bubble).not.toHaveClass('cursor-progress')
+
+		expect(bubble).not.toHaveClass(PULSE)
+
+		expect(bubble).not.toHaveClass(PULSE_REDUCED)
 	})
 
 	it('reflects the sender prop on data-sender', () => {

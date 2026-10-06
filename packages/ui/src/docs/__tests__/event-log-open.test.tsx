@@ -1,11 +1,14 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
-import { EventLogButton } from '../debug/event-log/index.tsx'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { __resetEventLogSheet, EventLogButton } from '../debug/event-log/index.tsx'
 import { halt } from '../debug/event-log/recorder.ts'
 
 // A sheet that suspends opens late, because React holds the content back for
 // at least 300 ms. So the button opens the sheet only when its module is
 // loaded, and a loaded sheet opens in the frame of the click.
+
+// The button keeps the loaded sheet module, so each case starts with no sheet.
+beforeEach(__resetEventLogSheet)
 
 // The sheet starts the recorder, which listens on the document.
 afterEach(() => {

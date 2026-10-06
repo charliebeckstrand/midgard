@@ -217,14 +217,38 @@ describe('Overlay', () => {
 		expect(backdrop.className).toBe('custom-backdrop')
 	})
 
+	// The mock focus manager moves the focus only to `initialFocus`, so each
+	// case gives it a target inside the overlay.
+	it('moves focus to initialFocus when modal', () => {
+		const outside = attach(document.createElement('button'))
+
+		outside.focus()
+
+		const inside = createRef<HTMLButtonElement>()
+
+		renderUI(
+			<Overlay open initialFocus={inside} onOpenChange={() => {}}>
+				<button ref={inside} type="button">
+					inside
+				</button>
+			</Overlay>,
+		)
+
+		expect(document.activeElement).toBe(inside.current)
+	})
+
 	it('does not steal focus when modal=false', () => {
 		const outside = attach(document.createElement('button'))
 
 		outside.focus()
 
+		const inside = createRef<HTMLButtonElement>()
+
 		renderUI(
-			<Overlay open modal={false} onOpenChange={() => {}}>
-				<button type="button">inside</button>
+			<Overlay open modal={false} initialFocus={inside} onOpenChange={() => {}}>
+				<button ref={inside} type="button">
+					inside
+				</button>
 			</Overlay>,
 		)
 
