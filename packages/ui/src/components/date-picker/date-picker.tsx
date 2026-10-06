@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, useRef } from 'react'
+import type { ReactElement } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
@@ -290,6 +290,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const {
 		triggerRef,
+		inputRef,
+		focusHomeRef,
 		floatingRef,
 		open,
 		onTriggerKeyDown,
@@ -316,13 +318,9 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		validation,
 		hasValue,
 		onClear,
-		calendar: { calendarRef, footerRef, ...calendar },
+		calendar: { calendarRef, ...calendar },
 		footer,
 	} = useDatePickerState(props)
-
-	// The DateInput's native input; `input` mode seeds dialog-open focus here so
-	// the user can type and the keydown stream roves the grid.
-	const inputRef = useRef<HTMLInputElement>(null)
 
 	// The DateInput gets no `name`, so the picker passes the reset count of its
 	// Form down. A reset then drops the typed text, also when the value stays.
@@ -354,7 +352,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			// container) so the user can type and the same keydown stream roves the
 			// grid via the input's `aria-activedescendant`. The button-trigger variant
 			// keeps the container-focus virtual-highlight default.
-			initialFocusRef={input ? inputRef : undefined}
+			initialFocusRef={focusHomeRef}
 			// The reference group stays editable (and Tab-reachable via
 			// useDatePickerInputTab) while open, so it must stay out of the modal
 			// trap's aria-hidden marking. Non-input mode keeps the standard
@@ -369,7 +367,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				max={props.max}
 				active={calendar.active}
 				onMonthChange={props.onMonthChange}
-				footerRef={footerRef}
 				listboxId={listboxId}
 				activeDescendantId={activeDescendantId}
 			/>

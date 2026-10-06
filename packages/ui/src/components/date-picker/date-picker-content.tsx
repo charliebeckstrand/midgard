@@ -16,16 +16,7 @@ import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
-
-// Keys the virtual model navigates with; see the dialog's onKeyDown below.
-const ARROW_KEYS = new Set([
-	'ArrowUp',
-	'ArrowDown',
-	'ArrowLeft',
-	'ArrowRight',
-	'PageUp',
-	'PageDown',
-])
+import { RECLAIM_KEYS } from './use-date-picker-keyboard'
 
 /** Props for {@link DatePickerContent}. @internal */
 type DatePickerContentProps = {
@@ -88,9 +79,11 @@ type DatePickerContentProps = {
  * the panel a density scope.
  *
  * @remarks
- * The dialog's `onKeyDown` reclaims DOM focus for the container on navigation
- * keys. A grid move that re-anchors the month therefore cannot drop focus to
- * `<body>`. Portaled descendants (the month/year picker) own their own keyboard.
+ * On a navigation key from a control in the dialog, the dialog's `onKeyDown`
+ * gives DOM focus back to the seed of the open focus: the container, or the
+ * input in `input` mode. A grid move that re-anchors the month therefore cannot
+ * drop focus to `<body>`. Portaled descendants (the month/year picker) own
+ * their own keyboard.
  *
  * @internal
  */
@@ -140,12 +133,14 @@ export function DatePickerContent({
 		if ((event.key === 'Enter' || event.key === ' ') && event.target !== event.currentTarget) return
 
 		// Navigation keys belong to the virtual model even when the
-		// user has Tabbed onto a control inside. Reclaim DOM focus
-		// for the dialog first: a grid move can re-anchor the month
-		// and unmount the focused day button, dropping focus to
-		// <body>.
-		if (ARROW_KEYS.has(event.key) && event.target !== event.currentTarget) {
-			event.currentTarget.focus()
+		// user has Tabbed onto a control inside. Give focus back to
+		// the seed of the open focus first: the dialog, or the input
+		// in `input` mode. A grid move can re-anchor the month and
+		// unmount the focused day button, which drops focus to <body>.
+		if (RECLAIM_KEYS.has(event.key) && event.target !== event.currentTarget) {
+			const seed = focusRef.current ?? event.currentTarget
+
+			seed.focus()
 		}
 
 		onKeyDown(event)

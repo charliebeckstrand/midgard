@@ -16,8 +16,20 @@ type CalendarToolbarProps = {
 	prevClassName?: string
 	/** Classes for the next button, such as the roving-focus highlight. */
 	nextClassName?: string
+	/**
+	 * The `data-index` of the previous button. The calendar header gives it, so
+	 * that a date picker can map a focused button to its header index.
+	 */
+	prevIndex?: number
+	/** The `data-index` of the next button. */
+	nextIndex?: number
 	/** The center control between the two chevron buttons. */
 	children: ReactNode
+	/**
+	 * The `data-slot` of the row. The calendar header gives `calendar-header`, so
+	 * that a date picker can map a focused button to its header zone.
+	 */
+	slot?: string
 }
 
 /**
@@ -36,11 +48,14 @@ export function CalendarToolbar({
 	onNext,
 	prevClassName,
 	nextClassName,
+	prevIndex,
+	nextIndex,
 	children,
+	slot,
 }: CalendarToolbarProps) {
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a keydown delegation surface for the buttons in the row, not an interactive control. Each button is a Tab stop.
-		<div ref={toolbarRef} onKeyDown={onKeyDown} className={cn(k.header)}>
+		<div ref={toolbarRef} data-slot={slot} onKeyDown={onKeyDown} className={cn(k.header)}>
 			<Button
 				type="button"
 				variant="plain"
@@ -48,6 +63,7 @@ export function CalendarToolbar({
 				aria-label={prevLabel}
 				prefix={<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />}
 				className={prevClassName}
+				data-index={prevIndex}
 			/>
 			{children}
 			<Button
@@ -57,6 +73,7 @@ export function CalendarToolbar({
 				aria-label={nextLabel}
 				prefix={<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />}
 				className={nextClassName}
+				data-index={nextIndex}
 			/>
 		</div>
 	)

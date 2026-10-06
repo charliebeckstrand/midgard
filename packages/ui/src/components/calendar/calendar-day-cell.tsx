@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { formatInteger } from '../../utilities'
 import { Button, type ButtonVariants } from '../button'
-import { formatDayName } from './calendar-utilities'
+import { dayKey, formatDayName } from './calendar-utilities'
 
 type DayCellProps = {
 	date: Date
@@ -61,6 +61,8 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			aria-selected={selected}
 			aria-label={formatDayName(date, localeTag)}
 			aria-current={isToday ? 'date' : undefined}
+			// The date picker reads the day of a focused cell from this ISO date.
+			data-date={dayKey(date)}
 			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
 			color={color ?? (selected || isToday ? 'blue' : undefined)}
 			disabled={disabled}

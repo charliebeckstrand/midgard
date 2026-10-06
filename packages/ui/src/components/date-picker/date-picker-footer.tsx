@@ -1,7 +1,5 @@
 'use client'
 
-import type { KeyboardEvent, RefObject } from 'react'
-
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
@@ -12,12 +10,10 @@ import type { FooterButton } from './use-date-picker-keyboard'
 type DatePickerFooterProps = {
 	/** Virtual highlight; a `footer`-zone entry styles the matching button active. */
 	active: CalendarActive | null
-	footerRef: RefObject<HTMLDivElement | null>
 	/** Buttons to render, in order; empty renders nothing. */
 	footerButtons: FooterButton[]
 	onClear: () => void
 	onToday?: () => void
-	onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
 }
 
 /**
@@ -32,18 +28,14 @@ export function DatePickerFooter({
 	footerButtons,
 	onClear,
 	onToday,
-	footerRef,
-	onKeyDown,
 }: DatePickerFooterProps) {
 	if (footerButtons.length === 0) return null
 
 	return (
 		<div
-			ref={footerRef}
 			role="toolbar"
 			aria-label="Date picker actions"
 			data-slot="calendar-footer"
-			onKeyDown={onKeyDown}
 			className={cn(k.footer)}
 		>
 			{footerButtons.map((kind, index) => {
@@ -59,6 +51,7 @@ export function DatePickerFooter({
 							onClick={onClear}
 							aria-label="Clear selection"
 							className={cn(isActive && k.day.active)}
+							data-index={index}
 						>
 							Clear
 						</Button>
@@ -73,6 +66,7 @@ export function DatePickerFooter({
 						color="blue"
 						onClick={onToday}
 						className={cn(isActive && k.day.active)}
+						data-index={index}
 					>
 						Today
 					</Button>

@@ -548,7 +548,8 @@ describe('Calendar keyboard navigation', () => {
 		expect(document.activeElement).toBe(options[options.length - 1])
 	})
 
-	it('keeps the header exit of the top row in a calendar that a parent steers', async () => {
+	// B01-C12, Q8: a parent that steers the calendar owns the keys of the grid.
+	it('leaves ArrowUp on the top row to a parent that steers the calendar', async () => {
 		const user = setupUser()
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} active={null} />)
@@ -557,19 +558,19 @@ describe('Calendar keyboard navigation', () => {
 
 		await user.keyboard('{ArrowUp}')
 
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+		expect(document.activeElement).toBe(day('1'))
 	})
 
-	it('moves focus from the header down into the day grid', async () => {
+	it('moves focus from the header down into the day grid on the selected day', async () => {
 		const user = setupUser()
 
 		renderJune()
 
-		act(() => screen.getByLabelText('Previous month').focus())
+		act(() => screen.getByLabelText('Next month').focus())
 
 		await user.keyboard('{ArrowDown}')
 
-		expect(document.activeElement).toBe(day('1'))
+		expect(document.activeElement).toBe(day('15'))
 	})
 
 	it.each([
@@ -596,10 +597,10 @@ describe('Calendar keyboard navigation', () => {
 	// moves the focus to the nearest enabled day, and the focus stays when that is
 	// the focused day. The arrow does not wrap, and it does not move the focus out
 	// of the grid. Tab and Shift+Tab still do.
-	function renderMinTenth() {
+	function renderMinTenth(defaultValue = new Date(2025, 5, 15)) {
 		// June 2025 begins on a Sunday; `min` on the 10th disables June 1-9, so the
 		// grid's first focusable day is the 10th.
-		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} min={new Date(2025, 5, 10)} />)
+		renderUI(<Calendar defaultValue={defaultValue} min={new Date(2025, 5, 10)} />)
 	}
 
 	/** June 2025 with `max` on the 20th, so June 21-30 are disabled. Set `footer` to add a footer after the calendar. */
@@ -625,7 +626,9 @@ describe('Calendar keyboard navigation', () => {
 	it('enters the grid on the first enabled day when leading days are disabled', async () => {
 		const user = setupUser()
 
-		renderMinTenth()
+		// The selected day, June 5, is before `min` and so disabled. No enabled
+		// day holds the Tab stop, and the entry falls back to the first enabled day.
+		renderMinTenth(new Date(2025, 5, 5))
 
 		act(() => screen.getByLabelText('Previous month').focus())
 
@@ -967,6 +970,26 @@ describe('Calendar Tab stops', () => {
 		]
 
 		expect(controls.map((control) => control.tabIndex)).toEqual([0, 0, 0])
+	})
+
+	it('enters on the roved day with header ArrowDown, as Tab does', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => screen.getByRole('option', { name: 'Sunday, June 15, 2025' }).focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		const roved = screen.getByRole('option', { name: 'Monday, June 16, 2025' })
+
+		expect(dayStops()).toEqual(['16'])
+
+		await user.tab({ shift: true })
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(document.activeElement).toBe(roved)
 	})
 
 	it('reaches the month header with Shift+Tab from the day listbox', async () => {

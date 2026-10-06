@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef } from 'react'
+import { useCallback, useMemo, useReducer, useRef } from 'react'
 
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
@@ -9,7 +9,7 @@ import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { clampDate, formatRange, stepDate } from './date-picker-utilities'
+import { clampDate, type DateStep, formatRange, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { useDatePickerFloating } from './use-date-picker-floating'
 import {
@@ -94,8 +94,6 @@ export function useDatePickerRangeState({
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
-	const footerRef = useRef<HTMLDivElement>(null)
-
 	// Clears the in-progress selection. Deferred to `onExitComplete` (and re-run
 	// on the next open) so the pinned start and previewed end survive the exit
 	// animation rather than collapsing onto the committed value mid-fade.
@@ -112,30 +110,18 @@ export function useDatePickerRangeState({
 		calendarRef,
 	)
 
-	const moveGridDate = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
-
-			const next = clampDate(stepDate(base, { days: delta }), min, max)
-
-			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
-
-			return next
-		},
-		[active, getInitialActiveDate, min, max, rangeStart],
-	)
-
-	const moveGridMonths = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
-
-			const next = clampDate(stepDate(base, { months: delta }), min, max)
+	// A step of days or months starts on `from`, the day that the key handler
+	// gives, and stays between `min` and `max`. While a range is in progress, the
+	// new day also previews the end of the range.
+	const moveGrid = useCallback(
+		(step: DateStep, from: Date) => {
+			const next = clampDate(stepDate(from, step), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
 			return next
 		},
-		[active, getInitialActiveDate, min, max, rangeStart],
+		[min, max, rangeStart],
 	)
 
 	const openCalendar = useCallback(() => {
@@ -235,8 +221,7 @@ export function useDatePickerRangeState({
 		setActive,
 		openCalendar,
 		closeCalendar,
-		moveGridDate,
-		moveGridMonths,
+		moveGrid,
 		getInitialActiveDate,
 		getViewEntryDate,
 		handleSelect,
@@ -275,15 +260,11 @@ export function useDatePickerRangeState({
 			onValueChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
-			footerRef,
 		},
 		footer: {
 			active,
 			footerButtons,
 			onClear: handleClear,
-			footerRef,
-			onKeyDown: (event: KeyboardEvent<HTMLDivElement>) =>
-				calendarRef.current?.footerKeyDown(event),
 		},
 	}
 }

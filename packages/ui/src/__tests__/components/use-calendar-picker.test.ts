@@ -6,7 +6,7 @@ import {
 	type CalendarPickerGridCell,
 } from '../../components/calendar/calendar-picker-grid'
 import { useCalendarPicker } from '../../components/calendar/use-calendar-picker'
-import { renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 // Short labels, M1 to M12. Only the Tab stop cases read a month label.
 const monthLabels = Array.from({ length: 12 }, (_, i) => `M${i + 1}`)
@@ -200,5 +200,25 @@ describe('useCalendarPicker: Tab stops', () => {
 		)
 
 		expect(controls.map((control) => control.tabIndex)).toEqual([0, 0, 0])
+	})
+})
+
+// ArrowDown from the picker header enters the month listbox on its Tab stop,
+// the selected month, as an open of the picker does.
+describe('useCalendarPicker: header ArrowDown', () => {
+	it('focuses the selected month', async () => {
+		renderUI(createElement(OpenPickerGrid, { year: 2026, month: 5 }))
+
+		const selected = screen.getByRole('option', { name: 'M6', selected: true })
+
+		await waitFor(() => expect(selected.tabIndex).toBe(0))
+
+		const previous = screen.getByRole('button', { name: 'Previous year' })
+
+		act(() => previous.focus())
+
+		fireEvent.keyDown(previous, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(selected)
 	})
 })

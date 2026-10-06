@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react'
-import type { RefObject } from 'react'
+import type { KeyboardEvent, RefObject } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { CalendarActive, CalendarHandle } from '../../components/calendar'
+import type { DateStep } from '../../components/date-picker/date-picker-utilities'
 import {
 	type FooterButton,
 	useDatePickerKeyboard,
 } from '../../components/date-picker/use-date-picker-keyboard'
-import { makeKeyEvent } from '../helpers'
+import { attach, makeKeyEvent } from '../helpers'
 
 type Setup = Partial<{
 	disabled: boolean
@@ -24,9 +25,12 @@ function setup(overrides: Setup = {}) {
 
 	const closeCalendar = vi.fn()
 
-	const moveGridDate = vi.fn((delta: number) => new Date(2026, 0, 15 + delta))
-
-	const moveGridMonths = vi.fn((delta: number) => new Date(2026, 0 + delta, 15))
+	// Each step and each page start on `from`.
+	const moveGrid = vi.fn((step: DateStep, from: Date) =>
+		'days' in step
+			? new Date(2026, from.getMonth(), from.getDate() + step.days)
+			: new Date(2026, from.getMonth() + step.months, from.getDate()),
+	)
 
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
 
@@ -57,8 +61,7 @@ function setup(overrides: Setup = {}) {
 			setActive,
 			openCalendar,
 			closeCalendar,
-			moveGridDate,
-			moveGridMonths,
+			moveGrid,
 			getInitialActiveDate,
 			getViewEntryDate,
 			handleSelect,
@@ -73,8 +76,7 @@ function setup(overrides: Setup = {}) {
 		setActive,
 		openCalendar,
 		closeCalendar,
-		moveGridDate,
-		moveGridMonths,
+		moveGrid,
 		getInitialActiveDate,
 		getViewEntryDate,
 		handleSelect,
@@ -160,16 +162,31 @@ describe('useDatePickerKeyboard: open with null active', () => {
 		expect(setActive).not.toHaveBeenCalled()
 	})
 
-	it('materializes on grid when any arrow is pressed from null active', () => {
-		const { handler, setActive, getInitialActiveDate } = setup({ active: null })
+	// B01-C06: the first arrow enters the month that the calendar shows, not the value's month.
+	it.each(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'])(
+		'enters the shown month on %s from null active',
+		(key) => {
+			const { handler, setActive, getInitialActiveDate } = setup({ active: null })
+
+			const event = makeKeyEvent<HTMLElement>(key)
+
+			handler(event)
+
+			expect(event.preventDefault).toHaveBeenCalled()
+
+			expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+			expect(getInitialActiveDate).not.toHaveBeenCalled()
+		},
+	)
+
+	// Q5: with no enabled day in the shown month, the arrow enters on the anchor.
+	it('enters on the anchor from null active when the shown month has no entry day', () => {
+		const { handler, setActive } = setup({ active: null, entryDate: null })
 
 		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
 
-		expect(getInitialActiveDate).toHaveBeenCalled()
-
-		expect(setActive).toHaveBeenCalledWith(
-			expect.objectContaining({ zone: 'grid', date: expect.any(Date) }),
-		)
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 15) })
 	})
 
 	it.each([
@@ -180,7 +197,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 
 		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(handleSelect).toHaveBeenCalled()
+		expect(handleSelect).toHaveBeenCalledWith(new Date(2026, 0, 15))
 	})
 })
 
@@ -188,33 +205,33 @@ describe('useDatePickerKeyboard: grid zone', () => {
 	const gridActive: CalendarActive = { zone: 'grid', date: new Date(2026, 0, 15) }
 
 	it('moves a month on PageUp/PageDown and a year with Shift (APG date grid)', () => {
-		const { handler, moveGridMonths, setActive } = setup({ active: gridActive })
+		const { handler, moveGrid, setActive } = setup({ active: gridActive })
 
 		handler(makeKeyEvent<HTMLElement>('PageUp'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(-1)
+		expect(moveGrid).toHaveBeenCalledWith({ months: -1 }, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageDown'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(1)
+		expect(moveGrid).toHaveBeenCalledWith({ months: 1 }, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageUp', { shiftKey: true }))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(-12)
+		expect(moveGrid).toHaveBeenCalledWith({ months: -12 }, new Date(2026, 0, 15))
 
 		handler(makeKeyEvent<HTMLElement>('PageDown', { shiftKey: true }))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(12)
+		expect(moveGrid).toHaveBeenCalledWith({ months: 12 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledTimes(4)
 	})
 
 	it('materializes the grid highlight when Page keys arrive with no active zone', () => {
-		const { handler, moveGridMonths, setActive } = setup({ active: null })
+		const { handler, moveGrid, setActive } = setup({ active: null })
 
 		handler(makeKeyEvent<HTMLElement>('PageDown'))
 
-		expect(moveGridMonths).toHaveBeenCalledWith(1)
+		expect(moveGrid).toHaveBeenCalledWith({ months: 1 }, new Date(2026, 0, 15))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: expect.any(Date) })
 	})
@@ -225,11 +242,11 @@ describe('useDatePickerKeyboard: grid zone', () => {
 		['moves grid date backward one week on ArrowUp', 'ArrowUp', -7],
 		['moves grid date forward one week on ArrowDown', 'ArrowDown', 7],
 	])('%s', (_name, key, delta) => {
-		const { handler, moveGridDate, setActive } = setup({ active: gridActive })
+		const { handler, moveGrid, setActive } = setup({ active: gridActive })
 
 		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(moveGridDate).toHaveBeenCalledWith(delta)
+		expect(moveGrid).toHaveBeenCalledWith({ days: delta }, gridActive.date)
 
 		expect(setActive).toHaveBeenCalled()
 	})
@@ -458,5 +475,277 @@ describe('useDatePickerKeyboard: null active edge cases', () => {
 		handler(makeKeyEvent<HTMLElement>('a'))
 
 		expect(setActive).not.toHaveBeenCalled()
+	})
+})
+
+// A dialog with the header and the footer toolbars of the picker. Each button is a Tab stop
+// and has its index in `data-index`.
+function renderToolbars() {
+	const dialog = attach(document.createElement('div'))
+
+	const toolbar = (slot: string, count: number) => {
+		const row = document.createElement('div')
+
+		row.dataset.slot = slot
+
+		for (let index = 0; index < count; index++) {
+			const button = document.createElement('button')
+
+			button.dataset.index = String(index)
+
+			row.append(button)
+		}
+
+		dialog.append(row)
+
+		return Array.from(row.querySelectorAll('button'))
+	}
+
+	const header = toolbar('calendar-header', 3)
+
+	const footer = toolbar('calendar-footer', 2)
+
+	const grid = document.createElement('button')
+
+	// A day button of the calendar grid. It has its date in `data-date`.
+	const day = document.createElement('button')
+
+	day.dataset.date = '2026-01-20'
+
+	dialog.append(grid, day)
+
+	return { dialog, header, footer, grid, day }
+}
+
+// A key from `target` that gets to the handler on `dialog`. `init` adds fields such as `shiftKey`.
+function keyFrom(
+	key: string,
+	target: Element,
+	dialog: Element,
+	init: Partial<KeyboardEvent<HTMLElement>> = {},
+) {
+	return makeKeyEvent<HTMLElement>(key, {
+		...init,
+		target,
+		currentTarget: dialog as HTMLElement,
+	})
+}
+
+// B01-C09, Q2: a header or footer button that has DOM focus acts as its zone of the model.
+describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
+	it('enters the shown month on ArrowDown from a focused header button', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive, moveGrid } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('ArrowDown', header[2] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+		expect(moveGrid).not.toHaveBeenCalled()
+	})
+
+	it('does not set the zone again for the active header button', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 1 } })
+
+		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledTimes(1)
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
+	})
+
+	it.each<[string, number, string, number]>([
+		['wraps from Clear to Today on ArrowLeft', 0, 'ArrowLeft', 1],
+		['wraps from Today to Clear on ArrowRight', 1, 'ArrowRight', 0],
+	])('%s from a focused footer button', (_name, index, key, expected) => {
+		const { dialog, footer } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		const event = keyFrom(key, footer[index] as Element, dialog)
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index })
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'footer', index: expected })
+	})
+
+	it('enters the shown month on ArrowUp from a focused footer button', () => {
+		const { dialog, footer } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		handler(keyFrom('ArrowUp', footer[1] as Element, dialog))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+	})
+
+	// B01-C09, Q10, Q11: the dialog takes focus back only for the arrows and the Page keys, so
+	// only those keys map the button.
+	it.each(['Tab', 'Home'])('sets no zone on %s from a focused header button', (key) => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		handler(keyFrom(key, header[1] as Element, dialog))
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
+
+	it('maps a focused header button on an arrow with no highlight', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 1 })
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'header', index: 2 })
+	})
+
+	it('keeps the model zone for a key on the dialog itself', () => {
+		const { dialog } = renderToolbars()
+
+		const { handler, setActive, moveGrid } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('ArrowDown', dialog, dialog))
+
+		expect(moveGrid).toHaveBeenCalledWith({ days: 7 }, new Date(2026, 0, 15))
+
+		expect(setActive).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps the model zone for a key from a focused control outside the toolbars', () => {
+		const { dialog, grid } = renderToolbars()
+
+		const { handler, setActive, moveGrid } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('ArrowDown', grid, dialog))
+
+		expect(moveGrid).toHaveBeenCalledWith({ days: 7 }, new Date(2026, 0, 15))
+
+		expect(setActive).toHaveBeenCalledTimes(1)
+	})
+})
+
+// B01-C12, Q8: a day button that has DOM focus acts as the grid zone at its date.
+describe('useDatePickerKeyboard: a Tab-focused day button', () => {
+	it('steps from the focused day on ArrowRight', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, moveGrid } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		const event = keyFrom('ArrowRight', day, dialog)
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 20) })
+
+		expect(moveGrid).toHaveBeenCalledWith({ days: 1 }, new Date(2026, 0, 20))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 0, 21) })
+	})
+
+	it('steps from the focused day, not the entry day, with no highlight', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, moveGrid } = setup({ active: null })
+
+		handler(keyFrom('ArrowUp', day, dialog))
+
+		expect(moveGrid).toHaveBeenCalledWith({ days: -7 }, new Date(2026, 0, 20))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 0, 13) })
+	})
+
+	it('does not set the zone again for the highlighted day', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 20) },
+		})
+
+		handler(keyFrom('ArrowLeft', day, dialog))
+
+		expect(setActive).toHaveBeenCalledTimes(1)
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 19) })
+	})
+
+	// B01-C12, Q11: the dialog takes focus back for the Page keys too, so they map the day.
+	it.each<[string, boolean, number, Date]>([
+		['PageDown', false, 1, new Date(2026, 1, 20)],
+		['PageUp', false, -1, new Date(2025, 11, 20)],
+		['PageDown', true, 12, new Date(2027, 0, 20)],
+	])('steps from the focused day on %s (Shift: %s)', (key, shiftKey, delta, expected) => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, moveGrid } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		const event = keyFrom(key, day, dialog, { shiftKey })
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 20) })
+
+		expect(moveGrid).toHaveBeenCalledWith({ months: delta }, new Date(2026, 0, 20))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: expected })
+	})
+
+	// Q11: a focused header button acts as the header zone, so a Page key steps from the anchor.
+	it('steps from the anchor on PageDown from a focused header button', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive, moveGrid } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 20) },
+		})
+
+		handler(keyFrom('PageDown', header[2] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
+
+		expect(moveGrid).toHaveBeenCalledWith({ months: 1 }, new Date(2026, 0, 15))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 1, 15) })
+	})
+
+	// Q10, Q11: only an arrow or a Page key maps the day, so the hook keeps the highlight for Enter.
+	// The dialog leaves Enter on a focused day to the button and does not call the hook.
+	it('keeps the highlight, not the focused day, for Enter', () => {
+		const { dialog, day } = renderToolbars()
+
+		const { handler, setActive, handleSelect } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('Enter', day, dialog))
+
+		expect(setActive).not.toHaveBeenCalled()
+
+		expect(handleSelect).toHaveBeenCalledWith(new Date(2026, 0, 15))
 	})
 })

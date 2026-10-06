@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { CalendarHandle } from '../../components/calendar'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
-import { makeKeyEvent } from '../helpers'
+import { attach, makeKeyEvent } from '../helpers'
 
 const Jan1 = new Date(2025, 0, 1)
 
@@ -30,6 +30,20 @@ function firstDay(): Date {
 	value.setHours(0, 0, 0, 0)
 
 	return value
+}
+
+// An arrow key or a Page key from a focused day button of the grid. The button has
+// its date in `data-date`, and the key gets to the handler on the dialog.
+function keyFromDay(key: string, date: string) {
+	const dialog = attach(document.createElement('div'))
+
+	const day = document.createElement('button')
+
+	day.dataset.date = date
+
+	dialog.append(day)
+
+	return makeKeyEvent<HTMLElement>(key, { target: day, currentTarget: dialog })
 }
 
 describe('useDatePickerState', () => {
@@ -74,6 +88,32 @@ describe('useDatePickerState', () => {
 			expect(result.current.open).toBe(false)
 
 			expect(result.current.calendar.active).toBeNull()
+		})
+
+		// C01: in input mode the close returns focus to the input, not to the first
+		// button in the wrapper.
+		it('returns focus to the input on close in input mode', () => {
+			const { result } = renderHook(() => useDatePickerState({ input: true }))
+
+			const wrapper = attach(document.createElement('div'))
+
+			const button = document.createElement('button')
+
+			const input = document.createElement('input')
+
+			wrapper.append(button, input)
+
+			act(() => {
+				result.current.setReference(wrapper)
+
+				result.current.inputRef.current = input
+			})
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onOpenChange(false))
+
+			expect(input).toHaveFocus()
 		})
 	})
 
@@ -231,6 +271,50 @@ describe('useDatePickerState', () => {
 
 			expect(result.current.calendar.active?.zone).toBe('grid')
 		})
+
+		// B01-C12, Q8: the step starts on the focused day, not on the highlight.
+		it('steps from a focused day button on an arrow', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan15 })
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('ArrowRight', '2025-01-20')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 21) })
+		})
+
+		// B01-C12, Q11: a Page key from a focused day steps a month from that day.
+		it('steps a month from a focused day button on PageDown', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('PageDown', '2025-01-20')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 1, 20) })
+		})
+
+		it('holds the step from a focused day button inside max', () => {
+			const max = new Date(2025, 0, 20)
+
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan1, max }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan1 })
+
+			act(() => result.current.onTriggerKeyDown(keyFromDay('ArrowDown', '2025-01-18')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: max })
+		})
 	})
 
 	describe('initial active date', () => {
@@ -339,6 +423,23 @@ describe('useDatePickerState', () => {
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar10 })
+		})
+
+		// B01-C06: the first arrow with no highlight enters the shown month. Q5: with no
+		// enabled day in the shown month, the arrow enters on the value.
+		it.each<[string, Date | null, Date]>([
+			['the entry day of the Calendar', Mar10, Mar10],
+			['the value when the Calendar gives no entry day', null, Jan15],
+		])('enters the grid on the first arrow on %s', (_name, entry, expected) => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(entry)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: expected })
 		})
 
 		it('keeps the highlight in the header when the Calendar gives no entry day', () => {

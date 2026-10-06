@@ -27,7 +27,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 	} = props
 
 	const {
-		calendar: { calendarRef, footerRef, ...calendar },
+		calendar: { calendarRef, ...calendar },
 		footer,
 		...state
 	} = useDatePickerRangeState(props)
@@ -81,7 +81,6 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 					onHoverDate={calendar.onHoverDate}
 					onMonthChange={props.onMonthChange}
 					active={calendar.active}
-					footerRef={footerRef}
 				/>
 				<DatePickerFooter {...footer} />
 			</DatePickerContent>

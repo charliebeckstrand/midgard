@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
@@ -8,7 +8,7 @@ import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
-import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
+import { clampDate, type DateStep, formatDate, startOfDay, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { useDatePickerFloating } from './use-date-picker-floating'
 import {
@@ -88,11 +88,16 @@ export function useDatePickerState({
 		readOnly: resolvedReadOnly,
 	})
 
+	// The native input of the DateInput in `input` mode. The dialog opens with
+	// focus on it, and a close returns focus to it. Without `input`, the focus
+	// home is unset, and the dialog and the trigger keep their defaults.
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const focusHomeRef = input ? inputRef : undefined
+
 	const [active, setActive] = useState<CalendarActive | null>(null)
 
 	const calendarRef = useRef<CalendarHandle>(null)
-
-	const footerRef = useRef<HTMLDivElement>(null)
 
 	// With no value, the cursor starts on today. A `min` or a `max` only bounds it.
 	const { getInitialActiveDate, getViewEntryDate } = useDatePickerGridEntry(
@@ -102,22 +107,11 @@ export function useDatePickerState({
 		calendarRef,
 	)
 
-	const moveGridDate = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
-
-			return clampDate(stepDate(base, { days: delta }), min, max)
-		},
-		[active, getInitialActiveDate, min, max],
-	)
-
-	const moveGridMonths = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
-
-			return clampDate(stepDate(base, { months: delta }), min, max)
-		},
-		[active, getInitialActiveDate, min, max],
+	// A step of days or months starts on `from`, the day that the key handler
+	// gives, and stays between `min` and `max`.
+	const moveGrid = useCallback(
+		(step: DateStep, from: Date) => clampDate(stepDate(from, step), min, max),
+		[min, max],
 	)
 
 	const openCalendar = useCallback(() => {
@@ -220,7 +214,13 @@ export function useDatePickerState({
 		onOpenChange,
 		setReference,
 		dialogId,
-	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
+	} = useDatePickerFloating({
+		placement,
+		open,
+		onOpenChange: handleOpenChange,
+		triggerRef,
+		returnFocusTo: focusHomeRef,
+	})
 
 	// Captures the dialog for `useDatePickerInputTab`'s reference-side handler.
 	const floatingRef = useRef<HTMLElement | null>(null)
@@ -242,8 +242,7 @@ export function useDatePickerState({
 		setActive,
 		openCalendar,
 		closeCalendar,
-		moveGridDate,
-		moveGridMonths,
+		moveGrid,
 		getInitialActiveDate,
 		getViewEntryDate,
 		handleSelect,
@@ -283,6 +282,8 @@ export function useDatePickerState({
 		setReference,
 		setFloating,
 		triggerRef,
+		inputRef,
+		focusHomeRef,
 		floatingRef,
 		floatingStyles,
 		getReferenceProps,
@@ -293,16 +294,12 @@ export function useDatePickerState({
 			onValueChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
-			footerRef,
 		},
 		footer: {
 			active,
 			footerButtons,
 			onClear: handleClear,
 			onToday: handleSelectToday,
-			footerRef,
-			onKeyDown: (event: KeyboardEvent<HTMLDivElement>) =>
-				calendarRef.current?.footerKeyDown(event),
 		},
 	}
 }

@@ -33,6 +33,9 @@ export function DatePickerCalendarButton({
 			aria-haspopup="dialog"
 			aria-expanded={open}
 			disabled={disabled}
+			// Keep focus on the input: a blur here would run the field's
+			// commit-on-blur over a partial entry before the calendar opens.
+			onMouseDown={(event) => event.preventDefault()}
 			onClick={onActivate}
 		>
 			<Icon icon={<CalendarIcon />} />

@@ -3,6 +3,7 @@ import {
 	endOfMonth,
 	GregorianCalendar,
 	getDayOfWeek,
+	parseDate,
 	startOfWeek,
 	toCalendar,
 } from '@internationalized/date'
@@ -58,6 +59,29 @@ export function fromCalendarDate(date: CalendarDate): Date {
 	local.setHours(0, 0, 0, 0)
 
 	return local
+}
+
+/**
+ * Selector for a day cell. The `data-date` attribute of the cell holds the key
+ * of its day ({@link dayKey}).
+ *
+ * @internal
+ */
+export const DAY_KEY_SELECTOR = '[data-date]'
+
+/**
+ * The key of the day of `date`: the ISO date (`YYYY-MM-DD`) of its local day.
+ * A day cell holds it in its `data-date` attribute. {@link dayOfKey} reads it.
+ *
+ * @internal
+ */
+export function dayKey(date: Date): string {
+	return toCalendarDate(date).toString()
+}
+
+/** The local-midnight `Date` of a key that {@link dayKey} gives. @internal */
+export function dayOfKey(key: string): Date {
+	return fromCalendarDate(parseDate(key))
 }
 
 /**
