@@ -259,6 +259,13 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('keeps the keyboard cursor inside min/max and commits the clamped range', () => {
+			// Today is min, so the cursor starts on min.
+			vi.useFakeTimers({ now: new Date(2025, 0, 10, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -272,7 +279,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			// With no value and no range in progress, the cursor starts on min.
+			// With no value and no range in progress, the cursor starts on today.
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
@@ -328,6 +335,39 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageDown')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 6, 15) })
+		})
+
+		// A past `min` bounds the cursor. It is not the start point.
+		it('starts the cursor on today when there is no value and today is inside min/max', () => {
+			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 5, 15) })
+		})
+
+		it('pins today as the start on Enter when there is no value and today is inside min/max', () => {
+			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
+
+			expect(result.current.calendar.rangeStart).toEqual(new Date(2025, 5, 15))
 		})
 	})
 

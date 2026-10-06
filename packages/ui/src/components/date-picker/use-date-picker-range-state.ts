@@ -99,8 +99,10 @@ export function useDatePickerRangeState({
 		dispatch({ type: 'reset' })
 	}, [])
 
+	// With no range in progress and no value, the cursor starts on today. A `min`
+	// or a `max` only bounds it.
 	const getInitialActiveDate = useCallback(
-		() => clampDate(rangeStart ?? value?.[0] ?? min ?? new Date(), min, max),
+		() => clampDate(rangeStart ?? value?.[0] ?? new Date(), min, max),
 		[rangeStart, value, min, max],
 	)
 
