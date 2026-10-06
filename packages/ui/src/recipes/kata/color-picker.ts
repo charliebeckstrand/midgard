@@ -8,7 +8,7 @@ const { cursor } = hannou
 const { text } = iro
 const { rounded } = kasane
 const { reset, density, surface } = control
-const { portal, panel } = popover
+const { portal, panel, fit } = popover
 
 const button = defineRecipe({
 	base: [
@@ -53,10 +53,12 @@ export const k = {
 	swatch,
 	skeleton: kokkaku.colorPicker,
 	content: {
-		portal,
+		portal: [portal, fit.wrapper],
 		motion: panel.motion,
+		column: fit.column,
 		text: text.default,
 		glass: panel.glass,
+		scroll: fit.scroll,
 	},
 }
 
