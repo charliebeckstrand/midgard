@@ -88,6 +88,8 @@ describe('the copy glyph of a code block with a light theme (real browser)', () 
 				code,
 				theme: 'github-light-default',
 				html: `<pre class="shiki github-light-default" style="background-color:#ffffff;color:#1f2328" tabindex="-1"><code><span class="line"><span>${code}</span></span></code></pre>`,
+				bg: '#ffffff',
+				type: 'light',
 			})
 
 			const { container } = renderUI(<CodeBlock code={code} theme="github-light-default" />)

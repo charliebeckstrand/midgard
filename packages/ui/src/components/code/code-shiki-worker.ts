@@ -13,7 +13,7 @@ self.onmessage = ({ data }: MessageEvent<ShikiRequest>) => {
 	const work =
 		code === undefined
 			? warmShikiPair(lang, theme).then((): ShikiReply => ({ id }))
-			: highlightShiki(code, lang, theme).then((html): ShikiReply => ({ id, html }))
+			: highlightShiki(code, lang, theme).then((highlight): ShikiReply => ({ id, highlight }))
 
 	work.then(
 		(reply) => self.postMessage(reply),

@@ -41,7 +41,7 @@ function loadCode(meta: ExampleMeta): Promise<void> {
 		meta.code().then(
 			(code) => {
 				// The markup from the build paints in the first frame of the block.
-				primeCodeBlock({ code: code.code, html: code.html })
+				primeCodeBlock({ code: code.code, ...code.highlight })
 
 				codes.set(meta, code)
 			},
