@@ -103,7 +103,7 @@ describe('the border of a check control under the pointer (real browser)', () =>
 
 			const { container } = renderUI(fields['an indeterminate Checkbox']())
 
-			const input = present(container.querySelector<HTMLInputElement>('input'), 'input')
+			const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 			input.indeterminate = false
 
