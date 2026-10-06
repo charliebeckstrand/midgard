@@ -4,6 +4,8 @@ import { Button } from 'ui/button'
 import { Fieldset, Label, Legend } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
 import { Switch, SwitchField } from 'ui/switch'
+import { noop } from '../../../utilities/noop.ts'
+import { useFail } from '../../kit/fail.ts'
 import { useIdle } from '../../kit/idle.ts'
 
 // The part of the Event log that the shell loads with each page: the head
@@ -32,9 +34,9 @@ function isEventLogOn(): boolean {
 	return document.documentElement.hasAttribute(ATTRIBUTE)
 }
 
-/** Loads the sheet while the tool is on. */
+/** Loads the sheet while the tool is on. A load that fails does nothing. The open of the sheet shows the failure. */
 function prepareSheet(): void {
-	if (isEventLogOn()) void loadSheet()
+	if (isEventLogOn()) loadSheet().catch(noop)
 }
 
 /** Starts the recorder while the tool is on. The client entry waits for it before it hydrates. */
@@ -83,11 +85,14 @@ export function EventLogButton() {
 
 	useIdle(prepareSheet)
 
+	const fail = useFail()
+
 	// The sheet opens when its module is loaded. A sheet that suspends opens
-	// late, because React holds the content back for at least 300 ms.
+	// late, because React holds the content back for at least 300 ms. When the
+	// load fails, the error boundary shows the failure.
 	const show = () => {
 		if (sheet) setOpen(true)
-		else void loadSheet().then(() => setOpen(true))
+		else loadSheet().then(() => setOpen(true), fail)
 	}
 
 	const EventLogSheet = sheet?.EventLogSheet

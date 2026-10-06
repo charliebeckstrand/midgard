@@ -5,6 +5,7 @@ import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/stack'
+import { useFail } from '../../../../kit/fail.ts'
 import { stateFrame, stateName, states, timezones, zoneCategories } from '../data.ts'
 import { type CountiesByState, loadCounties } from './data.ts'
 
@@ -17,15 +18,19 @@ export default function DrillIntoCounties() {
 
 	const [byState, setByState] = useState<CountiesByState | null>(null)
 
-	// A hold on a state loads the counties, so they are ready for the click.
-	const warmCounties = () => void loadCounties()
+	// A hold on a state loads the counties, so they are ready for the click. A
+	// load that fails here does nothing. The click shows the failure.
+	const warmCounties = () => loadCounties().catch(() => {})
 
+	const fail = useFail()
+
+	// When the load fails, the error boundary shows the failure.
 	const drill = (name: string, index: number) => {
 		setDrilled({ name, fips: String(states.features[index]?.id ?? '') })
 
 		setCounty(null)
 
-		void loadCounties().then(setByState)
+		loadCounties().then(setByState, fail)
 	}
 
 	const counties = drilled === null ? null : (byState?.get(drilled.fips) ?? null)
