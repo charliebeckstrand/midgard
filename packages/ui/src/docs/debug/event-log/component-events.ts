@@ -8,8 +8,11 @@ import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 
 type Callback = (...args: unknown[]) => unknown
 
-/** Receives the text of each component event. */
-type Listener = (text: string) => void
+/** Where a component comes from: a module of `ui`, such as `Grid`, or any other component, such as `Tabs`. */
+export type Source = 'component' | 'module'
+
+/** Receives the source and the text of each component event. */
+type Listener = (source: Source, text: string) => void
 
 let listener: Listener | undefined
 
@@ -22,7 +25,7 @@ export function listenComponentEvents(next: Listener): () => void {
 	}
 }
 
-// The wrapper of each callback, by the label of the call. A callback that
+// The wrapper of each callback, by the source and the label of the call. A callback that
 // keeps its identity keeps the identity of its wrapper, so the memos and the
 // effects that read it do not run again.
 const wrappers = new WeakMap<Callback, Map<string, Callback>>()
@@ -33,10 +36,11 @@ const wrappers = new WeakMap<Callback, Map<string, Callback>>()
  * `Tabs onValueChange("Payment")`. A value that is not a function goes through
  * with no change.
  *
+ * @param source - Where the component comes from.
  * @param label - The component and the prop, such as `Tabs onValueChange`.
  * @param callback - The value of the prop.
  */
-export function componentEvent<T>(label: string, callback: T): T {
+export function componentEvent<T>(source: Source, label: string, callback: T): T {
 	if (!listener || typeof callback !== 'function') return callback
 
 	const original = callback as Callback
@@ -46,7 +50,7 @@ export function componentEvent<T>(label: string, callback: T): T {
 		label,
 		() =>
 			function (this: unknown, ...args: unknown[]) {
-				listener?.(`${label}(${args.map(show).join(', ')})`)
+				listener?.(source, `${label}(${args.map(show).join(', ')})`)
 
 				return Reflect.apply(original, this, args)
 			},

@@ -4,7 +4,8 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { componentEvent, listenComponentEvents } from '../debug/event-log/component-events.ts'
 import { labelCallbacks } from '../plugin/component-events.ts'
 
-const label = (code: string) => labelCallbacks((source, options) => parseAst(source, options), code)
+const label = (code: string, fromModules: string[] = []) =>
+	labelCallbacks(parseAst(code, { lang: 'tsx' }), code, new Set(fromModules))
 
 /** A callback that takes any arguments. */
 const spy = () => vi.fn<(...args: unknown[]) => unknown>()
@@ -13,25 +14,25 @@ const spy = () => vi.fn<(...args: unknown[]) => unknown>()
 function collect(): string[] {
 	const texts: string[] = []
 
-	onTestFinished(listenComponentEvents((text) => texts.push(text)))
+	onTestFinished(listenComponentEvents((source, text) => texts.push(`${source} ${text}`)))
 
 	return texts
 }
 
 describe('labelCallbacks', () => {
-	it('wraps each callback prop of a component with the tag and the prop as the label', () => {
+	it('wraps each callback prop of a component with its source, and the tag and the prop as the label', () => {
 		expect(label('const a = <Tabs value={v} onValueChange={(value) => set(value)} />')).toBe(
-			'const a = <Tabs value={v} onValueChange={__componentEvent("Tabs onValueChange", (value) => set(value))} />',
+			'const a = <Tabs value={v} onValueChange={__componentEvent("component", "Tabs onValueChange", (value) => set(value))} />',
 		)
 
-		expect(label('const a = <Chat.Prompt onSubmit={send} />')).toBe(
-			'const a = <Chat.Prompt onSubmit={__componentEvent("Chat.Prompt onSubmit", send)} />',
+		expect(label('const a = <Chat.Prompt onSubmit={send} />', ['Chat'])).toBe(
+			'const a = <Chat.Prompt onSubmit={__componentEvent("module", "Chat.Prompt onSubmit", send)} />',
 		)
 	})
 
 	it('wraps a component inside the callback of another component', () => {
 		expect(label('<A onRender={() => <B onPick={pick} />} />')).toBe(
-			'<A onRender={__componentEvent("A onRender", () => <B onPick={__componentEvent("B onPick", pick)} />)} />',
+			'<A onRender={__componentEvent("component", "A onRender", () => <B onPick={__componentEvent("component", "B onPick", pick)} />)} />',
 		)
 	})
 
@@ -44,7 +45,7 @@ describe('componentEvent', () => {
 	it('gives the callback with no change while no listener is set', () => {
 		const callback = spy()
 
-		expect(componentEvent('Tabs onValueChange', callback)).toBe(callback)
+		expect(componentEvent('component', 'Tabs onValueChange', callback)).toBe(callback)
 	})
 
 	it('writes each call with its arguments, and calls the callback', () => {
@@ -52,23 +53,30 @@ describe('componentEvent', () => {
 
 		const callback = spy().mockReturnValue('kept')
 
-		const wrapped = componentEvent('Tabs onValueChange', callback)
+		const wrapped = componentEvent('component', 'Tabs onValueChange', callback)
 
 		expect(wrapped('Payment', { index: 1 })).toBe('kept')
 
 		expect(callback).toHaveBeenCalledWith('Payment', { index: 1 })
 
-		expect(texts).toEqual(['Tabs onValueChange("Payment", {"index":1})'])
+		expect(texts).toEqual(['component Tabs onValueChange("Payment", {"index":1})'])
 	})
 
 	it('writes an event as its type', () => {
 		const texts = collect()
 
-		componentEvent('Button onClick', spy())(new Event('click'))
+		componentEvent('component', 'Button onClick', spy())(new Event('click'))
 
-		componentEvent('Button onClick', spy())({ nativeEvent: new Event('click'), type: 'click' })
+		componentEvent(
+			'component',
+			'Button onClick',
+			spy(),
+		)({ nativeEvent: new Event('click'), type: 'click' })
 
-		expect(texts).toEqual(['Button onClick("<click>")', 'Button onClick("<click>")'])
+		expect(texts).toEqual([
+			'component Button onClick("<click>")',
+			'component Button onClick("<click>")',
+		])
 	})
 
 	it('keeps the identity of the wrapper while the callback keeps its own', () => {
@@ -76,8 +84,8 @@ describe('componentEvent', () => {
 
 		const callback = spy()
 
-		expect(componentEvent('Tab onPreload', callback)).toBe(
-			componentEvent('Tab onPreload', callback),
+		expect(componentEvent('component', 'Tab onPreload', callback)).toBe(
+			componentEvent('component', 'Tab onPreload', callback),
 		)
 	})
 })

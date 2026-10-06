@@ -2,9 +2,6 @@ import path from 'node:path'
 import { prefixRegex } from '@rolldown/pluginutils'
 import { type ESTree, type Plugin, Visitor } from 'vite'
 
-/** Parses TSX, as the `parse` of a plugin context does. */
-type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
-
 /** A prop that holds a callback: `on`, then a capital letter. */
 const CALLBACK = /^on[A-Z]/
 
@@ -15,12 +12,16 @@ const WRAP = '__componentEvent'
  * The Vite plugin that sends each callback that the JSX of `pages/` gives to a
  * component through the Event log (`debug/event-log/component-events.ts`).
  * The plugin reads the name of the component from the tag in the source, so a
- * line names the component in the minified build too.
+ * line names the component in the minified build too. A tag that the page
+ * imports from `src/modules` gives a module event, and any other tag gives a
+ * component event.
  */
 export function componentEvents(): Plugin {
 	const docs = path.resolve(import.meta.dirname, '..')
 
 	const pages = path.join(docs, 'pages')
+
+	const modules = `${path.resolve(docs, '..', 'modules')}/`
 
 	const module = JSON.stringify(path.join(docs, 'debug', 'event-log', 'component-events.ts'))
 
@@ -30,8 +31,23 @@ export function componentEvents(): Plugin {
 		enforce: 'pre',
 		transform: {
 			filter: { id: { include: prefixRegex(`${pages}/`), exclude: /(?<!\.tsx)$/ } },
-			handler(code) {
-				const labeled = labelCallbacks(this.parse.bind(this), code)
+			async handler(code, id) {
+				const program = this.parse(code, { lang: 'tsx' })
+
+				// The local names that the page imports from a module of `ui`, such as `Grid`.
+				const fromModules = new Set<string>()
+
+				for (const node of program.body) {
+					if (node.type !== 'ImportDeclaration') continue
+
+					const resolved = await this.resolve(node.source.value, id)
+
+					if (!resolved?.id.startsWith(modules)) continue
+
+					for (const specifier of node.specifiers) fromModules.add(specifier.local.name)
+				}
+
+				const labeled = labelCallbacks(program, code, fromModules)
 
 				// The import goes on the first line, so the lines keep their numbers.
 				return labeled === undefined
@@ -44,13 +60,17 @@ export function componentEvents(): Plugin {
 
 /**
  * The code with each `on…` prop of a component element wrapped in a call of
- * `componentEvent`, with the tag and the prop as the label:
- * `<Tabs onValueChange={f}>` gives
- * `<Tabs onValueChange={__componentEvent("Tabs onValueChange", f)}>`. A host
- * element, such as `<div>`, stays as it is, because the input listeners of the
- * log record the DOM events. It gives nothing for code with no such prop.
+ * `componentEvent`, with the source and the label: `<Tabs onValueChange={f}>`
+ * gives `<Tabs onValueChange={__componentEvent("component", "Tabs onValueChange", f)}>`.
+ * The source is `module` when `fromModules` holds the first name of the tag. A
+ * host element, such as `<div>`, stays as it is, because the input listeners
+ * of the log record the DOM events. It gives nothing for code with no such prop.
  */
-export function labelCallbacks(parse: Parse, code: string): string | undefined {
+export function labelCallbacks(
+	program: ESTree.Program,
+	code: string,
+	fromModules: ReadonlySet<string>,
+): string | undefined {
 	// Each edit inserts text and removes none, so the edits go from the end of
 	// the code to the start, and an edit inside the value of another prop keeps its place.
 	const inserts: { at: number; text: string }[] = []
@@ -64,6 +84,8 @@ export function labelCallbacks(parse: Parse, code: string): string | undefined {
 			if (!component) return
 
 			const tag = code.slice(name.start, name.end)
+
+			const source = JSON.stringify(fromModules.has(rootOf(name)) ? 'module' : 'component')
 
 			for (const attribute of attributes) {
 				if (
@@ -79,10 +101,10 @@ export function labelCallbacks(parse: Parse, code: string): string | undefined {
 
 				const label = JSON.stringify(`${tag} ${attribute.name.name}`)
 
-				inserts.push({ at: start, text: `${WRAP}(${label}, ` }, { at: end, text: ')' })
+				inserts.push({ at: start, text: `${WRAP}(${source}, ${label}, ` }, { at: end, text: ')' })
 			}
 		},
-	}).visit(parse(code, { lang: 'tsx' }))
+	}).visit(program)
 
 	if (inserts.length === 0) return undefined
 
@@ -93,4 +115,13 @@ export function labelCallbacks(parse: Parse, code: string): string | undefined {
 	}
 
 	return labeled
+}
+
+/** The first name of a tag: `Grid` of `<Grid>`, and `Chart` of `<Chart.Line>`. */
+function rootOf(name: ESTree.JSXElementName | ESTree.JSXMemberExpression['object']): string {
+	if (name.type === 'JSXIdentifier') return name.name
+
+	if (name.type === 'JSXMemberExpression') return rootOf(name.object)
+
+	return ''
 }

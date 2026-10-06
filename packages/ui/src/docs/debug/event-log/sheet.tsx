@@ -9,7 +9,7 @@ import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } fro
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
-import { type Entry, KINDS, start } from './recorder.ts'
+import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
 /** The width of the kind column: the longest kind. */
 const KIND_WIDTH = Math.max(...KINDS.map((kind) => kind.length))
@@ -29,8 +29,11 @@ function keyOf(entry: Entry): number {
 	return getOrCompute(keys, entry, () => ++lastKey)
 }
 
-/** The color of the component events, so that they stand apart from the DOM events. */
-const COMPONENT = 'text-violet-600 dark:text-violet-400'
+/** The color of the kinds that stand apart from the DOM events: the callbacks of the components and of the modules. */
+const COLOR: Partial<Record<Kind, string>> = {
+	component: 'text-violet-600 dark:text-violet-400',
+	module: 'text-rose-600 dark:text-rose-400',
+}
 
 /**
  * The viewer of the Event log: the title and "Preserve log", the lines, newest
@@ -89,10 +92,7 @@ export function EventLogSheet({
 					{lines.length > 0 ? (
 						<pre className="m-0 whitespace-pre-wrap font-mono text-xs">
 							{entries.toReversed().map((entry) => (
-								<span
-									key={keyOf(entry)}
-									className={cn('block', entry.kind === 'component' && COMPONENT)}
-								>
+								<span key={keyOf(entry)} className={cn('block', COLOR[entry.kind])}>
 									{line(entry)}
 								</span>
 							))}

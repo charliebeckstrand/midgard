@@ -13,6 +13,7 @@ export const KINDS = [
 	'viewport',
 	'call',
 	'component',
+	'module',
 	'overlay',
 	'error',
 	'hmr',
@@ -384,7 +385,7 @@ export function listen(target: EventLog): () => void {
 
 	on(window, 'pagehide', () => target.save())
 
-	cleanups.push(listenComponentEvents((text) => note('component', text)))
+	cleanups.push(listenComponentEvents((source, text) => note(source, text)))
 
 	cleanups.push(subscribeOverlaySignal(() => note('overlay', `overlay opens ${viewport()}`)))
 

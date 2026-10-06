@@ -353,19 +353,22 @@ describe('listen', () => {
 		expect(texts(log).slice(0, 2)).toEqual(['boom', 'unhandled rejection gone'])
 	})
 
-	it('records the callbacks that a page gives to a component, and stops with the log', () => {
+	it('records the callbacks that a page gives to a component or a module, and stops with the log', () => {
 		const log = new EventLog(createStore())
 
 		const stop = listen(log)
 
-		componentEvent('Tab onPreload', vi.fn<(value: string) => void>())('Activity')
+		componentEvent('component', 'Tab onPreload', vi.fn<(value: string) => void>())('Activity')
+
+		componentEvent('module', 'Grid onSortChange', vi.fn<(value: string) => void>())('name')
 
 		stop()
 
-		componentEvent('Tab onPreload', vi.fn<(value: string) => void>())('Billing')
+		componentEvent('component', 'Tab onPreload', vi.fn<(value: string) => void>())('Billing')
 
 		expect(log.entries.map(({ kind, text }) => [kind, text])).toEqual([
 			['component', 'Tab onPreload("Activity")'],
+			['module', 'Grid onSortChange("name")'],
 		])
 	})
 
