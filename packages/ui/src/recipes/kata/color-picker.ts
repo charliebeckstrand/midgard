@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, kasane, omote } from '../kiso'
+import { hannou, iro, kasane, kokkaku, omote } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
@@ -49,6 +49,7 @@ export const k = {
 	button,
 	value,
 	swatch,
+	skeleton: kokkaku.colorPicker,
 	content: {
 		portal,
 		motion: panel.motion,

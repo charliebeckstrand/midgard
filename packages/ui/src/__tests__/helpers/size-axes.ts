@@ -29,6 +29,7 @@ export const SIZE_AXES = {
 	ColorPanel: ['sm', 'md', 'lg'],
 	ColorPanelSkeleton: ['sm', 'md', 'lg'],
 	ColorPicker: ['sm', 'md', 'lg'],
+	ColorPickerSkeleton: ['sm', 'md', 'lg'],
 	Combobox: ['sm', 'md', 'lg'],
 	CommandPaletteClose: ['xs', 'sm', 'md', 'lg'],
 	CommandPaletteShortcut: ['sm', 'md', 'lg'],
