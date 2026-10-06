@@ -18,7 +18,7 @@ export const k = {
 			...cursor,
 			// The disabled input/button is a sibling of the affix, not a descendant;
 			// the cursor reacts to the enclosing control frame.
-			'group-has-[:disabled]/control:cursor-not-allowed group-has-[[data-disabled]]/control:cursor-not-allowed',
+			'group-has-[:disabled,[data-disabled]]/control:cursor-not-allowed',
 		],
 		prefix: affix.prefix,
 		suffix: affix.suffix,

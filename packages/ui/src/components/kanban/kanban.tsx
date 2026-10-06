@@ -84,6 +84,8 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	// browser do not agree on it.
 	const dndId = useId()
 
+	const containerRef = useRef<HTMLElement>(null)
+
 	const {
 		activeId,
 		dropColumnId,
@@ -93,13 +95,12 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		handleDragOver,
 		handleDragEnd,
 		handleDragCancel,
-	} = useKanbanDrag({ columns, getKey, onReorder })
+		accessibility,
+	} = useKanbanDrag({ columns, getKey, onReorder, containerRef })
 
 	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
 	// holds the closed hand on the whole page until the drop or the cancel.
 	useDragCursor(activeId !== null)
-
-	const containerRef = useRef<HTMLElement>(null)
 
 	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur } = useKanbanKeyboard({
 		columns,
@@ -155,6 +156,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					id={dndId}
 					sensors={sensors}
 					collisionDetection={closestCorners}
+					accessibility={accessibility}
 					onDragStart={interactive ? handleDragStart : undefined}
 					onDragOver={interactive ? handleDragOver : undefined}
 					onDragEnd={interactive ? handleDragEnd : undefined}

@@ -119,7 +119,7 @@ export const k = {
 			...cursor,
 		],
 		frame: [
-			'relative block w-full aspect-[3/4]',
+			'relative block w-full aspect-3/4',
 			'overflow-hidden',
 			'opacity-50',
 			'after:pointer-events-none after:absolute after:inset-0 after:ring-inset',
@@ -137,7 +137,7 @@ export const k = {
 		 */
 		image: ['block w-full h-full object-contain', 'drop-shadow-sm'],
 		fallback: [flex.row, 'justify-center', 'h-full w-full', size.sm, text.muted],
-		placeholder: ['block w-full aspect-[3/4]', skeleton.base],
+		placeholder: ['block w-full aspect-3/4', skeleton.base],
 		label: [
 			size.sm,
 			text.muted,
@@ -162,7 +162,7 @@ export const k = {
 		 * appearing would therefore narrow the box, shorten the page, and remove itself.
 		 * Under `'page'` the page always fits, and reserving a gutter would waste it.
 		 */
-		scrolls: '[scrollbar-gutter:stable]',
+		scrolls: 'scrollbar-gutter-stable',
 		page: {
 			frame: ['relative shrink-0'],
 			base: [centered, 'shadow-lg', 'bg-white'],

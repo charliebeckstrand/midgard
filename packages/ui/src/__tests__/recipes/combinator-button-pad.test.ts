@@ -19,7 +19,7 @@ import { findSteps } from '../helpers/class-stops'
 
 const SHIFTED = ['xs', 'sm', 'md', 'lg'] as const satisfies readonly DensityStep[]
 
-const LISTS = ['density-p-ring-', 'data-[has-label]:density-py-ring-', 'density-rounded-'] as const
+const LISTS = ['density-p-ring-', 'data-has-label:density-py-ring-', 'density-rounded-'] as const
 
 describe('QueryChips combinator-button pad', () => {
 	for (const prefix of LISTS) {

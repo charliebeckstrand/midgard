@@ -37,9 +37,7 @@ describe('removable chip leading-pad symmetry', () => {
 		const expected = pillPx + bareP
 
 		it(`${size}: chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
-			const actual = Number(
-				findSteps([badge.removable], 'data-[has-suffix]:density-ps-ring-')[size],
-			)
+			const actual = Number(findSteps([badge.removable], 'data-has-suffix:density-ps-ring-')[size])
 
 			expect(actual).toBe(expected)
 		})

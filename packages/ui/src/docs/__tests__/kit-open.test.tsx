@@ -36,7 +36,11 @@ describe('ExampleFrame', () => {
 
 		load({
 			code: 'const answer = 42',
-			html: '<pre class="shiki"><code>const answer = 42</code></pre>',
+			highlight: {
+				html: '<pre class="shiki"><code>const answer = 42</code></pre>',
+				bg: '#0d1117',
+				type: 'dark',
+			},
 		})
 
 		const panel = await waitFor(() => {

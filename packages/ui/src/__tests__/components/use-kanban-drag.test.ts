@@ -4,6 +4,9 @@ import { describe, expect, it, vi } from 'vitest'
 import type { KanbanColumnBase } from '../../components/kanban/types'
 import { useKanbanDrag } from '../../components/kanban/use-kanban-drag'
 
+/** No root element: these tests read no names. */
+const containerRef = { current: null }
+
 type Card = { id: string }
 
 type Column = KanbanColumnBase<Card> & { title: string }
@@ -19,11 +22,7 @@ function setup(options: { columns?: Column[]; onReorder?: (next: Column[]) => vo
 	const onReorder = options.onReorder ?? vi.fn()
 
 	const { result } = renderHook(() =>
-		useKanbanDrag<Card, Column>({
-			columns,
-			getKey: (i) => i.id,
-			onReorder,
-		}),
+		useKanbanDrag<Card, Column>({ containerRef, columns, getKey: (i) => i.id, onReorder }),
 	)
 
 	return { api: result.current, onReorder }
@@ -68,6 +67,7 @@ describe('useKanbanDrag: state', () => {
 	])('sets activeId on drag start and clears it on %s', (_name, finish) => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
+				containerRef,
 				columns: baseColumns,
 				getKey: (i) => i.id,
 				onReorder: () => {},
@@ -134,10 +134,7 @@ describe('useKanbanDrag: handleDragOver cross-column moves', () => {
 
 	it('is a no-op when there is no onReorder handler', () => {
 		const { result } = renderHook(() =>
-			useKanbanDrag<Card, Column>({
-				columns: baseColumns,
-				getKey: (i) => i.id,
-			}),
+			useKanbanDrag<Card, Column>({ containerRef, columns: baseColumns, getKey: (i) => i.id }),
 		)
 
 		expect(() => result.current.handleDragOver(makeDragEvent('a', 'doing'))).not.toThrow()
@@ -176,10 +173,7 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 
 	it('is a no-op when handleDragEnd has no onReorder handler', () => {
 		const { result } = renderHook(() =>
-			useKanbanDrag<Card, Column>({
-				columns: baseColumns,
-				getKey: (i) => i.id,
-			}),
+			useKanbanDrag<Card, Column>({ containerRef, columns: baseColumns, getKey: (i) => i.id }),
 		)
 
 		expect(() => result.current.handleDragEnd(makeDragEvent('a', 'b'))).not.toThrow()
@@ -200,7 +194,7 @@ function startCrossColumnDrag() {
 
 	const { result, rerender } = renderHook(
 		({ columns }: { columns: Column[] }) =>
-			useKanbanDrag<Card, Column>({ columns, getKey: (i) => i.id, onReorder }),
+			useKanbanDrag<Card, Column>({ containerRef, columns, getKey: (i) => i.id, onReorder }),
 		{ initialProps: { columns: board } },
 	)
 
@@ -262,7 +256,7 @@ describe('useKanbanDrag: cancel', () => {
 
 		const { result, rerender } = renderHook(
 			({ columns }: { columns: Column[] }) =>
-				useKanbanDrag<Card, Column>({ columns, getKey: (i) => i.id, onReorder }),
+				useKanbanDrag<Card, Column>({ containerRef, columns, getKey: (i) => i.id, onReorder }),
 			{ initialProps: { columns: baseColumns } },
 		)
 
@@ -294,7 +288,12 @@ describe('useKanbanDrag: cancel', () => {
 		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
-			useKanbanDrag<Card, Column>({ columns: baseColumns, getKey: (i) => i.id, onReorder }),
+			useKanbanDrag<Card, Column>({
+				containerRef,
+				columns: baseColumns,
+				getKey: (i) => i.id,
+				onReorder,
+			}),
 		)
 
 		act(() => {

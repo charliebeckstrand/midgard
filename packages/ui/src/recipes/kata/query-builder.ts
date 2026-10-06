@@ -72,6 +72,6 @@ export const k = {
 		node: 'min-w-0 flex-1',
 		// The AND/OR between two nodes aligns with the nodes, past the grip and
 		// the gap. The nodes move over it during a drag, so it fades until the drop.
-		separator: ['ps-7.5', 'motion-safe:transition-opacity group-data-[sorting]/sortable:opacity-0'],
+		separator: ['ps-7.5', 'motion-safe:transition-opacity group-data-sorting/sortable:opacity-0'],
 	},
 } as const

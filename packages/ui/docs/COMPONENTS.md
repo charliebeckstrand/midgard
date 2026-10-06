@@ -67,13 +67,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one. The `bare` variant has no row padding and no dividers. It is for rows of form controls, such as a reorderable list of inputs in a `Field`.
 
-> `code` exports `CodeBlock`, which highlights with Shiki in a module worker. The page loads no grammar and no regex engine. `loadShiki` starts the worker and loads a grammar before the first block needs it. `primeCodeBlock` stores markup that was highlighted elsewhere, and a block then paints it on its first render. A Vite app must set `worker.format` to `'es'`, or Vite puts each grammar into the worker file. A block announces a refused copy as "Copy failed", in the live region where its CopyButton announces "Copied". A block that overflows is a region. With no `label`, its name comes from `lang`, such as "TypeScript code", else it is "Code".
+> `code` exports `CodeBlock`, which highlights with Shiki in a module worker. The page loads no grammar and no regex engine. `loadShiki` starts the worker and loads a grammar before the first block needs it. `primeCodeBlock` stores markup that was highlighted elsewhere, and a block then paints it on its first render. It also takes the `bg` and the `type` that Shiki's `getTheme` gives for the theme. A Vite app must set `worker.format` to `'es'`, or Vite puts each grammar into the worker file. A block announces a refused copy as "Copy failed", in the live region where its CopyButton announces "Copied". A block that overflows is a region. With no `label`, its name comes from `lang`, such as "TypeScript code", else it is "Code".
 
 > The root `<div>` of a `CodeBlock` takes the `<div>` attributes, such as `id`, `data-*`, and `aria-*`. The `lang` prop names the grammar, so the block does not take the HTML `lang` attribute.
 
 > The padding, the gap, and the code text of a `CodeBlock` take the step of the nearest density scope. An explicit `size` opens a scope on the block, with the steps of the ramps of the block. At `md` the block is `p-4` with `text-sm` code, and its CopyButton keeps the `sm` size at each step.
 
-> The frame of a `CodeBlock` paints the background of its `theme`, as Shiki writes it on the `<pre>`. Before the markup arrives, the frame paints the background of the default theme. The CopyButton of the block takes colors that read on the background in each color mode.
+> The frame of a `CodeBlock` paints the background of its `theme`, as Shiki gives it. Before the markup arrives, the frame paints the background of the default theme. The CopyButton of the block takes colors that read on the background in each color mode. The type of the theme in Shiki selects them.
 
 ## Layout & surfaces
 

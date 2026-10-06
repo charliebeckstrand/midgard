@@ -657,10 +657,8 @@ describe('MenuContent', () => {
 		}
 
 		it('emits no height cap by default, so the panel grows to its content', () => {
-			// Not "emits an overriding class": tailwind-merge leaves `max-h-none`
-			// beside `max-h-52`, so the recipe withholds the cap instead. Asserting
-			// the absence of *any* max-height pins that, and can't pass on a class
-			// that merely competes with the cap.
+			// The recipe withholds the cap; it does not emit an overriding class.
+			// Asserting the absence of *any* max-height pins that.
 			expect(viewportFor().className).not.toMatch(/(^|\s)max-h-/)
 		})
 

@@ -10,6 +10,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../components/kanban'
+import { LIFT_INSTRUCTIONS } from '../../hooks/use-keyboard-lifted'
 import {
 	allBySlot,
 	bySlot,
@@ -775,6 +776,18 @@ describe('Kanban keyboard reorder', () => {
 		expect(getSlot(container, 'kanban-card')).not.toHaveAttribute('data-lifted')
 
 		expect(document.activeElement).toBe(input)
+	})
+})
+
+describe('Kanban drag instructions', () => {
+	it('describes the lift keys of the board, not the keys of dnd-kit', () => {
+		const { container } = renderUI(<KeyboardBoard />)
+
+		const handle = handleOf(container, 'a')
+
+		const instructions = document.getElementById(handle.getAttribute('aria-describedby') ?? '')
+
+		expect(instructions).toHaveTextContent(LIFT_INSTRUCTIONS.draggable)
 	})
 })
 

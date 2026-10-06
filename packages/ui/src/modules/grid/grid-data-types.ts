@@ -1343,7 +1343,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	error?: ReactNode
 
 	/**
-	 * Enables row virtualization via `@tanstack/react-virtual`. Only rows in
+	 * Enables row virtualization via `@tanstack/virtual-core`. Only rows in
 	 * the scroll viewport (plus overscan) render to the DOM. Requires
 	 * `maxHeight`, which sizes the scroll container.
 	 *

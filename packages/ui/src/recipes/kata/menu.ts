@@ -52,7 +52,7 @@ const viewport = defineRecipe({
 		// solid color to fade into; a mask fades the scrolled content itself.
 		// The fade extents default to zero and open per edge while
 		// `useScrollOverflow` stamps the matching overflow attribute.
-		'[mask-image:linear-gradient(to_bottom,transparent,black_var(--menu-fade-above,0px),black_calc(100%-var(--menu-fade-below,0px)),transparent)]',
+		'mask-[linear-gradient(to_bottom,transparent,black_var(--menu-fade-above,0px),black_calc(100%-var(--menu-fade-below,0px)),transparent)]',
 		'data-overflow-above:[--menu-fade-above:1.5rem]',
 		'data-overflow-below:[--menu-fade-below:1.5rem]',
 	],

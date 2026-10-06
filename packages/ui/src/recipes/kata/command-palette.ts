@@ -46,8 +46,8 @@ export const k = {
 		// glass parent, the hover wash and the active wash are both 10%. The step
 		// there doubles to 20%, and the glass group out-specifies `glassItem`.
 		...mode(
-			'not-disabled:not-data-disabled:data-active:hover:bg-zinc-950/10 group-data-[glass]/glass:not-disabled:not-data-disabled:data-active:hover:bg-zinc-950/20',
-			'dark:not-disabled:not-data-disabled:data-active:hover:bg-white/10 dark:group-data-[glass]/glass:not-disabled:not-data-disabled:data-active:hover:bg-white/20',
+			'not-disabled:not-data-disabled:data-active:hover:bg-zinc-950/10 group-data-glass/glass:not-disabled:not-data-disabled:data-active:hover:bg-zinc-950/20',
+			'dark:not-disabled:not-data-disabled:data-active:hover:bg-white/10 dark:group-data-glass/glass:not-disabled:not-data-disabled:data-active:hover:bg-white/20',
 		),
 	],
 	label: 'truncate',

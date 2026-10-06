@@ -2,12 +2,13 @@
 
 import {
 	elementScroll,
+	measureElement,
 	observeElementOffset,
 	observeElementRect,
 	type VirtualItem,
 	Virtualizer,
 	type VirtualizerOptions,
-} from '@tanstack/react-virtual'
+} from '@tanstack/virtual-core'
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
@@ -124,16 +125,36 @@ function viewTop(instance: Virtualizer<HTMLElement, Element>): number {
 }
 
 /**
- * The fields of the virtualizer that its `scroll` handler writes. A scroll
- * adjustment moves the scroller at once, but the virtualizer reads the new
- * offset only from the next `scroll` event. Until then `scrollAdjustments`
- * holds the moves. @internal
+ * The private field of the virtualizer that its `scroll` handler clears: the
+ * offset of its last write of `scrollTop`. @internal
  */
-type ScrollState = { scrollAdjustments: number; _intendedScrollOffset: number | null }
+type ScrollState = { _intendedScrollOffset: number | null }
 
-/** Where the scroller is once the pending adjustments land. @internal */
+/**
+ * Where the scroller is once the pending adjustments land. A scroll adjustment
+ * moves the scroller at once, but the virtualizer can read the new offset only
+ * from the next `scroll` event. Until then `scrollAdjustments` holds the moves.
+ * @internal
+ */
 function effectiveOffset(instance: Virtualizer<HTMLElement, Element>): number {
-	return (instance.scrollOffset ?? 0) + (instance as unknown as ScrollState).scrollAdjustments
+	return (instance.scrollOffset ?? 0) + instance.scrollAdjustments
+}
+
+/**
+ * Measures a row as `measureElement` of virtual-core does, but a measurement
+ * without a `ResizeObserver` entry reads the DOM. Since 3.17 the library
+ * returns the cached size of the key there. A row that attaches again, such
+ * as a row of a group that opens again, then keeps the size that it had when
+ * it detached. The `ResizeObserver` callback corrects it only after the
+ * commit, and that correction renders the list again. `measureOnAttach` also
+ * needs the size of the DOM. @internal
+ */
+function measureLive(
+	element: Element,
+	entry: ResizeObserverEntry | undefined,
+	instance: Virtualizer<HTMLElement, Element>,
+): number {
+	return entry ? measureElement(element, entry, instance) : (element as HTMLElement).offsetHeight
 }
 
 /**
@@ -315,13 +336,11 @@ function holdStartAnchor(
 		if (element && Math.abs(target - effectiveOffset(virtualizer)) >= 1) {
 			element.scrollTop = target
 
-			const state = virtualizer as unknown as ScrollState
-
 			virtualizer.scrollOffset = element.scrollTop
 
-			state.scrollAdjustments = 0
+			virtualizer.scrollAdjustments = 0
 
-			state._intendedScrollOffset = null
+			;(virtualizer as unknown as ScrollState)._intendedScrollOffset = null
 		}
 
 		const offset = start - effectiveOffset(virtualizer)
@@ -340,7 +359,7 @@ type WindowState = { start: number | null; end: number | null; sizes: number }
 
 /**
  * The fields of the virtualizer that {@link windowState} reads. The size
- * version is private in virtual-core 3.16. @internal
+ * version is private in virtual-core 3.17. @internal
  */
 type WindowFields = { itemSizeCacheVersion: number }
 
@@ -392,7 +411,7 @@ function observeLiveOffset(
 /** The options that {@link useWindowVirtualizer} passes through. @internal */
 type WindowVirtualizerOptions = Omit<
 	VirtualizerOptions<HTMLElement, Element>,
-	'observeElementRect' | 'observeElementOffset' | 'scrollToFn' | 'onChange'
+	'observeElementRect' | 'observeElementOffset' | 'scrollToFn' | 'measureElement' | 'onChange'
 >
 
 /**
@@ -445,6 +464,7 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 		observeElementRect,
 		observeElementOffset: observeLiveOffset,
 		scrollToFn: elementScroll,
+		measureElement: measureLive,
 		...options,
 		onChange: (instance, sync) => {
 			const last = shown.current
@@ -518,7 +538,7 @@ type MeasuredVirtualWindow = VirtualWindow & {
 }
 
 /**
- * Drive a vertical windowed list off `@tanstack/react-virtual`, returning the
+ * Drive a vertical windowed list off `@tanstack/virtual-core`, returning the
  * visible items plus the top/bottom spacer heights that stand in for the rows
  * outside the viewport. Callers render their own row and spacer
  * elements (table rows, list divs); this owns only the virtualizer wiring and
@@ -530,7 +550,7 @@ type MeasuredVirtualWindow = VirtualWindow & {
  *
  * @remarks The hook has two paths, and the uniform path is the default.
  *
- * On the uniform path the wrapper passes react-virtual no `getItemKey` and the
+ * On the uniform path the wrapper passes the virtualizer no `getItemKey` and the
  * caller attaches no measurement, so every row must measure `estimateSize`. A
  * row that does not misplaces the window below it. This path costs no
  * `ResizeObserver` work, so keep it for rows that do not vary.
@@ -565,10 +585,11 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * a filtered list thus sees the top of the full list when the filter clears.
  *
  * The anchor writes the offset into the virtualizer as its `scroll` handler
- * does. Version 3.16 of virtual-core has an anchor step of its own. It reads
- * the new offset only from the next `scroll` event. A render before that event
- * paints the window at the old offset, and a second list change in that gap
- * anchors against a stale offset. A scroller that does not scroll takes no
+ * does. The virtualizer reads a write of `scrollTop` only from the next
+ * `scroll` event. A render before that event would paint the window at the old
+ * offset, and a second list change in that gap would anchor against a stale
+ * offset. The anchor step of virtual-core 3.17 acts only with
+ * `anchorTo: 'end'`. A scroller that does not scroll takes no
  * change, and the render after a move holds no anchor, so a move never starts
  * another.
  *
@@ -660,7 +681,7 @@ export function useVirtualWindow({
 	// move the rows in view. The library default skips that adjustment, so the
 	// measured path replaces it. The uniform path writes nothing here.
 
-	// The start anchor. virtual-core 3.16 holds only the end edge. The measured
+	// The start anchor. virtual-core 3.17 holds only the end edge. The measured
 	// path holds the start edge in a layout effect below.
 	const startAnchor = getItemKey != null && anchorTo !== 'end'
 

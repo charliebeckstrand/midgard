@@ -2,14 +2,20 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { type ESTree, normalizePath, Visitor } from 'vite'
 import { DEFAULT_LANG, DEFAULT_THEME } from '../../components/code/code-shiki.ts'
-import { highlightShiki } from '../../components/code/code-shiki-highlighter.ts'
+import {
+	highlightShiki,
+	type ShikiHighlight,
+} from '../../components/code/code-shiki-highlighter.ts'
 import { humanize } from '../kit/humanize.ts'
 
 /** The code of an example: the source of its file, and the markup that `CodeBlock` paints. */
 export type ExampleCode = {
 	code: string
-	/** The markup of `code` for `primeCodeBlock`, with the language and the theme of `CodeBlock`. */
-	html: string
+	/**
+	 * The highlight of `code` for `primeCodeBlock`, with the language and the
+	 * theme of `CodeBlock`: the markup, and the background and the type of the theme.
+	 */
+	highlight: ShikiHighlight
 	/**
 	 * For a playground, where the props go as attributes: the index in `code`,
 	 * and the white space that went before the spread in the source.
@@ -166,11 +172,11 @@ async function readCode(parse: Parse, file: string): Promise<ExampleCode | undef
 
 	const code = spread ? source.slice(0, spread.start) + source.slice(spread.end) : source
 
-	const html = await highlightShiki(code.trim(), DEFAULT_LANG, DEFAULT_THEME)
+	const highlight = await highlightShiki(code.trim(), DEFAULT_LANG, DEFAULT_THEME)
 
 	return {
 		code,
-		html,
+		highlight,
 		...(spread && { spread: { index: spread.start, separator: spread.separator } }),
 	}
 }

@@ -1,9 +1,10 @@
 'use client'
 
 import { type AnimationPlaybackControls, animate } from 'motion'
-import { motion, useMotionValue, useTransform } from 'motion/react'
+import { motion, useInView, useMotionValue, useTransform } from 'motion/react'
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 
@@ -78,6 +79,9 @@ const OFF_RIGHT = -50
  * ShinyText therefore reads the OS preference through `usePrefersReducedMotion`,
  * and renders static text under reduced motion (WCAG 2.3.3).
  *
+ * The sweep runs only while the text is in the viewport. Off screen it stops,
+ * and it starts again from the start position when the text comes back.
+ *
  * The eight tuning props are deliberate. No app consumes this component, and
  * its demo exercises every one of them. A decorative surface earns its knobs,
  * so the zero-usage rule that deleted `delay` keeps the rest.
@@ -103,6 +107,13 @@ export function ShinyText({
 }: ShinyTextProps) {
 	const reduceMotion = usePrefersReducedMotion()
 
+	// An infinite loop runs on every frame. Off screen nobody sees it, so it stops.
+	const own = useRef<HTMLSpanElement>(null)
+
+	const inView = useInView(own)
+
+	const composedRef = useComposedRef(ref, own)
+
 	const from = sweep === 'left' ? OFF_RIGHT : OFF_LEFT
 
 	const to = sweep === 'left' ? OFF_LEFT : OFF_RIGHT
@@ -118,7 +129,7 @@ export function ShinyText({
 		// shine frozen wherever the previous cleanup's `stop()` caught it.
 		position.set(from)
 
-		if (disabled || reduceMotion) return
+		if (disabled || reduceMotion || !inView) return
 
 		const controls = animate(position, to, {
 			duration: speed,
@@ -134,7 +145,7 @@ export function ShinyText({
 
 			controlsRef.current = null
 		}
-	}, [disabled, reduceMotion, from, to, speed, yoyo, position])
+	}, [disabled, reduceMotion, inView, from, to, speed, yoyo, position])
 
 	// A hover can pause the sweep. When `pauseOnHover` turns off during that
 	// hover, the leave handler does not resume it, so resume it here.
@@ -154,7 +165,7 @@ export function ShinyText({
 
 	return (
 		<motion.span
-			ref={ref}
+			ref={composedRef}
 			data-slot="shiny-text"
 			className={cn(
 				'inline-block bg-clip-text text-transparent',

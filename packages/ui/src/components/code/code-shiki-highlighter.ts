@@ -1,4 +1,4 @@
-import type { HighlighterCore } from 'shiki'
+import type { HighlighterCore, ThemeRegistrationResolved } from 'shiki'
 import { createHighlighterCore, isSpecialLang, isSpecialTheme } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 import { bundledLanguages } from 'shiki/langs'
@@ -32,8 +32,14 @@ export type ShikiRequest = {
 	code?: string
 }
 
-/** The reply to a {@link ShikiRequest}: the markup, nothing for a load, or the message of the error. */
-export type ShikiReply = { id: number; html?: string } | { id: number; error: string }
+/**
+ * The highlight of one snippet: the markup, and the background color and the
+ * type of the theme, as Shiki gives them in `getTheme`.
+ */
+export type ShikiHighlight = { html: string } & Pick<ThemeRegistrationResolved, 'bg' | 'type'>
+
+/** The reply to a {@link ShikiRequest}: the highlight, nothing for a load, or the message of the error. */
+export type ShikiReply = { id: number; highlight?: ShikiHighlight } | { id: number; error: string }
 
 let highlighter: Promise<HighlighterCore> | null = null
 
@@ -152,7 +158,8 @@ export async function warmShikiPair(lang: string, theme: string): Promise<void> 
 }
 
 /**
- * Highlights `code` to the markup that `CodeBlock` renders.
+ * Highlights `code` to the markup that `CodeBlock` renders, and gives the
+ * background color and the type of the theme with it.
  *
  * @remarks
  * The markup is the output of Shiki's `codeToHtml(code, { lang, theme,
@@ -166,10 +173,20 @@ export async function warmShikiPair(lang: string, theme: string): Promise<void> 
  *
  * @internal
  */
-export async function highlightShiki(code: string, lang: string, theme: string): Promise<string> {
+export async function highlightShiki(
+	code: string,
+	lang: string,
+	theme: string,
+): Promise<ShikiHighlight> {
 	await loadShikiPair(lang, theme)
 
 	const hl = await getHighlighter()
 
-	return hl.codeToHtml(code, { lang, theme, tabindex: -1, tokenizeTimeLimit: 0 })
+	const { bg, type } = hl.getTheme(theme)
+
+	return {
+		html: hl.codeToHtml(code, { lang, theme, tabindex: -1, tokenizeTimeLimit: 0 }),
+		bg,
+		type,
+	}
 }
