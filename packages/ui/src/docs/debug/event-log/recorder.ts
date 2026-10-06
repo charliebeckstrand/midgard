@@ -225,6 +225,13 @@ function describe(target: unknown): string {
 	return `${target.tagName.toLowerCase()}${slot ? `[${slot}]` : ''}${value}`
 }
 
+/** The URL that an element loads, as its `src` or `href` attribute gives it. */
+function resourceOf(target: unknown): string {
+	if (!(target instanceof Element)) return ''
+
+	return target.getAttribute('src') ?? target.getAttribute('href') ?? ''
+}
+
 const INPUT = [
 	'touchstart',
 	'touchend',
@@ -377,7 +384,15 @@ export function listen(target: EventLog): () => void {
 		note('viewport', `visual resize ${viewport()}`),
 	)
 
-	on(window, 'error', (event) => note('error', (event as ErrorEvent).message))
+	// The capture phase also gets the `error` of an element whose resource fails to load, such as a `<script>`.
+	on(window, 'error', (event) =>
+		note(
+			'error',
+			event instanceof ErrorEvent
+				? event.message
+				: `load fails ${describe(event.target)} ${resourceOf(event.target)}`,
+		),
+	)
 
 	on(window, 'unhandledrejection', (event) =>
 		note('error', `unhandled rejection ${String((event as PromiseRejectionEvent).reason)}`),

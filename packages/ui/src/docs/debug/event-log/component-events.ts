@@ -57,16 +57,31 @@ export function componentEvent<T>(source: Source, label: string, callback: T): T
 	) as T
 }
 
-/** An argument as JSON, with each event as its type, such as `<click>`. */
+/** The most characters of one argument in a line. A longer argument ends in `…`. */
+export const ARGUMENT_LENGTH = 200
+
+/**
+ * An argument as JSON, with each event as its type, such as `<click>`, a set
+ * as an array, and a map as an array of its entries.
+ */
 function show(value: unknown): string {
+	let text: string
+
 	try {
-		return (
-			JSON.stringify(value, (_key, item: unknown) => (isEvent(item) ? `<${item.type}>` : item)) ??
-			String(value)
-		)
+		text = JSON.stringify(value, replace) ?? String(value)
 	} catch {
-		return Object.prototype.toString.call(value)
+		text = Object.prototype.toString.call(value)
 	}
+
+	return text.length > ARGUMENT_LENGTH ? `${text.slice(0, ARGUMENT_LENGTH)}…` : text
+}
+
+function replace(_key: string, item: unknown): unknown {
+	if (isEvent(item)) return `<${item.type}>`
+
+	if (item instanceof Set || item instanceof Map) return [...item]
+
+	return item
 }
 
 /** Whether a value is a DOM event, or the React event that holds one. */

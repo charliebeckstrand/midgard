@@ -44,9 +44,17 @@ function prepareSheet(): void {
 	if (isEventLogOn()) loadSheet().catch(noop)
 }
 
-/** Starts the recorder while the tool is on. The client entry waits for it before it hydrates. */
-export async function startEventLog(): Promise<void> {
-	if (isEventLogOn()) (await loadRecorder()).start()
+/**
+ * Starts the recorder while the tool is on. The client entry waits for it
+ * before it hydrates. A load that fails leaves the log off for this page load,
+ * and the page hydrates. The open of the sheet shows the failure.
+ */
+export function startEventLog(): Promise<void> {
+	if (!isEventLogOn()) return Promise.resolve()
+
+	return loadRecorder().then(({ start }) => {
+		start()
+	}, noop)
 }
 
 /** Writes a route line while the tool is on. The shell calls it on each route change. */

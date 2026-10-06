@@ -9,6 +9,7 @@ import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } fro
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
+import { noopSubscribe } from '../../../utilities/noop.ts'
 import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
 /** The width of the kind column: the longest kind. */
@@ -34,10 +35,11 @@ function keyOf(entry: Entry): number {
 	return getOrCompute(keys, entry, () => ++lastKey)
 }
 
-/** The color of the kinds that stand apart from the DOM events: the callbacks of the components and of the modules. */
+/** The color of the kinds that stand apart from the DOM events: the callbacks of the components and of the modules, and the errors. */
 const COLOR: Partial<Record<Kind, string>> = {
 	component: 'text-sky-600 dark:text-sky-400',
 	module: 'text-violet-600 dark:text-violet-400',
+	error: 'text-red-600 dark:text-red-400',
 }
 
 /**
@@ -54,9 +56,13 @@ export function EventLogSheet({
 }) {
 	const [log] = useState(start)
 
-	const entries = useSyncExternalStore(log.subscribe, () => log.entries)
+	// The closed sheet stays mounted, and it does not render for each new entry.
+	// The open reads the current entries.
+	const subscribe = open ? log.subscribe : noopSubscribe
 
-	const preserve = useSyncExternalStore(log.subscribe, () => log.preserve)
+	const entries = useSyncExternalStore(subscribe, () => log.entries)
+
+	const preserve = useSyncExternalStore(subscribe, () => log.preserve)
 
 	const lines = entries.map(line)
 
