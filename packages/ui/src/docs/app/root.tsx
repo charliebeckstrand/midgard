@@ -10,9 +10,9 @@ import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutHeader } from 'ui/layouts'
 import { CurrentScrollScript } from 'ui/primitives/current'
 import type { LinkProps } from 'ui/primitives/link'
-import { AppearanceProvider, AppearanceScript, AppearanceSettings } from 'ui/providers/appearance'
+import { AppearanceSettings } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
-import { UIProvider } from 'ui/providers/ui'
+import { UIDocument, UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
@@ -32,29 +32,31 @@ import { DocsSidebar } from './sidebar.tsx'
 // main column, and the current item is in view at the first paint.
 const FIRST_PAINT = 'first-paint'
 
-// The document of each page. It holds `AppearanceProvider`, so each
+// The document of each page. `UIDocument` holds `AppearanceProvider`, so each
 // prerendered file has the script of the latin face before its content. The
 // fallback for a path with no page renders no route, so a provider in a route
 // would leave that file with no latin face.
 export function Layout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className="antialiased" suppressHydrationWarning>
-			<head>
-				<meta charSet="UTF-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-				<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
-				<AppearanceScript />
-				<EventLogScript />
-				<Meta />
-				<Links />
-			</head>
-			<body className="bg-white text-zinc-950 lg:bg-zinc-100 dark:bg-zinc-950 dark:text-white">
-				<AppearanceProvider>{children}</AppearanceProvider>
-				<ScrollRestoration />
-				<CurrentScrollScript id={FIRST_PAINT} />
-				<Scripts />
-			</body>
-		</html>
+		<UIDocument
+			className="antialiased"
+			bodyClassName="bg-white text-zinc-950 lg:bg-zinc-100 dark:bg-zinc-950 dark:text-white"
+			head={
+				<>
+					<meta charSet="UTF-8" />
+					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+					<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
+					<EventLogScript />
+					<Meta />
+					<Links />
+				</>
+			}
+		>
+			{children}
+			<ScrollRestoration />
+			<CurrentScrollScript id={FIRST_PAINT} />
+			<Scripts />
+		</UIDocument>
 	)
 }
 
