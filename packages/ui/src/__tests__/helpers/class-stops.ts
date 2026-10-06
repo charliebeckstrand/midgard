@@ -59,5 +59,5 @@ export function findSteps(
 export function findBareCompoundP(size: DensityStep): number {
 	const bare = button.config.variants.variant?.bare as readonly unknown[]
 
-	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
+	return Number(findSteps(bare, 'not-data-has-label:density-p-')[size])
 }

@@ -147,7 +147,7 @@ describe('control affix has-badge compensation', () => {
 // A chrome-less icon-only bare Button has no outer box, so its glyph aligns to
 // the *text line* (`density.px`), not the chip-content line: there is no 0.5
 // chip inset. The override subtracts the button's stepped-down icon-only
-// padding (`not-data-[has-label]:density-p-…` in the `bare` variant of `kata/button.ts`) from
+// padding (`not-data-has-label:density-p-…` in the `bare` variant of `kata/button.ts`) from
 // `density.px`:
 //
 //   affix.ps(has-bare) = input.px − bare.p[stepDown(step)]

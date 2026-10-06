@@ -49,9 +49,9 @@ export const k = defineRecipe(
 		area: {
 			base: area,
 			/** White-to-transparent wash painting the saturation axis over the hue base. */
-			saturation: 'absolute inset-0 [background-image:linear-gradient(to_right,#fff,transparent)]',
+			saturation: 'absolute inset-0 bg-[linear-gradient(to_right,#fff,transparent)]',
 			/** Transparent-to-black wash painting the value axis. */
-			value: 'absolute inset-0 [background-image:linear-gradient(to_top,#000,transparent)]',
+			value: 'absolute inset-0 bg-[linear-gradient(to_top,#000,transparent)]',
 		},
 		track: {
 			base: track,
@@ -73,7 +73,7 @@ export const k = defineRecipe(
 		},
 		handle,
 		/** Full hue wheel laid left to right for the hue track. */
-		hue: '[background-image:linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
+		hue: 'bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
 		/** Alpha / preview chequerboard surfaced behind translucent color. */
 		checkerboard: [omote.checkerboard, '[background-size:12px_12px]'],
 		/** Full-width stack for the hue (and optional alpha) tracks. */
