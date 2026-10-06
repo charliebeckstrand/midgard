@@ -101,6 +101,20 @@ describe('componentEvent', () => {
 		])
 	})
 
+	it('gives the full arguments as the detail, and no detail for a call with none', () => {
+		const details: unknown[] = []
+
+		onTestFinished(listenComponentEvents((_source, _text, detail) => details.push(detail)))
+
+		const long = 'x'.repeat(ARGUMENT_LENGTH * 2)
+
+		componentEvent('component', 'Input onChange', spy())(long, new Event('input'), undefined)
+
+		componentEvent('component', 'Dialog onClose', spy())()
+
+		expect(details).toEqual([[long, '<input>', 'undefined'], undefined])
+	})
+
 	it('keeps the identity of the wrapper while the callback keeps its own', () => {
 		collect()
 

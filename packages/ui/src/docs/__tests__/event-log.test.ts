@@ -266,7 +266,13 @@ describe('begin', () => {
 
 		expect(readings?.kind).toBe('load')
 
-		expect(readings?.text).toMatch(/^restore \w+ kept y /)
+		expect(readings?.text).toMatch(/^restore \w+ kept y \S+$/)
+
+		expect(readings?.detail).toMatchObject({
+			visual: expect.any(Object),
+			window: window.innerHeight,
+			safe: { top: 0, bottom: 0 },
+		})
 
 		expect(stop).toHaveBeenCalledOnce()
 
@@ -342,7 +348,9 @@ describe('listen', () => {
 
 		listenTo(log)
 
-		window.dispatchEvent(new ErrorEvent('error', { message: 'boom' }))
+		const error = new Error('boom')
+
+		window.dispatchEvent(new ErrorEvent('error', { message: 'boom', error }))
 
 		window.dispatchEvent(Object.assign(new Event('unhandledrejection'), { reason: 'gone' }))
 
@@ -350,7 +358,14 @@ describe('listen', () => {
 
 		expect(log.entries.map((line) => line.kind)).toEqual(['error', 'error', 'overlay'])
 
-		expect(texts(log).slice(0, 2)).toEqual(['boom', 'unhandled rejection gone'])
+		expect(texts(log)).toEqual(['boom', 'unhandled rejection gone', 'overlay opens'])
+
+		// An `Error` gives its stack. A thrown value that is not an `Error` has none.
+		expect(log.entries[0]?.detail).toEqual({ stack: expect.arrayContaining(['Error: boom']) })
+
+		expect(log.entries[1]?.detail).toBeUndefined()
+
+		expect(log.entries[2]?.detail).toMatchObject({ window: window.innerHeight })
 	})
 
 	it('records a resource that fails to load with its element and its URL', () => {
@@ -382,9 +397,9 @@ describe('listen', () => {
 
 		componentEvent('component', 'Tab onPreload', vi.fn<(value: string) => void>())('Billing')
 
-		expect(log.entries.map(({ kind, text }) => [kind, text])).toEqual([
-			['component', 'Tab onPreload("Activity")'],
-			['module', 'Grid onSortChange("name")'],
+		expect(log.entries.map(({ kind, text, detail }) => [kind, text, detail])).toEqual([
+			['component', 'Tab onPreload("Activity")', ['Activity']],
+			['module', 'Grid onSortChange("name")', ['name']],
 		])
 	})
 
@@ -400,6 +415,13 @@ describe('listen', () => {
 		stop()
 
 		expect(texts(log)[0]).toMatch(/^focus button \[\] from /)
+
+		// The line holds two frames of the caller, and the detail the full stack.
+		const stack = (log.entries[0]?.detail as { stack: string[] } | undefined)?.stack ?? []
+
+		expect(stack.length).toBeGreaterThan(2)
+
+		expect(texts(log)[0]).toContain(stack.slice(0, 2).join(' < '))
 
 		expect(HTMLElement.prototype.focus).toBe(native)
 	})

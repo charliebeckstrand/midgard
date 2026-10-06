@@ -1,3 +1,4 @@
+import type { JsonValue } from 'ui/json-tree'
 import { subscribeOverlaySignal } from 'ui/primitives/overlay'
 import { createEmitter } from '../../../utilities/emitter.ts'
 import { noop } from '../../../utilities/noop.ts'
@@ -30,6 +31,12 @@ export type Entry = {
 	text: string
 	/** The scroll position of the page. */
 	y: number
+	/**
+	 * The data of the entry that the line does not hold in full, such as the
+	 * arguments of a callback, a stack, or the fields of a reading. The sheet
+	 * shows it under the line, and Copy writes it as JSON.
+	 */
+	detail?: JsonValue
 }
 
 /** The `sessionStorage` subset that the log uses. A test gives a fake. */
@@ -200,13 +207,17 @@ export function halt(): void {
 }
 
 /** An entry with the scroll position of now, at the time of now by default. */
-function entryOf(kind: Kind, text: string, time = performance.now()): Entry {
-	return { time: Math.round(time), kind, text, y: Math.round(window.scrollY) }
+function entryOf(kind: Kind, text: string, detail?: JsonValue, time = performance.now()): Entry {
+	const entry: Entry = { time: Math.round(time), kind, text, y: Math.round(window.scrollY) }
+
+	if (detail !== undefined) entry.detail = detail
+
+	return entry
 }
 
 /** Adds an entry to the log of this tab while it runs. */
-export function record(kind: Kind, text: string): void {
-	log?.add(entryOf(kind, text))
+export function record(kind: Kind, text: string, detail?: JsonValue): void {
+	log?.add(entryOf(kind, text, detail))
 }
 
 /** Whether an event target is in the button of the log. */
@@ -259,8 +270,18 @@ const CALLS: readonly [object, string][] = [
 	[HTMLElement.prototype, 'focus'],
 ]
 
-/** The heights that place a surface fixed to an edge: the visual viewport, the window, the viewport units, and the safe area. */
-function viewport(): string {
+/** The heights that place a surface fixed to an edge, in pixels: the visual viewport and its offset, the window, the viewport units, and the safe-area insets. */
+type Viewport = {
+	visual: { height: number; offsetTop: number }
+	window: number
+	svh: number
+	dvh: number
+	lvh: number
+	safe: { top: number; bottom: number }
+}
+
+/** The heights that place a surface fixed to an edge now. */
+function viewport(): Viewport {
 	const visual = window.visualViewport
 
 	const probe = document.body.appendChild(createProbe())
@@ -269,25 +290,40 @@ function viewport(): string {
 	const [svh, dvh, lvh, safe] = Array.from(probe.children, (child) => {
 		const { height, paddingTop, paddingBottom } = getComputedStyle(child)
 
-		return {
-			height: Math.round(Number.parseFloat(height)),
-			insets: `${paddingTop}/${paddingBottom}`,
-		}
+		return [height, paddingTop, paddingBottom].map((value) =>
+			Math.round(Number.parseFloat(value) || 0),
+		)
 	})
 
 	probe.remove()
 
-	return `visual ${Math.round(visual?.height ?? 0)}@${Math.round(visual?.offsetTop ?? 0)} window ${window.innerHeight} s/d/lvh ${svh?.height}/${dvh?.height}/${lvh?.height} safe ${safe?.insets}`
+	return {
+		visual: {
+			height: Math.round(visual?.height ?? 0),
+			offsetTop: Math.round(visual?.offsetTop ?? 0),
+		},
+		window: window.innerHeight,
+		svh: svh?.[0] ?? 0,
+		dvh: dvh?.[0] ?? 0,
+		lvh: lvh?.[0] ?? 0,
+		safe: { top: safe?.[1] ?? 0, bottom: safe?.[2] ?? 0 },
+	}
 }
 
-/** The first two frames of the caller of a patched method, with each URL cut to its file name. */
-function caller(): string {
-	return (new Error().stack ?? '')
+/**
+ * The frames of a stack, with each URL cut to its file name. The frames of the
+ * recorder and the `Error` header of a stack that the recorder makes go out.
+ */
+function framesOf(stack: string | undefined): string[] {
+	return (stack ?? '')
 		.split('\n')
 		.map((frame) => frame.trim().replace(/https?:\/\/[^\s)]*\//g, ''))
 		.filter((frame) => frame && frame !== 'Error' && !frame.includes('recorder'))
-		.slice(0, 2)
-		.join(' < ')
+}
+
+/** The detail of an error: its stack. A thrown value that is not an `Error` has none. */
+function errorDetail(error: unknown): JsonValue | undefined {
+	return error instanceof Error && error.stack ? { stack: framesOf(error.stack) } : undefined
 }
 
 /** The kept scroll position of `<ScrollRestoration>` for this history entry. */
@@ -327,7 +363,7 @@ export function begin(target: EventLog): void {
 	target.separate(`──── ${navigation?.type ?? 'load'} ${location.pathname}`)
 
 	target.add(
-		entryOf('load', `restore ${history.scrollRestoration} kept y ${keptScroll()} ${viewport()}`),
+		entryOf('load', `restore ${history.scrollRestoration} kept y ${keptScroll()}`, viewport()),
 	)
 
 	window.__eventLog?.stop()
@@ -339,7 +375,8 @@ export function begin(target: EventLog): void {
 
 /** Adds the listeners and the patches of a log, and returns a function that removes them. */
 export function listen(target: EventLog): () => void {
-	const note = (kind: Kind, text: string, time?: number) => target.add(entryOf(kind, text, time))
+	const note = (kind: Kind, text: string, detail?: JsonValue, time?: number) =>
+		target.add(entryOf(kind, text, detail, time))
 
 	const cleanups: (() => void)[] = []
 
@@ -378,31 +415,29 @@ export function listen(target: EventLog): () => void {
 		}, 150)
 	})
 
-	on(window, 'resize', () => note('viewport', `window resize ${viewport()}`))
+	on(window, 'resize', () => note('viewport', 'window resize', viewport()))
 
 	on(window.visualViewport ?? undefined, 'resize', () =>
-		note('viewport', `visual resize ${viewport()}`),
+		note('viewport', 'visual resize', viewport()),
 	)
 
 	// The capture phase also gets the `error` of an element whose resource fails to load, such as a `<script>`.
-	on(window, 'error', (event) =>
-		note(
-			'error',
-			event instanceof ErrorEvent
-				? event.message
-				: `load fails ${describe(event.target)} ${resourceOf(event.target)}`,
-		),
-	)
+	on(window, 'error', (event) => {
+		if (event instanceof ErrorEvent) note('error', event.message, errorDetail(event.error))
+		else note('error', `load fails ${describe(event.target)} ${resourceOf(event.target)}`)
+	})
 
-	on(window, 'unhandledrejection', (event) =>
-		note('error', `unhandled rejection ${String((event as PromiseRejectionEvent).reason)}`),
-	)
+	on(window, 'unhandledrejection', (event) => {
+		const { reason } = event as PromiseRejectionEvent
+
+		note('error', `unhandled rejection ${String(reason)}`, errorDetail(reason))
+	})
 
 	on(window, 'pagehide', () => target.save())
 
-	cleanups.push(listenComponentEvents((source, text) => note(source, text)))
+	cleanups.push(listenComponentEvents(note))
 
-	cleanups.push(subscribeOverlaySignal(() => note('overlay', `overlay opens ${viewport()}`)))
+	cleanups.push(subscribeOverlaySignal(() => note('overlay', 'overlay opens', viewport())))
 
 	let height = 0
 
@@ -426,7 +461,7 @@ export function listen(target: EventLog): () => void {
 			const detail = paint.entryType === 'layout-shift' ? ` ${shift.value?.toFixed(4)}` : ''
 
 			if (!shift.hadRecentInput)
-				note('paint', `${paint.name || paint.entryType}${detail}`, paint.startTime)
+				note('paint', `${paint.name || paint.entryType}${detail}`, undefined, paint.startTime)
 		}
 	})
 
@@ -437,15 +472,25 @@ export function listen(target: EventLog): () => void {
 
 	cleanups.push(() => paints.disconnect())
 
-	// The one patch of the log: each script call that scrolls or moves the focus, with its caller.
+	// The one patch of the log: each script call that scrolls or moves the focus,
+	// with the first two frames of its caller. The detail holds the full stack.
 	for (const [owner, name] of CALLS) {
 		const original: unknown = Reflect.get(owner, name)
 
 		if (typeof original !== 'function') continue
 
 		Reflect.set(owner, name, function (this: unknown, ...args: unknown[]) {
-			if (!isOwn(this))
-				note('call', `${name} ${describe(this)} ${JSON.stringify(args)} from ${caller()}`)
+			if (!isOwn(this)) {
+				const stack = framesOf(new Error().stack)
+
+				note(
+					'call',
+					`${name} ${describe(this)} ${JSON.stringify(args)} from ${stack.slice(0, 2).join(' < ')}`,
+					{
+						stack,
+					},
+				)
+			}
 
 			return Reflect.apply(original, this, args)
 		})
