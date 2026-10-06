@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { Component, type ReactNode } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
@@ -7,6 +8,18 @@ import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 // A panel that suspends opens empty, and React holds its content back for at
 // least 300 ms. So "Show code" and an entry of the API reference open only
 // when their content is loaded, and a panel never shows with no content.
+
+class Boundary extends Component<{ children: ReactNode }, { error?: unknown }> {
+	state: { error?: unknown } = {}
+
+	static getDerivedStateFromError(error: unknown) {
+		return { error }
+	}
+
+	render() {
+		return this.state.error ? <p>Failed</p> : this.props.children
+	}
+}
 
 describe('ExampleFrame', () => {
 	it('opens "Show code" with the code in it when the code module loads', async () => {
@@ -52,6 +65,38 @@ describe('ExampleFrame', () => {
 		})
 
 		expect(panel?.textContent).toContain('const answer = 42')
+	})
+
+	// A stale tab after a deploy: the chunk is gone, and only a reload gets it.
+	it('gives a failed code load to the error boundary when the reader opens "Show code"', async () => {
+		const meta: ExampleMeta = {
+			title: 'Basic',
+			code: () => Promise.reject(new Error('Failed to fetch dynamically imported module')),
+		}
+
+		render(
+			<Boundary>
+				<ExampleFrame meta={meta}>
+					<span>Instance</span>
+				</ExampleFrame>
+			</Boundary>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Show code' })
+
+		// React reports the error that the boundary catches.
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		// A load in the background that fails does nothing.
+		fireEvent.pointerEnter(trigger)
+
+		await Promise.resolve()
+
+		expect(screen.queryByText('Failed')).toBeNull()
+
+		fireEvent.click(trigger)
+
+		expect(await screen.findByText('Failed')).not.toBeNull()
 	})
 })
 
