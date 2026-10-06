@@ -283,14 +283,10 @@ export const k = {
 		// tint is an all-sides `border-color`; only the sided widths below render it,
 		// so the top/inline-start rules inherit the same color without repeating it.
 		cell: [
-			'[&>*>tr>td]:border-e',
-			'[&>*>tr>td]:border-b',
-			'[&>*>tr>th]:border-e',
-			'[&>*>tr>th]:border-b',
-			'[&>*>tr>td]:border-zinc-950/5',
-			'dark:[&>*>tr>td]:border-white/5',
-			'[&>*>tr>th]:border-zinc-950/5',
-			'dark:[&>*>tr>th]:border-white/5',
+			'[&>*>tr>:is(td,th)]:border-e',
+			'[&>*>tr>:is(td,th)]:border-b',
+			'[&>*>tr>:is(td,th)]:border-zinc-950/5',
+			'dark:[&>*>tr>:is(td,th)]:border-white/5',
 		],
 		// Top outer edge: the first header row, riding the sticky header.
 		top: ['[&>thead>tr:first-child>th]:border-t'],
@@ -728,11 +724,10 @@ export const k = {
 	condensed: {
 		// Step header + body cell text below the table's `text-base` base. The
 		// selector targets the cell element, so a consumer cell that sets its own
-		// size still overrides it. Tailwind scans whole literals, so each class is
-		// written out.
+		// size still overrides it.
 		// An icon or a badge in a cell takes the `sm` step of the table scope, and
 		// one with an explicit `size` keeps that size.
-		font: ['[&>*>tr>td]:text-sm', '[&>*>tr>th]:text-sm'],
+		font: ['[&>*>tr>:is(td,th)]:text-sm'],
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
 	// status bar. Wraps on narrow viewports; the leading slot holds a single count

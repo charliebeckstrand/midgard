@@ -273,7 +273,7 @@ describe('Table variants', () => {
 		)
 
 		// The projection lives on the table element; cells stay identical.
-		expect(outlined.querySelector('table')?.className).toContain('[&>*>tr>td]:border')
+		expect(outlined.querySelector('table')?.className).toContain('[&>*>tr>:is(td,th)]:border')
 
 		expect(outlined.querySelector('tbody td')?.className).toBe(
 			plain.querySelector('tbody td')?.className,

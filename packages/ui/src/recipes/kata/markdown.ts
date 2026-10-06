@@ -50,7 +50,7 @@ export const k = {
 	// A list item tightens any nested list and drops its marker for a task item.
 	ul: 'my-3 list-disc pl-5',
 	ol: 'my-3 list-decimal pl-5',
-	li: 'my-1 [&>ul]:my-1 [&>ol]:my-1',
+	li: 'my-1 [&>:is(ul,ol)]:my-1',
 	task: 'list-none',
 	checkbox: 'mr-2',
 
