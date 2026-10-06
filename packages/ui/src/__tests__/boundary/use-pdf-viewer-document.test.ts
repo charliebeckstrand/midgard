@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getDocumentMock = vi.fn()
@@ -16,7 +16,10 @@ import {
 	type PdfLoadReport,
 	resetDocumentCache,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
-import { usePdfViewerDocument } from '../../components/pdf-viewer/use-pdf-viewer-document'
+import {
+	usePdfViewerDocument,
+	usePdfViewerDocumentFocus,
+} from '../../components/pdf-viewer/use-pdf-viewer-document'
 import { tick } from '../helpers/frames'
 
 const originalFetch = globalThis.fetch
@@ -239,5 +242,60 @@ describe('usePdfViewerDocument · parked and restored', () => {
 		// The cleanup used to revoke every blob URL it had created, which is what made the
 		// maximize rebuild the scan. Eviction is the only thing that frees them now.
 		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalledWith('blob:page-1')
+	})
+})
+
+describe('usePdfViewerDocument · base raster', () => {
+	/*
+	 * An A0 page is 2384 by 3370 points. At the base scale of a 2x screen its canvas is 32 MiP,
+	 * which is more than Safari on iOS permits (16 MiP). Safari then draws nothing.
+	 */
+	it('keeps the canvas of an A0 page at a 2x screen under the iOS canvas limit', async () => {
+		const a0 = { width: 2384, height: 3370 }
+
+		const page = {
+			getViewport: ({ scale }: { scale: number }) => ({
+				width: a0.width * scale,
+				height: a0.height * scale,
+			}),
+			render: () => ({ promise: Promise.resolve(), cancel: () => {} }),
+			cleanup: () => {},
+		}
+
+		const loadingTask = { destroy: () => Promise.resolve() }
+
+		getDocumentMock.mockReturnValue({
+			promise: Promise.resolve({ numPages: 1, getPage: async () => page, loadingTask }),
+		})
+
+		vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(2)
+
+		globalThis.fetch = vi.fn(async () => new Response(new ArrayBuffer(8)))
+
+		const canvases: HTMLCanvasElement[] = []
+
+		const create = document.createElement.bind(document)
+
+		vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => {
+			const element = create(tag)
+
+			if (tag === 'canvas') canvases.push(element as HTMLCanvasElement)
+
+			return element
+		}) as typeof document.createElement)
+
+		renderHook(() => {
+			usePdfViewerDocument('/a0.pdf')
+
+			usePdfViewerDocumentFocus('/a0.pdf', 1, 600)
+		})
+
+		await waitFor(() => expect(canvases.length).toBeGreaterThan(0))
+
+		// jsdom has no 2D context, so the render stops after it sizes the canvas. That size is
+		// what a browser allocates.
+		const [canvas] = canvases
+
+		expect((canvas?.width ?? 0) * (canvas?.height ?? 0)).toBeLessThanOrEqual(4096 * 4096)
 	})
 })
