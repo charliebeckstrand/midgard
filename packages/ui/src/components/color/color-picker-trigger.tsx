@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefCallback } from 'react'
-import { cn, dataAttr, type ValidationAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
@@ -29,6 +29,11 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	 */
 	size?: ScaleStep<typeof scale>
 	disabled?: boolean
+	/**
+	 * The resolved `readOnly`. The trigger stays focusable and sets `data-readonly`. While the
+	 * panel is closed, it also sets `aria-disabled`. The open setter of the picker refuses the open.
+	 */
+	readOnly?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
 	validation?: ValidationAttrs
 	className?: string
@@ -39,7 +44,11 @@ type ColorPickerTriggerProps = GroupStampProps & {
  * opening the picker dialog.
  *
  * @remarks The trigger is a plain button, and a button does not take
- * `aria-required`. So a required Control puts no required state on it.
+ * `aria-required`. So a required Control puts no required state on it. A
+ * button does not take `aria-readonly` either. A read-only trigger thus keeps
+ * its tab stop, and it sets `aria-disabled` while the panel is closed. A
+ * keyboard or a screen reader can reach it and read the color. Only `disabled`
+ * sets the native `disabled` attribute.
  * @internal
  */
 export function ColorPickerTrigger({
@@ -53,6 +62,7 @@ export function ColorPickerTrigger({
 	alpha,
 	size,
 	disabled = false,
+	readOnly = false,
 	validation,
 	className,
 	'data-group': dataGroup,
@@ -88,6 +98,8 @@ export function ColorPickerTrigger({
 						aria-expanded={open}
 						aria-describedby={describedBy}
 						data-slot="color-picker-button"
+						aria-disabled={ariaAttr(readOnly && !open)}
+						data-readonly={dataAttr(readOnly)}
 						disabled={disabled}
 						{...validation}
 						onClick={() => onOpenChange(!open)}
@@ -97,9 +109,13 @@ export function ColorPickerTrigger({
 							data-slot="color-picker-swatch"
 							className={cn(k.swatch.base, alpha && k.swatch.checkerboard)}
 						>
-							<span className="block size-full" style={{ backgroundColor: swatchColor }} />
+							<span className={cn(k.swatch.fill)} style={{ backgroundColor: swatchColor }} />
 						</span>
-						<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>{label}</span>
+						<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>
+							{/* A hex code reads left to right in each direction, so the '#' stays at the left. The
+							    outer span keeps the inherited direction, so the code stays next to the swatch. */}
+							<span dir="ltr">{label}</span>
+						</span>
 					</Button>
 				</HeadlessProvider>
 			</ControlFrame>

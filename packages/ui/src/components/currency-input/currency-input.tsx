@@ -17,12 +17,31 @@ export type CurrencyInputProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
 > & {
+	/**
+	 * The value of a controlled field.
+	 *
+	 * @remarks
+	 * While the field has focus, it shows the typed text. When `value` changes to
+	 * a number that the text does not hold, the field shows `value`. A parent
+	 * that keeps the same `value` after an edit does not replace the text,
+	 * because the field sees no change. The field then shows the typed text until
+	 * it loses focus, and after that it shows `value`. For example, a parent that
+	 * holds the value at 100 or less shows "1,000" while the user types 1000. The
+	 * field shows "100.00" after blur.
+	 */
 	value?: number | null
 	defaultValue?: number
 	onValueChange?: (value: number | null) => void
 	/** ISO 4217 currency code. Falls back to `<LocaleProvider currency>`, then `USD`. */
 	currency?: string
-	/** BCP 47 locale tag. Falls back to `<LocaleProvider locale>`, then the runtime default. */
+	/**
+	 * BCP 47 locale tag. Falls back to `<LocaleProvider locale>`, then the runtime default.
+	 *
+	 * @remarks The runtime default is the default of the side that renders. It
+	 * sets the symbol, the slot of the symbol, and the separators. The server and
+	 * the browser can have different defaults. On a page that renders on a
+	 * server, set `locale` or a `<LocaleProvider>`, so the two sides agree.
+	 */
 	locale?: string
 	/** Override the number of fraction digits. When omitted, uses the currency's standard fraction digits. */
 	precision?: number
@@ -84,6 +103,23 @@ function useSymbolAffix({
  * decimal separators are pinned to the resolved locale via Intl and digits to
  * ASCII (`numberingSystem: 'latn'`), so native-digit locales are normalized.
  * See {@link useCurrencyInputFormatting} for the Intl caveats.
+ *
+ * A decimal keypad follows the region of the device, so it can offer only the
+ * other mark, such as "," in an en-US field. Only an other mark that the user
+ * typed or pasted can be the decimal. A group mark that the field wrote stays a
+ * group mark, also after a deletion: "1,234" and then Backspace gives 123. The
+ * field reads a typed mark as the decimal only when all of these conditions
+ * are true:
+ *
+ * - The text has no locale decimal.
+ * - The typed mark is the last mark.
+ * - One or more digits follow it, and not more than the fraction digits of the
+ *   currency or `precision`.
+ * - When the other mark is also the locale group, two digits or fewer follow it.
+ *
+ * Else it is a group mark, so "1,234" that the user types in an en-US field
+ * gives 1234. The text keeps the typed mark, so a later digit can change it to
+ * a group mark. After blur, the display writes the locale decimal.
  * @see {@link Input}
  * @see {@link NumberInput}
  * @see {@link useCurrencyInputFormatting}
@@ -125,6 +161,8 @@ export function CurrencyInput({
 			precision,
 		})
 
+	const parse = (editing: string) => parseEditing(editing, group, decimal, maxFractionDigits)
+
 	const [editingText, setEditingText] = useState<string | null>(null)
 
 	// A new value that the buffer does not hold came from outside (a controlled
@@ -136,7 +174,7 @@ export function CurrencyInput({
 	if (heldNum !== num) {
 		setHeldNum(num)
 
-		if (editingText !== null && parseEditing(editingText, group, decimal) !== (num ?? undefined)) {
+		if (editingText !== null && parse(editingText) !== (num ?? undefined)) {
 			setEditingText(null)
 		}
 	}
@@ -146,10 +184,13 @@ export function CurrencyInput({
 	const affix = useSymbolAffix({ symbol, symbolIsPrefix, prefix, suffix, ariaDescribedBy })
 
 	// `atEnd: 'jump'`: the formatter pads `.` to `0.`, so a restore at the end would
-	// put the next digit in the integer part (`.5` to `5.`).
+	// put the next digit in the integer part (`.5` to `5.`). `text` is the text
+	// before the edit. The format compares the edit with it to find the other
+	// mark that the user typed.
 	const { ref: setRefs, reformat } = useFormattedInput({
-		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits),
-		meaningful: (c) => isMeaningful(c, decimal),
+		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits, text),
+		meaningful: (c, index, edited) =>
+			isMeaningful(c, index, edited, group, decimal, maxFractionDigits, text),
 		atEnd: 'jump',
 		ref,
 	})
@@ -171,25 +212,13 @@ export function CurrencyInput({
 				// Enter that confirms an input-method candidate must not blur the field.
 				if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
 			})}
-			onChange={(event) => {
-				const formatted = reformat(event)
-
-				setEditingText(formatted)
-
-				const parsed = parseEditing(formatted, group, decimal)
-
-				// Guard like the blur path: a keystroke that changes the text but
-				// not the number — a trailing separator, a digit past `precision` —
-				// must not re-emit the value it already holds.
-				if (parsed !== num) setNum(parsed)
-			}}
 			// The commit and the touched mark run whatever the caller does
 			// (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(
 				onBlur,
 				() => {
 					if (editingText !== null) {
-						const parsed = parseEditing(editingText, group, decimal)
+						const parsed = parse(editingText)
 
 						if (parsed !== num) setNum(parsed)
 
@@ -201,6 +230,20 @@ export function CurrencyInput({
 				{ checkForDefaultPrevented: false },
 			)}
 			{...props}
+			// The formatting wiring sits after the spread, so a stray `onChange`
+			// does not replace it (CONVENTIONS.md §3.9).
+			onChange={(event) => {
+				const formatted = reformat(event)
+
+				setEditingText(formatted)
+
+				const parsed = parse(formatted)
+
+				// Guard like the blur path: a keystroke that changes the text but
+				// not the number — a trailing separator, a digit past `precision` —
+				// must not re-emit the value it already holds.
+				if (parsed !== num) setNum(parsed)
+			}}
 		/>
 	)
 }

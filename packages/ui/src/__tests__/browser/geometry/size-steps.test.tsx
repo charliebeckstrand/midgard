@@ -8,7 +8,7 @@ import { Button, ButtonSkeleton } from '../../../components/button'
 import { Calendar, CalendarRange, CalendarSkeleton } from '../../../components/calendar'
 import { Card, CardTitle } from '../../../components/card'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
-import { Code } from '../../../components/code'
+import { Code, CodeBlock } from '../../../components/code'
 import {
 	ColorPanel,
 	ColorPanelSkeleton,
@@ -176,6 +176,7 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	Checkbox: (size) => <Checkbox size={size as never} aria-label="Check" defaultChecked />,
 	CheckboxSkeleton: (size) => <CheckboxSkeleton size={size as never} />,
 	Code: (size) => <Code size={size as never}>code</Code>,
+	CodeBlock: (size) => <CodeBlock size={size} code="const step = 1" />,
 	ColorPanel: (size) => <ColorPanel size={size as never} defaultValue="#3b82f6" />,
 	ColorPanelSkeleton: (size) => <ColorPanelSkeleton size={size as never} />,
 	ColorPicker: (size) => (

@@ -15,6 +15,14 @@ export const DEFAULT_THEME = 'github-dark-default' satisfies BundledTheme
 
 type Pending = { resolve: (html: string | undefined) => void; reject: (reason: unknown) => void }
 
+// The longest time that one request waits for its reply, in milliseconds. The
+// worker sets no time limit on a tokenization, so a rule that backtracks can
+// hold the worker with no end. The worker then answers no request. After this
+// time the client stops the worker, and the next request starts a new one. The
+// time is long, because it also includes the start of the worker, the load of
+// a grammar and a theme on a slow network, and the wait behind earlier requests.
+const REPLY_TIMEOUT = 30_000
+
 let worker: Worker | null = null
 
 let nextId = 0
@@ -67,14 +75,35 @@ function getWorker(): Worker {
 	return next
 }
 
-/** Sends one request to the worker, and resolves with the markup of the reply. */
+/**
+ * Sends one request to the worker, and resolves with the markup of the reply.
+ * When no reply comes in {@link REPLY_TIMEOUT} ms, each request in flight
+ * fails, and the next request starts a new worker.
+ */
 function send(request: Omit<ShikiRequest, 'id'>): Promise<string | undefined> {
 	return new Promise((resolve, reject) => {
 		const target = getWorker()
 
 		const id = nextId++
 
-		pending.set(id, { resolve, reject })
+		const timer = setTimeout(
+			() => fail(new Error(`ui: the Shiki worker sent no reply in ${REPLY_TIMEOUT} ms`)),
+			REPLY_TIMEOUT,
+		)
+
+		// A reply or a failure stops the timer, so a settled request keeps no timer.
+		pending.set(id, {
+			resolve: (html) => {
+				clearTimeout(timer)
+
+				resolve(html)
+			},
+			reject: (reason) => {
+				clearTimeout(timer)
+
+				reject(reason)
+			},
+		})
 
 		target.postMessage({ ...request, id } satisfies ShikiRequest)
 	})
@@ -113,6 +142,10 @@ export async function highlightCode(code: string, lang: string, theme: string): 
  *
  * The worker loads each grammar and each theme one time. A call for a pair that
  * it holds settles at once, and a call after a failure loads again.
+ *
+ * A request that gets no reply in 30 seconds fails, and so does each other
+ * request in flight. The client then stops the worker, and the next request
+ * starts a new one. This bounds a tokenization that does not stop.
  */
 export function loadShiki(
 	lang: BundledLanguage = DEFAULT_LANG,

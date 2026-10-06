@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+	enterKeepsSelection,
 	resolveInputDisplay,
 	resolveInputTitle,
 	selectSoleOption,
@@ -254,6 +255,52 @@ describe('selectSoleOption', () => {
 		const container = document.createElement('div')
 
 		expect(selectSoleOption(container)).toBe(false)
+	})
+})
+
+describe('enterKeepsSelection', () => {
+	const optionIn = (container: HTMLElement, ...attributes: string[]) => {
+		const option = document.createElement('div')
+
+		option.setAttribute('role', 'option')
+
+		for (const attribute of attributes) option.setAttribute(attribute, '')
+
+		container.appendChild(option)
+	}
+
+	// A click on the selected option toggles it, and the toggle clears a `nullable`
+	// value. Enter chooses, so in single mode it keeps that option. A `multiple`
+	// combobox keeps the toggle.
+	it.each([
+		['keeps the sole option in single mode', false, true],
+		['toggles the sole option in multiple mode', true, false],
+	])('%s when that option is already selected', (_name, multiple, keeps) => {
+		const container = document.createElement('div')
+
+		optionIn(container, 'data-selected')
+
+		expect(enterKeepsSelection(container, multiple)).toBe(keeps)
+	})
+
+	it('reads the highlighted option of a longer list', () => {
+		const container = document.createElement('div')
+
+		optionIn(container)
+
+		optionIn(container, 'data-active', 'data-selected')
+
+		expect(enterKeepsSelection(container, false)).toBe(true)
+	})
+
+	it('does not keep an option that is not selected', () => {
+		const container = document.createElement('div')
+
+		optionIn(container, 'data-active')
+
+		optionIn(container)
+
+		expect(enterKeepsSelection(container, false)).toBe(false)
 	})
 })
 

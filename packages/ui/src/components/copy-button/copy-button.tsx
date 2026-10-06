@@ -2,7 +2,7 @@
 
 import { Check, Clipboard } from 'lucide-react'
 import { type ComponentProps, type ReactElement, useCallback } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import { Button, type ButtonVariants } from '../button'
 import { ToggleIconButtonIcons } from '../toggle-icon-button/toggle-icon-button-icons'
@@ -24,11 +24,20 @@ export type CopyButtonProps = {
 	size?: ButtonVariants['size']
 	/**
 	 * Milliseconds the copied state holds before reverting to the rest glyph.
+	 *
+	 * The state holds for 2^31−1 ms (about 24.8 days) at most. A larger value,
+	 * `Infinity` included, clamps to that limit.
 	 * @defaultValue 2000
 	 */
 	timeout?: number
 	className?: string
-	/** Fires on each change of the copied state, with the new `copied` value. */
+	/**
+	 * Fires on every copied-state transition, with the new state: `true` after a
+	 * copy, and `false` when the state reverts.
+	 *
+	 * The transitions end at unmount. A copy that resolves after the unmount does
+	 * not call it, and the unmount does not call it with `false`.
+	 */
 	onCopiedChange?: (copied: boolean) => void
 	/**
 	 * Fires when the clipboard write rejects, with whatever the platform threw.
@@ -53,9 +62,12 @@ export type CopyButtonProps = {
  * @remarks
  * It is an action, not a toggle, so it sets no `aria-pressed`. Stays enabled
  * and keeps focus through the success window so keyboard focus survives
- * (WCAG 2.4.3); a second copy during the window is ignored. The
+ * (WCAG 2.4.3); a second copy during the write or the window is ignored. The
  * accessible name becomes "Copied" while flipped, otherwise the caller's
- * `aria-label` or "Copy to clipboard".
+ * `aria-label` or "Copy to clipboard". The button has a `data-copied`
+ * attribute only while the copied state holds, so a style can select that
+ * state (`data-copied:` or `not-data-copied:`). A consumer cannot override the
+ * attribute.
  * @see {@link useCopyButtonState} for the clipboard write and revert timing.
  * @see {@link ToggleIconButton} for the two-state icon control that it looks like.
  */
@@ -76,26 +88,25 @@ export function CopyButton({
 
 	// The button stays enabled and focused through the success window;
 	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).
-	// Re-copying during the window is a no-op.
+	// The hook drops a copy during the write and in the window.
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
 			onClick?.(event)
 
-			if (copied) return
-
 			void copy()
 		},
-		[onClick, copy, copied],
+		[onClick, copy],
 	)
 
 	return (
 		<Button
+			data-slot="copy-button"
 			{...props}
 			type="button"
 			variant="bare"
 			color={copied ? 'green' : undefined}
 			size={size}
-			data-slot="copy-button"
+			data-copied={dataAttr(copied)}
 			disabled={disabled}
 			onClick={handleClick}
 			// In the copied state, the label is always "Copied"; at rest, the caller's

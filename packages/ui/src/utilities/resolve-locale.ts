@@ -16,6 +16,10 @@ const runtimeLocale = once(() => new Intl.DateTimeFormat().resolvedOptions().loc
  *
  * @param locale - An explicit tag, or `undefined` to take the runtime's.
  * @returns The resolved tag.
+ * @remarks The runtime default is the default of the process that calls it. A
+ * server and a browser are two processes, and their defaults can differ. A
+ * component that renders on a server thus needs an explicit tag, from a prop
+ * or a `LocaleProvider`. Then the server markup and the client agree.
  */
 export function resolveLocale(locale?: string): string {
 	return locale ?? runtimeLocale()

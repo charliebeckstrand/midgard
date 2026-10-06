@@ -2,7 +2,11 @@ import type { ReactElement } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { AddressInput } from '../../components/address-input'
-import { CreditCardInputCvv, CreditCardInputExpiry } from '../../components/credit-card-input'
+import {
+	CreditCardInput,
+	CreditCardInputCvv,
+	CreditCardInputExpiry,
+} from '../../components/credit-card-input'
 import { DateInput } from '../../components/date-input'
 import { Field, Label } from '../../components/fieldset'
 import { FileUploadButton } from '../../components/file-upload'
@@ -18,6 +22,7 @@ const TEXT = 'input:not([type="hidden"])'
  */
 const fields: [string, () => ReactElement, string, string][] = [
 	['TagInput', () => <TagInput />, 'Add tags', TEXT],
+	['CreditCardInput', () => <CreditCardInput />, 'Card number', TEXT],
 	['CreditCardInputExpiry', () => <CreditCardInputExpiry />, 'Expiration date', TEXT],
 	['CreditCardInputCvv', () => <CreditCardInputCvv />, 'Security code', TEXT],
 	['DateInput', () => <DateInput />, 'Date', TEXT],

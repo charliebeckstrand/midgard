@@ -1,6 +1,14 @@
 'use client'
 
-import { type RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import {
+	type RefObject,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
@@ -24,18 +32,23 @@ type ComboboxStateParams<T> = {
  * Query, open, editing, and selection state for the combobox root.
  *
  * @returns `{ query, deferredQuery, setQuery, open, setOpen, editing,
- *   setEditing, close, select, flushPending, selectionValue }`. `query` tracks
- *   every keystroke; `deferredQuery` lags for filtering but snaps to empty
+ *   setEditing, close, select, keep, flushPending, selectionValue }`. `query`
+ *   tracks every keystroke; `deferredQuery` lags for filtering but snaps to empty
  *   immediately so clearing the filter is instant. `open` is controllable via
  *   the `open` prop. `select` commits or toggles the value, then closes or resets
  *   the query and refocuses the input depending on `closeOnSelect` (defaults to
- *   single-selection). `selectionValue`/`flushPending` come from the deferred
- *   toggle so the menu reads a value frozen until the panel finishes closing.
+ *   single-selection). `keep` ends a pick in the same way, with no change to the
+ *   value, for an Enter on the selected option. `selectionValue`/`flushPending`
+ *   come from the deferred toggle so the menu reads a value frozen until the
+ *   panel finishes closing.
  *   `menuQuery`/`menuDeferredQuery` are the query the *menu content* reads,
  *   frozen at their close-time snapshot until `flushPending` runs. The filter
  *   therefore holds steady through the exit animation, instead of snapping back
- *   to the full list. That holds a deeply scrolled virtual window too.
+ *   to the full list. That holds a deeply scrolled virtual window too. While
+ *   `open` is `true`, the menu reads the live query and the live selection.
  * @remarks `closeOnSelect` defaults to `true` for single, `false` for multiple.
+ *   `setOpen` and `setQuery` report to `onOpenChange` and `onQueryChange` only
+ *   a value that is new to the consumer.
  * @internal
  */
 export function useComboboxState<T>({
@@ -56,9 +69,45 @@ export function useComboboxState<T>({
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
 
+	// The open state that the consumer knows. The setters repeat a value: each
+	// keystroke opens the panel, and an outside press and then the input blur
+	// both close it. A report goes out only for a value that is new to the
+	// consumer. Such a value differs from the last report or from the open state
+	// on screen. A report also moves the shown state, so two calls in one batch
+	// report once.
+	//
+	// Each check covers one controlled consumer. The check of the shown state
+	// covers a consumer that closes the panel itself: an open must reach it after
+	// an earlier open report. The check of the last report covers AddressInput.
+	// It derives `open` and keeps the panel closed until results arrive, so a
+	// close must reach it while the panel shows closed.
+	//
+	// The report is a stable event, which throws during render. The combobox
+	// calls its open setter only from events and effects.
+	const reportedOpenRef = useRef(openProp ?? false)
+
+	const shownOpenRef = useRef(openProp ?? false)
+
+	const reportOpen = useStableEvent((next: boolean) => {
+		if (next === reportedOpenRef.current && next === shownOpenRef.current) return
+
+		reportedOpenRef.current = next
+
+		shownOpenRef.current = next
+
+		onOpenChange?.(next)
+	})
+
 	const [open, setOpen] = useControllableFlag({
 		value: openProp,
-		onValueChange: onOpenChange,
+		onValueChange: reportOpen,
+	})
+
+	// The layout effect syncs the shown state before paint, so an event after a
+	// commit reads the open state of that commit. It runs on each commit, because
+	// a controlled owner that refuses a change keeps its `open`.
+	useLayoutEffect(() => {
+		shownOpenRef.current = open
 	})
 
 	const [editing, setEditing] = useState(false)
@@ -70,7 +119,19 @@ export function useComboboxState<T>({
 	// typing path the refs below (and the deferred query) exist to keep cheap.
 	// `useControllable` keeps its own `onValueChange` in a ref instead, because
 	// its setter can run during render.
-	const reportQuery = useStableEvent((next: string) => onQueryChange?.(next))
+	//
+	// The query is internal state, and only `setQuery` writes it. Thus the last
+	// report is the query that the consumer knows. A call with that query does
+	// not report: close() and a multi pick clear a query that is already empty.
+	const reportedQueryRef = useRef(query)
+
+	const reportQuery = useStableEvent((next: string) => {
+		if (next === reportedQueryRef.current) return
+
+		reportedQueryRef.current = next
+
+		onQueryChange?.(next)
+	})
 
 	const setQuery = useCallback(
 		(next: string) => {
@@ -101,14 +162,25 @@ export function useComboboxState<T>({
 
 	const deferredQueryRef = useRef(deferredQuery)
 
+	// The open state, in a ref for the same reason. Only the close of an open
+	// panel starts an exit animation, so only that close takes a snapshot.
+	const openRef = useRef(open)
+
 	useEffect(() => {
 		queryRef.current = query
 
 		deferredQueryRef.current = deferredQuery
+
+		openRef.current = open
 	})
 
 	const close = useCallback(() => {
-		freezeQuery({ query: queryRef.current, deferredQuery: deferredQueryRef.current })
+		// An outside press closes the panel, and then the input blur calls close()
+		// again. The query is empty by then, so a second snapshot would expand the
+		// list under the exit animation.
+		if (openRef.current) {
+			freezeQuery({ query: queryRef.current, deferredQuery: deferredQueryRef.current })
+		}
 
 		setOpen(false)
 
@@ -140,36 +212,59 @@ export function useComboboxState<T>({
 		flushFrozenQuery()
 	}, [flushToggle, flushFrozenQuery])
 
+	// The count of the picks that keep the panel open. Each such pick adds one,
+	// and the count at the last text selection lets the effect below act once.
+	const [pickCount, setPickCount] = useState(0)
+
+	const selectedPickRef = useRef(pickCount)
+
+	// A pick that keeps the panel open ends editing. Its commit then writes the
+	// resting display into the input, which for a multiple selection is the
+	// summary of what is picked. A write of a different value moves the caret to
+	// the end and clears the text selection. Thus this layout effect selects the
+	// text after that write, before paint. The next key then replaces the
+	// summary. A selection in the handler comes before the write and clears, so
+	// the next key appends to the summary and searches for "Texas (US)u".
+	useLayoutEffect(() => {
+		if (pickCount === selectedPickRef.current) return
+
+		selectedPickRef.current = pickCount
+
+		inputRef.current?.select()
+	}, [pickCount, inputRef])
+
+	// The end of a pick, with no change to the value. A pick that closes calls
+	// close(). Otherwise the panel stays open and the query and editing reset.
+	// Enter on the selected option calls this alone: it chooses the value that the
+	// combobox holds, and a toggle would clear a `nullable` value.
+	const keep = useCallback(() => {
+		if (shouldClose) {
+			close()
+
+			return
+		}
+
+		setQuery('')
+
+		setEditing(false)
+
+		// The panel stays open, so the input keeps the focus for the next key. The
+		// layout effect above selects the text of the input after this commit.
+		inputRef.current?.focus()
+
+		setPickCount((count) => count + 1)
+	}, [shouldClose, close, setQuery, inputRef])
+
 	const select = useCallback(
 		(newValue: T) => {
-			if (shouldClose) {
-				commit(newValue)
+			// A pick that closes freezes the selection that the menu shows, for the
+			// exit animation. A pick that keeps the panel open updates it live.
+			if (shouldClose) commit(newValue)
+			else toggle(newValue)
 
-				close()
-
-				return
-			}
-
-			toggle(newValue)
-
-			setQuery('')
-
-			setEditing(false)
-
-			// Focused AND selected. Leaving editing hands the input back to the resting
-			// display, which for a multi selection is the summary of what is picked — so
-			// an unselected caret would make the next keystroke append to that summary
-			// and search for "Texas (US)u". Selecting it means typing replaces it, which
-			// is what a picked-then-keep-typing flow needs and how a plain combobox
-			// behaves. The panel is still open here, so this is mid-selection rather than
-			// the end of one.
-			const input = inputRef.current
-
-			input?.focus()
-
-			input?.select()
+			keep()
 		},
-		[shouldClose, toggle, commit, close, setQuery, inputRef],
+		[shouldClose, toggle, commit, keep],
 	)
 
 	return {
@@ -187,7 +282,30 @@ export function useComboboxState<T>({
 		setEditing,
 		close,
 		select,
+		keep,
 		flushPending,
 		selectionValue,
+	}
+}
+
+/**
+ * Builds the open-state callback that the combobox root gives to
+ * `useFloatingUI`. The floating-ui hooks report each dismissal there: an
+ * outside press or an Escape.
+ *
+ * @param setOpen - The guarded setter of the root. An open goes through it, so
+ *   a read-only or a disabled combobox stays closed.
+ * @param close - The `close` of {@link useComboboxState}. A close goes through
+ *   it, so the query and the editing flag reset, as on a blur.
+ * @returns The `onOpenChange` callback for `useFloatingUI`.
+ * @internal
+ */
+export function routeFloatingOpenChange(
+	setOpen: (open: boolean) => void,
+	close: () => void,
+): (open: boolean) => void {
+	return (open) => {
+		if (open) setOpen(true)
+		else close()
 	}
 }

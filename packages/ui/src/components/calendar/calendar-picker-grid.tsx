@@ -62,7 +62,6 @@ export function CalendarPickerGrid({
 		<>
 			<CalendarToolbar
 				toolbarRef={headerRef}
-				label="Calendar navigation"
 				onKeyDown={onHeaderKeyDown}
 				prevLabel={prevLabel}
 				nextLabel={nextLabel}

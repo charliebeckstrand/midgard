@@ -2,6 +2,7 @@ import { act, within as inside, renderHook } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
+import { ColorPanelView } from '../../components/color/color-panel'
 import {
 	equalHsva,
 	hexToHsva,
@@ -11,7 +12,7 @@ import {
 	hsvaToRgba,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import type { Hsva } from '../../components/color/types'
+import type { ColorFormat, Hsva } from '../../components/color/types'
 import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
@@ -25,7 +26,9 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -114,6 +117,26 @@ describe('color conversions', () => {
 		expect(equalHsva({ h: 0, s: 100, v: 0, a: 1 }, { h: 0, s: 0, v: 0, a: 1 })).toBe(true)
 	})
 
+	it('matches hue 360 to hue 0, because both render the same color', () => {
+		expect(equalHsva({ h: 360, s: 100, v: 100, a: 1 }, { h: 0, s: 100, v: 100, a: 1 })).toBe(true)
+	})
+
+	it('tells apart two colors that differ by one byte', () => {
+		const hsvaOf = (hex: string) => hexToHsva(hex) as Hsva
+
+		// The two colors of each pair have the same rounded HSVA channels, but different bytes.
+		for (const [a, b] of [
+			['#fefefe', '#ffffff'],
+			['#010101', '#000000'],
+			['#f04444', '#ef4444'],
+			['#ff000081', '#ff000082'],
+		] as const) {
+			expect(equalHsva(hsvaOf(a), hsvaOf(b)), `${a} and ${b}`).toBe(false)
+		}
+
+		expect(equalHsva({ h: 0, s: 100, v: 100, a: 0.5 }, hsvaOf('#ff000080'))).toBe(true)
+	})
+
 	it('builds a css rgba fill, dropping alpha unless requested', () => {
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
 
@@ -190,6 +213,21 @@ describe('ColorPanel', () => {
 		expect(hex).toHaveAccessibleName('Hex')
 
 		for (const label of others) expect(label.id).not.toBe(fieldLabel?.id)
+	})
+
+	it('keeps the hex field left to right under a right-to-left ancestor', () => {
+		const { container } = renderUI(
+			<div dir="rtl">
+				<ColorPanel defaultValue="#ff0000" />
+			</div>,
+		)
+
+		const frame = present(
+			getSlot(container, 'color-hex-input').closest('[data-slot="control-frame"]'),
+			'the frame of the hex field',
+		)
+
+		expect(frame.closest('[dir]')).toHaveAttribute('dir', 'ltr')
 	})
 
 	it('renders the area, a hue slider, hex input, and swatches', () => {
@@ -316,6 +354,21 @@ describe('ColorPanel', () => {
 		}
 	})
 
+	// ColorPanel takes no `name`, so a native form must not submit a checked chip.
+	it('keeps a checked swatch out of the data of a native form', () => {
+		const { container } = renderUI(
+			<form>
+				<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', '#000000']} />
+			</form>,
+		)
+
+		expect(screen.getByRole('radio', { name: '#ffffff' })).toBeChecked()
+
+		const form = present<HTMLFormElement>(container.querySelector('form'), 'the native form')
+
+		expect([...new FormData(form).keys()]).toEqual([])
+	})
+
 	it('gives each chip its own key when the swatches repeat a color', () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -333,6 +386,47 @@ describe('ColorPanel', () => {
 		)
 
 		expect(keyWarnings).toEqual([])
+	})
+
+	// `swatches` takes hex only. A preset that does not parse paints its chip,
+	// but the chip sets no color and is never checked.
+	it('warns in development of a swatch that is not hex, one time for each list', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		onTestFinished(() => warn.mockRestore())
+
+		const { rerender } = renderUI(
+			<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', 'red', '#000']} />,
+		)
+
+		expect(warn).toHaveBeenCalledTimes(1)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('"red"'))
+
+		expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('#ffffff'))
+
+		// A new array that holds the same presets does not warn again.
+		rerender(<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', 'red', '#000']} />)
+
+		expect(warn).toHaveBeenCalledTimes(1)
+	})
+
+	it('warns of nothing when each swatch is hex', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		onTestFinished(() => warn.mockRestore())
+
+		renderUI(<ColorPanel defaultValue="#ffffff" />)
+
+		renderUI(
+			<ColorPanel
+				alpha
+				defaultValue="#ffffff"
+				swatches={['#fff', '#fff8', '#000000', '#00000080']}
+			/>,
+		)
+
+		expect(warn).not.toHaveBeenCalled()
 	})
 
 	it('commits a shorthand hex only on blur, not while the digits are typed', () => {
@@ -367,6 +461,20 @@ describe('ColorPanel', () => {
 
 		expect(onValueChange).toHaveBeenLastCalledWith('#aabbccff')
 	})
+
+	// §7.3: `null` keeps the panel controlled with no color. The panel paints
+	// black and ignores `defaultValue`, in each format.
+	it('paints black, not defaultValue, for a null value in each format', () => {
+		const hex = renderUI(<ColorPanel value={null} defaultValue="#3b82f6" />)
+
+		expect(getSlot(hex.container, 'color-hex-input')).toHaveValue('000000')
+
+		const hsva = renderUI(
+			<ColorPanel format="hsva" value={null} defaultValue={{ h: 217, s: 76, v: 96, a: 1 }} />,
+		)
+
+		expect(getSlot(hsva.container, 'color-hex-input')).toHaveValue('000000')
+	})
 })
 
 describe('ColorPicker', () => {
@@ -390,6 +498,113 @@ describe('ColorPicker', () => {
 		expect(bySlot(container, 'color-picker-button')).toBeEnabled()
 	})
 
+	it.each([
+		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" readOnly />],
+		[
+			'an enclosing Control',
+			<Control key="control" readOnly>
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		],
+	])('does not open the panel while read-only from %s', (_, ui) => {
+		const { container } = renderUI(ui)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('lets a panel that is open when readOnly turns on close from the trigger', () => {
+		const { container, rerender } = renderUI(<ColorPicker defaultValue="#ef4444" />)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+
+		rerender(<ColorPicker defaultValue="#ef4444" readOnly />)
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it.each([
+		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" readOnly />],
+		[
+			'an enclosing Control',
+			<Control key="control" readOnly>
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		],
+	])('keeps a trigger that is read-only from %s in the tab order', async (_, ui) => {
+		const user = setupUser()
+
+		const { container } = renderUI(ui)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		expect(button).not.toBeDisabled()
+
+		// A button does not take aria-readonly, so the trigger is aria-disabled.
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		expect(button).toHaveAttribute('data-readonly')
+
+		await user.tab()
+
+		expect(button).toHaveFocus()
+
+		expect(button).toHaveTextContent('#EF4444')
+	})
+
+	it.each([
+		['a press', (user: ReturnType<typeof setupUser>, button: HTMLElement) => user.click(button)],
+		['Enter', (user: ReturnType<typeof setupUser>) => user.keyboard('{Enter}')],
+		['Space', (user: ReturnType<typeof setupUser>) => user.keyboard(' ')],
+	])('does not open a read-only picker on %s', async (_, activate) => {
+		const user = setupUser()
+
+		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" readOnly />)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		await user.tab()
+
+		expect(button).toHaveFocus()
+
+		await activate(user, button)
+
+		expect(button).toHaveFocus()
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it.each([
+		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" disabled />],
+		[
+			'an enclosing Control',
+			<Control key="control" disabled>
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		],
+		[
+			'its own prop, with readOnly',
+			<ColorPicker key="both" defaultValue="#ef4444" disabled readOnly />,
+		],
+	])('keeps native disabled on a trigger that is disabled from %s', (_, ui) => {
+		const { container } = renderUI(ui)
+
+		expect(getSlot(container, 'color-picker-button')).toBeDisabled()
+	})
+
 	it('puts no aria-required on the trigger, a button that does not take it', () => {
 		const { container } = renderUI(
 			<Control required>
@@ -402,6 +617,34 @@ describe('ColorPicker', () => {
 		expect(button).not.toHaveAttribute('role')
 
 		expect(button).not.toHaveAttribute('aria-required')
+	})
+
+	// §7.3: an owner clears a controlled picker with `null`. The picker stays
+	// controlled, so it paints black and does not go back to `defaultValue`.
+	it('paints black when a controlled value goes to null, in each format', () => {
+		const hex = renderUI(<ColorPicker value="#ef4444" defaultValue="#3b82f6" />)
+
+		const hexButton = getSlot(hex.container, 'color-picker-button')
+
+		expect(hexButton).toHaveTextContent('#EF4444')
+
+		hex.rerender(<ColorPicker value={null} defaultValue="#3b82f6" />)
+
+		expect(hexButton).toHaveTextContent('#000000')
+
+		const blue = { h: 217, s: 76, v: 96, a: 1 }
+
+		const hsva = renderUI(
+			<ColorPicker format="hsva" value={{ h: 0, s: 100, v: 100, a: 1 }} defaultValue={blue} />,
+		)
+
+		const hsvaButton = getSlot(hsva.container, 'color-picker-button')
+
+		expect(hsvaButton).toHaveTextContent('#FF0000')
+
+		hsva.rerender(<ColorPicker format="hsva" value={null} defaultValue={blue} />)
+
+		expect(hsvaButton).toHaveTextContent('#000000')
 	})
 
 	it('paints black, not defaultValue, while the bound field is empty (§7.2)', () => {
@@ -447,6 +690,29 @@ describe('ColorPicker', () => {
 		expect(button).toHaveTextContent('#000000')
 	})
 
+	it('marks the bound field touched when its panel closes, so a touched rule runs', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{}} validate={{ color: (v) => (v ? undefined : 'Pick a color') }}>
+				<ColorPicker name="color" />
+				<FieldProbe name="color" />
+			</Form>,
+		)
+
+		const button = getSlot(container, 'color-picker-button')
+
+		// The trigger's own toggle drives both ends. Per §10.3 the floating-ui
+		// dismiss paths stay undriven; they close through the same setter.
+		fireEvent.click(button)
+
+		expect(getFieldProbe('color')).toHaveAttribute('data-touched', 'false')
+
+		fireEvent.click(button)
+
+		expect(getFieldProbe('color')).toHaveAttribute('data-touched', 'true')
+
+		expect(button).toHaveAttribute('aria-invalid', 'true')
+	})
+
 	it('renders a dialog trigger with a color swatch', () => {
 		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
 
@@ -459,6 +725,18 @@ describe('ColorPicker', () => {
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
+	})
+
+	it('keeps the hex label of the trigger left to right under a right-to-left ancestor', () => {
+		const { container } = renderUI(
+			<div dir="rtl">
+				<ColorPicker defaultValue="#ff0000" />
+			</div>,
+		)
+
+		const label = inside(getSlot(container, 'color-picker-button')).getByText('#FF0000')
+
+		expect(label.closest('[dir]')).toHaveAttribute('dir', 'ltr')
 	})
 
 	it('reports both ends of the panel open state, whatever drove them', () => {
@@ -514,6 +792,117 @@ describe('ColorPicker', () => {
 	})
 })
 
+type PickerHarnessProps = {
+	open: boolean
+	initial: string | Hsva
+	format: ColorFormat
+	onValueChange?: (value: string | Hsva) => void
+}
+
+/**
+ * The parts of `ColorPicker` that own the color, with no popover. An owner
+ * adopts each emission, and `useColorState` holds the HSVA of the picker. The
+ * `picker-color` slot shows that HSVA, as the trigger does. The popover mounts
+ * the panel only while `open`. A real open drives floating-ui and the exit of
+ * the Portal, which §10.3 bars.
+ */
+function PickerHarness({ open, initial, format, onValueChange }: PickerHarnessProps) {
+	const [value, setValue] = useState(initial)
+
+	const color = useColorState({
+		value,
+		format,
+		alpha: false,
+		onValueChange: (next) => {
+			onValueChange?.(next)
+
+			setValue(next)
+		},
+	})
+
+	return (
+		<>
+			<span data-slot="picker-color">{hsvaToHex(color.hsva)}</span>
+			{open && <ColorPanelView hsva={color.hsva} setHsva={color.setHsva} />}
+		</>
+	)
+}
+
+describe('ColorPanel in a ColorPicker', () => {
+	it('keeps the hue that hex drops after the panel mounts again', () => {
+		const { container, rerender } = renderUI(<PickerHarness open initial="#000000" format="hex" />)
+
+		const hue = () => getSlot<HTMLInputElement>(container, 'color-slider-input')
+
+		fireEvent.change(hue(), { target: { value: '120' } })
+
+		// Black has no hue in hex, so the emission does not change.
+		expect(getSlot(container, 'picker-color')).toHaveTextContent('#000000')
+
+		// A close unmounts the panel, and the next open mounts it again.
+		rerender(<PickerHarness open={false} initial="#000000" format="hex" />)
+
+		rerender(<PickerHarness open initial="#000000" format="hex" />)
+
+		expect(hue()).toHaveValue('120')
+	})
+
+	it('gives the picker the full precision of a panel edit, and rounds only the emission', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<PickerHarness
+				open
+				initial={{ h: 0, s: 0, v: 0, a: 1 }}
+				format="hsva"
+				onValueChange={onValueChange}
+			/>,
+		)
+
+		// `#7f7f7f` is v 49.8. The rounded v 50 paints `#808080`.
+		fireEvent.change(getSlot(container, 'color-hex-input'), { target: { value: '7f7f7f' } })
+
+		expect(getSlot(container, 'picker-color')).toHaveTextContent('#7f7f7f')
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ h: 0, s: 0, v: 50, a: 1 })
+	})
+
+	// A drag surface cancels the mousedown of its press, so the press keeps the
+	// focus that the drag gives. Each other part takes the focus of a press, so
+	// an edited field blurs and commits first. `fireEvent` returns `false` when a
+	// handler cancels the press. jsdom does not move focus on a mousedown, so the
+	// browser file `color-picker-press-focus` asserts the focus.
+	it('holds the press of a drag surface only', () => {
+		vi.stubGlobal(
+			'EyeDropper',
+			class {
+				open = () => new Promise<never>(() => {})
+			},
+		)
+
+		onTestFinished(() => {
+			vi.unstubAllGlobals()
+		})
+
+		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
+
+		expect(fireEvent.mouseDown(getSlot(container, 'color-area'))).toBe(false)
+
+		expect(fireEvent.mouseDown(getSlot(container, 'color-slider'))).toBe(false)
+
+		for (const slot of [
+			'color-eyedropper',
+			'color-hex-input',
+			'copy-button',
+			'color-channel-input',
+			'color-swatch',
+			'color-panel',
+		]) {
+			expect(fireEvent.mouseDown(getSlot(container, slot)), slot).toBe(true)
+		}
+	})
+})
+
 describe('useColorState', () => {
 	it('snaps back to a controlled value that the owner does not adopt (§7.2)', () => {
 		const onValueChange = vi.fn()
@@ -539,5 +928,73 @@ describe('useColorState', () => {
 		act(() => result.current.setHsva({ h: 120, s: 0, v: 100, a: 1 }))
 
 		expect(result.current.hsva).toMatchObject({ h: 120, s: 0, v: 100 })
+	})
+
+	// On a gray, the hue does not show, but it is a channel of the hsva value.
+	// The owner sets it, so it is not an echo, and the next edit keeps it.
+	it('adopts a controlled hsva value that changes only a hue that does not show (§7.2)', () => {
+		const onValueChange = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ value }) => useColorState({ value, format: 'hsva', alpha: false, onValueChange }),
+			{ initialProps: { value: { h: 0, s: 0, v: 50, a: 1 } } },
+		)
+
+		rerender({ value: { h: 210, s: 0, v: 50, a: 1 } })
+
+		expect(result.current.hsva.h).toBe(210)
+
+		act(() => result.current.setHsva((prev) => ({ ...prev, s: 80 })))
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ h: 210, s: 80, v: 50, a: 1 })
+	})
+
+	it('keeps hue 360 when an adopting owner wraps the hsva emission to hue 0', () => {
+		const { result } = renderHook(() => {
+			const [value, setValue] = useState<string | Hsva>({ h: 120, s: 100, v: 100, a: 1 })
+
+			const wrap = (next: string | Hsva) =>
+				setValue(typeof next === 'string' ? next : { ...next, h: next.h % 360 })
+
+			return useColorState({ value, format: 'hsva', alpha: false, onValueChange: wrap })
+		})
+
+		act(() => result.current.setHsva({ h: 360, s: 100, v: 100, a: 1 }))
+
+		expect(result.current.hsva.h).toBe(360)
+	})
+
+	// With `alpha` off, the panel hides the alpha. A held alpha below `1` then
+	// stops the match of an opaque swatch, and no edit shows the cause.
+	it('pins alpha to 1 when it seeds a translucent color with alpha off', () => {
+		const { result } = renderHook(() =>
+			useColorState({ defaultValue: '#ff000080', format: 'hex', alpha: false }),
+		)
+
+		expect(result.current.hsva.a).toBe(1)
+	})
+
+	it('pins alpha to 1 when it adopts a translucent controlled value with alpha off', () => {
+		const { result, rerender } = renderHook(
+			({ value }) => useColorState({ value, format: 'hex', alpha: false }),
+			{ initialProps: { value: '#ff0000' } },
+		)
+
+		rerender({ value: '#00ff0080' })
+
+		expect(result.current.hsva).toMatchObject({ h: 120, a: 1 })
+	})
+
+	it('pins alpha to 1 when alpha switches off', () => {
+		const { result, rerender } = renderHook(
+			({ alpha }) => useColorState({ defaultValue: '#ff000080', format: 'hex', alpha }),
+			{ initialProps: { alpha: true } },
+		)
+
+		expect(result.current.hsva.a).toBeLessThan(1)
+
+		rerender({ alpha: false })
+
+		expect(result.current.hsva.a).toBe(1)
 	})
 })

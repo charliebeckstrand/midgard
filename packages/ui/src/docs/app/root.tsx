@@ -11,6 +11,7 @@ import { SidebarLayout, SidebarLayoutHeader } from 'ui/layouts'
 import { CurrentScrollScript } from 'ui/primitives/current'
 import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceProvider, AppearanceScript, AppearanceSettings } from 'ui/providers/appearance'
+import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
@@ -92,7 +93,13 @@ const ACTIONS = (
 	</>
 )
 
-/** The shell of the docs: the sidebar, the header with the name of the page, and the page. */
+/**
+ * The shell of the docs: the sidebar, the header with the name of the page, and the page.
+ *
+ * The page renders in the `en-US` locale. The build renders each page with the
+ * default locale of Node, and the browser hydrates it with the default locale
+ * of the reader. A fixed locale makes the two renders agree.
+ */
 export default function App() {
 	const { pathname } = useLocation()
 
@@ -130,7 +137,9 @@ export default function App() {
 					</Flex>
 				</SidebarLayoutHeader>
 				<Stack gap="xl">
-					<Outlet />
+					<LocaleProvider locale="en-US">
+						<Outlet />
+					</LocaleProvider>
 				</Stack>
 			</SidebarLayout>
 		</UIProvider>

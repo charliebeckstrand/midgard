@@ -7,8 +7,6 @@ import { Icon } from '../icon'
 
 type CalendarToolbarProps = {
 	toolbarRef: RefObject<HTMLDivElement | null>
-	/** Accessible name of the `role="toolbar"` row. */
-	label: string
 	onKeyDown: KeyboardEventHandler<HTMLElement>
 	prevLabel: string
 	nextLabel: string
@@ -23,15 +21,14 @@ type CalendarToolbarProps = {
 }
 
 /**
- * `role="toolbar"` row of previous and next chevron buttons around a center
- * control. The calendar header and both views of the month/year picker render
- * through it.
+ * Row of previous and next chevron buttons around a center control. The
+ * controls are plain buttons, and each one is a Tab stop. The calendar header
+ * and both views of the month/year picker render through it.
  *
  * @internal
  */
 export function CalendarToolbar({
 	toolbarRef,
-	label,
 	onKeyDown,
 	prevLabel,
 	nextLabel,
@@ -42,13 +39,8 @@ export function CalendarToolbar({
 	children,
 }: CalendarToolbarProps) {
 	return (
-		<div
-			ref={toolbarRef}
-			role="toolbar"
-			aria-label={label}
-			onKeyDown={onKeyDown}
-			className={cn(k.header)}
-		>
+		// biome-ignore lint/a11y/noStaticElementInteractions: a keydown delegation surface for the buttons in the row, not an interactive control. Each button is a Tab stop.
+		<div ref={toolbarRef} onKeyDown={onKeyDown} className={cn(k.header)}>
 			<Button
 				type="button"
 				variant="plain"

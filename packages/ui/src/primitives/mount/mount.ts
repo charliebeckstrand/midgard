@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useSyncExternalStore } from 'react'
 
 /**
  * Mount policy for a panel that spends part of its life inactive. Examples are
@@ -49,9 +49,47 @@ export type MountHoldState = {
  * asks before pointing `aria-controls` at a panel it doesn't render. Only
  * `always` can answer yes: `lazy` mounts panels as they are visited, which no
  * sibling trigger can observe, and `active` keeps just the one.
+ *
+ * @remarks
+ * The answer is correct for the client DOM only. The server renders nothing for
+ * a hidden `<Activity>`, so a resting panel is not in the server markup. A
+ * trigger that can render on the server asks {@link useMountsEveryPanel}
+ * instead.
  */
 export function mountsEveryPanel(mount: Mount): boolean {
 	return mount === 'always'
+}
+
+/** A subscription that never fires, because the snapshot changes only at hydration. */
+const subscribeNothing = () => () => {}
+
+/** The snapshots of {@link useMountsEveryPanel}. Module constants, so React reads no new getter. */
+const yes = () => true
+
+const no = () => false
+
+/**
+ * Whether every panel is in the DOM that this render writes: the
+ * {@link mountsEveryPanel} answer, after hydration. It is `false` on the server
+ * and in the hydration render.
+ *
+ * @remarks
+ * Under `always`, a resting panel is in a hidden `<Activity>`. The server
+ * renders nothing for a hidden Activity, so the server markup has no target for
+ * an `aria-controls` reference to that panel. The hydration render must agree
+ * with the server markup, so the reference comes in the render after
+ * hydration. The client also renders the hidden subtree after hydration, and
+ * the reference then has its target. A render that does not hydrate gets the
+ * answer at once.
+ *
+ * @param mount - The policy that governs inactive panels.
+ * @returns Whether a trigger can point `aria-controls` at a panel that it does
+ * not render.
+ */
+export function useMountsEveryPanel(mount: Mount): boolean {
+	// The server and the hydration render read `no`. Only `always` has a client
+	// snapshot that differs, so only `always` renders again after hydration.
+	return useSyncExternalStore(subscribeNothing, mountsEveryPanel(mount) ? yes : no, no)
 }
 
 /**

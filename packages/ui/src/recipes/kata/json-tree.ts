@@ -68,7 +68,6 @@ export const k = {
 	index: text.muted,
 	punctuation: text.muted,
 	summary: text.muted,
-	group: 'overflow-hidden',
 	/**
 	 * The start padding of the children of a nested group. It equals the chevron
 	 * spacer plus the row gap, so each depth adds one step of it.

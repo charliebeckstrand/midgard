@@ -55,9 +55,11 @@ export const k = {
 	day: {
 		base: 'w-full ring-inset',
 		active: [...focus.virtual],
+		// Each endpoint squares the corners that face the band. The sides are
+		// logical, so the corners mirror with the grid in a right-to-left region.
 		range: {
-			left: 'rounded-r-none',
-			right: 'rounded-l-none',
+			start: 'rounded-e-none',
+			end: 'rounded-s-none',
 		},
 	},
 	skeleton: kokkaku.calendar,

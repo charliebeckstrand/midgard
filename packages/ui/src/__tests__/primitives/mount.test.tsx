@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
-import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
-import { renderUI, screen, setupUser } from '../helpers'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import {
+	type Mount,
+	MountHold,
+	mountsEveryPanel,
+	useMountHold,
+	useMountsEveryPanel,
+} from '../../primitives/mount'
+import { act, attach, renderUI, screen, setupUser } from '../helpers'
 
 /**
  * The shared mount hold behind the current cascade, the disclosure panels, and
@@ -214,5 +222,68 @@ describe('useMountHold', () => {
 		rerender(<Panel mount="always" defer />)
 
 		expect(screen.getByTestId('body')).not.toBeVisible()
+	})
+})
+
+/**
+ * The reading that a trigger takes before it points `aria-controls` at a panel
+ * that it does not render. The server renders no hidden Activity, so the reading
+ * waits for hydration.
+ */
+describe('useMountsEveryPanel', () => {
+	/** Renders the reading as text, and records each value that a render reads. */
+	function Probe({ mount, seen }: { mount: Mount; seen?: boolean[] }) {
+		const everyPanel = useMountsEveryPanel(mount)
+
+		seen?.push(everyPanel)
+
+		return <p>{everyPanel ? 'every panel' : 'one panel'}</p>
+	}
+
+	it.each([
+		['always', true],
+		['lazy', false],
+		['active', false],
+	] as const)(
+		'agrees with mountsEveryPanel for %s in a render that does not hydrate',
+		(mount, expected) => {
+			const seen: boolean[] = []
+
+			renderUI(<Probe mount={mount} seen={seen} />)
+
+			expect(seen[0]).toBe(expected)
+
+			expect(mountsEveryPanel(mount)).toBe(expected)
+		},
+	)
+
+	it('is false on the server under always', () => {
+		expect(renderToString(<Probe mount="always" />)).toContain('one panel')
+	})
+
+	it('is false in the hydration render under always, and true after it, with no mismatch', () => {
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = renderToString(<Probe mount="always" />)
+
+		const seen: boolean[] = []
+
+		const onRecoverableError = vi.fn()
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, <Probe mount="always" seen={seen} />, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(seen[0]).toBe(false)
+
+		expect(seen.at(-1)).toBe(true)
+
+		expect(container).toHaveTextContent('every panel')
 	})
 })

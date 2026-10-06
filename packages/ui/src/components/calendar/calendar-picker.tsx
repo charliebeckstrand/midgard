@@ -12,6 +12,8 @@ type CalendarPickerProps = {
 	onNavigate: (year: number, month: number) => void
 	monthLabel: string
 	monthLabels: string[]
+	/** The resolved BCP 47 tag of the calendar, for the digits of the years. */
+	localeTag: string
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerClassName?: string
@@ -32,12 +34,22 @@ export function CalendarPicker({
 	onNavigate,
 	monthLabel,
 	monthLabels,
+	localeTag,
 	open,
 	onOpenChange,
 	triggerClassName,
 }: CalendarPickerProps) {
 	const { pickerHeaderRef, pickerGridRef, handleHeaderKeyDown, handleGridKeyDown, viewConfig } =
-		useCalendarPicker({ year, month, today, monthLabels, onNavigate, open, onOpenChange })
+		useCalendarPicker({
+			year,
+			month,
+			today,
+			monthLabels,
+			localeTag,
+			onNavigate,
+			open,
+			onOpenChange,
+		})
 
 	return (
 		<Popover placement="bottom" open={open} onOpenChange={onOpenChange}>

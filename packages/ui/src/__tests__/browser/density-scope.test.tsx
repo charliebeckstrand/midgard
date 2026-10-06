@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { Button, ButtonSkeleton } from '../../components/button'
-import { Card, CardHeader, CardTitle } from '../../components/card'
+import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
 import { Checkbox } from '../../components/checkbox'
 import { Control, ControlSkeleton } from '../../components/control'
 import { Fieldset, Label, Legend } from '../../components/fieldset'
@@ -757,10 +757,12 @@ describe('density scopes on static leaves (real browser)', () => {
 		expect(Number.parseFloat(getComputedStyle(cell).paddingLeft)).toBe(CELL_PADDING_PX[step])
 	})
 	it('pads the header of an unsized card at the step of the outer card', () => {
+		// The body follows the header, because a header with no sibling after it adds no pad.
 		const { container } = renderUI(
 			<Card size="lg">
 				<Card>
 					<CardHeader>header</CardHeader>
+					<CardBody>body</CardBody>
 				</Card>
 			</Card>,
 		)

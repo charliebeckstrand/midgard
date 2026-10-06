@@ -2,6 +2,7 @@
 
 import { type ValidationAttrs, validationAttrs } from '../../core'
 import { useAriaIds } from '../../hooks'
+import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useControl } from './context'
 
 /** Field-supplied input to {@link useControlProps}: the explicit form-field props a control passes for resolution against its `<Control>` / `<Field>` context. */
@@ -35,6 +36,15 @@ export type ControlPropsResult = {
 }
 
 /**
+ * The development warning for an explicit control id that differs from the id
+ * of its `<Control>` / `<Field>`. It tells the consumer to pin the id on the
+ * wrapper.
+ */
+function strayIdWarning(explicitId: string, wrapperId: string): string {
+	return `Control: a control under a <Control> or <Field> takes the explicit id "${explicitId}", but the wrapper has the id "${wrapperId}". A <Label> that takes its htmlFor from the wrapper then points at no element. Pin the id on the wrapper: pass htmlFor="${explicitId}" to the <Field> (or the CheckboxField, RadioField, or SwitchField), or id="${explicitId}" to the <Control>.`
+}
+
+/**
  * Resolves the form-field props that all members of the Control cascade share:
  * id, autoComplete, disabled, required, readOnly, invalid.
  *
@@ -58,6 +68,11 @@ export type ControlPropsResult = {
  * invalid. `validation` collapses the resolved state into a single spreadable
  * attribute object: invalid wins, then a `warning` / `success` severity. The
  * three validation rings therefore stay mutually exclusive.
+ *
+ * An explicit `id` that differs from the `<Control>` / `<Field>` id warns in
+ * development, and the explicit id still wins. A `<Label>` takes its `htmlFor`
+ * from the wrapper id, so it then points at no element. Pin the id on the
+ * wrapper instead: `htmlFor` on a `<Field>`, or `id` on a `<Control>`.
  * @example
  *   const { id, disabled, required, invalid, validation } = useControlProps({
  *     id: idProp, disabled: disabledProp, required: requiredProp, invalid,
@@ -83,8 +98,18 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 		invalid ? 'error' : severity === 'warning' || severity === 'success' ? severity : undefined,
 	)
 
+	// The explicit id wins on the control, but a Label takes its `for` from the
+	// wrapper id. When the two ids differ, the Label points at no element.
+	const explicitId = input.id
+
+	const wrapperId = control?.id
+
+	const strayId = explicitId !== undefined && wrapperId !== undefined && explicitId !== wrapperId
+
+	useDevWarning(strayId, strayId ? strayIdWarning(explicitId, wrapperId) : '')
+
 	return {
-		id: input.id ?? control?.id,
+		id: explicitId ?? wrapperId,
 		autoComplete: input.autoComplete ?? control?.autoComplete,
 		disabled: input.disabled ?? control?.disabled,
 		required: input.required ?? control?.required,

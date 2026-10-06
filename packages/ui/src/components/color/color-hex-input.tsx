@@ -67,24 +67,24 @@ export function ColorHexInput() {
 				Hex
 			</Label>
 
-			<Input
-				{...draft}
-				id={id}
-				onChange={onChange}
-				onBlur={onBlur}
-				// The popover content wrapper preventDefaults mousedown to hold focus
-				// for the area/slider drag (color-picker-content.tsx); stop it here so
-				// a click focuses the hex field. A no-op in the inline ColorPanel.
-				onMouseDown={(event) => event.stopPropagation()}
-				disabled={disabled}
-				variant={control?.variant}
-				data-slot="color-hex-input"
-				prefix="#"
-				spellCheck={false}
-				autoComplete="off"
-				className="font-mono uppercase"
-				suffix={<CopyButton text={`#${hex}`} icon={<Copy />} aria-label="Copy hex value" />}
-			/>
+			{/* A hex code reads left to right in each direction, as CodeBlock reads code. So an RTL
+			    ancestor must not move the '#' prefix to the right or the copy button to the left. */}
+			<div dir="ltr">
+				<Input
+					{...draft}
+					id={id}
+					onChange={onChange}
+					onBlur={onBlur}
+					disabled={disabled}
+					variant={control?.variant}
+					data-slot="color-hex-input"
+					prefix="#"
+					spellCheck={false}
+					autoComplete="off"
+					className="font-mono uppercase"
+					suffix={<CopyButton text={`#${hex}`} icon={<Copy />} aria-label="Copy hex value" />}
+				/>
+			</div>
 		</ControlContext>
 	)
 }

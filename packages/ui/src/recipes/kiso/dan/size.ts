@@ -57,8 +57,11 @@ export const size = {
 		channel: 'density-h-[3,3.5,4]',
 		/** The width of a color panel. */
 		width: 'density-w-[72,80,88]',
-		/** The height of a color panel skeleton. */
-		height: 'density-h-[76.5,98,120]',
+		/**
+		 * The height of the preview row and the channel inputs of a color panel
+		 * skeleton, with the gap between them.
+		 */
+		fields: 'density-h-[22.25,27.75,33.75]',
 	},
 	/** The diameter of a progress gauge and of its skeleton. */
 	gauge: 'density-size-[12,16,20]',
@@ -79,7 +82,12 @@ export const size = {
 		width: 'density-w-[10,12,14,16,16]',
 	},
 	control: {
-		/** The height of a control skeleton. */
+		/**
+		 * The height of a control skeleton, and of the header row and each day row
+		 * of a calendar skeleton. The values are the button heights at `sm`, `md`,
+		 * and `lg`. The ramp has three values, so `xs` takes the `sm` value, as the
+		 * calendar does.
+		 */
 		base: 'density-h-[7.5,9.5,11.5]',
 		/** The minimum width of a control skeleton. */
 		min: 'density-min-w-[16,24,32]',

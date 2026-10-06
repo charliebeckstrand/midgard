@@ -1,9 +1,19 @@
-import { createRef } from 'react'
+import { createRef, type ReactElement } from 'react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	densityStepOf,
+	fireEvent,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Checkbox', () => {
@@ -72,6 +82,26 @@ describe('Checkbox', () => {
 		fireEvent.click(input)
 
 		expect(input.indeterminate).toBe(true)
+	})
+})
+
+describe('Checkbox server render', () => {
+	// A server render runs no layout effect, so the `indeterminate` property
+	// stays false until hydration. The markup must carry the state itself.
+	function serverInput(element: ReactElement) {
+		const host = document.createElement('div')
+
+		host.innerHTML = renderToString(element)
+
+		return getSlot<HTMLInputElement>(host, 'checkbox')
+	}
+
+	it('writes the indeterminate state into the server HTML', () => {
+		expect(serverInput(<Checkbox indeterminate />)).toHaveAttribute('data-indeterminate')
+	})
+
+	it('writes no indeterminate state when the prop is false', () => {
+		expect(serverInput(<Checkbox />)).not.toHaveAttribute('data-indeterminate')
 	})
 })
 
@@ -218,6 +248,118 @@ describe('Checkbox defaultChecked under a binding', () => {
 		expect(input.checked).toBe(true)
 
 		expect(input.defaultChecked).toBe(true)
+	})
+})
+
+describe('Checkbox readOnly', () => {
+	it('keeps its state on a click, a click on the box, and a Space press', async () => {
+		const user = setupUser()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<Checkbox readOnly onChange={onChange} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
+
+		expect(input).toHaveAttribute('aria-readonly', 'true')
+
+		await user.click(input)
+
+		await user.click(getSlot(container, 'control'))
+
+		await user.keyboard(' ')
+
+		expect(input.checked).toBe(false)
+
+		expect(onChange).not.toHaveBeenCalled()
+
+		// Read-only is not disabled: the box keeps the focus.
+		expect(input).toHaveFocus()
+	})
+
+	it('submits its value', () => {
+		const { container } = renderUI(
+			<form>
+				<Checkbox name="agree" readOnly defaultChecked />
+			</form>,
+		)
+
+		const form = present<HTMLFormElement>(container.querySelector('form'), 'form')
+
+		expect(new FormData(form).get('agree')).toBe('on')
+	})
+
+	it('keeps a bound field unchanged', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ agree: false }}>
+				<Checkbox name="agree" readOnly />
+				<FieldProbe name="agree" />
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+
+		expect(getFieldProbe('agree').textContent).toBe('false')
+	})
+
+	it('keeps the indeterminate flag', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<Checkbox readOnly indeterminate />)
+
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(false)
+
+		expect(input.indeterminate).toBe(true)
+	})
+
+	it('toggles and fires onChange again when readOnly turns off', async () => {
+		const user = setupUser()
+
+		const onChange = vi.fn()
+
+		const { container, rerender } = renderUI(<Checkbox readOnly onChange={onChange} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
+
+		await user.click(input)
+
+		rerender(<Checkbox onChange={onChange} />)
+
+		expect(input).not.toHaveAttribute('aria-readonly')
+
+		await user.click(input)
+
+		expect(input.checked).toBe(true)
+
+		expect(onChange).toHaveBeenCalledOnce()
+	})
+})
+
+describe('Checkbox presentational props', () => {
+	it('sends style and hidden to the visible box', () => {
+		const { container } = renderUI(<Checkbox hidden style={{ marginTop: '4px' }} />)
+
+		const box = getSlot(container, 'control')
+
+		const input = getSlot(container, 'checkbox')
+
+		expect(box).toHaveAttribute('hidden')
+
+		expect(box).toHaveStyle({ marginTop: '4px' })
+
+		expect(input).not.toHaveAttribute('hidden')
+
+		expect(input).not.toHaveAttribute('style')
 	})
 })
 
