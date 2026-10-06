@@ -129,7 +129,7 @@ export function ExampleFrame({
 	return (
 		<Stack gap="sm" data-slot="example">
 			<Flex gap="md" direction="col" align="start">
-				<Heading level={3}>{meta.title}</Heading>
+				<Heading level={2}>{meta.title}</Heading>
 				{actions}
 			</Flex>
 			<div

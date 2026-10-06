@@ -42,7 +42,7 @@ export default function SectionsDividerAndSpacer() {
 		<div className="h-108 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
 			<Sidebar aria-label="Sidebar with sections">
 				<SidebarHeader>
-					<Heading level={4}>Workspace</Heading>
+					<Heading level={3}>Workspace</Heading>
 				</SidebarHeader>
 				<SidebarBody>
 					<SidebarList aria-label="Main">

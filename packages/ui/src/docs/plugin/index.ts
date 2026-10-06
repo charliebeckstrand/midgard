@@ -1,6 +1,12 @@
 import path from 'node:path'
 import { prefixRegex } from '@rolldown/pluginutils'
-import type { EnvironmentModuleGraph, EnvironmentModuleNode, Plugin } from 'vite'
+import type {
+	DevEnvironment,
+	EnvironmentModuleGraph,
+	EnvironmentModuleNode,
+	Plugin,
+	ViteDevServer,
+} from 'vite'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiExtractor } from './api.ts'
 import {
@@ -12,7 +18,7 @@ import {
 	exampleFiles,
 	loadCodes,
 } from './examples.ts'
-import { findPages, type PageLink } from './pages.ts'
+import { findPages, type Page, type PageLink } from './pages.ts'
 
 const VIRTUAL = 'virtual:docs/'
 
@@ -26,6 +32,16 @@ const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
 /** The resolved id of a virtual module. */
 function virtualId(name: string): string {
 	return `\0${name}`
+}
+
+/** The data of `virtual:docs/pages`: the link of each page. */
+function linksOf(found: readonly Page[]): string {
+	return data(found.map(({ folder, ...link }): PageLink => link))
+}
+
+/** The routes that the pages give (`app/routes.ts`): the path, the folder and the tabs of each page. */
+function routesOf(found: readonly Page[]): string {
+	return JSON.stringify(found.map(({ path, folder, tabs }) => [path, folder, tabs]))
 }
 
 /**
@@ -47,6 +63,12 @@ function data(value: unknown): string {
  * It adds the title and the code module to the default export of each
  * example in `pages/` ({@link attachMeta}). In dev, an edit to a source file
  * of `ui` updates the API data of the open pages with no reload.
+ *
+ * In dev, a page or a tab that is added, removed or renamed in `pages/`
+ * changes the routes. React Router reads the routes only when the server
+ * starts, so the plugin restarts the server, and the browser loads the page
+ * again. An edit to an `index.tsx` that changes only the name of a page
+ * updates `virtual:docs/pages`.
  */
 export function reactDocs(): Plugin {
 	const docs = path.resolve(import.meta.dirname, '..')
@@ -65,6 +87,39 @@ export function reactDocs(): Plugin {
 	// build import the same examples, so each highlight runs once for both.
 	const codes = new Map<string, Promise<Record<string, ExampleCode>>>()
 
+	// The routes that the server started with ({@link routesOf}).
+	let routes = ''
+
+	// The data of `virtual:docs/pages` that each environment loaded last.
+	const links = new Map<string, string>()
+
+	/**
+	 * The modules that an edit to an `index.tsx` in `pages/` makes stale in
+	 * `environment`: `virtual:docs/pages` when the links of the pages change.
+	 * When the routes change, it restarts the server and gives `null`.
+	 */
+	function staleLinks(
+		environment: DevEnvironment,
+		server: ViteDevServer,
+	): EnvironmentModuleNode[] | null {
+		const found = findPages(docs)
+
+		const next = routesOf(found)
+
+		if (next !== routes) {
+			// The update runs in each environment, and the first one restarts the server.
+			routes = next
+
+			void server.restart()
+
+			return null
+		}
+
+		const module = environment.moduleGraph.getModuleById(virtualId(PAGES))
+
+		return module && links.get(environment.name) !== linksOf(found) ? [module] : []
+	}
+
 	return {
 		name: 'vite-plugin-react-docs',
 		// The transform reads the JSX of an example, so it runs before the JSX transform.
@@ -79,7 +134,11 @@ export function reactDocs(): Plugin {
 				const name = id.slice(1)
 
 				if (name === PAGES) {
-					return data(findPages(docs).map(({ folder, ...link }): PageLink => link))
+					const code = linksOf(findPages(docs))
+
+					links.set(this.environment.name, code)
+
+					return code
 				}
 
 				if (name.startsWith(API)) {
@@ -113,12 +172,21 @@ export function reactDocs(): Plugin {
 				return meta === undefined ? null : { code: meta, map: null }
 			},
 		},
-		hotUpdate({ file, type, modules }) {
+		configureServer() {
+			routes = routesOf(findPages(docs))
+		},
+		hotUpdate({ file, type, modules, server }) {
 			const graph = this.environment.moduleGraph
 
 			let stale: EnvironmentModuleNode[] = []
 
-			if (file.startsWith(pages)) {
+			if (file.startsWith(pages) && file.endsWith('/index.tsx')) {
+				const next = staleLinks(this.environment, server)
+
+				if (next === null) return []
+
+				stale = next
+			} else if (file.startsWith(pages)) {
 				codes.delete(path.dirname(file))
 
 				stale = staleExample(graph, pages, file, modules)

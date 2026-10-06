@@ -169,5 +169,5 @@ export default function App() {
  * page stays in the error boundary of the pages (`routes/page.tsx`).
  */
 export function ErrorBoundary() {
-	return <PageError />
+	return <PageError level={1} />
 }
