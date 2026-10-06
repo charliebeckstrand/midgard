@@ -5,12 +5,7 @@ import { useCallback, useState } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useReportedChange } from '../../hooks/use-reported-change'
 
-import { firstOfMonth, isYearInRange } from './calendar-utilities'
-
-/** Whether two rendered months are the same instant; `firstOfMonth` mints a fresh `Date` each call. @internal */
-function sameInstant(a: Date, b: Date): boolean {
-	return a.getTime() === b.getTime()
-}
+import { firstOfMonth, isSameInstant, isYearInRange } from './calendar-utilities'
 
 /** First of the month that holds `date`. @internal */
 function monthOf(date: Date): Date {
@@ -28,13 +23,6 @@ type CalendarMonthOptions = {
 type CalendarMonthAnchors = {
 	value: Date | null | undefined
 	activeGridDate: Date | null
-}
-
-/** Whether two values hold the same instant, or are both empty. @internal */
-function sameValue(a: Date | null | undefined, b: Date | null | undefined): boolean {
-	if (a == null || b == null) return a == null && b == null
-
-	return sameInstant(a, b)
 }
 
 /**
@@ -59,7 +47,7 @@ function reanchor(date: Date | null | undefined, viewDate: Date): Date | null {
 
 	const month = monthOf(date)
 
-	return sameInstant(month, viewDate) ? null : month
+	return isSameInstant(month, viewDate) ? null : month
 }
 
 /**
@@ -121,7 +109,7 @@ export function useCalendarMonth({ value, activeGridDate, onMonthChange }: Calen
 	// `Date` again on each render keeps the view. The grid date moves on each new
 	// object, because the parent sends one for each keyboard move. A move that
 	// the parent clamps to the same day must still bring the roved day into view.
-	const valueMoved = !sameValue(anchors.value, value)
+	const valueMoved = !isSameInstant(anchors.value, value)
 
 	const gridMoved = activeGridDate !== anchors.activeGridDate
 
@@ -147,7 +135,7 @@ export function useCalendarMonth({ value, activeGridDate, onMonthChange }: Calen
 	 * reports nothing. The month that a clock-seeded view shows after hydration is
 	 * part of the mount, so it reports nothing too.
 	 */
-	useReportedChange(viewDate, onMonthChange, sameInstant)
+	useReportedChange(viewDate, onMonthChange, isSameInstant)
 
 	return { viewDate, year, month, shown, prevMonth, nextMonth, navigateTo }
 }

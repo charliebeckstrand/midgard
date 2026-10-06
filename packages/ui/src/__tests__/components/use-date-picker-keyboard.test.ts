@@ -13,6 +13,8 @@ type Setup = Partial<{
 	open: boolean
 	active: CalendarActive | null
 	footerButtons: FooterButton[]
+	/** The entry day of the Calendar. `null` when its shown month holds no enabled day. */
+	entryDate: Date | null
 }>
 
 function setup(overrides: Setup = {}) {
@@ -28,6 +30,11 @@ function setup(overrides: Setup = {}) {
 
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
 
+	// The day where the highlight enters the shown month, which header paging moved to March.
+	const entryDate = overrides.entryDate === undefined ? new Date(2026, 2, 1) : overrides.entryDate
+
+	const getViewEntryDate = vi.fn(() => entryDate)
+
 	const handleSelect = vi.fn()
 
 	const onFooterActivate = vi.fn()
@@ -37,6 +44,7 @@ function setup(overrides: Setup = {}) {
 		nextMonth: vi.fn(),
 		openPicker: vi.fn(),
 		footerKeyDown: vi.fn(),
+		getEntryDate: vi.fn(() => entryDate),
 	}
 
 	const calendarRef = { current: calendarHandle } as RefObject<CalendarHandle | null>
@@ -52,6 +60,7 @@ function setup(overrides: Setup = {}) {
 			moveGridDate,
 			moveGridMonths,
 			getInitialActiveDate,
+			getViewEntryDate,
 			handleSelect,
 			calendarRef,
 			footerButtons: overrides.footerButtons ?? ['clear', 'today'],
@@ -67,6 +76,7 @@ function setup(overrides: Setup = {}) {
 		moveGridDate,
 		moveGridMonths,
 		getInitialActiveDate,
+		getViewEntryDate,
 		handleSelect,
 		onFooterActivate,
 		calendarHandle,
@@ -266,6 +276,30 @@ describe('useDatePickerKeyboard: header zone', () => {
 		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
 	})
 
+	it('enters the shown month on ArrowDown, not the value or today', () => {
+		const { handler, setActive, getInitialActiveDate } = setup({
+			active: { zone: 'header', index: 0 },
+		})
+
+		handler(makeKeyEvent<HTMLElement>('ArrowDown'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+		expect(getInitialActiveDate).not.toHaveBeenCalled()
+	})
+
+	it('keeps the highlight in the header on ArrowDown when the shown month has no entry day', () => {
+		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 }, entryDate: null })
+
+		const event = makeKeyEvent<HTMLElement>('ArrowDown')
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
+
 	it('swallows ArrowUp in the header zone', () => {
 		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
 
@@ -312,6 +346,30 @@ describe('useDatePickerKeyboard: footer zone', () => {
 		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
 
 		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
+	})
+
+	it('enters the shown month on ArrowUp, not the value or today', () => {
+		const { handler, setActive, getInitialActiveDate } = setup({
+			active: { zone: 'footer', index: 0 },
+		})
+
+		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+		expect(getInitialActiveDate).not.toHaveBeenCalled()
+	})
+
+	it('keeps the highlight in the footer on ArrowUp when the shown month has no entry day', () => {
+		const { handler, setActive } = setup({ active: { zone: 'footer', index: 0 }, entryDate: null })
+
+		const event = makeKeyEvent<HTMLElement>('ArrowUp')
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).not.toHaveBeenCalled()
 	})
 
 	it('activates the footer button on Enter', () => {
