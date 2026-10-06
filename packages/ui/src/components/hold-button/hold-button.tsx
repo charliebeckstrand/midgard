@@ -4,6 +4,7 @@ import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
@@ -157,6 +158,9 @@ export function HoldButton({
 			data-slot={slot}
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
 			onPointerDown={composeEventHandlers(onPointerDown, (event) => {
+				// A held touch selects no text on the page.
+				holdTextSelection(event)
+
 				if (event.button === 0) start()
 			})}
 			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}

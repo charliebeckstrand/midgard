@@ -1,4 +1,5 @@
 import { type PointerEvent, useEffect, useRef } from 'react'
+import { holdTextSelection } from '../../utilities/hold-text-selection'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
 export const TOUCH_CONTEXT_MENU_DELAY = 500
@@ -22,8 +23,9 @@ type Hold = { timer: ReturnType<typeof setTimeout>; x: number; y: number }
  * hold reaches {@link TOUCH_CONTEXT_MENU_DELAY}, it dispatches a `contextmenu` event at the point
  * of the touch, so each existing `onContextMenu` handler under the surface runs. A native
  * `contextmenu` event during the hold, as on Android, cancels the timer. When a handler takes the
- * event, the hook drops the click that ends the hold. A hold inside a `data-touch-readout`
- * element opens no menu. On a map the hold opens the readout, and on a chart it does nothing.
+ * event, the hook drops the click that ends the hold. While the touch holds, the page selects no
+ * text (see {@link holdTextSelection}). A hold inside a `data-touch-readout` element opens no
+ * menu. On a map the hold opens the readout, and on a chart it does nothing.
  *
  * @returns Handlers for the surface element.
  *
@@ -57,6 +59,9 @@ export function useMenuTouchHold() {
 			dropClickUntil.current = 0
 
 			if (event.pointerType !== 'touch' || !event.isPrimary) return
+
+			// Each hold on the surface, a chart or a map included, selects no text on the page.
+			holdTextSelection(event)
 
 			if (claimed.has(event.nativeEvent)) return
 
