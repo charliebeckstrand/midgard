@@ -53,14 +53,16 @@ describe('Menu scroll overflow (real browser)', () => {
 
 		const styles = getComputedStyle(viewport)
 
-		// The arbitrary-property utilities must have compiled: the mask gradient
-		// exists, the overflowing edge's fade extent is open, and the reached
-		// edge's stays collapsed.
+		// The edge-mask utilities must have compiled: the overflowing edge moves
+		// the start of the bottom fade, and the reached edge keeps the initial
+		// position of the registered property, so it does not fade.
 		expect(styles.maskImage).toContain('linear-gradient')
 
-		expect(styles.getPropertyValue('--menu-fade-below').trim()).toBe('1.5rem')
+		expect(styles.getPropertyValue('--tw-mask-bottom-from-position').trim()).toBe(
+			'calc(100% - 1.5rem)',
+		)
 
-		expect(styles.getPropertyValue('--menu-fade-above').trim()).toBe('')
+		expect(styles.getPropertyValue('--tw-mask-top-from-position').trim()).toBe('0%')
 	})
 
 	it('grows to its rows on the default menu, leaving no edge to stamp', async () => {
