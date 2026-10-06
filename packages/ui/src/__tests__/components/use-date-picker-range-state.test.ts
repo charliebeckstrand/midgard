@@ -432,6 +432,53 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
 		})
 
+		// B01-C06: the first arrow with no highlight enters the shown month.
+		it('enters the grid on the first arrow on the entry day of the Calendar', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(Mar5)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
+		})
+
+		// Q5: with no enabled day in the shown month, the arrow enters on the range start.
+		it('enters the grid on the first arrow on the range start when the Calendar gives no entry day', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(null)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+		})
+
+		// Q6: the steered Calendar ignores its footer keys, so the picker does not send them.
+		it('does not send a footer key to the Calendar', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			const calendar = entering(Mar5)
+
+			result.current.calendar.calendarRef.current = calendar
+
+			act(() => result.current.footer.onKeyDown(makeKeyEvent<HTMLDivElement>('ArrowLeft')))
+
+			expect(calendar.footerKeyDown).not.toHaveBeenCalled()
+		})
+
 		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
 			const { result } = renderHook(() =>
 				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),

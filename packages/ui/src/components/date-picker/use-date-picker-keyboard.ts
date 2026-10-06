@@ -30,10 +30,10 @@ type DatePickerKeyDownParams = {
 	moveGridMonths: (delta: number) => Date
 	getInitialActiveDate: () => Date
 	/**
-	 * The day where the highlight enters the grid from the header or the footer.
-	 * The calendar gives it from the month that it shows, which header paging can
-	 * move away from the value. It is `null` when that month holds no enabled
-	 * day, and then the key does nothing.
+	 * The day where an arrow key moves the highlight into the grid: from the
+	 * header, from the footer, or with no highlight. The calendar gives it from
+	 * the month that it shows, which header paging can move away from the value.
+	 * It is `null` when that month holds no enabled day.
 	 */
 	getViewEntryDate: () => Date | null
 	handleSelect: (date: Date) => void
@@ -69,13 +69,13 @@ type HeaderActive = Extract<CalendarActive, { zone: 'header' }>
 type FooterActive = Extract<CalendarActive, { zone: 'footer' }>
 
 /**
- * The two seeds of the grid highlight. `getInitialActiveDate` starts the
- * arrows on `anchor`, else on today, and `min` and `max` bound it.
- * `getViewEntryDate` starts the header and footer keys on the entry day of the
- * calendar (`CalendarHandle.getEntryDate`). That day is in the month that the
- * calendar shows, which header paging can move away from `anchor`. It is
- * `null` when that month holds no enabled day. With no calendar mounted, the
- * keys start where the arrows start.
+ * The two seeds of the grid highlight. `getViewEntryDate` starts the arrow keys
+ * on the entry day of the calendar (`CalendarHandle.getEntryDate`). That day is
+ * in the month that the calendar shows, which header paging can move away from
+ * `anchor`. It is `null` when that month holds no enabled day.
+ * `getInitialActiveDate` starts Enter, Space, and the Page keys with no
+ * highlight on `anchor`, else on today, and `min` and `max` bound it. With no
+ * calendar mounted, `getViewEntryDate` gives the same day.
  *
  * @param anchor - The selected day: the value, or the start of a range in progress.
  * @internal
@@ -182,13 +182,15 @@ function handleOpenGlobalKey(
 }
 
 /**
- * Handles keys with no highlight yet: the first arrow seeds the grid,
- * Enter/Space selects the initial date, everything else is inert.
+ * Handles keys with no highlight. The first arrow puts the highlight on the
+ * entry day of the shown month. When that month holds no enabled day, the
+ * highlight goes on the anchor, and the view moves to it. Enter and Space
+ * select the anchor. Other keys do nothing.
  *
- * In `input` mode "no highlight" means the user is editing text, not roving the
- * grid. Enter is therefore left to the DateInput (commit/blur), and Space is
- * inert. A lingering-open calendar is closed on the committing Enter, so it does
- * not hang behind the field. The arrow keys still seed the grid.
+ * In `input` mode, no highlight means that the user edits text. Enter thus
+ * goes to the DateInput, which commits the text, and Space does nothing. The
+ * committing Enter closes an open calendar, so that it does not stay behind
+ * the field. The arrow keys still put the highlight in the grid.
  *
  * @internal
  */
@@ -200,7 +202,7 @@ function handleNoActiveKey(
 	if (isArrowKey(event.key)) {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
+		ctx.setActive({ zone: 'grid', date: ctx.getViewEntryDate() ?? ctx.getInitialActiveDate() })
 
 		return
 	}
@@ -354,6 +356,39 @@ function handleFooterKey(
 	}
 }
 
+/** The toolbars of the calendar whose buttons map to a zone of the model. @internal */
+const TOOLBAR_SELECTOR = '[data-slot="calendar-header"], [data-slot="calendar-footer"]'
+
+/**
+ * The zone of a toolbar button that has DOM focus. The user can Tab to a
+ * header or footer button, and the dialog then gets the key from that button.
+ * The button then acts as its zone of the model, at its index among the
+ * buttons of its toolbar.
+ *
+ * @returns The zone, or `null` when the key comes from the element that holds
+ * the handler, or from an element outside the two toolbars.
+ * @internal
+ */
+function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null {
+	const { target, currentTarget } = event
+
+	if (!(target instanceof Element) || target === currentTarget) return null
+
+	const toolbar = target.closest<HTMLElement>(TOOLBAR_SELECTOR)
+
+	const button = target.closest('button')
+
+	if (!toolbar || !button || !toolbar.contains(button)) return null
+
+	const index = Array.from(toolbar.querySelectorAll('button')).indexOf(button)
+
+	if (index < 0) return null
+
+	if (toolbar.dataset.slot === 'calendar-footer') return { zone: 'footer', index }
+
+	return index <= 2 ? { zone: 'header', index: index as 0 | 1 | 2 } : null
+}
+
 /**
  * Builds the date picker's `keydown` handler, dispatching to the closed,
  * global, and per-zone (grid/header/footer) key handlers by current `open` and
@@ -403,7 +438,14 @@ export function useDatePickerKeyboard({
 
 			if (handleOpenGlobalKey(event, ctx)) return
 
-			if (active === null) {
+			// A toolbar button with DOM focus sets the zone of the model.
+			const mapped = zoneOfTarget(event)
+
+			if (mapped) setActive(mapped)
+
+			const current = mapped ?? active
+
+			if (current === null) {
 				handleNoActiveKey(event, ctx, input)
 
 				return
@@ -413,19 +455,19 @@ export function useDatePickerKeyboard({
 			// so the arrows swap in RTL.
 			const key = logicalArrowKey(event.key, event.currentTarget)
 
-			if (active.zone === 'grid') {
-				handleGridKey(event, key, active, ctx)
+			if (current.zone === 'grid') {
+				handleGridKey(event, key, current, ctx)
 
 				return
 			}
 
-			if (active.zone === 'header') {
-				handleHeaderKey(event, key, active, ctx)
+			if (current.zone === 'header') {
+				handleHeaderKey(event, key, current, ctx)
 
 				return
 			}
 
-			handleFooterKey(event, key, active, ctx)
+			handleFooterKey(event, key, current, ctx)
 		},
 		[
 			disabled,

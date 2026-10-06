@@ -53,6 +53,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 	return (
 		<CalendarToolbar
 			toolbarRef={headerRef}
+			slot="calendar-header"
 			onKeyDown={onHeaderKeyDown}
 			prevLabel="Previous month"
 			nextLabel="Next month"

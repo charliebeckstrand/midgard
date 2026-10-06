@@ -49,6 +49,12 @@ export type CalendarHandle = {
 	prevMonth: () => void
 	nextMonth: () => void
 	openPicker: () => void
+	/**
+	 * Runs the footer key handler of the calendar: the arrow keys move focus
+	 * between the footer buttons and into the day grid. It does nothing while
+	 * the parent steers the calendar (`active` is set), because the parent then
+	 * owns the footer keys.
+	 */
 	footerKeyDown: (event: KeyboardEvent) => void
 	/**
 	 * The day where the focus enters the day grid of the shown month, as local

@@ -856,6 +856,27 @@ describe('DatePicker keyboard', () => {
 
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 	})
+
+	// B01-C06: the first arrow enters the month that the calendar shows.
+	it('enters the shown month on the first arrow after the month buttons move the view', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+
+		button.focus()
+
+		await user.keyboard('{ArrowDown}') // open on June 2025
+
+		await user.click(screen.getByRole('button', { name: 'Next month' })) // show July
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
+
+		expect(findDay(1)).toHaveClass('outline-2')
+	})
 })
 
 describe('DatePicker range', () => {
@@ -1318,6 +1339,77 @@ describe('DatePicker input', () => {
 		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
 
 		await user.keyboard('{Escape}')
+
+		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
+
+		expect(input).toHaveFocus()
+	})
+
+	// B01-C09, Q2: a Tab-focused header button acts as the header zone of the model.
+	it('enters the shown month on ArrowDown from a focused header button and returns focus to the input', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		await user.click(screen.getByRole('button', { name: 'Next month' })) // show July
+
+		const next = screen.getByRole('button', { name: 'Next month' })
+
+		act(() => next.focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveFocus()
+
+		expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
+
+		expect(document.getElementById(input.getAttribute('aria-activedescendant') as string)).toBe(
+			findDay(1),
+		)
+	})
+
+	// B01-C09, Q2: Left and Right wrap between Today and Clear from a Tab-focused footer button.
+	it('wraps the footer highlight on ArrowRight from a focused footer button', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		input.focus()
+
+		await user.keyboard('{Shift>}{Tab}{/Shift}')
+
+		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(input).toHaveFocus()
+
+		expect(footerClear()).toHaveClass('outline-2')
+
+		expect(screen.getByRole('button', { name: 'Today' })).not.toHaveClass('outline-2')
+	})
+
+	// Q7: the close from the calendar button gives focus to the input.
+	it('leaves focus on the input when a click on the calendar button closes the calendar', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Close calendar' }))
 
 		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
 

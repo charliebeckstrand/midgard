@@ -18,6 +18,11 @@ type CalendarToolbarProps = {
 	nextClassName?: string
 	/** The center control between the two chevron buttons. */
 	children: ReactNode
+	/**
+	 * The `data-slot` of the row. The calendar header gives `calendar-header`, so
+	 * that a date picker can map a focused button to its header zone.
+	 */
+	slot?: string
 }
 
 /**
@@ -37,10 +42,11 @@ export function CalendarToolbar({
 	prevClassName,
 	nextClassName,
 	children,
+	slot,
 }: CalendarToolbarProps) {
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a keydown delegation surface for the buttons in the row, not an interactive control. Each button is a Tab stop.
-		<div ref={toolbarRef} onKeyDown={onKeyDown} className={cn(k.header)}>
+		<div ref={toolbarRef} data-slot={slot} onKeyDown={onKeyDown} className={cn(k.header)}>
 			<Button
 				type="button"
 				variant="plain"

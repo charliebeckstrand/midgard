@@ -312,8 +312,9 @@ export function useDatePickerState({
 			onClear: handleClear,
 			onToday: handleSelectToday,
 			footerRef,
-			onKeyDown: (event: KeyboardEvent<HTMLDivElement>) =>
-				calendarRef.current?.footerKeyDown(event),
+			// The dialog routes the footer keys to the model, and the steered
+			// Calendar ignores them.
+			onKeyDown: (_event: KeyboardEvent<HTMLDivElement>) => {},
 		},
 	}
 }

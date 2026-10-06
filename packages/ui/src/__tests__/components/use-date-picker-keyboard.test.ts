@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import type { RefObject } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { CalendarActive, CalendarHandle } from '../../components/calendar'
 import {
 	type FooterButton,
@@ -160,16 +160,31 @@ describe('useDatePickerKeyboard: open with null active', () => {
 		expect(setActive).not.toHaveBeenCalled()
 	})
 
-	it('materializes on grid when any arrow is pressed from null active', () => {
-		const { handler, setActive, getInitialActiveDate } = setup({ active: null })
+	// B01-C06: the first arrow enters the month that the calendar shows, not the value's month.
+	it.each(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'])(
+		'enters the shown month on %s from null active',
+		(key) => {
+			const { handler, setActive, getInitialActiveDate } = setup({ active: null })
+
+			const event = makeKeyEvent<HTMLElement>(key)
+
+			handler(event)
+
+			expect(event.preventDefault).toHaveBeenCalled()
+
+			expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+			expect(getInitialActiveDate).not.toHaveBeenCalled()
+		},
+	)
+
+	// Q5: with no enabled day in the shown month, the arrow enters on the anchor.
+	it('enters on the anchor from null active when the shown month has no entry day', () => {
+		const { handler, setActive } = setup({ active: null, entryDate: null })
 
 		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
 
-		expect(getInitialActiveDate).toHaveBeenCalled()
-
-		expect(setActive).toHaveBeenCalledWith(
-			expect.objectContaining({ zone: 'grid', date: expect.any(Date) }),
-		)
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 15) })
 	})
 
 	it.each([
@@ -180,7 +195,7 @@ describe('useDatePickerKeyboard: open with null active', () => {
 
 		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(handleSelect).toHaveBeenCalled()
+		expect(handleSelect).toHaveBeenCalledWith(new Date(2026, 0, 15))
 	})
 })
 
@@ -458,5 +473,130 @@ describe('useDatePickerKeyboard: null active edge cases', () => {
 		handler(makeKeyEvent<HTMLElement>('a'))
 
 		expect(setActive).not.toHaveBeenCalled()
+	})
+})
+
+// A dialog with the header and the footer toolbars of the picker. Each button is a Tab stop.
+function renderToolbars() {
+	const dialog = document.createElement('div')
+
+	const toolbar = (slot: string, count: number) => {
+		const row = document.createElement('div')
+
+		row.dataset.slot = slot
+
+		for (let index = 0; index < count; index++) {
+			row.append(document.createElement('button'))
+		}
+
+		dialog.append(row)
+
+		return Array.from(row.querySelectorAll('button'))
+	}
+
+	const header = toolbar('calendar-header', 3)
+
+	const footer = toolbar('calendar-footer', 2)
+
+	const grid = document.createElement('button')
+
+	dialog.append(grid)
+
+	document.body.append(dialog)
+
+	onTestFinished(() => dialog.remove())
+
+	return { dialog, header, footer, grid }
+}
+
+// B01-C09, Q2: a header or footer button that has DOM focus acts as its zone of the model.
+describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
+	const keyFrom = (key: string, target: Element, dialog: Element) =>
+		makeKeyEvent<HTMLElement>(key, {
+			target,
+			currentTarget: dialog as HTMLElement,
+		})
+
+	it('enters the shown month on ArrowDown from a focused header button', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive, moveGridDate } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('ArrowDown', header[2] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+		expect(moveGridDate).not.toHaveBeenCalled()
+	})
+
+	it('moves the header highlight on ArrowRight from a focused header button', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'header', index: 2 })
+	})
+
+	it.each<[string, number, string, number]>([
+		['wraps from Clear to Today on ArrowLeft', 0, 'ArrowLeft', 1],
+		['wraps from Today to Clear on ArrowRight', 1, 'ArrowRight', 0],
+	])('%s from a focused footer button', (_name, index, key, expected) => {
+		const { dialog, footer } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		const event = keyFrom(key, footer[index] as Element, dialog)
+
+		handler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index })
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'footer', index: expected })
+	})
+
+	it('enters the shown month on ArrowUp from a focused footer button', () => {
+		const { dialog, footer } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		handler(keyFrom('ArrowUp', footer[1] as Element, dialog))
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+	})
+
+	it('keeps the model zone for a key on the dialog itself', () => {
+		const { dialog } = renderToolbars()
+
+		const { handler, setActive, moveGridDate } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('ArrowDown', dialog, dialog))
+
+		expect(moveGridDate).toHaveBeenCalledWith(7)
+
+		expect(setActive).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps the model zone for a key from a focused control outside the toolbars', () => {
+		const { dialog, grid } = renderToolbars()
+
+		const { handler, setActive, moveGridDate } = setup({
+			active: { zone: 'grid', date: new Date(2026, 0, 15) },
+		})
+
+		handler(keyFrom('ArrowDown', grid, dialog))
+
+		expect(moveGridDate).toHaveBeenCalledWith(7)
+
+		expect(setActive).toHaveBeenCalledTimes(1)
 	})
 })
