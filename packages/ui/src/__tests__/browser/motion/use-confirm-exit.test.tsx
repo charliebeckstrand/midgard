@@ -48,15 +48,34 @@ describe('useConfirm exit', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-		await screen.findByRole('alertdialog')
+		const dialog = await screen.findByRole('alertdialog')
+
+		// Each state of the dialog from the close to its removal. A timed read
+		// can land after the exit ends on a slow runner, so the test records
+		// every change instead.
+		const seen: string[] = []
+
+		const observer = new MutationObserver(() => {
+			if (dialog.isConnected) seen.push(dialog.textContent ?? '')
+		})
+
+		observer.observe(document.body, {
+			subtree: true,
+			childList: true,
+			characterData: true,
+			attributes: true,
+		})
 
 		await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
-		// The answer comes before the exit ends, and the title is still there.
-		await waitFor(() => expect(screen.getByText('Kept')).toBeInTheDocument())
+		await waitFor(() => expect(dialog.isConnected).toBe(false))
 
-		expect(screen.getByText('Line still pending')).toBeInTheDocument()
+		observer.disconnect()
 
-		await waitFor(() => expect(screen.queryByText('Line still pending')).toBeNull())
+		expect(screen.getByText('Kept')).toBeInTheDocument()
+
+		expect(seen.length).toBeGreaterThan(0)
+
+		expect(seen.filter((text) => !text.includes('Line still pending'))).toEqual([])
 	})
 })

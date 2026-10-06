@@ -38,8 +38,8 @@ export type ConfirmFunction = (options: ConfirmOptions) => Promise<boolean>
 /** The callbacks of the promise of the open question. @internal */
 type Settle = { resolve: (confirmed: boolean) => void; reject: (error: unknown) => void }
 
-/** The question that the host shows, and the state of its dialog. @internal */
-type Question = { options: ConfirmOptions; open: boolean; pending: boolean }
+/** The question that the host shows, and whether its `action` runs. @internal */
+type Question = { options: ConfirmOptions; pending: boolean }
 
 /** @internal */
 const [ConfirmContext, useConfirmContext] = createContext<ConfirmFunction>('ConfirmHost', {
@@ -51,10 +51,11 @@ const [ConfirmContext, useConfirmContext] = createContext<ConfirmFunction>('Conf
  * {@link Confirm} dialog that their questions show in. `UIProvider` mounts it.
  *
  * @remarks
- * The dialog keeps the words of a question while it closes, so the text does
- * not change during the exit animation. The function in the context keeps its
- * identity, so a question does not render the children again. When the host
- * unmounts, an open question resolves `false`.
+ * The dialog is open while a question is set. When it closes, the overlay
+ * keeps its last open render for the exit animation, so the words do not
+ * change. The function in the context keeps its identity, so a question does
+ * not render the children again. When the host unmounts, an open question
+ * resolves `false`.
  * @internal
  */
 export function ConfirmHost({ children }: { children: ReactNode }) {
@@ -69,7 +70,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 		settleRef.current = null
 
-		setQuestion((held) => held && { ...held, open: false, pending: false })
+		setQuestion(null)
 
 		return current
 	}, [])
@@ -81,7 +82,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 
 				settleRef.current = { resolve, reject }
 
-				setQuestion({ options, open: true, pending: false })
+				setQuestion({ options, pending: false })
 			}),
 		[],
 	)
@@ -134,7 +135,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 		<ConfirmContext value={ask}>
 			{children}
 			<Confirm
-				open={question?.open ?? false}
+				open={question !== null}
 				onOpenChange={onOpenChange}
 				onConfirm={onConfirm}
 				title={options?.title}
