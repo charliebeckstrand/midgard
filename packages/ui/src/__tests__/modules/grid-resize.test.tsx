@@ -253,7 +253,7 @@ describe('Grid resizable columns', () => {
 
 		const handle = screen.getByRole('separator', { name: 'Resize Name' })
 
-		fireEvent.pointerDown(handle, { pointerId: 1, button: 0, clientX: 200 })
+		fireEvent.pointerDown(handle, { pointerId: 1, isPrimary: true, button: 0, clientX: 200 })
 
 		expect(handle.hasPointerCapture(1)).toBe(true)
 	})
@@ -261,12 +261,16 @@ describe('Grid resizable columns', () => {
 	it.each([
 		['a right-button press', { button: 2 }],
 		['a macOS Ctrl+click', { button: 0, ctrlKey: true }],
+		[
+			'a second touch (not the primary pointer)',
+			{ pointerType: 'touch', isPrimary: false, button: 0 },
+		],
 	])('does not capture the pointer on %s', (_, init) => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		const handle = screen.getByRole('separator', { name: 'Resize Name' })
 
-		fireEvent.pointerDown(handle, { pointerId: 1, clientX: 200, ...init })
+		fireEvent.pointerDown(handle, { pointerId: 1, isPrimary: true, clientX: 200, ...init })
 
 		expect(handle.hasPointerCapture(1)).toBe(false)
 	})

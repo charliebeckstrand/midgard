@@ -7,6 +7,7 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useTimeout } from '../../hooks/use-timeout'
 import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/grid'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { describeResize } from './engine/grid-announcements'
 import {
 	COLUMN_RESIZE_PAGE_STEP,
@@ -149,7 +150,10 @@ export function GridColumnResizeHandle({
 
 				// The same press gate as `onMouseDown`, which the browser fires after
 				// this event. Only a press that starts a drag-resize takes the capture.
-				if (event.button !== 0 || event.ctrlKey) return
+				// The browser sends the mouse events only for the primary pointer, so
+				// this gate also refuses a pointer that is not the primary pointer, for
+				// example a second finger.
+				if (!isPrimaryPress(event)) return
 
 				// Capture holds the handle as the pointer target for the whole drag, so
 				// the cells under the pointer show no hover. The engine's document-level
