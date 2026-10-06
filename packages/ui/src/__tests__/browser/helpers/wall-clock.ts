@@ -7,9 +7,10 @@ import { inject } from 'vitest'
  * passes, never whether it passes. RTL's suite-wide budget obeys it through
  * `asyncUtilTimeout`; a per-call override written as a literal obeys nothing.
  * Use this for a case that needs longer than the suite budget — a real network
- * double, or rows behind a real timer. The result stays well under
- * `testTimeout`, so an exhausted wait still fails as an RTL timeout carrying
- * the callback's last error.
+ * double, or rows behind a real timer. Keep the result under the timeout of
+ * the case, so an exhausted wait still fails as an RTL timeout carrying the
+ * callback's last error. The suite `testTimeout` is 15s and does not scale. A
+ * case whose budget can pass it sets its own timeout, also through `budget`.
  *
  * @param ms - The budget a dev machine needs.
  * @returns The budget this machine needs.
