@@ -76,6 +76,9 @@ describe('docs page error boundary', () => {
 			{ initialEntries: ['/broken'] },
 		)
 
+		// The router adds a window "pagehide" listener. Dispose of it after the case.
+		onTestFinished(() => router.dispose())
+
 		render(
 			<AppearanceProvider>
 				<RouterProvider router={router} />
