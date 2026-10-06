@@ -3,12 +3,15 @@
 import { motion } from 'motion/react'
 import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { dataAttr } from '../../core'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
 import { MountHold, useMountHold } from '../mount'
 import {
+	type CurrentDirection,
 	CurrentPanelActiveContext,
 	useCurrent,
-	useCurrentFade,
+	useCurrentAnimation,
+	useCurrentDirection,
 	useCurrentMount,
 	useCurrentPanelActive,
 	useCurrentSettled,
@@ -41,7 +44,7 @@ export type CurrentContentProps = Omit<
 /**
  * Exit hold for a panel whose mount policy would unmount it the instant it
  * stops being current. It latches when `current` flips off while `hold` applies,
- * keeping the outgoing panel mounted so its fade-out can play. `release` clears
+ * keeping the outgoing panel mounted so its exit can play. `release` clears
  * the latch once that animation completes. The previous-value comparison runs
  * in render (React's adjust-state-during-render form) so the hold takes effect
  * in the same pass that would otherwise have unmounted the panel.
@@ -68,30 +71,30 @@ function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
 }
 
 /**
- * Entrance latch for a fading panel. An entering panel holds its fade until its
- * first frame has painted. Motion takes the start time of a fade from the task
- * that creates it. A fade created in the commit of the switch thus counts the
- * render of the panel as fade time. The first frame then shows the fade
- * partway, and on iOS Safari the composited fade fell out of step with Motion
- * and showed a second transition.
+ * Entrance latch for an animating panel. An entering panel holds its entrance until its
+ * first frame has painted. Motion takes the start time of an animation from the
+ * task that creates it. An animation created in the commit of the switch thus
+ * counts the render of the panel as animation time. The first frame then shows
+ * the entrance partway. On iOS Safari a composited fade also fell out of step with
+ * Motion and showed a second transition.
  *
  * The flip of `current` is read in render (React's adjust-state-during-render
- * form). A panel that stops being current before its fade starts calls
+ * form). A panel that stops being current before its entrance starts calls
  * `release` in that pass.
  *
  * @param current - Whether the panel is current.
  * @param initiallyReady - Whether the panel starts ready. A panel in the first
- * render of the container starts ready, so nothing fades on load.
- * @param release - Releases a panel that stops being current before its fade
+ * render of the container starts ready, so nothing moves on load.
+ * @param release - Releases a panel that stops being current before its entrance
  * starts.
- * @returns Whether the fade of the panel can start.
+ * @returns Whether the entrance of the panel can start.
  */
 function useEntranceLatch(current: boolean, initiallyReady: boolean, release: () => void): boolean {
 	const [ready, setReady] = useState(initiallyReady)
 
 	const [wasCurrent, setWasCurrent] = useState(current)
 
-	// Whether the last render showed the panel, which is the target of its fade.
+	// Whether the last render showed the panel, which is the target of its entrance.
 	const [wasShown, setWasShown] = useState(current && initiallyReady)
 
 	if (wasCurrent !== current) {
@@ -101,8 +104,8 @@ function useEntranceLatch(current: boolean, initiallyReady: boolean, release: ()
 		else {
 			if (!ready) setReady(true)
 
-			// The ready flip and the switch away can land in one render. Then the fade
-			// target stays at 0, no fade-out runs, and no landing releases the panel.
+			// The ready flip and the switch away can land in one render. Then the
+			// target stays transparent, no exit runs, and no landing releases the panel.
 			if (!wasShown) release()
 		}
 	}
@@ -137,22 +140,76 @@ function matchesCurrent(
 }
 
 /**
+ * The Motion props of an animating panel: its target, its start, and its
+ * transition.
+ *
+ * - `fade`: the outgoing panel fades out. The incoming panel fades in after its
+ *   first frame has painted, as the outgoing panel nears transparent.
+ * - `slide`: the incoming panel waits beside the box until its first frame has
+ *   painted, then slides in. The outgoing panel slides out to the other side.
+ *
+ * A panel mounting after the container settles (`entering`) starts transparent,
+ * at its waiting place. Panels in the first render of the container skip the
+ * entrance, so nothing moves on load.
+ */
+function panelMotion(
+	animation: 'fade' | 'slide',
+	state: {
+		current: boolean
+		ready: boolean
+		entering: boolean
+		direction: CurrentDirection
+		reducedMotion: boolean
+	},
+) {
+	const { current, ready, entering, direction, reducedMotion } = state
+
+	if (animation === 'fade') {
+		return {
+			animate: { opacity: current && ready ? 1 : 0 },
+			initial: entering ? { opacity: 0 } : false,
+			transition: current ? k.fade.enter : k.fade.exit,
+		} as const
+	}
+
+	const { slide } = k
+
+	// The move to the waiting place is not shown, so it is instant. The slide
+	// moves `transform`, which `MotionConfig` does not hold still, so reduced
+	// motion takes the still copy (WCAG 2.3.3).
+	const motion = reducedMotion ? slide.still : slide.transition
+
+	if (!current)
+		return { animate: slide.away(-direction), initial: false, transition: motion } as const
+
+	return {
+		animate: ready ? slide.shown : slide.away(direction),
+		initial: entering ? slide.away(direction) : false,
+		transition: ready ? motion : k.instant,
+	} as const
+}
+
+/**
  * Per-panel wrapper that renders when its `value` matches the surrounding
- * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy. A
- * fading container animates opacity in place. A non-fading one holds inactive
- * panels via `<Activity mode="hidden">` (state preserved, effects paused),
- * lazily mounts them on first activation, or unmounts them. The resolved
- * `mount` decides.
+ * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy and
+ * the animation. An animating container fades or slides the panels. A still one
+ * holds inactive panels via `<Activity mode="hidden">` (state preserved, effects
+ * paused), lazily mounts them on first activation, or unmounts them. The
+ * resolved `mount` decides.
  *
- * Under a fading container the outgoing panel goes at once, and the incoming
- * panel fades in from the first frame. The lifecycle edges ride that switch:
+ * Under `fade` the outgoing panel fades out, and the incoming panel fades in as
+ * the outgoing panel nears transparent. Under `slide` the two panels slide side
+ * by side, in the direction that `CurrentContents` reads from their document
+ * order, and each panel fades across its slide. The lifecycle edges ride that
+ * switch:
  *
- * - a panel mounting after the container settles enters from transparent, and
- *   its fade starts on the frame after its first paint
- * - an `active`-mounted outgoing panel holds its unmount until the fade-out
+ * - a panel mounting after the container settles enters from its transparent
+ *   start, and its entrance starts on the frame after its first paint
+ * - an `active`-mounted outgoing panel holds its unmount until its exit
  *   completes
  * - a held (`always`/`lazy`) panel rests in `<Activity mode="hidden">` between
- *   switches, live only while a fade is in flight or it is the current panel
+ *   switches, live only while an animation is in flight or it is the current
+ *   panel
  */
 export function CurrentContent({
 	slotPrefix,
@@ -170,43 +227,49 @@ export function CurrentContent({
 
 	const context = useCurrent()
 
-	const fade = useCurrentFade()
+	const animation = useCurrentAnimation()
 
 	const mount = useCurrentMount()
 
 	const settled = useCurrentSettled()
+
+	const direction = useCurrentDirection()
+
+	const reducedMotion = usePrefersReducedMotion()
 
 	const inheritedActive = useCurrentPanelActive()
 
 	const current = matchesCurrent(value, context?.value)
 
 	// Fold across nesting: a panel is active only when it matches and every
-	// ancestor panel does too, so a fade-mode panel kept mounted inside a hidden
-	// one still reads as inactive.
+	// ancestor panel does too, so a panel that an animating container keeps
+	// mounted inside a hidden one still reads as inactive.
 	const active = inheritedActive && current
 
 	// Presence, the lazy latch, and the Activity hold — shared with the
-	// disclosure and stepper panels. A fading container defers the hide to the
-	// rest latch, since `display: none` can't fade; a non-fading one hides
+	// disclosure and stepper panels. An animating container defers the hide to
+	// the rest latch, since `display: none` can't animate; a still one hides
 	// on the switch itself.
-	const hold = useMountHold(current, mount, { defer: fade })
+	const hold = useMountHold(current, mount, { defer: animation !== false })
 
-	// Under a fading container, an `active`-mounted outgoing panel defers its
-	// unmount until the fade-out completes, so the outgoing panel fades instead
-	// of snapping away. Held panels take the rest latch instead;
+	// Under an animating container, an `active`-mounted outgoing panel defers
+	// its unmount until its exit completes, so the outgoing panel animates
+	// instead of snapping away. Held panels take the rest latch instead;
 	// exactly one of the two applies per mount policy.
-	const [exiting, releaseExit] = useExitHold(current, fade && mount === 'active')
+	const [exiting, releaseExit] = useExitHold(current, animation !== false && mount === 'active')
 
-	// A panel that stops being current before its fade starts is still
-	// transparent, so no fade-out lands to release it. The latch releases it.
-	const ready = useEntranceLatch(current, !settled?.current, () => {
+	// A panel that stops being current before its entrance starts is still
+	// transparent, so no exit lands to release it. The latch releases it.
+	const entering = Boolean(settled?.current)
+
+	const ready = useEntranceLatch(current, !entering, () => {
 		if (hold.held) hold.rest()
 		else releaseExit()
 	})
 
 	if (!hold.present && !exiting) return null
 
-	if (!fade) {
+	if (animation === false) {
 		// `MountHold` wraps only when the policy holds inactive panels: `active` gets
 		// the bare div, `always`/`lazy` get it inside an Activity that preserves
 		// state while hidden but tears down effects and defers re-rendering.
@@ -225,16 +288,9 @@ export function CurrentContent({
 			{...props}
 			data-slot={slot}
 			data-current={dataAttr(current)}
-			animate={{ opacity: current && ready ? 1 : 0 }}
-			// A panel mounting after the container settles enters from
-			// transparent; panels in the container's first render skip the
-			// entrance so nothing fades on load.
-			initial={settled?.current ? { opacity: 0 } : false}
-			// The outgoing panel goes at once, so the two panels never show at
-			// the same time, and the box never shows empty.
-			transition={current ? k.enter : k.exit}
+			{...panelMotion(animation, { current, ready, entering, direction, reducedMotion })}
 			// Entrance completions arrive while still current and pass through; a
-			// landed fade-out releases the exit hold (`active`, unmounting) or
+			// landed exit releases the exit hold (`active`, unmounting) or
 			// rests the held panel (`always`/`lazy`, into a hidden Activity).
 			onAnimationComplete={() => {
 				if (current) return
@@ -245,7 +301,7 @@ export function CurrentContent({
 				else releaseExit()
 			}}
 			// Caller style is preserved under the positioning keys, matching the
-			// non-fade branch; the positioning wins on collision.
+			// still branch; the positioning wins on collision.
 			style={
 				current
 					? { ...style, position: 'relative' }

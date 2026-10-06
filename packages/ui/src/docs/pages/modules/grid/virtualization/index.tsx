@@ -12,7 +12,7 @@ export default function VirtualizationTab() {
 				<Tab value="client">Client</Tab>
 				<Tab value="server">Server</Tab>
 			</TabList>
-			<TabContents fade={false}>
+			<TabContents animate={false}>
 				<TabContent value="client" className="space-y-10">
 					<Example of={ClientInfiniteScroll} />
 					<Example of={GroupedWindow} />

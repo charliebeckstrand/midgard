@@ -33,14 +33,16 @@ export type TabContentProps = Omit<
  *
  * @remarks
  * `mount` defaults to `"active"`: only the active panel is mounted, so
- * switching unmounts the outgoing panel and resets its state. Under `fade` the
- * unmount waits for the panel's exit. The outgoing panel goes at once, and the
- * incoming panel fades in. `fade` (default `true`) animates the container
- * height across the swap either way.
+ * switching unmounts the outgoing panel and resets its state. Under an
+ * animation the unmount waits for the panel's exit. `animate` sets the switch:
+ * `'fade'` (the default) fades the outgoing panel out and the incoming panel
+ * in, `'slide'` slides the two panels side by side toward the side of the
+ * incoming tab, and `false` swaps them at once. Both animations also animate
+ * the container height across the swap.
  * Set `mount` to hold inactive panels: `mount="lazy"` defers never-visited
  * panels, and `mount="always"` keeps them all mounted. Held panels rest in
- * `<Activity mode="hidden">` (state preserved, effects paused); under `fade`
- * they wake for the opacity fade and rest again once it lands.
+ * `<Activity mode="hidden">` (state preserved, effects paused); under an
+ * animation they wake for it and rest again once it lands.
  *
  * A held panel still renders, so holding warms render-phase work — a `lazy()`
  * chunk, a `use()`d promise. It mounts no effects, so it does not warm

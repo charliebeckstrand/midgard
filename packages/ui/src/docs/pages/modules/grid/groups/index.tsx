@@ -18,7 +18,7 @@ export default function GroupsTab() {
 				<Tab value="column">Column</Tab>
 				<Tab value="row">Row</Tab>
 			</TabList>
-			<TabContents fade={false}>
+			<TabContents animate={false}>
 				<TabContent value="column" className="space-y-10">
 					<Example of={ColumnGroups} />
 					<Example of={CollapsibleGroups} />

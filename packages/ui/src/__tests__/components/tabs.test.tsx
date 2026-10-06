@@ -628,14 +628,17 @@ describe('TabContent (idiomatic)', () => {
 })
 
 describe('TabContents mount policy', () => {
-	function renderTabs(props: { fade?: boolean; mount?: 'always' | 'lazy' | 'active' }) {
+	function renderTabs(props: {
+		animate?: 'fade' | 'slide' | false
+		mount?: 'always' | 'lazy' | 'active'
+	}) {
 		return renderUI(
 			<Tabs defaultValue="a">
 				<TabList aria-label="Sections">
 					<Tab value="a">A</Tab>
 					<Tab value="b">B</Tab>
 				</TabList>
-				<TabContents fade={props.fade} mount={props.mount}>
+				<TabContents animate={props.animate} mount={props.mount}>
 					<TabContent value="a">Panel A</TabContent>
 					<TabContent value="b">Panel B</TabContent>
 				</TabContents>
@@ -655,8 +658,8 @@ describe('TabContents mount policy', () => {
 		expect(inactive).not.toHaveAttribute('aria-controls')
 	})
 
-	it('mount="always" with fade=false keeps inactive panels mounted (hidden) and their tab aria-controls', () => {
-		const { container } = renderTabs({ mount: 'always', fade: false })
+	it('mount="always" with animate=false keeps inactive panels mounted (hidden) and their tab aria-controls', () => {
+		const { container } = renderTabs({ mount: 'always', animate: false })
 
 		// Held via <Activity mode="hidden">: in the DOM, but not visible.
 		const panelB = screen.getByText('Panel B')
