@@ -1,5 +1,5 @@
 import type { BundledLanguage, BundledTheme } from 'shiki'
-import type { ShikiReply, ShikiRequest } from './code-shiki-highlighter'
+import type { ShikiHighlight, ShikiReply, ShikiRequest } from './code-shiki-highlighter'
 import { openShikiWorker } from './code-shiki-port'
 
 // The main-thread side of the Shiki worker. Its one runtime import is the
@@ -13,7 +13,10 @@ export const DEFAULT_LANG = 'tsx' satisfies BundledLanguage
 /** The theme of a `CodeBlock` that gives no `theme`. */
 export const DEFAULT_THEME = 'github-dark-default' satisfies BundledTheme
 
-type Pending = { resolve: (html: string | undefined) => void; reject: (reason: unknown) => void }
+type Pending = {
+	resolve: (highlight: ShikiHighlight | undefined) => void
+	reject: (reason: unknown) => void
+}
 
 // The longest time that one request waits for its reply, in milliseconds. The
 // worker sets no time limit on a tokenization, so a rule that backtracks can
@@ -58,7 +61,7 @@ function getWorker(): Worker {
 		pending.delete(data.id)
 
 		if ('error' in data) request.reject(new Error(data.error))
-		else request.resolve(data.html)
+		else request.resolve(data.highlight)
 	}
 
 	// A worker chunk that does not load, such as after a deploy, gives an error
@@ -76,11 +79,11 @@ function getWorker(): Worker {
 }
 
 /**
- * Sends one request to the worker, and resolves with the markup of the reply.
+ * Sends one request to the worker, and resolves with the highlight of the reply.
  * When no reply comes in {@link REPLY_TIMEOUT} ms, each request in flight
  * fails, and the next request starts a new worker.
  */
-function send(request: Omit<ShikiRequest, 'id'>): Promise<string | undefined> {
+function send(request: Omit<ShikiRequest, 'id'>): Promise<ShikiHighlight | undefined> {
 	return new Promise((resolve, reject) => {
 		const target = getWorker()
 
@@ -93,10 +96,10 @@ function send(request: Omit<ShikiRequest, 'id'>): Promise<string | undefined> {
 
 		// A reply or a failure stops the timer, so a settled request keeps no timer.
 		pending.set(id, {
-			resolve: (html) => {
+			resolve: (highlight) => {
 				clearTimeout(timer)
 
-				resolve(html)
+				resolve(highlight)
 			},
 			reject: (reason) => {
 				clearTimeout(timer)
@@ -113,15 +116,19 @@ function send(request: Omit<ShikiRequest, 'id'>): Promise<string | undefined> {
  * Highlights `code` in the Shiki worker.
  *
  * @returns The markup, the output of Shiki's `codeToHtml` with the options of
- *   `highlightShiki`.
+ *   `highlightShiki`, and the background color and the type of the theme.
  * @internal
  */
-export async function highlightCode(code: string, lang: string, theme: string): Promise<string> {
-	const html = await send({ code, lang, theme })
+export async function highlightCode(
+	code: string,
+	lang: string,
+	theme: string,
+): Promise<ShikiHighlight> {
+	const highlight = await send({ code, lang, theme })
 
-	if (html === undefined) throw new Error('ui: the Shiki worker sent no markup')
+	if (highlight === undefined) throw new Error('ui: the Shiki worker sent no markup')
 
-	return html
+	return highlight
 }
 
 /**
