@@ -28,6 +28,9 @@ function setup(overrides: Setup = {}) {
 
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
 
+	// The day where the highlight enters the shown month, which header paging moved to March.
+	const getViewEntryDate = vi.fn(() => new Date(2026, 2, 1))
+
 	const handleSelect = vi.fn()
 
 	const onFooterActivate = vi.fn()
@@ -37,6 +40,7 @@ function setup(overrides: Setup = {}) {
 		nextMonth: vi.fn(),
 		openPicker: vi.fn(),
 		footerKeyDown: vi.fn(),
+		getViewMonth: vi.fn(() => new Date(2026, 2, 1)),
 	}
 
 	const calendarRef = { current: calendarHandle } as RefObject<CalendarHandle | null>
@@ -52,6 +56,7 @@ function setup(overrides: Setup = {}) {
 			moveGridDate,
 			moveGridMonths,
 			getInitialActiveDate,
+			getViewEntryDate,
 			handleSelect,
 			calendarRef,
 			footerButtons: overrides.footerButtons ?? ['clear', 'today'],
@@ -67,6 +72,7 @@ function setup(overrides: Setup = {}) {
 		moveGridDate,
 		moveGridMonths,
 		getInitialActiveDate,
+		getViewEntryDate,
 		handleSelect,
 		onFooterActivate,
 		calendarHandle,
@@ -266,6 +272,18 @@ describe('useDatePickerKeyboard: header zone', () => {
 		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
 	})
 
+	it('enters the shown month on ArrowDown, not the value or today', () => {
+		const { handler, setActive, getInitialActiveDate } = setup({
+			active: { zone: 'header', index: 0 },
+		})
+
+		handler(makeKeyEvent<HTMLElement>('ArrowDown'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+		expect(getInitialActiveDate).not.toHaveBeenCalled()
+	})
+
 	it('swallows ArrowUp in the header zone', () => {
 		const { handler, setActive } = setup({ active: { zone: 'header', index: 0 } })
 
@@ -312,6 +330,18 @@ describe('useDatePickerKeyboard: footer zone', () => {
 		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
 
 		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
+	})
+
+	it('enters the shown month on ArrowUp, not the value or today', () => {
+		const { handler, setActive, getInitialActiveDate } = setup({
+			active: { zone: 'footer', index: 0 },
+		})
+
+		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
+
+		expect(getInitialActiveDate).not.toHaveBeenCalled()
 	})
 
 	it('activates the footer button on Enter', () => {

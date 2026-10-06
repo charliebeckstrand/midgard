@@ -2,6 +2,7 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
+import { clampDate, startOfMonth } from './date-picker-utilities'
 
 /** A footer action button in the date picker. */
 export type FooterButton = 'clear' | 'today'
@@ -28,6 +29,12 @@ type DatePickerKeyDownParams = {
 	moveGridDate: (delta: number) => Date
 	moveGridMonths: (delta: number) => Date
 	getInitialActiveDate: () => Date
+	/**
+	 * The day where the highlight enters the grid from the header or the footer.
+	 * It is in the month that the calendar shows, which header paging can move
+	 * away from the value. {@link viewEntryDate} picks it.
+	 */
+	getViewEntryDate: () => Date
 	handleSelect: (date: Date) => void
 	calendarRef: RefObject<CalendarHandle | null>
 	footerButtons: FooterButton[]
@@ -46,6 +53,7 @@ type DatePickerKeyContext = {
 	moveGridDate: (delta: number) => Date
 	moveGridMonths: (delta: number) => Date
 	getInitialActiveDate: () => Date
+	getViewEntryDate: () => Date
 	handleSelect: (date: Date) => void
 	calendarRef: RefObject<CalendarHandle | null>
 	footerButtons: FooterButton[]
@@ -58,6 +66,36 @@ type GridActive = Extract<CalendarActive, { zone: 'grid' }>
 type HeaderActive = Extract<CalendarActive, { zone: 'header' }>
 /** Active state narrowed to the footer zone. @internal */
 type FooterActive = Extract<CalendarActive, { zone: 'footer' }>
+
+/** Whether `date` is in the month of `month`. @internal */
+function isInMonth(date: Date, month: Date): boolean {
+	return date.getFullYear() === month.getFullYear() && date.getMonth() === month.getMonth()
+}
+
+/**
+ * The day where the highlight enters the grid of the shown `month`: the
+ * `selected` day when it is in that month, else today when it is there, else
+ * the 1st. `min` and `max` bound it.
+ *
+ * @internal
+ */
+export function viewEntryDate(
+	month: Date,
+	selected: Date | null | undefined,
+	min?: Date,
+	max?: Date,
+): Date {
+	const today = new Date()
+
+	const day =
+		selected && isInMonth(selected, month)
+			? selected
+			: isInMonth(today, month)
+				? today
+				: startOfMonth(month)
+
+	return clampDate(day, min, max)
+}
 
 /** True for any of the four arrow keys. @internal */
 function isArrowKey(key: string): boolean {
@@ -211,7 +249,12 @@ function handleGridKey(
 	}
 }
 
-/** Header-zone keys: Left/Right cycle the three controls, Down enters the grid, Enter/Space activates. @internal */
+/**
+ * Header-zone keys: Left/Right cycle the three controls, Down enters the grid
+ * in the shown month, Enter/Space activates.
+ *
+ * @internal
+ */
 function handleHeaderKey(
 	event: KeyboardEvent<HTMLElement>,
 	key: string,
@@ -232,7 +275,7 @@ function handleHeaderKey(
 	if (key === 'ArrowDown') {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
+		ctx.setActive({ zone: 'grid', date: ctx.getViewEntryDate() })
 
 		return
 	}
@@ -252,7 +295,12 @@ function handleHeaderKey(
 	}
 }
 
-/** Footer-zone keys: Left/Right wrap between buttons, Up returns to the grid, Enter/Space activates. @internal */
+/**
+ * Footer-zone keys: Left/Right wrap between buttons, Up returns to the grid in
+ * the shown month, Enter/Space activates.
+ *
+ * @internal
+ */
 function handleFooterKey(
 	event: KeyboardEvent<HTMLElement>,
 	key: string,
@@ -277,7 +325,7 @@ function handleFooterKey(
 	if (key === 'ArrowUp') {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
+		ctx.setActive({ zone: 'grid', date: ctx.getViewEntryDate() })
 
 		return
 	}
@@ -315,6 +363,7 @@ export function useDatePickerKeyboard({
 	moveGridDate,
 	moveGridMonths,
 	getInitialActiveDate,
+	getViewEntryDate,
 	handleSelect,
 	calendarRef,
 	footerButtons,
@@ -336,6 +385,7 @@ export function useDatePickerKeyboard({
 				moveGridDate,
 				moveGridMonths,
 				getInitialActiveDate,
+				getViewEntryDate,
 				handleSelect,
 				calendarRef,
 				footerButtons,
@@ -379,6 +429,7 @@ export function useDatePickerKeyboard({
 			moveGridDate,
 			moveGridMonths,
 			getInitialActiveDate,
+			getViewEntryDate,
 			handleSelect,
 			calendarRef,
 			footerButtons,

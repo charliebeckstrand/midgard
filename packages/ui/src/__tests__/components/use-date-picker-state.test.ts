@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import type { CalendarHandle } from '../../components/calendar'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { makeKeyEvent } from '../helpers'
 
@@ -8,6 +9,17 @@ const Jan1 = new Date(2025, 0, 1)
 const Jan15 = new Date(2025, 0, 15)
 
 const Feb1 = new Date(2025, 1, 1)
+
+// A Calendar handle that shows `month`. Header paging moves only that view.
+function showing(month: Date): CalendarHandle {
+	return {
+		prevMonth: vi.fn(),
+		nextMonth: vi.fn(),
+		openPicker: vi.fn(),
+		footerKeyDown: vi.fn(),
+		getViewMonth: () => month,
+	}
+}
 
 // Local midnight on 1 January of year 1. The `Date` constructor reads year 1 as 1901.
 function firstDay(): Date {
@@ -288,6 +300,91 @@ describe('useDatePickerState', () => {
 			})
 
 			expect(onChange).toHaveBeenCalledWith(new Date(2025, 5, 15))
+		})
+	})
+
+	describe('grid entry from the header and the footer', () => {
+		it.each<[string, Date | undefined, Date | undefined, Date, Date]>([
+			['the value when it is in the shown month', Jan15, undefined, Jan1, Jan15],
+			[
+				'today when it is in the shown month',
+				Jan15,
+				undefined,
+				new Date(2025, 5, 1),
+				new Date(2025, 5, 15),
+			],
+			[
+				'the 1st when the shown month holds neither',
+				Jan15,
+				undefined,
+				new Date(2025, 2, 1),
+				new Date(2025, 2, 1),
+			],
+			[
+				'the 1st held by min',
+				undefined,
+				new Date(2025, 2, 10),
+				new Date(2025, 2, 1),
+				new Date(2025, 2, 10),
+			],
+		])('enters the shown month on %s', (_name, defaultValue, min, month, expected) => {
+			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
+			const { result } = renderHook(() => useDatePickerState({ defaultValue, min }))
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = showing(month)
+
+			act(() =>
+				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp', { shiftKey: true })),
+			)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: expected })
+		})
+
+		it('enters the shown month from the footer on ArrowUp', () => {
+			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = showing(new Date(2025, 2, 1))
+
+			act(() =>
+				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowDown', { shiftKey: true })),
+			)
+
+			expect(result.current.calendar.active).toEqual({ zone: 'footer', index: 0 })
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 2, 1) })
+		})
+
+		it('enters on the value when no Calendar is mounted', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() =>
+				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp', { shiftKey: true })),
+			)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan15 })
 		})
 	})
 

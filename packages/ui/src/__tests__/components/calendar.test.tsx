@@ -125,6 +125,18 @@ describe('Calendar', () => {
 		expect(screen.getByRole('listbox', { name: 'August 2025' })).toBeInTheDocument()
 	})
 
+	it('reports the shown month through the handle', () => {
+		const ref = createRef<CalendarHandle>()
+
+		renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 5, 15)} />)
+
+		expect(ref.current?.getViewMonth()).toEqual(new Date(2025, 5, 1))
+
+		act(() => ref.current?.prevMonth())
+
+		expect(ref.current?.getViewMonth()).toEqual(new Date(2025, 4, 1))
+	})
+
 	it('keeps a navigated month when the parent passes an equal value again', async () => {
 		const user = setupUser()
 

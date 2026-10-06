@@ -11,7 +11,7 @@ import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { useDatePickerFloating } from './use-date-picker-floating'
-import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
+import { type FooterButton, useDatePickerKeyboard, viewEntryDate } from './use-date-picker-keyboard'
 import { useDatePickerOpen } from './use-date-picker-open'
 
 /**
@@ -95,6 +95,15 @@ export function useDatePickerState({
 		() => clampDate(value ?? new Date(), min, max),
 		[value, min, max],
 	)
+
+	// The header and the footer lead into the month that the calendar shows,
+	// which header paging can move away from the value. With no calendar, the
+	// cursor starts where the arrows start it.
+	const getViewEntryDate = useCallback(() => {
+		const month = calendarRef.current?.getViewMonth()
+
+		return month ? viewEntryDate(month, value, min, max) : getInitialActiveDate()
+	}, [value, min, max, getInitialActiveDate])
 
 	const moveGridDate = useCallback(
 		(delta: number) => {
@@ -239,6 +248,7 @@ export function useDatePickerState({
 		moveGridDate,
 		moveGridMonths,
 		getInitialActiveDate,
+		getViewEntryDate,
 		handleSelect,
 		calendarRef,
 		footerButtons,

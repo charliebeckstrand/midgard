@@ -43,12 +43,19 @@ export type CalendarActive =
 	| { zone: 'grid'; date: Date }
 	| { zone: 'footer'; index: number }
 
-/** Imperative handle exposed via {@link Calendar}'s `ref`: month navigation, picker, and footer key routing for parent-driven control. */
+/** Imperative handle exposed via {@link Calendar}'s `ref`: month navigation, the shown month, picker, and footer key routing for parent-driven control. */
 export type CalendarHandle = {
 	prevMonth: () => void
 	nextMonth: () => void
 	openPicker: () => void
 	footerKeyDown: (event: KeyboardEvent) => void
+	/**
+	 * The month that the day grid shows, as local midnight on its 1st day. The
+	 * month buttons, the month picker, and the Page keys can move it away from
+	 * the value. A parent that moves its own highlight into the grid reads it to
+	 * keep the highlight in that month.
+	 */
+	getViewMonth: () => Date
 }
 
 /** Per-day state passed to a {@link CalendarProps.getDayProps} callback so it can style or decorate individual cells. */
@@ -306,8 +313,14 @@ export function Calendar({
 
 	useImperativeHandle(
 		ref,
-		() => ({ prevMonth, nextMonth, openPicker, footerKeyDown: handleFooterKeyDown }),
-		[prevMonth, nextMonth, openPicker, handleFooterKeyDown],
+		() => ({
+			prevMonth,
+			nextMonth,
+			openPicker,
+			footerKeyDown: handleFooterKeyDown,
+			getViewMonth: () => viewDate,
+		}),
+		[prevMonth, nextMonth, openPicker, handleFooterKeyDown, viewDate],
 	)
 
 	const handleSelect = useCallback(
