@@ -62,7 +62,7 @@ export const utilityTable = {
 	'max-h': { properties: ['max-height'], value: 'spacing' },
 	w: { properties: ['width'], value: 'spacing' },
 	'min-w': { properties: ['min-width'], value: 'spacing' },
-	left: { properties: ['left'], value: 'spacing' },
+	'inset-s': { properties: ['inset-inline-start'], value: 'spacing', group: 'start' },
 	text: { properties: ['font-size', 'line-height'], value: 'text', group: 'font-size' },
 	rounded: { properties: ['border-radius'], value: 'radius', ring: true },
 } as const satisfies Record<string, UtilityEntry>

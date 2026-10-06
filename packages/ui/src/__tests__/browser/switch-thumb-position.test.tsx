@@ -5,8 +5,8 @@ import { present, renderUI } from '../helpers'
 /**
  * The thumb of a checked switch moves to the end of the track.
  *
- * The stepped `density-left` utility writes its rules in the `density-*` sublayers of the
- * utilities layer. A plain `left-1` on the thumb is not in a sublayer, so it won over the checked
+ * The stepped `density-inset-s` utility writes its rules in the `density-*` sublayers of the
+ * utilities layer. A plain `inset-s-1` on the thumb is not in a sublayer, so it won over the checked
  * offset at each specificity, and the thumb stayed at the start. The resting offset now applies
  * only when the input is not checked.
  *
