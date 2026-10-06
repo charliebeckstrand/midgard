@@ -1,5 +1,6 @@
 import { act } from '@testing-library/react'
-import { describe, expect, it, type Mock, vi } from 'vitest'
+import { animate } from 'motion'
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { fireEvent, nonEmpty, present, renderUI, screen, stubMatchMedia, tick } from '../helpers'
 import {
@@ -33,17 +34,43 @@ function Board({ dir = 'ltr' }: { dir?: 'ltr' | 'rtl' }) {
 	)
 }
 
-/** One glide that a tile plays: its keyframes, and the spy of its cancel. */
-type Glide = { keyframes: Keyframe[]; cancel: Mock<() => void> }
+/** One glide that a tile plays: its transform keyframes, and the spy of its cancel. */
+type Glide = { transform: unknown; cancel: Mock<() => void> }
+
+/** The glides of each watched shell, which the stub of `animate` records. */
+const watched = new Map<Element, Glide[]>()
+
+// `animate` is the shared module spy (setup/module-mocks.ts). The stub records
+// each glide and runs none, and a glide that never finishes holds its layer.
+beforeEach(() => {
+	vi.mocked(animate).mockImplementation(((element: Element, keyframes: { transform: unknown }) => {
+		const glide: Glide = { transform: keyframes.transform, cancel: vi.fn() }
+
+		watched.get(element)?.push(glide)
+
+		return { cancel: glide.cancel, finished: new Promise(() => {}) }
+	}) as unknown as typeof animate)
+})
+
+afterEach(() => {
+	// Restore the call-through default of animate.
+	vi.mocked(animate).mockRestore()
+
+	watched.clear()
+})
 
 /**
  * Gives the shell of the tile `name` what jsdom lacks for a glide. jsdom lays
  * nothing out, so the shell reports a width of 8 columns at a pitch of 50 px.
- * jsdom has no Web Animations API, so the shell records each glide instead.
+ * The stub of `animate` records each glide of the shell.
  *
  * @returns Each glide of the tile, and a count of the reads of its width.
  */
-function watchGlides(name: string): { glides: Glide[]; widthReads: () => number } {
+function watchGlides(name: string): {
+	shell: HTMLElement
+	glides: Glide[]
+	widthReads: () => number
+} {
 	const card = screen.getByRole('group', { name })
 
 	const shell = present(
@@ -64,20 +91,9 @@ function watchGlides(name: string): { glides: Glide[]; widthReads: () => number 
 		},
 	})
 
-	shell.animate = (keyframes) => {
-		const glide: Glide = { keyframes: keyframes as Keyframe[], cancel: vi.fn() }
+	watched.set(shell, glides)
 
-		glides.push(glide)
-
-		return { cancel: glide.cancel } as unknown as Animation
-	}
-
-	shell.getAnimations = () =>
-		glides
-			.filter((glide) => glide.cancel.mock.calls.length === 0)
-			.map((glide) => ({ cancel: glide.cancel }) as unknown as Animation)
-
-	return { glides, widthReads: () => reads }
+	return { shell, glides, widthReads: () => reads }
 }
 
 /** The press of the main mouse button, which the pointer sensor needs. */
@@ -113,10 +129,7 @@ describe('the glide of a dashboard tile', () => {
 		await carryRevenue(key)
 
 		// Revenue covers the cell of Traffic, and Traffic takes the cell that Revenue left.
-		expect(traffic.glides.at(-1)?.keyframes).toMatchObject([
-			{ transform: from },
-			{ transform: 'translate(0px, 0px)' },
-		])
+		expect(traffic.glides.at(-1)?.transform).toEqual([from, 'translate(0px, 0px)'])
 	})
 
 	it('snaps a keyboard resize, and reads no width for it', () => {
@@ -150,7 +163,9 @@ describe('the glide of a dashboard tile', () => {
 
 		await carryRevenue('ArrowRight')
 
-		expect(traffic.glides.at(-1)?.keyframes.map((frame) => frame.zIndex)).toEqual([20, 20])
+		expect(traffic.glides).not.toEqual([])
+
+		expect(traffic.shell).toHaveAttribute('data-gliding')
 	})
 
 	it('ends a glide that runs when a pickup lifts the tile, so the tile follows at once', async () => {

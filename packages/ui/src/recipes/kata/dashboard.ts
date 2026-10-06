@@ -9,7 +9,7 @@
  * and one lookup for each of its items.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, omote, sen } from '../kiso'
+import { hannou, iro, ji, kasane, omote, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { fg, grab } = hannou
@@ -48,9 +48,13 @@ const canvas = defineRecipe({
 /**
  * The positioned shell of a tile. The shell carries the grid area and the half-gap
  * inset; the card inside it carries the chrome. A lifted tile sits above the rest.
+ *
+ * A gliding tile (`data-gliding`) sits at z-index 20. It is over the chrome of the
+ * later tiles at 10, and under the lifted tile at 30. A dropped tile has lost its
+ * raise, so without it the later tiles paint over the glide.
  */
 const tile = defineRecipe({
-	base: ['relative min-h-0 min-w-0'],
+	base: ['relative min-h-0 min-w-0 data-gliding:z-20'],
 	lifted: { true: 'z-30', false: '' },
 	defaults: { lifted: false },
 })
@@ -252,4 +256,7 @@ export const k = {
 	placeholder,
 	handle,
 	resize: { handle: resizeHandle, readout },
+	// Motion transition configs, applied imperatively (`animate()` in
+	// `use-dashboard-flip.ts`), never passed to `cn`.
+	motion: { glide: ugoki.glide },
 } as const

@@ -9,6 +9,7 @@
 import { duration, ease } from './base'
 import { collapse } from './collapse'
 import { css } from './css'
+import { glide } from './glide'
 import { mark } from './mark'
 import { overlay } from './overlay'
 import { panel } from './panel'
@@ -31,6 +32,7 @@ export const ugoki = {
 	toast,
 	tooltip,
 	collapse,
+	glide,
 	panel,
 	still,
 } as const

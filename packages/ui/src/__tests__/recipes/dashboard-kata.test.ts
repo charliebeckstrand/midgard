@@ -5,11 +5,12 @@ import { k } from '../../recipes/kata/dashboard'
 /**
  * Each class list of `node` that is not a recipe, with its dotted path. A recipe
  * returns one memoized string, so only a list that the kata declares as a value
- * can reach `cn` in another shape.
+ * can reach `cn` in another shape. The `motion` configs go to Motion and never
+ * to `cn`, so they are not class lists.
  */
 function classLists(node: object, prefix: string): [string, unknown][] {
 	return Object.entries(node).flatMap(([key, value]): [string, unknown][] => {
-		if (typeof value === 'function') return []
+		if (typeof value === 'function' || key === 'motion') return []
 
 		if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
 			return classLists(value, `${prefix}.${key}`)
