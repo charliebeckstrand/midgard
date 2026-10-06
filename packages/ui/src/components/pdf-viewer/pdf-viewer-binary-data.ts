@@ -33,7 +33,7 @@ export const STANDARD_FONT_FILES: Record<string, URL> = {
  *
  * @remarks The CMaps are a module of their own, which loads only when a PDF asks for a CMap. Most
  * of them are smaller than 4 KB, and Vite inlines a file of that size in the module as a data
- * URL. In this module they would add about 48 KB of gzip to each document that opens.
+ * URL. In this module they would add about 48 KB of gzip to the chunk of the viewer.
  * @internal
  */
 const FILES: Record<string, () => Promise<Record<string, URL>>> = {

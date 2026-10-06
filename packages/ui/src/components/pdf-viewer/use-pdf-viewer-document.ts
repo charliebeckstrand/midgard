@@ -3,6 +3,7 @@
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { clamp } from '../../utilities'
+import { PdfBinaryData } from './pdf-viewer-binary-data'
 import {
 	EMPTY_DOCUMENT_SNAPSHOT,
 	ensureDocumentLoad,
@@ -223,13 +224,9 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 	let opened: PDFDocumentProxy | null = null
 
 	try {
-		// Independent: the worker chunk, the loader of pdf.js files, and the document itself.
-		// Serializing them costs a round trip on the first open of a session.
-		const [worker, { PdfBinaryData }, response] = await Promise.all([
-			resolveWorker(),
-			import('./pdf-viewer-binary-data'),
-			fetch(src),
-		])
+		// Independent: the worker chunk and the document itself. Serializing them costs a
+		// round trip on the first open of a session.
+		const [worker, response] = await Promise.all([resolveWorker(), fetch(src)])
 
 		const pdfjs = await loadPdfjs()
 
