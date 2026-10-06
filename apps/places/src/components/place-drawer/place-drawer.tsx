@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, Globe, MapPin, Tag, X } from 'lucide-react'
+import { CalendarDays, Copy, Globe, MapPin, Tag, X } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
@@ -144,7 +144,7 @@ function PlaceAddress({ address }: { address: string }) {
 				<Text className="truncate">{address}</Text>
 			</PlaceFact>
 
-			<CopyButton text={address} aria-label="Copy address" className="-my-1" />
+			<CopyButton text={address} icon={<Copy />} aria-label="Copy address" className="-my-1" />
 		</Flex>
 	)
 }
