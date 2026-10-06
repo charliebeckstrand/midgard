@@ -2,29 +2,7 @@
 
 import { createContext } from '../../core'
 import type { DensityLevel } from '../density/context'
-
-/** Color theme preference an `<AppearanceProvider>` holds: a fixed theme, or `'system'` to follow the OS. */
-export type ThemeMode = 'light' | 'dark' | 'system'
-
-/** Selectable theme modes with display labels, for use in theme pickers. */
-export const themeModes: { label: string; value: ThemeMode }[] = [
-	{ label: 'Light', value: 'light' },
-	{ label: 'Dark', value: 'dark' },
-	{ label: 'System', value: 'system' },
-]
-
-/**
- * Motion preference an `<AppearanceProvider>` holds: `'system'` follows the
- * platform `prefers-reduced-motion` setting, and `'reduced'` reduces motion on
- * each platform.
- */
-export type MotionMode = 'system' | 'reduced'
-
-/** Selectable motion modes with display labels, for use in motion pickers. */
-export const motionModes: { label: string; value: MotionMode }[] = [
-	{ label: 'System', value: 'system' },
-	{ label: 'Reduced', value: 'reduced' },
-]
+import type { MotionMode, ThemeMode } from './modes'
 
 /** Appearance state and setters that {@link useAppearance} returns. */
 export type AppearanceContextValue = {

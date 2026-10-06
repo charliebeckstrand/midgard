@@ -10,7 +10,8 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../structure/stack'
 import { densityLevels } from '../density/context'
 import { UIProvider } from '../ui'
-import { motionModes, themeModes, useAppearance } from './context'
+import { useAppearance } from './context'
+import { motionModes, themeModes } from './modes'
 
 type ChoiceListboxProps<T extends string> = {
 	options: readonly { label: string; value: T }[]

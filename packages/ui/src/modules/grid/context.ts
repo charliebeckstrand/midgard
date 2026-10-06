@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
+import { noopSubscribe } from '../../utilities'
 import type { GridSettleStore } from './engine/grid-sizing/settle'
 import type { GridSortState } from './engine/grid-sort/state'
 
@@ -65,9 +66,6 @@ export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore 
 	{ default: null },
 )
 
-/** Subscribes to nothing, for a read outside a `<Grid>`. @internal */
-const subscribeNone = () => () => {}
-
 /** Reads no drag, for a read outside a `<Grid>` and on the server. @internal */
 const notResizing = () => false
 
@@ -87,7 +85,7 @@ export function useGridResizing(): boolean {
 	const settle = useGridSettle()
 
 	return useSyncExternalStore(
-		settle?.subscribeResizing ?? subscribeNone,
+		settle?.subscribeResizing ?? noopSubscribe,
 		settle?.resizing ?? notResizing,
 		notResizing,
 	)

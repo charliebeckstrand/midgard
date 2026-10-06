@@ -55,34 +55,18 @@ export function LocaleProvider({
 	dir,
 	children,
 }: LocaleProviderProps) {
-	const {
-		locale: outerLocale,
-		currency: outerCurrency,
-		numberFormat: outerNumberFormat,
-		dateFormat: outerDateFormat,
-		timeZone: outerTimeZone,
-	} = useLocale()
+	// The outer value keeps its identity until a field of it changes.
+	const outer = useLocale()
 
 	const value = useMemo<LocaleConfig>(
 		() => ({
-			locale: locale ?? outerLocale,
-			currency: currency ?? outerCurrency,
-			numberFormat: numberFormat ?? outerNumberFormat,
-			dateFormat: dateFormat ?? outerDateFormat,
-			timeZone: timeZone ?? outerTimeZone,
+			locale: locale ?? outer.locale,
+			currency: currency ?? outer.currency,
+			numberFormat: numberFormat ?? outer.numberFormat,
+			dateFormat: dateFormat ?? outer.dateFormat,
+			timeZone: timeZone ?? outer.timeZone,
 		}),
-		[
-			locale,
-			currency,
-			numberFormat,
-			dateFormat,
-			timeZone,
-			outerLocale,
-			outerCurrency,
-			outerNumberFormat,
-			outerDateFormat,
-			outerTimeZone,
-		],
+		[locale, currency, numberFormat, dateFormat, timeZone, outer],
 	)
 
 	const scoped = dir ? (
