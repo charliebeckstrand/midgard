@@ -174,7 +174,7 @@ Raised by the caller from the `simplify` review; judged by a blind verify pass. 
 
 - **Change:** `handleGridKeyDown` returns at once when steered (no focus move, no `preventDefault`), as S1 does for the header and footer. The picker maps a focused day button to `{ zone: 'grid', date }` before the model runs, as Q2 does for toolbar buttons, so an arrow steps from the focused day (Q8). Extend the `steered` TSDoc to name the grid handler. The test `date-picker.test.tsx:781` ("Materialize on the 15th…") changes its expectation.
 - **Rows closed:** C12.
-- **Files:** `components/calendar/use-calendar-focus.ts`, `components/date-picker/use-date-picker-keyboard.ts`, the day cell if it needs a date attribute (`components/calendar/calendar-day-cell.tsx`), `__tests__/components/use-calendar-focus.test.ts`, `__tests__/components/use-date-picker-keyboard.test.ts`, `__tests__/components/date-picker.test.tsx`.
+- **Files:** `components/calendar/use-calendar-focus.ts`, `components/date-picker/use-date-picker-keyboard.ts`, `components/calendar/calendar-day-cell.tsx` (an internal `data-date`), `components/date-picker/use-date-picker-state.ts` and `components/date-picker/use-date-picker-range-state.ts` (`moveGridDate` and `moveGridMonths` take an optional start date, because `setActive(mapped)` lands only on the next render), `__tests__/components/use-calendar-focus.test.ts`, `__tests__/components/use-date-picker-keyboard.test.ts`, `__tests__/components/date-picker.test.tsx`.
 - **Order:** after S6.
 - **Depends on:** S1, S2.
 - **Gate:** none (Q8 settled).
