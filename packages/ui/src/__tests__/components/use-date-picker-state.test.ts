@@ -9,6 +9,17 @@ const Jan15 = new Date(2025, 0, 15)
 
 const Feb1 = new Date(2025, 1, 1)
 
+// Local midnight on 1 January of year 1. The `Date` constructor reads year 1 as 1901.
+function firstDay(): Date {
+	const value = new Date(0)
+
+	value.setFullYear(1, 0, 1)
+
+	value.setHours(0, 0, 0, 0)
+
+	return value
+}
+
 describe('useDatePickerState', () => {
 	describe('initial state', () => {
 		it('starts closed with empty displayValue when no value is provided', () => {
@@ -277,6 +288,26 @@ describe('useDatePickerState', () => {
 			})
 
 			expect(onChange).toHaveBeenCalledWith(new Date(2025, 5, 15))
+		})
+	})
+
+	describe('year limits', () => {
+		it('keeps the cursor on 1 January of year 1 when a step goes back', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: firstDay() }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: firstDay() })
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowLeft')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: firstDay() })
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('PageUp')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: firstDay() })
 		})
 	})
 

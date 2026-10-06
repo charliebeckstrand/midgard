@@ -1,6 +1,6 @@
 import { endOfMonth as calendarEndOfMonth, DateFormatter } from '@internationalized/date'
 import { resolveLocale } from '../../utilities'
-import { fromCalendarDate, toCalendarDate } from '../calendar/calendar-utilities'
+import { fromCalendarDate, isYearInRange, toCalendarDate } from '../calendar/calendar-utilities'
 
 /**
  * Trigger label for a single date, in `locale`. That is the ambient
@@ -49,6 +49,30 @@ export function addDays(date: Date, amount: number): Date {
  */
 export function addMonths(date: Date, amount: number): Date {
 	return fromCalendarDate(toCalendarDate(date).add({ months: amount }))
+}
+
+/**
+ * Date moved by `step` days or months, as {@link addDays} and {@link addMonths}
+ * move it. A step that leaves years 1 to 9999 gives `date` itself, so a move at
+ * a limit stays put, as the Calendar grid does. Without the check, a step back
+ * from 1 January 0001 goes to December 0001.
+ *
+ * @internal
+ */
+export function stepDate(date: Date, step: { days: number } | { months: number }): Date {
+	if ('days' in step) {
+		// A native `Date` holds every year, so it shows the target year before the
+		// library clamps it.
+		const target = new Date(date)
+
+		target.setDate(target.getDate() + step.days)
+
+		return isYearInRange(target.getFullYear()) ? addDays(date, step.days) : date
+	}
+
+	const year = Math.floor((date.getFullYear() * 12 + date.getMonth() + step.months) / 12)
+
+	return isYearInRange(year) ? addMonths(date, step.months) : date
 }
 
 /** Date confined to the inclusive `min`/`max` bounds (day resolution). @internal */

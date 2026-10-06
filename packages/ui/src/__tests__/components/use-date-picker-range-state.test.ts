@@ -13,6 +13,17 @@ const Jan20 = new Date(2025, 0, 20)
 
 const Jan31 = new Date(2025, 0, 31)
 
+// Local midnight on a day of January in year 1. The `Date` constructor reads year 1 as 1901.
+function yearOneJanuary(date: number): Date {
+	const value = new Date(0)
+
+	value.setFullYear(1, 0, date)
+
+	value.setHours(0, 0, 0, 0)
+
+	return value
+}
+
 describe('useDatePickerRangeState', () => {
 	describe('initial state', () => {
 		it('starts closed with empty displayValue when no value is provided', () => {
@@ -368,6 +379,37 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
 
 			expect(result.current.calendar.rangeStart).toEqual(new Date(2025, 5, 15))
+		})
+	})
+
+	describe('year limits', () => {
+		it('keeps the cursor and the hover on 1 January of year 1 when a step goes back', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({
+					range: true,
+					defaultValue: [yearOneJanuary(1), yearOneJanuary(5)],
+				}),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
+
+			expect(result.current.calendar.rangeStart).toEqual(yearOneJanuary(1))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowLeft')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: yearOneJanuary(1) })
+
+			expect(result.current.calendar.hoverDate).toEqual(yearOneJanuary(1))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageUp')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: yearOneJanuary(1) })
+
+			expect(result.current.calendar.hoverDate).toEqual(yearOneJanuary(1))
 		})
 	})
 

@@ -8,7 +8,7 @@ import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
-import { addDays, addMonths, clampDate, formatDate, startOfDay } from './date-picker-utilities'
+import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { useDatePickerFloating } from './use-date-picker-floating'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
@@ -100,7 +100,7 @@ export function useDatePickerState({
 		(delta: number) => {
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
-			return clampDate(addDays(base, delta), min, max)
+			return clampDate(stepDate(base, { days: delta }), min, max)
 		},
 		[active, getInitialActiveDate, min, max],
 	)
@@ -109,7 +109,7 @@ export function useDatePickerState({
 		(delta: number) => {
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
-			return clampDate(addMonths(base, delta), min, max)
+			return clampDate(stepDate(base, { months: delta }), min, max)
 		},
 		[active, getInitialActiveDate, min, max],
 	)
