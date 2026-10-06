@@ -59,7 +59,8 @@ export type AppearanceProviderProps = {
  * The app's stylesheet must key its `dark` variant on the class, for example
  * `@custom-variant dark (&:where(.dark, .dark *))`. On a server-rendered page,
  * render {@link AppearanceScript} in the document head, so the stored theme,
- * density, and motion apply before the first paint.
+ * density, and motion apply before the first paint. `UIDocument` renders the
+ * script and this provider together.
  *
  * It renders the script of the latin face of the font before its children
  * ({@link FontScript}), so latin text paints in the font from the first paint.

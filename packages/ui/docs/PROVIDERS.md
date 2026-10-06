@@ -10,12 +10,14 @@ import { UIProvider } from 'ui/providers/ui'
 
 ## `ui/providers/ui` — app-root integration
 
-The single integration point an app mounts once at its root.
+The integration points an app mounts once at its root: `UIDocument` in the root layout, and `UIProvider` in the client providers.
 
 | Export | Summary |
 |---|---|
 | `UIProvider` | App-root integration point registering the framework link component, the default portal container, and the current `pathname`. A `SidebarItem` or a `NavItem` with an `href` that matches the `pathname` is current. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
+| `UIDocument` | The document of an app: `<html>`, `<head>`, and `<body>`. The head holds `AppearanceScript`, and the body wraps its children in `AppearanceProvider`, so the pre-paint step and its provider are always together. The `<html>` element has `suppressHydrationWarning`, because the script changes its classes before hydration. It has no `'use client'`, so a server layout can render it. |
+| `UIDocumentProps` *(type)* | Props for `UIDocument`: `lang`, the classes of `<html>` and `<body>`, and more `head` content. |
 | `PathMatch` *(type)* | How an item `href` matches the `pathname`: `exact`, or `prefix` to also match each path under the `href`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |
@@ -31,7 +33,7 @@ Holds the persisted theme, density, and motion of an app, and gives the settings
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
 | `AppearanceSettings` | Settings icon button that opens a dialog with the appearance, density, and motion pickers. A selection applies immediately and persists. `children` adds more fields below the pickers. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
-| `AppearanceScript` | Inline head script that applies the stored theme, density, and motion to the root element before the first paint. It has no `'use client'`, so a server layout can render it. |
+| `AppearanceScript` | Inline head script that applies the stored theme, density, and motion to the root element before the first paint. It has no `'use client'`, so a server layout can render it. `UIDocument` renders it. |
 | `useAppearance` | Reads the theme, the density, the motion, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |

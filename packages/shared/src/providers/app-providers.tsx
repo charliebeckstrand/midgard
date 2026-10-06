@@ -3,7 +3,6 @@
 import { type DefaultOptions, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import NextLink from 'next/link'
 import { type ReactNode, useState } from 'react'
-import { AppearanceProvider } from 'ui/providers/appearance'
 import { type LocaleConfig, LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 
@@ -27,8 +26,8 @@ type AppProvidersProps = {
 
 /**
  * App-wide client providers: `UIProvider` wired to Next's `Link`,
- * `AppearanceProvider` for the persisted theme and density, `LocaleProvider`,
- * and one `QueryClient` for the whole app.
+ * `LocaleProvider`, and one `QueryClient` for the whole app. The root layout
+ * renders it in ui's `UIDocument`, which holds the appearance of the app.
  *
  * The locale is `en-US`, the language of the text of ui and of the apps. A
  * fixed locale also makes the server render and the hydration render agree.
@@ -45,7 +44,7 @@ export function AppProviders({ queries, timeZone, dateFormat, children }: AppPro
 		<QueryClientProvider client={client}>
 			<UIProvider link={NextLink}>
 				<LocaleProvider locale="en-US" timeZone={timeZone} dateFormat={dateFormat}>
-					<AppearanceProvider>{children}</AppearanceProvider>
+					{children}
 				</LocaleProvider>
 			</UIProvider>
 		</QueryClientProvider>

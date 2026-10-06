@@ -32,7 +32,8 @@ const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null;
  * attributes before React hydrates.
  *
  * It has no `'use client'` and reads no context, so a server layout can render
- * it.
+ * it. `UIDocument` renders it with `AppearanceProvider` and the attribute, so
+ * an app that renders `UIDocument` does not render it.
  */
 export function AppearanceScript() {
 	// biome-ignore lint/security/noDangerouslySetInnerHtml: a constant script with no user input.
