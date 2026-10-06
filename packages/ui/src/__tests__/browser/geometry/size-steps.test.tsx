@@ -468,11 +468,13 @@ async function settledReadings(
 	const before = new Set(document.body.children)
 
 	const { container } = renderUI(
-		steps.map((step) => (
-			<div key={step} className="w-[40rem]">
-				{render(step)}
-			</div>
-		)),
+		<div>
+			{steps.map((step) => (
+				<div key={step} className="w-[40rem]">
+					{render(step)}
+				</div>
+			))}
+		</div>,
 	)
 
 	try {
@@ -482,7 +484,7 @@ async function settledReadings(
 			(child) => child !== container && !before.has(child),
 		)
 
-		if (!portaled) return [...container.children].map(reading)
+		if (!portaled) return [...(container.firstElementChild?.children ?? [])].map(reading)
 	} finally {
 		cleanup()
 	}

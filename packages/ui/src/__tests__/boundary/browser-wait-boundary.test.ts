@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
+	type ArrowFunction,
 	type CallExpression,
 	type Expression,
+	type FunctionExpression,
 	isArrayLiteralExpression,
 	isArrowFunction,
 	isBinaryExpression,
@@ -161,7 +163,7 @@ function calleeName(call: CallExpression): string | undefined {
 }
 
 /** Whether `node` is a function expression or an arrow function. */
-function isFunctionValue(node: Node): boolean {
+function isFunctionValue(node: Node): node is ArrowFunction | FunctionExpression {
 	return isArrowFunction(node) || isFunctionExpression(node)
 }
 
@@ -203,7 +205,7 @@ function isHold(node: Node): boolean {
 
 	if (!executor || !isFunctionValue(executor)) return false
 
-	const parameter = (executor as Node as { parameters: { name: Node }[] }).parameters[0]?.name
+	const parameter = executor.parameters[0]?.name
 
 	if (!parameter || !isIdentifier(parameter)) return false
 
