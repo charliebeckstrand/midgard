@@ -109,6 +109,9 @@ export function useDashboardDrag({
 	/** The last target, so a move inside one unit does nothing. */
 	const targetRef = useRef<{ x: number; y: number } | null>(null)
 
+	/** The last raw delta of the live drag, before the clamp to the travel range. */
+	const deltaRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+
 	// The handlers read the newest callbacks, and they keep their identity.
 	const commitCells = useStableEvent(commit)
 
@@ -157,6 +160,8 @@ export function useDashboardDrag({
 
 			targetRef.current = null
 
+			deltaRef.current = { x: 0, y: 0 }
+
 			const { width, layout } = store.getState()
 
 			store.setState({
@@ -192,6 +197,9 @@ export function useDashboardDrag({
 			if (origin === undefined || travel === null) return
 
 			const { pitch, inline } = gesture
+
+			// The keyboard steps from this delta, so it records each move, also inside one unit.
+			deltaRef.current = event.delta
 
 			const offset = travelOffset(origin, event.delta, travel, pitch, inline)
 
@@ -232,6 +240,8 @@ export function useDashboardDrag({
 
 			targetRef.current = null
 
+			deltaRef.current = { x: 0, y: 0 }
+
 			endGesture(store, gesture.id, keep, {
 				commit: commitCells,
 				onEnd: reportDragEnd,
@@ -268,12 +278,16 @@ export function useDashboardDrag({
 		finishDrag(false)
 	}, [finishDrag])
 
-	// One arrow press moves one column, or one row, of the traveling tile.
+	// One arrow press moves one column, or one row, of the traveling tile. Each press starts
+	// from the position inside the travel range, so a press past an edge leaves no overshoot,
+	// and the next opposite press moves the tile at once. The pointer keeps its overshoot.
 	const coordinateGetter = useCallback<KeyboardCoordinateGetter>(
 		(event, { currentCoordinates }) => {
-			const pitch = store.getState().gesture?.pitch ?? 0
+			const gesture = store.getState().gesture
 
-			if (pitch <= 0) return undefined
+			const pitch = gesture?.pitch ?? 0
+
+			if (gesture === null || pitch <= 0) return undefined
 
 			const step = { x: 0, y: 0 }
 
@@ -283,7 +297,21 @@ export function useDashboardDrag({
 			else if (event.code === 'ArrowUp') step.y = -pitch / ROW_SUBDIVISION
 			else return undefined
 
-			return { x: currentCoordinates.x + step.x, y: currentCoordinates.y + step.y }
+			const { cells, travel } = store.getView()
+
+			const origin = cells.get(gesture.id)
+
+			const delta = deltaRef.current
+
+			const clamped =
+				origin === undefined || travel === null
+					? delta
+					: travelOffset(origin, delta, travel, pitch, gesture.inline)
+
+			return {
+				x: currentCoordinates.x + clamped.x - delta.x + step.x,
+				y: currentCoordinates.y + clamped.y - delta.y + step.y,
+			}
 		},
 		[store],
 	)

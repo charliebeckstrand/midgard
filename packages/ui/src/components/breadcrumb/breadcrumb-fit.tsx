@@ -19,18 +19,28 @@ import { breadcrumbFit, breadcrumbFitRule } from './breadcrumb-fit-rule'
  *
  * The server cannot know the room of the row, so its markup holds every crumb
  * whole, and a browser paints that markup before React runs. This script runs
- * where the parser meets it and waits for a `ResizeObserver` report: a trail in
- * a Suspense boundary streams in a hidden segment that has no width until React
- * reveals it, and the observer reports after layout and before that paint. It
- * then writes the rule of {@link breadcrumbFitRule} for the answer of
- * {@link breadcrumbFit} into a `<style>` in the head, from the source text of
- * both functions. The script changes no markup that React renders, so
- * hydration finds the server's markup.
+ * where the parser meets it, and it puts a `<style>` in the head at once. The
+ * style holds the rule of {@link breadcrumbFitRule} for each answer that the
+ * trail can give, and each rule applies only while the style carries its
+ * answer in `data-collapsed`. The script carries the source text of both
+ * functions. It changes no markup that React renders, so hydration finds the
+ * server's markup.
+ *
+ * The script then waits for a `ResizeObserver` report. The rest of the row is
+ * not parsed yet, and a trail in a Suspense boundary streams in a hidden
+ * segment that has no width until React reveals it. The observer reports after
+ * layout and before the paint. The script then sets the answer of
+ * {@link breadcrumbFit} on the style.
+ *
+ * The report comes inside a frame, so the script changes an attribute there,
+ * not a style sheet. In WebKit, a new style sheet inside the first frame
+ * removes the effect of the scroll-driven animations in that paint. Thus the
+ * edge fade of a rail (`scroll-fade-inline`) blinks.
  */
 function fitScript(id: string): string {
 	const key = JSON.stringify(id)
 
-	return `(function(s){var n=s&&s.previousElementSibling;if(!n||!window.ResizeObserver)return;var o=new ResizeObserver(function(){if(!n.clientWidth)return;o.disconnect();var c=(${breadcrumbFit})(n);if(!c)return;var e=document.createElement('style');e.setAttribute('data-breadcrumb-fit',${key});e.textContent=(${breadcrumbFitRule})(${key},c);document.head.appendChild(e)});o.observe(n)})(document.currentScript)`
+	return `(function(s){var n=s&&s.previousElementSibling;if(!n||!window.ResizeObserver)return;var e=document.createElement('style'),t='',l=n.querySelectorAll('[data-slot=breadcrumb-label]').length;e.setAttribute('data-breadcrumb-fit',${key});for(var c=1;c<l;c++)t+=(${breadcrumbFitRule})(${key},c,':root:has(style[data-breadcrumb-fit='+JSON.stringify(${key})+'][data-collapsed="'+c+'"]) ');e.textContent=t;document.head.appendChild(e);var o=new ResizeObserver(function(){if(!n.clientWidth)return;o.disconnect();e.setAttribute('data-collapsed',(${breadcrumbFit})(n))});o.observe(n)})(document.currentScript)`
 }
 
 /**

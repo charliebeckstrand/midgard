@@ -3,6 +3,7 @@
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { type DragCursor, holdDragCursor } from '../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
@@ -112,7 +113,8 @@ export function useDashboardResize({
 
 	const beginResize = useCallback(
 		(id: string, edge: DashboardResizeEdge, event: ReactPointerEvent<HTMLElement>) => {
-			if (event.button !== 0) return
+			// A context-menu press can lose its release, so only a primary press starts a resize.
+			if (!isPrimaryPress(event)) return
 
 			const canvas = canvasRef.current
 

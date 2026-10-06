@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'
+import { useHasHover } from 'ui/hooks'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 
 export default function HeldOpen() {
 	const [copied, setCopied] = useState(false)
+
+	// A touch screen gives no hover, so the demo opens on a tap there.
+	const trigger = useHasHover() ? 'hover' : 'click'
 
 	// The `open` prop holds the tooltip open for 1.5 seconds after the copy. Then hover and focus
 	// control it again.
@@ -16,7 +20,7 @@ export default function HeldOpen() {
 	}, [copied])
 
 	return (
-		<Tooltip open={copied}>
+		<Tooltip open={copied} trigger={trigger}>
 			<TooltipTrigger>
 				<Button
 					variant="outline"

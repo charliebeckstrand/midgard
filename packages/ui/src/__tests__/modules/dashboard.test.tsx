@@ -274,6 +274,29 @@ describe('Dashboard', () => {
 		expect(screen.getAllByRole('separator', { name: 'Resize c' })).toHaveLength(2)
 	})
 
+	it('gives a south splitter to a tile whose ratio is not usable', () => {
+		renderUI(
+			<Board editing>
+				<DashboardTile id="d" title="Photo" ratio={0 / 0}>
+					<div data-testid="content-d" />
+				</DashboardTile>
+			</Board>,
+		)
+
+		const splitters = screen.getAllByRole('separator', { name: 'Resize Photo' })
+
+		expect(splitters).toHaveLength(2)
+
+		const before = splitters[1]?.getAttribute('aria-valuenow')
+
+		pressSplitter('Photo', 1, 'ArrowDown')
+
+		expect(screen.getAllByRole('separator', { name: 'Resize Photo' })[1]).not.toHaveAttribute(
+			'aria-valuenow',
+			before ?? '',
+		)
+	})
+
 	it('shows each splitter bar at rest where the primary pointer is coarse', () => {
 		const { container } = renderUI(<Board editing />)
 
@@ -1670,7 +1693,7 @@ describe('Dashboard gesture owner', () => {
 
 		if (east === undefined) throw new Error('Orders has no east splitter.')
 
-		fireEvent.pointerDown(east, { pointerId: 1, button: 0, clientX: 400, clientY: 0 })
+		fireEvent.pointerDown(east, { ...PRIMARY, pointerId: 1, clientX: 400, clientY: 0 })
 
 		fireEvent.pointerMove(east, { pointerId: 1, clientX: 500, clientY: 0 })
 

@@ -68,7 +68,11 @@ minimumReleaseAgeExclude:
 # closed. The patch makes a failed prefetch give no links. A failed navigation still reloads, but
 # it loads the page of the navigation: React Router reloaded the current page, so a pick in the
 # menu of a stale tab stayed on the page it left.
-# Remove once upstream stops reloading on a prefetch.
+# A navigation also preloads all the chunks of its route, from the `imports` of the manifest.
+# React Router imported only the route module, so the browser found each level of chunks after
+# the level above it loaded. The Grid page waited for about 10 rounds of requests, and the
+# Dashboard page for about 20.
+# Remove once upstream stops reloading on a prefetch and preloads the chunks of a navigation.
 patchedDependencies:
   '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
   react-router@8.4.0: patches/react-router@8.4.0.patch

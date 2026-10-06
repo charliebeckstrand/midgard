@@ -1,5 +1,4 @@
 import { requireGateway, requireSession } from 'auth'
-import { Suspense } from 'react'
 import { PlacesApp } from '@/components/places-app'
 import { flags } from '@/flags'
 import { mimir } from '@/server/mimir'
@@ -31,11 +30,13 @@ export const instant = false
  * app must know the list on the first frame. If not, the bar comes in when the
  * list lands, and the map under it gets smaller.
  *
- * The boundary is what `useSearchParams` asks of a page that prerenders: the
- * address is not known while the shell is built, so the tree that reads it waits
- * for the browser. The fallback is nothing. The app has the places, the visits,
- * and the atlases on its first render, so it draws no skeleton of its own, and a
- * skeleton above this line would only be a shape that swaps for the page.
+ * The page renders the app with no Suspense boundary. The route blocks, so
+ * `useSearchParams` reads the address of the request, and the markup of the app
+ * is in the document. A boundary streams its content in a hidden segment, and
+ * React later moves the segment into the page, at times from an animation
+ * frame callback. In WebKit, a scroll-driven animation on an element that comes
+ * in from that callback has no effect in that paint. Thus the edge fade of the
+ * filter bar blinked.
  */
 export default async function Page() {
 	const { user } = await requireSession()
@@ -49,9 +50,5 @@ export default async function Page() {
 			: undefined,
 	])
 
-	return (
-		<Suspense>
-			<PlacesApp user={user} places={places} visits={visits} />
-		</Suspense>
-	)
+	return <PlacesApp user={user} places={places} visits={visits} />
 }
