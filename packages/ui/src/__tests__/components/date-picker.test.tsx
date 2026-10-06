@@ -1372,6 +1372,23 @@ describe('DatePicker input', () => {
 		)
 	})
 
+	// B01-C09, Q10: a Tab from a focused header button does not move the highlight to that button.
+	it('does not highlight a focused header button on Tab', async () => {
+		const user = setupUser()
+
+		renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		const next = screen.getByRole('button', { name: 'Next month' })
+
+		act(() => next.focus())
+
+		await user.keyboard('{Tab}')
+
+		expect(next).not.toHaveClass('outline-2')
+	})
+
 	// B01-C09, Q2: Left and Right wrap between Today and Clear from a Tab-focused footer button.
 	it('wraps the footer highlight on ArrowRight from a focused footer button', async () => {
 		const user = setupUser()

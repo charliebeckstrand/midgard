@@ -362,17 +362,20 @@ const TOOLBAR_SELECTOR = '[data-slot="calendar-header"], [data-slot="calendar-fo
 /**
  * The zone of a toolbar button that has DOM focus. The user can Tab to a
  * header or footer button, and the dialog then gets the key from that button.
- * The button then acts as its zone of the model, at the index in its
- * `data-index` attribute.
+ * On an arrow key, the button then acts as its zone of the model, at the index
+ * in its `data-index` attribute. The dialog takes focus back only for these
+ * keys, so other keys, such as Tab, do not move the highlight.
  *
- * @returns The zone, or `null` when the key comes from the element that holds
- * the handler, or from an element outside the two toolbars.
+ * @returns The zone, or `null` when the key is not an arrow, or comes from the
+ * element that holds the handler, or from an element outside the two toolbars.
  * @internal
  */
 function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null {
 	const { target, currentTarget } = event
 
-	if (!(target instanceof Element) || target === currentTarget) return null
+	if (!isArrowKey(event.key) || !(target instanceof Element) || target === currentTarget) {
+		return null
+	}
 
 	const toolbar = target.closest<HTMLElement>(TOOLBAR_SELECTOR)
 
@@ -457,8 +460,8 @@ export function useDatePickerKeyboard({
 
 			if (handleOpenGlobalKey(event, ctx)) return
 
-			// A toolbar button with DOM focus sets the zone of the model. Only a
-			// different zone or index sets it again.
+			// On an arrow, a toolbar button with DOM focus sets the zone of the
+			// model. Only a different zone or index sets it again.
 			const mapped = zoneOfTarget(event)
 
 			if (isNewControl(active, mapped)) setActive(mapped)

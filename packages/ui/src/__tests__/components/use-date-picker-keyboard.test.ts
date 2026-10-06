@@ -589,6 +589,29 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 		expect(setActive).toHaveBeenLastCalledWith({ zone: 'grid', date: new Date(2026, 2, 1) })
 	})
 
+	// B01-C09, Q10: the dialog takes focus back only for arrows, so only an arrow maps the button.
+	it.each(['Tab', 'Home'])('sets no zone on %s from a focused header button', (key) => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		handler(keyFrom(key, header[1] as Element, dialog))
+
+		expect(setActive).not.toHaveBeenCalled()
+	})
+
+	it('maps a focused header button on an arrow with no highlight', () => {
+		const { dialog, header } = renderToolbars()
+
+		const { handler, setActive } = setup({ active: null })
+
+		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 1 })
+
+		expect(setActive).toHaveBeenLastCalledWith({ zone: 'header', index: 2 })
+	})
+
 	it('keeps the model zone for a key on the dialog itself', () => {
 		const { dialog } = renderToolbars()
 
