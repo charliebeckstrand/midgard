@@ -94,8 +94,6 @@ export function useDatePickerRangeState({
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
-	const footerRef = useRef<HTMLDivElement>(null)
-
 	// Clears the in-progress selection. Deferred to `onExitComplete` (and re-run
 	// on the next open) so the pinned start and previewed end survive the exit
 	// animation rather than collapsing onto the committed value mid-fade.
@@ -112,34 +110,28 @@ export function useDatePickerRangeState({
 		calendarRef,
 	)
 
-	// A step of days or months starts on `from` when the key gives the day, as a
-	// focused day button does. The highlight that `setActive` sets for that day
-	// lands only on the next render. Else the step starts on the highlight, else
-	// on the seed.
+	// A step of days or months starts on `from`, the day that the key handler
+	// gives, and stays between `min` and `max`.
 	const moveGridDate = useCallback(
-		(delta: number, from?: Date) => {
-			const base = from ?? (active?.zone === 'grid' ? active.date : getInitialActiveDate())
-
-			const next = clampDate(stepDate(base, { days: delta }), min, max)
+		(delta: number, from: Date) => {
+			const next = clampDate(stepDate(from, { days: delta }), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
 			return next
 		},
-		[active, getInitialActiveDate, min, max, rangeStart],
+		[min, max, rangeStart],
 	)
 
 	const moveGridMonths = useCallback(
-		(delta: number, from?: Date) => {
-			const base = from ?? (active?.zone === 'grid' ? active.date : getInitialActiveDate())
-
-			const next = clampDate(stepDate(base, { months: delta }), min, max)
+		(delta: number, from: Date) => {
+			const next = clampDate(stepDate(from, { months: delta }), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
 			return next
 		},
-		[active, getInitialActiveDate, min, max, rangeStart],
+		[min, max, rangeStart],
 	)
 
 	const openCalendar = useCallback(() => {
@@ -279,13 +271,11 @@ export function useDatePickerRangeState({
 			onValueChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
-			footerRef,
 		},
 		footer: {
 			active,
 			footerButtons,
 			onClear: handleClear,
-			footerRef,
 		},
 	}
 }

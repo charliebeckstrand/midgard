@@ -24,16 +24,13 @@ function setup(overrides: Setup = {}) {
 
 	const closeCalendar = vi.fn()
 
-	// Each step starts on `from`, else on the 15th, as the state steps from the highlight.
+	// Each step and each page start on `from`.
 	const moveGridDate = vi.fn(
-		(delta: number, from?: Date) =>
-			new Date(2026, from?.getMonth() ?? 0, (from?.getDate() ?? 15) + delta),
+		(delta: number, from: Date) => new Date(2026, from.getMonth(), from.getDate() + delta),
 	)
 
-	// Each page starts on `from`, else on the 15th of January.
 	const moveGridMonths = vi.fn(
-		(delta: number, from?: Date) =>
-			new Date(2026, (from?.getMonth() ?? 0) + delta, from?.getDate() ?? 15),
+		(delta: number, from: Date) => new Date(2026, from.getMonth() + delta, from.getDate()),
 	)
 
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))

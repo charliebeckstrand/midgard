@@ -317,7 +317,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		validation,
 		hasValue,
 		onClear,
-		calendar: { calendarRef, footerRef, ...calendar },
+		calendar: { calendarRef, ...calendar },
 		footer,
 	} = useDatePickerState(props)
 
@@ -366,7 +366,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				max={props.max}
 				active={calendar.active}
 				onMonthChange={props.onMonthChange}
-				footerRef={footerRef}
 				listboxId={listboxId}
 				activeDescendantId={activeDescendantId}
 			/>

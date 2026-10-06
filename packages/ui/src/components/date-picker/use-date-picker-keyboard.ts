@@ -1,9 +1,8 @@
-import { parseDate } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { fromCalendarDate, isSameDay } from '../calendar/calendar-utilities'
+import { DAY_KEY_SELECTOR, dayOfKey, isSameDay } from '../calendar/calendar-utilities'
 import { clampDate } from './date-picker-utilities'
 
 /** A footer action button in the date picker. */
@@ -28,16 +27,10 @@ type DatePickerKeyDownParams = {
 	setActive: (next: CalendarActive | null) => void
 	openCalendar: () => void
 	closeCalendar: () => void
-	/**
-	 * The day `delta` days from `from`, else from the grid highlight, else from
-	 * `getInitialActiveDate`, held between `min` and `max`.
-	 */
-	moveGridDate: (delta: number, from?: Date) => Date
-	/**
-	 * The day `delta` months from `from`, else from the grid highlight, else from
-	 * `getInitialActiveDate`, held between `min` and `max`.
-	 */
-	moveGridMonths: (delta: number, from?: Date) => Date
+	/** The day `delta` days from `from`, held between `min` and `max`. */
+	moveGridDate: (delta: number, from: Date) => Date
+	/** The day `delta` months from `from`, held between `min` and `max`. */
+	moveGridMonths: (delta: number, from: Date) => Date
 	getInitialActiveDate: () => Date
 	/**
 	 * The day where an arrow key moves the highlight into the grid: from the
@@ -61,8 +54,8 @@ type DatePickerKeyDownParams = {
 type DatePickerKeyContext = {
 	setActive: (next: CalendarActive | null) => void
 	closeCalendar: () => void
-	moveGridDate: (delta: number, from?: Date) => Date
-	moveGridMonths: (delta: number, from?: Date) => Date
+	moveGridDate: (delta: number, from: Date) => Date
+	moveGridMonths: (delta: number, from: Date) => Date
 	getInitialActiveDate: () => Date
 	getViewEntryDate: () => Date | null
 	handleSelect: (date: Date) => void
@@ -407,15 +400,15 @@ function handleFooterKey(
 const TOOLBAR_SELECTOR = '[data-slot="calendar-header"], [data-slot="calendar-footer"]'
 
 /**
- * The grid zone of a day button, at the ISO date in its `data-date` attribute.
+ * The grid zone of a day button, at the day of its `data-date` key.
  *
  * @returns The zone, or `null` when `target` is not in a day button.
  * @internal
  */
 function dayOfTarget(target: Element): CalendarActive | null {
-	const date = target.closest<HTMLElement>('[data-date]')?.dataset.date
+	const key = target.closest<HTMLElement>(DAY_KEY_SELECTOR)?.dataset.date
 
-	return date ? { zone: 'grid', date: fromCalendarDate(parseDate(date)) } : null
+	return key ? { zone: 'grid', date: dayOfKey(key) } : null
 }
 
 /**
@@ -454,13 +447,6 @@ function zoneOfTarget(event: KeyboardEvent<HTMLElement>): CalendarActive | null 
 	return { zone: 'header', index: index as 0 | 1 | 2 }
 }
 
-/** Whether `a` and `b` have the same zone, and the same index or the same day. @internal */
-function isSameControl(a: CalendarActive, b: CalendarActive): boolean {
-	if (a.zone === 'grid') return b.zone === 'grid' && isSameDay(a.date, b.date)
-
-	return a.zone === b.zone && 'index' in b && a.index === b.index
-}
-
 /**
  * Whether `mapped` gives a toolbar control or a day that is not `active`.
  *
@@ -474,7 +460,11 @@ function isNewControl(
 ): mapped is CalendarActive {
 	if (mapped === null) return false
 
-	return active === null || !isSameControl(active, mapped)
+	if (active === null) return true
+
+	if (mapped.zone === 'grid') return active.zone !== 'grid' || !isSameDay(active.date, mapped.date)
+
+	return mapped.zone !== active.zone || !('index' in active) || mapped.index !== active.index
 }
 
 /**

@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useMemo, useState } from 'react'
 
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -120,8 +120,6 @@ export function useDatePickerRelativeState({
 	// the chip, the row highlight, and toggle-off aligned with the actual choice. A
 	// hydrated value (shared link) carries no pick, so it still range-matches.
 	const [pickedIds, setPickedIds] = useState<Set<string>>(() => new Set())
-
-	const footerRef = useRef<HTMLDivElement>(null)
 
 	// Anchors all relative math to one instant per interaction; re-stamped on open
 	// so a long-lived page can't drift across midnight mid-edit.
@@ -419,7 +417,6 @@ export function useDatePickerRelativeState({
 			active: null,
 			footerButtons,
 			onClear: handleClear,
-			footerRef,
 		},
 	}
 }

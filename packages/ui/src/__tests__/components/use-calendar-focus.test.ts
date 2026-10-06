@@ -97,41 +97,24 @@ describe('useCalendarFocus: grid', () => {
 		expect(document.activeElement).toBe(headerButtons.item(Math.floor(headerButtons.length / 2)))
 	})
 
-	it('ArrowDown from the bottom row focuses the first footer button when footer is provided', () => {
-		const { grid, footer, handleGridKeyDown } = setup({
-			cols: 7,
-			gridButtons: 14,
-			footer: true,
-		})
+	it.each([false, true])(
+		'ArrowDown from the bottom row keeps focus inside the grid (footer: %s)',
+		(footer) => {
+			const { grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14, footer })
 
-		const buttons = grid.querySelectorAll('button')
+			const buttons = grid.querySelectorAll('button')
 
-		const lastRowFirst = buttons.item(buttons.length - 7) as HTMLButtonElement
+			const last = buttons.item(buttons.length - 1) as HTMLButtonElement
 
-		lastRowFirst.focus()
+			last.focus()
 
-		const event = makeKeyEvent('ArrowDown')
+			handleGridKeyDown(makeKeyEvent('ArrowDown'))
 
-		handleGridKeyDown(event)
-
-		expect(document.activeElement).toBe(footer?.querySelector('button'))
-	})
-
-	it('ArrowDown from the bottom row keeps focus inside the grid when there is no footer', () => {
-		const { grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14 })
-
-		const buttons = grid.querySelectorAll('button')
-
-		const last = buttons.item(buttons.length - 1) as HTMLButtonElement
-
-		last.focus()
-
-		handleGridKeyDown(makeKeyEvent('ArrowDown'))
-
-		// With no footer, the calendar delegates to the roving grid handler, which
-		// keeps focus inside the grid rather than escaping to another zone.
-		expect(grid.contains(document.activeElement)).toBe(true)
-	})
+			// No arrow moves the focus from the grid to the footer. The roving grid
+			// handler keeps the focus inside the grid.
+			expect(grid.contains(document.activeElement)).toBe(true)
+		},
+	)
 })
 
 describe('useCalendarFocus: footer', () => {
@@ -274,25 +257,6 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 		present<HTMLButtonElement>(grid.querySelector('button'), 'button').focus()
 
 		const event = makeKeyEvent('ArrowUp')
-
-		handleGridKeyDown(event)
-
-		expect(event.stopPropagation).toHaveBeenCalled()
-	})
-
-	it('stopPropagation propagates from ArrowDown at the bottom row when a footer is present', () => {
-		const { grid, handleGridKeyDown } = setup({
-			cols: 7,
-			gridButtons: 14,
-			footer: true,
-			stopPropagation: true,
-		})
-
-		const buttons = grid.querySelectorAll('button')
-
-		;(buttons.item(buttons.length - 7) as HTMLButtonElement).focus()
-
-		const event = makeKeyEvent('ArrowDown')
 
 		handleGridKeyDown(event)
 

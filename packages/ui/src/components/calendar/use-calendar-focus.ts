@@ -220,17 +220,6 @@ function isTopRow(container: HTMLElement | null, cols: number): boolean {
 	return index >= 0 && index < cols
 }
 
-/** True when the active button sits in the grid's last row. @internal */
-function isBottomRow(container: HTMLElement | null, cols: number): boolean {
-	const buttons = buttonsOf(container)
-
-	const index = activeIndexIn(buttons)
-
-	if (index < 0) return false
-
-	return index + cols >= buttons.length
-}
-
 /**
  * Sealed surfaces consume every navigation key, moved or not. This prevents
  * default on an unhandled navigation key, then stops propagation once the event
@@ -359,33 +348,23 @@ function moveDay(
 }
 
 /**
- * Moves the focus across a zone edge of a grid with no date model. ArrowUp on
- * the top row moves it to the header. ArrowDown on the bottom row moves it to
- * the footer, when there is one.
+ * Moves the focus from the top row of a grid with no date model to the header.
+ * The other keys stay in the grid.
  *
- * @returns `true` when the key crosses a zone edge.
+ * @returns `true` when the key is ArrowUp on the top row.
  * @internal
  */
-function crossZoneEdge(
+function crossToHeader(
 	event: KeyboardEvent,
 	header: HTMLElement | null,
 	grid: HTMLElement | null,
-	footer: HTMLElement | null,
 	cols: number,
 ): boolean {
-	if (event.key === 'ArrowUp' && isTopRow(grid, cols)) {
-		middleButton(header)?.focus()
+	if (event.key !== 'ArrowUp' || !isTopRow(grid, cols)) return false
 
-		return true
-	}
+	middleButton(header)?.focus()
 
-	if (event.key !== 'ArrowDown' || !isBottomRow(grid, cols)) return false
-
-	const target = firstButton(footer)
-
-	target?.focus()
-
-	return target !== null
+	return true
 }
 
 /** Wraps focus between the footer's own buttons on Left/Right. @internal */
@@ -430,7 +409,7 @@ function focusAdjacentFooterButton(
  * leave every key to the parent.
  *
  * Without `dayGrid`, ArrowUp on the top row of the grid moves the focus to the
- * header. ArrowDown on the bottom row moves it to the footer, when there is one.
+ * header. No arrow moves the focus from the grid to the footer.
  *
  * With `dayGrid`, the arrows move by date and never leave the grid. An arrow
  * that leaves the month steps the month, and so do the Page keys. That
@@ -489,10 +468,10 @@ export function useCalendarFocus({
 			if (steered) return
 
 			// A day grid moves by date, so its arrows never leave the grid. Only a
-			// grid with no date model bridges to the header and the footer.
+			// grid with no date model bridges to the header.
 			const handled = dayGrid
 				? moveDay(event, gridRef.current, dayGrid)
-				: crossZoneEdge(event, headerRef.current, gridRef.current, footerRef?.current ?? null, cols)
+				: crossToHeader(event, headerRef.current, gridRef.current, cols)
 
 			if (handled) {
 				preventAndStop(event, stopPropagation)
@@ -504,7 +483,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation, steered, dayGrid],
+		[gridRef, headerRef, cols, gridRoving, stopPropagation, steered, dayGrid],
 	)
 
 	const handleFooterKeyDown = useCallback(

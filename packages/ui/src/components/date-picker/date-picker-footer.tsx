@@ -1,7 +1,5 @@
 'use client'
 
-import type { RefObject } from 'react'
-
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
@@ -12,7 +10,6 @@ import type { FooterButton } from './use-date-picker-keyboard'
 type DatePickerFooterProps = {
 	/** Virtual highlight; a `footer`-zone entry styles the matching button active. */
 	active: CalendarActive | null
-	footerRef: RefObject<HTMLDivElement | null>
 	/** Buttons to render, in order; empty renders nothing. */
 	footerButtons: FooterButton[]
 	onClear: () => void
@@ -31,13 +28,11 @@ export function DatePickerFooter({
 	footerButtons,
 	onClear,
 	onToday,
-	footerRef,
 }: DatePickerFooterProps) {
 	if (footerButtons.length === 0) return null
 
 	return (
 		<div
-			ref={footerRef}
 			role="toolbar"
 			aria-label="Date picker actions"
 			data-slot="calendar-footer"

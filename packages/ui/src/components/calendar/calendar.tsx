@@ -202,16 +202,18 @@ export type CalendarProps = {
  * scope at `sm`.
  * When a parent steers `active`, the parent owns the keys of the header, the
  * grid, and the footer, and the calendar moves no focus for them. Tab still
- * reaches each header button and the one Tab stop of the grid. Month changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
- * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
+ * reaches each header button and the one Tab stop of the grid. Month changes
+ * are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker
+ * control to a parent via the {@link CalendarHandle} `ref` for embedded use
+ * (e.g. DatePicker).
  *
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
  * that leaves the month steps the month. That includes ArrowUp on the top row
  * and ArrowDown on the bottom row. PageUp and PageDown step a month, and Shift
  * with a Page key steps a year. Home and End go to the first and the last
- * enabled day of the shown month. ArrowDown from the header moves the focus
- * to the day that holds the Tab stop of the grid: the selected day, else
- * today, else the first enabled day.
+ * enabled day of the shown month. ArrowDown from the header enters the grid
+ * on its Tab stop, as Tab does. After a rove, that is the roved day. Else it
+ * is the selected day, else today, else the first enabled day.
  *
  * The focused day stays between `min` and `max`. An arrow or a Page key toward
  * a disabled day moves the focus to the nearest enabled day. When that is the
@@ -313,8 +315,8 @@ export function Calendar({
 	const gridRef = useRef<HTMLDivElement>(null)
 
 	// A calendar that no parent steers carries the date model of its day grid. A
-	// parent that steers `active` owns the month steps, the Page keys, and the
-	// keys of the header and the footer.
+	// parent that steers `active` owns the keys of the header, the grid, and the
+	// footer, the month steps, and the Page keys.
 	const steered = active !== undefined
 
 	const dayGrid = useMemo(

@@ -96,8 +96,6 @@ export function useDatePickerState({
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
-	const footerRef = useRef<HTMLDivElement>(null)
-
 	// With no value, the cursor starts on today. A `min` or a `max` only bounds it.
 	const { getInitialActiveDate, getViewEntryDate } = useDatePickerGridEntry(
 		value,
@@ -106,26 +104,16 @@ export function useDatePickerState({
 		calendarRef,
 	)
 
-	// A step of days or months starts on `from` when the key gives the day, as a
-	// focused day button does. The highlight that `setActive` sets for that day
-	// lands only on the next render. Else the step starts on the highlight, else
-	// on the seed.
+	// A step of days or months starts on `from`, the day that the key handler
+	// gives, and stays between `min` and `max`.
 	const moveGridDate = useCallback(
-		(delta: number, from?: Date) => {
-			const base = from ?? (active?.zone === 'grid' ? active.date : getInitialActiveDate())
-
-			return clampDate(stepDate(base, { days: delta }), min, max)
-		},
-		[active, getInitialActiveDate, min, max],
+		(delta: number, from: Date) => clampDate(stepDate(from, { days: delta }), min, max),
+		[min, max],
 	)
 
 	const moveGridMonths = useCallback(
-		(delta: number, from?: Date) => {
-			const base = from ?? (active?.zone === 'grid' ? active.date : getInitialActiveDate())
-
-			return clampDate(stepDate(base, { months: delta }), min, max)
-		},
-		[active, getInitialActiveDate, min, max],
+		(delta: number, from: Date) => clampDate(stepDate(from, { months: delta }), min, max),
+		[min, max],
 	)
 
 	const openCalendar = useCallback(() => {
@@ -308,14 +296,12 @@ export function useDatePickerState({
 			onValueChange: handleSelect,
 			active: open ? active : null,
 			calendarRef,
-			footerRef,
 		},
 		footer: {
 			active,
 			footerButtons,
 			onClear: handleClear,
 			onToday: handleSelectToday,
-			footerRef,
 		},
 	}
 }
