@@ -85,7 +85,7 @@ export type GridInfiniteScroll = {
 	/**
 	 * Whether more rows remain beyond the loaded set. Once `false`, the grid stops
 	 * calling `onLoadMore` and drops the trailing indicator.
-	 * @defaultValue `rows.length < totalRows` when {@link GridInfiniteScroll.totalRows} is set, else true
+	 * @defaultValue `rows.length < totalRows` when {@link GridInfiniteScroll.totalRows} is set, else true.
 	 */
 	hasMore?: boolean
 	/**
@@ -369,7 +369,7 @@ export type GridGroupBy<T = unknown> = {
 export type GridExpandable<T> = {
 	/** Controlled set of expanded row keys; pair with {@link GridExpandable.onValueChange}. */
 	value?: Set<string | number>
-	/** Initial expanded keys for the uncontrolled case. @defaultValue an empty set */
+	/** Initial expanded keys for the uncontrolled case. @defaultValue an empty set. */
 	defaultValue?: Set<string | number>
 	/**
 	 * Fires with the next expanded set. Coalesced to a concrete set, never
@@ -381,7 +381,7 @@ export type GridExpandable<T> = {
 	/**
 	 * Whether a row can expand at all. A row this rejects shows no chevron and
 	 * never opens — for rows with nothing to detail.
-	 * @defaultValue every row expandable
+	 * @defaultValue every row expandable.
 	 */
 	rowExpandable?: (row: T) => boolean
 }

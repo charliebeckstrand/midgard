@@ -33,7 +33,7 @@ export type PopoverContentProps = {
 	 * per-surface opt-in for a tree that has none. Set `false` to keep the flat
 	 * surface inside a `<GlassProvider>`.
 	 *
-	 * @defaultValue the ambient `<GlassProvider>` flag
+	 * @defaultValue the ambient `<GlassProvider>` flag.
 	 */
 	glass?: boolean
 	/**

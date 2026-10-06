@@ -54,7 +54,7 @@ export type MapCoverageOptions = {
 	/**
 	 * How a ZIP shape names its code.
 	 * @defaultValue the shape's `id`, else the first Census ZCTA property it
-	 * carries (`ZCTA5CE20`, `ZCTA5CE10`, `GEOID20`, and the rest)
+	 * carries (`ZCTA5CE20`, `ZCTA5CE10`, `GEOID20`, and the rest).
 	 */
 	zipId?: (shape: MapShape) => string
 	/**
@@ -70,7 +70,7 @@ export type MapCoverageOptions = {
 	 * keeps every region whose group the territory reaches, so a territory in one
 	 * state draws that whole state split into its counties.
 	 * @defaultValue the first two characters of the region's id, which is the
-	 * state FIPS code in every US county atlas
+	 * state FIPS code in every US county atlas.
 	 */
 	regionGroup?: (feature: MapFeature) => string
 }

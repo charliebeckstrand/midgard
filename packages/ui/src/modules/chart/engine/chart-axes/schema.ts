@@ -29,7 +29,7 @@ export type ChartValueAxis = {
 	/**
 	 * Formats this axis's ticks and its series' tooltip, label, and data-table
 	 * values — a currency for `y`, a percent for `y2`.
-	 * @defaultValue the chart's `formatValue`, except a point chart's `x` axis, which takes the locale default
+	 * @defaultValue the chart's `formatValue`, except a point chart's `x` axis, which takes the locale default.
 	 */
 	format?: (value: number) => string
 	/** A short title drawn along the axis, naming the measure it scales. */
@@ -41,7 +41,7 @@ export type ChartValueAxis = {
 	 * only when no `y`-bound series resolves a scale. A point chart's grid reads
 	 * both ways, so both its axes default on. Set an axis's `grid` false to
 	 * drop its hairlines; drop every axis's to clear the layer.
-	 * @defaultValue `true`, except a cartesian chart's `y2`
+	 * @defaultValue `true`, except a cartesian chart's `y2`.
 	 */
 	grid?: boolean
 }

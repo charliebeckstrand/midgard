@@ -22,7 +22,7 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 	/**
 	 * Predicate marking characters that count toward caret restoration, letting
 	 * the caret skip inserted mask literals (separators, fixed punctuation).
-	 * @defaultValue ASCII alphanumerics and `+`
+	 * @defaultValue ASCII alphanumerics and `+`.
 	 */
 	meaningful?: (char: string) => boolean
 }

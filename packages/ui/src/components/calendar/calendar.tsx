@@ -179,7 +179,7 @@ export type CalendarProps = {
 	 * the weekday row. On a page that renders on a server, set `locale` or an
 	 * enclosing `LocaleProvider`, so the two sides agree.
 	 *
-	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
+	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default.
 	 */
 	locale?: string
 	/**

@@ -56,13 +56,13 @@ export type OverlayProps = {
 	 * element (rendered with `absolute` positioning, no body scroll lock). The container
 	 * must establish a positioning context (e.g. `position: relative`).
 	 *
-	 * @defaultValue `document.body` with full-viewport `fixed` positioning
+	 * @defaultValue `document.body` with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
 	/**
 	 * Element to receive initial focus when the overlay opens.
 	 *
-	 * @defaultValue the first tabbable child
+	 * @defaultValue the first tabbable child.
 	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**

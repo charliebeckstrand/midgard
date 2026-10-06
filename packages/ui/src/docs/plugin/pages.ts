@@ -1,6 +1,7 @@
 import { globSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { normalizePath } from 'vite'
+import { LOCALE } from './api.ts'
 
 /** A page of the docs, as the sidebar and the header show it. */
 export type PageLink = {
@@ -69,7 +70,7 @@ export function findPages(docs: string): Page[] {
 			// The components first, and then each other section in name order.
 			(a, b) =>
 				Number(a.category !== COMPONENTS) - Number(b.category !== COMPONENTS) ||
-				a.category.localeCompare(b.category) ||
-				a.name.localeCompare(b.name),
+				a.category.localeCompare(b.category, LOCALE) ||
+				a.name.localeCompare(b.name, LOCALE),
 		)
 }

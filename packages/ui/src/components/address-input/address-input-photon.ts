@@ -97,7 +97,7 @@ export type PhotonProviderOptions = {
 	/**
 	 * The Photon instance to query. Point it at your own where the public one's
 	 * rate limit or its terms do not suit.
-	 * @defaultValue the public Komoot endpoint
+	 * @defaultValue the public Komoot endpoint.
 	 */
 	endpoint?: string
 	/**
@@ -129,7 +129,7 @@ export type PhotonProviderOptions = {
 	 * and also Rovaniemi, Finland. When a region is set, a code that has no match
 	 * in that region is not read as a postal code. When no region is known, the
 	 * geocoder's first match is the one used.
-	 * @defaultValue the region of the browser's language, such as `US` for `en-US`
+	 * @defaultValue the region of the browser's language, such as `US` for `en-US`.
 	 */
 	region?: string
 	/**

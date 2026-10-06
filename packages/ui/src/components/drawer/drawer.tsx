@@ -154,12 +154,12 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * is in its children. A `DrawerFooter` child replaces it. Set `null` to show
 		 * no footer row.
 		 *
-		 * @defaultValue `<DrawerClose />`, the standard Close button
+		 * @defaultValue `<DrawerClose />`, the standard Close button.
 		 */
 		footer?: ReactNode
 		/**
 		 * Element to receive initial focus when the drawer opens.
-		 * @defaultValue the first tabbable child
+		 * @defaultValue the first tabbable child.
 		 */
 		initialFocus?: RefObject<HTMLElement | null>
 		/**

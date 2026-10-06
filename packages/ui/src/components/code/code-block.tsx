@@ -144,7 +144,7 @@ export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children
 	 * `text`, the name is "Code". Two blocks of one language thus have one name.
 	 * Give each one a `label` when both can overflow on one page.
 	 *
-	 * @defaultValue the language of `lang` and "code", such as `'TypeScript code'`, else `'Code'`
+	 * @defaultValue the language of `lang` and "code", such as `'TypeScript code'`, else `'Code'`.
 	 */
 	label?: string
 	className?: string

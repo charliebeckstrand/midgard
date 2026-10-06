@@ -29,7 +29,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 * inline {@link ColorPanel}, which takes `#rgb`, `#rgba`, `#rrggbb`, and
 	 * `#rrggbbaa`, and warns in development of any other swatch.
 	 *
-	 * @defaultValue The {@link ColorPanel} default palette
+	 * @defaultValue The {@link ColorPanel} default palette.
 	 */
 	swatches?: readonly string[] | false
 	/**
