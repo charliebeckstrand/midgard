@@ -7,7 +7,7 @@ import { useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { type CodeBlockVariants, k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
-import { DEFAULT_LANG, DEFAULT_THEME, highlightCode } from './code-shiki'
+import { DEFAULT_LANG, DEFAULT_THEME, highlightCode, trimBlankLines } from './code-shiki'
 import type { ShikiHighlight } from './code-shiki-highlighter'
 
 const MAX_CACHE_SIZE = 200
@@ -112,7 +112,10 @@ function announceCopyError() {
  * so the block does not take the HTML `lang` attribute.
  */
 export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children' | 'lang'> & {
-	/** Source to highlight; surrounding whitespace is trimmed before tokenizing. */
+	/**
+	 * Source to highlight. The block removes the blank lines before the code
+	 * and the whitespace after it. The first line keeps its indentation.
+	 */
 	code: string
 	/** Shiki language grammar. @defaultValue 'tsx' */
 	lang?: BundledLanguage
@@ -185,7 +188,7 @@ export function primeCodeBlock({
 	theme = DEFAULT_THEME,
 	...highlight
 }: Pick<CodeBlockProps, 'code' | 'lang' | 'theme'> & ShikiHighlight): void {
-	cacheSet(cacheKey(code.trim(), lang, theme), highlight)
+	cacheSet(cacheKey(trimBlankLines(code), lang, theme), highlight)
 }
 
 /**
@@ -246,7 +249,7 @@ export function CodeBlock({
 	style,
 	...props
 }: CodeBlockProps) {
-	const code = rawCode.trim()
+	const code = trimBlankLines(rawCode)
 
 	const lang = langProp ?? DEFAULT_LANG
 
