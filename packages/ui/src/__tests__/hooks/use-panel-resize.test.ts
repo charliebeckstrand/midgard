@@ -159,6 +159,30 @@ describe('usePanelResize', () => {
 			expect(result.current.size).toBe(250)
 		})
 
+		it('puts back the size of the press when the browser cancels the pointer', () => {
+			// The browser cancels the touch when it takes it for a scroll. Chromium gives
+			// the cancel the coordinates 0, 0.
+			const { result, panel } = renderAttached()
+
+			press(result)
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointermove', 380, 500))
+			})
+
+			expect(panel.style.height).toBe('320px')
+
+			act(() => {
+				window.dispatchEvent(windowPointer('pointercancel', 0, 600))
+			})
+
+			expect(panel.style.height).toBe('300px')
+
+			expect(result.current.size).toBe(300)
+
+			expect(result.current.resizing).toBe(false)
+		})
+
 		it('ends a gesture that the close interrupts, so the late release sets no size', () => {
 			const { result, rerender } = renderAttached()
 
