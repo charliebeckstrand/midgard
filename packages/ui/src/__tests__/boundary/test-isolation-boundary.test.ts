@@ -59,7 +59,7 @@ import { isFunctionLike } from '../helpers/ts-ast'
 import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
 import {
 	collectPatternViolations,
-	docsTestDirs,
+	docsTestDir,
 	isSourceFile,
 	srcDir,
 	srcRelative,
@@ -92,7 +92,7 @@ const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 // `skip` prunes by entry name.
 const SHARED_REGISTRY_SCANS = [
 	{ dir: testsDir, skip: SHARED_REGISTRY_SKIP },
-	...docsTestDirs.map((dir) => ({ dir })),
+	{ dir: docsTestDir },
 	// The `boundary` and `workspace` projects: each `-boundary` suite.
 	{ dir: join(testsDir, 'boundary'), fileFilter: /-boundary\.test\.ts$/ },
 	{ dir: join(testsDir, 'browser'), skip: new Set(['setup']) },
@@ -782,7 +782,7 @@ describe('test isolation boundary', () => {
 
 		const modules: string[] = []
 
-		for (const dir of [testsDir, ...docsTestDirs]) {
+		for (const dir of [testsDir, docsTestDir]) {
 			walkSource(dir, (file, content) => {
 				// A write can come late only after an `await`, so a test file with none
 				// needs no parse. Most of the test files have none. The other modules

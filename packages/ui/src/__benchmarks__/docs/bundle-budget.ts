@@ -18,53 +18,62 @@
  * ```
  */
 
-import { type BundleReport, readBundle } from './bundle-report'
+import fs from 'node:fs'
+import path from 'node:path'
+import { gzipSync } from 'node:zlib'
+import { CLIENT_DIR } from '../../../scripts/docs-server'
+
+/** Where the docs build emits its hashed chunks and assets. */
+const ASSETS_DIR = path.join(CLIENT_DIR, 'assets')
 
 /**
- * Measured 2026-08-13 at 1960 kB total gzip and 46 kB entry gzip, after the
- * county atlas joined the demo assets — 250 kB gzip of the total on its own, for
- * the map module's county drill. Headroom is ~15% on the total and ~30% on the
- * entry, which is where a stray eager import shows up first.
+ * The page that the build writes with no route content. Its `modulepreload`
+ * links are the chunks that each page loads before it hydrates.
+ */
+const SHELL_PAGE = path.join(CLIENT_DIR, '__spa-fallback.html')
+
+// A `modulepreload` link to a chunk of the build.
+const MODULE_PRELOAD = /<link rel="modulepreload" href="\/assets\/([^"]+)"/g
+
+type BundleReport = {
+	/** The sum of the gzip sizes of the assets of the build. */
+	totalGzip: number
+	/** The gzip size of the chunks that each page loads before it hydrates. */
+	eagerGzip: number
+}
+
+/** Measures each asset in the build output. */
+function readBundle(): BundleReport {
+	if (!fs.existsSync(ASSETS_DIR)) {
+		throw new Error(`No build to measure at ${ASSETS_DIR}. Run \`pnpm docs:build\` first.`)
+	}
+
+	const report: BundleReport = { totalGzip: 0, eagerGzip: 0 }
+
+	const eager = new Set(
+		Array.from(fs.readFileSync(SHELL_PAGE, 'utf8').matchAll(MODULE_PRELOAD), ([, file]) => file),
+	)
+
+	for (const file of fs.readdirSync(ASSETS_DIR)) {
+		const gzip = gzipSync(fs.readFileSync(path.join(ASSETS_DIR, file))).length
+
+		report.totalGzip += gzip
+
+		if (eager.has(file)) report.eagerGzip += gzip
+	}
+
+	return report
+}
+
+/**
+ * The total holds lazy chunks that no page loads before it hydrates: the
+ * grammars and the themes of the `CodeBlock` worker, the code of each example,
+ * the API data, and the files that pdf.js loads at run time. Most of its
+ * growth is such files, and it does not move the eager sum.
  *
- * The entry did not move for that atlas, which is the reading these two numbers
- * exist to separate: the demos fetch their atlases as static assets, so one
- * joining the build grows what is on disk and nothing that loads before a reader
- * opens its tab.
- *
- * On 2026-10-02 the entry was 64 kB and the ceiling was 65 kB. A change of a few
- * hundred bytes then failed the gate. The entry ceiling is now 69 kB. A stray
- * eager import adds some kB, so it still goes past the ceiling.
- *
- * On 2026-10-03 the docs moved to React Router with a prerendered page for each
- * demo. The app has no single entry chunk now. The budget sums the chunks that
- * each page preloads before it hydrates: the router, React, the vendors that
- * the chrome uses, and the chrome. They were 268 kB, and 218 kB on main before
- * the move. The ceiling is 290 kB, with the same headroom of about 20 kB.
- *
- * On 2026-10-04 the docs dropped their Shiki alias (#1812), and `CodeBlock`
- * moved to a worker that can load each bundled grammar and theme. The total
- * went from 2038 kB to 3578 kB. The worker brings 242 grammar chunks (1321 kB)
- * and 65 theme chunks (238 kB), and each is a lazy chunk. A page loads none of
- * them before it hydrates. A block loads the worker entry (59 kB), one grammar,
- * and one theme. The alias had cut the docs to three grammars and one theme,
- * and the `CodeBlock` of an app already had the full set. The eager sum did not
- * move: 257.4 kB on main and after. The total ceiling is 3800 kB, with the same
- * headroom of about 220 kB.
- *
- * On 2026-10-05 the legacy app went, and the budget measures the new app. Its
- * total was 4094 kB. "Show code" gave each example a lazy chunk with its code and
- * its highlight (415 kB more), and the API tables moved into `assets/` (140 kB
- * more; the legacy app kept them in `.data` files, which the budget did not
- * count). One code module for each folder of pages brings the total to 3903 kB.
- * The eager sum is 235.6 kB, against 257.4 kB for the legacy app. The total
- * ceiling is 4100 kB, with a headroom of about 200 kB.
- *
- * On 2026-10-06 the PDF viewer started to give pdf.js the files that it loads at
- * run time: the two wasm decoders for scanned images, two standard fonts, and the
- * 168 packed CMaps. The total went from 3923 kB to 5018 kB, and the CMaps are
- * 963 kB of the 1095 kB. A document loads a file only when it needs one, so a page
- * loads none of them before it hydrates, and the eager sum stays at 237.7 kB. The
- * total ceiling is 5200 kB, with a headroom of about 180 kB.
+ * The eager sum is the chunks that each page preloads: the router, React, the
+ * vendors that the shell uses, and the shell. A stray eager import shows up
+ * there first.
  */
 const BUDGETS = [
 	{ label: 'total gzip', budgetKb: 5200, of: (report: BundleReport) => report.totalGzip },
@@ -75,8 +84,6 @@ const report = readBundle()
 
 const measurements = BUDGETS.map(({ label, budgetKb, of }) => {
 	const bytes = of(report)
-
-	if (bytes === undefined) throw new Error(`No ${label} measurement in the build output.`)
 
 	// The check uses the bytes. A rounded value would let a small change at the
 	// ceiling go over it.

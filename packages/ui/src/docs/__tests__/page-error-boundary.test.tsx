@@ -2,33 +2,14 @@ import { act, render, screen } from '@testing-library/react'
 import { createMemoryRouter, Link, RouterProvider } from 'react-router'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import { readRootDensity, writeRootDensity } from '../../core/density/steps.ts'
 import App, { ErrorBoundary as RootErrorBoundary } from '../app/root.tsx'
 import Page, { ErrorBoundary as PageErrorBoundary } from '../app/routes/page.tsx'
 import routes from '../app/routes.ts'
+import { restoreRootAfterCase } from './restore-root.ts'
 
 // A page that fails to render shows the error in place of the page only. The
 // shell, with the sidebar and the header, stays, so the reader can open
 // another page.
-
-/**
- * Puts back the theme class and the density step that `AppearanceProvider`
- * writes to the root element. The window is shared across the files of a
- * worker.
- */
-function restoreRootAfterCase(): void {
-	const root = document.documentElement
-
-	const density = readRootDensity(root)
-
-	const dark = root.classList.contains('dark')
-
-	onTestFinished(() => {
-		writeRootDensity(root, density)
-
-		root.classList.toggle('dark', dark)
-	})
-}
 
 function Broken(): never {
 	throw new Error('broken page')

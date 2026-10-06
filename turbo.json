@@ -42,7 +42,11 @@
 		},
 		"bundle:budget": {
 			"dependsOn": ["docs:build"],
-			"inputs": ["src/docs/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
+			"inputs": [
+				"src/docs/dist/**",
+				"src/__benchmarks__/docs/bundle-budget.ts",
+				"scripts/docs-server.ts"
+			]
 		},
 		"docs:hydration": {
 			"dependsOn": ["docs:build"],

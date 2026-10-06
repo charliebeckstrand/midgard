@@ -88,7 +88,7 @@ function readExample(parse: Parse, code: string, file: string): Example | undefi
 
 	const name = declaration.id.name
 
-	if (path.basename(file, '.tsx') !== PLAYGROUND) return { name }
+	if (codeKeyOf(file) !== PLAYGROUND) return { name }
 
 	const [props] = declaration.params
 
@@ -146,7 +146,7 @@ export function attachMeta(
 	const { name, spread } = example
 
 	const meta = [
-		`title: ${JSON.stringify(humanize(path.basename(file, '.tsx')))}`,
+		`title: ${JSON.stringify(humanize(codeKeyOf(file)))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
 		`code: () => import(${JSON.stringify(codeIdOf(pages, file))}).then((module) => module.default[${JSON.stringify(codeKeyOf(file))}])`,
 	]

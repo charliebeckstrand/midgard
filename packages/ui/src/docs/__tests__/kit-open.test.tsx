@@ -130,4 +130,27 @@ describe('ApiTable', () => {
 
 		expect(panel.textContent).toContain('size')
 	})
+
+	// Before the chunk loads, both clicks start from the same value, and each
+	// applies only the entry that it opened.
+	it('opens each entry that the reader clicks before the chunk loads', async () => {
+		render(
+			<ApiTable
+				api={{
+					First: { name: 'First', props: [], events: [] },
+					Second: { name: 'Second', props: [], events: [] },
+				}}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: '<First />' }))
+
+		fireEvent.click(screen.getByRole('button', { name: '<Second />' }))
+
+		expect(
+			await screen.findByRole('region', { name: '<First />' }, { timeout: 5000 }),
+		).not.toBeNull()
+
+		expect(screen.getByRole('region', { name: '<Second />' })).not.toBeNull()
+	})
 })

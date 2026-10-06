@@ -3,7 +3,7 @@ import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import {
 	docblockEnvironment,
-	docsTestDirs,
+	docsTestDir,
 	srcRelative,
 	walkSource,
 } from './src/__tests__/helpers/walk-source'
@@ -22,7 +22,7 @@ import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 function nodeEnvironmentFiles(): string[] {
 	const files: string[] = []
 
-	for (const dir of [join(import.meta.dirname, 'src/__tests__'), ...docsTestDirs]) {
+	for (const dir of [join(import.meta.dirname, 'src/__tests__'), docsTestDir]) {
 		walkSource(
 			dir,
 			(file, content) => {
@@ -209,7 +209,7 @@ export default defineConfig({
 					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',
-						...docsTestDirs.map((dir) => `src/${srcRelative(dir)}/**/*.test.{ts,tsx}`),
+						`src/${srcRelative(docsTestDir)}/**/*.test.{ts,tsx}`,
 					],
 					// The browser suite (vitest.browser.config.ts) verifies behavior
 					// jsdom can't — layout/color geometry and, in its floating-ui

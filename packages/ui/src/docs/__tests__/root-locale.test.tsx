@@ -3,8 +3,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { useLocale } from 'ui/providers/locale'
 import { describe, expect, it, onTestFinished } from 'vitest'
-import { readRootDensity, writeRootDensity } from '../../core/density/steps.ts'
 import App from '../app/root.tsx'
+import { restoreRootAfterCase } from './restore-root.ts'
 
 // The build renders each page in Node, and the browser hydrates it. A page with
 // no locale reads the runtime default of each side, and the two can differ. So
@@ -13,25 +13,6 @@ import App from '../app/root.tsx'
 /** Writes the locale tag that the page reads from the shell, or `none`. */
 function LocaleProbe() {
 	return <output data-testid="locale">{useLocale().locale ?? 'none'}</output>
-}
-
-/**
- * Puts back the theme class and the density step that `AppearanceProvider`
- * writes to the root element. The window is shared across the files of a
- * worker.
- */
-function restoreRootAfterCase(): void {
-	const root = document.documentElement
-
-	const density = readRootDensity(root)
-
-	const dark = root.classList.contains('dark')
-
-	onTestFinished(() => {
-		writeRootDensity(root, density)
-
-		root.classList.toggle('dark', dark)
-	})
 }
 
 describe('docs app shell', () => {

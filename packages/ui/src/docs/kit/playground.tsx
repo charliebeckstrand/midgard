@@ -1,10 +1,13 @@
-import { type ComponentType, useState } from 'react'
+import { type ComponentType, type ReactNode, useState } from 'react'
+import { cn } from 'ui/core'
+import { Flex } from 'ui/flex'
+import { useScrollRegion } from 'ui/hooks'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { omote } from '../../recipes/kiso/index.ts'
 import type { BarrelApi, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, metaOf } from './example.tsx'
 import { humanize } from './humanize.ts'
-import { Rail } from './rail.tsx'
 
 type Field = { name: string; values: readonly Literal[]; default?: Literal; required?: true }
 
@@ -20,6 +23,21 @@ const SIZES: Readonly<Record<string, string>> = {
 	md: 'Medium',
 	lg: 'Large',
 	xl: 'Extra large',
+}
+
+/**
+ * A row of controls that stays on one line, and scrolls when the controls do
+ * not fit. While it overflows, the edge with more controls behind it fades,
+ * and the row is a tab stop with the name `label`.
+ */
+function Rail({ label, children }: { label: string; children: ReactNode }) {
+	const regionRef = useScrollRegion({ label })
+
+	return (
+		<Flex ref={regionRef} gap="sm" className={cn('max-w-full whitespace-nowrap', omote.rail)}>
+			{children}
+		</Flex>
+	)
 }
 
 function labelOf(value: Literal): string {
