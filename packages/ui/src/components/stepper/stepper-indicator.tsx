@@ -28,7 +28,7 @@ const STATE_TEXT = {
  * @remarks
  * State reads visually through color and the checkmark glyph alone, so an
  * `sr-only` suffix ("completed"/"current step"/"not started") names it for
- * assistive tech (WCAG 1.4.1). A completed step fills blue and draws a
+ * assistive tech (WCAG 1.4.1). A completed step fills green and draws a
  * checkmark. `<StepperStep>` injects a default instance when the consumer omits
  * one. Pass a number or another glyph as `children` to replace the checkmark; it
  * renders ahead of the `sr-only` suffix.
