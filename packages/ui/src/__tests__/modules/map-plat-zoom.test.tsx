@@ -159,7 +159,7 @@ describe('MapPlat zoom layer', () => {
 
 		expect(plot).not.toHaveClass('touch-none')
 
-		expect(plot).toHaveClass('[touch-action:pan-x_pan-y]')
+		expect(plot).toHaveClass('touch-pan-x', 'touch-pan-y')
 	})
 
 	it('claims touch outright only where the wheel is armed outright', () => {

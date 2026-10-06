@@ -92,7 +92,8 @@ export function ProgressBar({
 				/>
 			) : (
 				// The sweep moves a transform, so it needs no keyframe in a stylesheet.
-				// Under reduced motion the fill stays at the start of the track.
+				// Under reduced motion the fill holds still: at the start of the track
+				// from its mount, or where a change of the preference stops the sweep.
 				<motion.div
 					className={cn(k.bar.fill({ color }), k.bar.indeterminate)}
 					animate={still ? undefined : k.sweep.animate}

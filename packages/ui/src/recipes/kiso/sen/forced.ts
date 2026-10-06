@@ -15,6 +15,12 @@ export const forced = {
 	/** Form control: restores native appearance and checked-state visibility. */
 	control:
 		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
+	/**
+	 * State mark: a fill or a bar that shows a value or a selection with only
+	 * its background. Forced colors remove that background, so the mark paints
+	 * in `Highlight`.
+	 */
+	mark: 'forced-colors:bg-[Highlight]',
 	/** Icon slot: keeps data-slot=icon children on CanvasText. */
 	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 } as const

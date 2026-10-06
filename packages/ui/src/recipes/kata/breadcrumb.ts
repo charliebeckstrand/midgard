@@ -16,7 +16,7 @@ const list = defineRecipe({
 		flex.row,
 		'flex-wrap',
 		'gap-2',
-		'break-words',
+		'wrap-break-word',
 		size.md,
 		'in-data-collapse:min-w-0 in-data-collapse:flex-nowrap',
 	],

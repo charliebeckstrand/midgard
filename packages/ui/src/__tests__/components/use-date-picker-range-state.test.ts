@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import type { CalendarHandle } from '../../components/calendar'
 import { useDatePickerRangeState } from '../../components/date-picker/use-date-picker-range-state'
 import { makeKeyEvent } from '../helpers'
 
@@ -12,6 +13,28 @@ const Jan15 = new Date(2025, 0, 15)
 const Jan20 = new Date(2025, 0, 20)
 
 const Jan31 = new Date(2025, 0, 31)
+
+// A Calendar handle whose grid entry is `date`. The Calendar owns the entry rule.
+function entering(date: Date | null): CalendarHandle {
+	return {
+		prevMonth: vi.fn(),
+		nextMonth: vi.fn(),
+		openPicker: vi.fn(),
+		footerKeyDown: vi.fn(),
+		getEntryDate: () => date,
+	}
+}
+
+// Local midnight on a day of January in year 1. The `Date` constructor reads year 1 as 1901.
+function yearOneJanuary(date: number): Date {
+	const value = new Date(0)
+
+	value.setFullYear(1, 0, date)
+
+	value.setHours(0, 0, 0, 0)
+
+	return value
+}
 
 describe('useDatePickerRangeState', () => {
 	describe('initial state', () => {
@@ -259,6 +282,13 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('keeps the keyboard cursor inside min/max and commits the clamped range', () => {
+			// Today is min, so the cursor starts on min.
+			vi.useFakeTimers({ now: new Date(2025, 0, 10, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -272,7 +302,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			// With no value and no range in progress, the cursor starts on min.
+			// With no value and no range in progress, the cursor starts on today.
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
@@ -328,6 +358,139 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageDown')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 6, 15) })
+		})
+
+		// A past `min` bounds the cursor. It is not the start point.
+		it('starts the cursor on today when there is no value and today is inside min/max', () => {
+			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 5, 15) })
+		})
+
+		it('pins today as the start on Enter when there is no value and today is inside min/max', () => {
+			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+
+			onTestFinished(() => {
+				vi.useRealTimers()
+			})
+
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
+
+			expect(result.current.calendar.rangeStart).toEqual(new Date(2025, 5, 15))
+		})
+	})
+
+	describe('grid entry from the header and the footer', () => {
+		// Not an endpoint and not today, so only the Calendar can give it.
+		const Mar5 = new Date(2025, 2, 5)
+
+		it('enters the grid from the header on the entry day of the Calendar', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(Mar5)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
+		})
+
+		it('enters the grid from the footer on the entry day of the Calendar', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(Mar5)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown', { shiftKey: true })))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'footer', index: 0 })
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
+		})
+
+		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(null)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'header', index: 1 })
+		})
+
+		it('enters on the range start when no Calendar is mounted', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+		})
+	})
+
+	describe('year limits', () => {
+		it('keeps the cursor and the hover on 1 January of year 1 when a step goes back', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({
+					range: true,
+					defaultValue: [yearOneJanuary(1), yearOneJanuary(5)],
+				}),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
+
+			expect(result.current.calendar.rangeStart).toEqual(yearOneJanuary(1))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowLeft')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: yearOneJanuary(1) })
+
+			expect(result.current.calendar.hoverDate).toEqual(yearOneJanuary(1))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageUp')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: yearOneJanuary(1) })
+
+			expect(result.current.calendar.hoverDate).toEqual(yearOneJanuary(1))
 		})
 	})
 

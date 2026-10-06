@@ -107,6 +107,14 @@ export type MeasuredVirtualWindowOptions = VirtualWindowOptions & {
  * cannot see it. An empty row that ends at the top edge is above it as well.
  * Rows that an insert adds there at 0 pixels sit before the first row in view.
  *
+ * A row that spans the top edge counts only on its first measurement, as in
+ * the library default. Its estimate is then wrong over its full height, and
+ * that height starts above the edge. A later measurement changes the row
+ * below its start, such as a chat reply that grows while it streams. An
+ * adjustment there moves the text in view by the growth (TanStack/virtual#1218).
+ * The library calls this predicate before it caches the new size, so a key
+ * that the cache does not hold is a first measurement.
+ *
  * @internal
  */
 const adjustAboveViewport = (
@@ -116,7 +124,7 @@ const adjustAboveViewport = (
 ): boolean => {
 	const top = viewTop(instance)
 
-	return item.start < top || item.end <= top
+	return item.end <= top || (item.start < top && !instance.itemSizeCache.has(item.key))
 }
 
 /** The top edge of the part of the scroller that the reader sees. @internal */
@@ -382,32 +390,6 @@ function sameWindowState(a: WindowState, b: WindowState): boolean {
 	return a.start === b.start && a.end === b.end && a.sizes === b.sizes
 }
 
-/**
- * Reports the offset of the scroller as `observeElementOffset` of virtual-core
- * does, but a report that ends a scroll reads the offset that the scroller has
- * now.
- *
- * Virtual-core ends a scroll with a timer that fires 150 ms after the last
- * `scroll` event. The timer reports the offset that that event read. A write
- * of `scrollTop` sends its own `scroll` event only at the next frame. A
- * start-anchor move or a scroll adjustment is such a write. When the timer
- * fires between the write and that event, it puts the offset from before the
- * write back into the virtualizer. The next render then places the window at
- * that offset. Rows that attach there measure as if they were in view, so a
- * row that changes size does not correct the scroll offset, and the rows in
- * view move.
- *
- * @internal
- */
-function observeLiveOffset(
-	instance: Virtualizer<HTMLElement, Element>,
-	callback: (offset: number, isScrolling: boolean) => void,
-): (() => void) | undefined {
-	return observeElementOffset(instance, (offset, isScrolling) => {
-		callback(isScrolling ? offset : (instance.scrollElement?.scrollTop ?? offset), isScrolling)
-	})
-}
-
 /** The options that {@link useWindowVirtualizer} passes through. @internal */
 type WindowVirtualizerOptions = Omit<
 	VirtualizerOptions<HTMLElement, Element>,
@@ -462,7 +444,7 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 
 	const resolved: VirtualizerOptions<HTMLElement, Element> = {
 		observeElementRect,
-		observeElementOffset: observeLiveOffset,
+		observeElementOffset,
 		scrollToFn: elementScroll,
 		measureElement: measureLive,
 		...options,

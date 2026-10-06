@@ -6,6 +6,7 @@
  */
 
 import { iro } from '../iro'
+import { fit } from './fit'
 import { panel } from './panel'
 import { portal } from './portal'
 import { trigger } from './trigger'
@@ -13,6 +14,7 @@ import { trigger } from './trigger'
 export const popover = {
 	trigger,
 	portal,
+	fit,
 	/** Default body-text color applied inside the panel. */
 	text: iro.text.default,
 	panel,

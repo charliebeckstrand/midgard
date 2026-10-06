@@ -46,7 +46,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labeled control (label/description/error slots). |
 | `useA11yPanel` | Modal-panel labeling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
-| `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists. Horizontal arrows follow the reading order, so they swap in RTL. |
+| `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists in either mode. Horizontal arrows follow the reading order, so they swap in RTL. |
 | `useA11yAutoFocus` | Moves focus to `node` whenever `when` flips true, and again when the node attaches while `when` holds. Takes the node from a callback ref, not a `RefObject`. |
 | `useA11yHasTabbable` | Whether a node holds a tab-order descendant, re-measured as its subtree changes; gates a tabpanel's tab stop and an interactive Tooltip's focus trap. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
@@ -76,9 +76,9 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. `layout: 'grid'` sorts a wrapping grid rather than one track. |
-| `useSortableItem` | Wraps dnd-kit `useSortable` with standard transform/transition/drag-opacity style composition. |
+| `useSortableItem` | Wraps dnd-kit `useSortable` with standard translate/transition/drag-opacity style composition (no scale). Under reduced motion the style has no transition. |
 | `useSortableGridKeyboard` | Keyboard reordering for a wrapping grid: Space lifts, Left/Right step one, Up/Down step a row, Enter/Escape drops, each move announced. |
-| `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. |
+| `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. A keyboard move scrolls smoothly, and at once under reduced motion. |
 | `useDragCursor` | Holds a drag cursor (`grabbing` by default, or a resize cursor) on the whole page while active, over elements that set their own cursor. Every drag in the library goes through it, and `drag-cursor-boundary.test.ts` keeps it that way. `useSortableList` calls it for each sortable list. |
 
 ## Formatting & input
@@ -118,7 +118,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `FloatingPlacement` | A floating-ui placement, or `<side>-auto`, which aligns the panel to the edge that is nearer to the reference. |
 | `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test (it gets the character, its index, and the text), and the ref to compose. |
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
-| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. |
+| `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. To fire in form fields, `ignore: (e) => e.repeat \|\| e.isComposing` keeps the repeat and composition guards. |
 | `OffcanvasOptions` | Options for `useOffcanvas`. |
 | `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |

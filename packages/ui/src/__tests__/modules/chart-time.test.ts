@@ -301,38 +301,29 @@ describe('timeTicks', () => {
 	})
 })
 
-describe('timeTicks over the spring daylight-saving gap', () => {
-	// The gap needs a zone with daylight-saving time, and the suite pins UTC.
-	// Node reads a new TZ at once, and the date library keeps its own zone.
-	const zone = process.env.TZ
+describe('timeTicks with a library zone that differs from the system zone', () => {
+	// The suite pins the system zone to UTC. An app can set the zone of the date
+	// library to another zone with `setLocalTimeZone`.
+	beforeAll(() => setLocalTimeZone('Asia/Tokyo'))
 
-	beforeAll(() => {
-		process.env.TZ = 'America/New_York'
+	afterAll(() => resetLocalTimeZone())
 
-		setLocalTimeZone('America/New_York')
-	})
-
-	afterAll(() => {
-		process.env.TZ = zone
-
-		resetLocalTimeZone()
-	})
-
-	it('keeps one tick for each distinct instant', () => {
-		// 2026-03-08 02:00 does not exist in New York.
-		const start = new Date(2026, 2, 8, 0, 0).getTime()
-
-		const times = Array.from({ length: 7 }, (_, index) => start + index * 3_600_000)
+	it('puts each daily tick on a row day and labels it with that day', () => {
+		const times = Array.from({ length: 6 }, (_, index) => new Date(2026, 0, 2 + index).getTime())
 
 		const ticks =
-			timeTicks({ times, band: band(7, 800), tickTarget: 10, axisLength: 800, locale: 'en-US' }) ??
+			timeTicks({ times, band: band(6, 800), tickTarget: 5, axisLength: 800, locale: 'en-US' }) ??
 			[]
 
-		const keys = ticks.map((tick) => tick.key)
+		expect(ticks.length).toBeGreaterThan(0)
 
-		expect(keys.length).toBeGreaterThan(1)
+		for (const tick of ticks) expect(times).toContain(tick.key)
 
-		expect(new Set(keys).size).toBe(keys.length)
+		expect(ticks.map((tick) => tick.label)).toEqual(
+			ticks.map((tick) =>
+				new Date(tick.key).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+			),
+		)
 	})
 })
 

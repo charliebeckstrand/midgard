@@ -78,10 +78,10 @@ const item = defineRecipe({
 			dan.gap.timeline.x,
 			`${dan.space.timeline.bottom} last:pb-0`,
 		],
-		// 6.5px aligns the content with the rail. It matches the marker's `left-[6.5px]`.
+		// 6.5px aligns the content with the rail. It matches the marker's `inset-s-[6.5px]`.
 		// The minimum width stops a column at a readable measure; past it, the
 		// row scrolls in the list.
-		horizontal: ['flex flex-col min-w-48 pl-[6.5px] pr-8 last:pr-0', dan.space.timeline.top],
+		horizontal: ['flex flex-col min-w-48 ps-[6.5px] pe-8 last:pe-0', dan.space.timeline.top],
 	},
 	defaults: { orientation: 'vertical' },
 })
@@ -140,11 +140,11 @@ export const k = {
 			'after:h-screen after:w-0.5',
 		],
 		horizontal: [
-			// left-[6.5px] centers the rail on the marker.
-			'absolute top-0 left-[6.5px]',
-			'before:right-full before:top-1/2 before:-translate-y-1/2',
+			// inset-s-[6.5px] centers the rail on the marker.
+			'absolute top-0 inset-s-[6.5px]',
+			'before:inset-e-full before:top-1/2 before:-translate-y-1/2',
 			'before:h-0.5 before:w-screen',
-			'after:left-full after:top-1/2 after:-translate-y-1/2',
+			'after:inset-s-full after:top-1/2 after:-translate-y-1/2',
 			'after:h-0.5 after:w-screen',
 		],
 		palette,

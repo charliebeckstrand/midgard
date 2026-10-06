@@ -14,16 +14,16 @@ catalog:
   '@tanstack/react-query': ^5.101.2
   '@types/d3-geo': ^3.1.0
   '@types/node': ^25.3.3
-  '@types/react': ^19.2.0
-  '@types/react-dom': ^19.2.3
+  '@types/react': ^19.3.0
+  '@types/react-dom': ^19.3.0
   '@types/topojson-client': ^3.1.5
   babel-plugin-react-compiler: ^1.0.0
   d3-geo: ^3.1.1
   lucide-react: ^1.21.0
   next: ^16.3.3
   openapi-fetch: ^0.17.0
-  react: ^19.2.7
-  react-dom: ^19.2.7
+  react: ^19.3.0
+  react-dom: ^19.3.0
   tailwindcss: ^4.3.0
   topojson-client: ^3.1.0
   tsup: ^8.5.1
@@ -61,5 +61,12 @@ minimumReleaseAgeExclude:
 # state on the way back. The patch re-attaches the existing node instead of rebuilding it.
 # Covered by `overlay-activity-hold.test.tsx`, which fails without it. Mirrored in tms-ui; keep
 # the two copies identical. Remove once upstream is Activity-safe.
+#
+# React Router reloads the page when a route module fails to import, so a tab that a deploy
+# left on deleted chunks picks up the new build. It also did this for a prefetch: `prefetch="intent"`
+# starts on `touchstart`, so a scroll that started on a link reloaded the page, and an open menu
+# closed. The patch makes a failed prefetch give no links; a failed navigation still reloads.
+# Remove once upstream stops reloading on a prefetch.
 patchedDependencies:
   '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
+  react-router@8.4.0: patches/react-router@8.4.0.patch

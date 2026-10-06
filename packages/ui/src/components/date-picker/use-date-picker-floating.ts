@@ -37,6 +37,9 @@ export function useDatePickerFloating({
 		open,
 		onOpenChange: handleOpenChange,
 		offset: 8,
+		// A panel taller than the space on its side of the trigger shrinks into that
+		// space and scrolls, as a menu does.
+		fitHeight: true,
 		role: null,
 		returnFocusTo: triggerRef,
 	})

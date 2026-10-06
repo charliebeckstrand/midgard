@@ -138,7 +138,7 @@ const rowGroupTint: Record<PaletteColor, string> = {
  * the center: the selection checkbox, the detail expander, and the row grip.
  * `w-px` shrinks the column against the auto-width data columns.
  */
-const fitCell = 'w-px text-center align-middle [line-height:0]'
+const fitCell = 'w-px text-center align-middle leading-0'
 
 /**
  * A reveal wrapper: a one-row CSS grid whose `track` tweens `1fr` (open) and
@@ -195,6 +195,10 @@ export const k = {
 		// bar appearing on the first overflow (an infinite-scroll viewport-fill, a
 		// grown row set) doesn't shrink the content width and reflow every column.
 		wrapper: 'overflow-auto scrollbar-gutter-stable',
+		// The scroller of a windowed master-detail or grouped body. The start anchor
+		// of the window holds the rows in view, so the native scroll anchor stands
+		// down (see `useGridItemWindow`).
+		windowed: '[overflow-anchor:none]',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. The fill matches the surface under the grid (see `hostSurface`): a
 		// card or dialog that holds the grid, else the content host.
@@ -300,18 +304,21 @@ export const k = {
 	// the grid's above-table controls. A vertical stack of the top control row and,
 	// while a row is selected, the batch-action row beneath it.
 	toolbar: {
-		base: [flex.col, 'gap-2'],
+		// The toolbar is its own size container, as the footer is. The top row then
+		// follows the width that the grid has (a dashboard tile, a dialog, a page),
+		// not the viewport.
+		base: ['@container', flex.col, 'gap-2'],
 		// Top row: the quick-search field at the start, the column-manager trigger at
-		// the end. Stacks on narrow viewports, then lays out as a row from `sm`.
-		bar: [flex.col, 'gap-2', 'sm:flex-row', 'sm:items-center'],
-		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
-		// from the search field. The toolbar applies it only when no consumer content
-		// renders, because two auto margins in one row share the free space.
-		actions: 'sm:ms-auto',
+		// the end. Stacks in a narrow grid, then lays out as a row from `@lg`.
+		bar: [flex.col, 'gap-2', '@lg:flex-row', '@lg:items-center'],
+		// Column-manager cluster: pushed to the row's end from `@lg` so it sits
+		// across from the search field. The toolbar applies it only when no consumer
+		// content renders, because two auto margins in one row share the free space.
+		actions: '@lg:ms-auto',
 		// The consumer's own content, pushed to the end the same way. It sits ahead
 		// of the tools, so with both present the free space opens once — here — and
 		// the two clusters stay together at the row's end.
-		content: 'sm:ms-auto',
+		content: '@lg:ms-auto',
 	},
 	// Group-by icon button in a column header (see `GridGroupByButton`): press to
 	// group the rows by the column, press again to ungroup.
@@ -340,7 +347,7 @@ export const k = {
 		// the intrinsic content width.
 		mark: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.sm, 'text-inherit'],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
-		tooltip: ['max-w-xs', 'whitespace-normal', 'break-words'],
+		tooltip: ['max-w-xs', 'whitespace-normal', 'wrap-break-word'],
 		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the
 		// pointer cursor and a keyboard focus ring. `inset` like `k.nav.cell` and
 		// `k.row.clickable`, so the horizontal scroll wrapper can't shave it at the
@@ -710,7 +717,7 @@ export const k = {
 		pages: ['hidden', '@2xl:flex'],
 		// Row-range status ("1–10 of 47"): the end track, aligned to the inline
 		// end.
-		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end'],
+		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end', 'tabular-nums'],
 		// A footer with no page-size picker, below `@2xl`: the empty start track
 		// goes, so Previous/Next sit at the start and the status at the end. From
 		// `@2xl` the numbered pages stay centered.

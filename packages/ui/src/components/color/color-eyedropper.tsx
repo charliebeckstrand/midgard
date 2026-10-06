@@ -1,7 +1,7 @@
 'use client'
 
 import { Pipette } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { hexToHsva } from './color-utilities'
@@ -10,10 +10,8 @@ import { useColorPanelContext } from './context'
 type EyeDropperResult = { sRGBHex: string }
 type EyeDropperConstructor = new () => { open: () => Promise<EyeDropperResult> }
 
-/** @internal Resolve the platform `EyeDropper` constructor, or `undefined` on the server or where unsupported. */
+/** @internal Resolve the platform `EyeDropper` constructor, or `undefined` where unsupported. Call it on the client only. */
 function getEyeDropper(): EyeDropperConstructor | undefined {
-	if (typeof window === 'undefined') return undefined
-
 	return (window as unknown as { EyeDropper?: EyeDropperConstructor }).EyeDropper
 }
 
@@ -22,24 +20,16 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
  * nothing where the API is unavailable.
  *
  * @remarks
- * Support is probed in a post-mount effect rather than during render. Reading
- * `window.EyeDropper` on the server yields `undefined`, but yields the
- * constructor on a supporting client, so a render-time check would mismatch
- * hydration. The button is therefore absent on the first client paint and
- * appears once the effect commits. A dismissed picker rejects with
- * `AbortError`, which is swallowed.
+ * The server cannot read `window.EyeDropper`, so the server and the hydration
+ * render draw no button ({@link useHydrated}). The button joins in the render
+ * after hydration. A render that does not hydrate draws it in its first
+ * commit. A dismissed picker rejects with `AbortError`, and the button ignores
+ * it.
  */
 export function ColorEyedropper({ className }: { className?: string }) {
 	const { setHsva } = useColorPanelContext()
 
-	// Probe for the API after mount. Reading it during render returns undefined
-	// on the server but the constructor on a supporting client, mismatching
-	// hydration.
-	const [EyeDropper, setEyeDropper] = useState<EyeDropperConstructor>()
-
-	useEffect(() => {
-		setEyeDropper(() => getEyeDropper())
-	}, [])
+	const EyeDropper = useHydrated() ? getEyeDropper() : undefined
 
 	if (!EyeDropper) return null
 

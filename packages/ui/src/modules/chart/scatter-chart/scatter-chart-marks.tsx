@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { memo, useMemo } from 'react'
 import { cn } from '../../../core'
+import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/paint'
@@ -136,14 +137,27 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 	})
 }
 
+/** The pop of a disc from its center. @internal */
+const DISC_HIDDEN = { r: 0, opacity: 0 }
+
+/** @internal */
+const DISC_POP = { ...POINT_POP, delay: 0 }
+
+/** The disc under reduced motion: a new radius applies at once. @internal */
+const DISC_STILL = { ...DISC_POP, r: { duration: 0 } }
+
 /**
  * The Framer Motion scatter discs: each pops from its center on mount, on the
- * point-marker beat but with no line draw to wait behind.
+ * point-marker beat but with no line draw to wait behind. Under reduced motion
+ * the discs mount at rest and change size at once. The radius is no transform,
+ * so the reduced-motion config of motion does not skip it.
  *
  * @internal
  */
 export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
 	const { lit } = useChartMarkEmphasis()
+
+	const still = usePrefersReducedMotion()
 
 	return list.map(({ index, label, paint, marks, sized }) => (
 		<g key={index} data-slot="chart-scatter-series">
@@ -156,6 +170,7 @@ export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
 					paint={paint}
 					sized={sized}
 					lit={lit(index, datum)}
+					still={still}
 				/>
 			))}
 		</g>
@@ -170,6 +185,7 @@ type AnimatedDiscProps = {
 	paint: ChartPaint
 	sized: boolean
 	lit: boolean
+	still: boolean
 }
 
 /**
@@ -185,6 +201,7 @@ const AnimatedDisc = memo(function AnimatedDisc({
 	paint,
 	sized,
 	lit,
+	still,
 }: AnimatedDiscProps) {
 	return (
 		<motion.circle
@@ -192,12 +209,12 @@ const AnimatedDisc = memo(function AnimatedDisc({
 			cx={cx}
 			cy={cy}
 			{...markProps(paint, sized)}
-			initial={{ r: 0, opacity: 0 }}
+			initial={still ? false : DISC_HIDDEN}
 			// Motion owns the disc's opacity through the pop-in, so the dim rides the
 			// same channel — receding to the class dim's depth — rather than a class
 			// the inline value would override.
 			animate={{ r, opacity: lit ? 1 : DIM_OPACITY }}
-			transition={{ ...POINT_POP, delay: 0 }}
+			transition={still ? DISC_STILL : DISC_POP}
 		/>
 	)
 })

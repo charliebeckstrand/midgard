@@ -66,7 +66,12 @@ describe('Grid page reset on a search', () => {
 			await user.type(screen.getByRole('searchbox'), 'Row 1')
 		})
 
-		await waitFor(() => expect(screen.queryByText('Row 2')).not.toBeInTheDocument())
+		// Page 2 shows Row 6 to Row 10 before the search commits, and the fifth to
+		// the ninth match after it: Row 14 to Row 18. Wait for the commit, so the
+		// check below runs after the reset would have come.
+		await waitFor(() => expect(screen.getByText('Row 14')).toBeInTheDocument())
+
+		expect(screen.queryByText('Row 6')).not.toBeInTheDocument()
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})

@@ -170,10 +170,12 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 
-	it('trims leading and trailing whitespace from the input code', async () => {
-		const { container } = renderUI(<CodeBlock code="   padded   " copy={false} />)
+	it('removes the blank lines around the code, and keeps the indentation of the first line', async () => {
+		const { container } = renderUI(
+			<CodeBlock code={'\n  \n  padded\n    nested\n\n  '} copy={false} />,
+		)
 
-		expect(screen.getByText('padded')).toBeInTheDocument()
+		expect(container.querySelector('pre')?.textContent).toBe('  padded\n    nested')
 
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
@@ -292,7 +294,7 @@ describe('CodeBlock', () => {
 		// The defaults of the block and the trim of the code key the entry, as
 		// they key a block.
 		primeCodeBlock({
-			code: '  primed-token  ',
+			code: '\n\nprimed-token\n\n',
 			html: '<pre class="shiki" data-primed=""><code>primed-token</code></pre>',
 			...DEFAULT_CANVAS,
 		})

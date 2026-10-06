@@ -70,9 +70,9 @@ export type VirtualOptionsProps<T> = {
 	/**
 	 * Stable id for the option at `index`, matching the `id` the rendered
 	 * option carries. Registers a keyboard-navigable item source with the
-	 * nearest roving owner (`Combobox`, `CommandPalette`). Arrow / type-ahead
-	 * therefore reach options outside the rendered window, instead of stopping at
-	 * its edge. Omit to keep the prior DOM-only-roving behavior.
+	 * nearest roving owner (`Listbox`, `Combobox`, `CommandPalette`). Arrow /
+	 * type-ahead therefore reach options outside the rendered window, instead of
+	 * stopping at its edge. Omit to keep the prior DOM-only-roving behavior.
 	 */
 	getOptionId?: (item: T, index: number) => string
 	/** Whether the option at `index` is disabled; a registered item source skips it during navigation. */
@@ -102,9 +102,9 @@ const OVERSCAN = 10
  * still reports the true "n of m" position for a windowed-out row.
  *
  * With `getOptionId`, registers a keyboard-navigable item source with the
- * nearest roving owner (`Combobox`, `CommandPalette`). Arrow / type-ahead then
- * navigate by index and scroll the target into the window, reaching options
- * outside it. Without it, keyboard navigation stays DOM-only, capped at the
+ * nearest roving owner (`Listbox`, `Combobox`, `CommandPalette`). Arrow /
+ * type-ahead then navigate by index and scroll the target into the window,
+ * reaching options outside it. Without it, keyboard navigation stays DOM-only, capped at the
  * rendered window (the pre-existing behavior).
  *
  * @remarks Assumes uniform item heights.

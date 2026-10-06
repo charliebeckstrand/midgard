@@ -426,12 +426,12 @@ describe('AddressInput', () => {
 
 			await clock.advance(0)
 
-			expect(field).toHaveClass('animate-pulse')
+			expect(field).toHaveClass('motion-safe:animate-pulse')
 
 			suggestions.resolve([{ id: '1', label: '123 Main St' }])
 
 			await waitFor(() => {
-				expect(field).not.toHaveClass('animate-pulse')
+				expect(field).not.toHaveClass('motion-safe:animate-pulse')
 			})
 		})
 	})

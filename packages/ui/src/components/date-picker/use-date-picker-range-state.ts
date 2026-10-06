@@ -9,10 +9,14 @@ import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { addDays, addMonths, clampDate, formatRange } from './date-picker-utilities'
+import { clampDate, formatRange, stepDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { useDatePickerFloating } from './use-date-picker-floating'
-import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
+import {
+	type FooterButton,
+	useDatePickerGridEntry,
+	useDatePickerKeyboard,
+} from './use-date-picker-keyboard'
 import { useDatePickerOpen } from './use-date-picker-open'
 
 /**
@@ -99,16 +103,20 @@ export function useDatePickerRangeState({
 		dispatch({ type: 'reset' })
 	}, [])
 
-	const getInitialActiveDate = useCallback(
-		() => clampDate(rangeStart ?? value?.[0] ?? min ?? new Date(), min, max),
-		[rangeStart, value, min, max],
+	// With no range in progress and no value, the cursor starts on today. A `min`
+	// or a `max` only bounds it.
+	const { getInitialActiveDate, getViewEntryDate } = useDatePickerGridEntry(
+		rangeStart ?? value?.[0],
+		min,
+		max,
+		calendarRef,
 	)
 
 	const moveGridDate = useCallback(
 		(delta: number) => {
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
-			const next = clampDate(addDays(base, delta), min, max)
+			const next = clampDate(stepDate(base, { days: delta }), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
@@ -121,7 +129,7 @@ export function useDatePickerRangeState({
 		(delta: number) => {
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
-			const next = clampDate(addMonths(base, delta), min, max)
+			const next = clampDate(stepDate(base, { months: delta }), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
@@ -230,6 +238,7 @@ export function useDatePickerRangeState({
 		moveGridDate,
 		moveGridMonths,
 		getInitialActiveDate,
+		getViewEntryDate,
 		handleSelect,
 		calendarRef,
 		footerButtons,
