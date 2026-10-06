@@ -21,7 +21,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useFloatingPanel` | Base floating-panel hook: `useFloating` + autoUpdate and a standard offset/flip/shift/size middleware chain. A left or right panel that fits on neither side moves to the bottom or the top. |
+| `useFloatingPanel` | Base floating-panel hook: `useFloating` + autoUpdate and a standard offset/flip/shift/size middleware chain. A left or right panel that fits on neither side moves to the bottom or the top. A panel wider than the viewport caps its width 8px inside each edge. |
 | `useFloatingUI` | Floating panel with built-in dismiss + role prop-getters for listbox/combobox/menu/datepicker surfaces. |
 | `useFloatingDisclosure` | Disclosure wrapper over `useFloatingPanel`: controllable open state, trigger ref, focus restore, dismiss + role. |
 | `useDismissable` | Overlay dismiss behavior: Escape (via the dismiss-layer stack) plus pointer-down outside the boundary, sparing a floating surface opened from within it. |
