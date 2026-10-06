@@ -2,6 +2,7 @@ import { type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { DateInput } from '../../components/date-input'
+import { DateInputResetContext } from '../../components/date-input/context'
 import { localeDateInputFormat } from '../../components/date-input/date-input-utilities'
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
@@ -921,5 +922,35 @@ describe('DateInput form reset', () => {
 		expect(input).not.toHaveAttribute('aria-invalid')
 
 		expect(onValidityChange).toHaveBeenLastCalledWith({ isValid: false, isPotentiallyValid: true })
+	})
+
+	// B01-C02: a picker passes the reset count of its Form to a DateInput that has
+	// no `name`, as the relative picker does for its Start and End fields.
+	it('drops a refused partial entry when the reset count from a picker moves', async () => {
+		const user = setupUser()
+
+		const { rerender } = renderUI(
+			<DateInputResetContext value={0}>
+				<DateInput aria-label="Due" />
+			</DateInputResetContext>,
+		)
+
+		const input = screen.getByLabelText('Due')
+
+		await user.type(input, '12/3')
+
+		await user.tab()
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		rerender(
+			<DateInputResetContext value={1}>
+				<DateInput aria-label="Due" />
+			</DateInputResetContext>,
+		)
+
+		expect(input).toHaveValue('')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 })

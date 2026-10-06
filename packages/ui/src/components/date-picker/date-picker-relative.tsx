@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
+import { DateInputResetContext, useDateInputResets } from '../date-input/context'
 import { Field, Label } from '../fieldset'
 import { Icon } from '../icon'
 // Sibling variant reused for the custom range's Start/End fields; safe despite the
@@ -40,6 +41,10 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	} = props
 
 	const state = useDatePickerRelativeState(props)
+
+	// The custom Start and End pickers get no `name`, so the relative picker
+	// passes the reset count of its Form down to their typed fields.
+	const resets = useDateInputResets(props.name)
 
 	// Row count that splits the presets plus the trailing custom row into two
 	// balanced, column-major columns (see the `relative.list` recipe): the leading
@@ -143,17 +148,18 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						</Button>
 					</div>
 				) : (
-					<div className={cn(k.relative.custom.panel)}>
-						<Button
-							type="button"
-							variant="bare"
-							className={cn(k.relative.custom.back)}
-							onClick={state.backToList}
-						>
-							<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
-							Back to presets
-						</Button>
-						{/* Each field is a single-date picker in `input` mode: a typed
+					<DateInputResetContext value={resets}>
+						<div className={cn(k.relative.custom.panel)}>
+							<Button
+								type="button"
+								variant="bare"
+								className={cn(k.relative.custom.back)}
+								onClick={state.backToList}
+							>
+								<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
+								Back to presets
+							</Button>
+							{/* Each field is a single-date picker in `input` mode: a typed
 						    DateInput whose suffix button opens a calendar. The popover
 						    preventDefaults mousedown to hold DOM focus on the dialog for
 						    the calendar variants' virtual model. Stop mousedown here, so a
@@ -161,37 +167,38 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						    and thus the field width — stays fixed as a date is entered.
 						    Each field takes the root `footer`, so a footer button that
 						    the author removes does not show in the field calendars. */}
-						<Field onMouseDown={(event) => event.stopPropagation()}>
-							<Label>Start</Label>
-							<DatePicker
-								input
-								clearable={false}
-								value={state.custom.start ?? undefined}
-								onValueChange={state.custom.onStartChange}
-								readOnly={state.readOnly}
-								onMonthChange={props.onMonthChange}
-								min={props.min}
-								max={state.custom.end ?? props.max}
-								size={size}
-								footer={props.footer}
-							/>
-						</Field>
-						<Field onMouseDown={(event) => event.stopPropagation()}>
-							<Label>End</Label>
-							<DatePicker
-								input
-								clearable={false}
-								value={state.custom.end ?? undefined}
-								onValueChange={state.custom.onEndChange}
-								readOnly={state.readOnly}
-								onMonthChange={props.onMonthChange}
-								min={state.custom.start ?? props.min}
-								max={props.max}
-								size={size}
-								footer={props.footer}
-							/>
-						</Field>
-					</div>
+							<Field onMouseDown={(event) => event.stopPropagation()}>
+								<Label>Start</Label>
+								<DatePicker
+									input
+									clearable={false}
+									value={state.custom.start ?? undefined}
+									onValueChange={state.custom.onStartChange}
+									readOnly={state.readOnly}
+									onMonthChange={props.onMonthChange}
+									min={props.min}
+									max={state.custom.end ?? props.max}
+									size={size}
+									footer={props.footer}
+								/>
+							</Field>
+							<Field onMouseDown={(event) => event.stopPropagation()}>
+								<Label>End</Label>
+								<DatePicker
+									input
+									clearable={false}
+									value={state.custom.end ?? undefined}
+									onValueChange={state.custom.onEndChange}
+									readOnly={state.readOnly}
+									onMonthChange={props.onMonthChange}
+									min={state.custom.start ?? props.min}
+									max={props.max}
+									size={size}
+									footer={props.footer}
+								/>
+							</Field>
+						</div>
+					</DateInputResetContext>
 				)}
 				{/* One footer for both modes. Its Clear shows on a committed span in
 				    list mode and on a settled Start+End in custom mode (gated in the

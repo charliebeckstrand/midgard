@@ -9,6 +9,7 @@ import { k } from '../../recipes/kata/date-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
 import { DateInput, type DateInputFormat } from '../date-input'
+import { DateInputResetContext, useDateInputResets } from '../date-input/context'
 import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
@@ -323,6 +324,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	// the user can type and the keydown stream roves the grid.
 	const inputRef = useRef<HTMLInputElement>(null)
 
+	// The DateInput gets no `name`, so the picker passes the reset count of its
+	// Form down. A reset then drops the typed text, also when the value stays.
+	const resets = useDateInputResets(props.name)
+
 	const { onDialogKeyDown, onReferenceKeyDown } = useDatePickerInputTab({
 		open: open,
 		triggerRef: triggerRef,
@@ -381,39 +386,41 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					className={cn(k.control, className)}
 					{...getReferenceProps({ onKeyDown: onReferenceKeyDown })}
 				>
-					<DateInput
-						ref={inputRef}
-						data-slot="datepicker-input"
-						value={value ?? null}
-						onValueChange={setValue}
-						format={format}
-						min={props.min}
-						max={props.max}
-						size={size}
-						disabled={disabled}
-						readOnly={readOnly}
-						// A field or Control error marks the input. Without one, `undefined`
-						// lets DateInput report its own typed-entry error.
-						invalid={invalid || undefined}
-						clearable={clearable}
-						placeholder={props.placeholder}
-						aria-label={ariaLabel}
-						// Focus stays on the input while the calendar is open, so the same
-						// keydown stream drives the grid highlight; DateInput composes this
-						// ahead of its own Enter-to-commit, which a handled key skips.
-						onKeyDown={onTriggerKeyDown}
-						{...inputAria}
-						suffix={
-							<DatePickerCalendarButton
-								open={open}
-								// readOnly blocks the open, but a controlled `open` can still close.
-								disabled={disabled || (readOnly && !open)}
-								onActivate={() => onOpenChange(!open)}
-							/>
-						}
-						data-group={dataGroup}
-						data-group-orientation={dataGroupOrientation}
-					/>
+					<DateInputResetContext value={resets}>
+						<DateInput
+							ref={inputRef}
+							data-slot="datepicker-input"
+							value={value ?? null}
+							onValueChange={setValue}
+							format={format}
+							min={props.min}
+							max={props.max}
+							size={size}
+							disabled={disabled}
+							readOnly={readOnly}
+							// A field or Control error marks the input. Without one, `undefined`
+							// lets DateInput report its own typed-entry error.
+							invalid={invalid || undefined}
+							clearable={clearable}
+							placeholder={props.placeholder}
+							aria-label={ariaLabel}
+							// Focus stays on the input while the calendar is open, so the same
+							// keydown stream drives the grid highlight; DateInput composes this
+							// ahead of its own Enter-to-commit, which a handled key skips.
+							onKeyDown={onTriggerKeyDown}
+							{...inputAria}
+							suffix={
+								<DatePickerCalendarButton
+									open={open}
+									// readOnly blocks the open, but a controlled `open` can still close.
+									disabled={disabled || (readOnly && !open)}
+									onActivate={() => onOpenChange(!open)}
+								/>
+							}
+							data-group={dataGroup}
+							data-group-orientation={dataGroupOrientation}
+						/>
+					</DateInputResetContext>
 				</div>
 				{content}
 			</>

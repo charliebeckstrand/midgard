@@ -1,13 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormResets } from '../form/context'
+import { useDateInputResets } from './context'
 import { isSameDay } from './date-input-utilities'
 
 type DateInputOverrideOptions = {
 	/** The resolved value. */
 	date: Date | undefined
-	/** The bound Form field. A field without one ignores Form resets. */
+	/**
+	 * The bound Form field. A field without one reads the reset count that an
+	 * enclosing picker passes down, else it ignores Form resets.
+	 */
 	name: string | undefined
 	/** True while the field holds typed text. */
 	editing: boolean
@@ -54,9 +57,7 @@ export function useDateInputOverride({
 	editing,
 	onOverride,
 }: DateInputOverrideOptions): (committed: Date | undefined) => void {
-	const formResets = useFormResets()
-
-	const resets = name === undefined ? 0 : formResets
+	const resets = useDateInputResets(name)
 
 	const [known, setKnown] = useState<DateInputKnown>({ date, resets, commit: undefined })
 
