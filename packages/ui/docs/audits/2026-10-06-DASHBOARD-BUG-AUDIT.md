@@ -1,6 +1,6 @@
 # Bug audit — 2026-10-06 (Dashboard)
 
-Batch 3, the last batch, of the bug audit of the D components of `packages/ui`: the Dashboard module (`packages/ui/src/modules/dashboard`). Two scopes, 39 files, 7,209 lines, 12 claims. Four findings stay open: one medium and three low. Seven claims hold as mechanisms but no consumer root constructs their trigger, so §3.6 of the verifier refutes them on reach; Q0 puts that rule to the reader.
+Batch 3, the last batch, of the bug audit of the D components of `packages/ui`: the Dashboard module (`packages/ui/src/modules/dashboard`). Two scopes, 39 files, 7,209 lines, 12 claims. Five findings stay open: one medium and four low. Seven claims held as mechanisms with no consumer root that constructs their trigger; under the settled reach rule (Q0), B02-C04 counts as reached because its TSDoc names the input, and six stay ruled out.
 
 ## Scope
 
@@ -25,6 +25,7 @@ Intent sources: `CONVENTIONS.md` §3.6, §3.9, §7.2, §7.3, §11.3; `packages/u
 | Blind verify (one `bug-verifier` per scope) | 3 + 9 stripped claims, digest | B01: 2 CONFIRMED, 1 REFUTED. B02: 1 CONFIRMED, 1 NARROWED, 7 REFUTED (on reach) |
 | Overturn (one per scope, with the sweep evidence) | 4 surviving claims | 4 UPHELD; B02-C07 lowered from medium to low; none of the 7 refuted-on-reach claims is recorded as deliberate or known |
 | Merge | 2 sheets | No group merged; 4 independent steps, disjoint file sets |
+| Settle (the reader's answers, word for word) | Q0–Q5 answers | B02-C04 re-judged CONFIRMED low; steps S1–S5 settled; S5 follows S1 (shared file) |
 
 The B01 blind pass ran twice: the first dispatch carried an unexpanded `$(cat)` in place of the claims, and the verifier returned an empty sheet without opening a file. The second dispatch carried the stripped claims.
 
@@ -32,7 +33,7 @@ Prior-art digest: `2026-09-28-CLEANUP-AUDIT.md` E2 (open; `DashboardLayout` has 
 
 ## Findings
 
-Severity: 1 medium, 3 low. Reach: 3 shipped, 1 none.
+Severity: 1 medium, 4 low. Reach: 3 shipped, 2 none.
 
 Status: `◯ OPEN` → `◐ FIXED` (on a branch) → `✅ RESOLVED ([#NNN](…))`.
 
@@ -42,6 +43,7 @@ Status: `◯ OPEN` → `◐ FIXED` (on a branch) → `✅ RESOLVED ([#NNN](…))
 | B01-C01 | `engine/dashboard-drag.ts` | `dragPreview` (`dominantPeer`, `reorderPreview`) | CONFIRMED | low | shipped | independent | ◯ OPEN |
 | B02-C03 | `use-dashboard-drag.ts` | `coordinateGetter` | CONFIRMED | low | shipped | independent | ◯ OPEN |
 | B02-C07 | `use-dashboard-resize.ts` | `beginResize` | NARROWED | low | shipped | independent | ◯ OPEN |
+| B02-C04 | `dashboard-tile.tsx` | `DashboardTile` (`freeHeight`) | CONFIRMED | low | none | independent | ◯ OPEN |
 
 ## Mechanisms
 
@@ -85,74 +87,105 @@ Status: `◯ OPEN` → `◐ FIXED` (on a branch) → `✅ RESOLVED ([#NNN](…))
 - **Severity:** low (lowered from medium by the overturn) — macOS only, a thin splitter, the preview shows the size before the next click commits, and Escape recovers; it heals as a cancel if the browser releases capture.
 - **Prior art:** none.
 
+### B02-C04 — an unusable ratio hides the south splitter
+
+- **File:** `packages/ui/src/modules/dashboard/dashboard-tile.tsx`, `DashboardTile` (the `freeHeight` prop of `DashboardTileEdges`).
+- **Mechanism:** the engine normalizes the ratio at registration (`engine/dashboard-store.ts:457` `replace({ ...state, demands: new Map(state.demands).set(id, usableDemands(demands)) })`, `engine/dashboard-layout.ts:145` `const ratio = usableRatio(demands.ratio)`, `:130` `return ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? ratio : undefined`), and the resize engine reads the normalized value (`engine/dashboard-resize.ts:122` `return edge !== 'e' && ratio === undefined`). The splitter set reads the raw prop: `dashboard-tile.tsx:345` `freeHeight={ratio === undefined}` → `dashboard-tile-edges.tsx:83` `{freeHeight && <DashboardResizeHandle edge="s" {...shared} />}`. The corner, the only other edge that drives height, is hidden from the keyboard (`dashboard-resize-handle.tsx:102-104` `const keyboard = edge === 'se' ? { 'aria-hidden': true }`). It is the only raw read: `use-dashboard-tile-cell.ts:135` `resolveCell(entry, { ratio }, state.columns)` and `toLayoutItem` normalize inside.
+- **Trigger:** `ratio={0 / 0}`, `NaN`, `0`, a negative value, or Infinity, on a JSX tile or through a widget kind (`dashboard-tiles.tsx:242` `ratio={widget?.ratio}`).
+- **Documented intent:** `dashboard-tile.tsx:79-81` "Omit it for a free-form tile, which resizes on both axes. A value that is not a finite number above 0, such as the 0/0 of an image before it loads, counts as no ratio." `dashboard-tile-edges.tsx:32-33` "the south edge shows only on a free-form tile."
+- **Reach:** none in the roots (every consumer `ratio` is `16 / 9`); counted as reached under Q0, because the public TSDoc names the input.
+- **Severity:** low — a keyboard user cannot change the height of that tile, a pointer user keeps the corner, nothing wrong commits, and a transient ratio heals when it turns valid.
+- **Prior art:** none.
+
 ## Root-cause groups
 
-None. The four rows are independent; no two share a file and a symbol.
+None. The five rows are independent; no two share a file and a symbol.
 
 ## Recommended resolution
 
-Merge order S1 → S4. The file sets are disjoint, so the steps can run in parallel.
+Merge order S1 → S5. S1 and S5 both edit `engine/dashboard-layout.ts`, so S5 follows S1; the other file sets are disjoint. Every gate is settled.
 
 ### S1 — closes B01-C02
 
-- **Change:** extend `usableDemands` so a non-finite `defaultSize`, `minSize`, or `maxSize` axis never reaches the canonical cells, `gridArea`, a tidy commit, or the resize range; keep the identity return when every value is usable.
+- **Change:** `usableDemands` checks every axis of `defaultSize`, `minSize`, and `maxSize` with `Number.isFinite`, as it checks `minWidth`. A non-finite `minSize` or `maxSize` axis becomes absent, and an object with no axis left becomes `undefined` (as `bound()` in `use-dashboard-tile-cell.ts` does). A non-finite `defaultSize.h` becomes absent; `defaultSize.w` is required, so a non-finite `w` takes `DEFAULT_CELL_WIDTH`. When every value is usable, it returns the same object (`:151`). The TSDoc summary of `usableDemands` names the new fields. No change in `dashboard-resize.ts`.
 - **Rows closed:** B01-C02.
-- **Files:** `packages/ui/src/modules/dashboard/engine/dashboard-layout.ts`; `packages/ui/src/__tests__/modules/dashboard-store.test.ts`; optionally `packages/ui/src/__tests__/geometry/dashboard-layout-properties.test.ts`. Under Q1 (b), also `engine/dashboard-resize.ts` and `__tests__/geometry/dashboard-resize.test.ts`.
-- **Order:** first; the only medium row, and the only one that writes bad data to the saved layout.
+- **Files:** `packages/ui/src/modules/dashboard/engine/dashboard-layout.ts`; `packages/ui/src/__tests__/modules/dashboard-store.test.ts`.
+- **Order:** first; the only medium row, and S5 shares its file.
 - **Depends on:** none.
-- **Gate:** Q0, Q1.
-- **Test seam:** `createDashboardStore(…).register(…)`, then `getView().canonical`; synchronous.
+- **Gate:** settled (Q0, Q1).
+- **Test seam:** `createDashboardStore(…).register(id, { defaultSize: { w: NaN }, minSize: { w: Infinity }, maxSize: { h: NaN } })`, then `getView().canonical`: the cell is finite, at `DEFAULT_CELL_WIDTH`; a clean registration returns the same demands object.
 
 ### S2 — closes B01-C01
 
-- **Change:** make the reorder test independent of the snapshot order at a half-coverage tie, by the rule Q2 picks; add the [A, C, B] and [A, B, C] boards as a test.
+- **Change:** pass `origin` to `dominantPeer` (its only caller is `:265`). At equal overlap area, prefer an eligible peer (not `static`, `w` and `h` equal to `origin`) over an ineligible one: replace the strict `:211` `if (area > most) {` with "greater, or equal and this peer is eligible while the kept one is not". An eligible peer ties the maximum only at exactly half coverage, so the change stays in that tie. `reorderPreview` stays as is.
 - **Rows closed:** B01-C01.
 - **Files:** `packages/ui/src/modules/dashboard/engine/dashboard-drag.ts`; `packages/ui/src/__tests__/geometry/dashboard-drag.test.ts`.
 - **Order:** second.
 - **Depends on:** none.
-- **Gate:** Q2.
-- **Test seam:** `dragPreview` is a pure function.
+- **Gate:** settled (Q2).
+- **Test seam:** 24 columns, A 8×8 at (0,0), B 8×8 at (8,0), C 8×12 at (16,0); `dragPreview(snapshot, 'A', 12, 0, 24)` with the order [A, C, B] and with [A, B, C] both return `kind: 'shift', partner: 'B'`.
 
 ### S3 — closes B02-C03
 
-- **Change:** start each keyboard step from the clamped offset, not the raw dnd-kit position, where Q3 says.
+- **Change:** `coordinateGetter` starts each step from the clamped position. Keep the last raw `event.delta` of `handleDragMove` in a ref, set before the dedupe return at `:205` and reset at drag start and end. In the getter, compute `clamped = travelOffset(origin, delta, travel, pitch, inline)` from `store.getView()` and the gesture, as `:188-196` does, and return `currentCoordinates + (clamped − delta) + step`. No change to `modifiers`, the pointer path, or the announcements.
 - **Rows closed:** B02-C03.
-- **Files:** `packages/ui/src/modules/dashboard/use-dashboard-drag.ts`; `packages/ui/src/__tests__/modules/use-dashboard-drag.test.ts`. Under Q3 (b), also `__tests__/modules/dashboard-announcements.test.ts`.
+- **Files:** `packages/ui/src/modules/dashboard/use-dashboard-drag.ts`; `packages/ui/src/__tests__/modules/use-dashboard-drag.test.ts`.
 - **Order:** third.
 - **Depends on:** none.
-- **Gate:** Q3.
-- **Test seam:** the getter is a synchronous `KeyboardCoordinateGetter`; a test passes `currentCoordinates` past the travel range and asserts the next opposite step.
+- **Gate:** settled (Q3).
+- **Test seam:** `context.onDragStart?.(start('alpha'))`, `context.onDragMove?.(move('alpha', <past travel.maxX>))`, then the getter with `currentCoordinates` at that overshoot and `ArrowLeft`: one pitch inside the clamped edge.
 
 ### S4 — closes B02-C07
 
-- **Change:** `beginResize` refuses `!event.isPrimary || event.button !== 0 || event.ctrlKey`, the guard of `PrimaryPointerSensor`.
+- **Change:** replace `use-dashboard-resize.ts:115` `if (event.button !== 0) return` with `if (!event.isPrimary || event.button !== 0 || event.ctrlKey) return`, inline.
 - **Rows closed:** B02-C07.
-- **Files:** `packages/ui/src/modules/dashboard/use-dashboard-resize.ts`; `packages/ui/src/__tests__/modules/dashboard-resize-pointer.test.tsx`. Under Q4 (b), also `packages/ui/src/hooks/use-sortable-sensors.ts` and `__tests__/hooks/use-sortable-sensors.test.ts`.
-- **Order:** last; Q5 can make it optional.
+- **Files:** `packages/ui/src/modules/dashboard/use-dashboard-resize.ts`; `packages/ui/src/__tests__/modules/dashboard-resize-pointer.test.tsx`.
+- **Order:** fourth.
 - **Depends on:** none.
-- **Gate:** Q4, Q5.
-- **Test seam:** `fireEvent.pointerDown(east, { button: 0, ctrlKey: true, isPrimary: true })`, then assert that `onResizeStart` was not called.
+- **Gate:** settled (Q4; Q5 no longer gates).
+- **Test seam:** `fireEvent.pointerDown(east, { button: 0, ctrlKey: true, isPrimary: true })`, and separately `{ button: 0, isPrimary: false }`: `onResizeStart` is not called and `store.getState().gesture` is `null`.
+
+### S5 — closes B02-C04
+
+- **Change:** export `usableRatio` from `engine/dashboard-layout.ts` (a named export of the module file only; `modules/dashboard/index.ts` does not re-export it, so the public surface does not change), and set `dashboard-tile.tsx:345` to `freeHeight={usableRatio(ratio) === undefined}`. Read the prop, not the store's `demand.ratio`: the edges render before registration on the server and in the hydration render.
+- **Rows closed:** B02-C04.
+- **Files:** `packages/ui/src/modules/dashboard/dashboard-tile.tsx`; `packages/ui/src/modules/dashboard/engine/dashboard-layout.ts` (export only); `packages/ui/src/__tests__/modules/dashboard.test.tsx`.
+- **Order:** fifth, after S1 (shared file).
+- **Depends on:** S1, for merge order only.
+- **Gate:** settled (Q0).
+- **Test seam:** beside "gives each edge a keyboard splitter, and no south edge to a ratio tile" in `dashboard.test.tsx`, render an editing board with a tile `ratio={0 / 0}`: two `separator`s named `Resize <label>`, and ArrowDown on the horizontal one changes `aria-valuenow`.
 
 ## Open questions
 
 **Q0 — the reach rule.** The B02 verifier applied §3.6 of `bug-verifier.md` strictly: a trigger no consumer root constructs refutes the claim. Seven B02 claims hold as mechanisms and fall on that rule alone. The B01 verifier confirmed B01-C02, whose reach is also none. Axes: (a) strict — B01-C02 goes to a re-judge under the rule and likely moves to Ruled out; (b) count a trigger that the public TSDoc names as a supported input — B01-C02 stays, and B02-C04 (the TSDoc names `0/0` as a ratio) is re-judged; (c) count any trigger the public API can construct — the seven B02 claims are re-judged as findings.
 
+*Answer:* "Documented inputs (Recommended)": "A trigger counts as reached when the public TSDoc names it as a supported input. B01-C02 stays, and B02-C04 (the TSDoc names a 0/0 ratio) is re-judged as a finding. The other six stay ruled out."
+
 **Q1 — S1: what a bad span axis becomes.** (a) Absent, so the axis falls back to its default, as `ratio` and `minWidth` do; (b) rounded or clamped and kept, which needs a guard in `dashboard-resize.ts` too. Sub-axis: whether `maxSize` takes the same rule.
+
+*Answer:* "Absent, all three (Recommended)": "The axis drops and falls back to its default, as ratio and minWidth already do. The same rule applies to maxSize, and the change stays in dashboard-layout.ts plus the store test."
 
 **Q2 — S2: what wins a half-coverage tie.** (a) The eligible equal-span peer, so the half-coverage reorder always engages; (b) any tie with an ineligible peer is no reorder.
 
+*Answer (with Q3):* "Eligible peer + getter (Recommended)": "S2: the equal-span peer wins, so the half-coverage reorder always engages, as the @remarks says. S3: clamp inside coordinateGetter, for the keyboard only, so the pointer keeps its deliberate overshoot."
+
 **Q3 — S3: where the clamp goes.** (a) In `coordinateGetter`, keyboard only, keeping the pointer overshoot; (b) a dnd-kit `modifiers` entry, which clamps the pointer too and changes the announcement delta.
+
+*Answer:* see Q2.
 
 **Q4 — S4: where the guard lives.** (a) Inline in `beginResize`; (b) one predicate exported from `hooks/use-sortable-sensors.ts` (not from `hooks/index.ts`) and used by both.
 
+*Answer (with Q5):* "Inline guard now (Recommended)": "Ship the guard (!isPrimary || button !== 0 || ctrlKey) inline in beginResize, without waiting for the browser fact. It is cheap hardening that matches PrimaryPointerSensor."
+
 **Q5 — S4: the browser fact.** Does a native context menu over a captured pointer fire `lostpointercapture` or `pointercancel` on macOS Chrome, Safari, and Firefox? Yes in all: the defect heals as a cancel and S4 is optional hardening. No in any: S4 stands.
+
+*Answer:* see Q4. The fact stays unverified and no longer gates S4.
 
 ## Ruled out
 
 - **B01-C03** (`mergeLayout` rewrites the entry of a tile that is not mounted): `dashboard-gesture.ts:108` `const stale = gesture !== null && !sameGeometry(store.getView().canonical, gesture.snapshot)` cancels a gesture over a changed tile set; tidy commits only `canonical` (`use-dashboard-handle.ts:38` `const cells = tidyCells(canonical)`) and refuses during a gesture (`:34`).
 - **B02-C01** (a throwing `onResizeStart` strands the resize gesture): the mechanism holds (`use-dashboard-resize.ts:188` `reportResizeStart({ id, layout })` runs before `:265` `live.current = { id, finish }`); no consumer root passes `onResizeStart`. Dropped part: "the splitter keeps pointer capture" (capture ends at `pointerup`).
 - **B02-C02** (a throwing `onDragStart` strands the drag gesture): the mechanism holds (`use-dashboard-drag.ts:176` `reportDragStart({ id, layout })` throws inside the dnd-kit start batch before its `DragStart` dispatch); no consumer root passes `onDragStart`.
-- **B02-C04** (a `0/0` ratio hides the south splitter): the mechanism holds (`dashboard-tile.tsx:345` `freeHeight={ratio === undefined}` reads the raw prop); every consumer `ratio` is the literal `16 / 9`.
 - **B02-C05** (a headerless tile has no Clear control): the mechanism holds (`dashboard-tile-card.tsx:160` `{hasHeader && (`); every consumer tile has a header row.
 - **B02-C06** (`instanceof Element` fails across realms): the mechanism holds (`use-dashboard-tile-drag.ts:33` `if (!(target instanceof Element) || !currentTarget.contains(target)) return true`); no consumer renders a board into another document.
 - **B02-C07, dropped part:** "or a non-primary pointer" — the stranding needs a context menu, and `dashboard-gesture.ts:67` `if (canvas === null || store.getState().gesture !== null) return null` refuses a second concurrent gesture.
@@ -163,8 +196,8 @@ Merge order S1 → S4. The file sets are disjoint, so the steps can run in paral
 
 - **Verifier (B01):** while a NaN cell exists, every drag and pointer resize ends canceled with no message (`dashboard-layout.ts:575` against `dashboard-gesture.ts:108`). S1 removes the cause.
 - **Verifier (B01):** with a NaN `minSize.w`, the splitter ARIA values from `resizeRange` (`dashboard-tile-edges.tsx`) are likely NaN. S1 removes the cause.
-- **Verifier (B02):** `beginResize` and `handleDragStart` set the store gesture before the app callback, and `tidy` announces before its commit (B02-C01, C02, C08). Refuted on reach only; Q0 decides.
-- **Verifier (B02):** `DashboardTile` reads the raw `ratio` in other places too, for example the pre-registration cell at `use-dashboard-tile-cell.ts:135` `resolveCell(entry, { ratio }, state.columns)`; not traced.
+- **Verifier (B02):** `beginResize` and `handleDragStart` set the store gesture before the app callback, and `tidy` announces before its commit (B02-C01, C02, C08). Refuted on reach; Q0 keeps them ruled out.
+- **Verifier (settle):** at a tie between two eligible equal-span peers, the first in array order still wins; both outcomes reorder, so B01-C01's wrong result cannot occur.
 - **Verifier (B02 overturn):** a headerless tile also has no widget header-actions slot; deliberate (`dashboard-tile.tsx:191-192`), a neighbor of B02-C05.
 - **Verifier (B02 overturn):** the stock `sortableKeyboardCoordinates` in `hooks/use-sortable-sensors.ts` may carry the same unclamped accumulation as B02-C03 for other dnd-kit consumers; a cross-component probe.
 - **Verifier (merge):** `modules/grid/grid-column-header.tsx:43` cites the same macOS Ctrl-click shape; under Q4 (b), a third caller of a shared predicate.
