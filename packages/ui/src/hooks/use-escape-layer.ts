@@ -7,6 +7,7 @@ import {
 	registerDismissLayer,
 } from '../utilities/dismiss-layers'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
+import { isComposing } from '../utilities/is-composing'
 
 /** Options for {@link useEscapeLayer}: where the layer sits in the dismiss stack and what an Escape press does there. */
 export type EscapeLayerOptions = {
@@ -28,7 +29,8 @@ export type EscapeLayerOptions = {
  * Escape-key dismissal routed through the shared dismiss-layer stack, so
  * stacked surfaces (menu in dialog, dialog over sheet) close one per press,
  * innermost first. Presses a consumer already handled (`preventDefault`)
- * are ignored.
+ * are ignored. The layer also ignores an Escape that is part of an IME
+ * composition, because the IME uses that key to cancel the composition.
  *
  * @remarks
  * `onDismiss` is raised through an effect event, so the press always reaches
@@ -64,6 +66,9 @@ export function useEscapeLayer({
 
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.key !== 'Escape' || event.defaultPrevented) return
+
+			// An IME uses Escape to cancel a composition, so the key belongs to the textbox.
+			if (isComposing({ keyCode: event.keyCode, nativeEvent: event })) return
 
 			if (layered && !isTopDismissLayer(layer)) return
 

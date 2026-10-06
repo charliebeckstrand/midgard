@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel } from '../../components/color'
 import type { Hsva } from '../../components/color/types'
+import { Fieldset } from '../../components/fieldset'
 import { fireEvent, getSlot, renderUI } from '../helpers'
 
 const start: Hsva = { h: 120, s: 50, v: 50, a: 1 }
@@ -127,6 +128,32 @@ describe('ColorArea', () => {
 		expect(thumb.style.left).toBe('30%')
 
 		expect(thumb.style.top).toBe('20%')
+	})
+
+	// A disabled `<fieldset>` disables only its native controls, and the area is a
+	// `<div>`. The Form uses the fieldset as its lock while it submits.
+	it('ignores keys and presses under a disabled fieldset', () => {
+		const onValueChange = vi.fn<(value: Hsva) => void>()
+
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<ColorPanel format="hsva" defaultValue={start} onValueChange={onValueChange} />
+			</Fieldset>,
+		)
+
+		const area = getSlot(container, 'color-area')
+
+		area.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 100 })
+
+		fireEvent.keyDown(area, { key: 'End' })
+
+		expect(area).toHaveAttribute('aria-valuenow', '50')
+
+		fireEvent.pointerDown(area, { button: 0, pointerId: 1, clientX: 50, clientY: 25 })
+
+		expect(area).toHaveAttribute('aria-valuenow', '50')
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('leaves the tab order, marks itself disabled, and ignores keys', () => {

@@ -1,9 +1,23 @@
-import type { ReactElement } from 'react'
+import { Profiler, type ReactElement, useLayoutEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import type { CodeBlockVariants } from '../../components/code'
 import { CodeBlock, primeCodeBlock } from '../../components/code/code-block'
-import { act, attach, bySlot, renderUI, screen, tick, waitFor } from '../helpers'
+import {
+	act,
+	attach,
+	bySlot,
+	densityStepOf,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+	tick,
+	waitFor,
+} from '../helpers'
 import { highlight } from '../mocks/shiki'
 
 // The worker port of `CodeBlock` is mocked globally in setup/module-mocks.ts,
@@ -11,6 +25,24 @@ import { highlight } from '../mocks/shiki'
 // would bleed across files (see markdown.test.tsx for the failure it caused).
 // The `loadShiki` cases need their own registry, so they sit in
 // boundary/code-block-load-shiki.test.ts, which runs on forks.
+
+/**
+ * Sets `navigator.clipboard` for the current case. `undefined` removes the
+ * Clipboard API, as an insecure origin does.
+ *
+ * @remarks
+ * `onTestFinished` restores the property, also after a case that times out.
+ */
+function stubClipboard(clipboard: { writeText: (value: string) => Promise<void> } | undefined) {
+	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
+
+	Object.defineProperty(window.navigator, 'clipboard', { configurable: true, value: clipboard })
+
+	onTestFinished(() => {
+		if (original) Object.defineProperty(window.navigator, 'clipboard', original)
+		else delete (window.navigator as { clipboard?: unknown }).clipboard
+	})
+}
 
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {
@@ -29,6 +61,62 @@ describe('CodeBlock', () => {
 		const { container } = renderUI(<CodeBlock code="x" className="custom" />)
 
 		expect(bySlot(container, 'code-block')?.className).toContain('custom')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
+	// TypeScript does not report an unknown `data-*` or `aria-*` attribute, so a
+	// closed surface drops it with no error.
+	it('passes the <div> attributes to its root', async () => {
+		const { container } = renderUI(
+			<CodeBlock
+				code="const attrs = 1"
+				id="attrs-block"
+				data-testid="attrs-block"
+				aria-describedby="attrs-note"
+			/>,
+		)
+
+		const el = bySlot(container, 'code-block')
+
+		expect(el).toHaveAttribute('id', 'attrs-block')
+
+		expect(el).toHaveAttribute('data-testid', 'attrs-block')
+
+		expect(el).toHaveAttribute('aria-describedby', 'attrs-note')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
+	// The frame takes the background of the theme in its style, so the block
+	// merges that style with the style of the caller.
+	it('keeps the style of the caller when the theme paints the frame', () => {
+		primeCodeBlock({
+			code: 'style-token',
+			theme: 'github-light-default',
+			html: '<pre class="shiki" style="background-color:#ffffff;color:#1f2328" data-primed=""><code>style-token</code></pre>',
+		})
+
+		const { container } = renderUI(
+			<CodeBlock
+				code="style-token"
+				theme="github-light-default"
+				copy={false}
+				style={{ maxWidth: 320 }}
+			/>,
+		)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(getSlot(container, 'code-block').style.maxWidth).toBe('320px')
+	})
+
+	it('lets a wrapper re-anchor it with its own data-slot', async () => {
+		const { container } = renderUI(<CodeBlock code="const anchor = 1" data-slot="snippet" />)
+
+		expect(bySlot(container, 'snippet')?.tagName).toBe('DIV')
+
+		expect(bySlot(container, 'code-block')).toBeNull()
 
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
@@ -54,6 +142,24 @@ describe('CodeBlock', () => {
 		const { container } = renderUI(<CodeBlock code="x" copy={false} />)
 
 		expect(screen.queryByLabelText('Copy to clipboard')).not.toBeInTheDocument()
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
+	// A refused copy leaves the button at rest, which looks the same as no copy.
+	// A frame with no clipboard-write permission refuses the write, and an
+	// insecure origin has no Clipboard API.
+	it.each([
+		['refuses the write', { writeText: vi.fn().mockRejectedValue(new Error('denied')) }],
+		['has no Clipboard API', undefined],
+	])('announces a refused copy when the platform %s', async (_, clipboard) => {
+		stubClipboard(clipboard)
+
+		const { container } = renderUI(<CodeBlock code="refused-copy-token" />)
+
+		fireEvent.click(present(bySlot(container, 'copy-button'), 'copy button'))
+
+		await expectAnnouncement('Copy failed')
 
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
@@ -191,6 +297,124 @@ describe('CodeBlock', () => {
 		expect(highlight.mock.calls.length).toBe(calls)
 	})
 
+	it('commits a block that hits the cache once, with no second render', () => {
+		primeCodeBlock({
+			code: 'one-commit-token',
+			html: '<pre class="shiki" data-primed=""><code>one-commit-token</code></pre>',
+		})
+
+		const onRender = vi.fn()
+
+		const { container } = renderUI(
+			<Profiler id="code-block" onRender={onRender}>
+				<CodeBlock code="one-commit-token" copy={false} />
+			</Profiler>,
+		)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		// The effect finds the entry that the block holds, so it starts no render.
+		expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual(['mount'])
+	})
+
+	it('keeps the cached markup of a block after the cache evicts it', () => {
+		const calls = highlight.mock.calls.length
+
+		primeCodeBlock({
+			code: 'evicted-token',
+			html: '<pre class="shiki" data-primed=""><code>evicted-token</code></pre>',
+		})
+
+		const { container, rerender } = renderUI(<CodeBlock code="evicted-token" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		// The cache holds 200 entries. That many new snippets evict each older entry.
+		for (let i = 0; i < 200; i++) {
+			primeCodeBlock({ code: `evict-filler-${i}`, html: '<pre></pre>' })
+		}
+
+		// The code does not change, so the effect of the block does not run again.
+		rerender(<CodeBlock code="evicted-token" copy={false} className="again" />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
+	it('evicts no entry when a write replaces a cached snippet', () => {
+		const calls = highlight.mock.calls.length
+
+		// 200 new snippets fill the cache, and `rewrite-0` is its oldest entry.
+		for (let i = 0; i < 200; i++) {
+			primeCodeBlock({
+				code: `rewrite-${i}`,
+				html: `<pre class="shiki" data-primed=""><code>rewrite-${i}</code></pre>`,
+			})
+		}
+
+		// The key is in the cache, so the write adds no entry.
+		primeCodeBlock({ code: 'rewrite-199', html: '<pre></pre>' })
+
+		const { container } = renderUI(<CodeBlock code="rewrite-0" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
+	it('keeps the place of a cached snippet that a write replaces', () => {
+		const calls = highlight.mock.calls.length
+
+		// 200 new snippets fill the cache, and `order-0` is its oldest entry.
+		for (let i = 0; i < 200; i++) {
+			primeCodeBlock({
+				code: `order-${i}`,
+				html: `<pre class="shiki" data-primed=""><code>order-${i}</code></pre>`,
+			})
+		}
+
+		// `order-0` stays the oldest entry, so the next new snippet evicts it, and
+		// `order-1` stays.
+		primeCodeBlock({ code: 'order-0', html: '<pre></pre>' })
+
+		primeCodeBlock({ code: 'order-new', html: '<pre></pre>' })
+
+		const { container } = renderUI(<CodeBlock code="order-1" copy={false} />)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
+	it('paints markup that the cache gets after the render and before the effect', () => {
+		const calls = highlight.mock.calls.length
+
+		// A layout effect runs in the commit, before each passive effect. The block
+		// thus renders with no entry and finds the entry in its effect.
+		function PrimeInCommit() {
+			useLayoutEffect(() => {
+				primeCodeBlock({
+					code: 'late-token',
+					html: '<pre class="shiki" data-primed=""><code>late-token</code></pre>',
+				})
+			}, [])
+
+			return null
+		}
+
+		const { container } = renderUI(
+			<>
+				<CodeBlock code="late-token" copy={false} />
+				<PrimeInCommit />
+			</>,
+		)
+
+		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
+
+		expect(highlight.mock.calls.length).toBe(calls)
+	})
+
 	it('keeps primed markup to its own language and theme', async () => {
 		primeCodeBlock({
 			code: 'primed-lang-token',
@@ -205,6 +429,35 @@ describe('CodeBlock', () => {
 		expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'tsx')
 
 		expect(container.querySelector('[data-primed]')).toBeNull()
+	})
+})
+
+// CodeBlockVariants gives the `size` axis of inline Code. A JSX spread gets no
+// excess-property check, so a spread of the variants compiles on the block also
+// when the block has no `size`. The step must then open a density scope.
+describe('CodeBlock size', () => {
+	it('opens a scope for the size of its variants', async () => {
+		const variants: CodeBlockVariants = { size: 'lg' }
+
+		const { container } = renderUI(<CodeBlock code="const step = 1" {...variants} />)
+
+		const block = getSlot(container, 'code-block')
+
+		expect(block).toHaveAttribute('data-density', 'lg')
+
+		expect(block).not.toHaveAttribute('size')
+
+		expect(densityStepOf(present(block.firstElementChild, 'scroll container'))).toBe('lg')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+	})
+
+	it('opens no scope with no size, so it takes the step of the nearest scope', async () => {
+		const { container } = renderUI(<CodeBlock code="const scope = 1" />)
+
+		expect(getSlot(container, 'code-block')).not.toHaveAttribute('data-density')
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 })
 

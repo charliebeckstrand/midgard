@@ -74,7 +74,6 @@ export function ColorPickerContent({
 				{...k.content.motion}
 				data-slot="color-picker-content"
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
-				onMouseDown={(event) => event.preventDefault()}
 			>
 				<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg" p="md">
 					{children}

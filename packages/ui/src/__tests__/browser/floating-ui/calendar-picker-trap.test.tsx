@@ -26,12 +26,13 @@ describe('a11y focus trap (real browser): calendar month picker', () => {
 
 		const panel = jun.closest('[data-slot="popover-content"]') as HTMLElement
 
-		// Backward Tab from the picker's first tabbable wraps to its last.
+		// Backward Tab from the picker's first tabbable wraps to its last. The month
+		// listbox is one Tab stop, on the selected month.
 		screen.getByRole('button', { name: 'Previous year' }).focus()
 
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 
-		await waitFor(() => expect(screen.getByRole('option', { name: 'Dec' })).toHaveFocus())
+		await waitFor(() => expect(jun).toHaveFocus())
 
 		expect(panel.contains(document.activeElement)).toBe(true)
 

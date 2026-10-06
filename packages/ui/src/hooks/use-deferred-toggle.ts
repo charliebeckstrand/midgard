@@ -17,7 +17,8 @@ export type DeferredToggleOptions<T> = {
 	/**
 	 * Whether the menu is open. A transition back to `true` clears the freeze;
 	 * a reopen interrupts the exit animation and `onExitComplete` (and thus
-	 * `flushPending`) never fires.
+	 * `flushPending`) never fires. While it is `true`, `selectionValue` gives the
+	 * live value, because a controlled owner can keep the menu open after a pick.
 	 */
 	open?: boolean
 }
@@ -27,6 +28,7 @@ export type DeferredToggleOptions<T> = {
  * to the control immediately. The value the *menu* renders as selected stays
  * frozen at a snapshot taken at selection time, until the panel finishes its
  * exit animation. That holds the selected row steady during the ~300ms close.
+ * The menu reads the snapshot only while `open` is not `true`.
  *
  * Read `selectionValue` for the menu's selected state and wire `flushPending` to
  * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly for

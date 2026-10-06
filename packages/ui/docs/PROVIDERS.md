@@ -75,7 +75,7 @@ Broadcasts `Intl` formatting defaults; explicit component props still win. This 
 
 | Export | Summary |
 |---|---|
-| `LocaleProvider` | Broadcasts `Intl` formatting defaults (locale tag, currency, number and date options); explicit component props still win. The default number formats of charts, maps, PivotTable, grid aggregates, and Odometer take its `locale`. Its `dir` writes the direction of a region on a `contents` wrapper and opens a direction scope. Thus dialogs, menus, and panels that the region opens keep the direction across their portals. |
+| `LocaleProvider` | Broadcasts `Intl` formatting defaults (locale tag, currency, number and date options); explicit component props still win. The default number formats of charts, maps, PivotTable, grid aggregates, and Odometer take its `locale`. Its `dir` writes the direction of a region on a `contents` wrapper and opens a direction scope. Thus dialogs, menus, and panels that the region opens keep the direction across their portals. On a page that renders on a server, set its `locale`. Without a locale, the server markup and the hydration render can use different runtime defaults. |
 | `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields and an optional `dir`. |
 | `LocaleConfig` *(type)* | Ambient `Intl` defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`. Every field feeds an `Intl.*` formatter, and none holds strings. A nested provider folds over the enclosing config per field. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |

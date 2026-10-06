@@ -66,6 +66,15 @@ export type MenuProps = {
 	 * @defaultValue true
 	 */
 	sheet?: boolean
+	/**
+	 * Turn off a context menu, but keep its wrapper. The content under the
+	 * wrapper keeps its state, and a right-click or a long press opens the native
+	 * menu of the browser. A menu that is open closes. `ContextMenu` sets it. A
+	 * dropdown and a static menu ignore it.
+	 * @defaultValue false
+	 * @internal
+	 */
+	disabled?: boolean
 	className?: string
 	children: ReactNode
 }
@@ -77,6 +86,9 @@ export type MenuProps = {
  * inline menu when `defaultOpen` is set. A context menu also opens on a touch
  * long press, because iOS Safari fires no `contextmenu` event for one. A long
  * press on a chart does nothing, and a long press on a map opens its readout.
+ * A context menu that a key opens (the ContextMenu key or Shift+F10) returns
+ * focus to the element that held it when the menu closes. A context menu that
+ * the pointer opens leaves focus where it falls.
  *
  * @remarks
  * The mode comes from prop presence by design. The three modes take one prop
@@ -96,16 +108,25 @@ export function Menu({
 	size,
 	capped = false,
 	sheet = true,
+	disabled = false,
 	className,
 	children,
 }: MenuProps) {
-	const { state, actions, handleContextMenu, isContextMenu } = useMenuState({
+	const {
+		state,
+		actions,
+		handleContextMenu,
+		handleContextKeyDown,
+		handleContextPointerDown,
+		isContextSurface,
+	} = useMenuState({
 		open,
 		defaultOpen,
 		onOpenChange,
 		placement,
 		size,
 		sheet,
+		disabled,
 	})
 
 	const touchContextMenu = useMenuTouchHold()
@@ -132,11 +153,22 @@ export function Menu({
 							// grid container the caller placed the menu in, breaking alignment.
 							// A context surface turns off the iOS callout, because a long press
 							// there opens the menu. The property inherits through `contents`.
-							className={cn('contents', isContextMenu && '[-webkit-touch-callout:none]', className)}
+							className={cn(
+								'contents',
+								isContextSurface && '[-webkit-touch-callout:none]',
+								className,
+							)}
 							// No role: the wrapper holds arbitrary page content and implements no
 							// keyboard model of its own. Stamping role="application" here would
 							// suppress AT browse-mode for everything inside it, so it is omitted.
-							{...(isContextMenu && { ...touchContextMenu, onContextMenu: handleContextMenu })}
+							// The key and press captures only record how the next open starts, so
+							// the menu knows whether to restore focus when it closes.
+							{...(isContextSurface && {
+								...touchContextMenu,
+								onContextMenu: handleContextMenu,
+								onKeyDownCapture: handleContextKeyDown,
+								onPointerDownCapture: handleContextPointerDown,
+							})}
 						>
 							{children}
 						</Root>

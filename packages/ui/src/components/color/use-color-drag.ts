@@ -1,6 +1,12 @@
 'use client'
 
-import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
+import {
+	type MouseEvent as ReactMouseEvent,
+	type PointerEvent as ReactPointerEvent,
+	type RefObject,
+	useCallback,
+	useRef,
+} from 'react'
 import { type DragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { clamp } from '../../utilities'
 
@@ -9,11 +15,47 @@ export type DragPosition = { x: number; y: number }
 
 /** Pointer-event bindings for a draggable track; spread onto the tracked element. */
 export type ColorDragHandlers = {
+	/**
+	 * Cancels the mousedown of a press, so the press does not move the focus that
+	 * the drag gives. Only a drag surface holds the press. Each other part of a
+	 * panel takes the focus of a press, as a native control does.
+	 */
+	onMouseDown: (event: ReactMouseEvent<HTMLElement>) => void
 	onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerCancel: (event: ReactPointerEvent<HTMLElement>) => void
 	onLostPointerCapture: () => void
+}
+
+/**
+ * Whether a disabled ancestor `<fieldset>` disables `element`, by the rule that
+ * disables a native control. A control in the first `<legend>` of the fieldset
+ * stays enabled.
+ *
+ * @remarks
+ * A `<div>` does not match `:disabled`, so a track or the area reads its
+ * fieldsets when an event occurs. The check keeps no state, so the tab stop
+ * does not change.
+ * @internal
+ */
+export function inDisabledFieldset(element: Element): boolean {
+	for (
+		let fieldset = element.closest('fieldset');
+		fieldset;
+		fieldset = fieldset.parentElement?.closest('fieldset') ?? null
+	) {
+		if (fieldset.disabled && !fieldset.querySelector(':scope > legend')?.contains(element)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+/** The `onMouseDown` of {@link ColorDragHandlers}. @internal */
+function holdPress(event: ReactMouseEvent<HTMLElement>): void {
+	event.preventDefault()
 }
 
 /**
@@ -24,13 +66,16 @@ export type ColorDragHandlers = {
  *
  * @param ref - The tracked element; its bounding rect normalizes pointer coordinates.
  * @param onPosition - Receives the clamped `0-1` position on press and on each tracked move.
- * @param disabled - When set, press is ignored and no drag begins.
+ * @param disabled - When set, press is ignored and no drag begins. A disabled
+ *   ancestor `<fieldset>` has the same effect (see {@link inDisabledFieldset}).
  * @param cursor - The cursor of the track at rest, which the page holds while the press holds.
  * @returns The {@link ColorDragHandlers} bag to spread onto `ref`'s element.
  * @remarks
  * `onPointerDown` calls `preventDefault` and focuses `ref` synchronously, so the
  * primary-button press doubles as the keyboard-focus path (WAI-ARIA slider). It
- * fires `onPosition` immediately on press, before any move. Tracking persists
+ * fires `onPosition` immediately on press, before any move. `preventScroll` stops
+ * a scroll into view. A scroll moves the rect of `ref` below the pointer, so the
+ * press position is off by the scroll distance. Tracking persists
  * past the element's bounds via pointer capture; `lostpointercapture` is the
  * authoritative reset, covering normal release, browser-claimed gestures
  * (`pointercancel`), and node removal mid-drag. Non-primary buttons are ignored.
@@ -62,11 +107,11 @@ export function useColorDrag(
 
 	const onPointerDown = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
-			if (disabled || event.button !== 0) return
+			if (disabled || event.button !== 0 || inDisabledFieldset(event.currentTarget)) return
 
 			event.preventDefault()
 
-			ref.current?.focus()
+			ref.current?.focus({ preventScroll: true })
 			event.currentTarget.setPointerCapture(event.pointerId)
 
 			dragging.current = true
@@ -110,6 +155,7 @@ export function useColorDrag(
 	}, [cursorHold])
 
 	return {
+		onMouseDown: holdPress,
 		onPointerDown,
 		onPointerMove,
 		onPointerUp: endDrag,

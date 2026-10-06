@@ -1,7 +1,9 @@
 'use client'
 
 import { type ReactNode, useCallback, useEffect } from 'react'
+import { cn } from '../../core'
 import { usePanelA11y } from '../../primitives/panel'
+import { k as panel } from '../../recipes/kata/panel'
 import { Button, type ButtonVariants } from '../button'
 import {
 	Dialog,
@@ -14,24 +16,44 @@ import {
 } from '../dialog'
 
 /**
- * Description fallback registering `children` as the alertdialog's
- * `aria-describedby` target when no explicit `description` slot renders.
+ * Scroll region of the `children`. With `describes`, it is also the
+ * alertdialog's `aria-describedby` target.
  *
  * @remarks
  * `role="alertdialog"` requires its message referenced by `aria-describedby`.
- * In the title-plus-children form the children are that message, so this wrapper
- * stamps the panel's `descriptionId` and registers with the a11y context. Skipped
- * when a `description` is supplied, since {@link DialogDescription} already registers.
+ * In the title-plus-children form the children are that message, so the region
+ * stamps the panel's `descriptionId` and registers with the a11y context. When a
+ * `description` is supplied, `describes` is off, since {@link DialogDescription}
+ * already registers.
+ *
+ * From `sm` up, the dialog panel has a height cap and no overflow of its own.
+ * The region is a direct flex child of the panel, so `min-h-0` lets it shrink
+ * to the cap, and it scrolls. The header stays outside the region, as the panel
+ * layout recipe sets, so the header and the actions stay in view.
+ *
+ * The region has two layouts. With `describes`, it is a plain block, so inline
+ * children flow as text. A `DialogBody` child then does not shrink, and the
+ * region scrolls in its place. Without `describes`, the children are slots of
+ * the panel. The region then keeps the slot rhythm of the panel, so a
+ * `DialogBody` child shrinks and scrolls on its own.
  * @see {@link usePanelA11y}
  * @internal
  */
-function ConfirmBody({ children }: { children: ReactNode }) {
+function ConfirmBody({ describes, children }: { describes: boolean; children: ReactNode }) {
 	const { descriptionId, registerDescription } = usePanelA11y()
 
-	useEffect(() => registerDescription?.(), [registerDescription])
+	useEffect(
+		() => (describes ? registerDescription?.() : undefined),
+		[describes, registerDescription],
+	)
 
 	return (
-		<div id={descriptionId} data-slot="confirm-body">
+		<div
+			id={describes ? descriptionId : undefined}
+			data-slot="confirm-body"
+			data-scroll-region
+			className={cn(!describes && panel.base, 'min-h-0 overflow-y-auto')}
+		>
 			{children}
 		</div>
 	)
@@ -51,6 +73,18 @@ type ConfirmAction = {
 	color?: NonNullable<ButtonVariants['color']>
 	/** Disables the button. */
 	disabled?: boolean
+	/**
+	 * Puts the confirm button in its `loading` state while the action runs.
+	 *
+	 * @remarks
+	 * Use it in place of `disabled` for an action in progress. A disabled button
+	 * drops the focus that it has. A pending button stays enabled and keeps its
+	 * focus. It is `aria-disabled`, and it cancels each activation, so `onConfirm`
+	 * does not fire. The `cancel` action does not take this field.
+	 * @defaultValue false
+	 * @see {@link Button}
+	 */
+	pending?: boolean
 }
 
 /**
@@ -75,28 +109,41 @@ export type ConfirmProps = Pick<
 	 */
 	onCancel?: () => void
 	/**
-	 * Heading text, rendered as the {@link DialogTitle}.
+	 * Heading text, rendered as the {@link DialogTitle}. It is also the accessible
+	 * name of the alertdialog.
+	 *
+	 * @remarks
+	 * A falsy value, such as `''` or `null`, also falls back to the default, so the
+	 * alertdialog always has a name.
 	 * @defaultValue 'Are you sure?'
 	 */
 	title?: ReactNode
-	/** Supporting copy, rendered as the {@link DialogDescription} and used as the `aria-describedby` target. */
+	/**
+	 * Supporting copy, rendered as the {@link DialogDescription} and used as the
+	 * `aria-describedby` target.
+	 *
+	 * @remarks
+	 * A falsy value, such as `''`, `null`, or `false`, counts as absent. The
+	 * `children` then register as the `aria-describedby` target.
+	 */
 	description?: ReactNode
 	/**
 	 * Message body for the title-plus-children form. Registers as the
-	 * `aria-describedby` target only when `description` is omitted.
+	 * `aria-describedby` target only when `description` is absent.
 	 * @see {@link ConfirmBody}
 	 */
 	children?: ReactNode
 	/** Overrides for the confirm (primary) action. */
 	confirm?: ConfirmAction
 	/** Overrides for the cancel (plain) action. */
-	cancel?: ConfirmAction
+	cancel?: Omit<ConfirmAction, 'pending'>
 	className?: string
 }
 
 /**
  * Confirmation dialog built on {@link Dialog} with `role="alertdialog"`. Pairs a cancel
- * and a confirm action whose labels, colors, and disabled state are configurable.
+ * and a confirm action whose labels, colors, and disabled state are configurable. The
+ * confirm action also takes a pending state, which keeps its focus.
  *
  * @remarks
  * Controlled-only: `open`/`onOpenChange` are required, and `onConfirm` leaves the dialog
@@ -104,6 +151,8 @@ export type ConfirmProps = Pick<
  * alone, where `onOpenChange(false)` reports every dismissal. The accessible message comes from either
  * `description` (a registered {@link DialogDescription}) or, in the title-plus-children
  * form, the `children` wrapped in {@link ConfirmBody}; `description` takes precedence.
+ * The children sit in a scroll region between the header and the actions. When they are
+ * long, they scroll, and the header and the actions stay in view.
  * @see {@link Dialog}
  */
 export function Confirm({
@@ -111,7 +160,7 @@ export function Confirm({
 	onOpenChange,
 	onConfirm,
 	onCancel,
-	title = 'Are you sure?',
+	title,
 	description,
 	children,
 	confirm,
@@ -133,6 +182,17 @@ export function Confirm({
 		close()
 	}, [onCancel, close])
 
+	// The button gives its click event to `onClick`, and `onConfirm` takes no argument.
+	// Call it with none.
+	const handleConfirm = useCallback(() => onConfirm(), [onConfirm])
+
+	// One presence rule for the header and the body: a falsy value counts as
+	// absent. A falsy title thus falls back to the default, and a falsy
+	// description lets the children register as the message.
+	const heading = title || 'Are you sure?'
+
+	const hasDescription = Boolean(description)
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogPanel
@@ -146,14 +206,13 @@ export function Confirm({
 				dismissOnBackdrop={dismissOnBackdrop}
 				className={className}
 			>
-				{(title || description) && (
-					<DialogHeader>
-						{title && <DialogTitle>{title}</DialogTitle>}
-						{description && <DialogDescription>{description}</DialogDescription>}
-					</DialogHeader>
+				<DialogHeader>
+					<DialogTitle>{heading}</DialogTitle>
+					{hasDescription && <DialogDescription>{description}</DialogDescription>}
+				</DialogHeader>
+				{children !== undefined && (
+					<ConfirmBody describes={!hasDescription}>{children}</ConfirmBody>
 				)}
-				{children !== undefined &&
-					(description === undefined ? <ConfirmBody>{children}</ConfirmBody> : children)}
 				<DialogFooter>
 					<Button
 						type="button"
@@ -168,7 +227,8 @@ export function Confirm({
 						type="button"
 						color={confirm?.color}
 						disabled={confirm?.disabled}
-						onClick={onConfirm}
+						loading={confirm?.pending}
+						onClick={handleConfirm}
 					>
 						{confirm?.label ?? 'Confirm'}
 					</Button>

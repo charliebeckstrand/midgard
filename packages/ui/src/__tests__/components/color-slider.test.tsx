@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel } from '../../components/color'
 import type { Hsva } from '../../components/color/types'
+import { Fieldset } from '../../components/fieldset'
 import { fireEvent, getAllSlots, getSlot, renderUI, screen } from '../helpers'
 
 const start: Hsva = { h: 180, s: 50, v: 50, a: 0.5 }
@@ -226,6 +227,34 @@ describe('ColorSlider (disabled)', () => {
 		}
 
 		expect(hue).toHaveValue('180')
+
+		expect(alpha).toHaveValue('0.5')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
+
+// A disabled `<fieldset>` disables the native input, which holds the keys. The
+// track is a `<div>` and holds the drag.
+describe('ColorSlider (disabled fieldset)', () => {
+	it('ignores a press on the track', () => {
+		const onValueChange = vi.fn<(value: Hsva) => void>()
+
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<ColorPanel alpha format="hsva" defaultValue={start} onValueChange={onValueChange} />
+			</Fieldset>,
+		)
+
+		const [, alpha] = getAllSlots<HTMLInputElement>(container, 'color-slider-input')
+
+		if (!alpha) throw new Error('expected an alpha slider')
+
+		expect(alpha).toBeDisabled()
+
+		giveRect(alpha)
+
+		fireEvent.pointerDown(track(alpha), { button: 0, pointerId: 1, clientX: (WIDTH * 3) / 4 })
 
 		expect(alpha).toHaveValue('0.5')
 

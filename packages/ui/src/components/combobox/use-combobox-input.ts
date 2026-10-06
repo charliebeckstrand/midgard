@@ -13,7 +13,7 @@ import {
 	useCallback,
 } from 'react'
 import { isComposing } from '../../utilities'
-import { selectSoleOption } from './combobox-utilities'
+import { enterKeepsSelection, selectSoleOption } from './combobox-utilities'
 
 type ComboboxInputParams<T> = {
 	value: T | T[] | undefined
@@ -21,8 +21,13 @@ type ComboboxInputParams<T> = {
 	clearOnEmpty: boolean
 	floatingRef: RefObject<HTMLElement | null>
 	optionsRef: RefObject<HTMLDivElement | null>
-	/** Current menu open state; a closed menu has no options for the roving handler to navigate. */
+	/**
+	 * Current menu open state. A closed menu sends no key to the roving handler or to the
+	 * sole-option Enter. Its rows can stay mounted while the panel animates out.
+	 */
 	open: boolean
+	/** True while the combobox is read-only or disabled. A paste then skips the consumer's handler. */
+	locked?: boolean
 	setValue: (value: T | T[] | undefined) => void
 	setEditing: (editing: boolean) => void
 	setQuery: (query: string) => void
@@ -30,6 +35,12 @@ type ComboboxInputParams<T> = {
 	/** Opens the closed menu from an arrow key; the root seats the highlight on any selection. */
 	openByArrowKey: () => void
 	close: () => void
+	/**
+	 * Ends a pick with no change to the value, as `select` ends one: it closes the
+	 * menu, or with `closeOnSelect` off it resets the query and keeps the menu open.
+	 * Enter on an option that is already selected calls it in single mode.
+	 */
+	keep: () => void
 	/** Fires when focus leaves the combobox entirely; binds Form touched state. */
 	onTouched?: () => void
 	keyboardSettled: (cb: () => void) => void
@@ -80,20 +91,82 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 }
 
 /**
+ * Handles a key on the closed menu. The panel keeps its rows mounted while it
+ * animates out, and a row can keep `data-active`. No key of a closed menu goes
+ * to the rows, because Enter or the roving handler would pick or move one.
+ *
+ * An arrow key at the text edge opens the menu, as the focus and chevron paths
+ * do (APG editable combobox). The root then seats the highlight on any current
+ * selection, else a second press highlights the first option. `preventDefault`
+ * holds the caret, as roving navigation does. Each other key stays with the
+ * textbox.
+ */
+function closedMenuKeyDown(
+	event: KeyboardEvent<HTMLInputElement>,
+	openByArrowKey: () => void,
+): void {
+	if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+
+	if (!arrowOpensClosedMenu(event)) return
+
+	event.preventDefault()
+
+	openByArrowKey()
+}
+
+/**
+ * Handles an Enter on the open menu before the roving handler gets it. The
+ * Enter selects the sole option of a list that has narrowed to one. Enter
+ * chooses, and in single mode a choice of the selected option keeps it. The
+ * roving handler would click that option, and the click clears a `nullable`
+ * value. Thus the Enter clicks nothing and calls `keep`, which ends the pick as
+ * `closeOnSelect` sets.
+ *
+ * @returns `true` when the function used the key, else `false`.
+ */
+function openMenuEnter(
+	event: KeyboardEvent<HTMLInputElement>,
+	container: HTMLElement | null,
+	multiple: boolean,
+	keep: () => void,
+): boolean {
+	if (event.key !== 'Enter' || !container) return false
+
+	if (enterKeepsSelection(container, multiple)) {
+		event.preventDefault()
+
+		keep()
+
+		return true
+	}
+
+	if (!selectSoleOption(container)) return false
+
+	event.preventDefault()
+
+	return true
+}
+
+/**
  * Event handlers for the combobox input element.
  *
  * @returns `{ onChange, onFocus, onMouseDown, onBlur, onKeyDown, onPaste, onScroll }` for the
  *   input. `onChange` enters editing mode, updates the query, opens the menu, and
  *   clears the value on empty when `clearOnEmpty`. `onFocus` opens once the
  *   keyboard has settled. `onMouseDown` does the same for a press on the input
- *   when it already has focus. `onBlur` ignores focus moving into the floating
+ *   when it already has focus. The `onFocus` open runs only if the input still
+ *   has focus when the keyboard settles. `onBlur` ignores focus moving into the floating
  *   panel, else marks touched and closes. `onKeyDown` handles Escape/Enter, and reserves Home/End and
  *   Shift+Arrow for native caret/selection. It opens the closed menu from an
  *   arrow key at the matching text edge: ArrowDown at the end, ArrowUp at the
- *   start. It then delegates to the roving handler. `onScroll` holds an unfocused
+ *   start. It gives no other key of a closed menu to the rows. On an open menu,
+ *   it delegates to the roving handler. `onScroll` holds an unfocused
  *   input at its start, so a truncated value does not scroll sideways.
- * @remarks Enter selects the sole remaining option when the list has narrowed to
- *   one; the roving handler's activation key selects the highlighted option.
+ * @remarks On an open menu, Enter selects the sole remaining option when the list
+ *   has narrowed to one. The activation key of the roving handler selects the
+ *   highlighted option. In single mode, Enter on an option that is already
+ *   selected clicks nothing. It calls `keep`, which keeps the value and ends
+ *   the pick as `closeOnSelect` sets, so no Enter clears a `nullable` value.
  * @internal
  */
 export function useComboboxInput<T>({
@@ -103,12 +176,14 @@ export function useComboboxInput<T>({
 	floatingRef,
 	optionsRef,
 	open,
+	locked,
 	setValue,
 	setEditing,
 	setQuery,
 	setOpen,
 	openByArrowKey,
 	close,
+	keep,
 	onTouched,
 	keyboardSettled,
 	rovingKeyDown,
@@ -131,9 +206,20 @@ export function useComboboxInput<T>({
 		[clearOnEmpty, multiple, value, setEditing, setQuery, setOpen, setValue],
 	)
 
-	const onFocus = useCallback(() => {
-		keyboardSettled(() => setOpen(true))
-	}, [setOpen, keyboardSettled])
+	// On a touch device the open waits until the keyboard settles, up to about a second.
+	// A blur in that time does not cancel the wait, so the open runs only if the input
+	// still has focus. Without this check, the late open shows a menu that no later
+	// blur closes.
+	const onFocus = useCallback(
+		(event: FocusEvent<HTMLInputElement>) => {
+			const input = event.currentTarget
+
+			keyboardSettled(() => {
+				if (document.activeElement === input) setOpen(true)
+			})
+		},
+		[setOpen, keyboardSettled],
+	)
 
 	// A press on the input when it already has focus. No focus event fires for it, so
 	// `onFocus` cannot open the menu. That is the state after a pick or an Escape, which
@@ -170,42 +256,31 @@ export function useComboboxInput<T>({
 			if (isReservedTextboxKey(event)) return
 
 			if (event.key === 'Escape') {
+				// The press closes only the menu, so the escape layer of a surface
+				// around the combobox must ignore it. In a browser the layer of the
+				// menu can unregister before the document listener runs, so the
+				// dismiss stack alone does not stop the press. An Escape on the
+				// closed menu stays with the surface around it.
+				if (open) event.preventDefault()
+
 				close()
 
 				return
 			}
 
-			if (event.key === 'Enter') {
-				const container = optionsRef.current
-
-				if (container && selectSoleOption(container)) {
-					event.preventDefault()
-
-					return
-				}
-			}
-
-			// A closed menu holds no options for the roving handler, so an arrow key
-			// opens it (APG editable combobox), matching the focus and chevron open
-			// paths; arrowOpensClosedMenu gates this on caret position. The root then
-			// seats the highlight on any current selection, else a second press
-			// highlights the first option. preventDefault holds the caret, as roving
-			// navigation does.
-			if (
-				!open &&
-				(event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
-				arrowOpensClosedMenu(event)
-			) {
-				event.preventDefault()
-
-				openByArrowKey()
+			// A closed menu gives no key to its rows, which can stay mounted while the
+			// panel animates out. Only an arrow key at the text edge acts: it opens.
+			if (!open) {
+				closedMenuKeyDown(event, openByArrowKey)
 
 				return
 			}
 
+			if (openMenuEnter(event, optionsRef.current, multiple, keep)) return
+
 			rovingKeyDown(event)
 		},
-		[close, open, openByArrowKey, optionsRef, rovingKeyDown],
+		[close, keep, multiple, open, openByArrowKey, optionsRef, rovingKeyDown],
 	)
 
 	/*
@@ -218,9 +293,14 @@ export function useComboboxInput<T>({
 	 * consumer had already consumed. Any placeholder standing in for that display stayed suppressed too.
 	 *
 	 * A paste the handler leaves alone is ordinary typing and falls through to `onChange`.
+	 *
+	 * A read-only input still takes a paste event, so a locked combobox skips the handler. Otherwise
+	 * the handler commits the pasted values, which the lock forbids.
 	 */
 	const onPasteHandler = useCallback(
 		(event: ClipboardEvent<HTMLInputElement>) => {
+			if (locked) return
+
 			onPaste?.(event)
 
 			if (!event.defaultPrevented) return
@@ -229,7 +309,7 @@ export function useComboboxInput<T>({
 
 			setEditing(false)
 		},
-		[onPaste, setQuery, setEditing],
+		[locked, onPaste, setQuery, setEditing],
 	)
 
 	/*

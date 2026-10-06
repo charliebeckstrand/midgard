@@ -1,11 +1,19 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	type CSSProperties,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
-import { cn } from '../../core'
+import { announce, cn } from '../../core'
 import { useScrollRegion } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { k } from '../../recipes/kata/code'
+import { type CodeBlockVariants, k } from '../../recipes/kata/code'
+import { contrastRatio } from '../../utilities'
 import { CopyButton } from '../copy-button'
 import { DEFAULT_LANG, DEFAULT_THEME, highlightCode } from './code-shiki'
 
@@ -25,12 +33,13 @@ const cacheKey = (code: string, lang: string, theme: string) => `${theme}\u0000$
 /**
  * Stores one tokenized snippet, evicting the oldest insertion once the cache is
  * full. Insertion-ordered, not recency-ordered: a hit doesn't move its entry, so
- * a snippet re-read past 200 distinct others is re-tokenized.
+ * a snippet re-read past 200 distinct others is re-tokenized. A write to a key
+ * that the cache holds replaces the markup in its place and evicts no entry.
  *
  * @internal
  */
 function cacheSet(key: string, value: string) {
-	if (htmlCache.size >= MAX_CACHE_SIZE) {
+	if (!htmlCache.has(key) && htmlCache.size >= MAX_CACHE_SIZE) {
 		const first = htmlCache.keys().next().value as string
 
 		htmlCache.delete(first)
@@ -39,21 +48,139 @@ function cacheSet(key: string, value: string) {
 	htmlCache.set(key, value)
 }
 
-/** Props for {@link CodeBlock}. */
-export type CodeBlockProps = {
+/**
+ * The display name of each language that names a code region, keyed by each
+ * Shiki id and alias of the language. The names are the Shiki display names.
+ * It is a `Map`, so a fence name such as `constructor` finds no name.
+ */
+const languageNames: ReadonlyMap<string, string> = new Map(
+	(
+		[
+			['TSX', ['tsx']],
+			['TypeScript', ['typescript', 'ts', 'cts', 'mts']],
+			['JSX', ['jsx']],
+			['JavaScript', ['javascript', 'js', 'cjs', 'mjs']],
+			['JSON', ['json']],
+			['JSON with Comments', ['jsonc']],
+			['JSON5', ['json5']],
+			['HTML', ['html']],
+			['CSS', ['css']],
+			['SCSS', ['scss']],
+			['Less', ['less']],
+			['Markdown', ['markdown', 'md']],
+			['MDX', ['mdx']],
+			['Shell', ['shellscript', 'bash', 'sh', 'shell', 'zsh']],
+			['PowerShell', ['powershell', 'ps', 'ps1', 'pwsh']],
+			['Python', ['python', 'py']],
+			['Ruby', ['ruby', 'rb']],
+			['Go', ['go']],
+			['Rust', ['rust', 'rs']],
+			['Java', ['java']],
+			['Kotlin', ['kotlin', 'kt', 'kts']],
+			['Swift', ['swift']],
+			['C', ['c']],
+			['C++', ['cpp', 'c++']],
+			['C#', ['csharp', 'c#', 'cs']],
+			['PHP', ['php']],
+			['SQL', ['sql']],
+			['GraphQL', ['graphql', 'gql']],
+			['YAML', ['yaml', 'yml']],
+			['TOML', ['toml']],
+			['XML', ['xml']],
+			['Dockerfile', ['docker', 'dockerfile']],
+			['Diff', ['diff']],
+			['Vue', ['vue']],
+			['Svelte', ['svelte']],
+		] satisfies [string, BundledLanguage[]][]
+	).flatMap(([name, ids]) => ids.map((id) => [id, name] as const)),
+)
+
+/** "<Language> code" for a `lang` that the map names, else "Code". @internal */
+function regionName(lang: string | undefined): string {
+	const name = lang === undefined ? undefined : languageNames.get(lang)
+
+	return name === undefined ? 'Code' : `${name} code`
+}
+
+/**
+ * Announces a refused copy. After a refused write, the CopyButton stays at
+ * rest, and the rest glyph also means "not copied yet". CodeBlock has no prop
+ * for the error, so the block reports the failure itself.
+ *
+ * @internal
+ */
+function announceCopyError() {
+	announce('Copy failed')
+}
+
+/**
+ * The canvas of a Shiki theme: the background color of its markup, and whether
+ * that color is dark.
+ */
+type Canvas = { color: string; dark: boolean }
+
+/**
+ * Reads the canvas of Shiki markup. Shiki writes the background of the theme
+ * as the `background-color` in the style of the `<pre>`. The canvas is dark
+ * when white text contrasts with it more than black text does. For each
+ * bundled theme, this gives the type that Shiki gives the theme.
+ *
+ * @returns The canvas, or `null` when the `<pre>` has no background color or a
+ *   color that does not parse.
+ * @internal
+ */
+function canvasOf(html: string): Canvas | null {
+	const color = /<pre\b[^>]*>/i
+		.exec(html)?.[0]
+		?.match(/\sstyle="([^"]*)"/i)?.[1]
+		?.match(/(?:^|;)\s*background-color\s*:([^;]+)/i)?.[1]
+		?.trim()
+
+	if (color === undefined) return null
+
+	try {
+		return { color, dark: contrastRatio(color, 'white') >= contrastRatio(color, 'black') }
+	} catch {
+		return null
+	}
+}
+
+/**
+ * Props for {@link CodeBlock}. The root `<div>` also takes the `<div>`
+ * attributes, such as `id`, `data-*`, and `aria-*`. `lang` names the grammar,
+ * so the block does not take the HTML `lang` attribute.
+ */
+export type CodeBlockProps = Omit<ComponentProps<'div'>, 'className' | 'children' | 'lang'> & {
 	/** Source to highlight; surrounding whitespace is trimmed before tokenizing. */
 	code: string
 	/** Shiki language grammar. @defaultValue 'tsx' */
 	lang?: BundledLanguage
-	/** Shiki color theme. @defaultValue 'github-dark-default' */
+	/**
+	 * Shiki color theme. The frame of the block paints the background of the
+	 * theme, and the CopyButton takes colors that read on it.
+	 *
+	 * @defaultValue 'github-dark-default'
+	 */
 	theme?: BundledTheme
-	/** Renders a CopyButton overlay. @defaultValue true */
+	/** Renders a CopyButton beside the code. @defaultValue true */
 	copy?: boolean
+	/**
+	 * The density step of the block. A `size` opens a density scope on the
+	 * block, so the padding, the gap, and the code text take that step. With no
+	 * `size`, the block takes the step of the nearest density scope.
+	 */
+	size?: CodeBlockVariants['size']
 	/**
 	 * Accessible name of the scroll container. While a line overflows it, the
 	 * container is a region with this name.
 	 *
-	 * @defaultValue 'Code'
+	 * With no `label`, the name comes from the `lang` that you give: the display
+	 * name of the language and "code", such as "TypeScript code" for `ts`. With
+	 * no `lang`, or a `lang` that the block has no display name for, such as
+	 * `text`, the name is "Code". Two blocks of one language thus have one name.
+	 * Give each one a `label` when both can overflow on one page.
+	 *
+	 * @defaultValue the language of `lang` and "code", such as `'TypeScript code'`, else `'Code'`
 	 */
 	label?: string
 	className?: string
@@ -74,6 +201,10 @@ export type CodeBlockProps = {
  * Shiki version of `ui`. With no `tokenizeTimeLimit`, a slow line can stop
  * after 500 ms, and the rest of the line then has no highlight.
  * Another engine or a transformer can give other markup.
+ *
+ * The frame of the block paints the `background-color` in the style of the
+ * `<pre>`, as Shiki writes it. When the `<pre>` has no such color, the frame
+ * paints the background of the default theme.
  *
  * The block sets the markup with `dangerouslySetInnerHTML`. Prime only markup
  * that you trust.
@@ -97,8 +228,9 @@ export function primeCodeBlock({
 /**
  * Syntax-highlighted code block. Highlights `code` for the given `lang` and
  * `theme` with Shiki in a module worker, and renders an unstyled `<pre>`
- * fallback until the markup arrives. An optional CopyButton overlays the
- * snippet.
+ * fallback until the markup arrives. An optional CopyButton sits beside the
+ * snippet, on its first line. The padding, the gap, and the code text take the step of the
+ * nearest density scope. An explicit `size` opens a scope on the block.
  *
  * @remarks
  * Client-only (`'use client'`). The worker loads Shiki, each grammar, and each
@@ -120,36 +252,77 @@ export function primeCodeBlock({
  * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`), so a block
  * that fits adds no tab stop. The scroll container is a tab stop only while a
  * line overflows it ({@link useScrollRegion}), and it is then a region named by
- * `label`. The code is always left to right, also under an RTL ancestor.
+ * `label`. With no `label`, the name comes from `lang`, such as "TypeScript
+ * code", else it is "Code". The code is always left to right, also under an RTL
+ * ancestor.
  * Markup paints only for the current code. While `code` streams, one
  * tokenization runs at a time and the next one takes the newest code.
+ *
+ * A refused copy leaves the CopyButton at rest. The block then announces
+ * "Copy failed" in the shared live region, where the button announces "Copied".
+ *
+ * The frame paints the background of the theme, as Shiki writes it on the
+ * `<pre>`, so the block has one tone with each theme. Before the markup
+ * arrives, the frame paints the background of the default theme, and so do the
+ * server output and the hydration render. The CopyButton takes colors that
+ * read on the background in each color mode. A dark theme gets light colors,
+ * and a light theme gets dark colors.
+ *
+ * At `md` the block is `p-4` with `text-sm` code. The CopyButton keeps the
+ * `sm` size at each step, and it centers on the first code line.
  */
 export function CodeBlock({
 	code: rawCode,
-	lang = DEFAULT_LANG,
+	lang: langProp,
 	theme = DEFAULT_THEME,
 	copy = true,
-	label = 'Code',
+	size,
+	label,
 	className,
+	style,
+	...props
 }: CodeBlockProps) {
 	const code = rawCode.trim()
 
-	const key = cacheKey(code, lang, theme)
+	const lang = langProp ?? DEFAULT_LANG
 
-	// The newest markup that this block tokenized, with the key it answers. A
-	// result for other code never paints: the fallback shows until the current
-	// code has its own markup.
-	const [result, setResult] = useState<{ key: string; html: string } | null>(null)
+	const key = cacheKey(code, lang, theme)
 
 	// The server has no worker and no cache, so it renders the fallback. The
 	// hydration render must render the same, also when the client cache holds
 	// the snippet.
 	const hydrated = useHydrated()
 
+	// The newest markup that this block tokenized or read from the cache, with
+	// the key it answers. A result for other code never paints: the fallback
+	// shows until the current code has its own markup. A mount after hydration
+	// starts from the cached entry, so the effect finds it and does not render
+	// the block again. The hydration render does not read the cache.
+	const [result, setResult] = useState<{ key: string; html: string } | null>(() => {
+		if (!hydrated) return null
+
+		const cached = htmlCache.get(key)
+
+		return cached === undefined ? null : { key, html: cached }
+	})
+
 	// After hydration, a cached snippet paints on the render that asks for it.
+	// The render stores the entry in the result, so the effect finds it there
+	// and does not render the block again.
 	let html: string | null = null
 
-	if (hydrated) html = result?.key === key ? result.html : (htmlCache.get(key) ?? null)
+	if (hydrated) {
+		if (result?.key === key) html = result.html
+		else {
+			const cached = htmlCache.get(key)
+
+			if (cached !== undefined) {
+				html = cached
+
+				setResult({ key, html: cached })
+			}
+		}
+	}
 
 	// The snippet that the next tokenization takes, and whether one runs now.
 	// Streamed code changes on each chunk. One tokenization runs at a time, and
@@ -162,19 +335,24 @@ export function CodeBlock({
 	useEffect(() => {
 		latest.current = { key, code, lang, theme }
 
-		if (running.current || htmlCache.has(key)) return
+		if (running.current) return
 
 		const run = () => {
 			const job = latest.current
 
 			const cached = htmlCache.get(job.key)
 
-			// Another block can cache the newest code while this pass runs. No render
-			// reads that entry, so paint it here.
+			// The result keeps a cached entry, so the block paints it also after the
+			// cache evicts it. An entry can also come after the render: from
+			// primeCodeBlock, or from another block while this pass runs. No render
+			// reads that entry, so paint it here. When the result holds the entry
+			// already, the update keeps the same object, and React does not render.
 			if (cached !== undefined) {
 				running.current = false
 
-				setResult({ key: job.key, html: cached })
+				setResult((prev) =>
+					prev?.key === job.key && prev.html === cached ? prev : { key: job.key, html: cached },
+				)
 
 				return
 			}
@@ -203,14 +381,32 @@ export function CodeBlock({
 		run()
 	}, [key, code, lang, theme])
 
-	const scrollRegionRef = useScrollRegion({ label })
+	// The default grammar does not say what the code is, so only a `lang` that
+	// the caller gives names the region.
+	const scrollRegionRef = useScrollRegion({ label: label ?? regionName(langProp) })
+
+	// With no markup, the recipe paints the default canvas.
+	const canvas = useMemo(() => (html === null ? null : canvasOf(html)), [html])
 
 	return (
-		<div data-slot="code-block" className={cn(k.block.base, className)}>
+		<div
+			data-slot="code-block"
+			data-density={size}
+			className={cn(k.block.base, className)}
+			{...props}
+			// The style of the caller spreads first, and the canvas of the theme comes
+			// after it. `omote.bg.code` reads `--code-canvas`.
+			style={canvas ? ({ ...style, '--code-canvas': canvas.color } as CSSProperties) : style}
+		>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
 			<div ref={scrollRegionRef} dir="ltr" className={cn(k.block.content)}>
 				{html ? (
 					<div
+						// The cache key gives each snippet its own element. A switch between two
+						// cached snippets thus replaces the child, and the scroll region measures
+						// again. An update in place can keep the size of each box, so no resize
+						// reports a new line width.
+						key={key}
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: the markup is Shiki output or primed markup that the app trusts
 						dangerouslySetInnerHTML={{ __html: html }}
 					/>
@@ -220,7 +416,18 @@ export function CodeBlock({
 					</pre>
 				)}
 			</div>
-			{copy && <CopyButton text={code} size="sm" className={cn(k.block.copy)} />}
+			{copy && (
+				<div className={cn(k.block.copy.line)}>
+					<CopyButton
+						text={code}
+						size="sm"
+						className={cn(
+							canvas?.dark === false ? k.block.copy.button.light : k.block.copy.button.dark,
+						)}
+						onCopyError={announceCopyError}
+					/>
+				</div>
+			)}
 		</div>
 	)
 }

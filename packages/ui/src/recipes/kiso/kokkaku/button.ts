@@ -14,7 +14,7 @@ import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
-// The height of a button at each step. The calendar skeleton reads it too.
+// The height of a button at each step. The chart legend reads it too.
 const height = dan.size.button.base
 
 export const button = {

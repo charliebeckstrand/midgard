@@ -2,6 +2,8 @@
 
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
+import { isDecimalDigit } from '../../utilities/caret'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -47,7 +49,7 @@ function resolveCvvLength(brand: CreditCardBrand | undefined): number {
  * a brand is known. When the
  * brand shrinks the length it re-truncates the stored value and re-reports
  * validity. Sets `autoComplete="cc-csc"` and defaults a "Security code"
- * aria-label, yielding to a Field `<Label>`.
+ * aria-label, yielding to a Field `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInput}
  */
@@ -64,7 +66,13 @@ export function CreditCardInputCvv({
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputCvvProps) {
-	const fallbackLabel = useControlFallbackLabel('Security code')
+	// The fallback reads the labels of the input after each commit, so a native
+	// label outside a Field also turns it off.
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const fallbackLabel = useControlFallbackLabel('Security code', inputRef)
+
+	const composedRef = useComposedRef(ref, inputRef)
 
 	const maxLength = resolveCvvLength(brand)
 
@@ -80,16 +88,22 @@ export function CreditCardInputCvv({
 		defaultValue,
 		onChange: onValueChange,
 		format: (raw) => formatCvv(raw, maxLength),
-		ref,
+		meaningful: isDecimalDigit,
+		ref: composedRef,
 	})
 
 	// Re-fits the stored value to a new length, and reports validity. An effect
 	// event reads the newest value, setter, and callback, so the effect below
 	// depends only on the brand-derived length and the brand.
 	const refit = useEffectEvent((length: number, nextBrand: CreditCardBrand | undefined) => {
-		const truncated = formatCvv(maskedValue, length)
+		// The mask formats a controlled value on read, so `maskedValue` already
+		// fits the new length. Compare the cap with the value that the parent
+		// holds, so that `onValueChange` tells the parent about the truncation.
+		const held = typeof value === 'string' ? value : maskedValue
 
-		if (truncated !== maskedValue) setMaskedValue(truncated)
+		const truncated = formatCvv(held, length)
+
+		if (truncated !== held) setMaskedValue(truncated)
 
 		onValidityChange?.(validateCardCvv(truncated, nextBrand))
 	})
@@ -120,7 +134,8 @@ export function CreditCardInputCvv({
 			autoComplete="cc-csc"
 			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
 			// defaults an aria-label, yielding to a Field <Label> from the first
-			// render (useControlFallbackLabel).
+			// render and to a native label after each commit
+			// (useControlFallbackLabel).
 			aria-label={ariaLabel ?? fallbackLabel}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
@@ -136,7 +151,9 @@ export function CreditCardInputCvv({
 			onChange={(event) => {
 				onMaskedChange(event)
 
-				onValidityChange?.(validateCardCvv(event.target.value, brand))
+				// The verdict reads the masked text that the field shows, not the raw
+				// text, which can hold digits that the mask changes to ASCII.
+				onValidityChange?.(validateCardCvv(formatCvv(event.target.value, maxLength), brand))
 			}}
 		/>
 	)

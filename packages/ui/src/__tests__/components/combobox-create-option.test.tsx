@@ -3,11 +3,14 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	Combobox,
 	ComboboxCreateOption,
+	type ComboboxCreateOptionProps,
 	ComboboxLabel,
 	ComboboxOption,
 	useComboboxQuery,
 } from '../../components/combobox'
-import { renderUI, screen, setupUser } from '../helpers'
+import { ComboboxContext } from '../../components/combobox/context'
+import { DeferredQueryContext, QueryContext } from '../../primitives/query'
+import { fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const NAMES = ['Texas LTL', 'Georgia TL']
 
@@ -45,6 +48,27 @@ function renderCreatable(props: { onValueChange?: (value: string | null) => void
 	}
 
 	return renderUI(<Host />)
+}
+
+/**
+ * Renders the create row alone, under the contexts that Combobox gives. A live
+ * query ahead of the deferred query stands for the render between the urgent
+ * commit and the deferred commit.
+ */
+function renderRow(query: string, deferredQuery: string, props: ComboboxCreateOptionProps = {}) {
+	const onSelect = vi.fn()
+
+	renderUI(
+		<ComboboxContext value={{ value: undefined, multiple: false, onSelect, capitalize: false }}>
+			<QueryContext value={{ query, deferredQuery }}>
+				<DeferredQueryContext value={deferredQuery}>
+					<ComboboxCreateOption taken={NAMES} {...props} />
+				</DeferredQueryContext>
+			</QueryContext>
+		</ComboboxContext>,
+	)
+
+	return onSelect
 }
 
 describe('ComboboxCreateOption', () => {
@@ -157,5 +181,36 @@ describe('ComboboxCreateOption', () => {
 		await user.keyboard('Lee')
 
 		expect(screen.getByText('Save as “Lee”')).toBeInTheDocument()
+	})
+
+	it('takes an explicit id, as the getOptionId of VirtualOptions needs', () => {
+		renderRow('Lee', 'Lee', { id: 'create-row' })
+
+		expect(screen.getByRole('option')).toHaveAttribute('id', 'create-row')
+	})
+
+	describe('while the deferred query lags', () => {
+		it('commits the live query, trimmed', () => {
+			const onSelect = renderRow('  Berlin  ', 'Berli')
+
+			// The label follows the deferred query, so it can trail the value by one render.
+			expect(screen.getByRole('option')).toHaveTextContent('Create “Berli”')
+
+			fireEvent.click(screen.getByRole('option'))
+
+			expect(onSelect).toHaveBeenCalledWith('Berlin')
+		})
+
+		it('renders nothing while the live query is blank', () => {
+			renderRow('   ', 'Berli')
+
+			expect(screen.queryByRole('option')).toBeNull()
+		})
+
+		it('renders nothing while the live query names a taken option', () => {
+			renderRow('texas ltl', 'texas lt')
+
+			expect(screen.queryByRole('option')).toBeNull()
+		})
 	})
 })

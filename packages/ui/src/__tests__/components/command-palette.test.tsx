@@ -1,3 +1,4 @@
+import { use, useEffect, useMemo } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -10,27 +11,59 @@ import {
 	CommandPaletteLabel,
 	type CommandPaletteProps,
 	CommandPaletteText,
+	useCommandPaletteDeferredQuery,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
+import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
+import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
-import { act, bySlot, fireEvent, renderUI, screen, setupUser, stubMatchMedia } from '../helpers'
+import {
+	act,
+	bySlot,
+	deferred,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	stubMatchMedia,
+	waitFor,
+} from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
-// Items that filter against the deferred query via the query context,
-// mirroring real usage.
-function FilteredItems() {
-	const { deferredQuery } = useCommandPaletteQuery()
-
-	return FILTER_ITEMS.filter((label) =>
-		label.toLowerCase().includes(deferredQuery.toLowerCase()),
-	).map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
+type FilteredItemsProps = {
+	/** The items before the filter. A rerender with new items changes the results under an unchanged query. */
+	labels?: string[]
 }
 
-function FilteredPalette({ onActiveChange }: Pick<CommandPaletteProps, 'onActiveChange'>) {
+// Items that filter against the deferred query via the query context,
+// mirroring real usage.
+function FilteredItems({
+	labels = FILTER_ITEMS,
+	onAction,
+}: FilteredItemsProps & {
+	/** Runs with the label of the item that the palette runs. */
+	onAction?: (label: string) => void
+}) {
+	const { deferredQuery } = useCommandPaletteQuery()
+
+	return labels
+		.filter((label) => label.toLowerCase().includes(deferredQuery.toLowerCase()))
+		.map((label) => (
+			<CommandPaletteItem key={label} onAction={onAction && (() => onAction(label))}>
+				{label}
+			</CommandPaletteItem>
+		))
+}
+
+function FilteredPalette({
+	labels,
+	onActiveChange,
+}: FilteredItemsProps & Pick<CommandPaletteProps, 'onActiveChange'>) {
 	return (
 		<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
-			<FilteredItems />
+			<FilteredItems labels={labels} />
 		</CommandPalette>
 	)
 }
@@ -275,23 +308,458 @@ describe('CommandPalette active descendant', () => {
 
 		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
+})
 
-	it('exposes a persistent no-results status region as a listbox sibling', () => {
+// Stands in for a `VirtualOptions` with `getOptionId`. It registers a source as
+// the primitive does, and it renders each row. A real virtualizer is barred
+// here (CONVENTIONS §10.3).
+function SourceStandIn({ ids, scrollToIndex }: { ids: string[]; scrollToIndex?: () => void }) {
+	const registry = use(VirtualItemSourceContext)
+
+	const source = useMemo<VirtualItemSource>(
+		() => ({
+			count: ids.length,
+			getKey: (index) => ids[index] ?? '',
+			scrollToIndex: scrollToIndex ?? (() => {}),
+		}),
+		[ids, scrollToIndex],
+	)
+
+	useEffect(() => {
+		if (!registry) return
+
+		registry.current = source
+
+		return () => {
+			registry.current = null
+		}
+	}, [registry, source])
+
+	return ids.map((id) => (
+		<CommandPaletteItem key={id} id={id}>
+			{id}
+		</CommandPaletteItem>
+	))
+}
+
+describe('CommandPalette results that change under an unchanged query', () => {
+	// The places palette: a filter runs before the countries load, so it seeds
+	// nothing. Then the countries arrive with no change to the query.
+	it('seeds the top result when results arrive after a filter that matched nothing', async () => {
+		const onActiveChange = vi.fn()
+
+		const { rerender } = renderUI(<FilteredPalette labels={[]} onActiveChange={onActiveChange} />)
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().type(input, 'fr')
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		rerender(<FilteredPalette labels={['France', 'Freetown']} onActiveChange={onActiveChange} />)
+
+		const [top] = screen.getAllByRole('option')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', top?.id))
+
+		expect(top).toHaveAttribute('data-active')
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(top?.id)
+	})
+
+	it('moves a seeded highlight to a new top result', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={['Beta']} />)
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().type(input, 'a')
+
+		expect(input).toHaveAttribute('aria-activedescendant', screen.getByRole('option').id)
+
+		rerender(<FilteredPalette labels={['Alpha', 'Beta']} />)
+
+		const [alpha, beta] = screen.getAllByRole('option')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', alpha?.id))
+
+		expect(alpha).toHaveAttribute('data-active')
+
+		expect(beta).not.toHaveAttribute('data-active')
+	})
+
+	// On open the highlight is empty by design, and the first arrow key picks
+	// the first result.
+	it('keeps the highlight empty when results arrive before a filter', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={[]} />)
+
+		const input = screen.getByRole('combobox')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
+
+		rerender(<FilteredPalette labels={['Alpha']} />)
+
+		// The emptiness probe reads the same mutation, so this waits for the
+		// observer of the listbox.
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'))
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		expect(screen.getByRole('option')).not.toHaveAttribute('data-active')
+	})
+
+	it('keeps a highlight that an arrow key moved', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={['Beta', 'Gamma']} />)
+
+		const input = screen.getByRole('combobox')
+
+		const user = setupUser()
+
+		await user.type(input, 'a')
+
+		await user.keyboard('{ArrowDown}')
+
+		const gamma = screen.getByRole('option', { name: 'Gamma' })
+
+		expect(input).toHaveAttribute('aria-activedescendant', gamma.id)
+
+		rerender(<FilteredPalette labels={['Alpha', 'Beta', 'Gamma']} />)
+
+		// Lets the observer of the listbox report the mutation.
+		await act(async () => {})
+
+		expect(input).toHaveAttribute('aria-activedescendant', gamma.id)
+
+		expect(screen.getByRole('option', { name: 'Alpha' })).not.toHaveAttribute('data-active')
+	})
+
+	// A moved highlight belongs to the reader only while its row exists. When the
+	// row goes, the top result takes the highlight, as in Combobox.
+	it('seeds the top result when the row of a moved highlight goes', async () => {
+		const { rerender } = renderUI(<FilteredPalette labels={['Beta', 'Gamma']} />)
+
+		const input = screen.getByRole('combobox')
+
+		const user = setupUser()
+
+		await user.type(input, 'a')
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute(
+			'aria-activedescendant',
+			screen.getByRole('option', { name: 'Gamma' }).id,
+		)
+
+		rerender(<FilteredPalette labels={['Beta']} />)
+
+		const beta = screen.getByRole('option', { name: 'Beta' })
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', beta.id))
+
+		expect(beta).toHaveAttribute('data-active')
+	})
+
+	it('seeds the top result when a registered source drops the row of a moved highlight', async () => {
+		const palette = (ids: string[]) => (
+			<CommandPalette open onOpenChange={() => {}}>
+				<SourceStandIn ids={ids} />
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette(['a-0', 'a-1', 'a-2']))
+
+		const input = screen.getByRole('combobox')
+
+		const user = setupUser()
+
+		await user.type(input, 'x')
+
+		await user.keyboard('{ArrowDown}{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'a-2')
+
+		rerender(palette(['a-0']))
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', 'a-0'))
+
+		expect(document.getElementById('a-0')).toHaveAttribute('data-active')
+	})
+
+	it('seeds the top result again when a registered source changes', async () => {
+		const palette = (ids: string[]) => (
+			<CommandPalette open onOpenChange={() => {}}>
+				<SourceStandIn ids={ids} />
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette(['old-0', 'old-1']))
+
+		const input = screen.getByRole('combobox')
+
+		// The stand-in does not filter, so any query seeds its top row.
+		await setupUser().type(input, 'x')
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'old-0')
+
+		rerender(palette(['new-0', 'new-1']))
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', 'new-0'))
+
+		expect(document.getElementById('new-0')).toHaveAttribute('data-active')
+	})
+
+	// A change that keeps the top result keeps the highlight, so the list does
+	// not scroll back to it.
+	it('leaves a seeded highlight that a source change keeps on the top result', async () => {
+		const scrollToIndex = vi.fn()
+
+		const palette = (ids: string[]) => (
+			<CommandPalette open onOpenChange={() => {}}>
+				<SourceStandIn ids={ids} scrollToIndex={scrollToIndex} />
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette(['top', 'next']))
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().type(input, 'x')
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'top')
+
+		scrollToIndex.mockClear()
+
+		rerender(palette(['top', 'next', 'last']))
+
+		await act(async () => {})
+
+		expect(input).toHaveAttribute('aria-activedescendant', 'top')
+
+		expect(scrollToIndex).not.toHaveBeenCalled()
+	})
+})
+
+// Suspends the render that brings the deferred query to `query` until `gate`
+// settles. Thus the deferred query lags the input, as it does while a long list
+// renders.
+function DeferredQueryGate({ query, gate }: { query: string; gate: Promise<void> }) {
+	if (useCommandPaletteDeferredQuery() === query) use(gate)
+
+	return null
+}
+
+describe('CommandPalette Enter while the deferred query lags', () => {
+	it('runs the top result of the typed query once the results render', async () => {
+		const gate = deferred()
+
+		const onAction = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<DeferredQueryGate query="b" gate={gate.promise} />
+				<FilteredItems onAction={onAction} />
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		// The highlight sits on Alpha, which the query "b" filters out.
+		await setupUser().keyboard('{ArrowDown}')
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'b' } })
+		})
+
+		expect(input).toHaveValue('b')
+
+		expect(screen.getAllByRole('option')).toHaveLength(3)
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onAction).not.toHaveBeenCalled()
+
+		await act(async () => gate.resolve())
+
+		expect(onAction.mock.calls).toEqual([['Beta']])
+	})
+})
+
+// A router link reads the modifier keys of a click. With Ctrl or Cmd held, it
+// lets the browser open the link in a new tab.
+const NO_MODIFIERS = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+
+type LinkClick = typeof NO_MODIFIERS & { preventDefault: () => void }
+
+// Records the click on a link item. It cancels the default, because jsdom does
+// not navigate.
+function recordLinkClick() {
+	return vi.fn((event: LinkClick) => event.preventDefault())
+}
+
+// Link items that filter against the deferred query, as `FilteredItems` does.
+function FilteredLinks({ onClick }: { onClick: (event: LinkClick) => void }) {
+	const { deferredQuery } = useCommandPaletteQuery()
+
+	return FILTER_ITEMS.filter((label) =>
+		label.toLowerCase().includes(deferredQuery.toLowerCase()),
+	).map((label) => (
+		<CommandPaletteItem key={label} href={`/${label.toLowerCase()}`} onClick={onClick}>
+			{label}
+		</CommandPaletteItem>
+	))
+}
+
+describe('CommandPalette Enter on a link item', () => {
+	it.each(['altKey', 'ctrlKey', 'metaKey', 'shiftKey'] as const)(
+		'gives the %s of the Enter to the click on the link',
+		async (modifier) => {
+			const onClick = recordLinkClick()
+
+			renderUI(
+				<CommandPalette open onOpenChange={() => {}}>
+					<CommandPaletteItem href="/somewhere" onClick={onClick}>
+						Go
+					</CommandPaletteItem>
+				</CommandPalette>,
+			)
+
+			await setupUser().keyboard('{ArrowDown}')
+
+			fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter', [modifier]: true })
+
+			expect(onClick).toHaveBeenCalledTimes(1)
+
+			expect(onClick).toHaveBeenCalledWith(
+				expect.objectContaining({ ...NO_MODIFIERS, [modifier]: true }),
+			)
+		},
+	)
+
+	it('gives the modifiers of an Enter that waits for the results to the click', async () => {
+		const gate = deferred()
+
+		const onClick = recordLinkClick()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<DeferredQueryGate query="b" gate={gate.promise} />
+				<FilteredLinks onClick={onClick} />
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		await setupUser().keyboard('{ArrowDown}')
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'b' } })
+		})
+
+		// The palette holds the Enter, and runs it after the results render. The
+		// held event then has no current target, so the click reads the keys
+		// from the fields of the event.
+		fireEvent.keyDown(input, { key: 'Enter', metaKey: true })
+
+		expect(onClick).not.toHaveBeenCalled()
+
+		await act(async () => gate.resolve())
+
+		expect(onClick).toHaveBeenCalledTimes(1)
+
+		expect(onClick).toHaveBeenCalledWith(
+			expect.objectContaining({ ...NO_MODIFIERS, metaKey: true, target: screen.getByText('Beta') }),
+		)
+	})
+})
+
+// Stands in for the wrapper that `VirtualOptions` renders. A real virtualizer
+// is barred here (CONVENTIONS §10.3). The wrapper stamps `data-empty` from its
+// items, and its window can hold no row while items remain.
+function VirtualWrapperStandIn({ empty }: { empty: boolean }) {
+	return <div role="presentation" data-slot="virtual-options" data-empty={empty ? '' : undefined} />
+}
+
+describe('CommandPalette no results', () => {
+	// A live region speaks only a change of text, and only while it is in the
+	// accessibility tree. The palette measures the options after the commit (a
+	// MutationObserver), so the assertions poll.
+	it('writes the no-results text into a status region that stays exposed', async () => {
 		renderUI(<FilteredPalette />)
 
-		const status = bySlot(document.body, 'command-palette-no-results')
+		const status = getSlot(document.body, 'command-palette-no-results')
 
-		// `<output>` is implicitly role="status" (a polite live region); stays
-		// mounted regardless of results, and a CSS peer-empty toggle reveals it
-		// when the listbox filters to empty. Sits outside the listbox
-		// (aria-required-children owns only options).
-		expect(status?.tagName).toBe('OUTPUT')
+		// `<output>` is role="status", a polite live region. It sits outside the
+		// listbox, which owns only options (aria-required-children).
+		expect(status.tagName).toBe('OUTPUT')
+
+		expect(bySlot(document.body, 'command-palette-list')).not.toContainElement(status)
+
+		// jsdom loads no stylesheet, so the class list stands in for the display.
+		expect(status).not.toHaveClass('hidden')
+
+		expect(status.textContent).toBe('')
+
+		const user = setupUser()
+
+		await user.type(screen.getByRole('combobox'), 'zzz')
+
+		await waitFor(() => expect(status).toHaveTextContent('No results'))
+
+		// The same node, so the region was in the tree before its text changed.
+		expect(bySlot(document.body, 'command-palette-no-results')).toBe(status)
+
+		expect(status).not.toHaveClass('hidden')
+
+		await user.clear(screen.getByRole('combobox'))
+
+		await waitFor(() => expect(status.textContent).toBe(''))
+	})
+
+	it('reports the combobox collapsed while the filter matches nothing', async () => {
+		renderUI(<FilteredPalette />)
+
+		const input = screen.getByRole('combobox')
+
+		expect(input).toHaveAttribute('aria-expanded', 'true')
+
+		const user = setupUser()
+
+		await user.type(input, 'zzz')
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
+
+		await user.clear(input)
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'))
+	})
+
+	it('reads emptiness from a virtual list, not from its rendered rows', async () => {
+		const { rerender } = renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<VirtualWrapperStandIn empty={false} />
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		const status = getSlot(document.body, 'command-palette-no-results')
+
+		// No row is rendered, but the list holds items outside its window.
+		expect(screen.queryAllByRole('option')).toHaveLength(0)
+
+		expect(input).toHaveAttribute('aria-expanded', 'true')
+
+		expect(status.textContent).toBe('')
+
+		rerender(
+			<CommandPalette open onOpenChange={() => {}}>
+				<VirtualWrapperStandIn empty />
+			</CommandPalette>,
+		)
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
 
 		expect(status).toHaveTextContent('No results')
-
-		expect(bySlot(document.body, 'command-palette-list')).not.toContainElement(
-			status as HTMLElement,
-		)
 	})
 })
 
@@ -361,6 +829,17 @@ describe('CommandPaletteItem', () => {
 		expect(item?.tagName).toBe('BUTTON')
 
 		expect(item).toHaveAttribute('role', 'option')
+	})
+
+	it('keeps type="button" when a consumer passes another type', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem type="submit">Item</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		// A submit type would make a press on the row submit an enclosing form.
+		expect(bySlot(document.body, 'command-palette-item')).toHaveAttribute('type', 'button')
 	})
 
 	it('calls onAction and closes the palette on click', async () => {
@@ -527,6 +1006,81 @@ describe('CommandPaletteItem', () => {
 
 		expect(item).toHaveAttribute('data-slot', 'command-palette-item')
 	})
+
+	it.each([
+		['a button item', () => <CommandPaletteItem>Run</CommandPaletteItem>],
+		['a link item', () => <CommandPaletteItem href="/somewhere">Run</CommandPaletteItem>],
+		[
+			'a disabled link item',
+			() => (
+				<CommandPaletteItem disabled href="/somewhere">
+					Run
+				</CommandPaletteItem>
+			),
+		],
+	])('keeps focus on the input when %s is pressed', async (_, renderItem) => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				{renderItem()}
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		const item = screen.getByRole('option')
+
+		// The input holds the query and the arrow keys, so a press must not
+		// move focus to the row.
+		expect(fireEvent.mouseDown(item)).toBe(false)
+
+		await setupUser().pointer({ keys: '[MouseLeft>]', target: item })
+
+		expect(document.activeElement).toBe(input)
+	})
+
+	// The chrome of the list holds no option, so a press there must not take the
+	// focus from the input either.
+	it.each([
+		['a group heading', () => screen.getByText('Recent')],
+		['the gap between the rows', () => screen.getByRole('group')],
+		['the no-results status', () => getSlot(document.body, 'command-palette-no-results')],
+	])('keeps focus on the input when %s is pressed', async (_, target) => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteGroup>
+					<CommandPaletteHeading>Recent</CommandPaletteHeading>
+					<CommandPaletteItem>Run</CommandPaletteItem>
+				</CommandPaletteGroup>
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		expect(fireEvent.mouseDown(target())).toBe(false)
+
+		await setupUser().pointer({ keys: '[MouseLeft>]', target: target() })
+
+		expect(document.activeElement).toBe(input)
+	})
+
+	it('runs a consumer onMouseDown before it keeps focus on the input', async () => {
+		// The handler gives the state of the default when it runs.
+		const onMouseDown = vi.fn((event: { defaultPrevented: boolean }) => event.defaultPrevented)
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem onMouseDown={onMouseDown}>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const item = screen.getByRole('option')
+
+		expect(fireEvent.mouseDown(item)).toBe(false)
+
+		expect(onMouseDown).toHaveBeenCalledTimes(1)
+
+		expect(onMouseDown).toHaveReturnedWith(false)
+	})
 })
 
 describe('CommandPaletteLabel, CommandPaletteText, and CommandPaletteDescription', () => {
@@ -566,8 +1120,8 @@ describe('CommandPalette triggerShortcut', () => {
 	// A browser keydown is cancelable, so a handler can mark it as taken.
 	const MOD_K = { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true, cancelable: true }
 
-	function pressModK() {
-		window.dispatchEvent(new KeyboardEvent('keydown', MOD_K))
+	function pressModK(init: KeyboardEventInit = {}) {
+		window.dispatchEvent(new KeyboardEvent('keydown', { ...MOD_K, ...init }))
 	}
 
 	it('opens the palette when the default $mod+KeyK fires while closed', () => {
@@ -596,6 +1150,48 @@ describe('CommandPalette triggerShortcut', () => {
 		pressModK()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('ignores the OS auto-repeat of a held shortcut', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={false} onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK({ repeat: true })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('leaves the shortcut to the IME while a composition is active', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={false} onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK({ isComposing: true })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('keeps an open palette open on the OS auto-repeat of a held shortcut', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK({ repeat: true })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
 	})
 
 	it('does not open from a form field outside the palette', () => {

@@ -1,15 +1,16 @@
 'use client'
 
-import type {
-	ChangeEventHandler,
-	ClipboardEventHandler,
-	ComponentProps,
-	FocusEventHandler,
-	KeyboardEventHandler,
-	MouseEventHandler,
-	ReactElement,
-	RefObject,
-	UIEventHandler,
+import {
+	type ChangeEventHandler,
+	type ClipboardEventHandler,
+	type ComponentProps,
+	type FocusEventHandler,
+	type KeyboardEventHandler,
+	type MouseEventHandler,
+	type ReactElement,
+	type RefObject,
+	type UIEventHandler,
+	useLayoutEffect,
 } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useIsTruncated } from '../../hooks'
@@ -45,7 +46,8 @@ type ComboboxInputProps = {
 	/**
 	 * True while the combobox holds a selection. A selection satisfies
 	 * `required`, also when the input shows no text, so the native `required`
-	 * drops. `aria-required` stays.
+	 * drops. `aria-required` stays. Typed text is not a selection, so a required
+	 * input with text and no selection stays natively invalid.
 	 */
 	selected: boolean
 	/** The bound field's validation state, so the frame rings for its own errors. */
@@ -65,6 +67,12 @@ type ComboboxInputProps = {
 	truncateTooltip?: boolean
 	handlers: ComboboxInputHandlers
 }
+
+/**
+ * The native validation message of a required input that shows typed text and
+ * holds no selection.
+ */
+const UNSELECTED_MESSAGE = 'Select an option from the list.'
 
 /**
  * Wraps the input in a tooltip that shows `text` while the input truncates it.
@@ -126,6 +134,15 @@ export function ComboboxInput({
 }: ComboboxInputProps) {
 	// Transform only the resolved value; the live query renders as typed.
 	const display = capitalize && !editing ? capitalizeFirst(value) : value
+
+	// Typed text fills the input, so the native `required` alone passes it. The
+	// text is not a selection, so a custom error keeps the input invalid. An empty
+	// input still fails as `valueMissing`.
+	const unselected = Boolean(required) && !selected && value !== ''
+
+	useLayoutEffect(() => {
+		ref.current?.setCustomValidity(unselected ? UNSELECTED_MESSAGE : '')
+	}, [ref, unselected])
 
 	const input = (
 		<Input

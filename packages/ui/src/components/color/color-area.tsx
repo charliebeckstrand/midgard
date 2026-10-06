@@ -5,7 +5,7 @@ import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
 import { useColorPanelContext } from './context'
-import { type DragPosition, useColorDrag } from './use-color-drag'
+import { type DragPosition, inDisabledFieldset, useColorDrag } from './use-color-drag'
 
 /**
  * The 2D saturation × brightness field. X maps to saturation, Y (inverted) to
@@ -70,6 +70,9 @@ export function ColorArea() {
 				return
 		}
 
+		// The fieldset walk runs only for a key that the area takes.
+		if (inDisabledFieldset(event.currentTarget)) return
+
 		event.preventDefault()
 
 		setHsva((prev) => ({ ...prev, s: clamp(s, 0, 100), v: clamp(v, 0, 100) }))
@@ -89,6 +92,7 @@ export function ColorArea() {
 			aria-disabled={ariaAttr(disabled)}
 			className={cn(k.area.base, disabled && 'pointer-events-none opacity-50')}
 			style={{ backgroundColor: `hsl(${hsva.h} 100% 50%)` }}
+			onMouseDown={drag.onMouseDown}
 			onPointerDown={drag.onPointerDown}
 			onPointerMove={drag.onPointerMove}
 			onPointerUp={drag.onPointerUp}

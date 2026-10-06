@@ -7,6 +7,11 @@ type ComboboxTriggerParams = {
 	close: () => void
 	setOpen: (open: boolean) => void
 	inputRef: RefObject<HTMLInputElement | null>
+	/**
+	 * Reads the lock of the combobox when a press occurs. A locked press does
+	 * nothing: it does not toggle the menu, and it does not prevent the default.
+	 */
+	isLocked?: () => boolean
 }
 
 /**
@@ -20,9 +25,17 @@ type ComboboxTriggerParams = {
  *   ignores a press on a child, which keeps its own handler.
  * @internal
  */
-export function useComboboxTrigger({ open, close, setOpen, inputRef }: ComboboxTriggerParams) {
+export function useComboboxTrigger({
+	open,
+	close,
+	setOpen,
+	inputRef,
+	isLocked,
+}: ComboboxTriggerParams) {
 	const onMouseDown = useCallback(
 		(event: MouseEvent<HTMLElement>) => {
+			if (isLocked?.()) return
+
 			event.preventDefault()
 
 			if (open) {
@@ -34,7 +47,7 @@ export function useComboboxTrigger({ open, close, setOpen, inputRef }: ComboboxT
 				setOpen(true)
 			}
 		},
-		[open, close, setOpen, inputRef],
+		[open, close, setOpen, inputRef, isLocked],
 	)
 
 	const onFrameMouseDown = useCallback(

@@ -13,6 +13,7 @@ import { useKeybindings } from '../../hooks/use-keybindings'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
+import { keepInputFocus } from '../combobox/combobox-utilities'
 import {
 	Dialog,
 	DialogBody,
@@ -29,11 +30,14 @@ import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
 // The filters of the shortcut. Each palette skips a press that an earlier handler
-// took, so that one press toggles one palette. A closed palette also skips a
-// press in a form field, as the other keybindings do, so the key stays with the
-// field. An open palette holds the focus, so it takes the press from its own
-// search field and closes.
-const IGNORE_TAKEN: KeybindingFilter = (event) => event.defaultPrevented
+// took, so that one press toggles one palette. Each palette also skips the OS
+// auto-repeat of a held chord, so a held key toggles the palette one time, and a
+// keydown during an IME composition. A closed palette also skips a press in a
+// form field, as the other keybindings do, so the key stays with the field. The
+// tinykeys default skips the repeat and the composition too. An open palette
+// holds the focus, so it takes the press from its own search field and closes.
+const IGNORE_TAKEN: KeybindingFilter = (event) =>
+	event.defaultPrevented || event.repeat || event.isComposing
 
 const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
 	event.defaultPrevented || defaultKeybindingsHandlerIgnore(event)
@@ -95,6 +99,8 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		 * types in. An open palette closes from its own search field. One press
 		 * toggles one palette: an open palette takes the press first, and a press
 		 * that an earlier handler took (`preventDefault`) toggles no palette.
+		 * The OS auto-repeat of a held shortcut and a keydown during an IME
+		 * composition do not toggle the palette.
 		 */
 		triggerShortcut?: string | string[] | false
 		/**
@@ -123,11 +129,14 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * @remarks Focus moves into the search input on open via the Dialog
  * `initialFocus`. Arrow keys drive a virtual roving highlight via
  * `aria-activedescendant` while focus stays on the input. A filter change
- * moves the highlight to the top result, so Enter runs it. On a device with no
- * hover, such as a phone, a filter change clears the highlight, and only an
- * arrow key sets it. The listbox owns only options (`aria-required-children`),
- * so the no-results message lives in a sibling live `<output>` that announces
- * when the filtered set empties. A
+ * moves the highlight to the top result, so Enter runs it. An Enter that lands
+ * before the deferred results catch up waits for them, and then runs the top
+ * result. On a device with no hover, such as a phone, a filter change clears
+ * the highlight, and only an arrow key sets it. The listbox owns only options (`aria-required-children`),
+ * so the no-results message lives in a sibling live `<output>`. The output
+ * stays in the accessibility tree, and the palette writes its text when the
+ * filtered set empties, so the change of text announces. While no option
+ * matches, the input reports `aria-expanded="false"`. A
  * `VirtualOptions` inside `children` registers its windowed item source
  * automatically, so the highlight reaches items outside the rendered window.
  * Roving type-ahead stays off: the search input owns every printable key.
@@ -160,7 +169,8 @@ export function CommandPalette({
 		setQuery,
 		listboxId,
 		inputRef,
-		listRef,
+		attachList,
+		empty,
 		onKeyDown,
 		context,
 		virtualSourceRef,
@@ -217,7 +227,9 @@ export function CommandPalette({
 								prefix={<Icon icon={<Search />} />}
 								role="combobox"
 								aria-label={placeholder}
-								aria-expanded={open}
+								// The listbox collapses on zero results, so the combobox reports it
+								// collapsed then (APG).
+								aria-expanded={open && !empty}
 								aria-haspopup="listbox"
 								aria-controls={listboxId}
 								aria-autocomplete="list"
@@ -227,9 +239,11 @@ export function CommandPalette({
 								onChange={(event) => setQuery(event.target.value)}
 								onKeyDown={onKeyDown}
 							/>
-							<DialogBody>
+							{/* A press on the chrome of the list, such as a heading or the gap
+							    between the rows, keeps the focus on the input, as a row does. */}
+							<DialogBody onMouseDown={keepInputFocus}>
 								<div
-									ref={listRef}
+									ref={attachList}
 									id={listboxId}
 									role="listbox"
 									aria-label={placeholder}
@@ -240,11 +254,12 @@ export function CommandPalette({
 										{children}
 									</VirtualItemSourceContext>
 								</div>
-								{/* The listbox owns only options (`aria-required-children`). The
-					    no-results status is a sibling `<output>` that announces when the
-					    listbox filters down to empty. */}
+								{/* The listbox owns only options (`aria-required-children`), so the
+								    no-results status is a sibling `<output>`. It stays in the
+								    accessibility tree, and it holds text only on zero results: a live
+								    region speaks only a change of text. */}
 								<output data-slot="command-palette-no-results" className={cn(k.empty)}>
-									No results
+									{empty ? 'No results' : null}
 								</output>
 							</DialogBody>
 							{footerContent === null || footerContent === false ? null : (

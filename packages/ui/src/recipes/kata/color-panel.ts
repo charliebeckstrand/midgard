@@ -88,7 +88,8 @@ export const k = defineRecipe(
 		 * when the radio inside has keyboard focus.
 		 */
 		swatch: [
-			'relative aspect-square w-full cursor-pointer',
+			'relative cursor-pointer',
+			kokkaku.colorPanel.swatch,
 			rounded.md,
 			...ring.inset,
 			'hover:scale-110',

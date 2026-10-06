@@ -1,9 +1,10 @@
 import {
 	CalendarDate,
 	endOfMonth,
+	GregorianCalendar,
 	getDayOfWeek,
-	getLocalTimeZone,
 	startOfWeek,
+	toCalendar,
 } from '@internationalized/date'
 
 /**
@@ -34,16 +35,29 @@ export function toCalendarDate(date: Date): CalendarDate {
 	return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
 }
 
+// The Gregorian calendar that `fromCalendarDate` reads each day in.
+const GREGORIAN_CALENDAR = new GregorianCalendar()
+
 /**
  * Inverse of `toCalendarDate`: a local-midnight `Date` for the calendar day.
- * Conversion goes through `@internationalized/date`, not the
- * `Date(year, month, day)` constructor. The constructor reads years 0–99 as
- * 1900–1999 (`0001-01-01` → `1901-01-01`).
+ * Local midnight is in the runtime zone, which the local getters of `Date`
+ * read. The zone of `@internationalized/date` can differ: an app can set it
+ * with `setLocalTimeZone`, and the library keeps the zone of its first read.
+ * `setFullYear` sets the day, because the `Date(year, month, day)` constructor
+ * reads years 0–99 as 1900–1999 (`0001-01-01` → `1901-01-01`).
  *
  * @internal
  */
 export function fromCalendarDate(date: CalendarDate): Date {
-	return date.toDate(getLocalTimeZone())
+	const { era, year, month, day } = toCalendar(date, GREGORIAN_CALENDAR)
+
+	const local = new Date(0)
+
+	local.setFullYear(era === 'BC' ? 1 - year : year, month - 1, day)
+
+	local.setHours(0, 0, 0, 0)
+
+	return local
 }
 
 /**

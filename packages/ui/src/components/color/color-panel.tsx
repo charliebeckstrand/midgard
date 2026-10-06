@@ -16,7 +16,7 @@ import { ColorSwatches } from './color-swatches'
 import { hsvaToCss } from './color-utilities'
 import { ColorPanelContext, type ColorPanelContextValue } from './context'
 import type { ColorValueProps, Hsva } from './types'
-import { useColorState } from './use-color-state'
+import { type ColorState, useColorState } from './use-color-state'
 
 type ColorPanelBaseProps = {
 	/**
@@ -26,8 +26,13 @@ type ColorPanelBaseProps = {
 	 */
 	alpha?: boolean
 	/**
-	 * Preset swatches, or `false` to hide them. The default is a built-in
-	 * palette.
+	 * Preset swatches as hex colors, or `false` to hide them. The default is a
+	 * built-in palette.
+	 *
+	 * @remarks
+	 * Each swatch is `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa`. A swatch in another
+	 * CSS color format paints its chip, but the chip sets no color and is never
+	 * checked. In development, the panel warns of each such swatch.
 	 *
 	 * @defaultValue {@link DEFAULT_SWATCHES}
 	 */
@@ -60,7 +65,7 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
  * @see {@link ColorPicker} for the popover variant.
  */
 export function ColorPanel(props: ColorPanelProps) {
-	const { alpha = false, swatches = DEFAULT_SWATCHES, size, disabled = false, className } = props
+	const { alpha = false, swatches, size, disabled, className } = props
 
 	const { hsva, setHsva } = useColorState({
 		value: props.value,
@@ -72,6 +77,36 @@ export function ColorPanel(props: ColorPanelProps) {
 		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
 	})
 
+	return (
+		<ColorPanelView
+			hsva={hsva}
+			setHsva={setHsva}
+			alpha={alpha}
+			swatches={swatches}
+			size={size}
+			disabled={disabled}
+			className={className}
+		/>
+	)
+}
+
+/**
+ * The body of a {@link ColorPanel}, over a color state that the caller owns. A
+ * `ColorPicker` gives it the HSVA of the picker, so the picker and the panel
+ * share one color. Thus a hue that hex drops stays after the popover unmounts
+ * the panel, and the picker serializes the color one time, at its own edge.
+ *
+ * @internal
+ */
+export function ColorPanelView({
+	hsva,
+	setHsva,
+	alpha = false,
+	swatches = DEFAULT_SWATCHES,
+	size,
+	disabled = false,
+	className,
+}: ColorPanelBaseProps & ColorState) {
 	const context = useMemo<ColorPanelContextValue>(
 		() => ({ hsva, setHsva, alpha, disabled }),
 		[hsva, setHsva, alpha, disabled],

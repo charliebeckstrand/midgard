@@ -8,7 +8,8 @@ import { useComposedRef } from './use-composed-ref'
  * `ref` onto the input. Call `setCaret(pos)` (e.g. from `onChange`) with the
  * caret index measured against the *formatted* value. A layout effect re-applies
  * it after render, so the cursor stays in place when formatting inserts
- * separators. Restores only while the input holds focus.
+ * separators. Restores only while the input holds focus and its type has a
+ * text selection.
  *
  * @param externalRef - Optional input ref composed with the internal one.
  * @returns `{ ref, setCaret }`. Spread `ref` onto the input; `setCaret(pos)`
@@ -31,7 +32,9 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 
 		const el = inputRef.current
 
-		if (el && document.activeElement === el) {
+		// A type with no text selection, such as `number`, reads a null
+		// `selectionStart`, and `setSelectionRange` throws on it.
+		if (el && document.activeElement === el && el.selectionStart !== null) {
 			el.setSelectionRange(target, target)
 		}
 	}

@@ -21,6 +21,12 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message. A touch shows no preview, because a touch has no hover. A `rating` with `step={0.5}` has two radios for each star. The start half sets the half score, and the halves mirror in a right-to-left row.
 
+> A `readOnly` `ColorPicker` does not open its panel. It takes `readOnly` from its own prop or from an enclosing `Control`. Its trigger stays focusable and keeps its tab stop, so a keyboard or a screen reader can read the color. The trigger is a button, and a button does not take `aria-readonly`, so it sets `aria-disabled` while the panel is closed. Only `disabled` sets the native `disabled` attribute.
+
+> A `readOnly` `checkbox` or `switch` keeps its state. A click or a Space press does not change it, and `onChange` does not fire. It keeps the focus, submits its value, and sets `aria-readonly`. It takes `readOnly` from its own prop or from an enclosing `Control`. Its `className`, `style`, and `hidden` go to the visible box.
+
+> A `readOnly` `RadioGroup` keeps its selection. A click, a Space press, or an arrow key does not check a `radio`, and `onChange` does not fire. The arrow keys still move the focus, and the checked `radio` submits its value. The group sets `aria-readonly`, and a `radio` does not, because ARIA defines the attribute on the group. The group takes `readOnly` from its own prop or from an enclosing `Control`. A `radio` takes it from its own prop, from its `Control`, or from its group.
+
 ## Form structure
 
 `form` · `fieldset` · `control`
@@ -31,7 +37,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `button` · `copy-button` · `hold-button` · `toggle-icon-button`
 
-> `CopyButton` is an icon button. For a copy control with a text label, use `useCopyButtonState` from `copy-button`. It gives `copied` and `copy`, with the same clipboard write, announcement, and revert timing as `CopyButton`.
+> `CopyButton` is an icon button. For a copy control with a text label, use `useCopyButtonState` from `copy-button`. It gives `copied` and `copy`, with the same clipboard write, announcement, and revert timing as `CopyButton`. A call to `copy` during a write or in the copied window does nothing.
 
 ## Navigation
 
@@ -61,7 +67,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `list` auto-inserts a `ListHandle` in each `ListItem` only when it has `onReorder`. A read-only list shows no handle, and a disabled list shows a muted one. The `bare` variant has no row padding and no dividers. It is for rows of form controls, such as a reorderable list of inputs in a `Field`.
 
-> `code` exports `CodeBlock`, which highlights with Shiki in a module worker. The page loads no grammar and no regex engine. `loadShiki` starts the worker and loads a grammar before the first block needs it. `primeCodeBlock` stores markup that was highlighted elsewhere, and a block then paints it on its first render. A Vite app must set `worker.format` to `'es'`, or Vite puts each grammar into the worker file.
+> `code` exports `CodeBlock`, which highlights with Shiki in a module worker. The page loads no grammar and no regex engine. `loadShiki` starts the worker and loads a grammar before the first block needs it. `primeCodeBlock` stores markup that was highlighted elsewhere, and a block then paints it on its first render. A Vite app must set `worker.format` to `'es'`, or Vite puts each grammar into the worker file. A block announces a refused copy as "Copy failed", in the live region where its CopyButton announces "Copied". A block that overflows is a region. With no `label`, its name comes from `lang`, such as "TypeScript code", else it is "Code".
+
+> The root `<div>` of a `CodeBlock` takes the `<div>` attributes, such as `id`, `data-*`, and `aria-*`. The `lang` prop names the grammar, so the block does not take the HTML `lang` attribute.
+
+> The padding, the gap, and the code text of a `CodeBlock` take the step of the nearest density scope. An explicit `size` opens a scope on the block, with the steps of the ramps of the block. At `md` the block is `p-4` with `text-sm` code, and its CopyButton keeps the `sm` size at each step.
+
+> The frame of a `CodeBlock` paints the background of its `theme`, as Shiki writes it on the `<pre>`. Before the markup arrives, the frame paints the background of the default theme. The CopyButton of the block takes colors that read on the background in each color mode.
 
 ## Layout & surfaces
 
@@ -85,7 +97,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 ## Loading skeletons
 
-A unit that can load late exports a `<Name>Skeleton` from its own entry point. The skeleton is a static leaf, so a Suspense fallback or a `loading.tsx` can render it on the server. It has the box of the real component and takes the same `size`, `level`, or `orientation`.
+A unit that can load late exports a `<Name>Skeleton` from its own entry point. The skeleton is a static leaf, so a Suspense fallback or a `loading.tsx` can render it on the server. It has the box of the real component and takes the same `size`, `level`, or `orientation`. `ColorPanelSkeleton` also takes the `alpha` and the `swatches` of its panel.
 
 `AccordionSkeleton` · `AvatarSkeleton` · `BadgeSkeleton` · `BreadcrumbSkeleton` · `ButtonSkeleton` · `CalendarSkeleton` · `CheckboxSkeleton` · `ColorPanelSkeleton` · `ColorPickerSkeleton` · `ControlSkeleton` · `DatePickerSkeleton` · `DescriptionListSkeleton` · `FiltersSkeleton` · `HeadingSkeleton` · `KanbanCardSkeleton` · `ListSkeleton` · `NavSkeleton` · `PaginationSkeleton` · `ProgressBarSkeleton` · `ProgressGaugeSkeleton` · `RadioSkeleton` · `RatingSkeleton` · `SegmentSkeleton` · `ShinyTextSkeleton` · `SidebarSkeleton` · `SliderSkeleton` · `SparklineSkeleton` · `StatDeltaSkeleton` · `StatDescriptionSkeleton` · `StatLabelSkeleton` · `StatSkeleton` · `StatValueSkeleton` · `StepperSkeleton` · `SwitchSkeleton` · `TabListSkeleton` · `TextareaSkeleton` · `TextSkeleton` · `TimelineSkeleton` · `ToggleIconButtonSkeleton` · `TreeSkeleton`
 

@@ -5,6 +5,7 @@ import { ChevronsUpDown } from 'lucide-react'
 import {
 	type ClipboardEventHandler,
 	type ComponentProps,
+	type KeyboardEvent,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -24,13 +25,18 @@ import {
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
+	isVirtualActiveRowGone,
+	isVirtualTopMatchSeated,
 	queryItems,
 	seedVirtualTopMatch,
 	setVirtualActive,
 	setVirtualActiveIndexed,
 	type VirtualItemSource,
+	virtualTopMatchIndex,
 } from '../../hooks/a11y/use-a11y-roving'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -48,7 +54,7 @@ import { ComboboxPanel } from './combobox-panel'
 import { resolveInputDisplay, resolveInputTitle } from './combobox-utilities'
 import { ComboboxContext } from './context'
 import { useComboboxInput } from './use-combobox-input'
-import { useComboboxState } from './use-combobox-state'
+import { routeFloatingOpenChange, useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
 
 type ComboboxBaseProps<T> = GroupStampProps & {
@@ -117,8 +123,9 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	required?: boolean
 	className?: string
 	/**
-	 * The `autocomplete` attribute of the input.
-	 * @defaultValue 'off'
+	 * The `autocomplete` attribute of the input. The prop wins over the
+	 * `autoComplete` of an enclosing `<Control>`.
+	 * @defaultValue the `autoComplete` of the enclosing `<Control>`, else `'off'`
 	 */
 	autoComplete?: ComponentProps<'input'>['autoComplete']
 	/**
@@ -175,6 +182,9 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * `displayValue` and of each option's string label; custom label nodes
 	 * render as authored. One flag sets both surfaces. Display-only: the
 	 * underlying query and value are untouched.
+	 *
+	 * The input applies it to each resolved display string, so the `summarize`
+	 * output of a multiple selection is capitalized too.
 	 * @defaultValue true
 	 */
 	capitalize?: boolean
@@ -205,6 +215,8 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	 * replaced is then dropped and editing ends, the same way selecting an option does. The field
 	 * is therefore not left holding a query the handler has already turned into a selection. A
 	 * paste left alone is ordinary typing and lands at the caret.
+	 *
+	 * It does not run while the combobox is read-only or disabled, because the lock blocks each commit.
 	 */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
@@ -264,13 +276,14 @@ function seedTopMatch(
  * only — `multiple` carries no single selection.
  *
  * A windowed selection cannot be found without the DOM, so a registered
- * `source` seats the top option instead of guessing. The key is an explicit
+ * `source` seats the first option that `isDisabled` does not mark
+ * (`virtualTopMatchIndex`) instead of guessing. The key is an explicit
  * move, so this does not go through {@link seedTopMatch}, which clears the
  * highlight on a device with no hover.
  *
  * @internal
  */
-function seatOnArrowOpen(
+export function seatOnArrowOpen(
 	node: HTMLElement,
 	source: VirtualItemSource | null,
 	multiple: boolean,
@@ -278,7 +291,7 @@ function seatOnArrowOpen(
 	inputRef: RefObject<HTMLInputElement | null>,
 ): void {
 	if (source) {
-		setVirtualActiveIndexed(node, source, source.count > 0 ? 0 : -1, activeIndexRef, inputRef, {
+		setVirtualActiveIndexed(node, source, virtualTopMatchIndex(source), activeIndexRef, inputRef, {
 			ariaSelected: false,
 		})
 
@@ -293,37 +306,94 @@ function seatOnArrowOpen(
 }
 
 /**
- * Re-anchors the highlight when an option swap (async data, unrelated to the
- * query) drops the active one. Under a registered `virtualSourceRef`, a
- * missing DOM row is the normal windowed-out state. `setVirtualActiveIndexed`
- * already watches for it to mount. This therefore only re-anchors when
- * `activeIndexRef` is out of bounds for the source's live `count`. That is the
- * unambiguous signal that the underlying data (not just the window) dropped
- * it. Without a registered source, DOM absence is checked directly.
+ * The origin of the highlight, which {@link reanchorOnOptionSwap} reads when the
+ * rows change:
+ *
+ * - `'empty'`: the highlight is empty by design, as after a plain open.
+ * - `'seeded'`: a filter change put the highlight on the top match, or found no
+ *   row for it.
+ * - `'moved'`: a key set the highlight, with an arrow key or an arrow-key open.
  *
  * @internal
  */
-function reanchorOnOptionSwap(
+export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
+
+/**
+ * Re-anchors the highlight when the rows change under an unchanged query, as
+ * when async data arrives. `originRef` decides the move:
+ *
+ * - An empty highlight stays empty. A change to the window of a source does
+ *   not seed row 0 after a plain open.
+ * - A seeded highlight follows the top match. The first row that mounts after
+ *   a filter change that found no row takes it. A new top match that mounts
+ *   above it also takes it.
+ * - A moved highlight stays while its row exists. Without a source, the row
+ *   exists while it is in the DOM. Under a registered `virtualSourceRef`, a row
+ *   out of the window is not in the DOM, and `setVirtualActiveIndexed` watches
+ *   for it to mount. There the row exists while `activeIndexRef` is below the
+ *   live `count` of the source. When the row goes, the top match takes a seed.
+ *
+ * @internal
+ */
+export function reanchorOnOptionSwap(
 	node: HTMLElement,
 	virtualSourceRef: RefObject<VirtualItemSource | null>,
 	activeIndexRef: RefObject<number>,
 	inputRef: RefObject<HTMLInputElement | null>,
+	originRef: RefObject<HighlightOrigin>,
 ): void {
+	if (originRef.current === 'empty') return
+
 	const source = virtualSourceRef.current
 
-	if (source) {
-		if (activeIndexRef.current >= 0 && activeIndexRef.current < source.count) return
-
-		seedTopMatch(node, source, activeIndexRef, inputRef)
-
+	if (originRef.current === 'seeded') {
+		if (isVirtualTopMatchSeated(node, OPTION_SELECTOR, source, activeIndexRef, inputRef)) return
+	} else if (!isVirtualActiveRowGone(source, activeIndexRef, inputRef)) {
 		return
 	}
 
-	const activeId = inputRef.current?.getAttribute('aria-activedescendant')
+	seedTopMatch(node, source, activeIndexRef, inputRef)
 
-	if (!activeId || document.getElementById(activeId)) return
+	originRef.current = 'seeded'
+}
 
-	seedTopMatch(node, null, activeIndexRef, inputRef)
+/**
+ * The text of the development warning of {@link warnOnMixedSource}.
+ *
+ * @internal
+ */
+const MIXED_SOURCE_WARNING =
+	'Combobox: an option is outside the `items` of the `VirtualOptions` that registers the keyboard source. Arrow keys and type-ahead move through those items by index, so they do not reach the option. Put each option into the items, a create row too, and give it the `id` that `getOptionId` returns.'
+
+/**
+ * Warns in development when a registered `source` and an option outside its
+ * items are in `node` together. The roving hook moves through the items of a
+ * registered source by index, and does not query the DOM. Thus an arrow key or
+ * type-ahead does not reach an option whose `id` is not a key of the source,
+ * such as a create row after `VirtualOptions`. That mix is not supported.
+ *
+ * It warns one time for each combobox: `warnedRef` holds the flag.
+ *
+ * @internal
+ */
+function warnOnMixedSource(
+	node: HTMLElement,
+	source: VirtualItemSource | null,
+	warnedRef: RefObject<boolean>,
+): void {
+	if (process.env.NODE_ENV === 'production' || warnedRef.current || !source) return
+
+	const options = queryItems(node, OPTION_SELECTOR)
+
+	if (options.length === 0) return
+
+	const keys = new Set(Array.from({ length: source.count }, (_, index) => source.getKey(index)))
+
+	if (options.every((option) => keys.has(option.id))) return
+
+	warnedRef.current = true
+
+	console.warn(MIXED_SOURCE_WARNING)
 }
 
 /**
@@ -338,10 +408,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 /**
  * Type-ahead select pairing a text input with a floating option panel.
  * Supports single or `multiple` selection, controlled or uncontrolled `value`,
- * and `clearable`/`nullable` affordances. Resolves `disabled`, `readOnly`, and
- * `required` against an enclosing `<Control>`, takes the step of the nearest
- * density scope (an explicit `size` opens a scope on the trigger and the
- * panel), and
+ * and `clearable`/`nullable` affordances. Resolves `autoComplete`, `disabled`,
+ * `readOnly`, and `required` against an enclosing `<Control>`, takes the step
+ * of the nearest density scope (an explicit `size` opens a scope on the
+ * trigger and the panel), and
  * registers with `<Form>` under `name`. Tracks the highlight as a virtual
  * active-descendant (APG editable combobox) with DOM focus held on the input,
  * re-anchoring across filter and async option changes. Filtering is
@@ -350,7 +420,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
  * supporting both synchronous lists and async option sources. Wrap the
  * options in `VirtualOptions` with `getOptionId` for large lists. Arrow and
  * type-ahead then navigate the full option set by index, reaching options
- * outside the rendered window instead of stopping at its edge.
+ * outside the rendered window instead of stopping at its edge. Each option
+ * must then be one of the `items` of `VirtualOptions`. Put a create row into
+ * the items, not after the wrapper. Arrow and type-ahead do not reach an
+ * option outside the items, and a development warning tells you so.
  *
  * @remarks
  * Supply `aria-label` when no `<Field>`/`<Label>` wraps the combobox; the
@@ -391,7 +464,7 @@ export function Combobox<T>({
 	onQueryChange,
 	onPaste,
 	className,
-	autoComplete = 'off',
+	autoComplete,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	'aria-describedby': ariaDescribedBy,
@@ -434,7 +507,8 @@ export function Combobox<T>({
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlProps({ disabled, readOnly, required, invalid: boundInvalid })
+		autoComplete: resolvedAutoComplete,
+	} = useControlProps({ autoComplete, disabled, readOnly, required, invalid: boundInvalid })
 
 	const comboboxId = useId()
 
@@ -447,11 +521,7 @@ export function Combobox<T>({
 	// options when the container attaches. The ref serves the key handlers.
 	const [optionsNode, setOptionsNode] = useState<HTMLDivElement | null>(null)
 
-	const attachOptions = useCallback((node: HTMLDivElement | null) => {
-		optionsRef.current = node
-
-		setOptionsNode(node)
-	}, [])
+	const attachOptions = useComposedRef(optionsRef, setOptionsNode)
 
 	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
 	// via `VirtualItemSourceContext`; null for a non-virtualized combobox, which
@@ -461,6 +531,12 @@ export function Combobox<T>({
 	// Logical active index for the virtual source, since a windowed-out active
 	// row has no DOM `data-active` marker to read it back off of.
 	const activeIndexRef = useRef(-1)
+
+	// Where the highlight came from. The observer of option swaps below reads it.
+	const highlightOriginRef = useRef<HighlightOrigin>('empty')
+
+	// Set when `warnOnMixedSource` warns, so that it warns one time.
+	const mixedSourceWarnedRef = useRef(false)
 
 	// Editable combobox (APG): DOM focus stays on the input; the highlight is
 	// tracked virtually. Arrow keys move `data-active` and repoint the input's
@@ -474,6 +550,22 @@ export function Combobox<T>({
 		itemSource: virtualSourceRef,
 		activeIndexRef,
 	})
+
+	// A key that moves the highlight makes it the user's, so a new top match does
+	// not take it. A move writes `aria-activedescendant` before the handler
+	// returns, also for a row of a source that is not mounted yet.
+	const rovingKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			const before = inputRef.current?.getAttribute('aria-activedescendant')
+
+			handleKeyDown(event)
+
+			if (inputRef.current?.getAttribute('aria-activedescendant') !== before) {
+				highlightOriginRef.current = 'moved'
+			}
+		},
+		[handleKeyDown],
+	)
 
 	const keyboardSettled = useKeyboardSettled()
 
@@ -489,6 +581,7 @@ export function Combobox<T>({
 		setEditing,
 		close,
 		select,
+		keep,
 		flushPending,
 		selectionValue,
 	} = useComboboxState<T>({
@@ -509,14 +602,31 @@ export function Combobox<T>({
 	// its value still submits, and its native readOnly also stops typing.
 	const locked = resolvedReadOnly || resolvedDisabled
 
+	// A disabled ancestor `<fieldset>` disables the input but sets no prop, so
+	// `locked` stays false. Thus each guard also reads the native state of the
+	// input when an event occurs. The Form uses that fieldset as its lock while
+	// it submits. A stable event holds the read, because the open guard goes to
+	// `routeFloatingOpenChange` during render, and the compiler skips a component
+	// that gives a plain function a closure that reads a ref.
+	const isLocked = useStableEvent(() => locked || inputRef.current?.matches(':disabled') === true)
+
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
-			if (locked && next) return
+			if (next && isLocked()) return
 
 			setOpen(next)
 		},
-		[locked, setOpen],
+		[isLocked, setOpen],
 	)
+
+	// Enter on the selected option ends a pick with no change to the value. The
+	// lock blocks it as it blocks the selection, so on a locked combobox Enter
+	// does nothing on any option.
+	const guardedKeep = useCallback(() => {
+		if (isLocked()) return
+
+		keep()
+	}, [isLocked, keep])
 
 	// Set when an arrow-key open must seat the highlight on the current
 	// selection rather than leave it empty; consumed by the highlight-anchoring
@@ -542,11 +652,16 @@ export function Combobox<T>({
 	// seeds it through `seedTopMatch`, and on an arrow-key open seats it through
 	// `seatOnArrowOpen`. Skips the initial query; the first arrow key then picks
 	// the first option. Passes `ariaSelected: false`; options own their
-	// selection state.
+	// selection state. Each path records the origin of the highlight in
+	// `highlightOriginRef`.
 	//
 	// Under a registered `virtualSourceRef`, index math replaces the DOM query
 	// (a windowed-out option isn't in the DOM to find), via
 	// `setVirtualActiveIndexed`/`clearVirtualActiveIndexed`.
+	//
+	// The effect also gives the open options to `warnOnMixedSource`. It runs
+	// after the effects of `children`, so a `VirtualOptions` that the same
+	// commit changes has registered its new source.
 	const lastQueryRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -560,12 +675,16 @@ export function Combobox<T>({
 
 			anchorSelectedOnOpenRef.current = false
 
+			highlightOriginRef.current = 'empty'
+
 			return
 		}
 
 		// The panel is open, but its options are not attached yet. Keep the
 		// arrow-key flag until they attach and this effect runs again.
 		if (!optionsNode) return
+
+		warnOnMixedSource(optionsNode, source, mixedSourceWarnedRef)
 
 		const anchorSelected = anchorSelectedOnOpenRef.current
 
@@ -576,6 +695,8 @@ export function Combobox<T>({
 
 			seatOnArrowOpen(optionsNode, source, multiple, activeIndexRef, inputRef)
 
+			highlightOriginRef.current = 'moved'
+
 			return
 		}
 
@@ -585,6 +706,8 @@ export function Combobox<T>({
 		lastQueryRef.current = deferredQuery
 
 		seedTopMatch(optionsNode, source, activeIndexRef, inputRef)
+
+		highlightOriginRef.current = 'seeded'
 	}, [open, optionsNode, deferredQuery, multiple])
 
 	// Async option swaps for an unchanged query (e.g. address suggestions
@@ -594,11 +717,9 @@ export function Combobox<T>({
 	// re-rendering on its own async state), where no render of this component
 	// observes it; a MutationObserver on the options wrapper does.
 	//
-	// Under a registered `virtualSourceRef`, a missing DOM row is the normal
-	// windowed-out state — `setVirtualActiveIndexed` already watches for it to
-	// mount — so this only re-anchors when `activeIndexRef` is actually out of
-	// bounds for the source's live `count`, the unambiguous signal that the
-	// underlying data (not just the window) dropped it.
+	// The origin of the highlight decides the move (see `reanchorOnOptionSwap`).
+	// An empty highlight stays empty, a seeded one follows the top match, and a
+	// moved one stays while its row exists.
 	useEffect(() => {
 		if (!open) return
 
@@ -607,7 +728,7 @@ export function Combobox<T>({
 		if (!node) return
 
 		const observer = new MutationObserver(() =>
-			reanchorOnOptionSwap(node, virtualSourceRef, activeIndexRef, inputRef),
+			reanchorOnOptionSwap(node, virtualSourceRef, activeIndexRef, inputRef, highlightOriginRef),
 		)
 
 		observer.observe(node, { childList: true, subtree: true })
@@ -618,7 +739,8 @@ export function Combobox<T>({
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
-		onOpenChange: setOpenGuarded,
+		// An outside press or an Escape closes through close(), as a blur does.
+		onOpenChange: routeFloatingOpenChange(setOpenGuarded, close),
 		matchReferenceWidth: true,
 		// The input and panel carry their own roles + popup wiring; `role: null`
 		// suppresses floating-ui's wrapper roles.
@@ -644,19 +766,30 @@ export function Combobox<T>({
 		floatingRef: refs.floating,
 		optionsRef,
 		open,
+		locked,
 		setValue,
 		setEditing,
 		setQuery,
 		setOpen: setOpenGuarded,
 		openByArrowKey,
 		close,
+		keep: guardedKeep,
 		onTouched: setTouched,
 		keyboardSettled,
-		rovingKeyDown: handleKeyDown,
+		rovingKeyDown,
 		onPaste,
 	})
 
-	const triggerHandlers = useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
+	// The open guard lets a close through. Thus the trigger reads the lock
+	// itself, so that a press under a controlled `open` does not close a locked
+	// panel.
+	const { onMouseDown: onSuffixMouseDown, onFrameMouseDown } = useComboboxTrigger({
+		open,
+		close,
+		setOpen: setOpenGuarded,
+		inputRef,
+		isLocked,
+	})
 
 	const scrollWithin = useScrollWithin()
 
@@ -706,11 +839,11 @@ export function Combobox<T>({
 	// also blocks the selection: a read-only or disabled combobox never commits.
 	const guardedSelect = useCallback(
 		(next: T) => {
-			if (locked) return
+			if (isLocked()) return
 
 			select(next)
 		},
-		[locked, select],
+		[isLocked, select],
 	)
 
 	// The input display reads the live `value`; the menu reads `selectionValue`,
@@ -750,7 +883,7 @@ export function Combobox<T>({
 							// The rounded corners of the input do not take a press, so the
 							// press falls through to the frame. The frame then toggles the
 							// menu, as the chevron does.
-							onMouseDown: locked ? undefined : triggerHandlers.onFrameMouseDown,
+							onMouseDown: onFrameMouseDown,
 						}}
 						prefix={prefix}
 						suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
@@ -761,16 +894,22 @@ export function Combobox<T>({
 							// LoadingSpinner) owns its own semantics. Interactive suffix
 							// content (the clear button) stops propagation to opt out.
 							'aria-hidden': suffix || showClear ? undefined : true,
-							onMouseDown: locked ? undefined : triggerHandlers.onMouseDown,
+							onMouseDown: onSuffixMouseDown,
 						}}
 					>
 						<ComboboxInput
 							id={id}
 							ref={inputRef}
 							type="text"
-							autoComplete={autoComplete}
+							// The prop wins, then the Control, then 'off'. The default is not a
+							// parameter default, because that counts as the prop and hides the
+							// value of the Control.
+							autoComplete={resolvedAutoComplete ?? 'off'}
 							aria-label={ariaLabel}
-							aria-labelledby={ariaLabelledby}
+							// In the accessible name, aria-labelledby wins over aria-label, so an
+							// explicit aria-label removes it. The `<label>` of the field names the
+							// input, so the input takes no fallback.
+							aria-labelledby={ariaLabel ? undefined : ariaLabelledby}
 							// Passed raw: the `<Input>` beneath runs the same `useControlProps`
 							// merge, so resolving it here would join the field's ids twice.
 							aria-describedby={ariaDescribedBy}
@@ -801,7 +940,7 @@ export function Combobox<T>({
 						ariaLabel={ariaLabel}
 						// Names the listbox from the input's name: an explicit aria-label
 						// wins, else aria-labelledby, else the field's Label (via Control).
-						ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
+						ariaLabelledby={ariaLabelledby ?? control?.labelledBy}
 						floatingStyles={floatingStyles}
 						getFloatingProps={getFloatingProps}
 						optionsRef={attachOptions}

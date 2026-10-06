@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useCalendarFocus } from '../../components/calendar/use-calendar-focus'
 import { attach, makeKeyEvent, present } from '../helpers'
 
@@ -311,5 +311,366 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 		handleGridKeyDown(event)
 
 		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+})
+
+/**
+ * The days of June 2025, one button for each day, and the hook with the date
+ * model of a day grid. The buttons of the days outside `min` and `max` are
+ * disabled, as in Calendar. Set `footer` to give the hook a footer of two buttons.
+ */
+function setupJune({
+	footer: withFooter,
+	...range
+}: {
+	min?: Date
+	max?: Date
+	footer?: boolean
+} = {}) {
+	const days = Array.from({ length: 30 }, (_, i) => new Date(2025, 5, i + 1))
+
+	const header = makeContainer(3)
+
+	const grid = makeContainer(days.length)
+
+	for (const [index, button] of grid.querySelectorAll('button').entries()) {
+		const day = days[index] as Date
+
+		button.disabled =
+			(range.min !== undefined && day < range.min) || (range.max !== undefined && day > range.max)
+	}
+
+	const footer = withFooter ? makeContainer(2) : null
+
+	const navigateTo = vi.fn()
+
+	const { result } = renderHook(() =>
+		useCalendarFocus({
+			headerRef: { current: header },
+			gridRef: { current: grid },
+			footerRef: footer ? { current: footer } : undefined,
+			dayGrid: { days, navigateTo, ...range },
+		}),
+	)
+
+	/** Focuses the button of day `n` of June. */
+	const focusDay = (n: number) =>
+		(grid.querySelectorAll('button').item(n - 1) as HTMLElement).focus()
+
+	return { header, grid, footer, navigateTo, focusDay, ...result.current }
+}
+
+// A day grid that no parent steers steps the month at its edges and on the Page
+// keys, as the WAI-ARIA APG date grid does.
+describe('useCalendarFocus: day grid', () => {
+	it('steps to the next month when ArrowRight leaves the last day', () => {
+		const { navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(30)
+
+		const event = makeKeyEvent('ArrowRight')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).toHaveBeenCalledExactlyOnceWith(2025, 6)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+	})
+
+	it('steps to the previous month, not to the header, when ArrowUp leaves the top row', () => {
+		const { header, navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(3)
+
+		const event = makeKeyEvent('ArrowUp')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).toHaveBeenCalledExactlyOnceWith(2025, 4)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(header.contains(document.activeElement)).toBe(false)
+	})
+
+	it('steps to the next month, not to the footer, when ArrowDown leaves the bottom row', () => {
+		const { footer, navigateTo, focusDay, handleGridKeyDown } = setupJune({ footer: true })
+
+		focusDay(28)
+
+		const event = makeKeyEvent('ArrowDown')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).toHaveBeenCalledExactlyOnceWith(2025, 6)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(footer?.contains(document.activeElement)).toBe(false)
+	})
+
+	it('steps a month with PageUp and a year with Shift+PageDown', () => {
+		const { navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(15)
+
+		const page = makeKeyEvent('PageUp')
+
+		handleGridKeyDown(page)
+
+		expect(navigateTo).toHaveBeenLastCalledWith(2025, 4)
+
+		expect(page.preventDefault).toHaveBeenCalled()
+
+		focusDay(15)
+
+		handleGridKeyDown(makeKeyEvent('PageDown', { shiftKey: true }))
+
+		expect(navigateTo).toHaveBeenLastCalledWith(2026, 5)
+	})
+
+	// A day of the shown month outside min and max is disabled. An arrow toward it
+	// goes to its day held between min and max, and the focus stays when that is
+	// the focused day. The arrow does not wrap or leave the grid.
+	it.each<[string, string, { min?: Date; max?: Date }, number]>([
+		['ArrowLeft from the min day', 'ArrowLeft', { min: new Date(2025, 5, 10) }, 10],
+		['ArrowRight from the max day', 'ArrowRight', { max: new Date(2025, 5, 20) }, 20],
+	])('keeps the focus, and consumes the key, on %s', (_name, key, options, day) => {
+		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune(options)
+
+		focusDay(day)
+
+		const event = makeKeyEvent(key)
+
+		handleGridKeyDown(event)
+
+		expect(document.activeElement).toBe(grid.querySelectorAll('button').item(day - 1))
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(navigateTo).not.toHaveBeenCalled()
+	})
+
+	it.each<[string, string, { min?: Date; max?: Date; footer?: boolean }, number, number]>([
+		['ArrowUp from June 12 to min', 'ArrowUp', { min: new Date(2025, 5, 10) }, 12, 10],
+		['ArrowDown from June 18 to max', 'ArrowDown', { max: new Date(2025, 5, 20) }, 18, 20],
+		['ArrowDown past the month end to max', 'ArrowDown', { max: new Date(2025, 5, 28) }, 25, 28],
+		[
+			'ArrowDown from June 18 to max, with a footer',
+			'ArrowDown',
+			{ max: new Date(2025, 5, 20), footer: true },
+			18,
+			20,
+		],
+	])(
+		'holds the target in the range, and consumes the key, on %s',
+		(_name, key, options, from, to) => {
+			const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune(options)
+
+			focusDay(from)
+
+			const event = makeKeyEvent(key)
+
+			handleGridKeyDown(event)
+
+			expect(document.activeElement).toBe(grid.querySelectorAll('button').item(to - 1))
+
+			expect(event.preventDefault).toHaveBeenCalled()
+
+			expect(navigateTo).not.toHaveBeenCalled()
+		},
+	)
+
+	it('leaves an arrow inside the month to the roving grid', () => {
+		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(10)
+
+		handleGridKeyDown(makeKeyEvent('ArrowRight'))
+
+		expect(navigateTo).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(grid.querySelectorAll('button').item(10))
+	})
+
+	it('keeps the day at max, and the page still, when an arrow leaves the range', () => {
+		const { grid, navigateTo, focusDay, handleGridKeyDown } = setupJune({
+			max: new Date(2025, 5, 30),
+		})
+
+		focusDay(30)
+
+		const event = makeKeyEvent('ArrowRight')
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(grid.querySelectorAll('button').item(29))
+	})
+})
+
+// The view holds years 1 to 9999. A `CalendarDate` clamps a sum past the last
+// day to that day, so a step past it looks like a step inside December 9999.
+describe('useCalendarFocus: day grid at the last day of year 9999', () => {
+	function setupDecember9999() {
+		const days = Array.from({ length: 31 }, (_, i) => new Date(9999, 11, i + 1))
+
+		const grid = makeContainer(days.length)
+
+		const navigateTo = vi.fn()
+
+		const { result } = renderHook(() =>
+			useCalendarFocus({
+				headerRef: { current: makeContainer(3) },
+				gridRef: { current: grid },
+				dayGrid: { days, navigateTo },
+			}),
+		)
+
+		const dayButton = (n: number) => grid.querySelectorAll('button').item(n - 1) as HTMLElement
+
+		return { navigateTo, dayButton, ...result.current }
+	}
+
+	it.each<[string, number, string, { shiftKey?: boolean }]>([
+		['ArrowDown from December 28', 28, 'ArrowDown', {}],
+		['ArrowDown from December 25', 25, 'ArrowDown', {}],
+		['ArrowRight from December 31', 31, 'ArrowRight', {}],
+		['PageDown', 15, 'PageDown', {}],
+		['Shift+PageDown', 15, 'PageDown', { shiftKey: true }],
+	])('keeps the focus, and consumes the key, on %s', (_name, day, key, modifiers) => {
+		const { navigateTo, dayButton, handleGridKeyDown } = setupDecember9999()
+
+		dayButton(day).focus()
+
+		const event = makeKeyEvent(key, modifiers)
+
+		handleGridKeyDown(event)
+
+		expect(document.activeElement).toBe(dayButton(day))
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(navigateTo).not.toHaveBeenCalled()
+	})
+
+	it('moves to December 31 with ArrowDown from December 24', () => {
+		const { dayButton, handleGridKeyDown } = setupDecember9999()
+
+		dayButton(24).focus()
+
+		handleGridKeyDown(makeKeyEvent('ArrowDown'))
+
+		expect(document.activeElement).toBe(dayButton(31))
+	})
+})
+
+/** The state of one cell in a grid fixture. */
+type CellState = { selected?: boolean; today?: boolean; disabled?: boolean; dataSelected?: boolean }
+
+/** A grid of buttons with the attributes that a calendar cell renders. Each button shows its index. */
+function makeGrid(cells: CellState[]) {
+	const el = document.createElement('div')
+
+	for (const [index, cell] of cells.entries()) {
+		const btn = document.createElement('button')
+
+		btn.textContent = String(index)
+
+		btn.setAttribute('aria-selected', String(cell.selected === true))
+
+		if (cell.today) btn.setAttribute('aria-current', 'date')
+
+		if (cell.dataSelected) btn.setAttribute('data-selected', '')
+
+		btn.disabled = cell.disabled === true
+
+		el.appendChild(btn)
+	}
+
+	return attach(el)
+}
+
+/** The text of each enabled button in `container` that is a Tab stop. */
+function tabStops(container: HTMLElement) {
+	return Array.from(container.querySelectorAll('button'))
+		.filter((btn) => !btn.disabled && btn.tabIndex === 0)
+		.map((btn) => btn.textContent)
+}
+
+/** Mounts the hook on `grid` and a header of three buttons, and returns the header. */
+function mountStops(grid: HTMLElement, options: { activeSelector?: string } = {}) {
+	const header = makeContainer(3)
+
+	const headerRef = { current: header }
+
+	const gridRef = { current: grid }
+
+	renderHook(() => useCalendarFocus({ headerRef, gridRef, ...options }))
+
+	return header
+}
+
+// A keyboard user must cross a calendar with one Tab stop in the grid, not one
+// stop for each day.
+describe('useCalendarFocus: Tab stops', () => {
+	it('holds one Tab stop in the grid, on the selected day before an earlier today', () => {
+		const grid = makeGrid([{}, { today: true }, {}, { selected: true }, {}])
+
+		mountStops(grid)
+
+		expect(tabStops(grid)).toEqual(['3'])
+	})
+
+	it('seats the grid Tab stop on today when no enabled day is selected', () => {
+		const grid = makeGrid([{}, { today: true }, {}, { selected: true, disabled: true }])
+
+		mountStops(grid)
+
+		expect(tabStops(grid)).toEqual(['1'])
+	})
+
+	it('seats the grid Tab stop on the first enabled day when no enabled day is selected or today', () => {
+		const grid = makeGrid([{ disabled: true }, { disabled: true, today: true }, {}, {}])
+
+		mountStops(grid)
+
+		expect(tabStops(grid)).toEqual(['2'])
+	})
+
+	it('seats the grid Tab stop on the item that activeSelector names', () => {
+		const grid = makeGrid([{ today: true }, {}, { dataSelected: true }, {}])
+
+		mountStops(grid, { activeSelector: '[data-selected]' })
+
+		expect(tabStops(grid)).toEqual(['2'])
+	})
+
+	it('seats the grid Tab stop only when gridMounted turns on', () => {
+		const grid = makeGrid([{}, { selected: true }, {}])
+
+		const headerRef = { current: makeContainer(3) }
+
+		const gridRef = { current: grid }
+
+		const { rerender } = renderHook(
+			({ gridMounted }) => useCalendarFocus({ headerRef, gridRef, gridMounted }),
+			{ initialProps: { gridMounted: false } },
+		)
+
+		expect(tabStops(grid)).toEqual(['0', '1', '2'])
+
+		rerender({ gridMounted: true })
+
+		expect(tabStops(grid)).toEqual(['1'])
+	})
+
+	it('keeps each header button as its own Tab stop', () => {
+		const header = mountStops(makeGrid([{}, { selected: true }]))
+
+		expect(tabStops(header)).toEqual(['0', '1', '2'])
 	})
 })
