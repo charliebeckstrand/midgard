@@ -66,6 +66,10 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  * takes the step of the nearest density scope, and an explicit `size` opens a
  * scope on the trigger and on the panel. Controlled or uncontrolled.
  *
+ * The trigger is as wide as its swatch and its color value. It does not fill
+ * its parent, and it does not get wider than its parent. Pass a `className`
+ * such as `w-full` to make it fill the parent.
+ *
  * @see {@link ColorPanel} for the inline variant.
  */
 export function ColorPicker(props: ColorPickerProps) {
