@@ -281,7 +281,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit }: PlaceFormDra
 									<Field>
 										<Label>Visited</Label>
 
-										<DatePicker name="visitedAt" />
+										<DatePicker name="visitedAt" className="w-full" />
 
 										<Message name="visitedAt" />
 									</Field>

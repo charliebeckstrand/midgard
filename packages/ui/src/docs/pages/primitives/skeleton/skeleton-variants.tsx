@@ -11,6 +11,7 @@ import { CheckboxSkeleton } from 'ui/checkbox'
 import { ColorPanelSkeleton, ColorPickerSkeleton } from 'ui/color'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { ControlSkeleton } from 'ui/control'
+import { DatePickerSkeleton } from 'ui/date-picker'
 import { DescriptionListSkeleton } from 'ui/description-list'
 import { FiltersSkeleton } from 'ui/filters'
 import { HeadingSkeleton } from 'ui/heading'
@@ -57,6 +58,7 @@ const variants = [
 	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
 	{ name: 'Color picker', skeleton: <ColorPickerSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
+	{ name: 'Date picker', skeleton: <DatePickerSkeleton /> },
 	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
 	{ name: 'Filters', skeleton: <FiltersSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },

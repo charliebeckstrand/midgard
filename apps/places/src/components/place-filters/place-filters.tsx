@@ -160,6 +160,9 @@ export function PlaceFilters({
 								footer={{ clear: false }}
 								aria-label="Visited when"
 								placeholder="Any time"
+								// The trigger is as wide as its content. Fill the field, as the
+								// Listbox beside it does.
+								className="w-full"
 								value={visited ?? null}
 								// Annotated: an object `relative` leaves the props union
 								// unnarrowed, so the handler takes no contextual type.
