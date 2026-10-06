@@ -18,12 +18,11 @@ import { useTooltipContext } from './context'
  * hide the page from assistive tech. The guards of the portal keep the tab
  * order of the trigger: Tab from the trigger goes into the panel controls, and
  * Tab after the last control goes to the element after the trigger.
- * `returnFocus` puts focus back on the trigger when the tooltip closes from
- * inside the panel.
+ * `TooltipContent` sets `returnFocus`, which puts focus back on the trigger
+ * when the tooltip closes from inside the panel.
  */
 const DIALOG_FOCUS: Omit<FloatingFocusManagerProps, 'context' | 'children'> = {
 	modal: false,
-	returnFocus: true,
 }
 
 /** Props for {@link TooltipContent}. */
@@ -107,6 +106,14 @@ export function TooltipContent({
 
 	const hasTabbable = useA11yHasTabbable(panel)
 
+	// The panel that holds focus, or `null`. Focus goes back to the trigger on a
+	// close only from the panel. Floating UI also puts focus on the trigger when
+	// focus is on the body, but a tap in WebKit gives a button no focus. A
+	// trigger that a close focused then loses the focus on the press of the next
+	// tap, and `useFocus` closes the tooltip that the tap opens. The node, not a
+	// flag: a removed node sends no `blur`, and the next panel is a new node.
+	const [focusedPanel, setFocusedPanel] = useState<HTMLElement | null>(null)
+
 	// Reported only while the panel is mounted. A closed tooltip keeps the last
 	// state, so the trigger relation does not change between two opens.
 	useLayoutEffect(() => {
@@ -128,13 +135,21 @@ export function TooltipContent({
 			// after the panel mounts, and the manager then starts in place. It does
 			// not remount the panel around a new manager.
 			trapFocusContext={interactive ? floatingContext : undefined}
-			trapFocusProps={{ ...DIALOG_FOCUS, disabled: !hasTabbable }}
+			trapFocusProps={{
+				...DIALOG_FOCUS,
+				returnFocus: panel !== null && focusedPanel === panel,
+				disabled: !hasTabbable,
+			}}
 			data-slot="tooltip-content"
 			density={size}
 		>
 			<motion.div
 				{...preset}
 				ref={setPanel}
+				onFocus={(event) => setFocusedPanel(event.currentTarget)}
+				onBlur={(event) => {
+					if (!event.currentTarget.contains(event.relatedTarget)) setFocusedPanel(null)
+				}}
 				className={cn(k.content.base, k.content.surface[glass ? 'glass' : 'default'], className)}
 			>
 				{children}

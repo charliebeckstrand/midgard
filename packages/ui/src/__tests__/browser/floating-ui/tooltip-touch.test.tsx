@@ -10,9 +10,10 @@ import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
  *
  * A tap gives the pointer events of a touch, then the compatibility mouse
  * events and a click. iOS Safari sends them in this order. The compatibility
- * events move the emulated hover to the tapped element. A hover tooltip opens
- * on the touch press and ignores the compatibility events. A click tooltip
- * opens on the click.
+ * events move the emulated hover to the tapped element. WebKit does not give a
+ * button the focus on a press, so the `mousedown` of a tap takes the focus away
+ * from the focused element. A hover tooltip opens on the touch press and
+ * ignores the compatibility events. A click tooltip opens on the click.
  */
 
 const TOUCH = { bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true }
@@ -57,6 +58,9 @@ async function tap(
 
 	target.dispatchEvent(new MouseEvent('mousemove', MOUSE))
 	target.dispatchEvent(new MouseEvent('mousedown', MOUSE))
+
+	if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+
 	target.dispatchEvent(new MouseEvent('mouseup', MOUSE))
 	target.dispatchEvent(new MouseEvent('click', MOUSE))
 }
@@ -346,6 +350,12 @@ describe('Tooltip trigger (real browser)', () => {
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 
+		let focused = false
+
+		trigger.addEventListener('focus', () => {
+			focused = true
+		})
+
 		await tap(trigger)
 
 		await waitFor(() => expect(trigger).toHaveAttribute('aria-haspopup', 'dialog'))
@@ -354,8 +364,19 @@ describe('Tooltip trigger (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Learn more')).not.toBeInTheDocument())
 
+		// A tap gives a button no focus in WebKit, so the close gives the trigger no
+		// focus. A focused trigger loses the focus on the press of the next tap, and
+		// that blur closes the tooltip that the tap opens.
+		await frames()
+
+		expect(focused).toBe(false)
+
 		await tap(trigger, { hovered: true })
 
 		await waitFor(() => expect(screen.getByText('Learn more')).toBeInTheDocument())
+
+		await frames()
+
+		expect(screen.getByText('Learn more')).toBeInTheDocument()
 	})
 })
