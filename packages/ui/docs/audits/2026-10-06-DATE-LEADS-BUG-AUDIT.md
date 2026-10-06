@@ -34,12 +34,12 @@ Status: `◯ OPEN` → `◐ FIXED` on a branch → `✅ RESOLVED ([#NNN](…))`.
 
 | Row | File | Symbol | Verdict | Severity | Reach | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| C06 | `use-date-picker-keyboard.ts` | `getInitialActiveDate` | CONFIRMED | medium | shipped | G1 | ◐ FIXED |
-| C09 | `date-picker-content.tsx` | dialog focus reclaim | CONFIRMED | medium | shipped | G1 | ◐ FIXED |
-| C01 | `use-floating-ui.ts` | `returnFocusTo` restore | CONFIRMED | low | shipped | — | ◐ FIXED |
-| C03 | `date-picker-calendar-button.tsx` | `DatePickerCalendarButton` | NARROWED | low | shipped | — | ◐ FIXED |
-| C07 | `use-calendar-focus.ts` | `handleHeaderKeyDown` / `handleFooterKeyDown` | CONFIRMED | low | docs-only | G1 | ◐ FIXED |
-| C12 | `use-calendar-focus.ts` | `handleGridKeyDown` (steered) | NARROWED | low | shipped | G1 | ◐ FIXED |
+| C06 | `use-date-picker-keyboard.ts` | `getInitialActiveDate` | CONFIRMED | medium | shipped | G1 | ✅ RESOLVED ([#2077](https://github.com/charliebeckstrand/midgard/pull/2077)) |
+| C09 | `date-picker-content.tsx` | dialog focus reclaim | CONFIRMED | medium | shipped | G1 | ✅ RESOLVED ([#2077](https://github.com/charliebeckstrand/midgard/pull/2077)) |
+| C01 | `use-floating-ui.ts` | `returnFocusTo` restore | CONFIRMED | low | shipped | — | ✅ RESOLVED ([#2077](https://github.com/charliebeckstrand/midgard/pull/2077)) |
+| C03 | `date-picker-calendar-button.tsx` | `DatePickerCalendarButton` | NARROWED | low | shipped | — | ✅ RESOLVED ([#2077](https://github.com/charliebeckstrand/midgard/pull/2077)) |
+| C07 | `use-calendar-focus.ts` | `handleHeaderKeyDown` / `handleFooterKeyDown` | CONFIRMED | low | docs-only | G1 | ✅ RESOLVED ([#2077](https://github.com/charliebeckstrand/midgard/pull/2077)) |
+| C12 | `use-calendar-focus.ts` | `handleGridKeyDown` (steered) | NARROWED | low | shipped | G1 | ✅ RESOLVED ([#2077](https://github.com/charliebeckstrand/midgard/pull/2077)) |
 
 ## Mechanisms
 
