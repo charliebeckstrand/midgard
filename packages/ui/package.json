@@ -134,7 +134,7 @@
 		"motion": "^13.5.0",
 		"pdfjs-dist": "^6.2.108",
 		"shiki": "^4.5.0",
-		"tailwind-merge": "^3.5.0",
+		"tailwind-merge": "^3.7.0",
 		"tinykeys": "^4.0.0",
 		"topojson-client": "catalog:"
 	},
