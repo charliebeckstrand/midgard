@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { VirtualOptions } from '../../../primitives/virtual-options'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 import { budget } from '../helpers/wall-clock'
 
 /**
@@ -65,7 +65,12 @@ describe('Listbox + VirtualOptions: keys reach options outside the window', () =
 
 		expect(document.getElementById('lb-opt-499')).toBeNull()
 
-		await userEvent.keyboard('item-499')
+		// The type-ahead buffer resets after 500 ms with no key. Under load, one real
+		// key press can take longer than that, and the query then starts again in the
+		// middle. The keys go out in one task, so no timer can run between two of them.
+		for (const key of 'item-499') {
+			fireEvent.keyDown(document.activeElement ?? document.body, { key })
+		}
 
 		await waitFor(() => expect(document.activeElement?.id).toBe('lb-opt-499'), {
 			timeout: budget(1500),
