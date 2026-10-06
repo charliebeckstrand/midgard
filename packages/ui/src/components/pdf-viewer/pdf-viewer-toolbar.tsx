@@ -15,7 +15,8 @@ import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
  * The viewer's top control bar. It carries the thumbnail control, page
- * navigation, zoom and rotate, and the download and print actions. On desktop,
+ * navigation, zoom and rotate, and the download and print actions. The bar
+ * keeps one row. When it is narrow, it scrolls on the inline axis. On desktop,
  * the thumbnail control toggles the sidebar. Below the desktop breakpoint, it
  * opens the thumbnails in a Sheet. The highlight visibility toggle appears when
  * there are regions, and the magnifier control when the consumer asked for a
@@ -64,118 +65,122 @@ export function PdfViewerToolbar() {
 	const magnifierToggleLabel = magnifierOn ? 'Turn magnifier off' : 'Turn magnifier on'
 
 	return (
-		<Toolbar aria-label="PDF controls" className={cn(k.toolbar.base)}>
-			<div className={cn(k.toolbar.section)}>
-				{total > 0 && (
-					<>
-						{isDesktop && (
-							<PdfViewerToolbarButton
-								label={sidebarToggleLabel}
-								icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />}
-								aria-expanded={sidebarOpen}
-								disabled={controlsDisabled}
-								onClick={() => setSidebarOpen(!sidebarOpen)}
-							/>
-						)}
+		<div className={cn(k.toolbar.frame)}>
+			<Toolbar aria-label="PDF controls" className={cn(k.toolbar.base)}>
+				<div className={cn(k.toolbar.section)}>
+					{total > 0 && (
+						<>
+							{isDesktop && (
+								<PdfViewerToolbarButton
+									label={sidebarToggleLabel}
+									icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />}
+									aria-expanded={sidebarOpen}
+									disabled={controlsDisabled}
+									onClick={() => setSidebarOpen(!sidebarOpen)}
+								/>
+							)}
 
-						{/* A dialog opener, unlike the desktop toggle above it. The modal Sheet covers this
+							{/* A dialog opener, unlike the desktop toggle above it. The modal Sheet covers this
 						    button while open and carries its own close, so the button has one action and
 						    one name. `SheetTrigger` stamps `aria-haspopup` and the `aria-expanded` that
 						    reports the Sheet. The `Sheet` root in `PdfViewer` holds the state. */}
-						{!isDesktop && (
-							<SheetTrigger>
-								<PdfViewerToolbarButton
-									label="Show thumbnails"
-									icon={<PanelLeft />}
+							{!isDesktop && (
+								<SheetTrigger>
+									<PdfViewerToolbarButton
+										label="Show thumbnails"
+										icon={<PanelLeft />}
+										disabled={controlsDisabled}
+									/>
+								</SheetTrigger>
+							)}
+
+							<ToolbarGroup aria-label="Page navigation">
+								<Listbox<number>
+									aria-label="Current page"
+									value={safePage}
+									onValueChange={(next) => {
+										if (next !== null) goToPage(next)
+									}}
+									displayValue={(v) => String(v)}
 									disabled={controlsDisabled}
-								/>
-							</SheetTrigger>
-						)}
+									className="tabular-nums"
+								>
+									{pages.map((p, index) => {
+										const pageNumber = index + 1
 
-						<ToolbarGroup aria-label="Page navigation">
-							<Listbox<number>
-								aria-label="Current page"
-								value={safePage}
-								onValueChange={(next) => {
-									if (next !== null) goToPage(next)
-								}}
-								displayValue={(v) => String(v)}
-								disabled={controlsDisabled}
-								className="tabular-nums"
-							>
-								{pages.map((p, index) => {
-									const pageNumber = index + 1
-
-									return (
-										<ListboxOption key={p.id ?? index} value={pageNumber}>
-											<ListboxLabel>{p.label ?? `Page ${pageNumber}`}</ListboxLabel>
-										</ListboxOption>
-									)
-								})}
-							</Listbox>
-							{/* A screen reader reads "of 12", not "slash 12". */}
-							<span aria-hidden="true" className="mx-1 select-none">
-								/
-							</span>
-							{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
-							<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.total)}>
-								<span className="sr-only">of </span>
-								{total}
-							</span>
-						</ToolbarGroup>
-					</>
-				)}
-			</div>
-
-			<div className={cn(k.toolbar.section)}>
-				<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
-				<ToolbarGroup aria-label="View">
-					<PdfViewerToolbarButton
-						label="Rotate"
-						icon={<RotateCw />}
-						disabled={controlsDisabled}
-						onClick={rotate}
-					/>
-					{/* Only offered when there is something to hide. `active` carries the two-state
-					    treatment and the argument for it. */}
-					{hasHighlights && (
-						<PdfViewerToolbarButton
-							label={highlightsToggleLabel}
-							icon={<Highlighter />}
-							active={highlightsVisible}
-							aria-pressed={highlightsVisible}
-							disabled={controlsDisabled}
-							onClick={() => setHighlightsVisible(!highlightsVisible)}
-						/>
+										return (
+											<ListboxOption key={p.id ?? index} value={pageNumber}>
+												<ListboxLabel>{p.label ?? `Page ${pageNumber}`}</ListboxLabel>
+											</ListboxOption>
+										)
+									})}
+								</Listbox>
+								{/* A screen reader reads "of 12", not "slash 12". */}
+								<span aria-hidden="true" className="mx-1 select-none">
+									/
+								</span>
+								{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
+								<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.total)}>
+									<span className="sr-only">of </span>
+									{total}
+								</span>
+							</ToolbarGroup>
+						</>
 					)}
-					{/* The two magnifier controls, and `magnifierMode` says which — `null` where the
+				</div>
+
+				<div className={cn(k.toolbar.section)}>
+					<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
+					<ToolbarGroup aria-label="View">
+						<PdfViewerToolbarButton
+							label="Rotate"
+							icon={<RotateCw />}
+							disabled={controlsDisabled}
+							onClick={rotate}
+						/>
+						{/* Only offered when there is something to hide. `active` carries the two-state
+					    treatment and the argument for it. */}
+						{hasHighlights && (
+							<PdfViewerToolbarButton
+								label={highlightsToggleLabel}
+								icon={<Highlighter />}
+								active={highlightsVisible}
+								aria-pressed={highlightsVisible}
+								disabled={controlsDisabled}
+								onClick={() => setHighlightsVisible(!highlightsVisible)}
+							/>
+						)}
+						{/* The two magnifier controls, and `magnifierMode` says which — `null` where the
 					    consumer asked for no loupe, which is what keeps both out of the bar. The
 					    toggle stays put once switched off: that is the press that brings it back. In
 					    `'config'` mode the press opens the dialog, and the switch it took the place
 					    of is in there. */}
-					{magnifierMode === 'simple' && (
-						<PdfViewerToolbarButton
-							label={magnifierToggleLabel}
-							icon={<ScanSearch />}
-							active={magnifierOn}
-							aria-pressed={magnifierOn}
-							disabled={controlsDisabled}
-							onClick={() => setMagnifierOn(!magnifierOn)}
-						/>
+						{magnifierMode === 'simple' && (
+							<PdfViewerToolbarButton
+								label={magnifierToggleLabel}
+								icon={<ScanSearch />}
+								active={magnifierOn}
+								aria-pressed={magnifierOn}
+								disabled={controlsDisabled}
+								onClick={() => setMagnifierOn(!magnifierOn)}
+							/>
+						)}
+						{magnifierMode === 'config' && (
+							<PdfViewerMagnifierSettings disabled={controlsDisabled} />
+						)}
+					</ToolbarGroup>
+					{documentSrc && (
+						<>
+							<ToolbarSeparator />
+							<PdfViewerDocumentActions
+								src={documentSrc}
+								filename={filename}
+								disabled={controlsDisabled}
+							/>
+						</>
 					)}
-					{magnifierMode === 'config' && <PdfViewerMagnifierSettings disabled={controlsDisabled} />}
-				</ToolbarGroup>
-				{documentSrc && (
-					<>
-						<ToolbarSeparator />
-						<PdfViewerDocumentActions
-							src={documentSrc}
-							filename={filename}
-							disabled={controlsDisabled}
-						/>
-					</>
-				)}
-			</div>
-		</Toolbar>
+				</div>
+			</Toolbar>
+		</div>
 	)
 }
