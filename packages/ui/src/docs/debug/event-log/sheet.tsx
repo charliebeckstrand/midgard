@@ -13,6 +13,7 @@ import { List, ListItem } from 'ui/list'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
+import { iro } from '../../../recipes/kiso/iro/index.ts'
 import { getOrCompute } from '../../../utilities/get-or-compute.ts'
 import { noopSubscribe } from '../../../utilities/noop.ts'
 import { type Entry, KINDS, type Kind } from './log.ts'
@@ -76,7 +77,8 @@ const COLOR: Partial<Record<Kind, string>> = {
 
 /**
  * One line of the sheet: the columns, the toggle of the detail, and the text.
- * The detail opens under the line, in a tree.
+ * The toggle holds the text, so a click on the text opens the detail under the
+ * line, in a tree.
  */
 function EventLine({
 	entry,
@@ -92,20 +94,35 @@ function EventLine({
 }) {
 	const { detail } = entry
 
+	const color = COLOR[entry.kind]
+
+	// Each line keeps the slot of the chevron, so the texts start in one column.
+	// The slot is one line high, so the chevron sits on the first line. A long
+	// text wraps in its own column, under the start of the text.
+	const slot = (
+		<span className="flex size-4 shrink-0 items-center">
+			{detail !== undefined && <Icon icon={<ChevronRight />} size={12} />}
+		</span>
+	)
+
 	const text = (
-		// A long text wraps in its own column, under the start of the text. Each
-		// line keeps the slot of the toggle, so the texts start in one column. The
-		// slot is one line high, so the toggle sits on the first line.
-		<span className={cn('flex font-mono text-xs', COLOR[entry.kind])}>
+		<span className={cn('flex font-mono text-xs', color)}>
 			<span className="shrink-0 whitespace-pre">{columns(entry, width)}</span>
-			<span className="flex size-4 shrink-0">
-				{detail !== undefined && (
-					<CollapseTrigger aria-label="Details" className="aria-expanded:*:rotate-90">
-						<Icon icon={<ChevronRight />} size={12} />
-					</CollapseTrigger>
-				)}
-			</span>
-			<span className="min-w-0 wrap-break-word">{entry.text}</span>
+			{detail === undefined ? (
+				<>
+					{slot}
+					<span className="min-w-0 wrap-break-word">{entry.text}</span>
+				</>
+			) : (
+				// The trigger gives its muted color to the chevron. The text keeps the
+				// color of the line.
+				<CollapseTrigger className="min-w-0 items-start gap-0 text-start text-xs aria-expanded:*:first:rotate-90">
+					{slot}
+					<span className={cn('min-w-0 wrap-break-word', color ?? iro.text.default)}>
+						{entry.text}
+					</span>
+				</CollapseTrigger>
+			)}
 		</span>
 	)
 

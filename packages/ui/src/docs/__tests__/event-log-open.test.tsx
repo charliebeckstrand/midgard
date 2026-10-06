@@ -74,7 +74,7 @@ describe('EventLogSheet', () => {
 		expect(screen.getByText('/closed')).toBeDefined()
 	})
 
-	it('opens the detail of a line in a tree, and copies the detail as JSON under its line', async () => {
+	it('opens the detail of a line in a tree on a click on its text, and copies the detail as JSON under its line', async () => {
 		const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
 
 		const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
@@ -101,14 +101,15 @@ describe('EventLogSheet', () => {
 
 		rerender(<EventLogSheet open onOpenChange={() => {}} />)
 
-		// Only the line with a detail has a toggle.
+		// Only the line with a detail has a toggle. The toggle holds the text of
+		// the line, so a click on the text opens the detail.
 		const error = within(screen.getByText('boom').closest('li') ?? document.body)
 
 		const plain = within(screen.getByText('/plain').closest('li') ?? document.body)
 
-		expect(plain.queryByRole('button', { name: 'Details' })).toBeNull()
+		expect(plain.queryByRole('button')).toBeNull()
 
-		fireEvent.click(error.getByRole('button', { name: 'Details' }))
+		fireEvent.click(error.getByText('boom'))
 
 		expect(error.getByRole('tree', { name: 'Details' })).toBeDefined()
 
