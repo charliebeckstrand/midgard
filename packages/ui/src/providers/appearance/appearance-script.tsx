@@ -1,13 +1,7 @@
 import { rootDensityClasses } from '../../core/density'
 import { rootReducedMotionClass } from '../../core/motion/root'
 import { levelToStep } from '../density/context'
-import {
-	DARK_SCHEME,
-	DENSITY_DEFAULT,
-	DENSITY_KEY,
-	MOTION_KEY,
-	THEME_KEY,
-} from './appearance-storage'
+import { DARK_SCHEME, DENSITY, MOTION, THEME } from './appearance-storage'
 
 // Resolves the stored choices as `AppearanceProvider` does. Theme: 'dark' is
 // dark, 'light' is light, and any other value follows the OS. Density: a stored
@@ -18,7 +12,7 @@ import {
 // Storage access can throw, and then the script uses the defaults. The
 // own-property check keeps a stored `__proto__` or `toString` from reading the
 // prototype. The docs site renders this component too.
-const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)});m=localStorage.getItem(${JSON.stringify(MOTION_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY_DEFAULT)}];if(h.call(c,v))r.classList.add(c[v]);if(m==='reduced')r.classList.add(${JSON.stringify(rootReducedMotionClass)})})()`
+const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null;try{t=localStorage.getItem(${JSON.stringify(THEME.key)});d=localStorage.getItem(${JSON.stringify(DENSITY.key)});m=localStorage.getItem(${JSON.stringify(MOTION.key)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY.fallback)}];if(h.call(c,v))r.classList.add(c[v]);if(m==='reduced')r.classList.add(${JSON.stringify(rootReducedMotionClass)})})()`
 
 /**
  * Inline script that applies the stored theme, density, and motion to the root

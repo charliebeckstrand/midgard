@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState, useSyncExternalStore } from 'react'
+import { subscribeNothing } from '../../utilities/noop'
 
 /**
  * Mount policy for a panel that spends part of its life inactive. Examples are
@@ -59,9 +60,6 @@ export type MountHoldState = {
 export function mountsEveryPanel(mount: Mount): boolean {
 	return mount === 'always'
 }
-
-/** A subscription that never fires, because the snapshot changes only at hydration. */
-const subscribeNothing = () => () => {}
 
 /** The snapshots of {@link useMountsEveryPanel}. Module constants, so React reads no new getter. */
 const yes = () => true

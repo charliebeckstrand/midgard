@@ -5,33 +5,18 @@ import { writeRootDensity } from '../../core/density'
 import { rootReducedMotionClass } from '../../core/motion/root'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
-import { type DensityLevel, densityLevels, levelToStep } from '../density/context'
+import { levelToStep } from '../density/context'
 import {
 	DARK_SCHEME,
-	DENSITY_DEFAULT,
-	DENSITY_KEY,
-	MOTION_DEFAULT,
-	MOTION_KEY,
+	DENSITY,
+	MOTION,
 	readChoice,
 	subscribeChoices,
-	THEME_DEFAULT,
-	THEME_KEY,
+	THEME,
 } from './appearance-storage'
-import {
-	AppearanceContext,
-	type MotionMode,
-	motionModes,
-	type ThemeMode,
-	themeModes,
-} from './context'
+import { AppearanceContext } from './context'
 import { FontScript } from './font-script'
 import { useAppearanceChoice } from './use-appearance-choice'
-
-const THEME_VALUES = themeModes.map((option) => option.value)
-
-const DENSITY_VALUES = densityLevels.map((level) => level.value)
-
-const MOTION_VALUES = motionModes.map((option) => option.value)
 
 /** Props for {@link AppearanceProvider}: the `children` that take the appearance. */
 export type AppearanceProviderProps = {
@@ -73,19 +58,11 @@ export type AppearanceProviderProps = {
  * that reads the step as a JS value takes it one render after hydration.
  */
 export function AppearanceProvider({ children }: AppearanceProviderProps) {
-	const [theme, setTheme] = useAppearanceChoice<ThemeMode>(THEME_KEY, THEME_VALUES, THEME_DEFAULT)
+	const [theme, setTheme] = useAppearanceChoice(THEME)
 
-	const [density, setDensity] = useAppearanceChoice<DensityLevel>(
-		DENSITY_KEY,
-		DENSITY_VALUES,
-		DENSITY_DEFAULT,
-	)
+	const [density, setDensity] = useAppearanceChoice(DENSITY)
 
-	const [motion, setMotion] = useAppearanceChoice<MotionMode>(
-		MOTION_KEY,
-		MOTION_VALUES,
-		MOTION_DEFAULT,
-	)
+	const [motion, setMotion] = useAppearanceChoice(MOTION)
 
 	useEffect(() => {
 		// The classes on the root are side effects, not rendered state, so the
@@ -99,7 +76,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 		const apply = (dark: boolean) => root.classList.toggle('dark', dark)
 
 		const sync = () => {
-			const stored = readChoice<ThemeMode>(THEME_KEY, THEME_VALUES, THEME_DEFAULT)
+			const stored = readChoice(THEME)
 
 			unsubscribeScheme?.()
 
@@ -115,11 +92,11 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 				apply(stored === 'dark')
 			}
 
-			const level = readChoice<DensityLevel>(DENSITY_KEY, DENSITY_VALUES, DENSITY_DEFAULT)
+			const level = readChoice(DENSITY)
 
 			writeRootDensity(root, levelToStep[level])
 
-			const motionChoice = readChoice<MotionMode>(MOTION_KEY, MOTION_VALUES, MOTION_DEFAULT)
+			const motionChoice = readChoice(MOTION)
 
 			root.classList.toggle(rootReducedMotionClass, motionChoice === 'reduced')
 		}

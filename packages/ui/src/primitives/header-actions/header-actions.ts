@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
+import { subscribeNothing } from '../../utilities'
 
 /**
  * The element in the header row of a box, such as a dashboard tile, where a
@@ -56,8 +57,6 @@ export const [HeaderActionsContext, useHeaderActionsContext] =
 
 const none = () => null
 
-const noop = () => () => {}
-
 /**
  * The element in the header row of the box around the reader, where a widget
  * can put its own controls with a portal. The control then sits next to the
@@ -75,5 +74,5 @@ const noop = () => () => {}
 export function useHeaderActionsHost(): HTMLElement | null {
 	const host = useHeaderActionsContext()
 
-	return useSyncExternalStore(host?.subscribe ?? noop, host?.get ?? none, none)
+	return useSyncExternalStore(host?.subscribe ?? subscribeNothing, host?.get ?? none, none)
 }

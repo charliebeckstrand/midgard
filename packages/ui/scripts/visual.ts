@@ -30,7 +30,7 @@ import { join } from 'node:path'
 import percySnapshot from '@percy/playwright'
 import { type Browser, chromium } from 'playwright'
 import { build, preview } from 'vite'
-import { DENSITY_DEFAULT, DENSITY_KEY } from '../src/providers/appearance/appearance-storage'
+import { DENSITY } from '../src/providers/appearance/appearance-storage'
 import { densityLevels } from '../src/providers/density/context'
 
 /** The phone width and the desktop width, in CSS pixels. */
@@ -51,7 +51,7 @@ const ids = args.filter((arg) => !arg.startsWith('--'))
 
 const densityArg = args.find((arg) => arg.startsWith('--density='))
 
-const densities = densityArg ? densityArg.slice('--density='.length).split(',') : [DENSITY_DEFAULT]
+const densities = densityArg ? densityArg.slice('--density='.length).split(',') : [DENSITY.fallback]
 
 const unknownDensities = densities.filter(
 	(level) => !densityLevels.some((known) => known.value === level),
@@ -115,11 +115,11 @@ try {
 		// The pre-paint script of the sheets reads the stored level, as the docs
 		// site does for a reader who picked it.
 		await context.addInitScript(([key, value]) => localStorage.setItem(key, value), [
-			DENSITY_KEY,
+			DENSITY.key,
 			density,
 		] as const)
 
-		const suffix = density === DENSITY_DEFAULT ? theme : `${theme}, ${density}`
+		const suffix = density === DENSITY.fallback ? theme : `${theme}, ${density}`
 
 		for (const id of selected) {
 			// A new page loads each sheet from the start.

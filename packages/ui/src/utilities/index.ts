@@ -57,7 +57,7 @@ export {
 } from './media-query'
 export { moveItem } from './move-item'
 export { isNativeContextMenuRequest } from './native-context-menu'
-export { noop } from './noop'
+export { noop, subscribeNothing } from './noop'
 export { once } from './once'
 export { pct } from './pct'
 export { printInHiddenFrame } from './print-frame'

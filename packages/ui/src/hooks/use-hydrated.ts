@@ -1,9 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-
-/** A subscription that never fires, because the snapshot changes only at hydration. */
-const subscribeNothing = () => () => {}
+import { subscribeNothing } from '../utilities/noop'
 
 /** The snapshot on the client. */
 const onClient = () => true

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { createKeyedStore, type KeyedStore } from '../utilities'
+import { createKeyedStore, type KeyedStore, subscribeNothing } from '../utilities'
 
 /**
  * A {@link KeyedStore} that follows a snapshot of the render.
@@ -40,8 +40,6 @@ export function keyMatcher<K>(selected: K | null | undefined): (key: K) => boole
 	return (key) => key === selected
 }
 
-const noSubscription = () => () => {}
-
 /**
  * Reads the value of one key from a {@link KeyedStore}.
  *
@@ -64,7 +62,7 @@ export function useKeyedValue<K, V>(
 ): V {
 	const subscribe = useCallback(
 		(listener: () => void) =>
-			store && key !== undefined ? store.subscribe(key, listener) : noSubscription(),
+			store && key !== undefined ? store.subscribe(key, listener) : subscribeNothing(),
 		[store, key],
 	)
 
