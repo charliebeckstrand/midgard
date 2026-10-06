@@ -1,9 +1,10 @@
 import { ScrollText } from 'lucide-react'
-import { lazy, Suspense, useState } from 'react'
+import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Fieldset, Label, Legend } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
 import { Switch, SwitchField } from 'ui/switch'
+import { useIdle } from '../../kit/idle.ts'
 
 // The part of the Event log that the shell loads with each page: the head
 // script, the header button, and the switch of the settings. The recorder and
@@ -17,15 +18,23 @@ const ATTRIBUTE = 'data-debug'
 
 const loadRecorder = () => import('./recorder.ts')
 
-const loadSheet = () => import('./sheet.tsx')
+// The sheet module, once its load ends. The button reads it in the render, so
+// the sheet mounts in the frame that opens it.
+let sheet: typeof import('./sheet.tsx') | undefined
 
-const EventLogSheet = lazy(() =>
-	loadSheet().then(({ EventLogSheet }) => ({ default: EventLogSheet })),
-)
+const loadSheet = () =>
+	import('./sheet.tsx').then((module) => {
+		sheet = module
+	})
 
 /** Whether the tool is on. The head script sets the attribute before the first paint. */
 function isEventLogOn(): boolean {
 	return document.documentElement.hasAttribute(ATTRIBUTE)
+}
+
+/** Loads the sheet while the tool is on. */
+function prepareSheet(): void {
+	if (isEventLogOn()) void loadSheet()
 }
 
 /** Starts the recorder while the tool is on. The client entry waits for it before it hydrates. */
@@ -65,27 +74,30 @@ export function EventLogScript() {
 /**
  * The header button of the Event log. The prerendered page holds it, and CSS
  * shows it while the tool is on, so it paints with the header. The sheet
- * loads on the first open.
+ * loads in idle time while the tool is on, or when the reader points at the
+ * button.
  */
 export function EventLogButton() {
 	// No sheet renders before the first open.
 	const [open, setOpen] = useState<boolean>()
 
+	useIdle(prepareSheet)
+
+	// The sheet opens when its module is loaded. A sheet that suspends opens
+	// late, because React holds the content back for at least 300 ms.
+	const show = () => {
+		if (sheet) setOpen(true)
+		else void loadSheet().then(() => setOpen(true))
+	}
+
+	const EventLogSheet = sheet?.EventLogSheet
+
 	return (
 		<span data-event-log="" className="hidden [:root[data-debug]_&]:contents">
-			<Button
-				variant="bare"
-				aria-label="Event log"
-				onPointerEnter={() => void loadSheet()}
-				onClick={() => setOpen(true)}
-			>
+			<Button variant="bare" aria-label="Event log" onPointerEnter={prepareSheet} onClick={show}>
 				<Icon icon={<ScrollText />} />
 			</Button>
-			{open !== undefined && (
-				<Suspense fallback={null}>
-					<EventLogSheet open={open} onOpenChange={setOpen} />
-				</Suspense>
-			)}
+			{open !== undefined && EventLogSheet && <EventLogSheet open={open} onOpenChange={setOpen} />}
 		</span>
 	)
 }
