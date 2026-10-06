@@ -104,17 +104,16 @@ function PlaceMeta({ place }: { place: Place }) {
 
 /**
  * One fact about a place, with an icon that names the fact. The icon box is one
- * line high, so the icon stays on the first line when the text wraps. A fact
- * with no text is the icon alone, for a row that puts its value at the end.
+ * line high, so the icon stays on the first line when the text wraps.
  */
-function PlaceFact({ icon, children }: { icon: ReactElement; children?: ReactNode }) {
+function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode }) {
 	return (
 		<Flex gap="sm" align="start" className="min-w-0">
 			<Text as="span" tone="muted" className="flex h-lh shrink-0 items-center">
 				<Icon icon={icon} />
 			</Text>
 
-			{children ? <div className="min-w-0 wrap-break-word">{children}</div> : null}
+			<div className="min-w-0 wrap-break-word">{children}</div>
 		</Flex>
 	)
 }
@@ -230,16 +229,14 @@ function PlaceDetails({ place, actions }: { place: Place; actions: VisitActions 
 				) : null}
 
 				{category ? (
-					<Flex justify="between" align="center" gap="sm">
-						<PlaceFact icon={<Tag />} />
-
+					<PlaceFact icon={<Tag />}>
 						{/* The badge is taller than a line. It is centered on one line, so
 						    its middle meets the middle of the icon, and the row is one line
 						    high, the same as the rows over it. */}
 						<div className="flex h-lh items-center">
 							<Badge color={category.color}>{category.label}</Badge>
 						</div>
-					</Flex>
+					</PlaceFact>
 				) : null}
 			</Stack>
 
