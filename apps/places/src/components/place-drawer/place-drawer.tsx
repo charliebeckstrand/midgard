@@ -74,20 +74,16 @@ export type PlaceDrawerProps = {
 }
 
 /**
- * The category, the date and the score of the newest visit, and the number of
- * visits where there is more than one — the line under a place's name. It is
- * spans, because a list row puts it inside a button, and a flex line lays out
- * the same either way.
+ * The date and the score of the newest visit, and the number of visits where
+ * there is more than one — the line under a place's name. It is spans, because
+ * a list row puts it inside a button, and a flex line lays out the same either
+ * way.
  */
 function PlaceMeta({ place }: { place: Place }) {
-	const category = CATEGORY_BY_VALUE.get(place.category)
-
 	const latest = latestVisit(place)
 
 	return (
 		<Flex as="span" gap="sm" align="center" wrap>
-			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
-
 			<Text as="span">
 				<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
 			</Text>
@@ -109,6 +105,13 @@ function PlaceMeta({ place }: { place: Place }) {
  * spaced, whatever the fact holds.
  */
 const FACT_HEIGHT = 'density-sm:min-h-6.5 density-md:min-h-7.5 density-lg:min-h-8.5'
+
+/** The badge of a category, or nothing for a category that the app does not know. */
+function PlaceCategoryBadge({ category }: { category: PlaceCategory }) {
+	const meta = CATEGORY_BY_VALUE.get(category)
+
+	return meta ? <Badge color={meta.color}>{meta.label}</Badge> : null
+}
 
 /**
  * One fact about a place, with an icon that names the fact. Each fact is at
@@ -404,13 +407,19 @@ function PlaceList({
 						// the map rather than turning see-through to it. The content area
 						// is a button, so Tab reaches each row and Enter or Space opens it.
 						<ListItem as="button" type="button" onClick={() => onOpen(item.id)}>
-							<Stack as="span" gap="sm" className="text-left">
-								<Text as="span" className="font-medium">
-									{item.name}
-								</Text>
+							{/* The category sits at the end of the row, in the middle of the
+							    name and the line under it. */}
+							<Flex as="span" justify="between" align="center" gap="sm">
+								<Stack as="span" gap="sm" className="min-w-0 text-left">
+									<Text as="span" className="font-medium">
+										{item.name}
+									</Text>
 
-								<PlaceMeta place={item} />
-							</Stack>
+									<PlaceMeta place={item} />
+								</Stack>
+
+								<PlaceCategoryBadge category={item.category} />
+							</Flex>
 						</ListItem>
 					)}
 				</List>
