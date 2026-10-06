@@ -10,8 +10,9 @@ import { frames } from '../../helpers/frames'
  * Use this for a case that needs longer than the suite budget — a real network
  * double, or rows behind a real timer. Keep the result under the timeout of
  * the case, so an exhausted wait still fails as an RTL timeout carrying the
- * callback's last error. The suite `testTimeout` is 15s and does not scale. A
- * case whose budget can pass it sets its own timeout, also through `budget`.
+ * callback's last error. The suite `testTimeout` is 15s on a dev machine, and
+ * it scales by the same factor. A case whose budget can pass it sets its own
+ * timeout, also through `budget`.
  *
  * @param ms - The budget a dev machine needs.
  * @returns The budget this machine needs.

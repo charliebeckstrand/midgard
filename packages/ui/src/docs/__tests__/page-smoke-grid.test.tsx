@@ -3,6 +3,6 @@
 
 import { describePageSmoke, smokeParts } from './page-smoke.tsx'
 
-// The smoke test (`page-smoke.tsx`) for the pages of `modules/`, except the grid page.
+// The smoke test (`page-smoke.tsx`) for the grid page.
 
-describePageSmoke(smokeParts['page-smoke-modules'] ?? [])
+describePageSmoke(smokeParts['page-smoke-grid'] ?? [])

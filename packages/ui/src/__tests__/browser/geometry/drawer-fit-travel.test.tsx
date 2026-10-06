@@ -1,16 +1,9 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Drawer, DrawerBody, DrawerPanel } from '../../../components/drawer'
-import {
-	frames,
-	getSlot,
-	hasIntermediate,
-	renderUI,
-	sampleHeights,
-	screen,
-	waitFor,
-} from '../../helpers'
+import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { hasIntermediate, sampleTravel } from '../helpers/sample'
 
 /**
  * Real-browser probe of the `fit` drawer's height. Everything this variant does
@@ -67,7 +60,7 @@ describe('fit drawer height (real browser)', () => {
 
 		swap.click()
 
-		const samples = await sampleHeights(panel, 800)
+		const samples = await sampleTravel(panel, short, short + 200)
 
 		// The swap must never present the incoming height in the first frame: the
 		// panel leaves the height it opened at through the ones between.

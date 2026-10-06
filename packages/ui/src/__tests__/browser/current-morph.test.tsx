@@ -2,15 +2,8 @@ import { Profiler, useRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { useCurrentContentsMorph } from '../../primitives/current/use-current-contents-morph'
-import {
-	frames,
-	getSlot,
-	hasIntermediate,
-	renderUI,
-	sampleHeights,
-	screen,
-	waitFor,
-} from '../helpers'
+import { frames, getSlot, renderUI, screen, waitFor } from '../helpers'
+import { hasIntermediate, sampleTravel } from './helpers/sample'
 
 /**
  * Real-browser probe of the current-panel height morph. The jsdom morph test
@@ -84,7 +77,7 @@ describe('current-panel height morph (real browser)', () => {
 		// height change the container should morph toward, not snap to.
 		grow.click()
 
-		const samples = await sampleHeights(box, 500)
+		const samples = await sampleTravel(box, 120, 240)
 
 		expect(hasIntermediate(samples, 120, 240)).toBe(true)
 
@@ -105,7 +98,7 @@ describe('current-panel height morph (real browser)', () => {
 
 		swap.click()
 
-		const samples = await sampleHeights(box, 500)
+		const samples = await sampleTravel(box, 240, 80)
 
 		// The switch must never present the incoming height in the first frame:
 		// the box leaves 240 through intermediate heights on its way to 80.

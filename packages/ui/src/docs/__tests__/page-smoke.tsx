@@ -10,11 +10,11 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { maxDepth } from '../../core/density/rungs.ts'
 import { readRootDensity, writeRootDensity } from '../../core/density/steps.ts'
 
-// The smoke test of each page of the docs. Two test files run it, and each
-// file gives it a part of the pages. Thus the test shards in CI can balance
-// the pages. The pages of `modules/` take about as long as the other pages, so
-// `page-smoke-modules.test.tsx` runs them, and `page-smoke.test.tsx` runs the
-// others.
+// The smoke test of each page of the docs. Several test files run it, and each
+// file gives it one part of the pages (`smokeParts`). A file runs on one
+// worker, so a part that holds most of the pages sets the wall clock of the
+// whole `unit` project. Small parts spread the pages over the workers and over
+// the test shards of CI.
 //
 // The test renders each page module at its path, as the routes of the docs app
 // give it, and it opens each tab. That is each tab of the page, which is a
@@ -66,10 +66,33 @@ export const docsPages: readonly DocsPage[] = pages.map(({ path, category, tabs 
 }))
 
 /** The pages of `modules/`. */
-export const modulePages = docsPages.filter(({ folder }) => folder.startsWith('modules/'))
+const modulePages = docsPages.filter(({ folder }) => folder.startsWith('modules/'))
 
 /** The pages that are not in `modules/`. */
-export const otherPages = docsPages.filter(({ folder }) => !folder.startsWith('modules/'))
+const otherPages = docsPages.filter(({ folder }) => !folder.startsWith('modules/'))
+
+/** The grid page, the slowest page by far. */
+const GRID = '/modules/grid'
+
+/** The number of parts that the pages outside `modules/` go into. */
+const OTHER_PARTS = 4
+
+/**
+ * The part of the pages that each smoke file runs, by the name of the file.
+ * Each part takes about 10s on one worker of a 4-core machine. The pages
+ * outside `modules/` go into {@link OTHER_PARTS} parts in turn. The grid page
+ * takes about 12s alone, so it has a part of its own.
+ */
+export const smokeParts: Readonly<Record<string, readonly DocsPage[]>> = {
+	...Object.fromEntries(
+		Array.from({ length: OTHER_PARTS }, (_, part) => [
+			part === 0 ? 'page-smoke' : `page-smoke-${part + 1}`,
+			otherPages.filter((_, index) => index % OTHER_PARTS === part),
+		]),
+	),
+	'page-smoke-modules': modulePages.filter(({ path }) => path !== GRID),
+	'page-smoke-grid': modulePages.filter(({ path }) => path === GRID),
+}
 
 /** The rules that the smoke test asks axe to run. The head of this file tells why. */
 const AXE_RULES = ['button-name', 'aria-required-children', 'landmark-unique', 'label']

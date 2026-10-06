@@ -1,5 +1,7 @@
 import { inject } from 'vitest'
 import { frame } from '../../helpers/frames'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { budget } from './wall-clock'
 
 /** The options of a sampler. */
 interface SampleOptions {
@@ -106,4 +108,51 @@ export async function settledRect<E extends Element>(
 	}, options)
 
 	return element
+}
+
+/** Whether at least one height sits strictly between `low` and `high`: a travel, not a snap. */
+export function hasIntermediate(samples: number[], low: number, high: number): boolean {
+	return samples.some((height) => height > low + 1 && height < high - 1)
+}
+
+/**
+ * Reads the border-box height of `element` one time in each animation frame,
+ * until the height travels from `from` and lands on `to`.
+ *
+ * Use it for a box that a tween moves, where a snap to `to` is the regression.
+ * A height at `to` ends the wait only after a height between the two, so the
+ * frames before the tween starts cannot end it early. The wait then ends when
+ * the box lands, and not at the end of a fixed window that load can stretch
+ * past the travel.
+ *
+ * @param element - The box that travels.
+ * @param from - The height that the box leaves.
+ * @param to - The height that the box lands on, within half a pixel.
+ * @returns Each height that the sampler read, in order.
+ * @throws When the box does not travel and land before the deadline. A snap
+ * fails here.
+ */
+export async function sampleTravel(
+	element: Element,
+	from: number,
+	to: number,
+	{ deadline = budget(2000) }: SampleOptions = {},
+): Promise<number[]> {
+	const samples: number[] = []
+
+	const [low, high] = from < to ? [from, to] : [to, from]
+
+	await sampleUntil(
+		() => {
+			const height = element.getBoundingClientRect().height
+
+			samples.push(height)
+
+			return height
+		},
+		(height) => hasIntermediate(samples, low, high) && Math.abs(height - to) <= HALF_PIXEL,
+		{ deadline },
+	)
+
+	return samples
 }

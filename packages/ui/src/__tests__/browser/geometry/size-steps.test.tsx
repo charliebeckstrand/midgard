@@ -426,41 +426,82 @@ const PROPERTIES = [
 ] as const
 
 /**
- * Reads the look of each element on the page: its tag, its slot, its layout
- * box, and the properties of `PROPERTIES`. The layout box of an HTML element
- * ignores a transform, so an open animation does not change it.
+ * Reads the look of `root` and of each element in it: its tag, its slot, its
+ * layout box, and the properties of `PROPERTIES`. The layout box of an HTML
+ * element ignores a transform, so an open animation does not change it.
  */
-function reading(): string {
-	return Array.from(document.body.querySelectorAll('*'), (element) => {
-		const style = getComputedStyle(element)
+function reading(root: Element): string {
+	return [root, ...root.querySelectorAll('*')]
+		.map((element) => {
+			const style = getComputedStyle(element)
 
-		const box =
-			element instanceof HTMLElement
-				? `${element.offsetWidth}x${element.offsetHeight}`
-				: `${style.width}x${style.height}`
+			const box =
+				element instanceof HTMLElement
+					? `${element.offsetWidth}x${element.offsetHeight}`
+					: `${style.width}x${style.height}`
 
-		return [
-			element.tagName,
-			element.getAttribute('data-slot') ?? '',
-			box,
-			...PROPERTIES.map((property) => style.getPropertyValue(property)),
-		].join(' ')
-	}).join('\n')
+			return [
+				element.tagName,
+				element.getAttribute('data-slot') ?? '',
+				box,
+				...PROPERTIES.map((property) => style.getPropertyValue(property)),
+			].join(' ')
+		})
+		.join('\n')
 }
 
 /**
- * Renders one step, and reads the page when the reading stays the same for two
- * frames. A chart measures its box, and an overlay opens, over a few frames.
- * The read throws when the reading does not settle before the deadline.
+ * Renders each of `steps` side by side, each in a box of its own, and reads each box
+ * when the reading of the page stays the same for two frames. A chart measures
+ * its box, and an overlay opens, over a few frames. The read throws when the
+ * reading does not settle before the deadline.
+ *
+ * One render for each step paid two frames for each step. One render for each
+ * axis pays them one time. A fixture that portals out of its box, such as an
+ * overlay, cannot give a reading of its own box. So when an element appears
+ * outside the render, the function renders each step alone and reads the page.
  */
-async function settledReading(node: ReactNode): Promise<string> {
-	renderUI(<div className="w-[40rem]">{node}</div>)
+async function settledReadings(
+	steps: readonly DensityStep[],
+	render: (step: DensityStep) => ReactNode,
+): Promise<string[]> {
+	const before = new Set(document.body.children)
+
+	const { container } = renderUI(
+		<div>
+			{steps.map((step) => (
+				<div key={step} className="w-[40rem]">
+					{render(step)}
+				</div>
+			))}
+		</div>,
+	)
 
 	try {
-		return await settledValue(reading)
+		await settledValue(() => reading(document.body))
+
+		const portaled = [...document.body.children].some(
+			(child) => child !== container && !before.has(child),
+		)
+
+		if (!portaled) return [...(container.firstElementChild?.children ?? [])].map(reading)
 	} finally {
 		cleanup()
 	}
+
+	const readings: string[] = []
+
+	for (const step of steps) {
+		renderUI(<div className="w-[40rem]">{render(step)}</div>)
+
+		try {
+			readings.push(await settledValue(() => reading(document.body)))
+		} finally {
+			cleanup()
+		}
+	}
+
+	return readings
 }
 
 describe('distinct size steps (real browser)', () => {
@@ -474,14 +515,12 @@ describe('distinct size steps (real browser)', () => {
 			// TypeScript does not relate the two lookups by `name`.
 			const render = FIXTURES[name] as (size: DensityStep) => ReactNode
 
-			const readings = new Map<DensityStep, string>()
-
-			for (const step of steps) readings.set(step, await settledReading(render(step)))
+			const readings = await settledReadings(steps, render)
 
 			const same = steps
 				.slice(1)
-				.filter((step, index) => readings.get(step) === readings.get(steps[index] as DensityStep))
-				.map((step) => `${steps[steps.indexOf(step) - 1]}=${step}`)
+				.filter((_, index) => readings[index + 1] === readings[index])
+				.map((step, index) => `${steps[index]}=${step}`)
 
 			expect(same).toEqual([])
 		},

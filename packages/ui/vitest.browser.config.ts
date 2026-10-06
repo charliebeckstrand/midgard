@@ -7,6 +7,12 @@ import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 import { CI, cleanup, coverageScope, sequence } from './vitest.base'
 
+/**
+ * The factor by which a wall-clock budget of the browser suite scales on CI:
+ * the time limit of a case and of a hook, and each `budget()` wait.
+ */
+const BUDGET_FACTOR = CI ? 2 : 1
+
 /** The CSS of this package, and not the CSS of a dependency. */
 const PACKAGE_CSS = /^(?!.*[\\/]node_modules[\\/]).*\.css(?:\?(?!.*\b(?:raw|url)\b).*)?$/
 
@@ -214,8 +220,12 @@ export default defineConfig({
 		// browser defaults until now — `testTimeout ??= browser.enabled ? 15e3 :
 		// 5e3` and `hookTimeout ??= browser.enabled ? 3e4 : 1e4` — so the suite ran
 		// to a number no one here chose and a version bump can move. They are
-		// declared at those values, which changes nothing today and pins what a
-		// bump would take away.
+		// declared at those values, which pins what a bump would take away.
+		//
+		// They scale on CI by `BUDGET_FACTOR`, as `budget()` does. Under load, one
+		// `userEvent` call took 1.5s, and the first case of `radio-read-only` ran
+		// past a flat 15s. A case that is slow but still moves then fails on a slow
+		// machine only, which the rule above forbids.
 		//
 		// `asyncUtilTimeout` is RTL's waitFor/findBy budget, injected by
 		// `browser/setup/index.ts`. The browser suite had none, so it ran at RTL's
@@ -224,13 +234,13 @@ export default defineConfig({
 		// do, and stays at 1s locally. It sits far below `testTimeout`, so a stuck
 		// wait fails as an RTL timeout carrying the callback's last error rather
 		// than as an opaque test timeout.
-		testTimeout: 15_000,
-		hookTimeout: 30_000,
+		testTimeout: 15_000 * BUDGET_FACTOR,
+		hookTimeout: 30_000 * BUDGET_FACTOR,
 		// A `waitFor` override in a case that needs longer than the budget above
 		// scales by the same rule; `browser/helpers/wall-clock.ts` reads this.
 		// It governs no real-time hold: a budget costs nothing on a green run,
 		// where a hold spends its full value every time.
-		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, budgetFactor: CI ? 2 : 1 },
+		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, budgetFactor: BUDGET_FACTOR },
 		// The budget of `expect.poll`, by the same rule. Vitest gives each poll a
 		// default of 1s on every machine, and no option above scales it. It is the
 		// budget of `asyncUtilTimeout`, so a poll and a `waitFor` fail at one time.
