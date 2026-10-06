@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/aspect-ratio'
 
 /**
- * An aspect-ratio preset: a ratio (`1/1`, `3/2`, `4/3`, `16/9`, `21/9`) or
+ * An aspect-ratio preset: a ratio (`1/1`, `4/3`, `3/2`, `16/9`, `21/9`) or
  * `auto`. `square` and `video` are aliases of `1/1` and `16/9`.
  */
 export type AspectRatioPreset = keyof typeof k.ratio

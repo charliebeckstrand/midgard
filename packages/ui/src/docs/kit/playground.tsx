@@ -28,9 +28,18 @@ function labelOf(value: Literal): string {
 	return typeof value === 'string' ? (SIZES[value] ?? humanize(value)) : String(value)
 }
 
-/** A field for each prop whose type is a union of literals. */
-function fieldsOf(props: readonly PropApi[], omit: readonly string[]): Field[] {
-	return props.flatMap(({ name, values, default: text, deprecated, required }) => {
+/**
+ * A field for each prop whose type is a union of literals, and for each prop
+ * that `given` gives values.
+ */
+function fieldsOf(
+	props: readonly PropApi[],
+	omit: readonly string[],
+	given: { readonly [prop: string]: readonly Literal[] | undefined },
+): Field[] {
+	return props.flatMap(({ name, default: text, deprecated, required, ...prop }) => {
+		const values = given[name] ?? prop.values
+
 		if (!values || deprecated !== undefined || omit.includes(name)) return []
 
 		// The tag writes the default as code, such as `'md'` or `true`.
@@ -135,6 +144,7 @@ export function Playground<P extends object>({
 	of,
 	api,
 	omit = [],
+	values: given = {},
 	surface,
 }: {
 	/**
@@ -146,6 +156,12 @@ export function Playground<P extends object>({
 	api: BarrelApi
 	/** The props that get no field. */
 	omit?: readonly (keyof P & string)[]
+	/**
+	 * The values of the field of a prop, in order, in the place of the values
+	 * from the API data. A prop whose type is not a union of literals, such as
+	 * a preset or a number, gets a field from them.
+	 */
+	values?: { readonly [K in keyof P & string]?: readonly Literal[] }
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
 }) {
@@ -161,7 +177,7 @@ export function Playground<P extends object>({
 		throw new Error(`docs: the barrel exports no component ${meta.component} for the playground`)
 	}
 
-	const fields = fieldsOf(component.props, omit)
+	const fields = fieldsOf(component.props, omit, given)
 
 	const [values, setValues] = useState<Values>(() =>
 		Object.fromEntries(fields.map((field) => [field.name, startOf(field)])),
