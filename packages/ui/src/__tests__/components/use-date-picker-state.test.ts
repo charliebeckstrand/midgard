@@ -10,14 +10,14 @@ const Jan15 = new Date(2025, 0, 15)
 
 const Feb1 = new Date(2025, 1, 1)
 
-// A Calendar handle that shows `month`. Header paging moves only that view.
-function showing(month: Date): CalendarHandle {
+// A Calendar handle whose grid entry is `date`. The Calendar owns the entry rule.
+function entering(date: Date | null): CalendarHandle {
 	return {
 		prevMonth: vi.fn(),
 		nextMonth: vi.fn(),
 		openPicker: vi.fn(),
 		footerKeyDown: vi.fn(),
-		getViewMonth: () => month,
+		getEntryDate: () => date,
 	}
 }
 
@@ -304,41 +304,15 @@ describe('useDatePickerState', () => {
 	})
 
 	describe('grid entry from the header and the footer', () => {
-		it.each<[string, Date | undefined, Date | undefined, Date, Date]>([
-			['the value when it is in the shown month', Jan15, undefined, Jan1, Jan15],
-			[
-				'today when it is in the shown month',
-				Jan15,
-				undefined,
-				new Date(2025, 5, 1),
-				new Date(2025, 5, 15),
-			],
-			[
-				'the 1st when the shown month holds neither',
-				Jan15,
-				undefined,
-				new Date(2025, 2, 1),
-				new Date(2025, 2, 1),
-			],
-			[
-				'the 1st held by min',
-				undefined,
-				new Date(2025, 2, 10),
-				new Date(2025, 2, 1),
-				new Date(2025, 2, 10),
-			],
-		])('enters the shown month on %s', (_name, defaultValue, min, month, expected) => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+		// Not the value and not today, so only the Calendar can give it.
+		const Mar10 = new Date(2025, 2, 10)
 
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
-			const { result } = renderHook(() => useDatePickerState({ defaultValue, min }))
+		it('enters the grid from the header on the entry day of the Calendar', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 
 			act(() => result.current.onOpenChange(true))
 
-			result.current.calendar.calendarRef.current = showing(month)
+			result.current.calendar.calendarRef.current = entering(Mar10)
 
 			act(() =>
 				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp', { shiftKey: true })),
@@ -346,21 +320,15 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowDown')))
 
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: expected })
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar10 })
 		})
 
-		it('enters the shown month from the footer on ArrowUp', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
-
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
+		it('enters the grid from the footer on the entry day of the Calendar', () => {
 			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 
 			act(() => result.current.onOpenChange(true))
 
-			result.current.calendar.calendarRef.current = showing(new Date(2025, 2, 1))
+			result.current.calendar.calendarRef.current = entering(Mar10)
 
 			act(() =>
 				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowDown', { shiftKey: true })),
@@ -370,7 +338,39 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp')))
 
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 2, 1) })
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar10 })
+		})
+
+		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(null)
+
+			act(() =>
+				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp', { shiftKey: true })),
+			)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'header', index: 1 })
+		})
+
+		it('keeps the highlight in the footer when the Calendar gives no entry day', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(null)
+
+			act(() =>
+				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowDown', { shiftKey: true })),
+			)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'footer', index: 0 })
 		})
 
 		it('enters on the value when no Calendar is mounted', () => {

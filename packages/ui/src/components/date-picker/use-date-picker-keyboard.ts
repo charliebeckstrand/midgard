@@ -2,7 +2,7 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { clampDate, viewEntryDate } from './date-picker-utilities'
+import { clampDate } from './date-picker-utilities'
 
 /** A footer action button in the date picker. */
 export type FooterButton = 'clear' | 'today'
@@ -31,10 +31,11 @@ type DatePickerKeyDownParams = {
 	getInitialActiveDate: () => Date
 	/**
 	 * The day where the highlight enters the grid from the header or the footer.
-	 * It is in the month that the calendar shows, which header paging can move
-	 * away from the value. {@link viewEntryDate} picks it.
+	 * The calendar gives it from the month that it shows, which header paging can
+	 * move away from the value. It is `null` when that month holds no enabled
+	 * day, and then the key does nothing.
 	 */
-	getViewEntryDate: () => Date
+	getViewEntryDate: () => Date | null
 	handleSelect: (date: Date) => void
 	calendarRef: RefObject<CalendarHandle | null>
 	footerButtons: FooterButton[]
@@ -53,7 +54,7 @@ type DatePickerKeyContext = {
 	moveGridDate: (delta: number) => Date
 	moveGridMonths: (delta: number) => Date
 	getInitialActiveDate: () => Date
-	getViewEntryDate: () => Date
+	getViewEntryDate: () => Date | null
 	handleSelect: (date: Date) => void
 	calendarRef: RefObject<CalendarHandle | null>
 	footerButtons: FooterButton[]
@@ -68,11 +69,13 @@ type HeaderActive = Extract<CalendarActive, { zone: 'header' }>
 type FooterActive = Extract<CalendarActive, { zone: 'footer' }>
 
 /**
- * The two seeds of the grid highlight, from the day that the picker holds.
- * `getInitialActiveDate` starts the arrows on `anchor`, else on today.
- * `getViewEntryDate` starts the header and footer keys in the month that the
- * calendar shows, which header paging can move away from `anchor`. With no
- * calendar, it starts where the arrows start. `min` and `max` bound both.
+ * The two seeds of the grid highlight. `getInitialActiveDate` starts the
+ * arrows on `anchor`, else on today, and `min` and `max` bound it.
+ * `getViewEntryDate` starts the header and footer keys on the entry day of the
+ * calendar (`CalendarHandle.getEntryDate`). That day is in the month that the
+ * calendar shows, which header paging can move away from `anchor`. It is
+ * `null` when that month holds no enabled day. With no calendar mounted, the
+ * keys start where the arrows start.
  *
  * @param anchor - The selected day: the value, or the start of a range in progress.
  * @internal
@@ -89,10 +92,10 @@ export function useDatePickerGridEntry(
 	)
 
 	const getViewEntryDate = useCallback(() => {
-		const month = calendarRef.current?.getViewMonth()
+		const calendar = calendarRef.current
 
-		return month ? viewEntryDate(month, anchor, min, max) : getInitialActiveDate()
-	}, [calendarRef, anchor, min, max, getInitialActiveDate])
+		return calendar ? calendar.getEntryDate() : getInitialActiveDate()
+	}, [calendarRef, getInitialActiveDate])
 
 	return { getInitialActiveDate, getViewEntryDate }
 }
@@ -251,7 +254,8 @@ function handleGridKey(
 
 /**
  * Header-zone keys: Left/Right cycle the three controls, Down enters the grid
- * in the shown month, Enter/Space activates.
+ * in the shown month, Enter/Space activates. When the shown month holds no
+ * enabled day, Down does nothing.
  *
  * @internal
  */
@@ -275,7 +279,9 @@ function handleHeaderKey(
 	if (key === 'ArrowDown') {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.getViewEntryDate() })
+		const date = ctx.getViewEntryDate()
+
+		if (date) ctx.setActive({ zone: 'grid', date })
 
 		return
 	}
@@ -297,7 +303,8 @@ function handleHeaderKey(
 
 /**
  * Footer-zone keys: Left/Right wrap between buttons, Up returns to the grid in
- * the shown month, Enter/Space activates.
+ * the shown month, Enter/Space activates. When the shown month holds no
+ * enabled day, Up does nothing.
  *
  * @internal
  */
@@ -325,7 +332,9 @@ function handleFooterKey(
 	if (key === 'ArrowUp') {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.getViewEntryDate() })
+		const date = ctx.getViewEntryDate()
+
+		if (date) ctx.setActive({ zone: 'grid', date })
 
 		return
 	}

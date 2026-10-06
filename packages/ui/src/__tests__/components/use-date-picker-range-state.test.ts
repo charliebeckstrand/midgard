@@ -14,14 +14,14 @@ const Jan20 = new Date(2025, 0, 20)
 
 const Jan31 = new Date(2025, 0, 31)
 
-// A Calendar handle that shows `month`. Header paging moves only that view.
-function showing(month: Date): CalendarHandle {
+// A Calendar handle whose grid entry is `date`. The Calendar owns the entry rule.
+function entering(date: Date | null): CalendarHandle {
 	return {
 		prevMonth: vi.fn(),
 		nextMonth: vi.fn(),
 		openPicker: vi.fn(),
 		footerKeyDown: vi.fn(),
-		getViewMonth: () => month,
+		getEntryDate: () => date,
 	}
 }
 
@@ -395,70 +395,33 @@ describe('useDatePickerRangeState', () => {
 	})
 
 	describe('grid entry from the header and the footer', () => {
-		it.each<[string, Date, Date]>([
-			['the range start when it is in the shown month', Jan1, Jan10],
-			['today when it is in the shown month', new Date(2025, 5, 1), new Date(2025, 5, 15)],
-			['the 1st when the shown month holds neither', new Date(2025, 2, 1), new Date(2025, 2, 1)],
-		])('enters the shown month on %s', (_name, month, expected) => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
+		// Not an endpoint and not today, so only the Calendar can give it.
+		const Mar5 = new Date(2025, 2, 5)
 
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
+		it('enters the grid from the header on the entry day of the Calendar', () => {
 			const { result } = renderHook(() =>
 				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
 			)
 
 			act(() => result.current.onOpenChange(true))
 
-			result.current.calendar.calendarRef.current = showing(month)
+			result.current.calendar.calendarRef.current = entering(Mar5)
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
 
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: expected })
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
 		})
 
-		it('enters the shown month on the pinned start of a range in progress', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
-
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
+		it('enters the grid from the footer on the entry day of the Calendar', () => {
 			const { result } = renderHook(() =>
 				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
 			)
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(new Date(2025, 2, 5)))
-
-			result.current.calendar.calendarRef.current = showing(new Date(2025, 2, 1))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 2, 5) })
-		})
-
-		it('enters the shown month from the footer on ArrowUp', () => {
-			vi.useFakeTimers({ now: new Date(2025, 5, 15, 13, 30) })
-
-			onTestFinished(() => {
-				vi.useRealTimers()
-			})
-
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
-
-			result.current.calendar.calendarRef.current = showing(new Date(2025, 2, 1))
+			result.current.calendar.calendarRef.current = entering(Mar5)
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown', { shiftKey: true })))
 
@@ -466,7 +429,37 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp')))
 
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 2, 1) })
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
+		})
+
+		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			result.current.calendar.calendarRef.current = entering(null)
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'header', index: 1 })
+		})
+
+		it('enters on the range start when no Calendar is mounted', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
 		})
 	})
 

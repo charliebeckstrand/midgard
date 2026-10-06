@@ -2,7 +2,7 @@ import { createRef, Profiler } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Calendar, type CalendarHandle } from '../../components/calendar'
+import { Calendar, type CalendarHandle, CalendarRange } from '../../components/calendar'
 import { Form } from '../../components/form'
 import { Box } from '../../structure/box'
 import {
@@ -123,18 +123,6 @@ describe('Calendar', () => {
 		})
 
 		expect(screen.getByRole('listbox', { name: 'August 2025' })).toBeInTheDocument()
-	})
-
-	it('reports the shown month through the handle', () => {
-		const ref = createRef<CalendarHandle>()
-
-		renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 5, 15)} />)
-
-		expect(ref.current?.getViewMonth()).toEqual(new Date(2025, 5, 1))
-
-		act(() => ref.current?.prevMonth())
-
-		expect(ref.current?.getViewMonth()).toEqual(new Date(2025, 4, 1))
 	})
 
 	it('keeps a navigated month when the parent passes an equal value again', async () => {
@@ -991,6 +979,147 @@ describe('Calendar Tab stops', () => {
 		await user.tab({ shift: true })
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next month' }))
+	})
+})
+
+describe('Calendar entry date', () => {
+	// The clock of each case: midday on 15 June 2025.
+	const now = new Date(2025, 5, 15, 12)
+
+	const dayStops = () =>
+		screen
+			.getAllByRole('option')
+			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
+			.map((option) => option.textContent)
+
+	// The handle gives the entry day, and the grid holds its Tab stop on the same day.
+	// After a month step, the roving hook moves the Tab stop in a microtask, so a
+	// case that steps the month awaits its `act`.
+	function expectEntry(ref: { current: CalendarHandle | null }, expected: Date | null) {
+		expect(ref.current?.getEntryDate()).toEqual(expected)
+
+		expect(dayStops()).toEqual(expected ? [String(expected.getDate())] : [])
+	}
+
+	it('enters on the selected day of the shown month', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			renderUI(<Calendar ref={ref} value={new Date(2025, 5, 20)} />)
+
+			expectEntry(ref, new Date(2025, 5, 20))
+		})
+	})
+
+	it('enters on today when the shown month holds no selected day', async () => {
+		await withFakeTime(async () => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 4, 20)} />)
+
+			await act(async () => ref.current?.nextMonth())
+
+			expectEntry(ref, new Date(2025, 5, 15))
+		})
+	})
+
+	it('enters on min when min is in the middle of the shown month', async () => {
+		await withFakeTime(async () => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			renderUI(
+				<Calendar ref={ref} defaultValue={new Date(2025, 1, 20)} min={new Date(2025, 2, 10)} />,
+			)
+
+			await act(async () => ref.current?.nextMonth())
+
+			expectEntry(ref, new Date(2025, 2, 10))
+		})
+	})
+
+	it('enters on the first enabled day when today is disabled', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			renderUI(<Calendar ref={ref} max={new Date(2025, 5, 10)} />)
+
+			expectEntry(ref, new Date(2025, 5, 1))
+		})
+	})
+
+	it('enters on today when the selected day is disabled', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			renderUI(<Calendar ref={ref} value={new Date(2025, 5, 20)} max={new Date(2025, 5, 18)} />)
+
+			expectEntry(ref, new Date(2025, 5, 15))
+		})
+	})
+
+	it('gives null when the shown month holds no enabled day', async () => {
+		await withFakeTime(async () => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			renderUI(<Calendar ref={ref} value={new Date(2025, 5, 15)} max={new Date(2025, 5, 30)} />)
+
+			await act(async () => ref.current?.nextMonth())
+
+			expect(screen.getByRole('listbox', { name: 'July 2025' })).toBeInTheDocument()
+
+			expectEntry(ref, null)
+		})
+	})
+
+	it('enters a range on the earlier endpoint of the shown month', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			// The start comes after the end, so the earlier endpoint is the end.
+			renderUI(
+				<CalendarRange
+					ref={ref}
+					rangeStart={new Date(2025, 5, 20)}
+					rangeEnd={new Date(2025, 5, 10)}
+				/>,
+			)
+
+			expectEntry(ref, new Date(2025, 5, 10))
+		})
+	})
+
+	it('enters a range on its endpoint in the shown month', async () => {
+		await withFakeTime(async () => {
+			vi.setSystemTime(now)
+
+			const ref = createRef<CalendarHandle>()
+
+			renderUI(
+				<CalendarRange
+					ref={ref}
+					rangeStart={new Date(2025, 4, 20)}
+					rangeEnd={new Date(2025, 5, 25)}
+				/>,
+			)
+
+			await act(async () => ref.current?.nextMonth())
+
+			expectEntry(ref, new Date(2025, 5, 25))
+		})
 	})
 })
 

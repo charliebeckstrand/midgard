@@ -29,8 +29,9 @@ import {
 	getMonthLabels,
 	getWeekdayLabels,
 	isBeforeDay,
+	isSameDay,
 } from './calendar-utilities'
-import { useCalendarFocus } from './use-calendar-focus'
+import { dayTabStop, useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
 import { useCalendarToday } from './use-calendar-today'
 
@@ -43,19 +44,25 @@ export type CalendarActive =
 	| { zone: 'grid'; date: Date }
 	| { zone: 'footer'; index: number }
 
-/** Imperative handle exposed via {@link Calendar}'s `ref`: month navigation, the shown month, picker, and footer key routing for parent-driven control. */
+/** Imperative handle exposed via {@link Calendar}'s `ref`: month navigation, the entry day of the day grid, picker, and footer key routing for parent-driven control. */
 export type CalendarHandle = {
 	prevMonth: () => void
 	nextMonth: () => void
 	openPicker: () => void
 	footerKeyDown: (event: KeyboardEvent) => void
 	/**
-	 * The month that the day grid shows, as local midnight on its 1st day. The
-	 * month buttons, the month picker, and the Page keys can move it away from
-	 * the value. A parent that moves its own highlight into the grid reads it to
-	 * keep the highlight in that month.
+	 * The day where the focus enters the day grid of the shown month, as local
+	 * midnight. It is the day that holds the Tab stop of the grid: the selected
+	 * day when it is enabled, else today when it is enabled and in the month,
+	 * else the first enabled day. When `getDayProps` selects more than one day,
+	 * as {@link CalendarRange} does, the selected day is the earliest of them in
+	 * the month. A parent that moves its own highlight into the grid reads it,
+	 * because the month buttons, the month picker, and the Page keys can move
+	 * the shown month away from the value.
+	 *
+	 * @returns The day, or `null` when the shown month holds no enabled day.
 	 */
-	getViewMonth: () => Date
+	getEntryDate: () => Date | null
 }
 
 /** Per-day state passed to a {@link CalendarProps.getDayProps} callback so it can style or decorate individual cells. */
@@ -311,6 +318,25 @@ export function Calendar({
 		dayGrid,
 	})
 
+	// A day is selected as the grid marks it: `getDayProps` can override the
+	// match with `value`, as a range does for its two endpoints.
+	const isSelected = useCallback(
+		(date: Date) => {
+			const selected = value != null && isSameDay(date, value)
+
+			const dayProps = getDayProps?.({
+				date,
+				disabled: isDisabled(date),
+				today: today != null && isSameDay(date, today),
+				selected,
+				active: activeGridDate != null && isSameDay(date, activeGridDate),
+			})
+
+			return dayProps?.selected ?? selected
+		},
+		[value, getDayProps, isDisabled, today, activeGridDate],
+	)
+
 	useImperativeHandle(
 		ref,
 		() => ({
@@ -318,9 +344,20 @@ export function Calendar({
 			nextMonth,
 			openPicker,
 			footerKeyDown: handleFooterKeyDown,
-			getViewMonth: () => viewDate,
+			// A month that waits for hydration draws no day, so it holds no entry.
+			getEntryDate: () => (shown ? dayTabStop(days, today, isDisabled, isSelected) : null),
 		}),
-		[prevMonth, nextMonth, openPicker, handleFooterKeyDown, viewDate],
+		[
+			prevMonth,
+			nextMonth,
+			openPicker,
+			handleFooterKeyDown,
+			shown,
+			days,
+			today,
+			isDisabled,
+			isSelected,
+		],
 	)
 
 	const handleSelect = useCallback(
