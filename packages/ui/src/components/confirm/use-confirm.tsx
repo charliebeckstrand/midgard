@@ -2,7 +2,14 @@
 
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { createContext } from '../../core'
-import { Confirm, type ConfirmProps } from './confirm'
+import type { Confirm, ConfirmProps } from './confirm'
+
+/**
+ * Loads the module of the dialog. The host loads it on the first question, so an
+ * app that never asks does not load the dialog before it hydrates.
+ * @internal
+ */
+const loadConfirm = () => import('./confirm')
 
 /**
  * The question that {@link useConfirm} asks: the words of the dialog, the two
@@ -51,15 +58,19 @@ const [ConfirmContext, useConfirmContext] = createContext<ConfirmFunction>('Conf
  * {@link Confirm} dialog that their questions show in. `UIProvider` mounts it.
  *
  * @remarks
- * The dialog is open while a question is set. When it closes, the overlay
- * keeps its last open render for the exit animation, so the words do not
- * change. The function in the context keeps its identity, so a question does
- * not render the children again. When the host unmounts, an open question
- * resolves `false`.
+ * The host loads the module of the dialog on the first question, and renders
+ * the dialog when the module is loaded. When the module does not load, the
+ * question rejects with the error. The dialog is open while a question is set.
+ * When it closes, the overlay keeps its last open render for the exit
+ * animation, so the words do not change. The function in the context keeps
+ * its identity, so a question does not render the children again. When the
+ * host unmounts, an open question resolves `false`.
  * @internal
  */
 export function ConfirmHost({ children }: { children: ReactNode }) {
 	const [question, setQuestion] = useState<Question | null>(null)
+
+	const [dialog, setDialog] = useState<{ Confirm: typeof Confirm } | null>(null)
 
 	const settleRef = useRef<Settle | null>(null)
 
@@ -88,6 +99,14 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 	)
 
 	useEffect(() => () => settleRef.current?.resolve(false), [])
+
+	const asked = question !== null
+
+	useEffect(() => {
+		if (!asked || dialog) return
+
+		loadConfirm().then(setDialog, (error: unknown) => settle()?.reject(error))
+	}, [asked, dialog, settle])
 
 	const pending = question?.pending ?? false
 
@@ -134,16 +153,18 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 	return (
 		<ConfirmContext value={ask}>
 			{children}
-			<Confirm
-				open={question !== null}
-				onOpenChange={onOpenChange}
-				onConfirm={onConfirm}
-				title={options?.title}
-				description={options?.description}
-				confirm={{ ...options?.confirm, pending }}
-				cancel={{ ...options?.cancel, disabled: pending }}
-				dismissOnBackdrop={!pending}
-			/>
+			{dialog && (
+				<dialog.Confirm
+					open={asked}
+					onOpenChange={onOpenChange}
+					onConfirm={onConfirm}
+					title={options?.title}
+					description={options?.description}
+					confirm={{ ...options?.confirm, pending }}
+					cancel={{ ...options?.cancel, disabled: pending }}
+					dismissOnBackdrop={!pending}
+				/>
+			)}
 		</ConfirmContext>
 	)
 }
@@ -154,9 +175,11 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
  *
  * @remarks
  * The dialog is the one that `UIProvider` mounts, and it portals into the
- * container of that provider. Use it in place of a `Confirm` of your own when
- * the question has no custom children: the caller then keeps no open state and
- * no target state. The function keeps its identity across renders.
+ * container of that provider. The provider loads the module of the dialog on
+ * the first question, so the dialog of that question can show some frames
+ * later. When the module does not load, the promise rejects with the error.
+ * Use it in place of a `Confirm` of your own when the question has no custom
+ * children: the caller then keeps no open state and no target state. The function keeps its identity across renders.
  *
  * The dialog renders at the provider, not at the caller. Its content reads the
  * contexts above the provider, such as `LocaleProvider`, and not the contexts

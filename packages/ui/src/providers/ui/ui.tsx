@@ -68,7 +68,9 @@ export type UIProviderProps = {
  * Single app-root integration point for the library's framework bindings.
  * Registers the link component, the default portal container, and the current
  * path. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in,
- * and the toast queue and viewport that `useToast` from `ui/toast` uses.
+ * and the toast queue and viewport that `useToast` from `ui/toast` uses. The
+ * dialog loads on the first question, and the viewport on the first toast, so
+ * neither loads before the app hydrates.
  *
  * Each binding is independent and optional: the provider broadcasts a binding
  * only when its prop is provided. A nested `<UIProvider>` overrides one

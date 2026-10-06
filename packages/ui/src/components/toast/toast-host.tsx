@@ -1,9 +1,17 @@
 'use client'
 
-import { type ReactNode, use } from 'react'
+import { type ReactNode, use, useEffect, useState } from 'react'
 import { createContext } from '../../core'
-import { Toast, type ToastProps } from './toast'
+import { useToastViewport } from './context'
+import type { Toast, ToastProps } from './toast'
 import { ToastProvider, type ToastProviderProps } from './toast-provider'
+
+/**
+ * Loads the module of the viewport. The host loads it on the first toast, so an
+ * app that shows no toast does not load the viewport before it hydrates.
+ * @internal
+ */
+const loadToast = () => import('./toast')
 
 /**
  * The toast setup that `UIProvider` takes in its `toast` prop: the
@@ -14,12 +22,37 @@ import { ToastProvider, type ToastProviderProps } from './toast-provider'
 export type ToastHostOptions = Pick<ToastProviderProps, 'duration' | 'maxToasts'> &
 	Pick<ToastProps, 'position'>
 
+/**
+ * Renders the {@link Toast} viewport of the host. It loads the module of the
+ * viewport when the queue gets its first toast, and renders the viewport when
+ * the module is loaded. The viewport then plays the enter of the toasts in the
+ * queue.
+ *
+ * @remarks
+ * A module that does not load is an unhandled rejection, so the error reaches
+ * the error reporting of the app. The queue still dismisses each toast at its
+ * time.
+ * @internal
+ */
+function ToastViewport({ position }: Pick<ToastProps, 'position'>) {
+	const queued = useToastViewport().toasts.length > 0
+
+	const [viewport, setViewport] = useState<{ Toast: typeof Toast } | null>(null)
+
+	useEffect(() => {
+		if (queued && !viewport) void loadToast().then(setViewport)
+	}, [queued, viewport])
+
+	return viewport && <viewport.Toast position={position} />
+}
+
 /** True under a {@link ToastHost} that mounted the queue. @internal */
 const [ToastHostContext] = createContext<boolean>('ToastHost', { default: false })
 
 /**
  * Mounts a {@link ToastProvider} and its {@link Toast} viewport around its
- * children, so `useToast()` works with no setup. `UIProvider` mounts it.
+ * children, so `useToast()` works with no setup. `UIProvider` mounts it. The
+ * viewport loads on the first toast.
  *
  * @remarks
  * Only the outermost host mounts the queue. A host under another host renders
@@ -43,7 +76,7 @@ export function ToastHost({
 		<ToastHostContext value>
 			<ToastProvider duration={options?.duration} maxToasts={options?.maxToasts}>
 				{children}
-				<Toast position={options?.position} />
+				<ToastViewport position={options?.position} />
 			</ToastProvider>
 		</ToastHostContext>
 	)
