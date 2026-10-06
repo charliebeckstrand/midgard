@@ -432,7 +432,7 @@ export function Sheet() {
 				</FixtureCase>
 				<FixtureCase label="invalid">
 					<Field severity="error" className="w-full">
-						<Label>Score</Label>
+						<Label as="span">Score</Label>
 						<Rating />
 						<Message severity="error">Rate the order</Message>
 					</Field>

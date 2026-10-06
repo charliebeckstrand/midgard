@@ -38,7 +38,9 @@ export function PlacePhotosField() {
 
 	return (
 		<Field htmlFor={`${id}list`}>
-			<Label id={`${id}label`}>Photos</Label>
+			<Label as="span" id={`${id}label`}>
+				Photos
+			</Label>
 
 			<List
 				id={`${id}list`}

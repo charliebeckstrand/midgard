@@ -13,15 +13,19 @@ const { text } = iro
 const { weight } = ji
 const { field } = narabi
 
+// A `<label>` takes the press and passes it to its control, so it has the pointer and does not
+// select its text. A `<span>` caption takes no press, so it has neither.
 const label = defineRecipe({
-	base: [
-		'flex w-fit select-none',
-		...cursor,
-		'[:is([data-slot=field],[data-slot=control])[data-disabled]_&]:cursor-not-allowed',
-		text.default,
-		ji.ramp,
-		...disabled,
-	],
+	base: ['flex w-fit', text.default, ji.ramp, ...disabled],
+	as: {
+		label: [
+			'select-none',
+			...cursor,
+			'[:is([data-slot=field],[data-slot=control])[data-disabled]_&]:cursor-not-allowed',
+		],
+		span: [],
+	},
+	defaults: { as: 'label' },
 })
 
 const description = defineRecipe({

@@ -18,7 +18,7 @@ export default function InAForm() {
 		>
 			<Stack gap="lg">
 				<Field>
-					<Label>How was your order?</Label>
+					<Label as="span">How was your order?</Label>
 					<Rating name="score" />
 					<Message name="score" />
 				</Field>

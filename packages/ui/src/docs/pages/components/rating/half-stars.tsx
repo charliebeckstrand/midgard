@@ -4,7 +4,7 @@ import { Rating } from 'ui/rating'
 export default function HalfStars() {
 	return (
 		<Field>
-			<Label>Rate your stay</Label>
+			<Label as="span">Rate your stay</Label>
 			<Rating step={0.5} defaultValue={3.5} />
 		</Field>
 	)
