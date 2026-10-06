@@ -58,3 +58,24 @@ export function resolveResponsive<T>(
 
 	return [resolver(value)]
 }
+
+/**
+ * Puts each class of `classes` behind the variant of `bp`, so `p-2` at `md`
+ * becomes `md:p-2`. `'initial'` and `undefined` give `classes` unchanged.
+ *
+ * Tailwind's scanner does not see a class that this function makes. Each
+ * class that a caller can make must thus be in an `@source inline(...)` line of
+ * `ui/tailwind.css`.
+ *
+ * @param classes - The unprefixed classes, separated by spaces.
+ * @param bp - The breakpoint; the resolver of {@link resolveResponsive} gives it.
+ * @returns The classes for that breakpoint.
+ */
+export function atBreakpoint(classes: string, bp?: Breakpoint): string {
+	if (bp === undefined || bp === 'initial') return classes
+
+	return classes
+		.split(' ')
+		.map((name) => `${bp}:${name}`)
+		.join(' ')
+}

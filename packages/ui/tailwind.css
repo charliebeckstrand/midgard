@@ -3,9 +3,10 @@
  * (`src/fonts/fonts.css`, with no latin face: `AppearanceProvider` adds it),
  * the `density-*` variants, the stepped and ring utilities
  * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` edge fade,
- * and two base styles on the root element: `touch-action: manipulation`, and
- * the `color-scheme` that follows the `dark` class. Import this file in each
- * Tailwind entry that scans ui. Each plugin explains its classes or its style.
+ * two base styles on the root element: `touch-action: manipulation`, and
+ * the `color-scheme` that follows the `dark` class, and the breakpoint classes
+ * of the structure units. Import this file in each Tailwind entry that scans
+ * ui. Each plugin explains its classes or its style.
  */
 @import './src/fonts/fonts.css';
 
@@ -14,3 +15,16 @@
 @plugin './src/core/touch/base.ts';
 @plugin './src/core/scheme/base.ts';
 @plugin './src/core/scroll/fade.ts';
+
+/*
+ * The breakpoint classes of Box, Flex, and Split. `atBreakpoint` in
+ * `src/types/responsive.ts` puts the prefix on a class of the shared scale
+ * (`ma`) at run time, so the scanner does not find these classes in the
+ * source. Each line gives one axis for each breakpoint. A test makes sure that
+ * each class that a resolver can make is in these lines.
+ */
+@source inline('{sm,md,lg,xl,2xl}:{p,px,py,gap}-{0,1,2,3,4,6}');
+@source inline('{sm,md,lg,xl,2xl}:flex-{row,col,row-reverse,col-reverse}');
+@source inline('{sm,md,lg,xl,2xl}:items-{start,center,end,stretch,baseline}');
+@source inline('{sm,md,lg,xl,2xl}:justify-{start,center,end,between,around,evenly}');
+@source inline('{sm,md,lg,xl,2xl}:grid-{cols,rows}-{[1fr_3fr],[1fr_2fr],[1fr_1fr],[2fr_1fr],[3fr_1fr],none}');
