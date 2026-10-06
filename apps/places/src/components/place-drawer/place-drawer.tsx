@@ -90,7 +90,7 @@ function PlaceMeta({ place }: { place: Place }) {
 					{place.visits.length} visits
 				</Text>
 			) : (
-				<Text as="span">
+				<Text as="span" tone="muted">
 					<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
 				</Text>
 			)}
