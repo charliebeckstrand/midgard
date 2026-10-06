@@ -223,9 +223,13 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 	let opened: PDFDocumentProxy | null = null
 
 	try {
-		// Independent: the worker chunk and the document itself. Serializing them costs a
-		// round trip on the first open of a session.
-		const [worker, response] = await Promise.all([resolveWorker(), fetch(src)])
+		// Independent: the worker chunk, the loader of pdf.js files, and the document itself.
+		// Serializing them costs a round trip on the first open of a session.
+		const [worker, { PdfBinaryData }, response] = await Promise.all([
+			resolveWorker(),
+			import('./pdf-viewer-binary-data'),
+			fetch(src),
+		])
 
 		const pdfjs = await loadPdfjs()
 
@@ -235,9 +239,12 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 
 		report.documentUrl(URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' })))
 
-		// pdf.js takes ownership of the buffer; hand over a copy
-		const doc = await pdfjs.getDocument({ data: buffer.slice(0), worker: worker ?? undefined })
-			.promise
+		// The `Blob` above holds a copy of the bytes, so pdf.js can take this buffer.
+		const doc = await pdfjs.getDocument({
+			data: buffer,
+			worker: worker ?? undefined,
+			BinaryDataFactory: PdfBinaryData,
+		}).promise
 
 		opened = doc
 

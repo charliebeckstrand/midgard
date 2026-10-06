@@ -132,7 +132,7 @@
 		"lucide-react": "catalog:",
 		"marked": "^18.0.5",
 		"motion": "^13.5.0",
-		"pdfjs-dist": "^6.2.108",
+		"pdfjs-dist": "^6.4.299",
 		"shiki": "^4.5.0",
 		"tailwind-merge": "^3.5.0",
 		"tinykeys": "^4.0.0",
