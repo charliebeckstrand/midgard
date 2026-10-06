@@ -1,6 +1,7 @@
 import { afterEach, beforeEach } from 'vitest'
 import { __resetAnnouncer } from '../../core/announcer'
 import { __resetTruncationObserver } from '../../hooks/use-truncation'
+import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
 
 /**
  * Returns the package's module-scope state to its unused shape between tests.
@@ -12,13 +13,13 @@ import { __resetTruncationObserver } from '../../hooks/use-truncation'
  *
  * This is the one place a reset is registered, so both setups call one function
  * and a new seam reaches every suite at once. Each reset also takes the hook it
- * needs here, because the two need different ones.
+ * needs here, because they need different ones.
  *
- * It is deliberately short. Seven modules hold module-scope state, and each
+ * It is deliberately short. Eight modules hold module-scope state, and each
  * needs a measurement before it gains a seam. A proposed seam for the
  * media-query registries turned out to guard nothing: a registry drops itself
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.
- * The two below are the ones with a mechanism rather than a suspicion. The
+ * The three below are the ones with a mechanism rather than a suspicion. The
  * counter in `use-scroll-lock` and the holds in `use-drag-cursor` balance on unmount,
  * the `document-listener` registries drop themselves like the media-query ones,
  * and the time-ago ticker's `visibilityBound` flag and the PDF viewer's
@@ -30,6 +31,12 @@ export function installSingletonResets(): void {
 	// does not remove them. An `afterEach`, because the residue guard reads the
 	// body once every `afterEach` has run.
 	afterEach(__resetAnnouncer)
+
+	// A case that presses a touch and never lifts it, or lifts it and ends before
+	// the release delay, leaves `select-none` on `<html>` and the touch in the
+	// held set. The next file then starts inside that hold, and its own release
+	// never comes. An `afterEach`, for the same reason as the announcer.
+	afterEach(__resetTextSelectionHold)
 
 	// The shared ResizeObserver is built from whichever global existed at first
 	// use, and several jsdom files stub that global. Vitest restores a stubbed
