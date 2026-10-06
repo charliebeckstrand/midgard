@@ -6,7 +6,7 @@ import { type ReactElement, type ReactNode, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Checkbox, CheckboxField } from 'ui/checkbox'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { cn } from 'ui/core'
 import { Label } from 'ui/fieldset'
 import { Icon } from 'ui/icon'
@@ -165,11 +165,18 @@ export function ScheduleList({
 
 	const predictingWeek = weeks.find((week) => week.number === predicting) ?? null
 
-	// The week of the delete confirm. A close clears `open` and keeps the week,
-	// so the words stay the same while the dialog closes.
-	const [deleting, setDeleting] = useState<{ week: Week; open: boolean } | null>(null)
+	const confirm = useConfirm()
 
-	const closeDelete = () => setDeleting((held) => (held === null ? null : { ...held, open: false }))
+	// A delete cannot be undone, so it asks first, and names the week.
+	const remove = async (week: Week) => {
+		const confirmed = await confirm({
+			title: `Delete the prediction for ${week.label}?`,
+			description: 'This cannot be undone.',
+			confirm: { label: 'Delete', color: 'red' },
+		})
+
+		if (confirmed) deletePicks.mutate(week.number)
+	}
 
 	const [showDates, setShowDates] = useState(false)
 
@@ -236,7 +243,7 @@ export function ScheduleList({
 										started={started.includes(week.number)}
 										closed={isClosed}
 										onPredict={() => writePredict(week.number)}
-										onDelete={() => setDeleting({ week, open: true })}
+										onDelete={() => void remove(week)}
 									/>
 								</Flex>
 							}
@@ -270,22 +277,6 @@ export function ScheduleList({
 					if (!open) writePredict(null)
 				}}
 				onSubmit={(week, next) => savePicks.mutateAsync({ week, picks: next })}
-			/>
-
-			{/* A delete cannot be undone, so it asks first, and names the week. */}
-			<Confirm
-				open={deleting?.open ?? false}
-				onOpenChange={(next) => {
-					if (!next) closeDelete()
-				}}
-				onConfirm={() => {
-					if (deleting !== null) deletePicks.mutate(deleting.week.number)
-
-					closeDelete()
-				}}
-				title={deleting === null ? '' : `Delete the prediction for ${deleting.week.label}?`}
-				description="This cannot be undone."
-				confirm={{ label: 'Delete', color: 'red' }}
 			/>
 		</>
 	)

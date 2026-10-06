@@ -14,7 +14,7 @@ The integration points an app mounts once at its root: `UIDocument` in the root 
 
 | Export | Summary |
 |---|---|
-| `UIProvider` | App-root integration point registering the framework link component, the default portal container, and the current `pathname`. A `SidebarItem` or a `NavItem` with an `href` that matches the `pathname` is current. |
+| `UIProvider` | App-root integration point registering the framework link component, the default portal container, and the current `pathname`. A `SidebarItem` or a `NavItem` with an `href` that matches the `pathname` is current. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in. The outermost provider mounts the toast queue and viewport that `useToast` from `ui/toast` uses, and its `toast` prop sets them. Put `LocaleProvider` above it. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
 | `UIDocument` | The document of an app: `<html>`, `<head>`, and `<body>`. The head holds `AppearanceScript`, and the body wraps its children in `AppearanceProvider`, so the pre-paint step and its provider are always together. The `<html>` element has `suppressHydrationWarning`, because the script changes its classes before hydration. It has no `'use client'`, so a server layout can render it. |
 | `UIDocumentProps` *(type)* | Props for `UIDocument`: `lang`, the classes of `<html>` and `<body>`, and more `head` content. |

@@ -31,6 +31,8 @@ type AppProvidersProps = {
  *
  * The locale is `en-US`, the language of the text of ui and of the apps. A
  * fixed locale also makes the server render and the hydration render agree.
+ * `LocaleProvider` is above `UIProvider`, so the dialog of `useConfirm`, which
+ * `UIProvider` renders, formats dates in the same way as the page.
  *
  * @remarks Top-level context per CONVENTIONS.md §6.1. Render it from the root
  * layout. The client is built in state rather than at module scope, so a render
@@ -42,11 +44,9 @@ export function AppProviders({ queries, timeZone, dateFormat, children }: AppPro
 
 	return (
 		<QueryClientProvider client={client}>
-			<UIProvider link={NextLink}>
-				<LocaleProvider locale="en-US" timeZone={timeZone} dateFormat={dateFormat}>
-					{children}
-				</LocaleProvider>
-			</UIProvider>
+			<LocaleProvider locale="en-US" timeZone={timeZone} dateFormat={dateFormat}>
+				<UIProvider link={NextLink}>{children}</UIProvider>
+			</LocaleProvider>
 		</QueryClientProvider>
 	)
 }

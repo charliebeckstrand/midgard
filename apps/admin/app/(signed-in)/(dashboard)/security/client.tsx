@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
 import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
@@ -45,7 +44,7 @@ export function SecurityClient({
 	const { data: bans } = useBans(initialBans)
 	const resolve = useResolveThreat()
 	const unban = useRemoveBan()
-	const [unbanning, setUnbanning] = useState<Ban | null>(null)
+	const confirm = useConfirm()
 
 	const error = resolve.error ?? unban.error
 
@@ -81,7 +80,15 @@ export function SecurityClient({
 											variant="outline"
 											size="sm"
 											disabled={unban.isPending}
-											onClick={() => setUnbanning(ban)}
+											onClick={async () => {
+												const confirmed = await confirm({
+													title: `Unban ${ban.ip}?`,
+													description: 'The address can sign in and sign up again at once.',
+													confirm: { label: 'Unban' },
+												})
+
+												if (confirmed) unban.mutate(ban.ip)
+											}}
 										>
 											Unban
 										</Button>
@@ -146,19 +153,6 @@ export function SecurityClient({
 					</Table>
 				)}
 			</ThreatsSection>
-
-			<Confirm
-				open={unbanning !== null}
-				onOpenChange={(open) => !open && setUnbanning(null)}
-				onConfirm={() => {
-					if (unbanning) unban.mutate(unbanning.ip)
-
-					setUnbanning(null)
-				}}
-				title={unbanning === null ? '' : `Unban ${unbanning.ip}?`}
-				description="The address can sign in and sign up again at once."
-				confirm={{ label: 'Unban' }}
-			/>
 		</Stack>
 	)
 }

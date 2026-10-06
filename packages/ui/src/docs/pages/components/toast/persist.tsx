@@ -1,7 +1,7 @@
 import { Button } from 'ui/button'
-import { Toast, ToastProvider, useToast } from 'ui/toast'
+import { useToast } from 'ui/toast'
 
-function ShowToast() {
+export default function Persist() {
 	const { toast } = useToast()
 
 	return (
@@ -17,14 +17,5 @@ function ShowToast() {
 		>
 			Show toast
 		</Button>
-	)
-}
-
-export default function Persist() {
-	return (
-		<ToastProvider>
-			<ShowToast />
-			<Toast />
-		</ToastProvider>
 	)
 }

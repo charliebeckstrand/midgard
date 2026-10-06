@@ -28,8 +28,12 @@ export type ToastViewportContextValue = {
 
 /**
  * Caller-facing toast API from the nearest `<ToastProvider>`: `toast(data)`
- * enqueues a toast and returns its id, `dismiss(id)` removes it. Throws
- * outside a provider.
+ * enqueues a toast and returns its id, `dismiss(id)` removes it.
+ *
+ * @remarks
+ * `UIProvider` mounts a `ToastProvider` and its `Toast` viewport, so the hook
+ * works anywhere under it with no setup. A `ToastProvider` in the subtree
+ * gives its descendants a queue of their own. Throws outside a provider.
  */
 export const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')
 

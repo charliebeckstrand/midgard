@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import { ensureSecondStep, oauthStartPath, signInProviderNames } from 'shared/auth'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from 'ui/card'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Stack } from 'ui/structure/stack'
 import type { Identity, Provider } from './account-api'
@@ -47,7 +46,7 @@ export function ConnectedAccounts({
 }: ConnectedAccountsProps) {
 	const { data: identities } = useIdentities(initialIdentities)
 	const unlink = useUnlinkIdentity()
-	const [unlinking, setUnlinking] = useState<Provider | null>(null)
+	const confirm = useConfirm()
 
 	// A provider that the gateway turned off still shows while an account of it is connected.
 	const shown = [
@@ -90,7 +89,16 @@ export function ConnectedAccounts({
 											variant="outline"
 											size="sm"
 											disabled={unlink.isPending}
-											onClick={() => setUnlinking(provider)}
+											onClick={async () => {
+												const confirmed = await confirm({
+													title: `Disconnect ${signInProviderNames[provider]}?`,
+													description:
+														'You cannot sign in with this account after you disconnect it.',
+													confirm: { label: 'Disconnect', color: 'red' },
+												})
+
+												if (confirmed) unlink.mutate(provider)
+											}}
 										>
 											Disconnect
 										</Button>
@@ -122,19 +130,6 @@ export function ConnectedAccounts({
 					}}
 				</List>
 			</Stack>
-
-			<Confirm
-				open={unlinking !== null}
-				onOpenChange={(open) => !open && setUnlinking(null)}
-				onConfirm={() => {
-					if (unlinking) unlink.mutate(unlinking)
-
-					setUnlinking(null)
-				}}
-				title={`Disconnect ${unlinking ? signInProviderNames[unlinking] : ''}?`}
-				description="You cannot sign in with this account after you disconnect it."
-				confirm={{ label: 'Disconnect', color: 'red' }}
-			/>
 		</Card>
 	)
 }

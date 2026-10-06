@@ -1,12 +1,12 @@
 'use client'
 
 import type { User } from 'auth'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Card } from 'ui/card'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
 import { Link } from 'ui/link'
 import { Grid, type GridColumn } from 'ui/modules/grid'
@@ -75,16 +75,29 @@ function usersColumns(action: (user: User) => ReactNode): GridColumn<User>[] {
 export function UsersClient({ users: initialUsers }: UsersClientProps) {
 	const { data: users } = useUsers(initialUsers)
 	const { mutate: setActive, isPending: saving, error } = useSetUserActive()
-	const [deactivating, setDeactivating] = useState<User | null>(null)
+	const confirm = useConfirm()
 
 	const columns = usersColumns((user) => (
 		<Button
 			variant="outline"
 			size="sm"
 			disabled={user.roles.includes('admin') || saving}
-			onClick={() =>
-				user.is_active ? setDeactivating(user) : setActive({ userId: user.id, isActive: true })
-			}
+			onClick={async () => {
+				if (!user.is_active) {
+					setActive({ userId: user.id, isActive: true })
+
+					return
+				}
+
+				const confirmed = await confirm({
+					title: `Deactivate ${user.email}?`,
+					description:
+						'The user is signed out on each device, and cannot sign in until you reactivate the account.',
+					confirm: { label: 'Deactivate', color: 'red' },
+				})
+
+				if (confirmed) setActive({ userId: user.id, isActive: false })
+			}}
 		>
 			{user.is_active ? 'Deactivate' : 'Reactivate'}
 		</Button>
@@ -102,19 +115,6 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 					sort={{ defaultValue: [{ column: 'created', direction: 'desc' }] }}
 				/>
 			</Card>
-
-			<Confirm
-				open={deactivating !== null}
-				onOpenChange={(open) => !open && setDeactivating(null)}
-				onConfirm={() => {
-					if (deactivating) setActive({ userId: deactivating.id, isActive: false })
-
-					setDeactivating(null)
-				}}
-				title={deactivating === null ? '' : `Deactivate ${deactivating.email}?`}
-				description="The user is signed out on each device, and cannot sign in until you reactivate the account."
-				confirm={{ label: 'Deactivate', color: 'red' }}
-			/>
 		</Stack>
 	)
 }

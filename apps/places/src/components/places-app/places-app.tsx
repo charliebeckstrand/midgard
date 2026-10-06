@@ -5,9 +5,9 @@ import { MapPin, MapPinCheck } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
-import { Confirm } from 'ui/confirm'
+import { type ConfirmOptions, useConfirm } from 'ui/confirm'
+import { DateTime } from 'ui/date-time'
 import { AppearanceSettings } from 'ui/providers/appearance'
-import { useDateFormat } from 'ui/providers/locale'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
@@ -249,51 +249,27 @@ function deletesPlace({ place, visit }: Deletion): boolean {
 }
 
 /**
- * The confirmation before a delete. It is open while `deletion` is set, and it
- * names the place, or the day of the visit. When the visit is the only one, it
- * also says that the place goes with it.
+ * The question before a delete. It names the place, or the day of the visit.
+ * When the visit is the only one, it also says that the place goes with it.
  */
-function DeleteConfirm({
-	deletion,
-	onClose,
-	onDelete,
-}: {
-	deletion: Deletion | null
-	onClose: () => void
-	onDelete: (deletion: Deletion) => void
-}) {
-	const visit = deletion?.visit ?? null
+function deleteQuestion(deletion: Deletion): ConfirmOptions {
+	const { place, visit } = deletion
 
-	const day = useDateFormat(DAY_FORMAT)
-
-	const title =
-		deletion === null
-			? ''
-			: visit === null
-				? `Delete "${deletion.place.name}"?`
-				: `Delete the visit on ${day.format(new Date(visit.visitedAt))}?`
-
-	const description =
-		deletion !== null && visit !== null && deletesPlace(deletion)
-			? `This is the only visit to "${deletion.place.name}", so the place is deleted too.`
-			: undefined
-
-	return (
-		<Confirm
-			open={deletion !== null}
-			onOpenChange={(next) => {
-				if (!next) onClose()
-			}}
-			onConfirm={() => {
-				if (deletion !== null) onDelete(deletion)
-
-				onClose()
-			}}
-			title={title}
-			description={description}
-			confirm={{ label: 'Delete', color: 'red' }}
-		/>
-	)
+	return {
+		title:
+			visit === null ? (
+				`Delete "${place.name}"?`
+			) : (
+				<>
+					Delete the visit on <DateTime value={visit.visitedAt} format={DAY_FORMAT} />?
+				</>
+			),
+		description:
+			visit !== null && deletesPlace(deletion)
+				? `This is the only visit to "${place.name}", so the place is deleted too.`
+				: undefined,
+		confirm: { label: 'Delete', color: 'red' },
+	}
 }
 
 /**
@@ -576,8 +552,33 @@ export function PlacesApp({
 	// other leaves them with.
 	const [listing, setListing] = useState(false)
 
-	// What the confirmation stands over, or `null` for no confirmation.
-	const [deleting, setDeleting] = useState<Deletion | null>(null)
+	const confirm = useConfirm()
+
+	// A delete is the one action here the reader cannot undo — the store keeps
+	// no history — so it is the one that asks first. It names the place, because
+	// a reader who opened a summary has several in front of them.
+	const remove = useCallback(
+		async (deletion: Deletion) => {
+			if (!(await confirm(deleteQuestion(deletion)))) return
+
+			const { place, visit } = deletion
+
+			if (visit === null || deletesPlace(deletion)) {
+				void deletePlace.mutateAsync(place.id)
+
+				return
+			}
+
+			void savePlace.mutateAsync({
+				id: place.id,
+				draft: {
+					...placeDraft(place),
+					visits: place.visits.filter((held) => held.id !== visit.id),
+				},
+			})
+		},
+		[confirm, deletePlace.mutateAsync, savePlace.mutateAsync],
+	)
 
 	// What the menus of a place and of a visit do, in every spot that shows one.
 	// Held, because the index columns and the palette source are memos keyed on it.
@@ -585,11 +586,11 @@ export function PlacesApp({
 		() => ({
 			onAddVisit: (place) => setForm({ kind: 'visit', place, visit: null }),
 			onEdit: (place) => setForm({ kind: 'place', place }),
-			onDelete: (place) => setDeleting({ place, visit: null }),
+			onDelete: (place) => void remove({ place, visit: null }),
 			onEditVisit: (place, visit) => setForm({ kind: 'visit', place, visit }),
-			onDeleteVisit: (place, visit) => setDeleting({ place, visit }),
+			onDeleteVisit: (place, visit) => void remove({ place, visit }),
 		}),
-		[],
+		[remove],
 	)
 
 	// Held for the palette's action source, which is a memo keyed on it.
@@ -988,31 +989,6 @@ export function PlacesApp({
 					actions={actions}
 				/>
 			) : null}
-
-			{/* A delete is the one action here the reader cannot undo — the store keeps
-			    no history — so it is the one that asks first. It names the place, because
-			    a reader who opened a summary has several in front of them. */}
-			<DeleteConfirm
-				deletion={deleting}
-				onClose={() => setDeleting(null)}
-				onDelete={(deletion) => {
-					const { place, visit } = deletion
-
-					if (visit === null || deletesPlace(deletion)) {
-						void deletePlace.mutateAsync(place.id)
-
-						return
-					}
-
-					void savePlace.mutateAsync({
-						id: place.id,
-						draft: {
-							...placeDraft(place),
-							visits: place.visits.filter((held) => held.id !== visit.id),
-						},
-					})
-				}}
-			/>
 		</Flex>
 	)
 }

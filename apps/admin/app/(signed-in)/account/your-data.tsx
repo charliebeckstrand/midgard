@@ -1,11 +1,10 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Card, CardHeader, CardTitle } from 'ui/card'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { Divider } from 'ui/divider'
 import { Stack } from 'ui/structure/stack'
 import { deleteAccount, downloadAccount } from './account-api'
@@ -26,7 +25,7 @@ type YourDataProps = {
 export function YourData({ admin }: YourDataProps) {
 	const download = useMutation({ mutationFn: downloadAccount })
 	const remove = useMutation({ mutationFn: deleteAccount })
-	const [confirming, setConfirming] = useState(false)
+	const confirm = useConfirm()
 
 	const error = download.error ?? remove.error
 
@@ -67,26 +66,22 @@ export function YourData({ admin }: YourDataProps) {
 							variant="outline"
 							color="red"
 							disabled={admin || remove.isPending}
-							onClick={() => setConfirming(true)}
+							onClick={async () => {
+								const confirmed = await confirm({
+									title: 'Delete your account?',
+									description:
+										'Your account and all of its data are deleted. You cannot undo this.',
+									confirm: { label: 'Delete', color: 'red' },
+								})
+
+								if (confirmed) remove.mutate()
+							}}
 						>
 							Delete
 						</Button>
 					}
 				/>
 			</Stack>
-
-			<Confirm
-				open={confirming}
-				onOpenChange={setConfirming}
-				onConfirm={() => {
-					remove.mutate()
-
-					setConfirming(false)
-				}}
-				title="Delete your account?"
-				description="Your account and all of its data are deleted. You cannot undo this."
-				confirm={{ label: 'Delete', color: 'red' }}
-			/>
 		</Card>
 	)
 }

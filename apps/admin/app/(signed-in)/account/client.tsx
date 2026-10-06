@@ -2,11 +2,10 @@
 
 import { KeyIcon } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
-import { useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Card, CardHeader, CardTitle } from 'ui/card'
-import { Confirm } from 'ui/confirm'
+import { useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
 import { Icon } from 'ui/icon'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
@@ -65,7 +64,7 @@ export function AccountClient({
 	const add = useAddPasskey()
 	const remove = useRemovePasskey()
 	const sendLink = useSendVerificationEmail()
-	const [removing, setRemoving] = useState<Passkey | null>(null)
+	const confirm = useConfirm()
 
 	const error = add.error ?? remove.error ?? sendLink.error
 
@@ -128,7 +127,15 @@ export function AccountClient({
 											variant="plain"
 											size="sm"
 											disabled={remove.isPending}
-											onClick={() => setRemoving(passkey)}
+											onClick={async () => {
+												const confirmed = await confirm({
+													title: 'Remove this passkey?',
+													description: 'You cannot sign in with this passkey after you remove it.',
+													confirm: { label: 'Remove', color: 'red' },
+												})
+
+												if (confirmed) remove.mutate(passkey.id)
+											}}
 										>
 											Remove
 										</Button>
@@ -159,19 +166,6 @@ export function AccountClient({
 			</Card>
 
 			<YourData admin={user.roles.includes('admin')} />
-
-			<Confirm
-				open={removing !== null}
-				onOpenChange={(open) => !open && setRemoving(null)}
-				onConfirm={() => {
-					if (removing) remove.mutate(removing.id)
-
-					setRemoving(null)
-				}}
-				title="Remove this passkey?"
-				description="You cannot sign in with this passkey after you remove it."
-				confirm={{ label: 'Remove', color: 'red' }}
-			/>
 		</Stack>
 	)
 }
