@@ -9,7 +9,8 @@ import { type MarkdownHeadingOffset, MarkdownRenderer } from './markdown-rendere
 // task lists, strikethrough, autolinks).
 const md = new Marked({ gfm: true })
 
-const MAX_CACHE_SIZE = 200
+/** The count of sources that the token cache holds. */
+export const MARKDOWN_CACHE_SIZE = 200
 
 /**
  * The tokens of each block source that a {@link Markdown} lexed or that
@@ -28,7 +29,7 @@ function lex(source: string): Token[] {
 
 	const tokens = md.lexer(source)
 
-	if (tokenCache.size >= MAX_CACHE_SIZE) {
+	if (tokenCache.size >= MARKDOWN_CACHE_SIZE) {
 		tokenCache.delete(tokenCache.keys().next().value as string)
 	}
 

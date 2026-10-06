@@ -38,13 +38,13 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	const [open, setOpen] = useState<string[]>([])
 
-	// In idle time, the entry also lexes the Markdown of the API data, so the
-	// first entry that opens does not lex. A load in the background that fails
-	// does nothing. The open of an entry shows the failure.
+	// In idle time, the entry also lexes the Markdown of the API data in short
+	// slices, so the first entry that opens does not lex. A load in the
+	// background that fails does nothing. The open of an entry shows the failure.
 	const prepare = useCallback(
-		() =>
+		(signal: AbortSignal) =>
 			loadEntry()
-				.then((module) => module.primeApi(api))
+				.then((module) => module.primeApi(api, signal))
 				.catch(noop),
 		[api],
 	)
