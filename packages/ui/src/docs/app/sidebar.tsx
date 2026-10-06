@@ -40,12 +40,13 @@ function SearchResults({ pages }: { pages: readonly PageLink[] }) {
 		))
 }
 
-// An item is current on its page and on each tab of the page, which is a path
-// under the page. The item reads the path from `UIProvider`, so a navigation
-// renders only the two items whose match changes.
+// An item is current on its page. The shell gives `UIProvider` the path of the
+// matched page, which is the same on each tab of the page. The item reads the
+// path from `UIProvider`, so a navigation renders only the two items whose
+// match changes.
 const PageItem = memo(function PageItem({ page }: { page: PageLink }) {
 	return (
-		<SidebarItem href={page.path} match="prefix">
+		<SidebarItem href={page.path}>
 			<SidebarLabel>{page.name}</SidebarLabel>
 		</SidebarItem>
 	)

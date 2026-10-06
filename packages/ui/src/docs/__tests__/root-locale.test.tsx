@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { createMemoryRouter, RouterProvider } from 'react-router'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { useLocale } from 'ui/providers/locale'
 import { describe, expect, it, onTestFinished } from 'vitest'
@@ -38,15 +38,18 @@ describe('docs app shell', () => {
 	it('gives each page the en-US locale', () => {
 		restoreRootAfterCase()
 
+		// The shell reads the matched routes, so it needs a data router, as the app has.
+		const router = createMemoryRouter(
+			[{ path: '/', Component: App, children: [{ path: 'probe', Component: LocaleProbe }] }],
+			{ initialEntries: ['/probe'] },
+		)
+
+		// The router adds a window "pagehide" listener, and its disposal removes it.
+		onTestFinished(() => router.dispose())
+
 		render(
 			<AppearanceProvider>
-				<MemoryRouter initialEntries={['/probe']}>
-					<Routes>
-						<Route element={<App />}>
-							<Route path="probe" element={<LocaleProbe />} />
-						</Route>
-					</Routes>
-				</MemoryRouter>
+				<RouterProvider router={router} />
 			</AppearanceProvider>,
 		)
 
