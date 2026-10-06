@@ -1117,6 +1117,39 @@ describe('DatePicker input', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
+	// B01-C02: the inner DateInput has no `name`, so the picker passes the reset
+	// count of its Form down.
+	it('drops a refused partial entry when the bound Form resets to the same empty value', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ when: undefined as Date | undefined }}>
+				<DatePicker input name="when" aria-label="When" />
+				<button type="reset">Reset</button>
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		await user.type(input, '01/0')
+
+		await user.tab()
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(screen.getByText(/Enter a valid date/)).toBeInTheDocument()
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(input).toHaveValue('')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		expect(screen.queryByText(/Enter a valid date/)).not.toBeInTheDocument()
+	})
+
 	it('marks the typed input invalid from an enclosing Control error', () => {
 		const { container } = renderUI(
 			<Control severity="error">

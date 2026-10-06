@@ -10,7 +10,19 @@ import {
 	startOfDay,
 	startOfMonth,
 	startOfYear,
+	stepDate,
 } from '../../components/date-picker/date-picker-utilities'
+
+// Local midnight on a day of any year. The `Date` constructor reads years 0–99 as 1900–1999.
+function day(year: number, month: number, date: number): Date {
+	const value = new Date(0)
+
+	value.setFullYear(year, month, date)
+
+	value.setHours(0, 0, 0, 0)
+
+	return value
+}
 
 describe('formatDate', () => {
 	it('returns a localized date string', () => {
@@ -71,6 +83,38 @@ describe('addDays', () => {
 		expect(result.getMonth()).toBe(0)
 
 		expect(result.getDate()).toBe(29)
+	})
+})
+
+describe('stepDate', () => {
+	it('moves by days and by months inside years 1 to 9999', () => {
+		expect(stepDate(day(1, 0, 2), { days: -1 })).toEqual(day(1, 0, 1))
+
+		expect(stepDate(day(1, 1, 15), { months: -1 })).toEqual(day(1, 0, 15))
+
+		expect(stepDate(day(9999, 11, 30), { days: 1 })).toEqual(day(9999, 11, 31))
+
+		expect(stepDate(day(2024, 0, 31), { months: 1 })).toEqual(day(2024, 1, 29))
+	})
+
+	it('stays on the first day when a step goes back before year 1', () => {
+		expect(stepDate(day(1, 0, 1), { days: -1 })).toEqual(day(1, 0, 1))
+
+		expect(stepDate(day(1, 0, 1), { days: -7 })).toEqual(day(1, 0, 1))
+
+		expect(stepDate(day(1, 0, 1), { months: -1 })).toEqual(day(1, 0, 1))
+
+		expect(stepDate(day(1, 5, 15), { months: -12 })).toEqual(day(1, 5, 15))
+	})
+
+	it('stays on the last day when a step goes past year 9999', () => {
+		expect(stepDate(day(9999, 11, 31), { days: 1 })).toEqual(day(9999, 11, 31))
+
+		expect(stepDate(day(9999, 11, 30), { days: 7 })).toEqual(day(9999, 11, 30))
+
+		expect(stepDate(day(9999, 11, 1), { months: 1 })).toEqual(day(9999, 11, 1))
+
+		expect(stepDate(day(9999, 5, 15), { months: 12 })).toEqual(day(9999, 5, 15))
 	})
 })
 
