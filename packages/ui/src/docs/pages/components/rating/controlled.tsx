@@ -9,7 +9,7 @@ export default function Controlled() {
 	return (
 		<>
 			<Field>
-				<Label>Rate this recipe</Label>
+				<Label as="span">Rate this recipe</Label>
 				<Rating value={score} onValueChange={setScore} />
 			</Field>
 			<Text>Value: {score ?? 'Empty'}</Text>

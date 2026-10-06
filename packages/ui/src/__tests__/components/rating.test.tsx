@@ -195,7 +195,7 @@ describe('Rating', () => {
 	it('names the group from an enclosing Field label', () => {
 		const { container } = renderUI(
 			<Field>
-				<Label>How was it?</Label>
+				<Label as="span">How was it?</Label>
 				<Rating defaultValue={3} />
 			</Field>,
 		)
@@ -314,7 +314,7 @@ describe('Rating', () => {
 		it('joins the score to an enclosing Field label', () => {
 			renderUI(
 				<Field>
-					<Label>How was it?</Label>
+					<Label as="span">How was it?</Label>
 					<Rating readOnly value={3} />
 				</Field>,
 			)
@@ -336,7 +336,7 @@ describe('Rating', () => {
 		it('takes the description of an enclosing Field', () => {
 			renderUI(
 				<Field>
-					<Label>How was it?</Label>
+					<Label as="span">How was it?</Label>
 					<Rating readOnly value={3} />
 					<Description>From your last visit</Description>
 				</Field>,
@@ -387,7 +387,7 @@ describe('Rating', () => {
 	it('takes the description of an enclosing Field while disabled', () => {
 		renderUI(
 			<Field>
-				<Label>How was it?</Label>
+				<Label as="span">How was it?</Label>
 				<Rating disabled defaultValue={3} />
 				<Description>Rating closes after a week</Description>
 			</Field>,

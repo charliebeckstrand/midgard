@@ -7,6 +7,7 @@ import { Description, Field, Fieldset, Label, Legend, Message } from '../../comp
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Listbox } from '../../components/listbox'
+import { Rating } from '../../components/rating'
 import { Select } from '../../components/select'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
@@ -251,6 +252,38 @@ describe('Label', () => {
 		expect(bySlot(container, 'label')).toBeInTheDocument()
 
 		expect(screen.getByText('Name')).toBeInTheDocument()
+	})
+
+	it('points a field label at the control id', () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Name</Label>
+				<Input />
+			</Field>,
+		)
+
+		const label = getSlot(container, 'label')
+
+		expect(label.tagName).toBe('LABEL')
+
+		expect(label).toHaveAttribute('for', bySlot(container, 'input')?.id)
+	})
+
+	it('renders a span with no for attribute, and names the control by its id', () => {
+		const { container } = renderUI(
+			<Field>
+				<Label as="span">Score</Label>
+				<Rating />
+			</Field>,
+		)
+
+		const label = getSlot(container, 'label')
+
+		expect(label.tagName).toBe('SPAN')
+
+		expect(label).not.toHaveAttribute('for')
+
+		expect(bySlot(container, 'rating')).toHaveAttribute('aria-labelledby', label.id)
 	})
 })
 

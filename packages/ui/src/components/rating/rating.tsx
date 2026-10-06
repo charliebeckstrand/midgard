@@ -150,7 +150,9 @@ export type RatingProps = RatingVariants & {
  *
  * Binds to an enclosing Form field by `name`. Resolves `id` / `disabled` /
  * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`. The stars
- * take the step of the nearest density scope.
+ * take the step of the nearest density scope. A `<Label as="span">` in the
+ * Field names the stars through `aria-labelledby`. No one element of the stars
+ * is labelable, so a `<label for>` points at nothing.
  *
  * @remarks A click on the current score clears it while `clearable` holds. The
  * click is canceled rather than handled after the fact. A radio restores its

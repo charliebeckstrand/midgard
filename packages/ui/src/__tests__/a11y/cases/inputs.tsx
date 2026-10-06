@@ -139,7 +139,7 @@ export const inputCases: readonly Case[] = [
 		name: 'rating in field',
 		element: (
 			<Field key="f">
-				<Label>How was it?</Label>
+				<Label as="span">How was it?</Label>
 				<Rating defaultValue={4} />
 			</Field>
 		),

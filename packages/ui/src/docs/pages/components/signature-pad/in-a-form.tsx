@@ -18,7 +18,7 @@ export default function InAForm() {
 		>
 			<Stack gap="lg">
 				<Field>
-					<Label>Signature</Label>
+					<Label as="span">Signature</Label>
 					<Description>Sign with a mouse, a finger, or a stylus.</Description>
 					<SignaturePad name="signature" />
 					<Message name="signature" />

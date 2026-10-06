@@ -31,11 +31,11 @@ describe('Slider and Rating: invalid field', () => {
 		const { container } = renderUI(
 			<>
 				<Field severity="error">
-					<Label>Score</Label>
+					<Label as="span">Score</Label>
 					<Rating />
 				</Field>
 				<Field>
-					<Label>Score</Label>
+					<Label as="span">Score</Label>
 					<Rating />
 				</Field>
 			</>,
