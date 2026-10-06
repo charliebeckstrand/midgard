@@ -2,6 +2,7 @@ import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { serverAssetUrls } from './plugin/asset-urls.ts'
+import { componentEvents } from './plugin/component-events.ts'
 import { reactDocs } from './plugin/index.ts'
 
 // The docs of ui: `pnpm --filter ui dev` serves them, and `docs:build`
@@ -10,7 +11,7 @@ export default defineConfig({
 	// The root is this folder for each command, also for the preview server
 	// that the prerender starts from the package folder.
 	root: import.meta.dirname,
-	plugins: [reactDocs(), serverAssetUrls(), tailwindcss(), reactRouter()],
+	plugins: [reactDocs(), componentEvents(), serverAssetUrls(), tailwindcss(), reactRouter()],
 	server: {
 		port: 3456,
 		// Transform the shell on server start, so the first page does not wait for it.
@@ -31,12 +32,14 @@ export default defineConfig({
 	build: { target: 'esnext' },
 	// The client build puts React and the router in one chunk, the shell with
 	// each module that it imports in one more chunk, and the kit with each
-	// module that it imports in a third. Thus a page loads a few large chunks
-	// and not many small ones, and it makes fewer requests. A lazy module, such
-	// as the sheet of the Event log, then finds the modules that it shares with
-	// the kit in the kit chunk, and the build splits no small chunk from them.
-	// The API entry stays out of the kit chunk, because it loads on demand. The
-	// code of each page stays in the chunks of that page.
+	// module that it imports in a third. The shell chunk also holds the
+	// component events of the Event log, which each page imports. Thus a page
+	// loads a few large chunks and not many small ones, and it makes fewer
+	// requests. A lazy module, such as the sheet of the Event log, then finds
+	// the modules that it shares with the kit in the kit chunk, and the build
+	// splits no small chunk from them. The API entry stays out of the kit chunk,
+	// because it loads on demand. The code of each page stays in the chunks of
+	// that page.
 	environments: {
 		client: {
 			build: {
@@ -51,7 +54,7 @@ export default defineConfig({
 								},
 								{
 									name: 'shell',
-									test: /[\\/]src[\\/]docs[\\/]app[\\/]root\.tsx$/,
+									test: /[\\/]src[\\/]docs[\\/](?:app[\\/]root\.tsx|debug[\\/]event-log[\\/]component-events\.ts)$/,
 									priority: 1,
 								},
 								{

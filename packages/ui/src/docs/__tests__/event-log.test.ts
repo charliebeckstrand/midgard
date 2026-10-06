@@ -1,6 +1,7 @@
 import { notifyOverlaySignal } from 'ui/primitives/overlay'
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { attach } from '../../__tests__/helpers/attach.ts'
+import { componentEvent } from '../debug/event-log/component-events.ts'
 import {
 	begin,
 	CAPACITY,
@@ -350,6 +351,25 @@ describe('listen', () => {
 		expect(log.entries.map((line) => line.kind)).toEqual(['error', 'error', 'overlay'])
 
 		expect(texts(log).slice(0, 2)).toEqual(['boom', 'unhandled rejection gone'])
+	})
+
+	it('records the callbacks that a page gives to a component or a module, and stops with the log', () => {
+		const log = new EventLog(createStore())
+
+		const stop = listen(log)
+
+		componentEvent('component', 'Tab onPreload', vi.fn<(value: string) => void>())('Activity')
+
+		componentEvent('module', 'Grid onSortChange', vi.fn<(value: string) => void>())('name')
+
+		stop()
+
+		componentEvent('component', 'Tab onPreload', vi.fn<(value: string) => void>())('Billing')
+
+		expect(log.entries.map(({ kind, text }) => [kind, text])).toEqual([
+			['component', 'Tab onPreload("Activity")'],
+			['module', 'Grid onSortChange("name")'],
+		])
 	})
 
 	it('records a script call that moves the focus, and restores the method when it stops', () => {

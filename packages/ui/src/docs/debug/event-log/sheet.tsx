@@ -8,11 +8,36 @@ import { Flex } from 'ui/flex'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 import { dan } from '../../../recipes/kiso/dan/index.ts'
-import { type Entry, start } from './recorder.ts'
+import { getOrCompute } from '../../../utilities/get-or-compute.ts'
+import { type Entry, KINDS, type Kind, start } from './recorder.ts'
 
-/** One line of text: the time, the scroll position, the kind, and the text. */
-function line({ time, kind, text, y }: Entry): string {
-	return `${String(time).padStart(6)} y${String(y).padEnd(5)} ${kind.padEnd(8)} ${text}`
+/** The width of the kind column: the longest kind. */
+const KIND_WIDTH = Math.max(...KINDS.map((kind) => kind.length))
+
+/** The columns before the text of a line: the time, the scroll position, and the kind. */
+function columns({ time, kind, y }: Entry): string {
+	return `${String(time).padStart(6)} y${String(y).padEnd(5)} ${kind.padEnd(KIND_WIDTH)} `
+}
+
+/** One line of text: the columns, then the text. */
+function line(entry: Entry): string {
+	return columns(entry) + entry.text
+}
+
+// The key of each line. An entry is an object that the log keeps until it
+// drops the entry, so the key of a line stays while the line stays.
+const keys = new WeakMap<Entry, number>()
+
+let lastKey = 0
+
+function keyOf(entry: Entry): number {
+	return getOrCompute(keys, entry, () => ++lastKey)
+}
+
+/** The color of the kinds that stand apart from the DOM events: the callbacks of the components and of the modules. */
+const COLOR: Partial<Record<Kind, string>> = {
+	component: 'text-sky-600 dark:text-sky-400',
+	module: 'text-violet-600 dark:text-violet-400',
 }
 
 /**
@@ -71,7 +96,13 @@ export function EventLogSheet({
 				<SheetBody className="min-h-0 flex-1 overflow-auto">
 					{lines.length > 0 ? (
 						<pre className="m-0 whitespace-pre-wrap font-mono text-xs">
-							{lines.toReversed().join('\n')}
+							{entries.toReversed().map((entry) => (
+								// A long text wraps in its own column, under the start of the text.
+								<span key={keyOf(entry)} className={cn('flex', COLOR[entry.kind])}>
+									<span className="shrink-0 whitespace-pre">{columns(entry)}</span>
+									<span className="min-w-0 wrap-break-word">{entry.text}</span>
+								</span>
+							))}
 						</pre>
 					) : (
 						<Text tone="muted">No events</Text>
